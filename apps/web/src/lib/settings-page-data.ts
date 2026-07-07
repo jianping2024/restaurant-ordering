@@ -2,12 +2,14 @@ import 'server-only';
 
 import { redirect } from 'next/navigation';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
+import { loadBuffetDashboard, type BuffetDashboardData } from '@/lib/dashboard-buffet-server';
 import {
   normalizeRestaurantFeatureFlags,
   resolvePrintAgentCredentialTtlDays,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import { mapStaffRow } from '@/lib/staff-dashboard-api';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
 
@@ -69,4 +71,20 @@ export async function loadFeatureSettingsPageData(
     flags: normalizeRestaurantFeatureFlags(featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
   };
+}
+
+/** Buffet settings — same admin-backed loader as dashboard buffet API. */
+export async function loadBuffetSettingsPageData(
+  restaurantId: string,
+): Promise<BuffetDashboardData> {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    redirect('/dashboard');
+  }
+
+  const data = await loadBuffetDashboard(admin, restaurantId);
+  if ('error' in data) redirect('/dashboard');
+  return data;
 }

@@ -135,26 +135,3 @@ export async function deleteBuffetCalendarClient(onDate: string) {
     body: JSON.stringify({ resource: 'calendar', on_date: onDate }),
   });
 }
-
-export function applyBuffetDashboardData(
-  data: BuffetDashboardData,
-  handlers: {
-    setBuffets: (rows: BuffetDashboardData['buffets']) => void;
-    setSlots: (rows: BuffetDashboardData['slots']) => void;
-    setRules: (rows: BuffetDashboardData['rules']) => void;
-    setCalendarRows: (rows: BuffetDashboardData['calendarRows']) => void;
-    setFridayWeekendFrom: (value: string | null) => void;
-    setFridayEnabled: (enabled: boolean) => void;
-    setFridayDraftFrom: (hm: string) => void;
-    dbTimeToHm: (db: string | null) => string;
-  },
-) {
-  handlers.setBuffets(data.buffets);
-  handlers.setSlots(data.slots);
-  handlers.setRules(data.rules);
-  handlers.setCalendarRows(data.calendarRows);
-  const from = data.buffet_friday_weekend_from;
-  handlers.setFridayWeekendFrom(from);
-  handlers.setFridayEnabled(!!from);
-  handlers.setFridayDraftFrom(handlers.dbTimeToHm(from) || '18:00');
-}

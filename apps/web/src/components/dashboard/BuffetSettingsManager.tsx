@@ -14,38 +14,27 @@ import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
 import { BuffetTimeSlotsPanel } from '@/components/dashboard/buffet/BuffetTimeSlotsPanel';
-import { BuffetSettingsTabs } from '@/components/dashboard/buffet/BuffetSettingsTabs';
+import {
+  BuffetSettingsTabs,
+} from '@/components/dashboard/buffet/BuffetSettingsTabs';
 import { BuffetRulesToolbar } from '@/components/dashboard/buffet/BuffetRulesToolbar';
 import { buffetFieldClass, buffetPanelBodyClass, buffetPanelClass } from '@/components/dashboard/buffet/buffet-field-styles';
 import { BuffetPricePreview, type BuffetPricePreviewHandle } from '@/components/dashboard/buffet/BuffetPricePreview';
 import { BuffetPriceMatrix } from '@/components/dashboard/buffet/BuffetPriceMatrix';
 import { BuffetCalendarPanel } from '@/components/dashboard/buffet/BuffetCalendarPanel';
+import { useBuffetDashboard } from '@/components/dashboard/buffet/useBuffetDashboard';
 import {
+  buildBuffetRuleDraft,
+  buffetRuleToDraft,
   CALENDAR_KINDS,
-  dbTimeToHm,
   findOverlappingRules,
   getRuleStatus,
-  hmToDbTime,
   todayIsoLocal,
+  validateBuffetRuleDraft,
+  type BuffetRuleDraft,
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
 import type { BuffetDashboardData } from '@/lib/dashboard-buffet-server';
-import {
-  applyBuffetDashboardData,
-  createBuffetClient,
-  createBuffetRuleClient,
-  createBuffetSlotClient,
-  deleteBuffetCalendarClient,
-  deleteBuffetClient,
-  deleteBuffetRuleClient,
-  deleteBuffetSlotClient,
-  toggleBuffetRuleActiveClient,
-  updateBuffetClient,
-  updateBuffetFridayPolicyClient,
-  updateBuffetRuleClient,
-  updateBuffetSlotClient,
-  upsertBuffetCalendarClient,
-} from '@/lib/dashboard-buffet-client';
 
 interface Props {
   restaurantId: string;
@@ -61,20 +50,6 @@ type ConfirmState =
   | { kind: 'rule'; id: string }
   | { kind: 'calendar'; onDate: string };
 
-type RuleDraft = {
-  buffet_id: string;
-  time_slot_id: string;
-  calendar_kind: BuffetCalendarKind;
-  valid_from: string;
-  valid_to: string;
-  adult_price: number;
-  child_price: number;
-  priority: number;
-  is_active: boolean;
-  note: string;
-};
-
-/** Fields preset from the price matrix should not be changed in the create modal. */
 type RuleFieldLocks = {
   buffet?: boolean;
   slot?: boolean;
@@ -86,57 +61,39 @@ type RuleModalState =
   | { mode: 'create'; locks?: RuleFieldLocks }
   | { mode: 'edit'; id: string };
 
-function buildRuleDraft(
-  buffets: Buffet[],
-  slots: BuffetTimeSlot[],
-  overrides?: Partial<RuleDraft>,
-): RuleDraft | null {
-  if (!buffets[0] || !slots[0]) return null;
-  const today = new Date();
-  const y = today.getFullYear();
-  const m = String(today.getMonth() + 1).padStart(2, '0');
-  const d = String(today.getDate()).padStart(2, '0');
-  const base: RuleDraft = {
-    buffet_id: buffets[0].id,
-    time_slot_id: slots[0].id,
-    calendar_kind: 'weekday',
-    valid_from: `${y}-${m}-${d}`,
-    valid_to: `${y + 1}-${m}-${d}`,
-    adult_price: 20,
-    child_price: 10,
-    priority: 0,
-    is_active: true,
-    note: '',
-  };
-  return { ...base, ...overrides };
-}
-
-function ruleToDraft(rule: BuffetPriceRule): RuleDraft {
-  return {
-    buffet_id: rule.buffet_id,
-    time_slot_id: rule.time_slot_id,
-    calendar_kind: rule.calendar_kind,
-    valid_from: rule.valid_from?.slice(0, 10) ?? '',
-    valid_to: rule.valid_to?.slice(0, 10) ?? '',
-    adult_price: Number(rule.adult_price),
-    child_price: Number(rule.child_price),
-    priority: rule.priority,
-    is_active: rule.is_active,
-    note: rule.note ?? '',
-  };
-}
-
 export function BuffetSettingsManager({ restaurantId, embedded, initialData }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
   const weekdayShort = t.weekdayShort;
   const today = todayIsoLocal();
 
+  const {
+    buffets,
+    slots,
+    rules,
+    calendarRows,
+    fridayWeekendFrom,
+    fridayEnabled,
+    fridayDraftFrom,
+    fridaySaving,
+    setFridayEnabled,
+    setFridayDraftFrom,
+    createBuffet,
+    createSlot,
+    deleteBuffet,
+    deleteSlot,
+    deleteRule,
+    deleteCalendar,
+    updateBuffet,
+    updateSlot,
+    createRule,
+    updateRule,
+    toggleRuleActive,
+    upsertCalendar,
+    saveFridayPolicy,
+  } = useBuffetDashboard(initialData);
+
   const [tab, setTab] = useState<'buffets' | 'slots' | 'rules' | 'calendar'>('buffets');
-  const [buffets, setBuffets] = useState<Buffet[]>(initialData.buffets);
-  const [slots, setSlots] = useState<BuffetTimeSlot[]>(initialData.slots);
-  const [rules, setRules] = useState<BuffetPriceRule[]>(initialData.rules);
-  const [calendarRows, setCalendarRows] = useState(initialData.calendarRows);
 
   const [prompt, setPrompt] = useState<PromptState | null>(null);
   const [promptSubmitting, setPromptSubmitting] = useState(false);
@@ -144,7 +101,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
   const [confirmSubmitting, setConfirmSubmitting] = useState(false);
 
   const [ruleModal, setRuleModal] = useState<RuleModalState>(null);
-  const [ruleDraft, setRuleDraft] = useState<RuleDraft | null>(null);
+  const [ruleDraft, setRuleDraft] = useState<BuffetRuleDraft | null>(null);
   const [ruleSaveSubmitting, setRuleSaveSubmitting] = useState(false);
   const [pendingConflictSave, setPendingConflictSave] = useState(false);
 
@@ -154,15 +111,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
   const [filterSlotId, setFilterSlotId] = useState('');
   const [filterDayKind, setFilterDayKind] = useState<BuffetCalendarKind | ''>('');
   const [filterStatus, setFilterStatus] = useState<RuleStatusFilter | 'all'>('all');
-
-  const [fridayWeekendFrom, setFridayWeekendFrom] = useState<string | null>(
-    initialData.buffet_friday_weekend_from,
-  );
-  const [fridayEnabled, setFridayEnabled] = useState(!!initialData.buffet_friday_weekend_from);
-  const [fridayDraftFrom, setFridayDraftFrom] = useState(
-    dbTimeToHm(initialData.buffet_friday_weekend_from) || '18:00',
-  );
-  const [fridaySaving, setFridaySaving] = useState(false);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const previewRef = useRef<BuffetPricePreviewHandle>(null);
@@ -205,52 +153,14 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     }
   };
 
-  const applyDashboardData = useCallback(
-    (data: Parameters<typeof applyBuffetDashboardData>[0]) => {
-      applyBuffetDashboardData(data, {
-        setBuffets,
-        setSlots,
-        setRules,
-        setCalendarRows,
-        setFridayWeekendFrom,
-        setFridayEnabled,
-        setFridayDraftFrom,
-        dbTimeToHm,
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!matrixBuffetId && buffets[0]) setMatrixBuffetId(buffets[0].id);
-  }, [buffets, matrixBuffetId]);
-
-  const filteredRules = useMemo(() => {
-    return rules.filter((rule) => {
-      if (filterBuffetId && rule.buffet_id !== filterBuffetId) return false;
-      if (filterSlotId && rule.time_slot_id !== filterSlotId) return false;
-      if (filterDayKind && rule.calendar_kind !== filterDayKind) return false;
-      if (filterStatus !== 'all') {
-        const st = getRuleStatus(rule, today);
-        if (filterStatus === 'expired' && st !== 'expired') return false;
-        if (filterStatus === 'active' && st !== 'active') return false;
-        if (filterStatus === 'upcoming' && st !== 'upcoming') return false;
-      }
-      return true;
-    });
-  }, [rules, filterBuffetId, filterSlotId, filterDayKind, filterStatus, today]);
-
   const handlePromptSubmit = async (name: string) => {
     const kind = prompt?.kind;
     if (!kind) return;
     setPromptSubmitting(true);
     try {
       const result =
-        kind === 'buffet'
-          ? await createBuffetClient(name)
-          : await createBuffetSlotClient(name, slots.length);
+        kind === 'buffet' ? await createBuffet(name) : await createSlot(name, slots.length);
       if (!result.ok) showToast(t.saveError, 'error');
-      else applyDashboardData(result.data);
       setPrompt(null);
     } finally {
       setPromptSubmitting(false);
@@ -263,42 +173,38 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     try {
       let result;
       if (confirm.kind === 'buffet') {
-        result = await deleteBuffetClient(confirm.row.id);
+        result = await deleteBuffet(confirm.row.id);
       } else if (confirm.kind === 'slot') {
-        result = await deleteBuffetSlotClient(confirm.id);
+        result = await deleteSlot(confirm.id);
       } else if (confirm.kind === 'rule') {
-        result = await deleteBuffetRuleClient(confirm.id);
+        result = await deleteRule(confirm.id);
       } else if (confirm.kind === 'calendar') {
-        result = await deleteBuffetCalendarClient(confirm.onDate);
+        result = await deleteCalendar(confirm.onDate);
       }
       if (!result?.ok) showToast(t.saveError, 'error');
-      else applyDashboardData(result.data);
       setConfirm(null);
     } finally {
       setConfirmSubmitting(false);
     }
   };
 
-  const toggleBuffet = async (row: Buffet) => {
-    const result = await updateBuffetClient(row.id, { is_active: !row.is_active });
+  const toggleBuffetActive = async (row: Buffet) => {
+    const result = await updateBuffet(row.id, { is_active: !row.is_active });
     if (!result.ok) showToast(t.saveError, 'error');
-    else applyDashboardData(result.data);
   };
 
   const updateBuffetField = async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active'>>) => {
-    const result = await updateBuffetClient(id, patch);
+    const result = await updateBuffet(id, patch);
     if (!result.ok) showToast(t.saveError, 'error');
-    else applyDashboardData(result.data);
   };
 
   const updateSlotField = async (id: string, patch: Partial<BuffetTimeSlot>) => {
-    const result = await updateBuffetSlotClient(id, patch);
+    const result = await updateSlot(id, patch);
     if (!result.ok) showToast(t.saveError, 'error');
-    else applyDashboardData(result.data);
   };
 
-  const openRuleCreateModal = (overrides?: Partial<RuleDraft>, locks?: RuleFieldLocks) => {
-    const draft = buildRuleDraft(buffets, slots, overrides);
+  const openRuleCreateModal = (overrides?: Partial<BuffetRuleDraft>, locks?: RuleFieldLocks) => {
+    const draft = buildBuffetRuleDraft(buffets, slots, overrides);
     if (!draft) {
       showToast(t.needSlotAndBuffet, 'error');
       return;
@@ -309,14 +215,13 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
   };
 
   const openRuleEditModal = (rule: BuffetPriceRule) => {
-    setRuleDraft(ruleToDraft(rule));
+    setRuleDraft(buffetRuleToDraft(rule));
     setRuleModal({ mode: 'edit', id: rule.id });
     setPendingConflictSave(false);
   };
 
   const openRuleCopyModal = (rule: BuffetPriceRule) => {
-    const draft = ruleToDraft(rule);
-    setRuleDraft(draft);
+    setRuleDraft(buffetRuleToDraft(rule));
     setRuleModal({ mode: 'create' });
     setPendingConflictSave(false);
   };
@@ -342,46 +247,33 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
       is_active: ruleDraft.is_active,
       note: ruleDraft.note.trim() || null,
     };
-    if (ruleModal.mode === 'create') {
-      const result = await createBuffetRuleClient(payload);
-      if (!result.ok) showToast(t.saveError, 'error');
-      else {
-        applyDashboardData(result.data);
-        closeRuleModal();
-      }
-    } else {
-      const result = await updateBuffetRuleClient(ruleModal.id, payload);
-      if (!result.ok) showToast(t.saveError, 'error');
-      else {
-        applyDashboardData(result.data);
-        closeRuleModal();
-      }
-    }
+    const result =
+      ruleModal.mode === 'create'
+        ? await createRule(payload)
+        : await updateRule(ruleModal.id, payload);
+    if (!result.ok) showToast(t.saveError, 'error');
+    else closeRuleModal();
   };
 
   const saveRuleModal = async () => {
     if (!ruleDraft || !ruleModal) return;
-    if (!ruleDraft.valid_from || !ruleDraft.valid_to) {
-      showToast(t.ruleDateRequired, 'error');
-      return;
-    }
-    if (ruleDraft.valid_to < ruleDraft.valid_from) {
-      showToast(t.ruleInvalidDateRange, 'error');
-      return;
-    }
-
-    const overlaps = findOverlappingRules(rules, {
-      buffet_id: ruleDraft.buffet_id,
-      time_slot_id: ruleDraft.time_slot_id,
-      calendar_kind: ruleDraft.calendar_kind,
-      valid_from: ruleDraft.valid_from,
-      valid_to: ruleDraft.valid_to,
+    const validation = validateBuffetRuleDraft(ruleDraft, rules, {
       excludeId: ruleModal.mode === 'edit' ? ruleModal.id : undefined,
+      skipConflict: pendingConflictSave,
     });
-
-    if (overlaps.length > 0 && !pendingConflictSave) {
-      setPendingConflictSave(true);
-      return;
+    if (!validation.ok) {
+      if (validation.reason === 'date_required') {
+        showToast(t.ruleDateRequired, 'error');
+        return;
+      }
+      if (validation.reason === 'invalid_date_range') {
+        showToast(t.ruleInvalidDateRange, 'error');
+        return;
+      }
+      if (validation.reason === 'conflict') {
+        setPendingConflictSave(true);
+        return;
+      }
     }
 
     setRuleSaveSubmitting(true);
@@ -392,16 +284,14 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     }
   };
 
-  const toggleRuleActive = async (rule: BuffetPriceRule) => {
-    const result = await toggleBuffetRuleActiveClient(rule.id, !rule.is_active);
+  const handleToggleRuleActive = async (rule: BuffetPriceRule) => {
+    const result = await toggleRuleActive(rule.id, !rule.is_active);
     if (!result.ok) showToast(t.saveError, 'error');
-    else applyDashboardData(result.data);
   };
 
   const upsertCalendarRows = async (rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>) => {
-    const result = await upsertBuffetCalendarClient(rows);
+    const result = await upsertCalendar(rows);
     if (!result.ok) showToast(t.saveError, 'error');
-    else applyDashboardData(result.data);
   };
 
   const toggleWeekday = (slot: BuffetTimeSlot, dow: number) => {
@@ -421,28 +311,34 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     openRuleCreateModal({ calendar_kind: calendarKind });
   };
 
-  const saveFridayPolicy = async () => {
-    let dbValue: string | null = null;
-    if (fridayEnabled) {
-      dbValue = hmToDbTime(fridayDraftFrom);
-      if (!dbValue) {
-        showToast(t.fridayWeekendTimeInvalid, 'error');
-        return;
-      }
+  const handleSaveFridayPolicy = async () => {
+    const result = await saveFridayPolicy();
+    if (!result.ok) {
+      if (result.error === 'invalid_time') showToast(t.fridayWeekendTimeInvalid, 'error');
+      else showToast(t.saveError, 'error');
+      return;
     }
-    setFridaySaving(true);
-    try {
-      const result = await updateBuffetFridayPolicyClient(dbValue);
-      if (!result.ok) {
-        showToast(t.saveError, 'error');
-        return;
-      }
-      applyDashboardData(result.data);
-      showToast(t.fridayWeekendSaved, 'success');
-    } finally {
-      setFridaySaving(false);
-    }
+    showToast(t.fridayWeekendSaved, 'success');
   };
+
+  useEffect(() => {
+    if (!matrixBuffetId && buffets[0]) setMatrixBuffetId(buffets[0].id);
+  }, [buffets, matrixBuffetId]);
+
+  const filteredRules = useMemo(() => {
+    return rules.filter((rule) => {
+      if (filterBuffetId && rule.buffet_id !== filterBuffetId) return false;
+      if (filterSlotId && rule.time_slot_id !== filterSlotId) return false;
+      if (filterDayKind && rule.calendar_kind !== filterDayKind) return false;
+      if (filterStatus !== 'all') {
+        const st = getRuleStatus(rule, today);
+        if (filterStatus === 'expired' && st !== 'expired') return false;
+        if (filterStatus === 'active' && st !== 'active') return false;
+        if (filterStatus === 'upcoming' && st !== 'upcoming') return false;
+      }
+      return true;
+    });
+  }, [rules, filterBuffetId, filterSlotId, filterDayKind, filterStatus, today]);
 
   const overlapNames =
     ruleDraft && ruleModal
@@ -485,7 +381,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
         saving={fridaySaving}
         onEnabledChange={setFridayEnabled}
         onDraftFromChange={setFridayDraftFrom}
-        onSave={() => void saveFridayPolicy()}
+        onSave={() => void handleSaveFridayPolicy()}
       />
     );
 
@@ -605,7 +501,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       }}
                     />
                     <label className="flex items-center gap-1.5 text-[13px] text-brand-text-muted sm:justify-center">
-                      <input type="checkbox" checked={b.is_active} onChange={() => void toggleBuffet(b)} />
+                      <input type="checkbox" checked={b.is_active} onChange={() => void toggleBuffetActive(b)} />
                       {t.active}
                     </label>
                     <button
@@ -804,7 +700,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                                 <input
                                   type="checkbox"
                                   checked={rule.is_active}
-                                  onChange={() => void toggleRuleActive(rule)}
+                                  onChange={() => void handleToggleRuleActive(rule)}
                                   className="rounded border-brand-border"
                                   aria-label={t.active}
                                 />

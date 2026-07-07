@@ -1,4 +1,4 @@
-import type { BuffetCalendarKind, BuffetPriceRule } from '@/types';
+import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
 import { normalizeHmInput } from '@/lib/number-input';
 
 const LISBON_TZ = 'Europe/Lisbon';
@@ -220,3 +220,85 @@ export function nowTimeHmLocal(): string {
 }
 
 export const CALENDAR_KINDS: BuffetCalendarKind[] = ['weekday', 'weekend', 'holiday', 'special'];
+
+export type BuffetRuleDraft = {
+  buffet_id: string;
+  time_slot_id: string;
+  calendar_kind: BuffetCalendarKind;
+  valid_from: string;
+  valid_to: string;
+  adult_price: number;
+  child_price: number;
+  priority: number;
+  is_active: boolean;
+  note: string;
+};
+
+export function buildBuffetRuleDraft(
+  buffets: Buffet[],
+  slots: BuffetTimeSlot[],
+  overrides?: Partial<BuffetRuleDraft>,
+): BuffetRuleDraft | null {
+  if (!buffets[0] || !slots[0]) return null;
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  const base: BuffetRuleDraft = {
+    buffet_id: buffets[0].id,
+    time_slot_id: slots[0].id,
+    calendar_kind: 'weekday',
+    valid_from: `${y}-${m}-${d}`,
+    valid_to: `${y + 1}-${m}-${d}`,
+    adult_price: 20,
+    child_price: 10,
+    priority: 0,
+    is_active: true,
+    note: '',
+  };
+  return { ...base, ...overrides };
+}
+
+export function buffetRuleToDraft(rule: BuffetPriceRule): BuffetRuleDraft {
+  return {
+    buffet_id: rule.buffet_id,
+    time_slot_id: rule.time_slot_id,
+    calendar_kind: rule.calendar_kind,
+    valid_from: rule.valid_from?.slice(0, 10) ?? '',
+    valid_to: rule.valid_to?.slice(0, 10) ?? '',
+    adult_price: Number(rule.adult_price),
+    child_price: Number(rule.child_price),
+    priority: rule.priority,
+    is_active: rule.is_active,
+    note: rule.note ?? '',
+  };
+}
+
+export type BuffetRuleDraftValidation =
+  | { ok: true }
+  | { ok: false; reason: 'date_required' | 'invalid_date_range' | 'conflict'; overlaps: BuffetPriceRule[] };
+
+export function validateBuffetRuleDraft(
+  draft: BuffetRuleDraft,
+  rules: BuffetPriceRule[],
+  options: { excludeId?: string; skipConflict?: boolean } = {},
+): BuffetRuleDraftValidation {
+  if (!draft.valid_from || !draft.valid_to) {
+    return { ok: false, reason: 'date_required', overlaps: [] };
+  }
+  if (draft.valid_to < draft.valid_from) {
+    return { ok: false, reason: 'invalid_date_range', overlaps: [] };
+  }
+  const overlaps = findOverlappingRules(rules, {
+    buffet_id: draft.buffet_id,
+    time_slot_id: draft.time_slot_id,
+    calendar_kind: draft.calendar_kind,
+    valid_from: draft.valid_from,
+    valid_to: draft.valid_to,
+    excludeId: options.excludeId,
+  });
+  if (!options.skipConflict && overlaps.length > 0) {
+    return { ok: false, reason: 'conflict', overlaps };
+  }
+  return { ok: true };
+}

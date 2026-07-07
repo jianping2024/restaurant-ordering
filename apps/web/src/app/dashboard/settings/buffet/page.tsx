@@ -1,22 +1,18 @@
 import { redirect } from 'next/navigation';
+import { isRestaurantSuspended } from '@mesa/shared';
 import { BuffetSettingsManager } from '@/components/dashboard/BuffetSettingsManager';
-import { loadBuffetDashboard } from '@/lib/dashboard-buffet-server';
-import { loadOwnerRestaurantWithSlug } from '@/lib/staff-dashboard-api';
+import { loadBuffetSettingsPageData, requireOwnerRestaurant } from '@/lib/settings-page-data';
 
 export default async function SettingsBuffetPage() {
-  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
-  if ('error' in loaded) {
-    if (loaded.error === 'unauthorized') redirect('/auth/login');
-    redirect('/dashboard');
-  }
+  const restaurant = await requireOwnerRestaurant();
+  if (isRestaurantSuspended(restaurant.suspended_at)) redirect('/dashboard');
 
-  const data = await loadBuffetDashboard(loaded.admin, loaded.restaurant.id);
-  if ('error' in data) redirect('/dashboard');
+  const data = await loadBuffetSettingsPageData(restaurant.id);
 
   return (
     <BuffetSettingsManager
       embedded
-      restaurantId={loaded.restaurant.id}
+      restaurantId={restaurant.id}
       initialData={data}
     />
   );

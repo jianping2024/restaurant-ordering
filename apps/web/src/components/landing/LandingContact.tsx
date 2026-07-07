@@ -6,18 +6,20 @@ import {
   LandingExternalLink,
   LandingSection,
   LandingSectionHeader,
-  LandingWhatsAppButton,
 } from '@/components/landing/LandingPrimitives';
 import {
-  LANDING_PHONE_CONTACTS,
   LANDING_WECHAT_ID,
   LANDING_WECHAT_QR_PATH,
+  LANDING_WHATSAPP_CONTACTS,
 } from '@/lib/landing/contact';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
+const CHANNEL_ACTION_CLASS =
+  'flex items-center justify-between gap-3 rounded-xl border border-brand-border px-4 py-3 text-[15px] transition-colors hover:border-brand-gold/40 hover:bg-brand-gold/5';
+
 export function LandingContact() {
   const copy = useLandingCopy();
-  const { contact, hero } = copy;
+  const { contact } = copy;
   const [copied, setCopied] = useState(false);
 
   const copyWeChatId = async () => {
@@ -36,48 +38,56 @@ export function LandingContact() {
 
       <p className="mb-8 text-center text-[14px] font-medium text-brand-gold">{contact.pricingNote}</p>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <article className="rounded-2xl border border-brand-border bg-brand-card p-6">
-          <h3 className="font-heading text-xl text-brand-text">{contact.whatsappLabel}</h3>
-          <ul className="mt-2 space-y-1 text-[14px]">
-            {LANDING_PHONE_CONTACTS.map((phone) => (
-              <li key={phone.display}>
-                <LandingExternalLink
-                  href={phone.waUrl}
-                  className="text-brand-text-muted transition-colors hover:text-brand-gold"
-                >
-                  {phone.display}
+      <article className="mx-auto max-w-lg rounded-2xl border border-brand-border bg-brand-card">
+        <div className="p-5 sm:p-6">
+          <p className="text-[12px] font-medium uppercase tracking-wider text-brand-gold">
+            {contact.whatsappLabel}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {LANDING_WHATSAPP_CONTACTS.map((line) => (
+              <li key={line.display}>
+                <LandingExternalLink href={line.waUrl} className={CHANNEL_ACTION_CLASS}>
+                  <span className="min-w-0 text-left">
+                    <span className="block font-medium text-brand-text">{line.display}</span>
+                    {line.hint ? (
+                      <span className="mt-0.5 block text-[13px] text-brand-text-muted">{line.hint}</span>
+                    ) : null}
+                  </span>
+                  <span aria-hidden className="flex-shrink-0 text-brand-text-muted">
+                    ↗
+                  </span>
                 </LandingExternalLink>
               </li>
             ))}
           </ul>
-          <LandingWhatsAppButton className="mt-5 w-full">{hero.whatsappCta}</LandingWhatsAppButton>
-        </article>
+        </div>
 
-        <article className="rounded-2xl border border-brand-border bg-brand-card p-6">
-          <h3 className="font-heading text-xl text-brand-text">{contact.wechatLabel}</h3>
-          <p className="mt-2 text-[14px] text-brand-text-muted">{contact.wechatScanHint}</p>
-          <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-            <Image
-              src={LANDING_WECHAT_QR_PATH}
-              alt={`WeChat ${LANDING_WECHAT_ID}`}
-              width={148}
-              height={148}
-              className="rounded-xl border border-brand-border bg-white p-2"
-            />
-            <div className="text-center sm:text-left">
-              <p className="font-medium text-brand-text">{LANDING_WECHAT_ID}</p>
-              <button
-                type="button"
-                onClick={copyWeChatId}
-                className="mt-3 rounded-lg border border-brand-border px-4 py-2 text-[13px] text-brand-text-muted transition-colors hover:border-brand-gold/40 hover:text-brand-text"
-              >
-                {copied ? contact.wechatCopied : contact.wechatCopy}
-              </button>
-            </div>
+        <div className="border-t border-brand-border" />
+
+        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+          <Image
+            src={LANDING_WECHAT_QR_PATH}
+            alt={`${contact.wechatLabel} ${LANDING_WECHAT_ID}`}
+            width={96}
+            height={96}
+            className="mx-auto flex-shrink-0 rounded-xl border border-brand-border bg-white p-1.5 sm:mx-0"
+          />
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <p className="text-[12px] font-medium uppercase tracking-wider text-brand-gold">
+              {contact.wechatLabel}
+            </p>
+            <p className="mt-2 font-medium text-brand-text">{LANDING_WECHAT_ID}</p>
+            <p className="mt-1 text-[13px] text-brand-text-muted">{contact.wechatScanHint}</p>
+            <button
+              type="button"
+              onClick={copyWeChatId}
+              className="mt-3 rounded-lg border border-brand-border px-4 py-2 text-[13px] text-brand-text-muted transition-colors hover:border-brand-gold/40 hover:text-brand-text"
+            >
+              {copied ? contact.wechatCopied : contact.wechatCopy}
+            </button>
           </div>
-        </article>
-      </div>
+        </div>
+      </article>
 
       <div className="mt-12">
         <h3 className="text-center font-heading text-xl text-brand-text">{contact.stepsTitle}</h3>

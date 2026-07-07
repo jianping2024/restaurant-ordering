@@ -67,13 +67,15 @@ export function LandingWhatsAppButton({
   children,
   variant = 'primary',
   className = '',
+  href = LANDING_WHATSAPP_URL,
 }: {
   children: ReactNode;
   variant?: LandingButtonVariant;
   className?: string;
+  href?: string;
 }) {
   return (
-    <LandingButton href={LANDING_WHATSAPP_URL} variant={variant} className={className} external>
+    <LandingButton href={href} variant={variant} className={className} external>
       {children}
     </LandingButton>
   );

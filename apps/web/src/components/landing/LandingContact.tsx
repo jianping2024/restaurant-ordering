@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import {
+  LandingExternalLink,
   LandingSection,
   LandingSectionHeader,
   LandingWhatsAppButton,
 } from '@/components/landing/LandingPrimitives';
 import {
+  LANDING_PHONE_CONTACTS,
   LANDING_WECHAT_ID,
   LANDING_WECHAT_QR_PATH,
-  LANDING_WHATSAPP_DISPLAY,
 } from '@/lib/landing/contact';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
@@ -38,7 +39,18 @@ export function LandingContact() {
       <div className="grid gap-4 md:grid-cols-2">
         <article className="rounded-2xl border border-brand-border bg-brand-card p-6">
           <h3 className="font-heading text-xl text-brand-text">{contact.whatsappLabel}</h3>
-          <p className="mt-2 text-[14px] text-brand-text-muted">{LANDING_WHATSAPP_DISPLAY}</p>
+          <ul className="mt-2 space-y-1 text-[14px]">
+            {LANDING_PHONE_CONTACTS.map((phone) => (
+              <li key={phone.display}>
+                <LandingExternalLink
+                  href={phone.waUrl}
+                  className="text-brand-text-muted transition-colors hover:text-brand-gold"
+                >
+                  {phone.display}
+                </LandingExternalLink>
+              </li>
+            ))}
+          </ul>
           <LandingWhatsAppButton className="mt-5 w-full">{hero.whatsappCta}</LandingWhatsAppButton>
         </article>
 

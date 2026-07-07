@@ -1,6 +1,6 @@
 'use client';
 
-import { PreviewKitchenContent } from '@/components/landing/preview/PreviewKitchenScreen';
+import { PreviewBarContent } from '@/components/landing/preview/PreviewBarScreen';
 import { PreviewMenuContent } from '@/components/landing/preview/PreviewMenuScreen';
 import { PreviewWaiterOpenContent } from '@/components/landing/preview/PreviewWaiterOpenScreen';
 import {
@@ -19,7 +19,7 @@ function HeroPreviewStack() {
       >
         <div className="absolute right-0 top-6 w-[88%] opacity-40 md:w-[78%]">
           <div className="origin-top-right scale-[0.34] sm:scale-[0.38]">
-            <PreviewKitchenContent showLabel={false} />
+            <PreviewBarContent showLabel={false} />
           </div>
         </div>
         <div className="absolute left-0 top-10 w-[76%] opacity-55 md:w-[68%]">

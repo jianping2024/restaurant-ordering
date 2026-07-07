@@ -25,22 +25,22 @@ export function PreviewDashboardContent({ showLabel = true }: FrameOptions) {
         </div>
 
         <div className="mt-6 rounded-2xl border border-brand-border bg-brand-card p-4">
-          <p className="text-[13px] font-medium text-brand-text">今日热销菜品</p>
+          <p className="text-[13px] font-medium text-brand-text">今日热销酒水</p>
           <table className="mt-3 w-full text-left text-[14px]">
             <thead>
               <tr className="text-brand-text-muted">
-                <th className="pb-2 font-medium">菜品</th>
+                <th className="pb-2 font-medium">酒水</th>
                 <th className="pb-2 text-right font-medium">销量</th>
               </tr>
             </thead>
             <tbody>
-              {PREVIEW_DASHBOARD.topDishes.map((dish, index) => (
-                <tr key={dish.name} className="border-t border-brand-border">
+              {PREVIEW_DASHBOARD.topItems.map((item, index) => (
+                <tr key={item.name} className="border-t border-brand-border">
                   <td className="py-2 text-brand-text">
                     <span className="mr-2 text-brand-gold">{index + 1}</span>
-                    {dish.name}
+                    {item.name}
                   </td>
-                  <td className="py-2 text-right text-brand-text-muted">{dish.qty}</td>
+                  <td className="py-2 text-right text-brand-text-muted">{item.qty}</td>
                 </tr>
               ))}
             </tbody>

@@ -23,7 +23,7 @@ export function PreviewBillContent({ showLabel = true }: FrameOptions) {
       <div className="bg-brand-bg p-4">
         <PreviewSectionTitle>分单结账</PreviewSectionTitle>
         <div className="mt-1">
-          <PreviewMuted>自助餐人头费与加餐分开显示</PreviewMuted>
+          <PreviewMuted>自助餐人头费与酒水消费分开显示</PreviewMuted>
         </div>
 
         <div className="mt-5 space-y-2 rounded-2xl border border-brand-border bg-brand-card p-4 text-[14px]">
@@ -32,7 +32,7 @@ export function PreviewBillContent({ showLabel = true }: FrameOptions) {
             <span className="text-brand-text">{formatEuro(PREVIEW_BILL.buffetTotal)}</span>
           </div>
           <div className="flex justify-between text-brand-text-muted">
-            <span>加菜品</span>
+            <span>酒水消费</span>
             <span className="text-brand-text">{formatEuro(PREVIEW_BILL.addOnTotal)}</span>
           </div>
           <div className="flex justify-between border-t border-brand-border pt-2 font-semibold text-brand-text">

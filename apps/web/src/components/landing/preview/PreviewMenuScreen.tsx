@@ -1,5 +1,8 @@
 import {
-  PREVIEW_MENU_ITEMS,
+  PREVIEW_CART_LINES,
+  PREVIEW_CART_TOTAL,
+  PREVIEW_MENU_CATEGORIES,
+  PREVIEW_MENU_PHONE_ITEMS,
   PREVIEW_RESTAURANT_NAME,
   PREVIEW_TABLE,
 } from '@/lib/landing/preview-data';
@@ -15,8 +18,6 @@ type FrameOptions = {
 };
 
 export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
-  const cartTotal = PREVIEW_MENU_ITEMS.slice(0, 2).reduce((sum, item) => sum + item.price, 0);
-
   return (
     <PreviewDeviceFrame
       variant="phone"
@@ -26,10 +27,10 @@ export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
       <div className="bg-brand-bg">
         <div className="border-b border-brand-border px-4 py-4">
           <p className="font-heading text-lg text-brand-text">{PREVIEW_RESTAURANT_NAME}</p>
-          <PreviewMuted>扫码加餐 · 三语菜单</PreviewMuted>
+          <PreviewMuted>扫码点酒水 · 三语菜单 · 出品档口：吧台</PreviewMuted>
         </div>
         <div className="flex gap-2 overflow-x-auto px-4 py-3">
-          {['主菜', '饮品'].map((cat, index) => (
+          {PREVIEW_MENU_CATEGORIES.map((cat, index) => (
             <span
               key={cat}
               className={`rounded-full px-3 py-1 text-[13px] ${
@@ -43,13 +44,13 @@ export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
           ))}
         </div>
         <div className="space-y-3 px-4 pb-4">
-          {PREVIEW_MENU_ITEMS.map((item) => (
+          {PREVIEW_MENU_PHONE_ITEMS.map((item) => (
             <div
-              key={item.name}
+              key={item.code}
               className="flex items-center justify-between rounded-xl border border-brand-border bg-brand-card px-3 py-3"
             >
               <div>
-                <p className="font-medium text-brand-text">{item.name}</p>
+                <p className="font-medium text-brand-text">{item.nameZh}</p>
                 <p className="text-[12px] text-brand-text-muted">{item.category}</p>
               </div>
               <div className="text-right">
@@ -60,8 +61,10 @@ export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
         </div>
         <div className="border-t border-brand-border bg-brand-card px-4 py-3">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-brand-text-muted">购物车 2 道菜</span>
-            <span className="font-semibold text-brand-gold">{formatEuro(cartTotal)}</span>
+            <span className="text-[13px] text-brand-text-muted">
+              购物车 {PREVIEW_CART_LINES.length} 项饮料
+            </span>
+            <span className="font-semibold text-brand-gold">{formatEuro(PREVIEW_CART_TOTAL)}</span>
           </div>
           <button
             type="button"
@@ -78,7 +81,7 @@ export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
 
 export function PreviewMenuScreen() {
   return (
-    <PreviewShell title="Customer menu preview">
+    <PreviewShell title="Drinks menu preview">
       <PreviewMenuContent />
     </PreviewShell>
   );

@@ -13,7 +13,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: '葡萄牙中餐自助 · 专业运营系统',
       titleA: '让人头计费更精准',
       titleB: '让餐厅运营更从容',
-      desc: '服务员开台确认人数，顾客扫码加餐，厨房实时协同，前台智能分单 — 专为自助餐厅打造。',
+      desc: '服务员开台确认人数，顾客扫码点酒水，订单直达吧台，前台智能分单 — 专为自助餐厅打造。',
       whatsappCta: 'WhatsApp 咨询',
       wechatCta: '微信咨询',
       previewHint: '向下查看产品界面',
@@ -28,8 +28,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: '未开台就点单乱账',
-          problem: '顾客提前扫码加餐，与自助餐人头费混在一起，对账和纠纷成本高。',
-          solution: '开台后方可加餐，人头费与加菜品分开统计，账目清晰可追溯。',
+          problem: '顾客提前扫码点酒水，与自助餐人头费混在一起，对账和纠纷成本高。',
+          solution: '开台后方可点单，人头费与酒水消费分开统计，账目清晰可追溯。',
         },
         {
           title: '多国籍顾客沟通难',
@@ -51,8 +51,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: '服务员核对人数后确认开台，未开台前顾客端无法下单，降低漏单与纠纷风险。',
         },
         {
-          title: '加餐与厨房协同',
-          desc: '加餐订单实时推送厨房大屏，人头费与加菜品分开统计，高峰不丢单。',
+          title: '酒水点单与吧台协同',
+          desc: '酒水订单实时推送到吧台看板，人头费与酒水消费分开统计，高峰不丢单。',
         },
         {
           title: '前台结账与分单',
@@ -69,11 +69,11 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: '经营数据',
-          desc: '今日营业额、热销菜品实时掌握，辅助经营决策。',
+          desc: '今日营业额、热销酒水实时掌握，辅助经营决策。',
         },
         {
-          title: '打印与厨打',
-          desc: '厨房单、结账单按站点自动打印，减少沟通成本。',
+          title: '吧台打印',
+          desc: '酒水单、结账单按站点自动打印，减少沟通成本。',
         },
       ],
     },
@@ -83,17 +83,17 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       remoteDemo: '想亲自操作？通过 WhatsApp 预约远程演示',
       screens: [
         { id: 'waiter-open' as const, label: '开台', caption: '服务员确认成人 / 儿童人数' },
-        { id: 'menu' as const, label: '加餐', caption: '顾客扫码浏览菜单并下单' },
-        { id: 'kitchen' as const, label: '厨房', caption: '订单实时显示，状态一目了然' },
+        { id: 'menu' as const, label: '点酒水', caption: '饮料与水果酒分类菜单，订单直达吧台' },
+        { id: 'bar' as const, label: '吧台', caption: '酒水订单直达吧台，出单状态清晰' },
         { id: 'bill' as const, label: '分单', caption: '多种分单模式，结账更轻松' },
-        { id: 'dashboard' as const, label: '看板', caption: '营业额与热销菜品实时统计' },
+        { id: 'dashboard' as const, label: '看板', caption: '营业额与热销酒水实时统计' },
       ],
     },
     caseStudy: {
       title: '客户案例',
       name: 'Restaurante Pirata',
       location: '葡萄牙 · 中餐自助',
-      quote: 'MesaGo 试点客户，使用系统管理自助餐开台计费与加餐流程。',
+      quote: 'MesaGo 试点客户，使用系统管理自助餐开台计费与酒水点单流程。',
       tags: ['中餐自助', '人头计费', '三语菜单'],
     },
     contact: {
@@ -130,7 +130,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Chinese buffet in Portugal · Professional operations',
       titleA: 'Accurate per-guest billing',
       titleB: 'Calmer restaurant operations',
-      desc: 'Staff confirm headcount at open table, guests order add-ons by QR, kitchen stays in sync, and checkout supports smart bill split — built for buffet restaurants.',
+      desc: 'Staff confirm headcount at open table, guests order drinks by QR, tickets go straight to the bar, and checkout supports smart bill split — built for buffet restaurants.',
       whatsappCta: 'Chat on WhatsApp',
       wechatCta: 'WeChat',
       previewHint: 'See product screens below',
@@ -145,8 +145,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: 'Orders before open table',
-          problem: 'Add-ons placed before headcount is confirmed blur buffet vs. menu revenue.',
-          solution: 'Ordering unlocks after open table; buffet base and add-ons stay separate.',
+          problem: 'Drink orders placed before headcount is confirmed blur buffet vs. bar revenue.',
+          solution: 'Ordering unlocks after open table; buffet base and drink orders stay separate.',
         },
         {
           title: 'Multilingual guests',
@@ -165,11 +165,11 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: 'Open-table control',
-          desc: 'Staff verify headcount before guests can order add-ons.',
+          desc: 'Staff verify headcount before guests can order drinks.',
         },
         {
-          title: 'Add-ons & kitchen',
-          desc: 'Add-on tickets hit the kitchen display in real time; reporting stays clear.',
+          title: 'Drinks & bar',
+          desc: 'Drink orders hit the bar display in real time; reporting stays clear.',
         },
         {
           title: 'Checkout & split',
@@ -181,8 +181,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Everything else you need',
       items: [
         { title: 'Trilingual menu', desc: 'Portuguese, English, and Chinese for diverse guests.' },
-        { title: 'Business insights', desc: 'Today’s revenue and top dishes at a glance.' },
-        { title: 'Print routing', desc: 'Kitchen and receipt printing by station.' },
+        { title: 'Business insights', desc: 'Today’s revenue and top drinks at a glance.' },
+        { title: 'Bar printing', desc: 'Bar tickets and receipts by station.' },
       ],
     },
     preview: {
@@ -191,8 +191,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       remoteDemo: 'Want a live walkthrough? Book a remote demo via WhatsApp',
       screens: [
         { id: 'waiter-open' as const, label: 'Open table', caption: 'Staff confirm adult / child count' },
-        { id: 'menu' as const, label: 'Add-ons', caption: 'Guests browse and order by QR' },
-        { id: 'kitchen' as const, label: 'Kitchen', caption: 'Live tickets and dish status' },
+        { id: 'menu' as const, label: 'Drinks', caption: 'Beverages and fruit wine menu — orders to the bar' },
+        { id: 'bar' as const, label: 'Bar', caption: 'Drink orders routed to the bar with clear status' },
         { id: 'bill' as const, label: 'Split bill', caption: 'Flexible split modes at checkout' },
         { id: 'dashboard' as const, label: 'Dashboard', caption: 'Revenue and top sellers' },
       ],
@@ -201,7 +201,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Customer story',
       name: 'Restaurante Pirata',
       location: 'Portugal · Chinese buffet',
-      quote: 'MesaGo pilot customer using the system for buffet open-table billing and add-on orders.',
+      quote: 'MesaGo pilot customer using the system for buffet open-table billing and drink orders.',
       tags: ['Chinese buffet', 'Per-guest billing', 'Trilingual menu'],
     },
     contact: {
@@ -238,7 +238,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Buffet chines em Portugal · Operacao profissional',
       titleA: 'Cobranca por pessoa mais precisa',
       titleB: 'Operacao mais tranquila',
-      desc: 'Equipa confirma pessoas na abertura de mesa, clientes pedem extras por QR, cozinha em sincronia e conta dividida com inteligencia — feito para buffet.',
+      desc: 'Equipa confirma pessoas na abertura de mesa, clientes pedem bebidas por QR, pedidos vao ao balcao e conta dividida com inteligencia — feito para buffet.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       previewHint: 'Veja as interfaces abaixo',
@@ -253,8 +253,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: 'Pedidos antes da mesa aberta',
-          problem: 'Extras antes da confirmacao misturam receitas e geram disputas.',
-          solution: 'Pedidos so apos abertura; base buffet e extras separados.',
+          problem: 'Bebidas antes da confirmacao misturam receitas e geram disputas.',
+          solution: 'Pedidos so apos abertura; base buffet e bebidas separados.',
         },
         {
           title: 'Clientes multilingues',
@@ -273,11 +273,11 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
         {
           title: 'Controlo de abertura',
-          desc: 'Equipa confirma pessoas antes de permitir extras.',
+          desc: 'Equipa confirma pessoas antes de permitir pedidos de bebidas.',
         },
         {
-          title: 'Extras e cozinha',
-          desc: 'Pedidos extras em tempo real na cozinha; relatorios claros.',
+          title: 'Bebidas e balcao',
+          desc: 'Pedidos de bebidas em tempo real no balcao; relatorios claros.',
         },
         {
           title: 'Conta e divisao',
@@ -289,8 +289,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Suporte completo',
       items: [
         { title: 'Menu trilingue', desc: 'Portugues, ingles e chines.' },
-        { title: 'Dados do negocio', desc: 'Faturamento e pratos mais vendidos.' },
-        { title: 'Impressao', desc: 'Cozinha e recibos por estacao.' },
+        { title: 'Dados do negocio', desc: 'Faturamento e bebidas mais vendidas.' },
+        { title: 'Impressao no balcao', desc: 'Taloes de bebidas e recibos por estacao.' },
       ],
     },
     preview: {
@@ -299,8 +299,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       remoteDemo: 'Quer ver ao vivo? Marque demo remota por WhatsApp',
       screens: [
         { id: 'waiter-open' as const, label: 'Abertura', caption: 'Confirmar adultos e criancas' },
-        { id: 'menu' as const, label: 'Extras', caption: 'Clientes pedem por QR' },
-        { id: 'kitchen' as const, label: 'Cozinha', caption: 'Pedidos e estados em tempo real' },
+        { id: 'menu' as const, label: 'Bebidas', caption: 'Menu de bebidas e frutos — pedidos ao balcao' },
+        { id: 'bar' as const, label: 'Balcao', caption: 'Pedidos de bebidas no balcao com estado claro' },
         { id: 'bill' as const, label: 'Divisao', caption: 'Modos de divisao na conta' },
         { id: 'dashboard' as const, label: 'Painel', caption: 'Faturamento e top pratos' },
       ],
@@ -309,7 +309,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Cliente',
       name: 'Restaurante Pirata',
       location: 'Portugal · Buffet chines',
-      quote: 'Cliente piloto MesaGo para abertura buffet e pedidos extras.',
+      quote: 'Cliente piloto MesaGo para abertura buffet e pedidos de bebidas.',
       tags: ['Buffet chines', 'Por pessoa', 'Menu trilingue'],
     },
     contact: {

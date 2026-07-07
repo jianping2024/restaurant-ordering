@@ -17,7 +17,7 @@ const OUTPUT_DIR = path.resolve('apps/web/public/landing');
 const VIEWPORTS: Record<string, { width: number; height: number }> = {
   'waiter-open': { width: 900, height: 900 },
   menu: { width: 430, height: 900 },
-  kitchen: { width: 1200, height: 800 },
+  bar: { width: 1200, height: 800 },
   bill: { width: 430, height: 900 },
   dashboard: { width: 1200, height: 800 },
 };

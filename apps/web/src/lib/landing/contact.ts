@@ -8,8 +8,13 @@ export type LandingWhatsAppContact = {
 };
 
 export type LandingWeChatContact = {
-  id: string;
+  key: string;
+  display: string;
   qrPath: string;
+  /** WeChat ID for search/copy; omit for QR-only contacts. */
+  id?: string;
+  hint?: string;
+  primary?: boolean;
 };
 
 /** Single source for landing contact channels (sales → onboarding entry points). */
@@ -18,10 +23,21 @@ export const LANDING_WHATSAPP_CONTACTS: readonly LandingWhatsAppContact[] = [
   { display: '+351 925 736 572', waUrl: 'https://wa.me/351925736572' },
 ];
 
-export const LANDING_WECHAT: LandingWeChatContact = {
-  id: 'p9110925',
-  qrPath: '/contact/wechat-qr.png',
-};
+export const LANDING_WECHAT_CONTACTS: readonly LandingWeChatContact[] = [
+  {
+    key: 'p9110925',
+    display: 'p9110925',
+    id: 'p9110925',
+    qrPath: '/contact/wechat-qr.png',
+    primary: true,
+  },
+  {
+    key: 'qiang',
+    display: '强',
+    hint: '浙江 · 温州',
+    qrPath: '/contact/wechat-qr-qiang.png',
+  },
+];
 
 function resolvePrimaryWhatsApp(): LandingWhatsAppContact {
   return (
@@ -31,5 +47,3 @@ function resolvePrimaryWhatsApp(): LandingWhatsAppContact {
 
 export const LANDING_PRIMARY_WHATSAPP = resolvePrimaryWhatsApp();
 export const LANDING_WHATSAPP_URL = LANDING_PRIMARY_WHATSAPP.waUrl;
-export const LANDING_WECHAT_ID = LANDING_WECHAT.id;
-export const LANDING_WECHAT_QR_PATH = LANDING_WECHAT.qrPath;

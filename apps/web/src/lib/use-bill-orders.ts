@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deriveBillView, syncCustomerBill } from '@/lib/customer-bill-sync';
 import type { Order } from '@/types';
 
@@ -10,6 +10,7 @@ export function useBillOrders(
 ) {
   const [orders, setOrders] = useState(initialOrders);
   const [isSyncing, setIsSyncing] = useState(false);
+  const syncInFlightRef = useRef<Promise<Order[] | null> | null>(null);
 
   useEffect(() => {
     setOrders(initialOrders);
@@ -18,13 +19,23 @@ export function useBillOrders(
   const { orderLines, lineSpecs, total } = useMemo(() => deriveBillView(orders), [orders]);
 
   const refreshOrders = useCallback(async (): Promise<Order[] | null> => {
-    setIsSyncing(true);
-    try {
-      const synced = await syncCustomerBill(params.slug, params.tableId);
-      return synced?.orders ?? null;
-    } finally {
-      setIsSyncing(false);
+    if (syncInFlightRef.current) {
+      return syncInFlightRef.current;
     }
+
+    const promise = (async () => {
+      setIsSyncing(true);
+      try {
+        const synced = await syncCustomerBill(params.slug, params.tableId);
+        return synced?.orders ?? null;
+      } finally {
+        setIsSyncing(false);
+        syncInFlightRef.current = null;
+      }
+    })();
+
+    syncInFlightRef.current = promise;
+    return promise;
   }, [params.slug, params.tableId]);
 
   const commitOrders = useCallback((next: Order[]) => {
@@ -37,7 +48,7 @@ export function useBillOrders(
     return fresh;
   }, [refreshOrders, commitOrders]);
 
-  // Client navigations (menu → bill) may reuse a stale RSC payload; always reconcile on entry.
+  // Client navigations (menu → bill) may reuse a stale RSC payload; reconcile on entry in background.
   useEffect(() => {
     void syncOrders();
   }, [syncOrders]);

@@ -1,41 +1,33 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
-import {
-  allocationLockedPersonNames,
-  isCheckoutSplitLocked,
-  lockedByItemLineKeys,
-  shouldShowCheckoutSubmitted,
-} from '@/lib/checkout-split-continuation';
+import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import {
-  billSplitDisplayResults,
   buildCustomerSplitDisplayRows,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { dashboardCheckoutFocusHref } from '@/lib/checkout-queue-focus';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
-import { useByItemSplitState } from '@/lib/use-by-item-split-state';
+import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
-import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, OrderItem, SessionStatus, SplitMode, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, OrderItem, SessionStatus, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
-import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
+import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 
 interface Props {
@@ -51,16 +43,6 @@ interface Props {
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
   itemCodeByMenuId?: Record<string, string>;
-}
-
-interface PersonAmount {
-  name: string;
-  amount: number;
-}
-
-interface SplitPersonSlot {
-  id: string;
-  name: string;
 }
 
 const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
@@ -90,48 +72,15 @@ export function BillPage({
     : t.backToMenu;
   const checkoutRedirectHref = staffAssisted?.checkoutRedirectHref ?? null;
 
-  const guestName = (n: number) => `${t.guest} ${n}`;
+  const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
     formatOrderItemQuantityLabel(item, {
       headcountStyle: 'localized',
       guestLabels: orderListGuestLabelsFromLang(lang),
     });
-  const initialSplitMode: SplitMode | null = (() => {
-    if (!existingSplit) return null;
-    if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;
-    return existingSplit.split_mode;
-  })();
+
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
   const collectedPayments = initialCollectedPayments;
-  const collectedLedgerActive = collectedPayments.length > 0;
-  const [splitMode, setSplitMode] = useState<SplitMode | null>(initialSplitMode);
-  const [personCount, setPersonCount] = useState(() => {
-    if (existingSplit?.split_mode === 'even' && existingSplit.persons?.length) {
-      return existingSplit.persons.length;
-    }
-    return 2;
-  });
-  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() => {
-    if (existingSplit?.persons?.length) {
-      return existingSplit.persons.map((person, idx) => ({
-        id: `p${idx + 1}`,
-        name: person.name,
-      }));
-    }
-    return [
-      { id: 'p1', name: guestName(1) },
-      { id: 'p2', name: guestName(2) },
-    ];
-  });
-  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() => {
-    if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
-      return existingSplit.result.map((row) => ({ name: row.name, amount: row.amount }));
-    }
-    return [
-      { name: guestName(1), amount: 0 },
-      { name: guestName(2), amount: 0 },
-    ];
-  });
   const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
   const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
   const [submitting, setSubmitting] = useState(false);
@@ -146,148 +95,38 @@ export function BillPage({
     () => !!existingSplit && !!sessionId && !staffAssisted?.skipFeedback && !initialFeedbackSubmitted && !initialFeedbackSkipped,
   );
   const [customerNifInput, setCustomerNifInput] = useState('');
+
   const {
     orders,
     orderLines,
     lineSpecs,
     total,
-    isSyncing,
     refreshOrders,
     commitOrders,
-    syncOrders,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
+
+  const splitDraft = useBillSplitDraft({
+    existingSplit,
+    continuationSplit,
+    collectedPayments,
+    total,
+    orderLines,
+    lineSpecs,
+    wholeTableLabel: t.totalLabel,
+    guestName,
+    submitted,
+    persistedResult,
+    submitting,
+  });
 
   useEffect(() => {
     if (!checkoutRedirectHref || !submitted) return;
     router.replace(checkoutRedirectHref);
   }, [checkoutRedirectHref, submitted, router]);
 
-  const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
-  const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
-  const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
-  const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
-
-  const syncNameAcrossModes = (index: number, name: string) => {
-    setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
-    setCustomAmounts((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
-  };
-
-  const startInlineRename = (index: number) => {
-    const current = splitPeople[index];
-    if (!current) return;
-    if (splitLocked && lockedPersonNames.has(current.name.trim().toLowerCase())) return;
-    setEditingSplitNameIndex(index);
-    setEditingSplitNameValue(current.name);
-  };
-
-  const commitInlineRename = (index: number) => {
-    const normalized = editingSplitNameValue.trim();
-    if (splitMode === 'by_item') {
-      const oldName = results[index]?.name;
-      if (oldName && normalized) {
-        if (splitLocked && lockedPersonNames.has(oldName.trim().toLowerCase())) {
-          setEditingSplitNameIndex(null);
-          setEditingSplitNameValue('');
-          return;
-        }
-        renameByItemConsumer(oldName, normalized);
-      }
-    } else {
-      syncNameAcrossModes(index, normalized || guestName(index + 1));
-    }
-    setEditingSplitNameIndex(null);
-    setEditingSplitNameValue('');
-  };
-
-  const updateCustomAmount = (index: number, rawValue: string) => {
-    const parsed = Number(rawValue);
-    const safeValue = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
-    setCustomAmounts((prev) => {
-      const othersTotal = prev.reduce((sum, person, idx) => (idx === index ? sum : sum + person.amount), 0);
-      const maxAllowed = Math.max(0, total - othersTotal);
-      const nextValue = Math.min(safeValue, maxAllowed);
-      return prev.map((person, idx) => (idx === index ? { ...person, amount: nextValue } : person));
-    });
-  };
-
-  const startInlineAmountEdit = (index: number) => {
-    setEditingCustomAmountIndex(index);
-    setEditingCustomAmountValue(String(customAmounts[index]?.amount ?? 0));
-  };
-
-  const commitInlineAmountEdit = (index: number) => {
-    updateCustomAmount(index, editingCustomAmountValue || '0');
-    setEditingCustomAmountIndex(null);
-    setEditingCustomAmountValue('');
-  };
-
-  const {
-    byItemAllocations,
-    setByItemAllocations,
-    consumerRoster,
-    rememberConsumerName,
-    parsedByItemAllocations,
-    byItemProgress,
-    renameByItemConsumer,
-    buildPersonsForSubmit,
-  } = useByItemSplitState({ splitMode, lineSpecs, existingSplit: continuationSplit });
-
-  const splitLocked = useMemo(
-    () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
-    [continuationSplit, collectedLedgerActive],
-  );
-  const collectedPaymentsForLock = collectedPayments;
-  const lockedLineKeys = useMemo(
-    () =>
-      splitLocked
-        ? lockedByItemLineKeys(continuationSplit, collectedLedgerActive, collectedPaymentsForLock)
-        : new Set<string>(),
-    [splitLocked, continuationSplit, collectedLedgerActive, collectedPaymentsForLock],
-  );
-  const lockedPersonNames = useMemo(
-    () => allocationLockedPersonNames(continuationSplit, collectedPaymentsForLock),
-    [continuationSplit, collectedPaymentsForLock],
-  );
-
-  const splitDraftInput = useMemo(
-    () => ({
-      splitMode,
-      total,
-      orderLines,
-      lineSpecs,
-      personCount,
-      splitPeople,
-      customAmounts,
-      parsedByItemAllocations,
-      wholeTableLabel: t.totalLabel,
-    }),
-    [
-      splitMode,
-      total,
-      orderLines,
-      lineSpecs,
-      personCount,
-      splitPeople,
-      customAmounts,
-      parsedByItemAllocations,
-      t.totalLabel,
-    ],
-  );
-
-  const { results: computedResults, validation: splitValidation } = useMemo(
-    () => validateSplitDraft(splitDraftInput),
-    [splitDraftInput],
-  );
-
-  const results = billSplitDisplayResults({
-    checkoutSubmitted: submitted,
-    persistedResult,
-    draftResults: computedResults,
-  });
-
   const splitDisplayRows = useMemo(
-    () => (submitted ? buildCustomerSplitDisplayRows(results, collectedPayments) : []),
-    [submitted, results, collectedPayments],
+    () => (submitted ? buildCustomerSplitDisplayRows(splitDraft.results, collectedPayments) : []),
+    [submitted, splitDraft.results, collectedPayments],
   );
 
   const byItemAllocatorLabels = useMemo(
@@ -325,38 +164,23 @@ export function BillPage({
   );
 
   const splitValidationMessage =
-    splitValidation.ok
+    splitDraft.splitValidation.ok
       ? null
-      : splitValidation.issue === 'unassigned_items'
+      : splitDraft.splitValidation.issue === 'unassigned_items'
         ? t.splitUnassignedItems
-        : splitValidation.issue === 'incomplete_qty'
+        : splitDraft.splitValidation.issue === 'incomplete_qty'
           ? t.splitIncompleteQty
           : t.splitAmountMismatch;
 
   const customerNifInvalid =
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
-  const handleSplitModeClick = async (mode: SplitMode) => {
-    if (isSyncing || submitting || splitLocked) return;
-    if (splitMode === mode) {
-      setSplitMode(null);
-      return;
-    }
-    const fresh = await syncOrders();
-    if (!fresh) {
-      showToast(t.billSyncFailed, 'error');
-      return;
-    }
-    setSplitMode(mode);
-  };
-
-  // 呼叫结账
   const handleCallBill = async () => {
     if (customerNifInvalid) {
       showToast(t.nifInvalid, 'error');
       return;
     }
-    if (splitMode && !splitValidation.ok) {
+    if (splitDraft.splitMode && !splitDraft.splitValidation.ok) {
       showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
       return;
     }
@@ -377,7 +201,7 @@ export function BillPage({
 
       const freshView = deriveBillView(fresh);
       const { results: submitResults, validation } = validateSplitDraft({
-        ...splitDraftInput,
+        ...splitDraft.splitDraftInput,
         total: freshView.total,
         orderLines: freshView.orderLines,
         lineSpecs: freshView.lineSpecs,
@@ -393,16 +217,16 @@ export function BillPage({
         return;
       }
 
-      const persons = splitMode === 'by_item'
-        ? buildPersonsForSubmit()
-        : splitPeople.slice(0, submitResults.length).map((person, idx) => ({
+      const persons = splitDraft.splitMode === 'by_item'
+        ? splitDraft.buildPersonsForSubmit()
+        : splitDraft.splitPeople.slice(0, submitResults.length).map((person, idx) => ({
             name: submitResults[idx]?.name ?? person.name,
           }));
 
       const requestResult = await requestCheckoutRequest({
         slug: restaurant.slug,
         tableId,
-        splitMode,
+        splitMode: splitDraft.splitMode,
         persons,
         result: submitResults,
         customerNif: normalizePortugueseNif(customerNifInput) || null,
@@ -419,7 +243,6 @@ export function BillPage({
       }
 
       setContinuationSplit(null);
-
       setPersistedResult(requestResult.result);
       if (staffAssisted?.checkoutRedirectHref) {
         router.replace(
@@ -669,24 +492,23 @@ export function BillPage({
         backLink={staffAssisted ? null : { href: backHref, label: backLabel }}
       />
 
-      {/* 账单明细 */}
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {orderLines.map((item) => {
             const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
             return (
-            <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
-              <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                <span>{item.emoji}</span>
-                {itemCode && (
-                  <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">[{itemCode}]</span>
-                )}
-                <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
-                <span className="text-brand-text-muted text-[13px]">{lineQtyLabel(item)}</span>
+              <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                  <span>{item.emoji}</span>
+                  {itemCode ? (
+                    <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">[{itemCode}]</span>
+                  ) : null}
+                  <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
+                  <span className="text-brand-text-muted text-[13px]">{lineQtyLabel(item)}</span>
+                </div>
+                <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
               </div>
-              <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
-            </div>
             );
           })}
           <div className="flex items-center justify-between px-4 py-3 bg-brand-border/30">
@@ -696,228 +518,65 @@ export function BillPage({
         </div>
       </div>
 
-      {/* 分单模式选择 */}
-      <div className="px-4 py-4">
-        <h2 className="text-brand-text font-medium mb-3">{t.splitMode}</h2>
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {([
-            ['even', t.even],
-            ['by_item', t.byItem],
-            ['custom', t.custom],
-          ] as const).map(([mode, label]) => (
-            <button
-              key={mode}
-              type="button"
-              disabled={isSyncing || submitting || splitLocked}
-              onClick={() => void handleSplitModeClick(mode)}
-              className={`py-2.5 rounded-xl text-sm transition-all ${
-                splitMode === mode
-                  ? 'bg-brand-gold text-brand-on-gold font-semibold'
-                  : 'bg-brand-card border border-brand-border text-brand-text-muted'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        {splitLocked && (
-          <p className="text-brand-text-muted text-[13px] mb-2">{t.splitPlanLocked}</p>
-        )}
-        {!splitMode && !splitLocked && (
-          <p className="text-brand-text-muted text-[13px] mb-2">
-            {t.splitOptionalHint}
-          </p>
-        )}
-
-        {/* 人数选择（均摊）*/}
-        {splitMode === 'even' && (
-          <div className="flex items-center gap-4 mb-4">
-            <span className="text-brand-text-muted text-sm">{t.people}</span>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                disabled={splitLocked}
-                onClick={() => {
-                  const n = Math.max(2, personCount - 1);
-                  setPersonCount(n);
-                  setSplitPeople((prev) => {
-                    const next = prev.slice(0, n);
-                    setCustomAmounts((customPrev) => {
-                      const cut = customPrev.slice(0, n);
-                      return cut.map((row, idx) => ({ ...row, name: next[idx]?.name || row.name }));
-                    });
-                    return next;
-                  });
-                }}
-                className="w-8 h-8 rounded-full bg-brand-border text-brand-text flex items-center justify-center"
-              >−</button>
-              <span className="font-heading text-xl text-brand-gold">{personCount}</span>
-              <button
-                type="button"
-                disabled={splitLocked}
-                onClick={() => {
-                  const n = Math.min(20, personCount + 1);
-                  setPersonCount(n);
-                  setSplitPeople((prev) => {
-                    if (prev.length >= n) return prev.slice(0, n);
-                    const next = [...prev];
-                    for (let i = prev.length; i < n; i += 1) {
-                      next.push({ id: `p${i + 1}`, name: guestName(i + 1) });
-                    }
-                    setCustomAmounts((customPrev) => {
-                      const merged = [...customPrev];
-                      while (merged.length < n) {
-                        const idx = merged.length;
-                        merged.push({ name: next[idx].name, amount: 0 });
-                      }
-                      return merged.slice(0, n).map((row, idx) => ({ ...row, name: next[idx].name }));
-                    });
-                    return next;
-                  });
-                }}
-                className="w-8 h-8 rounded-full bg-brand-border text-brand-text flex items-center justify-center"
-              >+</button>
-            </div>
-          </div>
-        )}
-
-        {/* 按菜分配 */}
-        {splitMode === 'by_item' && (
-          <ByItemSplitSection
-            lang={lang}
-            lineSpecs={lineSpecs}
-            orderLines={orderLines}
-            byItemAllocations={byItemAllocations}
-            consumerRoster={consumerRoster}
-            labels={byItemAllocatorLabels}
-            itemCodeByMenuId={itemCodeByMenuId}
-            progress={byItemProgress}
-            lockedLineKeys={lockedLineKeys}
-            onAllocationChange={(key, rows) => {
-              if (lockedLineKeys.has(key)) return;
-              setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
-            }}
-            onRememberConsumerName={rememberConsumerName}
-          />
-        )}
-
-      </div>
-
-      {/* 分单结果 */}
-      <div className="px-4 py-4">
-        <h2 className="text-brand-text font-medium mb-3">{t.splitResult}</h2>
-        <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-          {results.map((r, i) => {
-            const rowPaid = splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
-            return (
-            <div key={i} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0">
-              {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
-                editingSplitNameIndex === i ? (
-                  <input
-                    type="text"
-                    autoFocus
-                    value={editingSplitNameValue}
-                    onChange={(e) => setEditingSplitNameValue(e.target.value)}
-                    onBlur={() => commitInlineRename(i)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitInlineRename(i);
-                      }
-                      if (e.key === 'Escape') {
-                        setEditingSplitNameIndex(null);
-                        setEditingSplitNameValue('');
-                      }
-                    }}
-                    className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
-                    placeholder={guestName(i + 1)}
-                  />
-                ) : rowPaid ? (
-                  <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => startInlineRename(i)}
-                    className="text-brand-text text-sm hover:text-brand-gold transition-colors"
-                  >
-                    {localizeSplitPersonName(r.name, lang)}
-                  </button>
-                )
-              ) : (
-                <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
-              )}
-              {splitMode === 'custom' ? (
-                i === customAmounts.length - 1 ? (
-                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
-                ) : (
-                  editingCustomAmountIndex === i ? (
-                    <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px]">
-                      <span className="mr-1">€</span>
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        autoFocus
-                        value={editingCustomAmountValue}
-                        onChange={(e) => setEditingCustomAmountValue(normalizeAmountInput(e.target.value))}
-                        onBlur={() => commitInlineAmountEdit(i)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            commitInlineAmountEdit(i);
-                          }
-                          if (e.key === 'Escape') {
-                            setEditingCustomAmountIndex(null);
-                            setEditingCustomAmountValue('');
-                          }
-                        }}
-                        className="w-16 bg-transparent text-brand-gold font-medium text-sm text-right focus:outline-none"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  ) : rowPaid ? (
-                    <span className="text-brand-gold font-medium">€{customAmounts[i]?.amount.toFixed(2) || '0.00'}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => startInlineAmountEdit(i)}
-                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors"
-                    >
-                      €{customAmounts[i]?.amount.toFixed(2) || '0.00'}
-                    </button>
-                  )
-                )
-              ) : (
-                <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
-              )}
-            </div>
-          );
-          })}
-        </div>
-        {splitMode === 'custom' && !splitLocked && (
-          <button
-            onClick={() => {
-              setCustomAmounts(prev => {
-                const nextIndex = prev.length;
-                const fallback = guestName(nextIndex + 1);
-                const name = splitPeople[nextIndex]?.name || fallback;
-                return [...prev, { name, amount: 0 }];
-              });
-              setSplitPeople((prev) => {
-                if (prev.length > customAmounts.length) return prev;
-                const nextIndex = prev.length;
-                return [...prev, { id: `p${nextIndex + 1}`, name: guestName(nextIndex + 1) }];
-              });
-            }}
-            className="mt-3 w-full text-brand-text-muted text-sm py-2 border border-dashed border-brand-border rounded-xl hover:border-brand-gold/50 transition-colors"
-          >
-            + {t.addPerson}
-          </button>
-        )}
-      </div>
-
-      {splitValidationMessage ? (
-        <p className="px-4 pb-2 text-[13px] text-red-500">{splitValidationMessage}</p>
-      ) : null}
+      <BillSplitPanel
+        lang={lang}
+        copy={{
+          splitMode: t.splitMode,
+          even: t.even,
+          byItem: t.byItem,
+          custom: t.custom,
+          splitPlanLocked: t.splitPlanLocked,
+          splitOptionalHint: t.splitOptionalHint,
+          people: t.people,
+          splitResult: t.splitResult,
+          addPerson: t.addPerson,
+        }}
+        splitMode={splitDraft.splitMode}
+        splitLocked={splitDraft.splitLocked}
+        submitting={submitting}
+        personCount={splitDraft.personCount}
+        splitPeople={splitDraft.splitPeople}
+        customAmounts={splitDraft.customAmounts}
+        results={splitDraft.results}
+        lockedPersonNames={splitDraft.lockedPersonNames}
+        lockedLineKeys={splitDraft.lockedLineKeys}
+        lineSpecs={lineSpecs}
+        orderLines={orderLines}
+        byItemAllocations={splitDraft.byItemAllocations}
+        consumerRoster={splitDraft.consumerRoster}
+        byItemProgress={splitDraft.byItemProgress}
+        byItemAllocatorLabels={byItemAllocatorLabels}
+        itemCodeByMenuId={itemCodeByMenuId}
+        splitValidationMessage={splitValidationMessage}
+        guestName={guestName}
+        editingSplitNameIndex={splitDraft.editingSplitNameIndex}
+        editingSplitNameValue={splitDraft.editingSplitNameValue}
+        editingCustomAmountIndex={splitDraft.editingCustomAmountIndex}
+        editingCustomAmountValue={splitDraft.editingCustomAmountValue}
+        onSplitModeClick={splitDraft.handleSplitModeClick}
+        onDecrementPersonCount={splitDraft.decrementPersonCount}
+        onIncrementPersonCount={splitDraft.incrementPersonCount}
+        onAllocationChange={(key, rows) => {
+          if (splitDraft.lockedLineKeys.has(key)) return;
+          splitDraft.setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
+        }}
+        onRememberConsumerName={splitDraft.rememberConsumerName}
+        onStartInlineRename={splitDraft.startInlineRename}
+        onCommitInlineRename={splitDraft.commitInlineRename}
+        onEditingSplitNameValueChange={splitDraft.setEditingSplitNameValue}
+        onCancelInlineRename={() => {
+          splitDraft.setEditingSplitNameIndex(null);
+          splitDraft.setEditingSplitNameValue('');
+        }}
+        onStartInlineAmountEdit={splitDraft.startInlineAmountEdit}
+        onCommitInlineAmountEdit={splitDraft.commitInlineAmountEdit}
+        onEditingCustomAmountValueChange={splitDraft.setEditingCustomAmountValue}
+        onCancelInlineAmountEdit={() => {
+          splitDraft.setEditingCustomAmountIndex(null);
+          splitDraft.setEditingCustomAmountValue('');
+        }}
+        onAddCustomPerson={splitDraft.addCustomPerson}
+      />
 
       {!submitted ? (
         <div className="px-4 pb-3">
@@ -944,14 +603,19 @@ export function BillPage({
         </div>
       ) : null}
 
-      {/* 呼叫结账 */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
         <Button
           className="w-full"
           size="lg"
           onClick={handleCallBill}
           loading={submitting}
-          disabled={orderLines.length === 0 || !sessionId || isSyncing || submitting || (!!splitMode && !splitValidation.ok) || customerNifInvalid}
+          disabled={
+            orderLines.length === 0
+            || !sessionId
+            || submitting
+            || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
+            || customerNifInvalid
+          }
         >
           🔔 {t.callBill} — €{total.toFixed(2)}
         </Button>

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { billOrdersFingerprint, isBillOrdersComplete } from './customer-bill-sync';
 import { computeSplitResults, validateSplitDraft } from './bill-split-draft';
+import { resolveInitialSplitMode } from './use-bill-split-draft';
 import type { BillSplitOrderLine, ByItemLineSpec } from './bill-split-by-item-lines';
 import type { Order } from '../types';
 
@@ -141,5 +142,34 @@ describe('validateSplitDraft', () => {
     if (!outcome.validation.ok) {
       assert.equal(outcome.validation.issue, 'amount_mismatch');
     }
+  });
+});
+
+describe('resolveInitialSplitMode', () => {
+  it('returns null when no existing split', () => {
+    assert.equal(resolveInitialSplitMode(null), null);
+  });
+
+  it('returns null for whole-table custom single row', () => {
+    assert.equal(
+      resolveInitialSplitMode({
+        split_mode: 'custom',
+        result: [{ name: 'Total', amount: 50 }],
+      } as never),
+      null,
+    );
+  });
+
+  it('returns persisted mode for multi-person custom split', () => {
+    assert.equal(
+      resolveInitialSplitMode({
+        split_mode: 'custom',
+        result: [
+          { name: 'A', amount: 25 },
+          { name: 'B', amount: 25 },
+        ],
+      } as never),
+      'custom',
+    );
   });
 });

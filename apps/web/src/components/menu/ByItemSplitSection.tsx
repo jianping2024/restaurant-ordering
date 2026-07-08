@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { getByItemLineStatusFromRows, isByItemLineComplete, type ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -36,12 +36,27 @@ export function ByItemSplitSection({
   progress,
 }: Props) {
   const [expandedOverrides, setExpandedOverrides] = useState<Record<string, boolean>>({});
-  const isLineExpanded = (key: string) => expandedOverrides[key] ?? true;
+
+  const defaultExpandedKey = useMemo(() => {
+    const firstIncomplete = lineSpecs.find((spec) => {
+      const rows = byItemAllocations[spec.key] ?? [];
+      return !isByItemLineComplete(getByItemLineStatusFromRows(rows, spec));
+    });
+    return firstIncomplete?.key ?? lineSpecs[0]?.key ?? null;
+  }, [lineSpecs, byItemAllocations]);
+
+  const isLineExpanded = (key: string) => {
+    if (key in expandedOverrides) return expandedOverrides[key];
+    return key === defaultExpandedKey;
+  };
   const toggleLineExpanded = (key: string) => {
-    setExpandedOverrides((prev) => ({
-      ...prev,
-      [key]: !(prev[key] ?? true),
-    }));
+    setExpandedOverrides((prev) => {
+      const currentlyExpanded = key in prev ? prev[key] : key === defaultExpandedKey;
+      return {
+        ...prev,
+        [key]: !currentlyExpanded,
+      };
+    });
   };
 
   const lineQtyLabel = (item: BillSplitOrderLine) =>

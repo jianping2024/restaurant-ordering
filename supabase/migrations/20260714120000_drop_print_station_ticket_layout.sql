@@ -20,10 +20,8 @@ begin
   return new;
 end;
 $$;
-
 update public.print_jobs
 set payload = payload - 'ticket_layout'
 where type = 'station_ticket'
   and payload ? 'ticket_layout';
-
 alter table public.print_stations drop column ticket_layout;

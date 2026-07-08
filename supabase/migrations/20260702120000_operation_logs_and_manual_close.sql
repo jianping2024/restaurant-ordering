@@ -17,15 +17,11 @@ CREATE TABLE public.operation_logs (
   device_info text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE INDEX idx_operation_logs_restaurant_created
   ON public.operation_logs (restaurant_id, created_at DESC);
-
 ALTER TABLE public.operation_logs ENABLE ROW LEVEL SECURITY;
-
 ALTER TABLE public.abnormal_operations
   ADD COLUMN IF NOT EXISTS source_action_id uuid REFERENCES public.operation_logs (id) ON DELETE SET NULL;
-
 CREATE OR REPLACE FUNCTION public.compute_session_payment_gap(
   p_restaurant_id uuid,
   p_session_id uuid
@@ -85,7 +81,6 @@ BEGIN
   );
 END;
 $$;
-
 CREATE OR REPLACE FUNCTION public.close_table_session_manual(
   p_restaurant_id uuid,
   p_table_id uuid,
@@ -222,10 +217,8 @@ EXCEPTION
     );
 END;
 $$;
-
 REVOKE ALL ON FUNCTION public.compute_session_payment_gap(uuid, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.compute_session_payment_gap(uuid, uuid) TO authenticated, service_role;
-
 REVOKE ALL ON FUNCTION public.close_table_session_manual(
   uuid, uuid, uuid, text, boolean, text, text
 ) FROM PUBLIC;

@@ -5,7 +5,6 @@ create unique index if not exists idx_bill_splits_one_active_per_session
   on public.bill_splits (session_id)
   where session_id is not null
     and status in ('pending', 'confirmed', 'requested');
-
 create or replace function public.void_all_line_items_for_forced_close(p_items jsonb)
 returns jsonb
 language plpgsql
@@ -29,7 +28,6 @@ begin
   ), '[]'::jsonb);
 end;
 $$;
-
 create or replace function public.merge_split_result_paid(p_incoming jsonb, p_existing jsonb)
 returns jsonb
 language plpgsql
@@ -86,7 +84,6 @@ begin
   return v_result;
 end;
 $$;
-
 create or replace function public.upsert_bill_split_request(
   p_restaurant_id uuid,
   p_session_id uuid,
@@ -243,7 +240,6 @@ exception
     );
 end;
 $$;
-
 create or replace function public.close_table_session_operational(
   p_restaurant_id uuid,
   p_table_id uuid,
@@ -335,7 +331,6 @@ exception
     );
 end;
 $$;
-
 create or replace function public.confirm_bill_split_payment(
   p_restaurant_id uuid,
   p_bill_split_id uuid,
@@ -531,14 +526,12 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.upsert_bill_split_request(
   uuid, uuid, uuid, text, uuid[], text, jsonb, jsonb, numeric
 ) from public;
 grant execute on function public.upsert_bill_split_request(
   uuid, uuid, uuid, text, uuid[], text, jsonb, jsonb, numeric
 ) to authenticated, service_role;
-
 revoke all on function public.close_table_session_operational(
   uuid, uuid, text, uuid
 ) from public;

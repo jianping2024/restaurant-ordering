@@ -8,7 +8,6 @@ CREATE TABLE public.platform_admin_accounts (
   disabled_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE TABLE public.platform_admin_audit_log (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   actor_user_id uuid REFERENCES auth.users (id) ON DELETE SET NULL,
@@ -19,15 +18,11 @@ CREATE TABLE public.platform_admin_audit_log (
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE INDEX idx_platform_admin_audit_log_created
   ON public.platform_admin_audit_log (created_at DESC);
-
 CREATE INDEX idx_platform_admin_audit_log_restaurant
   ON public.platform_admin_audit_log (restaurant_id)
   WHERE restaurant_id IS NOT NULL;
-
 ALTER TABLE public.platform_admin_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_admin_audit_log ENABLE ROW LEVEL SECURITY;
-
--- No policies: tenant-facing roles must not read/write; @mesa/ops uses service role after session check.
+-- No policies: tenant-facing roles must not read/write; @mesa/ops uses service role after session check.;

@@ -15,11 +15,9 @@ SET sort_order = r.new_sort_order
 FROM ranked AS r
 WHERE m.id = r.id
   AND m.sort_order IS DISTINCT FROM r.new_sort_order;
-
 CREATE UNIQUE INDEX IF NOT EXISTS idx_menu_items_category_sort_order
   ON public.menu_items (restaurant_id, category_id, sort_order)
   WHERE category_id IS NOT NULL;
-
 CREATE UNIQUE INDEX IF NOT EXISTS idx_menu_items_uncategorized_sort_order
   ON public.menu_items (restaurant_id, sort_order)
   WHERE category_id IS NULL;

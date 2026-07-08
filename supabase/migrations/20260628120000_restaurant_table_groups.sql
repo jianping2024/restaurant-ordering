@@ -11,26 +11,20 @@ CREATE TABLE IF NOT EXISTS public.restaurant_table_groups (
     char_length(btrim(name)) >= 1 AND char_length(btrim(name)) <= 32
   )
 );
-
 CREATE UNIQUE INDEX restaurant_table_groups_restaurant_name_unique
   ON public.restaurant_table_groups (restaurant_id, name);
-
 CREATE INDEX idx_restaurant_table_groups_restaurant_sort
   ON public.restaurant_table_groups (restaurant_id, sort_order, created_at);
-
 CREATE TABLE IF NOT EXISTS public.restaurant_table_group_members (
   group_id uuid NOT NULL REFERENCES public.restaurant_table_groups(id) ON DELETE CASCADE,
   table_id uuid NOT NULL REFERENCES public.restaurant_tables(id) ON DELETE CASCADE,
   restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
   PRIMARY KEY (group_id, table_id)
 );
-
 CREATE UNIQUE INDEX restaurant_table_group_members_restaurant_table_unique
   ON public.restaurant_table_group_members (restaurant_id, table_id);
-
 CREATE INDEX idx_restaurant_table_group_members_group
   ON public.restaurant_table_group_members (group_id);
-
 CREATE OR REPLACE FUNCTION public.enforce_table_group_member_same_restaurant()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -59,7 +53,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE OR REPLACE FUNCTION public.purge_table_group_member_on_soft_delete()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -72,19 +65,16 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER restaurant_table_group_members_same_restaurant
   BEFORE INSERT OR UPDATE OF group_id, table_id, restaurant_id
   ON public.restaurant_table_group_members
   FOR EACH ROW
   EXECUTE FUNCTION public.enforce_table_group_member_same_restaurant();
-
 CREATE TRIGGER restaurant_tables_soft_delete_purge_group_member
   AFTER UPDATE OF deleted_at
   ON public.restaurant_tables
   FOR EACH ROW
   EXECUTE FUNCTION public.purge_table_group_member_on_soft_delete();
-
 CREATE OR REPLACE FUNCTION public.replace_table_group_members(
   p_group_id uuid,
   p_table_ids uuid[]
@@ -140,19 +130,15 @@ BEGIN
   END IF;
 END;
 $$;
-
 GRANT EXECUTE ON FUNCTION public.replace_table_group_members(uuid, uuid[]) TO authenticated;
-
 ALTER TABLE public.restaurant_table_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.restaurant_table_group_members ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY restaurant_table_groups_owner_all ON public.restaurant_table_groups
   USING (
     restaurant_id IN (
       SELECT id FROM public.restaurants WHERE owner_id = auth.uid()
     )
   );
-
 CREATE POLICY restaurant_table_groups_staff_select ON public.restaurant_table_groups
   FOR SELECT TO authenticated
   USING (
@@ -161,14 +147,12 @@ CREATE POLICY restaurant_table_groups_staff_select ON public.restaurant_table_gr
       ARRAY['kitchen'::text, 'waiter'::text, 'cashier'::text]
     )
   );
-
 CREATE POLICY restaurant_table_group_members_owner_all ON public.restaurant_table_group_members
   USING (
     restaurant_id IN (
       SELECT id FROM public.restaurants WHERE owner_id = auth.uid()
     )
   );
-
 CREATE POLICY restaurant_table_group_members_staff_select ON public.restaurant_table_group_members
   FOR SELECT TO authenticated
   USING (
@@ -177,7 +161,6 @@ CREATE POLICY restaurant_table_group_members_staff_select ON public.restaurant_t
       ARRAY['kitchen'::text, 'waiter'::text, 'cashier'::text]
     )
   );
-
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.restaurant_table_groups TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.restaurant_table_group_members TO authenticated;
 GRANT ALL ON public.restaurant_table_groups TO service_role;

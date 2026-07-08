@@ -112,7 +112,6 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.resume_table_session_ordering(uuid, uuid) from public;
 grant execute on function public.resume_table_session_ordering(uuid, uuid)
   to authenticated, service_role;

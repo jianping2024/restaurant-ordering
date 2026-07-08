@@ -15,7 +15,6 @@ as $$
     and session_id = p_session_id
     and btrim(person_name) = btrim(p_person_name);
 $$;
-
 create or replace function public.reconcile_split_result_paid_from_ledger(
   p_result jsonb,
   p_restaurant_id uuid,
@@ -72,7 +71,6 @@ begin
   return v_result;
 end;
 $$;
-
 create or replace function public.upsert_bill_split_request(
   p_restaurant_id uuid,
   p_session_id uuid,
@@ -252,7 +250,6 @@ exception
     );
 end;
 $$;
-
 create or replace function public.confirm_bill_split_payment(
   p_restaurant_id uuid,
   p_bill_split_id uuid,
@@ -491,22 +488,18 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.session_person_collected_amount(uuid, uuid, text) from public;
 grant execute on function public.session_person_collected_amount(uuid, uuid, text)
   to authenticated, service_role;
-
 revoke all on function public.reconcile_split_result_paid_from_ledger(jsonb, uuid, uuid, numeric) from public;
 grant execute on function public.reconcile_split_result_paid_from_ledger(jsonb, uuid, uuid, numeric)
   to authenticated, service_role;
-
 revoke all on function public.upsert_bill_split_request(
   uuid, uuid, uuid, text, uuid[], text, jsonb, jsonb, numeric, text
 ) from public;
 grant execute on function public.upsert_bill_split_request(
   uuid, uuid, uuid, text, uuid[], text, jsonb, jsonb, numeric, text
 ) to authenticated, service_role;
-
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric, uuid) from public;
 grant execute on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric, uuid)
   to authenticated, service_role;

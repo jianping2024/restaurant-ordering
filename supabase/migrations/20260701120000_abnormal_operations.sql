@@ -40,20 +40,15 @@ CREATE TABLE public.abnormal_operations (
   ),
   CONSTRAINT abnormal_operations_amount_impact_nonneg CHECK (amount_impact >= 0)
 );
-
 CREATE INDEX idx_abnormal_operations_restaurant_created
   ON public.abnormal_operations (restaurant_id, created_at DESC);
-
 CREATE INDEX idx_abnormal_operations_restaurant_status
   ON public.abnormal_operations (restaurant_id, status);
-
 CREATE TRIGGER abnormal_operations_updated_at
   BEFORE UPDATE ON public.abnormal_operations
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
-
 ALTER TABLE public.abnormal_operations ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY abnormal_operations_owner_select ON public.abnormal_operations
   FOR SELECT TO authenticated
   USING (
@@ -61,7 +56,6 @@ CREATE POLICY abnormal_operations_owner_select ON public.abnormal_operations
       SELECT id FROM public.restaurants WHERE owner_id = auth.uid()
     )
   );
-
 CREATE POLICY abnormal_operations_owner_update ON public.abnormal_operations
   FOR UPDATE TO authenticated
   USING (

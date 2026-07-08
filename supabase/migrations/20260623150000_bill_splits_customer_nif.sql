@@ -1,9 +1,7 @@
 alter table public.bill_splits
   add column if not exists customer_nif text;
-
 comment on column public.bill_splits.customer_nif is
   'Optional Portuguese NIF (9 digits) supplied by the guest at checkout request.';
-
 create or replace function public.upsert_bill_split_request(
   p_restaurant_id uuid,
   p_session_id uuid,
@@ -168,7 +166,6 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.upsert_bill_split_request(
   uuid, uuid, uuid, text, uuid[], text, jsonb, jsonb, numeric, text
 ) from public;

@@ -13,16 +13,12 @@ BEGIN
   END IF;
 END
 $$;
-
 ALTER TABLE public.restaurant_staff_accounts
   DROP CONSTRAINT IF EXISTS restaurant_staff_accounts_email_key;
-
 ALTER TABLE public.restaurant_staff_accounts
   DROP COLUMN IF EXISTS email;
-
 CREATE UNIQUE INDEX IF NOT EXISTS restaurant_staff_accounts_login_name_key
   ON public.restaurant_staff_accounts (login_name);
-
 -- 2) Print stations: drop unused ticket_layout (matches local + 20260714120000).
 CREATE OR REPLACE FUNCTION public.seed_default_print_stations_for_restaurant() RETURNS trigger
     LANGUAGE plpgsql
@@ -43,44 +39,33 @@ begin
   return new;
 end;
 $$;
-
 UPDATE public.print_jobs
 SET payload = payload - 'ticket_layout'
 WHERE type = 'station_ticket'
   AND payload ? 'ticket_layout';
-
 ALTER TABLE public.print_stations
   DROP CONSTRAINT IF EXISTS print_stations_ticket_layout_check;
-
 ALTER TABLE public.print_stations
   DROP COLUMN IF EXISTS ticket_layout;
-
 -- 3) Table seat capacity for floor board + table settings (matches local + 20260713120000).
 ALTER TABLE public.restaurant_tables
   ADD COLUMN IF NOT EXISTS seat_min integer NOT NULL DEFAULT 2,
   ADD COLUMN IF NOT EXISTS seat_max integer NOT NULL DEFAULT 4;
-
 ALTER TABLE public.restaurant_tables
   DROP CONSTRAINT IF EXISTS restaurant_tables_seat_min_range;
-
 ALTER TABLE public.restaurant_tables
   ADD CONSTRAINT restaurant_tables_seat_min_range
   CHECK (seat_min >= 1 AND seat_min <= 99);
-
 ALTER TABLE public.restaurant_tables
   DROP CONSTRAINT IF EXISTS restaurant_tables_seat_max_range;
-
 ALTER TABLE public.restaurant_tables
   ADD CONSTRAINT restaurant_tables_seat_max_range
   CHECK (seat_max >= 1 AND seat_max <= 99);
-
 ALTER TABLE public.restaurant_tables
   DROP CONSTRAINT IF EXISTS restaurant_tables_seat_range_valid;
-
 ALTER TABLE public.restaurant_tables
   ADD CONSTRAINT restaurant_tables_seat_range_valid
   CHECK (seat_min <= seat_max);
-
 -- 4) merge_table_sessions: revert to initial single-buffet merge (matches local Docker).
 CREATE OR REPLACE FUNCTION public.merge_table_sessions(
   p_restaurant_id uuid,

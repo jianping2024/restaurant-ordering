@@ -9,8 +9,6 @@ CREATE TABLE public.print_agent_support_tokens (
   consumed_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-
 CREATE INDEX idx_print_agent_support_tokens_device_created
   ON public.print_agent_support_tokens (device_id, created_at DESC);
-
 ALTER TABLE public.print_agent_support_tokens ENABLE ROW LEVEL SECURITY;

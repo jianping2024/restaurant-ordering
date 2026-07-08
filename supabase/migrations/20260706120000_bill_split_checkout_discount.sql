@@ -4,18 +4,15 @@ alter table public.bill_splits
   add column if not exists discount_rate numeric not null default 0,
   add column if not exists discount_reason text,
   add column if not exists discount_reason_detail text;
-
 alter table public.bill_splits
   add constraint bill_splits_discount_rate_range
   check (discount_rate >= 0 and discount_rate <= 100);
-
 comment on column public.bill_splits.discount_rate is
   'Checkout discount percent (0–100) applied to the whole bill before split collection.';
 comment on column public.bill_splits.discount_reason is
   'Abnormal-operation reason code when discount_rate > 0.';
 comment on column public.bill_splits.discount_reason_detail is
   'Optional detail when discount_reason requires it.';
-
 create or replace function public.confirm_bill_split_payment(
   p_restaurant_id uuid,
   p_bill_split_id uuid,
@@ -210,11 +207,9 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric) from public;
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric) from authenticated;
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric) from service_role;
-
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer) from public;
 grant execute on function public.confirm_bill_split_payment(uuid, uuid, integer)
   to authenticated, service_role;

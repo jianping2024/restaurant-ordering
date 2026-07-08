@@ -2,9 +2,7 @@
 
 ALTER TABLE public.restaurant_staff_accounts
   DROP CONSTRAINT IF EXISTS restaurant_staff_accounts_email_key;
-
 ALTER TABLE public.restaurant_staff_accounts
   DROP COLUMN IF EXISTS email;
-
 CREATE UNIQUE INDEX IF NOT EXISTS restaurant_staff_accounts_login_name_key
   ON public.restaurant_staff_accounts (login_name);

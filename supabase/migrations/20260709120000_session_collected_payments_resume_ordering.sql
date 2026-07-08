@@ -10,27 +10,21 @@ create table public.session_collected_payments (
   created_by_user_id uuid references auth.users (id) on delete set null,
   created_at timestamptz not null default now()
 );
-
 create index idx_session_collected_payments_session
   on public.session_collected_payments (session_id, created_at);
-
 create index idx_session_collected_payments_restaurant
   on public.session_collected_payments (restaurant_id, created_at desc);
-
 alter table public.session_collected_payments enable row level security;
-
 create policy "session_collected_payments_cashier_select"
   on public.session_collected_payments
   for select
   to authenticated
   using (public.is_active_restaurant_staff(restaurant_id, array['cashier'::text]));
-
 create policy "session_collected_payments_frontdesk_select"
   on public.session_collected_payments
   for select
   to authenticated
   using (public.is_active_restaurant_staff(restaurant_id, array['frontdesk'::text]));
-
 create policy "session_collected_payments_owner_select"
   on public.session_collected_payments
   for select
@@ -42,10 +36,8 @@ create policy "session_collected_payments_owner_select"
       where restaurants.owner_id = auth.uid()
     )
   );
-
 comment on table public.session_collected_payments is
   'Append-only ledger of per-person collections within a table session; survives checkout resume and re-checkout.';
-
 create or replace function public.confirm_bill_split_payment(
   p_restaurant_id uuid,
   p_bill_split_id uuid,
@@ -268,16 +260,13 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer) from public;
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer) from authenticated;
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer) from service_role;
 drop function if exists public.confirm_bill_split_payment(uuid, uuid, integer);
-
 revoke all on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric, uuid) from public;
 grant execute on function public.confirm_bill_split_payment(uuid, uuid, integer, numeric, uuid)
   to authenticated, service_role;
-
 create or replace function public.resume_table_session_ordering(
   p_restaurant_id uuid,
   p_table_id uuid
@@ -372,11 +361,9 @@ exception
     );
 end;
 $$;
-
 revoke all on function public.resume_table_session_ordering(uuid, uuid) from public;
 grant execute on function public.resume_table_session_ordering(uuid, uuid)
   to authenticated, service_role;
-
 create or replace function public.compute_session_payment_gap(
   p_restaurant_id uuid,
   p_session_id uuid

@@ -16,17 +16,20 @@ type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
   initialCredentialTtlDays: number;
+  initialOrderCooldownSeconds: number;
 };
 
 export function FeatureFlagsManager({
   embedded,
   initialFlags,
   initialCredentialTtlDays,
+  initialOrderCooldownSeconds,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
   const [credentialTtlDays, setCredentialTtlDays] = useState(initialCredentialTtlDays);
+  const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -40,13 +43,14 @@ export function FeatureFlagsManager({
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flags, credentialTtlDays }),
+        body: JSON.stringify({ flags, credentialTtlDays, orderCooldownSeconds }),
       });
 
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
         flags?: ResolvedRestaurantFeatureFlags;
         credentialTtlDays?: number;
+        orderCooldownSeconds?: number;
       };
 
       if (!res.ok) {
@@ -58,6 +62,7 @@ export function FeatureFlagsManager({
 
       if (json.flags) setFlags(json.flags);
       if (json.credentialTtlDays != null) setCredentialTtlDays(json.credentialTtlDays);
+      if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -129,6 +134,31 @@ export function FeatureFlagsManager({
                   aria-label={t.credentialTtlDays}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.credentialTtlDaysUnit}</span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleOrderCooldown}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
+            <label className="block">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.orderCooldownSeconds}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.orderCooldownSecondsDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={orderCooldownSeconds}
+                  min={5}
+                  max={60}
+                  onChange={setOrderCooldownSeconds}
+                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-sm text-brand-text tabular-nums"
+                  aria-label={t.orderCooldownSeconds}
+                />
+                <span className="text-[13px] text-brand-text-muted">{t.orderCooldownSecondsUnit}</span>
               </div>
             </label>
           </div>

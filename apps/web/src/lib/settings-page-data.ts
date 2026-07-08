@@ -12,6 +12,7 @@ import { mapStaffRow } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
+import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 
 /** Owner-only settings pages — shares cached auth with dashboard layout. */
 export async function requireOwnerRestaurant(): Promise<Restaurant> {
@@ -53,6 +54,7 @@ export async function loadStaffSettingsPageData(
 export type FeatureSettingsPageData = {
   flags: ResolvedRestaurantFeatureFlags;
   credentialTtlDays: number;
+  orderCooldownSeconds: number;
 };
 
 /** Loads print-agent config only; feature_flags come from cached dashboard access. */
@@ -61,15 +63,21 @@ export async function loadFeatureSettingsPageData(
   featureFlags: Restaurant['feature_flags'],
 ): Promise<FeatureSettingsPageData> {
   const supabase = await createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('restaurants')
-    .select('print_agent_config')
+    .select('print_agent_config, order_cooldown_seconds')
     .eq('id', restaurantId)
     .single();
+
+  const isMigrationRequired = isDbMigrationRequiredError(error);
+  const orderCooldownSeconds = !isMigrationRequired
+    ? Number(data?.order_cooldown_seconds ?? 5)
+    : 5;
 
   return {
     flags: normalizeRestaurantFeatureFlags(featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
+    orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
   };
 }
 

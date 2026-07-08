@@ -9,6 +9,7 @@ export default async function SettingsFeaturesPage() {
       embedded
       initialFlags={data.flags}
       initialCredentialTtlDays={data.credentialTtlDays}
+      initialOrderCooldownSeconds={data.orderCooldownSeconds}
     />
   );
 }

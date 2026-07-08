@@ -5,6 +5,7 @@ import { orderAppendRateLimitCheck } from '@/lib/order-append-rate-limit';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { resolveAppendCartItems } from '@/lib/resolve-append-cart-items';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { checkOrderAppendCooldown } from '@/lib/order-append-cooldown';
 import { resolveOrderRestaurant } from '@/lib/order-restaurant-context';
 import { verifyOrderAppendGate } from '@/lib/order-submit-gate';
 import { loadAppendWriteContext } from '@/lib/append-write-context';
@@ -102,6 +103,21 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const { context } = writeContext;
   const sessionId = context.session.id as string;
   const displayName = tableRow.display_name as string;
+
+  const cooldownCheck = checkOrderAppendCooldown({
+    nowMs: Date.now(),
+    cooldownSeconds: resolvedRestaurant.restaurant.orderCooldownSeconds,
+    sessionOrders: context.sessionOrders,
+  });
+  if (!cooldownCheck.ok) {
+    return NextResponse.json(
+      { error: 'order_cooldown_limited' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(cooldownCheck.retryAfterSec) },
+      },
+    );
+  }
 
   let resolved;
   try {

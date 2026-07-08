@@ -64,6 +64,8 @@ export interface Restaurant {
   geo_longitude?: number | null;
   /** Max distance (m) from restaurant coords for customer orders; default 50. */
   order_radius_meters?: number;
+  /** Min seconds between two customer add-to-cart submissions; default 5. */
+  order_cooldown_seconds?: number;
   plan: Plan;
   /** bcrypt hash; never send to browser */
   kitchen_password?: string;

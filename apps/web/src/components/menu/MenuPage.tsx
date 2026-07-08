@@ -296,6 +296,7 @@ export function MenuPage({
         if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
+        else if (failure.code === 'order_cooldown_limited') showToast(t.orderCooldownLimited, 'info');
         else if (failure.code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
         else showToast(t.submitFailed, 'error');
         return;

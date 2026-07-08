@@ -12,6 +12,7 @@ export type AppendOrderFailureCode =
   | 'session_billing'
   | 'buffet_required'
   | 'rate_limited'
+  | 'order_cooldown_limited'
   | 'submit_failed';
 
 export type MenuOrderSubmitSuccess = {
@@ -57,6 +58,8 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'buffet_required';
     case 'rate_limited':
       return 'rate_limited';
+    case 'order_cooldown_limited':
+      return 'order_cooldown_limited';
     default:
       return 'submit_failed';
   }

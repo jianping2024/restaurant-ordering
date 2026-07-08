@@ -8,6 +8,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   noOrders: string;
   billCta: string;
   billDisabledHint: string;
+  orderCooldownLimited: string;
   orderSuccess: string;
   newTag: string;
   demoMode: string;
@@ -40,6 +41,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: 'Nenhum pedido enviado ainda',
     billCta: 'Ir para conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
+    orderCooldownLimited: 'Por favor aguarde um momento antes de enviar outro pedido.',
     orderSuccess: 'Pedido enviado!',
     newTag: 'NOVO',
     demoMode: 'Modo demo · os dados sao apenas ilustrativos, o pedido nao sera enviado',
@@ -73,6 +75,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: 'No orders submitted yet',
     billCta: 'Go to bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
+    orderCooldownLimited: 'Please wait a moment before submitting another order.',
     orderSuccess: 'Order placed!',
     newTag: 'NEW',
     demoMode: 'Demo mode · data is for display only, orders are not submitted',
@@ -106,6 +109,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     noOrders: '还没有提交订单',
     billCta: '去结账',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
+    orderCooldownLimited: '点餐太快了，请稍后再试。',
     orderSuccess: '下单成功！',
     newTag: '新加',
     demoMode: '演示模式 · 数据仅供展示，订单不会真实提交',

@@ -7,6 +7,7 @@ export type OrderRestaurantMode = 'guest' | 'staff';
 export type OrderRestaurantContext = {
   restaurantId: string;
   slug: string;
+  orderCooldownSeconds: number;
   geo: {
     latitude: number;
     longitude: number;
@@ -19,7 +20,7 @@ export type ResolveOrderRestaurantResult =
   | { ok: false; status: number; error: string };
 
 const RESTAURANT_SELECT =
-  'id, slug, suspended_at, geo_latitude, geo_longitude, order_radius_meters, feature_flags';
+  'id, slug, suspended_at, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds';
 
 /** Narrow tenant load for orders/append — not the customer menu session loader. */
 export async function resolveOrderRestaurant(
@@ -61,6 +62,7 @@ export async function resolveOrderRestaurant(
     restaurant: {
       restaurantId: data.id as string,
       slug: data.slug as string,
+      orderCooldownSeconds: Number(data.order_cooldown_seconds ?? 5),
       geo,
     },
   };

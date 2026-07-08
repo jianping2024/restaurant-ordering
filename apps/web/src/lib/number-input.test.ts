@@ -1,6 +1,28 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { formatHmDigitsWhileTyping, normalizeHmInput } from '@/lib/number-input';
+import {
+  formatHmDigitsWhileTyping,
+  normalizeHmInput,
+  parseNonNegativeInt,
+  sanitizeIntegerDraft,
+} from '@/lib/number-input';
+
+describe('sanitizeIntegerDraft', () => {
+  it('keeps digits only without clamping', () => {
+    assert.equal(sanitizeIntegerDraft('1'), '1');
+    assert.equal(sanitizeIntegerDraft('10a'), '10');
+    assert.equal(sanitizeIntegerDraft(''), '');
+  });
+});
+
+describe('parseNonNegativeInt', () => {
+  it('clamps on commit with min/max', () => {
+    assert.equal(parseNonNegativeInt('1', { min: 5, max: 60, empty: 5 }), 5);
+    assert.equal(parseNonNegativeInt('10', { min: 5, max: 60, empty: 5 }), 10);
+    assert.equal(parseNonNegativeInt('99', { min: 5, max: 60, empty: 5 }), 60);
+    assert.equal(parseNonNegativeInt('', { min: 5, max: 60, empty: 5 }), 5);
+  });
+});
 
 describe('formatHmDigitsWhileTyping', () => {
   it('auto-inserts colon after hour digits', () => {

@@ -76,7 +76,12 @@ export function normalizeHmInput(raw: string): string | null {
   return `${h.padStart(2, '0')}:${m}`;
 }
 
-/** Parse a non-negative integer; strips leading zeros (e.g. "02" → 2). */
+/** Strip non-digits while typing; does not clamp (allows partial values like "1" before "10"). */
+export function sanitizeIntegerDraft(raw: string): string {
+  return raw.replace(/\D/g, '');
+}
+
+/** Parse and clamp a committed integer (e.g. on blur); strips leading zeros (e.g. "02" → 2). */
 export function parseNonNegativeInt(
   raw: string,
   opts?: { min?: number; max?: number; empty?: number },

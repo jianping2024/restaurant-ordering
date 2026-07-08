@@ -10,6 +10,8 @@ import {
 } from '@/lib/note-presets';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-client';
+import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
   zh: {
@@ -41,10 +43,11 @@ interface CartDrawerProps {
   onUpdateNote: (id: string, note: string) => void;
   onSubmit: () => void;
   submitting: boolean;
+  submitCooldownRemaining?: number;
 }
 
 export function CartDrawer({
-  open, cart, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting
+  open, cart, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting, submitCooldownRemaining = 0,
 }: CartDrawerProps) {
   // 防止背景滚动
   useEffect(() => {
@@ -65,6 +68,13 @@ export function CartDrawer({
   };
 
   const cartTotal = sumLineTotals(cart);
+  const cooldownActive = submitCooldownRemaining > 0;
+  const submitLabel = cooldownActive
+    ? formatSubmitCooldownWaitMessage(
+        MENU_PAGE_MESSAGES[lang].submitCooldownWait,
+        submitCooldownRemaining,
+      )
+    : text.submit;
 
   return (
     <>
@@ -181,9 +191,9 @@ export function CartDrawer({
             size="lg"
             onClick={onSubmit}
             loading={submitting}
-            disabled={cart.length === 0}
+            disabled={cart.length === 0 || cooldownActive}
           >
-            {text.submit}
+            {submitLabel}
           </Button>
         </div>
       </div>

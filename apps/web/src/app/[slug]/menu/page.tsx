@@ -8,6 +8,7 @@ import {
 } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
+import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -70,6 +71,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       menuCategories={menuCategories || []}
       tableId={sessionContext.table_id}
       displayName={sessionContext.display_name}
+      orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}
       initialSessionContext={sessionContext}
       staffAssisted={staffAssisted}
     />

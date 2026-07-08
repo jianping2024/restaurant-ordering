@@ -1,6 +1,7 @@
 import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT, DEMO_TABLES, demoTableByDisplayName } from '@/lib/demo-data';
 import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
+import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import type { MenuCategory, MenuItem } from '@/types';
@@ -67,6 +68,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
       menuCategories={DEMO_CATEGORIES}
       tableId={table.id}
       displayName={table.display_name}
+      orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}
       isDemo
       staffAssisted={staffAssisted}
     />

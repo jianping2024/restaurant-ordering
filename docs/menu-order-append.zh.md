@@ -18,6 +18,7 @@
 5. **地理围栏仅顾客流**：餐厅配置了 `geo_latitude/longitude` 时，**非** `waiter_flow` 须带合法 `latitude/longitude` 且在 `order_radius_meters` 内（本地 dev host 可 bypass）。
 6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `verifyOpenTableStaffAuth`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
 7. **出品联自动入队**：append 成功后返回短期 `enqueue_token`；客户端再调 `station-tickets/auto` 按档口分组入队（无手动「打印」按钮）。
+8. **下单冷却（本机 UI）**：功能管理配置 `order_cooldown_seconds`（5–60）。菜单页每次 **提交成功** 后，**当前设备** 购物车提交按钮倒计时该秒数（灰、不可点）；同桌其他设备互不影响。服务端 append **不** 按桌 session 冷却；仅保留 IP 限流防滥用。
 
 ---
 
@@ -214,6 +215,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 | 职责 | 模块 |
 |------|------|
 | 菜单 UI + 唯一 submit | `components/menu/MenuPage.tsx` |
+| 提交按钮冷却倒计时 | `lib/use-submit-cooldown-remaining.ts`、`lib/order-submit-cooldown-client.ts` |
 | 列表 / 抽屉数量步进器 | `components/menu/CartQtyStepper.tsx` |
 | 顾客菜单路由 | `app/[slug]/menu/page.tsx` |
 | 加菜门禁（开台） | `lib/guest-table-ordering.ts` → `guestOrderingEnabled` |

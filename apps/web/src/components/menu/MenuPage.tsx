@@ -38,6 +38,7 @@ import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 
 interface Props {
   restaurant: {
@@ -54,6 +55,7 @@ interface Props {
   menuCategories: MenuCategory[];
   tableId: string;
   displayName: string;
+  orderCooldownSeconds: number;
   initialSessionContext?: CustomerSessionContext | null;
   isDemo?: boolean;
   staffAssisted?: StaffAssistedFlow | null;
@@ -65,6 +67,7 @@ export function MenuPage({
   menuCategories,
   tableId,
   displayName,
+  orderCooldownSeconds,
   initialSessionContext = null,
   isDemo,
   staffAssisted = null,
@@ -78,6 +81,11 @@ export function MenuPage({
   const [submitting, setSubmitting] = useState(false);
   const [demoToast, setDemoToast] = useState(false);
   const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
+  const {
+    submitCooldownRemaining,
+    isSubmitCooldownActive,
+    restartSubmitCooldown,
+  } = useSubmitCooldownRemaining(orderCooldownSeconds);
 
   const {
     activeSession,
@@ -296,7 +304,6 @@ export function MenuPage({
         if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
-        else if (failure.code === 'order_cooldown_limited') showToast(t.orderCooldownLimited, 'info');
         else if (failure.code === 'rate_limited') showToast(t.printEnqueueRateLimited, 'error');
         else showToast(t.submitFailed, 'error');
         return;
@@ -308,7 +315,7 @@ export function MenuPage({
 
   // 提交订单
   const submitOrder = async () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || isSubmitCooldownActive) return;
 
     if (isDemo) {
       const gate = await ensureGuestCanPlaceOrder();
@@ -320,6 +327,7 @@ export function MenuPage({
         completeStaffAssistedSubmit();
         return;
       }
+      restartSubmitCooldown();
       setCart([]);
       setCartOpen(false);
       setDemoToast(true);
@@ -361,6 +369,8 @@ export function MenuPage({
         sessionId: result.sessionId,
         refreshSession: refreshSessionContext,
       });
+
+      restartSubmitCooldown();
 
       if (waiterFlow) {
         completeStaffAssistedSubmit();
@@ -596,6 +606,7 @@ export function MenuPage({
         onUpdateNote={updateNote}
         onSubmit={submitOrder}
         submitting={submitting}
+        submitCooldownRemaining={submitCooldownRemaining}
       />
     </div>
   );

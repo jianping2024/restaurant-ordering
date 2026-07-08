@@ -8,11 +8,16 @@ import {
 } from 'react';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import type { WaiterBoardData } from '@/lib/staff-board';
-import { releaseWaiterBoardTableBridge } from '@/lib/waiter-staff-mutation-sync';
+import {
+  releaseWaiterBoardTableBridge,
+} from '@/lib/waiter-staff-mutation-sync';
+import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-relocation-board';
 
 export type WaiterBoardContextValue = ReturnType<typeof useWaiterOrders> & {
   /** Drop optimistic bridge for affected tables, then pull Staff board API. */
   refreshBoardAfterStaffMutation: (tableIds: readonly string[]) => Promise<void>;
+  /** Patch board from relocation model, clear source bridge only, refresh in background. */
+  reconcileBoardAfterSessionRelocation: (input: WaiterSessionRelocationBoardInput) => void;
   /** @deprecated Prefer refreshBoardAfterStaffMutation */
   refreshAfterTableMutation: (tableId: string) => Promise<void>;
 };
@@ -84,6 +89,15 @@ function WaiterBoardProviderInner({
     [refresh],
   );
 
+  const reconcileBoardAfterSessionRelocation = useCallback(
+    (input: WaiterSessionRelocationBoardInput) => {
+      store.applySessionRelocationPatch(input);
+      releaseWaiterBoardTableBridge([input.sourceTableId]);
+      void refresh();
+    },
+    [refresh, store],
+  );
+
   const refreshAfterTableMutation = useCallback(
     async (tableId: string) => {
       await refreshBoardAfterStaffMutation([tableId]);
@@ -94,6 +108,7 @@ function WaiterBoardProviderInner({
   const value: WaiterBoardContextValue = {
     ...store,
     refreshBoardAfterStaffMutation,
+    reconcileBoardAfterSessionRelocation,
     refreshAfterTableMutation,
   };
 

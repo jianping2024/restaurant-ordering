@@ -32,6 +32,10 @@ import {
   clearConfirmedPublishedWaiterTablePageModels,
   reconcileWaiterBoardWithPublished,
 } from '@/lib/waiter-staff-mutation-sync';
+import {
+  applyWaiterSessionRelocationToBoard,
+  type WaiterSessionRelocationBoardInput,
+} from '@/lib/waiter-session-relocation-board';
 
 function buildInitialWaiterBoardState(input: {
   initialTableSummaries: WaiterBoardTableSummary[];
@@ -169,6 +173,47 @@ export function useWaiterOrders(
     return running;
   }, [enabled, restaurant.slug]);
 
+  const applySessionRelocationPatch = useCallback(
+    (input: WaiterSessionRelocationBoardInput) => {
+      applyWaiterBoardData(
+        applyWaiterSessionRelocationToBoard(
+          {
+            sessionMetaByTableId,
+            checkoutRequestedTableIds,
+            checkoutRequestedAtByTableId,
+            tables,
+            groups,
+            members,
+            tableSummaries,
+            restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
+            openTableDefaults,
+          },
+          input,
+        ),
+        {
+          setTableSummaries,
+          setSessionMetaByTableId,
+          setCheckoutRequestedTableIds,
+          setCheckoutRequestedAtByTableId,
+          setTables,
+          setGroups,
+          setMembers,
+          setOpenTableDefaults,
+        },
+      );
+    },
+    [
+      checkoutRequestedAtByTableId,
+      checkoutRequestedTableIds,
+      groups,
+      members,
+      openTableDefaults,
+      sessionMetaByTableId,
+      tableSummaries,
+      tables,
+    ],
+  );
+
   useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refresh);
 
   useRestaurantRealtimeRefresh(
@@ -194,6 +239,7 @@ export function useWaiterOrders(
     openTableDefaults,
     supportsBuffetOpenTable,
     refresh,
+    applySessionRelocationPatch,
     supabase,
   };
 }

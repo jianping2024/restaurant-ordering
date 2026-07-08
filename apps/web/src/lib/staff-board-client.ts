@@ -113,6 +113,50 @@ export async function fetchWaiterTableActionTargetsClient(
   return sortRestaurantTables(data.tables || []);
 }
 
+type WaiterTableActionResponse = {
+  ok?: boolean;
+  session_id?: string;
+  model?: WaiterTablePageModel;
+  error?: string;
+};
+
+/** Transfer or merge table sessions; returns authoritative target page model. */
+export async function postWaiterTableActionClient(
+  slug: string,
+  body: {
+    action: 'transfer' | 'merge';
+    from_table_id: string;
+    to_table_id: string;
+  },
+): Promise<{ session_id: string; model: WaiterTablePageModel }> {
+  const res = await fetch(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/action`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = (await res.json().catch(() => ({}))) as WaiterTableActionResponse;
+  if (!res.ok) {
+    const err = new Error(data.error || 'staff_table_action_failed') as Error & {
+      status?: number;
+      code?: string;
+    };
+    err.status = res.status;
+    err.code = data.error;
+    throw err;
+  }
+  if (!data.model || !data.session_id) {
+    throw new Error('staff_table_action_missing_model');
+  }
+  return {
+    session_id: data.session_id,
+    model: normalizeWaiterTablePageModel(data.model),
+  };
+}
+
 type KitchenBoardResponse = {
   orders?: Order[];
   activeTableIds?: string[];

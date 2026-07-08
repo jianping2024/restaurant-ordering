@@ -36,9 +36,15 @@ export function activeWaiterTableIds(
   return active;
 }
 
+function tableHasActiveSession(
+  tableId: string,
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+): boolean {
+  return Object.keys(sessionMetaByTableId).some((id) => tableIdsEqual(id, tableId));
+}
+
 export function filterWaiterTableActionTargets(
   tables: readonly RestaurantTableRow[],
-  activeTableIds: readonly string[],
   sourceTableId: string,
   operation: 'transfer' | 'merge',
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {},
@@ -48,13 +54,13 @@ export function filterWaiterTableActionTargets(
   if (operation === 'transfer') {
     return sorted.filter(
       (table) =>
-        !activeTableIds.some((id) => tableIdsEqual(id, table.id)) &&
+        !tableHasActiveSession(table.id, sessionMetaByTableId) &&
         !tableIdsEqual(table.id, sourceTableId),
     );
   }
   return sorted.filter(
     (table) =>
-      activeTableIds.some((id) => tableIdsEqual(id, table.id)) &&
+      tableHasActiveSession(table.id, sessionMetaByTableId) &&
       !tableIdsEqual(table.id, sourceTableId) &&
       !isWaiterTableInCheckout(table.id, sessionMetaByTableId, checkoutRequestedTableIds),
   );

@@ -45,8 +45,10 @@ import {
   fetchWaiterTableActionTargetsClient,
   fetchWaiterTablePageModelClient,
   postWaiterBuffetOpenClient,
+  postWaiterTableActionClient,
 } from '@/lib/staff-board-client';
 import { commitAuthoritativeWaiterTablePageModel, commitWaiterSessionRelocation } from '@/lib/waiter-staff-mutation-sync';
+import { filterWaiterTableActionTargets } from '@/lib/waiter-table-occupancy';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -59,6 +61,7 @@ import {
 } from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
 import {
   WaiterCheckoutPendingBanner,
   WaiterTableBuffetPanel,
@@ -313,6 +316,20 @@ function WaiterTableDetailInner({
     isWaiterTableCardOccupied(selectedCard) && !isCheckoutPending && !isDemo && detailLoaded,
   );
 
+  const resolveActionTargetsFromBoard = useCallback(
+    (type: 'transfer' | 'merge', sourceId: string): RestaurantTableRow[] | null => {
+      if (!waiterBoard) return null;
+      return filterWaiterTableActionTargets(
+        waiterBoard.tables,
+        sourceId,
+        type,
+        waiterBoard.sessionMetaByTableId,
+        waiterBoard.checkoutRequestedTableIds,
+      );
+    },
+    [waiterBoard],
+  );
+
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {
       notifyCheckoutLocked();
@@ -323,6 +340,12 @@ function WaiterTableDetailInner({
     setTargetTable(null);
     setActionTargets([]);
     if (isDemo) return;
+
+    const localTargets = resolveActionTargetsFromBoard(type, sourceId);
+    if (localTargets) {
+      setActionTargets(localTargets);
+      return;
+    }
 
     setActionTargetsLoading(true);
     void fetchWaiterTableActionTargetsClient(restaurant.slug, tableId, type)
@@ -357,15 +380,18 @@ function WaiterTableDetailInner({
       targetTableId: string,
       operation: 'transfer' | 'merge',
       targetLabel: string,
+      targetModel: WaiterTablePageModel,
     ) => {
-      const targetModel = await fetchWaiterTablePageModelClient(restaurant.slug, targetTableId);
-      const normalized = applyModel(targetModel);
-      const affectedTableIds = commitWaiterSessionRelocation({
+      const normalized = normalizeWaiterTablePageModel(targetModel);
+      commitWaiterSessionRelocation({
         sourceTableId,
         targetModel: normalized,
       });
       if (embeddedInDashboard && waiterBoard) {
-        await waiterBoard.refreshBoardAfterStaffMutation(affectedTableIds);
+        waiterBoard.reconcileBoardAfterSessionRelocation({
+          sourceTableId,
+          targetModel: normalized,
+        });
       }
       const toastText =
         operation === 'transfer'
@@ -376,10 +402,8 @@ function WaiterTableDetailInner({
       goToTableDetail(targetTableId);
     },
     [
-      applyModel,
       embeddedInDashboard,
       goToTableDetail,
-      restaurant.slug,
       t.mergeDone,
       t.transferDone,
       waiterBoard,
@@ -403,34 +427,23 @@ function WaiterTableDetailInner({
     setOperating(true);
     try {
       if (!isDemo) {
-        const res = await fetch(
-          `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/waiter/tables/action`,
-          {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: currentOperation,
-              from_table_id: fromTable,
-              to_table_id: toTable,
-            }),
-          },
-        );
-        if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          if (data.error === 'session_billing') {
+        const targetLabel =
+          targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable;
+        try {
+          const { model } = await postWaiterTableActionClient(restaurant.slug, {
+            action: currentOperation,
+            from_table_id: fromTable,
+            to_table_id: toTable,
+          });
+          await finishTransferOrMerge(fromTable, toTable, currentOperation, targetLabel, model);
+        } catch (err) {
+          const apiErr = err as Error & { code?: string };
+          if (apiErr.code === 'session_billing') {
             notifyCheckoutLocked();
           } else {
             showToast(t.actionFailed, 'error');
           }
-          return;
         }
-        await finishTransferOrMerge(
-          fromTable,
-          toTable,
-          currentOperation,
-          targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,
-        );
         return;
       }
 
@@ -467,11 +480,15 @@ function WaiterTableDetailInner({
         return;
       }
 
+      const demoTargetLabel =
+        targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable;
+      const demoTargetModel = await fetchWaiterTablePageModelClient(restaurant.slug, toTable);
       await finishTransferOrMerge(
         fromTable,
         toTable,
         currentOperation,
-        targetCandidates.find((row) => tableIdsEqual(row.id, toTable))?.display_name ?? toTable,
+        demoTargetLabel,
+        demoTargetModel,
       );
     } catch {
       showToast(t.actionFailed, 'error');

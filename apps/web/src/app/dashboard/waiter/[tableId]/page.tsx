@@ -21,6 +21,7 @@ export default async function DashboardWaiterTablePage({ params }: Props) {
   return (
     <WaiterTableDetail
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
+      hasAuthoritativeSeed
       initialModel={initialModel}
       tableId={tableId}
       embeddedInDashboard

@@ -3,6 +3,7 @@ import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import { tableInActiveCheckout, tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
+import { fetchWaiterTablePageModel } from '@/lib/staff-board';
 
 export const runtime = 'nodejs';
 
@@ -77,5 +78,10 @@ export async function POST(
     );
   }
 
-  return NextResponse.json({ ok: true, session_id: rpcResult });
+  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, toTableId);
+  if (!model?.detail.table) {
+    return NextResponse.json({ error: 'target_table_not_found' }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true, session_id: rpcResult, model });
 }

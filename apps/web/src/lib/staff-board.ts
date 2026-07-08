@@ -11,12 +11,10 @@ import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow 
 import { fetchCheckoutRequestedBoard } from '@/lib/table-checkout-pending';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
-  ACTIVE_ORDER_STATUSES,
   filterOrdersInActiveSessions,
   sessionMetaByTableIdFromSessions,
 } from '@/lib/waiter-board-query';
 import {
-  activeWaiterTableIds,
   filterWaiterTableActionTargets,
 } from '@/lib/waiter-table-occupancy';
 import {
@@ -193,8 +191,7 @@ export async function fetchWaiterTableActionTargets(
   sourceTableId: string,
   operation: 'transfer' | 'merge',
 ): Promise<RestaurantTableRow[]> {
-  const [{ data: sessions }, { data: tableRows }, { data: orderRows }, checkoutRequested] =
-    await Promise.all([
+  const [{ data: sessions }, { data: tableRows }, checkoutRequested] = await Promise.all([
     admin
       .from('table_sessions')
       .select('id, table_id, opened_at, status')
@@ -205,22 +202,13 @@ export async function fetchWaiterTableActionTargets(
       .select('id, display_name, sort_order, seat_min, seat_max')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
-    admin
-      .from('orders')
-      .select('*')
-      .eq('restaurant_id', restaurantId)
-      .in('status', [...ACTIVE_ORDER_STATUSES])
-      .order('updated_at', { ascending: false }),
     fetchCheckoutRequestedBoard(admin, restaurantId),
   ]);
 
   const tables = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
   const sessionMetaByTableId = sessionMetaByTableIdFromSessions(sessions || []);
-  const orders = filterOrdersInActiveSessions((orderRows || []) as Order[], sessions || []);
-  const activeIds = activeWaiterTableIds(tables, orders, sessionMetaByTableId);
   return filterWaiterTableActionTargets(
     tables,
-    activeIds,
     sourceTableId,
     operation,
     sessionMetaByTableId,

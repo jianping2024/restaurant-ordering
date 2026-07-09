@@ -38,7 +38,11 @@ import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
+import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
+import { CUSTOMER_ORDERING_INTRO_MESSAGES } from '@/lib/i18n/customer-ordering-intro-messages';
+import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 
 interface Props {
   restaurant: {
@@ -97,6 +101,17 @@ export function MenuPage({
     tableId,
     isDemo,
   });
+
+  const orderingAudience = useMemo(
+    () => customerOrderingAudience(staffAssisted),
+    [staffAssisted],
+  );
+  const { visible: introVisible, dismiss: dismissIntro } = useCustomerOrderingIntro({
+    restaurantSlug: restaurant.slug,
+    audience: orderingAudience,
+    sessionResolved,
+  });
+  const introCopy = CUSTOMER_ORDERING_INTRO_MESSAGES[lang];
 
   const ensureGuestCanPlaceOrder = useCallback(async () => {
     if (!sessionResolved) {
@@ -607,6 +622,13 @@ export function MenuPage({
         onSubmit={submitOrder}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}
+      />
+
+      <CustomerOrderingIntroModal
+        open={introVisible}
+        lang={lang}
+        copy={introCopy}
+        onDismiss={dismissIntro}
       />
     </div>
   );

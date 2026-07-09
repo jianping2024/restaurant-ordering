@@ -3,7 +3,7 @@ export type UILanguage = 'zh' | 'en' | 'pt';
 export const UI_LANG_COOKIE = 'mesa-ui-lang';
 /** @deprecated Migrated to {@link UI_LANG_COOKIE}; read once then removed. */
 const LEGACY_UI_LANG_STORAGE_KEY = 'mesa-lang';
-export const DEFAULT_UI_LANG: UILanguage = 'zh';
+export const DEFAULT_UI_LANG: UILanguage = 'pt';
 
 export const SUPPORTED_UI_LANGS: UILanguage[] = ['zh', 'en', 'pt'];
 

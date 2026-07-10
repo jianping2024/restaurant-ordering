@@ -2,7 +2,8 @@ type Bucket = { count: number; windowStart: number };
 
 const ipBuckets = new Map<string, Bucket>();
 const IP_WINDOW_MS = 60_000;
-const IP_MAX_PER_WINDOW = 60;
+/** Per public IP (e.g. restaurant guest WiFi NAT). Raised from 60 to reduce opening-rush false positives. */
+const IP_MAX_PER_WINDOW = 120;
 
 function touch(key: string, windowMs: number, max: number) {
   const now = Date.now();

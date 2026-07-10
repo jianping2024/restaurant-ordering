@@ -28,6 +28,7 @@ describe('menu-order-submit', () => {
 
   it('mapAppendErrorCode maps known append errors', () => {
     assert.equal(mapAppendErrorCode('session_billing'), 'session_billing');
+    assert.equal(mapAppendErrorCode('rate_limited'), 'rate_limited');
     assert.equal(mapAppendErrorCode('unknown'), 'submit_failed');
   });
 
@@ -100,5 +101,20 @@ describe('menu-order-submit', () => {
         new Response(JSON.stringify({ error: 'buffet_required' }), { status: 403 }),
     });
     assert.deepEqual(result, { ok: false, code: 'buffet_required' });
+  });
+
+  it('postMenuOrderAppend maps rate_limited', async () => {
+    const result = await postMenuOrderAppend({
+      slug: 'cafe',
+      tableId: 'table-1',
+      items: [{ menu_item_id: 'dish-1', qty: 1 }],
+      waiterFlow: false,
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ error: 'rate_limited' }), {
+          status: 429,
+          headers: { 'Retry-After': '42' },
+        }),
+    });
+    assert.deepEqual(result, { ok: false, code: 'rate_limited' });
   });
 });

@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "description": "Example targets — run discover-load-test-targets.mjs to generate real data",
+    "model": "50 stores × 133 tables = 6650 (800 guests/store @ 6 per table)"
+  },
+  "targets": [
+    {
+      "slug": "restaurant-mo9y14xc",
+      "table_id": "00000000-0000-4000-8000-000000000001",
+      "menu_item_id": "00000000-0000-4000-8000-000000000099",
+      "display_name": "001"
+    }
+  ]
+}

@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.41
+
+**出品联 / 账单纸面版式**
+
+- 出品联：Items 表头左缩进 4（对齐 Guest 的 t），菜品行再缩进 1；Qty 列内居中；左右边距对称。
+- 账单：菜品行改为 1×2 字号（表头/费用/时间戳不变）；不印备注行。
+- 需配合 Web 端：账单菜品标签与出品联一致（`{编号}-{菜名}`，无类别前缀）。
+
 ## 0.3.40
 
 **出品联（Guest Order）版式**

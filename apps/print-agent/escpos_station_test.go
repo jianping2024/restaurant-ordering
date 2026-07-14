@@ -106,18 +106,37 @@ func TestStationSlipSkipsCategoryHeaderWhenDisabled(t *testing.T) {
 }
 
 func TestStationSlipItemLineLayout(t *testing.T) {
-	line := stationSlipItemLine("001-Água 500ml", "1", escposWidth)
-	if line[0] != ' ' {
-		t.Fatalf("expected left margin at col 0, got %q", line[0])
+	line := stationSlipItemLine("001-Agua 500ml", "3", escposWidth)
+	runes := []rune(line)
+	if runes[stationSlipItemLeftMargin] != '0' {
+		t.Fatalf("expected item label at col %d, got %q", stationSlipItemLeftMargin, runes[stationSlipItemLeftMargin])
 	}
-	if !strings.Contains(line, "001-") {
-		t.Fatal("missing item label")
+	qtyCol := []rune(padFieldCenter("3", stationSlipQtyColWidth))
+	qtyStart := stationSlipQtyColStart(escposWidth)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("expected centered qty at col %d: got %q want %q", qtyStart, string(runes[qtyStart:qtyStart+len(qtyCol)]), string(qtyCol))
+		}
 	}
-	if line[len(line)-2] != '1' {
-		t.Fatalf("expected qty before right margin, got %q", line)
+	for i := len(runes) - stationSlipSideMargin; i < len(runes); i++ {
+		if runes[i] != ' ' {
+			t.Fatalf("expected right margin %d cols", stationSlipSideMargin)
+		}
 	}
-	if line[len(line)-1] != ' ' {
-		t.Fatalf("expected right margin at last col, got %q", line[len(line)-1])
+}
+
+func TestStationSlipColumnHeaderLayout(t *testing.T) {
+	line := stationSlipColumnHeaderLine("Items", "Qty", escposWidth)
+	runes := []rune(line)
+	if runes[stationSlipSideMargin] != 'I' {
+		t.Fatalf("expected Items at col %d (Guest 't'), got %q", stationSlipSideMargin, runes[stationSlipSideMargin])
+	}
+	qtyCol := []rune(padFieldCenter("Qty", stationSlipQtyColWidth))
+	qtyStart := stationSlipQtyColStart(escposWidth)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("expected centered Qty header at col %d: got %q want %q", qtyStart, string(runes[qtyStart:qtyStart+len(qtyCol)]), string(qtyCol))
+		}
 	}
 }
 

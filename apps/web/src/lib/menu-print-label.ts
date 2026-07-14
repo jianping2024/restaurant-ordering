@@ -72,13 +72,12 @@ export function orderItemBaseName(
   return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
 }
 
-/** Bill / receipt line from order snapshot: `RE-001-Água 500ml`. */
+/** Bill / receipt thermal line: same as station slip (`001-Água`); buffet name only. */
 export function orderItemReceiptLineLabel(item: OrderItem): string {
-  return formatMenuPrintDisplayName({
-    categoryPath: item.category_code_path ?? [],
-    itemCode: item.item_code ?? null,
-    itemName: orderItemBaseName(item),
-  });
+  if (item.kind === 'buffet_base') {
+    return orderItemBaseName(item);
+  }
+  return orderItemStationSlipLabel(item);
 }
 
 /** Station slip item line: `{itemCode}-{name}` only (no category path). */

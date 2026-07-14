@@ -10,7 +10,7 @@ import {
 } from './menu-print-label';
 
 describe('orderItemReceiptLineLabel', () => {
-  it('formats category path, item code, and name from order snapshot', () => {
+  it('uses item code and name only (no category path)', () => {
     const item: OrderItem = {
       id: 'menu-1',
       name: 'Água 500ml',
@@ -21,7 +21,7 @@ describe('orderItemReceiptLineLabel', () => {
       item_code: '001',
       category_code_path: ['RE'],
     };
-    assert.equal(orderItemReceiptLineLabel(item), 'RE-001-Água 500ml');
+    assert.equal(orderItemReceiptLineLabel(item), '001-Água 500ml');
   });
 
   it('prints buffet base name only when no codes', () => {

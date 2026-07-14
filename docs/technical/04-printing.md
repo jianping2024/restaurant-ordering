@@ -58,6 +58,9 @@ Web 入队（service role）
 
 入队逻辑：`lib/order-receipt-enqueue.ts`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
 
+- 菜品行标签与出品联一致：`{item_code}-{菜名}`（**不含** `category_code_path`）；同类菜合并后数量累加，**不印备注**。
+- 纸面菜品行字体与出品联菜单区同为 1×2；表头/费用/时间戳保持 1×1。
+
 ### 3.2 功能开关
 
 `restaurants.feature_flags.bill_receipt_print`（默认 **关**）：

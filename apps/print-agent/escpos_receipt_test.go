@@ -256,7 +256,7 @@ func TestPreBillTitleEnglishLocale(t *testing.T) {
 	}
 }
 
-func TestReceiptItemNoteUsesUnderline(t *testing.T) {
+func TestReceiptDoesNotPrintItemNote(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		TableDisplayName: "A-03",
 		Subtotal:         5,
@@ -270,15 +270,31 @@ func TestReceiptItemNoteUsesUnderline(t *testing.T) {
 		}},
 	})
 	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
-	labelIdx := bytes.Index(raw, []byte("Observ"))
-	if labelIdx < 0 {
-		t.Fatal("missing Observação: prefix on receipt-style ticket")
+	s := string(raw)
+	if strings.Contains(s, "Observ") || strings.Contains(s, "less sugar") {
+		t.Fatalf("receipt must not print merged-item notes, got: %q", s)
 	}
-	prefix := raw[max(0, labelIdx-4):labelIdx]
-	if !bytes.Contains(prefix, []byte{0x1B, 0x2D, 0x01}) {
-		t.Fatal("expected ESC - 1 underline before receipt item note")
+}
+
+func TestReceiptMenuLinesUseDoubleHeight(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"display_name":    "A-01",
+		"receipt_variant": "pre_bill",
+		"subtotal":        5.0,
+		"amount_due":      5.0,
+		"lines": []map[string]any{
+			{"item_index": 1, "display_name": "001-Tea", "qty": 1, "unit_price": 5.0},
+		},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	lab := receiptLabelsFor("en")
+	headerLine := escposThreeColLine(lab.items, lab.qty, lab.originalPrice)
+	idx := bytes.Index(raw, []byte(headerLine))
+	if idx < 0 {
+		t.Fatal("missing Items header line")
 	}
-	if !bytes.Contains(raw, []byte("Observ")) || !bytes.Contains(raw, []byte(": less sugar")) {
-		t.Fatal("expected Observação: prefix before receipt item note")
+	body := raw[idx+len(headerLine):]
+	if !bytes.Contains(body, []byte{0x1D, 0x21, 0x01}) {
+		t.Fatal("receipt menu lines must use GS ! 1×2")
 	}
 }

@@ -14,14 +14,14 @@ import (
 const escposWidth = 48
 
 // Station slip menu body column model (Agent-side layout only).
+// Header "Items" aligns with 't' in "Guest"; item rows align with 't' in "Items".
 const (
-	stationSlipLeftMargin   = 1
-	stationSlipRightMargin  = 1
-	stationSlipQtyColWidth  = 8
-	stationSlipQtyHdrOffset = 4
+	stationSlipSideMargin     = 4
+	stationSlipItemLeftMargin = 5
+	stationSlipQtyColWidth    = 8
 )
 
-// escposNoteIndentSpaces — sub-line indent before underlined item notes (station + receipt).
+// escposNoteIndentSpaces — sub-line indent before underlined station-slip item notes.
 const escposNoteIndentSpaces = 1
 
 // Top: no extra LF — most printers already feed after ESC @ init.
@@ -465,11 +465,15 @@ func (w *escposWriter) rightLine(s string, bold bool) {
 }
 
 func stationSlipQtyColStart(width int) int {
-	return width - stationSlipRightMargin - stationSlipQtyColWidth
+	return width - stationSlipSideMargin - stationSlipQtyColWidth
 }
 
-func stationSlipItemsMaxWidth(width int) int {
-	return stationSlipQtyColStart(width) - stationSlipLeftMargin
+func stationSlipHeaderItemsMaxWidth(width int) int {
+	return stationSlipQtyColStart(width) - stationSlipSideMargin
+}
+
+func stationSlipItemMaxWidth(width int) int {
+	return stationSlipQtyColStart(width) - stationSlipItemLeftMargin
 }
 
 func placeRunesAt(buf []rune, start int, r []rune) {
@@ -482,31 +486,26 @@ func placeRunesAt(buf []rune, start int, r []rune) {
 }
 
 func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string {
-	items := []rune(truncateRunes(itemsLabel, stationSlipItemsMaxWidth(width)))
-	qty := []rune(truncateRunes(qtyLabel, stationSlipQtyColWidth-stationSlipQtyHdrOffset))
+	items := []rune(truncateRunes(itemsLabel, stationSlipHeaderItemsMaxWidth(width)))
+	qty := []rune(truncateRunes(padFieldCenter(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
 	buf := make([]rune, width)
 	for i := range buf {
 		buf[i] = ' '
 	}
-	placeRunesAt(buf, stationSlipLeftMargin, items)
-	placeRunesAt(buf, stationSlipQtyColStart(width)+stationSlipQtyHdrOffset, qty)
+	placeRunesAt(buf, stationSlipSideMargin, items)
+	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
 	return string(buf)
 }
 
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
-	left := []rune(truncateRunes(leftLabel, stationSlipItemsMaxWidth(width)))
-	qty := []rune(truncateRunes(qtyStr, stationSlipQtyColWidth))
-	qtyEnd := width - stationSlipRightMargin
-	qtyStart := qtyEnd - len(qty)
-	if qtyStart < stationSlipQtyColStart(width) {
-		qtyStart = stationSlipQtyColStart(width)
-	}
+	left := []rune(truncateRunes(leftLabel, stationSlipItemMaxWidth(width)))
+	qty := []rune(truncateRunes(padFieldCenter(qtyStr, stationSlipQtyColWidth), stationSlipQtyColWidth))
 	buf := make([]rune, width)
 	for i := range buf {
 		buf[i] = ' '
 	}
-	placeRunesAt(buf, stationSlipLeftMargin, left)
-	placeRunesAt(buf, qtyStart, qty)
+	placeRunesAt(buf, stationSlipItemLeftMargin, left)
+	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
 	return string(buf)
 }
 
@@ -597,22 +596,8 @@ func (w *escposWriter) writeTableContext(p jobPayload, lab ticketLabels, tableCe
 	}
 }
 
-// escposItemNotePrefix — label before underlined guest note on station + receipt tickets.
+// escposItemNotePrefix — label before underlined guest note on station slips.
 const escposItemNotePrefix = "Observação: "
-
-func (w *escposWriter) writeItemNoteLine(note string, width int) {
-	note = strings.TrimSpace(note)
-	if note == "" {
-		return
-	}
-	w.writeBody1x1()
-	indent := strings.Repeat(" ", escposNoteIndentSpaces)
-	line := escposItemNotePrefix + note
-	w.underline(true)
-	w.text(indent + truncateRunes(line, width-escposNoteIndentSpaces))
-	w.lf()
-	w.underline(false)
-}
 
 func sortStationMenuLines(lines []jobLine) []jobLine {
 	out := append([]jobLine(nil), lines...)
@@ -764,11 +749,11 @@ func (w *escposWriter) writeReceiptMenuLines(lines []jobLine, lab ticketLabels) 
 			hasPrice = true
 			sum += fields.lineTotal
 		}
+		w.writeBody1x2()
 		w.text(escposThreeColLine(fields.label, fields.qtyCol, fields.priceCol))
 		w.lf()
-		w.writeItemNoteLine(ln.Note, escposWidth)
-		w.lf()
 	}
+	w.writeBody1x1()
 	return sum, hasPrice
 }
 

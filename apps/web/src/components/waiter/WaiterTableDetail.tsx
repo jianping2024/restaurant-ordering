@@ -47,7 +47,11 @@ import {
   postWaiterBuffetOpenClient,
   postWaiterTableActionClient,
 } from '@/lib/staff-board-client';
-import { commitAuthoritativeWaiterTablePageModel, commitWaiterSessionRelocation } from '@/lib/waiter-staff-mutation-sync';
+import {
+  clearPublishedWaiterTablePageModel,
+  commitAuthoritativeWaiterTablePageModel,
+  commitWaiterSessionRelocation,
+} from '@/lib/waiter-staff-mutation-sync';
 import { filterWaiterTableActionTargets } from '@/lib/waiter-table-occupancy';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
@@ -410,6 +414,15 @@ function WaiterTableDetailInner({
     ],
   );
 
+  const finishTableClose = useCallback(
+    (closedTableId: string) => {
+      clearPublishedWaiterTablePageModel(closedTableId);
+      void waiterBoard?.refreshBoardAfterStaffMutation([closedTableId]);
+      router.replace(boardHref);
+    },
+    [boardHref, router, waiterBoard],
+  );
+
   const handleActionSubmit = async () => {
     if (!operationType || !sourceTable || !targetTable) return;
     if (isCheckoutPending) {
@@ -569,8 +582,8 @@ function WaiterTableDetailInner({
         return;
       }
 
-      await refresh();
       showToast(t.actionSuccess, 'success');
+      finishTableClose(closeTableId);
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
@@ -886,7 +899,7 @@ function WaiterTableDetailInner({
               setDemoCloseConfirmTableId(selectedCard.tableId);
             }}
             onTableClosed={() => {
-              void refresh();
+              finishTableClose(selectedCard.tableId);
             }}
           />
         ) : null}

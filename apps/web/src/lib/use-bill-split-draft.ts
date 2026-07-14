@@ -9,7 +9,7 @@ import {
   lockedByItemLineKeys,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { billSplitDisplayResults } from '@/lib/customer-bill-split-display';
+import { billSplitDisplayResults, buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { BillSplit, SplitMode, SplitResult } from '@/types';
@@ -154,6 +154,11 @@ export function useBillSplitDraft(params: {
     persistedResult,
     draftResults: computedResults,
   });
+
+  const splitDisplayRows = useMemo(
+    () => buildCustomerSplitDisplayRows(results, collectedPayments),
+    [results, collectedPayments],
+  );
 
   const syncNameAcrossModes = useCallback((index: number, name: string) => {
     setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
@@ -304,6 +309,7 @@ export function useBillSplitDraft(params: {
     splitDraftInput,
     splitValidation,
     results,
+    splitDisplayRows,
     byItemAllocations,
     setByItemAllocations,
     consumerRoster,

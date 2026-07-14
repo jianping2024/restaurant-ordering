@@ -3,8 +3,11 @@ import { describe, it } from 'node:test';
 import {
   billSplitDisplayResults,
   buildCustomerSplitDisplayRows,
+  customerBillCallAmount,
   deriveCustomerSplitSettlementStatus,
   initialPersistedSplitResult,
+  splitRowDisplayAmount,
+  sumSplitDisplayOutstanding,
 } from './customer-bill-split-display';
 
 describe('billSplitDisplayResults', () => {
@@ -107,5 +110,76 @@ describe('buildCustomerSplitDisplayRows', () => {
       [{ id: '1', person_index: 0, person_name: 'Ana', amount: 31.7, created_at: '' }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
+  });
+});
+
+describe('splitRowDisplayAmount', () => {
+  it('shows outstanding for partial rows', () => {
+    const row = buildCustomerSplitDisplayRows(
+      [{ name: 'Ana', amount: 27.45 }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' }],
+    )[0]!;
+    assert.equal(splitRowDisplayAmount(row), 7.5);
+  });
+});
+
+describe('customerBillCallAmount', () => {
+  const splitRows = [
+    { name: '客人 1', amount: 659.7 },
+    { name: '客人 2', amount: 659.7 },
+  ];
+  const collected = [
+    { id: '1', person_index: 0, person_name: '客人 1', amount: 659.7, created_at: '' },
+  ];
+
+  it('returns full total when no collections', () => {
+    assert.equal(
+      customerBillCallAmount({
+        total: 1319.4,
+        splitMode: 'even',
+        resultRows: splitRows,
+        collectedPayments: [],
+      }),
+      1319.4,
+    );
+  });
+
+  it('returns pending split balance after partial collection', () => {
+    assert.equal(
+      customerBillCallAmount({
+        total: 1319.4,
+        splitMode: 'even',
+        resultRows: splitRows,
+        collectedPayments: collected,
+      }),
+      659.7,
+    );
+  });
+
+  it('sums outstanding across partial and due rows', () => {
+    const rows = buildCustomerSplitDisplayRows(
+      [
+        { name: 'Ana', amount: 27.45 },
+        { name: 'Tom', amount: 71.9 },
+      ],
+      [
+        { id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' },
+      ],
+    );
+    assert.equal(sumSplitDisplayOutstanding(rows), 7.5 + 71.9);
+    assert.equal(
+      customerBillCallAmount({
+        total: 99.35,
+        splitMode: 'even',
+        resultRows: [
+          { name: 'Ana', amount: 27.45 },
+          { name: 'Tom', amount: 71.9 },
+        ],
+        collectedPayments: [
+          { id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' },
+        ],
+      }),
+      79.4,
+    );
   });
 });

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
-  buildCustomerSplitDisplayRows,
+  customerBillCallAmount,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
@@ -163,9 +163,14 @@ export function BillPage({
     router.replace(checkoutRedirectHref);
   }, [checkoutRedirectHref, submitted, router]);
 
-  const splitDisplayRows = useMemo(
-    () => (submitted ? buildCustomerSplitDisplayRows(splitDraft.results, collectedPayments) : []),
-    [submitted, splitDraft.results, collectedPayments],
+  const callBillAmount = useMemo(
+    () => customerBillCallAmount({
+      total,
+      splitMode: splitDraft.splitMode,
+      resultRows: splitDraft.results,
+      collectedPayments,
+    }),
+    [total, splitDraft.splitMode, splitDraft.results, collectedPayments],
   );
 
   const byItemAllocatorLabels = useMemo(
@@ -415,7 +420,7 @@ export function BillPage({
           noFeedbackItems: t.noFeedbackItems,
         }}
         total={total}
-        splitRows={splitDisplayRows}
+        splitRows={splitDraft.splitDisplayRows}
         backHref={backHref}
         backLabel={backLabel}
         onRefreshPage={() => window.location.reload()}
@@ -487,6 +492,9 @@ export function BillPage({
           people: t.people,
           splitResult: t.splitResult,
           addPerson: t.addPerson,
+          splitPaid: t.splitPaid,
+          splitPartialPaid: t.splitPartialPaid,
+          splitAmountBreakdown: t.splitAmountBreakdown,
         }}
         splitMode={splitDraft.splitMode}
         splitLocked={splitDraft.splitLocked}
@@ -495,6 +503,7 @@ export function BillPage({
         splitPeople={splitDraft.splitPeople}
         customAmounts={splitDraft.customAmounts}
         results={splitDraft.results}
+        splitDisplayRows={splitDraft.splitDisplayRows}
         lockedPersonNames={splitDraft.lockedPersonNames}
         lockedLineKeys={splitDraft.lockedLineKeys}
         lineSpecs={lineSpecs}
@@ -574,7 +583,7 @@ export function BillPage({
             || customerNifInvalid
           }
         >
-          🔔 {t.callBill} — €{total.toFixed(2)}
+          🔔 {t.callBill} — €{callBillAmount.toFixed(2)}
         </Button>
       </div>
     </div>

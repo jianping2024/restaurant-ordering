@@ -2,12 +2,15 @@ import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display'
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import type { UILanguage } from '@/lib/i18n';
 import { SplitPersonAvatar } from '@/components/menu/SplitPersonAvatar';
+import {
+  SplitSettlementAmount,
+  SplitSettlementPartialBreakdown,
+  SplitSettlementStatusBadges,
+  type SplitSettlementCopy,
+} from '@/components/menu/SplitSettlementStatusExtras';
 
-export type CustomerSplitResultListCopy = {
+export type CustomerSplitResultListCopy = SplitSettlementCopy & {
   splitResult: string;
-  splitPaid: string;
-  splitPartialPaid: string;
-  splitAmountBreakdown: string;
 };
 
 type Props = {
@@ -33,27 +36,12 @@ export function CustomerSplitResultList({ rows, lang, copy }: Props) {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-brand-text text-sm">{localizeSplitPersonName(row.name, lang)}</span>
-                  {row.settlementStatus === 'settled' ? (
-                    <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-success">{copy.splitPaid}</span>
-                  ) : null}
-                  {row.settlementStatus === 'partial' ? (
-                    <span className="text-[11px] px-2 py-0.5 rounded-full border border-brand-gold/40 text-brand-gold">
-                      {copy.splitPartialPaid}
-                    </span>
-                  ) : null}
+                  <SplitSettlementStatusBadges row={row} copy={copy} />
                 </div>
-                {row.settlementStatus === 'partial' ? (
-                  <p className="mt-1 text-[12px] text-brand-text-muted">
-                    {copy.splitAmountBreakdown
-                      .replace('{obligation}', row.obligationAmount.toFixed(2))
-                      .replace('{collected}', row.collectedAmount.toFixed(2))}
-                  </p>
-                ) : null}
+                <SplitSettlementPartialBreakdown row={row} copy={copy} />
               </div>
             </div>
-            <span className="font-heading text-brand-gold font-medium shrink-0">
-              €{(row.settlementStatus === 'partial' ? row.outstandingAmount : row.obligationAmount).toFixed(2)}
-            </span>
+            <SplitSettlementAmount row={row} />
           </div>
         </div>
       ))}

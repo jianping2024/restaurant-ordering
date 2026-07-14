@@ -8,10 +8,18 @@ import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
+import { splitRowDisplayAmount } from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
 import type { SplitMode, SplitResult } from '@/types';
+import {
+  SplitSettlementPartialBreakdown,
+  SplitSettlementStatusBadges,
+  splitRowShowsSettlement,
+  type SplitSettlementCopy,
+} from '@/components/menu/SplitSettlementStatusExtras';
 
-type SplitModeCopy = {
+type SplitModeCopy = SplitSettlementCopy & {
   splitMode: string;
   even: string;
   byItem: string;
@@ -33,6 +41,7 @@ interface Props {
   splitPeople: SplitPersonSlot[];
   customAmounts: PersonAmount[];
   results: SplitResult[];
+  splitDisplayRows: CustomerSplitRowDisplay[];
   lockedPersonNames: ReadonlySet<string>;
   lockedLineKeys: ReadonlySet<string>;
   lineSpecs: ByItemLineSpec[];
@@ -73,6 +82,7 @@ export function BillSplitPanel({
   personCount,
   customAmounts,
   results,
+  splitDisplayRows,
   lockedPersonNames,
   lockedLineKeys,
   lineSpecs,
@@ -187,51 +197,72 @@ export function BillSplitPanel({
         <h2 className="text-brand-text font-medium mb-3">{copy.splitResult}</h2>
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => {
+            const settlementRow = splitDisplayRows[i];
             const rowPaid = splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
+            const showSettlement = settlementRow != null && splitRowShowsSettlement(settlementRow);
+            const settledAmount = showSettlement && settlementRow
+              ? splitRowDisplayAmount(settlementRow)
+              : null;
             return (
               <div
                 key={i}
-                className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0"
+                className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-3"
               >
-                {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
-                  editingSplitNameIndex === i ? (
-                    <input
-                      type="text"
-                      autoFocus
-                      value={editingSplitNameValue}
-                      onChange={(e) => onEditingSplitNameValueChange(e.target.value)}
-                      onBlur={() => onCommitInlineRename(i)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          onCommitInlineRename(i);
-                        }
-                        if (e.key === 'Escape') {
-                          onCancelInlineRename();
-                        }
-                      }}
-                      className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
-                      placeholder={guestName(i + 1)}
-                    />
-                  ) : rowPaid ? (
-                    <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
+                <div className="min-w-0 flex-1">
+                  {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
+                    editingSplitNameIndex === i ? (
+                      <input
+                        type="text"
+                        autoFocus
+                        value={editingSplitNameValue}
+                        onChange={(e) => onEditingSplitNameValueChange(e.target.value)}
+                        onBlur={() => onCommitInlineRename(i)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            onCommitInlineRename(i);
+                          }
+                          if (e.key === 'Escape') {
+                            onCancelInlineRename();
+                          }
+                        }}
+                        className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
+                        placeholder={guestName(i + 1)}
+                      />
+                    ) : (
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {rowPaid ? (
+                            <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => onStartInlineRename(i)}
+                              className="text-brand-text text-sm hover:text-brand-gold transition-colors"
+                            >
+                              {localizeSplitPersonName(r.name, lang)}
+                            </button>
+                          )}
+                          {showSettlement && settlementRow ? (
+                            <SplitSettlementStatusBadges row={settlementRow} copy={copy} />
+                          ) : null}
+                        </div>
+                        {showSettlement && settlementRow ? (
+                          <SplitSettlementPartialBreakdown row={settlementRow} copy={copy} />
+                        ) : null}
+                      </div>
+                    )
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => onStartInlineRename(i)}
-                      className="text-brand-text text-sm hover:text-brand-gold transition-colors"
-                    >
-                      {localizeSplitPersonName(r.name, lang)}
-                    </button>
-                  )
-                ) : (
-                  <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
-                )}
+                    <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
+                  )}
+                </div>
                 {splitMode === 'custom' ? (
                   i === customAmounts.length - 1 ? (
-                    <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+                    <span className="text-brand-gold font-medium shrink-0">
+                      €{(settledAmount ?? r.amount).toFixed(2)}
+                    </span>
                   ) : editingCustomAmountIndex === i ? (
-                    <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px]">
+                    <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px] shrink-0">
                       <span className="mr-1">€</span>
                       <input
                         type="text"
@@ -254,20 +285,22 @@ export function BillSplitPanel({
                       />
                     </div>
                   ) : rowPaid ? (
-                    <span className="text-brand-gold font-medium">
-                      €{customAmounts[i]?.amount.toFixed(2) || '0.00'}
+                    <span className="text-brand-gold font-medium shrink-0">
+                      €{(settledAmount ?? customAmounts[i]?.amount ?? 0).toFixed(2)}
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => onStartInlineAmountEdit(i)}
-                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors"
+                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors shrink-0"
                     >
                       €{customAmounts[i]?.amount.toFixed(2) || '0.00'}
                     </button>
                   )
                 ) : (
-                  <span className="text-brand-gold font-medium">€{r.amount.toFixed(2)}</span>
+                  <span className="text-brand-gold font-medium shrink-0">
+                    €{(settledAmount ?? r.amount).toFixed(2)}
+                  </span>
                 )}
               </div>
             );

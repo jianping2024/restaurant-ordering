@@ -1,9 +1,11 @@
+import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import {
   outstandingAmount,
   sumCollectedByPersonIndex,
+  totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
-import type { SplitResult } from '@/types';
+import type { SplitMode, SplitResult } from '@/types';
 
 /** Bill page split rows: draft while editing, persisted snapshot after checkout submit. */
 export function billSplitDisplayResults(params: {
@@ -65,4 +67,33 @@ export function buildCustomerSplitDisplayRows(
       settlementStatus: deriveCustomerSplitSettlementStatus(obligationAmount, collectedAmount),
     };
   });
+}
+
+/** Amount shown for one split row (outstanding when partially collected). */
+export function splitRowDisplayAmount(row: CustomerSplitRowDisplay): number {
+  return row.settlementStatus === 'partial' ? row.outstandingAmount : row.obligationAmount;
+}
+
+export function sumSplitDisplayOutstanding(rows: CustomerSplitRowDisplay[]): number {
+  const cents = rows.reduce((sum, row) => sum + eurosToCents(row.outstandingAmount), 0);
+  return centsToEuros(cents);
+}
+
+/** Customer「呼叫结账」button: full total on first checkout, pending balance after collections. */
+export function customerBillCallAmount(params: {
+  total: number;
+  splitMode: SplitMode | null;
+  resultRows: SplitResult[];
+  collectedPayments: SessionCollectedPayment[];
+}): number {
+  const { total, splitMode, resultRows, collectedPayments } = params;
+  if (collectedPayments.length === 0) return total;
+
+  if (splitMode && resultRows.length > 0) {
+    return sumSplitDisplayOutstanding(
+      buildCustomerSplitDisplayRows(resultRows, collectedPayments),
+    );
+  }
+
+  return outstandingAmount(total, totalCollectedAmount(collectedPayments));
 }

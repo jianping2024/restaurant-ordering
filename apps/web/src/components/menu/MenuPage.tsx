@@ -8,7 +8,7 @@ import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-import { formatOrderItemListLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { formatOrderItemListLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
@@ -243,7 +243,6 @@ export function MenuPage({
   const totalPrice = sumLineTotals(cart);
   const t = MENU_PAGE_MESSAGES[lang];
   const locale = UI_LOCALE_BY_LANG[lang];
-  const orderListGuestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
   const isLocalDevHost =
     typeof window !== 'undefined' &&
     ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
@@ -540,10 +539,7 @@ export function MenuPage({
                       return (
                       <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
                         <p className="text-sm text-brand-text">
-                          {formatOrderItemListLabel(item, {
-                            headcountStyle: 'localized',
-                            guestLabels: orderListGuestLabels,
-                          })}
+                          {formatOrderItemListLabel(item, { headcountStyle: 'receipt' })}
                         </p>
                         {latestBatchId && item.batch_id === latestBatchId && (
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">

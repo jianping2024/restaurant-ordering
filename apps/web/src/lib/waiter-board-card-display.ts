@@ -1,5 +1,5 @@
 import type { UILanguage } from '@/lib/i18n';
-import { formatBuffetCompactHeadcountLabel } from '@/lib/buffet-order';
+import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 import { formatSessionDurationForBoardCard, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -81,7 +81,7 @@ function boardHeadcountText(
   headcount: WaiterBoardTableSummary['buffetHeadcount'],
 ): string {
   if (boardState === 'idle' || !headcount) return '';
-  return formatBuffetCompactHeadcountLabel(headcount.adults, headcount.children);
+  return formatBuffetReceiptQtyLabel(headcount.adults, headcount.children);
 }
 
 function diningDurationSlots(

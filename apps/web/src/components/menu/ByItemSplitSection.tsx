@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
 import { ByItemDishAllocator, type ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
@@ -24,7 +24,6 @@ interface Props {
 }
 
 export function ByItemSplitSection({
-  lang,
   lineSpecs,
   orderLines,
   byItemAllocations,
@@ -39,10 +38,7 @@ export function ByItemSplitSection({
   const { isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(lineSpecs, byItemAllocations);
 
   const lineQtyLabel = (item: BillSplitOrderLine) =>
-    formatOrderItemQuantityLabel(item, {
-      headcountStyle: 'localized',
-      guestLabels: orderListGuestLabelsFromLang(lang),
-    });
+    formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
 
   const orderLineByKey = useMemo(
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),

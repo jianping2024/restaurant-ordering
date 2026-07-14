@@ -1,10 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import {
-  activeBuffetLineByBuffetId,
   formatBuffetReceiptQtyLabel,
-  listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
+import { buildBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
@@ -84,9 +83,7 @@ function receiptLineFromOrderItem(item: OrderItem, itemIndex: number): OrderRece
 }
 
 /** Merge key for billable menu lines (notes ignored). */
-export function receiptMenuItemMergeKey(item: OrderItem): string {
-  return `${item.id}::${item.price}`;
-}
+export { billableMenuItemMergeKey as receiptMenuItemMergeKey } from '@/lib/billable-session-lines';
 
 export function buildReceiptLinesFromOrders(
   orders: Order[],
@@ -94,47 +91,9 @@ export function buildReceiptLinesFromOrders(
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
 
-  const buffetSummaries = listActiveBuffetLineSummaries(orders);
-  const buffetLineById = activeBuffetLineByBuffetId(orders);
-
-  for (const summary of buffetSummaries) {
-    const template = buffetLineById.get(summary.buffetId);
-    if (!template) continue;
+  for (const { item } of buildBillableSessionItems(orders)) {
     itemIndex += 1;
-    lines.push(
-      receiptLineFromOrderItem(
-        {
-          ...template,
-          adult_count: summary.adults,
-          child_count: summary.children,
-          price: summary.amount,
-          qty: 1,
-        },
-        itemIndex,
-      ),
-    );
-  }
-
-  const mergedMenu = new Map<string, { item: OrderItem; qty: number }>();
-  for (const order of orders) {
-    for (const item of order.items || []) {
-      const st = normalizeOrderItemStatus(item, order.status);
-      if (st === 'voided') continue;
-      if (isBuffetBaseItem(item) && buffetSummaries.length > 0) continue;
-
-      const key = receiptMenuItemMergeKey(item);
-      const existing = mergedMenu.get(key);
-      if (existing) {
-        existing.qty += item.qty;
-      } else {
-        mergedMenu.set(key, { item, qty: item.qty });
-      }
-    }
-  }
-
-  for (const { item, qty } of Array.from(mergedMenu.values())) {
-    itemIndex += 1;
-    lines.push(receiptLineFromOrderItem({ ...item, qty }, itemIndex));
+    lines.push(receiptLineFromOrderItem(item, itemIndex));
   }
 
   return lines;

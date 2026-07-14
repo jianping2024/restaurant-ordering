@@ -7,7 +7,6 @@ import { Modal } from '@/components/ui/Modal';
 import { getMessages } from '@/lib/i18n/messages';
 import {
   buildOrderHistoryDetailChips,
-  orderListGuestLabelsFromLang,
 } from '@/lib/order-list-display';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 
@@ -34,16 +33,14 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const checkoutT = getMessages(lang).checkout;
-  const guestLabels = useMemo(() => orderListGuestLabelsFromLang(lang), [lang]);
-
   const chips = useMemo(
     () =>
       entry
-        ? buildOrderHistoryDetailChips(entry.orders, guestLabels, {
+        ? buildOrderHistoryDetailChips(entry.orders, {
             suppressVoidStyling: entry.settlement.suppressVoidItemStyling,
           })
         : [],
-    [entry, guestLabels],
+    [entry],
   );
 
   if (!entry) return null;

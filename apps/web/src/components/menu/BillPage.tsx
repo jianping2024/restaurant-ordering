@@ -8,7 +8,7 @@ import {
   customerBillCallAmount,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
-import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
@@ -71,10 +71,7 @@ export function BillPage({
 
   const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
   const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
-    formatOrderItemQuantityLabel(item, {
-      headcountStyle: 'localized',
-      guestLabels: orderListGuestLabelsFromLang(lang),
-    });
+    formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
 
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
   const collectedPayments = initialCollectedPayments;

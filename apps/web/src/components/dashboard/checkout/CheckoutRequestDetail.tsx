@@ -306,7 +306,7 @@ export function CheckoutRequestDetail({
                       </span>
                     ) : null}
                     <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
-                    <span className="text-brand-text-muted text-[13px]">× {line.qty}</span>
+                    <span className="text-brand-text-muted text-[13px]">{line.quantityLabel}</span>
                   </div>
                   <span className="text-brand-text text-sm tabular-nums shrink-0">
                     €{line.lineTotal.toFixed(2)}

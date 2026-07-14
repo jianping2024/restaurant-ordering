@@ -20,6 +20,15 @@ describe('formatOrderItemQuantityLabel', () => {
     );
   });
 
+  it('formats buffet headcount in receipt style by default', () => {
+    assert.equal(
+      formatOrderItemQuantityLabel(
+        { kind: 'buffet_base', qty: 1, adult_count: 7, child_count: 3 },
+      ),
+      '· A7-C3',
+    );
+  });
+
   it('formats buffet headcount in compact staff style', () => {
     assert.equal(
       formatOrderItemQuantityLabel(
@@ -71,9 +80,9 @@ describe('formatOrderItemListLabel', () => {
           adult_count: 7,
           child_count: 3,
         },
-        { headcountStyle: 'compact' },
+        { headcountStyle: 'receipt' },
       ),
-      '🍽️ Buffet almoço · A7 C3',
+      '🍽️ Buffet almoço · A7-C3',
     );
   });
 });
@@ -100,9 +109,8 @@ describe('formatOrderListItemPrintQty', () => {
         adult_count: 2,
         child_count: 1,
       },
-      guestLabels,
     );
-    assert.equal(label, '2大人 · 1小孩');
+    assert.equal(label, 'A2-C1');
   });
 });
 
@@ -136,10 +144,10 @@ describe('buildOrderListDisplayChips', () => {
       },
     ] as Order[];
 
-    const chips = buildOrderListDisplayChips(orders, guestLabels);
+    const chips = buildOrderListDisplayChips(orders);
     assert.equal(chips.length, 2);
     assert.equal(chips[0].name, 'Buffet almoço');
-    assert.equal(chips[0].quantityLabel, '· 7大人 · 3小孩');
+    assert.equal(chips[0].quantityLabel, '· A7-C3');
     assert.equal(chips[1].quantityLabel, '× 1');
   });
 });
@@ -171,7 +179,7 @@ describe('buildOrderHistoryDetailChips', () => {
       },
     ] as Order[];
 
-    const chips = buildOrderHistoryDetailChips(orders, guestLabels);
+    const chips = buildOrderHistoryDetailChips(orders);
     assert.equal(chips.length, 2);
     assert.equal(chips[0].voided, true);
     assert.equal(chips[1].voided, undefined);
@@ -195,7 +203,7 @@ describe('buildOrderHistoryDetailChips', () => {
       },
     ] as Order[];
 
-    const chips = buildOrderHistoryDetailChips(orders, guestLabels, {
+    const chips = buildOrderHistoryDetailChips(orders, {
       suppressVoidStyling: true,
     });
     assert.equal(chips[0].voided, undefined);

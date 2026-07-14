@@ -3,6 +3,7 @@ import {
   listActiveBuffetLineSummaries,
   formatBuffetGuestCountsOptional,
   formatBuffetHeadcountLabel,
+  formatBuffetReceiptQtyLabel,
 } from '@/lib/buffet-order';
 import { getMessages } from '@/lib/i18n/messages';
 import type { UILanguage } from '@/lib/i18n';
@@ -28,8 +29,8 @@ export function orderListGuestLabelsFromLang(lang: UILanguage): OrderListGuestLa
 }
 
 export type OrderItemListLabelOptions = {
-  /** Staff surfaces use compact A7 C3; guest/history use localized segments. */
-  headcountStyle?: 'compact' | 'localized';
+  /** Default staff/billing surfaces use receipt tokens (`· A1-C2`). */
+  headcountStyle?: 'receipt' | 'compact' | 'localized';
   guestLabels?: OrderListGuestLabels;
 };
 
@@ -37,7 +38,7 @@ function isVoidedItem(item: OrderItem): boolean {
   return item.item_status === 'voided';
 }
 
-/** Qty column for menu lines (`× 2`) or buffet headcount (`· A7 C3` / `· 7大人 · 3小孩`). */
+/** Qty column for menu lines (`× 2`) or buffet headcount (`· A1-C2` / legacy compact/localized). */
 export function formatOrderItemQuantityLabel(
   item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>,
   options: OrderItemListLabelOptions = {},
@@ -50,6 +51,11 @@ export function formatOrderItemQuantityLabel(
   if (options.headcountStyle === 'compact') {
     const headcountLabel = formatBuffetHeadcountLabel(adults, children);
     return headcountLabel ? `· ${headcountLabel}` : '';
+  }
+
+  if (options.headcountStyle === 'receipt' || options.headcountStyle == null) {
+    const receiptLabel = formatBuffetReceiptQtyLabel(adults, children);
+    return receiptLabel ? `· ${receiptLabel}` : '';
   }
 
   const guestLabel = formatBuffetGuestCountsOptional(
@@ -78,14 +84,10 @@ export function formatOrderItemListLabel(
   return `${item.emoji} ${name} ${quantityLabel}`;
 }
 
-/** Print receipt qty column: menu uses xN; buffet uses optional adult/child counts. */
-export function formatOrderListItemPrintQty(
-  item: OrderItem,
-  guestLabels: OrderListGuestLabels,
-): string {
+/** Print receipt qty column: menu uses xN; buffet uses A1-C2 tokens. */
+export function formatOrderListItemPrintQty(item: OrderItem): string {
   if (!isBuffetBaseItem(item)) return `x${item.qty}`;
-  const label = formatOrderItemQuantityLabel(item, { headcountStyle: 'localized', guestLabels });
-  return label.startsWith('· ') ? label.slice(2) : (label || '—');
+  return formatBuffetReceiptQtyLabel(item.adult_count ?? 0, item.child_count ?? 0) || '—';
 }
 
 /** Total countable units for list summary (menu qty + buffet headcount). */
@@ -106,7 +108,6 @@ export function countOrderListItems(orders: Order[]): number {
 
 export function buildOrderListDisplayChips(
   orders: Order[],
-  guestLabels: OrderListGuestLabels,
 ): OrderListDisplayChip[] {
   const chips: OrderListDisplayChip[] = [];
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
@@ -123,7 +124,7 @@ export function buildOrderListDisplayChips(
           adult_count: summary.adults,
           child_count: summary.children,
         },
-        { headcountStyle: 'localized', guestLabels },
+        { headcountStyle: 'receipt' },
       ),
     });
   }
@@ -136,7 +137,7 @@ export function buildOrderListDisplayChips(
           key: `buffet:${item.id}:${order.id}`,
           emoji: item.emoji || '🍽️',
           name: item.name_pt || item.name,
-          quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'localized', guestLabels }),
+          quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
         });
       }
     }
@@ -177,7 +178,6 @@ export function buildOrderListDisplayChips(
 /** Detail modal chips include voided lines for audit visibility. */
 export function buildOrderHistoryDetailChips(
   orders: Order[],
-  guestLabels: OrderListGuestLabels,
   options?: { suppressVoidStyling?: boolean },
 ): OrderListDisplayChip[] {
   const suppressVoidStyling = options?.suppressVoidStyling ?? false;
@@ -191,10 +191,7 @@ export function buildOrderHistoryDetailChips(
         key: `${order.id}:${item.id}:${item.note ?? ''}:${voided ? 'voided' : 'active'}`,
         emoji: item.emoji || (isBuffetBaseItem(item) ? '🍽️' : '🍽'),
         name: item.name_pt || item.name,
-        quantityLabel: formatOrderItemQuantityLabel(item, {
-          headcountStyle: 'localized',
-          guestLabels,
-        }),
+        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
         note: item.note,
         ...(showVoided ? { voided: true } : {}),
       });

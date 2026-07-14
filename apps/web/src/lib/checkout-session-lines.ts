@@ -1,12 +1,13 @@
-import type { Order, OrderItem } from '@/types';
+import { buildBillableSessionItems } from '@/lib/billable-session-lines';
+import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
+import type { Order, OrderItem } from '@/types';
 
 export type CheckoutDisplayLine = {
   key: string;
   emoji: string;
   name: string;
-  qty: number;
-  unitPrice: number;
+  quantityLabel: string;
   lineTotal: number;
   itemCode: string | null;
 };
@@ -15,24 +16,17 @@ function lineName(item: OrderItem): string {
   return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
 }
 
-/** Billable lines for a table session (matches BillPage / receipt enqueue). */
+/** Billable lines for checkout detail (matches receipt enqueue aggregation). */
 export function checkoutLinesFromOrders(
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
-  const lines: CheckoutDisplayLine[] = [];
-  for (const order of orders) {
-    (order.items || []).forEach((item, idx) => {
-      lines.push({
-        key: `${order.id}-${idx}`,
-        emoji: item.emoji || '',
-        name: lineName(item),
-        qty: item.qty,
-        unitPrice: item.price,
-        lineTotal: item.price * item.qty,
-        itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-      });
-    });
-  }
-  return lines;
+  return buildBillableSessionItems(orders).map(({ key, item }) => ({
+    key,
+    emoji: item.emoji || '',
+    name: lineName(item),
+    quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+    lineTotal: item.price * item.qty,
+    itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
+  }));
 }

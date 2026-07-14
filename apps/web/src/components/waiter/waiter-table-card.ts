@@ -72,7 +72,7 @@ export function buildWaiterTableCard(
           adult_count: summary.adults,
           child_count: summary.children,
         },
-        { headcountStyle: 'compact' },
+        { headcountStyle: 'receipt' },
       ),
       quantityLabel: null,
       itemCode: null,
@@ -95,7 +95,7 @@ export function buildWaiterTableCard(
         buffetLines.push({
           orderId: order.id,
           itemIdx,
-          label: formatOrderItemListLabel(item, { headcountStyle: 'compact' }),
+          label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
           quantityLabel: null,
           itemCode: null,
           canDecrement: false,
@@ -107,7 +107,7 @@ export function buildWaiterTableCard(
         orderId: order.id,
         itemIdx,
         label: formatOrderItemNameLabel(item),
-        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'compact' }),
+        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
         canDecrement: canDecrementOrderLine(menuDecrementOperator, item, order.status),
       });

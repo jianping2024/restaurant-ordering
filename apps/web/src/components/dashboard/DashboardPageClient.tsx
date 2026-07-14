@@ -6,8 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
-import { aggregateBuffetForOrders, formatBuffetGuestCountsOptional } from '@/lib/buffet-order';
-import { orderListGuestLabelsFromLang } from '@/lib/order-list-display';
+import { aggregateBuffetForOrders, formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
 import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 import {
   buildFeedbackInsights,
@@ -41,7 +40,6 @@ export function DashboardPageClient({
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
   const orderI18n = getMessages(lang).orderHistory;
-  const guestLabels = orderListGuestLabelsFromLang(lang);
 
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
   const topItems = useMemo(
@@ -115,7 +113,7 @@ export function DashboardPageClient({
   const buffetGuestLabel = (order: Order): string | null => {
     const summary = aggregateBuffetForOrders([order]);
     if (!summary) return null;
-    return formatBuffetGuestCountsOptional(summary.adults, summary.children, guestLabels);
+    return formatBuffetReceiptQtyLabel(summary.adults, summary.children);
   };
 
   return (

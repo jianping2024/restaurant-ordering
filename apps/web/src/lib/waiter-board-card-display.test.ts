@@ -97,7 +97,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.row4.footerIcon, 'view_order');
   });
 
-  it('dining card shows A3C2 when both adult and child counts are set', () => {
+  it('dining card shows A3-C2 when both adult and child counts are set', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 2 }, sessionTotal: 58.4 }),
       boardState: 'dining',
@@ -113,7 +113,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row2.guestCountText, 'A3C2');
+    assert.equal(view.row2.guestCountText, 'A3-C2');
   });
 
   it('formats six-digit amounts incl. decimals for board cards', () => {

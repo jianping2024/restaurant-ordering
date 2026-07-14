@@ -1,9 +1,13 @@
-import { checkoutPayableAmount, normalizeSplitRows } from '@/lib/checkout-split-math';
+import { applyDiscountToRows, checkoutPayableAmount, normalizeSplitRows } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
   totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
+import {
+  buildSplitSettlementRows,
+  sumSplitSettlementOutstanding,
+} from '@/lib/checkout-split-settlement';
 import type { BillSplit, SplitMode } from '@/types';
 
 export type CheckoutSettlementSummary = {
@@ -21,7 +25,16 @@ export function buildCheckoutSettlementSummary(
 ): CheckoutSettlementSummary {
   const payable = checkoutPayableAmount(request, discountRate);
   const collected = totalCollectedAmount(collectedPayments);
-  const pending = Math.max(0, Math.round((payable - collected) * 100) / 100);
+  const splitRows = normalizeSplitRows(request);
+  const pending =
+    splitRows.length > 1
+      ? sumSplitSettlementOutstanding(
+          buildSplitSettlementRows(
+            applyDiscountToRows(splitRows, discountRate),
+            collectedPayments,
+          ),
+        )
+      : outstandingAmount(payable, collected);
   return {
     consumption: Number(request.total_amount),
     payable,
@@ -31,11 +44,25 @@ export function buildCheckoutSettlementSummary(
   };
 }
 
-export function checkoutPaymentProgress(request: BillSplit): {
+export function checkoutPaymentProgress(
+  request: BillSplit,
+  collectedPayments: SessionCollectedPayment[] = [],
+  discountRate = 0,
+): {
   paidCount: number;
   totalCount: number;
 } {
   const rows = normalizeSplitRows(request);
+  if (rows.length > 1 && collectedPayments.length > 0) {
+    const settlement = buildSplitSettlementRows(
+      applyDiscountToRows(rows, discountRate),
+      collectedPayments,
+    );
+    return {
+      paidCount: settlement.filter((row) => row.settlementStatus === 'settled').length,
+      totalCount: settlement.length,
+    };
+  }
   return {
     paidCount: rows.filter((row) => row.paid).length,
     totalCount: rows.length,
@@ -58,14 +85,6 @@ export function checkoutSplitModeLabel(
   if (splitMode === 'custom') return labels.custom;
   if (splitMode === 'even') return labels.even;
   return labels.wholeTable;
-}
-
-/** Amount to confirm for one split row (never negative). */
-export function checkoutRowCollectAmount(
-  rowAmount: number,
-  priorCollectedForPerson: number,
-): number {
-  return outstandingAmount(rowAmount, priorCollectedForPerson);
 }
 
 export function formatCheckoutWaitDuration(

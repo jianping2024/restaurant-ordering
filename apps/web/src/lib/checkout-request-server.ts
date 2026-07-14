@@ -153,7 +153,15 @@ export async function submitCheckoutRequestForTable(
   if (!rpcPayload?.ok) {
     const code = rpcPayload?.code ?? 'upsert_failed';
     const status =
-      code === 'no_active_session' ? 404 : code === 'invalid_request' ? 400 : 500;
+      code === 'no_active_session'
+        ? 404
+        : code === 'invalid_request'
+          ? 400
+          : code === 'split_shape_locked' ||
+              code === 'split_mode_locked' ||
+              code === 'locked_allocation_changed'
+            ? 409
+            : 500;
     return { ok: false, error: code, status, message: rpcPayload?.message };
   }
 

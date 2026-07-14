@@ -16,11 +16,11 @@ import {
   hasConfirmedPerson,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
-  collectibleSplitRowsWithIndex,
-  isSplitRowCollectible,
-  suggestedCollectionAmount,
-  sumCollectedByPersonIndex,
 } from '@/lib/checkout-session-payments';
+import {
+  buildSplitSettlementRows,
+  pendingSplitSettlementRows,
+} from '@/lib/checkout-split-settlement';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -157,8 +157,6 @@ export function CheckoutRequestDetailHost({
 
   const getDiscountRate = (row: BillSplit) =>
     billDiscount.getDisplayRate(row.id, row.discount_rate ?? 0);
-  const getDiscountedSplitResult = (row: BillSplit) =>
-    discountedSplitRows(row, getDiscountRate(row));
 
   const patchRequestDiscount = useCallback(
     (
@@ -243,18 +241,41 @@ export function CheckoutRequestDetailHost({
     );
   };
 
-  const submitConfirmPersonPaid = async (row: BillSplit, rowIndex: number) => {
-    const discountedRows = getDiscountedSplitResult(row);
-    const splitRow = discountedRows[rowIndex];
-    if (!splitRow) return;
+  const splitModeLabels = useMemo(
+    () => ({
+      even: t.splitModeEven,
+      byItem: t.splitModeByItem,
+      custom: t.splitModeCustom,
+      wholeTable: t.splitModeWhole,
+    }),
+    [t],
+  );
 
-    const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
-    const collectedAmount = suggestedCollectionAmount(
-      rowIndex,
-      splitRow.amount,
-      collectedByIndex,
-    );
-    if (splitRow.paid || !isSplitRowCollectible(splitRow.amount, collectedByIndex, rowIndex)) {
+  const discountRate = getDiscountRate(request);
+  const discountedRows = useMemo(
+    () => discountedSplitRows(request, discountRate),
+    [request, discountRate],
+  );
+  const settlementRows = useMemo(
+    () => buildSplitSettlementRows(discountedRows, collectedPayments),
+    [discountedRows, collectedPayments],
+  );
+  const summary = buildCheckoutSettlementSummary(request, discountRate, collectedPayments);
+  const splitModeLabel = checkoutSplitModeLabel(request.split_mode, splitModeLabels);
+  const pendingSettlementRows = useMemo(
+    () => pendingSplitSettlementRows(settlementRows),
+    [settlementRows],
+  );
+
+  const submitConfirmPersonPaid = async (row: BillSplit, rowIndex: number) => {
+    const settlementRow = settlementRows.find((entry) => entry.index === rowIndex);
+    if (!settlementRow || settlementRow.settlementStatus === 'settled') {
+      showToast(t.paid, 'error');
+      return;
+    }
+
+    const collectedAmount = settlementRow.outstandingAmount;
+    if (collectedAmount <= 0) {
       showToast(t.paid, 'error');
       return;
     }
@@ -302,23 +323,7 @@ export function CheckoutRequestDetailHost({
     }
   };
 
-  const splitModeLabels = useMemo(
-    () => ({
-      even: t.splitModeEven,
-      byItem: t.splitModeByItem,
-      custom: t.splitModeCustom,
-      wholeTable: t.splitModeWhole,
-    }),
-    [t],
-  );
-
-  const discountRate = getDiscountRate(request);
-  const summary = buildCheckoutSettlementSummary(request, discountRate, collectedPayments);
-  const splitModeLabel = checkoutSplitModeLabel(request.split_mode, splitModeLabels);
-  const collectedByIndex = useMemo(
-    () => sumCollectedByPersonIndex(collectedPayments),
-    [collectedPayments],
-  );
+  const partialPaid = hasCheckoutCollections(request, collectedPayments);
   const resumeBlockReason = resumeCheckoutBlockReason(request, collectedPayments);
   const resumeConfirmMessage = useMemo(() => {
     const variant = resumeOrderingConfirmVariant(request, collectedPayments);
@@ -326,11 +331,6 @@ export function CheckoutRequestDetailHost({
     if (variant === 'preserve_with_collections') return t.resumeOrderingConfirmPreserveWithCollections;
     return t.resumeOrderingConfirmCancel;
   }, [request, collectedPayments, t]);
-  const pendingSplitRows = collectibleSplitRowsWithIndex(
-    getDiscountedSplitResult(request),
-    collectedByIndex,
-  );
-  const partialPaid = hasCheckoutCollections(request, collectedPayments);
   const discountApplying = billDiscount.applyingRequestId === request.id;
   const printBillBusy = isPrintBillBusy(request.id);
   const detailLocked =
@@ -347,8 +347,7 @@ export function CheckoutRequestDetailHost({
         splitModeLabel={splitModeLabel}
         partialPaid={partialPaid}
         collectedPayments={collectedPayments}
-        pendingSplitRows={pendingSplitRows}
-        collectedByIndex={collectedByIndex}
+        pendingSettlementRows={pendingSettlementRows}
         selectedLines={selectedLines}
         processingKeys={processingKeys}
         detailLocked={detailLocked}

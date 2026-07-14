@@ -167,7 +167,9 @@ export function useCheckoutRequestSubmit(params: Params) {
         const message =
           requestResult.error === 'invalid_nif'
             ? messages.nifInvalid
-            : requestResult.error === 'split_mode_locked' || requestResult.error === 'locked_allocation_changed'
+            : requestResult.error === 'split_mode_locked'
+              || requestResult.error === 'locked_allocation_changed'
+              || requestResult.error === 'split_shape_locked'
               ? messages.splitPlanLocked
               : messages.actionFailed;
         showToast(message, 'error');

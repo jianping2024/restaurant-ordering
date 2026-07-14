@@ -8,6 +8,8 @@ import {
   lockedByItemLineKeys,
   paidSplitPersonNames,
   shouldShowCheckoutSubmitted,
+  lockedSplitRowCount,
+  resolveContinuationSplitShape,
   validateCheckoutContinuation,
 } from './checkout-split-continuation';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
@@ -153,6 +155,29 @@ describe('paidSplitPersonNames', () => {
   });
 });
 
+describe('resolveContinuationSplitShape', () => {
+  it('hydrates person count from result when persons is empty', () => {
+    const shape = resolveContinuationSplitShape(
+      split({
+        split_mode: 'even',
+        persons: [],
+        result: [
+          { name: '客人 1', amount: 201.27 },
+          { name: '客人 2', amount: 201.27 },
+          { name: '客人 3', amount: 201.26 },
+        ],
+      }),
+      (n) => `Guest ${n}`,
+    );
+    assert.equal(shape?.personCount, 3);
+    assert.deepEqual(shape?.personNames, ['客人 1', '客人 2', '客人 3']);
+  });
+
+  it('returns null when split is missing', () => {
+    assert.equal(resolveContinuationSplitShape(null, (n) => `Guest ${n}`), null);
+  });
+});
+
 describe('validateCheckoutContinuation', () => {
   it('rejects split mode change after partial pay', () => {
     const existing = split({
@@ -231,6 +256,33 @@ describe('validateCheckoutContinuation', () => {
       hasCollectedLedger: false,
     });
     assert.equal(out.ok, true);
+  });
+
+  it('rejects row count change after collections started', () => {
+    const existing = split({
+      split_mode: 'even',
+      result: [
+        { name: '客人 1', amount: 201.27, paid: true },
+        { name: '客人 2', amount: 201.27 },
+        { name: '客人 3', amount: 201.26 },
+      ],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'even',
+        persons: [{ name: '客人 1' }, { name: '客人 2' }],
+        result: [
+          { name: '客人 1', amount: 301.9 },
+          { name: '客人 2', amount: 301.9 },
+        ],
+      },
+      lineSpecs: [],
+      hasCollectedLedger: true,
+    });
+    assert.equal(out.ok, false);
+    if (!out.ok) assert.equal(out.issue, 'split_shape_locked');
+    assert.equal(lockedSplitRowCount(existing), 3);
   });
 });
 

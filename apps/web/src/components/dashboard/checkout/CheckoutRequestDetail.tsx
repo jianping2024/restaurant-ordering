@@ -6,15 +6,13 @@ import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import {
-  checkoutRowCollectAmount,
   formatCheckoutWaitDuration,
 } from '@/lib/checkout-settlement';
+import type { SplitSettlementRow } from '@/lib/checkout-split-settlement';
+import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
-import {
-  checkoutPersonKey,
-} from '@/lib/checkout-request-state';
+import { checkoutPersonKey } from '@/lib/checkout-request-state';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import type { SplitRowWithIndex } from '@/lib/checkout-session-payments';
 import type { getMessages } from '@/lib/i18n/messages';
 import type { UILanguage } from '@/lib/i18n';
 import {
@@ -32,8 +30,7 @@ interface Props {
   splitModeLabel: string;
   partialPaid: boolean;
   collectedPayments: SessionCollectedPayment[];
-  pendingSplitRows: SplitRowWithIndex[];
-  collectedByIndex: Map<number, number>;
+  pendingSettlementRows: SplitSettlementRow[];
   selectedLines: CheckoutDisplayLine[];
   processingKeys: Set<string>;
   detailLocked: boolean;
@@ -136,8 +133,7 @@ export function CheckoutRequestDetail({
   splitModeLabel,
   partialPaid,
   collectedPayments,
-  pendingSplitRows,
-  collectedByIndex,
+  pendingSettlementRows,
   selectedLines,
   processingKeys,
   detailLocked,
@@ -227,17 +223,16 @@ export function CheckoutRequestDetail({
         />
       </div>
 
-      {pendingSplitRows.length > 0 ? (
+      {pendingSettlementRows.length > 0 ? (
         <div className="mt-4 rounded-lg border-2 border-brand-gold/35 bg-brand-gold/5 p-3">
           <p className="text-[13px] font-medium text-brand-text mb-2">{t.pendingCollectionsTitle}</p>
           <div className="space-y-2">
-            {pendingSplitRows.map(({ row, index }) => {
-              const priorCollected = collectedByIndex.get(index) ?? 0;
-              const collectNow = checkoutRowCollectAmount(row.amount, priorCollected);
-              const showOwedTotal = priorCollected > 0 && collectNow < row.amount;
+            {pendingSettlementRows.map((row) => {
+              const collectNow = splitSettlementCollectAmount(row);
+              const showOwedTotal = row.settlementStatus === 'partial';
               return (
                 <div
-                  key={`${request.id}-${index}`}
+                  key={`${request.id}-${row.index}`}
                   className="flex items-center justify-between gap-2 text-sm"
                 >
                   <div className="min-w-0">
@@ -246,9 +241,9 @@ export function CheckoutRequestDetail({
                     </span>
                     {showOwedTotal ? (
                       <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
-                        {t.personOwedTotal.replace('{amount}', row.amount.toFixed(2))}
+                        {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
                         {' · '}
-                        {t.collectedSoFar} €{priorCollected.toFixed(2)}
+                        {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
                       </p>
                     ) : null}
                   </div>
@@ -258,11 +253,11 @@ export function CheckoutRequestDetail({
                     </span>
                     <button
                       type="button"
-                      onClick={() => onConfirmPersonPaid(index)}
+                      onClick={() => onConfirmPersonPaid(row.index)}
                       disabled={detailLocked}
                       className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
                     >
-                      {processingKeys.has(checkoutPersonKey(request.id, index))
+                      {processingKeys.has(checkoutPersonKey(request.id, row.index))
                         ? t.processing
                         : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
                     </button>

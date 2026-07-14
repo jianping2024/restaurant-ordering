@@ -1,4 +1,8 @@
 import { discountedObligationAmount } from '@/lib/checkout-split-math';
+import {
+  buildSplitSettlementRows,
+  pendingSplitSettlementRows,
+} from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
 import type { BillSplit, SplitResult } from '@/types';
 
@@ -20,17 +24,26 @@ export function isSplitRowCollectible(
   return outstandingAmount(discountedObligation, collectedByIndex.get(rowIndex) ?? 0) > 0;
 }
 
-/** Pending rows: unpaid in split result and still collectible per session ledger. */
+/** @deprecated Prefer pendingSplitSettlementRows from checkout-split-settlement. */
 export function collectibleSplitRowsWithIndex(
   rows: SplitResult[],
   collectedByIndex: Map<number, number>,
 ): SplitRowWithIndex[] {
-  return rows
-    .map((row, index) => ({ row, index }))
-    .filter(
-      ({ row, index }) =>
-        !row.paid && isSplitRowCollectible(row.amount, collectedByIndex, index),
-    );
+  const payments: SessionCollectedPayment[] = [];
+  collectedByIndex.forEach((amount, index) => {
+    if (amount <= 0) return;
+    payments.push({
+      id: `legacy-${index}`,
+      person_index: index,
+      person_name: rows[index]?.name ?? '',
+      amount,
+      created_at: '',
+    });
+  });
+  return pendingSplitSettlementRows(buildSplitSettlementRows(rows, payments)).map((row) => ({
+    row: rows[row.index] ?? { name: row.name, amount: row.obligationAmount },
+    index: row.index,
+  }));
 }
 
 export type SessionCollectedPayment = {

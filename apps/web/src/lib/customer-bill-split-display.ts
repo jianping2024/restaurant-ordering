@@ -1,10 +1,14 @@
-import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import {
   outstandingAmount,
-  sumCollectedByPersonIndex,
   totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
+import {
+  buildSplitSettlementRows,
+  deriveSplitSettlementStatus,
+  sumSplitSettlementOutstanding,
+  type SplitSettlementStatus,
+} from '@/lib/checkout-split-settlement';
 import type { SplitMode, SplitResult } from '@/types';
 
 /** Bill page split rows: draft while editing, persisted snapshot after checkout submit. */
@@ -29,7 +33,7 @@ export function initialPersistedSplitResult(
   return existingResult?.length ? existingResult : null;
 }
 
-export type CustomerSplitSettlementStatus = 'due' | 'partial' | 'settled';
+export type CustomerSplitSettlementStatus = SplitSettlementStatus;
 
 export type CustomerSplitRowDisplay = {
   name: string;
@@ -39,34 +43,20 @@ export type CustomerSplitRowDisplay = {
   settlementStatus: CustomerSplitSettlementStatus;
 };
 
-export function deriveCustomerSplitSettlementStatus(
-  obligationAmount: number,
-  collectedAmount: number,
-): CustomerSplitSettlementStatus {
-  const outstanding = outstandingAmount(obligationAmount, collectedAmount);
-  if (outstanding <= 0) return 'settled';
-  if (collectedAmount > 0) return 'partial';
-  return 'due';
-}
+export const deriveCustomerSplitSettlementStatus = deriveSplitSettlementStatus;
 
-/** Customer success screen: obligation from split result, collection state from session ledger. */
+/** Customer bill: obligation from split result, collection state from session ledger. */
 export function buildCustomerSplitDisplayRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
 ): CustomerSplitRowDisplay[] {
-  const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
-  return resultRows.map((row, index) => {
-    const collectedAmount = collectedByIndex.get(index) ?? 0;
-    const obligationAmount = row.amount;
-    const outstanding = outstandingAmount(obligationAmount, collectedAmount);
-    return {
-      name: row.name,
-      obligationAmount,
-      collectedAmount,
-      outstandingAmount: outstanding,
-      settlementStatus: deriveCustomerSplitSettlementStatus(obligationAmount, collectedAmount),
-    };
-  });
+  return buildSplitSettlementRows(resultRows, collectedPayments).map(({ name, obligationAmount, collectedAmount, outstandingAmount, settlementStatus }) => ({
+    name,
+    obligationAmount,
+    collectedAmount,
+    outstandingAmount,
+    settlementStatus,
+  }));
 }
 
 /** Amount shown for one split row (outstanding when partially collected). */
@@ -75,8 +65,9 @@ export function splitRowDisplayAmount(row: CustomerSplitRowDisplay): number {
 }
 
 export function sumSplitDisplayOutstanding(rows: CustomerSplitRowDisplay[]): number {
-  const cents = rows.reduce((sum, row) => sum + eurosToCents(row.outstandingAmount), 0);
-  return centsToEuros(cents);
+  return sumSplitSettlementOutstanding(
+    rows.map((row, index) => ({ ...row, index })),
+  );
 }
 
 /** Customer「呼叫结账」button: full total on first checkout, pending balance after collections. */
@@ -90,8 +81,8 @@ export function customerBillCallAmount(params: {
   if (collectedPayments.length === 0) return total;
 
   if (splitMode && resultRows.length > 0) {
-    return sumSplitDisplayOutstanding(
-      buildCustomerSplitDisplayRows(resultRows, collectedPayments),
+    return sumSplitSettlementOutstanding(
+      buildSplitSettlementRows(resultRows, collectedPayments),
     );
   }
 

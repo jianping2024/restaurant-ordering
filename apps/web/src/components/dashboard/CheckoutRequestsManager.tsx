@@ -132,7 +132,7 @@ export function CheckoutRequestsManager({
       const collected = getCollectedForSession(request.session_id);
       const discountRate = billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
       const summary = buildCheckoutSettlementSummary(request, discountRate, collected);
-      const progress = checkoutPaymentProgress(request);
+      const progress = checkoutPaymentProgress(request, collected, discountRate);
       const paymentProgressLabel =
         progress.totalCount > 1
           ? t.paymentProgress

@@ -4,7 +4,6 @@ import type { BillSplit } from '@/types';
 import {
   buildCheckoutSettlementSummary,
   checkoutPaymentProgress,
-  checkoutRowCollectAmount,
   checkoutSplitModeLabel,
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
@@ -39,27 +38,28 @@ const modeLabels = {
 };
 
 describe('buildCheckoutSettlementSummary', () => {
-  it('computes pending as payable minus collected', () => {
+  it('sums row outstanding for multi-person splits', () => {
     const summary = buildCheckoutSettlementSummary(
       billSplit(),
       0,
-      [{ id: '1', person_name: 'John', amount: 26.4, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '' }],
     );
     assert.equal(summary.payable, 60);
-    assert.equal(summary.collected, 26.4);
-    assert.equal(summary.pending, 33.6);
+    assert.equal(summary.collected, 30);
+    assert.equal(summary.pending, 30);
   });
 });
 
 describe('checkoutPaymentProgress', () => {
-  it('counts paid rows', () => {
+  it('counts paid rows from ledger when available', () => {
     const progress = checkoutPaymentProgress(
       billSplit({
         result: [
-          { name: 'John', amount: 30, paid: true },
+          { name: 'John', amount: 30, paid: false },
           { name: 'Mary', amount: 30 },
         ],
       }),
+      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '' }],
     );
     assert.equal(progress.paidCount, 1);
     assert.equal(progress.totalCount, 2);
@@ -83,13 +83,6 @@ describe('checkoutSplitModeLabel', () => {
   it('maps split modes', () => {
     assert.equal(checkoutSplitModeLabel('by_item', modeLabels), '按菜');
     assert.equal(checkoutSplitModeLabel(null, modeLabels), '整桌');
-  });
-});
-
-describe('checkoutRowCollectAmount', () => {
-  it('subtracts prior collections', () => {
-    assert.equal(checkoutRowCollectAmount(30, 24.45), 5.55);
-    assert.equal(checkoutRowCollectAmount(30, 40), 0);
   });
 });
 

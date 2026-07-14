@@ -7,6 +7,7 @@ import {
   allocationLockedPersonNames,
   isCheckoutSplitLocked,
   lockedByItemLineKeys,
+  resolveContinuationSplitShape,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { billSplitDisplayResults, buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
@@ -28,6 +29,43 @@ export function resolveInitialSplitMode(existingSplit: BillSplit | null): SplitM
   if (!existingSplit) return null;
   if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;
   return existingSplit.split_mode;
+}
+
+function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
+  const shape = resolveContinuationSplitShape(existingSplit, guestName);
+  if (shape) return shape.personCount;
+  return 2;
+}
+
+function initialSplitPeople(
+  existingSplit: BillSplit | null,
+  guestName: (n: number) => string,
+): SplitPersonSlot[] {
+  const shape = resolveContinuationSplitShape(existingSplit, guestName);
+  if (shape) {
+    return shape.personNames.map((name, idx) => ({ id: `p${idx + 1}`, name }));
+  }
+  return [
+    { id: 'p1', name: guestName(1) },
+    { id: 'p2', name: guestName(2) },
+  ];
+}
+
+function initialCustomAmounts(
+  existingSplit: BillSplit | null,
+  guestName: (n: number) => string,
+): PersonAmount[] {
+  if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
+    return existingSplit.result.map((row) => ({ name: row.name, amount: row.amount }));
+  }
+  const shape = resolveContinuationSplitShape(existingSplit, guestName);
+  if (shape) {
+    return shape.personNames.map((name) => ({ name, amount: 0 }));
+  }
+  return [
+    { name: guestName(1), amount: 0 },
+    { name: guestName(2), amount: 0 },
+  ];
 }
 
 export function useBillSplitDraft(params: {
@@ -57,34 +95,21 @@ export function useBillSplitDraft(params: {
     submitting,
   } = params;
 
+  const splitSeed = continuationSplit ?? existingSplit;
+
   const [splitMode, setSplitMode] = useState<SplitMode | null>(() => resolveInitialSplitMode(existingSplit));
   const [personCount, setPersonCount] = useState(() => {
-    if (existingSplit?.split_mode === 'even' && existingSplit.persons?.length) {
-      return existingSplit.persons.length;
+    if (existingSplit?.split_mode === 'even') {
+      return initialEvenPersonCount(splitSeed, guestName);
     }
     return 2;
   });
-  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() => {
-    if (existingSplit?.persons?.length) {
-      return existingSplit.persons.map((person, idx) => ({
-        id: `p${idx + 1}`,
-        name: person.name,
-      }));
-    }
-    return [
-      { id: 'p1', name: guestName(1) },
-      { id: 'p2', name: guestName(2) },
-    ];
-  });
-  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() => {
-    if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
-      return existingSplit.result.map((row) => ({ name: row.name, amount: row.amount }));
-    }
-    return [
-      { name: guestName(1), amount: 0 },
-      { name: guestName(2), amount: 0 },
-    ];
-  });
+  const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() =>
+    initialSplitPeople(splitSeed, guestName),
+  );
+  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() =>
+    initialCustomAmounts(splitSeed, guestName),
+  );
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');

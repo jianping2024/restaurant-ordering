@@ -12,7 +12,43 @@ import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectedPersonNames } from '@/lib/checkout-session-payments';
 
-export type CheckoutContinuationIssue = 'split_mode_locked' | 'locked_allocation_changed';
+export type CheckoutContinuationIssue =
+  | 'split_mode_locked'
+  | 'locked_allocation_changed'
+  | 'split_shape_locked';
+
+/** Locked split row count from persisted persons or result snapshot. */
+export function lockedSplitRowCount(split: BillSplit | null | undefined): number {
+  if (!split) return 0;
+  return Math.max(split.persons?.length ?? 0, split.result?.length ?? 0);
+}
+
+export type ContinuationSplitShape = {
+  personCount: number;
+  personNames: string[];
+};
+
+/** Hydrate even/custom draft shape from a paused continuation split. */
+export function resolveContinuationSplitShape(
+  split: BillSplit | null | undefined,
+  guestName: (n: number) => string,
+): ContinuationSplitShape | null {
+  if (!split) return null;
+  const count = lockedSplitRowCount(split);
+  if (count < 1) return null;
+
+  const personNames: string[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const fromResult = split.result?.[i]?.name?.trim();
+    const fromPerson = split.persons?.[i]?.name?.trim();
+    personNames.push(fromResult || fromPerson || guestName(i + 1));
+  }
+
+  return {
+    personCount: split.split_mode === 'even' ? Math.max(2, count) : count,
+    personNames,
+  };
+}
 
 /** Session has at least one confirmed per-person payment on the active split. */
 export function hasPaidSplitRow(split: BillSplit | null | undefined): boolean {
@@ -194,6 +230,17 @@ export function validateCheckoutContinuation(params: {
       if (!allocationsEqualForKey(existingAlloc[key], incomingAlloc[key])) {
         return { ok: false, issue: 'locked_allocation_changed' };
       }
+    }
+    return { ok: true };
+  }
+
+  if (
+    hasCollectedLedger
+    && (existing.split_mode === 'even' || existing.split_mode === 'custom')
+  ) {
+    const existingCount = lockedSplitRowCount(existing);
+    if (existingCount > 0 && payload.result.length !== existingCount) {
+      return { ok: false, issue: 'split_shape_locked' };
     }
   }
 

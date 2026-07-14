@@ -109,7 +109,7 @@ describe('collectibleSplitRowsWithIndex', () => {
     );
   });
 
-  it('excludes paid rows even when ledger is stale', () => {
+  it('includes rows when ledger shows balance despite stale paid flag', () => {
     const pending = collectibleSplitRowsWithIndex(
       [
         { name: 'John', amount: 30, paid: true },
@@ -119,7 +119,7 @@ describe('collectibleSplitRowsWithIndex', () => {
     );
     assert.deepEqual(
       pending.map((entry) => entry.index),
-      [1],
+      [0, 1],
     );
   });
 });

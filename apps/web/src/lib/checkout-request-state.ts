@@ -3,6 +3,8 @@ import { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
 
 export { mergeSplitResultPaid } from '@/lib/bill-split-result-merge';
 
+const checkoutRequestKeyPrefix = (billSplitId: string) => `${billSplitId}:`;
+
 /** Merge server list into local checkout queue without losing confirmed paid state. */
 export function mergeBillSplitsFromRefresh(
   prev: BillSplit[],
@@ -20,18 +22,22 @@ export function mergeBillSplitsFromRefresh(
 }
 
 export function checkoutPersonKey(billSplitId: string, rowIndex: number): string {
-  return `${billSplitId}-${rowIndex}`;
+  return `${checkoutRequestKeyPrefix(billSplitId)}payment:${rowIndex}`;
 }
 
 export function checkoutResumeOrderingKey(billSplitId: string): string {
-  return `resume-ordering:${billSplitId}`;
+  return `${checkoutRequestKeyPrefix(billSplitId)}resume`;
 }
 
-export function isCheckoutRequestBusy(processingKeys: ReadonlySet<string>, billSplitId: string): boolean {
-  const prefix = `${billSplitId}-`;
-  let busy = false;
+/** True while any in-flight mutation targets this checkout request row. */
+export function isCheckoutDetailLocked(
+  processingKeys: ReadonlySet<string>,
+  billSplitId: string,
+): boolean {
+  const prefix = checkoutRequestKeyPrefix(billSplitId);
+  let locked = false;
   processingKeys.forEach((key) => {
-    if (key.startsWith(prefix)) busy = true;
+    if (key.startsWith(prefix)) locked = true;
   });
-  return busy;
+  return locked;
 }

@@ -250,7 +250,6 @@ export function CheckoutRequestsManager({
                 onBack={showList}
                 onAllPaid={clearSelectionAfterComplete}
                 onCloseTableComplete={clearSelectionAfterComplete}
-                onResumeOrderingComplete={clearSelectionAfterComplete}
               />
             ) : awaitingFocusResolve ? (
               <div className="flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">

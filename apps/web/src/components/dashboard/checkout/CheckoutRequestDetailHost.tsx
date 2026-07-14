@@ -9,7 +9,7 @@ import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
   checkoutPersonKey,
-  checkoutResumeOrderingKey,
+  isCheckoutDetailLocked,
 } from '@/lib/checkout-request-state';
 import { discountedSplitRows } from '@/lib/checkout-split-math';
 import {
@@ -21,7 +21,7 @@ import {
   suggestedCollectionAmount,
   sumCollectedByPersonIndex,
 } from '@/lib/checkout-session-payments';
-import { requestCheckoutResumeOrdering } from '@/lib/request-checkout-resume-ordering';
+import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
@@ -52,7 +52,6 @@ type Props = {
   /** Called after the queue row is removed because everyone paid. */
   onAllPaid?: () => void;
   onCloseTableComplete?: () => void;
-  onResumeOrderingComplete?: () => void;
 };
 
 export function CheckoutRequestDetailHost({
@@ -64,7 +63,6 @@ export function CheckoutRequestDetailHost({
   onBack,
   onAllPaid,
   onCloseTableComplete,
-  onResumeOrderingComplete,
 }: Props) {
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
@@ -75,10 +73,32 @@ export function CheckoutRequestDetailHost({
     },
     [waiterBoard],
   );
+  const onResumeMutated = useCallback(
+    (tableId: string) => {
+      void reload();
+      syncBoardAfterMutation(tableId);
+    },
+    [reload, syncBoardAfterMutation],
+  );
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(() => new Set());
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
+  const {
+    isResumeBusy,
+    isResumeMutating,
+    resumeOrdering,
+  } = useCheckoutResumeOrdering({
+    restaurantSlug,
+    tableId: request.table_id,
+    onMutated: onResumeMutated,
+    showToast,
+    messages: {
+      failed: t.resumeOrderingFailed,
+      blockedWholeTable: t.resumeOrderingBlockedWholeTable,
+      success: t.resumeOrderingSuccess,
+    },
+  });
   const discountReasonOptionsList = useMemo(
     () => abnormalReasonOptions(lang, 'discount'),
     [lang],
@@ -282,44 +302,6 @@ export function CheckoutRequestDetailHost({
     }
   };
 
-  const handleResumeOrdering = async (row: BillSplit) => {
-    if (!restaurantSlug) {
-      showToast(t.resumeOrderingFailed, 'error');
-      return;
-    }
-
-    const resumeKey = checkoutResumeOrderingKey(row.id);
-    setProcessingKeys((prev) => new Set(prev).add(resumeKey));
-    try {
-      const outcome = await requestCheckoutResumeOrdering({
-        slug: restaurantSlug,
-        tableId: row.table_id,
-      });
-      if (!outcome.ok) {
-        const message =
-          outcome.error === 'whole_table_paid'
-            ? t.resumeOrderingBlockedWholeTable
-            : t.resumeOrderingFailed;
-        showToast(message, 'error');
-        return;
-      }
-
-      void reload();
-      syncBoardAfterMutation(row.table_id);
-      onResumeOrderingComplete?.();
-      showToast(t.resumeOrderingSuccess, 'success');
-    } catch {
-      showToast(t.resumeOrderingFailed, 'error');
-    } finally {
-      setProcessingKeys((prev) => {
-        const next = new Set(prev);
-        next.delete(resumeKey);
-        return next;
-      });
-      setResumeConfirmOpen(false);
-    }
-  };
-
   const splitModeLabels = useMemo(
     () => ({
       even: t.splitModeEven,
@@ -349,6 +331,13 @@ export function CheckoutRequestDetailHost({
     collectedByIndex,
   );
   const partialPaid = hasCheckoutCollections(request, collectedPayments);
+  const discountApplying = billDiscount.applyingRequestId === request.id;
+  const printBillBusy = isPrintBillBusy(request.id);
+  const detailLocked =
+    isResumeBusy ||
+    isCheckoutDetailLocked(processingKeys, request.id) ||
+    discountApplying ||
+    printBillBusy;
 
   return (
     <>
@@ -362,12 +351,14 @@ export function CheckoutRequestDetailHost({
         collectedByIndex={collectedByIndex}
         selectedLines={selectedLines}
         processingKeys={processingKeys}
+        detailLocked={detailLocked}
+        resumeOperating={isResumeMutating}
         discountRate={discountRate}
-        discountApplying={billDiscount.applyingRequestId === request.id}
+        discountApplying={discountApplying}
         discountLocked={hasConfirmedPerson(request)}
         resumeBlockReason={resumeBlockReason}
         canCloseTable={canCloseTable}
-        printBillBusy={isPrintBillBusy(request.id)}
+        printBillBusy={printBillBusy}
         printCooldownSeconds={cooldownSecondsLeft(request.id)}
         printOnCooldown={isOnCooldown(request.id)}
         showBackButton={showBackButton}
@@ -411,13 +402,18 @@ export function CheckoutRequestDetailHost({
       />
       <ConfirmModal
         open={resumeConfirmOpen}
-        onClose={() => setResumeConfirmOpen(false)}
+        onClose={() => {
+          if (isResumeBusy) return;
+          setResumeConfirmOpen(false);
+        }}
         title={t.resumeOrderingConfirmTitle}
         message={resumeConfirmMessage}
         confirmLabel={t.resumeOrdering}
         cancelLabel={t.resumeOrderingCancel}
-        confirming={processingKeys.has(checkoutResumeOrderingKey(request.id))}
-        onConfirm={() => void handleResumeOrdering(request)}
+        confirming={isResumeMutating}
+        onConfirm={() => {
+          void resumeOrdering().finally(() => setResumeConfirmOpen(false));
+        }}
       />
     </>
   );

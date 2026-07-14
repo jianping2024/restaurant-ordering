@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mergeBillSplitsFromRefresh } from './checkout-request-state';
+import {
+  checkoutPersonKey,
+  checkoutResumeOrderingKey,
+  isCheckoutDetailLocked,
+  mergeBillSplitsFromRefresh,
+} from './checkout-request-state';
 import type { BillSplit } from '@/types';
 
 const baseSplit = (id: string, overrides: Partial<BillSplit> = {}): BillSplit =>
@@ -37,4 +42,17 @@ test('mergeBillSplitsFromRefresh replaces queue with server list', () => {
     merged.map((row) => row.id),
     ['c'],
   );
+});
+
+test('isCheckoutDetailLocked is true for payment and resume operations', () => {
+  const billSplitId = 'split-1';
+  assert.equal(
+    isCheckoutDetailLocked(new Set([checkoutPersonKey(billSplitId, 0)]), billSplitId),
+    true,
+  );
+  assert.equal(
+    isCheckoutDetailLocked(new Set([checkoutResumeOrderingKey(billSplitId)]), billSplitId),
+    true,
+  );
+  assert.equal(isCheckoutDetailLocked(new Set(['other:resume']), billSplitId), false);
 });

@@ -80,7 +80,6 @@ export function WaiterBoardCheckoutSheet({
             onBack={onClose}
             onAllPaid={onClose}
             onCloseTableComplete={onClose}
-            onResumeOrderingComplete={onClose}
           />
         ) : (
           <div className="rounded-xl border border-brand-border bg-brand-card px-6 py-16 text-center">

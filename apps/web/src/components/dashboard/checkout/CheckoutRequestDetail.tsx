@@ -12,8 +12,6 @@ import {
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 import {
   checkoutPersonKey,
-  checkoutResumeOrderingKey,
-  isCheckoutRequestBusy,
 } from '@/lib/checkout-request-state';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { SplitRowWithIndex } from '@/lib/checkout-session-payments';
@@ -38,6 +36,8 @@ interface Props {
   collectedByIndex: Map<number, number>;
   selectedLines: CheckoutDisplayLine[];
   processingKeys: Set<string>;
+  detailLocked: boolean;
+  resumeOperating: boolean;
   discountRate: number;
   discountApplying: boolean;
   discountLocked: boolean;
@@ -64,6 +64,7 @@ function SettlementBar({
   discountRate,
   discountApplying,
   discountLocked,
+  detailLocked,
   t,
   onDiscountRateChange,
   onDiscountRateFocus,
@@ -73,6 +74,7 @@ function SettlementBar({
   discountRate: number;
   discountApplying: boolean;
   discountLocked: boolean;
+  detailLocked: boolean;
   t: CheckoutT;
   onDiscountRateChange: (rate: number) => void;
   onDiscountRateFocus: () => void;
@@ -118,7 +120,7 @@ function SettlementBar({
             onBlur={onDiscountRateBlur}
             className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-sm text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
             placeholder="0"
-            disabled={discountLocked || discountApplying}
+            disabled={discountLocked || discountApplying || detailLocked}
             title={discountLocked ? t.discountLockedAfterPayment : undefined}
           />
           <span className="text-brand-text-muted text-sm">%</span>
@@ -138,6 +140,8 @@ export function CheckoutRequestDetail({
   collectedByIndex,
   selectedLines,
   processingKeys,
+  detailLocked,
+  resumeOperating,
   discountRate,
   discountApplying,
   discountLocked,
@@ -215,6 +219,7 @@ export function CheckoutRequestDetail({
           discountRate={discountRate}
           discountApplying={discountApplying}
           discountLocked={discountLocked}
+          detailLocked={detailLocked}
           t={t}
           onDiscountRateChange={onDiscountRateChange}
           onDiscountRateFocus={onDiscountRateFocus}
@@ -254,7 +259,7 @@ export function CheckoutRequestDetail({
                     <button
                       type="button"
                       onClick={() => onConfirmPersonPaid(index)}
-                      disabled={isCheckoutRequestBusy(processingKeys, request.id)}
+                      disabled={detailLocked}
                       className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
                     >
                       {processingKeys.has(checkoutPersonKey(request.id, index))
@@ -328,7 +333,7 @@ export function CheckoutRequestDetail({
         <button
           type="button"
           onClick={onPrintBill}
-          disabled={printBillBusy || printOnCooldown}
+          disabled={detailLocked || printBillBusy || printOnCooldown}
           className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
         >
           {printBillBusy
@@ -342,17 +347,11 @@ export function CheckoutRequestDetail({
             <button
               type="button"
               onClick={onResumeOrderingClick}
-              disabled={
-                !!resumeBlockReason ||
-                processingKeys.has(checkoutResumeOrderingKey(request.id)) ||
-                isCheckoutRequestBusy(processingKeys, request.id)
-              }
+              disabled={detailLocked || !!resumeBlockReason}
               title={resumeBlockReason === 'whole_table_paid' ? t.resumeOrderingBlockedWholeTable : undefined}
               className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
             >
-              {processingKeys.has(checkoutResumeOrderingKey(request.id))
-                ? t.resumeOrderingOperating
-                : t.resumeOrdering}
+              {resumeOperating ? t.resumeOrderingOperating : t.resumeOrdering}
             </button>
             {resumeBlockReason === 'whole_table_paid' ? (
               <p className="text-[11px] text-brand-text-muted max-w-[14rem] text-right">
@@ -364,6 +363,7 @@ export function CheckoutRequestDetail({
             <CloseTableSessionAction
               tableId={request.table_id}
               isCheckoutPending
+              disabled={detailLocked}
               onClosed={onCloseTable}
             />
           ) : null}

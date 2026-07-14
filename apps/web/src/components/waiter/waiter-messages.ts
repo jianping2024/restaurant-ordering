@@ -72,9 +72,7 @@ export const WAITER_TEXT = {
     checkoutPendingSubtitle: '待收银收款',
     checkoutOwnerCollectAction: '点击收款',
     goToBill: '去结账',
-    checkoutCloseConfirmTitle: '打印账单并关台',
-    checkoutCloseConfirmMessage:
-      '将打印本桌总账单并关台。若有未收款项，请选择关台原因。',
+    checkoutCloseConfirmTitle: '打印账单并关台？',
     checkoutCloseOperating: '处理中…',
     checkoutClosePrintFailed: '打印账单失败，未关台',
     checkoutCloseFailed: '关台失败，请重试',
@@ -168,9 +166,7 @@ export const WAITER_TEXT = {
     checkoutPendingSubtitle: 'Awaiting payment',
     checkoutOwnerCollectAction: 'Tap to collect payment',
     goToBill: 'Go to bill',
-    checkoutCloseConfirmTitle: 'Print bill and close table',
-    checkoutCloseConfirmMessage:
-      'This prints the table total and closes the session. Select a close reason if payment was not recorded.',
+    checkoutCloseConfirmTitle: 'Print bill and close table?',
     checkoutCloseOperating: 'Processing…',
     checkoutClosePrintFailed: 'Bill print failed — table not closed',
     checkoutCloseFailed: 'Close failed, please retry',
@@ -264,9 +260,7 @@ export const WAITER_TEXT = {
     checkoutPendingSubtitle: 'A aguardar pagamento',
     checkoutOwnerCollectAction: 'Clique para receber',
     goToBill: 'Ir para conta',
-    checkoutCloseConfirmTitle: 'Imprimir conta e fechar mesa',
-    checkoutCloseConfirmMessage:
-      'Imprime o total da mesa e fecha a sessao. Selecione um motivo se o pagamento nao foi registado.',
+    checkoutCloseConfirmTitle: 'Imprimir conta e fechar mesa?',
     checkoutCloseOperating: 'A processar…',
     checkoutClosePrintFailed: 'Falha ao imprimir — mesa nao fechada',
     checkoutCloseFailed: 'Falha ao fechar, tente novamente',

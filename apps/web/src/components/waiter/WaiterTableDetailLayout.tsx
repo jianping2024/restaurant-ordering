@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { Buffet } from '@/types';
 import {
   BuffetPackagesEstimatedTotal,
@@ -16,9 +16,8 @@ import {
 import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { showToast } from '@/components/ui/Toast';
-import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { getMessages } from '@/lib/i18n/messages';
 import { runWaiterTableCheckoutClose } from '@/lib/waiter-table-checkout-close';
 import {
@@ -278,13 +277,8 @@ function WaiterTableCheckoutCloseControl({
   onClosed: () => void;
 }) {
   const orderHistory = getMessages(lang).orderHistory;
-  const unpaidCloseReasonOptionsList = useMemo(
-    () => abnormalReasonOptions(lang, 'unpaid_close'),
-    [lang],
-  );
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [reasonError, setReasonError] = useState<string | null>(null);
 
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
 
@@ -297,37 +291,25 @@ function WaiterTableCheckoutCloseControl({
       showToast(t.checkoutCloseNoSession, 'error');
       return;
     }
-    setReasonError(null);
     setConfirmOpen(true);
   };
 
-  const handleConfirm = async (reason: string, detail: string) => {
+  const handleConfirm = async () => {
     if (!sessionId) return;
     setBusy(true);
-    setReasonError(null);
     try {
       const outcome = await runWaiterTableCheckoutClose({
         slug: restaurantSlug,
         tableId,
         sessionId,
-        closeReason: reason,
-        closeReasonDetail: detail || undefined,
       });
       if (!outcome.ok) {
         if (outcome.stage === 'print') {
           showToast(t.checkoutClosePrintFailed, 'error');
           return;
         }
-        if (outcome.code === 'invalid_reason') {
-          setReasonError(orderHistory.closeTableUnpaidReasonRequired);
-          return;
-        }
-        if (outcome.code === 'reason_detail_required') {
-          setReasonError(orderHistory.closeTableUnpaidReasonDetailRequired);
-          return;
-        }
-        if (outcome.code === 'forbidden') {
-          showToast(outcome.message ?? orderHistory.closeTableForbidden, 'error');
+        if (outcome.code === 'session_billing') {
+          showToast(t.checkoutLockedHint, 'info');
           return;
         }
         if (outcome.code === 'no_session') {
@@ -357,25 +339,17 @@ function WaiterTableCheckoutCloseControl({
       >
         {busy ? t.checkoutCloseOperating : label}
       </WaiterTableSecondaryButton>
-      <ReasonConfirmDialog
+      <ConfirmModal
         open={confirmOpen}
         onClose={() => {
           if (busy) return;
           setConfirmOpen(false);
-          setReasonError(null);
         }}
         title={t.checkoutCloseConfirmTitle}
-        message={t.checkoutCloseConfirmMessage}
-        reasonLabel={orderHistory.closeTableUnpaidReasonLabel}
-        detailLabel={orderHistory.closeTableUnpaidReasonDetailLabel}
-        detailPlaceholder={orderHistory.closeTableUnpaidReasonDetailPlaceholder}
+        message=""
         confirmLabel={orderHistory.closeTableConfirmButton}
         cancelLabel={orderHistory.closeTableCancel}
-        reasonRequiredError={orderHistory.closeTableUnpaidReasonRequired}
-        detailRequiredError={orderHistory.closeTableUnpaidReasonDetailRequired}
-        reasons={unpaidCloseReasonOptionsList}
         confirming={busy}
-        externalError={reasonError}
         onConfirm={handleConfirm}
       />
     </>

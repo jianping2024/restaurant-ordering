@@ -294,8 +294,8 @@
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
 
 前台桌台详情（`embeddedInDashboard`，会话 `open`、未呼叫结账）
-  → 「去结账」：打印会话总账（`checkout_bill`，合并同类菜品行）→ 强制关台（不走收款台账）
-  → 「关台」：仅关台，不打印
+  → 「去结账」：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（operational，无未收款审计）
+  → 「关台」：强制关台（manual + 原因 + 审计），不打印
 ```
 
 ### 异常流程

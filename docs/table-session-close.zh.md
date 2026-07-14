@@ -28,9 +28,10 @@
 
 | 场景 | 入口 |
 |------|------|
+| 前台桌台详情「去结账」（正常收台） | `POST /api/dashboard/checkout-close-table-session` → `closeTableSessionFrontdeskCheckout` → `close_table_session_operational`（无未收款关台审计） |
+| 前台/店主强制关台 | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（未收款须原因 + 审计）→ operational |
 | 服务员关台 | `POST /api/restaurants/[slug]/staff/waiter/sessions/close` → `closeActiveTableSessionWithOperationalCleanup` |
-| 店主订单历史关台 | `POST /api/dashboard/close-table-session` → 同上 |
-| 里斯本 05:00 夜间批量关台 | `closeAllOpenBillingSessions(admin)` → 按桌循环调用同上 |
+| 里斯本 05:00 夜间批量关台 | `closeAllOpenBillingSessions(admin)` → 按桌循环调用 operational |
 
 禁止在业务代码中再写「只 `update table_sessions`」的关台分支。
 

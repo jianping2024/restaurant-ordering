@@ -271,6 +271,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     navRoles: ['frontdesk', 'cashier'],
     pageLoader: 'loadDashboardAccess (floor staff)',
     writePattern: 'read-only',
+    aliases: ['/api/dashboard/checkout-close-table-session'],
     riskNote: 'First item in frontdesk nav; kitchen shortcut stays optional below nav when enabled.',
   },
 ];

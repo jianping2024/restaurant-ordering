@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export type CloseTableOperationalReason = 'waiter_closed' | 'owner_closed' | 'auto_nightly';
+export type CloseTableOperationalReason =
+  | 'waiter_closed'
+  | 'owner_closed'
+  | 'frontdesk_closed'
+  | 'cashier_closed'
+  | 'auto_nightly';
 
 export type CloseTableSessionAudit = {
   /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */

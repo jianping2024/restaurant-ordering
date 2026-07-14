@@ -1,5 +1,4 @@
-import { postCloseTableSessionClient } from '@/lib/close-table-session-client';
-import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
+import { postCheckoutCloseTableSessionClient } from '@/lib/checkout-close-table-session-client';
 import { requestStaffSessionBillPrint } from '@/lib/staff-session-bill-print';
 
 export type WaiterTableCheckoutCloseResult =
@@ -11,44 +10,30 @@ export type WaiterTableCheckoutCloseResult =
       message?: string;
     };
 
-/** Print session total bill, then force-close the table (frontdesk shortcut). */
+/** Print session total bill, then normal frontdesk checkout close (operational). */
 export async function runWaiterTableCheckoutClose(params: {
   slug: string;
   tableId: string;
   sessionId: string;
-  closeReason: string;
-  closeReasonDetail?: string;
 }): Promise<WaiterTableCheckoutCloseResult> {
-  const { slug, tableId, sessionId, closeReason, closeReasonDetail } = params;
+  const { slug, tableId, sessionId } = params;
 
   const printOutcome = await requestStaffSessionBillPrint({ slug, tableId, sessionId });
   if (!printOutcome.ok) {
     return { ok: false, stage: 'print', code: printOutcome.error };
   }
 
-  const { status, body } = await postCloseTableSessionClient({
-    table_id: tableId,
-    confirm_close: true,
-    close_reason: closeReason,
-    close_reason_detail: closeReasonDetail,
-  });
-
-  const next = interpretCloseTableSessionResponse(status, body);
-  if (next.action === 'success') {
+  const { status, body } = await postCheckoutCloseTableSessionClient({ table_id: tableId });
+  if (status === 200 && body.ok !== false) {
     return { ok: true };
   }
-  if (next.action === 'forbidden') {
-    return { ok: false, stage: 'close', code: 'forbidden', message: next.message };
+
+  const code = body.error ?? 'close_failed';
+  if (code === 'session_billing') {
+    return { ok: false, stage: 'close', code };
   }
-  if (next.action === 'no_session') {
-    return { ok: false, stage: 'close', code: 'no_session' };
+  if (code === 'no_session') {
+    return { ok: false, stage: 'close', code };
   }
-  if (
-    next.action === 'invalid_reason' ||
-    next.action === 'reason_detail_required' ||
-    next.action === 'reason_required'
-  ) {
-    return { ok: false, stage: 'close', code: next.action };
-  }
-  return { ok: false, stage: 'close', code: 'close_failed' };
+  return { ok: false, stage: 'close', code, message: body.message };
 }

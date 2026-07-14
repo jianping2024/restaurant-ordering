@@ -7,8 +7,13 @@ import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-re
 import type { UnpaidTableClosedAuditContext } from '@/lib/audit/builders/unpaid-table-closed';
 import type { AuditActor } from '@/lib/audit/types';
 import { auditMoney } from '@/lib/audit/money';
+import {
+  closeActiveTableSessionWithOperationalCleanup,
+  type CloseTableOperationalResult,
+} from '@/lib/close-active-table-session-with-cleanup';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
+import type { CloseTableSessionClosedReason } from '@/lib/table-session/load-close-table-actor';
 
 export type CloseTableSessionServiceInput = {
   admin: SupabaseClient;
@@ -70,6 +75,58 @@ function snapshotToAuditContext(
     gap: auditMoney(snapshot.gap),
     hasUnpaidSplit: !!snapshot.has_unpaid_split,
   };
+}
+
+export type CloseTableSessionFrontdeskCheckoutResult =
+  | { ok: true; session_id: string }
+  | { ok: false; code: 'no_session' | 'session_billing' | 'update_failed'; message?: string };
+
+/** Normal frontdesk checkout close — operational cleanup only, no unpaid-close audit. */
+export async function closeTableSessionFrontdeskCheckout(input: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  tableId: string;
+  userId: string;
+  closedReason: CloseTableSessionClosedReason;
+}): Promise<CloseTableSessionFrontdeskCheckoutResult> {
+  const { data: session, error: sessionErr } = await input.admin
+    .from('table_sessions')
+    .select('id, status')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('table_id', input.tableId)
+    .in('status', ['open', 'billing'])
+    .order('opened_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (sessionErr) {
+    return { ok: false, code: 'update_failed', message: sessionErr.message };
+  }
+  if (!session?.id) {
+    return { ok: false, code: 'no_session' };
+  }
+  if (session.status === 'billing') {
+    return { ok: false, code: 'session_billing' };
+  }
+
+  const closed = await closeActiveTableSessionWithOperationalCleanup(
+    input.admin,
+    input.restaurantId,
+    input.tableId,
+    input.closedReason,
+    { closed_by_user_id: input.userId },
+  );
+
+  return mapOperationalCloseResult(closed);
+}
+
+function mapOperationalCloseResult(
+  result: CloseTableOperationalResult,
+): CloseTableSessionFrontdeskCheckoutResult {
+  if (result.ok) {
+    return { ok: true, session_id: result.session_id };
+  }
+  return { ok: false, code: result.code, message: result.message };
 }
 
 export async function closeTableSessionManual(

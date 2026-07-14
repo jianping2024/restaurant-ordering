@@ -11,7 +11,7 @@ export const WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS =
 
 /** Row1 layout — table title scales down on narrow viewports. */
 export const WAITER_BOARD_CARD_ROW1_LAYOUT = {
-  title: 'min-w-0 truncate text-lg sm:text-[22px] font-bold leading-tight',
+  title: 'min-w-0 flex-1 truncate text-left text-lg sm:text-[22px] font-bold leading-tight',
   badge: 'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
 } as const;
 

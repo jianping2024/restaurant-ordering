@@ -9,7 +9,6 @@ import {
 } from '@/lib/waiter-board-card-action';
 
 export type WaiterBoardCardDisplayLabels = {
-  table: string;
   seatCapacity: string;
   cardIdleReadyHint: string;
   cardDiningDuration: string;
@@ -182,7 +181,7 @@ export function buildWaiterBoardCardViewModel(input: {
 
   const slots: WaiterBoardCardRowSlots = {
     row1: {
-      tableTitle: `${input.labels.table} ${input.card.displayName}`,
+      tableTitle: input.card.displayName,
       badgeLabel: badgeLabelForState(input.boardState, input.statusLabels),
     },
     openerRow: {

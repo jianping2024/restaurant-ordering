@@ -9,7 +9,6 @@ import { WAITER_BOARD_CARD_MAX_AMOUNT_LABEL } from '@/lib/waiter-board-card-layo
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 
 const LABELS = {
-  table: '桌',
   seatCapacity: '{min}–{max} 座',
   cardIdleReadyHint: '干净整洁，可开台',
   cardDiningDuration: '用时 {duration}',
@@ -52,6 +51,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.row1.badgeLabel, '空闲');
+    assert.equal(view.row1.tableTitle, '002');
     assert.equal(view.openerRow.label, null);
     assert.equal(view.row2.capacityText, '2–4 座');
     assert.equal(view.row2.guestCountText, '');
@@ -81,6 +81,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.row1.badgeLabel, '用餐中');
+    assert.equal(view.row1.tableTitle, '002');
     assert.equal(view.openerRow.label, '张三');
     assert.equal(view.row2.guestCountText, 'A3');
     assert.equal(view.row3.metaPrefix, '用时 ');

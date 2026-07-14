@@ -13,7 +13,7 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(flags.showBuffetPanel, true);
     assert.equal(flags.showOccupiedToolbar, true);
-    assert.equal(flags.showGoToBill, true);
+    assert.equal(flags.showCheckoutClose, true);
     assert.equal(flags.showCloseTable, true);
   });
 
@@ -40,7 +40,7 @@ describe('resolveWaiterTableDetailActions', () => {
     );
   });
 
-  it('limits go-to-bill and close table to frontdesk on occupied tables', () => {
+  it('limits checkout-close and close table to frontdesk on occupied tables', () => {
     const waiter = resolveWaiterTableDetailActions({
       embeddedInDashboard: false,
       isDemo: false,
@@ -49,7 +49,7 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: true,
     });
     assert.equal(waiter.showOccupiedToolbar, true);
-    assert.equal(waiter.showGoToBill, false);
+    assert.equal(waiter.showCheckoutClose, false);
     assert.equal(waiter.showCloseTable, false);
 
     const idle = resolveWaiterTableDetailActions({
@@ -60,7 +60,7 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: true,
     });
     assert.equal(idle.showOccupiedToolbar, false);
-    assert.equal(idle.showGoToBill, false);
+    assert.equal(idle.showCheckoutClose, false);
     assert.equal(idle.showCloseTable, false);
   });
 });

@@ -63,7 +63,6 @@ import {
   waiterBoardHref,
   waiterTableHref,
   waiterMenuHref,
-  waiterBillHref,
 } from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -331,7 +330,6 @@ function WaiterTableDetailInner({
   const pageShellClass = isDemo ? 'min-h-screen bg-brand-bg p-4' : '';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
   const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
-  const billHref = waiterBillHref(restaurant.slug, tableId, routeOptions);
 
   useStaffAssistedMenuEntryPrefetch(
     menuHref,
@@ -895,14 +893,16 @@ function WaiterTableDetailInner({
         {detailActions.showOccupiedToolbar ? (
           <WaiterTableOccupiedToolbar
             t={t}
+            lang={lang}
+            restaurantSlug={restaurant.slug}
             tableId={selectedCard.tableId}
+            sessionId={sessionMeta?.sessionId ?? null}
             menuHref={menuHref}
-            billHref={billHref}
             isCheckoutPending={isCheckoutPending}
             onCheckoutLocked={notifyCheckoutLocked}
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}
-            showGoToBill={detailActions.showGoToBill}
+            showCheckoutClose={detailActions.showCheckoutClose}
             showCloseTable={detailActions.showCloseTable}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}

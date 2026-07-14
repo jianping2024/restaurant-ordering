@@ -292,6 +292,10 @@
   → 逐人 POST .../checkout/confirm-payment（confirm_bill_split_payment RPC）
   → session_collected_payments 记账；result 行标 paid
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
+
+前台桌台详情（`embeddedInDashboard`，会话 `open`、未呼叫结账）
+  → 「去结账」：打印会话总账（`checkout_bill`，合并同类菜品行）→ 强制关台（不走收款台账）
+  → 「关台」：仅关台，不打印
 ```
 
 ### 异常流程

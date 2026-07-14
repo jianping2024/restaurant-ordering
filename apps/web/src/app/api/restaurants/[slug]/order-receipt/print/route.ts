@@ -100,14 +100,6 @@ export async function POST(
   const variant = parseVariant(body.receipt_variant, jobTypeRaw);
   const sessionIdRaw = typeof body.session_id === 'string' ? body.session_id.trim() : '';
 
-  if (variant === 'checkout_bill') {
-    const billSplitIdRaw =
-      typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
-    if (!billSplitIdRaw) {
-      return NextResponse.json({ error: 'bill_split_required' }, { status: 400 });
-    }
-  }
-
   const checkoutAuth = await authorizeCheckoutConfirmPayment(slug, req);
   let admin: ReturnType<typeof createAdminClient>;
   let restaurantId: string;

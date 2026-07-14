@@ -100,6 +100,36 @@ describe('buildReceiptLinesFromOrders', () => {
     assert.equal(lines[0]?.share_qty_label, 'A4-C2');
     assert.equal(lines[1]?.display_name, 'RE-001-Água 500ml');
   });
+
+  it('merges same menu item across orders regardless of note', () => {
+    const cokeItem = {
+      id: 'menu-coke',
+      name: 'Cola',
+      name_pt: 'Cola',
+      qty: 1,
+      price: 2.5,
+      emoji: '🥤',
+      item_code: '006',
+      category_code_path: ['RE'],
+    };
+    const mergedOrders: Order[] = [
+      {
+        ...orders[0]!,
+        id: 'order-a',
+        items: [{ ...cokeItem, qty: 2, note: 'sem gelo' }],
+      },
+      {
+        ...orders[0]!,
+        id: 'order-b',
+        items: [{ ...cokeItem, qty: 1, note: 'com limao' }],
+      },
+    ];
+    const lines = buildReceiptLinesFromOrders(mergedOrders);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.qty, 3);
+    assert.equal(lines[0]?.unit_price, 2.5);
+    assert.equal(lines[0]?.note, undefined);
+  });
 });
 
 describe('buildSplitPersonReceiptLines', () => {
@@ -353,5 +383,81 @@ describe('enqueueReceiptPrint', () => {
     assert.equal(result.ok, true);
     assert.equal('job_id' in result && result.job_id, 'job-manual');
     assert.equal(insertCalled, true);
+  });
+
+  it('checkout_bill without bill_split uses merged line subtotal as amount_due', async () => {
+    let insertedPayload: Record<string, unknown> | null = null;
+    const duplicateOrders: Order[] = [
+      {
+        ...orders[0]!,
+        id: 'order-a',
+        items: [{ ...orders[0]!.items[0]!, qty: 1 }],
+      },
+      {
+        ...orders[0]!,
+        id: 'order-b',
+        items: [{ ...orders[0]!.items[0]!, qty: 2 }],
+      },
+    ];
+
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { feature_flags: { bill_receipt_print: false } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          const ordersChain: {
+            select: () => typeof ordersChain;
+            eq: () => typeof ordersChain;
+            in: () => typeof ordersChain;
+            order: () => Promise<{ data: typeof duplicateOrders; error: null }>;
+          } = {
+            select: () => ordersChain,
+            eq: () => ordersChain,
+            in: () => ordersChain,
+            order: async () => ({ data: duplicateOrders, error: null }),
+          };
+          return ordersChain;
+        }
+        if (table === 'print_jobs') {
+          return {
+            insert: (row: { payload: Record<string, unknown> }) => {
+              insertedPayload = row.payload;
+              return {
+                select: () => ({
+                  single: async () => ({ data: { id: 'job-session' }, error: null }),
+                }),
+              };
+            },
+          };
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'checkout_bill',
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(insertedPayload?.amount_due, 9);
+    const payloadLines = insertedPayload?.lines as Array<{ qty: number }>;
+    assert.equal(payloadLines.length, 1);
+    assert.equal(payloadLines[0]?.qty, 3);
   });
 });

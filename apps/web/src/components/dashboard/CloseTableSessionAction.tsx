@@ -8,6 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import { showToast } from '@/components/ui/Toast';
 import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui';
+import { postCloseTableSessionClient } from '@/lib/close-table-session-client';
 import { getMessages } from '@/lib/i18n/messages';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
@@ -81,23 +82,13 @@ export function CloseTableSessionAction({
     setClosingTable(closeTableId);
     setUnpaidCloseReasonError(null);
     try {
-      const res = await fetch('/api/dashboard/close-table-session', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          table_id: closeTableId,
-          confirm_close: confirmClose,
-          ...(closeReason ? { close_reason: closeReason } : {}),
-          ...(closeReasonDetail ? { close_reason_detail: closeReasonDetail } : {}),
-        }),
+      const { status, body: data } = await postCloseTableSessionClient({
+        table_id: closeTableId,
+        confirm_close: confirmClose,
+        close_reason: closeReason,
+        close_reason_detail: closeReasonDetail,
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        ok?: boolean;
-        message?: string;
-      };
-      const next = interpretCloseTableSessionResponse(res.status, data);
+      const next = interpretCloseTableSessionResponse(status, data);
       if (next.action === 'no_session') {
         showToast(i18n.closeTableNoSession, 'error');
         return;

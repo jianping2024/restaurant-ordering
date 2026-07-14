@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import type { Buffet } from '@/types';
 import {
   BuffetPackagesEstimatedTotal,
@@ -15,7 +16,11 @@ import {
 import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { ButtonLink } from '@/components/ui/Button';
+import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
+import { showToast } from '@/components/ui/Toast';
+import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
+import { getMessages } from '@/lib/i18n/messages';
+import { runWaiterTableCheckoutClose } from '@/lib/waiter-table-checkout-close';
 import {
   WaiterBillIcon,
   WaiterClocheIcon,
@@ -251,50 +256,144 @@ function ToolbarCloseTableControl({
   );
 }
 
-function GoToBillControl({
-  billHref,
+function WaiterTableCheckoutCloseControl({
+  lang,
+  t,
+  restaurantSlug,
+  tableId,
+  sessionId,
   label,
   checkoutLocked,
   onCheckoutLocked,
+  onClosed,
 }: {
-  billHref: string;
+  lang: UILanguage;
+  t: WaiterCopy;
+  restaurantSlug: string;
+  tableId: string;
+  sessionId: string | null;
   label: string;
   checkoutLocked: boolean;
   onCheckoutLocked: () => void;
+  onClosed: () => void;
 }) {
+  const orderHistory = getMessages(lang).orderHistory;
+  const unpaidCloseReasonOptionsList = useMemo(
+    () => abnormalReasonOptions(lang, 'unpaid_close'),
+    [lang],
+  );
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [reasonError, setReasonError] = useState<string | null>(null);
+
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
 
-  if (checkoutLocked) {
-    return (
-      <WaiterTableSecondaryButton type="button" onClick={onCheckoutLocked} icon={icon}>
-        {label}
-      </WaiterTableSecondaryButton>
-    );
-  }
+  const handleClick = () => {
+    if (checkoutLocked) {
+      onCheckoutLocked();
+      return;
+    }
+    if (!sessionId) {
+      showToast(t.checkoutCloseNoSession, 'error');
+      return;
+    }
+    setReasonError(null);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = async (reason: string, detail: string) => {
+    if (!sessionId) return;
+    setBusy(true);
+    setReasonError(null);
+    try {
+      const outcome = await runWaiterTableCheckoutClose({
+        slug: restaurantSlug,
+        tableId,
+        sessionId,
+        closeReason: reason,
+        closeReasonDetail: detail || undefined,
+      });
+      if (!outcome.ok) {
+        if (outcome.stage === 'print') {
+          showToast(t.checkoutClosePrintFailed, 'error');
+          return;
+        }
+        if (outcome.code === 'invalid_reason') {
+          setReasonError(orderHistory.closeTableUnpaidReasonRequired);
+          return;
+        }
+        if (outcome.code === 'reason_detail_required') {
+          setReasonError(orderHistory.closeTableUnpaidReasonDetailRequired);
+          return;
+        }
+        if (outcome.code === 'forbidden') {
+          showToast(outcome.message ?? orderHistory.closeTableForbidden, 'error');
+          return;
+        }
+        if (outcome.code === 'no_session') {
+          showToast(t.checkoutCloseNoSession, 'error');
+          return;
+        }
+        showToast(t.checkoutCloseFailed, 'error');
+        return;
+      }
+      setConfirmOpen(false);
+      showToast(orderHistory.closeTableSuccess, 'success');
+      onClosed();
+    } catch {
+      showToast(t.checkoutCloseFailed, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <ButtonLink
-      variant="soft"
-      size="action"
-      href={billHref}
-      className={waiterDetailLayout.secondaryAction}
-    >
-      {icon}
-      {label}
-    </ButtonLink>
+    <>
+      <WaiterTableSecondaryButton
+        type="button"
+        onClick={handleClick}
+        disabled={busy}
+        icon={icon}
+      >
+        {busy ? t.checkoutCloseOperating : label}
+      </WaiterTableSecondaryButton>
+      <ReasonConfirmDialog
+        open={confirmOpen}
+        onClose={() => {
+          if (busy) return;
+          setConfirmOpen(false);
+          setReasonError(null);
+        }}
+        title={t.checkoutCloseConfirmTitle}
+        message={t.checkoutCloseConfirmMessage}
+        reasonLabel={orderHistory.closeTableUnpaidReasonLabel}
+        detailLabel={orderHistory.closeTableUnpaidReasonDetailLabel}
+        detailPlaceholder={orderHistory.closeTableUnpaidReasonDetailPlaceholder}
+        confirmLabel={orderHistory.closeTableConfirmButton}
+        cancelLabel={orderHistory.closeTableCancel}
+        reasonRequiredError={orderHistory.closeTableUnpaidReasonRequired}
+        detailRequiredError={orderHistory.closeTableUnpaidReasonDetailRequired}
+        reasons={unpaidCloseReasonOptionsList}
+        confirming={busy}
+        externalError={reasonError}
+        onConfirm={handleConfirm}
+      />
+    </>
   );
 }
 
 type OccupiedToolbarProps = {
   t: WaiterCopy;
+  lang: UILanguage;
+  restaurantSlug: string;
   tableId: string;
+  sessionId: string | null;
   menuHref: string;
-  billHref: string;
   isCheckoutPending: boolean;
   onCheckoutLocked: () => void;
   onTransfer: () => void;
   onMerge: () => void;
-  showGoToBill: boolean;
+  showCheckoutClose: boolean;
   showCloseTable: boolean;
   isDemo: boolean;
   closingDemoTable: boolean;
@@ -304,14 +403,16 @@ type OccupiedToolbarProps = {
 
 export function WaiterTableOccupiedToolbar({
   t,
+  lang,
+  restaurantSlug,
   tableId,
+  sessionId,
   menuHref,
-  billHref,
   isCheckoutPending,
   onCheckoutLocked,
   onTransfer,
   onMerge,
-  showGoToBill,
+  showCheckoutClose,
   showCloseTable,
   isDemo,
   closingDemoTable,
@@ -344,12 +445,17 @@ export function WaiterTableOccupiedToolbar({
           >
             {t.merge}
           </WaiterTableSecondaryButton>
-          {showGoToBill ? (
-            <GoToBillControl
-              billHref={billHref}
+          {showCheckoutClose ? (
+            <WaiterTableCheckoutCloseControl
+              lang={lang}
+              t={t}
+              restaurantSlug={restaurantSlug}
+              tableId={tableId}
+              sessionId={sessionId}
               label={t.goToBill}
               checkoutLocked={isCheckoutPending}
               onCheckoutLocked={onCheckoutLocked}
+              onClosed={onTableClosed}
             />
           ) : null}
           <ToolbarCloseTableControl

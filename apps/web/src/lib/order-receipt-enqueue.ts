@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
-import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
+import {
+  activeBuffetLineByBuffetId,
+  formatBuffetReceiptQtyLabel,
+  listActiveBuffetLineSummaries,
+} from '@/lib/buffet-order';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
@@ -76,8 +80,12 @@ function receiptLineFromOrderItem(item: OrderItem, itemIndex: number): OrderRece
     qty: item.qty,
     unit_price: item.price,
     ...(share_qty_label ? { share_qty_label } : {}),
-    ...(item.note?.trim() ? { note: item.note.trim() } : {}),
   };
+}
+
+/** Merge key for billable menu lines (notes ignored). */
+export function receiptMenuItemMergeKey(item: OrderItem): string {
+  return `${item.id}::${item.price}`;
 }
 
 export function buildReceiptLinesFromOrders(
@@ -85,14 +93,50 @@ export function buildReceiptLinesFromOrders(
 ): OrderReceiptJobPayload['lines'] {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
+
+  const buffetSummaries = listActiveBuffetLineSummaries(orders);
+  const buffetLineById = activeBuffetLineByBuffetId(orders);
+
+  for (const summary of buffetSummaries) {
+    const template = buffetLineById.get(summary.buffetId);
+    if (!template) continue;
+    itemIndex += 1;
+    lines.push(
+      receiptLineFromOrderItem(
+        {
+          ...template,
+          adult_count: summary.adults,
+          child_count: summary.children,
+          price: summary.amount,
+          qty: 1,
+        },
+        itemIndex,
+      ),
+    );
+  }
+
+  const mergedMenu = new Map<string, { item: OrderItem; qty: number }>();
   for (const order of orders) {
     for (const item of order.items || []) {
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') continue;
-      itemIndex += 1;
-      lines.push(receiptLineFromOrderItem(item, itemIndex));
+      if (isBuffetBaseItem(item) && buffetSummaries.length > 0) continue;
+
+      const key = receiptMenuItemMergeKey(item);
+      const existing = mergedMenu.get(key);
+      if (existing) {
+        existing.qty += item.qty;
+      } else {
+        mergedMenu.set(key, { item, qty: item.qty });
+      }
     }
   }
+
+  for (const { item, qty } of Array.from(mergedMenu.values())) {
+    itemIndex += 1;
+    lines.push(receiptLineFromOrderItem({ ...item, qty }, itemIndex));
+  }
+
   return lines;
 }
 
@@ -350,10 +394,7 @@ export async function enqueueReceiptPrint(
     amountDue = rowAmount;
   }
 
-  if (variant === 'checkout_bill') {
-    if (!billSplitId || !billSplit) {
-      return { ok: false, status: 400, code: 'bill_split_required' };
-    }
+  if (variant === 'checkout_bill' && billSplit) {
     amountDue = checkoutPayableAmount(billSplit, discountRate);
   }
 

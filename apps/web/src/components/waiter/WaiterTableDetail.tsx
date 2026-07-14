@@ -35,6 +35,7 @@ import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { formatWaiterTableDetailHeading } from '@/lib/waiter-table-detail-display';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
@@ -535,12 +536,10 @@ function WaiterTableDetailInner({
     [t],
   );
 
-  const detailHeading = (tableLabel: string) => `${t.detailsTitle} · ${t.table} ${tableLabel}`;
-
   if (!isDemo && !detailLoaded) {
     return (
       <div className={pageShellClass}>
-        <WaiterTableDetailHeader heading={detailHeading('…')} />
+        <WaiterTableDetailHeader heading={formatWaiterTableDetailHeading(lang, '…')} />
         <div
           className={`${waiterUi.cardSurface} p-6 animate-pulse`}
           aria-busy="true"
@@ -558,7 +557,7 @@ function WaiterTableDetailInner({
   if (!isDemo && detailLoaded && !selectedTable) {
     return (
       <div className={pageShellClass}>
-        <WaiterTableDetailHeader heading={detailHeading(displayName || '…')} />
+        <WaiterTableDetailHeader heading={formatWaiterTableDetailHeading(lang, displayName || '…')} />
         <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
         </div>
@@ -872,7 +871,7 @@ function WaiterTableDetailInner({
       )}
 
       <WaiterTableDetailHeader
-        heading={detailHeading(selectedCard.displayName)}
+        heading={formatWaiterTableDetailHeading(lang, selectedCard.displayName)}
         updatedAtLabel={tableUpdatedLabel}
       />
 

@@ -240,6 +240,8 @@ function ToolbarCloseTableControl({
     <CloseTableSessionAction
       tableId={tableId}
       isCheckoutPending={isCheckoutPending}
+      closeConfirmEntry="reason"
+      showSuccessToast={false}
       onClosed={onTableClosed}
       variant="close"
       size="action"

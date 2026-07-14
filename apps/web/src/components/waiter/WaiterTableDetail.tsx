@@ -582,7 +582,6 @@ function WaiterTableDetailInner({
         return;
       }
 
-      showToast(t.actionSuccess, 'success');
       finishTableClose(closeTableId);
     } catch {
       showToast(t.actionFailed, 'error');

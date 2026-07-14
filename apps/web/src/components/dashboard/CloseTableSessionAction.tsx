@@ -11,10 +11,16 @@ import { interpretCloseTableSessionResponse } from '@/lib/close-table-session-ui
 import { getMessages } from '@/lib/i18n/messages';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 
+export type CloseTableConfirmEntry = 'generic' | 'reason';
+
 interface Props {
   tableId: string;
-  /** When true, open the unpaid-close reason dialog directly (checkout page). */
+  /** When true, use checkout copy in the unpaid-close reason dialog. */
   isCheckoutPending?: boolean;
+  /** `reason` opens the unpaid-close dialog on click (table detail); default `generic` ConfirmModal. */
+  closeConfirmEntry?: CloseTableConfirmEntry;
+  /** When false, host handles success UX (e.g. navigate away). Default true. */
+  showSuccessToast?: boolean;
   onClosed?: () => void;
   className?: string;
   variant?: ButtonVariant;
@@ -26,6 +32,8 @@ interface Props {
 export function CloseTableSessionAction({
   tableId,
   isCheckoutPending = false,
+  closeConfirmEntry = 'generic',
+  showSuccessToast = true,
   onClosed,
   className = '',
   variant = 'close',
@@ -62,6 +70,8 @@ export function CloseTableSessionAction({
     [isCheckoutPending, i18n],
   );
 
+  const reasonCloseEntry = closeConfirmEntry === 'reason' || isCheckoutPending;
+
   const handleCloseTable = async (
     closeTableId: string,
     confirmClose = false,
@@ -93,7 +103,7 @@ export function CloseTableSessionAction({
         return;
       }
       if (next.action === 'confirm_close') {
-        if (isCheckoutPending) {
+        if (reasonCloseEntry) {
           setUnpaidCloseReasonOpen(true);
         } else {
           setConfirmOpen(true);
@@ -124,9 +134,13 @@ export function CloseTableSessionAction({
       }
       setUnpaidCloseReasonOpen(false);
       setConfirmOpen(false);
-      showToast(i18n.closeTableSuccess, 'success');
+      if (showSuccessToast) {
+        showToast(i18n.closeTableSuccess, 'success');
+      }
       onClosed?.();
-      router.refresh();
+      if (showSuccessToast) {
+        router.refresh();
+      }
     } catch {
       showToast(i18n.closeTableFailed, 'error');
     } finally {
@@ -144,7 +158,7 @@ export function CloseTableSessionAction({
         size={size}
         disabled={disabled || isClosing}
         onClick={() => {
-          if (isCheckoutPending) {
+          if (reasonCloseEntry) {
             setUnpaidCloseReasonOpen(true);
             return;
           }

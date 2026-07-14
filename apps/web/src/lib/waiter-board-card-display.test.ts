@@ -52,7 +52,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.row1.badgeLabel, '空闲');
-    assert.equal(view.row1.openerLabel, null);
+    assert.equal(view.openerRow.label, null);
     assert.equal(view.row2.capacityText, '2–4 座');
     assert.equal(view.row2.guestCountText, '');
     assert.equal(view.row3.metaPrefix, '干净整洁，可开台');
@@ -81,7 +81,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.row1.badgeLabel, '用餐中');
-    assert.equal(view.row1.openerLabel, '张三');
+    assert.equal(view.openerRow.label, '张三');
     assert.equal(view.row2.guestCountText, 'A3');
     assert.equal(view.row3.metaPrefix, '用时 ');
     assert.equal(view.row3.metaHighlight, '2时0分');
@@ -212,7 +212,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.openerLabel, null);
+    assert.equal(view.openerRow.label, null);
   });
 
   it('dining card hides opener when openedByName is missing', () => {
@@ -231,10 +231,10 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.openerLabel, null);
+    assert.equal(view.openerRow.label, null);
   });
 
-  it('checkout card shows opener before status badge', () => {
+  it('checkout card shows opener on dedicated row', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -251,7 +251,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.openerLabel, '李四');
+    assert.equal(view.openerRow.label, '李四');
     assert.equal(view.row1.badgeLabel, '待结账');
     assert.match(view.ariaLabel, /李四/);
   });

@@ -8,6 +8,7 @@ import {
   type WaiterBoardCardAction,
 } from '@/lib/waiter-board-card-action';
 import {
+  WAITER_BOARD_CARD_OPENER_ROW_LAYOUT,
   WAITER_BOARD_CARD_ROW1_LAYOUT,
   WAITER_BOARD_CARD_ROW2_LAYOUT,
   WAITER_BOARD_CARD_ROW3_LAYOUT,
@@ -99,22 +100,21 @@ export function WaiterBoardTableCard({
         <p className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.title} ${theme.title}`}>
           {view.row1.tableTitle}
         </p>
-        <div className={WAITER_BOARD_CARD_ROW1_LAYOUT.statusGroup}>
-          {view.row1.openerLabel ? (
-            <span
-              className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.opener} ${theme.badge}`}
-              title={view.row1.openerLabel}
-            >
-              {view.row1.openerLabel}
-            </span>
-          ) : null}
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${theme.badge}`}
-          >
-            {view.row1.badgeLabel}
-          </span>
-        </div>
+        <span className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.badge} ${theme.badge}`}>
+          {view.row1.badgeLabel}
+        </span>
       </div>
+
+      {view.openerRow.label ? (
+        <p className={WAITER_BOARD_CARD_OPENER_ROW_LAYOUT.row}>
+          <span
+            className={WAITER_BOARD_CARD_OPENER_ROW_LAYOUT.label}
+            title={view.openerRow.label}
+          >
+            {view.openerRow.label}
+          </span>
+        </p>
+      ) : null}
 
       <div className={WAITER_BOARD_CARD_ROW2_LAYOUT.row}>
         <p className={WAITER_BOARD_CARD_ROW2_LAYOUT.capacity}>

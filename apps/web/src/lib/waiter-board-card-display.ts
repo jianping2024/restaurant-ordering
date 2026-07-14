@@ -22,7 +22,8 @@ export type WaiterBoardCardDisplayLabels = {
 export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout';
 
 export type WaiterBoardCardRowSlots = {
-  row1: { tableTitle: string; openerLabel: string | null; badgeLabel: string };
+  row1: { tableTitle: string; badgeLabel: string };
+  openerRow: { label: string | null };
   row2: { capacityText: string; guestCountText: string };
   row3: { metaPrefix: string; metaHighlight: string; amountText: string };
   row4: { footerLabel: string; footerIcon: WaiterBoardCardFooterIcon; footerDisabled: boolean };
@@ -148,7 +149,7 @@ function footerIconForLabelKey(
 function buildAriaLabel(slots: WaiterBoardCardRowSlots): string {
   const parts = [
     slots.row1.tableTitle,
-    slots.row1.openerLabel,
+    slots.openerRow.label,
     slots.row1.badgeLabel,
     slots.row2.capacityText,
     slots.row2.guestCountText,
@@ -182,8 +183,10 @@ export function buildWaiterBoardCardViewModel(input: {
   const slots: WaiterBoardCardRowSlots = {
     row1: {
       tableTitle: `${input.labels.table} ${input.card.displayName}`,
-      openerLabel: openerLabelForCard(input.boardState, input.session),
       badgeLabel: badgeLabelForState(input.boardState, input.statusLabels),
+    },
+    openerRow: {
+      label: openerLabelForCard(input.boardState, input.session),
     },
     row2: {
       capacityText: formatTableSeatCapacity(

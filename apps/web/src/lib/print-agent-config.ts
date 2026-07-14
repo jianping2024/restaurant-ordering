@@ -29,6 +29,8 @@ export type PrintAgentCloudConfig = {
   credential_ttl_days?: number;
   /** `station:{uuid}` used for bill/pre_bill/checkout receipts when the client omits a printer. */
   default_receipt_station_id?: string;
+  /** When true, station tickets print centered top-level category group headers. Default false. */
+  station_slip_show_category_group?: boolean;
 };
 
 /** Flat form used on the dashboard settings page. */
@@ -175,12 +177,30 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
       ? sanitizePollConfig(o.poll as PrintAgentPollConfig)
       : base.poll;
   const default_receipt_station_id = parseDefaultReceiptStationId(o.default_receipt_station_id);
+  const station_slip_show_category_group =
+    o.station_slip_show_category_group === true ? true : undefined;
   return {
     schedule,
     poll,
     credential_ttl_days: resolvePrintAgentCredentialTtlDays(o),
     ...(default_receipt_station_id ? { default_receipt_station_id } : {}),
+    ...(station_slip_show_category_group ? { station_slip_show_category_group: true } : {}),
   };
+}
+
+/** Guest-order / station slip: print `(Bebidas/ Drinks2)` group headers between item blocks. */
+export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
+  return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
+}
+
+export function parseStationSlipShowCategoryGroupPatch(
+  body: unknown,
+): boolean | undefined | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
+  const raw = (body as Record<string, unknown>).stationSlipShowCategoryGroup;
+  if (raw === undefined) return undefined;
+  if (typeof raw !== 'boolean') return null;
+  return raw;
 }
 
 export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config: PrintAgentCloudConfig } | { ok: false; error: string } {
@@ -195,6 +215,9 @@ export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config:
         credential_ttl_days: c.credential_ttl_days,
         ...(c.default_receipt_station_id
           ? { default_receipt_station_id: c.default_receipt_station_id }
+          : {}),
+        ...(c.station_slip_show_category_group
+          ? { station_slip_show_category_group: true }
           : {}),
       },
     };

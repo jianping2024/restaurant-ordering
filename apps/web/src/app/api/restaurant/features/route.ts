@@ -7,7 +7,11 @@ import {
   parsePrintAgentCredentialTtlDaysPatch,
   resolvePrintAgentCredentialTtlDays,
 } from '@/lib/restaurant-features';
-import { normalizePrintAgentCloudConfig } from '@/lib/print-agent-config';
+import {
+  isStationSlipShowCategoryGroupEnabled,
+  normalizePrintAgentCloudConfig,
+  parseStationSlipShowCategoryGroupPatch,
+} from '@/lib/print-agent-config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 
@@ -65,6 +69,7 @@ export async function GET() {
   return NextResponse.json({
     flags: normalizeRestaurantFeatureFlags(data?.feature_flags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
+    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
     orderCooldownSeconds: Math.max(
       ORDER_COOLDOWN_SECONDS_MIN,
       Math.min(
@@ -90,12 +95,21 @@ export async function PATCH(req: Request) {
 
   const patch = parseFeatureFlagsPatch(body);
   const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
+  const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
-  if (!patch && credentialTtlDays === undefined && orderCooldownSeconds === undefined) {
+  if (
+    !patch &&
+    credentialTtlDays === undefined &&
+    stationSlipShowCategoryGroup === undefined &&
+    orderCooldownSeconds === undefined
+  ) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
   if (credentialTtlDays === null) {
     return NextResponse.json({ error: 'invalid_credential_ttl_days' }, { status: 400 });
+  }
+  if (stationSlipShowCategoryGroup === null) {
+    return NextResponse.json({ error: 'invalid_station_slip_show_category_group' }, { status: 400 });
   }
   if (orderCooldownSeconds === null) {
     return NextResponse.json({ error: 'invalid_order_cooldown_seconds' }, { status: 400 });
@@ -124,11 +138,17 @@ export async function PATCH(req: Request) {
   const nextFlags = patch
     ? mergeRestaurantFeatureFlags(row?.feature_flags, patch)
     : normalizeRestaurantFeatureFlags(row?.feature_flags);
+  const baseConfig = normalizePrintAgentCloudConfig(row?.print_agent_config);
   const nextConfig =
-    credentialTtlDays !== undefined
+    credentialTtlDays !== undefined || stationSlipShowCategoryGroup !== undefined
       ? {
-          ...normalizePrintAgentCloudConfig(row?.print_agent_config),
-          credential_ttl_days: credentialTtlDays,
+          ...baseConfig,
+          ...(credentialTtlDays !== undefined ? { credential_ttl_days: credentialTtlDays } : {}),
+          ...(stationSlipShowCategoryGroup !== undefined
+            ? {
+                station_slip_show_category_group: stationSlipShowCategoryGroup ? true : undefined,
+              }
+            : {}),
         }
       : undefined;
 
@@ -163,6 +183,9 @@ export async function PATCH(req: Request) {
     ok: true,
     flags: nextFlags,
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(
+      nextConfig ?? row?.print_agent_config,
+    ),
+    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(
       nextConfig ?? row?.print_agent_config,
     ),
     orderCooldownSeconds: Math.max(

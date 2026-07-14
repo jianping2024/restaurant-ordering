@@ -9,14 +9,19 @@ import (
 
 func TestBuildStationTicketEnglishLayout(t *testing.T) {
 	payload, err := json.Marshal(jobPayload{
-		Locale:         "pt",
-		RestaurantName: "川味餐厅",
+		Locale:           "pt",
+		RestaurantName:   "川味餐厅",
 		TableDisplayName: "A-32",
-		GuestCount:     4,
-		OrderTime:      "2026-05-14 20:15",
+		GuestCount:       4,
+		OrderTime:        "2026-05-14 20:15",
+		StationSlipOptions: &stationSlipOptions{
+			ShowCategoryGroup: true,
+		},
 		Lines: []jobLine{
 			{
 				ItemIndex:           1,
+				ItemCode:            "001",
+				ItemName:            "Água 500ml",
 				DisplayName:         "001-Água 500ml",
 				Qty:                 1,
 				CategoryGroupSort:   0,
@@ -24,6 +29,8 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 			},
 			{
 				ItemIndex:           7,
+				ItemCode:            "007",
+				ItemName:            "Coca Cola Zero",
 				DisplayName:         "007-Coca Cola Zero",
 				Qty:                 1,
 				CategoryGroupSort:   0,
@@ -35,7 +42,7 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
-	s := string(raw) // includes control bytes, but useful for ASCII checks
+	s := string(raw)
 	for _, bad := range []string{"Mesa", "Pedido", "Estacao", "Estação", "Artigos", "Hora impressao", "Print Time"} {
 		if strings.Contains(s, bad) {
 			t.Fatalf("station ticket must not contain %q", bad)
@@ -48,31 +55,69 @@ func TestBuildStationTicketEnglishLayout(t *testing.T) {
 		"Guest:4",
 		"Items",
 		"Qty",
-		"  (Bebidas/ Drinks2)",
+		"(Bebidas/ Drinks2)",
 		"001-",
 		"500ml",
 		"007-Coca Cola Zero",
 		"Order Time:",
-		"Printed By:Customer/Merchant",
+		"Printed By:restaurant",
 	} {
 		if !strings.Contains(s, want) {
 			t.Fatalf("missing %q in ticket output", want)
 		}
 	}
 
-	// Ensure Windows-1252 bytes for Á/á were emitted (not UTF-8).
-	// Á = 0xC1, á = 0xE1 in Windows-1252.
-	if !bytes.Contains(raw, []byte{0xC1}) && !bytes.Contains(raw, []byte{0xE1}) {
+	if bytes.Contains(raw, []byte{0xC1}) || bytes.Contains(raw, []byte{0xE1}) {
+		// Windows-1252 Á/á when present in payload.
+	} else {
 		t.Fatalf("expected Windows-1252 accented bytes in ticket output")
 	}
 
-	// Masthead (title + table) uses 2×2; menu body stays Font A 1×1 like pre-bill items.
 	idx := bytes.Index(raw, []byte("Items"))
 	if idx < 0 {
 		t.Fatal(`missing "Items" column header`)
 	}
+	if !bytes.Contains(raw[idx:], []byte{0x1D, 0x21, 0x01}) {
+		t.Fatal("menu body must use GS ! 1×2 after column headers")
+	}
 	if bytes.Contains(raw[idx:], []byte{0x1D, 0x21, 0x11}) {
 		t.Fatal("menu body must not use GS ! 2×2 after column headers")
+	}
+}
+
+func TestStationSlipSkipsCategoryHeaderWhenDisabled(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		TableDisplayName: "1",
+		StationSlipOptions: &stationSlipOptions{
+			ShowCategoryGroup: false,
+		},
+		Lines: []jobLine{{
+			ItemCode:            "001",
+			ItemName:            "Soup",
+			DisplayName:         "001-Soup",
+			Qty:                 1,
+			CategoryGroupHeader: "(Bebidas/ Drinks2)",
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	if strings.Contains(string(raw), "(Bebidas/ Drinks2)") {
+		t.Fatal("category header must not print when show_category_group is false")
+	}
+}
+
+func TestStationSlipItemLineLayout(t *testing.T) {
+	line := stationSlipItemLine("001-Água 500ml", "1", escposWidth)
+	if line[0] != ' ' {
+		t.Fatalf("expected left margin at col 0, got %q", line[0])
+	}
+	if !strings.Contains(line, "001-") {
+		t.Fatal("missing item label")
+	}
+	if line[len(line)-2] != '1' {
+		t.Fatalf("expected qty before right margin, got %q", line)
+	}
+	if line[len(line)-1] != ' ' {
+		t.Fatalf("expected right margin at last col, got %q", line[len(line)-1])
 	}
 }
 
@@ -80,7 +125,9 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		TableDisplayName: "A-1",
 		Lines: []jobLine{{
-			DisplayName: "Soup",
+			ItemCode:    "001",
+			ItemName:    "Soup",
+			DisplayName: "001-Soup",
 			Qty:         1,
 			Note:        "no onion",
 		}},
@@ -99,11 +146,17 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	}
 }
 
-func TestStationTicketNeedsGBKIgnoresRestaurantName(t *testing.T) {
-	if stationTicketNeedsGBK(jobPayload{RestaurantName: "川味", Lines: []jobLine{{DisplayName: "Coca Cola"}}}) {
-		t.Fatal("ASCII menu should not require GBK on station slip")
-	}
-	if !stationTicketNeedsGBK(jobPayload{Lines: []jobLine{{DisplayName: "宫保鸡丁"}}}) {
-		t.Fatal("Chinese menu name should require GBK")
+func TestStationTicketUsesLatinEncodingOnly(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		Lines: []jobLine{{
+			ItemCode:    "001",
+			ItemName:    "宫保鸡丁",
+			DisplayName: "001-宫保鸡丁",
+			Qty:         1,
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
+		t.Fatal("station slip must not enter GBK mode")
 	}
 }

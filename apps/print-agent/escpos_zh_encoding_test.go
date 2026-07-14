@@ -67,19 +67,22 @@ func TestBuildConnectionTestZHUsesUTF8WhenConfigured(t *testing.T) {
 	}
 }
 
-func TestBuildStationTicketZHLocaleUsesGBK(t *testing.T) {
+func TestBuildStationTicketAlwaysUsesEnglishLatinLayout(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		Locale:           "zh",
 		TableDisplayName: "8",
-		Lines:            []jobLine{{DisplayName: "Cola", Qty: 1}},
+		Lines:            []jobLine{{ItemCode: "001", ItemName: "Cola", DisplayName: "001-Cola", Qty: 1}},
 	})
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
-	if !bytes.Contains(raw, []byte{0x1C, 0x26}) {
-		t.Fatal("zh locale station ticket should use GBK by default")
+	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
+		t.Fatal("station ticket must use Latin encoding only")
+	}
+	if !bytes.Contains(raw, []byte("Guest Order")) {
+		t.Fatal("expected fixed English guest-order header")
 	}
 	want := encodeGBK("出菜单")
-	if !bytes.Contains(raw, want) {
-		t.Fatalf("expected zh header % x", want)
+	if bytes.Contains(raw, want) {
+		t.Fatal("station ticket must not switch to Chinese labels")
 	}
 }
 

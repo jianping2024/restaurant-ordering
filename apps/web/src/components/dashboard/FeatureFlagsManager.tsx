@@ -16,6 +16,7 @@ type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
   initialCredentialTtlDays: number;
+  initialStationSlipShowCategoryGroup: boolean;
   initialOrderCooldownSeconds: number;
 };
 
@@ -23,12 +24,16 @@ export function FeatureFlagsManager({
   embedded,
   initialFlags,
   initialCredentialTtlDays,
+  initialStationSlipShowCategoryGroup,
   initialOrderCooldownSeconds,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
   const [credentialTtlDays, setCredentialTtlDays] = useState(initialCredentialTtlDays);
+  const [stationSlipShowCategoryGroup, setStationSlipShowCategoryGroup] = useState(
+    initialStationSlipShowCategoryGroup,
+  );
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -43,13 +48,19 @@ export function FeatureFlagsManager({
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flags, credentialTtlDays, orderCooldownSeconds }),
+        body: JSON.stringify({
+          flags,
+          credentialTtlDays,
+          stationSlipShowCategoryGroup,
+          orderCooldownSeconds,
+        }),
       });
 
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
         flags?: ResolvedRestaurantFeatureFlags;
         credentialTtlDays?: number;
+        stationSlipShowCategoryGroup?: boolean;
         orderCooldownSeconds?: number;
       };
 
@@ -62,6 +73,9 @@ export function FeatureFlagsManager({
 
       if (json.flags) setFlags(json.flags);
       if (json.credentialTtlDays != null) setCredentialTtlDays(json.credentialTtlDays);
+      if (json.stationSlipShowCategoryGroup != null) {
+        setStationSlipShowCategoryGroup(json.stationSlipShowCategoryGroup);
+      }
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
 
       setSuccess(true);
@@ -116,8 +130,24 @@ export function FeatureFlagsManager({
 
         <section>
           <h2 className="text-sm font-medium text-brand-text mb-2">{t.modulePrintAgent}</h2>
-          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
-            <label className="block">
+          <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
+            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer select-none hover:bg-brand-border/20 transition-colors">
+              <input
+                type="checkbox"
+                checked={stationSlipShowCategoryGroup}
+                onChange={(e) => setStationSlipShowCategoryGroup(e.target.checked)}
+                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              <span className="min-w-0">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.stationSlipShowCategoryGroup}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                  {t.stationSlipShowCategoryGroupDesc}
+                </span>
+              </span>
+            </label>
+            <label className="block px-4 py-4">
               <span className="block text-[15px] font-medium text-brand-text">
                 {t.credentialTtlDays}
               </span>

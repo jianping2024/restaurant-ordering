@@ -3,7 +3,10 @@ import { describe, it } from 'node:test';
 import type { OrderItem } from '@/types';
 import {
   formatMenuPrintDisplayName,
+  formatStationSlipItemLabel,
+  formatTopCategoryTicketHeader,
   orderItemReceiptLineLabel,
+  orderItemStationSlipLabel,
 } from './menu-print-label';
 
 describe('orderItemReceiptLineLabel', () => {
@@ -32,6 +35,47 @@ describe('orderItemReceiptLineLabel', () => {
       emoji: '🍽️',
     };
     assert.equal(orderItemReceiptLineLabel(item), 'Buffet livre');
+  });
+});
+
+describe('orderItemStationSlipLabel', () => {
+  it('uses item code and name only (no category path)', () => {
+    const item: OrderItem = {
+      id: 'menu-1',
+      name: 'Água 500ml',
+      name_pt: 'Água 500ml',
+      qty: 1,
+      price: 1.85,
+      emoji: '💧',
+      item_code: '001',
+      category_code_path: ['A'],
+    };
+    assert.equal(orderItemStationSlipLabel(item), '001-Água 500ml');
+  });
+});
+
+describe('formatStationSlipItemLabel', () => {
+  it('joins code and trimmed name', () => {
+    assert.equal(
+      formatStationSlipItemLabel({ itemCode: '102', itemName: 'MOJITO CLASSIC' }),
+      '102-MOJITO CLASSIC',
+    );
+  });
+});
+
+describe('formatTopCategoryTicketHeader', () => {
+  it('appends top-level category code after bilingual names', () => {
+    assert.equal(
+      formatTopCategoryTicketHeader(
+        {
+          item_code: '2',
+          name_pt: 'Bebidas',
+          name_en: 'Drinks',
+        },
+        'pt',
+      ),
+      '(Bebidas/ Drinks2)',
+    );
   });
 });
 

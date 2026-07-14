@@ -72,10 +72,31 @@ export function orderItemBaseName(
   return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
 }
 
-/** Receipt / station slip line from order snapshot: `RE-001-Água 500ml`. */
+/** Bill / receipt line from order snapshot: `RE-001-Água 500ml`. */
 export function orderItemReceiptLineLabel(item: OrderItem): string {
   return formatMenuPrintDisplayName({
     categoryPath: item.category_code_path ?? [],
+    itemCode: item.item_code ?? null,
+    itemName: orderItemBaseName(item),
+  });
+}
+
+/** Station slip item line: `{itemCode}-{name}` only (no category path). */
+export function formatStationSlipItemLabel(params: {
+  itemCode: string | null | undefined;
+  itemName: string;
+}): string {
+  const name = params.itemName.trim();
+  const code = normalizeMenuItemCode(params.itemCode);
+  if (code && name) return `${code}-${name}`;
+  if (code) return code;
+  return name;
+}
+
+export function orderItemStationSlipLabel(
+  item: Pick<OrderItem, 'item_code' | 'name_pt' | 'name' | 'name_en' | 'name_zh'>,
+): string {
+  return formatStationSlipItemLabel({
     itemCode: item.item_code ?? null,
     itemName: orderItemBaseName(item),
   });
@@ -101,7 +122,7 @@ export function topLevelCategoryId(
   return topId;
 }
 
-/** `(Bebidas/ Drinks2)` style; prefixes top-level category code when set. */
+/** `(Bebidas/ Drinks2)` — bilingual names with optional top-level category code suffix. */
 export function formatTopCategoryTicketHeader(
   cat: Pick<MenuCategoryForStationTicket, 'item_code' | 'name_pt' | 'name_en' | 'name_zh'>,
   locale: 'zh' | 'en' | 'pt',
@@ -109,19 +130,15 @@ export function formatTopCategoryTicketHeader(
   const code = normalizeMenuItemCode(cat.item_code);
   const pt = (cat.name_pt || '').trim();
   const en = (cat.name_en || '').trim();
-  const zh = (cat.name_zh || '').trim();
 
-  let primary = pt;
-  let secondary = en || zh;
-  if (locale === 'zh') {
-    primary = zh || en || pt;
-    secondary = en || pt;
-  } else if (locale === 'en') {
-    primary = en || pt || zh;
+  let primary = pt || en;
+  let secondary = en;
+  if (locale === 'en') {
+    primary = en || pt;
     secondary = pt;
   } else {
-    primary = pt || en || zh;
-    secondary = en || zh;
+    primary = pt || en;
+    secondary = en;
   }
   if (!secondary || secondary === primary) {
     secondary = '';
@@ -132,7 +149,7 @@ export function formatTopCategoryTicketHeader(
     inner = `${primary}/ ${secondary}`;
   }
   if (code) {
-    inner = `${code}-${inner}`;
+    inner = `${inner}${code}`;
   }
   return `(${inner})`;
 }

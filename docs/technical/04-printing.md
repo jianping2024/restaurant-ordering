@@ -37,7 +37,8 @@ Web 入队（service role）
 | 入队 | `lib/station-ticket-enqueue.ts` |
 | 触发 | `orders/append` 成功后 `autoEnqueueStationTicketsAfterSubmit` |
 | 路由 | 菜品/分类 `print_station_id` → `print_stations` → 代理 `routing_snapshot` |
-| payload | 桌 `display_name`、档口名、菜品名（`print_locale`）、数量、备注 |
+| payload | 桌 `display_name`、档口名、`item_code` + `item_name`（`{编号}-{菜名}`）、数量、备注；可选 `station_slip_options.show_category_group` + `category_group_header` |
+| 配置 | `restaurants.print_agent_config.station_slip_show_category_group`（默认关；功能管理 UI） |
 
 **不受** `bill_receipt_print` 功能开关影响。
 

@@ -8,6 +8,7 @@ import {
   resolvePrintAgentCredentialTtlDays,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
+import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
 import { mapStaffRow } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -54,6 +55,7 @@ export async function loadStaffSettingsPageData(
 export type FeatureSettingsPageData = {
   flags: ResolvedRestaurantFeatureFlags;
   credentialTtlDays: number;
+  stationSlipShowCategoryGroup: boolean;
   orderCooldownSeconds: number;
 };
 
@@ -77,6 +79,7 @@ export async function loadFeatureSettingsPageData(
   return {
     flags: normalizeRestaurantFeatureFlags(featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
+    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
     orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
   };
 }

@@ -4,6 +4,7 @@ import {
   cloudConfigToForm,
   defaultPrintAgentCloudConfig,
   formToCloudConfig,
+  isStationSlipShowCategoryGroupEnabled,
   normalizePrintAgentCloudConfig,
   parseDefaultReceiptStationId,
   PRINT_AGENT_POLL_LIMITS,
@@ -63,6 +64,14 @@ describe('normalizePrintAgentCloudConfig', () => {
     assert.equal(config.poll?.warm_interval_sec, 15);
     assert.equal(config.poll?.warm_after_activity_sec, 600);
     assert.equal(config.poll?.idle_interval_sec, 20);
+  });
+
+  it('reads station slip category group toggle', () => {
+    assert.equal(
+      isStationSlipShowCategoryGroupEnabled({ station_slip_show_category_group: true }),
+      true,
+    );
+    assert.equal(isStationSlipShowCategoryGroupEnabled({}), false);
   });
 });
 

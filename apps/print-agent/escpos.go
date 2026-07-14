@@ -12,7 +12,14 @@ import (
 
 // 80mm paper ≈ 48 chars (Font A). Layout follows reference thermal receipts.
 const escposWidth = 48
-const escposTabWidth = 4 // one tab stop for category group headers on station slips
+
+// Station slip menu body column model (Agent-side layout only).
+const (
+	stationSlipLeftMargin   = 1
+	stationSlipRightMargin  = 1
+	stationSlipQtyColWidth  = 8
+	stationSlipQtyHdrOffset = 4
+)
 
 // escposNoteIndentSpaces — sub-line indent before underlined item notes (station + receipt).
 const escposNoteIndentSpaces = 1
@@ -127,8 +134,14 @@ func labelsFor(locale string) ticketLabels {
 	}
 }
 
+type stationSlipOptions struct {
+	ShowCategoryGroup bool `json:"show_category_group"`
+}
+
 type jobLine struct {
 	ItemIndex           int     `json:"item_index"`
+	ItemCode            string  `json:"item_code"`
+	ItemName            string  `json:"item_name"`
 	DisplayName         string  `json:"display_name"`
 	Qty                 int     `json:"qty"`
 	ShareQtyLabel       string  `json:"share_qty_label"`
@@ -139,16 +152,17 @@ type jobLine struct {
 }
 
 type jobPayload struct {
-	Locale               string    `json:"locale"`
-	ConnectionTest       bool      `json:"connection_test"`
-	RestaurantName       string    `json:"restaurant_name"`
-	TableDisplayName     string    `json:"display_name"`
-	TableID              string    `json:"table_id"`
-	GuestCount           int       `json:"guest_count"`
-	StationDisplayNamePt string    `json:"station_display_name_pt"`
-	StationDisplayNameEn string    `json:"station_display_name_en"`
-	StationDisplayNameZh string    `json:"station_display_name_zh"`
-	Lines                []jobLine `json:"lines"`
+	Locale               string              `json:"locale"`
+	ConnectionTest       bool                `json:"connection_test"`
+	RestaurantName       string              `json:"restaurant_name"`
+	TableDisplayName     string              `json:"display_name"`
+	TableID              string              `json:"table_id"`
+	GuestCount           int                 `json:"guest_count"`
+	StationDisplayNamePt string              `json:"station_display_name_pt"`
+	StationDisplayNameEn string              `json:"station_display_name_en"`
+	StationDisplayNameZh string              `json:"station_display_name_zh"`
+	StationSlipOptions   *stationSlipOptions `json:"station_slip_options"`
+	Lines                []jobLine           `json:"lines"`
 	Subtotal             float64   `json:"subtotal"`
 	AmountDue            float64   `json:"amount_due"`
 	AmountPaid           float64   `json:"amount_paid"`
@@ -220,6 +234,10 @@ func (p jobPayload) venueName() string {
 	return "restaurant"
 }
 
+func (p jobPayload) stationSlipShowCategoryGroup() bool {
+	return p.StationSlipOptions != nil && p.StationSlipOptions.ShowCategoryGroup
+}
+
 type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
@@ -247,9 +265,9 @@ func newEscpos() *escposWriter {
 	return w
 }
 
-func newEscposForStationTicket(p jobPayload) *escposWriter {
+func newEscposForStationTicket(_ jobPayload) *escposWriter {
 	w := newEscpos()
-	w.applyEncoding(loadPaperEncodingForPayload(stationTicketNeedsGBK(p)))
+	w.applyEncoding(paperEncLatin)
 	return w
 }
 
@@ -446,6 +464,70 @@ func (w *escposWriter) rightLine(s string, bold bool) {
 	w.align(0)
 }
 
+func stationSlipQtyColStart(width int) int {
+	return width - stationSlipRightMargin - stationSlipQtyColWidth
+}
+
+func stationSlipItemsMaxWidth(width int) int {
+	return stationSlipQtyColStart(width) - stationSlipLeftMargin
+}
+
+func placeRunesAt(buf []rune, start int, r []rune) {
+	for i, c := range r {
+		pos := start + i
+		if pos >= 0 && pos < len(buf) {
+			buf[pos] = c
+		}
+	}
+}
+
+func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string {
+	items := []rune(truncateRunes(itemsLabel, stationSlipItemsMaxWidth(width)))
+	qty := []rune(truncateRunes(qtyLabel, stationSlipQtyColWidth-stationSlipQtyHdrOffset))
+	buf := make([]rune, width)
+	for i := range buf {
+		buf[i] = ' '
+	}
+	placeRunesAt(buf, stationSlipLeftMargin, items)
+	placeRunesAt(buf, stationSlipQtyColStart(width)+stationSlipQtyHdrOffset, qty)
+	return string(buf)
+}
+
+func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
+	left := []rune(truncateRunes(leftLabel, stationSlipItemsMaxWidth(width)))
+	qty := []rune(truncateRunes(qtyStr, stationSlipQtyColWidth))
+	qtyEnd := width - stationSlipRightMargin
+	qtyStart := qtyEnd - len(qty)
+	if qtyStart < stationSlipQtyColStart(width) {
+		qtyStart = stationSlipQtyColStart(width)
+	}
+	buf := make([]rune, width)
+	for i := range buf {
+		buf[i] = ' '
+	}
+	placeRunesAt(buf, stationSlipLeftMargin, left)
+	placeRunesAt(buf, qtyStart, qty)
+	return string(buf)
+}
+
+func stationSlipItemLabel(ln jobLine) string {
+	code := strings.TrimSpace(ln.ItemCode)
+	name := strings.TrimSpace(ln.ItemName)
+	if name == "" {
+		name = strings.TrimSpace(ln.DisplayName)
+	}
+	if code != "" && name != "" {
+		return code + "-" + name
+	}
+	if code != "" {
+		return code
+	}
+	if name != "" {
+		return name
+	}
+	return formatItemLabel(ln.ItemIndex, "")
+}
+
 func escposPadLine(left, right string, width int) string {
 	left = truncateRunes(left, width-2)
 	right = truncateRunes(right, width-2)
@@ -459,6 +541,13 @@ func escposPadLine(left, right string, width int) string {
 // writeBody1x1 — Font A normal (matches pre-bill / receipt item lines).
 func (w *escposWriter) writeBody1x1() {
 	w.size(false, false)
+	w.bold(false)
+	w.underline(false)
+}
+
+// writeBody1x2 — Font A double height (station slip menu body).
+func (w *escposWriter) writeBody1x2() {
+	w.size(false, true)
 	w.bold(false)
 	w.underline(false)
 }
@@ -537,7 +626,7 @@ func sortStationMenuLines(lines []jobLine) []jobLine {
 	return out
 }
 
-// writeStationSlipHeader — branding, title, table context, Items/Qty column header (standard size).
+// writeStationSlipHeader — branding, title, table context, Items/Qty column header (1×2).
 func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 	w.writeTicketMasthead(lab.guestOrder)
 	var meta []string
@@ -546,45 +635,60 @@ func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 	}
 	w.writeTableContext(p, lab, false, meta...)
 	w.separator('-')
-	w.text(escposPadLine(lab.items, lab.qty, escposWidth))
+	w.writeBody1x2()
+	w.text(stationSlipColumnHeaderLine(lab.items, lab.qty, escposWidth))
 	w.lf()
 }
 
-// writeStationMenuLines — kitchen menu body; Font A 1×1 (same density as pre-bill items).
-func (w *escposWriter) writeStationMenuLines(lines []jobLine) {
-	w.writeBody1x1()
+func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
+	note = strings.TrimSpace(note)
+	if note == "" {
+		return
+	}
+	w.writeBody1x2()
+	indent := strings.Repeat(" ", escposNoteIndentSpaces)
+	line := escposItemNotePrefix + note
+	w.underline(true)
+	w.text(indent + truncateRunes(line, width-escposNoteIndentSpaces))
+	w.lf()
+	w.underline(false)
+}
+
+// writeStationMenuLines — guest-order body at Font A 1×2 with column-model layout.
+func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
+	showGroup := p.stationSlipShowCategoryGroup()
+	w.writeBody1x2()
 	lastGroupHeader := ""
 	for _, ln := range sortStationMenuLines(lines) {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
-		if groupHeader != "" && groupHeader != lastGroupHeader {
-			w.text(strings.Repeat(" ", escposTabWidth) + truncateRunes(groupHeader, escposWidth-escposTabWidth))
+		if showGroup && groupHeader != "" && groupHeader != lastGroupHeader {
+			w.align(1)
+			w.text(truncateRunes(groupHeader, escposWidth))
 			w.lf()
+			w.align(0)
 			lastGroupHeader = groupHeader
 		}
 
-		label := strings.TrimSpace(ln.DisplayName)
-		if label == "" {
-			label = formatItemLabel(ln.ItemIndex, "")
-		}
 		qty := ln.Qty
 		if qty <= 0 {
 			qty = 1
 		}
-		w.text(escposPadLine(label, fmt.Sprintf("%d", qty), escposWidth))
+		w.text(stationSlipItemLine(stationSlipItemLabel(ln), fmt.Sprintf("%d", qty), escposWidth))
 		w.lf()
-		w.writeItemNoteLine(ln.Note, escposWidth)
+		w.writeStationItemNoteLine(ln.Note, escposWidth)
 	}
 }
 
 func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
 	w.separator('-')
+	w.writeBody1x1()
 	orderAt := strings.TrimSpace(p.OrderTime)
 	if orderAt == "" {
 		orderAt = nowLocal()
 	}
 	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
 	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printedBy, lab.printedByVal))
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
 	w.lf()
 }
 
@@ -703,12 +807,9 @@ func escposFromJob(job printJob) []byte {
 // buildStationTicket — internal station slip; English layout by default, Chinese when locale is zh.
 func buildStationTicket(p jobPayload) []byte {
 	lab := stationTicketLabels()
-	if localeUsesGBK(p.Locale) {
-		lab = labelsFor("zh")
-	}
 	w := newEscposForStationTicket(p)
 	w.writeStationSlipHeader(p, lab)
-	w.writeStationMenuLines(p.Lines)
+	w.writeStationMenuLines(p, p.Lines)
 	w.writeStationSlipFooter(p, lab)
 	return w.finish(true)
 }

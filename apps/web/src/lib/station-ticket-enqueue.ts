@@ -5,11 +5,13 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import {
   formatTopCategoryTicketHeader,
-  orderItemReceiptLineLabel,
+  orderItemBaseName,
+  orderItemStationSlipLabel,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
 } from '@/lib/menu-print-label';
+import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -52,11 +54,17 @@ export type StationTicketJobPayload = {
   display_name: string;
   guest_count?: number;
   order_time?: string;
+  station_slip_options: {
+    show_category_group: boolean;
+  };
   lines: Array<{
     item_index: number;
     menu_item_id: string;
     qty: number;
     note?: string;
+    item_code: string | null;
+    item_name: string;
+    /** Legacy fallback for older print agents. */
     display_name: string;
     emoji: string;
     category_group_sort: number;
@@ -102,6 +110,18 @@ export async function enqueueStationTicketsForOrder(params: {
   const { admin, restaurant, orderId, batchId } = params;
   const restaurantId = restaurant.id;
   const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
+
+  const { data: restaurantRow, error: rCfgErr } = await admin
+    .from('restaurants')
+    .select('print_agent_config')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (rCfgErr) {
+    return { ok: false, status: 500, code: 'restaurant_lookup_failed', message: rCfgErr.message };
+  }
+
+  const showCategoryGroup = isStationSlipShowCategoryGroupEnabled(restaurantRow?.print_agent_config);
 
   const { data: order, error: oErr } = await admin
     .from('orders')
@@ -328,19 +348,24 @@ export async function enqueueStationTicketsForOrder(params: {
       station_display_name_zh: stMeta.name_zh,
       table_id: order.table_id as string,
       display_name: (order.display_name as string) || '',
+      station_slip_options: { show_category_group: showCategoryGroup },
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {
         const group = categoryGroupForMenuItem(l.item.id);
+        const itemName = orderItemBaseName(l.item);
+        const slipLabel = orderItemStationSlipLabel(l.item);
         return {
           item_index: l.idx,
           menu_item_id: l.item.id,
           qty: l.item.qty,
           note: l.item.note,
-          display_name: orderItemReceiptLineLabel(l.item),
+          item_code: l.item.item_code?.trim() || null,
+          item_name: itemName,
+          display_name: slipLabel,
           emoji: l.item.emoji || '🍽️',
           category_group_sort: group.sort,
-          category_group_header: group.header,
+          category_group_header: showCategoryGroup ? group.header : '',
         };
       }),
     };

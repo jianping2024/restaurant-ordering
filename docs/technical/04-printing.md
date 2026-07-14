@@ -75,7 +75,7 @@ Web 入队（service role）
 | 步骤 | API / 行为 |
 |------|------------|
 | 1. 配对 | Dashboard `POST /api/print-agent/pairing` → 六位码 |
-| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + JWT |
+| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + JWT；**换店**时同一 `device_id` **转移**到新 `restaurant_id`（旧 JWT 失效），Agent 清空本地档口映射 |
 | 3. 轮询 | `GET /api/print-agent/pending-jobs`（scoped `restaurant_id`） |
 | 4. 执行 | 本地 `preparePrint` → Write → `PATCH jobs/[id]` |
 | 5. 心跳 | `POST /api/print-agent/heartbeat`（版本、映射档口数、最近打印） |

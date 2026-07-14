@@ -235,6 +235,7 @@ Agent 在**确认可以打印之后**才 PATCH `processing`，避免长时间占
 |------|------|
 | `api_base` | Mesa 站点 URL |
 | `agentjwt` | 配对令牌 |
+| `restaurant_id` | 当前绑定餐厅（换店后 Agent 清空 `station_printers` 并重配） |
 | `device_id` | 设备 UUID |
 | `station_printers` | `{ "<print_station_uuid>": "<printer_addr>" }` |
 | `schedule` / `poll` | 营业时间、轮询间隔（云端 `runtime-config` 可覆盖） |

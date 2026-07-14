@@ -283,11 +283,7 @@ func registerPairWizardRoute(mux *http.ServeMux, configPath string, cfg **config
 		deviceID := deviceIDForPairing(configPath)
 		next, err := claim(apiBase, code, deviceID)
 		if err != nil {
-			msg := err.Error()
-			if strings.Contains(msg, "401") || strings.Contains(msg, "invalid") {
-				msg = "配对码无效或已过期，请在 " + productName + " 后台重新生成"
-			}
-			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": msg})
+			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": pairClaimUserError(err)})
 			return
 		}
 		if err := savePairConfig(configPath, next); err != nil {

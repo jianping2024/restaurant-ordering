@@ -12,6 +12,7 @@ type config struct {
 	APIBase         string            `json:"api_base"`
 	AgentJWT        string            `json:"agentjwt"`
 	DeviceID        string            `json:"device_id"`
+	RestaurantID    string            `json:"restaurant_id,omitempty"`
 	PrinterHost     string            `json:"printer_host,omitempty"`
 	DefaultPrinter  string            `json:"default_printer,omitempty"` // legacy file field; not used for receipt routing
 	CashierPrinter  string            `json:"cashier_printer,omitempty"` // legacy; cleared on save, not used for routing
@@ -132,26 +133,36 @@ func (c *config) printerAddrForJob(job printJob) (string, error) {
 	return "", fmt.Errorf("unsupported print job type %q", job.Type)
 }
 
-// mergePrinterConfig keeps local printer routing when re-pairing with a new code.
-func mergePrinterConfig(prev, next *config) {
+// mergePairConfig keeps stable device identity and, on same-restaurant re-pair, local printer routing.
+func mergePairConfig(prev, next *config) {
 	if prev == nil || next == nil {
 		return
 	}
 	if strings.TrimSpace(prev.DeviceID) != "" && strings.TrimSpace(next.DeviceID) == "" {
 		next.DeviceID = prev.DeviceID
 	}
-	if len(prev.StationPrinters) > 0 {
+	if shouldKeepStationPrinters(prev, next) {
 		next.StationPrinters = prev.StationPrinters
 	}
 	if strings.TrimSpace(prev.UILocale) != "" {
 		next.UILocale = prev.UILocale
 	}
-	if strings.TrimSpace(prev.ValidUntil) != "" && strings.TrimSpace(next.ValidUntil) == "" {
-		next.ValidUntil = prev.ValidUntil
-	}
 	if strings.TrimSpace(prev.TextEncoding) != "" && strings.TrimSpace(next.TextEncoding) == "" {
 		next.TextEncoding = prev.TextEncoding
 	}
+}
+
+func shouldKeepStationPrinters(prev, next *config) bool {
+	if prev == nil || len(prev.StationPrinters) == 0 {
+		return false
+	}
+	prevRestaurant := strings.TrimSpace(prev.RestaurantID)
+	nextRestaurant := strings.TrimSpace(next.RestaurantID)
+	if prevRestaurant == "" {
+		// Legacy config before restaurant_id was persisted: keep mappings on first upgrade.
+		return true
+	}
+	return nextRestaurant != "" && prevRestaurant == nextRestaurant
 }
 
 // mappedPrinterTargets returns deduplicated routing targets from station_printers.
@@ -185,7 +196,7 @@ func savePairConfig(configPath string, next *config) error {
 	if p, err := loadConfig(configPath); err == nil {
 		prev = p
 	}
-	mergePrinterConfig(prev, next)
+	mergePairConfig(prev, next)
 	return saveConfig(configPath, next)
 }
 

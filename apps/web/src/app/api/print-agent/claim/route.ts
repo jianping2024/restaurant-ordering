@@ -9,6 +9,7 @@ import {
 } from '@/lib/print-agent-claim-rate-limit';
 import { isUuid } from '@/lib/print-agent-auth';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
+import { buildClaimDeviceRow, classifyClaimDevice } from '@/lib/print-agent-claim-device';
 import { resolvePrintAgentCredentialTtlSec, PRINT_AGENT_NAME } from '@mesa/shared';
 
 export const runtime = 'nodejs';
@@ -86,10 +87,7 @@ export async function POST(req: Request) {
     .eq('id', deviceId)
     .maybeSingle();
 
-  if (existingDev && existingDev.restaurant_id !== p.restaurant_id) {
-    claimRecordFailure(ip);
-    return NextResponse.json({ error: 'device_id_conflict' }, { status: 409 });
-  }
+  const claimOutcome = classifyClaimDevice(existingDev, p.restaurant_id);
 
   const { data: upd, error: uErr } = await admin
     .from('print_agent_pairings')
@@ -115,15 +113,17 @@ export async function POST(req: Request) {
   const validUntil = new Date(Date.now() + credentialTtlSec * 1000).toISOString();
 
   const { error: devErr } = await admin.from('print_agent_devices').upsert(
-    {
-      id: deviceId,
-      restaurant_id: p.restaurant_id,
-      pairing_id: p.id,
-      label: label || null,
-      valid_until: validUntil,
-      revoked_at: null,
-      last_seen: nowIso,
-    },
+    buildClaimDeviceRow(
+      {
+        deviceId,
+        restaurantId: p.restaurant_id,
+        pairingId: p.id,
+        label: label || null,
+        validUntil,
+        lastSeen: nowIso,
+      },
+      claimOutcome,
+    ),
     { onConflict: 'id' },
   );
 

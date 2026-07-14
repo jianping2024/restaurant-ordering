@@ -92,3 +92,44 @@ func TestDeviceIDForPairingCreatesIDWhenMissing(t *testing.T) {
 		t.Fatalf("expected generated uuid, got %q", got)
 	}
 }
+
+func TestShouldKeepStationPrinters_sameRestaurant(t *testing.T) {
+	prev := &config{
+		RestaurantID:    "11111111-1111-4111-8111-111111111111",
+		StationPrinters: map[string]string{"kitchen": "tcp:10.0.0.1:9100"},
+	}
+	next := &config{RestaurantID: "11111111-1111-4111-8111-111111111111"}
+	if !shouldKeepStationPrinters(prev, next) {
+		t.Fatal("expected to keep mappings on same-restaurant re-pair")
+	}
+}
+
+func TestShouldKeepStationPrinters_restaurantTransfer(t *testing.T) {
+	prev := &config{
+		RestaurantID:    "11111111-1111-4111-8111-111111111111",
+		StationPrinters: map[string]string{"kitchen": "tcp:10.0.0.1:9100"},
+	}
+	next := &config{RestaurantID: "22222222-2222-4222-8222-222222222222"}
+	if shouldKeepStationPrinters(prev, next) {
+		t.Fatal("expected to drop mappings on restaurant transfer")
+	}
+}
+
+func TestMergePairConfig_clearsStationPrintersOnTransfer(t *testing.T) {
+	prev := &config{
+		RestaurantID:    "11111111-1111-4111-8111-111111111111",
+		StationPrinters: map[string]string{"kitchen": "tcp:10.0.0.1:9100"},
+		UILocale:        "zh",
+	}
+	next := &config{
+		RestaurantID: "22222222-2222-4222-8222-222222222222",
+		AgentJWT:     "jwt",
+	}
+	mergePairConfig(prev, next)
+	if next.StationPrinters != nil {
+		t.Fatalf("expected nil StationPrinters after transfer, got %v", next.StationPrinters)
+	}
+	if next.UILocale != "zh" {
+		t.Fatalf("expected ui locale preserved, got %q", next.UILocale)
+	}
+}

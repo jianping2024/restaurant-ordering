@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadStaffAuditActor } from '@/lib/audit';
+import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -76,6 +77,11 @@ export async function PATCH(
     role: ctx.role,
   });
 
+  const menuDecrementOperator = resolveMenuDecrementOperator({
+    role: ctx.role,
+    asOwner: ctx.as_owner,
+  });
+
   const result = await patchOrderItemsWithVoidAudit({
     admin,
     restaurantId: ctx.restaurant_id,
@@ -93,9 +99,13 @@ export async function PATCH(
     voidReason,
     voidReasonDetail,
     voidAuditChannel: 'waiter',
+    menuDecrementOperator,
   });
 
   if (!result.ok) {
+    if (result.code === 'menu_decrement_not_allowed') {
+      return NextResponse.json({ error: result.code }, { status: 403 });
+    }
     if (
       result.code === 'reason_required' ||
       result.code === 'invalid_reason' ||

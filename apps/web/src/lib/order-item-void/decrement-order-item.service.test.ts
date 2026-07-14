@@ -99,7 +99,31 @@ function mockAdmin(): MockAdmin {
 }
 
 describe('decrementOrderItemWithAudit', () => {
-  const actor = { userId: 'user-1', displayName: 'Waiter', role: 'waiter' as const };
+  const actor = { userId: 'user-1', displayName: 'Frontdesk', role: 'frontdesk' as const };
+  const operator = 'frontdesk_staff' as const;
+
+  it('rejects waiter menu decrement', async () => {
+    const admin = mockAdmin();
+
+    const result = await decrementOrderItemWithAudit({
+      admin,
+      restaurantId: 'rest-1',
+      actor,
+      orderId: 'order-1',
+      existing: {
+        items: [baseItem()],
+        updated_at: '2026-01-01T00:00:00.000Z',
+        status: 'pending',
+      },
+      itemIndex: 0,
+      menuDecrementOperator: 'waiter_staff',
+    });
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.equal(result.code, 'menu_decrement_not_allowed');
+    assert.equal(admin.auditEvents.length, 0);
+  });
 
   it('writes qty decrement audit only when qty remains above zero', async () => {
     const admin = mockAdmin();
@@ -118,6 +142,7 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
+      menuDecrementOperator: operator,
     });
 
     assert.equal(result.ok, true);
@@ -140,6 +165,7 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
+      menuDecrementOperator: operator,
       voidReason: 'customer_cancelled',
     });
 
@@ -163,6 +189,7 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
+      menuDecrementOperator: operator,
     });
 
     assert.equal(result.ok, false);

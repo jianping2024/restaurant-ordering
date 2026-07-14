@@ -5,6 +5,10 @@ import {
   type BuffetGuestHeadcount,
 } from '@/lib/buffet-order';
 import { formatOrderItemListLabel, formatOrderItemNameLabel, formatOrderItemQuantityLabel } from '@/lib/order-list-display';
+import {
+  canDecrementOrderLine,
+  type MenuDecrementOperator,
+} from '@/lib/order-item-decrement/decrement-policy';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -35,6 +39,7 @@ export function buildWaiterTableCard(
   displayName: string,
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
+  menuDecrementOperator: MenuDecrementOperator = 'waiter_staff',
 ): WaiterTableCardData {
   const current: WaiterTableCardData = {
     tableId,
@@ -104,7 +109,7 @@ export function buildWaiterTableCard(
         label: formatOrderItemNameLabel(item),
         quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'compact' }),
         itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-        canDecrement: true,
+        canDecrement: canDecrementOrderLine(menuDecrementOperator, item, order.status),
       });
     });
   }

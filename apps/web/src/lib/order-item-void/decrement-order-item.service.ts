@@ -11,6 +11,10 @@ import {
   applyOrderItemDecrement,
   type DecrementOrderItemCode,
 } from '@/lib/order-item-void/decrement-order-item';
+import {
+  menuDecrementAllowedFor,
+  type MenuDecrementOperator,
+} from '@/lib/order-item-decrement/decrement-policy';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import type { Order } from '@/types';
@@ -29,6 +33,7 @@ export type DecrementOrderItemInput = {
     status?: Order['status'];
   };
   itemIndex: number;
+  menuDecrementOperator: MenuDecrementOperator;
   /** Required when decrement removes the last unit (void). */
   voidReason?: string | null;
   voidReasonDetail?: string | null;
@@ -43,7 +48,8 @@ export type DecrementOrderItemServiceResult =
         | 'conflict'
         | 'reason_required'
         | 'invalid_reason'
-        | 'reason_detail_required';
+        | 'reason_detail_required'
+        | 'menu_decrement_not_allowed';
     };
 
 function toQtyDecrementedContext(
@@ -86,6 +92,10 @@ function toItemVoidedContext(
 export async function decrementOrderItemWithAudit(
   input: DecrementOrderItemInput,
 ): Promise<DecrementOrderItemServiceResult> {
+  if (!menuDecrementAllowedFor(input.menuDecrementOperator)) {
+    return { ok: false, code: 'menu_decrement_not_allowed' };
+  }
+
   const orderStatus = input.existing.status ?? 'pending';
   const applied = applyOrderItemDecrement(
     input.existing.items,

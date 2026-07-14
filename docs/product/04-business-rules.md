@@ -142,7 +142,8 @@
 | 入口 | 允许状态 | 须原因 |
 |------|----------|--------|
 | 后厨 void | 任意非 voided | 是 |
-| 服务员 decrement | `pending`/`cooking` | qty→0 时必填 |
+| 前台 decrement | `pending`/`cooking` | qty→0 时必填 |
+| 服务员 decrement | — | **禁止**（菜单减菜仅前台；自助餐改人数走 buffet API） |
 | 强制关台 | 批量 void | 系统原因 |
 
 ### 风险等级（`riskLevelForVoidedItem`）
@@ -157,12 +158,13 @@
 
 - 每次 void / 减至 0 写 `operation_logs`
 - **后厨** void 创建 `abnormal_operations` 类型 `ITEM_DELETED`（按原 `item_status` 定风险）
-- **服务员** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列
+- **服务员** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列 → **已废止**：服务员不可菜单 decrement
+- **前台** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列
 
 ### 硬规则
 
 - 自助餐 `buffet_base` 行不可通过 decrement 删除（须改人数流程）
-- `billing` 会话下服务员不可 void/decrement
+- `billing` 会话下前台不可 void/decrement（服务员同样不可）
 - void 后必须重算 `orders.status` 与 `total_amount`
 
 ### 相关代码

@@ -53,8 +53,8 @@
 | POST | `/api/restaurants/[slug]/orders/append` | 顾客 / 员工 | 加菜；地理围栏；`guestOrderingEnabled` |
 | GET/PATCH | `/api/restaurants/[slug]/staff/kitchen/orders/[orderId]` | Kitchen | 更新订单行状态 |
 | GET | `/api/restaurants/[slug]/staff/kitchen/board` | Kitchen | 看板数据 |
-| GET/PATCH | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]` | Waiter+ | 服务员改单 |
-| POST | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item` | Waiter+ | 减数量/退菜 |
+| GET/PATCH | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]` | Waiter+ / frontdesk | 改单；服务员 void → `403` |
+| POST | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item` | frontdesk / owner | 菜单减数量/退菜；服务员 → `403` |
 
 ---
 

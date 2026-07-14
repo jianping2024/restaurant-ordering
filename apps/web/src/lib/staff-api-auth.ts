@@ -17,6 +17,7 @@ export type StaffAuthContext = {
   slug: string;
   role: StaffRole;
   user_id: string;
+  as_owner: boolean;
 };
 
 export type StaffAuthLoadError = 'migration_required' | 'restaurant_not_found' | 'server_misconfigured';
@@ -33,6 +34,7 @@ function toAuthContext(access: StaffAccessOk): StaffAuthContext {
     slug: access.slug,
     role: access.role,
     user_id: access.user_id,
+    as_owner: access.as_owner,
   };
 }
 

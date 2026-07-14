@@ -6,6 +6,10 @@ import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
 import type { AuditActor } from '@/lib/audit/types';
 import { detectNewlyVoidedItems } from '@/lib/order-item-void/detect-newly-voided';
 import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
+import {
+  menuDecrementAllowedFor,
+  type MenuDecrementOperator,
+} from '@/lib/order-item-decrement/decrement-policy';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import type { Order, OrderItem } from '@/types';
@@ -30,6 +34,7 @@ export type PatchOrderItemsInput = {
   voidReasonDetail?: string | null;
   /** Kitchen voids create abnormal queue rows; waiter channel logs only. */
   voidAuditChannel?: VoidAuditChannel;
+  menuDecrementOperator?: MenuDecrementOperator;
 };
 
 export type PatchOrderItemsResult =
@@ -41,7 +46,8 @@ export type PatchOrderItemsResult =
         | 'reason_required'
         | 'invalid_reason'
         | 'reason_detail_required'
-        | 'update_failed';
+        | 'update_failed'
+        | 'menu_decrement_not_allowed';
     };
 
 function toAuditContext(
@@ -70,6 +76,14 @@ export async function patchOrderItemsWithVoidAudit(
     input.nextItems,
     input.existing.status ?? 'pending',
   );
+
+  if (
+    newlyVoided.length > 0 &&
+    input.voidAuditChannel === 'waiter' &&
+    !menuDecrementAllowedFor(input.menuDecrementOperator ?? 'waiter_staff')
+  ) {
+    return { ok: false, code: 'menu_decrement_not_allowed' };
+  }
 
   const reasonValidation = validateVoidItemReason(
     newlyVoided,

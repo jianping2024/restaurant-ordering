@@ -36,6 +36,7 @@ import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffA
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
+import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -219,9 +220,25 @@ function WaiterTableDetailInner({
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
+  const menuDecrementOperator = useMemo(
+    () =>
+      resolveMenuDecrementOperator({
+        role: embeddedInDashboard ? 'frontdesk' : 'waiter',
+        embeddedInDashboard,
+      }),
+    [embeddedInDashboard],
+  );
+
   const selectedCard = useMemo(
-    () => buildWaiterTableCard(tableId, selectedDisplayName, orders, itemCodeByMenuId),
-    [orders, tableId, selectedDisplayName, itemCodeByMenuId],
+    () =>
+      buildWaiterTableCard(
+        tableId,
+        selectedDisplayName,
+        orders,
+        itemCodeByMenuId,
+        menuDecrementOperator,
+      ),
+    [orders, tableId, selectedDisplayName, itemCodeByMenuId, menuDecrementOperator],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);

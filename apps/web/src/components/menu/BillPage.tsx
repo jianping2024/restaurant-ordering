@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { validateSplitDraft } from '@/lib/bill-split-draft';
 import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import {
   buildCustomerSplitDisplayRows,
   initialPersistedSplitResult,
@@ -13,10 +11,9 @@ import {
 import { formatOrderItemQuantityLabel, orderListGuestLabelsFromLang } from '@/lib/order-list-display';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import { formatPortugueseNif, normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
+import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
-import { requestCheckoutRequest } from '@/lib/request-checkout-request';
-import { dashboardCheckoutFocusHref } from '@/lib/checkout-queue-focus';
+import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
@@ -83,7 +80,6 @@ export function BillPage({
   const collectedPayments = initialCollectedPayments;
   const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
   const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
-  const [submitting, setSubmitting] = useState(false);
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
     initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
   );
@@ -95,6 +91,7 @@ export function BillPage({
     () => !!existingSplit && !!sessionId && !staffAssisted?.skipFeedback && !initialFeedbackSubmitted && !initialFeedbackSkipped,
   );
   const [customerNifInput, setCustomerNifInput] = useState('');
+  const [callBillBusy, setCallBillBusy] = useState(false);
 
   const {
     orders,
@@ -103,6 +100,7 @@ export function BillPage({
     total,
     refreshOrders,
     commitOrders,
+    lastSyncedAt,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
 
   const splitDraft = useBillSplitDraft({
@@ -116,7 +114,48 @@ export function BillPage({
     guestName,
     submitted,
     persistedResult,
-    submitting,
+    submitting: callBillBusy,
+  });
+
+  const { isCallBillBusy, submitCallBill } = useCheckoutRequestSubmit({
+    restaurant,
+    tableId,
+    displayName,
+    sessionId,
+    orders,
+    lastSyncedAt,
+    refreshOrders,
+    commitOrders,
+    splitDraft,
+    customerNifInput,
+    checkoutRedirectHref,
+    onSubmitSuccess: (result) => {
+      setContinuationSplit(null);
+      setPersistedResult(result);
+    },
+    onCustomerSubmitSuccess: () => {
+      setSubmitted(true);
+      if (sessionId) {
+        requestOrderReceiptPrintQuiet({
+          slug: restaurant.slug,
+          tableId,
+          sessionId,
+          receiptVariant: 'pre_bill',
+        });
+      }
+    },
+    onBusyChange: setCallBillBusy,
+    showToast,
+    messages: {
+      billSyncFailed: t.billSyncFailed,
+      billIncomplete: t.billIncomplete,
+      splitUnassignedItems: t.splitUnassignedItems,
+      splitIncompleteQty: t.splitIncompleteQty,
+      splitAmountMismatch: t.splitAmountMismatch,
+      nifInvalid: t.nifInvalid,
+      splitPlanLocked: t.splitPlanLocked,
+      actionFailed: t.actionFailed,
+    },
   });
 
   useEffect(() => {
@@ -175,7 +214,7 @@ export function BillPage({
   const customerNifInvalid =
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
-  const handleCallBill = async () => {
+  const handleCallBill = () => {
     if (customerNifInvalid) {
       showToast(t.nifInvalid, 'error');
       return;
@@ -184,89 +223,7 @@ export function BillPage({
       showToast(splitValidationMessage ?? t.splitAmountMismatch, 'error');
       return;
     }
-    setSubmitting(true);
-    try {
-      const displayedBefore = orders;
-      const fresh = await refreshOrders();
-      if (!fresh) {
-        showToast(t.billSyncFailed, 'error');
-        return;
-      }
-      if (!isBillOrdersComplete(displayedBefore, fresh)) {
-        commitOrders(fresh);
-        showToast(t.billIncomplete, 'error');
-        return;
-      }
-      commitOrders(fresh);
-
-      const freshView = deriveBillView(fresh);
-      const { results: submitResults, validation } = validateSplitDraft({
-        ...splitDraft.splitDraftInput,
-        total: freshView.total,
-        orderLines: freshView.orderLines,
-        lineSpecs: freshView.lineSpecs,
-      });
-      if (!validation.ok) {
-        const message =
-          validation.issue === 'unassigned_items'
-            ? t.splitUnassignedItems
-            : validation.issue === 'incomplete_qty'
-              ? t.splitIncompleteQty
-              : t.splitAmountMismatch;
-        showToast(message, 'error');
-        return;
-      }
-
-      const persons = splitDraft.splitMode === 'by_item'
-        ? splitDraft.buildPersonsForSubmit()
-        : splitDraft.splitPeople.slice(0, submitResults.length).map((person, idx) => ({
-            name: submitResults[idx]?.name ?? person.name,
-          }));
-
-      const requestResult = await requestCheckoutRequest({
-        slug: restaurant.slug,
-        tableId,
-        splitMode: splitDraft.splitMode,
-        persons,
-        result: submitResults,
-        customerNif: normalizePortugueseNif(customerNifInput) || null,
-      });
-      if (!requestResult.ok) {
-        const message =
-          requestResult.error === 'invalid_nif'
-            ? t.nifInvalid
-            : requestResult.error === 'split_mode_locked' || requestResult.error === 'locked_allocation_changed'
-              ? t.splitPlanLocked
-              : t.actionFailed;
-        showToast(message, 'error');
-        return;
-      }
-
-      setContinuationSplit(null);
-      setPersistedResult(requestResult.result);
-      if (staffAssisted?.checkoutRedirectHref) {
-        router.replace(
-          dashboardCheckoutFocusHref({
-            tableId,
-            requestId: requestResult.bill_split_id,
-          }),
-        );
-        return;
-      }
-      setSubmitted(true);
-      if (sessionId) {
-        requestOrderReceiptPrintQuiet({
-          slug: restaurant.slug,
-          tableId,
-          sessionId,
-          receiptVariant: 'pre_bill',
-        });
-      }
-    } catch {
-      showToast(t.actionFailed, 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    void submitCallBill();
   };
 
   const reviewableItems = useMemo(() => {
@@ -533,7 +490,7 @@ export function BillPage({
         }}
         splitMode={splitDraft.splitMode}
         splitLocked={splitDraft.splitLocked}
-        submitting={submitting}
+        submitting={isCallBillBusy}
         personCount={splitDraft.personCount}
         splitPeople={splitDraft.splitPeople}
         customAmounts={splitDraft.customAmounts}
@@ -608,11 +565,11 @@ export function BillPage({
           className="w-full"
           size="lg"
           onClick={handleCallBill}
-          loading={submitting}
+          loading={isCallBillBusy}
           disabled={
             orderLines.length === 0
             || !sessionId
-            || submitting
+            || isCallBillBusy
             || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
             || customerNifInvalid
           }

@@ -55,9 +55,6 @@ export async function submitCheckoutRequestForTable(
   if (!session?.id) {
     return { ok: false, error: 'no_active_session', status: 404 };
   }
-  if (session.status === 'billing') {
-    return { ok: false, error: 'session_billing', status: 409 };
-  }
 
   const sessionId = session.id as string;
   const orders = await loadCustomerSessionOrders({

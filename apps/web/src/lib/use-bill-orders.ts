@@ -10,7 +10,12 @@ export function useBillOrders(
 ) {
   const [orders, setOrders] = useState(initialOrders);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const syncInFlightRef = useRef<Promise<Order[] | null> | null>(null);
+
+  const markOrdersSynced = useCallback(() => {
+    setLastSyncedAt(Date.now());
+  }, []);
 
   useEffect(() => {
     setOrders(initialOrders);
@@ -27,6 +32,7 @@ export function useBillOrders(
       setIsSyncing(true);
       try {
         const synced = await syncCustomerBill(params.slug, params.tableId);
+        if (synced?.orders) markOrdersSynced();
         return synced?.orders ?? null;
       } finally {
         setIsSyncing(false);
@@ -36,7 +42,7 @@ export function useBillOrders(
 
     syncInFlightRef.current = promise;
     return promise;
-  }, [params.slug, params.tableId]);
+  }, [markOrdersSynced, params.slug, params.tableId]);
 
   const commitOrders = useCallback((next: Order[]) => {
     setOrders(next);
@@ -59,6 +65,7 @@ export function useBillOrders(
     lineSpecs,
     total,
     isSyncing,
+    lastSyncedAt,
     refreshOrders,
     commitOrders,
     syncOrders,

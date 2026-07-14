@@ -18,6 +18,8 @@ import {
   type ConfirmPaymentClientOutcome,
 } from '@/lib/checkout-confirm-payment-outcome';
 import { mergeBillSplitsFromRefresh } from '@/lib/checkout-request-state';
+import { upsertCheckoutRequestInQueue } from '@/lib/checkout-request-submit';
+import { consumeStagedCheckoutRequest } from '@/lib/checkout-request-staging';
 import {
   parseSessionCollectedPaymentsWithSession,
   SESSION_COLLECTED_PAYMENT_SELECT,
@@ -33,6 +35,7 @@ type CheckoutRequestsContextValue = {
   pendingCount: number;
   reload: () => Promise<void>;
   updateRequests: (updater: (prev: BillSplit[]) => BillSplit[]) => void;
+  upsertRequestFromSubmit: (row: BillSplit) => void;
   getCollectedForSession: (sessionId: string | null | undefined) => SessionCollectedPayment[];
   applyConfirmPaymentOutcome: (params: {
     billSplitId: string;
@@ -91,6 +94,17 @@ export function CheckoutRequestsProvider({
   const updateRequests = useCallback((updater: (prev: BillSplit[]) => BillSplit[]) => {
     setRequests(updater);
   }, []);
+
+  const upsertRequestFromSubmit = useCallback((row: BillSplit) => {
+    setRequests((prev) => upsertCheckoutRequestInQueue(prev, row));
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const staged = consumeStagedCheckoutRequest();
+    if (!staged) return;
+    upsertRequestFromSubmit(staged);
+  }, [enabled, upsertRequestFromSubmit]);
 
   useEffect(() => {
     if (!enabled) {
@@ -180,10 +194,11 @@ export function CheckoutRequestsProvider({
       pendingCount: requests.length,
       reload,
       updateRequests,
+      upsertRequestFromSubmit,
       getCollectedForSession,
       applyConfirmPaymentOutcome,
     }),
-    [requests, reload, updateRequests, getCollectedForSession, applyConfirmPaymentOutcome],
+    [requests, reload, updateRequests, upsertRequestFromSubmit, getCollectedForSession, applyConfirmPaymentOutcome],
   );
 
   return (

@@ -34,16 +34,21 @@ PR 上 Vercel Preview 变绿后，**手动** merge 进 `main` → Vercel Product
 pnpm push
 ```
 
-会自动：`git add -A` → 提交 → **`git push origin main`**。
+会自动：`git add -A` → **发版校验（push 前）** → 提交 → **`git push origin main`** → 符合条件时打 tag。
 
-若本次提交改动了 **`apps/print-agent/`**（相对上一个 `print-agent-v*` tag），且 **`VERSION` 已递增**、远程尚无对应 tag，会再自动：
+若本次提交改动了 **`apps/print-agent/` 业务代码**（相对上一个 `print-agent-v*` tag），同一批提交须含：
+
+1. **`VERSION` 递增**
+2. **`RELEASE_NOTES.md`** 对应 `## X.Y.Z` 段落
+
+校验在 **push main 之前** 执行（`validate-print-agent-release.sh`）；失败则 **main 不会先推上去**。通过后 `apply-print-agent-tag.sh` 会：
 
 1. `go test` + `go vet`（同 CI）
 2. `git tag print-agent-v{VERSION}` && `git push origin` 该 tag → 触发 Windows 安装包构建
 
-跳过自动打 tag：`PUSH_SKIP_PRINT_AGENT_TAG=1 pnpm push`
+仅改 `RELEASE_NOTES.md`（同步旧版说明）不算业务代码变更，不会要求 bump VERSION。
 
-若改了 agent 代码但 **没 bump `VERSION`**，脚本会报错并提示先改 `apps/print-agent/VERSION`。
+跳过自动打 tag：`PUSH_SKIP_PRINT_AGENT_TAG=1 pnpm push`
 
 若 GitHub ruleset 禁止直推 `main`，需暂时关闭 ruleset，或改用手动 PR。
 

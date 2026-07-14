@@ -16,20 +16,5 @@ if [[ -n "$TAG_VER" ]]; then
   git commit -m "Bump print-agent to v$TAG_VER."
 fi
 
-"$ROOT/scripts/check-print-agent.sh"
-
-VER="$(tr -d '\r\n' < "$VERSION_FILE")"
-if ! bash "$ROOT/scripts/print-agent-release-body.sh" "$VER" >/dev/null; then
-  echo "Add a '## $VER' section to apps/print-agent/RELEASE_NOTES.md before tagging." >&2
-  exit 1
-fi
-
-TAG="print-agent-v$VER"
-
-if git rev-parse "$TAG" >/dev/null 2>&1; then
-  echo "Tag $TAG already exists locally." >&2
-  exit 1
-fi
-
-git tag "$TAG"
-echo "Created $TAG — push with: git push origin $TAG"
+"$ROOT/scripts/validate-print-agent-release.sh"
+"$ROOT/scripts/apply-print-agent-tag.sh"

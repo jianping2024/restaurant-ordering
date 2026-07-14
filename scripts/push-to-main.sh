@@ -9,7 +9,7 @@
 # Env:
 #   PUSH_MESSAGE — override auto-generated commit message
 #   PUSH_BASE_BRANCH — default main
-#   PUSH_SKIP_PRINT_AGENT_TAG=1 — do not auto-tag/push print-agent-v* after main push
+#   PUSH_SKIP_PRINT_AGENT_TAG=1 — do not validate/tag print-agent-v* on main push
 
 set -euo pipefail
 
@@ -91,8 +91,7 @@ print(msg[:72])
 PY
 }
 
-stage_and_commit() {
-  git add -A
+commit_staged() {
   if git diff --cached --quiet; then
     return 0
   fi
@@ -112,17 +111,7 @@ stage_and_commit() {
 current=$(git rev-parse --abbrev-ref HEAD)
 
 git fetch origin "$BASE" --quiet 2>/dev/null || true
-stage_and_commit
-
-if git diff --quiet && git diff --cached --quiet; then
-  upstream="origin/${BASE}"
-  if git rev-parse --verify "$upstream" >/dev/null 2>&1; then
-    if [[ "$(git rev-parse HEAD)" == "$(git rev-parse "$upstream")" ]]; then
-      echo "Working tree clean; nothing new to push."
-      exit 0
-    fi
-  fi
-fi
+git add -A
 
 if [[ -n "$BRANCH_ARG" ]]; then
   remote_branch="$BRANCH_ARG"
@@ -132,6 +121,22 @@ else
   remote_branch="$current"
 fi
 
+if git diff --cached --quiet && git diff --quiet; then
+  upstream="origin/${BASE}"
+  if git rev-parse --verify "$upstream" >/dev/null 2>&1; then
+    if [[ "$(git rev-parse HEAD)" == "$(git rev-parse "$upstream")" ]]; then
+      echo "Working tree clean; nothing new to push."
+      exit 0
+    fi
+  fi
+fi
+
+if [[ "$remote_branch" == "$BASE" ]]; then
+  "$SCRIPT_DIR/validate-print-agent-release.sh" --staged
+fi
+
+commit_staged
+
 echo "Pushing HEAD -> origin/${remote_branch}"
 git push origin "HEAD:${remote_branch}" 2>&1 | grep -v 'could not write config file' || true
 
@@ -139,5 +144,5 @@ echo ""
 echo "Pushed to origin/${remote_branch}."
 if [[ "$remote_branch" == "$BASE" ]]; then
   echo "Vercel will deploy Production after this push to ${BASE}."
-  "$SCRIPT_DIR/maybe-tag-print-agent.sh"
+  "$SCRIPT_DIR/apply-print-agent-tag.sh"
 fi

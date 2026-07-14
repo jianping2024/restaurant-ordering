@@ -22,8 +22,7 @@ export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout'
 
 export type WaiterBoardCardRowSlots = {
   row1: { tableTitle: string; badgeLabel: string };
-  openerRow: { label: string | null };
-  row2: { capacityText: string; guestCountText: string };
+  row2: { capacityText: string; openerLabel: string | null; guestCountText: string };
   row3: { metaPrefix: string; metaHighlight: string; amountText: string };
   row4: { footerLabel: string; footerIcon: WaiterBoardCardFooterIcon; footerDisabled: boolean };
 };
@@ -44,6 +43,14 @@ export function formatTableSeatCapacity(
 export function formatWaiterBoardCardAmount(sessionTotal: number): string {
   if (sessionTotal <= 0) return '';
   return `€${sessionTotal.toFixed(2)}`;
+}
+
+export function formatWaiterBoardCardCapacityLine(
+  capacityText: string,
+  openerLabel: string | null,
+): string {
+  if (!openerLabel) return capacityText;
+  return `${capacityText} ${openerLabel}`;
 }
 
 export function formatWaiterBoardCardRow3Meta(row3: WaiterBoardCardRowSlots['row3']): string {
@@ -148,9 +155,8 @@ function footerIconForLabelKey(
 function buildAriaLabel(slots: WaiterBoardCardRowSlots): string {
   const parts = [
     slots.row1.tableTitle,
-    slots.openerRow.label,
     slots.row1.badgeLabel,
-    slots.row2.capacityText,
+    formatWaiterBoardCardCapacityLine(slots.row2.capacityText, slots.row2.openerLabel),
     slots.row2.guestCountText,
     formatWaiterBoardCardRow3Meta(slots.row3),
     slots.row3.amountText,
@@ -184,15 +190,13 @@ export function buildWaiterBoardCardViewModel(input: {
       tableTitle: input.card.displayName,
       badgeLabel: badgeLabelForState(input.boardState, input.statusLabels),
     },
-    openerRow: {
-      label: openerLabelForCard(input.boardState, input.session),
-    },
     row2: {
       capacityText: formatTableSeatCapacity(
         input.card.seatMin,
         input.card.seatMax,
         input.labels.seatCapacity,
       ),
+      openerLabel: openerLabelForCard(input.boardState, input.session),
       guestCountText: boardHeadcountText(input.boardState, input.card.buffetHeadcount),
     },
     row3: row3Slots({

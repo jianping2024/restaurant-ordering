@@ -15,12 +15,6 @@ export const WAITER_BOARD_CARD_ROW1_LAYOUT = {
   badge: 'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
 } as const;
 
-/** Opener name row — same typography as row2 capacity line (text-xs muted). */
-export const WAITER_BOARD_CARD_OPENER_ROW_LAYOUT = {
-  row: 'mt-1.5 flex min-h-[1rem] items-center text-xs',
-  label: 'min-w-0 flex-1 truncate text-brand-text-muted',
-} as const;
-
 /** Row2 layout — seat capacity with leading dual-person icon. */
 export const WAITER_BOARD_CARD_ROW2_LAYOUT = {
   row: 'mt-1.5 flex min-h-[1rem] items-center justify-between gap-2 text-xs',

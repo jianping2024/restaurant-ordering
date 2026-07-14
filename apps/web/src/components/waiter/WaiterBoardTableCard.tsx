@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
-import { buildWaiterBoardCardViewModel } from '@/lib/waiter-board-card-display';
+import {
+  buildWaiterBoardCardViewModel,
+  formatWaiterBoardCardCapacityLine,
+} from '@/lib/waiter-board-card-display';
 import {
   isWaiterBoardCardInteractive,
   type WaiterBoardCardAction,
 } from '@/lib/waiter-board-card-action';
 import {
-  WAITER_BOARD_CARD_OPENER_ROW_LAYOUT,
   WAITER_BOARD_CARD_ROW1_LAYOUT,
   WAITER_BOARD_CARD_ROW2_LAYOUT,
   WAITER_BOARD_CARD_ROW3_LAYOUT,
@@ -104,21 +106,22 @@ export function WaiterBoardTableCard({
         </span>
       </div>
 
-      {view.openerRow.label ? (
-        <p className={WAITER_BOARD_CARD_OPENER_ROW_LAYOUT.row}>
-          <span
-            className={WAITER_BOARD_CARD_OPENER_ROW_LAYOUT.label}
-            title={view.openerRow.label}
-          >
-            {view.openerRow.label}
-          </span>
-        </p>
-      ) : null}
-
       <div className={WAITER_BOARD_CARD_ROW2_LAYOUT.row}>
         <p className={WAITER_BOARD_CARD_ROW2_LAYOUT.capacity}>
           <WaiterSeatCapacityIcon className={WAITER_BOARD_CARD_ROW2_LAYOUT.capacityIcon} />
-          <span className="truncate">{view.row2.capacityText}</span>
+          <span
+            className="truncate"
+            title={
+              view.row2.openerLabel
+                ? formatWaiterBoardCardCapacityLine(
+                    view.row2.capacityText,
+                    view.row2.openerLabel,
+                  )
+                : undefined
+            }
+          >
+            {formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel)}
+          </span>
         </p>
         <p className={WAITER_BOARD_CARD_ROW2_LAYOUT.guestCount}>{view.row2.guestCountText}</p>
       </div>

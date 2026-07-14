@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   buildWaiterBoardCardViewModel,
   formatWaiterBoardCardAmount,
+  formatWaiterBoardCardCapacityLine,
   formatWaiterBoardCardRow3Meta,
 } from '@/lib/waiter-board-card-display';
 import { WAITER_BOARD_CARD_MAX_AMOUNT_LABEL } from '@/lib/waiter-board-card-layout';
@@ -52,7 +53,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.equal(view.row1.badgeLabel, '空闲');
     assert.equal(view.row1.tableTitle, '002');
-    assert.equal(view.openerRow.label, null);
+    assert.equal(view.row2.openerLabel, null);
     assert.equal(view.row2.capacityText, '2–4 座');
     assert.equal(view.row2.guestCountText, '');
     assert.equal(view.row3.metaPrefix, '干净整洁，可开台');
@@ -82,7 +83,11 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.equal(view.row1.badgeLabel, '用餐中');
     assert.equal(view.row1.tableTitle, '002');
-    assert.equal(view.openerRow.label, '张三');
+    assert.equal(view.row2.openerLabel, '张三');
+    assert.equal(
+      formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel),
+      '2–4 座 张三',
+    );
     assert.equal(view.row2.guestCountText, 'A3');
     assert.equal(view.row3.metaPrefix, '用时 ');
     assert.equal(view.row3.metaHighlight, '2时0分');
@@ -213,7 +218,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.openerRow.label, null);
+    assert.equal(view.row2.openerLabel, null);
   });
 
   it('dining card hides opener when openedByName is missing', () => {
@@ -232,10 +237,10 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.openerRow.label, null);
+    assert.equal(view.row2.openerLabel, null);
   });
 
-  it('checkout card shows opener on dedicated row', () => {
+  it('checkout card shows opener merged into capacity line', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -252,7 +257,11 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.openerRow.label, '李四');
+    assert.equal(view.row2.openerLabel, '李四');
+    assert.equal(
+      formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel),
+      '2–4 座 李四',
+    );
     assert.equal(view.row1.badgeLabel, '待结账');
     assert.match(view.ariaLabel, /李四/);
   });

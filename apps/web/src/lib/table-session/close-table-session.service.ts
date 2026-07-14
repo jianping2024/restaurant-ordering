@@ -15,7 +15,7 @@ export type CloseTableSessionServiceInput = {
   restaurantId: string;
   userId: string;
   actor: AuditActor;
-  closedReason: 'owner_closed' | 'frontdesk_closed';
+  closedReason: 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
   tableId: string;
   confirmClose: boolean;
   unpaidReason?: string | null;

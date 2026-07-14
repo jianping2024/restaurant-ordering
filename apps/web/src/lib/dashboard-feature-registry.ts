@@ -1,6 +1,6 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
-  isCashierCheckoutPath,
+  isCashierOperationalPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
@@ -132,7 +132,7 @@ export const FRONTDESK_NAV_ITEM_IDS = [
   'menu',
 ] as const;
 
-export const CASHIER_NAV_ITEM_IDS = ['checkout'] as const;
+export const CASHIER_NAV_ITEM_IDS = ['waiterBoard', 'checkout'] as const;
 
 export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[] {
   const ids =
@@ -268,12 +268,16 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'waiter-board',
     path: '/dashboard/waiter',
-    navRoles: ['frontdesk'],
-    pageLoader: 'loadDashboardAccess (frontdesk only)',
+    navRoles: ['frontdesk', 'cashier'],
+    pageLoader: 'loadDashboardAccess (floor staff)',
     writePattern: 'read-only',
     riskNote: 'First item in frontdesk nav; kitchen shortcut stays optional below nav when enabled.',
   },
 ];
+
+export function canCloseTableFromDashboard(accessMode: DashboardAccessMode): boolean {
+  return accessMode === 'owner' || accessMode === 'frontdesk' || accessMode === 'cashier';
+}
 
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
   if (role === 'owner') return isOwnerDashboardPath(pathname);
@@ -281,7 +285,7 @@ export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string
     if (isDashboardSettingsPath(pathname)) return false;
     return isFrontdeskOperationalPath(pathname);
   }
-  if (role === 'cashier') return isCashierCheckoutPath(pathname);
+  if (role === 'cashier') return isCashierOperationalPath(pathname);
   return false;
 }
 

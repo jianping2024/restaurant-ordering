@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import {
   isStaffRole,
   parseStaffUserMetadata,
+  FLOOR_TABLE_STAFF_ROLES,
   type StaffRole,
 } from '@/lib/staff-account';
 
@@ -176,7 +177,7 @@ export async function resolveOpenTableStaffAccess(target: {
   if (!auth) return denied('unauthenticated');
   const { user, admin } = auth;
 
-  const openRoles: StaffRole[] = ['waiter', 'frontdesk'];
+  const openRoles: StaffRole[] = [...FLOOR_TABLE_STAFF_ROLES];
   if (needsPasswordChangeForSlug(user.user_metadata, target.slug, openRoles)) {
     return denied('needs_password_change');
   }

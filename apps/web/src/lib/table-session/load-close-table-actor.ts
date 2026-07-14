@@ -2,12 +2,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { isRestaurantSuspended } from '@mesa/shared';
-import {
-  frontdeskAuditActor,
-} from '@/lib/audit';
+import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
-import { loadDashboardAccess, loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { loadDashboardAccess, loadDashboardFloorStaffContext } from '@/lib/dashboard-access';
+
+export type CloseTableSessionClosedReason =
+  | 'owner_closed'
+  | 'frontdesk_closed'
+  | 'cashier_closed';
 
 export type CloseTableSessionActorContext =
   | {
@@ -15,7 +18,7 @@ export type CloseTableSessionActorContext =
       restaurantId: string;
       userId: string;
       actor: AuditActor;
-      closedReason: 'owner_closed' | 'frontdesk_closed';
+      closedReason: CloseTableSessionClosedReason;
     }
   | { error: string; status: number };
 
@@ -52,9 +55,9 @@ export async function loadCloseTableSessionActor(options?: {
     };
   }
 
-  const frontdesk = await loadFrontdeskOperationalContext(options);
-  if ('error' in frontdesk) {
-    return { error: frontdesk.error, status: frontdesk.status };
+  const floorStaff = await loadDashboardFloorStaffContext(options);
+  if ('error' in floorStaff) {
+    return { error: floorStaff.error, status: floorStaff.status };
   }
 
   const supabase = await createClient();
@@ -65,20 +68,17 @@ export async function loadCloseTableSessionActor(options?: {
     return { error: 'unauthorized', status: 401 };
   }
 
-  const { data: account } = await frontdesk.admin
-    .from('restaurant_staff_accounts')
-    .select('display_name')
-    .eq('restaurant_id', frontdesk.restaurantId)
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  const displayName = (account?.display_name as string | undefined)?.trim() || 'Front desk';
+  const actor = await loadStaffAuditActor(floorStaff.admin, {
+    restaurantId: floorStaff.restaurantId,
+    userId: user.id,
+    role: floorStaff.role,
+  });
 
   return {
-    admin: frontdesk.admin,
-    restaurantId: frontdesk.restaurantId,
+    admin: floorStaff.admin,
+    restaurantId: floorStaff.restaurantId,
     userId: user.id,
-    actor: frontdeskAuditActor(user.id, displayName),
-    closedReason: 'frontdesk_closed',
+    actor,
+    closedReason: floorStaff.role === 'cashier' ? 'cashier_closed' : 'frontdesk_closed',
   };
 }

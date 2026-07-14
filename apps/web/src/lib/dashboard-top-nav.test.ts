@@ -32,13 +32,13 @@ describe('buildDashboardTopNavPresentation', () => {
     assert.equal(overflow.some((item) => item.id === 'kitchenBoard'), true);
   });
 
-  it('keeps cashier on checkout only with no overflow', () => {
+  it('keeps cashier on waiter board + checkout with no overflow', () => {
     const { primary, overflow } = buildDashboardTopNavPresentation({
       accessMode: 'cashier',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
     });
-    assert.deepEqual(primary.map((item) => item.id), ['checkout']);
+    assert.deepEqual(primary.map((item) => item.id), ['waiterBoard', 'checkout']);
     assert.equal(overflow.length, 0);
   });
 
@@ -61,8 +61,8 @@ describe('dashboardLogoHref', () => {
     assert.equal(dashboardLogoHref('frontdesk'), '/dashboard/waiter');
   });
 
-  it('routes cashier logo to checkout', () => {
-    assert.equal(dashboardLogoHref('cashier'), '/dashboard/checkout');
+  it('routes cashier logo to waiter board', () => {
+    assert.equal(dashboardLogoHref('cashier'), '/dashboard/waiter');
   });
 });
 

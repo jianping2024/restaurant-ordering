@@ -28,6 +28,15 @@ export function isCashierCheckoutPath(pathname: string): boolean {
   return pathname === '/dashboard/checkout' || pathname.startsWith('/dashboard/checkout/');
 }
 
+export function isDashboardWaiterBoardPath(pathname: string): boolean {
+  return pathname === '/dashboard/waiter' || pathname.startsWith('/dashboard/waiter/');
+}
+
+/** Cashier dashboard routes: embedded waiter board + checkout (no admin pages). */
+export function isCashierOperationalPath(pathname: string): boolean {
+  return isDashboardWaiterBoardPath(pathname) || isCashierCheckoutPath(pathname);
+}
+
 export function isFrontdeskOperationalPath(pathname: string): boolean {
   if (!pathname.startsWith('/dashboard')) return false;
   if (isDashboardSettingsPath(pathname)) return false;
@@ -51,8 +60,8 @@ export function dashboardMiddlewareRedirectPath(
     return null;
   }
   if (actor === 'cashier') {
-    if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/checkout';
-    if (!isCashierCheckoutPath(pathname)) return '/dashboard/checkout';
+    if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/waiter';
+    if (!isCashierOperationalPath(pathname)) return '/dashboard/waiter';
     return null;
   }
   return null;

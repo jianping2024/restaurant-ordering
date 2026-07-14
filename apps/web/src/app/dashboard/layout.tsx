@@ -10,6 +10,7 @@ import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequest
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
+import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
 import { loadWaiterBoardInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit } from '@/types';
@@ -55,7 +56,7 @@ export default async function DashboardLayout({
     }
   }
 
-  const waiterBoardEnabled = access.mode === 'frontdesk';
+  const waiterBoardEnabled = canAccessDashboardWaiterBoard(access.mode);
   let initialWaiterBoard = null;
   if (waiterBoardEnabled) {
     try {

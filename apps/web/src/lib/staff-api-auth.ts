@@ -5,12 +5,12 @@ import {
   resolveStaffAccess,
   type StaffAccessOk,
 } from '@/lib/staff-access';
-import type { StaffRole } from '@/lib/staff-account';
+import { FLOOR_TABLE_STAFF_ROLES, type StaffRole } from '@/lib/staff-account';
 
 export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['cashier', 'frontdesk'];
 
-/** Waiter + frontdesk staff; restaurant owner also passes via owner fallback. */
-export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['waiter', 'frontdesk'];
+/** Floor table ops (slug waiter + dashboard embedded board); restaurant owner also passes via owner fallback. */
+export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = [...FLOOR_TABLE_STAFF_ROLES];
 
 export type StaffAuthContext = {
   restaurant_id: string;
@@ -104,7 +104,7 @@ export async function staffAuthForPage(
   return verifyStaffAuthForSlug(slug, [role]);
 }
 
-/** Owner, waiter, or frontdesk — open table, waiter board/detail, transfer/merge, order edits. */
+/** Owner or floor table staff — open table, waiter board/detail, transfer/merge, order edits. */
 export async function openTableAuthFromRequest(
   req: Request,
   slug: string,

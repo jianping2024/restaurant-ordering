@@ -67,17 +67,21 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     assert.equal(middlewareAllowsPath('frontdesk', '/dashboard/settings/staff'), false);
   });
 
-  it('cashier is limited to checkout', () => {
+  it('cashier may access waiter board and checkout only', () => {
+    assert.equal(middlewareAllowsPath('cashier', '/dashboard/waiter'), true);
+    assert.equal(middlewareAllowsPath('cashier', '/dashboard/waiter/table-1'), true);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard/checkout'), true);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard/menu'), false);
+    assert.equal(middlewareAllowsPath('cashier', '/dashboard/orders'), false);
+    assert.equal(middlewareAllowsPath('cashier', '/dashboard/tables'), false);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard'), false);
   });
 });
 
 describe('canAccessDashboardWaiterBoard', () => {
-  it('allows frontdesk only among operational roles', () => {
+  it('allows floor staff roles with embedded waiter board', () => {
     assert.equal(canAccessDashboardWaiterBoard('frontdesk'), true);
-    assert.equal(canAccessDashboardWaiterBoard('cashier'), false);
+    assert.equal(canAccessDashboardWaiterBoard('cashier'), true);
     assert.equal(canAccessDashboardWaiterBoard('owner'), false);
   });
 });

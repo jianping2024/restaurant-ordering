@@ -11,7 +11,7 @@ type WaiterRouteOptions = {
 /** Post-login / session paths by staff role (safe for server and client). */
 export function staffRolePath(slug: string, role: StaffRole): string {
   if (role === 'kitchen') return `/${slug}/kitchen`;
-  if (role === 'cashier') return '/dashboard/checkout';
+  if (role === 'cashier') return '/dashboard/waiter';
   if (role === 'frontdesk') return '/dashboard/waiter';
   return `/${slug}/waiter`;
 }

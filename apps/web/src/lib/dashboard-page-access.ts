@@ -1,13 +1,15 @@
 import { redirect } from 'next/navigation';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
-import type { FrontdeskDashboardRestaurant } from '@/lib/dashboard-access';
+import type { DashboardAccess } from '@/lib/dashboard-access';
 
-/** Frontdesk waiter pages — shares cached auth with dashboard layout (one auth chain per request). */
-export async function requireFrontdeskRestaurant(): Promise<
-  FrontdeskDashboardRestaurant & { name: string }
+type WaiterBoardDashboardAccess = Extract<DashboardAccess, { mode: 'frontdesk' | 'cashier' }>;
+
+/** Dashboard embedded waiter board — frontdesk and cashier (shares cached auth with layout). */
+export async function requireWaiterBoardDashboardAccess(): Promise<
+  WaiterBoardDashboardAccess['restaurant']
 > {
   const access = await getDashboardAccess();
-  if (access.mode !== 'frontdesk') {
+  if (access.mode !== 'frontdesk' && access.mode !== 'cashier') {
     redirect('/dashboard');
   }
   return access.restaurant;

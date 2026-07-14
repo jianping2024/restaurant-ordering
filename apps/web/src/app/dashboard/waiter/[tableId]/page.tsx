@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
-import { requireFrontdeskRestaurant } from '@/lib/dashboard-page-access';
+import { requireWaiterBoardDashboardAccess } from '@/lib/dashboard-page-access';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { loadWaiterTablePageInitial } from '@/lib/waiter-table-detail-load';
 
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default async function DashboardWaiterTablePage({ params }: Props) {
-  const restaurant = await requireFrontdeskRestaurant();
+  const restaurant = await requireWaiterBoardDashboardAccess();
 
   const { tableId: tableIdParam } = await params;
   const tableId = parseTableIdParam(tableIdParam);

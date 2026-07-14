@@ -25,12 +25,11 @@ export type DashboardTopNavPresentation = {
 const PRIMARY_NAV_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly string[]>> = {
   owner: ['overview'],
   frontdesk: ['waiterBoard', 'checkout'],
-  cashier: ['checkout'],
+  cashier: ['waiterBoard', 'checkout'],
 };
 
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
-  if (accessMode === 'cashier') return '/dashboard/checkout';
-  if (accessMode === 'frontdesk') return '/dashboard/waiter';
+  if (accessMode === 'cashier' || accessMode === 'frontdesk') return '/dashboard/waiter';
   return '/dashboard';
 }
 

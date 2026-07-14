@@ -136,7 +136,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `reconcile_split_result_paid_from_ledger(result, restaurant_id, session_id, discount_rate?)` | authenticated, service_role | Sets each `result.paid` when session ledger covers discounted row amount |
 | `close_table_session_operational(restaurant_id, table_id, closed_reason, closed_by_user_id?)` | authenticated, service_role | Atomic operational close: cancel splits, void orders, close session; not anon |
 | `compute_session_payment_gap(restaurant_id, session_id)` | authenticated, service_role | Returns payable/paid/gap + `is_unpaid_close` for an active session |
-| `close_table_session_manual(restaurant_id, table_id, operator_user_id, closed_reason, confirm_close, unpaid_reason?, unpaid_reason_detail?)` | authenticated, service_role | Owner/frontdesk manual close; validates unpaid reason; returns audit snapshot (audit rows written in app via `recordAudit`) |
+| `close_table_session_manual(restaurant_id, table_id, operator_user_id, closed_reason, confirm_close, unpaid_reason?, unpaid_reason_detail?)` | authenticated, service_role | Owner/frontdesk/cashier manual close; validates unpaid reason; returns audit snapshot (audit rows written in app via `recordAudit`) |
 | `transfer_table_session(restaurant_id, from_table_id, to_table_id)` | authenticated, service_role | Move open session between tables |
 | `merge_table_sessions(restaurant_id, source_table_id, target_table_id)` | authenticated, service_role | Merge two table sessions; buffet lines merge per `buffet_id` (same package sums headcount, different packages stay separate) |
 | `merge_multiple_table_sessions(restaurant_id, source_table_ids[], target_table_id)` | authenticated, service_role | Multi-source merge |

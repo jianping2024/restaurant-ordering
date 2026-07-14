@@ -1,18 +1,12 @@
-import { redirect } from 'next/navigation';
 import { DashboardWaiterFloorShell } from '@/components/waiter/DashboardWaiterFloorShell';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { requireWaiterBoardDashboardAccess } from '@/lib/dashboard-page-access';
 
 export default async function DashboardWaiterLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const access = await loadDashboardAccess();
-  if (access.mode !== 'frontdesk') {
-    redirect('/dashboard');
-  }
-
-  const { restaurant } = access;
+  const restaurant = await requireWaiterBoardDashboardAccess();
 
   return (
     <DashboardWaiterFloorShell

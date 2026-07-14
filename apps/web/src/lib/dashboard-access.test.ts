@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 import {
   dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
+  isCashierOperationalPath,
   isDashboardSettingsPath,
+  isDashboardWaiterBoardPath,
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
   isOwnerOperationalPath,
@@ -35,6 +37,16 @@ describe('isCashierCheckoutPath', () => {
     assert.equal(isCashierCheckoutPath('/dashboard/checkout'), true);
     assert.equal(isCashierCheckoutPath('/dashboard/checkout/foo'), true);
     assert.equal(isCashierCheckoutPath('/dashboard/orders'), false);
+  });
+});
+
+describe('isCashierOperationalPath', () => {
+  it('matches waiter board and checkout routes only', () => {
+    assert.equal(isCashierOperationalPath('/dashboard/waiter'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/waiter/table-1'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/checkout'), true);
+    assert.equal(isCashierOperationalPath('/dashboard/orders'), false);
+    assert.equal(isDashboardWaiterBoardPath('/dashboard/waiter/foo'), true);
   });
 });
 
@@ -76,8 +88,17 @@ describe('dashboardMiddlewareRedirectPath', () => {
     );
   });
 
-  it('redirects cashier from overview to checkout', () => {
-    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard'), '/dashboard/checkout');
+  it('redirects cashier from overview to waiter board', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard'), '/dashboard/waiter');
+  });
+
+  it('redirects cashier away from admin pages', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard/menu'), '/dashboard/waiter');
+  });
+
+  it('allows cashier on waiter board and checkout', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard/waiter'), null);
+    assert.equal(dashboardMiddlewareRedirectPath('cashier', '/dashboard/checkout'), null);
   });
 
   it('allows frontdesk on operational routes', () => {

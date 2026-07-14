@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.39
+
+**换店重新配对**
+
+- 配对成功后持久化 `restaurant_id`；切换到另一家餐厅重新配对时，自动清空旧店的档口打印机映射，引导重新配置。
+- 需配合 Web 端 claim 设备转移（同次发布）；单独升级 Agent 无法解决换店 409 冲突。
+
 ## 0.3.38
 
 **预结/结账小票：表头与虚线间距**

@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.40
+
+**出品联（Guest Order）版式**
+
+- 菜品区改为 1×2 字号；列模型左/右各缩进 1，Qty 列头偏左对齐。
+- 菜品行仅 `{编号}-{菜名}`；可选居中分类分组行由 Web 配置开关控制（默认关）。
+- 出品联固定 Windows-1252（葡语/英语重音）；页脚 `Printed By:restaurant`。
+
 ## 0.3.39
 
 **换店重新配对**

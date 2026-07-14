@@ -99,11 +99,21 @@ export function WaiterBoardTableCard({
         <p className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.title} ${theme.title}`}>
           {view.row1.tableTitle}
         </p>
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${theme.badge}`}
-        >
-          {view.row1.badgeLabel}
-        </span>
+        <div className={WAITER_BOARD_CARD_ROW1_LAYOUT.statusGroup}>
+          {view.row1.openerLabel ? (
+            <span
+              className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.opener} ${theme.badge}`}
+              title={view.row1.openerLabel}
+            >
+              {view.row1.openerLabel}
+            </span>
+          ) : null}
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${theme.badge}`}
+          >
+            {view.row1.badgeLabel}
+          </span>
+        </div>
       </div>
 
       <div className={WAITER_BOARD_CARD_ROW2_LAYOUT.row}>

@@ -12,8 +12,8 @@ import { fetchCheckoutRequestedBoard } from '@/lib/table-checkout-pending';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   filterOrdersInActiveSessions,
-  sessionMetaByTableIdFromSessions,
 } from '@/lib/waiter-board-query';
+import { buildActiveSessionMetaByTableId } from '@/lib/waiter-table-session-meta';
 import {
   filterWaiterTableActionTargets,
 } from '@/lib/waiter-table-occupancy';
@@ -122,7 +122,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
   ] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status')
+      .select('id, table_id, opened_at, status, opened_by_user_id')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     admin
@@ -156,7 +156,11 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
   ]);
 
   const orders = filterOrdersInActiveSessions((rows || []) as Order[], sessions || []);
-  const sessionMetaByTableId = sessionMetaByTableIdFromSessions(sessions || []);
+  const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
+    admin,
+    restaurantId,
+    sessions || [],
+  );
   const tables = (tableRows || []) as RestaurantTableRow[];
   const buffets = (buffetRows || []) as Buffet[];
   const restaurantHasActiveBuffets = buffets.some((b) => b.is_active);
@@ -194,7 +198,7 @@ export async function fetchWaiterTableActionTargets(
   const [{ data: sessions }, { data: tableRows }, checkoutRequested] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status')
+      .select('id, table_id, opened_at, status, opened_by_user_id')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     admin
@@ -206,7 +210,11 @@ export async function fetchWaiterTableActionTargets(
   ]);
 
   const tables = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
-  const sessionMetaByTableId = sessionMetaByTableIdFromSessions(sessions || []);
+  const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
+    admin,
+    restaurantId,
+    sessions || [],
+  );
   return filterWaiterTableActionTargets(
     tables,
     sourceTableId,

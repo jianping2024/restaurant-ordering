@@ -6,6 +6,8 @@ export type WaiterTableSessionMeta = {
   sessionId: string;
   openedAt: string;
   status: 'open' | 'billing';
+  /** Resolved staff display name for table_sessions.opened_by_user_id (board display). */
+  openedByName?: string | null;
 };
 
 export type WaiterBoardFilter = 'all' | 'checkout' | 'dining' | 'idle';

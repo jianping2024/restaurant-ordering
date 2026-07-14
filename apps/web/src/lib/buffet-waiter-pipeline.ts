@@ -27,6 +27,7 @@ import {
   resolveOpenTableBuffetPrices,
 } from '@/lib/waiter-table-detail-load';
 import {
+  resolveActiveSessionOpenedByName,
   sessionMetaFromEnsuredSession,
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
@@ -112,7 +113,13 @@ export async function runBuffetWaiterOpenPipeline(
   }
 
   const sessionId = ensured.session.id;
-  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session);
+  const openedByUserId = sessionRow?.opened_by_user_id ?? userId;
+  const openedByName = await resolveActiveSessionOpenedByName(
+    admin,
+    restaurantId,
+    openedByUserId,
+  );
+  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session, openedByName);
 
   let orders: Order[];
   try {

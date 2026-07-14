@@ -22,7 +22,7 @@ export type WaiterBoardCardDisplayLabels = {
 export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout';
 
 export type WaiterBoardCardRowSlots = {
-  row1: { tableTitle: string; badgeLabel: string };
+  row1: { tableTitle: string; openerLabel: string | null; badgeLabel: string };
   row2: { capacityText: string; guestCountText: string };
   row3: { metaPrefix: string; metaHighlight: string; amountText: string };
   row4: { footerLabel: string; footerIcon: WaiterBoardCardFooterIcon; footerDisabled: boolean };
@@ -58,6 +58,15 @@ function badgeLabelForState(
   if (boardState === 'checkout') return statusLabels.checkout;
   if (boardState === 'dining') return statusLabels.dining;
   return statusLabels.idle;
+}
+
+function openerLabelForCard(
+  boardState: WaiterTableBoardState,
+  session: WaiterTableSessionMeta | undefined,
+): string | null {
+  if (boardState === 'idle') return null;
+  const name = session?.openedByName?.trim();
+  return name || null;
 }
 
 function boardHeadcountText(
@@ -139,13 +148,14 @@ function footerIconForLabelKey(
 function buildAriaLabel(slots: WaiterBoardCardRowSlots): string {
   const parts = [
     slots.row1.tableTitle,
+    slots.row1.openerLabel,
     slots.row1.badgeLabel,
     slots.row2.capacityText,
     slots.row2.guestCountText,
     formatWaiterBoardCardRow3Meta(slots.row3),
     slots.row3.amountText,
     slots.row4.footerLabel,
-  ].filter((part) => part.length > 0);
+  ].filter((part): part is string => Boolean(part && part.length > 0));
   return parts.join('，');
 }
 
@@ -172,6 +182,7 @@ export function buildWaiterBoardCardViewModel(input: {
   const slots: WaiterBoardCardRowSlots = {
     row1: {
       tableTitle: `${input.labels.table} ${input.card.displayName}`,
+      openerLabel: openerLabelForCard(input.boardState, input.session),
       badgeLabel: badgeLabelForState(input.boardState, input.statusLabels),
     },
     row2: {

@@ -52,6 +52,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.row1.badgeLabel, '空闲');
+    assert.equal(view.row1.openerLabel, null);
     assert.equal(view.row2.capacityText, '2–4 座');
     assert.equal(view.row2.guestCountText, '');
     assert.equal(view.row3.metaPrefix, '干净整洁，可开台');
@@ -71,6 +72,7 @@ describe('buildWaiterBoardCardViewModel', () => {
         sessionId: 's1',
         openedAt: '2026-07-05T18:00:00.000Z',
         status: 'open',
+        openedByName: '张三',
       },
       checkoutRequestedAt: null,
       lang: 'zh',
@@ -78,6 +80,8 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
+    assert.equal(view.row1.badgeLabel, '用餐中');
+    assert.equal(view.row1.openerLabel, '张三');
     assert.equal(view.row2.guestCountText, 'A3');
     assert.equal(view.row3.metaPrefix, '用时 ');
     assert.equal(view.row3.metaHighlight, '2时0分');
@@ -189,5 +193,66 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.row3.metaHighlight, '9时59分');
     assert.equal(formatWaiterBoardCardRow3Meta(view.row3), '用时 9时59分');
     assert.equal(view.row3.amountText, '€9999.99');
+  });
+
+  it('idle card hides opener even when session meta carries openedByName', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary(),
+      boardState: 'idle',
+      action: { kind: 'open_table_sheet' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'open',
+        openedByName: '张三',
+      },
+      checkoutRequestedAt: null,
+      lang: 'zh',
+      nowMs,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(view.row1.openerLabel, null);
+  });
+
+  it('dining card hides opener when openedByName is missing', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 10 }),
+      boardState: 'dining',
+      action: { kind: 'navigate', href: '/waiter/t1' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'open',
+      },
+      checkoutRequestedAt: null,
+      lang: 'zh',
+      nowMs,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(view.row1.openerLabel, null);
+  });
+
+  it('checkout card shows opener before status badge', () => {
+    const view = buildWaiterBoardCardViewModel({
+      card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
+      boardState: 'checkout',
+      action: { kind: 'disabled', reason: 'waiter_checkout' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'billing',
+        openedByName: '李四',
+      },
+      checkoutRequestedAt: '2026-07-05T19:00:00.000Z',
+      lang: 'zh',
+      nowMs,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(view.row1.openerLabel, '李四');
+    assert.equal(view.row1.badgeLabel, '待结账');
+    assert.match(view.ariaLabel, /李四/);
   });
 });

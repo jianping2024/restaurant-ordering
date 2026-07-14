@@ -35,3 +35,22 @@ export async function resolveOpenedByNames(
 
   return names;
 }
+
+export async function resolveOpenedByName(
+  admin: SupabaseClient,
+  params: {
+    restaurantId: string;
+    ownerId: string;
+    restaurantName: string;
+    userId: string | null | undefined;
+  },
+): Promise<string | null> {
+  if (!params.userId) return null;
+  const names = await resolveOpenedByNames(admin, {
+    restaurantId: params.restaurantId,
+    ownerId: params.ownerId,
+    restaurantName: params.restaurantName,
+    userIds: [params.userId],
+  });
+  return names.get(params.userId) ?? null;
+}

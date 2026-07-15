@@ -139,19 +139,12 @@ export function aggregateBuffetForOrders(
   };
 }
 
-export const IDLE_BUFFET_FORM_DEFAULTS = { adults: 2, children: 0 } as const;
+export const IDLE_BUFFET_FORM_DEFAULTS = { adults: 0, children: 0 } as const;
 
-export function buildIdleBuffetDraftSnapshot(
-  activeBuffetIds: string[],
-  defaultBuffetId: string | null,
-): BuffetGuestSnapshot {
+export function buildIdleBuffetDraftSnapshot(activeBuffetIds: string[]): BuffetGuestSnapshot {
   const snapshot: BuffetGuestSnapshot = {};
   for (const buffetId of activeBuffetIds) {
-    if (buffetId === defaultBuffetId) {
-      snapshot[buffetId] = { ...IDLE_BUFFET_FORM_DEFAULTS };
-    } else {
-      snapshot[buffetId] = { adults: 0, children: 0 };
-    }
+    snapshot[buffetId] = { ...IDLE_BUFFET_FORM_DEFAULTS };
   }
   return snapshot;
 }
@@ -165,10 +158,12 @@ export function deriveBuffetFormSnapshot(
 export type BuffetFormAlignState =
   | { mode: 'pending' }
   | { mode: 'idle'; defaultBuffetId: string | null; activeBuffetIds: string[] }
+  | { mode: 'session_open'; activeBuffetIds: string[] }
   | { mode: 'occupied'; snapshot: BuffetGuestSnapshot };
 
 export function resolveBuffetFormAlignState(input: {
   detailLoaded: boolean;
+  hasOpenSession: boolean;
   orders: Array<Pick<Order, 'items' | 'status'>>;
   activeBuffetIds: string[];
   defaultBuffetId: string | null;
@@ -180,6 +175,10 @@ export function resolveBuffetFormAlignState(input: {
   const snapshot = deriveBuffetFormSnapshot(input.orders);
   if (Object.keys(snapshot).length > 0) {
     return { mode: 'occupied', snapshot };
+  }
+
+  if (input.hasOpenSession) {
+    return { mode: 'session_open', activeBuffetIds: input.activeBuffetIds };
   }
 
   return {
@@ -207,6 +206,9 @@ export function buffetFormAlignKey(
   }
   if (align.mode === 'idle') {
     return `${tableId}:${sessionKey}:idle:${align.defaultBuffetId ?? ''}:${align.activeBuffetIds.join(',')}`;
+  }
+  if (align.mode === 'session_open') {
+    return `${tableId}:${sessionKey}:session_open:${align.activeBuffetIds.join(',')}`;
   }
   return `${tableId}:${sessionKey}:occupied:${buffetSnapshotKey(align.snapshot)}`;
 }
@@ -257,6 +259,18 @@ export function isBuffetSnapshotUnchanged(
   targetSnapshot: BuffetGuestSnapshot,
 ): boolean {
   return buffetSnapshotsEqual(buffetSnapshotFromOrders(orders), targetSnapshot);
+}
+
+/** Client submit guard — normalizes draft zeros the same way as the server pipeline. */
+export function isBuffetSubmitSnapshotUnchanged(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+  guestSnapshot: BuffetGuestSnapshot,
+  activeBuffetIds: string[],
+): boolean {
+  const targetSnapshot = snapshotFromBuffetEntries(
+    buffetEntriesFromSnapshot(guestSnapshot, activeBuffetIds),
+  );
+  return isBuffetSnapshotUnchanged(orders, targetSnapshot);
 }
 
 export type BuffetSnapshotDiff = {
@@ -484,8 +498,4 @@ export function buffetEntriesFromSnapshot(
     adults: snapshot[buffetId]?.adults ?? 0,
     children: snapshot[buffetId]?.children ?? 0,
   }));
-}
-
-export function hasPositiveBuffetSnapshot(snapshot: BuffetGuestSnapshot): boolean {
-  return Object.values(snapshot).some((counts) => counts.adults > 0 || counts.children > 0);
 }

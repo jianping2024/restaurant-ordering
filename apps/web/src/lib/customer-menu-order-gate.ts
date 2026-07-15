@@ -1,7 +1,7 @@
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { guestOrderingEnabled } from '@/lib/guest-table-ordering';
-import type { Language, Order, SessionStatus, TableSession } from '@/types';
+import type { Language, SessionStatus, TableSession } from '@/types';
 
 export type GuestOrderGateResult = {
   canPlace: boolean;
@@ -12,9 +12,8 @@ export function guestOrderGateFromSessionContext(
   context: CustomerSessionContext | null,
 ): GuestOrderGateResult {
   const session = (context?.active_session as TableSession | null) ?? null;
-  const orders = (context?.recent_orders || []) as Order[];
   return {
-    canPlace: guestOrderingEnabled(session, orders),
+    canPlace: guestOrderingEnabled(session),
     sessionStatus: session?.status ?? null,
   };
 }
@@ -35,12 +34,11 @@ export function guestOrderingActionHint(
 export function guestOrderGateFromCachedState(
   isDemo: boolean,
   activeSession: Pick<TableSession, 'status'> | null,
-  recentOrders: Order[],
 ): GuestOrderGateResult | null {
   if (isDemo) {
     return { canPlace: true, sessionStatus: activeSession?.status ?? null };
   }
-  if (guestOrderingEnabled(activeSession, recentOrders)) {
+  if (guestOrderingEnabled(activeSession)) {
     return { canPlace: true, sessionStatus: activeSession?.status ?? 'open' };
   }
   return null;

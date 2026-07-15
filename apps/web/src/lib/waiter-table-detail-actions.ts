@@ -14,15 +14,15 @@ export function resolveWaiterTableDetailActions(input: {
   embeddedInDashboard: boolean;
   isDemo: boolean;
   isCheckoutPending: boolean;
-  isOccupied: boolean;
+  hasOpenSession: boolean;
   hasActiveBuffets: boolean;
 }): WaiterTableDetailActionFlags {
-  const { embeddedInDashboard, isDemo, isCheckoutPending, isOccupied, hasActiveBuffets } = input;
+  const { embeddedInDashboard, isDemo, isCheckoutPending, hasOpenSession, hasActiveBuffets } = input;
 
   return {
     showBuffetPanel: hasActiveBuffets && !isDemo && !isCheckoutPending,
-    showOccupiedToolbar: isOccupied,
-    showCheckoutClose: embeddedInDashboard && isOccupied && !isCheckoutPending,
-    showCloseTable: embeddedInDashboard && isOccupied,
+    showOccupiedToolbar: hasOpenSession,
+    showCheckoutClose: embeddedInDashboard && hasOpenSession && !isCheckoutPending,
+    showCloseTable: embeddedInDashboard && hasOpenSession,
   };
 }

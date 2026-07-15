@@ -52,7 +52,7 @@ export function classifyWaiterTableBoardState(
   if (isWaiterBoardCheckoutPending(tableId, ctx.sessionMetaByTableId, ctx.checkoutRequestedTableIds)) {
     return 'checkout';
   }
-  if (ctx.sessionMetaByTableId[tableId] && (ctx.occupiedByTableId.get(tableId) ?? false)) {
+  if (ctx.sessionMetaByTableId[tableId]?.status === 'open') {
     return 'dining';
   }
   return 'idle';

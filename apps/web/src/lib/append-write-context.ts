@@ -58,7 +58,7 @@ export async function loadAppendWriteContext(
   }
 
   const rows = (sessionOrders || []) as SessionOrderRow[];
-  if (!guestOrderingEnabled(session, rows as Order[])) {
+  if (!guestOrderingEnabled(session)) {
     return { ok: false, status: 403, error: 'buffet_required' };
   }
 

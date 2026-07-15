@@ -20,8 +20,8 @@
 
 | 看板表现 | 判定条件 |
 |----------|----------|
-| 空闲 | 无活跃会话，或会话无订单行且无 buffet |
-| 用餐中 | 活跃 `open` 会话，有 menu 行或 buffet_base |
+| 空闲 | 无活跃 `open` 会话 |
+| 用餐中 | 活跃 `open` 会话（可尚未录人数或加菜） |
 | 待结账 | 存在 `bill_splits.status='requested'` 或会话 `billing` |
 | 已删除 | `restaurant_tables.deleted_at IS NOT NULL`，不参与新业务 |
 

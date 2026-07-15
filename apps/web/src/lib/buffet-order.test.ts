@@ -112,10 +112,11 @@ describe('buffet snapshot', () => {
 });
 
 describe('deriveBuffetFormSnapshot / align', () => {
-  it('returns idle draft with first package defaulted', () => {
+  it('returns idle draft with all packages at zero', () => {
     assert.deepEqual(
       resolveBuffetFormAlignState({
         detailLoaded: true,
+        hasOpenSession: false,
         orders: [],
         activeBuffetIds: [buffetA.id, buffetB.id],
         defaultBuffetId: buffetA.id,
@@ -126,10 +127,26 @@ describe('deriveBuffetFormSnapshot / align', () => {
         activeBuffetIds: [buffetA.id, buffetB.id],
       },
     );
-    assert.deepEqual(buildIdleBuffetDraftSnapshot([buffetA.id, buffetB.id], buffetA.id), {
-      [buffetA.id]: { adults: 2, children: 0 },
+    assert.deepEqual(buildIdleBuffetDraftSnapshot([buffetA.id, buffetB.id]), {
+      [buffetA.id]: { adults: 0, children: 0 },
       [buffetB.id]: { adults: 0, children: 0 },
     });
+  });
+
+  it('returns session_open when session exists without buffet lines', () => {
+    assert.deepEqual(
+      resolveBuffetFormAlignState({
+        detailLoaded: true,
+        hasOpenSession: true,
+        orders: [],
+        activeBuffetIds: [buffetA.id],
+        defaultBuffetId: buffetA.id,
+      }),
+      {
+        mode: 'session_open',
+        activeBuffetIds: [buffetA.id],
+      },
+    );
   });
 
   it('returns occupied snapshot from orders', () => {
@@ -140,6 +157,7 @@ describe('deriveBuffetFormSnapshot / align', () => {
     assert.deepEqual(
       resolveBuffetFormAlignState({
         detailLoaded: true,
+        hasOpenSession: false,
         orders,
         activeBuffetIds: [buffetA.id, buffetB.id],
         defaultBuffetId: buffetA.id,
@@ -154,6 +172,7 @@ describe('deriveBuffetFormSnapshot / align', () => {
   it('builds stable align keys', () => {
     const occupied = resolveBuffetFormAlignState({
       detailLoaded: true,
+      hasOpenSession: false,
       orders: [orderWithItems([buffetLine(buffetA, 2, 0, '2026-01-01T10:00:00.000Z')])],
       activeBuffetIds: [buffetA.id],
       defaultBuffetId: buffetA.id,

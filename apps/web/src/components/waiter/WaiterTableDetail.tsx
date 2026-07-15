@@ -4,20 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order } from '@/types';
+import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
+import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import {
-  buffetEntriesFromSnapshot,
-  buffetSnapshotFromOrders,
-  buildBuffetBaseLine,
-  diffBuffetSnapshots,
-  hasActiveBuffetForOrders,
-  hasPositiveBuffetSnapshot,
-  isBuffetSnapshotUnchanged,
-  resolveBuffetFormAlignState,
-} from '@/lib/buffet-order';
-import {
-  applyBuffetOpenOptimisticToOrders,
-  OPTIMISTIC_OPEN_SESSION_ID,
-} from '@/lib/buffet-open-table';
+  buffetOpenSubmitBlockReason,
+  postWaiterBuffetOpenAndCommit,
+} from '@/lib/waiter-buffet-open-submit';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -46,12 +38,10 @@ import { applyOrderUpdateToWaiterDetail } from '@/lib/waiter-table-detail-apply-
 import {
   fetchWaiterTableActionTargetsClient,
   fetchWaiterTablePageModelClient,
-  postWaiterBuffetOpenClient,
   postWaiterTableActionClient,
 } from '@/lib/staff-board-client';
 import {
   clearPublishedWaiterTablePageModel,
-  commitAuthoritativeWaiterTablePageModel,
   commitWaiterSessionRelocation,
 } from '@/lib/waiter-staff-mutation-sync';
 import { filterWaiterTableActionTargets } from '@/lib/waiter-table-occupancy';
@@ -180,15 +170,17 @@ function WaiterTableDetailInner({
   );
   const contextTableId = selectedTable?.id ?? tableId;
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
+  const hasOpenSession = isTableSessionOpen(sessionMeta);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: isDemo || detailLoaded,
+        hasOpenSession,
         orders,
         activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets, detailLoaded, isDemo, orders],
+    [activeBuffetIds, activeBuffets, detailLoaded, hasOpenSession, isDemo, orders],
   );
   const {
     guestSnapshot,
@@ -264,8 +256,7 @@ function WaiterTableDetailInner({
     [checkoutRequestedAt, isCheckoutPending, orders, selectedTable, sessionMeta],
   );
 
-  const tableHasBuffet = useMemo(() => hasActiveBuffetForOrders(orders), [orders]);
-  const buffetActionLabel = tableHasBuffet ? t.buffetSaveGuestCounts : t.buffetConfirm;
+  const buffetActionLabel = hasOpenSession ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const demoActiveTableIds = useMemo(() => {
     if (!isDemo) return [] as string[];
@@ -333,7 +324,7 @@ function WaiterTableDetailInner({
 
   useStaffAssistedMenuEntryPrefetch(
     menuHref,
-    isWaiterTableCardOccupied(selectedCard) && !isCheckoutPending && !isDemo && detailLoaded,
+    hasOpenSession && !isCheckoutPending && !isDemo && detailLoaded,
   );
 
   const resolveActionTargetsFromBoard = useCallback(
@@ -604,12 +595,11 @@ function WaiterTableDetailInner({
     }
   };
 
-  const tableOccupied = isWaiterTableCardOccupied(selectedCard);
   const detailActions = resolveWaiterTableDetailActions({
     embeddedInDashboard,
     isDemo,
     isCheckoutPending,
-    isOccupied: tableOccupied,
+    hasOpenSession,
     hasActiveBuffets: activeBuffets.length > 0,
   });
 
@@ -619,91 +609,54 @@ function WaiterTableDetailInner({
       return;
     }
 
-    if (!hasPositiveBuffetSnapshot(guestSnapshot)) {
+    const editorReady = isBuffetPackagesEditorReady(
+      guestSnapshot,
+      resolvedByBuffetId,
+      buffetPriceLoading,
+    );
+    const blockReason = buffetOpenSubmitBlockReason(
+      orders,
+      guestSnapshot,
+      activeBuffetIds,
+      editorReady,
+      hasOpenSession,
+    );
+    if (blockReason === 'editor_not_ready') {
       showToast(t.buffetNoRule, 'error');
       return;
     }
-
-    if (isBuffetSnapshotUnchanged(orders, guestSnapshot)) {
+    if (blockReason === 'unchanged') {
       showToast(t.buffetGuestCountsUnchanged, 'info');
       return;
     }
 
-    if (!isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading)) {
-      showToast(t.buffetNoRule, 'error');
-      return;
-    }
-
-    const currentSnapshot = buffetSnapshotFromOrders(orders);
-    const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, guestSnapshot);
-    const lines = [];
-    for (const buffetId of upsertBuffetIds) {
-      const counts = guestSnapshot[buffetId];
-      const buffet = activeBuffets.find((row) => row.id === buffetId);
-      const resolved = resolvedByBuffetId[buffetId];
-      if (!buffet || !counts || !resolved) {
-        showToast(t.buffetNoRule, 'error');
-        return;
-      }
-      const line = buildBuffetBaseLine({
-        buffet,
-        adultCount: counts.adults,
-        childCount: counts.children,
-        resolved,
-      });
-      if (!line) {
-        showToast(t.buffetNoRule, 'error');
-        return;
-      }
-      lines.push(line);
-    }
-
-    const rollbackDetail = currentTableDetail();
-    const optimisticSessionId = sessionMeta?.sessionId ?? OPTIMISTIC_OPEN_SESSION_ID;
-    applyDetail({
-      ...rollbackDetail,
-      orders: applyBuffetOpenOptimisticToOrders(orders, {
-        tableId,
-        displayName: selectedDisplayName,
-        lines,
-        voidBuffetIds,
-        restaurantId: restaurant.id,
-        sessionId: optimisticSessionId,
-      }),
-    });
-
     setBuffetSubmitting(true);
     try {
-      const nextModel = await postWaiterBuffetOpenClient(restaurant.slug, {
-        table_id: tableId,
-        buffets: buffetEntriesFromSnapshot(guestSnapshot, activeBuffetIds).map((entry) => ({
-          buffet_id: entry.buffetId,
-          adult_count: entry.adults,
-          child_count: entry.children,
-        })),
+      const result = await postWaiterBuffetOpenAndCommit({
+        restaurantSlug: restaurant.slug,
+        tableId,
+        guestSnapshot,
+        activeBuffetIds,
       });
-      const normalized = applyModel(nextModel);
-      commitAuthoritativeWaiterTablePageModel(normalized);
+      if (!result.ok) {
+        if (result.status === 409 && result.code === 'session_billing') {
+          showToast(t.checkoutLockedHint, 'info');
+          return;
+        }
+        if (result.status === 409) {
+          await refresh();
+          showToast(t.refreshHint, 'error');
+          return;
+        }
+        if (result.status === 400 && result.code === 'no_price_rule') {
+          showToast(t.buffetNoRule, 'error');
+          return;
+        }
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      applyModel(result.model);
       showToast(t.actionSuccess, 'success');
-    } catch (err) {
-      const apiErr = err as Error & { status?: number; code?: string };
-      if (apiErr.status === 409 && apiErr.code === 'session_billing') {
-        applyDetail(rollbackDetail);
-        showToast(t.checkoutLockedHint, 'info');
-        return;
-      }
-      if (apiErr.status === 409) {
-        await refresh();
-        showToast(t.refreshHint, 'error');
-        return;
-      }
-      if (apiErr.status === 400 && apiErr.code === 'no_price_rule') {
-        applyDetail(rollbackDetail);
-        showToast(t.buffetNoRule, 'error');
-        return;
-      }
-      applyDetail(rollbackDetail);
-      showToast(t.actionFailed, 'error');
     } finally {
       setBuffetSubmitting(false);
     }

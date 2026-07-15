@@ -8,7 +8,7 @@ describe('resolveWaiterTableDetailActions', () => {
       embeddedInDashboard: true,
       isDemo: false,
       isCheckoutPending: false,
-      isOccupied: true,
+      hasOpenSession: true,
       hasActiveBuffets: true,
     });
     assert.equal(flags.showBuffetPanel, true);
@@ -23,7 +23,7 @@ describe('resolveWaiterTableDetailActions', () => {
         embeddedInDashboard: true,
         isDemo: false,
         isCheckoutPending: true,
-        isOccupied: true,
+        hasOpenSession: true,
         hasActiveBuffets: true,
       }).showBuffetPanel,
       false,
@@ -33,19 +33,19 @@ describe('resolveWaiterTableDetailActions', () => {
         embeddedInDashboard: false,
         isDemo: true,
         isCheckoutPending: false,
-        isOccupied: true,
+        hasOpenSession: true,
         hasActiveBuffets: true,
       }).showBuffetPanel,
       false,
     );
   });
 
-  it('limits checkout-close and close table to frontdesk on occupied tables', () => {
+  it('limits checkout-close and close table to frontdesk on open sessions', () => {
     const waiter = resolveWaiterTableDetailActions({
       embeddedInDashboard: false,
       isDemo: false,
       isCheckoutPending: false,
-      isOccupied: true,
+      hasOpenSession: true,
       hasActiveBuffets: true,
     });
     assert.equal(waiter.showOccupiedToolbar, true);
@@ -56,11 +56,23 @@ describe('resolveWaiterTableDetailActions', () => {
       embeddedInDashboard: true,
       isDemo: false,
       isCheckoutPending: false,
-      isOccupied: false,
+      hasOpenSession: false,
       hasActiveBuffets: true,
     });
     assert.equal(idle.showOccupiedToolbar, false);
     assert.equal(idle.showCheckoutClose, false);
     assert.equal(idle.showCloseTable, false);
+  });
+
+  it('shows toolbar for session-only tables without buffet lines', () => {
+    const flags = resolveWaiterTableDetailActions({
+      embeddedInDashboard: false,
+      isDemo: false,
+      isCheckoutPending: false,
+      hasOpenSession: true,
+      hasActiveBuffets: true,
+    });
+    assert.equal(flags.showOccupiedToolbar, true);
+    assert.equal(flags.showBuffetPanel, true);
   });
 });

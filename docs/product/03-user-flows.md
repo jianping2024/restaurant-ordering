@@ -26,9 +26,9 @@
 
 1. 服务员进入桌台详情 `/{slug}/waiter/[tableId]`
 2. 选择自助餐类型（若餐厅有 active buffet）、录入**成人数**与**儿童数**
-3. 点击「确认开台」→ `POST .../staff/waiter/buffet`
-4. 服务端：`ensureOpenTableSession`（无会话则 `table_sessions.status=open`）→ 计价 → 写入/更新 `buffet_base` 订单行
-5. 返回桌台详情；`guestOrderingEnabled` 变为 true，顾客/服务员可加菜
+3. 点击「确认开台」→ `POST .../staff/waiter/buffet`（人数可为 0）
+4. 服务端：`openTableSessionIfAbsent`（无会话则 `table_sessions.status=open`）→ 有人数变化时计价并写入/更新 `buffet_base`
+5. 返回桌台详情；`guestOrderingEnabled` 变为 true（有 open session 即可加菜）
 
 ### 异常流程
 
@@ -50,7 +50,7 @@
 ### 验收标准
 
 - 开台前菜单页/加菜 API 返回不可点餐
-- 开台后同桌可加菜
+- 开台后（有 open session）同桌可加菜；人数可后补
 - 改人数仅动自助餐行，不动已有 menu 行厨房状态
 - `A2C1` 与 `A3C0` 总人数相同但须重算（分项比较）
 

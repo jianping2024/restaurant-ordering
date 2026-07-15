@@ -9,9 +9,9 @@ import {
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { useWaiterBuffetOpenMutation } from '@/components/waiter/useWaiterBuffetOpenMutation';
 import {
-  hasActiveBuffetForOrders,
   resolveBuffetFormAlignState,
 } from '@/lib/buffet-order';
+import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { createClient } from '@/lib/supabase/client';
@@ -53,15 +53,17 @@ export function WaiterBoardOpenTableForm({
   const orders = model.detail.orders;
   const sessionMeta = model.detail.sessionMeta;
 
+  const hasOpenSession = isTableSessionOpen(sessionMeta);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: true,
+        hasOpenSession,
         orders,
         activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets, orders],
+    [activeBuffetIds, activeBuffets, hasOpenSession, orders],
   );
 
   const {
@@ -80,9 +82,7 @@ export function WaiterBoardOpenTableForm({
     supabase,
   });
 
-  const buffetActionLabel = hasActiveBuffetForOrders(orders)
-    ? t.buffetSaveGuestCounts
-    : t.buffetConfirm;
+  const buffetActionLabel = hasOpenSession ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const editorReady = isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, priceLoading);
 
@@ -93,6 +93,7 @@ export function WaiterBoardOpenTableForm({
     orders,
     guestSnapshot,
     activeBuffetIds,
+    hasOpenSession,
     editorReady,
   });
 

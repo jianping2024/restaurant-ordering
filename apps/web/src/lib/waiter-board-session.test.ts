@@ -94,8 +94,8 @@ describe('computeWaiterBoardStats', () => {
     const stats = computeWaiterBoardStats([t1, t2, t3, t4, t5], ctx);
     assert.deepEqual(stats, {
       total: 5,
-      idle: 2,
-      open: 1,
+      idle: 1,
+      open: 2,
       checkoutPending: 2,
     });
   });
@@ -116,8 +116,8 @@ describe('classifyWaiterTableBoardState', () => {
     assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: true })), 'dining');
   });
 
-  it('returns idle when session has no buffet', () => {
-    assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: false })), 'idle');
+  it('returns dining when session has no buffet', () => {
+    assert.equal(classifyWaiterTableBoardState(t2, boardCtx(meta, [], { [t2]: false })), 'dining');
   });
 
   it('returns idle when no session', () => {

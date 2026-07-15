@@ -20,6 +20,7 @@ type Params = {
   orders: Array<Pick<Order, 'items' | 'status'>>;
   guestSnapshot: BuffetGuestSnapshot;
   activeBuffetIds: string[];
+  hasOpenSession: boolean;
   editorReady: boolean;
 };
 
@@ -30,6 +31,7 @@ export function useWaiterBuffetOpenMutation({
   orders,
   guestSnapshot,
   activeBuffetIds,
+  hasOpenSession,
   editorReady,
 }: Params) {
   const t = WAITER_TEXT[lang];
@@ -38,8 +40,14 @@ export function useWaiterBuffetOpenMutation({
   const submit = useCallback(async (): Promise<WaiterBuffetOpenMutationResult> => {
     if (submitting) return 'blocked';
 
-    const blockReason = buffetOpenSubmitBlockReason(orders, guestSnapshot, editorReady);
-    if (blockReason === 'empty_snapshot' || blockReason === 'editor_not_ready') {
+    const blockReason = buffetOpenSubmitBlockReason(
+      orders,
+      guestSnapshot,
+      activeBuffetIds,
+      editorReady,
+      hasOpenSession,
+    );
+    if (blockReason === 'editor_not_ready') {
       showToast(t.buffetNoRule, 'error');
       return 'blocked';
     }
@@ -74,6 +82,7 @@ export function useWaiterBuffetOpenMutation({
     return 'success';
   }, [
     activeBuffetIds,
+    hasOpenSession,
     editorReady,
     guestSnapshot,
     orders,

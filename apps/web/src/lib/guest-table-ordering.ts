@@ -1,11 +1,15 @@
-import type { Order, TableSession } from '@/types';
-import { hasActiveBuffetForOrders } from '@/lib/buffet-order';
+import type { TableSession } from '@/types';
 
-/** Menu ordering (guest or waiter) requires open session + active buffet_base (开台优先). */
+/** Active open table session — 开台占桌，尚未结账。 */
+export function isTableSessionOpen(
+  session: Pick<TableSession, 'status'> | null | undefined,
+): boolean {
+  return session?.status === 'open';
+}
+
+/** Menu ordering (guest or waiter) requires an open table session (开台即可加菜). */
 export function guestOrderingEnabled(
   session: Pick<TableSession, 'status'> | null | undefined,
-  sessionOrders: Order[],
 ): boolean {
-  if (!session || session.status !== 'open') return false;
-  return hasActiveBuffetForOrders(sessionOrders);
+  return isTableSessionOpen(session);
 }

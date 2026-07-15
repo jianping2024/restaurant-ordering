@@ -48,7 +48,6 @@ export function useWaiterTableBuffetForm({
   supabase,
 }: Params) {
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
-  const defaultBuffetId = activeBuffets[0]?.id ?? null;
 
   const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>({});
   const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
@@ -73,10 +72,13 @@ export function useWaiterTableBuffetForm({
       return;
     }
 
-    setGuestSnapshot(
-      buildIdleBuffetDraftSnapshot(activeBuffetIds, alignState.defaultBuffetId ?? defaultBuffetId),
-    );
-  }, [activeBuffetIds, activeBuffets, alignKey, alignState, defaultBuffetId]);
+    if (alignState.mode === 'session_open') {
+      setGuestSnapshot(buildIdleBuffetDraftSnapshot(alignState.activeBuffetIds));
+      return;
+    }
+
+    setGuestSnapshot(buildIdleBuffetDraftSnapshot(activeBuffetIds));
+  }, [activeBuffetIds, activeBuffets, alignKey, alignState]);
 
   const fetchBuffetPrices = useCallback(
     async (silent: boolean) => {

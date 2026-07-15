@@ -35,7 +35,13 @@ test('back-to-board footer uses page footer spacing and secondary action width',
 
 test('ordered-items card typography uses text-lg', () => {
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsAmount, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsAmount, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
+});
+
+test('ordered-items section header places title and session total on one row', () => {
+  assert.match(waiterDetailLayout.sectionHeader, /justify-between/);
 });

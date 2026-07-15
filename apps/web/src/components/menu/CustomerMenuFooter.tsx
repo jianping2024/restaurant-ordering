@@ -20,8 +20,12 @@ type Props = MenuPageFooterView & {
   onOpenOrdered: () => void;
 };
 
+const summaryZoneClassName = 'flex min-w-0 items-center gap-2.5 text-left';
+
 const actionButtonClassName =
-  'inline-flex h-full shrink-0 items-center justify-center px-4 text-[14px] font-semibold transition-colors';
+  'inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 text-[14px] font-semibold transition-colors';
+
+const primaryActionButtonClassName = `${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
 
 export function CustomerMenuFooter({
   visible,
@@ -39,10 +43,7 @@ export function CustomerMenuFooter({
   if (!visible) return null;
 
   const billLink = billEnabled ? (
-    <Link
-      href={billHref}
-      className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
-    >
+    <Link href={billHref} className={primaryActionButtonClassName}>
       {labels.viewBill}
     </Link>
   ) : (
@@ -58,21 +59,13 @@ export function CustomerMenuFooter({
     switch (primaryAction) {
       case 'openCart':
         return (
-          <button
-            type="button"
-            onClick={onOpenCart}
-            className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
-          >
+          <button type="button" onClick={onOpenCart} className={primaryActionButtonClassName}>
             {labels.placeOrder}
           </button>
         );
       case 'viewOrdered':
         return (
-          <button
-            type="button"
-            onClick={onOpenOrdered}
-            className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
-          >
+          <button type="button" onClick={onOpenOrdered} className={primaryActionButtonClassName}>
             {labels.viewOrdered}
           </button>
         );
@@ -83,47 +76,44 @@ export function CustomerMenuFooter({
     }
   })();
 
+  const summaryNode =
+    phase === 'ordered' ? (
+      <div className={summaryZoneClassName}>
+        <CustomerOrderedBagIcon className="h-6 w-6 shrink-0 text-brand-gold" />
+        <span className="truncate font-heading text-lg font-semibold text-brand-text">
+          {labels.orderedCount(submittedCount)}
+        </span>
+      </div>
+    ) : (
+      <button
+        type="button"
+        onClick={onOpenCart}
+        className={`${summaryZoneClassName} transition-colors hover:bg-brand-gold/5 active:bg-brand-gold/10`}
+        aria-label={labels.viewCart}
+      >
+        <span className="relative shrink-0 text-brand-gold">
+          <CustomerCartIcon className="h-6 w-6" />
+          {cartQty > 0 ? (
+            <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
+              {cartQty}
+            </span>
+          ) : null}
+        </span>
+        {cartQty > 0 ? (
+          <span className="truncate font-heading text-lg font-semibold tabular-nums text-brand-text">
+            €{cartTotal.toFixed(2)}
+          </span>
+        ) : (
+          <span className="truncate text-sm text-brand-text-muted">{labels.viewCart}</span>
+        )}
+      </button>
+    );
+
   return (
     <div className={customerMenuBottomBarDockClass}>
       <div className={customerMenuBottomBarRowClass}>
-        {phase === 'ordered' ? (
-          <div className="flex min-w-0 flex-1 items-center gap-2.5 px-4 text-left">
-            <CustomerOrderedBagIcon className="h-6 w-6 shrink-0 text-brand-gold" />
-            <span className="truncate font-heading text-lg font-semibold text-brand-text">
-              {labels.orderedCount(submittedCount)}
-            </span>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onOpenCart}
-            className="flex min-w-0 flex-1 items-center gap-2.5 px-4 text-left transition-colors hover:bg-brand-gold/5 active:bg-brand-gold/10"
-            aria-label={labels.viewCart}
-          >
-            <span className="relative shrink-0 text-brand-gold">
-              <CustomerCartIcon className="h-6 w-6" />
-              {cartQty > 0 ? (
-                <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
-                  {cartQty}
-                </span>
-              ) : null}
-            </span>
-            {cartQty > 0 ? (
-              <span className="truncate font-heading text-lg font-semibold tabular-nums text-brand-text">
-                €{cartTotal.toFixed(2)}
-              </span>
-            ) : (
-              <span className="truncate text-sm text-brand-text-muted">{labels.viewCart}</span>
-            )}
-          </button>
-        )}
-
-        {primaryActionNode ? (
-          <>
-            <div className="w-px shrink-0 bg-brand-border" aria-hidden />
-            {primaryActionNode}
-          </>
-        ) : null}
+        {summaryNode}
+        {primaryActionNode}
       </div>
     </div>
   );

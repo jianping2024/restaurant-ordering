@@ -5,7 +5,6 @@ import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
   getByItemLineStatusFromRows,
-  removeByItemConsumerRow,
   getQtyPartsRowHint,
   isRowQtyOverAllocated,
   type ByItemConsumerRow,
@@ -13,8 +12,9 @@ import {
   type QtyPartsLabels,
 } from '@/lib/bill-split-by-item';
 import {
+  applyByItemConsumerRowEdit,
+  applyByItemConsumerRowRemove,
   byItemRowEditLock,
-  clampMenuRowToMinQty,
   type LockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
@@ -59,7 +59,10 @@ export function ByItemDishAllocator({
   onChange,
   onRememberConsumerName,
 }: Props) {
-  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
+  const locks = useMemo(
+    () => lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() },
+    [lockedPersonLineMins],
+  );
 
   if (spec.mode === 'buffet') {
     return (
@@ -118,18 +121,22 @@ function MenuByItemDishAllocator({
     [lineStatus, labels],
   );
 
+  const locks = useMemo(
+    () => lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() },
+    [lockedPersonLineMins],
+  );
+
+  const lineEditCtx = useMemo(
+    () => ({ lineKey: spec.key, spec, locks }),
+    [spec, locks],
+  );
+
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => {
-      if (row.id !== rowId) return row;
-      const next = { ...row, ...patch };
-      const lock = byItemRowEditLock({
-        lineKey: spec.key,
-        row: next,
-        locks: lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() },
-        spec,
-      });
-      return clampMenuRowToMinQty(next, lock.minMenuQty);
-    }));
+    onChange(rows.map((row) => (
+      row.id === rowId
+        ? applyByItemConsumerRowEdit({ row, patch, ctx: lineEditCtx })
+        : row
+    )));
   };
 
   const addRow = () => {
@@ -137,7 +144,7 @@ function MenuByItemDishAllocator({
   };
 
   const removeRow = (rowId: string) => {
-    onChange(removeByItemConsumerRow(rows, rowId));
+    onChange(applyByItemConsumerRowRemove({ rows, rowId, ctx: lineEditCtx }));
   };
 
   const qtyLabels: QtyPartsLabels = {
@@ -148,8 +155,6 @@ function MenuByItemDishAllocator({
     zeroDen: labels.zeroDen,
     improperFraction: labels.improperFraction,
   };
-
-  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
 
   return (
     <ByItemDishAllocatorShell

@@ -5,15 +5,15 @@ import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
   getBuffetLineStatusFromRows,
-  removeByItemConsumerRow,
   resolveBuffetRowCounts,
   sanitizeQtyDigits,
   type ByItemConsumerRow,
   type ByItemLineStatusLabels,
 } from '@/lib/bill-split-by-item';
 import {
+  applyByItemConsumerRowEdit,
+  applyByItemConsumerRowRemove,
   byItemRowEditLock,
-  clampBuffetRowToMinCounts,
   type LockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
@@ -87,7 +87,10 @@ export function BuffetDishAllocator({
   onChange,
   onRememberConsumerName,
 }: Props) {
-  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
+  const locks = useMemo(
+    () => lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() },
+    [lockedPersonLineMins],
+  );
 
   const lineStatus = useMemo(
     () => getBuffetLineStatusFromRows(rows, spec),
@@ -99,13 +102,17 @@ export function BuffetDishAllocator({
     [lineStatus, labels],
   );
 
+  const lineEditCtx = useMemo(
+    () => ({ lineKey: spec.key, spec, locks }),
+    [spec, locks],
+  );
+
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => {
-      if (row.id !== rowId) return row;
-      const next = { ...row, ...patch };
-      const lock = byItemRowEditLock({ lineKey: spec.key, row: next, locks, spec });
-      return clampBuffetRowToMinCounts(next, lock.minBuffetAdults, lock.minBuffetChildren);
-    }));
+    onChange(rows.map((row) => (
+      row.id === rowId
+        ? applyByItemConsumerRowEdit({ row, patch, ctx: lineEditCtx })
+        : row
+    )));
   };
 
   const addRow = () => {
@@ -113,7 +120,7 @@ export function BuffetDishAllocator({
   };
 
   const removeRow = (rowId: string) => {
-    onChange(removeByItemConsumerRow(rows, rowId, { buffet: true }));
+    onChange(applyByItemConsumerRowRemove({ rows, rowId, ctx: lineEditCtx }));
   };
 
   return (

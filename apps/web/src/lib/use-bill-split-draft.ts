@@ -128,20 +128,22 @@ export function useBillSplitDraft(params: {
   } = useByItemSplitState({ splitMode, lineSpecs, existingSplit: continuationSplit });
 
   const collectedLedgerActive = collectedPayments.length > 0;
+  /** Server snapshot at page load — paid floors must not follow client submit state. */
+  const lockAnchorSplit = existingSplit;
   const splitLocked = useMemo(
-    () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
-    [continuationSplit, collectedLedgerActive],
+    () => isCheckoutSplitLocked(lockAnchorSplit, collectedLedgerActive),
+    [lockAnchorSplit, collectedLedgerActive],
   );
   const lockedPersonLineMins = useMemo(
     () =>
       splitLocked
-        ? buildLockedPersonLineMins(continuationSplit, collectedLedgerActive, collectedPayments)
+        ? buildLockedPersonLineMins(lockAnchorSplit, collectedLedgerActive, collectedPayments)
         : { menu: new Map(), buffet: new Map() },
-    [splitLocked, continuationSplit, collectedLedgerActive, collectedPayments],
+    [splitLocked, lockAnchorSplit, collectedLedgerActive, collectedPayments],
   );
   const lockedPersonNames = useMemo(
-    () => allocationLockedPersonNames(continuationSplit, collectedPayments),
-    [continuationSplit, collectedPayments],
+    () => allocationLockedPersonNames(lockAnchorSplit, collectedPayments),
+    [lockAnchorSplit, collectedPayments],
   );
 
   const splitDraftInput = useMemo<BillSplitDraftInput>(

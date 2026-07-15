@@ -72,7 +72,7 @@ export function BillPage({
 
   const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
 
-  const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
+  const [continuationSplit] = useState<BillSplit | null>(existingSplit);
   const collectedPayments = initialCollectedPayments;
   const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
   const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
@@ -131,7 +131,6 @@ export function BillPage({
     customerNifInput,
     checkoutRedirectHref,
     onSubmitSuccess: (result) => {
-      setContinuationSplit(null);
       setPersistedResult(result);
     },
     onCustomerSubmitSuccess: () => {

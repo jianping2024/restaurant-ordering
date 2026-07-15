@@ -3,6 +3,7 @@ import {
   createByItemConsumerRow,
   parseConsumerRowQty,
   rationalToRowQtyFields,
+  removeByItemConsumerRow,
   type ByItemConsumerRow,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
@@ -32,6 +33,13 @@ export type ByItemRowEditLock = {
   minBuffetAdults: number;
   minBuffetChildren: number;
   removable: boolean;
+};
+
+/** Context for enforcing paid-allocation floors on one by-item catalog line. */
+export type ByItemLineEditContext = {
+  lineKey: string;
+  spec: ByItemLineSpec;
+  locks: LockedPersonLineMins;
 };
 
 /** Locked split row count from persisted persons or result snapshot. */
@@ -353,15 +361,71 @@ export function validateCheckoutContinuation(params: {
   return { ok: true };
 }
 
-/** Clamp menu row qty so it cannot drop below a locked floor. */
+/** Clamp menu row qty so it cannot drop below a locked floor (empty qty counts as 0). */
 export function clampMenuRowToMinQty(
   row: ByItemConsumerRow,
   minQty: Rational | null,
 ): ByItemConsumerRow {
   if (!minQty || minQty.num <= 0) return row;
   const parsed = parseConsumerRowQty(row);
-  if (!parsed || rationalGte(parsed, minQty)) return row;
+  if (parsed && rationalGte(parsed, minQty)) return row;
   return { ...row, ...rationalToRowQtyFields(minQty) };
+}
+
+/** Apply a draft patch to one consumer row, honoring paid-allocation floors. */
+export function applyByItemConsumerRowEdit(params: {
+  row: ByItemConsumerRow;
+  patch: Partial<ByItemConsumerRow>;
+  ctx: ByItemLineEditContext;
+}): ByItemConsumerRow {
+  const { row, patch, ctx } = params;
+  const lockBefore = byItemRowEditLock({
+    lineKey: ctx.lineKey,
+    row,
+    locks: ctx.locks,
+    spec: ctx.spec,
+  });
+
+  let next: ByItemConsumerRow = { ...row, ...patch };
+  if (
+    lockBefore.nameReadOnly
+    && patch.name !== undefined
+    && patch.name.trim().toLowerCase() !== row.name.trim().toLowerCase()
+  ) {
+    next = { ...next, name: row.name };
+  }
+
+  const lockAfter = byItemRowEditLock({
+    lineKey: ctx.lineKey,
+    row: next,
+    locks: ctx.locks,
+    spec: ctx.spec,
+  });
+  if (ctx.spec.mode === 'buffet') {
+    return clampBuffetRowToMinCounts(next, lockAfter.minBuffetAdults, lockAfter.minBuffetChildren);
+  }
+  return clampMenuRowToMinQty(next, lockAfter.minMenuQty);
+}
+
+/** Remove a consumer row only when paid-allocation rules allow it. */
+export function applyByItemConsumerRowRemove(params: {
+  rows: ByItemConsumerRow[];
+  rowId: string;
+  ctx: ByItemLineEditContext;
+}): ByItemConsumerRow[] {
+  const { rows, rowId, ctx } = params;
+  const row = rows.find((candidate) => candidate.id === rowId);
+  if (!row) return rows;
+
+  const lock = byItemRowEditLock({
+    lineKey: ctx.lineKey,
+    row,
+    locks: ctx.locks,
+    spec: ctx.spec,
+  });
+  if (!lock.removable || rows.length <= 1) return rows;
+
+  return removeByItemConsumerRow(rows, rowId, { buffet: ctx.spec.mode === 'buffet' });
 }
 
 /** Clamp buffet headcounts to locked floors. */

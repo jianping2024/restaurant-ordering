@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
+  applyByItemConsumerRowEdit,
+  applyByItemConsumerRowRemove,
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
   byItemRowEditLock,
+  clampMenuRowToMinQty,
   isCheckoutSplitLocked,
   isPausedCheckoutSplit,
   lockedPersonLineKey,
@@ -174,6 +177,118 @@ describe('byItemRowEditLock', () => {
     assert.equal(lock.removable, false);
     assert.ok(lock.minMenuQty);
     assert.equal(lock.minMenuQty?.num, 1);
+  });
+});
+
+describe('clampMenuRowToMinQty', () => {
+  it('restores locked floor when qty is cleared', () => {
+    const row = clampMenuRowToMinQty(
+      { id: 'r1', name: 'Jack', qtyWhole: '', qtyNum: '', qtyDen: '' },
+      { num: 1, den: 1 },
+    );
+    assert.equal(row.qtyWhole, '1');
+  });
+
+  it('allows qty above the locked floor', () => {
+    const row = clampMenuRowToMinQty(
+      { id: 'r1', name: 'Jack', qtyWhole: '2', qtyNum: '', qtyDen: '' },
+      { num: 1, den: 1 },
+    );
+    assert.equal(row.qtyWhole, '2');
+  });
+});
+
+describe('applyByItemConsumerRowEdit', () => {
+  it('blocks lowering paid guest qty below floor after resume append', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
+    const next = applyByItemConsumerRowEdit({
+      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      patch: { qtyWhole: '', qtyNum: '', qtyDen: '' },
+      ctx,
+    });
+    assert.equal(next.qtyWhole, '1');
+  });
+
+  it('ignores rename for locked paid guest', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
+    const next = applyByItemConsumerRowEdit({
+      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      patch: { name: 'Smith' },
+      ctx,
+    });
+    assert.equal(next.name, 'Jack');
+  });
+});
+
+describe('applyByItemConsumerRowRemove', () => {
+  it('keeps paid guest row when removal is forbidden', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const rows = [
+      { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      { id: 'r2', name: 'Smith', qtyWhole: '3', qtyNum: '', qtyDen: '' },
+    ];
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
+    const next = applyByItemConsumerRowRemove({ rows, rowId: 'r1', ctx });
+    assert.equal(next.length, 2);
+    assert.equal(next[0]?.name, 'Jack');
+  });
+
+  it('allows removing unpaid guest row', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+          {
+            name: 'Smith',
+            item_shares: [{ key: LINE_KEY, qty_num: 3, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const rows = [
+      { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      { id: 'r2', name: 'Smith', qtyWhole: '3', qtyNum: '', qtyDen: '' },
+    ];
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
+    const next = applyByItemConsumerRowRemove({ rows, rowId: 'r2', ctx });
+    assert.equal(next.length, 1);
+    assert.equal(next[0]?.name, 'Jack');
   });
 });
 

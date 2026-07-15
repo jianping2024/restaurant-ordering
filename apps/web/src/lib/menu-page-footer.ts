@@ -25,6 +25,8 @@ export type MenuPageFooterView = {
   cartQty: number;
   cartTotal: number;
   submittedCount: number;
+  /** Sum of order.total_amount for the active session (matches waiter sessionTotal). */
+  submittedTotal: number;
   billHref: string;
   billEnabled: boolean;
   showBillCta: boolean;
@@ -33,6 +35,10 @@ export type MenuPageFooterView = {
 
 function countSubmittedItems(recentOrders: Order[]): number {
   return recentOrders.reduce((sum, order) => sum + order.items.length, 0);
+}
+
+function sumSubmittedOrderTotals(recentOrders: Order[]): number {
+  return recentOrders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
 }
 
 function deriveFooterPhase(cartQty: number, submittedCount: number): MenuPageFooterPhase {
@@ -57,6 +63,7 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
   const cartQty = input.cart.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
   const cartTotal = sumLineTotals(input.cart);
   const submittedCount = countSubmittedItems(input.recentOrders);
+  const submittedTotal = sumSubmittedOrderTotals(input.recentOrders);
   const phase = deriveFooterPhase(cartQty, submittedCount);
 
   const showBillCta = input.staffAssisted
@@ -77,6 +84,7 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
     cartQty,
     cartTotal,
     submittedCount,
+    submittedTotal,
     billHref,
     billEnabled: !!input.activeSession && submittedCount > 0,
     showBillCta,

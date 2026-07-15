@@ -45,6 +45,7 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.phase, 'idle');
     assert.equal(view.primaryAction, 'viewBill');
     assert.equal(view.submittedCount, 0);
+    assert.equal(view.submittedTotal, 0);
     assert.equal(view.showOrderedCta, false);
   });
 
@@ -75,7 +76,19 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.phase, 'ordered');
     assert.equal(view.primaryAction, 'viewOrdered');
     assert.equal(view.submittedCount, 1);
+    assert.equal(view.submittedTotal, 10);
     assert.equal(view.showOrderedCta, true);
+  });
+
+  it('sums submittedTotal across multiple orders', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [
+        { ...orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }]), total_amount: 12.5 },
+        { ...orderWithItems([{ id: 'i2', name: 'y', name_pt: 'y', qty: 2, price: 4, emoji: '🍽' }]), id: 'o2', total_amount: 8 },
+      ],
+    });
+    assert.equal(view.submittedTotal, 20.5);
   });
 
   it('enables bill CTA when session has submitted items', () => {

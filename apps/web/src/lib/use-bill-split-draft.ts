@@ -5,8 +5,8 @@ import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
   allocationLockedPersonNames,
+  buildLockedPersonLineMins,
   isCheckoutSplitLocked,
-  lockedByItemLineKeys,
   resolveContinuationSplitShape,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
@@ -132,11 +132,11 @@ export function useBillSplitDraft(params: {
     () => isCheckoutSplitLocked(continuationSplit, collectedLedgerActive),
     [continuationSplit, collectedLedgerActive],
   );
-  const lockedLineKeys = useMemo(
+  const lockedPersonLineMins = useMemo(
     () =>
       splitLocked
-        ? lockedByItemLineKeys(continuationSplit, collectedLedgerActive, collectedPayments)
-        : new Set<string>(),
+        ? buildLockedPersonLineMins(continuationSplit, collectedLedgerActive, collectedPayments)
+        : { menu: new Map(), buffet: new Map() },
     [splitLocked, continuationSplit, collectedLedgerActive, collectedPayments],
   );
   const lockedPersonNames = useMemo(
@@ -329,7 +329,7 @@ export function useBillSplitDraft(params: {
     splitPeople,
     customAmounts,
     splitLocked,
-    lockedLineKeys,
+    lockedPersonLineMins,
     lockedPersonNames,
     splitDraftInput,
     splitValidation,

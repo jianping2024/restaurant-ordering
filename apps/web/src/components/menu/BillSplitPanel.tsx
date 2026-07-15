@@ -8,6 +8,7 @@ import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import { splitRowDisplayAmount } from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
@@ -47,7 +48,7 @@ interface Props {
   results: SplitResult[];
   splitDisplayRows: CustomerSplitRowDisplay[];
   lockedPersonNames: ReadonlySet<string>;
-  lockedLineKeys: ReadonlySet<string>;
+  lockedPersonLineMins: LockedPersonLineMins;
   lineSpecs: ByItemLineSpec[];
   orderLines: BillSplitOrderLine[];
   byItemAllocations: Record<string, ByItemConsumerRow[]>;
@@ -88,7 +89,7 @@ export function BillSplitPanel({
   results,
   splitDisplayRows,
   lockedPersonNames,
-  lockedLineKeys,
+  lockedPersonLineMins,
   lineSpecs,
   orderLines,
   byItemAllocations,
@@ -190,7 +191,7 @@ export function BillSplitPanel({
             labels={byItemAllocatorLabels}
             itemCodeByMenuId={itemCodeByMenuId}
             progress={byItemProgress}
-            lockedLineKeys={lockedLineKeys}
+            lockedPersonLineMins={lockedPersonLineMins}
             onAllocationChange={onAllocationChange}
             onRememberConsumerName={onRememberConsumerName}
           />

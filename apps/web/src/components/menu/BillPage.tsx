@@ -233,6 +233,7 @@ export function BillPage({
   };
 
   const reviewableItems = useMemo(() => {
+    const fallbackOrderId = orders[0]?.id ?? '';
     const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
     orderLines
       .filter((item) => item.item_status !== 'voided' && item.kind !== 'buffet_base')
@@ -244,14 +245,14 @@ export function BillPage({
         }
         dedup.set(item.id, {
           menu_item_id: item.id,
-          order_id: item.order_id,
+          order_id: item.order_id ?? fallbackOrderId,
           name: item.name || item.name_pt,
           emoji: item.emoji,
           qty: item.qty,
         });
       });
     return Array.from(dedup.values());
-  }, [orderLines]);
+  }, [orderLines, orders]);
 
   const feedbackReasonLabels: Record<FeedbackReasonKey, string> = {
     taste: t.reasonTaste,
@@ -487,7 +488,7 @@ export function BillPage({
         results={splitDraft.results}
         splitDisplayRows={splitDraft.splitDisplayRows}
         lockedPersonNames={splitDraft.lockedPersonNames}
-        lockedLineKeys={splitDraft.lockedLineKeys}
+        lockedPersonLineMins={splitDraft.lockedPersonLineMins}
         lineSpecs={lineSpecs}
         orderLines={orderLines}
         byItemAllocations={splitDraft.byItemAllocations}
@@ -505,7 +506,6 @@ export function BillPage({
         onDecrementPersonCount={splitDraft.decrementPersonCount}
         onIncrementPersonCount={splitDraft.incrementPersonCount}
         onAllocationChange={(key, rows) => {
-          if (splitDraft.lockedLineKeys.has(key)) return;
           splitDraft.setByItemAllocations((prev) => ({ ...prev, [key]: rows }));
         }}
         onRememberConsumerName={splitDraft.rememberConsumerName}

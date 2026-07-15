@@ -12,6 +12,8 @@ const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
 const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
+const MENU_KEY = 'menu-coke::3';
+
 function byItemSplit(overrides: Partial<BillSplit> = {}): BillSplit {
   return {
     id: 'split-1',
@@ -22,9 +24,9 @@ function byItemSplit(overrides: Partial<BillSplit> = {}): BillSplit {
     order_ids: [ORDER_ID],
     split_mode: 'by_item',
     persons: [
-      { name: 'Guest 1', items: [`${ORDER_ID}-0`] },
-      { name: 'Guest 2', items: [`${ORDER_ID}-0`] },
-      { name: 'Guest 3', items: [`${ORDER_ID}-0`] },
+      { name: 'Guest 1', items: [MENU_KEY] },
+      { name: 'Guest 2', items: [MENU_KEY] },
+      { name: 'Guest 3', items: [MENU_KEY] },
     ],
     result: [
       { name: 'Guest 1', amount: 1 },
@@ -136,7 +138,7 @@ describe('buildSplitPersonReceiptLines', () => {
   it('includes 1/3 share label and per-person price for shared dish', () => {
     const lines = buildSplitPersonReceiptLines(byItemSplit(), 0, orders);
     assert.equal(lines.length, 1);
-    assert.equal(lines[0]?.display_name, 'RE-028-Coca-Cola');
+    assert.equal(lines[0]?.display_name, '028-Coca-Cola');
     assert.equal(lines[0]?.share_qty_label, '1/3');
     assert.equal(lines[0]?.unit_price, 1);
     assert.equal(lines[0]?.qty, 1);
@@ -144,7 +146,7 @@ describe('buildSplitPersonReceiptLines', () => {
 
   it('shows full qty when dish is not shared', () => {
     const split = byItemSplit({
-      persons: [{ name: 'Guest 1', items: [`${ORDER_ID}-0`] }],
+      persons: [{ name: 'Guest 1', items: [MENU_KEY] }],
       result: [{ name: 'Guest 1', amount: 3 }],
     });
     const lines = buildSplitPersonReceiptLines(split, 0, orders);

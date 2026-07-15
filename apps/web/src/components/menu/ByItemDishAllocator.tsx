@@ -12,6 +12,11 @@ import {
   type ByItemLineStatusLabels,
   type QtyPartsLabels,
 } from '@/lib/bill-split-by-item';
+import {
+  byItemRowEditLock,
+  clampMenuRowToMinQty,
+  type LockedPersonLineMins,
+} from '@/lib/checkout-split-continuation';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { BuffetDishAllocator, type BuffetDishAllocatorLabels } from '@/components/menu/BuffetDishAllocator';
@@ -35,7 +40,7 @@ interface Props {
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
   labels: ByItemDishAllocatorLabels;
-  readOnly?: boolean;
+  lockedPersonLineMins?: LockedPersonLineMins;
   expanded: boolean;
   onToggleExpand: () => void;
   onChange: (rows: ByItemConsumerRow[]) => void;
@@ -48,12 +53,14 @@ export function ByItemDishAllocator({
   rows,
   consumerRoster,
   labels,
-  readOnly = false,
+  lockedPersonLineMins,
   expanded,
   onToggleExpand,
   onChange,
   onRememberConsumerName,
 }: Props) {
+  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
+
   if (spec.mode === 'buffet') {
     return (
       <BuffetDishAllocator
@@ -62,7 +69,7 @@ export function ByItemDishAllocator({
         rows={rows}
         consumerRoster={consumerRoster}
         labels={labels}
-        readOnly={readOnly}
+        lockedPersonLineMins={locks}
         expanded={expanded}
         onToggleExpand={onToggleExpand}
         onChange={onChange}
@@ -78,7 +85,7 @@ export function ByItemDishAllocator({
       rows={rows}
       consumerRoster={consumerRoster}
       labels={labels}
-      readOnly={readOnly}
+      lockedPersonLineMins={locks}
       expanded={expanded}
       onToggleExpand={onToggleExpand}
       onChange={onChange}
@@ -93,7 +100,7 @@ function MenuByItemDishAllocator({
   rows,
   consumerRoster,
   labels,
-  readOnly = false,
+  lockedPersonLineMins,
   expanded,
   onToggleExpand,
   onChange,
@@ -112,7 +119,17 @@ function MenuByItemDishAllocator({
   );
 
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
+    onChange(rows.map((row) => {
+      if (row.id !== rowId) return row;
+      const next = { ...row, ...patch };
+      const lock = byItemRowEditLock({
+        lineKey: spec.key,
+        row: next,
+        locks: lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() },
+        spec,
+      });
+      return clampMenuRowToMinQty(next, lock.minMenuQty);
+    }));
   };
 
   const addRow = () => {
@@ -132,10 +149,11 @@ function MenuByItemDishAllocator({
     improperFraction: labels.improperFraction,
   };
 
+  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
+
   return (
     <ByItemDishAllocatorShell
       statusTone={statusSummary.tone}
-      readOnly={readOnly}
       expanded={expanded}
       header={(
         <ByItemDishAllocatorHeader
@@ -150,6 +168,7 @@ function MenuByItemDishAllocator({
     >
       <div className="space-y-2">
         {rows.map((row) => {
+          const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
           const qtyInvalid = !!getQtyPartsRowHint(row, qtyLabels);
           const qtyOver = isRowQtyOverAllocated(row, rows, lineQty);
           return (
@@ -162,6 +181,7 @@ function MenuByItemDishAllocator({
                   rowId: row.id,
                 })}
                 placeholder={labels.namePlaceholder}
+                readOnly={rowLock.nameReadOnly}
                 onChange={(name) => updateRow(row.id, { name })}
                 onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
               />
@@ -172,7 +192,7 @@ function MenuByItemDishAllocator({
                 onChange={(patch) => updateRow(row.id, patch)}
               />
               <ByItemConsumerRowRemoveButton
-                removable={rows.length > 1}
+                removable={rowLock.removable && rows.length > 1}
                 ariaLabel={labels.remove}
                 onRemove={() => removeRow(row.id)}
               />

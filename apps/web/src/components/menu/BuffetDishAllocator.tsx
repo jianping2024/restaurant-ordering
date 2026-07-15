@@ -11,6 +11,11 @@ import {
   type ByItemConsumerRow,
   type ByItemLineStatusLabels,
 } from '@/lib/bill-split-by-item';
+import {
+  byItemRowEditLock,
+  clampBuffetRowToMinCounts,
+  type LockedPersonLineMins,
+} from '@/lib/checkout-split-continuation';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
@@ -39,7 +44,7 @@ interface Props {
   rows: ByItemConsumerRow[];
   consumerRoster: string[];
   labels: BuffetDishAllocatorLabels & ByItemDishAllocatorHeaderLabels;
-  readOnly?: boolean;
+  lockedPersonLineMins?: LockedPersonLineMins;
   expanded: boolean;
   onToggleExpand: () => void;
   onChange: (rows: ByItemConsumerRow[]) => void;
@@ -76,12 +81,14 @@ export function BuffetDishAllocator({
   rows,
   consumerRoster,
   labels,
-  readOnly = false,
+  lockedPersonLineMins,
   expanded,
   onToggleExpand,
   onChange,
   onRememberConsumerName,
 }: Props) {
+  const locks = lockedPersonLineMins ?? { menu: new Map(), buffet: new Map() };
+
   const lineStatus = useMemo(
     () => getBuffetLineStatusFromRows(rows, spec),
     [rows, spec],
@@ -93,7 +100,12 @@ export function BuffetDishAllocator({
   );
 
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row)));
+    onChange(rows.map((row) => {
+      if (row.id !== rowId) return row;
+      const next = { ...row, ...patch };
+      const lock = byItemRowEditLock({ lineKey: spec.key, row: next, locks, spec });
+      return clampBuffetRowToMinCounts(next, lock.minBuffetAdults, lock.minBuffetChildren);
+    }));
   };
 
   const addRow = () => {
@@ -107,7 +119,6 @@ export function BuffetDishAllocator({
   return (
     <ByItemDishAllocatorShell
       statusTone={statusSummary.tone}
-      readOnly={readOnly}
       expanded={expanded}
       header={(
         <ByItemDishAllocatorHeader
@@ -122,6 +133,7 @@ export function BuffetDishAllocator({
     >
       <div className="space-y-2">
         {rows.map((row) => {
+          const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
           const over = isRowBuffetOverAllocated(row, rows, spec);
           const fieldClass = over ? INPUT_ALERT : INPUT_OK;
           return (
@@ -134,6 +146,7 @@ export function BuffetDishAllocator({
                   rowId: row.id,
                 })}
                 placeholder={labels.namePlaceholder}
+                readOnly={rowLock.nameReadOnly}
                 onChange={(name) => updateRow(row.id, { name })}
                 onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
               />
@@ -168,7 +181,7 @@ export function BuffetDishAllocator({
                 </label>
               </div>
               <ByItemConsumerRowRemoveButton
-                removable={rows.length > 1}
+                removable={rowLock.removable && rows.length > 1}
                 ariaLabel={labels.remove}
                 onRemove={() => removeRow(row.id)}
               />

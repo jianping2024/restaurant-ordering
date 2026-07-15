@@ -285,7 +285,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | `split_mode` | 规则 |
 |--------------|------|
 | `even` | N 人均分；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
-| `by_item` | 每行（含自助餐）按份额 **分币+余分**；各 `result.amount` 为各行分摊之和 |
+| `by_item` | 与账单明细/小票共用 **合并 catalog 行**（`buildBillableSessionItems`，key=`menuId::price` / `buffet:buffetId`）；同一消费者每行只占一行（`item_shares` qty）；部分收款后 **qty 下限锁定**（`buildLockedPersonLineMins`），可增不可减 |
 | `custom` | 手动录入各人 amount；末人吸收余额；`sum(result)=total` 精确到分 |
 
 ### 折扣（`checkout-split-math`）
@@ -311,8 +311,8 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 ### 续结与锁定（`checkout-split-continuation`）
 
 - **零收款**：可切换模式、可改 by_item 分配
-- **有收款**：模式锁定；by_item 已付消费者行只读
-- 恢复点单后新菜可分配，不得修改已锁定行
+- **有收款**：模式锁定；by_item 已付/已台账的 `(人, lineKey)` **qty 不得低于已付份额**（姓名只读、不可删行）；未付份额与同菜新增 qty 仍可分配（含分给已付的人，算续收）
+- 恢复点单后新菜可分配，不得减少已锁定份额
 
 ### 硬规则
 

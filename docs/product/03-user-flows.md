@@ -424,10 +424,11 @@
 ### 正常流程
 
 1. 账单页选择「按菜分单」
-2. 为每道菜分配至消费者（`item_shares`：qty 分数、成人/儿童自助餐行）
-3. `bill-split-by-item.ts` 计算各人金额
-4. 校验：每行菜品分配完整、份额合计 = 行 qty
-5. 确认 → `checkout/request`；`persons` 含 `item_shares`
+2. 分单列表与账单明细一致：**同类菜合并为一行**（与 receipt 同口径）
+3. 为每道菜分配至消费者（`item_shares`：每人每菜一行、qty 分数；自助餐含成人/儿童）
+4. `bill-split-by-item.ts` 计算各人金额
+5. 校验：每行菜品分配完整、份额合计 = 行 qty
+6. 确认 → `checkout/request`；`persons` 含 `item_shares`（key 为 catalog key）
 
 ### 异常流程
 
@@ -435,8 +436,8 @@
 |------|------|
 | 未分配菜品 | `unassigned_items` |
 | 份额不足/超额 | `incomplete_qty` |
-| 恢复点单后 | 零收款可改分配；有收款则已付行人只读 |
-| 新加菜 | 纳入同框架，不得改已锁定行 |
+| 恢复点单后 | 零收款可改分配；有收款则已付 **份额 qty 不可减少**（可调高、新菜可继续分给已付的人） |
+| 新加菜 / 同款加量 | 纳入 catalog；不得减少已锁定份额 |
 
 ### 状态变化
 

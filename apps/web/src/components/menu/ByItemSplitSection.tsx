@@ -7,6 +7,7 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
+import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import { ByItemDishAllocator, type ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Props {
   consumerRoster: string[];
   labels: ByItemDishAllocatorLabels & { byItemProgress: string };
   itemCodeByMenuId?: Record<string, string>;
-  lockedLineKeys?: ReadonlySet<string>;
+  lockedPersonLineMins?: LockedPersonLineMins;
   onAllocationChange: (key: string, rows: ByItemConsumerRow[]) => void;
   onRememberConsumerName: (name: string, fromList: boolean) => void;
   progress: { complete: number; total: number };
@@ -30,7 +31,7 @@ export function ByItemSplitSection({
   consumerRoster,
   labels,
   itemCodeByMenuId = {},
-  lockedLineKeys,
+  lockedPersonLineMins,
   onAllocationChange,
   onRememberConsumerName,
   progress,
@@ -83,7 +84,7 @@ export function ByItemSplitSection({
             rows={byItemAllocations[spec.key] ?? []}
             consumerRoster={consumerRoster}
             labels={labels}
-            readOnly={lockedLineKeys?.has(spec.key)}
+            lockedPersonLineMins={lockedPersonLineMins}
             expanded={isLineExpanded(spec.key)}
             onToggleExpand={() => toggleLineExpanded(spec.key)}
             onChange={(rows) => onAllocationChange(spec.key, rows)}

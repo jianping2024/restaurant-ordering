@@ -15,8 +15,7 @@ import {
   legacyEqualShareQtyLabel,
   shareQtyLabel,
 } from '@/lib/bill-split-by-item';
-import { buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { buildBillSplitOrderLines, buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
@@ -115,46 +114,44 @@ export function buildSplitPersonReceiptLines(
 
   const persons = split.persons || [];
   const personId = `p${personIndex + 1}`;
+  const catalogLines = buildBillSplitOrderLines(orders);
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
-  for (const order of orders) {
-    (order.items || []).forEach((item, idx) => {
-      const st = normalizeOrderItemStatus(item, order.status);
-      if (st === 'voided') return;
-      const key = `${order.id}-${idx}`;
-      const hasLine = person.item_shares?.some((share) => share.key === key)
-        || (person.items || []).includes(key);
-      if (!hasLine) return;
 
-      const spec = buildByItemLineSpec({ ...item, key, order_id: order.id });
-      const consumers = consumersForLineFromPersons(persons, key, spec);
-      if (consumers.length === 0) return;
+  for (const catalogLine of catalogLines) {
+    const key = catalogLine.key;
+    const hasLine = person.item_shares?.some((share) => share.key === key)
+      || (person.items || []).includes(key);
+    if (!hasLine) continue;
 
-      const lineTotal = item.price * item.qty;
-      const personShare = consumers.find((consumer) => consumer.name === person?.name);
-      if (!personShare) return;
+    const spec = buildByItemLineSpec(catalogLine);
+    const consumers = consumersForLineFromPersons(persons, key, spec);
+    if (consumers.length === 0) continue;
 
-      const usesLegacyShares = !person?.item_shares?.some((share) => share.key === key);
-      const shareQty = personShare.qty.num / personShare.qty.den;
-      const sharePrice = usesLegacyShares
-        ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
-        : spec.mode === 'buffet' && personShare.guestType
-          ? buffetShareUnitPrice(item, personShare.guestType) * shareQty
-          : byItemLinePriceShare(lineTotal, consumers, person.name);
-      const shareLabel = usesLegacyShares
-        ? legacyEqualShareQtyLabel(item.qty, consumers.length)
-        : spec.mode === 'buffet' && personShare.guestType
-          ? shareQtyLabel(personShare.qty)
-          : shareQtyLabel(personShare.qty);
+    const lineTotal = catalogLine.price * catalogLine.qty;
+    const personShare = consumers.find((consumer) => consumer.name === person.name);
+    if (!personShare) continue;
 
-      itemIndex += 1;
-      lines.push({
-        item_index: itemIndex,
-        display_name: orderItemReceiptLineLabel(item),
-        qty: 1,
-        unit_price: sharePrice,
-        share_qty_label: shareLabel,
-      });
+    const usesLegacyShares = !person.item_shares?.some((share) => share.key === key);
+    const shareQty = personShare.qty.num / personShare.qty.den;
+    const sharePrice = usesLegacyShares
+      ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
+      : spec.mode === 'buffet' && personShare.guestType
+        ? buffetShareUnitPrice(catalogLine, personShare.guestType) * shareQty
+        : byItemLinePriceShare(lineTotal, consumers, person.name);
+    const shareLabel = usesLegacyShares
+      ? legacyEqualShareQtyLabel(catalogLine.qty, consumers.length)
+      : spec.mode === 'buffet' && personShare.guestType
+        ? shareQtyLabel(personShare.qty)
+        : shareQtyLabel(personShare.qty);
+
+    itemIndex += 1;
+    lines.push({
+      item_index: itemIndex,
+      display_name: orderItemReceiptLineLabel(catalogLine),
+      qty: 1,
+      unit_price: sharePrice,
+      share_qty_label: shareLabel,
     });
   }
   return lines;

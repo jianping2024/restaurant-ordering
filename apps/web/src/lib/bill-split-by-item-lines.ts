@@ -1,7 +1,9 @@
+import { buildBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import type { Order, OrderItem } from '@/types';
 
-export type BillSplitOrderLine = OrderItem & { key: string; order_id: string };
+/** Billable catalog line for by-item split (same keys as receipt / bill details). */
+export type BillSplitOrderLine = OrderItem & { key: string; order_id?: string };
 
 export type ByItemSplitLine = {
   key: string;
@@ -36,13 +38,10 @@ export type ByItemLineSpec =
     };
 
 export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
-  return orders.flatMap((order) =>
-    order.items.map((item, idx) => ({
-      ...item,
-      order_id: order.id,
-      key: `${order.id}-${idx}`,
-    })),
-  );
+  return buildBillableSessionItems(orders).map(({ key, item }) => ({
+    ...item,
+    key,
+  }));
 }
 
 export function buildByItemLineSpec(line: BillSplitOrderLine): ByItemLineSpec {

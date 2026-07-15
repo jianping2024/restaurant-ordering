@@ -3,9 +3,11 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   buildByItemConsumerRowsFromPersons,
+  buildLockedPersonLineMins,
+  byItemRowEditLock,
   isCheckoutSplitLocked,
   isPausedCheckoutSplit,
-  lockedByItemLineKeys,
+  lockedPersonLineKey,
   paidSplitPersonNames,
   shouldShowCheckoutSubmitted,
   lockedSplitRowCount,
@@ -13,6 +15,8 @@ import {
   validateCheckoutContinuation,
 } from './checkout-split-continuation';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
+
+const LINE_KEY = 'd1::10';
 
 function split(overrides: Partial<BillSplit> = {}): BillSplit {
   return {
@@ -32,11 +36,12 @@ function split(overrides: Partial<BillSplit> = {}): BillSplit {
   };
 }
 
-const menuSpec = (key: string): ByItemLineSpec => ({
+const menuSpec = (key: string, lineQty = 1): ByItemLineSpec => ({
   mode: 'menu',
   key,
-  lineQty: 1,
+  lineQty,
   unitPrice: 10,
+  lineTotal: lineQty * 10,
 });
 
 describe('isPausedCheckoutSplit', () => {
@@ -62,9 +67,9 @@ describe('isCheckoutSplitLocked', () => {
   });
 });
 
-describe('lockedByItemLineKeys', () => {
-  it('collects keys only for paid guests', () => {
-    const keys = lockedByItemLineKeys(
+describe('buildLockedPersonLineMins', () => {
+  it('records min qty only for paid guests on their lines', () => {
+    const locked = buildLockedPersonLineMins(
       split({
         result: [
           { name: 'John', amount: 10, paid: true },
@@ -73,21 +78,21 @@ describe('lockedByItemLineKeys', () => {
         persons: [
           {
             name: 'John',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
           {
             name: 'Mary',
-            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
         ],
       }),
     );
-    assert.equal(keys.has('o1-0'), true);
-    assert.equal(keys.has('o1-1'), false);
+    assert.ok(locked.menu.has(lockedPersonLineKey(LINE_KEY, 'John')));
+    assert.equal(locked.menu.has(lockedPersonLineKey(LINE_KEY, 'Mary')), false);
   });
 
   it('locks ledger guests even when paid flag was reconciled off', () => {
-    const keys = lockedByItemLineKeys(
+    const locked = buildLockedPersonLineMins(
       split({
         result: [
           { name: 'Ana', amount: 30, paid: false },
@@ -96,53 +101,79 @@ describe('lockedByItemLineKeys', () => {
         persons: [
           {
             name: 'Ana',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
           {
             name: 'Bob',
-            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: 'd2::8', qty_num: 1, qty_den: 1 }],
           },
         ],
       }),
       true,
       [{ id: '1', person_name: 'Ana', amount: 20, created_at: '' }],
     );
-    assert.equal(keys.has('o1-0'), true);
-    assert.equal(keys.has('o1-1'), false);
+    assert.ok(locked.menu.has(lockedPersonLineKey(LINE_KEY, 'Ana')));
+    assert.equal(locked.menu.has(lockedPersonLineKey('d2::8', 'Bob')), false);
   });
 
-  it('locks all assigned keys when ledger exists without paid rows', () => {
-    const keys = lockedByItemLineKeys(
+  it('locks all assigned mins when ledger exists without paid rows', () => {
+    const locked = buildLockedPersonLineMins(
       split({
         persons: [
           {
             name: 'John',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
           {
             name: 'Mary',
-            item_shares: [{ key: 'o1-1', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: 'd2::8', qty_num: 1, qty_den: 1 }],
           },
         ],
       }),
       true,
     );
-    assert.equal(keys.has('o1-0'), true);
-    assert.equal(keys.has('o1-1'), true);
+    assert.ok(locked.menu.has(lockedPersonLineKey(LINE_KEY, 'John')));
+    assert.ok(locked.menu.has(lockedPersonLineKey('d2::8', 'Mary')));
   });
 
   it('returns empty when no collection has started', () => {
-    const keys = lockedByItemLineKeys(
+    const locked = buildLockedPersonLineMins(
       split({
         persons: [
           {
             name: 'John',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
         ],
       }),
     );
-    assert.equal(keys.size, 0);
+    assert.equal(locked.menu.size, 0);
+  });
+});
+
+describe('byItemRowEditLock', () => {
+  it('locks name and removal but allows qty increase for paid share', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Ana', amount: 10, paid: true }],
+        persons: [
+          {
+            name: 'Ana',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const lock = byItemRowEditLock({
+      lineKey: LINE_KEY,
+      row: { id: 'r1', name: 'Ana', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      locks,
+      spec: menuSpec(LINE_KEY, 3),
+    });
+    assert.equal(lock.nameReadOnly, true);
+    assert.equal(lock.removable, false);
+    assert.ok(lock.minMenuQty);
+    assert.equal(lock.minMenuQty?.num, 1);
   });
 });
 
@@ -201,13 +232,13 @@ describe('validateCheckoutContinuation', () => {
     if (!out.ok) assert.equal(out.issue, 'split_mode_locked');
   });
 
-  it('rejects changed allocation on locked line', () => {
+  it('rejects reassigned locked share', () => {
     const existing = split({
       result: [{ name: 'John', amount: 10, paid: true }],
       persons: [
         {
           name: 'John',
-          item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
         },
       ],
     });
@@ -218,16 +249,44 @@ describe('validateCheckoutContinuation', () => {
         persons: [
           {
             name: 'Mary',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
         ],
         result: [{ name: 'Mary', amount: 10 }],
       },
-      lineSpecs: [menuSpec('o1-0')],
+      lineSpecs: [menuSpec(LINE_KEY)],
       hasCollectedLedger: false,
     });
     assert.equal(out.ok, false);
     if (!out.ok) assert.equal(out.issue, 'locked_allocation_changed');
+  });
+
+  it('allows increasing locked guest qty on same line', () => {
+    const existing = split({
+      result: [{ name: 'Ana', amount: 10, paid: true }],
+      persons: [
+        {
+          name: 'Ana',
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+        },
+      ],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'by_item',
+        persons: [
+          {
+            name: 'Ana',
+            item_shares: [{ key: LINE_KEY, qty_num: 2, qty_den: 1 }],
+          },
+        ],
+        result: [{ name: 'Ana', amount: 20 }],
+      },
+      lineSpecs: [menuSpec(LINE_KEY, 3)],
+      hasCollectedLedger: false,
+    });
+    assert.equal(out.ok, true);
   });
 
   it('allows changed allocation after resume when nothing was collected', () => {
@@ -236,7 +295,7 @@ describe('validateCheckoutContinuation', () => {
       persons: [
         {
           name: 'John',
-          item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
         },
       ],
     });
@@ -247,12 +306,12 @@ describe('validateCheckoutContinuation', () => {
         persons: [
           {
             name: 'Mary',
-            item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
           },
         ],
         result: [{ name: 'Mary', amount: 10 }],
       },
-      lineSpecs: [menuSpec('o1-0')],
+      lineSpecs: [menuSpec(LINE_KEY)],
       hasCollectedLedger: false,
     });
     assert.equal(out.ok, true);
@@ -292,12 +351,12 @@ describe('buildByItemConsumerRowsFromPersons', () => {
       [
         {
           name: 'John',
-          item_shares: [{ key: 'o1-0', qty_num: 1, qty_den: 1 }],
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
         },
       ],
-      [menuSpec('o1-0')],
+      [menuSpec(LINE_KEY)],
     );
-    assert.equal(rows['o1-0']?.[0]?.name, 'John');
-    assert.equal(rows['o1-0']?.[0]?.qtyWhole, '1');
+    assert.equal(rows[LINE_KEY]?.[0]?.name, 'John');
+    assert.equal(rows[LINE_KEY]?.[0]?.qtyWhole, '1');
   });
 });

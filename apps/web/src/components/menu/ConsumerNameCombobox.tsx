@@ -11,6 +11,7 @@ interface Props {
   value: string;
   options: string[];
   placeholder: string;
+  readOnly?: boolean;
   onChange: (name: string) => void;
   onCommit?: (name: string, fromList: boolean) => void;
   className?: string;
@@ -20,6 +21,7 @@ export function ConsumerNameCombobox({
   value,
   options,
   placeholder,
+  readOnly = false,
   onChange,
   onCommit,
   className = '',
@@ -73,11 +75,16 @@ export function ConsumerNameCombobox({
         aria-autocomplete="list"
         value={value}
         placeholder={placeholder}
+        readOnly={readOnly}
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
-        onFocus={() => setFocused(shouldShowConsumerNameMenu(options, value))}
+        onFocus={() => {
+          if (readOnly) return;
+          setFocused(shouldShowConsumerNameMenu(options, value));
+        }}
         onChange={(event) => {
+          if (readOnly) return;
           const next = event.target.value;
           onChange(next);
           setFocused(shouldShowConsumerNameMenu(options, next));
@@ -117,7 +124,7 @@ export function ConsumerNameCombobox({
             }
           }, 0);
         }}
-        className={customerTextInputClass}
+        className={`${customerTextInputClass}${readOnly ? ' opacity-70 cursor-default' : ''}`}
       />
 
       {showMenu ? (

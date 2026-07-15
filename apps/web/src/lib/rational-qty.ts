@@ -84,6 +84,19 @@ export function rationalsEqual(a: Rational, b: Rational): boolean {
   return left.num === right.num && left.den === right.den;
 }
 
+export function compareRationals(a: Rational, b: Rational): -1 | 0 | 1 {
+  const diff = normalizeRational({
+    num: a.num * b.den - b.num * a.den,
+    den: a.den * b.den,
+  });
+  if (diff.num === 0) return 0;
+  return diff.num < 0 ? -1 : 1;
+}
+
+export function rationalGte(a: Rational, b: Rational): boolean {
+  return compareRationals(a, b) >= 0;
+}
+
 export function rationalToNumber(value: Rational): number {
   const normalized = normalizeRational(value);
   return normalized.num / normalized.den;

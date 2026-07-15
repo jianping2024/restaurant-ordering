@@ -1,12 +1,16 @@
 import {
   buildByItemAllocationsFromPersons,
   createByItemConsumerRow,
+  parseConsumerRowQty,
   rationalToRowQtyFields,
   type ByItemConsumerRow,
-  type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { rationalsEqual, type Rational } from '@/lib/rational-qty';
+import {
+  normalizeRational,
+  rationalGte,
+  type Rational,
+} from '@/lib/rational-qty';
 import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
@@ -16,6 +20,19 @@ export type CheckoutContinuationIssue =
   | 'split_mode_locked'
   | 'locked_allocation_changed'
   | 'split_shape_locked';
+
+export type LockedPersonLineMins = {
+  menu: Map<string, Rational>;
+  buffet: Map<string, { adults: number; children: number }>;
+};
+
+export type ByItemRowEditLock = {
+  nameReadOnly: boolean;
+  minMenuQty: Rational | null;
+  minBuffetAdults: number;
+  minBuffetChildren: number;
+  removable: boolean;
+};
 
 /** Locked split row count from persisted persons or result snapshot. */
 export function lockedSplitRowCount(split: BillSplit | null | undefined): number {
@@ -106,32 +123,100 @@ export function shouldShowCheckoutSubmitted(
   return split.status === 'pending';
 }
 
+export function lockedPersonLineKey(lineKey: string, personName: string): string {
+  return `${lineKey}::${personName.trim().toLowerCase()}`;
+}
+
 /**
- * By-item line keys that must stay read-only after collection starts.
- * Locks paid guests' shares; when ledger exists without per-row paid flags, locks all prior shares.
+ * Minimum assigned qty per (line, person) after collection starts.
+ * New qty on the same line may exceed these floors; lowering below floor is forbidden.
  */
-export function lockedByItemLineKeys(
+export function buildLockedPersonLineMins(
   split: BillSplit | null | undefined,
   hasCollectedLedger = false,
   collectedPayments: SessionCollectedPayment[] = [],
-): Set<string> {
-  const keys = new Set<string>();
-  if (!split || split.split_mode !== 'by_item') return keys;
+): LockedPersonLineMins {
+  const menu = new Map<string, Rational>();
+  const buffet = new Map<string, { adults: number; children: number }>();
+  if (!split || split.split_mode !== 'by_item') {
+    return { menu, buffet };
+  }
 
   const lockedNames = allocationLockedPersonNames(split, collectedPayments);
   const lockAllAssignedShares = hasCollectedLedger && lockedNames.size === 0;
 
   for (const person of split.persons ?? []) {
-    const isLockedPerson = lockedNames.has(person.name.trim().toLowerCase());
+    const personLower = person.name.trim().toLowerCase();
+    const isLockedPerson = lockedNames.has(personLower);
     if (!lockAllAssignedShares && !isLockedPerson) continue;
+
     for (const share of person.item_shares ?? []) {
-      if (share.key) keys.add(share.key);
+      if (!share.key) continue;
+      const mapKey = lockedPersonLineKey(share.key, person.name);
+      const qty = normalizeRational({ num: share.qty_num, den: share.qty_den });
+      if (share.guest_type === 'adult' || share.guest_type === 'child') {
+        const entry = buffet.get(mapKey) ?? { adults: 0, children: 0 };
+        const count = Math.max(0, Math.round(qty.num / qty.den));
+        if (share.guest_type === 'child') entry.children += count;
+        else entry.adults += count;
+        buffet.set(mapKey, entry);
+        continue;
+      }
+      menu.set(mapKey, qty);
     }
+
     for (const key of person.items ?? []) {
-      keys.add(key);
+      const mapKey = lockedPersonLineKey(key, person.name);
+      if (!menu.has(mapKey)) {
+        menu.set(mapKey, { num: 1, den: 1 });
+      }
     }
   }
-  return keys;
+
+  return { menu, buffet };
+}
+
+/** Per-row UI lock for one payer on a by-item dish line. */
+export function byItemRowEditLock(params: {
+  lineKey: string;
+  row: ByItemConsumerRow;
+  locks: LockedPersonLineMins;
+  spec: ByItemLineSpec;
+}): ByItemRowEditLock {
+  const { lineKey, row, locks, spec } = params;
+  const name = row.name.trim();
+  if (!name) {
+    return {
+      nameReadOnly: false,
+      minMenuQty: null,
+      minBuffetAdults: 0,
+      minBuffetChildren: 0,
+      removable: true,
+    };
+  }
+
+  const mapKey = lockedPersonLineKey(lineKey, name);
+  if (spec.mode === 'buffet') {
+    const mins = locks.buffet.get(mapKey) ?? { adults: 0, children: 0 };
+    const hasLock = mins.adults > 0 || mins.children > 0;
+    return {
+      nameReadOnly: hasLock,
+      minMenuQty: null,
+      minBuffetAdults: mins.adults,
+      minBuffetChildren: mins.children,
+      removable: !hasLock,
+    };
+  }
+
+  const minMenuQty = locks.menu.get(mapKey) ?? null;
+  const hasLock = !!minMenuQty && minMenuQty.num > 0;
+  return {
+    nameReadOnly: hasLock,
+    minMenuQty: hasLock ? minMenuQty : null,
+    minBuffetAdults: 0,
+    minBuffetChildren: 0,
+    removable: !hasLock,
+  };
 }
 
 function buffetRowsFromShares(
@@ -181,22 +266,44 @@ export function buildByItemConsumerRowsFromPersons(
   return rows;
 }
 
-function allocationsEqualForKey(
-  left: ByItemLineAllocation[string] | undefined,
-  right: ByItemLineAllocation[string] | undefined,
-): boolean {
-  const a = left ?? [];
-  const b = right ?? [];
-  if (a.length !== b.length) return false;
-  const sortedA = [...a].sort((x, y) => x.name.localeCompare(y.name));
-  const sortedB = [...b].sort((x, y) => x.name.localeCompare(y.name));
-  for (let i = 0; i < sortedA.length; i += 1) {
-    const rowA = sortedA[i];
-    const rowB = sortedB[i];
-    if (rowA.name.trim() !== rowB.name.trim()) return false;
-    if (!rationalsEqual(rowA.qty, rowB.qty)) return false;
-    if ((rowA.guestType ?? '') !== (rowB.guestType ?? '')) return false;
+function lockedSharesPreserved(params: {
+  locked: LockedPersonLineMins;
+  incomingPersons: SplitPerson[];
+  lineSpecs: ByItemLineSpec[];
+}): boolean {
+  const { locked, incomingPersons, lineSpecs } = params;
+  if (locked.menu.size === 0 && locked.buffet.size === 0) return true;
+
+  const incomingAlloc = buildByItemAllocationsFromPersons(incomingPersons, lineSpecs);
+
+  for (const [mapKey, minQty] of Array.from(locked.menu.entries())) {
+    const sep = mapKey.lastIndexOf('::');
+    if (sep < 0) return false;
+    const lineKey = mapKey.slice(0, sep);
+    const personLower = mapKey.slice(sep + 2);
+    const share = (incomingAlloc[lineKey] ?? []).find(
+      (row) => row.name.trim().toLowerCase() === personLower,
+    );
+    if (!share || !rationalGte(share.qty, minQty)) return false;
   }
+
+  for (const [mapKey, minCounts] of Array.from(locked.buffet.entries())) {
+    const sep = mapKey.lastIndexOf('::');
+    if (sep < 0) return false;
+    const lineKey = mapKey.slice(0, sep);
+    const personLower = mapKey.slice(sep + 2);
+    const shares = incomingAlloc[lineKey] ?? [];
+    let adults = 0;
+    let children = 0;
+    for (const share of shares) {
+      if (share.name.trim().toLowerCase() !== personLower) continue;
+      const count = Math.max(0, Math.round(share.qty.num / share.qty.den));
+      if (share.guestType === 'child') children += count;
+      else adults += count;
+    }
+    if (adults < minCounts.adults || children < minCounts.children) return false;
+  }
+
   return true;
 }
 
@@ -222,14 +329,13 @@ export function validateCheckoutContinuation(params: {
   }
 
   if (existing.split_mode === 'by_item' && incomingMode === 'by_item') {
-    const lockedKeys = lockedByItemLineKeys(existing, hasCollectedLedger, collectedPayments);
-    if (lockedKeys.size === 0) return { ok: true };
-    const existingAlloc = buildByItemAllocationsFromPersons(existing.persons ?? [], lineSpecs);
-    const incomingAlloc = buildByItemAllocationsFromPersons(payload.persons, lineSpecs);
-    for (const key of Array.from(lockedKeys)) {
-      if (!allocationsEqualForKey(existingAlloc[key], incomingAlloc[key])) {
-        return { ok: false, issue: 'locked_allocation_changed' };
-      }
+    const locked = buildLockedPersonLineMins(existing, hasCollectedLedger, collectedPayments);
+    if (!lockedSharesPreserved({
+      locked,
+      incomingPersons: payload.persons,
+      lineSpecs,
+    })) {
+      return { ok: false, issue: 'locked_allocation_changed' };
     }
     return { ok: true };
   }
@@ -245,4 +351,33 @@ export function validateCheckoutContinuation(params: {
   }
 
   return { ok: true };
+}
+
+/** Clamp menu row qty so it cannot drop below a locked floor. */
+export function clampMenuRowToMinQty(
+  row: ByItemConsumerRow,
+  minQty: Rational | null,
+): ByItemConsumerRow {
+  if (!minQty || minQty.num <= 0) return row;
+  const parsed = parseConsumerRowQty(row);
+  if (!parsed || rationalGte(parsed, minQty)) return row;
+  return { ...row, ...rationalToRowQtyFields(minQty) };
+}
+
+/** Clamp buffet headcounts to locked floors. */
+export function clampBuffetRowToMinCounts(
+  row: ByItemConsumerRow,
+  minAdults: number,
+  minChildren: number,
+): ByItemConsumerRow {
+  const adultN = Number((row.adultQty ?? '').trim() || '0');
+  const childN = Number((row.childQty ?? '').trim() || '0');
+  const adults = Number.isFinite(adultN) ? Math.max(minAdults, adultN) : minAdults;
+  const children = Number.isFinite(childN) ? Math.max(minChildren, childN) : minChildren;
+  if (adults === adultN && children === childN) return row;
+  return {
+    ...row,
+    adultQty: adults > 0 ? String(adults) : '',
+    childQty: children > 0 ? String(children) : '',
+  };
 }

@@ -103,8 +103,33 @@ describe('checkoutLinesFromOrders', () => {
 
     const lines = checkoutLinesFromOrders(orders);
     assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.label, 'Buffet livre');
     assert.equal(lines[0]?.quantityLabel, '· A1-C2');
     assert.equal(lines[0]?.lineTotal, 55.9);
+  });
+
+  it('formats menu lines with item code and plain name', () => {
+    const orders = [
+      {
+        id: 'o1',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+            item_code: '001',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = checkoutLinesFromOrders(orders);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.label, '001 Água 500ml');
+    assert.equal(lines[0]?.quantityLabel, '× 1');
   });
 
   it('merges repeated menu items with the same unit price', () => {

@@ -40,8 +40,6 @@ export const waiterDetailLayout = {
   /** Ordered-items card — title, row text, and qty share `text-lg` (18px). */
   orderedItemsTitle: 'text-lg font-semibold text-brand-text',
   orderedItemLabel: 'text-lg text-brand-text truncate min-w-0 flex-1',
-  /** Code prefix inherits row typography; spacing only (no mono/gold). */
-  orderedItemCodePrefix: 'mr-1',
   orderedItemQty: 'text-lg text-brand-text tabular-nums',
 } as const;
 

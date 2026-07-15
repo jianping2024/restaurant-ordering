@@ -20,13 +20,7 @@ export function BillDetailsSection({ title, totalLabel, lines, total }: Props) {
             className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2"
           >
             <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-              {line.emoji ? <span>{line.emoji}</span> : null}
-              {line.itemCode ? (
-                <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
-                  [{line.itemCode}]
-                </span>
-              ) : null}
-              <span className="text-brand-text text-sm">{line.name}</span>
+              <span className="text-brand-text text-sm">{line.label}</span>
               <span className="text-brand-text-muted text-[13px]">{line.quantityLabel}</span>
             </div>
             <span className="text-brand-gold text-sm flex-shrink-0 tabular-nums">

@@ -314,13 +314,7 @@ export function CheckoutRequestDetail({
                   className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/40 last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                    {line.emoji ? <span>{line.emoji}</span> : null}
-                    {line.itemCode ? (
-                      <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">
-                        [{line.itemCode}]
-                      </span>
-                    ) : null}
-                    <span className="text-brand-text text-sm truncate">{line.name || '—'}</span>
+                    <span className="text-brand-text text-sm truncate">{line.label || '—'}</span>
                     <span className="text-brand-text-muted text-[13px]">{line.quantityLabel}</span>
                   </div>
                   <span className="text-brand-text text-sm tabular-nums shrink-0">

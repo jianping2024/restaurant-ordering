@@ -66,6 +66,33 @@ export function formatOrderItemQuantityLabel(
   return guestLabel ? `· ${guestLabel}` : '';
 }
 
+/** Plain dish name — no emoji, no item code (staff billing surfaces). */
+export function formatOrderItemPlainName(
+  item: Pick<OrderItem, 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+): string {
+  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
+}
+
+/** Staff menu line: `001 Água 500ml`; omits code segment when missing. */
+export function formatStaffMenuLineLabel(
+  item: Pick<OrderItem, 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  itemCode: string | null | undefined,
+): string {
+  const name = formatOrderItemPlainName(item);
+  const code = itemCode?.trim();
+  return code ? `${code} ${name}` : name;
+}
+
+/** Staff buffet line: `Buffet livre · A1-C2` — headcount stays in label when embedded. */
+export function formatStaffBuffetLineLabel(
+  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  options: OrderItemListLabelOptions = {},
+): string {
+  const name = formatOrderItemPlainName(item);
+  const quantityLabel = formatOrderItemQuantityLabel(item, options);
+  return quantityLabel ? `${name} ${quantityLabel}` : name;
+}
+
 /** Name column only (`🥤 Cola`) — quantity shown separately when needed. */
 export function formatOrderItemNameLabel(
   item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt'>,

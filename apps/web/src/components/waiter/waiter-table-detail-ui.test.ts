@@ -33,11 +33,9 @@ test('back-to-board footer uses page footer spacing and secondary action width',
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
 });
 
-test('ordered-items card typography uses text-lg and code inherits row style', () => {
+test('ordered-items card typography uses text-lg', () => {
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
-  assert.equal(waiterDetailLayout.orderedItemCodePrefix, 'mr-1');
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
-  assert.doesNotMatch(waiterDetailLayout.orderedItemCodePrefix, /font-mono/);
 });

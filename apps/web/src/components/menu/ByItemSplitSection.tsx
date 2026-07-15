@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
+import { formatOrderItemQuantityLabel, formatStaffMenuLineLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -77,6 +77,7 @@ export function ByItemSplitSection({
         const item = orderLineByKey[spec.key];
         if (!item) return null;
         const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
+        const lineLabel = formatStaffMenuLineLabel(item, itemCode);
         return (
           <ByItemDishAllocator
             key={spec.key}
@@ -91,11 +92,7 @@ export function ByItemSplitSection({
             onRememberConsumerName={onRememberConsumerName}
             title={(
               <>
-                {item.emoji}{' '}
-                {itemCode && (
-                  <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{itemCode}]</span>
-                )}
-                {(item.name || item.name_pt)} {lineQtyLabel(item)}
+                {lineLabel} {lineQtyLabel(item)}
               </>
             )}
           />

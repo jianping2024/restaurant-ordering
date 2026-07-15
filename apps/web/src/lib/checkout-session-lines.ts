@@ -1,32 +1,37 @@
 import { buildBillableSessionItems } from '@/lib/billable-session-lines';
-import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
+import {
+  formatOrderItemPlainName,
+  formatOrderItemQuantityLabel,
+  formatStaffMenuLineLabel,
+} from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import type { Order, OrderItem } from '@/types';
+import { isBuffetBaseItem } from '@/lib/order-items';
+import type { Order } from '@/types';
 
 export type CheckoutDisplayLine = {
   key: string;
-  emoji: string;
-  name: string;
+  /** Staff-facing primary text: `001 Água 500ml` or plain buffet name. */
+  label: string;
   quantityLabel: string;
   lineTotal: number;
-  itemCode: string | null;
 };
-
-function lineName(item: OrderItem): string {
-  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-}
 
 /** Billable lines for checkout detail (matches receipt enqueue aggregation). */
 export function checkoutLinesFromOrders(
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
-  return buildBillableSessionItems(orders).map(({ key, item }) => ({
-    key,
-    emoji: item.emoji || '',
-    name: lineName(item),
-    quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-    lineTotal: item.price * item.qty,
-    itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-  }));
+  return buildBillableSessionItems(orders).map(({ key, item }) => {
+    const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
+    const label = isBuffetBaseItem(item)
+      ? formatOrderItemPlainName(item)
+      : formatStaffMenuLineLabel(item, itemCode);
+
+    return {
+      key,
+      label,
+      quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+      lineTotal: item.price * item.qty,
+    };
+  });
 }

@@ -5,7 +5,11 @@ import {
   listActiveBuffetLineSummaries,
   type BuffetGuestHeadcount,
 } from '@/lib/buffet-order';
-import { formatOrderItemListLabel, formatOrderItemNameLabel, formatOrderItemQuantityLabel } from '@/lib/order-list-display';
+import {
+  formatStaffBuffetLineLabel,
+  formatStaffMenuLineLabel,
+  formatOrderItemQuantityLabel,
+} from '@/lib/order-list-display';
 import {
   canDecrementOrderLine,
   type MenuDecrementOperator,
@@ -20,7 +24,6 @@ export type WaiterOrderLine = {
   label: string;
   /** Menu lines: `× N` shown beside the decrement control. */
   quantityLabel: string | null;
-  itemCode: string | null;
   canDecrement: boolean;
 };
 
@@ -63,9 +66,8 @@ export function buildWaiterTableCard(
     buffetLines.push({
       orderId: '',
       itemIdx: -1,
-      label: formatOrderItemListLabel(
+      label: formatStaffBuffetLineLabel(
         {
-          emoji: '🍽️',
           name: summary.name,
           name_pt: summary.name,
           kind: 'buffet_base',
@@ -76,7 +78,6 @@ export function buildWaiterTableCard(
         { headcountStyle: 'receipt' },
       ),
       quantityLabel: null,
-      itemCode: null,
       canDecrement: false,
     });
   }
@@ -96,9 +97,8 @@ export function buildWaiterTableCard(
         buffetLines.push({
           orderId: order.id,
           itemIdx,
-          label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
+          label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
           quantityLabel: null,
-          itemCode: null,
           canDecrement: false,
         });
         return;
@@ -107,9 +107,8 @@ export function buildWaiterTableCard(
       menuLines.push({
         orderId: order.id,
         itemIdx,
-        label: formatOrderItemNameLabel(item),
+        label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
         quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-        itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
         canDecrement: canDecrementOrderLine(menuDecrementOperator, item, order.status),
       });
     });

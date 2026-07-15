@@ -6,6 +6,8 @@ import {
   formatOrderItemListLabel,
   formatOrderItemQuantityLabel,
   formatOrderListItemPrintQty,
+  formatStaffBuffetLineLabel,
+  formatStaffMenuLineLabel,
   orderListGuestLabelsFromLang,
 } from '@/lib/order-list-display';
 import type { Order } from '@/types';
@@ -63,6 +65,47 @@ describe('formatOrderItemQuantityLabel', () => {
         { headcountStyle: 'localized', guestLabels },
       ),
       '· 7大人 · 3小孩',
+    );
+  });
+});
+
+describe('formatStaffMenuLineLabel', () => {
+  it('joins item code and plain name with a space', () => {
+    assert.equal(
+      formatStaffMenuLineLabel(
+        { name: 'Água 500ml', name_pt: 'Água 500ml' },
+        '001',
+      ),
+      '001 Água 500ml',
+    );
+  });
+
+  it('returns plain name when code is missing', () => {
+    assert.equal(
+      formatStaffMenuLineLabel(
+        { name: 'Água 500ml', name_pt: 'Água 500ml' },
+        null,
+      ),
+      'Água 500ml',
+    );
+  });
+});
+
+describe('formatStaffBuffetLineLabel', () => {
+  it('joins plain name and receipt headcount without emoji', () => {
+    assert.equal(
+      formatStaffBuffetLineLabel(
+        {
+          name: 'Buffet almoço',
+          name_pt: 'Buffet almoço',
+          kind: 'buffet_base',
+          qty: 1,
+          adult_count: 7,
+          child_count: 3,
+        },
+        { headcountStyle: 'receipt' },
+      ),
+      'Buffet almoço · A7-C3',
     );
   });
 });

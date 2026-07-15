@@ -92,8 +92,8 @@
 | 场景 | 变体 |
 |------|------|
 | 默认 Dashboard | 上式 |
-| 服务员桌位 idle | `border-brand-border` |
-| 用餐中 | `border-emerald-500/50 bg-emerald-500/10` |
+| 服务员桌位 idle（可用） | `border-emerald-500/40 bg-emerald-500/10` |
+| 用餐中（占用） | `border-rose-500/40 bg-rose-500/10` |
 | 待结账 | `border-amber-500/55 bg-amber-500/12` |
 | 结账待收款区 | `border-2 border-brand-gold/35 bg-brand-gold/5` |
 

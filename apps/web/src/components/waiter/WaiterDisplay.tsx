@@ -48,6 +48,10 @@ import {
   WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS,
   WAITER_BOARD_TABLES_GRID_CLASS,
 } from '@/lib/waiter-board-card-layout';
+import {
+  WAITER_BOARD_FILTER_KPI_TONE,
+  waiterBoardKpiToneClass,
+} from '@/lib/waiter-board-card-theme';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -70,15 +74,14 @@ interface Props {
 
 const BOARD_KPI_ITEMS: {
   filter: WaiterBoardFilter;
-  tone: 'amber' | 'emerald' | 'neutral';
   countKey: keyof ReturnType<typeof computeWaiterBoardStats>;
   labelKey: 'filterAll' | 'filterCheckout' | 'filterDining' | 'filterIdle';
   hintKey?: 'kpiCheckoutHint';
 }[] = [
-  { filter: 'all', tone: 'neutral', countKey: 'total', labelKey: 'filterAll' },
-  { filter: 'checkout', tone: 'amber', countKey: 'checkoutPending', labelKey: 'filterCheckout', hintKey: 'kpiCheckoutHint' },
-  { filter: 'dining', tone: 'emerald', countKey: 'open', labelKey: 'filterDining' },
-  { filter: 'idle', tone: 'neutral', countKey: 'idle', labelKey: 'filterIdle' },
+  { filter: 'all', countKey: 'total', labelKey: 'filterAll' },
+  { filter: 'checkout', countKey: 'checkoutPending', labelKey: 'filterCheckout', hintKey: 'kpiCheckoutHint' },
+  { filter: 'dining', countKey: 'open', labelKey: 'filterDining' },
+  { filter: 'idle', countKey: 'idle', labelKey: 'filterIdle' },
 ];
 
 function BoardKpiCard({
@@ -86,22 +89,17 @@ function BoardKpiCard({
   count,
   label,
   hint,
-  tone,
+  filter,
   onClick,
 }: {
   active: boolean;
   count: number;
   label: string;
   hint?: string;
-  tone: 'amber' | 'emerald' | 'neutral';
+  filter: WaiterBoardFilter;
   onClick: () => void;
 }) {
-  const toneClass =
-    tone === 'amber'
-      ? 'border-amber-500/45 bg-amber-500/10 text-amber-950'
-      : tone === 'emerald'
-        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-950'
-        : 'border-brand-border bg-brand-card text-brand-text';
+  const toneClass = waiterBoardKpiToneClass(WAITER_BOARD_FILTER_KPI_TONE[filter]);
   const activeClass = active ? 'ring-2 ring-brand-gold/50 shadow-md' : '';
 
   return (
@@ -466,7 +464,7 @@ function WaiterBoardInner({
               count={boardStats[item.countKey]}
               label={t[item.labelKey]}
               hint={item.hintKey ? t[item.hintKey] : undefined}
-              tone={item.tone}
+              filter={item.filter}
               onClick={() => {
                 setBoardFilter(item.filter);
                 void refresh();

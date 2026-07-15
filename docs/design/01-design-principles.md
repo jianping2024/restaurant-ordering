@@ -126,8 +126,9 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 状态色（业务语义，非品牌令牌）：
 
-- 待结账：amber（`WaiterDisplay` `checkout` 状态）
-- 用餐中：emerald（`dining`）
+- 待结账：amber（`checkout`）
+- 用餐中（占用）：rose（`dining`）
+- 空闲（可用）：emerald（`idle`）
 - 成功/收款：green（`mesa-badge-success`、`emerald-600`）
 - 危险：red（`Button danger`、未完成分单进度 `red-500`）
 

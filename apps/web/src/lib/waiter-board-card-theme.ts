@@ -1,4 +1,4 @@
-import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
+import type { WaiterBoardFilter, WaiterTableBoardState } from '@/lib/waiter-board-session';
 
 /** Visual tokens for one waiter board table card — keyed by business board state only. */
 export type WaiterBoardCardTheme = {
@@ -13,6 +13,23 @@ export type WaiterBoardCardTheme = {
   footer: string;
 };
 
+/** KPI filter chip tones — aligned with card state semantics (占用=rose, 可用=emerald). */
+export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
+
+export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
+  amber: 'border-amber-500/45 bg-amber-500/10 text-amber-950',
+  emerald: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-950',
+  rose: 'border-rose-500/40 bg-rose-500/10 text-rose-950',
+  neutral: 'border-brand-border bg-brand-card text-brand-text',
+};
+
+export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoardKpiTone> = {
+  all: 'neutral',
+  checkout: 'amber',
+  dining: 'rose',
+  idle: 'emerald',
+};
+
 /** Shell without hover affordances — display-only board cards (e.g. waiter checkout). */
 export function waiterBoardCardShellClass(
   boardState: WaiterTableBoardState,
@@ -23,19 +40,23 @@ export function waiterBoardCardShellClass(
   return shell.replace(/\s*hover:\S+/g, '');
 }
 
+export function waiterBoardKpiToneClass(tone: WaiterBoardKpiTone): string {
+  return WAITER_BOARD_KPI_TONE_CLASS[tone];
+}
+
 export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardCardTheme> = {
   dining: {
     shell:
-      'border-emerald-200 bg-emerald-50 shadow-sm hover:border-emerald-300 dark:border-emerald-700/70 dark:bg-emerald-950/40 dark:hover:border-emerald-600',
-    title: 'text-emerald-800 dark:text-emerald-100',
+      'border-rose-200 bg-rose-50 shadow-sm hover:border-rose-300 dark:border-rose-700/70 dark:bg-rose-950/40 dark:hover:border-rose-600',
+    title: 'text-rose-800 dark:text-rose-100',
     badge:
-      'border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-700/60 dark:bg-emerald-900/60 dark:text-emerald-200',
+      'border border-rose-200 bg-rose-100 text-rose-800 dark:border-rose-700/60 dark:bg-rose-900/60 dark:text-rose-200',
     row3: 'text-sm font-medium leading-none tabular-nums',
     meta: 'text-brand-text-muted',
-    durationAccent: 'text-emerald-700 dark:text-emerald-300',
-    amount: 'text-emerald-800 dark:text-emerald-100',
+    durationAccent: 'text-rose-700 dark:text-rose-300',
+    amount: 'text-rose-800 dark:text-rose-100',
     footer:
-      'border-emerald-300 text-emerald-700 hover:bg-emerald-100/50 group-hover:border-emerald-400 dark:text-emerald-200 dark:hover:bg-emerald-900/25',
+      'border-rose-300 text-rose-700 hover:bg-rose-100/50 group-hover:border-rose-400 dark:text-rose-200 dark:hover:bg-rose-900/25',
   },
   checkout: {
     shell:
@@ -52,15 +73,15 @@ export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardC
   },
   idle: {
     shell:
-      'border-neutral-200 bg-brand-card shadow-sm hover:border-neutral-300 dark:border-brand-border dark:hover:border-neutral-500',
-    title: 'text-neutral-700 dark:text-brand-text',
+      'border-emerald-200 bg-emerald-50 shadow-sm hover:border-emerald-300 dark:border-emerald-700/70 dark:bg-emerald-950/40 dark:hover:border-emerald-600',
+    title: 'text-emerald-800 dark:text-emerald-100',
     badge:
-      'border border-neutral-200 bg-neutral-100 text-neutral-600 dark:border-brand-border dark:bg-brand-border dark:text-brand-text-muted',
+      'border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-700/60 dark:bg-emerald-900/60 dark:text-emerald-200',
     row3: 'text-sm font-medium leading-none tabular-nums',
     meta: 'text-brand-text-muted',
     durationAccent: '',
     amount: '',
     footer:
-      'border-neutral-300 text-neutral-600 hover:bg-neutral-100/70 group-hover:border-neutral-400 dark:text-brand-text-muted dark:hover:bg-brand-border/30',
+      'border-emerald-300 text-emerald-700 hover:bg-emerald-100/50 group-hover:border-emerald-400 dark:text-emerald-200 dark:hover:bg-emerald-900/25',
   },
 };

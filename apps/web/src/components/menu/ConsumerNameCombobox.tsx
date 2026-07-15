@@ -5,6 +5,7 @@ import {
   filterConsumerNameOptions,
   shouldShowConsumerNameMenu,
 } from '@/lib/consumer-name-roster';
+import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 
 interface Props {
   value: string;
@@ -116,7 +117,7 @@ export function ConsumerNameCombobox({
             }
           }, 0);
         }}
-        className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[14px] text-brand-text placeholder:text-brand-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+        className={customerTextInputClass}
       />
 
       {showMenu ? (
@@ -135,7 +136,7 @@ export function ConsumerNameCombobox({
                   aria-selected={active}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => finalize(name, true)}
-                  className={`w-full text-left px-3 py-2.5 text-[14px] transition-colors ${
+                  className={`w-full text-left px-3 py-2.5 text-base transition-colors ${
                     active
                       ? 'bg-brand-gold/15 text-brand-gold'
                       : 'text-brand-text hover:bg-brand-border/40'

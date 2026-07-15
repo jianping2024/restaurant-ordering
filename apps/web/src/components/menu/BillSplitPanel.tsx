@@ -18,6 +18,10 @@ import {
   splitRowShowsSettlement,
   type SplitSettlementCopy,
 } from '@/components/menu/SplitSettlementStatusExtras';
+import {
+  customerInlineAmountInputClass,
+  customerInlineEditInputClass,
+} from '@/components/menu/customer-form-input-styles';
 
 type SplitModeCopy = SplitSettlementCopy & {
   splitMode: string;
@@ -226,7 +230,7 @@ export function BillSplitPanel({
                             onCancelInlineRename();
                           }
                         }}
-                        className="text-brand-text text-sm bg-transparent border-b border-brand-gold/45 focus:outline-none min-w-[92px]"
+                        className={customerInlineEditInputClass}
                         placeholder={guestName(i + 1)}
                       />
                     ) : (
@@ -280,7 +284,7 @@ export function BillSplitPanel({
                             onCancelInlineAmountEdit();
                           }
                         }}
-                        className="w-16 bg-transparent text-brand-gold font-medium text-sm text-right focus:outline-none"
+                        className={customerInlineAmountInputClass}
                         placeholder="0.00"
                       />
                     </div>

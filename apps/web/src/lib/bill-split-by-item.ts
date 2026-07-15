@@ -130,14 +130,16 @@ export function getQtyPartsRowHint(row: ByItemConsumerRow, labels: QtyPartsLabel
   return qtyPartsIssueLabel(result.issue, labels);
 }
 
-export function createByItemConsumerRow(opts?: { buffet?: boolean }): ByItemConsumerRow {
+export function createByItemConsumerRow(opts?: { buffet?: boolean; seed?: boolean }): ByItemConsumerRow {
+  const buffet = opts?.buffet ?? false;
+  const seed = opts?.seed ?? false;
   return {
     id: `row-${Math.random().toString(36).slice(2, 10)}`,
     name: '',
-    qtyWhole: '',
+    qtyWhole: !buffet && seed ? '1' : '',
     qtyNum: '',
     qtyDen: '',
-    ...(opts?.buffet ? { adultQty: '1', childQty: '' } : {}),
+    ...(buffet ? { adultQty: seed ? '1' : '', childQty: '' } : {}),
   };
 }
 
@@ -208,7 +210,7 @@ export function removeByItemConsumerRow(
   opts?: { buffet?: boolean },
 ): ByItemConsumerRow[] {
   const next = rows.filter((row) => row.id !== rowId);
-  return next.length > 0 ? next : [createByItemConsumerRow(opts)];
+  return next.length > 0 ? next : [createByItemConsumerRow({ buffet: opts?.buffet, seed: true })];
 }
 
 export type BuffetConsumerAllocation = {
@@ -280,7 +282,10 @@ export function withDefaultByItemLineRows(
   if (missing.length === 0) return allocations;
   const next = { ...allocations };
   for (const spec of missing) {
-    next[spec.key] = [createByItemConsumerRow({ buffet: spec.mode === 'buffet' })];
+    next[spec.key] = [createByItemConsumerRow({
+      buffet: spec.mode === 'buffet',
+      seed: true,
+    })];
   }
   return next;
 }

@@ -6,6 +6,10 @@ import {
   type ByItemConsumerRow,
   type QtyPartsLabels,
 } from '@/lib/bill-split-by-item';
+import {
+  customerQtyInputAlertClass,
+  customerQtyInputClass,
+} from '@/components/menu/customer-form-input-styles';
 
 interface Props {
   row: ByItemConsumerRow;
@@ -14,14 +18,9 @@ interface Props {
   onChange: (patch: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>) => void;
 }
 
-const INPUT_CLASS =
-  'bg-brand-bg border rounded-lg py-2 text-[14px] text-brand-text text-center placeholder:text-brand-muted focus:outline-none focus:ring-2 tabular-nums';
-const INPUT_OK = `${INPUT_CLASS} border-brand-border focus:ring-brand-gold/40`;
-const INPUT_ALERT = `${INPUT_CLASS} border-red-500 focus:ring-red-500/40`;
-
 export function ByItemQtyInput({ row, labels, invalid, onChange }: Props) {
   const hint = getQtyPartsRowHint(row, labels);
-  const fieldClass = invalid || hint ? INPUT_ALERT : INPUT_OK;
+  const fieldClass = invalid || hint ? customerQtyInputAlertClass : customerQtyInputClass;
 
   const setWhole = (raw: string) => onChange({ qtyWhole: sanitizeQtyDigits(raw), qtyNum: row.qtyNum, qtyDen: row.qtyDen });
   const setNum = (raw: string) => onChange({ qtyWhole: row.qtyWhole, qtyNum: sanitizeQtyDigits(raw), qtyDen: row.qtyDen });

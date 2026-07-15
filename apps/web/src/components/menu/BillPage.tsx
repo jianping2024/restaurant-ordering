@@ -26,6 +26,7 @@ import { showToast } from '@/components/ui/Toast';
 import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
+import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -538,7 +539,7 @@ export function BillPage({
             value={customerNifInput}
             onChange={(e) => setCustomerNifInput(formatPortugueseNif(e.target.value))}
             placeholder={t.nifPlaceholder}
-            className={`w-full rounded-xl border bg-brand-card px-3 py-2.5 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-1 ${
+            className={`${customerNifInputClass} ${
               customerNifInvalid
                 ? 'border-red-500 focus:ring-red-500/40'
                 : 'border-brand-border focus:ring-brand-gold/40'

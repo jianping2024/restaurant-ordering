@@ -103,6 +103,11 @@ describe('withDefaultByItemLineRows', () => {
     const next = withDefaultByItemLineRows({}, [buffetSpec('buffet-0', 2, 0)]);
     assert.equal(next['buffet-0']?.[0]?.adultQty, '1');
   });
+
+  it('seeds menu rows with default whole qty 1', () => {
+    const next = withDefaultByItemLineRows({}, [menuSpec('water', 1)]);
+    assert.equal(next['water']?.[0]?.qtyWhole, '1');
+  });
 });
 
 describe('appendByItemConsumerRow', () => {
@@ -307,6 +312,7 @@ describe('removeByItemConsumerRow', () => {
     assert.equal(next.length, 1);
     assert.notEqual(next[0]?.id, 'a');
     assert.equal(next[0]?.name, '');
+    assert.equal(next[0]?.qtyWhole, '1');
   });
 
   it('creates a buffet default row when the last buffet row is removed', () => {

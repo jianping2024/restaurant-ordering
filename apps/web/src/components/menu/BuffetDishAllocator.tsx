@@ -20,6 +20,10 @@ import {
 } from '@/components/menu/ByItemDishAllocatorHeader';
 import { ByItemDishAllocatorShell } from '@/components/menu/ByItemDishAllocatorShell';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
+import {
+  customerQtyInputAlertClass,
+  customerQtyInputClass,
+} from '@/components/menu/customer-form-input-styles';
 
 export type BuffetDishAllocatorLabels = ByItemLineStatusLabels & {
   addConsumer: string;
@@ -42,10 +46,8 @@ interface Props {
   onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
 
-const INPUT_CLASS =
-  'w-10 bg-brand-bg border rounded-lg py-2 text-[14px] text-brand-text text-center placeholder:text-brand-muted focus:outline-none focus:ring-2 tabular-nums';
-const INPUT_OK = `${INPUT_CLASS} border-brand-border focus:ring-brand-gold/40`;
-const INPUT_ALERT = `${INPUT_CLASS} border-red-500 focus:ring-red-500/40`;
+const INPUT_OK = `${customerQtyInputClass} w-10`;
+const INPUT_ALERT = `${customerQtyInputAlertClass} w-10`;
 
 function isRowBuffetOverAllocated(
   row: ByItemConsumerRow,

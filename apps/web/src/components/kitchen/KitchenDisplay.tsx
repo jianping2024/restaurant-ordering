@@ -288,7 +288,12 @@ function KitchenDisplayInner({
     }
   };
 
-  useRestaurantStaffEntryReconcile(!isDemo && !hasAuthoritativeSeed, refreshKitchenBoard);
+  useRestaurantStaffEntryReconcile(
+    !isDemo,
+    refreshKitchenBoard,
+    undefined,
+    !hasAuthoritativeSeed,
+  );
 
   useRestaurantRealtimeRefresh(
     supabase,

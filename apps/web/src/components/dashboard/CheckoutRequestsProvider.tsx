@@ -28,6 +28,7 @@ import {
 import { groupCollectedPaymentsBySession } from '@/lib/checkout-settlement';
 import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
 import { useBillSplitsRealtimeRefresh } from '@/lib/use-bill-splits-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import type { BillSplit } from '@/types';
 
 type CheckoutRequestsContextValue = {
@@ -177,6 +178,8 @@ export function CheckoutRequestsProvider({
     },
     [],
   );
+
+  useRestaurantStaffEntryReconcile(enabled, reload);
 
   useBillSplitsRealtimeRefresh(
     supabase,

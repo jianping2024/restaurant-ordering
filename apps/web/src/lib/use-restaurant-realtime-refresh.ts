@@ -4,40 +4,72 @@ import { useEffect, useRef } from 'react';
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Staff board/detail freshness contract (production):
+ * Staff surface freshness contract (production):
  * 1. SSR page seed — first paint when server auth + load succeed
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
- * 3. Client entry reconcile — Staff API on mount (dashboard board provider always reconciles)
- * 4. Staff menu submit return — dedicated reconcile, then strip query
- * 5. Realtime while mounted (`useRestaurantRealtimeRefresh`)
- * 6. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
+ * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`)
+ * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once
+ * 5. Staff menu submit return — dedicated reconcile, then strip query
+ * 6. Realtime while visible (`useRestaurantRealtimeRefresh`) — invalidation signal only
+ * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
+ *
+ * Realtime never owns resume freshness: mobile tabs unsubscribe while hidden and would otherwise
+ * miss cross-device closes until the next chance event.
+ */
+
+/**
+ * Reconcile authoritative staff read-models when a surface becomes active:
+ * mount / entry navigation (optional), and document visible after being hidden.
  */
 export function useRestaurantStaffEntryReconcile(
   enabled: boolean,
   refresh: () => void | Promise<unknown>,
   entryKey?: string | number,
+  /** When false, skip mount pull (SSR already authoritative) but still resume. Default true. */
+  reconcileOnMount = true,
 ) {
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
+  useEffect(() => {
+    if (!enabled || !reconcileOnMount) return;
+    void refresh();
+  }, [enabled, refresh, entryKey, reconcileOnMount]);
+
   useEffect(() => {
     if (!enabled) return;
-    void refresh();
-  }, [enabled, refresh, entryKey]);
+
+    const onVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      void refreshRef.current();
+    };
+
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [enabled, entryKey]);
 }
 
+export type PostgresRealtimeBinding = {
+  table: string;
+  filter: string;
+};
+
 /**
- * Supabase Realtime (WebSocket): debounced refresh when orders / sessions / bills change.
- * Entry reload is the caller's job — use `useRestaurantStaffEntryReconcile` on mount/navigation.
- * Unsubscribes while hidden.
+ * Shared transport: subscribe while the tab is visible; debounce postgres_changes → onRefresh.
+ * Lifecycle reconcile (mount / resume) stays in `useRestaurantStaffEntryReconcile`.
  */
-export function useRestaurantRealtimeRefresh(
+export function useDebouncedPostgresRealtimeRefresh(
   supabase: SupabaseClient,
-  restaurantId: string,
   channelKey: string,
   enabled: boolean,
+  bindings: readonly PostgresRealtimeBinding[],
   onRefresh: () => void,
   debounceMs = 1200,
 ) {
   const onRefreshRef = useRef(onRefresh);
   onRefreshRef.current = onRefresh;
+  const bindingsRef = useRef(bindings);
+  bindingsRef.current = bindings;
 
   useEffect(() => {
     if (!enabled) return;
@@ -56,39 +88,20 @@ export function useRestaurantRealtimeRefresh(
 
     const subscribe = () => {
       if (channel) return;
-      channel = supabase
-        .channel(channelKey)
-        .on(
+      let next = supabase.channel(channelKey);
+      for (const binding of bindingsRef.current) {
+        next = next.on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'orders',
-            filter: `restaurant_id=eq.${restaurantId}`,
+            table: binding.table,
+            filter: binding.filter,
           },
           scheduleRefresh,
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'table_sessions',
-            filter: `restaurant_id=eq.${restaurantId}`,
-          },
-          scheduleRefresh,
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'bill_splits',
-            filter: `restaurant_id=eq.${restaurantId}`,
-          },
-          scheduleRefresh,
-        )
-        .subscribe();
+        );
+      }
+      channel = next.subscribe();
     };
 
     const unsubscribe = () => {
@@ -114,5 +127,33 @@ export function useRestaurantRealtimeRefresh(
       unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [channelKey, debounceMs, enabled, restaurantId, supabase]);
+    // bindings are read via ref; restaurant-scoped filters are in channelKey / enabled deps of callers
+  }, [channelKey, debounceMs, enabled, supabase]);
+}
+
+/**
+ * Supabase Realtime for staff boards: orders / sessions / bill_splits → debounced refresh.
+ * Entry and resume reload: `useRestaurantStaffEntryReconcile`.
+ */
+export function useRestaurantRealtimeRefresh(
+  supabase: SupabaseClient,
+  restaurantId: string,
+  channelKey: string,
+  enabled: boolean,
+  onRefresh: () => void,
+  debounceMs = 1200,
+) {
+  const filter = `restaurant_id=eq.${restaurantId}`;
+  useDebouncedPostgresRealtimeRefresh(
+    supabase,
+    channelKey,
+    enabled,
+    [
+      { table: 'orders', filter },
+      { table: 'table_sessions', filter },
+      { table: 'bill_splits', filter },
+    ],
+    onRefresh,
+    debounceMs,
+  );
 }

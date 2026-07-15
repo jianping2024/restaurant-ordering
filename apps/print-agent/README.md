@@ -110,7 +110,7 @@ While **inside** schedule:
 
 While **outside** schedule: sleep `closed_check_sec` (default 60s), no HTTP polls.
 
-**Dashboard overrides:** Owners can edit lunch/dinner hours and poll seconds under **Dashboard → Print assistant** (saved to `restaurants.print_agent_config`). The agent fetches this once at **startup** via `GET /api/print-agent/runtime-config`; it is **not** hot-reloaded while running—restart the tray agent after saving. Quiet-period (`idle_interval_sec`) default is **20s**, allowed range **3–120**; lower values print sooner but use more API traffic.
+**Dashboard overrides:** Owners can edit lunch/dinner hours and poll seconds under **Dashboard → Print assistant** (saved to `restaurants.print_agent_config`). The agent fetches this once at **startup** via `GET /api/print-agent/runtime-config`; it is **not** hot-reloaded while running—restart the tray agent after saving. Dashboard defaults: after-batch **8s**, warm **9s**, quiet-period (`idle_interval_sec`) **10s**; allowed range for those three is **5–60** (idle max **120**). Lower values print sooner but use more API traffic.
 
 **Job max age:** `GET /api/print-agent/pending-jobs` only returns `pending` rows **newer than 10 minutes**. Older `pending`/`processing` rows are marked `failed` by a **server cron (every 5 minutes)** and defensively skipped by the agent. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
 

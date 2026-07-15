@@ -560,27 +560,27 @@ export const MESSAGES = {
       scheduleSubtitle:
         '保存后，打印助手在下次启动时会从 {brand} 拉取并覆盖本机 config 中的 schedule / poll（打印机地址仍用本机配置）。运行中不会反复拉取。',
       scheduleApplyNote:
-        '拉取间隔可按本店调整（淡季默认 20 秒）。保存后须重启收银机上的 {printAgent} 才会生效：托盘图标右键 → 退出，再从开始菜单重新打开。',
+        '拉取间隔可按本店调整（淡季默认 {idleDefault} 秒）。保存后须重启收银机上的 {printAgent} 才会生效：托盘图标右键 → 退出，再从开始菜单重新打开。',
       scheduleTimezone: '时区',
       scheduleLunch: '午市（每天）',
       scheduleDinner: '晚市（每天）',
       schedulePollAdvanced: '高级：拉取间隔',
       schedulePollIntro: '打印助手按场景自动切换下列间隔。',
       schedulePollRecommended:
-        '推荐起点：打完一批 8–10 秒；仍可能有单 15–20 秒、保持 1800 秒（30 分钟）；淡季 20–30 秒。淡季可调到 20–60 以省联网次数。忙时重试固定 5 秒（不在此配置）。',
+        '推荐起点：打完一批 {afterDefault} 秒；仍可能有单 {warmDefault} 秒、保持 {warmAfterDefault} 秒（约 30 分钟）；淡季 {idleDefault} 秒。问询间隔最短 {minFreq} 秒。忙时重试固定 5 秒（不在此配置）。',
       schedulePollEmptyQueue: '服务器返回「暂无任务」时',
       scheduleAfterPrint: '打完一整批后，再等（秒）',
       scheduleAfterPrintHint:
-        '一次最多连续出 25 张后，休息这么久再去看有没有新单（不是每张之间停顿）。最少 8 秒，最多 60 秒。',
+        '一次最多连续出 25 张后，休息这么久再去看有没有新单（不是每张之间停顿）。最少 {min} 秒，最多 {max} 秒。',
       scheduleWarm: '仍可能有单 · 每隔多少秒问一次',
       scheduleWarmHint:
-        '刚出过后厨单、暂时还没有新单时，每隔多久再看一次。最少 15 秒，最多 60 秒。',
+        '刚出过后厨单、暂时还没有新单时，每隔多久再看一次。最少 {min} 秒，最多 {max} 秒。',
       scheduleWarmAfter: '仍可能有单 · 保持多久（秒）',
       scheduleWarmAfterHint:
-        '从最后一次出单或拉到新单开始计时；过了这段时间仍无新单，就改用「淡季」节奏。最少 600 秒（约 10 分钟），最多 7200 秒（约 2 小时）。',
+        '从最后一次出单或拉到新单开始计时；过了这段时间仍无新单，就改用「淡季」节奏。最少 {min} 秒（约 10 分钟），最多 {max} 秒（约 2 小时）。',
       scheduleIdle: '淡季 · 每隔多少秒问一次',
       scheduleIdleHint:
-        '长时间没有新单时的拉取节奏。最少 20 秒，最多 120 秒；设得越短反应越快，但联网越频繁。',
+        '长时间没有新单时的拉取节奏。最少 {min} 秒，最多 {max} 秒；设得越短反应越快，但联网越频繁。',
       scheduleSave: '保存',
       scheduleSaved: '已保存。请重启店内打印助手后生效。',
       scheduleErrPrefix: '保存失败：',
@@ -1807,27 +1807,27 @@ export const MESSAGES = {
       scheduleSubtitle:
         'Saved settings are fetched once when the print agent starts (overrides local schedule/poll; printer addresses stay on the PC). Not polled while running.',
       scheduleApplyNote:
-        'Intervals are per restaurant (quiet-period default 20 sec). After saving, restart the in-store {printAgent}: tray icon → Exit, then open {printAgent} from the Start menu again.',
+        'Intervals are per restaurant (quiet-period default {idleDefault} sec). After saving, restart the in-store {printAgent}: tray icon → Exit, then open {printAgent} from the Start menu again.',
       scheduleTimezone: 'Timezone',
       scheduleLunch: 'Lunch (every day)',
       scheduleDinner: 'Dinner (every day)',
       schedulePollAdvanced: 'Advanced: fetch intervals',
       schedulePollIntro: 'The agent switches intervals by situation (see recommended values below).',
       schedulePollRecommended:
-        'Typical: after batch 8–10 sec; may-still-get-orders 15–20 sec, keep 1800 sec (30 min); quiet period 20–30 sec. Quiet period can go up to 60 sec to reduce check frequency. Busy retry is fixed at 5 sec (not here).',
+        'Typical start: after batch {afterDefault} sec; may-still-get-orders {warmDefault} sec, keep {warmAfterDefault} sec (about 30 min); quiet period {idleDefault} sec. Poll intervals minimum {minFreq} sec. Busy retry is fixed at 5 sec (not here).',
       schedulePollEmptyQueue: 'When the server returns no jobs',
       scheduleAfterPrint: 'After a full batch, wait (sec)',
       scheduleAfterPrintHint:
-        'After up to 25 tickets from one fetch, rest this long before checking for new orders (not between each ticket). Minimum 8 sec, maximum 60 sec.',
+        'After up to 25 tickets from one fetch, rest this long before checking for new orders (not between each ticket). Minimum {min} sec, maximum {max} sec.',
       scheduleWarm: 'May still get orders · ask every (sec)',
       scheduleWarmHint:
-        'Right after printing, when there are no new orders yet, how often to check again. Minimum 15 sec, maximum 60 sec.',
+        'Right after printing, when there are no new orders yet, how often to check again. Minimum {min} sec, maximum {max} sec.',
       scheduleWarmAfter: 'May still get orders · keep window (sec)',
       scheduleWarmAfterHint:
-        'From the last print or fetch; after this with no new orders, the quiet-period interval applies. Minimum 600 sec (about 10 min), maximum 7200 sec (about 2 hours).',
+        'From the last print or fetch; after this with no new orders, the quiet-period interval applies. Minimum {min} sec (about 10 min), maximum {max} sec (about 2 hours).',
       scheduleIdle: 'Quiet period · ask every (sec)',
       scheduleIdleHint:
-        'How often to check when there have been no orders for a long time. Minimum 20 sec, maximum 120 sec; shorter reacts faster but connects more often.',
+        'How often to check when there have been no orders for a long time. Minimum {min} sec, maximum {max} sec; shorter reacts faster but connects more often.',
       scheduleSave: 'Save',
       scheduleSaved: 'Saved. Restart the in-store print agent to apply.',
       scheduleErrPrefix: 'Save failed: ',
@@ -2676,27 +2676,27 @@ export const MESSAGES = {
       scheduleSubtitle:
         'Ao guardar, o agente aplica na proxima arrancada (substitui schedule/poll local; impressoras ficam no PC). Nao ha polling de configuracao em execucao.',
       scheduleApplyNote:
-        'Intervalos por restaurante (periodo calmo: 20 s por defeito). Apos guardar, reinicie o {printAgent} na loja: icone na bandeja → Sair, depois abra de novo no menu Iniciar.',
+        'Intervalos por restaurante (periodo calmo: {idleDefault} s por defeito). Apos guardar, reinicie o {printAgent} na loja: icone na bandeja → Sair, depois abra de novo no menu Iniciar.',
       scheduleTimezone: 'Fuso horario',
       scheduleLunch: 'Almoco (todos os dias)',
       scheduleDinner: 'Jantar (todos os dias)',
       schedulePollAdvanced: 'Avancado: intervalos de pedido',
       schedulePollIntro: 'O agente alterna intervalos conforme a situacao (valores abaixo).',
       schedulePollRecommended:
-        'Habitual: apos lote 8–10 s; ainda pode haver pedidos 15–20 s, janela 1800 s (30 min); calmo 20–30 s. Periodo calmo pode subir ate 60 s para menos consultas. Reintentos ocupado 5 s (nao aqui).',
+        'Ponto de partida: apos lote {afterDefault} s; ainda pode haver pedidos {warmDefault} s, janela {warmAfterDefault} s (cerca de 30 min); calmo {idleDefault} s. Intervalo minimo {minFreq} s. Reintentos ocupado 5 s (nao aqui).',
       schedulePollEmptyQueue: 'Quando o servidor nao tem tarefas',
       scheduleAfterPrint: 'Apos o lote completo, esperar (seg)',
       scheduleAfterPrintHint:
-        'Apos ate 25 taloes num pedido, descanse este tempo antes de verificar novos pedidos (nao entre cada talao). Minimo 8 s, maximo 60 s.',
+        'Apos ate 25 taloes num pedido, descanse este tempo antes de verificar novos pedidos (nao entre cada talao). Minimo {min} s, maximo {max} s.',
       scheduleWarm: 'Ainda pode haver pedidos · perguntar a cada (seg)',
       scheduleWarmHint:
-        'Logo apos imprimir, quando ainda nao ha novos pedidos, de quanto em quanto verificar. Minimo 15 s, maximo 60 s.',
+        'Logo apos imprimir, quando ainda nao ha novos pedidos, de quanto em quanto verificar. Minimo {min} s, maximo {max} s.',
       scheduleWarmAfter: 'Ainda pode haver pedidos · janela (seg)',
       scheduleWarmAfterHint:
-        'Desde a ultima impressao ou pedido; passado este tempo sem novos pedidos, usa o intervalo calmo. Minimo 600 s (cerca de 10 min), maximo 7200 s (cerca de 2 h).',
+        'Desde a ultima impressao ou pedido; passado este tempo sem novos pedidos, usa o intervalo calmo. Minimo {min} s (cerca de 10 min), maximo {max} s (cerca de 2 h).',
       scheduleIdle: 'Periodo calmo · perguntar a cada (seg)',
       scheduleIdleHint:
-        'De quanto em quanto verificar quando ha muito tempo sem pedidos. Minimo 20 s, maximo 120 s; mais curto reage mais depressa mas liga-se mais vezes.',
+        'De quanto em quanto verificar quando ha muito tempo sem pedidos. Minimo {min} s, maximo {max} s; mais curto reage mais depressa mas liga-se mais vezes.',
       scheduleSave: 'Guardar',
       scheduleSaved: 'Guardado. Reinicie o agente na loja para aplicar.',
       scheduleErrPrefix: 'Erro: ',

@@ -98,6 +98,18 @@ export function PrintAgentSchedulePanel({
       ? `≈ ${Math.round(form.warmAfterActivitySec / 60)} ${lang === 'zh' ? '分钟' : 'min'}`
       : undefined;
 
+  const L = PRINT_AGENT_POLL_LIMITS;
+  const scheduleApplyNote = t.scheduleApplyNote.replace(
+    '{idleDefault}',
+    String(L.idleIntervalSec.default),
+  );
+  const schedulePollRecommended = t.schedulePollRecommended
+    .replace('{afterDefault}', String(L.afterPrintIntervalSec.default))
+    .replace('{warmDefault}', String(L.warmIntervalSec.default))
+    .replace('{idleDefault}', String(L.idleIntervalSec.default))
+    .replace('{warmAfterDefault}', String(L.warmAfterActivitySec.default))
+    .replace('{minFreq}', String(L.afterPrintIntervalSec.min));
+
   return (
     <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-6">
       <div>
@@ -107,7 +119,7 @@ export function PrintAgentSchedulePanel({
           className="mt-3 max-w-2xl rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text"
           role="note"
         >
-          {t.scheduleApplyNote}
+          {scheduleApplyNote}
         </p>
       </div>
 
@@ -176,14 +188,14 @@ export function PrintAgentSchedulePanel({
             className="max-w-2xl rounded-xl border border-brand-border/80 bg-brand-bg/60 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text-muted"
             role="note"
           >
-            {t.schedulePollRecommended}
+            {schedulePollRecommended}
           </p>
 
           <PollIntervalField
             label={t.scheduleAfterPrint}
             hint={t.scheduleAfterPrintHint}
-            min={PRINT_AGENT_POLL_LIMITS.afterPrintIntervalSec.min}
-            max={PRINT_AGENT_POLL_LIMITS.afterPrintIntervalSec.max}
+            min={L.afterPrintIntervalSec.min}
+            max={L.afterPrintIntervalSec.max}
             value={form.afterPrintIntervalSec}
             onChange={(n) => setField('afterPrintIntervalSec', n)}
           />
@@ -194,16 +206,16 @@ export function PrintAgentSchedulePanel({
               <PollIntervalField
                 label={t.scheduleWarm}
                 hint={t.scheduleWarmHint}
-                min={PRINT_AGENT_POLL_LIMITS.warmIntervalSec.min}
-                max={PRINT_AGENT_POLL_LIMITS.warmIntervalSec.max}
+                min={L.warmIntervalSec.min}
+                max={L.warmIntervalSec.max}
                 value={form.warmIntervalSec}
                 onChange={(n) => setField('warmIntervalSec', n)}
               />
               <PollIntervalField
                 label={t.scheduleWarmAfter}
                 hint={t.scheduleWarmAfterHint}
-                min={PRINT_AGENT_POLL_LIMITS.warmAfterActivitySec.min}
-                max={PRINT_AGENT_POLL_LIMITS.warmAfterActivitySec.max}
+                min={L.warmAfterActivitySec.min}
+                max={L.warmAfterActivitySec.max}
                 value={form.warmAfterActivitySec}
                 onChange={(n) => setField('warmAfterActivitySec', n)}
                 suffix={warmMinutesSuffix}
@@ -212,8 +224,8 @@ export function PrintAgentSchedulePanel({
                 className="sm:col-span-2"
                 label={t.scheduleIdle}
                 hint={t.scheduleIdleHint}
-                min={PRINT_AGENT_POLL_LIMITS.idleIntervalSec.min}
-                max={PRINT_AGENT_POLL_LIMITS.idleIntervalSec.max}
+                min={L.idleIntervalSec.min}
+                max={L.idleIntervalSec.max}
                 value={form.idleIntervalSec}
                 onChange={(n) => setField('idleIntervalSec', n)}
               />
@@ -266,10 +278,12 @@ function PollIntervalField({
   suffix?: string;
   className?: string;
 }) {
+  const resolvedHint = hint.replaceAll('{min}', String(min)).replaceAll('{max}', String(max));
+
   return (
     <div className={`space-y-1.5 ${className}`}>
       <span className="text-sm text-brand-text-muted font-medium block">{label}</span>
-      <p className="text-[12px] text-brand-text-muted leading-relaxed">{hint}</p>
+      <p className="text-[12px] text-brand-text-muted leading-relaxed">{resolvedHint}</p>
       <div className="flex items-center gap-2 max-w-xs">
         <IntegerInput
           min={min}

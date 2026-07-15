@@ -11,14 +11,18 @@ import {
   sanitizePollConfig,
 } from './print-agent-config';
 
+const L = PRINT_AGENT_POLL_LIMITS;
+
 describe('defaultPrintAgentCloudConfig', () => {
   it('uses poll defaults within configured minimums', () => {
-    const config = defaultPrintAgentCloudConfig();
-    const poll = config.poll!;
-    assert.equal(poll.idle_interval_sec, PRINT_AGENT_POLL_LIMITS.idleIntervalSec.default);
-    assert.equal(poll.after_print_interval_sec, PRINT_AGENT_POLL_LIMITS.afterPrintIntervalSec.default);
-    assert.equal(poll.warm_interval_sec, PRINT_AGENT_POLL_LIMITS.warmIntervalSec.default);
-    assert.equal(poll.warm_after_activity_sec, PRINT_AGENT_POLL_LIMITS.warmAfterActivitySec.default);
+    const poll = defaultPrintAgentCloudConfig().poll!;
+    assert.equal(poll.after_print_interval_sec, L.afterPrintIntervalSec.default);
+    assert.equal(poll.warm_interval_sec, L.warmIntervalSec.default);
+    assert.equal(poll.idle_interval_sec, L.idleIntervalSec.default);
+    assert.equal(poll.warm_after_activity_sec, L.warmAfterActivitySec.default);
+    assert.ok(poll.after_print_interval_sec! >= L.afterPrintIntervalSec.min);
+    assert.ok(poll.warm_interval_sec! >= L.warmIntervalSec.min);
+    assert.ok(poll.idle_interval_sec! >= L.idleIntervalSec.min);
   });
 });
 
@@ -30,10 +34,21 @@ describe('sanitizePollConfig', () => {
       warm_after_activity_sec: 60,
       idle_interval_sec: 3,
     });
-    assert.equal(poll.after_print_interval_sec, 8);
-    assert.equal(poll.warm_interval_sec, 15);
-    assert.equal(poll.warm_after_activity_sec, 600);
-    assert.equal(poll.idle_interval_sec, 20);
+    assert.equal(poll.after_print_interval_sec, L.afterPrintIntervalSec.min);
+    assert.equal(poll.warm_interval_sec, L.warmIntervalSec.min);
+    assert.equal(poll.warm_after_activity_sec, L.warmAfterActivitySec.min);
+    assert.equal(poll.idle_interval_sec, L.idleIntervalSec.min);
+  });
+
+  it('keeps values at the configured minimum', () => {
+    const poll = sanitizePollConfig({
+      after_print_interval_sec: L.afterPrintIntervalSec.min,
+      warm_interval_sec: L.warmIntervalSec.min,
+      idle_interval_sec: L.idleIntervalSec.min,
+    });
+    assert.equal(poll.after_print_interval_sec, L.afterPrintIntervalSec.min);
+    assert.equal(poll.warm_interval_sec, L.warmIntervalSec.min);
+    assert.equal(poll.idle_interval_sec, L.idleIntervalSec.min);
   });
 
   it('caps values above maximum', () => {
@@ -43,10 +58,10 @@ describe('sanitizePollConfig', () => {
       warm_after_activity_sec: 99999,
       idle_interval_sec: 999,
     });
-    assert.equal(poll.after_print_interval_sec, 60);
-    assert.equal(poll.warm_interval_sec, 60);
-    assert.equal(poll.warm_after_activity_sec, 7200);
-    assert.equal(poll.idle_interval_sec, 120);
+    assert.equal(poll.after_print_interval_sec, L.afterPrintIntervalSec.max);
+    assert.equal(poll.warm_interval_sec, L.warmIntervalSec.max);
+    assert.equal(poll.warm_after_activity_sec, L.warmAfterActivitySec.max);
+    assert.equal(poll.idle_interval_sec, L.idleIntervalSec.max);
   });
 });
 
@@ -54,16 +69,31 @@ describe('normalizePrintAgentCloudConfig', () => {
   it('sanitizes stored poll values on read', () => {
     const config = normalizePrintAgentCloudConfig({
       poll: {
-        after_print_interval_sec: 5,
-        warm_interval_sec: 10,
+        after_print_interval_sec: 4,
+        warm_interval_sec: 4,
         warm_after_activity_sec: 300,
+        idle_interval_sec: 4,
+      },
+    });
+    assert.equal(config.poll?.after_print_interval_sec, L.afterPrintIntervalSec.min);
+    assert.equal(config.poll?.warm_interval_sec, L.warmIntervalSec.min);
+    assert.equal(config.poll?.warm_after_activity_sec, L.warmAfterActivitySec.min);
+    assert.equal(config.poll?.idle_interval_sec, L.idleIntervalSec.min);
+  });
+
+  it('preserves in-range poll values including former dashboard floor values', () => {
+    const config = normalizePrintAgentCloudConfig({
+      poll: {
+        after_print_interval_sec: 5,
+        warm_interval_sec: 9,
+        warm_after_activity_sec: 1800,
         idle_interval_sec: 10,
       },
     });
-    assert.equal(config.poll?.after_print_interval_sec, 8);
-    assert.equal(config.poll?.warm_interval_sec, 15);
-    assert.equal(config.poll?.warm_after_activity_sec, 600);
-    assert.equal(config.poll?.idle_interval_sec, 20);
+    assert.equal(config.poll?.after_print_interval_sec, 5);
+    assert.equal(config.poll?.warm_interval_sec, 9);
+    assert.equal(config.poll?.warm_after_activity_sec, 1800);
+    assert.equal(config.poll?.idle_interval_sec, 10);
   });
 
   it('reads station slip category group toggle', () => {
@@ -78,15 +108,15 @@ describe('normalizePrintAgentCloudConfig', () => {
 describe('formToCloudConfig', () => {
   it('sanitizes poll fields when saving', () => {
     const form = cloudConfigToForm({});
-    form.afterPrintIntervalSec = 7;
-    form.warmIntervalSec = 12;
+    form.afterPrintIntervalSec = 4;
+    form.warmIntervalSec = 3;
     form.warmAfterActivitySec = 500;
-    form.idleIntervalSec = 18;
+    form.idleIntervalSec = 2;
     const config = formToCloudConfig(form);
-    assert.equal(config.poll?.after_print_interval_sec, 8);
-    assert.equal(config.poll?.warm_interval_sec, 15);
-    assert.equal(config.poll?.warm_after_activity_sec, 600);
-    assert.equal(config.poll?.idle_interval_sec, 20);
+    assert.equal(config.poll?.after_print_interval_sec, L.afterPrintIntervalSec.min);
+    assert.equal(config.poll?.warm_interval_sec, L.warmIntervalSec.min);
+    assert.equal(config.poll?.warm_after_activity_sec, L.warmAfterActivitySec.min);
+    assert.equal(config.poll?.idle_interval_sec, L.idleIntervalSec.min);
   });
 });
 

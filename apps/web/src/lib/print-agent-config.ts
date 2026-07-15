@@ -51,10 +51,10 @@ type PollLimit = { min: number; max: number; default: number };
 
 /** Single source for dashboard poll interval bounds (seconds). */
 export const PRINT_AGENT_POLL_LIMITS = {
-  afterPrintIntervalSec: { min: 8, max: 60, default: 8 },
-  warmIntervalSec: { min: 15, max: 60, default: 15 },
+  afterPrintIntervalSec: { min: 5, max: 60, default: 8 },
+  warmIntervalSec: { min: 5, max: 60, default: 9 },
   warmAfterActivitySec: { min: 600, max: 7200, default: 1800 },
-  idleIntervalSec: { min: 20, max: 120, default: 20 },
+  idleIntervalSec: { min: 5, max: 120, default: 10 },
   closedCheckSec: { min: 15, max: 300, default: 60 },
 } as const satisfies Record<string, PollLimit>;
 

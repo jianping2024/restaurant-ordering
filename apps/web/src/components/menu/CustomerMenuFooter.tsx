@@ -1,5 +1,9 @@
 import Link from 'next/link';
 import { CustomerCartIcon } from '@/components/menu/customer-ordering-icons';
+import {
+  customerMenuBottomBarDockClass,
+  customerMenuBottomBarRowClass,
+} from '@/lib/customer-menu-bottom-bar-layout';
 import type { MenuPageFooterView } from '@/lib/menu-page-footer';
 
 type Labels = {
@@ -28,8 +32,8 @@ export function CustomerMenuFooter({
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-30 w-full max-w-mobile -translate-x-1/2 px-4 pb-[max(0px,env(safe-area-inset-bottom))]">
-      <div className="flex h-14 items-stretch overflow-hidden rounded-2xl border border-brand-border bg-brand-card shadow-xl shadow-black/10">
+    <div className={customerMenuBottomBarDockClass}>
+      <div className={customerMenuBottomBarRowClass}>
         <button
           type="button"
           onClick={onOpenCart}
@@ -37,9 +41,9 @@ export function CustomerMenuFooter({
           aria-label={labels.viewCart}
         >
           <span className="relative shrink-0 text-brand-gold">
-            <CustomerCartIcon className="h-5 w-5" />
+            <CustomerCartIcon className="h-6 w-6" />
             {cartQty > 0 ? (
-              <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
+              <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
                 {cartQty}
               </span>
             ) : null}

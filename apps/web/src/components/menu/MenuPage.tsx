@@ -8,6 +8,7 @@ import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
@@ -254,7 +255,7 @@ export function MenuPage({
       }),
     [activeSession, cart, recentOrders, restaurant.slug, sessionResolved, staffAssisted, tableId],
   );
-  const pageBottomPaddingClass = footer.visible ? 'pb-24' : 'pb-16';
+  const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(footer.visible);
 
   const clearSubmitCart = useCallback(() => {
     setCart([]);

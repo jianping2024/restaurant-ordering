@@ -874,6 +874,7 @@ function WaiterTableDetailInner({
 
         <WaiterTableOrderedItemsPanel
           title={t.orderedItems}
+          sessionTotal={selectedCard.sessionTotal}
           lines={selectedCard.orderLines}
           isCheckoutPending={isCheckoutPending}
           decrementingKey={decrementingKey}

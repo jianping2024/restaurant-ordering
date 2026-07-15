@@ -32,6 +32,7 @@ import {
 import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { formatWaiterBoardCardAmount } from '@/lib/waiter-board-card-display';
 import {
   buttonIcon,
   WaiterDetailCard,
@@ -451,6 +452,8 @@ export function WaiterTableOccupiedToolbar({
 
 type OrderedItemsProps = {
   title: string;
+  /** Session consumption total — same source as the waiter board card amount. */
+  sessionTotal: number;
   lines: WaiterOrderLine[];
   isCheckoutPending: boolean;
   decrementingKey: string | null;
@@ -460,6 +463,7 @@ type OrderedItemsProps = {
 
 export function WaiterTableOrderedItemsPanel({
   title,
+  sessionTotal,
   lines,
   isCheckoutPending,
   decrementingKey,
@@ -468,11 +472,18 @@ export function WaiterTableOrderedItemsPanel({
 }: OrderedItemsProps) {
   if (lines.length === 0) return null;
 
+  const amountText = formatWaiterBoardCardAmount(sessionTotal);
+
   return (
     <WaiterDetailCard className="overflow-hidden">
       <div className={waiterDetailLayout.sectionHeader}>
-        <WaiterClocheIcon className={`${buttonIcon.md} text-brand-gold`} />
-        <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
+        <div className="flex min-w-0 items-center gap-2">
+          <WaiterClocheIcon className={`${buttonIcon.md} text-brand-gold`} />
+          <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
+        </div>
+        {amountText ? (
+          <span className={waiterDetailLayout.orderedItemsAmount}>{amountText}</span>
+        ) : null}
       </div>
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => (

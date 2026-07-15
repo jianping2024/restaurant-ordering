@@ -22,7 +22,7 @@ export const buffetDetailPackageRow =
  */
 export const waiterDetailLayout = {
   cardBody: `${WAITER_DETAIL_GUTTER_PX} py-4`,
-  sectionHeader: `flex items-center gap-2 border-b border-brand-border/40 ${WAITER_DETAIL_GUTTER_PX} py-3`,
+  sectionHeader: `flex items-center justify-between gap-2 border-b border-brand-border/40 ${WAITER_DETAIL_GUTTER_PX} py-3`,
   sectionBody: `space-y-2 ${WAITER_DETAIL_GUTTER_PX} py-3`,
   /** Save guests, continue ordering, close table — same action footprint. */
   primaryAction: 'w-full justify-center sm:w-auto whitespace-nowrap sm:max-w-none xl:w-auto',
@@ -39,6 +39,8 @@ export const waiterDetailLayout = {
   pageFooter: 'mt-4 flex justify-center',
   /** Ordered-items card — title, row text, and qty share `text-lg` (18px). */
   orderedItemsTitle: 'text-lg font-semibold text-brand-text',
+  /** Session total beside the ordered-items title — same € format as the board card. */
+  orderedItemsAmount: 'shrink-0 text-lg font-semibold text-brand-gold tabular-nums',
   orderedItemLabel: 'text-lg text-brand-text truncate min-w-0 flex-1',
   orderedItemQty: 'text-lg text-brand-text tabular-nums',
 } as const;

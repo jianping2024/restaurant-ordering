@@ -8,9 +8,8 @@ import {
   customerBillCallAmount,
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
-import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
+import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { getMessages } from '@/lib/i18n/messages';
-import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
@@ -20,10 +19,11 @@ import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, OrderItem, SessionStatus, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, SessionStatus, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
+import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 
@@ -70,8 +70,6 @@ export function BillPage({
   const checkoutRedirectHref = staffAssisted?.checkoutRedirectHref ?? null;
 
   const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
-  const lineQtyLabel = (item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count'>) =>
-    formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
 
   const [continuationSplit, setContinuationSplit] = useState<BillSplit | null>(existingSplit);
   const collectedPayments = initialCollectedPayments;
@@ -99,6 +97,11 @@ export function BillPage({
     commitOrders,
     lastSyncedAt,
   } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
+
+  const detailLines = useMemo(
+    () => checkoutLinesFromOrders(orders, itemCodeByMenuId),
+    [orders, itemCodeByMenuId],
+  );
 
   const splitDraft = useBillSplitDraft({
     existingSplit,
@@ -451,31 +454,12 @@ export function BillPage({
         backLink={staffAssisted ? null : { href: backHref, label: backLabel }}
       />
 
-      <div className="px-4 py-4">
-        <h2 className="text-brand-text font-medium mb-3">{t.details}</h2>
-        <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
-          {orderLines.map((item) => {
-            const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
-            return (
-              <div key={item.key} className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                  <span>{item.emoji}</span>
-                  {itemCode ? (
-                    <span className="font-mono text-[11px] text-brand-gold tabular-nums shrink-0">[{itemCode}]</span>
-                  ) : null}
-                  <span className="text-brand-text text-sm">{item.name || item.name_pt}</span>
-                  <span className="text-brand-text-muted text-[13px]">{lineQtyLabel(item)}</span>
-                </div>
-                <span className="text-brand-gold text-sm flex-shrink-0">€{(item.price * item.qty).toFixed(2)}</span>
-              </div>
-            );
-          })}
-          <div className="flex items-center justify-between px-4 py-3 bg-brand-border/30">
-            <span className="text-brand-text font-medium">{t.total}</span>
-            <span className="font-heading text-xl text-brand-gold">€{total.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
+      <BillDetailsSection
+        title={t.details}
+        totalLabel={t.total}
+        lines={detailLines}
+        total={total}
+      />
 
       <BillSplitPanel
         lang={lang}

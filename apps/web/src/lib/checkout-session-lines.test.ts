@@ -106,4 +106,48 @@ describe('checkoutLinesFromOrders', () => {
     assert.equal(lines[0]?.quantityLabel, '· A1-C2');
     assert.equal(lines[0]?.lineTotal, 55.9);
   });
+
+  it('merges repeated menu items with the same unit price', () => {
+    const orders = [
+      {
+        id: 'o1',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+          },
+        ],
+      },
+      {
+        id: 'o2',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+          },
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = checkoutLinesFromOrders(orders);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.quantityLabel, '× 3');
+    assert.ok(Math.abs((lines[0]?.lineTotal ?? 0) - 5.55) < 0.001);
+  });
 });

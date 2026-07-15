@@ -56,6 +56,21 @@ Web 入队（service role）
 | `order_receipt` | `checkout_bill` | **手动**「打印账单」 |
 | `order_receipt` | （连接测试） | 向导/试打 |
 
+#### 业务三类 vs 技术四种 `receipt_variant`
+
+产品口语里常见 **三类**账单；实现上用 payload 字段 `receipt_variant` 区分 **四种**，因为「总账单」按 **收款前手动** 与 **收讫后自动** 拆成两种：
+
+| 业务说法 | `receipt_variant` | 触发 | 纸面 |
+|----------|-------------------|------|------|
+| 预结算 / 预结单 | `pre_bill` | 顾客呼叫结账 → **自动** | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
+| 分单 | `split_payment` | 前台确认某人收款 → **自动** | 该人菜品与金额；**有**收款确认行 |
+| 总账单（收款前） | `checkout_bill` | 前台「打印账单」/ 去结账 / 历史重打 → **手动** | 标题 Receipt；整桌合并行；含结账台折扣后应收；**无**收款确认行 |
+| 总账单（收讫后） | `final` | 全员付清 → **自动** | 整桌合并行；**有**收款确认行 |
+
+- `pre_bill` 与 `checkout_bill` 都是「未付完」的整桌账单，区别在 **自动 vs 手动**，以及 `checkout_bill` 使用结账台 `discount_rate`（与「应收」一致）。
+- `checkout_bill` 与 `final` 都是整桌合并行，区别在 **是否已收款** 及纸面是否印 `amount_paid` / 支付方式。
+- 自动三类（`pre_bill`、`split_payment`、`final`）受 `bill_receipt_print` 门控；`checkout_bill` **不受**（见 §3.2）。
+
 入队逻辑：`lib/order-receipt-enqueue.ts`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
 
 - 菜品行标签与出品联一致：`{item_code}-{菜名}`（**不含** `category_code_path`）；同类菜合并后数量累加，**不印备注**。

@@ -181,8 +181,8 @@ flowchart LR
 | `type` | 触发场景 | `payload` 路由关键字段 |
 |--------|----------|------------------------|
 | `station_ticket` | 顾客/服务员提交订单批次 | `print_station_id` → 档口 UUID |
-| `order_receipt` | 结账小票（最终单） | `receipt_printer_id`（通常 `station:{档口UUID}`） |
-| `pre_bill` | 预结单 | 同上 |
+| `order_receipt` | 结账小票（`receipt_variant`：`split_payment` / `final` / `checkout_bill`） | `receipt_printer_id`（通常 `station:{档口UUID}`） |
+| `pre_bill` | 预结单（`receipt_variant`：`pre_bill`） | 同上 |
 
 入队函数：
 

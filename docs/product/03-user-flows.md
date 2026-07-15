@@ -344,8 +344,10 @@
 ```text
 触发源：
   加菜 → station_ticket 自动入队
-  呼叫结账/收款 → order_receipt / pre_bill（受 bill_receipt_print 开关）
-  手动「打印账单」→ checkout_bill（不受开关限制）
+  呼叫结账 → pre_bill 自动（受 bill_receipt_print 开关）
+  确认某人收款 → split_payment 自动；全员付清 → final 自动（同上开关）
+  手动「打印账单」/ 去结账 → checkout_bill（不受开关限制）
+  （业务三类 vs 四种 receipt_variant：见 docs/technical/04-printing.md §3.1）
 代理：
   配对 claim JWT → GET pending-jobs → 打印 → PATCH done/failed
 ```

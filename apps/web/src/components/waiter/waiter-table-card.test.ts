@@ -94,4 +94,173 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.label, 'Buffet livre · A2-C1');
   });
+
+  it('merges identical menu lines with the billable catalog key (ignores notes)', () => {
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Água 500ml',
+              name_pt: 'Água 500ml',
+              qty: 1,
+              price: 1.85,
+              emoji: '💧',
+              item_code: '001',
+              note: 'cold',
+            },
+            {
+              id: 'd1',
+              name: 'Água 500ml',
+              name_pt: 'Água 500ml',
+              qty: 1,
+              price: 1.85,
+              emoji: '💧',
+              item_code: '001',
+              note: 'room',
+            },
+          ],
+          total_amount: 3.7,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          id: 'o2',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'cooking',
+          items: [
+            {
+              id: 'd1',
+              name: 'Água 500ml',
+              name_pt: 'Água 500ml',
+              qty: 1,
+              price: 1.85,
+              emoji: '💧',
+              item_code: '001',
+            },
+          ],
+          total_amount: 1.85,
+          created_at: '2026-01-01T00:01:00.000Z',
+          updated_at: '2026-01-01T00:01:00.000Z',
+        },
+      ],
+      {},
+      'frontdesk_staff',
+    );
+
+    assert.equal(card.orderLines.length, 1);
+    assert.equal(card.orderLines[0]?.label, '001 Água 500ml');
+    assert.equal(card.orderLines[0]?.quantityLabel, '× 3');
+    assert.equal(card.orderLines[0]?.canDecrement, true);
+    assert.equal(card.orderLines[0]?.orderId, 'o1');
+    assert.equal(card.orderLines[0]?.itemIdx, 0);
+  });
+
+  it('keeps menu lines separate when unit price differs', () => {
+    const card = buildWaiterTableCard('t1', '001', [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        table_id: 't1',
+        display_name: '001',
+        status: 'pending',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+            item_code: '001',
+          },
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            qty: 1,
+            price: 2.0,
+            emoji: '💧',
+            item_code: '001',
+          },
+        ],
+        total_amount: 3.85,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+
+    assert.equal(card.orderLines.length, 2);
+    assert.equal(card.orderLines[0]?.quantityLabel, '× 1');
+    assert.equal(card.orderLines[1]?.quantityLabel, '× 1');
+  });
+
+  it('prefers a decrementable qty>1 row as the action target on a merged group', () => {
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 1,
+              price: 2,
+              emoji: '🥤',
+              item_code: '010',
+            },
+          ],
+          total_amount: 2,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          id: 'o2',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 2,
+              price: 2,
+              emoji: '🥤',
+              item_code: '010',
+            },
+          ],
+          total_amount: 4,
+          created_at: '2026-01-01T00:01:00.000Z',
+          updated_at: '2026-01-01T00:01:00.000Z',
+        },
+      ],
+      {},
+      'frontdesk_staff',
+    );
+
+    assert.equal(card.orderLines.length, 1);
+    assert.equal(card.orderLines[0]?.quantityLabel, '× 3');
+    assert.equal(card.orderLines[0]?.orderId, 'o2');
+    assert.equal(card.orderLines[0]?.itemIdx, 0);
+    assert.equal(card.orderLines[0]?.canDecrement, true);
+  });
 });

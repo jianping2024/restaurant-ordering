@@ -1,4 +1,8 @@
-import type { Order } from '@/types';
+import type { Order, OrderItem } from '@/types';
+import {
+  billableMenuItemMergeKey,
+  buildBillableSessionItems,
+} from '@/lib/billable-session-lines';
 import { sumOrderTotals } from '@/lib/cart-totals';
 import {
   aggregateBuffetHeadcountForOrders,
@@ -37,6 +41,59 @@ export interface WaiterTableCardData {
   updatedAt: string;
 }
 
+type MenuLineActionTarget = Pick<WaiterOrderLine, 'orderId' | 'itemIdx' | 'canDecrement'>;
+
+/**
+ * Pick the physical order line for decrement on a billable merge group.
+ * Prefers a decrementable row with qty > 1 (avoids void-reason dialog), then any
+ * decrementable row, then the first matching active row (display-only pointer).
+ */
+function resolveMenuLineActionTarget(
+  orders: Order[],
+  mergeKey: string,
+  operator: MenuDecrementOperator,
+): MenuLineActionTarget {
+  let fallback: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null = null;
+  let bestDecrementable: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null =
+    null;
+  let bestQtyGt1: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null = null;
+
+  for (const order of orders) {
+    (order.items || []).forEach((item, itemIdx) => {
+      if (isBuffetBaseItem(item)) return;
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') return;
+      if (billableMenuItemMergeKey(item) !== mergeKey) return;
+
+      const loc = { orderId: order.id, itemIdx, item, order };
+      if (!fallback) fallback = loc;
+
+      if (!canDecrementOrderLine(operator, item, order.status)) return;
+      if (!bestDecrementable) bestDecrementable = loc;
+      if (item.qty > 1 && !bestQtyGt1) bestQtyGt1 = loc;
+    });
+  }
+
+  const chosen = bestQtyGt1 ?? bestDecrementable ?? fallback;
+  if (!chosen) {
+    return { orderId: '', itemIdx: -1, canDecrement: false };
+  }
+
+  return {
+    orderId: chosen.orderId,
+    itemIdx: chosen.itemIdx,
+    canDecrement: canDecrementOrderLine(operator, chosen.item, chosen.order.status),
+  };
+}
+
+function latestOrderTimestamp(orders: Order[]): string {
+  let latest = '';
+  for (const order of orders) {
+    const ts = order.updated_at || order.created_at;
+    if (ts && (!latest || ts > latest)) latest = ts;
+  }
+  return latest;
+}
+
 /** `orders` is already the table/session view (see ordersForWaiterTableView). */
 export function buildWaiterTableCard(
   tableId: string,
@@ -45,77 +102,35 @@ export function buildWaiterTableCard(
   itemCodeByMenuId: Record<string, string> = {},
   menuDecrementOperator: MenuDecrementOperator = 'waiter_staff',
 ): WaiterTableCardData {
-  const current: WaiterTableCardData = {
-    tableId,
-    displayName,
-    orderLines: [],
-    hasBuffet: false,
-    buffetHeadcount: null,
-    sessionTotal: 0,
-    updatedAt: '',
-  };
-
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
-  current.hasBuffet = buffetSummaries.length > 0;
-  current.buffetHeadcount = aggregateBuffetHeadcountForOrders(orders);
+  const catalog = buildBillableSessionItems(orders);
 
-  const buffetLines: WaiterOrderLine[] = [];
-  const menuLines: WaiterOrderLine[] = [];
-
-  for (const summary of buffetSummaries) {
-    buffetLines.push({
-      orderId: '',
-      itemIdx: -1,
-      label: formatStaffBuffetLineLabel(
-        {
-          name: summary.name,
-          name_pt: summary.name,
-          kind: 'buffet_base',
-          qty: 1,
-          adult_count: summary.adults,
-          child_count: summary.children,
-        },
-        { headcountStyle: 'receipt' },
-      ),
-      quantityLabel: null,
-      canDecrement: false,
-    });
-  }
-
-  for (const order of orders) {
-    const ts = order.updated_at || order.created_at;
-    if (ts && (!current.updatedAt || ts > current.updatedAt)) {
-      current.updatedAt = ts;
+  const orderLines: WaiterOrderLine[] = catalog.map(({ key, item }) => {
+    if (isBuffetBaseItem(item)) {
+      return {
+        orderId: '',
+        itemIdx: -1,
+        label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
+        quantityLabel: null,
+        canDecrement: false,
+      };
     }
 
-    order.items.forEach((item, itemIdx) => {
-      const status = normalizeOrderItemStatus(item, order.status);
-      if (status === 'voided') return;
+    const action = resolveMenuLineActionTarget(orders, key, menuDecrementOperator);
+    return {
+      ...action,
+      label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
+      quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+    };
+  });
 
-      if (isBuffetBaseItem(item)) {
-        if (buffetSummaries.length > 0) return;
-        buffetLines.push({
-          orderId: order.id,
-          itemIdx,
-          label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
-          quantityLabel: null,
-          canDecrement: false,
-        });
-        return;
-      }
-
-      menuLines.push({
-        orderId: order.id,
-        itemIdx,
-        label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
-        quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-        canDecrement: canDecrementOrderLine(menuDecrementOperator, item, order.status),
-      });
-    });
-  }
-
-  current.orderLines = [...buffetLines, ...menuLines];
-  current.sessionTotal = sumOrderTotals(orders);
-
-  return current;
+  return {
+    tableId,
+    displayName,
+    orderLines,
+    hasBuffet: buffetSummaries.length > 0,
+    buffetHeadcount: aggregateBuffetHeadcountForOrders(orders),
+    sessionTotal: sumOrderTotals(orders),
+    updatedAt: latestOrderTimestamp(orders),
+  };
 }

@@ -1,8 +1,5 @@
 import { showToast } from '@/components/ui/Toast';
 
-/** How long the "NEW" tag highlights a batch on the guest menu order list. */
-export const NEW_BATCH_HIGHLIGHT_MS = 15_000;
-
 /** Query flag: waiter table detail runs staff-assisted return reconcile on entry. */
 export const MENU_SUBMIT_RETURN_QUERY = 'menu_submit';
 
@@ -14,23 +11,12 @@ export function staffReturnHrefAfterMenuSubmit(returnHref: string): string {
   return qs ? `${path}?${qs}` : `${path}?from=${MENU_SUBMIT_RETURN_QUERY}`;
 }
 
-export function markLatestSubmittedBatch(
-  batchId: string,
-  setLatestBatchId: (id: string | null) => void,
-): void {
-  setLatestBatchId(batchId);
-  setTimeout(() => setLatestBatchId(null), NEW_BATCH_HIGHLIGHT_MS);
-}
-
-/** Guest menu: stay on page — toast + order-list NEW tag; cart already cleared by caller path. */
+/** Guest menu: stay on page — toast; cart already cleared by caller path. */
 export function completeGuestOrderSubmit(params: {
-  batchId: string;
   orderSuccessMessage: string;
   clearCart: () => void;
-  setLatestBatchId: (id: string | null) => void;
 }): void {
   params.clearCart();
-  markLatestSubmittedBatch(params.batchId, params.setLatestBatchId);
   showToast(params.orderSuccessMessage, 'success');
 }
 

@@ -1,28 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it, mock, afterEach } from 'node:test';
 import {
-  NEW_BATCH_HIGHLIGHT_MS,
   completeStaffAssistedOrderSubmit,
-  markLatestSubmittedBatch,
   staffReturnHrefAfterMenuSubmit,
 } from './menu-order-submit-outcome';
 
 describe('menu-order-submit-outcome', () => {
   afterEach(() => {
     mock.restoreAll();
-  });
-
-  it('markLatestSubmittedBatch clears highlight after NEW_BATCH_HIGHLIGHT_MS', () => {
-    mock.timers.enable({ apis: ['setTimeout'] });
-    const ids: Array<string | null> = [];
-    const setLatestBatchId = (id: string | null) => ids.push(id);
-
-    markLatestSubmittedBatch('batch-1', setLatestBatchId);
-    assert.deepEqual(ids, ['batch-1']);
-
-    mock.timers.tick(NEW_BATCH_HIGHLIGHT_MS);
-    assert.deepEqual(ids, ['batch-1', null]);
-    mock.timers.reset();
   });
 
   it('staffReturnHrefAfterMenuSubmit appends from=menu_submit', () => {

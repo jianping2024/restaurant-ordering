@@ -6,12 +6,11 @@ import { useRouter } from 'next/navigation';
 import type { MenuItem, CartItem, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
-import { CATEGORY_LABELS, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { coerceCartPrice, coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
 import {
   completeGuestOrderSubmit,
@@ -36,9 +35,8 @@ import {
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
-import { waiterBillHref } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
-import { CustomerOrderedSectionHeader } from '@/components/menu/CustomerOrderedSectionHeader';
+import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
@@ -85,7 +83,6 @@ export function MenuPage({
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [demoToast, setDemoToast] = useState(false);
-  const [latestBatchId, setLatestBatchId] = useState<string | null>(null);
   const {
     submitCooldownRemaining,
     isSubmitCooldownActive,
@@ -240,43 +237,36 @@ export function MenuPage({
     setCart(prev => prev.map(c => c.menuItemId === menuItemId ? { ...c, note } : c));
   };
 
-  const totalQty = cart.reduce((sum, c) => sum + coerceCartQty(c.qty), 0);
-  const totalPrice = sumLineTotals(cart);
   const t = MENU_PAGE_MESSAGES[lang];
-  const locale = UI_LOCALE_BY_LANG[lang];
   const isLocalDevHost =
     typeof window !== 'undefined' &&
     ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-  const { totalItemCount } = recentOrders.reduce((acc, order) => {
-    acc.totalItemCount += order.items.length;
-    return acc;
-  }, { totalItemCount: 0 });
-  const pageBottomPaddingClass = totalQty > 0 ? 'pb-28' : 'pb-16';
-  // 只要本桌本餐次有下单记录，即可随时进入结账页。
-  const canGoBill = !!activeSession && totalItemCount > 0;
-  const canShowBillCta = staffAssisted
-    ? staffAssisted.showBillCta && !!activeSession
-    : !!activeSession;
-  const billHref = staffAssisted?.showBillCta
-    ? waiterBillHref(restaurant.slug, tableId, { embeddedInDashboard: true })
-    : `/${restaurant.slug}/bill?table_id=${encodeURIComponent(tableId)}`;
+  const footer = useMemo(
+    () =>
+      deriveMenuPageFooter({
+        cart,
+        recentOrders,
+        activeSession,
+        sessionResolved,
+        staffAssisted,
+        restaurantSlug: restaurant.slug,
+        tableId,
+      }),
+    [activeSession, cart, recentOrders, restaurant.slug, sessionResolved, staffAssisted, tableId],
+  );
+  const pageBottomPaddingClass = footer.visible ? 'pb-24' : 'pb-16';
 
   const clearSubmitCart = useCallback(() => {
     setCart([]);
     setCartOpen(false);
   }, []);
 
-  const completeGuestSubmit = useCallback(
-    (batchId: string) => {
-      completeGuestOrderSubmit({
-        batchId,
-        orderSuccessMessage: t.orderSuccess,
-        clearCart: clearSubmitCart,
-        setLatestBatchId,
-      });
-    },
-    [clearSubmitCart, t.orderSuccess],
-  );
+  const completeGuestSubmit = useCallback(() => {
+    completeGuestOrderSubmit({
+      orderSuccessMessage: t.orderSuccess,
+      clearCart: clearSubmitCart,
+    });
+  }, [clearSubmitCart, t.orderSuccess]);
 
   const completeStaffAssistedSubmit = useCallback(() => {
     if (!staffAssisted) return;
@@ -390,7 +380,7 @@ export function MenuPage({
       if (waiterFlow) {
         completeStaffAssistedSubmit();
       } else {
-        completeGuestSubmit(result.batchId);
+        completeGuestSubmit();
       }
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
@@ -511,59 +501,6 @@ export function MenuPage({
         </div>
       )}
 
-      {/* 本桌已点单记录 */}
-      <section className="px-4 pt-4">
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
-          <CustomerOrderedSectionHeader
-            title={t.orderedTitle}
-            viewBillHref={billHref}
-            viewBillLabel={t.viewBillLink}
-            viewBillEnabled={canGoBill}
-            showViewBillLink={canShowBillCta}
-          />
-          {recentOrders.length > 0 && (
-            <p className="text-brand-text-muted text-[12px] mb-3">{t.orderedSubmittedHint}</p>
-          )}
-          {!sessionResolved ? (
-            <div className="space-y-2 animate-pulse" aria-hidden="true">
-              <div className="h-4 w-2/3 rounded bg-brand-border/40" />
-              <div className="h-14 rounded-xl bg-brand-border/30" />
-            </div>
-          ) : recentOrders.length === 0 ? (
-            <p className="text-brand-text-muted text-sm">{t.noOrders}</p>
-          ) : (
-            <div className="space-y-3">
-              {recentOrders.map(order => (
-                <div key={order.id} className="border border-brand-border rounded-xl p-3">
-                  <div className="mb-2">
-                    <span className="text-[13px] text-brand-text-muted">
-                      {new Date(order.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {order.items.map((item, idx) => {
-                      if (normalizeOrderItemStatus(item, order.status) === 'voided') return null;
-                      return (
-                      <div key={`${order.id}-${idx}`} className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-brand-text">
-                          {formatOrderItemListLabel(item, { headcountStyle: 'receipt' })}
-                        </p>
-                        {latestBatchId && item.batch_id === latestBatchId && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold font-semibold">
-                            {t.newTag}
-                          </span>
-                        )}
-                      </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* 菜品列表 */}
       <div className="px-4 py-4 space-y-3">
         {currentItems.length === 0 ? (
@@ -582,22 +519,11 @@ export function MenuPage({
         )}
       </div>
 
-      {totalQty > 0 ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-30">
-          <button
-            onClick={() => setCartOpen(true)}
-            className="w-full bg-brand-gold text-brand-on-gold rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl shadow-brand-gold/20 active:scale-95 transition-transform"
-          >
-            <div className="flex items-center gap-3">
-              <span className="bg-brand-bg text-brand-gold w-7 h-7 rounded-full text-sm font-bold flex items-center justify-center">
-                {totalQty}
-              </span>
-              <span className="font-semibold text-sm">{t.viewCart}</span>
-            </div>
-            <span className="font-heading text-lg font-semibold">€{totalPrice.toFixed(2)}</span>
-          </button>
-        </div>
-      ) : null}
+      <CustomerMenuFooter
+        {...footer}
+        labels={{ viewCart: t.viewCart, viewBill: t.viewBillLink }}
+        onOpenCart={() => setCartOpen(true)}
+      />
 
       {/* 购物车抽屉 */}
       <CartDrawer

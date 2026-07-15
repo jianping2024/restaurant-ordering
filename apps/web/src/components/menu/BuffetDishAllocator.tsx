@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
@@ -14,6 +14,7 @@ import {
   applyByItemConsumerRowEdit,
   applyByItemConsumerRowRemove,
   byItemRowEditLock,
+  commitByItemConsumerRowEdit,
   type LockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
@@ -107,12 +108,31 @@ export function BuffetDishAllocator({
     [spec, locks],
   );
 
+  const rowsRef = useRef(rows);
+  useLayoutEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
+
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => (
+    const next = rowsRef.current.map((row) => (
       row.id === rowId
         ? applyByItemConsumerRowEdit({ row, patch, ctx: lineEditCtx })
         : row
-    )));
+    ));
+    rowsRef.current = next;
+    onChange(next);
+  };
+
+  const commitRow = (rowId: string) => {
+    queueMicrotask(() => {
+      const next = rowsRef.current.map((row) => (
+        row.id === rowId
+          ? commitByItemConsumerRowEdit({ row, ctx: lineEditCtx })
+          : row
+      ));
+      rowsRef.current = next;
+      onChange(next);
+    });
   };
 
   const addRow = () => {
@@ -168,6 +188,7 @@ export function BuffetDishAllocator({
                     onChange={(e) => updateRow(row.id, {
                       adultQty: sanitizeQtyDigits(e.target.value),
                     })}
+                    onBlur={() => commitRow(row.id)}
                     aria-label={labels.buffetAdultQtyLabel}
                     className={fieldClass}
                   />
@@ -182,6 +203,7 @@ export function BuffetDishAllocator({
                     onChange={(e) => updateRow(row.id, {
                       childQty: sanitizeQtyDigits(e.target.value),
                     })}
+                    onBlur={() => commitRow(row.id)}
                     aria-label={labels.buffetChildQtyLabel}
                     className={fieldClass}
                   />

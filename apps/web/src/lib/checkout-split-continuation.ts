@@ -372,7 +372,7 @@ export function clampMenuRowToMinQty(
   return { ...row, ...rationalToRowQtyFields(minQty) };
 }
 
-/** Apply a draft patch to one consumer row, honoring paid-allocation floors. */
+/** Apply a draft patch while the guest is typing (no paid-qty floor yet). */
 export function applyByItemConsumerRowEdit(params: {
   row: ByItemConsumerRow;
   patch: Partial<ByItemConsumerRow>;
@@ -395,16 +395,50 @@ export function applyByItemConsumerRowEdit(params: {
     next = { ...next, name: row.name };
   }
 
-  const lockAfter = byItemRowEditLock({
+  return next;
+}
+
+/** Commit one row after edit (blur/submit): enforce paid-allocation floors. */
+export function commitByItemConsumerRowEdit(params: {
+  row: ByItemConsumerRow;
+  ctx: ByItemLineEditContext;
+}): ByItemConsumerRow {
+  const { row, ctx } = params;
+  const lock = byItemRowEditLock({
     lineKey: ctx.lineKey,
-    row: next,
+    row,
     locks: ctx.locks,
     spec: ctx.spec,
   });
   if (ctx.spec.mode === 'buffet') {
-    return clampBuffetRowToMinCounts(next, lockAfter.minBuffetAdults, lockAfter.minBuffetChildren);
+    return clampBuffetRowToMinCounts(row, lock.minBuffetAdults, lock.minBuffetChildren);
   }
-  return clampMenuRowToMinQty(next, lockAfter.minMenuQty);
+  return clampMenuRowToMinQty(row, lock.minMenuQty);
+}
+
+/** Commit every payer row on one dish line (blur/submit). */
+export function commitByItemLineRows(
+  rows: ByItemConsumerRow[],
+  ctx: ByItemLineEditContext,
+): ByItemConsumerRow[] {
+  return rows.map((row) => commitByItemConsumerRowEdit({ row, ctx }));
+}
+
+/** Commit all by-item draft rows before checkout submit. */
+export function commitAllByItemAllocations(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  locks: LockedPersonLineMins;
+}): Record<string, ByItemConsumerRow[]> {
+  const { allocations, lineSpecs, locks } = params;
+  const next: Record<string, ByItemConsumerRow[]> = { ...allocations };
+  for (const spec of lineSpecs) {
+    const rows = allocations[spec.key];
+    if (!rows?.length) continue;
+    const ctx: ByItemLineEditContext = { lineKey: spec.key, spec, locks };
+    next[spec.key] = commitByItemLineRows(rows, ctx);
+  }
+  return next;
 }
 
 /** Remove a consumer row only when paid-allocation rules allow it. */

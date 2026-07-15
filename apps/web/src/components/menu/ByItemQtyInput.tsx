@@ -16,9 +16,10 @@ interface Props {
   labels: QtyPartsLabels;
   invalid: boolean;
   onChange: (patch: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>) => void;
+  onCommit?: () => void;
 }
 
-export function ByItemQtyInput({ row, labels, invalid, onChange }: Props) {
+export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Props) {
   const hint = getQtyPartsRowHint(row, labels);
   const fieldClass = invalid || hint ? customerQtyInputAlertClass : customerQtyInputClass;
 
@@ -35,6 +36,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange }: Props) {
           pattern="[0-9]*"
           value={row.qtyWhole}
           onChange={(e) => setWhole(e.target.value)}
+          onBlur={() => onCommit?.()}
           placeholder={labels.wholePlaceholder}
           aria-label={labels.wholePlaceholder}
           className={`w-9 px-1 ${fieldClass}`}
@@ -46,6 +48,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange }: Props) {
           pattern="[0-9]*"
           value={row.qtyNum}
           onChange={(e) => setNum(e.target.value)}
+          onBlur={() => onCommit?.()}
           placeholder={labels.numPlaceholder}
           aria-label={labels.numPlaceholder}
           className={`w-7 px-0.5 ${fieldClass}`}
@@ -57,6 +60,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange }: Props) {
           pattern="[0-9]*"
           value={row.qtyDen}
           onChange={(e) => setDen(e.target.value)}
+          onBlur={() => onCommit?.()}
           placeholder={labels.denPlaceholder}
           aria-label={labels.denPlaceholder}
           className={`w-7 px-0.5 ${fieldClass}`}

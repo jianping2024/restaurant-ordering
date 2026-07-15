@@ -4,8 +4,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
+  buildByItemAllocationsFromRows,
+  buildSplitPersonsFromAllocations,
+} from '@/lib/bill-split-by-item';
+import {
   allocationLockedPersonNames,
   buildLockedPersonLineMins,
+  commitAllByItemAllocations,
   isCheckoutSplitLocked,
   resolveContinuationSplitShape,
 } from '@/lib/checkout-split-continuation';
@@ -325,6 +330,26 @@ export function useBillSplitDraft(params: {
     });
   }, [guestName, splitPeople, customAmounts.length]);
 
+  const commitByItemDraft = useCallback(() => {
+    const committed = commitAllByItemAllocations({
+      allocations: byItemAllocations,
+      lineSpecs,
+      locks: lockedPersonLineMins,
+    });
+    const parsed = buildByItemAllocationsFromRows(lineSpecs, committed);
+    return { committed, parsed };
+  }, [byItemAllocations, lineSpecs, lockedPersonLineMins]);
+
+  const buildPersonsForSubmitCommitted = useCallback(() => {
+    if (splitMode !== 'by_item') return buildPersonsForSubmit();
+    return buildSplitPersonsFromAllocations(commitByItemDraft().parsed);
+  }, [splitMode, buildPersonsForSubmit, commitByItemDraft]);
+
+  const resolveSplitDraftInputForSubmit = useCallback((): BillSplitDraftInput => {
+    if (splitMode !== 'by_item') return splitDraftInput;
+    return { ...splitDraftInput, parsedByItemAllocations: commitByItemDraft().parsed };
+  }, [splitMode, splitDraftInput, commitByItemDraft]);
+
   return {
     splitMode,
     personCount,
@@ -342,7 +367,8 @@ export function useBillSplitDraft(params: {
     consumerRoster,
     rememberConsumerName,
     byItemProgress,
-    buildPersonsForSubmit,
+    buildPersonsForSubmit: buildPersonsForSubmitCommitted,
+    resolveSplitDraftInputForSubmit,
     handleSplitModeClick,
     editingSplitNameIndex,
     editingSplitNameValue,

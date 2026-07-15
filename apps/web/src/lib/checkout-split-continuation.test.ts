@@ -8,6 +8,8 @@ import {
   buildLockedPersonLineMins,
   byItemRowEditLock,
   clampMenuRowToMinQty,
+  commitAllByItemAllocations,
+  commitByItemConsumerRowEdit,
   isCheckoutSplitLocked,
   isPausedCheckoutSplit,
   lockedPersonLineKey,
@@ -199,7 +201,7 @@ describe('clampMenuRowToMinQty', () => {
 });
 
 describe('applyByItemConsumerRowEdit', () => {
-  it('blocks lowering paid guest qty below floor after resume append', () => {
+  it('allows clearing qty while typing; commit restores paid floor', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Jack', amount: 2.2, paid: true }],
@@ -212,12 +214,42 @@ describe('applyByItemConsumerRowEdit', () => {
       }),
     );
     const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const next = applyByItemConsumerRowEdit({
+    const typing = applyByItemConsumerRowEdit({
       row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
       patch: { qtyWhole: '', qtyNum: '', qtyDen: '' },
       ctx,
     });
-    assert.equal(next.qtyWhole, '1');
+    assert.equal(typing.qtyWhole, '');
+
+    const committed = commitByItemConsumerRowEdit({
+      row: typing,
+      ctx,
+    });
+    assert.equal(committed.qtyWhole, '1');
+  });
+
+  it('allows replacing qty digits while typing without append clamp', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 11), locks };
+    const typing = applyByItemConsumerRowEdit({
+      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      patch: { qtyWhole: '13', qtyNum: '', qtyDen: '' },
+      ctx,
+    });
+    assert.equal(typing.qtyWhole, '13');
+
+    const committed = commitByItemConsumerRowEdit({ row: typing, ctx });
+    assert.equal(committed.qtyWhole, '13');
   });
 
   it('ignores rename for locked paid guest', () => {
@@ -239,6 +271,30 @@ describe('applyByItemConsumerRowEdit', () => {
       ctx,
     });
     assert.equal(next.name, 'Jack');
+  });
+});
+
+describe('commitAllByItemAllocations', () => {
+  it('restores paid floors on every line before submit', () => {
+    const locks = buildLockedPersonLineMins(
+      split({
+        result: [{ name: 'Jack', amount: 2.2, paid: true }],
+        persons: [
+          {
+            name: 'Jack',
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+      }),
+    );
+    const committed = commitAllByItemAllocations({
+      allocations: {
+        [LINE_KEY]: [{ id: 'r1', name: 'Jack', qtyWhole: '', qtyNum: '', qtyDen: '' }],
+      },
+      lineSpecs: [menuSpec(LINE_KEY, 4)],
+      locks,
+    });
+    assert.equal(committed[LINE_KEY]?.[0]?.qtyWhole, '1');
   });
 });
 

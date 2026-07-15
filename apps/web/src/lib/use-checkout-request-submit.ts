@@ -28,6 +28,7 @@ type SplitDraftSlice = {
   splitDraftInput: BillSplitDraftInput;
   splitPeople: ReadonlyArray<{ name: string }>;
   buildPersonsForSubmit: () => SplitPerson[];
+  resolveSplitDraftInputForSubmit?: () => BillSplitDraftInput;
 };
 
 type Messages = {
@@ -141,7 +142,10 @@ export function useCheckoutRequestSubmit(params: Params) {
       const freshOrders = await resolveFreshOrders();
       if (!freshOrders) return;
 
-      const validated = validateSubmitSplitDraft(splitDraft.splitDraftInput, freshOrders);
+      const validated = validateSubmitSplitDraft(
+        splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput,
+        freshOrders,
+      );
       if (!validated.ok) {
         showToast(splitValidationToast(validated.issue, messages), 'error');
         return;

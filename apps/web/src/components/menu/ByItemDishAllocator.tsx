@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
@@ -15,6 +15,7 @@ import {
   applyByItemConsumerRowEdit,
   applyByItemConsumerRowRemove,
   byItemRowEditLock,
+  commitByItemConsumerRowEdit,
   type LockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
@@ -131,12 +132,31 @@ function MenuByItemDishAllocator({
     [spec, locks],
   );
 
+  const rowsRef = useRef(rows);
+  useLayoutEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
+
   const updateRow = (rowId: string, patch: Partial<ByItemConsumerRow>) => {
-    onChange(rows.map((row) => (
+    const next = rowsRef.current.map((row) => (
       row.id === rowId
         ? applyByItemConsumerRowEdit({ row, patch, ctx: lineEditCtx })
         : row
-    )));
+    ));
+    rowsRef.current = next;
+    onChange(next);
+  };
+
+  const commitRow = (rowId: string) => {
+    queueMicrotask(() => {
+      const next = rowsRef.current.map((row) => (
+        row.id === rowId
+          ? commitByItemConsumerRowEdit({ row, ctx: lineEditCtx })
+          : row
+      ));
+      rowsRef.current = next;
+      onChange(next);
+    });
   };
 
   const addRow = () => {
@@ -195,6 +215,7 @@ function MenuByItemDishAllocator({
                 labels={qtyLabels}
                 invalid={qtyInvalid || qtyOver}
                 onChange={(patch) => updateRow(row.id, patch)}
+                onCommit={() => commitRow(row.id)}
               />
               <ByItemConsumerRowRemoveButton
                 removable={rowLock.removable && rows.length > 1}

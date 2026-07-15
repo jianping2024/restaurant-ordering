@@ -1,4 +1,5 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { splitPersonKey } from '@/lib/split-person-identity';
 
 /** Names shorter than this are ignored for combobox suggestions. */
 export const MIN_ACTIVE_CONSUMER_NAME_LENGTH = 2;
@@ -11,8 +12,8 @@ export function normalizeConsumerName(name: string): string {
 export function addToConsumerRoster(roster: string[], name: string): string[] {
   const trimmed = normalizeConsumerName(name);
   if (!trimmed) return roster;
-  const lower = trimmed.toLowerCase();
-  if (roster.some((entry) => entry.toLowerCase() === lower)) return roster;
+  const key = splitPersonKey(trimmed);
+  if (roster.some((entry) => splitPersonKey(entry) === key)) return roster;
   return [...roster, trimmed].sort((a, b) => a.localeCompare(b));
 }
 
@@ -39,7 +40,7 @@ export function namesUsedOnOtherDishRows(
   for (const row of rows) {
     if (row.id === rowId) continue;
     const name = normalizeConsumerName(row.name);
-    if (name) used.add(name.toLowerCase());
+    if (name) used.add(splitPersonKey(name));
   }
   return used;
 }
@@ -59,7 +60,7 @@ export function availableConsumerNamesForRow(params: {
   rowId: string;
 }): string[] {
   const blocked = namesUsedOnOtherDishRows(params.dishRows, params.rowId);
-  return params.roster.filter((name) => !blocked.has(name.toLowerCase()));
+  return params.roster.filter((name) => !blocked.has(splitPersonKey(name)));
 }
 
 export function suggestConsumerNamesForRow(params: {

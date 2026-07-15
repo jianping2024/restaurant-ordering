@@ -1,8 +1,64 @@
+import {
+  resolveSplitPersonDisplayName,
+  splitPersonKey,
+} from '@/lib/split-person-identity';
 import type { SplitResult } from '@/types';
 
+function incomingByPersonKey(rows: SplitResult[]): Map<string, SplitResult> {
+  const map = new Map<string, SplitResult>();
+  for (const row of rows) {
+    const key = splitPersonKey(row.name);
+    if (!key) continue;
+    map.set(key, row);
+  }
+  return map;
+}
+
 /**
- * When session ledger exists, preserve existing row order/names per index;
- * update amounts from incoming rows matched by name; append new names at end.
+ * By-item continuation: incoming obligations are authoritative (recomputed from
+ * allocations). Preserve existing row order/index for ledger; drop stale rows.
+ */
+export function mergeByItemSplitResultWithLedger(
+  existing: SplitResult[],
+  incoming: SplitResult[],
+): SplitResult[] {
+  if (incoming.length === 0) return existing;
+  if (existing.length === 0) return incoming;
+
+  const byKey = incomingByPersonKey(incoming);
+  const usedKeys = new Set<string>();
+  const merged: SplitResult[] = [];
+
+  for (const exRow of existing) {
+    const key = splitPersonKey(exRow.name);
+    if (!key) continue;
+    const match = byKey.get(key);
+    if (!match) continue;
+    usedKeys.add(key);
+    merged.push({
+      name: resolveSplitPersonDisplayName(exRow.name, match.name),
+      amount: match.amount,
+      paid: !!exRow.paid || !!match.paid,
+    });
+  }
+
+  for (const row of incoming) {
+    const key = splitPersonKey(row.name);
+    if (!key || usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    merged.push({
+      name: resolveSplitPersonDisplayName(undefined, row.name),
+      amount: row.amount,
+      paid: !!row.paid,
+    });
+  }
+
+  return merged;
+}
+
+/**
+ * Even/custom continuation with ledger: preserve row shape; update amounts by
+ * person key (case-insensitive).
  */
 export function mergeSplitResultWithLedger(
   existing: SplitResult[],
@@ -11,17 +67,13 @@ export function mergeSplitResultWithLedger(
   if (existing.length === 0) return incoming;
   if (incoming.length === 0) return existing;
 
-  const incomingByName = new Map<string, SplitResult>();
-  for (const row of incoming) {
-    incomingByName.set(row.name.trim(), row);
-  }
-
-  const usedIncoming = new Set<string>();
+  const byKey = incomingByPersonKey(incoming);
+  const usedKeys = new Set<string>();
   const merged: SplitResult[] = existing.map((exRow, index) => {
-    const name = exRow.name.trim();
-    const match = incomingByName.get(name);
-    if (match) {
-      usedIncoming.add(name);
+    const key = splitPersonKey(exRow.name);
+    const match = key ? byKey.get(key) : undefined;
+    if (match && key) {
+      usedKeys.add(key);
       return {
         ...exRow,
         amount: match.amount,
@@ -29,8 +81,9 @@ export function mergeSplitResultWithLedger(
       };
     }
     const atIndex = incoming[index];
-    if (atIndex && atIndex.name.trim() === name) {
-      usedIncoming.add(name);
+    const indexKey = atIndex ? splitPersonKey(atIndex.name) : '';
+    if (atIndex && indexKey && indexKey === key) {
+      usedKeys.add(indexKey);
       return {
         ...exRow,
         amount: atIndex.amount,
@@ -41,8 +94,9 @@ export function mergeSplitResultWithLedger(
   });
 
   for (const row of incoming) {
-    const name = row.name.trim();
-    if (usedIncoming.has(name)) continue;
+    const key = splitPersonKey(row.name);
+    if (!key || usedKeys.has(key)) continue;
+    usedKeys.add(key);
     merged.push({ ...row, paid: !!row.paid });
   }
 

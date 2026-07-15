@@ -60,6 +60,7 @@
 - **零收款**：新菜与旧菜一样可自由分配。
 - **已有收款**：新菜可分配；**不得**改动已锁定行的归属。
 - 新菜金额并入对应客人的应付；服务员确认收款时，「建议本次收」须扣除该客人历史已收（`session_collected_payments` + `suggestedCollectionAmount` 语义）。
+- **再次呼叫结账**：按菜分单的 `result` 以客户端重算为准（`merge_by_item_split_result_with_ledger`）；保留已有 `person_index` 顺序，丢弃 incoming 中已不存在的旧行（避免 realloc 后幽灵金额）。客人姓名匹配**不区分大小写**；展示默认首字母大写（Latin）。
 
 ### 4.4 顾客账单页（`BillPage`）
 

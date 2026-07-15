@@ -14,6 +14,10 @@ import {
   sumRationals,
 } from '@/lib/rational-qty';
 import type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
+import {
+  displaySplitPersonName,
+  splitPersonKey,
+} from '@/lib/split-person-identity';
 import type { OrderItem, SplitPerson, SplitPersonItemShare } from '@/types';
 
 export type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
@@ -720,7 +724,8 @@ export function byItemLinePriceShare(
   personName: string,
 ): number {
   const allocated = allocateLineTotalByShares(lineTotal, shares);
-  const index = shares.findIndex((share) => share.name === personName);
+  const personKey = splitPersonKey(personName);
+  const index = shares.findIndex((share) => splitPersonKey(share.name) === personKey);
   if (index < 0) return 0;
   return allocated[index] ?? 0;
 }
@@ -839,6 +844,19 @@ export function calcByItemSplitResults(params: {
   const { lines, allocations } = params;
   const people = new Map<string, ByItemSplitRow>();
 
+  const addShare = (shareName: string, item: ByItemSplitRow['items'][number], price: number) => {
+    const key = splitPersonKey(shareName);
+    if (!key) return;
+    const existing = people.get(key) ?? {
+      name: displaySplitPersonName(shareName),
+      amount: 0,
+      items: [],
+    };
+    existing.items.push(item);
+    existing.amount = Math.round((existing.amount + price) * 100) / 100;
+    people.set(key, existing);
+  };
+
   for (const line of lines) {
     const shares = allocations[line.key] || [];
     if (line.mode === 'buffet') {
@@ -850,18 +868,11 @@ export function calcByItemSplitResults(params: {
         const unitPrice =
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
         const price = lineAmounts[si] ?? 0;
-        const existing = people.get(share.name) ?? {
-          name: share.name,
-          amount: 0,
-          items: [],
-        };
-        existing.items.push({
+        addShare(share.name, {
           name: line.name.trim(),
           qty,
           price: unitPrice,
-        });
-        existing.amount = Math.round((existing.amount + price) * 100) / 100;
-        people.set(share.name, existing);
+        }, price);
       }
       continue;
     }
@@ -871,18 +882,11 @@ export function calcByItemSplitResults(params: {
     const lineTotal = line.unitPrice * line.qty;
     for (const share of shares) {
       const price = byItemLinePriceShare(lineTotal, shares, share.name);
-      const existing = people.get(share.name) ?? {
-        name: share.name,
-        amount: 0,
-        items: [],
-      };
-      existing.items.push({
+      addShare(share.name, {
         name: line.name.trim(),
         qty: share.qty.num / share.qty.den,
         price,
-      });
-      existing.amount = Math.round((existing.amount + price) * 100) / 100;
-      people.set(share.name, existing);
+      }, price);
     }
   }
 
@@ -892,25 +896,30 @@ export function calcByItemSplitResults(params: {
 export function buildSplitPersonsFromAllocations(
   allocations: ByItemLineAllocation,
 ): SplitPerson[] {
-  const byName = new Map<string, SplitPersonItemShare[]>();
+  const byKey = new Map<string, { name: string; item_shares: SplitPersonItemShare[] }>();
 
   for (const [key, shares] of Object.entries(allocations)) {
     for (const share of shares) {
+      const personKey = splitPersonKey(share.name);
+      if (!personKey) continue;
       const normalized = normalizeRational(share.qty);
-      const rows = byName.get(share.name) ?? [];
-      rows.push({
+      const entry = byKey.get(personKey) ?? {
+        name: displaySplitPersonName(share.name),
+        item_shares: [],
+      };
+      entry.item_shares.push({
         key,
         qty_num: normalized.num,
         qty_den: normalized.den,
         ...(share.guestType ? { guest_type: share.guestType } : {}),
       });
-      byName.set(share.name, rows);
+      byKey.set(personKey, entry);
     }
   }
 
-  return Array.from(byName.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([name, item_shares]) => ({ name, item_shares }));
+  return Array.from(byKey.values())
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ name, item_shares }) => ({ name, item_shares }));
 }
 
 export function consumersForLineFromPersons(

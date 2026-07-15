@@ -1,3 +1,4 @@
+import { displaySplitPersonName } from '@/lib/split-person-identity';
 import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
 import {
   outstandingAmount,
@@ -39,7 +40,7 @@ export function buildSplitSettlementRows(
     const outstanding = outstandingAmount(obligationAmount, collectedAmount);
     return {
       index,
-      name: row.name,
+      name: displaySplitPersonName(row.name),
       obligationAmount,
       collectedAmount,
       outstandingAmount: outstanding,

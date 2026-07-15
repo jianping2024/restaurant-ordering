@@ -12,6 +12,7 @@ import {
   rationalGte,
   type Rational,
 } from '@/lib/rational-qty';
+import { displaySplitPersonName, splitPersonKey } from '@/lib/split-person-identity';
 import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
@@ -230,21 +231,25 @@ export function byItemRowEditLock(params: {
 function buffetRowsFromShares(
   shares: Array<{ name: string; qty: Rational; guestType?: 'adult' | 'child' }>,
 ): ByItemConsumerRow[] {
-  const byName = new Map<string, { adults: number; children: number }>();
+  const byKey = new Map<string, { name: string; adults: number; children: number }>();
   for (const share of shares) {
-    const name = share.name.trim();
-    if (!name) continue;
-    const entry = byName.get(name) ?? { adults: 0, children: 0 };
+    const key = splitPersonKey(share.name);
+    if (!key) continue;
+    const entry = byKey.get(key) ?? {
+      name: displaySplitPersonName(share.name),
+      adults: 0,
+      children: 0,
+    };
     const count = Math.round(share.qty.num / share.qty.den);
     if (share.guestType === 'child') entry.children += count;
     else entry.adults += count;
-    byName.set(name, entry);
+    byKey.set(key, entry);
   }
-  return Array.from(byName.entries()).map(([name, counts]) => ({
+  return Array.from(byKey.values()).map(({ name, adults, children }) => ({
     ...createByItemConsumerRow({ buffet: true }),
     name,
-    adultQty: counts.adults > 0 ? String(counts.adults) : '',
-    childQty: counts.children > 0 ? String(counts.children) : '',
+    adultQty: adults > 0 ? String(adults) : '',
+    childQty: children > 0 ? String(children) : '',
     qtyWhole: '',
     qtyNum: '',
     qtyDen: '',

@@ -37,6 +37,10 @@ export const waiterDetailLayout = {
   occupiedToolbarRow: 'flex flex-wrap items-center justify-center gap-2',
   /** Page exit — below ordered items, above modals. */
   pageFooter: 'mt-4 flex justify-center',
+  /** Ordered-items list body — one step above legacy `text-sm` (14px); title stays `text-[15px]`. */
+  orderedItemLabel: 'text-[15px] text-brand-text truncate min-w-0 flex-1',
+  orderedItemCode: 'font-mono text-[13px] text-brand-gold tabular-nums mr-1',
+  orderedItemQty: 'text-[15px] text-brand-text tabular-nums',
 } as const;
 
 /** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */

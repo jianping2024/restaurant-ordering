@@ -477,16 +477,16 @@ export function WaiterTableOrderedItemsPanel({
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => (
           <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
-            <p className="text-sm text-brand-text truncate min-w-0 flex-1">
+            <p className={waiterDetailLayout.orderedItemLabel}>
               {line.itemCode ? (
-                <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1">[{line.itemCode}]</span>
+                <span className={waiterDetailLayout.orderedItemCode}>[{line.itemCode}]</span>
               ) : null}
               {line.label}
             </p>
             {(line.quantityLabel || line.canDecrement) ? (
               <div className="flex items-center gap-2 flex-shrink-0">
                 {line.quantityLabel ? (
-                  <span className="text-sm text-brand-text tabular-nums">{line.quantityLabel}</span>
+                  <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
                 ) : null}
                 {line.canDecrement ? (
                   <WaiterOrderQtyMinus

@@ -32,3 +32,10 @@ test('back-to-board footer uses page footer spacing and secondary action width',
   assert.match(waiterDetailLayout.pageFooter, /mt-4/);
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
 });
+
+test('ordered-items list body typography is one step above legacy text-sm', () => {
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-\[15px\]/);
+  assert.match(waiterDetailLayout.orderedItemQty, /text-\[15px\]/);
+  assert.match(waiterDetailLayout.orderedItemCode, /text-\[13px\]/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /text-sm/);
+});

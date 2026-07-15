@@ -1,30 +1,33 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { sumActiveOrderItemsTotal } from './waiter-table-card';
+import { buildWaiterTableCard } from './waiter-table-card';
 import type { Order } from '@/types';
 
-describe('sumActiveOrderItemsTotal', () => {
-  it('sums non-voided line totals across orders', () => {
-    const orders = [
-      {
-        id: 'o1',
-        status: 'pending',
-        items: [
-          { price: 10, qty: 2, item_status: 'pending' },
-          { price: 5, qty: 1, item_status: 'voided' },
-        ],
-      },
-      {
-        id: 'o2',
-        status: 'done',
-        items: [{ price: 3.5, qty: 2, item_status: 'done' }],
-      },
-    ] as Order[];
+function orderWithTotal(total_amount: number, id = 'o1'): Order {
+  return {
+    id,
+    restaurant_id: 'r1',
+    table_id: 't1',
+    display_name: '001',
+    status: 'pending',
+    items: [],
+    total_amount,
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+  };
+}
 
-    assert.equal(sumActiveOrderItemsTotal(orders), 27);
+describe('buildWaiterTableCard', () => {
+  it('sets sessionTotal from persisted order.total_amount', () => {
+    const card = buildWaiterTableCard('t1', '001', [
+      orderWithTotal(12.5, 'o1'),
+      orderWithTotal(8, 'o2'),
+    ]);
+    assert.equal(card.sessionTotal, 20.5);
   });
 
-  it('returns zero for empty orders', () => {
-    assert.equal(sumActiveOrderItemsTotal([]), 0);
+  it('returns zero sessionTotal for empty orders', () => {
+    const card = buildWaiterTableCard('t1', '001', []);
+    assert.equal(card.sessionTotal, 0);
   });
 });

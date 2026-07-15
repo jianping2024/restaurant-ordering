@@ -46,6 +46,11 @@ export function sumLineTotals(items: LinePriced[]): number {
   }, 0);
 }
 
+/** Sum persisted order totals (session consumption — matches waiter sessionTotal). */
+export function sumOrderTotals(orders: ReadonlyArray<{ total_amount?: unknown }>): number {
+  return orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+}
+
 /** Normalize menu / DB price values for cart lines (Supabase numeric is often a string). */
 export function coerceCartPrice(value: unknown): number {
   const n = parseMoney(value);

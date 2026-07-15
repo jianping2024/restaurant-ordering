@@ -25,6 +25,10 @@ const summaryZoneClassName = 'flex min-w-0 items-center gap-2.5 text-left';
 const summaryAmountClassName =
   'shrink-0 font-heading text-lg font-semibold tabular-nums text-brand-text';
 
+function SummaryAmount({ amount }: { amount: number }) {
+  return <span className={summaryAmountClassName}>€{amount.toFixed(2)}</span>;
+}
+
 const actionButtonClassName =
   'inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 text-[14px] font-semibold transition-colors';
 
@@ -88,7 +92,7 @@ export function CustomerMenuFooter({
           <span className="truncate font-heading text-lg font-semibold text-brand-text">
             {labels.orderedCount(submittedCount)}
           </span>
-          <span className={summaryAmountClassName}>€{submittedTotal.toFixed(2)}</span>
+          <SummaryAmount amount={submittedTotal} />
         </div>
       </div>
     ) : (
@@ -107,7 +111,7 @@ export function CustomerMenuFooter({
           ) : null}
         </span>
         {cartQty > 0 ? (
-          <span className={summaryAmountClassName}>€{cartTotal.toFixed(2)}</span>
+          <SummaryAmount amount={cartTotal} />
         ) : (
           <span className="truncate text-sm text-brand-text-muted">{labels.viewCart}</span>
         )}

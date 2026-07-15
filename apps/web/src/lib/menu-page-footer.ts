@@ -1,4 +1,4 @@
-import { coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { coerceCartQty, sumLineTotals, sumOrderTotals } from '@/lib/cart-totals';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import type { CartItem, Order, TableSession } from '@/types';
@@ -37,10 +37,6 @@ function countSubmittedItems(recentOrders: Order[]): number {
   return recentOrders.reduce((sum, order) => sum + order.items.length, 0);
 }
 
-function sumSubmittedOrderTotals(recentOrders: Order[]): number {
-  return recentOrders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-}
-
 function deriveFooterPhase(cartQty: number, submittedCount: number): MenuPageFooterPhase {
   if (cartQty > 0) return 'draft';
   if (submittedCount > 0) return 'ordered';
@@ -63,7 +59,7 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
   const cartQty = input.cart.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
   const cartTotal = sumLineTotals(input.cart);
   const submittedCount = countSubmittedItems(input.recentOrders);
-  const submittedTotal = sumSubmittedOrderTotals(input.recentOrders);
+  const submittedTotal = sumOrderTotals(input.recentOrders);
   const phase = deriveFooterPhase(cartQty, submittedCount);
 
   const showBillCta = input.staffAssisted

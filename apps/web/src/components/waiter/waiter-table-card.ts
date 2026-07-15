@@ -1,4 +1,5 @@
 import type { Order } from '@/types';
+import { sumOrderTotals } from '@/lib/cart-totals';
 import {
   aggregateBuffetHeadcountForOrders,
   listActiveBuffetLineSummaries,
@@ -115,7 +116,7 @@ export function buildWaiterTableCard(
   }
 
   current.orderLines = [...buffetLines, ...menuLines];
-  current.sessionTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+  current.sessionTotal = sumOrderTotals(orders);
 
   return current;
 }

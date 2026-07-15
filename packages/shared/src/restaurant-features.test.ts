@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   mergeRestaurantFeatureFlags,
+  mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsRecord,
 } from './restaurant-features';
@@ -34,6 +35,28 @@ describe('mergeRestaurantFeatureFlags', () => {
     );
     assert.equal(merged.kitchen_board, false);
     assert.equal(merged.bill_receipt_print, true);
+  });
+});
+
+describe('mergeRestaurantFeatureFlagsJsonb', () => {
+  it('preserves flags managed outside the features registry', () => {
+    const merged = mergeRestaurantFeatureFlagsJsonb(
+      { geo_order_restriction: false, kitchen_board: true },
+      { bill_receipt_print: true },
+    );
+    assert.equal(merged.geo_order_restriction, false);
+    assert.equal(merged.kitchen_board, true);
+    assert.equal(merged.bill_receipt_print, true);
+  });
+
+  it('applies registry defaults for missing known keys', () => {
+    const merged = mergeRestaurantFeatureFlagsJsonb(
+      { geo_order_restriction: true },
+      { kitchen_board: true },
+    );
+    assert.equal(merged.geo_order_restriction, true);
+    assert.equal(merged.kitchen_board, true);
+    assert.equal(merged.bill_receipt_print, false);
   });
 });
 

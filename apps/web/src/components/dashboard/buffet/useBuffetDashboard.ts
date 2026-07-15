@@ -37,6 +37,9 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
 
   const applyData = useCallback((next: BuffetDashboardData) => {
     setData(next);
+  }, []);
+
+  const syncFridayDraftFromData = useCallback((next: BuffetDashboardData) => {
     const friday = fridayDraftFromData(next);
     setFridayEnabled(friday.enabled);
     setFridayDraftFrom(friday.draftFrom);
@@ -159,12 +162,15 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
     setFridaySaving(true);
     try {
       const result = await updateBuffetFridayPolicyClient(dbValue);
-      if (result.ok) applyData(result.data);
+      if (result.ok) {
+        applyData(result.data);
+        syncFridayDraftFromData(result.data);
+      }
       return result;
     } finally {
       setFridaySaving(false);
     }
-  }, [applyData, fridayDraftFrom, fridayEnabled]);
+  }, [applyData, fridayDraftFrom, fridayEnabled, syncFridayDraftFromData]);
 
   return {
     buffets: data.buffets,

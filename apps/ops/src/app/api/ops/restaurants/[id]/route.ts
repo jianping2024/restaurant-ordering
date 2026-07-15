@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
-  mergeRestaurantFeatureFlags,
+  mergeRestaurantFeatureFlagsJsonb,
   normalizeCountryCode,
   parseFeatureFlagsRecord,
   type PrintLocale,
@@ -109,7 +109,7 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (!patch) {
       return NextResponse.json({ error: 'invalid_feature_flags' }, { status: 400 });
     }
-    const nextFlags = mergeRestaurantFeatureFlags(existing.feature_flags, patch);
+    const nextFlags = mergeRestaurantFeatureFlagsJsonb(existing.feature_flags, patch);
     updates.feature_flags = nextFlags;
     metadata.featureFlags = patch;
   }

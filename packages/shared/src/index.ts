@@ -69,6 +69,7 @@ export {
   isDashboardKitchenShortcutEnabled,
   isRestaurantFeatureEnabled,
   mergeRestaurantFeatureFlags,
+  mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsPatch,
   parseFeatureFlagsRecord,

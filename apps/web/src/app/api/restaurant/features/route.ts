@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import {
-  mergeRestaurantFeatureFlags,
+  mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsPatch,
   parsePrintAgentCredentialTtlDaysPatch,
@@ -136,7 +136,9 @@ export async function PATCH(req: Request) {
   }
 
   const nextFlags = patch
-    ? mergeRestaurantFeatureFlags(row?.feature_flags, patch)
+    ? normalizeRestaurantFeatureFlags(
+        mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch),
+      )
     : normalizeRestaurantFeatureFlags(row?.feature_flags);
   const baseConfig = normalizePrintAgentCloudConfig(row?.print_agent_config);
   const nextConfig =
@@ -153,11 +155,13 @@ export async function PATCH(req: Request) {
       : undefined;
 
   const updatePayload: {
-    feature_flags?: typeof nextFlags;
+    feature_flags?: Record<string, unknown>;
     print_agent_config?: unknown;
     order_cooldown_seconds?: number;
   } = {};
-  if (patch) updatePayload.feature_flags = nextFlags;
+  if (patch) {
+    updatePayload.feature_flags = mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch);
+  }
   if (nextConfig) updatePayload.print_agent_config = nextConfig;
   if (orderCooldownSeconds !== undefined) {
     updatePayload.order_cooldown_seconds = orderCooldownSeconds;

@@ -124,11 +124,30 @@ export function parseFeatureFlagsRecord(raw: unknown): RestaurantFeatureFlags | 
   return Object.keys(patch).length > 0 ? patch : null;
 }
 
+function cloneFeatureFlagsRecord(raw: unknown): Record<string, unknown> {
+  return raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? { ...(raw as Record<string, unknown>) }
+    : {};
+}
+
+/** Merge registry flags into stored jsonb; preserves keys managed elsewhere (e.g. geo_order_restriction). */
+export function mergeRestaurantFeatureFlagsJsonb(
+  current: unknown,
+  patch: RestaurantFeatureFlags,
+): Record<string, unknown> {
+  const base = cloneFeatureFlagsRecord(current);
+  const normalized = normalizeRestaurantFeatureFlags(current);
+  for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
+    base[def.key] = patch[def.key] ?? normalized[def.key];
+  }
+  return base;
+}
+
 export function mergeRestaurantFeatureFlags(
   current: unknown,
   patch: RestaurantFeatureFlags,
 ): ResolvedRestaurantFeatureFlags {
-  return { ...normalizeRestaurantFeatureFlags(current), ...patch };
+  return normalizeRestaurantFeatureFlags(mergeRestaurantFeatureFlagsJsonb(current, patch));
 }
 
 export function isDashboardKitchenShortcutEnabled(flags: unknown): boolean {

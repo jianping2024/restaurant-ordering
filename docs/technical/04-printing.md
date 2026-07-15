@@ -70,6 +70,7 @@ Web 入队（service role）
 - `pre_bill` 与 `checkout_bill` 都是「未付完」的整桌账单，区别在 **自动 vs 手动**，以及 `checkout_bill` 使用结账台 `discount_rate`（与「应收」一致）。
 - `checkout_bill` 与 `final` 都是整桌合并行，区别在 **是否已收款** 及纸面是否印 `amount_paid` / 支付方式。
 - 自动三类（`pre_bill`、`split_payment`、`final`）受 `bill_receipt_print` 门控；`checkout_bill` **不受**（见 §3.2）。
+- 前台手动补打某人 `split_payment` 收据（已收款项「打印收据」）与 `checkout_bill` 相同，走 `staff_manual` 入队，**不受**开关限制。
 
 入队逻辑：`lib/order-receipt-enqueue.ts`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
 

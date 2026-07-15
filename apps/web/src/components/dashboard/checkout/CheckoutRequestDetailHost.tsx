@@ -19,10 +19,15 @@ import {
 } from '@/lib/checkout-session-payments';
 import {
   buildSplitSettlementRows,
+  isMultiPersonSplitBill,
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
-import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
+import {
+  staffBillPrintCooldownKey,
+  staffSplitReceiptCooldownKey,
+  useStaffCheckoutBillPrint,
+} from '@/lib/use-staff-checkout-bill-print';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -108,7 +113,9 @@ export function CheckoutRequestDetailHost({
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printCheckoutBill,
+    printSplitReceipt,
     isPrintBillBusy,
+    isPrintReceiptBusy,
     cooldownSecondsLeft,
     isOnCooldown,
   } = useStaffCheckoutBillPrint(restaurantSlug);
@@ -332,7 +339,9 @@ export function CheckoutRequestDetailHost({
     return t.resumeOrderingConfirmCancel;
   }, [request, collectedPayments, t]);
   const discountApplying = billDiscount.applyingRequestId === request.id;
+  const billCooldownKey = staffBillPrintCooldownKey(request.id);
   const printBillBusy = isPrintBillBusy(request.id);
+  const showSplitReceiptActions = isMultiPersonSplitBill(request);
   const detailLocked =
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
@@ -358,8 +367,24 @@ export function CheckoutRequestDetailHost({
         resumeBlockReason={resumeBlockReason}
         canCloseTable={canCloseTable}
         printBillBusy={printBillBusy}
-        printCooldownSeconds={cooldownSecondsLeft(request.id)}
-        printOnCooldown={isOnCooldown(request.id)}
+        printCooldownSeconds={cooldownSecondsLeft(billCooldownKey)}
+        printOnCooldown={isOnCooldown(billCooldownKey)}
+        showSplitReceiptActions={showSplitReceiptActions}
+        onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
+        isPrintReceiptBusy={(payment) =>
+          payment.person_index != null && isPrintReceiptBusy(request.id, payment.person_index)
+        }
+        printReceiptCooldownSeconds={(payment) =>
+          payment.person_index != null
+            ? cooldownSecondsLeft(
+                staffSplitReceiptCooldownKey(request.id, payment.person_index),
+              )
+            : 0
+        }
+        isPrintReceiptOnCooldown={(payment) =>
+          payment.person_index != null &&
+          isOnCooldown(staffSplitReceiptCooldownKey(request.id, payment.person_index))
+        }
         showBackButton={showBackButton}
         lang={lang}
         t={t}

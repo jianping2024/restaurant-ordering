@@ -61,3 +61,8 @@ export function splitSettlementCollectAmount(row: SplitSettlementRow): number {
 export function pendingSplitSettlementRows(rows: SplitSettlementRow[]): SplitSettlementRow[] {
   return rows.filter((row) => row.settlementStatus !== 'settled');
 }
+
+/** Matches RPC should_print_split: only multi-person splits get per-person receipts. */
+export function isMultiPersonSplitBill(request: { result?: SplitResult[] | null }): boolean {
+  return (request.result?.length ?? 0) > 1;
+}

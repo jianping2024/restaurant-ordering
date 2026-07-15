@@ -28,7 +28,10 @@ import {
 
 export type ReceiptVariant = 'pre_bill' | 'checkout_bill' | 'split_payment' | 'final';
 
-/** Variants triggered by customer checkout flows; gated by bill_receipt_print. */
+/** Who triggered the print — only `automatic` is gated by bill_receipt_print. */
+export type ReceiptPrintSource = 'automatic' | 'staff_manual';
+
+/** Variants triggered by customer checkout flows; gated when printSource is automatic. */
 const AUTOMATIC_BILL_RECEIPT_VARIANTS = new Set<ReceiptVariant>([
   'pre_bill',
   'split_payment',
@@ -218,6 +221,8 @@ type EnqueueParams = {
   collectedPaymentId?: string | null;
   /** Checkout dashboard discount % for checkout_bill (matches「应收」). */
   discountRate?: number;
+  /** Default `automatic` — staff dashboard manual print passes `staff_manual`. */
+  printSource?: ReceiptPrintSource;
 };
 
 /** Load session orders for receipt printing (no table_number filter — avoids missing merged/transferred orders). */
@@ -269,6 +274,7 @@ export async function enqueueReceiptPrint(
     orderIds: orderIdsParam,
     discountRate = 0,
     collectedPaymentId,
+    printSource = 'automatic',
   } = params;
 
   const { data: restaurantRow, error: restaurantErr } = await admin
@@ -285,6 +291,7 @@ export async function enqueueReceiptPrint(
     };
   }
   if (
+    printSource === 'automatic' &&
     AUTOMATIC_BILL_RECEIPT_VARIANTS.has(variant) &&
     !isRestaurantFeatureEnabled(restaurantRow?.feature_flags, 'bill_receipt_print')
   ) {

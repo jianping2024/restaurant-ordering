@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-export const CHECKOUT_BILL_PRINT_COOLDOWN_MS = 20_000;
+export const STAFF_RECEIPT_PRINT_COOLDOWN_MS = 10_000;
 
-/** Per bill_split_id cooldown so staff can reprint after 20s without duplicate rapid clicks. */
-export function useCheckoutBillPrintCooldown() {
+/** Per-action cooldown keys (bill vs split receipt) so staff can reprint after 10s. */
+export function useStaffReceiptPrintCooldown() {
   const [cooldownUntilById, setCooldownUntilById] = useState<Record<string, number>>({});
   const [, setTick] = useState(0);
 
@@ -17,8 +17,8 @@ export function useCheckoutBillPrintCooldown() {
   }, [cooldownUntilById]);
 
   const cooldownSecondsLeft = useCallback(
-    (billSplitId: string) => {
-      const until = cooldownUntilById[billSplitId] ?? 0;
+    (cooldownKey: string) => {
+      const until = cooldownUntilById[cooldownKey] ?? 0;
       const left = Math.ceil((until - Date.now()) / 1000);
       return left > 0 ? left : 0;
     },
@@ -26,14 +26,14 @@ export function useCheckoutBillPrintCooldown() {
   );
 
   const isOnCooldown = useCallback(
-    (billSplitId: string) => cooldownSecondsLeft(billSplitId) > 0,
+    (cooldownKey: string) => cooldownSecondsLeft(cooldownKey) > 0,
     [cooldownSecondsLeft],
   );
 
-  const startCooldown = useCallback((billSplitId: string) => {
+  const startCooldown = useCallback((cooldownKey: string) => {
     setCooldownUntilById((prev) => ({
       ...prev,
-      [billSplitId]: Date.now() + CHECKOUT_BILL_PRINT_COOLDOWN_MS,
+      [cooldownKey]: Date.now() + STAFF_RECEIPT_PRINT_COOLDOWN_MS,
     }));
   }, []);
 

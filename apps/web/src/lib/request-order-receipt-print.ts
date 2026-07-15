@@ -19,6 +19,8 @@ export type OrderReceiptPrintParams = {
   receiptPrinterId?: string;
   /** Checkout dashboard discount % — used for checkout_bill payable total. */
   discountRate?: number;
+  /** Ledger row id — split_payment idempotency dedup with automatic print. */
+  collectedPaymentId?: string;
 };
 
 function resolveReceiptVariant(params: OrderReceiptPrintParams): ReceiptVariant {
@@ -44,6 +46,7 @@ export async function requestOrderReceiptPrint(
     personIndex,
     receiptPrinterId,
     discountRate,
+    collectedPaymentId,
   } = params;
 
   const variant = resolveReceiptVariant(params);
@@ -65,6 +68,7 @@ export async function requestOrderReceiptPrint(
         ...(personIndex != null ? { person_index: personIndex } : {}),
         ...(receiptPrinterId?.trim() ? { receipt_printer_id: receiptPrinterId.trim() } : {}),
         ...(discountRate != null && discountRate > 0 ? { discount_rate: discountRate } : {}),
+        ...(collectedPaymentId ? { collected_payment_id: collectedPaymentId } : {}),
       }),
     });
 

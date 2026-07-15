@@ -259,8 +259,9 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | variant | `bill_receipt_print` 门控 |
 |---------|---------------------------|
-| `pre_bill`、`split_payment`、`final` | 受开关限制 |
+| `pre_bill`、`split_payment`、`final` | 受开关限制（`printSource=automatic`） |
 | `checkout_bill`（手动打印账单） | **不受**限制 |
+| 手动 `split_payment`（已收款项补打收据） | **不受**限制 |
 | `station_ticket` | **不受**限制 |
 
 ### 硬规则

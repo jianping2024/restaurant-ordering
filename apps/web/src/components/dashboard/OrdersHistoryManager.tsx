@@ -12,7 +12,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
-import { useStaffCheckoutBillPrint } from '@/lib/use-staff-checkout-bill-print';
+import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
 interface Props {
@@ -219,14 +219,15 @@ export function OrdersHistoryManager({
   const renderPrintButton = (entry: OrderHistoryEntry) => {
     const billSplit = entry.billSplit;
     const splitId = billSplit?.id ?? '';
+    const billCooldownKey = splitId ? staffBillPrintCooldownKey(splitId) : '';
     const busy = splitId ? isPrintBillBusy(splitId) : false;
-    const onCooldown = splitId ? isOnCooldown(splitId) : false;
+    const onCooldown = billCooldownKey ? isOnCooldown(billCooldownKey) : false;
     const label = !billSplit
       ? checkoutT.printBill
       : busy
         ? checkoutT.printBillOperating
         : onCooldown
-          ? checkoutT.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(splitId)))
+          ? checkoutT.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(billCooldownKey)))
           : checkoutT.printBill;
 
     return (

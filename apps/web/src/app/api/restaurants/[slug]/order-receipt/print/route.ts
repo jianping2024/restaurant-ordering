@@ -84,6 +84,7 @@ export async function POST(
     person_index?: unknown;
     receipt_printer_id?: unknown;
     discount_rate?: unknown;
+    collected_payment_id?: unknown;
   };
   try {
     body = await req.json();
@@ -173,6 +174,8 @@ export async function POST(
     typeof body.discount_rate === 'number' && Number.isFinite(body.discount_rate)
       ? clampCheckoutDiscountRate(body.discount_rate)
       : 0;
+  const collectedPaymentId =
+    typeof body.collected_payment_id === 'string' ? body.collected_payment_id.trim() : undefined;
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
@@ -185,6 +188,8 @@ export async function POST(
   if (receiptPrinterIdRaw && !receiptPrinterId) {
     return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
   }
+
+  const printSource = 'admin' in checkoutAuth ? ('staff_manual' as const) : ('automatic' as const);
 
   const result = await enqueueReceiptPrint({
     admin,
@@ -202,6 +207,8 @@ export async function POST(
     paymentMethod,
     receiptPrinterId,
     discountRate,
+    collectedPaymentId,
+    printSource,
   });
 
   if (!result.ok) {

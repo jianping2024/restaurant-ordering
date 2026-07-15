@@ -43,6 +43,11 @@ interface Props {
   printBillBusy: boolean;
   printCooldownSeconds: number;
   printOnCooldown: boolean;
+  showSplitReceiptActions: boolean;
+  onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
+  isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
+  printReceiptCooldownSeconds: (payment: SessionCollectedPayment) => number;
+  isPrintReceiptOnCooldown: (payment: SessionCollectedPayment) => boolean;
   showBackButton: boolean;
   lang: UILanguage;
   t: CheckoutT;
@@ -146,6 +151,11 @@ export function CheckoutRequestDetail({
   printBillBusy,
   printCooldownSeconds,
   printOnCooldown,
+  showSplitReceiptActions,
+  onPrintSplitReceipt,
+  isPrintReceiptBusy,
+  printReceiptCooldownSeconds,
+  isPrintReceiptOnCooldown,
   showBackButton,
   lang,
   t,
@@ -276,6 +286,11 @@ export function CheckoutRequestDetail({
           t={t}
           bordered={false}
           className="mt-3 px-1"
+          showPrintReceiptActions={showSplitReceiptActions}
+          onPrintReceipt={onPrintSplitReceipt}
+          isPrintReceiptBusy={isPrintReceiptBusy}
+          printReceiptCooldownSeconds={printReceiptCooldownSeconds}
+          isPrintReceiptOnCooldown={isPrintReceiptOnCooldown}
         />
       ) : null}
 

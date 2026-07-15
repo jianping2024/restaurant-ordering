@@ -8,41 +8,57 @@ import {
   requestStaffCheckoutBillPrint,
   type StaffCheckoutBillPrintTarget,
 } from '@/lib/staff-checkout-bill-print';
-import { useCheckoutBillPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
+import { requestStaffSplitReceiptPrint } from '@/lib/staff-split-receipt-print';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { useStaffReceiptPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
+
+export function staffBillPrintCooldownKey(billSplitId: string): string {
+  return `bill:${billSplitId}`;
+}
+
+export function staffSplitReceiptCooldownKey(billSplitId: string, personIndex: number): string {
+  return `split:${billSplitId}:${personIndex}`;
+}
 
 export function useStaffCheckoutBillPrint(restaurantSlug: string) {
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
-  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useCheckoutBillPrintCooldown();
-  const [printingSplitIds, setPrintingSplitIds] = useState<Set<string>>(() => new Set());
+  const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useStaffReceiptPrintCooldown();
+  const [printingKeys, setPrintingKeys] = useState<Set<string>>(() => new Set());
 
-  const isPrintBillBusy = useCallback(
-    (billSplitId: string) => printingSplitIds.has(billSplitId),
-    [printingSplitIds],
+  const isPrintingKey = useCallback(
+    (cooldownKey: string) => printingKeys.has(cooldownKey),
+    [printingKeys],
   );
 
-  const printCheckoutBill = useCallback(
-    async (billSplit: StaffCheckoutBillPrintTarget, discountRate?: number) => {
+  const isPrintBillBusy = useCallback(
+    (billSplitId: string) => isPrintingKey(staffBillPrintCooldownKey(billSplitId)),
+    [isPrintingKey],
+  );
+
+  const isPrintReceiptBusy = useCallback(
+    (billSplitId: string, personIndex: number) =>
+      isPrintingKey(staffSplitReceiptCooldownKey(billSplitId, personIndex)),
+    [isPrintingKey],
+  );
+
+  const runStaffPrint = useCallback(
+    async (cooldownKey: string, request: () => Promise<{ ok: boolean; skipped?: boolean }>) => {
       if (!restaurantSlug) {
         showToast(t.printBillFailed, 'error');
         return false;
       }
-      if (isOnCooldown(billSplit.id)) {
+      if (isOnCooldown(cooldownKey)) {
         showToast(
-          t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(billSplit.id))),
+          t.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(cooldownKey))),
           'error',
         );
         return false;
       }
 
-      setPrintingSplitIds((prev) => new Set(prev).add(billSplit.id));
+      setPrintingKeys((prev) => new Set(prev).add(cooldownKey));
       try {
-        const outcome = await requestStaffCheckoutBillPrint({
-          slug: restaurantSlug,
-          billSplit,
-          discountRate,
-        });
-
+        const outcome = await request();
         if (!outcome.ok) {
           showToast(t.printBillFailed, 'error');
           return false;
@@ -52,16 +68,16 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
           return false;
         }
 
-        startCooldown(billSplit.id);
+        startCooldown(cooldownKey);
         showToast(t.printBillSuccess, 'success');
         return true;
       } catch {
         showToast(t.printBillFailed, 'error');
         return false;
       } finally {
-        setPrintingSplitIds((prev) => {
+        setPrintingKeys((prev) => {
           const next = new Set(prev);
-          next.delete(billSplit.id);
+          next.delete(cooldownKey);
           return next;
         });
       }
@@ -69,9 +85,35 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
     [cooldownSecondsLeft, isOnCooldown, restaurantSlug, startCooldown, t],
   );
 
+  const printCheckoutBill = useCallback(
+    async (billSplit: StaffCheckoutBillPrintTarget, discountRate?: number) => {
+      const cooldownKey = staffBillPrintCooldownKey(billSplit.id);
+      return runStaffPrint(cooldownKey, () =>
+        requestStaffCheckoutBillPrint({ slug: restaurantSlug, billSplit, discountRate }),
+      );
+    },
+    [restaurantSlug, runStaffPrint],
+  );
+
+  const printSplitReceipt = useCallback(
+    async (billSplit: StaffCheckoutBillPrintTarget, payment: SessionCollectedPayment) => {
+      if (payment.person_index == null || payment.person_index < 0) {
+        showToast(t.printBillFailed, 'error');
+        return false;
+      }
+      const cooldownKey = staffSplitReceiptCooldownKey(billSplit.id, payment.person_index);
+      return runStaffPrint(cooldownKey, () =>
+        requestStaffSplitReceiptPrint({ slug: restaurantSlug, billSplit, payment }),
+      );
+    },
+    [restaurantSlug, runStaffPrint, t],
+  );
+
   return {
     printCheckoutBill,
+    printSplitReceipt,
     isPrintBillBusy,
+    isPrintReceiptBusy,
     cooldownSecondsLeft,
     isOnCooldown,
   };

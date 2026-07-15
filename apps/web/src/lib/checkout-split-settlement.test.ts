@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildSplitSettlementRows,
+  isMultiPersonSplitBill,
   pendingSplitSettlementRows,
   splitSettlementCollectAmount,
   sumSplitSettlementOutstanding,
@@ -51,5 +52,23 @@ describe('splitSettlementCollectAmount', () => {
       [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' }],
     )[0]!;
     assert.equal(splitSettlementCollectAmount(row), 7.5);
+  });
+});
+
+describe('isMultiPersonSplitBill', () => {
+  it('is true when result has more than one row', () => {
+    assert.equal(
+      isMultiPersonSplitBill({
+        result: [
+          { name: 'jack', amount: 40 },
+          { name: 'tom', amount: 20 },
+        ],
+      }),
+      true,
+    );
+  });
+
+  it('is false for whole-table single row', () => {
+    assert.equal(isMultiPersonSplitBill({ result: [{ name: 'Total', amount: 60 }] }), false);
   });
 });

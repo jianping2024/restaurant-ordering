@@ -43,6 +43,13 @@ export interface WaiterTableCardData {
 
 type MenuLineActionTarget = Pick<WaiterOrderLine, 'orderId' | 'itemIdx' | 'canDecrement'>;
 
+type MenuLineCandidate = {
+  orderId: string;
+  itemIdx: number;
+  item: OrderItem;
+  order: Order;
+};
+
 /**
  * Pick the physical order line for decrement on a billable merge group.
  * Prefers a decrementable row with qty > 1 (avoids void-reason dialog), then any
@@ -53,24 +60,25 @@ function resolveMenuLineActionTarget(
   mergeKey: string,
   operator: MenuDecrementOperator,
 ): MenuLineActionTarget {
-  let fallback: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null = null;
-  let bestDecrementable: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null =
-    null;
-  let bestQtyGt1: { orderId: string; itemIdx: number; item: OrderItem; order: Order } | null = null;
+  let fallback: MenuLineCandidate | null = null;
+  let bestDecrementable: MenuLineCandidate | null = null;
+  let bestQtyGt1: MenuLineCandidate | null = null;
 
   for (const order of orders) {
-    (order.items || []).forEach((item, itemIdx) => {
-      if (isBuffetBaseItem(item)) return;
-      if (normalizeOrderItemStatus(item, order.status) === 'voided') return;
-      if (billableMenuItemMergeKey(item) !== mergeKey) return;
+    const items = order.items || [];
+    for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+      const item = items[itemIdx];
+      if (!item || isBuffetBaseItem(item)) continue;
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
+      if (billableMenuItemMergeKey(item) !== mergeKey) continue;
 
-      const loc = { orderId: order.id, itemIdx, item, order };
+      const loc: MenuLineCandidate = { orderId: order.id, itemIdx, item, order };
       if (!fallback) fallback = loc;
 
-      if (!canDecrementOrderLine(operator, item, order.status)) return;
+      if (!canDecrementOrderLine(operator, item, order.status)) continue;
       if (!bestDecrementable) bestDecrementable = loc;
       if (item.qty > 1 && !bestQtyGt1) bestQtyGt1 = loc;
-    });
+    }
   }
 
   const chosen = bestQtyGt1 ?? bestDecrementable ?? fallback;

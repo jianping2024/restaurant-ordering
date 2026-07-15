@@ -1,10 +1,10 @@
 import { formatCustomerOrderSubmittedTime } from '@/lib/format-dashboard-date';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
+import { orderBatchDisplayGroupKey, orderItemBatchKey } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { orderItemBatchKey } from '@/lib/station-ticket-enqueue';
 import { stationTicketOrderTimeIso } from '@/lib/table-guest-count';
 import type { UILanguage } from '@/lib/i18n';
-import type { Order, OrderItem } from '@/types';
+import type { Order } from '@/types';
 
 export type CustomerSubmittedOrderLine = {
   key: string;
@@ -19,16 +19,9 @@ export type CustomerSubmittedOrderGroup = {
 
 type BatchBucket = {
   groupKey: string;
-  batchKey: string;
-  fallbackIso: string;
+  submittedTimeIso: string;
   lines: CustomerSubmittedOrderLine[];
-  items: OrderItem[];
-  sortIso: string;
 };
-
-function displayBatchGroupKey(orderId: string, batchKey: string): string {
-  return batchKey === 'legacy' ? `${orderId}:legacy` : batchKey;
-}
 
 /** Read-only submitted-order rows grouped by append batch — no locale/time in UI components. */
 export function buildCustomerSubmittedDisplayOrders(
@@ -44,22 +37,17 @@ export function buildCustomerSubmittedDisplayOrders(
       if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
 
       const batchKey = orderItemBatchKey(item);
-      const groupKey = displayBatchGroupKey(order.id, batchKey);
+      const groupKey = orderBatchDisplayGroupKey(order.id, batchKey);
       let bucket = buckets.get(groupKey);
       if (!bucket) {
-        const sortIso = stationTicketOrderTimeIso(items, batchKey, order.created_at);
         bucket = {
           groupKey,
-          batchKey,
-          fallbackIso: order.created_at,
+          submittedTimeIso: stationTicketOrderTimeIso(items, batchKey, order.created_at),
           lines: [],
-          items: [],
-          sortIso,
         };
         buckets.set(groupKey, bucket);
       }
 
-      bucket.items.push(item);
       bucket.lines.push({
         key: `${order.id}-${idx}`,
         label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
@@ -68,13 +56,10 @@ export function buildCustomerSubmittedDisplayOrders(
   }
 
   return Array.from(buckets.values())
-    .sort((a, b) => a.sortIso.localeCompare(b.sortIso))
+    .sort((a, b) => a.submittedTimeIso.localeCompare(b.submittedTimeIso))
     .map((bucket) => ({
       groupKey: bucket.groupKey,
-      submittedTimeLabel: formatCustomerOrderSubmittedTime(
-        lang,
-        stationTicketOrderTimeIso(bucket.items, bucket.batchKey, bucket.fallbackIso),
-      ),
+      submittedTimeLabel: formatCustomerOrderSubmittedTime(lang, bucket.submittedTimeIso),
       lines: bucket.lines,
     }));
 }

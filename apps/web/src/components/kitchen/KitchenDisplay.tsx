@@ -10,7 +10,7 @@ import { VoidItemReasonDialog } from '@/lib/order-item-void/VoidItemReasonDialog
 import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
 import { patchStaffOrderItemsClient } from '@/lib/order-item-void/patch-staff-order-items-client';
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
@@ -464,7 +464,7 @@ function OrderCard({
   const allVoided = itemsEveryVoided(kitchenLines);
   const batchOrder: string[] = [];
   kitchenLines.forEach((item) => {
-    const batch = item.batch_id || 'legacy';
+    const batch = orderItemBatchKey(item);
     if (!batchOrder.includes(batch)) batchOrder.push(batch);
   });
 
@@ -508,7 +508,7 @@ function OrderCard({
             .map((item, idx) => ({ item, idx }))
             .filter(
               ({ item }) =>
-                !isBuffetBaseItem(item) && (item.batch_id || 'legacy') === batchId,
+                !isBuffetBaseItem(item) && orderItemBatchKey(item) === batchId,
             );
           const batchLabel = batchIdx === 0 ? labels.firstBatch : `${labels.addOnBatch} #${batchIdx}`;
           const batchTime = batchItems[0]?.item.added_at

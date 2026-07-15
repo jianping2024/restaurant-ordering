@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrderItem } from '@/types';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import {
@@ -23,10 +23,6 @@ const UUID_RE =
 
 function isUuid(s: string): boolean {
   return UUID_RE.test(s);
-}
-
-export function orderItemBatchKey(item: OrderItem): string {
-  return item.batch_id || 'legacy';
 }
 
 type StationRow = {

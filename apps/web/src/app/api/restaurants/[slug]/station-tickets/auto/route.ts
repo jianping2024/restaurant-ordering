@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { orderItemBatchKey } from '@/lib/order-items';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import { autoEnqueueRateLimitCheck } from '@/lib/station-ticket-auto-rate-limit';
 import { orderEnqueueSecret, verifyOrderEnqueueToken } from '@/lib/order-enqueue-token';
@@ -81,7 +82,7 @@ export async function POST(
   }
 
   const items = (order.items || []) as Array<{ batch_id?: string }>;
-  const batchKnown = items.some((item) => (item.batch_id || 'legacy') === batchId);
+  const batchKnown = items.some((item) => orderItemBatchKey(item) === batchId);
   if (!batchKnown) {
     return NextResponse.json({ error: 'unknown_batch' }, { status: 400 });
   }

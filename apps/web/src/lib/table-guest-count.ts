@@ -1,10 +1,6 @@
 import type { Order, OrderItem } from '@/types';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-
-function orderItemBatchKey(item: OrderItem): string {
-  return item.batch_id || 'legacy';
-}
 
 type OrderLike = Pick<Order, 'status' | 'items' | 'created_at' | 'updated_at'>;
 

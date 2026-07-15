@@ -8,3 +8,13 @@ export function isBuffetBaseItem(item: Pick<OrderItem, 'kind'>): boolean {
 export function kitchenRelevantItems(items: OrderItem[]): OrderItem[] {
   return items.filter((i) => !isBuffetBaseItem(i));
 }
+
+/** Stable append-batch key for kitchen, print, and customer ordered lists. */
+export function orderItemBatchKey(item: Pick<OrderItem, 'batch_id'>): string {
+  return item.batch_id || 'legacy';
+}
+
+/** Customer display group key — legacy batches stay scoped per order row. */
+export function orderBatchDisplayGroupKey(orderId: string, batchKey: string): string {
+  return batchKey === 'legacy' ? `${orderId}:legacy` : batchKey;
+}

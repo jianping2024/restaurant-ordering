@@ -95,7 +95,7 @@ func labelsFor(locale string) ticketLabels {
 			guest:          "Guest",
 			items:          "Items",
 			qty:            "Qty",
-			originalPrice:  "Original Price",
+			originalPrice:  "Pri",
 			feeDetails:     "Fee Details",
 			originalTotal:  "Original price",
 			subtotal:       "Subtotal",
@@ -421,7 +421,7 @@ func (w *escposWriter) separator(ch rune) {
 }
 
 const (
-	escposColItems = 25 // leaves 9 for Qty (A999-C999) and 14 for "Original Price"
+	escposColItems = 25 // leaves 9 for Qty (A999-C999) and 14 for price column
 	escposColQty   = 9
 	escposColPrice = escposWidth - escposColItems - escposColQty
 )
@@ -461,6 +461,21 @@ func (w *escposWriter) rightLine(s string, bold bool) {
 	w.text(s)
 	w.lf()
 	w.bold(false)
+	w.align(0)
+}
+
+func (w *escposWriter) writeReceiptMenuBodyLine(left, mid, right string) {
+	w.writeBody1x2Bold()
+	w.text(escposThreeColLine(left, mid, right))
+	w.lf()
+}
+
+func (w *escposWriter) writeReceiptAmountDueLine(s string) {
+	w.align(2)
+	w.writeBody1x2Bold()
+	w.text(s)
+	w.lf()
+	w.writeBody1x1()
 	w.align(0)
 }
 
@@ -537,7 +552,7 @@ func escposPadLine(left, right string, width int) string {
 	return left + strings.Repeat(" ", gap) + right
 }
 
-// writeBody1x1 — Font A normal (matches pre-bill / receipt item lines).
+// writeBody1x1 — Font A normal (receipt fee/footer; station slip footer).
 func (w *escposWriter) writeBody1x1() {
 	w.size(false, false)
 	w.bold(false)
@@ -548,6 +563,13 @@ func (w *escposWriter) writeBody1x1() {
 func (w *escposWriter) writeBody1x2() {
 	w.size(false, true)
 	w.bold(false)
+	w.underline(false)
+}
+
+// writeBody1x2Bold — receipt menu block and amount due (Font A 1×2 bold).
+func (w *escposWriter) writeBody1x2Bold() {
+	w.size(false, true)
+	w.bold(true)
 	w.underline(false)
 }
 
@@ -740,18 +762,14 @@ func receiptLineFieldsFrom(ln jobLine) receiptLineFields {
 }
 
 func (w *escposWriter) writeReceiptMenuLines(lines []jobLine, lab ticketLabels) (sum float64, hasPrice bool) {
-	w.writeBody1x1()
-	w.text(escposThreeColLine(lab.items, lab.qty, lab.originalPrice))
-	w.lf()
+	w.writeReceiptMenuBodyLine(lab.items, lab.qty, lab.originalPrice)
 	for _, ln := range lines {
 		fields := receiptLineFieldsFrom(ln)
 		if fields.hasPrice {
 			hasPrice = true
 			sum += fields.lineTotal
 		}
-		w.writeBody1x2()
-		w.text(escposThreeColLine(fields.label, fields.qtyCol, fields.priceCol))
-		w.lf()
+		w.writeReceiptMenuBodyLine(fields.label, fields.qtyCol, fields.priceCol)
 	}
 	w.writeBody1x1()
 	return sum, hasPrice
@@ -846,7 +864,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 		if p.AmountDue > 0 {
 			due = p.AmountDue
 		}
-		w.rightLine(lab.amountDue+":"+formatMoney(due), true)
+		w.writeReceiptAmountDueLine(lab.amountDue + ":" + formatMoney(due))
 		if withPayment {
 			paid := due
 			if p.AmountPaid > 0 {

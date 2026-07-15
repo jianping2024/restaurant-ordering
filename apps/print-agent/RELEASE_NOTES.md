@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.42
+
+**账单菜单区排版**
+
+- 列头（Items / Qty / Pri）、菜品行、Amount Due 统一 Font A 1×2 加粗；英文价格列头由 Original Price 改为 Pri。
+- 费用明细与时间戳仍为 1×1 普通；出品联不受影响。
+
 ## 0.3.41
 
 **出品联 / 账单纸面版式**

@@ -33,7 +33,7 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 		"Receipt",
 		"Table No.:01",
 		"Guest:4",
-		"Original Price",
+		"Pri",
 		"Agua 500ml",
 		"Fee Details",
 		"Original price",
@@ -49,8 +49,8 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 			t.Fatalf("missing %q in receipt output", want)
 		}
 	}
-	if strings.Contains(s, "Original Pri") && !strings.Contains(s, "Original Price") {
-		t.Fatal("price header must not wrap as Original Pri")
+	if strings.Contains(s, "Original Price") {
+		t.Fatal("price column header must use Pri, not Original Price")
 	}
 }
 
@@ -276,7 +276,7 @@ func TestReceiptDoesNotPrintItemNote(t *testing.T) {
 	}
 }
 
-func TestReceiptMenuLinesUseDoubleHeight(t *testing.T) {
+func TestReceiptMenuLinesUse1x2Bold(t *testing.T) {
 	payload, _ := json.Marshal(map[string]any{
 		"display_name":    "A-01",
 		"receipt_variant": "pre_bill",
@@ -293,8 +293,24 @@ func TestReceiptMenuLinesUseDoubleHeight(t *testing.T) {
 	if idx < 0 {
 		t.Fatal("missing Items header line")
 	}
-	body := raw[idx+len(headerLine):]
-	if !bytes.Contains(body, []byte{0x1D, 0x21, 0x01}) {
-		t.Fatal("receipt menu lines must use GS ! 1×2")
+	menuBlock := raw[idx:]
+	if !bytes.Contains(menuBlock, []byte{0x1D, 0x21, 0x01}) {
+		t.Fatal("receipt menu block must use GS ! 1×2")
+	}
+	if !bytes.Contains(menuBlock, []byte{0x1B, 0x45, 0x01}) {
+		t.Fatal("receipt menu block must use ESC E bold")
+	}
+	amountDue := []byte("Amount Due:5.00")
+	dueIdx := bytes.Index(raw, amountDue)
+	if dueIdx < 0 {
+		t.Fatal("missing Amount Due line")
+	}
+	segStart := dueIdx - 16
+	if segStart < 0 {
+		segStart = 0
+	}
+	dueSegment := raw[segStart : dueIdx+len(amountDue)]
+	if !bytes.Contains(dueSegment, []byte{0x1D, 0x21, 0x01}) || !bytes.Contains(dueSegment, []byte{0x1B, 0x45, 0x01}) {
+		t.Fatal("Amount Due must use 1×2 bold")
 	}
 }

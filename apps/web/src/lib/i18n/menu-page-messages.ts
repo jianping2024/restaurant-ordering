@@ -3,6 +3,13 @@ import type { Language } from '@/types';
 export const MENU_PAGE_MESSAGES: Record<Language, {
   table: string;
   noItems: string;
+  orderedTitle: string;
+  orderedDrawerTitle: string;
+  orderedSubmittedHint: string;
+  noOrders: string;
+  orderedCount: string;
+  viewOrdered: string;
+  continueOrdering: string;
   viewBillLink: string;
   billDisabledHint: string;
   submitCooldownWait: string;
@@ -33,6 +40,13 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   pt: {
     table: 'Mesa',
     noItems: 'Sem pratos nesta categoria',
+    orderedTitle: 'Pedidos feitos',
+    orderedDrawerTitle: 'Pedidos feitos ({count})',
+    orderedSubmittedHint: 'Pratos ja enviados: peca ao staff para alterar.',
+    noOrders: 'Nenhum pedido enviado ainda',
+    orderedCount: '{count} prato(s)',
+    viewOrdered: 'Ver pedidos',
+    continueOrdering: 'Continuar a pedir',
     viewBillLink: 'Ver conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
     submitCooldownWait: 'Aguarde {seconds} s',
@@ -64,6 +78,13 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   en: {
     table: 'Table',
     noItems: 'No items in this category',
+    orderedTitle: 'Ordered',
+    orderedDrawerTitle: 'Ordered ({count})',
+    orderedSubmittedHint: 'Submitted items can only be changed by staff.',
+    noOrders: 'No orders submitted yet',
+    orderedCount: '{count} item(s) ordered',
+    viewOrdered: 'View ordered',
+    continueOrdering: 'Continue ordering',
     viewBillLink: 'View bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
     submitCooldownWait: 'Wait {seconds}s',
@@ -95,6 +116,13 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   zh: {
     table: '桌号',
     noItems: '此分类暂无菜品',
+    orderedTitle: '已点菜品',
+    orderedDrawerTitle: '已点菜品 ({count})',
+    orderedSubmittedHint: '已提交的菜品如需修改，请联系服务员',
+    noOrders: '还没有提交订单',
+    orderedCount: '已点 {count} 份',
+    viewOrdered: '查看已点',
+    continueOrdering: '继续点菜',
     viewBillLink: '查看账单',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
     submitCooldownWait: '请等待 {seconds} 秒',

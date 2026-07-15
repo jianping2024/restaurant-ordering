@@ -40,10 +40,38 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.visible, false);
   });
 
-  it('sums draft cart qty and total', () => {
+  it('uses idle phase when cart and submitted are empty', () => {
+    const view = deriveMenuPageFooter({ ...base });
+    assert.equal(view.phase, 'idle');
+    assert.equal(view.submittedCount, 0);
+    assert.equal(view.showOrderedCta, false);
+  });
+
+  it('uses draft phase when cart has items', () => {
     const view = deriveMenuPageFooter({ ...base, cart: [cartLine] });
+    assert.equal(view.phase, 'draft');
     assert.equal(view.cartQty, 2);
     assert.equal(view.cartTotal, 4);
+  });
+
+  it('prefers draft phase when cart and submitted both exist', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      cart: [cartLine],
+      recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
+    });
+    assert.equal(view.phase, 'draft');
+    assert.equal(view.submittedCount, 1);
+  });
+
+  it('uses ordered phase when cart is empty and submitted exist', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
+    });
+    assert.equal(view.phase, 'ordered');
+    assert.equal(view.submittedCount, 1);
+    assert.equal(view.showOrderedCta, true);
   });
 
   it('enables bill CTA when session has submitted items', () => {
@@ -60,19 +88,22 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.billEnabled, false);
   });
 
-  it('hides bill CTA for staff-assisted waiter flow', () => {
+  it('hides bill and ordered CTAs for staff-assisted waiter flow', () => {
+    const staffAssisted = {
+      variant: 'slug_waiter' as const,
+      returnHref: '/dashboard/waiter/t1',
+      redirectAfterSubmit: true,
+      showBillCta: false,
+      skipGeoFence: true,
+      skipFeedback: true,
+      checkoutRedirectHref: null,
+    };
     const view = deriveMenuPageFooter({
       ...base,
-      staffAssisted: {
-        variant: 'slug_waiter',
-        returnHref: '/dashboard/waiter/t1',
-        redirectAfterSubmit: true,
-        showBillCta: false,
-        skipGeoFence: true,
-        skipFeedback: true,
-        checkoutRedirectHref: null,
-      },
+      staffAssisted,
+      recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
     });
     assert.equal(view.showBillCta, false);
+    assert.equal(view.showOrderedCta, false);
   });
 });

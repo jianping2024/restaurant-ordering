@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { MenuItem, CartItem, MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
+import { OrderedDrawer } from './OrderedDrawer';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
@@ -82,6 +83,7 @@ export function MenuPage({
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [orderedOpen, setOrderedOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [demoToast, setDemoToast] = useState(false);
   const {
@@ -256,6 +258,24 @@ export function MenuPage({
     [activeSession, cart, recentOrders, restaurant.slug, sessionResolved, staffAssisted, tableId],
   );
   const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(footer.visible);
+
+  const formatCountLabel = useCallback(
+    (template: string, count: number) => template.replace('{count}', String(count)),
+    [],
+  );
+
+  const openCartDrawer = useCallback(() => {
+    setOrderedOpen(false);
+    setCartOpen(true);
+  }, []);
+
+  const openOrderedDrawer = useCallback(() => {
+    setCartOpen(false);
+    setOrderedOpen(true);
+  }, []);
+
+  const closeCartDrawer = useCallback(() => setCartOpen(false), []);
+  const closeOrderedDrawer = useCallback(() => setOrderedOpen(false), []);
 
   const clearSubmitCart = useCallback(() => {
     setCart([]);
@@ -522,21 +542,43 @@ export function MenuPage({
 
       <CustomerMenuFooter
         {...footer}
-        labels={{ viewCart: t.viewCart, viewBill: t.viewBillLink }}
-        onOpenCart={() => setCartOpen(true)}
+        labels={{
+          viewCart: t.viewCart,
+          viewBill: t.viewBillLink,
+          viewOrdered: t.viewOrdered,
+          orderedCount: (count) => formatCountLabel(t.orderedCount, count),
+        }}
+        onOpenCart={openCartDrawer}
+        onOpenOrdered={openOrderedDrawer}
       />
 
-      {/* 购物车抽屉 */}
       <CartDrawer
         open={cartOpen}
         cart={cart}
         lang={lang}
-        onClose={() => setCartOpen(false)}
+        onClose={closeCartDrawer}
         onUpdateQty={updateQty}
         onUpdateNote={updateNote}
         onSubmit={submitOrder}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}
+      />
+
+      <OrderedDrawer
+        open={orderedOpen}
+        orders={recentOrders}
+        lang={lang}
+        labels={{
+          title: formatCountLabel(t.orderedDrawerTitle, footer.submittedCount),
+          empty: t.noOrders,
+          submittedHint: t.orderedSubmittedHint,
+          continueOrdering: t.continueOrdering,
+          viewBill: t.viewBillLink,
+        }}
+        billHref={footer.billHref}
+        billEnabled={footer.billEnabled}
+        showBillLink={footer.showBillCta}
+        onClose={closeOrderedDrawer}
       />
 
       <CustomerOrderingIntroModal

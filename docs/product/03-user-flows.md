@@ -72,6 +72,7 @@
 2. RSC 调用 `loadCustomerSessionContext` 注入首屏 session + 近期订单；客户端 `useCustomerSessionContext` 挂载后静默 reconcile
 3. 条件满足（`open` 会话 + active `buffet_base`）→ 展示菜单、购物车
 4. 顾客选菜、提交 → 进入「加菜流程」
+5. 提交成功后底栏进入**已点态**；点「查看已点」→ `OrderedDrawer` 浏览已提交明细；「查看账单」→ 现有 `BillPage`
 
 ### 异常流程
 
@@ -95,7 +96,7 @@
 
 ### 相关代码位置
 
-`app/[slug]/menu/page.tsx`、`components/menu/MenuPage.tsx`、`lib/customer-menu-order-gate.ts`、`api/.../customer/session/route.ts`
+`app/[slug]/menu/page.tsx`、`components/menu/MenuPage.tsx`、`components/menu/OrderedDrawer.tsx`、`lib/menu-page-footer.ts`、`lib/customer-menu-order-gate.ts`、`api/.../customer/session/route.ts`
 
 ---
 

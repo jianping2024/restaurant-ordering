@@ -472,14 +472,14 @@ export function WaiterTableOrderedItemsPanel({
     <WaiterDetailCard className="overflow-hidden">
       <div className={waiterDetailLayout.sectionHeader}>
         <WaiterClocheIcon className={`${buttonIcon.md} text-brand-gold`} />
-        <h2 className="text-[15px] font-semibold text-brand-text">{title}</h2>
+        <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
       </div>
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => (
           <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
             <p className={waiterDetailLayout.orderedItemLabel}>
               {line.itemCode ? (
-                <span className={waiterDetailLayout.orderedItemCode}>[{line.itemCode}]</span>
+                <span className={waiterDetailLayout.orderedItemCodePrefix}>[{line.itemCode}]</span>
               ) : null}
               {line.label}
             </p>

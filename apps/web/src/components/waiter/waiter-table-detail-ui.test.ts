@@ -33,9 +33,11 @@ test('back-to-board footer uses page footer spacing and secondary action width',
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
 });
 
-test('ordered-items list body typography is one step above legacy text-sm', () => {
-  assert.match(waiterDetailLayout.orderedItemLabel, /text-\[15px\]/);
-  assert.match(waiterDetailLayout.orderedItemQty, /text-\[15px\]/);
-  assert.match(waiterDetailLayout.orderedItemCode, /text-\[13px\]/);
-  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /text-sm/);
+test('ordered-items card typography uses text-lg and code inherits row style', () => {
+  assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
+  assert.equal(waiterDetailLayout.orderedItemCodePrefix, 'mr-1');
+  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemCodePrefix, /font-mono/);
 });

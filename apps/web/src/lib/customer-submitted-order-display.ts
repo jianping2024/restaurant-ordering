@@ -1,8 +1,10 @@
 import { formatCustomerOrderSubmittedTime } from '@/lib/format-dashboard-date';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { orderItemBatchKey } from '@/lib/station-ticket-enqueue';
+import { stationTicketOrderTimeIso } from '@/lib/table-guest-count';
 import type { UILanguage } from '@/lib/i18n';
-import type { Order } from '@/types';
+import type { Order, OrderItem } from '@/types';
 
 export type CustomerSubmittedOrderLine = {
   key: string;
@@ -10,34 +12,69 @@ export type CustomerSubmittedOrderLine = {
 };
 
 export type CustomerSubmittedOrderGroup = {
-  orderId: string;
+  groupKey: string;
   submittedTimeLabel: string;
   lines: CustomerSubmittedOrderLine[];
 };
 
-/** Read-only submitted-order rows for customer OrderedDrawer — no locale/time in UI components. */
+type BatchBucket = {
+  groupKey: string;
+  batchKey: string;
+  fallbackIso: string;
+  lines: CustomerSubmittedOrderLine[];
+  items: OrderItem[];
+  sortIso: string;
+};
+
+function displayBatchGroupKey(orderId: string, batchKey: string): string {
+  return batchKey === 'legacy' ? `${orderId}:legacy` : batchKey;
+}
+
+/** Read-only submitted-order rows grouped by append batch — no locale/time in UI components. */
 export function buildCustomerSubmittedDisplayOrders(
   orders: Order[],
   lang: UILanguage,
 ): CustomerSubmittedOrderGroup[] {
-  return orders
-    .map((order) => {
-      const items = order.items ?? [];
-      const lines = items.flatMap((item, idx) => {
-        if (normalizeOrderItemStatus(item, order.status) === 'voided') return [];
-        return [{
-          key: `${order.id}-${idx}`,
-          label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
-        }];
+  const buckets = new Map<string, BatchBucket>();
+
+  for (const order of orders) {
+    const items = order.items ?? [];
+    for (let idx = 0; idx < items.length; idx += 1) {
+      const item = items[idx];
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
+
+      const batchKey = orderItemBatchKey(item);
+      const groupKey = displayBatchGroupKey(order.id, batchKey);
+      let bucket = buckets.get(groupKey);
+      if (!bucket) {
+        const sortIso = stationTicketOrderTimeIso(items, batchKey, order.created_at);
+        bucket = {
+          groupKey,
+          batchKey,
+          fallbackIso: order.created_at,
+          lines: [],
+          items: [],
+          sortIso,
+        };
+        buckets.set(groupKey, bucket);
+      }
+
+      bucket.items.push(item);
+      bucket.lines.push({
+        key: `${order.id}-${idx}`,
+        label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
       });
+    }
+  }
 
-      if (lines.length === 0) return null;
-
-      return {
-        orderId: order.id,
-        submittedTimeLabel: formatCustomerOrderSubmittedTime(lang, order.created_at),
-        lines,
-      };
-    })
-    .filter((group): group is CustomerSubmittedOrderGroup => group !== null);
+  return Array.from(buckets.values())
+    .sort((a, b) => a.sortIso.localeCompare(b.sortIso))
+    .map((bucket) => ({
+      groupKey: bucket.groupKey,
+      submittedTimeLabel: formatCustomerOrderSubmittedTime(
+        lang,
+        stationTicketOrderTimeIso(bucket.items, bucket.batchKey, bucket.fallbackIso),
+      ),
+      lines: bucket.lines,
+    }));
 }

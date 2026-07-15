@@ -7,6 +7,15 @@ type Props = {
   loading?: boolean;
 };
 
+function BatchTimeDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-2">
+      <div className="flex-1 border-t border-dashed border-brand-border" aria-hidden="true" />
+      <time className="text-[12px] text-brand-text-muted shrink-0 tabular-nums">{label}</time>
+    </div>
+  );
+}
+
 export function CustomerOrderedItemsList({
   groups,
   emptyLabel,
@@ -31,12 +40,10 @@ export function CustomerOrderedItemsList({
       {submittedHint ? (
         <p className="text-brand-text-muted text-[12px] mb-3">{submittedHint}</p>
       ) : null}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {groups.map((group) => (
-          <div key={group.orderId} className="border border-brand-border rounded-xl p-3">
-            <div className="mb-2">
-              <span className="text-[13px] text-brand-text-muted">{group.submittedTimeLabel}</span>
-            </div>
+          <section key={group.groupKey}>
+            <BatchTimeDivider label={group.submittedTimeLabel} />
             <div className="space-y-1">
               {group.lines.map((line) => (
                 <p key={line.key} className="text-sm text-brand-text">
@@ -44,7 +51,7 @@ export function CustomerOrderedItemsList({
                 </p>
               ))}
             </div>
-          </div>
+          </section>
         ))}
       </div>
     </>

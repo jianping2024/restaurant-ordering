@@ -35,7 +35,7 @@ export function WaiterStandaloneShell({ restaurant, asOwner = false, children }:
               />
             }
           />
-          <main className="min-h-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="min-h-0 flex-1 overflow-x-clip p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       )}
     </WaiterAuthenticatedShell>

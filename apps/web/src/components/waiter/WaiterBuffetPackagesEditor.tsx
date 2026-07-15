@@ -30,7 +30,7 @@ type Props = {
   layout?: 'sheet' | 'detail';
 };
 
-/** Shared estimated-total line for sheet footer and detail summary row. */
+/** Estimated-total line for open-table sheet footer. */
 export function BuffetPackagesEstimatedTotal({
   lang,
   guestSnapshot,

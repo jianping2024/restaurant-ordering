@@ -27,7 +27,7 @@ import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { formatWaiterTableDetailHeading } from '@/lib/waiter-table-detail-display';
+import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
@@ -874,7 +874,7 @@ function WaiterTableDetailInner({
 
         <WaiterTableOrderedItemsPanel
           title={t.orderedItems}
-          sessionTotal={selectedCard.sessionTotal}
+          sessionTotalText={formatWaiterOrderedItemsSessionTotal(lang, selectedCard.sessionTotal)}
           lines={selectedCard.orderLines}
           isCheckoutPending={isCheckoutPending}
           decrementingKey={decrementingKey}

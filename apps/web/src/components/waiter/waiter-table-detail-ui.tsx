@@ -22,7 +22,6 @@ export const buffetDetailPackageRow =
  */
 export const waiterDetailLayout = {
   cardBody: `${WAITER_DETAIL_GUTTER_PX} py-4`,
-  sectionHeader: `flex items-center justify-between gap-2 border-b border-brand-border/40 ${WAITER_DETAIL_GUTTER_PX} py-3`,
   sectionBody: `space-y-2 ${WAITER_DETAIL_GUTTER_PX} py-3`,
   /** Save guests, continue ordering, close table — same action footprint. */
   primaryAction: 'w-full justify-center sm:w-auto whitespace-nowrap sm:max-w-none xl:w-auto',
@@ -30,17 +29,20 @@ export const waiterDetailLayout = {
   secondaryAction: 'w-full justify-center sm:w-auto',
   buffetStrip:
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
-  /** Estimated total + save guests — shares package grid; actions sit under stepper columns. */
+  /** Save guests — aligns under guest stepper columns on the package grid. */
   buffetDetailSummaryRow: `mt-4 ${buffetDetailPackageGrid}`,
   buffetDetailSummaryActions: 'flex flex-wrap items-center justify-end gap-3 sm:col-span-2',
   /** Occupied-table actions — one centered row; buttons wrap on narrow viewports. */
   occupiedToolbarRow: 'flex flex-wrap items-center justify-center gap-2',
   /** Page exit — below ordered items, above modals. */
   pageFooter: 'mt-4 flex justify-center',
-  /** Ordered-items card — title, row text, and qty share `text-lg` (18px). */
+  /**
+   * Ordered-items chrome — sticks under Dashboard / Waiter top bars (`h-14`).
+   * Opaque card bg so list rows never show through while scrolling.
+   */
+  orderedItemsHeader: `sticky top-14 z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: 'text-lg font-semibold text-brand-text',
-  /** Session total beside the ordered-items title — same € format as the board card. */
-  orderedItemsAmount: 'shrink-0 text-lg font-semibold text-brand-gold tabular-nums',
+  orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   orderedItemLabel: 'text-lg text-brand-text truncate min-w-0 flex-1',
   orderedItemQty: 'text-lg text-brand-text tabular-nums',
 } as const;

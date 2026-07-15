@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import type { Buffet } from '@/types';
 import {
-  BuffetPackagesEstimatedTotal,
   WaiterBuffetPackagesEditor,
   isBuffetPackagesEditorReady,
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
@@ -32,7 +31,6 @@ import {
 import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import { formatWaiterBoardCardAmount } from '@/lib/waiter-board-card-display';
 import {
   buttonIcon,
   WaiterDetailCard,
@@ -159,11 +157,6 @@ export function WaiterTableBuffetPanel({
         <div className={waiterDetailLayout.buffetDetailSummaryRow}>
           <div aria-hidden className="hidden sm:block" />
           <div className={waiterDetailLayout.buffetDetailSummaryActions}>
-            <BuffetPackagesEstimatedTotal
-              lang={lang}
-              guestSnapshot={guestSnapshot}
-              resolvedByBuffetId={resolvedByBuffetId}
-            />
             <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
               {buffetSubmitting ? '…' : buffetActionLabel}
             </WaiterTablePrimaryButton>
@@ -452,8 +445,8 @@ export function WaiterTableOccupiedToolbar({
 
 type OrderedItemsProps = {
   title: string;
-  /** Session consumption total — same source as the waiter board card amount. */
-  sessionTotal: number;
+  /** Preformatted session total for sticky chrome; null hides the amount. */
+  sessionTotalText: string | null;
   lines: WaiterOrderLine[];
   isCheckoutPending: boolean;
   decrementingKey: string | null;
@@ -463,7 +456,7 @@ type OrderedItemsProps = {
 
 export function WaiterTableOrderedItemsPanel({
   title,
-  sessionTotal,
+  sessionTotalText,
   lines,
   isCheckoutPending,
   decrementingKey,
@@ -472,17 +465,15 @@ export function WaiterTableOrderedItemsPanel({
 }: OrderedItemsProps) {
   if (lines.length === 0) return null;
 
-  const amountText = formatWaiterBoardCardAmount(sessionTotal);
-
   return (
-    <WaiterDetailCard className="overflow-hidden">
-      <div className={waiterDetailLayout.sectionHeader}>
+    <WaiterDetailCard>
+      <div className={waiterDetailLayout.orderedItemsHeader}>
         <div className="flex min-w-0 items-center gap-2">
-          <WaiterClocheIcon className={`${buttonIcon.md} text-brand-gold`} />
+          <WaiterClocheIcon className={`${buttonIcon.md} shrink-0 text-brand-gold`} />
           <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
         </div>
-        {amountText ? (
-          <span className={waiterDetailLayout.orderedItemsAmount}>{amountText}</span>
+        {sessionTotalText ? (
+          <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
         ) : null}
       </div>
       <div className={waiterDetailLayout.sectionBody}>

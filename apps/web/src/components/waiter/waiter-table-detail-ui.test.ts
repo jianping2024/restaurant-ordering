@@ -33,15 +33,14 @@ test('back-to-board footer uses page footer spacing and secondary action width',
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
 });
 
-test('ordered-items card typography uses text-lg', () => {
+test('ordered-items card typography uses text-lg and sticky chrome under top bar', () => {
+  assert.match(waiterDetailLayout.orderedItemsHeader, /sticky/);
+  assert.match(waiterDetailLayout.orderedItemsHeader, /top-14/);
+  assert.match(waiterDetailLayout.orderedItemsHeader, /bg-brand-card/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
-  assert.match(waiterDetailLayout.orderedItemsAmount, /text-lg/);
-  assert.match(waiterDetailLayout.orderedItemsAmount, /tabular-nums/);
+  assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsTotal, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
-});
-
-test('ordered-items section header places title and session total on one row', () => {
-  assert.match(waiterDetailLayout.sectionHeader, /justify-between/);
 });

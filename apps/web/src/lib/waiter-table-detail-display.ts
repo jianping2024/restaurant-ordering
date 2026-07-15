@@ -9,3 +9,12 @@ export function formatWaiterTableDetailHeading(
   const { detailsTitle } = WAITER_TEXT[lang];
   return `${detailsTitle} · ${displayName}`;
 }
+
+/** Ordered-items sticky chrome — null when there is nothing to show. */
+export function formatWaiterOrderedItemsSessionTotal(
+  lang: UILanguage,
+  sessionTotal: number,
+): string | null {
+  if (!(sessionTotal > 0)) return null;
+  return WAITER_TEXT[lang].sessionAmount.replace('{amount}', sessionTotal.toFixed(2));
+}

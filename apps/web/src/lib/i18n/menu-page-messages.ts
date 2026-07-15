@@ -26,6 +26,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   demoOpenWaiter: string;
   demoBackHub: string;
   viewCart: string;
+  footerTotal: string;
   locationNotSupported: string;
   locationPermissionDenied: string;
   locationCheckFailed: string;
@@ -64,6 +65,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: 'Abrir painel do garcom',
     demoBackHub: 'Voltar ao hub demo',
     viewCart: 'Ver carrinho',
+    footerTotal: 'Total:',
     locationNotSupported: 'Este dispositivo nao suporta localizacao. Nao foi possivel enviar o pedido.',
     locationPermissionDenied: 'Permita o acesso a localizacao para fazer pedidos neste restaurante.',
     locationCheckFailed: 'Nao foi possivel validar sua localizacao. Tente novamente.',
@@ -103,6 +105,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: 'Open waiter dashboard',
     demoBackHub: 'Back to demo hub',
     viewCart: 'View cart',
+    footerTotal: 'Total:',
     locationNotSupported: 'This device does not support location. Unable to place order.',
     locationPermissionDenied: 'Please allow location access to place orders for this restaurant.',
     locationCheckFailed: 'Unable to verify your location. Please try again.',
@@ -142,6 +145,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     demoOpenWaiter: '打开服务员看板',
     demoBackHub: '返回演示首页',
     viewCart: '查看购物车',
+    footerTotal: '合计：',
     locationNotSupported: '当前设备不支持定位，无法提交订单',
     locationPermissionDenied: '请先允许定位权限，再进行下单',
     locationCheckFailed: '定位校验失败，请重试',

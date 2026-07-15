@@ -548,6 +548,7 @@ export function MenuPage({
           viewOrdered: t.viewOrdered,
           placeOrder: t.placeOrder,
           orderedCount: (count) => formatCountLabel(t.orderedCount, count),
+          footerTotal: t.footerTotal,
         }}
         onOpenCart={openCartDrawer}
         onOpenOrdered={openOrderedDrawer}

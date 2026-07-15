@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { Order } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
+import { buildCustomerSubmittedDisplayOrders } from '@/lib/customer-submitted-order-display';
 import type { Language } from '@/types';
 
 type Labels = {
@@ -19,6 +20,7 @@ type Props = {
   open: boolean;
   orders: Order[];
   lang: Language;
+  sessionResolved: boolean;
   labels: Labels;
   billHref: string;
   billEnabled: boolean;
@@ -30,6 +32,7 @@ export function OrderedDrawer({
   open,
   orders,
   lang,
+  sessionResolved,
   labels,
   billHref,
   billEnabled,
@@ -43,6 +46,13 @@ export function OrderedDrawer({
       document.body.style.overflow = '';
     };
   }, [open]);
+
+  const groups = useMemo(
+    () => (open && sessionResolved ? buildCustomerSubmittedDisplayOrders(orders, lang) : []),
+    [lang, open, orders, sessionResolved],
+  );
+
+  const showSubmittedHint = open && sessionResolved && groups.length > 0;
 
   return (
     <>
@@ -73,12 +83,14 @@ export function OrderedDrawer({
         </div>
 
         <div className="modal-scroll overflow-y-auto max-h-[60vh] px-5 py-4">
-          <CustomerOrderedItemsList
-            orders={orders}
-            lang={lang}
-            emptyLabel={labels.empty}
-            submittedHint={orders.length > 0 ? labels.submittedHint : undefined}
-          />
+          {open ? (
+            <CustomerOrderedItemsList
+              groups={groups}
+              emptyLabel={labels.empty}
+              submittedHint={showSubmittedHint ? labels.submittedHint : undefined}
+              loading={!sessionResolved}
+            />
+          ) : null}
         </div>
 
         <div className="px-5 py-4 border-t border-brand-border flex gap-3">

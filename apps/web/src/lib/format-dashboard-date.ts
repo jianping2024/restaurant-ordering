@@ -26,6 +26,12 @@ const COLLECTED_TIME_OPTS: Intl.DateTimeFormatOptions = {
   timeZone: DASHBOARD_DISPLAY_TZ,
 };
 
+const CUSTOMER_ORDER_SUBMITTED_TIME_OPTS: Intl.DateTimeFormatOptions = {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: DASHBOARD_DISPLAY_TZ,
+};
+
 function dashboardCalendarDay(date: Date): string {
   return new Intl.DateTimeFormat('en-CA', {
     year: 'numeric',
@@ -67,4 +73,10 @@ export function formatOverviewDate(lang: UILanguage, date = new Date()): string 
 export function formatOrderDateTime(lang: UILanguage, iso: string): string {
   const locale = UI_LOCALE_BY_LANG[lang];
   return new Intl.DateTimeFormat(locale, ORDER_TIME_OPTS).format(new Date(iso));
+}
+
+/** Customer menu submitted-order groups — fixed TZ so SSR and mobile hydrate consistently. */
+export function formatCustomerOrderSubmittedTime(lang: UILanguage, iso: string): string {
+  const locale = UI_LOCALE_BY_LANG[lang];
+  return new Intl.DateTimeFormat(locale, CUSTOMER_ORDER_SUBMITTED_TIME_OPTS).format(new Date(iso));
 }

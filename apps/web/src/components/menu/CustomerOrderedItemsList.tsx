@@ -1,25 +1,18 @@
-import type { Language, Order } from '@/types';
-import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
+import type { CustomerSubmittedOrderGroup } from '@/lib/customer-submitted-order-display';
 
 type Props = {
-  orders: Order[];
-  lang: Language;
+  groups: CustomerSubmittedOrderGroup[];
   emptyLabel: string;
   submittedHint?: string;
   loading?: boolean;
 };
 
 export function CustomerOrderedItemsList({
-  orders,
-  lang,
+  groups,
   emptyLabel,
   submittedHint,
   loading = false,
 }: Props) {
-  const locale = UI_LOCALE_BY_LANG[lang];
-
   if (loading) {
     return (
       <div className="space-y-2 animate-pulse" aria-hidden="true">
@@ -29,7 +22,7 @@ export function CustomerOrderedItemsList({
     );
   }
 
-  if (orders.length === 0) {
+  if (groups.length === 0) {
     return <p className="text-brand-text-muted text-sm">{emptyLabel}</p>;
   }
 
@@ -39,25 +32,17 @@ export function CustomerOrderedItemsList({
         <p className="text-brand-text-muted text-[12px] mb-3">{submittedHint}</p>
       ) : null}
       <div className="space-y-3">
-        {orders.map((order) => (
-          <div key={order.id} className="border border-brand-border rounded-xl p-3">
+        {groups.map((group) => (
+          <div key={group.orderId} className="border border-brand-border rounded-xl p-3">
             <div className="mb-2">
-              <span className="text-[13px] text-brand-text-muted">
-                {new Date(order.created_at).toLocaleTimeString(locale, {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
+              <span className="text-[13px] text-brand-text-muted">{group.submittedTimeLabel}</span>
             </div>
             <div className="space-y-1">
-              {order.items.map((item, idx) => {
-                if (normalizeOrderItemStatus(item, order.status) === 'voided') return null;
-                return (
-                  <p key={`${order.id}-${idx}`} className="text-sm text-brand-text">
-                    {formatOrderItemListLabel(item, { headcountStyle: 'receipt' })}
-                  </p>
-                );
-              })}
+              {group.lines.map((line) => (
+                <p key={line.key} className="text-sm text-brand-text">
+                  {line.label}
+                </p>
+              ))}
             </div>
           </div>
         ))}

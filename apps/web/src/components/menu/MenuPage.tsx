@@ -119,11 +119,11 @@ export function MenuPage({
       const data = await refreshSessionContext();
       return guestOrderGateFromSessionContext(data);
     }
-    const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession, recentOrders);
+    const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession);
     if (cached) return cached;
     const data = await refreshSessionContext();
     return guestOrderGateFromSessionContext(data);
-  }, [activeSession, isDemo, recentOrders, refreshSessionContext, sessionResolved]);
+  }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
 
   // 当前分类菜品
   const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
@@ -180,8 +180,8 @@ export function MenuPage({
   });
 
   const guestCanOrder = useMemo(
-    () => sessionResolved && guestOrderingEnabled(activeSession, recentOrders),
-    [activeSession, recentOrders, sessionResolved],
+    () => sessionResolved && guestOrderingEnabled(activeSession),
+    [activeSession, sessionResolved],
   );
   const guestOrderingHints = useMemo(() => {
     const messages = MENU_PAGE_MESSAGES[lang];
@@ -568,6 +568,7 @@ export function MenuPage({
         open={orderedOpen}
         orders={recentOrders}
         lang={lang}
+        sessionResolved={sessionResolved}
         labels={{
           title: formatCountLabel(t.orderedDrawerTitle, footer.submittedCount),
           empty: t.noOrders,

@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
-import { PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
+import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
+import { PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -25,6 +26,19 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: PRODUCT_SITE_TITLE,
   description: PRODUCT_SITE_DESCRIPTION_ZH,
+  applicationName: PRODUCT_NAME,
+  appleWebApp: {
+    capable: true,
+    title: PRODUCT_NAME,
+    statusBarStyle: 'black-translucent',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_THEME_COLOR,
 };
 
 const themeInitScript = `

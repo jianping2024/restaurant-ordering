@@ -38,6 +38,7 @@ import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { CustomerOrderedSectionHeader } from '@/components/menu/CustomerOrderedSectionHeader';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
@@ -510,10 +511,16 @@ export function MenuPage({
         </div>
       )}
 
-      {/* 本桌已下单记录 */}
+      {/* 本桌已点单记录 */}
       <section className="px-4 pt-4">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-4">
-          <h2 className="font-heading text-lg text-brand-gold mb-1">{t.orderedTitle}</h2>
+          <CustomerOrderedSectionHeader
+            title={t.orderedTitle}
+            viewBillHref={billHref}
+            viewBillLabel={t.viewBillLink}
+            viewBillEnabled={canGoBill}
+            showViewBillLink={canShowBillCta}
+          />
           {recentOrders.length > 0 && (
             <p className="text-brand-text-muted text-[12px] mb-3">{t.orderedSubmittedHint}</p>
           )}
@@ -554,21 +561,6 @@ export function MenuPage({
               ))}
             </div>
           )}
-          {canShowBillCta ? (
-            <div className="mt-4 pt-3 border-t border-brand-border">
-              <Link
-                href={billHref}
-                aria-disabled={!canGoBill}
-                className={`w-full block text-center rounded-xl py-2.5 text-sm font-semibold transition-colors ${
-                  canGoBill
-                    ? 'bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light'
-                    : 'bg-brand-border text-brand-text-muted pointer-events-none'
-                }`}
-              >
-                {t.billCta}
-              </Link>
-            </div>
-          ) : null}
         </div>
       </section>
 

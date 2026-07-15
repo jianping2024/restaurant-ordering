@@ -6,7 +6,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   orderedTitle: string;
   orderedSubmittedHint: string;
   noOrders: string;
-  billCta: string;
+  viewBillLink: string;
   billDisabledHint: string;
   submitCooldownWait: string;
   orderSuccess: string;
@@ -37,10 +37,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   pt: {
     table: 'Mesa',
     noItems: 'Sem pratos nesta categoria',
-    orderedTitle: 'Seus pedidos',
+    orderedTitle: 'Pedidos feitos',
     orderedSubmittedHint: 'Pratos ja enviados: peca ao staff para alterar.',
     noOrders: 'Nenhum pedido enviado ainda',
-    billCta: 'Ir para conta',
+    viewBillLink: 'Ver conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
     submitCooldownWait: 'Aguarde {seconds} s',
     orderSuccess: 'Pedido enviado!',
@@ -72,10 +72,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   en: {
     table: 'Table',
     noItems: 'No items in this category',
-    orderedTitle: 'Your orders',
+    orderedTitle: 'Ordered',
     orderedSubmittedHint: 'Submitted items can only be changed by staff.',
     noOrders: 'No orders submitted yet',
-    billCta: 'Go to bill',
+    viewBillLink: 'View bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
     submitCooldownWait: 'Wait {seconds}s',
     orderSuccess: 'Order placed!',
@@ -107,10 +107,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   zh: {
     table: '桌号',
     noItems: '此分类暂无菜品',
-    orderedTitle: '已下单',
+    orderedTitle: '已点单',
     orderedSubmittedHint: '已提交的菜品如需修改，请联系服务员',
     noOrders: '还没有提交订单',
-    billCta: '去结账',
+    viewBillLink: '查看账单',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
     submitCooldownWait: '请等待 {seconds} 秒',
     orderSuccess: '下单成功！',

@@ -10,6 +10,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   orderedCount: string;
   viewOrdered: string;
   continueOrdering: string;
+  placeOrder: string;
   viewBillLink: string;
   billDisabledHint: string;
   submitCooldownWait: string;
@@ -47,6 +48,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     orderedCount: '{count} prato(s)',
     viewOrdered: 'Ver pedidos',
     continueOrdering: 'Continuar a pedir',
+    placeOrder: 'Enviar pedido',
     viewBillLink: 'Ver conta',
     billDisabledHint: 'Esta mesa esta em processo de fechamento. Nao e possivel adicionar novos pratos agora.',
     submitCooldownWait: 'Aguarde {seconds} s',
@@ -85,6 +87,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     orderedCount: '{count} item(s) ordered',
     viewOrdered: 'View ordered',
     continueOrdering: 'Continue ordering',
+    placeOrder: 'Place order',
     viewBillLink: 'View bill',
     billDisabledHint: 'This table is currently in checkout. Adding new dishes is temporarily unavailable.',
     submitCooldownWait: 'Wait {seconds}s',
@@ -123,6 +126,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     orderedCount: '已点 {count} 份',
     viewOrdered: '查看已点',
     continueOrdering: '继续点菜',
+    placeOrder: '去下单',
     viewBillLink: '查看账单',
     billDisabledHint: '当前餐次正在结账，暂时不能加菜',
     submitCooldownWait: '请等待 {seconds} 秒',

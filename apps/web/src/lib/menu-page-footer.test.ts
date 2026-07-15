@@ -43,6 +43,7 @@ describe('deriveMenuPageFooter', () => {
   it('uses idle phase when cart and submitted are empty', () => {
     const view = deriveMenuPageFooter({ ...base });
     assert.equal(view.phase, 'idle');
+    assert.equal(view.primaryAction, 'viewBill');
     assert.equal(view.submittedCount, 0);
     assert.equal(view.showOrderedCta, false);
   });
@@ -50,6 +51,7 @@ describe('deriveMenuPageFooter', () => {
   it('uses draft phase when cart has items', () => {
     const view = deriveMenuPageFooter({ ...base, cart: [cartLine] });
     assert.equal(view.phase, 'draft');
+    assert.equal(view.primaryAction, 'openCart');
     assert.equal(view.cartQty, 2);
     assert.equal(view.cartTotal, 4);
   });
@@ -61,6 +63,7 @@ describe('deriveMenuPageFooter', () => {
       recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
     });
     assert.equal(view.phase, 'draft');
+    assert.equal(view.primaryAction, 'openCart');
     assert.equal(view.submittedCount, 1);
   });
 
@@ -70,6 +73,7 @@ describe('deriveMenuPageFooter', () => {
       recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
     });
     assert.equal(view.phase, 'ordered');
+    assert.equal(view.primaryAction, 'viewOrdered');
     assert.equal(view.submittedCount, 1);
     assert.equal(view.showOrderedCta, true);
   });

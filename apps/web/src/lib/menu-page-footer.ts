@@ -5,6 +5,9 @@ import type { CartItem, Order, TableSession } from '@/types';
 
 export type MenuPageFooterPhase = 'idle' | 'draft' | 'ordered';
 
+/** Right-side primary CTA derived from phase — draft submits via cart, not bill. */
+export type MenuPageFooterPrimaryAction = 'openCart' | 'viewOrdered' | 'viewBill' | 'none';
+
 export type MenuPageFooterInput = {
   cart: CartItem[];
   recentOrders: Order[];
@@ -18,6 +21,7 @@ export type MenuPageFooterInput = {
 export type MenuPageFooterView = {
   visible: boolean;
   phase: MenuPageFooterPhase;
+  primaryAction: MenuPageFooterPrimaryAction;
   cartQty: number;
   cartTotal: number;
   submittedCount: number;
@@ -37,6 +41,17 @@ function deriveFooterPhase(cartQty: number, submittedCount: number): MenuPageFoo
   return 'idle';
 }
 
+function derivePrimaryAction(
+  phase: MenuPageFooterPhase,
+  showBillCta: boolean,
+  showOrderedCta: boolean,
+): MenuPageFooterPrimaryAction {
+  if (phase === 'draft') return 'openCart';
+  if (phase === 'ordered' && showOrderedCta) return 'viewOrdered';
+  if (showBillCta) return 'viewBill';
+  return 'none';
+}
+
 /** Derives fixed footer state from existing menu-page data — no extra client state. */
 export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooterView {
   const cartQty = input.cart.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
@@ -53,10 +68,12 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
     : `/${input.restaurantSlug}/bill?table_id=${encodeURIComponent(input.tableId)}`;
 
   const showOrderedCta = !input.staffAssisted && submittedCount > 0;
+  const primaryAction = derivePrimaryAction(phase, showBillCta, showOrderedCta);
 
   return {
     visible: input.sessionResolved,
     phase,
+    primaryAction,
     cartQty,
     cartTotal,
     submittedCount,

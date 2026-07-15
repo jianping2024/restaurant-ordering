@@ -546,6 +546,7 @@ export function MenuPage({
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,
           viewOrdered: t.viewOrdered,
+          placeOrder: t.placeOrder,
           orderedCount: (count) => formatCountLabel(t.orderedCount, count),
         }}
         onOpenCart={openCartDrawer}

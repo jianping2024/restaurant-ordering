@@ -10,6 +10,7 @@ type Labels = {
   viewCart: string;
   viewBill: string;
   viewOrdered: string;
+  placeOrder: string;
   orderedCount: (count: number) => string;
 };
 
@@ -25,13 +26,12 @@ const actionButtonClassName =
 export function CustomerMenuFooter({
   visible,
   phase,
+  primaryAction,
   cartQty,
   cartTotal,
   submittedCount,
   billHref,
   billEnabled,
-  showBillCta,
-  showOrderedCta,
   labels,
   onOpenCart,
   onOpenOrdered,
@@ -54,15 +54,34 @@ export function CustomerMenuFooter({
     </span>
   );
 
-  const orderedAction = (
-    <button
-      type="button"
-      onClick={onOpenOrdered}
-      className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
-    >
-      {labels.viewOrdered}
-    </button>
-  );
+  const primaryActionNode = (() => {
+    switch (primaryAction) {
+      case 'openCart':
+        return (
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
+          >
+            {labels.placeOrder}
+          </button>
+        );
+      case 'viewOrdered':
+        return (
+          <button
+            type="button"
+            onClick={onOpenOrdered}
+            className={`${actionButtonClassName} bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`}
+          >
+            {labels.viewOrdered}
+          </button>
+        );
+      case 'viewBill':
+        return billLink;
+      default:
+        return null;
+    }
+  })();
 
   return (
     <div className={customerMenuBottomBarDockClass}>
@@ -99,12 +118,10 @@ export function CustomerMenuFooter({
           </button>
         )}
 
-        {phase === 'ordered' && showOrderedCta ? (
-          orderedAction
-        ) : showBillCta ? (
+        {primaryActionNode ? (
           <>
             <div className="w-px shrink-0 bg-brand-border" aria-hidden />
-            {billLink}
+            {primaryActionNode}
           </>
         ) : null}
       </div>

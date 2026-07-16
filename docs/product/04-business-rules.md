@@ -194,7 +194,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 - **队列定义**：`bill_splits.status='requested'` 驱动结账台与 nav badge
 - **呼叫结账 RPC** 同时将 `table_sessions.status` 设为 `billing`
-- **人数前置**：`checkout/request` 要求会话订单 active `buffet_base` 成人+儿童合计 > 0，否则 `guest_count_required`；账单页分单区上方常驻提醒直至人数改对
+- **人数前置**：`checkout/request` 要求会话订单 active `buffet_base` 成人+儿童合计 > 0，否则 `guest_count_required`；账单页分单区上方 + 底栏结账按钮上方琥珀警示常驻，「呼叫结账」禁用，直至人数改对
 
 ### 收款规则
 

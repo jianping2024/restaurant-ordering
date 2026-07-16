@@ -29,6 +29,26 @@ import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
 
+function GuestCountRequiredBanner({
+  message,
+  className = '',
+}: {
+  message: string;
+  className?: string;
+}) {
+  return (
+    <div
+      role="status"
+      className={`flex gap-2.5 rounded-xl border border-amber-500/45 bg-amber-500/12 px-4 py-3 text-[14px] font-medium text-amber-950 ${className}`}
+    >
+      <span className="shrink-0 text-base leading-5" aria-hidden>
+        ⚠️
+      </span>
+      <p className="leading-snug">{message}</p>
+    </div>
+  );
+}
+
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   tableId: string;
@@ -452,7 +472,11 @@ export function BillPage({
   }
 
   return (
-    <div className="min-h-screen bg-brand-bg max-w-mobile mx-auto pb-24">
+    <div
+      className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${
+        guestCountConfirmed ? 'pb-24' : 'pb-40'
+      }`}
+    >
       <CustomerOrderingHeader
         restaurantName={restaurant.name}
         displayName={displayName}
@@ -471,9 +495,7 @@ export function BillPage({
       />
 
       {!guestCountConfirmed ? (
-        <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
-          {t.guestCountRequired}
-        </div>
+        <GuestCountRequiredBanner message={t.guestCountRequired} className="mx-4 mt-3" />
       ) : null}
 
       <BillSplitPanel
@@ -565,6 +587,12 @@ export function BillPage({
       ) : null}
 
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
+        {!guestCountConfirmed ? (
+          <GuestCountRequiredBanner
+            message={t.guestCountRequired}
+            className="shadow-sm shadow-amber-900/10"
+          />
+        ) : null}
         <Button
           className="w-full"
           size="lg"
@@ -574,6 +602,7 @@ export function BillPage({
             orderLines.length === 0
             || !sessionId
             || isCallBillBusy
+            || !guestCountConfirmed
             || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
             || customerNifInvalid
           }

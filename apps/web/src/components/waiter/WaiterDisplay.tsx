@@ -7,6 +7,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
 import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
+import { WaiterBoardPartySections } from '@/components/waiter/WaiterBoardPartySections';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -31,6 +32,11 @@ import {
   type RestaurantTableGroupMember,
   type WaiterBoardSection,
 } from '@/lib/restaurant-table-groups';
+import {
+  tablePartyMemberTableIds,
+  type TablePartyGroup,
+  type TablePartyGroupMember,
+} from '@/lib/table-party-groups';
 import {
   sortWaiterBoardTableSummaries,
   type WaiterBoardTableSummary,
@@ -67,6 +73,8 @@ interface Props {
   initialCheckoutRequestedAtByTableId?: Record<string, string>;
   initialGroups?: RestaurantTableGroup[];
   initialMembers?: RestaurantTableGroupMember[];
+  initialParties?: TablePartyGroup[];
+  initialPartyMembers?: TablePartyGroupMember[];
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
@@ -176,6 +184,8 @@ function WaiterBoardInner({
   initialCheckoutRequestedAtByTableId = {},
   initialGroups = [],
   initialMembers = [],
+  initialParties = [],
+  initialPartyMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
   initialOpenTableDefaults = null,
@@ -197,6 +207,8 @@ function WaiterBoardInner({
     isDemo ? initialOrders : [],
     hasAuthoritativeSeed,
     initialOpenTableDefaults,
+    initialParties,
+    initialPartyMembers,
   );
 
   if (embeddedInDashboard && !dashboardBoard) {
@@ -211,11 +223,16 @@ function WaiterBoardInner({
     tables,
     groups,
     members,
+    parties,
+    partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
     refresh,
+    applyPartyState,
     refreshAfterTableMutation,
-  } = embeddedInDashboard ? dashboardBoard! : { ...standaloneBoard, refreshAfterTableMutation: undefined };
+  } = embeddedInDashboard
+    ? dashboardBoard!
+    : { ...standaloneBoard, refreshAfterTableMutation: undefined };
 
   const effectiveSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
@@ -279,9 +296,16 @@ function WaiterBoardInner({
     [effectiveSessionMetaByTableId, checkoutRequestedTableIds, tableSummaries],
   );
 
+  const partyMemberIds = useMemo(
+    () => tablePartyMemberTableIds(partyMembers),
+    [partyMembers],
+  );
+
   const checkoutPinnedCards = useMemo(() => {
-    const pendingTables = tables.filter((table) =>
-      isWaiterTableInCheckout(table.id, effectiveSessionMetaByTableId, checkoutRequestedTableIds),
+    const pendingTables = tables.filter(
+      (table) =>
+        !partyMemberIds.has(table.id.toLowerCase()) &&
+        isWaiterTableInCheckout(table.id, effectiveSessionMetaByTableId, checkoutRequestedTableIds),
     );
     const cards = pendingTables
       .map((table) => summaryByTableId.get(table.id))
@@ -292,7 +316,32 @@ function WaiterBoardInner({
       checkoutRequestedTableIds,
       effectiveSessionMetaByTableId,
     );
-  }, [tables, summaryByTableId, checkoutRequestedTableIds, effectiveSessionMetaByTableId]);
+  }, [
+    tables,
+    summaryByTableId,
+    checkoutRequestedTableIds,
+    effectiveSessionMetaByTableId,
+    partyMemberIds,
+  ]);
+
+  const checkoutInPartyCount = useMemo(
+    () =>
+      tables.filter(
+        (table) =>
+          partyMemberIds.has(table.id.toLowerCase()) &&
+          isWaiterTableInCheckout(
+            table.id,
+            effectiveSessionMetaByTableId,
+            checkoutRequestedTableIds,
+          ),
+      ).length,
+    [
+      tables,
+      partyMemberIds,
+      effectiveSessionMetaByTableId,
+      checkoutRequestedTableIds,
+    ],
+  );
 
   const checkoutPinnedTableIds = useMemo(
     () => new Set(checkoutPinnedCards.map((card) => card.tableId)),
@@ -377,8 +426,9 @@ function WaiterBoardInner({
 
   const visibleBoardTableIds = useCallback(
     (tableIds: readonly string[]) => {
+      const withoutParty = tableIds.filter((id) => !partyMemberIds.has(id.toLowerCase()));
       const byStatus = filterWaiterBoardTableIds(
-        tableIds,
+        withoutParty,
         boardFilter === 'all' ? 'all' : boardFilter,
         boardStateContext,
       );
@@ -397,6 +447,7 @@ function WaiterBoardInner({
       boardStateContext,
       checkoutPinnedTableIds,
       displayNameByTableId,
+      partyMemberIds,
       tableSearchTrimmed,
     ],
   );
@@ -412,14 +463,11 @@ function WaiterBoardInner({
 
   const hasVisibleBoardContent = useMemo(() => {
     if (showCheckoutPinned) return true;
+    if (parties.length > 0) return true;
     return boardSections.some(
       (section) => visibleBoardTableIds(section.tableIds).length > 0,
     );
-  }, [
-    showCheckoutPinned,
-    boardSections,
-    visibleBoardTableIds,
-  ]);
+  }, [showCheckoutPinned, parties.length, boardSections, visibleBoardTableIds]);
 
   const openTableSheetTable = useMemo(() => {
     if (!openTableTarget) return null;
@@ -515,12 +563,42 @@ function WaiterBoardInner({
                 t.checkoutPinnedTitleWithCount,
               )}
             </h2>
+            {checkoutInPartyCount > 0 ? (
+              <p className="mt-1 text-xs text-amber-900/80">
+                {t.checkoutPinnedAlsoInPartyHint.replace(
+                  '{n}',
+                  String(checkoutInPartyCount),
+                )}
+              </p>
+            ) : null}
           </div>
           <div className={WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS}>
             {visibleCheckoutPinnedCards.map((card) => renderTableCard(card, true))}
           </div>
         </section>
+      ) : checkoutInPartyCount > 0 && boardFilter === 'all' && !tableSearchTrimmed ? (
+        <p className="mb-4 text-xs text-amber-900/80">
+          {t.checkoutPinnedAlsoInPartyHint.replace('{n}', String(checkoutInPartyCount))}
+        </p>
       ) : null}
+
+      <WaiterBoardPartySections
+        restaurantSlug={restaurant.slug}
+        isDemo={isDemo}
+        t={t}
+        parties={parties}
+        partyMembers={partyMembers}
+        tables={tables}
+        summaryByTableId={summaryByTableId}
+        boardFilter={boardFilter}
+        boardStateContext={boardStateContext}
+        checkoutRequestedTableIds={checkoutRequestedTableIds}
+        sessionMetaByTableId={effectiveSessionMetaByTableId}
+        tableSearchTrimmed={tableSearchTrimmed}
+        tableMatchesSearch={tableMatchesWaiterBoardSearch}
+        onPartyStateChange={applyPartyState}
+        renderTableCard={renderTableCard}
+      />
 
       <div className="space-y-6">
         {boardSections.map((section) => {

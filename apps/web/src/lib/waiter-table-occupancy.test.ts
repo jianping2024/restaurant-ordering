@@ -103,6 +103,8 @@ test('applyWaiterSessionRelocationToBoard moves session from source to target', 
     tables,
     groups: [],
     members: [],
+    parties: [],
+    partyMembers: [],
     tableSummaries: [
       {
         tableId: T1,

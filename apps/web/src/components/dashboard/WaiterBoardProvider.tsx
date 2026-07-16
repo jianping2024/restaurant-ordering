@@ -51,6 +51,8 @@ function emptyBoard(): WaiterBoardData {
     tables: [],
     groups: [],
     members: [],
+    parties: [],
+    partyMembers: [],
     tableSummaries: [],
     restaurantHasActiveBuffets: false,
     openTableDefaults: null,
@@ -76,6 +78,8 @@ function WaiterBoardProviderInner({
     [],
     false,
     seed.openTableDefaults,
+    seed.parties,
+    seed.partyMembers,
   );
 
   const refresh = store.refresh;

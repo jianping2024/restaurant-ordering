@@ -1,5 +1,9 @@
+'use client';
+
+import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { totalCollectedAmount, type SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import type { CheckoutPersonShareLine } from '@/lib/checkout-split-person-lines';
 import type { UILanguage } from '@/lib/i18n';
 
 type Labels = {
@@ -8,6 +12,9 @@ type Labels = {
   printReceipt: string;
   printReceiptOperating: string;
   printReceiptCooldown: string;
+  personShareItemsExpand: string;
+  personShareItemsCollapse: string;
+  personShareItemsEmpty: string;
 };
 
 type Props = {
@@ -23,6 +30,9 @@ type Props = {
   isPrintReceiptBusy?: (payment: SessionCollectedPayment) => boolean;
   printReceiptCooldownSeconds?: (payment: SessionCollectedPayment) => number;
   isPrintReceiptOnCooldown?: (payment: SessionCollectedPayment) => boolean;
+  /** by_item only — expand collected rows to dish shares. */
+  canExpandPersonDishes?: boolean;
+  shareLinesByPersonIndex?: Map<number, CheckoutPersonShareLine[]>;
 };
 
 export function CollectedPaymentsLedger({
@@ -36,6 +46,8 @@ export function CollectedPaymentsLedger({
   isPrintReceiptBusy,
   printReceiptCooldownSeconds,
   isPrintReceiptOnCooldown,
+  canExpandPersonDishes = false,
+  shareLinesByPersonIndex,
 }: Props) {
   if (payments.length === 0) return null;
 
@@ -45,6 +57,12 @@ export function CollectedPaymentsLedger({
   ]
     .filter(Boolean)
     .join(' ');
+
+  const shareLabels = {
+    expand: t.personShareItemsExpand,
+    collapse: t.personShareItemsCollapse,
+    empty: t.personShareItemsEmpty,
+  };
 
   return (
     <div className={rootClass}>
@@ -59,33 +77,48 @@ export function CollectedPaymentsLedger({
             : onCooldown
               ? t.printReceiptCooldown.replace('{n}', String(cooldownSeconds))
               : t.printReceipt;
+          const personIndex = payment.person_index;
+          const canExpand =
+            canExpandPersonDishes &&
+            personIndex != null &&
+            personIndex >= 0 &&
+            shareLinesByPersonIndex != null;
+          const shareLines =
+            canExpand && personIndex != null
+              ? (shareLinesByPersonIndex.get(personIndex) ?? [])
+              : [];
 
           return (
-            <div
+            <CheckoutPersonShareExpandable
               key={payment.id}
-              className="flex items-center justify-between gap-3 text-[13px]"
-            >
-              <span className="text-brand-text font-medium min-w-0 truncate">
-                {localizeSplitPersonName(payment.person_name, lang)}
-              </span>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-brand-text font-medium tabular-nums">
-                  €{payment.amount.toFixed(2)}
+              canExpand={canExpand}
+              shareLines={shareLines}
+              labels={shareLabels}
+              identity={
+                <span className="text-brand-text font-medium min-w-0 truncate block">
+                  {localizeSplitPersonName(payment.person_name, lang)}
                 </span>
-                {showPrintReceiptActions &&
-                onPrintReceipt &&
-                payment.person_index != null ? (
-                  <button
-                    type="button"
-                    onClick={() => onPrintReceipt(payment)}
-                    disabled={busy || onCooldown}
-                    className="text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors whitespace-nowrap"
-                  >
-                    {printLabel}
-                  </button>
-                ) : null}
-              </div>
-            </div>
+              }
+              trailing={
+                <>
+                  <span className="text-brand-text font-medium tabular-nums text-[13px]">
+                    €{payment.amount.toFixed(2)}
+                  </span>
+                  {showPrintReceiptActions &&
+                  onPrintReceipt &&
+                  payment.person_index != null ? (
+                    <button
+                      type="button"
+                      onClick={() => onPrintReceipt(payment)}
+                      disabled={busy || onCooldown}
+                      className="text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors whitespace-nowrap"
+                    >
+                      {printLabel}
+                    </button>
+                  ) : null}
+                </>
+              }
+            />
           );
         })}
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
@@ -174,40 +175,41 @@ export function CheckoutRequestDetail({
   onCloseTable,
 }: Props) {
   const [orderItemsOpen, setOrderItemsOpen] = useState(false);
-  const [expandedPersonIndexes, setExpandedPersonIndexes] = useState<Set<number>>(() => new Set());
   const canExpandPersonDishes = request.split_mode === 'by_item';
   const personShareLinesByIndex = useMemo(() => {
     if (!canExpandPersonDishes) return new Map<number, ReturnType<typeof buildCheckoutPersonShareLines>>();
     const map = new Map<number, ReturnType<typeof buildCheckoutPersonShareLines>>();
-    for (const row of pendingSettlementRows) {
+    const add = (personIndex: number) => {
+      if (map.has(personIndex)) return;
       map.set(
-        row.index,
-        buildCheckoutPersonShareLines(request, row.index, sessionOrders, itemCodeByMenuId),
+        personIndex,
+        buildCheckoutPersonShareLines(request, personIndex, sessionOrders, itemCodeByMenuId),
       );
+    };
+    for (const row of pendingSettlementRows) add(row.index);
+    for (const payment of collectedPayments) {
+      if (payment.person_index != null && payment.person_index >= 0) add(payment.person_index);
     }
     return map;
   }, [
     canExpandPersonDishes,
     pendingSettlementRows,
+    collectedPayments,
     request,
     sessionOrders,
     itemCodeByMenuId,
   ]);
+  const personShareLabels = {
+    expand: t.personShareItemsExpand,
+    collapse: t.personShareItemsCollapse,
+    empty: t.personShareItemsEmpty,
+  };
   const waitLabel = formatCheckoutWaitDuration(request.created_at, {
     durationJustNow: t.durationJustNow,
     durationMinutes: t.durationMinutes,
   });
   const requestedAt = formatCollectedPaymentTime(lang, request.created_at);
   const showCollectedLedger = collectedPayments.length > 0;
-
-  const togglePersonExpanded = (personIndex: number) => {
-    setExpandedPersonIndexes((prev) => {
-      const next = new Set(prev);
-      if (next.has(personIndex)) next.delete(personIndex);
-      else next.add(personIndex);
-      return next;
-    });
-  };
 
   return (
     <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm lg:sticky lg:top-4">
@@ -273,57 +275,28 @@ export function CheckoutRequestDetail({
             {pendingSettlementRows.map((row) => {
               const collectNow = splitSettlementCollectAmount(row);
               const showOwedTotal = row.settlementStatus === 'partial';
-              const personExpanded = expandedPersonIndexes.has(row.index);
-              const shareLines = personShareLinesByIndex.get(row.index) ?? [];
               return (
-                <div
+                <CheckoutPersonShareExpandable
                   key={`${request.id}-${row.index}`}
-                  className="rounded-md border border-transparent"
-                >
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <div className="min-w-0 flex items-start gap-1.5">
-                      {canExpandPersonDishes ? (
-                        <button
-                          type="button"
-                          onClick={() => togglePersonExpanded(row.index)}
-                          className="mt-0.5 shrink-0 w-5 h-5 flex items-center justify-center text-brand-text-muted hover:text-brand-text transition-colors"
-                          aria-expanded={personExpanded}
-                          aria-label={
-                            personExpanded
-                              ? t.personShareItemsCollapse
-                              : t.personShareItemsExpand
-                          }
-                        >
-                          <span aria-hidden>{personExpanded ? '▾' : '▸'}</span>
-                        </button>
+                  canExpand={canExpandPersonDishes}
+                  shareLines={personShareLinesByIndex.get(row.index) ?? []}
+                  labels={personShareLabels}
+                  identity={
+                    <>
+                      <span className="text-brand-text font-medium">
+                        {localizeSplitPersonName(row.name, lang)}
+                      </span>
+                      {showOwedTotal ? (
+                        <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
+                          {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
+                          {' · '}
+                          {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
+                        </p>
                       ) : null}
-                      <button
-                        type="button"
-                        onClick={
-                          canExpandPersonDishes
-                            ? () => togglePersonExpanded(row.index)
-                            : undefined
-                        }
-                        disabled={!canExpandPersonDishes}
-                        className={`min-w-0 text-left ${
-                          canExpandPersonDishes
-                            ? 'hover:opacity-80 transition-opacity'
-                            : ''
-                        }`}
-                      >
-                        <span className="text-brand-text font-medium">
-                          {localizeSplitPersonName(row.name, lang)}
-                        </span>
-                        {showOwedTotal ? (
-                          <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
-                            {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
-                            {' · '}
-                            {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
-                          </p>
-                        ) : null}
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    </>
+                  }
+                  trailing={
+                    <>
                       <span className="text-brand-gold font-semibold text-base tabular-nums">
                         €{collectNow.toFixed(2)}
                       </span>
@@ -337,37 +310,9 @@ export function CheckoutRequestDetail({
                           ? t.processing
                           : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
                       </button>
-                    </div>
-                  </div>
-                  {canExpandPersonDishes && personExpanded ? (
-                    <div className="mt-2 ml-6 rounded-md border border-brand-border/50 bg-brand-card/80 overflow-hidden">
-                      {shareLines.length === 0 ? (
-                        <p className="text-brand-text-muted text-[12px] px-3 py-2">
-                          {t.personShareItemsEmpty}
-                        </p>
-                      ) : (
-                        shareLines.map((line) => (
-                          <div
-                            key={`${row.index}-${line.key}`}
-                            className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-brand-border/40 last:border-0"
-                          >
-                            <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                              <span className="text-brand-text text-[13px] truncate">
-                                {line.label || '—'}
-                              </span>
-                              <span className="text-brand-text-muted text-[12px]">
-                                {line.quantityLabel}
-                              </span>
-                            </div>
-                            <span className="text-brand-text text-[13px] tabular-nums shrink-0">
-                              €{line.shareAmount.toFixed(2)}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  ) : null}
-                </div>
+                    </>
+                  }
+                />
               );
             })}
           </div>
@@ -386,6 +331,8 @@ export function CheckoutRequestDetail({
           isPrintReceiptBusy={isPrintReceiptBusy}
           printReceiptCooldownSeconds={printReceiptCooldownSeconds}
           isPrintReceiptOnCooldown={isPrintReceiptOnCooldown}
+          canExpandPersonDishes={canExpandPersonDishes}
+          shareLinesByPersonIndex={personShareLinesByIndex}
         />
       ) : null}
 

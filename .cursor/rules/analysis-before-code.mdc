@@ -7,19 +7,47 @@ alwaysApply: true
 
 For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code first**. Analyze from the full business-flow perspective. Patch-style fixes are not accepted. Prefer code that stays simple, clear, robust, and maintainable.
 
-## When this applies
+## Hard phrase gate (mandatory — no judgment call)
+
+If the **latest user message** contains any of these (case-insensitive; Chinese or English), this rule **always** applies for that turn — even for UI-only / style-only / “功能没问题只是交互怪” topics. The user does **not** need to name this rule file.
+
+**Trigger phrases (any one is enough):**
+
+- `先分析` / `先方案` / `不要直接改` / `先别改` / `等确认再改`
+- `analyze first` / `plan first` / `don't change code yet` / `do not edit yet`
+
+**On a triggered turn you MUST:**
+
+1. **Not** edit code, create/switch branches for implementation, or run mutating fix commands.
+2. Open the reply with these **exact five headings in order** (Markdown `###` is fine). Free-form UX notes, bullet dumps, or “简要结论” **without** these headings = **failed compliance**.
+3. End by asking the user to confirm the recommended approach (or choose among options) before any implementation.
+
+**Exact headings required:**
+
+### 1. 当前业务流程和状态流转
+### 2. 问题根因
+### 3. 推荐方案和理由
+### 4. 需要修改的文件/组件
+### 5. 风险点和验证方式
+
+Skipping, renaming, merging, or burying these headings under a casual essay is a rule violation. Do not “partially analyze” and wait for the user to re-ask.
+
+## When this also applies (no phrase required)
 
 - Behavior bugs, state-machine issues, checkout/session/order/print flows
 - Changes that touch more than one layer (UI + API + DB, or multiple modules)
-- Anything the user frames as “先分析 / 先方案 / 不要直接改”
+
+Same five-heading output and no-code-until-confirm rules as above.
 
 ## When this does NOT apply
 
-- Typos, renames, one-line obvious fixes the user explicitly asked to apply
-- Pure formatting / lint-only / docs-only when the user asked for that only
+- Typos, renames, one-line obvious fixes the user explicitly asked to apply **and** no trigger phrase above is present
+- Pure formatting / lint-only / docs-only when the user asked for that only **and** no trigger phrase above is present
 - The user already approved a written plan in this thread (“按方案改” / “确认，开始改”)
 
-## Required output before any code change
+**Override:** If a trigger phrase is present, the “does NOT apply” list is ignored for that turn — still output the five headings; do not code.
+
+## Required content under each heading
 
 Use plain language. Wait for user confirmation before implementing.
 

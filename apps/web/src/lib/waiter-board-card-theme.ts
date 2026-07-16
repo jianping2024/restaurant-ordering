@@ -85,3 +85,13 @@ export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardC
       'border-emerald-300 text-emerald-700 hover:bg-emerald-100/50 group-hover:border-emerald-400 dark:text-emerald-200 dark:hover:bg-emerald-900/25',
   },
 };
+
+/** Party "移出" chip — same fill/border as card shell; sits on the card top-right corner. */
+export const WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS: Record<WaiterTableBoardState, string> = {
+  dining:
+    'border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-700/70 dark:bg-rose-950/40 dark:text-rose-100',
+  checkout:
+    'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-700/70 dark:bg-amber-950/40 dark:text-amber-100',
+  idle:
+    'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-700/70 dark:bg-emerald-950/40 dark:text-emerald-100',
+};

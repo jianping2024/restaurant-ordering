@@ -159,7 +159,7 @@
 ### 正常流程（前台减数量）
 
 1. `/dashboard/waiter` 桌台详情对 `pending`/`cooking` 行点击减号
-2. `POST .../decrement-item`；qty>1 减 1；qty=1 需 void 原因
+2. `POST .../decrement-item`；qty>1 减 1；qty=1 直接取消行（服务端默认 `qty_adjustment`）
 3. `decrementOrderItemWithAudit` 持久化 + 审计（减至 0 写 `ITEM_VOIDED`，不进异常队列）
 
 ### 异常流程
@@ -170,7 +170,7 @@
 | 自助餐基准行 | 不可 decrement（`buffet_line`）；改人数走 buffet API |
 | 服务员菜单减菜 | API `403 menu_decrement_not_allowed`；UI 不显示减号 |
 | `billing` 会话 | 前台/服务员菜单变更被拦截 |
-| 缺少 void 原因 | `reason_required` |
+| 缺少 void 原因（楼面减至 0） | 服务端默认 `qty_adjustment` |
 
 ### 状态变化
 

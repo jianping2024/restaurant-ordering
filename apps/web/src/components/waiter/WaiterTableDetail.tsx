@@ -17,12 +17,9 @@ import { UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { WaiterTableDetailHeader } from '@/components/waiter/WaiterTableDetailHeader';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { VoidItemReasonDialog } from '@/lib/order-item-void/VoidItemReasonDialog';
 import { showToast } from '@/components/ui/Toast';
-import { coerceCartQty } from '@/lib/cart-totals';
 import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-item';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
-import { voidItemReasonErrorMessage } from '@/lib/order-item-void/void-item-reason-ui';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
@@ -30,6 +27,7 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
+import type { StaffRole } from '@/lib/staff-account';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -81,6 +79,8 @@ interface Props {
   displayName?: string;
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
+  /** Dashboard floor staff role — required when embeddedInDashboard. */
+  floorStaffRole?: Extract<StaffRole, 'frontdesk' | 'cashier'>;
 }
 
 function WaiterTableDetailInner({
@@ -93,6 +93,7 @@ function WaiterTableDetailInner({
   displayName = '',
   isDemo = false,
   embeddedInDashboard = false,
+  floorStaffRole,
 }: Props) {
   const router = useRouter();
   const waiterBoard = useWaiterBoardOptional();
@@ -157,13 +158,6 @@ function WaiterTableDetailInner({
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
-  const [pendingVoidDecrement, setPendingVoidDecrement] = useState<{
-    orderId: string;
-    itemIdx: number;
-    order: Order;
-  } | null>(null);
-  const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
-  const [voidingDecrement, setVoidingDecrement] = useState(false);
   const activeBuffets = useMemo(
     () => (model?.buffets ?? []).filter((b) => b.is_active),
     [model?.buffets],
@@ -215,10 +209,9 @@ function WaiterTableDetailInner({
   const menuDecrementOperator = useMemo(
     () =>
       resolveMenuDecrementOperator({
-        role: embeddedInDashboard ? 'frontdesk' : 'waiter',
-        embeddedInDashboard,
+        role: floorStaffRole ?? 'waiter',
       }),
-    [embeddedInDashboard],
+    [floorStaffRole],
   );
 
   const selectedCard = useMemo(
@@ -668,8 +661,6 @@ function WaiterTableDetailInner({
     orderId: string,
     itemIdx: number,
     order: Order,
-    voidReason?: string,
-    voidReasonDetail?: string,
   ) => {
     const key = orderLineKey(orderId, itemIdx);
     setDecrementingKey(key);
@@ -681,7 +672,6 @@ function WaiterTableDetailInner({
           {
             item_index: itemIdx,
             updated_at: order.updated_at,
-            ...(voidReason ? { void_reason: voidReason, void_reason_detail: voidReasonDetail } : {}),
           },
         );
         applyDetail(applyOrderUpdateToWaiterDetail(currentTableDetail(), updatedOrder));
@@ -732,10 +722,6 @@ function WaiterTableDetailInner({
         await refresh();
         return;
       }
-      const reasonMessage = voidItemReasonErrorMessage(lang, apiErr.code);
-      if (reasonMessage) {
-        throw err;
-      }
       showToast(t.actionFailed, 'error');
     } finally {
       setDecrementingKey(null);
@@ -749,37 +735,9 @@ function WaiterTableDetailInner({
     }
     const order = orders.find((row) => row.id === orderId);
     if (!order) return;
-    const item = order.items[itemIdx];
-    if (!item) return;
-
-    if (coerceCartQty(item.qty) <= 1 && !isDemo) {
-      setVoidReasonError(null);
-      setPendingVoidDecrement({ orderId, itemIdx, order });
-      return;
-    }
+    if (!order.items[itemIdx]) return;
 
     void executeDecrementOrderLine(orderId, itemIdx, order);
-  };
-
-  const performVoidDecrement = async (reason: string, detail: string) => {
-    if (!pendingVoidDecrement) return;
-    const { orderId, itemIdx, order } = pendingVoidDecrement;
-    setVoidingDecrement(true);
-    setVoidReasonError(null);
-    try {
-      await executeDecrementOrderLine(orderId, itemIdx, order, reason, detail || undefined);
-      setPendingVoidDecrement(null);
-    } catch (err) {
-      const apiErr = err as Error & { code?: string };
-      const message = voidItemReasonErrorMessage(lang, apiErr.code);
-      if (message) {
-        setVoidReasonError(message);
-        return;
-      }
-      showToast(t.actionFailed, 'error');
-    } finally {
-      setVoidingDecrement(false);
-    }
   };
 
   const tableUpdatedLabel = selectedCard.updatedAt
@@ -957,22 +915,6 @@ function WaiterTableDetailInner({
           }}
         />
       ) : null}
-      <VoidItemReasonDialog
-        open={pendingVoidDecrement != null}
-        onClose={() => {
-          setPendingVoidDecrement(null);
-          setVoidReasonError(null);
-        }}
-        lang={lang}
-        item={
-          pendingVoidDecrement
-            ? pendingVoidDecrement.order.items[pendingVoidDecrement.itemIdx] ?? null
-            : null
-        }
-        confirming={voidingDecrement}
-        externalError={voidReasonError}
-        onConfirm={performVoidDecrement}
-      />
     </div>
   );
 }

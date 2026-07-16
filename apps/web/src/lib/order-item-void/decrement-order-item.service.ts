@@ -34,7 +34,7 @@ export type DecrementOrderItemInput = {
   };
   itemIndex: number;
   menuDecrementOperator: MenuDecrementOperator;
-  /** Required when decrement removes the last unit (void). */
+  /** Optional override when decrement removes the last unit; defaults to qty_adjustment. */
   voidReason?: string | null;
   voidReasonDetail?: string | null;
 };
@@ -119,16 +119,18 @@ export async function decrementOrderItemWithAudit(
         statusBefore: applied.statusBefore,
       },
     ];
+    const resolvedVoidReason = input.voidReason?.trim() || VOID_ITEM_QTY_ADJUSTMENT_REASON;
+    const resolvedVoidDetail = input.voidReasonDetail?.trim() || null;
     const reasonValidation = validateVoidItemReason(
       newlyVoided,
-      input.voidReason,
-      input.voidReasonDetail,
+      resolvedVoidReason,
+      resolvedVoidDetail,
     );
     if (!reasonValidation.ok) {
       return { ok: false, code: reasonValidation.code };
     }
-    voidAuditReason = input.voidReason?.trim() ?? '';
-    voidAuditDetail = input.voidReasonDetail?.trim() || null;
+    voidAuditReason = resolvedVoidReason;
+    voidAuditDetail = resolvedVoidDetail;
     itemsToSave = applyVoidReasonToItems(
       applied.nextItems,
       [applied.itemIndex],

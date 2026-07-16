@@ -6,7 +6,7 @@ export default async function DashboardWaiterLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const restaurant = await requireWaiterBoardDashboardAccess();
+  const { restaurant } = await requireWaiterBoardDashboardAccess();
 
   return (
     <DashboardWaiterFloorShell

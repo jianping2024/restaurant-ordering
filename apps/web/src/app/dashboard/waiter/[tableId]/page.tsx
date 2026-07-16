@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default async function DashboardWaiterTablePage({ params }: Props) {
-  const restaurant = await requireWaiterBoardDashboardAccess();
+  const { restaurant, mode: floorStaffRole } = await requireWaiterBoardDashboardAccess();
 
   const { tableId: tableIdParam } = await params;
   const tableId = parseTableIdParam(tableIdParam);
@@ -25,6 +25,7 @@ export default async function DashboardWaiterTablePage({ params }: Props) {
       initialModel={initialModel}
       tableId={tableId}
       embeddedInDashboard
+      floorStaffRole={floorStaffRole}
     />
   );
 }

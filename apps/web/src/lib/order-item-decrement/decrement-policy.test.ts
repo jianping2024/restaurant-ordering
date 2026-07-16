@@ -19,14 +19,12 @@ const menuItem = (overrides: Partial<OrderItem> = {}): OrderItem => ({
 });
 
 describe('resolveMenuDecrementOperator', () => {
-  it('maps owner, frontdesk, and waiter surfaces', () => {
+  it('maps owner, floor staff, and waiter roles', () => {
     assert.equal(resolveMenuDecrementOperator({ role: 'waiter', asOwner: true }), 'owner');
     assert.equal(resolveMenuDecrementOperator({ role: 'frontdesk' }), 'frontdesk_staff');
-    assert.equal(
-      resolveMenuDecrementOperator({ role: 'waiter', embeddedInDashboard: true }),
-      'frontdesk_staff',
-    );
+    assert.equal(resolveMenuDecrementOperator({ role: 'cashier' }), 'frontdesk_staff');
     assert.equal(resolveMenuDecrementOperator({ role: 'waiter' }), 'waiter_staff');
+    assert.equal(resolveMenuDecrementOperator({ role: 'kitchen' }), 'waiter_staff');
   });
 });
 
@@ -47,7 +45,7 @@ describe('canDecrementOrderLine', () => {
     );
   });
 
-  it('allows frontdesk on decrementable menu lines', () => {
+  it('allows floor staff on decrementable menu lines', () => {
     assert.equal(canDecrementOrderLine('frontdesk_staff', menuItem(), 'pending'), true);
     assert.equal(canDecrementOrderLine('frontdesk_staff', menuItem({ kind: 'buffet_base' }), 'pending'), false);
   });

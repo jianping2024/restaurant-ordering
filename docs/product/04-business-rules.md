@@ -142,8 +142,9 @@
 | 入口 | 允许状态 | 须原因 |
 |------|----------|--------|
 | 后厨 void | 任意非 voided | 是 |
-| 前台 decrement | `pending`/`cooking` | qty→0 时必填 |
-| 服务员 decrement | — | **禁止**（菜单减菜仅前台；自助餐改人数走 buffet API） |
+| 前台 decrement | `pending`/`cooking` | 减至 0 时自动记 `qty_adjustment`（无需弹框） |
+| 收银员 decrement | `pending`/`cooking` | 同前台 |
+| 服务员 decrement | — | **禁止**（菜单减菜仅楼面；自助餐改人数走 buffet API） |
 | 强制关台 | 批量 void | 系统原因 |
 
 ### 风险等级（`riskLevelForVoidedItem`）

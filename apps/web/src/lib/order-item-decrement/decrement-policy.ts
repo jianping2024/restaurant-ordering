@@ -5,13 +5,15 @@ import type { Order, OrderItem } from '@/types';
 /** Who is performing a menu-line decrement (not buffet guest-count edits). */
 export type MenuDecrementOperator = 'waiter_staff' | 'frontdesk_staff' | 'owner';
 
+/** Floor staff who may decrement menu lines from the dashboard waiter board. */
+const FLOOR_MENU_DECREMENT_STAFF_ROLES = new Set<StaffRole>(['frontdesk', 'cashier']);
+
 export function resolveMenuDecrementOperator(input: {
   role: StaffRole;
   asOwner?: boolean;
-  embeddedInDashboard?: boolean;
 }): MenuDecrementOperator {
   if (input.asOwner) return 'owner';
-  if (input.role === 'frontdesk' || input.embeddedInDashboard) return 'frontdesk_staff';
+  if (FLOOR_MENU_DECREMENT_STAFF_ROLES.has(input.role)) return 'frontdesk_staff';
   return 'waiter_staff';
 }
 

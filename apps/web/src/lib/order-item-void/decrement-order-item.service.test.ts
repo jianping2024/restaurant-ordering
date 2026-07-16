@@ -175,7 +175,7 @@ describe('decrementOrderItemWithAudit', () => {
     assert.equal(admin.abnormalInserts, 0);
   });
 
-  it('requires void reason when removing the last unit', async () => {
+  it('defaults qty_adjustment when removing the last unit without a reason', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -192,9 +192,30 @@ describe('decrementOrderItemWithAudit', () => {
       menuDecrementOperator: operator,
     });
 
-    assert.equal(result.ok, false);
-    if (result.ok) return;
-    assert.equal(result.code, 'reason_required');
-    assert.equal(admin.auditEvents.length, 0);
+    assert.equal(result.ok, true);
+    assert.equal(result.ok && result.outcome, 'voided');
+    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_VOIDED]);
+    assert.equal(admin.abnormalInserts, 0);
+  });
+
+  it('allows cashier floor staff to decrement menu lines', async () => {
+    const admin = mockAdmin();
+
+    const result = await decrementOrderItemWithAudit({
+      admin,
+      restaurantId: 'rest-1',
+      actor: { userId: 'user-2', displayName: 'Cashier', role: 'cashier' },
+      orderId: 'order-1',
+      existing: {
+        items: [baseItem()],
+        updated_at: '2026-01-01T00:00:00.000Z',
+        status: 'pending',
+      },
+      itemIndex: 0,
+      menuDecrementOperator: 'frontdesk_staff',
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(result.ok && result.outcome, 'decremented');
   });
 });

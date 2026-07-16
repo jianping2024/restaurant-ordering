@@ -54,7 +54,7 @@
 | GET/PATCH | `/api/restaurants/[slug]/staff/kitchen/orders/[orderId]` | Kitchen | 更新订单行状态 |
 | GET | `/api/restaurants/[slug]/staff/kitchen/board` | Kitchen | 看板数据 |
 | GET/PATCH | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]` | Waiter+ / frontdesk | 改单；服务员 void → `403` |
-| POST | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item` | frontdesk / owner | 菜单减数量/退菜；服务员 → `403` |
+| POST | `/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item` | frontdesk / cashier / owner | 菜单减数量/退菜；服务员 → `403` |
 
 ---
 

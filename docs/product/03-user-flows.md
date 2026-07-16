@@ -147,7 +147,7 @@
 
 ### 使用角色
 
-后厨（Kitchen void）、前台（Dashboard 楼面看板菜单减菜）。**服务员不可菜单减菜**；自助餐改人数仍走 buffet API。
+后厨（Kitchen void）、楼面（Dashboard `/dashboard/waiter`：**前台 / 收银员** 菜单减菜）。**服务员**（`/{slug}/waiter`）不可菜单减菜；自助餐改人数仍走 buffet API。
 
 ### 正常流程（后厨）
 
@@ -156,11 +156,13 @@
 3. `patchStaffOrderItemsClient` 更新 items → `persistOrderItemsUpdate` 重算订单 status
 4. 写审计 `ITEM_DELETED` / 异常操作记录（按原 `item_status` 定风险等级）
 
-### 正常流程（前台减数量）
+### 正常流程（楼面减数量）
 
-1. `/dashboard/waiter` 桌台详情对 `pending`/`cooking` 行点击减号
+1. `/dashboard/waiter` 桌台详情对 `pending`/`cooking` 行点击减号（**无确认弹框**）
 2. `POST .../decrement-item`；qty>1 减 1；qty=1 直接取消行（服务端默认 `qty_adjustment`）
 3. `decrementOrderItemWithAudit` 持久化 + 审计（减至 0 写 `ITEM_VOIDED`，不进异常队列）
+
+权限由 `lib/order-item-decrement/decrement-policy.ts` 统一判定：`frontdesk` / `cashier` / `owner` 允许；`waiter` / `kitchen` 拒绝。
 
 ### 异常流程
 
@@ -169,7 +171,7 @@
 | `done` 状态行（厨房） | 仍可 void，风险 HIGH |
 | 自助餐基准行 | 不可 decrement（`buffet_line`）；改人数走 buffet API |
 | 服务员菜单减菜 | API `403 menu_decrement_not_allowed`；UI 不显示减号 |
-| `billing` 会话 | 前台/服务员菜单变更被拦截 |
+| `billing` 会话 | 楼面/服务员菜单变更被拦截 |
 | 缺少 void 原因（楼面减至 0） | 服务端默认 `qty_adjustment` |
 
 ### 状态变化
@@ -178,18 +180,19 @@
 |------|------|
 | `orders.items[].item_status` | → `voided` |
 | `orders.status` | 由 `deriveOrderStatusFromItems` 重算 |
-| `abnormal_operations` | 后厨 void 可能新增 `ITEM_DELETED`；前台减至 0 不写入 |
+| `abnormal_operations` | 后厨 void 可能新增 `ITEM_DELETED`；楼面减至 0 不写入 |
 | `operation_logs` | 审计条目 |
 
 ### 验收标准
 
-- void 行不再计入厨房 relevant 列（或显示 voided）
-- 退菜须留原因；done 行退菜进异常队列
+- 后厨 void 行不再计入厨房 relevant 列（或显示 voided）
+- **后厨**退菜须留原因；done 行退菜进异常队列
+- **楼面**减至 0 自动记 `qty_adjustment`，无需弹框
 - 订单 total 随 void 更新
 
 ### 相关代码位置
 
-`components/kitchen/KitchenDisplay.tsx`、`lib/order-item-void/*`、`api/.../decrement-item/route.ts`、`lib/audit/*`
+`components/kitchen/KitchenDisplay.tsx`、`components/waiter/WaiterTableDetail.tsx`、`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/*`、`api/.../decrement-item/route.ts`、`lib/audit/*`
 
 ---
 

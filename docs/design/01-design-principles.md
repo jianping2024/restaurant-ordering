@@ -68,7 +68,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 |------|------|
 | 通用确认（关台、恢复点餐等） | `ConfirmModal`（可选 `variant="danger"`） |
 | 须选原因 + 可选详情 | `ReasonConfirmDialog` |
-| 退菜 | `VoidItemReasonDialog`（封装 ReasonConfirmDialog） |
+| 后厨退菜（须选原因 + 可选详情） | `VoidItemReasonDialog`（封装 `ReasonConfirmDialog`） |
 | 简单提示 | `PromptModal`（少用） |
 
 危险动作用 **`danger`** 或 **`close`**（关台玫瑰色边框）变体，须明确后果文案。

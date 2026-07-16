@@ -220,9 +220,10 @@
 
 ### 已有功能
 
-- 后厨：将订单行标为 `voided`（需原因对话框）
-- 服务员：减数量（`decrement-item`），pending/cooking 可减
-- 减到 0 等价退菜，写 `operation_logs`（`ITEM_VOIDED`），不进异常队列
+- 后厨：将订单行标为 `voided`（须 `VoidItemReasonDialog` 填原因）
+- 楼面（前台 / 收银员）：`/dashboard/waiter` 桌台详情减数量（`decrement-item`），`pending`/`cooking` 可减；点减号直接生效，无弹框
+- 服务员（`/{slug}/waiter`）：**不可**菜单减数量（API `403 menu_decrement_not_allowed`）
+- 减到 0 等价退菜，写 `operation_logs`（`ITEM_VOIDED`，reason 默认 `qty_adjustment`），不进异常队列
 - 风险等级（后厨 void）：pending→LOW、cooking→MEDIUM、done→HIGH
 
 ### 业务边界
@@ -241,9 +242,9 @@
 
 | 类型 | 路径 |
 |------|------|
-| Lib | `apps/web/src/lib/order-item-void/*` |
+| Lib | `apps/web/src/lib/order-item-void/*`、`apps/web/src/lib/order-item-decrement/decrement-policy.ts` |
 | API | `apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts` |
-| UI | `apps/web/src/components/kitchen/KitchenDisplay.tsx`、`WaiterOrderQtyMinus.tsx`、`VoidItemReasonDialog.tsx` |
+| UI | `KitchenDisplay.tsx`（后厨 void + 原因弹框）、`WaiterTableDetail.tsx` + `WaiterOrderQtyMinus.tsx`（楼面减号，无弹框） |
 | 审计 | `apps/web/src/lib/audit/builders/item-qty-decremented.ts` |
 
 ---

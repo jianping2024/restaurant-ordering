@@ -159,18 +159,17 @@
 
 - 每次 void / 减至 0 写 `operation_logs`
 - **后厨** void 创建 `abnormal_operations` 类型 `ITEM_DELETED`（按原 `item_status` 定风险）
-- **服务员** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列 → **已废止**：服务员不可菜单 decrement
-- **前台** decrement 减至 0 写 `ITEM_VOIDED`，不进异常队列
+- **楼面**（前台 / 收银员）decrement 减至 0 写 `ITEM_VOIDED`（reason 默认 `qty_adjustment`），不进异常队列
 
 ### 硬规则
 
 - 自助餐 `buffet_base` 行不可通过 decrement 删除（须改人数流程）
-- `billing` 会话下前台不可 void/decrement（服务员同样不可）
+- `billing` 会话下楼面不可 void/decrement（服务员同样不可）
 - void 后必须重算 `orders.status` 与 `total_amount`
 
 ### 相关代码
 
-`lib/order-item-void/decrement-order-item.service.ts`、`lib/audit/builders/item-deleted.ts`、`lib/abnormal-operations.ts`
+`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/decrement-order-item.service.ts`、`lib/audit/builders/item-deleted.ts`、`lib/abnormal-operations.ts`
 
 ---
 

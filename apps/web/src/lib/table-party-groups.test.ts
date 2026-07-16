@@ -43,7 +43,7 @@ describe('table-party-groups', () => {
   });
 
   it('names parties sequentially', () => {
-    assert.equal(defaultTablePartyName(0), '同行 1');
-    assert.equal(defaultTablePartyName(2), '同行 3');
+    assert.equal(defaultTablePartyName(0), 'Together 1');
+    assert.equal(defaultTablePartyName(2), 'Together 3');
   });
 });

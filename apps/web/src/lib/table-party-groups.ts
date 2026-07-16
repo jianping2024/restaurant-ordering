@@ -43,7 +43,7 @@ export function membersForParty(
 }
 
 export function defaultTablePartyName(existingCount: number): string {
-  return `同行 ${existingCount + 1}`;
+  return `Together ${existingCount + 1}`;
 }
 
 /** Tables already in another party (not `targetPartyId`). */

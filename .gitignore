@@ -52,3 +52,6 @@ supabase/.temp/
 
 # cloud → staging sync artifacts (may contain production data)
 .sync-tmp/
+
+# local git worktrees (full checkouts; do not commit)
+.worktrees/

@@ -338,6 +338,7 @@
 - 消费者姓名 roster、自助餐菜品分配 UI
 - 分单确认 → `bill_splits` 持久化 → 可发起结账请求
 - 结账台展示分单结果与逐人应收
+- 未提交分单草稿本机缓存（`localStorage`，三种模式），避免手机刷新丢失
 
 ### 业务边界
 
@@ -358,7 +359,7 @@
 |------|------|
 | 页面 | `apps/web/src/app/[slug]/bill/page.tsx` |
 | UI | `apps/web/src/components/menu/BillPage.tsx`、`ByItemSplitSection.tsx`、`BuffetDishAllocator.tsx` |
-| Lib | `apps/web/src/lib/bill-split-by-item.ts`、`bill-split-draft.ts`、`bill-split-validate.ts`、`use-by-item-split-state.ts` |
+| Lib | `apps/web/src/lib/bill-split-by-item.ts`、`bill-split-draft.ts`、`bill-split-local-draft.ts`、`bill-split-validate.ts`、`use-by-item-split-state.ts` |
 | API | `apps/web/src/app/api/restaurants/[slug]/customer/bill/route.ts` |
 
 ---

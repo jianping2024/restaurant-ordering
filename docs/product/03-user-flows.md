@@ -448,6 +448,8 @@
 5. 校验：每行菜品分配完整、份额合计 = 行 qty
 6. 确认 → `checkout/request`；`persons` 含 `item_shares`（key 为 catalog key）
 
+未提交前，三种分单草稿（模式 / 人数 / 金额 / 按菜分配）写入本机 `localStorage`（按 `restaurantId+sessionId`），刷新或手机划走再进可恢复；呼叫结账成功或已 `requested`/`paid`/有收款后不再用本地草稿。
+
 ### 异常流程
 
 | 情况 | 行为 |
@@ -469,7 +471,7 @@
 
 ### 相关代码位置
 
-`lib/bill-split-by-item.ts`、`lib/bill-split-by-item-lines.ts`、`components/menu/ByItemSplitSection.tsx`、`lib/checkout-split-continuation.ts`
+`lib/bill-split-by-item.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/ByItemSplitSection.tsx`、`lib/checkout-split-continuation.ts`
 
 ---
 

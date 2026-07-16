@@ -126,6 +126,8 @@ export function BillPage({
   );
 
   const splitDraft = useBillSplitDraft({
+    restaurantId: restaurant.id,
+    sessionId,
     existingSplit,
     continuationSplit,
     collectedPayments,

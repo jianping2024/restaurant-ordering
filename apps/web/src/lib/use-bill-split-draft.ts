@@ -1,12 +1,20 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
+  withDefaultByItemLineRows,
 } from '@/lib/bill-split-by-item';
+import {
+  clearBillSplitLocalDraft,
+  loadBillSplitLocalDraft,
+  saveBillSplitLocalDraft,
+  shouldRestoreBillSplitLocalDraft,
+  type BillSplitLocalDraft,
+} from '@/lib/bill-split-local-draft';
 import {
   allocationLockedPersonNames,
   buildLockedPersonLineMins,
@@ -74,6 +82,8 @@ function initialCustomAmounts(
 }
 
 export function useBillSplitDraft(params: {
+  restaurantId: string;
+  sessionId: string | null;
   existingSplit: BillSplit | null;
   continuationSplit: BillSplit | null;
   collectedPayments: SessionCollectedPayment[];
@@ -87,6 +97,8 @@ export function useBillSplitDraft(params: {
   submitting: boolean;
 }) {
   const {
+    restaurantId,
+    sessionId,
     existingSplit,
     continuationSplit,
     collectedPayments,
@@ -115,11 +127,49 @@ export function useBillSplitDraft(params: {
   const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() =>
     initialCustomAmounts(splitSeed, guestName),
   );
+  const [storageReady, setStorageReady] = useState(false);
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
   const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
+
+  const loadedLocalDraftRef = useRef<BillSplitLocalDraft | null | undefined>(undefined);
+  const byItemLocalAppliedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (loadedLocalDraftRef.current !== undefined) {
+      setStorageReady(true);
+      return;
+    }
+    if (!sessionId) {
+      loadedLocalDraftRef.current = null;
+      setStorageReady(true);
+      return;
+    }
+
+    const canRestore = shouldRestoreBillSplitLocalDraft({
+      existingSplit,
+      submitted,
+      collectedPaymentCount: collectedPayments.length,
+    });
+    if (!canRestore) {
+      clearBillSplitLocalDraft(restaurantId, sessionId);
+      loadedLocalDraftRef.current = null;
+      setStorageReady(true);
+      return;
+    }
+
+    const draft = loadBillSplitLocalDraft(restaurantId, sessionId);
+    loadedLocalDraftRef.current = draft;
+    if (draft) {
+      setSplitMode(draft.splitMode);
+      setPersonCount(draft.personCount);
+      if (draft.splitPeople.length > 0) setSplitPeople(draft.splitPeople);
+      if (draft.customAmounts.length > 0) setCustomAmounts(draft.customAmounts);
+    }
+    setStorageReady(true);
+  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length]);
 
   const {
     byItemAllocations,
@@ -130,7 +180,58 @@ export function useBillSplitDraft(params: {
     byItemProgress,
     renameByItemConsumer,
     buildPersonsForSubmit,
-  } = useByItemSplitState({ splitMode, lineSpecs, existingSplit: continuationSplit });
+  } = useByItemSplitState({
+    splitMode,
+    lineSpecs,
+    existingSplit: continuationSplit,
+  });
+
+  useLayoutEffect(() => {
+    const draft = loadedLocalDraftRef.current;
+    if (!draft || draft.splitMode !== 'by_item' || byItemLocalAppliedRef.current) return;
+    byItemLocalAppliedRef.current = true;
+    setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
+  }, [lineSpecs, setByItemAllocations]);
+
+  useEffect(() => {
+    if (!sessionId || !submitted) return;
+    clearBillSplitLocalDraft(restaurantId, sessionId);
+  }, [restaurantId, sessionId, submitted]);
+
+  useEffect(() => {
+    if (!storageReady || !sessionId || submitted) return;
+    if (
+      !shouldRestoreBillSplitLocalDraft({
+        existingSplit,
+        submitted,
+        collectedPaymentCount: collectedPayments.length,
+      })
+    ) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      saveBillSplitLocalDraft(restaurantId, sessionId, {
+        splitMode,
+        personCount,
+        splitPeople,
+        customAmounts,
+        byItemAllocations,
+      });
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [
+    storageReady,
+    restaurantId,
+    sessionId,
+    submitted,
+    existingSplit,
+    collectedPayments.length,
+    splitMode,
+    personCount,
+    splitPeople,
+    customAmounts,
+    byItemAllocations,
+  ]);
 
   const collectedLedgerActive = collectedPayments.length > 0;
   /** Server snapshot at page load — paid floors must not follow client submit state. */

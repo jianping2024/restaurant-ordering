@@ -1,6 +1,8 @@
 import { postCheckoutCloseTableSessionClient } from '@/lib/checkout-close-table-session-client';
 import { requestStaffSessionBillPrint } from '@/lib/staff-session-bill-print';
 
+export type CheckoutCloseFloorRole = 'frontdesk' | 'cashier';
+
 export type WaiterTableCheckoutCloseResult =
   | { ok: true }
   | {
@@ -10,17 +12,29 @@ export type WaiterTableCheckoutCloseResult =
       message?: string;
     };
 
-/** Print session total bill, then normal frontdesk checkout close (operational). */
+/** Frontdesk prints session bill before close; cashier closes without printing. */
+export function checkoutCloseShouldPrintBill(role: CheckoutCloseFloorRole): boolean {
+  return role === 'frontdesk';
+}
+
+/**
+ * Normal floor checkout close (operational).
+ * Frontdesk: print session total bill (`checkout_bill`), then close.
+ * Cashier: close only (no print).
+ */
 export async function runWaiterTableCheckoutClose(params: {
   slug: string;
   tableId: string;
   sessionId: string;
+  floorStaffRole: CheckoutCloseFloorRole;
 }): Promise<WaiterTableCheckoutCloseResult> {
-  const { slug, tableId, sessionId } = params;
+  const { slug, tableId, sessionId, floorStaffRole } = params;
 
-  const printOutcome = await requestStaffSessionBillPrint({ slug, tableId, sessionId });
-  if (!printOutcome.ok) {
-    return { ok: false, stage: 'print', code: printOutcome.error };
+  if (checkoutCloseShouldPrintBill(floorStaffRole)) {
+    const printOutcome = await requestStaffSessionBillPrint({ slug, tableId, sessionId });
+    if (!printOutcome.ok) {
+      return { ok: false, stage: 'print', code: printOutcome.error };
+    }
   }
 
   const { status, body } = await postCheckoutCloseTableSessionClient({ table_id: tableId });

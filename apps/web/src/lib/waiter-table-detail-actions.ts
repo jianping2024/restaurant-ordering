@@ -4,9 +4,9 @@ export type WaiterTableDetailActionFlags = {
   showBuffetPanel: boolean;
   /** Occupied-table toolbar: continue ordering, transfer, merge, etc. */
   showOccupiedToolbar: boolean;
-  /** Frontdesk may print session bill and close the table. */
+  /** Dashboard floor staff may run 关台结账 (frontdesk prints; cashier skips print). */
   showCheckoutClose: boolean;
-  /** Frontdesk may close the table session. */
+  /** Dashboard floor staff may force-close the table session. */
   showCloseTable: boolean;
 };
 

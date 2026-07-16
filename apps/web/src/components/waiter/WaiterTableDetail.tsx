@@ -815,6 +815,7 @@ function WaiterTableDetailInner({
             onMerge={() => openAction('merge', selectedCard.tableId)}
             showCheckoutClose={detailActions.showCheckoutClose}
             showCloseTable={detailActions.showCloseTable}
+            floorStaffRole={floorStaffRole}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}
             onDemoCloseClick={() => {

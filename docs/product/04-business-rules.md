@@ -238,7 +238,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 |----------|-------------------|-----------|
 | 预结算 | `pre_bill` | 自动（呼叫结账） |
 | 分单 | `split_payment` | 自动（确认某人收款） |
-| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 去结账 / 历史重打） |
+| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账 / 历史重打；收银员关台结账不触发） |
 | 总账单（收讫后） | `final` | 自动（全员付清） |
 
 「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。

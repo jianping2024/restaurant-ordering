@@ -1,5 +1,5 @@
 ---
-description: Analyze before code; new feature branch before edits; verify then ask before commit.
+description: Analyze before code; reuse existing UI/helpers first; new feature branch before edits; verify then ask before commit.
 alwaysApply: true
 ---
 
@@ -53,9 +53,20 @@ Use plain language. Wait for user confirmation before implementing.
 
 1. **当前业务流程和状态流转** — how the feature works end-to-end today; key states and transitions
 2. **问题根因** — root cause, not only symptoms; if logic is unusually complex, check whether architecture (not just a missing if) is wrong
-3. **推荐方案和理由** — preferred approach and why; reject temporary if/else patches
-4. **需要修改的文件/组件** — small but complete scope; no unrelated refactors
+3. **推荐方案和理由** — preferred approach and why; reject temporary if/else patches. **Must include a reuse checklist** (see below). Same UI/business fact → one implementation in the plan, not “copy now, dedupe later.”
+4. **需要修改的文件/组件** — small but complete scope; no unrelated refactors. List what is **reused** vs **new**. If proposing a new file/component, state which duplicated code it **removes** (not only where it will be called).
 5. **风险点和验证方式** — what could break; how to verify (including high-risk areas: checkout, sessions, print, RLS, void)
+
+### Reuse checklist (mandatory under heading 3 when the change touches UI or shared helpers)
+
+Before recommending new UI or helper code, search and state findings in the plan:
+
+1. **Same feature domain** — e.g. `components/dashboard/checkout/*`, nearby waiter/menu screens for the same interaction.
+2. **Shared primitives** — `apps/web/src/components/ui/*` (see also `docs/design/03-component-rules.md`). Prefer extend/reuse over a parallel control.
+3. **Existing lib helpers** — `apps/web/src/lib/*` for the same calculation/display mapping (do not re-implement share math, labels, etc.).
+4. **Verdict** — reuse X / extend Y / new Z only because no suitable reuse exists (one sentence why).
+
+Skipping this search and shipping a second parallel implementation = failed compliance with this rule.
 
 ## Principles (enforce in the plan and the later diff)
 
@@ -68,6 +79,9 @@ Use plain language. Wait for user confirmation before implementing.
 - Remove duplication/redundancy **only within the approved change set** — no drive-by cleanup of untouched modules
 - Do not sacrifice the full business flow for a local optimization
 - When logic is abnormally complex, prefer industry-standard structure over more branches
+- **Reuse before invent** — search existing components/helpers first; second occurrence of the same interaction must reuse the first, not fork a twin
+- **Dedupe must shrink, not swell** — extracting a shared module is only OK if the diff deletes duplicated call-site logic; ban “helper + wrapper + batch API” stacks that only move lines
+- **No copy-then-dedupe workflow** — the first implementation must already be the shared shape when a second call site is in the approved plan
 
 ## Dangerous commands
 
@@ -101,7 +115,11 @@ Worktree is not an extra process for its own sake — it is the safe way to star
 ## After confirmation
 
 1. State the **base branch**, create/switch via that baseline without touching unrelated WIP (see above), then implement only the approved plan.
-2. Run the checks required by `AGENTS.md` and push rules (lint/build/targeted tests as applicable).
-3. List **every manual test item** and its result (`pass` / `fail` / `skip` + brief note).
-4. **Do not commit** unless the user explicitly asks to commit. If all automated and reported manual checks pass, say so and ask whether to commit.
+2. **Implementation reuse gate (before finishing the diff):**
+   - Did not add a parallel component/helper for something already covered by the plan’s reuse verdict.
+   - New shared file only if it removed duplicated markup/logic from call sites in this change set.
+   - Follow-up “去重” turns: prefer delete/merge; do not add extra abstraction layers unless they reduce net duplication in the same diff.
+3. Run the checks required by `AGENTS.md` and push rules (lint/build/targeted tests as applicable).
+4. List **every manual test item** and its result (`pass` / `fail` / `skip` + brief note).
+5. **Do not commit** unless the user explicitly asks to commit. If all automated and reported manual checks pass, say so and ask whether to commit.
    - **Exception:** If the user said **push**, **ship**, or **`pnpm push`**, that counts as explicit permission — follow `push-verification.mdc` then `release-and-ci.mdc`. Prefer pushing the **feature branch** / opening a PR unless the user explicitly asked to land on `main` via `pnpm push`. Do not invent a push when they only asked to fix or test.

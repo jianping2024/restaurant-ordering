@@ -84,7 +84,7 @@ export function buildSplitPersonShareLines(
   return lines;
 }
 
-/** Staff-facing labels for checkout pending-collection expand rows. */
+/** Staff-facing labels for one by_item person (pending or collected expand). */
 export function buildCheckoutPersonShareLines(
   split: BillSplit,
   personIndex: number,

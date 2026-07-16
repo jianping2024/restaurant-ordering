@@ -1,7 +1,6 @@
 import { composeTableQrPng } from '@/lib/compose-table-qr-png';
 import { ensureTableQrCodes } from '@/lib/table-menu-qr';
 import { resolveTableQrGroupLabel } from '@/lib/table-qr-card-layout';
-import { resolveTableQrStickerScanCta, type TableQrStickerLocale } from '@/lib/table-qr-sticker-copy';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export type BuildTableQrStickerAssetsInput = {
@@ -9,23 +8,16 @@ export type BuildTableQrStickerAssetsInput = {
   rows: RestaurantTableRow[];
   groupNameByTableId: Record<string, string>;
   restaurantName: string;
-  printLocale?: TableQrStickerLocale | null;
   ungroupedLabel: string;
   resolveDisplayName?: (row: RestaurantTableRow) => string;
 };
 
-export async function buildTableQrStickerAssets(input: BuildTableQrStickerAssetsInput): Promise<Record<string, string>> {
-  const {
-    slug,
-    rows,
-    groupNameByTableId,
-    restaurantName,
-    printLocale,
-    ungroupedLabel,
-    resolveDisplayName,
-  } = input;
+export async function buildTableQrStickerAssets(
+  input: BuildTableQrStickerAssetsInput,
+): Promise<Record<string, string>> {
+  const { slug, rows, groupNameByTableId, restaurantName, ungroupedLabel, resolveDisplayName } =
+    input;
   if (rows.length === 0) return {};
-  const scanCta = resolveTableQrStickerScanCta(printLocale);
 
   const qrCodes = await ensureTableQrCodes(
     slug,
@@ -41,7 +33,6 @@ export async function buildTableQrStickerAssets(input: BuildTableQrStickerAssets
         displayName,
         groupName: resolveTableQrGroupLabel(row.id, groupNameByTableId, ungroupedLabel),
         restaurantName,
-        scanCta,
         qrDataUrl,
       });
       return [row.id, stickerDataUrl] as const;

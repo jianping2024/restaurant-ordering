@@ -10,13 +10,7 @@ import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow } f
 export type FrontdeskDashboardTables =
   | {
       admin: SupabaseClient;
-      restaurant: {
-        id: string;
-        name: string;
-        slug: string;
-        owner_id: string;
-        print_locale: 'zh' | 'en' | 'pt' | null;
-      };
+      restaurant: { id: string; name: string; slug: string; owner_id: string };
       tables: RestaurantTableRow[];
       groups: RestaurantTableGroup[];
       members: RestaurantTableGroupMember[];
@@ -47,7 +41,7 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
   const [restaurantResult, tablesResult, groupData, occupiedTableIds] = await Promise.all([
     ctx.admin
       .from('restaurants')
-      .select('id, name, slug, owner_id, print_locale')
+      .select('id, name, slug, owner_id')
       .eq('id', ctx.restaurantId)
       .maybeSingle(),
     ctx.admin
@@ -89,13 +83,7 @@ export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboard
 
   return {
     admin: ctx.admin,
-    restaurant: restaurant as {
-      id: string;
-      name: string;
-      slug: string;
-      owner_id: string;
-      print_locale: 'zh' | 'en' | 'pt' | null;
-    },
+    restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string },
     tables,
     groups: groupData.groups,
     members: groupData.members,

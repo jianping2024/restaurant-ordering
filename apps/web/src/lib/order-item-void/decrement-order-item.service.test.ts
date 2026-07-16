@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { AUDIT_EVENT } from '@/lib/audit/types';
 import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
 import type { OrderItem } from '@/types';
 
@@ -125,7 +124,7 @@ describe('decrementOrderItemWithAudit', () => {
     assert.equal(admin.auditEvents.length, 0);
   });
 
-  it('writes qty decrement audit only when qty remains above zero', async () => {
+  it('does not write operation_logs for qty decrement', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -147,11 +146,11 @@ describe('decrementOrderItemWithAudit', () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'decremented');
-    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_QTY_DECREMENTED]);
+    assert.equal(admin.auditEvents.length, 0);
     assert.equal(admin.abnormalInserts, 0);
   });
 
-  it('writes voided audit only when the last unit is removed', async () => {
+  it('does not write operation_logs for voided decrement', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -171,7 +170,7 @@ describe('decrementOrderItemWithAudit', () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
-    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_VOIDED]);
+    assert.equal(admin.auditEvents.length, 0);
     assert.equal(admin.abnormalInserts, 0);
   });
 
@@ -194,7 +193,7 @@ describe('decrementOrderItemWithAudit', () => {
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
-    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_VOIDED]);
+    assert.equal(admin.auditEvents.length, 0);
     assert.equal(admin.abnormalInserts, 0);
   });
 

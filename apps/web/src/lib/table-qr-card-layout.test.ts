@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  estimateTableQrCardHeight,
   fitSingleLineFontSize,
+  TABLE_QR_CARD_LAYOUT,
   resolveTableQrGroupLabel,
 } from './table-qr-card-layout';
 
@@ -26,5 +28,17 @@ describe('fitSingleLineFontSize', () => {
     );
     assert.ok(size < 42);
     assert.ok(size >= 20);
+  });
+});
+
+describe('estimateTableQrCardHeight', () => {
+  it('includes the scan CTA section in the card height', () => {
+    const height = estimateTableQrCardHeight();
+    const minimumExpected =
+      TABLE_QR_CARD_LAYOUT.padding * 2
+      + TABLE_QR_CARD_LAYOUT.qrSize
+      + TABLE_QR_CARD_LAYOUT.scanCtaFontSize * TABLE_QR_CARD_LAYOUT.scanCtaLineHeight;
+
+    assert.ok(height > minimumExpected);
   });
 });

@@ -41,7 +41,7 @@ import {
 } from '@/lib/tables-manager-tab-preference';
 
 interface TablesManagerProps {
-  restaurant: { id: string; slug: string; name: string };
+  restaurant: { id: string; slug: string; name: string; print_locale: 'zh' | 'en' | 'pt' | null };
   initialTables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];

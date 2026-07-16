@@ -21,6 +21,14 @@ export function sortTablePartyGroups(groups: TablePartyGroup[]): TablePartyGroup
   });
 }
 
+/** Next sort_order so a new party appears above existing ones (ascending sort). */
+export function nextPrependSortOrder(
+  groups: readonly Pick<TablePartyGroup, 'sort_order'>[],
+): number {
+  if (groups.length === 0) return 0;
+  return groups.reduce((min, p) => Math.min(min, p.sort_order), groups[0]!.sort_order) - 1;
+}
+
 export function tablePartyMemberTableIds(
   members: readonly TablePartyGroupMember[],
 ): Set<string> {

@@ -3,6 +3,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import {
   conflictingPartyMembers,
   defaultTablePartyName,
+  nextPrependSortOrder,
   sortTablePartyGroups,
   type TablePartyGroup,
   type TablePartyGroupMember,
@@ -68,8 +69,7 @@ export async function createTablePartyGroup(
 ): Promise<TablePartyMutationResult> {
   const existing = await loadTablePartyGroups(admin, restaurantId);
   const name = normalizePartyName(nameInput) ?? defaultTablePartyName(existing.parties.length);
-  const sortOrder =
-    existing.parties.reduce((max, p) => Math.max(max, p.sort_order), -1) + 1;
+  const sortOrder = nextPrependSortOrder(existing.parties);
 
   const { error } = await admin.from('table_party_groups').insert({
     restaurant_id: restaurantId,

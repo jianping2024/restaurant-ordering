@@ -4,6 +4,7 @@ import {
   conflictingPartyMembers,
   countCheckoutTablesInParties,
   defaultTablePartyName,
+  nextPrependSortOrder,
   partyIdForTable,
   tablePartyMemberTableIds,
 } from './table-party-groups';
@@ -45,5 +46,14 @@ describe('table-party-groups', () => {
   it('names parties sequentially', () => {
     assert.equal(defaultTablePartyName(0), 'Together 1');
     assert.equal(defaultTablePartyName(2), 'Together 3');
+  });
+
+  it('prepends new parties with a lower sort_order', () => {
+    assert.equal(nextPrependSortOrder([]), 0);
+    assert.equal(nextPrependSortOrder([{ sort_order: 0 }]), -1);
+    assert.equal(
+      nextPrependSortOrder([{ sort_order: 1 }, { sort_order: 0 }, { sort_order: 2 }]),
+      -1,
+    );
   });
 });

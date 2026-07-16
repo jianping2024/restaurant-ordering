@@ -49,6 +49,8 @@ export function filterWaiterTableActionTargets(
   operation: 'transfer' | 'merge',
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {},
   checkoutRequestedTableIds: readonly string[] = [],
+  /** Lowercased table ids in any together-group — excluded from merge targets only. */
+  partyMemberTableIds: ReadonlySet<string> = new Set(),
 ): RestaurantTableRow[] {
   const sorted = sortRestaurantTables([...tables]);
   if (operation === 'transfer') {
@@ -62,6 +64,7 @@ export function filterWaiterTableActionTargets(
     (table) =>
       tableHasActiveSession(table.id, sessionMetaByTableId) &&
       !tableIdsEqual(table.id, sourceTableId) &&
-      !isWaiterTableInCheckout(table.id, sessionMetaByTableId, checkoutRequestedTableIds),
+      !isWaiterTableInCheckout(table.id, sessionMetaByTableId, checkoutRequestedTableIds) &&
+      !partyMemberTableIds.has(table.id.toLowerCase()),
   );
 }

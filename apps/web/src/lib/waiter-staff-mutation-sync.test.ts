@@ -85,6 +85,7 @@ function openTableModel(): WaiterTablePageModel {
     },
     buffets: [],
     buffetPricesByBuffetId: {},
+    inTableParty: false,
   };
 }
 

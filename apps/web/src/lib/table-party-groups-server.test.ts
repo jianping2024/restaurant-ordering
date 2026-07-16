@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
+import { purgeTablePartyMembership, tableIsInAnyParty } from '@/lib/table-party-groups-server';
 
 const RESTAURANT_ID = '00000000-0000-4000-8000-0000000000r1';
 const TABLE_ID = '00000000-0000-4000-8000-000000000001';
@@ -48,6 +48,66 @@ describe('purgeTablePartyMembership', () => {
 
     await assert.doesNotReject(() =>
       purgeTablePartyMembership(admin, RESTAURANT_ID, TABLE_ID),
+    );
+  });
+});
+
+describe('tableIsInAnyParty', () => {
+  it('returns true when a membership row exists', async () => {
+    const admin = {
+      from(table: string) {
+        assert.equal(table, 'table_party_group_members');
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { table_id: TABLE_ID }, error: null }),
+              }),
+            }),
+          }),
+        };
+      },
+    } as unknown as SupabaseClient;
+
+    assert.equal(await tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), true);
+  });
+
+  it('returns false when no membership row', async () => {
+    const admin = {
+      from() {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          }),
+        };
+      },
+    } as unknown as SupabaseClient;
+
+    assert.equal(await tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), false);
+  });
+
+  it('throws when the lookup fails', async () => {
+    const admin = {
+      from() {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: null, error: { message: 'boom' } }),
+              }),
+            }),
+          }),
+        };
+      },
+    } as unknown as SupabaseClient;
+
+    await assert.rejects(
+      () => tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID),
+      /boom/,
     );
   });
 });

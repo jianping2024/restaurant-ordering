@@ -93,6 +93,7 @@ export async function postWaiterBuffetOpenClient(
       detail: data.detail,
       buffets: [],
       buffetPricesByBuffetId: {},
+      inTableParty: false,
     });
   }
   throw new Error('buffet_open_missing_model');

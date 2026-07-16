@@ -136,6 +136,29 @@ export async function removeTableFromParty(
   return reloadResult(admin, restaurantId);
 }
 
+/** True when the table is a member of any together-group in this restaurant. */
+export async function tableIsInAnyParty(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+): Promise<boolean> {
+  const { data, error } = await admin
+    .from('table_party_group_members')
+    .select('table_id')
+    .eq('restaurant_id', restaurantId)
+    .eq('table_id', tableId)
+    .maybeSingle();
+  if (error) {
+    console.error('[tableIsInAnyParty]', {
+      restaurantId,
+      tableId,
+      message: error.message,
+    });
+    throw new Error(error.message);
+  }
+  return Boolean(data);
+}
+
 /**
  * After 关台: drop the table from any together-group.
  * Best-effort — must not fail the close path. Empty parties are left intact.

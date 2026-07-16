@@ -1,7 +1,9 @@
 import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import type { WaiterTableDetailData, WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 
-export function normalizeWaiterTablePageModel(raw: WaiterTablePageModel): WaiterTablePageModel {
+export function normalizeWaiterTablePageModel(
+  raw: Omit<WaiterTablePageModel, 'inTableParty'> & { inTableParty?: boolean },
+): WaiterTablePageModel {
   return {
     detail: {
       table: raw.detail.table ?? null,
@@ -12,6 +14,7 @@ export function normalizeWaiterTablePageModel(raw: WaiterTablePageModel): Waiter
     },
     buffets: raw.buffets ?? [],
     buffetPricesByBuffetId: raw.buffetPricesByBuffetId ?? {},
+    inTableParty: !!raw.inTableParty,
   };
 }
 

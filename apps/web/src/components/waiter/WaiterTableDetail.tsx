@@ -47,6 +47,10 @@ import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvid
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
+  partyIdForTable,
+  tablePartyMemberTableIds,
+} from '@/lib/table-party-groups';
+import {
   dashboardCheckoutTableHref,
   waiterBoardHref,
   waiterTableHref,
@@ -199,9 +203,10 @@ function WaiterTableDetailInner({
         detail,
         buffets: model?.buffets ?? [],
         buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? {},
+        inTableParty: model?.inTableParty ?? false,
       });
     },
-    [applyModel, model?.buffetPricesByBuffetId, model?.buffets],
+    [applyModel, model?.buffetPricesByBuffetId, model?.buffets, model?.inTableParty],
   );
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
@@ -237,6 +242,18 @@ function WaiterTableDetailInner({
   const notifyCheckoutLocked = useCallback(() => {
     showToast(t.checkoutLockedHint, 'info');
   }, [t.checkoutLockedHint]);
+
+  const notifyPartyBlocksTransferMerge = useCallback(() => {
+    showToast(t.partyBlocksTransferMerge, 'info');
+  }, [t.partyBlocksTransferMerge]);
+
+  const inTableParty = useMemo(() => {
+    if (isDemo) return false;
+    if (waiterBoard) {
+      return partyIdForTable(waiterBoard.partyMembers, tableId) != null;
+    }
+    return model?.inTableParty === true;
+  }, [isDemo, model?.inTableParty, tableId, waiterBoard]);
 
   const currentTableDetail = useCallback(
     (): WaiterTableDetailData => ({
@@ -329,6 +346,7 @@ function WaiterTableDetailInner({
         type,
         waiterBoard.sessionMetaByTableId,
         waiterBoard.checkoutRequestedTableIds,
+        tablePartyMemberTableIds(waiterBoard.partyMembers),
       );
     },
     [waiterBoard],
@@ -337,6 +355,10 @@ function WaiterTableDetailInner({
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {
       notifyCheckoutLocked();
+      return;
+    }
+    if (tableIdsEqual(sourceId, tableId) && inTableParty) {
+      notifyPartyBlocksTransferMerge();
       return;
     }
     setOperationType(type);
@@ -427,6 +449,10 @@ function WaiterTableDetailInner({
     if (!operationType || !sourceTable || !targetTable) return;
     if (isCheckoutPending) {
       notifyCheckoutLocked();
+      return;
+    }
+    if (inTableParty) {
+      notifyPartyBlocksTransferMerge();
       return;
     }
     if (tableIdsEqual(sourceTable, targetTable)) {
@@ -810,6 +836,7 @@ function WaiterTableDetailInner({
             sessionId={sessionMeta?.sessionId ?? null}
             menuHref={menuHref}
             isCheckoutPending={isCheckoutPending}
+            inTableParty={inTableParty}
             onCheckoutLocked={notifyCheckoutLocked}
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}

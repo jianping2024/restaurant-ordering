@@ -95,6 +95,35 @@ test('filterWaiterTableActionTargets excludes checkout tables from merge targets
   assert.deepEqual(targets.map((t) => t.id), [T2]);
 });
 
+test('filterWaiterTableActionTargets excludes together-group members from merge targets', () => {
+  const sessionMeta = {
+    [T1]: { sessionId: 's1', openedAt: '2026-06-25T10:00:00Z', status: 'open' as const },
+    [T2]: { sessionId: 's2', openedAt: '2026-06-25T10:00:00Z', status: 'open' as const },
+    [T3]: { sessionId: 's3', openedAt: '2026-06-25T10:00:00Z', status: 'open' as const },
+  };
+  const targets = filterWaiterTableActionTargets(
+    tables,
+    T1,
+    'merge',
+    sessionMeta,
+    [],
+    new Set([T2.toLowerCase()]),
+  );
+  assert.deepEqual(targets.map((t) => t.id), [T3]);
+});
+
+test('filterWaiterTableActionTargets does not exclude together-group members from transfer targets', () => {
+  const targets = filterWaiterTableActionTargets(
+    tables,
+    T1,
+    'transfer',
+    sessionMetaT1,
+    [],
+    new Set([T2.toLowerCase()]),
+  );
+  assert.deepEqual(targets.map((t) => t.id), [T2, T3]);
+});
+
 test('applyWaiterSessionRelocationToBoard moves session from source to target', () => {
   const board: WaiterBoardData = {
     sessionMetaByTableId: sessionMetaT1,
@@ -157,6 +186,7 @@ test('applyWaiterSessionRelocationToBoard moves session from source to target', 
     },
     buffets: [],
     buffetPricesByBuffetId: {},
+    inTableParty: false,
   } satisfies WaiterTablePageModel;
 
   const next = applyWaiterSessionRelocationToBoard(board, {

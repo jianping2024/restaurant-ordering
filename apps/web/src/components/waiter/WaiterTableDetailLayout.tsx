@@ -366,6 +366,8 @@ type OccupiedToolbarProps = {
   sessionId: string | null;
   menuHref: string;
   isCheckoutPending: boolean;
+  /** Together-group member — transfer/merge disabled. */
+  inTableParty: boolean;
   onCheckoutLocked: () => void;
   onTransfer: () => void;
   onMerge: () => void;
@@ -387,6 +389,7 @@ export function WaiterTableOccupiedToolbar({
   sessionId,
   menuHref,
   isCheckoutPending,
+  inTableParty,
   onCheckoutLocked,
   onTransfer,
   onMerge,
@@ -398,6 +401,7 @@ export function WaiterTableOccupiedToolbar({
   onDemoCloseClick,
   onTableClosed,
 }: OccupiedToolbarProps) {
+  const transferMergeDisabled = isCheckoutPending || inTableParty;
   return (
     <WaiterDetailCard>
       <div className={waiterDetailLayout.cardBody}>
@@ -411,7 +415,7 @@ export function WaiterTableOccupiedToolbar({
           <WaiterTableSecondaryButton
             type="button"
             onClick={onTransfer}
-            disabled={isCheckoutPending}
+            disabled={transferMergeDisabled}
             icon={<WaiterTransferIcon className={buttonIcon.sm} />}
           >
             {t.transfer}
@@ -419,7 +423,7 @@ export function WaiterTableOccupiedToolbar({
           <WaiterTableSecondaryButton
             type="button"
             onClick={onMerge}
-            disabled={isCheckoutPending}
+            disabled={transferMergeDisabled}
             icon={<WaiterMergeIcon className={buttonIcon.sm} />}
           >
             {t.merge}

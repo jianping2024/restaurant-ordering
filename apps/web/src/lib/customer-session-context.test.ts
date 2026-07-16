@@ -116,6 +116,7 @@ describe('resolveCustomerSessionBootContext', () => {
     },
     buffets: [],
     buffetPricesByBuffetId: {},
+    inTableParty: false,
   };
 
   it('prefers published staff model over stale SSR when session is active', () => {

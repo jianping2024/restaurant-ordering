@@ -29,6 +29,7 @@ describe('waiter-table-detail-view', () => {
     const model = snapshotToPageModel(snapshot);
     assert.equal(defaultBuffetPriceFromModel(model)?.adult_price, 19.95);
     assert.equal(model.buffets.length, 1);
+    assert.equal(model.inTableParty, false);
   });
 
   it('maps active snapshot to full detail', () => {

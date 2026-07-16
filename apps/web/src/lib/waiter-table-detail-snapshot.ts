@@ -41,10 +41,14 @@ export function snapshotToDetailData(snapshot: WaiterTableDetailSnapshot): Waite
   };
 }
 
-export function snapshotToPageModel(snapshot: WaiterTableDetailSnapshot): WaiterTablePageModel {
+export function snapshotToPageModel(
+  snapshot: WaiterTableDetailSnapshot,
+  inTableParty = false,
+): WaiterTablePageModel {
   return {
     detail: snapshotToDetailData(snapshot),
     buffets: snapshot.buffets,
     buffetPricesByBuffetId: snapshot.buffetPricesByBuffetId,
+    inTableParty,
   };
 }

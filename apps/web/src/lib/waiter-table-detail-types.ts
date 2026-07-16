@@ -17,4 +17,6 @@ export type WaiterTablePageModel = {
   detail: WaiterTableDetailData;
   buffets: Buffet[];
   buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
+  /** True when this table is in any together-group (blocks self transfer/merge). */
+  inTableParty: boolean;
 };

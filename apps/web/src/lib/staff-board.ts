@@ -25,7 +25,11 @@ import { loadWaiterTablePageModel, resolveOpenTableBuffetPrices } from '@/lib/wa
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 import { loadTablePartyGroups } from '@/lib/table-party-groups-server';
-import type { TablePartyGroup, TablePartyGroupMember } from '@/lib/table-party-groups';
+import {
+  tablePartyMemberTableIds,
+  type TablePartyGroup,
+  type TablePartyGroupMember,
+} from '@/lib/table-party-groups';
 import type { Buffet } from '@/types';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
@@ -39,7 +43,7 @@ export type WaiterBoardData = {
   tables: RestaurantTableRow[];
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
-  /** Runtime「同行组」— marker only; display ownership on waiter board. */
+  /** Runtime「同行组」— board marker; blocks self transfer/merge; excluded from merge targets. */
   parties: TablePartyGroup[];
   partyMembers: TablePartyGroupMember[];
   tableSummaries: WaiterBoardTableSummary[];
@@ -204,19 +208,21 @@ export async function fetchWaiterTableActionTargets(
   sourceTableId: string,
   operation: 'transfer' | 'merge',
 ): Promise<RestaurantTableRow[]> {
-  const [{ data: sessions }, { data: tableRows }, checkoutRequested] = await Promise.all([
-    admin
-      .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id')
-      .eq('restaurant_id', restaurantId)
-      .in('status', ['open', 'billing']),
-    admin
-      .from('restaurant_tables')
-      .select('id, display_name, sort_order, seat_min, seat_max')
-      .eq('restaurant_id', restaurantId)
-      .is('deleted_at', null),
-    fetchCheckoutRequestedBoard(admin, restaurantId),
-  ]);
+  const [{ data: sessions }, { data: tableRows }, checkoutRequested, partyLoaded] =
+    await Promise.all([
+      admin
+        .from('table_sessions')
+        .select('id, table_id, opened_at, status, opened_by_user_id')
+        .eq('restaurant_id', restaurantId)
+        .in('status', ['open', 'billing']),
+      admin
+        .from('restaurant_tables')
+        .select('id, display_name, sort_order, seat_min, seat_max')
+        .eq('restaurant_id', restaurantId)
+        .is('deleted_at', null),
+      fetchCheckoutRequestedBoard(admin, restaurantId),
+      loadTablePartyGroups(admin, restaurantId),
+    ]);
 
   const tables = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
   const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
@@ -230,6 +236,7 @@ export async function fetchWaiterTableActionTargets(
     operation,
     sessionMetaByTableId,
     checkoutRequested.tableIds,
+    tablePartyMemberTableIds(partyLoaded.partyMembers),
   );
 }
 

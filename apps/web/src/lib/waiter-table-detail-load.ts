@@ -17,6 +17,7 @@ import {
   type WaiterTableDetailSnapshot,
 } from '@/lib/waiter-table-detail-snapshot';
 import type { WaiterTableDetailData, WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import { tableIsInAnyParty } from '@/lib/table-party-groups-server';
 
 export type { WaiterTableDetailSnapshot } from '@/lib/waiter-table-detail-snapshot';
 export { snapshotToDetailData, snapshotToPageModel } from '@/lib/waiter-table-detail-snapshot';
@@ -208,9 +209,12 @@ export async function loadWaiterTablePageModel(
   restaurantId: string,
   tableId: string,
 ): Promise<WaiterTablePageModel | null> {
-  const snapshot = await loadWaiterTableDetailSnapshot(admin, restaurantId, tableId);
+  const [snapshot, inTableParty] = await Promise.all([
+    loadWaiterTableDetailSnapshot(admin, restaurantId, tableId),
+    tableIsInAnyParty(admin, restaurantId, tableId).catch(() => false),
+  ]);
   if (!snapshot) return null;
-  return snapshotToPageModel(snapshot);
+  return snapshotToPageModel(snapshot, inTableParty);
 }
 
 /** SSR page seed — deduped per request via React.cache. */

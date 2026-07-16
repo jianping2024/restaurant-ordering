@@ -15,6 +15,7 @@
 3. **多套餐**：一桌可同时存在多个 `buffet_id` 的 active `buffet_base` 行；每次提交为 **整桌套餐快照**（`buffets[]`）。
 4. **全 0 忽略**：某套餐成人/儿童均为 0 → 不写该行（有则 void）。
 5. **无变化 = no-op**：当前快照与请求快照一致 → **不计价、不写库**；返回当前桌台详情即可。
+6. **已收款人数地板**：本餐次已开始收款（`result.paid` 或 `session_collected_payments`）时，新快照的成人/儿童数**不得低于**按菜分单里已锁定客人在该 `buffet_id` 上已分配的座位数；否则 `409` / `buffet_headcount_below_paid_floor`（见 [`checkout-resume-ordering.zh.md`](./checkout-resume-ordering.zh.md)）。零收款时不施加此限制。
 
 示例：`简单套餐 A2 C1` + `豪华套餐 A1 C0` 与只改其中一行，都必须按套餐分别比较与写入。
 

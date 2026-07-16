@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
@@ -10,6 +10,7 @@ import {
 } from '@/lib/checkout-settlement';
 import type { SplitSettlementRow } from '@/lib/checkout-split-settlement';
 import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
+import { buildCheckoutPersonShareLines } from '@/lib/checkout-split-person-lines';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 import { checkoutPersonKey } from '@/lib/checkout-request-state';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
@@ -20,7 +21,7 @@ import {
 } from '@/lib/format-dashboard-date';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
-import type { BillSplit } from '@/types';
+import type { BillSplit, Order } from '@/types';
 
 type CheckoutT = ReturnType<typeof getMessages>['checkout'];
 
@@ -32,6 +33,8 @@ interface Props {
   collectedPayments: SessionCollectedPayment[];
   pendingSettlementRows: SplitSettlementRow[];
   selectedLines: CheckoutDisplayLine[];
+  sessionOrders: Order[];
+  itemCodeByMenuId: Record<string, string>;
   processingKeys: Set<string>;
   detailLocked: boolean;
   resumeOperating: boolean;
@@ -140,6 +143,8 @@ export function CheckoutRequestDetail({
   collectedPayments,
   pendingSettlementRows,
   selectedLines,
+  sessionOrders,
+  itemCodeByMenuId,
   processingKeys,
   detailLocked,
   resumeOperating,
@@ -169,12 +174,40 @@ export function CheckoutRequestDetail({
   onCloseTable,
 }: Props) {
   const [orderItemsOpen, setOrderItemsOpen] = useState(false);
+  const [expandedPersonIndexes, setExpandedPersonIndexes] = useState<Set<number>>(() => new Set());
+  const canExpandPersonDishes = request.split_mode === 'by_item';
+  const personShareLinesByIndex = useMemo(() => {
+    if (!canExpandPersonDishes) return new Map<number, ReturnType<typeof buildCheckoutPersonShareLines>>();
+    const map = new Map<number, ReturnType<typeof buildCheckoutPersonShareLines>>();
+    for (const row of pendingSettlementRows) {
+      map.set(
+        row.index,
+        buildCheckoutPersonShareLines(request, row.index, sessionOrders, itemCodeByMenuId),
+      );
+    }
+    return map;
+  }, [
+    canExpandPersonDishes,
+    pendingSettlementRows,
+    request,
+    sessionOrders,
+    itemCodeByMenuId,
+  ]);
   const waitLabel = formatCheckoutWaitDuration(request.created_at, {
     durationJustNow: t.durationJustNow,
     durationMinutes: t.durationMinutes,
   });
   const requestedAt = formatCollectedPaymentTime(lang, request.created_at);
   const showCollectedLedger = collectedPayments.length > 0;
+
+  const togglePersonExpanded = (personIndex: number) => {
+    setExpandedPersonIndexes((prev) => {
+      const next = new Set(prev);
+      if (next.has(personIndex)) next.delete(personIndex);
+      else next.add(personIndex);
+      return next;
+    });
+  };
 
   return (
     <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm lg:sticky lg:top-4">
@@ -240,38 +273,100 @@ export function CheckoutRequestDetail({
             {pendingSettlementRows.map((row) => {
               const collectNow = splitSettlementCollectAmount(row);
               const showOwedTotal = row.settlementStatus === 'partial';
+              const personExpanded = expandedPersonIndexes.has(row.index);
+              const shareLines = personShareLinesByIndex.get(row.index) ?? [];
               return (
                 <div
                   key={`${request.id}-${row.index}`}
-                  className="flex items-center justify-between gap-2 text-sm"
+                  className="rounded-md border border-transparent"
                 >
-                  <div className="min-w-0">
-                    <span className="text-brand-text font-medium">
-                      {localizeSplitPersonName(row.name, lang)}
-                    </span>
-                    {showOwedTotal ? (
-                      <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
-                        {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
-                        {' · '}
-                        {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
-                      </p>
-                    ) : null}
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <div className="min-w-0 flex items-start gap-1.5">
+                      {canExpandPersonDishes ? (
+                        <button
+                          type="button"
+                          onClick={() => togglePersonExpanded(row.index)}
+                          className="mt-0.5 shrink-0 w-5 h-5 flex items-center justify-center text-brand-text-muted hover:text-brand-text transition-colors"
+                          aria-expanded={personExpanded}
+                          aria-label={
+                            personExpanded
+                              ? t.personShareItemsCollapse
+                              : t.personShareItemsExpand
+                          }
+                        >
+                          <span aria-hidden>{personExpanded ? '▾' : '▸'}</span>
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={
+                          canExpandPersonDishes
+                            ? () => togglePersonExpanded(row.index)
+                            : undefined
+                        }
+                        disabled={!canExpandPersonDishes}
+                        className={`min-w-0 text-left ${
+                          canExpandPersonDishes
+                            ? 'hover:opacity-80 transition-opacity'
+                            : ''
+                        }`}
+                      >
+                        <span className="text-brand-text font-medium">
+                          {localizeSplitPersonName(row.name, lang)}
+                        </span>
+                        {showOwedTotal ? (
+                          <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
+                            {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
+                            {' · '}
+                            {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
+                          </p>
+                        ) : null}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-brand-gold font-semibold text-base tabular-nums">
+                        €{collectNow.toFixed(2)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onConfirmPersonPaid(row.index)}
+                        disabled={detailLocked}
+                        className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
+                      >
+                        {processingKeys.has(checkoutPersonKey(request.id, row.index))
+                          ? t.processing
+                          : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-brand-gold font-semibold text-base tabular-nums">
-                      €{collectNow.toFixed(2)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onConfirmPersonPaid(row.index)}
-                      disabled={detailLocked}
-                      className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
-                    >
-                      {processingKeys.has(checkoutPersonKey(request.id, row.index))
-                        ? t.processing
-                        : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
-                    </button>
-                  </div>
+                  {canExpandPersonDishes && personExpanded ? (
+                    <div className="mt-2 ml-6 rounded-md border border-brand-border/50 bg-brand-card/80 overflow-hidden">
+                      {shareLines.length === 0 ? (
+                        <p className="text-brand-text-muted text-[12px] px-3 py-2">
+                          {t.personShareItemsEmpty}
+                        </p>
+                      ) : (
+                        shareLines.map((line) => (
+                          <div
+                            key={`${row.index}-${line.key}`}
+                            className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-brand-border/40 last:border-0"
+                          >
+                            <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
+                              <span className="text-brand-text text-[13px] truncate">
+                                {line.label || '—'}
+                              </span>
+                              <span className="text-brand-text-muted text-[12px]">
+                                {line.quantityLabel}
+                              </span>
+                            </div>
+                            <span className="text-brand-text text-[13px] tabular-nums shrink-0">
+                              €{line.shareAmount.toFixed(2)}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

@@ -1,6 +1,10 @@
-import { getMessages } from './i18n/messages';
-
 export type TableQrStickerLocale = 'zh' | 'en' | 'pt';
+
+const TABLE_QR_SCAN_CTA: Record<TableQrStickerLocale, string> = {
+  zh: '扫码开始点餐 ›',
+  en: 'Scan to Order ›',
+  pt: 'Digitalize para pedir ›',
+};
 
 export function resolveTableQrStickerLocale(
   locale: TableQrStickerLocale | null | undefined,
@@ -11,5 +15,5 @@ export function resolveTableQrStickerLocale(
 export function resolveTableQrStickerScanCta(
   locale: TableQrStickerLocale | null | undefined,
 ): string {
-  return getMessages(resolveTableQrStickerLocale(locale)).tables.stickerScanCta;
+  return TABLE_QR_SCAN_CTA[resolveTableQrStickerLocale(locale)];
 }

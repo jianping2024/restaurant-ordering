@@ -55,3 +55,6 @@ supabase/.temp/
 
 # local git worktrees (full checkouts; do not commit)
 .worktrees/
+
+# Local data exports (may contain password hashes)
+local/

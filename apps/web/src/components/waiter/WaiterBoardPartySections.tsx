@@ -234,7 +234,7 @@ export function WaiterBoardPartySections({
         return (
           <section
             key={party.id}
-            className="rounded-2xl border-2 border-sky-500/40 bg-sky-500/8 p-4 shadow-sm"
+            className="rounded-2xl border-[3px] border-sky-600/80 bg-sky-500/8 p-4 shadow-md"
             aria-label={title}
           >
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">

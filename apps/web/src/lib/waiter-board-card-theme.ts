@@ -52,7 +52,7 @@ export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardC
     badge:
       'border border-rose-200 bg-rose-100 text-rose-800 dark:border-rose-700/60 dark:bg-rose-900/60 dark:text-rose-200',
     row3: 'text-sm font-medium leading-none tabular-nums',
-    meta: 'text-brand-text-muted',
+    meta: 'text-black',
     durationAccent: 'text-rose-700 dark:text-rose-300',
     amount: 'text-rose-800 dark:text-rose-100',
     footer:
@@ -65,7 +65,7 @@ export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardC
     badge:
       'border border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-700/60 dark:bg-amber-900/60 dark:text-amber-200',
     row3: 'text-sm font-medium leading-none tabular-nums',
-    meta: 'text-brand-text-muted',
+    meta: 'text-black',
     durationAccent: 'text-amber-700 dark:text-amber-300',
     amount: 'text-amber-800 dark:text-amber-100',
     footer:
@@ -78,7 +78,7 @@ export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardC
     badge:
       'border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-700/60 dark:bg-emerald-900/60 dark:text-emerald-200',
     row3: 'text-sm font-medium leading-none tabular-nums',
-    meta: 'text-brand-text-muted',
+    meta: 'text-black',
     durationAccent: '',
     amount: '',
     footer:

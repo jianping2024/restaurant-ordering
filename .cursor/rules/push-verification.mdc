@@ -1,6 +1,8 @@
 ---
-description: Mandatory lint/build/tests before pnpm push; avoid slow or skipped verification.
-alwaysApply: true
+description: >-
+  Before pnpm push / ship / push to main: run lint → build → targeted tests in order.
+  Use when user asks to push, ship, pnpm push, or web changes are ready for main.
+alwaysApply: false
 ---
 
 # Push verification (before `pnpm push`)

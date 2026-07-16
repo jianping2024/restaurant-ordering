@@ -1,125 +1,36 @@
 ---
-description: Analyze before code; reuse existing UI/helpers first; new feature branch before edits; verify then ask before commit.
+description: Hard gates for analyze-before-code; full workflow in mesa-analyze-before-code skill. Triggers on 先分析/plan first and multi-layer behavior changes.
 alwaysApply: true
 ---
 
-# Analysis before code (and verify before commit)
+# Analysis before code (hard gates)
 
-For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code first**. Analyze from the full business-flow perspective. Patch-style fixes are not accepted. Prefer code that stays simple, clear, robust, and maintainable.
+For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code first**. Full process, reuse checklist, branching detail, and verification live in:
 
-## Hard phrase gate (mandatory — no judgment call)
+**`.cursor/skills/mesa-analyze-before-code/SKILL.md`** — read and follow it when this rule applies.
 
-If the **latest user message** contains any of these (case-insensitive; Chinese or English), this rule **always** applies for that turn — even for UI-only / style-only / “功能没问题只是交互怪” topics. The user does **not** need to name this rule file.
+## When it applies
 
-**Trigger phrases (any one is enough):**
+**Phrase gate (any one):** `先分析` / `先方案` / `不要直接改` / `先别改` / `等确认再改` / `analyze first` / `plan first` / `don't change code yet` / `do not edit yet` — always analyze; ignore “does NOT apply” exceptions.
 
-- `先分析` / `先方案` / `不要直接改` / `先别改` / `等确认再改`
-- `analyze first` / `plan first` / `don't change code yet` / `do not edit yet`
+**Also (no phrase):** behavior/state-machine/checkout/session/order/print bugs; changes across UI+API+DB or multiple modules.
 
-**On a triggered turn you MUST:**
+**Does NOT apply** (no trigger phrase): typos/one-line fixes user asked to apply; pure format/lint/docs-only; user already approved a plan (“按方案改” / “确认，开始改”).
 
-1. **Not** edit code, create/switch branches for implementation, or run mutating fix commands.
-2. Open the reply with these **exact five headings in order** (Markdown `###` is fine). Free-form UX notes, bullet dumps, or “简要结论” **without** these headings = **failed compliance**.
-3. End by asking the user to confirm the recommended approach (or choose among options) before any implementation.
+## On an analyze turn
 
-**Exact headings required:**
+1. Do **not** edit code, create implementation branches, or run mutating fixes.
+2. Reply with **exact** headings in order:  
+   `### 1. 当前业务流程和状态流转` → `### 2. 问题根因` → `### 3. 推荐方案和理由` → `### 4. 需要修改的文件/组件` → `### 5. 风险点和验证方式`
+3. Heading 3 must include **end-state shape** (one–two sentences) + reuse verdict. End-state wins over minimal patch / copy-nearby-layout.
+4. Ask for confirmation before implementing.
 
-### 1. 当前业务流程和状态流转
-### 2. 问题根因
-### 3. 推荐方案和理由
-### 4. 需要修改的文件/组件
-### 5. 风险点和验证方式
+## After confirmation (summary)
 
-Skipping, renaming, merging, or burying these headings under a casual essay is a rule violation. Do not “partially analyze” and wait for the user to re-ask.
+- Branch from `main` (or named baseline); do not disturb other WIP (worktree if needed). Details in the skill.
+- **One representation check** on the diff: no two live forms for the same step/label/mapping.
+- Run checks per `AGENTS.md`. Manual items: pass/fail/skip. Commit only if user asks (push/ship/`pnpm push` = permission; then read `push-verification.mdc` + `release-and-ci.mdc`).
 
-## When this also applies (no phrase required)
+## Never without explicit in-thread permission
 
-- Behavior bugs, state-machine issues, checkout/session/order/print flows
-- Changes that touch more than one layer (UI + API + DB, or multiple modules)
-
-Same five-heading output and no-code-until-confirm rules as above.
-
-## When this does NOT apply
-
-- Typos, renames, one-line obvious fixes the user explicitly asked to apply **and** no trigger phrase above is present
-- Pure formatting / lint-only / docs-only when the user asked for that only **and** no trigger phrase above is present
-- The user already approved a written plan in this thread (“按方案改” / “确认，开始改”)
-
-**Override:** If a trigger phrase is present, the “does NOT apply” list is ignored for that turn — still output the five headings; do not code.
-
-## Required content under each heading
-
-Use plain language. Wait for user confirmation before implementing.
-
-1. **当前业务流程和状态流转** — how the feature works end-to-end today; key states and transitions
-2. **问题根因** — root cause, not only symptoms; if logic is unusually complex, check whether architecture (not just a missing if) is wrong
-3. **推荐方案和理由** — preferred approach and why; reject temporary if/else patches. **Must include a reuse checklist** (see below). Same UI/business fact → one implementation in the plan, not “copy now, dedupe later.”
-4. **需要修改的文件/组件** — small but complete scope; no unrelated refactors. List what is **reused** vs **new**. If proposing a new file/component, state which duplicated code it **removes** (not only where it will be called).
-5. **风险点和验证方式** — what could break; how to verify (including high-risk areas: checkout, sessions, print, RLS, void)
-
-### Reuse checklist (mandatory under heading 3 when the change touches UI or shared helpers)
-
-Before recommending new UI or helper code, search and state findings in the plan:
-
-1. **Same feature domain** — e.g. `components/dashboard/checkout/*`, nearby waiter/menu screens for the same interaction.
-2. **Shared primitives** — `apps/web/src/components/ui/*` (see also `docs/design/03-component-rules.md`). Prefer extend/reuse over a parallel control.
-3. **Existing lib helpers** — `apps/web/src/lib/*` for the same calculation/display mapping (do not re-implement share math, labels, etc.).
-4. **Verdict** — reuse X / extend Y / new Z only because no suitable reuse exists (one sentence why).
-
-Skipping this search and shipping a second parallel implementation = failed compliance with this rule.
-
-## Principles (enforce in the plan and the later diff)
-
-- Follow SOLID in concrete design choices — not slogans
-- Do not add duplicate/parallel state for the same business fact
-- No temporary if/else patches that paper over broken flow
-- Do not break existing business flows
-- Separate business logic from UI presentation
-- Keep the change set small but complete; do not refactor unrelated code
-- Remove duplication/redundancy **only within the approved change set** — no drive-by cleanup of untouched modules
-- Do not sacrifice the full business flow for a local optimization
-- When logic is abnormally complex, prefer industry-standard structure over more branches
-- **Reuse before invent** — search existing components/helpers first; second occurrence of the same interaction must reuse the first, not fork a twin
-- **Dedupe must shrink, not swell** — extracting a shared module is only OK if the diff deletes duplicated call-site logic; ban “helper + wrapper + batch API” stacks that only move lines
-- **No copy-then-dedupe workflow** — the first implementation must already be the shared shape when a second call site is in the approved plan
-
-## Dangerous commands
-
-- Never run `supabase db reset` (or equivalent destructive DB reset / hard wipe) without **explicit** user permission in the current thread.
-
-## Git branch (before coding)
-
-Parallel work is common: the checkout you see may already be another feature branch with local changes. Treat that as **someone else’s / another task’s WIP**.
-
-### Baseline and isolation (mandatory)
-
-- **Always create a new branch before editing code** for approved plans and non-trivial work. Do not implement on `main` (or the repo’s default branch).
-- **Base = `main` only** (or the baseline the user names). State it aloud before any git action. Take code **only** from that baseline (`git fetch` first if needed). Example: “从 `main` 建 `fix/…`，不碰当前分支 WIP。”
-- **Never touch other tasks’ changes:** no edit, stage, commit, stash, stash pop, reset, clean, rebase, amend, or “helpful” move of unrelated dirty/untracked files. Do not switch the user’s in-progress branch away just to make room for yourself.
-- Name the new branch briefly after the change (e.g. `feat/table-party-mark`, `fix/append-dup-get`).
-- If already on a **relevant** feature branch **for this same task** and the user confirms reuse, say so and keep using it — do not create a redundant second branch.
-- **Exception:** one-line / typo fixes the user explicitly asked to apply *and* told you to stay on the current branch. If unclear, create a new branch from the base.
-- Tell the user: **base branch**, **new branch name**, and that current WIP was left alone — before or as you start editing.
-
-### Why “just create a new branch” is not always enough
-
-Git has **one working directory per checkout**. Uncommitted/untracked files live in that directory and **follow you** when you `switch` / `checkout -b`, even if the new branch tip is `main`. So:
-
-| Situation | What to do |
-|---|---|
-| Current worktree is **clean** | Fine: `git switch -c <new-branch> main` (or `origin/main`) and edit only that task. |
-| Current worktree has **other task WIP** | **Do not** switch/create in this directory (WIP would pollute the new branch or force stash). **Do not stash** that WIP. Use a **separate git worktree** (or second clone) checked out from `main` / the new branch, and do all edits/tests/commits **only there**. Or stop and ask the user how to proceed. |
-
-Worktree is not an extra process for its own sake — it is the safe way to start from `main` **while leaving another branch’s WIP undisturbed in the original directory**. Put the worktree **outside** the primary working tree when possible (or under a gitignored path) so it does not show up as noise in the other task’s `git status`.
-
-## After confirmation
-
-1. State the **base branch**, create/switch via that baseline without touching unrelated WIP (see above), then implement only the approved plan.
-2. **Implementation reuse gate (before finishing the diff):**
-   - Did not add a parallel component/helper for something already covered by the plan’s reuse verdict.
-   - New shared file only if it removed duplicated markup/logic from call sites in this change set.
-   - Follow-up “去重” turns: prefer delete/merge; do not add extra abstraction layers unless they reduce net duplication in the same diff.
-3. Run the checks required by `AGENTS.md` and push rules (lint/build/targeted tests as applicable).
-4. List **every manual test item** and its result (`pass` / `fail` / `skip` + brief note).
-5. **Do not commit** unless the user explicitly asks to commit. If all automated and reported manual checks pass, say so and ask whether to commit.
-   - **Exception:** If the user said **push**, **ship**, or **`pnpm push`**, that counts as explicit permission — follow `push-verification.mdc` then `release-and-ci.mdc`. Prefer pushing the **feature branch** / opening a PR unless the user explicitly asked to land on `main` via `pnpm push`. Do not invent a push when they only asked to fix or test.
+`supabase db reset` or equivalent hard DB wipe.

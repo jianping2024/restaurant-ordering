@@ -5,14 +5,12 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { CustomerOrderingIntroSplitPreview } from '@/components/menu/CustomerOrderingIntroSplitPreview';
 import type { UILanguage } from '@/lib/i18n';
-import type { CustomerOrderingIntroCopy } from '@/lib/i18n/customer-ordering-intro-messages';
+import {
+  CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX,
+  type CustomerOrderingIntroCopy,
+} from '@/lib/i18n/customer-ordering-intro-messages';
 
-type Step = {
-  title: string;
-  body: string;
-  icon: string;
-  highlight?: boolean;
-};
+const STEP_ICONS = ['🛒', '📄', '🧾', '🔔'] as const;
 
 type Props = {
   open: boolean;
@@ -41,12 +39,6 @@ export function CustomerOrderingIntroModal({ open, lang, copy, onDismiss }: Prop
 
   if (!open || !mounted) return null;
 
-  const steps: Step[] = [
-    { title: copy.stepOrderTitle, body: copy.stepOrderBody, icon: '🛒' },
-    { title: copy.stepSplitTitle, body: copy.stepSplitBody, icon: '🧾', highlight: true },
-    { title: copy.stepCheckoutTitle, body: copy.stepCheckoutBody, icon: '🔔' },
-  ];
-
   return createPortal(
     <div className={overlayClassName} role="dialog" aria-modal="true" aria-labelledby="customer-ordering-intro-title">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden />
@@ -61,22 +53,22 @@ export function CustomerOrderingIntroModal({ open, lang, copy, onDismiss }: Prop
           <p className="mt-1 text-center text-sm text-brand-text-muted">{copy.subtitle}</p>
 
           <ol className="mt-5 space-y-4">
-            {steps.map((step, index) => (
+            {copy.steps.map((step, index) => (
               <li key={step.title} className="flex gap-3">
                 <span
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold/15 text-base"
                   aria-hidden
                 >
-                  {step.icon}
+                  {STEP_ICONS[index]}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-brand-text">
                     {index + 1}. {step.title}
                   </p>
                   <p className="mt-0.5 text-[13px] leading-snug text-brand-text-muted">{step.body}</p>
-                  {step.highlight ? (
+                  {index === CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX ? (
                     <div className="mt-2">
-                      <CustomerOrderingIntroSplitPreview lang={lang} intro={copy} />
+                      <CustomerOrderingIntroSplitPreview lang={lang} />
                     </div>
                   ) : null}
                 </div>

@@ -1,40 +1,50 @@
 ---
-description: Documentation-driven change rules for Mesa project organization
+description: Short always-on nav — AGENTS, analysis gates, skills, docs map
 alwaysApply: true
 ---
 
-Read before making changes:
+# Project rules (nav only)
 
-1. Root [`AGENTS.md`](../../AGENTS.md) — tech stack, safety, tenant isolation, commands
-2. [`AI_RULES.md`](../../AI_RULES.md) — change workflow and documentation map
-3. Relevant docs under `docs/product/`, `docs/design/`, `docs/technical/`, `docs/decisions/`
-4. [`docs/ai-schema.md`](../../docs/ai-schema.md) for database context (not full migrations scan)
-5. [`docs/optimization.md`](../../docs/optimization.md) when executing project cleanup phases
+**Always-on sources**
 
-## Mandatory workflow
+1. [`AGENTS.md`](../../AGENTS.md) — stack, commands, safety, tenant, DB, checks, token discipline
+2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
 
-1. **Read** related docs and targeted code only — no whole-repo scans
-2. **Plan** — output impact scope and approach before editing non-trivial logic
-3. **Scope** — no out-of-scope features, no unrelated files, no silent rewrites, no temporary patches
-4. **Sync docs** — business rule changes must update `docs/product/` or `docs/technical/`
-5. **Verify** — report lint/build/test results after code changes (see `AGENTS.md`)
+**Skills (read when task matches `description`)**
+
+- `.cursor/skills/mesa-analyze-before-code/SKILL.md` — analyze-first, end-state, reuse, one-representation gate
+- `.cursor/skills/mesa-local-product-test/SKILL.md` — localhost product verification
+
+**On-demand rules** (not alwaysApply): `push-verification.mdc`, `release-and-ci.mdc`, `local-product-testing.mdc` — when push/ship/test phrases appear.
+
+No third root “强制规则” markdown. Product truth under `docs/`.
 
 ## Documentation map
 
 | Need | Path |
 |------|------|
+| Product overview | `docs/product/01-product-overview.md` |
 | Feature boundaries | `docs/product/02-feature-map.md` |
 | User flows & rules | `docs/product/03-user-flows.md`, `04-business-rules.md` |
 | UI conventions | `docs/design/` |
 | Architecture & API | `docs/technical/` |
 | ADRs | `docs/decisions/` |
+| DB compact schema | `docs/ai-schema.md` |
+| Historical plans | `docs/*-plan.md`, `docs/*.zh.md` |
+| Cleanup phases | `docs/optimization.md` (one phase at a time; confirm before next) |
 
-## High-risk areas (require explicit user approval)
+Before non-trivial edits: read matching rows only — not a whole-repo scan. Prefer `docs/ai-schema.md` over browsing all migrations.
+
+## Mandatory workflow
+
+1. **Read** related docs and targeted code only (default 3–5 files; see `AGENTS.md`)
+2. **Plan** — non-trivial logic: follow analysis gates + `mesa-analyze-before-code` skill
+3. **Scope** — no out-of-scope features, unrelated files, silent rewrites, or temporary patches
+4. **Sync docs** — business rules → `docs/product/` or `docs/technical/`; major tech → `docs/decisions/`
+5. **Verify** — checks per `AGENTS.md`; product UAT via `mesa-local-product-test` when asked
+
+## High-risk (explicit user approval)
 
 Checkout/payment, bill splits, table session lifecycle, print jobs & RLS, migrations, order/kitchen void flows.
 
 Do not expose table UUIDs on receipts — use `display_name` only.
-
-## Optimization phases
-
-Execute one phase from `docs/optimization.md` at a time; stop for user confirmation before the next phase.

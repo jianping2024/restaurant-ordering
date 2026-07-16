@@ -68,6 +68,8 @@ Cursor 没有改任何文件，并且输出了完整审计报告。
 
 # 阶段 1：建立文档骨架和 AI 规则
 
+> **现行约定（后补）**：根目录 `AI_RULES.md` 已移除。现行：`AGENTS.md`（短操作手册）+ alwaysApply 的 `analysis-before-code.mdc` / `project-rules.mdc` + 按需 skills（`.cursor/skills/mesa-analyze-before-code`、`mesa-local-product-test`）。下文「需要创建 / 指令」里的 `/AI_RULES.md` 仅为阶段历史记录。
+
 ## 目标
 
 建立项目的统一文档入口，让以后需求、设计、技术规则有固定位置。
@@ -81,7 +83,7 @@ Cursor 没有改任何文件，并且输出了完整审计报告。
 /docs/design
 /docs/technical
 /docs/decisions
-/AI_RULES.md
+/AI_RULES.md   # 历史产物；现行已删除，见上方说明
 .cursor/rules/project-rules.mdc
 
 ```
@@ -124,10 +126,10 @@ Cursor 没有改任何文件，并且输出了完整审计报告。
 /docs/decisions/ADR-002-local-database.md
 /docs/decisions/ADR-003-printing-strategy.md
 
-/AI_RULES.md
+/AI_RULES.md   # 历史；现行勿再建 — 用 project-rules + analysis-before-code + AGENTS
 .cursor/rules/project-rules.mdc
 
-AI_RULES.md 和 Cursor rules 必须写清楚：
+（历史要求曾写「AI_RULES.md 和 Cursor rules 必须写清楚八条」；现行八条精神已分散在 AGENTS / analysis-before-code / project-rules，勿恢复第三套根目录规则书。）
 1. 修改前必须先读相关文档和代码
 2. 修改前必须输出影响范围和方案
 3. 禁止无说明重写模块
@@ -149,7 +151,7 @@ AI_RULES.md 和 Cursor rules 必须写清楚：
 
 ## 验收标准
 
-文档骨架存在，AI 规则存在，没有改业务代码。
+文档骨架存在，AI 规则存在（现行：`AGENTS.md` + cursor rules，无根目录 `AI_RULES.md`），没有改业务代码。
 
 ---
 

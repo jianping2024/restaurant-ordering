@@ -1,176 +1,40 @@
-# [AGENTS.md](http://AGENTS.md)
+# AGENTS.md
 
-Guidance for AI coding agents working in this repository.
+Guidance for AI coding agents in this repository.
 
-## Priority Rules
+## Priority (conflicts)
 
-When rules conflict, follow this order:
+1. Safety and data protection  
+2. Tenant isolation and RLS  
+3. User-requested scope  
+4. Behavior-change structure — `.cursor/rules/analysis-before-code.mdc` + skill `mesa-analyze-before-code` (end-state shape). Wins over “minimal patch” / “copy nearby layout” when those leave a second representation of the same step/label/mapping  
+5. Token-saving (search limits, concise output)  
+6. Style / formatting  
 
-1. Safety and data protection.
-2. Tenant isolation and RLS correctness.
-3. User-requested scope.
-4. Token-saving rules.
-5. Style and formatting preferences.
+Do not broaden the task unless the user asks.
 
-Do not broaden the task unless the user explicitly asks.
+**This file:** stack, commands, repo map, domain invariants, DB how-to, which checks, safety.  
+**Not this file:** analyze-first, end-state/reuse gates, branching, commit permission → `analysis-before-code.mdc` + `.cursor/skills/mesa-analyze-before-code/`. Doc nav → `project-rules.mdc`.
 
-## Tech Stack
+## Stack
 
-- Next.js 14 App Router, React 18, TypeScript strict mode, Tailwind CSS.
-- Supabase for Auth, Postgres, Storage, Realtime, RLS, and migrations.
-- Go 1.22 print agent in `apps/print-agent` for ESC/POS LAN TCP and Windows USB printing.
-- Deployed on Vercel.
-- CI uses Node 20 and npm.
+- Next.js 14 App Router, React 18, TypeScript strict, Tailwind; Supabase (Auth/DB/RLS); Go 1.22 print-agent; Vercel; CI Node 20 + **npm** (`package-lock.json`; no yarn/pnpm/bun unless asked).
+- Go only via Docker — do not ask the user to install Go locally.
 
-## Package Manager
+## Commands
 
-- Use **npm**.
-- `package-lock.json` is committed.
-- Use `npm ci` in clean or CI environments.
-- Do not use yarn, pnpm, or bun unless explicitly requested.
-- Go commands must be run through Docker because Go may not be installed locally.
-- Do not ask the user to install Go locally unless explicitly requested.
+| Action | Command |
+|--------|---------|
+| Web (local Docker Supabase) | `npm run dev` → `0.0.0.0:3000` |
+| Web (cloud) | `npm run cloud` |
+| Web (stage) | `npm run stage` |
+| Ops | `npm run dev:ops` → `:3001` |
+| Lint | `npm run lint` |
+| Build web / ops | `npm run build` / `npm run build:ops` |
+| Print-agent helpers | `npm run print` / `printstop` / `printlog` |
+| Migrations | `supabase db push` (after `supabase link`) |
 
-## Common Commands
-
-```bash
-npm run dev
-```
-
-Start Next.js on `0.0.0.0:3000` (loads `.env.local.dev` — local Docker Supabase).
-
-```bash
-npm run stage
-```
-
-Start Next.js against the cloud stage project (loads `.env.local.supabase`).
-
-```bash
-npm run cloud
-```
-
-Start Next.js against cloud Supabase (uses `.env.local`).
-
-```bash
-npm run dev:ops
-```
-
-Start platform ops app on `0.0.0.0:3001` (same env file as `npm run dev`).
-
-```bash
-npm run lint
-```
-
-Run ESLint for `@mesa/web` and `@mesa/ops`.
-
-```bash
-npm run build
-```
-
-Build tenant product (`@mesa/web`). Requires placeholder or real Supabase environment variables.
-
-```bash
-npm run build:ops
-```
-
-Build platform ops app (`@mesa/ops`).
-
-```bash
-npm run print
-npm run printstop
-npm run printlog
-```
-
-Local print-agent Docker development helpers.
-
-```bash
-supabase db push
-```
-
-Apply migrations after `supabase link`.
-
-## Print-Agent Commands
-
-The local machine may not have Go installed. Use Docker for all Go tooling.
-
-Run from the repository root.
-
-```bash
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go test ./...
-```
-
-Run print-agent unit tests.
-
-```bash
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go vet ./...
-```
-
-Run Go static checks.
-
-```bash
-docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOARCH=amd64 golang:1.22 go build -o /dev/null .
-```
-
-Run CI Windows cross-compile gate.
-
-Do not run local `go test`, `go vet`, or `go build` commands.
-
-## Folder Structure
-
-npm **workspaces** monorepo:
-
-- `apps/web` — Tenant product (Next.js): customer menu, kitchen/waiter, owner `/dashboard`, `src/app/api/*`.
-- `apps/ops` — Mesa platform ops console (Next.js, separate Vercel project); see `docs/platform-admin-plan.zh.md`.
-- `packages/shared` — Shared types and server-safe helpers (`@mesa/shared`) for web + ops.
-- `apps/print-agent` — Go print agent (not on Vercel); Docker-only Go commands.
-- `supabase/migrations` — Ordered database migrations. Append new migrations; do not edit applied history.
-- `supabase/seed.sql` — Optional seed data.
-- `docs` — Durable design and implementation notes.
-
-Within `apps/web`, use `@/*` → `src/*` as before. Vercel deploy layout: [`docs/monorepo-vercel.zh.md`](docs/monorepo-vercel.zh.md).
-
-## Coding Rules
-
-- Prefer existing patterns in nearby files.
-- Keep changes scoped to the requested behavior.
-- Use the `@/*` path alias for imports from `src`.
-- Keep server-only Supabase/service-role logic in server code and route handlers.
-- Never expose service keys to client components.
-- Preserve tenant boundaries. Restaurant-scoped queries and print-job APIs must filter by authenticated restaurant context.
-- Use existing UI primitives from `src/components/ui` and existing brand/Tailwind tokens.
-- Keep table identity rules intact:
-  - `table_id` is the stable UUID.
-  - `display_name` is the human label.
-- For print payloads that reference tables, include both `table_id` and `display_name`.
-- Do not revive legacy `table_number`.
-- For Go code:
-  - Use Docker commands from the **Print-Agent Commands** section.
-  - Keep standard `gofmt` formatting.
-  - Add focused table-driven tests for parser/routing behavior.
-
-## Database Context
-
-- For database structure, read `docs/ai-schema.md` first.
-- Do not inspect `supabase/migrations/` unless exact SQL, migration history, RLS definitions, indexes, generated columns, or defaults are required.
-- If exact database details are needed, inspect only the specific relevant migration or schema section.
-- Do not scan all migrations to answer general schema questions.
-- If database schema changes, update `docs/ai-schema.md` in the same change.
-
-## Testing Rules
-
-- For web changes, run:
-
-```bash
-npm run lint
-```
-
-- Run production build only when touching routes, server code, environment-dependent code, build config, or shared types:
-
-```bash
-npm run build
-```
-
-- For print-agent changes, run:
+Print-agent (from repo root; never bare local `go test`/`vet`/`build`):
 
 ```bash
 docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go test ./...
@@ -178,141 +42,45 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent golang:1.22 go vet ./.
 docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOARCH=amd64 golang:1.22 go build -o /dev/null .
 ```
 
-- For migration/RLS changes:
-  - Inspect policies carefully.
-  - Verify tenant isolation paths.
-  - Do not test only happy paths.
-- There is no broad web unit-test suite.
-- Add targeted tests only where the repo already supports them or where risk justifies setup.
-- Do not run full-project test/build loops repeatedly. If a command fails, summarize the relevant error and fix the narrow cause before rerunning.
+## Layout
 
-## Dangerous Areas To Avoid
+- `apps/web` — tenant product (`@/*` → `src/*`)
+- `apps/ops` — platform ops
+- `packages/shared` — `@mesa/shared`
+- `apps/print-agent` — Go agent
+- `supabase/migrations` — append only; do not edit applied history
+- `docs/` — product/design/technical truth
 
-- Do not commit:
-  - `.env.local`
-  - real Supabase keys
-  - JWT secrets
-  - pairing codes
-  - restaurant/customer data
-- Do not edit old Supabase migrations unless explicitly repairing local history.
-- Create a new timestamped migration instead.
-- Avoid weakening:
-  - RLS
-  - service-role boundaries
-  - staff auth
-  - print-agent JWT checks
-  - rate limits
-- Do not print or expose table UUIDs on receipts.
-- Paper output should use `display_name`.
-- Be careful with checkout, billing, table transfer/merge, auto-close sessions, and print-job claiming. These affect money or live operations.
-- Do not hard-delete restaurant tables or live operational records unless the product flow explicitly requires it.
+## Coding invariants
 
-## 🪙 Token Saving & Output Rules (CRITICAL)
+- Prefer nearby **idiom/style**; do **not** copy a parallel data/copy shape when analysis requires one end-state representation.
+- Scope to requested behavior; `@/*` imports; no service keys on the client; restaurant-scoped queries/APIs.
+- UI: `src/components/ui` + brand tokens.
+- Tables: `table_id` = UUID; `display_name` = label; print payloads need both; no legacy `table_number`; receipts never show table UUIDs.
+- Go: Docker commands above; `gofmt`; focused table-driven tests for parser/routing.
 
-These rules are mandatory. They exist to reduce wasted context and prevent broad, unfocused edits.
+## Database
 
-### Plan Before Tool Use
+- Schema: read `docs/ai-schema.md` first. Open migrations only for exact SQL/RLS/indexes/defaults. Update `ai-schema.md` when schema changes.
 
-- Before using tools or opening files, state the intended search/edit plan in 2–4 bullets.
-- The plan must include:
-  - what needs to be found
-  - which search terms or file paths will be used
-  - what files may need editing
-- Do not start broad exploration without a plan.
+## Checks
 
-### Search First, Read Later
+- Web: `npm run lint`; also `npm run build` when touching `apps/web/src/app|lib|types`, env, or build config. Ops/shared: `npm run build:ops`.
+- Print-agent: Docker `go test` + `go vet` + Windows cross-build (above).
+- Migration/RLS: verify tenant isolation; not only happy paths. No broad web unit suite — add targeted tests when justified. Fix narrow failures; do not loop full-project builds.
 
-- Before reading file contents, run a targeted semantic search or filename search.
-- Do not open files only to “understand the project.”
-- Open files only when each file has a clear reason to be relevant.
-- Do not read or recursively scan entire directories.
+## Boundaries
 
-### Strict File Targeting
+- Never commit secrets (`.env.local`, keys, JWTs, pairing codes, customer data). Never print env/tokens/cookies in replies.
+- New timestamped migrations only; do not weaken RLS, service-role, staff auth, print JWT, rate limits.
+- Careful: checkout, billing, transfer/merge, auto-close, print claim. No hard-delete of live tables/ops records unless product requires it.
+- No dependency / lockfile changes unless user approves. No destructive commands (`rm -rf`, db reset, force push, etc.) without explicit approval. Never `supabase db reset` without explicit permission in-thread.
+- Stop and ask when requirements/schema/behavior are unclear.
 
-- Default maximum: inspect 3–5 files.
-- If more than 5 files seem necessary, stop and explain:
-  - why more files are needed
-  - which files will be opened
-  - what specific question each file answers
-- Do not continue broad exploration without user confirmation.
-- If the relevant file is unclear, ask for the specific file path instead of scanning broadly.
-- Before editing, list the exact files you plan to inspect or modify.
+## Token discipline
 
-### Output Rules
+- Plan 2–4 search/edit bullets before tools. Search before broad reads. Default inspect **3–5** files; if more, stop and explain why / ask. Concise replies; no full-file dumps or huge logs. Minimal diff **when end-state allows** — not “add onto a duplicated shape and dedupe later.”
 
-- Be concise.
-- Keep explanations to an absolute minimum.
-- Before code, state the approach in 1–2 sentences maximum.
-- Prefer minimal Git diffs/patches for surgical code changes.
-- Use standard Git diff format when practical:
-  - `+` for additions
-  - `-` for deletions
-- Do not output or rewrite an entire file unless explicitly necessary.
-- If a full file rewrite is necessary, explain why before outputting it.
-- Use standard comments to mark unchanged sections:
-  - `// ... existing code ...`
-  - `# ... existing code ...`
+## Retrospectives
 
-### No Large Dumps
-
-- Do not paste large logs, full schemas, full files, or full command outputs into the response.
-- Summarize only the relevant lines.
-- For long command output, show the error block and 5–10 lines of surrounding context only.
-- Do not dump generated files into the response when a downloadable file or patch is more appropriate.
-
-## Additional Safety Rules
-
-### Stop When Uncertain
-
-- If the required file, behavior, schema detail, or product requirement is unclear, stop and ask a focused question.
-- Do not infer missing business rules from unrelated files.
-- Do not make broad architectural changes to solve unclear requirements.
-
-### Dependency Changes
-
-- Do not add, remove, or upgrade npm packages unless explicitly requested.
-- Do not change `package-lock.json` unless a dependency change is approved.
-- Prefer existing utilities and patterns before introducing new dependencies.
-
-### Migration Safety
-
-- Never edit an already-applied migration unless explicitly instructed.
-- Create a new timestamped migration for schema changes.
-- For RLS changes, explain the tenant-isolation impact before editing.
-- For public policies, explicitly state why public access is safe.
-- If a table contains restaurant/customer/order/billing data, assume tenant isolation is required unless proven otherwise.
-
-### Command Safety
-
-- Do not run destructive commands without explicit approval.
-- This includes:
-  - `rm -rf`
-  - database reset commands
-  - migration repair commands
-  - force push
-  - deleting branches
-  - clearing storage buckets
-- Prefer dry-run or read-only commands first when available.
-
-### Secrets and Environment Safety
-
-- Do not print environment variables, tokens, cookies, JWTs, service-role keys, or connection strings.
-- If a command output contains secrets, redact them before summarizing.
-- Use placeholder values in examples.
-
-## Preferred Workflow For AI Agents
-
-1. Read the user request carefully.
-2. Identify the smallest relevant area of the codebase.
-3. State a short search/edit plan.
-4. Use semantic search or filename search before opening files.
-5. Open only the top 3–5 relevant files.
-6. List the files that will be inspected or modified.
-7. Make surgical changes.
-8. Output a minimal Git diff or focused code snippets.
-9. State which checks should be run.
-10. Avoid full-project scans unless explicitly requested.
-
-## Failure Mode To Avoid
-
-Do not browse the repository blindly, recursively scan directories, rewrite whole files, dump large code blocks, add dependencies, or run destructive commands. These waste context and increase the chance of incorrect or unsafe edits.
+If the user catches copy-then-dedupe or the same agent mistake twice, update **one line** in this file or the relevant skill in the same change set — do not only fix the product code.

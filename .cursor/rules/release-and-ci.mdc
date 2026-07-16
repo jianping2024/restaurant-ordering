@@ -1,7 +1,9 @@
 ---
-description: After git push or print-agent tag, verify Vercel/Release before claiming success.
-globs:
-alwaysApply: true
+description: >-
+  After shipping to main or tagging print-agent: verify Vercel Production Ready and
+  GitHub release artifacts. Use when user ships, pushes main, creates print-agent-v* tag,
+  or asks if deploy/download is ready.
+alwaysApply: false
 ---
 
 # Release and CI verification

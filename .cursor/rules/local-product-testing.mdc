@@ -1,33 +1,12 @@
 ---
-description: Local product testing — curl for APIs, Chrome DevTools MCP for UI; shared account and data safety
-alwaysApply: true
+description: >-
+  Pointer to mesa-local-product-test skill. Use when user says 开始测试, 联调,
+  手工验收, or asks to verify product behavior on localhost (not only lint/unit).
+alwaysApply: false
 ---
 
 # Local product testing
 
 When the user asks to **开始测试**, **联调**, **手工验收**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
 
-## Environment
-
-- **Host only**: `http://localhost:3000` (`npm run cloud` or `npm run dev`)
-- **Account**: `qiantai@mesa.in` / password:654321
-- **Allowed**: authenticated product APIs and UI flows for the test restaurant
-
-## Method (default)
-
-1. **API first — use curl** (session cookies after login). Assert status codes, stable `error` codes, and payload shape. Prefer curl over guessing from UI alone.
-2. **UI second — use Chrome DevTools MCP** (`user-chrome-devtools` / chrome-devtools). Navigate, snapshot/click, and verify the same rules are visible (disabled controls, filtered lists, toasts). Do **not** substitute Playwright/other browsers unless the user asks.
-3. **Cleanup** — reverse writes via normal product APIs; do not leave throwaway data on live tables.
-4. **Report** — every checklist item: `pass` / `fail` / `skip` (+ brief note).
-
-Skip API-first only for pure presentation changes; note the skip reason. If localhost is down or login fails, mark API/UI items `skip` and still report automated lint/build/unit results when applicable.
-
-## Data policy
-
-- **May write** via normal product APIs
-- **Must cleanup** after the test
-- **Forbidden**: migrations, raw SQL, `supabase db reset`, hard-delete sessions/tables, ops suspend, unrelated restaurants
-
-Auto-review approval cards may still appear — proceed when the user has authorized testing in chat.
-
-Automated gates (lint / build / unit tests) remain in `AGENTS.md` and `push-verification.mdc`; this rule covers **local product verification** only.
+Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail/skip report).

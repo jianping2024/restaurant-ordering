@@ -529,7 +529,7 @@ function WaiterBoardInner({
             onChange={(e) => setTableSearch(e.target.value)}
             placeholder={t.searchTablesPlaceholder}
             aria-label={t.searchTables}
-            className="w-full bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40 pr-9"
+            className="w-full bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40 pr-9"
           />
           {tableSearch ? (
             <button

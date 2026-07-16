@@ -11,6 +11,7 @@ import {
   closeActiveTableSessionWithOperationalCleanup,
   type CloseTableOperationalResult,
 } from '@/lib/close-active-table-session-with-cleanup';
+import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
 import type { CloseTableSessionClosedReason } from '@/lib/table-session/load-close-table-actor';
@@ -174,5 +175,7 @@ export async function closeTableSessionManual(
     }
   }
 
+  // Manual RPC closes via SQL operational (not the JS wrapper) — purge here.
+  await purgeTablePartyMembership(input.admin, input.restaurantId, input.tableId);
   return { ok: true, session_id: rpcResult.session_id };
 }

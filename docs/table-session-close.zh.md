@@ -33,6 +33,8 @@
 | 服务员关台 | `POST /api/restaurants/[slug]/staff/waiter/sessions/close` → `closeActiveTableSessionWithOperationalCleanup` |
 | 里斯本 05:00 夜间批量关台 | `closeAllOpenBillingSessions(admin)` → 按桌循环调用 operational |
 
+关台成功后（含付清关台）会清除该桌的同行组成员关系；空同行组不自动解散。
+
 禁止在业务代码中再写「只 `update table_sessions`」的关台分支。
 
 ## 3. 数据库

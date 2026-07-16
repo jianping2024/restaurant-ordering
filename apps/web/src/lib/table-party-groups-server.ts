@@ -137,6 +137,37 @@ export async function removeTableFromParty(
 }
 
 /**
+ * After 关台: drop the table from any together-group.
+ * Best-effort — must not fail the close path. Empty parties are left intact.
+ */
+export async function purgeTablePartyMembership(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+): Promise<void> {
+  try {
+    const { error } = await admin
+      .from('table_party_group_members')
+      .delete()
+      .eq('restaurant_id', restaurantId)
+      .eq('table_id', tableId);
+    if (error) {
+      console.error('[purgeTablePartyMembership]', {
+        restaurantId,
+        tableId,
+        message: error.message,
+      });
+    }
+  } catch (err) {
+    console.error('[purgeTablePartyMembership]', {
+      restaurantId,
+      tableId,
+      message: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/**
  * Add tables to a party. Tables already in another party require confirm_move=true.
  * Only dining (open session, not checkout) tables may join.
  */

@@ -3,6 +3,7 @@ import type { SplitResult } from '@/types';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
+import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 
 export {
   applyDiscountToRows,
@@ -231,6 +232,10 @@ export async function confirmBillSplitPayment(params: {
   const collectedPaymentId =
     typeof payload.collected_payment_id === 'string' ? payload.collected_payment_id : null;
   const collection = parseCollectionRecord(payload);
+
+  if (payload.should_close_session && typeof payload.table_id === 'string' && payload.table_id) {
+    await purgeTablePartyMembership(admin, restaurantId, payload.table_id);
+  }
 
   if (billReceiptPrintEnabled) {
     scheduleConfirmPaymentReceiptPrint({

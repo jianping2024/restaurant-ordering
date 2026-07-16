@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 
 export type CloseTableOperationalReason =
   | 'waiter_closed'
@@ -58,5 +59,6 @@ export async function closeActiveTableSessionWithOperationalCleanup(
     return { ok: false, code: 'update_failed', message: 'missing session_id' };
   }
 
+  await purgeTablePartyMembership(admin, restaurantId, tableId);
   return { ok: true, session_id: payload.session_id };
 }

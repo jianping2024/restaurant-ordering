@@ -191,4 +191,46 @@ describe('confirmBillSplitPayment', () => {
     assert.equal(r.collection?.person_index, 0);
     assert.equal(r.collection?.amount, 50);
   });
+
+  it('purges party membership when should_close_session', async () => {
+    const purged: Array<{ restaurantId: string; tableId: string }> = [];
+    const tableId = '33333333-3333-4333-8333-333333333333';
+    const admin = {
+      rpc: async () => ({
+        data: {
+          ok: true,
+          newly_paid: true,
+          should_close_session: true,
+          all_paid: true,
+          table_id: tableId,
+          result: [{ name: 'A', amount: 50, paid: true }],
+          final_amount: 50,
+          collected_payment_id: 'pay-1',
+          confirmed_person_index: 0,
+          row_name: 'A',
+          row_amount: 50,
+        },
+        error: null,
+      }),
+      from(table: string) {
+        assert.equal(table, 'table_party_group_members');
+        return {
+          delete: () => ({
+            eq: (col1: string, val1: string) => ({
+              eq: async (col2: string, val2: string) => {
+                assert.equal(col1, 'restaurant_id');
+                assert.equal(col2, 'table_id');
+                purged.push({ restaurantId: val1, tableId: val2 });
+                return { error: null };
+              },
+            }),
+          }),
+        };
+      },
+    } as unknown as SupabaseClient;
+
+    const r = await confirmBillSplitPayment({ ...baseParams, admin });
+    assert.equal(r.ok, true);
+    assert.deepEqual(purged, [{ restaurantId: RESTAURANT_ID, tableId }]);
+  });
 });

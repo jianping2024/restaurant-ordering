@@ -13,6 +13,7 @@ import {
   sanitizeStaffLoginInput,
   suggestLoginNameFromDisplay,
 } from '@/lib/staff-account';
+import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
 interface Props {
   initialStaff: RestaurantStaffAccount[];
@@ -83,12 +84,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setTimeout(() => setBanner(null), 4000);
   }, []);
 
-  const roleLabel = (role: StaffAccountRole) => {
-    if (role === 'kitchen') return t.roleKitchen;
-    if (role === 'cashier') return t.roleCashier;
-    if (role === 'frontdesk') return t.roleFrontdesk;
-    return t.roleWaiter;
-  };
+  const roleLabel = (role: StaffAccountRole) => topBarRoleLabel(lang, role);
 
   const runCreate = async () => {
     setCreateSaving(true);

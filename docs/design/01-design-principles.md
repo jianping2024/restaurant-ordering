@@ -81,7 +81,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 | 区域 | Dashboard | 服务员/后厨 | 顾客 |
 |------|-----------|-------------|------|
-| 导航 | 左侧 `DashboardNav` | `StaffRoleToolbar` + 顶栏 | 页内顶栏 + 语言切换 |
+| 导航 | 顶栏 `DashboardTopBar` | `StaffPersonalTopBar`（品牌/店名/角色 + 设置） | 页内顶栏 + 语言切换 |
 | 背景 | `bg-brand-bg` | 同左 | 同左 |
 | 内容卡片 | `bg-brand-card border border-brand-border rounded-xl` | 看板卡片分状态色 | `MenuItemCard` 网格 |
 

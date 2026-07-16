@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { ProductLogo } from '@/components/ui/ProductLogo';
+import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
 import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
 import {
   isStaffPersonalNavItemActive,
@@ -96,17 +96,7 @@ export function StaffPersonalTopBar({
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
       <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <div className="flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
-          <Link href={logoHref} className="shrink-0">
-            <ProductLogo size="sm" />
-          </Link>
-          <span
-            className="min-w-0 max-w-[7rem] truncate text-sm font-medium text-brand-text-muted sm:max-w-[12rem] sm:text-[15px]"
-            title={restaurantName}
-          >
-            {restaurantName}
-          </span>
-        </div>
+        <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
 
         {navItems.length > 0 ? (
           <nav
@@ -126,15 +116,7 @@ export function StaffPersonalTopBar({
           <div className="min-w-0 flex-1" />
         )}
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <span
-            className="max-w-[4.5rem] truncate text-sm text-brand-text-muted sm:max-w-none"
-            title={roleLabel}
-          >
-            {roleLabel}
-          </span>
-          {settingsMenu}
-        </div>
+        <ProductTopBarTrailing roleLabel={roleLabel}>{settingsMenu}</ProductTopBarTrailing>
       </div>
     </header>
   );

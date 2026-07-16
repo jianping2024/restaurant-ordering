@@ -10,7 +10,7 @@ import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardSettingsMenu } from '@/components/dashboard/DashboardSettingsMenu';
 import { DashboardTopNavOverflowMenu } from '@/components/dashboard/DashboardTopNavOverflowMenu';
-import { ProductLogo } from '@/components/ui/ProductLogo';
+import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
 import {
   buildDashboardTopNavPresentation,
   dashboardLogoHref,
@@ -120,17 +120,7 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
       <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <div className="flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
-          <Link href={dashboardLogoHref(accessMode)} className="shrink-0">
-            <ProductLogo size="sm" />
-          </Link>
-          <span
-            className="min-w-0 max-w-[7rem] truncate text-sm font-medium text-brand-text-muted sm:max-w-[12rem] sm:text-[15px]"
-            title={restaurant.name}
-          >
-            {restaurant.name}
-          </span>
-        </div>
+        <ProductTopBarBrand href={dashboardLogoHref(accessMode)} restaurantName={restaurant.name} />
 
         <nav
           aria-label={navT.mainNav}
@@ -159,20 +149,14 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
           onOpenChange={(open) => setOpenPanel(open ? 'more' : 'none')}
         />
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <span
-            className="max-w-[4.5rem] truncate text-sm text-brand-text-muted sm:max-w-none"
-            title={roleLabel}
-          >
-            {roleLabel}
-          </span>
+        <ProductTopBarTrailing roleLabel={roleLabel}>
           <DashboardSettingsMenu
             logoutLabel={navT.logout}
             compact
             open={openPanel === 'settings'}
             onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
           />
-        </div>
+        </ProductTopBarTrailing>
       </div>
     </header>
   );

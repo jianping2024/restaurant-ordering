@@ -24,6 +24,8 @@ import {
 import { loadWaiterTablePageModel, resolveOpenTableBuffetPrices } from '@/lib/waiter-table-detail-load';
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
+import { loadTablePartyGroups } from '@/lib/table-party-groups-server';
+import type { TablePartyGroup, TablePartyGroupMember } from '@/lib/table-party-groups';
 import type { Buffet } from '@/types';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
@@ -37,6 +39,9 @@ export type WaiterBoardData = {
   tables: RestaurantTableRow[];
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
+  /** Runtime「同行组」— marker only; display ownership on waiter board. */
+  parties: TablePartyGroup[];
+  partyMembers: TablePartyGroupMember[];
   tableSummaries: WaiterBoardTableSummary[];
   restaurantHasActiveBuffets: boolean;
   /** Restaurant-level seed for idle-table open sheet — avoids per-click full page fetch for display. */
@@ -119,6 +124,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     { data: groupRows },
     { data: memberRows },
     { data: buffetRows },
+    partyLoaded,
   ] = await Promise.all([
     admin
       .from('table_sessions')
@@ -153,6 +159,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .select('*')
       .eq('restaurant_id', restaurantId)
       .order('name'),
+    loadTablePartyGroups(admin, restaurantId),
   ]);
 
   const orders = filterOrdersInActiveSessions((rows || []) as Order[], sessions || []);
@@ -183,6 +190,8 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     tables,
     groups: sortTableGroups((groupRows || []) as RestaurantTableGroup[]),
     members: (memberRows || []) as RestaurantTableGroupMember[],
+    parties: partyLoaded.parties,
+    partyMembers: partyLoaded.partyMembers,
     tableSummaries: buildWaiterBoardTableSummaries(tables, orders, sessionMetaByTableId),
     restaurantHasActiveBuffets,
     openTableDefaults,

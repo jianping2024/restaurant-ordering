@@ -18,6 +18,7 @@
 - 桌位 CRUD：`display_name`（1–16 字）、排序
 - 桌位分组：命名分组、组成员、备注
 - 桌位看板：空闲 / 用餐 / 待结账等状态展示
+- **同行组（看板标记）**：在待结账区下方创建「同行组」，任意状态桌可加入；进组后只在该组显示；组内呼叫结账仍留在组内、不进待结账置顶；与结账/并台无关
 - 软删除桌位（`deleted_at`），不硬删历史订单
 - HTML `window.print()` 桌位二维码/列表兜底打印
 
@@ -33,6 +34,7 @@
 - 桌位平面图拖拽布局
 - 预定 / 候位排队
 - 按区域计费
+- 同行组与结账/并台/打印业务联动（仅看板标记）
 
 ### 相关代码位置
 
@@ -41,8 +43,9 @@
 | 页面 | `apps/web/src/app/dashboard/tables/page.tsx` |
 | UI | `apps/web/src/components/dashboard/TablesManager.tsx` |
 | 分组 UI | `apps/web/src/components/dashboard/TableGroupsManager.tsx` |
-| Lib | `apps/web/src/lib/restaurant-tables.ts`、`restaurant-table-groups.ts` |
-| API | `apps/web/src/app/api/dashboard/tables/route.ts`、`table-groups/route.ts` |
+| 同行组 UI | `apps/web/src/components/waiter/WaiterBoardPartySections.tsx` |
+| Lib | `apps/web/src/lib/restaurant-tables.ts`、`restaurant-table-groups.ts`、`table-party-groups.ts` |
+| API | `apps/web/src/app/api/dashboard/tables/route.ts`、`table-groups/route.ts`、`.../staff/waiter/table-parties/route.ts` |
 
 ---
 

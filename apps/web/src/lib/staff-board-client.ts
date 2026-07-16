@@ -22,6 +22,8 @@ function normalizeWaiterBoard(board: WaiterBoardData): WaiterBoardData {
     tables: sortRestaurantTables(board.tables || []),
     groups: board.groups || [],
     members: board.members || [],
+    parties: board.parties || [],
+    partyMembers: board.partyMembers || [],
     tableSummaries: board.tableSummaries || [],
     restaurantHasActiveBuffets: board.restaurantHasActiveBuffets ?? false,
     openTableDefaults: board.openTableDefaults ?? null,

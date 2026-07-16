@@ -34,6 +34,8 @@ export default async function WaiterPage({ params }: Props) {
       initialCheckoutRequestedAtByTableId={board?.checkoutRequestedAtByTableId}
       initialGroups={board?.groups}
       initialMembers={board?.members}
+      initialParties={board?.parties}
+      initialPartyMembers={board?.partyMembers}
       initialOpenTableDefaults={board?.openTableDefaults ?? null}
     />
   );

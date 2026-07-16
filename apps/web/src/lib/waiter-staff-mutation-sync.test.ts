@@ -23,6 +23,8 @@ function idleBoard(): WaiterBoardData {
     tables: [{ id: TABLE_ID, display_name: '004', sort_order: 4, seat_min: 2, seat_max: 4 }],
     groups: [],
     members: [],
+    parties: [],
+    partyMembers: [],
     tableSummaries: [
       {
         tableId: TABLE_ID,

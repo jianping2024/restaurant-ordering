@@ -17,6 +17,7 @@ import type {
   RestaurantTableGroup,
   RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
+import type { TablePartyGroup, TablePartyGroupMember } from '@/lib/table-party-groups';
 import {
   activeSessionIdByTableIdFromMeta,
   demoSessionMetaFromOrders,
@@ -45,6 +46,8 @@ function buildInitialWaiterBoardState(input: {
   initialTables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
+  initialParties: TablePartyGroup[];
+  initialPartyMembers: TablePartyGroupMember[];
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }) {
   const openTableDefaults = input.initialOpenTableDefaults ?? null;
@@ -56,6 +59,8 @@ function buildInitialWaiterBoardState(input: {
     tables: input.initialTables,
     groups: input.initialGroups,
     members: input.initialMembers,
+    parties: input.initialParties,
+    partyMembers: input.initialPartyMembers,
     restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
     openTableDefaults,
   });
@@ -71,6 +76,8 @@ function applyWaiterBoardData(
     setTables: (rows: RestaurantTableRow[]) => void;
     setGroups: (rows: RestaurantTableGroup[]) => void;
     setMembers: (rows: RestaurantTableGroupMember[]) => void;
+    setParties: (rows: TablePartyGroup[]) => void;
+    setPartyMembers: (rows: TablePartyGroupMember[]) => void;
     setOpenTableDefaults: (value: WaiterBoardOpenTableDefaults | null) => void;
   },
 ) {
@@ -81,6 +88,8 @@ function applyWaiterBoardData(
   setters.setTables(board.tables);
   setters.setGroups(board.groups);
   setters.setMembers(board.members);
+  setters.setParties(board.parties);
+  setters.setPartyMembers(board.partyMembers);
   setters.setOpenTableDefaults(board.openTableDefaults);
 }
 
@@ -97,6 +106,8 @@ export function useWaiterOrders(
   demoOrders: Order[] = [],
   skipEntryReconcile = false,
   initialOpenTableDefaults: WaiterBoardOpenTableDefaults | null = null,
+  initialParties: TablePartyGroup[] = [],
+  initialPartyMembers: TablePartyGroupMember[] = [],
 ) {
   const initialBoard = buildInitialWaiterBoardState({
     initialTableSummaries,
@@ -106,6 +117,8 @@ export function useWaiterOrders(
     initialTables,
     initialGroups,
     initialMembers,
+    initialParties,
+    initialPartyMembers,
     initialOpenTableDefaults,
   });
   const [tableSummaries, setTableSummaries] = useState(initialBoard.tableSummaries);
@@ -121,6 +134,10 @@ export function useWaiterOrders(
   const [tables, setTables] = useState<RestaurantTableRow[]>(initialBoard.tables);
   const [groups, setGroups] = useState<RestaurantTableGroup[]>(initialBoard.groups);
   const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialBoard.members);
+  const [parties, setParties] = useState<TablePartyGroup[]>(initialBoard.parties);
+  const [partyMembers, setPartyMembers] = useState<TablePartyGroupMember[]>(
+    initialBoard.partyMembers,
+  );
   const [openTableDefaults, setOpenTableDefaults] = useState<WaiterBoardOpenTableDefaults | null>(
     initialBoard.openTableDefaults,
   );
@@ -142,6 +159,22 @@ export function useWaiterOrders(
   const effectiveTableSummaries = demoOrders.length ? demoTableSummaries : tableSummaries;
   const supportsBuffetOpenTable = boardSupportsBuffetOpenTable(openTableDefaults);
 
+  const boardSetters = useMemo(
+    () => ({
+      setTableSummaries,
+      setSessionMetaByTableId,
+      setCheckoutRequestedTableIds,
+      setCheckoutRequestedAtByTableId,
+      setTables,
+      setGroups,
+      setMembers,
+      setParties,
+      setPartyMembers,
+      setOpenTableDefaults,
+    }),
+    [],
+  );
+
   const refresh = useCallback(async () => {
     if (!enabled) return null;
     if (refreshInFlightRef.current) return refreshInFlightRef.current;
@@ -154,16 +187,7 @@ export function useWaiterOrders(
         );
         if (seq !== reloadSeqRef.current) return null;
         clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
-        applyWaiterBoardData(board, {
-          setTableSummaries,
-          setSessionMetaByTableId,
-          setCheckoutRequestedTableIds,
-          setCheckoutRequestedAtByTableId,
-          setTables,
-          setGroups,
-          setMembers,
-          setOpenTableDefaults,
-        });
+        applyWaiterBoardData(board, boardSetters);
         return board;
       } finally {
         refreshInFlightRef.current = null;
@@ -171,7 +195,15 @@ export function useWaiterOrders(
     })();
     refreshInFlightRef.current = running;
     return running;
-  }, [enabled, restaurant.slug]);
+  }, [boardSetters, enabled, restaurant.slug]);
+
+  const applyPartyState = useCallback(
+    (next: { parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }) => {
+      setParties(next.parties);
+      setPartyMembers(next.partyMembers);
+    },
+    [],
+  );
 
   const applySessionRelocationPatch = useCallback(
     (input: WaiterSessionRelocationBoardInput) => {
@@ -184,30 +216,26 @@ export function useWaiterOrders(
             tables,
             groups,
             members,
+            parties,
+            partyMembers,
             tableSummaries,
             restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
             openTableDefaults,
           },
           input,
         ),
-        {
-          setTableSummaries,
-          setSessionMetaByTableId,
-          setCheckoutRequestedTableIds,
-          setCheckoutRequestedAtByTableId,
-          setTables,
-          setGroups,
-          setMembers,
-          setOpenTableDefaults,
-        },
+        boardSetters,
       );
     },
     [
+      boardSetters,
       checkoutRequestedAtByTableId,
       checkoutRequestedTableIds,
       groups,
       members,
       openTableDefaults,
+      parties,
+      partyMembers,
       sessionMetaByTableId,
       tableSummaries,
       tables,
@@ -236,9 +264,12 @@ export function useWaiterOrders(
     tables,
     groups,
     members,
+    parties,
+    partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
     refresh,
+    applyPartyState,
     applySessionRelocationPatch,
     supabase,
   };

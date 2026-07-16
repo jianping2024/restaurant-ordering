@@ -662,6 +662,10 @@ function WaiterTableDetailInner({
           showToast(t.checkoutLockedHint, 'info');
           return;
         }
+        if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
+          showToast(t.buffetHeadcountBelowPaidFloor, 'error');
+          return;
+        }
         if (result.status === 409) {
           await refresh();
           showToast(t.refreshHint, 'error');

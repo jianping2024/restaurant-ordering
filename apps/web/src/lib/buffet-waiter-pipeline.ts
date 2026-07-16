@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Order } from '@/types';
+import type { BillSplit, Order } from '@/types';
 import {
   buffetSnapshotFromOrders,
   buildBuffetBaseLine,
@@ -15,6 +15,15 @@ import {
   applyBuffetOpenWritePlanToOrders,
   mapToBuffetSessionOrders,
 } from '@/lib/buffet-open-table';
+import {
+  BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
+  findBuffetHeadcountBelowPaidFloor,
+  lockedBuffetHeadcountByBuffetId,
+} from '@/lib/buffet-paid-headcount-floor';
+import {
+  parseSessionCollectedPayments,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+} from '@/lib/checkout-session-payments';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import { openTableSessionIfAbsent } from '@/lib/table-session-open';
 import {
@@ -32,6 +41,47 @@ import {
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+
+async function loadSessionSplitContinuation(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionId: string,
+): Promise<{
+  split: BillSplit | null;
+  collectedPayments: ReturnType<typeof parseSessionCollectedPayments>;
+}> {
+  const [{ data: splitRow }, { count: collectedCount }] = await Promise.all([
+    admin
+      .from('bill_splits')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', sessionId)
+      .in('status', ['pending', 'confirmed', 'requested'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from('session_collected_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', sessionId),
+  ]);
+
+  let collectedPayments = parseSessionCollectedPayments(null);
+  if ((collectedCount ?? 0) > 0) {
+    const { data: collectedRows } = await admin
+      .from('session_collected_payments')
+      .select(SESSION_COLLECTED_PAYMENT_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .eq('session_id', sessionId);
+    collectedPayments = parseSessionCollectedPayments(collectedRows);
+  }
+
+  return {
+    split: (splitRow as BillSplit | null) ?? null,
+    collectedPayments,
+  };
+}
 
 export type BuffetWaiterPipelineInput = {
   restaurantId: string;
@@ -134,6 +184,27 @@ export async function runBuffetWaiterOpenPipeline(
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
   if (!unchanged) {
+    const { split, collectedPayments } = await loadSessionSplitContinuation(
+      admin,
+      restaurantId,
+      sessionId,
+    );
+    const floors = lockedBuffetHeadcountByBuffetId(
+      split,
+      collectedPayments.length > 0,
+      collectedPayments,
+    );
+    const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
+    if (floorViolation) {
+      return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
+        code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
+        message:
+          `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
+          + `; proposed adults ${floorViolation.proposedAdults},`
+          + ` children ${floorViolation.proposedChildren}`,
+      });
+    }
+
     const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);
     const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, targetSnapshot);
 

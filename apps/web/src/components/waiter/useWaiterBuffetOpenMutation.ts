@@ -70,6 +70,10 @@ export function useWaiterBuffetOpenMutation({
         showToast(t.checkoutLockedHint, 'info');
         return 'failed';
       }
+      if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
+        showToast(t.buffetHeadcountBelowPaidFloor, 'error');
+        return 'failed';
+      }
       if (result.status === 400 && result.code === 'no_price_rule') {
         showToast(t.buffetNoRule, 'error');
         return 'failed';

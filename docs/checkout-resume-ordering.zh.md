@@ -98,6 +98,7 @@
 
 - **已有收款**后切换分单模式（均摊 / 按菜 / 自定义）。
 - 修改**已收款客人**已锁定的菜品归属或份额。
+- **已有收款**后将自助餐开台人数降到低于已付（或台账锁定）客人已分配的大人/小孩数（`buffet_headcount_below_paid_floor`；实现见 `buffet-paid-headcount-floor.ts` + waiter buffet 管道）。
 - 丢失或篡改 `session_collected_payments`。
 - 整桌已收后仍恢复点单。
 
@@ -120,6 +121,7 @@
 | 按菜分单恢复时保留快照 | ✓ | `20260710120000`：`by_item` 始终 `confirmed` |
 | 零收款恢复后顾客可改分单 | ✓ | `isCheckoutSplitLocked` 仅在有 `paid` 或台账时 true |
 | 部分收款后锁定已付菜品行 | ✓ | `lockedByItemLineKeys` + `paidSplitPersonNames` |
+| 已收款后禁止降自助餐人数低于锁定座位 | ✓ | `lockedBuffetHeadcountByBuffetId` + buffet 管道 409 |
 | 均摊/自定义零收款恢复 | 撤销分单 | `cancelled` |
 | 均摊/自定义部分收款恢复 | 保留分单 | `confirmed` |
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |

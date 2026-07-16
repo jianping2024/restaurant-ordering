@@ -1,0 +1,79 @@
+---
+description: Analyze before code; new feature branch before edits; verify then ask before commit.
+alwaysApply: true
+---
+
+# Analysis before code (and verify before commit)
+
+For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code first**. Analyze from the full business-flow perspective. Patch-style fixes are not accepted. Prefer code that stays simple, clear, robust, and maintainable.
+
+## When this applies
+
+- Behavior bugs, state-machine issues, checkout/session/order/print flows
+- Changes that touch more than one layer (UI + API + DB, or multiple modules)
+- Anything the user frames as “先分析 / 先方案 / 不要直接改”
+
+## When this does NOT apply
+
+- Typos, renames, one-line obvious fixes the user explicitly asked to apply
+- Pure formatting / lint-only / docs-only when the user asked for that only
+- The user already approved a written plan in this thread (“按方案改” / “确认，开始改”)
+
+## Required output before any code change
+
+Use plain language. Wait for user confirmation before implementing.
+
+1. **当前业务流程和状态流转** — how the feature works end-to-end today; key states and transitions
+2. **问题根因** — root cause, not only symptoms; if logic is unusually complex, check whether architecture (not just a missing if) is wrong
+3. **推荐方案和理由** — preferred approach and why; reject temporary if/else patches
+4. **需要修改的文件/组件** — small but complete scope; no unrelated refactors
+5. **风险点和验证方式** — what could break; how to verify (including high-risk areas: checkout, sessions, print, RLS, void)
+
+## Principles (enforce in the plan and the later diff)
+
+- Follow SOLID in concrete design choices — not slogans
+- Do not add duplicate/parallel state for the same business fact
+- No temporary if/else patches that paper over broken flow
+- Do not break existing business flows
+- Separate business logic from UI presentation
+- Keep the change set small but complete; do not refactor unrelated code
+- Remove duplication/redundancy **only within the approved change set** — no drive-by cleanup of untouched modules
+- Do not sacrifice the full business flow for a local optimization
+- When logic is abnormally complex, prefer industry-standard structure over more branches
+
+## Dangerous commands
+
+- Never run `supabase db reset` (or equivalent destructive DB reset / hard wipe) without **explicit** user permission in the current thread.
+
+## Git branch (before coding)
+
+Parallel work is common: the checkout you see may already be another feature branch with local changes. Treat that as **someone else’s / another task’s WIP**.
+
+### Baseline and isolation (mandatory)
+
+- **Always create a new branch before editing code** for approved plans and non-trivial work. Do not implement on `main` (or the repo’s default branch).
+- **Base = `main` only** (or the baseline the user names). State it aloud before any git action. Take code **only** from that baseline (`git fetch` first if needed). Example: “从 `main` 建 `fix/…`，不碰当前分支 WIP。”
+- **Never touch other tasks’ changes:** no edit, stage, commit, stash, stash pop, reset, clean, rebase, amend, or “helpful” move of unrelated dirty/untracked files. Do not switch the user’s in-progress branch away just to make room for yourself.
+- Name the new branch briefly after the change (e.g. `feat/table-party-mark`, `fix/append-dup-get`).
+- If already on a **relevant** feature branch **for this same task** and the user confirms reuse, say so and keep using it — do not create a redundant second branch.
+- **Exception:** one-line / typo fixes the user explicitly asked to apply *and* told you to stay on the current branch. If unclear, create a new branch from the base.
+- Tell the user: **base branch**, **new branch name**, and that current WIP was left alone — before or as you start editing.
+
+### Why “just create a new branch” is not always enough
+
+Git has **one working directory per checkout**. Uncommitted/untracked files live in that directory and **follow you** when you `switch` / `checkout -b`, even if the new branch tip is `main`. So:
+
+| Situation | What to do |
+|---|---|
+| Current worktree is **clean** | Fine: `git switch -c <new-branch> main` (or `origin/main`) and edit only that task. |
+| Current worktree has **other task WIP** | **Do not** switch/create in this directory (WIP would pollute the new branch or force stash). **Do not stash** that WIP. Use a **separate git worktree** (or second clone) checked out from `main` / the new branch, and do all edits/tests/commits **only there**. Or stop and ask the user how to proceed. |
+
+Worktree is not an extra process for its own sake — it is the safe way to start from `main` **while leaving another branch’s WIP undisturbed in the original directory**. Put the worktree **outside** the primary working tree when possible (or under a gitignored path) so it does not show up as noise in the other task’s `git status`.
+
+## After confirmation
+
+1. State the **base branch**, create/switch via that baseline without touching unrelated WIP (see above), then implement only the approved plan.
+2. Run the checks required by `AGENTS.md` and push rules (lint/build/targeted tests as applicable).
+3. List **every manual test item** and its result (`pass` / `fail` / `skip` + brief note).
+4. **Do not commit** unless the user explicitly asks to commit. If all automated and reported manual checks pass, say so and ask whether to commit.
+   - **Exception:** If the user said **push**, **ship**, or **`pnpm push`**, that counts as explicit permission — follow `push-verification.mdc` then `release-and-ci.mdc`. Prefer pushing the **feature branch** / opening a PR unless the user explicitly asked to land on `main` via `pnpm push`. Do not invent a push when they only asked to fix or test.

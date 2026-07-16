@@ -1,4 +1,8 @@
 import { tableIdsEqual } from '@/lib/restaurant-tables';
+import {
+  classifyWaiterTableBoardState,
+  type WaiterBoardStateContext,
+} from '@/lib/waiter-board-session';
 
 export type TablePartyGroup = {
   id: string;
@@ -71,4 +75,29 @@ export function countCheckoutTablesInParties(
   checkoutTableIds: readonly string[],
 ): number {
   return checkoutTableIds.filter((id) => partyMemberIds.has(id.toLowerCase())).length;
+}
+
+/**
+ * Candidate tables for "add to party": dining (open session) only; exclude current party members.
+ * Idle / checkout are filtered out — open a table first.
+ */
+export function filterTablesEligibleForPartyAdd<T extends { id: string }>(
+  tables: readonly T[],
+  partyMembers: readonly TablePartyGroupMember[],
+  targetPartyId: string,
+  boardStateContext: WaiterBoardStateContext,
+): T[] {
+  return tables.filter(
+    (table) =>
+      partyIdForTable(partyMembers, table.id) !== targetPartyId &&
+      classifyWaiterTableBoardState(table.id, boardStateContext) === 'dining',
+  );
+}
+
+/** True when board state is dining (open session, not checkout pending). */
+export function isTableEligibleForPartyAdd(
+  tableId: string,
+  boardStateContext: WaiterBoardStateContext,
+): boolean {
+  return classifyWaiterTableBoardState(tableId, boardStateContext) === 'dining';
 }

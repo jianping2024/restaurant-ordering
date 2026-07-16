@@ -4,10 +4,13 @@ import {
   conflictingPartyMembers,
   countCheckoutTablesInParties,
   defaultTablePartyName,
+  filterTablesEligibleForPartyAdd,
+  isTableEligibleForPartyAdd,
   nextPrependSortOrder,
   partyIdForTable,
   tablePartyMemberTableIds,
 } from './table-party-groups';
+import { buildWaiterBoardStateContext } from './waiter-board-session';
 
 const T1 = '00000000-0000-4000-8000-000000000001';
 const T2 = '00000000-0000-4000-8000-000000000002';
@@ -54,6 +57,42 @@ describe('table-party-groups', () => {
     assert.equal(
       nextPrependSortOrder([{ sort_order: 1 }, { sort_order: 0 }, { sort_order: 2 }]),
       -1,
+    );
+  });
+
+  it('only dining tables are eligible to join a party', () => {
+    const ctx = buildWaiterBoardStateContext(
+      {
+        [T1]: {
+          sessionId: 's1',
+          openedAt: '2026-01-01T00:00:00Z',
+          status: 'open',
+        },
+        [T2]: {
+          sessionId: 's2',
+          openedAt: '2026-01-01T00:00:00Z',
+          status: 'billing',
+        },
+      },
+      [T2],
+      [
+        { tableId: T1, occupied: true },
+        { tableId: T2, occupied: true },
+        { tableId: T3, occupied: false },
+        { tableId: T4, occupied: false },
+      ],
+    );
+    const tables = [{ id: T1 }, { id: T2 }, { id: T3 }, { id: T4 }];
+    assert.equal(isTableEligibleForPartyAdd(T1, ctx), true);
+    assert.equal(isTableEligibleForPartyAdd(T2, ctx), false);
+    assert.equal(isTableEligibleForPartyAdd(T3, ctx), false);
+    assert.deepEqual(
+      filterTablesEligibleForPartyAdd(tables, members, P1, ctx).map((t) => t.id),
+      [],
+    );
+    assert.deepEqual(
+      filterTablesEligibleForPartyAdd(tables, members, P2, ctx).map((t) => t.id),
+      [T1],
     );
   });
 });

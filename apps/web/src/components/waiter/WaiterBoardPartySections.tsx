@@ -7,6 +7,7 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { UILanguage } from '@/lib/i18n';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
+  filterTablesEligibleForPartyAdd,
   membersForParty,
   partyIdForTable,
   type TablePartyGroup,
@@ -151,7 +152,10 @@ export function WaiterBoardPartySections({
           setPendingMove({ partyId, tableIds, labels });
           return;
         }
-        showToast(t.partyAddFailed, 'error');
+        showToast(
+          result.error === 'tables_not_dining' ? t.partyAddOpenTableFirst : t.partyAddFailed,
+          'error',
+        );
         return;
       }
       onPartyStateChange(result.data);
@@ -165,8 +169,13 @@ export function WaiterBoardPartySections({
 
   const addCandidates = useMemo(() => {
     if (!addTarget) return [];
-    return tables.filter((table) => partyIdForTable(partyMembers, table.id) !== addTarget.id);
-  }, [addTarget, partyMembers, tables]);
+    return filterTablesEligibleForPartyAdd(
+      tables,
+      partyMembers,
+      addTarget.id,
+      boardStateContext,
+    );
+  }, [addTarget, boardStateContext, partyMembers, tables]);
 
   const visibleParties = parties
     .map((party) => {
@@ -310,42 +319,43 @@ export function WaiterBoardPartySections({
         title={t.partyAddTitle}
       >
         <p className="mb-3 text-sm text-brand-text-muted">{t.partyAddHint}</p>
-        <ul className="mb-4 max-h-64 space-y-1 overflow-y-auto">
-          {addCandidates.map((table) => {
-            const otherPartyId = partyIdForTable(partyMembers, table.id);
-            const otherParty = otherPartyId
-              ? parties.find((p) => p.id === otherPartyId)
-              : null;
-            const checked = selectedIds.some((id) => tableIdsEqual(id, table.id));
-            const state = classifyWaiterTableBoardState(table.id, boardStateContext);
-            return (
-              <li key={table.id}>
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => {
-                      setSelectedIds((prev) =>
-                        checked
-                          ? prev.filter((id) => !tableIdsEqual(id, table.id))
-                          : [...prev, table.id],
-                      );
-                    }}
-                  />
-                  <span className="font-medium">{table.display_name}</span>
-                  <span className="text-xs text-brand-text-muted">
-                    {state === 'checkout'
-                      ? t.filterCheckout
-                      : state === 'dining'
-                        ? t.filterDining
-                        : t.filterIdle}
-                    {otherParty ? ` · ${otherParty.name}` : ''}
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+        {addCandidates.length === 0 ? (
+          <p className="mb-4 rounded-lg border border-dashed border-brand-border bg-brand-bg px-3 py-4 text-sm text-brand-text-muted">
+            {t.partyAddOpenTableFirst}
+          </p>
+        ) : (
+          <ul className="mb-4 max-h-64 space-y-1 overflow-y-auto">
+            {addCandidates.map((table) => {
+              const otherPartyId = partyIdForTable(partyMembers, table.id);
+              const otherParty = otherPartyId
+                ? parties.find((p) => p.id === otherPartyId)
+                : null;
+              const checked = selectedIds.some((id) => tableIdsEqual(id, table.id));
+              return (
+                <li key={table.id}>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setSelectedIds((prev) =>
+                          checked
+                            ? prev.filter((id) => !tableIdsEqual(id, table.id))
+                            : [...prev, table.id],
+                        );
+                      }}
+                    />
+                    <span className="font-medium">{table.display_name}</span>
+                    <span className="text-xs text-brand-text-muted">
+                      {t.filterDining}
+                      {otherParty ? ` · ${otherParty.name}` : ''}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <div className="flex justify-end gap-2">
           <button
             type="button"

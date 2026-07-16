@@ -1,13 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 import {
   conflictingPartyMembers,
   defaultTablePartyName,
+  isTableEligibleForPartyAdd,
   nextPrependSortOrder,
   sortTablePartyGroups,
   type TablePartyGroup,
   type TablePartyGroupMember,
 } from '@/lib/table-party-groups';
+import {
+  buildWaiterBoardStateContext,
+  type WaiterTableSessionMeta,
+} from '@/lib/waiter-board-session';
 
 export async function loadTablePartyGroups(
   admin: SupabaseClient,
@@ -132,7 +138,7 @@ export async function removeTableFromParty(
 
 /**
  * Add tables to a party. Tables already in another party require confirm_move=true.
- * Any table status is allowed (idle / dining / checkout).
+ * Only dining (open session, not checkout) tables may join.
  */
 export async function addTablesToParty(
   admin: SupabaseClient,
@@ -165,6 +171,36 @@ export async function addTablesToParty(
   if (tablesError) return { ok: false, status: 400, error: tablesError.message };
   if ((tableRows || []).length !== tableIds.length) {
     return { ok: false, status: 400, error: 'invalid_table_ids' };
+  }
+
+  const [{ data: sessionRows, error: sessionsError }, checkoutRequestedTableIds] =
+    await Promise.all([
+      admin
+        .from('table_sessions')
+        .select('id, table_id, status, opened_at')
+        .eq('restaurant_id', restaurantId)
+        .in('table_id', tableIds)
+        .in('status', ['open', 'billing']),
+      fetchCheckoutRequestedTableIds(admin, restaurantId),
+    ]);
+  if (sessionsError) return { ok: false, status: 400, error: sessionsError.message };
+
+  const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
+  for (const row of sessionRows || []) {
+    const tableId = typeof row.table_id === 'string' ? row.table_id : null;
+    const status = row.status === 'open' || row.status === 'billing' ? row.status : null;
+    const openedAt = typeof row.opened_at === 'string' ? row.opened_at : null;
+    const sessionId = typeof row.id === 'string' ? row.id : null;
+    if (!tableId || !status || !openedAt || !sessionId) continue;
+    sessionMetaByTableId[tableId] = { sessionId, openedAt, status };
+  }
+  const boardStateContext = buildWaiterBoardStateContext(
+    sessionMetaByTableId,
+    checkoutRequestedTableIds,
+    tableIds.map((tableId) => ({ tableId, occupied: Boolean(sessionMetaByTableId[tableId]) })),
+  );
+  if (tableIds.some((id) => !isTableEligibleForPartyAdd(id, boardStateContext))) {
+    return { ok: false, status: 400, error: 'tables_not_dining' };
   }
 
   const loaded = await loadTablePartyGroups(admin, restaurantId);

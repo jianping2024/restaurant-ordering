@@ -271,23 +271,25 @@ export function WaiterBoardPartySections({
             {cards.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.partyEmpty}</p>
             ) : (
-              <div className={`${WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS} pt-6`}>
+              <div className={WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS}>
                 {cards.map((card) => {
                   const boardState = classifyWaiterTableBoardState(
                     card.tableId,
                     boardStateContext,
                   );
                   return (
-                    <div key={`party-${party.id}-${card.tableId}`} className="relative">
-                      {renderTableCard(card, false)}
-                      <button
-                        type="button"
-                        disabled={busy || isDemo}
-                        onClick={() => void removeTable(party.id, card.tableId)}
-                        className={`absolute bottom-full right-3 z-10 rounded-t-md border border-b-0 px-2 py-0.5 text-xs disabled:opacity-50 ${WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS[boardState]}`}
-                      >
-                        {t.partyRemoveTable}
-                      </button>
+                    <div key={`party-${party.id}-${card.tableId}`} className="pt-6">
+                      <div className="relative">
+                        {renderTableCard(card, false)}
+                        <button
+                          type="button"
+                          disabled={busy || isDemo}
+                          onClick={() => void removeTable(party.id, card.tableId)}
+                          className={`absolute bottom-full right-3 z-10 rounded-t-md border border-b-0 px-2 py-0.5 text-xs disabled:opacity-50 ${WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS[boardState]}`}
+                        >
+                          {t.partyRemoveTable}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

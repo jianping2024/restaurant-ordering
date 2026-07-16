@@ -271,7 +271,7 @@ export function WaiterBoardPartySections({
             {cards.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.partyEmpty}</p>
             ) : (
-              <div className={WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS}>
+              <div className={`${WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS} pt-6`}>
                 {cards.map((card) => {
                   const boardState = classifyWaiterTableBoardState(
                     card.tableId,

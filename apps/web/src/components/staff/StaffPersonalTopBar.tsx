@@ -14,6 +14,8 @@ import {
 
 type Props = {
   logoHref: string;
+  restaurantName: string;
+  roleLabel: string;
   navItems: StaffPersonalTopNavItem[];
   settingsMenu: ReactNode;
 };
@@ -78,8 +80,14 @@ function renderNavItem(
   );
 }
 
-/** Sticky personal-app top bar — logo, role nav, and injected settings menu. */
-export function StaffPersonalTopBar({ logoHref, navItems, settingsMenu }: Props) {
+/** Sticky personal-app top bar — logo, restaurant, role nav, role label, settings. */
+export function StaffPersonalTopBar({
+  logoHref,
+  restaurantName,
+  roleLabel,
+  navItems,
+  settingsMenu,
+}: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
@@ -88,9 +96,17 @@ export function StaffPersonalTopBar({ logoHref, navItems, settingsMenu }: Props)
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
       <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <Link href={logoHref} className="shrink-0">
-          <ProductLogo size="sm" />
-        </Link>
+        <div className="flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
+          <Link href={logoHref} className="shrink-0">
+            <ProductLogo size="sm" />
+          </Link>
+          <span
+            className="min-w-0 max-w-[7rem] truncate text-sm font-medium text-brand-text-muted sm:max-w-[12rem] sm:text-[15px]"
+            title={restaurantName}
+          >
+            {restaurantName}
+          </span>
+        </div>
 
         {navItems.length > 0 ? (
           <nav
@@ -110,7 +126,15 @@ export function StaffPersonalTopBar({ logoHref, navItems, settingsMenu }: Props)
           <div className="min-w-0 flex-1" />
         )}
 
-        {settingsMenu}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <span
+            className="max-w-[4.5rem] truncate text-sm text-brand-text-muted sm:max-w-none"
+            title={roleLabel}
+          >
+            {roleLabel}
+          </span>
+          {settingsMenu}
+        </div>
       </div>
     </header>
   );

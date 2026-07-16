@@ -19,6 +19,7 @@ import {
   isNavItemActive,
   type DashboardTopNavItem,
 } from '@/lib/dashboard-top-nav';
+import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
 type TopBarPanel = 'none' | 'more' | 'settings';
 
@@ -114,12 +115,22 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
 
   const closePanels = () => setOpenPanel('none');
 
+  const roleLabel = topBarRoleLabel(lang, accessMode);
+
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
       <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
-        <Link href={dashboardLogoHref(accessMode)} className="shrink-0">
-          <ProductLogo size="sm" />
-        </Link>
+        <div className="flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
+          <Link href={dashboardLogoHref(accessMode)} className="shrink-0">
+            <ProductLogo size="sm" />
+          </Link>
+          <span
+            className="min-w-0 max-w-[7rem] truncate text-sm font-medium text-brand-text-muted sm:max-w-[12rem] sm:text-[15px]"
+            title={restaurant.name}
+          >
+            {restaurant.name}
+          </span>
+        </div>
 
         <nav
           aria-label={navT.mainNav}
@@ -148,12 +159,20 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
           onOpenChange={(open) => setOpenPanel(open ? 'more' : 'none')}
         />
 
-        <DashboardSettingsMenu
-          logoutLabel={navT.logout}
-          compact
-          open={openPanel === 'settings'}
-          onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
-        />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <span
+            className="max-w-[4.5rem] truncate text-sm text-brand-text-muted sm:max-w-none"
+            title={roleLabel}
+          >
+            {roleLabel}
+          </span>
+          <DashboardSettingsMenu
+            logoutLabel={navT.logout}
+            compact
+            open={openPanel === 'settings'}
+            onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
+          />
+        </div>
       </div>
     </header>
   );

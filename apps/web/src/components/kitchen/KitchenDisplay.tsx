@@ -12,8 +12,11 @@ import { patchStaffOrderItemsClient } from '@/lib/order-item-void/patch-staff-or
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
-import { StaffRoleToolbar } from '@/components/staff/StaffRoleToolbar';
+import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSettingsMenu';
+import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
+import { staffRolePath } from '@/lib/staff-routes';
+import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -82,6 +85,7 @@ function buildInitialTableMeta(tables: RestaurantTableRow[] = []): Map<string, R
 
 function KitchenDisplayInner({
   restaurant,
+  asOwner = false,
   hasAuthoritativeSeed = false,
   initialOrders = [],
   initialActiveTableIds = [],
@@ -94,6 +98,7 @@ function KitchenDisplayInner({
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const demoText = KITCHEN_DEMO_TEXT[lang];
+  const roleLabel = topBarRoleLabel(lang, asOwner ? 'owner' : 'kitchen');
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);
@@ -304,7 +309,22 @@ function KitchenDisplayInner({
   );
 
   return (
-    <div className="min-h-screen bg-brand-bg p-4">
+    <div className="flex min-h-screen flex-col bg-brand-bg">
+      <StaffPersonalTopBar
+        logoHref={isDemo ? '/demo/kitchen' : staffRolePath(restaurant.slug, 'kitchen')}
+        restaurantName={restaurant.name}
+        roleLabel={roleLabel}
+        navItems={[]}
+        settingsMenu={
+          <StaffPersonalSettingsMenu
+            logoutLabel={exitLabel}
+            onSignOut={() => void handleSignOut()}
+            confirmSignOut={confirmBeforeSignOut}
+            compact
+          />
+        }
+      />
+      <div className="min-h-0 flex-1 overflow-x-clip p-4">
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">
@@ -334,22 +354,17 @@ function KitchenDisplayInner({
       )}
       {/* 标题栏 */}
       <div className="mb-6">
-        <StaffRoleToolbar
-          exitLabel={exitLabel}
-          onSignOut={() => void handleSignOut()}
-          confirmSignOut={confirmBeforeSignOut}
-        />
-        <div>
-          <h1 className="font-heading text-3xl text-brand-gold">{restaurant.name}</h1>
-          <p className="text-brand-text-muted text-sm mt-1">
-            {t.display} · {boardOrders.length} {t.pendingCount}
+        <h1 className="font-heading text-3xl text-brand-gold">
+          {isDemo ? demoText.title : t.display}
+        </h1>
+        <p className="text-brand-text-muted text-sm mt-1">
+          {boardOrders.length} {t.pendingCount}
+        </p>
+        {idleTableCount > 0 && (
+          <p className="text-brand-text-muted text-[13px] mt-0.5">
+            {t.openTablesIdleNote.replace('{n}', String(idleTableCount))}
           </p>
-          {idleTableCount > 0 && (
-            <p className="text-brand-text-muted text-[13px] mt-0.5">
-              {t.openTablesIdleNote.replace('{n}', String(idleTableCount))}
-            </p>
-          )}
-        </div>
+        )}
       </div>
       {updateConflict && (
         <div className="mb-4 mesa-alert-warning px-4 py-2 text-sm">
@@ -393,6 +408,7 @@ function KitchenDisplayInner({
         externalError={voidReasonError}
         onConfirm={performKitchenVoid}
       />
+      </div>
     </div>
   );
 }

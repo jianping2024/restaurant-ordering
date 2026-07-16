@@ -13,14 +13,15 @@ export type WaiterBoardCardTheme = {
   footer: string;
 };
 
-/** KPI filter chip tones — aligned with card state semantics (占用=rose, 可用=emerald). */
+/** KPI filter chip tones — match table-card shell + title for the three board states. */
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
-  amber: 'border-amber-500/45 bg-amber-500/10 text-amber-950',
-  emerald: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-950',
-  rose: 'border-rose-500/40 bg-rose-500/10 text-rose-950',
-  neutral: 'border-brand-border bg-brand-card text-brand-text',
+  amber: 'border-amber-200 bg-amber-50 text-amber-800 shadow-sm',
+  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800 shadow-sm',
+  rose: 'border-rose-200 bg-rose-50 text-rose-800 shadow-sm',
+  /** 「全部」has no board-state card — keep brand neutral. */
+  neutral: 'border-brand-border bg-brand-card text-brand-text shadow-sm',
 };
 
 export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoardKpiTone> = {

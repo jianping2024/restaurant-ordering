@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { MENU_IMAGE_UNOPTIMIZED } from '@/lib/menu-image';
 
 interface Props {
   item: MenuItem;
@@ -37,6 +38,7 @@ export function MenuItemCard({ item, lang, cartQty, onIncrement, onDecrement }: 
             fill
             className="object-cover"
             sizes="64px"
+            unoptimized={MENU_IMAGE_UNOPTIMIZED}
           />
         ) : (
           item.emoji

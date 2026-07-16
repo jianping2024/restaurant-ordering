@@ -229,10 +229,16 @@ function WaiterBoardInner({
     supportsBuffetOpenTable,
     refresh,
     applyPartyState,
+    applySessionRelocationPatch,
     refreshAfterTableMutation,
+    refreshBoardAfterStaffMutation,
   } = embeddedInDashboard
     ? dashboardBoard!
-    : { ...standaloneBoard, refreshAfterTableMutation: undefined };
+    : {
+        ...standaloneBoard,
+        refreshAfterTableMutation: undefined,
+        refreshBoardAfterStaffMutation: undefined,
+      };
 
   const effectiveSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
@@ -597,6 +603,14 @@ function WaiterBoardInner({
         tableSearchTrimmed={tableSearchTrimmed}
         tableMatchesSearch={tableMatchesWaiterBoardSearch}
         onPartyStateChange={applyPartyState}
+        onSessionRelocationPatch={applySessionRelocationPatch}
+        onRefreshBoard={async (tableIds) => {
+          if (refreshBoardAfterStaffMutation) {
+            await refreshBoardAfterStaffMutation(tableIds);
+            return;
+          }
+          await refresh();
+        }}
         renderTableCard={renderTableCard}
       />
 

@@ -19,6 +19,11 @@ import {
   dissolveWaiterTableParty,
   removeTableFromWaiterTableParty,
 } from '@/lib/table-party-groups-client';
+import {
+  buildPartyOneClickMergePlan,
+  type PartyOneClickMergePlan,
+} from '@/lib/table-party-one-click-merge';
+import { postWaiterTableActionClient } from '@/lib/staff-board-client';
 import { WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS } from '@/lib/waiter-board-card-layout';
 import { WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS } from '@/lib/waiter-board-card-theme';
 import {
@@ -31,6 +36,8 @@ import {
   sortWaiterBoardTableSummaries,
   type WaiterBoardTableSummary,
 } from '@/lib/waiter-board-snapshot';
+import { commitWaiterSessionRelocation } from '@/lib/waiter-staff-mutation-sync';
+import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-relocation-board';
 
 type PartyTexts = (typeof WAITER_TEXT)[UILanguage];
 
@@ -52,6 +59,8 @@ type Props = {
     parties: TablePartyGroup[];
     partyMembers: TablePartyGroupMember[];
   }) => void;
+  onSessionRelocationPatch: (input: WaiterSessionRelocationBoardInput) => void;
+  onRefreshBoard: (tableIds: readonly string[]) => Promise<void>;
   renderTableCard: (card: WaiterBoardTableSummary, pinned?: boolean) => ReactNode;
 };
 
@@ -70,6 +79,8 @@ export function WaiterBoardPartySections({
   tableSearchTrimmed,
   tableMatchesSearch,
   onPartyStateChange,
+  onSessionRelocationPatch,
+  onRefreshBoard,
   renderTableCard,
 }: Props) {
   const [busy, setBusy] = useState(false);
@@ -79,6 +90,10 @@ export function WaiterBoardPartySections({
     partyId: string;
     tableIds: string[];
     labels: string[];
+  } | null>(null);
+  const [mergeConfirm, setMergeConfirm] = useState<{
+    party: TablePartyGroup;
+    plan: Extract<PartyOneClickMergePlan, { kind: 'ready' }>;
   } | null>(null);
 
   const displayNameById = useMemo(
@@ -130,6 +145,107 @@ export function WaiterBoardPartySections({
         return;
       }
       onPartyStateChange(result.data);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const orderedMemberIdsForParty = (partyId: string): string[] => {
+    const memberIds = membersForParty(partyMembers, partyId).map((m) => m.table_id);
+    const memberCards = memberIds
+      .map((id) => summaryByTableId.get(id))
+      .filter((card): card is WaiterBoardTableSummary => !!card);
+    return sortWaiterBoardTableSummaries(
+      memberCards,
+      tables,
+      checkoutRequestedTableIds,
+      sessionMetaByTableId,
+    ).map((card) => card.tableId);
+  };
+
+  const requestOneClickMerge = (party: TablePartyGroup) => {
+    if (isDemo) {
+      showToast(t.partyMarkerOnlyHint, 'info');
+      return;
+    }
+    const plan = buildPartyOneClickMergePlan(
+      orderedMemberIdsForParty(party.id),
+      (tableId) => classifyWaiterTableBoardState(tableId, boardStateContext),
+      (tableId) => displayNameById.get(tableId) ?? tableId.slice(0, 8),
+    );
+    if (plan.kind === 'not_needed') {
+      showToast(t.partyMergeNotNeeded, 'info');
+      return;
+    }
+    setMergeConfirm({ party, plan });
+  };
+
+  const runOneClickMerge = async () => {
+    if (!mergeConfirm || isDemo) return;
+    const { party, plan } = mergeConfirm;
+    setBusy(true);
+    try {
+      for (const sourceTableId of plan.sourceTableIds) {
+        try {
+          const { model } = await postWaiterTableActionClient(restaurantSlug, {
+            action: 'merge',
+            from_table_id: sourceTableId,
+            to_table_id: plan.targetTableId,
+          });
+          commitWaiterSessionRelocation({
+            sourceTableId,
+            targetModel: model,
+          });
+          onSessionRelocationPatch({
+            sourceTableId,
+            targetModel: model,
+          });
+        } catch (err) {
+          const apiErr = err as Error & { code?: string };
+          const sourceLabel =
+            displayNameById.get(sourceTableId) ?? sourceTableId.slice(0, 8);
+          if (apiErr.code === 'session_billing') {
+            showToast(t.checkoutLockedHint, 'error');
+          } else {
+            showToast(
+              t.partyMergePartialFailed
+                .replace('{source}', sourceLabel)
+                .replace('{target}', plan.targetDisplayName),
+              'error',
+            );
+          }
+          await onRefreshBoard([sourceTableId, plan.targetTableId, ...plan.sourceTableIds]);
+          setMergeConfirm(null);
+          return;
+        }
+      }
+
+      let partyState = {
+        parties,
+        partyMembers,
+      };
+      for (const sourceTableId of plan.sourceTableIds) {
+        const result = await removeTableFromWaiterTableParty(
+          restaurantSlug,
+          party.id,
+          sourceTableId,
+        );
+        if (!result.ok) {
+          showToast(t.partyMergeRemoveFailed, 'error');
+          onPartyStateChange(partyState);
+          await onRefreshBoard([plan.targetTableId, ...plan.sourceTableIds]);
+          setMergeConfirm(null);
+          return;
+        }
+        partyState = result.data;
+      }
+      onPartyStateChange(partyState);
+      setMergeConfirm(null);
+      showToast(
+        t.partyMergeDone.replace('{table}', plan.targetDisplayName),
+        'success',
+      );
+      await onRefreshBoard([plan.targetTableId, ...plan.sourceTableIds]);
     } finally {
       setBusy(false);
     }
@@ -265,6 +381,14 @@ export function WaiterBoardPartySections({
                   className="rounded-md border border-sky-700/30 bg-white/70 px-2.5 py-1 text-xs font-medium text-sky-950"
                 >
                   {t.partyAddTables}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || isDemo}
+                  onClick={() => requestOneClickMerge(party)}
+                  className="rounded-md border border-amber-700/35 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-950"
+                >
+                  {t.partyMergeAll}
                 </button>
                 <button
                   type="button"
@@ -419,6 +543,41 @@ export function WaiterBoardPartySections({
             className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {t.partyMoveConfirmButton}
+          </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={mergeConfirm != null}
+        onClose={() => {
+          if (busy) return;
+          setMergeConfirm(null);
+        }}
+        title={t.partyMergeTitle}
+      >
+        <p className="mb-2 text-sm text-brand-text-muted">{t.partyMergeHint}</p>
+        <p className="mb-1 text-center text-xs font-medium uppercase tracking-wide text-brand-text-muted">
+          {t.partyMergeTargetLabel}
+        </p>
+        <p className="mb-4 text-center text-4xl font-bold tracking-tight text-sky-950 sm:text-5xl">
+          {mergeConfirm?.plan.targetDisplayName ?? ''}
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setMergeConfirm(null)}
+            className="rounded-lg border border-brand-border px-3 py-2 text-sm"
+          >
+            {t.closeTableCancel}
+          </button>
+          <button
+            type="button"
+            disabled={busy || !mergeConfirm}
+            onClick={() => void runOneClickMerge()}
+            className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {busy ? t.partyMergeOperating : t.partyMergeConfirm}
           </button>
         </div>
       </Modal>

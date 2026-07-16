@@ -18,7 +18,7 @@
 - 桌位 CRUD：`display_name`（1–16 字）、排序
 - 桌位分组：命名分组、组成员、备注
 - 桌位看板：空闲 / 用餐 / 待结账等状态展示
-- **同行组（看板标记）**：在待结账区下方创建「同行组」，仅开台用餐中桌可加入（空闲/待结账过滤；无可选桌时提示先开台）；进组后只在该组显示；组内呼叫结账仍留在组内、不进待结账置顶；关台后自动退出同行组（空组不自动解散）；**组内桌详情禁用转台/并台**（仅 UI）；**组外并台目标列表排除组内桌**
+- **同行组（看板标记）**：在待结账区下方创建「同行组」，仅开台用餐中桌可加入（空闲/待结账过滤；无可选桌时提示先开台）；进组后只在该组显示；组内呼叫结账仍留在组内、不进待结账置顶；关台后自动退出同行组（空组不自动解散）；**组内桌详情禁用转台/并台**（仅 UI）；**组外并台目标列表排除组内桌**；**组头「一键合并」**：仅合并组内用餐中桌到展示序第一张用餐中桌，确认弹窗放大目标桌号；成功后来源桌移出组，待结账等未参与桌保留；用餐中不足两桌时提示不需要合并
 - 软删除桌位（`deleted_at`），不硬删历史订单
 - HTML `window.print()` 桌位二维码/列表兜底打印
 
@@ -34,7 +34,7 @@
 - 桌位平面图拖拽布局
 - 预定 / 候位排队
 - 按区域计费
-- 同行组与打印业务联动（结账仍独立；转台/并台见上：组内详情 UI 禁转/并、并台目标排除组内桌；不在 action API 拒组内来源）
+- 同行组与打印业务联动（结账仍独立；转台/并台：组内详情 UI 禁转/并、并台目标排除组内桌；组头一键合并走既有 `tables/action` merge，不在 action API 拒组内来源）
 
 ### 相关代码位置
 
@@ -44,7 +44,7 @@
 | UI | `apps/web/src/components/dashboard/TablesManager.tsx` |
 | 分组 UI | `apps/web/src/components/dashboard/TableGroupsManager.tsx` |
 | 同行组 UI | `apps/web/src/components/waiter/WaiterBoardPartySections.tsx` |
-| Lib | `apps/web/src/lib/restaurant-tables.ts`、`restaurant-table-groups.ts`、`table-party-groups.ts` |
+| Lib | `apps/web/src/lib/restaurant-tables.ts`、`restaurant-table-groups.ts`、`table-party-groups.ts`、`table-party-one-click-merge.ts` |
 | API | `apps/web/src/app/api/dashboard/tables/route.ts`、`table-groups/route.ts`、`.../staff/waiter/table-parties/route.ts` |
 
 ---

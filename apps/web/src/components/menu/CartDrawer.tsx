@@ -10,6 +10,7 @@ import {
 } from '@/lib/note-presets';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-client';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
@@ -136,7 +137,7 @@ export function CartDrawer({
                   placeholder={text.notePlaceholder}
                   value={item.note || ''}
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
-                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-[13px] text-brand-text placeholder-brand-muted focus:outline-none focus:border-brand-gold/50"
+                  className={customerTextInputClass}
                 />
                 {/* 快捷备注（按分类） */}
                 <div className="mt-2 space-y-2">

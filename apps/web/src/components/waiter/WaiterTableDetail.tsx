@@ -859,7 +859,7 @@ function WaiterTableDetailInner({
             <input
               value={sourceTableLabel}
               disabled
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text"
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text"
             />
           </div>
           <div>
@@ -868,7 +868,7 @@ function WaiterTableDetailInner({
               value={targetTable ?? ''}
               onChange={(e) => setTargetTable(e.target.value || null)}
               disabled={actionTargetsLoading}
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-60"
+              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-60"
             >
               <option value="">
                 {actionTargetsLoading ? t.tableDetailLoading : '--'}

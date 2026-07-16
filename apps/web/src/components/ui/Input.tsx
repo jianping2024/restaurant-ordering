@@ -20,7 +20,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           className={`
             w-full bg-brand-card border rounded-lg px-4 py-2.5
-            text-[15px] text-brand-text placeholder-brand-muted
+            text-base text-brand-text placeholder-brand-muted
             focus:outline-none focus:ring-2 focus:ring-brand-gold/50
             transition-colors duration-200
             ${error ? 'border-red-500' : 'border-brand-border'}

@@ -39,7 +39,7 @@ export function CartQtyStepper({
             min={0}
             clearZeroOnFocus
             aria-label={qtyInputAriaLabel ?? 'Quantity'}
-            className="w-8 text-brand-text text-sm text-center tabular-nums bg-transparent border-0 p-0 focus:outline-none focus:ring-1 focus:ring-brand-gold/40 rounded"
+            className="w-8 text-brand-text text-base text-center tabular-nums bg-transparent border-0 p-0 focus:outline-none focus:ring-1 focus:ring-brand-gold/40 rounded"
           />
         ) : (
           <span className="text-brand-text text-sm w-4 text-center tabular-nums">{qty}</span>

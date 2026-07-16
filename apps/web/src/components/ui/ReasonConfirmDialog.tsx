@@ -119,7 +119,7 @@ export function ReasonConfirmDialog({
               setLocalError(null);
             }}
             disabled={confirming}
-            className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm text-brand-text"
+            className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text"
           >
             <option value="">{selectPlaceholder}</option>
             {reasons.map((option) => (
@@ -144,7 +144,7 @@ export function ReasonConfirmDialog({
               disabled={confirming}
               rows={3}
               placeholder={detailPlaceholder}
-              className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-sm text-brand-text resize-y"
+              className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text resize-y"
             />
           </div>
         ) : null}

@@ -17,6 +17,7 @@ import {
 import { stageCheckoutRequestForQueue } from '@/lib/checkout-request-staging';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
+import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 import type { Order } from '@/types';
 
@@ -40,6 +41,7 @@ type Messages = {
   nifInvalid: string;
   splitPlanLocked: string;
   actionFailed: string;
+  guestCountRequired: string;
   redirectTimeout?: string;
 };
 
@@ -142,6 +144,11 @@ export function useCheckoutRequestSubmit(params: Params) {
       const freshOrders = await resolveFreshOrders();
       if (!freshOrders) return;
 
+      if (!isBillGuestCountConfirmed(freshOrders)) {
+        showToast(messages.guestCountRequired, 'error');
+        return;
+      }
+
       const validated = validateSubmitSplitDraft(
         splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput,
         freshOrders,
@@ -171,11 +178,13 @@ export function useCheckoutRequestSubmit(params: Params) {
         const message =
           requestResult.error === 'invalid_nif'
             ? messages.nifInvalid
-            : requestResult.error === 'split_mode_locked'
-              || requestResult.error === 'locked_allocation_changed'
-              || requestResult.error === 'split_shape_locked'
-              ? messages.splitPlanLocked
-              : messages.actionFailed;
+            : requestResult.error === 'guest_count_required'
+              ? messages.guestCountRequired
+              : requestResult.error === 'split_mode_locked'
+                || requestResult.error === 'locked_allocation_changed'
+                || requestResult.error === 'split_shape_locked'
+                ? messages.splitPlanLocked
+                : messages.actionFailed;
         showToast(message, 'error');
         return;
       }

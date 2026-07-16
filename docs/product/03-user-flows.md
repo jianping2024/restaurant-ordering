@@ -252,6 +252,13 @@
 3. 同上 API，`action: 'merge'`
 4. RPC `merge_table_sessions`：来源订单挂到目标 `session_id`；来源会话 `closed`，`closed_reason=merged`
 
+### 正常流程 — 同行组一键合并
+
+1. 看板同行组组头「一键合并」：只取组内展示序中状态为用餐中的桌；目标 = 第一张用餐中桌
+2. 用餐中不足两桌 → 提示不需要合并
+3. 确认弹窗放大目标 `display_name` 后，对其余用餐中桌依次调用同上 merge API
+4. 成功后将来源桌 `remove` 出组；待结账等未参与桌保留；不 dissolve 整组
+
 ### 异常流程
 
 | 情况 | 行为 |
@@ -277,7 +284,7 @@
 
 ### 相关代码位置
 
-`api/.../staff/waiter/tables/action/route.ts`、`lib/waiter-table-occupancy.ts`（目标筛选）、`docs/table-transfer-merge-plan.zh.md`
+`api/.../staff/waiter/tables/action/route.ts`、`lib/waiter-table-occupancy.ts`（目标筛选）、`lib/table-party-one-click-merge.ts`、`WaiterBoardPartySections`、`docs/table-transfer-merge-plan.zh.md`
 
 ---
 

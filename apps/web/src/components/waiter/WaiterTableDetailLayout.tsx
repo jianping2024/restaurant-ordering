@@ -18,7 +18,10 @@ import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessio
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
-import { runWaiterTableCheckoutClose } from '@/lib/waiter-table-checkout-close';
+import {
+  runWaiterTableCheckoutClose,
+  type CheckoutCloseFloorRole,
+} from '@/lib/waiter-table-checkout-close';
 import {
   WaiterBillIcon,
   WaiterClocheIcon,
@@ -256,6 +259,7 @@ function WaiterTableCheckoutCloseControl({
   tableId,
   sessionId,
   label,
+  floorStaffRole,
   checkoutLocked,
   onCheckoutLocked,
   onClosed,
@@ -266,6 +270,7 @@ function WaiterTableCheckoutCloseControl({
   tableId: string;
   sessionId: string | null;
   label: string;
+  floorStaffRole: CheckoutCloseFloorRole;
   checkoutLocked: boolean;
   onCheckoutLocked: () => void;
   onClosed: () => void;
@@ -275,6 +280,8 @@ function WaiterTableCheckoutCloseControl({
   const [busy, setBusy] = useState(false);
 
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
+  const confirmTitle =
+    floorStaffRole === 'cashier' ? t.checkoutCloseConfirmTitleCashier : t.checkoutCloseConfirmTitle;
 
   const handleClick = () => {
     if (checkoutLocked) {
@@ -296,6 +303,7 @@ function WaiterTableCheckoutCloseControl({
         slug: restaurantSlug,
         tableId,
         sessionId,
+        floorStaffRole,
       });
       if (!outcome.ok) {
         if (outcome.stage === 'print') {
@@ -339,7 +347,7 @@ function WaiterTableCheckoutCloseControl({
           if (busy) return;
           setConfirmOpen(false);
         }}
-        title={t.checkoutCloseConfirmTitle}
+        title={confirmTitle}
         message=""
         confirmLabel={orderHistory.closeTableConfirmButton}
         cancelLabel={orderHistory.closeTableCancel}
@@ -363,6 +371,8 @@ type OccupiedToolbarProps = {
   onMerge: () => void;
   showCheckoutClose: boolean;
   showCloseTable: boolean;
+  /** Required when showCheckoutClose — frontdesk prints; cashier skips print. */
+  floorStaffRole?: CheckoutCloseFloorRole;
   isDemo: boolean;
   closingDemoTable: boolean;
   onDemoCloseClick: () => void;
@@ -382,6 +392,7 @@ export function WaiterTableOccupiedToolbar({
   onMerge,
   showCheckoutClose,
   showCloseTable,
+  floorStaffRole = 'frontdesk',
   isDemo,
   closingDemoTable,
   onDemoCloseClick,
@@ -421,6 +432,7 @@ export function WaiterTableOccupiedToolbar({
               tableId={tableId}
               sessionId={sessionId}
               label={t.goToBill}
+              floorStaffRole={floorStaffRole}
               checkoutLocked={isCheckoutPending}
               onCheckoutLocked={onCheckoutLocked}
               onClosed={onTableClosed}

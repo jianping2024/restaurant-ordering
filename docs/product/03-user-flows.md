@@ -297,8 +297,10 @@
   → session_collected_payments 记账；result 行标 paid
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
 
-前台桌台详情（`embeddedInDashboard`，会话 `open`、未呼叫结账）
-  → 「去结账」：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（operational，无未收款审计）
+前台 / 收银员桌台详情（`embeddedInDashboard`，会话 `open`、未呼叫结账）
+  → 「关台结账」：
+    - **前台**：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（operational，无未收款审计）
+    - **收银员**：确认后**不打印**，直接 `checkout-close-table-session` 正常收台
   → 「关台」：强制关台（manual + 原因 + 审计），不打印
 ```
 
@@ -350,7 +352,7 @@
   加菜 → station_ticket 自动入队
   呼叫结账 → pre_bill 自动（受 bill_receipt_print 开关）
   确认某人收款 → split_payment 自动；全员付清 → final 自动（同上开关）
-  手动「打印账单」/ 去结账 → checkout_bill（不受开关限制）
+  手动「打印账单」/ 前台「关台结账」 → checkout_bill（不受开关限制；收银员「关台结账」不打印）
   （业务三类 vs 四种 receipt_variant：见 docs/technical/04-printing.md §3.1）
 代理：
   配对 claim JWT → GET pending-jobs → 打印 → PATCH done/failed

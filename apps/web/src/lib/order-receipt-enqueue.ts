@@ -6,16 +6,7 @@ import {
 import { buildBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
-import {
-  byItemLinePriceShare,
-  buffetShareUnitPrice,
-  consumersForLineFromPersons,
-  legacyAssigneeIdsForKey,
-  legacyEqualLineShare,
-  legacyEqualShareQtyLabel,
-  shareQtyLabel,
-} from '@/lib/bill-split-by-item';
-import { buildBillSplitOrderLines, buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
@@ -107,54 +98,13 @@ export function buildSplitPersonReceiptLines(
   personIndex: number,
   orders: Order[],
 ): OrderReceiptJobPayload['lines'] {
-  if (split.split_mode !== 'by_item') return [];
-
-  const person = split.persons?.[personIndex];
-  if (!person) return [];
-
-  const persons = split.persons || [];
-  const personId = `p${personIndex + 1}`;
-  const catalogLines = buildBillSplitOrderLines(orders);
-  const lines: OrderReceiptJobPayload['lines'] = [];
-  let itemIndex = 0;
-
-  for (const catalogLine of catalogLines) {
-    const key = catalogLine.key;
-    const hasLine = person.item_shares?.some((share) => share.key === key)
-      || (person.items || []).includes(key);
-    if (!hasLine) continue;
-
-    const spec = buildByItemLineSpec(catalogLine);
-    const consumers = consumersForLineFromPersons(persons, key, spec);
-    if (consumers.length === 0) continue;
-
-    const lineTotal = catalogLine.price * catalogLine.qty;
-    const personShare = consumers.find((consumer) => consumer.name === person.name);
-    if (!personShare) continue;
-
-    const usesLegacyShares = !person.item_shares?.some((share) => share.key === key);
-    const shareQty = personShare.qty.num / personShare.qty.den;
-    const sharePrice = usesLegacyShares
-      ? legacyEqualLineShare(lineTotal, legacyAssigneeIdsForKey(persons, key), personId)
-      : spec.mode === 'buffet' && personShare.guestType
-        ? buffetShareUnitPrice(catalogLine, personShare.guestType) * shareQty
-        : byItemLinePriceShare(lineTotal, consumers, person.name);
-    const shareLabel = usesLegacyShares
-      ? legacyEqualShareQtyLabel(catalogLine.qty, consumers.length)
-      : spec.mode === 'buffet' && personShare.guestType
-        ? shareQtyLabel(personShare.qty)
-        : shareQtyLabel(personShare.qty);
-
-    itemIndex += 1;
-    lines.push({
-      item_index: itemIndex,
-      display_name: orderItemReceiptLineLabel(catalogLine),
-      qty: 1,
-      unit_price: sharePrice,
-      share_qty_label: shareLabel,
-    });
-  }
-  return lines;
+  return buildSplitPersonShareLines(split, personIndex, orders).map((row, index) => ({
+    item_index: index + 1,
+    display_name: row.receiptLabel,
+    qty: 1,
+    unit_price: row.shareAmount,
+    share_qty_label: row.quantityLabel,
+  }));
 }
 
 /** Stable key for checkout split/final receipt jobs (phase 4 dedup). */

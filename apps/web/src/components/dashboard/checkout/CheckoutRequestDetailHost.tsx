@@ -110,6 +110,8 @@ export function CheckoutRequestDetailHost({
   );
   const supabase = useMemo(() => createClient(), []);
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
+  const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
+  const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printCheckoutBill,
@@ -123,6 +125,8 @@ export function CheckoutRequestDetailHost({
   useEffect(() => {
     if (!restaurantId || !request.session_id) {
       setSelectedLines([]);
+      setSessionOrders([]);
+      setItemCodeByMenuId({});
       return;
     }
 
@@ -137,21 +141,26 @@ export function CheckoutRequestDetailHost({
       if (cancelled) return;
       if (error) {
         setSelectedLines([]);
+        setSessionOrders([]);
+        setItemCodeByMenuId({});
         return;
       }
 
-      const menuItemIds = distinctMenuItemIdsFromOrders((orderRows || []) as Order[]);
-      let itemCodeByMenuId: Record<string, string> = {};
+      const orders = (orderRows || []) as Order[];
+      const menuItemIds = distinctMenuItemIdsFromOrders(orders);
+      let codes: Record<string, string> = {};
       if (menuItemIds.length > 0) {
         const { data: menuRows } = await supabase
           .from('menu_items')
           .select('id, item_code')
           .eq('restaurant_id', restaurantId)
           .in('id', menuItemIds);
-        itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
+        codes = menuItemCodeLookupFromRows(menuRows ?? []);
       }
 
-      setSelectedLines(checkoutLinesFromOrders((orderRows || []) as Order[], itemCodeByMenuId));
+      setSessionOrders(orders);
+      setItemCodeByMenuId(codes);
+      setSelectedLines(checkoutLinesFromOrders(orders, codes));
     };
 
     void loadLines();
@@ -358,6 +367,8 @@ export function CheckoutRequestDetailHost({
         collectedPayments={collectedPayments}
         pendingSettlementRows={pendingSettlementRows}
         selectedLines={selectedLines}
+        sessionOrders={sessionOrders}
+        itemCodeByMenuId={itemCodeByMenuId}
         processingKeys={processingKeys}
         detailLocked={detailLocked}
         resumeOperating={isResumeMutating}

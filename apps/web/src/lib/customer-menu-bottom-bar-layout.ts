@@ -2,7 +2,13 @@
 
 export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 
-const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_REM = 3.5;
+/**
+ * Scroll padding when the docked footer is visible.
+ * Must be a full static string so Tailwind JIT emits the class (no JS interpolation).
+ * `3.5rem` matches `CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS` (`h-14`).
+ */
+export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
+  'pb-[calc(3.5rem+env(safe-area-inset-bottom,0px)+0.5rem)]';
 
 /** Fixed shell: flush to viewport bottom; safe area lives inside the bar. */
 export const customerMenuBottomBarDockClass =
@@ -38,5 +44,5 @@ export const customerMenuBottomBarDisabledActionClass =
 /** Scroll padding so the last menu row clears the docked bar (+ safe area + small end cushion). */
 export function customerMenuPageBottomPaddingClass(footerVisible: boolean): string {
   if (!footerVisible) return 'pb-16';
-  return `pb-[calc(${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_REM}rem+env(safe-area-inset-bottom,0px)+0.5rem)]`;
+  return CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER;
 }

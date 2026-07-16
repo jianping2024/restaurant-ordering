@@ -157,9 +157,9 @@
 
 ### 审计
 
-- 每次 void / 减至 0 写 `operation_logs`
+- **后厨** void：写 `operation_logs`
 - **后厨** void 创建 `abnormal_operations` 类型 `ITEM_DELETED`（按原 `item_status` 定风险）
-- **楼面**（前台 / 收银员）decrement 减至 0 写 `ITEM_VOIDED`（reason 默认 `qty_adjustment`），不进异常队列
+- **楼面**（前台 / 收银员）decrement 减至 0 写 `void_reason`（reason 默认 `qty_adjustment`），不写 `operation_logs`，不进异常队列
 
 ### 硬规则
 

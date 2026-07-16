@@ -160,7 +160,7 @@
 
 1. `/dashboard/waiter` 桌台详情对 `pending`/`cooking` 行点击减号（**无确认弹框**）
 2. `POST .../decrement-item`；qty>1 减 1；qty=1 直接取消行（服务端默认 `qty_adjustment`）
-3. `decrementOrderItemWithAudit` 持久化 + 审计（减至 0 写 `ITEM_VOIDED`，不进异常队列）
+3. `decrementOrderItemWithAudit` 持久化（减至 0 写 `void_reason`，不进异常队列；楼面减菜不写 `operation_logs`）
 
 权限由 `lib/order-item-decrement/decrement-policy.ts` 统一判定：`frontdesk` / `cashier` / `owner` 允许；`waiter` / `kitchen` 拒绝。
 
@@ -181,7 +181,7 @@
 | `orders.items[].item_status` | → `voided` |
 | `orders.status` | 由 `deriveOrderStatusFromItems` 重算 |
 | `abnormal_operations` | 后厨 void 可能新增 `ITEM_DELETED`；楼面减至 0 不写入 |
-| `operation_logs` | 审计条目 |
+| `operation_logs` | 后厨 void：写入；楼面减菜：不写入 |
 
 ### 验收标准
 

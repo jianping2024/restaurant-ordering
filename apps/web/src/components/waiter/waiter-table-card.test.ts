@@ -18,12 +18,71 @@ function orderWithTotal(total_amount: number, id = 'o1'): Order {
 }
 
 describe('buildWaiterTableCard', () => {
-  it('sets sessionTotal from persisted order.total_amount', () => {
+  it('sets sessionTotal from billable items, not stale order.total_amount', () => {
     const card = buildWaiterTableCard('t1', '001', [
-      orderWithTotal(12.5, 'o1'),
-      orderWithTotal(8, 'o2'),
+      {
+        ...orderWithTotal(12.5, 'o1'),
+        items: [
+          {
+            id: 'd1',
+            name: 'Água',
+            name_pt: 'Água',
+            qty: 1,
+            price: 12.5,
+            emoji: '💧',
+          },
+        ],
+      },
+      {
+        ...orderWithTotal(8, 'o2'),
+        items: [
+          {
+            id: 'd2',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 8,
+            emoji: '🥤',
+          },
+        ],
+      },
     ]);
     assert.equal(card.sessionTotal, 20.5);
+  });
+
+  it('ignores voided items and inflated total_amount when computing sessionTotal', () => {
+    const card = buildWaiterTableCard('t1', '001', [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        table_id: 't1',
+        display_name: '001',
+        status: 'pending',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água',
+            name_pt: 'Água',
+            qty: 1,
+            price: 5,
+            emoji: '💧',
+            item_status: 'voided',
+          },
+          {
+            id: 'd2',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 3,
+            emoji: '🥤',
+          },
+        ],
+        total_amount: 8,
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    assert.equal(card.sessionTotal, 3);
   });
 
   it('returns zero sessionTotal for empty orders', () => {

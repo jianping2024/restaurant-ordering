@@ -46,7 +46,7 @@ export function sumLineTotals(items: LinePriced[]): number {
   }, 0);
 }
 
-/** Sum persisted order totals (session consumption — matches waiter sessionTotal). */
+/** Sum persisted order.total_amount fields (per-order cache — not session billable total). */
 export function sumOrderTotals(orders: ReadonlyArray<{ total_amount?: unknown }>): number {
   return orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
 }

@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { OrderItem } from '@/types';
-import { sumLineTotals } from '@/lib/cart-totals';
-import { deriveOrderStatusFromItems } from '@/lib/order-status';
+import type { Order, OrderItem } from '@/types';
+import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import type { AppendWriteContext } from '@/lib/append-write-context';
 
 export type WriteAppendBatchParams = {
@@ -26,21 +25,21 @@ export type WriteAppendBatchResult =
 export async function writeAppendBatch(params: WriteAppendBatchParams): Promise<WriteAppendBatchResult> {
   const { admin, restaurantId, tableId, displayName, sessionId, context, newItems } = params;
   const openOrder = context.openOrder;
-  const batchTotal = sumLineTotals(newItems);
 
   if (openOrder?.id) {
     const prior = openOrder.items || [];
     const hadDoneBefore =
       prior.length > 0 && prior.every((item) => (item.item_status || 'pending') === 'done');
     const mergedItems = [...prior, ...newItems];
-    const mergedTotal = sumLineTotals(mergedItems);
-    const mergedStatus = deriveOrderStatusFromItems(mergedItems);
+    const openRow = context.sessionOrders.find((row) => row.id === openOrder.id);
+    const orderStatus = (openRow?.status ?? 'pending') as Order['status'];
+    const { nextStatus, total_amount } = computeOrderTotalsFromItems(mergedItems, orderStatus);
     const { error: updErr } = await admin
       .from('orders')
       .update({
         items: mergedItems,
-        total_amount: mergedTotal,
-        status: mergedStatus,
+        total_amount,
+        status: nextStatus,
       })
       .eq('id', openOrder.id);
     if (updErr) {
@@ -54,6 +53,7 @@ export async function writeAppendBatch(params: WriteAppendBatchParams): Promise<
     };
   }
 
+  const { nextStatus, total_amount } = computeOrderTotalsFromItems(newItems, 'pending');
   const { data: inserted, error: insErr } = await admin
     .from('orders')
     .insert({
@@ -61,9 +61,9 @@ export async function writeAppendBatch(params: WriteAppendBatchParams): Promise<
       session_id: sessionId,
       table_id: tableId,
       display_name: displayName,
-      status: 'pending',
+      status: nextStatus,
       items: newItems,
-      total_amount: batchTotal,
+      total_amount,
     })
     .select('id')
     .single();

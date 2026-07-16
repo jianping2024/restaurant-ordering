@@ -1,4 +1,5 @@
-import { coerceCartQty, sumLineTotals, sumOrderTotals } from '@/lib/cart-totals';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
+import { coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import type { CartItem, Order, TableSession } from '@/types';
@@ -25,7 +26,7 @@ export type MenuPageFooterView = {
   cartQty: number;
   cartTotal: number;
   submittedCount: number;
-  /** Sum of order.total_amount for the active session (matches waiter sessionTotal). */
+  /** Billable session total (matches waiter sessionTotal and bill details). */
   submittedTotal: number;
   billHref: string;
   billEnabled: boolean;
@@ -59,7 +60,7 @@ export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooter
   const cartQty = input.cart.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
   const cartTotal = sumLineTotals(input.cart);
   const submittedCount = countSubmittedItems(input.recentOrders);
-  const submittedTotal = sumOrderTotals(input.recentOrders);
+  const submittedTotal = sumBillableSessionTotal(input.recentOrders);
   const phase = deriveFooterPhase(cartQty, submittedCount);
 
   const showBillCta = input.staffAssisted

@@ -2,6 +2,7 @@ import {
   activeBuffetLineByBuffetId,
   listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
+import { lineTotal } from '@/lib/cart-totals';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import type { Order, OrderItem } from '@/types';
@@ -62,4 +63,9 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
   }
 
   return lines;
+}
+
+/** Session billable total — same basis as bill details, receipts, and checkout. */
+export function sumBillableSessionTotal(orders: Order[]): number {
+  return buildBillableSessionItems(orders).reduce((sum, { item }) => sum + lineTotal(item), 0);
 }

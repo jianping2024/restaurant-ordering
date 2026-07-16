@@ -2,8 +2,8 @@ import type { Order, OrderItem } from '@/types';
 import {
   billableMenuItemMergeKey,
   buildBillableSessionItems,
+  sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
-import { sumOrderTotals } from '@/lib/cart-totals';
 import {
   aggregateBuffetHeadcountForOrders,
   listActiveBuffetLineSummaries,
@@ -138,7 +138,7 @@ export function buildWaiterTableCard(
     orderLines,
     hasBuffet: buffetSummaries.length > 0,
     buffetHeadcount: aggregateBuffetHeadcountForOrders(orders),
-    sessionTotal: sumOrderTotals(orders),
+    sessionTotal: sumBillableSessionTotal(orders),
     updatedAt: latestOrderTimestamp(orders),
   };
 }

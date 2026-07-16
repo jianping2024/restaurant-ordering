@@ -12,6 +12,7 @@ import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { getMessages } from '@/lib/i18n/messages';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
+import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
@@ -155,6 +156,7 @@ export function BillPage({
       nifInvalid: t.nifInvalid,
       splitPlanLocked: t.splitPlanLocked,
       actionFailed: t.actionFailed,
+      guestCountRequired: t.guestCountRequired,
     },
   });
 
@@ -219,7 +221,13 @@ export function BillPage({
   const customerNifInvalid =
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
+  const guestCountConfirmed = isBillGuestCountConfirmed(orders);
+
   const handleCallBill = () => {
+    if (!guestCountConfirmed) {
+      showToast(t.guestCountRequired, 'error');
+      return;
+    }
     if (customerNifInvalid) {
       showToast(t.nifInvalid, 'error');
       return;
@@ -461,6 +469,12 @@ export function BillPage({
         lines={detailLines}
         total={total}
       />
+
+      {!guestCountConfirmed ? (
+        <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
+          {t.guestCountRequired}
+        </div>
+      ) : null}
 
       <BillSplitPanel
         lang={lang}

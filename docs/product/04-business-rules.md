@@ -179,7 +179,7 @@
 
 | 状态 | 允许操作 |
 |------|----------|
-| `open` | 加菜、配置分单、首次呼叫结账 |
+| `open` | 加菜、配置分单、首次呼叫结账（须自助餐人数已确认：成人+儿童 > 0） |
 | `billing` | 确认收款、折扣（无收款前）、恢复点餐、强制关台；**禁止**加菜、转台、并台、服务员自助餐变更 |
 | `closed` | 只读历史 |
 
@@ -194,6 +194,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 - **队列定义**：`bill_splits.status='requested'` 驱动结账台与 nav badge
 - **呼叫结账 RPC** 同时将 `table_sessions.status` 设为 `billing`
+- **人数前置**：`checkout/request` 要求会话订单 active `buffet_base` 成人+儿童合计 > 0，否则 `guest_count_required`；账单页分单区上方常驻提醒直至人数改对
 
 ### 收款规则
 

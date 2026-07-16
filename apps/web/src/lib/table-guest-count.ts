@@ -25,6 +25,11 @@ export function guestCountFromTableOrders(orders: OrderLike[]): number {
   return best;
 }
 
+/** Bill checkout requires a confirmed buffet headcount (adults + children > 0). */
+export function isBillGuestCountConfirmed(orders: OrderLike[]): boolean {
+  return guestCountFromTableOrders(orders) > 0;
+}
+
 export function formatStationTicketOrderTime(
   iso: string,
   timeZone = 'Europe/Lisbon',

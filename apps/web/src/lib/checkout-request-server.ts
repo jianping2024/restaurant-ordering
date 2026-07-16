@@ -10,6 +10,7 @@ import {
 } from '@/lib/checkout-session-payments';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
@@ -66,6 +67,9 @@ export async function submitCheckoutRequestForTable(
   const orderLines = buildBillSplitOrderLines(orders);
   if (orderLines.length === 0) {
     return { ok: false, error: 'empty_session', status: 400 };
+  }
+  if (!isBillGuestCountConfirmed(orders)) {
+    return { ok: false, error: 'guest_count_required', status: 400 };
   }
 
   const lineSpecs = buildByItemLineSpecs(orderLines);

@@ -78,6 +78,12 @@ export function pathFromMenuImagePublicUrl(url: string): string | null {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
+/**
+ * Serve menu Storage thumbs without Vercel `/_next/image` optimization.
+ * Uploads are already compressed; optimization quota 402s break customer/dashboard menus.
+ */
+export const MENU_IMAGE_UNOPTIMIZED = true;
+
 export async function removeMenuImageFromStorage(
   supabase: SupabaseClient,
   publicUrl: string | null | undefined,

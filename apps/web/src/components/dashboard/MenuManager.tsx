@@ -16,6 +16,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
+  MENU_IMAGE_UNOPTIMIZED,
   validateMenuImageFile,
 } from '@/lib/menu-image';
 import {
@@ -1350,7 +1351,14 @@ export function MenuManager({
                   >
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
                       {item.image_url ? (
-                        <Image src={item.image_url} alt="" width={40} height={40} className="object-cover w-10 h-10" />
+                        <Image
+                          src={item.image_url}
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="object-cover w-10 h-10"
+                          unoptimized={MENU_IMAGE_UNOPTIMIZED}
+                        />
                       ) : (
                         item.emoji
                       )}
@@ -1462,7 +1470,14 @@ export function MenuManager({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={itemModalPreviewSrc} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <Image src={itemModalPreviewSrc} alt="" fill className="object-cover" sizes="96px" />
+                    <Image
+                      src={itemModalPreviewSrc}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      unoptimized={MENU_IMAGE_UNOPTIMIZED}
+                    />
                   )}
                 </div>
               ) : (

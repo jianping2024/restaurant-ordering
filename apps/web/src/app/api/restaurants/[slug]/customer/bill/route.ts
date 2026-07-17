@@ -10,6 +10,7 @@ import {
   loadCustomerSessionOrders,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
+import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 
 export const runtime = 'nodejs';
 
@@ -49,11 +50,12 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       orders: [],
       existing_split: null,
       collected_payments: [],
+      party_member_count: 0,
     });
   }
 
   const sessionId = ctx.activeSession.id;
-  const [orders, existingSplit, collectedRowsResult] = await Promise.all([
+  const [orders, existingSplit, collectedRowsResult, partyMemberCount] = await Promise.all([
     loadCustomerSessionOrders({
       admin,
       restaurantId: restaurant.id,
@@ -66,6 +68,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
       .select(SESSION_COLLECTED_PAYMENT_SELECT)
       .eq('restaurant_id', restaurant.id)
       .eq('session_id', sessionId),
+    countPartyMembersForTable(admin, restaurant.id, ctx.tableId).catch(() => 0),
   ]);
   const collectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
 
@@ -76,5 +79,6 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     orders,
     existing_split: existingSplit,
     collected_payments: collectedPayments,
+    party_member_count: partyMemberCount,
   });
 }

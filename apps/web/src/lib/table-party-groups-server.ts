@@ -306,6 +306,49 @@ export async function tableIsInAnyParty(
 }
 
 /**
+ * Member count of this table's together-group (0 when not in a party).
+ * Used by the checkout gate — not a separate session status.
+ */
+export async function countPartyMembersForTable(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+): Promise<number> {
+  const { data: membership, error: lookupError } = await admin
+    .from('table_party_group_members')
+    .select('party_id')
+    .eq('restaurant_id', restaurantId)
+    .eq('table_id', tableId)
+    .maybeSingle();
+  if (lookupError) {
+    console.error('[countPartyMembersForTable]', {
+      restaurantId,
+      tableId,
+      message: lookupError.message,
+    });
+    throw new Error(lookupError.message);
+  }
+  const partyId = typeof membership?.party_id === 'string' ? membership.party_id : null;
+  if (!partyId) return 0;
+
+  const { count, error: countError } = await admin
+    .from('table_party_group_members')
+    .select('table_id', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('party_id', partyId);
+  if (countError) {
+    console.error('[countPartyMembersForTable]', {
+      restaurantId,
+      tableId,
+      partyId,
+      message: countError.message,
+    });
+    throw new Error(countError.message);
+  }
+  return count ?? 0;
+}
+
+/**
  * After 关台: drop the table from any together-group.
  * Best-effort — must not fail the close path. If the party has no members left, dissolve it.
  */

@@ -35,5 +35,9 @@ export async function syncCustomerBill(slug: string, tableId: string) {
   const data = await requestCustomerBillContext(slug, tableId);
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
-  return { orders, ...deriveBillView(orders) };
+  const partyMemberCount =
+    typeof data.party_member_count === 'number' && Number.isFinite(data.party_member_count)
+      ? Math.max(0, Math.trunc(data.party_member_count))
+      : 0;
+  return { orders, partyMemberCount, ...deriveBillView(orders) };
 }

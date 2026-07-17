@@ -133,6 +133,14 @@ export function countCheckoutTablesInParties(
 }
 
 /**
+ * Checkout gate for together-groups: not in a party (0) or sole remaining
+ * member (1) may call for the bill; two or more members must merge first.
+ */
+export function isPartyMemberCountAllowedForCheckout(partyMemberCount: number): boolean {
+  return partyMemberCount <= 1;
+}
+
+/**
  * Candidate tables for "add to party": dining (open session) only; exclude current party members.
  * Idle / checkout are filtered out — open a table first.
  */

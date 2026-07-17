@@ -18,6 +18,7 @@ import {
   resolveStaffAssistedFlow,
   waiterBoardHref,
 } from '@/lib/staff-routes';
+import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -67,7 +68,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
     redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableContext.tableId)}`);
   }
 
-  const [orders, existingSplit] = await Promise.all([
+  const [orders, existingSplit, partyMemberCount] = await Promise.all([
     loadCustomerSessionOrders({
       admin,
       restaurantId: restaurant.id,
@@ -75,6 +76,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       ascending: true,
     }),
     loadCustomerExistingSplit({ admin, sessionId: tableContext.activeSession.id }),
+    countPartyMembersForTable(admin, restaurant.id, tableContext.tableId).catch(() => 0),
   ]);
 
   const menuItemIds = distinctMenuItemIdsFromOrders(orders);
@@ -124,6 +126,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
       itemCodeByMenuId={itemCodeByMenuId}
+      initialPartyMemberCount={partyMemberCount}
     />
   );
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  countPartyMembersForTable,
   dissolvePartyIfEmpty,
   purgeTablePartyMembership,
   tableIsInAnyParty,
@@ -15,6 +16,7 @@ type Call = { table: string; op: string; filters?: Record<string, string> };
 
 function mockAdmin(handlers: {
   onSelectMembers?: (filters: Record<string, string>) => { data: unknown; error: unknown };
+  onCountMembers?: (filters: Record<string, string>) => { count: number | null; error: unknown };
   onDeleteMembers?: (filters: Record<string, string>) => { error: unknown };
   onDeleteParty?: (filters: Record<string, string>) => { error: unknown };
 }): { admin: SupabaseClient; calls: Call[] } {
@@ -22,8 +24,9 @@ function mockAdmin(handlers: {
   const admin = {
     from(table: string) {
       return {
-        select() {
+        select(_cols?: string, opts?: { count?: string; head?: boolean }) {
           const filters: Record<string, string> = {};
+          const isCount = opts?.head === true && opts?.count === 'exact';
           const chain = {
             eq(col: string, val: string) {
               filters[col] = val;
@@ -37,11 +40,20 @@ function mockAdmin(handlers: {
               return handlers.onSelectMembers?.(filters) ?? { data: null, error: null };
             },
             then(
-              resolve: (value: { data: unknown; error: unknown }) => unknown,
+              resolve: (value: { data: unknown; error: unknown; count?: number | null }) => unknown,
               reject?: (reason: unknown) => unknown,
             ) {
-              calls.push({ table, op: 'select', filters: { ...filters } });
+              calls.push({
+                table,
+                op: isCount ? 'count' : 'select',
+                filters: { ...filters },
+              });
               try {
+                if (isCount) {
+                  return Promise.resolve(
+                    handlers.onCountMembers?.(filters) ?? { count: 0, error: null },
+                  ).then(resolve, reject);
+                }
                 return Promise.resolve(
                   handlers.onSelectMembers?.(filters) ?? { data: [], error: null },
                 ).then(resolve, reject);
@@ -226,5 +238,43 @@ describe('tableIsInAnyParty', () => {
     });
 
     await assert.rejects(() => tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), /boom/);
+  });
+});
+
+describe('countPartyMembersForTable', () => {
+  it('returns 0 when the table is not in a party', async () => {
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: null }),
+    });
+
+    assert.equal(await countPartyMembersForTable(admin, RESTAURANT_ID, TABLE_ID), 0);
+    assert.equal(
+      calls.some((c) => c.op === 'count'),
+      false,
+    );
+  });
+
+  it('returns the party member count when the table is in a party', async () => {
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: { party_id: PARTY_ID }, error: null }),
+      onCountMembers: (filters) => {
+        assert.equal(filters.party_id, PARTY_ID);
+        assert.equal(filters.restaurant_id, RESTAURANT_ID);
+        return { count: 3, error: null };
+      },
+    });
+
+    assert.equal(await countPartyMembersForTable(admin, RESTAURANT_ID, TABLE_ID), 3);
+  });
+
+  it('throws when membership lookup fails', async () => {
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: { message: 'lookup boom' } }),
+    });
+
+    await assert.rejects(
+      () => countPartyMembersForTable(admin, RESTAURANT_ID, TABLE_ID),
+      /lookup boom/,
+    );
   });
 });

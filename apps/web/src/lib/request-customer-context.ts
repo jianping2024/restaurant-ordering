@@ -17,6 +17,8 @@ export type CustomerBillResponse = {
   orders: Order[];
   existing_split: BillSplit | null;
   collected_payments: CustomerBillCollectedPayment[];
+  /** Together-group size for this table (0 = not in a party). */
+  party_member_count: number;
 };
 
 async function fetchJson<T>(url: string): Promise<T | null> {

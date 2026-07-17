@@ -4,6 +4,7 @@ import {
   conflictingPartyMembers,
   countCheckoutTablesInParties,
   filterTablesEligibleForPartyAdd,
+  isPartyMemberCountAllowedForCheckout,
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
   nextPrependSortOrder,
@@ -48,6 +49,13 @@ describe('table-party-groups', () => {
   it('counts checkout tables inside parties', () => {
     const ids = tablePartyMemberTableIds(members);
     assert.equal(countCheckoutTablesInParties(ids, [T1, T4]), 1);
+  });
+
+  it('allows checkout only when party has at most one member', () => {
+    assert.equal(isPartyMemberCountAllowedForCheckout(0), true);
+    assert.equal(isPartyMemberCountAllowedForCheckout(1), true);
+    assert.equal(isPartyMemberCountAllowedForCheckout(2), false);
+    assert.equal(isPartyMemberCountAllowedForCheckout(5), false);
   });
 
   it('allocates login-together-N defaults (case-insensitive, per prefix)', () => {

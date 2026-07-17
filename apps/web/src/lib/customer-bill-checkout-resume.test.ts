@@ -7,6 +7,7 @@ describe('detectCheckoutResumedFromBillContext', () => {
     table_id: 't1',
     display_name: 'A1',
     collected_payments: [],
+    party_member_count: 0,
   };
 
   it('detects continuation split after resume', () => {

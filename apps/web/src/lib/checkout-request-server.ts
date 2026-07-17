@@ -11,6 +11,8 @@ import {
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
+import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
+import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
@@ -70,6 +72,21 @@ export async function submitCheckoutRequestForTable(
   }
   if (!isBillGuestCountConfirmed(orders)) {
     return { ok: false, error: 'guest_count_required', status: 400 };
+  }
+
+  let partyMemberCount: number;
+  try {
+    partyMemberCount = await countPartyMembersForTable(admin, restaurantId, tableId);
+  } catch (err) {
+    return {
+      ok: false,
+      error: 'party_lookup_failed',
+      status: 500,
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+  if (!isPartyMemberCountAllowedForCheckout(partyMemberCount)) {
+    return { ok: false, error: 'party_merge_required', status: 400 };
   }
 
   const lineSpecs = buildByItemLineSpecs(orderLines);

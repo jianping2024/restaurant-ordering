@@ -18,6 +18,8 @@ import { stageCheckoutRequestForQueue } from '@/lib/checkout-request-staging';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
+import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
+import type { BillOrdersRefresh } from '@/lib/use-bill-orders';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 import type { Order } from '@/types';
 
@@ -42,6 +44,7 @@ type Messages = {
   splitPlanLocked: string;
   actionFailed: string;
   guestCountRequired: string;
+  partyMergeRequired: string;
   redirectTimeout?: string;
 };
 
@@ -51,8 +54,9 @@ type Params = {
   displayName: string;
   sessionId: string | null;
   orders: Order[];
+  partyMemberCount: number;
   lastSyncedAt: number | null;
-  refreshOrders: () => Promise<Order[] | null>;
+  refreshOrders: () => Promise<BillOrdersRefresh | null>;
   commitOrders: (next: Order[]) => void;
   splitDraft: SplitDraftSlice;
   customerNifInput: string;
@@ -80,6 +84,7 @@ export function useCheckoutRequestSubmit(params: Params) {
     displayName,
     sessionId,
     orders,
+    partyMemberCount,
     lastSyncedAt,
     refreshOrders,
     commitOrders,
@@ -106,9 +111,9 @@ export function useCheckoutRequestSubmit(params: Params) {
     onBusyChange?.(next !== 'idle');
   }, [onBusyChange]);
 
-  const resolveFreshOrders = useCallback(async (): Promise<Order[] | null> => {
+  const resolveFreshBill = useCallback(async (): Promise<BillOrdersRefresh | null> => {
     if (shouldSkipPreSubmitOrderSync(lastSyncedAt)) {
-      return orders;
+      return { orders, partyMemberCount };
     }
     const displayedBefore = orders;
     const fresh = await refreshOrders();
@@ -116,12 +121,12 @@ export function useCheckoutRequestSubmit(params: Params) {
       showToast(messages.billSyncFailed, 'error');
       return null;
     }
-    if (!isBillOrdersComplete(displayedBefore, fresh)) {
-      commitOrders(fresh);
+    if (!isBillOrdersComplete(displayedBefore, fresh.orders)) {
+      commitOrders(fresh.orders);
       showToast(messages.billIncomplete, 'error');
       return null;
     }
-    commitOrders(fresh);
+    commitOrders(fresh.orders);
     return fresh;
   }, [
     commitOrders,
@@ -129,6 +134,7 @@ export function useCheckoutRequestSubmit(params: Params) {
     messages.billIncomplete,
     messages.billSyncFailed,
     orders,
+    partyMemberCount,
     refreshOrders,
     showToast,
   ]);
@@ -141,17 +147,22 @@ export function useCheckoutRequestSubmit(params: Params) {
     setPhaseSafe('submitting');
     let keepBusyAfterSubmit = false;
     try {
-      const freshOrders = await resolveFreshOrders();
-      if (!freshOrders) return;
+      const fresh = await resolveFreshBill();
+      if (!fresh) return;
 
-      if (!isBillGuestCountConfirmed(freshOrders)) {
+      if (!isBillGuestCountConfirmed(fresh.orders)) {
         showToast(messages.guestCountRequired, 'error');
+        return;
+      }
+
+      if (!isPartyMemberCountAllowedForCheckout(fresh.partyMemberCount)) {
+        showToast(messages.partyMergeRequired, 'error');
         return;
       }
 
       const validated = validateSubmitSplitDraft(
         splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput,
-        freshOrders,
+        fresh.orders,
       );
       if (!validated.ok) {
         showToast(splitValidationToast(validated.issue, messages), 'error');
@@ -180,11 +191,13 @@ export function useCheckoutRequestSubmit(params: Params) {
             ? messages.nifInvalid
             : requestResult.error === 'guest_count_required'
               ? messages.guestCountRequired
-              : requestResult.error === 'split_mode_locked'
-                || requestResult.error === 'locked_allocation_changed'
-                || requestResult.error === 'split_shape_locked'
-                ? messages.splitPlanLocked
-                : messages.actionFailed;
+              : requestResult.error === 'party_merge_required'
+                ? messages.partyMergeRequired
+                : requestResult.error === 'split_mode_locked'
+                  || requestResult.error === 'locked_allocation_changed'
+                  || requestResult.error === 'split_shape_locked'
+                  ? messages.splitPlanLocked
+                  : messages.actionFailed;
         showToast(message, 'error');
         return;
       }
@@ -201,9 +214,9 @@ export function useCheckoutRequestSubmit(params: Params) {
           splitMode: splitDraft.splitMode ?? 'custom',
           persons,
           result: requestResult.result,
-          totalAmount: deriveBillView(freshOrders).total,
+          totalAmount: deriveBillView(fresh.orders).total,
           customerNif: normalizePortugueseNif(customerNifInput) || null,
-          orderIds: freshOrders.map((order) => order.id),
+          orderIds: fresh.orders.map((order) => order.id),
         });
         stageCheckoutRequestForQueue(optimistic);
       }
@@ -237,7 +250,7 @@ export function useCheckoutRequestSubmit(params: Params) {
     messages,
     onCustomerSubmitSuccess,
     onSubmitSuccess,
-    resolveFreshOrders,
+    resolveFreshBill,
     restaurant.id,
     restaurant.slug,
     router,

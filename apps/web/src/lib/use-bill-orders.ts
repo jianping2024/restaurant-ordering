@@ -4,14 +4,26 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deriveBillView, syncCustomerBill } from '@/lib/customer-bill-sync';
 import type { Order } from '@/types';
 
+export type BillOrdersRefresh = {
+  orders: Order[];
+  partyMemberCount: number;
+};
+
 export function useBillOrders(
   initialOrders: Order[],
-  params: { slug: string; tableId: string },
+  params: {
+    slug: string;
+    tableId: string;
+    initialPartyMemberCount?: number;
+  },
 ) {
   const [orders, setOrders] = useState(initialOrders);
+  const [partyMemberCount, setPartyMemberCount] = useState(
+    () => params.initialPartyMemberCount ?? 0,
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
-  const syncInFlightRef = useRef<Promise<Order[] | null> | null>(null);
+  const syncInFlightRef = useRef<Promise<BillOrdersRefresh | null> | null>(null);
 
   const markOrdersSynced = useCallback(() => {
     setLastSyncedAt(Date.now());
@@ -21,9 +33,14 @@ export function useBillOrders(
     setOrders(initialOrders);
   }, [initialOrders]);
 
+  useEffect(() => {
+    if (params.initialPartyMemberCount == null) return;
+    setPartyMemberCount(params.initialPartyMemberCount);
+  }, [params.initialPartyMemberCount]);
+
   const { orderLines, lineSpecs, total } = useMemo(() => deriveBillView(orders), [orders]);
 
-  const refreshOrders = useCallback(async (): Promise<Order[] | null> => {
+  const refreshOrders = useCallback(async (): Promise<BillOrdersRefresh | null> => {
     if (syncInFlightRef.current) {
       return syncInFlightRef.current;
     }
@@ -32,8 +49,13 @@ export function useBillOrders(
       setIsSyncing(true);
       try {
         const synced = await syncCustomerBill(params.slug, params.tableId);
-        if (synced?.orders) markOrdersSynced();
-        return synced?.orders ?? null;
+        if (!synced?.orders) return null;
+        setPartyMemberCount(synced.partyMemberCount);
+        markOrdersSynced();
+        return {
+          orders: synced.orders,
+          partyMemberCount: synced.partyMemberCount,
+        };
       } finally {
         setIsSyncing(false);
         syncInFlightRef.current = null;
@@ -48,9 +70,9 @@ export function useBillOrders(
     setOrders(next);
   }, []);
 
-  const syncOrders = useCallback(async (): Promise<Order[] | null> => {
+  const syncOrders = useCallback(async (): Promise<BillOrdersRefresh | null> => {
     const fresh = await refreshOrders();
-    if (fresh) commitOrders(fresh);
+    if (fresh) commitOrders(fresh.orders);
     return fresh;
   }, [refreshOrders, commitOrders]);
 
@@ -61,6 +83,7 @@ export function useBillOrders(
 
   return {
     orders,
+    partyMemberCount,
     orderLines,
     lineSpecs,
     total,

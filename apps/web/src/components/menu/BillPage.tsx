@@ -13,6 +13,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
+import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
@@ -29,7 +30,7 @@ import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
 
-function GuestCountRequiredBanner({
+function BillCheckoutGateBanner({
   message,
   className = '',
 }: {
@@ -62,6 +63,7 @@ interface Props {
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
   itemCodeByMenuId?: Record<string, string>;
+  initialPartyMemberCount?: number;
 }
 
 const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
@@ -80,6 +82,7 @@ export function BillPage({
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
   itemCodeByMenuId = {},
+  initialPartyMemberCount = 0,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -112,13 +115,18 @@ export function BillPage({
 
   const {
     orders,
+    partyMemberCount,
     orderLines,
     lineSpecs,
     total,
     refreshOrders,
     commitOrders,
     lastSyncedAt,
-  } = useBillOrders(initialOrders, { slug: restaurant.slug, tableId });
+  } = useBillOrders(initialOrders, {
+    slug: restaurant.slug,
+    tableId,
+    initialPartyMemberCount,
+  });
 
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, itemCodeByMenuId),
@@ -147,6 +155,7 @@ export function BillPage({
     displayName,
     sessionId,
     orders,
+    partyMemberCount,
     lastSyncedAt,
     refreshOrders,
     commitOrders,
@@ -179,6 +188,7 @@ export function BillPage({
       splitPlanLocked: t.splitPlanLocked,
       actionFailed: t.actionFailed,
       guestCountRequired: t.guestCountRequired,
+      partyMergeRequired: t.partyMergeRequired,
     },
   });
 
@@ -244,10 +254,20 @@ export function BillPage({
     customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
 
   const guestCountConfirmed = isBillGuestCountConfirmed(orders);
+  const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
+  const checkoutGateMessage = !guestCountConfirmed
+    ? t.guestCountRequired
+    : !partyCheckoutAllowed
+      ? t.partyMergeRequired
+      : null;
 
   const handleCallBill = () => {
     if (!guestCountConfirmed) {
       showToast(t.guestCountRequired, 'error');
+      return;
+    }
+    if (!partyCheckoutAllowed) {
+      showToast(t.partyMergeRequired, 'error');
       return;
     }
     if (customerNifInvalid) {
@@ -476,7 +496,7 @@ export function BillPage({
   return (
     <div
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${
-        guestCountConfirmed ? 'pb-24' : 'pb-40'
+        checkoutGateMessage ? 'pb-40' : 'pb-24'
       }`}
     >
       <CustomerOrderingHeader
@@ -496,8 +516,8 @@ export function BillPage({
         total={total}
       />
 
-      {!guestCountConfirmed ? (
-        <GuestCountRequiredBanner message={t.guestCountRequired} className="mx-4 mt-3" />
+      {checkoutGateMessage ? (
+        <BillCheckoutGateBanner message={checkoutGateMessage} className="mx-4 mt-3" />
       ) : null}
 
       <BillSplitPanel
@@ -589,9 +609,9 @@ export function BillPage({
       ) : null}
 
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
-        {!guestCountConfirmed ? (
-          <GuestCountRequiredBanner
-            message={t.guestCountRequired}
+        {checkoutGateMessage ? (
+          <BillCheckoutGateBanner
+            message={checkoutGateMessage}
             className="shadow-sm shadow-amber-900/10"
           />
         ) : null}
@@ -605,6 +625,7 @@ export function BillPage({
             || !sessionId
             || isCallBillBusy
             || !guestCountConfirmed
+            || !partyCheckoutAllowed
             || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
             || customerNifInvalid
           }

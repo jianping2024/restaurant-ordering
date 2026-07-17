@@ -45,9 +45,9 @@ export const waiterDetailLayout = {
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
    * Name + qty + minus left-aligned (not justify-between).
-   * `gap-3` is the name↔qty breath (~three spaces); qty↔minus stays tight via orderedItemActions.
+   * `gap-8` is the name↔qty breath (~eight spaces / prior gap-3 + five); qty↔minus stays tight via orderedItemActions.
    */
-  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-3',
+  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
   orderedItemLabel: 'min-w-0 truncate text-lg text-brand-text',
   orderedItemQty: 'shrink-0 text-lg text-brand-text tabular-nums',
   orderedItemActions: 'flex shrink-0 items-center gap-2',

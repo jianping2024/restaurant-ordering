@@ -43,8 +43,11 @@ export const waiterDetailLayout = {
   orderedItemsHeader: `sticky top-14 z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: 'text-lg font-semibold text-brand-text',
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
-  orderedItemLabel: 'text-lg text-brand-text truncate min-w-0 flex-1',
-  orderedItemQty: 'text-lg text-brand-text tabular-nums',
+  /** Name + qty + minus as one left-aligned reading unit (not justify-between). */
+  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-2',
+  orderedItemLabel: 'min-w-0 truncate text-lg text-brand-text',
+  orderedItemQty: 'shrink-0 text-lg text-brand-text tabular-nums',
+  orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;
 
 /** Narrow modal layout for dashboard open-table sheet (viewport breakpoints not used). */

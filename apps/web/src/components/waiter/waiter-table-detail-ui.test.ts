@@ -44,3 +44,13 @@ test('ordered-items card typography uses text-lg and sticky chrome under top bar
   assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
+
+test('ordered-item row keeps name, qty, and minus as one left-aligned cluster', () => {
+  assert.match(waiterDetailLayout.orderedItemRow, /flex/);
+  assert.match(waiterDetailLayout.orderedItemRow, /max-w-full/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /justify-between/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /flex-1/);
+  assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
+  assert.match(waiterDetailLayout.orderedItemQty, /shrink-0/);
+  assert.match(waiterDetailLayout.orderedItemActions, /shrink-0/);
+});

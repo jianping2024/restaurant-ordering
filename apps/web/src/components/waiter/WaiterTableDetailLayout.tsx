@@ -494,12 +494,12 @@ export function WaiterTableOrderedItemsPanel({
       </div>
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => (
-          <div key={`${line.orderId}-${line.itemIdx}`} className="flex items-center justify-between gap-2">
+          <div key={`${line.orderId}-${line.itemIdx}`} className={waiterDetailLayout.orderedItemRow}>
             <p className={waiterDetailLayout.orderedItemLabel}>
               {line.label}
             </p>
             {(line.quantityLabel || line.canDecrement) ? (
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className={waiterDetailLayout.orderedItemActions}>
                 {line.quantityLabel ? (
                   <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
                 ) : null}

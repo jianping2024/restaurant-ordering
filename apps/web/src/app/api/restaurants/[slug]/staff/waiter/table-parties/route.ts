@@ -7,6 +7,7 @@ import {
   dissolveTablePartyGroup,
   loadTablePartyGroups,
   removeTableFromParty,
+  renameTablePartyGroup,
 } from '@/lib/table-party-groups-server';
 
 export const runtime = 'nodejs';
@@ -77,6 +78,13 @@ export async function POST(
   let result;
   if (action === 'create') {
     result = await createTablePartyGroup(admin, ctx.restaurant_id, body.name);
+  } else if (action === 'rename') {
+    result = await renameTablePartyGroup(
+      admin,
+      ctx.restaurant_id,
+      body.party_id,
+      body.name,
+    );
   } else if (action === 'dissolve') {
     result = await dissolveTablePartyGroup(admin, ctx.restaurant_id, body.party_id);
   } else if (action === 'add_tables') {
@@ -111,5 +119,6 @@ export async function POST(
   return NextResponse.json({
     parties: result.parties,
     partyMembers: result.partyMembers,
+    ...(result.createdPartyId ? { created_party_id: result.createdPartyId } : {}),
   });
 }

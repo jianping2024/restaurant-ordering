@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import {
   conflictingPartyMembers,
   countCheckoutTablesInParties,
-  defaultTablePartyName,
   filterTablesEligibleForPartyAdd,
   isTableEligibleForPartyAdd,
+  nextAvailableTablePartyName,
   nextPrependSortOrder,
+  partyHasNameConflict,
   partyIdForTable,
+  partyNameKey,
   tablePartyMemberTableIds,
 } from './table-party-groups';
 import { buildWaiterBoardStateContext } from './waiter-board-session';
@@ -46,9 +48,21 @@ describe('table-party-groups', () => {
     assert.equal(countCheckoutTablesInParties(ids, [T1, T4]), 1);
   });
 
-  it('names parties sequentially', () => {
-    assert.equal(defaultTablePartyName(0), 'Together 1');
-    assert.equal(defaultTablePartyName(2), 'Together 3');
+  it('allocates the next free Together N (case-insensitive)', () => {
+    assert.equal(nextAvailableTablePartyName([]), 'Together 1');
+    assert.equal(nextAvailableTablePartyName(['Together 1']), 'Together 2');
+    assert.equal(nextAvailableTablePartyName(['together 1', 'Together 3']), 'Together 2');
+    assert.equal(partyNameKey('  AbC  '), 'abc');
+  });
+
+  it('detects case-insensitive party name conflicts', () => {
+    const parties = [
+      { id: P1, name: 'Family A' },
+      { id: P2, name: 'Together 1' },
+    ];
+    assert.equal(partyHasNameConflict(parties, 'family a'), true);
+    assert.equal(partyHasNameConflict(parties, 'family a', P1), false);
+    assert.equal(partyHasNameConflict(parties, 'Together 2'), false);
   });
 
   it('prepends new parties with a lower sort_order', () => {

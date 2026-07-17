@@ -3,6 +3,7 @@ import type { TablePartyGroup, TablePartyGroupMember } from '@/lib/table-party-g
 export type TablePartyMutationResponse = {
   parties: TablePartyGroup[];
   partyMembers: TablePartyGroupMember[];
+  createdPartyId?: string;
 };
 
 export type TablePartyConflictResponse = {
@@ -37,17 +38,24 @@ async function requestPartyMutation(
         : undefined,
     };
   }
+  const createdPartyId =
+    typeof json.created_party_id === 'string' ? json.created_party_id : undefined;
   return {
     ok: true,
     data: {
       parties: (json.parties || []) as TablePartyGroup[],
       partyMembers: (json.partyMembers || []) as TablePartyGroupMember[],
+      ...(createdPartyId ? { createdPartyId } : {}),
     },
   };
 }
 
 export function createWaiterTableParty(slug: string, name?: string) {
   return requestPartyMutation(slug, { action: 'create', ...(name ? { name } : {}) });
+}
+
+export function renameWaiterTableParty(slug: string, partyId: string, name: string) {
+  return requestPartyMutation(slug, { action: 'rename', party_id: partyId, name });
 }
 
 export function dissolveWaiterTableParty(slug: string, partyId: string) {

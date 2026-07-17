@@ -54,8 +54,36 @@ export function membersForParty(
   return members.filter((m) => m.party_id === partyId);
 }
 
-export function defaultTablePartyName(existingCount: number): string {
-  return `Together ${existingCount + 1}`;
+/** Case-insensitive trimmed key for party display-name uniqueness. */
+export function partyNameKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** True when another party already uses this name (case-insensitive). */
+export function partyHasNameConflict(
+  parties: readonly Pick<TablePartyGroup, 'id' | 'name'>[],
+  name: string,
+  excludePartyId?: string,
+): boolean {
+  const key = partyNameKey(name);
+  if (!key) return false;
+  return parties.some(
+    (p) =>
+      (!excludePartyId || p.id !== excludePartyId) && partyNameKey(p.name) === key,
+  );
+}
+
+/**
+ * Next free default label `Together N` among existing names (case-insensitive).
+ * Does not use party count — concurrent creates must not share an estimated index.
+ */
+export function nextAvailableTablePartyName(existingNames: readonly string[]): string {
+  const taken = new Set(existingNames.map(partyNameKey));
+  for (let n = 1; n <= 10_000; n += 1) {
+    const candidate = `Together ${n}`;
+    if (!taken.has(partyNameKey(candidate))) return candidate;
+  }
+  return `Together ${Date.now()}`;
 }
 
 /** Tables already in another party (not `targetPartyId`). */

@@ -1,11 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { uniqueViolation } from '@/lib/dashboard-api-shared';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { fetchCheckoutRequestedTableIds } from '@/lib/table-checkout-pending';
 import {
   conflictingPartyMembers,
-  defaultTablePartyName,
   isTableEligibleForPartyAdd,
+  nextAvailableTablePartyName,
   nextPrependSortOrder,
+  partyHasNameConflict,
   sortTablePartyGroups,
   type TablePartyGroup,
   type TablePartyGroupMember,
@@ -57,32 +59,103 @@ function parseTableIdList(raw: unknown): string[] | null {
 }
 
 export type TablePartyMutationResult =
-  | { ok: true; parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }
+  | {
+      ok: true;
+      parties: TablePartyGroup[];
+      partyMembers: TablePartyGroupMember[];
+      createdPartyId?: string;
+    }
   | { ok: false; status: number; error: string; conflicts?: TablePartyGroupMember[] };
 
 async function reloadResult(
   admin: SupabaseClient,
   restaurantId: string,
+  extra?: { createdPartyId?: string },
 ): Promise<Extract<TablePartyMutationResult, { ok: true }>> {
   const loaded = await loadTablePartyGroups(admin, restaurantId);
-  return { ok: true, ...loaded };
+  return { ok: true, ...loaded, ...extra };
 }
+
+const CREATE_NAME_RETRY_LIMIT = 8;
 
 export async function createTablePartyGroup(
   admin: SupabaseClient,
   restaurantId: string,
   nameInput?: unknown,
 ): Promise<TablePartyMutationResult> {
-  const existing = await loadTablePartyGroups(admin, restaurantId);
-  const name = normalizePartyName(nameInput) ?? defaultTablePartyName(existing.parties.length);
-  const sortOrder = nextPrependSortOrder(existing.parties);
+  const customName = normalizePartyName(nameInput);
 
-  const { error } = await admin.from('table_party_groups').insert({
-    restaurant_id: restaurantId,
-    name,
-    sort_order: sortOrder,
-  });
+  for (let attempt = 0; attempt < CREATE_NAME_RETRY_LIMIT; attempt += 1) {
+    const existing = await loadTablePartyGroups(admin, restaurantId);
+    const name =
+      customName ?? nextAvailableTablePartyName(existing.parties.map((p) => p.name));
+
+    if (partyHasNameConflict(existing.parties, name)) {
+      if (customName) {
+        return { ok: false, status: 409, error: 'duplicate_party_name' };
+      }
+      continue;
+    }
+
+    const sortOrder = nextPrependSortOrder(existing.parties);
+    const { data, error } = await admin
+      .from('table_party_groups')
+      .insert({
+        restaurant_id: restaurantId,
+        name,
+        sort_order: sortOrder,
+      })
+      .select('id')
+      .single();
+
+    if (!error && data?.id) {
+      return reloadResult(admin, restaurantId, { createdPartyId: data.id as string });
+    }
+    if (uniqueViolation(error)) {
+      if (customName) {
+        return { ok: false, status: 409, error: 'duplicate_party_name' };
+      }
+      continue;
+    }
+    return { ok: false, status: 400, error: error?.message ?? 'create_failed' };
+  }
+
+  return { ok: false, status: 409, error: 'duplicate_party_name' };
+}
+
+export async function renameTablePartyGroup(
+  admin: SupabaseClient,
+  restaurantId: string,
+  partyIdRaw: unknown,
+  nameInput: unknown,
+): Promise<TablePartyMutationResult> {
+  const partyId = parseTableIdParam(partyIdRaw);
+  const name = normalizePartyName(nameInput);
+  if (!partyId) return { ok: false, status: 400, error: 'invalid_party_id' };
+  if (!name) return { ok: false, status: 400, error: 'invalid_name' };
+
+  const existing = await loadTablePartyGroups(admin, restaurantId);
+  const party = existing.parties.find((p) => p.id === partyId);
+  if (!party) return { ok: false, status: 404, error: 'party_not_found' };
+
+  if (party.name === name) {
+    return reloadResult(admin, restaurantId);
+  }
+
+  if (partyHasNameConflict(existing.parties, name, partyId)) {
+    return { ok: false, status: 409, error: 'duplicate_party_name' };
+  }
+
+  const { error } = await admin
+    .from('table_party_groups')
+    .update({ name })
+    .eq('id', partyId)
+    .eq('restaurant_id', restaurantId);
+
   if (error) {
+    if (uniqueViolation(error)) {
+      return { ok: false, status: 409, error: 'duplicate_party_name' };
+    }
     return { ok: false, status: 400, error: error.message };
   }
   return reloadResult(admin, restaurantId);

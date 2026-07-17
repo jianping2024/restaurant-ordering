@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -18,6 +18,7 @@ import {
   createWaiterTableParty,
   dissolveWaiterTableParty,
   removeTableFromWaiterTableParty,
+  renameWaiterTableParty,
 } from '@/lib/table-party-groups-client';
 import {
   buildPartyOneClickMergePlan,
@@ -84,6 +85,8 @@ export function WaiterBoardPartySections({
   renderTableCard,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const [editingPartyId, setEditingPartyId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
   const [addTarget, setAddTarget] = useState<TablePartyGroup | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pendingMove, setPendingMove] = useState<{
@@ -95,11 +98,62 @@ export function WaiterBoardPartySections({
     party: TablePartyGroup;
     plan: Extract<PartyOneClickMergePlan, { kind: 'ready' }>;
   } | null>(null);
+  const skipRenameBlurRef = useRef(false);
 
   const displayNameById = useMemo(
     () => new Map(tables.map((row) => [row.id, row.display_name])),
     [tables],
   );
+
+  const beginRename = (party: TablePartyGroup) => {
+    if (isDemo || busy) return;
+    setEditingPartyId(party.id);
+    setEditingName(party.name);
+  };
+
+  const cancelRename = () => {
+    setEditingPartyId(null);
+    setEditingName('');
+  };
+
+  const commitRename = async () => {
+    if (skipRenameBlurRef.current) {
+      skipRenameBlurRef.current = false;
+      return;
+    }
+    if (!editingPartyId || isDemo) return;
+    const partyId = editingPartyId;
+    const party = parties.find((p) => p.id === partyId);
+    const nextName = editingName.trim();
+    if (!party) {
+      cancelRename();
+      return;
+    }
+    if (nextName === party.name) {
+      cancelRename();
+      return;
+    }
+    if (nextName.length < 1 || nextName.length > 32) {
+      showToast(t.partyNameInvalid, 'error');
+      setEditingName(party.name);
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = await renameWaiterTableParty(restaurantSlug, partyId, nextName);
+      if (!result.ok) {
+        showToast(
+          result.error === 'duplicate_party_name' ? t.partyNameDuplicate : t.actionFailed,
+          'error',
+        );
+        return;
+      }
+      onPartyStateChange(result.data);
+      cancelRename();
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const createParty = async () => {
     if (isDemo) {
@@ -110,10 +164,21 @@ export function WaiterBoardPartySections({
     try {
       const result = await createWaiterTableParty(restaurantSlug);
       if (!result.ok) {
-        showToast(t.partyCreateFailed, 'error');
+        showToast(
+          result.error === 'duplicate_party_name' ? t.partyNameDuplicate : t.partyCreateFailed,
+          'error',
+        );
         return;
       }
       onPartyStateChange(result.data);
+      const createdId = result.data.createdPartyId;
+      const created = createdId
+        ? result.data.parties.find((p) => p.id === createdId)
+        : null;
+      if (created) {
+        setEditingPartyId(created.id);
+        setEditingName(created.name);
+      }
     } finally {
       setBusy(false);
     }
@@ -122,6 +187,7 @@ export function WaiterBoardPartySections({
   const dissolveParty = async (party: TablePartyGroup) => {
     if (isDemo) return;
     if (!window.confirm(t.partyDissolveConfirm)) return;
+    if (editingPartyId === party.id) cancelRename();
     setBusy(true);
     try {
       const result = await dissolveWaiterTableParty(restaurantSlug, party.id);
@@ -348,9 +414,9 @@ export function WaiterBoardPartySections({
       ) : null}
 
       {visibleParties.map(({ party, cards, checkoutCount, memberCount }) => {
-        const title = t.partySectionTitle
-          .replace('{name}', party.name)
-          .replace('{n}', String(memberCount));
+        const isEditing = editingPartyId === party.id;
+        const countLabel = t.partySectionCount.replace('{n}', String(memberCount));
+        const title = `${isEditing ? editingName : party.name} ${countLabel}`;
         const checkoutHint =
           checkoutCount > 0
             ? t.partySectionCheckoutHint.replace('{n}', String(checkoutCount))
@@ -364,7 +430,43 @@ export function WaiterBoardPartySections({
           >
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
-                <h2 className="text-sm font-semibold text-sky-950">{title}</h2>
+                <div className="flex flex-wrap items-baseline gap-1">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      autoFocus
+                      maxLength={32}
+                      disabled={busy}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={() => void commitRename()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.currentTarget.blur();
+                        }
+                        if (e.key === 'Escape') {
+                          e.preventDefault();
+                          skipRenameBlurRef.current = true;
+                          cancelRename();
+                        }
+                      }}
+                      className="min-w-[8rem] max-w-[14rem] rounded-md border border-sky-700/40 bg-white px-2 py-0.5 text-sm font-semibold text-sky-950 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                      aria-label={party.name}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy || isDemo}
+                      onClick={() => beginRename(party)}
+                      className="text-left text-sm font-semibold text-sky-950 hover:underline disabled:opacity-50"
+                    >
+                      {party.name}
+                    </button>
+                  )}
+                  <span className="text-sm font-semibold text-sky-950">{countLabel}</span>
+                </div>
                 {checkoutHint ? (
                   <p className="mt-0.5 text-xs text-amber-800">{checkoutHint}</p>
                 ) : null}

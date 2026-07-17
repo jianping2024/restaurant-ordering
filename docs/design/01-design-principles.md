@@ -125,7 +125,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 ### 楼面文字角色（服务员看板 / 桌台详情）
 
-以已点菜品为锚；角色类在 `waiterFloorType`（`waiter-table-detail-ui.tsx`），禁止业务页再写零散 `text-[13px]` 扛套餐名或主操作。
+**桌台详情**以已点菜品为锚；角色类在 `waiterFloorType`（`waiter-table-detail-ui.tsx`），禁止业务页再写零散 `text-[13px]` 扛套餐名或主操作。
 
 | 角色 | 字号 | 用途 |
 |------|------|------|
@@ -134,6 +134,15 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 控件 | `Button size="action"`（`text-[15px]`） | 保存人数、继续点餐、转台等 |
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
+
+**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）；楼面分组与同行组 lane **同一 chrome**，选中仅用 `brand-gold`，禁止 `sky-*` 等旁路色盘。
+
+| 角色 | 用途 |
+|------|------|
+| `pageTitle` | 看板页标题 |
+| `kpiCount` / `kpiLabel` / `kpiHint` | 顶部筛选 KPI |
+| `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」 |
+| `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 

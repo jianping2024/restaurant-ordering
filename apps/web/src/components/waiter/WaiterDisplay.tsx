@@ -63,7 +63,9 @@ import {
 } from '@/lib/waiter-board-card-layout';
 import {
   WAITER_BOARD_FILTER_KPI_TONE,
+  WAITER_BOARD_LANE_CHROME,
   waiterBoardKpiToneClass,
+  waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
 
 interface Props {
@@ -124,9 +126,9 @@ function BoardKpiCard({
       onClick={onClick}
       className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${toneClass} ${activeClass}`}
     >
-      <p className="text-2xl font-semibold tabular-nums leading-none">{count}</p>
-      <p className="text-[13px] font-medium mt-1.5">{label}</p>
-      {hint ? <p className="text-[11px] opacity-80 mt-0.5">{hint}</p> : null}
+      <p className={waiterBoardType.kpiCount}>{count}</p>
+      <p className={waiterBoardType.kpiLabel}>{label}</p>
+      {hint ? <p className={waiterBoardType.kpiHint}>{hint}</p> : null}
     </button>
   );
 }
@@ -135,36 +137,25 @@ function BoardLaneTab({
   active,
   label,
   countLabel,
-  tone,
   onClick,
 }: {
   active: boolean;
   label: string;
   countLabel: string;
-  tone: 'floor' | 'party';
   onClick: () => void;
 }) {
-  const idleClass =
-    tone === 'floor'
-      ? 'border-brand-border/70 bg-brand-card/40 text-brand-text-muted hover:border-brand-gold/35 hover:text-brand-text'
-      : 'border-sky-600/25 bg-sky-500/5 text-sky-900/70 hover:border-sky-600/40 hover:bg-sky-500/10';
-  const activeClass =
-    tone === 'floor'
-      ? 'border-brand-gold/55 bg-brand-gold/12 text-brand-gold shadow-sm'
-      : 'border-sky-600/70 bg-sky-500/15 text-sky-950 shadow-sm';
-
   return (
     <button
       type="button"
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`shrink-0 rounded-lg border px-3 py-1.5 text-left transition-colors ${
-        active ? activeClass : idleClass
+      className={`${WAITER_BOARD_LANE_CHROME.base} ${
+        active ? WAITER_BOARD_LANE_CHROME.active : WAITER_BOARD_LANE_CHROME.idle
       }`}
     >
-      <span className="block max-w-[9rem] truncate text-sm font-medium">{label}</span>
-      <span className="block text-[11px] tabular-nums opacity-80">{countLabel}</span>
+      <span className={waiterBoardType.laneLabel}>{label}</span>
+      <span className={waiterBoardType.laneMeta}>{countLabel}</span>
     </button>
   );
 }
@@ -595,7 +586,7 @@ function WaiterBoardInner({
       )}
       <div className="mb-6">
         {!embeddedInDashboard ? (
-          <h1 className="font-heading text-2xl text-brand-gold mb-4">{t.boardTitle}</h1>
+          <h1 className={waiterBoardType.pageTitle}>{t.boardTitle}</h1>
         ) : null}
 
         <div className="flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
@@ -670,9 +661,6 @@ function WaiterBoardInner({
 
       {showLaneChrome ? (
         <div className="mb-4">
-          {showCreatePartyControl ? (
-            <p className="mb-2 text-xs text-brand-text-muted">{t.partyMarkerOnlyHint}</p>
-          ) : null}
           <div
             className="flex gap-2 overflow-x-auto pb-1"
             role="tablist"
@@ -683,7 +671,6 @@ function WaiterBoardInner({
               return (
                 <BoardLaneTab
                   key={key}
-                  tone="floor"
                   active={resolvedLaneKey === key}
                   label={section.title}
                   countLabel={sectionTableCountLabel(visibleIds.length)}
@@ -696,7 +683,6 @@ function WaiterBoardInner({
               return (
                 <BoardLaneTab
                   key={key}
-                  tone="party"
                   active={resolvedLaneKey === key}
                   label={party.name}
                   countLabel={t.partySectionCount.replace('{n}', String(memberCount))}
@@ -709,9 +695,11 @@ function WaiterBoardInner({
                 type="button"
                 disabled={partyBusy || isDemo}
                 onClick={() => void partyActionsRef.current?.createParty()}
-                className="shrink-0 rounded-lg border border-sky-600/40 bg-sky-500/10 px-3 py-1.5 text-sm font-medium text-sky-950 hover:bg-sky-500/15 disabled:opacity-50"
+                className={`${WAITER_BOARD_LANE_CHROME.base} ${WAITER_BOARD_LANE_CHROME.idle} disabled:opacity-50`}
               >
-                {partyBusy ? t.partyCreating : t.partyCreate}
+                <span className={waiterBoardType.laneLabel}>
+                  {partyBusy ? t.partyCreating : t.partyCreate}
+                </span>
               </button>
             ) : null}
           </div>

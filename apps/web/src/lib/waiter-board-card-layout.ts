@@ -9,9 +9,8 @@ export const WAITER_BOARD_TABLES_GRID_CLASS =
 export const WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS =
   'grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3';
 
-/** Row1 layout — table title scales down on narrow viewports. */
+/** Row1 layout — structure only; title typeface/size from `waiterBoardType.cardTitle`. */
 export const WAITER_BOARD_CARD_ROW1_LAYOUT = {
-  title: 'min-w-0 flex-1 truncate text-left text-lg sm:text-[22px] font-bold leading-tight',
   badge: 'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
 } as const;
 

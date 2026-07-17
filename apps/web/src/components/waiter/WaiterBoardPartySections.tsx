@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { UILanguage } from '@/lib/i18n';
@@ -37,7 +38,10 @@ import {
 import { postWaiterTableActionClient } from '@/lib/staff-board-client';
 import { buildVisibleWaiterBoardPartyLanes } from '@/lib/waiter-board-party-lanes';
 import { WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS } from '@/lib/waiter-board-card-layout';
-import { WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS } from '@/lib/waiter-board-card-theme';
+import {
+  WAITER_BOARD_PARTY_PANEL_CLASS,
+  WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
+} from '@/lib/waiter-board-card-theme';
 import {
   classifyWaiterTableBoardState,
   type WaiterBoardFilter,
@@ -224,7 +228,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
 
   const createParty = useCallback(async () => {
     if (isDemo) {
-      showToast(t.partyMarkerOnlyHint, 'info');
+      showToast(t.partyDemoReadonly, 'info');
       return;
     }
     setBusy(true);
@@ -256,7 +260,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
     onPartyStateChange,
     restaurantSlug,
     t.partyCreateFailed,
-    t.partyMarkerOnlyHint,
+    t.partyDemoReadonly,
     t.partyNameDuplicate,
   ]);
 
@@ -315,7 +319,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
 
   const requestOneClickMerge = (party: TablePartyGroup) => {
     if (isDemo) {
-      showToast(t.partyMarkerOnlyHint, 'info');
+      showToast(t.partyDemoReadonly, 'info');
       return;
     }
     const plan = buildPartyOneClickMergePlan(
@@ -462,12 +466,12 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
       {selectedParty ? (
         <div className="mb-6">
           <section
-            className="rounded-2xl border-[3px] border-sky-600/80 bg-sky-500/8 p-4 shadow-md"
+            className={WAITER_BOARD_PARTY_PANEL_CLASS}
             aria-label={selectedTitle}
           >
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
-                <div className="flex flex-wrap items-baseline gap-1">
+                <div className="flex flex-wrap items-baseline gap-1.5">
                   {isEditingSelected ? (
                     <input
                       type="text"
@@ -489,7 +493,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
                           cancelRename();
                         }
                       }}
-                      className="min-w-[8rem] max-w-[14rem] rounded-md border border-sky-700/40 bg-white px-2 py-0.5 text-sm font-semibold text-sky-950 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                      className="min-w-[8rem] max-w-[14rem] rounded-lg border border-brand-border bg-brand-bg px-2.5 py-1.5 text-sm font-semibold text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
                       aria-label={selectedParty.name}
                     />
                   ) : (
@@ -497,46 +501,49 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
                       type="button"
                       disabled={busy || isDemo}
                       onClick={() => beginRename(selectedParty)}
-                      className="text-left text-sm font-semibold text-sky-950 hover:underline disabled:opacity-50"
+                      className="text-left text-sm font-semibold text-brand-text hover:underline disabled:opacity-50"
                     >
                       {selectedParty.name}
                     </button>
                   )}
-                  <span className="text-sm font-semibold text-sky-950">{selectedCountLabel}</span>
+                  <span className="text-sm font-medium text-brand-text-muted">{selectedCountLabel}</span>
                 </div>
                 {selectedCheckoutHint ? (
-                  <p className="mt-0.5 text-xs text-amber-800">{selectedCheckoutHint}</p>
+                  <p className="mt-0.5 text-sm mesa-text-warning">{selectedCheckoutHint}</p>
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="soft"
+                  size="sm"
                   disabled={busy || isDemo}
                   onClick={() => {
                     setAddTarget(selectedParty);
                     setSelectedIds([]);
                     setPendingMove(null);
                   }}
-                  className="rounded-md border border-sky-700/30 bg-white/70 px-2.5 py-1 text-xs font-medium text-sky-950"
                 >
                   {t.partyAddTables}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   disabled={busy || isDemo}
                   onClick={() => requestOneClickMerge(selectedParty)}
-                  className="rounded-md border border-amber-700/35 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-950"
                 >
                   {t.partyMergeAll}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   disabled={busy || isDemo}
                   onClick={() => requestDissolve(selectedParty)}
-                  className="rounded-md border border-brand-border bg-white/50 px-2.5 py-1 text-xs text-brand-text-muted"
                 >
                   {t.partyDissolve}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -620,20 +627,24 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
           </ul>
         )}
         <div className="flex justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="soft"
+            size="sm"
             disabled={busy}
             onClick={() => {
               setAddTarget(null);
               setSelectedIds([]);
             }}
-            className="rounded-lg border border-brand-border px-3 py-2 text-sm"
           >
             {t.closeTableCancel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="gold"
+            size="sm"
             disabled={busy || selectedIds.length === 0}
+            loading={busy}
             onClick={() => {
               if (!addTarget) return;
               if (selectedIds.length === 0) {
@@ -642,10 +653,9 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
               }
               void submitAdd(addTarget.id, selectedIds, false);
             }}
-            className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {busy ? t.partyAddOperating : t.partyAddConfirm}
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -696,26 +706,29 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
         <p className="mb-1 text-center text-xs font-medium uppercase tracking-wide text-brand-text-muted">
           {t.partyMergeTargetLabel}
         </p>
-        <p className="mb-4 text-center text-4xl font-bold tracking-tight text-sky-950 sm:text-5xl">
+        <p className="mb-4 text-center font-heading text-4xl font-bold tracking-tight text-brand-text sm:text-5xl">
           {mergeConfirm?.plan.targetDisplayName ?? ''}
         </p>
         <div className="flex justify-end gap-2">
-          <button
+          <Button
             type="button"
+            variant="soft"
+            size="sm"
             disabled={busy}
             onClick={() => setMergeConfirm(null)}
-            className="rounded-lg border border-brand-border px-3 py-2 text-sm"
           >
             {t.closeTableCancel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="gold"
+            size="sm"
             disabled={busy || !mergeConfirm}
+            loading={busy}
             onClick={() => void runOneClickMerge()}
-            className="rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {busy ? t.partyMergeOperating : t.partyMergeConfirm}
-          </button>
+          </Button>
         </div>
       </Modal>
     </>

@@ -3,8 +3,11 @@ import { describe, it } from 'node:test';
 import {
   WAITER_BOARD_CARD_THEME,
   WAITER_BOARD_KPI_TONE_CLASS,
+  WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
   waiterBoardCardShellClass,
+  waiterBoardType,
 } from './waiter-board-card-theme';
 
 function assertNoMediaDark(className: string) {
@@ -13,6 +16,10 @@ function assertNoMediaDark(className: string) {
 
 function assertNoHardBlack(className: string) {
   assert.doesNotMatch(className, /\btext-black\b/);
+}
+
+function assertNoSkyPalette(className: string) {
+  assert.doesNotMatch(className, /\bsky-/);
 }
 
 describe('waiter-board-card-theme theme tokens', () => {
@@ -30,6 +37,7 @@ describe('waiter-board-card-theme theme tokens', () => {
       assertNoHardBlack(theme.meta);
       assert.match(theme.title, /text-brand-text/);
       assert.match(theme.meta, /text-brand-text/);
+      assert.equal(theme.row3, waiterBoardType.cardRow3);
     }
   });
 
@@ -40,5 +48,20 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.dining, 'mesa-badge-danger');
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.checkout, 'mesa-badge-warning');
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.idle, 'mesa-badge-success');
+  });
+
+  it('board type and lane chrome use brand tokens only (no sky palette)', () => {
+    assert.match(waiterBoardType.cardTitle, /font-heading/);
+    assert.match(waiterBoardType.kpiCount, /text-brand-text/);
+    assert.match(WAITER_BOARD_LANE_CHROME.active, /brand-gold/);
+    assert.match(WAITER_BOARD_PARTY_PANEL_CLASS, /brand-gold/);
+    for (const className of [
+      ...Object.values(waiterBoardType),
+      ...Object.values(WAITER_BOARD_LANE_CHROME),
+      WAITER_BOARD_PARTY_PANEL_CLASS,
+    ]) {
+      assertNoSkyPalette(className);
+      assertNoMediaDark(className);
+    }
   });
 });

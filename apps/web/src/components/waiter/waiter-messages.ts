@@ -102,7 +102,7 @@ export const WAITER_TEXT = {
     partyNameInvalid: '组名需 1–32 个字符',
     partyAddFailed: '添加桌失败',
     partySelectTables: '请先选择桌位',
-    partyMarkerOnlyHint: '看板标记；组内桌详情不可转台/并台。组头可一键合并用餐中桌。',
+    partyDemoReadonly: '演示模式不可修改同行组',
     partyBlocksTransferMerge: '该桌在同行组内，请先移出后再转台或并台',
     checkoutLockedHint: '该桌正在结账，请通知收银收款。',
     checkoutToast: '桌 {table} 顾客已呼叫结账',
@@ -235,8 +235,7 @@ export const WAITER_TEXT = {
     partyNameInvalid: 'Name must be 1–32 characters',
     partyAddFailed: 'Could not add tables',
     partySelectTables: 'Select at least one table',
-    partyMarkerOnlyHint:
-      'Board marker; table detail blocks transfer/merge. Use group Merge dining for open tables.',
+    partyDemoReadonly: 'Demo mode — together-groups are read-only',
     partyBlocksTransferMerge: 'This table is in a together-group — remove it before transfer or merge',
     checkoutLockedHint: 'Checkout in progress — notify cashier to collect payment.',
     checkoutToast: 'Table {table}: guests requested checkout',
@@ -369,8 +368,7 @@ export const WAITER_TEXT = {
     partyNameInvalid: 'Nome com 1–32 caracteres',
     partyAddFailed: 'Falha ao adicionar mesas',
     partySelectTables: 'Selecione pelo menos uma mesa',
-    partyMarkerOnlyHint:
-      'Marcacao no quadro; detalhe bloqueia trocar/unir. Use Unir a comer no grupo.',
+    partyDemoReadonly: 'Modo demo — grupos juntos so de leitura',
     partyBlocksTransferMerge: 'Esta mesa esta num grupo juntos — remova-a antes de trocar ou unir',
     checkoutLockedHint: 'Conta em fechamento — avise o caixa para receber.',
     checkoutToast: 'Mesa {table}: clientes pediram a conta',

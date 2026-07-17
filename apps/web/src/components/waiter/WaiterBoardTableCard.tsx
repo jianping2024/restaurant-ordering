@@ -18,6 +18,7 @@ import {
 import {
   WAITER_BOARD_CARD_THEME,
   waiterBoardCardShellClass,
+  waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -98,7 +99,7 @@ export function WaiterBoardTableCard({
   const body = (
     <>
       <div className="flex items-start justify-between gap-2 min-h-[1.25rem]">
-        <p className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.title} ${theme.title}`}>
+        <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>
           {view.row1.tableTitle}
         </p>
         <span className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.badge} ${theme.badge}`}>

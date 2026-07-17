@@ -145,7 +145,7 @@ export function groupTableIdsByGroupId(
 
 export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   cards: T[],
-  tables: RestaurantTableRow[],
+  tables: readonly RestaurantTableRow[],
   checkoutRequestedTableIds: readonly string[],
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
 ): T[] {

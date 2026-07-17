@@ -68,7 +68,7 @@ export function waiterBoardSummaryToSortInput(
 
 export function sortWaiterBoardTableSummaries(
   summaries: WaiterBoardTableSummary[],
-  tables: RestaurantTableRow[],
+  tables: readonly RestaurantTableRow[],
   checkoutRequestedTableIds: readonly string[],
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
 ): WaiterBoardTableSummary[] {

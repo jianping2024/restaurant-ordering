@@ -72,8 +72,8 @@ export function CheckoutPersonShareExpandable({
                 className="flex items-center justify-between gap-2 px-3 py-1.5 border-b border-brand-border/40 last:border-0"
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                  <span className="text-brand-text text-[13px] truncate">{line.label || '—'}</span>
-                  <span className="text-brand-text-muted text-[12px]">{line.quantityLabel}</span>
+                  <span className="text-brand-text text-[13px] font-medium truncate">{line.label || '—'}</span>
+                  <span className="text-brand-text text-[12px] tabular-nums">{line.quantityLabel}</span>
                 </div>
                 <span className="text-brand-text text-[13px] tabular-nums shrink-0">
                   €{line.shareAmount.toFixed(2)}

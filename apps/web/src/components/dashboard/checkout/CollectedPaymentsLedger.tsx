@@ -123,8 +123,8 @@ export function CollectedPaymentsLedger({
         })}
       </div>
       <div className="flex items-center justify-between text-[12px] mt-1.5 pt-1.5 border-t border-brand-border/30">
-        <span className="text-brand-text-muted">{t.collectedPaymentsTotal}</span>
-        <span className="text-brand-text tabular-nums font-medium">
+        <span className="text-brand-text font-medium">{t.collectedPaymentsTotal}</span>
+        <span className="text-brand-text tabular-nums font-semibold">
           €{totalCollectedAmount(payments).toFixed(2)}
         </span>
       </div>

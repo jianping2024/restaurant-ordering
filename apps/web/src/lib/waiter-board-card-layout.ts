@@ -17,10 +17,10 @@ export const WAITER_BOARD_CARD_ROW1_LAYOUT = {
 
 /** Row2 layout — seat capacity with leading dual-person icon. */
 export const WAITER_BOARD_CARD_ROW2_LAYOUT = {
-  row: 'mt-1.5 flex min-h-[1rem] items-center justify-between gap-2 text-xs',
-  capacity: 'flex min-w-0 items-center gap-1 truncate text-black',
-  capacityIcon: 'h-3.5 w-3.5 shrink-0 text-black',
-  guestCount: 'min-w-[2.75rem] shrink-0 text-right tabular-nums text-black',
+  row: 'mt-1.5 flex min-h-[1rem] items-center justify-between gap-2 text-xs text-brand-text',
+  capacity: 'flex min-w-0 items-center gap-1 truncate text-brand-text',
+  capacityIcon: 'h-3.5 w-3.5 shrink-0 text-brand-text',
+  guestCount: 'min-w-[2.75rem] shrink-0 text-right tabular-nums text-brand-text',
 } as const;
 
 /** Row3 layout — duration (left) and amount (right) on one row at all breakpoints. */

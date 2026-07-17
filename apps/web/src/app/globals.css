@@ -5,15 +5,17 @@
 :root {
   --font-cormorant: 'Cormorant Garamond', serif;
   --font-jost: 'Jost', sans-serif;
+  --font-cjk-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   --color-brand-bg: 15 14 12;
   --color-brand-card: 26 24 20;
   --color-brand-gold: 212 168 67;
   --color-brand-gold-light: 232 192 106;
   --color-brand-gold-dark: 184 144 47;
-  --color-brand-muted: 107 101 96;
+  --color-brand-muted: 168 160 148;
   --color-brand-border: 42 37 32;
-  --color-brand-text: 245 240 232;
-  --color-brand-text-muted: 155 148 138;
+  /* Near-white primary copy — dishes, amounts, table ids must stay on brand-text. */
+  --color-brand-text: 250 247 240;
+  --color-brand-text-muted: 198 190 178;
   --color-on-gold: 15 14 12;
   --color-status-warning-fg: 253 230 138;
   --color-status-warning-bg: 69 45 12;
@@ -30,22 +32,23 @@
 [data-theme='light'] {
   --color-brand-bg: 247 244 237;
   --color-brand-card: 255 252 246;
-  --color-brand-gold: 142 102 11;
-  --color-brand-gold-light: 172 126 22;
-  --color-brand-gold-dark: 112 80 8;
-  --color-brand-muted: 108 98 86;
-  --color-brand-border: 210 198 180;
-  --color-brand-text: 42 34 24;
-  --color-brand-text-muted: 88 76 62;
+  --color-brand-gold: 122 86 8;
+  --color-brand-gold-light: 152 110 16;
+  --color-brand-gold-dark: 96 68 6;
+  --color-brand-muted: 72 62 50;
+  --color-brand-border: 198 184 164;
+  /* Near-black primary copy — never use muted/gray for dishes or money. */
+  --color-brand-text: 18 14 10;
+  --color-brand-text-muted: 52 44 34;
   --color-on-gold: 255 255 255;
-  --color-status-warning-fg: 120 53 15;
-  --color-status-warning-bg: 255 247 237;
+  --color-status-warning-fg: 92 40 8;
+  --color-status-warning-bg: 255 243 224;
   --color-status-warning-border: 180 83 9;
-  --color-status-success-fg: 6 95 70;
-  --color-status-success-bg: 236 253 245;
-  --color-status-success-border: 5 150 105;
-  --color-status-danger-fg: 153 27 27;
-  --color-status-danger-bg: 254 242 242;
+  --color-status-success-fg: 4 72 52;
+  --color-status-success-bg: 220 245 232;
+  --color-status-success-border: 5 130 90;
+  --color-status-danger-fg: 127 20 20;
+  --color-status-danger-bg: 252 232 232;
   --color-status-danger-border: 185 28 28;
   --auth-pattern-opacity: 0.08;
 }
@@ -57,7 +60,7 @@
 body {
   background-color: rgb(var(--color-brand-bg));
   color: rgb(var(--color-brand-text));
-  font-family: var(--font-jost), sans-serif;
+  font-family: var(--font-jost), var(--font-cjk-sans);
   font-size: 16px;
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
@@ -145,6 +148,82 @@ body {
     background-color: rgb(var(--color-status-danger-border) / 0.12);
     border: 1px solid rgb(var(--color-status-danger-border) / 0.35);
   }
+}
+
+/*
+ * Waiter board shells — literal colors per data-theme (no rgb(var()) on
+ * background: Chromium can keep a stale resolved background across theme flips).
+ * RGB values mirror --color-status-* in :root / [data-theme=light].
+ * Card copy stays brand-text.
+ */
+[data-theme='light'] .mesa-board-shell-dining {
+  border-color: rgb(185 28 28 / 0.5);
+  background-color: rgb(252 232 232);
+}
+[data-theme='dark'] .mesa-board-shell-dining {
+  border-color: rgb(239 68 68 / 0.5);
+  background-color: rgb(60 24 24);
+}
+[data-theme='light'] .mesa-board-shell-checkout {
+  border-color: rgb(180 83 9 / 0.5);
+  background-color: rgb(255 243 224);
+}
+[data-theme='dark'] .mesa-board-shell-checkout {
+  border-color: rgb(217 119 6 / 0.5);
+  background-color: rgb(69 45 12);
+}
+[data-theme='light'] .mesa-board-shell-idle {
+  border-color: rgb(5 130 90 / 0.5);
+  background-color: rgb(220 245 232);
+}
+[data-theme='dark'] .mesa-board-shell-idle {
+  border-color: rgb(34 197 94 / 0.5);
+  background-color: rgb(20 48 32);
+}
+[data-theme='light'] a.mesa-board-shell-dining:hover,
+[data-theme='light'] button.mesa-board-shell-dining:hover {
+  border-color: rgb(185 28 28 / 0.8);
+}
+[data-theme='dark'] a.mesa-board-shell-dining:hover,
+[data-theme='dark'] button.mesa-board-shell-dining:hover {
+  border-color: rgb(239 68 68 / 0.8);
+}
+[data-theme='light'] a.mesa-board-shell-checkout:hover,
+[data-theme='light'] button.mesa-board-shell-checkout:hover {
+  border-color: rgb(180 83 9 / 0.8);
+}
+[data-theme='dark'] a.mesa-board-shell-checkout:hover,
+[data-theme='dark'] button.mesa-board-shell-checkout:hover {
+  border-color: rgb(217 119 6 / 0.8);
+}
+[data-theme='light'] a.mesa-board-shell-idle:hover,
+[data-theme='light'] button.mesa-board-shell-idle:hover {
+  border-color: rgb(5 130 90 / 0.8);
+}
+[data-theme='dark'] a.mesa-board-shell-idle:hover,
+[data-theme='dark'] button.mesa-board-shell-idle:hover {
+  border-color: rgb(34 197 94 / 0.8);
+}
+
+[data-theme='light'] .mesa-board-footer-dining,
+[data-theme='dark'] .mesa-board-footer-dining {
+  border-color: rgb(var(--color-status-danger-border) / 0.8);
+  color: rgb(var(--color-brand-text));
+}
+[data-theme='light'] .mesa-board-footer-checkout,
+[data-theme='dark'] .mesa-board-footer-checkout {
+  border-color: rgb(var(--color-status-warning-border) / 0.8);
+  color: rgb(var(--color-brand-text));
+}
+[data-theme='light'] .mesa-board-footer-idle,
+[data-theme='dark'] .mesa-board-footer-idle {
+  border-color: rgb(var(--color-status-success-border) / 0.8);
+  color: rgb(var(--color-brand-text));
+}
+.group:hover .mesa-board-footer-dining,
+.group:hover .mesa-board-footer-checkout,
+.group:hover .mesa-board-footer-idle {
+  background-color: rgb(var(--color-brand-text) / 0.04);
 }
 
 @layer utilities {

@@ -112,8 +112,8 @@ export function CartDrawer({
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <span className="text-2xl">{item.emoji}</span>
                   <div className="min-w-0">
-                    <p className="text-brand-text text-sm font-medium truncate">{getName(item)}</p>
-                    <p className="text-brand-gold text-[13px]">€{lineTotal(item).toFixed(2)}</p>
+                    <p className="text-brand-text text-sm font-semibold truncate">{getName(item)}</p>
+                    <p className="text-brand-gold text-[13px] font-semibold tabular-nums">€{lineTotal(item).toFixed(2)}</p>
                   </div>
                 </div>
                 <CartQtyStepper
@@ -184,7 +184,7 @@ export function CartDrawer({
         {/* 底部结算 */}
         <div className="px-5 py-4 border-t border-brand-border">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-brand-text-muted text-sm">{text.total}</span>
+            <span className="text-brand-text text-sm font-medium">{text.total}</span>
             <span className="font-heading text-2xl text-brand-gold">€{cartTotal.toFixed(2)}</span>
           </div>
           <Button

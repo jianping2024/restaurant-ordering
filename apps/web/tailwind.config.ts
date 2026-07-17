@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Follow app ThemeProvider (`data-theme`), not OS prefers-color-scheme.
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -29,8 +31,22 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ["var(--font-cormorant)", "serif"],
-        body: ["var(--font-jost)", "sans-serif"],
+        heading: [
+          "var(--font-cormorant)",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Noto Sans SC",
+          "Microsoft YaHei",
+          "serif",
+        ],
+        body: [
+          "var(--font-jost)",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Noto Sans SC",
+          "Microsoft YaHei",
+          "sans-serif",
+        ],
       },
       maxWidth: {
         mobile: "430px",

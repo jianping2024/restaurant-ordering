@@ -108,7 +108,7 @@ export function BillCheckoutSubmittedScreen({
         </section>
 
         <section className="bg-brand-card border border-brand-border rounded-xl px-4 py-5 text-center">
-          <p className="text-[13px] text-brand-text-muted">{copy.totalLabel}</p>
+          <p className="text-[13px] font-medium text-brand-text">{copy.totalLabel}</p>
           <p className="font-heading text-3xl text-brand-gold mt-1">€{total.toFixed(2)}</p>
         </section>
 

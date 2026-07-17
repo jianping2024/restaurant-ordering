@@ -287,7 +287,7 @@ export function CheckoutRequestDetail({
                         {localizeSplitPersonName(row.name, lang)}
                       </span>
                       {showOwedTotal ? (
-                        <p className="text-[11px] text-brand-text-muted tabular-nums mt-0.5">
+                        <p className="text-[11px] text-brand-text tabular-nums mt-0.5">
                           {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
                           {' · '}
                           {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
@@ -356,17 +356,17 @@ export function CheckoutRequestDetail({
                   className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/40 last:border-0"
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                    <span className="text-brand-text text-sm truncate">{line.label || '—'}</span>
-                    <span className="text-brand-text-muted text-[13px]">{line.quantityLabel}</span>
+                    <span className="text-brand-text text-sm font-medium truncate">{line.label || '—'}</span>
+                    <span className="text-brand-text text-[13px] tabular-nums">{line.quantityLabel}</span>
                   </div>
-                  <span className="text-brand-text text-sm tabular-nums shrink-0">
+                  <span className="text-brand-text text-sm font-semibold tabular-nums shrink-0">
                     €{line.lineTotal.toFixed(2)}
                   </span>
                 </div>
               ))}
               <div className="flex items-center justify-between px-3 py-2 bg-brand-border/25 text-sm">
-                <span className="text-brand-text-muted">{t.orderItemsTotal}</span>
-                <span className="text-brand-text tabular-nums">
+                <span className="text-brand-text font-medium">{t.orderItemsTotal}</span>
+                <span className="text-brand-text font-semibold tabular-nums">
                   €{request.total_amount.toFixed(2)}
                 </span>
               </div>

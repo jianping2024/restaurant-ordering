@@ -48,14 +48,14 @@ export function MenuItemCard({ item, lang, cartQty, onIncrement, onDecrement }: 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-brand-text font-medium text-sm leading-tight">{name}</h3>
+            <h3 className="text-brand-text font-semibold text-sm leading-tight">{name}</h3>
             {desc && (
               <p className="text-brand-text-muted text-[13px] mt-1 leading-relaxed line-clamp-2">{desc}</p>
             )}
           </div>
         </div>
         <div className="flex items-center justify-between mt-3">
-          <span className="text-brand-gold font-semibold">€{item.price.toFixed(2)}</span>
+          <span className="text-brand-gold font-semibold tabular-nums">€{item.price.toFixed(2)}</span>
 
           {item.available ? (
             cartQty > 0 ? (

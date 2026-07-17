@@ -25,7 +25,7 @@ export const customerMenuBottomBarIconGapClass = 'gap-4';
 
 export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-gold';
 
-export const customerMenuBottomBarAmountLabelClass = 'text-sm text-brand-text-muted';
+export const customerMenuBottomBarAmountLabelClass = 'text-sm font-medium text-brand-text';
 
 export const customerMenuBottomBarAmountValueClass =
   'font-heading text-lg font-semibold tabular-nums text-brand-text';

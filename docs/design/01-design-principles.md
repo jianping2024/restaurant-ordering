@@ -119,18 +119,20 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `brand-card` | 卡片、抽屉、Modal 底 |
 | `brand-border` | 分割线、边框 |
 | `brand-gold` | 主色、强调金额、标题点缀 |
-| `brand-text` / `brand-text-muted` | 正文 / 辅助 |
-| `font-heading` | 餐馆品牌感标题字体 |
+| `brand-text` | **正文主色**（菜品名、金额、桌号、时长必须用此色，禁止灰/`muted`） |
+| `brand-text-muted` | 仅次要说明 / 占位 / 非关键标签 |
+| `font-heading` / `font-body` | 标题 / 正文；CJK 回退由 Tailwind + `globals.css` 统一 |
 
-支持 **明/暗主题**（`ThemeProvider`）；改色须同时检查两套 CSS 变量。
+支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
-状态色（业务语义，非品牌令牌）：
+状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：
 
-- 待结账：amber（`checkout`）
-- 用餐中（占用）：rose（`dining`）
-- 空闲（可用）：emerald（`idle`）
-- 成功/收款：green（`mesa-badge-success`、`emerald-600`）
-- 危险：red（`Button danger`、未完成分单进度 `red-500`）
+- 待结账 `checkout`：warning（琥珀）
+- 用餐中 `dining`：danger（红）
+- 空闲 `idle`：success（绿）
+- 看板卡片壳：`mesa-board-shell-*`（按 `data-theme` 分条声明，色值与 `--color-status-*` 对齐）；正文一律 `brand-text`，状态色只用于壳/徽章/边框
+- 成功/收款：`mesa-badge-success`
+- 危险操作：`Button danger` / `mesa-text-danger`
 
 ---
 
@@ -138,11 +140,12 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 1. 主操作是否一眼可见？
 2. 手机单列是否可完成全流程？
-3. 金额是否 `tabular-nums` 且对齐？
+3. 金额是否 `tabular-nums` 且对齐？菜品名/金额是否为 `brand-text` 或 `brand-gold`（非灰）？
 4. 危险操作是否有确认 + 原因？
 5. 文案是否三语？
-6. 是否复用 `components/ui/*`？
+6. 是否复用 `components/ui/*` 与 status/`mesa-*` 令牌（不另起一套 Tailwind 色盘 + `dark:` media）？
 7. 是否破坏结账/看板/账单页已有信息顺序（见 layout-patterns）？
+8. 明暗主题切换后，关键文字对比度是否仍清晰？
 
 ---
 

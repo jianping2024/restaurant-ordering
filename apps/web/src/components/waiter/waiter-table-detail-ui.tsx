@@ -48,8 +48,8 @@ export const waiterDetailLayout = {
    * `gap-8` is the name↔qty breath (~eight spaces / prior gap-3 + five); qty↔minus stays tight via orderedItemActions.
    */
   orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
-  orderedItemLabel: 'min-w-0 truncate text-lg text-brand-text',
-  orderedItemQty: 'shrink-0 text-lg text-brand-text tabular-nums',
+  orderedItemLabel: 'min-w-0 truncate text-lg font-semibold text-brand-text',
+  orderedItemQty: 'shrink-0 text-lg font-semibold text-brand-text tabular-nums',
   orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;
 

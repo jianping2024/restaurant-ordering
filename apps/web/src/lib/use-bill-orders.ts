@@ -10,9 +10,11 @@ export type BillOrdersRefresh = {
   partyMemberCount: number;
 };
 
-/** While the bill page stays visible, pull authority via the same syncOrders path (customers cannot RLS-subscribe to orders). */
-const BILL_ORDERS_VISIBLE_POLL_MS = 2500;
-
+/**
+ * Customer bill order read-model: one authority path (`syncOrders` → customer/bill).
+ * Triggers: entry / visibility resume / call-bill gate — no visible-tab polling
+ * (aligned with MenuPage and checkout-resume docs).
+ */
 export function useBillOrders(
   initialOrders: Order[],
   params: {
@@ -82,37 +84,6 @@ export function useBillOrders(
 
   // Entry + visibility resume: same syncOrders authority (menu → bill may reuse stale RSC).
   useRestaurantStaffEntryReconcile(true, syncOrders, params.tableId);
-
-  // Visible poll: customers have no orders Realtime (RLS); keep one sync path while the tab is open.
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
-
-    const clear = () => {
-      if (!timer) return;
-      clearInterval(timer);
-      timer = null;
-    };
-
-    const arm = () => {
-      if (timer || document.visibilityState !== 'visible') return;
-      timer = setInterval(() => {
-        if (document.visibilityState !== 'visible') return;
-        void syncOrders();
-      }, BILL_ORDERS_VISIBLE_POLL_MS);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') arm();
-      else clear();
-    };
-
-    arm();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      clear();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [syncOrders]);
 
   return {
     orders,

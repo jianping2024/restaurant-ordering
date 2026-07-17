@@ -7,6 +7,7 @@ import {
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
   nextPrependSortOrder,
+  PARTY_DEFAULT_LOGIN_FALLBACK,
   partyHasNameConflict,
   sortTablePartyGroups,
   type TablePartyGroup,
@@ -78,17 +79,48 @@ async function reloadResult(
 
 const CREATE_NAME_RETRY_LIMIT = 8;
 
+async function resolvePartyCreatorLoginName(
+  admin: SupabaseClient,
+  restaurantId: string,
+  userId: string,
+): Promise<string> {
+  const { data, error } = await admin
+    .from('restaurant_staff_accounts')
+    .select('login_name')
+    .eq('restaurant_id', restaurantId)
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('[resolvePartyCreatorLoginName]', {
+      restaurantId,
+      userId,
+      message: error.message,
+    });
+    return PARTY_DEFAULT_LOGIN_FALLBACK;
+  }
+  const login = typeof data?.login_name === 'string' ? data.login_name.trim() : '';
+  return login.length > 0 ? login : PARTY_DEFAULT_LOGIN_FALLBACK;
+}
+
 export async function createTablePartyGroup(
   admin: SupabaseClient,
   restaurantId: string,
+  actorUserId: string,
   nameInput?: unknown,
 ): Promise<TablePartyMutationResult> {
   const customName = normalizePartyName(nameInput);
+  const loginName = customName
+    ? null
+    : await resolvePartyCreatorLoginName(admin, restaurantId, actorUserId);
 
   for (let attempt = 0; attempt < CREATE_NAME_RETRY_LIMIT; attempt += 1) {
     const existing = await loadTablePartyGroups(admin, restaurantId);
     const name =
-      customName ?? nextAvailableTablePartyName(existing.parties.map((p) => p.name));
+      customName ??
+      nextAvailableTablePartyName(
+        loginName ?? PARTY_DEFAULT_LOGIN_FALLBACK,
+        existing.parties.map((p) => p.name),
+      );
 
     if (partyHasNameConflict(existing.parties, name)) {
       if (customName) {

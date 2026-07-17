@@ -77,7 +77,12 @@ export async function POST(
   const action = body.action;
   let result;
   if (action === 'create') {
-    result = await createTablePartyGroup(admin, ctx.restaurant_id, body.name);
+    result = await createTablePartyGroup(
+      admin,
+      ctx.restaurant_id,
+      ctx.user_id,
+      body.name,
+    );
   } else if (action === 'rename') {
     result = await renameTablePartyGroup(
       admin,

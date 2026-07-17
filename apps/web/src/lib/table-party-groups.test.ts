@@ -7,9 +7,11 @@ import {
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
   nextPrependSortOrder,
+  partyDefaultNameLoginPrefix,
   partyHasNameConflict,
   partyIdForTable,
   partyNameKey,
+  PARTY_DEFAULT_LOGIN_FALLBACK,
   tablePartyMemberTableIds,
 } from './table-party-groups';
 import { buildWaiterBoardStateContext } from './waiter-board-session';
@@ -48,11 +50,27 @@ describe('table-party-groups', () => {
     assert.equal(countCheckoutTablesInParties(ids, [T1, T4]), 1);
   });
 
-  it('allocates the next free Together N (case-insensitive)', () => {
-    assert.equal(nextAvailableTablePartyName([]), 'Together 1');
-    assert.equal(nextAvailableTablePartyName(['Together 1']), 'Together 2');
-    assert.equal(nextAvailableTablePartyName(['together 1', 'Together 3']), 'Together 2');
+  it('allocates login-together-N defaults (case-insensitive, per prefix)', () => {
+    assert.equal(nextAvailableTablePartyName('alice', []), 'alice-together-1');
+    assert.equal(
+      nextAvailableTablePartyName('alice', ['alice-together-1']),
+      'alice-together-2',
+    );
+    assert.equal(
+      nextAvailableTablePartyName('alice', ['ALICE-together-1', 'alice-together-3']),
+      'alice-together-2',
+    );
+    assert.equal(nextAvailableTablePartyName('bob', ['alice-together-1']), 'bob-together-1');
     assert.equal(partyNameKey('  AbC  '), 'abc');
+    assert.equal(partyDefaultNameLoginPrefix(''), PARTY_DEFAULT_LOGIN_FALLBACK);
+    assert.equal(
+      nextAvailableTablePartyName(PARTY_DEFAULT_LOGIN_FALLBACK, []),
+      'owner-together-1',
+    );
+    const longLogin = 'a'.repeat(40);
+    const prefixed = nextAvailableTablePartyName(longLogin, []);
+    assert.ok(prefixed.length <= 32);
+    assert.match(prefixed, /-together-1$/);
   });
 
   it('detects case-insensitive party name conflicts', () => {

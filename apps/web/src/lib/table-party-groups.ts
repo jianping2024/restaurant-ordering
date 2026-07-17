@@ -73,17 +73,44 @@ export function partyHasNameConflict(
   );
 }
 
+/** Fallback when the actor has no staff login_name (e.g. restaurant owner). */
+export const PARTY_DEFAULT_LOGIN_FALLBACK = 'owner';
+
+const PARTY_NAME_MAX_LEN = 32;
+/** `-together-` plus up to 5 digits for N ≤ 10000. */
+const PARTY_DEFAULT_SUFFIX_BUDGET = '-together-'.length + 5;
+
 /**
- * Next free default label `Together N` among existing names (case-insensitive).
- * Does not use party count — concurrent creates must not share an estimated index.
+ * Sanitize login for default party names and truncate so
+ * `{prefix}-together-{N}` always fits in 32 characters.
  */
-export function nextAvailableTablePartyName(existingNames: readonly string[]): string {
+export function partyDefaultNameLoginPrefix(loginName: string): string {
+  const cleaned = loginName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '');
+  const base = cleaned.length > 0 ? cleaned : PARTY_DEFAULT_LOGIN_FALLBACK;
+  const maxPrefix = Math.max(1, PARTY_NAME_MAX_LEN - PARTY_DEFAULT_SUFFIX_BUDGET);
+  return base.slice(0, maxPrefix);
+}
+
+/**
+ * Next free default label `{login}-together-{N}` among existing names
+ * (case-insensitive). Scoped per login prefix so concurrent creators rarely collide.
+ */
+export function nextAvailableTablePartyName(
+  loginName: string,
+  existingNames: readonly string[],
+): string {
+  const prefix = partyDefaultNameLoginPrefix(loginName);
   const taken = new Set(existingNames.map(partyNameKey));
   for (let n = 1; n <= 10_000; n += 1) {
-    const candidate = `Together ${n}`;
+    const candidate = `${prefix}-together-${n}`;
+    if (candidate.length > PARTY_NAME_MAX_LEN) break;
     if (!taken.has(partyNameKey(candidate))) return candidate;
   }
-  return `Together ${Date.now()}`;
+  const fallback = `${prefix}-together-${Date.now()}`.slice(0, PARTY_NAME_MAX_LEN);
+  return fallback.length >= 1 ? fallback : PARTY_DEFAULT_LOGIN_FALLBACK;
 }
 
 /** Tables already in another party (not `targetPartyId`). */

@@ -9,15 +9,19 @@ import {
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
+  commitAuthoritativeWaiterTablePageModel,
   releaseWaiterBoardTableBridge,
 } from '@/lib/waiter-staff-mutation-sync';
 import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-relocation-board';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 
 export type WaiterBoardContextValue = ReturnType<typeof useWaiterOrders> & {
   /** Drop optimistic bridge for affected tables, then pull Staff board API. */
   refreshBoardAfterStaffMutation: (tableIds: readonly string[]) => Promise<void>;
   /** Patch board from relocation model, clear source bridge only, refresh in background. */
   reconcileBoardAfterSessionRelocation: (input: WaiterSessionRelocationBoardInput) => void;
+  /** Apply POST open-table model to board read-model without a board refresh. */
+  applyOpenTableToBoard: (model: WaiterTablePageModel) => void;
   /** @deprecated Prefer refreshBoardAfterStaffMutation */
   refreshAfterTableMutation: (tableId: string) => Promise<void>;
 };
@@ -102,6 +106,14 @@ function WaiterBoardProviderInner({
     [refresh, store],
   );
 
+  const applyOpenTableToBoard = useCallback(
+    (model: WaiterTablePageModel) => {
+      commitAuthoritativeWaiterTablePageModel(model);
+      store.applyBoardFromPublished();
+    },
+    [store],
+  );
+
   const refreshAfterTableMutation = useCallback(
     async (tableId: string) => {
       await refreshBoardAfterStaffMutation([tableId]);
@@ -113,6 +125,7 @@ function WaiterBoardProviderInner({
     ...store,
     refreshBoardAfterStaffMutation,
     reconcileBoardAfterSessionRelocation,
+    applyOpenTableToBoard,
     refreshAfterTableMutation,
   };
 

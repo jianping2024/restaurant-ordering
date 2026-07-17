@@ -31,6 +31,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
   bootstrapWaiterBoardData,
   clearConfirmedPublishedWaiterTablePageModels,
+  mergePublishedModelsIntoWaiterBoard,
   reconcileWaiterBoardWithPublished,
 } from '@/lib/waiter-staff-mutation-sync';
 import {
@@ -205,30 +206,21 @@ export function useWaiterOrders(
     [],
   );
 
-  const applySessionRelocationPatch = useCallback(
-    (input: WaiterSessionRelocationBoardInput) => {
-      applyWaiterBoardData(
-        applyWaiterSessionRelocationToBoard(
-          {
-            sessionMetaByTableId,
-            checkoutRequestedTableIds,
-            checkoutRequestedAtByTableId,
-            tables,
-            groups,
-            members,
-            parties,
-            partyMembers,
-            tableSummaries,
-            restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
-            openTableDefaults,
-          },
-          input,
-        ),
-        boardSetters,
-      );
-    },
+  const currentBoardSnapshot = useCallback(
+    (): WaiterBoardData => ({
+      sessionMetaByTableId,
+      checkoutRequestedTableIds,
+      checkoutRequestedAtByTableId,
+      tables,
+      groups,
+      members,
+      parties,
+      partyMembers,
+      tableSummaries,
+      restaurantHasActiveBuffets: boardSupportsBuffetOpenTable(openTableDefaults),
+      openTableDefaults,
+    }),
     [
-      boardSetters,
       checkoutRequestedAtByTableId,
       checkoutRequestedTableIds,
       groups,
@@ -240,6 +232,23 @@ export function useWaiterOrders(
       tableSummaries,
       tables,
     ],
+  );
+
+  const applyBoardFromPublished = useCallback(() => {
+    applyWaiterBoardData(
+      mergePublishedModelsIntoWaiterBoard(currentBoardSnapshot()),
+      boardSetters,
+    );
+  }, [boardSetters, currentBoardSnapshot]);
+
+  const applySessionRelocationPatch = useCallback(
+    (input: WaiterSessionRelocationBoardInput) => {
+      applyWaiterBoardData(
+        applyWaiterSessionRelocationToBoard(currentBoardSnapshot(), input),
+        boardSetters,
+      );
+    },
+    [boardSetters, currentBoardSnapshot],
   );
 
   useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refresh);
@@ -270,6 +279,7 @@ export function useWaiterOrders(
     supportsBuffetOpenTable,
     refresh,
     applyPartyState,
+    applyBoardFromPublished,
     applySessionRelocationPatch,
     supabase,
   };

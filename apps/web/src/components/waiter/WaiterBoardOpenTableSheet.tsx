@@ -11,6 +11,7 @@ import {
 } from '@/lib/waiter-board-open-table';
 import type { UILanguage } from '@/lib/i18n';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   openTableSheetLayout,
   WaiterTableSecondaryButton,
@@ -19,7 +20,8 @@ import {
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onOpenTableSuccess: (model: WaiterTablePageModel) => void;
+  onStaleBoard: () => void;
   restaurant: { id: string; name: string; slug: string };
   tableId: string;
   displayName: string;
@@ -31,7 +33,8 @@ type Props = {
 export function WaiterBoardOpenTableSheet({
   open,
   onClose,
-  onSuccess,
+  onOpenTableSuccess,
+  onStaleBoard,
   restaurant,
   tableId,
   displayName,
@@ -78,7 +81,8 @@ export function WaiterBoardOpenTableSheet({
         tableId={tableId}
         lang={lang}
         onClose={onClose}
-        onSuccess={onSuccess}
+        onOpenTableSuccess={onOpenTableSuccess}
+        onStaleBoard={onStaleBoard}
       />
     );
   })();

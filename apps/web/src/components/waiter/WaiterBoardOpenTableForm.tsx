@@ -26,7 +26,8 @@ type Props = {
   tableId: string;
   lang: UILanguage;
   onClose: () => void;
-  onSuccess: () => void;
+  onOpenTableSuccess: (model: WaiterTablePageModel) => void;
+  onStaleBoard: () => void;
 };
 
 export function WaiterBoardOpenTableForm({
@@ -35,7 +36,8 @@ export function WaiterBoardOpenTableForm({
   tableId,
   lang,
   onClose,
-  onSuccess,
+  onOpenTableSuccess,
+  onStaleBoard,
 }: Props) {
   const t = WAITER_TEXT[lang];
   const supabase = useMemo(() => createClient(), []);
@@ -92,11 +94,16 @@ export function WaiterBoardOpenTableForm({
 
   const handleSubmit = useCallback(async () => {
     const result = await submit();
-    if (result === 'success' || result === 'already_open') {
-      onSuccess();
+    if (result.kind === 'success') {
+      onOpenTableSuccess(result.model);
+      onClose();
+      return;
+    }
+    if (result.kind === 'already_open') {
+      onStaleBoard();
       onClose();
     }
-  }, [onClose, onSuccess, submit]);
+  }, [onClose, onOpenTableSuccess, onStaleBoard, submit]);
 
   return (
     <div className={openTableSheetLayout.stack}>

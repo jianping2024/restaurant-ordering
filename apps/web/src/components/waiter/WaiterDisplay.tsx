@@ -44,6 +44,7 @@ import {
 } from '@/lib/waiter-board-snapshot';
 import { tableIdsEqual, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterBoardOpenTableDefaults } from '@/lib/staff-board';
+import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { waiterTableHref } from '@/lib/staff-routes';
 import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
@@ -230,15 +231,31 @@ function WaiterBoardInner({
     refresh,
     applyPartyState,
     applySessionRelocationPatch,
-    refreshAfterTableMutation,
+    applyBoardFromPublished,
+    applyOpenTableToBoard,
     refreshBoardAfterStaffMutation,
   } = embeddedInDashboard
     ? dashboardBoard!
     : {
         ...standaloneBoard,
-        refreshAfterTableMutation: undefined,
+        applyOpenTableToBoard: undefined,
         refreshBoardAfterStaffMutation: undefined,
       };
+
+  const handleOpenTableSuccess = useCallback(
+    (model: WaiterTablePageModel) => {
+      if (applyOpenTableToBoard) {
+        applyOpenTableToBoard(model);
+        return;
+      }
+      applyBoardFromPublished();
+    },
+    [applyBoardFromPublished, applyOpenTableToBoard],
+  );
+
+  const handleOpenTableStaleBoard = useCallback(() => {
+    void refresh();
+  }, [refresh]);
 
   const effectiveSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
@@ -636,13 +653,8 @@ function WaiterBoardInner({
       <WaiterBoardOpenTableSheet
         open={openTableTarget != null}
         onClose={() => setOpenTableTarget(null)}
-        onSuccess={() => {
-          if (refreshAfterTableMutation && openTableTarget) {
-            void refreshAfterTableMutation(openTableTarget.tableId);
-            return;
-          }
-          void refresh();
-        }}
+        onOpenTableSuccess={handleOpenTableSuccess}
+        onStaleBoard={handleOpenTableStaleBoard}
         restaurant={restaurant}
         tableId={openTableTarget?.tableId ?? ''}
         displayName={openTableTarget?.displayName ?? ''}

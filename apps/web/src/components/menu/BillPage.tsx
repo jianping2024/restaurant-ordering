@@ -40,7 +40,7 @@ function BillCheckoutGateBanner({
   return (
     <div
       role="status"
-      className={`flex gap-2.5 rounded-xl border border-amber-500/45 bg-amber-500/12 px-4 py-3 text-[14px] font-medium text-amber-950 ${className}`}
+      className={`flex gap-2.5 rounded-xl border border-amber-500 bg-amber-100 px-4 py-3 text-[14px] font-medium text-amber-950 ${className}`}
     >
       <span className="shrink-0 text-base leading-5" aria-hidden>
         ⚠️
@@ -516,10 +516,6 @@ export function BillPage({
         total={total}
       />
 
-      {checkoutGateMessage ? (
-        <BillCheckoutGateBanner message={checkoutGateMessage} className="mx-4 mt-3" />
-      ) : null}
-
       <BillSplitPanel
         lang={lang}
         copy={{
@@ -612,7 +608,7 @@ export function BillPage({
         {checkoutGateMessage ? (
           <BillCheckoutGateBanner
             message={checkoutGateMessage}
-            className="shadow-sm shadow-amber-900/10"
+            className="shadow-md shadow-amber-900/15"
           />
         ) : null}
         <Button

@@ -2,12 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deriveBillView, syncCustomerBill } from '@/lib/customer-bill-sync';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import type { Order } from '@/types';
 
 export type BillOrdersRefresh = {
   orders: Order[];
   partyMemberCount: number;
 };
+
+/** While the bill page stays visible, pull authority via the same syncOrders path (customers cannot RLS-subscribe to orders). */
+const BILL_ORDERS_VISIBLE_POLL_MS = 2500;
 
 export function useBillOrders(
   initialOrders: Order[],
@@ -76,9 +80,38 @@ export function useBillOrders(
     return fresh;
   }, [refreshOrders, commitOrders]);
 
-  // Client navigations (menu → bill) may reuse a stale RSC payload; reconcile on entry in background.
+  // Entry + visibility resume: same syncOrders authority (menu → bill may reuse stale RSC).
+  useRestaurantStaffEntryReconcile(true, syncOrders, params.tableId);
+
+  // Visible poll: customers have no orders Realtime (RLS); keep one sync path while the tab is open.
   useEffect(() => {
-    void syncOrders();
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const clear = () => {
+      if (!timer) return;
+      clearInterval(timer);
+      timer = null;
+    };
+
+    const arm = () => {
+      if (timer || document.visibilityState !== 'visible') return;
+      timer = setInterval(() => {
+        if (document.visibilityState !== 'visible') return;
+        void syncOrders();
+      }, BILL_ORDERS_VISIBLE_POLL_MS);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') arm();
+      else clear();
+    };
+
+    arm();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clear();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [syncOrders]);
 
   return {

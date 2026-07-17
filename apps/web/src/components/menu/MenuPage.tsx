@@ -468,7 +468,7 @@ export function MenuPage({
         staffAssisted={staffAssisted}
         sticky
       >
-        <div className="flex gap-0 overflow-x-auto px-4 pb-3 scrollbar-hide">
+        <div className="mesa-chip-scroll flex gap-0 px-4 pb-3">
           {topCategories.map(cat => (
             <button
               key={cat.id}
@@ -488,7 +488,7 @@ export function MenuPage({
         </div>
 
         {subCategories.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
+          <div className="mesa-chip-scroll flex gap-2 px-4 pb-3">
             <button
               onClick={() => setActiveSubpath('')}
               className={`flex-shrink-0 px-3 py-1.5 text-[13px] rounded-full border transition-colors ${

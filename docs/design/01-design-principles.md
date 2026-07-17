@@ -141,7 +141,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 |------|------|
 | `pageTitle` | 看板页标题 |
 | `kpiCount` / `kpiLabel` / `kpiHint` / `kpiIcon` | 顶部筛选 KPI（图标与数字行垂直居中） |
-| `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」 |
+| `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」；容器用 `mesa-chip-scroll`（可滑、不画粗滚动条） |
 | `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。

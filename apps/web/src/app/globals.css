@@ -66,9 +66,10 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* 滚动条样式 */
+/* 滚动条样式 — width=竖条，height=横条；缺 height 时 WebKit 横滑会变成粗杠 */
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -78,6 +79,21 @@ body {
   border-radius: 2px;
 }
 
+/**
+ * Horizontal chip / tab strips — scroll without a visible bar
+ * (touchpad, touch, Shift+wheel still work).
+ */
+.mesa-chip-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.mesa-chip-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .modal-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--color-brand-border)) transparent;
@@ -85,6 +101,7 @@ body {
 
 .modal-scroll::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .modal-scroll::-webkit-scrollbar-track {

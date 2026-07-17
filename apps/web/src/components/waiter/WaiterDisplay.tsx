@@ -673,7 +673,7 @@ function WaiterBoardInner({
       {showLaneChrome ? (
         <div className="mb-4">
           <div
-            className="flex gap-2 overflow-x-auto pb-1"
+            className="mesa-chip-scroll flex gap-2 pb-1"
             role="tablist"
             aria-label={t.boardTitle}
           >

@@ -3,10 +3,28 @@ import {
   isBuffetSubmitSnapshotUnchanged,
   type BuffetGuestSnapshot,
 } from '@/lib/buffet-order';
-import { postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
+import { fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
+import { isTableOccupiedForIdleOpen } from '@/lib/waiter-board-open-table';
 import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
+
+export type IdleOpenPrecheckResult = 'idle' | 'already_open' | 'unavailable';
+
+/** Submit-time guard: board idle card may be stale; confirm no session before opening. */
+export async function precheckIdleOpenTable(
+  restaurantSlug: string,
+  tableId: string,
+): Promise<IdleOpenPrecheckResult> {
+  try {
+    const model = await fetchWaiterTablePageModelClient(restaurantSlug, tableId);
+    if (!model.detail.table) return 'unavailable';
+    if (isTableOccupiedForIdleOpen(model)) return 'already_open';
+    return 'idle';
+  } catch {
+    return 'unavailable';
+  }
+}
 
 export type BuffetOpenSubmitBlockReason = 'unchanged' | 'editor_not_ready';
 

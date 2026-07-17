@@ -8,10 +8,7 @@ import {
 } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { useWaiterBuffetOpenMutation } from '@/components/waiter/useWaiterBuffetOpenMutation';
-import {
-  resolveBuffetFormAlignState,
-} from '@/lib/buffet-order';
-import { isTableSessionOpen } from '@/lib/guest-table-ordering';
+import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { createClient } from '@/lib/supabase/client';
@@ -30,7 +27,6 @@ type Props = {
   lang: UILanguage;
   onClose: () => void;
   onSuccess: () => void;
-  submitBlocked?: boolean;
 };
 
 export function WaiterBoardOpenTableForm({
@@ -40,7 +36,6 @@ export function WaiterBoardOpenTableForm({
   lang,
   onClose,
   onSuccess,
-  submitBlocked = false,
 }: Props) {
   const t = WAITER_TEXT[lang];
   const supabase = useMemo(() => createClient(), []);
@@ -50,20 +45,17 @@ export function WaiterBoardOpenTableForm({
     [model.buffets],
   );
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
-  const orders = model.detail.orders;
-  const sessionMeta = model.detail.sessionMeta;
 
-  const hasOpenSession = isTableSessionOpen(sessionMeta);
   const buffetFormAlign = useMemo(
     () =>
       resolveBuffetFormAlignState({
         detailLoaded: true,
-        hasOpenSession,
-        orders,
+        hasOpenSession: false,
+        orders: [],
         activeBuffetIds,
         defaultBuffetId: activeBuffets[0]?.id ?? null,
       }),
-    [activeBuffetIds, activeBuffets, hasOpenSession, orders],
+    [activeBuffetIds, activeBuffets],
   );
 
   const {
@@ -73,16 +65,15 @@ export function WaiterBoardOpenTableForm({
     priceLoading,
   } = useWaiterTableBuffetForm({
     tableId,
-    sessionId: sessionMeta?.sessionId ?? null,
+    sessionId: null,
     alignState: buffetFormAlign,
     restaurantId: restaurant.id,
     activeBuffets,
     buffetPricesByBuffetId: model.buffetPricesByBuffetId,
     isDemo: false,
     supabase,
+    lifecycle: 'ephemeral',
   });
-
-  const buffetActionLabel = hasOpenSession ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const editorReady = isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, priceLoading);
 
@@ -90,20 +81,21 @@ export function WaiterBoardOpenTableForm({
     lang,
     restaurantSlug: restaurant.slug,
     tableId,
-    orders,
+    orders: [],
     guestSnapshot,
     activeBuffetIds,
-    hasOpenSession,
+    hasOpenSession: false,
     editorReady,
   });
 
-  const saveDisabled = submitting || submitBlocked || !editorReady;
+  const saveDisabled = submitting || !editorReady;
 
   const handleSubmit = useCallback(async () => {
     const result = await submit();
-    if (result !== 'success') return;
-    onSuccess();
-    onClose();
+    if (result === 'success' || result === 'already_open') {
+      onSuccess();
+      onClose();
+    }
   }, [onClose, onSuccess, submit]);
 
   return (
@@ -135,7 +127,7 @@ export function WaiterBoardOpenTableForm({
           className={openTableSheetLayout.actionButton}
           icon={<WaiterTableIcon className={buttonIcon.sm} />}
         >
-          {buffetActionLabel}
+          {t.buffetConfirm}
         </WaiterTablePrimaryButton>
       </div>
     </div>

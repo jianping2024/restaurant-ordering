@@ -648,7 +648,6 @@ function WaiterBoardInner({
         displayName={openTableTarget?.displayName ?? ''}
         table={openTableSheetTable}
         openTableDefaults={openTableDefaults}
-        reconcileEnabled={!isDemo}
         lang={lang}
       />
 

@@ -29,43 +29,11 @@ export function buildIdleOpenTablePageModel(
   });
 }
 
-export type OpenTableReconcileOutcome =
-  | { kind: 'confirmed_idle'; model: WaiterTablePageModel }
-  | { kind: 'stale_occupied'; model: WaiterTablePageModel }
-  | { kind: 'unavailable' };
-
-/** Compare authoritative table page model against an idle open-table attempt. */
-export function reconcileOpenTablePageModel(
-  authoritative: WaiterTablePageModel,
-): OpenTableReconcileOutcome {
-  if (!authoritative.detail.table) {
-    return { kind: 'unavailable' };
-  }
-  if (authoritative.detail.sessionMeta) {
-    return { kind: 'stale_occupied', model: authoritative };
-  }
-  return { kind: 'confirmed_idle', model: authoritative };
-}
-
 export function activeBuffetsFromModel(model: WaiterTablePageModel) {
   return model.buffets.filter((b) => b.is_active);
 }
 
-export type OpenTableSheetReconcilePhase = 'pending' | 'settled';
-
-/** True while authoritative table read is in flight for the open-table sheet. */
-export function isOpenTableSheetSubmitBlocked(
-  reconcileEnabled: boolean,
-  reconcilePhase: OpenTableSheetReconcilePhase,
-): boolean {
-  return reconcileEnabled && reconcilePhase === 'pending';
-}
-
-/** Sheet should enter reconcile pending on first paint when opening with seed data. */
-export function shouldStartOpenTableReconcile(
-  open: boolean,
-  reconcileEnabled: boolean,
-  hasSeed: boolean,
-): boolean {
-  return open && reconcileEnabled && hasSeed;
+/** True when an idle open-table attempt must stop because the table already has a session. */
+export function isTableOccupiedForIdleOpen(model: WaiterTablePageModel): boolean {
+  return model.detail.sessionMeta != null;
 }

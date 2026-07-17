@@ -14,6 +14,8 @@ import {
 import { useBuffetPricesRealtimeRefresh } from '@/lib/use-buffet-prices-realtime-refresh';
 import type { Buffet } from '@/types';
 
+export type BuffetFormLifecycle = 'ephemeral' | 'persistent';
+
 type Params = {
   tableId: string;
   sessionId: string | null;
@@ -23,6 +25,8 @@ type Params = {
   buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   isDemo: boolean;
   supabase: SupabaseClient;
+  /** Ephemeral: board open-table sheet. Persistent: occupied table detail. */
+  lifecycle?: BuffetFormLifecycle;
 };
 
 function mergeSnapshotWithActiveBuffets(
@@ -32,6 +36,17 @@ function mergeSnapshotWithActiveBuffets(
   const next: BuffetGuestSnapshot = {};
   for (const buffet of activeBuffets) {
     next[buffet.id] = snapshot[buffet.id] ?? { adults: 0, children: 0 };
+  }
+  return next;
+}
+
+function resolvedPricesForActiveBuffets(
+  buffetPricesByBuffetId: Record<string, ResolvedBuffetPriceRow | null>,
+  activeBuffetIds: string[],
+): Record<string, ResolvedBuffetPriceRow | null> {
+  const next: Record<string, ResolvedBuffetPriceRow | null> = {};
+  for (const buffetId of activeBuffetIds) {
+    next[buffetId] = buffetPricesByBuffetId[buffetId] ?? null;
   }
   return next;
 }
@@ -46,13 +61,21 @@ export function useWaiterTableBuffetForm({
   buffetPricesByBuffetId,
   isDemo,
   supabase,
+  lifecycle = 'persistent',
 }: Params) {
+  const isEphemeral = lifecycle === 'ephemeral';
   const activeBuffetIds = useMemo(() => activeBuffets.map((b) => b.id), [activeBuffets]);
 
-  const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>({});
+  const [guestSnapshot, setGuestSnapshot] = useState<BuffetGuestSnapshot>(() =>
+    isEphemeral ? buildIdleBuffetDraftSnapshot(activeBuffets.map((b) => b.id)) : {},
+  );
   const [resolvedByBuffetId, setResolvedByBuffetId] = useState<
     Record<string, ResolvedBuffetPriceRow | null>
-  >({});
+  >(() =>
+    isEphemeral
+      ? resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffets.map((b) => b.id))
+      : {},
+  );
   const [priceLoading, setPriceLoading] = useState(false);
   const lastAlignedKeyRef = useRef<string | null>(null);
 
@@ -111,20 +134,47 @@ export function useWaiterTableBuffetForm({
       );
 
       if (!silent) setPriceLoading(false);
-      setResolvedByBuffetId(nextResolved);
+      setResolvedByBuffetId(resolvedPricesForActiveBuffets(nextResolved, activeBuffetIds));
     },
     [activeBuffetIds, buffetPricesByBuffetId, isDemo, restaurantId, supabase],
   );
 
-  useBuffetPricesRealtimeRefresh(supabase, restaurantId, !isDemo && activeBuffetIds.length > 0, () => {
-    void fetchBuffetPrices(true);
-  });
+  useBuffetPricesRealtimeRefresh(
+    supabase,
+    restaurantId,
+    !isDemo && !isEphemeral && activeBuffetIds.length > 0,
+    () => {
+      void fetchBuffetPrices(true);
+    },
+  );
 
   useEffect(() => {
     if (isDemo || activeBuffetIds.length === 0) {
-      setResolvedByBuffetId({});
+      if (!isEphemeral) {
+        setResolvedByBuffetId({});
+      }
       setPriceLoading(false);
       return;
+    }
+
+    if (isEphemeral) {
+      const seeded = resolvedPricesForActiveBuffets(buffetPricesByBuffetId, activeBuffetIds);
+      const missingIds = activeBuffetIds.filter((id) => !seeded[id]);
+      if (missingIds.length === 0) {
+        setResolvedByBuffetId(seeded);
+        setPriceLoading(false);
+        return;
+      }
+
+      let cancelled = false;
+      void (async () => {
+        await fetchBuffetPrices(false);
+        if (!cancelled) setPriceLoading(false);
+      })();
+
+      return () => {
+        cancelled = true;
+      };
     }
 
     let cancelled = false;
@@ -169,7 +219,7 @@ export function useWaiterTableBuffetForm({
       clearMinute();
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [activeBuffetIds, buffetPricesByBuffetId, fetchBuffetPrices, isDemo]);
+  }, [activeBuffetIds, buffetPricesByBuffetId, fetchBuffetPrices, isDemo, isEphemeral]);
 
   const setBuffetGuestCount = useCallback(
     (buffetId: string, which: 'adults' | 'children', value: number) => {

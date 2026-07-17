@@ -6,12 +6,13 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
   buffetOpenSubmitBlockReason,
   postWaiterBuffetOpenAndCommit,
+  precheckIdleOpenTable,
 } from '@/lib/waiter-buffet-open-submit';
 import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { Order } from '@/types';
 
-export type WaiterBuffetOpenMutationResult = 'success' | 'blocked' | 'failed';
+export type WaiterBuffetOpenMutationResult = 'success' | 'blocked' | 'failed' | 'already_open';
 
 type Params = {
   lang: UILanguage;
@@ -57,6 +58,21 @@ export function useWaiterBuffetOpenMutation({
     }
 
     setSubmitting(true);
+
+    if (!hasOpenSession) {
+      const precheck = await precheckIdleOpenTable(restaurantSlug, tableId);
+      if (precheck === 'already_open') {
+        setSubmitting(false);
+        showToast(t.refreshHint, 'info');
+        return 'already_open';
+      }
+      if (precheck === 'unavailable') {
+        setSubmitting(false);
+        showToast(t.actionFailed, 'error');
+        return 'failed';
+      }
+    }
+
     const result = await postWaiterBuffetOpenAndCommit({
       restaurantSlug,
       tableId,

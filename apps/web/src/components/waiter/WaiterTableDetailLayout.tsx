@@ -38,6 +38,7 @@ import {
   buttonIcon,
   WaiterDetailCard,
   waiterDetailLayout,
+  waiterFloorType,
   WaiterTablePrimaryButton,
   WaiterTablePrimaryLink,
   WaiterTableSecondaryButton,
@@ -92,7 +93,7 @@ export function BuffetGuestCounter({
 
   return (
     <div className={rowClass}>
-      <span className="text-[13px] text-brand-text min-w-[2rem]">{label}</span>
+      <span className={waiterFloorType.guestLabel}>{label}</span>
       <CartQtyStepper
         variant="drawer"
         qty={qty}
@@ -115,11 +116,11 @@ export function BuffetPriceMeta({
   buffetPriceDisplay: BuffetOpenPricePreview;
 }) {
   if (buffetPriceLoading) {
-    return <p className="mt-1 text-[13px] text-brand-text-muted">{t.buffetPriceLoading}</p>;
+    return <p className={waiterFloorType.priceLineLoading}>{t.buffetPriceLoading}</p>;
   }
   if (buffetPriceDisplay.ok) {
     return (
-      <p className="mt-1 text-[13px] leading-snug text-brand-text-muted">
+      <p className={waiterFloorType.priceLine}>
         {formatBuffetPriceTemplate(t.buffetPriceRatesLine, {
           adultPrice: buffetPriceDisplay.adultPrice,
           childPrice: buffetPriceDisplay.childPrice,
@@ -127,7 +128,7 @@ export function BuffetPriceMeta({
       </p>
     );
   }
-  return <p className="mt-1 text-[13px] mesa-text-warning">{t.buffetNoRule}</p>;
+  return <p className="mt-1 text-[15px] font-medium mesa-text-warning">{t.buffetNoRule}</p>;
 }
 
 export function WaiterTableBuffetPanel({

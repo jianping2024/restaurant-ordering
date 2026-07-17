@@ -31,7 +31,8 @@ const sizes: Record<ButtonSize, string> = {
   sm: 'gap-2 px-3 py-1.5 text-[13px] rounded-lg',
   md: 'gap-2 px-5 py-2.5 text-[15px] rounded-lg',
   lg: 'gap-2 px-7 py-3.5 text-base rounded-lg',
-  action: 'gap-1.5 px-3.5 py-2 text-[13px] rounded-xl',
+  /** Floor / session action bar — readable next to list-body text-lg content. */
+  action: 'gap-2 px-4 py-2.5 text-[15px] font-semibold rounded-xl',
 };
 
 export function buttonClasses({

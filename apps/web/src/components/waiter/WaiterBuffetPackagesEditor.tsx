@@ -18,6 +18,7 @@ import {
   buffetDetailPackageGrid,
   buffetDetailPackageRow,
   openTableSheetLayout,
+  waiterFloorType,
 } from '@/components/waiter/waiter-table-detail-ui';
 
 type Props = {
@@ -49,7 +50,7 @@ export function BuffetPackagesEstimatedTotal({
   return (
     <p
       className={[
-        'text-[15px] font-semibold text-brand-gold-dark tabular-nums',
+        waiterFloorType.estimatedTotal,
         className,
       ].filter(Boolean).join(' ')}
     >
@@ -81,7 +82,7 @@ export function WaiterBuffetPackagesEditor({
           );
           return (
             <div key={buffet.id} className={openTableSheetLayout.guestBlock}>
-              <p className="text-[15px] font-semibold text-brand-text leading-snug">{buffet.name}</p>
+              <p className={waiterFloorType.listBody}>{buffet.name}</p>
               <BuffetPriceMeta t={t} buffetPriceLoading={priceLoading} buffetPriceDisplay={rowPreview} />
               <BuffetGuestCounter
                 layout="sheet"
@@ -128,7 +129,7 @@ export function WaiterBuffetPackagesEditor({
             className={`${buffetDetailPackageGrid} ${buffetDetailPackageRow}`}
           >
             <div>
-              <p className="text-[15px] font-semibold text-brand-text leading-snug">{buffet.name}</p>
+              <p className={waiterFloorType.listBody}>{buffet.name}</p>
               <BuffetPriceMeta t={t} buffetPriceLoading={priceLoading} buffetPriceDisplay={rowPreview} />
             </div>
             <BuffetGuestCounter

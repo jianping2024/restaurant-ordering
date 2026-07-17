@@ -123,6 +123,18 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `brand-text-muted` | 仅次要说明 / 占位 / 非关键标签 |
 | `font-heading` / `font-body` | 标题 / 正文；CJK 回退由 Tailwind + `globals.css` 统一 |
 
+### 楼面文字角色（服务员看板 / 桌台详情）
+
+以已点菜品为锚；角色类在 `waiterFloorType`（`waiter-table-detail-ui.tsx`），禁止业务页再写零散 `text-[13px]` 扛套餐名或主操作。
+
+| 角色 | 字号 | 用途 |
+|------|------|------|
+| 页面标题 | `font-heading` + `text-2xl`/`3xl` | 桌台详情标题 |
+| 列表/区块正文 | `text-lg font-semibold text-brand-text` | **已点菜名**、**Buffet 套餐名**（同级） |
+| 控件 | `Button size="action"`（`text-[15px]`） | 保存人数、继续点餐、转台等 |
+| 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
+| 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
+
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
 状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：

@@ -4,6 +4,7 @@ import {
   buffetDetailPackageGrid,
   buffetStripSectionClass,
   waiterDetailLayout,
+  waiterFloorType,
 } from './waiter-table-detail-ui';
 
 test('buffet strip edge sections align to card gutter without ad-hoc padding overrides', () => {
@@ -31,6 +32,18 @@ test('primary session actions share one layout class', () => {
 test('back-to-board footer uses page footer spacing and secondary action width', () => {
   assert.match(waiterDetailLayout.pageFooter, /mt-4/);
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
+});
+
+test('floor list body is one tier for ordered dishes and buffet package names', () => {
+  assert.match(waiterFloorType.listBody, /text-lg/);
+  assert.match(waiterFloorType.listBody, /font-semibold/);
+  assert.match(waiterFloorType.listBody, /text-brand-text/);
+  assert.equal(waiterDetailLayout.orderedItemsTitle, waiterFloorType.listBody);
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
+  assert.match(waiterFloorType.priceLine, /text-\[15px\]/);
+  assert.match(waiterFloorType.priceLine, /text-brand-text/);
+  assert.doesNotMatch(waiterFloorType.priceLine, /muted/);
+  assert.match(waiterFloorType.guestLabel, /text-\[15px\]/);
 });
 
 test('ordered-items card typography uses text-lg and sticky chrome under top bar', () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { RESTAURANT_TABLE_LIST_MAX } from '@/lib/restaurant-tables';
 import { TABLE_QR_ALL_GROUPS, TABLE_QR_UNGROUPED } from '@/lib/table-qr-list';
@@ -24,6 +25,7 @@ type Props = {
     tableCountSummary: string;
     unsavedChanges: string;
     searchTable: string;
+    clearSearch: string;
     allGroups: string;
     ungrouped: string;
     batchManage: string;
@@ -94,13 +96,19 @@ export function TablesQrToolbar({
 
         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center flex-1 min-w-0">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder={t.searchTable}
-              className="w-full sm:w-48 rounded-lg bg-brand-bg border border-brand-border px-3 py-2 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-            />
+            <div className="w-full sm:w-48">
+              <Input
+                type="text"
+                role="searchbox"
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder={t.searchTable}
+                aria-label={t.searchTable}
+                clearable
+                clearLabel={t.clearSearch}
+                className="bg-brand-bg px-3 py-2 text-sm focus:ring-brand-gold/40 focus:border-brand-gold/40"
+              />
+            </div>
             <select
               value={groupId}
               onChange={(e) => onGroupChange(e.target.value)}

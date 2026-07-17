@@ -11,6 +11,7 @@ import { WaiterBoardPartySections } from '@/components/waiter/WaiterBoardPartySe
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { Input } from '@/components/ui/Input';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
@@ -544,26 +545,18 @@ function WaiterBoardInner({
           ))}
         </div>
 
-        <div className="mt-3 relative">
-          <input
+        <div className="mt-3">
+          <Input
             type="text"
             role="searchbox"
             value={tableSearch}
             onChange={(e) => setTableSearch(e.target.value)}
             placeholder={t.searchTablesPlaceholder}
             aria-label={t.searchTables}
-            className="w-full bg-brand-card border border-brand-border rounded-lg px-3 py-2 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/40 pr-9"
+            clearable
+            clearLabel={t.clearSearch}
+            className="px-3 py-2 focus:ring-brand-gold/40 placeholder:text-brand-text-muted"
           />
-          {tableSearch ? (
-            <button
-              type="button"
-              onClick={() => setTableSearch('')}
-              aria-label={t.clearSearch}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-text text-lg leading-none px-1"
-            >
-              ×
-            </button>
-          ) : null}
         </div>
       </div>
 

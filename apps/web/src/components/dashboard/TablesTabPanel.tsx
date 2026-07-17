@@ -279,6 +279,7 @@ export function TablesTabPanel({
             tableCountSummary: t.tableCountSummary,
             unsavedChanges: t.unsavedChanges,
             searchTable: t.searchTable,
+            clearSearch: t.clearSearch,
             allGroups: t.allGroups,
             ungrouped: tg.ungrouped,
             batchManage: t.batchManage,

@@ -23,6 +23,8 @@ export function AuthLoginForm({ storeSlug }: Props) {
         placeholder={t.accountPlaceholder}
         value={account}
         onChange={(e) => setAccount(e.target.value)}
+        clearable
+        clearLabel={t.clearAccount}
         required
         disabled={loading}
       />

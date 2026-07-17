@@ -43,13 +43,14 @@
 
 | 组件 | 用途 |
 |------|------|
-| `Input` | 通用文本 |
+| `Input` | 通用文本；可选 `clearable` + `clearLabel` 一键清空 |
 | `IntegerInput` / `DecimalInput` | 数量、折扣率等数字 |
 | `PasswordInput`（`@mesa/ui`） | 密码、代重置密码 |
 
 **规则**
 
 - 标签 + 错误文案在表单项上方/下方，红色错误用 `text-red-500` 或 Toast
+- 需要「有内容时一键清除」时用 `Input` 的 `clearable`（受控 `value` 仍由父组件唯一持有）；勿在业务页再手写一套清除钮
 - 金额输入展示用 **只读 `tabular-nums`** 为主，编辑折扣等少数场景用 `IntegerInput`
 - 葡萄牙 NIF 展示用 `font-mono tabular-nums`（`formatPortugueseNif`）
 

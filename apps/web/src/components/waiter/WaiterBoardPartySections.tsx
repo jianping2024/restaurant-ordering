@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -94,6 +95,7 @@ export function WaiterBoardPartySections({
     tableIds: string[];
     labels: string[];
   } | null>(null);
+  const [dissolveTarget, setDissolveTarget] = useState<TablePartyGroup | null>(null);
   const [mergeConfirm, setMergeConfirm] = useState<{
     party: TablePartyGroup;
     plan: Extract<PartyOneClickMergePlan, { kind: 'ready' }>;
@@ -184,9 +186,14 @@ export function WaiterBoardPartySections({
     }
   };
 
-  const dissolveParty = async (party: TablePartyGroup) => {
+  const requestDissolve = (party: TablePartyGroup) => {
     if (isDemo) return;
-    if (!window.confirm(t.partyDissolveConfirm)) return;
+    setDissolveTarget(party);
+  };
+
+  const confirmDissolve = async () => {
+    if (!dissolveTarget || isDemo) return;
+    const party = dissolveTarget;
     if (editingPartyId === party.id) cancelRename();
     setBusy(true);
     try {
@@ -196,6 +203,7 @@ export function WaiterBoardPartySections({
         return;
       }
       onPartyStateChange(result.data);
+      setDissolveTarget(null);
     } finally {
       setBusy(false);
     }
@@ -495,7 +503,7 @@ export function WaiterBoardPartySections({
                 <button
                   type="button"
                   disabled={busy || isDemo}
-                  onClick={() => void dissolveParty(party)}
+                  onClick={() => requestDissolve(party)}
                   className="rounded-md border border-brand-border bg-white/50 px-2.5 py-1 text-xs text-brand-text-muted"
                 >
                   {t.partyDissolve}
@@ -612,42 +620,40 @@ export function WaiterBoardPartySections({
         </div>
       </Modal>
 
-      <Modal
+      <ConfirmModal
         open={pendingMove != null}
         onClose={() => {
           if (busy) return;
           setPendingMove(null);
         }}
         title={t.partyMoveConfirmTitle}
-      >
-        <p className="mb-4 text-sm text-brand-text">
-          {t.partyMoveConfirmMessage.replace(
-            '{tables}',
-            pendingMove?.labels.join('、') ?? '',
-          )}
-        </p>
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => setPendingMove(null)}
-            className="rounded-lg border border-brand-border px-3 py-2 text-sm"
-          >
-            {t.closeTableCancel}
-          </button>
-          <button
-            type="button"
-            disabled={busy || !pendingMove}
-            onClick={() => {
-              if (!pendingMove) return;
-              void submitAdd(pendingMove.partyId, pendingMove.tableIds, true);
-            }}
-            className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {t.partyMoveConfirmButton}
-          </button>
-        </div>
-      </Modal>
+        message={t.partyMoveConfirmMessage.replace(
+          '{tables}',
+          pendingMove?.labels.join('、') ?? '',
+        )}
+        confirmLabel={t.partyMoveConfirmButton}
+        cancelLabel={t.closeTableCancel}
+        confirming={busy}
+        onConfirm={() => {
+          if (!pendingMove) return;
+          void submitAdd(pendingMove.partyId, pendingMove.tableIds, true);
+        }}
+      />
+
+      <ConfirmModal
+        open={dissolveTarget != null}
+        onClose={() => {
+          if (busy) return;
+          setDissolveTarget(null);
+        }}
+        title={t.partyDissolve}
+        message={t.partyDissolveConfirm}
+        confirmLabel={t.partyDissolve}
+        cancelLabel={t.closeTableCancel}
+        variant="danger"
+        confirming={busy}
+        onConfirm={confirmDissolve}
+      />
 
       <Modal
         open={mergeConfirm != null}

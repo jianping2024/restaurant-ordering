@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { waiterStaffStickyChrome } from './waiter-staff-sticky-chrome';
 import {
   WAITER_BOARD_CARD_THEME,
   WAITER_BOARD_FILTER_KPI_ICON_CLASS,
   WAITER_BOARD_KPI_TONE_CLASS,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_STICKY_SHELL,
   WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
   WAITER_BOARD_SELECTED_EMPHASIS,
@@ -67,6 +69,17 @@ describe('waiter-board-card-theme theme tokens', () => {
       assertNoSkyPalette(className);
       assertNoMediaDark(className);
     }
+  });
+
+  it('lane sticky shell reuses staff top-bar offset with opaque page bg', () => {
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /sticky/);
+    assert.match(
+      WAITER_BOARD_LANE_STICKY_SHELL,
+      new RegExp(waiterStaffStickyChrome.belowStaffTopBar),
+    );
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /bg-brand-bg/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /z-20/);
+    assertNoSkyPalette(WAITER_BOARD_LANE_STICKY_SHELL);
   });
 
   it('selected face is solid gold without ring; KPI icons use status text tokens', () => {

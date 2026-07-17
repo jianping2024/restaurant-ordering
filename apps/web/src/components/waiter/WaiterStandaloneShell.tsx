@@ -6,6 +6,7 @@ import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSetti
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
+import { STAFF_SHELL_MAIN_CLASS } from '@/lib/staff-shell-layout';
 import {
   buildWaiterStandaloneTopNav,
   waiterStandaloneLogoHref,
@@ -41,7 +42,7 @@ export function WaiterStandaloneShell({ restaurant, asOwner = false, children }:
               />
             }
           />
-          <main className="min-h-0 flex-1 overflow-x-clip p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className={STAFF_SHELL_MAIN_CLASS}>{children}</main>
         </div>
       )}
     </WaiterAuthenticatedShell>

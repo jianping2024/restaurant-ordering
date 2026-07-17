@@ -65,6 +65,7 @@ import {
   WAITER_BOARD_FILTER_KPI_ICON_CLASS,
   WAITER_BOARD_FILTER_KPI_TONE,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_STICKY_SHELL,
   waiterBoardKpiChromeClass,
   waiterBoardKpiToneClass,
   waiterBoardType,
@@ -668,7 +669,7 @@ function WaiterBoardInner({
       ) : null}
 
       {showLaneChrome ? (
-        <div className="mb-4">
+        <div className={WAITER_BOARD_LANE_STICKY_SHELL}>
           <div
             className="mesa-chip-scroll flex gap-2 pb-1"
             role="tablist"

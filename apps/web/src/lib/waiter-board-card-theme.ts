@@ -1,4 +1,5 @@
 import type { WaiterBoardFilter, WaiterTableBoardState } from '@/lib/waiter-board-session';
+import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
  * Board surface typography roles — one map for KPI / lanes / cards.
@@ -32,6 +33,13 @@ export const WAITER_BOARD_LANE_CHROME = {
   idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted font-medium hover:border-brand-gold/35 hover:text-brand-text',
   active: `font-semibold ${WAITER_BOARD_SELECTED_EMPHASIS}`,
 } as const;
+
+/**
+ * Board lane tablist shell — sticks under staff top bar while the grid scrolls.
+ * Opaque page bg so table cards never show through; offset = `waiterStaffStickyChrome`.
+ */
+export const WAITER_BOARD_LANE_STICKY_SHELL =
+  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 mb-4 border-b border-brand-border/40 bg-brand-bg py-2`;
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =

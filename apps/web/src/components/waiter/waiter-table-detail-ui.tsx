@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import Link from 'next/link';
 import { Button, ButtonLink, buttonIcon, type ButtonVariant } from '@/components/ui/Button';
 import { waiterUi } from '@/components/waiter/waiter-ui';
+import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
  * Floor typography roles — one tier for dish names and buffet package names.
@@ -33,15 +34,6 @@ export const buffetDetailPackageRow =
   'rounded-xl border border-brand-border/70 bg-brand-bg/40 p-3';
 
 /**
- * Sticky chrome stack under Dashboard / Waiter top bars (`h-14` / 3.5rem).
- * Page identity is also `h-14`; ordered-items sticks at top bar + identity (= `top-28`).
- */
-export const waiterDetailStickyChrome = {
-  belowStaffTopBar: 'top-14',
-  belowPageHeading: 'top-28',
-} as const;
-
-/**
  * Layout tokens for the occupied-table detail flow:
  * page identity → buffet guest counts → session toolbar → ordered items list.
  */
@@ -65,7 +57,7 @@ export const waiterDetailLayout = {
    * Page identity chrome — sticks under staff top bars.
    * Opaque page bg; fixed `h-14` so ordered-items `top-28` stays aligned.
    */
-  pageHeading: `sticky ${waiterDetailStickyChrome.belowStaffTopBar} z-[25] mb-6 flex h-14 items-center bg-brand-bg`,
+  pageHeading: `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-[25] mb-6 flex h-14 items-center bg-brand-bg`,
   pageHeadingRow:
     'flex w-full min-w-0 items-center justify-between gap-x-3',
   pageHeadingTitle:
@@ -76,7 +68,7 @@ export const waiterDetailLayout = {
    * Ordered-items chrome — sticks under page identity.
    * Opaque card bg so list rows never show through while scrolling.
    */
-  orderedItemsHeader: `sticky ${waiterDetailStickyChrome.belowPageHeading} z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
+  orderedItemsHeader: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: waiterFloorType.listBody,
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**

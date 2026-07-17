@@ -62,11 +62,20 @@ import {
   WAITER_BOARD_TABLES_GRID_CLASS,
 } from '@/lib/waiter-board-card-layout';
 import {
+  WAITER_BOARD_FILTER_KPI_ICON,
   WAITER_BOARD_FILTER_KPI_TONE,
   WAITER_BOARD_LANE_CHROME,
+  waiterBoardKpiChromeClass,
   waiterBoardKpiToneClass,
   waiterBoardType,
+  type WaiterBoardKpiIconKey,
 } from '@/lib/waiter-board-card-theme';
+import {
+  WaiterClockIcon,
+  WaiterClocheIcon,
+  WaiterPlusCircleIcon,
+  WaiterTableIcon,
+} from '@/components/waiter/waiter-table-detail-icons';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -101,6 +110,20 @@ const BOARD_KPI_ITEMS: {
   { filter: 'idle', countKey: 'idle', labelKey: 'filterIdle' },
 ];
 
+function BoardKpiIcon({ icon }: { icon: WaiterBoardKpiIconKey }) {
+  const className = waiterBoardType.kpiIcon;
+  switch (icon) {
+    case 'table':
+      return <WaiterTableIcon className={className} />;
+    case 'clock':
+      return <WaiterClockIcon className={className} />;
+    case 'cloche':
+      return <WaiterClocheIcon className={className} />;
+    case 'plus_circle':
+      return <WaiterPlusCircleIcon className={className} />;
+  }
+}
+
 function BoardKpiCard({
   active,
   count,
@@ -117,7 +140,7 @@ function BoardKpiCard({
   onClick: () => void;
 }) {
   const toneClass = waiterBoardKpiToneClass(WAITER_BOARD_FILTER_KPI_TONE[filter]);
-  const activeClass = active ? 'ring-2 ring-brand-gold/50 shadow-md' : '';
+  const activeClass = waiterBoardKpiChromeClass(active);
 
   return (
     <button
@@ -126,7 +149,10 @@ function BoardKpiCard({
       onClick={onClick}
       className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${toneClass} ${activeClass}`}
     >
-      <p className={waiterBoardType.kpiCount}>{count}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className={waiterBoardType.kpiCount}>{count}</p>
+        <BoardKpiIcon icon={WAITER_BOARD_FILTER_KPI_ICON[filter]} />
+      </div>
       <p className={waiterBoardType.kpiLabel}>{label}</p>
       {hint ? <p className={waiterBoardType.kpiHint}>{hint}</p> : null}
     </button>

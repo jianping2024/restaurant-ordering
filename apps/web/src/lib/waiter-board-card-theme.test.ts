@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   WAITER_BOARD_CARD_THEME,
+  WAITER_BOARD_FILTER_KPI_ICON,
   WAITER_BOARD_KPI_TONE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
+  WAITER_BOARD_SELECTED_EMPHASIS,
   waiterBoardCardShellClass,
+  waiterBoardKpiChromeClass,
   waiterBoardType,
 } from './waiter-board-card-theme';
 
@@ -59,9 +62,20 @@ describe('waiter-board-card-theme theme tokens', () => {
       ...Object.values(waiterBoardType),
       ...Object.values(WAITER_BOARD_LANE_CHROME),
       WAITER_BOARD_PARTY_PANEL_CLASS,
+      WAITER_BOARD_SELECTED_EMPHASIS,
     ]) {
       assertNoSkyPalette(className);
       assertNoMediaDark(className);
     }
+  });
+
+  it('KPI icons and selected emphasis share one active representation', () => {
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.all, 'table');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.checkout, 'clock');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.dining, 'cloche');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.idle, 'plus_circle');
+    assert.equal(waiterBoardKpiChromeClass(true), WAITER_BOARD_SELECTED_EMPHASIS);
+    assert.equal(waiterBoardKpiChromeClass(false), '');
+    assert.match(WAITER_BOARD_LANE_CHROME.active, new RegExp(WAITER_BOARD_SELECTED_EMPHASIS));
   });
 });

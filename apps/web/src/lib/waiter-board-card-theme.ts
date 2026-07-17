@@ -9,18 +9,27 @@ export const waiterBoardType = {
   kpiCount: 'text-2xl font-semibold tabular-nums leading-none text-brand-text',
   kpiLabel: 'mt-1.5 text-sm font-medium text-brand-text',
   kpiHint: 'mt-0.5 text-sm text-brand-text-muted',
-  laneLabel: 'max-w-[12rem] truncate text-sm font-medium',
-  laneMeta: 'shrink-0 text-sm tabular-nums text-brand-text-muted',
+  kpiIcon: 'h-4 w-4 shrink-0 opacity-75',
+  /** Color/weight inherit from lane chrome (idle muted / active gold). */
+  laneLabel: 'max-w-[12rem] truncate text-sm',
+  laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   cardTitle:
     'min-w-0 flex-1 truncate text-left font-heading text-lg sm:text-[22px] font-bold leading-tight',
   cardRow3: 'text-sm font-semibold leading-none tabular-nums',
 } as const;
 
-/** Lane tabs +「创建同行组」— shared height; active = brand gold only. */
+/**
+ * Shared selected emphasis — KPI pressed + lane selected (brand gold only).
+ * One representation for “this control is active.”
+ */
+export const WAITER_BOARD_SELECTED_EMPHASIS =
+  'ring-2 ring-brand-gold ring-offset-2 ring-offset-brand-bg shadow-md';
+
+/** Lane tabs +「创建同行组」— shared height; active uses stronger gold + selected ring. */
 export const WAITER_BOARD_LANE_CHROME = {
-  base: 'inline-flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 min-h-[2.75rem] transition-colors',
-  idle: 'border-brand-border/70 bg-brand-card/40 text-brand-text-muted hover:border-brand-gold/35 hover:text-brand-text',
-  active: 'border-brand-gold/55 bg-brand-gold/12 text-brand-gold shadow-sm',
+  base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] transition-colors',
+  idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted font-medium hover:border-brand-gold/35 hover:text-brand-text',
+  active: `border-2 border-brand-gold bg-brand-gold/18 text-brand-gold font-semibold ${WAITER_BOARD_SELECTED_EMPHASIS}`,
 } as const;
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
@@ -45,6 +54,9 @@ export type WaiterBoardCardTheme = {
  */
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
+/** Decorative KPI icons — keys map to existing waiter SVG icons (no parallel icon set). */
+export type WaiterBoardKpiIconKey = 'table' | 'clock' | 'cloche' | 'plus_circle';
+
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
   amber: 'mesa-badge-warning shadow-sm',
   emerald: 'mesa-badge-success shadow-sm',
@@ -59,6 +71,17 @@ export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoard
   dining: 'rose',
   idle: 'emerald',
 };
+
+export const WAITER_BOARD_FILTER_KPI_ICON: Record<WaiterBoardFilter, WaiterBoardKpiIconKey> = {
+  all: 'table',
+  checkout: 'clock',
+  dining: 'cloche',
+  idle: 'plus_circle',
+};
+
+export function waiterBoardKpiChromeClass(active: boolean): string {
+  return active ? WAITER_BOARD_SELECTED_EMPHASIS : '';
+}
 
 const BOARD_SHELL: Record<WaiterTableBoardState, string> = {
   dining: 'mesa-board-shell-dining shadow-sm',

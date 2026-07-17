@@ -43,8 +43,11 @@ export const waiterDetailLayout = {
   orderedItemsHeader: `sticky top-14 z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: 'text-lg font-semibold text-brand-text',
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
-  /** Name + qty + minus as one left-aligned reading unit (not justify-between). */
-  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-2',
+  /**
+   * Name + qty + minus left-aligned (not justify-between).
+   * `gap-3` is the name↔qty breath (~three spaces); qty↔minus stays tight via orderedItemActions.
+   */
+  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-3',
   orderedItemLabel: 'min-w-0 truncate text-lg text-brand-text',
   orderedItemQty: 'shrink-0 text-lg text-brand-text tabular-nums',
   orderedItemActions: 'flex shrink-0 items-center gap-2',

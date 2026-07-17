@@ -1,50 +1,201 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { purgeTablePartyMembership, tableIsInAnyParty } from '@/lib/table-party-groups-server';
+import {
+  dissolvePartyIfEmpty,
+  purgeTablePartyMembership,
+  tableIsInAnyParty,
+} from '@/lib/table-party-groups-server';
 
 const RESTAURANT_ID = '00000000-0000-4000-8000-0000000000r1';
 const TABLE_ID = '00000000-0000-4000-8000-000000000001';
+const PARTY_ID = '00000000-0000-4000-8000-0000000000p1';
+
+type Call = { table: string; op: string; filters?: Record<string, string> };
+
+function mockAdmin(handlers: {
+  onSelectMembers?: (filters: Record<string, string>) => { data: unknown; error: unknown };
+  onDeleteMembers?: (filters: Record<string, string>) => { error: unknown };
+  onDeleteParty?: (filters: Record<string, string>) => { error: unknown };
+}): { admin: SupabaseClient; calls: Call[] } {
+  const calls: Call[] = [];
+  const admin = {
+    from(table: string) {
+      return {
+        select() {
+          const filters: Record<string, string> = {};
+          const chain = {
+            eq(col: string, val: string) {
+              filters[col] = val;
+              return chain;
+            },
+            limit() {
+              return chain;
+            },
+            maybeSingle: async () => {
+              calls.push({ table, op: 'select', filters: { ...filters } });
+              return handlers.onSelectMembers?.(filters) ?? { data: null, error: null };
+            },
+            then(
+              resolve: (value: { data: unknown; error: unknown }) => unknown,
+              reject?: (reason: unknown) => unknown,
+            ) {
+              calls.push({ table, op: 'select', filters: { ...filters } });
+              try {
+                return Promise.resolve(
+                  handlers.onSelectMembers?.(filters) ?? { data: [], error: null },
+                ).then(resolve, reject);
+              } catch (err) {
+                return Promise.reject(err).then(resolve, reject);
+              }
+            },
+          };
+          return chain;
+        },
+        delete() {
+          const filters: Record<string, string> = {};
+          const chain = {
+            eq(col: string, val: string) {
+              filters[col] = val;
+              return chain;
+            },
+            then(
+              resolve: (value: { error: unknown }) => unknown,
+              reject?: (reason: unknown) => unknown,
+            ) {
+              const op = table === 'table_party_groups' ? 'delete_party' : 'delete_members';
+              calls.push({ table, op, filters: { ...filters } });
+              try {
+                const result =
+                  table === 'table_party_groups'
+                    ? (handlers.onDeleteParty?.(filters) ?? { error: null })
+                    : (handlers.onDeleteMembers?.(filters) ?? { error: null });
+                return Promise.resolve(result).then(resolve, reject);
+              } catch (err) {
+                return Promise.reject(err).then(resolve, reject);
+              }
+            },
+          };
+          return chain;
+        },
+      };
+    },
+  } as unknown as SupabaseClient;
+  return { admin, calls };
+}
+
+describe('dissolvePartyIfEmpty', () => {
+  it('does not delete the party when a member remains', async () => {
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: () => ({ data: [{ table_id: TABLE_ID }], error: null }),
+    });
+
+    await dissolvePartyIfEmpty(admin, RESTAURANT_ID, PARTY_ID);
+
+    assert.equal(
+      calls.some((c) => c.op === 'delete_party'),
+      false,
+    );
+  });
+
+  it('deletes the party when no members remain', async () => {
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: () => ({ data: [], error: null }),
+      onDeleteParty: (filters) => {
+        assert.equal(filters.id, PARTY_ID);
+        assert.equal(filters.restaurant_id, RESTAURANT_ID);
+        return { error: null };
+      },
+    });
+
+    await dissolvePartyIfEmpty(admin, RESTAURANT_ID, PARTY_ID);
+
+    assert.equal(
+      calls.some((c) => c.table === 'table_party_groups' && c.op === 'delete_party'),
+      true,
+    );
+  });
+
+  it('swallows lookup errors without throwing', async () => {
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: { message: 'boom' } }),
+    });
+
+    await assert.doesNotReject(() => dissolvePartyIfEmpty(admin, RESTAURANT_ID, PARTY_ID));
+  });
+});
 
 describe('purgeTablePartyMembership', () => {
-  it('deletes membership by restaurant_id + table_id', async () => {
-    const calls: Array<{ restaurantId: string; tableId: string }> = [];
-    const admin = {
-      from(table: string) {
-        assert.equal(table, 'table_party_group_members');
-        return {
-          delete: () => ({
-            eq: (col1: string, val1: string) => {
-              assert.equal(col1, 'restaurant_id');
-              return {
-                eq: async (col2: string, val2: string) => {
-                  assert.equal(col2, 'table_id');
-                  calls.push({ restaurantId: val1, tableId: val2 });
-                  return { error: null };
-                },
-              };
-            },
-          }),
-        };
+  it('deletes membership then dissolves empty party', async () => {
+    let selectCount = 0;
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: (filters) => {
+        selectCount += 1;
+        if (selectCount === 1) {
+          assert.equal(filters.table_id, TABLE_ID);
+          return { data: { party_id: PARTY_ID }, error: null };
+        }
+        assert.equal(filters.party_id, PARTY_ID);
+        return { data: [], error: null };
       },
-    } as unknown as SupabaseClient;
+      onDeleteMembers: (filters) => {
+        assert.equal(filters.restaurant_id, RESTAURANT_ID);
+        assert.equal(filters.table_id, TABLE_ID);
+        return { error: null };
+      },
+      onDeleteParty: (filters) => {
+        assert.equal(filters.id, PARTY_ID);
+        return { error: null };
+      },
+    });
 
     await purgeTablePartyMembership(admin, RESTAURANT_ID, TABLE_ID);
-    assert.deepEqual(calls, [{ restaurantId: RESTAURANT_ID, tableId: TABLE_ID }]);
+
+    assert.deepEqual(
+      calls.map((c) => c.op),
+      ['select', 'delete_members', 'select', 'delete_party'],
+    );
+  });
+
+  it('keeps the party when other members remain', async () => {
+    let selectCount = 0;
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: () => {
+        selectCount += 1;
+        if (selectCount === 1) {
+          return { data: { party_id: PARTY_ID }, error: null };
+        }
+        return { data: [{ table_id: 'other' }], error: null };
+      },
+      onDeleteMembers: () => ({ error: null }),
+    });
+
+    await purgeTablePartyMembership(admin, RESTAURANT_ID, TABLE_ID);
+
+    assert.equal(
+      calls.some((c) => c.op === 'delete_party'),
+      false,
+    );
+  });
+
+  it('no-ops when the table is not in a party', async () => {
+    const { admin, calls } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: null }),
+    });
+
+    await purgeTablePartyMembership(admin, RESTAURANT_ID, TABLE_ID);
+
+    assert.deepEqual(
+      calls.map((c) => c.op),
+      ['select'],
+    );
   });
 
   it('swallows delete errors without throwing', async () => {
-    const admin = {
-      from() {
-        return {
-          delete: () => ({
-            eq: () => ({
-              eq: async () => ({ error: { message: 'boom' } }),
-            }),
-          }),
-        };
-      },
-    } as unknown as SupabaseClient;
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: { party_id: PARTY_ID }, error: null }),
+      onDeleteMembers: () => ({ error: { message: 'boom' } }),
+    });
 
     await assert.doesNotReject(() =>
       purgeTablePartyMembership(admin, RESTAURANT_ID, TABLE_ID),
@@ -54,60 +205,26 @@ describe('purgeTablePartyMembership', () => {
 
 describe('tableIsInAnyParty', () => {
   it('returns true when a membership row exists', async () => {
-    const admin = {
-      from(table: string) {
-        assert.equal(table, 'table_party_group_members');
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({ data: { table_id: TABLE_ID }, error: null }),
-              }),
-            }),
-          }),
-        };
-      },
-    } as unknown as SupabaseClient;
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: { table_id: TABLE_ID }, error: null }),
+    });
 
     assert.equal(await tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), true);
   });
 
   it('returns false when no membership row', async () => {
-    const admin = {
-      from() {
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({ data: null, error: null }),
-              }),
-            }),
-          }),
-        };
-      },
-    } as unknown as SupabaseClient;
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: null }),
+    });
 
     assert.equal(await tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), false);
   });
 
   it('throws when the lookup fails', async () => {
-    const admin = {
-      from() {
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({ data: null, error: { message: 'boom' } }),
-              }),
-            }),
-          }),
-        };
-      },
-    } as unknown as SupabaseClient;
+    const { admin } = mockAdmin({
+      onSelectMembers: () => ({ data: null, error: { message: 'boom' } }),
+    });
 
-    await assert.rejects(
-      () => tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID),
-      /boom/,
-    );
+    await assert.rejects(() => tableIsInAnyParty(admin, RESTAURANT_ID, TABLE_ID), /boom/);
   });
 });

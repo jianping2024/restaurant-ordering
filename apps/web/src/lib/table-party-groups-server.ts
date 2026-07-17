@@ -219,6 +219,45 @@ export async function dissolveTablePartyGroup(
   return reloadResult(admin, restaurantId);
 }
 
+/**
+ * Delete a together-group only when it still has zero members.
+ * Idempotent — safe under concurrent leave/close.
+ */
+export async function dissolvePartyIfEmpty(
+  admin: SupabaseClient,
+  restaurantId: string,
+  partyId: string,
+): Promise<void> {
+  const { data: remaining, error: countError } = await admin
+    .from('table_party_group_members')
+    .select('table_id')
+    .eq('restaurant_id', restaurantId)
+    .eq('party_id', partyId)
+    .limit(1);
+  if (countError) {
+    console.error('[dissolvePartyIfEmpty]', {
+      restaurantId,
+      partyId,
+      message: countError.message,
+    });
+    return;
+  }
+  if ((remaining || []).length > 0) return;
+
+  const { error: deleteError } = await admin
+    .from('table_party_groups')
+    .delete()
+    .eq('id', partyId)
+    .eq('restaurant_id', restaurantId);
+  if (deleteError) {
+    console.error('[dissolvePartyIfEmpty]', {
+      restaurantId,
+      partyId,
+      message: deleteError.message,
+    });
+  }
+}
+
 export async function removeTableFromParty(
   admin: SupabaseClient,
   restaurantId: string,
@@ -238,6 +277,8 @@ export async function removeTableFromParty(
     .eq('party_id', partyId)
     .eq('table_id', tableId);
   if (error) return { ok: false, status: 400, error: error.message };
+
+  await dissolvePartyIfEmpty(admin, restaurantId, partyId);
   return reloadResult(admin, restaurantId);
 }
 
@@ -266,7 +307,7 @@ export async function tableIsInAnyParty(
 
 /**
  * After 关台: drop the table from any together-group.
- * Best-effort — must not fail the close path. Empty parties are left intact.
+ * Best-effort — must not fail the close path. If the party has no members left, dissolve it.
  */
 export async function purgeTablePartyMembership(
   admin: SupabaseClient,
@@ -274,6 +315,23 @@ export async function purgeTablePartyMembership(
   tableId: string,
 ): Promise<void> {
   try {
+    const { data: membership, error: lookupError } = await admin
+      .from('table_party_group_members')
+      .select('party_id')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_id', tableId)
+      .maybeSingle();
+    if (lookupError) {
+      console.error('[purgeTablePartyMembership]', {
+        restaurantId,
+        tableId,
+        message: lookupError.message,
+      });
+      return;
+    }
+    const partyId = typeof membership?.party_id === 'string' ? membership.party_id : null;
+    if (!partyId) return;
+
     const { error } = await admin
       .from('table_party_group_members')
       .delete()
@@ -285,7 +343,10 @@ export async function purgeTablePartyMembership(
         tableId,
         message: error.message,
       });
+      return;
     }
+
+    await dissolvePartyIfEmpty(admin, restaurantId, partyId);
   } catch (err) {
     console.error('[purgeTablePartyMembership]', {
       restaurantId,

@@ -262,7 +262,8 @@ function WaiterBoardInner({
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
     [isDemo, initialOrders, sessionMetaByTableId],
   );
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  // Stable SSR/hydration seed — real clock starts after mount (avoids duration text mismatch).
+  const [nowMs, setNowMs] = useState(0);
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
   const [tableSearch, setTableSearch] = useState('');
   const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(() => new Set());
@@ -286,6 +287,7 @@ function WaiterBoardInner({
   }, [restaurant.id, collapsedSectionIds, collapsedPrefsHydrated]);
 
   useEffect(() => {
+    setNowMs(Date.now());
     const timer = setInterval(() => setNowMs(Date.now()), 60_000);
     return () => clearInterval(timer);
   }, []);

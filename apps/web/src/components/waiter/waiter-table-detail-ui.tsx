@@ -33,8 +33,17 @@ export const buffetDetailPackageRow =
   'rounded-xl border border-brand-border/70 bg-brand-bg/40 p-3';
 
 /**
+ * Sticky chrome stack under Dashboard / Waiter top bars (`h-14` / 3.5rem).
+ * Page identity is also `h-14`; ordered-items sticks at top bar + identity (= `top-28`).
+ */
+export const waiterDetailStickyChrome = {
+  belowStaffTopBar: 'top-14',
+  belowPageHeading: 'top-28',
+} as const;
+
+/**
  * Layout tokens for the occupied-table detail flow:
- * buffet guest counts → session toolbar → ordered items list.
+ * page identity → buffet guest counts → session toolbar → ordered items list.
  */
 export const waiterDetailLayout = {
   cardBody: `${WAITER_DETAIL_GUTTER_PX} py-4`,
@@ -53,10 +62,21 @@ export const waiterDetailLayout = {
   /** Page exit — below ordered items, above modals. */
   pageFooter: 'mt-4 flex justify-center',
   /**
-   * Ordered-items chrome — sticks under Dashboard / Waiter top bars (`h-14`).
+   * Page identity chrome — sticks under staff top bars.
+   * Opaque page bg; fixed `h-14` so ordered-items `top-28` stays aligned.
+   */
+  pageHeading: `sticky ${waiterDetailStickyChrome.belowStaffTopBar} z-[25] mb-6 flex h-14 items-center bg-brand-bg`,
+  pageHeadingRow:
+    'flex w-full min-w-0 items-center justify-between gap-x-3',
+  pageHeadingTitle:
+    'min-w-0 truncate font-heading text-2xl leading-none text-brand-gold sm:text-3xl',
+  pageHeadingMeta:
+    'inline-flex shrink-0 items-center gap-1.5 text-[13px] text-brand-text-muted tabular-nums',
+  /**
+   * Ordered-items chrome — sticks under page identity.
    * Opaque card bg so list rows never show through while scrolling.
    */
-  orderedItemsHeader: `sticky top-14 z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
+  orderedItemsHeader: `sticky ${waiterDetailStickyChrome.belowPageHeading} z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: waiterFloorType.listBody,
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**

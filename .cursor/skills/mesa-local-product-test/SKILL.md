@@ -11,7 +11,8 @@ description: >-
 ## Environment
 
 - **Host:** `http://localhost:3000` (`npm run cloud` or `npm run dev`)
-- **Account:** `qiantai@mesa.in` / password:654321
+- **Account:** `qiantai1` / password:`123456`
+- **Forbidden account:** `qiantai@mesa.in` — do not use for local product testing
 - **Allowed:** authenticated product APIs and UI for the test restaurant
 
 ## Method

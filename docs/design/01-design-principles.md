@@ -140,7 +140,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 角色 | 用途 |
 |------|------|
 | `pageTitle` | 看板页标题 |
-| `kpiCount` / `kpiLabel` / `kpiHint` / `kpiIcon` | 顶部筛选 KPI（图标与数字行垂直居中） |
+| `kpiCount` / `kpiLabel` / `kpiIconSlot` + `kpiIcon` | 顶部筛选 KPI（无副文案；图标固定槽光学居中） |
 | `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」；容器用 `mesa-chip-scroll`（可滑、不画粗滚动条） |
 | `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
 

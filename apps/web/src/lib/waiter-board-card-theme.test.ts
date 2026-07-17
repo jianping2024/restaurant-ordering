@@ -80,5 +80,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.dining, /mesa-text-danger/);
     assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.idle, /mesa-text-success/);
     assert.match(waiterBoardType.kpiIcon, /h-8/);
+    assert.match(waiterBoardType.kpiIconSlot, /items-center/);
+    assert.match(waiterBoardType.kpiIconSlot, /justify-center/);
   });
 });

@@ -96,10 +96,9 @@ const BOARD_KPI_ITEMS: {
   filter: WaiterBoardFilter;
   countKey: keyof ReturnType<typeof computeWaiterBoardStats>;
   labelKey: 'filterAll' | 'filterCheckout' | 'filterDining' | 'filterIdle';
-  hintKey?: 'kpiCheckoutHint';
 }[] = [
   { filter: 'all', countKey: 'total', labelKey: 'filterAll' },
-  { filter: 'checkout', countKey: 'checkoutPending', labelKey: 'filterCheckout', hintKey: 'kpiCheckoutHint' },
+  { filter: 'checkout', countKey: 'checkoutPending', labelKey: 'filterCheckout' },
   { filter: 'dining', countKey: 'open', labelKey: 'filterDining' },
   { filter: 'idle', countKey: 'idle', labelKey: 'filterIdle' },
 ];
@@ -108,14 +107,12 @@ function BoardKpiCard({
   active,
   count,
   label,
-  hint,
   filter,
   onClick,
 }: {
   active: boolean;
   count: number;
   label: string;
-  hint?: string;
   filter: WaiterBoardFilter;
   onClick: () => void;
 }) {
@@ -136,10 +133,11 @@ function BoardKpiCard({
     >
       <div className="flex items-center justify-between gap-2">
         <p className={waiterBoardType.kpiCount}>{count}</p>
-        <Icon className={iconClass} />
+        <span className={waiterBoardType.kpiIconSlot}>
+          <Icon className={iconClass} />
+        </span>
       </div>
       <p className={waiterBoardType.kpiLabel}>{label}</p>
-      {hint ? <p className={waiterBoardType.kpiHint}>{hint}</p> : null}
     </button>
   );
 }
@@ -607,7 +605,6 @@ function WaiterBoardInner({
               active={boardFilter === item.filter}
               count={boardStats[item.countKey]}
               label={t[item.labelKey]}
-              hint={item.hintKey ? t[item.hintKey] : undefined}
               filter={item.filter}
               onClick={() => {
                 setBoardFilter(item.filter);

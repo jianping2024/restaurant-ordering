@@ -8,9 +8,9 @@ export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-gold mb-4',
   kpiCount: 'text-2xl font-semibold tabular-nums leading-none',
   kpiLabel: 'mt-1.5 text-sm font-medium',
-  kpiHint: 'mt-0.5 text-sm opacity-80',
-  /** KPI glyph — sized with the count row; color from filter or selected inherit. */
-  kpiIcon: 'h-8 w-8 shrink-0',
+  /** Fixed slot so all four KPI glyphs share one geometric seat. */
+  kpiIconSlot: 'flex h-8 w-8 shrink-0 items-center justify-center',
+  kpiIcon: 'h-8 w-8',
   /** Color/weight inherit from lane chrome (idle muted / active on-gold). */
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',

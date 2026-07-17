@@ -10,6 +10,7 @@ import {
 } from '@/lib/checkout-session-payments';
 import { sumLineTotals } from '@/lib/cart-totals';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
@@ -20,6 +21,36 @@ export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 export type CheckoutRequestResult =
   | { ok: true; bill_split_id: string; result: SplitResult[]; total_amount: number }
   | { ok: false; error: string; status: number; message?: string };
+
+/** Same pattern as confirm-payment automatic receipts: never block checkout on print. */
+function scheduleCallBillPreBillPrint(params: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  sessionId: string;
+  tableId: string;
+  tableDisplayName: string;
+  billSplitId: string;
+}): void {
+  const { admin, restaurantId, sessionId, tableId, tableDisplayName, billSplitId } = params;
+  void (async () => {
+    const { data: rest } = await admin
+      .from('restaurants')
+      .select('print_locale')
+      .eq('id', restaurantId)
+      .maybeSingle();
+    await enqueueReceiptPrint({
+      admin,
+      restaurantId,
+      printLocale: (rest?.print_locale as string | null) ?? null,
+      sessionId,
+      tableId,
+      tableDisplayName,
+      variant: 'pre_bill',
+      printSource: 'automatic',
+      billSplitId,
+    });
+  })().catch(() => {});
+}
 
 export async function submitCheckoutRequestForTable(
   admin: SupabaseClient,
@@ -186,9 +217,19 @@ export async function submitCheckoutRequestForTable(
     return { ok: false, error: code, status, message: rpcPayload?.message };
   }
 
+  const billSplitId = rpcPayload.bill_split_id as string;
+  scheduleCallBillPreBillPrint({
+    admin,
+    restaurantId,
+    sessionId,
+    tableId,
+    tableDisplayName: tableRow.display_name as string,
+    billSplitId,
+  });
+
   return {
     ok: true,
-    bill_split_id: rpcPayload.bill_split_id as string,
+    bill_split_id: billSplitId,
     result: (rpcPayload.result || payload.result) as SplitResult[],
     total_amount: rpcPayload.total_amount ?? total,
   };

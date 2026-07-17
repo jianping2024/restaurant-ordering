@@ -62,7 +62,7 @@ Web 入队（service role）
 
 | 业务说法 | `receipt_variant` | 触发 | 纸面 |
 |----------|-------------------|------|------|
-| 预结算 / 预结单 | `pre_bill` | 顾客呼叫结账 → **自动** | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
+| 预结算 / 预结单 | `pre_bill` | 呼叫结账成功后由 `checkout-request-server` **自动**入队 | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
 | 分单 | `split_payment` | 前台确认某人收款 → **自动** | 该人菜品与金额；**有**收款确认行 |
 | 总账单（收款前） | `checkout_bill` | 前台「打印账单」/ 前台「关台结账」/ 历史重打 → **手动**（收银员「关台结账」不打印） | 标题 Receipt；整桌合并行；含结账台折扣后应收；**无**收款确认行 |
 | 总账单（收讫后） | `final` | 全员付清 → **自动** | 整桌合并行；**有**收款确认行 |
@@ -72,7 +72,7 @@ Web 入队（service role）
 - 自动三类（`pre_bill`、`split_payment`、`final`）受 `bill_receipt_print` 门控；`checkout_bill` **不受**（见 §3.2）。
 - 前台手动补打某人 `split_payment` 收据（已收款项「打印收据」）与 `checkout_bill` 相同，走 `staff_manual` 入队，**不受**开关限制。
 
-入队逻辑：`lib/order-receipt-enqueue.ts`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
+入队逻辑：`lib/order-receipt-enqueue.ts`；呼叫结账成功后由 `checkout-request-server.ts` 触发 `pre_bill`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
 
 - 菜品行标签与出品联一致：`{item_code}-{菜名}`（**不含** `category_code_path`）；同类菜合并后数量累加，**不印备注**。
 - 纸面菜单区（列头、菜品行、Amount Due / 应付）统一 **Font A 1×2 加粗**；英文价格列头为 `Pri`；费用明细与时间戳保持 1×1 普通。

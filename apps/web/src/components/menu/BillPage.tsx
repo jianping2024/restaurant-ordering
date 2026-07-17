@@ -18,7 +18,6 @@ import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
-import { requestOrderReceiptPrintQuiet } from '@/lib/request-order-receipt-print';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SessionStatus, SplitResult } from '@/types';
@@ -167,14 +166,6 @@ export function BillPage({
     },
     onCustomerSubmitSuccess: () => {
       setSubmitted(true);
-      if (sessionId) {
-        requestOrderReceiptPrintQuiet({
-          slug: restaurant.slug,
-          tableId,
-          sessionId,
-          receiptVariant: 'pre_bill',
-        });
-      }
     },
     onBusyChange: setCallBillBusy,
     showToast,

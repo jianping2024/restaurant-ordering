@@ -189,7 +189,14 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
   }
 
-  const printSource = 'admin' in checkoutAuth ? ('staff_manual' as const) : ('automatic' as const);
+  // Intent, not identity: pre_bill is always automatic (gated by bill_receipt_print).
+  // Staff cookies must not promote call-bill pre-bills to ungated staff_manual.
+  const printSource =
+    variant === 'pre_bill'
+      ? ('automatic' as const)
+      : 'admin' in checkoutAuth
+        ? ('staff_manual' as const)
+        : ('automatic' as const);
 
   const result = await enqueueReceiptPrint({
     admin,

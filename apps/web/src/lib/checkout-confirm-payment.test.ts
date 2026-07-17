@@ -104,7 +104,11 @@ describe('httpStatusForConfirmPaymentRpcCode', () => {
 });
 
 describe('checkoutReceiptIdempotencyKey', () => {
-  it('builds split and final keys', () => {
+  it('builds pre_bill, split, and final keys', () => {
+    assert.equal(
+      checkoutReceiptIdempotencyKey('pre_bill', BILL_SPLIT_ID),
+      `checkout:${BILL_SPLIT_ID}:pre_bill`,
+    );
     assert.equal(
       checkoutReceiptIdempotencyKey('split_payment', BILL_SPLIT_ID, 1),
       `checkout:${BILL_SPLIT_ID}:split:1`,
@@ -119,8 +123,7 @@ describe('checkoutReceiptIdempotencyKey', () => {
     );
   });
 
-  it('returns undefined for pre_bill and checkout_bill', () => {
-    assert.equal(checkoutReceiptIdempotencyKey('pre_bill', BILL_SPLIT_ID), undefined);
+  it('returns undefined for checkout_bill', () => {
     assert.equal(checkoutReceiptIdempotencyKey('checkout_bill', BILL_SPLIT_ID), undefined);
   });
 });

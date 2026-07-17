@@ -117,6 +117,7 @@ supabase db push
 
 - `src/lib/restaurant-features.ts` — 注册表与归一化
 - `src/lib/order-receipt-enqueue.ts` — 账单打印入队门控
+- `src/lib/checkout-request-server.ts` — 呼叫结账成功后自动入队 `pre_bill`
 - `src/app/api/restaurant/features/route.ts` — REST API
 - `src/components/dashboard/FeatureFlagsManager.tsx` — 设置 UI
 - `src/components/dashboard/DashboardNav.tsx` — 侧栏门控

@@ -107,13 +107,16 @@ export function buildSplitPersonReceiptLines(
   }));
 }
 
-/** Stable key for checkout split/final receipt jobs (phase 4 dedup). */
+/** Stable key for checkout automatic receipt jobs (call-bill / split / final dedup). */
 export function checkoutReceiptIdempotencyKey(
   variant: ReceiptVariant,
   billSplitId: string,
   personIndex?: number,
   collectedPaymentId?: string | null,
 ): string | undefined {
+  if (variant === 'pre_bill') {
+    return `checkout:${billSplitId}:pre_bill`;
+  }
   if (variant === 'split_payment' && personIndex != null && personIndex >= 0) {
     const paymentSuffix = collectedPaymentId?.trim()
       ? `:payment:${collectedPaymentId.trim()}`
@@ -130,12 +133,13 @@ async function findCheckoutReceiptJobId(
   admin: SupabaseClient,
   restaurantId: string,
   idempotencyKey: string,
+  jobType: PrintJobType,
 ): Promise<string | null> {
   const { data, error } = await admin
     .from('print_jobs')
     .select('id')
     .eq('restaurant_id', restaurantId)
-    .eq('type', 'order_receipt')
+    .eq('type', jobType)
     .in('status', ['pending', 'processing', 'done'])
     .eq('payload->>idempotency_key', idempotencyKey)
     .order('created_at', { ascending: false })
@@ -253,7 +257,12 @@ export async function enqueueReceiptPrint(
       ? checkoutReceiptIdempotencyKey(variant, billSplitId, personIndex, collectedPaymentId)
       : undefined;
   if (idempotencyKey) {
-    const existingId = await findCheckoutReceiptJobId(admin, restaurantId, idempotencyKey);
+    const existingId = await findCheckoutReceiptJobId(
+      admin,
+      restaurantId,
+      idempotencyKey,
+      jobType,
+    );
     if (existingId) {
       return { ok: true, job_id: existingId, deduped: true };
     }

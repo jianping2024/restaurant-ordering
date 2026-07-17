@@ -364,7 +364,7 @@
 ```text
 触发源：
   加菜 → station_ticket 自动入队
-  呼叫结账 → pre_bill 自动（受 bill_receipt_print 开关）
+  呼叫结账 → pre_bill 自动入队（`checkout-request-server`，受 bill_receipt_print 开关）
   确认某人收款 → split_payment 自动；全员付清 → final 自动（同上开关）
   手动「打印账单」/ 前台「关台结账」 → checkout_bill（不受开关限制；收银员「关台结账」不打印）
   （业务三类 vs 四种 receipt_variant：见 docs/technical/04-printing.md §3.1）
@@ -394,7 +394,7 @@
 
 ### 相关代码位置
 
-`lib/station-ticket-enqueue.ts`、`lib/order-receipt-enqueue.ts`、`api/print-agent/*`、`apps/print-agent/`、`docs/print-agent-flow.zh.md`
+`lib/station-ticket-enqueue.ts`、`lib/order-receipt-enqueue.ts`、`lib/checkout-request-server.ts`、`api/print-agent/*`、`apps/print-agent/`、`docs/print-agent-flow.zh.md`
 
 ---
 

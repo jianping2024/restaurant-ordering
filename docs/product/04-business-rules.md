@@ -238,7 +238,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | 产品说法 | `receipt_variant` | 自动/手动 |
 |----------|-------------------|-----------|
-| 预结算 | `pre_bill` | 自动（呼叫结账） |
+| 预结算 | `pre_bill` | 自动（呼叫结账成功后由服务端入队） |
 | 分单 | `split_payment` | 自动（确认某人收款） |
 | 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账 / 历史重打；收银员关台结账不触发） |
 | 总账单（收讫后） | `final` | 自动（全员付清） |
@@ -276,7 +276,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 相关代码
 
-`lib/order-receipt-enqueue.ts`、`lib/station-ticket-enqueue.ts`、`lib/restaurant-features.ts`、`docs/print-agent-flow.zh.md`
+`lib/order-receipt-enqueue.ts`、`lib/checkout-request-server.ts`、`lib/station-ticket-enqueue.ts`、`lib/restaurant-features.ts`、`docs/print-agent-flow.zh.md`
 
 ---
 

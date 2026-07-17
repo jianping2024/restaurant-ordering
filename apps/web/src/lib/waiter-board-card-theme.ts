@@ -9,7 +9,10 @@ export const waiterBoardType = {
   kpiCount: 'text-2xl font-semibold tabular-nums leading-none text-brand-text',
   kpiLabel: 'mt-1.5 text-sm font-medium text-brand-text',
   kpiHint: 'mt-0.5 text-sm text-brand-text-muted',
-  kpiIcon: 'h-4 w-4 shrink-0 opacity-75',
+  /** Soft tile so KPI glyphs read as decoration, not hairline corner marks. */
+  kpiIconWrap:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-text/[0.1]',
+  kpiIcon: 'h-6 w-6 text-brand-text',
   /** Color/weight inherit from lane chrome (idle muted / active gold). */
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
@@ -54,8 +57,11 @@ export type WaiterBoardCardTheme = {
  */
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
-/** Decorative KPI icons — keys map to existing waiter SVG icons (no parallel icon set). */
-export type WaiterBoardKpiIconKey = 'table' | 'clock' | 'cloche' | 'plus_circle';
+/**
+ * Board KPI glyphs — one key per filter, drawn for floor semantics
+ * (grid / bill / dining / vacant), not reused action-bar silhouettes.
+ */
+export type WaiterBoardKpiIconKey = 'floor' | 'bill' | 'dining' | 'vacant';
 
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
   amber: 'mesa-badge-warning shadow-sm',
@@ -73,10 +79,10 @@ export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoard
 };
 
 export const WAITER_BOARD_FILTER_KPI_ICON: Record<WaiterBoardFilter, WaiterBoardKpiIconKey> = {
-  all: 'table',
-  checkout: 'clock',
-  dining: 'cloche',
-  idle: 'plus_circle',
+  all: 'floor',
+  checkout: 'bill',
+  dining: 'dining',
+  idle: 'vacant',
 };
 
 export function waiterBoardKpiChromeClass(active: boolean): string {

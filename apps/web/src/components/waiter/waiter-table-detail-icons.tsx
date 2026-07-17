@@ -119,3 +119,67 @@ export function WaiterClocheIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Board KPI — floor overview as a 2×2 table grid. */
+export function WaiterBoardKpiFloorIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.75" stroke="currentColor" strokeWidth="1.75" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.75" stroke="currentColor" strokeWidth="1.75" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.75" stroke="currentColor" strokeWidth="1.75" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.75" stroke="currentColor" strokeWidth="1.75" />
+    </svg>
+  );
+}
+
+/** Board KPI — bill / checkout request. */
+export function WaiterBoardKpiBillIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 3.75h10a1.5 1.5 0 0 1 1.5 1.5v14.2l-2.1-1.15-2.15 1.35-2.25-1.35-2.15 1.35-2.1-1.15V5.25A1.5 1.5 0 0 1 7 3.75Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <path d="M9.5 9h5M9.5 12.25h5M9.5 15.5h3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Board KPI — guests dining (cloche). */
+export function WaiterBoardKpiDiningIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 4.5v1.75" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path
+        d="M5 13.5h14M6.75 13.5c0-3.6 2.35-6.25 5.25-6.25s5.25 2.65 5.25 6.25"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4.5 14.25h15v1.1c0 .9-.7 1.65-1.6 1.65H6.1c-.9 0-1.6-.75-1.6-1.65v-1.1Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Board KPI — vacant round table ready to open. */
+export function WaiterBoardKpiVacantIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <ellipse cx="12" cy="8.5" rx="8" ry="3.75" stroke="currentColor" strokeWidth="1.85" />
+      <path
+        d="M6.5 11.75v5.5M12 12.25v5.75M17.5 11.75v5.5"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+      <path d="M5.25 18.5h13.5" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" />
+    </svg>
+  );
+}

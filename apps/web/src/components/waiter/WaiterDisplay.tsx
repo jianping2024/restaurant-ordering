@@ -71,10 +71,10 @@ import {
   type WaiterBoardKpiIconKey,
 } from '@/lib/waiter-board-card-theme';
 import {
-  WaiterClockIcon,
-  WaiterClocheIcon,
-  WaiterPlusCircleIcon,
-  WaiterTableIcon,
+  WaiterBoardKpiBillIcon,
+  WaiterBoardKpiDiningIcon,
+  WaiterBoardKpiFloorIcon,
+  WaiterBoardKpiVacantIcon,
 } from '@/components/waiter/waiter-table-detail-icons';
 
 interface Props {
@@ -112,16 +112,17 @@ const BOARD_KPI_ITEMS: {
 
 function BoardKpiIcon({ icon }: { icon: WaiterBoardKpiIconKey }) {
   const className = waiterBoardType.kpiIcon;
-  switch (icon) {
-    case 'table':
-      return <WaiterTableIcon className={className} />;
-    case 'clock':
-      return <WaiterClockIcon className={className} />;
-    case 'cloche':
-      return <WaiterClocheIcon className={className} />;
-    case 'plus_circle':
-      return <WaiterPlusCircleIcon className={className} />;
-  }
+  const glyph =
+    icon === 'floor' ? (
+      <WaiterBoardKpiFloorIcon className={className} />
+    ) : icon === 'bill' ? (
+      <WaiterBoardKpiBillIcon className={className} />
+    ) : icon === 'dining' ? (
+      <WaiterBoardKpiDiningIcon className={className} />
+    ) : (
+      <WaiterBoardKpiVacantIcon className={className} />
+    );
+  return <span className={waiterBoardType.kpiIconWrap}>{glyph}</span>;
 }
 
 function BoardKpiCard({

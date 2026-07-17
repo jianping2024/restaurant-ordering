@@ -70,12 +70,14 @@ describe('waiter-board-card-theme theme tokens', () => {
   });
 
   it('KPI icons and selected emphasis share one active representation', () => {
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.all, 'table');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.checkout, 'clock');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.dining, 'cloche');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.idle, 'plus_circle');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.all, 'floor');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.checkout, 'bill');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.dining, 'dining');
+    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.idle, 'vacant');
     assert.equal(waiterBoardKpiChromeClass(true), WAITER_BOARD_SELECTED_EMPHASIS);
     assert.equal(waiterBoardKpiChromeClass(false), '');
     assert.match(WAITER_BOARD_LANE_CHROME.active, new RegExp(WAITER_BOARD_SELECTED_EMPHASIS));
+    assert.match(waiterBoardType.kpiIconWrap, /h-10/);
+    assert.match(waiterBoardType.kpiIcon, /h-6/);
   });
 });

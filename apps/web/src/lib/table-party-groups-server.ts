@@ -6,7 +6,7 @@ import {
   conflictingPartyMembers,
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
-  nextPrependSortOrder,
+  nextAppendSortOrder,
   PARTY_DEFAULT_LOGIN_FALLBACK,
   partyHasNameConflict,
   sortTablePartyGroups,
@@ -129,7 +129,7 @@ export async function createTablePartyGroup(
       continue;
     }
 
-    const sortOrder = nextPrependSortOrder(existing.parties);
+    const sortOrder = nextAppendSortOrder(existing.parties);
     const { data, error } = await admin
       .from('table_party_groups')
       .insert({

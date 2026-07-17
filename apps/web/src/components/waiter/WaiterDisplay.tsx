@@ -62,20 +62,14 @@ import {
   WAITER_BOARD_TABLES_GRID_CLASS,
 } from '@/lib/waiter-board-card-layout';
 import {
-  WAITER_BOARD_FILTER_KPI_ICON,
+  WAITER_BOARD_FILTER_KPI_ICON_CLASS,
   WAITER_BOARD_FILTER_KPI_TONE,
   WAITER_BOARD_LANE_CHROME,
   waiterBoardKpiChromeClass,
   waiterBoardKpiToneClass,
   waiterBoardType,
-  type WaiterBoardKpiIconKey,
 } from '@/lib/waiter-board-card-theme';
-import {
-  WaiterBoardKpiBillIcon,
-  WaiterBoardKpiDiningIcon,
-  WaiterBoardKpiFloorIcon,
-  WaiterBoardKpiVacantIcon,
-} from '@/components/waiter/waiter-table-detail-icons';
+import { WAITER_BOARD_KPI_ICON_BY_FILTER } from '@/components/waiter/waiter-board-kpi-icons';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -110,21 +104,6 @@ const BOARD_KPI_ITEMS: {
   { filter: 'idle', countKey: 'idle', labelKey: 'filterIdle' },
 ];
 
-function BoardKpiIcon({ icon }: { icon: WaiterBoardKpiIconKey }) {
-  const className = waiterBoardType.kpiIcon;
-  const glyph =
-    icon === 'floor' ? (
-      <WaiterBoardKpiFloorIcon className={className} />
-    ) : icon === 'bill' ? (
-      <WaiterBoardKpiBillIcon className={className} />
-    ) : icon === 'dining' ? (
-      <WaiterBoardKpiDiningIcon className={className} />
-    ) : (
-      <WaiterBoardKpiVacantIcon className={className} />
-    );
-  return <span className={waiterBoardType.kpiIconWrap}>{glyph}</span>;
-}
-
 function BoardKpiCard({
   active,
   count,
@@ -141,18 +120,23 @@ function BoardKpiCard({
   onClick: () => void;
 }) {
   const toneClass = waiterBoardKpiToneClass(WAITER_BOARD_FILTER_KPI_TONE[filter]);
-  const activeClass = waiterBoardKpiChromeClass(active);
+  const surfaceClass = active ? waiterBoardKpiChromeClass(true) : toneClass;
+  const Icon = WAITER_BOARD_KPI_ICON_BY_FILTER[filter];
+  const iconClass = [
+    waiterBoardType.kpiIcon,
+    active ? 'text-inherit' : WAITER_BOARD_FILTER_KPI_ICON_CLASS[filter],
+  ].join(' ');
 
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${toneClass} ${activeClass}`}
+      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${surfaceClass}`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <p className={waiterBoardType.kpiCount}>{count}</p>
-        <BoardKpiIcon icon={WAITER_BOARD_FILTER_KPI_ICON[filter]} />
+        <Icon className={iconClass} />
       </div>
       <p className={waiterBoardType.kpiLabel}>{label}</p>
       {hint ? <p className={waiterBoardType.kpiHint}>{hint}</p> : null}

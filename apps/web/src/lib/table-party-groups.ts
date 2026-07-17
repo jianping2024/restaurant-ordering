@@ -25,12 +25,12 @@ export function sortTablePartyGroups(groups: TablePartyGroup[]): TablePartyGroup
   });
 }
 
-/** Next sort_order so a new party appears above existing ones (ascending sort). */
-export function nextPrependSortOrder(
+/** Next sort_order so a new party appears to the right (ascending sort, create control at trail). */
+export function nextAppendSortOrder(
   groups: readonly Pick<TablePartyGroup, 'sort_order'>[],
 ): number {
   if (groups.length === 0) return 0;
-  return groups.reduce((min, p) => Math.min(min, p.sort_order), groups[0]!.sort_order) - 1;
+  return groups.reduce((max, p) => Math.max(max, p.sort_order), groups[0]!.sort_order) + 1;
 }
 
 export function tablePartyMemberTableIds(

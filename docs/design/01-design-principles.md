@@ -135,12 +135,12 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
 
-**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）；楼面分组与同行组 lane **同一 chrome**，选中用 `WAITER_BOARD_SELECTED_EMPHASIS`（与 KPI `aria-pressed` 共用），禁止 `sky-*` 等旁路色盘。KPI 装饰图标经 `WAITER_BOARD_FILTER_KPI_ICON` 映射到现有 waiter SVG。
+**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）。楼面与同行组 lane **同一 chrome**；选中为实心 `bg-brand-gold` + `text-brand-on-gold`（`WAITER_BOARD_SELECTED_EMPHASIS`，无 ring 双线）。KPI 图标在 `waiter-board-kpi-icons.tsx`，色经 `WAITER_BOARD_FILTER_KPI_ICON_CLASS` 跟 status fg；新建同行组 `sort_order` **append**（横滑条向右生长）。
 
 | 角色 | 用途 |
 |------|------|
 | `pageTitle` | 看板页标题 |
-| `kpiCount` / `kpiLabel` / `kpiHint` / `kpiIcon` + `kpiIconWrap` | 顶部筛选 KPI；图标为楼面语义专用字形（台面网格 / 账单 / 餐罩 / 空台） |
+| `kpiCount` / `kpiLabel` / `kpiHint` / `kpiIcon` | 顶部筛选 KPI（图标与数字行垂直居中） |
 | `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」 |
 | `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
 

@@ -2,18 +2,16 @@ import type { WaiterBoardFilter, WaiterTableBoardState } from '@/lib/waiter-boar
 
 /**
  * Board surface typography roles — one map for KPI / lanes / cards.
- * Colors stay brand-* (no ad-hoc sky palette); status color only via mesa-badge / shell.
+ * Colors stay brand-* / status tokens; no ad-hoc sky palette.
  */
 export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-gold mb-4',
-  kpiCount: 'text-2xl font-semibold tabular-nums leading-none text-brand-text',
-  kpiLabel: 'mt-1.5 text-sm font-medium text-brand-text',
-  kpiHint: 'mt-0.5 text-sm text-brand-text-muted',
-  /** Soft tile so KPI glyphs read as decoration, not hairline corner marks. */
-  kpiIconWrap:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-text/[0.1]',
-  kpiIcon: 'h-6 w-6 text-brand-text',
-  /** Color/weight inherit from lane chrome (idle muted / active gold). */
+  kpiCount: 'text-2xl font-semibold tabular-nums leading-none',
+  kpiLabel: 'mt-1.5 text-sm font-medium',
+  kpiHint: 'mt-0.5 text-sm opacity-80',
+  /** KPI glyph — sized with the count row; color from filter or selected inherit. */
+  kpiIcon: 'h-8 w-8 shrink-0',
+  /** Color/weight inherit from lane chrome (idle muted / active on-gold). */
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   cardTitle:
@@ -22,17 +20,17 @@ export const waiterBoardType = {
 } as const;
 
 /**
- * Shared selected emphasis — KPI pressed + lane selected (brand gold only).
- * One representation for “this control is active.”
+ * Shared selected face — KPI pressed + lane selected.
+ * Solid fill + on-gold text (no ring/offset double-border).
  */
 export const WAITER_BOARD_SELECTED_EMPHASIS =
-  'ring-2 ring-brand-gold ring-offset-2 ring-offset-brand-bg shadow-md';
+  'border border-brand-gold bg-brand-gold text-brand-on-gold shadow-sm';
 
-/** Lane tabs +「创建同行组」— shared height; active uses stronger gold + selected ring. */
+/** Lane tabs +「创建同行组」— shared height; active = solid gold face. */
 export const WAITER_BOARD_LANE_CHROME = {
   base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] transition-colors',
   idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted font-medium hover:border-brand-gold/35 hover:text-brand-text',
-  active: `border-2 border-brand-gold bg-brand-gold/18 text-brand-gold font-semibold ${WAITER_BOARD_SELECTED_EMPHASIS}`,
+  active: `font-semibold ${WAITER_BOARD_SELECTED_EMPHASIS}`,
 } as const;
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
@@ -57,12 +55,6 @@ export type WaiterBoardCardTheme = {
  */
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
-/**
- * Board KPI glyphs — one key per filter, drawn for floor semantics
- * (grid / bill / dining / vacant), not reused action-bar silhouettes.
- */
-export type WaiterBoardKpiIconKey = 'floor' | 'bill' | 'dining' | 'vacant';
-
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
   amber: 'mesa-badge-warning shadow-sm',
   emerald: 'mesa-badge-success shadow-sm',
@@ -78,11 +70,12 @@ export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoard
   idle: 'emerald',
 };
 
-export const WAITER_BOARD_FILTER_KPI_ICON: Record<WaiterBoardFilter, WaiterBoardKpiIconKey> = {
-  all: 'floor',
-  checkout: 'bill',
-  dining: 'dining',
-  idle: 'vacant',
+/** Icon stroke/fill color — status fg tokens aligned with board shells. */
+export const WAITER_BOARD_FILTER_KPI_ICON_CLASS: Record<WaiterBoardFilter, string> = {
+  all: 'text-brand-text',
+  checkout: 'mesa-text-warning',
+  dining: 'mesa-text-danger',
+  idle: 'mesa-text-success',
 };
 
 export function waiterBoardKpiChromeClass(active: boolean): string {

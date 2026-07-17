@@ -7,7 +7,7 @@ import {
   isPartyMemberCountAllowedForCheckout,
   isTableEligibleForPartyAdd,
   nextAvailableTablePartyName,
-  nextPrependSortOrder,
+  nextAppendSortOrder,
   partyDefaultNameLoginPrefix,
   partyHasNameConflict,
   partyIdForTable,
@@ -91,12 +91,12 @@ describe('table-party-groups', () => {
     assert.equal(partyHasNameConflict(parties, 'Together 2'), false);
   });
 
-  it('prepends new parties with a lower sort_order', () => {
-    assert.equal(nextPrependSortOrder([]), 0);
-    assert.equal(nextPrependSortOrder([{ sort_order: 0 }]), -1);
+  it('appends new parties with a higher sort_order (lane grows right)', () => {
+    assert.equal(nextAppendSortOrder([]), 0);
+    assert.equal(nextAppendSortOrder([{ sort_order: 0 }]), 1);
     assert.equal(
-      nextPrependSortOrder([{ sort_order: 1 }, { sort_order: 0 }, { sort_order: 2 }]),
-      -1,
+      nextAppendSortOrder([{ sort_order: 1 }, { sort_order: 0 }, { sort_order: 2 }]),
+      3,
     );
   });
 

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   WAITER_BOARD_CARD_THEME,
-  WAITER_BOARD_FILTER_KPI_ICON,
+  WAITER_BOARD_FILTER_KPI_ICON_CLASS,
   WAITER_BOARD_KPI_TONE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_PARTY_PANEL_CLASS,
@@ -55,29 +55,30 @@ describe('waiter-board-card-theme theme tokens', () => {
 
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
-    assert.match(waiterBoardType.kpiCount, /text-brand-text/);
-    assert.match(WAITER_BOARD_LANE_CHROME.active, /brand-gold/);
+    assert.match(WAITER_BOARD_LANE_CHROME.active, /bg-brand-gold/);
     assert.match(WAITER_BOARD_PARTY_PANEL_CLASS, /brand-gold/);
     for (const className of [
       ...Object.values(waiterBoardType),
       ...Object.values(WAITER_BOARD_LANE_CHROME),
       WAITER_BOARD_PARTY_PANEL_CLASS,
       WAITER_BOARD_SELECTED_EMPHASIS,
+      ...Object.values(WAITER_BOARD_FILTER_KPI_ICON_CLASS),
     ]) {
       assertNoSkyPalette(className);
       assertNoMediaDark(className);
     }
   });
 
-  it('KPI icons and selected emphasis share one active representation', () => {
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.all, 'floor');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.checkout, 'bill');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.dining, 'dining');
-    assert.equal(WAITER_BOARD_FILTER_KPI_ICON.idle, 'vacant');
+  it('selected face is solid gold without ring; KPI icons use status text tokens', () => {
     assert.equal(waiterBoardKpiChromeClass(true), WAITER_BOARD_SELECTED_EMPHASIS);
     assert.equal(waiterBoardKpiChromeClass(false), '');
-    assert.match(WAITER_BOARD_LANE_CHROME.active, new RegExp(WAITER_BOARD_SELECTED_EMPHASIS));
-    assert.match(waiterBoardType.kpiIconWrap, /h-10/);
-    assert.match(waiterBoardType.kpiIcon, /h-6/);
+    assert.doesNotMatch(WAITER_BOARD_SELECTED_EMPHASIS, /\bring-/);
+    assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /bg-brand-gold/);
+    assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /text-brand-on-gold/);
+    assert.equal(WAITER_BOARD_LANE_CHROME.active.includes(WAITER_BOARD_SELECTED_EMPHASIS), true);
+    assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.checkout, /mesa-text-warning/);
+    assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.dining, /mesa-text-danger/);
+    assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.idle, /mesa-text-success/);
+    assert.match(waiterBoardType.kpiIcon, /h-8/);
   });
 });

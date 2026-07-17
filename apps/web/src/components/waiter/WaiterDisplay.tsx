@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { Order } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
 import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
-import { WaiterBoardPartySections } from '@/components/waiter/WaiterBoardPartySections';
+import { WaiterBoardPartySections, type WaiterBoardPartySectionHandle } from '@/components/waiter/WaiterBoardPartySections';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
@@ -31,13 +31,13 @@ import {
   buildWaiterBoardSections,
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
-  type WaiterBoardSection,
 } from '@/lib/restaurant-table-groups';
 import {
   tablePartyMemberTableIds,
   type TablePartyGroup,
   type TablePartyGroupMember,
 } from '@/lib/table-party-groups';
+import { buildVisibleWaiterBoardPartyLanes } from '@/lib/waiter-board-party-lanes';
 import {
   sortWaiterBoardTableSummaries,
   type WaiterBoardTableSummary,
@@ -49,8 +49,13 @@ import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { waiterTableHref } from '@/lib/staff-routes';
 import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
-  loadWaiterBoardCollapsedSectionIds,
-  saveWaiterBoardCollapsedSectionIds,
+  floorLaneKey,
+  loadWaiterBoardSelectedLaneKey,
+  parseWaiterBoardLaneKey,
+  partyLaneKey,
+  resolveWaiterBoardSelectedLaneKey,
+  saveWaiterBoardSelectedLaneKey,
+  type WaiterBoardLaneKey,
 } from '@/lib/waiter-board-section-preference';
 import {
   WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS,
@@ -126,52 +131,41 @@ function BoardKpiCard({
   );
 }
 
-function WaiterBoardSectionBlock({
-  section,
-  visibleTableIds,
-  expanded,
-  onToggle,
-  sectionTableCountLabel,
-  children,
+function BoardLaneTab({
+  active,
+  label,
+  countLabel,
+  tone,
+  onClick,
 }: {
-  section: WaiterBoardSection;
-  visibleTableIds: string[];
-  expanded: boolean;
-  onToggle: () => void;
-  sectionTableCountLabel: string;
-  children: ReactNode;
+  active: boolean;
+  label: string;
+  countLabel: string;
+  tone: 'floor' | 'party';
+  onClick: () => void;
 }) {
-  if (visibleTableIds.length === 0) return null;
+  const idleClass =
+    tone === 'floor'
+      ? 'border-brand-border/70 bg-brand-card/40 text-brand-text-muted hover:border-brand-gold/35 hover:text-brand-text'
+      : 'border-sky-600/25 bg-sky-500/5 text-sky-900/70 hover:border-sky-600/40 hover:bg-sky-500/10';
+  const activeClass =
+    tone === 'floor'
+      ? 'border-brand-gold/55 bg-brand-gold/12 text-brand-gold shadow-sm'
+      : 'border-sky-600/70 bg-sky-500/15 text-sky-950 shadow-sm';
 
   return (
-    <section>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="w-full flex items-center gap-2 mb-3 text-left group rounded-lg -mx-1 px-1 py-0.5 hover:bg-brand-card/60 transition-colors"
-      >
-        <span
-          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-brand-border/60 bg-brand-bg/60 text-brand-text-muted text-[10px] transition-transform ${
-            expanded ? 'rotate-180' : ''
-          }`}
-          aria-hidden
-        >
-          ▼
-        </span>
-        <h2 className="text-sm font-medium text-brand-gold flex-1 min-w-0 truncate">
-          {section.title}
-        </h2>
-        <span className="text-[12px] text-brand-text-muted shrink-0 tabular-nums">
-          {sectionTableCountLabel}
-        </span>
-      </button>
-      {expanded ? (
-        <div className={WAITER_BOARD_TABLES_GRID_CLASS}>
-          {children}
-        </div>
-      ) : null}
-    </section>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`shrink-0 rounded-lg border px-3 py-1.5 text-left transition-colors ${
+        active ? activeClass : idleClass
+      }`}
+    >
+      <span className="block max-w-[9rem] truncate text-sm font-medium">{label}</span>
+      <span className="block text-[11px] tabular-nums opacity-80">{countLabel}</span>
+    </button>
   );
 }
 
@@ -266,8 +260,10 @@ function WaiterBoardInner({
   const [nowMs, setNowMs] = useState(0);
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
   const [tableSearch, setTableSearch] = useState('');
-  const [collapsedSectionIds, setCollapsedSectionIds] = useState<Set<string>>(() => new Set());
-  const [collapsedPrefsHydrated, setCollapsedPrefsHydrated] = useState(false);
+  const [selectedLaneKey, setSelectedLaneKey] = useState<WaiterBoardLaneKey | null>(null);
+  const [lanePrefsHydrated, setLanePrefsHydrated] = useState(false);
+  const [partyBusy, setPartyBusy] = useState(false);
+  const partyActionsRef = useRef<WaiterBoardPartySectionHandle>(null);
   const [openTableTarget, setOpenTableTarget] = useState<{
     tableId: string;
     displayName: string;
@@ -275,16 +271,15 @@ function WaiterBoardInner({
   const [checkoutTarget, setCheckoutTarget] = useState<{ tableId: string } | null>(null);
 
   useEffect(() => {
-    setCollapsedPrefsHydrated(false);
-    const saved = loadWaiterBoardCollapsedSectionIds(restaurant.id);
-    setCollapsedSectionIds(saved ?? new Set());
-    setCollapsedPrefsHydrated(true);
+    setLanePrefsHydrated(false);
+    setSelectedLaneKey(loadWaiterBoardSelectedLaneKey(restaurant.id));
+    setLanePrefsHydrated(true);
   }, [restaurant.id]);
 
   useEffect(() => {
-    if (!collapsedPrefsHydrated) return;
-    saveWaiterBoardCollapsedSectionIds(restaurant.id, collapsedSectionIds);
-  }, [restaurant.id, collapsedSectionIds, collapsedPrefsHydrated]);
+    if (!lanePrefsHydrated) return;
+    saveWaiterBoardSelectedLaneKey(restaurant.id, selectedLaneKey);
+  }, [restaurant.id, selectedLaneKey, lanePrefsHydrated]);
 
   useEffect(() => {
     setNowMs(Date.now());
@@ -478,22 +473,93 @@ function WaiterBoardInner({
     ],
   );
 
-  const toggleSectionCollapsed = (sectionId: string) => {
-    setCollapsedSectionIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(sectionId)) next.delete(sectionId);
-      else next.add(sectionId);
-      return next;
-    });
-  };
+  const visibleFloorSections = useMemo(() => {
+    return boardSections
+      .map((section) => ({
+        section,
+        visibleIds: visibleBoardTableIds(section.tableIds),
+      }))
+      .filter((row) => row.visibleIds.length > 0);
+  }, [boardSections, visibleBoardTableIds]);
+
+  const visiblePartyLanes = useMemo(
+    () =>
+      buildVisibleWaiterBoardPartyLanes({
+        parties,
+        partyMembers,
+        tables,
+        summaryByTableId,
+        boardFilter,
+        boardStateContext,
+        checkoutRequestedTableIds,
+        sessionMetaByTableId: effectiveSessionMetaByTableId,
+        tableSearchTrimmed,
+        tableMatchesSearch: tableMatchesWaiterBoardSearch,
+      }),
+    [
+      parties,
+      partyMembers,
+      tables,
+      summaryByTableId,
+      boardFilter,
+      boardStateContext,
+      checkoutRequestedTableIds,
+      effectiveSessionMetaByTableId,
+      tableSearchTrimmed,
+    ],
+  );
+
+  const floorLaneKeys = useMemo(
+    () => visibleFloorSections.map((row) => floorLaneKey(row.section.id)),
+    [visibleFloorSections],
+  );
+  const partyLaneKeys = useMemo(
+    () => visiblePartyLanes.map((row) => partyLaneKey(row.party.id)),
+    [visiblePartyLanes],
+  );
+
+  const resolvedLaneKey = useMemo(
+    () => resolveWaiterBoardSelectedLaneKey(selectedLaneKey, floorLaneKeys, partyLaneKeys),
+    [selectedLaneKey, floorLaneKeys, partyLaneKeys],
+  );
+
+  useEffect(() => {
+    if (!lanePrefsHydrated) return;
+    if (resolvedLaneKey !== selectedLaneKey) {
+      setSelectedLaneKey(resolvedLaneKey);
+    }
+  }, [lanePrefsHydrated, resolvedLaneKey, selectedLaneKey]);
+
+  const selectLane = useCallback((key: WaiterBoardLaneKey) => {
+    setSelectedLaneKey(key);
+  }, []);
+
+  const handlePartyCreated = useCallback((partyId: string) => {
+    setSelectedLaneKey(partyLaneKey(partyId));
+  }, []);
+
+  const selectedFloorSection = useMemo(() => {
+    const parsed = resolvedLaneKey ? parseWaiterBoardLaneKey(resolvedLaneKey) : null;
+    if (!parsed || parsed.kind !== 'floor') return null;
+    return visibleFloorSections.find((row) => row.section.id === parsed.id) ?? null;
+  }, [resolvedLaneKey, visibleFloorSections]);
+
+  const selectedPartyId = useMemo(() => {
+    const parsed = resolvedLaneKey ? parseWaiterBoardLaneKey(resolvedLaneKey) : null;
+    return parsed?.kind === 'party' ? parsed.id : null;
+  }, [resolvedLaneKey]);
+
+  const showCreatePartyControl = boardFilter === 'all' && !tableSearchTrimmed;
+  const showLaneChrome =
+    visibleFloorSections.length > 0 ||
+    visiblePartyLanes.length > 0 ||
+    showCreatePartyControl;
 
   const hasVisibleBoardContent = useMemo(() => {
     if (showCheckoutPinned) return true;
-    if (parties.length > 0) return true;
-    return boardSections.some(
-      (section) => visibleBoardTableIds(section.tableIds).length > 0,
-    );
-  }, [showCheckoutPinned, parties.length, boardSections, visibleBoardTableIds]);
+    if (visiblePartyLanes.length > 0) return true;
+    return visibleFloorSections.length > 0;
+  }, [showCheckoutPinned, visiblePartyLanes.length, visibleFloorSections.length]);
 
   const openTableSheetTable = useMemo(() => {
     if (!openTableTarget) return null;
@@ -602,7 +668,58 @@ function WaiterBoardInner({
         </p>
       ) : null}
 
+      {showLaneChrome ? (
+        <div className="mb-4">
+          {showCreatePartyControl ? (
+            <p className="mb-2 text-xs text-brand-text-muted">{t.partyMarkerOnlyHint}</p>
+          ) : null}
+          <div
+            className="flex gap-2 overflow-x-auto pb-1"
+            role="tablist"
+            aria-label={t.boardTitle}
+          >
+            {visibleFloorSections.map(({ section, visibleIds }) => {
+              const key = floorLaneKey(section.id);
+              return (
+                <BoardLaneTab
+                  key={key}
+                  tone="floor"
+                  active={resolvedLaneKey === key}
+                  label={section.title}
+                  countLabel={sectionTableCountLabel(visibleIds.length)}
+                  onClick={() => selectLane(key)}
+                />
+              );
+            })}
+            {visiblePartyLanes.map(({ party, memberCount }) => {
+              const key = partyLaneKey(party.id);
+              return (
+                <BoardLaneTab
+                  key={key}
+                  tone="party"
+                  active={resolvedLaneKey === key}
+                  label={party.name}
+                  countLabel={t.partySectionCount.replace('{n}', String(memberCount))}
+                  onClick={() => selectLane(key)}
+                />
+              );
+            })}
+            {showCreatePartyControl ? (
+              <button
+                type="button"
+                disabled={partyBusy || isDemo}
+                onClick={() => void partyActionsRef.current?.createParty()}
+                className="shrink-0 rounded-lg border border-sky-600/40 bg-sky-500/10 px-3 py-1.5 text-sm font-medium text-sky-950 hover:bg-sky-500/15 disabled:opacity-50"
+              >
+                {partyBusy ? t.partyCreating : t.partyCreate}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <WaiterBoardPartySections
+        ref={partyActionsRef}
         restaurantSlug={restaurant.slug}
         isDemo={isDemo}
         t={t}
@@ -616,6 +733,9 @@ function WaiterBoardInner({
         sessionMetaByTableId={effectiveSessionMetaByTableId}
         tableSearchTrimmed={tableSearchTrimmed}
         tableMatchesSearch={tableMatchesWaiterBoardSearch}
+        selectedPartyId={selectedPartyId}
+        onPartyCreated={handlePartyCreated}
+        onBusyChange={setPartyBusy}
         onPartyStateChange={applyPartyState}
         onSessionRelocationPatch={applySessionRelocationPatch}
         onRefreshBoard={async (tableIds) => {
@@ -628,24 +748,13 @@ function WaiterBoardInner({
         renderTableCard={renderTableCard}
       />
 
-      <div className="space-y-6">
-        {boardSections.map((section) => {
-          const visibleIds = visibleBoardTableIds(section.tableIds);
-          const expanded = !collapsedSectionIds.has(section.id);
-          return (
-            <WaiterBoardSectionBlock
-              key={section.id}
-              section={section}
-              visibleTableIds={visibleIds}
-              expanded={expanded}
-              onToggle={() => toggleSectionCollapsed(section.id)}
-              sectionTableCountLabel={sectionTableCountLabel(visibleIds.length)}
-            >
-              {renderSectionCards(section.tableIds)}
-            </WaiterBoardSectionBlock>
-          );
-        })}
-      </div>
+      {selectedFloorSection ? (
+        <section aria-label={selectedFloorSection.section.title}>
+          <div className={WAITER_BOARD_TABLES_GRID_CLASS}>
+            {renderSectionCards(selectedFloorSection.section.tableIds)}
+          </div>
+        </section>
+      ) : null}
 
       <WaiterBoardOpenTableSheet
         open={openTableTarget != null}

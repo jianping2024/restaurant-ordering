@@ -1,6 +1,15 @@
 'use client';
 
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
@@ -26,6 +35,7 @@ import {
   type PartyOneClickMergePlan,
 } from '@/lib/table-party-one-click-merge';
 import { postWaiterTableActionClient } from '@/lib/staff-board-client';
+import { buildVisibleWaiterBoardPartyLanes } from '@/lib/waiter-board-party-lanes';
 import { WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS } from '@/lib/waiter-board-card-layout';
 import { WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS } from '@/lib/waiter-board-card-theme';
 import {
@@ -43,6 +53,10 @@ import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-rel
 
 type PartyTexts = (typeof WAITER_TEXT)[UILanguage];
 
+export type WaiterBoardPartySectionHandle = {
+  createParty: () => Promise<void>;
+};
+
 type Props = {
   restaurantSlug: string;
   isDemo: boolean;
@@ -57,6 +71,10 @@ type Props = {
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
   tableSearchTrimmed: string;
   tableMatchesSearch: (displayName: string, q: string) => boolean;
+  /** When set, only that together-group panel is shown (lane tab selection). */
+  selectedPartyId: string | null;
+  onPartyCreated: (partyId: string) => void;
+  onBusyChange?: (busy: boolean) => void;
   onPartyStateChange: (next: {
     parties: TablePartyGroup[];
     partyMembers: TablePartyGroupMember[];
@@ -66,25 +84,32 @@ type Props = {
   renderTableCard: (card: WaiterBoardTableSummary, pinned?: boolean) => ReactNode;
 };
 
-export function WaiterBoardPartySections({
-  restaurantSlug,
-  isDemo,
-  t,
-  parties,
-  partyMembers,
-  tables,
-  summaryByTableId,
-  boardFilter,
-  boardStateContext,
-  checkoutRequestedTableIds,
-  sessionMetaByTableId,
-  tableSearchTrimmed,
-  tableMatchesSearch,
-  onPartyStateChange,
-  onSessionRelocationPatch,
-  onRefreshBoard,
-  renderTableCard,
-}: Props) {
+export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle, Props>(
+  function WaiterBoardPartySections(
+    {
+      restaurantSlug,
+      isDemo,
+      t,
+      parties,
+      partyMembers,
+      tables,
+      summaryByTableId,
+      boardFilter,
+      boardStateContext,
+      checkoutRequestedTableIds,
+      sessionMetaByTableId,
+      tableSearchTrimmed,
+      tableMatchesSearch,
+      selectedPartyId,
+      onPartyCreated,
+      onBusyChange,
+      onPartyStateChange,
+      onSessionRelocationPatch,
+      onRefreshBoard,
+      renderTableCard,
+    },
+    ref,
+  ) {
   const [busy, setBusy] = useState(false);
   const [editingPartyId, setEditingPartyId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -102,9 +127,49 @@ export function WaiterBoardPartySections({
   } | null>(null);
   const skipRenameBlurRef = useRef(false);
 
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
+
   const displayNameById = useMemo(
     () => new Map(tables.map((row) => [row.id, row.display_name])),
     [tables],
+  );
+
+  const visibleParties = useMemo(
+    () =>
+      buildVisibleWaiterBoardPartyLanes({
+        parties,
+        partyMembers,
+        tables,
+        summaryByTableId,
+        boardFilter,
+        boardStateContext,
+        checkoutRequestedTableIds,
+        sessionMetaByTableId,
+        tableSearchTrimmed,
+        tableMatchesSearch,
+      }),
+    [
+      parties,
+      partyMembers,
+      tables,
+      summaryByTableId,
+      boardFilter,
+      boardStateContext,
+      checkoutRequestedTableIds,
+      sessionMetaByTableId,
+      tableSearchTrimmed,
+      tableMatchesSearch,
+    ],
+  );
+
+  const selectedLane = useMemo(
+    () =>
+      selectedPartyId
+        ? visibleParties.find((row) => row.party.id === selectedPartyId) ?? null
+        : null,
+    [selectedPartyId, visibleParties],
   );
 
   const beginRename = (party: TablePartyGroup) => {
@@ -157,7 +222,7 @@ export function WaiterBoardPartySections({
     }
   };
 
-  const createParty = async () => {
+  const createParty = useCallback(async () => {
     if (isDemo) {
       showToast(t.partyMarkerOnlyHint, 'info');
       return;
@@ -178,13 +243,24 @@ export function WaiterBoardPartySections({
         ? result.data.parties.find((p) => p.id === createdId)
         : null;
       if (created) {
+        onPartyCreated(created.id);
         setEditingPartyId(created.id);
         setEditingName(created.name);
       }
     } finally {
       setBusy(false);
     }
-  };
+  }, [
+    isDemo,
+    onPartyCreated,
+    onPartyStateChange,
+    restaurantSlug,
+    t.partyCreateFailed,
+    t.partyMarkerOnlyHint,
+    t.partyNameDuplicate,
+  ]);
+
+  useImperativeHandle(ref, () => ({ createParty }), [createParty]);
 
   const requestDissolve = (party: TablePartyGroup) => {
     if (isDemo) return;
@@ -367,79 +443,32 @@ export function WaiterBoardPartySections({
     );
   }, [addTarget, boardStateContext, partyMembers, tables]);
 
-  const visibleParties = parties
-    .map((party) => {
-      const memberIds = membersForParty(partyMembers, party.id).map((m) => m.table_id);
-      let cards = memberIds
-        .map((id) => summaryByTableId.get(id))
-        .filter((card): card is WaiterBoardTableSummary => !!card);
-
-      if (boardFilter !== 'all') {
-        cards = cards.filter(
-          (card) => classifyWaiterTableBoardState(card.tableId, boardStateContext) === boardFilter,
-        );
-      }
-      if (tableSearchTrimmed) {
-        cards = cards.filter((card) =>
-          tableMatchesSearch(card.displayName, tableSearchTrimmed),
-        );
-      }
-
-      cards = sortWaiterBoardTableSummaries(
-        cards,
-        tables,
-        checkoutRequestedTableIds,
-        sessionMetaByTableId,
-      );
-
-      const checkoutCount = memberIds.filter(
-        (id) => classifyWaiterTableBoardState(id, boardStateContext) === 'checkout',
-      ).length;
-
-      return { party, cards, checkoutCount, memberCount: memberIds.length };
-    })
-    .filter((row) => {
-      if (boardFilter === 'all' && !tableSearchTrimmed) return true;
-      return row.cards.length > 0;
-    });
-
-  const showCreateRow = boardFilter === 'all' && !tableSearchTrimmed;
+  const selectedParty = selectedLane?.party ?? null;
+  const selectedCards = selectedLane?.cards ?? [];
+  const selectedCheckoutCount = selectedLane?.checkoutCount ?? 0;
+  const selectedMemberCount = selectedLane?.memberCount ?? 0;
+  const isEditingSelected = selectedParty != null && editingPartyId === selectedParty.id;
+  const selectedCountLabel = t.partySectionCount.replace('{n}', String(selectedMemberCount));
+  const selectedTitle = selectedParty
+    ? `${isEditingSelected ? editingName : selectedParty.name} ${selectedCountLabel}`
+    : '';
+  const selectedCheckoutHint =
+    selectedCheckoutCount > 0
+      ? t.partySectionCheckoutHint.replace('{n}', String(selectedCheckoutCount))
+      : null;
 
   return (
-    <div className="mb-6 space-y-4">
-      {showCreateRow ? (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-brand-text-muted">{t.partyMarkerOnlyHint}</p>
-          <button
-            type="button"
-            disabled={busy || isDemo}
-            onClick={() => void createParty()}
-            className="rounded-lg border border-sky-600/40 bg-sky-500/10 px-3 py-1.5 text-sm font-medium text-sky-950 hover:bg-sky-500/15 disabled:opacity-50"
-          >
-            {busy ? t.partyCreating : t.partyCreate}
-          </button>
-        </div>
-      ) : null}
-
-      {visibleParties.map(({ party, cards, checkoutCount, memberCount }) => {
-        const isEditing = editingPartyId === party.id;
-        const countLabel = t.partySectionCount.replace('{n}', String(memberCount));
-        const title = `${isEditing ? editingName : party.name} ${countLabel}`;
-        const checkoutHint =
-          checkoutCount > 0
-            ? t.partySectionCheckoutHint.replace('{n}', String(checkoutCount))
-            : null;
-
-        return (
+    <>
+      {selectedParty ? (
+        <div className="mb-6">
           <section
-            key={party.id}
             className="rounded-2xl border-[3px] border-sky-600/80 bg-sky-500/8 p-4 shadow-md"
-            aria-label={title}
+            aria-label={selectedTitle}
           >
             <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
               <div>
                 <div className="flex flex-wrap items-baseline gap-1">
-                  {isEditing ? (
+                  {isEditingSelected ? (
                     <input
                       type="text"
                       value={editingName}
@@ -461,22 +490,22 @@ export function WaiterBoardPartySections({
                         }
                       }}
                       className="min-w-[8rem] max-w-[14rem] rounded-md border border-sky-700/40 bg-white px-2 py-0.5 text-sm font-semibold text-sky-950 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
-                      aria-label={party.name}
+                      aria-label={selectedParty.name}
                     />
                   ) : (
                     <button
                       type="button"
                       disabled={busy || isDemo}
-                      onClick={() => beginRename(party)}
+                      onClick={() => beginRename(selectedParty)}
                       className="text-left text-sm font-semibold text-sky-950 hover:underline disabled:opacity-50"
                     >
-                      {party.name}
+                      {selectedParty.name}
                     </button>
                   )}
-                  <span className="text-sm font-semibold text-sky-950">{countLabel}</span>
+                  <span className="text-sm font-semibold text-sky-950">{selectedCountLabel}</span>
                 </div>
-                {checkoutHint ? (
-                  <p className="mt-0.5 text-xs text-amber-800">{checkoutHint}</p>
+                {selectedCheckoutHint ? (
+                  <p className="mt-0.5 text-xs text-amber-800">{selectedCheckoutHint}</p>
                 ) : null}
               </div>
               <div className="flex flex-wrap gap-2">
@@ -484,7 +513,7 @@ export function WaiterBoardPartySections({
                   type="button"
                   disabled={busy || isDemo}
                   onClick={() => {
-                    setAddTarget(party);
+                    setAddTarget(selectedParty);
                     setSelectedIds([]);
                     setPendingMove(null);
                   }}
@@ -495,7 +524,7 @@ export function WaiterBoardPartySections({
                 <button
                   type="button"
                   disabled={busy || isDemo}
-                  onClick={() => requestOneClickMerge(party)}
+                  onClick={() => requestOneClickMerge(selectedParty)}
                   className="rounded-md border border-amber-700/35 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-950"
                 >
                   {t.partyMergeAll}
@@ -503,7 +532,7 @@ export function WaiterBoardPartySections({
                 <button
                   type="button"
                   disabled={busy || isDemo}
-                  onClick={() => requestDissolve(party)}
+                  onClick={() => requestDissolve(selectedParty)}
                   className="rounded-md border border-brand-border bg-white/50 px-2.5 py-1 text-xs text-brand-text-muted"
                 >
                   {t.partyDissolve}
@@ -511,23 +540,23 @@ export function WaiterBoardPartySections({
               </div>
             </div>
 
-            {cards.length === 0 ? (
+            {selectedCards.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.partyEmpty}</p>
             ) : (
               <div className={WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS}>
-                {cards.map((card) => {
+                {selectedCards.map((card) => {
                   const boardState = classifyWaiterTableBoardState(
                     card.tableId,
                     boardStateContext,
                   );
                   return (
-                    <div key={`party-${party.id}-${card.tableId}`} className="pt-6">
+                    <div key={`party-${selectedParty.id}-${card.tableId}`} className="pt-6">
                       <div className="relative">
                         {renderTableCard(card, false)}
                         <button
                           type="button"
                           disabled={busy || isDemo}
-                          onClick={() => void removeTable(party.id, card.tableId)}
+                          onClick={() => void removeTable(selectedParty.id, card.tableId)}
                           className={`absolute bottom-full right-3 z-10 rounded-t-md border border-b-0 px-2 py-0.5 text-xs disabled:opacity-50 ${WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS[boardState]}`}
                         >
                           {t.partyRemoveTable}
@@ -539,8 +568,8 @@ export function WaiterBoardPartySections({
               </div>
             )}
           </section>
-        );
-      })}
+        </div>
+      ) : null}
 
       <Modal
         open={addTarget != null}
@@ -689,6 +718,7 @@ export function WaiterBoardPartySections({
           </button>
         </div>
       </Modal>
-    </div>
+    </>
   );
-}
+  },
+);

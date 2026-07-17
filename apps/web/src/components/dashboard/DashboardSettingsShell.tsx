@@ -15,29 +15,34 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
   const activeItem = getActiveSettingsNavItem(pathname);
-  const pageTitle = activeItem ? hub[activeItem.labelKey] : hub.title;
   const pageSubtitle = activeItem?.hintKey ? hub[activeItem.hintKey] : '';
   const pageHelpModal =
     activeItem?.id === 'buffet' ? (
       <BuffetSettingsGuide />
     ) : null;
+  const showIntro = Boolean(pageSubtitle || pageHelpModal);
   const wide = isSettingsWideLayout(pathname);
   const narrowForm =
     pathname === '/dashboard/settings' || pathname === '/dashboard/settings/';
 
   const pageBody = (
     <>
-      <header className="mb-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h1 className="font-heading text-2xl sm:text-3xl text-brand-text">{pageTitle}</h1>
-          {pageHelpModal}
-        </div>
-        {pageSubtitle ? (
-          <p className="mt-1.5 max-w-3xl text-[13px] leading-snug text-brand-text-muted/90">
-            {pageSubtitle}
-          </p>
-        ) : null}
-      </header>
+      {showIntro ? (
+        <header className="mb-4">
+          {pageHelpModal ? (
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">{pageHelpModal}</div>
+          ) : null}
+          {pageSubtitle ? (
+            <p
+              className={`max-w-3xl text-[13px] leading-snug text-brand-text-muted/90 ${
+                pageHelpModal ? 'mt-1.5' : ''
+              }`}
+            >
+              {pageSubtitle}
+            </p>
+          ) : null}
+        </header>
+      ) : null}
 
       {children}
     </>

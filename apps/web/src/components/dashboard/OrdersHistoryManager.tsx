@@ -20,7 +20,6 @@ interface Props {
   initialHasMore: boolean;
   initialCappedTotal: number;
   tables?: RestaurantTableRow[];
-  pageTitle?: string;
   restaurantSlug: string;
 }
 
@@ -38,13 +37,11 @@ export function OrdersHistoryManager({
   initialHasMore,
   initialCappedTotal,
   tables = [],
-  pageTitle,
   restaurantSlug,
 }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const checkoutT = getMessages(lang).checkout;
-  const nav = getMessages(lang).nav;
   const locale = UI_LOCALE_BY_LANG[lang];
   const { printCheckoutBill, isPrintBillBusy, cooldownSecondsLeft, isOnCooldown } =
     useStaffCheckoutBillPrint(restaurantSlug);
@@ -291,10 +288,6 @@ export function OrdersHistoryManager({
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{pageTitle ?? nav.orders}</h1>
-      </div>
-
       <div className="bg-brand-card border border-brand-border rounded-xl p-4 mb-4 grid gap-3 md:grid-cols-2">
         <Select<TableOption, true>
           isMulti

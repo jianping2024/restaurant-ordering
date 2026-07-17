@@ -1018,7 +1018,9 @@ export function MenuManager({
     <div className="w-full max-w-full overflow-x-hidden">
       <div className="mb-6">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
+          <p className="text-brand-text-muted text-sm">
+            {t.total} {items.length} {t.items}
+          </p>
           <SettingsPageHelp title={t.guideTitle} triggerLabel={hub.helpLabel}>
             <ol className="space-y-3 list-decimal list-outside pl-4 text-brand-text">
               <li>{t.guideStep1}</li>
@@ -1027,9 +1029,6 @@ export function MenuManager({
             </ol>
           </SettingsPageHelp>
         </div>
-        <p className="text-brand-text-muted text-sm mt-1">
-          {t.total} {items.length} {t.items}
-        </p>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">

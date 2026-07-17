@@ -528,9 +528,11 @@ function WaiterBoardInner({
         </div>
       )}
       <div className="mb-6">
-        <h1 className="font-heading text-2xl text-brand-gold">{t.boardTitle}</h1>
+        {!embeddedInDashboard ? (
+          <h1 className="font-heading text-2xl text-brand-gold mb-4">{t.boardTitle}</h1>
+        ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
           {BOARD_KPI_ITEMS.map((item) => (
             <BoardKpiCard
               key={item.filter}

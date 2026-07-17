@@ -119,8 +119,7 @@ export function DashboardPageClient({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-heading text-3xl text-brand-text">{i18n.title}</h1>
-        <p className="text-brand-text-muted text-sm mt-1">{overviewDateLabel}</p>
+        <p className="text-brand-text-muted text-sm">{overviewDateLabel}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

@@ -264,8 +264,7 @@ export function ValueAnalyticsPageClient({
   return (
     <div className="max-w-6xl">
       <header className="mb-5">
-        <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
-        <p className="text-sm text-brand-text-muted mt-2">{t.subtitle}</p>
+        <p className="text-sm text-brand-text-muted">{t.subtitle}</p>
       </header>
 
       <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden mb-5 shadow-sm">

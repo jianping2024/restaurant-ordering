@@ -27,7 +27,7 @@ export const waiterBoardType = {
 export const WAITER_BOARD_SELECTED_EMPHASIS =
   'border border-brand-gold bg-brand-gold text-brand-on-gold shadow-sm';
 
-/** Lane tabs +「创建同行组」— shared height; active = solid gold face. */
+/** Lane tabs + together-group dropdown — shared height; active = solid gold face. */
 export const WAITER_BOARD_LANE_CHROME = {
   base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] transition-colors',
   idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted font-medium hover:border-brand-gold/35 hover:text-brand-text',

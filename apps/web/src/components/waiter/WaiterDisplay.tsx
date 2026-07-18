@@ -7,6 +7,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { WaiterBoardOpenTableSheet } from '@/components/waiter/WaiterBoardOpenTableSheet';
 import { WaiterBoardCheckoutSheet } from '@/components/waiter/WaiterBoardCheckoutSheet';
 import { WaiterBoardTableCard } from '@/components/waiter/WaiterBoardTableCard';
+import { WaiterBoardPartyLaneMenu } from '@/components/waiter/WaiterBoardPartyLaneMenu';
 import { WaiterBoardPartySections, type WaiterBoardPartySectionHandle } from '@/components/waiter/WaiterBoardPartySections';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
@@ -551,10 +552,10 @@ function WaiterBoardInner({
   }, [resolvedLaneKey]);
 
   const showCreatePartyControl = boardFilter === 'all' && !tableSearchTrimmed;
+  const showPartyMenuControl =
+    showCreatePartyControl || visiblePartyLanes.length > 0;
   const showLaneChrome =
-    visibleFloorSections.length > 0 ||
-    visiblePartyLanes.length > 0 ||
-    showCreatePartyControl;
+    visibleFloorSections.length > 0 || showPartyMenuControl;
 
   const hasVisibleBoardContent = useMemo(() => {
     if (showCheckoutPinned) return true;
@@ -670,46 +671,41 @@ function WaiterBoardInner({
 
       {showLaneChrome ? (
         <div className={WAITER_BOARD_LANE_STICKY_SHELL}>
-          <div
-            className="mesa-chip-scroll flex gap-2 pb-1"
-            role="tablist"
-            aria-label={t.boardTitle}
-          >
-            {visibleFloorSections.map(({ section, visibleIds }) => {
-              const key = floorLaneKey(section.id);
-              return (
-                <BoardLaneTab
-                  key={key}
-                  active={resolvedLaneKey === key}
-                  label={section.title}
-                  countLabel={sectionTableCountLabel(visibleIds.length)}
-                  onClick={() => selectLane(key)}
-                />
-              );
-            })}
-            {visiblePartyLanes.map(({ party, memberCount }) => {
-              const key = partyLaneKey(party.id);
-              return (
-                <BoardLaneTab
-                  key={key}
-                  active={resolvedLaneKey === key}
-                  label={party.name}
-                  countLabel={t.partySectionCount.replace('{n}', String(memberCount))}
-                  onClick={() => selectLane(key)}
-                />
-              );
-            })}
-            {showCreatePartyControl ? (
-              <button
-                type="button"
-                disabled={partyBusy || isDemo}
-                onClick={() => void partyActionsRef.current?.createParty()}
-                className={`${WAITER_BOARD_LANE_CHROME.base} ${WAITER_BOARD_LANE_CHROME.idle} disabled:opacity-50`}
+          <div className="flex items-center gap-2">
+            {visibleFloorSections.length > 0 ? (
+              <div
+                className="mesa-chip-scroll flex min-w-0 flex-1 gap-2 pb-1"
+                role="tablist"
+                aria-label={t.boardTitle}
               >
-                <span className={waiterBoardType.laneLabel}>
-                  {partyBusy ? t.partyCreating : t.partyCreate}
-                </span>
-              </button>
+                {visibleFloorSections.map(({ section, visibleIds }) => {
+                  const key = floorLaneKey(section.id);
+                  return (
+                    <BoardLaneTab
+                      key={key}
+                      active={resolvedLaneKey === key}
+                      label={section.title}
+                      countLabel={sectionTableCountLabel(visibleIds.length)}
+                      onClick={() => selectLane(key)}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
+            {showPartyMenuControl ? (
+              <WaiterBoardPartyLaneMenu
+                parties={visiblePartyLanes}
+                selectedPartyId={selectedPartyId}
+                canCreate={showCreatePartyControl}
+                busy={partyBusy}
+                createDisabled={isDemo}
+                menuLabel={t.partyMenu}
+                createLabel={t.partyMenuCreate}
+                creatingLabel={t.partyCreating}
+                sectionCountLabel={(n) => t.partySectionCount.replace('{n}', String(n))}
+                onCreate={() => void partyActionsRef.current?.createParty()}
+                onSelectParty={(partyId) => selectLane(partyLaneKey(partyId))}
+              />
             ) : null}
           </div>
         </div>

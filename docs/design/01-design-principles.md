@@ -135,13 +135,13 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
 
-**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）。楼面与同行组 lane **同一 chrome**；选中为实心 `bg-brand-gold` + `text-brand-on-gold`（`WAITER_BOARD_SELECTED_EMPHASIS`，无 ring 双线）。KPI 图标在 `waiter-board-kpi-icons.tsx`，色经 `WAITER_BOARD_FILTER_KPI_ICON_CLASS` 跟 status fg；新建同行组 `sort_order` **append**（横滑条向右生长）。
+**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）。楼面 lane 与同行组下拉触发器 **同一 chrome**；选中为实心 `bg-brand-gold` + `text-brand-on-gold`（`WAITER_BOARD_SELECTED_EMPHASIS`，无 ring 双线）。KPI 图标在 `waiter-board-kpi-icons.tsx`，色经 `WAITER_BOARD_FILTER_KPI_ICON_CLASS` 跟 status fg；新建同行组 `sort_order` **append**（菜单列表按 ASC；条上不再为每组占一个 tab）。
 
 | 角色 | 用途 |
 |------|------|
 | `pageTitle` | 看板页标题 |
 | `kpiCount` / `kpiLabel` / `kpiIconSlot` + `kpiIcon` | 顶部筛选 KPI（无副文案；图标固定槽光学居中） |
-| `laneLabel` / `laneMeta` | 横滑 lane 与「创建同行组」；外壳 `WAITER_BOARD_LANE_STICKY_SHELL`（`sticky` + `waiterStaffStickyChrome.belowStaffTopBar`）；内层 `mesa-chip-scroll` |
+| `laneLabel` / `laneMeta` | 横滑楼面 lane 与同行组下拉触发器；外壳 `WAITER_BOARD_LANE_STICKY_SHELL`（`sticky` + `waiterStaffStickyChrome.belowStaffTopBar`）；楼面在 `mesa-chip-scroll`，同行组菜单在条尾（避免 overflow 裁切） |
 | `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。

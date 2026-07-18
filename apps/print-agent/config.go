@@ -19,12 +19,23 @@ type config struct {
 	StationPrinters map[string]string `json:"station_printers,omitempty"`
 	Schedule        *scheduleConfig   `json:"schedule,omitempty"`
 	Poll            *pollConfig       `json:"poll,omitempty"`
+	// NotificationMode: "realtime" (default) or "polling" (fallback).
+	NotificationMode string `json:"notification_mode,omitempty"`
 	// UILocale: zh | en | pt — tray, wizards, and local test print only (not order tickets).
 	UILocale string `json:"ui_locale,omitempty"`
 	// ValidUntil: RFC3339 from claim; used for tray renewal hints (half-year credential).
 	ValidUntil string `json:"valid_until,omitempty"`
 	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
 	TextEncoding string `json:"text_encoding,omitempty"`
+}
+
+// resolveNotificationMode returns the configured mode or default to realtime.
+func (c *config) resolveNotificationMode() NotificationMode {
+	mode := NotificationMode(c.NotificationMode)
+	if mode == NotificationModePolling {
+		return NotificationModePolling
+	}
+	return NotificationModeRealtime
 }
 
 // configPathOverride is set by tests only.

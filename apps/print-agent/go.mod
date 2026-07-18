@@ -5,7 +5,8 @@ go 1.22
 require (
 	github.com/alexbrainman/printer v0.0.0-20200912035444-f40f26f0bdeb
 	github.com/getlantern/systray v1.2.2
-	golang.org/x/sys v0.5.0
+	github.com/gorilla/websocket v1.5.1
+	golang.org/x/sys v0.13.0
 	golang.org/x/text v0.14.0
 )
 
@@ -18,4 +19,5 @@ require (
 	github.com/getlantern/ops v0.0.0-20190325191751-d70cb0d6f85f // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
+	golang.org/x/net v0.17.0 // indirect
 )

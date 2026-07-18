@@ -52,7 +52,7 @@ func runAgent(args []string) {
 			showConsoleWindow()
 			log.Fatal(err)
 		}
-		runPollLoop(context.Background(), sess, nil)
+		runNotificationLoop(context.Background(), sess, nil)
 		return
 	}
 
@@ -94,7 +94,7 @@ func runAgentTrayFirst(args []string) {
 		}
 		rt.status.set("Ready", "Connected to Mesa")
 		startTrayLocalHTTP(rt)
-		go runPollLoop(ctx, sess, rt.status)
+		go runNotificationLoop(ctx, sess, rt.status)
 	}()
 
 	runtime.LockOSThread()

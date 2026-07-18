@@ -282,7 +282,7 @@ func (r *RealtimeNotifier) handleMessage(msg []byte) {
 }
 
 func (r *RealtimeNotifier) canPrintJob(job *printJob) bool {
-	_, err := r.config.printerTargetForJob(job)
+	_, err := r.config.printerTargetForJob(*job)
 	return err == nil
 }
 

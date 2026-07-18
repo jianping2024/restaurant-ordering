@@ -2,6 +2,16 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.45
+
+**实时通知打印增强 (Enhanced Realtime Fallback)**
+
+- 新增智能 fallback：Realtime 连接失败 3 次后自动切换到 Polling 模式，确保打印不中断
+- 支持自定义 Supabase URL（`supabase_url` 配置项），适配 Vercel 等独立部署环境
+- 系统托盘显示当前运行模式（Realtime 监听/Polling 轮询），状态一目了然
+- 优化连接重试策略：初次连接快速失败，已连接后无限重连，平衡可用性与恢复能力
+- 100% 向后兼容旧版本 agent，旧配置自动使用 Polling 模式
+
 ## 0.3.44
 
 **实时通知打印 (Realtime Notification)**

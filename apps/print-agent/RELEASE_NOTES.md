@@ -2,6 +2,17 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.44
+
+**实时通知打印 (Realtime Notification)**
+
+- 使用 Supabase Realtime WebSocket 替代 HTTP 轮询，打印延迟从 5-20 秒降至 <1 秒（提升 95%+）
+- HTTP 请求量减少 98%（从每小时 720 次降至 4 次）
+- 支持两种通知模式：`realtime`（默认，WebSocket 推送）和 `polling`（兜底，HTTP 轮询）
+- 100% 向后兼容旧配置，无需手动修改配置文件
+- 新增自动重连、心跳检测、补偿拉取机制，确保任务不丢失
+- 统一任务队列和去重逻辑，支持多 agent 场景
+
 ## 0.3.43
 
 **出品联备注折行**

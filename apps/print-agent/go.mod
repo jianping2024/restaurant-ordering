@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/alexbrainman/printer v0.0.0-20200912035444-f40f26f0bdeb
 	github.com/getlantern/systray v1.2.2
+	github.com/gorilla/websocket v1.5.1
 	golang.org/x/sys v0.5.0
 	golang.org/x/text v0.14.0
 )

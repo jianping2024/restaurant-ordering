@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  applyPrintAgentCloudConfigPatch,
   cloudConfigToForm,
   defaultPrintAgentCloudConfig,
   formToCloudConfig,
   isStationSlipShowCategoryGroupEnabled,
   normalizePrintAgentCloudConfig,
   parseDefaultReceiptStationId,
+  parsePrintAgentSchedulePollSlice,
   PRINT_AGENT_POLL_LIMITS,
   sanitizePollConfig,
 } from './print-agent-config';
@@ -130,5 +132,94 @@ describe('parseDefaultReceiptStationId', () => {
     assert.equal(parseDefaultReceiptStationId(''), undefined);
     assert.equal(parseDefaultReceiptStationId('cashier'), undefined);
     assert.equal(parseDefaultReceiptStationId('station:not-a-uuid'), undefined);
+  });
+});
+
+describe('applyPrintAgentCloudConfigPatch', () => {
+  const stationId = 'station:550e8400-e29b-41d4-a716-446655440000';
+
+  it('preserves category group and credential ttl when only schedule/poll change', () => {
+    const existing = {
+      schedule: {
+        timezone: 'Europe/Lisbon',
+        weekday: {
+          windows: [
+            { start: '12:00', end: '15:00' },
+            { start: '19:30', end: '23:00' },
+          ],
+        },
+      },
+      poll: {
+        after_print_interval_sec: 8,
+        warm_interval_sec: 9,
+        idle_interval_sec: 10,
+        warm_after_activity_sec: 1800,
+        closed_check_sec: 60,
+      },
+      credential_ttl_days: 90,
+      station_slip_show_category_group: true,
+      default_receipt_station_id: stationId,
+    };
+    const slice = formToCloudConfig({
+      ...cloudConfigToForm(existing),
+      afterPrintIntervalSec: 12,
+    });
+    const merged = applyPrintAgentCloudConfigPatch(existing, {
+      schedule: slice.schedule,
+      poll: slice.poll,
+    });
+    assert.equal(merged.poll?.after_print_interval_sec, 12);
+    assert.equal(merged.credential_ttl_days, 90);
+    assert.equal(merged.station_slip_show_category_group, true);
+    assert.equal(merged.default_receipt_station_id, stationId);
+  });
+
+  it('can turn category group off without dropping other fields', () => {
+    const existing = {
+      credential_ttl_days: 120,
+      station_slip_show_category_group: true,
+      default_receipt_station_id: stationId,
+    };
+    const merged = applyPrintAgentCloudConfigPatch(existing, {
+      station_slip_show_category_group: false,
+    });
+    assert.equal(merged.station_slip_show_category_group, undefined);
+    assert.equal(merged.credential_ttl_days, 120);
+    assert.equal(merged.default_receipt_station_id, stationId);
+  });
+
+  it('clears default receipt station when patched to null', () => {
+    const existing = {
+      station_slip_show_category_group: true,
+      default_receipt_station_id: stationId,
+    };
+    const merged = applyPrintAgentCloudConfigPatch(existing, {
+      default_receipt_station_id: null,
+    });
+    assert.equal(merged.default_receipt_station_id, undefined);
+    assert.equal(merged.station_slip_show_category_group, true);
+  });
+});
+
+describe('parsePrintAgentSchedulePollSlice', () => {
+  it('accepts schedule/poll body and rejects invalid times', () => {
+    const ok = parsePrintAgentSchedulePollSlice(formToCloudConfig(cloudConfigToForm({})));
+    assert.equal(ok.ok, true);
+    if (ok.ok) {
+      assert.ok(ok.slice.schedule);
+      assert.ok(ok.slice.poll);
+    }
+    const bad = parsePrintAgentSchedulePollSlice({
+      schedule: {
+        timezone: 'Europe/Lisbon',
+        weekday: {
+          windows: [
+            { start: '15:00', end: '12:00' },
+            { start: '19:30', end: '23:00' },
+          ],
+        },
+      },
+    });
+    assert.equal(bad.ok, false);
   });
 });

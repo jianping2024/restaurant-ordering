@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
-  normalizePrintAgentCloudConfig,
+  applyPrintAgentCloudConfigPatch,
   parseDefaultReceiptStationId,
-  type PrintAgentCloudConfig,
 } from '@/lib/print-agent-config';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 import {
@@ -31,9 +30,9 @@ export async function PATCH(req: Request) {
       ? (body as Record<string, unknown>).default_receipt_station_id
       : undefined;
 
-  let default_receipt_station_id: string | undefined;
+  let default_receipt_station_id: string | null;
   if (raw === null || raw === '') {
-    default_receipt_station_id = undefined;
+    default_receipt_station_id = null;
   } else {
     const parsed = parseDefaultReceiptStationId(raw);
     if (!parsed) {
@@ -65,13 +64,9 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'query_failed', message: readErr.message }, { status: 500 });
   }
 
-  const existing = normalizePrintAgentCloudConfig(row?.print_agent_config);
-  const merged: PrintAgentCloudConfig = { ...existing };
-  if (default_receipt_station_id) {
-    merged.default_receipt_station_id = default_receipt_station_id;
-  } else {
-    delete merged.default_receipt_station_id;
-  }
+  const merged = applyPrintAgentCloudConfigPatch(row?.print_agent_config, {
+    default_receipt_station_id,
+  });
 
   const { error } = await admin
     .from('restaurants')

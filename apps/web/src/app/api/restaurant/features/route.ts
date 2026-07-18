@@ -8,8 +8,8 @@ import {
   resolvePrintAgentCredentialTtlDays,
 } from '@/lib/restaurant-features';
 import {
+  applyPrintAgentCloudConfigPatch,
   isStationSlipShowCategoryGroupEnabled,
-  normalizePrintAgentCloudConfig,
   parseStationSlipShowCategoryGroupPatch,
 } from '@/lib/print-agent-config';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -140,18 +140,14 @@ export async function PATCH(req: Request) {
         mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch),
       )
     : normalizeRestaurantFeatureFlags(row?.feature_flags);
-  const baseConfig = normalizePrintAgentCloudConfig(row?.print_agent_config);
   const nextConfig =
     credentialTtlDays !== undefined || stationSlipShowCategoryGroup !== undefined
-      ? {
-          ...baseConfig,
+      ? applyPrintAgentCloudConfigPatch(row?.print_agent_config, {
           ...(credentialTtlDays !== undefined ? { credential_ttl_days: credentialTtlDays } : {}),
           ...(stationSlipShowCategoryGroup !== undefined
-            ? {
-                station_slip_show_category_group: stationSlipShowCategoryGroup ? true : undefined,
-              }
+            ? { station_slip_show_category_group: stationSlipShowCategoryGroup }
             : {}),
-        }
+        })
       : undefined;
 
   const updatePayload: {

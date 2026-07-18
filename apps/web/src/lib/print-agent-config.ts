@@ -33,6 +33,26 @@ export type PrintAgentCloudConfig = {
   station_slip_show_category_group?: boolean;
 };
 
+/** Schedule + poll only — owned by Print assistant schedule UI / settings PUT. */
+export type PrintAgentSchedulePollSlice = {
+  schedule: PrintAgentScheduleConfig;
+  poll: PrintAgentPollConfig;
+};
+
+/**
+ * Partial update applied onto a normalized existing config.
+ * Omit a key to leave it unchanged. Use `null` / `false` to clear optional flags.
+ */
+export type PrintAgentCloudConfigPatch = {
+  schedule?: PrintAgentScheduleConfig;
+  poll?: PrintAgentPollConfig;
+  credential_ttl_days?: number;
+  /** `null` or `''` clears the default receipt printer. */
+  default_receipt_station_id?: string | null;
+  /** `false` clears (absent = off). */
+  station_slip_show_category_group?: boolean;
+};
+
 /** Flat form used on the dashboard settings page. */
 export type PrintAgentSettingsForm = {
   timezone: string;
@@ -124,7 +144,8 @@ export function cloudConfigToForm(raw: unknown): PrintAgentSettingsForm {
   };
 }
 
-export function formToCloudConfig(form: PrintAgentSettingsForm): PrintAgentCloudConfig {
+/** Build the schedule/poll slice owned by the Print assistant form (not a full config). */
+export function formToCloudConfig(form: PrintAgentSettingsForm): PrintAgentSchedulePollSlice {
   const lunchStart = parseTime(form.lunchStart);
   const lunchEnd = parseTime(form.lunchEnd);
   const dinnerStart = parseTime(form.dinnerStart);
@@ -188,6 +209,43 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
   };
 }
 
+/**
+ * Apply an owned-field patch onto existing cloud config.
+ * Every writer of `restaurants.print_agent_config` must go through this.
+ */
+export function applyPrintAgentCloudConfigPatch(
+  existing: unknown,
+  patch: PrintAgentCloudConfigPatch,
+): PrintAgentCloudConfig {
+  const base = normalizePrintAgentCloudConfig(existing);
+  const raw: Record<string, unknown> = {
+    schedule: patch.schedule ?? base.schedule,
+    poll: patch.poll ?? base.poll,
+    credential_ttl_days:
+      patch.credential_ttl_days !== undefined
+        ? patch.credential_ttl_days
+        : base.credential_ttl_days,
+  };
+
+  const receiptId =
+    patch.default_receipt_station_id !== undefined
+      ? patch.default_receipt_station_id
+      : base.default_receipt_station_id;
+  if (typeof receiptId === 'string' && receiptId.length > 0) {
+    raw.default_receipt_station_id = receiptId;
+  }
+
+  const showGroup =
+    patch.station_slip_show_category_group !== undefined
+      ? patch.station_slip_show_category_group
+      : base.station_slip_show_category_group === true;
+  if (showGroup === true) {
+    raw.station_slip_show_category_group = true;
+  }
+
+  return normalizePrintAgentCloudConfig(raw);
+}
+
 /** Guest-order / station slip: print `(Bebidas/ Drinks2)` group headers between item blocks. */
 export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
   return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
@@ -203,24 +261,13 @@ export function parseStationSlipShowCategoryGroupPatch(
   return raw;
 }
 
-export function validatePrintAgentCloudConfig(raw: unknown): { ok: true; config: PrintAgentCloudConfig } | { ok: false; error: string } {
+/** Validate request body as a schedule/poll slice (round-trip through the dashboard form rules). */
+export function parsePrintAgentSchedulePollSlice(
+  raw: unknown,
+): { ok: true; slice: PrintAgentSchedulePollSlice } | { ok: false; error: string } {
   try {
-    const c = normalizePrintAgentCloudConfig(raw);
-    const form = cloudConfigToForm(c);
-    const out = formToCloudConfig(form);
-    return {
-      ok: true,
-      config: {
-        ...out,
-        credential_ttl_days: c.credential_ttl_days,
-        ...(c.default_receipt_station_id
-          ? { default_receipt_station_id: c.default_receipt_station_id }
-          : {}),
-        ...(c.station_slip_show_category_group
-          ? { station_slip_show_category_group: true }
-          : {}),
-      },
-    };
+    const form = cloudConfigToForm(raw);
+    return { ok: true, slice: formToCloudConfig(form) };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'invalid_config' };
   }

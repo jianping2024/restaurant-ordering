@@ -195,7 +195,12 @@ export interface OrdersAppendRequestBody {
 export const APPEND_CART_MAX_LINES = 80;
 export const APPEND_CART_QTY_MIN = 1;
 export const APPEND_CART_QTY_MAX = 99;
-export const APPEND_CART_NOTE_MAX_LEN = 500;
+/** Single dish note max length (UI + API); ~3 station-slip wrap lines. */
+export const APPEND_CART_NOTE_MAX_LEN = 120;
+
+export function clampAppendCartNote(note: string): string {
+  return note.slice(0, APPEND_CART_NOTE_MAX_LEN);
+}
 
 export interface Buffet {
   id: string;

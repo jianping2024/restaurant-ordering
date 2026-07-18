@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { MenuItem, CartItem, MenuCategory } from '@/types';
+import { clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { OrderedDrawer } from './OrderedDrawer';
@@ -237,7 +237,9 @@ export function MenuPage({
 
   // 更新备注
   const updateNote = (menuItemId: string, note: string) => {
-    setCart(prev => prev.map(c => c.menuItemId === menuItemId ? { ...c, note } : c));
+    setCart(prev =>
+      prev.map(c => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
+    );
   };
 
   const t = MENU_PAGE_MESSAGES[lang];

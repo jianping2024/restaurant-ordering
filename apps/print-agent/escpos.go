@@ -647,6 +647,10 @@ func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 	w.lf()
 }
 
+func stationSlipNoteMaxWidth(width int) int {
+	return stationSlipQtyColStart(width) - escposNoteIndentSpaces
+}
+
 func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	note = strings.TrimSpace(note)
 	if note == "" {
@@ -654,10 +658,12 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	}
 	w.writeBody1x2()
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
-	line := escposItemNotePrefix + note
+	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
-	w.text(indent + truncateRunes(line, width-escposNoteIndentSpaces))
-	w.lf()
+	for _, line := range wrapRunes(escposItemNotePrefix+note, maxW) {
+		w.text(indent + line)
+		w.lf()
+	}
 	w.underline(false)
 }
 
@@ -712,6 +718,24 @@ func truncateRunes(s string, max int) string {
 		return "…"
 	}
 	return string(r[:max-1]) + "…"
+}
+
+// wrapRunes splits s into rune chunks of at most max (no ellipsis). max <= 0 yields nil.
+func wrapRunes(s string, max int) []string {
+	if max <= 0 {
+		return nil
+	}
+	r := []rune(s)
+	if len(r) == 0 {
+		return nil
+	}
+	out := make([]string, 0, (len(r)+max-1)/max)
+	for len(r) > max {
+		out = append(out, string(r[:max]))
+		r = r[max:]
+	}
+	out = append(out, string(r))
+	return out
 }
 
 func formatItemLabel(idx int, name string) string {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import type { CartItem, Language } from '@/types';
+import { APPEND_CART_NOTE_MAX_LEN, clampAppendCartNote, type CartItem, type Language } from '@/types';
 import { Button } from '@/components/ui/Button';
 import {
   NOTE_PRESET_GROUP_LABELS,
@@ -63,9 +63,9 @@ export function CartDrawer({
 
   const appendNote = (current: string | undefined, next: string) => {
     const value = (current || '').trim();
-    if (!value) return next;
-    if (value.includes(next)) return value;
-    return `${value}; ${next}`;
+    if (!value) return clampAppendCartNote(next);
+    if (value.includes(next)) return clampAppendCartNote(value);
+    return clampAppendCartNote(`${value}; ${next}`);
   };
 
   const cartTotal = sumLineTotals(cart);
@@ -136,6 +136,7 @@ export function CartDrawer({
                   type="text"
                   placeholder={text.notePlaceholder}
                   value={item.note || ''}
+                  maxLength={APPEND_CART_NOTE_MAX_LEN}
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
                   className={customerTextInputClass}
                 />

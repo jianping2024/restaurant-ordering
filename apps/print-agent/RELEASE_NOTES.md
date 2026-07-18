@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.43
+
+**出品联备注折行**
+
+- 菜品备注（`Observação:`）超长时按 Items 区宽度折行完整打印，不再截断加省略号；续行不进入 Qty 列。
+- 业务侧单条备注上限仍由 Web `APPEND_CART_NOTE_MAX_LEN`（120）约束。
+
 ## 0.3.42
 
 **账单菜单区排版**

@@ -122,7 +122,7 @@ Content-Type: application/json
 |------|------|------|
 | `menu_item_id` | `string` (UUID) | 必填；对应 `menu_items.id` |
 | `qty` | `number` | 必填；整数 `APPEND_CART_QTY_MIN`–`APPEND_CART_QTY_MAX`（1–99） |
-| `note` | `string?` | 可选；最长 `APPEND_CART_NOTE_MAX_LEN`（500） |
+| `note` | `string?` | 可选；最长 `APPEND_CART_NOTE_MAX_LEN`（120） |
 
 **客户端不得提交**（出现即 `400 invalid_items`）：`id`、`name` / `name_*`、`price`、`emoji`、`batch_id`、`added_at`、`item_status`、`kind` 及自助餐相关字段。
 

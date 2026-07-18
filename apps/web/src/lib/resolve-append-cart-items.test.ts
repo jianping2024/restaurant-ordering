@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { APPEND_CART_NOTE_MAX_LEN } from '@/types';
 import {
   generateAppendBatchId,
   parseAppendCartRawItems,
@@ -76,6 +77,14 @@ describe('parseAppendCartRawItems', () => {
     assert.equal(r.lines.length, 1);
     assert.equal(r.lines[0].qty, 3);
     assert.equal(r.lines[0].note, 'a; b');
+  });
+
+  it('clamps note to APPEND_CART_NOTE_MAX_LEN', () => {
+    const long = 'x'.repeat(APPEND_CART_NOTE_MAX_LEN + 40);
+    const r = parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 1, note: long }]);
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.lines[0].note.length, APPEND_CART_NOTE_MAX_LEN);
   });
 
   it('rejects empty array and buffet rows', () => {

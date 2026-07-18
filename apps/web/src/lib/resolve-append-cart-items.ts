@@ -8,9 +8,9 @@ import {
 import type { OrderItem } from '@/types';
 import {
   APPEND_CART_MAX_LINES,
-  APPEND_CART_NOTE_MAX_LEN,
   APPEND_CART_QTY_MAX,
   APPEND_CART_QTY_MIN,
+  clampAppendCartNote,
 } from '@/types';
 
 export type ResolveAppendCartError =
@@ -57,7 +57,7 @@ export function generateAppendBatchId(nowMs = Date.now()): string {
 function mergeNotes(a: string, b: string): string {
   if (!a) return b;
   if (!b || a === b) return a;
-  return `${a}; ${b}`.slice(0, APPEND_CART_NOTE_MAX_LEN);
+  return clampAppendCartNote(`${a}; ${b}`);
 }
 
 const FORBIDDEN_APPEND_LINE_KEYS = [
@@ -130,7 +130,7 @@ export function parseAppendCartRawItems(
     }
 
     const note =
-      typeof r.note === 'string' ? r.note.trim().slice(0, APPEND_CART_NOTE_MAX_LEN) : '';
+      typeof r.note === 'string' ? clampAppendCartNote(r.note.trim()) : '';
 
     const existing = merged.get(menuItemId);
     if (existing) {

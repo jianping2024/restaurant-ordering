@@ -165,6 +165,72 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	}
 }
 
+func TestWrapRunes(t *testing.T) {
+	if got := wrapRunes("", 10); got != nil {
+		t.Fatalf("empty want nil, got %v", got)
+	}
+	if got := wrapRunes("ab", 0); got != nil {
+		t.Fatalf("max<=0 want nil, got %v", got)
+	}
+	got := wrapRunes("abcdefghij", 4)
+	want := []string{"abcd", "efgh", "ij"}
+	if len(got) != len(want) {
+		t.Fatalf("len got %v want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("got %v want %v", got, want)
+		}
+	}
+}
+
+func TestStationSlipNoteMaxWidthLeftOfQty(t *testing.T) {
+	maxW := stationSlipNoteMaxWidth(escposWidth)
+	if escposNoteIndentSpaces+maxW > stationSlipQtyColStart(escposWidth) {
+		t.Fatalf("note text band overlaps qty column: indent=%d max=%d qtyStart=%d",
+			escposNoteIndentSpaces, maxW, stationSlipQtyColStart(escposWidth))
+	}
+}
+
+func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
+	note := "2 pacotes de acucar 1 pacote de leite em po sem canela e bem quente por favor"
+	full := escposItemNotePrefix + note
+	maxW := stationSlipNoteMaxWidth(escposWidth)
+	chunks := wrapRunes(full, maxW)
+	if len(chunks) < 2 {
+		t.Fatal("fixture note too short to exercise wrap")
+	}
+	payload, _ := json.Marshal(jobPayload{
+		TableDisplayName: "068",
+		Lines: []jobLine{{
+			ItemCode:    "903",
+			ItemName:    "Cafe",
+			DisplayName: "903-Cafe",
+			Qty:         2,
+			Note:        note,
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	for _, chunk := range chunks {
+		enc := encodeWindows1252(chunk)
+		if !bytes.Contains(raw, enc) {
+			t.Fatalf("missing wrapped note chunk %q", chunk)
+		}
+	}
+	if bytes.Contains(raw, []byte("…")) {
+		t.Fatal("station note must not use ellipsis truncation")
+	}
+	itemLine := stationSlipItemLine("903-Cafe", "2", escposWidth)
+	qtyStart := stationSlipQtyColStart(escposWidth)
+	qtyCol := []rune(padFieldCenter("2", stationSlipQtyColWidth))
+	runes := []rune(itemLine)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("qty column disturbed: got %q", itemLine)
+		}
+	}
+}
+
 func TestStationTicketUsesLatinEncodingOnly(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		Lines: []jobLine{{

@@ -13,6 +13,18 @@ export type OrderHistoryBillSplitSummary = OrderHistoryBillSplitRef & {
   result: SplitResult[];
 };
 
+/** Wire-safe print handle — strips settlement jsonb (`result`). */
+export function toOrderHistoryBillSplitRef(
+  summary: OrderHistoryBillSplitSummary,
+): OrderHistoryBillSplitRef {
+  return {
+    id: summary.id,
+    session_id: summary.session_id,
+    table_id: summary.table_id,
+    discount_rate: summary.discount_rate,
+  };
+}
+
 const ORDER_HISTORY_BILL_SPLIT_STATUSES = ['paid', 'cancelled'] as const;
 
 const BILL_SPLIT_SELECT =

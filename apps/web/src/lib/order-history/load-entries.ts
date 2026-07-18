@@ -1,25 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { groupOrdersBySession } from '@/lib/analytics/analytics.repository';
-import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
-import { buildOrderHistorySessionSettlement } from '@/lib/order-history/build-session-settlement';
-import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
-import { countOrderListItems } from '@/lib/order-list-display';
+import {
+  buildOrderHistorySessionView,
+  toOrderHistoryListItem,
+  type OrderHistoryClosedSession,
+} from '@/lib/order-history/build-session-view';
+import { loadOrderHistorySessionPayloads } from '@/lib/order-history/load-session-payloads';
 import { resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
 import {
   ORDER_HISTORY_MAX_TOTAL,
   ORDER_HISTORY_PAGE_SIZE,
-  type OrderHistoryEntry,
   type OrderHistoryPageResult,
   type OrderHistoryQuery,
 } from '@/lib/order-history/types';
-import type { Order } from '@/types';
-
-type ClosedSessionRow = {
-  id: string;
-  table_id: string;
-  closed_at: string;
-  opened_by_user_id: string | null;
-};
 
 function startOfDayIso(dateKey: string): string {
   const date = new Date(dateKey);
@@ -52,35 +44,6 @@ function applySessionFilters<T extends {
     next = next.lte('closed_at', endOfDayIso(filters.closedTo));
   }
   return next;
-}
-
-function displayNameForSession(orders: Order[], tableId: string): string {
-  const fromOrder = orders.find((order) => order.display_name?.trim())?.display_name?.trim();
-  return fromOrder || tableId;
-}
-
-function buildEntry(
-  session: ClosedSessionRow,
-  sessionOrders: Order[],
-  openedByName: string | null,
-  billSplit: OrderHistoryEntry['billSplit'],
-  collectedPayments: OrderHistoryEntry['settlement']['collectedPayments'],
-): OrderHistoryEntry {
-  return {
-    sessionId: session.id,
-    tableId: session.table_id,
-    displayName: displayNameForSession(sessionOrders, session.table_id),
-    closedAt: session.closed_at,
-    openedByName,
-    itemCount: countOrderListItems(sessionOrders),
-    settlement: buildOrderHistorySessionSettlement({
-      billSplit,
-      collectedPayments,
-      orders: sessionOrders,
-    }),
-    billSplit,
-    orders: sessionOrders,
-  };
 }
 
 export async function loadOrderHistoryEntries(
@@ -124,31 +87,19 @@ export async function loadOrderHistoryEntries(
     return { items: [], cappedTotal, hasMore: false };
   }
 
-  const sessions = sessionRows as ClosedSessionRow[];
+  const sessions = sessionRows as OrderHistoryClosedSession[];
   const sessionIds = sessions.map((session) => session.id);
 
-  const { data: orderRows, error: ordersError } = await admin
-    .from('orders')
-    .select('*')
-    .eq('restaurant_id', query.restaurantId)
-    .in('session_id', sessionIds)
-    .order('created_at', { ascending: true });
-
-  if (ordersError) {
+  const payloads = await loadOrderHistorySessionPayloads(
+    admin,
+    query.restaurantId,
+    sessionIds,
+  );
+  if (!payloads) {
     return { items: [], cappedTotal, hasMore: false };
   }
 
-  const ordersBySession = groupOrdersBySession((orderRows || []) as Order[]);
-  const billSplitBySessionId = await loadBillSplitsForOrderHistory(
-    admin,
-    query.restaurantId,
-    sessionIds,
-  );
-  const collectedPaymentsBySession = await loadSessionCollectedPaymentsForOrderHistory(
-    admin,
-    query.restaurantId,
-    sessionIds,
-  );
+  const { ordersBySession, billSplitBySessionId, collectedPaymentsBySession } = payloads;
 
   const openerIds = sessions
     .map((session) => session.opened_by_user_id)
@@ -167,7 +118,15 @@ export async function loadOrderHistoryEntries(
     const openedByName = session.opened_by_user_id
       ? openerNames.get(session.opened_by_user_id) ?? null
       : null;
-    return buildEntry(session, sessionOrders, openedByName, billSplit, collectedPayments);
+    return toOrderHistoryListItem(
+      buildOrderHistorySessionView({
+        session,
+        orders: sessionOrders,
+        openedByName,
+        billSplit,
+        collectedPayments,
+      }),
+    );
   });
 
   const loadedThrough = query.offset + items.length;

@@ -1,7 +1,7 @@
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-splits';
-import type { Order } from '@/types';
+import type { OrderHistoryBillSplitRef } from '@/lib/order-history-bill-splits';
+import type { OrderListDisplayChip } from '@/lib/order-list-display';
 
 export type OrderHistoryCloseOutcome =
   | 'fully_paid'
@@ -24,16 +24,28 @@ export type OrderHistorySessionSettlement = {
   paidRevenue: number | null;
 };
 
-export type OrderHistoryEntry = {
+/** Lean list row — no orders, items, split.result, or collectedPayments. */
+export type OrderHistoryListItem = {
   sessionId: string;
   tableId: string;
   displayName: string;
   closedAt: string;
   openedByName: string | null;
   itemCount: number;
+  listAmount: number | null;
+  listAmountKind: OrderHistoryListAmountKind | null;
+  billSplit?: OrderHistoryBillSplitRef;
+};
+
+/** Self-contained detail for the history modal. */
+export type OrderHistoryDetail = {
+  sessionId: string;
+  tableId: string;
+  displayName: string;
+  closedAt: string;
+  openedByName: string | null;
   settlement: OrderHistorySessionSettlement;
-  billSplit?: OrderHistoryBillSplitSummary;
-  orders: Order[];
+  chips: OrderListDisplayChip[];
 };
 
 export const ORDER_HISTORY_PAGE_SIZE = 10;
@@ -55,7 +67,7 @@ export type OrderHistoryQuery = OrderHistoryFilters & {
 };
 
 export type OrderHistoryPageResult = {
-  items: OrderHistoryEntry[];
+  items: OrderHistoryListItem[];
   cappedTotal: number;
   hasMore: boolean;
 };

@@ -146,6 +146,8 @@
 | PATCH/DELETE | `/api/dashboard/staff/[id]` | Owner | 更新/禁用 |
 | POST | `/api/dashboard/staff/[id]/reset-password` | Owner | 重置密码 |
 | GET/POST/PATCH | `/api/dashboard/buffet` | Owner | 自助餐规则 |
+| GET | `/api/dashboard/order-history` | Owner / frontdesk | 已关台会话**列表**（`OrderHistoryListItem`；不含 `orders`/`items`/split.`result`/收款流水） |
+| GET | `/api/dashboard/order-history/[sessionId]` | Owner / frontdesk | 单会话**详情**（结算 + chips；自包含） |
 | GET/PATCH | `/api/dashboard/abnormal-operations` | Owner | 异常列表 |
 | PATCH | `/api/dashboard/abnormal-operations/[id]` | Owner | 确认/忽略 |
 

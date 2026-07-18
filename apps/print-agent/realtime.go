@@ -28,9 +28,9 @@ type RealtimeNotifier struct {
 
 // NewRealtimeNotifier creates a new Realtime notifier.
 func NewRealtimeNotifier(cfg *config, queue *JobQueue) (*RealtimeNotifier, error) {
-	supabaseURL := inferSupabaseURL(cfg.APIBase)
+	supabaseURL := cfg.getSupabaseURL()
 	if supabaseURL == "" {
-		return nil, fmt.Errorf("cannot infer supabase_url from api_base")
+		return nil, fmt.Errorf("cannot determine supabase_url")
 	}
 	
 	return &RealtimeNotifier{
@@ -52,6 +52,11 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		log.Printf("Realtime: initial fetch failed: %v", err)
 	}
 	
+	// Limit initial connection retries to fail fast for fallback
+	const maxInitialRetries = 3
+	retries := 0
+	connected := false
+	
 	// Main reconnection loop
 	for {
 		select {
@@ -61,7 +66,14 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		}
 		
 		if err := r.connect(ctx); err != nil {
-			log.Printf("Realtime: connection failed: %v, retrying in %v", err, r.reconnectDelay)
+			retries++
+			log.Printf("Realtime: connection failed: %v (attempt %d/%d)", err, retries, maxInitialRetries)
+			
+			// If not yet connected and reached retry limit, fail fast for fallback
+			if !connected && retries >= maxInitialRetries {
+				return fmt.Errorf("realtime connection failed after %d attempts: %w", maxInitialRetries, err)
+			}
+			
 			select {
 			case <-time.After(r.reconnectDelay):
 				r.increaseBackoff()
@@ -71,7 +83,9 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 			continue
 		}
 		
-		// Connection successful, reset backoff
+		// Connection successful
+		connected = true
+		retries = 0
 		r.reconnectDelay = 2 * time.Second
 		
 		// Post-connection compensation
@@ -83,6 +97,7 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		r.eventLoop(ctx)
 		
 		log.Println("Realtime: connection lost, reconnecting...")
+		// After first successful connection, unlimited reconnect attempts
 	}
 }
 

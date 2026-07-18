@@ -36,25 +36,35 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 		}
 	}()
 	
-	// Start notifier based on mode
+	// Start notifier based on mode with automatic fallback
 	var notifier Notifier
-	var err error
 	
-	switch mode {
-	case NotificationModeRealtime:
-		notifier, err = NewRealtimeNotifier(cfg, queue)
+	if mode == NotificationModeRealtime {
+		rt, err := NewRealtimeNotifier(cfg, queue)
 		if err != nil {
 			log.Printf("Realtime mode unavailable: %v, falling back to polling", err)
 			mode = NotificationModePolling
+			notifier = NewPollingNotifier(cfg, queue, sess.pc)
+		} else {
+			notifier = rt
 		}
-		
-	case NotificationModePolling:
+	} else {
 		notifier = NewPollingNotifier(cfg, queue, sess.pc)
 	}
 	
 	// Run notifier (blocks)
 	if err := notifier.Start(ctx); err != nil && err != context.Canceled {
 		log.Printf("Notifier error: %v", err)
+		
+		// If Realtime failed, automatically fallback to polling
+		if mode == NotificationModeRealtime {
+			log.Println("Realtime failed, falling back to polling mode")
+			mode = NotificationModePolling
+			notifier = NewPollingNotifier(cfg, queue, sess.pc)
+			if err := notifier.Start(ctx); err != nil && err != context.Canceled {
+				log.Printf("Polling also failed: %v", err)
+			}
+		}
 	}
 }
 

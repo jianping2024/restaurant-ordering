@@ -19,6 +19,8 @@ type config struct {
 	StationPrinters map[string]string `json:"station_printers,omitempty"`
 	Schedule        *scheduleConfig   `json:"schedule,omitempty"`
 	Poll            *pollConfig       `json:"poll,omitempty"`
+	// SupabaseURL: optional explicit Supabase Realtime URL (e.g. https://xxx.supabase.co); if omitted, inferred from api_base.
+	SupabaseURL string `json:"supabase_url,omitempty"`
 	// NotificationMode: "realtime" (default) or "polling" (fallback).
 	NotificationMode string `json:"notification_mode,omitempty"`
 	// UILocale: zh | en | pt — tray, wizards, and local test print only (not order tickets).
@@ -36,6 +38,14 @@ func (c *config) resolveNotificationMode() NotificationMode {
 		return NotificationModePolling
 	}
 	return NotificationModeRealtime
+}
+
+// getSupabaseURL returns the configured Supabase URL or infers from api_base.
+func (c *config) getSupabaseURL() string {
+	if c.SupabaseURL != "" {
+		return c.SupabaseURL
+	}
+	return inferSupabaseURL(c.APIBase)
 }
 
 // configPathOverride is set by tests only.

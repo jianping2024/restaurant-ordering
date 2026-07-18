@@ -79,8 +79,10 @@
 | POST | `/api/restaurants/[slug]/checkout/confirm-payment` | Staff 结账角色 | `confirm_bill_split_payment` + 打印入队 |
 | POST | `/api/restaurants/[slug]/checkout/resume-ordering` | Staff | `resume_table_session_ordering` |
 | POST | `/api/restaurants/[slug]/checkout/apply-discount` | Staff | 折扣写 split + 审计 |
+| GET | `/api/restaurants/[slug]/checkout/requests` | Staff 结账角色 | 队列 **Summary**（无 persons/result jsonb） |
+| GET | `/api/restaurants/[slug]/checkout/requests/[billSplitId]` | Staff 结账角色 | 单条完整 `BillSplit` 详情 |
 
-结账台列表：Dashboard 页面 SSR 加载 `bill_splits`，Realtime 刷新；无单独 list API。
+结账台：队列走 Summary API + Realtime 整表刷新；详情按 id 拉取。
 
 ---
 
@@ -120,7 +122,8 @@
 | 方法 | 路径 | 鉴权 | 职责 |
 |------|------|------|------|
 | GET | `/api/restaurants/[slug]/customer/session` | 顾客 | 活跃会话 + 近期订单 |
-| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页数据 |
+| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页完整模型 |
+| GET | `/api/restaurants/[slug]/customer/bill/refresh` | 顾客 | 账单 reconcile（orders + session/split/收款新鲜度） |
 
 分单提交走 `checkout/request`，无独立 `bill_splits` CRUD API。
 

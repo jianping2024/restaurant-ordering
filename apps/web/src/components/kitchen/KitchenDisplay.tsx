@@ -3,7 +3,8 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import type { Order, OrderItemStatus } from '@/types';
+import type { OrderItemStatus } from '@/types';
+import type { KitchenBoardOrder, KitchenBoardTable } from '@/lib/kitchen-board-types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { VoidItemReasonDialog } from '@/lib/order-item-void/VoidItemReasonDialog';
@@ -19,17 +20,17 @@ import { staffRolePath } from '@/lib/staff-routes';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
-import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import { compareRestaurantTables } from '@/lib/restaurant-tables';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
   asOwner?: boolean;
   /** SSR successfully loaded board — skip mount entry reconcile. */
   hasAuthoritativeSeed?: boolean;
-  initialOrders?: Order[];
+  initialOrders?: KitchenBoardOrder[];
   /** 开台 / 结账中（table_sessions open|billing）的 table_id，用于无待备餐单时在厨房占位 */
   initialActiveTableIds?: string[];
-  initialTables?: RestaurantTableRow[];
+  initialTables?: KitchenBoardTable[];
   isDemo?: boolean;
 }
 
@@ -79,7 +80,7 @@ export function KitchenDisplay(props: Props) {
   );
 }
 
-function buildInitialTableMeta(tables: RestaurantTableRow[] = []): Map<string, RestaurantTableRow> {
+function buildInitialTableMeta(tables: KitchenBoardTable[] = []): Map<string, KitchenBoardTable> {
   return new Map(tables.map((t) => [t.id, t]));
 }
 
@@ -100,13 +101,13 @@ function KitchenDisplayInner({
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const roleLabel = topBarRoleLabel(lang, asOwner ? 'owner' : 'kitchen');
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<KitchenBoardOrder[]>(initialOrders ?? []);
   const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);
-  const [tableMetaById, setTableMetaById] = useState<Map<string, RestaurantTableRow>>(
+  const [tableMetaById, setTableMetaById] = useState<Map<string, KitchenBoardTable>>(
     () => buildInitialTableMeta(initialTables),
   );
   const [updateConflict, setUpdateConflict] = useState(false);
-  const [pendingVoid, setPendingVoid] = useState<{ order: Order; itemIdx: number } | null>(null);
+  const [pendingVoid, setPendingVoid] = useState<{ order: KitchenBoardOrder; itemIdx: number } | null>(null);
   const [voidReasonError, setVoidReasonError] = useState<string | null>(null);
   const [voidingItem, setVoidingItem] = useState(false);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
@@ -129,7 +130,7 @@ function KitchenDisplayInner({
       || tableMetaById.get(tableId)?.display_name
       || tableId.slice(0, 8);
 
-    const byTable = new Map<string, Order[]>();
+    const byTable = new Map<string, KitchenBoardOrder[]>();
     boardOrders.forEach((o) => {
       const list = byTable.get(o.table_id) || [];
       list.push(o);
@@ -146,7 +147,7 @@ function KitchenDisplayInner({
       const tb = tableMetaById.get(b) ?? { sort_order: 9999, display_name: tableLabel(b) };
       return compareRestaurantTables(ta, tb);
     });
-    type Col = { kind: 'order'; order: Order } | { kind: 'placeholder'; tableId: string; displayName: string };
+    type Col = { kind: 'order'; order: KitchenBoardOrder } | { kind: 'placeholder'; tableId: string; displayName: string };
     const cols: Col[] = [];
     for (const tableId of sortedTables) {
       const list = byTable.get(tableId);
@@ -177,7 +178,7 @@ function KitchenDisplayInner({
   }, [restaurant.slug]);
 
   // 更新菜品级状态，并同步订单总状态（pending/cooking/done）
-  const updateItemStatus = async (order: Order, itemIdx: number, nextStatus: OrderItemStatus) => {
+  const updateItemStatus = async (order: KitchenBoardOrder, itemIdx: number, nextStatus: OrderItemStatus) => {
     if (nextStatus === 'voided' && !isDemo) {
       setVoidReasonError(null);
       setPendingVoid({ order, itemIdx });
@@ -205,17 +206,15 @@ function KitchenDisplayInner({
         .eq('updated_at', order.updated_at);
       if (!error) {
         const updatedAt = new Date().toISOString();
-        const merged: Order = {
-          ...order,
-          items: nextItems,
-          status: nextOrderStatus,
-          updated_at: updatedAt,
-        };
         if (nextOrderStatus === 'done') {
           setOrders((prev) => prev.filter((o) => o.id !== order.id));
-        } else {
+        } else if (nextOrderStatus === 'pending' || nextOrderStatus === 'cooking') {
           setOrders((prev) =>
-            prev.map((o) => (o.id === order.id ? merged : o)),
+            prev.map((o) =>
+              o.id === order.id
+                ? { ...order, items: nextItems, status: nextOrderStatus, updated_at: updatedAt }
+                : o,
+            ),
           );
         }
         return;
@@ -442,8 +441,8 @@ function OrderCard({
   labels,
   locale,
 }: {
-  order: Order;
-  onItemStatusChange: (order: Order, itemIdx: number, status: OrderItemStatus) => Promise<void>;
+  order: KitchenBoardOrder;
+  onItemStatusChange: (order: KitchenBoardOrder, itemIdx: number, status: OrderItemStatus) => Promise<void>;
   labels: {
     table: string;
     newOrder: string;

@@ -12,13 +12,17 @@ import {
 } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
-  applyConfirmPaymentToRequests,
   appendCollectedPaymentToSessionMap,
   mergeCollectedLedgersBySession,
   type ConfirmPaymentClientOutcome,
 } from '@/lib/checkout-confirm-payment-outcome';
-import { mergeBillSplitsFromRefresh } from '@/lib/checkout-request-state';
-import { upsertCheckoutRequestInQueue } from '@/lib/checkout-request-submit';
+import {
+  applyConfirmPaymentToSummaries,
+  buildCheckoutRequestSummary,
+  mergeCheckoutRequestSummariesFromRefresh,
+  upsertCheckoutRequestSummaryInQueue,
+  type CheckoutRequestSummary,
+} from '@/lib/checkout-request-summary';
 import { consumeStagedCheckoutRequest } from '@/lib/checkout-request-staging';
 import {
   parseSessionCollectedPaymentsWithSession,
@@ -32,10 +36,10 @@ import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-
 import type { BillSplit } from '@/types';
 
 type CheckoutRequestsContextValue = {
-  requests: BillSplit[];
+  requests: CheckoutRequestSummary[];
   pendingCount: number;
   reload: () => Promise<void>;
-  updateRequests: (updater: (prev: BillSplit[]) => BillSplit[]) => void;
+  updateRequests: (updater: (prev: CheckoutRequestSummary[]) => CheckoutRequestSummary[]) => void;
   upsertRequestFromSubmit: (row: BillSplit) => void;
   getCollectedForSession: (sessionId: string | null | undefined) => SessionCollectedPayment[];
   applyConfirmPaymentOutcome: (params: {
@@ -60,7 +64,7 @@ type Props = {
   restaurantSlug: string;
   /** Owner dashboard has no checkout queue nav badge or Realtime sync. */
   enabled: boolean;
-  initialRequests?: BillSplit[];
+  initialRequests?: CheckoutRequestSummary[];
   children: ReactNode;
 };
 
@@ -71,7 +75,7 @@ export function CheckoutRequestsProvider({
   initialRequests = [],
   children,
 }: Props) {
-  const [requests, setRequests] = useState<BillSplit[]>(() =>
+  const [requests, setRequests] = useState<CheckoutRequestSummary[]>(() =>
     enabled ? initialRequests : [],
   );
   const [collectedPaymentsBySession, setCollectedPaymentsBySession] = useState<
@@ -86,18 +90,23 @@ export function CheckoutRequestsProvider({
     try {
       const incoming = await requestCheckoutRequestsQueue(restaurantSlug);
       if (seq !== reloadSeqRef.current) return;
-      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
+      setRequests((prev) => mergeCheckoutRequestSummariesFromRefresh(prev, incoming));
     } catch {
       if (seq !== reloadSeqRef.current) return;
     }
   }, [enabled, restaurantSlug]);
 
-  const updateRequests = useCallback((updater: (prev: BillSplit[]) => BillSplit[]) => {
-    setRequests(updater);
-  }, []);
+  const updateRequests = useCallback(
+    (updater: (prev: CheckoutRequestSummary[]) => CheckoutRequestSummary[]) => {
+      setRequests(updater);
+    },
+    [],
+  );
 
   const upsertRequestFromSubmit = useCallback((row: BillSplit) => {
-    setRequests((prev) => upsertCheckoutRequestInQueue(prev, row));
+    const summary = buildCheckoutRequestSummary(row, []);
+    if (!summary) return;
+    setRequests((prev) => upsertCheckoutRequestSummaryInQueue(prev, summary));
   }, []);
 
   useEffect(() => {
@@ -169,14 +178,17 @@ export function CheckoutRequestsProvider({
       outcome: ConfirmPaymentClientOutcome;
     }) => {
       const { billSplitId, sessionId, outcome } = params;
-      setRequests((prev) => applyConfirmPaymentToRequests(prev, billSplitId, outcome));
+      setRequests((prev) => applyConfirmPaymentToSummaries(prev, billSplitId, outcome));
       if (sessionId && outcome.collection) {
         setCollectedPaymentsBySession((prev) =>
           appendCollectedPaymentToSessionMap(prev, sessionId, outcome.collection!),
         );
       }
+      if (!outcome.all_paid) {
+        void reload();
+      }
     },
-    [],
+    [reload],
   );
 
   useRestaurantStaffEntryReconcile(enabled, reload);

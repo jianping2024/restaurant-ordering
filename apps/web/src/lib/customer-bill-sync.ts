@@ -2,7 +2,8 @@ import {
   buildBillSplitOrderLines,
   buildByItemLineSpecs,
 } from '@/lib/bill-split-by-item-lines';
-import { requestCustomerBillContext } from '@/lib/request-customer-context';
+import { requestCustomerBillRefresh } from '@/lib/request-customer-context';
+import type { CustomerBillRefresh } from '@/lib/customer-bill-load';
 import type { Order } from '@/types';
 
 /** Stable fingerprint for bill-page order completeness checks. */
@@ -31,13 +32,23 @@ export function deriveBillView(orders: Order[]) {
   return { orderLines, lineSpecs, total };
 }
 
-export async function syncCustomerBill(slug: string, tableId: string) {
-  const data = await requestCustomerBillContext(slug, tableId);
+export type SyncedCustomerBill = CustomerBillRefresh & ReturnType<typeof deriveBillView>;
+
+export async function syncCustomerBill(
+  slug: string,
+  tableId: string,
+): Promise<SyncedCustomerBill | null> {
+  const data = await requestCustomerBillRefresh(slug, tableId);
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
   const partyMemberCount =
     typeof data.party_member_count === 'number' && Number.isFinite(data.party_member_count)
       ? Math.max(0, Math.trunc(data.party_member_count))
       : 0;
-  return { orders, partyMemberCount, ...deriveBillView(orders) };
+  return {
+    ...data,
+    orders,
+    party_member_count: partyMemberCount,
+    ...deriveBillView(orders),
+  };
 }

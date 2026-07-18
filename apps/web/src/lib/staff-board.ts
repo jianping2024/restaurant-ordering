@@ -31,6 +31,7 @@ import {
   type TablePartyGroupMember,
 } from '@/lib/table-party-groups';
 import type { Buffet } from '@/types';
+import { toKitchenBoardOrder, toKitchenBoardTable } from '@/lib/kitchen-board-types';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -82,7 +83,7 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
   const [{ data: orderRows }, { data: sessions }, { data: tableRows }] = await Promise.all([
     admin
       .from('orders')
-      .select('*')
+      .select('id, table_id, display_name, status, created_at, updated_at, items, session_id')
       .eq('restaurant_id', restaurantId)
       .in('status', ['pending', 'cooking'])
       .order('created_at', { ascending: true }),
@@ -93,16 +94,33 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
       .in('status', ['open', 'billing']),
     admin
       .from('restaurant_tables')
-      .select('id, display_name, sort_order, seat_min, seat_max')
+      .select('id, display_name, sort_order')
       .eq('restaurant_id', restaurantId)
       .is('deleted_at', null),
   ]);
 
   const activeIds = new Set((sessions || []).map((s) => s.id as string));
-  const orders = ((orderRows || []) as Order[]).filter(
-    (o) => !o.session_id || activeIds.has(o.session_id as string),
-  );
-  const tableById = new Map((tableRows || []).map((t) => [t.id as string, t as RestaurantTableRow]));
+  const orders = ((orderRows || []) as Array<{
+    id: string;
+    table_id: string;
+    display_name: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    items?: Order['items'] | null;
+    session_id?: string | null;
+  }>)
+    .filter((o) => !o.session_id || activeIds.has(o.session_id))
+    .map((o) => toKitchenBoardOrder(o))
+    .filter((o): o is NonNullable<typeof o> => o != null);
+
+  const tables = ((tableRows || []) as Array<{
+    id: string;
+    display_name: string;
+    sort_order: number;
+  }>).map(toKitchenBoardTable);
+
+  const tableById = new Map(tables.map((t) => [t.id, t]));
   const activeTableIds = Array.from(
     new Set(
       (sessions || [])
@@ -116,7 +134,7 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
     return a.localeCompare(b);
   });
 
-  return { orders, activeTableIds, tableById, tables: (tableRows || []) as RestaurantTableRow[] };
+  return { orders, activeTableIds, tableById, tables };
 }
 
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {

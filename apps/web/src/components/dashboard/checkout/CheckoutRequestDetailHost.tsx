@@ -46,9 +46,10 @@ import {
 } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
+import { requestCheckoutRequestDetail } from '@/lib/request-checkout-requests-queue';
 
 type Props = {
-  request: BillSplit;
+  billSplitId: string;
   restaurantId: string;
   restaurantSlug: string;
   canCloseTable?: boolean;
@@ -60,7 +61,7 @@ type Props = {
 };
 
 export function CheckoutRequestDetailHost({
-  request,
+  billSplitId,
   restaurantId,
   restaurantSlug,
   canCloseTable = false,
@@ -69,8 +70,39 @@ export function CheckoutRequestDetailHost({
   onAllPaid,
   onCloseTableComplete,
 }: Props) {
-  const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
+  const { reload, getCollectedForSession, applyConfirmPaymentOutcome } =
     useCheckoutRequests();
+  const [request, setRequest] = useState<BillSplit | null>(null);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const [detailError, setDetailError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setDetailLoading(true);
+    setDetailError(false);
+    setRequest(null);
+    void (async () => {
+      try {
+        const row = await requestCheckoutRequestDetail(restaurantSlug, billSplitId);
+        if (cancelled) return;
+        if (!row) {
+          setDetailError(true);
+          setDetailLoading(false);
+          return;
+        }
+        setRequest(row);
+        setDetailLoading(false);
+      } catch {
+        if (cancelled) return;
+        setDetailError(true);
+        setDetailLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [billSplitId, restaurantSlug]);
+
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
     (tableId: string) => {
@@ -89,6 +121,92 @@ export function CheckoutRequestDetailHost({
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
+
+  if (detailLoading) {
+    return (
+      <div className="flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">
+        <p className="text-brand-text-muted text-sm">{t.liveConnected}</p>
+      </div>
+    );
+  }
+  if (detailError || !request) {
+    return (
+      <div className="flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">
+        <p className="text-brand-text-muted text-sm">{t.empty}</p>
+      </div>
+    );
+  }
+
+  return (
+    <CheckoutRequestDetailHostLoaded
+      request={request}
+      setRequest={setRequest}
+      restaurantId={restaurantId}
+      restaurantSlug={restaurantSlug}
+      canCloseTable={canCloseTable}
+      showBackButton={showBackButton}
+      onBack={onBack}
+      onAllPaid={onAllPaid}
+      onCloseTableComplete={onCloseTableComplete}
+      reload={reload}
+      getCollectedForSession={getCollectedForSession}
+      applyConfirmPaymentOutcome={applyConfirmPaymentOutcome}
+      syncBoardAfterMutation={syncBoardAfterMutation}
+      onResumeMutated={onResumeMutated}
+      processingKeys={processingKeys}
+      setProcessingKeys={setProcessingKeys}
+      billDiscount={billDiscount}
+      lang={lang}
+      t={t}
+    />
+  );
+}
+
+function CheckoutRequestDetailHostLoaded({
+  request,
+  setRequest,
+  restaurantId,
+  restaurantSlug,
+  canCloseTable = false,
+  showBackButton = true,
+  onBack,
+  onAllPaid,
+  onCloseTableComplete,
+  reload,
+  getCollectedForSession,
+  applyConfirmPaymentOutcome,
+  syncBoardAfterMutation,
+  onResumeMutated,
+  processingKeys,
+  setProcessingKeys,
+  billDiscount,
+  lang,
+  t,
+}: {
+  request: BillSplit;
+  setRequest: React.Dispatch<React.SetStateAction<BillSplit | null>>;
+  restaurantId: string;
+  restaurantSlug: string;
+  canCloseTable?: boolean;
+  showBackButton?: boolean;
+  onBack: () => void;
+  onAllPaid?: () => void;
+  onCloseTableComplete?: () => void;
+  reload: () => Promise<void>;
+  getCollectedForSession: (sessionId: string | null | undefined) => import('@/lib/checkout-session-payments').SessionCollectedPayment[];
+  applyConfirmPaymentOutcome: (params: {
+    billSplitId: string;
+    sessionId: string | null | undefined;
+    outcome: import('@/lib/checkout-confirm-payment-outcome').ConfirmPaymentClientOutcome;
+  }) => void;
+  syncBoardAfterMutation: (tableId: string) => void;
+  onResumeMutated: (tableId: string) => void;
+  processingKeys: Set<string>;
+  setProcessingKeys: React.Dispatch<React.SetStateAction<Set<string>>>;
+  billDiscount: ReturnType<typeof useCheckoutBillDiscount>;
+  lang: import('@/lib/i18n').UILanguage;
+  t: ReturnType<typeof getMessages>['checkout'];
+}) {
   const {
     isResumeBusy,
     isResumeMutating,
@@ -183,12 +301,13 @@ export function CheckoutRequestDetailHost({
         discount_reason_detail: string | null;
       },
     ) => {
-      updateRequests((prev) =>
-        prev.map((r) => (r.id === requestId ? { ...r, ...discount } : r)),
+      setRequest((prev) =>
+        prev && prev.id === requestId ? { ...prev, ...discount } : prev,
       );
+      void reload();
       billDiscount.finishSetup(requestId);
     },
-    [billDiscount, updateRequests],
+    [billDiscount, reload, setRequest],
   );
 
   const persistDiscount = useCallback(
@@ -324,6 +443,14 @@ export function CheckoutRequestDetailHost({
           collection: outcome.collection,
         },
       });
+      setRequest((prev) =>
+        prev
+          ? {
+              ...prev,
+              result: outcome.result,
+            }
+          : prev,
+      );
       syncBoardAfterMutation(row.table_id);
       if (outcome.all_paid) {
         onAllPaid?.();

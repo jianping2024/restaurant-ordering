@@ -6,7 +6,7 @@ import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
-import type { Order } from '@/types';
+import type { KitchenBoardOrder, KitchenBoardTable } from '@/lib/kitchen-board-types';
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
@@ -161,9 +161,9 @@ export async function postWaiterTableActionClient(
 }
 
 type KitchenBoardResponse = {
-  orders?: Order[];
+  orders?: KitchenBoardOrder[];
   activeTableIds?: string[];
-  tables?: RestaurantTableRow[];
+  tables?: KitchenBoardTable[];
 };
 
 /** Kitchen active board via authenticated staff API. */
@@ -171,7 +171,7 @@ export async function fetchKitchenBoardClient(slug: string) {
   const board = await fetchStaffBoard<KitchenBoardResponse>(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/kitchen/board`,
   );
-  const tables = sortRestaurantTables(board.tables || []);
+  const tables = [...(board.tables || [])].sort(compareRestaurantTables);
   const tableById = new Map(tables.map((t) => [t.id, t]));
   const activeTableIds = [...(board.activeTableIds || [])].sort((a, b) => {
     const ta = tableById.get(a);

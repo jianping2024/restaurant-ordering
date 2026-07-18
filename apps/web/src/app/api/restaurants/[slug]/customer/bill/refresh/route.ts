@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadCustomerBillPageModel } from '@/lib/customer-bill-load';
+import {
+  loadCustomerBillPageModel,
+  toCustomerBillRefresh,
+} from '@/lib/customer-bill-load';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 
 export const runtime = 'nodejs';
 
+/** Lean reconcile for the bill page — see CustomerBillRefresh. */
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   const slug = params.slug?.trim();
   if (!slug) {
@@ -33,5 +37,5 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     return NextResponse.json({ error: 'table_not_available' }, { status: 404 });
   }
 
-  return NextResponse.json(model);
+  return NextResponse.json(toCustomerBillRefresh(model));
 }

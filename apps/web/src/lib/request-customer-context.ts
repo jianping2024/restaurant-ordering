@@ -1,25 +1,13 @@
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
+import type { CustomerBillPageModel, CustomerBillRefresh } from '@/lib/customer-bill-load';
 import type { BillSplit, Order, TableSession } from '@/types';
 
 export type CustomerSessionResponse = CustomerSessionContext;
 
-export type CustomerBillCollectedPayment = {
-  id: string;
-  person_name: string;
-  amount: number;
-  created_at: string;
-};
+/** @deprecated Prefer CustomerBillPageModel — kept for typed page consumers. */
+export type CustomerBillCollectedPayment = CustomerBillPageModel['collected_payments'][number];
 
-export type CustomerBillResponse = {
-  table_id: string;
-  display_name: string;
-  active_session: TableSession | null;
-  orders: Order[];
-  existing_split: BillSplit | null;
-  collected_payments: CustomerBillCollectedPayment[];
-  /** Together-group size for this table (0 = not in a party). */
-  party_member_count: number;
-};
+export type CustomerBillResponse = CustomerBillPageModel;
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
@@ -42,3 +30,11 @@ export function requestCustomerBillContext(slug: string, tableId: string) {
     `/api/restaurants/${encodeURIComponent(slug)}/customer/bill?table_id=${encodeURIComponent(tableId)}`,
   );
 }
+
+export function requestCustomerBillRefresh(slug: string, tableId: string) {
+  return fetchJson<CustomerBillRefresh>(
+    `/api/restaurants/${encodeURIComponent(slug)}/customer/bill/refresh?table_id=${encodeURIComponent(tableId)}`,
+  );
+}
+
+export type { CustomerBillRefresh, Order, BillSplit, TableSession };

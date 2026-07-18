@@ -72,7 +72,7 @@ export function WaiterBoardCheckoutSheet({
         {request ? (
           <CheckoutRequestDetailHost
             key={request.id}
-            request={request}
+            billSplitId={request.id}
             restaurantId={restaurantId}
             restaurantSlug={restaurantSlug}
             canCloseTable
@@ -82,10 +82,7 @@ export function WaiterBoardCheckoutSheet({
             onCloseTableComplete={onClose}
           />
         ) : (
-          <div className="rounded-xl border border-brand-border bg-brand-card px-6 py-16 text-center">
-            <p className="font-heading text-lg text-brand-text">{t.emptyTitle}</p>
-            <p className="text-brand-text-muted text-sm mt-2">{t.emptyHint}</p>
-          </div>
+          <p className="text-sm text-brand-text-muted">{t.empty}</p>
         )}
       </div>
     </div>,

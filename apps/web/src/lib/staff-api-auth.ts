@@ -9,7 +9,7 @@ import { FLOOR_TABLE_STAFF_ROLES, type StaffRole } from '@/lib/staff-account';
 
 export const CHECKOUT_AUTHORIZED_STAFF_ROLES: StaffRole[] = ['cashier', 'frontdesk'];
 
-/** Floor table ops (slug waiter + dashboard embedded board); restaurant owner also passes via owner fallback. */
+/** Floor table ops (Dashboard board); restaurant owner also passes via owner fallback. */
 export const OPEN_TABLE_AUTHORIZED_STAFF_ROLES: StaffRole[] = [...FLOOR_TABLE_STAFF_ROLES];
 
 export type StaffAuthContext = {

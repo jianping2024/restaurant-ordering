@@ -225,7 +225,7 @@
 
 - 后厨：将订单行标为 `voided`（须 `VoidItemReasonDialog` 填原因）
 - 楼面（前台 / 收银员）：`/dashboard/waiter` 桌台详情减数量（`decrement-item`），`pending`/`cooking` 可减；点减号直接生效，无弹框
-- 服务员（`/{slug}/waiter`）：**不可**菜单减数量（API `403 menu_decrement_not_allowed`）
+- 服务员（同一 `/dashboard/waiter`，角色禁止）：**不可**菜单减数量（API `403 menu_decrement_not_allowed`）
 - 减到 0 等价退菜，写 `void_reason`（reason 默认 `qty_adjustment`），不写 `operation_logs`，不进异常队列
 - 风险等级（后厨 void）：pending→LOW、cooking→MEDIUM、done→HIGH
 

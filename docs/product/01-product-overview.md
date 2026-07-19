@@ -78,13 +78,13 @@
 |------|------|----------|
 | **店主 / Owner** | `/auth/login` → `/dashboard` | 设置、菜单、桌位、经营分析、异常确认、员工管理 |
 | **前台 / Frontdesk** | 员工登录 → Dashboard 子集 | 服务员看板嵌入、结账、订单、桌位、菜单查看 |
-| **收银员 / Cashier** | 员工登录 → `/dashboard/checkout` | 仅结账台 |
-| **服务员 / Waiter** | `/{slug}/staff/login` → `/{slug}/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台、关台 |
+| **收银员 / Cashier** | 员工登录 → `/dashboard/waiter` + 结账台 | 看板 + 结账台 |
+| **服务员 / Waiter** | 员工登录 → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 关台结账） |
 | **后厨 / Kitchen** | `/{slug}/kitchen` | 订单出餐、退菜（void） |
 | **顾客 / Customer** | `/{slug}/menu`、`/{slug}/bill` | 扫码点餐、分单、呼叫结账（无账号） |
 | **平台运营 / Ops** | `apps/ops` | 餐厅代建、设备吊销、打印任务巡检 |
 
-Dashboard 导航按角色裁剪，注册表见 `apps/web/src/lib/dashboard-feature-registry.ts`（owner / frontdesk / cashier）。
+Dashboard 导航按角色裁剪，注册表见 `apps/web/src/lib/dashboard-feature-registry.ts`（owner / frontdesk / cashier / waiter）。
 
 ---
 

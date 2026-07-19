@@ -45,11 +45,13 @@ export async function resolveDashboardActor(
   if (account && !account.disabled_at) {
     if (account.role === 'frontdesk') return 'frontdesk';
     if (account.role === 'cashier') return 'cashier';
+    if (account.role === 'waiter') return 'waiter';
   }
 
   const meta = parseStaffUserMetadata(userMetadata);
   if (meta?.staff_role === 'frontdesk') return 'frontdesk';
   if (meta?.staff_role === 'cashier') return 'cashier';
+  if (meta?.staff_role === 'waiter') return 'waiter';
 
   return 'unknown';
 }
@@ -64,11 +66,12 @@ export type FrontdeskDashboardRestaurant = Pick<
   'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'suspended_at' | 'suspension_reason'
 >;
 
-export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk';
+export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk' | 'waiter';
 
 export type DashboardAccess =
   | { mode: 'owner'; restaurant: Restaurant }
   | { mode: 'cashier'; restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'> }
+  | { mode: 'waiter'; restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'> }
   | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant };
 
 export type DashboardAccessResult =
@@ -139,7 +142,11 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     return { mode: 'access_error', message: staffError.message };
   }
 
-  if (account && !account.disabled_at && account.role === 'cashier') {
+  if (
+    account &&
+    !account.disabled_at &&
+    (account.role === 'cashier' || account.role === 'waiter')
+  ) {
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants_public')
       .select('id, name, slug')
@@ -152,7 +159,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
 
     if (restaurant) {
       return {
-        mode: 'cashier',
+        mode: account.role as 'cashier' | 'waiter',
         restaurant: restaurant as Pick<Restaurant, 'id' | 'name' | 'slug'>,
       };
     }
@@ -348,7 +355,12 @@ export async function loadMenuManagementContext(options?: {
   if (access.mode === 'unauthenticated') {
     return { error: 'unauthorized', status: 401 };
   }
-  if (access.mode === 'access_error' || access.mode === 'onboarding' || access.mode === 'cashier') {
+  if (
+    access.mode === 'access_error' ||
+    access.mode === 'onboarding' ||
+    access.mode === 'cashier' ||
+    access.mode === 'waiter'
+  ) {
     return { error: 'forbidden', status: 403 };
   }
 
@@ -375,7 +387,12 @@ export async function loadOverviewDashboardContext(): Promise<FrontdeskOperation
   if (access.mode === 'unauthenticated') {
     return { error: 'unauthorized', status: 401 };
   }
-  if (access.mode === 'access_error' || access.mode === 'onboarding' || access.mode === 'cashier') {
+  if (
+    access.mode === 'access_error' ||
+    access.mode === 'onboarding' ||
+    access.mode === 'cashier' ||
+    access.mode === 'waiter'
+  ) {
     return { error: 'forbidden', status: 403 };
   }
   if (access.mode === 'frontdesk') {

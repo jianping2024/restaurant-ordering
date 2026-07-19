@@ -42,7 +42,8 @@ export default async function DashboardLayout({
     );
   }
 
-  const checkoutQueueEnabled = access.mode !== 'owner';
+  /** Waiter must not subscribe to checkout-queue Realtime (no checkout nav). */
+  const checkoutQueueEnabled = access.mode === 'frontdesk' || access.mode === 'cashier';
   let initialCheckoutRequests: BillSplit[] = [];
   if (checkoutQueueEnabled) {
     try {

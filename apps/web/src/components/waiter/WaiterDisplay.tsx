@@ -17,6 +17,10 @@ import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import {
+  floorBoardCapabilities,
+  type FloorBoardRole,
+} from '@/lib/floor-board-capabilities';
+import {
   buildWaiterBoardStateContext,
   classifyWaiterTableBoardState,
   computeWaiterBoardStats,
@@ -91,6 +95,8 @@ interface Props {
   initialPartyMembers?: TablePartyGroupMember[];
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
+  /** Required for production board card permissions when embedded. */
+  floorStaffRole?: FloorBoardRole;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }
 
@@ -186,11 +192,13 @@ function WaiterBoardInner({
   initialPartyMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
+  floorStaffRole = 'waiter',
   initialOpenTableDefaults = null,
 }: Props) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
+  const floorCaps = useMemo(() => floorBoardCapabilities(floorStaffRole), [floorStaffRole]);
   const dashboardBoard = useWaiterBoardOptional();
   const standaloneBoard = useWaiterOrders(
     restaurant,
@@ -396,7 +404,7 @@ function WaiterBoardInner({
     });
     const action = resolveWaiterBoardCardAction({
       boardState,
-      embeddedInDashboard,
+      canOpenCheckoutPendingTables: floorCaps.canOpenCheckoutPendingTables,
       supportsBuffetOpenTable,
       detailHref,
     });

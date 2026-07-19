@@ -13,14 +13,14 @@ export function isWaiterBoardCardInteractive(action: WaiterBoardCardAction): boo
 
 export function resolveWaiterBoardCardAction(input: {
   boardState: WaiterTableBoardState;
-  embeddedInDashboard: boolean;
+  canOpenCheckoutPendingTables: boolean;
   supportsBuffetOpenTable: boolean;
   detailHref: string;
 }): WaiterBoardCardAction {
-  const { boardState, embeddedInDashboard, supportsBuffetOpenTable, detailHref } = input;
+  const { boardState, canOpenCheckoutPendingTables, supportsBuffetOpenTable, detailHref } = input;
 
   if (boardState === 'checkout') {
-    if (isWaiterBoardTableCardClickable(embeddedInDashboard, boardState)) {
+    if (isWaiterBoardTableCardClickable(canOpenCheckoutPendingTables, boardState)) {
       return { kind: 'open_checkout_sheet' };
     }
     return { kind: 'disabled', reason: 'waiter_checkout' };

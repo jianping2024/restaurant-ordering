@@ -9,6 +9,7 @@ import {
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
   isOwnerOperationalPath,
+  isWaiterOperationalPath,
 } from './dashboard-paths';
 import { isStaffRole } from './staff-account';
 
@@ -62,6 +63,14 @@ describe('isFrontdeskOperationalPath', () => {
   });
 });
 
+describe('isWaiterOperationalPath', () => {
+  it('matches waiter board only', () => {
+    assert.equal(isWaiterOperationalPath('/dashboard/waiter'), true);
+    assert.equal(isWaiterOperationalPath('/dashboard/waiter/t1'), true);
+    assert.equal(isWaiterOperationalPath('/dashboard/checkout'), false);
+  });
+});
+
 describe('isStaffRole', () => {
   it('accepts known staff roles only', () => {
     assert.equal(isStaffRole('kitchen'), true);
@@ -104,5 +113,12 @@ describe('dashboardMiddlewareRedirectPath', () => {
 
   it('allows frontdesk on operational routes', () => {
     assert.equal(dashboardMiddlewareRedirectPath('frontdesk', '/dashboard/waiter'), null);
+  });
+
+  it('keeps waiter on board only', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('waiter', '/dashboard'), '/dashboard/waiter');
+    assert.equal(dashboardMiddlewareRedirectPath('waiter', '/dashboard/checkout'), '/dashboard/waiter');
+    assert.equal(dashboardMiddlewareRedirectPath('waiter', '/dashboard/waiter'), null);
+    assert.equal(dashboardMiddlewareRedirectPath('waiter', '/dashboard/waiter/t1'), null);
   });
 });

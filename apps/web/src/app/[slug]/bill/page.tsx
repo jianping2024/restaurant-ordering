@@ -49,15 +49,16 @@ export default async function BillRoute({ params, searchParams }: Props) {
   });
   if (!tableContext) notFound();
 
+  const caller = await resolveCheckoutRequestCaller(slug);
   const staffAssisted = resolveStaffAssistedFlow(
     from,
     returnPath,
     slug,
     tableContext.tableId,
+    { canAssistBillCheckout: caller.kind === 'authorized_staff' },
   );
 
-  const caller = await resolveCheckoutRequestCaller(slug);
-  if (caller.kind === 'forbidden_staff' || staffAssisted?.variant === 'slug_waiter') {
+  if (caller.kind === 'forbidden_staff') {
     redirect(staffAssisted?.returnHref ?? waiterBoardHref(slug));
   }
 

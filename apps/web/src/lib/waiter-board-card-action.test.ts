@@ -7,12 +7,12 @@ import {
 } from '@/lib/waiter-board-card-action';
 
 describe('resolveWaiterBoardCardAction', () => {
-  const detailHref = '/r/waiter/table-1';
+  const detailHref = '/dashboard/waiter/table-1';
 
   it('idle + active buffets opens sheet', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'idle',
-      embeddedInDashboard: true,
+      canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
       detailHref,
     });
@@ -22,7 +22,7 @@ describe('resolveWaiterBoardCardAction', () => {
   it('idle without buffet config is disabled', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'idle',
-      embeddedInDashboard: false,
+      canOpenCheckoutPendingTables: false,
       supportsBuffetOpenTable: false,
       detailHref,
     });
@@ -32,27 +32,27 @@ describe('resolveWaiterBoardCardAction', () => {
   it('dining navigates to table detail', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'dining',
-      embeddedInDashboard: true,
+      canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });
   });
 
-  it('checkout on dashboard frontdesk opens checkout sheet', () => {
+  it('checkout on desk roles opens checkout sheet', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
-      embeddedInDashboard: true,
+      canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'open_checkout_sheet' });
   });
 
-  it('checkout on slug waiter is display-only', () => {
+  it('checkout on waiter is display-only', () => {
     const action = resolveWaiterBoardCardAction({
       boardState: 'checkout',
-      embeddedInDashboard: false,
+      canOpenCheckoutPendingTables: false,
       supportsBuffetOpenTable: true,
       detailHref,
     });

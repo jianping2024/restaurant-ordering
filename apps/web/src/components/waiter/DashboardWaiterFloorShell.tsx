@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { WaiterDisplay } from '@/components/waiter/WaiterDisplay';
+import type { FloorBoardRole } from '@/lib/floor-board-capabilities';
 import {
   isDashboardWaiterBoardListPath,
   isDashboardWaiterTableDetailPath,
@@ -10,10 +11,11 @@ import {
 
 type Props = {
   restaurant: { id: string; name: string; slug: string };
+  floorStaffRole: FloorBoardRole;
   children: ReactNode;
 };
 
-export function DashboardWaiterFloorShell({ restaurant, children }: Props) {
+export function DashboardWaiterFloorShell({ restaurant, floorStaffRole, children }: Props) {
   const pathname = usePathname();
   const isDetail = isDashboardWaiterTableDetailPath(pathname);
   const isBoardRoute = isDashboardWaiterBoardListPath(pathname);
@@ -24,7 +26,13 @@ export function DashboardWaiterFloorShell({ restaurant, children }: Props) {
 
   return (
     <>
-      {isBoardRoute ? <WaiterDisplay restaurant={restaurant} embeddedInDashboard /> : null}
+      {isBoardRoute ? (
+        <WaiterDisplay
+          restaurant={restaurant}
+          embeddedInDashboard
+          floorStaffRole={floorStaffRole}
+        />
+      ) : null}
       {children}
     </>
   );

@@ -93,25 +93,24 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 | 来源 | URL 形态 | `returnToWaiterHref` |
 |------|----------|----------------------|
 | 顾客扫码 | `/{slug}/menu?table_id={uuid}` | `null` |
-| 服务员（slug 看板） | `.../menu?table_id=...&from=waiter&return=/{slug}/waiter/...` | 见下节 |
-| 服务员（dashboard 看板） | `...&return=/dashboard/waiter/...` | 见下节 |
+| 服务员（Dashboard 看板） | `.../menu?table_id=...&from=waiter&return=/dashboard/waiter/...` | 见下节；账单 CTA 仅 desk 角色 |
 | Demo | `/demo/menu?...` | `/demo/waiter/...` |
 
 `returnToWaiterHref` 由服务端页面解析（`[slug]/menu/page.tsx`、`demo/menu/page.tsx`）：
 
 - `from !== waiter` → `null`（顾客流）
-- `from === waiter` 且 `return` 以 **允许前缀** 开头 → 使用 `return`
-- 否则回退默认看板：`/{slug}/waiter`（demo 为 `/demo/waiter`）
+- `from === waiter` 且 `return` 以 **允许前缀** 开头 → 使用 `return`（legacy `/{slug}/waiter` 会规范到 `/dashboard/waiter`）
+- 否则回退默认看板：`/dashboard/waiter`（demo 为 `/demo/waiter`）
 
 **允许的回跳前缀（契约，须防开放重定向）**
 
 | 前缀 | 场景 |
 |------|------|
-| `/{slug}/waiter` | 服务员 slug 看板 |
-| `/dashboard/waiter` | 业主 / 前台 dashboard 楼台看板 |
+| `/dashboard/waiter` | 生产楼面看板（服务员 / 前台 / 收银） |
+| `/{slug}/waiter` | 旧书签（解析后规范到 Dashboard） |
 | `/demo/waiter` | Demo |
 
-**实现状态**：契约函数为 `resolveWaiterMenuReturnHref`（`staff-routes.ts`）。若菜单页仍仅用 `returnPath.startsWith('/{slug}/waiter')`，则 dashboard 的 `return=/dashboard/waiter/...` 会被丢弃并回退到 `/{slug}/waiter`，导致代点完成后误进服务员鉴权页——属已知缺口，修复时只改解析函数与菜单/账单入口，**不要**改 append 写单管道。
+**实现状态**：契约函数为 `resolveWaiterMenuReturnHref` / `resolveStaffAssistedFlow`（`staff-routes.ts`）；协助结账能力看登录角色（`canAssistBillCheckout`），不看 return 是否像 Dashboard。
 
 ### 会话同步（加菜门禁 UI）
 
@@ -189,8 +188,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 | 场景 | 看板 / 桌台路径 |
 |------|----------------|
-| 默认服务员 | `/{slug}/waiter`、`/{slug}/waiter/{tableId}` |
-| Dashboard 楼台 | `/dashboard/waiter`、`/dashboard/waiter/{tableId}` |
+| 默认楼面 | `/dashboard/waiter`、`/dashboard/waiter/{tableId}` |
 | Demo | `/demo/waiter/...` |
 
 代点完成后应回到 **发起代点的同一路径**（dashboard 须回 `/dashboard/waiter/...`，不得落到 `/{slug}/waiter` 触发服务员页鉴权）。

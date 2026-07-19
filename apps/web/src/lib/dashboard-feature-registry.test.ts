@@ -11,6 +11,7 @@ import {
   navPathsForRole,
   OWNER_NAV_ITEM_IDS,
   OWNER_NAV_PATHS,
+  WAITER_NAV_PATHS,
 } from './dashboard-feature-registry';
 
 describe('dashboard nav paths vs feature registry', () => {
@@ -76,12 +77,20 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     assert.equal(middlewareAllowsPath('cashier', '/dashboard/tables'), false);
     assert.equal(middlewareAllowsPath('cashier', '/dashboard'), false);
   });
+
+  it('waiter may access waiter board only', () => {
+    assert.equal(middlewareAllowsPath('waiter', '/dashboard/waiter'), true);
+    assert.equal(middlewareAllowsPath('waiter', '/dashboard/waiter/table-1'), true);
+    assert.equal(middlewareAllowsPath('waiter', '/dashboard/checkout'), false);
+    assert.equal(middlewareAllowsPath('waiter', '/dashboard/menu'), false);
+  });
 });
 
 describe('canAccessDashboardWaiterBoard', () => {
   it('allows floor staff roles with embedded waiter board', () => {
     assert.equal(canAccessDashboardWaiterBoard('frontdesk'), true);
     assert.equal(canAccessDashboardWaiterBoard('cashier'), true);
+    assert.equal(canAccessDashboardWaiterBoard('waiter'), true);
     assert.equal(canAccessDashboardWaiterBoard('owner'), false);
   });
 });
@@ -91,6 +100,7 @@ describe('navPathsForRole', () => {
     assert.deepEqual(navPathsForRole('owner'), OWNER_NAV_PATHS);
     assert.deepEqual(navPathsForRole('frontdesk'), FRONTDESK_NAV_PATHS);
     assert.deepEqual(navPathsForRole('cashier'), CASHIER_NAV_PATHS);
+    assert.deepEqual(navPathsForRole('waiter'), WAITER_NAV_PATHS);
   });
 });
 

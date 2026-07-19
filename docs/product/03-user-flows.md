@@ -24,7 +24,7 @@
 
 ### 正常流程
 
-1. 服务员进入桌台详情 `/{slug}/waiter/[tableId]`
+1. 服务员进入桌台详情 `/dashboard/waiter/[tableId]`（旧 `/{slug}/waiter/...` 永久重定向至此）
 2. 选择自助餐类型（若餐厅有 active buffet）、录入**成人数**与**儿童数**
 3. 点击「确认开台」→ `POST .../staff/waiter/buffet`（人数可为 0）
 4. 服务端：`openTableSessionIfAbsent`（无会话则 `table_sessions.status=open`）→ 有人数变化时计价并写入/更新 `buffet_base`
@@ -147,7 +147,7 @@
 
 ### 使用角色
 
-后厨（Kitchen void）、楼面（Dashboard `/dashboard/waiter`：**前台 / 收银员** 菜单减菜）。**服务员**（`/{slug}/waiter`）不可菜单减菜；自助餐改人数仍走 buffet API。
+后厨（Kitchen void）、楼面（Dashboard `/dashboard/waiter`：**前台 / 收银员** 菜单减菜）。**服务员**（同一 Dashboard 看板，角色无减菜能力）不可菜单减菜；自助餐改人数仍走 buffet API。
 
 ### 正常流程（后厨）
 
@@ -292,7 +292,7 @@
 
 ### 使用角色
 
-顾客（呼叫结账）、收银员/前台/店主（确认收款）、服务员（恢复点餐/关台）
+顾客（呼叫结账）、收银员/前台/店主（确认收款）；服务员不进结账台（恢复点餐 / 关台仅前台·收银桌台能力）
 
 ### 正常流程
 
@@ -306,7 +306,7 @@
   → session_collected_payments 记账；result 行标 paid
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
 
-前台 / 收银员桌台详情（`embeddedInDashboard`，会话 `open`、未呼叫结账）
+前台 / 收银员桌台详情（Dashboard 看板，会话 `open`、未呼叫结账；**服务员同路由但无关台按钮**）
   → 「关台结账」：
     - **前台**：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（operational，无未收款审计）
     - **收银员**：确认后**不打印**，直接 `checkout-close-table-session` 正常收台

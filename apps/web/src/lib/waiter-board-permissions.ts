@@ -1,11 +1,11 @@
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 
-/** Waiter staff board: dining/idle tables open detail; checkout tables are view-only. Frontdesk: all clickable. */
+/** Waiter: dining/idle open detail; checkout tables view-only. Desk roles: all clickable. */
 export function isWaiterBoardTableCardClickable(
-  embeddedInDashboard: boolean,
+  canOpenCheckoutPendingTables: boolean,
   boardState: WaiterTableBoardState,
 ): boolean {
-  if (embeddedInDashboard) return true;
+  if (canOpenCheckoutPendingTables) return true;
   return boardState !== 'checkout';
 }
 

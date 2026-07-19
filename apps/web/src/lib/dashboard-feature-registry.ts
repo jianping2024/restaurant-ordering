@@ -4,6 +4,7 @@ import {
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
   isOwnerDashboardPath,
+  isWaiterOperationalPath,
 } from '@/lib/dashboard-paths';
 
 /** How server-side writes should be performed for this feature. */
@@ -134,6 +135,8 @@ export const FRONTDESK_NAV_ITEM_IDS = [
 
 export const CASHIER_NAV_ITEM_IDS = ['waiterBoard', 'checkout'] as const;
 
+export const WAITER_NAV_ITEM_IDS = ['waiterBoard'] as const;
+
 export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[] {
   const ids =
     role === 'owner'
@@ -142,7 +145,9 @@ export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[
         ? FRONTDESK_NAV_ITEM_IDS
         : role === 'cashier'
           ? CASHIER_NAV_ITEM_IDS
-          : [];
+          : role === 'waiter'
+            ? WAITER_NAV_ITEM_IDS
+            : [];
   return ids.map((id) => DASHBOARD_NAV_ITEMS[id]);
 }
 
@@ -154,6 +159,7 @@ export function canAccessDashboardWaiterBoard(accessMode: DashboardAccessMode): 
 export const OWNER_NAV_PATHS = OWNER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
 export const FRONTDESK_NAV_PATHS = FRONTDESK_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
 export const CASHIER_NAV_PATHS = CASHIER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
+export const WAITER_NAV_PATHS = WAITER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id].href);
 
 /**
  * Canonical dashboard feature access map.
@@ -268,11 +274,11 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'waiter-board',
     path: '/dashboard/waiter',
-    navRoles: ['frontdesk', 'cashier'],
+    navRoles: ['frontdesk', 'cashier', 'waiter'],
     pageLoader: 'loadDashboardAccess (floor staff)',
     writePattern: 'read-only',
     aliases: ['/api/dashboard/checkout-close-table-session'],
-    riskNote: 'First item in frontdesk nav; kitchen shortcut stays optional below nav when enabled.',
+    riskNote: 'Shared floor board entry; close/checkout actions remain desk-role only.',
   },
 ];
 
@@ -287,6 +293,7 @@ export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string
     return isFrontdeskOperationalPath(pathname);
   }
   if (role === 'cashier') return isCashierOperationalPath(pathname);
+  if (role === 'waiter') return isWaiterOperationalPath(pathname);
   return false;
 }
 
@@ -294,6 +301,7 @@ export function navPathsForRole(role: DashboardAccessMode): readonly string[] {
   if (role === 'owner') return OWNER_NAV_PATHS;
   if (role === 'frontdesk') return FRONTDESK_NAV_PATHS;
   if (role === 'cashier') return CASHIER_NAV_PATHS;
+  if (role === 'waiter') return WAITER_NAV_PATHS;
   return [];
 }
 

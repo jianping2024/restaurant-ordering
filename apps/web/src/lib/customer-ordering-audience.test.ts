@@ -11,8 +11,8 @@ describe('customerOrderingAudience', () => {
   it('returns staff-assisted when flow is resolved', () => {
     assert.equal(
       customerOrderingAudience({
-        returnHref: '/cafe/waiter/table-1',
-        variant: 'slug_waiter',
+        returnHref: '/dashboard/waiter/table-1',
+        variant: 'staff',
         redirectAfterSubmit: true,
         showBillCta: false,
         skipGeoFence: true,

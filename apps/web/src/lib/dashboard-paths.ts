@@ -37,13 +37,18 @@ export function isCashierOperationalPath(pathname: string): boolean {
   return isDashboardWaiterBoardPath(pathname) || isCashierCheckoutPath(pathname);
 }
 
+/** Waiter dashboard routes: floor board only. */
+export function isWaiterOperationalPath(pathname: string): boolean {
+  return isDashboardWaiterBoardPath(pathname);
+}
+
 export function isFrontdeskOperationalPath(pathname: string): boolean {
   if (!pathname.startsWith('/dashboard')) return false;
   if (isDashboardSettingsPath(pathname)) return false;
   return true;
 }
 
-export type DashboardActor = 'owner' | 'frontdesk' | 'cashier' | 'unknown';
+export type DashboardActor = 'owner' | 'frontdesk' | 'cashier' | 'waiter' | 'unknown';
 
 /** Pure redirect target for dashboard middleware (testable). */
 export function dashboardMiddlewareRedirectPath(
@@ -62,6 +67,11 @@ export function dashboardMiddlewareRedirectPath(
   if (actor === 'cashier') {
     if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/waiter';
     if (!isCashierOperationalPath(pathname)) return '/dashboard/waiter';
+    return null;
+  }
+  if (actor === 'waiter') {
+    if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/waiter';
+    if (!isWaiterOperationalPath(pathname)) return '/dashboard/waiter';
     return null;
   }
   return null;

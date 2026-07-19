@@ -8,6 +8,7 @@ import {
 } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
+import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 
 interface Props {
@@ -62,6 +63,12 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     returnPath,
     slug,
     sessionContext.table_id,
+    {
+      canAssistBillCheckout:
+        from === 'waiter'
+          ? (await resolveCheckoutRequestCaller(slug)).kind === 'authorized_staff'
+          : false,
+    },
   );
 
   return (

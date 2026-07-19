@@ -5,6 +5,22 @@ import (
 	"time"
 )
 
+func sleepOrCancel(ctx context.Context, d time.Duration) {
+	if d <= 0 {
+		select {
+		case <-ctx.Done():
+		default:
+		}
+		return
+	}
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+	case <-t.C:
+	}
+}
+
 // patchJobStatus updates a job; logs and retries once on failure (avoids silent stuck processing).
 func patchJobStatus(ctx context.Context, cfg *config, jobID string, patch map[string]any, action string) bool {
 	if cfg == nil || jobID == "" {

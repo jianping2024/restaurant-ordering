@@ -26,7 +26,6 @@ import {
 } from '@/lib/waiter-board-snapshot';
 import { loadWaiterTablePageModel, resolveOpenTableBuffetPrices } from '@/lib/waiter-table-detail-load';
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
-import type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 import { loadTablePartyGroups } from '@/lib/table-party-groups-server';
 import {
   tablePartyMemberTableIds,
@@ -39,7 +38,7 @@ import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 export type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
-export type { WaiterBoardFetchScope, WaiterBoardLivePatch } from '@/lib/waiter-board-live';
+export type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
 
 export type WaiterBoardData = {
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
@@ -127,24 +126,6 @@ export async function fetchWaiterTablePageModel(
   tableId: string,
 ) {
   return loadWaiterTablePageModel(admin, restaurantId, tableId);
-}
-
-export async function fetchWaiterTableDetail(
-  admin: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<WaiterTableDetailData> {
-  const model = await loadWaiterTablePageModel(admin, restaurantId, tableId);
-  if (!model) {
-    return {
-      table: null,
-      sessionMeta: null,
-      orders: [],
-      checkoutRequested: false,
-      checkoutRequestedAt: null,
-    };
-  }
-  return model.detail;
 }
 
 export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: string) {

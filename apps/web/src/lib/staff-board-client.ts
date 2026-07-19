@@ -4,8 +4,6 @@ import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow 
 import type { WaiterBoardData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
-import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import {
   type WaiterBoardFetchScope,
   type WaiterBoardLivePatch,
@@ -77,9 +75,6 @@ export async function fetchWaiterBoardClient(
   }
   throw new Error('staff_board_unexpected_body');
 }
-
-export type { WaiterBoardFetchScope, WaiterBoardLivePatch };
-export type { WaiterBoardTableSummary, WaiterTableSessionMeta };
 
 /** Single-table waiter page model via authenticated staff API. */
 export async function fetchWaiterTablePageModelClient(

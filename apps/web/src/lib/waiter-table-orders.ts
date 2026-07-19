@@ -14,7 +14,7 @@ export function sessionIdForActiveTable(
 }
 
 /** Session-wide orders when table has open/billing session; else this table's orders only.
- *  Used by the waiter board (full order list). Table detail uses fetchWaiterTableDetail instead.
+ *  Used by the waiter board (full order list) and table detail views.
  */
 export function ordersForWaiterTableView(
   tableId: string,

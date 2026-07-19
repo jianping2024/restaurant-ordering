@@ -1,4 +1,4 @@
-// MesaGo print agent: LAN 9100 discover, pairing, poll print_jobs, route per print_station.
+// MesaGo print agent: LAN 9100 discover, pairing, Realtime (polling fallback) print_jobs, route per print_station.
 package main
 
 import (

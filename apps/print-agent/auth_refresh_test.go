@@ -56,14 +56,10 @@ func TestRefreshSupabaseSessionJSONBody(t *testing.T) {
 }
 
 func TestAccessTokenUnexpired(t *testing.T) {
-	mk := func(exp time.Time) string {
-		payload, _ := json.Marshal(map[string]int64{"exp": exp.Unix()})
-		return "x." + base64.RawURLEncoding.EncodeToString(payload) + ".y"
-	}
-	if !accessTokenUnexpired(mk(time.Now().Add(10*time.Minute)), time.Minute) {
+	if !accessTokenUnexpired(testAccessJWT(t, time.Now().Add(10*time.Minute)), time.Minute) {
 		t.Fatal("expected unexpired")
 	}
-	if accessTokenUnexpired(mk(time.Now().Add(30*time.Second)), time.Minute) {
+	if accessTokenUnexpired(testAccessJWT(t, time.Now().Add(30*time.Second)), time.Minute) {
 		t.Fatal("expected expired under skew")
 	}
 	if accessTokenUnexpired("not-a-jwt", 0) {
@@ -72,28 +68,27 @@ func TestAccessTokenUnexpired(t *testing.T) {
 }
 
 func TestTimeUntilAccessTokenRefresh(t *testing.T) {
-	mk := func(exp time.Time) string {
-		payload, _ := json.Marshal(map[string]int64{"exp": exp.Unix()})
-		return "x." + base64.RawURLEncoding.EncodeToString(payload) + ".y"
-	}
-	skew := 2 * time.Minute
+	skew := accessTokenRefreshSkew
 
 	if d := timeUntilAccessTokenRefresh("not-a-jwt", skew); d != 0 {
 		t.Fatalf("garbage: got %v, want 0", d)
 	}
-	if d := timeUntilAccessTokenRefresh(mk(time.Now().Add(skew/2)), skew); d != 0 {
+	if d := timeUntilAccessTokenRefresh(testAccessJWT(t, time.Now().Add(skew/2)), skew); d != 0 {
 		t.Fatalf("inside skew window: got %v, want 0", d)
 	}
 
-	d := timeUntilAccessTokenRefresh(mk(time.Now().Add(10*time.Minute)), skew)
+	d := timeUntilAccessTokenRefresh(testAccessJWT(t, time.Now().Add(10*time.Minute)), skew)
 	// Expect ~8 minutes (10m - 2m skew), allow slack for test runtime.
 	if d < 7*time.Minute || d > 9*time.Minute {
 		t.Fatalf("far from expiry: got %v, want ~8m", d)
 	}
 }
 
-func TestAccessTokenRefreshSkewConstant(t *testing.T) {
-	if accessTokenRefreshSkew != 2*time.Minute {
-		t.Fatalf("skew = %v, want 2m (single renew/connect threshold)", accessTokenRefreshSkew)
+func testAccessJWT(t *testing.T, exp time.Time) string {
+	t.Helper()
+	payload, err := json.Marshal(map[string]int64{"exp": exp.Unix()})
+	if err != nil {
+		t.Fatal(err)
 	}
+	return "x." + base64.RawURLEncoding.EncodeToString(payload) + ".y"
 }

@@ -99,11 +99,7 @@ func accessTokenExp(accessToken string) (exp time.Time, ok bool) {
 // accessTokenUnexpired reports whether JWT access_token exp is still after now+skew.
 // Unparseable tokens are treated as expired (caller must refresh).
 func accessTokenUnexpired(accessToken string, skew time.Duration) bool {
-	exp, ok := accessTokenExp(accessToken)
-	if !ok {
-		return false
-	}
-	return time.Now().Add(skew).Before(exp)
+	return timeUntilAccessTokenRefresh(accessToken, skew) > 0
 }
 
 // timeUntilAccessTokenRefresh is how long to wait before renewing the Realtime

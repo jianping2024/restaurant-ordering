@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Button } from '@/components/ui/Button';
 import {
   WAITER_BOARD_LANE_CHROME,
   waiterBoardType,
@@ -49,7 +50,7 @@ function computeMenuCoords(anchor: HTMLElement, menu: HTMLElement) {
 
 /**
  * Single entry for together-groups on the waiter board lane strip:
- * open menu → create or select a party (replaces per-party tabs + create button).
+ * open menu → create (primary action) or select a party.
  * Menu portals to body so it stays visible inside the horizontal chip scroll.
  */
 export function WaiterBoardPartyLaneMenu({
@@ -151,7 +152,7 @@ export function WaiterBoardPartyLaneMenu({
               id={menuId}
               role="menu"
               aria-label={menuLabel}
-              className="fixed z-30 max-h-[min(20rem,70vh)] min-w-[12rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-md"
+              className="fixed z-30 flex max-h-[min(20rem,70vh)] min-w-[12rem] flex-col overflow-hidden rounded-xl border border-brand-border bg-brand-card shadow-md"
               style={{
                 top: coords?.top ?? 0,
                 left: coords?.left ?? 0,
@@ -159,44 +160,57 @@ export function WaiterBoardPartyLaneMenu({
               }}
             >
               {canCreate ? (
-                <button
-                  type="button"
-                  role="menuitem"
-                  disabled={createDisabled || busy}
-                  onClick={() => {
-                    setOpen(false);
-                    onCreate();
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-brand-text transition-colors hover:bg-brand-gold/15 disabled:opacity-50"
+                <div
+                  className={`shrink-0 p-2 ${
+                    parties.length > 0 ? 'border-b border-brand-border/50' : ''
+                  }`}
                 >
-                  {busy ? creatingLabel : createLabel}
-                </button>
-              ) : null}
-              {parties.map(({ party, memberCount }) => {
-                const isSelected = party.id === selectedPartyId;
-                return (
-                  <button
-                    key={party.id}
+                  <Button
                     type="button"
                     role="menuitem"
-                    aria-current={isSelected ? 'true' : undefined}
+                    variant="gold"
+                    size="sm"
+                    className="w-full"
+                    disabled={createDisabled || busy}
+                    loading={busy}
                     onClick={() => {
                       setOpen(false);
-                      onSelectParty(party.id);
+                      onCreate();
                     }}
-                    className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                      isSelected
-                        ? 'bg-brand-gold/15 font-medium text-brand-text'
-                        : 'text-brand-text-muted hover:bg-brand-bg/70 hover:text-brand-text'
-                    }`}
                   >
-                    <span className="min-w-0 flex-1 truncate">{party.name}</span>
-                    <span className="shrink-0 tabular-nums opacity-80">
-                      {sectionCountLabel(memberCount)}
-                    </span>
-                  </button>
-                );
-              })}
+                    {busy ? creatingLabel : createLabel}
+                  </Button>
+                </div>
+              ) : null}
+              {parties.length > 0 ? (
+                <div className="min-h-0 flex-1 overflow-y-auto py-1">
+                  {parties.map(({ party, memberCount }) => {
+                    const isSelected = party.id === selectedPartyId;
+                    return (
+                      <button
+                        key={party.id}
+                        type="button"
+                        role="menuitem"
+                        aria-current={isSelected ? 'true' : undefined}
+                        onClick={() => {
+                          setOpen(false);
+                          onSelectParty(party.id);
+                        }}
+                        className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                          isSelected
+                            ? 'bg-brand-gold/15 font-medium text-brand-text'
+                            : 'text-brand-text-muted hover:bg-brand-bg/70 hover:text-brand-text'
+                        }`}
+                      >
+                        <span className="min-w-0 flex-1 truncate">{party.name}</span>
+                        <span className="shrink-0 tabular-nums opacity-80">
+                          {sectionCountLabel(memberCount)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>,
             document.body,
           )

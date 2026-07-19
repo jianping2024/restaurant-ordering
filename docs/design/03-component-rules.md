@@ -36,6 +36,7 @@
 - 加载中用 `loading` prop，禁止双点
 - 链接形态用 `ButtonLink`，保持与 button 同形
 - 结账「收款」目前用自定义 `mesa-badge-success` 类 — **新收款类按钮应与此视觉一致**（绿底白字、旁显示金额）
+- 下拉菜单内**主操作**（如同行组「创建」）用 `Button` `gold`/`sm`，固定在菜单顶区；选项列表保持普通 `menuitem` 行，二者不要画成同一种 list row
 
 ---
 

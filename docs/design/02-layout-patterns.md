@@ -188,7 +188,7 @@
 
 | 页面 | 路由 | 布局模式 |
 |------|------|----------|
-| 服务员看板 | `/dashboard/waiter`（旧 `/{slug}/waiter` 重定向） | 筛选 chip + 分组折叠区 + 桌位卡片网格 |
+| 服务员看板 | `/dashboard/waiter` | 筛选 chip + 分组折叠区 + 桌位卡片网格 |
 | 桌台详情 | `.../waiter/[tableId]` | 身份吸顶（桌号）→ 自助餐条 → 订单列表（小标题吸顶）→ 底栏操作 |
 | 后厨看板 | `/{slug}/kitchen` | 分状态列（pending/cooking）+ 全屏行卡片 |
 | Dashboard 首页 | `/dashboard` | 指标卡 + 列表（订单、待办） |

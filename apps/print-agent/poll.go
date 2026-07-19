@@ -75,7 +75,7 @@ func newPollController(schedule *scheduleConfig, poll *pollConfig) (*pollControl
 	return pc, nil
 }
 
-// applyRuntime refreshes schedule/poll from cloud or local config (hot reload).
+// applyRuntime refreshes schedule/poll from the current in-memory config.
 func (pc *pollController) applyRuntime(schedule *scheduleConfig, poll *pollConfig) error {
 	if pc == nil {
 		return nil

@@ -24,7 +24,7 @@
 
 ### 正常流程
 
-1. 服务员进入桌台详情 `/dashboard/waiter/[tableId]`（旧 `/{slug}/waiter/...` 永久重定向至此）
+1. 服务员进入桌台详情 `/dashboard/waiter/[tableId]`
 2. 选择自助餐类型（若餐厅有 active buffet）、录入**成人数**与**儿童数**
 3. 点击「确认开台」→ `POST .../staff/waiter/buffet`（人数可为 0）
 4. 服务端：`openTableSessionIfAbsent`（无会话则 `table_sessions.status=open`）→ 有人数变化时计价并写入/更新 `buffet_base`

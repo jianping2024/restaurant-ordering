@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.49
+
+**省流：云端配置只在启动拉取；心跳 5 分钟**
+
+- 运行中不再定时请求 `runtime-config`；改 Dashboard 营业时段/轮询后需托盘「重启」。
+- 设备心跳改为每 5 分钟；Dashboard 约 10 分钟无心跳视为离线。
+- 营业时间闸门仍每 15 秒在本地判定（不上网）。
+
 ## 0.3.48
 
 **营业时间支持跨午夜**

@@ -1,5 +1,5 @@
-/** Device considered offline when last_seen is older than this (≈2× typical idle poll). */
-export const PRINT_AGENT_HEARTBEAT_OFFLINE_MS = 2 * 60 * 1000;
+/** Device offline when last_seen older than this (≈2× 5-minute agent heartbeat). */
+export const PRINT_AGENT_HEARTBEAT_OFFLINE_MS = 10 * 60 * 1000;
 
 export type PrintAgentDeviceHeartbeatRow = {
   id: string;

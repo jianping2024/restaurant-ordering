@@ -5,7 +5,10 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
-import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import {
+  useDebouncedPostgresRealtimeRefresh,
+  useRestaurantStaffEntryReconcile,
+} from '@/lib/use-restaurant-realtime-refresh';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
   isStaffAssistedMenuSubmitReturn,
@@ -185,11 +188,16 @@ export function useWaiterTableDetail(
     tableId,
   );
 
-  useRestaurantRealtimeRefresh(
+  const tableFilter = `table_id=eq.${tableId}`;
+  useDebouncedPostgresRealtimeRefresh(
     supabase,
-    restaurant.id,
     `waiter-table-${restaurant.id}-${tableId}`,
-    enabled,
+    enabled && !isDemo,
+    [
+      { table: 'orders', filter: tableFilter },
+      { table: 'table_sessions', filter: tableFilter },
+      { table: 'bill_splits', filter: tableFilter },
+    ],
     () => {
       void refresh();
     },

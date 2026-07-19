@@ -82,8 +82,8 @@ func setNotifyMode(status *agentStatus, mode NotificationMode) {
 	log.Printf("Print notify mode: %s", mode)
 }
 
-// runScheduleLoop owns outside-hours tray state, clears the print queue when
-// closed, and hot-reloads schedule/poll from the cloud (option A).
+// runScheduleLoop owns outside-hours tray state and clears the print queue when
+// closed. Cloud schedule/poll is applied only at process start (restart to refresh).
 func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, status *agentStatus) error {
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -92,7 +92,7 @@ func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, s
 	first := true
 
 	apply := func() {
-		refreshSessionRuntime(sess)
+		ensureLocalPollController(sess)
 		cfg := sess.cfg
 		if cfg == nil || sess.pc == nil {
 			return
@@ -146,7 +146,9 @@ func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, s
 	}
 }
 
-func refreshSessionRuntime(sess *agentSession) {
+// ensureLocalPollController keeps schedule/poll from the in-memory config (startup
+// cloud merge + local file). Does not call the network.
+func ensureLocalPollController(sess *agentSession) {
 	if sess == nil {
 		return
 	}
@@ -155,7 +157,6 @@ func refreshSessionRuntime(sess *agentSession) {
 	if cfg == nil {
 		return
 	}
-	applyCloudRuntimeConfig(cfg, cfg.APIBase)
 	if sess.pc == nil {
 		pc, err := newPollController(cfg.Schedule, cfg.Poll)
 		if err != nil {
@@ -172,7 +173,24 @@ func refreshSessionRuntime(sess *agentSession) {
 
 // runHeartbeatLoop sends periodic heartbeats to the server.
 func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
-	ticker := time.NewTicker(30 * time.Second)
+	send := func() {
+		cfg := sess.cfg
+		if cfg == nil {
+			return
+		}
+		open := true
+		if sess.pc != nil {
+			if o, err := sess.pc.scheduleOpen(); err == nil {
+				open = o
+			}
+		}
+		if err := postHeartbeat(ctx, cfg, open, &sess.hb); err != nil {
+			agentLogTech(cfg, "log_heartbeat_error", err.Error())
+		}
+	}
+
+	send()
+	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
 	for {
@@ -180,21 +198,7 @@ func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
-			cfg := sess.cfg
-			if cfg == nil {
-				continue
-			}
-
-			open := true
-			if sess.pc != nil {
-				if o, err := sess.pc.scheduleOpen(); err == nil {
-					open = o
-				}
-			}
-
-			if err := postHeartbeat(ctx, cfg, open, &sess.hb); err != nil {
-				agentLogTech(cfg, "log_heartbeat_error", err.Error())
-			}
+			send()
 		}
 	}
 }

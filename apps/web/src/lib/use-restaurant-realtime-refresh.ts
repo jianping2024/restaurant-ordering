@@ -10,13 +10,15 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`)
  * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once
  * 5. Staff menu submit return — dedicated reconcile, then strip query
- * 6. Realtime while visible (`useRestaurantRealtimeRefresh`) — invalidation signal only (`mode: 'signal'`, may 304)
+ * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → authoritative GET
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
- * 8. Dashboard waiter board list re-shown (detail → list) — `entryKey` flip → `mode: 'reconcile'` (body required)
+ * 8. Dashboard waiter board list re-shown (detail → list) — one authoritative pull
  *
- * Reconcile pulls never send If-None-Match (local dirt must not freeze on 304).
+ * Waiter board Realtime/entry pulls run only while the board list is visible (active);
+ * other Dashboard routes keep the store dormant (mutations may still refresh).
  * Realtime never owns resume freshness: mobile tabs unsubscribe while hidden and would otherwise
  * miss cross-device closes until the next chance event.
+ * No interval API polling — see `.cursor/rules/no-polling-except-fallback.mdc`.
  */
 
 /** Debounce for Realtime → staff board signal refresh (not used for reconcile). */

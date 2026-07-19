@@ -92,16 +92,17 @@ function WaiterBoardProviderInner({
     seed.openTableDefaults,
     seed.parties,
     seed.partyMembers,
+    boardListVisible,
   );
 
   const refresh = store.refresh;
 
-  // Detail → board list: force reconcile (body). Do not run when leaving the list.
+  // Detail → board list: one authoritative pull. Do not run when leaving the list.
   useEffect(() => {
     const wasVisible = wasBoardListVisibleRef.current;
     wasBoardListVisibleRef.current = boardListVisible;
     if (boardListVisible && !wasVisible) {
-      void refresh('reconcile');
+      void refresh();
     }
   }, [boardListVisible, refresh]);
 
@@ -109,7 +110,7 @@ function WaiterBoardProviderInner({
     async (tableIds: readonly string[]) => {
       if (tableIds.length === 0) return;
       releaseWaiterBoardTableBridge(tableIds);
-      await refresh('reconcile');
+      await refresh();
     },
     [refresh],
   );
@@ -118,7 +119,7 @@ function WaiterBoardProviderInner({
     (input: WaiterSessionRelocationBoardInput) => {
       store.applySessionRelocationPatch(input);
       releaseWaiterBoardTableBridge([input.sourceTableId]);
-      void refresh('reconcile');
+      void refresh();
     },
     [refresh, store],
   );

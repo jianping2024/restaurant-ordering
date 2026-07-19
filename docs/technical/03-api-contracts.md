@@ -41,7 +41,7 @@
 | GET/POST/PATCH/DELETE | `/api/dashboard/table-groups` | Owner / frontdesk | 分组与成员 |
 | POST | `/api/dashboard/close-table-session` | Owner / frontdesk | 强制关台 → `close_table_session_*` RPC |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]` | Waiter+ | 桌台详情 |
-| GET | `/api/restaurants/[slug]/staff/waiter/board` | Waiter+ | 楼面看板权威快照；`ETag` + `Cache-Control: private, no-store`；带 `If-None-Match` 且未变 → `304`（仅 Realtime signal；入场/回前台/回列表/写后对账不得依赖 304） |
+| GET | `/api/restaurants/[slug]/staff/waiter/board` | Waiter+ | 楼面看板权威快照；`Cache-Control: private, no-store` |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets` | Waiter+ | 转台/并台目标桌列表 |
 | POST | `/api/restaurants/[slug]/staff/waiter/tables/action` | Waiter+ | `transfer` \| `merge` RPC |
 
@@ -159,7 +159,7 @@
 | POST | `/api/auth/login` | 店主登录 |
 | POST | `/api/auth/staff/login` | 员工登录（按 slug/角色） |
 
-员工现场页：`/[slug]/kitchen`；楼面看板统一：`/dashboard/waiter`（旧 `/[slug]/waiter` 永久重定向）；Dashboard 员工：`/dashboard/*`（middleware 角色分流）。
+员工现场页：`/[slug]/kitchen`；楼面看板统一：`/dashboard/waiter`；Dashboard 员工：`/dashboard/*`（middleware 角色分流）。
 
 ---
 

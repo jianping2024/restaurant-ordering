@@ -9,6 +9,7 @@ alwaysApply: true
 
 1. [`AGENTS.md`](../../AGENTS.md) — stack, commands, safety, tenant, DB, checks, token discipline
 2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
+3. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
 
 **Skills (read when task matches `description`)**
 

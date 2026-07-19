@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
-import { fetchWaiterBoardClient, type StaffBoardFetchMode } from '@/lib/staff-board-client';
+import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
   boardSupportsBuffetOpenTable,
@@ -109,6 +109,8 @@ export function useWaiterOrders(
   initialOpenTableDefaults: WaiterBoardOpenTableDefaults | null = null,
   initialParties: TablePartyGroup[] = [],
   initialPartyMembers: TablePartyGroupMember[] = [],
+  /** When false, keep board store for mutations but do not Realtime/entry-pull (dormant). */
+  liveFreshness = true,
 ) {
   const initialBoard = buildInitialWaiterBoardState({
     initialTableSummaries,
@@ -145,8 +147,7 @@ export function useWaiterOrders(
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
-  const etagRef = useRef<string | null>(null);
-  const pendingModeRef = useRef<StaffBoardFetchMode | null>(null);
+  const pendingRefreshRef = useRef(false);
 
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
@@ -178,54 +179,35 @@ export function useWaiterOrders(
     [],
   );
 
-  const refresh = useCallback(
-    async (mode: StaffBoardFetchMode = 'reconcile') => {
-      if (!enabled) return null;
+  const refresh = useCallback(async () => {
+    if (!enabled) return null;
 
-      const prefer = (a: StaffBoardFetchMode, b: StaffBoardFetchMode): StaffBoardFetchMode =>
-        a === 'reconcile' || b === 'reconcile' ? 'reconcile' : 'signal';
+    pendingRefreshRef.current = true;
+    if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
-      pendingModeRef.current = pendingModeRef.current
-        ? prefer(pendingModeRef.current, mode)
-        : mode;
+    const running = (async () => {
+      let lastBoard: WaiterBoardData | null = null;
+      try {
+        while (pendingRefreshRef.current) {
+          pendingRefreshRef.current = false;
+          const seq = ++reloadSeqRef.current;
+          const result = await fetchWaiterBoardClient(restaurant.slug);
+          if (seq !== reloadSeqRef.current) continue;
 
-      if (refreshInFlightRef.current) return refreshInFlightRef.current;
-
-      const running = (async () => {
-        let lastBoard: WaiterBoardData | null = null;
-        try {
-          while (pendingModeRef.current) {
-            const modeNow = pendingModeRef.current;
-            pendingModeRef.current = null;
-            const seq = ++reloadSeqRef.current;
-            const result = await fetchWaiterBoardClient(restaurant.slug, {
-              mode: modeNow,
-              etag: etagRef.current,
-            });
-            if (seq !== reloadSeqRef.current) continue;
-
-            if (result.status === 'not_modified') {
-              if (result.etag) etagRef.current = result.etag;
-              continue;
-            }
-
-            etagRef.current = result.etag;
-            const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(result.board);
-            clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
-            applyWaiterBoardData(board, boardSetters);
-            lastBoard = board;
-          }
-          return lastBoard;
-        } finally {
-          refreshInFlightRef.current = null;
+          const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(result.board);
+          clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+          applyWaiterBoardData(board, boardSetters);
+          lastBoard = board;
         }
-      })();
+        return lastBoard;
+      } finally {
+        refreshInFlightRef.current = null;
+      }
+    })();
 
-      refreshInFlightRef.current = running;
-      return running;
-    },
-    [boardSetters, enabled, restaurant.slug],
-  );
+    refreshInFlightRef.current = running;
+    return running;
+  }, [boardSetters, enabled, restaurant.slug]);
 
   const applyPartyState = useCallback(
     (next: { parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }) => {
@@ -280,22 +262,21 @@ export function useWaiterOrders(
     [boardSetters, currentBoardSnapshot],
   );
 
-  const refreshReconcile = useCallback(() => {
-    void refresh('reconcile');
+  const refreshLive = useCallback(() => {
+    void refresh();
   }, [refresh]);
 
-  const refreshSignal = useCallback(() => {
-    void refresh('signal');
-  }, [refresh]);
-
-  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refreshReconcile);
+  useRestaurantStaffEntryReconcile(
+    enabled && liveFreshness && !skipEntryReconcile,
+    refreshLive,
+  );
 
   useRestaurantRealtimeRefresh(
     supabase,
     restaurant.id,
     `waiter-${restaurant.id}`,
-    enabled,
-    refreshSignal,
+    enabled && liveFreshness,
+    refreshLive,
   );
 
   return {

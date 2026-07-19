@@ -60,7 +60,8 @@ describe('waiterBillHref', () => {
 });
 
 describe('staffRolePath', () => {
-  it('routes waiter, cashier, and frontdesk to dashboard waiter board', () => {
+  it('routes kitchen to kitchen and floor/desk roles to dashboard waiter board', () => {
+    assert.equal(staffRolePath('cafe-lisboa', 'kitchen'), '/cafe-lisboa/kitchen');
     assert.equal(staffRolePath('cafe-lisboa', 'waiter'), '/dashboard/waiter');
     assert.equal(staffRolePath('cafe-lisboa', 'cashier'), '/dashboard/waiter');
     assert.equal(staffRolePath('cafe-lisboa', 'frontdesk'), '/dashboard/waiter');

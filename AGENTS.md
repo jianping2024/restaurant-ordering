@@ -54,6 +54,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 ## Coding invariants
 
 - Prefer nearby **idiom/style**; do **not** copy a parallel data/copy shape when analysis requires one end-state representation.
+- **No API polling except named realtime fallback** — see `.cursor/rules/no-polling-except-fallback.mdc` (lifecycle one-shots OK; interval fetch of read models forbidden).
 - Scope to requested behavior; `@/*` imports; no service keys on the client; restaurant-scoped queries/APIs.
 - UI: `src/components/ui` + brand tokens.
 - Tables: `table_id` = UUID; `display_name` = label; print payloads need both; no legacy `table_number`; receipts never show table UUIDs.

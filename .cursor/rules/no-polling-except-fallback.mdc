@@ -1,0 +1,35 @@
+---
+description: Freshness via Realtime/events only — no API polling except named fallback
+alwaysApply: true
+---
+
+# No polling except fallback
+
+**省流第一。** Product/staff/customer **data freshness** must not use timed API polling.
+
+## Allowed
+
+1. **Fallback polling only** when the primary realtime channel is unavailable or has failed closed — e.g. print-agent `PollingNotifier` after Realtime cannot start/stay up. Same data path as realtime would have used; not a second parallel refresh design.
+2. **One-shot pulls on lifecycle events:** mount/entry, tab visible again, explicit user action, post-mutation reconcile. Not on an interval.
+3. **Non-API UI timers:** clock/countdown/animation `setInterval` that do not hit network.
+4. **Device liveness heartbeat** (print-agent → server) is not “freshness polling”; do not add new heartbeats without approval. Never use heartbeat as a substitute for board/order refresh.
+
+## Forbidden
+
+- `setInterval` / recurring `setTimeout` chains that `fetch` staff/customer/print **read models** (board, session, bill, pending-jobs, runtime-config, checkout queue, etc.)
+- “Visible tab poll”, “warm/idle poll while realtime is healthy”, “hot-reload cloud config every N seconds”
+- Keeping Realtime + interval poll both active for the same surface (“belt and suspenders” intervals)
+
+## Default design
+
+```
+Realtime / postgres_changes / explicit event
+  → debounce → one authoritative GET (or local patch)
+  → if transport dead → fallback poller only
+```
+
+Subscribe only while the surface that needs the data is active; entering the surface reconciles once. Do not background-poll for screens the user is not looking at.
+
+## When tempted to poll
+
+Stop. Prefer: narrower Realtime filter, active/dormant subscription, enter-reconcile, or user-triggered refresh. If fallback poll is required, name it fallback in code/comments and gate it on primary failure — not on “feels safer”.

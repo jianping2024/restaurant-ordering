@@ -14,10 +14,7 @@ const DASHBOARD_WAITER_BOARD_PREFIX = '/dashboard/waiter';
 /** Post-login / session paths by staff role (safe for server and client). */
 export function staffRolePath(slug: string, role: StaffRole): string {
   if (role === 'kitchen') return `/${slug}/kitchen`;
-  if (role === 'cashier' || role === 'frontdesk' || role === 'waiter') {
-    return DASHBOARD_WAITER_BOARD_PREFIX;
-  }
-  return `/${slug}/waiter`;
+  return DASHBOARD_WAITER_BOARD_PREFIX;
 }
 
 export function waiterBoardHref(_slug: string, options: WaiterRouteOptions = {}): string {

@@ -8,12 +8,7 @@ import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import type { Order } from '@/types';
 
-/** How staff board freshness pulls the authoritative snapshot. */
-export type StaffBoardFetchMode = 'signal' | 'reconcile';
-
-export type WaiterBoardClientResult =
-  | { status: 'ok'; board: WaiterBoardData; etag: string | null }
-  | { status: 'not_modified'; etag: string | null };
+export type WaiterBoardClientResult = { status: 'ok'; board: WaiterBoardData };
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
@@ -37,36 +32,15 @@ function normalizeWaiterBoard(board: WaiterBoardData): WaiterBoardData {
   };
 }
 
-/**
- * Waiter board via authenticated staff API.
- * - `signal`: Realtime doorbell — may send If-None-Match and accept 304.
- * - `reconcile`: entry / visibility / write-after — always requests a body (never 304).
- */
-export async function fetchWaiterBoardClient(
-  slug: string,
-  options: { mode?: StaffBoardFetchMode; etag?: string | null } = {},
-): Promise<WaiterBoardClientResult> {
-  const mode = options.mode ?? 'reconcile';
-  const headers: HeadersInit = {};
-  if (mode === 'signal' && options.etag) {
-    headers['If-None-Match'] = options.etag;
-  }
-
+/** Waiter board via authenticated staff API — always an authoritative body. */
+export async function fetchWaiterBoardClient(slug: string): Promise<WaiterBoardClientResult> {
   const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/board`, {
     credentials: 'include',
-    headers,
     cache: 'no-store',
   });
-
-  const responseEtag = res.headers.get('ETag');
-
-  if (res.status === 304) {
-    return { status: 'not_modified', etag: responseEtag ?? options.etag ?? null };
-  }
   if (!res.ok) throw new Error('staff_board_fetch_failed');
-
   const board = normalizeWaiterBoard((await res.json()) as WaiterBoardData);
-  return { status: 'ok', board, etag: responseEtag };
+  return { status: 'ok', board };
 }
 
 export type { WaiterBoardTableSummary, WaiterTableSessionMeta };

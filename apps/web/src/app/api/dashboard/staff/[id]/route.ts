@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
+import { isPrintAgentStaffRole, kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
-import { isSystemStaffRole } from '@/lib/staff-account';
 import { loadOwnerRestaurantWithSlug, mapStaffRow } from '@/lib/staff-dashboard-api';
 
 export const runtime = 'nodejs';
@@ -37,7 +36,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
   if (!existing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
-  if (isSystemStaffRole(String(existing.role ?? ''))) {
+  if (isPrintAgentStaffRole(String(existing.role ?? ''))) {
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
@@ -107,7 +106,7 @@ export async function DELETE(_req: Request, { params }: RouteCtx) {
   if (loadError || !existing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
-  if (isSystemStaffRole(String(existing.role ?? ''))) {
+  if (isPrintAgentStaffRole(String(existing.role ?? ''))) {
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 

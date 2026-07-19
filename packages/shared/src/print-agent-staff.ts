@@ -1,9 +1,8 @@
 import { randomBytes } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { STAFF_EMAIL_DOMAIN } from './staff-email-domain';
 
 export const PRINT_AGENT_STAFF_ROLE = 'print_agent' as const;
-
-export const PRINT_AGENT_STAFF_EMAIL_DOMAIN = 'mesa.in';
 
 export const PRINT_AGENT_STAFF_DISPLAY_NAME = 'Print Agent';
 
@@ -18,7 +17,7 @@ export function printAgentLoginName(restaurantId: string): string {
 }
 
 export function printAgentStaffEmail(restaurantId: string): string {
-  return `${printAgentLoginName(restaurantId)}@${PRINT_AGENT_STAFF_EMAIL_DOMAIN}`;
+  return `${printAgentLoginName(restaurantId)}@${STAFF_EMAIL_DOMAIN}`;
 }
 
 function randomPassword(): string {

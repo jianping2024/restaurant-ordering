@@ -4,6 +4,7 @@ import type { WaiterBoardData } from './staff-board';
 import {
   applyWaiterBoardLivePatch,
   parseWaiterBoardFetchScope,
+  resolveWaiterBoardReconcileScope,
   type WaiterBoardLivePatch,
 } from './waiter-board-live';
 
@@ -39,6 +40,11 @@ describe('waiter-board-live', () => {
     assert.equal(parseWaiterBoardFetchScope('full'), 'full');
     assert.equal(parseWaiterBoardFetchScope('live'), 'live');
     assert.equal(parseWaiterBoardFetchScope('other'), 'full');
+  });
+
+  it('resolveWaiterBoardReconcileScope uses floor hydration', () => {
+    assert.equal(resolveWaiterBoardReconcileScope(false), 'full');
+    assert.equal(resolveWaiterBoardReconcileScope(true), 'live');
   });
 
   it('applyWaiterBoardLivePatch overwrites live keys only', () => {

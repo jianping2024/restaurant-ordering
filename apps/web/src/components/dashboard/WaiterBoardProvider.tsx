@@ -4,8 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useRef,
   type ReactNode,
 } from 'react';
 import { usePathname } from 'next/navigation';
@@ -47,7 +45,8 @@ export function useWaiterBoard(): WaiterBoardContextValue {
 type Props = {
   restaurant: { id: string; slug: string };
   enabled: boolean;
-  initialBoard: WaiterBoardData | null;
+  /** Optional SSR/demo seed — Dashboard chrome passes none; floor hydrates on list surface. */
+  initialBoard?: WaiterBoardData | null;
   children: ReactNode;
 };
 
@@ -74,7 +73,6 @@ function WaiterBoardProviderInner({
 }: Omit<Props, 'enabled'>) {
   const pathname = usePathname();
   const boardListVisible = isDashboardWaiterBoardListPath(pathname);
-  const wasBoardListVisibleRef = useRef(boardListVisible);
 
   const seed = initialBoard ?? emptyBoard();
   const hasAuthoritativeSeed = initialBoard != null;
@@ -97,15 +95,6 @@ function WaiterBoardProviderInner({
   );
 
   const refresh = store.refresh;
-
-  // Detail → board list: one authoritative full pull. Do not run when leaving the list.
-  useEffect(() => {
-    const wasVisible = wasBoardListVisibleRef.current;
-    wasBoardListVisibleRef.current = boardListVisible;
-    if (boardListVisible && !wasVisible) {
-      void refresh('full');
-    }
-  }, [boardListVisible, refresh]);
 
   const refreshBoardAfterStaffMutation = useCallback(
     async (tableIds: readonly string[]) => {
@@ -153,7 +142,7 @@ function WaiterBoardProviderInner({
   );
 }
 
-export function WaiterBoardProvider({ restaurant, enabled, initialBoard, children }: Props) {
+export function WaiterBoardProvider({ restaurant, enabled, initialBoard = null, children }: Props) {
   if (!enabled) {
     return <>{children}</>;
   }

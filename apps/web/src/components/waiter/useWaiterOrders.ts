@@ -7,6 +7,7 @@ import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
   applyWaiterBoardLivePatch,
+  resolveWaiterBoardReconcileScope,
   type WaiterBoardFetchScope,
 } from '@/lib/waiter-board-live';
 import {
@@ -148,6 +149,12 @@ export function useWaiterOrders(
   const [openTableDefaults, setOpenTableDefaults] = useState<WaiterBoardOpenTableDefaults | null>(
     initialBoard.openTableDefaults,
   );
+  /** Floor static present (SSR seed or successful full) — drives list/resume live vs full. */
+  const [floorHydrated, setFloorHydrated] = useState(
+    () => skipEntryReconcile || initialBoard.tables.length > 0,
+  );
+  const floorHydratedRef = useRef(floorHydrated);
+  floorHydratedRef.current = floorHydrated;
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
@@ -243,6 +250,10 @@ export function useWaiterOrders(
             clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
             applyWaiterBoardData(board, boardSetters);
             boardRef.current = board;
+            if (fetchScope === 'full') {
+              setFloorHydrated(true);
+              floorHydratedRef.current = true;
+            }
             lastBoard = board;
           }
           return lastBoard;
@@ -286,13 +297,14 @@ export function useWaiterOrders(
     void refresh('live');
   }, [refresh]);
 
-  const refreshFull = useCallback(() => {
-    void refresh('full');
+  /** Cold list / resume / list re-shown: one scope rule via floorHydrated. */
+  const reconcileOnListActive = useCallback(() => {
+    void refresh(resolveWaiterBoardReconcileScope(floorHydratedRef.current));
   }, [refresh]);
 
   useRestaurantStaffEntryReconcile(
     enabled && liveFreshness,
-    refreshFull,
+    reconcileOnListActive,
     undefined,
     !skipEntryReconcile,
   );
@@ -318,6 +330,7 @@ export function useWaiterOrders(
     partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
+    floorHydrated,
     refresh,
     applyPartyState,
     applyBoardFromPublished,

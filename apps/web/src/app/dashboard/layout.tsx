@@ -11,7 +11,6 @@ import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider'
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
-import { loadWaiterBoardInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
 import type { BillSplit } from '@/types';
 
@@ -57,15 +56,8 @@ export default async function DashboardLayout({
     }
   }
 
+  /** Board loads on floor list surface — not on every Dashboard chrome SSR. */
   const waiterBoardEnabled = canAccessDashboardWaiterBoard(access.mode);
-  let initialWaiterBoard = null;
-  if (waiterBoardEnabled) {
-    try {
-      initialWaiterBoard = await loadWaiterBoardInitial(access.restaurant.id);
-    } catch {
-      initialWaiterBoard = null;
-    }
-  }
 
   const expiringDevices =
     access.mode === 'owner'
@@ -85,7 +77,6 @@ export default async function DashboardLayout({
       <WaiterBoardProvider
         restaurant={{ id: access.restaurant.id, slug: access.restaurant.slug }}
         enabled={waiterBoardEnabled}
-        initialBoard={initialWaiterBoard}
       >
         <DashboardShell restaurant={access.restaurant} accessMode={access.mode}>
           {showSuspensionBanner ? (

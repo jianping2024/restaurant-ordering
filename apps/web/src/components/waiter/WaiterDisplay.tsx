@@ -76,6 +76,7 @@ import {
   waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
 import { WAITER_BOARD_KPI_ICON_BY_FILTER } from '@/components/waiter/waiter-board-kpi-icons';
+import { waiterUi } from '@/components/waiter/waiter-ui';
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -233,6 +234,7 @@ function WaiterBoardInner({
     partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
+    floorHydrated,
     refresh,
     applyPartyState,
     applySessionRelocationPatch,
@@ -575,6 +577,25 @@ function WaiterBoardInner({
     if (!openTableTarget) return null;
     return tables.find((row) => tableIdsEqual(row.id, openTableTarget.tableId)) ?? null;
   }, [openTableTarget, tables]);
+
+  if (!isDemo && !floorHydrated) {
+    return (
+      <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>
+        {!embeddedInDashboard ? (
+          <h1 className={`${waiterBoardType.pageTitle} mb-6`}>{t.boardTitle}</h1>
+        ) : null}
+        <div
+          className={`${waiterUi.cardSurface} p-6 animate-pulse`}
+          aria-busy="true"
+          aria-label={t.boardLoading}
+        >
+          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
+          <div className="h-24 rounded bg-brand-border/40" />
+        </div>
+        <p className="text-sm text-brand-text-muted mt-3">{t.boardLoading}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>

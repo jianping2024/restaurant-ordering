@@ -38,3 +38,11 @@ export function applyWaiterBoardLivePatch(
 export function parseWaiterBoardFetchScope(value: string | null): WaiterBoardFetchScope {
   return value === 'live' ? 'live' : 'full';
 }
+
+/**
+ * List active / visibility resume: occupancy catch-up when floor static already
+ * hydrated; otherwise one cold full load.
+ */
+export function resolveWaiterBoardReconcileScope(floorHydrated: boolean): WaiterBoardFetchScope {
+  return floorHydrated ? 'live' : 'full';
+}

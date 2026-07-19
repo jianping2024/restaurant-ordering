@@ -1,4 +1,7 @@
-import type { CustomerSessionContext } from '@/lib/customer-session-context';
+import type {
+  CustomerSessionContext,
+  CustomerSessionScope,
+} from '@/lib/customer-session-context';
 import type { BillSplit, Order, TableSession } from '@/types';
 
 export type CustomerSessionResponse = CustomerSessionContext;
@@ -23,7 +26,10 @@ export type CustomerBillResponse = {
 
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(url, { credentials: 'include' });
+    const res = await fetch(url, {
+      credentials: 'include',
+      cache: 'no-store',
+    });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
@@ -31,9 +37,17 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-export function requestCustomerSessionContext(slug: string, tableId: string) {
+export function requestCustomerSessionContext(
+  slug: string,
+  tableId: string,
+  scope: CustomerSessionScope = 'full',
+) {
+  const params = new URLSearchParams({
+    table_id: tableId,
+    scope,
+  });
   return fetchJson<CustomerSessionResponse>(
-    `/api/restaurants/${encodeURIComponent(slug)}/customer/session?table_id=${encodeURIComponent(tableId)}`,
+    `/api/restaurants/${encodeURIComponent(slug)}/customer/session?${params.toString()}`,
   );
 }
 

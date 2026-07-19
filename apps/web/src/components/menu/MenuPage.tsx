@@ -101,6 +101,7 @@ export function MenuPage({
     slug: restaurant.slug,
     tableId,
     isDemo,
+    resumeScope: orderedOpen ? 'full' : 'gate',
   });
 
   const orderingAudience = useMemo(
@@ -116,12 +117,12 @@ export function MenuPage({
 
   const ensureGuestCanPlaceOrder = useCallback(async () => {
     if (!sessionResolved) {
-      const data = await refreshSessionContext();
+      const data = await refreshSessionContext('gate');
       return guestOrderGateFromSessionContext(data);
     }
     const cached = guestOrderGateFromCachedState(isDemo ?? false, activeSession);
     if (cached) return cached;
-    const data = await refreshSessionContext();
+    const data = await refreshSessionContext('gate');
     return guestOrderGateFromSessionContext(data);
   }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
 
@@ -274,7 +275,8 @@ export function MenuPage({
   const openOrderedDrawer = useCallback(() => {
     setCartOpen(false);
     setOrderedOpen(true);
-  }, []);
+    if (!isDemo) void refreshSessionContext('full');
+  }, [isDemo, refreshSessionContext]);
 
   const closeCartDrawer = useCallback(() => setCartOpen(false), []);
   const closeOrderedDrawer = useCallback(() => setOrderedOpen(false), []);
@@ -325,7 +327,7 @@ export function MenuPage({
       }
       if (failure.kind === 'append') {
         if (appendFailureNeedsSessionRefresh(failure.code)) {
-          await refreshSessionContext();
+          await refreshSessionContext('gate');
           showToast(t.billDisabledHint, 'info');
           return;
         }
@@ -395,7 +397,7 @@ export function MenuPage({
         waiterFlow,
         lang,
         sessionId: result.sessionId,
-        refreshSession: refreshSessionContext,
+        refreshSession: () => refreshSessionContext('full'),
       });
 
       restartSubmitCooldown();

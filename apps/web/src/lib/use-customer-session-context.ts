@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  applyCustomerSessionScopeMerge,
   resolveCustomerSessionBootContext,
   type CustomerSessionContext,
+  type CustomerSessionScope,
 } from '@/lib/customer-session-context';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
@@ -29,11 +31,28 @@ function resolveBootContext(
   });
 }
 
+type InFlightRefresh = {
+  scope: CustomerSessionScope;
+  promise: Promise<CustomerSessionContext | null>;
+  token: object;
+};
+
+function scopeCovers(running: CustomerSessionScope, requested: CustomerSessionScope) {
+  return running === 'full' || requested === 'gate';
+}
+
 export function useCustomerSessionContext(
   initialContext: CustomerSessionContext | null,
-  params: { slug: string; tableId: string; isDemo?: boolean },
+  params: {
+    slug: string;
+    tableId: string;
+    isDemo?: boolean;
+    /** Visibility / mount reconcile scope — full while ordered drawer is open. */
+    resumeScope?: CustomerSessionScope;
+  },
 ) {
   const isDemo = params.isDemo ?? false;
+  const resumeScope: CustomerSessionScope = params.resumeScope ?? 'gate';
   const bootContext = resolveBootContext(params.tableId, initialContext);
   const seeded = stateFromContext(bootContext);
   const hasAuthoritativeSeed =
@@ -43,38 +62,66 @@ export function useCustomerSessionContext(
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
   const [sessionResolved, setSessionResolved] = useState(isDemo || hasAuthoritativeSeed);
 
-  const refreshInFlightRef = useRef<Promise<CustomerSessionContext | null> | null>(null);
+  const contextRef = useRef<CustomerSessionContext | null>(bootContext);
+  const refreshInFlightRef = useRef<InFlightRefresh | null>(null);
   const prevTableIdRef = useRef(params.tableId);
 
-  const applyContext = useCallback((data: CustomerSessionContext | null) => {
-    if (!data) return null;
-    const next = stateFromContext(data);
-    setActiveSession(next.activeSession);
-    setRecentOrders(next.recentOrders);
-    setSessionResolved(true);
-    return data;
-  }, []);
+  const applyContext = useCallback(
+    (data: CustomerSessionContext | null, scope: CustomerSessionScope) => {
+      if (!data) return null;
+      if (data.table_id !== params.tableId) return contextRef.current;
 
-  const refresh = useCallback(async () => {
-    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+      const merged = applyCustomerSessionScopeMerge(contextRef.current, data, scope);
+      contextRef.current = merged;
+      const next = stateFromContext(merged);
+      setActiveSession(next.activeSession);
+      setRecentOrders(next.recentOrders);
+      setSessionResolved(true);
+      return merged;
+    },
+    [params.tableId],
+  );
 
-    const running = (async () => {
-      try {
-        const data = await requestCustomerSessionContext(params.slug, params.tableId);
-        return applyContext(data);
-      } finally {
-        refreshInFlightRef.current = null;
+  const refresh = useCallback(
+    async (scope: CustomerSessionScope = 'gate') => {
+      const running = refreshInFlightRef.current;
+      if (running && scopeCovers(running.scope, scope)) {
+        return running.promise;
       }
-    })();
-    refreshInFlightRef.current = running;
-    return running;
-  }, [applyContext, params.slug, params.tableId]);
+      if (running) {
+        // Upgrade gate → full: wait for gate to settle, then fetch full.
+        await running.promise.catch(() => null);
+      }
+
+      const requestScope = scope;
+      const token = {};
+      const promise = (async () => {
+        try {
+          const data = await requestCustomerSessionContext(
+            params.slug,
+            params.tableId,
+            requestScope,
+          );
+          return applyContext(data, requestScope);
+        } finally {
+          if (refreshInFlightRef.current?.token === token) {
+            refreshInFlightRef.current = null;
+          }
+        }
+      })();
+
+      refreshInFlightRef.current = { scope: requestScope, promise, token };
+      return promise;
+    },
+    [applyContext, params.slug, params.tableId],
+  );
 
   useEffect(() => {
     if (prevTableIdRef.current === params.tableId) return;
     prevTableIdRef.current = params.tableId;
     refreshInFlightRef.current = null;
     const nextBoot = resolveBootContext(params.tableId, initialContext);
+    contextRef.current = nextBoot;
     const next = stateFromContext(nextBoot);
     setActiveSession(next.activeSession);
     setRecentOrders(next.recentOrders);
@@ -85,15 +132,19 @@ export function useCustomerSessionContext(
 
   // SSR / published-model boot per table entry — omit initialContext from reconcile deps.
   useEffect(() => {
-    const next = stateFromContext(resolveBootContext(params.tableId, initialContext));
+    const nextBoot = resolveBootContext(params.tableId, initialContext);
+    contextRef.current = nextBoot;
+    const next = stateFromContext(nextBoot);
     setActiveSession(next.activeSession);
     setRecentOrders(next.recentOrders);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
   }, [params.tableId]);
 
+  const resumeRefresh = useCallback(() => refresh(resumeScope), [refresh, resumeScope]);
+
   useRestaurantStaffEntryReconcile(
     !isDemo,
-    refresh,
+    resumeRefresh,
     params.tableId,
     !hasAuthoritativeSeed,
   );

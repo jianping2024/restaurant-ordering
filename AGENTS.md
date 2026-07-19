@@ -76,7 +76,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 - New timestamped migrations only; do not weaken RLS, service-role, staff auth, print JWT, rate limits.
 - Careful: checkout, billing, transfer/merge, auto-close, print claim. No hard-delete of live tables/ops records unless product requires it.
 - No dependency / lockfile changes unless user approves. No destructive commands (`rm -rf`, db reset, force push, etc.) without explicit approval. Never `supabase db reset` without explicit permission in-thread.
-- Localhost product UAT (`mesa-local-product-test`): standing auth for documented accounts + product API/UI writes on the UAT restaurant — no per-step confirm; only DB wipe still needs ask.
+- Localhost product UAT (`mesa-local-product-test` / `local-product-testing.mdc`): standing auth for documented accounts, product API writes, and Chrome DevTools MCP UI (`click`/`fill`/… on localhost) — no per-step confirm; Auto-review blocks → immediate `requestSmartModeApproval` retry; only DB wipe still needs ask.
 - Stop and ask when requirements/schema/behavior are unclear.
 
 ## Token discipline

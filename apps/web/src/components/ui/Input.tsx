@@ -6,6 +6,7 @@ import {
   useRef,
   type ChangeEvent,
   type MutableRefObject,
+  type PointerEvent,
   type Ref,
 } from 'react';
 
@@ -35,13 +36,46 @@ function emitEmptyChange(onChange?: (event: ChangeEvent<HTMLInputElement>) => vo
   } as ChangeEvent<HTMLInputElement>);
 }
 
+/**
+ * Clear writes empty only through onChange (controlled) or the native value (uncontrolled).
+ * Pointer-down runs first with preventDefault so mobile focus/keyboard dismiss cannot swallow clear.
+ */
+function clearFieldValue(options: {
+  input: HTMLInputElement | null;
+  controlled: boolean;
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+}) {
+  const { input, controlled, onChange } = options;
+  if (!controlled && input) {
+    input.value = '';
+  }
+  emitEmptyChange(onChange);
+  input?.focus();
+}
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, clearable = false, clearLabel, className = '', ...props }, ref) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const controlled = props.value !== undefined;
     const resolvedValue = props.value ?? props.defaultValue;
     const hasValue =
       resolvedValue !== undefined && resolvedValue !== null && String(resolvedValue).length > 0;
     const showClear = clearable && hasValue && !props.disabled;
+
+    const runClear = () => {
+      clearFieldValue({
+        input: inputRef.current,
+        controlled,
+        onChange: props.onChange,
+      });
+    };
+
+    const onClearPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      // Keep the input focused so iOS/Android do not cancel the clear gesture on blur.
+      event.preventDefault();
+      runClear();
+    };
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -60,7 +94,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             focus:outline-none focus:ring-2 focus:ring-brand-gold/50
             transition-colors duration-200
             ${error ? 'border-red-500' : 'border-brand-border'}
-            ${showClear ? 'pr-9' : ''}
+            ${showClear ? 'pr-11' : ''}
             ${className}
           `}
             {...props}
@@ -71,11 +105,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               tabIndex={-1}
               disabled={props.disabled}
               aria-label={clearLabel || 'Clear'}
-              onClick={() => {
-                emitEmptyChange(props.onChange);
-                inputRef.current?.focus();
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-brand-text-muted hover:text-brand-text text-lg leading-none px-1 disabled:opacity-50 disabled:pointer-events-none"
+              onPointerDown={onClearPointerDown}
+              onClick={runClear}
+              className="absolute right-0 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-lg leading-none text-brand-text-muted hover:text-brand-text disabled:pointer-events-none disabled:opacity-50"
             >
               ×
             </button>

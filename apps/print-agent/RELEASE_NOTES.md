@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.50
+
+**清理死路径；本地队列生命周期收口**
+
+- 删除不可达的单体 `runPollLoop` 及仅为其服务的队首轮转辅助。
+- 正式路径统一为 Notifier + JobProcessor；暂不可打 / claim 失败用 `Requeue`，终态与 Retry 用 `Forget`。
+- Realtime 推送、补偿拉取、Polling 共用同一 `jobEligibleForQueue` 入队规则。
+
 ## 0.3.49
 
 **省流：云端配置只在启动拉取；心跳 5 分钟**

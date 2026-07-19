@@ -5,7 +5,7 @@
 相关代码：
 
 - 云端：`src/lib/station-ticket-enqueue.ts`、`src/lib/order-receipt-enqueue.ts`、`src/app/api/print-agent/*`
-- Agent：`apps/print-agent/agent_poll.go`、`printer_readiness.go`、`config.go`、`sink*.go`
+- Agent：`apps/print-agent/agent_run.go`、`processor.go`、`job_queue.go`、`polling.go` / `realtime.go`、`printer_readiness.go`、`config.go`、`sink*.go`
 
 ---
 
@@ -257,31 +257,35 @@ Agent 内部统一为 `printerTarget`，**目标键** `targetKey`：
 
 ---
 
-## 6. 轮询主循环（`runPollLoop`）
+## 6. 运行时主路径（Notifier + Processor）
 
 ```mermaid
 stateDiagram-v2
-  [*] --> CheckSchedule
-  CheckSchedule --> SleepClosed: 歇业
-  CheckSchedule --> Fetch: 营业
-  SleepClosed --> CheckSchedule
-  Fetch --> SleepIdle: 无任务
-  Fetch --> ProcessQueue: 有任务
-  ProcessQueue --> ProcessQueue: 处理队首
-  ProcessQueue --> Fetch: 队列为空
-  SleepIdle --> CheckSchedule
+  [*] --> Bootstrap
+  Bootstrap --> NotifyLoop
+  state NotifyLoop {
+    [*] --> Realtime: 有 session
+    [*] --> Polling: 回退
+    Realtime --> Polling: 连接失败
+  }
+  NotifyLoop --> JobQueue: Push 合格 pending
+  JobQueue --> Processor: Pop
+  Processor --> JobQueue: Requeue（暂不可打 / claim 失败）
+  Processor --> [*]: Forget（终态 done/failed）
 ```
 
-每圈大致顺序：
+并行循环（均由 `runNotificationLoop` 启动）：
 
-1. `reloadAgentSessionConfig`：读取磁盘配置；若档口映射变更，触发 **换打印机积压策略**（见 §6.3）。
-2. 判断营业时间 `scheduleOpen`；歇业则不拉单。
-3. `postHeartbeat`。
-4. 本地队列 `queue` 为空时 `fetchPending`；否则继续消化队首（一批拉取后顺序处理，减少 API 压力）。
-5. 对队首任务走 **单任务流水线**（§7）。
-6. 按 `poll` 配置休眠：`busy` / `after_print` / `idle` / `warm` / `error` / `closed`。
+| 循环 | 职责 |
+|------|------|
+| **Notifier** | Realtime 推送或 Polling 拉 `pending-jobs` → `jobEligibleForQueue` → `JobQueue.Push` |
+| **JobProcessor** | `Pop` → 过期/路由/`preparePrint`/claim/打印 → 终态 `Forget`；暂不可打或 claim 失败 → `Requeue` |
+| **HeartbeatLoop** | 每 5 分钟 `POST /api/print-agent/heartbeat`（设备存活，不是拉单） |
+| **ScheduleLoop** | 本地营业闸门；歇业清空队列并 `Forget` 去重，托盘黄灯 |
 
-**启动时**：`printerReady().bootstrap(sess)` 探测所有已映射打印机；不可达则记 `wasOffline` 并写入 `printer_was_offline`。
+入队资格（`config.jobEligibleForQueue`，Realtime 事件 / 补偿拉取 / Polling **同一规则**）：可路由，或窗口内小票 `errReceiptPrintDeferred`。
+
+云端 `runtime-config`（营业时段/轮询间隔）仅在 **进程启动** 合并；改 Dashboard 后需重启托盘。
 
 ---
 
@@ -289,21 +293,22 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-  A[队首 job] --> B{超过 20 分钟?}
-  B -->|是| F1[failed: expired]
+  A[Pop job] --> B{超过 max age?}
+  B -->|是| F1[failed: expired + Forget]
   B -->|否| C{解析路由}
-  C -->|失败| F2[failed: route / 小票 defer]
+  C -->|小票 defer| R1[Requeue]
+  C -->|永久失败| F2[failed: route + Forget]
   C -->|成功| D[preparePrint]
-  D -->|打印机不可用| W[等待 / 重排队]
-  D -->|离线积压| F3[failed: offline_backlog]
+  D -->|打印机不可用| R2[Requeue]
+  D -->|永久失败| F3[failed: prepare + Forget]
   D -->|通过| E[PATCH processing]
-  E -->|失败| W
+  E -->|失败| R3[Requeue]
   E -->|成功| G[printToTarget ESC/POS]
-  G -->|失败| F4[failed: print]
-  G -->|成功| H[PATCH done]
+  G -->|失败| F4[failed: print + Forget]
+  G -->|成功| H[done + Forget]
 ```
 
-### 7.1 过期（20 分钟）
+### 7.1 过期
 
 - 云端拉单已过滤；agent 仍对队首做 `jobPrintExpired`（`job_max_age.go`），双保险标 `failed:expired`。
 
@@ -312,21 +317,25 @@ flowchart TD
 | 类型 | 规则 |
 |------|------|
 | `station_ticket` | `station_printers[print_station_id]` |
-| `order_receipt` / `pre_bill` | `receipt_printer_id` → `station:{id}` 查映射；若为空且任务 **20 分钟内** 且无映射 → `errReceiptPrintDeferred`（保持 `pending`，不标 failed） |
+| `order_receipt` / `pre_bill` | `receipt_printer_id` → `station:{id}` 查映射；若为空且任务在 defer 窗口内且无映射 → `errReceiptPrintDeferred`（保持 `pending`，`Requeue`） |
 
 ### 7.3 打印前预检（`printer_readiness.go`）
 
 每单调用 `preparePrint(target)` → `targetCheckReady`：
 
-- **TCP**：2s 内 `Dial` 成功；失败 → `errPrinterNotReady`，任务保持 `pending`。
+- **TCP**：2s 内 `Dial` 成功；失败 → `errPrinterNotReady`，`Requeue`（云端仍 `pending`）。
 - **WinSpool**：`OpenPrinter` 成功即可（细则见 **§1**）；失败同上。
 
 无 `print_after` / `online_confirmed` / 磁盘离线标记。**网线**探测相对可信；**USB** 仍可能 Open 成功但纸未出，见 §1.1。
 
-#### 队列调度
+#### 本地队列生命周期（`JobQueue`）
 
-- 某打印机 not ready 时：`reorderQueueAwayFromPrinter` 优先处理绑定其他打印机的任务。
-- 否则 `deferBlockedHead` 轮转队首，避免单任务堵死整批。
+| 操作 | 含义 |
+|------|------|
+| `Push` | Notifier 首次发现；`seen` 去重 |
+| `Pop` | Processor 取出；`seen` 仍保留 |
+| `Requeue` | 暂不可打 / claim 失败后回队（不受 `seen` 阻挡） |
+| `Forget` | 终态或歇业丢弃后允许同 id 再次 `Push`（含 Dashboard Retry） |
 
 ### 7.4 打印执行（`printToTarget`）
 
@@ -335,7 +344,7 @@ flowchart TD
 | TCP | `tcpPrint` 直写 socket | 连接探测 |
 | WinSpool | `OpenPrinter` → `RAW` / `XPS_PASS` → `WritePrinter` | 仅 `OpenPrinter` 预检；提交后仅 `JOB_STATUS_ERROR`（见 **§1**） |
 
-成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`。
+成功 → `done` + 心跳 `last_print_status=done`；失败 → `failed:print`。终态后 `Forget`，便于同 id Retry。
 
 ---
 
@@ -346,12 +355,12 @@ flowchart TD
 | 打印成功 | `done` | — |
 | 超时 | `failed` | `print job expired (older than 20 minutes)` |
 | 路由错误 | `failed` | 无映射、不支持的 type 等 |
-| 小票暂无可映射打印机 | 保持 `pending` | 20 分钟内重试 |
-| 打印机不可达 | 保持 `pending` | 等待恢复；日志「打印机不可达」 |
+| 小票暂无可映射打印机 | 保持 `pending` | defer 窗口内 `Requeue` |
+| 打印机不可达 | 保持 `pending` | `Requeue`；日志「打印机不可达」 |
 | 打印 IO 失败 | `failed` | WinSpool / TCP 具体错误 |
-| PATCH 失败 | 可能仍为 `pending`/`processing` | 日志 `job_still_pending` |
+| PATCH 失败 | 可能仍为 `pending`/`processing` | 日志 `job_still_pending` / `print_*_stuck`；claim 失败则 `Requeue` |
 
-人工重打：Dashboard **Retry** 会生成新任务或重置状态（见 `print-jobs/[id]/retry` API）。
+人工重打：Dashboard **Retry** 将同一 `id` 重置为 `pending`（见 `print-jobs/[id]/retry` API）；agent `Forget` 后可再次 `Push`。
 
 ---
 
@@ -369,6 +378,7 @@ flowchart TD
 | **0.3.14+** | 去掉磁盘误确认；每会话重置 WinSpool trust；仅打印成功 `confirmOnline` |
 | **0.3.15–0.3.18** | `print_after` / `online_confirmed` / `log_readiness`（已废弃，见 §1.1 历史） |
 | **0.3.19+** | 移除离线积压与就绪状态机；仅 `preparePrint` + 打印结果 |
+| **0.3.50+** | 删除不可达的单体 `runPollLoop`；队列统一 `Push`/`Requeue`/`Forget`；入队资格三路径一致 |
 
 ---
 
@@ -377,7 +387,7 @@ flowchart TD
 | 场景 | 行为 |
 |------|------|
 | 拔线但 `OpenPrinter`/TCP 仍成功 | WinSpool 可能 spooler 假成功并标 `done`；网线以 TCP 失败为准 |
-| 预检失败 | 任务保持 `pending`，日志「打印机不可达」 |
+| 预检失败 | 任务保持 `pending`，本地 `Requeue`，日志「打印机不可达」 |
 | 试打 / 设置页测试 | 不经 `preparePrint` |
 | Mesa API 超时 | 拉单/心跳失败，与打印机预检无关 |
 
@@ -387,8 +397,7 @@ flowchart TD
 
 1. **网线**：拔网线 → 下单 → 预检应 pending；接回后应能打印。
 2. **USB**：拔线行为不可靠；以实际出纸与 Dashboard Retry 为准。
-2. **勿仅靠重启 agent 代替插回**：重启会 `bootstrap`；若拔线时 agent 未探测到离线且未持久化 `printer_was_offline`，仍可能打出旧单——以日志中是否出现 `log_skipped_offline_backlog` 为准。
-3. **重打旧单**：用 Dashboard Retry，不要依赖 agent 自动补打离线积压。
+3. **重打旧单**：用 Dashboard Retry（同 id 回 pending）；agent 终态后会 `Forget`，无需重启即可再入队。
 
 ---
 
@@ -396,17 +405,20 @@ flowchart TD
 
 | 文件 | 职责 |
 |------|------|
-| `agent_poll.go` | 主循环、队列、PATCH 时机 |
-| `printer_readiness.go` | 离线/恢复、积压跳过、持久化 |
-| `job_route.go` | 队首让路、日志用档口 ID |
+| `agent_run.go` | `runNotificationLoop`、营业闸门、心跳 |
+| `processor.go` | 单任务流水线、Requeue/Forget |
+| `job_queue.go` | 本地队列与去重 |
+| `polling.go` / `realtime.go` | 任务发现（互斥；Realtime 失败回退 Polling） |
+| `printer_readiness.go` | `preparePrint` / 就绪探测 |
+| `job_route.go` | 日志用档口 ID |
 | `config.go` | 路由解析、`mappedPrinterTargets` |
-| `receipt_defer.go` | 小票 20 分钟 defer |
+| `receipt_defer.go` | 小票 defer、`jobEligibleForQueue` |
 | `job_max_age.go` | 客户端过期判断 |
 | `sink_winspool_windows.go` | Windows RAW 打印（`winspoolCheckReady` 仅 OpenPrinter） |
 | `printer_io_errors.go` | IO 失败判定；注释禁止 PRINTER_STATUS 预检 |
 | `winspool_job_status.go` | 提交后仅 `JOB_STATUS_ERROR` |
 | `sink_tcp.go` | LAN 打印 |
-| `main.go` | HTTP 拉单/改状态 |
+| `main.go` | HTTP 拉单/改状态、子命令入口 |
 
 ---
 

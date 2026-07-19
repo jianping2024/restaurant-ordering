@@ -144,7 +144,7 @@ Ensure the fix does not break multi-device happy paths, dashboard retry, or agen
 ### Phase 3 status (what we verified in repo)
 
 - **Dashboard retry path clears claim**: `src/app/api/print-agent/print-jobs/[id]/retry/route.ts` sets `claimed_by: null` when re-queuing a failed job.
-- **Print agent tolerates `done` PATCH failure**: `apps/print-agent/agent_poll.go` logs `log_mark_done_error` if marking `done` fails and continues running.
+- **Print agent tolerates `done` PATCH failure**: `apps/print-agent/processor.go` logs `log_print_ok_patch_stuck` if marking `done` fails and continues running.
 - **Repo lint**: `npm run lint` passed (Next.js lint: no warnings/errors).
 - **Automated manual matrix** (`node scripts/verify-print-agent-claimed-by.mjs`): 11/11 passed against local `http://127.0.0.1:3000` (2026-05-29).
 
@@ -153,7 +153,7 @@ Ensure the fix does not break multi-device happy paths, dashboard retry, or agen
 | File | Role |
 |------|------|
 | `src/app/api/print-agent/jobs/[id]/route.ts` | Verify only Phase 2 edits present |
-| `apps/print-agent/agent_poll.go` | Read-only: confirm agent handles failed `done` PATCH (logs `log_mark_done_error`) |
+| `apps/print-agent/processor.go` | Read-only: confirm agent handles failed `done` PATCH (logs `log_print_ok_patch_stuck`) |
 | `src/app/api/print-agent/print-jobs/[id]/retry/route.ts` | Read-only: owner retry still clears `claimed_by` |
 
 ### Risk level

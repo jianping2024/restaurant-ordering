@@ -6,10 +6,17 @@ import (
 )
 
 // JobQueue is a thread-safe FIFO queue with deduplication.
+//
+// Lifecycle (one representation):
+//   - Push: admit a job the notifier just discovered (no-op if already seen).
+//   - Pop: take the head for processing (seen entry remains until terminal or Requeue).
+//   - Requeue: after Pop, put the same job back for a later attempt (temporary hold).
+//   - Forget: drop the seen barrier so a later Push can admit the same id again
+//     (Dashboard Retry, schedule reopen, or after a terminal outcome).
 type JobQueue struct {
 	mu    sync.Mutex
 	queue []printJob
-	seen  map[string]time.Time // job_id -> first seen time
+	seen  map[string]time.Time // job_id -> first seen / last requeue time
 }
 
 // NewJobQueue creates an empty job queue.
@@ -26,19 +33,40 @@ func (q *JobQueue) Push(job printJob) bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
+	if job.ID == "" {
+		return false
+	}
 	if _, exists := q.seen[job.ID]; exists {
-		return false // duplicate
+		return false
 	}
 
 	q.seen[job.ID] = time.Now()
 	q.queue = append(q.queue, job)
-	
-	// Clean old entries (keep last 1000)
+
 	if len(q.seen) > 1000 {
 		q.cleanOld()
 	}
-	
+
 	return true
+}
+
+// Requeue returns a previously Pop'd job to the queue for another attempt.
+// Unlike Push, an existing seen entry is expected and does not block re-entry.
+func (q *JobQueue) Requeue(job printJob) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	if job.ID == "" {
+		return
+	}
+	for _, j := range q.queue {
+		if j.ID == job.ID {
+			q.seen[job.ID] = time.Now()
+			return
+		}
+	}
+	q.seen[job.ID] = time.Now()
+	q.queue = append(q.queue, job)
 }
 
 // Pop removes and returns the first job from the queue.

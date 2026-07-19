@@ -71,6 +71,17 @@ func (c *config) mappedStationIDsSorted() []string {
 	return ids
 }
 
+// jobEligibleForQueue is the single gate for Notifier admit (Realtime event,
+// compensation fetch, and polling). Routable jobs and in-window receipt defer
+// are admitted; permanent route errors stay out until the cloud row changes.
+func (c *config) jobEligibleForQueue(job printJob) bool {
+	_, err := c.printerTargetForJob(job)
+	if err == nil {
+		return true
+	}
+	return errors.Is(err, errReceiptPrintDeferred)
+}
+
 func (c *config) resolveReceiptRouting(job printJob, explicitID string) (string, error) {
 	id := strings.TrimSpace(explicitID)
 	if id != "" {

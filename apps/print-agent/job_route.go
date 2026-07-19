@@ -32,28 +32,3 @@ func jobRouteStationID(job printJob) string {
 	}
 	return strings.TrimSpace(job.Type)
 }
-
-// reorderQueueAwayFromPrinter moves jobs that use other printers to the front.
-// Returns nil when every routable job targets blockedKey (all waiting on that printer).
-func reorderQueueAwayFromPrinter(queue []printJob, cfg *config, blockedKey string) []printJob {
-	if cfg == nil || len(queue) == 0 || strings.TrimSpace(blockedKey) == "" {
-		return queue
-	}
-	var head, tail []printJob
-	for _, j := range queue {
-		t, err := cfg.printerTargetForJob(j)
-		if err != nil {
-			tail = append(tail, j)
-			continue
-		}
-		if targetKey(t) == blockedKey {
-			tail = append(tail, j)
-		} else {
-			head = append(head, j)
-		}
-	}
-	if len(head) == 0 {
-		return nil
-	}
-	return append(head, tail...)
-}

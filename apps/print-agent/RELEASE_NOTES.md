@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.46
+
+**Realtime：JWT 到期前主动续期**
+
+- 连接与订阅前按 `exp` 提前刷新 session，减少中途断线。
+- JWT 过期辅助函数与测试去重，行为与 supabase-js 对齐。
+
 ## 0.3.45
 
 **Realtime session 契约对齐 GoTrue / supabase-js**

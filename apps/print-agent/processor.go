@@ -51,7 +51,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 		// Try to get a job from queue
 		job, ok := p.queue.Pop()
 		if !ok {
-			// Queue empty, wait and retry
+			// Empty: Ready only sticks when open (closed tray owned by schedule loop).
 			p.setStatus("Ready", "Waiting for jobs")
 			time.Sleep(1 * time.Second)
 			continue
@@ -61,13 +61,15 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			open, err := p.session.pc.scheduleOpen()
 			if err != nil {
 				p.setStatus("Schedule error", err.Error())
-				p.queue.Push(job)
+				p.queue.Forget(job.ID)
+				p.queue.ClearPending()
 				time.Sleep(5 * time.Second)
 				continue
 			}
 			if !open {
-				p.setStatus("Outside business hours", "Not polling until next window")
-				p.queue.Push(job)
+				// Discard in-flight + remaining; schedule loop also clears and owns yellow tray.
+				p.queue.Forget(job.ID)
+				p.queue.ClearPending()
 				time.Sleep(5 * time.Second)
 				continue
 			}

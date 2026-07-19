@@ -25,22 +25,16 @@ func NewPollingNotifier(cfg *config, queue *JobQueue, pc *pollController) *Polli
 // Start begins the polling loop (blocks until context canceled).
 func (p *PollingNotifier) Start(ctx context.Context) error {
 	log.Println("Polling mode: starting")
-	
-	// Initial fetch
-	if err := p.fetch(ctx); err != nil {
-		log.Printf("Polling: initial fetch failed: %v", err)
-	}
-	
+
 	hadJobs := false
-	
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		
-		// Check schedule
+
 		open, err := p.pc.scheduleOpen()
 		if err != nil {
 			log.Printf("Polling: schedule error: %v", err)
@@ -51,9 +45,8 @@ func (p *PollingNotifier) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
+
 		if !open {
-			// Outside business hours, sleep longer
 			select {
 			case <-time.After(p.pc.sleepFor(pollPhaseClosed)):
 			case <-ctx.Done():
@@ -61,8 +54,7 @@ func (p *PollingNotifier) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
-		// Fetch pending jobs
+
 		if err := p.fetch(ctx); err != nil {
 			log.Printf("Polling: fetch failed: %v", err)
 			select {
@@ -72,18 +64,17 @@ func (p *PollingNotifier) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
-		// Determine phase and sleep duration
+
 		queueLen := p.queue.Len()
 		phase := p.pc.phase(queueLen > 0, false)
-		
+
 		if queueLen > 0 && !hadJobs {
 			p.pc.markActivity()
 			hadJobs = true
 		} else if queueLen == 0 {
 			hadJobs = false
 		}
-		
+
 		select {
 		case <-time.After(p.pc.sleepFor(phase)):
 		case <-ctx.Done():

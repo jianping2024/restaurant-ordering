@@ -20,6 +20,27 @@ func TestTrayLevelForSummary(t *testing.T) {
 	}
 }
 
+func TestAgentStatusScheduleClosedBlocksReady(t *testing.T) {
+	s := &agentStatus{}
+	s.setScheduleClosed(true, "Not polling until next window")
+	s.set("Ready", "Waiting for jobs")
+	if s.level() != trayLevelYellow {
+		t.Fatalf("closed + Ready overwrite: want yellow, got %v", s.level())
+	}
+	s.set("Error", "boom")
+	s.mu.RLock()
+	sum := s.summary
+	s.mu.RUnlock()
+	if sum != "Error" {
+		t.Fatalf("Error should still show while closed, got %q", sum)
+	}
+	s.setScheduleClosed(false, "")
+	s.set("Ready", "Waiting for jobs")
+	if s.level() != trayLevelGreen {
+		t.Fatalf("after open Ready should be green, got %v", s.level())
+	}
+}
+
 func TestTrayUserSummaryLocalized(t *testing.T) {
 	if got := trayUserSummary("Ready", "zh"); got != "运行正常" {
 		t.Fatalf("zh got %q", got)

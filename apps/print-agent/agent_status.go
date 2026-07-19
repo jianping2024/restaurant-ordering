@@ -18,17 +18,43 @@ const (
 
 // agentStatus is shared between the poll loop and the system tray (Windows).
 type agentStatus struct {
-	mu      sync.RWMutex
-	summary string
-	detail  string
-	mode    NotificationMode // actual running notifier mode
+	mu             sync.RWMutex
+	summary        string
+	detail         string
+	mode           NotificationMode // actual running notifier mode
+	scheduleClosed bool             // when true, operational statuses cannot overwrite yellow
 }
 
 func (s *agentStatus) set(summary, detail string) {
+	if s == nil {
+		return
+	}
 	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.scheduleClosed {
+		switch strings.TrimSpace(summary) {
+		case "Error", "Schedule error":
+			// keep hard failures visible while closed
+		default:
+			return
+		}
+	}
 	s.summary = strings.TrimSpace(summary)
 	s.detail = strings.TrimSpace(detail)
-	s.mu.Unlock()
+}
+
+// setScheduleClosed is the only writer for outside-hours tray state.
+func (s *agentStatus) setScheduleClosed(closed bool, detail string) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.scheduleClosed = closed
+	if closed {
+		s.summary = "Outside business hours"
+		s.detail = strings.TrimSpace(detail)
+	}
 }
 
 func (s *agentStatus) setMode(mode NotificationMode) {

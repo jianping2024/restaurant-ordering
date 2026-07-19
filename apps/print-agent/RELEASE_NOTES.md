@@ -2,6 +2,15 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.47
+
+**营业时间闸门与托盘状态对齐**
+
+- 关店时统一黄灯「非营业时间」，空闲 Ready 不再盖成绿灯。
+- 关店清空待打印队列并清除去重，开店后同一任务可重新入队。
+- 定时热更新云端营业时间/轮询配置，改时段无需手动重启 agent。
+- Polling / Realtime 入队与打印前均过同一 `scheduleOpen` 闸门。
+
 ## 0.3.46
 
 **Realtime：JWT 到期前主动续期**

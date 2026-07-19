@@ -38,6 +38,12 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 		}
 	}()
 
+	go func() {
+		if err := runScheduleLoop(ctx, sess, queue, status); err != nil && err != context.Canceled {
+			log.Printf("Schedule loop error: %v", err)
+		}
+	}()
+
 	var notifier Notifier
 
 	if mode == NotificationModeRealtime {
@@ -74,6 +80,94 @@ func setNotifyMode(status *agentStatus, mode NotificationMode) {
 		status.setMode(mode)
 	}
 	log.Printf("Print notify mode: %s", mode)
+}
+
+// runScheduleLoop owns outside-hours tray state, clears the print queue when
+// closed, and hot-reloads schedule/poll from the cloud (option A).
+func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, status *agentStatus) error {
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	wasOpen := true
+	first := true
+
+	apply := func() {
+		refreshSessionRuntime(sess)
+		cfg := sess.cfg
+		if cfg == nil || sess.pc == nil {
+			return
+		}
+
+		open, err := sess.pc.scheduleOpen()
+		if err != nil {
+			agentLogTech(cfg, "log_schedule_error", err.Error())
+			status.setScheduleClosed(false, "")
+			status.set("Schedule error", err.Error())
+			return
+		}
+
+		if !open {
+			detail := "Not polling"
+			if wait, werr := sess.pc.closedSleep(); werr == nil && wait > 0 {
+				detail = "Not polling until next window"
+			}
+			if n := queue.ClearPending(); n > 0 {
+				log.Printf("Schedule: cleared %d queued job(s) (outside hours)", n)
+			}
+			status.setScheduleClosed(true, detail)
+			if first || wasOpen {
+				if wait, werr := sess.pc.closedSleep(); werr == nil {
+					agentLog(cfg, "log_outside_schedule_sleep", wait.Round(time.Second))
+				} else {
+					agentLog(cfg, "log_outside_schedule")
+				}
+			}
+			wasOpen = false
+			first = false
+			return
+		}
+
+		if !wasOpen {
+			agentLog(cfg, "log_schedule_resume")
+		}
+		status.setScheduleClosed(false, "")
+		wasOpen = true
+		first = false
+	}
+
+	apply()
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			apply()
+		}
+	}
+}
+
+func refreshSessionRuntime(sess *agentSession) {
+	if sess == nil {
+		return
+	}
+	reloadAgentSessionConfig(sess)
+	cfg := sess.cfg
+	if cfg == nil {
+		return
+	}
+	applyCloudRuntimeConfig(cfg, cfg.APIBase)
+	if sess.pc == nil {
+		pc, err := newPollController(cfg.Schedule, cfg.Poll)
+		if err != nil {
+			log.Printf("Schedule: cannot create poll controller: %v", err)
+			return
+		}
+		sess.pc = pc
+		return
+	}
+	if err := sess.pc.applyRuntime(cfg.Schedule, cfg.Poll); err != nil {
+		log.Printf("Schedule: runtime refresh failed: %v", err)
+	}
 }
 
 // runHeartbeatLoop sends periodic heartbeats to the server.

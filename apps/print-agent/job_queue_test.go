@@ -74,6 +74,39 @@ func TestJobQueueFIFO(t *testing.T) {
 	}
 }
 
+func TestJobQueueClearPendingAllowsReenqueue(t *testing.T) {
+	q := NewJobQueue()
+	job := printJob{ID: "closed-job", Type: "station_ticket", Status: "pending"}
+	if !q.Push(job) {
+		t.Fatal("push")
+	}
+	if q.ClearPending() != 1 {
+		t.Fatal("expected 1 cleared")
+	}
+	if q.Len() != 0 {
+		t.Fatal("queue should be empty")
+	}
+	if !q.Push(job) {
+		t.Fatal("same job must enqueue again after ClearPending")
+	}
+}
+
+func TestJobQueueForgetAllowsReenqueue(t *testing.T) {
+	q := NewJobQueue()
+	job := printJob{ID: "popped-job", Type: "order_receipt", Status: "pending"}
+	if !q.Push(job) {
+		t.Fatal("push")
+	}
+	got, ok := q.Pop()
+	if !ok || got.ID != job.ID {
+		t.Fatal("pop")
+	}
+	q.Forget(job.ID)
+	if !q.Push(job) {
+		t.Fatal("forgot id should allow re-push")
+	}
+}
+
 func TestJobQueueCleanOld(t *testing.T) {
 	q := NewJobQueue()
 	

@@ -68,16 +68,31 @@ type pollController struct {
 }
 
 func newPollController(schedule *scheduleConfig, poll *pollConfig) (*pollController, error) {
+	pc := &pollController{}
+	if err := pc.applyRuntime(schedule, poll); err != nil {
+		return nil, err
+	}
+	return pc, nil
+}
+
+// applyRuntime refreshes schedule/poll from cloud or local config (hot reload).
+func (pc *pollController) applyRuntime(schedule *scheduleConfig, poll *pollConfig) error {
+	if pc == nil {
+		return nil
+	}
 	p := poll.normalized()
-	pc := &pollController{cfg: p, schedule: schedule}
+	pc.cfg = p
+	pc.schedule = schedule
 	if schedule != nil && schedule.enabled() {
 		loc, err := schedule.location()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		pc.loc = loc
+	} else {
+		pc.loc = nil
 	}
-	return pc, nil
+	return nil
 }
 
 func (pc *pollController) now() time.Time {

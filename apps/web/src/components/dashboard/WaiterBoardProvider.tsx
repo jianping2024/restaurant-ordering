@@ -77,6 +77,7 @@ function WaiterBoardProviderInner({
   const wasBoardListVisibleRef = useRef(boardListVisible);
 
   const seed = initialBoard ?? emptyBoard();
+  const hasAuthoritativeSeed = initialBoard != null;
   const store = useWaiterOrders(
     restaurant,
     seed.tableSummaries,
@@ -88,7 +89,7 @@ function WaiterBoardProviderInner({
     seed.groups,
     seed.members,
     [],
-    false,
+    hasAuthoritativeSeed,
     seed.openTableDefaults,
     seed.parties,
     seed.partyMembers,
@@ -97,12 +98,12 @@ function WaiterBoardProviderInner({
 
   const refresh = store.refresh;
 
-  // Detail → board list: one authoritative pull. Do not run when leaving the list.
+  // Detail → board list: one authoritative full pull. Do not run when leaving the list.
   useEffect(() => {
     const wasVisible = wasBoardListVisibleRef.current;
     wasBoardListVisibleRef.current = boardListVisible;
     if (boardListVisible && !wasVisible) {
-      void refresh();
+      void refresh('full');
     }
   }, [boardListVisible, refresh]);
 
@@ -110,7 +111,7 @@ function WaiterBoardProviderInner({
     async (tableIds: readonly string[]) => {
       if (tableIds.length === 0) return;
       releaseWaiterBoardTableBridge(tableIds);
-      await refresh();
+      await refresh('full');
     },
     [refresh],
   );
@@ -119,7 +120,7 @@ function WaiterBoardProviderInner({
     (input: WaiterSessionRelocationBoardInput) => {
       store.applySessionRelocationPatch(input);
       releaseWaiterBoardTableBridge([input.sourceTableId]);
-      void refresh();
+      void refresh('full');
     },
     [refresh, store],
   );

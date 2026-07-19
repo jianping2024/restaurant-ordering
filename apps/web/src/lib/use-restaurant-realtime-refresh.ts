@@ -7,12 +7,14 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * Staff surface freshness contract (production):
  * 1. SSR page seed — first paint when server auth + load succeed
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
- * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`)
- * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once
+ * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`);
+ *    skip mount when SSR seed is authoritative (`reconcileOnMount=false`), still resume on visibility
+ * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once (full)
  * 5. Staff menu submit return — dedicated reconcile, then strip query
- * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → authoritative GET
- * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
- * 8. Dashboard waiter board list re-shown (detail → list) — one authoritative pull
+ * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → live GET
+ *    (occupancy slice); merge into one WaiterBoardData — see `waiter-board-live.ts`
+ * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
+ * 8. Dashboard waiter board list re-shown (detail → list) — one authoritative full pull
  *
  * Waiter board Realtime/entry pulls run only while the board list is visible (active);
  * other Dashboard routes keep the store dormant (mutations may still refresh).

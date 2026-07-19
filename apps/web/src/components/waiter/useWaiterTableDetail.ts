@@ -183,9 +183,10 @@ export function useWaiterTableDetail(
   }, [enabled, isDemo, pathname, refresh, router, staffMenuSubmitReturn, tableId]);
 
   useRestaurantStaffEntryReconcile(
-    enabled && !isDemo && !staffMenuSubmitReturn && !skipEntryReconcile,
+    enabled && !isDemo && !staffMenuSubmitReturn,
     refresh,
     tableId,
+    !skipEntryReconcile,
   );
 
   const tableFilter = `table_id=eq.${tableId}`;

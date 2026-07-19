@@ -1,16 +1,30 @@
 ---
 description: >-
   Local product UAT: mesa-local-product-test skill, shared accounts, standing
-  auth (no per-step confirm except DB wipe). Use when 开始测试, 联调, 手工验收,
-  or localhost product verification.
+  auth, no checklist skip unless truly blocked. Use when 开始测试, 联调, 手工验收,
+  回归测试, or localhost product verification.
 alwaysApply: false
 ---
 
 # Local product testing
 
-When the user asks to **开始测试**, **联调**, **手工验收**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
+When the user asks to **开始测试**, **联调**, **手工验收**, **回归测试**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
 
-Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail/skip report).
+Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail report).
+
+## No skip unless truly blocked
+
+Default every checklist / regression item to **run** and report **`pass`** or **`fail`**.
+
+**`skip` is forbidden** for convenience, time, “covered by unit”, “hard to automate”, dual-tab/realtime, cache invalidate, or “do later”.
+
+**`skip` allowed only when the item is objectively impossible in this thread**, for example:
+
+- localhost / login / required MCP (Chrome DevTools) unavailable after a real attempt
+- missing secrets or env the agent cannot obtain
+- user explicitly forbids the only safe way to exercise the path (e.g. no DB wipe when the case *requires* wipe)
+
+Every `skip` **must** state the blocker in one line. Prefer a weaker but real assertion (API shape, HTTP status, unit for retired route) over skip. If the user says **不允许 skip**, treat soft blockers as **fail** or keep trying — do not skip.
 
 ## Local accounts
 

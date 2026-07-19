@@ -19,6 +19,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { compareMenuItemsForDisplay, menuItemSiblingsInScope } from '@/lib/menu-item-order';
 import { persistMenuItemSortOrderSwap } from '@/lib/sort-order-persist';
 import { nextSortOrder, sortBySortOrderThenCreatedAt, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
+import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -173,6 +174,7 @@ export async function createMenuCategory(
     };
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { category: data as MenuCategory };
 }
 
@@ -235,6 +237,7 @@ export async function updateMenuCategory(
     };
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { category: data as MenuCategory };
 }
 
@@ -328,6 +331,7 @@ export async function deleteMenuCategory(
     }
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }
 
@@ -444,6 +448,7 @@ export async function createMenuItem(
     };
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
 }
 
@@ -503,6 +508,7 @@ export async function moveMenuItemOrder(
     return { error: persisted.error, message: persisted.message, status: 500 };
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }
 
@@ -555,6 +561,7 @@ export async function updateMenuItem(
     };
   }
 
+  invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
 }
 
@@ -586,6 +593,7 @@ export async function deleteMenuItem(
   if (error) {
     return { error: 'delete_failed', message: error.message, status: 500 };
   }
+  invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }
 
@@ -608,6 +616,7 @@ export async function batchSetMenuItemsAvailable(
   if (error) {
     return { error: 'update_failed', message: error.message, status: 500 };
   }
+  invalidateCustomerMenuCatalog(restaurantId);
   return { ok: true };
 }
 
@@ -682,6 +691,7 @@ export async function setMenuItemImage(
   if (error) {
     return { error: 'update_failed', message: error.message, status: 500 };
   }
+  invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
 }
 

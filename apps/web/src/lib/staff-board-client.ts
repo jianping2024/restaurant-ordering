@@ -4,11 +4,15 @@ import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow 
 import type { WaiterBoardData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
-import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
+import {
+  type WaiterBoardFetchScope,
+  type WaiterBoardLivePatch,
+} from '@/lib/waiter-board-live';
 import type { Order } from '@/types';
 
-export type WaiterBoardClientResult = { status: 'ok'; board: WaiterBoardData };
+export type WaiterBoardClientResult =
+  | { status: 'ok'; scope: 'full'; board: WaiterBoardData }
+  | { status: 'ok'; scope: 'live'; live: WaiterBoardLivePatch };
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
@@ -32,18 +36,45 @@ function normalizeWaiterBoard(board: WaiterBoardData): WaiterBoardData {
   };
 }
 
-/** Waiter board via authenticated staff API — always an authoritative body. */
-export async function fetchWaiterBoardClient(slug: string): Promise<WaiterBoardClientResult> {
-  const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/board`, {
+function normalizeWaiterBoardLivePatch(live: WaiterBoardLivePatch): WaiterBoardLivePatch {
+  return {
+    sessionMetaByTableId: live.sessionMetaByTableId ?? {},
+    checkoutRequestedTableIds: live.checkoutRequestedTableIds || [],
+    checkoutRequestedAtByTableId: live.checkoutRequestedAtByTableId ?? {},
+    parties: live.parties || [],
+    partyMembers: live.partyMembers || [],
+    tableSummaries: live.tableSummaries || [],
+  };
+}
+
+/** Waiter board via authenticated staff API — full or live scope. */
+export async function fetchWaiterBoardClient(
+  slug: string,
+  scope: WaiterBoardFetchScope = 'full',
+): Promise<WaiterBoardClientResult> {
+  const url = new URL(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/board`,
+    window.location.origin,
+  );
+  if (scope === 'live') url.searchParams.set('scope', 'live');
+
+  const res = await fetch(url.toString(), {
     credentials: 'include',
     cache: 'no-store',
   });
   if (!res.ok) throw new Error('staff_board_fetch_failed');
-  const board = normalizeWaiterBoard((await res.json()) as WaiterBoardData);
-  return { status: 'ok', board };
-}
+  const data = (await res.json()) as
+    | { scope?: 'full'; board?: WaiterBoardData }
+    | { scope?: 'live'; live?: WaiterBoardLivePatch };
 
-export type { WaiterBoardTableSummary, WaiterTableSessionMeta };
+  if (data.scope === 'live' && data.live) {
+    return { status: 'ok', scope: 'live', live: normalizeWaiterBoardLivePatch(data.live) };
+  }
+  if (data.scope === 'full' && data.board) {
+    return { status: 'ok', scope: 'full', board: normalizeWaiterBoard(data.board) };
+  }
+  throw new Error('staff_board_unexpected_body');
+}
 
 /** Single-table waiter page model via authenticated staff API. */
 export async function fetchWaiterTablePageModelClient(

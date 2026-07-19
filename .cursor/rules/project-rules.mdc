@@ -16,7 +16,7 @@ alwaysApply: true
 - `.cursor/skills/mesa-analyze-before-code/SKILL.md` — analyze-first, end-state, reuse, one-representation gate
 - `.cursor/skills/mesa-local-product-test/SKILL.md` — localhost product verification
 
-**On-demand rules** (not alwaysApply): `push-verification.mdc`, `release-and-ci.mdc`, `local-product-testing.mdc` — when push/ship/test phrases appear.
+**On-demand rules** (not alwaysApply): `push-verification.mdc`, `release-and-ci.mdc`, `local-product-testing.mdc` (incl. no checklist skip unless truly blocked) — when push/ship/test phrases appear.
 
 No third root “强制规则” markdown. Product truth under `docs/`.
 

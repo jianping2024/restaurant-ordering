@@ -36,10 +36,12 @@ export function useCustomerSessionContext(
   const isDemo = params.isDemo ?? false;
   const bootContext = resolveBootContext(params.tableId, initialContext);
   const seeded = stateFromContext(bootContext);
+  const hasAuthoritativeSeed =
+    !isDemo && bootContext != null && bootContext.table_id === params.tableId;
 
   const [activeSession, setActiveSession] = useState<TableSession | null>(seeded.activeSession);
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
-  const [sessionResolved, setSessionResolved] = useState(isDemo);
+  const [sessionResolved, setSessionResolved] = useState(isDemo || hasAuthoritativeSeed);
 
   const refreshInFlightRef = useRef<Promise<CustomerSessionContext | null> | null>(null);
   const prevTableIdRef = useRef(params.tableId);
@@ -72,10 +74,13 @@ export function useCustomerSessionContext(
     if (prevTableIdRef.current === params.tableId) return;
     prevTableIdRef.current = params.tableId;
     refreshInFlightRef.current = null;
-    const next = stateFromContext(resolveBootContext(params.tableId, initialContext));
+    const nextBoot = resolveBootContext(params.tableId, initialContext);
+    const next = stateFromContext(nextBoot);
     setActiveSession(next.activeSession);
     setRecentOrders(next.recentOrders);
-    setSessionResolved(isDemo);
+    const seededForTable =
+      !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
+    setSessionResolved(isDemo || seededForTable);
   }, [initialContext, isDemo, params.tableId]);
 
   // SSR / published-model boot per table entry — omit initialContext from reconcile deps.
@@ -86,7 +91,12 @@ export function useCustomerSessionContext(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
   }, [params.tableId]);
 
-  useRestaurantStaffEntryReconcile(!isDemo, refresh, params.tableId);
+  useRestaurantStaffEntryReconcile(
+    !isDemo,
+    refresh,
+    params.tableId,
+    !hasAuthoritativeSeed,
+  );
 
   return {
     activeSession,

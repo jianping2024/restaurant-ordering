@@ -6,6 +6,10 @@ import type { Order } from '@/types';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
+  applyWaiterBoardLivePatch,
+  type WaiterBoardFetchScope,
+} from '@/lib/waiter-board-live';
+import {
   boardSupportsBuffetOpenTable,
   type WaiterBoardOpenTableDefaults,
 } from '@/lib/waiter-board-open-table';
@@ -147,7 +151,8 @@ export function useWaiterOrders(
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
-  const pendingRefreshRef = useRef(false);
+  const pendingScopeRef = useRef<WaiterBoardFetchScope | null>(null);
+  const boardRef = useRef<WaiterBoardData>(initialBoard);
 
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
@@ -179,44 +184,6 @@ export function useWaiterOrders(
     [],
   );
 
-  const refresh = useCallback(async () => {
-    if (!enabled) return null;
-
-    pendingRefreshRef.current = true;
-    if (refreshInFlightRef.current) return refreshInFlightRef.current;
-
-    const running = (async () => {
-      let lastBoard: WaiterBoardData | null = null;
-      try {
-        while (pendingRefreshRef.current) {
-          pendingRefreshRef.current = false;
-          const seq = ++reloadSeqRef.current;
-          const result = await fetchWaiterBoardClient(restaurant.slug);
-          if (seq !== reloadSeqRef.current) continue;
-
-          const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(result.board);
-          clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
-          applyWaiterBoardData(board, boardSetters);
-          lastBoard = board;
-        }
-        return lastBoard;
-      } finally {
-        refreshInFlightRef.current = null;
-      }
-    })();
-
-    refreshInFlightRef.current = running;
-    return running;
-  }, [boardSetters, enabled, restaurant.slug]);
-
-  const applyPartyState = useCallback(
-    (next: { parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }) => {
-      setParties(next.parties);
-      setPartyMembers(next.partyMembers);
-    },
-    [],
-  );
-
   const currentBoardSnapshot = useCallback(
     (): WaiterBoardData => ({
       sessionMetaByTableId,
@@ -245,6 +212,59 @@ export function useWaiterOrders(
     ],
   );
 
+  boardRef.current = currentBoardSnapshot();
+
+  const refresh = useCallback(
+    async (scope: WaiterBoardFetchScope = 'full') => {
+      if (!enabled) return null;
+
+      // full wins over live when both are queued.
+      if (scope === 'full' || pendingScopeRef.current !== 'full') {
+        pendingScopeRef.current = scope;
+      }
+      if (refreshInFlightRef.current) return refreshInFlightRef.current;
+
+      const running = (async () => {
+        let lastBoard: WaiterBoardData | null = null;
+        try {
+          while (pendingScopeRef.current) {
+            const fetchScope = pendingScopeRef.current;
+            pendingScopeRef.current = null;
+            const seq = ++reloadSeqRef.current;
+            const result = await fetchWaiterBoardClient(restaurant.slug, fetchScope);
+            if (seq !== reloadSeqRef.current) continue;
+
+            const nextBoard =
+              result.scope === 'live'
+                ? applyWaiterBoardLivePatch(boardRef.current, result.live)
+                : result.board;
+
+            const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(nextBoard);
+            clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+            applyWaiterBoardData(board, boardSetters);
+            boardRef.current = board;
+            lastBoard = board;
+          }
+          return lastBoard;
+        } finally {
+          refreshInFlightRef.current = null;
+        }
+      })();
+
+      refreshInFlightRef.current = running;
+      return running;
+    },
+    [boardSetters, enabled, restaurant.slug],
+  );
+
+  const applyPartyState = useCallback(
+    (next: { parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }) => {
+      setParties(next.parties);
+      setPartyMembers(next.partyMembers);
+    },
+    [],
+  );
+
   const applyBoardFromPublished = useCallback(() => {
     applyWaiterBoardData(
       mergePublishedModelsIntoWaiterBoard(currentBoardSnapshot()),
@@ -262,13 +282,19 @@ export function useWaiterOrders(
     [boardSetters, currentBoardSnapshot],
   );
 
-  const refreshLive = useCallback(() => {
-    void refresh();
+  const refreshLiveSlice = useCallback(() => {
+    void refresh('live');
+  }, [refresh]);
+
+  const refreshFull = useCallback(() => {
+    void refresh('full');
   }, [refresh]);
 
   useRestaurantStaffEntryReconcile(
-    enabled && liveFreshness && !skipEntryReconcile,
-    refreshLive,
+    enabled && liveFreshness,
+    refreshFull,
+    undefined,
+    !skipEntryReconcile,
   );
 
   useRestaurantRealtimeRefresh(
@@ -276,7 +302,7 @@ export function useWaiterOrders(
     restaurant.id,
     `waiter-${restaurant.id}`,
     enabled && liveFreshness,
-    refreshLive,
+    refreshLiveSlice,
   );
 
   return {

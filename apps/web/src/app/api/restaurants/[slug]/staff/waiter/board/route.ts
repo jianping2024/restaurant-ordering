@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
-import { fetchWaiterBoard } from '@/lib/staff-board';
+import { fetchWaiterBoard, fetchWaiterBoardLive } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { parseWaiterBoardFetchScope } from '@/lib/waiter-board-live';
 
 export const runtime = 'nodejs';
 
@@ -26,8 +27,13 @@ export async function GET(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const board = await fetchWaiterBoard(admin, ctx.restaurant_id);
-  return NextResponse.json(board, {
+  const scope = parseWaiterBoardFetchScope(new URL(req.url).searchParams.get('scope'));
+  const body =
+    scope === 'live'
+      ? { scope: 'live' as const, live: await fetchWaiterBoardLive(admin, ctx.restaurant_id) }
+      : { scope: 'full' as const, board: await fetchWaiterBoard(admin, ctx.restaurant_id) };
+
+  return NextResponse.json(body, {
     headers: { 'Cache-Control': 'private, no-store' },
   });
 }

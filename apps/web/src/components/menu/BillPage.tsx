@@ -2,11 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
   customerBillCallAmount,
-  initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { getMessages } from '@/lib/i18n/messages';
@@ -20,7 +18,7 @@ import { useBillOrders } from '@/lib/use-bill-orders';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, SessionStatus, SplitResult } from '@/types';
+import type { BillSplit, DishFeedbackVote, Order, SessionStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
@@ -95,13 +93,6 @@ export function BillPage({
 
   const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
 
-  const [continuationSplit] = useState<BillSplit | null>(existingSplit);
-  const collectedPayments = initialCollectedPayments;
-  const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
-  const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
-  const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
-    initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
-  );
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
@@ -115,6 +106,13 @@ export function BillPage({
   const {
     orders,
     partyMemberCount,
+    sessionId: liveSessionId,
+    existingSplit: liveExistingSplit,
+    collectedPayments,
+    submitted,
+    setSubmitted,
+    persistedResult,
+    setPersistedResult,
     orderLines,
     lineSpecs,
     total,
@@ -125,7 +123,14 @@ export function BillPage({
     slug: restaurant.slug,
     tableId,
     initialPartyMemberCount,
+    initialSessionStatus: sessionStatus,
+    initialSessionId: sessionId,
+    initialExistingSplit: existingSplit,
+    initialCollectedPayments,
   });
+
+  /** Reconciled session id — supersedes SSR prop for submit/feedback. */
+  const activeSessionId = liveSessionId;
 
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, itemCodeByMenuId),
@@ -134,9 +139,9 @@ export function BillPage({
 
   const splitDraft = useBillSplitDraft({
     restaurantId: restaurant.id,
-    sessionId,
-    existingSplit,
-    continuationSplit,
+    sessionId: activeSessionId,
+    existingSplit: liveExistingSplit,
+    continuationSplit: liveExistingSplit,
     collectedPayments,
     total,
     orderLines,
@@ -152,7 +157,7 @@ export function BillPage({
     restaurant,
     tableId,
     displayName,
-    sessionId,
+    sessionId: activeSessionId,
     orders,
     partyMemberCount,
     lastSyncedAt,
@@ -305,7 +310,7 @@ export function BillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !sessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) return;
+    if (!submitted || !activeSessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) return;
     setFeedbackHydrating(true);
     const supabase = createClient();
     const syncFeedbackState = async () => {
@@ -313,7 +318,7 @@ export function BillPage({
         .from('feedback_sessions')
         .upsert({
           restaurant_id: restaurant.id,
-          session_id: sessionId,
+          session_id: activeSessionId,
           source: 'bill_success',
           shown_at: new Date().toISOString(),
         }, { onConflict: 'session_id' });
@@ -321,7 +326,7 @@ export function BillPage({
       const { data } = await supabase
         .from('dish_feedback')
         .select('menu_item_id, vote, reasons')
-        .eq('session_id', sessionId);
+        .eq('session_id', activeSessionId);
 
       if (!data?.length) return;
       const nextDraft: Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }> = {};
@@ -338,7 +343,7 @@ export function BillPage({
       setFeedbackSubmitted(true);
     };
     void syncFeedbackState().finally(() => setFeedbackHydrating(false));
-  }, [submitted, sessionId, restaurant.id, staffAssisted, initialFeedbackSubmitted, initialFeedbackSkipped]);
+  }, [submitted, activeSessionId, restaurant.id, staffAssisted, initialFeedbackSubmitted, initialFeedbackSkipped]);
 
   const setVote = (menuItemId: string, vote: DishFeedbackVote) => {
     setFeedbackDraft((prev) => ({
@@ -367,7 +372,7 @@ export function BillPage({
   };
 
   const handleSkipFeedback = async () => {
-    if (!sessionId || feedbackSkipped || feedbackSubmitting) return;
+    if (!activeSessionId || feedbackSkipped || feedbackSubmitting) return;
     setFeedbackSubmitting(true);
     try {
       const supabase = createClient();
@@ -376,7 +381,7 @@ export function BillPage({
         .upsert(
           {
             restaurant_id: restaurant.id,
-            session_id: sessionId,
+            session_id: activeSessionId,
             source: 'bill_success',
             shown_at: new Date().toISOString(),
             skipped_at: new Date().toISOString(),
@@ -394,7 +399,7 @@ export function BillPage({
   };
 
   const handleSubmitFeedback = async () => {
-    if (!sessionId || selectedFeedbackCount === 0) return;
+    if (!activeSessionId || selectedFeedbackCount === 0) return;
     setFeedbackSubmitting(true);
     try {
       const supabase = createClient();
@@ -404,7 +409,7 @@ export function BillPage({
           if (!draft?.vote) return null;
           return {
             restaurant_id: restaurant.id,
-            session_id: sessionId,
+            session_id: activeSessionId,
             order_id: item.order_id,
             menu_item_id: item.menu_item_id,
             vote: draft.vote,
@@ -423,7 +428,7 @@ export function BillPage({
         .from('feedback_sessions')
         .upsert({
           restaurant_id: restaurant.id,
-          session_id: sessionId,
+          session_id: activeSessionId,
           source: 'bill_success',
           shown_at: new Date().toISOString(),
           completed_at: new Date().toISOString(),
@@ -609,7 +614,7 @@ export function BillPage({
           loading={isCallBillBusy}
           disabled={
             orderLines.length === 0
-            || !sessionId
+            || !activeSessionId
             || isCallBillBusy
             || !guestCountConfirmed
             || !partyCheckoutAllowed

@@ -13,7 +13,7 @@ import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
 import { loadWaiterBoardInitial } from '@/lib/staff-board';
 import { createClient } from '@/lib/supabase/server';
-import type { BillSplit } from '@/types';
+import type { CheckoutRequestSummary } from '@/lib/checkout-request-summary';
 
 export default async function DashboardLayout({
   children,
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
   }
 
   const checkoutQueueEnabled = access.mode !== 'owner';
-  let initialCheckoutRequests: BillSplit[] = [];
+  let initialCheckoutRequests: CheckoutRequestSummary[] = [];
   if (checkoutQueueEnabled) {
     try {
       const supabase = await createClient();

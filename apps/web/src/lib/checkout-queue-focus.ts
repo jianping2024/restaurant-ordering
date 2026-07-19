@@ -1,5 +1,4 @@
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
-import type { BillSplit } from '@/types';
 
 /** URL intent: which checkout queue row to open on `/dashboard/checkout`. */
 export type CheckoutQueueFocus = {
@@ -35,9 +34,14 @@ export function checkoutQueueFocusKey(focus: CheckoutQueueFocus | null | undefin
   return `${focus.requestId ?? ''}:${focus.tableId ?? ''}`;
 }
 
+type CheckoutQueueFocusRow = {
+  id: string;
+  table_id: string;
+};
+
 /** Resolve queue row id from focus intent; prefers request_id over table_id. */
 export function resolveFocusedRequestId(
-  requests: readonly BillSplit[],
+  requests: readonly CheckoutQueueFocusRow[],
   focus: CheckoutQueueFocus | null | undefined,
 ): string | null {
   if (!focus) return null;

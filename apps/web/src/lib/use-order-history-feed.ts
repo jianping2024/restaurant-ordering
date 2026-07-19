@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { orderHistoryFiltersToSearchParams } from '@/lib/order-history/parse-query';
 import {
   ORDER_HISTORY_PAGE_SIZE,
-  type OrderHistoryEntry,
+  type OrderHistoryDetail,
   type OrderHistoryFilters,
+  type OrderHistoryListItem,
   type OrderHistoryPageResult,
 } from '@/lib/order-history/types';
 
@@ -26,8 +27,18 @@ async function fetchOrderHistoryPage(
   return (await response.json()) as OrderHistoryPageResult;
 }
 
+export async function fetchOrderHistoryDetail(
+  sessionId: string,
+): Promise<OrderHistoryDetail | null> {
+  const response = await fetch(
+    `/api/dashboard/order-history/${encodeURIComponent(sessionId)}`,
+  );
+  if (!response.ok) return null;
+  return (await response.json()) as OrderHistoryDetail;
+}
+
 export function useOrderHistoryFeed(initial: FeedState) {
-  const [entries, setEntries] = useState<OrderHistoryEntry[]>(initial.items);
+  const [entries, setEntries] = useState<OrderHistoryListItem[]>(initial.items);
   const [hasMore, setHasMore] = useState(initial.hasMore);
   const [cappedTotal, setCappedTotal] = useState(initial.cappedTotal);
   const [filters, setFilters] = useState<OrderHistoryFilters>(initial.filters);

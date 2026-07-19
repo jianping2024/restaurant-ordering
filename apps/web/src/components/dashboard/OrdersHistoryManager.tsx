@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
@@ -9,14 +9,22 @@ import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
+import {
+  ORDER_HISTORY_MAX_TOTAL,
+  type OrderHistoryDetail,
+  type OrderHistoryListItem,
+} from '@/lib/order-history/types';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
-import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
+import {
+  fetchOrderHistoryDetail,
+  useDebouncedOrderHistoryFilters,
+  useOrderHistoryFeed,
+} from '@/lib/use-order-history-feed';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
 interface Props {
-  initialItems: OrderHistoryEntry[];
+  initialItems: OrderHistoryListItem[];
   initialHasMore: boolean;
   initialCappedTotal: number;
   tables?: RestaurantTableRow[];
@@ -65,9 +73,45 @@ export function OrdersHistoryManager({
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
+  const [detail, setDetail] = useState<OrderHistoryDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const detailRequestIdRef = useRef(0);
   const pickerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const closeDetail = useCallback(() => {
+    detailRequestIdRef.current += 1;
+    setDetail(null);
+    setDetailLoading(false);
+    setDetailError(null);
+  }, []);
+
+  const openDetail = useCallback(
+    async (sessionId: string) => {
+      const requestId = ++detailRequestIdRef.current;
+      setDetail(null);
+      setDetailError(null);
+      setDetailLoading(true);
+      const loaded = await fetchOrderHistoryDetail(sessionId);
+      if (requestId !== detailRequestIdRef.current) return;
+      setDetailLoading(false);
+      if (!loaded) {
+        setDetailError(i18n.loadDetailFailed);
+        return;
+      }
+      setDetail(loaded);
+    },
+    [i18n.loadDetailFailed],
+  );
+
+  const reloadAndCloseDetail = useCallback(
+    async (nextFilters: Parameters<typeof reload>[0]) => {
+      closeDetail();
+      await reload(nextFilters);
+    },
+    [closeDetail, reload],
+  );
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
@@ -136,7 +180,7 @@ export function OrdersHistoryManager({
     setFilters({ tableIds, closedFrom, closedTo });
   }, [dateRange, selectedTables, setFilters]);
 
-  useDebouncedOrderHistoryFilters(filters, reload);
+  useDebouncedOrderHistoryFilters(filters, reloadAndCloseDetail);
 
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
@@ -196,8 +240,8 @@ export function OrdersHistoryManager({
 
   const formatClosedAt = (closedAt: string) => new Date(closedAt).toLocaleString(locale);
 
-  const renderMetaAmount = (entry: OrderHistoryEntry) => {
-    const { listAmount, listAmountKind } = entry.settlement;
+  const renderMetaAmount = (entry: OrderHistoryListItem) => {
+    const { listAmount, listAmountKind } = entry;
     if (listAmount == null) {
       return <span className="text-brand-text-muted">—</span>;
     }
@@ -213,7 +257,7 @@ export function OrdersHistoryManager({
     );
   };
 
-  const renderPrintButton = (entry: OrderHistoryEntry) => {
+  const renderPrintButton = (entry: OrderHistoryListItem) => {
     const billSplit = entry.billSplit;
     const splitId = billSplit?.id ?? '';
     const billCooldownKey = splitId ? staffBillPrintCooldownKey(splitId) : '';
@@ -242,12 +286,12 @@ export function OrdersHistoryManager({
     );
   };
 
-  const renderHistoryCard = (entry: OrderHistoryEntry) => (
+  const renderHistoryCard = (entry: OrderHistoryListItem) => (
     <button
       key={entry.sessionId}
       type="button"
       className={ORDER_CARD_CLASS}
-      onClick={() => setSelectedEntry(entry)}
+      onClick={() => void openDetail(entry.sessionId)}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
         <span className="font-medium text-brand-text">
@@ -358,7 +402,12 @@ export function OrdersHistoryManager({
         </div>
       )}
 
-      <OrderHistoryDetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
+      <OrderHistoryDetailModal
+        detail={detail}
+        loading={detailLoading}
+        error={detailError}
+        onClose={closeDetail}
+      />
     </div>
   );
 }

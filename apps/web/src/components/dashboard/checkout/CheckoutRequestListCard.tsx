@@ -3,21 +3,18 @@
 import {
   formatCollectedPaymentTime,
 } from '@/lib/format-dashboard-date';
-import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
+import type { CheckoutRequestSummary } from '@/lib/checkout-request-summary';
 import { formatCheckoutWaitDuration } from '@/lib/checkout-settlement';
 import type { UILanguage } from '@/lib/i18n';
 import type { getMessages } from '@/lib/i18n/messages';
-import type { BillSplit } from '@/types';
 
 type CheckoutT = ReturnType<typeof getMessages>['checkout'];
 
 interface Props {
-  request: BillSplit;
+  request: CheckoutRequestSummary;
   selected: boolean;
-  summary: CheckoutSettlementSummary;
   splitModeLabel: string;
   paymentProgressLabel: string | null;
-  partialPaid: boolean;
   lang: UILanguage;
   t: CheckoutT;
   onSelect: () => void;
@@ -26,10 +23,8 @@ interface Props {
 export function CheckoutRequestListCard({
   request,
   selected,
-  summary,
   splitModeLabel,
   paymentProgressLabel,
-  partialPaid,
   lang,
   t,
   onSelect,
@@ -39,6 +34,7 @@ export function CheckoutRequestListCard({
     durationMinutes: t.durationMinutes,
   });
   const requestedAt = formatCollectedPaymentTime(lang, request.created_at);
+  const { settlement } = request;
 
   return (
     <button
@@ -67,7 +63,7 @@ export function CheckoutRequestListCard({
                 {paymentProgressLabel}
               </span>
             ) : null}
-            {partialPaid ? (
+            {request.partial_paid ? (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full mesa-badge-warning">
                 {t.partialPaidBadge}
               </span>
@@ -81,11 +77,11 @@ export function CheckoutRequestListCard({
         <div className="text-right shrink-0">
           <p className="text-[11px] text-brand-text-muted">{t.settlementPending}</p>
           <p className="text-brand-gold font-semibold text-lg tabular-nums">
-            €{summary.pending.toFixed(2)}
+            €{settlement.pending.toFixed(2)}
           </p>
-          {summary.collected > 0 ? (
+          {settlement.collected > 0 ? (
             <p className="text-[10px] text-brand-text-muted mt-1 tabular-nums">
-              {t.settlementConsumption} €{summary.consumption.toFixed(2)}
+              {t.settlementConsumption} €{settlement.consumption.toFixed(2)}
             </p>
           ) : null}
         </div>

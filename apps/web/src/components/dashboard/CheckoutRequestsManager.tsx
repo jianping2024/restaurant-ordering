@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import type { BillSplit } from '@/types';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
   loadCheckoutSoundEnabled,
@@ -11,13 +10,7 @@ import {
 } from '@/lib/receipt-printer-preference';
 import { CheckoutRequestDetailHost } from '@/components/dashboard/checkout/CheckoutRequestDetailHost';
 import { CheckoutRequestListCard } from '@/components/dashboard/checkout/CheckoutRequestListCard';
-import {
-  buildCheckoutSettlementSummary,
-  checkoutPaymentProgress,
-  checkoutSplitModeLabel,
-  hasCheckoutCollections,
-} from '@/lib/checkout-settlement';
-import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
+import { checkoutSplitModeLabel } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardQuickNavLink } from '@/components/dashboard/DashboardQuickNavLink';
 import {
@@ -32,6 +25,7 @@ import {
   resolveFocusedRequestId,
   type CheckoutQueueFocus,
 } from '@/lib/checkout-queue-focus';
+import type { CheckoutRequestSummary } from '@/lib/checkout-request-summary';
 
 type CheckoutSelection =
   | { mode: 'follow_focus' }
@@ -42,9 +36,7 @@ interface Props {
   restaurantId: string;
   restaurantSlug: string;
   accessMode: DashboardAccessMode;
-  /** Owner or frontdesk may force-close unpaid tables from checkout. */
   canCloseTable?: boolean;
-  /** URL intent: auto-open this checkout request after queue is fresh. */
   initialFocus?: CheckoutQueueFocus;
 }
 
@@ -55,8 +47,7 @@ export function CheckoutRequestsManager({
   canCloseTable = false,
   initialFocus,
 }: Props) {
-  const { requests, reload, getCollectedForSession } = useCheckoutRequests();
-  const billDiscount = useCheckoutBillDiscount();
+  const { requests, reload } = useCheckoutRequests();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const navT = getMessages(lang).nav;
@@ -127,27 +118,21 @@ export function CheckoutRequestsManager({
     [t],
   );
 
-  const getRequestCheckoutMeta = useCallback(
-    (request: BillSplit) => {
-      const collected = getCollectedForSession(request.session_id);
-      const discountRate = billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
-      const summary = buildCheckoutSettlementSummary(request, discountRate, collected);
-      const progress = checkoutPaymentProgress(request, collected, discountRate);
+  const listMeta = useCallback(
+    (request: CheckoutRequestSummary) => {
+      const progress = request.payment_progress;
       const paymentProgressLabel =
-        progress.totalCount > 1
+        progress.total_count > 1
           ? t.paymentProgress
-              .replace('{paid}', String(progress.paidCount))
-              .replace('{total}', String(progress.totalCount))
+              .replace('{paid}', String(progress.paid_count))
+              .replace('{total}', String(progress.total_count))
           : null;
       return {
-        collected,
-        summary,
         splitModeLabel: checkoutSplitModeLabel(request.split_mode, splitModeLabels),
         paymentProgressLabel,
-        partialPaid: hasCheckoutCollections(request, collected),
       };
     },
-    [billDiscount, getCollectedForSession, splitModeLabels, t],
+    [splitModeLabels, t],
   );
 
   const selectRequest = useCallback((requestId: string) => {
@@ -217,16 +202,14 @@ export function CheckoutRequestsManager({
         <div className="lg:grid lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:gap-4 lg:items-start">
           <div className={`space-y-2 ${selectedRequestId ? 'hidden lg:block' : ''}`}>
             {requests.map((request) => {
-              const meta = getRequestCheckoutMeta(request);
+              const meta = listMeta(request);
               return (
                 <CheckoutRequestListCard
                   key={request.id}
                   request={request}
                   selected={request.id === selectedRequestId}
-                  summary={meta.summary}
                   splitModeLabel={meta.splitModeLabel}
                   paymentProgressLabel={meta.paymentProgressLabel}
-                  partialPaid={meta.partialPaid}
                   lang={lang}
                   t={t}
                   onSelect={() => selectRequest(request.id)}
@@ -239,7 +222,7 @@ export function CheckoutRequestsManager({
             {selectedRequest ? (
               <CheckoutRequestDetailHost
                 key={selectedRequest.id}
-                request={selectedRequest}
+                billSplitId={selectedRequest.id}
                 restaurantId={restaurantId}
                 restaurantSlug={restaurantSlug}
                 canCloseTable={canCloseTable}

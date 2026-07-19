@@ -10,10 +10,12 @@ description: >-
 
 ## Environment
 
-- **Host:** `http://localhost:3000` (`npm run cloud` or `npm run dev`)
-- **Account:** `qiantai1` / password:`123456`
+- **Host:** `http://localhost:3000`
+- **Server (required):** `npm run dev` (loads `.env.local.dev` → local Docker Supabase). Do **not** use `npm run cloud` / `npm run stage` for product testing
+- **Account:** `qiantai` / password:`654321`
 - **Forbidden account:** `qiantai@mesa.in` — do not use for local product testing
 - **Allowed:** authenticated product APIs and UI for the test restaurant
+- **Out of scope by default:** kitchen board / kitchen staff APIs (skip unless the user explicitly asks)
 
 ## Method
 

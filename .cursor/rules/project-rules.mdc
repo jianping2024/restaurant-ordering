@@ -13,7 +13,7 @@ alwaysApply: true
 **Skills (read when task matches `description`)**
 
 - `.cursor/skills/mesa-analyze-before-code/SKILL.md` — analyze-first, end-state, reuse, one-representation gate
-- `.cursor/skills/mesa-local-product-test/SKILL.md` — localhost product verification
+- `.cursor/skills/mesa-local-product-test/SKILL.md` — localhost product verification (`npm run dev` only; not cloud)
 
 **On-demand rules** (not alwaysApply): `push-verification.mdc`, `release-and-ci.mdc`, `local-product-testing.mdc` — when push/ship/test phrases appear.
 

@@ -68,6 +68,8 @@ type Params = {
   messages: Messages;
 };
 
+type FreshBillForSubmit = Pick<BillOrdersRefresh, 'orders' | 'partyMemberCount'>;
+
 function splitValidationToast(
   issue: 'unassigned_items' | 'incomplete_qty' | 'amount_mismatch',
   messages: Messages,
@@ -111,7 +113,7 @@ export function useCheckoutRequestSubmit(params: Params) {
     onBusyChange?.(next !== 'idle');
   }, [onBusyChange]);
 
-  const resolveFreshBill = useCallback(async (): Promise<BillOrdersRefresh | null> => {
+  const resolveFreshBill = useCallback(async (): Promise<FreshBillForSubmit | null> => {
     if (shouldSkipPreSubmitOrderSync(lastSyncedAt)) {
       return { orders, partyMemberCount };
     }

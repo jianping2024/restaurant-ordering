@@ -55,7 +55,7 @@ export const waiterDetailLayout = {
   pageFooter: 'mt-4 flex justify-center',
   /**
    * Page identity chrome — sticks under staff top bars.
-   * Opaque page bg; fixed `h-14` so ordered-items `top-28` stays aligned.
+   * Opaque page bg; fixed `h-14` so ordered-items offset stays aligned (`belowPageHeading`).
    */
   pageHeading: `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-[25] mb-6 flex h-14 items-center bg-brand-bg`,
   pageHeadingRow:

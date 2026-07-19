@@ -4,6 +4,7 @@ import {
   type DashboardNavItemDef,
 } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
+import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
 
 export type DashboardTopNavItem = {
   id: string;
@@ -48,9 +49,6 @@ export function dashboardTopNavButtonClass(active: boolean, compact = false): st
   return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${tone}`;
 }
 
-/** Sticky top bar height — keep dropdown top offset in sync. */
-export const DASHBOARD_TOP_BAR_HEIGHT = '3.5rem';
-
 export function dashboardTopBarMobileDropdownPanelClass(): string {
   return 'rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
 }
@@ -71,10 +69,10 @@ export function dashboardTopBarMobileDropdownPanelStyle(): {
 } {
   return {
     position: 'fixed',
-    top: `calc(${DASHBOARD_TOP_BAR_HEIGHT} + 4px)`,
-    right: 'max(12px, env(safe-area-inset-right, 0px))',
+    top: `calc(${STAFF_TOP_BAR_TOTAL_HEIGHT} + 4px)`,
+    right: 'max(0.5rem, env(safe-area-inset-right, 0px))',
     width: 'min(16rem, calc(100vw - 24px))',
-    maxHeight: `calc(100dvh - ${DASHBOARD_TOP_BAR_HEIGHT} - 16px - env(safe-area-inset-bottom, 0px))`,
+    maxHeight: `calc(100dvh - (${STAFF_TOP_BAR_TOTAL_HEIGHT}) - 16px - env(safe-area-inset-bottom, 0px))`,
     overflowY: 'auto',
     zIndex: 50,
   };

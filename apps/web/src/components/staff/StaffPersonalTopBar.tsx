@@ -11,6 +11,7 @@ import {
   isStaffPersonalNavItemActive,
   type StaffPersonalTopNavItem,
 } from '@/lib/staff-personal-top-nav';
+import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 type Props = {
   logoHref: string;
@@ -94,15 +95,12 @@ export function StaffPersonalTopBar({
   const compactNav = navItems.length > 0 && navItems.length <= 2;
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
-      <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+    <header className={staffTopBarChrome.headerClassName}>
+      <div className={staffTopBarChrome.rowClassName}>
         <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
 
         {navItems.length > 0 ? (
-          <nav
-            aria-label={navT.mainNav}
-            className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] sm:overflow-visible"
-          >
+          <nav aria-label={navT.mainNav} className={staffTopBarChrome.navClassName}>
             <div className="flex min-w-max items-center gap-1 py-0.5 sm:gap-1.5">
               <div className="flex items-center gap-1 sm:hidden">
                 {navItems.map((item) => renderNavItem(item, pathname, navT, compactNav))}

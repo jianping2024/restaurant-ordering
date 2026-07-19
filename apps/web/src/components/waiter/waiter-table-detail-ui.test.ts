@@ -48,21 +48,25 @@ test('floor list body is one tier for ordered dishes and buffet package names', 
 });
 
 test('page identity and ordered-items share one sticky chrome stack', () => {
-  assert.equal(waiterStaffStickyChrome.belowStaffTopBar, 'top-14');
-  assert.equal(waiterStaffStickyChrome.belowPageHeading, 'top-28');
+  assert.match(waiterStaffStickyChrome.belowStaffTopBar, /safe-area-inset-top/);
+  assert.match(waiterStaffStickyChrome.belowPageHeading, /safe-area-inset-top/);
+  assert.match(waiterStaffStickyChrome.belowPageHeading, /3\.5rem\+3\.5rem/);
+  assert.equal(
+    waiterDetailLayout.pageHeading.includes(waiterStaffStickyChrome.belowStaffTopBar),
+    true,
+  );
   assert.match(waiterDetailLayout.pageHeading, /sticky/);
-  assert.match(waiterDetailLayout.pageHeading, new RegExp(waiterStaffStickyChrome.belowStaffTopBar));
   assert.match(waiterDetailLayout.pageHeading, /bg-brand-bg/);
   assert.match(waiterDetailLayout.pageHeadingRow, /min-w-0/);
   assert.match(waiterDetailLayout.pageHeading, /h-14/);
   assert.doesNotMatch(waiterDetailLayout.pageHeading, /py-3/);
   assert.match(waiterDetailLayout.pageHeadingTitle, /truncate/);
   assert.match(waiterDetailLayout.orderedItemsHeader, /sticky/);
-  assert.match(
-    waiterDetailLayout.orderedItemsHeader,
-    new RegExp(waiterStaffStickyChrome.belowPageHeading),
+  assert.equal(
+    waiterDetailLayout.orderedItemsHeader.includes(waiterStaffStickyChrome.belowPageHeading),
+    true,
   );
-  assert.doesNotMatch(waiterDetailLayout.orderedItemsHeader, /top-14/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemsHeader, /top-14\b/);
   assert.match(waiterDetailLayout.orderedItemsHeader, /bg-brand-card/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);

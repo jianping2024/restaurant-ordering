@@ -73,9 +73,9 @@ describe('waiter-board-card-theme theme tokens', () => {
 
   it('lane sticky shell reuses staff top-bar offset with opaque page bg', () => {
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /sticky/);
-    assert.match(
-      WAITER_BOARD_LANE_STICKY_SHELL,
-      new RegExp(waiterStaffStickyChrome.belowStaffTopBar),
+    assert.equal(
+      WAITER_BOARD_LANE_STICKY_SHELL.includes(waiterStaffStickyChrome.belowStaffTopBar),
+      true,
     );
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /bg-brand-bg/);
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /z-20/);

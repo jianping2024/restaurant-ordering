@@ -19,6 +19,7 @@ import {
   isNavItemActive,
   type DashboardTopNavItem,
 } from '@/lib/dashboard-top-nav';
+import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
 type TopBarPanel = 'none' | 'more' | 'settings';
@@ -118,14 +119,11 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
   const roleLabel = topBarRoleLabel(lang, accessMode);
 
   return (
-    <header className="sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card">
-      <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+    <header className={staffTopBarChrome.headerClassName}>
+      <div className={staffTopBarChrome.rowClassName}>
         <ProductTopBarBrand href={dashboardLogoHref(accessMode)} restaurantName={restaurant.name} />
 
-        <nav
-          aria-label={navT.mainNav}
-          className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain [scrollbar-width:thin] sm:overflow-visible"
-        >
+        <nav aria-label={navT.mainNav} className={staffTopBarChrome.navClassName}>
           <div className="flex min-w-max items-center gap-1 py-0.5 sm:gap-1.5">
             <div className="flex items-center gap-1 sm:hidden">
               {primary.map((item) =>

@@ -11,7 +11,7 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex min-w-0 shrink items-center gap-2 sm:gap-2.5">
+    <div className="flex min-w-0 shrink items-center gap-1.5 sm:gap-2">
       <Link href={href} className="shrink-0">
         <ProductLogo size="sm" />
       </Link>
@@ -34,7 +34,7 @@ export function ProductTopBarTrailing({
   children: ReactNode;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
       <span
         className="max-w-[4.5rem] truncate text-sm text-brand-text-muted sm:max-w-none"
         title={roleLabel}

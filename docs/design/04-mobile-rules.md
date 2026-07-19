@@ -138,7 +138,7 @@
 | 最小点击目标 | 约 44×44px（`py-2 px-3` 及以上） |
 | 底部固定栏 | 考虑 `pb-safe` / 留底边距，避免 Home 条遮挡 |
 | Modal / Drawer | `max-h-[calc(100dvh-*)]` 使用 dynamic viewport |
-| 顶栏 | Dashboard / Waiter 职员顶栏 `h-14` sticky；看板 lane / 桌台详情吸顶用 `top-14`（`waiterStaffStickyChrome`） |
+| 顶栏 | Dashboard / Waiter 职员顶栏：内容行 `h-14` + `safe-area-inset-top/left/right`（`staffTopBarChrome`）；看板 lane / 桌台详情吸顶用 `waiterStaffStickyChrome`（总高含 top inset） |
 | 职员 `main` | 共用 `STAFF_SHELL_MAIN_CLASS`；**禁止**在 `main` 上设 `overflow-x-clip/hidden`（会形成 scrollport，文档滚时 sticky 失效）；横向裁剪放在具体溢出子树（如 `mesa-chip-scroll`） |
 
 ---
@@ -149,7 +149,7 @@
 |------|--------|
 | `MenuPage` | 底栏购物车、分类 Tab 可横滑、语言切换可达 |
 | `BillPage` | 分单进度、主按钮固定、锁定态有说明 |
-| `WaiterDisplay` | 筛选 chip、桌卡可点区域够大、待结账色明显；lane tab 行上滑后吸在职员顶栏下（`top-14`） |
+| `WaiterDisplay` | 筛选 chip、桌卡可点区域够大、待结账色明显；lane tab 行上滑后吸在职员顶栏下（`waiterStaffStickyChrome.belowStaffTopBar`） |
 | `WaiterTableDetail` | 自助餐步进器、订单列表不截断主按钮 |
 | `CheckoutRequestsManager` | 返回列表、收款钮、金额字号 |
 | `KitchenDisplay` | 大行可点、void 确认不挡下一单 |

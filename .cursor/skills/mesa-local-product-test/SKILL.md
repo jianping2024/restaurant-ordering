@@ -2,8 +2,9 @@
 name: mesa-local-product-test
 description: >-
   Local product verification for Mesa: curl APIs first, Chrome DevTools MCP for UI,
-  shared test account, cleanup writes. Use when user says 开始测试, 联调, 手工验收,
-  or asks to verify product behavior on localhost (not only lint/unit).
+  shared test account, cleanup writes; no checklist skip unless truly blocked.
+  Use when user says 开始测试, 联调, 手工验收, 回归测试, or asks to verify product
+  behavior on localhost (not only lint/unit).
 ---
 
 # Mesa: local product testing
@@ -23,9 +24,9 @@ Use **owner** when the staff restaurant lacks buffet/menu seed needed for open-t
 1. **API first — curl** (session cookies after login). Assert status, stable `error` codes, payload shape.
 2. **UI second — Chrome DevTools MCP** (`user-chrome-devtools`). Navigate/snapshot/click; verify disabled controls, lists, toasts. No Playwright unless user asks.
 3. **Cleanup** — reverse writes via normal product APIs.
-4. **Report** — each checklist item: `pass` / `fail` / `skip` (+ brief note).
+4. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc` (No skip unless truly blocked).
 
-Skip API-first only for pure presentation; note why. If localhost/login fails, mark API/UI `skip` and still report lint/build/unit when applicable.
+Do not skip for convenience, dual-tab/realtime difficulty, or “unit already covers it”. Pure presentation may omit API-first but must still run a UI assertion (not skip). If localhost/login/MCP is down after a real attempt, `skip` that blocked surface with the blocker noted; still report lint/build/unit.
 
 ## Data policy
 
@@ -49,7 +50,7 @@ Lint/build/unit remain in `AGENTS.md` / `push-verification.mdc`.
 
 ## Verification
 
-- [ ] API assertions done (or skip reasoned)
-- [ ] UI checked via Chrome DevTools MCP when needed (or skip reasoned)
+- [ ] API assertions done (or skip only with documented blocker)
+- [ ] UI checked via Chrome DevTools MCP when needed (or skip only with documented blocker)
 - [ ] Throwaway data cleaned up
-- [ ] Checklist reported with pass/fail/skip
+- [ ] Checklist reported pass/fail; any skip cites an objective blocker

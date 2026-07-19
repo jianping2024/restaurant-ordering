@@ -54,7 +54,7 @@ Hard phrase gate and short always-on summary: `.cursor/rules/analysis-before-cod
    - No parallel component/helper vs reuse verdict
    - New shared file only if it deleted duplicated call-site logic
    - **One representation:** for each end-state concept, not two live forms (e.g. flat `stepFooTitle` **and** `steps[]`; intro `previewGuest*` **and** `bill.guest`)
-4. Checks per `AGENTS.md`. List every manual test: `pass` / `fail` / `skip`.
+4. Checks per `AGENTS.md`. List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
 5. Commit only if user asks. `push` / `ship` / `pnpm push` → follow `.cursor/rules/push-verification.mdc` then `release-and-ci.mdc`.
 
 ### Principles
@@ -76,5 +76,5 @@ Before finishing an implementation turn:
 - [ ] Diff has **one representation** per those concepts (no parallel flat+array / parallel labels)
 - [ ] Reuse search covered domain UI + `messages` labels when UI/copy changed
 - [ ] Branch/base isolation respected; unrelated WIP untouched
-- [ ] `AGENTS.md` checks run; manual items reported pass/fail/skip
+- [ ] `AGENTS.md` checks run; manual items reported pass/fail (skip only if blocked)
 - [ ] No commit unless user asked (unless push/ship)

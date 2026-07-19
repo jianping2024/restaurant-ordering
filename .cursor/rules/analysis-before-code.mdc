@@ -29,7 +29,7 @@ For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code 
 
 - Branch from `main` (or named baseline); do not disturb other WIP (worktree if needed). Details in the skill.
 - **One representation check** on the diff: no two live forms for the same step/label/mapping.
-- Run checks per `AGENTS.md`. Manual items: pass/fail/skip. Commit only if user asks (push/ship/`pnpm push` = permission; then read `push-verification.mdc` + `release-and-ci.mdc`).
+- Run checks per `AGENTS.md`. Manual items: pass/fail; `skip` only per `local-product-testing.mdc` (truly blocked). Commit only if user asks (push/ship/`pnpm push` = permission; then read `push-verification.mdc` + `release-and-ci.mdc`).
 
 ## Never without explicit in-thread permission
 

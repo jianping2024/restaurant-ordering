@@ -280,18 +280,22 @@ export function useWaiterOrders(
     [boardSetters, currentBoardSnapshot],
   );
 
-  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, () => {
+  const refreshReconcile = useCallback(() => {
     void refresh('reconcile');
-  });
+  }, [refresh]);
+
+  const refreshSignal = useCallback(() => {
+    void refresh('signal');
+  }, [refresh]);
+
+  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refreshReconcile);
 
   useRestaurantRealtimeRefresh(
     supabase,
     restaurant.id,
     `waiter-${restaurant.id}`,
     enabled,
-    () => {
-      void refresh('signal');
-    },
+    refreshSignal,
   );
 
   return {

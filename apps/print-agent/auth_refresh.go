@@ -3,17 +3,17 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
 
-// refreshSupabaseSession exchanges refresh_token for a new access/refresh pair.
-// Updates cfg in place and returns an error if refresh fails.
+// refreshSupabaseSession exchanges refresh_token for a new access/refresh pair (GoTrue JSON API).
+// Updates cfg in place; caller persists config when desired.
 func refreshSupabaseSession(ctx context.Context, cfg *config) error {
 	if cfg == nil || !cfg.hasRealtimeSession() {
 		return fmt.Errorf("no realtime session")
@@ -23,20 +23,23 @@ func refreshSupabaseSession(ctx context.Context, cfg *config) error {
 		return fmt.Errorf("missing supabase_url")
 	}
 
-	form := url.Values{}
-	form.Set("grant_type", "refresh_token")
-	form.Set("refresh_token", cfg.RefreshToken)
+	body, err := json.Marshal(map[string]string{
+		"refresh_token": cfg.RefreshToken,
+	})
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		base+"/auth/v1/token?grant_type=refresh_token",
-		bytes.NewBufferString(form.Encode()),
+		bytes.NewReader(body),
 	)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("apikey", cfg.AnonKey)
 	req.Header.Set("Authorization", "Bearer "+cfg.AnonKey)
 
@@ -64,4 +67,28 @@ func refreshSupabaseSession(ctx context.Context, cfg *config) error {
 	cfg.AccessToken = out.AccessToken
 	cfg.RefreshToken = out.RefreshToken
 	return nil
+}
+
+// accessTokenUnexpired reports whether JWT access_token exp is still after now+skew.
+// Unparseable tokens are treated as expired (caller must refresh).
+func accessTokenUnexpired(accessToken string, skew time.Duration) bool {
+	parts := strings.Split(accessToken, ".")
+	if len(parts) != 3 {
+		return false
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		// Some issuers pad; try standard raw with padding.
+		payload, err = base64.URLEncoding.DecodeString(parts[1])
+		if err != nil {
+			return false
+		}
+	}
+	var claims struct {
+		Exp int64 `json:"exp"`
+	}
+	if err := json.Unmarshal(payload, &claims); err != nil || claims.Exp <= 0 {
+		return false
+	}
+	return time.Now().Add(skew).Before(time.Unix(claims.Exp, 0))
 }

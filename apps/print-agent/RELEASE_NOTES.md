@@ -2,6 +2,15 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.45
+
+**Realtime session 契约对齐 GoTrue / supabase-js**
+
+- Auth refresh 使用官方 JSON body（修复生产 `bad_json`）。
+- 连接前按 JWT `exp` 决定是否 refresh；刷新失败不再假装成功，走既有 Realtime→Polling 回退。
+- WebSocket 握手只带 URL `apikey`；用户身份仅在 subscribe 的 `access_token`。
+- 已配对时「打印机设置」露出「重新配对」→ 同一 `/pair` 页。
+
 ## 0.3.44
 
 **Realtime 使用店内 print_agent 员工 session**

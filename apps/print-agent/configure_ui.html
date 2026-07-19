@@ -55,6 +55,12 @@
       <a class="pair-link" id="gatePairLink" href="/pair">…</a>
     </div>
 
+    <div class="card hidden" id="rePairCard">
+      <p class="section-title" id="rePairTitle">…</p>
+      <p class="hint" id="rePairHint">…</p>
+      <a class="pair-link" id="rePairLink" href="/pair">…</a>
+    </div>
+
     <div class="card hidden" id="mainCard">
       <div class="scan-bar">
         <p class="scan-status" id="scanHint">…</p>
@@ -226,6 +232,9 @@
         document.getElementById('pageSub').textContent = t('configure_page_sub');
         document.getElementById('gateBody').textContent = t('configure_gate_body');
         document.getElementById('gatePairLink').textContent = t('configure_gate_pair_btn');
+        document.getElementById('rePairTitle').textContent = t('section_pair');
+        document.getElementById('rePairHint').textContent = t('pair_hint');
+        document.getElementById('rePairLink').textContent = t('pair_btn');
         document.getElementById('scanBtn').textContent = t('scan_again');
         document.getElementById('stationsTitle').textContent = t('stations_title');
         document.getElementById('saveBtn').textContent = t('save_printers_btn');
@@ -317,6 +326,7 @@
         if (!state.paired) {
           el.innerHTML = t('status_not_paired');
           document.getElementById('gateCard').classList.remove('hidden');
+          document.getElementById('rePairCard').classList.add('hidden');
           document.getElementById('mainCard').classList.add('hidden');
           return;
         }
@@ -325,6 +335,7 @@
           .replace('%s', escapeHtml(state.api_base || 'MesaGo'))
           .replace('%d', String(state.station_count || 0));
         document.getElementById('gateCard').classList.add('hidden');
+        document.getElementById('rePairCard').classList.remove('hidden');
         document.getElementById('mainCard').classList.remove('hidden');
       }
 
@@ -701,6 +712,7 @@
         if (gen !== pageGen) return;
         dbg('loadPage FAILED phase=' + phase + ': ' + errBrief(err));
         document.getElementById('gateCard').classList.add('hidden');
+        document.getElementById('rePairCard').classList.add('hidden');
         document.getElementById('mainCard').classList.add('hidden');
         document.getElementById('status').textContent = t('state_load_failed');
         showStateRetry(true);
@@ -723,7 +735,9 @@
             ui = j.ui || {};
             seedDraft();
             var pairPath = j.pair_path || '/pair';
-            document.getElementById('gatePairLink').href = buildPairHref(pairPath);
+            var pairHref = buildPairHref(pairPath);
+            document.getElementById('gatePairLink').href = pairHref;
+            document.getElementById('rePairLink').href = pairHref;
             applyLabels();
             renderStatus();
             if (!state.paired) {

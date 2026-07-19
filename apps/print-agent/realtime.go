@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"strings"
 	"sync"
@@ -112,15 +111,11 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 		return err
 	}
 
-	header := http.Header{}
-	header.Set("Authorization", "Bearer "+r.config.AccessToken)
-	header.Set("apikey", r.config.AnonKey)
-
+	// Match supabase-js: apikey on the URL only; user JWT goes in phx_join (subscribe).
 	dialer := websocket.Dialer{
 		HandshakeTimeout: 10 * time.Second,
 	}
-
-	conn, _, err := dialer.DialContext(ctx, wsURL, header)
+	conn, _, err := dialer.DialContext(ctx, wsURL, nil)
 	if err != nil {
 		return err
 	}
@@ -139,12 +134,11 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 }
 
 func (r *RealtimeNotifier) ensureFreshAccessToken(ctx context.Context) error {
+	const skew = 60 * time.Second
+	if accessTokenUnexpired(r.config.AccessToken, skew) {
+		return nil
+	}
 	if err := refreshSupabaseSession(ctx, r.config); err != nil {
-		// First connect after claim may still have a fresh access_token — try once without refresh.
-		if strings.TrimSpace(r.config.AccessToken) != "" {
-			log.Printf("Realtime: proactive refresh skipped/failed (%v); using stored access_token", err)
-			return nil
-		}
 		return err
 	}
 	if r.configPath != "" {

@@ -175,7 +175,7 @@ Web 入队（service role）
 | 功能门控 | `apps/web/src/lib/restaurant-features.ts` |
 | Web API | `apps/web/src/app/api/print-agent/*` |
 | JWT | `packages/shared/src/print-agent-jwt.ts` |
-| 代理轮询 | `apps/print-agent/agent_poll.go` |
+| 代理运行时 | `apps/print-agent/agent_run.go`、`processor.go`、`job_queue.go` |
 | ESC/POS | `apps/print-agent/escpos.go`、`escpos_encoding.go` |
 | 发布 | `docs/ci-and-release.zh.md`、`apps/print-agent/VERSION` |
 

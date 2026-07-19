@@ -91,11 +91,9 @@ func (p *PollingNotifier) fetch(ctx context.Context) error {
 	
 	count := 0
 	for _, job := range jobs {
-		// Filter by routing (same as Realtime)
-		if _, err := p.config.printerTargetForJob(job); err != nil {
+		if !p.config.jobEligibleForQueue(job) {
 			continue
 		}
-		
 		if p.queue.Push(job) {
 			count++
 		}

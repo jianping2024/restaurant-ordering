@@ -337,7 +337,7 @@ func (r *RealtimeNotifier) handleMessage(msg []byte) {
 			return
 		}
 
-		if !r.canPrintJob(&job) {
+		if !r.config.jobEligibleForQueue(job) {
 			return
 		}
 
@@ -345,11 +345,6 @@ func (r *RealtimeNotifier) handleMessage(msg []byte) {
 			log.Printf("Realtime: enqueued job %s (type=%s)", job.ID, job.Type)
 		}
 	}
-}
-
-func (r *RealtimeNotifier) canPrintJob(job *printJob) bool {
-	_, err := r.config.printerTargetForJob(*job)
-	return err == nil
 }
 
 func (r *RealtimeNotifier) compensationFetch(ctx context.Context) error {
@@ -363,6 +358,9 @@ func (r *RealtimeNotifier) compensationFetch(ctx context.Context) error {
 
 	count := 0
 	for _, job := range jobs {
+		if !r.config.jobEligibleForQueue(job) {
+			continue
+		}
 		if r.queue.Push(job) {
 			count++
 		}

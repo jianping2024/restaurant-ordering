@@ -4,6 +4,7 @@ import {
   staffPasswordValid,
   validateLoginName,
   isStaffRole,
+  isSystemStaffRole,
   type StaffUserMetadata,
 } from '@/lib/staff-account';
 import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
@@ -45,6 +46,11 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
     updated_at: row.updated_at as string,
     disabled_at: (row.disabled_at as string | null) ?? null,
   };
+}
+
+/** Human staff only — system print_agent never appears in owner staff lists. */
+export function mapHumanStaffRows(rows: Record<string, unknown>[]): RestaurantStaffAccount[] {
+  return rows.filter((row) => !isSystemStaffRole(String(row.role ?? ''))).map(mapStaffRow);
 }
 
 export function staffMetadataPayload(

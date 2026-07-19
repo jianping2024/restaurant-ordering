@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeCountryCode } from './country-code';
+import { ensurePrintAgentStaff } from './print-agent-staff';
 import { defaultRestaurantSlug } from './slug';
 
 export type PrintLocale = 'zh' | 'en' | 'pt';
@@ -116,10 +117,26 @@ export async function createRestaurantWithOwner(
     };
   }
 
+  const restaurantId = restaurantRow.id as string;
+  const ensure = await ensurePrintAgentStaff(admin, {
+    restaurantId,
+    restaurantSlug: slug,
+  });
+  if (!ensure.ok) {
+    await admin.from('restaurants').delete().eq('id', restaurantId);
+    await admin.auth.admin.deleteUser(ownerId);
+    return {
+      ok: false,
+      error: 'print_agent_staff_failed',
+      status: 500,
+      detail: ensure.detail || ensure.error,
+    };
+  }
+
   return {
     ok: true,
     slug,
-    restaurantId: restaurantRow.id,
+    restaurantId,
     ownerId,
   };
 }

@@ -9,6 +9,11 @@ export function isStaffRole(role: string): role is StaffRole {
   return (STAFF_ROLES as readonly string[]).includes(role);
 }
 
+/** System print helper — not human-creatable / not listed in staff UI. */
+export function isSystemStaffRole(role: string): boolean {
+  return role === 'print_agent';
+}
+
 export const STAFF_EMAIL_DOMAIN = 'mesa.in';
 
 const RESERVED_LOGIN_NAMES = new Set([

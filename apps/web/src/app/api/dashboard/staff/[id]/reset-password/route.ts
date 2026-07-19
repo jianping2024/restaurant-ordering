@@ -5,7 +5,7 @@ import {
   mapStaffRow,
   staffMetadataPayload,
 } from '@/lib/staff-dashboard-api';
-import { staffPasswordValid } from '@/lib/staff-account';
+import { isSystemStaffRole, staffPasswordValid } from '@/lib/staff-account';
 import type { StaffRole } from '@/lib/staff-account';
 
 export const runtime = 'nodejs';
@@ -37,6 +37,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (loadError || !account) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  }
+  if (isSystemStaffRole(String(account.role ?? ''))) {
+    return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
   const role = account.role as StaffRole;

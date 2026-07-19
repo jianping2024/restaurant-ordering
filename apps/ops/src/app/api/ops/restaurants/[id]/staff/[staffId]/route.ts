@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
+import { isPrintAgentStaffRole, kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
-import { kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
 type RouteContext = { params: Promise<{ id: string; staffId: string }> };
@@ -30,6 +30,9 @@ export async function PATCH(req: Request, context: RouteContext) {
   }
   if (!staff) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  }
+  if (isPrintAgentStaffRole(String(staff.role ?? ''))) {
+    return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
   const action = body.action;

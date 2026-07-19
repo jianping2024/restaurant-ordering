@@ -15,6 +15,16 @@ export {
   type CreateRestaurantResult,
   type PrintLocale,
 } from './create-restaurant';
+export {
+  PRINT_AGENT_STAFF_DISPLAY_NAME,
+  PRINT_AGENT_STAFF_EMAIL_DOMAIN,
+  PRINT_AGENT_STAFF_ROLE,
+  ensurePrintAgentStaff,
+  isPrintAgentStaffRole,
+  printAgentLoginName,
+  printAgentStaffEmail,
+  type EnsurePrintAgentStaffResult,
+} from './print-agent-staff';
 export { defaultRestaurantSlug, restaurantNameToSlug } from './slug';
 export {
   RESTAURANT_COUNTRY_OPTIONS,

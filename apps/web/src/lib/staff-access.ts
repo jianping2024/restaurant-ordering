@@ -230,11 +230,11 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
 
   const { data: account } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, disabled_at, restaurant_id')
+    .select('id, disabled_at, restaurant_id, role')
     .eq('login_name', loginName)
     .maybeSingle();
 
-  if (!account || account.disabled_at) {
+  if (!account || account.disabled_at || !isStaffRole(String(account.role ?? ''))) {
     return { ok: false, code: 'invalid_credentials' };
   }
 

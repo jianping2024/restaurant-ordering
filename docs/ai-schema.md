@@ -41,7 +41,7 @@ print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [o
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz)
 
-restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk], display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
+restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk|print_agent], display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 
 platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, role: text [support|admin], display_name: text, disabled_at: timestamptz nullable, created_at: timestamptz)
 
@@ -169,7 +169,7 @@ orders.status: pending | cooking | done
 print_jobs.type: order_receipt | station_ticket | pre_bill  
 print_jobs.status: pending | processing | done | failed  
 platform_admin_accounts.role: support | admin  
-restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk  
+restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | print_agent
 restaurants.plan: free | pro  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  
@@ -296,6 +296,7 @@ restaurant_staff_accounts:
 - restaurant_staff_accounts_restaurant_id_idx: btree(restaurant_id)
 - restaurant_staff_accounts_user_id_idx: btree(user_id)
 - restaurant_staff_accounts_user_id_key: unique btree(user_id)
+- restaurant_staff_accounts_one_print_agent_per_restaurant: unique btree(restaurant_id) WHERE role = 'print_agent'
 
 restaurant_tables:
 
@@ -404,6 +405,7 @@ print_jobs:
 
 - SELECT/UPDATE/DELETE: owner by restaurant ownership.
 - INSERT: owner by restaurant ownership, with `WITH CHECK`.
+- SELECT: authenticated `print_agent` staff via `is_active_restaurant_staff(restaurant_id, ['print_agent'])` (Realtime listen only; no write).
 
 print_stations:
 
@@ -452,7 +454,7 @@ table_sessions:
 - Resume ordering: `resume_table_session_ordering(...)` — sets session `open`; ledger unchanged; whole-table blocked if paid or ledger has rows; **`by_item` always `confirmed`**; even/custom `confirmed` when partial pay else `cancelled`. Product rules: `docs/checkout-resume-ordering.zh.md`.
 - Operational close: `close_table_session_operational(...)` — advisory lock; locks active `bill_splits` then `table_sessions`; cancels splits, voids order lines, closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
-- Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work.
+- Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work. Each restaurant has one system `print_agent` staff account (created on ops restaurant create / claim ensure / backfill); claim may return Supabase Auth `access_token`/`refresh_token`/`anon_key` for Realtime; agentjwt remains for claim/status APIs. Owner staff UI/API hide and lock that account.
 - `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days?, default_receipt_station_id?, station_slip_show_category_group? }` — writers merge owned slices onto the existing document (schedule/poll vs TTL+category vs receipt station). `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (功能管理).
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume).
 - Buffet pricing: `buffets` + `buffet_time_slots` + `buffet_calendar_overrides` + `buffet_price_rules` model time/calendar-sensitive prices.

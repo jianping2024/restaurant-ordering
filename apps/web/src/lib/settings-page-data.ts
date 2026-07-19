@@ -9,7 +9,7 @@ import {
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
-import { mapStaffRow } from '@/lib/staff-dashboard-api';
+import { mapHumanStaffRows } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
@@ -49,7 +49,7 @@ export async function loadStaffSettingsPageData(
     .order('created_at', { ascending: true });
 
   if (error) return [];
-  return (data || []).map((row) => mapStaffRow(row as Record<string, unknown>));
+  return mapHumanStaffRows((data || []) as Record<string, unknown>[]);
 }
 
 export type FeatureSettingsPageData = {

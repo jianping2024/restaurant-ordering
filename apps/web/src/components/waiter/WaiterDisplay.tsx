@@ -679,10 +679,10 @@ function WaiterBoardInner({
 
       {showLaneChrome ? (
         <div className={WAITER_BOARD_LANE_STICKY_SHELL}>
-          <div className="flex items-center gap-2">
+          <div className="mesa-chip-scroll flex min-w-0 gap-2 pb-1">
             {visibleFloorSections.length > 0 ? (
               <div
-                className="mesa-chip-scroll flex min-w-0 flex-1 gap-2 pb-1"
+                className="flex shrink-0 gap-2"
                 role="tablist"
                 aria-label={t.boardTitle}
               >

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   WAITER_BOARD_LANE_CHROME,
   waiterBoardType,
@@ -21,9 +22,35 @@ type Props = {
   onSelectParty: (partyId: string) => void;
 };
 
+const MENU_GAP = 6;
+const VIEWPORT_PAD = 8;
+
+function computeMenuCoords(anchor: HTMLElement, menu: HTMLElement) {
+  const anchorRect = anchor.getBoundingClientRect();
+  const menuHeight = menu.offsetHeight;
+  const menuWidth = menu.offsetWidth;
+
+  const spaceBelow = window.innerHeight - anchorRect.bottom;
+  const spaceAbove = anchorRect.top;
+  const openUpward = spaceBelow < menuHeight + MENU_GAP && spaceAbove > spaceBelow;
+
+  let top = openUpward ? anchorRect.top - menuHeight - MENU_GAP : anchorRect.bottom + MENU_GAP;
+  // Prefer left-align with trigger; if near the right edge, right-align instead.
+  let left = anchorRect.left;
+  if (left + menuWidth > window.innerWidth - VIEWPORT_PAD) {
+    left = anchorRect.right - menuWidth;
+  }
+
+  left = Math.max(VIEWPORT_PAD, Math.min(left, window.innerWidth - menuWidth - VIEWPORT_PAD));
+  top = Math.max(VIEWPORT_PAD, Math.min(top, window.innerHeight - menuHeight - VIEWPORT_PAD));
+
+  return { top, left };
+}
+
 /**
  * Single entry for together-groups on the waiter board lane strip:
  * open menu → create or select a party (replaces per-party tabs + create button).
+ * Menu portals to body so it stays visible inside the horizontal chip scroll.
  */
 export function WaiterBoardPartyLaneMenu({
   parties,
@@ -39,7 +66,9 @@ export function WaiterBoardPartyLaneMenu({
   onSelectParty,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   const selected = selectedPartyId
@@ -49,13 +78,34 @@ export function WaiterBoardPartyLaneMenu({
   const triggerLabel = selected ? selected.party.name : menuLabel;
   const triggerMeta = selected ? sectionCountLabel(selected.memberCount) : null;
 
+  const updateCoords = useCallback(() => {
+    const anchor = rootRef.current;
+    const menu = menuRef.current;
+    if (!anchor || !menu) return;
+    setCoords(computeMenuCoords(anchor, menu));
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setCoords(null);
+      return;
+    }
+    updateCoords();
+    window.addEventListener('scroll', updateCoords, true);
+    window.addEventListener('resize', updateCoords);
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [open, updateCoords]);
+
   useEffect(() => {
     if (!open) return;
 
     const onPointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
@@ -94,54 +144,63 @@ export function WaiterBoardPartyLaneMenu({
           ▾
         </span>
       </button>
-      {open ? (
-        <div
-          id={menuId}
-          role="menu"
-          aria-label={menuLabel}
-          className="absolute right-0 top-full z-30 mt-1.5 max-h-[min(20rem,70vh)] min-w-[12rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-md"
-        >
-          {canCreate ? (
-            <button
-              type="button"
-              role="menuitem"
-              disabled={createDisabled || busy}
-              onClick={() => {
-                setOpen(false);
-                onCreate();
+      {open
+        ? createPortal(
+            <div
+              ref={menuRef}
+              id={menuId}
+              role="menu"
+              aria-label={menuLabel}
+              className="fixed z-30 max-h-[min(20rem,70vh)] min-w-[12rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-md"
+              style={{
+                top: coords?.top ?? 0,
+                left: coords?.left ?? 0,
+                visibility: coords ? 'visible' : 'hidden',
               }}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-brand-text transition-colors hover:bg-brand-gold/15 disabled:opacity-50"
             >
-              {busy ? creatingLabel : createLabel}
-            </button>
-          ) : null}
-          {parties.map(({ party, memberCount }) => {
-            const isSelected = party.id === selectedPartyId;
-            return (
-              <button
-                key={party.id}
-                type="button"
-                role="menuitem"
-                aria-current={isSelected ? 'true' : undefined}
-                onClick={() => {
-                  setOpen(false);
-                  onSelectParty(party.id);
-                }}
-                className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
-                  isSelected
-                    ? 'bg-brand-gold/15 font-medium text-brand-text'
-                    : 'text-brand-text-muted hover:bg-brand-bg/70 hover:text-brand-text'
-                }`}
-              >
-                <span className="min-w-0 flex-1 truncate">{party.name}</span>
-                <span className="shrink-0 tabular-nums opacity-80">
-                  {sectionCountLabel(memberCount)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+              {canCreate ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={createDisabled || busy}
+                  onClick={() => {
+                    setOpen(false);
+                    onCreate();
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-medium text-brand-text transition-colors hover:bg-brand-gold/15 disabled:opacity-50"
+                >
+                  {busy ? creatingLabel : createLabel}
+                </button>
+              ) : null}
+              {parties.map(({ party, memberCount }) => {
+                const isSelected = party.id === selectedPartyId;
+                return (
+                  <button
+                    key={party.id}
+                    type="button"
+                    role="menuitem"
+                    aria-current={isSelected ? 'true' : undefined}
+                    onClick={() => {
+                      setOpen(false);
+                      onSelectParty(party.id);
+                    }}
+                    className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
+                      isSelected
+                        ? 'bg-brand-gold/15 font-medium text-brand-text'
+                        : 'text-brand-text-muted hover:bg-brand-bg/70 hover:text-brand-text'
+                    }`}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{party.name}</span>
+                    <span className="shrink-0 tabular-nums opacity-80">
+                      {sectionCountLabel(memberCount)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

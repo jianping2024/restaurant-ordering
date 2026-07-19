@@ -10,12 +10,17 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`)
  * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once
  * 5. Staff menu submit return — dedicated reconcile, then strip query
- * 6. Realtime while visible (`useRestaurantRealtimeRefresh`) — invalidation signal only
+ * 6. Realtime while visible (`useRestaurantRealtimeRefresh`) — invalidation signal only (`mode: 'signal'`, may 304)
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (open, checkout, transfer/merge)
+ * 8. Dashboard waiter board list re-shown (detail → list) — `entryKey` flip → `mode: 'reconcile'` (body required)
  *
+ * Reconcile pulls never send If-None-Match (local dirt must not freeze on 304).
  * Realtime never owns resume freshness: mobile tabs unsubscribe while hidden and would otherwise
  * miss cross-device closes until the next chance event.
  */
+
+/** Debounce for Realtime → staff board signal refresh (not used for reconcile). */
+export const STAFF_BOARD_SIGNAL_DEBOUNCE_MS = 2000;
 
 /**
  * Reconcile authoritative staff read-models when a surface becomes active:
@@ -141,7 +146,7 @@ export function useRestaurantRealtimeRefresh(
   channelKey: string,
   enabled: boolean,
   onRefresh: () => void,
-  debounceMs = 1200,
+  debounceMs = STAFF_BOARD_SIGNAL_DEBOUNCE_MS,
 ) {
   const filter = `restaurant_id=eq.${restaurantId}`;
   useDebouncedPostgresRealtimeRefresh(

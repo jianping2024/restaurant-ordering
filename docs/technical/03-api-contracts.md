@@ -41,6 +41,7 @@
 | GET/POST/PATCH/DELETE | `/api/dashboard/table-groups` | Owner / frontdesk | 分组与成员 |
 | POST | `/api/dashboard/close-table-session` | Owner / frontdesk | 强制关台 → `close_table_session_*` RPC |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]` | Waiter+ | 桌台详情 |
+| GET | `/api/restaurants/[slug]/staff/waiter/board` | Waiter+ | 楼面看板权威快照；`ETag` + `Cache-Control: private, no-store`；带 `If-None-Match` 且未变 → `304`（仅 Realtime signal；入场/回前台/回列表/写后对账不得依赖 304） |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets` | Waiter+ | 转台/并台目标桌列表 |
 | POST | `/api/restaurants/[slug]/staff/waiter/tables/action` | Waiter+ | `transfer` \| `merge` RPC |
 

@@ -137,7 +137,10 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .in('status', ['open', 'billing']),
     admin
       .from('orders')
-      .select('*')
+      // Board cards only need summary fields (+ items jsonb for totals/headcount).
+      .select(
+        'id, restaurant_id, session_id, table_id, display_name, status, items, total_amount, created_at, updated_at',
+      )
       .eq('restaurant_id', restaurantId)
       .in('status', ['pending', 'cooking', 'done'])
       .order('updated_at', { ascending: false })
@@ -160,7 +163,7 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
       .eq('restaurant_id', restaurantId),
     admin
       .from('buffets')
-      .select('*')
+      .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
       .eq('restaurant_id', restaurantId)
       .order('name'),
     loadTablePartyGroups(admin, restaurantId),

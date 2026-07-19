@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { fetchWaiterBoard } from '@/lib/staff-board';
+import { etagsMatch, waiterBoardEtag } from '@/lib/staff-board-etag';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
+
+const BOARD_CACHE_CONTROL = 'private, no-store';
+
+function boardHeaders(etag: string): HeadersInit {
+  return {
+    ETag: etag,
+    'Cache-Control': BOARD_CACHE_CONTROL,
+  };
+}
 
 export async function GET(
   req: Request,
@@ -27,5 +37,15 @@ export async function GET(
   }
 
   const board = await fetchWaiterBoard(admin, ctx.restaurant_id);
-  return NextResponse.json(board);
+  const etag = waiterBoardEtag(board);
+  const ifNoneMatch = req.headers.get('if-none-match');
+
+  if (etagsMatch(ifNoneMatch, etag)) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: boardHeaders(etag),
+    });
+  }
+
+  return NextResponse.json(board, { headers: boardHeaders(etag) });
 }

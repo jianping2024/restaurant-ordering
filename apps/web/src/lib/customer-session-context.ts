@@ -37,6 +37,49 @@ export type CustomerSessionContext = {
   recent_orders: Order[];
 };
 
+/**
+ * Session read scope (one CustomerSessionContext shape):
+ * - gate: table + thin active session; recent_orders always []
+ * - full: gate fields + recent orders for footer / ordered drawer
+ */
+export type CustomerSessionScope = 'gate' | 'full';
+
+export function parseCustomerSessionScope(
+  value: string | null | undefined,
+): CustomerSessionScope {
+  return value === 'gate' ? 'gate' : 'full';
+}
+
+/**
+ * Apply a scoped session response onto prior client state.
+ * Gate must not wipe same-session orders; session id change / close clears them.
+ */
+export function applyCustomerSessionScopeMerge(
+  previous: CustomerSessionContext | null,
+  incoming: CustomerSessionContext,
+  scope: CustomerSessionScope,
+): CustomerSessionContext {
+  if (scope === 'full') return incoming;
+
+  const prevSessionId = previous?.active_session?.id ?? null;
+  const nextSessionId = incoming.active_session?.id ?? null;
+  if (!nextSessionId || nextSessionId !== prevSessionId) {
+    return { ...incoming, recent_orders: [] };
+  }
+  return {
+    ...incoming,
+    recent_orders: previous?.recent_orders ?? [],
+  };
+}
+
+/** Columns needed for guest ordering gate + menu session identity. */
+const CUSTOMER_SESSION_SELECT =
+  'id, restaurant_id, table_id, status, opened_at';
+
+/** Columns needed for menu footer / ordered drawer (billable lines + display). */
+const CUSTOMER_SESSION_ORDER_SELECT =
+  'id, restaurant_id, session_id, table_id, display_name, status, items, total_amount, created_at, updated_at';
+
 export type CustomerRestaurantGateResult =
   | { kind: 'found'; restaurant: CustomerRestaurantRow }
   | { kind: 'not_found' }
@@ -153,7 +196,7 @@ export async function resolveCustomerTableContext(params: {
 
   const { data: activeSession } = await admin
     .from('table_sessions')
-    .select('*')
+    .select(CUSTOMER_SESSION_SELECT)
     .eq('restaurant_id', restaurantId)
     .eq('table_id', requestedTable.id)
     .in('status', ['open', 'billing'])
@@ -216,19 +259,23 @@ export async function loadCustomerSessionContext(params: {
   admin: AdminClient;
   restaurantId: string;
   tableIdParam?: string | null;
+  /** Default full — menu SSR and legacy callers keep orders. */
+  scope?: CustomerSessionScope;
 }): Promise<CustomerSessionContext | null> {
+  const scope = params.scope ?? 'full';
   const tableContext = await resolveCustomerTableContext(params);
   if (!tableContext) return null;
 
-  const recent_orders = tableContext.activeSession?.id
-    ? await loadCustomerSessionOrders({
-        admin: params.admin,
-        restaurantId: params.restaurantId,
-        sessionId: tableContext.activeSession.id,
-        ascending: false,
-        limit: 20,
-      })
-    : [];
+  const recent_orders =
+    scope === 'full' && tableContext.activeSession?.id
+      ? await loadCustomerSessionOrders({
+          admin: params.admin,
+          restaurantId: params.restaurantId,
+          sessionId: tableContext.activeSession.id,
+          ascending: false,
+          limit: 20,
+        })
+      : [];
 
   return {
     table_id: tableContext.tableId,
@@ -248,7 +295,7 @@ export async function loadCustomerSessionOrders(params: {
   const { admin, restaurantId, sessionId, ascending = true, limit } = params;
   let query = admin
     .from('orders')
-    .select('*')
+    .select(CUSTOMER_SESSION_ORDER_SELECT)
     .eq('restaurant_id', restaurantId)
     .eq('session_id', sessionId)
     .order('created_at', { ascending });

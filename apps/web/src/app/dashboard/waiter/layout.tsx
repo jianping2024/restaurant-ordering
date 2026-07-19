@@ -6,11 +6,12 @@ export default async function DashboardWaiterLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { restaurant } = await requireWaiterBoardDashboardAccess();
+  const { restaurant, mode } = await requireWaiterBoardDashboardAccess();
 
   return (
     <DashboardWaiterFloorShell
       restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
+      floorStaffRole={mode}
     >
       {children}
     </DashboardWaiterFloorShell>

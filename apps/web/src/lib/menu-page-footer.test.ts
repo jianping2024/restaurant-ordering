@@ -107,7 +107,7 @@ describe('deriveMenuPageFooter', () => {
 
   it('hides bill and ordered CTAs for staff-assisted waiter flow', () => {
     const staffAssisted = {
-      variant: 'slug_waiter' as const,
+      variant: 'staff' as const,
       returnHref: '/dashboard/waiter/t1',
       redirectAfterSubmit: true,
       showBillCta: false,

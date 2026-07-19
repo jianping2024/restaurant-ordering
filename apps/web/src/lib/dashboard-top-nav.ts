@@ -26,10 +26,13 @@ const PRIMARY_NAV_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly stri
   owner: ['overview'],
   frontdesk: ['waiterBoard', 'checkout'],
   cashier: ['waiterBoard', 'checkout'],
+  waiter: ['waiterBoard'],
 };
 
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
-  if (accessMode === 'cashier' || accessMode === 'frontdesk') return '/dashboard/waiter';
+  if (accessMode === 'cashier' || accessMode === 'frontdesk' || accessMode === 'waiter') {
+    return '/dashboard/waiter';
+  }
   return '/dashboard';
 }
 

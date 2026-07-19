@@ -64,6 +64,10 @@ describe('dashboardLogoHref', () => {
   it('routes cashier logo to waiter board', () => {
     assert.equal(dashboardLogoHref('cashier'), '/dashboard/waiter');
   });
+
+  it('routes waiter logo to waiter board', () => {
+    assert.equal(dashboardLogoHref('waiter'), '/dashboard/waiter');
+  });
 });
 
 describe('isNavItemActive', () => {

@@ -159,7 +159,7 @@
 | POST | `/api/auth/login` | 店主登录 |
 | POST | `/api/auth/staff/login` | 员工登录（按 slug/角色） |
 
-员工现场页：`/[slug]/kitchen|waiter`；Dashboard 员工：`/dashboard/*`（middleware 角色分流）。
+员工现场页：`/[slug]/kitchen`；楼面看板统一：`/dashboard/waiter`（旧 `/[slug]/waiter` 永久重定向）；Dashboard 员工：`/dashboard/*`（middleware 角色分流）。
 
 ---
 

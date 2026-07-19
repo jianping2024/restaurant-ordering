@@ -27,7 +27,10 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
-import type { StaffRole } from '@/lib/staff-account';
+import {
+  floorBoardCapabilities,
+  type FloorBoardRole,
+} from '@/lib/floor-board-capabilities';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -83,8 +86,8 @@ interface Props {
   displayName?: string;
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
-  /** Dashboard floor staff role — required when embeddedInDashboard. */
-  floorStaffRole?: Extract<StaffRole, 'frontdesk' | 'cashier'>;
+  /** Floor board role — drives close/checkout UI (defaults to waiter). */
+  floorStaffRole?: FloorBoardRole;
 }
 
 function WaiterTableDetailInner({
@@ -211,12 +214,15 @@ function WaiterTableDetailInner({
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
+  const floorRole: FloorBoardRole = floorStaffRole ?? 'waiter';
+  const floorCaps = useMemo(() => floorBoardCapabilities(floorRole), [floorRole]);
+
   const menuDecrementOperator = useMemo(
     () =>
       resolveMenuDecrementOperator({
-        role: floorStaffRole ?? 'waiter',
+        role: floorRole,
       }),
-    [floorStaffRole],
+    [floorRole],
   );
 
   const selectedCard = useMemo(
@@ -311,14 +317,14 @@ function WaiterTableDetailInner({
   useEffect(() => {
     if (isDemo || !detailLoaded) return;
     if (!isCheckoutPending && sessionMeta?.status !== 'billing') return;
-    if (embeddedInDashboard) {
+    if (floorCaps.canAssistBillCheckout) {
       router.replace(dashboardCheckoutTableHref(tableId));
       return;
     }
     router.replace(waiterBoardHref(restaurant.slug, routeOptions));
   }, [
     detailLoaded,
-    embeddedInDashboard,
+    floorCaps.canAssistBillCheckout,
     isCheckoutPending,
     isDemo,
     restaurant.slug,
@@ -615,7 +621,7 @@ function WaiterTableDetailInner({
   };
 
   const detailActions = resolveWaiterTableDetailActions({
-    embeddedInDashboard,
+    caps: floorCaps,
     isDemo,
     isCheckoutPending,
     hasOpenSession,
@@ -846,7 +852,7 @@ function WaiterTableDetailInner({
             onMerge={() => openAction('merge', selectedCard.tableId)}
             showCheckoutClose={detailActions.showCheckoutClose}
             showCloseTable={detailActions.showCloseTable}
-            floorStaffRole={floorStaffRole}
+            floorStaffRole={floorRole === 'waiter' ? undefined : floorRole}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}
             onDemoCloseClick={() => {

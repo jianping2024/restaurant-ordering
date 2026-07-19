@@ -43,19 +43,3 @@ func patchJobStatus(ctx context.Context, cfg *config, jobID string, patch map[st
 	agentLogTech(cfg, "log_patch_job_retry_failed", err2.Error(), action, jobID)
 	return false
 }
-
-func sleepOrCancel(ctx context.Context, d time.Duration) {
-	if d <= 0 {
-		select {
-		case <-ctx.Done():
-		default:
-		}
-		return
-	}
-	t := time.NewTimer(d)
-	defer t.Stop()
-	select {
-	case <-ctx.Done():
-	case <-t.C:
-	}
-}

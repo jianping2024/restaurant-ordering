@@ -1,7 +1,7 @@
 ---
 description: >-
-  Pointer to mesa-local-product-test skill. Use when user says 开始测试, 联调,
-  手工验收, or asks to verify product behavior on localhost (not only lint/unit).
+  Local product testing must use npm run dev + local Supabase. Triggered by
+  开始测试 / 联调 / 手工验收. Full procedure in mesa-local-product-test skill.
 alwaysApply: false
 ---
 
@@ -9,4 +9,8 @@ alwaysApply: false
 
 When the user asks to **开始测试**, **联调**, **手工验收**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
 
-Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail/skip report).
+1. Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`**.
+2. **Server must be `npm run dev`** (local Docker Supabase). Do **not** use `npm run cloud` or `npm run stage` for these checks.
+3. **Account:** `qiantai` / `654321` (only — do not use other staff/owner accounts unless the user says so).
+4. Method: curl APIs first → Chrome DevTools MCP for UI → cleanup writes → report each item `pass` / `fail` / `skip`.
+5. Kitchen module is **out of scope** unless the user explicitly asks to test it.

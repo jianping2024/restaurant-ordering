@@ -1,7 +1,5 @@
-import { cache } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, Order } from '@/types';
-import { createAdminClient } from '@/lib/supabase/admin';
 import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -216,14 +214,6 @@ export async function loadWaiterTablePageModel(
   if (!snapshot) return null;
   return snapshotToPageModel(snapshot, inTableParty);
 }
-
-/** SSR page seed — deduped per request via React.cache. */
-export const loadWaiterTablePageInitial = cache(
-  async (restaurantId: string, tableId: string): Promise<WaiterTablePageModel | null> => {
-    const admin = createAdminClient();
-    return loadWaiterTablePageModel(admin, restaurantId, tableId);
-  },
-);
 
 export async function loadWaiterTableDetailData(
   admin: SupabaseClient,

@@ -73,13 +73,13 @@ import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-d
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
-  /** SSR successfully loaded detail — skip mount entry reconcile. */
+  /** Authoritative boot model — skip mount entry reconcile when true. */
   hasAuthoritativeSeed?: boolean;
   /** Demo only — all configured tables for transfer/merge UI. */
   tables?: RestaurantTableRow[];
   /** Demo only — full demo order set. */
   initialOrders?: Order[];
-  /** Server-rendered page model; avoids duplicate fetch on navigation. */
+  /** Optional boot model (demo / published bridge via hook peek). */
   initialModel?: WaiterTablePageModel | null;
   tableId: string;
   /** Demo only — table label before detail state resolves. */
@@ -199,6 +199,17 @@ function WaiterTableDetailInner({
     supabase,
   });
   const [buffetSubmitting, setBuffetSubmitting] = useState(false);
+
+  useEffect(() => {
+    setOperationType(null);
+    setSourceTable(null);
+    setTargetTable(null);
+    setActionTargets([]);
+    setActionTargetsLoading(false);
+    setOperating(false);
+    setDecrementingKey(null);
+    setItemCodeByMenuId({});
+  }, [tableId]);
 
   const applyDetail = useCallback(
     (detail: WaiterTableDetailData) => {

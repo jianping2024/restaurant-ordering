@@ -5,10 +5,10 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Staff surface freshness contract (production):
- * 1. SSR page seed — first paint when server auth + load succeed
+ * 1. Boot seed — first paint when server/demo seed or published staff model exists
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
  * 3. Client entry reconcile — Staff API on mount / entryKey change (`useRestaurantStaffEntryReconcile`);
- *    skip mount when SSR seed is authoritative (`reconcileOnMount=false`), still resume on visibility
+ *    skip mount when boot seed is authoritative (`reconcileOnMount=false`), still resume on visibility
  * 4. Visibility resume reconcile — same hook; surface left and came back → pull authority once (full)
  * 5. Staff menu submit return — dedicated reconcile, then strip query
  * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → live GET

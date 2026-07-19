@@ -57,10 +57,10 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
  * Table detail client state — single WaiterTablePageModel source.
  *
  * Freshness layers:
- * 1. SSR seed — first paint; published mutation cache wins on navigation entry
- * 2. Entry reconcile — Staff API on mount (authoritative over stale SSR/Router cache)
+ * 1. Boot seed — published mutation cache, optional SSR/demo initialModel
+ * 2. Entry reconcile — Staff API on mount / tableId change (authoritative)
  * 3. menu_submit return — Staff API reconcile, then strip query
- * 4. Realtime while mounted — debounced refresh
+ * 4. Realtime while mounted — debounced refresh for this tableId
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
@@ -124,15 +124,27 @@ export function useWaiterTableDetail(
     if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
     const seq = ++reloadSeqRef.current;
-    const running = (async () => {
+    const running = (async (): Promise<WaiterTablePageModel | null> => {
       try {
         const nextModel = await fetchWaiterTablePageModelClient(restaurant.slug, tableId);
         if (seq !== reloadSeqRef.current) return null;
         const normalized = applyModel(nextModel);
         commitAuthoritativeWaiterTablePageModel(normalized);
         return normalized;
+      } catch {
+        if (seq !== reloadSeqRef.current) return null;
+        setModel(null);
+        setTable(null);
+        setOrderRows([]);
+        setSessionMeta(null);
+        setCheckoutRequested(false);
+        setCheckoutRequestedAt(null);
+        setDetailLoaded(true);
+        return null;
       } finally {
-        refreshInFlightRef.current = null;
+        if (reloadSeqRef.current === seq) {
+          refreshInFlightRef.current = null;
+        }
       }
     })();
     refreshInFlightRef.current = running;
@@ -140,12 +152,17 @@ export function useWaiterTableDetail(
   }, [applyModel, enabled, restaurant.slug, tableId]);
 
   useEffect(() => {
-    if (prevTableIdRef.current !== tableId) {
-      prevTableIdRef.current = tableId;
-      reloadSeqRef.current += 1;
-      refreshInFlightRef.current = null;
-      setDetailLoaded(false);
-    }
+    if (prevTableIdRef.current === tableId) return;
+    prevTableIdRef.current = tableId;
+    reloadSeqRef.current += 1;
+    refreshInFlightRef.current = null;
+    setModel(null);
+    setTable(null);
+    setOrderRows([]);
+    setSessionMeta(null);
+    setCheckoutRequested(false);
+    setCheckoutRequestedAt(null);
+    setDetailLoaded(false);
   }, [tableId]);
 
   // SSR seed per table entry — published mutation wins; omit initialModel from deps.

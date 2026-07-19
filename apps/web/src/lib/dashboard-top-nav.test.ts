@@ -3,6 +3,8 @@ import { describe, it } from 'node:test';
 import {
   buildDashboardTopNavPresentation,
   dashboardLogoHref,
+  dashboardWaiterTableIdFromPath,
+  isDashboardWaiterTableDetailPath,
   isNavItemActive,
 } from '@/lib/dashboard-top-nav';
 
@@ -79,5 +81,19 @@ describe('isNavItemActive', () => {
       }),
       true,
     );
+  });
+});
+
+describe('dashboardWaiterTableIdFromPath', () => {
+  const tableId = '2db46804-d02a-4227-8193-1e061768938d';
+
+  it('parses uuid from detail path', () => {
+    assert.equal(dashboardWaiterTableIdFromPath(`/dashboard/waiter/${tableId}`), tableId);
+  });
+
+  it('returns null for board list and invalid ids', () => {
+    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/waiter'), null);
+    assert.equal(dashboardWaiterTableIdFromPath('/dashboard/waiter/not-a-uuid'), null);
+    assert.equal(isDashboardWaiterTableDetailPath(`/dashboard/waiter/${tableId}`), true);
   });
 });

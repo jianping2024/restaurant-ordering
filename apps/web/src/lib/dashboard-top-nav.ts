@@ -4,6 +4,7 @@ import {
   type DashboardNavItemDef,
 } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
 
 export type DashboardTopNavItem = {
@@ -146,4 +147,15 @@ export function isDashboardWaiterBoardListPath(pathname: string): boolean {
 
 export function isDashboardWaiterTableDetailPath(pathname: string): boolean {
   return /^\/dashboard\/waiter\/[^/]+$/.test(pathname);
+}
+
+/** Table UUID from `/dashboard/waiter/[tableId]` — null when path or id is invalid. */
+export function dashboardWaiterTableIdFromPath(pathname: string): string | null {
+  const match = pathname.match(/^\/dashboard\/waiter\/([^/]+)$/);
+  if (!match?.[1]) return null;
+  try {
+    return parseTableIdParam(decodeURIComponent(match[1]));
+  } catch {
+    return null;
+  }
 }

@@ -4,10 +4,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   type ReactNode,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import type { WaiterBoardData } from '@/lib/staff-board';
+import { isDashboardWaiterBoardListPath } from '@/lib/dashboard-top-nav';
 import {
   commitAuthoritativeWaiterTablePageModel,
   releaseWaiterBoardTableBridge,
@@ -68,6 +72,10 @@ function WaiterBoardProviderInner({
   initialBoard,
   children,
 }: Omit<Props, 'enabled'>) {
+  const pathname = usePathname();
+  const boardListVisible = isDashboardWaiterBoardListPath(pathname);
+  const wasBoardListVisibleRef = useRef(boardListVisible);
+
   const seed = initialBoard ?? emptyBoard();
   const store = useWaiterOrders(
     restaurant,
@@ -88,11 +96,20 @@ function WaiterBoardProviderInner({
 
   const refresh = store.refresh;
 
+  // Detail → board list: force reconcile (body). Do not run when leaving the list.
+  useEffect(() => {
+    const wasVisible = wasBoardListVisibleRef.current;
+    wasBoardListVisibleRef.current = boardListVisible;
+    if (boardListVisible && !wasVisible) {
+      void refresh('reconcile');
+    }
+  }, [boardListVisible, refresh]);
+
   const refreshBoardAfterStaffMutation = useCallback(
     async (tableIds: readonly string[]) => {
       if (tableIds.length === 0) return;
       releaseWaiterBoardTableBridge(tableIds);
-      await refresh();
+      await refresh('reconcile');
     },
     [refresh],
   );
@@ -101,7 +118,7 @@ function WaiterBoardProviderInner({
     (input: WaiterSessionRelocationBoardInput) => {
       store.applySessionRelocationPatch(input);
       releaseWaiterBoardTableBridge([input.sourceTableId]);
-      void refresh();
+      void refresh('reconcile');
     },
     [refresh, store],
   );

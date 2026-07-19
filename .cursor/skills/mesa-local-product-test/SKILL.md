@@ -11,9 +11,12 @@ description: >-
 ## Environment
 
 - **Host:** `http://localhost:3000` (`npm run cloud` or `npm run dev`)
-- **Account:** `qiantai1` / password:`123456`
+- **Staff (default UAT):** `qiantai1` / `123456` — frontdesk on 白云 `restaurant-mohnrib5`
+- **Owner (setup / buffet / menu):** `baiyun@gmail.com` / `123456` — owner of 白云 `restaurant-mohnrib5`
 - **Forbidden account:** `qiantai@mesa.in` — do not use for local product testing
 - **Allowed:** authenticated product APIs and UI for the test restaurant
+
+Use **owner** when the staff restaurant lacks buffet/menu seed needed for open-table / order flows; then switch back to **qiantai1** for floor UAT when possible.
 
 ## Method
 
@@ -27,9 +30,20 @@ Skip API-first only for pure presentation; note why. If localhost/login fails, m
 ## Data policy
 
 - May write via normal product APIs; must cleanup after.
-- **Forbidden:** migrations, raw SQL, `supabase db reset`, hard-delete sessions/tables, ops suspend, unrelated restaurants.
+- **Forbidden without explicit in-thread permission:** `supabase db reset` or any hard DB wipe / destroy local database. Also: migrations as a “fix fix”, raw SQL against live/cloud, ops suspend, unrelated restaurants, hard-delete of non-throwaway schema objects.
 
-Auto-review approval cards may appear — proceed when user authorized testing in chat.
+## Standing authorization (no per-step confirm)
+
+For **localhost** product testing of the shared UAT restaurant (`restaurant-mohnrib5`), the user grants **standing blanket authorization**. Do **not** pause the chat to ask confirmation for each step.
+
+**Pre-authorized** (use freely; cleanup throwaway writes afterward):
+
+- Typing / filling documented UAT passwords (`qiantai1`, `baiyun@gmail.com`) into localhost login UI or `/api/auth/login`
+- Browser DevTools: navigate, snapshot, click, fill, evaluate_script, dual tabs, network inspection
+- Product API mutations on the test restaurant: open/close table, buffet/menu seed create/update/delete, orders, checkout, board refresh/ETag checks
+- Immediate `requestSmartModeApproval: true` retry when Auto-review blocks a step that is in this list (use the exact block reason; do not ask the user first)
+
+**Still ask first:** anything that wipes the database (`supabase db reset` / equivalent hard wipe).
 
 Lint/build/unit remain in `AGENTS.md` / `push-verification.mdc`.
 

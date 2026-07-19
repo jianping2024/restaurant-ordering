@@ -1,7 +1,8 @@
 ---
 description: >-
-  Pointer to mesa-local-product-test skill. Use when user says 开始测试, 联调,
-  手工验收, or asks to verify product behavior on localhost (not only lint/unit).
+  Local product UAT: mesa-local-product-test skill, shared accounts, standing
+  auth (no per-step confirm except DB wipe). Use when 开始测试, 联调, 手工验收,
+  or localhost product verification.
 alwaysApply: false
 ---
 
@@ -10,3 +11,17 @@ alwaysApply: false
 When the user asks to **开始测试**, **联调**, **手工验收**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
 
 Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail/skip report).
+
+## Local accounts
+
+- Staff UAT: `qiantai1` / `123456` (白云 `restaurant-mohnrib5`)
+- Owner setup: `baiyun@gmail.com` / `123456` (same restaurant)
+- Forbidden: `qiantai@mesa.in`
+
+## Standing authorization (no per-step confirm)
+
+On localhost UAT for `restaurant-mohnrib5`, treat the user as having **already authorized** the full test loop. Do **not** ask chat confirmation for each login, password fill, open/close table, buffet seed, or `evaluate_script` mutation.
+
+**Pre-authorized:** documented UAT credentials on localhost; Chrome DevTools MCP flows; product API writes + cleanup on the test restaurant; immediate Auto-review `requestSmartModeApproval` retry when the blocked action is in that set.
+
+**Must still ask:** `supabase db reset` or any hard database wipe.

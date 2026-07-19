@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
-import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
+import { fetchWaiterBoardClient, type StaffBoardFetchMode } from '@/lib/staff-board-client';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
   boardSupportsBuffetOpenTable,
@@ -145,6 +145,8 @@ export function useWaiterOrders(
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
+  const etagRef = useRef<string | null>(null);
+  const pendingModeRef = useRef<StaffBoardFetchMode | null>(null);
 
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
@@ -176,27 +178,54 @@ export function useWaiterOrders(
     [],
   );
 
-  const refresh = useCallback(async () => {
-    if (!enabled) return null;
-    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+  const refresh = useCallback(
+    async (mode: StaffBoardFetchMode = 'reconcile') => {
+      if (!enabled) return null;
 
-    const seq = ++reloadSeqRef.current;
-    const running = (async () => {
-      try {
-        const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(
-          await fetchWaiterBoardClient(restaurant.slug),
-        );
-        if (seq !== reloadSeqRef.current) return null;
-        clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
-        applyWaiterBoardData(board, boardSetters);
-        return board;
-      } finally {
-        refreshInFlightRef.current = null;
-      }
-    })();
-    refreshInFlightRef.current = running;
-    return running;
-  }, [boardSetters, enabled, restaurant.slug]);
+      const prefer = (a: StaffBoardFetchMode, b: StaffBoardFetchMode): StaffBoardFetchMode =>
+        a === 'reconcile' || b === 'reconcile' ? 'reconcile' : 'signal';
+
+      pendingModeRef.current = pendingModeRef.current
+        ? prefer(pendingModeRef.current, mode)
+        : mode;
+
+      if (refreshInFlightRef.current) return refreshInFlightRef.current;
+
+      const running = (async () => {
+        let lastBoard: WaiterBoardData | null = null;
+        try {
+          while (pendingModeRef.current) {
+            const modeNow = pendingModeRef.current;
+            pendingModeRef.current = null;
+            const seq = ++reloadSeqRef.current;
+            const result = await fetchWaiterBoardClient(restaurant.slug, {
+              mode: modeNow,
+              etag: etagRef.current,
+            });
+            if (seq !== reloadSeqRef.current) continue;
+
+            if (result.status === 'not_modified') {
+              if (result.etag) etagRef.current = result.etag;
+              continue;
+            }
+
+            etagRef.current = result.etag;
+            const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(result.board);
+            clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+            applyWaiterBoardData(board, boardSetters);
+            lastBoard = board;
+          }
+          return lastBoard;
+        } finally {
+          refreshInFlightRef.current = null;
+        }
+      })();
+
+      refreshInFlightRef.current = running;
+      return running;
+    },
+    [boardSetters, enabled, restaurant.slug],
+  );
 
   const applyPartyState = useCallback(
     (next: { parties: TablePartyGroup[]; partyMembers: TablePartyGroupMember[] }) => {
@@ -251,17 +280,22 @@ export function useWaiterOrders(
     [boardSetters, currentBoardSnapshot],
   );
 
-  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refresh);
+  const refreshReconcile = useCallback(() => {
+    void refresh('reconcile');
+  }, [refresh]);
+
+  const refreshSignal = useCallback(() => {
+    void refresh('signal');
+  }, [refresh]);
+
+  useRestaurantStaffEntryReconcile(enabled && !skipEntryReconcile, refreshReconcile);
 
   useRestaurantRealtimeRefresh(
     supabase,
     restaurant.id,
     `waiter-${restaurant.id}`,
     enabled,
-    () => {
-      void refresh();
-    },
-    1200,
+    refreshSignal,
   );
 
   return {

@@ -120,6 +120,24 @@ describe('formToCloudConfig', () => {
     assert.equal(config.poll?.warm_after_activity_sec, L.warmAfterActivitySec.min);
     assert.equal(config.poll?.idle_interval_sec, L.idleIntervalSec.min);
   });
+
+  it('allows overnight dinner when end is before start on the clock', () => {
+    const form = cloudConfigToForm({});
+    form.dinnerStart = '19:30';
+    form.dinnerEnd = '02:00';
+    const config = formToCloudConfig(form);
+    assert.deepEqual(config.schedule?.weekday?.windows?.[1], {
+      start: '19:30',
+      end: '02:00',
+    });
+  });
+
+  it('rejects equal start and end', () => {
+    const form = cloudConfigToForm({});
+    form.dinnerStart = '19:30';
+    form.dinnerEnd = '19:30';
+    assert.throws(() => formToCloudConfig(form), /end_before_start/);
+  });
 });
 
 describe('parseDefaultReceiptStationId', () => {
@@ -202,20 +220,32 @@ describe('applyPrintAgentCloudConfigPatch', () => {
 });
 
 describe('parsePrintAgentSchedulePollSlice', () => {
-  it('accepts schedule/poll body and rejects invalid times', () => {
+  it('accepts schedule/poll body, overnight windows, and rejects equal clocks', () => {
     const ok = parsePrintAgentSchedulePollSlice(formToCloudConfig(cloudConfigToForm({})));
     assert.equal(ok.ok, true);
     if (ok.ok) {
       assert.ok(ok.slice.schedule);
       assert.ok(ok.slice.poll);
     }
+    const overnight = parsePrintAgentSchedulePollSlice({
+      schedule: {
+        timezone: 'Europe/Lisbon',
+        weekday: {
+          windows: [
+            { start: '12:00', end: '15:00' },
+            { start: '19:30', end: '02:00' },
+          ],
+        },
+      },
+    });
+    assert.equal(overnight.ok, true);
     const bad = parsePrintAgentSchedulePollSlice({
       schedule: {
         timezone: 'Europe/Lisbon',
         weekday: {
           windows: [
-            { start: '15:00', end: '12:00' },
-            { start: '19:30', end: '23:00' },
+            { start: '12:00', end: '15:00' },
+            { start: '19:30', end: '19:30' },
           ],
         },
       },

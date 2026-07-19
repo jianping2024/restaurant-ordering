@@ -153,7 +153,8 @@ export function formToCloudConfig(form: PrintAgentSettingsForm): PrintAgentSched
   if (!lunchStart || !lunchEnd || !dinnerStart || !dinnerEnd) {
     throw new Error('invalid_time');
   }
-  if (lunchEnd <= lunchStart || dinnerEnd <= dinnerStart) {
+  // end < start means overnight (agent half-open across midnight); only equal clocks are invalid.
+  if (lunchEnd === lunchStart || dinnerEnd === dinnerStart) {
     throw new Error('end_before_start');
   }
   const tz = form.timezone.trim() || 'Europe/Lisbon';

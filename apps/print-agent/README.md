@@ -95,7 +95,7 @@ When `schedule` is set, the agent **does not call** `pending-jobs` outside the c
 | `saturday`, `sunday` | Optional overrides for those days |
 | `monday` … `friday` | Optional per-day override (wins over `weekday`) |
 
-Each window is half-open `[start, end)` using `"HH:MM"` or `"HH:MM:SS"`. Omit `schedule` entirely to poll 24/7 while the process runs.
+Each window is half-open `[start, end)` using `"HH:MM"` or `"HH:MM:SS"`. If `end` is earlier than `start` on the clock (e.g. `"19:30"`–`"02:00"`), the window crosses midnight. Omit `schedule` entirely to poll 24/7 while the process runs.
 
 ### Poll (optional, dynamic intervals)
 

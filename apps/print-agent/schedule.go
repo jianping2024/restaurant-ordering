@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-// timeWindow is a half-open local-time interval [start, end) on the same calendar day.
+// timeWindow is a half-open local-time interval [start, end).
+// When end is after start on the clock, the window is same-calendar-day.
+// When end is before start (e.g. 19:30–02:00), the window crosses midnight:
+// open from start through end-of-day, then from midnight until end.
 type timeWindow struct {
 	Start string `json:"start"` // "HH:MM" or "HH:MM:SS"
 	End   string `json:"end"`
@@ -144,10 +147,15 @@ func windowContains(w timeWindow, now time.Time) (bool, error) {
 	}
 	start := time.Date(now.Year(), now.Month(), now.Day(), sh, sm, ss, 0, now.Location())
 	end := time.Date(now.Year(), now.Month(), now.Day(), eh, em, es, 0, now.Location())
-	if !end.After(start) {
-		return false, fmt.Errorf("window end must be after start (%s–%s)", w.Start, w.End)
+	if start.Equal(end) {
+		return false, fmt.Errorf("window start and end must differ (%s–%s)", w.Start, w.End)
 	}
-	return !now.Before(start) && now.Before(end), nil
+	if end.After(start) {
+		// Same calendar day: [start, end)
+		return !now.Before(start) && now.Before(end), nil
+	}
+	// Crosses midnight: [start, next-midnight) ∪ [midnight, end)
+	return !now.Before(start) || now.Before(end), nil
 }
 
 // nextOpen returns duration until the next window opens; zero if already open or no future window within 7 days.

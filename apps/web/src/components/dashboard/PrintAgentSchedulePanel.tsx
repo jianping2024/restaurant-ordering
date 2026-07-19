@@ -178,6 +178,10 @@ export function PrintAgentSchedulePanel({
         </fieldset>
       </div>
 
+      <p className="text-[12px] text-brand-text-muted leading-relaxed max-w-2xl -mt-2">
+        {t.scheduleOvernightHint}
+      </p>
+
       <details className="text-[13px]">
         <summary className="cursor-pointer text-brand-text-muted hover:text-brand-text">
           {t.schedulePollAdvanced}

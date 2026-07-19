@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.48
+
+**营业时间支持跨午夜**
+
+- 窗口仍为 `{start,end}`：若结束钟点早于开始（如 `19:30–02:00`），按跨天半开区间判定。
+- 与 Dashboard 保存规则对齐；开始与结束相同仍非法。
+
 ## 0.3.47
 
 **营业时间闸门与托盘状态对齐**

@@ -3,6 +3,7 @@ import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { buildStaffEmail } from '@/lib/staff-account';
 import {
   loadOwnerRestaurantWithSlug,
+  mapHumanStaffRows,
   mapStaffRow,
   staffMetadataPayload,
   validateStaffCreateBody,
@@ -30,7 +31,7 @@ export async function GET() {
     return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ staff: (data || []).map(mapStaffRow) });
+  return NextResponse.json({ staff: mapHumanStaffRows((data || []) as Record<string, unknown>[]) });
 }
 
 export async function POST(req: Request) {

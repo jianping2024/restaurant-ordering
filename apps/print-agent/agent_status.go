@@ -21,6 +21,7 @@ type agentStatus struct {
 	mu      sync.RWMutex
 	summary string
 	detail  string
+	mode    NotificationMode // actual running notifier mode
 }
 
 func (s *agentStatus) set(summary, detail string) {
@@ -28,6 +29,24 @@ func (s *agentStatus) set(summary, detail string) {
 	s.summary = strings.TrimSpace(summary)
 	s.detail = strings.TrimSpace(detail)
 	s.mu.Unlock()
+}
+
+func (s *agentStatus) setMode(mode NotificationMode) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.mode = mode
+	s.mu.Unlock()
+}
+
+func (s *agentStatus) notifyMode() NotificationMode {
+	if s == nil {
+		return ""
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mode
 }
 
 func (s *agentStatus) level() trayLevel {
@@ -143,6 +162,9 @@ func (s *agentStatus) tooltip(version, locale string) string {
 	sum := s.userSummary(locale)
 	det := s.userDetail(locale)
 	tip := fmt.Sprintf("%s %s\n%s", uiT(locale, "tray_tooltip_prefix"), version, sum)
+	if mode := s.notifyMode(); mode != "" {
+		tip += "\n" + notifyModeLabel(locale, mode)
+	}
 	if det != "" {
 		tip += "\n" + det
 	}
@@ -151,6 +173,9 @@ func (s *agentStatus) tooltip(version, locale string) string {
 
 func (s *agentStatus) menuStatusLine(locale string) string {
 	line := uiT(locale, "menu_status_prefix") + s.userSummary(locale)
+	if mode := s.notifyMode(); mode != "" {
+		line += " — " + notifyModeLabel(locale, mode)
+	}
 	if det := s.userDetail(locale); det != "" && len(det) < 80 {
 		line += " — " + det
 	}
@@ -160,4 +185,15 @@ func (s *agentStatus) menuStatusLine(locale string) string {
 		}
 	}
 	return line
+}
+
+func notifyModeLabel(locale string, mode NotificationMode) string {
+	switch mode {
+	case NotificationModeRealtime:
+		return uiT(locale, "mode_realtime")
+	case NotificationModePolling:
+		return uiT(locale, "mode_polling")
+	default:
+		return string(mode)
+	}
 }

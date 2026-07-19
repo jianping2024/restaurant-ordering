@@ -10,7 +10,15 @@ import {
 import { isUuid } from '@/lib/print-agent-auth';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { buildClaimDeviceRow, classifyClaimDevice } from '@/lib/print-agent-claim-device';
-import { resolvePrintAgentCredentialTtlSec, PRINT_AGENT_NAME } from '@mesa/shared';
+import {
+  mintPrintAgentSession,
+  printAgentAnonKey,
+} from '@/lib/print-agent-staff-session';
+import {
+  ensurePrintAgentStaff,
+  resolvePrintAgentCredentialTtlSec,
+  PRINT_AGENT_NAME,
+} from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
@@ -104,11 +112,12 @@ export async function POST(req: Request) {
 
   const { data: restRow } = await admin
     .from('restaurants')
-    .select('print_locale, print_agent_config')
+    .select('print_locale, print_agent_config, slug')
     .eq('id', p.restaurant_id)
     .single();
 
   const locale = (restRow?.print_locale as 'zh' | 'en' | 'pt' | undefined) ?? 'pt';
+  const restaurantSlug = typeof restRow?.slug === 'string' ? restRow.slug : '';
   const credentialTtlSec = resolvePrintAgentCredentialTtlSec(restRow?.print_agent_config);
   const validUntil = new Date(Date.now() + credentialTtlSec * 1000).toISOString();
 
@@ -156,6 +165,28 @@ export async function POST(req: Request) {
     credentialTtlSec,
   );
 
+  let access_token: string | undefined;
+  let refresh_token: string | undefined;
+  let anon_key: string | undefined;
+
+  if (restaurantSlug) {
+    const ensured = await ensurePrintAgentStaff(admin, {
+      restaurantId: p.restaurant_id,
+      restaurantSlug,
+    });
+    if (ensured.ok) {
+      const session = await mintPrintAgentSession(admin, ensured.email);
+      const anon = printAgentAnonKey();
+      if (session && anon) {
+        access_token = session.access_token;
+        refresh_token = session.refresh_token;
+        anon_key = anon;
+      }
+    } else {
+      console.error('print_agent claim: ensure staff failed', ensured.error, ensured.detail);
+    }
+  }
+
   claimRecordSuccess(ip);
 
   return NextResponse.json({
@@ -163,5 +194,8 @@ export async function POST(req: Request) {
     supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     valid_until: validUntil,
     restaurant_id: p.restaurant_id,
+    ...(access_token && refresh_token && anon_key
+      ? { access_token, refresh_token, anon_key }
+      : {}),
   });
 }

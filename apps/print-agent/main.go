@@ -54,6 +54,9 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 		ValidUntil   string `json:"valid_until"`
 		SupabaseURL  string `json:"supabase_url"`
 		RestaurantID string `json:"restaurant_id"`
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+		AnonKey      string `json:"anon_key"`
 	}
 	if err := json.Unmarshal(raw, &out); err != nil {
 		return nil, err
@@ -67,6 +70,10 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 		DeviceID:     deviceID,
 		RestaurantID: out.RestaurantID,
 		ValidUntil:   out.ValidUntil,
+		SupabaseURL:  out.SupabaseURL,
+		AccessToken:  out.AccessToken,
+		RefreshToken: out.RefreshToken,
+		AnonKey:      out.AnonKey,
 	}, nil
 }
 

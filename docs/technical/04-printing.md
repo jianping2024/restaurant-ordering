@@ -95,9 +95,9 @@ Web 入队（service role）
 | 步骤 | API / 行为 |
 |------|------------|
 | 1. 配对 | Dashboard `POST /api/print-agent/pairing` → 六位码 |
-| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + JWT；**换店**时同一 `device_id` **转移**到新 `restaurant_id`（旧 JWT 失效），Agent 清空本地档口映射 |
-| 3. 轮询 | `GET /api/print-agent/pending-jobs`（scoped `restaurant_id`） |
-| 4. 执行 | 本地 `preparePrint` → Write → `PATCH jobs/[id]` |
+| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + **agentjwt**；并 ensure 系统 `print_agent` 员工、尽量签发 Auth session（`access_token` / `refresh_token` / `anon_key`）供 Realtime；**换店**时同一 `device_id` **转移**到新 `restaurant_id`（旧 JWT 失效），Agent 清空本地档口映射 |
+| 3. 发现任务 | 默认 **Realtime**（员工 session + anon_key）；失败或无 session → **polling** `GET /api/print-agent/pending-jobs` |
+| 4. 执行 | 本地 `preparePrint` → Write → `PATCH jobs/[id]`（始终 agentjwt） |
 | 5. 心跳 | `POST /api/print-agent/heartbeat`（版本、映射档口数、最近打印） |
 | 6. 吊销 | `revoked_at` 写入 → JWT/RLS 应拒绝（**P0 端到端验收**） |
 | 7. 到期 | `valid_until`（默认 30 天 TTL，可配置） |

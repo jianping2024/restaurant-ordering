@@ -28,17 +28,17 @@ func NewJobProcessor(queue *JobQueue, session *agentSession, status *agentStatus
 // Start begins processing jobs from the queue (blocks until context canceled).
 func (p *JobProcessor) Start(ctx context.Context) error {
 	log.Println("Job processor: starting")
-	
+
 	var throttle pollLogThrottle
 	const waitLogEvery = 60 * time.Second
-	
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
-		
+
 		// Reload config periodically
 		reloadAgentSessionConfig(p.session)
 		p.config = p.session.cfg
@@ -47,7 +47,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		
+
 		// Try to get a job from queue
 		job, ok := p.queue.Pop()
 		if !ok {
@@ -56,10 +56,26 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		
+
+		if p.session != nil && p.session.pc != nil {
+			open, err := p.session.pc.scheduleOpen()
+			if err != nil {
+				p.setStatus("Schedule error", err.Error())
+				p.queue.Push(job)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			if !open {
+				p.setStatus("Outside business hours", "Not polling until next window")
+				p.queue.Push(job)
+				time.Sleep(5 * time.Second)
+				continue
+			}
+		}
+
 		// Process the job
 		p.setStatus("Processing", strconv.Itoa(p.queue.Len()+1)+" job(s) in queue")
-		
+
 		// Check expiration
 		if jobPrintExpired(job) {
 			if patchJobStatus(ctx, p.config, job.ID, map[string]any{
@@ -70,7 +86,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
+
 		// Resolve printer target
 		target, err := p.config.printerTargetForJob(job)
 		if err != nil {
@@ -85,7 +101,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			
+
 			// Permanent routing error
 			if patchJobStatus(ctx, p.config, job.ID, map[string]any{
 				"status":        "failed",
@@ -95,7 +111,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
+
 		// Check printer readiness
 		if prepErr := preparePrint(target); prepErr != nil {
 			if errors.Is(prepErr, errPrinterNotReady) {
@@ -108,7 +124,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 				time.Sleep(5 * time.Second)
 				continue
 			}
-			
+
 			// Permanent prepare error
 			if patchJobStatus(ctx, p.config, job.ID, map[string]any{
 				"status":        "failed",
@@ -118,16 +134,16 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			}
 			continue
 		}
-		
+
 		// Claim job (PATCH to processing)
 		agentLog(p.config, "log_printing_job", job.ID, jobRouteStationID(job), target.Display, job.Type)
 		p.setStatus("Printing", summarizeJobPayload(job))
-		
+
 		if !patchJobStatus(ctx, p.config, job.ID, map[string]any{"status": "processing"}, "processing") {
 			// Failed to claim, another agent may have taken it or state changed
 			continue
 		}
-		
+
 		// Print the job
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
@@ -151,7 +167,7 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 				p.session.hb.recordPrint(true)
 			}
 		}
-		
+
 		// Mark activity
 		if p.session.pc != nil {
 			p.session.pc.markActivity()

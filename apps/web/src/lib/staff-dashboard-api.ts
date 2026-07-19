@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { isPrintAgentStaffRole } from '@mesa/shared';
 import {
   staffPasswordValid,
   validateLoginName,
@@ -45,6 +46,11 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
     updated_at: row.updated_at as string,
     disabled_at: (row.disabled_at as string | null) ?? null,
   };
+}
+
+/** Human staff only — system print_agent never appears in owner staff lists. */
+export function mapHumanStaffRows(rows: Record<string, unknown>[]): RestaurantStaffAccount[] {
+  return rows.filter((row) => !isPrintAgentStaffRole(String(row.role ?? ''))).map(mapStaffRow);
 }
 
 export function staffMetadataPayload(

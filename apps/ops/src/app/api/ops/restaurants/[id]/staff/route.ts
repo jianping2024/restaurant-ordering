@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isPrintAgentStaffRole } from '@mesa/shared';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -36,14 +37,16 @@ export async function GET(_req: Request, context: RouteContext) {
   }
 
   return NextResponse.json({
-    items: (rows || []).map((row) => ({
-      id: row.id,
-      role: row.role,
-      displayName: row.display_name,
-      loginName: row.login_name,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      disabledAt: row.disabled_at,
-    })),
+    items: (rows || [])
+      .filter((row) => !isPrintAgentStaffRole(String(row.role ?? '')))
+      .map((row) => ({
+        id: row.id,
+        role: row.role,
+        displayName: row.display_name,
+        loginName: row.login_name,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        disabledAt: row.disabled_at,
+      })),
   });
 }

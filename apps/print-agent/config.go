@@ -21,6 +21,10 @@ type config struct {
 	Poll            *pollConfig       `json:"poll,omitempty"`
 	// SupabaseURL: optional explicit Supabase Realtime URL (e.g. https://xxx.supabase.co); if omitted, inferred from api_base.
 	SupabaseURL string `json:"supabase_url,omitempty"`
+	// AnonKey + AccessToken + RefreshToken: Supabase Auth session for Realtime (not agentjwt).
+	AnonKey      string `json:"anon_key,omitempty"`
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 	// NotificationMode: "realtime" (default) or "polling" (fallback).
 	NotificationMode string `json:"notification_mode,omitempty"`
 	// UILocale: zh | en | pt — tray, wizards, and local test print only (not order tickets).
@@ -29,6 +33,16 @@ type config struct {
 	ValidUntil string `json:"valid_until,omitempty"`
 	// TextEncoding: auto | utf8 | gbk | latin — Chinese/non-Latin bytes on thermal paper (UI/test + zh jobs).
 	TextEncoding string `json:"text_encoding,omitempty"`
+}
+
+// hasRealtimeSession is true when claim returned Supabase Auth credentials for Realtime.
+func (c *config) hasRealtimeSession() bool {
+	if c == nil {
+		return false
+	}
+	return strings.TrimSpace(c.AnonKey) != "" &&
+		strings.TrimSpace(c.AccessToken) != "" &&
+		strings.TrimSpace(c.RefreshToken) != ""
 }
 
 // resolveNotificationMode returns the configured mode or default to realtime.

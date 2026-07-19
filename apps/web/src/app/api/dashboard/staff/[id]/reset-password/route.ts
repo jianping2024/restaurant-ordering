@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { kickStaffUserSessions } from '@mesa/shared';
+import { isPrintAgentStaffRole, kickStaffUserSessions } from '@mesa/shared';
 import {
   loadOwnerRestaurantWithSlug,
   mapStaffRow,
@@ -37,6 +37,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (loadError || !account) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  }
+  if (isPrintAgentStaffRole(String(account.role ?? ''))) {
+    return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
   }
 
   const role = account.role as StaffRole;

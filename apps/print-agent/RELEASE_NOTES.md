@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.44
+
+**Realtime 使用店内 print_agent 员工 session**
+
+- 配对 claim 若返回 `access_token` / `refresh_token` / `anon_key`，默认用 Realtime 听本店 `print_jobs`；失败自动回退 polling（兼容仅有 `agentjwt` 的旧配置）。
+- 控制台与托盘显示当前模式（Realtime / Polling）；打烊时段与 polling 一样不入队、不出票。
+- 需配合 Web：系统 `print_agent` 员工、claim 签发 session、print_jobs RLS。单独升级 Agent 而无 Web/migration 时仍走 polling。
+
 ## 0.3.43
 
 **出品联备注折行**

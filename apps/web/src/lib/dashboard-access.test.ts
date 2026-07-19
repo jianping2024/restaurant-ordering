@@ -69,6 +69,7 @@ describe('isStaffRole', () => {
     assert.equal(isStaffRole('cashier'), true);
     assert.equal(isStaffRole('frontdesk'), true);
     assert.equal(isStaffRole('owner'), false);
+    assert.equal(isStaffRole('print_agent'), false);
     assert.equal(isStaffRole(''), false);
   });
 });

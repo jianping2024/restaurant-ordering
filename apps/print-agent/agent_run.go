@@ -14,36 +14,38 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 		log.Fatal("config missing")
 		return
 	}
-	
+
 	mode := cfg.resolveNotificationMode()
+	if mode == NotificationModeRealtime && !cfg.hasRealtimeSession() {
+		log.Println("Realtime requested but session credentials missing; using polling")
+		mode = NotificationModePolling
+	}
+	setNotifyMode(status, mode)
 	log.Printf("Starting agent in %s mode", mode)
-	
-	// Create shared job queue
+
 	queue := NewJobQueue()
-	
-	// Start job processor
+
 	processor := NewJobProcessor(queue, sess, status)
 	go func() {
 		if err := processor.Start(ctx); err != nil && err != context.Canceled {
 			log.Printf("Processor error: %v", err)
 		}
 	}()
-	
-	// Start heartbeat goroutine
+
 	go func() {
 		if err := runHeartbeatLoop(ctx, sess); err != nil && err != context.Canceled {
 			log.Printf("Heartbeat error: %v", err)
 		}
 	}()
-	
-	// Start notifier based on mode with automatic fallback
+
 	var notifier Notifier
-	
+
 	if mode == NotificationModeRealtime {
-		rt, err := NewRealtimeNotifier(cfg, queue)
+		rt, err := NewRealtimeNotifier(cfg, queue, sess.pc, sess.cfgPath)
 		if err != nil {
 			log.Printf("Realtime mode unavailable: %v, falling back to polling", err)
 			mode = NotificationModePolling
+			setNotifyMode(status, mode)
 			notifier = NewPollingNotifier(cfg, queue, sess.pc)
 		} else {
 			notifier = rt
@@ -51,15 +53,14 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	} else {
 		notifier = NewPollingNotifier(cfg, queue, sess.pc)
 	}
-	
-	// Run notifier (blocks)
+
 	if err := notifier.Start(ctx); err != nil && err != context.Canceled {
 		log.Printf("Notifier error: %v", err)
-		
-		// If Realtime failed, automatically fallback to polling
+
 		if mode == NotificationModeRealtime {
 			log.Println("Realtime failed, falling back to polling mode")
 			mode = NotificationModePolling
+			setNotifyMode(status, mode)
 			notifier = NewPollingNotifier(cfg, queue, sess.pc)
 			if err := notifier.Start(ctx); err != nil && err != context.Canceled {
 				log.Printf("Polling also failed: %v", err)
@@ -68,11 +69,18 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	}
 }
 
+func setNotifyMode(status *agentStatus, mode NotificationMode) {
+	if status != nil {
+		status.setMode(mode)
+	}
+	log.Printf("Print notify mode: %s", mode)
+}
+
 // runHeartbeatLoop sends periodic heartbeats to the server.
 func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -82,14 +90,14 @@ func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
 			if cfg == nil {
 				continue
 			}
-			
+
 			open := true
 			if sess.pc != nil {
 				if o, err := sess.pc.scheduleOpen(); err == nil {
 					open = o
 				}
 			}
-			
+
 			if err := postHeartbeat(ctx, cfg, open, &sess.hb); err != nil {
 				agentLogTech(cfg, "log_heartbeat_error", err.Error())
 			}

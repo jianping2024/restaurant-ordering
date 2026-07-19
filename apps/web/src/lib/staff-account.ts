@@ -1,3 +1,5 @@
+import { STAFF_EMAIL_DOMAIN } from '@mesa/shared';
+
 export type StaffRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk';
 
 export const STAFF_ROLES: readonly StaffRole[] = ['kitchen', 'waiter', 'cashier', 'frontdesk'];
@@ -9,7 +11,7 @@ export function isStaffRole(role: string): role is StaffRole {
   return (STAFF_ROLES as readonly string[]).includes(role);
 }
 
-export const STAFF_EMAIL_DOMAIN = 'mesa.in';
+export { STAFF_EMAIL_DOMAIN };
 
 const RESERVED_LOGIN_NAMES = new Set([
   'admin',

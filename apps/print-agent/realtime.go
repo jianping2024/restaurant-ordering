@@ -95,11 +95,25 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 			log.Printf("Realtime: post-connect fetch failed: %v", err)
 		}
 
-		r.eventLoop(ctx)
-
-		log.Println("Realtime: connection lost, reconnecting...")
+		switch r.eventLoop(ctx) {
+		case realtimeLoopRenew:
+			log.Println("Realtime: access token near expiry, reconnecting to renew session")
+		case realtimeLoopCanceled:
+			return ctx.Err()
+		default:
+			log.Println("Realtime: connection lost, reconnecting...")
+		}
 	}
 }
+
+// realtimeLoopExit is why eventLoop returned (drives Start's reconnect log).
+type realtimeLoopExit int
+
+const (
+	realtimeLoopLost realtimeLoopExit = iota
+	realtimeLoopRenew
+	realtimeLoopCanceled
+)
 
 func (r *RealtimeNotifier) connect(ctx context.Context) error {
 	if err := r.ensureFreshAccessToken(ctx); err != nil {
@@ -134,8 +148,7 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 }
 
 func (r *RealtimeNotifier) ensureFreshAccessToken(ctx context.Context) error {
-	const skew = 60 * time.Second
-	if accessTokenUnexpired(r.config.AccessToken, skew) {
+	if accessTokenUnexpired(r.config.AccessToken, accessTokenRefreshSkew) {
 		return nil
 	}
 	if err := refreshSupabaseSession(ctx, r.config); err != nil {
@@ -202,9 +215,12 @@ func (r *RealtimeNotifier) subscribe() error {
 	return conn.WriteJSON(msg)
 }
 
-func (r *RealtimeNotifier) eventLoop(ctx context.Context) {
+func (r *RealtimeNotifier) eventLoop(ctx context.Context) realtimeLoopExit {
 	heartbeatTicker := time.NewTicker(30 * time.Second)
 	defer heartbeatTicker.Stop()
+
+	renewTimer := time.NewTimer(timeUntilAccessTokenRefresh(r.config.AccessToken, accessTokenRefreshSkew))
+	defer renewTimer.Stop()
 
 	messages := make(chan []byte, 10)
 	errors := make(chan error, 1)
@@ -224,7 +240,13 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			r.disconnect()
-			return
+			return realtimeLoopCanceled
+
+		case <-renewTimer.C:
+			// Same path as tray restart's Realtime segment: drop WS so Start
+			// re-runs ensureFreshAccessToken → connect → subscribe → compensation.
+			r.disconnect()
+			return realtimeLoopRenew
 
 		case <-heartbeatTicker.C:
 			if err := r.sendHeartbeat(); err != nil {
@@ -233,7 +255,7 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) {
 					log.Printf("Realtime: heartbeat compensation fetch failed: %v", err)
 				}
 				r.disconnect()
-				return
+				return realtimeLoopLost
 			}
 
 		case msg := <-messages:
@@ -242,7 +264,7 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) {
 		case err := <-errors:
 			log.Printf("Realtime: read error: %v", err)
 			r.disconnect()
-			return
+			return realtimeLoopLost
 		}
 	}
 }

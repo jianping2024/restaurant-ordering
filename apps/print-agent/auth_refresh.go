@@ -69,26 +69,53 @@ func refreshSupabaseSession(ctx context.Context, cfg *config) error {
 	return nil
 }
 
-// accessTokenUnexpired reports whether JWT access_token exp is still after now+skew.
-// Unparseable tokens are treated as expired (caller must refresh).
-func accessTokenUnexpired(accessToken string, skew time.Duration) bool {
+// accessTokenRefreshSkew: refresh/reconnect this far before JWT exp so Realtime
+// never sits on an expired channel (Supabase default access TTL is ~1h).
+const accessTokenRefreshSkew = 2 * time.Minute
+
+// accessTokenExp returns the JWT exp claim. ok=false if unparseable.
+func accessTokenExp(accessToken string) (exp time.Time, ok bool) {
 	parts := strings.Split(accessToken, ".")
 	if len(parts) != 3 {
-		return false
+		return time.Time{}, false
 	}
 	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
 		// Some issuers pad; try standard raw with padding.
 		payload, err = base64.URLEncoding.DecodeString(parts[1])
 		if err != nil {
-			return false
+			return time.Time{}, false
 		}
 	}
 	var claims struct {
 		Exp int64 `json:"exp"`
 	}
 	if err := json.Unmarshal(payload, &claims); err != nil || claims.Exp <= 0 {
+		return time.Time{}, false
+	}
+	return time.Unix(claims.Exp, 0), true
+}
+
+// accessTokenUnexpired reports whether JWT access_token exp is still after now+skew.
+// Unparseable tokens are treated as expired (caller must refresh).
+func accessTokenUnexpired(accessToken string, skew time.Duration) bool {
+	exp, ok := accessTokenExp(accessToken)
+	if !ok {
 		return false
 	}
-	return time.Now().Add(skew).Before(time.Unix(claims.Exp, 0))
+	return time.Now().Add(skew).Before(exp)
+}
+
+// timeUntilAccessTokenRefresh is how long to wait before renewing the Realtime
+// session (disconnect → ensureFreshAccessToken → reconnect). Zero means now.
+func timeUntilAccessTokenRefresh(accessToken string, skew time.Duration) time.Duration {
+	exp, ok := accessTokenExp(accessToken)
+	if !ok {
+		return 0
+	}
+	d := time.Until(exp.Add(-skew))
+	if d < 0 {
+		return 0
+	}
+	return d
 }

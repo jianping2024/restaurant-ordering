@@ -4,6 +4,7 @@ import {
   dashboardMiddlewareRedirectPath,
   resolveDashboardActor,
 } from '@/lib/dashboard-access';
+import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -50,6 +51,44 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = redirectPath;
       return NextResponse.redirect(url);
+    }
+  }
+
+  // Logged-in users accessing login pages → redirect to their workspace
+  // Aligns with mainstream SaaS behavior (GitHub, Slack, etc.)
+  // Reuses resolvePostLoginRedirect to handle must_change_password correctly
+  if (user && (pathname === '/auth/login' || pathname.match(/^\/[^/]+\/staff\/login$/))) {
+    try {
+      const redirect = await resolvePostLoginRedirect(
+        supabase,
+        user.id,
+        user.user_metadata as Record<string, unknown>,
+      );
+
+      if (redirect.kind === 'staff_error') {
+        // Staff error → allow them to see login page (will handle via page logic)
+        return supabaseResponse;
+      }
+
+      if (redirect.kind === 'staff' && redirect.mustChangePassword) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/auth/staff/change-password';
+        return NextResponse.redirect(url);
+      }
+
+      const targetPath =
+        redirect.kind === 'owner'
+          ? '/dashboard/settings'
+          : redirect.kind === 'onboarding'
+            ? '/dashboard'
+            : redirect.path;
+
+      const url = request.nextUrl.clone();
+      url.pathname = targetPath;
+      return NextResponse.redirect(url);
+    } catch {
+      // On error, allow access to login page
+      return supabaseResponse;
     }
   }
 

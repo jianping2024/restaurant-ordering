@@ -188,6 +188,7 @@ export const MESSAGES = {
     authLogin: {
       title: '登录您的餐厅后台',
       subtitle: '高效管理您的餐厅运营',
+      subtitleOwnerHint: '餐厅管理员登录入口',
       account: '账号',
       accountPlaceholder: '邮箱或登录名',
       clearAccount: '清除账号',
@@ -1487,6 +1488,7 @@ export const MESSAGES = {
     authLogin: {
       title: 'Sign in to your restaurant dashboard',
       subtitle: 'Run your restaurant operations efficiently',
+      subtitleOwnerHint: 'Restaurant administrator sign-in',
       account: 'Account',
       accountPlaceholder: 'Email or login name',
       clearAccount: 'Clear account',
@@ -2363,6 +2365,7 @@ export const MESSAGES = {
     authLogin: {
       title: 'Entrar no painel do restaurante',
       subtitle: 'Gerir as operacoes do restaurante com eficiencia',
+      subtitleOwnerHint: 'Entrada de administrador do restaurante',
       account: 'Conta',
       accountPlaceholder: 'Email ou nome de login',
       clearAccount: 'Limpar conta',

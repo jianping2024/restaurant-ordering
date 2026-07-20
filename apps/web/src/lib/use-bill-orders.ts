@@ -21,8 +21,10 @@ export function useBillOrders(
     slug: string;
     tableId: string;
     initialPartyMemberCount?: number;
+    enabled?: boolean;
   },
 ) {
+  const enabled = params.enabled ?? true;
   const [orders, setOrders] = useState(initialOrders);
   const [partyMemberCount, setPartyMemberCount] = useState(
     () => params.initialPartyMemberCount ?? 0,
@@ -83,7 +85,7 @@ export function useBillOrders(
   }, [refreshOrders, commitOrders]);
 
   // Entry + visibility resume: same syncOrders authority (menu → bill may reuse stale RSC).
-  useRestaurantStaffEntryReconcile(true, syncOrders, params.tableId);
+  useRestaurantStaffEntryReconcile(enabled, syncOrders, params.tableId);
 
   return {
     orders,

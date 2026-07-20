@@ -121,7 +121,7 @@
 | 方法 | 路径 | 鉴权 | 职责 |
 |------|------|------|------|
 | GET | `/api/restaurants/[slug]/customer/session` | 顾客 | 活跃会话；`scope=gate` 仅桌台+瘦会话，`scope=full`（默认）含近期订单 |
-| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页数据 |
+| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页数据；`scope=live` 仅活跃会话 + 全量账单订单 + 同行组人数，`scope=full`（默认）再含分单与已收款台账 |
 
 分单提交走 `checkout/request`，无独立 `bill_splits` CRUD API。
 

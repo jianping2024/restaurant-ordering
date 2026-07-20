@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerBillContext } from '@/lib/customer-bill-context';
 import {
-  parseSessionCollectedPayments,
-  SESSION_COLLECTED_PAYMENT_SELECT,
-} from '@/lib/checkout-session-payments';
-import {
-  loadCustomerExistingSplit,
+  parseCustomerBillScope,
   loadCustomerRestaurantForApi,
-  loadCustomerSessionOrders,
-  resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
-import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 
 export const runtime = 'nodejs';
 
@@ -34,51 +28,14 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   const restaurant = loaded.restaurant;
 
   const { searchParams } = new URL(req.url);
-  const ctx = await resolveCustomerTableContext({
+  const bill = await loadCustomerBillContext({
     admin,
     restaurantId: restaurant.id,
     tableIdParam: searchParams.get('table_id'),
+    scope: parseCustomerBillScope(searchParams.get('scope')),
   });
-  if (!ctx) {
+  if (!bill) {
     return NextResponse.json({ error: 'table_not_available' }, { status: 404 });
   }
-  if (!ctx.activeSession?.id) {
-    return NextResponse.json({
-      table_id: ctx.tableId,
-      display_name: ctx.displayName,
-      active_session: null,
-      orders: [],
-      existing_split: null,
-      collected_payments: [],
-      party_member_count: 0,
-    });
-  }
-
-  const sessionId = ctx.activeSession.id;
-  const [orders, existingSplit, collectedRowsResult, partyMemberCount] = await Promise.all([
-    loadCustomerSessionOrders({
-      admin,
-      restaurantId: restaurant.id,
-      sessionId,
-      ascending: true,
-    }),
-    loadCustomerExistingSplit({ admin, sessionId }),
-    admin
-      .from('session_collected_payments')
-      .select(SESSION_COLLECTED_PAYMENT_SELECT)
-      .eq('restaurant_id', restaurant.id)
-      .eq('session_id', sessionId),
-    countPartyMembersForTable(admin, restaurant.id, ctx.tableId).catch(() => 0),
-  ]);
-  const collectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
-
-  return NextResponse.json({
-    table_id: ctx.tableId,
-    display_name: ctx.displayName,
-    active_session: ctx.activeSession,
-    orders,
-    existing_split: existingSplit,
-    collected_payments: collectedPayments,
-    party_member_count: partyMemberCount,
-  });
+  return NextResponse.json(bill);
 }

@@ -32,7 +32,7 @@ export function deriveBillView(orders: Order[]) {
 }
 
 export async function syncCustomerBill(slug: string, tableId: string) {
-  const data = await requestCustomerBillContext(slug, tableId);
+  const data = await requestCustomerBillContext(slug, tableId, 'live');
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
   const partyMemberCount =

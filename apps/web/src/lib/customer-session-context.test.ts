@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { Order } from '@/types';
 import {
   applyCustomerSessionScopeMerge,
+  parseCustomerBillScope,
   customerSessionContextFromWaiterDetail,
   parseCustomerSessionScope,
   resolveCustomerSessionBootContext,
@@ -66,6 +67,15 @@ describe('parseCustomerSessionScope', () => {
     assert.equal(parseCustomerSessionScope('full'), 'full');
     assert.equal(parseCustomerSessionScope(null), 'full');
     assert.equal(parseCustomerSessionScope('other'), 'full');
+  });
+});
+
+describe('parseCustomerBillScope', () => {
+  it('parses live and defaults to full', () => {
+    assert.equal(parseCustomerBillScope('live'), 'live');
+    assert.equal(parseCustomerBillScope('full'), 'full');
+    assert.equal(parseCustomerBillScope(null), 'full');
+    assert.equal(parseCustomerBillScope('other'), 'full');
   });
 });
 

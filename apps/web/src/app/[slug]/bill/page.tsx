@@ -1,24 +1,18 @@
 import { notFound, redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerBillContext } from '@/lib/customer-bill-context';
 import {
-  parseSessionCollectedPayments,
-  SESSION_COLLECTED_PAYMENT_SELECT,
-} from '@/lib/checkout-session-payments';
-import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
-import { BillPage } from '@/components/menu/BillPage';
-import {
-  loadCustomerExistingSplit,
   loadCustomerRestaurantGate,
-  loadCustomerSessionOrders,
   resolveCustomerTableContext,
 } from '@/lib/customer-session-context';
+import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
+import { BillPage } from '@/components/menu/BillPage';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import {
   resolveStaffAssistedFlow,
   waiterBoardHref,
 } from '@/lib/staff-routes';
-import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -69,18 +63,20 @@ export default async function BillRoute({ params, searchParams }: Props) {
     redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableContext.tableId)}`);
   }
 
-  const [orders, existingSplit, partyMemberCount] = await Promise.all([
-    loadCustomerSessionOrders({
-      admin,
-      restaurantId: restaurant.id,
-      sessionId: tableContext.activeSession.id,
-      ascending: true,
-    }),
-    loadCustomerExistingSplit({ admin, sessionId: tableContext.activeSession.id }),
-    countPartyMembersForTable(admin, restaurant.id, tableContext.tableId).catch(() => 0),
-  ]);
+  const bill = await loadCustomerBillContext({
+    admin,
+    restaurantId: restaurant.id,
+    tableContext,
+    scope: 'full',
+  });
+  if (!bill?.active_session?.id) {
+    if (staffAssisted) {
+      redirect(staffAssisted.returnHref);
+    }
+    redirect(`/${slug}/menu?table_id=${encodeURIComponent(tableContext.tableId)}`);
+  }
 
-  const menuItemIds = distinctMenuItemIdsFromOrders(orders);
+  const menuItemIds = distinctMenuItemIdsFromOrders(bill.orders);
   let itemCodeByMenuId: Record<string, string> = {};
   if (menuItemIds.length > 0) {
     const { data: menuRows } = await admin
@@ -93,22 +89,13 @@ export default async function BillRoute({ params, searchParams }: Props) {
 
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
-  let initialCollectedPayments: ReturnType<typeof parseSessionCollectedPayments> = [];
-  if (tableContext.activeSession.id) {
-    const sessionId = tableContext.activeSession.id;
-    const [{ data: feedbackSession }, collectedRowsResult] = await Promise.all([
-      admin
-        .from('feedback_sessions')
-        .select('completed_at, skipped_at')
-        .eq('session_id', sessionId)
-        .maybeSingle(),
-      admin
-        .from('session_collected_payments')
-        .select(SESSION_COLLECTED_PAYMENT_SELECT)
-        .eq('restaurant_id', restaurant.id)
-        .eq('session_id', sessionId),
-    ]);
-    initialCollectedPayments = parseSessionCollectedPayments(collectedRowsResult.data);
+  if (bill.active_session.id) {
+    const sessionId = bill.active_session.id;
+    const { data: feedbackSession } = await admin
+      .from('feedback_sessions')
+      .select('completed_at, skipped_at')
+      .eq('session_id', sessionId)
+      .maybeSingle();
     initialFeedbackSubmitted = !!feedbackSession?.completed_at;
     initialFeedbackSkipped = !!feedbackSession?.skipped_at;
   }
@@ -116,18 +103,18 @@ export default async function BillRoute({ params, searchParams }: Props) {
   return (
     <BillPage
       restaurant={restaurant}
-      tableId={tableContext.tableId}
-      displayName={tableContext.displayName}
-      orders={orders}
-      sessionId={tableContext.activeSession.id}
-      sessionStatus={tableContext.activeSession.status}
-      existingSplit={existingSplit}
-      initialCollectedPayments={initialCollectedPayments}
+      tableId={bill.table_id}
+      displayName={bill.display_name}
+      orders={bill.orders}
+      sessionId={bill.active_session.id}
+      sessionStatus={bill.active_session.status}
+      existingSplit={bill.existing_split}
+      initialCollectedPayments={bill.collected_payments}
       staffAssisted={staffAssisted}
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
       itemCodeByMenuId={itemCodeByMenuId}
-      initialPartyMemberCount={partyMemberCount}
+      initialPartyMemberCount={bill.party_member_count}
     />
   );
 }

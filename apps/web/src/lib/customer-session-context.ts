@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { unstable_noStore as noStore } from 'next/cache';
 import { isRestaurantSuspended } from '@mesa/shared';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
@@ -37,6 +38,19 @@ export type CustomerSessionContext = {
   recent_orders: Order[];
 };
 
+export type CustomerBillCollectedPayment = SessionCollectedPayment;
+
+export type CustomerBillContext = {
+  table_id: string;
+  display_name: string;
+  active_session: TableSession | null;
+  orders: Order[];
+  existing_split: BillSplit | null;
+  collected_payments: CustomerBillCollectedPayment[];
+  /** Together-group size for this table (0 = not in a party). */
+  party_member_count: number;
+};
+
 /**
  * Session read scope (one CustomerSessionContext shape):
  * - gate: table + thin active session; recent_orders always []
@@ -48,6 +62,17 @@ export function parseCustomerSessionScope(
   value: string | null | undefined,
 ): CustomerSessionScope {
   return value === 'gate' ? 'gate' : 'full';
+}
+
+/**
+ * Bill read scope (one CustomerBillContext shape):
+ * - live: active session + full bill orders + party size for client refresh / pre-submit checks
+ * - full: live fields + existing split + collected payments for bill page boot
+ */
+export type CustomerBillScope = 'live' | 'full';
+
+export function parseCustomerBillScope(value: string | null | undefined): CustomerBillScope {
+  return value === 'live' ? 'live' : 'full';
 }
 
 /**

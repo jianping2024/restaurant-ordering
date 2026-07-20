@@ -125,6 +125,7 @@ export function BillPage({
     slug: restaurant.slug,
     tableId,
     initialPartyMemberCount,
+    enabled: !submitted,
   });
 
   const detailLines = useMemo(

@@ -14,7 +14,7 @@ export default function LoginPage() {
       variant="login"
       copy={{
         title: t.title,
-        subtitle: t.subtitle,
+        subtitle: t.subtitleOwnerHint,
         forgotHint: t.forgotHint,
         securityNote: t.securityNote,
       }}

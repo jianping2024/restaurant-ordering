@@ -67,7 +67,7 @@ export const WAITER_TEXT = {
     filterIdle: '空闲',
     statusDining: '用餐中',
     sessionAmount: '合计: €{amount}',
-    printPreBill: '打印预结账单',
+    printPreBill: '打印预结单',
     checkoutPinnedTitleWithCount: '{n} 桌 待结账（等收银）',
     checkoutPinnedAlsoInPartyHint: '另有 {n} 桌待结账在同行组内',
     partySectionCount: '· {n} 桌',

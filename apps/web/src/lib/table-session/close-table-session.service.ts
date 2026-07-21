@@ -96,7 +96,7 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   restaurantId: string;
   tableId: string;
   userId: string;
-  closedReason: CloseTableSessionClosedReason;
+  closedReason: SettledCloseActorReason;
 }): Promise<CloseTableSessionFrontdeskCheckoutResult> {
   const closed = await closeActiveTableSessionSettled(
     input.admin,

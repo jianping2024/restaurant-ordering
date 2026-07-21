@@ -52,10 +52,11 @@ export function sessionRevenue(
     return 0;
   }
 
-  if (splits.length > 0) {
-    const lastSplit = splits.reduce((latest, split) => {
-      return !latest ? split : split;
-    });
+  const discountSplits = splits.filter(
+    (split) => split.status !== 'cancelled' && split.status !== 'paid',
+  );
+  if (discountSplits.length > 0) {
+    const lastSplit = discountSplits[discountSplits.length - 1]!;
     const discountRate = Number(lastSplit.discount_rate) || 0;
     return applyDiscountToAmount(orderTotal, discountRate);
   }

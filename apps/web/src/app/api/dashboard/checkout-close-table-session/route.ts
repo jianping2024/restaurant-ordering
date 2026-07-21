@@ -5,7 +5,7 @@ import { closeTableSessionFrontdeskCheckout } from '@/lib/table-session/close-ta
 
 export const runtime = 'nodejs';
 
-/** Frontdesk normal checkout close (print companion) — operational cleanup, no unpaid-close audit. */
+/** Frontdesk/cashier/owner checkout close — settled path (settlement + close, orders preserved). */
 export async function POST(req: Request) {
   const actorCtx = await loadCloseTableSessionActor({ requireWritable: true });
   if ('error' in actorCtx) {
@@ -36,8 +36,13 @@ export async function POST(req: Request) {
     if (result.code === 'no_session') {
       return NextResponse.json({ error: result.code, message: result.message }, { status: 404 });
     }
-    if (result.code === 'session_billing') {
-      return NextResponse.json({ error: result.code }, { status: 409 });
+    if (
+      result.code === 'session_billing' ||
+      result.code === 'checkout_in_progress' ||
+      result.code === 'partial_payment_ledger' ||
+      result.code === 'unfinished_kitchen_orders'
+    ) {
+      return NextResponse.json({ error: result.code, message: result.message }, { status: 409 });
     }
     return NextResponse.json({ error: result.code, message: result.message }, { status: 500 });
   }

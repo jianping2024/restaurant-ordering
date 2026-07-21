@@ -137,6 +137,26 @@ describe('sessionRevenue', () => {
   it('uses order total without discount when session closed but no split', () => {
     assert.equal(sessionRevenue([{ total_amount: 100 }], [], true), 100);
   });
+
+  it('ignores cancelled split discount when falling back to order total', () => {
+    const splits: BillSplit[] = [
+      {
+        id: 's1',
+        restaurant_id: 'r',
+        table_id: 't',
+        display_name: '1',
+        order_ids: [],
+        split_mode: 'even',
+        persons: [],
+        result: [],
+        total_amount: 100,
+        status: 'cancelled',
+        created_at: '',
+        discount_rate: 50,
+      } as BillSplit,
+    ];
+    assert.equal(sessionRevenue([{ total_amount: 100 }], splits, true), 100);
+  });
 });
 
 describe('sessionGuestCounts', () => {

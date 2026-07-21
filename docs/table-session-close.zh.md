@@ -28,10 +28,17 @@
 
 | 场景 | 入口 |
 |------|------|
-| 前台 / 收银员桌台详情「关台结账」（正常收台；前台先打 `checkout_bill`，收银员不打印） | `POST /api/dashboard/checkout-close-table-session` → `closeTableSessionFrontdeskCheckout` → `close_table_session_operational`（无未收款关台审计） |
-| 前台/店主强制关台 | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（未收款须原因 + 审计）→ operational |
+| 前台 / 收银员桌台详情「关台结账」（正常收台；前台先打 `checkout_bill`，收银员不打印） | `POST /api/dashboard/checkout-close-table-session` → `closeTableSessionFrontdeskCheckout` → **`close_table_session_settled`**（写 settlement + paid split，保留订单，无 void） |
+| 前台/店主强制关台 | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（未收款须原因 + 审计）→ **`close_table_session_operational`** |
 | 服务员关台 | `POST /api/restaurants/[slug]/staff/waiter/sessions/close` → `closeActiveTableSessionWithOperationalCleanup` |
-| 里斯本 05:00 夜间批量关台 | `closeAllOpenBillingSessions(admin)` → 按桌循环调用 operational |
+| 里斯本 05:00 夜间批量关台 | `closeAllOpenBillingSessions(admin)` → 按桌循环调用 **operational** |
+
+### Settled vs operational
+
+| 模式 | RPC | 订单 | 分单/收款 | 营业额 |
+|------|-----|------|-----------|--------|
+| **Settled**（关台结账 / 已付清） | `close_table_session_settled` | 保留 | 写 `session_collected_payments` + `bill_splits.paid` | 计入 |
+| **Operational**（强制/夜间/服务员） | `close_table_session_operational` | void + zero | cancel 未付 split | 通常不计 |
 
 关台成功后（含付清关台）会清除该桌的同行组成员关系；若该组已无成员则自动解散。
 

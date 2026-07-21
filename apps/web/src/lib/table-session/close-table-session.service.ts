@@ -8,8 +8,8 @@ import type { UnpaidTableClosedAuditContext } from '@/lib/audit/builders/unpaid-
 import type { AuditActor } from '@/lib/audit/types';
 import { auditMoney } from '@/lib/audit/money';
 import {
-  closeActiveTableSessionWithOperationalCleanup,
-  type CloseTableOperationalResult,
+  closeActiveTableSessionSettled,
+  type CloseTableSettledResult,
 } from '@/lib/close-active-table-session-with-cleanup';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
@@ -80,9 +80,19 @@ function snapshotToAuditContext(
 
 export type CloseTableSessionFrontdeskCheckoutResult =
   | { ok: true; session_id: string }
-  | { ok: false; code: 'no_session' | 'session_billing' | 'update_failed'; message?: string };
+  | {
+      ok: false;
+      code:
+        | 'no_session'
+        | 'session_billing'
+        | 'checkout_in_progress'
+        | 'partial_payment_ledger'
+        | 'unfinished_kitchen_orders'
+        | 'update_failed';
+      message?: string;
+    };
 
-/** Normal frontdesk checkout close — operational cleanup only, no unpaid-close audit. */
+/** Cash/frontdesk checkout close — settled path with ledger + paid split, orders preserved. */
 export async function closeTableSessionFrontdeskCheckout(input: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -90,27 +100,7 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   userId: string;
   closedReason: CloseTableSessionClosedReason;
 }): Promise<CloseTableSessionFrontdeskCheckoutResult> {
-  const { data: session, error: sessionErr } = await input.admin
-    .from('table_sessions')
-    .select('id, status')
-    .eq('restaurant_id', input.restaurantId)
-    .eq('table_id', input.tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (sessionErr) {
-    return { ok: false, code: 'update_failed', message: sessionErr.message };
-  }
-  if (!session?.id) {
-    return { ok: false, code: 'no_session' };
-  }
-  if (session.status === 'billing') {
-    return { ok: false, code: 'session_billing' };
-  }
-
-  const closed = await closeActiveTableSessionWithOperationalCleanup(
+  const closed = await closeActiveTableSessionSettled(
     input.admin,
     input.restaurantId,
     input.tableId,
@@ -118,16 +108,14 @@ export async function closeTableSessionFrontdeskCheckout(input: {
     { closed_by_user_id: input.userId },
   );
 
-  return mapOperationalCloseResult(closed);
+  return mapSettledCloseResult(closed);
 }
 
-function mapOperationalCloseResult(
-  result: CloseTableOperationalResult,
-): CloseTableSessionFrontdeskCheckoutResult {
+function mapSettledCloseResult(result: CloseTableSettledResult): CloseTableSessionFrontdeskCheckoutResult {
   if (result.ok) {
     return { ok: true, session_id: result.session_id };
   }
-  return { ok: false, code: result.code, message: result.message };
+  return result;
 }
 
 export async function closeTableSessionManual(

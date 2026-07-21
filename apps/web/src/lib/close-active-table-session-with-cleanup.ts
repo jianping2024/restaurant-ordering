@@ -8,6 +8,8 @@ export type CloseTableOperationalReason =
   | 'cashier_closed'
   | 'auto_nightly';
 
+export type CloseTableSettledReason = 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
+
 export type CloseTableSessionAudit = {
   /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */
   closed_by_user_id?: string | null;
@@ -17,13 +19,93 @@ export type CloseTableOperationalResult =
   | { ok: true; session_id: string }
   | { ok: false; code: 'no_session' | 'update_failed'; message?: string };
 
+export type CloseTableSettledResult =
+  | { ok: true; session_id: string; payable_amount?: number }
+  | {
+      ok: false;
+      code:
+        | 'no_session'
+        | 'session_billing'
+        | 'checkout_in_progress'
+        | 'partial_payment_ledger'
+        | 'unfinished_kitchen_orders'
+        | 'update_failed';
+      message?: string;
+    };
+
+type CloseTableRpcPayload = {
+  ok?: boolean;
+  code?: string;
+  message?: string;
+  session_id?: string;
+  payable_amount?: number;
+};
+
+function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableSettledResult {
+  if (!payload?.ok) {
+    const code = payload?.code;
+    if (
+      code === 'no_session' ||
+      code === 'session_billing' ||
+      code === 'checkout_in_progress' ||
+      code === 'partial_payment_ledger' ||
+      code === 'unfinished_kitchen_orders'
+    ) {
+      return { ok: false, code, message: payload?.message };
+    }
+    return {
+      ok: false,
+      code: 'update_failed',
+      message: payload?.message ?? code ?? 'update_failed',
+    };
+  }
+
+  if (!payload.session_id) {
+    return { ok: false, code: 'update_failed', message: 'missing session_id' };
+  }
+
+  return {
+    ok: true,
+    session_id: payload.session_id,
+    payable_amount:
+      typeof payload.payable_amount === 'number' ? payload.payable_amount : undefined,
+  };
+}
+
 /**
- * Single definition of “关台” for staff + owner + nightly auto-close:
- * 1) Cancel unpaid checkout rows for this session (bill_splits not paid).
- * 2) Void all order lines on this session and zero totals (operational cleanup; rows kept for audit).
- * 3) Close the table_sessions row (open/billing → closed).
- *
- * Requires service-role / admin client. See docs/table-session-close.zh.md.
+ * Settled close for frontdesk/cashier checkout: write settlement, preserve orders, close session.
+ * See docs/table-session-close.zh.md.
+ */
+export async function closeActiveTableSessionSettled(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+  closedReason: CloseTableSettledReason,
+  audit: CloseTableSessionAudit = {},
+): Promise<CloseTableSettledResult> {
+  const { data: rpcData, error: rpcErr } = await admin.rpc('close_table_session_settled', {
+    p_restaurant_id: restaurantId,
+    p_table_id: tableId,
+    p_closed_reason: closedReason,
+    p_closed_by_user_id: audit.closed_by_user_id ?? null,
+  });
+
+  if (rpcErr) {
+    return { ok: false, code: 'update_failed', message: rpcErr.message };
+  }
+
+  const result = mapSettledRpcPayload(rpcData as CloseTableRpcPayload | null);
+  if (!result.ok) {
+    return result;
+  }
+
+  await purgeTablePartyMembership(admin, restaurantId, tableId);
+  return result;
+}
+
+/**
+ * Operational cleanup close: cancel unpaid splits, void order lines, close session.
+ * Used for force close, waiter close, and nightly auto-close.
  */
 export async function closeActiveTableSessionWithOperationalCleanup(
   admin: SupabaseClient,
@@ -43,12 +125,7 @@ export async function closeActiveTableSessionWithOperationalCleanup(
     return { ok: false, code: 'update_failed', message: rpcErr.message };
   }
 
-  const payload = rpcData as {
-    ok?: boolean;
-    code?: string;
-    message?: string;
-    session_id?: string;
-  } | null;
+  const payload = rpcData as CloseTableRpcPayload | null;
 
   if (!payload?.ok) {
     const code = payload?.code === 'no_session' ? 'no_session' : 'update_failed';

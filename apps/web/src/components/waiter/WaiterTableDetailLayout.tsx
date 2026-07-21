@@ -309,8 +309,16 @@ function WaiterTableCheckoutCloseControl({
           showToast(t.checkoutClosePrintFailed, 'error');
           return;
         }
-        if (outcome.code === 'session_billing') {
+        if (outcome.code === 'session_billing' || outcome.code === 'checkout_in_progress') {
           showToast(t.checkoutLockedHint, 'info');
+          return;
+        }
+        if (outcome.code === 'partial_payment_ledger') {
+          showToast(t.checkoutLockedHint, 'info');
+          return;
+        }
+        if (outcome.code === 'unfinished_kitchen_orders') {
+          showToast(orderHistory.closeTableBlocked, 'error');
           return;
         }
         if (outcome.code === 'no_session') {

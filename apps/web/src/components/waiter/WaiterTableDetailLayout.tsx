@@ -40,7 +40,6 @@ import {
   waiterDetailLayout,
   waiterFloorType,
   WaiterTablePrimaryButton,
-  WaiterTablePrimaryLink,
   WaiterTableSecondaryButton,
 } from '@/components/waiter/waiter-table-detail-ui';
 
@@ -172,15 +171,15 @@ export function WaiterTableBuffetPanel({
 }
 
 function ContinueOrderingControl({
-  menuHref,
   label,
   checkoutLocked,
   onCheckoutLocked,
+  onContinueOrdering,
 }: {
-  menuHref: string;
   label: string;
   checkoutLocked: boolean;
   onCheckoutLocked: () => void;
+  onContinueOrdering: () => void;
 }) {
   const icon = <WaiterPlusIcon className={buttonIcon.sm} />;
 
@@ -193,9 +192,9 @@ function ContinueOrderingControl({
   }
 
   return (
-    <WaiterTablePrimaryLink href={menuHref} icon={icon}>
+    <WaiterTablePrimaryButton type="button" onClick={onContinueOrdering} icon={icon}>
       {label}
-    </WaiterTablePrimaryLink>
+    </WaiterTablePrimaryButton>
   );
 }
 
@@ -365,7 +364,7 @@ type OccupiedToolbarProps = {
   restaurantSlug: string;
   tableId: string;
   sessionId: string | null;
-  menuHref: string;
+  onContinueOrdering: () => void;
   isCheckoutPending: boolean;
   /** Together-group member — transfer/merge disabled. */
   inTableParty: boolean;
@@ -388,7 +387,7 @@ export function WaiterTableOccupiedToolbar({
   restaurantSlug,
   tableId,
   sessionId,
-  menuHref,
+  onContinueOrdering,
   isCheckoutPending,
   inTableParty,
   onCheckoutLocked,
@@ -408,10 +407,10 @@ export function WaiterTableOccupiedToolbar({
       <div className={waiterDetailLayout.cardBody}>
         <div className={waiterDetailLayout.occupiedToolbarRow}>
           <ContinueOrderingControl
-            menuHref={menuHref}
             label={t.continueOrdering}
             checkoutLocked={isCheckoutPending}
             onCheckoutLocked={onCheckoutLocked}
+            onContinueOrdering={onContinueOrdering}
           />
           <WaiterTableSecondaryButton
             type="button"

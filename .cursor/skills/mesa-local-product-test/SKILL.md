@@ -40,10 +40,10 @@ For **localhost** product testing of the shared UAT restaurant (`restaurant-mohn
 **Pre-authorized** (use freely; cleanup throwaway writes afterward):
 
 - Typing / filling documented UAT passwords (`qiantai1`, `baiyun@gmail.com`) into localhost login UI or `/api/auth/login`
-- **`user-chrome-devtools` MCP:** `navigate_page`, `new_page`, `select_page`, `take_snapshot`, `take_screenshot`, `click`, `fill`, `fill_form`, `type_text`, `press_key`, `hover`, `drag`, `handle_dialog`, `upload_file`, `evaluate_script`, network/console/wait helpers, dual tabs
+- **`user-chrome-devtools` and `cursor-ide-browser` MCP** on localhost: navigate, snapshot, screenshot, click, fill, type, scroll, evaluate, dual tabs
 - Product API mutations on the test restaurant: open/close table, buffet/menu seed create/update/delete, orders, checkout, board refresh/ETag checks
 
-**When Auto-review blocks any item above:** immediately retry with `requestSmartModeApproval: true` + exact `smartModeBlockReason`. **Never ask the user** “是否授权点击/填表” — that is already granted for localhost UAT.
+**No approval popups:** Repo `.cursor/permissions.json` allowlists both browser MCP servers. User should use **Run mode = Auto-review** in Cursor Settings. **Never** retry with `requestSmartModeApproval` — that shows the confirmation card the user opted out of. If still blocked, report Run mode / permissions.json instead of asking per click.
 
 **Still ask first:** anything that wipes the database (`supabase db reset` / equivalent hard wipe).
 

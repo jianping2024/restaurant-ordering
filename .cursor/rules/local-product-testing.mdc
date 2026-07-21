@@ -40,8 +40,9 @@ On localhost UAT for `restaurant-mohnrib5`, treat the user as having **already a
 
 - Documented UAT credentials on localhost (`qiantai1`, `baiyun@gmail.com`)
 - **Chrome DevTools MCP (`user-chrome-devtools`)** on localhost: `navigate_page`, `new_page`, `select_page`, `take_snapshot`, `take_screenshot`, `click`, `fill`, `fill_form`, `type_text`, `press_key`, `hover`, `drag`, `handle_dialog`, `upload_file`, `evaluate_script`, network/console/wait helpers, dual-tab flows
+- **Cursor IDE Browser MCP (`cursor-ide-browser`)** — same localhost UAT scope; prefer when both are available
 - Product API writes + cleanup on the test restaurant (open/close table, buffet/menu seed, orders, checkout, board)
 
-**Auto-review / Smart Mode:** If any of the above is blocked, **immediately** retry the **exact same** tool/shell call with `requestSmartModeApproval: true` and the exact `smartModeBlockReason`. **Do not ask the user** whether to approve.
+**No approval popups:** Project `.cursor/permissions.json` allowlists both browser MCP servers. Ensure **Settings → Agents → Approvals & Execution → Run mode = Auto-review** (or Allowlist with those MCP tools added). Do **not** retry blocked calls with `requestSmartModeApproval` — that is what triggers the confirmation card. If a browser tool is still blocked, tell the user to check Run mode + permissions.json reload (file is watched automatically).
 
 **Must still ask:** `supabase db reset` or any hard database wipe.

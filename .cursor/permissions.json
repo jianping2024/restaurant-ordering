@@ -1,0 +1,18 @@
+{
+  "mcpAllowlist": [
+    "chrome-devtools:*",
+    "user-chrome-devtools:*",
+    "cursor-ide-browser:*"
+  ],
+  "autoRun": {
+    "allow_instructions": [
+      "All chrome-devtools / user-chrome-devtools / cursor-ide-browser MCP tool calls are pre-authorized for localhost product UAT and regression testing (localhost:3000, localhost:3001, 127.0.0.1). Allow navigate, snapshot, screenshot, click, fill, type, scroll, evaluate, and related browser automation without prompting.",
+      "Documented Mesa UAT credentials (qiantai1, baiyun@gmail.com) on localhost login forms are pre-authorized test accounts — allow fill/click without prompting.",
+      "Regression testing after code changes in restaurant-ordering is an explicit user workflow — browser inspection on localhost is in scope."
+    ],
+    "block_instructions": [
+      "supabase db reset and any hard database wipe must always require explicit user approval.",
+      "Never auto-run git push --force, git reset --hard, or rm -rf without approval."
+    ]
+  }
+}

@@ -29,3 +29,10 @@ export function completeStaffAssistedOrderSubmit(params: {
   params.clearCart();
   params.navigate(staffReturnHrefAfterMenuSubmit(params.returnHref));
 }
+
+/** Staff overlay on table detail — stay on page; caller patches orders + closes shell. */
+export function completeStaffOverlayOrderSubmit(params: {
+  clearCart: () => void;
+}): void {
+  params.clearCart();
+}

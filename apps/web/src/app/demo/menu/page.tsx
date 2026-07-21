@@ -1,48 +1,13 @@
 import { MenuPage } from '@/components/menu/MenuPage';
 import { DEMO_RESTAURANT, DEMO_TABLES, demoTableByDisplayName } from '@/lib/demo-data';
-import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
+import { getDemoMenuCatalog } from '@/lib/demo-menu-catalog';
 import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
-import type { MenuCategory, MenuItem } from '@/types';
 
 interface Props {
   searchParams: Promise<{ table_id?: string; from?: string; return?: string }>;
 }
-
-const DEMO_CATEGORIES: MenuCategory[] = [
-  { id: 'c1', restaurant_id: 'demo', parent_id: null, name_pt: 'Entradas', name_en: 'Starters', name_zh: '前菜', sort_order: 1, active: true, created_at: '' },
-  { id: 'c2', restaurant_id: 'demo', parent_id: null, name_pt: 'Pratos', name_en: 'Mains', name_zh: '主菜', sort_order: 2, active: true, created_at: '' },
-  { id: 'c3', restaurant_id: 'demo', parent_id: null, name_pt: 'Bebidas', name_en: 'Drinks', name_zh: '饮品', sort_order: 3, active: true, created_at: '' },
-  { id: 'c4', restaurant_id: 'demo', parent_id: null, name_pt: 'Sobremesas', name_en: 'Desserts', name_zh: '甜点', sort_order: 4, active: true, created_at: '' },
-];
-
-const demoItem = (
-  item: Omit<MenuItem, 'restaurant_id' | 'created_at' | 'vat_rate'> & Partial<Pick<MenuItem, 'vat_rate'>>,
-): MenuItem => ({
-  restaurant_id: 'demo',
-  created_at: '',
-  vat_rate: DEFAULT_MENU_VAT_RATE,
-  ...item,
-});
-
-const DEMO_ITEMS: MenuItem[] = [
-  demoItem({ id: 'd1', name_pt: 'Pão com Manteiga', name_en: 'Bread & Butter', name_zh: '黄油面包', description_pt: 'Pão artesanal com manteiga da aldeia', description_en: 'Artisan bread with village butter', price: 2.50, category: 'Entradas', category_id: 'c1', emoji: '🍞', available: true, sort_order: 1 }),
-  demoItem({ id: 'd2', name_pt: 'Azeitonas Temperadas', name_en: 'Seasoned Olives', name_zh: '调味橄榄', description_pt: 'Azeitonas marinadas com alho e ervas', description_en: 'Marinated olives with garlic and herbs', price: 4.50, category: 'Entradas', category_id: 'c1', emoji: '🫒', available: true, sort_order: 2 }),
-  demoItem({ id: 'd3', name_pt: 'Caldo Verde', name_en: 'Green Broth Soup', name_zh: '绿汤', description_pt: 'Sopa tradicional com couve e chouriço', description_en: 'Traditional soup with kale and chorizo', price: 6.50, category: 'Entradas', category_id: 'c1', emoji: '🥣', available: true, sort_order: 3 }),
-  demoItem({ id: 'd4', name_pt: 'Pataniscas de Bacalhau', name_en: 'Codfish Fritters', name_zh: '鳕鱼饼', description_pt: 'Frituras de bacalhau com salada de feijão frade', description_en: 'Codfish fritters with black-eyed pea salad', price: 9.50, category: 'Entradas', category_id: 'c1', emoji: '🐟', available: true, sort_order: 4 }),
-  demoItem({ id: 'd5', name_pt: 'Bacalhau à Brás', name_en: 'Codfish à Brás', name_zh: '碎蛋鳕鱼', description_pt: 'Bacalhau desfiado com batata palha e ovos mexidos', description_en: 'Shredded codfish with straw potatoes and scrambled eggs', price: 18.50, category: 'Pratos', category_id: 'c2', emoji: '🥚', available: true, sort_order: 1 }),
-  demoItem({ id: 'd6', name_pt: 'Frango no Churrasco', name_en: 'BBQ Chicken', name_zh: '烤鸡', description_pt: 'Frango grelhado com molho piri-piri', description_en: 'Grilled chicken with piri-piri sauce and fries', price: 15.00, category: 'Pratos', category_id: 'c2', emoji: '🍗', available: true, sort_order: 2 }),
-  demoItem({ id: 'd7', name_pt: 'Polvo à Lagareiro', name_en: 'Octopus Lagareiro', name_zh: '橄榄油章鱼', description_pt: 'Polvo assado com azeite e batata a murro', description_en: 'Roasted octopus with olive oil and crushed potatoes', price: 22.00, category: 'Pratos', category_id: 'c2', emoji: '🐙', available: true, sort_order: 3 }),
-  demoItem({ id: 'd8', name_pt: 'Bitoque de Vaca', name_en: 'Beef Steak', name_zh: '牛排套餐', description_pt: 'Bife de vaca com ovo estrelado e batata frita', description_en: 'Beef steak with fried egg and french fries', price: 16.50, category: 'Pratos', category_id: 'c2', emoji: '🥩', available: true, sort_order: 4 }),
-  demoItem({ id: 'd9', name_pt: 'Arroz de Pato', name_en: 'Duck Rice', name_zh: '鸭肉饭', description_pt: 'Arroz cremoso de pato com chouriço', description_en: 'Creamy duck rice with chorizo and orange', price: 17.50, category: 'Pratos', category_id: 'c2', emoji: '🦆', available: true, sort_order: 5 }),
-  demoItem({ id: 'd10', name_pt: 'Vinho Tinto da Casa', name_en: 'House Red Wine', name_zh: '招牌红酒', description_pt: 'Vinho tinto regional, copo', description_en: 'Regional red wine, by the glass', price: 4.00, category: 'Bebidas', category_id: 'c3', emoji: '🍷', available: true, sort_order: 1 }),
-  demoItem({ id: 'd11', name_pt: 'Super Bock', name_en: 'Super Bock Beer', name_zh: '超级波克啤酒', description_pt: 'Cerveja portuguesa gelada, 33cl', description_en: 'Cold Portuguese beer, 33cl', price: 2.50, category: 'Bebidas', category_id: 'c3', emoji: '🍺', available: true, sort_order: 2 }),
-  demoItem({ id: 'd12', name_pt: 'Água com Gás', name_en: 'Sparkling Water', name_zh: '气泡水', description_pt: 'Água mineral com gás, 50cl', description_en: 'Sparkling mineral water, 50cl', price: 1.50, category: 'Bebidas', category_id: 'c3', emoji: '💧', available: true, sort_order: 3 }),
-  demoItem({ id: 'd13', name_pt: 'Café Expresso', name_en: 'Espresso Coffee', name_zh: '浓缩咖啡', description_pt: 'Café expresso tradicional português', description_en: 'Traditional Portuguese espresso coffee', price: 1.00, category: 'Bebidas', category_id: 'c3', emoji: '☕', available: true, sort_order: 4 }),
-  demoItem({ id: 'd14', name_pt: 'Pastel de Nata', name_en: 'Custard Tart', name_zh: '葡式蛋挞', description_pt: 'Pastel de Belém com canela e açúcar em pó', description_en: 'Custard tart with cinnamon and powdered sugar', price: 2.50, category: 'Sobremesas', category_id: 'c4', emoji: '🥧', available: true, sort_order: 1 }),
-  demoItem({ id: 'd15', name_pt: 'Arroz Doce', name_en: 'Rice Pudding', name_zh: '葡式米布丁', description_pt: 'Arroz doce cremoso com canela e limão', description_en: 'Creamy rice pudding with cinnamon and lemon', price: 5.00, category: 'Sobremesas', category_id: 'c4', emoji: '🍮', available: true, sort_order: 2 }),
-];
 
 export const metadata = {
   title: 'Casa Portuguesa — 菜单演示',
@@ -53,6 +18,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   const defaultTable = demoTableByDisplayName('5') ?? DEMO_TABLES[4]!;
   const tableId = parseTableIdParam(tableIdParam) ?? defaultTable.id;
   const table = DEMO_TABLES.find((t) => t.id === tableId) ?? defaultTable;
+  const { menuItems, menuCategories } = getDemoMenuCatalog();
   const staffAssisted = resolveStaffAssistedFlow(
     from,
     returnPath,
@@ -64,8 +30,8 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   return (
     <MenuPage
       restaurant={DEMO_RESTAURANT}
-      menuItems={DEMO_ITEMS}
-      menuCategories={DEMO_CATEGORIES}
+      menuItems={menuItems}
+      menuCategories={menuCategories}
       tableId={table.id}
       displayName={table.display_name}
       orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}

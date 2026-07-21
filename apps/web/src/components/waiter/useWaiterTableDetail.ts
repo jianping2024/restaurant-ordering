@@ -229,8 +229,8 @@ export function useWaiterTableDetail(
 
   const orders = useMemo(() => {
     if (!isDemo) return orderRows;
-    return ordersForWaiterTableView(tableId, demoOrders, activeSessionByTableId);
-  }, [activeSessionByTableId, demoOrders, isDemo, orderRows, tableId]);
+    return ordersForWaiterTableView(tableId, orderRows, activeSessionByTableId);
+  }, [activeSessionByTableId, isDemo, orderRows, tableId]);
 
   return {
     table: resolvedTable,

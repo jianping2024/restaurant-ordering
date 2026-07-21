@@ -8,12 +8,20 @@ import { MENU_IMAGE_UNOPTIMIZED } from '@/lib/menu-image';
 interface Props {
   item: MenuItem;
   lang: Language;
+  layout?: 'list' | 'grid';
   cartQty: number;
   onIncrement: () => void;
   onDecrement: () => void;
 }
 
-export function MenuItemCard({ item, lang, cartQty, onIncrement, onDecrement }: Props) {
+export function MenuItemCard({
+  item,
+  lang,
+  layout = 'list',
+  cartQty,
+  onIncrement,
+  onDecrement,
+}: Props) {
   const name = (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
   const desc = lang === 'zh'
     ? (item.description_zh || item.description_en || item.description_pt)
@@ -27,9 +35,11 @@ export function MenuItemCard({ item, lang, cartQty, onIncrement, onDecrement }: 
   }[lang];
 
   return (
-    <div className={`bg-brand-card border rounded-2xl p-4 flex gap-4 ${
-      item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
-    }`}>
+    <div
+      className={`bg-brand-card border rounded-2xl p-4 flex gap-4 h-full ${
+        layout === 'grid' ? 'flex-col sm:flex-row' : ''
+      } ${item.available ? 'border-brand-border' : 'border-brand-border opacity-50'}`}
+    >
       <div className="flex-shrink-0 w-16 h-16 bg-brand-border rounded-xl overflow-hidden flex items-center justify-center text-3xl relative">
         {item.image_url ? (
           <Image

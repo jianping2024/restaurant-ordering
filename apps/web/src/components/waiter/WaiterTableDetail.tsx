@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Order } from '@/types';
+import type { Order, CartItem } from '@/types';
 import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import {
@@ -22,6 +22,7 @@ import { applyOrderItemDecrement } from '@/lib/order-item-void/decrement-order-i
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
+import { WaiterStaffOrderingPanel } from '@/components/waiter/WaiterStaffOrderingPanel';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
@@ -43,8 +44,12 @@ import {
 } from '@/lib/staff-board-client';
 import {
   clearPublishedWaiterTablePageModel,
+  commitAuthoritativeWaiterTablePageModel,
   commitWaiterSessionRelocation,
 } from '@/lib/waiter-staff-mutation-sync';
+import { patchWaiterTableModelAfterStaffAppend, buildOptimisticOrderAfterStaffAppend } from '@/lib/staff-order-append-optimistic-patch';
+import type { MenuOrderSubmitSuccess } from '@/lib/menu-order-submit';
+import type { CustomerMenuCatalog } from '@/lib/customer-menu-catalog-client-cache';
 import { filterWaiterTableActionTargets } from '@/lib/waiter-table-occupancy';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
@@ -57,7 +62,6 @@ import {
   dashboardCheckoutTableHref,
   waiterBoardHref,
   waiterTableHref,
-  waiterMenuHref,
 } from '@/lib/staff-routes';
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -165,6 +169,8 @@ function WaiterTableDetailInner({
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
+  const [orderingOpen, setOrderingOpen] = useState(false);
+  const [cartDraft, setCartDraft] = useState<CartItem[]>([]);
   const activeBuffets = useMemo(
     () => (model?.buffets ?? []).filter((b) => b.is_active),
     [model?.buffets],
@@ -209,7 +215,16 @@ function WaiterTableDetailInner({
     setOperating(false);
     setDecrementingKey(null);
     setItemCodeByMenuId({});
+    setOrderingOpen(false);
+    setCartDraft([]);
   }, [tableId]);
+
+  useEffect(() => {
+    if (!orderingOpen) return;
+    if (isCheckoutPending || sessionMeta?.status === 'billing') {
+      setOrderingOpen(false);
+    }
+  }, [isCheckoutPending, orderingOpen, sessionMeta?.status]);
 
   const applyDetail = useCallback(
     (detail: WaiterTableDetailData) => {
@@ -347,11 +362,65 @@ function WaiterTableDetailInner({
 
   const pageShellClass = isDemo ? 'min-h-screen bg-brand-bg p-4' : '';
   const boardHref = waiterBoardHref(restaurant.slug, routeOptions);
-  const menuHref = waiterMenuHref(restaurant.slug, tableId, routeOptions);
+
+  const catalogPrefetch = useMemo(
+    () => ({ restaurantId: restaurant.id, slug: restaurant.slug }),
+    [restaurant.id, restaurant.slug],
+  );
 
   useStaffAssistedMenuEntryPrefetch(
-    menuHref,
+    catalogPrefetch,
     hasOpenSession && !isCheckoutPending && !isDemo && detailLoaded,
+  );
+
+  const handleStaffAppendSuccess = useCallback(
+    (
+      result: MenuOrderSubmitSuccess,
+      submittedCart: CartItem[],
+      catalog: CustomerMenuCatalog,
+    ) => {
+      const appendResult =
+        isDemo && result.orderId === 'demo-order' && orders[0]
+          ? {
+              ...result,
+              orderId: orders[0].id,
+              sessionId: orders[0].session_id ?? result.sessionId,
+            }
+          : result;
+
+      const optimisticInput = {
+        orders,
+        append: appendResult,
+        cart: submittedCart,
+        menuItems: catalog.menuItems,
+        restaurantId: restaurant.id,
+        tableId,
+        displayName: selectedDisplayName,
+      };
+
+      if (model) {
+        const next = patchWaiterTableModelAfterStaffAppend(model, optimisticInput);
+        applyModel(next);
+        commitAuthoritativeWaiterTablePageModel(next);
+        return;
+      }
+
+      if (!isDemo) return;
+
+      const order = buildOptimisticOrderAfterStaffAppend(optimisticInput);
+      applyDetail(applyOrderUpdateToWaiterDetail(currentTableDetail(), order));
+    },
+    [
+      applyDetail,
+      applyModel,
+      currentTableDetail,
+      isDemo,
+      model,
+      orders,
+      restaurant.id,
+      selectedDisplayName,
+      tableId,
+    ],
   );
 
   const resolveActionTargetsFromBoard = useCallback(
@@ -855,7 +924,7 @@ function WaiterTableDetailInner({
             restaurantSlug={restaurant.slug}
             tableId={selectedCard.tableId}
             sessionId={sessionMeta?.sessionId ?? null}
-            menuHref={menuHref}
+            onContinueOrdering={() => setOrderingOpen(true)}
             isCheckoutPending={isCheckoutPending}
             inTableParty={inTableParty}
             onCheckoutLocked={notifyCheckoutLocked}
@@ -891,6 +960,22 @@ function WaiterTableDetailInner({
       </div>
 
       <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+
+      <WaiterStaffOrderingPanel
+        open={orderingOpen}
+        title={t.continueOrdering}
+        onClose={() => setOrderingOpen(false)}
+        restaurant={restaurant}
+        tableId={tableId}
+        displayName={selectedDisplayName}
+        sessionMeta={sessionMeta}
+        orders={orders}
+        cartDraft={cartDraft}
+        onCartDraftChange={setCartDraft}
+        onStaffAppendSuccess={handleStaffAppendSuccess}
+        isDemo={isDemo}
+        embeddedInDashboard={embeddedInDashboard}
+      />
 
       <Modal
         open={!!operationType}

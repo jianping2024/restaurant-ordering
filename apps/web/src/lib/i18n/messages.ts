@@ -1025,8 +1025,6 @@ export const MESSAGES = {
       allLoaded: '已显示全部',
       maxRecordsHint: '仅展示最近100条',
       listAmountCollected: '已收',
-      settlementAmount: '结算金额',
-      settlementDiscount: '折扣',
       forcedUnpaidCloseSummary: '未收款关台：{reason}',
     },
     checkout: {

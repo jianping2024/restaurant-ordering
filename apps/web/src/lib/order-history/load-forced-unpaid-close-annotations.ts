@@ -42,3 +42,10 @@ export async function loadForcedUnpaidCloseAnnotations(
 
   return map;
 }
+
+export function resolveCloseAnnotationForSession(
+  sessionId: string,
+  forcedBySession: Map<string, OrderHistoryCloseAnnotation>,
+): OrderHistoryCloseAnnotation {
+  return forcedBySession.get(sessionId) ?? { isForcedUnpaidClose: false };
+}

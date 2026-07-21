@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
+import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
@@ -174,7 +175,6 @@ export function CheckoutRequestDetail({
   onResumeOrderingClick,
   onCloseTable,
 }: Props) {
-  const [orderItemsOpen, setOrderItemsOpen] = useState(false);
   const canExpandPersonDishes = request.split_mode === 'by_item';
   const personShareLinesByIndex = useMemo(() => {
     if (!canExpandPersonDishes) return new Map<number, ReturnType<typeof buildCheckoutPersonShareLines>>();
@@ -336,44 +336,16 @@ export function CheckoutRequestDetail({
         />
       ) : null}
 
-      <div className="mt-3 rounded-lg border border-brand-border/60 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setOrderItemsOpen((open) => !open)}
-          className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[13px] text-brand-text-muted hover:bg-brand-border/20 transition-colors"
-        >
-          <span>{t.orderItemsCount.replace('{n}', String(selectedLines.length))}</span>
-          <span aria-hidden>{orderItemsOpen ? '▾' : '▸'}</span>
-        </button>
-        {orderItemsOpen ? (
-          selectedLines.length === 0 ? (
-            <p className="text-brand-text-muted text-sm px-3 pb-3">{t.orderItemsEmpty}</p>
-          ) : (
-            <div className="border-t border-brand-border/60">
-              {selectedLines.map((line) => (
-                <div
-                  key={line.key}
-                  className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/40 last:border-0"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                    <span className="text-brand-text text-sm font-medium truncate">{line.label || '—'}</span>
-                    <span className="text-brand-text text-[13px] tabular-nums">{line.quantityLabel}</span>
-                  </div>
-                  <span className="text-brand-text text-sm font-semibold tabular-nums shrink-0">
-                    €{line.lineTotal.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between px-3 py-2 bg-brand-border/25 text-sm">
-                <span className="text-brand-text font-medium">{t.orderItemsTotal}</span>
-                <span className="text-brand-text font-semibold tabular-nums">
-                  €{request.total_amount.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          )
-        ) : null}
-      </div>
+      <CheckoutTableItemsSection
+        className="mt-3"
+        lines={selectedLines}
+        total={request.total_amount}
+        labels={{
+          orderItemsCount: t.orderItemsCount,
+          orderItemsEmpty: t.orderItemsEmpty,
+          orderItemsTotal: t.orderItemsTotal,
+        }}
+      />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
         <button

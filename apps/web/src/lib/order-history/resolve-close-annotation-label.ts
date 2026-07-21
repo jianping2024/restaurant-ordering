@@ -3,10 +3,15 @@ import type { OrderHistoryCloseAnnotation } from '@/lib/order-history/types';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
 
-export function resolveForcedUnpaidCloseSummary(
+export type ForcedUnpaidCloseAnnotationLabels = {
+  summary: string;
+  detail: string | null;
+};
+
+export function formatForcedUnpaidCloseAnnotation(
   lang: UILanguage,
   annotation: OrderHistoryCloseAnnotation,
-): string | null {
+): ForcedUnpaidCloseAnnotationLabels | null {
   if (!annotation.isForcedUnpaidClose) return null;
 
   const i18n = getMessages(lang).orderHistory;
@@ -15,13 +20,10 @@ export function resolveForcedUnpaidCloseSummary(
     labels.find((option) => option.value === annotation.reasonCode)?.label ??
     annotation.reasonCode;
 
-  return i18n.forcedUnpaidCloseSummary.replace('{reason}', reasonLabel);
-}
+  const detail = annotation.reasonDetail?.trim() || null;
 
-export function resolveForcedUnpaidCloseDetail(
-  annotation: OrderHistoryCloseAnnotation,
-): string | null {
-  if (!annotation.isForcedUnpaidClose) return null;
-  const detail = annotation.reasonDetail?.trim();
-  return detail || null;
+  return {
+    summary: i18n.forcedUnpaidCloseSummary.replace('{reason}', reasonLabel),
+    detail,
+  };
 }

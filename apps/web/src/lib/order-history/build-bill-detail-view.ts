@@ -12,7 +12,6 @@ import { getMessages } from '@/lib/i18n/messages';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 import type { CheckoutPersonShareLine } from '@/lib/checkout-split-person-lines';
 import type { BillSplit } from '@/types';
-import type { OrderHistoryCloseAnnotation } from '@/lib/order-history/types';
 
 export type OrderHistoryPersonRow = SplitSettlementRow & {
   shareLines: CheckoutPersonShareLine[];
@@ -95,11 +94,4 @@ export function buildOrderHistoryBillDetailView(
     canExpandPersonDishes,
     showSplitSection,
   };
-}
-
-export function defaultOrderHistoryCloseAnnotation(
-  sessionId: string,
-  forcedBySession: Map<string, OrderHistoryCloseAnnotation>,
-): OrderHistoryCloseAnnotation {
-  return forcedBySession.get(sessionId) ?? { isForcedUnpaidClose: false };
 }

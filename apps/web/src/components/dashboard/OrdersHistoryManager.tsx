@@ -12,7 +12,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
-import { resolveForcedUnpaidCloseSummary } from '@/lib/order-history/resolve-close-annotation-label';
+import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
@@ -252,7 +252,7 @@ export function OrdersHistoryManager({
   const renderHistoryCard = (entry: OrderHistoryEntry) => {
     const isForcedUnpaidClose = entry.closeAnnotation.isForcedUnpaidClose;
     const forcedCloseSummary = isForcedUnpaidClose
-      ? resolveForcedUnpaidCloseSummary(lang, entry.closeAnnotation)
+      ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
 
     return (

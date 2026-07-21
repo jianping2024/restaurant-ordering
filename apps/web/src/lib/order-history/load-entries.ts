@@ -1,9 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { groupOrdersBySession } from '@/lib/analytics/analytics.repository';
 import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
-import { defaultOrderHistoryCloseAnnotation } from '@/lib/order-history/build-bill-detail-view';
 import { buildOrderHistorySessionSettlement } from '@/lib/order-history/build-session-settlement';
-import { loadForcedUnpaidCloseAnnotations } from '@/lib/order-history/load-forced-unpaid-close-annotations';
+import {
+  loadForcedUnpaidCloseAnnotations,
+  resolveCloseAnnotationForSession,
+} from '@/lib/order-history/load-forced-unpaid-close-annotations';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
 import { resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
@@ -199,7 +201,7 @@ export async function loadOrderHistoryEntries(
     const openedByName = session.opened_by_user_id
       ? openerNames.get(session.opened_by_user_id) ?? null
       : null;
-    const closeAnnotation = defaultOrderHistoryCloseAnnotation(
+    const closeAnnotation = resolveCloseAnnotationForSession(
       session.id,
       forcedCloseBySession,
     );

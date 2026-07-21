@@ -1,14 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
+import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { OrderHistorySettlementDetails } from '@/components/dashboard/OrderHistorySettlementDetails';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
-import {
-  resolveForcedUnpaidCloseDetail,
-  resolveForcedUnpaidCloseSummary,
-} from '@/lib/order-history/resolve-close-annotation-label';
+import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
@@ -22,15 +20,13 @@ type Props = {
 
 export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: Props) {
   const checkoutT = getMessages(lang).checkout;
-  const [orderItemsOpen, setOrderItemsOpen] = useState(false);
 
   const detail = useMemo(
     () => buildOrderHistoryBillDetailView(entry, itemCodeByMenuId, lang),
     [entry, itemCodeByMenuId, lang],
   );
 
-  const forcedCloseSummary = resolveForcedUnpaidCloseSummary(lang, entry.closeAnnotation);
-  const forcedCloseDetail = resolveForcedUnpaidCloseDetail(entry.closeAnnotation);
+  const forcedClose = formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation);
 
   const personShareLabels = {
     expand: checkoutT.personShareItemsExpand,
@@ -42,11 +38,11 @@ export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: P
 
   return (
     <div className="space-y-4">
-      {forcedCloseSummary ? (
+      {forcedClose ? (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-brand-text">
-          <p>{forcedCloseSummary}</p>
-          {forcedCloseDetail ? (
-            <p className="mt-1 text-[13px] text-brand-text-muted">{forcedCloseDetail}</p>
+          <p>{forcedClose.summary}</p>
+          {forcedClose.detail ? (
+            <p className="mt-1 text-[13px] text-brand-text-muted">{forcedClose.detail}</p>
           ) : null}
         </div>
       ) : null}
@@ -58,12 +54,7 @@ export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: P
       ) : null}
 
       {settlement.showFinancialDetails && settlement.summary ? (
-        <OrderHistorySettlementDetails
-          summary={settlement.summary}
-          collectedPayments={settlement.collectedPayments}
-          lang={lang}
-          checkoutT={checkoutT}
-        />
+        <OrderHistorySettlementDetails summary={settlement.summary} checkoutT={checkoutT} />
       ) : null}
 
       {detail.showSplitSection ? (
@@ -106,48 +97,15 @@ export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: P
         />
       ) : null}
 
-      <div className="rounded-lg border border-brand-border/60 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setOrderItemsOpen((open) => !open)}
-          className="w-full flex items-center justify-between px-3 py-2.5 text-left text-[13px] text-brand-text-muted hover:bg-brand-border/20 transition-colors"
-        >
-          <span>{checkoutT.orderItemsCount.replace('{n}', String(detail.tableLines.length))}</span>
-          <span aria-hidden>{orderItemsOpen ? '▾' : '▸'}</span>
-        </button>
-        {orderItemsOpen ? (
-          detail.tableLines.length === 0 ? (
-            <p className="text-brand-text-muted text-sm px-3 pb-3">{checkoutT.orderItemsEmpty}</p>
-          ) : (
-            <div className="border-t border-brand-border/60">
-              {detail.tableLines.map((line) => (
-                <div
-                  key={line.key}
-                  className="flex items-center justify-between gap-2 px-3 py-2 border-b border-brand-border/40 last:border-0"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 flex-wrap">
-                    <span className="text-brand-text text-sm font-medium truncate">
-                      {line.label || '—'}
-                    </span>
-                    <span className="text-brand-text text-[13px] tabular-nums">
-                      {line.quantityLabel}
-                    </span>
-                  </div>
-                  <span className="text-brand-text text-sm font-semibold tabular-nums shrink-0">
-                    €{line.lineTotal.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-              <div className="flex items-center justify-between px-3 py-2 bg-brand-border/25 text-sm">
-                <span className="text-brand-text font-medium">{checkoutT.orderItemsTotal}</span>
-                <span className="text-brand-text font-semibold tabular-nums">
-                  €{detail.tableLinesTotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          )
-        ) : null}
-      </div>
+      <CheckoutTableItemsSection
+        lines={detail.tableLines}
+        total={detail.tableLinesTotal}
+        labels={{
+          orderItemsCount: checkoutT.orderItemsCount,
+          orderItemsEmpty: checkoutT.orderItemsEmpty,
+          orderItemsTotal: checkoutT.orderItemsTotal,
+        }}
+      />
     </div>
   );
 }

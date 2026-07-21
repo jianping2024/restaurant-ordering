@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Button } from '@/components/ui/Button';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import {
   formatLastSeenRelative,
@@ -100,14 +101,16 @@ export function PrintAgentDevicesPanel({
           <h2 className="text-lg font-semibold text-brand-ink">{t.devicesTitle}</h2>
           <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitle}</p>
         </div>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="h-auto px-0 py-0 text-sm text-brand-primary hover:underline"
+          loading={loading}
           onClick={() => void refresh()}
-          disabled={loading}
-          className="text-sm text-brand-primary hover:underline disabled:opacity-50"
         >
-          {loading ? t.devicesRefreshing : t.devicesRefresh}
-        </button>
+          {t.devicesRefresh}
+        </Button>
       </div>
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
       <ul className="modal-scroll mt-4 max-h-96 space-y-3 overflow-y-auto">

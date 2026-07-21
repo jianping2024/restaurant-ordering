@@ -205,7 +205,6 @@ function ToolbarCloseTableControl({
   isDemo,
   closingDemoTable,
   closeLabel,
-  closeOperatingLabel,
   onDemoCloseClick,
   onTableClosed,
 }: {
@@ -215,7 +214,6 @@ function ToolbarCloseTableControl({
   isDemo: boolean;
   closingDemoTable: boolean;
   closeLabel: string;
-  closeOperatingLabel: string;
   onDemoCloseClick: () => void;
   onTableClosed: () => void;
 }) {
@@ -229,10 +227,11 @@ function ToolbarCloseTableControl({
         type="button"
         variant="close"
         onClick={onDemoCloseClick}
-        disabled={closingDemoTable}
+        loading={closingDemoTable}
+        aria-label={closeLabel}
         icon={closeIcon}
       >
-        {closingDemoTable ? closeOperatingLabel : closeLabel}
+        {closeLabel}
       </WaiterTablePrimaryButton>
     );
   }
@@ -296,7 +295,7 @@ function WaiterTableCheckoutCloseControl({
   };
 
   const handleConfirm = async () => {
-    if (!sessionId) return;
+    if (busy || !sessionId) return;
     setBusy(true);
     try {
       const outcome = await runWaiterTableCheckoutClose({
@@ -336,10 +335,11 @@ function WaiterTableCheckoutCloseControl({
       <WaiterTableSecondaryButton
         type="button"
         onClick={handleClick}
-        disabled={busy}
+        loading={busy}
+        aria-label={label}
         icon={icon}
       >
-        {busy ? t.checkoutCloseOperating : label}
+        {label}
       </WaiterTableSecondaryButton>
       <ConfirmModal
         open={confirmOpen}
@@ -449,7 +449,6 @@ export function WaiterTableOccupiedToolbar({
             isDemo={isDemo}
             closingDemoTable={closingDemoTable}
             closeLabel={t.closeTable}
-            closeOperatingLabel={t.closeTableOperating}
             onDemoCloseClick={onDemoCloseClick}
             onTableClosed={onTableClosed}
           />

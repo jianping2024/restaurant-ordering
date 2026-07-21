@@ -203,8 +203,8 @@ export function FeatureFlagsManager({
       ) : null}
 
       <div className="mt-6">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? t.saving : t.save}
+        <Button onClick={handleSave} loading={saving}>
+          {t.save}
         </Button>
       </div>
     </div>

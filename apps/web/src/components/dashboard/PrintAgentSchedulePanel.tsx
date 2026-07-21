@@ -9,6 +9,7 @@ import {
 } from '@/lib/print-agent-config';
 import { getMessages } from '@/lib/i18n/messages';
 import { IntegerInput } from '@/components/ui/IntegerInput';
+import { Button } from '@/components/ui/Button';
 import { TimeHmInput } from '@/components/ui/TimeHmInput';
 
 const TIMEZONES = [
@@ -249,14 +250,9 @@ export function PrintAgentSchedulePanel({
       )}
 
       <div className="flex flex-wrap items-center gap-2 pt-1">
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => void save()}
-          className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-on-gold font-medium hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? '…' : t.scheduleSave}
-        </button>
+        <Button type="button" size="sm" loading={saving} onClick={() => void save()}>
+          {t.scheduleSave}
+        </Button>
       </div>
 
     </div>

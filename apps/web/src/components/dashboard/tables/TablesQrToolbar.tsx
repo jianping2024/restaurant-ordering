@@ -150,7 +150,7 @@ export function TablesQrToolbar({
             >
               {t.addTables}
             </Button>
-            <Button onClick={onSaveTables} size="sm" loading={saving} disabled={!dirty || saving}>
+            <Button onClick={onSaveTables} size="sm" loading={saving} disabled={!dirty}>
               {t.saveTables}
             </Button>
             <Button onClick={onPrintAll} variant="outline" size="sm" disabled={filteredCount === 0}>

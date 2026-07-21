@@ -112,7 +112,7 @@ export function StaffChangePasswordForm() {
             {error}
           </p>
         ) : null}
-        <Button type="submit" className="w-full" size="lg" disabled={loading} loading={loading}>
+        <Button type="submit" className="w-full" size="lg" loading={loading}>
           {t.changeSubmit}
         </Button>
       </form>

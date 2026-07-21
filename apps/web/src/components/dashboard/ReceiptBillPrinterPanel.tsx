@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { Button } from '@/components/ui/Button';
 import { ReceiptPrinterSelect } from '@/components/dashboard/ReceiptPrinterSelect';
 import { getMessages } from '@/lib/i18n/messages';
 import type { ReceiptPrinterOption } from '@/lib/print-receipt-printer-options';
@@ -76,14 +77,9 @@ export function ReceiptBillPrinterPanel({
         />
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => void save()}
-          disabled={saving}
-          className="text-sm font-semibold px-4 py-2 rounded-lg bg-brand-gold text-brand-bg hover:opacity-90 disabled:opacity-50 transition-opacity"
-        >
-          {saving ? t.saving : t.save}
-        </button>
+        <Button type="button" size="sm" onClick={() => void save()} loading={saving}>
+          {t.save}
+        </Button>
         {saved ? <span className="text-sm text-emerald-500">{t.saved}</span> : null}
         {error ? (
           <span className="text-sm text-red-500">

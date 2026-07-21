@@ -79,6 +79,7 @@ export function CloseTableSessionAction({
     closeReason?: string,
     closeReasonDetail?: string,
   ) => {
+    if (closingTable) return;
     setClosingTable(closeTableId);
     setUnpaidCloseReasonError(null);
     try {
@@ -147,7 +148,9 @@ export function CloseTableSessionAction({
         type="button"
         variant={variant}
         size={size}
-        disabled={disabled || isClosing}
+        disabled={disabled}
+        loading={isClosing}
+        aria-label={i18n.closeTable}
         onClick={() => {
           if (reasonCloseEntry) {
             setUnpaidCloseReasonOpen(true);
@@ -158,7 +161,7 @@ export function CloseTableSessionAction({
         className={className}
       >
         {leadingIcon}
-        {isClosing ? i18n.closeTableOperating : i18n.closeTable}
+        {i18n.closeTable}
       </Button>
       <ConfirmModal
         open={confirmOpen}

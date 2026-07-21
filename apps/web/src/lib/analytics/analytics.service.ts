@@ -85,17 +85,14 @@ export async function getValueOverview(
     bundle.splitsBySession,
   );
 
-  const qualifyingInRange = qualifying.filter(
-    (session) => session.closed_at && isIsoInWindow(session.closed_at, window.startUtc, window.endExclusiveUtc),
-  );
   const qualifying7d = qualifying.filter(
     (session) => session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
   );
 
   const revenueTrend = revenueTrendFromBundle(window.dateKeys, bundle);
-  const customerTrend = buildCustomerTrend(window.dateKeys, qualifyingInRange, bundle.ordersBySession);
+  const customerTrend = buildCustomerTrend(window.dateKeys, qualifying, bundle.ordersBySession);
 
-  const rangeOrders = collectOrdersForSessions(qualifyingInRange, bundle.ordersBySession);
+  const rangeOrders = collectOrdersForSessions(qualifying, bundle.ordersBySession);
   const stockOrders = collectOrdersForSessions(qualifying7d, bundle.ordersBySession);
 
   const rangeRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(rangeOrders), 10);

@@ -4,8 +4,8 @@ import type { BillSplit, Order } from '@/types';
 import {
   filterQualifyingClosedSessions,
   todayRevenueFromBundle,
+  type ClosedSessionRevenueBundle,
 } from '@/lib/analytics/closed-session-revenue';
-import type { ClosedSessionRevenueBundle } from '@/lib/analytics/closed-session-revenue';
 
 function bundle(partial: Partial<ClosedSessionRevenueBundle>): ClosedSessionRevenueBundle {
   return {

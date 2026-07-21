@@ -112,13 +112,12 @@ export function revenueTrendFromBundle(
 export function revenueSessionCountForDateKey(
   bundle: ClosedSessionRevenueBundle,
   dateKey: string,
-): number {
-  const qualifying = filterQualifyingClosedSessions(
+  qualifying: ClosedSessionRow[] = filterQualifyingClosedSessions(
     bundle.sessions,
     bundle.ordersBySession,
     bundle.splitsBySession,
-  );
-
+  ),
+): number {
   let count = 0;
   for (const session of qualifying) {
     if (bundle.forcedClosedSessionIds.has(session.id)) continue;
@@ -136,9 +135,20 @@ export function todayRevenueFromBundle(
   bundle: ClosedSessionRevenueBundle,
   todayDateKey: string,
 ): { todayRevenue: number; revenueSessionCount: number } {
-  const trend = revenueTrendFromBundle([todayDateKey], bundle);
+  const qualifying = filterQualifyingClosedSessions(
+    bundle.sessions,
+    bundle.ordersBySession,
+    bundle.splitsBySession,
+  );
+  const trend = buildRevenueTrend(
+    [todayDateKey],
+    qualifying,
+    bundle.ordersBySession,
+    bundle.splitsBySession,
+    bundle.forcedClosedSessionIds,
+  );
   return {
     todayRevenue: trend[0]?.revenue ?? 0,
-    revenueSessionCount: revenueSessionCountForDateKey(bundle, todayDateKey),
+    revenueSessionCount: revenueSessionCountForDateKey(bundle, todayDateKey, qualifying),
   };
 }

@@ -2,8 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs, type MenuItemAgg } from '@/lib/analytics/aggregate-items';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
-import type { Order } from '@/types';
+import type { BillSplit, Order } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
+import { sessionRevenue } from '@/lib/analytics/qualifying';
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
@@ -153,9 +154,52 @@ function dishNameFromRow(row: DishFeedbackRow, lang: UILanguage): string {
   return nested?.name_en || nested?.name_pt || nested?.name_zh || row.menu_item_id;
 }
 
-export function computeTodayKpis(orders: Order[]): DashboardTodayKpis {
+export function computeTodayKpis(
+  orders: Order[],
+  sessions?: Array<{ id: string; status: string }>,
+  splits?: Array<Pick<BillSplit, 'session_id' | 'status' | 'discount_rate' | 'result' | 'total_amount'>>,
+  forcedClosedSessionIds?: Set<string>,
+): DashboardTodayKpis {
   const todayOrderCount = orders.length;
-  const todayRevenue = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+
+  if (!sessions || !splits) {
+    const todayRevenue = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+    const avgTicketPrice = todayOrderCount > 0 ? todayRevenue / todayOrderCount : 0;
+    return { todayOrderCount, todayRevenue, avgTicketPrice };
+  }
+
+  const ordersBySession = new Map<string, Order[]>();
+  const splitsBySession = new Map<string, typeof splits>();
+
+  for (const order of orders) {
+    if (!order.session_id) continue;
+    const existing = ordersBySession.get(order.session_id) || [];
+    existing.push(order);
+    ordersBySession.set(order.session_id, existing);
+  }
+
+  for (const split of splits) {
+    if (!split.session_id) continue;
+    const existing = splitsBySession.get(split.session_id) || [];
+    existing.push(split);
+    splitsBySession.set(split.session_id, existing);
+  }
+
+  let todayRevenue = 0;
+
+  for (const session of sessions) {
+    if (forcedClosedSessionIds && forcedClosedSessionIds.has(session.id)) {
+      continue;
+    }
+
+    const sessionOrders = ordersBySession.get(session.id) || [];
+    const sessionSplits = splitsBySession.get(session.id) || [];
+    const sessionClosed = session.status === 'closed';
+
+    const revenue = sessionRevenue(sessionOrders, sessionSplits, sessionClosed);
+    todayRevenue += revenue;
+  }
+
   const avgTicketPrice = todayOrderCount > 0 ? todayRevenue / todayOrderCount : 0;
   return { todayOrderCount, todayRevenue, avgTicketPrice };
 }
@@ -252,6 +296,7 @@ export async function loadDashboardOverviewData(
 ): Promise<DashboardOverviewData> {
   const sinceIso = feedbackLookbackIso(now);
   const todayIso = todayStartIso(now);
+  const tomorrowIso = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
 
   const [
     { data: todayOrders },
@@ -263,6 +308,9 @@ export async function loadDashboardOverviewData(
     { data: feedbackSessions },
     { data: billedSplits },
     { data: dishFeedbackRows },
+    { data: todaySessions },
+    { data: todaySplits },
+    { data: forcedCloseAbnormals },
   ] = await Promise.all([
     admin
       .from('orders')
@@ -308,9 +356,31 @@ export async function loadDashboardOverviewData(
       .select('menu_item_id, vote, reasons, menu_items(name_pt, name_en, name_zh)')
       .eq('restaurant_id', restaurantId)
       .gte('created_at', sinceIso),
+    admin
+      .from('table_sessions')
+      .select('id, status, opened_at')
+      .eq('restaurant_id', restaurantId)
+      .gte('opened_at', todayIso)
+      .lt('opened_at', tomorrowIso),
+    admin
+      .from('bill_splits')
+      .select('session_id, status, discount_rate, result, total_amount')
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', todayIso),
+    admin
+      .from('abnormal_operations')
+      .select('session_id')
+      .eq('restaurant_id', restaurantId)
+      .eq('type', 'UNPAID_TABLE_CLOSED')
+      .gte('created_at', todayIso),
   ]);
 
   const orders = (todayOrders || []) as Order[];
+  const sessions = (todaySessions || []) as Array<{ id: string; status: string }>;
+  const splits = (todaySplits || []) as Array<Pick<BillSplit, 'session_id' | 'status' | 'discount_rate' | 'result' | 'total_amount'>>;
+  const forcedClosedSessionIds = new Set(
+    (forcedCloseAbnormals || []).map((row: { session_id: string | null }) => row.session_id).filter(Boolean) as string[]
+  );
 
   return {
     todayOrders: orders,
@@ -321,7 +391,7 @@ export async function loadDashboardOverviewData(
       pendingAbnormal: pendingAbnormalCount ?? 0,
       pendingPrint: pendingPrintCount ?? 0,
     },
-    todayKpis: computeTodayKpis(orders),
+    todayKpis: computeTodayKpis(orders, sessions, splits, forcedClosedSessionIds),
     feedbackInputs: {
       feedbackSessions: (feedbackSessions || []) as FeedbackSessionRow[],
       billedSplits: (billedSplits || []) as BilledSplitRow[],

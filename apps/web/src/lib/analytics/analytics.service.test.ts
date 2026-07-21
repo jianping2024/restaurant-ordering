@@ -57,7 +57,7 @@ describe('isQualifyingSession', () => {
 });
 
 describe('sessionRevenue', () => {
-  it('sums paid split rows with discount semantics', () => {
+  it('sums paid split rows without discount', () => {
     const splits: BillSplit[] = [
       {
         id: 's1',
@@ -74,13 +74,60 @@ describe('sessionRevenue', () => {
         total_amount: 50,
         status: 'paid',
         created_at: '',
-      },
+        discount_rate: 0,
+      } as BillSplit,
     ];
     assert.equal(sessionRevenue([], splits), 50);
   });
 
+  it('applies discount to paid split rows', () => {
+    const splits: BillSplit[] = [
+      {
+        id: 's1',
+        restaurant_id: 'r',
+        table_id: 't',
+        display_name: '1',
+        order_ids: [],
+        split_mode: 'even',
+        persons: [],
+        result: [
+          { name: 'A', amount: 100, paid: true },
+        ],
+        total_amount: 100,
+        status: 'paid',
+        created_at: '',
+        discount_rate: 10,
+      } as BillSplit,
+    ];
+    assert.equal(sessionRevenue([], splits), 90);
+  });
+
   it('falls back to order totals when no paid split', () => {
     assert.equal(sessionRevenue([{ total_amount: 33.5 }], []), 33.5);
+  });
+
+  it('applies discount from last split when session is closed', () => {
+    const splits: BillSplit[] = [
+      {
+        id: 's1',
+        restaurant_id: 'r',
+        table_id: 't',
+        display_name: '1',
+        order_ids: [],
+        split_mode: 'even',
+        persons: [],
+        result: [],
+        total_amount: 100,
+        status: 'requested',
+        created_at: '',
+        discount_rate: 10,
+      } as BillSplit,
+    ];
+    assert.equal(sessionRevenue([{ total_amount: 100 }], splits, true), 90);
+  });
+
+  it('uses order total without discount when session closed but no split', () => {
+    assert.equal(sessionRevenue([{ total_amount: 100 }], [], true), 100);
   });
 });
 

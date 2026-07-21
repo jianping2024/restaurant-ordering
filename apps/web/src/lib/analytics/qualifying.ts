@@ -2,6 +2,11 @@ import { auditMoney } from '@/lib/audit/money';
 import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
 import type { BillSplit, Order, SplitResult } from '@/types';
 
+function applyDiscountToAmount(amount: number, discountRate: number): number {
+  const factor = 1 - Math.min(100, Math.max(0, discountRate)) / 100;
+  return auditMoney(amount * factor);
+}
+
 export function isQualifyingSession(
   orders: Pick<Order, 'total_amount'>[],
   splits: Pick<BillSplit, 'status'>[],
@@ -15,26 +20,43 @@ export function isQualifyingSession(
 
 export function sessionRevenue(
   orders: Pick<Order, 'total_amount'>[],
-  splits: Pick<BillSplit, 'status' | 'result' | 'total_amount'>[],
+  splits: Pick<BillSplit, 'status' | 'result' | 'total_amount' | 'discount_rate'>[],
+  sessionClosed: boolean = false,
 ): number {
   const paidSplits = splits.filter((split) => split.status === 'paid');
   if (paidSplits.length > 0) {
     let total = 0;
     for (const split of paidSplits) {
+      const discountRate = Number(split.discount_rate) || 0;
       const rows = (split.result || []) as SplitResult[];
       for (const row of rows) {
         if (row.paid === true) {
-          total += Number(row.amount) || 0;
+          const discountedAmount = applyDiscountToAmount(Number(row.amount) || 0, discountRate);
+          total += discountedAmount;
         }
       }
     }
     if (total <= 0) {
-      total = paidSplits.reduce((sum, split) => sum + (Number(split.total_amount) || 0), 0);
+      const splitTotal = paidSplits.reduce((sum, split) => sum + (Number(split.total_amount) || 0), 0);
+      const avgDiscountRate = paidSplits.length > 0
+        ? paidSplits.reduce((sum, split) => sum + (Number(split.discount_rate) || 0), 0) / paidSplits.length
+        : 0;
+      total = applyDiscountToAmount(splitTotal, avgDiscountRate);
     }
     return auditMoney(total);
   }
 
-  return auditMoney(orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0));
+  const orderTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+
+  if (sessionClosed && splits.length > 0) {
+    const lastSplit = splits.reduce((latest, split) => {
+      return !latest ? split : split;
+    });
+    const discountRate = Number(lastSplit.discount_rate) || 0;
+    return applyDiscountToAmount(orderTotal, discountRate);
+  }
+
+  return auditMoney(orderTotal);
 }
 
 export function sessionGuestCounts(

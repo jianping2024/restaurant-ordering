@@ -17,16 +17,19 @@ export function buildRevenueTrend(
   sessions: ClosedSessionRow[],
   ordersBySession: Map<string, Order[]>,
   splitsBySession: Map<string, BillSplit[]>,
+  forcedClosedSessionIds: Set<string> = new Set(),
 ): RevenueTrendPoint[] {
   const daily = new Map<string, number>();
   for (const key of dateKeys) daily.set(key, 0);
 
   for (const session of sessions) {
     if (!session.closed_at) continue;
+    if (forcedClosedSessionIds.has(session.id)) continue;
+    
     const bucket = sessionDateKeyFromIso(session.closed_at);
     const orders = ordersBySession.get(session.id) || [];
     const splits = splitsBySession.get(session.id) || [];
-    const revenue = sessionRevenue(orders, splits);
+    const revenue = sessionRevenue(orders, splits, true);
     daily.set(bucket, auditMoney((daily.get(bucket) || 0) + revenue));
   }
 

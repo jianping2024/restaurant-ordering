@@ -345,10 +345,21 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 营业额（`sessionRevenue`）
 
-1. **优先**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和
-2. **回退**：`paid` split 的 `total_amount`
-3. **无 paid split**：该会话 `orders.total_amount` 之和
-4. 金额经 `auditMoney` 四舍五入
+**统计口径（2026-07-21 更新）**：
+1. **已付清收款**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和，**应用 `discount_rate` 折扣**
+2. **已付清回退**：`paid` split 的 `total_amount`，应用平均折扣率
+3. **已关台（非强制）**：会话 `status='closed'` 且**不在** `abnormal_operations.type='UNPAID_TABLE_CLOSED'` 中
+   - 有 split：应用最后一个 split 的 `discount_rate` 到订单总额
+   - 无 split：订单原价（无折扣）
+4. **未关台 / 强制关台**：不计入营业额统计
+5. 金额经 `auditMoney` 四舍五入
+
+**关台路径与统计：**
+- ✅ `frontdesk_closed`（前台关台结账）→ 计入营业额
+- ✅ `cashier_closed`（收银员关台）→ 计入营业额
+- ✅ `owner_closed`（店主关台）→ 计入营业额
+- ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
+- ❌ 强制关台（有 `UNPAID_TABLE_CLOSED` 异常记录）→ **不计入**营业额
 
 ### 客数
 
@@ -366,6 +377,8 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 - API **仅 owner**；客户端不可传 `restaurant_id`
 - 只读，不写快照表
 - 与营业主流程解耦（不改变订单/结账）
+- **折扣必须反映在营业额**：所有已付/已关台会话均应用 `discount_rate`
+- **强制关台排除**：查询 `abnormal_operations` 识别并过滤
 
 ### 相关代码
 

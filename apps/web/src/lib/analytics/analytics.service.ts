@@ -53,6 +53,27 @@ function collectOrdersForSessions(
   return orders;
 }
 
+async function queryForcedClosedSessions(
+  admin: SupabaseClient,
+  restaurantId: string,
+  startUtc: string,
+  endExclusiveUtc: string,
+): Promise<Set<string>> {
+  const { data, error } = await admin
+    .from('abnormal_operations')
+    .select('session_id')
+    .eq('restaurant_id', restaurantId)
+    .eq('type', 'UNPAID_TABLE_CLOSED')
+    .gte('created_at', startUtc)
+    .lt('created_at', endExclusiveUtc);
+
+  if (error || !data) {
+    return new Set();
+  }
+
+  return new Set(data.map((row) => row.session_id).filter(Boolean) as string[]);
+}
+
 function emptyOverview(range: AnalyticsRange, dateKeys: string[]): ValueOverviewResponse {
   return {
     range,
@@ -94,9 +115,11 @@ export async function getValueOverview(
   }
 
   const sessionIds = allSessions.map((session) => session.id);
-  const [ordersResult, splitsResult] = await Promise.all([
+  const rangeEndExclusive = window.endExclusiveUtc;
+  const [ordersResult, splitsResult, forcedCloseSessionIds] = await Promise.all([
     fetchOrdersBySessionIds(admin, restaurantId, sessionIds),
     fetchBillSplitsBySessionIds(admin, restaurantId, sessionIds),
+    queryForcedClosedSessions(admin, restaurantId, window.startUtc, rangeEndExclusive),
   ]);
 
   if (!ordersResult.ok) {
@@ -117,7 +140,7 @@ export async function getValueOverview(
     (session) => session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
   );
 
-  const revenueTrend = buildRevenueTrend(window.dateKeys, qualifyingInRange, ordersBySession, splitsBySession);
+  const revenueTrend = buildRevenueTrend(window.dateKeys, qualifyingInRange, ordersBySession, splitsBySession, forcedCloseSessionIds);
   const customerTrend = buildCustomerTrend(window.dateKeys, qualifyingInRange, ordersBySession);
 
   const rangeOrders = collectOrdersForSessions(qualifyingInRange, ordersBySession);

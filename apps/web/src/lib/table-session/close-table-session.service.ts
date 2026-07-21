@@ -82,13 +82,7 @@ export type CloseTableSessionFrontdeskCheckoutResult =
   | { ok: true; session_id: string }
   | {
       ok: false;
-      code:
-        | 'no_session'
-        | 'session_billing'
-        | 'checkout_in_progress'
-        | 'partial_payment_ledger'
-        | 'unfinished_kitchen_orders'
-        | 'update_failed';
+      code: 'no_session' | 'update_failed';
       message?: string;
     };
 

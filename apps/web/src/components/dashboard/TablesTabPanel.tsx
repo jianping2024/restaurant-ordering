@@ -287,7 +287,6 @@ export function TablesTabPanel({
             addTableCountLabel: t.addTableCountLabel,
             addTables: t.addTables,
             saveTables: t.saveTables,
-            savingTables: t.savingTables,
             print: t.print,
           }}
           onSearchChange={setSearch}

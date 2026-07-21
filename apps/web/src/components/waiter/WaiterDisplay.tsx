@@ -730,7 +730,6 @@ function WaiterBoardInner({
                 createDisabled={isDemo}
                 menuLabel={t.partyMenu}
                 createLabel={t.partyMenuCreate}
-                creatingLabel={t.partyCreating}
                 sectionCountLabel={(n) => t.partySectionCount.replace('{n}', String(n))}
                 onCreate={() => void partyActionsRef.current?.createParty()}
                 onSelectParty={(partyId) => selectLane(partyLaneKey(partyId))}

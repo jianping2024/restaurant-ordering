@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 
@@ -30,6 +31,22 @@ export function ConfirmModal({
   variant = 'default',
   confirming = false,
 }: ConfirmModalProps) {
+  const inFlightRef = useRef(false);
+
+  useEffect(() => {
+    if (!open) {
+      inFlightRef.current = false;
+    }
+  }, [open]);
+
+  const handleConfirm = () => {
+    if (inFlightRef.current || confirming) return;
+    inFlightRef.current = true;
+    void Promise.resolve(onConfirm()).finally(() => {
+      inFlightRef.current = false;
+    });
+  };
+
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">
       <div className="space-y-4">
@@ -43,7 +60,7 @@ export function ConfirmModal({
             variant={variant === 'danger' ? 'danger' : 'gold'}
             size="sm"
             loading={confirming}
-            onClick={() => void onConfirm()}
+            onClick={handleConfirm}
           >
             {confirmLabel}
           </Button>

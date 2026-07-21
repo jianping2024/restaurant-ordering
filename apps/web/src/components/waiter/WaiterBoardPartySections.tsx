@@ -209,6 +209,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
       setEditingName(party.name);
       return;
     }
+    if (busy) return;
     setBusy(true);
     try {
       const result = await renameWaiterTableParty(restaurantSlug, partyId, nextName);
@@ -231,6 +232,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
       showToast(t.partyDemoReadonly, 'info');
       return;
     }
+    if (busy) return;
     setBusy(true);
     try {
       const result = await createWaiterTableParty(restaurantSlug);
@@ -262,6 +264,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
     t.partyCreateFailed,
     t.partyDemoReadonly,
     t.partyNameDuplicate,
+    busy,
   ]);
 
   useImperativeHandle(ref, () => ({ createParty }), [createParty]);
@@ -272,7 +275,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
   };
 
   const confirmDissolve = async () => {
-    if (!dissolveTarget || isDemo) return;
+    if (busy || !dissolveTarget || isDemo) return;
     const party = dissolveTarget;
     if (editingPartyId === party.id) cancelRename();
     setBusy(true);
@@ -290,7 +293,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
   };
 
   const removeTable = async (partyId: string, tableId: string) => {
-    if (isDemo) return;
+    if (busy || isDemo) return;
     setBusy(true);
     try {
       const result = await removeTableFromWaiterTableParty(restaurantSlug, partyId, tableId);
@@ -335,7 +338,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
   };
 
   const runOneClickMerge = async () => {
-    if (!mergeConfirm || isDemo) return;
+    if (busy || !mergeConfirm || isDemo) return;
     const { party, plan } = mergeConfirm;
     setBusy(true);
     try {
@@ -406,6 +409,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
   };
 
   const submitAdd = async (partyId: string, tableIds: string[], confirmMove: boolean) => {
+    if (busy) return;
     setBusy(true);
     try {
       const result = await addTablesToWaiterTableParty(
@@ -654,7 +658,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
               void submitAdd(addTarget.id, selectedIds, false);
             }}
           >
-            {busy ? t.partyAddOperating : t.partyAddConfirm}
+            {t.partyAddConfirm}
           </Button>
         </div>
       </Modal>
@@ -727,7 +731,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
             loading={busy}
             onClick={() => void runOneClickMerge()}
           >
-            {busy ? t.partyMergeOperating : t.partyMergeConfirm}
+            {t.partyMergeConfirm}
           </Button>
         </div>
       </Modal>

@@ -33,7 +33,6 @@ type Props = {
     addTableCountLabel: string;
     addTables: string;
     saveTables: string;
-    savingTables: string;
     print: string;
   };
   onSearchChange: (value: string) => void;
@@ -152,7 +151,7 @@ export function TablesQrToolbar({
               {t.addTables}
             </Button>
             <Button onClick={onSaveTables} size="sm" loading={saving} disabled={!dirty || saving}>
-              {saving ? t.savingTables : t.saveTables}
+              {t.saveTables}
             </Button>
             <Button onClick={onPrintAll} variant="outline" size="sm" disabled={filteredCount === 0}>
               {t.print}

@@ -17,7 +17,6 @@ type Props = {
   createDisabled: boolean;
   menuLabel: string;
   createLabel: string;
-  creatingLabel: string;
   sectionCountLabel: (n: number) => string;
   onCreate: () => void;
   onSelectParty: (partyId: string) => void;
@@ -61,7 +60,6 @@ export function WaiterBoardPartyLaneMenu({
   createDisabled,
   menuLabel,
   createLabel,
-  creatingLabel,
   sectionCountLabel,
   onCreate,
   onSelectParty,
@@ -178,7 +176,7 @@ export function WaiterBoardPartyLaneMenu({
                       onCreate();
                     }}
                   >
-                    {busy ? creatingLabel : createLabel}
+                    {createLabel}
                   </Button>
                 </div>
               ) : null}

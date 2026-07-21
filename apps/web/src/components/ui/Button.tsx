@@ -12,7 +12,7 @@ export const buttonIcon = {
 } as const;
 
 const baseClass =
-  'inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2';
+  'relative inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer focus-visible:ring-2';
 
 const variants: Record<ButtonVariant, string> = {
   gold:
@@ -47,6 +47,15 @@ export function buttonClasses({
   return [baseClass, variants[variant], sizes[size], className].filter(Boolean).join(' ');
 }
 
+function ButtonSpinner() {
+  return (
+    <svg className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}
+
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -54,21 +63,53 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'gold', size = 'md', loading, disabled, className = '', children, ...props }, ref) => {
+  (
+    {
+      variant = 'gold',
+      size = 'md',
+      loading = false,
+      disabled = false,
+      className = '',
+      children,
+      'aria-label': ariaLabel,
+      ...props
+    },
+    ref,
+  ) => {
+    const isDisabled = disabled || loading;
+    const stringLabel = typeof children === 'string' ? children : undefined;
+    const loadingAccessibleName = stringLabel ?? ariaLabel;
+
     return (
       <button
         ref={ref}
-        disabled={disabled || loading}
-        className={buttonClasses({ variant, size, className })}
         {...props}
+        disabled={isDisabled}
+        aria-busy={loading || undefined}
+        aria-label={loading ? loadingAccessibleName : ariaLabel}
+        className={[
+          buttonClasses({ variant, size, className }),
+          loading ? 'cursor-wait' : 'disabled:cursor-not-allowed disabled:opacity-50',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       >
+        <span
+          aria-hidden={loading || undefined}
+          className={[
+            'inline-flex items-center justify-center gap-2',
+            loading ? 'invisible' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
+          {children}
+        </span>
         {loading ? (
-          <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
+          <span className="pointer-events-none absolute inset-0 inline-flex items-center justify-center">
+            <ButtonSpinner />
+          </span>
         ) : null}
-        {children}
       </button>
     );
   },
@@ -93,7 +134,7 @@ export function ButtonLink({
   const classes = buttonClasses({
     variant,
     size,
-    className: `no-underline${disabled ? ' opacity-50 pointer-events-none' : ''}${className ? ` ${className}` : ''}`,
+    className: `no-underline disabled:opacity-50 disabled:cursor-not-allowed${disabled ? ' opacity-50 pointer-events-none' : ''}${className ? ` ${className}` : ''}`,
   });
 
   if (disabled) {

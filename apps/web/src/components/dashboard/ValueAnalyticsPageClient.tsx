@@ -136,19 +136,22 @@ export function ValueAnalyticsPageClient({
   const skipInitialFetch = useRef(initialOverview != null && !initialLoadFailed);
 
   const fetchRange = useCallback(
-    async (targetRange: AnalyticsRange) => {
-      if (skipInitialFetch.current && targetRange === '7d') {
+    async (targetRange: AnalyticsRange, options?: { bypassCache?: boolean }) => {
+      if (skipInitialFetch.current && targetRange === '7d' && !options?.bypassCache) {
         skipInitialFetch.current = false;
         return;
       }
-      if (targetRange === loadedRange && data) {
+      if (targetRange === loadedRange && data && !options?.bypassCache) {
         return;
       }
 
       setIsRefreshing(true);
       setRefreshError(false);
       try {
-        const res = await fetch(`/api/analytics/value-overview?range=${targetRange}`);
+        const refreshQs = options?.bypassCache ? '&refresh=1' : '';
+        const res = await fetch(
+          `/api/analytics/value-overview?range=${targetRange}${refreshQs}`,
+        );
         if (res.status === 403) {
           setViewState('forbidden');
           return;
@@ -185,7 +188,7 @@ export function ValueAnalyticsPageClient({
   const retry = useCallback(() => {
     setRefreshError(false);
     setLoadedRange(null);
-    void fetchRange(range);
+    void fetchRange(range, { bypassCache: true });
   }, [fetchRange, range]);
 
   const revenuePoints = useMemo(

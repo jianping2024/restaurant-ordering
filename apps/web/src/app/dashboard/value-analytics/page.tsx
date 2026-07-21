@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { ValueAnalyticsPageClient } from '@/components/dashboard/ValueAnalyticsPageClient';
-import { getValueOverview } from '@/lib/analytics/analytics.service';
 import { getOwnerAnalyticsContext } from '@/lib/analytics/load-owner-analytics-context';
+import { getCachedValueOverview } from '@/lib/analytics/value-overview-cache';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 
 export default async function ValueAnalyticsPage() {
@@ -18,7 +18,7 @@ export default async function ValueAnalyticsPage() {
     notFound();
   }
 
-  const result = await getValueOverview(ctx.admin, ctx.restaurantId, '7d');
+  const result = await getCachedValueOverview(ctx.restaurantId, '7d');
 
   return (
     <ValueAnalyticsPageClient

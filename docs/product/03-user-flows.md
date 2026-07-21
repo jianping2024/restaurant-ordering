@@ -511,7 +511,7 @@
 
 ### 相关代码位置
 
-`components/dashboard/ValueAnalyticsPageClient.tsx`、`lib/analytics/analytics.service.ts`、`api/analytics/value-overview/route.ts`、`docs/value-analytics-design.zh.md`
+`components/dashboard/ValueAnalyticsPageClient.tsx`、`lib/analytics/analytics.service.ts`、`lib/analytics/value-overview-cache.ts`、`api/analytics/value-overview/route.ts`、`docs/value-analytics-design.zh.md`
 
 ---
 

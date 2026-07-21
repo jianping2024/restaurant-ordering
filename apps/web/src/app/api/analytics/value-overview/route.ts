@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getValueOverview } from '@/lib/analytics/analytics.service';
 import { analyticsValueOverviewRateLimitCheck } from '@/lib/analytics/analytics.rate-limit';
 import { loadOwnerAnalyticsContext } from '@/lib/analytics/load-owner-analytics-context';
 import { parseAnalyticsRange } from '@/lib/analytics/date-window';
+import { getCachedValueOverview } from '@/lib/analytics/value-overview-cache';
 
 export const runtime = 'nodejs';
 
@@ -23,12 +23,14 @@ export async function GET(req: Request) {
     );
   }
 
-  const range = parseAnalyticsRange(new URL(req.url).searchParams.get('range'));
+  const url = new URL(req.url);
+  const range = parseAnalyticsRange(url.searchParams.get('range'));
   if (!range) {
     return NextResponse.json({ error: 'invalid_range' }, { status: 400 });
   }
 
-  const result = await getValueOverview(ctx.admin, ctx.restaurantId, range);
+  const bypassCache = url.searchParams.get('refresh') === '1';
+  const result = await getCachedValueOverview(ctx.restaurantId, range, { bypassCache });
   if (!result.ok) {
     const status = result.code === 'query_limit_exceeded' ? 503 : 500;
     return NextResponse.json(

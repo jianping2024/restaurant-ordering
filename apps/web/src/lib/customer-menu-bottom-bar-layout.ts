@@ -1,4 +1,6 @@
-/** Docked customer menu footer — shared height and scroll padding (MenuPage + CustomerMenuFooter). */
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+
+/** Docked customer menu footer — layout and scroll padding (MenuPage + CustomerMenuFooter). */
 
 export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 
@@ -25,21 +27,13 @@ export const customerMenuBottomBarIconGapClass = 'gap-4';
 
 export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-gold';
 
-export const customerMenuBottomBarAmountLabelClass = 'text-sm font-medium text-brand-text';
-
-export const customerMenuBottomBarAmountValueClass =
-  'font-heading text-lg font-semibold tabular-nums text-brand-text';
-
 export const customerMenuBottomBarAmountRowClass = 'flex shrink-0 items-baseline gap-1';
 
-export const customerMenuBottomBarOrderedCountClass =
-  'truncate font-heading text-lg font-semibold text-brand-text';
-
 export const customerMenuBottomBarPrimaryActionClass =
-  'inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 text-[14px] font-semibold transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]';
+  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
 
 export const customerMenuBottomBarDisabledActionClass =
-  'inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 text-[14px] font-semibold pointer-events-none bg-brand-border/20 text-brand-text-muted';
+  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction} pointer-events-none bg-brand-border/20 text-brand-text-muted`;
 
 /** Scroll padding so the last menu row clears the docked bar (+ safe area + small end cushion). */
 export function customerMenuPageBottomPaddingClass(footerVisible: boolean): string {

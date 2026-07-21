@@ -1,13 +1,17 @@
-/** Typography tokens for customer menu ordering (category tabs + dish cards). */
+/** Typography tokens for the customer menu ordering surface (list, cart, footer). */
 export const CUSTOMER_MENU_TYPE = {
   categoryTop: 'text-lg',
   categoryTopActive: 'text-lg font-medium',
   categorySub: 'text-base',
   itemName: 'text-lg font-semibold leading-tight',
   itemDesc: 'text-sm leading-relaxed',
-  itemPrice: 'text-base font-semibold tabular-nums',
+  /** Dish price, cart line total, footer session total — one money role. */
+  moneyAmount: 'text-base font-semibold tabular-nums text-brand-gold',
   itemAction: 'text-base',
   itemSoldOut: 'text-base',
   cartLineName: 'text-lg font-semibold',
-  cartLinePrice: 'text-base font-semibold tabular-nums',
+  footerSummary: 'truncate text-base font-semibold text-brand-text',
+  footerAmountLabel: 'text-base font-medium text-brand-text',
+  footerHint: 'truncate text-base text-brand-text-muted',
+  footerPrimaryAction: 'text-base font-semibold',
 } as const;

@@ -3,18 +3,16 @@ import Link from 'next/link';
 import { CustomerCartIcon, CustomerOrderedBagIcon } from '@/components/menu/customer-ordering-icons';
 import {
   customerMenuBottomBarActionSlotClass,
-  customerMenuBottomBarAmountLabelClass,
   customerMenuBottomBarAmountRowClass,
-  customerMenuBottomBarAmountValueClass,
   customerMenuBottomBarDisabledActionClass,
   customerMenuBottomBarDockClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
-  customerMenuBottomBarOrderedCountClass,
   customerMenuBottomBarPrimaryActionClass,
   customerMenuBottomBarRowClass,
   customerMenuBottomBarSummarySlotClass,
 } from '@/lib/customer-menu-bottom-bar-layout';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import type { MenuPageFooterPhase, MenuPageFooterPrimaryAction, MenuPageFooterView } from '@/lib/menu-page-footer';
 
 type Labels = {
@@ -35,8 +33,8 @@ type Props = MenuPageFooterView & {
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
   return (
     <span className={customerMenuBottomBarAmountRowClass}>
-      <span className={customerMenuBottomBarAmountLabelClass}>{totalLabel}</span>
-      <span className={customerMenuBottomBarAmountValueClass}>€{amount.toFixed(2)}</span>
+      <span className={CUSTOMER_MENU_TYPE.footerAmountLabel}>{totalLabel}</span>
+      <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{amount.toFixed(2)}</span>
     </span>
   );
 }
@@ -89,7 +87,7 @@ function DraftSummary({
       {cartQty > 0 ? (
         <FooterAmount totalLabel={totalLabel} amount={cartTotal} />
       ) : (
-        <span className="truncate text-sm text-brand-text-muted">{viewCartLabel}</span>
+        <span className={CUSTOMER_MENU_TYPE.footerHint}>{viewCartLabel}</span>
       )}
     </button>
   );
@@ -108,7 +106,7 @@ function OrderedSummary({
     <div className={`flex min-w-0 flex-1 items-center ${customerMenuBottomBarIconGapClass}`}>
       <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <span className={customerMenuBottomBarOrderedCountClass}>{orderedCountLabel}</span>
+        <span className={CUSTOMER_MENU_TYPE.footerSummary}>{orderedCountLabel}</span>
         <FooterAmount totalLabel={totalLabel} amount={submittedTotal} />
       </div>
     </div>
@@ -130,7 +128,7 @@ function IdleSummary({
       aria-label={viewCartLabel}
     >
       <CustomerCartIcon className={customerMenuBottomBarIconClass} />
-      <span className="truncate text-sm text-brand-text-muted">{viewCartLabel}</span>
+      <span className={CUSTOMER_MENU_TYPE.footerHint}>{viewCartLabel}</span>
     </button>
   );
 }

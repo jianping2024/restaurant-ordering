@@ -67,7 +67,7 @@ export function MenuItemCard({
           </div>
         </div>
         <div className="flex items-center justify-between mt-3">
-          <span className={`text-brand-gold ${CUSTOMER_MENU_TYPE.itemPrice}`}>€{item.price.toFixed(2)}</span>
+          <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{item.price.toFixed(2)}</span>
 
           {item.available ? (
             cartQty > 0 ? (

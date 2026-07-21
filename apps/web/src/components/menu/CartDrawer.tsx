@@ -116,7 +116,7 @@ export function CartDrawer({
                     <p className={`text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName} truncate`}>
                       {formatCartMenuLineLabel(item, lang, menuItemCodeById[item.menuItemId])}
                     </p>
-                    <p className={`text-brand-gold ${CUSTOMER_MENU_TYPE.cartLinePrice}`}>€{lineTotal(item).toFixed(2)}</p>
+                    <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
                   </div>
                 </div>
                 <CartQtyStepper

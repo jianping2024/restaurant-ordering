@@ -3,14 +3,25 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
+import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
+  customerMenuBottomBarPrimaryActionClass,
   customerMenuBottomBarRowClass,
   customerMenuPageBottomPaddingClass,
   CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS,
   CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER,
 } from './customer-menu-bottom-bar-layout';
+
+describe('CUSTOMER_MENU_TYPE', () => {
+  it('uses body-scale tokens for footer summary and money (no font-heading)', () => {
+    assert.match(CUSTOMER_MENU_TYPE.footerSummary, /text-base/);
+    assert.match(CUSTOMER_MENU_TYPE.moneyAmount, /text-brand-gold/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.footerSummary, /font-heading/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.moneyAmount, /font-heading/);
+  });
+});
 
 describe('customerMenuPageBottomPaddingClass', () => {
   it('reserves bar height + safe area when footer is visible via a static Tailwind class', () => {
@@ -49,5 +60,10 @@ describe('customer menu bottom bar visual tokens', () => {
   it('uses enlarged icons and consistent icon-to-text spacing', () => {
     assert.match(customerMenuBottomBarIconClass, /h-8 w-8/);
     assert.equal(customerMenuBottomBarIconGapClass, 'gap-4');
+  });
+
+  it('uses shared footer primary action typography', () => {
+    assert.match(customerMenuBottomBarPrimaryActionClass, new RegExp(CUSTOMER_MENU_TYPE.footerPrimaryAction));
+    assert.match(customerMenuBottomBarPrimaryActionClass, /text-base/);
   });
 });

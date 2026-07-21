@@ -72,6 +72,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 
 ## Boundaries
 
+- **Git shipping:** local branch → local merge to `main` → push only when the user asks. Do not open GitHub PRs, enable auto-merge, or push/merge `origin/main` from Cloud/Background Agents unless explicitly asked in-thread. See `.cursor/rules/git-local-merge-push.mdc`.
 - Never commit secrets (`.env.local`, keys, JWTs, pairing codes, customer data). Never print env/tokens/cookies in replies.
 - New timestamped migrations only; do not weaken RLS, service-role, staff auth, print JWT, rate limits.
 - Careful: checkout, billing, transfer/merge, auto-close, print claim. No hard-delete of live tables/ops records unless product requires it.

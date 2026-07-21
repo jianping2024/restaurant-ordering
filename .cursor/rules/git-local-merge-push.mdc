@@ -1,0 +1,25 @@
+---
+description: Local branch → merge → push only; never auto-open PR or agent-merge main
+alwaysApply: true
+---
+
+# Git shipping (local merge → push)
+
+**Owner workflow:** open a local feature branch → finish work → merge into local `main` → `git push origin main` (or ask the user to push). Do **not** use GitHub PR as the default path.
+
+## Forbidden unless the user explicitly asks in this thread
+
+- `gh pr create` / opening a GitHub Pull Request
+- Enabling GitHub auto-merge / squash-merge into `main`
+- Pushing or merging **to `origin/main`** from a Cloud/Background Agent
+- Pushing remote feature branches solely so Actions/Cursor can open a PR
+
+## Cloud / Background Agents
+
+If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not** merge to `main`, do **not** open a PR, do **not** push `main`. Report the branch name and wait for the human to merge locally and push.
+
+## Still allowed without extra ask
+
+- Local commits on a feature branch
+- Local `git merge` into local `main` when the user asked to land the change that way
+- Pushing `main` only when the user explicitly says push / `pnpm push` / ship

@@ -22,13 +22,17 @@
 4. **Required status checks**：只加 **`Vercel`**（与 PR Checks 里绿色项名称一致；不要加 `web`）
 5. Save
 
-PR 上 Vercel Preview 变绿后，**手动** merge 进 `main` → Vercel Production 部署。（已关闭 GitHub Actions 自动 enable auto-merge。）
+**默认发版路径（2026-07-21 起）：** 本地开分支 → 本地 merge 进 `main` → `git push origin main`（或 `pnpm push`）→ Vercel Production。
+
+已删除 `.github/workflows/open-pr.yml`（推功能分支不再自动开 PR）。已关闭 GitHub Actions 自动 enable auto-merge。Agent / Cloud Agent **不得**自行开 PR 或合入 `origin/main`（见 `.cursor/rules/git-local-merge-push.mdc`）。
+
+若偶尔仍用 PR：Vercel Preview 变绿后 **手动** merge 进 `main`。
 
 ---
 
 ## 推送到 main（`pnpm push`）
 
-`main` 不能直接 `git push`；用：
+推荐日常：本地分支做完 → merge 到本地 `main` → 再推。也可用：
 
 ```bash
 pnpm push

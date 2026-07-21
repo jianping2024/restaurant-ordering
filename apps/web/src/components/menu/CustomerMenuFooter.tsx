@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { CustomerCartIcon, CustomerOrderedBagIcon } from '@/components/menu/customer-ordering-icons';
 import {
   customerMenuBottomBarActionSlotClass,
-  customerMenuBottomBarAmountRowClass,
   customerMenuBottomBarDisabledActionClass,
   customerMenuBottomBarDockClass,
   customerMenuBottomBarIconClass,
@@ -32,7 +31,7 @@ type Props = MenuPageFooterView & {
 
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
   return (
-    <span className={customerMenuBottomBarAmountRowClass}>
+    <span className="flex shrink-0 items-baseline gap-1">
       <span className={CUSTOMER_MENU_TYPE.footerAmountLabel}>{totalLabel}</span>
       <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{amount.toFixed(2)}</span>
     </span>

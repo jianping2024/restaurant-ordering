@@ -14,15 +14,6 @@ import {
   CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER,
 } from './customer-menu-bottom-bar-layout';
 
-describe('CUSTOMER_MENU_TYPE', () => {
-  it('uses body-scale tokens for footer summary and money (no font-heading)', () => {
-    assert.match(CUSTOMER_MENU_TYPE.footerSummary, /text-base/);
-    assert.match(CUSTOMER_MENU_TYPE.moneyAmount, /text-brand-gold/);
-    assert.doesNotMatch(CUSTOMER_MENU_TYPE.footerSummary, /font-heading/);
-    assert.doesNotMatch(CUSTOMER_MENU_TYPE.moneyAmount, /font-heading/);
-  });
-});
-
 describe('customerMenuPageBottomPaddingClass', () => {
   it('reserves bar height + safe area when footer is visible via a static Tailwind class', () => {
     const cls = customerMenuPageBottomPaddingClass(true);

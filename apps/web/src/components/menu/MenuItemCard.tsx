@@ -4,7 +4,10 @@ import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { MENU_IMAGE_UNOPTIMIZED } from '@/lib/menu-image';
-import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
+import {
+  formatMenuCatalogItemLabel,
+  resolveMenuItemLocalizedDescription,
+} from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 interface Props {
@@ -25,11 +28,7 @@ export function MenuItemCard({
   onDecrement,
 }: Props) {
   const label = formatMenuCatalogItemLabel(item, lang);
-  const desc = lang === 'zh'
-    ? (item.description_zh || item.description_en || item.description_pt)
-    : lang === 'en'
-      ? (item.description_en || item.description_pt)
-      : item.description_pt;
+  const desc = resolveMenuItemLocalizedDescription(item, lang);
   const actionText = {
     zh: { add: '+ 加入', soldOut: '已售完' },
     en: { add: '+ Add', soldOut: 'Sold out' },
@@ -61,9 +60,9 @@ export function MenuItemCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
-            {desc && (
+            {desc ? (
               <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-1 line-clamp-2`}>{desc}</p>
-            )}
+            ) : null}
           </div>
         </div>
         <div className="flex items-center justify-between mt-3">

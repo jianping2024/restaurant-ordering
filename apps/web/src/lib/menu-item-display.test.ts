@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  formatCartMenuLineLabel,
+  formatLocalizedMenuItemLabel,
   formatMenuCatalogItemLabel,
   formatOnScreenMenuItemLabel,
+  resolveMenuItemLocalizedDescription,
   resolveMenuItemLocalizedName,
 } from '@/lib/menu-item-display';
 import type { MenuItem } from '@/types';
@@ -14,6 +15,9 @@ const baseItem: MenuItem = {
   name_pt: 'Água 500ml',
   name_en: 'Water 500ml',
   name_zh: '矿泉水',
+  description_pt: 'Fresca',
+  description_en: 'Fresh',
+  description_zh: '新鲜',
   price: 1.5,
   vat_rate: 23,
   category: 'Bebidas',
@@ -37,6 +41,12 @@ describe('resolveMenuItemLocalizedName', () => {
   });
 });
 
+describe('resolveMenuItemLocalizedDescription', () => {
+  it('prefers zh description chain', () => {
+    assert.equal(resolveMenuItemLocalizedDescription(baseItem, 'zh'), '新鲜');
+  });
+});
+
 describe('formatOnScreenMenuItemLabel', () => {
   it('joins normalized code and name with a space', () => {
     assert.equal(formatOnScreenMenuItemLabel('Água 500ml', ' 001 '), '001 Água 500ml');
@@ -54,19 +64,17 @@ describe('formatOnScreenMenuItemLabel', () => {
   });
 });
 
-describe('formatMenuCatalogItemLabel', () => {
-  it('uses item_code from catalog row', () => {
+describe('formatLocalizedMenuItemLabel', () => {
+  it('uses catalog item_code by default via formatMenuCatalogItemLabel', () => {
     assert.equal(
       formatMenuCatalogItemLabel({ ...baseItem, item_code: '028' }, 'zh'),
       '028 矿泉水',
     );
   });
-});
 
-describe('formatCartMenuLineLabel', () => {
-  it('matches catalog label when lookup code is provided', () => {
+  it('accepts explicit lookup code for cart lines', () => {
     assert.equal(
-      formatCartMenuLineLabel(baseItem, 'en', '028'),
+      formatLocalizedMenuItemLabel(baseItem, 'en', '028'),
       '028 Water 500ml',
     );
   });

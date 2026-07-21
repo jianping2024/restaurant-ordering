@@ -27,13 +27,14 @@ export const customerMenuBottomBarIconGapClass = 'gap-4';
 
 export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-gold';
 
-export const customerMenuBottomBarAmountRowClass = 'flex shrink-0 items-baseline gap-1';
+const customerMenuBottomBarPrimaryActionBaseClass =
+  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
 
 export const customerMenuBottomBarPrimaryActionClass =
-  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
+  `${customerMenuBottomBarPrimaryActionBaseClass} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
 
 export const customerMenuBottomBarDisabledActionClass =
-  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction} pointer-events-none bg-brand-border/20 text-brand-text-muted`;
+  `${customerMenuBottomBarPrimaryActionBaseClass} pointer-events-none bg-brand-border/20 text-brand-text-muted`;
 
 /** Scroll padding so the last menu row clears the docked bar (+ safe area + small end cushion). */
 export function customerMenuPageBottomPaddingClass(footerVisible: boolean): string {

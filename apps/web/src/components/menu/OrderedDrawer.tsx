@@ -6,6 +6,7 @@ import type { Order } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
 import { buildCustomerSubmittedDisplayOrders } from '@/lib/customer-submitted-order-display';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import type { Language } from '@/types';
 
 type Labels = {
@@ -76,7 +77,7 @@ export function OrderedDrawer({
         </div>
 
         <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between">
-          <h2 className="font-heading text-xl text-brand-gold">{labels.title}</h2>
+          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{labels.title}</h2>
           <button type="button" onClick={onClose} className="text-brand-text-muted hover:text-brand-text">
             ✕
           </button>

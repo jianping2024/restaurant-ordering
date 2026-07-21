@@ -13,7 +13,7 @@ import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-client';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-import { formatCartMenuLineLabel } from '@/lib/menu-item-display';
+import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
@@ -101,7 +101,7 @@ export function CartDrawer({
         </div>
 
         <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between">
-          <h2 className="font-heading text-xl text-brand-gold">{text.title}</h2>
+          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{text.title}</h2>
           <button onClick={onClose} className="text-brand-text-muted hover:text-brand-text">✕</button>
         </div>
 
@@ -114,7 +114,7 @@ export function CartDrawer({
                   <span className="text-2xl">{item.emoji}</span>
                   <div className="min-w-0">
                     <p className={`text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName} truncate`}>
-                      {formatCartMenuLineLabel(item, lang, menuItemCodeById[item.menuItemId])}
+                      {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}
                     </p>
                     <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
                   </div>
@@ -189,7 +189,7 @@ export function CartDrawer({
         <div className="px-5 py-4 border-t border-brand-border">
           <div className="flex items-center justify-between mb-4">
             <span className="text-brand-text text-sm font-medium">{text.total}</span>
-            <span className="font-heading text-2xl text-brand-gold">€{cartTotal.toFixed(2)}</span>
+            <span className={CUSTOMER_MENU_TYPE.cartDrawerTotal}>€{cartTotal.toFixed(2)}</span>
           </div>
           <Button
             className="w-full"

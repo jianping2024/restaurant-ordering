@@ -63,10 +63,10 @@ describe('closeActiveTableSessionSettled', () => {
     assert.deepEqual(purged, [{ restaurantId: RESTAURANT_ID, tableId: TABLE_ID }]);
   });
 
-  it('maps guard codes from RPC', async () => {
+  it('maps no_session from RPC', async () => {
     const admin = {
       rpc: async () => ({
-        data: { ok: false, code: 'unfinished_kitchen_orders' },
+        data: { ok: false, code: 'no_session' },
         error: null,
       }),
     } as unknown as SupabaseClient;
@@ -80,7 +80,7 @@ describe('closeActiveTableSessionSettled', () => {
 
     assert.equal(result.ok, false);
     if (result.ok) return;
-    assert.equal(result.code, 'unfinished_kitchen_orders');
+    assert.equal(result.code, 'no_session');
   });
 });
 
@@ -196,10 +196,10 @@ describe('closeTableSessionFrontdeskCheckout', () => {
     assert.equal(result.ok, true);
   });
 
-  it('surfaces billing guard from RPC', async () => {
+  it('surfaces no_session from RPC', async () => {
     const admin = {
       rpc: async () => ({
-        data: { ok: false, code: 'session_billing' },
+        data: { ok: false, code: 'no_session' },
         error: null,
       }),
     } as unknown as SupabaseClient;
@@ -214,7 +214,7 @@ describe('closeTableSessionFrontdeskCheckout', () => {
 
     assert.equal(result.ok, false);
     if (result.ok) return;
-    assert.equal(result.code, 'session_billing');
+    assert.equal(result.code, 'no_session');
   });
 });
 

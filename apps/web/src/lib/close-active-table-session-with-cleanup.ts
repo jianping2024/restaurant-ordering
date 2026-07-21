@@ -23,13 +23,7 @@ export type CloseTableSettledResult =
   | { ok: true; session_id: string; payable_amount?: number }
   | {
       ok: false;
-      code:
-        | 'no_session'
-        | 'session_billing'
-        | 'checkout_in_progress'
-        | 'partial_payment_ledger'
-        | 'unfinished_kitchen_orders'
-        | 'update_failed';
+      code: 'no_session' | 'update_failed';
       message?: string;
     };
 
@@ -44,13 +38,7 @@ type CloseTableRpcPayload = {
 function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableSettledResult {
   if (!payload?.ok) {
     const code = payload?.code;
-    if (
-      code === 'no_session' ||
-      code === 'session_billing' ||
-      code === 'checkout_in_progress' ||
-      code === 'partial_payment_ledger' ||
-      code === 'unfinished_kitchen_orders'
-    ) {
+    if (code === 'no_session') {
       return { ok: false, code, message: payload?.message };
     }
     return {
@@ -73,8 +61,9 @@ function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableS
 }
 
 /**
- * Settled close for frontdesk/cashier checkout: write settlement, preserve orders, close session.
- * See docs/table-session-close.zh.md.
+ * Settled close for frontdesk/cashier checkout: cancel unpaid splits, write settlement,
+ * preserve orders, close session. Floor ability matches former operational checkout-close;
+ * revenue is preserved instead of voiding. See docs/table-session-close.zh.md.
  */
 export async function closeActiveTableSessionSettled(
   admin: SupabaseClient,

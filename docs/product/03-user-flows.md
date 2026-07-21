@@ -308,7 +308,7 @@
 
 前台 / 收银员桌台详情（Dashboard 看板，会话 `open`、未呼叫结账；**服务员同路由但无关台按钮**）
   → 「关台结账」：
-    - **前台**：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（operational，无未收款审计）
+    - **前台**：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（settled：保留订单金额、写结算，计入营业额）
     - **收银员**：确认后**不打印**，直接 `checkout-close-table-session` 正常收台
   → 「关台」：强制关台（manual + 原因 + 审计），不打印
 ```

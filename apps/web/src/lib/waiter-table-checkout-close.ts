@@ -18,7 +18,7 @@ export function checkoutCloseShouldPrintBill(role: CheckoutCloseFloorRole): bool
 }
 
 /**
- * Normal floor checkout close (operational).
+ * Floor checkout close (settled: preserve orders + write settlement).
  * Frontdesk: print session total bill (`checkout_bill`), then close.
  * Cashier: close only (no print).
  */
@@ -43,9 +43,6 @@ export async function runWaiterTableCheckoutClose(params: {
   }
 
   const code = body.error ?? 'close_failed';
-  if (code === 'session_billing') {
-    return { ok: false, stage: 'close', code };
-  }
   if (code === 'no_session') {
     return { ok: false, stage: 'close', code };
   }

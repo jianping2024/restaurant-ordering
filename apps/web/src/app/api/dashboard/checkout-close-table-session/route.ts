@@ -36,14 +36,6 @@ export async function POST(req: Request) {
     if (result.code === 'no_session') {
       return NextResponse.json({ error: result.code, message: result.message }, { status: 404 });
     }
-    if (
-      result.code === 'session_billing' ||
-      result.code === 'checkout_in_progress' ||
-      result.code === 'partial_payment_ledger' ||
-      result.code === 'unfinished_kitchen_orders'
-    ) {
-      return NextResponse.json({ error: result.code, message: result.message }, { status: 409 });
-    }
     return NextResponse.json({ error: result.code, message: result.message }, { status: 500 });
   }
 

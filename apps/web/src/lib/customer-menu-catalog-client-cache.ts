@@ -133,6 +133,26 @@ export function ensureCustomerMenuCatalog(params: {
   return promise;
 }
 
+/**
+ * Customer menu entry: show cache immediately (SWR), always reconcile once in background.
+ */
+export function reconcileCustomerMenuCatalogOnEntry(params: {
+  restaurantId: string;
+  slug: string;
+}): {
+  initial: CustomerMenuCatalog | null;
+  ready: Promise<CustomerMenuCatalog>;
+} {
+  const initial = peekCustomerMenuCatalogCache(params.restaurantId);
+  const ready = fetchCatalogFromApi(params.slug)
+    .then((catalog) => commitEntry(params.restaurantId, catalog))
+    .catch(() => {
+      if (initial) return initial;
+      throw new Error('menu_catalog_fetch_failed');
+    });
+  return { initial, ready };
+}
+
 /** Warm catalog while table detail is visible (replaces full menu page prefetch). */
 export function warmCustomerMenuCatalog(params: {
   restaurantId: string;

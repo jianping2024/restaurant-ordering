@@ -10,9 +10,7 @@ import {
 import { compareRestaurantTables, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import { fetchCheckoutRequestedBoard } from '@/lib/table-checkout-pending';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import {
-  filterOrdersInActiveSessions,
-} from '@/lib/waiter-board-query';
+import { loadOrdersForActiveWaiterBoardSessions } from '@/lib/waiter-board-active-orders';
 import {
   buildActiveSessionMetaByTableId,
   type WaiterTableSessionRow,
@@ -57,23 +55,13 @@ export type WaiterBoardData = {
 };
 
 async function loadWaiterBoardLiveInputs(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, { data: rows }, checkoutRequested, partyLoaded, { data: tableRows }] =
+  const [{ data: sessions }, checkoutRequested, partyLoaded, { data: tableRows }] =
     await Promise.all([
       admin
         .from('table_sessions')
         .select('id, table_id, opened_at, status, opened_by_user_id')
         .eq('restaurant_id', restaurantId)
         .in('status', ['open', 'billing']),
-      admin
-        .from('orders')
-        // Board cards only need summary fields (+ items jsonb for totals/headcount).
-        .select(
-          'id, restaurant_id, session_id, table_id, display_name, status, items, total_amount, created_at, updated_at',
-        )
-        .eq('restaurant_id', restaurantId)
-        .in('status', ['pending', 'cooking', 'done'])
-        .order('updated_at', { ascending: false })
-        .limit(200),
       fetchCheckoutRequestedBoard(admin, restaurantId),
       loadTablePartyGroups(admin, restaurantId),
       // Tables needed to build summaries; client keeps floor static from last full.
@@ -85,7 +73,7 @@ async function loadWaiterBoardLiveInputs(admin: SupabaseClient, restaurantId: st
     ]);
 
   const sessionRows = (sessions || []) as WaiterTableSessionRow[];
-  const orders = filterOrdersInActiveSessions((rows || []) as Order[], sessionRows);
+  const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
   const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
     admin,
     restaurantId,

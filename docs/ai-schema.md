@@ -253,6 +253,7 @@ orders:
 - idx_orders_restaurant_table_id: btree(restaurant_id, table_id)
 - idx_orders_session: btree(session_id)
 - idx_orders_status: btree(restaurant_id, status)
+- idx_orders_restaurant_status_updated_at: btree(restaurant_id, status, updated_at DESC)
 - orders_pkey: PK btree(id)
 
 print_agent_devices:

@@ -3,12 +3,11 @@ import { redirect } from 'next/navigation';
 import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
 import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
 import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
-import { PrintAgentSchedulePanel } from '@/components/dashboard/PrintAgentSchedulePanel';
 import {
   PrintAgentDownloadSection,
   PrintAgentDownloadSkeleton,
 } from '@/components/dashboard/PrintAgentDownloadSection';
-import { ReceiptBillPrinterPanel } from '@/components/dashboard/ReceiptBillPrinterPanel';
+import { PrintAssistantDeferredPanels } from '@/components/dashboard/PrintAssistantDeferredPanels';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { getPrintAgentVersion } from '@/lib/print-agent-download';
@@ -40,18 +39,18 @@ export default async function PrintAssistantSettingsPage() {
         initialDevices={pageData.devices}
         recommendedVersion={printAgentVersion || ''}
       />
-      <ReceiptBillPrinterPanel
-        restaurantSlug={restaurant.slug}
-        initialDefaultReceiptStationId={pageData.defaultReceiptStationId}
-        initialPrinters={pageData.receiptPrinters}
-      />
       <PrintAgentPairingPanel initialPairings={pageData.pairings} />
       {siteOrigin ? (
         <Suspense fallback={<PrintAgentDownloadSkeleton />}>
           <PrintAgentDownloadSection siteOrigin={siteOrigin} />
         </Suspense>
       ) : null}
-      <PrintAgentSchedulePanel initialForm={pageData.scheduleForm} />
+      <PrintAssistantDeferredPanels
+        restaurantSlug={restaurant.slug}
+        defaultReceiptStationId={pageData.defaultReceiptStationId}
+        receiptPrinters={pageData.receiptPrinters}
+        scheduleForm={pageData.scheduleForm}
+      />
     </div>
   );
 }

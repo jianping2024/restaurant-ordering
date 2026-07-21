@@ -6,7 +6,6 @@ import {
   loadCustomerRestaurantGate,
   loadCustomerSessionContext,
 } from '@/lib/customer-session-context';
-import { loadCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
@@ -34,14 +33,11 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   }
   const restaurant = gate.restaurant;
 
-  const [sessionContext, catalog] = await Promise.all([
-    loadCustomerSessionContext({
-      admin,
-      restaurantId: restaurant.id,
-      tableIdParam,
-    }),
-    loadCustomerMenuCatalog(restaurant.id),
-  ]);
+  const sessionContext = await loadCustomerSessionContext({
+    admin,
+    restaurantId: restaurant.id,
+    tableIdParam,
+  });
   if (!sessionContext) notFound();
 
   const staffAssisted = resolveStaffAssistedFlow(
@@ -60,8 +56,6 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   return (
     <MenuPage
       restaurant={restaurant}
-      menuItems={catalog.menuItems}
-      menuCategories={catalog.menuCategories}
       tableId={sessionContext.table_id}
       displayName={sessionContext.display_name}
       orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}

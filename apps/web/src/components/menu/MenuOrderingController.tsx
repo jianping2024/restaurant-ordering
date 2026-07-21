@@ -41,6 +41,7 @@ import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
+import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
@@ -68,6 +69,8 @@ interface Props {
   restaurant: MenuOrderingRestaurant;
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
+  /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
+  catalogReady?: boolean;
   tableId: string;
   displayName: string;
   orderCooldownSeconds: number;
@@ -86,6 +89,7 @@ export function MenuOrderingController({
   restaurant,
   menuItems,
   menuCategories,
+  catalogReady = true,
   tableId,
   displayName,
   orderCooldownSeconds,
@@ -243,6 +247,7 @@ export function MenuOrderingController({
 
   // 列表步进器 / 抽屉共用：仅改本地 cart，提交仍走 submitOrder → orders/append
   const bumpCartItem = async (item: MenuItem, delta: number) => {
+    if (!catalogReady) return;
     const gate = await ensureGuestCanPlaceOrder();
     if (!gate.canPlace) {
       showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
@@ -396,7 +401,7 @@ export function MenuOrderingController({
 
   // 提交订单
   const submitOrder = async () => {
-    if (cart.length === 0 || isSubmitCooldownActive) return;
+    if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
 
     if (isDemo) {
       const gate = await ensureGuestCanPlaceOrder();
@@ -605,7 +610,9 @@ export function MenuOrderingController({
             : 'px-4 py-4'
         }
       >
-        {currentItems.length === 0 ? (
+        {!catalogReady ? (
+          <CustomerMenuCatalogSkeleton />
+        ) : currentItems.length === 0 ? (
           <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
         ) : (
           <div className={isEmbedded ? 'grid grid-cols-1 gap-3 md:grid-cols-2' : 'space-y-3'}>

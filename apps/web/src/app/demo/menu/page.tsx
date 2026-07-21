@@ -30,8 +30,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   return (
     <MenuPage
       restaurant={DEMO_RESTAURANT}
-      menuItems={menuItems}
-      menuCategories={menuCategories}
+      initialMenuCatalog={{ menuItems, menuCategories }}
       tableId={table.id}
       displayName={table.display_name}
       orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}

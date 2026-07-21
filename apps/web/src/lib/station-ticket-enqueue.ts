@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrderItem } from '@/types';
 import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
+import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import {
@@ -85,7 +86,82 @@ export type RestaurantEnqueueRow = {
   id: string;
   name?: string | null;
   print_locale: string | null;
+  /** When set (e.g. auto route), skips a redundant restaurants lookup. */
+  print_agent_config?: unknown;
 };
+
+type OrderRowForGuestCount = {
+  status: 'pending' | 'cooking' | 'done';
+  items: OrderItem[];
+  created_at: string;
+  updated_at: string;
+};
+
+async function resolveGuestCountForStationTicket(
+  admin: SupabaseClient,
+  restaurantId: string,
+  order: {
+    status: string;
+    items: OrderItem[] | null;
+    session_id: string | null;
+    table_id: string;
+    created_at: string;
+    updated_at: string;
+  },
+): Promise<number> {
+  const items = (order.items || []) as OrderItem[];
+  const currentRow: OrderRowForGuestCount = {
+    status: order.status as 'pending' | 'cooking' | 'done',
+    items,
+    created_at: order.created_at,
+    updated_at: order.updated_at,
+  };
+  const fromCurrent = guestCountFromTableOrders([currentRow]);
+  if (fromCurrent > 0) return fromCurrent;
+
+  let sessionId = order.session_id;
+  if (!sessionId) {
+    const { data: activeSession } = await admin
+      .from('table_sessions')
+      .select('id')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_id', order.table_id)
+      .in('status', ['open', 'billing'])
+      .maybeSingle();
+    sessionId = (activeSession?.id as string | undefined) ?? null;
+  }
+  if (!sessionId) return 0;
+
+  const { data: sessionOrderRows, error } = await admin
+    .from('orders')
+    .select('status, items, created_at, updated_at')
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return guestCountFromTableOrders((sessionOrderRows || []) as OrderRowForGuestCount[]);
+}
+
+async function resolvePrintAgentConfig(
+  admin: SupabaseClient,
+  restaurant: RestaurantEnqueueRow,
+): Promise<unknown> {
+  if (restaurant.print_agent_config !== undefined) {
+    return restaurant.print_agent_config;
+  }
+  const { data, error } = await admin
+    .from('restaurants')
+    .select('print_agent_config')
+    .eq('id', restaurant.id)
+    .maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data?.print_agent_config;
+}
 
 /** Enqueue station_ticket jobs for one order batch (called after guest/waiter submit). */
 export async function enqueueStationTicketsForOrder(params: {
@@ -107,17 +183,15 @@ export async function enqueueStationTicketsForOrder(params: {
   const restaurantId = restaurant.id;
   const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
 
-  const { data: restaurantRow, error: rCfgErr } = await admin
-    .from('restaurants')
-    .select('print_agent_config')
-    .eq('id', restaurantId)
-    .maybeSingle();
-
-  if (rCfgErr) {
-    return { ok: false, status: 500, code: 'restaurant_lookup_failed', message: rCfgErr.message };
+  let printAgentConfig: unknown;
+  try {
+    printAgentConfig = await resolvePrintAgentConfig(admin, restaurant);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'restaurant_lookup_failed';
+    return { ok: false, status: 500, code: 'restaurant_lookup_failed', message };
   }
 
-  const showCategoryGroup = isStationSlipShowCategoryGroupEnabled(restaurantRow?.print_agent_config);
+  const showCategoryGroup = isStationSlipShowCategoryGroupEnabled(printAgentConfig);
 
   const { data: order, error: oErr } = await admin
     .from('orders')
@@ -151,30 +225,67 @@ export async function enqueueStationTicketsForOrder(params: {
   }
 
   const menuIds = Array.from(new Set(kitchenLines.map((l) => l.item.id)));
-  const [{ data: menuRows, error: mErr }, { data: categoryRows, error: cErr }] = await Promise.all([
-    admin
-      .from('menu_items')
-      .select('id, category_id, print_station_id, item_code')
-      .eq('restaurant_id', restaurantId)
-      .in('id', menuIds),
-    admin
-      .from('menu_categories')
-      .select('id, parent_id, print_station_id, item_code, name_pt, name_en, name_zh, sort_order')
-      .eq('restaurant_id', restaurantId),
-  ]);
 
-  if (mErr || cErr) {
-    return {
-      ok: false,
-      status: 500,
-      code: 'menu_lookup_failed',
-      message: mErr?.message || cErr?.message,
-    };
+  let menuRows: unknown[] | null;
+  let categoryList: Array<MenuCategoryForStationTicket & { print_station_id: string | null }>;
+  let existingJobs: unknown[] | null;
+  let guestCount: number;
+
+  try {
+    const [menuResult, categories, jobsResult, guestCountResult] = await Promise.all([
+      admin
+        .from('menu_items')
+        .select('id, category_id, print_station_id, item_code')
+        .eq('restaurant_id', restaurantId)
+        .in('id', menuIds),
+      loadMenuCategoriesForEnqueue(restaurantId),
+      admin
+        .from('print_jobs')
+        .select('status, payload')
+        .eq('restaurant_id', restaurantId)
+        .eq('type', 'station_ticket')
+        .contains('payload', { order_id: orderId, batch_id: batchId }),
+      resolveGuestCountForStationTicket(admin, restaurantId, {
+        status: order.status as string,
+        items,
+        session_id: order.session_id as string | null,
+        table_id: order.table_id as string,
+        created_at: order.created_at as string,
+        updated_at: order.updated_at as string,
+      }),
+    ]);
+
+    if (menuResult.error) {
+      return {
+        ok: false,
+        status: 500,
+        code: 'menu_lookup_failed',
+        message: menuResult.error.message,
+      };
+    }
+    if (jobsResult.error) {
+      return {
+        ok: false,
+        status: 500,
+        code: 'jobs_lookup_failed',
+        message: jobsResult.error.message,
+      };
+    }
+
+    menuRows = menuResult.data;
+    categoryList = categories;
+    existingJobs = jobsResult.data;
+    guestCount = guestCountResult;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'enqueue_lookup_failed';
+    if (message.includes('session')) {
+      return { ok: false, status: 500, code: 'session_orders_lookup_failed', message };
+    }
+    return { ok: false, status: 500, code: 'menu_lookup_failed', message };
   }
 
   type CategoryRow = MenuCategoryForStationTicket & { print_station_id: string | null };
-  const categoryList = (categoryRows || []) as CategoryRow[];
-  const categoryById = new Map(categoryList.map((c) => [c.id, c]));
+  const categoryById = new Map(categoryList.map((c) => [c.id, c as CategoryRow]));
 
   const menuById = new Map<string, MenuItemForPrint>();
   for (const row of menuRows || []) {
@@ -228,73 +339,12 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const stationIds = Array.from(new Set(linesInBatch.map((l) => l.station_id as string)));
 
-  let tableOrders: Array<{
-    status: 'pending' | 'cooking' | 'done';
-    items: OrderItem[];
-    created_at: string;
-    updated_at: string;
-  }> = [
-    {
-      status: order.status as 'pending' | 'cooking' | 'done',
-      items,
-      created_at: order.created_at as string,
-      updated_at: order.updated_at as string,
-    },
-  ];
-  const sessionId = order.session_id as string | null | undefined;
-  if (sessionId) {
-    const { data: sessionOrderRows, error: soErr } = await admin
-      .from('orders')
-      .select('status, items, created_at, updated_at')
-      .eq('restaurant_id', restaurantId)
-      .eq('session_id', sessionId);
-    if (soErr) {
-      return { ok: false, status: 500, code: 'session_orders_lookup_failed', message: soErr.message };
-    }
-    if (sessionOrderRows?.length) {
-      tableOrders = sessionOrderRows as typeof tableOrders;
-    }
-  } else {
-    const { data: activeSession } = await admin
-      .from('table_sessions')
-      .select('id')
-      .eq('restaurant_id', restaurantId)
-      .eq('table_id', order.table_id)
-      .in('status', ['open', 'billing'])
-      .maybeSingle();
-    if (activeSession?.id) {
-      const { data: sessionOrderRows, error: soErr } = await admin
-        .from('orders')
-        .select('status, items, created_at, updated_at')
-        .eq('restaurant_id', restaurantId)
-        .eq('session_id', activeSession.id);
-      if (soErr) {
-        return { ok: false, status: 500, code: 'session_orders_lookup_failed', message: soErr.message };
-      }
-      if (sessionOrderRows?.length) {
-        tableOrders = sessionOrderRows as typeof tableOrders;
-      }
-    }
-  }
-
-  const guestCount = guestCountFromTableOrders(tableOrders);
   const orderTimeIso = stationTicketOrderTimeIso(
     items,
     batchId,
     (order.created_at as string) || new Date().toISOString(),
   );
   const orderTime = formatStationTicketOrderTime(orderTimeIso);
-
-  const { data: existingJobs, error: jErr } = await admin
-    .from('print_jobs')
-    .select('status, payload')
-    .eq('restaurant_id', restaurantId)
-    .eq('type', 'station_ticket')
-    .contains('payload', { order_id: orderId, batch_id: batchId });
-
-  if (jErr) {
-    return { ok: false, status: 500, code: 'jobs_lookup_failed', message: jErr.message };
-  }
 
   const hasPendingDuplicate = (printStationId: string) =>
     (existingJobs || []).some(

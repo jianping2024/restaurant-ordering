@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
-import { orderItemBatchKey } from '@/lib/order-items';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import { autoEnqueueRateLimitCheck } from '@/lib/station-ticket-auto-rate-limit';
 import { orderEnqueueSecret, verifyOrderEnqueueToken } from '@/lib/order-enqueue-token';
@@ -51,16 +50,6 @@ export async function POST(
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
 
-  const { data: restaurant, error: rErr } = await admin
-    .from('restaurants')
-    .select('name, print_locale')
-    .eq('id', loaded.restaurant.id)
-    .maybeSingle();
-
-  if (rErr || !restaurant) {
-    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
-  }
-
   if (
     !verifyOrderEnqueueToken(enqueueToken, enqueueSecret, {
       restaurant_id: loaded.restaurant.id,
@@ -69,22 +58,6 @@ export async function POST(
     })
   ) {
     return NextResponse.json({ error: 'invalid_enqueue_token' }, { status: 403 });
-  }
-
-  const { data: order, error: oErr } = await admin
-    .from('orders')
-    .select('id, restaurant_id, items')
-    .eq('id', orderId)
-    .maybeSingle();
-
-  if (oErr || !order || order.restaurant_id !== loaded.restaurant.id) {
-    return NextResponse.json({ error: 'order_not_found' }, { status: 404 });
-  }
-
-  const items = (order.items || []) as Array<{ batch_id?: string }>;
-  const batchKnown = items.some((item) => orderItemBatchKey(item) === batchId);
-  if (!batchKnown) {
-    return NextResponse.json({ error: 'unknown_batch' }, { status: 400 });
   }
 
   const rl = autoEnqueueRateLimitCheck(
@@ -100,12 +73,23 @@ export async function POST(
     );
   }
 
+  const { data: restaurant, error: rErr } = await admin
+    .from('restaurants')
+    .select('name, print_locale, print_agent_config')
+    .eq('id', loaded.restaurant.id)
+    .maybeSingle();
+
+  if (rErr || !restaurant) {
+    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  }
+
   const result = await enqueueStationTicketsForOrder({
     admin,
     restaurant: {
       id: loaded.restaurant.id,
       name: restaurant.name ?? null,
       print_locale: restaurant.print_locale ?? null,
+      print_agent_config: restaurant.print_agent_config,
     },
     orderId,
     batchId,

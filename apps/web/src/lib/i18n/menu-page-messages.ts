@@ -38,6 +38,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   waitingForBuffet: string;
   buffetRequired: string;
   subcategoryAll: string;
+  catalogLoading: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -78,6 +79,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     waitingForBuffet: 'Aguarde: o garcom deve registar o buffet desta mesa antes de pedir pratos.',
     buffetRequired: 'O garcom ainda nao activou esta mesa. Peça para registar o buffet primeiro.',
     subcategoryAll: 'Tudo',
+    catalogLoading: 'A carregar menu…',
   },
   en: {
     table: 'Table',
@@ -118,6 +120,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     waitingForBuffet: 'Please wait: staff must post buffet for this table before you can order dishes.',
     buffetRequired: 'This table is not open for ordering yet. Ask staff to post buffet first.',
     subcategoryAll: 'All',
+    catalogLoading: 'Loading menu…',
   },
   zh: {
     table: '桌号',
@@ -158,5 +161,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     waitingForBuffet: '请稍候：服务员需先为本桌登记自助餐后，方可点菜。',
     buffetRequired: '本桌尚未开台，请先请服务员登记自助餐。',
     subcategoryAll: '全部',
+    catalogLoading: '正在加载菜单…',
   },
 };

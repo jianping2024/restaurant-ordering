@@ -46,6 +46,8 @@ import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining'
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
 import { CUSTOMER_ORDERING_INTRO_MESSAGES } from '@/lib/i18n/customer-ordering-intro-messages';
 import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
+import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 export type MenuOrderingRestaurant = {
   id: string;
@@ -210,6 +212,11 @@ export function MenuOrderingController({
     const descendants = collectDescendantIds(currentTop);
     return descendants.has(item.category_id);
   });
+
+  const menuItemCodeById = useMemo(
+    () => menuItemCodeLookupFromRows(menuItems),
+    [menuItems],
+  );
 
   const guestCanOrder = useMemo(
     () => sessionResolved && guestOrderingEnabled(activeSession),
@@ -544,9 +551,9 @@ export function MenuOrderingController({
                 setActiveTopCategory(cat.id);
                 setActiveSubpath('');
               }}
-              className={`flex-shrink-0 px-4 py-2 text-sm transition-all border-b-2 ${
+              className={`flex-shrink-0 px-4 py-2.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-all border-b-2 ${
                 currentTop === cat.id
-                  ? 'border-brand-gold text-brand-gold font-medium'
+                  ? `border-brand-gold text-brand-gold ${CUSTOMER_MENU_TYPE.categoryTopActive}`
                   : 'border-transparent text-brand-text-muted'
               }`}
             >
@@ -559,7 +566,7 @@ export function MenuOrderingController({
           <div className="mesa-chip-scroll flex gap-2 px-4 pb-3">
             <button
               onClick={() => setActiveSubpath('')}
-              className={`flex-shrink-0 px-3 py-1.5 text-[13px] rounded-full border transition-colors ${
+              className={`flex-shrink-0 px-3 py-2 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
                 currentSubpath === ''
                   ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
                   : 'border-brand-border text-brand-text-muted'
@@ -571,7 +578,7 @@ export function MenuOrderingController({
               <button
                 key={subpath.id}
                 onClick={() => setActiveSubpath(subpath.id)}
-                className={`flex-shrink-0 px-3 py-1.5 text-[13px] rounded-full border transition-colors ${
+                className={`flex-shrink-0 px-3 py-2 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
                   currentSubpath === subpath.id
                     ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
                     : 'border-brand-border text-brand-text-muted'
@@ -634,6 +641,7 @@ export function MenuOrderingController({
       <CartDrawer
         open={cartOpen}
         cart={cart}
+        menuItemCodeById={menuItemCodeById}
         lang={lang}
         onClose={closeCartDrawer}
         onUpdateQty={updateQty}

@@ -13,6 +13,8 @@ import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-client';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { formatCartMenuLineLabel } from '@/lib/menu-item-display';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
   zh: {
@@ -38,6 +40,7 @@ const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: stri
 interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
+  menuItemCodeById: Record<string, string>;
   lang: Language;
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
@@ -48,7 +51,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({
-  open, cart, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting, submitCooldownRemaining = 0,
+  open, cart, menuItemCodeById, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting, submitCooldownRemaining = 0,
 }: CartDrawerProps) {
   // 防止背景滚动
   useEffect(() => {
@@ -57,8 +60,6 @@ export function CartDrawer({
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  const getName = (item: CartItem) =>
-    (lang === 'zh' && item.name_zh) || (lang === 'en' && item.name_en) || item.name_pt;
   const text = DRAWER_TEXT[lang];
 
   const appendNote = (current: string | undefined, next: string) => {
@@ -112,8 +113,10 @@ export function CartDrawer({
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <span className="text-2xl">{item.emoji}</span>
                   <div className="min-w-0">
-                    <p className="text-brand-text text-sm font-semibold truncate">{getName(item)}</p>
-                    <p className="text-brand-gold text-[13px] font-semibold tabular-nums">€{lineTotal(item).toFixed(2)}</p>
+                    <p className={`text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName} truncate`}>
+                      {formatCartMenuLineLabel(item, lang, menuItemCodeById[item.menuItemId])}
+                    </p>
+                    <p className={`text-brand-gold ${CUSTOMER_MENU_TYPE.cartLinePrice}`}>€{lineTotal(item).toFixed(2)}</p>
                   </div>
                 </div>
                 <CartQtyStepper

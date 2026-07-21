@@ -1,4 +1,5 @@
 import type { Order, OrderItem } from '@/types';
+import { formatOnScreenMenuItemLabel } from '@/lib/menu-item-display';
 import {
   listActiveBuffetLineSummaries,
   formatBuffetGuestCountsOptional,
@@ -78,9 +79,7 @@ export function formatStaffMenuLineLabel(
   item: Pick<OrderItem, 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
   itemCode: string | null | undefined,
 ): string {
-  const name = formatOrderItemPlainName(item);
-  const code = itemCode?.trim();
-  return code ? `${code} ${name}` : name;
+  return formatOnScreenMenuItemLabel(formatOrderItemPlainName(item), itemCode);
 }
 
 /** Staff buffet line: `Buffet livre · A1-C2` — headcount stays in label when embedded. */

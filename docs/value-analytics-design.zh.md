@@ -3,7 +3,7 @@
 > **关联需求**：[value-analytics-v1.zh.md](./value-analytics-v1.zh.md)  
 > **状态**：设计稿（待评审）  
 > **版本**：V1  
-> **最后修订**：2026-06-26
+> **最后修订**：2026-07-21
 
 ---
 
@@ -18,7 +18,7 @@
 | 约束 | 设计应对 |
 |------|----------|
 | 低 DB 压力 | 以 `table_sessions` 为驱动表；最多 30 天 closed session；批量 `IN` 查 orders / bill_splits |
-| 低维护 | 纯函数聚合 + 单测；无快照表 / cron / cache |
+| 低维护 | 纯函数聚合 + 单测；无快照表 / cron；**成功 `ValueOverview` 按「餐厅 + range + Lisbon 营业日」短 TTL 缓存**（`unstable_cache`，默认 120s）；失败结果不缓存；`?refresh=1` 绕过缓存 |
 | 租户隔离 | 所有查询带 `restaurant_id`；API 不接受客户端 tenant 参数 |
 | 权限 | owner-only，三层：middleware + page + API |
 | 口径一致 | 复用 `isBuffetBaseItem`、`latestActiveBuffetBaseLine`、`normalizeOrderItemStatus` |
@@ -44,12 +44,13 @@
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  route.ts (薄 Controller)                                   │
-│    parseRange → loadOwnerAnalyticsContext → AnalyticsService│
+│  route.ts / value-analytics page                            │
+│    parseRange → owner context → getCachedValueOverview      │
+│         └─ unstable_cache(success DTO) → getValueOverview   │
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  AnalyticsService                                           │
+│  AnalyticsService (getValueOverview)                        │
 │    ├─ resolveDateWindow(range)                              │
 │    ├─ fetchQualifyingSessions(admin, restaurantId, window)  │
 │    ├─ fetchSessionOrders / fetchSessionBillSplits           │
@@ -507,7 +508,7 @@ CREATE INDEX IF NOT EXISTS idx_table_sessions_restaurant_closed_at
 | bill_splits 行 | ≤ 500 |
 | 内存聚合 | O(orders × items) ≈ 125k 行遍历，Node < 50ms |
 
-接口目标 P95 < 2s（Vercel serverless）。若超标：先加索引；V2 再考虑物化视图，**不在 V1**。
+接口目标 P95 < 2s（Vercel serverless）。热路径依赖 overview 日缓存降低重复冷算；若**冷启动**仍超标：先加索引；再考虑物化日事实（V2），**不在本轮把写路径耦进关台**。
 
 ---
 

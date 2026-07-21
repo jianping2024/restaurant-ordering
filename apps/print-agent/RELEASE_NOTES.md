@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.51
+
+**打印代理通知模式可观测性（Realtime / Polling）**
+- Heartbeat 上报并写入 `print_agent_devices.notification_mode`，当 Realtime 不可用/失败后自动降级到 Polling 时也会同步体现。
+- 后台 `PrintAgentDevicesPanel` 增加“运行方式”展示每台设备当前实际使用的 notifier 模式。
+
 ## 0.3.50
 
 **清理死路径；本地队列生命周期收口**

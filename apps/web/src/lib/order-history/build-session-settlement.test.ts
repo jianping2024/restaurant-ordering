@@ -14,6 +14,8 @@ const baseSplit: OrderHistoryBillSplitSummary = {
   discount_rate: 10,
   status: 'cancelled',
   total_amount: 100,
+  split_mode: 'even',
+  persons: [],
   result: [
     { name: 'Ana', amount: 50, paid: false },
     { name: 'Bob', amount: 50, paid: false },
@@ -69,7 +71,6 @@ describe('buildOrderHistorySessionSettlement', () => {
     });
 
     assert.equal(settlement.outcome, 'partially_collected_closed');
-    assert.equal(settlement.suppressVoidItemStyling, true);
     assert.equal(settlement.listAmountKind, 'collected');
     assert.equal(settlement.listAmount, 20);
     assert.equal(settlement.summary?.collected, 20);
@@ -85,7 +86,6 @@ describe('buildOrderHistorySessionSettlement', () => {
     });
 
     assert.equal(settlement.outcome, 'unpaid_closed');
-    assert.equal(settlement.suppressVoidItemStyling, false);
     assert.equal(settlement.listAmount, null);
     assert.equal(settlement.summary?.collected, 0);
   });

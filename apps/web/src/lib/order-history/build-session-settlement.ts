@@ -149,7 +149,6 @@ export function buildOrderHistorySessionSettlement(input: {
   const { billSplit, collectedPayments, orders } = input;
   const outcome = resolveOrderHistoryCloseOutcome(billSplit, collectedPayments);
   const summary = buildSummary(billSplit, collectedPayments, orders);
-  const collectionActivity = hasCollectionActivity(billSplit, collectedPayments);
   const paidRevenue =
     billSplit?.status === 'paid' ? sessionRevenue(orders, [billSplit]) : null;
   const { amount: listAmount, kind: listAmountKind } = listAmountForOutcome(
@@ -163,7 +162,6 @@ export function buildOrderHistorySessionSettlement(input: {
     summary,
     showFinancialDetails: summary != null,
     collectedPayments,
-    suppressVoidItemStyling: collectionActivity,
     listAmount,
     listAmountKind,
     paidRevenue,

@@ -17,12 +17,20 @@ export type OrderHistorySessionSettlement = {
   /** When true, detail modal renders consumption / payable / collected / pending rows. */
   showFinancialDetails: boolean;
   collectedPayments: SessionCollectedPayment[];
-  /** Hide void strikethrough when money was collected this session. */
-  suppressVoidItemStyling: boolean;
   listAmount: number | null;
   listAmountKind: OrderHistoryListAmountKind | null;
   paidRevenue: number | null;
 };
+
+export type OrderHistoryCloseAnnotation =
+  | {
+      isForcedUnpaidClose: true;
+      reasonCode: string;
+      reasonDetail: string | null;
+    }
+  | {
+      isForcedUnpaidClose: false;
+    };
 
 export type OrderHistoryEntry = {
   sessionId: string;
@@ -32,6 +40,7 @@ export type OrderHistoryEntry = {
   openedByName: string | null;
   itemCount: number;
   settlement: OrderHistorySessionSettlement;
+  closeAnnotation: OrderHistoryCloseAnnotation;
   billSplit?: OrderHistoryBillSplitSummary;
   orders: Order[];
 };
@@ -58,4 +67,5 @@ export type OrderHistoryPageResult = {
   items: OrderHistoryEntry[];
   cappedTotal: number;
   hasMore: boolean;
+  itemCodeByMenuId: Record<string, string>;
 };

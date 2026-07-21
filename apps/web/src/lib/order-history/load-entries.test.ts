@@ -44,6 +44,6 @@ describe('loadOrderHistoryEntries', () => {
       tableIds: [],
     });
 
-    assert.deepEqual(result, { items: [], cappedTotal: 0, hasMore: false });
+    assert.deepEqual(result, { items: [], cappedTotal: 0, hasMore: false, itemCodeByMenuId: {} });
   });
 });

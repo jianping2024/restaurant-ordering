@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillSplit, BillStatus, SplitResult } from '@/types';
+import type { BillSplit, BillStatus, SplitMode, SplitPerson, SplitResult } from '@/types';
 
 /** Minimal bill_split fields for reprinting a closed session via checkout_bill. */
 export type OrderHistoryBillSplitRef = Pick<
@@ -11,12 +11,14 @@ export type OrderHistoryBillSplitSummary = OrderHistoryBillSplitRef & {
   status: BillStatus;
   total_amount: number;
   result: SplitResult[];
+  split_mode: SplitMode;
+  persons: SplitPerson[];
 };
 
 const ORDER_HISTORY_BILL_SPLIT_STATUSES = ['paid', 'cancelled'] as const;
 
 const BILL_SPLIT_SELECT =
-  'id, session_id, table_id, discount_rate, status, total_amount, result, created_at';
+  'id, session_id, table_id, discount_rate, status, total_amount, result, split_mode, persons, created_at';
 
 /** Latest paid/cancelled split per session for order history. */
 export async function loadBillSplitsForOrderHistory(
@@ -49,6 +51,8 @@ export async function loadBillSplitsForOrderHistory(
       status: row.status as BillStatus,
       total_amount: Number(row.total_amount ?? 0),
       result: (row.result || []) as SplitResult[],
+      split_mode: (row.split_mode as SplitMode) || 'even',
+      persons: (row.persons || []) as SplitPerson[],
     };
   }
   return bySession;

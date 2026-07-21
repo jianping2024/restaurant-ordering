@@ -1,52 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { OrderHistorySettlementDetails } from '@/components/dashboard/OrderHistorySettlementDetails';
+import { OrderHistoryBillDetailPanel } from '@/components/dashboard/OrderHistoryBillDetailPanel';
 import { Modal } from '@/components/ui/Modal';
 import { getMessages } from '@/lib/i18n/messages';
-import {
-  buildOrderHistoryDetailChips,
-} from '@/lib/order-list-display';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 
 interface Props {
   entry: OrderHistoryEntry | null;
+  itemCodeByMenuId: Record<string, string>;
   onClose: () => void;
 }
 
-function outcomeDetailMessage(
-  entry: OrderHistoryEntry,
-  i18n: ReturnType<typeof getMessages>['orderHistory'],
-): string | null {
-  switch (entry.settlement.outcome) {
-    case 'partially_collected_closed':
-      return i18n.partiallyCollectedClosedDetail;
-    case 'unpaid_closed':
-      return i18n.unpaidClosedDetail;
-    default:
-      return null;
-  }
-}
-
-export function OrderHistoryDetailModal({ entry, onClose }: Props) {
+export function OrderHistoryDetailModal({ entry, itemCodeByMenuId, onClose }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
-  const checkoutT = getMessages(lang).checkout;
-  const chips = useMemo(
-    () =>
-      entry
-        ? buildOrderHistoryDetailChips(entry.orders, {
-            suppressVoidStyling: entry.settlement.suppressVoidItemStyling,
-          })
-        : [],
-    [entry],
-  );
 
   if (!entry) return null;
-
-  const { settlement } = entry;
-  const outcomeMessage = outcomeDetailMessage(entry, i18n);
 
   return (
     <Modal
@@ -68,43 +38,11 @@ export function OrderHistoryDetailModal({ entry, onClose }: Props) {
           ) : null}
         </div>
 
-        {outcomeMessage ? (
-          <p className="text-sm text-brand-text-muted">{outcomeMessage}</p>
-        ) : null}
-
-        {settlement.showFinancialDetails && settlement.summary ? (
-          <OrderHistorySettlementDetails
-            summary={settlement.summary}
-            collectedPayments={settlement.collectedPayments}
-            lang={lang}
-            checkoutT={checkoutT}
-          />
-        ) : null}
-
-        {chips.length === 0 ? (
-          <p className="text-sm text-brand-text-muted">{i18n.detailItemsEmpty}</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {chips.map((chip) => (
-              <span
-                key={chip.key}
-                className={`text-[13px] px-2.5 py-1 rounded-full ${
-                  chip.voided
-                    ? 'bg-brand-border/60 text-brand-text-muted/70 line-through'
-                    : 'bg-brand-border text-brand-text-muted'
-                }`}
-              >
-                {chip.emoji} {chip.name} {chip.quantityLabel}
-                {chip.note ? <span className="text-brand-text ml-1">({chip.note})</span> : null}
-                {chip.voided ? (
-                  <span className="ml-1 no-underline text-brand-text-muted/80">
-                    ({i18n.itemVoided})
-                  </span>
-                ) : null}
-              </span>
-            ))}
-          </div>
-        )}
+        <OrderHistoryBillDetailPanel
+          entry={entry}
+          itemCodeByMenuId={itemCodeByMenuId}
+          lang={lang}
+        />
       </div>
     </Modal>
   );

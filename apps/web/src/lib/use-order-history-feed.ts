@@ -30,6 +30,7 @@ export function useOrderHistoryFeed(initial: FeedState) {
   const [entries, setEntries] = useState<OrderHistoryEntry[]>(initial.items);
   const [hasMore, setHasMore] = useState(initial.hasMore);
   const [cappedTotal, setCappedTotal] = useState(initial.cappedTotal);
+  const [itemCodeByMenuId, setItemCodeByMenuId] = useState(initial.itemCodeByMenuId);
   const [filters, setFilters] = useState<OrderHistoryFilters>(initial.filters);
   const [loading, setLoading] = useState(false);
   const requestIdRef = useRef(0);
@@ -44,6 +45,7 @@ export function useOrderHistoryFeed(initial: FeedState) {
     setEntries(result.items);
     setHasMore(result.hasMore);
     setCappedTotal(result.cappedTotal);
+    setItemCodeByMenuId(result.itemCodeByMenuId);
     setFilters(nextFilters);
   }, []);
 
@@ -68,12 +70,14 @@ export function useOrderHistoryFeed(initial: FeedState) {
     });
     setHasMore(result.hasMore);
     setCappedTotal(result.cappedTotal);
+    setItemCodeByMenuId((prev) => ({ ...prev, ...result.itemCodeByMenuId }));
   }, [entries.length, filters, hasMore, loading]);
 
   return {
     entries,
     hasMore,
     cappedTotal,
+    itemCodeByMenuId,
     filters,
     loading,
     setFilters,

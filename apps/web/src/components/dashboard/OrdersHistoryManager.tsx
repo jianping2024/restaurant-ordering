@@ -12,6 +12,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
+import { resolveForcedUnpaidCloseSummary } from '@/lib/order-history/resolve-close-annotation-label';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
@@ -19,6 +20,7 @@ interface Props {
   initialItems: OrderHistoryEntry[];
   initialHasMore: boolean;
   initialCappedTotal: number;
+  initialItemCodeByMenuId?: Record<string, string>;
   tables?: RestaurantTableRow[];
   restaurantSlug: string;
 }
@@ -31,11 +33,14 @@ interface TableOption {
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
 const ORDER_CARD_CLASS =
   'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full hover:border-brand-gold/40 transition-colors';
+const FORCED_CLOSE_CARD_CLASS =
+  'bg-amber-500/5 border border-amber-500/25 rounded-xl px-4 py-3 text-left w-full hover:border-amber-500/40 transition-colors';
 
 export function OrdersHistoryManager({
   initialItems,
   initialHasMore,
   initialCappedTotal,
+  initialItemCodeByMenuId = {},
   tables = [],
   restaurantSlug,
 }: Props) {
@@ -50,6 +55,7 @@ export function OrdersHistoryManager({
     entries,
     hasMore,
     cappedTotal,
+    itemCodeByMenuId,
     filters,
     loading,
     setFilters,
@@ -59,6 +65,7 @@ export function OrdersHistoryManager({
     items: initialItems,
     hasMore: initialHasMore,
     cappedTotal: initialCappedTotal,
+    itemCodeByMenuId: initialItemCodeByMenuId,
     filters: { tableIds: [] },
   });
 
@@ -242,11 +249,17 @@ export function OrdersHistoryManager({
     );
   };
 
-  const renderHistoryCard = (entry: OrderHistoryEntry) => (
+  const renderHistoryCard = (entry: OrderHistoryEntry) => {
+    const isForcedUnpaidClose = entry.closeAnnotation.isForcedUnpaidClose;
+    const forcedCloseSummary = isForcedUnpaidClose
+      ? resolveForcedUnpaidCloseSummary(lang, entry.closeAnnotation)
+      : null;
+
+    return (
     <button
       key={entry.sessionId}
       type="button"
-      className={ORDER_CARD_CLASS}
+      className={isForcedUnpaidClose ? FORCED_CLOSE_CARD_CLASS : ORDER_CARD_CLASS}
       onClick={() => setSelectedEntry(entry)}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
@@ -267,8 +280,12 @@ export function OrdersHistoryManager({
         {renderMetaAmount(entry)}
         {renderPrintButton(entry)}
       </div>
+      {forcedCloseSummary ? (
+        <p className="mt-2 text-[13px] text-brand-text-muted">{forcedCloseSummary}</p>
+      ) : null}
     </button>
-  );
+    );
+  };
 
   const listFooter = (): ReactNode => {
     if (loading && entries.length > 0) {
@@ -358,7 +375,11 @@ export function OrdersHistoryManager({
         </div>
       )}
 
-      <OrderHistoryDetailModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
+      <OrderHistoryDetailModal
+        entry={selectedEntry}
+        itemCodeByMenuId={itemCodeByMenuId}
+        onClose={() => setSelectedEntry(null)}
+      />
     </div>
   );
 }

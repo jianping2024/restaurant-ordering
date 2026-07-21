@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  buildOrderHistoryDetailChips,
   buildOrderListDisplayChips,
   formatOrderItemListLabel,
   formatOrderItemQuantityLabel,
@@ -192,63 +191,5 @@ describe('buildOrderListDisplayChips', () => {
     assert.equal(chips[0].name, 'Buffet almoço');
     assert.equal(chips[0].quantityLabel, '· A7-C3');
     assert.equal(chips[1].quantityLabel, '× 1');
-  });
-});
-
-describe('buildOrderHistoryDetailChips', () => {
-  it('marks voided items for detail modal display', () => {
-    const orders = [
-      {
-        id: 'o1',
-        items: [
-          {
-            id: 'd1',
-            name: 'Sumol',
-            name_pt: 'Sumol',
-            qty: 1,
-            price: 2,
-            emoji: '🥤',
-            item_status: 'voided',
-          },
-          {
-            id: 'd2',
-            name: 'Water',
-            name_pt: 'Agua',
-            qty: 2,
-            price: 1,
-            emoji: '💧',
-          },
-        ],
-      },
-    ] as Order[];
-
-    const chips = buildOrderHistoryDetailChips(orders);
-    assert.equal(chips.length, 2);
-    assert.equal(chips[0].voided, true);
-    assert.equal(chips[1].voided, undefined);
-  });
-
-  it('hides void styling when suppressVoidStyling is set', () => {
-    const orders = [
-      {
-        id: 'o1',
-        items: [
-          {
-            id: 'd1',
-            name: 'Sumol',
-            name_pt: 'Sumol',
-            qty: 1,
-            price: 2,
-            emoji: '🥤',
-            item_status: 'voided',
-          },
-        ],
-      },
-    ] as Order[];
-
-    const chips = buildOrderHistoryDetailChips(orders, {
-      suppressVoidStyling: true,
-    });
-    assert.equal(chips[0].voided, undefined);
   });
 });

@@ -20,6 +20,7 @@ export default async function OrdersPage() {
       initialItems={initial.items}
       initialHasMore={initial.hasMore}
       initialCappedTotal={initial.cappedTotal}
+      initialItemCodeByMenuId={initial.itemCodeByMenuId}
       tables={loaded.tables}
       restaurantSlug={loaded.restaurant.slug}
     />

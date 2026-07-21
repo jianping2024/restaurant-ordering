@@ -1,10 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { groupOrdersBySession } from '@/lib/analytics/analytics.repository';
 import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
+import { defaultOrderHistoryCloseAnnotation } from '@/lib/order-history/build-bill-detail-view';
 import { buildOrderHistorySessionSettlement } from '@/lib/order-history/build-session-settlement';
+import { loadForcedUnpaidCloseAnnotations } from '@/lib/order-history/load-forced-unpaid-close-annotations';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
 import { resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
+import {
+  distinctMenuItemIdsFromOrders,
+  menuItemCodeLookupFromRows,
+} from '@/lib/menu-item-code';
 import {
   ORDER_HISTORY_MAX_TOTAL,
   ORDER_HISTORY_PAGE_SIZE,
@@ -59,12 +65,31 @@ function displayNameForSession(orders: Order[], tableId: string): string {
   return fromOrder || tableId;
 }
 
+async function loadMenuItemCodeLookup(
+  admin: SupabaseClient,
+  restaurantId: string,
+  orders: Order[],
+): Promise<Record<string, string>> {
+  const itemIds = distinctMenuItemIdsFromOrders(orders);
+  if (itemIds.length === 0) return {};
+
+  const { data, error } = await admin
+    .from('menu_items')
+    .select('id, item_code')
+    .eq('restaurant_id', restaurantId)
+    .in('id', itemIds);
+
+  if (error || !data?.length) return {};
+  return menuItemCodeLookupFromRows(data);
+}
+
 function buildEntry(
   session: ClosedSessionRow,
   sessionOrders: Order[],
   openedByName: string | null,
   billSplit: OrderHistoryEntry['billSplit'],
   collectedPayments: OrderHistoryEntry['settlement']['collectedPayments'],
+  closeAnnotation: OrderHistoryEntry['closeAnnotation'],
 ): OrderHistoryEntry {
   return {
     sessionId: session.id,
@@ -78,10 +103,18 @@ function buildEntry(
       collectedPayments,
       orders: sessionOrders,
     }),
+    closeAnnotation,
     billSplit,
     orders: sessionOrders,
   };
 }
+
+const EMPTY_PAGE: OrderHistoryPageResult = {
+  items: [],
+  cappedTotal: 0,
+  hasMore: false,
+  itemCodeByMenuId: {},
+};
 
 export async function loadOrderHistoryEntries(
   admin: SupabaseClient,
@@ -90,7 +123,7 @@ export async function loadOrderHistoryEntries(
   const maxTotal = query.maxTotal ?? ORDER_HISTORY_MAX_TOTAL;
   const limit = Math.min(query.limit, maxTotal - query.offset);
   if (limit <= 0 || query.offset >= maxTotal) {
-    return { items: [], cappedTotal: 0, hasMore: false };
+    return { ...EMPTY_PAGE, cappedTotal: 0 };
   }
 
   let countQuery = admin
@@ -103,7 +136,7 @@ export async function loadOrderHistoryEntries(
 
   const { count, error: countError } = await countQuery;
   if (countError) {
-    return { items: [], cappedTotal: 0, hasMore: false };
+    return EMPTY_PAGE;
   }
 
   const matchingTotal = count ?? 0;
@@ -121,7 +154,7 @@ export async function loadOrderHistoryEntries(
 
   const { data: sessionRows, error: sessionError } = await sessionQuery;
   if (sessionError || !sessionRows?.length) {
-    return { items: [], cappedTotal, hasMore: false };
+    return { ...EMPTY_PAGE, cappedTotal };
   }
 
   const sessions = sessionRows as ClosedSessionRow[];
@@ -135,20 +168,19 @@ export async function loadOrderHistoryEntries(
     .order('created_at', { ascending: true });
 
   if (ordersError) {
-    return { items: [], cappedTotal, hasMore: false };
+    return { ...EMPTY_PAGE, cappedTotal };
   }
 
   const ordersBySession = groupOrdersBySession((orderRows || []) as Order[]);
-  const billSplitBySessionId = await loadBillSplitsForOrderHistory(
-    admin,
-    query.restaurantId,
-    sessionIds,
-  );
-  const collectedPaymentsBySession = await loadSessionCollectedPaymentsForOrderHistory(
-    admin,
-    query.restaurantId,
-    sessionIds,
-  );
+  const allSessionOrders = (orderRows || []) as Order[];
+
+  const [billSplitBySessionId, collectedPaymentsBySession, forcedCloseBySession, itemCodeByMenuId] =
+    await Promise.all([
+      loadBillSplitsForOrderHistory(admin, query.restaurantId, sessionIds),
+      loadSessionCollectedPaymentsForOrderHistory(admin, query.restaurantId, sessionIds),
+      loadForcedUnpaidCloseAnnotations(admin, query.restaurantId, sessionIds),
+      loadMenuItemCodeLookup(admin, query.restaurantId, allSessionOrders),
+    ]);
 
   const openerIds = sessions
     .map((session) => session.opened_by_user_id)
@@ -167,13 +199,24 @@ export async function loadOrderHistoryEntries(
     const openedByName = session.opened_by_user_id
       ? openerNames.get(session.opened_by_user_id) ?? null
       : null;
-    return buildEntry(session, sessionOrders, openedByName, billSplit, collectedPayments);
+    const closeAnnotation = defaultOrderHistoryCloseAnnotation(
+      session.id,
+      forcedCloseBySession,
+    );
+    return buildEntry(
+      session,
+      sessionOrders,
+      openedByName,
+      billSplit,
+      collectedPayments,
+      closeAnnotation,
+    );
   });
 
   const loadedThrough = query.offset + items.length;
   const hasMore = items.length === limit && loadedThrough < cappedTotal;
 
-  return { items, cappedTotal, hasMore };
+  return { items, cappedTotal, hasMore, itemCodeByMenuId };
 }
 
 export function defaultOrderHistoryQuery(

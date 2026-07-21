@@ -148,6 +148,16 @@ export function PrintAgentDevicesPanel({
               </div>
               <dl className="mt-2 grid gap-1 text-brand-muted sm:grid-cols-2">
                 <div>
+                  <dt className="inline">{t.devicesNotificationMode}: </dt>
+                  <dd className="inline text-brand-ink">
+                    {d.notification_mode === 'realtime'
+                      ? t.notificationModeRealtime
+                      : d.notification_mode === 'polling'
+                        ? t.notificationModePolling
+                        : '—'}
+                  </dd>
+                </div>
+                <div>
                   <dt className="inline">{t.devicesLastSeen}: </dt>
                   <dd className="inline text-brand-ink">
                     {formatLastSeenRelative(d.last_seen, locale, nowMs)}

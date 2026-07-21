@@ -31,7 +31,7 @@ menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text
 
 orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pending|cooking|done], items: jsonb, total_amount: numeric, created_at: timestamptz, updated_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
 
-print_agent_devices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, pairing_id: uuid FK -> print_agent_pairings.id nullable, label: text nullable, paired_at: timestamptz, valid_until: timestamptz, revoked_at: timestamptz nullable, last_seen: timestamptz nullable, routing_snapshot: jsonb nullable, agent_version: text nullable, mapped_station_count: integer nullable, last_print_at: timestamptz nullable, last_print_status: text nullable, schedule_open: boolean nullable)
+print_agent_devices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, pairing_id: uuid FK -> print_agent_pairings.id nullable, label: text nullable, paired_at: timestamptz, valid_until: timestamptz, revoked_at: timestamptz nullable, last_seen: timestamptz nullable, routing_snapshot: jsonb nullable, agent_version: text nullable, mapped_station_count: integer nullable, last_print_at: timestamptz nullable, last_print_status: text nullable, schedule_open: boolean nullable, notification_mode: text nullable check in realtime|polling)
 
 print_agent_support_tokens (id: uuid PK, device_id: uuid FK -> print_agent_devices.id, restaurant_id: uuid FK -> restaurants.id, actor_user_id: uuid FK -> auth.users.id, expires_at: timestamptz, consumed_at: timestamptz nullable, created_at: timestamptz)
 

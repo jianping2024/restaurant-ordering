@@ -38,14 +38,17 @@ func (hb *heartbeatSnapshot) recordPrint(ok bool) {
 	}
 }
 
-func postHeartbeat(ctx context.Context, cfg *config, scheduleOpen bool, hb *heartbeatSnapshot) error {
+func postHeartbeat(ctx context.Context, cfg *config, scheduleOpen bool, hb *heartbeatSnapshot, mode NotificationMode) error {
 	if cfg == nil || strings.TrimSpace(cfg.AgentJWT) == "" {
 		return nil
 	}
 	body := map[string]any{
-		"agent_version":          Version,
-		"mapped_station_count":   cfg.mappedStationCount(),
-		"schedule_open":          scheduleOpen,
+		"agent_version":        Version,
+		"mapped_station_count": cfg.mappedStationCount(),
+		"schedule_open":        scheduleOpen,
+	}
+	if mode == NotificationModeRealtime || mode == NotificationModePolling {
+		body["notification_mode"] = string(mode)
 	}
 	if hb != nil && !hb.lastPrintAt.IsZero() && hb.lastPrintStatus != "" {
 		body["last_print_at"] = hb.lastPrintAt.UTC().Format(time.RFC3339)

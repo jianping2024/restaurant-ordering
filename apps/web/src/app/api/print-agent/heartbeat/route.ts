@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyActiveAgentBearer } from '@/lib/print-agent-auth';
+import { parsePrintAgentNotificationMode } from '@/lib/print-agent-heartbeat';
 
 export const runtime = 'nodejs';
 
@@ -10,6 +11,7 @@ type HeartbeatBody = {
   last_print_at?: string | null;
   last_print_status?: string | null;
   schedule_open?: boolean;
+  notification_mode?: string;
 };
 
 /** Agent: update device heartbeat (JWT device_id). */
@@ -53,6 +55,7 @@ export async function POST(req: Request) {
   }
 
   const scheduleOpen = body.schedule_open === true;
+  const notificationMode = parsePrintAgentNotificationMode(body.notification_mode);
 
   const nowIso = new Date().toISOString();
   const patch: Record<string, unknown> = {
@@ -63,6 +66,7 @@ export async function POST(req: Request) {
   if (mapped !== null) patch.mapped_station_count = mapped;
   if (lastPrintAt) patch.last_print_at = lastPrintAt;
   if (lastPrintStatus) patch.last_print_status = lastPrintStatus;
+  if (notificationMode) patch.notification_mode = notificationMode;
 
   const { data: row, error } = await admin
     .from('print_agent_devices')

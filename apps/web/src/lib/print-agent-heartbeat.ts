@@ -1,6 +1,8 @@
 /** Device offline when last_seen older than this (≈2× 5-minute agent heartbeat). */
 export const PRINT_AGENT_HEARTBEAT_OFFLINE_MS = 10 * 60 * 1000;
 
+export type PrintAgentNotificationMode = 'realtime' | 'polling';
+
 export type PrintAgentDeviceHeartbeatRow = {
   id: string;
   label: string | null;
@@ -13,7 +15,15 @@ export type PrintAgentDeviceHeartbeatRow = {
   last_print_at?: string | null;
   last_print_status?: string | null;
   schedule_open?: boolean | null;
+  notification_mode?: PrintAgentNotificationMode | null;
 };
+
+export function parsePrintAgentNotificationMode(
+  value: unknown,
+): PrintAgentNotificationMode | null {
+  if (value === 'realtime' || value === 'polling') return value;
+  return null;
+}
 
 export function isPrintAgentDeviceOnline(
   lastSeen: string | null | undefined,

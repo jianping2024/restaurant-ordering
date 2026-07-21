@@ -34,7 +34,7 @@ export async function loadPrintAgentDevices(
   const { data, error } = await supabase
     .from('print_agent_devices')
     .select(
-      'id, label, valid_until, revoked_at, last_seen, agent_version, mapped_station_count, routing_snapshot, last_print_at, last_print_status, schedule_open',
+      'id, label, valid_until, revoked_at, last_seen, agent_version, mapped_station_count, routing_snapshot, last_print_at, last_print_status, schedule_open, notification_mode',
     )
     .eq('restaurant_id', restaurantId)
     .is('revoked_at', null)

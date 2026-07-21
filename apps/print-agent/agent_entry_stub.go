@@ -12,5 +12,5 @@ func runAgent(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	runNotificationLoop(context.Background(), sess, nil)
+	runNotificationLoop(context.Background(), sess, &agentStatus{})
 }

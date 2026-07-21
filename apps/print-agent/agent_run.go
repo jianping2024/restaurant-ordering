@@ -33,12 +33,6 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	}()
 
 	go func() {
-		if err := runHeartbeatLoop(ctx, sess); err != nil && err != context.Canceled {
-			log.Printf("Heartbeat error: %v", err)
-		}
-	}()
-
-	go func() {
 		if err := runScheduleLoop(ctx, sess, queue, status); err != nil && err != context.Canceled {
 			log.Printf("Schedule loop error: %v", err)
 		}
@@ -59,6 +53,12 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	} else {
 		notifier = NewPollingNotifier(cfg, queue, sess.pc)
 	}
+
+	go func() {
+		if err := runHeartbeatLoop(ctx, sess, status); err != nil && err != context.Canceled {
+			log.Printf("Heartbeat error: %v", err)
+		}
+	}()
 
 	if err := notifier.Start(ctx); err != nil && err != context.Canceled {
 		log.Printf("Notifier error: %v", err)
@@ -172,7 +172,7 @@ func ensureLocalPollController(sess *agentSession) {
 }
 
 // runHeartbeatLoop sends periodic heartbeats to the server.
-func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
+func runHeartbeatLoop(ctx context.Context, sess *agentSession, status *agentStatus) error {
 	send := func() {
 		cfg := sess.cfg
 		if cfg == nil {
@@ -184,7 +184,11 @@ func runHeartbeatLoop(ctx context.Context, sess *agentSession) error {
 				open = o
 			}
 		}
-		if err := postHeartbeat(ctx, cfg, open, &sess.hb); err != nil {
+		mode := NotificationMode("")
+		if status != nil {
+			mode = status.notifyMode()
+		}
+		if err := postHeartbeat(ctx, cfg, open, &sess.hb, mode); err != nil {
 			agentLogTech(cfg, "log_heartbeat_error", err.Error())
 		}
 	}

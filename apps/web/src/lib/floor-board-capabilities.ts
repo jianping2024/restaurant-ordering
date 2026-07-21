@@ -18,9 +18,11 @@ export type FloorBoardCapabilities = {
   canAssistBillCheckout: boolean;
   /** Board: open checkout-pending table cards into detail/sheet. */
   canOpenCheckoutPendingTables: boolean;
+  /** Ordered-items: manual session pre_bill (frontdesk only). */
+  canPrintSessionPreBill: boolean;
 };
 
-const DESK: FloorBoardCapabilities = {
+const DESK: Omit<FloorBoardCapabilities, 'canPrintSessionPreBill'> = {
   canMenuDecrement: true,
   canCheckoutClose: true,
   canForceCloseTable: true,
@@ -34,6 +36,7 @@ const WAITER: FloorBoardCapabilities = {
   canForceCloseTable: false,
   canAssistBillCheckout: false,
   canOpenCheckoutPendingTables: false,
+  canPrintSessionPreBill: false,
 };
 
 export function isFloorBoardRole(role: string | null | undefined): role is FloorBoardRole {
@@ -41,5 +44,9 @@ export function isFloorBoardRole(role: string | null | undefined): role is Floor
 }
 
 export function floorBoardCapabilities(role: FloorBoardRole): FloorBoardCapabilities {
-  return role === 'waiter' ? WAITER : DESK;
+  if (role === 'waiter') return WAITER;
+  return {
+    ...DESK,
+    canPrintSessionPreBill: role === 'frontdesk',
+  };
 }

@@ -238,7 +238,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | 产品说法 | `receipt_variant` | 自动/手动 |
 |----------|-------------------|-----------|
-| 预结算 | `pre_bill` | 自动（呼叫结账成功后由服务端入队） |
+| 预结算 | `pre_bill` | **自动**（呼叫结账成功后入队）或 **前台手动**（桌台详情「打印预结账单」；`staff_manual`，不受开关限制） |
 | 分单 | `split_payment` | 自动（确认某人收款） |
 | 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账 / 历史重打；收银员关台结账不触发） |
 | 总账单（收讫后） | `final` | 自动（全员付清） |
@@ -250,7 +250,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | `print_jobs.type` | 触发 |
 |-------------------|------|
 | `station_ticket` | 加菜自动 |
-| `pre_bill` | 自动账单 variant `pre_bill` |
+| `pre_bill` | 自动账单 variant `pre_bill`；前台手动会话预结 |
 | `order_receipt` | `split_payment`、`final`、`checkout_bill` 等 |
 
 ### 任务状态
@@ -262,6 +262,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | variant | `bill_receipt_print` 门控 |
 |---------|---------------------------|
 | `pre_bill`、`split_payment`、`final` | 受开关限制（`printSource=automatic`） |
+| `pre_bill`（前台详情手动） | **不受**限制（`printSource=staff_manual`） |
 | `checkout_bill`（手动打印账单） | **不受**限制 |
 | 手动 `split_payment`（已收款项补打收据） | **不受**限制 |
 | `station_ticket` | **不受**限制 |

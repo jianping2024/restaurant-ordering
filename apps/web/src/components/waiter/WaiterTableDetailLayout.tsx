@@ -16,6 +16,7 @@ import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -470,6 +471,12 @@ type OrderedItemsProps = {
   title: string;
   /** Preformatted session total for sticky chrome; null hides the amount. */
   sessionTotalText: string | null;
+  /** Frontdesk manual pre_bill — presentational only; null hides the control. */
+  preBillPrint: {
+    label: string;
+    busy: boolean;
+    onPrint: () => void;
+  } | null;
   lines: WaiterOrderLine[];
   isCheckoutPending: boolean;
   decrementingKey: string | null;
@@ -480,6 +487,7 @@ type OrderedItemsProps = {
 export function WaiterTableOrderedItemsPanel({
   title,
   sessionTotalText,
+  preBillPrint,
   lines,
   isCheckoutPending,
   decrementingKey,
@@ -495,8 +503,23 @@ export function WaiterTableOrderedItemsPanel({
           <WaiterClocheIcon className={`${buttonIcon.md} shrink-0 text-brand-gold`} />
           <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
         </div>
-        {sessionTotalText ? (
-          <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
+        {sessionTotalText || preBillPrint ? (
+          <div className={waiterDetailLayout.orderedItemsHeaderActions}>
+            {sessionTotalText ? (
+              <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
+            ) : null}
+            {preBillPrint ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={preBillPrint.busy}
+                onClick={preBillPrint.onPrint}
+              >
+                {preBillPrint.label}
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </div>
       <div className={waiterDetailLayout.sectionBody}>

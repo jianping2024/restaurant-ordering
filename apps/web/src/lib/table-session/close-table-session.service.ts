@@ -14,14 +14,18 @@ import {
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
-import type { CloseTableSessionClosedReason } from '@/lib/table-session/load-close-table-actor';
+import {
+  settledActorReasonToForced,
+  type SettledCloseActorReason,
+} from '@/lib/table-session/operational-close-reasons';
 
 export type CloseTableSessionServiceInput = {
   admin: SupabaseClient;
   restaurantId: string;
   userId: string;
   actor: AuditActor;
-  closedReason: 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
+  /** Dashboard actor reason (settled naming); mapped to *_forced for operational RPC. */
+  closedReason: SettledCloseActorReason;
   tableId: string;
   confirmClose: boolean;
   unpaidReason?: string | null;
@@ -127,7 +131,7 @@ export async function closeTableSessionManual(
     restaurantId: input.restaurantId,
     tableId: input.tableId,
     operatorUserId: input.userId,
-    closedReason: input.closedReason,
+    closedReason: settledActorReasonToForced(input.closedReason),
     confirmClose: input.confirmClose,
     unpaidReason: input.unpaidReason,
     unpaidReasonDetail: input.unpaidReasonDetail,

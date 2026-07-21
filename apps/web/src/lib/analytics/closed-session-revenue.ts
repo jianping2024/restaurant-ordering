@@ -12,6 +12,7 @@ import {
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
 import { isQualifyingSession, sessionRevenue } from '@/lib/analytics/qualifying';
 import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
+import { isOperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
 import type { BillSplit, Order } from '@/types';
 
 export type ClosedSessionRevenueBundle = {
@@ -24,6 +25,20 @@ export type ClosedSessionRevenueBundle = {
 export type ClosedSessionRevenueLoadResult =
   | { ok: true; bundle: ClosedSessionRevenueBundle }
   | AnalyticsQueryError;
+
+/** UNPAID_TABLE_CLOSED abnormals + operational closed_reason values. */
+export function mergeForcedCloseSessionIds(
+  sessions: ClosedSessionRow[],
+  unpaidAbnormalSessionIds: Set<string>,
+): Set<string> {
+  const forced = new Set(unpaidAbnormalSessionIds);
+  for (const session of sessions) {
+    if (isOperationalCloseReason(session.closed_reason)) {
+      forced.add(session.id);
+    }
+  }
+  return forced;
+}
 
 export function filterQualifyingClosedSessions(
   sessions: ClosedSessionRow[],
@@ -67,7 +82,7 @@ export async function loadClosedSessionRevenueBundle(
   }
 
   const sessionIds = sessions.map((session) => session.id);
-  const [ordersResult, splitsResult, forcedClosedSessionIds] = await Promise.all([
+  const [ordersResult, splitsResult, unpaidForcedIds] = await Promise.all([
     fetchOrdersBySessionIds(admin, restaurantId, sessionIds),
     fetchBillSplitsBySessionIds(admin, restaurantId, sessionIds),
     fetchUnpaidForcedCloseSessionIds(admin, restaurantId, sessionIds),
@@ -86,7 +101,7 @@ export async function loadClosedSessionRevenueBundle(
       sessions,
       ordersBySession: groupOrdersBySession(ordersResult.rows),
       splitsBySession: groupSplitsBySession(splitsResult.rows),
-      forcedClosedSessionIds,
+      forcedClosedSessionIds: mergeForcedCloseSessionIds(sessions, unpaidForcedIds),
     },
   };
 }

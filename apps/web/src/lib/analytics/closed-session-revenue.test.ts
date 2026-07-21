@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { BillSplit, Order } from '@/types';
 import {
   filterQualifyingClosedSessions,
+  mergeForcedCloseSessionIds,
   todayRevenueFromBundle,
   type ClosedSessionRevenueBundle,
 } from '@/lib/analytics/closed-session-revenue';
@@ -93,6 +94,19 @@ describe('todayRevenueFromBundle', () => {
 
     assert.equal(revenue.todayRevenue, 0);
     assert.equal(revenue.revenueSessionCount, 0);
+  });
+
+  it('excludes operational closed_reason via mergeForcedCloseSessionIds', () => {
+    const merged = mergeForcedCloseSessionIds(
+      [
+        { id: 's1', closed_at: '2026-07-21T12:00:00.000Z', closed_reason: 'auto_nightly' },
+        { id: 's2', closed_at: '2026-07-21T12:00:00.000Z', closed_reason: 'frontdesk_closed' },
+      ],
+      new Set(['s3']),
+    );
+    assert.equal(merged.has('s1'), true);
+    assert.equal(merged.has('s2'), false);
+    assert.equal(merged.has('s3'), true);
   });
 });
 

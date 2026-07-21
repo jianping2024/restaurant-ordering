@@ -1,12 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
+import type { OperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
 
-export type CloseTableOperationalReason =
-  | 'waiter_closed'
-  | 'owner_closed'
-  | 'frontdesk_closed'
-  | 'cashier_closed'
-  | 'auto_nightly';
+export type CloseTableOperationalReason = OperationalCloseReason;
 
 export type CloseTableSettledReason = 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
 
@@ -20,7 +16,7 @@ export type CloseTableOperationalResult =
   | { ok: false; code: 'no_session' | 'update_failed'; message?: string };
 
 export type CloseTableSettledResult =
-  | { ok: true; session_id: string; payable_amount?: number }
+  | { ok: true; session_id: string }
   | {
       ok: false;
       code: 'no_session' | 'update_failed';
@@ -32,7 +28,6 @@ type CloseTableRpcPayload = {
   code?: string;
   message?: string;
   session_id?: string;
-  payable_amount?: number;
 };
 
 function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableSettledResult {
@@ -55,15 +50,13 @@ function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableS
   return {
     ok: true,
     session_id: payload.session_id,
-    payable_amount:
-      typeof payload.payable_amount === 'number' ? payload.payable_amount : undefined,
   };
 }
 
 /**
- * Settled close for frontdesk/cashier checkout: cancel unpaid splits, write settlement,
- * preserve orders, close session. Floor ability matches former operational checkout-close;
- * revenue is preserved instead of voiding. See docs/table-session-close.zh.md.
+ * Settled close for frontdesk/cashier checkout: cancel unpaid splits, preserve orders,
+ * close session. Revenue uses preserved order totals — no invented paid split/ledger.
+ * See docs/table-session-close.zh.md.
  */
 export async function closeActiveTableSessionSettled(
   admin: SupabaseClient,
@@ -93,8 +86,8 @@ export async function closeActiveTableSessionSettled(
 }
 
 /**
- * Operational cleanup close: cancel unpaid splits, void order lines, close session.
- * Used for force close, waiter close, and nightly auto-close.
+ * Operational force/nightly close: cancel unpaid splits, close session, preserve orders.
+ * Revenue exclusion is by closed_reason (operational set) / UNPAID_TABLE_CLOSED — not voiding.
  */
 export async function closeActiveTableSessionWithOperationalCleanup(
   admin: SupabaseClient,

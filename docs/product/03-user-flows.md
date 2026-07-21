@@ -324,7 +324,7 @@
 | 分单金额校验失败 | 400 `amount_mismatch` 等 |
 | 已有收款后改分单 | `validateCheckoutContinuation` 409 |
 | 整桌已付清 | 禁止 `resume-ordering`（`whole_table_paid`） |
-| 强制关台 | 见关台流程：`bill_splits`→`cancelled`，订单 void，session `closed` |
+| 强制关台 | 见关台流程：`bill_splits`→`cancelled`，订单保留，session `closed`（强制 reason，不计营业额） |
 | 并发双人收款 | RPC 原子 + 409 `already_paid` |
 
 ### 状态变化

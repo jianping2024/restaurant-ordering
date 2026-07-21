@@ -145,7 +145,7 @@
 | 前台 decrement | `pending`/`cooking` | 减至 0 时自动记 `qty_adjustment`（无需弹框） |
 | 收银员 decrement | `pending`/`cooking` | 同前台 |
 | 服务员 decrement | — | **禁止**（菜单减菜仅楼面；自助餐改人数走 buffet API） |
-| 强制关台 | 批量 void | 系统原因 |
+| 强制关台 | 不 void 订单 | 关台原因 / 异常标记 |
 
 ### 风险等级（`riskLevelForVoidedItem`）
 
@@ -224,7 +224,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | 路径 | 条件 | 结果 |
 |------|------|------|
 | 正常付清 | RPC `should_close_session` | `paid` + session `closed` |
-| 强制关台 | `confirm_close: true` | 未付 split→`cancelled`；订单 void；session `closed` |
+| 强制关台 | `confirm_close: true` | 未付 split→`cancelled`；订单**保留**；session `closed`（强制 `closed_reason`） |
 
 ### 相关代码
 
@@ -351,18 +351,17 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 **统计口径（2026-07-21 更新）**：
 1. **已付清收款**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和，**应用 `discount_rate` 折扣**
 2. **已付清回退**：`paid` split 的 `total_amount`，应用平均折扣率
-3. **已关台（非强制）**：会话 `status='closed'` 且**不在** `abnormal_operations.type='UNPAID_TABLE_CLOSED'` 中
-   - 有 split：应用最后一个 split 的 `discount_rate` 到订单总额
-   - 无 split：订单原价（无折扣）
+3. **已关台（非强制）**：会话 `status='closed'` 且 `closed_reason` **不属于**强制集合（`waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly`），且**不在** `abnormal_operations.type='UNPAID_TABLE_CLOSED'` 中
+   - 有未 cancelled/paid 的 split：可应用其折扣到订单总额
+   - 否则：订单原价（无折扣）
 4. **未关台 / 强制关台**：不计入营业额统计
 5. 金额经 `auditMoney` 四舍五入
 
 **关台路径与统计：**
-- ✅ `frontdesk_closed`（前台关台结账）→ 计入营业额
-- ✅ `cashier_closed`（收银员关台）→ 计入营业额
-- ✅ `owner_closed`（店主关台）→ 计入营业额
+- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（关台结账 settled）→ 计入营业额（订单金额）
 - ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
-- ❌ 强制关台（有 `UNPAID_TABLE_CLOSED` 异常记录）→ **不计入**营业额
+- ❌ `waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly` → **不计入**
+- ❌ `UNPAID_TABLE_CLOSED` 异常记录 → **不计入**
 
 ### 客数
 

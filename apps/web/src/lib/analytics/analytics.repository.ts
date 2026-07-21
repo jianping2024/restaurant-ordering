@@ -45,7 +45,7 @@ export async function fetchClosedSessionsInWindow(
     const { data, error } = (await withAnalyticsQueryTimeout(
       admin
         .from('table_sessions')
-        .select('id, closed_at')
+        .select('id, closed_at, closed_reason')
         .eq('restaurant_id', restaurantId)
         .eq('status', 'closed')
         .not('closed_at', 'is', null)

@@ -61,6 +61,8 @@ export type AnalyticsDateWindow = {
 export type ClosedSessionRow = {
   id: string;
   closed_at: string;
+  /** Used to exclude operational / force / nightly closes from revenue. */
+  closed_reason?: string | null;
 };
 
 export type MenuCategoryRow = {

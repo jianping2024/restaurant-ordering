@@ -14,10 +14,17 @@ type Props = {
   total: number;
   labels: Labels;
   className?: string;
+  defaultOpen?: boolean;
 };
 
-export function CheckoutTableItemsSection({ lines, total, labels, className }: Props) {
-  const [open, setOpen] = useState(false);
+export function CheckoutTableItemsSection({
+  lines,
+  total,
+  labels,
+  className,
+  defaultOpen = false,
+}: Props) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className={`rounded-lg border border-brand-border/60 overflow-hidden${className ? ` ${className}` : ''}`}>

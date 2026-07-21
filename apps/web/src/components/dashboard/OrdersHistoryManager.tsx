@@ -13,6 +13,8 @@ import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-his
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
+import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
+import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
@@ -35,6 +37,12 @@ const ORDER_CARD_CLASS =
   'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full hover:border-brand-gold/40 transition-colors';
 const FORCED_CLOSE_CARD_CLASS =
   'bg-amber-500/5 border border-amber-500/25 rounded-xl px-4 py-3 text-left w-full hover:border-amber-500/40 transition-colors';
+
+const OUTCOME_BADGE_CLASS: Record<'success' | 'warning' | 'muted', string> = {
+  success: 'bg-brand-gold/15 text-brand-gold border-brand-gold/30',
+  warning: 'bg-amber-500/15 text-amber-200 border-amber-500/30',
+  muted: 'bg-brand-border/40 text-brand-text-muted border-brand-border/60',
+};
 
 export function OrdersHistoryManager({
   initialItems,
@@ -226,13 +234,12 @@ export function OrdersHistoryManager({
     const billCooldownKey = splitId ? staffBillPrintCooldownKey(splitId) : '';
     const busy = splitId ? isPrintBillBusy(splitId) : false;
     const onCooldown = billCooldownKey ? isOnCooldown(billCooldownKey) : false;
-    const label = !billSplit
-      ? checkoutT.printBill
-      : busy
-        ? checkoutT.printBillOperating
-        : onCooldown
-          ? checkoutT.printBillCooldown.replace('{n}', String(cooldownSecondsLeft(billCooldownKey)))
-          : checkoutT.printBill;
+    const label = resolveBillPrintButtonLabel(
+      billSplit,
+      checkoutT,
+      busy,
+      onCooldown ? cooldownSecondsLeft(billCooldownKey) : 0,
+    );
 
     return (
       <button
@@ -254,6 +261,7 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
+    const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
 
     return (
     <button
@@ -265,6 +273,12 @@ export function OrdersHistoryManager({
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
         <span className="font-medium text-brand-text">
           {i18n.table} {entry.displayName}
+        </span>
+        {META_SEP}
+        <span
+          className={`inline-flex text-[11px] px-1.5 py-0.5 rounded-full border ${OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
+        >
+          {outcomeBadge.label}
         </span>
         {META_SEP}
         <span className="text-brand-text-muted">{formatClosedAt(entry.closedAt)}</span>
@@ -378,6 +392,7 @@ export function OrdersHistoryManager({
       <OrderHistoryDetailModal
         entry={selectedEntry}
         itemCodeByMenuId={itemCodeByMenuId}
+        restaurantSlug={restaurantSlug}
         onClose={() => setSelectedEntry(null)}
       />
     </div>

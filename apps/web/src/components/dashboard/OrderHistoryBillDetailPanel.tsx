@@ -1,25 +1,40 @@
 'use client';
 
-import { useMemo } from 'react';
-import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
+import { useMemo, type ReactNode } from 'react';
 import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
-import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
+import { OrderHistoryPersonLedgerSection } from '@/components/dashboard/OrderHistoryPersonLedgerSection';
 import { OrderHistorySettlementDetails } from '@/components/dashboard/OrderHistorySettlementDetails';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
+import type { OrderHistoryDetailSection } from '@/lib/order-history/build-detail-presentation';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
-import { localizeSplitPersonName } from '@/lib/split-person-label';
+
+type PrintHandlers = {
+  showSplitReceiptActions: boolean;
+  onPrintReceipt: (payment: SessionCollectedPayment) => void;
+  isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
+  printReceiptCooldownSeconds: (payment: SessionCollectedPayment) => number;
+  isPrintReceiptOnCooldown: (payment: SessionCollectedPayment) => boolean;
+};
 
 type Props = {
   entry: OrderHistoryEntry;
   itemCodeByMenuId: Record<string, string>;
   lang: UILanguage;
+  printHandlers?: PrintHandlers;
 };
 
-export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: Props) {
+export function OrderHistoryBillDetailPanel({
+  entry,
+  itemCodeByMenuId,
+  lang,
+  printHandlers,
+}: Props) {
   const checkoutT = getMessages(lang).checkout;
+  const orderHistoryT = getMessages(lang).orderHistory;
 
   const detail = useMemo(
     () => buildOrderHistoryBillDetailView(entry, itemCodeByMenuId, lang),
@@ -34,7 +49,43 @@ export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: P
     empty: checkoutT.personShareItemsEmpty,
   };
 
-  const { settlement } = entry;
+  const tableItemsSection = (
+    <CheckoutTableItemsSection
+      key={entry.sessionId}
+      lines={detail.tableLines}
+      total={detail.tableLinesTotal}
+      defaultOpen={detail.tableItemsDefaultOpen}
+      labels={{
+        orderItemsCount: checkoutT.orderItemsCount,
+        orderItemsEmpty: checkoutT.orderItemsEmpty,
+        orderItemsTotal: checkoutT.orderItemsTotal,
+      }}
+    />
+  );
+
+  const sectionNodes: Record<OrderHistoryDetailSection, ReactNode> = {
+    settlement:
+      detail.settlement != null ? (
+        <OrderHistorySettlementDetails
+          variant={detail.settlement.variant}
+          summary={detail.settlement.summary}
+          checkoutT={checkoutT}
+          orderHistoryT={orderHistoryT}
+        />
+      ) : null,
+    table_items: tableItemsSection,
+    person_ledger: (
+      <OrderHistoryPersonLedgerSection
+        ledger={detail.personLedger}
+        lang={lang}
+        checkoutT={checkoutT}
+        orderHistoryT={orderHistoryT}
+        canExpandPersonDishes={detail.canExpandPersonDishes}
+        shareLabels={personShareLabels}
+        printHandlers={printHandlers}
+      />
+    ),
+  };
 
   return (
     <div className="space-y-4">
@@ -47,65 +98,10 @@ export function OrderHistoryBillDetailPanel({ entry, itemCodeByMenuId, lang }: P
         </div>
       ) : null}
 
-      {detail.splitModeLabel ? (
-        <span className="inline-flex text-[11px] px-2 py-0.5 rounded-full bg-brand-border/50 text-brand-text-muted">
-          {detail.splitModeLabel}
-        </span>
-      ) : null}
-
-      {settlement.showFinancialDetails && settlement.summary ? (
-        <OrderHistorySettlementDetails summary={settlement.summary} checkoutT={checkoutT} />
-      ) : null}
-
-      {detail.showSplitSection ? (
-        <div className="rounded-lg border border-brand-border/60 bg-brand-card/50 p-3">
-          <p className="text-[13px] font-medium text-brand-text mb-2">{checkoutT.splitResult}</p>
-          <div className="space-y-2">
-            {detail.personRows.map((row) => (
-              <CheckoutPersonShareExpandable
-                key={`${entry.sessionId}-${row.index}`}
-                canExpand={detail.canExpandPersonDishes}
-                shareLines={row.shareLines}
-                labels={personShareLabels}
-                identity={
-                  <span className="text-brand-text font-medium">
-                    {localizeSplitPersonName(row.name, lang)}
-                  </span>
-                }
-                trailing={
-                  <span className="text-brand-gold font-semibold tabular-nums">
-                    €{row.obligationAmount.toFixed(2)}
-                  </span>
-                }
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {settlement.collectedPayments.length > 0 ? (
-        <CollectedPaymentsLedger
-          payments={settlement.collectedPayments}
-          lang={lang}
-          t={checkoutT}
-          bordered={false}
-          className="px-1"
-          canExpandPersonDishes={detail.canExpandPersonDishes}
-          shareLinesByPersonIndex={
-            new Map(detail.personRows.map((row) => [row.index, row.shareLines]))
-          }
-        />
-      ) : null}
-
-      <CheckoutTableItemsSection
-        lines={detail.tableLines}
-        total={detail.tableLinesTotal}
-        labels={{
-          orderItemsCount: checkoutT.orderItemsCount,
-          orderItemsEmpty: checkoutT.orderItemsEmpty,
-          orderItemsTotal: checkoutT.orderItemsTotal,
-        }}
-      />
+      {detail.sectionOrder.map((section) => {
+        const node = sectionNodes[section];
+        return node ? <div key={section}>{node}</div> : null;
+      })}
     </div>
   );
 }

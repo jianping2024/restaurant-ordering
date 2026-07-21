@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import {
+  resolveSectionOrder,
+  resolveTableItemsDefaultOpen,
+  shouldShowPersonLedger,
+} from '@/lib/order-history/build-detail-presentation';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 
@@ -35,7 +40,7 @@ function baseEntry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
 }
 
 describe('buildOrderHistoryBillDetailView', () => {
-  it('builds billable table lines and split rows for paid by_item sessions', () => {
+  it('builds unified person ledger for paid by_item sessions', () => {
     const entry = baseEntry({
       billSplit: {
         id: 'split-1',
@@ -50,6 +55,36 @@ describe('buildOrderHistoryBillDetailView', () => {
           { name: 'John', amount: 6, paid: true },
           { name: 'Mike', amount: 4, paid: true },
         ],
+      },
+      settlement: {
+        outcome: 'fully_paid',
+        summary: {
+          consumption: 10,
+          payable: 10,
+          discountRate: 0,
+          collected: 10,
+          pending: 0,
+        },
+        showFinancialDetails: true,
+        collectedPayments: [
+          {
+            id: 'p1',
+            person_index: 0,
+            person_name: 'John',
+            amount: 6,
+            created_at: '2026-07-05T12:01:00.000Z',
+          },
+          {
+            id: 'p2',
+            person_index: 1,
+            person_name: 'Mike',
+            amount: 4,
+            created_at: '2026-07-05T12:02:00.000Z',
+          },
+        ],
+        listAmount: 10,
+        listAmountKind: 'paid',
+        paidRevenue: 10,
       },
       orders: [
         {
@@ -71,8 +106,31 @@ describe('buildOrderHistoryBillDetailView', () => {
 
     const view = buildOrderHistoryBillDetailView(entry, {}, 'zh');
     assert.equal(view.tableLines.length, 1);
-    assert.equal(view.showSplitSection, true);
-    assert.equal(view.personRows.length, 2);
+    assert.equal(view.personLedger.show, true);
+    assert.equal(view.personLedger.rows.length, 2);
+    assert.equal(view.settlement?.variant, 'settled_compact');
+    assert.deepEqual(view.sectionOrder, ['settlement', 'person_ledger', 'table_items']);
+    assert.equal(view.tableItemsDefaultOpen, true);
+  });
+
+  it('hides person ledger for whole-table checkout', () => {
+    const entry = baseEntry({
+      billSplit: {
+        id: 'split-1',
+        session_id: 'sess-1',
+        table_id: 'table-1',
+        discount_rate: 0,
+        status: 'paid',
+        total_amount: 10,
+        split_mode: 'custom',
+        persons: [],
+        result: [{ name: '__whole_table__', amount: 10, paid: true }],
+      },
+    });
+
+    const view = buildOrderHistoryBillDetailView(entry, {}, 'zh');
+    assert.equal(view.personLedger.show, false);
+    assert.deepEqual(view.sectionOrder, ['settlement', 'table_items']);
   });
 
   it('uses close snapshot lines for forced unpaid operational closes', () => {
@@ -123,5 +181,51 @@ describe('buildOrderHistoryBillDetailView', () => {
     const view = buildOrderHistoryBillDetailView(entry, {}, 'zh');
     assert.equal(view.tableLines.length, 1);
     assert.match(view.tableLines[0].label, /Cola/);
+    assert.equal(view.settlement, null);
+  });
+});
+
+describe('build-detail-presentation helpers', () => {
+  it('orders person ledger before table items for settled by_item splits', () => {
+    assert.deepEqual(
+      resolveSectionOrder('fully_paid', true, 'by_item', true),
+      ['settlement', 'person_ledger', 'table_items'],
+    );
+  });
+
+  it('defaults table items open for short unpaid closes', () => {
+    assert.equal(
+      resolveTableItemsDefaultOpen(8, 'unpaid_closed', true, 'even'),
+      true,
+    );
+  });
+
+  it('does not show person ledger for whole-table payer row', () => {
+    assert.equal(
+      shouldShowPersonLedger(
+        [
+          {
+            index: 0,
+            name: '__whole_table__',
+            obligationAmount: 10,
+            collectedAmount: 10,
+            outstandingAmount: 0,
+            settlementStatus: 'settled',
+          },
+        ],
+        {
+          id: 'split-1',
+          session_id: 'sess-1',
+          table_id: 'table-1',
+          discount_rate: 0,
+          status: 'paid',
+          total_amount: 10,
+          split_mode: 'custom',
+          persons: [],
+          result: [],
+        },
+      ),
+      false,
+    );
   });
 });

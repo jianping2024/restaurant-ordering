@@ -2,6 +2,8 @@ import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
 import { loadDashboardOverviewData } from '@/lib/dashboard-overview';
 
+export const dynamic = 'force-dynamic';
+
 // 数据概览：服务端只加载业务数据，展示文案与格式化由客户端 LanguageProvider 驱动
 export default async function DashboardPage() {
   const ctx = await loadOverviewDashboardContext();

@@ -48,7 +48,11 @@ export function sessionRevenue(
 
   const orderTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
 
-  if (sessionClosed && splits.length > 0) {
+  if (!sessionClosed) {
+    return 0;
+  }
+
+  if (splits.length > 0) {
     const lastSplit = splits.reduce((latest, split) => {
       return !latest ? split : split;
     });

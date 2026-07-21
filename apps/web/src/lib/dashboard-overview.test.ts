@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { BillSplit, Order } from '@/types';
+import type { Order } from '@/types';
 import {
   buildFeedbackInsights,
   buildTodayTopSellingItems,
@@ -24,52 +24,26 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
 }
 
 describe('computeTodayKpis', () => {
-  it('returns zero avg ticket when there are no orders', () => {
-    const kpis = computeTodayKpis([]);
+  it('returns zero avg ticket when there are no revenue sessions', () => {
+    const kpis = computeTodayKpis([], { todayRevenue: 0, revenueSessionCount: 0 });
     assert.equal(kpis.todayOrderCount, 0);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.avgTicketPrice, 0);
   });
 
-  it('computes average ticket from today revenue and count (legacy mode)', () => {
-    const kpis = computeTodayKpis([
-      order({ id: 'a', total_amount: 30 }),
-      order({ id: 'b', total_amount: 50 }),
-    ]);
+  it('keeps today order count separate from closed-session revenue', () => {
+    const kpis = computeTodayKpis(
+      [order({ id: 'a', total_amount: 30 }), order({ id: 'b', total_amount: 50 })],
+      { todayRevenue: 29.95, revenueSessionCount: 1 },
+    );
     assert.equal(kpis.todayOrderCount, 2);
-    assert.equal(kpis.todayRevenue, 80);
-    assert.equal(kpis.avgTicketPrice, 40);
+    assert.equal(kpis.todayRevenue, 29.95);
+    assert.equal(kpis.avgTicketPrice, 29.95);
   });
 
-  it('computes revenue from closed session with discount', () => {
-    const orders = [order({ id: 'a', total_amount: 100, session_id: 's1' })];
-    const sessions = [{ id: 's1', status: 'closed' }];
-    const splits = [
-      {
-        session_id: 's1',
-        status: 'requested',
-        discount_rate: 10,
-        result: [],
-        total_amount: 100,
-      },
-    ];
-    const kpis = computeTodayKpis(orders, sessions, splits);
-    assert.equal(kpis.todayRevenue, 90);
-  });
-
-  it('excludes forced closed sessions', () => {
-    const orders = [
-      order({ id: 'a', total_amount: 100, session_id: 's1' }),
-      order({ id: 'b', total_amount: 50, session_id: 's2' }),
-    ];
-    const sessions = [
-      { id: 's1', status: 'closed' },
-      { id: 's2', status: 'closed' },
-    ];
-    const splits: Array<Pick<BillSplit, 'session_id' | 'status' | 'discount_rate' | 'result' | 'total_amount'>> = [];
-    const forcedClosedSessionIds = new Set(['s1']);
-    const kpis = computeTodayKpis(orders, sessions, splits, forcedClosedSessionIds);
-    assert.equal(kpis.todayRevenue, 50);
+  it('uses qualifying closed session count as avg ticket denominator', () => {
+    const kpis = computeTodayKpis([], { todayRevenue: 100, revenueSessionCount: 2 });
+    assert.equal(kpis.avgTicketPrice, 50);
   });
 });
 

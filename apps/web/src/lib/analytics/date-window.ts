@@ -12,6 +12,22 @@ export function parseAnalyticsRange(raw: string | null): AnalyticsRange | null {
   return null;
 }
 
+export type TodayLisbonWindow = {
+  today: string;
+  startUtc: string;
+  endExclusiveUtc: string;
+};
+
+/** Lisbon calendar day for dashboard “today” KPIs (orders created_at, closed_at revenue). */
+export function resolveTodayLisbonWindow(now: Date = new Date()): TodayLisbonWindow {
+  const today = calendarDateInTimezone(now);
+  return {
+    today,
+    startUtc: lisbonDayStartUtcIso(today),
+    endExclusiveUtc: lisbonDayStartUtcIso(addCalendarDays(today, 1)),
+  };
+}
+
 export function resolveAnalyticsDateWindow(
   range: AnalyticsRange,
   now: Date = new Date(),

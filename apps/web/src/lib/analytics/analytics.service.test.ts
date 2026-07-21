@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
-import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
+import { resolveAnalyticsDateWindow, resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { getValueOverview } from '@/lib/analytics/analytics.service';
 import { isQualifyingSession, sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
 import { parseAnalyticsRange } from '@/lib/analytics/date-window';
@@ -26,6 +26,14 @@ describe('parseAnalyticsRange', () => {
     assert.equal(parseAnalyticsRange('7d'), '7d');
     assert.equal(parseAnalyticsRange('30d'), '30d');
     assert.equal(parseAnalyticsRange('90d'), null);
+  });
+});
+
+describe('resolveTodayLisbonWindow', () => {
+  it('returns utc bounds for the Lisbon calendar day', () => {
+    const window = resolveTodayLisbonWindow(new Date('2026-07-21T12:00:00.000Z'));
+    assert.equal(window.today, '2026-07-21');
+    assert.ok(window.startUtc < window.endExclusiveUtc);
   });
 });
 
@@ -102,8 +110,8 @@ describe('sessionRevenue', () => {
     assert.equal(sessionRevenue([], splits), 90);
   });
 
-  it('falls back to order totals when no paid split', () => {
-    assert.equal(sessionRevenue([{ total_amount: 33.5 }], []), 33.5);
+  it('returns zero for open session without paid split', () => {
+    assert.equal(sessionRevenue([{ total_amount: 33.5 }], []), 0);
   });
 
   it('applies discount from last split when session is closed', () => {

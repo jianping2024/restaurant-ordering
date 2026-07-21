@@ -7,39 +7,25 @@ import type {
 } from '@/lib/analytics/analytics.types';
 import { STOCK_REFERENCE_DISCLAIMER_ZH } from '@/lib/analytics/analytics.types';
 import {
-  fetchBillSplitsBySessionIds,
-  fetchClosedSessionsInWindow,
   fetchMenuCategoriesByItemIds,
-  fetchOrdersBySessionIds,
-  groupOrdersBySession,
-  groupSplitsBySession,
 } from '@/lib/analytics/analytics.repository';
 import {
+  filterQualifyingClosedSessions,
+  loadClosedSessionRevenueBundle,
+  revenueTrendFromBundle,
+} from '@/lib/analytics/closed-session-revenue';
+import {
   buildCustomerTrend,
-  buildRevenueTrend,
   mapStockReferenceItems,
   mapTopConsumedItems,
 } from '@/lib/analytics/build-overview';
 import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
-import { isQualifyingSession } from '@/lib/analytics/qualifying';
 import { isIsoInWindow } from '@/lib/lisbon-calendar';
-import type { BillSplit, Order } from '@/types';
+import type { Order } from '@/types';
 
 export type GetValueOverviewResult =
   | { ok: true; data: ValueOverviewResponse }
   | { ok: false; code: 'query_limit_exceeded' | 'query_failed'; message?: string };
-
-function filterQualifyingSessions(
-  sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, Order[]>,
-  splitsBySession: Map<string, BillSplit[]>,
-): ClosedSessionRow[] {
-  return sessions.filter((session) => {
-    const orders = ordersBySession.get(session.id) || [];
-    const splits = splitsBySession.get(session.id) || [];
-    return isQualifyingSession(orders, splits);
-  });
-}
 
 function collectOrdersForSessions(
   sessions: ClosedSessionRow[],
@@ -51,27 +37,6 @@ function collectOrdersForSessions(
     if (list) orders.push(...list);
   }
   return orders;
-}
-
-async function queryForcedClosedSessions(
-  admin: SupabaseClient,
-  restaurantId: string,
-  startUtc: string,
-  endExclusiveUtc: string,
-): Promise<Set<string>> {
-  const { data, error } = await admin
-    .from('abnormal_operations')
-    .select('session_id')
-    .eq('restaurant_id', restaurantId)
-    .eq('type', 'UNPAID_TABLE_CLOSED')
-    .gte('created_at', startUtc)
-    .lt('created_at', endExclusiveUtc);
-
-  if (error || !data) {
-    return new Set();
-  }
-
-  return new Set(data.map((row) => row.session_id).filter(Boolean) as string[]);
 }
 
 function emptyOverview(range: AnalyticsRange, dateKeys: string[]): ValueOverviewResponse {
@@ -99,39 +64,26 @@ export async function getValueOverview(
   const window = resolveAnalyticsDateWindow(range, now);
   const window7 = resolveAnalyticsDateWindow('7d', now);
 
-  const sessionsResult = await fetchClosedSessionsInWindow(
+  const bundleResult = await loadClosedSessionRevenueBundle(
     admin,
     restaurantId,
     window.startUtc,
     window.endExclusiveUtc,
   );
-  if (!sessionsResult.ok) {
-    return { ok: false, code: sessionsResult.code, message: sessionsResult.message };
+  if (!bundleResult.ok) {
+    return { ok: false, code: bundleResult.code, message: bundleResult.message };
   }
 
-  const allSessions = sessionsResult.sessions;
-  if (allSessions.length === 0) {
+  const { bundle } = bundleResult;
+  if (bundle.sessions.length === 0) {
     return { ok: true, data: emptyOverview(range, window.dateKeys) };
   }
 
-  const sessionIds = allSessions.map((session) => session.id);
-  const rangeEndExclusive = window.endExclusiveUtc;
-  const [ordersResult, splitsResult, forcedCloseSessionIds] = await Promise.all([
-    fetchOrdersBySessionIds(admin, restaurantId, sessionIds),
-    fetchBillSplitsBySessionIds(admin, restaurantId, sessionIds),
-    queryForcedClosedSessions(admin, restaurantId, window.startUtc, rangeEndExclusive),
-  ]);
-
-  if (!ordersResult.ok) {
-    return { ok: false, code: ordersResult.code, message: ordersResult.message };
-  }
-  if (!splitsResult.ok) {
-    return { ok: false, code: splitsResult.code, message: splitsResult.message };
-  }
-
-  const ordersBySession = groupOrdersBySession(ordersResult.rows);
-  const splitsBySession = groupSplitsBySession(splitsResult.rows);
-  const qualifying = filterQualifyingSessions(allSessions, ordersBySession, splitsBySession);
+  const qualifying = filterQualifyingClosedSessions(
+    bundle.sessions,
+    bundle.ordersBySession,
+    bundle.splitsBySession,
+  );
 
   const qualifyingInRange = qualifying.filter(
     (session) => session.closed_at && isIsoInWindow(session.closed_at, window.startUtc, window.endExclusiveUtc),
@@ -140,11 +92,11 @@ export async function getValueOverview(
     (session) => session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
   );
 
-  const revenueTrend = buildRevenueTrend(window.dateKeys, qualifyingInRange, ordersBySession, splitsBySession, forcedCloseSessionIds);
-  const customerTrend = buildCustomerTrend(window.dateKeys, qualifyingInRange, ordersBySession);
+  const revenueTrend = revenueTrendFromBundle(window.dateKeys, bundle);
+  const customerTrend = buildCustomerTrend(window.dateKeys, qualifyingInRange, bundle.ordersBySession);
 
-  const rangeOrders = collectOrdersForSessions(qualifyingInRange, ordersBySession);
-  const stockOrders = collectOrdersForSessions(qualifying7d, ordersBySession);
+  const rangeOrders = collectOrdersForSessions(qualifyingInRange, bundle.ordersBySession);
+  const stockOrders = collectOrdersForSessions(qualifying7d, bundle.ordersBySession);
 
   const rangeRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(rangeOrders), 10);
   const stockRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(stockOrders), 5);

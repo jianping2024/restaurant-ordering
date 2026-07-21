@@ -128,8 +128,42 @@ export async function fetchBillSplitsBySessionIds(
     'bill_splits',
     restaurantId,
     sessionIds,
-    'id, session_id, status, result, total_amount',
+    'id, session_id, status, result, total_amount, discount_rate',
   );
+}
+
+export async function fetchUnpaidForcedCloseSessionIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionIds: string[],
+): Promise<Set<string>> {
+  if (sessionIds.length === 0) return new Set();
+
+  try {
+    const chunks = chunkIds(sessionIds);
+    const forced = new Set<string>();
+    for (const chunk of chunks) {
+      const { data, error } = (await withAnalyticsQueryTimeout(
+        admin
+          .from('abnormal_operations')
+          .select('session_id')
+          .eq('restaurant_id', restaurantId)
+          .eq('type', 'UNPAID_TABLE_CLOSED')
+          .in('session_id', chunk),
+      )) as { data: Array<{ session_id: string | null }> | null; error: { message: string } | null };
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      for (const row of data || []) {
+        if (row.session_id) forced.add(row.session_id);
+      }
+    }
+    return forced;
+  } catch {
+    return new Set();
+  }
 }
 
 import type { MenuCategoryRow } from '@/lib/analytics/analytics.types';

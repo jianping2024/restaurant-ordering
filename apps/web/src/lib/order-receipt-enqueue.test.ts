@@ -207,6 +207,69 @@ describe('enqueueReceiptPrint', () => {
     assert.equal(insertCalled, false);
   });
 
+  it('enqueues staff_manual pre_bill when bill_receipt_print is disabled', async () => {
+    let insertCalled = false;
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { feature_flags: { bill_receipt_print: false } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          const ordersChain: {
+            select: () => typeof ordersChain;
+            eq: () => typeof ordersChain;
+            in: () => typeof ordersChain;
+            order: () => Promise<{ data: typeof orders; error: null }>;
+          } = {
+            select: () => ordersChain,
+            eq: () => ordersChain,
+            in: () => ordersChain,
+            order: async () => ({ data: orders, error: null }),
+          };
+          return ordersChain;
+        }
+        if (table === 'print_jobs') {
+          return {
+            insert: (row: { type: string }) => {
+              insertCalled = true;
+              assert.equal(row.type, 'pre_bill');
+              return {
+                select: () => ({
+                  single: async () => ({ data: { id: 'job-pre-manual' }, error: null }),
+                }),
+              };
+            },
+          };
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'pre_bill',
+      printSource: 'staff_manual',
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal('job_id' in result && result.job_id, 'job-pre-manual');
+    assert.equal(insertCalled, true);
+  });
+
   it('checkout_bill uses discounted payable as amount_due', async () => {
     let insertedPayload: Record<string, unknown> | null = null;
     const billSplit: BillSplit = {

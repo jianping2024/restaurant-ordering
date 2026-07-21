@@ -14,6 +14,12 @@ describe('floorBoardCapabilities', () => {
     }
   });
 
+  it('allows session pre_bill print for frontdesk only', () => {
+    assert.equal(floorBoardCapabilities('frontdesk').canPrintSessionPreBill, true);
+    assert.equal(floorBoardCapabilities('cashier').canPrintSessionPreBill, false);
+    assert.equal(floorBoardCapabilities('waiter').canPrintSessionPreBill, false);
+  });
+
   it('keeps waiter order-assist only', () => {
     const caps = floorBoardCapabilities('waiter');
     assert.equal(caps.canMenuDecrement, false);

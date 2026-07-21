@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
 import { enqueueReceiptPrint, type ReceiptVariant } from '@/lib/order-receipt-enqueue';
+import { resolveReceiptPrintSource } from '@/lib/receipt-print-source';
 import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -189,14 +190,9 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
   }
 
-  // Intent, not identity: pre_bill is always automatic (gated by bill_receipt_print).
-  // Staff cookies must not promote call-bill pre-bills to ungated staff_manual.
-  const printSource =
-    variant === 'pre_bill'
-      ? ('automatic' as const)
-      : 'admin' in checkoutAuth
-        ? ('staff_manual' as const)
-        : ('automatic' as const);
+  // Intent from auth, not variant: staff → staff_manual (incl. manual pre_bill);
+  // guest pre_bill path stays automatic (gated by bill_receipt_print).
+  const printSource = resolveReceiptPrintSource('admin' in checkoutAuth);
 
   const result = await enqueueReceiptPrint({
     admin,

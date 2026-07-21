@@ -9,6 +9,7 @@ import {
   type StaffCheckoutBillPrintTarget,
 } from '@/lib/staff-checkout-bill-print';
 import { requestStaffSplitReceiptPrint } from '@/lib/staff-split-receipt-print';
+import { requestStaffSessionPreBillPrint } from '@/lib/staff-session-bill-print';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { useStaffReceiptPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 
@@ -20,7 +21,11 @@ export function staffSplitReceiptCooldownKey(billSplitId: string, personIndex: n
   return `split:${billSplitId}:${personIndex}`;
 }
 
-export function useStaffCheckoutBillPrint(restaurantSlug: string) {
+export function staffSessionPreBillCooldownKey(sessionId: string): string {
+  return `pre_bill:${sessionId}`;
+}
+
+function useStaffReceiptPrintRunner(restaurantSlug: string) {
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const { cooldownSecondsLeft, isOnCooldown, startCooldown } = useStaffReceiptPrintCooldown();
@@ -29,17 +34,6 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
   const isPrintingKey = useCallback(
     (cooldownKey: string) => printingKeys.has(cooldownKey),
     [printingKeys],
-  );
-
-  const isPrintBillBusy = useCallback(
-    (billSplitId: string) => isPrintingKey(staffBillPrintCooldownKey(billSplitId)),
-    [isPrintingKey],
-  );
-
-  const isPrintReceiptBusy = useCallback(
-    (billSplitId: string, personIndex: number) =>
-      isPrintingKey(staffSplitReceiptCooldownKey(billSplitId, personIndex)),
-    [isPrintingKey],
   );
 
   const runStaffPrint = useCallback(
@@ -85,6 +79,30 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
     [cooldownSecondsLeft, isOnCooldown, restaurantSlug, startCooldown, t],
   );
 
+  return {
+    t,
+    runStaffPrint,
+    isPrintingKey,
+    cooldownSecondsLeft,
+    isOnCooldown,
+  };
+}
+
+export function useStaffCheckoutBillPrint(restaurantSlug: string) {
+  const { t, runStaffPrint, isPrintingKey, cooldownSecondsLeft, isOnCooldown } =
+    useStaffReceiptPrintRunner(restaurantSlug);
+
+  const isPrintBillBusy = useCallback(
+    (billSplitId: string) => isPrintingKey(staffBillPrintCooldownKey(billSplitId)),
+    [isPrintingKey],
+  );
+
+  const isPrintReceiptBusy = useCallback(
+    (billSplitId: string, personIndex: number) =>
+      isPrintingKey(staffSplitReceiptCooldownKey(billSplitId, personIndex)),
+    [isPrintingKey],
+  );
+
   const printCheckoutBill = useCallback(
     async (billSplit: StaffCheckoutBillPrintTarget, discountRate?: number) => {
       const cooldownKey = staffBillPrintCooldownKey(billSplit.id);
@@ -114,6 +132,34 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
     printSplitReceipt,
     isPrintBillBusy,
     isPrintReceiptBusy,
+    cooldownSecondsLeft,
+    isOnCooldown,
+  };
+}
+
+/** Frontdesk ordered-items: manual session pre_bill with same cooldown UX as checkout「打印账单」. */
+export function useStaffSessionPreBillPrint(restaurantSlug: string) {
+  const { runStaffPrint, isPrintingKey, cooldownSecondsLeft, isOnCooldown } =
+    useStaffReceiptPrintRunner(restaurantSlug);
+
+  const isPrintPreBillBusy = useCallback(
+    (sessionId: string) => isPrintingKey(staffSessionPreBillCooldownKey(sessionId)),
+    [isPrintingKey],
+  );
+
+  const printSessionPreBill = useCallback(
+    async (tableId: string, sessionId: string) => {
+      const cooldownKey = staffSessionPreBillCooldownKey(sessionId);
+      return runStaffPrint(cooldownKey, () =>
+        requestStaffSessionPreBillPrint({ slug: restaurantSlug, tableId, sessionId }),
+      );
+    },
+    [restaurantSlug, runStaffPrint],
+  );
+
+  return {
+    printSessionPreBill,
+    isPrintPreBillBusy,
     cooldownSecondsLeft,
     isOnCooldown,
   };

@@ -72,6 +72,9 @@ import {
   WaiterTableOccupiedToolbar,
   WaiterTableOrderedItemsPanel,
 } from '@/components/waiter/WaiterTableDetailLayout';
+import {
+  useStaffSessionPreBillPrint,
+} from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
 import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-detail-ui';
 
@@ -242,6 +245,10 @@ function WaiterTableDetailInner({
 
   const floorRole: FloorBoardRole = floorStaffRole ?? 'waiter';
   const floorCaps = useMemo(() => floorBoardCapabilities(floorRole), [floorRole]);
+  const {
+    printSessionPreBill,
+    isPrintPreBillBusy,
+  } = useStaffSessionPreBillPrint(restaurant.slug);
 
   const menuDecrementOperator = useMemo(
     () =>
@@ -630,6 +637,38 @@ function WaiterTableDetailInner({
     [t],
   );
 
+  const orderedItemsSessionTotalText = formatWaiterOrderedItemsSessionTotal(
+    lang,
+    selectedCard.sessionTotal,
+  );
+  const orderedItemsPreBillPrint = useMemo(() => {
+    const sessionId = sessionMeta?.sessionId ?? null;
+    if (
+      isDemo ||
+      !floorCaps.canPrintSessionPreBill ||
+      !sessionId ||
+      !orderedItemsSessionTotalText
+    ) {
+      return null;
+    }
+    return {
+      label: t.printPreBill,
+      busy: isPrintPreBillBusy(sessionId),
+      onPrint: () => {
+        void printSessionPreBill(selectedCard.tableId, sessionId);
+      },
+    };
+  }, [
+    floorCaps.canPrintSessionPreBill,
+    isDemo,
+    isPrintPreBillBusy,
+    orderedItemsSessionTotalText,
+    printSessionPreBill,
+    selectedCard.tableId,
+    sessionMeta?.sessionId,
+    t.printPreBill,
+  ]);
+
   if (!isDemo && !detailLoaded) {
     return (
       <div className={pageShellClass}>
@@ -950,7 +989,8 @@ function WaiterTableDetailInner({
 
         <WaiterTableOrderedItemsPanel
           title={t.orderedItems}
-          sessionTotalText={formatWaiterOrderedItemsSessionTotal(lang, selectedCard.sessionTotal)}
+          sessionTotalText={orderedItemsSessionTotalText}
+          preBillPrint={orderedItemsPreBillPrint}
           lines={selectedCard.orderLines}
           isCheckoutPending={isCheckoutPending}
           decrementingKey={decrementingKey}

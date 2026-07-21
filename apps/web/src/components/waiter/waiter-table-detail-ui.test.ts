@@ -69,6 +69,7 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.doesNotMatch(waiterDetailLayout.orderedItemsHeader, /top-14\b/);
   assert.match(waiterDetailLayout.orderedItemsHeader, /bg-brand-card/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemsHeaderActions, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);

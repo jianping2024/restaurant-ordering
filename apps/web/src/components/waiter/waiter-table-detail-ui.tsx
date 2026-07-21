@@ -70,6 +70,7 @@ export const waiterDetailLayout = {
    */
   orderedItemsHeader: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitle: waiterFloorType.listBody,
+  orderedItemsHeaderActions: 'flex shrink-0 items-center gap-2',
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
    * Name + qty + minus left-aligned (not justify-between).

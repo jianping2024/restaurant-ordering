@@ -62,17 +62,17 @@ Web 入队（service role）
 
 | 业务说法 | `receipt_variant` | 触发 | 纸面 |
 |----------|-------------------|------|------|
-| 预结算 / 预结单 | `pre_bill` | 呼叫结账成功后由 `checkout-request-server` **自动**入队 | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
+| 预结算 / 预结单 | `pre_bill` | 呼叫结账成功后由 `checkout-request-server` **自动**入队；或前台桌台详情「打印预结账单」**手动**入队（`staff_manual`） | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
 | 分单 | `split_payment` | 前台确认某人收款 → **自动** | 该人菜品与金额；**有**收款确认行 |
 | 总账单（收款前） | `checkout_bill` | 前台「打印账单」/ 前台「关台结账」/ 历史重打 → **手动**（收银员「关台结账」不打印） | 标题 Receipt；整桌合并行；含结账台折扣后应收；**无**收款确认行 |
 | 总账单（收讫后） | `final` | 全员付清 → **自动** | 整桌合并行；**有**收款确认行 |
 
-- `pre_bill` 与 `checkout_bill` 都是「未付完」的整桌账单，区别在 **自动 vs 手动**，以及 `checkout_bill` 使用结账台 `discount_rate`（与「应收」一致）。
+- `pre_bill` 与 `checkout_bill` 都是「未付完」的整桌账单；自动 `pre_bill` 与手动 `pre_bill` 纸面相同，差别仅在触发与 `printSource`；`checkout_bill` 另可带结账台 `discount_rate`。
 - `checkout_bill` 与 `final` 都是整桌合并行，区别在 **是否已收款** 及纸面是否印 `amount_paid` / 支付方式。
-- 自动三类（`pre_bill`、`split_payment`、`final`）受 `bill_receipt_print` 门控；`checkout_bill` **不受**（见 §3.2）。
+- 自动三类（`pre_bill`、`split_payment`、`final`）受 `bill_receipt_print` 门控；员工鉴权下的 `staff_manual`（含手动 `pre_bill`、`checkout_bill`）**不受**（见 §3.2）。
 - 前台手动补打某人 `split_payment` 收据（已收款项「打印收据」）与 `checkout_bill` 相同，走 `staff_manual` 入队，**不受**开关限制。
 
-入队逻辑：`lib/order-receipt-enqueue.ts`；呼叫结账成功后由 `checkout-request-server.ts` 触发 `pre_bill`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
+入队逻辑：`lib/order-receipt-enqueue.ts`；呼叫结账成功后由 `checkout-request-server.ts` 触发自动 `pre_bill`；前台详情由 `requestStaffSessionPreBillPrint` 触发手动 `pre_bill`；确认收款后由 `checkout-confirm-payment.ts` 触发 `split_payment` / `final`。
 
 - 菜品行标签与出品联一致：`{item_code}-{菜名}`（**不含** `category_code_path`）；同类菜合并后数量累加，**不印备注**。
 - 纸面菜单区（列头、菜品行、Amount Due / 应付）统一 **Font A 1×2 加粗**；英文价格列头为 `Pri`；费用明细与时间戳保持 1×1 普通。
@@ -81,8 +81,8 @@ Web 入队（service role）
 
 `restaurants.feature_flags.bill_receipt_print`（默认 **关**）：
 
-- **关闭**：跳过 `pre_bill`、`split_payment`、`final` 自动入队  
-- **不跳过**：`checkout_bill` 手动打印、`station_ticket`
+- **关闭**：跳过 `pre_bill`、`split_payment`、`final` **自动**入队  
+- **不跳过**：`checkout_bill` 手动打印、前台手动 `pre_bill`、`station_ticket`
 
 ### 3.3 纸面语言
 

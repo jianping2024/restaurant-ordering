@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Order, CartItem } from '@/types';
-import { resolveBuffetFormAlignState } from '@/lib/buffet-order';
+import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import {
   buffetOpenSubmitBlockReason,
@@ -47,6 +47,7 @@ import {
   commitAuthoritativeWaiterTablePageModel,
   commitWaiterSessionRelocation,
 } from '@/lib/waiter-staff-mutation-sync';
+import { buildWaiterTableDetailBootFromBoard } from '@/lib/waiter-table-detail-scope';
 import { patchWaiterTableModelAfterStaffAppend, buildOptimisticOrderAfterStaffAppend } from '@/lib/staff-order-append-optimistic-patch';
 import type { MenuOrderSubmitSuccess } from '@/lib/menu-order-submit';
 import type { CustomerMenuCatalog } from '@/lib/customer-menu-catalog-client-cache';
@@ -77,6 +78,9 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
 import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-detail-ui';
+
+/** Stable empty map — avoids buffet-form effect loops when model not yet loaded. */
+const EMPTY_BUFFET_PRICES: Record<string, ResolvedBuffetPriceRow | null> = {};
 
 interface Props {
   restaurant: { id: string; name: string; slug: string };
@@ -114,6 +118,21 @@ function WaiterTableDetailInner({
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
+  const boardIdleBoot = useMemo(() => {
+    if (!embeddedInDashboard || !waiterBoard) return null;
+    return buildWaiterTableDetailBootFromBoard(
+      {
+        tables: waiterBoard.tables,
+        sessionMetaByTableId: waiterBoard.sessionMetaByTableId,
+        openTableDefaults: waiterBoard.openTableDefaults,
+        partyMembers: waiterBoard.partyMembers,
+      },
+      tableId,
+    );
+  }, [embeddedInDashboard, tableId, waiterBoard]);
+  const resolvedInitialModel = initialModel ?? boardIdleBoot;
+  // Published seed is honored inside useWaiterTableDetail; only idle board boot skips mount pull here.
+  const skipEntryReconcile = hasAuthoritativeSeed || boardIdleBoot != null;
   const {
     table: selectedTable,
     orders,
@@ -134,8 +153,9 @@ function WaiterTableDetailInner({
     isDemo,
     demoTablesProp,
     initialOrders,
-    initialModel,
-    hasAuthoritativeSeed,
+    resolvedInitialModel,
+    skipEntryReconcile,
+    embeddedInDashboard ? waiterBoard?.openTableDefaults ?? null : null,
   );
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
@@ -203,7 +223,7 @@ function WaiterTableDetailInner({
     alignState: buffetFormAlign,
     restaurantId: restaurant.id,
     activeBuffets,
-    buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? {},
+    buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES,
     isDemo,
     supabase,
   });
@@ -234,7 +254,7 @@ function WaiterTableDetailInner({
       applyModel({
         detail,
         buffets: model?.buffets ?? [],
-        buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? {},
+        buffetPricesByBuffetId: model?.buffetPricesByBuffetId ?? EMPTY_BUFFET_PRICES,
         inTableParty: model?.inTableParty ?? false,
       });
     },

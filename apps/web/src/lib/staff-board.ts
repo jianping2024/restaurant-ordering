@@ -20,9 +20,13 @@ import {
 } from '@/lib/waiter-table-occupancy';
 import {
   buildWaiterBoardTableSummaries,
+  stubFloorTablesForLiveOccupancy,
   type WaiterBoardTableSummary,
 } from '@/lib/waiter-board-snapshot';
-import { loadWaiterTablePageModel, resolveOpenTableBuffetPrices } from '@/lib/waiter-table-detail-load';
+import {
+  loadWaiterTablePageModel,
+  resolveOpenTableBuffetPrices,
+} from '@/lib/waiter-table-detail-load';
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import { loadTablePartyGroups } from '@/lib/table-party-groups-server';
 import {
@@ -32,6 +36,7 @@ import {
 } from '@/lib/table-party-groups';
 import type { Buffet } from '@/types';
 import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
+import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -54,57 +59,70 @@ export type WaiterBoardData = {
   openTableDefaults: WaiterBoardOpenTableDefaults | null;
 };
 
-async function loadWaiterBoardLiveInputs(admin: SupabaseClient, restaurantId: string) {
-  const [{ data: sessions }, checkoutRequested, partyLoaded, { data: tableRows }] =
-    await Promise.all([
-      admin
-        .from('table_sessions')
-        .select('id, table_id, opened_at, status, opened_by_user_id')
-        .eq('restaurant_id', restaurantId)
-        .in('status', ['open', 'billing']),
-      fetchCheckoutRequestedBoard(admin, restaurantId),
-      loadTablePartyGroups(admin, restaurantId),
-      // Tables needed to build summaries; client keeps floor static from last full.
-      admin
-        .from('restaurant_tables')
-        .select('id, display_name, sort_order, seat_min, seat_max')
-        .eq('restaurant_id', restaurantId)
-        .is('deleted_at', null),
-    ]);
+type WaiterBoardOccupancyCore = {
+  sessionRows: WaiterTableSessionRow[];
+  orders: Order[];
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
+  checkoutRequestedTableIds: string[];
+  checkoutRequestedAtByTableId: Record<string, string>;
+  parties: TablePartyGroup[];
+  partyMembers: TablePartyGroupMember[];
+};
+
+/** Shared occupancy reads for full + live (sessions, checkout, parties, orders). */
+async function loadWaiterBoardOccupancyCore(
+  admin: SupabaseClient,
+  restaurantId: string,
+  resolveOpenerNames: boolean,
+): Promise<WaiterBoardOccupancyCore> {
+  const [{ data: sessions }, checkoutRequested, partyLoaded] = await Promise.all([
+    admin
+      .from('table_sessions')
+      .select('id, table_id, opened_at, status, opened_by_user_id')
+      .eq('restaurant_id', restaurantId)
+      .in('status', ['open', 'billing']),
+    fetchCheckoutRequestedBoard(admin, restaurantId),
+    loadTablePartyGroups(admin, restaurantId),
+  ]);
 
   const sessionRows = (sessions || []) as WaiterTableSessionRow[];
   const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
-  const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
-    admin,
-    restaurantId,
-    sessionRows,
-  );
-  const tables = (tableRows || []) as RestaurantTableRow[];
+  const sessionMetaByTableId = resolveOpenerNames
+    ? await buildActiveSessionMetaByTableId(admin, restaurantId, sessionRows)
+    : sessionMetaByTableIdFromSessions(sessionRows);
 
   return {
+    sessionRows,
+    orders,
     sessionMetaByTableId,
     checkoutRequestedTableIds: checkoutRequested.tableIds,
     checkoutRequestedAtByTableId: checkoutRequested.atByTableId,
     parties: partyLoaded.parties,
     partyMembers: partyLoaded.partyMembers,
-    tableSummaries: buildWaiterBoardTableSummaries(tables, orders, sessionMetaByTableId),
-    tables,
   };
 }
 
-/** Doorbell / live refresh — occupancy slice only (no groups/buffet defaults). */
+/** Doorbell / live — no floor tables query, no opener-name resolution. */
 export async function fetchWaiterBoardLive(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<WaiterBoardLivePatch> {
-  const live = await loadWaiterBoardLiveInputs(admin, restaurantId);
+  const occupancy = await loadWaiterBoardOccupancyCore(admin, restaurantId, false);
+  const stubTables = stubFloorTablesForLiveOccupancy(
+    occupancy.sessionMetaByTableId,
+    occupancy.orders,
+  );
   return {
-    sessionMetaByTableId: live.sessionMetaByTableId,
-    checkoutRequestedTableIds: live.checkoutRequestedTableIds,
-    checkoutRequestedAtByTableId: live.checkoutRequestedAtByTableId,
-    parties: live.parties,
-    partyMembers: live.partyMembers,
-    tableSummaries: live.tableSummaries,
+    sessionMetaByTableId: occupancy.sessionMetaByTableId,
+    checkoutRequestedTableIds: occupancy.checkoutRequestedTableIds,
+    checkoutRequestedAtByTableId: occupancy.checkoutRequestedAtByTableId,
+    parties: occupancy.parties,
+    partyMembers: occupancy.partyMembers,
+    tableSummaries: buildWaiterBoardTableSummaries(
+      stubTables,
+      occupancy.orders,
+      occupancy.sessionMetaByTableId,
+    ),
   };
 }
 
@@ -112,8 +130,9 @@ export async function fetchWaiterTablePageModel(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
+  options: { includeOpenTableDefaults?: boolean } = {},
 ) {
-  return loadWaiterTablePageModel(admin, restaurantId, tableId);
+  return loadWaiterTablePageModel(admin, restaurantId, tableId, options);
 }
 
 export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: string) {
@@ -159,25 +178,32 @@ export async function fetchKitchenBoard(admin: SupabaseClient, restaurantId: str
 
 /** Full board — floor static + live occupancy (SSR, resume, mutation, list re-entry). */
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
-  const [live, { data: groupRows }, { data: memberRows }, { data: buffetRows }] = await Promise.all([
-    loadWaiterBoardLiveInputs(admin, restaurantId),
-    admin
-      .from('restaurant_table_groups')
-      .select('id, restaurant_id, name, remarks, sort_order, created_at')
-      .eq('restaurant_id', restaurantId)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true }),
-    admin
-      .from('restaurant_table_group_members')
-      .select('group_id, table_id, restaurant_id')
-      .eq('restaurant_id', restaurantId),
-    admin
-      .from('buffets')
-      .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
-      .eq('restaurant_id', restaurantId)
-      .order('name'),
-  ]);
+  const [occupancy, { data: tableRows }, { data: groupRows }, { data: memberRows }, { data: buffetRows }] =
+    await Promise.all([
+      loadWaiterBoardOccupancyCore(admin, restaurantId, true),
+      admin
+        .from('restaurant_tables')
+        .select('id, display_name, sort_order, seat_min, seat_max')
+        .eq('restaurant_id', restaurantId)
+        .is('deleted_at', null),
+      admin
+        .from('restaurant_table_groups')
+        .select('id, restaurant_id, name, remarks, sort_order, created_at')
+        .eq('restaurant_id', restaurantId)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true }),
+      admin
+        .from('restaurant_table_group_members')
+        .select('group_id, table_id, restaurant_id')
+        .eq('restaurant_id', restaurantId),
+      admin
+        .from('buffets')
+        .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
+        .eq('restaurant_id', restaurantId)
+        .order('name'),
+    ]);
 
+  const tables = (tableRows || []) as RestaurantTableRow[];
   const buffets = (buffetRows || []) as Buffet[];
   const restaurantHasActiveBuffets = buffets.some((b) => b.is_active);
   const openTableDefaults = restaurantHasActiveBuffets
@@ -193,15 +219,19 @@ export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: stri
     : null;
 
   return {
-    sessionMetaByTableId: live.sessionMetaByTableId,
-    checkoutRequestedTableIds: live.checkoutRequestedTableIds,
-    checkoutRequestedAtByTableId: live.checkoutRequestedAtByTableId,
-    tables: live.tables,
+    sessionMetaByTableId: occupancy.sessionMetaByTableId,
+    checkoutRequestedTableIds: occupancy.checkoutRequestedTableIds,
+    checkoutRequestedAtByTableId: occupancy.checkoutRequestedAtByTableId,
+    tables,
     groups: sortTableGroups((groupRows || []) as RestaurantTableGroup[]),
     members: (memberRows || []) as RestaurantTableGroupMember[],
-    parties: live.parties,
-    partyMembers: live.partyMembers,
-    tableSummaries: live.tableSummaries,
+    parties: occupancy.parties,
+    partyMembers: occupancy.partyMembers,
+    tableSummaries: buildWaiterBoardTableSummaries(
+      tables,
+      occupancy.orders,
+      occupancy.sessionMetaByTableId,
+    ),
     restaurantHasActiveBuffets,
     openTableDefaults,
   };

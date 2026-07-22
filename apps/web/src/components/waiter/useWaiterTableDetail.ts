@@ -26,6 +26,11 @@ import {
   commitAuthoritativeWaiterTablePageModel,
   peekPublishedWaiterTablePageModel,
 } from '@/lib/waiter-staff-mutation-sync';
+import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
+import {
+  attachOpenTableDefaultsToPageModel,
+  type WaiterTableDetailFetchScope,
+} from '@/lib/waiter-table-detail-scope';
 
 function resolveTableDetailBootModel(
   tableId: string,
@@ -57,10 +62,13 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
  * Table detail client state — single WaiterTablePageModel source.
  *
  * Freshness layers:
- * 1. Boot seed — published mutation cache, optional SSR/demo initialModel
- * 2. Entry reconcile — Staff API on mount / tableId change (authoritative)
+ * 1. Boot seed — published mutation cache, idle board open-table seed, optional SSR/demo
+ * 2. Entry reconcile — Staff API on mount / tableId change (skipped when boot authoritative)
  * 3. menu_submit return — Staff API reconcile, then strip query
  * 4. Realtime while mounted — debounced refresh for this tableId
+ *
+ * When board open-table defaults exist, occupancy pulls use scope=live and re-attach defaults
+ * (one price source — board full seed), avoiding buffet/price RPC on every doorbell.
  */
 export function useWaiterTableDetail(
   restaurant: { id: string; slug: string },
@@ -71,8 +79,14 @@ export function useWaiterTableDetail(
   demoOrders: Order[] = [],
   initialModel?: WaiterTablePageModel | null,
   skipEntryReconcile = false,
+  openTableDefaults: WaiterBoardOpenTableDefaults | null = null,
 ) {
   const bootModel = resolveTableDetailBootModel(tableId, initialModel);
+  const hasAuthoritativeBoot = bootModel?.detail.table != null;
+  const reconcileOnMount = !skipEntryReconcile && !hasAuthoritativeBoot;
+  const detailFetchScope: WaiterTableDetailFetchScope =
+    openTableDefaults != null ? 'live' : 'full';
+
   const boot = detailFromModel(bootModel);
   const [model, setModel] = useState<WaiterTablePageModel | null>(bootModel);
   const [table, setTable] = useState(boot.table);
@@ -89,6 +103,8 @@ export function useWaiterTableDetail(
   const refreshInFlightRef = useRef<Promise<WaiterTablePageModel | null> | null>(null);
   const staffReturnSyncRef = useRef(false);
   const prevTableIdRef = useRef(tableId);
+  const openTableDefaultsRef = useRef(openTableDefaults);
+  openTableDefaultsRef.current = openTableDefaults;
 
   const demoSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(demoOrders) : {}),
@@ -124,9 +140,15 @@ export function useWaiterTableDetail(
     if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
     const seq = ++reloadSeqRef.current;
+    const scope: WaiterTableDetailFetchScope =
+      openTableDefaultsRef.current != null ? 'live' : 'full';
     const running = (async (): Promise<WaiterTablePageModel | null> => {
       try {
-        const nextModel = await fetchWaiterTablePageModelClient(restaurant.slug, tableId);
+        const fetched = await fetchWaiterTablePageModelClient(restaurant.slug, tableId, scope);
+        const nextModel = attachOpenTableDefaultsToPageModel(
+          fetched,
+          openTableDefaultsRef.current,
+        );
         if (seq !== reloadSeqRef.current) return null;
         const normalized = applyModel(nextModel);
         commitAuthoritativeWaiterTablePageModel(normalized);
@@ -165,7 +187,7 @@ export function useWaiterTableDetail(
     setDetailLoaded(false);
   }, [tableId]);
 
-  // SSR seed per table entry — published mutation wins; omit initialModel from deps.
+  // Boot seed per table entry — published / idle board / SSR; omit initialModel from deps.
   useEffect(() => {
     const seed = resolveTableDetailBootModel(tableId, initialModel);
     if (!seed?.detail.table) return;
@@ -203,7 +225,7 @@ export function useWaiterTableDetail(
     enabled && !isDemo && !staffMenuSubmitReturn,
     refresh,
     tableId,
-    !skipEntryReconcile,
+    reconcileOnMount,
   );
 
   const tableFilter = `table_id=eq.${tableId}`;
@@ -246,5 +268,6 @@ export function useWaiterTableDetail(
     applyModel,
     supabase,
     demoTables: isDemo ? demoTables : [],
+    detailFetchScope,
   };
 }

@@ -1,4 +1,7 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { useLandingPreviewCopy } from '@/lib/landing/use-landing-preview-copy';
 
 type PreviewShellProps = {
   title: string;
@@ -7,10 +10,12 @@ type PreviewShellProps = {
 };
 
 export function PreviewShell({ title, children, className = '' }: PreviewShellProps) {
+  const { copy } = useLandingPreviewCopy();
+
   return (
     <div className={`min-h-screen bg-brand-bg text-brand-text ${className}`.trim()}>
       <div className="border-b border-brand-gold/25 bg-brand-gold/8 px-4 py-2 text-center text-[12px] tracking-wide text-brand-gold">
-        界面预览 · MesaGo 演示数据
+        {copy.chrome.banner}
       </div>
       <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
       <p className="sr-only">{title}</p>

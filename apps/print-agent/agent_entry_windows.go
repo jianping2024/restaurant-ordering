@@ -92,7 +92,9 @@ func runAgentTrayFirst(args []string) {
 			requestTrayExit(rt)
 			return
 		}
+		// Ready here means Connected (can accept jobs); yellow "Setting up" covered bootstrap.
 		rt.status.set("Ready", "Connected to Mesa")
+		log.Println("tray: Connected — accepting print jobs")
 		startTrayLocalHTTP(rt)
 		go runNotificationLoop(ctx, sess, rt.status)
 	}()
@@ -108,7 +110,7 @@ func runAgentTrayFirst(args []string) {
 }
 
 func onTrayReady(rt *trayRuntime) {
-	log.Println("tray: ready")
+	log.Println("tray: ready (UI only; waiting for Connected)")
 	var lastIcon trayLevel = -1
 	applyTrayIcon := func() {
 		lvl := rt.status.level()

@@ -43,8 +43,7 @@ func refreshSupabaseSession(ctx context.Context, cfg *config) error {
 	req.Header.Set("apikey", cfg.AnonKey)
 	req.Header.Set("Authorization", "Bearer "+cfg.AnonKey)
 
-	client := &http.Client{Timeout: 15 * time.Second}
-	res, err := client.Do(req)
+	res, err := agentHTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

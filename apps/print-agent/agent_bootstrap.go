@@ -80,7 +80,10 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 		_ = saveConfig(path, cfg)
 	}
 
+	agentLog(cfg, "log_bootstrap_runtime_config")
+	t0 := time.Now()
 	applyCloudRuntimeConfig(cfg, cfg.APIBase)
+	agentLog(cfg, "log_bootstrap_phase_done", "runtime-config", time.Since(t0).Round(time.Millisecond))
 
 	if !cfg.hasPrinterRouting() {
 		agentLogLocale(localeFromConfigPath(path), "log_setup_wizard")
@@ -101,7 +104,10 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 		agentLog(cfg, "log_no_station_mapping")
 	}
 
+	agentLog(cfg, "log_bootstrap_routing_sync")
+	t1 := time.Now()
 	syncRoutingToCloud(cfg)
+	agentLog(cfg, "log_bootstrap_phase_done", "routing-sync", time.Since(t1).Round(time.Millisecond))
 
 	stationCount := 0
 	if cfg.StationPrinters != nil {

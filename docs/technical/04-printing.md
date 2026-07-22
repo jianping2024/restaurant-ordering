@@ -113,7 +113,7 @@ Web 入队（service role）
 | 状态 | `pending` → `processing` → `done` \| `failed` |
 | 错误信息 | `print_jobs.error_message` |
 | Dashboard 重试 | `POST /api/print-agent/print-jobs/[id]/retry` |
-| 任务过期 | `lib/expire-stale-print-jobs.ts`（约 20 分钟） |
+| 任务过期 | `lib/expire-stale-print-jobs.ts`（约 10 分钟） |
 | WinSpool 误报 | **禁止**用 `PRINTER_STATUS_OFFLINE` 预检挡打（见 print-agent-flow §1） |
 | IO 失败 | 记 `failed`；代理侧重试策略见 Go `printer_io_errors.go` |
 

@@ -171,7 +171,7 @@ flowchart LR
   Print --> USB[WinSpool RAW]
 ```
 
-- **云端**只负责排队、鉴权、状态机、20 分钟过期；不直接连打印机。
+- **云端**只负责排队、鉴权、状态机、**10 分钟**过期；不直接连打印机。
 - **Agent** 持有 `agentjwt`，按餐厅 `restaurant_id` 拉取本店 `pending` 任务，映射到本地 `config.json` 里的档口打印机，再物理打印。
 
 ---
@@ -211,9 +211,9 @@ flowchart LR
 
 1. 校验 `Authorization: Bearer <agentjwt>`，解析 `restaurant_id`、`device_id`。
 2. 调用 `expireStalePrintJobs`：将超时 `pending`/`processing` 标为 `failed`。
-3. 只返回 **`created_at` 在最近 20 分钟内** 且 `status = pending` 的本店任务。
+3. 只返回 **`created_at` 在最近 10 分钟内** 且 `status = pending` 的本店任务。
 
-因此：断线很多天后的旧单不会再次被拉取；与 agent 侧 20 分钟防御性过期一致。
+因此：断线很多天后的旧单不会再次被拉取；与 agent 侧 10 分钟防御性过期一致。
 
 ### 4.2 `PATCH jobs/:id` 状态机
 
@@ -281,7 +281,11 @@ stateDiagram-v2
 | **Notifier** | Realtime 推送或 Polling 拉 `pending-jobs` → `jobEligibleForQueue` → `JobQueue.Push` |
 | **JobProcessor** | `Pop` → 过期/路由/`preparePrint`/claim/打印 → 终态 `Forget`；暂不可打或 claim 失败 → `Requeue` |
 | **HeartbeatLoop** | 每 5 分钟 `POST /api/print-agent/heartbeat`（设备存活，不是拉单） |
-| **ScheduleLoop** | 本地营业闸门；歇业清空队列并 `Forget` 去重，托盘黄灯 |
+| **ScheduleLoop** | 本地营业闸门；歇业清空队列并 `Forget` 去重，托盘黄灯；**进入营业时间**时请求 Realtime reconcile（同重启后的 pending 补拉） |
+
+**Realtime 漏接兜底（compensation cadence）**：连接健康时按 `poll.warm_interval_sec`（云端 runtime-config）周期性跑与重启相同的 `GET pending-jobs` 入队；连续失败会断开重连。这不是第二套业务轮询，而是与 reconnect/restart 同一条补偿路径。
+
+**托盘语义**：`tray: ready` 仅表示托盘 UI 已起；`tray: Connected` / 日志「已连接」之后才接受打印任务。Bootstrap（runtime-config / routing-sync）使用带超时的 HTTP，并打阶段耗时日志。
 
 入队资格（`config.jobEligibleForQueue`，Realtime 事件 / 补偿拉取 / Polling **同一规则**）：可路由，或窗口内小票 `errReceiptPrintDeferred`。
 
@@ -353,7 +357,7 @@ flowchart TD
 | Agent 行为 | `print_jobs.status` | 典型 `error_message` / 备注 |
 |------------|---------------------|-----------------------------|
 | 打印成功 | `done` | — |
-| 超时 | `failed` | `print job expired (older than 20 minutes)` |
+| 超时 | `failed` | `print job expired (older than 10 minutes)` |
 | 路由错误 | `failed` | 无映射、不支持的 type 等 |
 | 小票暂无可映射打印机 | 保持 `pending` | defer 窗口内 `Requeue` |
 | 打印机不可达 | 保持 `pending` | `Requeue`；日志「打印机不可达」 |

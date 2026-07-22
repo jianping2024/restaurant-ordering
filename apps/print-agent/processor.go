@@ -136,14 +136,19 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 		}
 
 		agentLog(p.config, "log_printing_job", job.ID, jobRouteStationID(job), target.Display, job.Type)
+		if age, ok := jobAgeSeconds(job); ok {
+			agentLog(p.config, "log_job_queue_age", job.ID, age)
+		}
 		p.setStatus("Printing", summarizeJobPayload(job))
 
+		printStarted := time.Now()
 		if !patchJobStatus(ctx, p.config, job.ID, map[string]any{"status": "processing"}, "processing") {
 			// Claim failed (network or state race): keep trying via queue, do not drop.
 			p.queue.Requeue(job)
 			sleepOrCancel(ctx, 5*time.Second)
 			continue
 		}
+		agentLog(p.config, "log_job_claimed", job.ID)
 
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {
@@ -160,8 +165,9 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 			// Forget so Dashboard Retry (same id → pending) can Push again.
 			p.queue.Forget(job.ID)
 		} else {
+			printDur := time.Since(printStarted).Round(time.Millisecond)
 			if patchJobStatus(ctx, p.config, job.ID, map[string]any{"status": "done"}, "done") {
-				agentLog(p.config, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID)
+				agentLog(p.config, "log_printed_ok", target.Display, summarizeJobPayload(job), job.ID, printDur)
 				p.session.hb.recordPrint(true)
 				p.setStatus("Ready", "Last print OK")
 			} else {

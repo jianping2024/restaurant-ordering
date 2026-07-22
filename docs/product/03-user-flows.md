@@ -379,7 +379,7 @@
 |------|------|
 | 无配对代理 | 跳过或仅 HTML `window.print` 兜底 |
 | 打印失败 | `print_jobs.status=failed`，Dashboard 可 retry |
-| 任务过期 | ~20 分钟过期清理 |
+| 任务过期 | ~10 分钟过期清理 |
 | 设备吊销 | JWT/RLS 拒绝（须 P0 验收） |
 | `bill_receipt_print=false` | 跳过 **自动** pre_bill/split_payment/final 入队；前台手动预结与手动 `checkout_bill` 仍可入队 |
 

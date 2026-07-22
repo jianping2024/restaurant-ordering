@@ -40,7 +40,7 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	res, err := http.DefaultClient.Do(req)
+	res, err := agentHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func fetchPending(ctx context.Context, apiBase, jwt string) ([]printJob, error) 
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+jwt)
-	res, err := http.DefaultClient.Do(req)
+	res, err := agentHTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func patchJob(ctx context.Context, apiBase, jwt, id string, patch map[string]any
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+jwt)
-	res, err := http.DefaultClient.Do(req)
+	res, err := agentHTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

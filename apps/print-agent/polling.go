@@ -88,20 +88,10 @@ func (p *PollingNotifier) fetch(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
-	count := 0
-	for _, job := range jobs {
-		if !p.config.jobEligibleForQueue(job) {
-			continue
-		}
-		if p.queue.Push(job) {
-			count++
-		}
+
+	fetched, admitted := admitPendingJobs(p.config, p.queue, jobs, "Polling")
+	if admitted > 0 {
+		logCompensationSummary("Polling", fetched, admitted)
 	}
-	
-	if count > 0 {
-		log.Printf("Polling: enqueued %d jobs", count)
-	}
-	
 	return nil
 }

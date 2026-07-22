@@ -137,7 +137,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 ### 提交流程（`submitOrder`）
 
-**列表步进器**：`MenuItemCard` 在 `qty > 0` 时显示 `CartQtyStepper`（`− / n / +`），仅改本地 `cart`；`qty = 0` 时显示「+ 加入」。与 `CartDrawer` 共用 `CartQtyStepper` + `bumpCartItem` / `updateQty`。**已下单**区为服务端 `recent_orders`，不可在菜单页删减。
+**列表步进器**：`MenuItemCard` 底行右侧为固定占地的操作壳；壳内按 `qty` 切换「+ 加入」/ `CartQtyStepper`（`− / n / +`）/「已售完」，避免价格列回流。数量仅改本地 `cart`。与 `CartDrawer` 共用 `CartQtyStepper` + `bumpCartItem` / `updateQty`（抽屉为 `drawer` 变体，不受列表壳约束）。**已下单**区为服务端 `recent_orders`，不可在菜单页删减。
 
 **顾客流**（`!returnToWaiterHref`）：
 

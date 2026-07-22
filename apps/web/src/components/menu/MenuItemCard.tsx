@@ -10,6 +10,14 @@ import {
 } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
+/**
+ * Fixed footprint for add / qty stepper / sold-out so the price column
+ * does not reflow when cart qty crosses zero.
+ * Sized for the widest face (pt "+ Adicionar") and two-digit qty.
+ */
+const MENU_ITEM_CARD_ACTION_SHELL =
+  'box-border flex h-9 w-[8.5rem] shrink-0 items-stretch';
+
 interface Props {
   item: MenuItem;
   lang: Language;
@@ -17,6 +25,59 @@ interface Props {
   cartQty: number;
   onIncrement: () => void;
   onDecrement: () => void;
+}
+
+type ActionLabels = { add: string; soldOut: string };
+
+function MenuItemCardAction({
+  available,
+  cartQty,
+  labels,
+  onIncrement,
+  onDecrement,
+}: {
+  available: boolean;
+  cartQty: number;
+  labels: ActionLabels;
+  onIncrement: () => void;
+  onDecrement: () => void;
+}) {
+  if (!available) {
+    return (
+      <div className={MENU_ITEM_CARD_ACTION_SHELL}>
+        <span
+          className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-muted ${CUSTOMER_MENU_TYPE.itemSoldOut}`}
+        >
+          {labels.soldOut}
+        </span>
+      </div>
+    );
+  }
+
+  if (cartQty > 0) {
+    return (
+      <div className={MENU_ITEM_CARD_ACTION_SHELL}>
+        <CartQtyStepper
+          qty={cartQty}
+          onDecrement={onDecrement}
+          onIncrement={onIncrement}
+          variant="menu"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={MENU_ITEM_CARD_ACTION_SHELL}>
+      <button
+        type="button"
+        onClick={onIncrement}
+        className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-text transition-colors hover:bg-brand-gold/20 ${CUSTOMER_MENU_TYPE.itemAction}`}
+      >
+        {labels.add}
+      </button>
+    </div>
+  );
 }
 
 export function MenuItemCard({
@@ -29,7 +90,7 @@ export function MenuItemCard({
 }: Props) {
   const label = formatMenuCatalogItemLabel(item, lang);
   const desc = resolveMenuItemLocalizedDescription(item, lang);
-  const actionText = {
+  const actionLabels: ActionLabels = {
     zh: { add: '+ 加入', soldOut: '已售完' },
     en: { add: '+ Add', soldOut: 'Sold out' },
     pt: { add: '+ Adicionar', soldOut: 'Esgotado' },
@@ -57,39 +118,21 @@ export function MenuItemCard({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
-            {desc ? (
-              <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-1 line-clamp-2`}>{desc}</p>
-            ) : null}
-          </div>
+        <div className="min-w-0">
+          <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
+          {desc ? (
+            <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-1 line-clamp-2`}>{desc}</p>
+          ) : null}
         </div>
-        <div className="flex items-center justify-between mt-3">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{item.price.toFixed(2)}</span>
-
-          {item.available ? (
-            cartQty > 0 ? (
-              <CartQtyStepper
-                qty={cartQty}
-                onDecrement={onDecrement}
-                onIncrement={onIncrement}
-                variant="menu"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={onIncrement}
-                className={`px-3 py-1.5 rounded-lg ${CUSTOMER_MENU_TYPE.itemAction} bg-brand-border text-brand-text hover:bg-brand-gold/20 transition-all`}
-              >
-                {actionText.add}
-              </button>
-            )
-          ) : (
-            <span className={`text-brand-muted ${CUSTOMER_MENU_TYPE.itemSoldOut} px-3 py-1.5 bg-brand-border rounded-lg`}>
-              {actionText.soldOut}
-            </span>
-          )}
+          <MenuItemCardAction
+            available={item.available}
+            cartQty={cartQty}
+            labels={actionLabels}
+            onIncrement={onIncrement}
+            onDecrement={onDecrement}
+          />
         </div>
       </div>
     </div>

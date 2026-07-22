@@ -9,7 +9,10 @@ type Props = {
   /** When set, drawer variant shows an editable qty field (non-negative integers only). */
   onQtyChange?: (qty: number) => void;
   qtyInputAriaLabel?: string;
-  /** List card uses compact gold pill; drawer uses neutral circles. */
+  /**
+   * `menu` — fills parent action shell on MenuItemCard (gold pill).
+   * `drawer` — content-sized neutral circles (cart / waiter).
+   */
   variant?: 'menu' | 'drawer';
 };
 
@@ -56,13 +59,14 @@ export function CartQtyStepper({
     );
   }
 
+  // Menu list: fill the MenuItemCard action shell (fixed w/h) so add↔qty does not reflow price.
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-brand-gold text-brand-on-gold font-semibold text-sm overflow-hidden">
+    <div className="flex h-full w-full items-center overflow-hidden rounded-lg bg-brand-gold text-sm font-semibold text-brand-on-gold">
       <button
         type="button"
         onClick={onDecrement}
         aria-label="Decrease quantity"
-        className="px-2.5 py-1.5 hover:bg-black/10 active:bg-black/15 transition-colors"
+        className="flex h-full flex-1 items-center justify-center hover:bg-black/10 active:bg-black/15 transition-colors"
       >
         −
       </button>
@@ -71,7 +75,7 @@ export function CartQtyStepper({
         type="button"
         onClick={onIncrement}
         aria-label="Increase quantity"
-        className="px-2.5 py-1.5 hover:bg-black/10 active:bg-black/15 transition-colors"
+        className="flex h-full flex-1 items-center justify-center hover:bg-black/10 active:bg-black/15 transition-colors"
       >
         +
       </button>

@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.53
+
+**启动排障日志；撤回定时补偿与启动总超时**
+
+- 保留启动阶段日志（拉配置 / 同步档口 + 耗时）、托盘 `ready (UI only)` vs `Connected`、入队等待时长与打印耗时，便于分辨网络卡住。
+- 撤回 Realtime 健康时定时拉 `pending-jobs`、开门 reconcile，以及启动路径统一 HTTP 总超时；启动恢复行为与线上一致（网通后同一次请求可成功）。
+- Token 刷新仍使用原有短超时；仅启动/连接/重连等原有时机补拉 pending。
+
 ## 0.3.51
 
 **打印代理通知模式可观测性（Realtime / Polling）**

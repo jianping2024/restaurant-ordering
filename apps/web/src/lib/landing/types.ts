@@ -96,3 +96,71 @@ export type LandingCopy = {
 };
 
 export type LandingLanguage = UILanguage;
+
+/** UI chrome inside landing product mock screens (separate from marketing LandingCopy). */
+export type LandingPreviewCopy = {
+  chrome: {
+    banner: string;
+  };
+  shared: {
+    /** Use `{name}` for table display name. */
+    tableLabel: string;
+    restaurantName: string;
+  };
+  waiterOpen: {
+    roleHint: string;
+    diningStatus: string;
+    buffetName: string;
+    adultsLabel: string;
+    childrenLabel: string;
+    adultPriceLabel: string;
+    childPriceLabel: string;
+    estimatedTotalLabel: string;
+    confirmOpen: string;
+  };
+  menu: {
+    /** Use `{outlet}` for production counter name. */
+    subtitle: string;
+    outletBar: string;
+    categories: {
+      drinks: string;
+      'fruit-wine': string;
+    };
+    /** Use `{count}` for cart line count. */
+    cartSummary: string;
+    submitOrder: string;
+  };
+  bar: {
+    title: string;
+    subtitle: string;
+    status: {
+      pending: string;
+      preparing: string;
+    };
+    doneBadge: string;
+    /** Use `{name}` and `{qty}`. */
+    lineQty: string;
+  };
+  bill: {
+    /** Appended after table label, e.g. " · Checkout". */
+    frameSuffix: string;
+    title: string;
+    subtitle: string;
+    buffetFee: string;
+    drinksTotal: string;
+    grandTotal: string;
+    splitModeTitle: string;
+    splitModes: [string, string, string];
+    /** Use `{guests}` and `{avg}`. */
+    perGuestSummary: string;
+    confirmPayment: string;
+  };
+  dashboard: {
+    title: string;
+    todayOrders: string;
+    todayRevenue: string;
+    topDrinksTitle: string;
+    drinkColumn: string;
+    qtyColumn: string;
+  };
+};

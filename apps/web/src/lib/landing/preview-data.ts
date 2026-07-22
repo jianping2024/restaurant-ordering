@@ -1,4 +1,4 @@
-export const PREVIEW_RESTAURANT_NAME = 'MesaGo 演示';
+/** Language-neutral demo facts for landing product previews. */
 
 export const PREVIEW_TABLE = {
   displayName: '8',
@@ -6,89 +6,90 @@ export const PREVIEW_TABLE = {
   children: 1,
   adultPrice: 19.95,
   childPrice: 10,
-  buffetName: '午市自助',
 } as const;
 
-export type PreviewMenuCategory = '饮料' | '水果酒';
+export type PreviewMenuCategoryId = 'drinks' | 'fruit-wine';
 
+export type PreviewBarStatusId = 'pending' | 'preparing';
+
+/** Aligns with product menu name fields for `resolveMenuItemLocalizedName`. */
 export type PreviewMenuItem = {
   code: string;
-  nameZh: string;
-  namePt: string;
-  nameEn: string;
+  name_pt: string;
+  name_en: string;
+  name_zh: string;
   price: number;
-  category: PreviewMenuCategory;
-  outlet: '吧台';
+  category: PreviewMenuCategoryId;
 };
 
-/** Pirata-style drinks menu (出品档口：吧台). */
-export const PREVIEW_MENU_CATEGORIES = ['饮料', '水果酒'] as const satisfies readonly PreviewMenuCategory[];
+export const PREVIEW_MENU_CATEGORIES = [
+  'drinks',
+  'fruit-wine',
+] as const satisfies readonly PreviewMenuCategoryId[];
 
 export const PREVIEW_MENU_ITEMS: readonly PreviewMenuItem[] = [
   {
     code: '011',
-    nameZh: 'Sumol 汽水',
-    namePt: 'Sumol laranja',
-    nameEn: 'Orange juice',
+    name_zh: 'Sumol 汽水',
+    name_pt: 'Sumol laranja',
+    name_en: 'Sumol orange',
     price: 2.2,
-    category: '饮料',
-    outlet: '吧台',
+    category: 'drinks',
   },
   {
     code: '005',
-    nameZh: '鲜榨橙汁',
-    namePt: 'Sumo Laranja Natural',
-    nameEn: 'Fresh orange juice',
+    name_zh: '鲜榨橙汁',
+    name_pt: 'Sumo Laranja Natural',
+    name_en: 'Fresh orange juice',
     price: 3.5,
-    category: '饮料',
-    outlet: '吧台',
+    category: 'drinks',
   },
   {
     code: '007',
-    nameZh: 'Cola Zero',
-    namePt: 'Cola Zero',
-    nameEn: 'Cola Zero',
+    name_zh: 'Cola Zero',
+    name_pt: 'Cola Zero',
+    name_en: 'Cola Zero',
     price: 2.2,
-    category: '饮料',
-    outlet: '吧台',
+    category: 'drinks',
   },
   {
     code: '301',
-    nameZh: 'Montanha',
-    namePt: 'Montanha',
-    nameEn: 'Montanha',
+    name_zh: 'Montanha',
+    name_pt: 'Montanha',
+    name_en: 'Montanha',
     price: 14.9,
-    category: '水果酒',
-    outlet: '吧台',
+    category: 'fruit-wine',
   },
   {
     code: '302',
-    nameZh: 'Alianca Meio Seco',
-    namePt: 'Alianca Meio Seco',
-    nameEn: 'Alianca Meio Seco',
+    name_zh: 'Alianca Meio Seco',
+    name_pt: 'Alianca Meio Seco',
+    name_en: 'Alianca Meio Seco',
     price: 14.9,
-    category: '水果酒',
-    outlet: '吧台',
+    category: 'fruit-wine',
   },
   {
     code: '303',
-    nameZh: 'Alianca Bruto',
-    namePt: 'Alianca Bruto',
-    nameEn: 'Alianca Bruto',
+    name_zh: 'Alianca Bruto',
+    name_pt: 'Alianca Bruto',
+    name_en: 'Alianca Bruto',
     price: 14.9,
-    category: '水果酒',
-    outlet: '吧台',
+    category: 'fruit-wine',
   },
-] as const;
+];
 
 const PREVIEW_MENU_BY_CODE = new Map(PREVIEW_MENU_ITEMS.map((item) => [item.code, item]));
 
-export function previewMenuItemsByCategory(category: PreviewMenuCategory): PreviewMenuItem[] {
+export function getPreviewMenuItem(code: string): PreviewMenuItem | undefined {
+  return PREVIEW_MENU_BY_CODE.get(code);
+}
+
+export function previewMenuItemsByCategory(category: PreviewMenuCategoryId): PreviewMenuItem[] {
   return PREVIEW_MENU_ITEMS.filter((item) => item.category === category);
 }
 
-/** Compact list for the phone preview (饮料 tab active). */
-export const PREVIEW_MENU_PHONE_ITEMS = previewMenuItemsByCategory('饮料');
+/** Compact list for the phone preview (drinks tab active). */
+export const PREVIEW_MENU_PHONE_ITEMS = previewMenuItemsByCategory('drinks');
 
 export type PreviewCartLine = {
   code: string;
@@ -96,7 +97,7 @@ export type PreviewCartLine = {
 };
 
 export const PREVIEW_CART_LINES: readonly PreviewCartLine[] = [
-  { code: '006', qty: 1 },
+  { code: '005', qty: 1 },
   { code: '011', qty: 1 },
 ] as const;
 
@@ -109,33 +110,51 @@ export function previewCartTotal(lines: readonly PreviewCartLine[]): number {
 
 export const PREVIEW_CART_TOTAL = previewCartTotal(PREVIEW_CART_LINES);
 
-export const PREVIEW_BAR_ORDERS = [
+export type PreviewBarOrderLine = {
+  code: string;
+  qty: number;
+};
+
+export type PreviewBarOrder = {
+  table: string;
+  status: PreviewBarStatusId;
+  lines: readonly PreviewBarOrderLine[];
+};
+
+export const PREVIEW_BAR_ORDERS: readonly PreviewBarOrder[] = [
   {
     table: '8',
-    status: 'pending' as const,
-    items: ['可乐 ×2', '鲜榨橙汁 ×1'],
+    status: 'pending',
+    lines: [
+      { code: '007', qty: 2 },
+      { code: '005', qty: 1 },
+    ],
   },
   {
     table: '2',
-    status: 'preparing' as const,
-    items: ['Montanha ×1'],
+    status: 'preparing',
+    lines: [{ code: '301', qty: 1 }],
   },
-] as const;
+];
 
 export const PREVIEW_BILL = {
   buffetTotal: 69.85,
   addOnTotal: 7.9,
   grandTotal: 77.75,
-  splitMode: 'even' as const,
   guests: 4,
 } as const;
+
+export type PreviewDashboardTopItem = {
+  code: string;
+  qty: number;
+};
 
 export const PREVIEW_DASHBOARD = {
   todayOrders: 42,
   todayRevenue: 1286.5,
   topItems: [
-    { name: '可乐', qty: 86 },
-    { name: 'Guaraná', qty: 64 },
-    { name: '鲜榨橙汁', qty: 38 },
-  ],
-} as const;
+    { code: '007', qty: 86 },
+    { code: '011', qty: 64 },
+    { code: '005', qty: 38 },
+  ] as const satisfies readonly PreviewDashboardTopItem[],
+};

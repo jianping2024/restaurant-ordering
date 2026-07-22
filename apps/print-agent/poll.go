@@ -95,17 +95,6 @@ func (pc *pollController) applyRuntime(schedule *scheduleConfig, poll *pollConfi
 	return nil
 }
 
-func (pc *pollController) compensationInterval() time.Duration {
-	if pc == nil {
-		return time.Duration(defaultPollConfig().WarmIntervalSec) * time.Second
-	}
-	sec := pc.cfg.WarmIntervalSec
-	if sec <= 0 {
-		sec = defaultPollConfig().WarmIntervalSec
-	}
-	return time.Duration(sec) * time.Second
-}
-
 func (pc *pollController) now() time.Time {
 	if pc.loc != nil {
 		return time.Now().In(pc.loc)

@@ -69,7 +69,7 @@ func postHeartbeat(ctx context.Context, cfg *config, scheduleOpen bool, hb *hear
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+cfg.AgentJWT)
-	res, err := agentHTTPClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}

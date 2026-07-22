@@ -21,7 +21,6 @@ type RealtimeNotifier struct {
 	configPath   string
 	supabaseURL  string
 	restaurantID string
-	reconcile    *reconcileSignal
 
 	mu             sync.Mutex
 	conn           *websocket.Conn
@@ -29,7 +28,7 @@ type RealtimeNotifier struct {
 }
 
 // NewRealtimeNotifier creates a new Realtime notifier.
-func NewRealtimeNotifier(cfg *config, queue *JobQueue, pc *pollController, configPath string, reconcile *reconcileSignal) (*RealtimeNotifier, error) {
+func NewRealtimeNotifier(cfg *config, queue *JobQueue, pc *pollController, configPath string) (*RealtimeNotifier, error) {
 	if cfg == nil || !cfg.hasRealtimeSession() {
 		return nil, fmt.Errorf("realtime session credentials missing")
 	}
@@ -48,7 +47,6 @@ func NewRealtimeNotifier(cfg *config, queue *JobQueue, pc *pollController, confi
 		configPath:     configPath,
 		supabaseURL:    supabaseURL,
 		restaurantID:   cfg.RestaurantID,
-		reconcile:      reconcile,
 		reconnectDelay: 2 * time.Second,
 	}, nil
 }
@@ -57,7 +55,7 @@ func NewRealtimeNotifier(cfg *config, queue *JobQueue, pc *pollController, confi
 func (r *RealtimeNotifier) Start(ctx context.Context) error {
 	log.Println("Realtime mode: starting")
 
-	if err := r.runCompensation(ctx, true); err != nil {
+	if err := r.compensationFetch(ctx); err != nil {
 		log.Printf("Realtime: initial fetch failed: %v", err)
 	}
 
@@ -93,7 +91,7 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		retries = 0
 		r.reconnectDelay = 2 * time.Second
 
-		if err := r.runCompensation(ctx, true); err != nil {
+		if err := r.compensationFetch(ctx); err != nil {
 			log.Printf("Realtime: post-connect fetch failed: %v", err)
 		}
 
@@ -221,20 +219,11 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) realtimeLoopExit {
 	heartbeatTicker := time.NewTicker(30 * time.Second)
 	defer heartbeatTicker.Stop()
 
-	// Same GET pending-jobs path as process restart catch-up: covers missed
-	// postgres_changes while the WS looks healthy (named compensation cadence).
-	compInterval := r.pc.compensationInterval()
-	compensationTicker := time.NewTicker(compInterval)
-	defer compensationTicker.Stop()
-	log.Printf("Realtime: compensation cadence every %s (warm poll interval)", compInterval.Round(time.Second))
-
 	renewTimer := time.NewTimer(timeUntilAccessTokenRefresh(r.config.AccessToken, accessTokenRefreshSkew))
 	defer renewTimer.Stop()
 
 	messages := make(chan []byte, 10)
 	errors := make(chan error, 1)
-	compFails := 0
-	const maxCompFails = 3
 
 	go func() {
 		for {
@@ -259,35 +248,10 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) realtimeLoopExit {
 			r.disconnect()
 			return realtimeLoopRenew
 
-		case <-compensationTicker.C:
-			if err := r.runCompensation(ctx, false); err != nil {
-				compFails++
-				log.Printf("Realtime: compensation cadence failed: %v (%d/%d)", err, compFails, maxCompFails)
-				if compFails >= maxCompFails {
-					r.disconnect()
-					return realtimeLoopLost
-				}
-			} else {
-				compFails = 0
-			}
-
-		case <-r.reconcile.waitC():
-			log.Println("Realtime: reconcile requested (schedule open or catch-up)")
-			if err := r.runCompensation(ctx, true); err != nil {
-				compFails++
-				log.Printf("Realtime: reconcile compensation failed: %v (%d/%d)", err, compFails, maxCompFails)
-				if compFails >= maxCompFails {
-					r.disconnect()
-					return realtimeLoopLost
-				}
-			} else {
-				compFails = 0
-			}
-
 		case <-heartbeatTicker.C:
 			if err := r.sendHeartbeat(); err != nil {
 				log.Printf("Realtime: heartbeat failed: %v", err)
-				if err := r.runCompensation(ctx, true); err != nil {
+				if err := r.compensationFetch(ctx); err != nil {
 					log.Printf("Realtime: heartbeat compensation fetch failed: %v", err)
 				}
 				r.disconnect()
@@ -383,9 +347,7 @@ func (r *RealtimeNotifier) handleMessage(msg []byte) {
 	}
 }
 
-// runCompensation pulls pending jobs via the same GET used after restart/reconnect.
-// verbose=true always logs fetched/newly_queued (connect/reconnect); false only when newly queued.
-func (r *RealtimeNotifier) runCompensation(ctx context.Context, verbose bool) error {
+func (r *RealtimeNotifier) compensationFetch(ctx context.Context) error {
 	if !r.scheduleOpen() {
 		return nil
 	}
@@ -395,7 +357,7 @@ func (r *RealtimeNotifier) runCompensation(ctx context.Context, verbose bool) er
 	}
 
 	fetched, admitted := admitPendingJobs(r.config, r.queue, jobs, "Realtime")
-	if verbose || admitted > 0 {
+	if admitted > 0 {
 		logCompensationSummary("Realtime", fetched, admitted)
 	}
 	return nil

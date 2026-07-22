@@ -281,11 +281,11 @@ stateDiagram-v2
 | **Notifier** | Realtime 推送或 Polling 拉 `pending-jobs` → `jobEligibleForQueue` → `JobQueue.Push` |
 | **JobProcessor** | `Pop` → 过期/路由/`preparePrint`/claim/打印 → 终态 `Forget`；暂不可打或 claim 失败 → `Requeue` |
 | **HeartbeatLoop** | 每 5 分钟 `POST /api/print-agent/heartbeat`（设备存活，不是拉单） |
-| **ScheduleLoop** | 本地营业闸门；歇业清空队列并 `Forget` 去重，托盘黄灯；**进入营业时间**时请求 Realtime reconcile（同重启后的 pending 补拉） |
+| **ScheduleLoop** | 本地营业闸门；歇业清空队列并 `Forget` 去重，托盘黄灯 |
 
-**Realtime 漏接兜底（compensation cadence）**：连接健康时按 `poll.warm_interval_sec`（云端 runtime-config）周期性跑与重启相同的 `GET pending-jobs` 入队；连续失败会断开重连。这不是第二套业务轮询，而是与 reconnect/restart 同一条补偿路径。
+**Realtime 补拉**：仅在启动、连接/重连、以及 WS 心跳失败即将重连前拉一次 `pending-jobs`（与进程重启后的 catch-up 同类）。**Realtime 健康时不定时拉单。**
 
-**托盘语义**：`tray: ready` 仅表示托盘 UI 已起；`tray: Connected` / 日志「已连接」之后才接受打印任务。Bootstrap（runtime-config / routing-sync）使用带超时的 HTTP，并打阶段耗时日志。
+**托盘语义（排障）**：`tray: ready` 仅表示托盘 UI 已起；`tray: Connected` / 日志「已连接」之后才接受打印任务。启动阶段会打 runtime-config / routing-sync 耗时日志，便于分辨网络卡住；启动 HTTP **不**另加总超时（保持「网通后同一次请求可成功」的恢复行为）。
 
 入队资格（`config.jobEligibleForQueue`，Realtime 事件 / 补偿拉取 / Polling **同一规则**）：可路由，或窗口内小票 `errReceiptPrintDeferred`。
 

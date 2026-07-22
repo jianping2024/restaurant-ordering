@@ -24,7 +24,6 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	log.Printf("Starting agent in %s mode", mode)
 
 	queue := NewJobQueue()
-	reconcile := newReconcileSignal()
 
 	processor := NewJobProcessor(queue, sess, status)
 	go func() {
@@ -34,7 +33,7 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	}()
 
 	go func() {
-		if err := runScheduleLoop(ctx, sess, queue, status, reconcile); err != nil && err != context.Canceled {
+		if err := runScheduleLoop(ctx, sess, queue, status); err != nil && err != context.Canceled {
 			log.Printf("Schedule loop error: %v", err)
 		}
 	}()
@@ -42,7 +41,7 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 	var notifier Notifier
 
 	if mode == NotificationModeRealtime {
-		rt, err := NewRealtimeNotifier(cfg, queue, sess.pc, sess.cfgPath, reconcile)
+		rt, err := NewRealtimeNotifier(cfg, queue, sess.pc, sess.cfgPath)
 		if err != nil {
 			log.Printf("Realtime mode unavailable: %v, falling back to polling", err)
 			mode = NotificationModePolling
@@ -85,7 +84,7 @@ func setNotifyMode(status *agentStatus, mode NotificationMode) {
 
 // runScheduleLoop owns outside-hours tray state and clears the print queue when
 // closed. Cloud schedule/poll is applied only at process start (restart to refresh).
-func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, status *agentStatus, reconcile *reconcileSignal) error {
+func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, status *agentStatus) error {
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
@@ -130,8 +129,6 @@ func runScheduleLoop(ctx context.Context, sess *agentSession, queue *JobQueue, s
 
 		if !wasOpen {
 			agentLog(cfg, "log_schedule_resume")
-			// Same catch-up as restart: pending rows created while closed have no new WS events.
-			reconcile.request()
 		}
 		status.setScheduleClosed(false, "")
 		wasOpen = true

@@ -228,6 +228,14 @@ export function CheckoutRequestDetail({
           <p className="font-heading text-3xl text-brand-text leading-none">
             {t.table} {request.display_name}
           </p>
+          {request.customer_nif ? (
+            <p className="mt-3 text-base font-medium text-brand-text">
+              {t.customerNif}{' '}
+              <span className="font-mono text-lg font-semibold tabular-nums">
+                {formatPortugueseNif(request.customer_nif)}
+              </span>
+            </p>
+          ) : null}
           <p className="text-brand-text-muted text-[13px] mt-2 tabular-nums">
             {requestedAt} {t.requestedAtLabel} · {waitLabel}
           </p>
@@ -235,22 +243,10 @@ export function CheckoutRequestDetail({
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-border/50 text-brand-text-muted">
               {splitModeLabel}
             </span>
-            <span
-              className={`text-[11px] px-2 py-0.5 rounded-full ${
-                partialPaid ? 'mesa-badge-warning' : 'mesa-badge-warning'
-              }`}
-            >
+            <span className="text-[11px] px-2 py-0.5 rounded-full mesa-badge-warning">
               {partialPaid ? t.partialPaidBadge : t.requested}
             </span>
           </div>
-          {request.customer_nif ? (
-            <p className="text-brand-text text-[13px] mt-2">
-              {t.customerNif}:{' '}
-              <span className="font-mono tabular-nums">
-                {formatPortugueseNif(request.customer_nif)}
-              </span>
-            </p>
-          ) : null}
         </div>
       </div>
 

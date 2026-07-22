@@ -54,6 +54,27 @@ export function buildWaiterBoardTableSummaries(
   });
 }
 
+/**
+ * Live occupancy stubs — only tables that appear in sessions/orders.
+ * displayName/seats are placeholders; client merge replaces from floor static.
+ */
+export function stubFloorTablesForLiveOccupancy(
+  sessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
+  orders: readonly Order[],
+): RestaurantTableRow[] {
+  const ids = new Set<string>(Object.keys(sessionMetaByTableId));
+  for (const order of orders) {
+    if (order.table_id) ids.add(order.table_id);
+  }
+  return [...ids].map((id) => ({
+    id,
+    display_name: id,
+    sort_order: 0,
+    seat_min: DEFAULT_TABLE_SEAT_MIN,
+    seat_max: DEFAULT_TABLE_SEAT_MAX,
+  }));
+}
+
 /** Adapter for board sort — occupancy without shipping order lines to the client. */
 export function waiterBoardSummaryToSortInput(
   summary: WaiterBoardTableSummary,

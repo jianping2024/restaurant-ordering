@@ -80,10 +80,14 @@ export async function fetchWaiterBoardClient(
 export async function fetchWaiterTablePageModelClient(
   slug: string,
   tableId: string,
+  scope: 'full' | 'live' = 'full',
 ): Promise<WaiterTablePageModel> {
-  const model = await fetchStaffBoard<WaiterTablePageModel>(
+  const url = new URL(
     `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/tables/${encodeURIComponent(tableId)}`,
+    window.location.origin,
   );
+  if (scope === 'live') url.searchParams.set('scope', 'live');
+  const model = await fetchStaffBoard<WaiterTablePageModel>(url.toString());
   return normalizeWaiterTablePageModel(model);
 }
 

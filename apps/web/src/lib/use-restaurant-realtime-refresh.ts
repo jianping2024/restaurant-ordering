@@ -13,9 +13,12 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  *    cold (no floor static) → full; hydrated floor → live occupancy catch-up
  * 5. Staff menu submit return — dedicated reconcile, then strip query
  * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → live GET
- *    (occupancy slice); merge into one WaiterBoardData — see `waiter-board-live.ts`
+ *    (occupancy slice without floor tables / opener-name resolution); merge onto floor static —
+ *    see `waiter-board-live.ts` / `waiter-board-live-merge.ts`
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
  * 8. Detail → list re-shown — same as (4): live when floor hydrated, else full (no second path)
+ * 9. Table detail — idle may boot from board open-table defaults; occupancy refresh uses
+ *    `scope=live` when board defaults exist and re-attaches that single price source
  *
  * Waiter board Realtime/entry pulls run only while the board list is visible (active);
  * other Dashboard routes keep the store dormant (mutations may still refresh).

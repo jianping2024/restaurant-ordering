@@ -3,6 +3,7 @@ import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { fetchWaiterTablePageModel } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseWaiterTableDetailFetchScope } from '@/lib/waiter-table-detail-scope';
 
 export const runtime = 'nodejs';
 
@@ -10,7 +11,6 @@ export async function GET(
   req: Request,
   { params }: { params: { slug: string; tableId: string } },
 ) {
-  void req;
   const slug = params.slug;
   const tableId = parseTableIdParam(params.tableId);
   if (!slug || !tableId) {
@@ -29,7 +29,10 @@ export async function GET(
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, tableId);
+  const scope = parseWaiterTableDetailFetchScope(new URL(req.url).searchParams.get('scope'));
+  const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, tableId, {
+    includeOpenTableDefaults: scope === 'full',
+  });
   if (!model?.detail.table) {
     return NextResponse.json({ error: 'table_not_found' }, { status: 404 });
   }

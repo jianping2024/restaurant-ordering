@@ -13,7 +13,10 @@ function emptyBoard(overrides: Partial<WaiterBoardData> = {}): WaiterBoardData {
     sessionMetaByTableId: {},
     checkoutRequestedTableIds: [],
     checkoutRequestedAtByTableId: {},
-    tables: [{ id: 't1', display_name: '1', sort_order: 0, seat_min: 1, seat_max: 4 }],
+    tables: [
+      { id: 't1', display_name: '1', sort_order: 0, seat_min: 1, seat_max: 4 },
+      { id: 't2', display_name: '2', sort_order: 1, seat_min: 2, seat_max: 6 },
+    ],
     groups: [
       {
         id: 'g1',
@@ -47,9 +50,17 @@ describe('waiter-board-live', () => {
     assert.equal(resolveWaiterBoardReconcileScope(true), 'live');
   });
 
-  it('applyWaiterBoardLivePatch overwrites live keys only', () => {
+  it('applyWaiterBoardLivePatch merges occupancy onto floor tables', () => {
     const board = emptyBoard({
       checkoutRequestedTableIds: ['old'],
+      sessionMetaByTableId: {
+        t1: {
+          sessionId: 's1',
+          openedAt: '2026-01-01T00:00:00Z',
+          status: 'open',
+          openedByName: 'Ana',
+        },
+      },
       tableSummaries: [
         {
           tableId: 't1',
@@ -87,7 +98,7 @@ describe('waiter-board-live', () => {
       tableSummaries: [
         {
           tableId: 't1',
-          displayName: '1',
+          displayName: 't1',
           seatMin: 1,
           seatMax: 4,
           buffetHeadcount: null,
@@ -106,8 +117,13 @@ describe('waiter-board-live', () => {
     assert.equal(next.openTableDefaults, board.openTableDefaults);
     assert.equal(next.restaurantHasActiveBuffets, true);
     assert.deepEqual(next.checkoutRequestedTableIds, ['t1']);
+    assert.equal(next.tableSummaries.length, 2);
     assert.equal(next.tableSummaries[0]?.sessionTotal, 10);
+    assert.equal(next.tableSummaries[0]?.displayName, '1');
+    assert.equal(next.tableSummaries[1]?.occupied, false);
+    assert.equal(next.tableSummaries[1]?.displayName, '2');
     assert.equal(next.parties.length, 1);
     assert.equal(next.sessionMetaByTableId.t1?.sessionId, 's1');
+    assert.equal(next.sessionMetaByTableId.t1?.openedByName, 'Ana');
   });
 });

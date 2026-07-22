@@ -163,17 +163,20 @@ export async function loadWaiterTableDetailSnapshot(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
+  options: { includeOpenTableDefaults?: boolean } = {},
 ): Promise<WaiterTableDetailSnapshot | null> {
-  const [{ table, sessionRow }, buffets] = await Promise.all([
-    loadTableAndSession(admin, restaurantId, tableId),
-    loadActiveBuffets(admin, restaurantId),
-  ]);
+  const includeOpenTableDefaults = options.includeOpenTableDefaults !== false;
+  const { table, sessionRow } = await loadTableAndSession(admin, restaurantId, tableId);
 
   if (!table) return null;
 
   const sessionMeta = sessionMetaFromRow(sessionRow);
 
   if (!sessionMeta) {
+    if (!includeOpenTableDefaults) {
+      return { kind: 'idle', table, buffets: [], buffetPricesByBuffetId: {} };
+    }
+    const buffets = await loadActiveBuffets(admin, restaurantId);
     const buffetPricesByBuffetId = await resolveOpenTableBuffetPrices(
       admin,
       restaurantId,
@@ -186,6 +189,20 @@ export async function loadWaiterTableDetailSnapshot(
   const checkout = await fetchCheckoutRequestedForTable(admin, restaurantId, tableId);
   const checkoutPending = isCheckoutPending(sessionMeta, checkout.requested);
 
+  if (!includeOpenTableDefaults) {
+    const orders = await loadTableOrdersForSession(admin, restaurantId, sessionMeta.sessionId);
+    return buildActiveWaiterTableSnapshot({
+      table,
+      buffets: [],
+      sessionMeta,
+      orders,
+      checkoutRequested: checkout.requested,
+      checkoutRequestedAt: checkout.at,
+      buffetPricesByBuffetId: {},
+    });
+  }
+
+  const buffets = await loadActiveBuffets(admin, restaurantId);
   const [orders, buffetPricesByBuffetId] = await Promise.all([
     loadTableOrdersForSession(admin, restaurantId, sessionMeta.sessionId),
     resolveOpenTableBuffetPrices(admin, restaurantId, buffets, checkoutPending),
@@ -206,9 +223,10 @@ export async function loadWaiterTablePageModel(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
+  options: { includeOpenTableDefaults?: boolean } = {},
 ): Promise<WaiterTablePageModel | null> {
   const [snapshot, inTableParty] = await Promise.all([
-    loadWaiterTableDetailSnapshot(admin, restaurantId, tableId),
+    loadWaiterTableDetailSnapshot(admin, restaurantId, tableId, options),
     tableIsInAnyParty(admin, restaurantId, tableId).catch(() => false),
   ]);
   if (!snapshot) return null;

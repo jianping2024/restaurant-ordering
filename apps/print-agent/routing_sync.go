@@ -81,7 +81,7 @@ func syncRoutingToCloud(cfg *config) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+cfg.AgentJWT)
-	res, err := agentHTTPClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		agentLogTech(cfg, "log_routing_sync_fail", err.Error())
 		return err

@@ -102,7 +102,7 @@ func fetchCloudRuntimeConfig(url, jwt string) (*remoteCloudConfig, error) {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+jwt)
-	res, err := agentHTTPClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func fetchPrintStations(apiBase, jwt string) ([]printStationRow, error) {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+jwt)
-	res, err := agentHTTPClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

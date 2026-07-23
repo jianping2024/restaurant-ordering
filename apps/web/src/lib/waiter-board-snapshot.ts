@@ -66,7 +66,7 @@ export function stubFloorTablesForLiveOccupancy(
   for (const order of orders) {
     if (order.table_id) ids.add(order.table_id);
   }
-  return [...ids].map((id) => ({
+  return Array.from(ids).map((id) => ({
     id,
     display_name: id,
     sort_order: 0,

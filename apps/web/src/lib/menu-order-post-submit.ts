@@ -10,6 +10,7 @@ export function scheduleMenuOrderPostSubmitEffects(params: {
   waiterFlow: boolean;
   lang: Language;
   sessionId?: string;
+  clientRequestId?: string;
   refreshSession?: () => Promise<unknown>;
 }): void {
   void autoEnqueueStationTicketsAfterSubmit({
@@ -19,6 +20,7 @@ export function scheduleMenuOrderPostSubmitEffects(params: {
     enqueueToken: params.enqueueToken,
     waiterFlow: params.waiterFlow,
     lang: params.lang,
+    clientRequestId: params.clientRequestId,
   });
 
   if (!params.waiterFlow && params.sessionId && params.refreshSession) {

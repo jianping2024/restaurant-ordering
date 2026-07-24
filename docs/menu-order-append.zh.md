@@ -19,6 +19,7 @@
 6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `verifyOpenTableStaffAuth`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
 7. **出品联自动入队**：append 成功后返回短期 `enqueue_token`；客户端再调 `station-tickets/auto` 按档口分组入队（无手动「打印」按钮）。
 8. **下单冷却（本机 UI）**：功能管理配置 `order_cooldown_seconds`（5–60）。菜单页每次 **提交成功** 后，**当前设备** 购物车提交按钮倒计时该秒数（灰、不可点）；同桌其他设备互不影响。服务端 append **不** 按桌 session 冷却；仅保留 IP 限流防滥用。
+9. **提交幂等**：每次「确认下单」意图必须带 UUID `client_request_id`。服务端以 `(session_id, client_request_id)` 唯一；首次写单并落 `order_append_idempotency`（completed）；同键重放返回同一 `order_id`/`batch_id` 并重签 `enqueue_token`（`idempotent_replay: true`），**不再**追加 `items`。缺号/非法号 → `invalid_client_request_id`（400）。并发同号且仍 `pending` → `append_in_progress`（409）。客户端：同步提交锁防连点；网络失败且购物车未变时复用同一 `client_request_id`。
 
 ---
 
@@ -29,7 +30,7 @@
 ```
 ① 限流   orderAppendRateLimitCheck(clientIp)  → 429 rate_limited
 
-② 解析   table_id（UUID）、items[]、waiter_flow?、latitude/longitude?
+② 解析   table_id（UUID）、client_request_id（UUID，必填）、items[]、waiter_flow?、latitude/longitude?
 
 ③ 租户   resolveOrderRestaurant(slug, guest|staff)
          verifyOrderAppendGate（waiter 鉴权 / 顾客 geo）
@@ -40,15 +41,23 @@
          → guestOrderingEnabled 扫全 session orders
          写单 merge 目标 = created_at 最新一条
 
-⑤ 定价   resolveAppendCartItems
+⑤ 幂等   claimAppendIdempotency(session_id, client_request_id)
+         → replay | in_progress | claimed
+         replay：重签 enqueue_token 后直接返回（不写 items）
+
+⑥ 定价   resolveAppendCartItems
          menu_items + 仅 cart 所需 category 祖先链（非全树）
 
-⑥ 写单   writeAppendBatch（update 合并 | insert 新单）
+⑦ 写单   writeAppendBatch（update 合并 | insert 新单）
+         失败则 release pending claim，允许同号重试
 
-⑦ 签名   signOrderEnqueueToken({ restaurant_id, order_id, batch_id })
+⑧ 完成   completeAppendIdempotency（pending → completed + order/batch 快照）
+         写单已成功则仍向客户端返回 200（避免客户端再当失败重试写单）
 
-⑧ 返回   { ok, order_id, batch_id, session_id, enqueue_token,
-            is_first_order, had_done_before }
+⑨ 签名   signOrderEnqueueToken({ restaurant_id, order_id, batch_id })
+
+⑩ 返回   { ok, order_id, batch_id, session_id, enqueue_token,
+            is_first_order, had_done_before, idempotent_replay }
 ```
 
 **禁止**
@@ -57,7 +66,8 @@
 - 信任客户端 `price`、`name_*`、`batch_id`（`batch_id` 由 `generateAppendBatchId` 在服务端生成）
 - 未经 `guestOrderingEnabled` 写 menu 行
 - 在 append 内创建或修改 `buffet_base`
-
+- 无 `client_request_id` 的半套兼容写单（强制带号）
+- 对 `pending` 幂等行「过期回收后再写第二批」（禁止，以免崩溃后双写）
 ---
 
 ## 提交后管道（出品入队）
@@ -199,12 +209,13 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 | HTTP | `error` | 含义 | 客户端处理 |
 |------|---------|------|------------|
-| 400 | `invalid_table_id` / `invalid_items` / `location_required` | 参数或购物车非法 | toast 提交失败 / 定位 |
+| 400 | `invalid_table_id` / `invalid_items` / `invalid_client_request_id` / `location_required` | 参数或购物车非法 | toast 提交失败 / 定位；缺号则刷新页面 |
 | 401 | `unauthorized` | waiter_flow 无 staff 会话 | toast 提交失败 |
 | 403 | `buffet_required` / `location_too_far` | 未开台 / 超距 | 等待开台 / 距离提示 |
 | 409 | `session_billing` | 结账中 | 账单提示 |
+| 409 | `append_in_progress` | 同号仍在写单 | 短暂后重试（同号） |
 | 429 | `rate_limited` | IP 限流 | 限流提示 |
-| 5xx | `order_*_failed` 等 | 写库失败 | 提交失败 |
+| 5xx | `order_*_failed` 等 | 写库失败 | 提交失败；同购物车保留 `client_request_id` 重试 |
 
 ---
 
@@ -212,13 +223,14 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 | 职责 | 模块 |
 |------|------|
-| 菜单 UI + 唯一 submit | `components/menu/MenuPage.tsx` |
+| 菜单 UI + 唯一 submit | `components/menu/MenuOrderingController.tsx` |
 | 提交按钮冷却倒计时 | `lib/use-submit-cooldown-remaining.ts`、`lib/order-submit-cooldown-client.ts` |
 | 列表 / 抽屉数量步进器 | `components/menu/CartQtyStepper.tsx` |
 | 顾客菜单路由 | `app/[slug]/menu/page.tsx` |
 | 加菜门禁（开台） | `lib/guest-table-ordering.ts` → `guestOrderingEnabled` |
 | 购物车解析 + 服务端定价 | `lib/resolve-append-cart-items.ts` |
 | append API（薄编排） | `app/api/restaurants/[slug]/orders/append/route.ts` |
+| 提交幂等 | `lib/append-idempotency.ts` |
 | 租户解析 | `lib/order-restaurant-context.ts` → `resolveOrderRestaurant` |
 | 鉴权 / geo 门禁 | `lib/order-submit-gate.ts` → `verifyOrderAppendGate` |
 | 合并读上下文 | `lib/append-write-context.ts` → `loadAppendWriteContext` |

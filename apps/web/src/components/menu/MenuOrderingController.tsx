@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
@@ -24,6 +24,7 @@ import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit
 import {
   appendFailureNeedsSessionRefresh,
   executeMenuOrderSubmit,
+  resolveAppendClientRequestId,
   type MenuOrderSubmitFailure,
 } from '@/lib/menu-order-submit';
 import {
@@ -122,6 +123,10 @@ export function MenuOrderingController({
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
+  const pendingAppendIntentRef = useRef<{ clientRequestId: string; fingerprint: string } | null>(
+    null,
+  );
   const [demoToast, setDemoToast] = useState(false);
   const {
     submitCooldownRemaining,
@@ -402,6 +407,7 @@ export function MenuOrderingController({
   // 提交订单
   const submitOrder = async () => {
     if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
+    if (submittingRef.current) return;
 
     if (isDemo) {
       const gate = await ensureGuestCanPlaceOrder();
@@ -417,6 +423,8 @@ export function MenuOrderingController({
               orderId: 'demo-order',
               batchId: 'demo-batch',
               enqueueToken: 'demo-token',
+              clientRequestId: 'demo-client-request',
+              idempotentReplay: false,
             },
             cart,
           );
@@ -433,7 +441,17 @@ export function MenuOrderingController({
       return;
     }
 
+    submittingRef.current = true;
     setSubmitting(true);
+
+    const intent = resolveAppendClientRequestId({
+      cart,
+      previous: pendingAppendIntentRef.current,
+    });
+    pendingAppendIntentRef.current = {
+      clientRequestId: intent.clientRequestId,
+      fingerprint: intent.fingerprint,
+    };
 
     try {
       const waiterFlow = !!staffAssisted;
@@ -443,6 +461,7 @@ export function MenuOrderingController({
         slug: restaurant.slug,
         tableId,
         waiterFlow,
+        clientRequestId: intent.clientRequestId,
         ensureGate: ensureGuestCanPlaceOrder,
         resolveGeo: () =>
           resolveCustomerGeoForOrder({
@@ -453,9 +472,12 @@ export function MenuOrderingController({
       });
 
       if ('kind' in result) {
+        // Keep pending intent so network / ambiguous failures retry the same request id.
         await showSubmitFailure(result);
         return;
       }
+
+      pendingAppendIntentRef.current = null;
 
       scheduleMenuOrderPostSubmitEffects({
         slug: restaurant.slug,
@@ -465,6 +487,7 @@ export function MenuOrderingController({
         waiterFlow,
         lang,
         sessionId: result.sessionId,
+        clientRequestId: result.clientRequestId,
         refreshSession: () => refreshSessionContext('full'),
       });
 
@@ -485,6 +508,7 @@ export function MenuOrderingController({
       }
       showToast(t.submitFailed, 'error');
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };

@@ -186,6 +186,8 @@ export interface AppendCartLineInput {
 export interface OrdersAppendRequestBody {
   table_id: string;
   items: AppendCartLineInput[];
+  /** UUID — one submit intent; server dedupes per session. */
+  client_request_id: string;
   latitude?: number;
   longitude?: number;
   waiter_flow?: boolean;

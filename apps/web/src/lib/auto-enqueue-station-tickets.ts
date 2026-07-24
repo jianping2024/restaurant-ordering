@@ -1,6 +1,7 @@
 import type { Language } from '@/types';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { showToast } from '@/components/ui/Toast';
+import { logOrderAppendEvent } from '@/lib/append-idempotency';
 
 const SILENT_ERRORS = new Set(['nothing_enqueued']);
 
@@ -21,9 +22,18 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
   enqueueToken: string;
   waiterFlow: boolean;
   lang: Language;
+  clientRequestId?: string;
 }): Promise<void> {
-  const { slug, orderId, batchId, enqueueToken, waiterFlow, lang } = params;
+  const { slug, orderId, batchId, enqueueToken, waiterFlow, lang, clientRequestId } = params;
   const t = MENU_PAGE_MESSAGES[lang];
+
+  logOrderAppendEvent('enqueue_start', {
+    client_request_id: clientRequestId,
+    order_id: orderId,
+    batch_id: batchId,
+    slug,
+    waiter_flow: waiterFlow,
+  });
 
   try {
     const res = await fetch(`/api/restaurants/${slug}/station-tickets/auto`, {
@@ -36,14 +46,38 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
       }),
     });
     const data = (await res.json()) as { error?: string };
-    if (res.ok) return;
+    if (res.ok) {
+      logOrderAppendEvent('enqueue_ok', {
+        client_request_id: clientRequestId,
+        order_id: orderId,
+        batch_id: batchId,
+        slug,
+        waiter_flow: waiterFlow,
+      });
+      return;
+    }
 
     const code = typeof data.error === 'string' ? data.error : '';
+    logOrderAppendEvent('enqueue_failed', {
+      client_request_id: clientRequestId,
+      order_id: orderId,
+      batch_id: batchId,
+      slug,
+      waiter_flow: waiterFlow,
+      error: code || `http_${res.status}`,
+    });
     if (SILENT_ERRORS.has(code)) return;
     if (!waiterFlow) return;
 
     showToast(messageForError(code, t), code === 'no_station_bound_lines' ? 'info' : 'error');
   } catch {
+    logOrderAppendEvent('enqueue_network', {
+      client_request_id: clientRequestId,
+      order_id: orderId,
+      batch_id: batchId,
+      slug,
+      waiter_flow: waiterFlow,
+    });
     if (waiterFlow) showToast(t.printEnqueueFailed, 'error');
   }
 }

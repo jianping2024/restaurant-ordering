@@ -3,6 +3,7 @@ import { coerceCartQty } from '@/lib/cart-totals';
 import type { CustomerGeoOrderFailure, CustomerGeoOrderResult } from '@/lib/customer-geo-order';
 import type { GuestOrderGateResult } from '@/lib/customer-menu-order-gate';
 import type { SessionStatus } from '@/types';
+import { logOrderAppendEvent } from '@/lib/append-idempotency';
 
 export type MenuOrderSubmitFlow = 'guest' | 'staff_assisted';
 
@@ -12,6 +13,8 @@ export type AppendOrderFailureCode =
   | 'session_billing'
   | 'buffet_required'
   | 'rate_limited'
+  | 'append_in_progress'
+  | 'invalid_client_request_id'
   | 'submit_failed';
 
 export type MenuOrderSubmitSuccess = {
@@ -20,13 +23,15 @@ export type MenuOrderSubmitSuccess = {
   batchId: string;
   enqueueToken: string;
   sessionId?: string;
+  clientRequestId: string;
+  idempotentReplay: boolean;
 };
 
 export type MenuOrderSubmitFailure =
   | { kind: 'gate'; sessionStatus: SessionStatus | null }
   | { kind: 'geo'; reason: CustomerGeoOrderFailure }
-  | { kind: 'append'; code: AppendOrderFailureCode }
-  | { kind: 'network' };
+  | { kind: 'append'; code: AppendOrderFailureCode; clientRequestId: string }
+  | { kind: 'network'; clientRequestId: string };
 
 type AppendApiResponse = {
   error?: string;
@@ -34,7 +39,45 @@ type AppendApiResponse = {
   batch_id?: string;
   enqueue_token?: string;
   session_id?: string;
+  idempotent_replay?: boolean;
 };
+
+/** Stable fingerprint so network retries reuse the same client_request_id for one cart. */
+export function appendCartFingerprint(cart: CartItem[]): string {
+  return appendCartLinesFromCart(cart)
+    .map((line) => `${line.menu_item_id}:${line.qty}:${line.note ?? ''}`)
+    .join('|');
+}
+
+export function createAppendClientRequestId(
+  randomUuid: () => string = () => crypto.randomUUID(),
+): string {
+  return randomUuid();
+}
+
+/**
+ * Reuse the prior request id when the cart is unchanged (timeout retry);
+ * otherwise mint a new intent id.
+ */
+export function resolveAppendClientRequestId(params: {
+  cart: CartItem[];
+  previous: { clientRequestId: string; fingerprint: string } | null;
+  createId?: () => string;
+}): { clientRequestId: string; fingerprint: string; reused: boolean } {
+  const fingerprint = appendCartFingerprint(params.cart);
+  if (params.previous && params.previous.fingerprint === fingerprint) {
+    return {
+      clientRequestId: params.previous.clientRequestId,
+      fingerprint,
+      reused: true,
+    };
+  }
+  return {
+    clientRequestId: (params.createId ?? createAppendClientRequestId)(),
+    fingerprint,
+    reused: false,
+  };
+}
 
 /** Trusted append lines from local cart state (menu_item_id + qty + note only). */
 export function appendCartLinesFromCart(cart: CartItem[]): AppendCartLineInput[] {
@@ -57,6 +100,10 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'buffet_required';
     case 'rate_limited':
       return 'rate_limited';
+    case 'append_in_progress':
+      return 'append_in_progress';
+    case 'invalid_client_request_id':
+      return 'invalid_client_request_id';
     default:
       return 'submit_failed';
   }
@@ -71,12 +118,20 @@ export async function postMenuOrderAppend(params: {
   slug: string;
   tableId: string;
   items: AppendCartLineInput[];
+  clientRequestId: string;
   latitude?: number;
   longitude?: number;
   waiterFlow: boolean;
   fetchImpl?: typeof fetch;
 }): Promise<
-  | { ok: true; orderId: string; batchId: string; enqueueToken: string; sessionId?: string }
+  | {
+      ok: true;
+      orderId: string;
+      batchId: string;
+      enqueueToken: string;
+      sessionId?: string;
+      idempotentReplay: boolean;
+    }
   | { ok: false; code: AppendOrderFailureCode }
 > {
   const fetchFn = params.fetchImpl ?? fetch;
@@ -87,6 +142,7 @@ export async function postMenuOrderAppend(params: {
     body: JSON.stringify({
       table_id: params.tableId,
       items: params.items,
+      client_request_id: params.clientRequestId,
       latitude: params.latitude,
       longitude: params.longitude,
       waiter_flow: params.waiterFlow,
@@ -111,6 +167,7 @@ export async function postMenuOrderAppend(params: {
     batchId,
     enqueueToken,
     sessionId: data.session_id,
+    idempotentReplay: data.idempotent_replay === true,
   };
 }
 
@@ -124,10 +181,13 @@ export async function executeMenuOrderSubmit(params: {
   slug: string;
   tableId: string;
   waiterFlow: boolean;
+  clientRequestId: string;
   ensureGate: () => Promise<GuestOrderGateResult>;
   resolveGeo: () => Promise<CustomerGeoOrderResult>;
   fetchImpl?: typeof fetch;
 }): Promise<MenuOrderSubmitSuccess | MenuOrderSubmitFailure> {
+  const { clientRequestId } = params;
+
   const gate = await params.ensureGate();
   if (!gate.canPlace) {
     return { kind: 'gate', sessionStatus: gate.sessionStatus };
@@ -138,19 +198,48 @@ export async function executeMenuOrderSubmit(params: {
     return { kind: 'geo', reason: geo.reason };
   }
 
+  const lineCount = params.cart.length;
+  logOrderAppendEvent('client_submit_start', {
+    client_request_id: clientRequestId,
+    table_id: params.tableId,
+    slug: params.slug,
+    waiter_flow: params.waiterFlow,
+    line_count: lineCount,
+  });
+
   try {
     const append = await postMenuOrderAppend({
       slug: params.slug,
       tableId: params.tableId,
       items: appendCartLinesFromCart(params.cart),
+      clientRequestId,
       latitude: geo.latitude,
       longitude: geo.longitude,
       waiterFlow: params.waiterFlow,
       fetchImpl: params.fetchImpl,
     });
     if (!append.ok) {
-      return { kind: 'append', code: append.code };
+      logOrderAppendEvent('client_submit_failed', {
+        client_request_id: clientRequestId,
+        table_id: params.tableId,
+        slug: params.slug,
+        waiter_flow: params.waiterFlow,
+        error: append.code,
+      });
+      return { kind: 'append', code: append.code, clientRequestId };
     }
+
+    logOrderAppendEvent('client_submit_ok', {
+      client_request_id: clientRequestId,
+      table_id: params.tableId,
+      slug: params.slug,
+      order_id: append.orderId,
+      batch_id: append.batchId,
+      session_id: append.sessionId,
+      waiter_flow: params.waiterFlow,
+      idempotent_replay: append.idempotentReplay,
+      line_count: lineCount,
+    });
 
     return {
       flow: params.flow,
@@ -158,8 +247,16 @@ export async function executeMenuOrderSubmit(params: {
       batchId: append.batchId,
       enqueueToken: append.enqueueToken,
       sessionId: append.sessionId,
+      clientRequestId,
+      idempotentReplay: append.idempotentReplay,
     };
   } catch {
-    return { kind: 'network' };
+    logOrderAppendEvent('client_submit_network', {
+      client_request_id: clientRequestId,
+      table_id: params.tableId,
+      slug: params.slug,
+      waiter_flow: params.waiterFlow,
+    });
+    return { kind: 'network', clientRequestId };
   }
 }

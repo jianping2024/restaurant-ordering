@@ -15,6 +15,8 @@ bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: u
 
 session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_index: int nullable, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
 
+order_append_idempotency (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, client_request_id: uuid, status: text [pending|completed], order_id: uuid FK -> orders.id nullable, batch_id: text nullable, had_done_before: boolean nullable, is_first_order: boolean nullable, line_count: integer nullable, created_at: timestamptz, updated_at: timestamptz, UNIQUE(session_id, client_request_id); RLS on, no anon/auth policies — service_role/admin only)
+
 buffet_calendar_overrides (restaurant_id: uuid PK FK -> restaurants.id, on_date: date PK, kind: text [holiday|special])
 
 buffet_price_rules (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, buffet_id: uuid FK -> buffets.id, time_slot_id: uuid FK -> buffet_time_slots.id, calendar_kind: text [weekday|weekend|holiday|special], valid_from: date, valid_to: date, adult_price: numeric, child_price: numeric, priority: integer, is_active: boolean, note: text nullable, created_at: timestamptz)
@@ -451,7 +453,7 @@ table_sessions:
 - Multi-tenant root entity is `restaurants`; most business tables reference `restaurant_id`.
 - Auth ownership/staff users are linked through `auth.users`.
 - Table lifecycle: `restaurant_tables` defines physical/logical tables; `table_sessions` tracks open/billing/closed dining sessions.
-- Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session. Each line snapshots `item_code` and `category_code_path` (root→leaf category codes) at append time for print labels.
+- Ordering flow: `orders` stores item payloads in `items` jsonb and links to restaurant/table/session. Each line snapshots `item_code` and `category_code_path` (root→leaf category codes) at append time for print labels. Guest/waiter append requires `client_request_id`; `order_append_idempotency` UNIQUE(session_id, client_request_id) replays completed intents without re-merging items.
 - Billing flow: `bill_splits` supports even/by-item/custom splits and stores calculated result in jsonb. At most one active (`pending`/`confirmed`/`requested`) row per `session_id` (partial unique index).
 - Checkout request: `upsert_bill_split_request(...)` — advisory lock per session; `FOR UPDATE` on active split; merges row amounts then reconciles `paid` from `session_collected_payments`; sets `table_sessions` to `billing`.
 - Checkout confirm payment: `confirm_bill_split_payment(...)` — advisory lock per session when `session_id` set; `FOR UPDATE` on `bill_splits`; rejects when outstanding ≤ 0; appends `session_collected_payments`; reconciles all `result.paid`; closes `table_sessions` when every row settled.

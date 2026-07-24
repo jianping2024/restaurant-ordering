@@ -9,11 +9,19 @@ import { resolveOrderRestaurant } from '@/lib/order-restaurant-context';
 import { verifyOrderAppendGate } from '@/lib/order-submit-gate';
 import { loadAppendWriteContext } from '@/lib/append-write-context';
 import { writeAppendBatch } from '@/lib/append-write-batch';
+import {
+  claimAppendIdempotency,
+  completeAppendIdempotency,
+  logOrderAppendEvent,
+  parseAppendClientRequestId,
+  releaseAppendIdempotencyClaim,
+} from '@/lib/append-idempotency';
 
 export const runtime = 'nodejs';
 
 /** Guest/waiter order submit: server-side geo fence + signed enqueue token. */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
+  const startedAt = Date.now();
   const slug = params.slug;
   if (!slug) {
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
@@ -39,6 +47,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     latitude?: unknown;
     longitude?: unknown;
     waiter_flow?: unknown;
+    client_request_id?: unknown;
   };
   try {
     body = await req.json();
@@ -49,6 +58,11 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const tableId = parseTableIdParam(body.table_id);
   if (!tableId) {
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
+  }
+
+  const clientRequestId = parseAppendClientRequestId(body.client_request_id);
+  if (!clientRequestId) {
+    return NextResponse.json({ error: 'invalid_client_request_id' }, { status: 400 });
   }
 
   let admin;
@@ -103,6 +117,60 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   const sessionId = context.session.id as string;
   const displayName = tableRow.display_name as string;
 
+  const claim = await claimAppendIdempotency({
+    admin,
+    restaurantId: rid,
+    sessionId,
+    clientRequestId,
+  });
+
+  if (claim.kind === 'error') {
+    return NextResponse.json({ error: claim.error }, { status: claim.status });
+  }
+
+  if (claim.kind === 'in_progress') {
+    logOrderAppendEvent('append_in_progress', {
+      restaurant_id: rid,
+      session_id: sessionId,
+      table_id: tableId,
+      client_request_id: clientRequestId,
+      waiter_flow: waiterFlow,
+      duration_ms: Date.now() - startedAt,
+    });
+    return NextResponse.json({ error: 'append_in_progress' }, { status: 409 });
+  }
+
+  if (claim.kind === 'replay') {
+    const enqueue_token = signOrderEnqueueToken(
+      {
+        restaurant_id: rid,
+        order_id: claim.result.orderId,
+        batch_id: claim.result.batchId,
+      },
+      secret,
+    );
+    logOrderAppendEvent('append_replay', {
+      restaurant_id: rid,
+      session_id: sessionId,
+      table_id: tableId,
+      client_request_id: clientRequestId,
+      order_id: claim.result.orderId,
+      batch_id: claim.result.batchId,
+      waiter_flow: waiterFlow,
+      duration_ms: Date.now() - startedAt,
+    });
+    return NextResponse.json({
+      ok: true,
+      order_id: claim.result.orderId,
+      batch_id: claim.result.batchId,
+      session_id: sessionId,
+      enqueue_token,
+      had_done_before: claim.result.hadDoneBefore,
+      is_first_order: claim.result.isFirstOrder,
+      idempotent_replay: true,
+    });
+  }
+
   let resolved;
   try {
     resolved = await resolveAppendCartItems({
@@ -111,9 +179,11 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       rawItems: body.items,
     });
   } catch {
+    await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
     return NextResponse.json({ error: 'menu_items_query_failed' }, { status: 500 });
   }
   if (!resolved.ok) {
+    await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
     return NextResponse.json({ error: resolved.error }, { status: 400 });
   }
 
@@ -127,13 +197,54 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     newItems: resolved.items,
   });
   if (!writeResult.ok) {
+    await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
     return NextResponse.json({ error: writeResult.error }, { status: writeResult.status });
   }
+
+  const completed = await completeAppendIdempotency({
+    admin,
+    sessionId,
+    clientRequestId,
+    orderId: writeResult.orderId,
+    batchId: resolved.batchId,
+    hadDoneBefore: writeResult.hadDoneBefore,
+    isFirstOrder: writeResult.isFirstOrder,
+    lineCount: resolved.items.length,
+  });
 
   const enqueue_token = signOrderEnqueueToken(
     { restaurant_id: rid, order_id: writeResult.orderId, batch_id: resolved.batchId },
     secret,
   );
+
+  // Items are already persisted — always return success so the client does not retry-write.
+  // If complete failed, same-key callers may see in_progress until the row is repaired;
+  // never reclaim pending for a second write.
+  if (!completed.ok) {
+    logOrderAppendEvent('append_complete_failed', {
+      restaurant_id: rid,
+      session_id: sessionId,
+      table_id: tableId,
+      client_request_id: clientRequestId,
+      order_id: writeResult.orderId,
+      batch_id: resolved.batchId,
+      error: completed.error,
+      duration_ms: Date.now() - startedAt,
+    });
+  } else {
+    logOrderAppendEvent('append_written', {
+      restaurant_id: rid,
+      session_id: sessionId,
+      table_id: tableId,
+      client_request_id: clientRequestId,
+      order_id: writeResult.orderId,
+      batch_id: resolved.batchId,
+      line_count: resolved.items.length,
+      waiter_flow: waiterFlow,
+      is_first_order: writeResult.isFirstOrder,
+      duration_ms: Date.now() - startedAt,
+    });
+  }
 
   return NextResponse.json({
     ok: true,
@@ -143,5 +254,6 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     enqueue_token,
     had_done_before: writeResult.hadDoneBefore,
     is_first_order: writeResult.isFirstOrder,
+    idempotent_replay: false,
   });
 }

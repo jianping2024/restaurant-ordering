@@ -8,6 +8,7 @@ import {
   postWaiterBuffetOpenAndCommit,
   precheckIdleOpenTable,
 } from '@/lib/waiter-buffet-open-submit';
+import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
 import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -87,19 +88,7 @@ export function useWaiterBuffetOpenMutation({
 
     if (!result.ok) {
       setSubmitting(false);
-      if (result.status === 409 && result.code === 'session_billing') {
-        showToast(t.checkoutLockedHint, 'info');
-        return { kind: 'failed' };
-      }
-      if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
-        showToast(t.buffetHeadcountBelowPaidFloor, 'error');
-        return { kind: 'failed' };
-      }
-      if (result.status === 400 && result.code === 'no_price_rule') {
-        showToast(t.buffetNoRule, 'error');
-        return { kind: 'failed' };
-      }
-      showToast(t.actionFailed, 'error');
+      toastWaiterBuffetOpenFailure(t, result);
       return { kind: 'failed' };
     }
 

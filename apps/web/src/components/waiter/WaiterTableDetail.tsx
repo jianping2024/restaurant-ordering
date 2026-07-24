@@ -10,6 +10,7 @@ import {
   buffetOpenSubmitBlockReason,
   postWaiterBuffetOpenAndCommit,
 } from '@/lib/waiter-buffet-open-submit';
+import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -803,24 +804,10 @@ function WaiterTableDetailInner({
         activeBuffetIds,
       });
       if (!result.ok) {
-        if (result.status === 409 && result.code === 'session_billing') {
-          showToast(t.checkoutLockedHint, 'info');
-          return;
-        }
-        if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
-          showToast(t.buffetHeadcountBelowPaidFloor, 'error');
-          return;
-        }
         if (result.status === 409) {
           await refresh();
-          showToast(t.refreshHint, 'error');
-          return;
         }
-        if (result.status === 400 && result.code === 'no_price_rule') {
-          showToast(t.buffetNoRule, 'error');
-          return;
-        }
-        showToast(t.actionFailed, 'error');
+        toastWaiterBuffetOpenFailure(t, result);
         return;
       }
       applyModel(result.model);

@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import {
@@ -12,8 +11,11 @@ import {
   authLoginRecordFailure,
   authLoginRecordSuccess,
 } from '@/lib/auth/login-rate-limit';
+import { isDependencyFailure } from '@/lib/dependency-unavailable';
+import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { createRouteHandlerSupabaseAuth } from '@/lib/supabase/route-handler-auth';
+import { cookies } from 'next/headers';
 
 export const runtime = 'nodejs';
 
@@ -64,6 +66,9 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: preflight.code }, { status });
         }
       } catch (e) {
+        if (isDependencyFailure(e)) {
+          return dependencyUnavailableJsonResponse();
+        }
         const message = e instanceof Error ? e.message : 'redirect_failed';
         return NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
       }
@@ -75,6 +80,9 @@ export async function POST(req: Request) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
+    if (error && isDependencyFailure(error)) {
+      return dependencyUnavailableJsonResponse();
+    }
     authLoginRecordFailure(email, ip);
     return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
   }
@@ -119,6 +127,11 @@ export async function POST(req: Request) {
     return response;
   } catch (e) {
     await supabase.auth.signOut();
+    if (isDependencyFailure(e)) {
+      const response = dependencyUnavailableJsonResponse();
+      attachCookies(response);
+      return response;
+    }
     const message = e instanceof Error ? e.message : 'redirect_failed';
     const response = NextResponse.json({ error: 'redirect_failed', message }, { status: 500 });
     attachCookies(response);

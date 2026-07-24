@@ -3,6 +3,8 @@
 Purpose: fast database reference for AI coding agents.  
 SQL source of truth: `supabase/migrations/20240101000000_initial_schema.sql` (squashed baseline from linked project dump, May 2026). Keep this file aligned when the schema changes.
 
+RLS owner policies use `(select auth.uid())` (InitPlan) — see `20260726120000_rls_auth_uid_initplan.sql`.
+
 ## Tables
 
 abnormal_operations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [DISCOUNT_APPLIED|ITEM_DELETED|UNPAID_TABLE_CLOSED], risk_level: text [LOW|MEDIUM|HIGH], status: text [PENDING|CONFIRMED|IGNORED] default PENDING, order_id: uuid FK -> orders.id nullable, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id nullable, table_name: text nullable, operator_id: uuid FK -> auth.users.id, operator_name: text, operator_role: text, amount_impact: numeric default 0, reason: text, reason_detail: text nullable, before_data: jsonb default {}, after_data: jsonb default {}, owner_note: text nullable, confirmed_by: uuid FK -> auth.users.id nullable, confirmed_at: timestamptz nullable, source_action_id: uuid FK -> operation_logs.id nullable, created_at: timestamptz, updated_at: timestamptz)

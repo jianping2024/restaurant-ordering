@@ -3,6 +3,10 @@ import {
   isBuffetSubmitSnapshotUnchanged,
   type BuffetGuestSnapshot,
 } from '@/lib/buffet-order';
+import {
+  DEPENDENCY_UNAVAILABLE,
+  isDependencyFailure,
+} from '@/lib/dependency-unavailable';
 import { fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { isTableOccupiedForIdleOpen } from '@/lib/waiter-board-open-table';
 import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
@@ -70,6 +74,9 @@ export async function postWaiterBuffetOpenAndCommit(input: {
     return { ok: true, model: nextModel };
   } catch (err) {
     const apiErr = err as Error & { status?: number; code?: string };
+    if (isDependencyFailure(err) || apiErr.code === DEPENDENCY_UNAVAILABLE) {
+      return { ok: false, status: 503, code: DEPENDENCY_UNAVAILABLE };
+    }
     return { ok: false, status: apiErr.status, code: apiErr.code ?? apiErr.message };
   }
 }

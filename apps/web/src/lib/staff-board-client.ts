@@ -8,6 +8,7 @@ import {
   type WaiterBoardFetchScope,
   type WaiterBoardLivePatch,
 } from '@/lib/waiter-board-live';
+import { fetchWithDependencyTimeout } from '@/lib/dependency-unavailable';
 import type { Order } from '@/types';
 
 export type WaiterBoardClientResult =
@@ -111,12 +112,15 @@ export async function postWaiterBuffetOpenClient(
     }>;
   },
 ): Promise<WaiterTablePageModel> {
-  const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  const res = await fetchWithDependencyTimeout(
+    `/api/restaurants/${encodeURIComponent(slug)}/staff/waiter/buffet`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  );
   const data = (await res.json().catch(() => ({}))) as WaiterBuffetOpenResponse;
   if (!res.ok) {
     const err = new Error(data.error || 'buffet_open_failed') as Error & {

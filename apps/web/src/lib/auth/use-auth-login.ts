@@ -3,6 +3,11 @@
 import { useRef, useState } from 'react';
 import { getMessages } from '@/lib/i18n/messages';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import {
+  fetchWithDependencyTimeout,
+  isDependencyFailure,
+  isDependencyUnavailableCode,
+} from '@/lib/dependency-unavailable';
 
 export type AuthLoginResponse = {
   ok?: boolean;
@@ -35,7 +40,7 @@ export function useAuthLogin(options: Options = {}) {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetchWithDependencyTimeout('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -60,6 +65,11 @@ export function useAuthLogin(options: Options = {}) {
           setError(t.staffIncomplete);
         } else if (json.error === 'restaurant_suspended') {
           setError(t.restaurantSuspended);
+        } else if (
+          res.status === 503 ||
+          isDependencyUnavailableCode(json.error)
+        ) {
+          setError(t.serviceUnavailable);
         } else if (json.error === 'redirect_failed') {
           setError(t.serverError);
         } else {
@@ -82,8 +92,8 @@ export function useAuthLogin(options: Options = {}) {
           ? `/auth/staff/change-password?r=${Date.now()}`
           : json.path!;
       window.location.replace(path);
-    } catch {
-      setError(t.network);
+    } catch (err) {
+      setError(isDependencyFailure(err) ? t.serviceUnavailable : t.network);
       setLoading(false);
       submittingRef.current = false;
     }

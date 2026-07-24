@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { ValueAnalyticsTopTable } from '@/components/dashboard/ValueAnalyticsTopTable';
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
 import { getMessages } from '@/lib/i18n/messages';
+import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 import type { UILanguage } from '@/lib/i18n';
 
 const ValueAnalyticsTrendChart = dynamic(
@@ -34,18 +35,19 @@ function localizedName(
   row: { namePt: string; nameEn?: string | null; nameZh?: string | null },
   lang: UILanguage,
 ): string {
-  if (lang === 'zh' && row.nameZh) return row.nameZh;
-  if (lang === 'en' && row.nameEn) return row.nameEn;
-  return row.namePt;
+  return pickTrilingualName(row, lang) || row.namePt;
 }
 
 function localizedCategory(
   row: { categoryPt: string; categoryEn?: string | null; categoryZh?: string | null },
   lang: UILanguage,
 ): string {
-  if (lang === 'zh' && row.categoryZh) return row.categoryZh;
-  if (lang === 'en' && row.categoryEn) return row.categoryEn;
-  return row.categoryPt;
+  return (
+    pickTrilingualName(
+      { namePt: row.categoryPt, nameEn: row.categoryEn, nameZh: row.categoryZh },
+      lang,
+    ) || row.categoryPt
+  );
 }
 
 function isOverviewEmpty(data: ValueOverviewResponse): boolean {

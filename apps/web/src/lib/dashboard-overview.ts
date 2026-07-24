@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { aggregateMenuItemsFromOrders, rankMenuItemAggs, type MenuItemAgg } from '@/lib/analytics/aggregate-items';
+import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import {
   loadClosedSessionRevenueBundle,
   todayRevenueFromBundle,
@@ -8,8 +8,11 @@ import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
+import { pickTrilingualName, type TrilingualName } from '@/lib/i18n/pick-trilingual-name';
 import type { OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
+
+export type { TrilingualName };
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
@@ -17,12 +20,6 @@ export const DASHBOARD_TOP_SELLING_LIMIT = 5;
 
 const TODAY_ORDERS_SELECT = 'id, status, items, total_amount';
 const RECENT_ORDERS_SELECT = 'id, display_name, status, created_at, total_amount, items';
-
-export type TrilingualName = {
-  namePt: string;
-  nameEn?: string | null;
-  nameZh?: string | null;
-};
 
 export type DashboardTopItem = {
   name: string;
@@ -169,23 +166,6 @@ type RecentOrderRow = {
 
 function feedbackLookbackIso(now = new Date()): string {
   return new Date(now.getTime() - DASHBOARD_FEEDBACK_LOOKBACK_MS).toISOString();
-}
-
-export function pickTrilingualName(row: TrilingualName, lang: UILanguage): string {
-  if (lang === 'zh') {
-    return (row.nameZh || row.nameEn || row.namePt || '').trim();
-  }
-  if (lang === 'pt') {
-    return (row.namePt || row.nameEn || row.nameZh || '').trim();
-  }
-  return (row.nameEn || row.namePt || row.nameZh || '').trim();
-}
-
-export function menuItemAggDisplayName(agg: MenuItemAgg, lang: UILanguage): string {
-  return pickTrilingualName(
-    { namePt: agg.namePt, nameEn: agg.nameEn, nameZh: agg.nameZh },
-    lang,
-  ) || agg.itemId;
 }
 
 function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {

@@ -6,8 +6,8 @@ import {
   buildFeedbackInsights,
   buildTodayTopSellingItems,
   localizeTopSellingItems,
-  pickTrilingualName,
 } from '@/lib/dashboard-overview';
+import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 
 function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {

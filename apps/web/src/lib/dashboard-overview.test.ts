@@ -8,8 +8,8 @@ import {
   computeTodayKpis,
   localizeTopSellingItems,
   pendingActionsTotal,
-  pickTrilingualName,
 } from '@/lib/dashboard-overview';
+import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 
 function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
   return {

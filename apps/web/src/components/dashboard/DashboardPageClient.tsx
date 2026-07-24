@@ -11,9 +11,9 @@ import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
-  pickTrilingualName,
   type DashboardOverviewView,
 } from '@/lib/dashboard-overview';
+import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 
 interface Props {
   overview: DashboardOverviewView;

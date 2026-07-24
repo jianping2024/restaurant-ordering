@@ -58,3 +58,6 @@ supabase/.temp/
 
 # Local data exports (may contain password hashes)
 local/
+
+# Auth recovery codes (secrets; never commit)
+recovery-codes.txt

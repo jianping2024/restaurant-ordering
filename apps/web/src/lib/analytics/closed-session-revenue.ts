@@ -1,10 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ClosedSessionRow } from '@/lib/analytics/analytics.types';
-import type { AnalyticsQueryError } from '@/lib/analytics/analytics.repository';
+import type {
+  AnalyticsQueryError,
+  AnalyticsRevenueOrder,
+} from '@/lib/analytics/analytics.repository';
 import {
   fetchBillSplitsBySessionIds,
   fetchClosedSessionsInWindow,
-  fetchOrdersBySessionIds,
+  fetchRevenueOrdersBySessionIds,
   fetchUnpaidForcedCloseSessionIds,
   groupOrdersBySession,
   groupSplitsBySession,
@@ -13,11 +16,11 @@ import { buildRevenueTrend } from '@/lib/analytics/build-overview';
 import { isQualifyingSession, sessionRevenue } from '@/lib/analytics/qualifying';
 import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
 import { isOperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit } from '@/types';
 
 export type ClosedSessionRevenueBundle = {
   sessions: ClosedSessionRow[];
-  ordersBySession: Map<string, Order[]>;
+  ordersBySession: Map<string, AnalyticsRevenueOrder[]>;
   splitsBySession: Map<string, BillSplit[]>;
   forcedClosedSessionIds: Set<string>;
 };
@@ -42,7 +45,7 @@ export function mergeForcedCloseSessionIds(
 
 export function filterQualifyingClosedSessions(
   sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, Order[]>,
+  ordersBySession: Map<string, AnalyticsRevenueOrder[]>,
   splitsBySession: Map<string, BillSplit[]>,
 ): ClosedSessionRow[] {
   return sessions.filter((session) => {
@@ -52,6 +55,10 @@ export function filterQualifyingClosedSessions(
   });
 }
 
+/**
+ * Closed-session revenue bundle: sessions + light orders (no items) + splits + forced closes.
+ * Use fetchItemOrdersBySessionIds separately when guest/menu aggregation is needed.
+ */
 export async function loadClosedSessionRevenueBundle(
   admin: SupabaseClient,
   restaurantId: string,
@@ -83,7 +90,7 @@ export async function loadClosedSessionRevenueBundle(
 
   const sessionIds = sessions.map((session) => session.id);
   const [ordersResult, splitsResult, unpaidForcedIds] = await Promise.all([
-    fetchOrdersBySessionIds(admin, restaurantId, sessionIds),
+    fetchRevenueOrdersBySessionIds(admin, restaurantId, sessionIds),
     fetchBillSplitsBySessionIds(admin, restaurantId, sessionIds),
     fetchUnpaidForcedCloseSessionIds(admin, restaurantId, sessionIds),
   ]);

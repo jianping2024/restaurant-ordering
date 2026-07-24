@@ -9,6 +9,7 @@ import {
   isNavItemActive,
   type DashboardTopNavItem,
 } from '@/lib/dashboard-top-nav';
+import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 
 type Props = {
   items: DashboardTopNavItem[];
@@ -105,6 +106,7 @@ export function DashboardTopNavOverflowMenu({
             <Link
               key={item.id}
               href={item.href}
+              prefetch={shouldPrefetchDashboardNav(item.href)}
               role="menuitem"
               className={rowClass}
               onClick={() => onOpenChange(false)}

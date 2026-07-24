@@ -19,7 +19,9 @@ export function isCountableMenuLine(item: OrderItem, orderStatus: Order['status'
   return qty > 0;
 }
 
-export function aggregateMenuItemsFromOrders(orders: Order[]): Map<string, MenuItemAgg> {
+export function aggregateMenuItemsFromOrders(
+  orders: Array<{ status: Order['status']; items: OrderItem[] }>,
+): Map<string, MenuItemAgg> {
   const map = new Map<string, MenuItemAgg>();
 
   for (const order of orders) {

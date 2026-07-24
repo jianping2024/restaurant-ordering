@@ -1,21 +1,25 @@
 import { auditMoney } from '@/lib/audit/money';
 import type { MenuItemAgg } from '@/lib/analytics/aggregate-items';
 import type {
+  AnalyticsItemOrder,
+  AnalyticsRevenueOrder,
+} from '@/lib/analytics/analytics.repository';
+import type {
   ClosedSessionRow,
   CustomerTrendPoint,
+  MenuCategoryRow,
   RevenueTrendPoint,
   StockReferenceItem,
   TopConsumedItem,
 } from '@/lib/analytics/analytics.types';
-import type { MenuCategoryRow } from '@/lib/analytics/analytics.types';
 import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
 import { sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit } from '@/types';
 
 export function buildRevenueTrend(
   dateKeys: string[],
   sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, Order[]>,
+  ordersBySession: Map<string, AnalyticsRevenueOrder[]>,
   splitsBySession: Map<string, BillSplit[]>,
   forcedClosedSessionIds: Set<string> = new Set(),
 ): RevenueTrendPoint[] {
@@ -25,7 +29,7 @@ export function buildRevenueTrend(
   for (const session of sessions) {
     if (!session.closed_at) continue;
     if (forcedClosedSessionIds.has(session.id)) continue;
-    
+
     const bucket = sessionDateKeyFromIso(session.closed_at);
     const orders = ordersBySession.get(session.id) || [];
     const splits = splitsBySession.get(session.id) || [];
@@ -39,7 +43,7 @@ export function buildRevenueTrend(
 export function buildCustomerTrend(
   dateKeys: string[],
   sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, Order[]>,
+  ordersBySession: Map<string, AnalyticsItemOrder[]>,
 ): CustomerTrendPoint[] {
   const adultsByDay = new Map<string, number>();
   const childrenByDay = new Map<string, number>();

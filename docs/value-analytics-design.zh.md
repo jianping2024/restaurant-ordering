@@ -18,7 +18,7 @@
 | 约束 | 设计应对 |
 |------|----------|
 | 低 DB 压力 | 以 `table_sessions` 为驱动表；最多 30 天 closed session；批量 `IN` 查 orders / bill_splits |
-| 低维护 | 纯函数聚合 + 单测；无快照表 / cron；**成功 `ValueOverview` 按「餐厅 + range + Lisbon 营业日」短 TTL 缓存**（`unstable_cache`，默认 120s）；失败结果不缓存；`?refresh=1` 绕过缓存 |
+| 低维护 | 纯函数聚合 + 单测；无快照表 / cron；**成功 `ValueOverview` 按「餐厅 + range + Lisbon 营业日」短 TTL 缓存**（`unstable_cache`，默认 120s）；失败结果不缓存；`?refresh=1` 绕过缓存；**收入查询不拉 `orders.items`，菜品/客流对 qualifying session 二次按需拉 items（任一段失败则整次失败）** |
 | 租户隔离 | 所有查询带 `restaurant_id`；API 不接受客户端 tenant 参数 |
 | 权限 | owner-only，三层：middleware + page + API |
 | 口径一致 | 复用 `isBuffetBaseItem`、`latestActiveBuffetBaseLine`、`normalizeOrderItemStatus` |

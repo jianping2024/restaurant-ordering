@@ -16,6 +16,13 @@ export function isOwnerOverviewPath(pathname: string): boolean {
   return pathname === '/dashboard' || pathname === '/dashboard/';
 }
 
+/** Heavy analytics RSC — do not Link-prefetch from nav. */
+export function shouldPrefetchDashboardNav(href: string): boolean {
+  return !(
+    href === '/dashboard/value-analytics' || href.startsWith('/dashboard/value-analytics/')
+  );
+}
+
 export function isOwnerDashboardPath(pathname: string): boolean {
   return (
     isOwnerOverviewPath(pathname) ||

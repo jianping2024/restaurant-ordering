@@ -5,17 +5,33 @@ import {
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
+import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
-import type { Order } from '@/types';
+import type { OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
 export const DASHBOARD_TOP_SELLING_LIMIT = 5;
 
+const TODAY_ORDERS_SELECT = 'id, status, items, total_amount';
+const RECENT_ORDERS_SELECT = 'id, display_name, status, created_at, total_amount, items';
+
+export type TrilingualName = {
+  namePt: string;
+  nameEn?: string | null;
+  nameZh?: string | null;
+};
+
 export type DashboardTopItem = {
   name: string;
+  count: number;
+  revenue: number;
+};
+
+/** Server view: trilingual names; client picks display label by lang. */
+export type DashboardTopSellingItemView = TrilingualName & {
   count: number;
   revenue: number;
 };
@@ -64,13 +80,17 @@ export type DashboardPendingActions = {
 
 export type DashboardFeedbackIssue = {
   menu_item_id: string;
-  dish_name: string;
+  namePt: string;
+  nameEn?: string | null;
+  nameZh?: string | null;
   down_count: number;
 };
 
 export type DashboardFeedbackPraise = {
   menu_item_id: string;
-  dish_name: string;
+  namePt: string;
+  nameEn?: string | null;
+  nameZh?: string | null;
   up_count: number;
 };
 
@@ -89,6 +109,24 @@ export type DashboardTodayKpis = {
   todayOrderCount: number;
   todayRevenue: number;
   avgTicketPrice: number;
+};
+
+export type DashboardRecentOrderView = {
+  id: string;
+  display_name: string;
+  status: OrderStatus;
+  created_at: string;
+  total_amount: number;
+  buffetGuests: { adults: number; children: number } | null;
+};
+
+/** Single overview DTO: server aggregates; client only formats by language. */
+export type DashboardOverviewView = {
+  todayKpis: DashboardTodayKpis;
+  pendingActions: DashboardPendingActions;
+  topSelling: DashboardTopSellingItemView[];
+  recentOrders: DashboardRecentOrderView[];
+  feedback: DashboardFeedbackInsights;
 };
 
 type MenuNameRow = {
@@ -113,65 +151,84 @@ type DishFeedbackRow = {
   menu_items?: MenuNameRow | MenuNameRow[] | null;
 };
 
-export type DashboardOverviewFeedbackInputs = {
-  feedbackSessions: FeedbackSessionRow[];
-  billedSplits: BilledSplitRow[];
-  dishFeedbackRows: DishFeedbackRow[];
+type TodayOrderAggRow = {
+  id: string;
+  status: OrderStatus;
+  items: OrderItem[];
+  total_amount: number;
 };
 
-export type DashboardOverviewData = {
-  todayOrders: Order[];
-  recentOrders: Order[];
-  pendingActions: DashboardPendingActions;
-  todayKpis: DashboardTodayKpis;
-  feedbackInputs: DashboardOverviewFeedbackInputs;
+type RecentOrderRow = {
+  id: string;
+  display_name: string;
+  status: OrderStatus;
+  created_at: string;
+  total_amount: number;
+  items: OrderItem[];
 };
 
 function feedbackLookbackIso(now = new Date()): string {
   return new Date(now.getTime() - DASHBOARD_FEEDBACK_LOOKBACK_MS).toISOString();
 }
 
-export function menuItemAggDisplayName(agg: MenuItemAgg, lang: UILanguage): string {
+export function pickTrilingualName(row: TrilingualName, lang: UILanguage): string {
   if (lang === 'zh') {
-    return (agg.nameZh || agg.nameEn || agg.namePt || agg.itemId).trim();
+    return (row.nameZh || row.nameEn || row.namePt || '').trim();
   }
   if (lang === 'pt') {
-    return (agg.namePt || agg.nameEn || agg.nameZh || agg.itemId).trim();
+    return (row.namePt || row.nameEn || row.nameZh || '').trim();
   }
-  return (agg.nameEn || agg.namePt || agg.nameZh || agg.itemId).trim();
+  return (row.nameEn || row.namePt || row.nameZh || '').trim();
 }
 
-function dishNameFromRow(row: DishFeedbackRow, lang: UILanguage): string {
+export function menuItemAggDisplayName(agg: MenuItemAgg, lang: UILanguage): string {
+  return pickTrilingualName(
+    { namePt: agg.namePt, nameEn: agg.nameEn, nameZh: agg.nameZh },
+    lang,
+  ) || agg.itemId;
+}
+
+function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {
   const nested = Array.isArray(row.menu_items) ? row.menu_items[0] : row.menu_items;
-  if (lang === 'zh') {
-    return nested?.name_zh || nested?.name_en || nested?.name_pt || row.menu_item_id;
-  }
-  if (lang === 'pt') {
-    return nested?.name_pt || nested?.name_en || nested?.name_zh || row.menu_item_id;
-  }
-  return nested?.name_en || nested?.name_pt || nested?.name_zh || row.menu_item_id;
+  return {
+    namePt: nested?.name_pt || row.menu_item_id,
+    nameEn: nested?.name_en ?? null,
+    nameZh: nested?.name_zh ?? null,
+  };
 }
 
 /** Today orders = Lisbon-day created_at; revenue = Lisbon-day closed_at (same as value analytics). */
 export function computeTodayKpis(
-  todayOrders: Order[],
+  todayOrderCount: number,
   revenue: { todayRevenue: number; revenueSessionCount: number },
 ): DashboardTodayKpis {
-  const todayOrderCount = todayOrders.length;
   const { todayRevenue, revenueSessionCount } = revenue;
   const avgTicketPrice = revenueSessionCount > 0 ? todayRevenue / revenueSessionCount : 0;
   return { todayOrderCount, todayRevenue, avgTicketPrice };
 }
 
 export function buildTodayTopSellingItems(
-  orders: Order[],
-  lang: UILanguage,
+  orders: Array<{ status: OrderStatus; items: OrderItem[] }>,
   limit = DASHBOARD_TOP_SELLING_LIMIT,
-): DashboardTopItem[] {
+): DashboardTopSellingItemView[] {
   return rankMenuItemAggs(aggregateMenuItemsFromOrders(orders), limit).map((agg) => ({
-    name: menuItemAggDisplayName(agg, lang),
+    namePt: agg.namePt,
+    nameEn: agg.nameEn,
+    nameZh: agg.nameZh,
     count: agg.consumedQuantity,
     revenue: agg.amount,
+  }));
+}
+
+/** Localized top list for panels / tests that need a single display name. */
+export function localizeTopSellingItems(
+  items: DashboardTopSellingItemView[],
+  lang: UILanguage,
+): DashboardTopItem[] {
+  return items.map((item) => ({
+    name: pickTrilingualName(item, lang) || item.namePt,
+    count: item.count,
+    revenue: item.revenue,
   }));
 }
 
@@ -179,7 +236,6 @@ export function buildFeedbackInsights(
   feedbackSessions: FeedbackSessionRow[],
   billedSplits: BilledSplitRow[],
   dishFeedbackRows: DishFeedbackRow[],
-  lang: UILanguage,
 ): DashboardFeedbackInsights {
   const billedSessionIds = new Set(billedSplits.map((row) => row.session_id).filter(Boolean));
   const touchedSessionIds = new Set(feedbackSessions.map((row) => row.session_id).filter(Boolean));
@@ -206,16 +262,24 @@ export function buildFeedbackInsights(
 
   const issueMap = new Map<string, DashboardFeedbackIssue>();
   downRows.forEach((row) => {
-    const dishName = dishNameFromRow(row, lang);
-    const current = issueMap.get(row.menu_item_id) || { menu_item_id: row.menu_item_id, dish_name: dishName, down_count: 0 };
+    const names = dishNamesFromRow(row);
+    const current = issueMap.get(row.menu_item_id) || {
+      menu_item_id: row.menu_item_id,
+      ...names,
+      down_count: 0,
+    };
     current.down_count += 1;
     issueMap.set(row.menu_item_id, current);
   });
 
   const praiseMap = new Map<string, DashboardFeedbackPraise>();
   upRows.forEach((row) => {
-    const dishName = dishNameFromRow(row, lang);
-    const current = praiseMap.get(row.menu_item_id) || { menu_item_id: row.menu_item_id, dish_name: dishName, up_count: 0 };
+    const names = dishNamesFromRow(row);
+    const current = praiseMap.get(row.menu_item_id) || {
+      menu_item_id: row.menu_item_id,
+      ...names,
+      up_count: 0,
+    };
     current.up_count += 1;
     praiseMap.set(row.menu_item_id, current);
   });
@@ -248,11 +312,28 @@ export function pendingActionsTotal(actions: DashboardPendingActions): number {
   );
 }
 
-export async function loadDashboardOverviewData(
+function toRecentOrderView(row: RecentOrderRow): DashboardRecentOrderView {
+  const buffet = aggregateBuffetForOrders([
+    {
+      status: row.status,
+      items: row.items || [],
+    },
+  ]);
+  return {
+    id: row.id,
+    display_name: row.display_name,
+    status: row.status,
+    created_at: row.created_at,
+    total_amount: Number(row.total_amount) || 0,
+    buffetGuests: buffet ? { adults: buffet.adults, children: buffet.children } : null,
+  };
+}
+
+export async function loadDashboardOverviewView(
   admin: SupabaseClient,
   restaurantId: string,
   now = new Date(),
-): Promise<DashboardOverviewData> {
+): Promise<DashboardOverviewView> {
   const sinceIso = feedbackLookbackIso(now);
   const todayWindow = resolveTodayLisbonWindow(now);
 
@@ -270,13 +351,13 @@ export async function loadDashboardOverviewData(
   ] = await Promise.all([
     admin
       .from('orders')
-      .select('*')
+      .select(TODAY_ORDERS_SELECT)
       .eq('restaurant_id', restaurantId)
       .gte('created_at', todayWindow.startUtc)
       .lt('created_at', todayWindow.endExclusiveUtc),
     admin
       .from('orders')
-      .select('*')
+      .select(RECENT_ORDERS_SELECT)
       .eq('restaurant_id', restaurantId)
       .order('created_at', { ascending: false })
       .limit(DASHBOARD_RECENT_ORDERS_LIMIT),
@@ -321,26 +402,26 @@ export async function loadDashboardOverviewData(
     ),
   ]);
 
-  const orders = (todayOrders || []) as Order[];
+  const orders = (todayOrders || []) as TodayOrderAggRow[];
   const todayRevenue =
     revenueBundleResult.ok
       ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
       : { todayRevenue: 0, revenueSessionCount: 0 };
 
   return {
-    todayOrders: orders,
-    recentOrders: (recentOrders || []) as Order[],
+    todayKpis: computeTodayKpis(orders.length, todayRevenue),
     pendingActions: {
       inProgressOrders: inProgressOrderCount ?? 0,
       pendingCheckout: pendingCheckoutCount,
       pendingAbnormal: pendingAbnormalCount ?? 0,
       pendingPrint: pendingPrintCount ?? 0,
     },
-    todayKpis: computeTodayKpis(orders, todayRevenue),
-    feedbackInputs: {
-      feedbackSessions: (feedbackSessions || []) as FeedbackSessionRow[],
-      billedSplits: (billedSplits || []) as BilledSplitRow[],
-      dishFeedbackRows: (dishFeedbackRows || []) as DishFeedbackRow[],
-    },
+    topSelling: buildTodayTopSellingItems(orders),
+    recentOrders: ((recentOrders || []) as RecentOrderRow[]).map(toRecentOrderView),
+    feedback: buildFeedbackInsights(
+      (feedbackSessions || []) as FeedbackSessionRow[],
+      (billedSplits || []) as BilledSplitRow[],
+      (dishFeedbackRows || []) as DishFeedbackRow[],
+    ),
   };
 }

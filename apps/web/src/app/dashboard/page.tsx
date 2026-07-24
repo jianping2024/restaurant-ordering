@@ -1,31 +1,15 @@
 import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
 import { DashboardPageClient } from '@/components/dashboard/DashboardPageClient';
-import { loadDashboardOverviewData } from '@/lib/dashboard-overview';
+import { loadDashboardOverviewView } from '@/lib/dashboard-overview';
 
 export const dynamic = 'force-dynamic';
 
-// 数据概览：服务端只加载业务数据，展示文案与格式化由客户端 LanguageProvider 驱动
+// 数据概览：服务端产出 DashboardOverviewView；客户端只按语言格式化展示
 export default async function DashboardPage() {
   const ctx = await loadOverviewDashboardContext();
   if ('error' in ctx) return null;
 
-  const { data: restaurant } = await ctx.admin
-    .from('restaurants')
-    .select('id')
-    .eq('id', ctx.restaurantId)
-    .single();
+  const overview = await loadDashboardOverviewView(ctx.admin, ctx.restaurantId);
 
-  if (!restaurant) return null;
-
-  const overview = await loadDashboardOverviewData(ctx.admin, restaurant.id);
-
-  return (
-    <DashboardPageClient
-      todayOrders={overview.todayOrders}
-      todayKpis={overview.todayKpis}
-      pendingActions={overview.pendingActions}
-      recentOrders={overview.recentOrders}
-      feedbackInputs={overview.feedbackInputs}
-    />
-  );
+  return <DashboardPageClient overview={overview} />;
 }

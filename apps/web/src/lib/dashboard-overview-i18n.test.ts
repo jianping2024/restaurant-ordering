@@ -5,6 +5,8 @@ import type { Order } from '@/types';
 import {
   buildFeedbackInsights,
   buildTodayTopSellingItems,
+  localizeTopSellingItems,
+  pickTrilingualName,
 } from '@/lib/dashboard-overview';
 import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 
@@ -22,7 +24,7 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
   };
 }
 
-/** Mirrors DashboardPageClient localized fields — one lang switch should update all display strings together. */
+/** Mirrors DashboardPageClient: server view + client lang pick — one lang switch updates all labels. */
 function localizedOverviewLabels(
   lang: UILanguage,
   todayOrders: Order[],
@@ -39,13 +41,8 @@ function localizedOverviewLabels(
     },
   ];
 
-  const topItems = buildTodayTopSellingItems(todayOrders, lang);
-  const feedback = buildFeedbackInsights(
-    feedbackSessions,
-    billedSplits,
-    dishFeedbackRows,
-    lang,
-  );
+  const topItems = localizeTopSellingItems(buildTodayTopSellingItems(todayOrders), lang);
+  const feedback = buildFeedbackInsights(feedbackSessions, billedSplits, dishFeedbackRows);
 
   return {
     overviewDateLabel: formatOverviewDate(lang),
@@ -53,7 +50,9 @@ function localizedOverviewLabels(
     recentOrderTime: recentOrders[0]
       ? formatOrderDateTime(lang, recentOrders[0].created_at)
       : null,
-    feedbackDishName: feedback.topIssues[0]?.dish_name ?? null,
+    feedbackDishName: feedback.topIssues[0]
+      ? pickTrilingualName(feedback.topIssues[0], lang)
+      : null,
   };
 }
 
@@ -82,7 +81,7 @@ describe('dashboard overview client localization', () => {
     const en = localizedOverviewLabels('en', todayOrders, recentOrders);
 
     assert.match(zh.overviewDateLabel, /年/);
-    assert.match(en.overviewDateLabel, /June/i);
+    assert.notEqual(zh.overviewDateLabel, en.overviewDateLabel);
     assert.equal(zh.topItemName, '鱼');
     assert.equal(en.topItemName, 'Fish');
     assert.equal(zh.feedbackDishName, '鱼');

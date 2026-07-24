@@ -11,6 +11,7 @@ import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProv
 import { DashboardSettingsMenu } from '@/components/dashboard/DashboardSettingsMenu';
 import { DashboardTopNavOverflowMenu } from '@/components/dashboard/DashboardTopNavOverflowMenu';
 import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
+import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 import {
   buildDashboardTopNavPresentation,
   dashboardLogoHref,
@@ -86,6 +87,7 @@ function renderNavItem(
     <Link
       key={item.id}
       href={item.href}
+      prefetch={shouldPrefetchDashboardNav(item.href)}
       className={className}
       onClick={onNavigate}
       aria-current={active ? 'page' : undefined}

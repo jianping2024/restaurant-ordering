@@ -124,9 +124,10 @@ export function ValueAnalyticsPageClient({
   const t = getMessages(lang).valueAnalytics;
 
   const [range, setRange] = useState<AnalyticsRange>('7d');
-  const [data, setData] = useState<ValueOverviewResponse | null>(initialOverview);
-  const [loadedRange, setLoadedRange] = useState<AnalyticsRange | null>(
-    initialOverview && !initialLoadFailed ? '7d' : null,
+  /** One representation: successful DTOs keyed by range for this session. */
+  const [byRange, setByRange] = useState<Partial<Record<AnalyticsRange, ValueOverviewResponse>>>(
+    () =>
+      initialOverview && !initialLoadFailed ? { '7d': initialOverview } : {},
   );
   const [viewState, setViewState] = useState<ViewState>(() =>
     resolveViewState(initialOverview, initialLoadFailed),
@@ -134,6 +135,10 @@ export function ValueAnalyticsPageClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
   const skipInitialFetch = useRef(initialOverview != null && !initialLoadFailed);
+  const byRangeRef = useRef(byRange);
+  byRangeRef.current = byRange;
+
+  const data = byRange[range] ?? null;
 
   const fetchRange = useCallback(
     async (targetRange: AnalyticsRange, options?: { bypassCache?: boolean }) => {
@@ -141,7 +146,9 @@ export function ValueAnalyticsPageClient({
         skipInitialFetch.current = false;
         return;
       }
-      if (targetRange === loadedRange && data && !options?.bypassCache) {
+      if (!options?.bypassCache && byRangeRef.current[targetRange]) {
+        const cached = byRangeRef.current[targetRange]!;
+        setViewState(isOverviewEmpty(cached) ? 'empty' : 'ready');
         return;
       }
 
@@ -157,7 +164,7 @@ export function ValueAnalyticsPageClient({
           return;
         }
         if (!res.ok) {
-          if (data) {
+          if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
             setRefreshError(true);
             return;
           }
@@ -165,11 +172,10 @@ export function ValueAnalyticsPageClient({
           return;
         }
         const json = (await res.json()) as ValueOverviewResponse;
-        setData(json);
-        setLoadedRange(targetRange);
+        setByRange((prev) => ({ ...prev, [targetRange]: json }));
         setViewState(isOverviewEmpty(json) ? 'empty' : 'ready');
       } catch {
-        if (data) {
+        if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
           setRefreshError(true);
           return;
         }
@@ -178,7 +184,7 @@ export function ValueAnalyticsPageClient({
         setIsRefreshing(false);
       }
     },
-    [data, loadedRange],
+    [],
   );
 
   useEffect(() => {
@@ -187,7 +193,11 @@ export function ValueAnalyticsPageClient({
 
   const retry = useCallback(() => {
     setRefreshError(false);
-    setLoadedRange(null);
+    setByRange((prev) => {
+      const next = { ...prev };
+      delete next[range];
+      return next;
+    });
     void fetchRange(range, { bypassCache: true });
   }, [fetchRange, range]);
 

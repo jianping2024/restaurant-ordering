@@ -1,28 +1,22 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Order, OrderStatus } from '@/types';
+import type { OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
-import { aggregateBuffetForOrders, formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
+import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
 import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 import {
-  buildFeedbackInsights,
-  buildTodayTopSellingItems,
+  localizeTopSellingItems,
   pendingActionsTotal,
-  type DashboardOverviewFeedbackInputs,
-  type DashboardPendingActions,
-  type DashboardTodayKpis,
+  pickTrilingualName,
+  type DashboardOverviewView,
 } from '@/lib/dashboard-overview';
 
 interface Props {
-  todayOrders: Order[];
-  todayKpis: DashboardTodayKpis;
-  pendingActions: DashboardPendingActions;
-  recentOrders: Order[];
-  feedbackInputs: DashboardOverviewFeedbackInputs;
+  overview: DashboardOverviewView;
 }
 
 function orderStatusBadgeClass(status: OrderStatus): string {
@@ -30,31 +24,34 @@ function orderStatusBadgeClass(status: OrderStatus): string {
   return 'mesa-badge-warning';
 }
 
-export function DashboardPageClient({
-  todayOrders,
-  todayKpis,
-  pendingActions,
-  recentOrders,
-  feedbackInputs,
-}: Props) {
+export function DashboardPageClient({ overview }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
   const orderI18n = getMessages(lang).orderHistory;
 
+  const { todayKpis, pendingActions, topSelling, recentOrders, feedback } = overview;
+
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
-  const topItems = useMemo(
-    () => buildTodayTopSellingItems(todayOrders, lang),
-    [todayOrders, lang],
-  );
-  const feedback = useMemo(
+  const topItems = useMemo(() => localizeTopSellingItems(topSelling, lang), [topSelling, lang]);
+
+  const localizedIssues = useMemo(
     () =>
-      buildFeedbackInsights(
-        feedbackInputs.feedbackSessions,
-        feedbackInputs.billedSplits,
-        feedbackInputs.dishFeedbackRows,
-        lang,
-      ),
-    [feedbackInputs, lang],
+      feedback.topIssues.map((row) => ({
+        menu_item_id: row.menu_item_id,
+        dish_name: pickTrilingualName(row, lang) || row.namePt,
+        down_count: row.down_count,
+      })),
+    [feedback.topIssues, lang],
+  );
+
+  const localizedPraise = useMemo(
+    () =>
+      feedback.topPraise.map((row) => ({
+        menu_item_id: row.menu_item_id,
+        dish_name: pickTrilingualName(row, lang) || row.namePt,
+        up_count: row.up_count,
+      })),
+    [feedback.topPraise, lang],
   );
 
   const orderStatusLabel = (status: OrderStatus): string => {
@@ -109,12 +106,6 @@ export function DashboardPageClient({
       prominent: false,
     },
   ];
-
-  const buffetGuestLabel = (order: Order): string | null => {
-    const summary = aggregateBuffetForOrders([order]);
-    if (!summary) return null;
-    return formatBuffetReceiptQtyLabel(summary.adults, summary.children);
-  };
 
   return (
     <div>
@@ -186,8 +177,8 @@ export function DashboardPageClient({
         actionableRate={feedback.actionableRate}
         sessionsWithFeedback={feedback.sessionsWithFeedback}
         billedSessions={feedback.billedSessions}
-        topIssues={feedback.topIssues}
-        topPraise={feedback.topPraise}
+        topIssues={localizedIssues}
+        topPraise={localizedPraise}
       />
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -211,7 +202,9 @@ export function DashboardPageClient({
           ) : (
             <div className="space-y-3">
               {recentOrders.map((order) => {
-                const guests = buffetGuestLabel(order);
+                const guests = order.buffetGuests
+                  ? formatBuffetReceiptQtyLabel(order.buffetGuests.adults, order.buffetGuests.children)
+                  : null;
                 return (
                   <div
                     key={order.id}

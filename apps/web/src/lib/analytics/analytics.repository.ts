@@ -3,10 +3,28 @@ import {
   ANALYTICS_MAX_CLOSED_SESSIONS,
   ANALYTICS_QUERY_TIMEOUT_MS,
   type ClosedSessionRow,
+  type MenuCategoryRow,
 } from '@/lib/analytics/analytics.types';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit, OrderItem, OrderStatus } from '@/types';
 
 const SESSION_ID_CHUNK = 100;
+
+/** Columns sufficient for qualifying + sessionRevenue (no items jsonb). */
+export const ORDERS_REVENUE_SELECT = 'id, session_id, status, total_amount';
+
+/** Columns for guest headcount + menu-item aggregation. */
+export const ORDERS_ITEMS_SELECT = 'id, session_id, status, items, total_amount';
+
+export type AnalyticsRevenueOrder = {
+  id: string;
+  session_id?: string | null;
+  status: OrderStatus;
+  total_amount: number;
+};
+
+export type AnalyticsItemOrder = AnalyticsRevenueOrder & {
+  items: OrderItem[];
+};
 
 export type AnalyticsQueryError = { ok: false; code: 'query_limit_exceeded' | 'query_failed'; message?: string };
 
@@ -104,17 +122,33 @@ async function fetchBySessionIds<T extends { session_id?: string | null }>(
   }
 }
 
-export async function fetchOrdersBySessionIds(
+/** Light orders for revenue / qualifying — never pulls items jsonb. */
+export async function fetchRevenueOrdersBySessionIds(
   admin: SupabaseClient,
   restaurantId: string,
   sessionIds: string[],
 ) {
-  return fetchBySessionIds<Order>(
+  return fetchBySessionIds<AnalyticsRevenueOrder>(
     admin,
     'orders',
     restaurantId,
     sessionIds,
-    'id, session_id, status, items, total_amount',
+    ORDERS_REVENUE_SELECT,
+  );
+}
+
+/** Item-bearing orders for guest counts and menu aggregation. */
+export async function fetchItemOrdersBySessionIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionIds: string[],
+) {
+  return fetchBySessionIds<AnalyticsItemOrder>(
+    admin,
+    'orders',
+    restaurantId,
+    sessionIds,
+    ORDERS_ITEMS_SELECT,
   );
 }
 
@@ -166,8 +200,6 @@ export async function fetchUnpaidForcedCloseSessionIds(
   }
 }
 
-import type { MenuCategoryRow } from '@/lib/analytics/analytics.types';
-
 export async function fetchMenuCategoriesByItemIds(
   admin: SupabaseClient,
   restaurantId: string,
@@ -192,8 +224,10 @@ export async function fetchMenuCategoriesByItemIds(
   return map;
 }
 
-export function groupOrdersBySession(orders: Order[]): Map<string, Order[]> {
-  const map = new Map<string, Order[]>();
+export function groupOrdersBySession<T extends { session_id?: string | null }>(
+  orders: T[],
+): Map<string, T[]> {
+  const map = new Map<string, T[]>();
   for (const order of orders) {
     if (!order.session_id) continue;
     const list = map.get(order.session_id) || [];

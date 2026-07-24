@@ -7,7 +7,10 @@ import type {
 } from '@/lib/analytics/analytics.types';
 import { STOCK_REFERENCE_DISCLAIMER_ZH } from '@/lib/analytics/analytics.types';
 import {
+  fetchItemOrdersBySessionIds,
   fetchMenuCategoriesByItemIds,
+  groupOrdersBySession,
+  type AnalyticsItemOrder,
 } from '@/lib/analytics/analytics.repository';
 import {
   filterQualifyingClosedSessions,
@@ -21,7 +24,6 @@ import {
 } from '@/lib/analytics/build-overview';
 import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
 import { isIsoInWindow } from '@/lib/lisbon-calendar';
-import type { Order } from '@/types';
 
 export type GetValueOverviewResult =
   | { ok: true; data: ValueOverviewResponse }
@@ -29,9 +31,9 @@ export type GetValueOverviewResult =
 
 function collectOrdersForSessions(
   sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, Order[]>,
-): Order[] {
-  const orders: Order[] = [];
+  ordersBySession: Map<string, AnalyticsItemOrder[]>,
+): AnalyticsItemOrder[] {
+  const orders: AnalyticsItemOrder[] = [];
   for (const session of sessions) {
     const list = ordersBySession.get(session.id);
     if (list) orders.push(...list);
@@ -85,15 +87,39 @@ export async function getValueOverview(
     bundle.splitsBySession,
   );
 
+  const revenueTrend = revenueTrendFromBundle(window.dateKeys, bundle);
+
+  if (qualifying.length === 0) {
+    return {
+      ok: true,
+      data: {
+        ...emptyOverview(range, window.dateKeys),
+        revenueTrend,
+      },
+    };
+  }
+
+  // Atomic: item fetch failure fails the whole overview (no half DTO / no cache of partial).
+  const itemOrdersResult = await fetchItemOrdersBySessionIds(
+    admin,
+    restaurantId,
+    qualifying.map((session) => session.id),
+  );
+  if (!itemOrdersResult.ok) {
+    return { ok: false, code: itemOrdersResult.code, message: itemOrdersResult.message };
+  }
+
+  const itemsBySession = groupOrdersBySession(itemOrdersResult.rows);
+
   const qualifying7d = qualifying.filter(
-    (session) => session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
+    (session) =>
+      session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
   );
 
-  const revenueTrend = revenueTrendFromBundle(window.dateKeys, bundle);
-  const customerTrend = buildCustomerTrend(window.dateKeys, qualifying, bundle.ordersBySession);
+  const customerTrend = buildCustomerTrend(window.dateKeys, qualifying, itemsBySession);
 
-  const rangeOrders = collectOrdersForSessions(qualifying, bundle.ordersBySession);
-  const stockOrders = collectOrdersForSessions(qualifying7d, bundle.ordersBySession);
+  const rangeOrders = collectOrdersForSessions(qualifying, itemsBySession);
+  const stockOrders = collectOrdersForSessions(qualifying7d, itemsBySession);
 
   const rangeRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(rangeOrders), 10);
   const stockRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(stockOrders), 5);

@@ -1,77 +1,50 @@
 import 'server-only';
 
-import { isRestaurantSuspended } from '@mesa/shared';
+import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import type { StaffRole } from '@/lib/staff-account';
 import {
-  isStaffRole,
-  parseStaffUserMetadata,
-  FLOOR_TABLE_STAFF_ROLES,
-  type StaffRole,
-} from '@/lib/staff-account';
+  deriveOpenTableStaffAccess,
+  deriveStaffAccessForSlug,
+  deriveStaffLoginPreflight,
+  type StaffAccessResult,
+  type StaffLoginPreflightResult,
+} from '@/lib/staff-identity-gate';
+import {
+  loadOwnerForRestaurantId,
+  loadOwnerForSlug,
+  loadStaffGateByUserId,
+} from '@/lib/staff-gate-db';
 
-export type StaffAccessOk = {
-  status: 'ok';
-  restaurant_id: string;
-  slug: string;
-  role: StaffRole;
-  user_id: string;
-  as_owner: boolean;
-};
+export type {
+  StaffAccessOk,
+  StaffAccessDeniedReason,
+  StaffAccessResult,
+  StaffLoginPreflightResult,
+  StaffGateAccount,
+  OwnerGateRestaurant,
+} from '@/lib/staff-identity-gate';
 
-export type StaffAccessDeniedReason =
-  | 'unauthenticated'
-  | 'needs_password_change'
-  | 'wrong_context'
-  | 'disabled'
-  | 'restaurant_suspended';
+export {
+  deriveStaffAccessForSlug,
+  deriveOpenTableStaffAccess,
+  deriveStaffLoginPreflight,
+  deriveStaffLoginContext,
+} from '@/lib/staff-identity-gate';
 
-export type StaffAccessResult =
-  | StaffAccessOk
-  | { status: 'denied'; reason: StaffAccessDeniedReason };
-
-export type StaffLoginPreflightResult =
-  | { ok: true }
-  | { ok: false; code: 'invalid_credentials' | 'restaurant_suspended' };
-
-type StaffAccountRow = {
-  id: string;
-  restaurant_id: string;
-  role: string;
-  disabled_at: string | null;
-};
-
-type RestaurantGateRow = {
-  id: string;
-  slug: string;
-  suspended_at: string | null;
-};
-
-function denied(reason: StaffAccessDeniedReason): StaffAccessResult {
-  return { status: 'denied', reason };
+function deniedUnauthenticated(): StaffAccessResult {
+  return { status: 'denied', reason: 'unauthenticated' };
 }
 
-function okStaff(
-  row: StaffAccountRow,
-  slug: string,
-  userId: string,
-): StaffAccessOk | StaffAccessResult {
-  if (row.disabled_at) return denied('disabled');
-  if (!isStaffRole(row.role)) return denied('wrong_context');
-  return {
-    status: 'ok',
-    restaurant_id: row.restaurant_id,
-    slug,
-    role: row.role,
-    user_id: userId,
-    as_owner: false,
-  };
-}
-
-async function loadAuthUserWithAdmin(): Promise<{
+/**
+ * Request-scoped getUser + admin for Node route handlers / RSC.
+ * Not imported by Edge middleware (react.cache is unavailable there).
+ */
+export const loadAuthUserWithAdmin = cache(async (): Promise<{
   user: { id: string; user_metadata: Record<string, unknown> };
   admin: ReturnType<typeof createAdminClient>;
-} | null> {
+} | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -89,20 +62,7 @@ async function loadAuthUserWithAdmin(): Promise<{
   } catch {
     return null;
   }
-}
-
-function needsPasswordChangeForSlug(
-  metadata: Record<string, unknown>,
-  slug: string,
-  allowedRoles: StaffRole[],
-): boolean {
-  const meta = parseStaffUserMetadata(metadata);
-  return (
-    meta?.must_change_password === true &&
-    meta.restaurant_slug === slug &&
-    allowedRoles.includes(meta.staff_role)
-  );
-}
+});
 
 /** Authenticated staff or owner access for a restaurant slug and role set. */
 export async function resolveStaffAccess(
@@ -110,62 +70,22 @@ export async function resolveStaffAccess(
   allowedRoles: StaffRole[],
 ): Promise<StaffAccessResult> {
   const auth = await loadAuthUserWithAdmin();
-  if (!auth) return denied('unauthenticated');
+  if (!auth) return deniedUnauthenticated();
   const { user, admin } = auth;
 
-  if (needsPasswordChangeForSlug(user.user_metadata, slug, allowedRoles)) {
-    return denied('needs_password_change');
-  }
+  const [owner, staff] = await Promise.all([
+    loadOwnerForSlug(admin, user.id, slug),
+    loadStaffGateByUserId(admin, user.id),
+  ]);
 
-  const { data: asOwner } = await admin
-    .from('restaurants')
-    .select('id, slug, suspended_at')
-    .eq('slug', slug)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  const ownerRow = asOwner as RestaurantGateRow | null;
-  if (ownerRow) {
-    if (isRestaurantSuspended(ownerRow.suspended_at)) {
-      return denied('restaurant_suspended');
-    }
-    return {
-      status: 'ok',
-      restaurant_id: ownerRow.id,
-      slug,
-      role: allowedRoles[0],
-      user_id: user.id,
-      as_owner: true,
-    };
-  }
-
-  const { data: account } = await admin
-    .from('restaurant_staff_accounts')
-    .select('id, restaurant_id, role, disabled_at')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  const staffRow = account as StaffAccountRow | null;
-  if (!staffRow) return denied('unauthenticated');
-  if (!allowedRoles.includes(staffRow.role as StaffRole)) {
-    return denied('wrong_context');
-  }
-
-  const { data: restaurant } = await admin
-    .from('restaurants')
-    .select('id, slug, suspended_at')
-    .eq('id', staffRow.restaurant_id)
-    .maybeSingle();
-
-  const restaurantRow = restaurant as RestaurantGateRow | null;
-  if (!restaurantRow || restaurantRow.slug !== slug) {
-    return denied('wrong_context');
-  }
-  if (isRestaurantSuspended(restaurantRow.suspended_at)) {
-    return denied('restaurant_suspended');
-  }
-
-  return okStaff(staffRow, slug, user.id);
+  return deriveStaffAccessForSlug({
+    userId: user.id,
+    slug,
+    allowedRoles,
+    userMetadata: user.user_metadata,
+    owner,
+    staff,
+  });
 }
 
 /** Open-table auth when restaurant is already resolved (append gate). */
@@ -174,49 +94,22 @@ export async function resolveOpenTableStaffAccess(target: {
   restaurantId: string;
 }): Promise<StaffAccessResult> {
   const auth = await loadAuthUserWithAdmin();
-  if (!auth) return denied('unauthenticated');
+  if (!auth) return deniedUnauthenticated();
   const { user, admin } = auth;
 
-  const openRoles: StaffRole[] = [...FLOOR_TABLE_STAFF_ROLES];
-  if (needsPasswordChangeForSlug(user.user_metadata, target.slug, openRoles)) {
-    return denied('needs_password_change');
-  }
+  const [staff, owner] = await Promise.all([
+    loadStaffGateByUserId(admin, user.id),
+    loadOwnerForRestaurantId(admin, user.id, target.restaurantId),
+  ]);
 
-  const { data: account } = await admin
-    .from('restaurant_staff_accounts')
-    .select('id, restaurant_id, role, disabled_at')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  const staffRow = account as StaffAccountRow | null;
-  if (
-    staffRow &&
-    !staffRow.disabled_at &&
-    staffRow.restaurant_id === target.restaurantId &&
-    openRoles.includes(staffRow.role as StaffRole)
-  ) {
-    return okStaff(staffRow, target.slug, user.id);
-  }
-
-  const { data: asOwner } = await admin
-    .from('restaurants')
-    .select('id, slug')
-    .eq('id', target.restaurantId)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  if (!asOwner || (asOwner.slug as string) !== target.slug) {
-    return denied('unauthenticated');
-  }
-
-  return {
-    status: 'ok',
-    restaurant_id: target.restaurantId,
+  return deriveOpenTableStaffAccess({
+    userId: user.id,
     slug: target.slug,
-    role: 'waiter',
-    user_id: user.id,
-    as_owner: true,
-  };
+    restaurantId: target.restaurantId,
+    userMetadata: user.user_metadata,
+    owner,
+    staff,
+  });
 }
 
 /** Check staff account exists, is enabled, and restaurant is not suspended — before Supabase sign-in. */
@@ -228,25 +121,26 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
     throw new Error('server_misconfigured');
   }
 
-  const { data: account } = await admin
+  const { data, error } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, disabled_at, restaurant_id, role')
+    .select('id, disabled_at, role, restaurants(suspended_at)')
     .eq('login_name', loginName)
     .maybeSingle();
 
-  if (!account || account.disabled_at || !isStaffRole(String(account.role ?? ''))) {
-    return { ok: false, code: 'invalid_credentials' };
+  if (error) {
+    throw new Error(error.message);
   }
 
-  const { data: restaurantRow } = await admin
-    .from('restaurants')
-    .select('suspended_at')
-    .eq('id', account.restaurant_id as string)
-    .maybeSingle();
-
-  if (isRestaurantSuspended(restaurantRow?.suspended_at as string | null | undefined)) {
-    return { ok: false, code: 'restaurant_suspended' };
+  if (!data) {
+    return deriveStaffLoginPreflight({ account: null });
   }
 
-  return { ok: true };
+  const embedded = (data as { restaurants?: { suspended_at?: string | null } | null }).restaurants;
+  return deriveStaffLoginPreflight({
+    account: {
+      disabled_at: (data.disabled_at as string | null) ?? null,
+      role: String(data.role ?? ''),
+      restaurant_suspended_at: embedded?.suspended_at,
+    },
+  });
 }

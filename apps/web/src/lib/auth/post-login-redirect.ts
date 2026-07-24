@@ -1,8 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isRestaurantSuspended } from '@mesa/shared';
 import { staffRolePath } from '@/lib/staff-routes';
-import { parseStaffUserMetadata, isStaffRole, type StaffRole } from '@/lib/staff-account';
+import type { StaffRole } from '@/lib/staff-account';
+import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
+import {
+  loadOwnedRestaurantIdForUser,
+  loadStaffGateAccountForUser,
+} from '@/lib/staff-gate-db';
 
 export type PostLoginRedirect =
   | { kind: 'owner'; path: '/dashboard/settings' }
@@ -10,102 +14,18 @@ export type PostLoginRedirect =
   | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; role: StaffRole }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' };
 
-type StaffLoginContext = {
-  role: StaffRole;
-  slug: string;
-  mustChangePassword: boolean;
-};
-
-async function loadStaffLoginContext(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-  userMetadata: Record<string, unknown> | undefined,
-  options?: { skipSuspendCheck?: boolean },
-): Promise<
-  | { kind: 'staff'; context: StaffLoginContext }
-  | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' }
-  | { kind: 'onboarding' }
-  | { kind: 'incomplete_staff_meta' }
-> {
-  const meta = parseStaffUserMetadata(userMetadata);
-
-  const { data: account, error: staffError } = await admin
-    .from('restaurant_staff_accounts')
-    .select('role, restaurant_id, disabled_at')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (staffError) {
-    throw new Error(staffError.message);
-  }
-
-  if (!account) {
-    return meta?.account_type === 'staff'
-      ? { kind: 'incomplete_staff_meta' }
-      : { kind: 'onboarding' };
-  }
-
-  if (account.disabled_at) {
-    return { kind: 'staff_error', code: 'disabled' };
-  }
-
-  const { data: restaurantRow, error: restaurantError } = await admin
-    .from('restaurants')
-    .select('slug, suspended_at')
-    .eq('id', account.restaurant_id)
-    .maybeSingle();
-
-  if (restaurantError) {
-    throw new Error(restaurantError.message);
-  }
-
-  if (
-    !options?.skipSuspendCheck &&
-    isRestaurantSuspended(restaurantRow?.suspended_at as string | null | undefined)
-  ) {
-    return { kind: 'staff_error', code: 'restaurant_suspended' };
-  }
-
-  const roleRaw = String(account.role || meta?.staff_role || '');
-  if (!isStaffRole(roleRaw)) {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
-  const slug = meta?.restaurant_slug ?? (restaurantRow?.slug as string | undefined);
-  if (!slug) {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
-  return {
-    kind: 'staff',
-    context: {
-      role: roleRaw,
-      slug,
-      mustChangePassword: meta?.must_change_password === true,
-    },
-  };
-}
+export { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 
 /** Resolve landing path after server-side sign-in (owner before staff). */
 export async function resolvePostLoginRedirect(
-  supabase: SupabaseClient,
+  _supabase: SupabaseClient,
   userId: string,
   userMetadata: Record<string, unknown> | undefined,
   options?: { staffPreflightPassed?: boolean },
 ): Promise<PostLoginRedirect> {
-  const { data: ownedRestaurant, error: ownerError } = await supabase
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', userId)
-    .maybeSingle();
-
-  if (ownerError) {
-    throw new Error(ownerError.message);
-  }
-
-  if (ownedRestaurant) {
-    return { kind: 'owner', path: '/dashboard/settings' };
-  }
+  // Caller still passes the request-scoped auth client for API stability; gate reads use admin
+  // so owner + staff load in one parallel round without user-RLS serial hops.
+  void _supabase;
 
   let admin;
   try {
@@ -114,12 +34,20 @@ export async function resolvePostLoginRedirect(
     throw new Error('server_misconfigured');
   }
 
-  const staffResult = await loadStaffLoginContext(
-    admin,
-    userId,
+  const [ownedRestaurantId, staff] = await Promise.all([
+    loadOwnedRestaurantIdForUser(admin, userId),
+    loadStaffGateAccountForUser(admin, userId),
+  ]);
+
+  if (ownedRestaurantId) {
+    return { kind: 'owner', path: '/dashboard/settings' };
+  }
+
+  const staffResult = deriveStaffLoginContext({
     userMetadata,
-    { skipSuspendCheck: options?.staffPreflightPassed === true },
-  );
+    staff,
+    options: { skipSuspendCheck: options?.staffPreflightPassed === true },
+  });
 
   if (staffResult.kind === 'onboarding') {
     return { kind: 'onboarding', path: '/dashboard' };

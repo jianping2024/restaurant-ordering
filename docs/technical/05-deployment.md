@@ -87,12 +87,12 @@
 
 | 组件 | 离线能力 |
 |------|----------|
-| Web / API | **否**，依赖在线 Supabase 与 Vercel |
-| 顾客点餐 | 需网络；无 PWA 离线缓存 |
-| print-agent | 本地进程 + 局域网打印机；**仍须**轮询云端 `print_jobs` |
-| 私有化 | 中长期见 [`../local-on-premise-deployment-plan.md`](../local-on-premise-deployment-plan.md) |
+| Web / API（云 SaaS） | **否**，依赖在线 Supabase 与 Vercel |
+| 顾客点餐（云 SaaS） | 需网络；无 PWA 离线缓存 |
+| print-agent（云 SaaS） | 本地进程 + 局域网打印机；**仍须**访问云端 `print_jobs` |
+| 门店纯本地交付 | **方案已定稿**：本机 Web+库；断公网可营业；agent 连本机。见 [`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md) |
 
-结论：**在线 SaaS**；仅打印执行在门店局域网侧。
+结论：当前已交付产品仍是**在线 SaaS**；纯本地为已定稿的交付路线，工程未开工。
 
 ---
 

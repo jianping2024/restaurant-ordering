@@ -184,5 +184,6 @@ Web 入队（service role）
 ## 相关文档
 
 - [`03-api-contracts.md`](./03-api-contracts.md)
+- [`print-module-for-invoice-integration.zh.md`](./print-module-for-invoice-integration.zh.md) — 发票对接方阅读的打印后台说明
 - [`../print-agent-plan.md`](../print-agent-plan.md)
 - [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md)

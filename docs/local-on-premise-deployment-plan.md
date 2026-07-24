@@ -1,8 +1,10 @@
 # Mesa 客户本地私有化部署方案
 
-> 状态：架构建议稿  
-> 日期：2026-06-23  
-> 适用范围：未来仅向餐厅客户提供 Windows 本地安装版本；Web、数据库、认证、实时服务、图片存储和打印服务均运行在本机 Docker 中。
+> 状态：架构建议稿（细设计参考）  
+> 日期：2026-06-23；打印路径于 2026-07-24 与定稿对齐  
+> 适用范围：未来仅向餐厅客户提供 Windows 本地安装版本；Web、数据库、认证、实时服务、图片存储运行在本机 Docker 中。  
+> **方案定稿（人话步骤，冲突时以它为准）**：[`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md)。  
+> **打印定稿**：print-agent **留在 Windows 宿主机**（桥接），**不**强制进入 Compose；下文「打印进 Docker / 取消托盘」视为远期备选，第一版不做。
 
 ## 1. 结论
 
@@ -10,12 +12,12 @@
 
 - 每家餐厅部署一台专用 Windows 主机，通过 Docker Desktop + WSL2 运行 Linux 容器栈。
 - 使用固定版本、固定镜像摘要的 Docker Compose 发行包交付。
-- Web、完整自托管 Supabase、反向代理、打印代理、备份代理、日志代理和升级代理全部进入同一个 Docker Compose 发行体系。
+- Web、完整自托管 Supabase、反向代理、备份代理、日志代理和升级代理进入 Docker Compose；**打印使用现有 Windows print-agent，指向本机 Web API**。
 - 客户端只需要浏览器，不要求在收银机、厨房屏或手机安装开发工具。
 - 安装、升级、备份和日志上传只允许主动向外发起 HTTPS 连接，不开放数据库或远程管理端口到公网。
 - 互联网中断时，点餐、后台、厨房、结账和打印继续在本地运行；远程备份、日志上传和升级检查延后执行。
 
-不建议把当前 `npm run dev`、`npm run stage`、`npm run cloud` 中任何一种直接交付给客户。这些命令运行的是开发服务器，并依赖人工管理环境文件，不具备生产级进程管理、备份、升级和恢复能力。现有打印 agent 也不能直接作为客户版继续使用：它是围绕远端 Cloud Web API、Windows 托盘程序和 Windows Spooler 设计的，客户版需要改造成容器内的本地打印服务。
+不建议把当前 `npm run dev`、`npm run stage`、`npm run cloud` 中任何一种直接交付给客户。这些命令运行的是开发服务器，并依赖人工管理环境文件，不具备生产级进程管理、备份、升级和恢复能力。现有 print-agent **可继续作为客户版打印桥**（USB / WinSpool / TCP 9100），但须对接本机 Mesa，而非平台云；第一版不改造成容器内 `print-worker`。
 
 ## 2. 当前项目判断
 

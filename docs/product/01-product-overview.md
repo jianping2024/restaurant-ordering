@@ -55,7 +55,7 @@
 | 排除项 | 说明 |
 |--------|------|
 | 在线支付 / Stripe 计费 | 结账为店内确认收款，无支付网关 |
-| 全离线 / PWA 离线优先 | Web 依赖在线 Supabase；仅打印代理在本地执行 |
+| 全离线 / PWA 离线优先 | 不做浏览器离线 POS；门店断公网靠**纯本地部署**（见 [`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md)），方案已定稿、尚未交付 |
 | Mac / Linux 打印代理 | 仅 Windows 安装包 |
 | 58mm 纸宽模板 | 首期锁定 80mm |
 | 单档出品联 UI 重打 | P2 待开发（见 `development-backlog.zh.md`） |
@@ -64,7 +64,7 @@
 | 外卖 / 配送 | 仅堂食桌码场景 |
 | GDPR 合规套件 / 数据导出自助 | P3 中长期 |
 | 自建 Postgres 生产替换 Supabase | 有迁移计划文档，未执行 |
-| 本地私有化一键部署 | 有计划文档，非当前主路径 |
+| 本地私有化一键部署 | **方案已定稿**（[`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md)），工程未开工；当前产品仍以云 SaaS 为主路径 |
 | Authenticode 代码签名 | 第一期不签 |
 | 恢复 `table_number` 字段 | 已废弃，禁止回归 |
 

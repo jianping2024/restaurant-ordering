@@ -15,7 +15,7 @@ import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
-import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey } from '@/lib/use-staff-checkout-bill-print';
+import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 
 interface Props {
@@ -56,8 +56,14 @@ export function OrdersHistoryManager({
   const i18n = getMessages(lang).orderHistory;
   const checkoutT = getMessages(lang).checkout;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const { printCheckoutBill, isPrintBillBusy, cooldownSecondsLeft, isOnCooldown } =
-    useStaffCheckoutBillPrint(restaurantSlug);
+  const {
+    printCheckoutBill,
+    printSessionCheckoutBill,
+    isPrintBillBusy,
+    isPrintSessionBillBusy,
+    cooldownSecondsLeft,
+    isOnCooldown,
+  } = useStaffCheckoutBillPrint(restaurantSlug);
 
   const {
     entries,
@@ -231,24 +237,34 @@ export function OrdersHistoryManager({
   const renderPrintButton = (entry: OrderHistoryEntry) => {
     const billSplit = entry.billSplit;
     const splitId = billSplit?.id ?? '';
-    const billCooldownKey = splitId ? staffBillPrintCooldownKey(splitId) : '';
-    const busy = splitId ? isPrintBillBusy(splitId) : false;
-    const onCooldown = billCooldownKey ? isOnCooldown(billCooldownKey) : false;
+    const billCooldownKey = splitId
+      ? staffBillPrintCooldownKey(splitId)
+      : staffSessionBillCooldownKey(entry.sessionId);
+    const busy = splitId
+      ? isPrintBillBusy(splitId)
+      : isPrintSessionBillBusy(entry.sessionId);
+    const onCooldown = isOnCooldown(billCooldownKey);
+    const canPrint = entry.settlement.canPrintBill;
     const label = resolveBillPrintButtonLabel(
-      billSplit,
       checkoutT,
       busy,
       onCooldown ? cooldownSecondsLeft(billCooldownKey) : 0,
     );
+
+    if (!canPrint) return null;
 
     return (
       <button
         type="button"
         onClick={(event) => {
           event.stopPropagation();
-          if (billSplit) void printCheckoutBill(billSplit);
+          if (billSplit) {
+            void printCheckoutBill(billSplit);
+            return;
+          }
+          void printSessionCheckoutBill(entry.tableId, entry.sessionId);
         }}
-        disabled={!billSplit || busy || onCooldown}
+        disabled={busy || onCooldown}
         className="text-[13px] px-2.5 py-1 rounded-lg border border-brand-border text-brand-gold hover:border-brand-gold/50 transition-colors disabled:opacity-50 disabled:hover:border-brand-border"
       >
         {label}

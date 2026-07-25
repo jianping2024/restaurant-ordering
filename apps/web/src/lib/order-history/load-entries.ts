@@ -26,6 +26,7 @@ type ClosedSessionRow = {
   id: string;
   table_id: string;
   closed_at: string;
+  closed_reason: string | null;
   opened_by_user_id: string | null;
 };
 
@@ -104,6 +105,7 @@ function buildEntry(
       billSplit,
       collectedPayments,
       orders: sessionOrders,
+      closedReason: session.closed_reason,
     }),
     closeAnnotation,
     billSplit,
@@ -146,7 +148,7 @@ export async function loadOrderHistoryEntries(
 
   let sessionQuery = admin
     .from('table_sessions')
-    .select('id, table_id, closed_at, opened_by_user_id')
+    .select('id, table_id, closed_at, closed_reason, opened_by_user_id')
     .eq('restaurant_id', query.restaurantId)
     .eq('status', 'closed')
     .order('closed_at', { ascending: false })

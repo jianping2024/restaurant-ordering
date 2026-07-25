@@ -37,7 +37,8 @@
 3. **保留**订单行与 `total_amount`（**不** void、**不**清零；**不**发明整桌 `paid` 分账 / `session_collected_payments`）。
 4. `table_sessions` → `closed`，`closed_reason` 为 `frontdesk_closed` / `cashier_closed` / `owner_closed`，写入 `closed_by_user_id`。
 
-分析侧：已关闭且非强制路径的 session，用订单金额计入营业额。
+分析侧：已关闭且非强制路径的 session，用订单金额计入营业额。  
+订单历史：`closed_reason` 属 settled 集合时 outcome 为 `fully_paid`（已结账关台）；金额只展示应付/本单（不虚构已收）；`canPrintBill` 仅已结账且有菜；补打走会话级 `checkout_bill`。现网关台结账与分账收款路径不相交。
 
 ### 1.2 强制关台（operational）
 

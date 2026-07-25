@@ -133,11 +133,13 @@ export function buildStatusStrip(
 ): string {
   switch (outcome) {
     case 'fully_paid': {
-      const amount = (summary?.collected ?? 0).toFixed(2);
-      const mode = splitModeLabel ?? '—';
+      const amount = (summary?.payable ?? summary?.collected ?? 0).toFixed(2);
+      if (!splitModeLabel) {
+        return i18n.detailStatusSettledClose.replace('{amount}', amount);
+      }
       return i18n.detailStatusFullyPaid
         .replace('{amount}', amount)
-        .replace('{splitMode}', mode)
+        .replace('{splitMode}', splitModeLabel)
         .replace('{personCount}', String(personCount));
     }
     case 'partially_collected_closed':

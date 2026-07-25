@@ -24,10 +24,29 @@ const baseSplit: OrderHistoryBillSplitSummary = {
 
 const emptyOrders: Order[] = [];
 
+const orderWithTotal: Order[] = [
+  {
+    id: 'o1',
+    total_amount: 29.9,
+    items: [{ id: 'd1', name: 'Dish', qty: 1, price: 29.9 }],
+  },
+] as Order[];
+
 describe('resolveOrderHistoryCloseOutcome', () => {
   it('returns fully_paid when split is paid', () => {
     assert.equal(
       resolveOrderHistoryCloseOutcome({ ...baseSplit, status: 'paid' }, []),
+      'fully_paid',
+    );
+  });
+
+  it('returns fully_paid for settled closed_reason without ledger', () => {
+    assert.equal(
+      resolveOrderHistoryCloseOutcome(undefined, [], 'frontdesk_closed'),
+      'fully_paid',
+    );
+    assert.equal(
+      resolveOrderHistoryCloseOutcome(baseSplit, [], 'cashier_closed'),
       'fully_paid',
     );
   });
@@ -52,6 +71,13 @@ describe('resolveOrderHistoryCloseOutcome', () => {
 
   it('returns closed_without_billing when no split and no payments', () => {
     assert.equal(resolveOrderHistoryCloseOutcome(undefined, []), 'closed_without_billing');
+  });
+
+  it('keeps auto_nightly without ledger as closed_without_billing', () => {
+    assert.equal(
+      resolveOrderHistoryCloseOutcome(undefined, [], 'auto_nightly'),
+      'closed_without_billing',
+    );
   });
 });
 
@@ -88,6 +114,34 @@ describe('buildOrderHistorySessionSettlement', () => {
     assert.equal(settlement.outcome, 'unpaid_closed');
     assert.equal(settlement.listAmount, null);
     assert.equal(settlement.summary?.collected, 0);
+  });
+
+  it('treats settled close without ledger as fully paid from orders', () => {
+    const settlement = buildOrderHistorySessionSettlement({
+      collectedPayments: [],
+      orders: orderWithTotal,
+      closedReason: 'frontdesk_closed',
+    });
+
+    assert.equal(settlement.outcome, 'fully_paid');
+    assert.equal(settlement.listAmountKind, 'paid');
+    assert.equal(settlement.listAmount, 29.9);
+    assert.equal(settlement.summary?.payable, 29.9);
+    assert.equal(settlement.summary?.collected, 0);
+    assert.equal(settlement.summary?.pending, 0);
+    assert.equal(settlement.showFinancialDetails, false);
+    assert.equal(settlement.canPrintBill, true);
+  });
+
+  it('denies bill print for auto_nightly even with order lines', () => {
+    const settlement = buildOrderHistorySessionSettlement({
+      collectedPayments: [],
+      orders: orderWithTotal,
+      closedReason: 'auto_nightly',
+    });
+
+    assert.equal(settlement.outcome, 'closed_without_billing');
+    assert.equal(settlement.canPrintBill, false);
   });
 
   it('reconciles payable from order lines when split snapshot is zeroed', () => {

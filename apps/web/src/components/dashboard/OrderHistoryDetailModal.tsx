@@ -9,6 +9,7 @@ import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import {
   staffBillPrintCooldownKey,
+  staffSessionBillCooldownKey,
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
@@ -40,8 +41,10 @@ export function OrderHistoryDetailModal({
   const checkoutT = getMessages(lang).checkout;
   const {
     printCheckoutBill,
+    printSessionCheckoutBill,
     printSplitReceipt,
     isPrintBillBusy,
+    isPrintSessionBillBusy,
     isPrintReceiptBusy,
     cooldownSecondsLeft,
     isOnCooldown,
@@ -57,10 +60,14 @@ export function OrderHistoryDetailModal({
   const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
   const billSplit = entry.billSplit;
   const billSplitId = billSplit?.id ?? '';
-  const billCooldownKey = billSplitId ? staffBillPrintCooldownKey(billSplitId) : '';
-  const billBusy = billSplitId ? isPrintBillBusy(billSplitId) : false;
-  const billOnCooldown = billCooldownKey ? isOnCooldown(billCooldownKey) : false;
-  const billCooldownSeconds = billCooldownKey ? cooldownSecondsLeft(billCooldownKey) : 0;
+  const billCooldownKey = billSplitId
+    ? staffBillPrintCooldownKey(billSplitId)
+    : staffSessionBillCooldownKey(entry.sessionId);
+  const billBusy = billSplitId
+    ? isPrintBillBusy(billSplitId)
+    : isPrintSessionBillBusy(entry.sessionId);
+  const billOnCooldown = isOnCooldown(billCooldownKey);
+  const billCooldownSeconds = billOnCooldown ? cooldownSecondsLeft(billCooldownKey) : 0;
 
   const printHandlers = {
     showSplitReceiptActions: detail.actions.canPrintSplitReceipts,
@@ -124,16 +131,19 @@ export function OrderHistoryDetailModal({
             <button
               type="button"
               onClick={() => {
-                if (billSplit) void printCheckoutBill(billSplit);
+                if (billSplit) {
+                  void printCheckoutBill(billSplit);
+                  return;
+                }
+                void printSessionCheckoutBill(entry.tableId, entry.sessionId);
               }}
-              disabled={!billSplit || billBusy || billOnCooldown}
+              disabled={billBusy || billOnCooldown}
               className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
             >
               {resolveBillPrintButtonLabel(
-                billSplit,
                 checkoutT,
                 billBusy,
-                billOnCooldown ? billCooldownSeconds : 0,
+                billCooldownSeconds,
               )}
             </button>
           </div>

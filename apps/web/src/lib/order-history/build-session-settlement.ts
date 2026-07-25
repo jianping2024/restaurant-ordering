@@ -14,7 +14,9 @@ import {
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-splits';
+import { countOrderListItems } from '@/lib/order-list-display';
 import { sessionOrderLineConsumption } from '@/lib/order-history/session-order-consumption';
+import { isSettledCloseReason } from '@/lib/table-session/operational-close-reasons';
 import type { Order } from '@/types';
 import type {
   OrderHistoryCloseOutcome,
@@ -41,11 +43,17 @@ function hasCollectionActivity(
   return hasCheckoutCollections(asBillSplit(split), collectedPayments);
 }
 
+/**
+ * One close-outcome resolver: paid ledger OR settled closed_reason → fully_paid.
+ * Paths are disjoint in production; force/nightly without paid ledger stays unpaid / without-billing.
+ */
 export function resolveOrderHistoryCloseOutcome(
   split: OrderHistoryBillSplitSummary | undefined,
   collectedPayments: SessionCollectedPayment[],
+  closedReason?: string | null,
 ): OrderHistoryCloseOutcome {
   if (split?.status === 'paid') return 'fully_paid';
+  if (isSettledCloseReason(closedReason)) return 'fully_paid';
 
   if (hasCollectionActivity(split, collectedPayments)) {
     return 'partially_collected_closed';
@@ -53,6 +61,13 @@ export function resolveOrderHistoryCloseOutcome(
 
   if (split) return 'unpaid_closed';
   return 'closed_without_billing';
+}
+
+export function resolveOrderHistoryCanPrintBill(
+  outcome: OrderHistoryCloseOutcome,
+  orders: Order[],
+): boolean {
+  return outcome === 'fully_paid' && countOrderListItems(orders) > 0;
 }
 
 function payableFromSplitOrConsumption(
@@ -97,7 +112,20 @@ function reconcileHistorySettlementSummary(
   };
 }
 
-function buildSummary(
+/** 关台结账：应付只来自订单；忽略已取消的结账草稿分账；不虚构已收。 */
+function buildSettledPayableSummary(orders: Order[]): CheckoutSettlementSummary {
+  const consumption = sessionOrderLineConsumption(orders);
+  const payable = auditMoney(consumption || sessionRevenue(orders, [], true));
+  return {
+    consumption: !isNearZero(consumption) ? consumption : payable,
+    payable,
+    discountRate: 0,
+    collected: 0,
+    pending: 0,
+  };
+}
+
+function buildLedgerSummary(
   split: OrderHistoryBillSplitSummary | undefined,
   collectedPayments: SessionCollectedPayment[],
   orders: Order[],
@@ -145,12 +173,24 @@ export function buildOrderHistorySessionSettlement(input: {
   billSplit?: OrderHistoryBillSplitSummary;
   collectedPayments: SessionCollectedPayment[];
   orders: Order[];
+  closedReason?: string | null;
 }): OrderHistorySessionSettlement {
-  const { billSplit, collectedPayments, orders } = input;
-  const outcome = resolveOrderHistoryCloseOutcome(billSplit, collectedPayments);
-  const summary = buildSummary(billSplit, collectedPayments, orders);
-  const paidRevenue =
-    billSplit?.status === 'paid' ? sessionRevenue(orders, [billSplit]) : null;
+  const { billSplit, collectedPayments, orders, closedReason } = input;
+  const outcome = resolveOrderHistoryCloseOutcome(billSplit, collectedPayments, closedReason);
+
+  const ledgerPaid = billSplit?.status === 'paid';
+  const settledAttested = !ledgerPaid && isSettledCloseReason(closedReason);
+
+  const summary = settledAttested
+    ? buildSettledPayableSummary(orders)
+    : buildLedgerSummary(billSplit, collectedPayments, orders);
+
+  const paidRevenue = ledgerPaid
+    ? sessionRevenue(orders, [billSplit!])
+    : settledAttested
+      ? sessionRevenue(orders, [], true)
+      : null;
+
   const { amount: listAmount, kind: listAmountKind } = listAmountForOutcome(
     outcome,
     summary,
@@ -160,10 +200,11 @@ export function buildOrderHistorySessionSettlement(input: {
   return {
     outcome,
     summary,
-    showFinancialDetails: summary != null,
+    showFinancialDetails: summary != null && !settledAttested,
     collectedPayments,
     listAmount,
     listAmountKind,
     paidRevenue,
+    canPrintBill: resolveOrderHistoryCanPrintBill(outcome, orders),
   };
 }

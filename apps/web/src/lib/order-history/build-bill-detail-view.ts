@@ -127,7 +127,7 @@ export function buildOrderHistoryBillDetailView(
   const checkoutT = getMessages(lang).checkout;
   const orderHistoryI18n = getMessages(lang).orderHistory;
   const split = entry.billSplit;
-  const splitModeLabel = split
+  const splitModeLabel = split?.status === 'paid'
     ? checkoutSplitModeLabel(split.split_mode, {
         even: checkoutT.splitModeEven,
         byItem: checkoutT.splitModeByItem,
@@ -151,7 +151,10 @@ export function buildOrderHistoryBillDetailView(
     itemCodeByMenuId,
   );
 
-  const showPersonLedger = shouldShowPersonLedger(settlementRows, split);
+  // Person ledger only when checkout ledger exists (paid split or collections).
+  const showPersonLedger =
+    (split?.status === 'paid' || settlement.collectedPayments.length > 0) &&
+    shouldShowPersonLedger(settlementRows, split);
   const settlementVariant = resolveSettlementVariant(settlement.outcome);
   const showSettlement = settlement.showFinancialDetails && settlement.summary != null && settlementVariant != null;
 
@@ -202,7 +205,7 @@ export function buildOrderHistoryBillDetailView(
     ),
     canExpandPersonDishes,
     actions: {
-      canPrintBill: !!split,
+      canPrintBill: settlement.canPrintBill,
       canPrintSplitReceipts:
         !!split && isMultiPersonSplitBill(split) && settlement.collectedPayments.length > 0,
     },

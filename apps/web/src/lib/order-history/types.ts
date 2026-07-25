@@ -20,6 +20,8 @@ export type OrderHistorySessionSettlement = {
   listAmount: number | null;
   listAmountKind: OrderHistoryListAmountKind | null;
   paidRevenue: number | null;
+  /** Single print gate: fully_paid with printable order lines. */
+  canPrintBill: boolean;
 };
 
 export type OrderHistoryCloseAnnotation =

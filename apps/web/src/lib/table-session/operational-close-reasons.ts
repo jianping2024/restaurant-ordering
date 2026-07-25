@@ -13,7 +13,13 @@ export const OPERATIONAL_CLOSE_REASONS = [
 
 export type OperationalCloseReason = (typeof OPERATIONAL_CLOSE_REASONS)[number];
 
-export type SettledCloseActorReason = 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
+export const SETTLED_CLOSE_REASONS = [
+  'owner_closed',
+  'frontdesk_closed',
+  'cashier_closed',
+] as const;
+
+export type SettledCloseActorReason = (typeof SETTLED_CLOSE_REASONS)[number];
 
 export function isOperationalCloseReason(
   reason: string | null | undefined,
@@ -21,6 +27,16 @@ export function isOperationalCloseReason(
   return (
     typeof reason === 'string' &&
     (OPERATIONAL_CLOSE_REASONS as readonly string[]).includes(reason)
+  );
+}
+
+/** Staff-attested paid close (关台结账) — not force/nightly. */
+export function isSettledCloseReason(
+  reason: string | null | undefined,
+): reason is SettledCloseActorReason {
+  return (
+    typeof reason === 'string' &&
+    (SETTLED_CLOSE_REASONS as readonly string[]).includes(reason)
   );
 }
 

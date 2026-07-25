@@ -9,7 +9,10 @@ import {
   type StaffCheckoutBillPrintTarget,
 } from '@/lib/staff-checkout-bill-print';
 import { requestStaffSplitReceiptPrint } from '@/lib/staff-split-receipt-print';
-import { requestStaffSessionPreBillPrint } from '@/lib/staff-session-bill-print';
+import {
+  requestStaffSessionBillPrint,
+  requestStaffSessionPreBillPrint,
+} from '@/lib/staff-session-bill-print';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { useStaffReceiptPrintCooldown } from '@/lib/use-checkout-bill-print-cooldown';
 
@@ -23,6 +26,10 @@ export function staffSplitReceiptCooldownKey(billSplitId: string, personIndex: n
 
 export function staffSessionPreBillCooldownKey(sessionId: string): string {
   return `pre_bill:${sessionId}`;
+}
+
+export function staffSessionBillCooldownKey(sessionId: string): string {
+  return `session_bill:${sessionId}`;
 }
 
 function useStaffReceiptPrintRunner(restaurantSlug: string) {
@@ -113,6 +120,21 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
     [restaurantSlug, runStaffPrint],
   );
 
+  const printSessionCheckoutBill = useCallback(
+    async (tableId: string, sessionId: string) => {
+      const cooldownKey = staffSessionBillCooldownKey(sessionId);
+      return runStaffPrint(cooldownKey, () =>
+        requestStaffSessionBillPrint({ slug: restaurantSlug, tableId, sessionId }),
+      );
+    },
+    [restaurantSlug, runStaffPrint],
+  );
+
+  const isPrintSessionBillBusy = useCallback(
+    (sessionId: string) => isPrintingKey(staffSessionBillCooldownKey(sessionId)),
+    [isPrintingKey],
+  );
+
   const printSplitReceipt = useCallback(
     async (billSplit: StaffCheckoutBillPrintTarget, payment: SessionCollectedPayment) => {
       if (payment.person_index == null || payment.person_index < 0) {
@@ -129,8 +151,10 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
 
   return {
     printCheckoutBill,
+    printSessionCheckoutBill,
     printSplitReceipt,
     isPrintBillBusy,
+    isPrintSessionBillBusy,
     isPrintReceiptBusy,
     cooldownSecondsLeft,
     isOnCooldown,

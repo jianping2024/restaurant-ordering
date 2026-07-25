@@ -34,6 +34,7 @@ function baseEntry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
       listAmount: 10,
       listAmountKind: 'paid',
       paidRevenue: 10,
+      canPrintBill: true,
     },
     ...overrides,
   };
@@ -85,6 +86,7 @@ describe('buildOrderHistoryBillDetailView', () => {
         listAmount: 10,
         listAmountKind: 'paid',
         paidRevenue: 10,
+        canPrintBill: true,
       },
       orders: [
         {
@@ -143,6 +145,7 @@ describe('buildOrderHistoryBillDetailView', () => {
         listAmount: null,
         listAmountKind: null,
         paidRevenue: null,
+        canPrintBill: false,
       },
       closeAnnotation: {
         isForcedUnpaidClose: true,
@@ -182,6 +185,82 @@ describe('buildOrderHistoryBillDetailView', () => {
     assert.equal(view.tableLines.length, 1);
     assert.match(view.tableLines[0].label, /Cola/);
     assert.equal(view.settlement, null);
+  });
+  it('allows session bill print when settled close has order lines but no split', () => {
+    const entry = baseEntry({
+      billSplit: undefined,
+      settlement: {
+        outcome: 'fully_paid',
+        summary: {
+          consumption: 5,
+          payable: 5,
+          discountRate: 0,
+          collected: 0,
+          pending: 0,
+        },
+        showFinancialDetails: false,
+        collectedPayments: [],
+        listAmount: 5,
+        listAmountKind: 'paid',
+        paidRevenue: 5,
+        canPrintBill: true,
+      },
+      orders: [
+        {
+          id: 'o1',
+          items: [
+            {
+              id: 'd1',
+              name: 'Tea',
+              name_pt: 'Cha',
+              qty: 1,
+              price: 5,
+              emoji: '🍵',
+              item_status: 'done',
+            },
+          ],
+        },
+      ] as OrderHistoryEntry['orders'],
+    });
+
+    const view = buildOrderHistoryBillDetailView(entry, {}, 'zh');
+    assert.equal(view.actions.canPrintBill, true);
+    assert.equal(view.settlement, null);
+    assert.match(view.statusStrip, /已结账关台/);
+  });
+
+  it('denies bill print for unpaid operational closes even with lines', () => {
+    const entry = baseEntry({
+      settlement: {
+        outcome: 'closed_without_billing',
+        summary: null,
+        showFinancialDetails: false,
+        collectedPayments: [],
+        listAmount: null,
+        listAmountKind: null,
+        paidRevenue: null,
+        canPrintBill: false,
+      },
+      orders: [
+        {
+          id: 'o1',
+          items: [
+            {
+              id: 'd1',
+              name: 'Tea',
+              name_pt: 'Cha',
+              qty: 1,
+              price: 5,
+              emoji: '🍵',
+              item_status: 'done',
+            },
+          ],
+        },
+      ] as OrderHistoryEntry['orders'],
+    });
+
+    const view = buildOrderHistoryBillDetailView(entry, {}, 'zh');
+    assert.equal(view.actions.canPrintBill, false);
   });
 });
 

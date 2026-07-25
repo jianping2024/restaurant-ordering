@@ -61,3 +61,8 @@ local/
 
 # Auth recovery codes (secrets; never commit)
 recovery-codes.txt
+
+# Local tooling / on-prem build artifacts (binaries, secrets, release dumps)
+.tools/
+/deploy/
+/dist/

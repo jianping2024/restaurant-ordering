@@ -58,6 +58,27 @@ export function hasBusinessActivity(point: {
   return point.revenue > 0 || point.customerCount > 0;
 }
 
+/** Shared empty gate for API + client (one representation). */
+export function isValueOverviewEmpty(data: {
+  revenueTrend: Array<{ revenue: number }>;
+  customerTrend: Array<{ customerCount: number }>;
+}): boolean {
+  if (data.revenueTrend.length === 0) return true;
+  return !data.revenueTrend.some((point, index) =>
+    hasBusinessActivity({
+      revenue: point.revenue,
+      customerCount: data.customerTrend[index]?.customerCount ?? 0,
+    }),
+  );
+}
+
+export function emptyValueOverviewTrends(): {
+  revenueTrend: RevenueTrendPoint[];
+  customerTrend: CustomerTrendPoint[];
+} {
+  return { revenueTrend: [], customerTrend: [] };
+}
+
 /** Aggregate daily points into grain periods (ordered by first-seen day). */
 export function aggregateDailyPointsByGrain(
   days: DailyMetricPoint[],

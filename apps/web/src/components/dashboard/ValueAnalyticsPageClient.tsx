@@ -3,7 +3,11 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AnalyticsRange, ValueOverviewResponse } from '@/lib/analytics/analytics.types';
-import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
+import {
+  ANALYTICS_DAILY_SCHEMA_VERSION,
+  ANALYTICS_RANGES,
+} from '@/lib/analytics/analytics.types';
+import { isValueOverviewEmpty } from '@/lib/analytics/period-aggregate';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
@@ -24,23 +28,13 @@ type Props = {
   initialLoadFailed?: boolean;
 };
 
-const GRAINS: AnalyticsRange[] = ['day', 'week', 'month', 'quarter'];
-
-function isOverviewEmpty(data: ValueOverviewResponse): boolean {
-  return (
-    data.revenueTrend.length === 0 ||
-    (!data.revenueTrend.some((point) => point.revenue > 0) &&
-      !data.customerTrend.some((point) => point.customerCount > 0))
-  );
-}
-
 function resolveViewState(
   overview: ValueOverviewResponse | null,
   loadFailed: boolean,
 ): ViewState {
   if (loadFailed) return 'error';
   if (!overview) return 'empty';
-  return isOverviewEmpty(overview) ? 'empty' : 'ready';
+  return isValueOverviewEmpty(overview) ? 'empty' : 'ready';
 }
 
 function formatMoney(value: number): string {
@@ -287,7 +281,7 @@ export function ValueAnalyticsPageClient({
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-1">
-            {GRAINS.map((grain) => (
+            {ANALYTICS_RANGES.map((grain) => (
               <button
                 key={grain}
                 type="button"

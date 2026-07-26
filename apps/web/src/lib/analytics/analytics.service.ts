@@ -7,11 +7,14 @@ import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types'
 import {
   buildGrainTrends,
   computeRestaurantBusinessDayMetrics,
-  emptyTrends,
   ensureSealedClosedBusinessDays,
   fetchDailyRestaurantStats,
 } from '@/lib/analytics/daily-stats';
 import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
+import {
+  emptyValueOverviewTrends,
+  isValueOverviewEmpty,
+} from '@/lib/analytics/period-aggregate';
 import { addCalendarDays } from '@/lib/lisbon-calendar';
 
 export type GetValueOverviewResult =
@@ -76,7 +79,7 @@ export async function getValueOverview(
     return { ok: false, code: todayLive.code, message: todayLive.message };
   }
 
-  const { revenueTrend, customerTrend } = buildGrainTrends(
+  const trends = buildGrainTrends(
     range,
     window.dateKeys,
     sealedResult.rows,
@@ -84,18 +87,13 @@ export async function getValueOverview(
     window.today,
   );
 
-  if (
-    revenueTrend.length === 0 ||
-    (range !== 'day' &&
-      revenueTrend.every((point) => point.revenue === 0) &&
-      customerTrend.every((point) => point.customerCount === 0))
-  ) {
+  if (isValueOverviewEmpty(trends)) {
     return {
       ok: true,
       data: {
         range,
         schemaVersion: ANALYTICS_DAILY_SCHEMA_VERSION,
-        ...emptyTrends(),
+        ...emptyValueOverviewTrends(),
       },
     };
   }
@@ -105,8 +103,7 @@ export async function getValueOverview(
     data: {
       range,
       schemaVersion: ANALYTICS_DAILY_SCHEMA_VERSION,
-      revenueTrend,
-      customerTrend,
+      ...trends,
     },
   };
 }

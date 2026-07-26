@@ -5,7 +5,6 @@ import type {
   CustomerTrendPoint,
   RevenueTrendPoint,
 } from '@/lib/analytics/analytics.types';
-import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import type { AnalyticsQueryError } from '@/lib/analytics/analytics.repository';
 import {
   fetchDistinctClosedBusinessDates,
@@ -15,7 +14,7 @@ import {
 import {
   filterQualifyingClosedSessions,
   loadClosedSessionRevenueBundle,
-  revenueTrendFromBundle,
+  revenueTrendFromQualifying,
 } from '@/lib/analytics/closed-session-revenue';
 import { buildCustomerTrend } from '@/lib/analytics/build-overview';
 import {
@@ -75,12 +74,12 @@ export async function computeRestaurantBusinessDayMetrics(
   }
 
   const { bundle } = bundleResult;
-  const revenueTrend = revenueTrendFromBundle(dateKeys, bundle);
   const qualifying = filterQualifyingClosedSessions(
     bundle.sessions,
     bundle.ordersBySession,
     bundle.splitsBySession,
   );
+  const revenueTrend = revenueTrendFromQualifying(dateKeys, bundle, qualifying);
 
   if (qualifying.length === 0) {
     return {
@@ -291,12 +290,3 @@ export function buildGrainTrends(
   const trimmed = trimLeadingEmptyPeriods(aggregated, grain);
   return toTrendSeries(trimmed);
 }
-
-export function emptyTrends(): {
-  revenueTrend: RevenueTrendPoint[];
-  customerTrend: CustomerTrendPoint[];
-} {
-  return { revenueTrend: [], customerTrend: [] };
-}
-
-export { ANALYTICS_DAILY_SCHEMA_VERSION };

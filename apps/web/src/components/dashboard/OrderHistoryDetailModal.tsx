@@ -6,6 +6,10 @@ import { OrderHistoryBillDetailPanel } from '@/components/dashboard/OrderHistory
 import { Modal } from '@/components/ui/Modal';
 import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
+import {
+  buildOrderHistoryLifecycleLines,
+  resolveOrderHistoryAbnormalEmphasis,
+} from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import {
   staffBillPrintCooldownKey,
@@ -15,6 +19,7 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
+import { formatOrderHistoryInstant } from '@/lib/order-history/format-instant';
 import { getMessages } from '@/lib/i18n/messages';
 
 interface Props {
@@ -55,9 +60,21 @@ export function OrderHistoryDetailModal({
     [entry, itemCodeByMenuId, lang],
   );
 
-  if (!entry || !detail) return null;
+  const lifecycle = useMemo(
+    () =>
+      entry
+        ? buildOrderHistoryLifecycleLines(entry, i18n, formatOrderHistoryInstant)
+        : null,
+    [entry, i18n],
+  );
+
+  if (!entry || !detail || !lifecycle) return null;
 
   const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
+  const abnormal = resolveOrderHistoryAbnormalEmphasis(
+    entry.settlement.outcome,
+    entry.closeAnnotation,
+  );
   const billSplit = entry.billSplit;
   const billSplitId = billSplit?.id ?? '';
   const billCooldownKey = billSplitId
@@ -106,16 +123,15 @@ export function OrderHistoryDetailModal({
             </span>
             <p className="text-sm text-brand-text">{detail.statusStrip}</p>
           </div>
-          <div className="text-sm text-brand-text-muted">
-            {new Date(entry.closedAt).toLocaleString()}
-            {entry.openedByName ? (
-              <>
-                <span className="mx-2 text-brand-text-muted/50" aria-hidden>
-                  ·
-                </span>
-                {i18n.openedBy} {entry.openedByName}
-              </>
-            ) : null}
+          <div
+            className={`space-y-0.5 text-sm ${
+              abnormal === 'strong'
+                ? 'rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-brand-text'
+                : 'text-brand-text-muted'
+            }`}
+          >
+            <p>{lifecycle.openedLine}</p>
+            <p>{lifecycle.closedLine}</p>
           </div>
         </div>
 

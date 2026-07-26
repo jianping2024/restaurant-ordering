@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { resolveOwnerOperatorName } from '@/lib/audit/resolve-actor';
 
-export async function resolveOpenedByNames(
+/** Resolve staff/owner display names for session open/close operators. */
+export async function resolveStaffOperatorNames(
   admin: SupabaseClient,
   params: {
     restaurantId: string;
@@ -36,7 +37,7 @@ export async function resolveOpenedByNames(
   return names;
 }
 
-export async function resolveOpenedByName(
+export async function resolveStaffOperatorName(
   admin: SupabaseClient,
   params: {
     restaurantId: string;
@@ -46,7 +47,7 @@ export async function resolveOpenedByName(
   },
 ): Promise<string | null> {
   if (!params.userId) return null;
-  const names = await resolveOpenedByNames(admin, {
+  const names = await resolveStaffOperatorNames(admin, {
     restaurantId: params.restaurantId,
     ownerId: params.ownerId,
     restaurantName: params.restaurantName,

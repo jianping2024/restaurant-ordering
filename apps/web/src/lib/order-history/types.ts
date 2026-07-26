@@ -38,8 +38,13 @@ export type OrderHistoryEntry = {
   sessionId: string;
   tableId: string;
   displayName: string;
-  closedAt: string;
+  /** Session open timestamp; null only for legacy/corrupt rows. */
+  openedAt: string | null;
   openedByName: string | null;
+  closedAt: string;
+  closedByName: string | null;
+  /** Raw closed_reason for lifecycle labels (nightly / merge); not a second outcome. */
+  closedReason: string | null;
   itemCount: number;
   settlement: OrderHistorySessionSettlement;
   closeAnnotation: OrderHistoryCloseAnnotation;

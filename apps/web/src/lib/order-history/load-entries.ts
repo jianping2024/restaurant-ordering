@@ -8,7 +8,7 @@ import {
 } from '@/lib/order-history/load-forced-unpaid-close-annotations';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
-import { resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
+import { resolveStaffOperatorNames } from '@/lib/order-history/resolve-opened-by';
 import {
   distinctMenuItemIdsFromOrders,
   menuItemCodeLookupFromRows,
@@ -25,9 +25,11 @@ import type { Order } from '@/types';
 type ClosedSessionRow = {
   id: string;
   table_id: string;
+  opened_at: string | null;
   closed_at: string;
   closed_reason: string | null;
   opened_by_user_id: string | null;
+  closed_by_user_id: string | null;
 };
 
 function startOfDayIso(dateKey: string): string {
@@ -90,6 +92,7 @@ function buildEntry(
   session: ClosedSessionRow,
   sessionOrders: Order[],
   openedByName: string | null,
+  closedByName: string | null,
   billSplit: OrderHistoryEntry['billSplit'],
   collectedPayments: OrderHistoryEntry['settlement']['collectedPayments'],
   closeAnnotation: OrderHistoryEntry['closeAnnotation'],
@@ -98,8 +101,11 @@ function buildEntry(
     sessionId: session.id,
     tableId: session.table_id,
     displayName: displayNameForSession(sessionOrders, session.table_id),
-    closedAt: session.closed_at,
+    openedAt: session.opened_at,
     openedByName,
+    closedAt: session.closed_at,
+    closedByName,
+    closedReason: session.closed_reason,
     itemCount: countOrderListItems(sessionOrders),
     settlement: buildOrderHistorySessionSettlement({
       billSplit,
@@ -148,7 +154,9 @@ export async function loadOrderHistoryEntries(
 
   let sessionQuery = admin
     .from('table_sessions')
-    .select('id, table_id, closed_at, closed_reason, opened_by_user_id')
+    .select(
+      'id, table_id, opened_at, closed_at, closed_reason, opened_by_user_id, closed_by_user_id',
+    )
     .eq('restaurant_id', query.restaurantId)
     .eq('status', 'closed')
     .order('closed_at', { ascending: false })
@@ -186,14 +194,16 @@ export async function loadOrderHistoryEntries(
       loadMenuItemCodeLookup(admin, query.restaurantId, allSessionOrders),
     ]);
 
-  const openerIds = sessions
-    .map((session) => session.opened_by_user_id)
-    .filter((id): id is string => !!id);
-  const openerNames = await resolveOpenedByNames(admin, {
+  const operatorIds = sessions.flatMap((session) =>
+    [session.opened_by_user_id, session.closed_by_user_id].filter(
+      (id): id is string => !!id,
+    ),
+  );
+  const operatorNames = await resolveStaffOperatorNames(admin, {
     restaurantId: query.restaurantId,
     ownerId: query.ownerId,
     restaurantName: query.restaurantName,
-    userIds: openerIds,
+    userIds: operatorIds,
   });
 
   const items = sessions.map((session) => {
@@ -201,7 +211,10 @@ export async function loadOrderHistoryEntries(
     const billSplit = billSplitBySessionId[session.id];
     const collectedPayments = collectedPaymentsBySession.get(session.id) ?? [];
     const openedByName = session.opened_by_user_id
-      ? openerNames.get(session.opened_by_user_id) ?? null
+      ? operatorNames.get(session.opened_by_user_id) ?? null
+      : null;
+    const closedByName = session.closed_by_user_id
+      ? operatorNames.get(session.closed_by_user_id) ?? null
       : null;
     const closeAnnotation = resolveCloseAnnotationForSession(
       session.id,
@@ -211,6 +224,7 @@ export async function loadOrderHistoryEntries(
       session,
       sessionOrders,
       openedByName,
+      closedByName,
       billSplit,
       collectedPayments,
       closeAnnotation,

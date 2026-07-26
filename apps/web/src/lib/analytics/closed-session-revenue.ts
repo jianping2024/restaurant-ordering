@@ -1,5 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ClosedSessionRow } from '@/lib/analytics/analytics.types';
+import {
+  ANALYTICS_MAX_CLOSED_SESSIONS,
+  type ClosedSessionRow,
+} from '@/lib/analytics/analytics.types';
 import type {
   AnalyticsQueryError,
   AnalyticsRevenueOrder,
@@ -28,6 +31,63 @@ export type ClosedSessionRevenueBundle = {
 export type ClosedSessionRevenueLoadResult =
   | { ok: true; bundle: ClosedSessionRevenueBundle }
   | AnalyticsQueryError;
+
+type RevenueBundleRpcPayload = {
+  ok?: boolean;
+  code?: string;
+  sessions?: ClosedSessionRow[];
+  orders?: AnalyticsRevenueOrder[];
+  splits?: BillSplit[];
+  unpaid_session_ids?: Array<string | null>;
+};
+
+/**
+ * One-RTT revenue raw materials for a Lisbon window (dashboard overview primary).
+ * Qualifying / forced-close math stays in todayRevenueFromBundle — not duplicated in SQL.
+ */
+export async function loadClosedSessionRevenueBundleRpc(
+  admin: SupabaseClient,
+  restaurantId: string,
+  startUtc: string,
+  endExclusiveUtc: string,
+): Promise<ClosedSessionRevenueLoadResult> {
+  const { data, error } = await admin.rpc('dashboard_overview_revenue_bundle', {
+    p_restaurant_id: restaurantId,
+    p_start_utc: startUtc,
+    p_end_exclusive_utc: endExclusiveUtc,
+    p_max_sessions: ANALYTICS_MAX_CLOSED_SESSIONS,
+  });
+
+  if (error) {
+    return { ok: false, code: 'query_failed', message: error.message };
+  }
+
+  const payload = (data || {}) as RevenueBundleRpcPayload;
+  if (payload.ok === false) {
+    if (payload.code === 'query_limit_exceeded') {
+      return { ok: false, code: 'query_limit_exceeded' };
+    }
+    return { ok: false, code: 'query_failed', message: payload.code || 'rpc_failed' };
+  }
+
+  const sessions = Array.isArray(payload.sessions) ? payload.sessions : [];
+  const orders = Array.isArray(payload.orders) ? payload.orders : [];
+  const splits = Array.isArray(payload.splits) ? payload.splits : [];
+  const unpaid = new Set<string>();
+  for (const id of payload.unpaid_session_ids || []) {
+    if (id) unpaid.add(id);
+  }
+
+  return {
+    ok: true,
+    bundle: {
+      sessions,
+      ordersBySession: groupOrdersBySession(orders),
+      splitsBySession: groupSplitsBySession(splits),
+      forcedClosedSessionIds: mergeForcedCloseSessionIds(sessions, unpaid),
+    },
+  };
+}
 
 /** UNPAID_TABLE_CLOSED abnormals + operational closed_reason values. */
 export function mergeForcedCloseSessionIds(

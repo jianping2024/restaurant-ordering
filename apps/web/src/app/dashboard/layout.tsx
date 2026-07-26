@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { DashboardAccessError } from '@/components/dashboard/DashboardAccessError';
@@ -9,10 +10,18 @@ import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAge
 import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
-import { fetchCheckoutRequestsQueue } from '@/lib/checkout-requests-queue';
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
-import { createClient } from '@/lib/supabase/server';
-import type { BillSplit } from '@/types';
+
+/**
+ * Print-expiry banner loads in its own Suspense island so it never blocks page children.
+ * Checkout queue is not SSR-awaited here: Provider mount reconcile + Realtime fill the badge
+ * (layout previously awaited the queue and then remount-reconciled again).
+ */
+async function OwnerPrintExpiryBanner({ restaurantId }: { restaurantId: string }) {
+  const expiringDevices = await getPrintAgentDevicesNeedingRenewal(restaurantId);
+  if (expiringDevices.length === 0) return null;
+  return <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />;
+}
 
 export default async function DashboardLayout({
   children,
@@ -43,26 +52,10 @@ export default async function DashboardLayout({
 
   /** Waiter must not subscribe to checkout-queue Realtime (no checkout nav). */
   const checkoutQueueEnabled = access.mode === 'frontdesk' || access.mode === 'cashier';
-  let initialCheckoutRequests: BillSplit[] = [];
-  if (checkoutQueueEnabled) {
-    try {
-      const supabase = await createClient();
-      initialCheckoutRequests = await fetchCheckoutRequestsQueue(
-        supabase,
-        access.restaurant.id,
-      );
-    } catch {
-      initialCheckoutRequests = [];
-    }
-  }
 
   /** Board loads on floor list surface — not on every Dashboard chrome SSR. */
   const waiterBoardEnabled = canAccessDashboardWaiterBoard(access.mode);
 
-  const expiringDevices =
-    access.mode === 'owner'
-      ? await getPrintAgentDevicesNeedingRenewal(access.restaurant.id)
-      : [];
   const showSuspensionBanner =
     (access.mode === 'owner' || access.mode === 'frontdesk') &&
     isRestaurantSuspended(access.restaurant.suspended_at);
@@ -72,7 +65,7 @@ export default async function DashboardLayout({
       restaurantId={access.restaurant.id}
       restaurantSlug={access.restaurant.slug}
       enabled={checkoutQueueEnabled}
-      initialRequests={initialCheckoutRequests}
+      initialRequests={[]}
     >
       <WaiterBoardProvider
         restaurant={{ id: access.restaurant.id, slug: access.restaurant.slug }}
@@ -82,8 +75,10 @@ export default async function DashboardLayout({
           {showSuspensionBanner ? (
             <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
           ) : null}
-          {expiringDevices.length > 0 ? (
-            <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="bar" />
+          {access.mode === 'owner' ? (
+            <Suspense fallback={null}>
+              <OwnerPrintExpiryBanner restaurantId={access.restaurant.id} />
+            </Suspense>
           ) : null}
           {children}
         </DashboardShell>

@@ -31,6 +31,7 @@ describe('computeTodayKpis', () => {
     assert.equal(kpis.todayOrderCount, 0);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.avgTicketPrice, 0);
+    assert.equal(kpis.revenueAvailable, true);
   });
 
   it('keeps today order count separate from closed-session revenue', () => {
@@ -38,11 +39,21 @@ describe('computeTodayKpis', () => {
     assert.equal(kpis.todayOrderCount, 2);
     assert.equal(kpis.todayRevenue, 29.95);
     assert.equal(kpis.avgTicketPrice, 29.95);
+    assert.equal(kpis.revenueAvailable, true);
   });
 
   it('uses qualifying closed session count as avg ticket denominator', () => {
     const kpis = computeTodayKpis(0, { todayRevenue: 100, revenueSessionCount: 2 });
     assert.equal(kpis.avgTicketPrice, 50);
+    assert.equal(kpis.revenueAvailable, true);
+  });
+
+  it('marks revenue unavailable when bundle load failed', () => {
+    const kpis = computeTodayKpis(3, null);
+    assert.equal(kpis.todayOrderCount, 3);
+    assert.equal(kpis.todayRevenue, 0);
+    assert.equal(kpis.avgTicketPrice, 0);
+    assert.equal(kpis.revenueAvailable, false);
   });
 });
 

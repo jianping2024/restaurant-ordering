@@ -40,16 +40,16 @@ export function DashboardOverviewPrimaryClient({
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
-  const { todayOrderCount, todayRevenue, avgTicketPrice } = todayKpis;
+  const { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable } = todayKpis;
   const inProgressOrderCount = pendingActions.inProgressOrders;
 
   const stats = [
     {
       key: 'revenue',
       label: i18n.todayRevenue,
-      value: `€${todayRevenue.toFixed(2)}`,
+      value: revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable,
       unit: '',
-      color: 'text-brand-gold',
+      color: revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted',
       prominent: true,
     },
     {
@@ -71,9 +71,9 @@ export function DashboardOverviewPrimaryClient({
     {
       key: 'avgTicket',
       label: i18n.avgTicket,
-      value: `€${avgTicketPrice.toFixed(2)}`,
+      value: revenueAvailable ? `€${avgTicketPrice.toFixed(2)}` : i18n.todayRevenueUnavailable,
       unit: '',
-      color: 'text-brand-text',
+      color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
       prominent: false,
     },
   ];

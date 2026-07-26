@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import {
-  loadClosedSessionRevenueBundle,
+  loadClosedSessionRevenueBundleRpc,
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
@@ -106,6 +106,8 @@ export type DashboardTodayKpis = {
   todayOrderCount: number;
   todayRevenue: number;
   avgTicketPrice: number;
+  /** false when closed-session revenue raw materials failed (do not show fake €0). */
+  revenueAvailable: boolean;
 };
 
 export type DashboardRecentOrderView = {
@@ -192,11 +194,19 @@ function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {
 /** Today orders = Lisbon-day created_at; revenue = Lisbon-day closed_at (same as value analytics). */
 export function computeTodayKpis(
   todayOrderCount: number,
-  revenue: { todayRevenue: number; revenueSessionCount: number },
+  revenue: { todayRevenue: number; revenueSessionCount: number } | null,
 ): DashboardTodayKpis {
+  if (!revenue) {
+    return {
+      todayOrderCount,
+      todayRevenue: 0,
+      avgTicketPrice: 0,
+      revenueAvailable: false,
+    };
+  }
   const { todayRevenue, revenueSessionCount } = revenue;
   const avgTicketPrice = revenueSessionCount > 0 ? todayRevenue / revenueSessionCount : 0;
-  return { todayOrderCount, todayRevenue, avgTicketPrice };
+  return { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable: true };
 }
 
 export function buildTodayTopSellingItems(
@@ -359,7 +369,7 @@ export async function loadDashboardOverviewPrimary(
       .eq('restaurant_id', restaurantId)
       .eq('status', 'pending')
       .gte('created_at', printJobMaxAgeCutoffIso(now)),
-    loadClosedSessionRevenueBundle(
+    loadClosedSessionRevenueBundleRpc(
       admin,
       restaurantId,
       todayWindow.startUtc,
@@ -367,10 +377,9 @@ export async function loadDashboardOverviewPrimary(
     ),
   ]);
 
-  const todayRevenue =
-    revenueBundleResult.ok
-      ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
-      : { todayRevenue: 0, revenueSessionCount: 0 };
+  const todayRevenue = revenueBundleResult.ok
+    ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
+    : null;
 
   return {
     todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue),

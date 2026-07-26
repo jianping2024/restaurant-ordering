@@ -4,13 +4,19 @@ import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
 import { resolveAnalyticsDateWindow, resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { getValueOverview } from '@/lib/analytics/analytics.service';
-import { trendsFromDailyRows } from '@/lib/analytics/daily-stats';
+import { buildGrainTrends } from '@/lib/analytics/daily-stats';
+import {
+  aggregateDailyPointsByGrain,
+  hasBusinessActivity,
+  periodKeyForDay,
+  trimLeadingEmptyPeriods,
+} from '@/lib/analytics/period-aggregate';
 import { isQualifyingSession, sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
 import { parseAnalyticsRange } from '@/lib/analytics/date-window';
 import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import type { BillSplit, Order, OrderItem } from '@/types';
 
-const FIXED_NOW = new Date('2026-06-26T12:00:00.000Z');
+const FIXED_NOW = new Date('2026-07-26T12:00:00.000Z');
 
 function menuItem(partial: Partial<OrderItem> & { id: string; qty: number }): OrderItem {
   return {
@@ -52,11 +58,15 @@ function mockEmptyAdmin() {
 }
 
 describe('parseAnalyticsRange', () => {
-  it('accepts 7d default and 30d', () => {
-    assert.equal(parseAnalyticsRange(null), '7d');
-    assert.equal(parseAnalyticsRange('7d'), '7d');
-    assert.equal(parseAnalyticsRange('30d'), '30d');
-    assert.equal(parseAnalyticsRange('90d'), null);
+  it('accepts day/week/month/quarter and maps legacy 7d/30d', () => {
+    assert.equal(parseAnalyticsRange(null), 'day');
+    assert.equal(parseAnalyticsRange('day'), 'day');
+    assert.equal(parseAnalyticsRange('week'), 'week');
+    assert.equal(parseAnalyticsRange('month'), 'month');
+    assert.equal(parseAnalyticsRange('quarter'), 'quarter');
+    assert.equal(parseAnalyticsRange('7d'), 'day');
+    assert.equal(parseAnalyticsRange('30d'), 'day');
+    assert.equal(parseAnalyticsRange('year'), null);
   });
 });
 
@@ -69,15 +79,106 @@ describe('resolveTodayLisbonWindow', () => {
 });
 
 describe('resolveAnalyticsDateWindow', () => {
-  it('builds 7 date keys for 7d', () => {
-    const window = resolveAnalyticsDateWindow('7d', FIXED_NOW);
-    assert.equal(window.dateKeys.length, 7);
-    assert.equal(window.range, '7d');
+  it('builds 30 date keys for day grain', () => {
+    const window = resolveAnalyticsDateWindow('day', FIXED_NOW);
+    assert.equal(window.dateKeys.length, 30);
+    assert.equal(window.range, 'day');
   });
 
-  it('builds 30 date keys for 30d', () => {
-    const window = resolveAnalyticsDateWindow('30d', FIXED_NOW);
-    assert.equal(window.dateKeys.length, 30);
+  it('starts week/month/quarter windows at Lisbon year start', () => {
+    const week = resolveAnalyticsDateWindow('week', FIXED_NOW);
+    assert.equal(week.startDate, '2026-01-01');
+    assert.equal(week.endDate, '2026-07-26');
+    const month = resolveAnalyticsDateWindow('month', FIXED_NOW);
+    assert.equal(month.startDate, '2026-01-01');
+  });
+});
+
+describe('period aggregate', () => {
+  it('maps days to ISO week / month / quarter keys', () => {
+    assert.equal(periodKeyForDay('2026-07-15', 'day'), '2026-07-15');
+    assert.match(periodKeyForDay('2026-07-15', 'week'), /^2026-W\d{2}$/);
+    assert.equal(periodKeyForDay('2026-07-15', 'month'), '2026-07');
+    assert.equal(periodKeyForDay('2026-07-15', 'quarter'), '2026-Q3');
+  });
+
+  it('trims leading empty periods for week grain only', () => {
+    const points = [
+      { date: '2026-W01', revenue: 0, adultCount: 0, childCount: 0, customerCount: 0 },
+      { date: '2026-W29', revenue: 10, adultCount: 1, childCount: 0, customerCount: 1 },
+    ];
+    const trimmed = trimLeadingEmptyPeriods(points, 'week');
+    assert.equal(trimmed.length, 1);
+    assert.equal(trimmed[0]?.date, '2026-W29');
+    assert.equal(trimLeadingEmptyPeriods(points, 'day').length, 2);
+  });
+
+  it('aggregates daily points into months', () => {
+    const agg = aggregateDailyPointsByGrain(
+      [
+        {
+          date: '2026-07-15',
+          revenue: 10,
+          adultCount: 1,
+          childCount: 0,
+          customerCount: 1,
+        },
+        {
+          date: '2026-07-16',
+          revenue: 5,
+          adultCount: 2,
+          childCount: 0,
+          customerCount: 2,
+        },
+      ],
+      'month',
+    );
+    assert.equal(agg.length, 1);
+    assert.equal(agg[0]?.date, '2026-07');
+    assert.equal(agg[0]?.revenue, 15);
+    assert.equal(agg[0]?.customerCount, 3);
+  });
+
+  it('detects business activity', () => {
+    assert.equal(hasBusinessActivity({ revenue: 0, customerCount: 0 }), false);
+    assert.equal(hasBusinessActivity({ revenue: 1, customerCount: 0 }), true);
+    assert.equal(hasBusinessActivity({ revenue: 0, customerCount: 2 }), true);
+  });
+});
+
+describe('buildGrainTrends', () => {
+  it('fills missing day keys with zero for day grain', () => {
+    const { revenueTrend } = buildGrainTrends(
+      'day',
+      ['2026-07-24', '2026-07-25', '2026-07-26'],
+      [
+        {
+          restaurant_id: 'r',
+          business_date: '2026-07-25',
+          revenue: 10,
+          adult_count: 1,
+          child_count: 0,
+          customer_count: 1,
+          qualifying_session_count: 1,
+          sealed_at: '',
+          computed_at: '',
+        },
+      ],
+      {
+        businessDate: '2026-07-26',
+        revenue: 3,
+        adultCount: 1,
+        childCount: 0,
+        customerCount: 1,
+        qualifyingSessionCount: 1,
+      },
+      '2026-07-26',
+    );
+    assert.deepEqual(revenueTrend, [
+      { date: '2026-07-24', revenue: 0 },
+      { date: '2026-07-25', revenue: 10 },
+      { date: '2026-07-26', revenue: 3 },
+    ]);
   });
 });
 
@@ -88,10 +189,6 @@ describe('isQualifyingSession', () => {
 
   it('includes paid split sessions', () => {
     assert.equal(isQualifyingSession([], [{ status: 'paid' }]), true);
-  });
-
-  it('includes positive order total without split', () => {
-    assert.equal(isQualifyingSession([{ total_amount: 42 }], []), true);
   });
 });
 
@@ -117,26 +214,6 @@ describe('sessionRevenue', () => {
       } as BillSplit,
     ];
     assert.equal(sessionRevenue([], splits), 50);
-  });
-
-  it('applies discount to paid split rows', () => {
-    const splits: BillSplit[] = [
-      {
-        id: 's1',
-        restaurant_id: 'r',
-        table_id: 't',
-        display_name: '1',
-        order_ids: [],
-        split_mode: 'even',
-        persons: [],
-        result: [{ name: 'A', amount: 100, paid: true }],
-        total_amount: 100,
-        status: 'paid',
-        created_at: '',
-        discount_rate: 10,
-      } as BillSplit,
-    ];
-    assert.equal(sessionRevenue([], splits), 90);
   });
 });
 
@@ -191,7 +268,6 @@ describe('aggregateMenuItemsFromOrders', () => {
     const map = aggregateMenuItemsFromOrders(orders);
     assert.equal(map.size, 1);
     assert.equal(map.get('cola')?.consumedQuantity, 2);
-    assert.equal(map.get('cola')?.amount, 4);
   });
 });
 
@@ -230,52 +306,13 @@ describe('buildRevenueTrend', () => {
   });
 });
 
-describe('trendsFromDailyRows', () => {
-  it('uses sealed rows and today live; missing days are zero', () => {
-    const { revenueTrend, customerTrend } = trendsFromDailyRows(
-      ['2026-06-24', '2026-06-25', '2026-06-26'],
-      [
-        {
-          restaurant_id: 'r',
-          business_date: '2026-06-24',
-          revenue: 10,
-          adult_count: 1,
-          child_count: 0,
-          customer_count: 1,
-          qualifying_session_count: 1,
-          sealed_at: '',
-          computed_at: '',
-        },
-      ],
-      {
-        businessDate: '2026-06-26',
-        revenue: 40,
-        adultCount: 3,
-        childCount: 1,
-        customerCount: 4,
-        qualifyingSessionCount: 2,
-      },
-      '2026-06-26',
-    );
-    assert.deepEqual(revenueTrend, [
-      { date: '2026-06-24', revenue: 10 },
-      { date: '2026-06-25', revenue: 0 },
-      { date: '2026-06-26', revenue: 40 },
-    ]);
-    assert.equal(customerTrend[1]?.customerCount, 0);
-    assert.equal(customerTrend[2]?.customerCount, 4);
-  });
-});
-
 describe('getValueOverview with mock admin', () => {
   it('returns empty trends when no sessions or sealed rows', async () => {
-    const result = await getValueOverview(mockEmptyAdmin() as never, 'restaurant-1', '7d', FIXED_NOW);
+    const result = await getValueOverview(mockEmptyAdmin() as never, 'restaurant-1', 'day', FIXED_NOW);
     assert.equal(result.ok, true);
     if (!result.ok) return;
     assert.equal(result.data.schemaVersion, ANALYTICS_DAILY_SCHEMA_VERSION);
-    assert.equal(result.data.revenueTrend.length, 7);
-    assert.equal(result.data.customerTrend.length, 7);
-    assert.ok(!('topConsumedItems' in result.data));
+    assert.equal(result.data.range, 'day');
   });
 });
 

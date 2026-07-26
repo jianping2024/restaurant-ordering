@@ -7,8 +7,10 @@ import {
 } from '@/lib/lisbon-calendar';
 
 export function parseAnalyticsRange(raw: string | null): AnalyticsRange | null {
-  if (!raw || raw === '7d') return '7d';
-  if (raw === '30d') return '30d';
+  if (!raw || raw === 'day') return 'day';
+  if (raw === 'week' || raw === 'month' || raw === 'quarter') return raw;
+  // Legacy bookmarks during transition
+  if (raw === '7d' || raw === '30d') return 'day';
   return null;
 }
 
@@ -28,14 +30,27 @@ export function resolveTodayLisbonWindow(now: Date = new Date()): TodayLisbonWin
   };
 }
 
+function lisbonYearStart(today: string): string {
+  return `${today.slice(0, 4)}-01-01`;
+}
+
+/**
+ * Resolve the max calendar window used to load/seal source days for a grain.
+ * Chart period trimming (first activity) happens after aggregation.
+ */
 export function resolveAnalyticsDateWindow(
   range: AnalyticsRange,
   now: Date = new Date(),
 ): AnalyticsDateWindow {
   const today = calendarDateInTimezone(now);
-  const daySpan = range === '7d' ? 6 : 29;
-  const startDate = addCalendarDays(today, -daySpan);
   const endDate = today;
+
+  let startDate: string;
+  if (range === 'day') {
+    startDate = addCalendarDays(today, -29);
+  } else {
+    startDate = lisbonYearStart(today);
+  }
 
   return {
     range,

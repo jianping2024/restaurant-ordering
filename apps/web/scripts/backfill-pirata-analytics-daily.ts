@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { fetchDistinctClosedBusinessDates } from '@/lib/analytics/analytics.repository';
 import { sealRestaurantBusinessDay } from '@/lib/analytics/daily-stats';
 import { PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID } from '@/lib/analytics/analytics.types';
-import { addCalendarDays, calendarDateInTimezone } from '@/lib/lisbon-calendar';
+import {
+  addCalendarDays,
+  calendarDateInTimezone,
+  lisbonDayStartUtcIso,
+} from '@/lib/lisbon-calendar';
 
 async function main() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -15,17 +20,27 @@ async function main() {
   });
 
   const today = calendarDateInTimezone(new Date());
-  const days: string[] = [];
-  for (let i = 30; i >= 1; i -= 1) {
-    days.push(addCalendarDays(today, -i));
+  const startDate = addCalendarDays(today, -30);
+  const endDate = addCalendarDays(today, -1);
+  const startUtc = lisbonDayStartUtcIso(startDate);
+  const endExclusiveUtc = lisbonDayStartUtcIso(today);
+
+  const closed = await fetchDistinctClosedBusinessDates(
+    admin,
+    PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID,
+    startUtc,
+    endExclusiveUtc,
+  );
+  if (!closed.ok) {
+    throw new Error(`${closed.code} ${closed.message || ''}`);
   }
 
   console.log(
-    `Sealing ${days.length} days for Pirata ${PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID} (today=${today})`,
+    `Sealing ${closed.dates.length} closed-session days for Pirata (window ${startDate}..${endDate}, today=${today})`,
   );
 
   let fail = 0;
-  for (const day of days) {
+  for (const day of closed.dates) {
     const result = await sealRestaurantBusinessDay(
       admin,
       PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID,
@@ -37,7 +52,7 @@ async function main() {
       continue;
     }
     console.log(
-      `OK ${day} revenue=${result.metrics.revenue} guests=${result.metrics.customerCount} sessions=${result.metrics.qualifyingSessionCount}`,
+      `OK ${day} written=${result.written} revenue=${result.metrics.revenue} guests=${result.metrics.customerCount}`,
     );
   }
 

@@ -487,9 +487,9 @@
 ### 正常流程
 
 1. 打开 `/dashboard/value-analytics`
-2. 选择 7 天 / 30 天（本地切片；历史 30 日一次加载）
-3. `GET /api/analytics/value-overview?range=30d`（组装：已封账日经营表 + 当日现算）
-4. 展示：区间 KPI、营业额趋势、客流趋势（高消耗/备货已下线）
+2. 选择 按日 / 按周 / 按月 / 按季
+3. `GET /api/analytics/value-overview?range=day|week|month|quarter`（日表历史 + 当日现算；懒轧账仅近 7 天有关台日）
+4. 展示：区间 KPI、营业额趋势、客流趋势
 
 ### 异常流程
 
@@ -506,8 +506,8 @@
 ### 验收标准
 
 - 仅统计 qualifying closed session；归属日 = Lisbon `closed_at`
-- 历史读 `analytics_daily_restaurant_stats`；当天现算
-- 客户端长缓存历史 30 日；切换 7/30 不重复拉历史
+- 历史读 `analytics_daily_restaurant_stats`（无营业不写行）；当天现算；懒轧账仅近 7 天有关台日
+- 客户端按粒度缓存；周/月/季从首个有数周期起展示
 
 ### 相关代码位置
 

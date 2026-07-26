@@ -1,9 +1,17 @@
-export type AnalyticsRange = '7d' | '30d';
+export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter';
 
-/** Bump when sealed daily metrics shape or seal rules change (client history cache). */
-export const ANALYTICS_DAILY_SCHEMA_VERSION = 1;
+export const ANALYTICS_RANGES: readonly AnalyticsRange[] = [
+  'day',
+  'week',
+  'month',
+  'quarter',
+] as const;
+
+/** Bump when sealed daily metrics shape, seal rules, or grain contract change. */
+export const ANALYTICS_DAILY_SCHEMA_VERSION = 2;
 
 export type RevenueTrendPoint = {
+  /** Period key: YYYY-MM-DD | YYYY-Www | YYYY-MM | YYYY-Qn */
   date: string;
   revenue: number;
 };
@@ -29,6 +37,7 @@ export type AnalyticsDateWindow = {
   endDate: string;
   startUtc: string;
   endExclusiveUtc: string;
+  /** Calendar day keys for the max fetch/seal window (not always chart points). */
   dateKeys: string[];
 };
 
@@ -61,6 +70,6 @@ export type MenuCategoryRow = {
 export const ANALYTICS_MAX_CLOSED_SESSIONS = 2000;
 export const ANALYTICS_QUERY_TIMEOUT_MS = 8_000;
 
-/** Pirata production restaurant — one-time historical backfill target. */
+/** Pirata production restaurant — optional backfill target. */
 export const PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID =
   '19ad30c9-6c10-4845-8c89-583f3898274d';

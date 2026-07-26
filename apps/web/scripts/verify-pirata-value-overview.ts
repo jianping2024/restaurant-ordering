@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { getValueOverview } from '@/lib/analytics/analytics.service';
-import { PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID } from '@/lib/analytics/analytics.types';
+import {
+  ANALYTICS_RANGES,
+  PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID,
+  type AnalyticsRange,
+} from '@/lib/analytics/analytics.types';
 
 async function main() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -11,41 +15,54 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const result = await getValueOverview(admin, PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID, '30d');
-  if (!result.ok) {
-    console.error(result);
+  const summary: Record<string, unknown> = {};
+
+  for (const range of ANALYTICS_RANGES) {
+    const result = await getValueOverview(admin, PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID, range);
+    if (!result.ok) {
+      console.error(range, result);
+      process.exit(1);
+    }
+
+    const total = result.data.revenueTrend.reduce((s, p) => s + p.revenue, 0);
+    const guests = result.data.customerTrend.reduce((s, p) => s + p.customerCount, 0);
+    summary[range] = {
+      schemaVersion: result.data.schemaVersion,
+      points: result.data.revenueTrend.length,
+      totalRevenue: Math.round(total * 100) / 100,
+      totalGuests: guests,
+      first: result.data.revenueTrend[0]?.date ?? null,
+      last: result.data.revenueTrend[result.data.revenueTrend.length - 1]?.date ?? null,
+      hasTop: 'topConsumedItems' in result.data,
+    };
+  }
+
+  console.log(JSON.stringify({ ok: true, summary }, null, 2));
+
+  const day = summary.day as { totalRevenue: number; points: number; hasTop: boolean };
+  if (day.points !== 30) {
+    console.error('FAIL: day grain should return 30 points');
+    process.exit(1);
+  }
+  if (day.totalRevenue < 40000) {
+    console.error('FAIL: expected day-window revenue well above truncated ~18k');
+    process.exit(1);
+  }
+  if (day.hasTop) {
+    console.error('FAIL: topConsumedItems should be cut from overview');
     process.exit(1);
   }
 
-  const total = result.data.revenueTrend.reduce((s, p) => s + p.revenue, 0);
-  const guests = result.data.customerTrend.reduce((s, p) => s + p.customerCount, 0);
-  const last = result.data.revenueTrend[result.data.revenueTrend.length - 1];
-  const peak = [...result.data.revenueTrend].sort((a, b) => b.revenue - a.revenue)[0];
-
-  console.log(
-    JSON.stringify(
-      {
-        ok: true,
-        schemaVersion: result.data.schemaVersion,
-        points: result.data.revenueTrend.length,
-        totalRevenue: Math.round(total * 100) / 100,
-        totalGuests: guests,
-        lastDay: last,
-        peakDay: peak,
-        hasTop: 'topConsumedItems' in result.data,
-      },
-      null,
-      2,
-    ),
-  );
-
-  if (total < 40000) {
-    console.error('FAIL: expected period revenue well above truncated ~18k');
-    process.exit(1);
-  }
-  if (peak && peak.revenue < 9000) {
-    console.error('FAIL: expected late-July peak near 10k+');
-    process.exit(1);
+  for (const range of ['week', 'month', 'quarter'] as AnalyticsRange[]) {
+    const row = summary[range] as { totalRevenue: number; points: number };
+    if (row.points < 1) {
+      console.error(`FAIL: ${range} should have at least one period with activity`);
+      process.exit(1);
+    }
+    if (row.totalRevenue < 40000) {
+      console.error(`FAIL: ${range} YTD revenue unexpectedly low`);
+      process.exit(1);
+    }
   }
 }
 

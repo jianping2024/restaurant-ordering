@@ -24,10 +24,13 @@ type Props = {
   initialLoadFailed?: boolean;
 };
 
+const GRAINS: AnalyticsRange[] = ['day', 'week', 'month', 'quarter'];
+
 function isOverviewEmpty(data: ValueOverviewResponse): boolean {
   return (
-    !data.revenueTrend.some((point) => point.revenue > 0) &&
-    !data.customerTrend.some((point) => point.customerCount > 0)
+    data.revenueTrend.length === 0 ||
+    (!data.revenueTrend.some((point) => point.revenue > 0) &&
+      !data.customerTrend.some((point) => point.customerCount > 0))
   );
 }
 
@@ -44,24 +47,14 @@ function formatMoney(value: number): string {
   return `€${value.toFixed(2)}`;
 }
 
-function sliceOverviewForRange(
-  overview: ValueOverviewResponse,
+function isUsableCache(
+  overview: ValueOverviewResponse | null,
   range: AnalyticsRange,
-): ValueOverviewResponse {
-  const dayCount = range === '7d' ? 7 : 30;
-  return {
-    ...overview,
-    range,
-    revenueTrend: overview.revenueTrend.slice(-dayCount),
-    customerTrend: overview.customerTrend.slice(-dayCount),
-  };
-}
-
-function isUsableHistoryCache(overview: ValueOverviewResponse | null): boolean {
+): boolean {
   return (
     overview != null &&
-    overview.schemaVersion === ANALYTICS_DAILY_SCHEMA_VERSION &&
-    overview.revenueTrend.length >= 30
+    overview.range === range &&
+    overview.schemaVersion === ANALYTICS_DAILY_SCHEMA_VERSION
   );
 }
 
@@ -115,92 +108,107 @@ export function ValueAnalyticsPageClient({
   const { lang } = useLanguage();
   const t = getMessages(lang).valueAnalytics;
 
-  const [range, setRange] = useState<AnalyticsRange>('7d');
-  /** One representation: full 30d sealed+today payload; UI range only slices. */
-  const [history30d, setHistory30d] = useState<ValueOverviewResponse | null>(() =>
-    isUsableHistoryCache(initialOverview) && !initialLoadFailed ? initialOverview : null,
+  const [range, setRange] = useState<AnalyticsRange>('day');
+  /** One representation: successful DTO per grain for this session. */
+  const [byRange, setByRange] = useState<Partial<Record<AnalyticsRange, ValueOverviewResponse>>>(
+    () =>
+      isUsableCache(initialOverview, 'day') && !initialLoadFailed && initialOverview
+        ? { day: initialOverview }
+        : {},
   );
-  const [viewState, setViewState] = useState<ViewState>(() => {
-    if (initialLoadFailed) return 'error';
-    if (!initialOverview) return 'empty';
-    const sliced = sliceOverviewForRange(initialOverview, '7d');
-    return resolveViewState(sliced, false);
-  });
+  const [viewState, setViewState] = useState<ViewState>(() =>
+    resolveViewState(
+      isUsableCache(initialOverview, 'day') ? initialOverview : null,
+      initialLoadFailed,
+    ),
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
-  const skipInitialFetch = useRef(isUsableHistoryCache(initialOverview) && !initialLoadFailed);
-  const historyRef = useRef(history30d);
-  historyRef.current = history30d;
+  const skipInitialFetch = useRef(isUsableCache(initialOverview, 'day') && !initialLoadFailed);
+  const byRangeRef = useRef(byRange);
+  byRangeRef.current = byRange;
 
-  const data = useMemo(() => {
-    if (!history30d) return null;
-    return sliceOverviewForRange(history30d, range);
-  }, [history30d, range]);
+  const data = byRange[range] ?? null;
 
-  const fetchHistory30d = useCallback(async (options?: { bypassCache?: boolean }) => {
-    if (skipInitialFetch.current && !options?.bypassCache) {
-      skipInitialFetch.current = false;
-      return;
-    }
-    if (!options?.bypassCache && isUsableHistoryCache(historyRef.current)) {
-      return;
-    }
+  const grainLabel = useCallback(
+    (grain: AnalyticsRange) => {
+      if (grain === 'day') return t.rangeDay;
+      if (grain === 'week') return t.rangeWeek;
+      if (grain === 'month') return t.rangeMonth;
+      return t.rangeQuarter;
+    },
+    [t],
+  );
 
-    setIsRefreshing(true);
-    setRefreshError(false);
-    try {
-      const refreshQs = options?.bypassCache ? '&refresh=1' : '';
-      const res = await fetch(`/api/analytics/value-overview?range=30d${refreshQs}`);
-      if (res.status === 403) {
-        setViewState('forbidden');
+  const fetchRange = useCallback(
+    async (targetRange: AnalyticsRange, options?: { bypassCache?: boolean }) => {
+      if (skipInitialFetch.current && targetRange === 'day' && !options?.bypassCache) {
+        skipInitialFetch.current = false;
         return;
       }
-      if (!res.ok) {
-        if (historyRef.current) {
+      if (!options?.bypassCache && isUsableCache(byRangeRef.current[targetRange] ?? null, targetRange)) {
+        const cached = byRangeRef.current[targetRange]!;
+        setViewState(resolveViewState(cached, false));
+        return;
+      }
+
+      setIsRefreshing(true);
+      setRefreshError(false);
+      try {
+        const refreshQs = options?.bypassCache ? '&refresh=1' : '';
+        const res = await fetch(
+          `/api/analytics/value-overview?range=${targetRange}${refreshQs}`,
+        );
+        if (res.status === 403) {
+          setViewState('forbidden');
+          return;
+        }
+        if (!res.ok) {
+          if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
+            setRefreshError(true);
+            return;
+          }
+          setViewState('error');
+          return;
+        }
+        const json = (await res.json()) as ValueOverviewResponse;
+        if (json.schemaVersion !== ANALYTICS_DAILY_SCHEMA_VERSION) {
+          setViewState('error');
+          return;
+        }
+        setByRange((prev) => ({ ...prev, [targetRange]: json }));
+        setViewState(resolveViewState(json, false));
+      } catch {
+        if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
           setRefreshError(true);
           return;
         }
         setViewState('error');
-        return;
+      } finally {
+        setIsRefreshing(false);
       }
-      const json = (await res.json()) as ValueOverviewResponse;
-      if (json.schemaVersion !== ANALYTICS_DAILY_SCHEMA_VERSION) {
-        setViewState('error');
-        return;
-      }
-      setHistory30d(json);
-    } catch {
-      if (historyRef.current) {
-        setRefreshError(true);
-        return;
-      }
-      setViewState('error');
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    void fetchHistory30d();
-  }, [fetchHistory30d]);
-
-  useEffect(() => {
-    if (!history30d) return;
-    setViewState((prev) => {
-      if (prev === 'forbidden') return prev;
-      return resolveViewState(sliceOverviewForRange(history30d, range), false);
-    });
-  }, [history30d, range]);
+    void fetchRange(range);
+  }, [range, fetchRange]);
 
   const retry = useCallback(() => {
     setRefreshError(false);
-    setHistory30d(null);
-    void fetchHistory30d({ bypassCache: true });
-  }, [fetchHistory30d]);
+    setByRange((prev) => {
+      const next = { ...prev };
+      delete next[range];
+      return next;
+    });
+    void fetchRange(range, { bypassCache: true });
+  }, [fetchRange, range]);
 
   const revenuePoints = useMemo(
-    () => (data ? buildTrendChartPoints(data.revenueTrend, (row) => row.revenue) : []),
-    [data],
+    () =>
+      data ? buildTrendChartPoints(data.revenueTrend, range, (row) => row.revenue) : [],
+    [data, range],
   );
 
   const customerPoints = useMemo(
@@ -208,11 +216,12 @@ export function ValueAnalyticsPageClient({
       data
         ? buildTrendChartPoints(
             data.customerTrend,
+            range,
             (row) => row.customerCount,
             (row) => ({ adultCount: row.adultCount, childCount: row.childCount }),
           )
         : [],
-    [data],
+    [data, range],
   );
 
   const kpiItems = useMemo((): KpiItem[] => {
@@ -278,22 +287,17 @@ export function ValueAnalyticsPageClient({
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-1">
-            <button
-              type="button"
-              className={presetBtnClass(range === '7d', isRefreshing)}
-              onClick={() => setRange('7d')}
-              disabled={isRefreshing}
-            >
-              {t.range7d}
-            </button>
-            <button
-              type="button"
-              className={presetBtnClass(range === '30d', isRefreshing)}
-              onClick={() => setRange('30d')}
-              disabled={isRefreshing}
-            >
-              {t.range30d}
-            </button>
+            {GRAINS.map((grain) => (
+              <button
+                key={grain}
+                type="button"
+                className={presetBtnClass(range === grain, isRefreshing)}
+                onClick={() => setRange(grain)}
+                disabled={isRefreshing}
+              >
+                {grainLabel(grain)}
+              </button>
+            ))}
           </div>
         </div>
         {refreshError ? (

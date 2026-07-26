@@ -1,4 +1,8 @@
-import type { AnalyticsRange, AnalyticsDateWindow } from '@/lib/analytics/analytics.types';
+import {
+  ANALYTICS_RANGES,
+  type AnalyticsRange,
+  type AnalyticsDateWindow,
+} from '@/lib/analytics/analytics.types';
 import {
   addCalendarDays,
   buildDateKeySeries,
@@ -6,9 +10,11 @@ import {
   lisbonDayStartUtcIso,
 } from '@/lib/lisbon-calendar';
 
+const ANALYTICS_RANGE_SET = new Set<string>(ANALYTICS_RANGES);
+
 export function parseAnalyticsRange(raw: string | null): AnalyticsRange | null {
-  if (!raw || raw === 'day') return 'day';
-  if (raw === 'week' || raw === 'month' || raw === 'quarter') return raw;
+  if (!raw) return 'day';
+  if (ANALYTICS_RANGE_SET.has(raw)) return raw as AnalyticsRange;
   // Legacy bookmarks during transition
   if (raw === '7d' || raw === '30d') return 'day';
   return null;

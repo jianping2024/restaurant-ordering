@@ -57,40 +57,46 @@ function chunkIds(ids: string[]): string[][] {
 /** PostgREST page size; must stay ≤ platform max-rows to avoid silent truncation. */
 export const ANALYTICS_FETCH_PAGE_SIZE = 1000;
 
-export async function fetchClosedSessionsInWindow(
+async function paginateClosedSessionsInWindow<T>(
   admin: SupabaseClient,
   restaurantId: string,
   startUtc: string,
   endExclusiveUtc: string,
-): Promise<{ ok: true; sessions: ClosedSessionRow[] } | AnalyticsQueryError> {
+  select: string,
+  options?: { orderById?: boolean },
+): Promise<{ ok: true; rows: T[] } | AnalyticsQueryError> {
   try {
-    const sessions: ClosedSessionRow[] = [];
+    const rows: T[] = [];
     let from = 0;
 
     for (;;) {
       const to = from + ANALYTICS_FETCH_PAGE_SIZE - 1;
-      const { data, error } = (await withAnalyticsQueryTimeout(
-        admin
-          .from('table_sessions')
-          .select('id, closed_at, closed_reason')
-          .eq('restaurant_id', restaurantId)
-          .eq('status', 'closed')
-          .not('closed_at', 'is', null)
-          .gte('closed_at', startUtc)
-          .lt('closed_at', endExclusiveUtc)
-          .order('closed_at', { ascending: true })
-          .order('id', { ascending: true })
-          .range(from, to),
-      )) as { data: ClosedSessionRow[] | null; error: { message: string } | null };
+      let query = admin
+        .from('table_sessions')
+        .select(select)
+        .eq('restaurant_id', restaurantId)
+        .eq('status', 'closed')
+        .not('closed_at', 'is', null)
+        .gte('closed_at', startUtc)
+        .lt('closed_at', endExclusiveUtc)
+        .order('closed_at', { ascending: true });
+      if (options?.orderById) {
+        query = query.order('id', { ascending: true });
+      }
+
+      const { data, error } = (await withAnalyticsQueryTimeout(query.range(from, to))) as {
+        data: T[] | null;
+        error: { message: string } | null;
+      };
 
       if (error) {
         return { ok: false, code: 'query_failed', message: error.message };
       }
 
-      const page = (data || []) as ClosedSessionRow[];
-      sessions.push(...page);
+      const page = (data || []) as T[];
+      rows.push(...page);
 
-      if (sessions.length > ANALYTICS_MAX_CLOSED_SESSIONS) {
+      if (rows.length > ANALYTICS_MAX_CLOSED_SESSIONS) {
         return { ok: false, code: 'query_limit_exceeded' };
       }
       if (page.length < ANALYTICS_FETCH_PAGE_SIZE) {
@@ -99,7 +105,7 @@ export async function fetchClosedSessionsInWindow(
       from += ANALYTICS_FETCH_PAGE_SIZE;
     }
 
-    return { ok: true, sessions };
+    return { ok: true, rows };
   } catch (err) {
     const message = err instanceof Error ? err.message : 'query_failed';
     if (message === 'analytics_query_timeout') {
@@ -107,6 +113,24 @@ export async function fetchClosedSessionsInWindow(
     }
     return { ok: false, code: 'query_failed', message };
   }
+}
+
+export async function fetchClosedSessionsInWindow(
+  admin: SupabaseClient,
+  restaurantId: string,
+  startUtc: string,
+  endExclusiveUtc: string,
+): Promise<{ ok: true; sessions: ClosedSessionRow[] } | AnalyticsQueryError> {
+  const result = await paginateClosedSessionsInWindow<ClosedSessionRow>(
+    admin,
+    restaurantId,
+    startUtc,
+    endExclusiveUtc,
+    'id, closed_at, closed_reason',
+    { orderById: true },
+  );
+  if (!result.ok) return result;
+  return { ok: true, sessions: result.rows };
 }
 
 /**
@@ -119,55 +143,21 @@ export async function fetchDistinctClosedBusinessDates(
   startUtc: string,
   endExclusiveUtc: string,
 ): Promise<{ ok: true; dates: string[] } | AnalyticsQueryError> {
-  try {
-    const dates = new Set<string>();
-    let from = 0;
-    let scanned = 0;
+  const result = await paginateClosedSessionsInWindow<{ closed_at: string | null }>(
+    admin,
+    restaurantId,
+    startUtc,
+    endExclusiveUtc,
+    'closed_at',
+  );
+  if (!result.ok) return result;
 
-    for (;;) {
-      const to = from + ANALYTICS_FETCH_PAGE_SIZE - 1;
-      const { data, error } = (await withAnalyticsQueryTimeout(
-        admin
-          .from('table_sessions')
-          .select('closed_at')
-          .eq('restaurant_id', restaurantId)
-          .eq('status', 'closed')
-          .not('closed_at', 'is', null)
-          .gte('closed_at', startUtc)
-          .lt('closed_at', endExclusiveUtc)
-          .order('closed_at', { ascending: true })
-          .range(from, to),
-      )) as { data: Array<{ closed_at: string | null }> | null; error: { message: string } | null };
-
-      if (error) {
-        return { ok: false, code: 'query_failed', message: error.message };
-      }
-
-      const page = data || [];
-      scanned += page.length;
-      if (scanned > ANALYTICS_MAX_CLOSED_SESSIONS) {
-        return { ok: false, code: 'query_limit_exceeded' };
-      }
-
-      for (const row of page) {
-        if (!row.closed_at) continue;
-        dates.add(sessionDateKeyFromIso(row.closed_at));
-      }
-
-      if (page.length < ANALYTICS_FETCH_PAGE_SIZE) {
-        break;
-      }
-      from += ANALYTICS_FETCH_PAGE_SIZE;
-    }
-
-    return { ok: true, dates: Array.from(dates).sort() };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'query_failed';
-    if (message === 'analytics_query_timeout') {
-      return { ok: false, code: 'query_limit_exceeded' };
-    }
-    return { ok: false, code: 'query_failed', message };
+  const dates = new Set<string>();
+  for (const row of result.rows) {
+    if (!row.closed_at) continue;
+    dates.add(sessionDateKeyFromIso(row.closed_at));
   }
+  return { ok: true, dates: Array.from(dates).sort() };
 }
 
 async function fetchAllRowsForSessionChunk<T extends { session_id?: string | null }>(

@@ -8,6 +8,7 @@ import { buildGrainTrends } from '@/lib/analytics/daily-stats';
 import {
   aggregateDailyPointsByGrain,
   hasBusinessActivity,
+  isValueOverviewEmpty,
   periodKeyForDay,
   trimLeadingEmptyPeriods,
 } from '@/lib/analytics/period-aggregate';
@@ -143,6 +144,20 @@ describe('period aggregate', () => {
     assert.equal(hasBusinessActivity({ revenue: 0, customerCount: 0 }), false);
     assert.equal(hasBusinessActivity({ revenue: 1, customerCount: 0 }), true);
     assert.equal(hasBusinessActivity({ revenue: 0, customerCount: 2 }), true);
+    assert.equal(
+      isValueOverviewEmpty({
+        revenueTrend: [{ date: 'a', revenue: 0 }],
+        customerTrend: [{ date: 'a', customerCount: 0, adultCount: 0, childCount: 0 }],
+      }),
+      true,
+    );
+    assert.equal(
+      isValueOverviewEmpty({
+        revenueTrend: [{ date: 'a', revenue: 1 }],
+        customerTrend: [{ date: 'a', customerCount: 0, adultCount: 0, childCount: 0 }],
+      }),
+      false,
+    );
   });
 });
 

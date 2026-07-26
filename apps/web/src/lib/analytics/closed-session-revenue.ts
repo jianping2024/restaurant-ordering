@@ -113,24 +113,6 @@ export async function loadClosedSessionRevenueBundle(
   };
 }
 
-export function revenueTrendFromBundle(
-  dateKeys: string[],
-  bundle: ClosedSessionRevenueBundle,
-) {
-  const qualifying = filterQualifyingClosedSessions(
-    bundle.sessions,
-    bundle.ordersBySession,
-    bundle.splitsBySession,
-  );
-  return buildRevenueTrend(
-    dateKeys,
-    qualifying,
-    bundle.ordersBySession,
-    bundle.splitsBySession,
-    bundle.forcedClosedSessionIds,
-  );
-}
-
 export function revenueSessionCountForDateKey(
   bundle: ClosedSessionRevenueBundle,
   dateKey: string,
@@ -153,6 +135,21 @@ export function revenueSessionCountForDateKey(
   return count;
 }
 
+/** Qualifying closed sessions → daily revenue series for the given Lisbon date keys. */
+export function revenueTrendFromQualifying(
+  dateKeys: string[],
+  bundle: ClosedSessionRevenueBundle,
+  qualifying: ClosedSessionRow[],
+) {
+  return buildRevenueTrend(
+    dateKeys,
+    qualifying,
+    bundle.ordersBySession,
+    bundle.splitsBySession,
+    bundle.forcedClosedSessionIds,
+  );
+}
+
 export function todayRevenueFromBundle(
   bundle: ClosedSessionRevenueBundle,
   todayDateKey: string,
@@ -162,13 +159,7 @@ export function todayRevenueFromBundle(
     bundle.ordersBySession,
     bundle.splitsBySession,
   );
-  const trend = buildRevenueTrend(
-    [todayDateKey],
-    qualifying,
-    bundle.ordersBySession,
-    bundle.splitsBySession,
-    bundle.forcedClosedSessionIds,
-  );
+  const trend = revenueTrendFromQualifying([todayDateKey], bundle, qualifying);
   return {
     todayRevenue: trend[0]?.revenue ?? 0,
     revenueSessionCount: revenueSessionCountForDateKey(bundle, todayDateKey, qualifying),

@@ -1,5 +1,4 @@
 import { auditMoney } from '@/lib/audit/money';
-import type { MenuItemAgg } from '@/lib/analytics/aggregate-items';
 import type {
   AnalyticsItemOrder,
   AnalyticsRevenueOrder,
@@ -7,10 +6,7 @@ import type {
 import type {
   ClosedSessionRow,
   CustomerTrendPoint,
-  MenuCategoryRow,
   RevenueTrendPoint,
-  StockReferenceItem,
-  TopConsumedItem,
 } from '@/lib/analytics/analytics.types';
 import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
 import { sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
@@ -71,52 +67,4 @@ export function buildCustomerTrend(
       customerCount: adultCount + childCount,
     };
   });
-}
-
-function localizedCategoryFields(
-  cat: MenuCategoryRow | undefined,
-): Pick<TopConsumedItem, 'categoryPt' | 'categoryEn' | 'categoryZh'> {
-  return {
-    categoryPt: cat?.category || '—',
-    categoryEn: cat?.category_en ?? null,
-    categoryZh: cat?.category_zh ?? null,
-  };
-}
-
-function baseItemFields(
-  row: MenuItemAgg,
-  index: number,
-  categories: Map<string, MenuCategoryRow>,
-) {
-  return {
-    rank: index + 1,
-    itemId: row.itemId,
-    namePt: row.namePt,
-    nameEn: row.nameEn,
-    nameZh: row.nameZh,
-    ...localizedCategoryFields(categories.get(row.itemId)),
-  };
-}
-
-export function mapTopConsumedItems(
-  ranked: MenuItemAgg[],
-  categories: Map<string, MenuCategoryRow>,
-): TopConsumedItem[] {
-  return ranked.map((row, index) => ({
-    ...baseItemFields(row, index, categories),
-    consumedQuantity: row.consumedQuantity,
-    amount: row.amount,
-  }));
-}
-
-export function mapStockReferenceItems(
-  ranked: MenuItemAgg[],
-  categories: Map<string, MenuCategoryRow>,
-): StockReferenceItem[] {
-  return ranked.map((row, index) => ({
-    ...baseItemFields(row, index, categories),
-    consumedQuantity7d: row.consumedQuantity,
-    amount7d: row.amount,
-    tag: '备货参考' as const,
-  }));
 }

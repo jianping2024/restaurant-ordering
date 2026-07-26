@@ -1,5 +1,8 @@
 export type AnalyticsRange = '7d' | '30d';
 
+/** Bump when sealed daily metrics shape or seal rules change (client history cache). */
+export const ANALYTICS_DAILY_SCHEMA_VERSION = 1;
+
 export type RevenueTrendPoint = {
   date: string;
   revenue: number;
@@ -12,40 +15,11 @@ export type CustomerTrendPoint = {
   childCount: number;
 };
 
-export type TopConsumedItem = {
-  rank: number;
-  itemId: string;
-  namePt: string;
-  nameEn?: string | null;
-  nameZh?: string | null;
-  categoryPt: string;
-  categoryEn?: string | null;
-  categoryZh?: string | null;
-  consumedQuantity: number;
-  amount: number;
-};
-
-export type StockReferenceItem = {
-  rank: number;
-  itemId: string;
-  namePt: string;
-  nameEn?: string | null;
-  nameZh?: string | null;
-  categoryPt: string;
-  categoryEn?: string | null;
-  categoryZh?: string | null;
-  consumedQuantity7d: number;
-  amount7d: number;
-  tag: '备货参考';
-};
-
 export type ValueOverviewResponse = {
   range: AnalyticsRange;
+  schemaVersion: number;
   revenueTrend: RevenueTrendPoint[];
   customerTrend: CustomerTrendPoint[];
-  topConsumedItems: TopConsumedItem[];
-  stockReferenceItems: StockReferenceItem[];
-  disclaimer: string;
 };
 
 export type AnalyticsDateWindow = {
@@ -65,6 +39,18 @@ export type ClosedSessionRow = {
   closed_reason?: string | null;
 };
 
+export type AnalyticsDailyRestaurantStatRow = {
+  restaurant_id: string;
+  business_date: string;
+  revenue: number;
+  adult_count: number;
+  child_count: number;
+  customer_count: number;
+  qualifying_session_count: number;
+  sealed_at: string;
+  computed_at: string;
+};
+
 export type MenuCategoryRow = {
   id: string;
   category: string;
@@ -72,8 +58,9 @@ export type MenuCategoryRow = {
   category_zh?: string | null;
 };
 
-export const STOCK_REFERENCE_DISCLAIMER_ZH =
-  '备货参考仅根据最近 7 天订单消耗生成，不等同于实际库存建议。';
-
 export const ANALYTICS_MAX_CLOSED_SESSIONS = 2000;
 export const ANALYTICS_QUERY_TIMEOUT_MS = 8_000;
+
+/** Pirata production restaurant — one-time historical backfill target. */
+export const PIRATA_ANALYTICS_BACKFILL_RESTAURANT_ID =
+  '19ad30c9-6c10-4845-8c89-583f3898274d';

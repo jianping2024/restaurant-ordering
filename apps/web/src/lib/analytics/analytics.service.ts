@@ -1,62 +1,27 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import type {
   AnalyticsRange,
-  ClosedSessionRow,
   ValueOverviewResponse,
 } from '@/lib/analytics/analytics.types';
-import { STOCK_REFERENCE_DISCLAIMER_ZH } from '@/lib/analytics/analytics.types';
+import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import {
-  fetchItemOrdersBySessionIds,
-  fetchMenuCategoriesByItemIds,
-  groupOrdersBySession,
-  type AnalyticsItemOrder,
-} from '@/lib/analytics/analytics.repository';
-import {
-  filterQualifyingClosedSessions,
-  loadClosedSessionRevenueBundle,
-  revenueTrendFromBundle,
-} from '@/lib/analytics/closed-session-revenue';
-import {
-  buildCustomerTrend,
-  mapStockReferenceItems,
-  mapTopConsumedItems,
-} from '@/lib/analytics/build-overview';
+  computeRestaurantBusinessDayMetrics,
+  emptyTrends,
+  ensureSealedHistoricalDays,
+  fetchDailyRestaurantStats,
+  trendsFromDailyRows,
+} from '@/lib/analytics/daily-stats';
 import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
-import { isIsoInWindow } from '@/lib/lisbon-calendar';
+import { addCalendarDays } from '@/lib/lisbon-calendar';
 
 export type GetValueOverviewResult =
   | { ok: true; data: ValueOverviewResponse }
   | { ok: false; code: 'query_limit_exceeded' | 'query_failed'; message?: string };
 
-function collectOrdersForSessions(
-  sessions: ClosedSessionRow[],
-  ordersBySession: Map<string, AnalyticsItemOrder[]>,
-): AnalyticsItemOrder[] {
-  const orders: AnalyticsItemOrder[] = [];
-  for (const session of sessions) {
-    const list = ordersBySession.get(session.id);
-    if (list) orders.push(...list);
-  }
-  return orders;
-}
-
-function emptyOverview(range: AnalyticsRange, dateKeys: string[]): ValueOverviewResponse {
-  return {
-    range,
-    revenueTrend: dateKeys.map((date) => ({ date, revenue: 0 })),
-    customerTrend: dateKeys.map((date) => ({
-      date,
-      customerCount: 0,
-      adultCount: 0,
-      childCount: 0,
-    })),
-    topConsumedItems: [],
-    stockReferenceItems: [],
-    disclaimer: STOCK_REFERENCE_DISCLAIMER_ZH,
-  };
-}
-
+/**
+ * Value overview: sealed daily rows for history + live compute for Lisbon today.
+ * Missing sealed days read as 0. Top/stock modules removed from this surface.
+ */
 export async function getValueOverview(
   admin: SupabaseClient,
   restaurantId: string,
@@ -64,78 +29,65 @@ export async function getValueOverview(
   now: Date = new Date(),
 ): Promise<GetValueOverviewResult> {
   const window = resolveAnalyticsDateWindow(range, now);
-  const window7 = resolveAnalyticsDateWindow('7d', now);
+  const historicalEnd =
+    window.startDate < window.today
+      ? addCalendarDays(window.today, -1)
+      : window.startDate;
 
-  const bundleResult = await loadClosedSessionRevenueBundle(
+  await ensureSealedHistoricalDays(admin, restaurantId, window.dateKeys, window.today);
+
+  const sealedResult =
+    window.startDate < window.today
+      ? await fetchDailyRestaurantStats(
+          admin,
+          restaurantId,
+          window.startDate,
+          historicalEnd,
+        )
+      : { ok: true as const, rows: [] };
+
+  if (!sealedResult.ok) {
+    return { ok: false, code: sealedResult.code, message: sealedResult.message };
+  }
+
+  const todayLive = await computeRestaurantBusinessDayMetrics(
     admin,
     restaurantId,
-    window.startUtc,
-    window.endExclusiveUtc,
+    window.today,
   );
-  if (!bundleResult.ok) {
-    return { ok: false, code: bundleResult.code, message: bundleResult.message };
+  if (!todayLive.ok) {
+    return { ok: false, code: todayLive.code, message: todayLive.message };
   }
 
-  const { bundle } = bundleResult;
-  if (bundle.sessions.length === 0) {
-    return { ok: true, data: emptyOverview(range, window.dateKeys) };
-  }
-
-  const qualifying = filterQualifyingClosedSessions(
-    bundle.sessions,
-    bundle.ordersBySession,
-    bundle.splitsBySession,
+  const { revenueTrend, customerTrend } = trendsFromDailyRows(
+    window.dateKeys,
+    sealedResult.rows,
+    todayLive.metrics,
+    window.today,
   );
 
-  const revenueTrend = revenueTrendFromBundle(window.dateKeys, bundle);
-
-  if (qualifying.length === 0) {
+  if (
+    revenueTrend.every((point) => point.revenue === 0) &&
+    customerTrend.every((point) => point.customerCount === 0)
+  ) {
+    const empty = emptyTrends(window.dateKeys);
     return {
       ok: true,
       data: {
-        ...emptyOverview(range, window.dateKeys),
-        revenueTrend,
+        range,
+        schemaVersion: ANALYTICS_DAILY_SCHEMA_VERSION,
+        ...empty,
       },
     };
   }
-
-  // Atomic: item fetch failure fails the whole overview (no half DTO / no cache of partial).
-  const itemOrdersResult = await fetchItemOrdersBySessionIds(
-    admin,
-    restaurantId,
-    qualifying.map((session) => session.id),
-  );
-  if (!itemOrdersResult.ok) {
-    return { ok: false, code: itemOrdersResult.code, message: itemOrdersResult.message };
-  }
-
-  const itemsBySession = groupOrdersBySession(itemOrdersResult.rows);
-
-  const qualifying7d = qualifying.filter(
-    (session) =>
-      session.closed_at && isIsoInWindow(session.closed_at, window7.startUtc, window7.endExclusiveUtc),
-  );
-
-  const customerTrend = buildCustomerTrend(window.dateKeys, qualifying, itemsBySession);
-
-  const rangeOrders = collectOrdersForSessions(qualifying, itemsBySession);
-  const stockOrders = collectOrdersForSessions(qualifying7d, itemsBySession);
-
-  const rangeRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(rangeOrders), 10);
-  const stockRanked = rankMenuItemAggs(aggregateMenuItemsFromOrders(stockOrders), 5);
-
-  const itemIds = Array.from(new Set([...rangeRanked, ...stockRanked].map((row) => row.itemId)));
-  const categories = await fetchMenuCategoriesByItemIds(admin, restaurantId, itemIds);
 
   return {
     ok: true,
     data: {
       range,
+      schemaVersion: ANALYTICS_DAILY_SCHEMA_VERSION,
       revenueTrend,
       customerTrend,
-      topConsumedItems: mapTopConsumedItems(rangeRanked, categories),
-      stockReferenceItems: mapStockReferenceItems(stockRanked, categories),
-      disclaimer: STOCK_REFERENCE_DISCLAIMER_ZH,
     },
   };
 }

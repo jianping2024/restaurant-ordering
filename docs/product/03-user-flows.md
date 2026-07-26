@@ -487,9 +487,9 @@
 ### 正常流程
 
 1. 打开 `/dashboard/value-analytics`
-2. 选择 7 天 / 30 天
-3. `GET /api/analytics/value-overview?range=7d|30d`
-4. 展示：营业额趋势、客单趋势、热销菜、备货参考（固定近 7 天）
+2. 选择 7 天 / 30 天（本地切片；历史 30 日一次加载）
+3. `GET /api/analytics/value-overview?range=30d`（组装：已封账日经营表 + 当日现算）
+4. 展示：区间 KPI、营业额趋势、客流趋势（高消耗/备货已下线）
 
 ### 异常流程
 
@@ -497,21 +497,21 @@
 |------|------|
 | 非 owner | 403 / 重定向 |
 | 查询超限 | `query_limit_exceeded` |
-| 无符合条件会话 | 空图表 |
+| 无符合条件会话 | 空图表；缺日按 0 |
 
 ### 状态变化
 
-只读，无 DB 写入。
+只读展示；日经营表由服务端封账/回填写入，不经关台热路径。
 
 ### 验收标准
 
-- 仅统计 `closed` 且符合条件的 session（有 paid split 或 order total>0）
-- 归属日 = Lisbon 时区 `closed_at` 自然日
-- 备货参考始终 7 天，与页面 range 无关
+- 仅统计 qualifying closed session；归属日 = Lisbon `closed_at`
+- 历史读 `analytics_daily_restaurant_stats`；当天现算
+- 客户端长缓存历史 30 日；切换 7/30 不重复拉历史
 
 ### 相关代码位置
 
-`components/dashboard/ValueAnalyticsPageClient.tsx`、`lib/analytics/analytics.service.ts`、`lib/analytics/value-overview-cache.ts`、`api/analytics/value-overview/route.ts`、`docs/value-analytics-design.zh.md`
+`components/dashboard/ValueAnalyticsPageClient.tsx`、`lib/analytics/analytics.service.ts`、`lib/analytics/daily-stats.ts`、`api/analytics/value-overview/route.ts`
 
 ---
 

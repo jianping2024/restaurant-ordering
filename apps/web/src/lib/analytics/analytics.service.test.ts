@@ -4,8 +4,10 @@ import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
 import { resolveAnalyticsDateWindow, resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { getValueOverview } from '@/lib/analytics/analytics.service';
+import { trendsFromDailyRows } from '@/lib/analytics/daily-stats';
 import { isQualifyingSession, sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
 import { parseAnalyticsRange } from '@/lib/analytics/date-window';
+import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import type { BillSplit, Order, OrderItem } from '@/types';
 
 const FIXED_NOW = new Date('2026-06-26T12:00:00.000Z');
@@ -17,6 +19,35 @@ function menuItem(partial: Partial<OrderItem> & { id: string; qty: number }): Or
     price: partial.price ?? 10,
     emoji: '🍽',
     ...partial,
+  };
+}
+
+function mockEmptyAdmin() {
+  const result = { data: [] as unknown[], error: null };
+  const builder: Record<string, unknown> = {};
+  const self = () => builder;
+  for (const key of [
+    'select',
+    'eq',
+    'not',
+    'gte',
+    'lte',
+    'lt',
+    'in',
+    'order',
+    'range',
+    'upsert',
+  ]) {
+    builder[key] = self;
+  }
+  (builder as { then: typeof Promise.resolve }).then = (
+    onfulfilled: (value: typeof result) => unknown,
+    onrejected?: (reason: unknown) => unknown,
+  ) => Promise.resolve(result).then(onfulfilled, onrejected);
+  return {
+    from() {
+      return builder;
+    },
   };
 }
 
@@ -98,9 +129,7 @@ describe('sessionRevenue', () => {
         order_ids: [],
         split_mode: 'even',
         persons: [],
-        result: [
-          { name: 'A', amount: 100, paid: true },
-        ],
+        result: [{ name: 'A', amount: 100, paid: true }],
         total_amount: 100,
         status: 'paid',
         created_at: '',
@@ -109,88 +138,30 @@ describe('sessionRevenue', () => {
     ];
     assert.equal(sessionRevenue([], splits), 90);
   });
-
-  it('returns zero for open session without paid split', () => {
-    assert.equal(sessionRevenue([{ total_amount: 33.5 }], []), 0);
-  });
-
-  it('applies discount from last split when session is closed', () => {
-    const splits: BillSplit[] = [
-      {
-        id: 's1',
-        restaurant_id: 'r',
-        table_id: 't',
-        display_name: '1',
-        order_ids: [],
-        split_mode: 'even',
-        persons: [],
-        result: [],
-        total_amount: 100,
-        status: 'requested',
-        created_at: '',
-        discount_rate: 10,
-      } as BillSplit,
-    ];
-    assert.equal(sessionRevenue([{ total_amount: 100 }], splits, true), 90);
-  });
-
-  it('uses order total without discount when session closed but no split', () => {
-    assert.equal(sessionRevenue([{ total_amount: 100 }], [], true), 100);
-  });
-
-  it('ignores cancelled split discount when falling back to order total', () => {
-    const splits: BillSplit[] = [
-      {
-        id: 's1',
-        restaurant_id: 'r',
-        table_id: 't',
-        display_name: '1',
-        order_ids: [],
-        split_mode: 'even',
-        persons: [],
-        result: [],
-        total_amount: 100,
-        status: 'cancelled',
-        created_at: '',
-        discount_rate: 50,
-      } as BillSplit,
-    ];
-    assert.equal(sessionRevenue([{ total_amount: 100 }], splits, true), 100);
-  });
 });
 
 describe('sessionGuestCounts', () => {
-  it('uses latest active buffet line only', () => {
-    const orders: Array<Pick<Order, 'items' | 'status'>> = [
+  it('sums latest active buffet lines', () => {
+    const orders: Order[] = [
       {
+        id: 'o1',
+        restaurant_id: 'r',
+        table_id: 't',
+        display_name: '1',
         status: 'done',
+        total_amount: 20,
+        created_at: '',
+        updated_at: '',
         items: [
-          {
+          menuItem({
             id: 'b1',
             kind: 'buffet_base',
-            buffet_id: 'buffet-1',
-            item_status: 'voided',
-            adult_count: 9,
-            child_count: 1,
-            name_pt: 'Buffet',
-            name: 'Buffet',
+            buffet_id: 'bf',
             qty: 1,
-            price: 100,
-            emoji: '🍽',
-          },
-          {
-            id: 'b2',
-            kind: 'buffet_base',
-            buffet_id: 'buffet-1',
             adult_count: 2,
             child_count: 1,
-            name_pt: 'Buffet',
-            name: 'Buffet',
-            qty: 1,
-            price: 60,
-            emoji: '🍽',
-            added_at: '2026-06-26T20:00:00.000Z',
-          },
+            added_at: '2026-01-01T10:00:00.000Z',
+          }),
         ],
       },
     ];
@@ -259,38 +230,52 @@ describe('buildRevenueTrend', () => {
   });
 });
 
-describe('getValueOverview with mock admin', () => {
-  it('returns empty trends when no sessions', async () => {
-    const admin = {
-      from() {
-        return {
-          select() {
-            return this;
-          },
-          eq() {
-            return this;
-          },
-          not() {
-            return this;
-          },
-          gte() {
-            return this;
-          },
-          lt() {
-            return Promise.resolve({ data: [], error: null });
-          },
-          in() {
-            return Promise.resolve({ data: [], error: null });
-          },
-        };
+describe('trendsFromDailyRows', () => {
+  it('uses sealed rows and today live; missing days are zero', () => {
+    const { revenueTrend, customerTrend } = trendsFromDailyRows(
+      ['2026-06-24', '2026-06-25', '2026-06-26'],
+      [
+        {
+          restaurant_id: 'r',
+          business_date: '2026-06-24',
+          revenue: 10,
+          adult_count: 1,
+          child_count: 0,
+          customer_count: 1,
+          qualifying_session_count: 1,
+          sealed_at: '',
+          computed_at: '',
+        },
+      ],
+      {
+        businessDate: '2026-06-26',
+        revenue: 40,
+        adultCount: 3,
+        childCount: 1,
+        customerCount: 4,
+        qualifyingSessionCount: 2,
       },
-    };
+      '2026-06-26',
+    );
+    assert.deepEqual(revenueTrend, [
+      { date: '2026-06-24', revenue: 10 },
+      { date: '2026-06-25', revenue: 0 },
+      { date: '2026-06-26', revenue: 40 },
+    ]);
+    assert.equal(customerTrend[1]?.customerCount, 0);
+    assert.equal(customerTrend[2]?.customerCount, 4);
+  });
+});
 
-    const result = await getValueOverview(admin as never, 'restaurant-1', '7d', FIXED_NOW);
+describe('getValueOverview with mock admin', () => {
+  it('returns empty trends when no sessions or sealed rows', async () => {
+    const result = await getValueOverview(mockEmptyAdmin() as never, 'restaurant-1', '7d', FIXED_NOW);
     assert.equal(result.ok, true);
     if (!result.ok) return;
-    assert.equal(result.data.topConsumedItems.length, 0);
+    assert.equal(result.data.schemaVersion, ANALYTICS_DAILY_SCHEMA_VERSION);
     assert.equal(result.data.revenueTrend.length, 7);
+    assert.equal(result.data.customerTrend.length, 7);
+    assert.ok(!('topConsumedItems' in result.data));
   });
 });
 

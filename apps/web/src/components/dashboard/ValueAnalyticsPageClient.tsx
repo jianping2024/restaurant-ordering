@@ -2,19 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type {
-  AnalyticsRange,
-  StockReferenceItem,
-  TopConsumedItem,
-  ValueOverviewResponse,
-} from '@/lib/analytics/analytics.types';
+import type { AnalyticsRange, ValueOverviewResponse } from '@/lib/analytics/analytics.types';
+import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
-import { ValueAnalyticsTopTable } from '@/components/dashboard/ValueAnalyticsTopTable';
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
 import { getMessages } from '@/lib/i18n/messages';
-import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
-import type { UILanguage } from '@/lib/i18n';
 
 const ValueAnalyticsTrendChart = dynamic(
   () =>
@@ -31,31 +24,11 @@ type Props = {
   initialLoadFailed?: boolean;
 };
 
-function localizedName(
-  row: { namePt: string; nameEn?: string | null; nameZh?: string | null },
-  lang: UILanguage,
-): string {
-  return pickTrilingualName(row, lang) || row.namePt;
-}
-
-function localizedCategory(
-  row: { categoryPt: string; categoryEn?: string | null; categoryZh?: string | null },
-  lang: UILanguage,
-): string {
-  return (
-    pickTrilingualName(
-      { namePt: row.categoryPt, nameEn: row.categoryEn, nameZh: row.categoryZh },
-      lang,
-    ) || row.categoryPt
-  );
-}
-
 function isOverviewEmpty(data: ValueOverviewResponse): boolean {
-  const trendHasValue =
-    data.revenueTrend.some((point) => point.revenue > 0) ||
-    data.customerTrend.some((point) => point.customerCount > 0);
-  const topsEmpty = data.topConsumedItems.length === 0 && data.stockReferenceItems.length === 0;
-  return !trendHasValue && topsEmpty;
+  return (
+    !data.revenueTrend.some((point) => point.revenue > 0) &&
+    !data.customerTrend.some((point) => point.customerCount > 0)
+  );
 }
 
 function resolveViewState(
@@ -69,6 +42,27 @@ function resolveViewState(
 
 function formatMoney(value: number): string {
   return `€${value.toFixed(2)}`;
+}
+
+function sliceOverviewForRange(
+  overview: ValueOverviewResponse,
+  range: AnalyticsRange,
+): ValueOverviewResponse {
+  const dayCount = range === '7d' ? 7 : 30;
+  return {
+    ...overview,
+    range,
+    revenueTrend: overview.revenueTrend.slice(-dayCount),
+    customerTrend: overview.customerTrend.slice(-dayCount),
+  };
+}
+
+function isUsableHistoryCache(overview: ValueOverviewResponse | null): boolean {
+  return (
+    overview != null &&
+    overview.schemaVersion === ANALYTICS_DAILY_SCHEMA_VERSION &&
+    overview.revenueTrend.length >= 30
+  );
 }
 
 const PRESET_BTN_BASE =
@@ -93,13 +87,12 @@ function StateCard({ children }: { children: ReactNode }) {
 type KpiItem = {
   label: string;
   value: string;
-  hint?: string;
   color?: string;
 };
 
 function ValueAnalyticsKpiGrid({ items, dimmed }: { items: KpiItem[]; dimmed?: boolean }) {
   return (
-    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 ${dimmed ? 'opacity-60' : ''}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${dimmed ? 'opacity-60' : ''}`}>
       {items.map((item) => (
         <div
           key={item.label}
@@ -109,9 +102,6 @@ function ValueAnalyticsKpiGrid({ items, dimmed }: { items: KpiItem[]; dimmed?: b
           <p className={`font-heading text-xl sm:text-2xl ${item.color ?? 'text-brand-text'}`}>
             {item.value}
           </p>
-          {item.hint ? (
-            <p className="text-[12px] text-brand-text-muted mt-1.5 truncate">{item.hint}</p>
-          ) : null}
         </div>
       ))}
     </div>
@@ -126,86 +116,90 @@ export function ValueAnalyticsPageClient({
   const t = getMessages(lang).valueAnalytics;
 
   const [range, setRange] = useState<AnalyticsRange>('7d');
-  /** One representation: successful DTOs keyed by range for this session. */
-  const [byRange, setByRange] = useState<Partial<Record<AnalyticsRange, ValueOverviewResponse>>>(
-    () =>
-      initialOverview && !initialLoadFailed ? { '7d': initialOverview } : {},
+  /** One representation: full 30d sealed+today payload; UI range only slices. */
+  const [history30d, setHistory30d] = useState<ValueOverviewResponse | null>(() =>
+    isUsableHistoryCache(initialOverview) && !initialLoadFailed ? initialOverview : null,
   );
-  const [viewState, setViewState] = useState<ViewState>(() =>
-    resolveViewState(initialOverview, initialLoadFailed),
-  );
+  const [viewState, setViewState] = useState<ViewState>(() => {
+    if (initialLoadFailed) return 'error';
+    if (!initialOverview) return 'empty';
+    const sliced = sliceOverviewForRange(initialOverview, '7d');
+    return resolveViewState(sliced, false);
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
-  const skipInitialFetch = useRef(initialOverview != null && !initialLoadFailed);
-  const byRangeRef = useRef(byRange);
-  byRangeRef.current = byRange;
+  const skipInitialFetch = useRef(isUsableHistoryCache(initialOverview) && !initialLoadFailed);
+  const historyRef = useRef(history30d);
+  historyRef.current = history30d;
 
-  const data = byRange[range] ?? null;
+  const data = useMemo(() => {
+    if (!history30d) return null;
+    return sliceOverviewForRange(history30d, range);
+  }, [history30d, range]);
 
-  const fetchRange = useCallback(
-    async (targetRange: AnalyticsRange, options?: { bypassCache?: boolean }) => {
-      if (skipInitialFetch.current && targetRange === '7d' && !options?.bypassCache) {
-        skipInitialFetch.current = false;
+  const fetchHistory30d = useCallback(async (options?: { bypassCache?: boolean }) => {
+    if (skipInitialFetch.current && !options?.bypassCache) {
+      skipInitialFetch.current = false;
+      return;
+    }
+    if (!options?.bypassCache && isUsableHistoryCache(historyRef.current)) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    setRefreshError(false);
+    try {
+      const refreshQs = options?.bypassCache ? '&refresh=1' : '';
+      const res = await fetch(`/api/analytics/value-overview?range=30d${refreshQs}`);
+      if (res.status === 403) {
+        setViewState('forbidden');
         return;
       }
-      if (!options?.bypassCache && byRangeRef.current[targetRange]) {
-        const cached = byRangeRef.current[targetRange]!;
-        setViewState(isOverviewEmpty(cached) ? 'empty' : 'ready');
-        return;
-      }
-
-      setIsRefreshing(true);
-      setRefreshError(false);
-      try {
-        const refreshQs = options?.bypassCache ? '&refresh=1' : '';
-        const res = await fetch(
-          `/api/analytics/value-overview?range=${targetRange}${refreshQs}`,
-        );
-        if (res.status === 403) {
-          setViewState('forbidden');
-          return;
-        }
-        if (!res.ok) {
-          if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
-            setRefreshError(true);
-            return;
-          }
-          setViewState('error');
-          return;
-        }
-        const json = (await res.json()) as ValueOverviewResponse;
-        setByRange((prev) => ({ ...prev, [targetRange]: json }));
-        setViewState(isOverviewEmpty(json) ? 'empty' : 'ready');
-      } catch {
-        if (byRangeRef.current[targetRange] || Object.keys(byRangeRef.current).length > 0) {
+      if (!res.ok) {
+        if (historyRef.current) {
           setRefreshError(true);
           return;
         }
         setViewState('error');
-      } finally {
-        setIsRefreshing(false);
+        return;
       }
-    },
-    [],
-  );
+      const json = (await res.json()) as ValueOverviewResponse;
+      if (json.schemaVersion !== ANALYTICS_DAILY_SCHEMA_VERSION) {
+        setViewState('error');
+        return;
+      }
+      setHistory30d(json);
+    } catch {
+      if (historyRef.current) {
+        setRefreshError(true);
+        return;
+      }
+      setViewState('error');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    void fetchRange(range);
-  }, [range, fetchRange]);
+    void fetchHistory30d();
+  }, [fetchHistory30d]);
+
+  useEffect(() => {
+    if (!history30d) return;
+    setViewState((prev) => {
+      if (prev === 'forbidden') return prev;
+      return resolveViewState(sliceOverviewForRange(history30d, range), false);
+    });
+  }, [history30d, range]);
 
   const retry = useCallback(() => {
     setRefreshError(false);
-    setByRange((prev) => {
-      const next = { ...prev };
-      delete next[range];
-      return next;
-    });
-    void fetchRange(range, { bypassCache: true });
-  }, [fetchRange, range]);
+    setHistory30d(null);
+    void fetchHistory30d({ bypassCache: true });
+  }, [fetchHistory30d]);
 
   const revenuePoints = useMemo(
-    () =>
-      data ? buildTrendChartPoints(data.revenueTrend, (row) => row.revenue) : [],
+    () => (data ? buildTrendChartPoints(data.revenueTrend, (row) => row.revenue) : []),
     [data],
   );
 
@@ -228,7 +222,6 @@ export function ValueAnalyticsPageClient({
     const totalGuests = data.customerTrend.reduce((sum, point) => sum + point.customerCount, 0);
     const dayCount = data.revenueTrend.length || 1;
     const avgDaily = totalRevenue / dayCount;
-    const topItem = data.topConsumedItems[0];
 
     return [
       {
@@ -246,14 +239,8 @@ export function ValueAnalyticsPageClient({
         value: formatMoney(avgDaily),
         color: 'text-brand-text',
       },
-      {
-        label: t.kpiTopConsumed,
-        value: topItem ? localizedName(topItem, lang) : t.kpiNoData,
-        hint: topItem ? `${topItem.consumedQuantity} ×` : undefined,
-        color: 'text-brand-text',
-      },
     ];
-  }, [data, lang, t]);
+  }, [data, t]);
 
   const tooltipLabels = useMemo(
     () => ({
@@ -355,66 +342,6 @@ export function ValueAnalyticsPageClient({
               valueFormatter={(value) => String(value)}
               variant="customer"
               tooltipLabels={tooltipLabels}
-            />
-          </div>
-
-          <div className="grid xl:grid-cols-2 gap-4">
-            <ValueAnalyticsTopTable<TopConsumedItem>
-              title={t.topConsumed}
-              rows={data.topConsumedItems}
-              columns={[
-                { key: 'rank', header: t.colRank },
-                {
-                  key: 'namePt',
-                  header: t.colItem,
-                  render: (row) => localizedName(row, lang),
-                },
-                {
-                  key: 'categoryPt',
-                  header: t.colCategory,
-                  render: (row) => localizedCategory(row, lang),
-                },
-                {
-                  key: 'consumedQuantity',
-                  header: t.colQuantity,
-                  align: 'right',
-                },
-                {
-                  key: 'amount',
-                  header: t.colAmount,
-                  align: 'right',
-                  render: (row) => formatMoney(row.amount),
-                },
-              ]}
-            />
-
-            <ValueAnalyticsTopTable<StockReferenceItem>
-              title={t.stockReference}
-              rows={data.stockReferenceItems}
-              columns={[
-                { key: 'rank', header: t.colRank },
-                {
-                  key: 'namePt',
-                  header: t.colItem,
-                  render: (row) => localizedName(row, lang),
-                },
-                {
-                  key: 'categoryPt',
-                  header: t.colCategory,
-                  render: (row) => localizedCategory(row, lang),
-                },
-                {
-                  key: 'consumedQuantity7d',
-                  header: t.colQuantity7d,
-                  align: 'right',
-                },
-                {
-                  key: 'tag',
-                  header: t.colTag,
-                  render: () => t.tagStock,
-                },
-              ]}
-              footer={<p className="text-[13px] text-brand-text-muted">{t.stockDisclaimer}</p>}
             />
           </div>
         </div>

@@ -53,6 +53,9 @@ function chunkIds(ids: string[]): string[][] {
   return chunks;
 }
 
+/** PostgREST page size; must stay ≤ platform max-rows to avoid silent truncation. */
+export const ANALYTICS_FETCH_PAGE_SIZE = 1000;
+
 export async function fetchClosedSessionsInWindow(
   admin: SupabaseClient,
   restaurantId: string,
@@ -60,24 +63,39 @@ export async function fetchClosedSessionsInWindow(
   endExclusiveUtc: string,
 ): Promise<{ ok: true; sessions: ClosedSessionRow[] } | AnalyticsQueryError> {
   try {
-    const { data, error } = (await withAnalyticsQueryTimeout(
-      admin
-        .from('table_sessions')
-        .select('id, closed_at, closed_reason')
-        .eq('restaurant_id', restaurantId)
-        .eq('status', 'closed')
-        .not('closed_at', 'is', null)
-        .gte('closed_at', startUtc)
-        .lt('closed_at', endExclusiveUtc),
-    )) as { data: ClosedSessionRow[] | null; error: { message: string } | null };
+    const sessions: ClosedSessionRow[] = [];
+    let from = 0;
 
-    if (error) {
-      return { ok: false, code: 'query_failed', message: error.message };
-    }
+    for (;;) {
+      const to = from + ANALYTICS_FETCH_PAGE_SIZE - 1;
+      const { data, error } = (await withAnalyticsQueryTimeout(
+        admin
+          .from('table_sessions')
+          .select('id, closed_at, closed_reason')
+          .eq('restaurant_id', restaurantId)
+          .eq('status', 'closed')
+          .not('closed_at', 'is', null)
+          .gte('closed_at', startUtc)
+          .lt('closed_at', endExclusiveUtc)
+          .order('closed_at', { ascending: true })
+          .order('id', { ascending: true })
+          .range(from, to),
+      )) as { data: ClosedSessionRow[] | null; error: { message: string } | null };
 
-    const sessions = (data || []) as ClosedSessionRow[];
-    if (sessions.length > ANALYTICS_MAX_CLOSED_SESSIONS) {
-      return { ok: false, code: 'query_limit_exceeded' };
+      if (error) {
+        return { ok: false, code: 'query_failed', message: error.message };
+      }
+
+      const page = (data || []) as ClosedSessionRow[];
+      sessions.push(...page);
+
+      if (sessions.length > ANALYTICS_MAX_CLOSED_SESSIONS) {
+        return { ok: false, code: 'query_limit_exceeded' };
+      }
+      if (page.length < ANALYTICS_FETCH_PAGE_SIZE) {
+        break;
+      }
+      from += ANALYTICS_FETCH_PAGE_SIZE;
     }
 
     return { ok: true, sessions };
@@ -88,6 +106,39 @@ export async function fetchClosedSessionsInWindow(
     }
     return { ok: false, code: 'query_failed', message };
   }
+}
+
+async function fetchAllRowsForSessionChunk<T extends { session_id?: string | null }>(
+  admin: SupabaseClient,
+  table: 'orders' | 'bill_splits',
+  restaurantId: string,
+  sessionChunk: string[],
+  select: string,
+): Promise<T[]> {
+  const rows: T[] = [];
+  let from = 0;
+  for (;;) {
+    const to = from + ANALYTICS_FETCH_PAGE_SIZE - 1;
+    const { data, error } = (await withAnalyticsQueryTimeout(
+      admin
+        .from(table)
+        .select(select)
+        .eq('restaurant_id', restaurantId)
+        .in('session_id', sessionChunk)
+        .order('id', { ascending: true })
+        .range(from, to),
+    )) as { data: T[] | null; error: { message: string } | null };
+    if (error) {
+      throw new Error(error.message);
+    }
+    const page = (data || []) as unknown as T[];
+    rows.push(...page);
+    if (page.length < ANALYTICS_FETCH_PAGE_SIZE) {
+      break;
+    }
+    from += ANALYTICS_FETCH_PAGE_SIZE;
+  }
+  return rows;
 }
 
 async function fetchBySessionIds<T extends { session_id?: string | null }>(
@@ -102,15 +153,9 @@ async function fetchBySessionIds<T extends { session_id?: string | null }>(
   try {
     const chunks = chunkIds(sessionIds);
     const chunkResults = await Promise.all(
-      chunks.map(async (chunk) => {
-        const { data, error } = (await withAnalyticsQueryTimeout(
-          admin.from(table).select(select).eq('restaurant_id', restaurantId).in('session_id', chunk),
-        )) as { data: T[] | null; error: { message: string } | null };
-        if (error) {
-          throw new Error(error.message);
-        }
-        return (data || []) as unknown as T[];
-      }),
+      chunks.map((chunk) =>
+        fetchAllRowsForSessionChunk<T>(admin, table, restaurantId, chunk, select),
+      ),
     );
     return { ok: true, rows: chunkResults.flat() };
   } catch (err) {

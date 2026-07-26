@@ -369,9 +369,8 @@
 ### 已有功能
 
 - 增值分析页 `/dashboard/value-analytics`（**仅店主**）
-- 7 天 / 30 天切换：营业额趋势、客单趋势
-- Top 菜品消费与备货参考（备货固定最近 7 天）
-- 口径：已收款关台的 `table_sessions`，归属日按 Lisbon `closed_at`
+- 7 天 / 30 天切换：营业额趋势、客流趋势（历史日经营表 + 当日现算）
+- 口径：qualifying 关台 `table_sessions`，归属日按 Lisbon `closed_at`
 
 ### 业务边界
 

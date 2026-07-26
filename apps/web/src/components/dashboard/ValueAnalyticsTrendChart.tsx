@@ -1,6 +1,7 @@
 'use client';
 
-import { format, parseISO } from 'date-fns';
+import type { AnalyticsRange } from '@/lib/analytics/analytics.types';
+import { formatPeriodLabel } from '@/lib/analytics/period-aggregate';
 import {
   CartesianGrid,
   Line,
@@ -32,18 +33,15 @@ type Props = {
   };
 };
 
-function formatDateLabel(date: string): string {
-  return format(parseISO(date), 'MM/dd');
-}
-
 export function buildTrendChartPoints<T extends { date: string }>(
   rows: T[],
+  grain: AnalyticsRange,
   pickValue: (row: T) => number,
   pickGuests?: (row: T) => { adultCount?: number; childCount?: number },
 ): TrendPoint[] {
   return rows.map((row) => ({
     date: row.date,
-    dateLabel: formatDateLabel(row.date),
+    dateLabel: formatPeriodLabel(row.date, grain),
     value: pickValue(row),
     adultCount: pickGuests?.(row).adultCount,
     childCount: pickGuests?.(row).childCount,

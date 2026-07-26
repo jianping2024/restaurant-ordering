@@ -15,12 +15,12 @@ describe('value-overview-cache-policy', () => {
   it('builds key parts for restaurant + range + business day', () => {
     const parts = valueOverviewCacheKeyParts(
       'restaurant-mohnrib5',
-      '30d',
+      'day',
       new Date('2026-07-21T12:00:00.000Z'),
     );
     assert.deepEqual(parts, {
       restaurantId: 'restaurant-mohnrib5',
-      range: '30d',
+      range: 'day',
       businessDay: '2026-07-21',
     });
   });

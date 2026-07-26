@@ -1,12 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   AnalyticsDailyRestaurantStatRow,
+  AnalyticsRange,
   CustomerTrendPoint,
   RevenueTrendPoint,
 } from '@/lib/analytics/analytics.types';
 import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import type { AnalyticsQueryError } from '@/lib/analytics/analytics.repository';
 import {
+  fetchDistinctClosedBusinessDates,
   fetchItemOrdersBySessionIds,
   groupOrdersBySession,
 } from '@/lib/analytics/analytics.repository';
@@ -16,6 +18,13 @@ import {
   revenueTrendFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { buildCustomerTrend } from '@/lib/analytics/build-overview';
+import {
+  aggregateDailyPointsByGrain,
+  hasBusinessActivity,
+  toTrendSeries,
+  trimLeadingEmptyPeriods,
+  type DailyMetricPoint,
+} from '@/lib/analytics/period-aggregate';
 import { addCalendarDays, lisbonDayStartUtcIso } from '@/lib/lisbon-calendar';
 
 export type DailyStatMetrics = {
@@ -129,21 +138,32 @@ export async function upsertDailyRestaurantStat(
   return { ok: true };
 }
 
-/** Seal one Lisbon day (idempotent upsert). Only call for dates before today. */
+/**
+ * Seal one Lisbon day that had closed sessions.
+ * No-op insert when metrics have no business activity (hard rule: no zero rows).
+ */
 export async function sealRestaurantBusinessDay(
   admin: SupabaseClient,
   restaurantId: string,
   businessDate: string,
-): Promise<{ ok: true; metrics: DailyStatMetrics } | AnalyticsQueryError> {
+): Promise<{ ok: true; metrics: DailyStatMetrics; written: boolean } | AnalyticsQueryError> {
   const computed = await computeRestaurantBusinessDayMetrics(admin, restaurantId, businessDate);
   if (!computed.ok) {
     return computed;
+  }
+  if (
+    !hasBusinessActivity({
+      revenue: computed.metrics.revenue,
+      customerCount: computed.metrics.customerCount,
+    })
+  ) {
+    return { ok: true, metrics: computed.metrics, written: false };
   }
   const written = await upsertDailyRestaurantStat(admin, restaurantId, computed.metrics);
   if (!written.ok) {
     return written;
   }
-  return { ok: true, metrics: computed.metrics };
+  return { ok: true, metrics: computed.metrics, written: true };
 }
 
 export async function fetchDailyRestaurantStats(
@@ -170,52 +190,73 @@ export async function fetchDailyRestaurantStats(
 }
 
 /**
- * Ensure each historical day in `dateKeys` (excluding `today`) is sealed.
- * Missing rows are computed and upserted; failures leave that day absent (read path treats as 0).
+ * Seal only Lisbon days that have closed sessions in [startDate, endDate] ∩ before today.
+ * Never iterates empty calendar days.
  */
-export async function ensureSealedHistoricalDays(
+export async function ensureSealedClosedBusinessDays(
   admin: SupabaseClient,
   restaurantId: string,
-  dateKeys: string[],
+  startDate: string,
+  endDateInclusive: string,
   today: string,
-): Promise<void> {
-  const historical = dateKeys.filter((key) => key < today);
-  if (historical.length === 0) return;
+): Promise<{ ok: true } | AnalyticsQueryError> {
+  const sealEnd = endDateInclusive < today ? endDateInclusive : addCalendarDays(today, -1);
+  if (startDate > sealEnd) {
+    return { ok: true };
+  }
 
-  const existing = await fetchDailyRestaurantStats(
+  const startUtc = lisbonDayStartUtcIso(startDate);
+  const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(sealEnd, 1));
+  const closedDates = await fetchDistinctClosedBusinessDates(
     admin,
     restaurantId,
-    historical[0]!,
-    historical[historical.length - 1]!,
+    startUtc,
+    endExclusiveUtc,
   );
-  const have = new Set(
-    existing.ok ? existing.rows.map((row) => row.business_date) : [],
+  if (!closedDates.ok) {
+    return closedDates;
+  }
+
+  const existing = await fetchDailyRestaurantStats(admin, restaurantId, startDate, sealEnd);
+  if (!existing.ok) {
+    return existing;
+  }
+  const have = new Set(existing.rows.map((row) => row.business_date));
+
+  const toSeal = closedDates.dates.filter(
+    (day) => day >= startDate && day <= sealEnd && day < today && !have.has(day),
   );
 
-  const missing = historical.filter((key) => !have.has(key));
   const concurrency = 4;
-  for (let i = 0; i < missing.length; i += concurrency) {
-    const batch = missing.slice(i, i + concurrency);
-    await Promise.all(batch.map((day) => sealRestaurantBusinessDay(admin, restaurantId, day)));
+  for (let i = 0; i < toSeal.length; i += concurrency) {
+    const batch = toSeal.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map((day) => sealRestaurantBusinessDay(admin, restaurantId, day)),
+    );
+    for (const result of results) {
+      if (!result.ok) {
+        return result;
+      }
+    }
   }
+
+  return { ok: true };
 }
 
-export function trendsFromDailyRows(
+export function dailyPointsFromRows(
   dateKeys: string[],
   rows: AnalyticsDailyRestaurantStatRow[],
   todayLive: DailyStatMetrics | null,
   today: string,
-): { revenueTrend: RevenueTrendPoint[]; customerTrend: CustomerTrendPoint[] } {
+): DailyMetricPoint[] {
   const byDate = new Map(rows.map((row) => [row.business_date, row]));
-
-  const revenueTrend: RevenueTrendPoint[] = [];
-  const customerTrend: CustomerTrendPoint[] = [];
+  const points: DailyMetricPoint[] = [];
 
   for (const date of dateKeys) {
     if (date === today && todayLive) {
-      revenueTrend.push({ date, revenue: todayLive.revenue });
-      customerTrend.push({
+      points.push({
         date,
+        revenue: todayLive.revenue,
         adultCount: todayLive.adultCount,
         childCount: todayLive.childCount,
         customerCount: todayLive.customerCount,
@@ -224,33 +265,38 @@ export function trendsFromDailyRows(
     }
 
     const row = byDate.get(date);
-    revenueTrend.push({ date, revenue: row ? Number(row.revenue) || 0 : 0 });
     const adultCount = row ? Number(row.adult_count) || 0 : 0;
     const childCount = row ? Number(row.child_count) || 0 : 0;
-    customerTrend.push({
+    points.push({
       date,
+      revenue: row ? Number(row.revenue) || 0 : 0,
       adultCount,
       childCount,
       customerCount: row ? Number(row.customer_count) || adultCount + childCount : 0,
     });
   }
 
-  return { revenueTrend, customerTrend };
+  return points;
 }
 
-export function emptyTrends(dateKeys: string[]): {
+export function buildGrainTrends(
+  grain: AnalyticsRange,
+  dateKeys: string[],
+  rows: AnalyticsDailyRestaurantStatRow[],
+  todayLive: DailyStatMetrics | null,
+  today: string,
+): { revenueTrend: RevenueTrendPoint[]; customerTrend: CustomerTrendPoint[] } {
+  const daily = dailyPointsFromRows(dateKeys, rows, todayLive, today);
+  const aggregated = aggregateDailyPointsByGrain(daily, grain);
+  const trimmed = trimLeadingEmptyPeriods(aggregated, grain);
+  return toTrendSeries(trimmed);
+}
+
+export function emptyTrends(): {
   revenueTrend: RevenueTrendPoint[];
   customerTrend: CustomerTrendPoint[];
 } {
-  return {
-    revenueTrend: dateKeys.map((date) => ({ date, revenue: 0 })),
-    customerTrend: dateKeys.map((date) => ({
-      date,
-      customerCount: 0,
-      adultCount: 0,
-      childCount: 0,
-    })),
-  };
+  return { revenueTrend: [], customerTrend: [] };
 }
 
 export { ANALYTICS_DAILY_SCHEMA_VERSION };

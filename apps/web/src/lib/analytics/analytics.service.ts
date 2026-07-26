@@ -5,11 +5,11 @@ import type {
 } from '@/lib/analytics/analytics.types';
 import { ANALYTICS_DAILY_SCHEMA_VERSION } from '@/lib/analytics/analytics.types';
 import {
+  buildGrainTrends,
   computeRestaurantBusinessDayMetrics,
   emptyTrends,
-  ensureSealedHistoricalDays,
+  ensureSealedClosedBusinessDays,
   fetchDailyRestaurantStats,
-  trendsFromDailyRows,
 } from '@/lib/analytics/daily-stats';
 import { resolveAnalyticsDateWindow } from '@/lib/analytics/date-window';
 import { addCalendarDays } from '@/lib/lisbon-calendar';
@@ -18,9 +18,13 @@ export type GetValueOverviewResult =
   | { ok: true; data: ValueOverviewResponse }
   | { ok: false; code: 'query_limit_exceeded' | 'query_failed'; message?: string };
 
+/** Lazy-seal only recent closed days; older history is assumed already sealed from prior visits. */
+export const ANALYTICS_SEAL_LOOKBACK_DAYS = 7;
+
 /**
- * Value overview: sealed daily rows for history + live compute for Lisbon today.
- * Missing sealed days read as 0. Top/stock modules removed from this surface.
+ * Value overview by grain (day/week/month/quarter).
+ * Seals only Lisbon days that have closed sessions within the last 7 days;
+ * never empty-calendar seals. Zero-activity days are not written.
  */
 export async function getValueOverview(
   admin: SupabaseClient,
@@ -34,7 +38,20 @@ export async function getValueOverview(
       ? addCalendarDays(window.today, -1)
       : window.startDate;
 
-  await ensureSealedHistoricalDays(admin, restaurantId, window.dateKeys, window.today);
+  const sealStartCandidate = addCalendarDays(window.today, -ANALYTICS_SEAL_LOOKBACK_DAYS);
+  const sealStart =
+    sealStartCandidate > window.startDate ? sealStartCandidate : window.startDate;
+
+  const sealedEnsure = await ensureSealedClosedBusinessDays(
+    admin,
+    restaurantId,
+    sealStart,
+    historicalEnd,
+    window.today,
+  );
+  if (!sealedEnsure.ok) {
+    return { ok: false, code: sealedEnsure.code, message: sealedEnsure.message };
+  }
 
   const sealedResult =
     window.startDate < window.today
@@ -59,7 +76,8 @@ export async function getValueOverview(
     return { ok: false, code: todayLive.code, message: todayLive.message };
   }
 
-  const { revenueTrend, customerTrend } = trendsFromDailyRows(
+  const { revenueTrend, customerTrend } = buildGrainTrends(
+    range,
     window.dateKeys,
     sealedResult.rows,
     todayLive.metrics,
@@ -67,16 +85,17 @@ export async function getValueOverview(
   );
 
   if (
-    revenueTrend.every((point) => point.revenue === 0) &&
-    customerTrend.every((point) => point.customerCount === 0)
+    revenueTrend.length === 0 ||
+    (range !== 'day' &&
+      revenueTrend.every((point) => point.revenue === 0) &&
+      customerTrend.every((point) => point.customerCount === 0))
   ) {
-    const empty = emptyTrends(window.dateKeys);
     return {
       ok: true,
       data: {
         range,
         schemaVersion: ANALYTICS_DAILY_SCHEMA_VERSION,
-        ...empty,
+        ...emptyTrends(),
       },
     };
   }

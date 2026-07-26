@@ -18,7 +18,7 @@ export default async function ValueAnalyticsPage() {
     notFound();
   }
 
-  const result = await getCachedValueOverview(ctx.restaurantId, '30d');
+  const result = await getCachedValueOverview(ctx.restaurantId, 'day');
 
   return (
     <ValueAnalyticsPageClient

@@ -8,7 +8,7 @@ import {
 } from '@/lib/order-history/load-forced-unpaid-close-annotations';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
-import { resolveStaffOperatorNames } from '@/lib/order-history/resolve-opened-by';
+import { resolveStaffOperatorNames } from '@/lib/order-history/resolve-staff-operator';
 import {
   distinctMenuItemIdsFromOrders,
   menuItemCodeLookupFromRows,

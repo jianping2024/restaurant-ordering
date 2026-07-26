@@ -4,12 +4,9 @@ import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { OrderHistoryBillDetailPanel } from '@/components/dashboard/OrderHistoryBillDetailPanel';
 import { Modal } from '@/components/ui/Modal';
-import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
+import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
-import {
-  buildOrderHistoryLifecycleLines,
-  resolveOrderHistoryAbnormalEmphasis,
-} from '@/lib/order-history/build-lifecycle-presentation';
+import { buildOrderHistorySurfaceMeta } from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import {
   staffBillPrintCooldownKey,
@@ -19,7 +16,6 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
-import { formatOrderHistoryInstant } from '@/lib/order-history/format-instant';
 import { getMessages } from '@/lib/i18n/messages';
 
 interface Props {
@@ -28,12 +24,6 @@ interface Props {
   restaurantSlug: string;
   onClose: () => void;
 }
-
-const OUTCOME_BADGE_CLASS: Record<'success' | 'warning' | 'muted', string> = {
-  success: 'bg-brand-gold/15 text-brand-gold border-brand-gold/30',
-  warning: 'bg-amber-500/15 text-amber-200 border-amber-500/30',
-  muted: 'bg-brand-border/40 text-brand-text-muted border-brand-border/60',
-};
 
 export function OrderHistoryDetailModal({
   entry,
@@ -60,21 +50,14 @@ export function OrderHistoryDetailModal({
     [entry, itemCodeByMenuId, lang],
   );
 
-  const lifecycle = useMemo(
-    () =>
-      entry
-        ? buildOrderHistoryLifecycleLines(entry, i18n, formatOrderHistoryInstant)
-        : null,
+  const surface = useMemo(
+    () => (entry ? buildOrderHistorySurfaceMeta(entry, i18n) : null),
     [entry, i18n],
   );
 
-  if (!entry || !detail || !lifecycle) return null;
+  if (!entry || !detail || !surface) return null;
 
-  const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
-  const abnormal = resolveOrderHistoryAbnormalEmphasis(
-    entry.settlement.outcome,
-    entry.closeAnnotation,
-  );
+  const { outcomeBadge, abnormal, lifecycle } = surface;
   const billSplit = entry.billSplit;
   const billSplitId = billSplit?.id ?? '';
   const billCooldownKey = billSplitId
@@ -117,7 +100,7 @@ export function OrderHistoryDetailModal({
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`inline-flex text-[11px] px-2 py-0.5 rounded-full border ${OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
+              className={`inline-flex text-[11px] px-2 py-0.5 rounded-full border ${ORDER_HISTORY_OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
             >
               {outcomeBadge.label}
             </span>

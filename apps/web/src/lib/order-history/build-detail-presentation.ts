@@ -25,6 +25,15 @@ export type OrderHistoryOutcomeBadge = {
   tone: OrderHistoryOutcomeBadgeTone;
 };
 
+export const ORDER_HISTORY_OUTCOME_BADGE_CLASS: Record<
+  OrderHistoryOutcomeBadgeTone,
+  string
+> = {
+  success: 'bg-brand-gold/15 text-brand-gold border-brand-gold/30',
+  warning: 'bg-amber-500/15 text-amber-200 border-amber-500/30',
+  muted: 'bg-brand-border/40 text-brand-text-muted border-brand-border/60',
+};
+
 export function resolveOrderHistoryOutcomeBadge(
   outcome: OrderHistoryCloseOutcome,
   i18n: OrderHistoryI18n,

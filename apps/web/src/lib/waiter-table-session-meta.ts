@@ -4,7 +4,7 @@ import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
 import {
   resolveStaffOperatorName,
   resolveStaffOperatorNames,
-} from '@/lib/order-history/resolve-opened-by';
+} from '@/lib/order-history/resolve-staff-operator';
 import type { TableSessionRef } from '@/lib/table-session-open';
 import type { SessionStatus } from '@/types';
 

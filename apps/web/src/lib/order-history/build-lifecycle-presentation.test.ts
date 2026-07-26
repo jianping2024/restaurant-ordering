@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   buildOrderHistoryLifecycleLines,
   resolveOrderHistoryAbnormalEmphasis,
+  resolveOrderHistoryCardClass,
   resolveOrderHistoryClosedByLabel,
 } from '@/lib/order-history/build-lifecycle-presentation';
 import { getMessages } from '@/lib/i18n/messages';
@@ -78,5 +79,17 @@ describe('buildOrderHistoryLifecycleLines', () => {
     );
     assert.equal(lines.openedLine, '开桌时间 2026-07-26 · 开桌 Waiter');
     assert.equal(lines.closedLine, '关台时间 2026-07-26 · 关台人 Cashier');
+  });
+});
+
+describe('resolveOrderHistoryCardClass', () => {
+  it('returns distinct classes per emphasis', () => {
+    const strong = resolveOrderHistoryCardClass('strong');
+    const moderate = resolveOrderHistoryCardClass('moderate');
+    const none = resolveOrderHistoryCardClass('none');
+    assert.notEqual(strong, moderate);
+    assert.notEqual(moderate, none);
+    assert.match(strong, /amber-500\/10/);
+    assert.match(none, /brand-card/);
   });
 });

@@ -13,12 +13,8 @@ import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-his
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
-import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
-import {
-  buildOrderHistoryLifecycleLines,
-  resolveOrderHistoryAbnormalEmphasis,
-} from '@/lib/order-history/build-lifecycle-presentation';
-import { formatOrderHistoryInstant } from '@/lib/order-history/format-instant';
+import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
+import { buildOrderHistorySurfaceMeta } from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
@@ -38,20 +34,6 @@ interface TableOption {
 }
 
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
-const ORDER_CARD_CLASS =
-  'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-brand-gold/40 transition-colors';
-const ABNORMAL_CARD_CLASS: Record<'strong' | 'moderate', string> = {
-  strong:
-    'bg-amber-500/10 border border-amber-500/45 rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-amber-500/60 transition-colors ring-1 ring-amber-500/20',
-  moderate:
-    'bg-amber-500/5 border border-amber-500/25 rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-amber-500/40 transition-colors',
-};
-
-const OUTCOME_BADGE_CLASS: Record<'success' | 'warning' | 'muted', string> = {
-  success: 'bg-brand-gold/15 text-brand-gold border-brand-gold/30',
-  warning: 'bg-amber-500/15 text-amber-200 border-amber-500/30',
-  muted: 'bg-brand-border/40 text-brand-text-muted border-brand-border/60',
-};
 
 export function OrdersHistoryManager({
   initialItems,
@@ -223,8 +205,6 @@ export function OrdersHistoryManager({
     return () => observer.disconnect();
   }, [hasMore, loadMore, loading]);
 
-  const formatInstant = formatOrderHistoryInstant;
-
   const renderMetaAmount = (entry: OrderHistoryEntry) => {
     const { listAmount, listAmountKind } = entry.settlement;
     if (listAmount == null) {
@@ -285,14 +265,10 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
-    const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
-    const abnormal = resolveOrderHistoryAbnormalEmphasis(
-      entry.settlement.outcome,
-      entry.closeAnnotation,
+    const { outcomeBadge, abnormal, lifecycle, cardClass } = buildOrderHistorySurfaceMeta(
+      entry,
+      i18n,
     );
-    const lifecycle = buildOrderHistoryLifecycleLines(entry, i18n, formatInstant);
-    const cardClass =
-      abnormal === 'none' ? ORDER_CARD_CLASS : ABNORMAL_CARD_CLASS[abnormal];
 
     return (
     <div
@@ -314,7 +290,7 @@ export function OrdersHistoryManager({
         </span>
         {META_SEP}
         <span
-          className={`inline-flex text-[11px] px-1.5 py-0.5 rounded-full border ${OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
+          className={`inline-flex text-[11px] px-1.5 py-0.5 rounded-full border ${ORDER_HISTORY_OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
         >
           {outcomeBadge.label}
         </span>

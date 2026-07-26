@@ -272,24 +272,26 @@ export async function fetchUnpaidForcedCloseSessionIds(
 
   try {
     const chunks = chunkIds(sessionIds);
+    const chunkRows = await Promise.all(
+      chunks.map(async (chunk) => {
+        const { data, error } = (await withAnalyticsQueryTimeout(
+          admin
+            .from('abnormal_operations')
+            .select('session_id')
+            .eq('restaurant_id', restaurantId)
+            .eq('type', 'UNPAID_TABLE_CLOSED')
+            .in('session_id', chunk),
+        )) as { data: Array<{ session_id: string | null }> | null; error: { message: string } | null };
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        return data || [];
+      }),
+    );
     const forced = new Set<string>();
-    for (const chunk of chunks) {
-      const { data, error } = (await withAnalyticsQueryTimeout(
-        admin
-          .from('abnormal_operations')
-          .select('session_id')
-          .eq('restaurant_id', restaurantId)
-          .eq('type', 'UNPAID_TABLE_CLOSED')
-          .in('session_id', chunk),
-      )) as { data: Array<{ session_id: string | null }> | null; error: { message: string } | null };
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      for (const row of data || []) {
-        if (row.session_id) forced.add(row.session_id);
-      }
+    for (const row of chunkRows.flat()) {
+      if (row.session_id) forced.add(row.session_id);
     }
     return forced;
   } catch {

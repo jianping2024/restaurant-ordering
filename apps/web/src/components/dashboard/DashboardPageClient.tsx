@@ -11,55 +11,26 @@ import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
-  type DashboardOverviewView,
+  type DashboardOverviewPrimaryView,
+  type DashboardOverviewSecondaryView,
 } from '@/lib/dashboard-overview';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
-
-interface Props {
-  overview: DashboardOverviewView;
-}
 
 function orderStatusBadgeClass(status: OrderStatus): string {
   if (status === 'done') return 'mesa-badge-success';
   return 'mesa-badge-warning';
 }
 
-export function DashboardPageClient({ overview }: Props) {
+export function DashboardOverviewPrimaryClient({
+  primary,
+}: {
+  primary: DashboardOverviewPrimaryView;
+}) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
-  const orderI18n = getMessages(lang).orderHistory;
-
-  const { todayKpis, pendingActions, topSelling, recentOrders, feedback } = overview;
+  const { todayKpis, pendingActions } = primary;
 
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
-  const topItems = useMemo(() => localizeTopSellingItems(topSelling, lang), [topSelling, lang]);
-
-  const localizedIssues = useMemo(
-    () =>
-      feedback.topIssues.map((row) => ({
-        menu_item_id: row.menu_item_id,
-        dish_name: pickTrilingualName(row, lang) || row.namePt,
-        down_count: row.down_count,
-      })),
-    [feedback.topIssues, lang],
-  );
-
-  const localizedPraise = useMemo(
-    () =>
-      feedback.topPraise.map((row) => ({
-        menu_item_id: row.menu_item_id,
-        dish_name: pickTrilingualName(row, lang) || row.namePt,
-        up_count: row.up_count,
-      })),
-    [feedback.topPraise, lang],
-  );
-
-  const orderStatusLabel = (status: OrderStatus): string => {
-    if (status === 'done') return orderI18n.done;
-    if (status === 'cooking') return orderI18n.cooking;
-    return orderI18n.pending;
-  };
-
   const pendingTotal = pendingActionsTotal(pendingActions);
 
   const pendingRows = [
@@ -108,7 +79,7 @@ export function DashboardPageClient({ overview }: Props) {
   ];
 
   return (
-    <div>
+    <>
       <div className="mb-6">
         <p className="text-brand-text-muted text-sm">{overviewDateLabel}</p>
       </div>
@@ -158,7 +129,50 @@ export function DashboardPageClient({ overview }: Props) {
           </div>
         )}
       </div>
+    </>
+  );
+}
 
+export function DashboardOverviewSecondaryClient({
+  secondary,
+}: {
+  secondary: DashboardOverviewSecondaryView;
+}) {
+  const { lang } = useLanguage();
+  const i18n = getMessages(lang).dashboard;
+  const orderI18n = getMessages(lang).orderHistory;
+  const { topSelling, recentOrders, feedback } = secondary;
+
+  const topItems = useMemo(() => localizeTopSellingItems(topSelling, lang), [topSelling, lang]);
+
+  const localizedIssues = useMemo(
+    () =>
+      feedback.topIssues.map((row) => ({
+        menu_item_id: row.menu_item_id,
+        dish_name: pickTrilingualName(row, lang) || row.namePt,
+        down_count: row.down_count,
+      })),
+    [feedback.topIssues, lang],
+  );
+
+  const localizedPraise = useMemo(
+    () =>
+      feedback.topPraise.map((row) => ({
+        menu_item_id: row.menu_item_id,
+        dish_name: pickTrilingualName(row, lang) || row.namePt,
+        up_count: row.up_count,
+      })),
+    [feedback.topPraise, lang],
+  );
+
+  const orderStatusLabel = (status: OrderStatus): string => {
+    if (status === 'done') return orderI18n.done;
+    if (status === 'cooking') return orderI18n.cooking;
+    return orderI18n.pending;
+  };
+
+  return (
+    <>
       <FeedbackInsightsPanel
         title={orderI18n.feedbackTitle}
         emptyTitle={i18n.feedbackEmptyTitle}
@@ -236,6 +250,6 @@ export function DashboardPageClient({ overview }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }

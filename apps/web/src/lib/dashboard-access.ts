@@ -381,9 +381,17 @@ export async function loadMenuManagementContext(options?: {
   return { admin, restaurantId: access.restaurant.id };
 }
 
-/** Server-side admin context for `/dashboard` overview (owner or frontdesk). */
+/** @deprecated Prefer `getOverviewDashboardContext` (request-cached). Kept for non-RSC callers. */
 export async function loadOverviewDashboardContext(): Promise<FrontdeskOperationalContext> {
-  const access = await loadDashboardAccess();
+  return resolveOverviewDashboardContext(await loadDashboardAccess(), () =>
+    loadFrontdeskOperationalContext(),
+  );
+}
+
+export async function resolveOverviewDashboardContext(
+  access: Awaited<ReturnType<typeof loadDashboardAccess>>,
+  loadFrontdesk: () => Promise<FrontdeskOperationalContext>,
+): Promise<FrontdeskOperationalContext> {
   if (access.mode === 'unauthenticated') {
     return { error: 'unauthorized', status: 401 };
   }
@@ -396,7 +404,7 @@ export async function loadOverviewDashboardContext(): Promise<FrontdeskOperation
     return { error: 'forbidden', status: 403 };
   }
   if (access.mode === 'frontdesk') {
-    return loadFrontdeskOperationalContext();
+    return loadFrontdesk();
   }
 
   let admin;

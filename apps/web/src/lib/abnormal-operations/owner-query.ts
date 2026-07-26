@@ -119,22 +119,13 @@ export function compareAbnormalOperations(
   return b.created_at.localeCompare(a.created_at);
 }
 
-function computeStats(rows: AbnormalOperationRow[]): AbnormalOperationsStats {
-  let high_risk_count = 0;
-  let amount_impact_sum = 0;
-  let pending_count = 0;
-  for (const row of rows) {
-    if (row.risk_level === 'HIGH') high_risk_count += 1;
-    if (row.status === 'PENDING') pending_count += 1;
-    amount_impact_sum += Number(row.amount_impact) || 0;
-  }
-  return {
-    total_count: rows.length,
-    high_risk_count,
-    amount_impact_sum,
-    pending_count,
-  };
-}
+type OwnerListRpcPayload = {
+  items?: AbnormalOperationRow[];
+  stats?: AbnormalOperationsStats;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+};
 
 export async function listAbnormalOperations(
   admin: SupabaseClient,
@@ -155,37 +146,45 @@ export async function listAbnormalOperations(
   const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? 20));
   const page = Math.max(1, filters.page ?? 1);
 
-  let query = admin
-    .from('abnormal_operations')
-    .select('*')
-    .eq('restaurant_id', filters.restaurantId)
-    .gte('created_at', parsed.startUtc)
-    .lt('created_at', parsed.endExclusiveUtc);
+  const { data, error } = await admin.rpc('abnormal_operations_owner_list', {
+    p_restaurant_id: filters.restaurantId,
+    p_start_utc: parsed.startUtc,
+    p_end_exclusive_utc: parsed.endExclusiveUtc,
+    p_type: filters.type ?? null,
+    p_risk_level: filters.riskLevel ?? null,
+    p_operator_id: filters.operatorId ?? null,
+    p_table_id: filters.tableId ?? null,
+    p_status: filters.status ?? null,
+    p_page: page,
+    p_page_size: pageSize,
+  });
 
-  if (filters.type) query = query.eq('type', filters.type);
-  if (filters.riskLevel) query = query.eq('risk_level', filters.riskLevel);
-  if (filters.operatorId) query = query.eq('operator_id', filters.operatorId);
-  if (filters.tableId) query = query.eq('table_id', filters.tableId);
-  if (filters.status) query = query.eq('status', filters.status);
-
-  const { data, error } = await query;
   if (error) {
     return { ok: false, code: 'query_failed', message: error.message };
   }
 
-  const sorted = [...((data || []) as AbnormalOperationRow[])].sort(compareAbnormalOperations);
-  const total = sorted.length;
-  const offset = (page - 1) * pageSize;
-  const items = sorted.slice(offset, offset + pageSize);
+  const payload = (data || {}) as OwnerListRpcPayload;
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  const stats = payload.stats ?? {
+    total_count: 0,
+    high_risk_count: 0,
+    amount_impact_sum: 0,
+    pending_count: 0,
+  };
 
   return {
     ok: true,
     result: {
       items,
-      stats: computeStats(sorted),
-      page,
-      pageSize,
-      total,
+      stats: {
+        total_count: Number(stats.total_count) || 0,
+        high_risk_count: Number(stats.high_risk_count) || 0,
+        amount_impact_sum: Number(stats.amount_impact_sum) || 0,
+        pending_count: Number(stats.pending_count) || 0,
+      },
+      page: Number(payload.page) || page,
+      pageSize: Number(payload.pageSize) || pageSize,
+      total: Number(payload.total) || 0,
     },
   };
 }

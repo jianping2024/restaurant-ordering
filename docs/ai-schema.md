@@ -138,6 +138,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 
 | Function | Role | Notes |
 |----------|------|-------|
+| `abnormal_operations_owner_list(restaurant_id, start_utc, end_exclusive_utc, type?, risk_level?, operator_id?, table_id?, status?, page?, page_size?)` | service_role | Owner abnormal list: filtered stats + risk/created_at page in one round-trip |
 | `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments` with `person_index`; rejects overpay and when ledger already covers per-row discounted obligation; reconciles `result.paid` from ledger by index; closes session when every index settled; returns `collected_payment_id`; advisory lock per session; not anon |
 | `resume_table_session_ordering(restaurant_id, table_id)` | authenticated, service_role | Set session `billing` → `open`; blocks whole-table when paid or ledger non-empty; `by_item` split always `confirmed`; even/custom `confirmed` when partial pay else `cancelled` |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges amounts then `reconcile_split_result_paid_from_ledger`; not anon |

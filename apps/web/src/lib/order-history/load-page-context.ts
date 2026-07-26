@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { loadOverviewDashboardContext } from '@/lib/dashboard-access';
+import { getOverviewDashboardContext } from '@/lib/dashboard-access-cached';
 import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow, normalizeTableSeatCount, DEFAULT_TABLE_SEAT_MIN, DEFAULT_TABLE_SEAT_MAX } from '@/lib/restaurant-tables';
 
 export type OrderHistoryDashboardContext =
@@ -11,7 +11,7 @@ export type OrderHistoryDashboardContext =
   | { error: string; status: number };
 
 export async function loadOrderHistoryDashboardContext(): Promise<OrderHistoryDashboardContext> {
-  const ctx = await loadOverviewDashboardContext();
+  const ctx = await getOverviewDashboardContext();
   if ('error' in ctx) return ctx;
 
   const { data: restaurant, error: restaurantError } = await ctx.admin

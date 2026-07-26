@@ -170,7 +170,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     id: 'overview',
     path: '/dashboard',
     navRoles: ['owner', 'frontdesk'],
-    pageLoader: 'loadOverviewDashboardContext',
+    pageLoader: 'getOverviewDashboardContext',
     writePattern: 'read-only',
   },
   {

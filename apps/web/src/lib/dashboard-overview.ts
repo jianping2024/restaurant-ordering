@@ -126,6 +126,18 @@ export type DashboardOverviewView = {
   feedback: DashboardFeedbackInsights;
 };
 
+/** Above-the-fold: KPIs + pending actions (blocks first paint). */
+export type DashboardOverviewPrimaryView = Pick<
+  DashboardOverviewView,
+  'todayKpis' | 'pendingActions'
+>;
+
+/** Below-the-fold panels streamed after primary. */
+export type DashboardOverviewSecondaryView = Pick<
+  DashboardOverviewView,
+  'topSelling' | 'recentOrders' | 'feedback'
+>;
+
 type MenuNameRow = {
   name_pt?: string | null;
   name_en?: string | null;
@@ -309,38 +321,27 @@ function toRecentOrderView(row: RecentOrderRow): DashboardRecentOrderView {
   };
 }
 
-export async function loadDashboardOverviewView(
+export async function loadDashboardOverviewPrimary(
   admin: SupabaseClient,
   restaurantId: string,
   now = new Date(),
-): Promise<DashboardOverviewView> {
-  const sinceIso = feedbackLookbackIso(now);
+): Promise<DashboardOverviewPrimaryView> {
   const todayWindow = resolveTodayLisbonWindow(now);
 
   const [
-    { data: todayOrders },
-    { data: recentOrders },
+    { count: todayOrderCount },
     { count: inProgressOrderCount },
     pendingCheckoutCount,
     { count: pendingAbnormalCount },
     { count: pendingPrintCount },
-    { data: feedbackSessions },
-    { data: billedSplits },
-    { data: dishFeedbackRows },
     revenueBundleResult,
   ] = await Promise.all([
     admin
       .from('orders')
-      .select(TODAY_ORDERS_SELECT)
+      .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId)
       .gte('created_at', todayWindow.startUtc)
       .lt('created_at', todayWindow.endExclusiveUtc),
-    admin
-      .from('orders')
-      .select(RECENT_ORDERS_SELECT)
-      .eq('restaurant_id', restaurantId)
-      .order('created_at', { ascending: false })
-      .limit(DASHBOARD_RECENT_ORDERS_LIMIT),
     admin
       .from('orders')
       .select('id', { count: 'exact', head: true })
@@ -358,6 +359,57 @@ export async function loadDashboardOverviewView(
       .eq('restaurant_id', restaurantId)
       .eq('status', 'pending')
       .gte('created_at', printJobMaxAgeCutoffIso(now)),
+    loadClosedSessionRevenueBundle(
+      admin,
+      restaurantId,
+      todayWindow.startUtc,
+      todayWindow.endExclusiveUtc,
+    ),
+  ]);
+
+  const todayRevenue =
+    revenueBundleResult.ok
+      ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
+      : { todayRevenue: 0, revenueSessionCount: 0 };
+
+  return {
+    todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue),
+    pendingActions: {
+      inProgressOrders: inProgressOrderCount ?? 0,
+      pendingCheckout: pendingCheckoutCount,
+      pendingAbnormal: pendingAbnormalCount ?? 0,
+      pendingPrint: pendingPrintCount ?? 0,
+    },
+  };
+}
+
+export async function loadDashboardOverviewSecondary(
+  admin: SupabaseClient,
+  restaurantId: string,
+  now = new Date(),
+): Promise<DashboardOverviewSecondaryView> {
+  const sinceIso = feedbackLookbackIso(now);
+  const todayWindow = resolveTodayLisbonWindow(now);
+
+  const [
+    { data: todayOrders },
+    { data: recentOrders },
+    { data: feedbackSessions },
+    { data: billedSplits },
+    { data: dishFeedbackRows },
+  ] = await Promise.all([
+    admin
+      .from('orders')
+      .select(TODAY_ORDERS_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', todayWindow.startUtc)
+      .lt('created_at', todayWindow.endExclusiveUtc),
+    admin
+      .from('orders')
+      .select(RECENT_ORDERS_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false })
+      .limit(DASHBOARD_RECENT_ORDERS_LIMIT),
     admin
       .from('feedback_sessions')
       .select('session_id, completed_at')
@@ -374,28 +426,11 @@ export async function loadDashboardOverviewView(
       .select('menu_item_id, vote, reasons, menu_items(name_pt, name_en, name_zh)')
       .eq('restaurant_id', restaurantId)
       .gte('created_at', sinceIso),
-    loadClosedSessionRevenueBundle(
-      admin,
-      restaurantId,
-      todayWindow.startUtc,
-      todayWindow.endExclusiveUtc,
-    ),
   ]);
 
   const orders = (todayOrders || []) as TodayOrderAggRow[];
-  const todayRevenue =
-    revenueBundleResult.ok
-      ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
-      : { todayRevenue: 0, revenueSessionCount: 0 };
 
   return {
-    todayKpis: computeTodayKpis(orders.length, todayRevenue),
-    pendingActions: {
-      inProgressOrders: inProgressOrderCount ?? 0,
-      pendingCheckout: pendingCheckoutCount,
-      pendingAbnormal: pendingAbnormalCount ?? 0,
-      pendingPrint: pendingPrintCount ?? 0,
-    },
     topSelling: buildTodayTopSellingItems(orders),
     recentOrders: ((recentOrders || []) as RecentOrderRow[]).map(toRecentOrderView),
     feedback: buildFeedbackInsights(
@@ -404,4 +439,16 @@ export async function loadDashboardOverviewView(
       (dishFeedbackRows || []) as DishFeedbackRow[],
     ),
   };
+}
+
+export async function loadDashboardOverviewView(
+  admin: SupabaseClient,
+  restaurantId: string,
+  now = new Date(),
+): Promise<DashboardOverviewView> {
+  const [primary, secondary] = await Promise.all([
+    loadDashboardOverviewPrimary(admin, restaurantId, now),
+    loadDashboardOverviewSecondary(admin, restaurantId, now),
+  ]);
+  return { ...primary, ...secondary };
 }

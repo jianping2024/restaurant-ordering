@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  ORDER_HISTORY_FORCED_SUMMARY_CLASS,
   buildOrderHistoryLifecycleLines,
   resolveOrderHistoryAbnormalEmphasis,
   resolveOrderHistoryCardClass,
   resolveOrderHistoryClosedByLabel,
+  resolveOrderHistoryLifecycleBoxClass,
 } from '@/lib/order-history/build-lifecycle-presentation';
+import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
 import { getMessages } from '@/lib/i18n/messages';
 
 const i18n = getMessages('zh').orderHistory;
@@ -91,5 +94,28 @@ describe('resolveOrderHistoryCardClass', () => {
     assert.notEqual(moderate, none);
     assert.match(strong, /amber-500\/10/);
     assert.match(none, /brand-card/);
+  });
+});
+
+describe('resolveOrderHistoryLifecycleBoxClass', () => {
+  it('uses theme warning alert for strong emphasis', () => {
+    assert.match(resolveOrderHistoryLifecycleBoxClass('strong'), /mesa-alert-warning/);
+    assert.match(resolveOrderHistoryLifecycleBoxClass('none'), /text-brand-text-muted/);
+    assert.match(resolveOrderHistoryLifecycleBoxClass('moderate'), /text-brand-text-muted/);
+  });
+});
+
+describe('ORDER_HISTORY_FORCED_SUMMARY_CLASS', () => {
+  it('uses theme warning text (not pale amber-100/200)', () => {
+    assert.match(ORDER_HISTORY_FORCED_SUMMARY_CLASS, /mesa-text-warning/);
+    assert.doesNotMatch(ORDER_HISTORY_FORCED_SUMMARY_CLASS, /amber-(?:100|200)/);
+  });
+});
+
+describe('ORDER_HISTORY_OUTCOME_BADGE_CLASS', () => {
+  it('uses theme status badges for success and warning tones', () => {
+    assert.equal(ORDER_HISTORY_OUTCOME_BADGE_CLASS.success, 'mesa-badge-success');
+    assert.equal(ORDER_HISTORY_OUTCOME_BADGE_CLASS.warning, 'mesa-badge-warning');
+    assert.doesNotMatch(ORDER_HISTORY_OUTCOME_BADGE_CLASS.warning, /amber-(?:100|200)/);
   });
 });

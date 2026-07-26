@@ -57,7 +57,7 @@ export function OrderHistoryDetailModal({
 
   if (!entry || !detail || !surface) return null;
 
-  const { outcomeBadge, abnormal, lifecycle } = surface;
+  const { outcomeBadge, lifecycle, lifecycleBoxClass } = surface;
   const billSplit = entry.billSplit;
   const billSplitId = billSplit?.id ?? '';
   const billCooldownKey = billSplitId
@@ -106,13 +106,7 @@ export function OrderHistoryDetailModal({
             </span>
             <p className="text-sm text-brand-text">{detail.statusStrip}</p>
           </div>
-          <div
-            className={`space-y-0.5 text-sm ${
-              abnormal === 'strong'
-                ? 'rounded-lg border border-amber-500/35 bg-amber-500/10 px-3 py-2 text-brand-text'
-                : 'text-brand-text-muted'
-            }`}
-          >
+          <div className={lifecycleBoxClass}>
             <p>{lifecycle.openedLine}</p>
             <p>{lifecycle.closedLine}</p>
           </div>

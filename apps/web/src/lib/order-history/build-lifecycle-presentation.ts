@@ -46,6 +46,30 @@ export function resolveOrderHistoryCardClass(
   }
 }
 
+/**
+ * Theme-aware warning chrome for forced / strong surfaces.
+ * Uses mesa-alert / mesa-text-warning so light theme gets dark amber fg.
+ */
+export const ORDER_HISTORY_FORCED_SUMMARY_CLASS =
+  'mt-2 text-[13px] font-medium mesa-text-warning';
+
+export const ORDER_HISTORY_FORCED_CALLOUT_CLASS =
+  'mesa-alert-warning px-3 py-2.5 text-sm';
+
+export const ORDER_HISTORY_FORCED_CALLOUT_TITLE_CLASS = 'font-medium';
+
+export const ORDER_HISTORY_FORCED_CALLOUT_DETAIL_CLASS =
+  'mt-1 text-[13px] opacity-80';
+
+export function resolveOrderHistoryLifecycleBoxClass(
+  emphasis: OrderHistoryAbnormalEmphasis,
+): string {
+  if (emphasis === 'strong') {
+    return 'space-y-0.5 text-sm rounded-lg mesa-alert-warning px-3 py-2';
+  }
+  return 'space-y-0.5 text-sm text-brand-text-muted';
+}
+
 /** Lisbon wall-clock for lifecycle lines (SSR/client stable). */
 export function formatOrderHistoryInstant(iso: string): string {
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -118,6 +142,7 @@ export function buildOrderHistorySurfaceMeta(
   abnormal: OrderHistoryAbnormalEmphasis;
   lifecycle: OrderHistoryLifecycleLines;
   cardClass: string;
+  lifecycleBoxClass: string;
 } {
   const abnormal = resolveOrderHistoryAbnormalEmphasis(
     entry.settlement.outcome,
@@ -128,5 +153,6 @@ export function buildOrderHistorySurfaceMeta(
     abnormal,
     lifecycle: buildOrderHistoryLifecycleLines(entry, i18n),
     cardClass: resolveOrderHistoryCardClass(abnormal),
+    lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass(abnormal),
   };
 }

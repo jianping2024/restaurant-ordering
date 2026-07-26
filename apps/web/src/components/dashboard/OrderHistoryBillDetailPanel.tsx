@@ -6,6 +6,11 @@ import { OrderHistoryPersonLedgerSection } from '@/components/dashboard/OrderHis
 import { OrderHistorySettlementDetails } from '@/components/dashboard/OrderHistorySettlementDetails';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
 import type { OrderHistoryDetailSection } from '@/lib/order-history/build-detail-presentation';
+import {
+  ORDER_HISTORY_FORCED_CALLOUT_CLASS,
+  ORDER_HISTORY_FORCED_CALLOUT_DETAIL_CLASS,
+  ORDER_HISTORY_FORCED_CALLOUT_TITLE_CLASS,
+} from '@/lib/order-history/build-lifecycle-presentation';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
@@ -90,10 +95,10 @@ export function OrderHistoryBillDetailPanel({
   return (
     <div className="space-y-4">
       {forcedClose ? (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2.5 text-sm text-brand-text">
-          <p className="font-medium text-amber-100">{forcedClose.summary}</p>
+        <div className={ORDER_HISTORY_FORCED_CALLOUT_CLASS}>
+          <p className={ORDER_HISTORY_FORCED_CALLOUT_TITLE_CLASS}>{forcedClose.summary}</p>
           {forcedClose.detail ? (
-            <p className="mt-1 text-[13px] text-brand-text-muted">{forcedClose.detail}</p>
+            <p className={ORDER_HISTORY_FORCED_CALLOUT_DETAIL_CLASS}>{forcedClose.detail}</p>
           ) : null}
         </div>
       ) : null}

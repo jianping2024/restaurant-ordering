@@ -14,7 +14,10 @@ import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
-import { buildOrderHistorySurfaceMeta } from '@/lib/order-history/build-lifecycle-presentation';
+import {
+  ORDER_HISTORY_FORCED_SUMMARY_CLASS,
+  buildOrderHistorySurfaceMeta,
+} from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
@@ -265,7 +268,7 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
-    const { outcomeBadge, abnormal, lifecycle, cardClass } = buildOrderHistorySurfaceMeta(
+    const { outcomeBadge, lifecycle, cardClass } = buildOrderHistorySurfaceMeta(
       entry,
       i18n,
     );
@@ -307,13 +310,7 @@ export function OrdersHistoryManager({
         <p>{lifecycle.closedLine}</p>
       </div>
       {forcedCloseSummary ? (
-        <p
-          className={`mt-2 text-[13px] ${
-            abnormal === 'strong' ? 'font-medium text-amber-200' : 'text-brand-text-muted'
-          }`}
-        >
-          {forcedCloseSummary}
-        </p>
+        <p className={ORDER_HISTORY_FORCED_SUMMARY_CLASS}>{forcedCloseSummary}</p>
       ) : null}
     </div>
     );

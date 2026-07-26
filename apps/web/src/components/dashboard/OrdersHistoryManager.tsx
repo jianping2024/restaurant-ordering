@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { getMessages } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
 import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fns';
 import Select from 'react-select';
@@ -14,6 +14,11 @@ import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import { resolveOrderHistoryOutcomeBadge } from '@/lib/order-history/build-detail-presentation';
+import {
+  buildOrderHistoryLifecycleLines,
+  resolveOrderHistoryAbnormalEmphasis,
+} from '@/lib/order-history/build-lifecycle-presentation';
+import { formatOrderHistoryInstant } from '@/lib/order-history/format-instant';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
@@ -34,9 +39,13 @@ interface TableOption {
 
 const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span>;
 const ORDER_CARD_CLASS =
-  'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full hover:border-brand-gold/40 transition-colors';
-const FORCED_CLOSE_CARD_CLASS =
-  'bg-amber-500/5 border border-amber-500/25 rounded-xl px-4 py-3 text-left w-full hover:border-amber-500/40 transition-colors';
+  'bg-brand-card border border-brand-border rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-brand-gold/40 transition-colors';
+const ABNORMAL_CARD_CLASS: Record<'strong' | 'moderate', string> = {
+  strong:
+    'bg-amber-500/10 border border-amber-500/45 rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-amber-500/60 transition-colors ring-1 ring-amber-500/20',
+  moderate:
+    'bg-amber-500/5 border border-amber-500/25 rounded-xl px-4 py-3 text-left w-full cursor-pointer hover:border-amber-500/40 transition-colors',
+};
 
 const OUTCOME_BADGE_CLASS: Record<'success' | 'warning' | 'muted', string> = {
   success: 'bg-brand-gold/15 text-brand-gold border-brand-gold/30',
@@ -55,7 +64,6 @@ export function OrdersHistoryManager({
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const checkoutT = getMessages(lang).checkout;
-  const locale = UI_LOCALE_BY_LANG[lang];
   const {
     printCheckoutBill,
     printSessionCheckoutBill,
@@ -215,7 +223,7 @@ export function OrdersHistoryManager({
     return () => observer.disconnect();
   }, [hasMore, loadMore, loading]);
 
-  const formatClosedAt = (closedAt: string) => new Date(closedAt).toLocaleString(locale);
+  const formatInstant = formatOrderHistoryInstant;
 
   const renderMetaAmount = (entry: OrderHistoryEntry) => {
     const { listAmount, listAmountKind } = entry.settlement;
@@ -278,13 +286,27 @@ export function OrdersHistoryManager({
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
     const outcomeBadge = resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n);
+    const abnormal = resolveOrderHistoryAbnormalEmphasis(
+      entry.settlement.outcome,
+      entry.closeAnnotation,
+    );
+    const lifecycle = buildOrderHistoryLifecycleLines(entry, i18n, formatInstant);
+    const cardClass =
+      abnormal === 'none' ? ORDER_CARD_CLASS : ABNORMAL_CARD_CLASS[abnormal];
 
     return (
-    <button
+    <div
       key={entry.sessionId}
-      type="button"
-      className={isForcedUnpaidClose ? FORCED_CLOSE_CARD_CLASS : ORDER_CARD_CLASS}
+      role="button"
+      tabIndex={0}
+      className={cardClass}
       onClick={() => setSelectedEntry(entry)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          setSelectedEntry(entry);
+        }
+      }}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
         <span className="font-medium text-brand-text">
@@ -297,23 +319,27 @@ export function OrdersHistoryManager({
           {outcomeBadge.label}
         </span>
         {META_SEP}
-        <span className="text-brand-text-muted">{formatClosedAt(entry.closedAt)}</span>
-        {META_SEP}
         <span className="text-brand-text-muted">
           {entry.itemCount} {i18n.items}
-        </span>
-        {META_SEP}
-        <span className="text-brand-text-muted">
-          {i18n.openedBy} {entry.openedByName ?? '—'}
         </span>
         {META_SEP}
         {renderMetaAmount(entry)}
         {renderPrintButton(entry)}
       </div>
+      <div className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted">
+        <p>{lifecycle.openedLine}</p>
+        <p>{lifecycle.closedLine}</p>
+      </div>
       {forcedCloseSummary ? (
-        <p className="mt-2 text-[13px] text-brand-text-muted">{forcedCloseSummary}</p>
+        <p
+          className={`mt-2 text-[13px] ${
+            abnormal === 'strong' ? 'font-medium text-amber-200' : 'text-brand-text-muted'
+          }`}
+        >
+          {forcedCloseSummary}
+        </p>
       ) : null}
-    </button>
+    </div>
     );
   };
 

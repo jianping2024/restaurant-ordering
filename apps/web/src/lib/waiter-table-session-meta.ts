@@ -1,7 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
-import { resolveOpenedByName, resolveOpenedByNames } from '@/lib/order-history/resolve-opened-by';
+import {
+  resolveStaffOperatorName,
+  resolveStaffOperatorNames,
+} from '@/lib/order-history/resolve-opened-by';
 import type { TableSessionRef } from '@/lib/table-session-open';
 import type { SessionStatus } from '@/types';
 
@@ -109,7 +112,7 @@ export async function buildActiveSessionMetaByTableId(
     return sessionMetaByTableIdFromSessions(sessions);
   }
 
-  const openedByNameByUserId = await resolveOpenedByNames(admin, {
+  const openedByNameByUserId = await resolveStaffOperatorNames(admin, {
     restaurantId: restaurant.restaurantId,
     ownerId: restaurant.ownerId,
     restaurantName: restaurant.restaurantName,
@@ -127,7 +130,7 @@ export async function resolveActiveSessionOpenedByName(
   if (!openedByUserId) return null;
   const restaurant = await loadRestaurantOpenerContext(admin, restaurantId);
   if (!restaurant) return null;
-  return resolveOpenedByName(admin, {
+  return resolveStaffOperatorName(admin, {
     restaurantId: restaurant.restaurantId,
     ownerId: restaurant.ownerId,
     restaurantName: restaurant.restaurantName,

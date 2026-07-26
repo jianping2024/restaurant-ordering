@@ -90,8 +90,8 @@ export function OrderHistoryBillDetailPanel({
   return (
     <div className="space-y-4">
       {forcedClose ? (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-brand-text">
-          <p>{forcedClose.summary}</p>
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2.5 text-sm text-brand-text">
+          <p className="font-medium text-amber-100">{forcedClose.summary}</p>
           {forcedClose.detail ? (
             <p className="mt-1 text-[13px] text-brand-text-muted">{forcedClose.detail}</p>
           ) : null}

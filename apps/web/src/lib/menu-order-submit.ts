@@ -49,8 +49,29 @@ export function appendCartFingerprint(cart: CartItem[]): string {
     .join('|');
 }
 
+/**
+ * Mint a UUID for append idempotency.
+ * Prefer randomUUID (secure contexts); fall back to getRandomValues so LAN HTTP
+ * (non-secure contexts) can still submit — randomUUID is secure-context-only.
+ */
+function mintAppendClientRequestId(): string {
+  const c = globalThis.crypto;
+  if (c && typeof c.randomUUID === 'function') {
+    return c.randomUUID();
+  }
+  if (!c || typeof c.getRandomValues !== 'function') {
+    throw new Error('crypto_uuid_unavailable');
+  }
+  const bytes = new Uint8Array(16);
+  c.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export function createAppendClientRequestId(
-  randomUuid: () => string = () => crypto.randomUUID(),
+  randomUuid: () => string = mintAppendClientRequestId,
 ): string {
   return randomUuid();
 }

@@ -444,16 +444,16 @@ export function MenuOrderingController({
     submittingRef.current = true;
     setSubmitting(true);
 
-    const intent = resolveAppendClientRequestId({
-      cart,
-      previous: pendingAppendIntentRef.current,
-    });
-    pendingAppendIntentRef.current = {
-      clientRequestId: intent.clientRequestId,
-      fingerprint: intent.fingerprint,
-    };
-
     try {
+      const intent = resolveAppendClientRequestId({
+        cart,
+        previous: pendingAppendIntentRef.current,
+      });
+      pendingAppendIntentRef.current = {
+        clientRequestId: intent.clientRequestId,
+        fingerprint: intent.fingerprint,
+      };
+
       const waiterFlow = !!staffAssisted;
       const result = await executeMenuOrderSubmit({
         flow: waiterFlow ? 'staff_assisted' : 'guest',

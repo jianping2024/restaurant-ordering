@@ -81,14 +81,6 @@ export function isLimitedSushiMenuItem(
   return perPersonLimitOf(item) !== null;
 }
 
-/**
- * A stored order line carries its own limit rule snapshot (written at append time in
- * sushi mode), so billing never needs the menu catalog or the restaurant service mode.
- */
-export function hasSushiLimitRule(item: SushiLimitMenuFields): boolean {
-  return perPersonLimitOf(item) !== null && overLimitUnitPriceOf(item) !== null;
-}
-
 /** Free (included) allowance for the table: per-person × guest count. */
 export function freeAllowanceQty(perPersonLimit: number, guestCount: number): number {
   if (perPersonLimit < 1 || guestCount < 1) return 0;

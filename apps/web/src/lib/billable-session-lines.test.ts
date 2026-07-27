@@ -111,17 +111,20 @@ describe('sumBillableSessionTotal', () => {
 
     const lines = buildBillableSessionItems(orders);
     const menu = lines.filter((row) => row.item.id === 'm1');
-    assert.equal(menu.length, 2);
+    assert.equal(menu.length, 1);
     assert.deepEqual(
-      menu.map((row) => ({
-        qty: row.item.qty,
-        price: row.item.price,
-        chargeable: !!row.chargeable,
-      })),
-      [
-        { qty: 4, price: 0, chargeable: false },
-        { qty: 1, price: 4.5, chargeable: true },
-      ],
+      {
+        qty: menu[0].item.qty,
+        price: menu[0].item.price,
+        chargeableQty: menu[0].chargeableQty,
+        chargeableUnitPrice: menu[0].chargeableUnitPrice,
+      },
+      {
+        qty: 5,
+        price: 0,
+        chargeableQty: 1,
+        chargeableUnitPrice: 4.5,
+      },
     );
     assert.equal(sumBillableSessionTotal(orders), 35.9 + 4.5);
     assert.equal(orders[0].items[1].qty, 5);

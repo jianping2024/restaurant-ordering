@@ -1,9 +1,18 @@
-import { buildBillableSessionItems } from '@/lib/billable-session-lines';
+import {
+  billableLineAmount,
+  buildBillableSessionItems,
+  chargeableShareOf,
+} from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import type { Order, OrderItem } from '@/types';
 
 /** Billable catalog line for by-item split (same keys as receipt / bill details). */
-export type BillSplitOrderLine = OrderItem & { key: string; order_id?: string };
+export type BillSplitOrderLine = OrderItem & {
+  key: string;
+  order_id?: string;
+  chargeableQty?: number;
+  chargeableUnitPrice?: number;
+};
 
 export type ByItemSplitLine = {
   key: string;
@@ -38,14 +47,23 @@ export type ByItemLineSpec =
     };
 
 export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
-  return buildBillableSessionItems(orders).map(({ key, item }) => ({
-    ...item,
-    key,
-  }));
+  return buildBillableSessionItems(orders).map((row) => {
+    const share = chargeableShareOf(row);
+    return {
+      ...row.item,
+      key: row.key,
+      ...(share ? { chargeableQty: share.qty, chargeableUnitPrice: share.unitPrice } : {}),
+    };
+  });
 }
 
 export function buildByItemLineSpec(line: BillSplitOrderLine): ByItemLineSpec {
-  const lineTotal = line.price * line.qty;
+  const lineTotal = billableLineAmount({
+    key: line.key,
+    item: line,
+    chargeableQty: line.chargeableQty,
+    chargeableUnitPrice: line.chargeableUnitPrice,
+  });
   if (isBuffetBaseItem(line)) {
     return {
       mode: 'buffet',
@@ -62,7 +80,7 @@ export function buildByItemLineSpec(line: BillSplitOrderLine): ByItemLineSpec {
     key: line.key,
     lineQty: line.qty,
     lineTotal,
-    unitPrice: line.price,
+    unitPrice: line.qty > 0 ? lineTotal / line.qty : line.price,
   };
 }
 

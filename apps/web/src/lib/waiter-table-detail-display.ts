@@ -18,14 +18,3 @@ export function formatWaiterOrderedItemsSessionTotal(
   if (!(sessionTotal > 0)) return null;
   return WAITER_TEXT[lang].sessionAmount.replace('{amount}', sessionTotal.toFixed(2));
 }
-
-/** Ordered-items hint for the share of a limited dish billed beyond the free allowance. */
-export function formatWaiterChargeableQtyHint(
-  lang: UILanguage,
-  qty: number,
-  unitPrice: number,
-): string {
-  return WAITER_TEXT[lang].chargeableQtyHint
-    .replace('{qty}', String(qty))
-    .replace('{price}', unitPrice.toFixed(2));
-}

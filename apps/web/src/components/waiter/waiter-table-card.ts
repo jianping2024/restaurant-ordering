@@ -2,6 +2,7 @@ import type { Order, OrderItem } from '@/types';
 import {
   billableMenuItemMergeKey,
   buildBillableSessionItems,
+  chargeableShareOf,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import {
@@ -29,7 +30,8 @@ export type WaiterOrderLine = {
   /** Menu lines: `× N` shown beside the decrement control. */
   quantityLabel: string | null;
   canDecrement: boolean;
-  /** Sushi limited dish billed beyond the free allowance (null when included). */
+  /** Sushi limited dish: chargeable share of this row (null when fully included). */
+  chargeableQty: number | null;
   chargeableUnitPrice: number | null;
 };
 
@@ -62,6 +64,19 @@ function resolveMenuLineActionTarget(
   mergeKey: string,
   operator: MenuDecrementOperator,
 ): MenuLineActionTarget {
+  return pickMenuLineActionTarget(orders, operator, (item) => {
+    if (mergeKey.startsWith('limited:')) {
+      return item.id === mergeKey.slice('limited:'.length);
+    }
+    return billableMenuItemMergeKey(item) === mergeKey;
+  });
+}
+
+function pickMenuLineActionTarget(
+  orders: Order[],
+  operator: MenuDecrementOperator,
+  match: (item: OrderItem) => boolean,
+): MenuLineActionTarget {
   let fallback: MenuLineCandidate | null = null;
   let bestDecrementable: MenuLineCandidate | null = null;
   let bestQtyGt1: MenuLineCandidate | null = null;
@@ -72,7 +87,7 @@ function resolveMenuLineActionTarget(
       const item = items[itemIdx];
       if (!item || isBuffetBaseItem(item)) continue;
       if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
-      if (billableMenuItemMergeKey(item) !== mergeKey) continue;
+      if (!match(item)) continue;
 
       const loc: MenuLineCandidate = { orderId: order.id, itemIdx, item, order };
       if (!fallback) fallback = loc;
@@ -115,7 +130,8 @@ export function buildWaiterTableCard(
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalog = buildBillableSessionItems(orders);
 
-  const orderLines: WaiterOrderLine[] = catalog.map(({ key, item, chargeable }) => {
+  const orderLines: WaiterOrderLine[] = catalog.map((row) => {
+    const { key, item } = row;
     if (isBuffetBaseItem(item)) {
       return {
         orderId: '',
@@ -123,16 +139,20 @@ export function buildWaiterTableCard(
         label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
         quantityLabel: null,
         canDecrement: false,
+        chargeableQty: null,
         chargeableUnitPrice: null,
       };
     }
 
     const action = resolveMenuLineActionTarget(orders, key, menuDecrementOperator);
+    const share = chargeableShareOf(row);
+
     return {
       ...action,
       label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-      chargeableUnitPrice: chargeable ? item.price : null,
+      chargeableQty: share?.qty ?? null,
+      chargeableUnitPrice: share?.unitPrice ?? null,
     };
   });
 

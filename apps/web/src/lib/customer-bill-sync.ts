@@ -2,6 +2,7 @@ import {
   buildBillSplitOrderLines,
   buildByItemLineSpecs,
 } from '@/lib/bill-split-by-item-lines';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
 import type { Order } from '@/types';
 
@@ -27,7 +28,7 @@ export function isBillOrdersComplete(displayed: Order[], fresh: Order[]): boolea
 export function deriveBillView(orders: Order[]) {
   const orderLines = buildBillSplitOrderLines(orders);
   const lineSpecs = buildByItemLineSpecs(orderLines);
-  const total = orderLines.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const total = sumBillableSessionTotal(orders);
   return { orderLines, lineSpecs, total };
 }
 

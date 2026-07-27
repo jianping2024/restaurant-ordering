@@ -3,7 +3,7 @@ import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import {
   formatBuffetReceiptQtyLabel,
 } from '@/lib/buffet-order';
-import { buildBillableSessionItems } from '@/lib/billable-session-lines';
+import { billableLineAmount, buildBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
@@ -83,9 +83,18 @@ export function buildReceiptLinesFromOrders(
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
 
-  for (const { item } of buildBillableSessionItems(orders)) {
+  for (const row of buildBillableSessionItems(orders)) {
     itemIndex += 1;
-    lines.push(receiptLineFromOrderItem(item, itemIndex));
+    const amount = billableLineAmount(row);
+    const qty = Math.max(0, Number(row.item.qty) || 0);
+    // One receipt row per dish (no free/overage split); unit carries the billable average.
+    const unitPrice = qty > 0 ? amount / qty : 0;
+    lines.push(
+      receiptLineFromOrderItem(
+        unitPrice === row.item.price ? row.item : { ...row.item, price: unitPrice },
+        itemIndex,
+      ),
+    );
   }
 
   return lines;

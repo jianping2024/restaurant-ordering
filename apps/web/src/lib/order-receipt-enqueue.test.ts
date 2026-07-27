@@ -100,7 +100,7 @@ describe('buildReceiptLinesFromOrders', () => {
     assert.equal(lines.length, 2);
     assert.equal(lines[0]?.display_name, 'Buffet livre');
     assert.equal(lines[0]?.share_qty_label, 'A4-C2');
-    assert.equal(lines[1]?.display_name, 'RE-001-Água 500ml');
+    assert.equal(lines[1]?.display_name, '001-Água 500ml');
   });
 
   it('merges same menu item across orders regardless of note', () => {
@@ -359,7 +359,7 @@ describe('enqueueReceiptPrint', () => {
     assert.equal(insertedPayload?.amount_due, 90);
     assert.equal(insertedPayload?.amount_paid, undefined);
     const payloadLines = insertedPayload?.lines as Array<{ display_name: string }>;
-    assert.equal(payloadLines[0]?.display_name, 'RE-028-Coca-Cola');
+    assert.equal(payloadLines[0]?.display_name, '028-Coca-Cola');
   });
 
   it('enqueues checkout_bill when bill_receipt_print is disabled (manual staff print)', async () => {

@@ -94,11 +94,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     limitedItemNeedsHeadcount: 'Registe primeiro o numero de pessoas na mesa para pedir este prato.',
     staffOverageConfirmTitle: 'Confirmar preco extra',
     staffOverageFirstCrossMessage:
-      '"{name}" tera {qty} un. ao preco extra €{price}/un. (subtotal €{subtotal}). Continuar?',
+      '"{name}" tera {qty} un. ao preco extra €{price}/un. no fecho da conta (subtotal €{subtotal}). Continuar?',
     staffOverageMoreToast:
-      '"{name}": +{qty} un. ao preco extra €{price}/un.',
+      '"{name}": +{qty} un. serao cobradas ao preco extra €{price}/un. no fecho.',
     staffOverageSubmitTitle: 'Confirmar envio com extra',
-    staffOverageSubmitIntro: 'Este pedido inclui itens ao preco extra:',
+    staffOverageSubmitIntro: 'No fecho da conta sera cobrado preco extra para:',
     staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
     staffOverageConfirm: 'Confirmar',
     staffOverageCancel: 'Cancelar',
@@ -148,11 +148,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     limitedItemNeedsHeadcount: 'Staff must set the table headcount before ordering this dish.',
     staffOverageConfirmTitle: 'Confirm overage price',
     staffOverageFirstCrossMessage:
-      '"{name}" will include {qty} at overage €{price} each (subtotal €{subtotal}). Continue?',
+      '"{name}" will include {qty} at overage €{price} each at checkout (subtotal €{subtotal}). Continue?',
     staffOverageMoreToast:
-      '"{name}": +{qty} at overage €{price} each.',
+      '"{name}": +{qty} will be charged at overage €{price} each at checkout.',
     staffOverageSubmitTitle: 'Confirm order with overage',
-    staffOverageSubmitIntro: 'This order includes overage-priced items:',
+    staffOverageSubmitIntro: 'At checkout, this order will charge overage for:',
     staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
     staffOverageConfirm: 'Confirm',
     staffOverageCancel: 'Cancel',
@@ -202,11 +202,11 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     limitedItemNeedsHeadcount: '请先登记本桌人数后再点此限量菜。',
     staffOverageConfirmTitle: '确认超额计价',
     staffOverageFirstCrossMessage:
-      '「{name}」将有 {qty} 份按超额价 €{price}/份计费（小计 €{subtotal}）。确认继续？',
+      '「{name}」结账时将有 {qty} 份按超额价 €{price}/份计费（小计 €{subtotal}）。确认继续？',
     staffOverageMoreToast:
-      '「{name}」再增 {qty} 份将按超额价 €{price}/份计费',
-    staffOverageSubmitTitle: '确认提交超额菜品',
-    staffOverageSubmitIntro: '本单包含按超额价计费的菜品：',
+      '「{name}」再增 {qty} 份，结账时将按超额价 €{price}/份计费',
+    staffOverageSubmitTitle: '确认提交（含结账收费份）',
+    staffOverageSubmitIntro: '结账时将按超额价收取：',
     staffOverageSubmitLine: '• {name}：{qty} 份 × €{price} = €{subtotal}',
     staffOverageConfirm: '确认',
     staffOverageCancel: '取消',

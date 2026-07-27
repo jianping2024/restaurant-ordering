@@ -1,7 +1,6 @@
 import type { Order } from '@/types';
 import { aggregateBuffetHeadcountForOrders, totalGuestsFromCounts } from '@/lib/buffet-order';
 import { isSushiBuffetMode } from '@/lib/buffet-service-mode';
-import { eurosToCents } from '@/lib/money-allocation';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 
 export type SushiLimitMenuFields = {
@@ -24,37 +23,13 @@ export function sessionOrderedQtyForMenuItem(
   return sumSessionMenuItemQty(orders, menuItemId, () => true);
 }
 
-/**
- * True when a persisted line was priced as sushi overage (not included).
- * When menu price equals overage price, lines cannot be distinguished — treat as included.
- */
-export function isSushiOveragePricedLine(
-  linePrice: number,
-  menuPrice: number,
-  overLimitUnitPrice: number,
+/** Non-voided menu line (excludes buffet_base). Single predicate for session + settlement. */
+export function isActiveSessionMenuLine(
+  item: NonNullable<Order['items']>[number],
+  orderStatus: Order['status'],
 ): boolean {
-  const lineCents = eurosToCents(linePrice);
-  const overCents = eurosToCents(overLimitUnitPrice);
-  if (lineCents !== overCents) return false;
-  return eurosToCents(menuPrice) !== overCents;
-}
-
-/**
- * Non-voided included (non-overage) qty for one limited menu item.
- * Used for headcount floor: only free-allowance portions constrain reducing guests.
- */
-export function sessionIncludedQtyForLimitedMenuItem(
-  orders: Array<Pick<Order, 'items' | 'status'>>,
-  menuItemId: string,
-  pricing: { price: number; over_limit_unit_price: number },
-): number {
-  return sumSessionMenuItemQty(orders, menuItemId, (item) => {
-    return !isSushiOveragePricedLine(
-      Number(item.price),
-      pricing.price,
-      pricing.over_limit_unit_price,
-    );
-  });
+  if (item.kind === 'buffet_base') return false;
+  return normalizeOrderItemStatus(item, orderStatus) !== 'voided';
 }
 
 /** Distinct non-voided menu item ids on the session (excludes buffet_base). */
@@ -74,8 +49,7 @@ function forEachActiveSessionMenuLine(
 ): void {
   for (const order of orders) {
     for (const item of order.items || []) {
-      if (item.kind === 'buffet_base') continue;
-      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
+      if (!isActiveSessionMenuLine(item, order.status)) continue;
       visit(item);
     }
   }
@@ -96,45 +70,10 @@ function sumSessionMenuItemQty(
   return total;
 }
 
-/** Minimum guests so free allowance covers included qty: ceil(included / perPerson). */
-export function minGuestsForIncludedLimitedQty(
-  perPersonLimit: number,
-  includedQty: number,
-): number {
-  if (includedQty <= 0 || perPersonLimit < 1) return 0;
-  return Math.ceil(includedQty / perPersonLimit);
-}
-
 export type SushiLimitCatalogRow = SushiLimitMenuFields & {
   id: string;
   price: number;
 };
-
-/**
- * Lowest total headcount that still covers included (free) limited portions.
- * Classic / unlimited items → 0. Overage-priced lines do not raise the floor.
- */
-export function sushiFreeAllowanceHeadcountFloor(params: {
-  serviceMode: unknown;
-  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
-  catalog: Iterable<SushiLimitCatalogRow>;
-}): number {
-  let floor = 0;
-  for (const row of params.catalog) {
-    if (!isLimitedSushiMenuItem(params.serviceMode, row)) continue;
-    const over = row.over_limit_unit_price;
-    if (typeof over !== 'number' || !Number.isFinite(over) || over < 0) continue;
-    const included = sessionIncludedQtyForLimitedMenuItem(params.sessionOrders, row.id, {
-      price: row.price,
-      over_limit_unit_price: over,
-    });
-    floor = Math.max(
-      floor,
-      minGuestsForIncludedLimitedQty(row.per_person_qty_limit!, included),
-    );
-  }
-  return floor;
-}
 
 export function isLimitedSushiMenuItem(
   serviceMode: unknown,
@@ -183,7 +122,7 @@ export type ApplySushiLimitError =
 
 export type ApplySushiLimitLineSuccess = {
   ok: true;
-  /** One or two priced slices (same menu identity; different unit price). */
+  /** Order-time: one menu-price slice. Settlement may emit free + overage slices. */
   slices: Array<{ qty: number; unitPrice: number }>;
 };
 
@@ -191,10 +130,25 @@ export type ApplySushiLimitLineResult =
   | ApplySushiLimitLineSuccess
   | { ok: false; error: ApplySushiLimitError };
 
+/** Headcount + overage price gate shared by order-time, settlement, and staff overage preview. */
+function assertLimitedSushiReady(
+  guestCount: number,
+  item: SushiLimitMenuFields,
+): { ok: true; overLimitUnitPrice: number } | { ok: false; error: ApplySushiLimitError } {
+  if (guestCount < 1) {
+    return { ok: false, error: 'limited_item_requires_headcount' };
+  }
+  const overPrice = item.over_limit_unit_price;
+  if (typeof overPrice !== 'number' || !Number.isFinite(overPrice) || overPrice < 0) {
+    return { ok: false, error: 'over_limit_price_missing' };
+  }
+  return { ok: true, overLimitUnitPrice: overPrice };
+}
+
 /**
- * Price one cart line under sushi limits.
- * Guest: may only use free remaining (hard cap).
- * Staff-assisted: may exceed; overage uses over_limit_unit_price.
+ * Price one cart line at order time under sushi limits.
+ * Limited items stay one menu-price slice (no free/overage split here).
+ * Guest: hard-cap at free remaining. Staff: may exceed; overage is billed at settlement.
  * Limited items require guestCount > 0 for everyone.
  */
 export function applySushiLimitToCartLine(params: {
@@ -216,40 +170,49 @@ export function applySushiLimitToCartLine(params: {
     };
   }
 
-  const perPerson = params.item.per_person_qty_limit!;
-  if (params.guestCount < 1) {
-    return { ok: false, error: 'limited_item_requires_headcount' };
-  }
-
-  const overPrice = params.item.over_limit_unit_price;
-  if (typeof overPrice !== 'number' || !Number.isFinite(overPrice) || overPrice < 0) {
-    return { ok: false, error: 'over_limit_price_missing' };
-  }
+  const ready = assertLimitedSushiReady(params.guestCount, params.item);
+  if (!ready.ok) return ready;
 
   const freeRemaining = freeRemainingQty({
-    perPersonLimit: perPerson,
+    perPersonLimit: params.item.per_person_qty_limit!,
     guestCount: params.guestCount,
     alreadyOrdered: params.alreadyOrdered,
   });
-  const { includedQty, overageQty } = splitQtyAgainstFreeRemaining(
-    params.requestQty,
-    freeRemaining,
-  );
+  const { overageQty } = splitQtyAgainstFreeRemaining(params.requestQty, freeRemaining);
 
   if (!params.staffAssisted && overageQty > 0) {
     return { ok: false, error: 'per_person_limit_exceeded' };
   }
 
+  return {
+    ok: true,
+    slices: [{ qty: params.requestQty, unitPrice: params.menuPrice }],
+  };
+}
+
+/**
+ * Settlement pricing: free allowance at menu price, remainder at over_limit_unit_price.
+ * Classic / unlimited → single menu-price slice.
+ */
+export function settlementPriceSlicesForLimitedItem(params: {
+  serviceMode: unknown;
+  guestCount: number;
+  totalQty: number;
+  menuPrice: number;
+  item: SushiLimitMenuFields;
+}): ApplySushiLimitLineResult {
+  const qty = Math.max(0, params.totalQty);
+  if (qty <= 0) return { ok: true, slices: [] };
+  if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
+    return { ok: true, slices: [{ qty, unitPrice: params.menuPrice }] };
+  }
+  const ready = assertLimitedSushiReady(params.guestCount, params.item);
+  if (!ready.ok) return ready;
+  const free = freeAllowanceQty(params.item.per_person_qty_limit!, params.guestCount);
+  const { includedQty, overageQty } = splitQtyAgainstFreeRemaining(qty, free);
   const slices: Array<{ qty: number; unitPrice: number }> = [];
-  if (includedQty > 0) {
-    slices.push({ qty: includedQty, unitPrice: params.menuPrice });
-  }
-  if (overageQty > 0) {
-    slices.push({ qty: overageQty, unitPrice: overPrice });
-  }
-  if (slices.length === 0) {
-    return { ok: false, error: 'per_person_limit_exceeded' };
-  }
+  if (includedQty > 0) slices.push({ qty: includedQty, unitPrice: params.menuPrice });
+  if (overageQty > 0) slices.push({ qty: overageQty, unitPrice: ready.overLimitUnitPrice });
   return { ok: true, slices };
 }
 
@@ -329,13 +292,8 @@ export function staffAssistedOverageQty(params: {
   if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
     return { ok: true, overageQty: 0, overLimitUnitPrice: 0 };
   }
-  if (params.guestCount < 1) {
-    return { ok: false, error: 'limited_item_requires_headcount' };
-  }
-  const overPrice = params.item.over_limit_unit_price;
-  if (typeof overPrice !== 'number' || !Number.isFinite(overPrice) || overPrice < 0) {
-    return { ok: false, error: 'over_limit_price_missing' };
-  }
+  const ready = assertLimitedSushiReady(params.guestCount, params.item);
+  if (!ready.ok) return ready;
   const { overageQty } = splitQtyAgainstFreeRemaining(
     Math.max(0, params.requestQty),
     freeRemainingQty({
@@ -344,7 +302,7 @@ export function staffAssistedOverageQty(params: {
       alreadyOrdered: params.alreadyOrdered,
     }),
   );
-  return { ok: true, overageQty, overLimitUnitPrice: overPrice };
+  return { ok: true, overageQty, overLimitUnitPrice: ready.overLimitUnitPrice };
 }
 
 export type StaffQtyIncreaseGate =

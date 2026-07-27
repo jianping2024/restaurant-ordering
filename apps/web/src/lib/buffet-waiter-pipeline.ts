@@ -21,12 +21,6 @@ import {
   lockedBuffetHeadcountByBuffetId,
 } from '@/lib/buffet-paid-headcount-floor';
 import {
-  BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR,
-  findBuffetHeadcountBelowSushiLimitFloor,
-  loadRestaurantBuffetServiceMode,
-  resolveSushiLimitHeadcountFloor,
-} from '@/lib/buffet-sushi-limit-headcount-floor';
-import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
@@ -191,12 +185,12 @@ export async function runBuffetWaiterOpenPipeline(
 
   if (!unchanged) {
     try {
-      const [splitContinuation, serviceMode] = await Promise.all([
-        loadSessionSplitContinuation(admin, restaurantId, sessionId),
-        loadRestaurantBuffetServiceMode(admin, restaurantId),
-      ]);
+      const { split, collectedPayments } = await loadSessionSplitContinuation(
+        admin,
+        restaurantId,
+        sessionId,
+      );
 
-      const { split, collectedPayments } = splitContinuation;
       const floors = lockedBuffetHeadcountByBuffetId(
         split,
         collectedPayments.length > 0,
@@ -210,25 +204,6 @@ export async function runBuffetWaiterOpenPipeline(
             `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
             + `; proposed adults ${floorViolation.proposedAdults},`
             + ` children ${floorViolation.proposedChildren}`,
-        });
-      }
-
-      const sushiMinGuests = await resolveSushiLimitHeadcountFloor(
-        admin,
-        restaurantId,
-        serviceMode,
-        orders,
-      );
-      const sushiFloorViolation = findBuffetHeadcountBelowSushiLimitFloor(
-        targetSnapshot,
-        sushiMinGuests,
-      );
-      if (sushiFloorViolation) {
-        return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR, {
-          code: BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR,
-          message:
-            `min guests ${sushiFloorViolation.minGuests};`
-            + ` proposed ${sushiFloorViolation.proposedGuests}`,
         });
       }
     } catch (err) {

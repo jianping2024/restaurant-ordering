@@ -1,7 +1,6 @@
 import { showToast } from '@/components/ui/Toast';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { BUFFET_HEADCOUNT_BELOW_PAID_FLOOR } from '@/lib/buffet-paid-headcount-floor';
-import { BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR } from '@/lib/buffet-sushi-limit-headcount-floor';
 import {
   DEPENDENCY_UNAVAILABLE,
   isDependencyUnavailableCode,
@@ -12,7 +11,6 @@ type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 export type WaiterBuffetOpenFailureKind =
   | 'session_billing'
   | 'paid_floor'
-  | 'sushi_limit_floor'
   | 'no_price'
   | 'dependency'
   | 'conflict'
@@ -25,9 +23,6 @@ export function classifyWaiterBuffetOpenFailure(result: {
   if (result.status === 409 && result.code === 'session_billing') return 'session_billing';
   if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_PAID_FLOOR) {
     return 'paid_floor';
-  }
-  if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR) {
-    return 'sushi_limit_floor';
   }
   if (result.status === 400 && result.code === 'no_price_rule') return 'no_price';
   if (
@@ -52,9 +47,6 @@ export function toastWaiterBuffetOpenFailure(
       return;
     case 'paid_floor':
       showToast(t.buffetHeadcountBelowPaidFloor, 'error');
-      return;
-    case 'sushi_limit_floor':
-      showToast(t.buffetHeadcountBelowSushiLimitFloor, 'error');
       return;
     case 'no_price':
       showToast(t.buffetNoRule, 'error');

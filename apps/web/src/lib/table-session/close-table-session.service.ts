@@ -11,6 +11,8 @@ import {
   closeActiveTableSessionSettled,
   type CloseTableSettledResult,
 } from '@/lib/close-active-table-session-with-cleanup';
+import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
+import { ensureSushiSettlementPricingForSession } from '@/lib/sushi-settlement-rebalance';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
@@ -87,7 +89,13 @@ export type CloseTableSessionFrontdeskCheckoutResult =
   | { ok: true; session_id: string }
   | {
       ok: false;
-      code: 'no_session' | 'update_failed';
+      code:
+        | 'no_session'
+        | 'update_failed'
+        | 'limited_item_requires_headcount'
+        | 'over_limit_price_missing'
+        | 'catalog_lookup_failed'
+        | 'persist_failed';
       message?: string;
     };
 
@@ -99,6 +107,36 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   userId: string;
   closedReason: SettledCloseActorReason;
 }): Promise<CloseTableSessionFrontdeskCheckoutResult> {
+  const { data: session } = await input.admin
+    .from('table_sessions')
+    .select('id')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('table_id', input.tableId)
+    .in('status', ['open', 'billing'])
+    .maybeSingle();
+
+  if (session?.id) {
+    const orders = await loadCustomerSessionOrders({
+      admin: input.admin,
+      restaurantId: input.restaurantId,
+      sessionId: session.id as string,
+      ascending: true,
+    });
+    const settled = await ensureSushiSettlementPricingForSession(
+      input.admin,
+      input.restaurantId,
+      session.id as string,
+      orders,
+    );
+    if (!settled.ok) {
+      return {
+        ok: false,
+        code: settled.error,
+        message: settled.message,
+      };
+    }
+  }
+
   const closed = await closeActiveTableSessionSettled(
     input.admin,
     input.restaurantId,

@@ -449,15 +449,3 @@ export async function loadDashboardOverviewSecondary(
     ),
   };
 }
-
-export async function loadDashboardOverviewView(
-  admin: SupabaseClient,
-  restaurantId: string,
-  now = new Date(),
-): Promise<DashboardOverviewView> {
-  const [primary, secondary] = await Promise.all([
-    loadDashboardOverviewPrimary(admin, restaurantId, now),
-    loadDashboardOverviewSecondary(admin, restaurantId, now),
-  ]);
-  return { ...primary, ...secondary };
-}

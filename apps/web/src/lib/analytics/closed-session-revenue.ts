@@ -80,12 +80,21 @@ export async function loadClosedSessionRevenueBundleRpc(
 
   return {
     ok: true,
-    bundle: {
-      sessions,
-      ordersBySession: groupOrdersBySession(orders),
-      splitsBySession: groupSplitsBySession(splits),
-      forcedClosedSessionIds: mergeForcedCloseSessionIds(sessions, unpaid),
-    },
+    bundle: assembleClosedSessionRevenueBundle(sessions, orders, splits, unpaid),
+  };
+}
+
+function assembleClosedSessionRevenueBundle(
+  sessions: ClosedSessionRow[],
+  orders: AnalyticsRevenueOrder[],
+  splits: BillSplit[],
+  unpaidAbnormalSessionIds: Set<string>,
+): ClosedSessionRevenueBundle {
+  return {
+    sessions,
+    ordersBySession: groupOrdersBySession(orders),
+    splitsBySession: groupSplitsBySession(splits),
+    forcedClosedSessionIds: mergeForcedCloseSessionIds(sessions, unpaidAbnormalSessionIds),
   };
 }
 
@@ -139,12 +148,7 @@ export async function loadClosedSessionRevenueBundle(
   if (sessions.length === 0) {
     return {
       ok: true,
-      bundle: {
-        sessions: [],
-        ordersBySession: new Map(),
-        splitsBySession: new Map(),
-        forcedClosedSessionIds: new Set(),
-      },
+      bundle: assembleClosedSessionRevenueBundle([], [], [], new Set()),
     };
   }
 
@@ -164,12 +168,12 @@ export async function loadClosedSessionRevenueBundle(
 
   return {
     ok: true,
-    bundle: {
+    bundle: assembleClosedSessionRevenueBundle(
       sessions,
-      ordersBySession: groupOrdersBySession(ordersResult.rows),
-      splitsBySession: groupSplitsBySession(splitsResult.rows),
-      forcedClosedSessionIds: mergeForcedCloseSessionIds(sessions, unpaidForcedIds),
-    },
+      ordersResult.rows,
+      splitsResult.rows,
+      unpaidForcedIds,
+    ),
   };
 }
 

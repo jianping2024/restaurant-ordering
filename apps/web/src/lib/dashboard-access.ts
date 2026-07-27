@@ -381,13 +381,6 @@ export async function loadMenuManagementContext(options?: {
   return { admin, restaurantId: access.restaurant.id };
 }
 
-/** @deprecated Prefer `getOverviewDashboardContext` (request-cached). Kept for non-RSC callers. */
-export async function loadOverviewDashboardContext(): Promise<FrontdeskOperationalContext> {
-  return resolveOverviewDashboardContext(await loadDashboardAccess(), () =>
-    loadFrontdeskOperationalContext(),
-  );
-}
-
 export async function resolveOverviewDashboardContext(
   access: Awaited<ReturnType<typeof loadDashboardAccess>>,
   loadFrontdesk: () => Promise<FrontdeskOperationalContext>,

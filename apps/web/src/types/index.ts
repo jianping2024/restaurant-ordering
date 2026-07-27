@@ -3,6 +3,8 @@
 // ============================================================
 
 export type { RestaurantTable, RestaurantTableRow } from '@/lib/restaurant-tables';
+import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+export type { BuffetServiceMode };
 
 export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
@@ -79,7 +81,7 @@ export interface Restaurant {
    * classic = unlimited menu after open; sushi = optional per-person limits + overage price.
    * See `lib/buffet-service-mode.ts`.
    */
-  buffet_service_mode?: 'classic' | 'sushi';
+  buffet_service_mode?: BuffetServiceMode;
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
   feature_flags?: Record<string, boolean> | null;
   suspended_at?: string | null;

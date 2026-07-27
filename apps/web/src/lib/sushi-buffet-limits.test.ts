@@ -4,12 +4,13 @@ import {
   applySushiLimitToCartLine,
   freeAllowanceQty,
   freeRemainingQty,
-  guestMaxAddableQty,
+  guestMaxCartQty,
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
   splitQtyAgainstFreeRemaining,
+  sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
 import type { Order } from '@/types';
 
@@ -104,6 +105,13 @@ describe('sushi buffet limits', () => {
       }),
       false,
     );
+    assert.equal(
+      sushiLimitHintParts('classic', {
+        per_person_qty_limit: 2,
+        over_limit_unit_price: 3,
+      }),
+      null,
+    );
   });
 
   it('guest cannot exceed free remaining; staff can with overage price', () => {
@@ -155,25 +163,23 @@ describe('sushi buffet limits', () => {
     }
   });
 
-  it('guestMaxAddableQty respects remaining free slots', () => {
+  it('guestMaxCartQty respects remaining free slots', () => {
     assert.equal(
-      guestMaxAddableQty({
+      guestMaxCartQty({
         serviceMode: 'sushi',
         item: { per_person_qty_limit: 2, over_limit_unit_price: 1 },
         guestCount: 2,
         alreadyOrdered: 3,
-        cartQty: 0,
         absoluteMax: 99,
       }),
       1,
     );
     assert.equal(
-      guestMaxAddableQty({
+      guestMaxCartQty({
         serviceMode: 'sushi',
         item: { per_person_qty_limit: 2, over_limit_unit_price: 1 },
         guestCount: 0,
         alreadyOrdered: 0,
-        cartQty: 0,
         absoluteMax: 99,
       }),
       0,

@@ -8,6 +8,8 @@ import {
   type BuffetDashboardPatch,
 } from '@/lib/buffet-dashboard-patch';
 import type { BuffetDashboardData } from '@/lib/dashboard-buffet-server';
+import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
 import {
   createBuffetClient,
   createBuffetRuleClient,
@@ -19,6 +21,7 @@ import {
   toggleBuffetRuleActiveClient,
   updateBuffetClient,
   updateBuffetFridayPolicyClient,
+  updateBuffetServiceModeClient,
   updateBuffetRuleClient,
   updateBuffetSlotClient,
   upsertBuffetCalendarClient,
@@ -38,6 +41,7 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
   const [fridayEnabled, setFridayEnabled] = useState(initialFriday.enabled);
   const [fridayDraftFrom, setFridayDraftFrom] = useState(initialFriday.draftFrom);
   const [fridaySaving, setFridaySaving] = useState(false);
+  const [serviceModeSaving, setServiceModeSaving] = useState(false);
 
   const applyPatch = useCallback((patch: BuffetDashboardPatch) => {
     setData((prev) => {
@@ -175,15 +179,35 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
     }
   }, [applyPatch, fridayDraftFrom, fridayEnabled]);
 
+  const saveServiceMode = useCallback(
+    async (mode: BuffetServiceMode) => {
+      const next = normalizeBuffetServiceMode(mode);
+      if (next === data.buffet_service_mode) {
+        return { ok: true as const, patch: { buffet_service_mode: next } };
+      }
+      setServiceModeSaving(true);
+      try {
+        const result = await updateBuffetServiceModeClient(next);
+        if (result.ok) applyPatch(result.patch);
+        return result;
+      } finally {
+        setServiceModeSaving(false);
+      }
+    },
+    [applyPatch, data.buffet_service_mode],
+  );
+
   return {
     buffets: data.buffets,
     slots: data.slots,
     rules: data.rules,
     calendarRows: data.calendarRows,
     fridayWeekendFrom: data.buffet_friday_weekend_from,
+    buffetServiceMode: data.buffet_service_mode,
     fridayEnabled,
     fridayDraftFrom,
     fridaySaving,
+    serviceModeSaving,
     setFridayEnabled,
     setFridayDraftFrom,
     createBuffet,
@@ -199,5 +223,6 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
     toggleRuleActive,
     upsertCalendar,
     saveFridayPolicy,
+    saveServiceMode,
   };
 }

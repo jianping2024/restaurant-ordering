@@ -23,6 +23,8 @@ interface Props {
   lang: Language;
   layout?: 'list' | 'grid';
   cartQty: number;
+  limitHint?: string | null;
+  incrementDisabled?: boolean;
   onIncrement: () => void;
   onDecrement: () => void;
 }
@@ -33,12 +35,14 @@ function MenuItemCardAction({
   available,
   cartQty,
   labels,
+  incrementDisabled,
   onIncrement,
   onDecrement,
 }: {
   available: boolean;
   cartQty: number;
   labels: ActionLabels;
+  incrementDisabled?: boolean;
   onIncrement: () => void;
   onDecrement: () => void;
 }) {
@@ -61,6 +65,7 @@ function MenuItemCardAction({
           qty={cartQty}
           onDecrement={onDecrement}
           onIncrement={onIncrement}
+          incrementDisabled={incrementDisabled}
           variant="menu"
         />
       </div>
@@ -72,7 +77,8 @@ function MenuItemCardAction({
       <button
         type="button"
         onClick={onIncrement}
-        className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-text transition-colors hover:bg-brand-gold/20 ${CUSTOMER_MENU_TYPE.itemAction}`}
+        disabled={incrementDisabled}
+        className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-text transition-colors hover:bg-brand-gold/20 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
       >
         {labels.add}
       </button>
@@ -85,6 +91,8 @@ export function MenuItemCard({
   lang,
   layout = 'list',
   cartQty,
+  limitHint,
+  incrementDisabled,
   onIncrement,
   onDecrement,
 }: Props) {
@@ -123,6 +131,9 @@ export function MenuItemCard({
           {desc ? (
             <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-1 line-clamp-2`}>{desc}</p>
           ) : null}
+          {limitHint ? (
+            <p className="text-[11px] text-brand-text-muted mt-1 leading-snug">{limitHint}</p>
+          ) : null}
         </div>
         <div className="mt-3 flex items-center justify-between gap-2">
           <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{item.price.toFixed(2)}</span>
@@ -130,6 +141,7 @@ export function MenuItemCard({
             available={item.available}
             cartQty={cartQty}
             labels={actionLabels}
+            incrementDisabled={incrementDisabled}
             onIncrement={onIncrement}
             onDecrement={onDecrement}
           />

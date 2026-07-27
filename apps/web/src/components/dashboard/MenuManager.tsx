@@ -103,6 +103,8 @@ type ItemForm = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  per_person_qty_limit: string;
+  over_limit_unit_price: string;
 };
 
 const defaultItemForm: ItemForm = {
@@ -119,6 +121,8 @@ const defaultItemForm: ItemForm = {
   emoji: '🍽️',
   available: true,
   note_preset_keys: [],
+  per_person_qty_limit: '',
+  over_limit_unit_price: '',
 };
 
 type CategoryDraft = {
@@ -511,6 +515,10 @@ export function MenuManager({
       emoji: item.emoji,
       available: item.available,
       note_preset_keys: item.note_preset_keys || [],
+      per_person_qty_limit:
+        item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
+      over_limit_unit_price:
+        item.over_limit_unit_price != null ? String(item.over_limit_unit_price) : '',
     });
     setItemError('');
     resetImageUi();
@@ -573,6 +581,12 @@ export function MenuManager({
       note_preset_keys: itemForm.note_preset_keys,
       print_station_id: itemForm.print_station_id || null,
       item_code: normalizedItemCode,
+      per_person_qty_limit: itemForm.per_person_qty_limit.trim()
+        ? Number(itemForm.per_person_qty_limit)
+        : null,
+      over_limit_unit_price: itemForm.over_limit_unit_price.trim()
+        ? Number(itemForm.over_limit_unit_price)
+        : null,
     };
 
     try {
@@ -1563,6 +1577,39 @@ export function MenuManager({
                 ))}
               </select>
               <p className="text-[12px] text-brand-text-muted mt-1">{t.vatRateHint}</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-brand-border/80 bg-brand-bg/40 p-3 space-y-3">
+            <p className="text-[12px] text-brand-text-muted leading-snug">{t.sushiLimitHint}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                label={t.perPersonQtyLimit}
+                inputMode="numeric"
+                value={itemForm.per_person_qty_limit}
+                onChange={(e) =>
+                  setItemForm((f) => ({
+                    ...f,
+                    per_person_qty_limit: e.target.value.replace(/[^\d]/g, ''),
+                  }))
+                }
+                placeholder={t.perPersonQtyLimitPlaceholder}
+              />
+              <Input
+                label={t.overLimitUnitPrice}
+                type="text"
+                inputMode="decimal"
+                lang="en"
+                autoComplete="off"
+                value={itemForm.over_limit_unit_price}
+                onChange={(e) =>
+                  setItemForm((f) => ({
+                    ...f,
+                    over_limit_unit_price: normalizeDecimalInput(e.target.value),
+                  }))
+                }
+                placeholder="0.00"
+              />
             </div>
           </div>
 

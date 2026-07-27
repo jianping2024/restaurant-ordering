@@ -116,6 +116,43 @@ describe('parseMenuItemBody', () => {
     assert.equal(parsed.price, 12.5);
     assert.equal(parsed.vat_rate, 6);
     assert.deepEqual(parsed.note_preset_keys, ['no_onion']);
+    assert.equal(parsed.per_person_qty_limit, null);
+    assert.equal(parsed.over_limit_unit_price, null);
+  });
+
+  it('accepts paired sushi limit fields', () => {
+    const parsed = parseMenuItemBody({
+      name_pt: 'Nigiri',
+      category_id: 'cat-1',
+      item_code: 'S01',
+      price: 0,
+      vat_rate: '6',
+      emoji: '🍣',
+      note_preset_keys: [],
+      available: true,
+      per_person_qty_limit: 2,
+      over_limit_unit_price: 3.5,
+    });
+    assert.ok(!('error' in parsed));
+    if ('error' in parsed) return;
+    assert.equal(parsed.per_person_qty_limit, 2);
+    assert.equal(parsed.over_limit_unit_price, 3.5);
+  });
+
+  it('rejects limit without overage price', () => {
+    const parsed = parseMenuItemBody({
+      name_pt: 'Nigiri',
+      category_id: 'cat-1',
+      item_code: 'S01',
+      price: 0,
+      vat_rate: '6',
+      emoji: '🍣',
+      note_preset_keys: [],
+      per_person_qty_limit: 2,
+    });
+    assert.equal('error' in parsed, true);
+    if (!('error' in parsed)) return;
+    assert.equal(parsed.error, 'limit_requires_overage_price');
   });
 
   it('rejects invalid vat rate', () => {

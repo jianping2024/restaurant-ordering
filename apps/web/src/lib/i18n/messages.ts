@@ -173,6 +173,13 @@ export const MESSAGES = {
       fridayWeekendStatusPendingOff: '待保存 · 关闭',
       fridayWeekendRulesHint:
         '请在下方价目矩阵中为「周末」列填写晚市价格；周五晚上达到起算时刻后会自动使用这些价格。',
+      serviceModeTitle: '自助业态',
+      serviceModeHint:
+        '经典自助：菜品无限量。寿司自助：可在菜单里为部分菜设置每人限量与超额单价；客人只能点到免费额度，员工代点可超额并按超额价计费。',
+      serviceModeClassic: '经典自助',
+      serviceModeSushi: '寿司自助',
+      serviceModeSaved: '已保存自助业态',
+      saving: '保存中…',
       kindHelpHoliday: '仅当该日在「特殊日期」中标记为「节假日」时适用（会覆盖同日的周末判断）。',
       kindHelpSpecial: '仅当该日在「特殊日期」中标记为「活动日」时适用（如店庆；与「节假日」分开定价）。',
       exceptionsIntro:
@@ -341,6 +348,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: '请选择 VAT 税率',
       vatRateShort: 'VAT {rate}%',
+      sushiLimitHint:
+        '寿司自助模式下生效：每人限量与超额单价须同时填写；留空表示该菜无限量。客人只能点到免费额度，员工代点可超额。',
+      perPersonQtyLimit: '每人限量（份）',
+      perPersonQtyLimitPlaceholder: '如 2，留空=不限',
+      overLimitUnitPrice: '超额单价 €',
+      invalidPerPersonLimit: '每人限量须为正整数',
+      invalidOverLimitPrice: '请填写有效的超额单价',
+      limitRequiresOveragePrice: '设置每人限量时必须同时填写超额单价',
       deleteConfirm: '确定删除',
       deleteCategoryTitle: '删除分类',
       deleteCategoryWithDishes:
@@ -1481,6 +1496,13 @@ export const MESSAGES = {
       fridayWeekendStatusPendingOff: 'Unsaved · off',
       fridayWeekendRulesHint:
         'Set Weekend column prices in the grid below; Friday evening uses them after the cutoff time.',
+      serviceModeTitle: 'Buffet service mode',
+      serviceModeHint:
+        'Classic: unlimited dishes. Sushi: set per-person limits and overage prices on menu items; guests stop at the free allowance, staff can add more at the overage price.',
+      serviceModeClassic: 'Classic buffet',
+      serviceModeSushi: 'Sushi buffet',
+      serviceModeSaved: 'Buffet service mode saved',
+      saving: 'Saving…',
       kindHelpHoliday: 'Only when that day is marked Holiday under Special dates (overrides weekend on that day).',
       kindHelpSpecial: 'Only when that day is marked Event day under Special dates (priced separately from holiday).',
       exceptionsIntro:
@@ -1604,6 +1626,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: 'Please select a VAT rate',
       vatRateShort: 'VAT {rate}%',
+      sushiLimitHint:
+        'Applies in sushi buffet mode: per-person limit and overage price must both be set; leave empty for unlimited. Guests stop at the free allowance; staff can add more.',
+      perPersonQtyLimit: 'Per-person limit',
+      perPersonQtyLimitPlaceholder: 'e.g. 2, empty = unlimited',
+      overLimitUnitPrice: 'Overage unit price €',
+      invalidPerPersonLimit: 'Per-person limit must be a positive integer',
+      invalidOverLimitPrice: 'Enter a valid overage unit price',
+      limitRequiresOveragePrice: 'Overage price is required when a per-person limit is set',
       deleteConfirm: 'Delete',
       deleteCategoryTitle: 'Delete category',
       deleteCategoryWithDishes:
@@ -2342,6 +2372,13 @@ export const MESSAGES = {
       fridayWeekendStatusPendingOff: 'Por guardar · desligado',
       fridayWeekendRulesHint:
         'Preencha a coluna Fim de semana na grelha; a sexta a noite usa esses precos apos a hora indicada.',
+      serviceModeTitle: 'Modo de buffet',
+      serviceModeHint:
+        'Classico: pratos ilimitados. Sushi: limites por pessoa e preco extra no menu; clientes param na franquia, staff pode ultrapassar ao preco extra.',
+      serviceModeClassic: 'Buffet classico',
+      serviceModeSushi: 'Buffet sushi',
+      serviceModeSaved: 'Modo de buffet guardado',
+      saving: 'A guardar…',
       kindHelpHoliday: 'So quando o dia esta marcado Feriado em Datas especiais (substitui fim de semana nesse dia).',
       kindHelpSpecial: 'So quando o dia esta marcado Dia de evento em Datas especiais (preco separado de feriado).',
       exceptionsIntro:
@@ -2465,6 +2502,14 @@ export const MESSAGES = {
       vatRateOption: '{rate}%',
       vatRateRequired: 'Selecione a taxa IVA',
       vatRateShort: 'IVA {rate}%',
+      sushiLimitHint:
+        'No modo sushi: limite por pessoa e preco extra juntos; vazio = ilimitado. Clientes param na franquia; staff pode ultrapassar.',
+      perPersonQtyLimit: 'Limite por pessoa',
+      perPersonQtyLimitPlaceholder: 'ex. 2, vazio = ilimitado',
+      overLimitUnitPrice: 'Preco extra €',
+      invalidPerPersonLimit: 'O limite por pessoa deve ser um inteiro positivo',
+      invalidOverLimitPrice: 'Indique um preco extra valido',
+      limitRequiresOveragePrice: 'Com limite por pessoa e obrigatorio o preco extra',
       deleteConfirm: 'Eliminar',
       deleteCategoryTitle: 'Eliminar categoria',
       deleteCategoryWithDishes:

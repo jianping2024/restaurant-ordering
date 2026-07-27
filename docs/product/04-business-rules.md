@@ -129,6 +129,16 @@
 - 加菜价格与可点性以 **append 时服务端查询** 为准
 - 下架不影响已在订单中的行（除非 void）
 
+### 寿司自助限量（`buffet_service_mode = sushi`）
+
+- 餐厅业态：`restaurants.buffet_service_mode` = `classic` | `sushi`（设置 → 自助餐；默认 classic）
+- 菜品可选：`per_person_qty_limit`（每人份）+ `over_limit_unit_price`（须成对；空=无限量）
+- 免费额度 = 每人限量 ×（成人+儿童，多套餐求和）；人数为 0 时限量菜不可点
+- 客人：不可超过免费额度；菜单展示超额价提示
+- 员工代点（waiter/cashier/frontdesk/owner）：可超额；跨边界拆行，超额份按 `over_limit_unit_price`
+- 计数：本餐该菜未作废总份数；void/减份释放额度
+- `classic` 或未配限量：行为与原先无限加菜一致
+
 ### 相关代码
 
 `components/dashboard/MenuManager.tsx`、`lib/resolve-append-cart-items.ts`

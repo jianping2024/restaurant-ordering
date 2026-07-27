@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { normalizeMenuItemLimitFields } from '@/lib/sushi-buffet-limits';
 import {
   collectCategorySubtreeIds,
   MAX_MENU_CATEGORY_DEPTH,
@@ -349,6 +350,8 @@ type MenuItemInput = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  per_person_qty_limit: number | null;
+  over_limit_unit_price: number | null;
 };
 
 function validateMenuItemInput(
@@ -412,6 +415,8 @@ function buildMenuItemPayload(
     note_preset_keys: input.note_preset_keys,
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
+    per_person_qty_limit: input.per_person_qty_limit,
+    over_limit_unit_price: input.over_limit_unit_price,
   };
 }
 
@@ -902,6 +907,14 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     return { error: 'invalid_item_body', status: 400 };
   }
 
+  const limits = normalizeMenuItemLimitFields({
+    per_person_qty_limit: raw.per_person_qty_limit,
+    over_limit_unit_price: raw.over_limit_unit_price,
+  });
+  if (!limits.ok) {
+    return { error: limits.error, status: 400 };
+  }
+
   return {
     name_pt: raw.name_pt,
     name_en: typeof raw.name_en === 'string' ? raw.name_en : null,
@@ -916,5 +929,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     emoji: raw.emoji,
     available: raw.available !== false,
     note_preset_keys: raw.note_preset_keys,
+    per_person_qty_limit: limits.per_person_qty_limit,
+    over_limit_unit_price: limits.over_limit_unit_price,
   };
 }

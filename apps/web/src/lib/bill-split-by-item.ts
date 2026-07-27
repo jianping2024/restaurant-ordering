@@ -52,9 +52,10 @@ export type ByItemConsumerRow = {
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
 
 export type QtyPartsLabels = {
-  wholePlaceholder: string;
-  numPlaceholder: string;
-  denPlaceholder: string;
+  /** Visible field role (column header + aria-label); not an in-input placeholder. */
+  wholeLabel: string;
+  numLabel: string;
+  denLabel: string;
   missingDen: string;
   zeroDen: string;
   improperFraction: string;

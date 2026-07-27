@@ -173,7 +173,7 @@ export type PrintAgentDownloadStatus = {
 };
 
 /** GitHub release readiness for dashboard download panel (cached; does not block other page data). */
-export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownloadStatus> {
+async function resolvePrintAgentDownloadStatusInner(): Promise<PrintAgentDownloadStatus> {
   const version = getPrintAgentVersion();
   if (!version) {
     return { releaseReady: true, publishedFallback: null };
@@ -181,6 +181,24 @@ export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownl
   const releaseReady = await isPinnedPrintAgentReleaseAvailable('setup-amd64');
   const publishedFallback = !releaseReady ? await findLatestPublishedPrintAgentRelease() : null;
   return { releaseReady, publishedFallback };
+}
+
+const GITHUB_STATUS_TIMEOUT_MS = 5000;
+
+export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownloadStatus> {
+  try {
+    return await Promise.race([
+      resolvePrintAgentDownloadStatusInner(),
+      new Promise<PrintAgentDownloadStatus>((resolve) => {
+        setTimeout(
+          () => resolve({ releaseReady: true, publishedFallback: null }),
+          GITHUB_STATUS_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } catch {
+    return { releaseReady: true, publishedFallback: null };
+  }
 }
 
 /** Stable dashboard links on this deployment (origin required). */

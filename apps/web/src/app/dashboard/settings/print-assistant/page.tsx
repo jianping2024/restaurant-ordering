@@ -1,18 +1,11 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAgentCredentialExpiryAlert';
-import { PrintAgentDevicesPanel } from '@/components/dashboard/PrintAgentDevicesPanel';
-import { PrintAgentPairingPanel } from '@/components/dashboard/PrintAgentPairingPanel';
-import {
-  PrintAgentDownloadSection,
-  PrintAgentDownloadSkeleton,
-} from '@/components/dashboard/PrintAgentDownloadSection';
-import { PrintAssistantDeferredPanels } from '@/components/dashboard/PrintAssistantDeferredPanels';
+import { PrintAssistantLowerSection } from '@/components/dashboard/print-assistant/PrintAssistantLowerSection';
+import { PrintAssistantLowerSkeleton } from '@/components/dashboard/print-assistant/PrintAssistantLowerSkeleton';
+import { PrintAssistantUpperSection } from '@/components/dashboard/print-assistant/PrintAssistantUpperSection';
+import { PrintAssistantUpperSkeleton } from '@/components/dashboard/print-assistant/PrintAssistantUpperSkeleton';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
-import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
-import { getPrintAgentVersion } from '@/lib/print-agent-download';
 import { getServerLanguage } from '@/lib/i18n.server';
-import { loadPrintAssistantPageData } from '@/lib/print-assistant-page-data';
 import { getSiteOrigin } from '@/lib/site-origin';
 
 export default async function PrintAssistantSettingsPage() {
@@ -22,35 +15,23 @@ export default async function PrintAssistantSettingsPage() {
 
   const restaurant = access.restaurant;
   const lang = getServerLanguage();
-  const [pageData, expiringDevices] = await Promise.all([
-    loadPrintAssistantPageData(restaurant.id, lang),
-    getPrintAgentDevicesNeedingRenewal(restaurant.id),
-  ]);
-
   const siteOrigin = getSiteOrigin();
-  const printAgentVersion = getPrintAgentVersion();
 
   return (
     <div className="space-y-6">
-      {expiringDevices.length > 0 ? (
-        <PrintAgentCredentialExpiryAlert devices={expiringDevices} variant="panel" />
-      ) : null}
-      <PrintAgentDevicesPanel
-        initialDevices={pageData.devices}
-        recommendedVersion={printAgentVersion || ''}
-      />
-      <PrintAgentPairingPanel initialPairings={pageData.pairings} />
+      <Suspense fallback={<PrintAssistantUpperSkeleton />}>
+        <PrintAssistantUpperSection restaurantId={restaurant.id} />
+      </Suspense>
       {siteOrigin ? (
-        <Suspense fallback={<PrintAgentDownloadSkeleton />}>
-          <PrintAgentDownloadSection siteOrigin={siteOrigin} />
+        <Suspense fallback={<PrintAssistantLowerSkeleton />}>
+          <PrintAssistantLowerSection
+            restaurantId={restaurant.id}
+            restaurantSlug={restaurant.slug}
+            lang={lang}
+            siteOrigin={siteOrigin}
+          />
         </Suspense>
       ) : null}
-      <PrintAssistantDeferredPanels
-        restaurantSlug={restaurant.slug}
-        defaultReceiptStationId={pageData.defaultReceiptStationId}
-        receiptPrinters={pageData.receiptPrinters}
-        scheduleForm={pageData.scheduleForm}
-      />
     </div>
   );
 }

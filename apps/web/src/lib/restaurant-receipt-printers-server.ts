@@ -9,25 +9,19 @@ import {
 } from '@/lib/print-receipt-printer-options';
 import { parseDefaultReceiptStationId } from '@/lib/print-agent-config';
 
-/** Union routing from all active agents (newer devices listed first for same id). */
-export async function loadRestaurantReceiptPrinterSnapshot(
-  admin: SupabaseClient,
-  restaurantId: string,
-): Promise<ReceiptPrinterRoutingSnapshot | null> {
-  const { data: devices, error } = await admin
-    .from('print_agent_devices')
-    .select('routing_snapshot, paired_at')
-    .eq('restaurant_id', restaurantId)
-    .is('revoked_at', null)
-    .order('paired_at', { ascending: false })
-    .limit(10);
+type DeviceRoutingRow = {
+  routing_snapshot?: unknown;
+  paired_at?: string | null;
+};
 
-  if (error) return null;
-
+/** Build merged receipt printer snapshot from already-loaded device rows (newest paired first). */
+export function receiptPrinterSnapshotFromDeviceRows(
+  rows: DeviceRoutingRow[],
+): ReceiptPrinterRoutingSnapshot | null {
   const merged = new Map<string, ReceiptPrinterOption>();
   let latestUpdated = '';
 
-  for (const row of devices || []) {
+  for (const row of rows) {
     const parsed = parseReceiptPrinterRoutingSnapshot(row.routing_snapshot);
     if (!parsed) continue;
     if (parsed.updated_at && parsed.updated_at > latestUpdated) {
@@ -46,6 +40,23 @@ export async function loadRestaurantReceiptPrinterSnapshot(
     receipt_printers: Array.from(merged.values()),
     updated_at: latestUpdated || new Date().toISOString(),
   };
+}
+
+/** Union routing from all active agents (newer devices listed first for same id). */
+export async function loadRestaurantReceiptPrinterSnapshot(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<ReceiptPrinterRoutingSnapshot | null> {
+  const { data: devices, error } = await admin
+    .from('print_agent_devices')
+    .select('routing_snapshot, paired_at')
+    .eq('restaurant_id', restaurantId)
+    .is('revoked_at', null)
+    .order('paired_at', { ascending: false })
+    .limit(10);
+
+  if (error) return null;
+  return receiptPrinterSnapshotFromDeviceRows(devices || []);
 }
 
 export function assertReceiptPrinterIdAllowed(

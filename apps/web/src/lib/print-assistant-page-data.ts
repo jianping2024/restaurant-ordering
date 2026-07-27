@@ -9,20 +9,23 @@ import {
   type PrintAgentSettingsForm,
 } from '@/lib/print-agent-config';
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
-import { loadPrintAgentDevices } from '@/lib/print-agent-devices-server';
+import { getPrintAgentDevicesBundle } from '@/lib/print-agent-devices-bundle';
 import { loadPrintAgentPairings, type PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
 import {
   presentReceiptPrintersForCheckout,
   type ReceiptPrinterOption,
 } from '@/lib/print-receipt-printer-options';
-import { loadRestaurantReceiptPrinterSnapshot } from '@/lib/restaurant-receipt-printers-server';
+import type { ReceiptPrinterRoutingSnapshot } from '@/lib/print-receipt-printer-options';
 import type { UILanguage } from '@/lib/i18n';
 
-export type PrintAssistantPageData = {
-  scheduleForm: PrintAgentSettingsForm;
-  defaultReceiptStationId: string;
+export type PrintAssistantUpperData = {
   devices: PrintAgentDeviceHeartbeatRow[];
   pairings: PrintAgentPairingListItem[];
+};
+
+export type PrintAssistantLowerData = {
+  scheduleForm: PrintAgentSettingsForm;
+  defaultReceiptStationId: string;
   receiptPrinters: ReceiptPrinterOption[];
 };
 
@@ -32,12 +35,12 @@ function uiLangToReceiptLocale(lang: UILanguage): 'pt' | 'en' | 'zh' {
   return 'pt';
 }
 
-async function loadReceiptPrinterOptions(
+async function loadReceiptPrinterOptionsFromSnapshot(
   admin: SupabaseClient,
   restaurantId: string,
+  snapshot: ReceiptPrinterRoutingSnapshot | null,
   lang: UILanguage,
 ): Promise<ReceiptPrinterOption[]> {
-  const snapshot = await loadRestaurantReceiptPrinterSnapshot(admin, restaurantId);
   if (!snapshot) return [];
 
   const { data: stations } = await admin
@@ -83,24 +86,42 @@ async function loadPrintAgentConfig(
   }
 }
 
-/** Parallel dashboard data for /dashboard/settings/print-assistant (no GitHub). */
-export async function loadPrintAssistantPageData(
+/** Devices + pairings for print-assistant upper panels (single device query via bundle). */
+export async function loadPrintAssistantUpperData(
+  restaurantId: string,
+): Promise<PrintAssistantUpperData> {
+  const [bundle, pairings] = await Promise.all([
+    getPrintAgentDevicesBundle(restaurantId),
+    loadPrintAgentPairings(),
+  ]);
+
+  return {
+    devices: bundle.devices,
+    pairings,
+  };
+}
+
+/** Schedule, receipt printers, and defaults for deferred lower panels. */
+export async function loadPrintAssistantLowerData(
   restaurantId: string,
   lang: UILanguage,
-): Promise<PrintAssistantPageData> {
+): Promise<PrintAssistantLowerData> {
   const admin = createAdminClient();
-  const [config, devices, pairings, receiptPrinters] = await Promise.all([
+  const [config, bundle] = await Promise.all([
     loadPrintAgentConfig(admin, restaurantId),
-    loadPrintAgentDevices(restaurantId),
-    loadPrintAgentPairings(),
-    loadReceiptPrinterOptions(admin, restaurantId, lang),
+    getPrintAgentDevicesBundle(restaurantId),
   ]);
+
+  const receiptPrinters = await loadReceiptPrinterOptionsFromSnapshot(
+    admin,
+    restaurantId,
+    bundle.receiptSnapshot,
+    lang,
+  );
 
   return {
     scheduleForm: config.scheduleForm,
     defaultReceiptStationId: config.defaultReceiptStationId,
-    devices,
-    pairings,
     receiptPrinters,
   };
 }

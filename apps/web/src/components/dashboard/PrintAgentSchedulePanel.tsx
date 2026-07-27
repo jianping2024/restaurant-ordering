@@ -73,17 +73,8 @@ export function PrintAgentSchedulePanel({
   }, [form]);
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const res = await fetch('/api/print-agent/settings', { credentials: 'include' });
-        if (!res.ok) return;
-        const data = (await res.json()) as { form?: PrintAgentSettingsForm };
-        if (data.form) setForm(data.form);
-      } catch {
-        /* keep SSR initial */
-      }
-    })();
-  }, []);
+    setForm(initialForm);
+  }, [initialForm]);
 
   const errLabel =
     error === 'end_before_start'

@@ -10,6 +10,7 @@ import {
   isOwnerDashboardPath,
   isOwnerOperationalPath,
   isWaiterOperationalPath,
+  shouldPrefetchDashboardNav,
 } from './dashboard-paths';
 import { isStaffRole } from './staff-account';
 
@@ -80,6 +81,18 @@ describe('isStaffRole', () => {
     assert.equal(isStaffRole('owner'), false);
     assert.equal(isStaffRole('print_agent'), false);
     assert.equal(isStaffRole(''), false);
+  });
+});
+
+describe('shouldPrefetchDashboardNav', () => {
+  it('allows light settings tabs and denies heavy settings tabs', () => {
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/staff'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/features'), true);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/buffet'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/print-assistant'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/value-analytics'), false);
+    assert.equal(shouldPrefetchDashboardNav('/dashboard/tables'), true);
   });
 });
 

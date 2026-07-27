@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 import {
   daysUntilValidUntil,
   formatValidUntilDate,
@@ -58,6 +59,7 @@ export function PrintAgentCredentialExpiryAlert({ devices, variant = 'bar' }: Pr
       <p className="mt-2">
         <Link
           href="/dashboard/settings/print-assistant"
+          prefetch={shouldPrefetchDashboardNav('/dashboard/settings/print-assistant')}
           className="font-medium text-amber-950 underline underline-offset-2"
         >
           {t.credentialExpiryLink}

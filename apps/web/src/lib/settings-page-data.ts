@@ -44,7 +44,9 @@ export async function loadStaffSettingsPageData(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('restaurant_staff_accounts')
-    .select('*')
+    .select(
+      'id, restaurant_id, user_id, role, display_name, login_name, created_at, updated_at, disabled_at',
+    )
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: true });
 

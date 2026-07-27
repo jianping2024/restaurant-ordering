@@ -16,11 +16,20 @@ export function isOwnerOverviewPath(pathname: string): boolean {
   return pathname === '/dashboard' || pathname === '/dashboard/';
 }
 
-/** Heavy analytics RSC — do not Link-prefetch from nav. */
+const SETTINGS_HEAVY_TAB_PREFIXES = [
+  '/dashboard/settings/buffet',
+  '/dashboard/settings/print-assistant',
+] as const;
+
+/** Heavy RSC routes — do not Link-prefetch from dashboard or settings hub nav. */
 export function shouldPrefetchDashboardNav(href: string): boolean {
-  return !(
-    href === '/dashboard/value-analytics' || href.startsWith('/dashboard/value-analytics/')
-  );
+  if (href === '/dashboard/value-analytics' || href.startsWith('/dashboard/value-analytics/')) {
+    return false;
+  }
+  if (SETTINGS_HEAVY_TAB_PREFIXES.some((prefix) => href === prefix || href.startsWith(`${prefix}/`))) {
+    return false;
+  }
+  return true;
 }
 
 export function isOwnerDashboardPath(pathname: string): boolean {

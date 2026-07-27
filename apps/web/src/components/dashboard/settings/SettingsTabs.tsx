@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 import { SETTINGS_NAV_TABS } from '@/lib/settings-nav';
 
 function tabClass(active: boolean) {
@@ -31,6 +32,7 @@ export function SettingsTabs() {
             <Link
               key={item.id}
               href={item.href}
+              prefetch={shouldPrefetchDashboardNav(item.href)}
               aria-current={active ? 'page' : undefined}
               className={tabClass(active)}
             >

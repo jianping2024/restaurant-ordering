@@ -8,7 +8,12 @@ import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { OrderedDrawer } from './OrderedDrawer';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
-import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import {
+  formatStaffOverageMessage,
+  formatStaffSubmitOverageMessage,
+  MENU_PAGE_MESSAGES,
+} from '@/lib/i18n/menu-page-messages';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -287,31 +292,6 @@ export function MenuOrderingController({
     [buffetServiceMode, limitGuestCount, recentOrders, staffAssistedOrdering],
   );
 
-  const menuItemLabel = useCallback(
-    (item: Pick<MenuItem, 'name_pt' | 'name_en' | 'name_zh'>) => {
-      if (lang === 'en') return item.name_en || item.name_pt;
-      if (lang === 'zh') return item.name_zh || item.name_pt;
-      return item.name_pt;
-    },
-    [lang],
-  );
-
-  const formatStaffOverageCopy = useCallback(
-    (
-      template: string,
-      parts: { name: string; qty: number; price: number; subtotal?: number },
-    ) => {
-      const price = parts.price.toFixed(2);
-      const subtotal = (parts.subtotal ?? parts.qty * parts.price).toFixed(2);
-      return template
-        .replace('{name}', parts.name)
-        .replace('{qty}', String(parts.qty))
-        .replace('{price}', price)
-        .replace('{subtotal}', subtotal);
-    },
-    [],
-  );
-
   /** Write cart qty after gates (list + drawer share this). */
   const commitCartQty = useCallback(
     (item: MenuItem, nextQty: number) => {
@@ -392,7 +372,6 @@ export function MenuOrderingController({
           alreadyOrdered: sessionOrderedQtyForMenuItem(recentOrders, item.id),
           fromQty: current,
           toQty: nextQty,
-          menuPrice: coerceCartPrice(item.price),
         });
         if (decision.action === 'block_headcount') {
           showToast(MENU_PAGE_MESSAGES[lang].limitedItemNeedsHeadcount, 'info');
@@ -405,8 +384,8 @@ export function MenuOrderingController({
             menuItemId: item.id,
             nextQty,
             title: messages.staffOverageConfirmTitle,
-            message: formatStaffOverageCopy(messages.staffOverageFirstCrossMessage, {
-              name: menuItemLabel(item),
+            message: formatStaffOverageMessage(messages.staffOverageFirstCrossMessage, {
+              name: resolveMenuItemLocalizedName(item, lang),
               qty: decision.overageQtyAdded,
               price: decision.overLimitUnitPrice,
             }),
@@ -415,8 +394,8 @@ export function MenuOrderingController({
         }
         if (decision.action === 'toast_more_overage') {
           showToast(
-            formatStaffOverageCopy(MENU_PAGE_MESSAGES[lang].staffOverageMoreToast, {
-              name: menuItemLabel(item),
+            formatStaffOverageMessage(MENU_PAGE_MESSAGES[lang].staffOverageMoreToast, {
+              name: resolveMenuItemLocalizedName(item, lang),
               qty: decision.overageQtyAdded,
               price: decision.overLimitUnitPrice,
             }),
@@ -433,11 +412,9 @@ export function MenuOrderingController({
       catalogReady,
       commitCartQty,
       ensureGuestCanPlaceOrder,
-      formatStaffOverageCopy,
       guestCartMaxForItem,
       lang,
       limitGuestCount,
-      menuItemLabel,
       menuItems,
       recentOrders,
       staffAssistedOrdering,
@@ -697,7 +674,6 @@ export function MenuOrderingController({
           return {
             per_person_qty_limit: item.per_person_qty_limit,
             over_limit_unit_price: item.over_limit_unit_price,
-            price: coerceCartPrice(item.price),
           };
         },
       });
@@ -711,22 +687,21 @@ export function MenuOrderingController({
         return;
       }
       if (preview.status === 'overage') {
-        const lineText = preview.lines
-          .map((line) => {
-            const item = menuItems.find((m) => m.id === line.menuItemId);
-            const name = item ? menuItemLabel(item) : line.menuItemId;
-            return formatStaffOverageCopy(t.staffOverageSubmitLine, {
-              name,
-              qty: line.overageQty,
-              price: line.overLimitUnitPrice,
-            });
-          })
-          .join('\n');
         setStaffOverageDialog({
           kind: 'submit',
           cartFingerprint: appendCartFingerprint(cart),
           title: t.staffOverageSubmitTitle,
-          message: `${t.staffOverageSubmitIntro}\n${lineText}`,
+          message: formatStaffSubmitOverageMessage(
+            preview.lines.map((line) => {
+              const item = menuItems.find((m) => m.id === line.menuItemId);
+              return {
+                name: item ? resolveMenuItemLocalizedName(item, lang) : line.menuItemId,
+                qty: line.overageQty,
+                price: line.overLimitUnitPrice,
+              };
+            }),
+            t,
+          ),
         });
         return;
       }

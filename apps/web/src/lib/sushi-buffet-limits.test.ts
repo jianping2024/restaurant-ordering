@@ -221,7 +221,6 @@ describe('sushi buffet limits', () => {
       item,
       guestCount: 2,
       alreadyOrdered: 0,
-      menuPrice: 0,
     };
     // free allowance = 4
     assert.equal(

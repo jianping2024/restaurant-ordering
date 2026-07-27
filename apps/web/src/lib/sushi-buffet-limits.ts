@@ -244,29 +244,21 @@ export function staffAssistedOverageQty(params: {
   guestCount: number;
   alreadyOrdered: number;
   requestQty: number;
-  menuPrice: number;
 }):
   | { ok: true; overageQty: number; overLimitUnitPrice: number }
   | { ok: false; error: ApplySushiLimitError } {
-  const priced = applySushiLimitToCartLine({
-    serviceMode: params.serviceMode,
-    staffAssisted: true,
-    guestCount: params.guestCount,
-    alreadyOrdered: params.alreadyOrdered,
-    requestQty: params.requestQty,
-    menuPrice: params.menuPrice,
-    item: params.item,
-  });
-  if (!priced.ok) return priced;
   if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
     return { ok: true, overageQty: 0, overLimitUnitPrice: 0 };
+  }
+  if (params.guestCount < 1) {
+    return { ok: false, error: 'limited_item_requires_headcount' };
   }
   const overPrice = params.item.over_limit_unit_price;
   if (typeof overPrice !== 'number' || !Number.isFinite(overPrice) || overPrice < 0) {
     return { ok: false, error: 'over_limit_price_missing' };
   }
   const { overageQty } = splitQtyAgainstFreeRemaining(
-    params.requestQty,
+    Math.max(0, params.requestQty),
     freeRemainingQty({
       perPersonLimit: params.item.per_person_qty_limit!,
       guestCount: params.guestCount,
@@ -303,7 +295,6 @@ export function classifyStaffQtyIncrease(params: {
   alreadyOrdered: number;
   fromQty: number;
   toQty: number;
-  menuPrice: number;
 }): StaffQtyIncreaseGate {
   if (params.toQty <= params.fromQty) return { action: 'allow' };
   if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) return { action: 'allow' };
@@ -315,7 +306,6 @@ export function classifyStaffQtyIncrease(params: {
     guestCount: params.guestCount,
     alreadyOrdered: params.alreadyOrdered,
     requestQty: Math.max(0, params.fromQty),
-    menuPrice: params.menuPrice,
   });
   const after = staffAssistedOverageQty({
     serviceMode: params.serviceMode,
@@ -323,7 +313,6 @@ export function classifyStaffQtyIncrease(params: {
     guestCount: params.guestCount,
     alreadyOrdered: params.alreadyOrdered,
     requestQty: params.toQty,
-    menuPrice: params.menuPrice,
   });
   if (!before.ok || !after.ok) {
     if (
@@ -368,7 +357,7 @@ export function previewStaffCartOverage(params: {
   guestCount: number;
   sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
   cart: Array<{ menuItemId: string; qty: number }>;
-  resolveItem: (menuItemId: string) => (SushiLimitMenuFields & { price: number }) | null;
+  resolveItem: (menuItemId: string) => SushiLimitMenuFields | null;
 }): StaffCartOveragePreview {
   const lines: StaffCartOverageLine[] = [];
   for (const row of params.cart) {
@@ -381,7 +370,6 @@ export function previewStaffCartOverage(params: {
       guestCount: params.guestCount,
       alreadyOrdered: sessionOrderedQtyForMenuItem(params.sessionOrders, row.menuItemId),
       requestQty: coercePositiveQty(row.qty),
-      menuPrice: item.price,
     });
     if (!result.ok) return { status: 'blocked', error: result.error };
     if (result.overageQty > 0) {

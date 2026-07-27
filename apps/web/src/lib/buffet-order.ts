@@ -103,6 +103,23 @@ export function listActiveBuffetLineSummaries(
 
 export type BuffetGuestHeadcount = { adults: number; children: number };
 
+/** Adults + children for one package (or aggregate); nullish → 0. */
+export function totalGuestsFromCounts(
+  counts: { adults?: number; children?: number } | null | undefined,
+): number {
+  if (!counts) return 0;
+  return Math.max(0, counts.adults || 0) + Math.max(0, counts.children || 0);
+}
+
+/** Adults + children across all packages in a buffet guest snapshot. */
+export function totalGuestsInBuffetSnapshot(snapshot: BuffetGuestSnapshot): number {
+  let total = 0;
+  for (const counts of Object.values(snapshot)) {
+    total += totalGuestsFromCounts(counts);
+  }
+  return total;
+}
+
 export function aggregateBuffetHeadcountForOrders(
   orders: Array<Pick<Order, 'items' | 'status'>>,
 ): BuffetGuestHeadcount | null {

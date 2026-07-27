@@ -190,58 +190,50 @@ export async function runBuffetWaiterOpenPipeline(
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
   if (!unchanged) {
-    let splitContinuation: Awaited<ReturnType<typeof loadSessionSplitContinuation>>;
-    let serviceMode: Awaited<ReturnType<typeof loadRestaurantBuffetServiceMode>>;
     try {
-      [splitContinuation, serviceMode] = await Promise.all([
+      const [splitContinuation, serviceMode] = await Promise.all([
         loadSessionSplitContinuation(admin, restaurantId, sessionId),
         loadRestaurantBuffetServiceMode(admin, restaurantId),
       ]);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'headcount_floor_lookup_failed';
-      return pipelineFailure(500, 'headcount_floor_lookup_failed', { message });
-    }
 
-    const { split, collectedPayments } = splitContinuation;
-    const floors = lockedBuffetHeadcountByBuffetId(
-      split,
-      collectedPayments.length > 0,
-      collectedPayments,
-    );
-    const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
-    if (floorViolation) {
-      return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
-        code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
-        message:
-          `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
-          + `; proposed adults ${floorViolation.proposedAdults},`
-          + ` children ${floorViolation.proposedChildren}`,
-      });
-    }
+      const { split, collectedPayments } = splitContinuation;
+      const floors = lockedBuffetHeadcountByBuffetId(
+        split,
+        collectedPayments.length > 0,
+        collectedPayments,
+      );
+      const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
+      if (floorViolation) {
+        return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
+          code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
+          message:
+            `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
+            + `; proposed adults ${floorViolation.proposedAdults},`
+            + ` children ${floorViolation.proposedChildren}`,
+        });
+      }
 
-    let sushiMinGuests = 0;
-    try {
-      sushiMinGuests = await resolveSushiLimitHeadcountFloor(
+      const sushiMinGuests = await resolveSushiLimitHeadcountFloor(
         admin,
         restaurantId,
         serviceMode,
         orders,
       );
+      const sushiFloorViolation = findBuffetHeadcountBelowSushiLimitFloor(
+        targetSnapshot,
+        sushiMinGuests,
+      );
+      if (sushiFloorViolation) {
+        return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR, {
+          code: BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR,
+          message:
+            `min guests ${sushiFloorViolation.minGuests};`
+            + ` proposed ${sushiFloorViolation.proposedGuests}`,
+        });
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'sushi_limit_floor_lookup_failed';
-      return pipelineFailure(500, 'sushi_limit_floor_lookup_failed', { message });
-    }
-    const sushiFloorViolation = findBuffetHeadcountBelowSushiLimitFloor(
-      targetSnapshot,
-      sushiMinGuests,
-    );
-    if (sushiFloorViolation) {
-      return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR, {
-        code: BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR,
-        message:
-          `min guests ${sushiFloorViolation.minGuests};`
-          + ` proposed ${sushiFloorViolation.proposedGuests}`,
-      });
+      const message = err instanceof Error ? err.message : 'headcount_floor_lookup_failed';
+      return pipelineFailure(500, 'headcount_floor_lookup_failed', { message });
     }
 
     const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);

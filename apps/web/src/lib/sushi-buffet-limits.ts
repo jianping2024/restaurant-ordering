@@ -1,5 +1,5 @@
 import type { Order } from '@/types';
-import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
+import { aggregateBuffetHeadcountForOrders, totalGuestsFromCounts } from '@/lib/buffet-order';
 import { isSushiBuffetMode } from '@/lib/buffet-service-mode';
 import { eurosToCents } from '@/lib/money-allocation';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
@@ -13,9 +13,7 @@ export type SushiLimitMenuFields = {
 export function sessionGuestCountForLimits(
   orders: Array<Pick<Order, 'items' | 'status'>>,
 ): number {
-  const head = aggregateBuffetHeadcountForOrders(orders);
-  if (!head) return 0;
-  return Math.max(0, (head.adults || 0) + (head.children || 0));
+  return totalGuestsFromCounts(aggregateBuffetHeadcountForOrders(orders));
 }
 
 /** Non-voided menu line qty for one menu_item id in the session. */
@@ -59,22 +57,42 @@ export function sessionIncludedQtyForLimitedMenuItem(
   });
 }
 
+/** Distinct non-voided menu item ids on the session (excludes buffet_base). */
+export function collectSessionMenuItemIds(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+): string[] {
+  const ids = new Set<string>();
+  forEachActiveSessionMenuLine(orders, (item) => {
+    if (typeof item.id === 'string' && item.id) ids.add(item.id);
+  });
+  return Array.from(ids);
+}
+
+function forEachActiveSessionMenuLine(
+  orders: Array<Pick<Order, 'items' | 'status'>>,
+  visit: (item: NonNullable<Order['items']>[number]) => void,
+): void {
+  for (const order of orders) {
+    for (const item of order.items || []) {
+      if (item.kind === 'buffet_base') continue;
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
+      visit(item);
+    }
+  }
+}
+
 function sumSessionMenuItemQty(
   orders: Array<Pick<Order, 'items' | 'status'>>,
   menuItemId: string,
   includeLine: (item: NonNullable<Order['items']>[number]) => boolean,
 ): number {
   let total = 0;
-  for (const order of orders) {
-    for (const item of order.items || []) {
-      if (item.kind === 'buffet_base') continue;
-      if (item.id !== menuItemId) continue;
-      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
-      if (!includeLine(item)) continue;
-      const qty = Number(item.qty);
-      if (Number.isFinite(qty) && qty > 0) total += qty;
-    }
-  }
+  forEachActiveSessionMenuLine(orders, (item) => {
+    if (item.id !== menuItemId) return;
+    if (!includeLine(item)) return;
+    const qty = Number(item.qty);
+    if (Number.isFinite(qty) && qty > 0) total += qty;
+  });
   return total;
 }
 

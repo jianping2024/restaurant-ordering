@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { totalGuestsInBuffetSnapshot } from '@/lib/buffet-order';
+import { findBuffetHeadcountBelowSushiLimitFloor } from '@/lib/buffet-sushi-limit-headcount-floor';
 import {
   collectSessionMenuItemIds,
-  findBuffetHeadcountBelowSushiLimitFloor,
-  totalGuestsInBuffetSnapshot,
-} from '@/lib/buffet-sushi-limit-headcount-floor';
-import {
   isSushiOveragePricedLine,
   minGuestsForIncludedLimitedQty,
   sessionIncludedQtyForLimitedMenuItem,

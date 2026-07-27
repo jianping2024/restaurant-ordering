@@ -105,6 +105,9 @@ export function applySushiLimitToCartLine(params: {
   menuPrice: number;
   item: SushiLimitMenuFields;
 }): ApplySushiLimitLineResult {
+  if (params.requestQty <= 0) {
+    return { ok: true, slices: [] };
+  }
   if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
     return {
       ok: true,
@@ -232,4 +235,169 @@ export function sushiLimitHintParts(
     perPerson: item.per_person_qty_limit!,
     overLimitPrice: over,
   };
+}
+
+/** Overage slice qty for a staff-assisted cart qty (0 if none / not limited). */
+export function staffAssistedOverageQty(params: {
+  serviceMode: unknown;
+  item: SushiLimitMenuFields;
+  guestCount: number;
+  alreadyOrdered: number;
+  requestQty: number;
+  menuPrice: number;
+}):
+  | { ok: true; overageQty: number; overLimitUnitPrice: number }
+  | { ok: false; error: ApplySushiLimitError } {
+  const priced = applySushiLimitToCartLine({
+    serviceMode: params.serviceMode,
+    staffAssisted: true,
+    guestCount: params.guestCount,
+    alreadyOrdered: params.alreadyOrdered,
+    requestQty: params.requestQty,
+    menuPrice: params.menuPrice,
+    item: params.item,
+  });
+  if (!priced.ok) return priced;
+  if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
+    return { ok: true, overageQty: 0, overLimitUnitPrice: 0 };
+  }
+  const overPrice = params.item.over_limit_unit_price;
+  if (typeof overPrice !== 'number' || !Number.isFinite(overPrice) || overPrice < 0) {
+    return { ok: false, error: 'over_limit_price_missing' };
+  }
+  const { overageQty } = splitQtyAgainstFreeRemaining(
+    params.requestQty,
+    freeRemainingQty({
+      perPersonLimit: params.item.per_person_qty_limit!,
+      guestCount: params.guestCount,
+      alreadyOrdered: params.alreadyOrdered,
+    }),
+  );
+  return { ok: true, overageQty, overLimitUnitPrice: overPrice };
+}
+
+export type StaffQtyIncreaseGate =
+  | { action: 'allow' }
+  | { action: 'block_headcount' }
+  | {
+      action: 'confirm_first_cross';
+      overageQtyAdded: number;
+      totalOverageQty: number;
+      overLimitUnitPrice: number;
+    }
+  | {
+      action: 'toast_more_overage';
+      overageQtyAdded: number;
+      totalOverageQty: number;
+      overLimitUnitPrice: number;
+    };
+
+/**
+ * Staff +1 / set-higher qty gate (option B): confirm only on first cross into overage;
+ * further overage increases toast; within free allowance allows.
+ */
+export function classifyStaffQtyIncrease(params: {
+  serviceMode: unknown;
+  item: SushiLimitMenuFields;
+  guestCount: number;
+  alreadyOrdered: number;
+  fromQty: number;
+  toQty: number;
+  menuPrice: number;
+}): StaffQtyIncreaseGate {
+  if (params.toQty <= params.fromQty) return { action: 'allow' };
+  if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) return { action: 'allow' };
+  if (params.guestCount < 1) return { action: 'block_headcount' };
+
+  const before = staffAssistedOverageQty({
+    serviceMode: params.serviceMode,
+    item: params.item,
+    guestCount: params.guestCount,
+    alreadyOrdered: params.alreadyOrdered,
+    requestQty: Math.max(0, params.fromQty),
+    menuPrice: params.menuPrice,
+  });
+  const after = staffAssistedOverageQty({
+    serviceMode: params.serviceMode,
+    item: params.item,
+    guestCount: params.guestCount,
+    alreadyOrdered: params.alreadyOrdered,
+    requestQty: params.toQty,
+    menuPrice: params.menuPrice,
+  });
+  if (!before.ok || !after.ok) {
+    if (
+      (!before.ok && before.error === 'limited_item_requires_headcount') ||
+      (!after.ok && after.error === 'limited_item_requires_headcount')
+    ) {
+      return { action: 'block_headcount' };
+    }
+    return { action: 'allow' };
+  }
+
+  const overageBefore = before.overageQty;
+  const overageAfter = after.overageQty;
+  if (overageAfter <= overageBefore) return { action: 'allow' };
+
+  const overageQtyAdded = overageAfter - overageBefore;
+  const shared = {
+    overageQtyAdded,
+    totalOverageQty: overageAfter,
+    overLimitUnitPrice: after.overLimitUnitPrice,
+  };
+  if (overageBefore === 0) {
+    return { action: 'confirm_first_cross', ...shared };
+  }
+  return { action: 'toast_more_overage', ...shared };
+}
+
+export type StaffCartOverageLine = {
+  menuItemId: string;
+  overageQty: number;
+  overLimitUnitPrice: number;
+};
+
+export type StaffCartOveragePreview =
+  | { status: 'none' }
+  | { status: 'overage'; lines: StaffCartOverageLine[] }
+  | { status: 'blocked'; error: ApplySushiLimitError };
+
+/** Submit-time preview: any staff cart lines that would bill overage. */
+export function previewStaffCartOverage(params: {
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  cart: Array<{ menuItemId: string; qty: number }>;
+  resolveItem: (menuItemId: string) => (SushiLimitMenuFields & { price: number }) | null;
+}): StaffCartOveragePreview {
+  const lines: StaffCartOverageLine[] = [];
+  for (const row of params.cart) {
+    const item = params.resolveItem(row.menuItemId);
+    if (!item) continue;
+    if (!isLimitedSushiMenuItem(params.serviceMode, item)) continue;
+    const result = staffAssistedOverageQty({
+      serviceMode: params.serviceMode,
+      item,
+      guestCount: params.guestCount,
+      alreadyOrdered: sessionOrderedQtyForMenuItem(params.sessionOrders, row.menuItemId),
+      requestQty: coercePositiveQty(row.qty),
+      menuPrice: item.price,
+    });
+    if (!result.ok) return { status: 'blocked', error: result.error };
+    if (result.overageQty > 0) {
+      lines.push({
+        menuItemId: row.menuItemId,
+        overageQty: result.overageQty,
+        overLimitUnitPrice: result.overLimitUnitPrice,
+      });
+    }
+  }
+  if (lines.length === 0) return { status: 'none' };
+  return { status: 'overage', lines };
+}
+
+function coercePositiveQty(qty: number): number {
+  const n = Number(qty);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.floor(n);
 }

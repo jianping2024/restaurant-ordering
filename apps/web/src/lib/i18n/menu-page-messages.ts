@@ -40,6 +40,14 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   sushiLimitHint: string;
   perPersonLimitReached: string;
   limitedItemNeedsHeadcount: string;
+  staffOverageConfirmTitle: string;
+  staffOverageFirstCrossMessage: string;
+  staffOverageMoreToast: string;
+  staffOverageSubmitTitle: string;
+  staffOverageSubmitIntro: string;
+  staffOverageSubmitLine: string;
+  staffOverageConfirm: string;
+  staffOverageCancel: string;
   subcategoryAll: string;
   catalogLoading: string;
 }> = {
@@ -84,6 +92,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: 'Inclui {perPerson}/pessoa; extra €{price}/un. Pecao staff para ultrapassar.',
     perPersonLimitReached: 'Atingiu o limite incluido. Peca ao staff para adicionar (preco extra).',
     limitedItemNeedsHeadcount: 'Registe primeiro o numero de pessoas na mesa para pedir este prato.',
+    staffOverageConfirmTitle: 'Confirmar preco extra',
+    staffOverageFirstCrossMessage:
+      '"{name}" tera {qty} un. ao preco extra €{price}/un. (subtotal €{subtotal}). Continuar?',
+    staffOverageMoreToast:
+      '"{name}": +{qty} un. ao preco extra €{price}/un.',
+    staffOverageSubmitTitle: 'Confirmar envio com extra',
+    staffOverageSubmitIntro: 'Este pedido inclui itens ao preco extra:',
+    staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
+    staffOverageConfirm: 'Confirmar',
+    staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Tudo',
     catalogLoading: 'A carregar menu…',
   },
@@ -128,6 +146,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: 'Includes {perPerson}/person; overage €{price} each. Ask staff to order more.',
     perPersonLimitReached: 'Included limit reached. Ask staff to add more (overage price).',
     limitedItemNeedsHeadcount: 'Staff must set the table headcount before ordering this dish.',
+    staffOverageConfirmTitle: 'Confirm overage price',
+    staffOverageFirstCrossMessage:
+      '"{name}" will include {qty} at overage €{price} each (subtotal €{subtotal}). Continue?',
+    staffOverageMoreToast:
+      '"{name}": +{qty} at overage €{price} each.',
+    staffOverageSubmitTitle: 'Confirm order with overage',
+    staffOverageSubmitIntro: 'This order includes overage-priced items:',
+    staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
+    staffOverageConfirm: 'Confirm',
+    staffOverageCancel: 'Cancel',
     subcategoryAll: 'All',
     catalogLoading: 'Loading menu…',
   },
@@ -172,6 +200,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     sushiLimitHint: '含每人 {perPerson} 份；超出每份 €{price}。超额请找员工代点。',
     perPersonLimitReached: '已达免费额度。超额请找员工代点（按超额价）。',
     limitedItemNeedsHeadcount: '请先登记本桌人数后再点此限量菜。',
+    staffOverageConfirmTitle: '确认超额计价',
+    staffOverageFirstCrossMessage:
+      '「{name}」将有 {qty} 份按超额价 €{price}/份计费（小计 €{subtotal}）。确认继续？',
+    staffOverageMoreToast:
+      '「{name}」再增 {qty} 份将按超额价 €{price}/份计费',
+    staffOverageSubmitTitle: '确认提交超额菜品',
+    staffOverageSubmitIntro: '本单包含按超额价计费的菜品：',
+    staffOverageSubmitLine: '• {name}：{qty} 份 × €{price} = €{subtotal}',
+    staffOverageConfirm: '确认',
+    staffOverageCancel: '取消',
     subcategoryAll: '全部',
     catalogLoading: '正在加载菜单…',
   },

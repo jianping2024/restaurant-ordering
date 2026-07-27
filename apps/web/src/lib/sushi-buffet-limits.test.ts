@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   applySushiLimitToCartLine,
+  classifyStaffQtyIncrease,
   freeAllowanceQty,
   freeRemainingQty,
   guestMaxCartQty,
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
+  previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
   splitQtyAgainstFreeRemaining,
@@ -209,6 +211,90 @@ describe('sushi buffet limits', () => {
     assert.equal(
       freeRemainingQty({ perPersonLimit: 2, guestCount: 2, alreadyOrdered: 10 }),
       0,
+    );
+  });
+
+  it('classifyStaffQtyIncrease confirms only on first cross', () => {
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const base = {
+      serviceMode: 'sushi' as const,
+      item,
+      guestCount: 2,
+      alreadyOrdered: 0,
+      menuPrice: 0,
+    };
+    // free allowance = 4
+    assert.equal(
+      classifyStaffQtyIncrease({ ...base, fromQty: 3, toQty: 4 }).action,
+      'allow',
+    );
+    assert.deepEqual(classifyStaffQtyIncrease({ ...base, fromQty: 4, toQty: 5 }), {
+      action: 'confirm_first_cross',
+      overageQtyAdded: 1,
+      totalOverageQty: 1,
+      overLimitUnitPrice: 4.5,
+    });
+    assert.deepEqual(classifyStaffQtyIncrease({ ...base, fromQty: 5, toQty: 6 }), {
+      action: 'toast_more_overage',
+      overageQtyAdded: 1,
+      totalOverageQty: 2,
+      overLimitUnitPrice: 4.5,
+    });
+    assert.equal(
+      classifyStaffQtyIncrease({ ...base, guestCount: 0, fromQty: 0, toQty: 1 }).action,
+      'block_headcount',
+    );
+    // Session already over free: first cart unit must confirm (fromQty 0 must not false-allow)
+    assert.deepEqual(
+      classifyStaffQtyIncrease({
+        ...base,
+        alreadyOrdered: 10,
+        fromQty: 0,
+        toQty: 1,
+      }),
+      {
+        action: 'confirm_first_cross',
+        overageQtyAdded: 1,
+        totalOverageQty: 1,
+        overLimitUnitPrice: 4.5,
+      },
+    );
+  });
+
+  it('previewStaffCartOverage summarizes overage lines', () => {
+    const item = { per_person_qty_limit: 1, over_limit_unit_price: 3, price: 0 };
+    assert.deepEqual(
+      previewStaffCartOverage({
+        serviceMode: 'sushi',
+        guestCount: 2,
+        sessionOrders: [],
+        cart: [{ menuItemId: 'a', qty: 3 }],
+        resolveItem: () => item,
+      }),
+      {
+        status: 'overage',
+        lines: [{ menuItemId: 'a', overageQty: 1, overLimitUnitPrice: 3 }],
+      },
+    );
+    assert.deepEqual(
+      previewStaffCartOverage({
+        serviceMode: 'sushi',
+        guestCount: 2,
+        sessionOrders: [],
+        cart: [{ menuItemId: 'a', qty: 2 }],
+        resolveItem: () => item,
+      }),
+      { status: 'none' },
+    );
+    assert.deepEqual(
+      previewStaffCartOverage({
+        serviceMode: 'sushi',
+        guestCount: 0,
+        sessionOrders: [],
+        cart: [{ menuItemId: 'a', qty: 1 }],
+        resolveItem: () => item,
+      }),
+      { status: 'blocked', error: 'limited_item_requires_headcount' },
     );
   });
 });

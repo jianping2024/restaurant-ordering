@@ -23,6 +23,7 @@ import type { MenuOrderSubmitSuccess } from '@/lib/menu-order-submit';
 import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
 import {
   appendFailureNeedsSessionRefresh,
+  appendCartFingerprint,
   executeMenuOrderSubmit,
   resolveAppendClientRequestId,
   type MenuOrderSubmitFailure,
@@ -44,6 +45,7 @@ import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
 import { getCustomerOrderingIntroCopy } from '@/lib/i18n/customer-ordering-intro-messages';
@@ -51,14 +53,31 @@ import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
+  classifyStaffQtyIncrease,
   guestMaxCartQty,
   isLimitedSushiMenuItem,
+  previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
 import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
 import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+
+type StaffOverageDialog =
+  | {
+      kind: 'first_cross';
+      menuItemId: string;
+      nextQty: number;
+      title: string;
+      message: string;
+    }
+  | {
+      kind: 'submit';
+      cartFingerprint: string;
+      title: string;
+      message: string;
+    };
 
 export type MenuOrderingRestaurant = {
   id: string;
@@ -133,6 +152,7 @@ export function MenuOrderingController({
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [staffOverageDialog, setStaffOverageDialog] = useState<StaffOverageDialog | null>(null);
   const submittingRef = useRef(false);
   const pendingAppendIntentRef = useRef<{ clientRequestId: string; fingerprint: string } | null>(
     null,
@@ -267,82 +287,172 @@ export function MenuOrderingController({
     [buffetServiceMode, limitGuestCount, recentOrders, staffAssistedOrdering],
   );
 
-  const updateQty = (menuItemId: string, qty: number) => {
-    const n = Number(qty);
-    if (!Number.isFinite(n) || n <= 0) {
-      setCartTracked((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
-      return;
-    }
-    const menuItem = menuItems.find((m) => m.id === menuItemId);
-    let nextQty = n;
-    if (menuItem && !staffAssistedOrdering) {
-      const max = guestCartMaxForItem(menuItem);
-      nextQty = Math.min(n, max);
-      if (nextQty <= 0) {
-        setCartTracked((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
+  const menuItemLabel = useCallback(
+    (item: Pick<MenuItem, 'name_pt' | 'name_en' | 'name_zh'>) => {
+      if (lang === 'en') return item.name_en || item.name_pt;
+      if (lang === 'zh') return item.name_zh || item.name_pt;
+      return item.name_pt;
+    },
+    [lang],
+  );
+
+  const formatStaffOverageCopy = useCallback(
+    (
+      template: string,
+      parts: { name: string; qty: number; price: number; subtotal?: number },
+    ) => {
+      const price = parts.price.toFixed(2);
+      const subtotal = (parts.subtotal ?? parts.qty * parts.price).toFixed(2);
+      return template
+        .replace('{name}', parts.name)
+        .replace('{qty}', String(parts.qty))
+        .replace('{price}', price)
+        .replace('{subtotal}', subtotal);
+    },
+    [],
+  );
+
+  /** Write cart qty after gates (list + drawer share this). */
+  const commitCartQty = useCallback(
+    (item: MenuItem, nextQty: number) => {
+      if (!Number.isFinite(nextQty) || nextQty <= 0) {
+        setCartTracked((prev) => prev.filter((c) => c.menuItemId !== item.id));
         return;
       }
-    }
-    setCartTracked((prev) => {
-      const existing = prev.find((c) => c.menuItemId === menuItemId);
-      if (!existing) return prev;
-      return prev.map((c) => (c.menuItemId === menuItemId ? { ...c, qty: nextQty } : c));
-    });
-  };
+      setCartTracked((prev) => {
+        const existing = prev.find((c) => c.menuItemId === item.id);
+        if (!existing) {
+          return [
+            ...prev,
+            {
+              menuItemId: item.id,
+              name_pt: item.name_pt,
+              name_en: item.name_en,
+              name_zh: item.name_zh,
+              price: coerceCartPrice(item.price),
+              emoji: item.emoji,
+              qty: nextQty,
+              note: '',
+              notePresetKeys: item.note_preset_keys || [],
+            },
+          ];
+        }
+        return prev.map((c) => (c.menuItemId === item.id ? { ...c, qty: nextQty } : c));
+      });
+    },
+    [setCartTracked],
+  );
 
-  // 列表步进器 / 抽屉共用：仅改本地 cart，提交仍走 submitOrder → orders/append
-  const bumpCartItem = async (item: MenuItem, delta: number) => {
-    if (!catalogReady) return;
-    const gate = await ensureGuestCanPlaceOrder();
-    if (!gate.canPlace) {
-      showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
-      return;
-    }
-    const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
-    let next = current + delta;
-    if (next <= 0) {
-      updateQty(item.id, 0);
-      return;
-    }
-    if (!staffAssistedOrdering) {
-      const max = guestCartMaxForItem(item);
-      if (delta > 0 && next > max) {
-        if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
+  /**
+   * Single qty-change path for list steppers and cart drawer.
+   * Staff sushi: confirm on first free→overage cross; toast on further overage +.
+   */
+  const requestCartQtyChange = useCallback(
+    async (menuItemId: string, rawNextQty: number) => {
+      if (!catalogReady) return;
+      const item = menuItems.find((m) => m.id === menuItemId);
+      if (!item) return;
+
+      const gate = await ensureGuestCanPlaceOrder();
+      if (!gate.canPlace) {
+        showToast(guestOrderingActionHint(lang, gate.sessionStatus), 'info');
+        return;
+      }
+
+      const current = coerceCartQty(cart.find((c) => c.menuItemId === menuItemId)?.qty);
+      let nextQty = Number(rawNextQty);
+      if (!Number.isFinite(nextQty) || nextQty <= 0) {
+        commitCartQty(item, 0);
+        return;
+      }
+
+      if (!staffAssistedOrdering) {
+        const max = guestCartMaxForItem(item);
+        if (nextQty > max) {
+          if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
+            showToast(
+              MENU_PAGE_MESSAGES[lang][
+                limitGuestCount < 1 ? 'limitedItemNeedsHeadcount' : 'perPersonLimitReached'
+              ],
+              'info',
+            );
+          }
+          nextQty = max;
+          if (nextQty <= current) return;
+        }
+        commitCartQty(item, nextQty);
+        return;
+      }
+
+      if (nextQty > current) {
+        const decision = classifyStaffQtyIncrease({
+          serviceMode: buffetServiceMode,
+          item,
+          guestCount: limitGuestCount,
+          alreadyOrdered: sessionOrderedQtyForMenuItem(recentOrders, item.id),
+          fromQty: current,
+          toQty: nextQty,
+          menuPrice: coerceCartPrice(item.price),
+        });
+        if (decision.action === 'block_headcount') {
+          showToast(MENU_PAGE_MESSAGES[lang].limitedItemNeedsHeadcount, 'info');
+          return;
+        }
+        if (decision.action === 'confirm_first_cross') {
+          const messages = MENU_PAGE_MESSAGES[lang];
+          setStaffOverageDialog({
+            kind: 'first_cross',
+            menuItemId: item.id,
+            nextQty,
+            title: messages.staffOverageConfirmTitle,
+            message: formatStaffOverageCopy(messages.staffOverageFirstCrossMessage, {
+              name: menuItemLabel(item),
+              qty: decision.overageQtyAdded,
+              price: decision.overLimitUnitPrice,
+            }),
+          });
+          return;
+        }
+        if (decision.action === 'toast_more_overage') {
           showToast(
-            MENU_PAGE_MESSAGES[lang][
-              limitGuestCount < 1 ? 'limitedItemNeedsHeadcount' : 'perPersonLimitReached'
-            ],
+            formatStaffOverageCopy(MENU_PAGE_MESSAGES[lang].staffOverageMoreToast, {
+              name: menuItemLabel(item),
+              qty: decision.overageQtyAdded,
+              price: decision.overLimitUnitPrice,
+            }),
             'info',
           );
         }
-        next = max;
-        if (next <= current) return;
       }
-    }
-    if (current === 0) {
-      setCartTracked((prev) => [
-        ...prev,
-        {
-          menuItemId: item.id,
-          name_pt: item.name_pt,
-          name_en: item.name_en,
-          name_zh: item.name_zh,
-          price: coerceCartPrice(item.price),
-          emoji: item.emoji,
-          qty: next,
-          note: '',
-          notePresetKeys: item.note_preset_keys || [],
-        },
-      ]);
-      return;
-    }
-    updateQty(item.id, next);
+
+      commitCartQty(item, nextQty);
+    },
+    [
+      buffetServiceMode,
+      cart,
+      catalogReady,
+      commitCartQty,
+      ensureGuestCanPlaceOrder,
+      formatStaffOverageCopy,
+      guestCartMaxForItem,
+      lang,
+      limitGuestCount,
+      menuItemLabel,
+      menuItems,
+      recentOrders,
+      staffAssistedOrdering,
+    ],
+  );
+
+  const bumpCartItem = (item: MenuItem, delta: number) => {
+    const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+    void requestCartQtyChange(item.id, current + delta);
   };
 
   // 更新备注
   const updateNote = (menuItemId: string, note: string) => {
-    setCartTracked(prev =>
-      prev.map(c => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
+    setCartTracked((prev) =>
+      prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
     );
   };
 
@@ -463,8 +573,8 @@ export function MenuOrderingController({
     [lang, refreshSessionContext, t],
   );
 
-  // 提交订单
-  const submitOrder = async () => {
+  // 提交订单：员工超额先汇总确认，再走 performSubmit（确认前不 arming 请求）
+  const performSubmit = async () => {
     if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
     if (submittingRef.current) return;
 
@@ -531,7 +641,6 @@ export function MenuOrderingController({
       });
 
       if ('kind' in result) {
-        // Keep pending intent so network / ambiguous failures retry the same request id.
         await showSubmitFailure(result);
         return;
       }
@@ -570,6 +679,78 @@ export function MenuOrderingController({
       submittingRef.current = false;
       setSubmitting(false);
     }
+  };
+
+  const submitOrder = async () => {
+    if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
+    if (submittingRef.current) return;
+
+    if (staffAssistedOrdering) {
+      const preview = previewStaffCartOverage({
+        serviceMode: buffetServiceMode,
+        guestCount: limitGuestCount,
+        sessionOrders: recentOrders,
+        cart: cart.map((c) => ({ menuItemId: c.menuItemId, qty: coerceCartQty(c.qty) })),
+        resolveItem: (id) => {
+          const item = menuItems.find((m) => m.id === id);
+          if (!item) return null;
+          return {
+            per_person_qty_limit: item.per_person_qty_limit,
+            over_limit_unit_price: item.over_limit_unit_price,
+            price: coerceCartPrice(item.price),
+          };
+        },
+      });
+      if (preview.status === 'blocked') {
+        showToast(
+          preview.error === 'limited_item_requires_headcount'
+            ? t.limitedItemNeedsHeadcount
+            : t.submitFailed,
+          'info',
+        );
+        return;
+      }
+      if (preview.status === 'overage') {
+        const lineText = preview.lines
+          .map((line) => {
+            const item = menuItems.find((m) => m.id === line.menuItemId);
+            const name = item ? menuItemLabel(item) : line.menuItemId;
+            return formatStaffOverageCopy(t.staffOverageSubmitLine, {
+              name,
+              qty: line.overageQty,
+              price: line.overLimitUnitPrice,
+            });
+          })
+          .join('\n');
+        setStaffOverageDialog({
+          kind: 'submit',
+          cartFingerprint: appendCartFingerprint(cart),
+          title: t.staffOverageSubmitTitle,
+          message: `${t.staffOverageSubmitIntro}\n${lineText}`,
+        });
+        return;
+      }
+    }
+
+    await performSubmit();
+  };
+
+  const handleStaffOverageConfirm = async () => {
+    const dialog = staffOverageDialog;
+    if (!dialog) return;
+    if (dialog.kind === 'first_cross') {
+      const item = menuItems.find((m) => m.id === dialog.menuItemId);
+      setStaffOverageDialog(null);
+      if (item) commitCartQty(item, dialog.nextQty);
+      return;
+    }
+    const fingerprint = appendCartFingerprint(cart);
+    setStaffOverageDialog(null);
+    if (fingerprint !== dialog.cartFingerprint) {
+      await submitOrder();
+      return;
+    }
+    await performSubmit();
   };
 
   const rootClassName = isEmbedded
@@ -746,11 +927,24 @@ export function MenuOrderingController({
         menuItemCodeById={menuItemCodeById}
         lang={lang}
         onClose={closeCartDrawer}
-        onUpdateQty={updateQty}
+        onUpdateQty={(id, qty) => {
+          void requestCartQtyChange(id, qty);
+        }}
         onUpdateNote={updateNote}
         onSubmit={submitOrder}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}
+      />
+
+      <ConfirmModal
+        open={!!staffOverageDialog}
+        onClose={() => setStaffOverageDialog(null)}
+        title={staffOverageDialog?.title ?? ''}
+        message={staffOverageDialog?.message ?? ''}
+        confirmLabel={t.staffOverageConfirm}
+        cancelLabel={t.staffOverageCancel}
+        onConfirm={handleStaffOverageConfirm}
+        confirming={submitting}
       />
 
       <OrderedDrawer

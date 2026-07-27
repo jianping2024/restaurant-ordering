@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from '@/types';
+import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
@@ -11,66 +12,120 @@ export type BuffetDashboardData = {
   buffet_friday_weekend_from: string | null;
 };
 
+export type BuffetMutationResult = { patch: BuffetDashboardPatch } | MutationError;
+
+const BUFFETS_SELECT =
+  'id, restaurant_id, name, is_active, description, created_at, updated_at';
+const SLOTS_SELECT =
+  'id, restaurant_id, name, start_time, end_time, weekdays, sort_order, created_at';
+const RULES_SELECT =
+  'id, restaurant_id, buffet_id, time_slot_id, calendar_kind, valid_from, valid_to, adult_price, child_price, priority, is_active, note, created_at';
+
+async function loadBuffetsSlice(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ buffets: Buffet[] } | MutationError> {
+  const { data, error } = await admin
+    .from('buffets')
+    .select(BUFFETS_SELECT)
+    .eq('restaurant_id', restaurantId)
+    .order('name');
+  if (error) return { error: 'buffets_query_failed', message: error.message, status: 500 };
+  return { buffets: (data || []) as Buffet[] };
+}
+
+async function loadSlotsSlice(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ slots: BuffetTimeSlot[] } | MutationError> {
+  const { data, error } = await admin
+    .from('buffet_time_slots')
+    .select(SLOTS_SELECT)
+    .eq('restaurant_id', restaurantId)
+    .order('sort_order')
+    .order('name');
+  if (error) return { error: 'slots_query_failed', message: error.message, status: 500 };
+  return { slots: (data || []) as BuffetTimeSlot[] };
+}
+
+async function loadRulesSlice(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ rules: BuffetPriceRule[] } | MutationError> {
+  const { data, error } = await admin
+    .from('buffet_price_rules')
+    .select(RULES_SELECT)
+    .eq('restaurant_id', restaurantId)
+    .order('priority', { ascending: false });
+  if (error) return { error: 'rules_query_failed', message: error.message, status: 500 };
+  return { rules: (data || []) as BuffetPriceRule[] };
+}
+
+async function loadCalendarSlice(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ calendarRows: BuffetDashboardData['calendarRows'] } | MutationError> {
+  const { data, error } = await admin
+    .from('buffet_calendar_overrides')
+    .select('on_date, kind')
+    .eq('restaurant_id', restaurantId)
+    .order('on_date');
+  if (error) return { error: 'calendar_query_failed', message: error.message, status: 500 };
+  return {
+    calendarRows: (data || []) as BuffetDashboardData['calendarRows'],
+  };
+}
+
+async function loadFridaySlice(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ buffet_friday_weekend_from: string | null } | MutationError> {
+  const { data, error } = await admin
+    .from('restaurants')
+    .select('buffet_friday_weekend_from')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  if (error) return { error: 'restaurant_query_failed', message: error.message, status: 500 };
+  return {
+    buffet_friday_weekend_from: (data?.buffet_friday_weekend_from as string | null) ?? null,
+  };
+}
+
+async function mergeSlices(
+  slices: Array<BuffetDashboardPatch | MutationError>,
+): Promise<BuffetMutationResult> {
+  const patch: BuffetDashboardPatch = {};
+  for (const slice of slices) {
+    if ('error' in slice) return slice;
+    Object.assign(patch, slice);
+  }
+  return { patch };
+}
+
 export async function loadBuffetDashboard(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<BuffetDashboardData | MutationError> {
   const [buffetsRes, slotsRes, rulesRes, calendarRes, restaurantRes] = await Promise.all([
-    admin
-      .from('buffets')
-      .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
-      .eq('restaurant_id', restaurantId)
-      .order('name'),
-    admin
-      .from('buffet_time_slots')
-      .select(
-        'id, restaurant_id, name, start_time, end_time, weekdays, sort_order, created_at',
-      )
-      .eq('restaurant_id', restaurantId)
-      .order('sort_order')
-      .order('name'),
-    admin
-      .from('buffet_price_rules')
-      .select(
-        'id, restaurant_id, buffet_id, time_slot_id, calendar_kind, valid_from, valid_to, adult_price, child_price, priority, is_active, note, created_at',
-      )
-      .eq('restaurant_id', restaurantId)
-      .order('priority', { ascending: false }),
-    admin
-      .from('buffet_calendar_overrides')
-      .select('on_date, kind')
-      .eq('restaurant_id', restaurantId)
-      .order('on_date'),
-    admin
-      .from('restaurants')
-      .select('buffet_friday_weekend_from')
-      .eq('id', restaurantId)
-      .maybeSingle(),
+    loadBuffetsSlice(admin, restaurantId),
+    loadSlotsSlice(admin, restaurantId),
+    loadRulesSlice(admin, restaurantId),
+    loadCalendarSlice(admin, restaurantId),
+    loadFridaySlice(admin, restaurantId),
   ]);
 
-  if (buffetsRes.error) {
-    return { error: 'buffets_query_failed', message: buffetsRes.error.message, status: 500 };
-  }
-  if (slotsRes.error) {
-    return { error: 'slots_query_failed', message: slotsRes.error.message, status: 500 };
-  }
-  if (rulesRes.error) {
-    return { error: 'rules_query_failed', message: rulesRes.error.message, status: 500 };
-  }
-  if (calendarRes.error) {
-    return { error: 'calendar_query_failed', message: calendarRes.error.message, status: 500 };
-  }
-  if (restaurantRes.error) {
-    return { error: 'restaurant_query_failed', message: restaurantRes.error.message, status: 500 };
-  }
+  if ('error' in buffetsRes) return buffetsRes;
+  if ('error' in slotsRes) return slotsRes;
+  if ('error' in rulesRes) return rulesRes;
+  if ('error' in calendarRes) return calendarRes;
+  if ('error' in restaurantRes) return restaurantRes;
 
   return {
-    buffets: (buffetsRes.data || []) as Buffet[],
-    slots: (slotsRes.data || []) as BuffetTimeSlot[],
-    rules: (rulesRes.data || []) as BuffetPriceRule[],
-    calendarRows: (calendarRes.data || []) as Array<{ on_date: string; kind: 'holiday' | 'special' }>,
-    buffet_friday_weekend_from:
-      (restaurantRes.data?.buffet_friday_weekend_from as string | null) ?? null,
+    buffets: buffetsRes.buffets,
+    slots: slotsRes.slots,
+    rules: rulesRes.rules,
+    calendarRows: calendarRes.calendarRows,
+    buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
   };
 }
 
@@ -78,7 +133,7 @@ export async function createBuffet(
   admin: SupabaseClient,
   restaurantId: string,
   name: string,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const trimmed = name.trim();
   if (!trimmed) return { error: 'name_required', status: 400 };
 
@@ -89,25 +144,26 @@ export async function createBuffet(
   });
   if (error) return { error: 'insert_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const buffetsRes = await loadBuffetsSlice(admin, restaurantId);
+  if ('error' in buffetsRes) return buffetsRes;
+  return { patch: buffetsRes };
 }
 
 export async function deleteBuffet(
   admin: SupabaseClient,
   restaurantId: string,
   buffetId: string,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(buffetId);
   if (!id) return { error: 'invalid_buffet_id', status: 400 };
 
   const { error } = await admin.from('buffets').delete().eq('id', id).eq('restaurant_id', restaurantId);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  return mergeSlices([
+    await loadBuffetsSlice(admin, restaurantId),
+    await loadRulesSlice(admin, restaurantId),
+  ]);
 }
 
 export async function updateBuffet(
@@ -115,23 +171,23 @@ export async function updateBuffet(
   restaurantId: string,
   buffetId: string,
   patch: Partial<Pick<Buffet, 'name' | 'is_active'>>,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(buffetId);
   if (!id) return { error: 'invalid_buffet_id', status: 400 };
 
   const { error } = await admin.from('buffets').update(patch).eq('id', id).eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const buffetsRes = await loadBuffetsSlice(admin, restaurantId);
+  if ('error' in buffetsRes) return buffetsRes;
+  return { patch: buffetsRes };
 }
 
 export async function createBuffetTimeSlot(
   admin: SupabaseClient,
   restaurantId: string,
   input: { name: string; sort_order: number },
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const trimmed = input.name.trim();
   if (!trimmed) return { error: 'name_required', status: 400 };
 
@@ -145,16 +201,16 @@ export async function createBuffetTimeSlot(
   });
   if (error) return { error: 'insert_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const slotsRes = await loadSlotsSlice(admin, restaurantId);
+  if ('error' in slotsRes) return slotsRes;
+  return { patch: slotsRes };
 }
 
 export async function deleteBuffetTimeSlot(
   admin: SupabaseClient,
   restaurantId: string,
   slotId: string,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(slotId);
   if (!id) return { error: 'invalid_slot_id', status: 400 };
 
@@ -165,9 +221,10 @@ export async function deleteBuffetTimeSlot(
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  return mergeSlices([
+    await loadSlotsSlice(admin, restaurantId),
+    await loadRulesSlice(admin, restaurantId),
+  ]);
 }
 
 export async function updateBuffetTimeSlot(
@@ -175,7 +232,7 @@ export async function updateBuffetTimeSlot(
   restaurantId: string,
   slotId: string,
   patch: Partial<BuffetTimeSlot>,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(slotId);
   if (!id) return { error: 'invalid_slot_id', status: 400 };
 
@@ -186,9 +243,9 @@ export async function updateBuffetTimeSlot(
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const slotsRes = await loadSlotsSlice(admin, restaurantId);
+  if ('error' in slotsRes) return slotsRes;
+  return { patch: slotsRes };
 }
 
 export type BuffetRuleInput = {
@@ -238,7 +295,7 @@ export async function createBuffetPriceRule(
   admin: SupabaseClient,
   restaurantId: string,
   raw: Record<string, unknown>,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const parsed = parseRuleInput(raw);
   if ('error' in parsed) return parsed;
 
@@ -248,9 +305,9 @@ export async function createBuffetPriceRule(
   });
   if (error) return { error: 'insert_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const rulesRes = await loadRulesSlice(admin, restaurantId);
+  if ('error' in rulesRes) return rulesRes;
+  return { patch: rulesRes };
 }
 
 export async function updateBuffetPriceRule(
@@ -258,7 +315,7 @@ export async function updateBuffetPriceRule(
   restaurantId: string,
   ruleId: string,
   raw: Record<string, unknown>,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
   const parsed = parseRuleInput(raw);
@@ -271,16 +328,16 @@ export async function updateBuffetPriceRule(
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const rulesRes = await loadRulesSlice(admin, restaurantId);
+  if ('error' in rulesRes) return rulesRes;
+  return { patch: rulesRes };
 }
 
 export async function deleteBuffetPriceRule(
   admin: SupabaseClient,
   restaurantId: string,
   ruleId: string,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
 
@@ -291,9 +348,9 @@ export async function deleteBuffetPriceRule(
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const rulesRes = await loadRulesSlice(admin, restaurantId);
+  if ('error' in rulesRes) return rulesRes;
+  return { patch: rulesRes };
 }
 
 export async function toggleBuffetPriceRuleActive(
@@ -301,7 +358,7 @@ export async function toggleBuffetPriceRuleActive(
   restaurantId: string,
   ruleId: string,
   isActive: boolean,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const id = parseTableIdParam(ruleId);
   if (!id) return { error: 'invalid_rule_id', status: 400 };
 
@@ -312,16 +369,16 @@ export async function toggleBuffetPriceRuleActive(
     .eq('restaurant_id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const rulesRes = await loadRulesSlice(admin, restaurantId);
+  if ('error' in rulesRes) return rulesRes;
+  return { patch: rulesRes };
 }
 
 export async function upsertBuffetCalendarOverrides(
   admin: SupabaseClient,
   restaurantId: string,
   rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const { error } = await admin.from('buffet_calendar_overrides').upsert(
     rows.map((r) => ({
       restaurant_id: restaurantId,
@@ -331,16 +388,16 @@ export async function upsertBuffetCalendarOverrides(
   );
   if (error) return { error: 'upsert_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const calendarRes = await loadCalendarSlice(admin, restaurantId);
+  if ('error' in calendarRes) return calendarRes;
+  return { patch: calendarRes };
 }
 
 export async function deleteBuffetCalendarOverride(
   admin: SupabaseClient,
   restaurantId: string,
   onDate: string,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const date = onDate.slice(0, 10);
   if (!date) return { error: 'invalid_date', status: 400 };
 
@@ -351,23 +408,23 @@ export async function deleteBuffetCalendarOverride(
     .eq('on_date', date);
   if (error) return { error: 'delete_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const calendarRes = await loadCalendarSlice(admin, restaurantId);
+  if ('error' in calendarRes) return calendarRes;
+  return { patch: calendarRes };
 }
 
 export async function updateBuffetFridayPolicy(
   admin: SupabaseClient,
   restaurantId: string,
   buffetFridayWeekendFrom: string | null,
-): Promise<{ data: BuffetDashboardData } | MutationError> {
+): Promise<BuffetMutationResult> {
   const { error } = await admin
     .from('restaurants')
     .update({ buffet_friday_weekend_from: buffetFridayWeekendFrom })
     .eq('id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const data = await loadBuffetDashboard(admin, restaurantId);
-  if ('error' in data) return data;
-  return { data };
+  const fridayRes = await loadFridaySlice(admin, restaurantId);
+  if ('error' in fridayRes) return fridayRes;
+  return { patch: fridayRes };
 }

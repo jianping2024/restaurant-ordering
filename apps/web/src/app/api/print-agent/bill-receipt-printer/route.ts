@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import {
-  applyPrintAgentCloudConfigPatch,
-  parseDefaultReceiptStationId,
-} from '@/lib/print-agent-config';
+import { parseDefaultReceiptStationId } from '@/lib/print-agent-config';
+import { mergeAndPersistPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
 import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
 import {
   assertReceiptPrinterIdAllowed,
@@ -55,29 +53,18 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const { data: row, error: readErr } = await admin
-    .from('restaurants')
-    .select('print_agent_config')
-    .eq('id', auth.restaurantId)
-    .single();
-  if (readErr) {
-    return NextResponse.json({ error: 'query_failed', message: readErr.message }, { status: 500 });
-  }
-
-  const merged = applyPrintAgentCloudConfigPatch(row?.print_agent_config, {
+  const result = await mergeAndPersistPrintAgentConfig(admin, auth.restaurantId, {
     default_receipt_station_id,
   });
 
-  const { error } = await admin
-    .from('restaurants')
-    .update({ print_agent_config: merged })
-    .eq('id', auth.restaurantId);
-
-  if (error) {
-    return NextResponse.json({ error: 'update_failed', message: error.message }, { status: 500 });
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error, message: result.message },
+      { status: result.error === 'query_failed' ? 500 : 500 },
+    );
   }
 
   return NextResponse.json({
-    default_receipt_station_id: merged.default_receipt_station_id ?? null,
+    default_receipt_station_id: result.config.default_receipt_station_id ?? null,
   });
 }

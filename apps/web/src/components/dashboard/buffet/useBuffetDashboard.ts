@@ -3,6 +3,10 @@
 import { useCallback, useState } from 'react';
 import type { Buffet, BuffetTimeSlot } from '@/types';
 import { dbTimeToHm, hmToDbTime } from '@/lib/buffet-pricing-admin';
+import {
+  mergeBuffetDashboardPatch,
+  type BuffetDashboardPatch,
+} from '@/lib/buffet-dashboard-patch';
 import type { BuffetDashboardData } from '@/lib/dashboard-buffet-server';
 import {
   createBuffetClient,
@@ -35,122 +39,124 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
   const [fridayDraftFrom, setFridayDraftFrom] = useState(initialFriday.draftFrom);
   const [fridaySaving, setFridaySaving] = useState(false);
 
-  const applyData = useCallback((next: BuffetDashboardData) => {
-    setData(next);
-  }, []);
-
-  const syncFridayDraftFromData = useCallback((next: BuffetDashboardData) => {
-    const friday = fridayDraftFromData(next);
-    setFridayEnabled(friday.enabled);
-    setFridayDraftFrom(friday.draftFrom);
+  const applyPatch = useCallback((patch: BuffetDashboardPatch) => {
+    setData((prev) => {
+      const next = mergeBuffetDashboardPatch(prev, patch);
+      if (patch.buffet_friday_weekend_from !== undefined) {
+        const friday = fridayDraftFromData(next);
+        setFridayEnabled(friday.enabled);
+        setFridayDraftFrom(friday.draftFrom);
+      }
+      return next;
+    });
   }, []);
 
   const createBuffet = useCallback(
     async (name: string) => {
       const result = await createBuffetClient(name);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const createSlot = useCallback(
     async (name: string, sortOrder: number) => {
       const result = await createBuffetSlotClient(name, sortOrder);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const deleteBuffet = useCallback(
     async (id: string) => {
       const result = await deleteBuffetClient(id);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const deleteSlot = useCallback(
     async (id: string) => {
       const result = await deleteBuffetSlotClient(id);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const deleteRule = useCallback(
     async (id: string) => {
       const result = await deleteBuffetRuleClient(id);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const deleteCalendar = useCallback(
     async (onDate: string) => {
       const result = await deleteBuffetCalendarClient(onDate);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const updateBuffet = useCallback(
     async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active'>>) => {
       const result = await updateBuffetClient(id, patch);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const updateSlot = useCallback(
     async (id: string, patch: Partial<BuffetTimeSlot>) => {
       const result = await updateBuffetSlotClient(id, patch);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const createRule = useCallback(
     async (payload: Record<string, unknown>) => {
       const result = await createBuffetRuleClient(payload);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const updateRule = useCallback(
     async (id: string, payload: Record<string, unknown>) => {
       const result = await updateBuffetRuleClient(id, payload);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const toggleRuleActive = useCallback(
     async (id: string, isActive: boolean) => {
       const result = await toggleBuffetRuleActiveClient(id, isActive);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const upsertCalendar = useCallback(
     async (rows: Array<{ on_date: string; kind: 'holiday' | 'special' }>) => {
       const result = await upsertBuffetCalendarClient(rows);
-      if (result.ok) applyData(result.data);
+      if (result.ok) applyPatch(result.patch);
       return result;
     },
-    [applyData],
+    [applyPatch],
   );
 
   const saveFridayPolicy = useCallback(async () => {
@@ -162,15 +168,12 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
     setFridaySaving(true);
     try {
       const result = await updateBuffetFridayPolicyClient(dbValue);
-      if (result.ok) {
-        applyData(result.data);
-        syncFridayDraftFromData(result.data);
-      }
+      if (result.ok) applyPatch(result.patch);
       return result;
     } finally {
       setFridaySaving(false);
     }
-  }, [applyData, fridayDraftFrom, fridayEnabled, syncFridayDraftFromData]);
+  }, [applyPatch, fridayDraftFrom, fridayEnabled]);
 
   return {
     buffets: data.buffets,

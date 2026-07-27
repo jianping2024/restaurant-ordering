@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     }
     const result = await createBuffet(ctx.admin, ctx.restaurantId, body.name);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'slot') {
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       sort_order: sortOrder,
     });
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'rule') {
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       body.rule as Record<string, unknown>,
     );
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'calendar') {
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     );
     const result = await upsertBuffetCalendarOverrides(ctx.admin, ctx.restaurantId, rows);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   return NextResponse.json({ error: 'invalid_resource' }, { status: 400 });
@@ -117,7 +117,7 @@ export async function PATCH(req: Request) {
     }
     const result = await updateBuffetFridayPolicy(ctx.admin, ctx.restaurantId, value);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (typeof body.id !== 'string') {
@@ -131,7 +131,7 @@ export async function PATCH(req: Request) {
         : {};
     const result = await updateBuffet(ctx.admin, ctx.restaurantId, body.id, patch);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'slot') {
@@ -139,7 +139,7 @@ export async function PATCH(req: Request) {
       body.patch && typeof body.patch === 'object' ? (body.patch as Record<string, unknown>) : {};
     const result = await updateBuffetTimeSlot(ctx.admin, ctx.restaurantId, body.id, patch);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'rule') {
@@ -153,7 +153,7 @@ export async function PATCH(req: Request) {
       body.rule as Record<string, unknown>,
     );
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   if (body.resource === 'rule_toggle') {
@@ -167,7 +167,7 @@ export async function PATCH(req: Request) {
       body.is_active,
     );
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   return NextResponse.json({ error: 'invalid_resource' }, { status: 400 });
@@ -183,22 +183,22 @@ export async function DELETE(req: Request) {
   if (body.resource === 'buffet' && typeof body.id === 'string') {
     const result = await deleteBuffet(ctx.admin, ctx.restaurantId, body.id);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
   if (body.resource === 'slot' && typeof body.id === 'string') {
     const result = await deleteBuffetTimeSlot(ctx.admin, ctx.restaurantId, body.id);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
   if (body.resource === 'rule' && typeof body.id === 'string') {
     const result = await deleteBuffetPriceRule(ctx.admin, ctx.restaurantId, body.id);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
   if (body.resource === 'calendar' && typeof body.on_date === 'string') {
     const result = await deleteBuffetCalendarOverride(ctx.admin, ctx.restaurantId, body.on_date);
     if ('error' in result) return dashboardApiError(result);
-    return jsonData(result.data);
+    return jsonData({ patch: result.patch });
   }
 
   return NextResponse.json({ error: 'invalid_resource' }, { status: 400 });

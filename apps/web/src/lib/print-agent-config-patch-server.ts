@@ -11,6 +11,14 @@ type PersistResult =
   | { ok: true; config: PrintAgentCloudConfig }
   | { ok: false; error: string; message?: string };
 
+/** Merge a config patch against stored JSON without persisting (for multi-column restaurant updates). */
+export function mergeStoredPrintAgentConfig(
+  stored: unknown,
+  patch: PrintAgentCloudConfigPatch,
+): PrintAgentCloudConfig {
+  return applyPrintAgentCloudConfigPatch(stored, patch);
+}
+
 /** Read-merge-write print_agent_config for owner settings (slice-safe merge). */
 export async function mergeAndPersistPrintAgentConfig(
   admin: SupabaseClient,
@@ -27,7 +35,7 @@ export async function mergeAndPersistPrintAgentConfig(
     return { ok: false, error: 'query_failed', message: readErr.message };
   }
 
-  const merged = applyPrintAgentCloudConfigPatch(row?.print_agent_config, patch);
+  const merged = mergeStoredPrintAgentConfig(row?.print_agent_config, patch);
   const { error } = await admin
     .from('restaurants')
     .update({ print_agent_config: merged })

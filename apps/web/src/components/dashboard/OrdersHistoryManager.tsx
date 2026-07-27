@@ -268,10 +268,8 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
-    const { outcomeBadge, lifecycle, cardClass } = buildOrderHistorySurfaceMeta(
-      entry,
-      i18n,
-    );
+    const { outcomeBadge, lifecycle, cardClass, mergeSummaryLine, isMergedSource } =
+      buildOrderHistorySurfaceMeta(entry, i18n);
 
     return (
     <div
@@ -297,17 +295,22 @@ export function OrdersHistoryManager({
         >
           {outcomeBadge.label}
         </span>
-        {META_SEP}
-        <span className="text-brand-text-muted">
-          {entry.itemCount} {i18n.items}
-        </span>
-        {META_SEP}
-        {renderMetaAmount(entry)}
-        {renderPrintButton(entry)}
+        {!isMergedSource ? (
+          <>
+            {META_SEP}
+            <span className="text-brand-text-muted">
+              {entry.itemCount} {i18n.items}
+            </span>
+            {META_SEP}
+            {renderMetaAmount(entry)}
+            {renderPrintButton(entry)}
+          </>
+        ) : null}
       </div>
       <div className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted">
         <p>{lifecycle.openedLine}</p>
         <p>{lifecycle.closedLine}</p>
+        {mergeSummaryLine ? <p className="text-brand-text">{mergeSummaryLine}</p> : null}
       </div>
       {forcedCloseSummary ? (
         <p className={ORDER_HISTORY_FORCED_SUMMARY_CLASS}>{forcedCloseSummary}</p>
@@ -406,9 +409,11 @@ export function OrdersHistoryManager({
 
       <OrderHistoryDetailModal
         entry={selectedEntry}
+        entries={entries}
         itemCodeByMenuId={itemCodeByMenuId}
         restaurantSlug={restaurantSlug}
         onClose={() => setSelectedEntry(null)}
+        onSelectEntry={setSelectedEntry}
       />
     </div>
   );

@@ -4,6 +4,10 @@ import type {
   OrderHistoryEntry,
 } from '@/lib/order-history/types';
 import {
+  buildMergedIntoSummaryLine,
+  resolveMergedSourceOutcomeBadge,
+} from '@/lib/order-history/build-merge-presentation';
+import {
   resolveOrderHistoryOutcomeBadge,
   type OrderHistoryOutcomeBadge,
 } from '@/lib/order-history/build-detail-presentation';
@@ -133,17 +137,35 @@ export function buildOrderHistoryLifecycleLines(
   };
 }
 
-/** Shared list/detail chrome derived from one entry. */
-export function buildOrderHistorySurfaceMeta(
-  entry: OrderHistoryEntry,
-  i18n: OrderHistoryI18n,
-): {
+export type OrderHistorySurfaceMeta = {
   outcomeBadge: OrderHistoryOutcomeBadge;
   abnormal: OrderHistoryAbnormalEmphasis;
   lifecycle: OrderHistoryLifecycleLines;
   cardClass: string;
   lifecycleBoxClass: string;
-} {
+  mergeSummaryLine: string | null;
+  isMergedSource: boolean;
+};
+
+/** Shared list/detail chrome derived from one entry. closeKind gates before settlement outcome. */
+export function buildOrderHistorySurfaceMeta(
+  entry: OrderHistoryEntry,
+  i18n: OrderHistoryI18n,
+): OrderHistorySurfaceMeta {
+  const lifecycle = buildOrderHistoryLifecycleLines(entry, i18n);
+
+  if (entry.closeKind === 'merged_source') {
+    return {
+      outcomeBadge: resolveMergedSourceOutcomeBadge(i18n),
+      abnormal: 'none',
+      lifecycle,
+      cardClass: resolveOrderHistoryCardClass('none'),
+      lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass('none'),
+      mergeSummaryLine: buildMergedIntoSummaryLine(entry, i18n),
+      isMergedSource: true,
+    };
+  }
+
   const abnormal = resolveOrderHistoryAbnormalEmphasis(
     entry.settlement.outcome,
     entry.closeAnnotation,
@@ -151,8 +173,10 @@ export function buildOrderHistorySurfaceMeta(
   return {
     outcomeBadge: resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n),
     abnormal,
-    lifecycle: buildOrderHistoryLifecycleLines(entry, i18n),
+    lifecycle,
     cardClass: resolveOrderHistoryCardClass(abnormal),
     lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass(abnormal),
+    mergeSummaryLine: null,
+    isMergedSource: false,
   };
 }

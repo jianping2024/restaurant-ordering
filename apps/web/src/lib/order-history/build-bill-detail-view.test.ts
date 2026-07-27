@@ -15,6 +15,7 @@ function baseEntry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
     sessionId: 'sess-1',
     tableId: 'table-1',
     displayName: 'A-01',
+    closeKind: 'billing',
     openedAt: '2026-07-05T10:00:00.000Z',
     openedByName: 'Staff',
     closedAt,

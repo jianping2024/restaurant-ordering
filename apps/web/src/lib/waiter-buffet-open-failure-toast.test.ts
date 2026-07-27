@@ -16,6 +16,20 @@ describe('classifyWaiterBuffetOpenFailure', () => {
       classifyWaiterBuffetOpenFailure({ status: 409, code: 'session_billing' }),
       'session_billing',
     );
+    assert.equal(
+      classifyWaiterBuffetOpenFailure({
+        status: 409,
+        code: 'buffet_headcount_below_paid_floor',
+      }),
+      'paid_floor',
+    );
+    assert.equal(
+      classifyWaiterBuffetOpenFailure({
+        status: 409,
+        code: 'buffet_headcount_below_sushi_limit_floor',
+      }),
+      'sushi_limit_floor',
+    );
     assert.equal(classifyWaiterBuffetOpenFailure({ status: 409 }), 'conflict');
   });
 });

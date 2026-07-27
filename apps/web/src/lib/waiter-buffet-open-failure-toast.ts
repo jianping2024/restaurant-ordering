@@ -10,6 +10,7 @@ type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 export type WaiterBuffetOpenFailureKind =
   | 'session_billing'
   | 'paid_floor'
+  | 'sushi_limit_floor'
   | 'no_price'
   | 'dependency'
   | 'conflict'
@@ -22,6 +23,9 @@ export function classifyWaiterBuffetOpenFailure(result: {
   if (result.status === 409 && result.code === 'session_billing') return 'session_billing';
   if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
     return 'paid_floor';
+  }
+  if (result.status === 409 && result.code === 'buffet_headcount_below_sushi_limit_floor') {
+    return 'sushi_limit_floor';
   }
   if (result.status === 400 && result.code === 'no_price_rule') return 'no_price';
   if (
@@ -46,6 +50,9 @@ export function toastWaiterBuffetOpenFailure(
       return;
     case 'paid_floor':
       showToast(t.buffetHeadcountBelowPaidFloor, 'error');
+      return;
+    case 'sushi_limit_floor':
+      showToast(t.buffetHeadcountBelowSushiLimitFloor, 'error');
       return;
     case 'no_price':
       showToast(t.buffetNoRule, 'error');

@@ -16,6 +16,7 @@
 4. **全 0 忽略**：某套餐成人/儿童均为 0 → 不写该行（有则 void）。
 5. **无变化 = no-op**：当前快照与请求快照一致 → **不计价、不写库**；返回当前桌台详情即可。
 6. **已收款人数地板**：本餐次已开始收款（`result.paid` 或 `session_collected_payments`）时，新快照的成人/儿童数**不得低于**按菜分单里已锁定客人在该 `buffet_id` 上已分配的座位数；否则 `409` / `buffet_headcount_below_paid_floor`（见 [`checkout-resume-ordering.zh.md`](./checkout-resume-ordering.zh.md)）。零收款时不施加此限制。
+7. **寿司限量免费额度地板**（`buffet_service_mode = sushi`）：改人数时，全桌成人+儿童合计**不得低于**「已点且按免费价落库的限量份」所需最低人数（`ceil(免费份 / 每人限量)`，多菜取 max）。超额价行不抬高地板。违反 → `409` / `buffet_headcount_below_sushi_limit_floor`。仍**不改**已有 menu 行价；要减人须先退/作废多余免费份。classic 或无限量菜不施加。
 
 示例：`简单套餐 A2 C1` + `豪华套餐 A1 C0` 与只改其中一行，都必须按套餐分别比较与写入。
 

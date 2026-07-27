@@ -1,5 +1,7 @@
 import { showToast } from '@/components/ui/Toast';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { BUFFET_HEADCOUNT_BELOW_PAID_FLOOR } from '@/lib/buffet-paid-headcount-floor';
+import { BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR } from '@/lib/buffet-sushi-limit-headcount-floor';
 import {
   DEPENDENCY_UNAVAILABLE,
   isDependencyUnavailableCode,
@@ -21,10 +23,10 @@ export function classifyWaiterBuffetOpenFailure(result: {
   code?: string;
 }): WaiterBuffetOpenFailureKind {
   if (result.status === 409 && result.code === 'session_billing') return 'session_billing';
-  if (result.status === 409 && result.code === 'buffet_headcount_below_paid_floor') {
+  if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_PAID_FLOOR) {
     return 'paid_floor';
   }
-  if (result.status === 409 && result.code === 'buffet_headcount_below_sushi_limit_floor') {
+  if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_SUSHI_LIMIT_FLOOR) {
     return 'sushi_limit_floor';
   }
   if (result.status === 400 && result.code === 'no_price_rule') return 'no_price';

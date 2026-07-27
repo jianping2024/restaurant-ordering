@@ -23,6 +23,8 @@ import {
   snapshotFromBuffetEntries,
   upsertBuffetLineOntoOrderItems,
   aggregateBuffetHeadcountForOrders,
+  totalGuestsFromCounts,
+  totalGuestsInBuffetSnapshot,
 } from '@/lib/buffet-order';
 
 const labels = { adults: '{n}大人', children: '{n}小孩' };
@@ -68,6 +70,17 @@ function orderWithItems(items: ReturnType<typeof buildBuffetBaseLine>[]): Order 
 }
 
 describe('buffet snapshot', () => {
+  it('sums adults+children via one totalGuests helper', () => {
+    assert.equal(totalGuestsFromCounts({ adults: 2, children: 1 }), 3);
+    assert.equal(totalGuestsFromCounts(null), 0);
+    assert.equal(
+      totalGuestsInBuffetSnapshot({
+        a: { adults: 2, children: 0 },
+        b: { adults: 1, children: 1 },
+      }),
+      4,
+    );
+  });
   it('reads multiple active packages from orders', () => {
     const orders = [orderWithItems([
       buffetLine(buffetA, 2, 1, '2026-01-01T10:00:00.000Z'),

@@ -1,13 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order } from '@/types';
-import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
+import {
+  totalGuestsInBuffetSnapshot,
+  type BuffetGuestSnapshot,
+} from '@/lib/buffet-order';
 import {
   isSushiBuffetMode,
   normalizeBuffetServiceMode,
   type BuffetServiceMode,
 } from '@/lib/buffet-service-mode';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
 import {
+  collectSessionMenuItemIds,
   sushiFreeAllowanceHeadcountFloor,
   type SushiLimitCatalogRow,
 } from '@/lib/sushi-buffet-limits';
@@ -20,16 +23,6 @@ export type SushiLimitHeadcountFloorViolation = {
   proposedGuests: number;
 };
 
-/** Adults + children across all packages in a buffet guest snapshot. */
-export function totalGuestsInBuffetSnapshot(snapshot: BuffetGuestSnapshot): number {
-  let total = 0;
-  for (const counts of Object.values(snapshot)) {
-    if (!counts) continue;
-    total += Math.max(0, counts.adults || 0) + Math.max(0, counts.children || 0);
-  }
-  return total;
-}
-
 /**
  * When proposed total headcount cannot cover included (free) sushi limited portions.
  */
@@ -41,21 +34,6 @@ export function findBuffetHeadcountBelowSushiLimitFloor(
   const proposedGuests = totalGuestsInBuffetSnapshot(target);
   if (proposedGuests >= minGuests) return null;
   return { minGuests, proposedGuests };
-}
-
-/** Distinct non-voided menu item ids on the session (excludes buffet_base). */
-export function collectSessionMenuItemIds(
-  orders: Array<Pick<Order, 'items' | 'status'>>,
-): string[] {
-  const ids = new Set<string>();
-  for (const order of orders) {
-    for (const item of order.items || []) {
-      if (item.kind === 'buffet_base') continue;
-      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
-      if (typeof item.id === 'string' && item.id) ids.add(item.id);
-    }
-  }
-  return Array.from(ids);
 }
 
 export async function loadRestaurantBuffetServiceMode(

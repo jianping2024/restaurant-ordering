@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
+import { waiterTableHref } from '@/lib/staff-routes';
 import {
   formatMergeSourceLine,
   formatOrderHistoryInstant,
@@ -37,7 +38,7 @@ export function OrderHistoryMergeTargetLink({
     if (!ctx.targetTableId) return null;
     return (
       <Link
-        href={`/${restaurantSlug}/waiter/${ctx.targetTableId}`}
+        href={waiterTableHref(restaurantSlug, ctx.targetTableId)}
         className="text-sm text-brand-gold hover:underline"
       >
         {i18n.viewActiveTargetTable}

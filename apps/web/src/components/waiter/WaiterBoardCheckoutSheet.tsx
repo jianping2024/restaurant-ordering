@@ -14,6 +14,7 @@ type Props = {
   restaurantId: string;
   restaurantSlug: string;
   tableId: string;
+  canCloseTable: boolean;
 };
 
 export function WaiterBoardCheckoutSheet({
@@ -22,6 +23,7 @@ export function WaiterBoardCheckoutSheet({
   restaurantId,
   restaurantSlug,
   tableId,
+  canCloseTable,
 }: Props) {
   const { requests } = useCheckoutRequests();
   const { lang } = useLanguage();
@@ -75,7 +77,7 @@ export function WaiterBoardCheckoutSheet({
             request={request}
             restaurantId={restaurantId}
             restaurantSlug={restaurantSlug}
-            canCloseTable
+            canCloseTable={canCloseTable}
             showBackButton={false}
             onBack={onClose}
             onAllPaid={onClose}

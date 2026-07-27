@@ -3,15 +3,19 @@ import { describe, it } from 'node:test';
 import { floorBoardCapabilities, isFloorBoardRole } from './floor-board-capabilities';
 
 describe('floorBoardCapabilities', () => {
-  it('gives desk roles checkout and decrement powers', () => {
+  it('gives desk roles shared checkout and decrement powers', () => {
     for (const role of ['frontdesk', 'cashier'] as const) {
       const caps = floorBoardCapabilities(role);
       assert.equal(caps.canMenuDecrement, true);
       assert.equal(caps.canCheckoutClose, true);
-      assert.equal(caps.canForceCloseTable, true);
       assert.equal(caps.canAssistBillCheckout, true);
       assert.equal(caps.canOpenCheckoutPendingTables, true);
     }
+  });
+
+  it('allows force close for frontdesk only among desk roles', () => {
+    assert.equal(floorBoardCapabilities('frontdesk').canForceCloseTable, true);
+    assert.equal(floorBoardCapabilities('cashier').canForceCloseTable, false);
   });
 
   it('allows session pre_bill print for frontdesk only', () => {

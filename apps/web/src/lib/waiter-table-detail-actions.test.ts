@@ -68,6 +68,19 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(idle.showCloseTable, false);
   });
 
+  it('allows cashier checkout-close but not force close', () => {
+    const cashier = floorBoardCapabilities('cashier');
+    const flags = resolveWaiterTableDetailActions({
+      caps: cashier,
+      isDemo: false,
+      isCheckoutPending: false,
+      hasOpenSession: true,
+      hasActiveBuffets: false,
+    });
+    assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showCloseTable, false);
+  });
+
   it('shows toolbar for session-only tables without buffet lines', () => {
     const flags = resolveWaiterTableDetailActions({
       caps: waiter,

@@ -240,7 +240,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/restaurants/[slug]/checkout/confirm-payment',
       '/api/dashboard/close-table-session',
     ],
-    riskNote: 'Page read uses client bill_splits RLS; confirm-payment allows cashier/waiter/frontdesk + owner.',
+    riskNote: 'Page read uses client bill_splits RLS; confirm-payment allows cashier/waiter/frontdesk + owner. Force-close API: owner/frontdesk only.',
   },
   {
     id: 'orders',
@@ -282,8 +282,10 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   },
 ];
 
-export function canCloseTableFromDashboard(accessMode: DashboardAccessMode): boolean {
-  return accessMode === 'owner' || accessMode === 'frontdesk' || accessMode === 'cashier';
+import { mayForceCloseTableFromDashboardMode } from '@/lib/table-session/force-close-table-policy';
+
+export function canForceCloseTableFromDashboard(accessMode: DashboardAccessMode): boolean {
+  return mayForceCloseTableFromDashboardMode(accessMode);
 }
 
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {

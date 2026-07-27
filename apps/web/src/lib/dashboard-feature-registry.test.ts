@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   canAccessDashboardWaiterBoard,
   CASHIER_NAV_PATHS,
+  canForceCloseTableFromDashboard,
   DASHBOARD_FEATURES,
   FRONTDESK_NAV_ITEM_IDS,
   FRONTDESK_NAV_PATHS,
@@ -41,6 +42,15 @@ describe('dashboard nav paths vs feature registry', () => {
       assert.ok(feature, `missing cashier feature for nav path ${path}`);
       assert.ok(feature.navRoles.includes('cashier'), `${path} must list cashier in navRoles`);
     }
+  });
+});
+
+describe('canForceCloseTableFromDashboard', () => {
+  it('allows owner and frontdesk only', () => {
+    assert.equal(canForceCloseTableFromDashboard('owner'), true);
+    assert.equal(canForceCloseTableFromDashboard('frontdesk'), true);
+    assert.equal(canForceCloseTableFromDashboard('cashier'), false);
+    assert.equal(canForceCloseTableFromDashboard('waiter'), false);
   });
 });
 

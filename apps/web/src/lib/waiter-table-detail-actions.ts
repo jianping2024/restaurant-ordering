@@ -8,7 +8,7 @@ export type WaiterTableDetailActionFlags = {
   showOccupiedToolbar: boolean;
   /** Desk roles may run 关台结账 (frontdesk prints; cashier skips print). */
   showCheckoutClose: boolean;
-  /** Desk roles may force-close the table session. */
+  /** Frontdesk may force-close the table session. */
   showCloseTable: boolean;
 };
 

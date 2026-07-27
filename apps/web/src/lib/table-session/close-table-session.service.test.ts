@@ -219,6 +219,22 @@ describe('closeTableSessionFrontdeskCheckout', () => {
 });
 
 describe('closeTableSessionManual', () => {
+  it('forbids cashier actor on manual force-close path', async () => {
+    const result = await closeTableSessionManual({
+      admin: {} as SupabaseClient,
+      restaurantId: 'rest-1',
+      userId: 'user-cashier',
+      actor,
+      closedReason: 'cashier_closed',
+      tableId: 'table-1',
+      confirmClose: true,
+    });
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.equal(result.code, 'forbidden');
+  });
+
   it('rejects invalid unpaid reason before RPC', async () => {
     const result = await closeTableSessionManual({
       admin: {} as SupabaseClient,

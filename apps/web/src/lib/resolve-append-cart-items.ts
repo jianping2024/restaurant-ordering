@@ -6,10 +6,11 @@ import {
   type MenuCategoryForPrint,
 } from '@/lib/menu-print-label';
 import {
-  applySushiLimitToCartLine,
+  checkSushiLimitForCartLine,
+  isLimitedSushiMenuItem,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
-  type ApplySushiLimitError,
+  type SushiLimitError,
 } from '@/lib/sushi-buffet-limits';
 import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
 import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
@@ -25,7 +26,7 @@ export type ResolveAppendCartError =
   | 'invalid_items'
   | 'menu_item_not_found'
   | 'menu_item_unavailable'
-  | ApplySushiLimitError;
+  | SushiLimitError;
 
 export type ResolveAppendCartSuccess = {
   ok: true;
@@ -91,6 +92,8 @@ const FORBIDDEN_APPEND_LINE_KEYS = [
   'price_rule_id',
   'item_code',
   'category_code_path',
+  'per_person_qty_limit',
+  'over_limit_unit_price',
 ] as const;
 
 function parseMenuItemId(row: Record<string, unknown>): string | null {
@@ -202,10 +205,11 @@ function menuRowToOrderItem(
   menu: MenuItemRow,
   qty: number,
   note: string,
-  unitPrice: number,
   batchId: string,
   addedAt: string,
   categories: MenuCategoryForPrint[],
+  /** Sushi mode only: freeze the free-allowance rule so billing needs no menu lookup. */
+  limitRule: { per_person_qty_limit: number; over_limit_unit_price: number } | null,
 ): OrderItem {
   const name_pt = (menu.name_pt || '').trim() || '—';
   return {
@@ -216,13 +220,14 @@ function menuRowToOrderItem(
     name_zh: menu.name_zh ?? undefined,
     qty,
     note,
-    price: coerceCartPrice(unitPrice),
+    price: coerceCartPrice(menu.price),
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
     item_code: menu.item_code?.trim() || null,
     category_code_path: categoryCodePathFromLeaf(menu.category_id, categories),
     item_status: 'pending',
     batch_id: batchId,
     added_at: addedAt,
+    ...(limitRule ?? {}),
   };
 }
 
@@ -283,39 +288,33 @@ export async function resolveAppendCartItems(params: {
       return { ok: false, error: 'menu_item_unavailable' };
     }
 
-    const alreadyOrdered = sessionOrderedQtyForMenuItem(sessionOrders, line.menuItemId);
-    const priced = applySushiLimitToCartLine({
+    const limitFields = {
+      per_person_qty_limit: menu.per_person_qty_limit,
+      over_limit_unit_price:
+        menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
+    };
+    const checked = checkSushiLimitForCartLine({
       serviceMode,
       staffAssisted,
       guestCount,
-      alreadyOrdered,
+      alreadyOrdered: sessionOrderedQtyForMenuItem(sessionOrders, line.menuItemId),
       requestQty: line.qty,
-      menuPrice: coerceCartPrice(menu.price),
-      item: {
-        per_person_qty_limit: menu.per_person_qty_limit,
-        over_limit_unit_price:
-          menu.over_limit_unit_price == null
-            ? null
-            : coerceCartPrice(menu.over_limit_unit_price),
-      },
+      item: limitFields,
     });
-    if (!priced.ok) {
-      return { ok: false, error: priced.error };
+    if (!checked.ok) {
+      return { ok: false, error: checked.error };
     }
 
-    for (const slice of priced.slices) {
-      items.push(
-        menuRowToOrderItem(
-          menu,
-          slice.qty,
-          line.note,
-          slice.unitPrice,
-          batchId,
-          addedAt,
-          categories,
-        ),
-      );
-    }
+    const limitRule = isLimitedSushiMenuItem(serviceMode, limitFields)
+      ? {
+          per_person_qty_limit: limitFields.per_person_qty_limit as number,
+          over_limit_unit_price: limitFields.over_limit_unit_price as number,
+        }
+      : null;
+
+    items.push(
+      menuRowToOrderItem(menu, line.qty, line.note, batchId, addedAt, categories, limitRule),
+    );
   }
 
   return { ok: true, items, batchId };

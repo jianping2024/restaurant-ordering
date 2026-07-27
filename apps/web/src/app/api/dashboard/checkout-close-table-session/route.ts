@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { loadCloseTableSessionActor } from '@/lib/table-session/load-close-table-actor';
 import { closeTableSessionFrontdeskCheckout } from '@/lib/table-session/close-table-session.service';
-import { httpStatusForSushiSettlementError } from '@/lib/sushi-settlement-rebalance';
 
 export const runtime = 'nodejs';
 
@@ -36,17 +35,6 @@ export async function POST(req: Request) {
   if (!result.ok) {
     if (result.code === 'no_session') {
       return NextResponse.json({ error: result.code, message: result.message }, { status: 404 });
-    }
-    if (
-      result.code === 'limited_item_requires_headcount' ||
-      result.code === 'over_limit_price_missing' ||
-      result.code === 'catalog_lookup_failed' ||
-      result.code === 'persist_failed'
-    ) {
-      return NextResponse.json(
-        { error: result.code, message: result.message },
-        { status: httpStatusForSushiSettlementError(result.code) },
-      );
     }
     return NextResponse.json({ error: result.code, message: result.message }, { status: 500 });
   }

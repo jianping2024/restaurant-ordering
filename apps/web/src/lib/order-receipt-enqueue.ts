@@ -15,8 +15,6 @@ import {
   guestCountFromTableOrders,
   stationTicketOrderTimeIso,
 } from '@/lib/table-guest-count';
-import { ensureSushiSettlementPricingForSession, httpStatusForSushiSettlementError } from '@/lib/sushi-settlement-rebalance';
-
 export type ReceiptVariant = 'pre_bill' | 'checkout_bill' | 'split_payment' | 'final';
 
 /** Who triggered the print — only `automatic` is gated by bill_receipt_print. */
@@ -300,24 +298,7 @@ export async function enqueueReceiptPrint(
     return { ok: false, status: 404, code: 'no_orders' };
   }
 
-  let orderRows = orders as Order[];
-  if (variant === 'checkout_bill' || variant === 'pre_bill') {
-    const settled = await ensureSushiSettlementPricingForSession(
-      admin,
-      restaurantId,
-      sessionId,
-      orderRows,
-    );
-    if (!settled.ok) {
-      return {
-        ok: false,
-        status: httpStatusForSushiSettlementError(settled.error),
-        code: settled.error,
-        message: settled.message,
-      };
-    }
-    orderRows = settled.orders;
-  }
+  const orderRows = orders as Order[];
 
   let lines = buildReceiptLinesFromOrders(orderRows);
   let amountDue = lines.reduce((sum, ln) => sum + ln.unit_price * ln.qty, 0);

@@ -506,6 +506,9 @@ export function BillPage({
         totalLabel={t.total}
         lines={detailLines}
         total={total}
+        formatChargeableHint={(unitPrice) =>
+          t.chargeableHint.replace('{price}', unitPrice.toFixed(2))
+        }
       />
 
       <BillSplitPanel

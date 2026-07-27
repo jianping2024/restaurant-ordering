@@ -14,6 +14,8 @@ export type CheckoutDisplayLine = {
   label: string;
   quantityLabel: string;
   lineTotal: number;
+  /** Present when this line is the chargeable share of a sushi limited dish. */
+  chargeableUnitPrice?: number;
 };
 
 /** Billable lines for checkout detail (matches receipt enqueue aggregation). */
@@ -21,7 +23,7 @@ export function checkoutLinesFromOrders(
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
-  return buildBillableSessionItems(orders).map(({ key, item }) => {
+  return buildBillableSessionItems(orders).map(({ key, item, chargeable }) => {
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = isBuffetBaseItem(item)
       ? formatOrderItemPlainName(item)
@@ -32,6 +34,7 @@ export function checkoutLinesFromOrders(
       label,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       lineTotal: item.price * item.qty,
+      ...(chargeable ? { chargeableUnitPrice: item.price } : {}),
     };
   });
 }

@@ -241,3 +241,16 @@ export function formatStaffSubmitOverageMessage(
     .join('\n');
   return `${messages.staffOverageSubmitIntro}\n${body}`;
 }
+
+/** One toast copy path for sushi limit gate / append failures. */
+export function messageForSushiLimitError(
+  error: string,
+  messages: Pick<
+    (typeof MENU_PAGE_MESSAGES)[Language],
+    'limitedItemNeedsHeadcount' | 'perPersonLimitReached' | 'submitFailed'
+  >,
+): string {
+  if (error === 'limited_item_requires_headcount') return messages.limitedItemNeedsHeadcount;
+  if (error === 'per_person_limit_exceeded') return messages.perPersonLimitReached;
+  return messages.submitFailed;
+}

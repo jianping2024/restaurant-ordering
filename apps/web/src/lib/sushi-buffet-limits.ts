@@ -152,31 +152,6 @@ export function applySushiLimitToCartLine(params: {
   return { ok: true, slices };
 }
 
-/**
- * Free slots left for a guest cart line (0 when headcount unset).
- * Guest menu does not hard-disable Add from this; submit uses {@link previewGuestCartSushiGate}.
- */
-export function guestMaxCartQty(params: {
-  serviceMode: unknown;
-  item: SushiLimitMenuFields;
-  guestCount: number;
-  alreadyOrdered: number;
-  absoluteMax: number;
-}): number {
-  if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
-    return params.absoluteMax;
-  }
-  if (params.guestCount < 1) return 0;
-  return Math.min(
-    params.absoluteMax,
-    freeRemainingQty({
-      perPersonLimit: params.item.per_person_qty_limit!,
-      guestCount: params.guestCount,
-      alreadyOrdered: params.alreadyOrdered,
-    }),
-  );
-}
-
 /** Normalize limit pair for menu CRUD: both null, or both set. */
 export function normalizeMenuItemLimitFields(input: {
   per_person_qty_limit?: unknown;
@@ -390,13 +365,14 @@ export function previewStaffCartOverage(params: {
 /**
  * Guest submit gate: same pricing rules as append (`applySushiLimitToCartLine`, not staff).
  * UI may keep limited dishes tappable; authority is submit (+ server).
+ * `menuPrice` is unused for ok/error (pass 0).
  */
 export function previewGuestCartSushiGate(params: {
   serviceMode: unknown;
   guestCount: number;
   sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
   cart: Array<{ menuItemId: string; qty: number }>;
-  resolveItem: (menuItemId: string) => (SushiLimitMenuFields & { price?: number }) | null;
+  resolveItem: (menuItemId: string) => SushiLimitMenuFields | null;
 }): { ok: true } | { ok: false; error: ApplySushiLimitError } {
   for (const row of params.cart) {
     const item = params.resolveItem(row.menuItemId);
@@ -407,7 +383,7 @@ export function previewGuestCartSushiGate(params: {
       guestCount: params.guestCount,
       alreadyOrdered: sessionOrderedQtyForMenuItem(params.sessionOrders, row.menuItemId),
       requestQty: coercePositiveQty(row.qty),
-      menuPrice: typeof item.price === 'number' && Number.isFinite(item.price) ? item.price : 0,
+      menuPrice: 0,
       item,
     });
     if (!priced.ok) return { ok: false, error: priced.error };

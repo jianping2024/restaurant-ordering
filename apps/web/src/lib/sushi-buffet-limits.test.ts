@@ -5,7 +5,6 @@ import {
   classifyStaffQtyIncrease,
   freeAllowanceQty,
   freeRemainingQty,
-  guestMaxCartQty,
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
   previewGuestCartSushiGate,
@@ -166,31 +165,27 @@ describe('sushi buffet limits', () => {
     }
   });
 
-  it('guestMaxCartQty respects remaining free slots', () => {
+  it('freeRemainingQty matches former guest cart free slots', () => {
     assert.equal(
-      guestMaxCartQty({
-        serviceMode: 'sushi',
-        item: { per_person_qty_limit: 2, over_limit_unit_price: 1 },
+      freeRemainingQty({
+        perPersonLimit: 2,
         guestCount: 2,
         alreadyOrdered: 3,
-        absoluteMax: 99,
       }),
       1,
     );
     assert.equal(
-      guestMaxCartQty({
-        serviceMode: 'sushi',
-        item: { per_person_qty_limit: 2, over_limit_unit_price: 1 },
+      freeRemainingQty({
+        perPersonLimit: 2,
         guestCount: 0,
         alreadyOrdered: 0,
-        absoluteMax: 99,
       }),
       0,
     );
   });
 
   it('previewGuestCartSushiGate blocks headcount and overage', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
     const emptyOrders: Order[] = [];
     assert.deepEqual(
       previewGuestCartSushiGate({

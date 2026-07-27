@@ -8,7 +8,7 @@ interface Props {
   restaurantId: string;
   restaurantSlug: string;
   accessMode: DashboardAccessMode;
-  canCloseTable?: boolean;
+  canForceCloseTable?: boolean;
   initialFocus?: CheckoutQueueFocus;
 }
 
@@ -16,7 +16,7 @@ export function CheckoutRequestsPageClient({
   restaurantId,
   restaurantSlug,
   accessMode,
-  canCloseTable,
+  canForceCloseTable,
   initialFocus,
 }: Props) {
   return (
@@ -24,7 +24,7 @@ export function CheckoutRequestsPageClient({
       restaurantId={restaurantId}
       restaurantSlug={restaurantSlug}
       accessMode={accessMode}
-      canCloseTable={canCloseTable}
+      canForceCloseTable={canForceCloseTable}
       initialFocus={initialFocus}
     />
   );

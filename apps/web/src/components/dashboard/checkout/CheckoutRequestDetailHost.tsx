@@ -51,7 +51,7 @@ type Props = {
   request: BillSplit;
   restaurantId: string;
   restaurantSlug: string;
-  canCloseTable?: boolean;
+  canForceCloseTable?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
   /** Called after the queue row is removed because everyone paid. */
@@ -63,7 +63,7 @@ export function CheckoutRequestDetailHost({
   request,
   restaurantId,
   restaurantSlug,
-  canCloseTable = false,
+  canForceCloseTable = false,
   showBackButton = true,
   onBack,
   onAllPaid,
@@ -376,7 +376,7 @@ export function CheckoutRequestDetailHost({
         discountApplying={discountApplying}
         discountLocked={hasConfirmedPerson(request)}
         resumeBlockReason={resumeBlockReason}
-        canCloseTable={canCloseTable}
+        canForceCloseTable={canForceCloseTable}
         printBillBusy={printBillBusy}
         printCooldownSeconds={cooldownSecondsLeft(billCooldownKey)}
         printOnCooldown={isOnCooldown(billCooldownKey)}

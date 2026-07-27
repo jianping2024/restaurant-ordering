@@ -1,22 +1,18 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
-import type { FloorBoardRole } from '@/lib/floor-board-capabilities';
 import type { CloseTableSessionClosedReason } from '@/lib/table-session/load-close-table-actor';
 
 /**
- * Operational force-close (manual / unpaid reason) — not settled 关台结账.
- * Single policy for UI and server guards on POST /api/dashboard/close-table-session.
+ * Operational force-close (manual / unpaid reason).
+ * Single policy for UI and POST /api/dashboard/close-table-session.
  */
-export function mayForceCloseTableFromFloorRole(role: FloorBoardRole): boolean {
-  return role === 'frontdesk';
+export function mayForceCloseTable(principal: DashboardAccessMode): boolean {
+  return principal === 'owner' || principal === 'frontdesk';
 }
 
-export function mayForceCloseTableFromDashboardMode(mode: DashboardAccessMode): boolean {
-  return mode === 'owner' || mode === 'frontdesk';
-}
-
-/** Actor reason on manual force-close only (settled checkout-close may still use cashier_closed). */
-export function mayForceCloseTableAsManualActor(
+export function forceClosePrincipalFromManualActorReason(
   closedReason: CloseTableSessionClosedReason,
-): boolean {
-  return closedReason !== 'cashier_closed';
+): DashboardAccessMode {
+  if (closedReason === 'owner_closed') return 'owner';
+  if (closedReason === 'frontdesk_closed') return 'frontdesk';
+  return 'cashier';
 }

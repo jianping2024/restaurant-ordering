@@ -43,7 +43,7 @@ interface Props {
   restaurantSlug: string;
   accessMode: DashboardAccessMode;
   /** Owner or frontdesk may force-close unpaid tables from checkout. */
-  canCloseTable?: boolean;
+  canForceCloseTable?: boolean;
   /** URL intent: auto-open this checkout request after queue is fresh. */
   initialFocus?: CheckoutQueueFocus;
 }
@@ -52,7 +52,7 @@ export function CheckoutRequestsManager({
   restaurantId,
   restaurantSlug,
   accessMode,
-  canCloseTable = false,
+  canForceCloseTable = false,
   initialFocus,
 }: Props) {
   const { requests, reload, getCollectedForSession } = useCheckoutRequests();
@@ -242,7 +242,7 @@ export function CheckoutRequestsManager({
                 request={selectedRequest}
                 restaurantId={restaurantId}
                 restaurantSlug={restaurantSlug}
-                canCloseTable={canCloseTable}
+                canForceCloseTable={canForceCloseTable}
                 showBackButton={!!selectedRequestId}
                 onBack={showList}
                 onAllPaid={clearSelectionAfterComplete}

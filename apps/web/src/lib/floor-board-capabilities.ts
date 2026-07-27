@@ -1,5 +1,5 @@
 import type { StaffRole } from '@/lib/staff-account';
-import { mayForceCloseTableFromFloorRole } from '@/lib/table-session/force-close-table-policy';
+import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 
 /** Roles that use the production floor board (`/dashboard/waiter`). */
 export type FloorBoardRole = Extract<StaffRole, 'waiter' | 'frontdesk' | 'cashier'>;
@@ -47,7 +47,7 @@ export function floorBoardCapabilities(role: FloorBoardRole): FloorBoardCapabili
   if (role === 'waiter') return WAITER;
   return {
     ...DESK_SHARED,
-    canForceCloseTable: mayForceCloseTableFromFloorRole(role),
+    canForceCloseTable: mayForceCloseTable(role),
     canPrintSessionPreBill: role === 'frontdesk',
   };
 }

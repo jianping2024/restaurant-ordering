@@ -44,7 +44,7 @@ interface Props {
   discountApplying: boolean;
   discountLocked: boolean;
   resumeBlockReason: string | null;
-  canCloseTable: boolean;
+  canForceCloseTable: boolean;
   printBillBusy: boolean;
   printCooldownSeconds: number;
   printOnCooldown: boolean;
@@ -154,7 +154,7 @@ export function CheckoutRequestDetail({
   discountApplying,
   discountLocked,
   resumeBlockReason,
-  canCloseTable,
+  canForceCloseTable,
   printBillBusy,
   printCooldownSeconds,
   printOnCooldown,
@@ -373,7 +373,7 @@ export function CheckoutRequestDetail({
               </p>
             ) : null}
           </div>
-          {canCloseTable ? (
+          {canForceCloseTable ? (
             <CloseTableSessionAction
               tableId={request.table_id}
               isCheckoutPending

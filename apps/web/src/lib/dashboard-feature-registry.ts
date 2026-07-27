@@ -282,12 +282,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   },
 ];
 
-import { mayForceCloseTableFromDashboardMode } from '@/lib/table-session/force-close-table-policy';
-
-export function canForceCloseTableFromDashboard(accessMode: DashboardAccessMode): boolean {
-  return mayForceCloseTableFromDashboardMode(accessMode);
-}
-
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
   if (role === 'owner') return isOwnerDashboardPath(pathname);
   if (role === 'frontdesk') {

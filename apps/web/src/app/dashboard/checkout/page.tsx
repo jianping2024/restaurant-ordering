@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { CheckoutRequestsPageClient } from '@/components/dashboard/CheckoutRequestsPageClient';
 import { parseCheckoutQueueFocus } from '@/lib/checkout-queue-focus';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
-import { canForceCloseTableFromDashboard } from '@/lib/dashboard-feature-registry';
+import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 
 export default async function CheckoutRequestsPage({
   searchParams,
@@ -21,7 +21,7 @@ export default async function CheckoutRequestsPage({
       restaurantId={restaurant.id}
       restaurantSlug={restaurant.slug}
       accessMode={access.mode}
-      canCloseTable={canForceCloseTableFromDashboard(access.mode)}
+      canForceCloseTable={mayForceCloseTable(access.mode)}
       initialFocus={initialFocus}
     />
   );

@@ -7,6 +7,7 @@ import { CheckoutRequestDetailHost } from '@/components/dashboard/checkout/Check
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
+import type { DashboardAccessMode } from '@/lib/dashboard-access';
 
 type Props = {
   open: boolean;
@@ -14,7 +15,7 @@ type Props = {
   restaurantId: string;
   restaurantSlug: string;
   tableId: string;
-  canForceCloseTable: boolean;
+  accessMode: DashboardAccessMode;
 };
 
 export function WaiterBoardCheckoutSheet({
@@ -23,7 +24,7 @@ export function WaiterBoardCheckoutSheet({
   restaurantId,
   restaurantSlug,
   tableId,
-  canForceCloseTable,
+  accessMode,
 }: Props) {
   const { requests } = useCheckoutRequests();
   const { lang } = useLanguage();
@@ -77,7 +78,7 @@ export function WaiterBoardCheckoutSheet({
             request={request}
             restaurantId={restaurantId}
             restaurantSlug={restaurantSlug}
-            canForceCloseTable={canForceCloseTable}
+            accessMode={accessMode}
             showBackButton={false}
             onBack={onClose}
             onAllPaid={onClose}

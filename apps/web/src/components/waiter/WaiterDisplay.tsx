@@ -797,7 +797,7 @@ function WaiterBoardInner({
           restaurantId={restaurant.id}
           restaurantSlug={restaurant.slug}
           tableId={checkoutTarget?.tableId ?? ''}
-          canForceCloseTable={floorCaps.canForceCloseTable}
+          accessMode={floorStaffRole}
         />
       ) : null}
     </div>

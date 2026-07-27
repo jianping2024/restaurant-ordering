@@ -8,12 +8,11 @@ export type WaiterTableDetailActionFlags = {
   showOccupiedToolbar: boolean;
   /** Desk roles may run 关台结账 (frontdesk prints; cashier skips print). */
   showCheckoutClose: boolean;
-  /** Frontdesk may force-close the table session. */
-  showCloseTable: boolean;
 };
 
+/** Session-context flags for table detail. Force-close policy is applied in layout, not here. */
 export function resolveWaiterTableDetailActions(input: {
-  caps: Pick<FloorBoardCapabilities, 'canCheckoutClose' | 'canForceCloseTable'>;
+  caps: Pick<FloorBoardCapabilities, 'canCheckoutClose'>;
   isDemo: boolean;
   isCheckoutPending: boolean;
   hasOpenSession: boolean;
@@ -25,6 +24,5 @@ export function resolveWaiterTableDetailActions(input: {
     showBuffetPanel: hasActiveBuffets && !isDemo && !isCheckoutPending,
     showOccupiedToolbar: hasOpenSession,
     showCheckoutClose: caps.canCheckoutClose && hasOpenSession && !isCheckoutPending,
-    showCloseTable: caps.canForceCloseTable && hasOpenSession,
   };
 }

@@ -18,7 +18,6 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(flags.showBuffetPanel, true);
     assert.equal(flags.showOccupiedToolbar, true);
     assert.equal(flags.showCheckoutClose, true);
-    assert.equal(flags.showCloseTable, true);
   });
 
   it('hides buffet panel during checkout and in demo', () => {
@@ -44,7 +43,7 @@ describe('resolveWaiterTableDetailActions', () => {
     );
   });
 
-  it('limits checkout-close and close table to desk roles', () => {
+  it('limits checkout-close to desk roles with an open session', () => {
     const waiterFlags = resolveWaiterTableDetailActions({
       caps: waiter,
       isDemo: false,
@@ -54,7 +53,6 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(waiterFlags.showOccupiedToolbar, true);
     assert.equal(waiterFlags.showCheckoutClose, false);
-    assert.equal(waiterFlags.showCloseTable, false);
 
     const idle = resolveWaiterTableDetailActions({
       caps: desk,
@@ -65,10 +63,9 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(idle.showOccupiedToolbar, false);
     assert.equal(idle.showCheckoutClose, false);
-    assert.equal(idle.showCloseTable, false);
   });
 
-  it('allows cashier checkout-close but not force close', () => {
+  it('allows cashier checkout-close when session is open', () => {
     const cashier = floorBoardCapabilities('cashier');
     const flags = resolveWaiterTableDetailActions({
       caps: cashier,
@@ -78,7 +75,6 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: false,
     });
     assert.equal(flags.showCheckoutClose, true);
-    assert.equal(flags.showCloseTable, false);
   });
 
   it('shows toolbar for session-only tables without buffet lines', () => {

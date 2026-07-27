@@ -13,11 +13,6 @@ describe('floorBoardCapabilities', () => {
     }
   });
 
-  it('allows force close for frontdesk only among desk roles', () => {
-    assert.equal(floorBoardCapabilities('frontdesk').canForceCloseTable, true);
-    assert.equal(floorBoardCapabilities('cashier').canForceCloseTable, false);
-  });
-
   it('allows session pre_bill print for frontdesk only', () => {
     assert.equal(floorBoardCapabilities('frontdesk').canPrintSessionPreBill, true);
     assert.equal(floorBoardCapabilities('cashier').canPrintSessionPreBill, false);
@@ -28,7 +23,6 @@ describe('floorBoardCapabilities', () => {
     const caps = floorBoardCapabilities('waiter');
     assert.equal(caps.canMenuDecrement, false);
     assert.equal(caps.canCheckoutClose, false);
-    assert.equal(caps.canForceCloseTable, false);
     assert.equal(caps.canAssistBillCheckout, false);
     assert.equal(caps.canOpenCheckoutPendingTables, false);
   });

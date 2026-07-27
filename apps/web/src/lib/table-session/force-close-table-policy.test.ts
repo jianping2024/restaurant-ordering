@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  forceClosePrincipalFromManualActorReason,
   mayForceCloseTable,
+  mayForceCloseTableForManualActor,
 } from '@/lib/table-session/force-close-table-policy';
 
 describe('force-close-table-policy', () => {
@@ -13,16 +13,9 @@ describe('force-close-table-policy', () => {
     assert.equal(mayForceCloseTable('waiter'), false);
   });
 
-  it('maps manual actor reasons to floor principals', () => {
-    assert.equal(forceClosePrincipalFromManualActorReason('owner_closed'), 'owner');
-    assert.equal(forceClosePrincipalFromManualActorReason('frontdesk_closed'), 'frontdesk');
-    assert.equal(forceClosePrincipalFromManualActorReason('cashier_closed'), 'cashier');
-  });
-
-  it('blocks cashier manual actor via principal mapping', () => {
-    assert.equal(
-      mayForceCloseTable(forceClosePrincipalFromManualActorReason('cashier_closed')),
-      false,
-    );
+  it('blocks cashier manual actor via settled reason mapping', () => {
+    assert.equal(mayForceCloseTableForManualActor('cashier_closed'), false);
+    assert.equal(mayForceCloseTableForManualActor('frontdesk_closed'), true);
+    assert.equal(mayForceCloseTableForManualActor('owner_closed'), true);
   });
 });

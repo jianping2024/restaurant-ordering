@@ -977,8 +977,7 @@ function WaiterTableDetailInner({
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}
             showCheckoutClose={detailActions.showCheckoutClose}
-            showCloseTable={detailActions.showCloseTable}
-            floorStaffRole={floorRole === 'waiter' ? undefined : floorRole}
+            floorStaffRole={floorRole}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}
             onDemoCloseClick={() => {

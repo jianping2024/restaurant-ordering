@@ -1,5 +1,4 @@
 import type { StaffRole } from '@/lib/staff-account';
-import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 
 /** Roles that use the production floor board (`/dashboard/waiter`). */
 export type FloorBoardRole = Extract<StaffRole, 'waiter' | 'frontdesk' | 'cashier'>;
@@ -7,14 +6,14 @@ export type FloorBoardRole = Extract<StaffRole, 'waiter' | 'frontdesk' | 'cashie
 /**
  * Single source for floor-board UI capabilities (not URL shell).
  * Server APIs keep their own role checks; this drives buttons / assisted checkout CTA.
+ *
+ * Force-close visibility uses `mayForceCloseTable` in force-close-table-policy — not here.
  */
 export type FloorBoardCapabilities = {
   /** Menu line decrement (pending/cooking). */
   canMenuDecrement: boolean;
   /** 关台结账 from table detail. */
   canCheckoutClose: boolean;
-  /** Force-close table session. */
-  canForceCloseTable: boolean;
   /** Assisted menu/bill: show bill CTA and post-request checkout redirect. */
   canAssistBillCheckout: boolean;
   /** Board: open checkout-pending table cards into detail/sheet. */
@@ -23,7 +22,7 @@ export type FloorBoardCapabilities = {
   canPrintSessionPreBill: boolean;
 };
 
-const DESK_SHARED: Omit<FloorBoardCapabilities, 'canForceCloseTable' | 'canPrintSessionPreBill'> = {
+const DESK_SHARED: Omit<FloorBoardCapabilities, 'canPrintSessionPreBill'> = {
   canMenuDecrement: true,
   canCheckoutClose: true,
   canAssistBillCheckout: true,
@@ -33,7 +32,6 @@ const DESK_SHARED: Omit<FloorBoardCapabilities, 'canForceCloseTable' | 'canPrint
 const WAITER: FloorBoardCapabilities = {
   canMenuDecrement: false,
   canCheckoutClose: false,
-  canForceCloseTable: false,
   canAssistBillCheckout: false,
   canOpenCheckoutPendingTables: false,
   canPrintSessionPreBill: false,
@@ -47,7 +45,6 @@ export function floorBoardCapabilities(role: FloorBoardRole): FloorBoardCapabili
   if (role === 'waiter') return WAITER;
   return {
     ...DESK_SHARED,
-    canForceCloseTable: mayForceCloseTable(role),
     canPrintSessionPreBill: role === 'frontdesk',
   };
 }

@@ -14,10 +14,7 @@ import {
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
-import {
-  forceClosePrincipalFromManualActorReason,
-  mayForceCloseTable,
-} from '@/lib/table-session/force-close-table-policy';
+import { mayForceCloseTableForManualActor } from '@/lib/table-session/force-close-table-policy';
 import {
   settledActorReasonToForced,
   type SettledCloseActorReason,
@@ -123,7 +120,7 @@ function mapSettledCloseResult(result: CloseTableSettledResult): CloseTableSessi
 export async function closeTableSessionManual(
   input: CloseTableSessionServiceInput,
 ): Promise<CloseTableSessionServiceResult> {
-  if (!mayForceCloseTable(forceClosePrincipalFromManualActorReason(input.closedReason))) {
+  if (!mayForceCloseTableForManualActor(input.closedReason)) {
     return {
       ok: false,
       code: 'forbidden',

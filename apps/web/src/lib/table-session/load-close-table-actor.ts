@@ -6,11 +6,7 @@ import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
 import { loadDashboardAccess, loadDashboardFloorStaffContext } from '@/lib/dashboard-access';
-
-export type CloseTableSessionClosedReason =
-  | 'owner_closed'
-  | 'frontdesk_closed'
-  | 'cashier_closed';
+import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
 
 export type CloseTableSessionActorContext =
   | {
@@ -18,7 +14,7 @@ export type CloseTableSessionActorContext =
       restaurantId: string;
       userId: string;
       actor: AuditActor;
-      closedReason: CloseTableSessionClosedReason;
+      closedReason: SettledCloseActorReason;
     }
   | { error: string; status: number };
 

@@ -1,10 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
-import type { OperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
+import type {
+  OperationalCloseReason,
+  SettledCloseActorReason,
+} from '@/lib/table-session/operational-close-reasons';
 
 export type CloseTableOperationalReason = OperationalCloseReason;
-
-export type CloseTableSettledReason = 'owner_closed' | 'frontdesk_closed' | 'cashier_closed';
 
 export type CloseTableSessionAudit = {
   /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */
@@ -62,7 +63,7 @@ export async function closeActiveTableSessionSettled(
   admin: SupabaseClient,
   restaurantId: string,
   tableId: string,
-  closedReason: CloseTableSettledReason,
+  closedReason: SettledCloseActorReason,
   audit: CloseTableSessionAudit = {},
 ): Promise<CloseTableSettledResult> {
   const { data: rpcData, error: rpcErr } = await admin.rpc('close_table_session_settled', {

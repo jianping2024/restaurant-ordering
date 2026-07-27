@@ -11,6 +11,7 @@ import {
   previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
+  settlementPriceSlicesForLimitedItem,
   splitQtyAgainstFreeRemaining,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
@@ -116,7 +117,7 @@ describe('sushi buffet limits', () => {
     );
   });
 
-  it('guest cannot exceed free remaining; staff can with overage price', () => {
+  it('guest cannot exceed free remaining; staff order-time stays menu price', () => {
     const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
     const guest = applySushiLimitToCartLine({
       serviceMode: 'sushi',
@@ -141,10 +142,7 @@ describe('sushi buffet limits', () => {
     });
     assert.equal(staff.ok, true);
     if (staff.ok) {
-      assert.deepEqual(staff.slices, [
-        { qty: 1, unitPrice: 0 },
-        { qty: 1, unitPrice: 4.5 },
-      ]);
+      assert.deepEqual(staff.slices, [{ qty: 2, unitPrice: 0 }]);
     }
   });
 
@@ -289,6 +287,24 @@ describe('sushi buffet limits', () => {
         overLimitUnitPrice: 4.5,
       },
     );
+  });
+
+  it('settlementPriceSlicesForLimitedItem splits free vs overage', () => {
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const priced = settlementPriceSlicesForLimitedItem({
+      serviceMode: 'sushi',
+      guestCount: 1,
+      totalQty: 4,
+      menuPrice: 0,
+      item,
+    });
+    assert.equal(priced.ok, true);
+    if (priced.ok) {
+      assert.deepEqual(priced.slices, [
+        { qty: 2, unitPrice: 0 },
+        { qty: 2, unitPrice: 4.5 },
+      ]);
+    }
   });
 
   it('previewStaffCartOverage summarizes overage lines', () => {

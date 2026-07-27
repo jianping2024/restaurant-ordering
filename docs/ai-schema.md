@@ -134,7 +134,7 @@ restaurant_staff_accounts.created_by -> auth.users.id
 
 ## Views
 
-restaurants_public — security definer view; public menu/geo fields for customer ordering (no passwords).
+restaurants_public — security definer view; public menu/geo fields for customer ordering (no passwords); includes buffet_service_mode.
 
 ## RPC / Functions (public)
 

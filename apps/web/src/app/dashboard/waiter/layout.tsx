@@ -1,5 +1,6 @@
 import { DashboardWaiterFloorShell } from '@/components/waiter/DashboardWaiterFloorShell';
 import { requireWaiterBoardDashboardAccess } from '@/lib/dashboard-page-access';
+import { toFloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
 export default async function DashboardWaiterLayout({
   children,
@@ -10,7 +11,7 @@ export default async function DashboardWaiterLayout({
 
   return (
     <DashboardWaiterFloorShell
-      restaurant={{ id: restaurant.id, name: restaurant.name, slug: restaurant.slug }}
+      restaurant={toFloorBoardRestaurant(restaurant)}
       floorStaffRole={mode}
     >
       {children}

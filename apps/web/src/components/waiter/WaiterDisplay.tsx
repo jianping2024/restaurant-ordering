@@ -77,9 +77,10 @@ import {
 } from '@/lib/waiter-board-card-theme';
 import { WAITER_BOARD_KPI_ICON_BY_FILTER } from '@/components/waiter/waiter-board-kpi-icons';
 import { waiterUi } from '@/components/waiter/waiter-ui';
+import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: FloorBoardRestaurant;
   /** SSR successfully loaded board — skip mount entry reconcile. */
   hasAuthoritativeSeed?: boolean;
   tables?: RestaurantTableRow[];

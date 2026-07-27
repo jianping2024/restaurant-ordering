@@ -5,6 +5,7 @@ import { notFound, usePathname } from 'next/navigation';
 import { WaiterDisplay } from '@/components/waiter/WaiterDisplay';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { FloorBoardRole } from '@/lib/floor-board-capabilities';
+import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 import {
   dashboardWaiterTableIdFromPath,
   isDashboardWaiterBoardListPath,
@@ -12,7 +13,7 @@ import {
 } from '@/lib/dashboard-top-nav';
 
 type Props = {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: FloorBoardRestaurant;
   floorStaffRole: FloorBoardRole;
   children: ReactNode;
 };

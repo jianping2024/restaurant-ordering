@@ -63,15 +63,28 @@ export type DashboardNavRestaurant = Pick<
 
 export type FrontdeskDashboardRestaurant = Pick<
   Restaurant,
-  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'suspended_at' | 'suspension_reason'
+  | 'id'
+  | 'name'
+  | 'slug'
+  | 'logo_url'
+  | 'feature_flags'
+  | 'suspended_at'
+  | 'suspension_reason'
+  | 'buffet_service_mode'
+>;
+
+/** Floor staff restaurant identity + sushi/classic mode for embedded ordering. */
+export type FloorStaffDashboardRestaurant = Pick<
+  Restaurant,
+  'id' | 'name' | 'slug' | 'buffet_service_mode'
 >;
 
 export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk' | 'waiter';
 
 export type DashboardAccess =
   | { mode: 'owner'; restaurant: Restaurant }
-  | { mode: 'cashier'; restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'> }
-  | { mode: 'waiter'; restaurant: Pick<Restaurant, 'id' | 'name' | 'slug'> }
+  | { mode: 'cashier'; restaurant: FloorStaffDashboardRestaurant }
+  | { mode: 'waiter'; restaurant: FloorStaffDashboardRestaurant }
   | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant };
 
 export type DashboardAccessResult =
@@ -85,10 +98,12 @@ export type FrontdeskOperationalContext =
   | { error: string; status: number };
 
 const OWNER_RESTAURANT_SELECT =
-  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, suspended_at, suspension_reason, created_at';
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, created_at';
 
 const FRONTDESK_RESTAURANT_SELECT =
-  'id, name, slug, logo_url, feature_flags, suspended_at, suspension_reason';
+  'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason';
+
+const FLOOR_STAFF_RESTAURANT_SELECT = 'id, name, slug, buffet_service_mode';
 
 async function isActiveStaffRole(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -149,7 +164,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   ) {
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants_public')
-      .select('id, name, slug')
+      .select(FLOOR_STAFF_RESTAURANT_SELECT)
       .eq('id', account.restaurant_id)
       .maybeSingle();
 
@@ -160,7 +175,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     if (restaurant) {
       return {
         mode: account.role as 'cashier' | 'waiter',
-        restaurant: restaurant as Pick<Restaurant, 'id' | 'name' | 'slug'>,
+        restaurant: restaurant as FloorStaffDashboardRestaurant,
       };
     }
   }

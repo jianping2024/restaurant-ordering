@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   MenuOrderingController,
-  type MenuOrderingRestaurant,
 } from '@/components/menu/MenuOrderingController';
 import { StaffOrderingShell } from '@/components/waiter/StaffOrderingShell';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import {
   ensureCustomerMenuCatalog,
+  peekCustomerMenuCatalogCache,
   type CustomerMenuCatalog,
 } from '@/lib/customer-menu-catalog-client-cache';
 import { getDemoMenuCatalog } from '@/lib/demo-menu-catalog';
@@ -18,12 +18,13 @@ import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterTableHref } from '@/lib/staff-routes';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { CartItem, Order } from '@/types';
+import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
 type Props = {
   open: boolean;
   title: string;
   onClose: () => void;
-  restaurant: MenuOrderingRestaurant;
+  restaurant: FloorBoardRestaurant;
   tableId: string;
   displayName: string;
   sessionMeta: WaiterTableSessionMeta | null;
@@ -68,8 +69,16 @@ export function WaiterStaffOrderingPanel({
     }
 
     let cancelled = false;
-    setCatalogLoading(true);
     setCatalogError(false);
+    // Prefer warm/prefetch cache so Continue ordering is not stuck on "…" when
+    // router.refresh() races the async ensure (cancelled finally would skip loading=false).
+    const cached = peekCustomerMenuCatalogCache(restaurant.id);
+    if (cached) {
+      setCatalog(cached);
+      setCatalogLoading(false);
+    } else {
+      setCatalogLoading(true);
+    }
 
     void ensureCustomerMenuCatalog({
       restaurantId: restaurant.id,
@@ -78,10 +87,13 @@ export function WaiterStaffOrderingPanel({
       .then((loaded) => {
         if (cancelled) return;
         setCatalog(loaded);
+        setCatalogError(false);
       })
       .catch(() => {
         if (cancelled) return;
-        setCatalogError(true);
+        if (!peekCustomerMenuCatalogCache(restaurant.id)) {
+          setCatalogError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setCatalogLoading(false);
@@ -172,7 +184,7 @@ export function WaiterStaffOrderingPanel({
           menuCategories={catalog.menuCategories}
           tableId={tableId}
           displayName={displayName}
-          orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}
+          orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}
           initialSessionContext={initialSessionContext}
           isDemo={isDemo}
           staffAssisted={staffAssisted}

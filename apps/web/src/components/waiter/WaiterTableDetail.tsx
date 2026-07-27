@@ -26,11 +26,8 @@ import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffA
 import { WaiterStaffOrderingPanel } from '@/components/waiter/WaiterStaffOrderingPanel';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
-import {
-  formatWaiterTableDetailHeading,
-  formatWaiterOrderedItemsSessionTotal,
-  formatWaiterChargeableQtyHint,
-} from '@/lib/waiter-table-detail-display';
+import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
+import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
 import {
@@ -1018,7 +1015,7 @@ function WaiterTableDetailInner({
           preBillPrint={orderedItemsPreBillPrint}
           lines={selectedCard.orderLines}
           formatChargeableHint={(qty, unitPrice) =>
-            formatWaiterChargeableQtyHint(lang, qty, unitPrice)
+            formatChargeableShareHint(lang, qty, unitPrice)
           }
           isCheckoutPending={isCheckoutPending}
           decrementingKey={decrementingKey}

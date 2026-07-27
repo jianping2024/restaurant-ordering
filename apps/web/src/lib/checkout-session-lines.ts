@@ -1,4 +1,8 @@
-import { buildBillableSessionItems } from '@/lib/billable-session-lines';
+import {
+  billableLineAmount,
+  buildBillableSessionItems,
+  chargeableShareOf,
+} from '@/lib/billable-session-lines';
 import {
   formatOrderItemPlainName,
   formatOrderItemQuantityLabel,
@@ -14,7 +18,8 @@ export type CheckoutDisplayLine = {
   label: string;
   quantityLabel: string;
   lineTotal: number;
-  /** Present when this line is the chargeable share of a sushi limited dish. */
+  /** Sushi limited dish: chargeable share (display stays one row). */
+  chargeableQty?: number;
   chargeableUnitPrice?: number;
 };
 
@@ -23,18 +28,20 @@ export function checkoutLinesFromOrders(
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
-  return buildBillableSessionItems(orders).map(({ key, item, chargeable }) => {
+  return buildBillableSessionItems(orders).map((row) => {
+    const { key, item } = row;
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = isBuffetBaseItem(item)
       ? formatOrderItemPlainName(item)
       : formatStaffMenuLineLabel(item, itemCode);
+    const share = chargeableShareOf(row);
 
     return {
       key,
       label,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-      lineTotal: item.price * item.qty,
-      ...(chargeable ? { chargeableUnitPrice: item.price } : {}),
+      lineTotal: billableLineAmount(row),
+      ...(share ? { chargeableQty: share.qty, chargeableUnitPrice: share.unitPrice } : {}),
     };
   });
 }

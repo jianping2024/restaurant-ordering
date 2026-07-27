@@ -1,14 +1,15 @@
 'use client';
 
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
+import { chargeableShareOf } from '@/lib/billable-session-lines';
 
 type Props = {
   title: string;
   totalLabel: string;
   lines: CheckoutDisplayLine[];
   total: number;
-  /** Format chargeable unit-price hint; omit to hide. */
-  formatChargeableHint?: (unitPrice: number) => string;
+  /** Format chargeable qty hint; omit to hide. */
+  formatChargeableHint?: (qty: number, unitPrice: number) => string;
 };
 
 export function BillDetailsSection({
@@ -23,9 +24,10 @@ export function BillDetailsSection({
       <h2 className="text-brand-text font-medium mb-3">{title}</h2>
       <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
         {lines.map((line) => {
+          const share = chargeableShareOf(line);
           const chargeableHint =
-            formatChargeableHint && line.chargeableUnitPrice != null
-              ? formatChargeableHint(line.chargeableUnitPrice)
+            formatChargeableHint && share
+              ? formatChargeableHint(share.qty, share.unitPrice)
               : null;
           return (
             <div

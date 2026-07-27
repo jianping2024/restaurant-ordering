@@ -9,6 +9,7 @@ import {
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
+import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
@@ -506,8 +507,8 @@ export function BillPage({
         totalLabel={t.total}
         lines={detailLines}
         total={total}
-        formatChargeableHint={(unitPrice) =>
-          t.chargeableHint.replace('{price}', unitPrice.toFixed(2))
+        formatChargeableHint={(qty, unitPrice) =>
+          formatChargeableShareHint(lang, qty, unitPrice)
         }
       />
 

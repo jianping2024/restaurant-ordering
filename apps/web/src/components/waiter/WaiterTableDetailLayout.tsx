@@ -516,17 +516,19 @@ export function WaiterTableOrderedItemsPanel({
       </div>
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => {
-          const qtyMatch = line.quantityLabel?.match(/(\d+)/);
-          const chargeableQty = qtyMatch ? Number(qtyMatch[1]) : 0;
+          const share =
+            line.chargeableQty != null &&
+            line.chargeableQty > 0 &&
+            line.chargeableUnitPrice != null
+              ? { qty: line.chargeableQty, unitPrice: line.chargeableUnitPrice }
+              : null;
           const chargeableHint =
-            formatChargeableHint &&
-            line.chargeableUnitPrice != null &&
-            chargeableQty > 0
-              ? formatChargeableHint(chargeableQty, line.chargeableUnitPrice)
+            formatChargeableHint && share
+              ? formatChargeableHint(share.qty, share.unitPrice)
               : null;
           return (
             <div
-              key={`${line.orderId}-${line.itemIdx}-${line.chargeableUnitPrice ?? 'in'}`}
+              key={`${line.orderId}-${line.itemIdx}`}
               className={waiterDetailLayout.orderedItemRow}
             >
               <div className="min-w-0 flex-1">

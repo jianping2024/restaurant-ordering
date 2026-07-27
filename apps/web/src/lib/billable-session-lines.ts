@@ -14,8 +14,12 @@ import type { Order, OrderItem } from '@/types';
 export type BillableSessionItem = {
   key: string;
   item: OrderItem;
-  /** Sushi limited dish: this group is billed beyond the table's free allowance. */
-  chargeable?: boolean;
+  /**
+   * Sushi limited dish: how many of `item.qty` are billed beyond the free allowance.
+   * Display stays one row; money uses {@link billableLineAmount}.
+   */
+  chargeableQty?: number;
+  chargeableUnitPrice?: number;
 };
 
 /** Merge key for billable menu lines (notes ignored). */
@@ -23,29 +27,93 @@ export function billableMenuItemMergeKey(item: OrderItem): string {
   return `${item.id}::${item.price}`;
 }
 
-type MergedMenuGroup = { item: OrderItem; qty: number; chargeable: boolean };
+/** Line money: menu-priced qty plus the upgrade for chargeable shares. */
+export function billableLineAmount(row: BillableSessionItem): number {
+  const base = lineTotal(row.item);
+  const share = chargeableShareOf(row);
+  if (!share) return base;
+  return base + share.qty * (share.unitPrice - Number(row.item.price));
+}
 
-function addMenuGroup(
+/** Non-null when this catalog row has a chargeable share beyond the free allowance. */
+export function chargeableShareOf(
+  row: Pick<BillableSessionItem, 'chargeableQty' | 'chargeableUnitPrice'>,
+): { qty: number; unitPrice: number } | null {
+  const qty = row.chargeableQty ?? 0;
+  if (qty <= 0 || row.chargeableUnitPrice == null) return null;
+  return { qty, unitPrice: row.chargeableUnitPrice };
+}
+
+type MergedMenuGroup = {
+  item: OrderItem;
+  qty: number;
+  chargeableQty: number;
+  chargeableUnitPrice: number | null;
+};
+
+function addUnlimitedMenuGroup(
   merged: Map<string, MergedMenuGroup>,
   item: OrderItem,
   qty: number,
-  unitPrice: number,
-  chargeable: boolean,
 ): void {
-  const priced = item.price === unitPrice ? item : { ...item, price: unitPrice };
-  const key = billableMenuItemMergeKey(priced);
+  const key = billableMenuItemMergeKey(item);
   const existing = merged.get(key);
   if (existing) {
     existing.qty += qty;
     return;
   }
-  merged.set(key, { item: priced, qty, chargeable });
+  merged.set(key, {
+    item,
+    qty,
+    chargeableQty: 0,
+    chargeableUnitPrice: null,
+  });
+}
+
+/**
+ * One catalog row per limited dish. Unit price on the row is the free/menu price;
+ * chargeable qty is metadata only (no free/overage split in the list).
+ */
+function addLimitedMenuGroup(
+  merged: Map<string, MergedMenuGroup>,
+  item: OrderItem,
+  qty: number,
+  freeQty: number,
+  chargeableQty: number,
+  chargeableUnitPrice: number,
+): void {
+  const key = `limited:${item.id}`;
+  const existing = merged.get(key);
+  // Free-priced row (or pre-freeze single line) carries the menu unit; a post-freeze
+  // fully-chargeable row is priced at overage and must not overwrite the menu unit.
+  const menuUnitPrice =
+    freeQty > 0 || item.price !== chargeableUnitPrice
+      ? Number(item.price)
+      : existing
+        ? Number(existing.item.price)
+        : 0;
+
+  if (existing) {
+    existing.qty += qty;
+    existing.chargeableQty += chargeableQty;
+    if (freeQty > 0) {
+      existing.item = { ...existing.item, price: menuUnitPrice };
+    }
+    return;
+  }
+
+  merged.set(key, {
+    item: { ...item, price: menuUnitPrice },
+    qty,
+    chargeableQty,
+    chargeableUnitPrice,
+  });
 }
 
 /**
  * Active billable lines for checkout detail, receipts, bill splits, and session totals.
- * Sushi limited dishes split here into a free group and a chargeable group — the stored
- * order lines stay exactly as they were ordered.
+ * Sushi limited dishes stay **one** catalog row (no free/overage split); chargeable
+ * qty is metadata for hints and {@link billableLineAmount}. Stored orders are unchanged.
  */
 export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[] {
   const lines: BillableSessionItem[] = [];
@@ -79,30 +147,31 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
 
       const allocation = limitAllocations.get(sushiLimitedLineKey(order.id, itemIdx));
       if (!allocation) {
-        addMenuGroup(mergedMenu, item, item.qty, item.price, false);
+        addUnlimitedMenuGroup(mergedMenu, item, item.qty);
         continue;
       }
-      if (allocation.freeQty > 0) {
-        addMenuGroup(mergedMenu, item, allocation.freeQty, item.price, false);
-      }
-      if (allocation.chargeableQty > 0) {
-        addMenuGroup(
-          mergedMenu,
-          item,
-          allocation.chargeableQty,
-          allocation.chargeableUnitPrice,
-          true,
-        );
-      }
+
+      addLimitedMenuGroup(
+        mergedMenu,
+        item,
+        Math.max(0, Number(item.qty) || 0),
+        allocation.freeQty,
+        allocation.chargeableQty,
+        allocation.chargeableUnitPrice,
+      );
     }
   }
 
-  for (const [mergeKey, { item, qty, chargeable }] of Array.from(mergedMenu.entries())) {
-    lines.push({
+  for (const [mergeKey, group] of Array.from(mergedMenu.entries())) {
+    const row: BillableSessionItem = {
       key: mergeKey,
-      item: { ...item, qty },
-      ...(chargeable ? { chargeable: true } : {}),
-    });
+      item: { ...group.item, qty: group.qty },
+    };
+    if (group.chargeableQty > 0 && group.chargeableUnitPrice != null) {
+      row.chargeableQty = group.chargeableQty;
+      row.chargeableUnitPrice = group.chargeableUnitPrice;
+    }
+    lines.push(row);
   }
 
   return lines;
@@ -110,5 +179,8 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
 
 /** Session billable total — same basis as bill details, receipts, and checkout. */
 export function sumBillableSessionTotal(orders: Order[]): number {
-  return buildBillableSessionItems(orders).reduce((sum, { item }) => sum + lineTotal(item), 0);
+  return buildBillableSessionItems(orders).reduce(
+    (sum, row) => sum + billableLineAmount(row),
+    0,
+  );
 }

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  buildMergedSourceSessionSettlement,
   buildOrderHistorySessionSettlement,
   resolveOrderHistoryCloseOutcome,
 } from '@/lib/order-history/build-session-settlement';
@@ -204,5 +205,13 @@ describe('buildOrderHistorySessionSettlement', () => {
     assert.equal(settlement.outcome, 'partially_collected_closed');
     assert.equal(settlement.summary?.payable, 5);
     assert.equal(settlement.summary?.pending, 0);
+  });
+
+  it('returns zero-value settlement for merged source sessions', () => {
+    const settlement = buildMergedSourceSessionSettlement();
+    assert.equal(settlement.outcome, 'closed_without_billing');
+    assert.equal(settlement.canPrintBill, false);
+    assert.equal(settlement.listAmount, null);
+    assert.equal(settlement.showFinancialDetails, false);
   });
 });

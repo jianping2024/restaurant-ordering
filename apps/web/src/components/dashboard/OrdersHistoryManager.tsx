@@ -10,6 +10,7 @@ import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
+import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
@@ -268,8 +269,9 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
-    const { outcomeBadge, lifecycle, cardClass, mergeSummaryLine, isMergedSource } =
+    const { outcomeBadge, lifecycle, cardClass, mergeSummaryLine } =
       buildOrderHistorySurfaceMeta(entry, i18n);
+    const isMergedSource = isMergedSourceCloseKind(entry.closeKind);
 
     return (
     <div

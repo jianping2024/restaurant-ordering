@@ -1,6 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { MERGED_CLOSE_REASON } from '@/lib/order-history/close-kind';
 import {
+  MERGED_CLOSE_REASON,
+  normalizeMergeTargetStatus,
+} from '@/lib/order-history/close-kind';
+import type {
+  OrderHistoryMergeSourceRef,
+  OrderHistoryMergeTargetContext,
+} from '@/lib/order-history/types';
+import {
+  resolveSessionTableDisplayName,
   tableDisplayNameMapFromRows,
   type TableDisplayRow,
 } from '@/lib/order-history/resolve-session-table-display';
@@ -88,4 +96,64 @@ export async function loadMergeSourceSessionsByTargetId(
     map.set(targetId, list);
   }
   return map;
+}
+
+export function collectOrderHistoryTableIds(
+  sessions: Array<{ table_id: string }>,
+  mergeTargetById: Map<string, MergeTargetSessionRow>,
+  mergeSourcesByTargetId: Map<string, MergeSourceSessionRow[]>,
+): string[] {
+  const ids = new Set<string>();
+  for (const session of sessions) {
+    ids.add(session.table_id);
+  }
+  for (const target of Array.from(mergeTargetById.values())) {
+    ids.add(target.table_id);
+  }
+  for (const sources of Array.from(mergeSourcesByTargetId.values())) {
+    for (const source of sources) {
+      ids.add(source.table_id);
+    }
+  }
+  return Array.from(ids);
+}
+
+export function assembleMergeTargetContext(
+  mergeIntoSessionId: string | null,
+  tableDisplayById: Map<string, string>,
+  mergeTargetById: Map<string, MergeTargetSessionRow>,
+): OrderHistoryMergeTargetContext | undefined {
+  const targetSessionId = mergeIntoSessionId?.trim() ?? '';
+  if (!targetSessionId) return undefined;
+
+  const target = mergeTargetById.get(targetSessionId);
+  const targetTableId = target?.table_id ?? '';
+  const targetDisplayName = targetTableId
+    ? resolveSessionTableDisplayName(targetTableId, tableDisplayById, [])
+    : '—';
+
+  return {
+    targetSessionId,
+    targetTableId,
+    targetDisplayName,
+    targetStatus: target
+      ? normalizeMergeTargetStatus(target.status)
+      : 'unknown',
+  };
+}
+
+export function assembleMergeSourceRefs(
+  sessionId: string,
+  mergeSourcesByTargetId: Map<string, MergeSourceSessionRow[]>,
+  tableDisplayById: Map<string, string>,
+): OrderHistoryMergeSourceRef[] | undefined {
+  const rows = mergeSourcesByTargetId.get(sessionId);
+  if (!rows?.length) return undefined;
+
+  return rows.map((row) => ({
+    sourceSessionId: row.id,
+    sourceTableId: row.table_id,
+    sourceDisplayName: resolveSessionTableDisplayName(row.table_id, tableDisplayById, []),
+    mergedAt: row.closed_at,
+  }));
 }

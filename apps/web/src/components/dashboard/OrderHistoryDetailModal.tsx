@@ -1,19 +1,19 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { OrderHistoryBillDetailPanel } from '@/components/dashboard/OrderHistoryBillDetailPanel';
+import {
+  OrderHistoryMergeSourcesBlock,
+  OrderHistoryMergeTargetLink,
+} from '@/components/dashboard/OrderHistoryMergeNavigation';
 import { Modal } from '@/components/ui/Modal';
+import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
 import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
 import {
   buildMergedSourceDetailStatus,
-  formatMergeSourceLine,
-} from '@/lib/order-history/build-merge-presentation';
-import {
   buildOrderHistorySurfaceMeta,
-  formatOrderHistoryInstant,
 } from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
@@ -33,98 +33,6 @@ interface Props {
   restaurantSlug: string;
   onClose: () => void;
   onSelectEntry: (entry: OrderHistoryEntry) => void;
-}
-
-function findEntryBySessionId(
-  entries: OrderHistoryEntry[],
-  sessionId: string,
-): OrderHistoryEntry | undefined {
-  return entries.find((row) => row.sessionId === sessionId);
-}
-
-function OrderHistoryMergeTargetLink({
-  entry,
-  entries,
-  restaurantSlug,
-  i18n,
-  onSelectEntry,
-}: {
-  entry: OrderHistoryEntry;
-  entries: OrderHistoryEntry[];
-  restaurantSlug: string;
-  i18n: ReturnType<typeof getMessages>['orderHistory'];
-  onSelectEntry: (entry: OrderHistoryEntry) => void;
-}) {
-  const ctx = entry.mergeContext;
-  if (!ctx?.targetSessionId) return null;
-
-  if (ctx.targetStatus === 'open' || ctx.targetStatus === 'billing') {
-    if (!ctx.targetTableId) return null;
-    return (
-      <Link
-        href={`/${restaurantSlug}/waiter/${ctx.targetTableId}`}
-        className="text-sm text-brand-gold hover:underline"
-      >
-        {i18n.viewActiveTargetTable}
-      </Link>
-    );
-  }
-
-  const targetEntry = findEntryBySessionId(entries, ctx.targetSessionId);
-  if (!targetEntry) return null;
-
-  return (
-    <button
-      type="button"
-      className="text-sm text-brand-gold hover:underline"
-      onClick={() => onSelectEntry(targetEntry)}
-    >
-      {i18n.viewTargetSession}
-    </button>
-  );
-}
-
-function OrderHistoryMergeSourcesBlock({
-  entry,
-  entries,
-  i18n,
-  onSelectEntry,
-}: {
-  entry: OrderHistoryEntry;
-  entries: OrderHistoryEntry[];
-  i18n: ReturnType<typeof getMessages>['orderHistory'];
-  onSelectEntry: (entry: OrderHistoryEntry) => void;
-}) {
-  const sources = entry.mergeSources;
-  if (!sources?.length) return null;
-
-  return (
-    <div className="rounded-lg border border-brand-border/60 bg-brand-bg/40 px-3 py-2.5 space-y-2">
-      <p className="text-sm font-medium text-brand-text">{i18n.mergeSourcesTitle}</p>
-      <ul className="space-y-1.5">
-        {sources.map((source) => {
-          const sourceEntry = findEntryBySessionId(entries, source.sourceSessionId);
-          return (
-            <li key={source.sourceSessionId}>
-              {sourceEntry ? (
-                <button
-                  type="button"
-                  className="text-[13px] text-brand-gold hover:underline text-left"
-                  onClick={() => onSelectEntry(sourceEntry)}
-                >
-                  {formatMergeSourceLine(source, i18n, formatOrderHistoryInstant)}
-                </button>
-              ) : (
-                <span className="text-[13px] text-brand-text-muted">
-                  {formatMergeSourceLine(source, i18n, formatOrderHistoryInstant)}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
 }
 
 export function OrderHistoryDetailModal({
@@ -156,7 +64,7 @@ export function OrderHistoryDetailModal({
 
   const detail = useMemo(
     () =>
-      entry && entry.closeKind === 'billing'
+      entry && !isMergedSourceCloseKind(entry.closeKind)
         ? buildOrderHistoryBillDetailView(entry, itemCodeByMenuId, lang)
         : null,
     [entry, itemCodeByMenuId, lang],
@@ -164,9 +72,9 @@ export function OrderHistoryDetailModal({
 
   if (!entry || !surface) return null;
 
-  const { outcomeBadge, lifecycle, lifecycleBoxClass, isMergedSource } = surface;
+  const { outcomeBadge, lifecycle, lifecycleBoxClass } = surface;
 
-  if (isMergedSource) {
+  if (isMergedSourceCloseKind(entry.closeKind)) {
     return (
       <Modal
         open

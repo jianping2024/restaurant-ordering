@@ -51,6 +51,12 @@ export function resolveOrderHistoryOutcomeBadge(
   }
 }
 
+export function resolveMergedSourceOutcomeBadge(
+  i18n: OrderHistoryI18n,
+): OrderHistoryOutcomeBadge {
+  return { label: i18n.outcomeMerged, tone: 'muted' };
+}
+
 export function resolveSettlementVariant(
   outcome: OrderHistoryCloseOutcome,
 ): OrderHistorySettlementVariant | null {

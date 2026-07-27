@@ -3,11 +3,9 @@ import type {
   OrderHistoryCloseOutcome,
   OrderHistoryEntry,
 } from '@/lib/order-history/types';
+import { isMergedCloseReason, isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
 import {
-  buildMergedIntoSummaryLine,
   resolveMergedSourceOutcomeBadge,
-} from '@/lib/order-history/build-merge-presentation';
-import {
   resolveOrderHistoryOutcomeBadge,
   type OrderHistoryOutcomeBadge,
 } from '@/lib/order-history/build-detail-presentation';
@@ -102,7 +100,7 @@ export function resolveOrderHistoryClosedByLabel(
   const name = closedByName?.trim();
   if (name) return name;
   if (closedReason === 'auto_nightly') return i18n.closedByNightly;
-  if (closedReason === 'merged') return i18n.closedByMerged;
+  if (isMergedCloseReason(closedReason)) return i18n.closedByMerged;
   return '—';
 }
 
@@ -137,6 +135,37 @@ export function buildOrderHistoryLifecycleLines(
   };
 }
 
+export function buildMergedIntoSummaryLine(
+  entry: OrderHistoryEntry,
+  i18n: OrderHistoryI18n,
+): string {
+  const ctx = entry.mergeContext;
+  if (!ctx?.targetDisplayName || ctx.targetDisplayName === '—') {
+    return i18n.mergedIntoUnknown;
+  }
+  if (ctx.targetStatus === 'open' || ctx.targetStatus === 'billing') {
+    return i18n.mergedIntoInProgress.replace('{table}', ctx.targetDisplayName);
+  }
+  return i18n.mergedIntoSummary.replace('{table}', ctx.targetDisplayName);
+}
+
+export function buildMergedSourceDetailStatus(
+  entry: OrderHistoryEntry,
+  i18n: OrderHistoryI18n,
+): string {
+  return `${buildMergedIntoSummaryLine(entry, i18n)} · ${i18n.mergedSourceOrdersTransferred}`;
+}
+
+export function formatMergeSourceLine(
+  source: NonNullable<OrderHistoryEntry['mergeSources']>[number],
+  i18n: OrderHistoryI18n,
+  formatInstant: (iso: string) => string = formatOrderHistoryInstant,
+): string {
+  return i18n.mergeSourceLine
+    .replace('{table}', source.sourceDisplayName)
+    .replace('{time}', formatInstant(source.mergedAt));
+}
+
 export type OrderHistorySurfaceMeta = {
   outcomeBadge: OrderHistoryOutcomeBadge;
   abnormal: OrderHistoryAbnormalEmphasis;
@@ -144,7 +173,6 @@ export type OrderHistorySurfaceMeta = {
   cardClass: string;
   lifecycleBoxClass: string;
   mergeSummaryLine: string | null;
-  isMergedSource: boolean;
 };
 
 /** Shared list/detail chrome derived from one entry. closeKind gates before settlement outcome. */
@@ -154,7 +182,7 @@ export function buildOrderHistorySurfaceMeta(
 ): OrderHistorySurfaceMeta {
   const lifecycle = buildOrderHistoryLifecycleLines(entry, i18n);
 
-  if (entry.closeKind === 'merged_source') {
+  if (isMergedSourceCloseKind(entry.closeKind)) {
     return {
       outcomeBadge: resolveMergedSourceOutcomeBadge(i18n),
       abnormal: 'none',
@@ -162,7 +190,6 @@ export function buildOrderHistorySurfaceMeta(
       cardClass: resolveOrderHistoryCardClass('none'),
       lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass('none'),
       mergeSummaryLine: buildMergedIntoSummaryLine(entry, i18n),
-      isMergedSource: true,
     };
   }
 
@@ -177,6 +204,5 @@ export function buildOrderHistorySurfaceMeta(
     cardClass: resolveOrderHistoryCardClass(abnormal),
     lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass(abnormal),
     mergeSummaryLine: null,
-    isMergedSource: false,
   };
 }

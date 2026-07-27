@@ -1,10 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { groupOrdersBySession } from '@/lib/analytics/analytics.repository';
 import { loadBillSplitsForOrderHistory } from '@/lib/order-history-bill-splits';
-import { buildMergedSourceSessionSettlement } from '@/lib/order-history/build-merged-source-settlement';
-import { buildOrderHistorySessionSettlement } from '@/lib/order-history/build-session-settlement';
 import {
-  normalizeMergeTargetStatus,
+  buildMergedSourceSessionSettlement,
+  buildOrderHistorySessionSettlement,
+} from '@/lib/order-history/build-session-settlement';
+import {
+  isMergedSourceCloseKind,
   resolveOrderHistoryCloseKind,
 } from '@/lib/order-history/close-kind';
 import {
@@ -12,9 +14,14 @@ import {
   resolveCloseAnnotationForSession,
 } from '@/lib/order-history/load-forced-unpaid-close-annotations';
 import {
+  assembleMergeSourceRefs,
+  assembleMergeTargetContext,
+  collectOrderHistoryTableIds,
   loadMergeSourceSessionsByTargetId,
   loadMergeTargetSessionsById,
   loadRestaurantTableDisplayNames,
+  type MergeSourceSessionRow,
+  type MergeTargetSessionRow,
 } from '@/lib/order-history/load-merge-context';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
@@ -28,8 +35,6 @@ import {
   ORDER_HISTORY_MAX_TOTAL,
   ORDER_HISTORY_PAGE_SIZE,
   type OrderHistoryEntry,
-  type OrderHistoryMergeSourceRef,
-  type OrderHistoryMergeTargetContext,
   type OrderHistoryPageResult,
   type OrderHistoryQuery,
 } from '@/lib/order-history/types';
@@ -97,47 +102,6 @@ async function loadMenuItemCodeLookup(
   return menuItemCodeLookupFromRows(data);
 }
 
-function buildMergeContext(
-  session: ClosedSessionRow,
-  tableDisplayById: Map<string, string>,
-  mergeTargetById: Map<string, { id: string; table_id: string; status: string }>,
-): OrderHistoryMergeTargetContext | undefined {
-  const closeKind = resolveOrderHistoryCloseKind(session.closed_reason);
-  if (closeKind !== 'merged_source') return undefined;
-
-  const targetSessionId = session.merge_into_session_id?.trim() ?? '';
-  const target = targetSessionId ? mergeTargetById.get(targetSessionId) : undefined;
-  const targetTableId = target?.table_id ?? '';
-  const targetDisplayName = targetTableId
-    ? resolveSessionTableDisplayName(targetTableId, tableDisplayById, [])
-    : '—';
-
-  return {
-    targetSessionId,
-    targetTableId,
-    targetDisplayName,
-    targetStatus: target
-      ? normalizeMergeTargetStatus(target.status)
-      : 'unknown',
-  };
-}
-
-function buildMergeSources(
-  sessionId: string,
-  mergeSourcesByTargetId: Map<string, { id: string; table_id: string; closed_at: string }[]>,
-  tableDisplayById: Map<string, string>,
-): OrderHistoryMergeSourceRef[] | undefined {
-  const rows = mergeSourcesByTargetId.get(sessionId);
-  if (!rows?.length) return undefined;
-
-  return rows.map((row) => ({
-    sourceSessionId: row.id,
-    sourceTableId: row.table_id,
-    sourceDisplayName: resolveSessionTableDisplayName(row.table_id, tableDisplayById, []),
-    mergedAt: row.closed_at,
-  }));
-}
-
 function buildEntry(
   session: ClosedSessionRow,
   sessionOrders: Order[],
@@ -147,32 +111,19 @@ function buildEntry(
   collectedPayments: OrderHistoryEntry['settlement']['collectedPayments'],
   closeAnnotation: OrderHistoryEntry['closeAnnotation'],
   tableDisplayById: Map<string, string>,
-  mergeTargetById: Map<string, { id: string; table_id: string; status: string }>,
-  mergeSourcesByTargetId: Map<string, { id: string; table_id: string; closed_at: string }[]>,
+  mergeTargetById: Map<string, MergeTargetSessionRow>,
+  mergeSourcesByTargetId: Map<string, MergeSourceSessionRow[]>,
 ): OrderHistoryEntry {
   const closeKind = resolveOrderHistoryCloseKind(session.closed_reason);
-  const displayName = resolveSessionTableDisplayName(
-    session.table_id,
-    tableDisplayById,
-    sessionOrders,
-  );
-  const mergeContext = buildMergeContext(session, tableDisplayById, mergeTargetById);
-  const mergeSources = buildMergeSources(session.id, mergeSourcesByTargetId, tableDisplayById);
-
-  const settlement =
-    closeKind === 'merged_source'
-      ? buildMergedSourceSessionSettlement()
-      : buildOrderHistorySessionSettlement({
-          billSplit,
-          collectedPayments,
-          orders: sessionOrders,
-          closedReason: session.closed_reason,
-        });
 
   return {
     sessionId: session.id,
     tableId: session.table_id,
-    displayName,
+    displayName: resolveSessionTableDisplayName(
+      session.table_id,
+      tableDisplayById,
+      sessionOrders,
+    ),
     closeKind,
     openedAt: session.opened_at,
     openedByName,
@@ -180,10 +131,27 @@ function buildEntry(
     closedByName,
     closedReason: session.closed_reason,
     itemCount: countOrderListItems(sessionOrders),
-    settlement,
+    settlement: isMergedSourceCloseKind(closeKind)
+      ? buildMergedSourceSessionSettlement()
+      : buildOrderHistorySessionSettlement({
+          billSplit,
+          collectedPayments,
+          orders: sessionOrders,
+          closedReason: session.closed_reason,
+        }),
     closeAnnotation,
-    mergeContext,
-    mergeSources,
+    mergeContext: isMergedSourceCloseKind(closeKind)
+      ? assembleMergeTargetContext(
+          session.merge_into_session_id,
+          tableDisplayById,
+          mergeTargetById,
+        )
+      : undefined,
+    mergeSources: assembleMergeSourceRefs(
+      session.id,
+      mergeSourcesByTargetId,
+      tableDisplayById,
+    ),
     billSplit,
     orders: sessionOrders,
   };
@@ -276,23 +244,10 @@ export async function loadOrderHistoryEntries(
     loadMergeSourceSessionsByTargetId(admin, query.restaurantId, sessionIds),
   ]);
 
-  const tableIdsForDisplay = new Set<string>();
-  for (const session of sessions) {
-    tableIdsForDisplay.add(session.table_id);
-  }
-  for (const target of Array.from(mergeTargetById.values())) {
-    tableIdsForDisplay.add(target.table_id);
-  }
-  for (const sources of Array.from(mergeSourcesByTargetId.values())) {
-    for (const source of sources) {
-      tableIdsForDisplay.add(source.table_id);
-    }
-  }
-
   const tableDisplayById = await loadRestaurantTableDisplayNames(
     admin,
     query.restaurantId,
-    Array.from(tableIdsForDisplay),
+    collectOrderHistoryTableIds(sessions, mergeTargetById, mergeSourcesByTargetId),
   );
 
   const operatorIds = sessions.flatMap((session) =>

@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   MERGED_CLOSE_REASON,
   isMergedCloseReason,
+  isMergedSourceCloseKind,
   normalizeMergeTargetStatus,
   resolveOrderHistoryCloseKind,
 } from '@/lib/order-history/close-kind';
@@ -22,5 +23,10 @@ describe('close-kind', () => {
     assert.equal(normalizeMergeTargetStatus('closed'), 'closed');
     assert.equal(normalizeMergeTargetStatus('billing'), 'billing');
     assert.equal(normalizeMergeTargetStatus('invalid'), 'unknown');
+  });
+
+  it('detects merged close kind', () => {
+    assert.equal(isMergedSourceCloseKind('merged_source'), true);
+    assert.equal(isMergedSourceCloseKind('billing'), false);
   });
 });

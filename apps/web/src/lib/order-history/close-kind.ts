@@ -17,6 +17,12 @@ export function resolveOrderHistoryCloseKind(
   return isMergedCloseReason(closedReason) ? 'merged_source' : 'billing';
 }
 
+export function isMergedSourceCloseKind(
+  closeKind: OrderHistoryCloseKind,
+): closeKind is 'merged_source' {
+  return closeKind === 'merged_source';
+}
+
 export function normalizeMergeTargetStatus(
   status: string | null | undefined,
 ): OrderHistoryMergeTargetStatus {

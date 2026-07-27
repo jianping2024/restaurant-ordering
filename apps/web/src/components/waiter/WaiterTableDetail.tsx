@@ -79,12 +79,13 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
 import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-detail-ui';
+import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
 /** Stable empty map — avoids buffet-form effect loops when model not yet loaded. */
 const EMPTY_BUFFET_PRICES: Record<string, ResolvedBuffetPriceRow | null> = {};
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: FloorBoardRestaurant;
   /** Authoritative boot model — skip mount entry reconcile when true. */
   hasAuthoritativeSeed?: boolean;
   /** Demo only — all configured tables for transfer/merge UI. */
@@ -975,7 +976,16 @@ function WaiterTableDetailInner({
             restaurantSlug={restaurant.slug}
             tableId={selectedCard.tableId}
             sessionId={sessionMeta?.sessionId ?? null}
-            onContinueOrdering={() => setOrderingOpen(true)}
+            onContinueOrdering={() => {
+              // Open first so catalog ensure/prefetch can paint; then refresh layout
+              // restaurant (buffet_service_mode) without blocking the panel on RSC.
+              setOrderingOpen(true);
+              if (!isDemo) {
+                queueMicrotask(() => {
+                  void router.refresh();
+                });
+              }
+            }}
             isCheckoutPending={isCheckoutPending}
             inTableParty={inTableParty}
             onCheckoutLocked={notifyCheckoutLocked}

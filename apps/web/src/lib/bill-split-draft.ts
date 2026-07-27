@@ -6,6 +6,7 @@ import {
 } from '@/lib/bill-split-by-item-lines';
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
+import { WHOLE_TABLE_PAYER_KEY } from '@/lib/split-person-label';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -17,7 +18,6 @@ export type BillSplitDraftInput = {
   splitPeople: Array<{ name: string }>;
   customAmounts: Array<{ name: string; amount: number }>;
   parsedByItemAllocations: ByItemLineAllocation;
-  wholeTableLabel: string;
 };
 
 export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
@@ -29,11 +29,10 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     splitPeople,
     customAmounts,
     parsedByItemAllocations,
-    wholeTableLabel,
   } = input;
 
   if (!splitMode) {
-    return [{ name: wholeTableLabel, amount: total }];
+    return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total }];
   }
 
   if (splitMode === 'even') {

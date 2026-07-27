@@ -11,7 +11,7 @@ abnormal_operations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type
 
 operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_type: text, entity_type: text, entity_id: uuid, operator_id: uuid FK -> auth.users.id, operator_name: text, operator_role: text, before_data: jsonb default {}, after_data: jsonb default {}, reason: text nullable, reason_detail: text nullable, ip_address: text nullable, device_info: text nullable, created_at: timestamptz)
 
-bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
+bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [whole_table|even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
 
 session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_index: int nullable, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
 
@@ -171,7 +171,7 @@ Tables with `REPLICA IDENTITY FULL` where filtered subscriptions need it: `order
 
 ## Domain Values / Check Constraints
 
-bill_splits.split_mode: even | by_item | custom  
+bill_splits.split_mode: whole_table | even | by_item | custom  
 bill_splits.status: pending | confirmed | requested | paid | cancelled  
 buffet_calendar_overrides.kind: holiday | special  
 buffet_price_rules.calendar_kind: weekday | weekend | holiday | special  

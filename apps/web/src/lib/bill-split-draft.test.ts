@@ -63,7 +63,6 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
-      wholeTableLabel: 'Total',
     });
     const sum = rows.reduce((s, r) => s + r.amount, 0);
     assert.equal(sum, 10);
@@ -81,7 +80,6 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
-      wholeTableLabel: 'Total',
     });
     const high = computeSplitResults({
       splitMode: 'even',
@@ -92,7 +90,6 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
-      wholeTableLabel: 'Total',
     });
     assert.equal(low[0]?.amount, 10);
     assert.equal(high[0]?.amount, 15);
@@ -115,7 +112,6 @@ describe('validateSplitDraft', () => {
       parsedByItemAllocations: {
         'o1-0': [{ name: 'Guest 1', qty: { num: 1, den: 1 } }],
       },
-      wholeTableLabel: 'Total',
     });
     assert.equal(outcome.validation.ok, false);
     if (!outcome.validation.ok) {
@@ -136,7 +132,6 @@ describe('validateSplitDraft', () => {
         { name: 'Guest 2', amount: 0 },
       ],
       parsedByItemAllocations: {},
-      wholeTableLabel: 'Total',
     });
     assert.equal(outcome.validation.ok, false);
     if (!outcome.validation.ok) {
@@ -150,7 +145,33 @@ describe('resolveInitialSplitMode', () => {
     assert.equal(resolveInitialSplitMode(null), null);
   });
 
-  it('returns null for whole-table custom single row', () => {
+  it('uses stable whole-table payer key when no split mode selected', () => {
+    const rows = computeSplitResults({
+      splitMode: null,
+      total: 50,
+      orderLines: [menuLine('o1-0', 1, 50)],
+      lineSpecs: [menuSpec('o1-0', 1, 50)],
+      personCount: 2,
+      splitPeople: [],
+      customAmounts: [],
+      parsedByItemAllocations: {},
+    });
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.name, '__whole_table__');
+    assert.equal(rows[0]?.amount, 50);
+  });
+
+  it('returns null for whole-table persisted split', () => {
+    assert.equal(
+      resolveInitialSplitMode({
+        split_mode: 'whole_table',
+        result: [{ name: '__whole_table__', amount: 50 }],
+      } as never),
+      null,
+    );
+  });
+
+  it('returns null for legacy whole-table custom single row', () => {
     assert.equal(
       resolveInitialSplitMode({
         split_mode: 'custom',

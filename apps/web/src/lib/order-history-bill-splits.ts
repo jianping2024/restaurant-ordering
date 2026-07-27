@@ -51,7 +51,7 @@ export async function loadBillSplitsForOrderHistory(
       status: row.status as BillStatus,
       total_amount: Number(row.total_amount ?? 0),
       result: (row.result || []) as SplitResult[],
-      split_mode: (row.split_mode as SplitMode) || 'even',
+      split_mode: (row.split_mode as SplitMode) || 'whole_table',
       persons: (row.persons || []) as SplitPerson[],
     };
   }

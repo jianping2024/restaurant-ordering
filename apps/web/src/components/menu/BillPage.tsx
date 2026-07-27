@@ -142,7 +142,6 @@ export function BillPage({
     total,
     orderLines,
     lineSpecs,
-    wholeTableLabel: t.totalLabel,
     guestName,
     submitted,
     persistedResult,

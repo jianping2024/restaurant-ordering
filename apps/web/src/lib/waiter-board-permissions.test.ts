@@ -38,7 +38,7 @@ describe('formatCheckoutPinnedSectionTitle', () => {
 describe('wholeTableCheckoutPayload', () => {
   it('builds a single-payer custom split for the session total', () => {
     assert.deepEqual(wholeTableCheckoutPayload(34), {
-      splitMode: 'custom',
+      splitMode: 'whole_table',
       persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
       result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 34 }],
       customerNif: null,

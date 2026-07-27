@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { checkoutIntentFromDraftSplitMode } from '@/lib/checkout-split-intent';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import { deriveBillView, isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import { dashboardCheckoutFocusHref } from '@/lib/checkout-queue-focus';
@@ -211,7 +212,7 @@ export function useCheckoutRequestSubmit(params: Params) {
           tableId,
           displayName,
           billSplitId: requestResult.bill_split_id,
-          splitMode: splitDraft.splitMode ?? 'custom',
+          splitMode: checkoutIntentFromDraftSplitMode(splitDraft.splitMode),
           persons,
           result: requestResult.result,
           totalAmount: deriveBillView(fresh.orders).total,

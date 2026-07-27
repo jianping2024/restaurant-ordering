@@ -1,3 +1,4 @@
+import { isWholeTableSplit } from '@/lib/checkout-split-intent';
 import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import {
   buildSplitSettlementRows,
@@ -173,10 +174,6 @@ export function uniqueCollectedPersonNames(
     names.push(name);
   }
   return names;
-}
-
-export function isWholeTableSplit(split: BillSplit): boolean {
-  return (split.result ?? []).length <= 1;
 }
 
 export function hasConfirmedPerson(split: BillSplit): boolean {

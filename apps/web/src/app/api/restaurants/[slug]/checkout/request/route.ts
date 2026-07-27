@@ -10,7 +10,7 @@ import type { SplitMode, SplitPerson, SplitPersonItemShare, SplitResult } from '
 export const runtime = 'nodejs';
 
 function parseSplitMode(raw: unknown): SplitMode | null {
-  if (raw === 'even' || raw === 'by_item' || raw === 'custom') return raw;
+  if (raw === 'whole_table' || raw === 'even' || raw === 'by_item' || raw === 'custom') return raw;
   return null;
 }
 
@@ -121,7 +121,7 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
-  const splitMode = parseSplitMode(body.split_mode) ?? 'custom';
+  const splitMode = parseSplitMode(body.split_mode) ?? 'whole_table';
   const persons = parsePersons(body.persons);
   const result = parseResult(body.result);
   if (!persons || !result) {

@@ -10,9 +10,11 @@ import {
 } from './split-person-label';
 
 describe('isWholeTablePayerName', () => {
-  it('recognizes canonical key and legacy Chinese label', () => {
+  it('recognizes canonical key, legacy labels, and historical Total rows', () => {
     assert.equal(isWholeTablePayerName(WHOLE_TABLE_PAYER_KEY), true);
     assert.equal(isWholeTablePayerName(LEGACY_WHOLE_TABLE_PAYER_LABEL), true);
+    assert.equal(isWholeTablePayerName('Total'), true);
+    assert.equal(isWholeTablePayerName('总计'), true);
     assert.equal(isWholeTablePayerName('Guest 1'), false);
   });
 });

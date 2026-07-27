@@ -16,6 +16,9 @@ import {
   type BillSplitLocalDraft,
 } from '@/lib/bill-split-local-draft';
 import {
+  resolvePersistedSplitModeForDraft,
+} from '@/lib/checkout-split-intent';
+import {
   allocationLockedPersonNames,
   buildLockedPersonLineMins,
   commitAllByItemAllocations,
@@ -39,9 +42,7 @@ export type PersonAmount = {
 };
 
 export function resolveInitialSplitMode(existingSplit: BillSplit | null): SplitMode | null {
-  if (!existingSplit) return null;
-  if (existingSplit.split_mode === 'custom' && existingSplit.result?.length === 1) return null;
-  return existingSplit.split_mode;
+  return resolvePersistedSplitModeForDraft(existingSplit);
 }
 
 function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
@@ -90,7 +91,6 @@ export function useBillSplitDraft(params: {
   total: number;
   orderLines: BillSplitOrderLine[];
   lineSpecs: ByItemLineSpec[];
-  wholeTableLabel: string;
   guestName: (n: number) => string;
   submitted: boolean;
   persistedResult: SplitResult[] | null;
@@ -105,7 +105,6 @@ export function useBillSplitDraft(params: {
     total,
     orderLines,
     lineSpecs,
-    wholeTableLabel,
     guestName,
     submitted,
     persistedResult,
@@ -262,7 +261,6 @@ export function useBillSplitDraft(params: {
       splitPeople,
       customAmounts,
       parsedByItemAllocations,
-      wholeTableLabel,
     }),
     [
       splitMode,
@@ -273,7 +271,6 @@ export function useBillSplitDraft(params: {
       splitPeople,
       customAmounts,
       parsedByItemAllocations,
-      wholeTableLabel,
     ],
   );
 

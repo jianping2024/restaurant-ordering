@@ -81,6 +81,7 @@ describe('hasCheckoutCollections', () => {
 
 describe('checkoutSplitModeLabel', () => {
   it('maps split modes', () => {
+    assert.equal(checkoutSplitModeLabel('whole_table', modeLabels), '整桌');
     assert.equal(checkoutSplitModeLabel('by_item', modeLabels), '按菜');
     assert.equal(checkoutSplitModeLabel(null, modeLabels), '整桌');
   });

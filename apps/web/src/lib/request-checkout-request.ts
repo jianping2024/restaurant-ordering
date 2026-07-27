@@ -1,3 +1,4 @@
+import { checkoutIntentFromDraftSplitMode } from '@/lib/checkout-split-intent';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 
 export async function requestCheckoutRequest(params: {
@@ -18,7 +19,7 @@ export async function requestCheckoutRequest(params: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           table_id: tableId,
-          split_mode: splitMode ?? 'custom',
+          split_mode: checkoutIntentFromDraftSplitMode(splitMode),
           persons,
           result,
           ...(customerNif ? { customer_nif: customerNif } : {}),

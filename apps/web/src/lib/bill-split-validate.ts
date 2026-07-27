@@ -30,7 +30,11 @@ export function validateBillSplit(params: {
 }): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
   const { splitMode, total, results, itemLines, lineSpecs, byItemAllocations, customAmounts } = params;
 
-  if (!splitMode) return { ok: true };
+  if (!splitMode || splitMode === 'whole_table') return { ok: true };
+
+  if (splitMode === 'custom' && results.length < 2) {
+    return { ok: false, issue: 'amount_mismatch' };
+  }
 
   const specs = lineSpecs ?? itemLines?.map((line) => ({
     mode: 'menu' as const,

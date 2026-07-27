@@ -333,7 +333,10 @@ export function validateCheckoutContinuation(params: {
   }
 
   const existingMode: SplitMode | null =
-    existing.split_mode === 'even' || existing.split_mode === 'by_item' || existing.split_mode === 'custom'
+    existing.split_mode === 'whole_table'
+    || existing.split_mode === 'even'
+    || existing.split_mode === 'by_item'
+    || existing.split_mode === 'custom'
       ? existing.split_mode
       : null;
   const incomingMode = payload.splitMode;
@@ -355,7 +358,7 @@ export function validateCheckoutContinuation(params: {
 
   if (
     hasCollectedLedger
-    && (existing.split_mode === 'even' || existing.split_mode === 'custom')
+    && (existing.split_mode === 'even' || existing.split_mode === 'custom' || existing.split_mode === 'whole_table')
   ) {
     const existingCount = lockedSplitRowCount(existing);
     if (existingCount > 0 && payload.result.length !== existingCount) {

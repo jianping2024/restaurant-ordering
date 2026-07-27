@@ -7,9 +7,21 @@ export const WHOLE_TABLE_PAYER_KEY = '__whole_table__';
 /** Legacy label written before i18n — still recognized for display and receipts. */
 export const LEGACY_WHOLE_TABLE_PAYER_LABEL = '整桌';
 
+/** Locale-neutral labels historically persisted for whole-table checkout. */
+export const LEGACY_WHOLE_TABLE_TOTAL_LABELS = ['Total', '总计'] as const;
+
+export function isLegacyWholeTableTotalLabel(name: string | null | undefined): boolean {
+  const trimmed = (name ?? '').trim();
+  return (LEGACY_WHOLE_TABLE_TOTAL_LABELS as readonly string[]).includes(trimmed);
+}
+
 export function isWholeTablePayerName(name: string | null | undefined): boolean {
   const trimmed = (name ?? '').trim();
-  return trimmed === WHOLE_TABLE_PAYER_KEY || trimmed === LEGACY_WHOLE_TABLE_PAYER_LABEL;
+  return (
+    trimmed === WHOLE_TABLE_PAYER_KEY
+    || trimmed === LEGACY_WHOLE_TABLE_PAYER_LABEL
+    || isLegacyWholeTableTotalLabel(trimmed)
+  );
 }
 
 export function uiLangFromPrintLocale(printLocale: string | null | undefined): UILanguage {

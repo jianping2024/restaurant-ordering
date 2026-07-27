@@ -9,6 +9,7 @@ import {
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
 import { sumLineTotals } from '@/lib/cart-totals';
+import { normalizeCheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -58,6 +59,8 @@ export async function submitCheckoutRequestForTable(
   tableId: string,
   payload: CheckoutRequestPayload,
 ): Promise<CheckoutRequestResult> {
+  const normalizedPayload = normalizeCheckoutRequestPayload(payload);
+
   const { data: tableRow, error: tableErr } = await admin
     .from('restaurant_tables')
     .select('id, display_name')
@@ -123,13 +126,13 @@ export async function submitCheckoutRequestForTable(
   const lineSpecs = buildByItemLineSpecs(orderLines);
   const total = sumLineTotals(orderLines);
   const validation = validateBillSplit({
-    splitMode: payload.splitMode,
+    splitMode: normalizedPayload.splitMode,
     total,
-    results: payload.result,
-    lineSpecs: payload.splitMode === 'by_item' ? lineSpecs : undefined,
+    results: normalizedPayload.result,
+    lineSpecs: normalizedPayload.splitMode === 'by_item' ? lineSpecs : undefined,
     byItemAllocations:
-      payload.splitMode === 'by_item'
-        ? buildByItemAllocationsFromPersons(payload.persons, lineSpecs)
+      normalizedPayload.splitMode === 'by_item'
+        ? buildByItemAllocationsFromPersons(normalizedPayload.persons, lineSpecs)
         : undefined,
   });
   if (!validation.ok) {
@@ -165,7 +168,7 @@ export async function submitCheckoutRequestForTable(
   if (existingSplitRow) {
     const continuation = validateCheckoutContinuation({
       existing: existingSplitRow as BillSplit,
-      payload,
+      payload: normalizedPayload,
       lineSpecs,
       hasCollectedLedger: collectedPayments.length > 0,
       collectedPayments,
@@ -182,11 +185,11 @@ export async function submitCheckoutRequestForTable(
     p_table_id: tableId,
     p_display_name: tableRow.display_name as string,
     p_order_ids: orderIds,
-    p_split_mode: payload.splitMode,
-    p_persons: payload.persons,
-    p_result: payload.result,
+    p_split_mode: normalizedPayload.splitMode,
+    p_persons: normalizedPayload.persons,
+    p_result: normalizedPayload.result,
     p_total_amount: total,
-    p_customer_nif: payload.customerNif ?? null,
+    p_customer_nif: normalizedPayload.customerNif ?? null,
   });
 
   if (rpcErr) {
@@ -230,7 +233,7 @@ export async function submitCheckoutRequestForTable(
   return {
     ok: true,
     bill_split_id: billSplitId,
-    result: (rpcPayload.result || payload.result) as SplitResult[],
+    result: (rpcPayload.result || normalizedPayload.result) as SplitResult[],
     total_amount: rpcPayload.total_amount ?? total,
   };
 }

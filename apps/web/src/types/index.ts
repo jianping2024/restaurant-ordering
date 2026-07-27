@@ -175,6 +175,10 @@ export interface OrderItem {
   price_rule_id?: string;
   /** Snapshot from menu_items.item_code at append time. */
   item_code?: string | null;
+  /** Snapshot: sushi per-person free allowance at append time (limited dishes only). */
+  per_person_qty_limit?: number | null;
+  /** Snapshot: unit price billed beyond the free allowance (pairs with the limit). */
+  over_limit_unit_price?: number | null;
   /** Snapshot: root→leaf category item_code path at append time (print label prefix). */
   category_code_path?: string[];
   item_status?: OrderItemStatus; // 菜品级出餐状态

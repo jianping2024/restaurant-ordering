@@ -15,7 +15,6 @@ import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
-import { ensureSushiSettlementPricingForSession, httpStatusForSushiSettlementError } from '@/lib/sushi-settlement-rebalance';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
@@ -101,25 +100,11 @@ export async function submitCheckoutRequestForTable(
     sessionId,
     ascending: true,
   });
-  const settled = await ensureSushiSettlementPricingForSession(
-    admin,
-    restaurantId,
-    sessionId,
-    orders,
-  );
-  if (!settled.ok) {
-    return {
-      ok: false,
-      error: settled.error,
-      status: httpStatusForSushiSettlementError(settled.error),
-      message: settled.message,
-    };
-  }
-  const orderLines = buildBillSplitOrderLines(settled.orders);
+  const orderLines = buildBillSplitOrderLines(orders);
   if (orderLines.length === 0) {
     return { ok: false, error: 'empty_session', status: 400 };
   }
-  if (!isBillGuestCountConfirmed(settled.orders)) {
+  if (!isBillGuestCountConfirmed(orders)) {
     return { ok: false, error: 'guest_count_required', status: 400 };
   }
 
@@ -193,7 +178,7 @@ export async function submitCheckoutRequestForTable(
     }
   }
 
-  const orderIds = settled.orders.map((order) => order.id);
+  const orderIds = orders.map((order) => order.id);
   const { data: rpcData, error: rpcErr } = await admin.rpc('upsert_bill_split_request', {
     p_restaurant_id: restaurantId,
     p_session_id: sessionId,

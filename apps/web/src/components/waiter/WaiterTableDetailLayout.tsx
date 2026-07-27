@@ -467,6 +467,8 @@ type OrderedItemsProps = {
     onPrint: () => void;
   } | null;
   lines: WaiterOrderLine[];
+  /** Optional: format chargeable qty hint; null/omit hides the hint. */
+  formatChargeableHint?: (qty: number, unitPrice: number) => string;
   isCheckoutPending: boolean;
   decrementingKey: string | null;
   orderLineKey: (orderId: string, itemIdx: number) => string;
@@ -478,6 +480,7 @@ export function WaiterTableOrderedItemsPanel({
   sessionTotalText,
   preBillPrint,
   lines,
+  formatChargeableHint,
   isCheckoutPending,
   decrementingKey,
   orderLineKey,
@@ -512,27 +515,43 @@ export function WaiterTableOrderedItemsPanel({
         ) : null}
       </div>
       <div className={waiterDetailLayout.sectionBody}>
-        {lines.map((line) => (
-          <div key={`${line.orderId}-${line.itemIdx}`} className={waiterDetailLayout.orderedItemRow}>
-            <p className={waiterDetailLayout.orderedItemLabel}>
-              {line.label}
-            </p>
-            {(line.quantityLabel || line.canDecrement) ? (
-              <div className={waiterDetailLayout.orderedItemActions}>
-                {line.quantityLabel ? (
-                  <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
-                ) : null}
-                {line.canDecrement ? (
-                  <WaiterOrderQtyMinus
-                    onDecrement={() => onDecrement(line.orderId, line.itemIdx)}
-                    disabled={isCheckoutPending}
-                    busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
-                  />
+        {lines.map((line) => {
+          const qtyMatch = line.quantityLabel?.match(/(\d+)/);
+          const chargeableQty = qtyMatch ? Number(qtyMatch[1]) : 0;
+          const chargeableHint =
+            formatChargeableHint &&
+            line.chargeableUnitPrice != null &&
+            chargeableQty > 0
+              ? formatChargeableHint(chargeableQty, line.chargeableUnitPrice)
+              : null;
+          return (
+            <div
+              key={`${line.orderId}-${line.itemIdx}-${line.chargeableUnitPrice ?? 'in'}`}
+              className={waiterDetailLayout.orderedItemRow}
+            >
+              <div className="min-w-0 flex-1">
+                <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
+                {chargeableHint ? (
+                  <p className={waiterDetailLayout.orderedItemChargeableHint}>{chargeableHint}</p>
                 ) : null}
               </div>
-            ) : null}
-          </div>
-        ))}
+              {(line.quantityLabel || line.canDecrement) ? (
+                <div className={waiterDetailLayout.orderedItemActions}>
+                  {line.quantityLabel ? (
+                    <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
+                  ) : null}
+                  {line.canDecrement ? (
+                    <WaiterOrderQtyMinus
+                      onDecrement={() => onDecrement(line.orderId, line.itemIdx)}
+                      disabled={isCheckoutPending}
+                      busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </WaiterDetailCard>
   );

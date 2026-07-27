@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  applySushiLimitToCartLine,
+  allocateSessionSushiLimitedLines,
+  checkSushiLimitForCartLine,
   classifyStaffQtyIncrease,
   freeAllowanceQty,
   freeRemainingQty,
@@ -11,9 +12,9 @@ import {
   previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
-  settlementPriceSlicesForLimitedItem,
   splitQtyAgainstFreeRemaining,
   sushiLimitHintParts,
+  sushiLimitedLineKey,
 } from '@/lib/sushi-buffet-limits';
 import type { Order } from '@/types';
 
@@ -117,45 +118,39 @@ describe('sushi buffet limits', () => {
     );
   });
 
-  it('guest cannot exceed free remaining; staff order-time stays menu price', () => {
+  it('guest cannot exceed free remaining; staff may exceed', () => {
     const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
-    const guest = applySushiLimitToCartLine({
+    const guest = checkSushiLimitForCartLine({
       serviceMode: 'sushi',
       staffAssisted: false,
       guestCount: 2,
       alreadyOrdered: 3,
       requestQty: 2,
-      menuPrice: 0,
       item,
     });
     assert.equal(guest.ok, false);
     if (!guest.ok) assert.equal(guest.error, 'per_person_limit_exceeded');
 
-    const staff = applySushiLimitToCartLine({
+    const staff = checkSushiLimitForCartLine({
       serviceMode: 'sushi',
       staffAssisted: true,
       guestCount: 2,
       alreadyOrdered: 3,
       requestQty: 2,
-      menuPrice: 0,
       item,
     });
     assert.equal(staff.ok, true);
-    if (staff.ok) {
-      assert.deepEqual(staff.slices, [{ qty: 2, unitPrice: 0 }]);
-    }
   });
 
   it('blocks limited items when headcount is 0 for guest and staff', () => {
     const item = { per_person_qty_limit: 2, over_limit_unit_price: 4 };
     for (const staffAssisted of [false, true]) {
-      const result = applySushiLimitToCartLine({
+      const result = checkSushiLimitForCartLine({
         serviceMode: 'sushi',
         staffAssisted,
         guestCount: 0,
         alreadyOrdered: 0,
         requestQty: 1,
-        menuPrice: 0,
         item,
       });
       assert.equal(result.ok, false);
@@ -289,22 +284,53 @@ describe('sushi buffet limits', () => {
     );
   });
 
-  it('settlementPriceSlicesForLimitedItem splits free vs overage', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
-    const priced = settlementPriceSlicesForLimitedItem({
-      serviceMode: 'sushi',
-      guestCount: 1,
-      totalQty: 4,
-      menuPrice: 0,
-      item,
+  it('allocateSessionSushiLimitedLines spreads free allowance oldest-first', () => {
+    const orders: Order[] = [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        session_id: 's1',
+        table_id: 't1',
+        display_name: 'A1',
+        status: 'pending',
+        total_amount: 0,
+        created_at: '',
+        updated_at: '',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 1,
+            child_count: 0,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 17.95,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'm1',
+            name: 'susi',
+            name_pt: 'susi',
+            qty: 5,
+            price: 0,
+            emoji: '',
+            per_person_qty_limit: 2,
+            over_limit_unit_price: 4.5,
+            added_at: '2026-01-01T00:00:00.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ];
+    const allocated = allocateSessionSushiLimitedLines(orders);
+    assert.deepEqual(allocated.get(sushiLimitedLineKey('o1', 1)), {
+      freeQty: 2,
+      chargeableQty: 3,
+      chargeableUnitPrice: 4.5,
     });
-    assert.equal(priced.ok, true);
-    if (priced.ok) {
-      assert.deepEqual(priced.slices, [
-        { qty: 2, unitPrice: 0 },
-        { qty: 2, unitPrice: 4.5 },
-      ]);
-    }
   });
 
   it('previewStaffCartOverage summarizes overage lines', () => {

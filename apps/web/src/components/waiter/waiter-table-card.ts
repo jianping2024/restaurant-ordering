@@ -29,6 +29,8 @@ export type WaiterOrderLine = {
   /** Menu lines: `× N` shown beside the decrement control. */
   quantityLabel: string | null;
   canDecrement: boolean;
+  /** Sushi limited dish billed beyond the free allowance (null when included). */
+  chargeableUnitPrice: number | null;
 };
 
 export interface WaiterTableCardData {
@@ -113,7 +115,7 @@ export function buildWaiterTableCard(
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalog = buildBillableSessionItems(orders);
 
-  const orderLines: WaiterOrderLine[] = catalog.map(({ key, item }) => {
+  const orderLines: WaiterOrderLine[] = catalog.map(({ key, item, chargeable }) => {
     if (isBuffetBaseItem(item)) {
       return {
         orderId: '',
@@ -121,6 +123,7 @@ export function buildWaiterTableCard(
         label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
         quantityLabel: null,
         canDecrement: false,
+        chargeableUnitPrice: null,
       };
     }
 
@@ -129,6 +132,7 @@ export function buildWaiterTableCard(
       ...action,
       label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
+      chargeableUnitPrice: chargeable ? item.price : null,
     };
   });
 

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
+import {
+  buildBillableSessionItems,
+  sumBillableSessionTotal,
+} from '@/lib/billable-session-lines';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import type { Order, OrderItem } from '@/types';
 
@@ -60,5 +63,68 @@ describe('sumBillableSessionTotal', () => {
       ]),
       3,
     );
+  });
+
+  it('derives sushi chargeable share without rewriting stored lines', () => {
+    const orders = [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        session_id: 's1',
+        table_id: 't1',
+        display_name: 'A1',
+        status: 'pending',
+        total_amount: 17.95,
+        created_at: '',
+        updated_at: '',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet livre',
+            name_pt: 'Buffet livre',
+            qty: 1,
+            price: 35.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'm1',
+            name: 'susi1',
+            name_pt: 'susi1',
+            qty: 5,
+            price: 0,
+            emoji: '',
+            per_person_qty_limit: 2,
+            over_limit_unit_price: 4.5,
+            added_at: '2026-01-01T00:00:00.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = buildBillableSessionItems(orders);
+    const menu = lines.filter((row) => row.item.id === 'm1');
+    assert.equal(menu.length, 2);
+    assert.deepEqual(
+      menu.map((row) => ({
+        qty: row.item.qty,
+        price: row.item.price,
+        chargeable: !!row.chargeable,
+      })),
+      [
+        { qty: 4, price: 0, chargeable: false },
+        { qty: 1, price: 4.5, chargeable: true },
+      ],
+    );
+    assert.equal(sumBillableSessionTotal(orders), 35.9 + 4.5);
+    assert.equal(orders[0].items[1].qty, 5);
+    assert.equal(orders[0].items[1].price, 0);
   });
 });

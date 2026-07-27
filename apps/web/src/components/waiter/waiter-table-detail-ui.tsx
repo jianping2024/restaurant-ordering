@@ -78,6 +78,7 @@ export const waiterDetailLayout = {
    */
   orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
   orderedItemLabel: waiterFloorType.listBodyTruncate,
+  orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',
   orderedItemQty: waiterFloorType.listQty,
   orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;

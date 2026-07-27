@@ -12,7 +12,7 @@ import {
   type CloseTableSettledResult,
 } from '@/lib/close-active-table-session-with-cleanup';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
-import { ensureSushiSettlementPricingForSession } from '@/lib/sushi-settlement-rebalance';
+import { freezeSessionBillingLines } from '@/lib/session-billing-freeze';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
@@ -89,13 +89,7 @@ export type CloseTableSessionFrontdeskCheckoutResult =
   | { ok: true; session_id: string }
   | {
       ok: false;
-      code:
-        | 'no_session'
-        | 'update_failed'
-        | 'limited_item_requires_headcount'
-        | 'over_limit_price_missing'
-        | 'catalog_lookup_failed'
-        | 'persist_failed';
+      code: 'no_session' | 'update_failed';
       message?: string;
     };
 
@@ -107,6 +101,8 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   userId: string;
   closedReason: SettledCloseActorReason;
 }): Promise<CloseTableSessionFrontdeskCheckoutResult> {
+  // The closing RPC prices the session from `orders.items` in SQL, so the sushi free
+  // allowance has to be frozen into the stored lines before the session is closed.
   const { data: session } = await input.admin
     .from('table_sessions')
     .select('id')
@@ -122,18 +118,9 @@ export async function closeTableSessionFrontdeskCheckout(input: {
       sessionId: session.id as string,
       ascending: true,
     });
-    const settled = await ensureSushiSettlementPricingForSession(
-      input.admin,
-      input.restaurantId,
-      session.id as string,
-      orders,
-    );
-    if (!settled.ok) {
-      return {
-        ok: false,
-        code: settled.error,
-        message: settled.message,
-      };
+    const frozen = await freezeSessionBillingLines(input.admin, input.restaurantId, orders);
+    if (!frozen.ok) {
+      return { ok: false, code: 'update_failed', message: frozen.message };
     }
   }
 

@@ -152,7 +152,10 @@ export function applySushiLimitToCartLine(params: {
   return { ok: true, slices };
 }
 
-/** Max cart qty a guest may hold for this item (staff use absoluteMax uncapped path). */
+/**
+ * Free slots left for a guest cart line (0 when headcount unset).
+ * Guest menu does not hard-disable Add from this; submit uses {@link previewGuestCartSushiGate}.
+ */
 export function guestMaxCartQty(params: {
   serviceMode: unknown;
   item: SushiLimitMenuFields;
@@ -382,6 +385,34 @@ export function previewStaffCartOverage(params: {
   }
   if (lines.length === 0) return { status: 'none' };
   return { status: 'overage', lines };
+}
+
+/**
+ * Guest submit gate: same pricing rules as append (`applySushiLimitToCartLine`, not staff).
+ * UI may keep limited dishes tappable; authority is submit (+ server).
+ */
+export function previewGuestCartSushiGate(params: {
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  cart: Array<{ menuItemId: string; qty: number }>;
+  resolveItem: (menuItemId: string) => (SushiLimitMenuFields & { price?: number }) | null;
+}): { ok: true } | { ok: false; error: ApplySushiLimitError } {
+  for (const row of params.cart) {
+    const item = params.resolveItem(row.menuItemId);
+    if (!item) continue;
+    const priced = applySushiLimitToCartLine({
+      serviceMode: params.serviceMode,
+      staffAssisted: false,
+      guestCount: params.guestCount,
+      alreadyOrdered: sessionOrderedQtyForMenuItem(params.sessionOrders, row.menuItemId),
+      requestQty: coercePositiveQty(row.qty),
+      menuPrice: typeof item.price === 'number' && Number.isFinite(item.price) ? item.price : 0,
+      item,
+    });
+    if (!priced.ok) return { ok: false, error: priced.error };
+  }
+  return { ok: true };
 }
 
 function coercePositiveQty(qty: number): number {

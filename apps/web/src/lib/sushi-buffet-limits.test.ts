@@ -8,6 +8,7 @@ import {
   guestMaxCartQty,
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
+  previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
@@ -185,6 +186,41 @@ describe('sushi buffet limits', () => {
         absoluteMax: 99,
       }),
       0,
+    );
+  });
+
+  it('previewGuestCartSushiGate blocks headcount and overage', () => {
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
+    const emptyOrders: Order[] = [];
+    assert.deepEqual(
+      previewGuestCartSushiGate({
+        serviceMode: 'sushi',
+        guestCount: 0,
+        sessionOrders: emptyOrders,
+        cart: [{ menuItemId: 'm1', qty: 1 }],
+        resolveItem: () => item,
+      }),
+      { ok: false, error: 'limited_item_requires_headcount' },
+    );
+    assert.deepEqual(
+      previewGuestCartSushiGate({
+        serviceMode: 'sushi',
+        guestCount: 1,
+        sessionOrders: emptyOrders,
+        cart: [{ menuItemId: 'm1', qty: 3 }],
+        resolveItem: () => item,
+      }),
+      { ok: false, error: 'per_person_limit_exceeded' },
+    );
+    assert.deepEqual(
+      previewGuestCartSushiGate({
+        serviceMode: 'sushi',
+        guestCount: 1,
+        sessionOrders: emptyOrders,
+        cart: [{ menuItemId: 'm1', qty: 2 }],
+        resolveItem: () => item,
+      }),
+      { ok: true },
     );
   });
 

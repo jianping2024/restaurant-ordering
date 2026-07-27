@@ -11,6 +11,7 @@ import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import {
   formatStaffOverageMessage,
   formatStaffSubmitOverageMessage,
+  messageForSushiLimitError,
   MENU_PAGE_MESSAGES,
 } from '@/lib/i18n/menu-page-messages';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
@@ -351,7 +352,7 @@ export function MenuOrderingController({
           toQty: nextQty,
         });
         if (decision.action === 'block_headcount') {
-          showToast(MENU_PAGE_MESSAGES[lang].limitedItemNeedsHeadcount, 'info');
+          showToast(messageForSushiLimitError('limited_item_requires_headcount', MENU_PAGE_MESSAGES[lang]), 'info');
           return;
         }
         if (decision.action === 'confirm_first_cross') {
@@ -513,10 +514,12 @@ export function MenuOrderingController({
         if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
-        else if (failure.code === 'per_person_limit_exceeded')
-          showToast(t.perPersonLimitReached, 'info');
-        else if (failure.code === 'limited_item_requires_headcount')
-          showToast(t.limitedItemNeedsHeadcount, 'info');
+        else if (
+          failure.code === 'per_person_limit_exceeded' ||
+          failure.code === 'limited_item_requires_headcount'
+        ) {
+          showToast(messageForSushiLimitError(failure.code, t), 'info');
+        }
         else if (failure.code === 'rate_limited') showToast(t.submitRateLimited, 'error');
         else showToast(t.submitFailed, 'error');
         return;
@@ -638,28 +641,29 @@ export function MenuOrderingController({
     if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
     if (submittingRef.current) return;
 
+    const resolveLimitItem = (id: string) => {
+      const item = menuItems.find((m) => m.id === id);
+      if (!item) return null;
+      return {
+        per_person_qty_limit: item.per_person_qty_limit,
+        over_limit_unit_price: item.over_limit_unit_price,
+      };
+    };
+    const cartQtyRows = cart.map((c) => ({
+      menuItemId: c.menuItemId,
+      qty: coerceCartQty(c.qty),
+    }));
+
     if (staffAssistedOrdering) {
       const preview = previewStaffCartOverage({
         serviceMode: buffetServiceMode,
         guestCount: limitGuestCount,
         sessionOrders: recentOrders,
-        cart: cart.map((c) => ({ menuItemId: c.menuItemId, qty: coerceCartQty(c.qty) })),
-        resolveItem: (id) => {
-          const item = menuItems.find((m) => m.id === id);
-          if (!item) return null;
-          return {
-            per_person_qty_limit: item.per_person_qty_limit,
-            over_limit_unit_price: item.over_limit_unit_price,
-          };
-        },
+        cart: cartQtyRows,
+        resolveItem: resolveLimitItem,
       });
       if (preview.status === 'blocked') {
-        showToast(
-          preview.error === 'limited_item_requires_headcount'
-            ? t.limitedItemNeedsHeadcount
-            : t.submitFailed,
-          'info',
-        );
+        showToast(messageForSushiLimitError(preview.error, t), 'info');
         return;
       }
       if (preview.status === 'overage') {
@@ -689,26 +693,11 @@ export function MenuOrderingController({
         serviceMode: buffetServiceMode,
         guestCount: sessionGuestCountForLimits(sessionOrders),
         sessionOrders,
-        cart: cart.map((c) => ({ menuItemId: c.menuItemId, qty: coerceCartQty(c.qty) })),
-        resolveItem: (id) => {
-          const item = menuItems.find((m) => m.id === id);
-          if (!item) return null;
-          return {
-            per_person_qty_limit: item.per_person_qty_limit,
-            over_limit_unit_price: item.over_limit_unit_price,
-            price: item.price,
-          };
-        },
+        cart: cartQtyRows,
+        resolveItem: resolveLimitItem,
       });
       if (!gate.ok) {
-        showToast(
-          gate.error === 'limited_item_requires_headcount'
-            ? t.limitedItemNeedsHeadcount
-            : gate.error === 'per_person_limit_exceeded'
-              ? t.perPersonLimitReached
-              : t.submitFailed,
-          'info',
-        );
+        showToast(messageForSushiLimitError(gate.error, t), 'info');
         return;
       }
     }

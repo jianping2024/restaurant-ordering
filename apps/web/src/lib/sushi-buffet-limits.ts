@@ -1,4 +1,4 @@
-import type { Order, OrderItem } from '@/types';
+import type { Order } from '@/types';
 import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
 import { isSushiBuffetMode } from '@/lib/buffet-service-mode';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
@@ -149,37 +149,26 @@ export function applySushiLimitToCartLine(params: {
   return { ok: true, slices };
 }
 
-/** Guest cart max for a limited item (staff uncapped aside from APPEND_CART_QTY_MAX). */
-export function guestMaxAddableQty(params: {
+/** Max cart qty a guest may hold for this item (staff use absoluteMax uncapped path). */
+export function guestMaxCartQty(params: {
   serviceMode: unknown;
   item: SushiLimitMenuFields;
   guestCount: number;
   alreadyOrdered: number;
-  cartQty: number;
   absoluteMax: number;
 }): number {
   if (!isLimitedSushiMenuItem(params.serviceMode, params.item)) {
     return params.absoluteMax;
   }
   if (params.guestCount < 1) return 0;
-  const remaining = freeRemainingQty({
-    perPersonLimit: params.item.per_person_qty_limit!,
-    guestCount: params.guestCount,
-    alreadyOrdered: params.alreadyOrdered,
-  });
-  const canAdd = Math.max(0, remaining - Math.max(0, params.cartQty));
-  return Math.min(params.absoluteMax, params.cartQty + canAdd);
-}
-
-export function orderedQtyMapFromSession(
-  orders: Array<Pick<Order, 'items' | 'status'>>,
-  menuItemIds: string[],
-): Map<string, number> {
-  const map = new Map<string, number>();
-  for (const id of menuItemIds) {
-    map.set(id, sessionOrderedQtyForMenuItem(orders, id));
-  }
-  return map;
+  return Math.min(
+    params.absoluteMax,
+    freeRemainingQty({
+      perPersonLimit: params.item.per_person_qty_limit!,
+      guestCount: params.guestCount,
+      alreadyOrdered: params.alreadyOrdered,
+    }),
+  );
 }
 
 /** Normalize limit pair for menu CRUD: both null, or both set. */
@@ -231,23 +220,16 @@ export function normalizeMenuItemLimitFields(input: {
   return { ok: false, error: 'limit_requires_overage_price' };
 }
 
-/** Hint copy inputs for menu UI (no i18n here). */
-export function sushiLimitHintParts(item: SushiLimitMenuFields): {
-  perPerson: number;
-  overLimitPrice: number;
-} | null {
-  if (
-    typeof item.per_person_qty_limit !== 'number' ||
-    item.per_person_qty_limit < 1 ||
-    typeof item.over_limit_unit_price !== 'number' ||
-    !Number.isFinite(item.over_limit_unit_price)
-  ) {
-    return null;
-  }
+/** Hint inputs when the item is limited in sushi mode (null otherwise). */
+export function sushiLimitHintParts(
+  serviceMode: unknown,
+  item: SushiLimitMenuFields,
+): { perPerson: number; overLimitPrice: number } | null {
+  if (!isLimitedSushiMenuItem(serviceMode, item)) return null;
+  const over = item.over_limit_unit_price;
+  if (typeof over !== 'number' || !Number.isFinite(over)) return null;
   return {
-    perPerson: item.per_person_qty_limit,
-    overLimitPrice: item.over_limit_unit_price,
+    perPerson: item.per_person_qty_limit!,
+    overLimitPrice: over,
   };
 }
-
-export type { OrderItem };

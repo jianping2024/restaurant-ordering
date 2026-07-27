@@ -51,13 +51,14 @@ import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
-  guestMaxAddableQty,
+  guestMaxCartQty,
   isLimitedSushiMenuItem,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
 import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
+import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
 
 export type MenuOrderingRestaurant = {
   id: string;
@@ -69,7 +70,7 @@ export type MenuOrderingRestaurant = {
   order_radius_meters?: number | null;
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
-  buffet_service_mode?: string | null;
+  buffet_service_mode?: BuffetServiceMode | string | null;
 };
 
 export type MenuOrderingPresentationMode = 'page' | 'embedded';
@@ -253,14 +254,13 @@ export function MenuOrderingController({
   const staffAssistedOrdering = !!staffAssisted;
 
   const guestCartMaxForItem = useCallback(
-    (item: MenuItem, cartQty: number) => {
+    (item: MenuItem) => {
       if (staffAssistedOrdering) return APPEND_CART_QTY_MAX;
-      return guestMaxAddableQty({
+      return guestMaxCartQty({
         serviceMode: buffetServiceMode,
         item,
         guestCount: limitGuestCount,
         alreadyOrdered: sessionOrderedQtyForMenuItem(recentOrders, item.id),
-        cartQty,
         absoluteMax: APPEND_CART_QTY_MAX,
       });
     },
@@ -276,8 +276,7 @@ export function MenuOrderingController({
     const menuItem = menuItems.find((m) => m.id === menuItemId);
     let nextQty = n;
     if (menuItem && !staffAssistedOrdering) {
-      const max = guestCartMaxForItem(menuItem, 0);
-      // max is absolute cart qty allowed (alreadyOrdered accounted); clamp requested
+      const max = guestCartMaxForItem(menuItem);
       nextQty = Math.min(n, max);
       if (nextQty <= 0) {
         setCartTracked((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
@@ -306,15 +305,15 @@ export function MenuOrderingController({
       return;
     }
     if (!staffAssistedOrdering) {
-      const max = guestCartMaxForItem(item, current);
+      const max = guestCartMaxForItem(item);
       if (delta > 0 && next > max) {
-        if (
-          isLimitedSushiMenuItem(buffetServiceMode, item) &&
-          limitGuestCount < 1
-        ) {
-          showToast(MENU_PAGE_MESSAGES[lang].limitedItemNeedsHeadcount, 'info');
-        } else if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
-          showToast(MENU_PAGE_MESSAGES[lang].perPersonLimitReached, 'info');
+        if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
+          showToast(
+            MENU_PAGE_MESSAGES[lang][
+              limitGuestCount < 1 ? 'limitedItemNeedsHeadcount' : 'perPersonLimitReached'
+            ],
+            'info',
+          );
         }
         next = max;
         if (next <= current) return;
@@ -702,10 +701,8 @@ export function MenuOrderingController({
           <div className={isEmbedded ? 'grid grid-cols-1 gap-3 md:grid-cols-2' : 'space-y-3'}>
             {currentItems.map((item) => {
               const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
-              const hintParts = isLimitedSushiMenuItem(buffetServiceMode, item)
-                ? sushiLimitHintParts(item)
-                : null;
-              const maxQty = guestCartMaxForItem(item, cartQty);
+              const hintParts = sushiLimitHintParts(buffetServiceMode, item);
+              const maxQty = guestCartMaxForItem(item);
               const limitHint = hintParts
                 ? t.sushiLimitHint
                     .replace('{perPerson}', String(hintParts.perPerson))

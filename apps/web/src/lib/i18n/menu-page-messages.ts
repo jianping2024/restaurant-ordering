@@ -214,3 +214,30 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: '正在加载菜单…',
   },
 };
+
+/** Interpolate staff overage confirm/toast/submit copy ({name}, {qty}, {price}, {subtotal}). */
+export function formatStaffOverageMessage(
+  template: string,
+  parts: { name: string; qty: number; price: number; subtotal?: number },
+): string {
+  const price = parts.price.toFixed(2);
+  const subtotal = (parts.subtotal ?? parts.qty * parts.price).toFixed(2);
+  return template
+    .replace('{name}', parts.name)
+    .replace('{qty}', String(parts.qty))
+    .replace('{price}', price)
+    .replace('{subtotal}', subtotal);
+}
+
+export function formatStaffSubmitOverageMessage(
+  lines: Array<{ name: string; qty: number; price: number }>,
+  messages: Pick<
+    (typeof MENU_PAGE_MESSAGES)[Language],
+    'staffOverageSubmitIntro' | 'staffOverageSubmitLine'
+  >,
+): string {
+  const body = lines
+    .map((line) => formatStaffOverageMessage(messages.staffOverageSubmitLine, line))
+    .join('\n');
+  return `${messages.staffOverageSubmitIntro}\n${body}`;
+}

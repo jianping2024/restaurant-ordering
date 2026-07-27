@@ -18,6 +18,7 @@ import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-det
 import {
   ORDER_HISTORY_FORCED_SUMMARY_CLASS,
   buildOrderHistorySurfaceMeta,
+  formatOrderHistoryLifecycleStepLine,
 } from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
@@ -269,7 +270,7 @@ export function OrdersHistoryManager({
     const forcedCloseSummary = isForcedUnpaidClose
       ? formatForcedUnpaidCloseAnnotation(lang, entry.closeAnnotation)?.summary ?? null
       : null;
-    const { outcomeBadge, lifecycle, cardClass, mergeSummaryLine } =
+    const { outcomeBadge, lifecycleSteps, cardClass, mergeSummaryLine } =
       buildOrderHistorySurfaceMeta(entry, i18n);
     const isMergedSource = isMergedSourceCloseKind(entry.closeKind);
 
@@ -310,8 +311,11 @@ export function OrdersHistoryManager({
         ) : null}
       </div>
       <div className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted">
-        <p>{lifecycle.openedLine}</p>
-        <p>{lifecycle.closedLine}</p>
+        {lifecycleSteps.map((step) => (
+          <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
+            {formatOrderHistoryLifecycleStepLine(step, i18n)}
+          </p>
+        ))}
         {mergeSummaryLine ? <p className="text-brand-text">{mergeSummaryLine}</p> : null}
       </div>
       {forcedCloseSummary ? (

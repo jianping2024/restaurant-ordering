@@ -23,6 +23,12 @@ import {
   type MergeSourceSessionRow,
   type MergeTargetSessionRow,
 } from '@/lib/order-history/load-merge-context';
+import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
+import {
+  attachTransferEventOperatorNames,
+  loadSessionIdsTransferredFromTables,
+  loadTransferEventsBySessionIds,
+} from '@/lib/order-history/load-session-transfer-events';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
 import { resolveStaffOperatorNames } from '@/lib/order-history/resolve-staff-operator';
@@ -63,24 +69,52 @@ function endOfDayIso(dateKey: string): string {
   return date.toISOString();
 }
 
-function applySessionFilters<T extends {
-  in(column: string, values: string[]): T;
+function applyDateSessionFilters<T extends {
   gte(column: string, value: string): T;
   lte(column: string, value: string): T;
 }>(
   query: T,
-  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo'>,
+  filters: Pick<OrderHistoryQuery, 'closedFrom' | 'closedTo'>,
 ): T {
   let next = query;
-  if (filters.tableIds.length > 0) {
-    next = next.in('table_id', filters.tableIds);
-  }
   if (filters.closedFrom) {
     next = next.gte('closed_at', startOfDayIso(filters.closedFrom));
   }
   if (filters.closedTo) {
     next = next.lte('closed_at', endOfDayIso(filters.closedTo));
   }
+  return next;
+}
+
+function applyTableSessionFilter<T extends {
+  in(column: string, values: string[]): T;
+  or(filter: string): T;
+}>(
+  query: T,
+  tableIds: string[],
+  transferSessionIds: string[],
+): T {
+  if (tableIds.length === 0) return query;
+  if (transferSessionIds.length === 0) {
+    return query.in('table_id', tableIds);
+  }
+  const tableClause = `table_id.in.(${tableIds.join(',')})`;
+  const sessionClause = `id.in.(${transferSessionIds.join(',')})`;
+  return query.or(`${tableClause},${sessionClause}`);
+}
+
+function applySessionFilters<T extends {
+  in(column: string, values: string[]): T;
+  or(filter: string): T;
+  gte(column: string, value: string): T;
+  lte(column: string, value: string): T;
+}>(
+  query: T,
+  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo'>,
+  transferSessionIds: string[],
+): T {
+  let next = applyTableSessionFilter(query, filters.tableIds, transferSessionIds);
+  next = applyDateSessionFilters(next, filters);
   return next;
 }
 
@@ -113,10 +147,12 @@ function buildEntry(
   tableDisplayById: Map<string, string>,
   mergeTargetById: Map<string, MergeTargetSessionRow>,
   mergeSourcesByTargetId: Map<string, MergeSourceSessionRow[]>,
+  operatorNames: ReadonlyMap<string, string>,
+  transferEvents: OrderHistoryEntry['transferEvents'],
 ): OrderHistoryEntry {
   const closeKind = resolveOrderHistoryCloseKind(session.closed_reason);
 
-  return {
+  const entry: OrderHistoryEntry = {
     sessionId: session.id,
     tableId: session.table_id,
     displayName: resolveSessionTableDisplayName(
@@ -151,10 +187,16 @@ function buildEntry(
       session.id,
       mergeSourcesByTargetId,
       tableDisplayById,
+      operatorNames,
     ),
+    transferEvents,
+    lifecycleSteps: [],
     billSplit,
     orders: sessionOrders,
   };
+
+  entry.lifecycleSteps = buildSessionLifecycleSteps(entry);
+  return entry;
 }
 
 const EMPTY_PAGE: OrderHistoryPageResult = {
@@ -174,13 +216,19 @@ export async function loadOrderHistoryEntries(
     return { ...EMPTY_PAGE, cappedTotal: 0 };
   }
 
+  const transferSessionIds = await loadSessionIdsTransferredFromTables(
+    admin,
+    query.restaurantId,
+    query.tableIds,
+  );
+
   let countQuery = admin
     .from('table_sessions')
     .select('id', { count: 'exact', head: true })
     .eq('restaurant_id', query.restaurantId)
     .eq('status', 'closed');
 
-  countQuery = applySessionFilters(countQuery, query);
+  countQuery = applySessionFilters(countQuery, query, transferSessionIds);
 
   const { count, error: countError } = await countQuery;
   if (countError) {
@@ -200,7 +248,7 @@ export async function loadOrderHistoryEntries(
     .order('closed_at', { ascending: false })
     .range(query.offset, query.offset + limit - 1);
 
-  sessionQuery = applySessionFilters(sessionQuery, query);
+  sessionQuery = applySessionFilters(sessionQuery, query, transferSessionIds);
 
   const { data: sessionRows, error: sessionError } = await sessionQuery;
   if (sessionError || !sessionRows?.length) {
@@ -235,6 +283,7 @@ export async function loadOrderHistoryEntries(
     itemCodeByMenuId,
     mergeTargetById,
     mergeSourcesByTargetId,
+    transferEventsBySession,
   ] = await Promise.all([
     loadBillSplitsForOrderHistory(admin, query.restaurantId, sessionIds),
     loadSessionCollectedPaymentsForOrderHistory(admin, query.restaurantId, sessionIds),
@@ -242,6 +291,7 @@ export async function loadOrderHistoryEntries(
     loadMenuItemCodeLookup(admin, query.restaurantId, allSessionOrders),
     loadMergeTargetSessionsById(admin, query.restaurantId, mergeTargetSessionIds),
     loadMergeSourceSessionsByTargetId(admin, query.restaurantId, sessionIds),
+    loadTransferEventsBySessionIds(admin, query.restaurantId, sessionIds),
   ]);
 
   const tableDisplayById = await loadRestaurantTableDisplayNames(
@@ -255,12 +305,23 @@ export async function loadOrderHistoryEntries(
       (id): id is string => !!id,
     ),
   );
+  for (const sources of Array.from(mergeSourcesByTargetId.values())) {
+    for (const source of sources) {
+      if (source.closed_by_user_id) operatorIds.push(source.closed_by_user_id);
+    }
+  }
+  for (const events of Array.from(transferEventsBySession.values())) {
+    for (const event of events) {
+      if (event.operatorUserId) operatorIds.push(event.operatorUserId);
+    }
+  }
   const operatorNames = await resolveStaffOperatorNames(admin, {
     restaurantId: query.restaurantId,
     ownerId: query.ownerId,
     restaurantName: query.restaurantName,
     userIds: operatorIds,
   });
+  attachTransferEventOperatorNames(transferEventsBySession, operatorNames);
 
   const items = sessions.map((session) => {
     const sessionOrders = ordersBySession.get(session.id) || [];
@@ -287,6 +348,8 @@ export async function loadOrderHistoryEntries(
       tableDisplayById,
       mergeTargetById,
       mergeSourcesByTargetId,
+      operatorNames,
+      transferEventsBySession.get(session.id),
     );
   });
 

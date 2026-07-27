@@ -14,6 +14,7 @@ import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-
 import {
   buildMergedSourceDetailStatus,
   buildOrderHistorySurfaceMeta,
+  formatOrderHistoryLifecycleStepLine,
 } from '@/lib/order-history/build-lifecycle-presentation';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
@@ -72,7 +73,7 @@ export function OrderHistoryDetailModal({
 
   if (!entry || !surface) return null;
 
-  const { outcomeBadge, lifecycle, lifecycleBoxClass } = surface;
+  const { outcomeBadge, lifecycleSteps, lifecycleBoxClass } = surface;
 
   if (isMergedSourceCloseKind(entry.closeKind)) {
     return (
@@ -95,8 +96,11 @@ export function OrderHistoryDetailModal({
               </p>
             </div>
             <div className={lifecycleBoxClass}>
-              <p>{lifecycle.openedLine}</p>
-              <p>{lifecycle.closedLine}</p>
+              {lifecycleSteps.map((step) => (
+                <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
+                  {formatOrderHistoryLifecycleStepLine(step, i18n)}
+                </p>
+              ))}
             </div>
           </div>
           <OrderHistoryMergeTargetLink
@@ -162,8 +166,11 @@ export function OrderHistoryDetailModal({
             <p className="text-sm text-brand-text">{detail.statusStrip}</p>
           </div>
           <div className={lifecycleBoxClass}>
-            <p>{lifecycle.openedLine}</p>
-            <p>{lifecycle.closedLine}</p>
+            {lifecycleSteps.map((step) => (
+              <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
+                {formatOrderHistoryLifecycleStepLine(step, i18n)}
+              </p>
+            ))}
           </div>
         </div>
 

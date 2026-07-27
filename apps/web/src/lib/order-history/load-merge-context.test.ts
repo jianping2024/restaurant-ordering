@@ -39,14 +39,17 @@ describe('load-merge-context assembly', () => {
               id: 'source-session',
               table_id: 'table-source',
               closed_at: '2026-07-27T12:23:29.000Z',
+              closed_by_user_id: 'user-merge',
               merge_into_session_id: 'target-session',
             },
           ],
         ],
       ]),
       tableDisplayById,
+      new Map([['user-merge', 'Merger']]),
     );
     assert.equal(refs?.[0]?.sourceDisplayName, 'B-03');
+    assert.equal(refs?.[0]?.mergedByName, 'Merger');
   });
 
   it('collects table ids from sessions and merge rows', () => {
@@ -63,6 +66,7 @@ describe('load-merge-context assembly', () => {
               id: 'source-session',
               table_id: 'table-source',
               closed_at: '2026-07-27T12:23:29.000Z',
+              closed_by_user_id: null,
               merge_into_session_id: 'target-session',
             },
           ],

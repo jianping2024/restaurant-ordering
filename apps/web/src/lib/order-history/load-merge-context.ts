@@ -23,6 +23,7 @@ export type MergeSourceSessionRow = {
   id: string;
   table_id: string;
   closed_at: string;
+  closed_by_user_id: string | null;
   merge_into_session_id: string | null;
 };
 
@@ -80,7 +81,7 @@ export async function loadMergeSourceSessionsByTargetId(
 
   const { data, error } = await admin
     .from('table_sessions')
-    .select('id, table_id, closed_at, merge_into_session_id')
+    .select('id, table_id, closed_at, closed_by_user_id, merge_into_session_id')
     .eq('restaurant_id', restaurantId)
     .eq('closed_reason', MERGED_CLOSE_REASON)
     .in('merge_into_session_id', uniqueTargetIds)
@@ -146,6 +147,7 @@ export function assembleMergeSourceRefs(
   sessionId: string,
   mergeSourcesByTargetId: Map<string, MergeSourceSessionRow[]>,
   tableDisplayById: Map<string, string>,
+  operatorNames: ReadonlyMap<string, string>,
 ): OrderHistoryMergeSourceRef[] | undefined {
   const rows = mergeSourcesByTargetId.get(sessionId);
   if (!rows?.length) return undefined;
@@ -155,5 +157,8 @@ export function assembleMergeSourceRefs(
     sourceTableId: row.table_id,
     sourceDisplayName: resolveSessionTableDisplayName(row.table_id, tableDisplayById, []),
     mergedAt: row.closed_at,
+    mergedByName: row.closed_by_user_id
+      ? operatorNames.get(row.closed_by_user_id) ?? null
+      : null,
   }));
 }

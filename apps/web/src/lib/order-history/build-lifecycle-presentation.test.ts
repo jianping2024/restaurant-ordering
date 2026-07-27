@@ -3,13 +3,13 @@ import { describe, it } from 'node:test';
 import {
   ORDER_HISTORY_FORCED_SUMMARY_CLASS,
   buildMergedIntoSummaryLine,
-  buildOrderHistoryLifecycleLines,
   buildOrderHistorySurfaceMeta,
+  formatOrderHistoryLifecycleStepLine,
   resolveOrderHistoryAbnormalEmphasis,
   resolveOrderHistoryCardClass,
-  resolveOrderHistoryClosedByLabel,
   resolveOrderHistoryLifecycleBoxClass,
 } from '@/lib/order-history/build-lifecycle-presentation';
+import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
 import {
   ORDER_HISTORY_OUTCOME_BADGE_CLASS,
   resolveMergedSourceOutcomeBadge,
@@ -58,36 +58,34 @@ describe('resolveOrderHistoryAbnormalEmphasis', () => {
   });
 });
 
-describe('resolveOrderHistoryClosedByLabel', () => {
-  it('prefers operator name', () => {
-    assert.equal(
-      resolveOrderHistoryClosedByLabel('YAN ZI', 'auto_nightly', i18n),
-      'YAN ZI',
-    );
-  });
-
-  it('uses nightly and merge labels when operator missing', () => {
-    assert.equal(resolveOrderHistoryClosedByLabel(null, 'auto_nightly', i18n), '夜间自动');
-    assert.equal(resolveOrderHistoryClosedByLabel(null, 'merged', i18n), '并台');
-    assert.equal(resolveOrderHistoryClosedByLabel(null, 'frontdesk_closed', i18n), '—');
-  });
-});
-
-describe('buildOrderHistoryLifecycleLines', () => {
-  it('builds labeled open and close lines', () => {
-    const lines = buildOrderHistoryLifecycleLines(
+describe('formatOrderHistoryLifecycleStepLine', () => {
+  it('formats open and merge-out steps', () => {
+    const opened = formatOrderHistoryLifecycleStepLine(
       {
-        openedAt: '2026-07-26T10:00:00.000Z',
-        openedByName: 'Waiter',
-        closedAt: '2026-07-26T14:00:00.000Z',
-        closedByName: 'Cashier',
-        closedReason: 'cashier_closed',
+        kind: 'opened',
+        at: '2026-07-26T10:00:00.000Z',
+        operatorName: 'Waiter',
+        detail: null,
+        sortKey: 'opened',
       },
       i18n,
       (iso) => iso.slice(0, 10),
     );
-    assert.equal(lines.openedLine, '开桌时间 2026-07-26 · 开桌 Waiter');
-    assert.equal(lines.closedLine, '关台时间 2026-07-26 · 关台人 Cashier');
+    assert.equal(opened, '开桌 · 2026-07-26 · Waiter');
+
+    const mergedOut = formatOrderHistoryLifecycleStepLine(
+      {
+        kind: 'merged_out',
+        at: '2026-07-26T14:00:00.000Z',
+        operatorName: 'Carol',
+        detail: 'A-04',
+        sortKey: 'merged_out',
+      },
+      i18n,
+      (iso) => iso.slice(0, 10),
+    );
+    assert.match(mergedOut, /A-04/);
+    assert.match(mergedOut, /Carol/);
   });
 });
 
@@ -129,7 +127,7 @@ describe('ORDER_HISTORY_OUTCOME_BADGE_CLASS', () => {
 function mergedEntry(
   overrides: Partial<OrderHistoryEntry> = {},
 ): OrderHistoryEntry {
-  return {
+  const base: OrderHistoryEntry = {
     sessionId: 'source-1',
     tableId: 'table-source',
     displayName: 'B-03',
@@ -137,7 +135,7 @@ function mergedEntry(
     openedAt: '2026-07-27T12:19:24.000Z',
     openedByName: 'Cashier',
     closedAt: '2026-07-27T12:23:29.000Z',
-    closedByName: null,
+    closedByName: 'Merger',
     closedReason: 'merged',
     itemCount: 0,
     closeAnnotation: { isForcedUnpaidClose: false },
@@ -158,8 +156,11 @@ function mergedEntry(
       targetDisplayName: 'A-04',
       targetStatus: 'closed',
     },
-    ...overrides,
+    lifecycleSteps: [],
   };
+  const entry = { ...base, ...overrides };
+  entry.lifecycleSteps = buildSessionLifecycleSteps(entry);
+  return entry;
 }
 
 describe('merge surface presentation', () => {
@@ -194,27 +195,26 @@ describe('merge surface presentation', () => {
     assert.equal(meta.outcomeBadge.label, '已并台');
     assert.equal(meta.mergeSummaryLine, '已并入 A-04');
     assert.equal(meta.abnormal, 'none');
+    assert.equal(meta.lifecycleSteps.some((step) => step.kind === 'merged_out'), true);
   });
 
   it('keeps billing path unchanged', () => {
-    const meta = buildOrderHistorySurfaceMeta(
-      {
-        ...mergedEntry(),
-        closeKind: 'billing',
-        closedReason: 'frontdesk_closed',
-        settlement: {
-          outcome: 'fully_paid',
-          summary: null,
-          showFinancialDetails: false,
-          collectedPayments: [],
-          listAmount: 10,
-          listAmountKind: 'paid',
-          paidRevenue: 10,
-          canPrintBill: true,
-        },
+    const billingEntry = mergedEntry({
+      closeKind: 'billing',
+      closedReason: 'frontdesk_closed',
+      settlement: {
+        outcome: 'fully_paid',
+        summary: null,
+        showFinancialDetails: false,
+        collectedPayments: [],
+        listAmount: 10,
+        listAmountKind: 'paid',
+        paidRevenue: 10,
+        canPrintBill: true,
       },
-      i18n,
-    );
+    });
+    billingEntry.lifecycleSteps = buildSessionLifecycleSteps(billingEntry);
+    const meta = buildOrderHistorySurfaceMeta(billingEntry, i18n);
     assert.equal(meta.outcomeBadge.label, '已结账关台');
     assert.equal(meta.mergeSummaryLine, null);
   });

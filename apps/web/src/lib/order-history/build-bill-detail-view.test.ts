@@ -23,6 +23,7 @@ function baseEntry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
     closedReason: 'frontdesk_closed',
     itemCount: 2,
     closeAnnotation: { isForcedUnpaidClose: false },
+    lifecycleSteps: [],
     orders: [],
     settlement: {
       outcome: 'fully_paid',

@@ -3,10 +3,6 @@
 import Link from 'next/link';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import { waiterTableHref } from '@/lib/staff-routes';
-import {
-  formatMergeSourceLine,
-  formatOrderHistoryInstant,
-} from '@/lib/order-history/build-lifecycle-presentation';
 import type { getMessages } from '@/lib/i18n/messages';
 
 type OrderHistoryI18n = ReturnType<typeof getMessages>['orderHistory'];
@@ -74,26 +70,27 @@ export function OrderHistoryMergeSourcesBlock({
   const sources = entry.mergeSources;
   if (!sources?.length) return null;
 
+  const navigable = sources.filter((source) =>
+    findEntryBySessionId(entries, source.sourceSessionId),
+  );
+  if (navigable.length === 0) return null;
+
   return (
     <div className="rounded-lg border border-brand-border/60 bg-brand-bg/40 px-3 py-2.5 space-y-2">
-      <p className="text-sm font-medium text-brand-text">{i18n.mergeSourcesTitle}</p>
+      <p className="text-sm font-medium text-brand-text">{i18n.mergeSourcesNavTitle}</p>
       <ul className="space-y-1.5">
-        {sources.map((source) => {
+        {navigable.map((source) => {
           const sourceEntry = findEntryBySessionId(entries, source.sourceSessionId);
-          const line = formatMergeSourceLine(source, i18n, formatOrderHistoryInstant);
+          if (!sourceEntry) return null;
           return (
             <li key={source.sourceSessionId}>
-              {sourceEntry ? (
-                <button
-                  type="button"
-                  className="text-[13px] text-brand-gold hover:underline text-left"
-                  onClick={() => onSelectEntry(sourceEntry)}
-                >
-                  {line}
-                </button>
-              ) : (
-                <span className="text-[13px] text-brand-text-muted">{line}</span>
-              )}
+              <button
+                type="button"
+                className="text-[13px] text-brand-gold hover:underline text-left"
+                onClick={() => onSelectEntry(sourceEntry)}
+              >
+                {i18n.viewSourceSession.replace('{table}', source.sourceDisplayName)}
+              </button>
             </li>
           );
         })}

@@ -600,16 +600,21 @@ function WaiterTableDetailInner({
         return;
       }
 
+      const { data: authData } = await supabase.auth.getUser();
+      const operatorUserId = authData.user?.id ?? null;
+
       const { data: rpcResult, error } = currentOperation === 'transfer'
         ? await supabase.rpc('transfer_table_session', {
           p_restaurant_id: restaurant.id,
           p_from_table_id: fromTable,
           p_to_table_id: toTable,
+          p_operator_user_id: operatorUserId,
         })
         : await supabase.rpc('merge_table_sessions', {
           p_restaurant_id: restaurant.id,
           p_source_table_id: fromTable,
           p_target_table_id: toTable,
+          p_operator_user_id: operatorUserId,
         });
 
       if (error) {

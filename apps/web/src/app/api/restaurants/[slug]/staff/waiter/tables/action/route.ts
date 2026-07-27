@@ -64,11 +64,13 @@ export async function POST(
           p_restaurant_id: ctx.restaurant_id,
           p_from_table_id: fromTableId,
           p_to_table_id: toTableId,
+          p_operator_user_id: ctx.user_id,
         })
       : await admin.rpc('merge_table_sessions', {
           p_restaurant_id: ctx.restaurant_id,
           p_source_table_id: fromTableId,
           p_target_table_id: toTableId,
+          p_operator_user_id: ctx.user_id,
         });
 
   if (error) {

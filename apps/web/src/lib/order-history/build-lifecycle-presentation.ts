@@ -2,8 +2,10 @@ import type {
   OrderHistoryCloseAnnotation,
   OrderHistoryCloseOutcome,
   OrderHistoryEntry,
+  OrderHistoryLifecycleStep,
 } from '@/lib/order-history/types';
-import { isMergedCloseReason, isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
+import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
+import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
 import {
   resolveMergedSourceOutcomeBadge,
   resolveOrderHistoryOutcomeBadge,
@@ -91,48 +93,48 @@ export function formatOrderHistoryInstant(iso: string): string {
   return `${get('day')}/${get('month')}/${get('year')}, ${get('hour')}:${get('minute')}:${get('second')}`;
 }
 
-/** Who closed: operator name, nightly system label, merge label, or em dash. */
-export function resolveOrderHistoryClosedByLabel(
-  closedByName: string | null,
-  closedReason: string | null | undefined,
-  i18n: OrderHistoryI18n,
-): string {
-  const name = closedByName?.trim();
-  if (name) return name;
-  if (closedReason === 'auto_nightly') return i18n.closedByNightly;
-  if (isMergedCloseReason(closedReason)) return i18n.closedByMerged;
-  return '—';
+function formatOperatorLabel(name: string | null | undefined, i18n: OrderHistoryI18n): string {
+  const trimmed = name?.trim();
+  return trimmed || i18n.lifecycleOperatorUnknown;
 }
 
-export type OrderHistoryLifecycleLines = {
-  openedLine: string;
-  closedLine: string;
-};
-
-/** Single lifecycle copy shape for list + detail. */
-export function buildOrderHistoryLifecycleLines(
-  input: {
-    openedAt: string | null;
-    openedByName: string | null;
-    closedAt: string;
-    closedByName: string | null;
-    closedReason: string | null | undefined;
-  },
+/** Single lifecycle line for list + detail. */
+export function formatOrderHistoryLifecycleStepLine(
+  step: OrderHistoryLifecycleStep,
   i18n: OrderHistoryI18n,
   formatInstant: (iso: string) => string = formatOrderHistoryInstant,
-): OrderHistoryLifecycleLines {
-  const openedWhen = input.openedAt ? formatInstant(input.openedAt) : '—';
-  const openedWho = input.openedByName?.trim() || '—';
-  const closedWho = resolveOrderHistoryClosedByLabel(
-    input.closedByName,
-    input.closedReason,
-    i18n,
-  );
+): string {
+  const when = formatInstant(step.at);
+  const operator = formatOperatorLabel(step.operatorName, i18n);
 
-  return {
-    openedLine: `${i18n.openedAtLabel} ${openedWhen} · ${i18n.openedBy} ${openedWho}`,
-    closedLine: `${i18n.closedAtLabel} ${formatInstant(input.closedAt)} · ${i18n.closedBy} ${closedWho}`,
-  };
+  switch (step.kind) {
+    case 'opened':
+      return i18n.lifecycleOpened
+        .replace('{time}', when)
+        .replace('{operator}', operator);
+    case 'transferred':
+      return i18n.lifecycleTransferred
+        .replace('{time}', when)
+        .replace('{detail}', step.detail ?? '—')
+        .replace('{operator}', operator);
+    case 'merged_in':
+      return i18n.lifecycleMergedIn
+        .replace('{time}', when)
+        .replace('{table}', step.detail ?? '—')
+        .replace('{operator}', operator);
+    case 'merged_out':
+      return i18n.lifecycleMergedOut
+        .replace('{time}', when)
+        .replace('{table}', step.detail ?? '—')
+        .replace('{operator}', operator);
+    case 'closed':
+      if (step.systemClose) {
+        return i18n.lifecycleClosedNightly.replace('{time}', when);
+      }
+      return i18n.lifecycleClosed
+        .replace('{time}', when)
+        .replace('{operator}', operator);
+  }
 }
 
 export function buildMergedIntoSummaryLine(
@@ -156,20 +158,10 @@ export function buildMergedSourceDetailStatus(
   return `${buildMergedIntoSummaryLine(entry, i18n)} · ${i18n.mergedSourceOrdersTransferred}`;
 }
 
-export function formatMergeSourceLine(
-  source: NonNullable<OrderHistoryEntry['mergeSources']>[number],
-  i18n: OrderHistoryI18n,
-  formatInstant: (iso: string) => string = formatOrderHistoryInstant,
-): string {
-  return i18n.mergeSourceLine
-    .replace('{table}', source.sourceDisplayName)
-    .replace('{time}', formatInstant(source.mergedAt));
-}
-
 export type OrderHistorySurfaceMeta = {
   outcomeBadge: OrderHistoryOutcomeBadge;
   abnormal: OrderHistoryAbnormalEmphasis;
-  lifecycle: OrderHistoryLifecycleLines;
+  lifecycleSteps: OrderHistoryLifecycleStep[];
   cardClass: string;
   lifecycleBoxClass: string;
   mergeSummaryLine: string | null;
@@ -180,13 +172,14 @@ export function buildOrderHistorySurfaceMeta(
   entry: OrderHistoryEntry,
   i18n: OrderHistoryI18n,
 ): OrderHistorySurfaceMeta {
-  const lifecycle = buildOrderHistoryLifecycleLines(entry, i18n);
+  const lifecycleSteps =
+    entry.lifecycleSteps.length > 0 ? entry.lifecycleSteps : buildSessionLifecycleSteps(entry);
 
   if (isMergedSourceCloseKind(entry.closeKind)) {
     return {
       outcomeBadge: resolveMergedSourceOutcomeBadge(i18n),
       abnormal: 'none',
-      lifecycle,
+      lifecycleSteps,
       cardClass: resolveOrderHistoryCardClass('none'),
       lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass('none'),
       mergeSummaryLine: buildMergedIntoSummaryLine(entry, i18n),
@@ -200,7 +193,7 @@ export function buildOrderHistorySurfaceMeta(
   return {
     outcomeBadge: resolveOrderHistoryOutcomeBadge(entry.settlement.outcome, i18n),
     abnormal,
-    lifecycle,
+    lifecycleSteps,
     cardClass: resolveOrderHistoryCardClass(abnormal),
     lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass(abnormal),
     mergeSummaryLine: null,

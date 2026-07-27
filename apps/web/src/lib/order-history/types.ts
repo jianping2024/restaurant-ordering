@@ -47,6 +47,35 @@ export type OrderHistoryMergeSourceRef = {
   sourceTableId: string;
   sourceDisplayName: string;
   mergedAt: string;
+  mergedByName: string | null;
+};
+
+export type OrderHistoryTransferEvent = {
+  id: string;
+  occurredAt: string;
+  operatorUserId: string | null;
+  operatorName: string | null;
+  fromTableId: string;
+  toTableId: string;
+  fromDisplayName: string;
+  toDisplayName: string;
+};
+
+export type OrderHistoryLifecycleStepKind =
+  | 'opened'
+  | 'transferred'
+  | 'merged_in'
+  | 'merged_out'
+  | 'closed';
+
+export type OrderHistoryLifecycleStep = {
+  kind: OrderHistoryLifecycleStepKind;
+  at: string;
+  operatorName: string | null;
+  detail: string | null;
+  sortKey: string;
+  relatedSessionId?: string;
+  systemClose?: boolean;
 };
 
 export type OrderHistoryEntry = {
@@ -68,6 +97,10 @@ export type OrderHistoryEntry = {
   mergeContext?: OrderHistoryMergeTargetContext;
   /** Direct tables merged into this billing session. */
   mergeSources?: OrderHistoryMergeSourceRef[];
+  /** Mid-session transfers (chronological). */
+  transferEvents?: OrderHistoryTransferEvent[];
+  /** Ordered lifecycle for list + detail (composed in lib). */
+  lifecycleSteps: OrderHistoryLifecycleStep[];
   billSplit?: OrderHistoryBillSplitSummary;
   orders: Order[];
 };

@@ -5,7 +5,6 @@ import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
   getByItemLineStatusFromRows,
-  getQtyPartsRowHint,
   isRowQtyOverAllocated,
   type ByItemConsumerRow,
   type ByItemLineStatusLabels,
@@ -182,18 +181,15 @@ function MenuByItemDishAllocator({
         />
       )}
     >
-      <div className="flex items-center gap-2 mb-1" aria-hidden>
-        <div className="flex-1 min-w-0" />
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_2rem] gap-x-2 gap-y-2 items-start">
+        <div aria-hidden />
         <ByItemQtyColumnHeader labels={labels} />
-        <div className="w-8 shrink-0" />
-      </div>
-      <div className="space-y-2">
+        <div aria-hidden />
         {rows.map((row) => {
           const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
-          const qtyInvalid = !!getQtyPartsRowHint(row, labels);
           const qtyOver = isRowQtyOverAllocated(row, rows, lineQty);
           return (
-            <div key={row.id} className="flex items-start gap-2">
+            <div key={row.id} className="contents">
               <ConsumerNameCombobox
                 value={row.name}
                 options={availableConsumerNamesForRow({
@@ -209,7 +205,7 @@ function MenuByItemDishAllocator({
               <ByItemQtyInput
                 row={row}
                 labels={labels}
-                invalid={qtyInvalid || qtyOver}
+                overAllocated={qtyOver}
                 onChange={(patch) => updateRow(row.id, patch)}
                 onCommit={() => commitRow(row.id)}
               />

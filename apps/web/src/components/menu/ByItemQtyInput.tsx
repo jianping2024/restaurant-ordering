@@ -11,11 +11,14 @@ import {
   customerQtyInputClass,
 } from '@/components/menu/customer-form-input-styles';
 
+type QtyField = 'qtyWhole' | 'qtyNum' | 'qtyDen';
+
 interface Props {
   row: ByItemConsumerRow;
   labels: QtyPartsLabels;
-  invalid: boolean;
-  onChange: (patch: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>) => void;
+  /** Line-level over-allocation; field-part issues are owned inside this control. */
+  overAllocated?: boolean;
+  onChange: (patch: Pick<ByItemConsumerRow, QtyField>) => void;
   onCommit?: () => void;
 }
 
@@ -34,13 +37,24 @@ export function ByItemQtyColumnHeader({ labels }: { labels: QtyPartsLabels }) {
   );
 }
 
-export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Props) {
+export function ByItemQtyInput({
+  row,
+  labels,
+  overAllocated = false,
+  onChange,
+  onCommit,
+}: Props) {
   const hint = getQtyPartsRowHint(row, labels);
-  const fieldClass = invalid || hint ? customerQtyInputAlertClass : customerQtyInputClass;
+  const fieldClass = overAllocated || hint ? customerQtyInputAlertClass : customerQtyInputClass;
 
-  const setWhole = (raw: string) => onChange({ qtyWhole: sanitizeQtyDigits(raw), qtyNum: row.qtyNum, qtyDen: row.qtyDen });
-  const setNum = (raw: string) => onChange({ qtyWhole: row.qtyWhole, qtyNum: sanitizeQtyDigits(raw), qtyDen: row.qtyDen });
-  const setDen = (raw: string) => onChange({ qtyWhole: row.qtyWhole, qtyNum: row.qtyNum, qtyDen: sanitizeQtyDigits(raw) });
+  const patchQty = (field: QtyField, raw: string) => {
+    const digits = sanitizeQtyDigits(raw);
+    onChange({
+      qtyWhole: field === 'qtyWhole' ? digits : row.qtyWhole,
+      qtyNum: field === 'qtyNum' ? digits : row.qtyNum,
+      qtyDen: field === 'qtyDen' ? digits : row.qtyDen,
+    });
+  };
 
   return (
     <div className="shrink-0">
@@ -50,7 +64,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyWhole}
-          onChange={(e) => setWhole(e.target.value)}
+          onChange={(e) => patchQty('qtyWhole', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.wholeLabel}
           className={`w-9 px-1 ${fieldClass}`}
@@ -61,7 +75,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyNum}
-          onChange={(e) => setNum(e.target.value)}
+          onChange={(e) => patchQty('qtyNum', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.numLabel}
           className={`w-7 px-0.5 ${fieldClass}`}
@@ -72,7 +86,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyDen}
-          onChange={(e) => setDen(e.target.value)}
+          onChange={(e) => patchQty('qtyDen', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.denLabel}
           className={`w-7 px-0.5 ${fieldClass}`}

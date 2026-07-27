@@ -37,6 +37,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   printEnqueueRateLimited: string;
   waitingForBuffet: string;
   buffetRequired: string;
+  sushiLimitHint: string;
+  perPersonLimitReached: string;
+  limitedItemNeedsHeadcount: string;
   subcategoryAll: string;
   catalogLoading: string;
 }> = {
@@ -78,6 +81,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Demasiados pedidos de impressao; tente novamente dentro de um minuto.',
     waitingForBuffet: 'Aguarde: o garcom deve registar o buffet desta mesa antes de pedir pratos.',
     buffetRequired: 'O garcom ainda nao activou esta mesa. Peça para registar o buffet primeiro.',
+    sushiLimitHint: 'Inclui {perPerson}/pessoa; extra €{price}/un. Pecao staff para ultrapassar.',
+    perPersonLimitReached: 'Atingiu o limite incluido. Peca ao staff para adicionar (preco extra).',
+    limitedItemNeedsHeadcount: 'Registe primeiro o numero de pessoas na mesa para pedir este prato.',
     subcategoryAll: 'Tudo',
     catalogLoading: 'A carregar menu…',
   },
@@ -119,6 +125,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Too many print requests; please try again in a minute.',
     waitingForBuffet: 'Please wait: staff must post buffet for this table before you can order dishes.',
     buffetRequired: 'This table is not open for ordering yet. Ask staff to post buffet first.',
+    sushiLimitHint: 'Includes {perPerson}/person; overage €{price} each. Ask staff to order more.',
+    perPersonLimitReached: 'Included limit reached. Ask staff to add more (overage price).',
+    limitedItemNeedsHeadcount: 'Staff must set the table headcount before ordering this dish.',
     subcategoryAll: 'All',
     catalogLoading: 'Loading menu…',
   },
@@ -160,6 +169,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
     waitingForBuffet: '请稍候：服务员需先为本桌登记自助餐后，方可点菜。',
     buffetRequired: '本桌尚未开台，请先请服务员登记自助餐。',
+    sushiLimitHint: '含每人 {perPerson} 份；超出每份 €{price}。超额请找员工代点。',
+    perPersonLimitReached: '已达免费额度。超额请找员工代点（按超额价）。',
+    limitedItemNeedsHeadcount: '请先登记本桌人数后再点此限量菜。',
     subcategoryAll: '全部',
     catalogLoading: '正在加载菜单…',
   },

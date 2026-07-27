@@ -9,6 +9,7 @@ const base: BuffetDashboardData = {
   rules: [],
   calendarRows: [{ on_date: '2026-01-01', kind: 'holiday' }],
   buffet_friday_weekend_from: '18:00:00',
+  buffet_service_mode: 'classic',
 };
 
 describe('mergeBuffetDashboardPatch', () => {

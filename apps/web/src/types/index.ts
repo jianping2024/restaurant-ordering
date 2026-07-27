@@ -75,6 +75,11 @@ export interface Restaurant {
   country_code?: string;
   /** Lisbon local time: Friday at/after this → weekend buffet pricing; null = off. */
   buffet_friday_weekend_from?: string | null;
+  /**
+   * classic = unlimited menu after open; sushi = optional per-person limits + overage price.
+   * See `lib/buffet-service-mode.ts`.
+   */
+  buffet_service_mode?: 'classic' | 'sushi';
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
   feature_flags?: Record<string, boolean> | null;
   suspended_at?: string | null;
@@ -107,6 +112,13 @@ export interface MenuItem {
   description_en?: string;
   description_zh?: string;
   price: number;
+  /**
+   * Sushi mode: max included portions per guest (adult+child). Null = unlimited.
+   * Requires `over_limit_unit_price` when set.
+   */
+  per_person_qty_limit?: number | null;
+  /** Unit price beyond free allowance; required when `per_person_qty_limit` is set. */
+  over_limit_unit_price?: number | null;
   /** VAT / IVA rate in percent (e.g. 23 for 23%). */
   vat_rate: number;
   category: Category;

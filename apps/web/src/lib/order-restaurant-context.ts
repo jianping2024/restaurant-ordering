@@ -1,12 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isRestaurantSuspended, resolveActiveGeoOrderCoords } from '@mesa/shared';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
+import {
+  normalizeBuffetServiceMode,
+  type BuffetServiceMode,
+} from '@/lib/buffet-service-mode';
 
 export type OrderRestaurantMode = 'guest' | 'staff';
 
 export type OrderRestaurantContext = {
   restaurantId: string;
   slug: string;
+  buffetServiceMode: BuffetServiceMode;
   geo: {
     latitude: number;
     longitude: number;
@@ -19,7 +24,7 @@ export type ResolveOrderRestaurantResult =
   | { ok: false; status: number; error: string };
 
 const RESTAURANT_SELECT =
-  'id, slug, suspended_at, geo_latitude, geo_longitude, order_radius_meters, feature_flags';
+  'id, slug, suspended_at, geo_latitude, geo_longitude, order_radius_meters, feature_flags, buffet_service_mode';
 
 /** Narrow tenant load for orders/append — not the customer menu session loader. */
 export async function resolveOrderRestaurant(
@@ -61,6 +66,7 @@ export async function resolveOrderRestaurant(
     restaurant: {
       restaurantId: data.id as string,
       slug: data.slug as string,
+      buffetServiceMode: normalizeBuffetServiceMode(data.buffet_service_mode),
       geo,
     },
   };

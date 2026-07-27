@@ -15,6 +15,8 @@ export type AppendOrderFailureCode =
   | 'rate_limited'
   | 'append_in_progress'
   | 'invalid_client_request_id'
+  | 'per_person_limit_exceeded'
+  | 'limited_item_requires_headcount'
   | 'submit_failed';
 
 export type MenuOrderSubmitSuccess = {
@@ -113,6 +115,12 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'session_billing';
     case 'buffet_required':
       return 'buffet_required';
+    case 'per_person_limit_exceeded':
+      return 'per_person_limit_exceeded';
+    case 'limited_item_requires_headcount':
+      return 'limited_item_requires_headcount';
+    case 'over_limit_price_missing':
+      return 'submit_failed';
     case 'rate_limited':
       return 'rate_limited';
     case 'append_in_progress':

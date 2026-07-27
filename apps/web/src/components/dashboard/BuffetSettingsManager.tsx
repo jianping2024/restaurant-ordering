@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
+import { BuffetServiceModePanel } from '@/components/dashboard/buffet/BuffetServiceModePanel';
+import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
 import { BuffetTimeSlotsPanel } from '@/components/dashboard/buffet/BuffetTimeSlotsPanel';
 import {
   BuffetSettingsTabs,
@@ -73,9 +75,11 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     rules,
     calendarRows,
     fridayWeekendFrom,
+    buffetServiceMode,
     fridayEnabled,
     fridayDraftFrom,
     fridaySaving,
+    serviceModeSaving,
     setFridayEnabled,
     setFridayDraftFrom,
     createBuffet,
@@ -91,6 +95,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     toggleRuleActive,
     upsertCalendar,
     saveFridayPolicy,
+    saveServiceMode,
   } = useBuffetDashboard(initialData);
 
   const [tab, setTab] = useState<'buffets' | 'slots' | 'rules' | 'calendar'>('buffets');
@@ -321,6 +326,15 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     showToast(t.fridayWeekendSaved, 'success');
   };
 
+  const handleSaveServiceMode = async (mode: BuffetServiceMode) => {
+    const result = await saveServiceMode(mode);
+    if (!result.ok) {
+      showToast(t.saveError, 'error');
+      return;
+    }
+    showToast(t.serviceModeSaved, 'success');
+  };
+
   useEffect(() => {
     if (!matrixBuffetId && buffets[0]) setMatrixBuffetId(buffets[0].id);
   }, [buffets, matrixBuffetId]);
@@ -369,6 +383,16 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
             : '';
 
   const showPricingTools = tab === 'rules' || tab === 'calendar';
+
+  const serviceModeBlock = (embedded = false) => (
+    <BuffetServiceModePanel
+      embedded={embedded}
+      t={t}
+      mode={buffetServiceMode}
+      saving={serviceModeSaving}
+      onSave={(mode) => void handleSaveServiceMode(mode)}
+    />
+  );
 
   const fridayPolicyBlock = (embedded = false) =>
     showPricingTools && (
@@ -457,6 +481,8 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
         activeId={tab}
         onChange={(id) => setTab(id as (typeof tabs)[number]['id'])}
       />
+
+      {serviceModeBlock(!!embedded)}
 
       {tab === 'buffets' && (
         <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">

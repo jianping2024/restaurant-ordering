@@ -3,6 +3,10 @@ import type { Buffet, BuffetCalendarKind, BuffetPriceRule, BuffetTimeSlot } from
 import type { BuffetDashboardPatch } from '@/lib/buffet-dashboard-patch';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import {
+  normalizeBuffetServiceMode,
+  type BuffetServiceMode,
+} from '@/lib/buffet-service-mode';
 
 export type BuffetDashboardData = {
   buffets: Buffet[];
@@ -10,6 +14,7 @@ export type BuffetDashboardData = {
   rules: BuffetPriceRule[];
   calendarRows: Array<{ on_date: string; kind: 'holiday' | 'special' }>;
   buffet_friday_weekend_from: string | null;
+  buffet_service_mode: BuffetServiceMode;
 };
 
 export type BuffetMutationResult = { patch: BuffetDashboardPatch } | MutationError;
@@ -76,18 +81,25 @@ async function loadCalendarSlice(
   };
 }
 
-async function loadFridaySlice(
+async function loadRestaurantBuffetSettingsSlice(
   admin: SupabaseClient,
   restaurantId: string,
-): Promise<{ buffet_friday_weekend_from: string | null } | MutationError> {
+): Promise<
+  | {
+      buffet_friday_weekend_from: string | null;
+      buffet_service_mode: BuffetServiceMode;
+    }
+  | MutationError
+> {
   const { data, error } = await admin
     .from('restaurants')
-    .select('buffet_friday_weekend_from')
+    .select('buffet_friday_weekend_from, buffet_service_mode')
     .eq('id', restaurantId)
     .maybeSingle();
   if (error) return { error: 'restaurant_query_failed', message: error.message, status: 500 };
   return {
     buffet_friday_weekend_from: (data?.buffet_friday_weekend_from as string | null) ?? null,
+    buffet_service_mode: normalizeBuffetServiceMode(data?.buffet_service_mode),
   };
 }
 
@@ -111,7 +123,7 @@ export async function loadBuffetDashboard(
     loadSlotsSlice(admin, restaurantId),
     loadRulesSlice(admin, restaurantId),
     loadCalendarSlice(admin, restaurantId),
-    loadFridaySlice(admin, restaurantId),
+    loadRestaurantBuffetSettingsSlice(admin, restaurantId),
   ]);
 
   if ('error' in buffetsRes) return buffetsRes;
@@ -126,6 +138,7 @@ export async function loadBuffetDashboard(
     rules: rulesRes.rules,
     calendarRows: calendarRes.calendarRows,
     buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
+    buffet_service_mode: restaurantRes.buffet_service_mode,
   };
 }
 
@@ -424,7 +437,27 @@ export async function updateBuffetFridayPolicy(
     .eq('id', restaurantId);
   if (error) return { error: 'update_failed', message: error.message, status: 500 };
 
-  const fridayRes = await loadFridaySlice(admin, restaurantId);
-  if ('error' in fridayRes) return fridayRes;
-  return { patch: fridayRes };
+  const restaurantRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);
+  if ('error' in restaurantRes) return restaurantRes;
+  return {
+    patch: {
+      buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
+    },
+  };
+}
+
+export async function updateBuffetServiceMode(
+  admin: SupabaseClient,
+  restaurantId: string,
+  mode: BuffetServiceMode,
+): Promise<BuffetMutationResult> {
+  const { error } = await admin
+    .from('restaurants')
+    .update({ buffet_service_mode: mode })
+    .eq('id', restaurantId);
+  if (error) return { error: 'update_failed', message: error.message, status: 500 };
+
+  const restaurantRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);
+  if ('error' in restaurantRes) return restaurantRes;
+  return { patch: { buffet_service_mode: restaurantRes.buffet_service_mode } };
 }

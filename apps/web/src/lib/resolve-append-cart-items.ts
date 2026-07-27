@@ -5,7 +5,15 @@ import {
   categoryCodePathFromLeaf,
   type MenuCategoryForPrint,
 } from '@/lib/menu-print-label';
-import type { OrderItem } from '@/types';
+import {
+  applySushiLimitToCartLine,
+  sessionGuestCountForLimits,
+  sessionOrderedQtyForMenuItem,
+  type ApplySushiLimitError,
+} from '@/lib/sushi-buffet-limits';
+import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
+import type { Order, OrderItem } from '@/types';
 import {
   APPEND_CART_MAX_LINES,
   APPEND_CART_QTY_MAX,
@@ -16,7 +24,8 @@ import {
 export type ResolveAppendCartError =
   | 'invalid_items'
   | 'menu_item_not_found'
-  | 'menu_item_unavailable';
+  | 'menu_item_unavailable'
+  | ApplySushiLimitError;
 
 export type ResolveAppendCartSuccess = {
   ok: true;
@@ -41,6 +50,8 @@ type MenuItemRow = {
   emoji: string | null;
   available: boolean;
   item_code: string | null;
+  per_person_qty_limit: number | null;
+  over_limit_unit_price: number | null;
 };
 
 export type ParsedAppendCartLine = {
@@ -189,7 +200,9 @@ async function loadCategoriesForLeafIds(
 
 function menuRowToOrderItem(
   menu: MenuItemRow,
-  line: ParsedAppendCartLine,
+  qty: number,
+  note: string,
+  unitPrice: number,
   batchId: string,
   addedAt: string,
   categories: MenuCategoryForPrint[],
@@ -201,9 +214,9 @@ function menuRowToOrderItem(
     name_pt,
     name_en: menu.name_en ?? undefined,
     name_zh: menu.name_zh ?? undefined,
-    qty: line.qty,
-    note: line.note,
-    price: coerceCartPrice(menu.price),
+    qty,
+    note,
+    price: coerceCartPrice(unitPrice),
     emoji: typeof menu.emoji === 'string' && menu.emoji ? menu.emoji.slice(0, 8) : '🍽️',
     item_code: menu.item_code?.trim() || null,
     category_code_path: categoryCodePathFromLeaf(menu.category_id, categories),
@@ -215,6 +228,7 @@ function menuRowToOrderItem(
 
 /**
  * Resolve trusted append cart lines to {@link OrderItem} rows using menu DB prices.
+ * In sushi mode, applies per-person free allowance and staff overage pricing.
  */
 export async function resolveAppendCartItems(params: {
   admin: SupabaseClient;
@@ -222,6 +236,10 @@ export async function resolveAppendCartItems(params: {
   rawItems: unknown;
   batchId?: string;
   addedAt?: string;
+  /** When omitted, limits are not applied (classic behavior). */
+  buffetServiceMode?: BuffetServiceMode | string | null;
+  staffAssisted?: boolean;
+  sessionOrders?: Array<Pick<Order, 'items' | 'status'>>;
 }): Promise<ResolveAppendCartResult> {
   const parsed = parseAppendCartRawItems(params.rawItems);
   if (!parsed.ok) return parsed;
@@ -231,7 +249,9 @@ export async function resolveAppendCartItems(params: {
 
   const { data, error } = await params.admin
     .from('menu_items')
-    .select('id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code')
+    .select(
+      'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price',
+    )
     .eq('restaurant_id', params.restaurantId)
     .in('id', ids);
 
@@ -248,6 +268,10 @@ export async function resolveAppendCartItems(params: {
 
   const batchId = params.batchId ?? generateAppendBatchId();
   const addedAt = params.addedAt ?? new Date().toISOString();
+  const serviceMode = normalizeBuffetServiceMode(params.buffetServiceMode);
+  const sessionOrders = params.sessionOrders ?? [];
+  const guestCount = sessionGuestCountForLimits(sessionOrders);
+  const staffAssisted = params.staffAssisted === true;
   const items: OrderItem[] = [];
 
   for (const line of lines) {
@@ -258,7 +282,40 @@ export async function resolveAppendCartItems(params: {
     if (!menu.available) {
       return { ok: false, error: 'menu_item_unavailable' };
     }
-    items.push(menuRowToOrderItem(menu, line, batchId, addedAt, categories));
+
+    const alreadyOrdered = sessionOrderedQtyForMenuItem(sessionOrders, line.menuItemId);
+    const priced = applySushiLimitToCartLine({
+      serviceMode,
+      staffAssisted,
+      guestCount,
+      alreadyOrdered,
+      requestQty: line.qty,
+      menuPrice: coerceCartPrice(menu.price),
+      item: {
+        per_person_qty_limit: menu.per_person_qty_limit,
+        over_limit_unit_price:
+          menu.over_limit_unit_price == null
+            ? null
+            : coerceCartPrice(menu.over_limit_unit_price),
+      },
+    });
+    if (!priced.ok) {
+      return { ok: false, error: priced.error };
+    }
+
+    for (const slice of priced.slices) {
+      items.push(
+        menuRowToOrderItem(
+          menu,
+          slice.qty,
+          line.note,
+          slice.unitPrice,
+          batchId,
+          addedAt,
+          categories,
+        ),
+      );
+    }
   }
 
   return { ok: true, items, batchId };

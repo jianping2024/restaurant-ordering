@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
+import { APPEND_CART_QTY_MAX, clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { OrderedDrawer } from './OrderedDrawer';
@@ -50,6 +50,14 @@ import { getCustomerOrderingIntroCopy } from '@/lib/i18n/customer-ordering-intro
 import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import {
+  guestMaxAddableQty,
+  isLimitedSushiMenuItem,
+  sessionGuestCountForLimits,
+  sessionOrderedQtyForMenuItem,
+  sushiLimitHintParts,
+} from '@/lib/sushi-buffet-limits';
+import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
 
 export type MenuOrderingRestaurant = {
   id: string;
@@ -61,6 +69,7 @@ export type MenuOrderingRestaurant = {
   order_radius_meters?: number | null;
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
+  buffet_service_mode?: string | null;
 };
 
 export type MenuOrderingPresentationMode = 'page' | 'embedded';
@@ -239,15 +248,47 @@ export function MenuOrderingController({
     return { banner: messages.waitingForBuffet, action: messages.buffetRequired };
   }, [activeSession?.status, lang]);
 
+  const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
+  const limitGuestCount = sessionGuestCountForLimits(recentOrders);
+  const staffAssistedOrdering = !!staffAssisted;
+
+  const guestCartMaxForItem = useCallback(
+    (item: MenuItem, cartQty: number) => {
+      if (staffAssistedOrdering) return APPEND_CART_QTY_MAX;
+      return guestMaxAddableQty({
+        serviceMode: buffetServiceMode,
+        item,
+        guestCount: limitGuestCount,
+        alreadyOrdered: sessionOrderedQtyForMenuItem(recentOrders, item.id),
+        cartQty,
+        absoluteMax: APPEND_CART_QTY_MAX,
+      });
+    },
+    [buffetServiceMode, limitGuestCount, recentOrders, staffAssistedOrdering],
+  );
+
   const updateQty = (menuItemId: string, qty: number) => {
     const n = Number(qty);
     if (!Number.isFinite(n) || n <= 0) {
       setCartTracked((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
-    } else {
-      setCartTracked((prev) =>
-        prev.map((c) => (c.menuItemId === menuItemId ? { ...c, qty: n } : c)),
-      );
+      return;
     }
+    const menuItem = menuItems.find((m) => m.id === menuItemId);
+    let nextQty = n;
+    if (menuItem && !staffAssistedOrdering) {
+      const max = guestCartMaxForItem(menuItem, 0);
+      // max is absolute cart qty allowed (alreadyOrdered accounted); clamp requested
+      nextQty = Math.min(n, max);
+      if (nextQty <= 0) {
+        setCartTracked((prev) => prev.filter((c) => c.menuItemId !== menuItemId));
+        return;
+      }
+    }
+    setCartTracked((prev) => {
+      const existing = prev.find((c) => c.menuItemId === menuItemId);
+      if (!existing) return prev;
+      return prev.map((c) => (c.menuItemId === menuItemId ? { ...c, qty: nextQty } : c));
+    });
   };
 
   // 列表步进器 / 抽屉共用：仅改本地 cart，提交仍走 submitOrder → orders/append
@@ -259,10 +300,25 @@ export function MenuOrderingController({
       return;
     }
     const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
-    const next = current + delta;
+    let next = current + delta;
     if (next <= 0) {
       updateQty(item.id, 0);
       return;
+    }
+    if (!staffAssistedOrdering) {
+      const max = guestCartMaxForItem(item, current);
+      if (delta > 0 && next > max) {
+        if (
+          isLimitedSushiMenuItem(buffetServiceMode, item) &&
+          limitGuestCount < 1
+        ) {
+          showToast(MENU_PAGE_MESSAGES[lang].limitedItemNeedsHeadcount, 'info');
+        } else if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
+          showToast(MENU_PAGE_MESSAGES[lang].perPersonLimitReached, 'info');
+        }
+        next = max;
+        if (next <= current) return;
+      }
     }
     if (current === 0) {
       setCartTracked((prev) => [
@@ -395,6 +451,10 @@ export function MenuOrderingController({
         if (failure.code === 'location_too_far') showToast(t.locationTooFar, 'error');
         else if (failure.code === 'location_required') showToast(t.locationPermissionDenied, 'error');
         else if (failure.code === 'buffet_required') showToast(t.buffetRequired, 'info');
+        else if (failure.code === 'per_person_limit_exceeded')
+          showToast(t.perPersonLimitReached, 'info');
+        else if (failure.code === 'limited_item_requires_headcount')
+          showToast(t.limitedItemNeedsHeadcount, 'info');
         else if (failure.code === 'rate_limited') showToast(t.submitRateLimited, 'error');
         else showToast(t.submitFailed, 'error');
         return;
@@ -640,17 +700,31 @@ export function MenuOrderingController({
           <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
         ) : (
           <div className={isEmbedded ? 'grid grid-cols-1 gap-3 md:grid-cols-2' : 'space-y-3'}>
-            {currentItems.map(item => (
-              <MenuItemCard
-                key={item.id}
-                item={item}
-                lang={lang}
-                layout={isEmbedded ? 'grid' : 'list'}
-                cartQty={coerceCartQty(cart.find(c => c.menuItemId === item.id)?.qty)}
-                onIncrement={() => bumpCartItem(item, 1)}
-                onDecrement={() => bumpCartItem(item, -1)}
-              />
-            ))}
+            {currentItems.map((item) => {
+              const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+              const hintParts = isLimitedSushiMenuItem(buffetServiceMode, item)
+                ? sushiLimitHintParts(item)
+                : null;
+              const maxQty = guestCartMaxForItem(item, cartQty);
+              const limitHint = hintParts
+                ? t.sushiLimitHint
+                    .replace('{perPerson}', String(hintParts.perPerson))
+                    .replace('{price}', hintParts.overLimitPrice.toFixed(2))
+                : null;
+              return (
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  lang={lang}
+                  layout={isEmbedded ? 'grid' : 'list'}
+                  cartQty={cartQty}
+                  limitHint={limitHint}
+                  incrementDisabled={!staffAssistedOrdering && cartQty >= maxQty}
+                  onIncrement={() => bumpCartItem(item, 1)}
+                  onDecrement={() => bumpCartItem(item, -1)}
+                />
+              );
+            })}
           </div>
         )}
       </div>

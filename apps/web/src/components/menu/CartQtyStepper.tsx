@@ -9,6 +9,7 @@ type Props = {
   /** When set, drawer variant shows an editable qty field (non-negative integers only). */
   onQtyChange?: (qty: number) => void;
   qtyInputAriaLabel?: string;
+  incrementDisabled?: boolean;
   /**
    * `menu` — fills parent action shell on MenuItemCard (gold pill).
    * `drawer` — content-sized neutral circles (cart / waiter).
@@ -22,6 +23,7 @@ export function CartQtyStepper({
   onIncrement,
   onQtyChange,
   qtyInputAriaLabel,
+  incrementDisabled,
   variant = 'menu',
 }: Props) {
   if (variant === 'drawer') {
@@ -50,8 +52,9 @@ export function CartQtyStepper({
         <button
           type="button"
           onClick={onIncrement}
+          disabled={incrementDisabled}
           aria-label="Increase quantity"
-          className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20"
+          className="w-7 h-7 rounded-full bg-brand-border text-brand-text flex items-center justify-center hover:bg-brand-gold/20 disabled:opacity-40 disabled:pointer-events-none"
         >
           +
         </button>
@@ -74,8 +77,9 @@ export function CartQtyStepper({
       <button
         type="button"
         onClick={onIncrement}
+        disabled={incrementDisabled}
         aria-label="Increase quantity"
-        className="flex h-full flex-1 items-center justify-center hover:bg-black/10 active:bg-black/15 transition-colors"
+        className="flex h-full flex-1 items-center justify-center hover:bg-black/10 active:bg-black/15 transition-colors disabled:opacity-40 disabled:pointer-events-none"
       >
         +
       </button>

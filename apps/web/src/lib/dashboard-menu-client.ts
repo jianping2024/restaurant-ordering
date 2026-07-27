@@ -42,6 +42,9 @@ export type MenuItemErrorLabels = {
   imageTypeInvalid: string;
   dishReorderScopeMismatch: string;
   saveFail: string;
+  invalidPerPersonLimit?: string;
+  invalidOverLimitPrice?: string;
+  limitRequiresOveragePrice?: string;
 };
 
 export function mapMenuCategoryApiError(
@@ -90,6 +93,12 @@ export function mapMenuItemApiError(
       return labels.imageTypeInvalid;
     case 'reorder_scope_mismatch':
       return labels.dishReorderScopeMismatch;
+    case 'invalid_per_person_qty_limit':
+      return labels.invalidPerPersonLimit || labels.saveFail;
+    case 'invalid_over_limit_unit_price':
+      return labels.invalidOverLimitPrice || labels.validPrice;
+    case 'limit_requires_overage_price':
+      return labels.limitRequiresOveragePrice || labels.saveFail;
     default:
       return message || labels.saveFail;
   }
@@ -133,6 +142,8 @@ export type MenuItemMutationInput = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  per_person_qty_limit?: number | null;
+  over_limit_unit_price?: number | null;
 };
 
 export type PrintStationInput = {

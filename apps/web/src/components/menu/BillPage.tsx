@@ -10,6 +10,7 @@ import {
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { getMessages } from '@/lib/i18n/messages';
+import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -511,11 +512,7 @@ export function BillPage({
         lang={lang}
         copy={{
           splitMode: t.splitMode,
-          even: t.even,
-          byItem: t.byItem,
-          custom: t.custom,
           splitPlanLocked: t.splitPlanLocked,
-          splitOptionalHint: t.splitOptionalHint,
           people: t.people,
           splitResult: t.splitResult,
           addPerson: t.addPerson,
@@ -523,6 +520,7 @@ export function BillPage({
           splitPartialPaid: t.splitPartialPaid,
           splitAmountBreakdown: t.splitAmountBreakdown,
         }}
+        splitGuidance={getGuestSplitGuidance(lang)}
         splitMode={splitDraft.splitMode}
         splitLocked={splitDraft.splitLocked}
         submitting={isCallBillBusy}

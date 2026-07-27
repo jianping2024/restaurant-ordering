@@ -1,4 +1,5 @@
 import type { UILanguage } from '@/lib/i18n';
+import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 
 export type CustomerOrderingIntroStepCopy = {
   title: string;
@@ -22,11 +23,20 @@ export type CustomerOrderingIntroCopy = {
 /** Index of the split step (shows the split UI preview). */
 export const CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX = 2;
 
-export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderingIntroCopy> = {
+type IntroShell = Omit<CustomerOrderingIntroCopy, 'steps'> & {
+  /** Steps 1, 2, 4 — split step (index 2) comes from guest split guidance. */
+  stepsWithoutSplit: [
+    CustomerOrderingIntroStepCopy,
+    CustomerOrderingIntroStepCopy,
+    CustomerOrderingIntroStepCopy,
+  ];
+};
+
+const CUSTOMER_ORDERING_INTRO_SHELL: Record<UILanguage, IntroShell> = {
   pt: {
     title: 'Bem-vindo ao Mesa',
     subtitle: 'Quatro passos simples para pedir e pagar',
-    steps: [
+    stepsWithoutSplit: [
       {
         title: 'Pedir',
         body: 'Veja o menu, adicione ao carrinho e envie o pedido',
@@ -34,10 +44,6 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
       {
         title: 'Ver conta',
         body: 'Toque em «Ver conta» na barra inferior para abrir a página da conta',
-      },
-      {
-        title: 'Dividir a conta',
-        body: 'Escolha como partilhar: igual, por prato ou personalizado',
       },
       {
         title: 'Chamar fechamento',
@@ -50,7 +56,7 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
   en: {
     title: 'Welcome to Mesa ordering',
     subtitle: 'Four simple steps to order and pay',
-    steps: [
+    stepsWithoutSplit: [
       {
         title: 'Order',
         body: 'Browse the menu, add to cart, and submit',
@@ -58,10 +64,6 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
       {
         title: 'View bill',
         body: 'Tap "View bill" on the bottom bar to open the bill page',
-      },
-      {
-        title: 'Split the bill',
-        body: 'Choose how to share: even, by item, or custom',
       },
       {
         title: 'Call for the bill',
@@ -74,7 +76,7 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
   zh: {
     title: '欢迎使用 Mesa 点餐',
     subtitle: '简单四步，轻松用餐',
-    steps: [
+    stepsWithoutSplit: [
       {
         title: '选菜下单',
         body: '浏览菜单，加入购物车并提交',
@@ -82,10 +84,6 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
       {
         title: '查看账单',
         body: '点底栏「查看账单」进入账单页',
-      },
-      {
-        title: '分单',
-        body: '选择均摊、按菜或自定义，把账单分给同行',
       },
       {
         title: '呼叫结账',
@@ -96,3 +94,21 @@ export const CUSTOMER_ORDERING_INTRO_MESSAGES: Record<UILanguage, CustomerOrderi
     footnote: '此提示仅显示一次',
   },
 };
+
+/** Assembled intro copy — split step always from `getGuestSplitGuidance`. */
+export function getCustomerOrderingIntroCopy(lang: UILanguage): CustomerOrderingIntroCopy {
+  const shell = CUSTOMER_ORDERING_INTRO_SHELL[lang];
+  const split = getGuestSplitGuidance(lang).introStep;
+  return {
+    title: shell.title,
+    subtitle: shell.subtitle,
+    cta: shell.cta,
+    footnote: shell.footnote,
+    steps: [
+      shell.stepsWithoutSplit[0],
+      shell.stepsWithoutSplit[1],
+      { title: split.title, body: split.body },
+      shell.stepsWithoutSplit[2],
+    ],
+  };
+}

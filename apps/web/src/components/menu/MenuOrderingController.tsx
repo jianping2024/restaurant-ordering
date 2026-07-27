@@ -46,7 +46,7 @@ import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatal
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
-import { CUSTOMER_ORDERING_INTRO_MESSAGES } from '@/lib/i18n/customer-ordering-intro-messages';
+import { getCustomerOrderingIntroCopy } from '@/lib/i18n/customer-ordering-intro-messages';
 import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
@@ -155,7 +155,7 @@ export function MenuOrderingController({
     audience: orderingAudience,
     sessionResolved,
   });
-  const introCopy = CUSTOMER_ORDERING_INTRO_MESSAGES[lang];
+  const introCopy = getCustomerOrderingIntroCopy(lang);
 
   const ensureGuestCanPlaceOrder = useCallback(async () => {
     if (!sessionResolved) {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 import type { PersonAmount, SplitPersonSlot } from '@/lib/use-bill-split-draft';
@@ -12,6 +11,10 @@ import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import { splitRowDisplayAmount } from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
+import {
+  GUEST_SPLIT_MODE_ORDER,
+  type GuestSplitGuidanceCopy,
+} from '@/lib/i18n/guest-split-mode-messages';
 import type { SplitMode, SplitResult } from '@/types';
 import {
   SplitSettlementPartialBreakdown,
@@ -26,11 +29,7 @@ import {
 
 type SplitModeCopy = SplitSettlementCopy & {
   splitMode: string;
-  even: string;
-  byItem: string;
-  custom: string;
   splitPlanLocked: string;
-  splitOptionalHint: string;
   people: string;
   splitResult: string;
   addPerson: string;
@@ -39,6 +38,7 @@ type SplitModeCopy = SplitSettlementCopy & {
 interface Props {
   lang: UILanguage;
   copy: SplitModeCopy;
+  splitGuidance: GuestSplitGuidanceCopy;
   splitMode: SplitMode | null;
   splitLocked: boolean;
   submitting: boolean;
@@ -81,6 +81,7 @@ interface Props {
 export function BillSplitPanel({
   lang,
   copy,
+  splitGuidance,
   splitMode,
   splitLocked,
   submitting,
@@ -118,22 +119,17 @@ export function BillSplitPanel({
   onCancelInlineAmountEdit,
   onAddCustomPerson,
 }: Props) {
-  const modeButtons = useMemo(
-    () =>
-      ([
-        ['even', copy.even],
-        ['by_item', copy.byItem],
-        ['custom', copy.custom],
-      ] as const),
-    [copy.byItem, copy.custom, copy.even],
-  );
+  const selectedWhen =
+    splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom'
+      ? splitGuidance.modes[splitMode].when
+      : null;
 
   return (
     <>
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitMode}</h2>
         <div className="grid grid-cols-3 gap-2 mb-4">
-          {modeButtons.map(([mode, label]) => (
+          {GUEST_SPLIT_MODE_ORDER.map((mode) => (
             <button
               key={mode}
               type="button"
@@ -145,7 +141,7 @@ export function BillSplitPanel({
                   : 'bg-brand-card border border-brand-border text-brand-text-muted'
               }`}
             >
-              {label}
+              {splitGuidance.modes[mode].label}
             </button>
           ))}
         </div>
@@ -153,7 +149,10 @@ export function BillSplitPanel({
           <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitPlanLocked}</p>
         ) : null}
         {!splitMode && !splitLocked ? (
-          <p className="text-brand-text-muted text-[13px] mb-2">{copy.splitOptionalHint}</p>
+          <p className="text-brand-text-muted text-[13px] mb-2">{splitGuidance.optionalHint}</p>
+        ) : null}
+        {selectedWhen && !splitLocked ? (
+          <p className="text-brand-text-muted text-[13px] mb-2">{selectedWhen}</p>
         ) : null}
 
         {splitMode === 'even' ? (

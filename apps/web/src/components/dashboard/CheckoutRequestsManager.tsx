@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
 import type { BillSplit } from '@/types';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import {
@@ -115,13 +116,8 @@ export function CheckoutRequestsManager({
     hasCheckoutQueueFocus(initialFocus) && selection.mode === 'follow_focus' && !selectedRequest;
 
   const splitModeLabels = useMemo(
-    () => ({
-      even: t.splitModeEven,
-      byItem: t.splitModeByItem,
-      custom: t.splitModeCustom,
-      wholeTable: t.splitModeWhole,
-    }),
-    [t],
+    () => checkoutSplitModeUiLabels(lang, t.splitModeWhole),
+    [lang, t.splitModeWhole],
   );
 
   const getRequestCheckoutMeta = useCallback(

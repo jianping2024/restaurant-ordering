@@ -24,6 +24,7 @@ import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-spli
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
+import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
 import type { CheckoutDisplayLine } from '@/lib/checkout-session-lines';
 import type { CheckoutPersonShareLine } from '@/lib/checkout-split-person-lines';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
@@ -128,12 +129,10 @@ export function buildOrderHistoryBillDetailView(
   const orderHistoryI18n = getMessages(lang).orderHistory;
   const split = entry.billSplit;
   const splitModeLabel = split?.status === 'paid'
-    ? checkoutSplitModeLabel(split.split_mode, {
-        even: checkoutT.splitModeEven,
-        byItem: checkoutT.splitModeByItem,
-        custom: checkoutT.splitModeCustom,
-        wholeTable: checkoutT.splitModeWhole,
-      })
+    ? checkoutSplitModeLabel(
+        split.split_mode,
+        checkoutSplitModeUiLabels(lang, checkoutT.splitModeWhole),
+      )
     : null;
 
   const resultRows = split?.result ?? [];

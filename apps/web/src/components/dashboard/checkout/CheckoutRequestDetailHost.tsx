@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
 import type { BillSplit, Order } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
@@ -261,13 +262,8 @@ export function CheckoutRequestDetailHost({
   };
 
   const splitModeLabels = useMemo(
-    () => ({
-      even: t.splitModeEven,
-      byItem: t.splitModeByItem,
-      custom: t.splitModeCustom,
-      wholeTable: t.splitModeWhole,
-    }),
-    [t],
+    () => checkoutSplitModeUiLabels(lang, t.splitModeWhole),
+    [lang, t.splitModeWhole],
   );
 
   const discountRate = getDiscountRate(request);

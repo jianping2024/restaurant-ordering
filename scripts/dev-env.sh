@@ -16,8 +16,25 @@ set -a
 source "$ENV_FILE"
 set +a
 
+free_listen_port() {
+  local port="$1"
+  local pids
+  pids="$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)"
+  if [[ -n "$pids" ]]; then
+    echo "Port $port in use (PIDs: $pids); stopping..." >&2
+    # shellcheck disable=SC2086
+    kill $pids 2>/dev/null || true
+    sleep 1
+  fi
+  if command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx 'mesa-on-prem-web-1'; then
+    echo "Stopping mesa-on-prem-web-1 (binds :$port)..." >&2
+    docker stop mesa-on-prem-web-1 >/dev/null 2>&1 || true
+  fi
+}
+
 case "$TARGET" in
   web)
+    free_listen_port 3000
     cd apps/web
     exec npx next dev --hostname 0.0.0.0 --port 3000
     ;;

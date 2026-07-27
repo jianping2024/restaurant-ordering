@@ -2,17 +2,11 @@
 
 import Link from 'next/link';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
+import { findOrderHistoryEntryBySessionId } from '@/lib/order-history/find-order-history-entry';
 import { waiterTableHref } from '@/lib/staff-routes';
 import type { getMessages } from '@/lib/i18n/messages';
 
 type OrderHistoryI18n = ReturnType<typeof getMessages>['orderHistory'];
-
-function findEntryBySessionId(
-  entries: OrderHistoryEntry[],
-  sessionId: string,
-): OrderHistoryEntry | undefined {
-  return entries.find((row) => row.sessionId === sessionId);
-}
 
 export function OrderHistoryMergeTargetLink({
   entry,
@@ -42,7 +36,7 @@ export function OrderHistoryMergeTargetLink({
     );
   }
 
-  const targetEntry = findEntryBySessionId(entries, ctx.targetSessionId);
+  const targetEntry = findOrderHistoryEntryBySessionId(entries, ctx.targetSessionId);
   if (!targetEntry) return null;
 
   return (
@@ -71,7 +65,7 @@ export function OrderHistoryMergeSourcesBlock({
   if (!sources?.length) return null;
 
   const navigable = sources.filter((source) =>
-    findEntryBySessionId(entries, source.sourceSessionId),
+    findOrderHistoryEntryBySessionId(entries, source.sourceSessionId),
   );
   if (navigable.length === 0) return null;
 
@@ -80,7 +74,7 @@ export function OrderHistoryMergeSourcesBlock({
       <p className="text-sm font-medium text-brand-text">{i18n.mergeSourcesNavTitle}</p>
       <ul className="space-y-1.5">
         {navigable.map((source) => {
-          const sourceEntry = findEntryBySessionId(entries, source.sourceSessionId);
+          const sourceEntry = findOrderHistoryEntryBySessionId(entries, source.sourceSessionId);
           if (!sourceEntry) return null;
           return (
             <li key={source.sourceSessionId}>

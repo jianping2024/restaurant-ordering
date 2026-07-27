@@ -14,12 +14,14 @@ import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
-import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
 import {
   ORDER_HISTORY_FORCED_SUMMARY_CLASS,
   buildOrderHistorySurfaceMeta,
-  formatOrderHistoryLifecycleStepLine,
 } from '@/lib/order-history/build-lifecycle-presentation';
+import {
+  OrderHistoryLifecycleSteps,
+  OrderHistoryOutcomeBadge,
+} from '@/components/dashboard/OrderHistoryLifecycleSteps';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
@@ -293,11 +295,7 @@ export function OrdersHistoryManager({
           {i18n.table} {entry.displayName}
         </span>
         {META_SEP}
-        <span
-          className={`inline-flex text-[11px] px-1.5 py-0.5 rounded-full border ${ORDER_HISTORY_OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
-        >
-          {outcomeBadge.label}
-        </span>
+        <OrderHistoryOutcomeBadge badge={outcomeBadge} />
         {!isMergedSource ? (
           <>
             {META_SEP}
@@ -310,14 +308,14 @@ export function OrdersHistoryManager({
           </>
         ) : null}
       </div>
-      <div className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted">
-        {lifecycleSteps.map((step) => (
-          <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
-            {formatOrderHistoryLifecycleStepLine(step, i18n)}
-          </p>
-        ))}
-        {mergeSummaryLine ? <p className="text-brand-text">{mergeSummaryLine}</p> : null}
-      </div>
+      <OrderHistoryLifecycleSteps
+        steps={lifecycleSteps}
+        i18n={i18n}
+        className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted"
+      />
+        {mergeSummaryLine ? (
+          <p className="mt-0.5 text-[13px] text-brand-text">{mergeSummaryLine}</p>
+        ) : null}
       {forcedCloseSummary ? (
         <p className={ORDER_HISTORY_FORCED_SUMMARY_CLASS}>{forcedCloseSummary}</p>
       ) : null}

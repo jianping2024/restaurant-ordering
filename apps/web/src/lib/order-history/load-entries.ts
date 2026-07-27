@@ -24,6 +24,7 @@ import {
   type MergeTargetSessionRow,
 } from '@/lib/order-history/load-merge-context';
 import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
+import { collectOrderHistoryOperatorIds } from '@/lib/order-history/collect-order-history-operator-ids';
 import {
   attachTransferEventOperatorNames,
   loadSessionIdsTransferredFromTables,
@@ -152,7 +153,7 @@ function buildEntry(
 ): OrderHistoryEntry {
   const closeKind = resolveOrderHistoryCloseKind(session.closed_reason);
 
-  const entry: OrderHistoryEntry = {
+  const entryFacts = {
     sessionId: session.id,
     tableId: session.table_id,
     displayName: resolveSessionTableDisplayName(
@@ -190,13 +191,14 @@ function buildEntry(
       operatorNames,
     ),
     transferEvents,
-    lifecycleSteps: [],
     billSplit,
     orders: sessionOrders,
   };
 
-  entry.lifecycleSteps = buildSessionLifecycleSteps(entry);
-  return entry;
+  return {
+    ...entryFacts,
+    lifecycleSteps: buildSessionLifecycleSteps({ ...entryFacts, lifecycleSteps: [] }),
+  };
 }
 
 const EMPTY_PAGE: OrderHistoryPageResult = {
@@ -300,21 +302,11 @@ export async function loadOrderHistoryEntries(
     collectOrderHistoryTableIds(sessions, mergeTargetById, mergeSourcesByTargetId),
   );
 
-  const operatorIds = sessions.flatMap((session) =>
-    [session.opened_by_user_id, session.closed_by_user_id].filter(
-      (id): id is string => !!id,
-    ),
+  const operatorIds = collectOrderHistoryOperatorIds(
+    sessions,
+    mergeSourcesByTargetId,
+    transferEventsBySession,
   );
-  for (const sources of Array.from(mergeSourcesByTargetId.values())) {
-    for (const source of sources) {
-      if (source.closed_by_user_id) operatorIds.push(source.closed_by_user_id);
-    }
-  }
-  for (const events of Array.from(transferEventsBySession.values())) {
-    for (const event of events) {
-      if (event.operatorUserId) operatorIds.push(event.operatorUserId);
-    }
-  }
   const operatorNames = await resolveStaffOperatorNames(admin, {
     restaurantId: query.restaurantId,
     ownerId: query.ownerId,

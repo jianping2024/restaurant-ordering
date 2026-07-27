@@ -5,7 +5,6 @@ import type {
   OrderHistoryLifecycleStep,
 } from '@/lib/order-history/types';
 import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
-import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
 import {
   resolveMergedSourceOutcomeBadge,
   resolveOrderHistoryOutcomeBadge,
@@ -172,8 +171,7 @@ export function buildOrderHistorySurfaceMeta(
   entry: OrderHistoryEntry,
   i18n: OrderHistoryI18n,
 ): OrderHistorySurfaceMeta {
-  const lifecycleSteps =
-    entry.lifecycleSteps.length > 0 ? entry.lifecycleSteps : buildSessionLifecycleSteps(entry);
+  const { lifecycleSteps } = entry;
 
   if (isMergedSourceCloseKind(entry.closeKind)) {
     return {

@@ -9,13 +9,15 @@ import {
 } from '@/components/dashboard/OrderHistoryMergeNavigation';
 import { Modal } from '@/components/ui/Modal';
 import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
-import { ORDER_HISTORY_OUTCOME_BADGE_CLASS } from '@/lib/order-history/build-detail-presentation';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
 import {
   buildMergedSourceDetailStatus,
   buildOrderHistorySurfaceMeta,
-  formatOrderHistoryLifecycleStepLine,
 } from '@/lib/order-history/build-lifecycle-presentation';
+import {
+  OrderHistoryLifecycleSteps,
+  OrderHistoryOutcomeBadge,
+} from '@/components/dashboard/OrderHistoryLifecycleSteps';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import {
@@ -75,6 +77,24 @@ export function OrderHistoryDetailModal({
 
   const { outcomeBadge, lifecycleSteps, lifecycleBoxClass } = surface;
 
+  const statusHeader = (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <OrderHistoryOutcomeBadge badge={outcomeBadge} size="md" />
+        <p className="text-sm text-brand-text">
+          {isMergedSourceCloseKind(entry.closeKind)
+            ? buildMergedSourceDetailStatus(entry, i18n)
+            : detail?.statusStrip}
+        </p>
+      </div>
+      <OrderHistoryLifecycleSteps
+        steps={lifecycleSteps}
+        i18n={i18n}
+        className={lifecycleBoxClass}
+      />
+    </div>
+  );
+
   if (isMergedSourceCloseKind(entry.closeKind)) {
     return (
       <Modal
@@ -84,25 +104,7 @@ export function OrderHistoryDetailModal({
         size="lg"
       >
         <div className="space-y-4 px-4 pb-5 pt-1 sm:px-6 sm:pb-6">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`inline-flex text-[11px] px-2 py-0.5 rounded-full border ${ORDER_HISTORY_OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
-              >
-                {outcomeBadge.label}
-              </span>
-              <p className="text-sm text-brand-text">
-                {buildMergedSourceDetailStatus(entry, i18n)}
-              </p>
-            </div>
-            <div className={lifecycleBoxClass}>
-              {lifecycleSteps.map((step) => (
-                <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
-                  {formatOrderHistoryLifecycleStepLine(step, i18n)}
-                </p>
-              ))}
-            </div>
-          </div>
+          {statusHeader}
           <OrderHistoryMergeTargetLink
             entry={entry}
             entries={entries}
@@ -156,23 +158,7 @@ export function OrderHistoryDetailModal({
       size="lg"
     >
       <div className="space-y-4 px-4 pb-5 pt-1 sm:px-6 sm:pb-6">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex text-[11px] px-2 py-0.5 rounded-full border ${ORDER_HISTORY_OUTCOME_BADGE_CLASS[outcomeBadge.tone]}`}
-            >
-              {outcomeBadge.label}
-            </span>
-            <p className="text-sm text-brand-text">{detail.statusStrip}</p>
-          </div>
-          <div className={lifecycleBoxClass}>
-            {lifecycleSteps.map((step) => (
-              <p key={`${step.kind}-${step.at}-${step.sortKey}`}>
-                {formatOrderHistoryLifecycleStepLine(step, i18n)}
-              </p>
-            ))}
-          </div>
-        </div>
+        {statusHeader}
 
         {entry.mergeSources?.length ? (
           <OrderHistoryMergeSourcesBlock

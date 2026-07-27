@@ -59,8 +59,7 @@ import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   classifyStaffQtyIncrease,
-  guestMaxCartQty,
-  isLimitedSushiMenuItem,
+  previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
   sessionOrderedQtyForMenuItem,
@@ -278,20 +277,6 @@ export function MenuOrderingController({
   const limitGuestCount = sessionGuestCountForLimits(recentOrders);
   const staffAssistedOrdering = !!staffAssisted;
 
-  const guestCartMaxForItem = useCallback(
-    (item: MenuItem) => {
-      if (staffAssistedOrdering) return APPEND_CART_QTY_MAX;
-      return guestMaxCartQty({
-        serviceMode: buffetServiceMode,
-        item,
-        guestCount: limitGuestCount,
-        alreadyOrdered: sessionOrderedQtyForMenuItem(recentOrders, item.id),
-        absoluteMax: APPEND_CART_QTY_MAX,
-      });
-    },
-    [buffetServiceMode, limitGuestCount, recentOrders, staffAssistedOrdering],
-  );
-
   /** Write cart qty after gates (list + drawer share this). */
   const commitCartQty = useCallback(
     (item: MenuItem, nextQty: number) => {
@@ -347,17 +332,9 @@ export function MenuOrderingController({
       }
 
       if (!staffAssistedOrdering) {
-        const max = guestCartMaxForItem(item);
-        if (nextQty > max) {
-          if (isLimitedSushiMenuItem(buffetServiceMode, item)) {
-            showToast(
-              MENU_PAGE_MESSAGES[lang][
-                limitGuestCount < 1 ? 'limitedItemNeedsHeadcount' : 'perPersonLimitReached'
-              ],
-              'info',
-            );
-          }
-          nextQty = max;
+        // Guest sushi limits are submit gates (fresh session + server), not list disables.
+        if (nextQty > APPEND_CART_QTY_MAX) {
+          nextQty = APPEND_CART_QTY_MAX;
           if (nextQty <= current) return;
         }
         commitCartQty(item, nextQty);
@@ -412,7 +389,6 @@ export function MenuOrderingController({
       catalogReady,
       commitCartQty,
       ensureGuestCanPlaceOrder,
-      guestCartMaxForItem,
       lang,
       limitGuestCount,
       menuItems,
@@ -705,6 +681,36 @@ export function MenuOrderingController({
         });
         return;
       }
+    } else if (!isDemo) {
+      // One-shot full session before guest sushi gate (no poll / no menu realtime).
+      const fresh = await refreshSessionContext('full');
+      const sessionOrders = fresh?.recent_orders ?? recentOrders;
+      const gate = previewGuestCartSushiGate({
+        serviceMode: buffetServiceMode,
+        guestCount: sessionGuestCountForLimits(sessionOrders),
+        sessionOrders,
+        cart: cart.map((c) => ({ menuItemId: c.menuItemId, qty: coerceCartQty(c.qty) })),
+        resolveItem: (id) => {
+          const item = menuItems.find((m) => m.id === id);
+          if (!item) return null;
+          return {
+            per_person_qty_limit: item.per_person_qty_limit,
+            over_limit_unit_price: item.over_limit_unit_price,
+            price: item.price,
+          };
+        },
+      });
+      if (!gate.ok) {
+        showToast(
+          gate.error === 'limited_item_requires_headcount'
+            ? t.limitedItemNeedsHeadcount
+            : gate.error === 'per_person_limit_exceeded'
+              ? t.perPersonLimitReached
+              : t.submitFailed,
+          'info',
+        );
+        return;
+      }
     }
 
     await performSubmit();
@@ -858,7 +864,6 @@ export function MenuOrderingController({
             {currentItems.map((item) => {
               const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);
-              const maxQty = guestCartMaxForItem(item);
               const limitHint = hintParts
                 ? t.sushiLimitHint
                     .replace('{perPerson}', String(hintParts.perPerson))
@@ -872,7 +877,6 @@ export function MenuOrderingController({
                   layout={isEmbedded ? 'grid' : 'list'}
                   cartQty={cartQty}
                   limitHint={limitHint}
-                  incrementDisabled={!staffAssistedOrdering && cartQty >= maxQty}
                   onIncrement={() => bumpCartItem(item, 1)}
                   onDecrement={() => bumpCartItem(item, -1)}
                 />

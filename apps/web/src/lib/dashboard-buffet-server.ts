@@ -16,16 +16,24 @@ export async function loadBuffetDashboard(
   restaurantId: string,
 ): Promise<BuffetDashboardData | MutationError> {
   const [buffetsRes, slotsRes, rulesRes, calendarRes, restaurantRes] = await Promise.all([
-    admin.from('buffets').select('*').eq('restaurant_id', restaurantId).order('name'),
+    admin
+      .from('buffets')
+      .select('id, restaurant_id, name, is_active, description, created_at, updated_at')
+      .eq('restaurant_id', restaurantId)
+      .order('name'),
     admin
       .from('buffet_time_slots')
-      .select('*')
+      .select(
+        'id, restaurant_id, name, start_time, end_time, weekdays, sort_order, created_at',
+      )
       .eq('restaurant_id', restaurantId)
       .order('sort_order')
       .order('name'),
     admin
       .from('buffet_price_rules')
-      .select('*')
+      .select(
+        'id, restaurant_id, buffet_id, time_slot_id, calendar_kind, valid_from, valid_to, adult_price, child_price, priority, is_active, note, created_at',
+      )
       .eq('restaurant_id', restaurantId)
       .order('priority', { ascending: false }),
     admin

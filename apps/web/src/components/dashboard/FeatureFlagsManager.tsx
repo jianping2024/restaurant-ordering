@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -27,6 +28,7 @@ export function FeatureFlagsManager({
   initialStationSlipShowCategoryGroup,
   initialOrderCooldownSeconds,
 }: Props) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
   const [flags, setFlags] = useState(initialFlags);
@@ -78,6 +80,7 @@ export function FeatureFlagsManager({
       }
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
 
+      router.refresh();
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {

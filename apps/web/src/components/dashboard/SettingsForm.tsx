@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { RESTAURANT_COUNTRY_OPTIONS, readGeoOrderRestrictionEnabled, type RestaurantCountryCode } from '@mesa/shared';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +22,7 @@ export function SettingsForm({
   restaurant: RestaurantSettingsProfile;
   embedded?: boolean;
 }) {
+  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).settings;
   const hasStoredCoordinates =
@@ -133,6 +135,7 @@ export function SettingsForm({
         return;
       }
 
+      router.refresh();
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch {

@@ -203,9 +203,9 @@ export function BillPage({
     () => ({
       addConsumer: t.addConsumer,
       namePlaceholder: t.consumerNamePlaceholder,
-      wholePlaceholder: t.qtyWholePlaceholder,
-      numPlaceholder: t.qtyNumPlaceholder,
-      denPlaceholder: t.qtyDenPlaceholder,
+      wholeLabel: t.qtyWholePlaceholder,
+      numLabel: t.qtyNumPlaceholder,
+      denLabel: t.qtyDenPlaceholder,
       missingDen: t.qtyMissingDen,
       zeroDen: t.qtyZeroDen,
       improperFraction: t.qtyImproperFraction,

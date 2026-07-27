@@ -28,7 +28,7 @@ import {
 } from '@/components/menu/ByItemDishAllocatorHeader';
 import { ByItemDishAllocatorShell } from '@/components/menu/ByItemDishAllocatorShell';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
-import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
+import { ByItemQtyColumnHeader, ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 
 export type ByItemDishAllocatorLabels = ByItemLineStatusLabels &
   QtyPartsLabels &
@@ -167,15 +167,6 @@ function MenuByItemDishAllocator({
     onChange(applyByItemConsumerRowRemove({ rows, rowId, ctx: lineEditCtx }));
   };
 
-  const qtyLabels: QtyPartsLabels = {
-    wholePlaceholder: labels.wholePlaceholder,
-    numPlaceholder: labels.numPlaceholder,
-    denPlaceholder: labels.denPlaceholder,
-    missingDen: labels.missingDen,
-    zeroDen: labels.zeroDen,
-    improperFraction: labels.improperFraction,
-  };
-
   return (
     <ByItemDishAllocatorShell
       statusTone={statusSummary.tone}
@@ -191,10 +182,15 @@ function MenuByItemDishAllocator({
         />
       )}
     >
+      <div className="flex items-center gap-2 mb-1" aria-hidden>
+        <div className="flex-1 min-w-0" />
+        <ByItemQtyColumnHeader labels={labels} />
+        <div className="w-8 shrink-0" />
+      </div>
       <div className="space-y-2">
         {rows.map((row) => {
           const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
-          const qtyInvalid = !!getQtyPartsRowHint(row, qtyLabels);
+          const qtyInvalid = !!getQtyPartsRowHint(row, labels);
           const qtyOver = isRowQtyOverAllocated(row, rows, lineQty);
           return (
             <div key={row.id} className="flex items-start gap-2">
@@ -212,7 +208,7 @@ function MenuByItemDishAllocator({
               />
               <ByItemQtyInput
                 row={row}
-                labels={qtyLabels}
+                labels={labels}
                 invalid={qtyInvalid || qtyOver}
                 onChange={(patch) => updateRow(row.id, patch)}
                 onCommit={() => commitRow(row.id)}

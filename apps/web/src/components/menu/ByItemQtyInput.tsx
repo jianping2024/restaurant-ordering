@@ -19,6 +19,21 @@ interface Props {
   onCommit?: () => void;
 }
 
+export function ByItemQtyColumnHeader({ labels }: { labels: QtyPartsLabels }) {
+  return (
+    <div
+      className="shrink-0 text-[11px] text-brand-text-muted text-center leading-tight whitespace-nowrap select-none"
+      aria-hidden
+    >
+      {labels.wholeLabel}
+      {' + '}
+      {labels.numLabel}
+      {' / '}
+      {labels.denLabel}
+    </div>
+  );
+}
+
 export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Props) {
   const hint = getQtyPartsRowHint(row, labels);
   const fieldClass = invalid || hint ? customerQtyInputAlertClass : customerQtyInputClass;
@@ -37,8 +52,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           value={row.qtyWhole}
           onChange={(e) => setWhole(e.target.value)}
           onBlur={() => onCommit?.()}
-          placeholder={labels.wholePlaceholder}
-          aria-label={labels.wholePlaceholder}
+          aria-label={labels.wholeLabel}
           className={`w-9 px-1 ${fieldClass}`}
         />
         <span className="text-brand-text-muted text-[11px] px-0.5">+</span>
@@ -49,8 +63,7 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           value={row.qtyNum}
           onChange={(e) => setNum(e.target.value)}
           onBlur={() => onCommit?.()}
-          placeholder={labels.numPlaceholder}
-          aria-label={labels.numPlaceholder}
+          aria-label={labels.numLabel}
           className={`w-7 px-0.5 ${fieldClass}`}
         />
         <span className="text-brand-text-muted text-[12px] px-0.5" aria-hidden>/</span>
@@ -61,13 +74,12 @@ export function ByItemQtyInput({ row, labels, invalid, onChange, onCommit }: Pro
           value={row.qtyDen}
           onChange={(e) => setDen(e.target.value)}
           onBlur={() => onCommit?.()}
-          placeholder={labels.denPlaceholder}
-          aria-label={labels.denPlaceholder}
+          aria-label={labels.denLabel}
           className={`w-7 px-0.5 ${fieldClass}`}
         />
       </div>
       {hint ? (
-        <p className="text-[11px] text-red-500 mt-0.5 text-center leading-tight max-w-[108px]">{hint}</p>
+        <p className="text-[11px] text-red-500 mt-0.5 text-center leading-tight max-w-[9.5rem]">{hint}</p>
       ) : null}
     </div>
   );

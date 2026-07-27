@@ -13,8 +13,12 @@ import {
   type Rational,
 } from '@/lib/rational-qty';
 import { displaySplitPersonName, splitPersonKey } from '@/lib/split-person-identity';
-import type { BillSplit, SplitMode, SplitPerson } from '@/types';
-import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+import type { BillSplit, SplitPerson } from '@/types';
+import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
+import {
+  isShapeLockSplitMode,
+  parseSplitMode,
+} from '@/lib/checkout-split-intent';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectedPersonNames } from '@/lib/checkout-session-payments';
 
@@ -332,13 +336,7 @@ export function validateCheckoutContinuation(params: {
     return { ok: true };
   }
 
-  const existingMode: SplitMode | null =
-    existing.split_mode === 'whole_table'
-    || existing.split_mode === 'even'
-    || existing.split_mode === 'by_item'
-    || existing.split_mode === 'custom'
-      ? existing.split_mode
-      : null;
+  const existingMode = parseSplitMode(existing.split_mode);
   const incomingMode = payload.splitMode;
   if (existingMode && incomingMode !== existingMode) {
     return { ok: false, issue: 'split_mode_locked' };
@@ -356,10 +354,7 @@ export function validateCheckoutContinuation(params: {
     return { ok: true };
   }
 
-  if (
-    hasCollectedLedger
-    && (existing.split_mode === 'even' || existing.split_mode === 'custom' || existing.split_mode === 'whole_table')
-  ) {
+  if (hasCollectedLedger && isShapeLockSplitMode(existing.split_mode)) {
     const existingCount = lockedSplitRowCount(existing);
     if (existingCount > 0 && payload.result.length !== existingCount) {
       return { ok: false, issue: 'split_shape_locked' };

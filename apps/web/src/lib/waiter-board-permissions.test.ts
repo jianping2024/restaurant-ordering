@@ -4,8 +4,6 @@ import {
   formatCheckoutPinnedSectionTitle,
   isWaiterBoardTableCardClickable,
 } from './waiter-board-permissions';
-import { wholeTableCheckoutPayload } from './checkout-request-payload';
-import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
 
 describe('isWaiterBoardTableCardClickable', () => {
   it('allows frontdesk to click checkout tables', () => {
@@ -32,16 +30,5 @@ describe('formatCheckoutPinnedSectionTitle', () => {
       formatCheckoutPinnedSectionTitle(3, '{n} table(s) awaiting checkout (cashier)'),
       '3 table(s) awaiting checkout (cashier)',
     );
-  });
-});
-
-describe('wholeTableCheckoutPayload', () => {
-  it('builds a single-payer custom split for the session total', () => {
-    assert.deepEqual(wholeTableCheckoutPayload(34), {
-      splitMode: 'whole_table',
-      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
-      result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 34 }],
-      customerNif: null,
-    });
   });
 });

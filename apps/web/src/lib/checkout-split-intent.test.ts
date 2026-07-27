@@ -3,9 +3,12 @@ import { describe, it } from 'node:test';
 import {
   buildWholeTableCheckoutPayload,
   checkoutIntentFromDraftSplitMode,
+  isShapeLockSplitMode,
   isWholeTableSplit,
   normalizeCheckoutRequestPayload,
+  parseSplitMode,
   resolvePersistedSplitModeForDraft,
+  wholeTableSplitResult,
 } from './checkout-split-intent';
 import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
 
@@ -41,6 +44,23 @@ describe('checkout-split-intent', () => {
       } as never),
       null,
     );
+  });
+
+  it('parses known split modes', () => {
+    assert.equal(parseSplitMode('whole_table'), 'whole_table');
+    assert.equal(parseSplitMode('even'), 'even');
+    assert.equal(parseSplitMode('invalid'), null);
+  });
+
+  it('identifies shape-lock modes after partial collection', () => {
+    assert.equal(isShapeLockSplitMode('whole_table'), true);
+    assert.equal(isShapeLockSplitMode('even'), true);
+    assert.equal(isShapeLockSplitMode('custom'), true);
+    assert.equal(isShapeLockSplitMode('by_item'), false);
+  });
+
+  it('builds whole-table result rows for draft compute', () => {
+    assert.deepEqual(wholeTableSplitResult(12.5), [{ name: WHOLE_TABLE_PAYER_KEY, amount: 12.5 }]);
   });
 
   it('detects whole_table by mode and legacy row shape', () => {

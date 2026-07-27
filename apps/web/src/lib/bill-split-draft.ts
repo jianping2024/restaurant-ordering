@@ -5,8 +5,8 @@ import {
   type ByItemLineSpec,
 } from '@/lib/bill-split-by-item-lines';
 import { validateBillSplit } from '@/lib/bill-split-validate';
+import { wholeTableSplitResult } from '@/lib/checkout-split-intent';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
-import { WHOLE_TABLE_PAYER_KEY } from '@/lib/split-person-label';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -32,7 +32,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
   } = input;
 
   if (!splitMode) {
-    return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total }];
+    return wholeTableSplitResult(total);
   }
 
   if (splitMode === 'even') {

@@ -10,14 +10,14 @@ import {
 } from '@/lib/checkout-session-payments';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { normalizeCheckoutRequestPayload } from '@/lib/checkout-split-intent';
-import type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { countPartyMembersForTable } from '@/lib/table-party-groups-server';
 import type { BillSplit, SplitResult } from '@/types';
 
-export type { CheckoutRequestPayload } from '@/lib/checkout-request-payload';
+export type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 
 export type CheckoutRequestResult =
   | { ok: true; bill_split_id: string; result: SplitResult[]; total_amount: number }

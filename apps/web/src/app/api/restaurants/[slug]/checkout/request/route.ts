@@ -3,16 +3,12 @@ import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
+import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import type { SplitMode, SplitPerson, SplitPersonItemShare, SplitResult } from '@/types';
+import type { SplitPerson, SplitPersonItemShare, SplitResult } from '@/types';
 
 export const runtime = 'nodejs';
-
-function parseSplitMode(raw: unknown): SplitMode | null {
-  if (raw === 'whole_table' || raw === 'even' || raw === 'by_item' || raw === 'custom') return raw;
-  return null;
-}
 
 function parsePersons(raw: unknown): SplitPerson[] | null {
   if (!Array.isArray(raw) || raw.length === 0 || raw.length > 50) return null;

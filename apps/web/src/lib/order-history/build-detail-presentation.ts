@@ -5,6 +5,7 @@ import {
 } from '@/lib/checkout-session-payments';
 import type { SplitSettlementRow } from '@/lib/checkout-split-settlement';
 import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-splits';
+import { isWholeTableSplit } from '@/lib/checkout-split-intent';
 import type { OrderHistoryCloseOutcome } from '@/lib/order-history/types';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 import type { SplitMode } from '@/types';
@@ -77,6 +78,7 @@ export function shouldShowPersonLedger(
   split: OrderHistoryBillSplitSummary | undefined,
 ): boolean {
   if (rows.length === 0) return false;
+  if (split && isWholeTableSplit(split)) return false;
   if (rows.length === 1 && isWholeTablePayerName(rows[0].name)) return false;
   if (rows.length > 1) return true;
   if (!split) return false;

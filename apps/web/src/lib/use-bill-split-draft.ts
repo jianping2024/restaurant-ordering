@@ -41,10 +41,6 @@ export type PersonAmount = {
   amount: number;
 };
 
-export function resolveInitialSplitMode(existingSplit: BillSplit | null): SplitMode | null {
-  return resolvePersistedSplitModeForDraft(existingSplit);
-}
-
 function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
   if (shape) return shape.personCount;
@@ -113,7 +109,9 @@ export function useBillSplitDraft(params: {
 
   const splitSeed = continuationSplit ?? existingSplit;
 
-  const [splitMode, setSplitMode] = useState<SplitMode | null>(() => resolveInitialSplitMode(existingSplit));
+  const [splitMode, setSplitMode] = useState<SplitMode | null>(() =>
+    resolvePersistedSplitModeForDraft(existingSplit),
+  );
   const [personCount, setPersonCount] = useState(() => {
     if (existingSplit?.split_mode === 'even') {
       return initialEvenPersonCount(splitSeed, guestName);

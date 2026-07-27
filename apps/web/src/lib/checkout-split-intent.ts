@@ -4,6 +4,8 @@ import {
 } from '@/lib/split-person-label';
 import type { BillSplit, SplitMode, SplitPerson, SplitResult } from '@/types';
 
+export const SPLIT_MODES = ['whole_table', 'even', 'by_item', 'custom'] as const satisfies readonly SplitMode[];
+
 export type CheckoutRequestPayload = {
   splitMode: SplitMode;
   persons: SplitPerson[];
@@ -11,12 +13,22 @@ export type CheckoutRequestPayload = {
   customerNif?: string | null;
 };
 
+export function parseSplitMode(raw: unknown): SplitMode | null {
+  if (typeof raw !== 'string') return null;
+  return (SPLIT_MODES as readonly string[]).includes(raw) ? (raw as SplitMode) : null;
+}
+
 export function isWholeTableSplitMode(mode: SplitMode | string | null | undefined): boolean {
   return mode === 'whole_table';
 }
 
-export function isSplitBillMode(mode: SplitMode | string | null | undefined): boolean {
-  return mode === 'even' || mode === 'by_item' || mode === 'custom';
+/** Split modes that lock payer row count after partial collection. */
+export function isShapeLockSplitMode(mode: SplitMode): boolean {
+  return mode === 'whole_table' || mode === 'even' || mode === 'custom';
+}
+
+export function wholeTableSplitResult(total: number): SplitResult[] {
+  return [{ name: WHOLE_TABLE_PAYER_KEY, amount: total }];
 }
 
 /** Authoritative whole-table check: persisted mode first, legacy row shape as fallback. */
@@ -32,13 +44,10 @@ export function buildWholeTableCheckoutPayload(total: number): CheckoutRequestPa
   return {
     splitMode: 'whole_table',
     persons: [{ name }],
-    result: [{ name, amount: total }],
+    result: wholeTableSplitResult(total),
     customerNif: null,
   };
 }
-
-/** @deprecated Use buildWholeTableCheckoutPayload */
-export const wholeTableCheckoutPayload = buildWholeTableCheckoutPayload;
 
 /** Map UI draft (null = no split button) to persisted checkout intent. */
 export function checkoutIntentFromDraftSplitMode(splitMode: SplitMode | null): SplitMode {
@@ -49,12 +58,11 @@ export function checkoutIntentFromDraftSplitMode(splitMode: SplitMode | null): S
 export function normalizeCheckoutRequestPayload(payload: CheckoutRequestPayload): CheckoutRequestPayload {
   if (payload.splitMode === 'whole_table') {
     const amount = payload.result[0]?.amount ?? 0;
-    const name = WHOLE_TABLE_PAYER_KEY;
     return {
       ...payload,
       splitMode: 'whole_table',
-      persons: [{ name }],
-      result: [{ name, amount }],
+      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
+      result: wholeTableSplitResult(amount),
     };
   }
 

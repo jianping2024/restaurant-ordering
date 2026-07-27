@@ -57,6 +57,8 @@ export const WAITER_TEXT = {
     buffetGuestCountsUnchanged: '成人/儿童人数与当前开台一致，无需重复提交。',
     buffetHeadcountBelowPaidFloor:
       '已有收款锁定，不能把自助餐人数降到低于已付客人已分配的人数。',
+    buffetHeadcountBelowSushiLimitFloor:
+      '已点限量菜占用免费额度，请先退掉多余份数后再减少人数。',
     buffetNoRule: '当前时段无匹配价格，请在后台配置规则。',
     buffetNotConfigured: '请先在后台启用并配置自助餐，再开台。',
     checkoutPendingBanner: '顾客已呼叫结账，请通知收银收款；桌台暂停点餐与改单。',
@@ -187,6 +189,8 @@ export const WAITER_TEXT = {
     buffetGuestCountsUnchanged: 'Adult/child counts match the open table; no change needed.',
     buffetHeadcountBelowPaidFloor:
       'Collections started — buffet headcount cannot drop below paid guests’ allocated seats.',
+    buffetHeadcountBelowSushiLimitFloor:
+      'Limited dishes already use the free allowance — void extras before lowering headcount.',
     buffetNoRule: 'No matching price for this time slot. Configure rules in dashboard.',
     buffetNotConfigured: 'Enable and configure buffet in dashboard before opening a table.',
     checkoutPendingBanner: 'Guests requested checkout — notify cashier to collect payment. Ordering and edits are paused.',
@@ -318,6 +322,8 @@ export const WAITER_TEXT = {
     buffetGuestCountsUnchanged: 'Adultos/criancas ja coincidem com a mesa aberta.',
     buffetHeadcountBelowPaidFloor:
       'Ja houve cobranca — nao pode baixar o buffet abaixo dos lugares ja atribuidos aos pagos.',
+    buffetHeadcountBelowSushiLimitFloor:
+      'Pratos limitados ja usam a quota gratis — anule as porcoes a mais antes de reduzir pessoas.',
     buffetNoRule: 'Sem preco para este horario. Configure no painel.',
     buffetNotConfigured: 'Ative e configure o buffet no painel antes de abrir a mesa.',
     checkoutPendingBanner: 'Clientes pediram a conta — avise o caixa para receber. Pedidos e alteracoes estao suspensos.',

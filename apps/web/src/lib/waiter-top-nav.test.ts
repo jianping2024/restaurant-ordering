@@ -4,7 +4,7 @@ import {
   buildWaiterStandaloneTopNav,
   waiterStandaloneLogoHref,
 } from './waiter-top-nav';
-import { isStaffPersonalNavItemActive } from './staff-personal-top-nav';
+import { isNavItemActive } from './dashboard-top-nav';
 
 describe('waiterStandaloneTopNav', () => {
   it('points logo and nav at dashboard waiter board', () => {
@@ -16,11 +16,11 @@ describe('waiterStandaloneTopNav', () => {
 
   it('marks dashboard waiter paths active', () => {
     const item = buildWaiterStandaloneTopNav('cafe-lisboa')[0]!;
-    assert.equal(isStaffPersonalNavItemActive('/dashboard/waiter', item), true);
+    assert.equal(isNavItemActive('/dashboard/waiter', item), true);
     assert.equal(
-      isStaffPersonalNavItemActive('/dashboard/waiter/table-uuid', item),
+      isNavItemActive('/dashboard/waiter/table-uuid', item),
       true,
     );
-    assert.equal(isStaffPersonalNavItemActive('/cafe-lisboa/kitchen', item), false);
+    assert.equal(isNavItemActive('/cafe-lisboa/kitchen', item), false);
   });
 });

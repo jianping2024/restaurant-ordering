@@ -12,7 +12,7 @@ import { patchStaffOrderItemsClient } from '@/lib/order-item-void/patch-staff-or
 import { deriveOrderStatusFromItems, itemsEveryVoided, normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
-import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSettingsMenu';
+import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
 import { staffRolePath } from '@/lib/staff-routes';
@@ -315,7 +315,7 @@ function KitchenDisplayInner({
         restaurantName={restaurant.name}
         navItems={[]}
         settingsMenu={
-          <StaffPersonalSettingsMenu
+          <PersonalSettingsMenu
             roleLabel={roleLabel}
             logoutLabel={exitLabel}
             onSignOut={() => void handleSignOut()}

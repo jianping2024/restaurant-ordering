@@ -1,22 +1,21 @@
 'use client';
 
-'use client';
-
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { getMessages } from '@/lib/i18n/messages';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
+import { topNavCheckoutCountBadge } from '@/components/ui/ProductTopNavLink';
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
   dashboardLogoHref,
-  dashboardTopNavItemLabel,
   isNavItemActive,
-  type DashboardTopNavItem,
+  topNavItemLabel,
+  type ProductTopNavItem,
 } from '@/lib/dashboard-top-nav';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 
 type Props = {
-  items: DashboardTopNavItem[];
+  items: ProductTopNavItem[];
   quickActionIds: ReadonlySet<string>;
   accessMode: DashboardAccessMode;
   pathname: string;
@@ -25,6 +24,14 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+function topNavMenuRowClass(active: boolean): string {
+  return `flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+    active
+      ? 'bg-brand-gold/10 text-brand-text border-l-2 border-brand-gold'
+      : 'text-brand-text hover:bg-brand-bg/80 border-l-2 border-transparent'
+  }`;
+}
 
 export function DashboardTopNavMenu({
   items,
@@ -75,23 +82,15 @@ export function DashboardTopNavMenu({
       >
         {items.map((item) => {
           const active = isNavItemActive(pathname, item);
-          const label = dashboardTopNavItemLabel(item, navT);
+          const label = topNavItemLabel(item, navT);
           const badge = item.checkoutBadge ? checkoutCount : undefined;
-          const rowClass = `flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
-            active
-              ? 'bg-brand-gold/10 text-brand-text border-l-2 border-brand-gold'
-              : 'text-brand-text hover:bg-brand-bg/80 border-l-2 border-transparent'
-          }`;
+          const rowClass = topNavMenuRowClass(active);
 
           const content = (
             <>
               <span aria-hidden>{item.icon}</span>
               <span className="flex-1 text-left">{label}</span>
-              {badge != null && badge > 0 ? (
-                <span className="inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-amber-600 px-1 text-[10px] font-semibold text-white">
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              ) : null}
+              {badge != null && badge > 0 ? topNavCheckoutCountBadge(badge) : null}
               {item.external ? (
                 <span className="text-[10px] opacity-60" aria-hidden>
                   ↗

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { StaffPersonalSettingsMenu } from '@/components/staff/StaffPersonalSettingsMenu';
+import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { WaiterAuthenticatedShell } from '@/components/waiter/WaiterAuthenticatedShell';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
@@ -33,7 +33,7 @@ export function WaiterStandaloneShell({ restaurant, asOwner = false, children }:
             restaurantName={restaurant.name}
             navItems={navItems}
             settingsMenu={
-              <StaffPersonalSettingsMenu
+              <PersonalSettingsMenu
                 roleLabel={roleLabel}
                 logoutLabel={exitLabel}
                 onSignOut={handleSignOut}

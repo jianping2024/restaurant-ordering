@@ -1,9 +1,9 @@
 import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
-import type { StaffPersonalTopNavItem } from '@/lib/staff-personal-top-nav';
+import type { ProductTopNavItem } from '@/lib/dashboard-top-nav';
 import { waiterBoardHref } from '@/lib/staff-routes';
 
 /** @deprecated Slug waiter shell redirects to Dashboard; kept for tests / kitchen parity helpers. */
-export function buildWaiterStandaloneTopNav(slug: string): StaffPersonalTopNavItem[] {
+export function buildWaiterStandaloneTopNav(slug: string): ProductTopNavItem[] {
   const board = DASHBOARD_NAV_ITEMS.waiterBoard;
   const href = waiterBoardHref(slug);
   return [

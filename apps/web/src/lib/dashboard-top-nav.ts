@@ -1,16 +1,15 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
   navItemsForRole,
-  type DashboardNavItemDef,
 } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
 
-export type DashboardTopNavItem = {
+export type ProductTopNavItem = {
   id: string;
   href: string;
-  labelKey: DashboardNavItemDef['key'] | 'viewKitchen';
+  labelKey: string;
   icon: string;
   exact?: boolean;
   matchPrefix?: string;
@@ -18,12 +17,22 @@ export type DashboardTopNavItem = {
   external?: boolean;
 };
 
-export type DashboardTopNavPresentation = {
-  /** Full role navigation list (desktop inline + mobile menu). */
-  items: DashboardTopNavItem[];
-  /** Mobile inline icon shortcuts; excludes the logo home target. */
-  quickActions: DashboardTopNavItem[];
+/** @deprecated Use ProductTopNavItem */
+export type DashboardTopNavItem = ProductTopNavItem;
+
+/** @deprecated Use ProductTopNavItem */
+export type StaffPersonalTopNavItem = ProductTopNavItem;
+
+export type TopNavPresentation = {
+  items: ProductTopNavItem[];
+  quickActions: ProductTopNavItem[];
 };
+
+/** @deprecated Use TopNavPresentation */
+export type DashboardTopNavPresentation = TopNavPresentation;
+
+/** @deprecated Use TopNavPresentation */
+export type StaffPersonalTopNavPresentation = TopNavPresentation;
 
 /** Nav item ids promoted to compact icons below the lg breakpoint. */
 const QUICK_ACTION_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly string[]>> = {
@@ -38,12 +47,18 @@ export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
   return '/dashboard';
 }
 
+export function isTopBarLogoHrefActive(
+  pathname: string,
+  logoHref: string,
+  exact = false,
+): boolean {
+  if (exact) return pathname === logoHref;
+  return pathname === logoHref || pathname.startsWith(`${logoHref}/`);
+}
+
 export function isLogoHrefActive(pathname: string, accessMode: DashboardAccessMode): boolean {
   const href = dashboardLogoHref(accessMode);
-  if (accessMode === 'owner') {
-    return pathname === href;
-  }
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return isTopBarLogoHrefActive(pathname, href, accessMode === 'owner');
 }
 
 export function dashboardTopNavButtonClass(active: boolean, compact = false): string {
@@ -89,7 +104,7 @@ export function dashboardTopBarMobileDropdownPanelStyle(): {
 
 export function isNavItemActive(
   pathname: string,
-  item: Pick<DashboardTopNavItem, 'href' | 'exact' | 'matchPrefix'>,
+  item: Pick<ProductTopNavItem, 'href' | 'exact' | 'matchPrefix'>,
 ): boolean {
   if (item.matchPrefix) {
     return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`);
@@ -100,21 +115,41 @@ export function isNavItemActive(
   return pathname.startsWith(item.href);
 }
 
-export function dashboardTopNavItemLabel(
-  item: DashboardTopNavItem,
+export function topNavItemLabel(
+  item: Pick<ProductTopNavItem, 'labelKey'>,
   navT: ReturnType<typeof getMessages>['nav'],
 ): string {
   if (item.labelKey === 'viewKitchen') return navT.viewKitchen;
-  return navT[item.labelKey as keyof typeof navT] as string;
+  const key = item.labelKey as keyof typeof navT;
+  return typeof navT[key] === 'string' ? (navT[key] as string) : item.labelKey;
+}
+
+/** @deprecated Use topNavItemLabel */
+export const dashboardTopNavItemLabel = topNavItemLabel;
+
+export function buildTopNavPresentation(
+  items: ProductTopNavItem[],
+  logoHref: string,
+  options: {
+    quickActionIds?: ReadonlySet<string>;
+    promoteAllExceptLogo?: boolean;
+  } = {},
+): TopNavPresentation {
+  const quickActions = items.filter((item) => {
+    if (item.href === logoHref) return false;
+    if (options.promoteAllExceptLogo) return true;
+    return options.quickActionIds?.has(item.id) ?? false;
+  });
+  return { items, quickActions };
 }
 
 export function buildDashboardTopNavItems(input: {
   accessMode: DashboardAccessMode;
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
-}): DashboardTopNavItem[] {
+}): ProductTopNavItem[] {
   const { accessMode, restaurantSlug, kitchenShortcutEnabled } = input;
-  const items: DashboardTopNavItem[] = navItemsForRole(accessMode).map((item) => ({
+  const items: ProductTopNavItem[] = navItemsForRole(accessMode).map((item) => ({
     id: item.id,
     href: item.href,
     labelKey: item.key,
@@ -141,14 +176,11 @@ export function buildDashboardTopNavPresentation(input: {
   accessMode: DashboardAccessMode;
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
-}): DashboardTopNavPresentation {
+}): TopNavPresentation {
   const items = buildDashboardTopNavItems(input);
   const logoHref = dashboardLogoHref(input.accessMode);
   const quickActionIds = new Set(QUICK_ACTION_IDS_BY_ROLE[input.accessMode] ?? []);
-  const quickActions = items.filter(
-    (item) => quickActionIds.has(item.id) && item.href !== logoHref,
-  );
-  return { items, quickActions };
+  return buildTopNavPresentation(items, logoHref, { quickActionIds });
 }
 
 export function isDashboardWaiterBoardListPath(pathname: string): boolean {

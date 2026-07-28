@@ -1,18 +1,16 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  buildDashboardTopNavPresentation,
   buildDashboardTopNavItems,
+  buildDashboardTopNavPresentation,
+  buildTopNavPresentation,
   dashboardLogoHref,
   dashboardWaiterTableIdFromPath,
   isDashboardWaiterTableDetailPath,
   isLogoHrefActive,
   isNavItemActive,
+  isTopBarLogoHrefActive,
 } from '@/lib/dashboard-top-nav';
-import {
-  buildStaffPersonalTopNavPresentation,
-  isStaffLogoHrefActive,
-} from '@/lib/staff-personal-top-nav';
 
 describe('buildDashboardTopNavPresentation', () => {
   it('keeps frontdesk checkout as the only mobile quick action', () => {
@@ -72,10 +70,36 @@ describe('buildDashboardTopNavPresentation', () => {
   });
 });
 
-describe('buildStaffPersonalTopNavPresentation', () => {
+describe('buildTopNavPresentation', () => {
+  it('promotes all non-logo items for staff personal shells', () => {
+    const href = '/demo/waiter';
+    const { items, quickActions } = buildTopNavPresentation(
+      [
+        {
+          id: 'waiterBoard',
+          href,
+          labelKey: 'viewWaiter',
+          icon: '🛎️',
+          matchPrefix: href,
+        },
+        {
+          id: 'kitchenBoard',
+          href: '/demo/kitchen',
+          labelKey: 'viewKitchen',
+          icon: '🍳',
+          external: true,
+        },
+      ],
+      href,
+      { promoteAllExceptLogo: true },
+    );
+    assert.equal(items.length, 2);
+    assert.deepEqual(quickActions.map((item) => item.id), ['kitchenBoard']);
+  });
+
   it('drops nav items that duplicate the logo href', () => {
     const href = '/demo/waiter';
-    const { items, quickActions } = buildStaffPersonalTopNavPresentation(
+    const { items, quickActions } = buildTopNavPresentation(
       [
         {
           id: 'waiterBoard',
@@ -86,6 +110,7 @@ describe('buildStaffPersonalTopNavPresentation', () => {
         },
       ],
       href,
+      { promoteAllExceptLogo: true },
     );
     assert.equal(items.length, 1);
     assert.equal(quickActions.length, 0);
@@ -119,10 +144,11 @@ describe('isLogoHrefActive', () => {
   });
 });
 
-describe('isStaffLogoHrefActive', () => {
+describe('isTopBarLogoHrefActive', () => {
   it('matches slug waiter shell paths', () => {
-    assert.equal(isStaffLogoHrefActive('/demo/waiter', '/demo/waiter'), true);
-    assert.equal(isStaffLogoHrefActive('/demo/waiter/table-1', '/demo/waiter'), true);
+    assert.equal(isTopBarLogoHrefActive('/demo/waiter', '/demo/waiter'), true);
+    assert.equal(isTopBarLogoHrefActive('/demo/waiter/table-1', '/demo/waiter'), true);
+    assert.equal(isTopBarLogoHrefActive('/demo/kitchen', '/demo/waiter'), false);
   });
 });
 

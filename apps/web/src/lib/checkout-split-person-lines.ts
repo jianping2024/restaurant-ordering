@@ -7,7 +7,11 @@ import {
   legacyEqualShareQtyLabel,
   shareQtyLabel,
 } from '@/lib/bill-split-by-item';
-import { buildBillSplitOrderLines, buildByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import {
+  buildByItemLineSpec,
+  buildByItemSplitOrderLines,
+  type BillSplitOrderLine,
+} from '@/lib/bill-split-by-item-lines';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import type { BillSplit, Order } from '@/types';
@@ -28,9 +32,16 @@ export type CheckoutPersonShareLine = {
   shareAmount: number;
 };
 
+function splitLineQtyForLegacyLabel(
+  spec: ReturnType<typeof buildByItemLineSpec>,
+  catalogLine: BillSplitOrderLine,
+): number {
+  return spec.mode === 'menu' ? spec.lineQty : catalogLine.qty;
+}
+
 /**
  * Per-person dish shares for by_item splits. Empty for even/custom or missing person.
- * Amounts match split_payment receipt line unit prices (pre-discount).
+ * Amounts use the same billable line totals as split draft / submit (pre-discount).
  */
 export function buildSplitPersonShareLines(
   split: BillSplit,
@@ -44,7 +55,7 @@ export function buildSplitPersonShareLines(
 
   const persons = split.persons || [];
   const personId = `p${personIndex + 1}`;
-  const catalogLines = buildBillSplitOrderLines(orders);
+  const catalogLines = buildByItemSplitOrderLines(orders);
   const lines: SplitPersonShareLine[] = [];
 
   for (const catalogLine of catalogLines) {
@@ -58,7 +69,7 @@ export function buildSplitPersonShareLines(
     const consumers = consumersForLineFromPersons(persons, key, spec);
     if (consumers.length === 0) continue;
 
-    const lineTotal = catalogLine.price * catalogLine.qty;
+    const lineTotal = spec.lineTotal;
     const personShare = consumers.find((consumer) => consumer.name === person.name);
     if (!personShare) continue;
 
@@ -70,7 +81,7 @@ export function buildSplitPersonShareLines(
         ? buffetShareUnitPrice(catalogLine, personShare.guestType) * shareQty
         : byItemLinePriceShare(lineTotal, consumers, person.name);
     const quantityLabel = usesLegacyShares
-      ? legacyEqualShareQtyLabel(catalogLine.qty, consumers.length)
+      ? legacyEqualShareQtyLabel(splitLineQtyForLegacyLabel(spec, catalogLine), consumers.length)
       : shareQtyLabel(personShare.qty);
 
     lines.push({

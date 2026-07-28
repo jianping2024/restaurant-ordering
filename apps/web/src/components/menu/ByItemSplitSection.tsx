@@ -3,8 +3,12 @@
 import { useMemo } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
-import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { formatOrderItemQuantityLabel, formatStaffMenuLineLabel } from '@/lib/order-list-display';
+import {
+  formatByItemSplitQuantityLabel,
+  type BillSplitOrderLine,
+  type ByItemLineSpec,
+} from '@/lib/bill-split-by-item-lines';
+import { formatStaffMenuLineLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -37,11 +41,6 @@ export function ByItemSplitSection({
   progress,
 }: Props) {
   const { isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(lineSpecs, byItemAllocations);
-
-  const lineQtyLabel = (item: BillSplitOrderLine, spec: ByItemLineSpec) =>
-    spec.mode === 'menu'
-      ? formatOrderItemQuantityLabel({ ...item, qty: spec.lineQty }, { headcountStyle: 'receipt' })
-      : formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
 
   const orderLineByKey = useMemo(
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
@@ -94,7 +93,7 @@ export function ByItemSplitSection({
             onRememberConsumerName={onRememberConsumerName}
             title={(
               <>
-                {lineLabel} {lineQtyLabel(item, spec)}
+                {lineLabel} {formatByItemSplitQuantityLabel(spec, item)}
               </>
             )}
           />

@@ -26,6 +26,10 @@ export function isBillOrdersComplete(displayed: Order[], fresh: Order[]): boolea
   return billOrdersFingerprint(displayed) === billOrdersFingerprint(fresh);
 }
 
+/**
+ * Bill-page read model: detail catalog (physical qty) vs by-item split (spec.lineQty authority).
+ * Both derive from {@link buildBillableSessionItems} — no parallel qty rules.
+ */
 export function deriveBillView(orders: Order[]) {
   const orderLines = buildBillSplitOrderLines(orders);
   const splitOrderLines = buildByItemSplitOrderLines(orders);

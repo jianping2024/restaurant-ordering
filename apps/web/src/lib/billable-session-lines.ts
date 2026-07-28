@@ -84,7 +84,6 @@ export function byItemSplitTargetQty(
 /** Limited rows with nothing billable beyond the free allowance skip by-item split. */
 export function isByItemSplittableBillableRow(row: BillableSessionItem): boolean {
   if (isBuffetBaseItem(row.item)) return true;
-  if (isLimitedBillableRow(row)) return byItemSplitTargetQty(row) > 0;
   return byItemSplitTargetQty(row) > 0;
 }
 

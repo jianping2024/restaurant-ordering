@@ -5,8 +5,10 @@ import {
   byItemSplitTargetQty,
   chargeableFieldsFromBillableRow,
   isByItemSplittableBillableRow,
+  type BillableSessionItem,
 } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import type { Order, OrderItem } from '@/types';
 
 /** Billable catalog line for by-item split (same keys as receipt / bill details). */
@@ -49,22 +51,37 @@ export type ByItemLineSpec =
       childUnitPrice: number;
     };
 
-export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
-  return buildBillableSessionItems(orders).map((row) => ({
+function billSplitOrderLineFromBillableRow(row: BillableSessionItem): BillSplitOrderLine {
+  return {
     ...row.item,
     key: row.key,
     ...chargeableFieldsFromBillableRow(row),
-  }));
+  };
 }
 
+/** Full bill catalog (physical qty; used for bill details and receipt aggregation). */
+export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
+  return buildBillableSessionItems(orders).map(billSplitOrderLineFromBillableRow);
+}
+
+/** Splittable subset for by-item allocation (limited rows use chargeable qty in specs). */
 export function buildByItemSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
   return buildBillableSessionItems(orders)
     .filter(isByItemSplittableBillableRow)
-    .map((row) => ({
-      ...row.item,
-      key: row.key,
-      ...chargeableFieldsFromBillableRow(row),
-    }));
+    .map(billSplitOrderLineFromBillableRow);
+}
+
+/** Quantity label for by-item split cards — menu lines use {@link ByItemLineSpec.lineQty}. */
+export function formatByItemSplitQuantityLabel(
+  spec: ByItemLineSpec,
+  catalogLine: BillSplitOrderLine,
+): string {
+  if (spec.mode === 'buffet') {
+    return formatOrderItemQuantityLabel(catalogLine, { headcountStyle: 'receipt' });
+  }
+  return formatOrderItemQuantityLabel({ ...catalogLine, qty: spec.lineQty }, {
+    headcountStyle: 'receipt',
+  });
 }
 
 export function buildByItemLineSpec(line: BillSplitOrderLine): ByItemLineSpec {

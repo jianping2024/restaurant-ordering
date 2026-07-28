@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit, Order } from '@/types';
+import { limitedBillableMergeKey } from '@/lib/billable-session-lines';
 import {
   buildCheckoutPersonShareLines,
   buildSplitPersonShareLines,
@@ -8,6 +9,7 @@ import {
 
 const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const MENU_KEY = 'menu-coke::3';
+const LIMITED_KEY = limitedBillableMergeKey('m1');
 
 function byItemSplit(overrides: Partial<BillSplit> = {}): BillSplit {
   return {
@@ -100,5 +102,81 @@ describe('buildCheckoutPersonShareLines', () => {
     assert.match(lines[0]?.label ?? '', /028/);
     assert.equal(lines[0]?.quantityLabel, '1/3');
     assert.equal(lines[0]?.shareAmount, 1);
+  });
+});
+
+const limitedSushiOrders: Order[] = [
+  {
+    id: ORDER_ID,
+    restaurant_id: 'rest-1',
+    table_id: 'table-1',
+    display_name: 'A-05',
+    session_id: 'sess-1',
+    status: 'done',
+    total_amount: 23.95,
+    created_at: '2026-06-22T00:00:00.000Z',
+    updated_at: '2026-06-22T00:00:00.000Z',
+    items: [
+      {
+        id: 'buffet:b1',
+        kind: 'buffet_base',
+        buffet_id: 'b1',
+        adult_count: 1,
+        child_count: 0,
+        adult_unit_price: 14.95,
+        child_unit_price: 9.5,
+        name: 'Buffet',
+        name_pt: 'Buffet',
+        qty: 1,
+        price: 14.95,
+        emoji: '',
+        item_status: 'done',
+      },
+      {
+        id: 'm1',
+        name: 'susi1',
+        name_pt: 'susi1',
+        qty: 4,
+        price: 0,
+        emoji: '',
+        per_person_qty_limit: 2,
+        over_limit_unit_price: 4.5,
+        added_at: '2026-01-01T00:00:00.000Z',
+        item_status: 'pending',
+      },
+    ],
+  },
+];
+
+describe('limited sushi by_item person shares', () => {
+  it('uses chargeable line total (not physical qty × menu price)', () => {
+    const split: BillSplit = {
+      id: 'split-limited',
+      restaurant_id: 'rest-1',
+      session_id: 'sess-1',
+      table_id: 'table-1',
+      display_name: 'A-05',
+      order_ids: [ORDER_ID],
+      split_mode: 'by_item',
+      persons: [
+        {
+          name: 'John',
+          item_shares: [
+            { key: LIMITED_KEY, qty_num: 2, qty_den: 1 },
+            { key: 'buffet:b1', qty_num: 1, qty_den: 1, guest_type: 'adult' },
+          ],
+        },
+      ],
+      result: [{ name: 'John', amount: 23.95 }],
+      total_amount: 23.95,
+      status: 'requested',
+      created_at: '2026-06-22T00:00:00.000Z',
+    };
+
+    const lines = buildSplitPersonShareLines(split, 0, limitedSushiOrders);
+    const sushi = lines.find((line) => line.key === LIMITED_KEY);
+    assert.ok(sushi);
+    assert.equal(sushi?.shareAmount, 9);
+    assert.equal(sushi?.quantityLabel, '2');
   });
 });

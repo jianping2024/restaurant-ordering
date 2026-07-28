@@ -118,6 +118,7 @@ export function BillPage({
     orders,
     partyMemberCount,
     orderLines,
+    splitOrderLines,
     lineSpecs,
     total,
     refreshOrders,
@@ -142,7 +143,7 @@ export function BillPage({
     continuationSplit,
     collectedPayments,
     total,
-    orderLines,
+    orderLines: splitOrderLines,
     lineSpecs,
     guestName,
     submitted,
@@ -536,7 +537,7 @@ export function BillPage({
         lockedPersonNames={splitDraft.lockedPersonNames}
         lockedPersonLineMins={splitDraft.lockedPersonLineMins}
         lineSpecs={lineSpecs}
-        orderLines={orderLines}
+        orderLines={splitOrderLines}
         byItemAllocations={splitDraft.byItemAllocations}
         consumerRoster={splitDraft.consumerRoster}
         byItemProgress={splitDraft.byItemProgress}

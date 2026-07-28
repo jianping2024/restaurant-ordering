@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildBillableSessionItems,
+  byItemSplitTargetQty,
   chargeableFieldsFromBillableRow,
+  isByItemSplittableBillableRow,
   isLimitedBillableRow,
   limitedBillableMergeKey,
   menuItemIdFromLimitedBillableKey,
@@ -27,6 +29,32 @@ describe('limited billable merge keys', () => {
       { chargeableQty: 2, chargeableUnitPrice: 4.5 },
     );
     assert.deepEqual(chargeableFieldsFromBillableRow({}), {});
+  });
+
+  it('byItemSplitTargetQty uses chargeable share for limited rows', () => {
+    const limitedKey = limitedBillableMergeKey('m1');
+    assert.equal(
+      byItemSplitTargetQty({
+        key: limitedKey,
+        item: { id: 'm1', name: 's', name_pt: 's', qty: 4, price: 0, emoji: '' },
+        chargeableQty: 2,
+      }),
+      2,
+    );
+    assert.equal(
+      byItemSplitTargetQty({
+        key: limitedKey,
+        item: { id: 'm1', name: 's', name_pt: 's', qty: 4, price: 0, emoji: '' },
+      }),
+      0,
+    );
+    assert.equal(
+      isByItemSplittableBillableRow({
+        key: limitedKey,
+        item: { id: 'm1', name: 's', name_pt: 's', qty: 4, price: 0, emoji: '' },
+      }),
+      false,
+    );
   });
 });
 

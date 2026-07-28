@@ -6,7 +6,7 @@ import {
   calcByItemSplitResults,
 } from '@/lib/bill-split-by-item';
 import {
-  buildBillSplitOrderLines,
+  buildByItemSplitOrderLines,
   buildByItemLineSpecs,
   byItemSplitLineFromOrderLine,
 } from '@/lib/bill-split-by-item-lines';
@@ -52,8 +52,8 @@ function sushiChargeableOrders(adultCount: number, sushiQty: number): Order[] {
 }
 
 function wholeTableAssignedPersons(orders: Order[]) {
-  const orderLines = buildBillSplitOrderLines(orders);
-  const lineSpecs = buildByItemLineSpecs(orderLines);
+  const splitOrderLines = buildByItemSplitOrderLines(orders);
+  const lineSpecs = buildByItemLineSpecs(splitOrderLines);
   const allocations: Record<
     string,
     Array<{ name: string; qty: { num: number; den: number }; guestType?: 'adult' | 'child' }>
@@ -76,9 +76,9 @@ describe('validateSubmittedCheckoutSplit', () => {
   it('accepts by_item split when total uses billable session authority (sushi chargeable)', () => {
     const orders = sushiChargeableOrders(1, 3);
     const persons = wholeTableAssignedPersons(orders);
-    const orderLines = buildBillSplitOrderLines(orders);
-    const lineSpecs = buildByItemLineSpecs(orderLines);
-    const splitLines = orderLines.map((line) =>
+    const splitOrderLines = buildByItemSplitOrderLines(orders);
+    const lineSpecs = buildByItemLineSpecs(splitOrderLines);
+    const splitLines = splitOrderLines.map((line) =>
       byItemSplitLineFromOrderLine(line, (line.name || line.name_pt || '').trim()),
     );
     const allocations = buildByItemAllocationsFromPersons(persons, lineSpecs);

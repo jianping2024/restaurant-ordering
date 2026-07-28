@@ -68,6 +68,26 @@ export function chargeableShareOf(
   return { qty, unitPrice: row.chargeableUnitPrice };
 }
 
+/**
+ * Portions guests must assign in by-item split. Limited sushi rows use only the
+ * chargeable share (free allowance is already included in buffet — not split).
+ */
+export function byItemSplitTargetQty(
+  row: Pick<BillableSessionItem, 'key' | 'item' | 'chargeableQty'>,
+): number {
+  if (isLimitedBillableRow(row)) {
+    return Math.max(0, row.chargeableQty ?? 0);
+  }
+  return Math.max(0, Number(row.item.qty) || 0);
+}
+
+/** Limited rows with nothing billable beyond the free allowance skip by-item split. */
+export function isByItemSplittableBillableRow(row: BillableSessionItem): boolean {
+  if (isBuffetBaseItem(row.item)) return true;
+  if (isLimitedBillableRow(row)) return byItemSplitTargetQty(row) > 0;
+  return byItemSplitTargetQty(row) > 0;
+}
+
 /** Optional chargeable fields for display rows derived from a billable catalog row. */
 export function chargeableFieldsFromBillableRow(
   row: Pick<BillableSessionItem, 'chargeableQty' | 'chargeableUnitPrice'>,

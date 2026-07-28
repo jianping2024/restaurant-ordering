@@ -46,7 +46,7 @@ export function useBillOrders(
     setPartyMemberCount(params.initialPartyMemberCount);
   }, [params.initialPartyMemberCount]);
 
-  const { orderLines, lineSpecs, total } = useMemo(() => deriveBillView(orders), [orders]);
+  const { orderLines, splitOrderLines, lineSpecs, total } = useMemo(() => deriveBillView(orders), [orders]);
 
   const refreshOrders = useCallback(async (): Promise<BillOrdersRefresh | null> => {
     if (syncInFlightRef.current) {
@@ -91,6 +91,7 @@ export function useBillOrders(
     orders,
     partyMemberCount,
     orderLines,
+    splitOrderLines,
     lineSpecs,
     total,
     isSyncing,

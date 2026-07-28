@@ -45,7 +45,7 @@ export function validateSubmitSplitDraft(
   const { results: submitResults, validation } = validateSplitDraft({
     ...splitDraftInput,
     total: freshView.total,
-    orderLines: freshView.orderLines,
+    orderLines: freshView.splitOrderLines,
     lineSpecs: freshView.lineSpecs,
   });
   if (!validation.ok) {

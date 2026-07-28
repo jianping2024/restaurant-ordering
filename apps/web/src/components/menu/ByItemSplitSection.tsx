@@ -38,8 +38,10 @@ export function ByItemSplitSection({
 }: Props) {
   const { isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(lineSpecs, byItemAllocations);
 
-  const lineQtyLabel = (item: BillSplitOrderLine) =>
-    formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
+  const lineQtyLabel = (item: BillSplitOrderLine, spec: ByItemLineSpec) =>
+    spec.mode === 'menu'
+      ? formatOrderItemQuantityLabel({ ...item, qty: spec.lineQty }, { headcountStyle: 'receipt' })
+      : formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' });
 
   const orderLineByKey = useMemo(
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
@@ -92,7 +94,7 @@ export function ByItemSplitSection({
             onRememberConsumerName={onRememberConsumerName}
             title={(
               <>
-                {lineLabel} {lineQtyLabel(item)}
+                {lineLabel} {lineQtyLabel(item, spec)}
               </>
             )}
           />

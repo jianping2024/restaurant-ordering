@@ -29,7 +29,6 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-// Import removed - no longer using resolveMenuDecrementOperator
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import type { Capabilities } from '@/lib/permissions/can';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';

@@ -4,7 +4,6 @@ import {
   applyOrderItemDecrement,
   type DecrementOrderItemCode,
 } from '@/lib/order-item-void/decrement-order-item';
-// Import removed - no longer using MenuDecrementOperator
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { resolveMenuImageDisplayUrl } from './menu-image';
+import {
+  clientHostnameFromRequest,
+  mapCustomerMenuCatalogImageUrls,
+  resolveMenuImageDisplayUrl,
+} from './menu-image';
 
 describe('resolveMenuImageDisplayUrl', () => {
   const sample =
@@ -32,5 +36,30 @@ describe('resolveMenuImageDisplayUrl', () => {
       resolveMenuImageDisplayUrl(cloud, { clientHostname: '172.20.10.4' }),
       cloud,
     );
+  });
+});
+
+describe('mapCustomerMenuCatalogImageUrls', () => {
+  it('rewrites each menu item image_url for the client host', () => {
+    const catalog = {
+      menuItems: [
+        {
+          image_url:
+            'http://127.0.0.1:54321/storage/v1/object/public/menu-images/r1/a.jpg',
+        },
+      ],
+      menuCategories: [],
+    };
+    const mapped = mapCustomerMenuCatalogImageUrls(catalog, '172.20.10.4');
+    assert.match(mapped.menuItems[0]?.image_url ?? '', /172\.20\.10\.4:54321/);
+  });
+});
+
+describe('clientHostnameFromRequest', () => {
+  it('prefers the Host header over the request URL hostname', () => {
+    const req = new Request('http://0.0.0.0:3000/api/test', {
+      headers: { host: '172.20.10.4:3000' },
+    });
+    assert.equal(clientHostnameFromRequest(req), '172.20.10.4');
   });
 });

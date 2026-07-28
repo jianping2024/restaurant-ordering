@@ -113,6 +113,25 @@ export function resolveMenuImageDisplayUrl(
   return trimmed;
 }
 
+export function clientHostnameFromRequest(req: Request): string {
+  const fromHeader = req.headers.get('host')?.split(':')[0]?.trim();
+  if (fromHeader) return fromHeader;
+  return new URL(req.url).hostname;
+}
+
+/** Rewrite menu item image URLs for the requesting client (LAN dev phones). */
+export function mapCustomerMenuCatalogImageUrls<
+  T extends { menuItems: Array<{ image_url?: string | null }> },
+>(catalog: T, clientHostname: string): T {
+  return {
+    ...catalog,
+    menuItems: catalog.menuItems.map((item) => ({
+      ...item,
+      image_url: resolveMenuImageDisplayUrl(item.image_url, { clientHostname }),
+    })),
+  };
+}
+
 export async function removeMenuImageFromStorage(
   supabase: SupabaseClient,
   publicUrl: string | null | undefined,

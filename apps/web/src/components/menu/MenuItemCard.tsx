@@ -10,7 +10,7 @@ import {
 } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
-  MENU_ITEM_CARD_ACTION_COLUMN_CLASS,
+  MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
 } from '@/lib/menu-item-card-layout';
 
@@ -65,7 +65,7 @@ function MenuItemCardAction({
       onClick={onIncrement}
       disabled={incrementDisabled}
       aria-label={labels.add}
-      className={`ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
       +
     </button>
@@ -129,7 +129,7 @@ export function MenuItemCard({
           <span className={`min-w-0 truncate ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
             €{item.price.toFixed(2)}
           </span>
-          <div className={`${MENU_ITEM_CARD_ACTION_COLUMN_CLASS} flex items-center justify-end`}>
+          <div className={MENU_ITEM_CARD_ACTION_SLOT_CLASS}>
             <MenuItemCardAction
               available={item.available}
               cartQty={cartQty}

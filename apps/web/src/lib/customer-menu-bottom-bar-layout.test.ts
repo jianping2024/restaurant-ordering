@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
+  customerMenuBottomBarDockClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
   customerMenuBottomBarPrimaryActionClass,
@@ -13,6 +14,7 @@ import {
   CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS,
   CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER,
 } from './customer-menu-bottom-bar-layout';
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from './customer-menu-chrome-layout';
 
 describe('customerMenuPageBottomPaddingClass', () => {
   it('reserves bar height + safe area when footer is visible via a static Tailwind class', () => {
@@ -44,6 +46,10 @@ describe('customerMenuBottomBarRowClass', () => {
   it('pins summary and action to opposite edges with symmetric horizontal padding', () => {
     assert.match(customerMenuBottomBarRowClass, /justify-between/);
     assert.match(customerMenuBottomBarRowClass, /px-4/);
+  });
+
+  it('reuses the shared customer menu shell width token', () => {
+    assert.match(customerMenuBottomBarDockClass, new RegExp(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 });
 

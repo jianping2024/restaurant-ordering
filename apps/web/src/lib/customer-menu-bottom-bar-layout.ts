@@ -1,3 +1,4 @@
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 /** Docked customer menu footer — layout and scroll padding (MenuPage + CustomerMenuFooter). */
@@ -14,7 +15,7 @@ export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
 
 /** Fixed shell: flush to viewport bottom; safe area lives inside the bar. */
 export const customerMenuBottomBarDockClass =
-  'fixed bottom-0 left-1/2 z-30 w-full max-w-mobile -translate-x-1/2 border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0px,env(safe-area-inset-bottom))]';
+  `fixed bottom-0 left-1/2 z-30 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} -translate-x-1/2 border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0px,env(safe-area-inset-bottom))]`;
 
 export const customerMenuBottomBarRowClass = `flex ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-3 px-4`;
 

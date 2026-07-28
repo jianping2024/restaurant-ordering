@@ -57,6 +57,14 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     }
   });
 
+  it('owner can reach guest notice settings', () => {
+    assert.equal(middlewareAllowsPath('owner', '/dashboard/guest-notice'), true);
+  });
+
+  it('cashier cannot reach guest notice settings', () => {
+    assert.equal(middlewareAllowsPath('cashier', '/dashboard/guest-notice'), false);
+  });
+
   it('owner cannot reach frontdesk-only operational routes', () => {
     for (const path of ['/dashboard/menu', '/dashboard/tables', '/dashboard/checkout']) {
       assert.equal(middlewareAllowsPath('owner', path), false, `owner should not access ${path}`);

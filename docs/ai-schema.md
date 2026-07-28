@@ -57,7 +57,7 @@ restaurant_table_group_members (group_id: uuid FK -> restaurant_table_groups.id,
 table_party_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text length 1..32 unique per restaurant case-insensitive trim; default `{login_name}-together-{N}` / owner fallback, sort_order: integer, created_at: timestamptz)
 table_party_group_members (party_id: uuid FK -> table_party_groups.id, table_id: uuid FK -> restaurant_tables.id, restaurant_id: uuid FK -> restaurants.id; PK (party_id, table_id); UNIQUE (restaurant_id, table_id) — one party per table; soft-delete of table purges membership)
 
-restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], country_code: char(2) not null default PT, print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, buffet_service_mode: text [classic|sushi] not null default classic, suspended_at: timestamptz nullable, suspension_reason: text nullable, created_at: timestamptz)
+restaurants (id: uuid PK, name: text, slug: text unique, owner_id: uuid FK -> auth.users.id, logo_url: text nullable, address: text nullable, phone: text nullable, plan: text [free|pro], kitchen_password: text, waiter_password: text, geo_latitude: double precision nullable, geo_longitude: double precision nullable, print_locale: text [zh|en|pt], country_code: char(2) not null default PT, print_agent_config: jsonb, feature_flags: jsonb default {}, kitchen_password_version: integer, waiter_password_version: integer, order_radius_meters: integer range 10..10000, buffet_friday_weekend_from: time nullable, buffet_service_mode: text [classic|sushi] not null default classic, guest_ordering_notice: jsonb default {enabled,title{pt,en,zh},body{pt,en,zh},updated_at}, suspended_at: timestamptz nullable, suspension_reason: text nullable, created_at: timestamptz)
 
 table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, closed_by_user_id: uuid FK -> auth.users.id nullable, opened_by_user_id: uuid FK -> auth.users.id nullable, table_id: uuid FK -> restaurant_tables.id)
 
@@ -134,7 +134,7 @@ restaurant_staff_accounts.created_by -> auth.users.id
 
 ## Views
 
-restaurants_public — security definer view; public menu/geo fields for customer ordering (no passwords); includes buffet_service_mode.
+restaurants_public — security definer view; public menu/geo fields for customer ordering (no passwords); includes buffet_service_mode and guest_ordering_notice.
 
 ## RPC / Functions (public)
 

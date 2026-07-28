@@ -51,6 +51,7 @@ import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
+import { CustomerGuestOrderingNotice } from '@/components/menu/CustomerGuestOrderingNotice';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useSubmitCooldownRemaining } from '@/lib/use-submit-cooldown-remaining';
 import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
@@ -68,6 +69,10 @@ import {
 } from '@/lib/sushi-buffet-limits';
 import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
 import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import {
+  resolveGuestOrderingNoticeForDisplay,
+  type GuestOrderingNotice,
+} from '@/lib/guest-ordering-notice';
 
 type StaffOverageDialog =
   | {
@@ -95,6 +100,7 @@ export type MenuOrderingRestaurant = {
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: BuffetServiceMode | string | null;
+  guest_ordering_notice?: GuestOrderingNotice | null;
 };
 
 export type MenuOrderingPresentationMode = 'page' | 'embedded';
@@ -428,6 +434,17 @@ export function MenuOrderingController({
     [activeSession, cart, recentOrders, restaurant.slug, sessionResolved, staffAssisted, tableId],
   );
   const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(footer.visible);
+  const guestNotice = useMemo(
+    () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
+    [lang, restaurant.guest_ordering_notice],
+  );
+  const hideGuestNoticeChrome =
+    isDemo ||
+    isEmbedded ||
+    staffAssisted !== null ||
+    cartOpen ||
+    orderedOpen ||
+    introVisible;
 
   const formatCountLabel = useCallback(
     (template: string, count: number) => template.replace('{count}', String(count)),
@@ -939,6 +956,15 @@ export function MenuOrderingController({
         copy={introCopy}
         onDismiss={dismissIntro}
       />
+
+      {guestNotice ? (
+        <CustomerGuestOrderingNotice
+          restaurantId={restaurant.id}
+          notice={guestNotice}
+          lang={lang}
+          hidden={hideGuestNoticeChrome}
+        />
+      ) : null}
     </div>
   );
 }

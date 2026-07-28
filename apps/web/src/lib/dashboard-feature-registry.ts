@@ -23,6 +23,7 @@ export type DashboardNavItemKey =
   | 'orders'
   | 'tables'
   | 'menu'
+  | 'guestNotice'
   | 'viewWaiter';
 
 export type DashboardNavItemDef = {
@@ -107,6 +108,13 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
     icon: '📋',
     featureId: 'menu',
   },
+  guestNotice: {
+    id: 'guestNotice',
+    href: '/dashboard/guest-notice',
+    key: 'guestNotice',
+    icon: '📢',
+    featureId: 'guest-notice',
+  },
   waiterBoard: {
     id: 'waiterBoard',
     href: '/dashboard/waiter',
@@ -121,6 +129,7 @@ export const OWNER_NAV_ITEM_IDS = [
   'overview',
   'valueAnalytics',
   'abnormalOps',
+  'guestNotice',
   'settings',
 ] as const;
 
@@ -131,6 +140,7 @@ export const FRONTDESK_NAV_ITEM_IDS = [
   'overview',
   'tables',
   'menu',
+  'guestNotice',
 ] as const;
 
 export const CASHIER_NAV_ITEM_IDS = ['waiterBoard', 'checkout'] as const;
@@ -270,6 +280,14 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/dashboard/settings/print-stations',
     ],
     riskNote: 'loadMenuManagementContext also allows owner, but middleware blocks owner from this path.',
+  },
+  {
+    id: 'guest-notice',
+    path: '/dashboard/guest-notice',
+    navRoles: ['owner', 'frontdesk'],
+    pageLoader: 'loadMenuManagementContext + loadGuestOrderingNotice',
+    writePattern: 'server-api',
+    aliases: ['/api/dashboard/guest-notice'],
   },
   {
     id: 'waiter-board',

@@ -4,6 +4,11 @@ import { isRestaurantSuspended } from '@mesa/shared';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
+import {
+  emptyGuestOrderingNotice,
+  normalizeGuestOrderingNotice,
+  type GuestOrderingNotice,
+} from '@/lib/guest-ordering-notice';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type {
   WaiterTableDetailData,
@@ -23,6 +28,7 @@ export type CustomerRestaurantRow = {
   feature_flags?: Record<string, boolean> | null;
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: string | null;
+  guest_ordering_notice?: GuestOrderingNotice | null;
 };
 
 export type CustomerResolvedTableContext = {
@@ -120,7 +126,7 @@ export async function loadCustomerRestaurantGate(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, suspended_at, suspension_reason',
+      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, guest_ordering_notice, suspended_at, suspension_reason',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -147,6 +153,9 @@ export async function loadCustomerRestaurantGate(
       feature_flags: data.feature_flags as Record<string, boolean> | null | undefined,
       order_cooldown_seconds: data.order_cooldown_seconds as number | null | undefined,
       buffet_service_mode: data.buffet_service_mode as string | null | undefined,
+      guest_ordering_notice: normalizeGuestOrderingNotice(
+        data.guest_ordering_notice ?? emptyGuestOrderingNotice(),
+      ),
     },
   };
 }

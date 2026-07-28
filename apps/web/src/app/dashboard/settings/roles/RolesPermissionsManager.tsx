@@ -43,7 +43,7 @@ function draftFingerprint(d: FormDraft): string {
     roleId: d.roleId,
     name: d.name.trim(),
     copyFromId: d.copyFromId,
-    permissions: [...d.permissions].sort(),
+    permissions: Array.from(d.permissions).sort(),
   });
 }
 

@@ -276,8 +276,16 @@ const ROLE_PERMISSION_MESSAGES = {
   },
 } as const;
 
-export type RolePermissionsMessages = (typeof ROLE_PERMISSION_MESSAGES)['zh'];
+type WidenLocaleStrings<T> = {
+  readonly [K in keyof T]: T[K] extends string
+    ? string
+    : T[K] extends Record<string, unknown>
+      ? { readonly [P in keyof T[K]]: string }
+      : T[K];
+};
+
+export type RolePermissionsMessages = WidenLocaleStrings<(typeof ROLE_PERMISSION_MESSAGES)['zh']>;
 
 export function rolePermissionsMessages(lang: UILanguage): RolePermissionsMessages {
-  return ROLE_PERMISSION_MESSAGES[lang];
+  return ROLE_PERMISSION_MESSAGES[lang] as RolePermissionsMessages;
 }

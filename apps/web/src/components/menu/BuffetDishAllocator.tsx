@@ -52,8 +52,8 @@ interface Props {
   onRememberConsumerName: (name: string, fromList: boolean) => void;
 }
 
-const INPUT_OK = `${customerQtyInputClass} w-10`;
-const INPUT_ALERT = `${customerQtyInputAlertClass} w-10`;
+const INPUT_OK = `${customerQtyInputClass} w-full`;
+const INPUT_ALERT = `${customerQtyInputAlertClass} w-full`;
 
 function isRowBuffetOverAllocated(
   row: ByItemConsumerRow,
@@ -158,28 +158,35 @@ export function BuffetDishAllocator({
         />
       )}
     >
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows.map((row) => {
           const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
           const over = isRowBuffetOverAllocated(row, rows, spec);
           const fieldClass = over ? INPUT_ALERT : INPUT_OK;
           return (
-            <div key={row.id} className="flex items-start gap-2">
-              <ConsumerNameCombobox
-                value={row.name}
-                options={availableConsumerNamesForRow({
-                  roster: consumerRoster,
-                  dishRows: rows,
-                  rowId: row.id,
-                })}
-                placeholder={labels.namePlaceholder}
-                readOnly={rowLock.nameReadOnly}
-                onChange={(name) => updateRow(row.id, { name })}
-                onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
-              />
-              <div className="flex shrink-0 items-center gap-1">
-                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
-                  <span className="whitespace-nowrap">{labels.buffetAdultQtyLabel}</span>
+            <div key={row.id} className="space-y-2">
+              <div className="flex items-start gap-2">
+                <ConsumerNameCombobox
+                  value={row.name}
+                  options={availableConsumerNamesForRow({
+                    roster: consumerRoster,
+                    dishRows: rows,
+                    rowId: row.id,
+                  })}
+                  placeholder={labels.namePlaceholder}
+                  readOnly={rowLock.nameReadOnly}
+                  onChange={(name) => updateRow(row.id, { name })}
+                  onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}
+                />
+                <ByItemConsumerRowRemoveButton
+                  removable={rowLock.removable && rows.length > 1}
+                  ariaLabel={labels.remove}
+                  onRemove={() => removeRow(row.id)}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex min-w-0 flex-col gap-1 text-[11px] leading-tight text-brand-text-muted">
+                  <span>{labels.buffetAdultQtyLabel}</span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -193,8 +200,8 @@ export function BuffetDishAllocator({
                     className={fieldClass}
                   />
                 </label>
-                <label className="flex items-center gap-1 text-[11px] text-brand-text-muted">
-                  <span className="whitespace-nowrap">{labels.buffetChildQtyLabel}</span>
+                <label className="flex min-w-0 flex-col gap-1 text-[11px] leading-tight text-brand-text-muted">
+                  <span>{labels.buffetChildQtyLabel}</span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -209,11 +216,6 @@ export function BuffetDishAllocator({
                   />
                 </label>
               </div>
-              <ByItemConsumerRowRemoveButton
-                removable={rowLock.removable && rows.length > 1}
-                ariaLabel={labels.remove}
-                onRemove={() => removeRow(row.id)}
-              />
             </div>
           );
         })}

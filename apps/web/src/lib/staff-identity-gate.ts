@@ -218,10 +218,17 @@ export function deriveStaffLoginPreflight(input: {
     disabled_at: string | null;
     role: string;
     restaurant_suspended_at: string | null | undefined;
+    /** When staff is bound to a restaurant_roles row that is disabled. */
+    role_disabled_at?: string | null;
   } | null;
 }): StaffLoginPreflightResult {
   const { account } = input;
-  if (!account || account.disabled_at || !isStaffRole(String(account.role ?? ''))) {
+  if (
+    !account ||
+    account.disabled_at ||
+    account.role_disabled_at ||
+    !isStaffRole(String(account.role ?? ''))
+  ) {
     return { ok: false, code: 'invalid_credentials' };
   }
   if (isRestaurantSuspended(account.restaurant_suspended_at)) {

@@ -30,7 +30,10 @@ import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } 
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
-import type { Capabilities } from '@/lib/permissions/can';
+import {
+  fromCapabilitiesPayload,
+  type CapabilitiesPayload,
+} from '@/lib/permissions/can';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -99,8 +102,8 @@ interface Props {
   embeddedInDashboard?: boolean;
   /** Floor board capabilities — drives close/checkout UI and decrement controls. */
   floorCapabilities: FloorBoardCapabilities;
-  /** Staff capabilities for API permissions. */
-  capabilities: Capabilities;
+  /** RSC-safe staff capabilities for API permissions. */
+  capabilities: CapabilitiesPayload;
 }
 
 function WaiterTableDetailInner({
@@ -114,13 +117,14 @@ function WaiterTableDetailInner({
   isDemo = false,
   embeddedInDashboard = false,
   floorCapabilities,
-  capabilities,
+  capabilities: capabilitiesPayload,
 }: Props) {
   const router = useRouter();
   const waiterBoard = useWaiterBoardOptional();
   const { lang } = useLanguage();
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
+  const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
   const boardIdleBoot = useMemo(() => {
     if (!embeddedInDashboard || !waiterBoard) return null;
     return buildWaiterTableDetailBootFromBoard(

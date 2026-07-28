@@ -5,7 +5,7 @@ import { notFound, usePathname } from 'next/navigation';
 import { WaiterDisplay } from '@/components/waiter/WaiterDisplay';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
-import type { Capabilities } from '@/lib/permissions/can';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 import {
   dashboardWaiterTableIdFromPath,
@@ -16,7 +16,8 @@ import {
 type Props = {
   restaurant: FloorBoardRestaurant;
   floorCapabilities: FloorBoardCapabilities;
-  capabilities: Capabilities;
+  /** RSC-safe payload — Set does not survive the server→client boundary. */
+  capabilities: CapabilitiesPayload;
   children: ReactNode;
 };
 

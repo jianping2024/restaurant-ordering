@@ -183,6 +183,20 @@ describe('deriveStaffLoginPreflight', () => {
     );
   });
 
+  it('rejects staff whose restaurant role is disabled', () => {
+    assert.deepEqual(
+      deriveStaffLoginPreflight({
+        account: {
+          disabled_at: null,
+          role: 'frontdesk',
+          restaurant_suspended_at: null,
+          role_disabled_at: '2026-01-01T00:00:00Z',
+        },
+      }),
+      { ok: false, code: 'invalid_credentials' },
+    );
+  });
+
   it('accepts enabled staff', () => {
     assert.deepEqual(
       deriveStaffLoginPreflight({

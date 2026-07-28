@@ -18,8 +18,11 @@ import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
-import type { Capabilities } from '@/lib/permissions/can';
-import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import {
+  capabilitiesFromKeys,
+  fromCapabilitiesPayload,
+  type CapabilitiesPayload,
+} from '@/lib/permissions/can';
 import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
 import {
   buildWaiterBoardStateContext,
@@ -100,7 +103,8 @@ interface Props {
   embeddedInDashboard?: boolean;
   /** Required for production board card permissions when embedded. */
   floorCapabilities?: FloorBoardCapabilities;
-  capabilities?: Capabilities;
+  /** RSC-safe staff capabilities (optional on demo board). */
+  capabilities?: CapabilitiesPayload;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }
 
@@ -197,12 +201,15 @@ function WaiterBoardInner({
   isDemo = false,
   embeddedInDashboard = false,
   floorCapabilities,
-  capabilities,
+  capabilities: capabilitiesPayload,
   initialOpenTableDefaults = null,
 }: Props) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
+  const capabilities = capabilitiesPayload
+    ? fromCapabilitiesPayload(capabilitiesPayload)
+    : null;
   const floorCaps =
     floorCapabilities ??
     floorBoardCapabilitiesFromCaps(capabilities ?? capabilitiesFromKeys([]));

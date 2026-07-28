@@ -125,7 +125,8 @@ export function buildWaiterTableCard(
   displayName: string,
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
-  capabilities: Capabilities,
+  /** Board list summaries may omit this; decrement flags then stay false. */
+  capabilities: Capabilities = new Set(),
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalog = buildBillableSessionItems(orders);

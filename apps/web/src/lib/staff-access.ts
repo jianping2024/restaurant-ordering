@@ -123,7 +123,7 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
 
   const { data, error } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, disabled_at, role, restaurants(suspended_at)')
+    .select('id, disabled_at, role, restaurants(suspended_at), restaurant_roles!role_id(disabled_at)')
     .eq('login_name', loginName)
     .maybeSingle();
 
@@ -136,11 +136,15 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
   }
 
   const embedded = (data as { restaurants?: { suspended_at?: string | null } | null }).restaurants;
+  const roleEmbed = (
+    data as { restaurant_roles?: { disabled_at?: string | null } | null }
+  ).restaurant_roles;
   return deriveStaffLoginPreflight({
     account: {
       disabled_at: (data.disabled_at as string | null) ?? null,
       role: String(data.role ?? ''),
       restaurant_suspended_at: embedded?.suspended_at,
+      role_disabled_at: roleEmbed?.disabled_at ?? null,
     },
   });
 }

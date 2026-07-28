@@ -4,7 +4,7 @@ import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLES } from '@/lib/demo-data';
 import { demoPageMetadata } from '@/lib/demo-page-metadata';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
-import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { capabilitiesFromKeys, toCapabilitiesPayload } from '@/lib/permissions/can';
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 interface Props {
@@ -37,7 +37,7 @@ export default async function DemoWaiterTablePage({ params }: Props) {
       displayName={table.display_name}
       isDemo
       floorCapabilities={floorCapabilities}
-      capabilities={capabilities}
+      capabilities={toCapabilitiesPayload(capabilities)}
     />
   );
 }

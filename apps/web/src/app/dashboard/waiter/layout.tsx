@@ -1,6 +1,7 @@
 import { DashboardWaiterFloorShell } from '@/components/waiter/DashboardWaiterFloorShell';
 import { requireWaiterBoardDashboardAccess } from '@/lib/dashboard-page-access';
 import { toFloorBoardRestaurant } from '@/lib/floor-board-restaurant';
+import { toCapabilitiesPayload } from '@/lib/permissions/can';
 
 export default async function DashboardWaiterLayout({
   children,
@@ -14,7 +15,7 @@ export default async function DashboardWaiterLayout({
     <DashboardWaiterFloorShell
       restaurant={toFloorBoardRestaurant(restaurant)}
       floorCapabilities={floorCapabilities}
-      capabilities={capabilities}
+      capabilities={toCapabilitiesPayload(capabilities)}
     >
       {children}
     </DashboardWaiterFloorShell>

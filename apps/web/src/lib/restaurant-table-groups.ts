@@ -156,6 +156,35 @@ export function sortTableIdsByRestaurantTableOrder(
     .map((t) => t.id);
 }
 
+export const TABLE_GROUP_MEMBER_PREVIEW_MAX = 6;
+
+export type GroupMemberTablePreview = {
+  chips: { id: string; display_name: string }[];
+  overflowCount: number;
+  totalCount: number;
+};
+
+/** Compact list summary: ordered display names, capped for the group index row. */
+export function formatGroupMemberTablePreview(
+  tableIds: string[],
+  tables: readonly Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>[],
+  maxVisible = TABLE_GROUP_MEMBER_PREVIEW_MAX,
+): GroupMemberTablePreview {
+  const orderedIds = sortTableIdsByRestaurantTableOrder(tableIds, tables);
+  const tableById = new Map(tables.map((t) => [t.id, t]));
+  const rows = orderedIds
+    .map((id) => tableById.get(id))
+    .filter((row): row is Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'> => !!row)
+    .map((row) => ({ id: row.id, display_name: row.display_name }));
+  const totalCount = rows.length;
+  const chips = rows.slice(0, maxVisible);
+  return {
+    chips,
+    overflowCount: Math.max(0, totalCount - chips.length),
+    totalCount,
+  };
+}
+
 export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   cards: T[],
   tables: readonly RestaurantTableRow[],

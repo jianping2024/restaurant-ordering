@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { TableGroupMemberOrderModal } from '@/components/dashboard/TableGroupMemberOrderModal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
@@ -18,6 +18,7 @@ import {
 import {
   buildTableGroupIdByTableId,
   buildTableGroupNameByTableId,
+  formatGroupMemberTablePreview,
   groupTableIdsByGroupId,
   isValidTableGroupName,
   normalizeTableGroupName,
@@ -74,6 +75,8 @@ export function TableGroupsManager({
   const [form, setForm] = useState<GroupForm>(defaultForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [orderTarget, setOrderTarget] = useState<RestaurantTableGroup | null>(null);
+  const [orderError, setOrderError] = useState('');
 
   const sortedTables = useMemo(() => sortRestaurantTables(tables), [tables]);
   const tableIdsByGroup = useMemo(() => groupTableIdsByGroupId(members), [members]);
@@ -88,6 +91,13 @@ export function TableGroupsManager({
     () => sortTablesForGroupAssignPicker(sortedTables, groups, members, editing?.id ?? null),
     [sortedTables, groups, members, editing?.id],
   );
+
+  const orderTargetTables = useMemo(() => {
+    if (!orderTarget) return [];
+    return sortTableIdsByRestaurantTableOrder(tableIdsByGroup[orderTarget.id] || [], sortedTables)
+      .map((id) => tableById.get(id))
+      .filter((row): row is RestaurantTableRow => !!row);
+  }, [orderTarget, sortedTables, tableById, tableIdsByGroup]);
 
   const assignStatusLabel = (tableId: string) => {
     const groupId = groupIdByTableId[tableId];
@@ -108,12 +118,8 @@ export function TableGroupsManager({
     onGroupsChange(sorted, nextMembers, nextTables);
   };
 
-  const tablesForGroup = (groupId: string) => {
-    const ids = sortTableIdsByRestaurantTableOrder(tableIdsByGroup[groupId] || [], sortedTables);
-    return ids
-      .map((id) => tableById.get(id))
-      .filter((row): row is RestaurantTableRow => !!row);
-  };
+  const memberPreviewForGroup = (groupId: string) =>
+    formatGroupMemberTablePreview(tableIdsByGroup[groupId] || [], sortedTables);
 
   const openCreate = useCallback(() => {
     setEditing(null);
@@ -142,6 +148,16 @@ export function TableGroupsManager({
     setEditing(null);
     setForm(defaultForm());
     setFormError('');
+  };
+
+  const openMemberOrder = (group: RestaurantTableGroup) => {
+    setOrderError('');
+    setOrderTarget(group);
+  };
+
+  const closeMemberOrder = () => {
+    setOrderTarget(null);
+    setOrderError('');
   };
 
   const toggleTable = (tableId: string) => {
@@ -201,10 +217,10 @@ export function TableGroupsManager({
   };
 
   const moveMemberRow = async (groupId: string, tableId: string, dir: -1 | 1) => {
-    setError('');
+    setOrderError('');
     const result = await moveTableGroupMemberOrderClient(groupId, tableId, dir);
     if (!result.ok) {
-      setError(mapTableGroupApiError(result.error, result.message, t));
+      setOrderError(mapTableGroupApiError(result.error, result.message, t));
       return;
     }
     publish(result.data.groups, result.data.members, result.data.tables);
@@ -221,6 +237,9 @@ export function TableGroupsManager({
       return;
     }
     publish(result.data.groups, result.data.members);
+    if (orderTarget?.id === deleteTarget.id) {
+      closeMemberOrder();
+    }
     setDeleteTarget(null);
   };
 
@@ -256,7 +275,8 @@ export function TableGroupsManager({
             </thead>
             <tbody>
               {groups.map((row, index) => {
-                const groupTables = tablesForGroup(row.id);
+                const preview = memberPreviewForGroup(row.id);
+                const canReorder = preview.totalCount >= 2;
                 return (
                   <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
                     <td className="px-4 py-3 font-medium text-brand-text">{row.name}</td>
@@ -264,31 +284,27 @@ export function TableGroupsManager({
                       {row.remarks || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {groupTables.length === 0 ? (
+                      {preview.totalCount === 0 ? (
                         <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
                       ) : (
                         <div className="space-y-1.5">
                           <span className="text-[12px] text-brand-text-muted">
-                            {t.tablesSummary.replace('{count}', String(groupTables.length))}
+                            {t.tablesSummary.replace('{count}', String(preview.totalCount))}
                           </span>
-                          <div className="space-y-1">
-                            {groupTables.map((table, tableIndex) => (
-                              <div
-                                key={table.id}
-                                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-brand-border/70 bg-brand-bg/80 px-2 py-1"
+                          <div className="flex flex-wrap gap-1">
+                            {preview.chips.map((chip) => (
+                              <span
+                                key={chip.id}
+                                className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
                               >
-                                <span className="text-[12px] text-brand-text tabular-nums">
-                                  {table.display_name}
-                                </span>
-                                <DishSortOrderButtons
-                                  index={tableIndex}
-                                  length={groupTables.length}
-                                  moveUpLabel={t.memberMoveUp}
-                                  moveDownLabel={t.memberMoveDown}
-                                  onMove={(dir) => void moveMemberRow(row.id, table.id, dir)}
-                                />
-                              </div>
+                                {chip.display_name}
+                              </span>
                             ))}
+                            {preview.overflowCount > 0 ? (
+                              <span className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
+                                {t.tablesOverflow.replace('{count}', String(preview.overflowCount))}
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                       )}
@@ -313,6 +329,15 @@ export function TableGroupsManager({
                         >
                           ↓
                         </button>
+                        {canReorder ? (
+                          <button
+                            type="button"
+                            onClick={() => openMemberOrder(row)}
+                            className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1 whitespace-nowrap"
+                          >
+                            {t.reorderMembers}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => openEdit(row)}
@@ -336,6 +361,25 @@ export function TableGroupsManager({
           </table>
         </div>
       )}
+
+      <TableGroupMemberOrderModal
+        open={!!orderTarget}
+        group={orderTarget}
+        tables={orderTargetTables}
+        error={orderError}
+        labels={{
+          title: t.reorderMembersTitle,
+          hint: t.reorderMembersHint,
+          moveUp: t.memberMoveUp,
+          moveDown: t.memberMoveDown,
+          close: tm.cancel,
+        }}
+        onClose={closeMemberOrder}
+        onMove={(tableId, dir) => {
+          if (!orderTarget) return;
+          void moveMemberRow(orderTarget.id, tableId, dir);
+        }}
+      />
 
       <Modal
         open={modalOpen}

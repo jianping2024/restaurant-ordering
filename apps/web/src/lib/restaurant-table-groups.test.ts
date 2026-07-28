@@ -8,6 +8,7 @@ import {
   sortTablesForGroupAssignPicker,
   sortTablesForGroupPrint,
   sortTableIdsByRestaurantTableOrder,
+  formatGroupMemberTablePreview,
   sortWaiterTableCards,
 } from './restaurant-table-groups';
 import type { RestaurantTableGroup, RestaurantTableGroupMember } from './restaurant-table-groups';
@@ -139,6 +140,25 @@ describe('sortTableIdsByRestaurantTableOrder', () => {
       { id: 't2', display_name: 'A-02', sort_order: 1 },
     ];
     assert.deepEqual(sortTableIdsByRestaurantTableOrder(['t1', 't2'], reversed), ['t2', 't1']);
+  });
+});
+
+describe('formatGroupMemberTablePreview', () => {
+  it('shows first N chips and overflow count', () => {
+    const manyTables = Array.from({ length: 10 }, (_, i) => ({
+      id: `t${i + 1}`,
+      display_name: `A-${String(i + 1).padStart(2, '0')}`,
+      sort_order: i + 1,
+    }));
+    const preview = formatGroupMemberTablePreview(
+      manyTables.map((t) => t.id),
+      manyTables,
+      6,
+    );
+    assert.equal(preview.totalCount, 10);
+    assert.equal(preview.chips.length, 6);
+    assert.equal(preview.overflowCount, 4);
+    assert.equal(preview.chips[0]?.display_name, 'A-01');
   });
 });
 

@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import type { Order } from '@/types';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
 import { buildCustomerSubmittedDisplayOrders } from '@/lib/customer-submitted-order-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
@@ -94,26 +93,20 @@ export function OrderedDrawer({
           ) : null}
         </div>
 
-        <div className="px-5 py-4 border-t border-brand-border flex gap-3">
-          <Button type="button" variant="outline" className="flex-1" size="lg" onClick={onClose}>
+        <div className="flex items-stretch gap-3 border-t border-brand-border px-5 py-4">
+          <Button type="button" variant="outline" size="lg" className="min-w-0 flex-1" onClick={onClose}>
             {labels.continueOrdering}
           </Button>
           {showBillLink ? (
-            billEnabled ? (
-              <Link
-                href={billHref}
-                className="flex-1 inline-flex h-12 items-center justify-center rounded-xl bg-brand-gold px-4 text-[15px] font-semibold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98] transition-colors"
-              >
-                {labels.viewBill}
-              </Link>
-            ) : (
-              <span
-                aria-disabled="true"
-                className="flex-1 inline-flex h-12 items-center justify-center rounded-xl bg-brand-border/20 px-4 text-[15px] font-semibold text-brand-text-muted pointer-events-none"
-              >
-                {labels.viewBill}
-              </span>
-            )
+            <ButtonLink
+              href={billHref}
+              variant="gold"
+              size="lg"
+              className="min-w-0 flex-1"
+              disabled={!billEnabled}
+            >
+              {labels.viewBill}
+            </ButtonLink>
           ) : null}
         </div>
       </div>

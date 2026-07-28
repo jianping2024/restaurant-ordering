@@ -1,7 +1,7 @@
 import {
   billableLineAmount,
   buildBillableSessionItems,
-  chargeableShareOf,
+  chargeableFieldsFromBillableRow,
 } from '@/lib/billable-session-lines';
 import {
   formatOrderItemPlainName,
@@ -34,14 +34,13 @@ export function checkoutLinesFromOrders(
     const label = isBuffetBaseItem(item)
       ? formatOrderItemPlainName(item)
       : formatStaffMenuLineLabel(item, itemCode);
-    const share = chargeableShareOf(row);
 
     return {
       key,
       label,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       lineTotal: billableLineAmount(row),
-      ...(share ? { chargeableQty: share.qty, chargeableUnitPrice: share.unitPrice } : {}),
+      ...chargeableFieldsFromBillableRow(row),
     };
   });
 }

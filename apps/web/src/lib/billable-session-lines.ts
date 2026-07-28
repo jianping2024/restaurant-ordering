@@ -27,9 +27,24 @@ export function billableMenuItemMergeKey(item: OrderItem): string {
   return `${item.id}::${item.price}`;
 }
 
-/** Sushi limited dishes merge under `limited:{menuItemId}` (see {@link addLimitedMenuGroup}). */
+/** Prefix for merged sushi limited catalog rows (see {@link addLimitedMenuGroup}). */
+export const LIMITED_BILLABLE_MERGE_PREFIX = 'limited:';
+
+/** Merge key for one limited sushi dish across the session. */
+export function limitedBillableMergeKey(menuItemId: string): string {
+  return `${LIMITED_BILLABLE_MERGE_PREFIX}${menuItemId}`;
+}
+
+/** Menu item id when {@link key} is a limited billable merge key; otherwise null. */
+export function menuItemIdFromLimitedBillableKey(key: string): string | null {
+  if (!key.startsWith(LIMITED_BILLABLE_MERGE_PREFIX)) return null;
+  const menuItemId = key.slice(LIMITED_BILLABLE_MERGE_PREFIX.length);
+  return menuItemId.length > 0 ? menuItemId : null;
+}
+
+/** Sushi limited dishes merge under {@link LIMITED_BILLABLE_MERGE_PREFIX}. */
 export function isLimitedBillableRow(row: Pick<BillableSessionItem, 'key'>): boolean {
-  return row.key.startsWith('limited:');
+  return menuItemIdFromLimitedBillableKey(row.key) != null;
 }
 
 /**
@@ -51,6 +66,31 @@ export function chargeableShareOf(
   const qty = row.chargeableQty ?? 0;
   if (qty <= 0 || row.chargeableUnitPrice == null) return null;
   return { qty, unitPrice: row.chargeableUnitPrice };
+}
+
+/** Optional chargeable fields for display rows derived from a billable catalog row. */
+export function chargeableFieldsFromBillableRow(
+  row: Pick<BillableSessionItem, 'chargeableQty' | 'chargeableUnitPrice'>,
+): Pick<BillableSessionItem, 'chargeableQty' | 'chargeableUnitPrice'> {
+  const share = chargeableShareOf(row);
+  return share
+    ? { chargeableQty: share.qty, chargeableUnitPrice: share.unitPrice }
+    : {};
+}
+
+/** Reconstruct a billable row from a catalog line that carries optional chargeable metadata. */
+export function billableRowFromCatalogLine(
+  line: OrderItem & {
+    key: string;
+    chargeableQty?: number;
+    chargeableUnitPrice?: number;
+  },
+): BillableSessionItem {
+  return {
+    key: line.key,
+    item: line,
+    ...chargeableFieldsFromBillableRow(line),
+  };
 }
 
 type MergedMenuGroup = {
@@ -91,7 +131,7 @@ function addLimitedMenuGroup(
   chargeableQty: number,
   chargeableUnitPrice: number,
 ): void {
-  const key = `limited:${item.id}`;
+  const key = limitedBillableMergeKey(item.id);
   const existing = merged.get(key);
   // Free-priced row (or pre-freeze single line) carries the menu unit; a post-freeze
   // fully-chargeable row is priced at overage and must not overwrite the menu unit.
@@ -172,15 +212,14 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
   }
 
   for (const [mergeKey, group] of Array.from(mergedMenu.entries())) {
-    const row: BillableSessionItem = {
+    lines.push({
       key: mergeKey,
       item: { ...group.item, qty: group.qty },
-    };
-    if (group.chargeableQty > 0 && group.chargeableUnitPrice != null) {
-      row.chargeableQty = group.chargeableQty;
-      row.chargeableUnitPrice = group.chargeableUnitPrice;
-    }
-    lines.push(row);
+      ...chargeableFieldsFromBillableRow({
+        chargeableQty: group.chargeableQty,
+        chargeableUnitPrice: group.chargeableUnitPrice ?? undefined,
+      }),
+    });
   }
 
   return lines;

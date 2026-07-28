@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Order } from '@/types';
-import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
+import { isLimitedBillableRow, sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import {
   buildBillSplitOrderLines,
   buildByItemLineSpecs,
@@ -99,7 +99,7 @@ describe('buildBillSplitOrderLines', () => {
 
     const lines = buildBillSplitOrderLines(orders);
     const specs = buildByItemLineSpecs(lines);
-    const limited = specs.find((spec) => spec.key.startsWith('limited:'));
+    const limited = specs.find((spec) => isLimitedBillableRow({ key: spec.key }));
     assert.ok(limited && limited.mode === 'menu');
     if (limited?.mode === 'menu') {
       assert.equal(limited.lineQty, 3);

@@ -1,7 +1,8 @@
 import {
   billableLineAmount,
+  billableRowFromCatalogLine,
   buildBillableSessionItems,
-  chargeableShareOf,
+  chargeableFieldsFromBillableRow,
 } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import type { Order, OrderItem } from '@/types';
@@ -47,23 +48,15 @@ export type ByItemLineSpec =
     };
 
 export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
-  return buildBillableSessionItems(orders).map((row) => {
-    const share = chargeableShareOf(row);
-    return {
-      ...row.item,
-      key: row.key,
-      ...(share ? { chargeableQty: share.qty, chargeableUnitPrice: share.unitPrice } : {}),
-    };
-  });
+  return buildBillableSessionItems(orders).map((row) => ({
+    ...row.item,
+    key: row.key,
+    ...chargeableFieldsFromBillableRow(row),
+  }));
 }
 
 export function buildByItemLineSpec(line: BillSplitOrderLine): ByItemLineSpec {
-  const lineTotal = billableLineAmount({
-    key: line.key,
-    item: line,
-    chargeableQty: line.chargeableQty,
-    chargeableUnitPrice: line.chargeableUnitPrice,
-  });
+  const lineTotal = billableLineAmount(billableRowFromCatalogLine(line));
   if (isBuffetBaseItem(line)) {
     return {
       mode: 'buffet',

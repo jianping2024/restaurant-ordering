@@ -2,12 +2,33 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildBillableSessionItems,
+  chargeableFieldsFromBillableRow,
+  isLimitedBillableRow,
+  limitedBillableMergeKey,
+  menuItemIdFromLimitedBillableKey,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import { buildBillSplitOrderLines } from '@/lib/bill-split-by-item-lines';
 import { sumLineTotals } from '@/lib/cart-totals';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import type { Order, OrderItem } from '@/types';
+
+describe('limited billable merge keys', () => {
+  it('round-trips menu item ids through limited merge keys', () => {
+    const key = limitedBillableMergeKey('m1');
+    assert.equal(isLimitedBillableRow({ key }), true);
+    assert.equal(menuItemIdFromLimitedBillableKey(key), 'm1');
+    assert.equal(menuItemIdFromLimitedBillableKey('d1::2'), null);
+  });
+
+  it('exports chargeable metadata only when a share exists', () => {
+    assert.deepEqual(
+      chargeableFieldsFromBillableRow({ chargeableQty: 2, chargeableUnitPrice: 4.5 }),
+      { chargeableQty: 2, chargeableUnitPrice: 4.5 },
+    );
+    assert.deepEqual(chargeableFieldsFromBillableRow({}), {});
+  });
+});
 
 describe('sumBillableSessionTotal', () => {
   it('sums active billable lines across orders', () => {

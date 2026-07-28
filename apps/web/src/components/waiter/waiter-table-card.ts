@@ -2,7 +2,8 @@ import type { Order, OrderItem } from '@/types';
 import {
   billableMenuItemMergeKey,
   buildBillableSessionItems,
-  chargeableShareOf,
+  chargeableFieldsFromBillableRow,
+  menuItemIdFromLimitedBillableKey,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import {
@@ -65,8 +66,9 @@ function resolveMenuLineActionTarget(
   operator: MenuDecrementOperator,
 ): MenuLineActionTarget {
   return pickMenuLineActionTarget(orders, operator, (item) => {
-    if (mergeKey.startsWith('limited:')) {
-      return item.id === mergeKey.slice('limited:'.length);
+    const limitedMenuItemId = menuItemIdFromLimitedBillableKey(mergeKey);
+    if (limitedMenuItemId) {
+      return item.id === limitedMenuItemId;
     }
     return billableMenuItemMergeKey(item) === mergeKey;
   });
@@ -145,14 +147,14 @@ export function buildWaiterTableCard(
     }
 
     const action = resolveMenuLineActionTarget(orders, key, menuDecrementOperator);
-    const share = chargeableShareOf(row);
+    const share = chargeableFieldsFromBillableRow(row);
 
     return {
       ...action,
       label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
-      chargeableQty: share?.qty ?? null,
-      chargeableUnitPrice: share?.unitPrice ?? null,
+      chargeableQty: share.chargeableQty ?? null,
+      chargeableUnitPrice: share.chargeableUnitPrice ?? null,
     };
   });
 

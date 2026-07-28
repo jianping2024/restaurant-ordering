@@ -35,6 +35,7 @@ import {
   WaiterTransferIcon,
 } from '@/components/waiter/waiter-table-detail-icons';
 import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
+import { chargeableShareOf } from '@/lib/billable-session-lines';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
@@ -515,12 +516,10 @@ export function WaiterTableOrderedItemsPanel({
       </div>
       <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => {
-          const share =
-            line.chargeableQty != null &&
-            line.chargeableQty > 0 &&
-            line.chargeableUnitPrice != null
-              ? { qty: line.chargeableQty, unitPrice: line.chargeableUnitPrice }
-              : null;
+          const share = chargeableShareOf({
+            chargeableQty: line.chargeableQty ?? undefined,
+            chargeableUnitPrice: line.chargeableUnitPrice ?? undefined,
+          });
           const chargeableHint =
             formatChargeableHint && share
               ? formatChargeableHint(share.qty, share.unitPrice)

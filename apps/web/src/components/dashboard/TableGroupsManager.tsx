@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { TableGroupMemberOrderModal } from '@/components/dashboard/TableGroupMemberOrderModal';
@@ -21,9 +22,9 @@ import {
   formatGroupMemberTablePreview,
   groupTableIdsByGroupId,
   isValidTableGroupName,
+  listGroupMemberTablesInOrder,
   normalizeTableGroupName,
   sortTableGroups,
-  sortTableIdsByRestaurantTableOrder,
   sortTablesForGroupAssignPicker,
   TABLE_GROUP_REMARKS_MAX_LEN,
   type RestaurantTableGroup,
@@ -94,10 +95,8 @@ export function TableGroupsManager({
 
   const orderTargetTables = useMemo(() => {
     if (!orderTarget) return [];
-    return sortTableIdsByRestaurantTableOrder(tableIdsByGroup[orderTarget.id] || [], sortedTables)
-      .map((id) => tableById.get(id))
-      .filter((row): row is RestaurantTableRow => !!row);
-  }, [orderTarget, sortedTables, tableById, tableIdsByGroup]);
+    return listGroupMemberTablesInOrder(tableIdsByGroup[orderTarget.id] || [], sortedTables);
+  }, [orderTarget, sortedTables, tableIdsByGroup]);
 
   const assignStatusLabel = (tableId: string) => {
     const groupId = groupIdByTableId[tableId];
@@ -311,24 +310,13 @@ export function TableGroupsManager({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          aria-label={t.moveUp}
-                          disabled={index === 0}
-                          onClick={() => void moveRow(index, -1)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={t.moveDown}
-                          disabled={index === groups.length - 1}
-                          onClick={() => void moveRow(index, 1)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
-                        >
-                          ↓
-                        </button>
+                        <DishSortOrderButtons
+                          index={index}
+                          length={groups.length}
+                          moveUpLabel={t.moveUp}
+                          moveDownLabel={t.moveDown}
+                          onMove={(dir) => void moveRow(index, dir)}
+                        />
                         {canReorder ? (
                           <button
                             type="button"

@@ -143,17 +143,29 @@ export function groupTableIdsByGroupId(
 }
 
 /** Order member table ids by restaurant_tables.sort_order (then display_name). */
+function sortedGroupMemberTableRows<
+  T extends Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>,
+>(tableIds: string[], tables: readonly T[]): T[] {
+  const tableById = new Map(tables.map((t) => [t.id, t]));
+  return tableIds
+    .map((id) => tableById.get(id))
+    .filter((row): row is T => !!row)
+    .sort(compareRestaurantTables);
+}
+
 export function sortTableIdsByRestaurantTableOrder(
   tableIds: string[],
   tables: readonly Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>[],
 ): string[] {
-  const tableById = new Map(tables.map((t) => [t.id, t]));
-  const scoped = tableIds
-    .map((id) => tableById.get(id))
-    .filter((t): t is Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'> => !!t);
-  return [...scoped]
-    .sort(compareRestaurantTables)
-    .map((t) => t.id);
+  return sortedGroupMemberTableRows(tableIds, tables).map((row) => row.id);
+}
+
+/** Group members as table rows in restaurant_tables.sort_order. */
+export function listGroupMemberTablesInOrder(
+  tableIds: string[],
+  tables: readonly RestaurantTableRow[],
+): RestaurantTableRow[] {
+  return sortedGroupMemberTableRows(tableIds, tables);
 }
 
 export const TABLE_GROUP_MEMBER_PREVIEW_MAX = 6;
@@ -170,14 +182,12 @@ export function formatGroupMemberTablePreview(
   tables: readonly Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>[],
   maxVisible = TABLE_GROUP_MEMBER_PREVIEW_MAX,
 ): GroupMemberTablePreview {
-  const orderedIds = sortTableIdsByRestaurantTableOrder(tableIds, tables);
-  const tableById = new Map(tables.map((t) => [t.id, t]));
-  const rows = orderedIds
-    .map((id) => tableById.get(id))
-    .filter((row): row is Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'> => !!row)
-    .map((row) => ({ id: row.id, display_name: row.display_name }));
+  const rows = sortedGroupMemberTableRows(tableIds, tables);
   const totalCount = rows.length;
-  const chips = rows.slice(0, maxVisible);
+  const chips = rows.slice(0, maxVisible).map((row) => ({
+    id: row.id,
+    display_name: row.display_name,
+  }));
   return {
     chips,
     overflowCount: Math.max(0, totalCount - chips.length),

@@ -8,6 +8,7 @@ import {
   sortTablesForGroupAssignPicker,
   sortTablesForGroupPrint,
   sortTableIdsByRestaurantTableOrder,
+  listGroupMemberTablesInOrder,
   formatGroupMemberTablePreview,
   sortWaiterTableCards,
 } from './restaurant-table-groups';
@@ -140,6 +141,20 @@ describe('sortTableIdsByRestaurantTableOrder', () => {
       { id: 't2', display_name: 'A-02', sort_order: 1 },
     ];
     assert.deepEqual(sortTableIdsByRestaurantTableOrder(['t1', 't2'], reversed), ['t2', 't1']);
+  });
+});
+
+describe('listGroupMemberTablesInOrder', () => {
+  it('returns full table rows in restaurant table sort_order', () => {
+    const tables = [
+      { id: 't1', display_name: 'A-01', sort_order: 2, seat_min: 2, seat_max: 4 },
+      { id: 't2', display_name: 'A-02', sort_order: 1, seat_min: 2, seat_max: 4 },
+    ];
+    const ordered = listGroupMemberTablesInOrder(['t1', 't2'], tables);
+    assert.deepEqual(
+      ordered.map((row) => row.id),
+      ['t2', 't1'],
+    );
   });
 });
 

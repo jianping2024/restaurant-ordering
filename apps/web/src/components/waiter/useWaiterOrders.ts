@@ -50,7 +50,6 @@ import {
   surfaceAfterRefreshFailure,
   surfaceAfterRefreshSuccess,
   surfaceForRefreshStart,
-  waiterBoardFloorReady,
   type WaiterBoardSurface,
 } from '@/lib/waiter-board-surface';
 
@@ -163,7 +162,6 @@ export function useWaiterOrders(
     initialWaiterBoardSurface(skipEntryReconcile || initialBoard.tables.length > 0),
   );
   const boardSurfaceRef = useRef(boardSurface);
-  boardSurfaceRef.current = boardSurface;
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
@@ -340,7 +338,7 @@ export function useWaiterOrders(
   }, [refresh]);
 
   const reconcileOnListActive = useCallback(() => {
-    void refresh(resolveWaiterBoardReconcileScope(waiterBoardFloorReady(boardSurfaceRef.current)));
+    void refresh(resolveWaiterBoardReconcileScope(boardSurfaceRef.current === 'ready'));
   }, [refresh]);
 
   useRestaurantStaffEntryReconcile(

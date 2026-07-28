@@ -4,12 +4,12 @@ import { useRef, useState } from 'react';
 import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
 
 type Props = {
+  roleLabel: string;
   logoutLabel: string;
   onSignOut: () => void;
   confirmSignOut?: boolean;
@@ -19,6 +19,7 @@ type Props = {
 };
 
 export function PersonalSettingsMenu({
+  roleLabel,
   logoutLabel,
   onSignOut,
   confirmSignOut = true,
@@ -45,6 +46,8 @@ export function PersonalSettingsMenu({
     onSignOut();
   };
 
+  const accountAriaLabel = `${roleLabel} — ${t.accountMenu}`;
+
   return (
     <>
       <div ref={rootRef} className="relative shrink-0">
@@ -52,16 +55,18 @@ export function PersonalSettingsMenu({
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
-          aria-label={t.settingsMenu}
+          aria-label={accountAriaLabel}
           onClick={() => setOpen(!open)}
           className={
             compact
-              ? dashboardTopNavButtonClass(open, true)
+              ? `${dashboardTopNavButtonClass(open, false)} max-w-[5.5rem] gap-0.5 px-2.5 py-1.5`
               : dashboardTopNavButtonClass(open, false)
           }
         >
-          <span aria-hidden>{DASHBOARD_NAV_ITEMS.settings.icon}</span>
-          {compact ? null : <span>{t.settingsMenu}</span>}
+          <span className="truncate">{roleLabel}</span>
+          <span className="shrink-0 text-[10px] opacity-60" aria-hidden>
+            ▾
+          </span>
         </button>
         <DashboardTopBarDropdownPanel
           open={open}

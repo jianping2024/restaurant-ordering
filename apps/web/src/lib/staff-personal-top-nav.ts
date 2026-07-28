@@ -9,6 +9,24 @@ export type StaffPersonalTopNavItem = {
   external?: boolean;
 };
 
+export type StaffPersonalTopNavPresentation = {
+  items: StaffPersonalTopNavItem[];
+  quickActions: StaffPersonalTopNavItem[];
+};
+
+export function buildStaffPersonalTopNavPresentation(
+  navItems: StaffPersonalTopNavItem[],
+  logoHref: string,
+): StaffPersonalTopNavPresentation {
+  const items = navItems;
+  const quickActions = navItems.filter((item) => item.href !== logoHref);
+  return { items, quickActions };
+}
+
+export function isStaffLogoHrefActive(pathname: string, logoHref: string): boolean {
+  return pathname === logoHref || pathname.startsWith(`${logoHref}/`);
+}
+
 export function isStaffPersonalNavItemActive(
   pathname: string,
   item: Pick<StaffPersonalTopNavItem, 'href' | 'exact' | 'matchPrefix'>,

@@ -9,7 +9,7 @@ import type { DashboardAccessMode, DashboardNavRestaurant } from '@/lib/dashboar
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardSettingsMenu } from '@/components/dashboard/DashboardSettingsMenu';
-import { DashboardTopNavOverflowMenu } from '@/components/dashboard/DashboardTopNavOverflowMenu';
+import { DashboardTopNavMenu } from '@/components/dashboard/DashboardTopNavMenu';
 import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 import {
@@ -17,6 +17,7 @@ import {
   dashboardLogoHref,
   dashboardTopNavButtonClass,
   dashboardTopNavItemLabel,
+  isLogoHrefActive,
   isNavItemActive,
   type DashboardTopNavItem,
 } from '@/lib/dashboard-top-nav';
@@ -109,39 +110,49 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
   const navT = getMessages(lang).nav;
   const { pendingCount } = useCheckoutRequests();
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
-  const { all, primary, overflow } = buildDashboardTopNavPresentation({
+  const { items, quickActions } = buildDashboardTopNavPresentation({
     accessMode,
     restaurantSlug: restaurant.slug,
     kitchenShortcutEnabled,
   });
+  const quickActionIds = new Set(quickActions.map((item) => item.id));
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 
   const closePanels = () => setOpenPanel('none');
-
   const roleLabel = topBarRoleLabel(lang, accessMode);
+  const logoHref = dashboardLogoHref(accessMode);
+  const logoActive = isLogoHrefActive(pathname, accessMode);
 
   return (
     <header className={staffTopBarChrome.headerClassName}>
       <div className={staffTopBarChrome.rowClassName}>
-        <ProductTopBarBrand href={dashboardLogoHref(accessMode)} restaurantName={restaurant.name} />
+        <ProductTopBarBrand
+          href={logoHref}
+          restaurantName={restaurant.name}
+          logoActive={logoActive}
+        />
 
-        <nav aria-label={navT.mainNav} className={staffTopBarChrome.navClassName}>
-          <div className="flex min-w-max items-center gap-1 py-0.5 sm:gap-1.5">
-            <div className="flex items-center gap-1 sm:hidden">
-              {primary.map((item) =>
-                renderNavItem(item, pathname, navT, pendingCount, true, closePanels),
-              )}
-            </div>
-            <div className="hidden sm:flex items-center gap-1.5">
-              {all.map((item) =>
+        {items.length > 0 ? (
+          <nav aria-label={navT.mainNav} className={staffTopBarChrome.navClassName}>
+            {quickActions.length > 0 ? (
+              <div className="flex items-center gap-1 lg:hidden">
+                {quickActions.map((item) =>
+                  renderNavItem(item, pathname, navT, pendingCount, true, closePanels),
+                )}
+              </div>
+            ) : null}
+            <div className="hidden lg:flex items-center gap-1.5">
+              {items.map((item) =>
                 renderNavItem(item, pathname, navT, pendingCount, false, closePanels),
               )}
             </div>
-          </div>
-        </nav>
+          </nav>
+        ) : null}
 
-        <DashboardTopNavOverflowMenu
-          items={overflow}
+        <DashboardTopNavMenu
+          items={items}
+          quickActionIds={quickActionIds}
+          accessMode={accessMode}
           pathname={pathname}
           navT={navT}
           checkoutCount={pendingCount}
@@ -149,8 +160,9 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
           onOpenChange={(open) => setOpenPanel(open ? 'more' : 'none')}
         />
 
-        <ProductTopBarTrailing roleLabel={roleLabel}>
+        <ProductTopBarTrailing>
           <DashboardSettingsMenu
+            roleLabel={roleLabel}
             logoutLabel={navT.logout}
             compact
             open={openPanel === 'settings'}

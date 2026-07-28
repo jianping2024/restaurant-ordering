@@ -28,12 +28,10 @@ export const staffTopBarChrome = {
   rowClassName:
     'flex h-14 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
   /**
-   * Horizontal scroll for compact nav. self-stretch + items-center keeps the
-   * scrollport as tall as the row so emoji glyphs are not clipped vertically
-   * (overflow-x creates a scrollport that would otherwise clip overflow-y).
+   * Inline nav actions — content-sized, never clipped. Restaurant name in the brand
+   * slot is the only flex-shrink target in the row.
    */
-  navClassName:
-    'flex min-w-0 flex-1 items-center self-stretch overflow-x-auto overscroll-x-contain [scrollbar-width:thin] sm:overflow-visible',
+  navClassName: 'flex shrink-0 items-center',
 } as const;
 
 /**

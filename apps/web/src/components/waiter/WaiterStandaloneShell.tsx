@@ -31,10 +31,10 @@ export function WaiterStandaloneShell({ restaurant, asOwner = false, children }:
           <StaffPersonalTopBar
             logoHref={waiterStandaloneLogoHref(restaurant.slug)}
             restaurantName={restaurant.name}
-            roleLabel={roleLabel}
             navItems={navItems}
             settingsMenu={
               <StaffPersonalSettingsMenu
+                roleLabel={roleLabel}
                 logoutLabel={exitLabel}
                 onSignOut={handleSignOut}
                 confirmSignOut={confirmBeforeSignOut}

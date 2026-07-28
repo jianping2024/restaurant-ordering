@@ -8,6 +8,8 @@ import { getMessages } from '@/lib/i18n/messages';
 import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
 import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
 import {
+  buildStaffPersonalTopNavPresentation,
+  isStaffLogoHrefActive,
   isStaffPersonalNavItemActive,
   type StaffPersonalTopNavItem,
 } from '@/lib/staff-personal-top-nav';
@@ -16,7 +18,6 @@ import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 type Props = {
   logoHref: string;
   restaurantName: string;
-  roleLabel: string;
   navItems: StaffPersonalTopNavItem[];
   settingsMenu: ReactNode;
 };
@@ -81,40 +82,42 @@ function renderNavItem(
   );
 }
 
-/** Sticky personal-app top bar — logo, restaurant, role nav, role label, settings. */
+/** Sticky personal-app top bar — logo, restaurant, role nav, account menu. */
 export function StaffPersonalTopBar({
   logoHref,
   restaurantName,
-  roleLabel,
   navItems,
   settingsMenu,
 }: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
-  const compactNav = navItems.length > 0 && navItems.length <= 2;
+  const { items, quickActions } = buildStaffPersonalTopNavPresentation(navItems, logoHref);
+  const logoActive = isStaffLogoHrefActive(pathname, logoHref);
 
   return (
     <header className={staffTopBarChrome.headerClassName}>
       <div className={staffTopBarChrome.rowClassName}>
-        <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
+        <ProductTopBarBrand
+          href={logoHref}
+          restaurantName={restaurantName}
+          logoActive={logoActive}
+        />
 
-        {navItems.length > 0 ? (
+        {items.length > 0 ? (
           <nav aria-label={navT.mainNav} className={staffTopBarChrome.navClassName}>
-            <div className="flex min-w-max items-center gap-1 py-0.5 sm:gap-1.5">
-              <div className="flex items-center gap-1 sm:hidden">
-                {navItems.map((item) => renderNavItem(item, pathname, navT, compactNav))}
+            {quickActions.length > 0 ? (
+              <div className="flex items-center gap-1 lg:hidden">
+                {quickActions.map((item) => renderNavItem(item, pathname, navT, true))}
               </div>
-              <div className="hidden sm:flex items-center gap-1.5">
-                {navItems.map((item) => renderNavItem(item, pathname, navT, false))}
-              </div>
+            ) : null}
+            <div className="hidden lg:flex items-center gap-1.5">
+              {items.map((item) => renderNavItem(item, pathname, navT, false))}
             </div>
           </nav>
-        ) : (
-          <div className="min-w-0 flex-1" />
-        )}
+        ) : null}
 
-        <ProductTopBarTrailing roleLabel={roleLabel}>{settingsMenu}</ProductTopBarTrailing>
+        <ProductTopBarTrailing>{settingsMenu}</ProductTopBarTrailing>
       </div>
     </header>
   );

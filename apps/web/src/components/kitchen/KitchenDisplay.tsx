@@ -313,10 +313,10 @@ function KitchenDisplayInner({
       <StaffPersonalTopBar
         logoHref={isDemo ? '/demo/kitchen' : staffRolePath(restaurant.slug, 'kitchen')}
         restaurantName={restaurant.name}
-        roleLabel={roleLabel}
         navItems={[]}
         settingsMenu={
           <StaffPersonalSettingsMenu
+            roleLabel={roleLabel}
             logoutLabel={exitLabel}
             onSignOut={() => void handleSignOut()}
             confirmSignOut={confirmBeforeSignOut}

@@ -19,16 +19,16 @@ export type DashboardTopNavItem = {
 };
 
 export type DashboardTopNavPresentation = {
-  all: DashboardTopNavItem[];
-  primary: DashboardTopNavItem[];
-  overflow: DashboardTopNavItem[];
+  /** Full role navigation list (desktop inline + mobile menu). */
+  items: DashboardTopNavItem[];
+  /** Mobile inline icon shortcuts; excludes the logo home target. */
+  quickActions: DashboardTopNavItem[];
 };
 
-const PRIMARY_NAV_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly string[]>> = {
-  owner: ['overview'],
-  frontdesk: ['waiterBoard', 'checkout'],
-  cashier: ['waiterBoard', 'checkout'],
-  waiter: ['waiterBoard'],
+/** Nav item ids promoted to compact icons below the lg breakpoint. */
+const QUICK_ACTION_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly string[]>> = {
+  frontdesk: ['checkout'],
+  cashier: ['checkout'],
 };
 
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
@@ -36,6 +36,14 @@ export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
     return '/dashboard/waiter';
   }
   return '/dashboard';
+}
+
+export function isLogoHrefActive(pathname: string, accessMode: DashboardAccessMode): boolean {
+  const href = dashboardLogoHref(accessMode);
+  if (accessMode === 'owner') {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function dashboardTopNavButtonClass(active: boolean, compact = false): string {
@@ -134,11 +142,13 @@ export function buildDashboardTopNavPresentation(input: {
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
 }): DashboardTopNavPresentation {
-  const all = buildDashboardTopNavItems(input);
-  const primaryIds = new Set(PRIMARY_NAV_IDS_BY_ROLE[input.accessMode] ?? []);
-  const primary = all.filter((item) => primaryIds.has(item.id));
-  const overflow = all.filter((item) => !primaryIds.has(item.id));
-  return { all, primary, overflow };
+  const items = buildDashboardTopNavItems(input);
+  const logoHref = dashboardLogoHref(input.accessMode);
+  const quickActionIds = new Set(QUICK_ACTION_IDS_BY_ROLE[input.accessMode] ?? []);
+  const quickActions = items.filter(
+    (item) => quickActionIds.has(item.id) && item.href !== logoHref,
+  );
+  return { items, quickActions };
 }
 
 export function isDashboardWaiterBoardListPath(pathname: string): boolean {

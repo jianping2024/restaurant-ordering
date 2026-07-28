@@ -1,10 +1,14 @@
 'use client';
 
+'use client';
+
 import Link from 'next/link';
 import { useRef } from 'react';
 import type { getMessages } from '@/lib/i18n/messages';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
+import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
+  dashboardLogoHref,
   dashboardTopNavItemLabel,
   isNavItemActive,
   type DashboardTopNavItem,
@@ -13,6 +17,8 @@ import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 
 type Props = {
   items: DashboardTopNavItem[];
+  quickActionIds: ReadonlySet<string>;
+  accessMode: DashboardAccessMode;
   pathname: string;
   navT: ReturnType<typeof getMessages>['nav'];
   checkoutCount: number;
@@ -20,8 +26,10 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function DashboardTopNavOverflowMenu({
+export function DashboardTopNavMenu({
   items,
+  quickActionIds,
+  accessMode,
   pathname,
   navT,
   checkoutCount,
@@ -32,10 +40,16 @@ export function DashboardTopNavOverflowMenu({
 
   if (items.length === 0) return null;
 
-  const hasActiveOverflowItem = items.some((item) => isNavItemActive(pathname, item));
+  const logoHref = dashboardLogoHref(accessMode);
+  const hasActiveMenuOnlyItem = items.some(
+    (item) =>
+      item.href !== logoHref &&
+      !quickActionIds.has(item.id) &&
+      isNavItemActive(pathname, item),
+  );
 
   return (
-    <div ref={rootRef} className="relative shrink-0 sm:hidden">
+    <div ref={rootRef} className="relative shrink-0 lg:hidden">
       <button
         type="button"
         aria-haspopup="menu"
@@ -43,13 +57,13 @@ export function DashboardTopNavOverflowMenu({
         aria-label={navT.moreMenu}
         onClick={() => onOpenChange(!open)}
         className={`relative inline-flex shrink-0 items-center justify-center rounded-lg min-h-11 min-w-11 text-lg font-medium transition-colors ${
-          open || hasActiveOverflowItem
+          open || hasActiveMenuOnlyItem
             ? 'bg-brand-gold/15 text-brand-text border border-brand-gold/35'
             : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/80 border border-transparent'
         }`}
       >
         <span aria-hidden>⋯</span>
-        {hasActiveOverflowItem && !open ? (
+        {hasActiveMenuOnlyItem && !open ? (
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-brand-gold" aria-hidden />
         ) : null}
       </button>

@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { ToastContainer } from '@/components/ui/Toast';
 import { getServerLanguage } from '@/lib/i18n.server';
 import { HTML_LANG_BY_UI } from '@/lib/i18n';
+import { buildThemeInitScript } from '@/lib/theme';
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -41,19 +42,7 @@ export const viewport: Viewport = {
   themeColor: PWA_THEME_COLOR,
 };
 
-const themeInitScript = `
-(() => {
-  const key = 'mesa-theme';
-  const fallback = 'light';
-  let theme = fallback;
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved === 'dark' || saved === 'light') theme = saved;
-  } catch {}
-  document.documentElement.setAttribute('data-theme', theme);
-  document.documentElement.style.colorScheme = theme;
-})();
-`;
+const themeInitScript = buildThemeInitScript();
 
 export default function RootLayout({
   children,

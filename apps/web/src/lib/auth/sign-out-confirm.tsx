@@ -36,6 +36,16 @@ export function SignOutConfirmModal({
   );
 }
 
+type SignOutConfirmGateProps = SignOutConfirmModalProps & {
+  enabled: boolean;
+};
+
+/** Renders sign-out confirm only when the surface opts into confirmation. */
+export function SignOutConfirmModalGate({ enabled, ...modalProps }: SignOutConfirmGateProps) {
+  if (!enabled) return null;
+  return <SignOutConfirmModal {...modalProps} />;
+}
+
 export function useSignOutConfirmState(onConfirm: () => void | Promise<void>) {
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -54,7 +64,13 @@ export function useSignOutConfirmState(onConfirm: () => void | Promise<void>) {
     }
   };
 
+  const triggerSignOut = (withConfirm: boolean) => {
+    if (withConfirm) setOpen(true);
+    else void onConfirm();
+  };
+
   return {
+    triggerSignOut,
     requestSignOut: () => setOpen(true),
     modalOpen: open,
     modalConfirming: confirming,

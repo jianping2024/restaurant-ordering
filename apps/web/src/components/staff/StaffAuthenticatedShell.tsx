@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { StaffRole } from '@/lib/staff-account';
-import { staffSignOut } from '@/lib/staff-auth-client';
+import { signOutAndRedirect } from '@/lib/auth/sign-out-client';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
 
@@ -43,14 +43,13 @@ export function StaffAuthenticatedShell({
   const { lang } = useLanguage();
   const labels = exitLabels(lang, expectedRole);
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     if (asOwner) {
       router.push('/dashboard');
       return;
     }
     if (!isDemo) {
-      await staffSignOut();
-      window.location.replace(`/${restaurant.slug}/staff/login`);
+      void signOutAndRedirect(`/${restaurant.slug}/staff/login`);
     }
   };
 

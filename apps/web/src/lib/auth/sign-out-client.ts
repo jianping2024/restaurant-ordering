@@ -14,6 +14,7 @@ async function signOutViaServer(): Promise<boolean> {
   }
 }
 
+/** Clear Supabase session (server route first, browser client fallback). */
 export async function signOutFromSupabase(): Promise<void> {
   const ok = await signOutViaServer();
   if (ok) return;
@@ -22,10 +23,15 @@ export async function signOutFromSupabase(): Promise<void> {
   await supabase.auth.signOut();
 }
 
-export async function dashboardSignOutAndRedirect(): Promise<void> {
+/** Sign out then hard-navigate — one path for dashboard, staff boards, and auth flows. */
+export async function signOutAndRedirect(loginPath: string): Promise<void> {
   try {
     await signOutFromSupabase();
   } finally {
-    window.location.replace('/auth/login');
+    window.location.replace(loginPath);
   }
+}
+
+export function dashboardSignOutAndRedirect(): Promise<void> {
+  return signOutAndRedirect('/auth/login');
 }

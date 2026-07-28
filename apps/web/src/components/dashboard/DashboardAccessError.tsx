@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import {
-  SignOutConfirmModal,
+  SignOutConfirmModalGate,
   useSignOutConfirmState,
 } from '@/lib/auth/sign-out-confirm';
 import { Button } from '@/components/ui/Button';
@@ -47,7 +47,8 @@ export function DashboardAccessError({ message }: Props) {
           </Link>
         </p>
       </div>
-      <SignOutConfirmModal
+      <SignOutConfirmModalGate
+        enabled
         open={modalOpen}
         onClose={closeModal}
         onConfirm={runSignOut}

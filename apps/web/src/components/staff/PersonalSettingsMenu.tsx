@@ -1,7 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
+import {
+  SignOutConfirmModalGate,
+  useSignOutConfirmState,
+} from '@/lib/auth/sign-out-confirm';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { topNavAccountTriggerClass } from '@/lib/dashboard-top-nav';
@@ -34,16 +37,11 @@ export function PersonalSettingsMenu({
   const setOpen = onOpenChange ?? setUncontrolledOpen;
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
-    useSignOutConfirmState(onSignOut);
+  const signOut = useSignOutConfirmState(onSignOut);
 
   const handleLogout = () => {
     setOpen(false);
-    if (confirmSignOut) {
-      requestSignOut();
-      return;
-    }
-    onSignOut();
+    signOut.triggerSignOut(confirmSignOut);
   };
 
   const accountAriaLabel = `${roleLabel} — ${t.accountMenu}`;
@@ -82,14 +80,13 @@ export function PersonalSettingsMenu({
           </button>
         </DashboardTopBarDropdownPanel>
       </div>
-      {confirmSignOut ? (
-        <SignOutConfirmModal
-          open={modalOpen}
-          onClose={closeModal}
-          onConfirm={runSignOut}
-          confirming={modalConfirming}
-        />
-      ) : null}
+      <SignOutConfirmModalGate
+        enabled={confirmSignOut}
+        open={signOut.modalOpen}
+        onClose={signOut.closeModal}
+        onConfirm={signOut.confirmSignOut}
+        confirming={signOut.modalConfirming}
+      />
     </>
   );
 }

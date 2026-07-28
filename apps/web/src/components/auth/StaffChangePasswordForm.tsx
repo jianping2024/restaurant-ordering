@@ -1,8 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { staffSignOut } from '@/lib/staff-auth-client';
+import { signOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { StaffSignOutControl } from '@/components/staff/StaffSignOutControl';
 import { AuthPageShell } from '@/components/auth/AuthPageShell';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +11,6 @@ import { getMessages } from '@/lib/i18n/messages';
 import type { StaffChangePasswordError } from '@/lib/auth/staff-change-password';
 
 export function StaffChangePasswordForm() {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).staffAuth;
   const auth = getMessages(lang).authLogin;
@@ -63,9 +61,8 @@ export function StaffChangePasswordForm() {
     }
   };
 
-  const handleSignOut = async () => {
-    await staffSignOut();
-    router.replace('/auth/login');
+  const handleSignOut = () => {
+    void signOutAndRedirect('/auth/login');
   };
 
   return (

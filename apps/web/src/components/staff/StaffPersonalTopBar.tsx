@@ -15,6 +15,11 @@ type Props = {
   navItems: ProductTopNavItem[];
   navSurface?: StaffTopBarNavSurface;
   settingsMenu: ReactNode;
+  navOpen?: boolean;
+  onNavOpenChange?: (open: boolean) => void;
+  checkoutCount?: number;
+  prefetch?: boolean;
+  onNavigate?: () => void;
 };
 
 /** Sticky personal-app top bar — logo, restaurant, hamburger nav, account menu. */
@@ -24,11 +29,18 @@ export function StaffPersonalTopBar({
   navItems,
   navSurface = 'hamburger-only',
   settingsMenu,
+  navOpen: controlledNavOpen,
+  onNavOpenChange,
+  checkoutCount,
+  prefetch,
+  onNavigate,
 }: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
-  const [navOpen, setNavOpen] = useState(false);
+  const [uncontrolledNavOpen, setUncontrolledNavOpen] = useState(false);
+  const navOpen = controlledNavOpen ?? uncontrolledNavOpen;
+  const setNavOpen = onNavOpenChange ?? setUncontrolledNavOpen;
 
   return (
     <header className={staffTopBarChrome.headerClassName}>
@@ -41,8 +53,11 @@ export function StaffPersonalTopBar({
             pathname={pathname}
             navT={navT}
             navSurface={navSurface}
+            checkoutCount={checkoutCount}
+            prefetch={prefetch}
             open={navOpen}
             onOpenChange={setNavOpen}
+            onNavigate={onNavigate}
           />
         </div>
 

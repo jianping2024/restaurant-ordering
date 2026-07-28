@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  SignOutConfirmModal,
+  SignOutConfirmModalGate,
   useSignOutConfirmState,
 } from '@/lib/auth/sign-out-confirm';
 
@@ -20,34 +20,24 @@ export function StaffSignOutControl({
   confirmSignOut = true,
   className = '',
 }: Props) {
-  const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
-    useSignOutConfirmState(onSignOut);
-
-  const handleClick = () => {
-    if (confirmSignOut) {
-      requestSignOut();
-      return;
-    }
-    onSignOut();
-  };
+  const signOut = useSignOutConfirmState(onSignOut);
 
   return (
     <>
       <button
         type="button"
-        onClick={handleClick}
+        onClick={() => signOut.triggerSignOut(confirmSignOut)}
         className={`text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text transition-colors ${className}`}
       >
         {exitLabel}
       </button>
-      {confirmSignOut ? (
-        <SignOutConfirmModal
-          open={modalOpen}
-          onClose={closeModal}
-          onConfirm={runSignOut}
-          confirming={modalConfirming}
-        />
-      ) : null}
+      <SignOutConfirmModalGate
+        enabled={confirmSignOut}
+        open={signOut.modalOpen}
+        onClose={signOut.closeModal}
+        onConfirm={signOut.confirmSignOut}
+        confirming={signOut.modalConfirming}
+      />
     </>
   );
 }

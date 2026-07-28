@@ -19,7 +19,7 @@ const sizes = {
 };
 
 const overlayClassName =
-  'fixed inset-0 z-50 flex min-h-0 items-center justify-center overflow-y-auto px-2 pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top,0px))] sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))]';
+  'fixed inset-0 z-[60] flex min-h-0 items-center justify-center overflow-y-auto px-2 pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top,0px))] sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))]';
 
 export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
   const [mounted, setMounted] = useState(false);

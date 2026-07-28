@@ -8,18 +8,17 @@ import type { DashboardAccessMode, DashboardNavRestaurant } from '@/lib/dashboar
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardSettingsMenu } from '@/components/dashboard/DashboardSettingsMenu';
-import { DashboardTopNavMenu } from '@/components/dashboard/DashboardTopNavMenu';
 import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
-import { ProductTopBarNav } from '@/components/ui/ProductTopBarNav';
+import { ProductTopBarMenu } from '@/components/ui/ProductTopBarMenu';
 import {
-  buildDashboardTopNavPresentation,
+  buildDashboardTopNavItems,
   dashboardLogoHref,
-  isLogoHrefActive,
+  staffTopBarNavSurface,
 } from '@/lib/dashboard-top-nav';
 import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
-type TopBarPanel = 'none' | 'more' | 'settings';
+type TopBarPanel = 'none' | 'nav' | 'settings';
 
 type Props = {
   restaurant: DashboardNavRestaurant;
@@ -32,48 +31,35 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
   const navT = getMessages(lang).nav;
   const { pendingCount } = useCheckoutRequests();
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
-  const { items, quickActions } = buildDashboardTopNavPresentation({
+  const navItems = buildDashboardTopNavItems({
     accessMode,
     restaurantSlug: restaurant.slug,
     kitchenShortcutEnabled,
   });
-  const quickActionIds = new Set(quickActions.map((item) => item.id));
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 
   const closePanels = () => setOpenPanel('none');
   const roleLabel = topBarRoleLabel(lang, accessMode);
   const logoHref = dashboardLogoHref(accessMode);
-  const logoActive = isLogoHrefActive(pathname, accessMode);
 
   return (
     <header className={staffTopBarChrome.headerClassName}>
       <div className={staffTopBarChrome.rowClassName}>
-        <ProductTopBarBrand
-          href={logoHref}
-          restaurantName={restaurant.name}
-          logoActive={logoActive}
-        />
+        <div className={staffTopBarChrome.leadingClassName}>
+          <ProductTopBarBrand href={logoHref} restaurantName={restaurant.name} />
 
-        <ProductTopBarNav
-          items={items}
-          quickActions={quickActions}
-          pathname={pathname}
-          navT={navT}
-          checkoutCount={pendingCount}
-          prefetch
-          onNavigate={closePanels}
-        />
-
-        <DashboardTopNavMenu
-          items={items}
-          quickActionIds={quickActionIds}
-          accessMode={accessMode}
-          pathname={pathname}
-          navT={navT}
-          checkoutCount={pendingCount}
-          open={openPanel === 'more'}
-          onOpenChange={(open) => setOpenPanel(open ? 'more' : 'none')}
-        />
+          <ProductTopBarMenu
+            items={navItems}
+            pathname={pathname}
+            navT={navT}
+            navSurface={staffTopBarNavSurface(accessMode)}
+            checkoutCount={pendingCount}
+            prefetch
+            open={openPanel === 'nav'}
+            onOpenChange={(open) => setOpenPanel(open ? 'nav' : 'none')}
+            onNavigate={closePanels}
+          />
+        </div>
 
         <ProductTopBarTrailing>
           <DashboardSettingsMenu

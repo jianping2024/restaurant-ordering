@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useSignOutConfirmState, SignOutConfirmModal } from '@/lib/auth/sign-out-confirm';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { dashboardTopNavButtonClass } from '@/lib/dashboard-top-nav';
+import { topNavAccountTriggerClass } from '@/lib/dashboard-top-nav';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
 
@@ -38,11 +38,12 @@ export function PersonalSettingsMenu({
     useSignOutConfirmState(onSignOut);
 
   const handleLogout = () => {
-    setOpen(false);
     if (confirmSignOut) {
       requestSignOut();
+      window.requestAnimationFrame(() => setOpen(false));
       return;
     }
+    setOpen(false);
     onSignOut();
   };
 
@@ -59,8 +60,8 @@ export function PersonalSettingsMenu({
           onClick={() => setOpen(!open)}
           className={
             compact
-              ? `${dashboardTopNavButtonClass(open, false)} max-w-[5.5rem] gap-0.5 px-2.5 py-1.5`
-              : dashboardTopNavButtonClass(open, false)
+              ? `${topNavAccountTriggerClass(open)} max-w-[5.5rem] gap-0.5 px-2.5 py-1.5`
+              : topNavAccountTriggerClass(open)
           }
         >
           <span className="truncate">{roleLabel}</span>

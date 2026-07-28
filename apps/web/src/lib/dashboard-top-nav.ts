@@ -1,7 +1,5 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
-import {
-  navItemsForRole,
-} from '@/lib/dashboard-feature-registry';
+import { navItemsForRole } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
@@ -23,22 +21,14 @@ export type DashboardTopNavItem = ProductTopNavItem;
 /** @deprecated Use ProductTopNavItem */
 export type StaffPersonalTopNavItem = ProductTopNavItem;
 
-export type TopNavPresentation = {
-  items: ProductTopNavItem[];
-  quickActions: ProductTopNavItem[];
-};
+/** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
+export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
-/** @deprecated Use TopNavPresentation */
-export type DashboardTopNavPresentation = TopNavPresentation;
+export type StaffTopBarNavSurface = 'hamburger-only' | 'hamburger-mobile-inline-desktop';
 
-/** @deprecated Use TopNavPresentation */
-export type StaffPersonalTopNavPresentation = TopNavPresentation;
-
-/** Nav item ids promoted to compact icons below the lg breakpoint. */
-const QUICK_ACTION_IDS_BY_ROLE: Partial<Record<DashboardAccessMode, readonly string[]>> = {
-  frontdesk: ['checkout'],
-  cashier: ['checkout'],
-};
+export function staffTopBarNavSurface(accessMode: DashboardAccessMode): StaffTopBarNavSurface {
+  return accessMode === 'owner' ? 'hamburger-mobile-inline-desktop' : 'hamburger-only';
+}
 
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
   if (accessMode === 'cashier' || accessMode === 'frontdesk' || accessMode === 'waiter') {
@@ -61,16 +51,36 @@ export function isLogoHrefActive(pathname: string, accessMode: DashboardAccessMo
   return isTopBarLogoHrefActive(pathname, href, accessMode === 'owner');
 }
 
-export function dashboardTopNavButtonClass(active: boolean, compact = false): string {
-  const tone = active
+/** Account / role menu trigger on the top bar. */
+export function topNavAccountTriggerClass(open: boolean): string {
+  const tone = open
     ? 'bg-brand-gold/15 text-brand-text border border-brand-gold/35'
     : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/80 border border-transparent';
-
-  if (compact) {
-    return `relative inline-flex shrink-0 items-center justify-center rounded-lg min-h-11 min-w-11 text-base font-medium transition-colors ${tone}`;
-  }
-
   return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${tone}`;
+}
+
+/** Hamburger nav menu trigger. */
+export function topNavMenuTriggerClass(open: boolean, hasActiveItem: boolean): string {
+  const tone =
+    open || hasActiveItem
+      ? 'bg-brand-gold/15 text-brand-text border border-brand-gold/35'
+      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/80 border border-transparent';
+  return `relative inline-flex shrink-0 items-center justify-center rounded-lg min-h-11 min-w-11 text-base font-medium transition-colors ${tone}`;
+}
+
+/** Owner desktop inline nav — text links, not pill buttons. */
+export function topNavDesktopLinkClass(active: boolean): string {
+  return active
+    ? 'whitespace-nowrap text-sm font-semibold text-brand-text underline decoration-brand-gold/60 underline-offset-4'
+    : 'whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-text';
+}
+
+export function topNavMenuRowClass(active: boolean): string {
+  return `flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
+    active
+      ? 'bg-brand-gold/10 text-brand-text border-l-2 border-brand-gold font-medium'
+      : 'text-brand-text hover:bg-brand-bg/80 border-l-2 border-transparent'
+  }`;
 }
 
 export function dashboardTopBarMobileDropdownPanelClass(): string {
@@ -78,14 +88,14 @@ export function dashboardTopBarMobileDropdownPanelClass(): string {
 }
 
 export function dashboardTopBarDesktopDropdownPanelClass(): string {
-  return 'absolute right-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
+  return 'absolute left-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
 }
 
-/** Viewport-safe fixed panel for mobile dashboard dropdowns (portal to body). */
+/** Viewport-safe fixed panel for mobile staff top-bar dropdowns (portal to body). */
 export function dashboardTopBarMobileDropdownPanelStyle(): {
   position: 'fixed';
   top: string;
-  right: string;
+  left: string;
   width: string;
   maxHeight: string;
   overflowY: 'auto';
@@ -94,7 +104,7 @@ export function dashboardTopBarMobileDropdownPanelStyle(): {
   return {
     position: 'fixed',
     top: `calc(${STAFF_TOP_BAR_TOTAL_HEIGHT} + 4px)`,
-    right: 'max(0.5rem, env(safe-area-inset-right, 0px))',
+    left: 'max(0.5rem, env(safe-area-inset-left, 0px))',
     width: 'min(16rem, calc(100vw - 24px))',
     maxHeight: `calc(100dvh - (${STAFF_TOP_BAR_TOTAL_HEIGHT}) - 16px - env(safe-area-inset-bottom, 0px))`,
     overflowY: 'auto',
@@ -127,22 +137,6 @@ export function topNavItemLabel(
 /** @deprecated Use topNavItemLabel */
 export const dashboardTopNavItemLabel = topNavItemLabel;
 
-export function buildTopNavPresentation(
-  items: ProductTopNavItem[],
-  logoHref: string,
-  options: {
-    quickActionIds?: ReadonlySet<string>;
-    promoteAllExceptLogo?: boolean;
-  } = {},
-): TopNavPresentation {
-  const quickActions = items.filter((item) => {
-    if (item.href === logoHref) return false;
-    if (options.promoteAllExceptLogo) return true;
-    return options.quickActionIds?.has(item.id) ?? false;
-  });
-  return { items, quickActions };
-}
-
 export function buildDashboardTopNavItems(input: {
   accessMode: DashboardAccessMode;
   restaurantSlug: string;
@@ -170,17 +164,6 @@ export function buildDashboardTopNavItems(input: {
   }
 
   return items;
-}
-
-export function buildDashboardTopNavPresentation(input: {
-  accessMode: DashboardAccessMode;
-  restaurantSlug: string;
-  kitchenShortcutEnabled: boolean;
-}): TopNavPresentation {
-  const items = buildDashboardTopNavItems(input);
-  const logoHref = dashboardLogoHref(input.accessMode);
-  const quickActionIds = new Set(QUICK_ACTION_IDS_BY_ROLE[input.accessMode] ?? []);
-  return buildTopNavPresentation(items, logoHref, { quickActionIds });
 }
 
 export function isDashboardWaiterBoardListPath(pathname: string): boolean {

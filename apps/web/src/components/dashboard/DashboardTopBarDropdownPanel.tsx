@@ -3,19 +3,18 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  STAFF_TOP_BAR_COLLAPSED_NAV_MQ,
   dashboardTopBarDesktopDropdownPanelClass,
   dashboardTopBarMobileDropdownPanelClass,
   dashboardTopBarMobileDropdownPanelStyle,
 } from '@/lib/dashboard-top-nav';
-
-const MOBILE_TOP_NAV_MQ = '(max-width: 639px)';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   anchorRef: RefObject<HTMLElement | null>;
   children: ReactNode;
-  /** Portal + viewport-safe positioning on mobile (dashboard compact top bar). */
+  /** Portal + viewport-safe positioning below the lg breakpoint. */
   mobilePortal?: boolean;
 };
 
@@ -39,7 +38,7 @@ export function DashboardTopBarDropdownPanel({
       setUsePortal(false);
       return;
     }
-    const mq = window.matchMedia(MOBILE_TOP_NAV_MQ);
+    const mq = window.matchMedia(STAFF_TOP_BAR_COLLAPSED_NAV_MQ);
     const update = () => setUsePortal(mq.matches);
     update();
     mq.addEventListener('change', update);
@@ -48,7 +47,7 @@ export function DashboardTopBarDropdownPanel({
 
   useEffect(() => {
     if (!open) return;
-    const onDoc = (event: MouseEvent) => {
+    const onDoc = (event: PointerEvent) => {
       const target = event.target as Node;
       if (anchorRef.current?.contains(target)) return;
       if (panelRef.current?.contains(target)) return;
@@ -57,10 +56,10 @@ export function DashboardTopBarDropdownPanel({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
-    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('pointerdown', onDoc);
     document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('pointerdown', onDoc);
       document.removeEventListener('keydown', onKey);
     };
   }, [open, onClose, anchorRef]);

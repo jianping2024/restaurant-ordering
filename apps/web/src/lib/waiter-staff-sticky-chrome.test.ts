@@ -18,6 +18,7 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-right/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
+    assert.match(staffTopBarChrome.leadingClassName, /flex-1/);
     assert.match(staffTopBarChrome.navClassName, /shrink-0/);
     assert.doesNotMatch(staffTopBarChrome.navClassName, /flex-1/);
     assert.doesNotMatch(staffTopBarChrome.navClassName, /overflow-x-auto/);

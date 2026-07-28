@@ -1,20 +1,20 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  STAFF_TOP_BAR_COLLAPSED_NAV_MQ,
   buildDashboardTopNavItems,
-  buildDashboardTopNavPresentation,
-  buildTopNavPresentation,
   dashboardLogoHref,
   dashboardWaiterTableIdFromPath,
   isDashboardWaiterTableDetailPath,
   isLogoHrefActive,
   isNavItemActive,
   isTopBarLogoHrefActive,
+  staffTopBarNavSurface,
 } from '@/lib/dashboard-top-nav';
 
-describe('buildDashboardTopNavPresentation', () => {
-  it('keeps frontdesk checkout as the only mobile quick action', () => {
-    const { items, quickActions } = buildDashboardTopNavPresentation({
+describe('buildDashboardTopNavItems', () => {
+  it('lists frontdesk nav items including operational shortcuts', () => {
+    const items = buildDashboardTopNavItems({
       accessMode: 'frontdesk',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
@@ -23,31 +23,28 @@ describe('buildDashboardTopNavPresentation', () => {
       items.map((item) => item.id),
       ['waiterBoard', 'checkout', 'orders', 'overview', 'tables', 'menu', 'guestNotice'],
     );
-    assert.deepEqual(quickActions.map((item) => item.id), ['checkout']);
   });
 
-  it('puts kitchen shortcut in items but not quick actions when enabled', () => {
-    const { items, quickActions } = buildDashboardTopNavPresentation({
+  it('appends kitchen shortcut for frontdesk when enabled', () => {
+    const items = buildDashboardTopNavItems({
       accessMode: 'frontdesk',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
     });
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
-    assert.equal(quickActions.some((item) => item.id === 'kitchenBoard'), false);
   });
 
-  it('keeps cashier on waiter board + checkout with checkout only promoted', () => {
-    const { items, quickActions } = buildDashboardTopNavPresentation({
+  it('keeps cashier on waiter board + checkout only', () => {
+    const items = buildDashboardTopNavItems({
       accessMode: 'cashier',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
     });
     assert.deepEqual(items.map((item) => item.id), ['waiterBoard', 'checkout']);
-    assert.deepEqual(quickActions.map((item) => item.id), ['checkout']);
   });
 
-  it('keeps owner items complete with no quick actions because logo is home', () => {
-    const { items, quickActions } = buildDashboardTopNavPresentation({
+  it('lists owner items', () => {
+    const items = buildDashboardTopNavItems({
       accessMode: 'owner',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
@@ -56,64 +53,20 @@ describe('buildDashboardTopNavPresentation', () => {
       items.map((item) => item.id),
       ['overview', 'valueAnalytics', 'abnormalOps', 'guestNotice', 'settings'],
     );
-    assert.equal(quickActions.length, 0);
-  });
-
-  it('excludes logo home targets from quick actions for floor roles', () => {
-    const { quickActions } = buildDashboardTopNavPresentation({
-      accessMode: 'waiter',
-      restaurantSlug: 'demo',
-      kitchenShortcutEnabled: false,
-    });
-    assert.equal(quickActions.length, 0);
-    assert.equal(dashboardLogoHref('waiter'), '/dashboard/waiter');
   });
 });
 
-describe('buildTopNavPresentation', () => {
-  it('promotes all non-logo items for staff personal shells', () => {
-    const href = '/demo/waiter';
-    const { items, quickActions } = buildTopNavPresentation(
-      [
-        {
-          id: 'waiterBoard',
-          href,
-          labelKey: 'viewWaiter',
-          icon: '🛎️',
-          matchPrefix: href,
-        },
-        {
-          id: 'kitchenBoard',
-          href: '/demo/kitchen',
-          labelKey: 'viewKitchen',
-          icon: '🍳',
-          external: true,
-        },
-      ],
-      href,
-      { promoteAllExceptLogo: true },
-    );
-    assert.equal(items.length, 2);
-    assert.deepEqual(quickActions.map((item) => item.id), ['kitchenBoard']);
+describe('staffTopBarNavSurface', () => {
+  it('uses desktop inline links for owner only', () => {
+    assert.equal(staffTopBarNavSurface('owner'), 'hamburger-mobile-inline-desktop');
+    assert.equal(staffTopBarNavSurface('frontdesk'), 'hamburger-only');
+    assert.equal(staffTopBarNavSurface('waiter'), 'hamburger-only');
   });
+});
 
-  it('drops nav items that duplicate the logo href', () => {
-    const href = '/demo/waiter';
-    const { items, quickActions } = buildTopNavPresentation(
-      [
-        {
-          id: 'waiterBoard',
-          href,
-          labelKey: 'viewWaiter',
-          icon: '🛎️',
-          matchPrefix: href,
-        },
-      ],
-      href,
-      { promoteAllExceptLogo: true },
-    );
-    assert.equal(items.length, 1);
-    assert.equal(quickActions.length, 0);
+describe('STAFF_TOP_BAR_COLLAPSED_NAV_MQ', () => {
+  it('aligns with Tailwind lg breakpoint', () => {
+    assert.equal(STAFF_TOP_BAR_COLLAPSED_NAV_MQ, '(max-width: 1023px)');
   });
 });
 
@@ -161,17 +114,6 @@ describe('isNavItemActive', () => {
       }),
       true,
     );
-  });
-});
-
-describe('buildDashboardTopNavItems', () => {
-  it('appends kitchen shortcut for frontdesk when enabled', () => {
-    const items = buildDashboardTopNavItems({
-      accessMode: 'frontdesk',
-      restaurantSlug: 'demo',
-      kitchenShortcutEnabled: true,
-    });
-    assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
   });
 });
 

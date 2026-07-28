@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
@@ -84,7 +85,17 @@ export function CustomerOrderingHeader({
               <p className="text-brand-text-muted text-sm mt-1">{subtitle}</p>
             ) : null}
           </div>
-          {isStaffAssisted ? tableBadge : <LanguageSwitcher compact showFlags />}
+          {isStaffAssisted ? (
+            tableBadge
+          ) : (
+            <div className={customerMenuHeaderTrailingSlotClass}>
+              <LanguageSwitcher
+                variant="icon"
+                dropdownPlacement="below"
+                dropdownAlign="end"
+              />
+            </div>
+          )}
         </div>
 
         {!isStaffAssisted && backLink ? (

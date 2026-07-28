@@ -6,6 +6,8 @@ import {
   seedCustomerMenuCatalogCache,
   type CustomerMenuCatalog,
 } from '@/lib/customer-menu-catalog-client-cache';
+import { reconcileGuestOrderingNoticeOnEntry } from '@/lib/guest-ordering-notice-client';
+import type { GuestOrderingNotice } from '@/lib/guest-ordering-notice';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import type { CartItem, MenuCategory, MenuItem } from '@/types';
@@ -39,6 +41,25 @@ export function MenuPage({
   const seededCatalog = initialMenuCatalog ?? null;
   const [catalog, setCatalog] = useState<CustomerMenuCatalog | null>(seededCatalog);
   const [catalogReady, setCatalogReady] = useState(Boolean(seededCatalog));
+  const [guestOrderingNotice, setGuestOrderingNotice] = useState<GuestOrderingNotice | null>(
+    restaurant.guest_ordering_notice ?? null,
+  );
+
+  useEffect(() => {
+    if (isDemo) return;
+
+    let cancelled = false;
+    void reconcileGuestOrderingNoticeOnEntry({
+      slug: restaurant.slug,
+      seed: restaurant.guest_ordering_notice,
+    }).then((notice) => {
+      if (!cancelled) setGuestOrderingNotice(notice);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isDemo, restaurant.guest_ordering_notice, restaurant.slug]);
 
   useEffect(() => {
     if (seededCatalog) {
@@ -82,7 +103,7 @@ export function MenuPage({
 
   return (
     <MenuOrderingController
-      restaurant={restaurant}
+      restaurant={{ ...restaurant, guest_ordering_notice: guestOrderingNotice }}
       menuItems={menuItems}
       menuCategories={menuCategories}
       catalogReady={catalogReady}

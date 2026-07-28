@@ -25,12 +25,34 @@ interface LanguageSwitcherProps {
   variant?: 'inline' | 'menu' | 'icon' | 'list';
   /** Match customer menu header pills (flag + code). */
   showFlags?: boolean;
+  /** Dropdown panel placement for menu/icon variants. */
+  dropdownPlacement?: 'above' | 'below';
+  /** Horizontal alignment of the dropdown panel. */
+  dropdownAlign?: 'start' | 'end';
+}
+
+function dropdownPanelPositionClass(
+  placement: 'above' | 'below',
+  align: 'start' | 'end',
+): string {
+  const vertical =
+    placement === 'below' ? 'top-full mt-1.5' : 'bottom-full mb-1.5';
+  const horizontal = align === 'end' ? 'right-0' : 'left-0';
+  return `absolute ${vertical} ${horizontal}`;
+}
+
+function menuDropdownPanelClass(placement: 'above' | 'below'): string {
+  const vertical =
+    placement === 'below' ? 'top-full mt-1.5' : 'bottom-full mb-1.5';
+  return `absolute ${vertical} left-0 right-0`;
 }
 
 export function LanguageSwitcher({
   compact = false,
   variant = 'inline',
   showFlags = false,
+  dropdownPlacement = 'above',
+  dropdownAlign = 'start',
 }: LanguageSwitcherProps) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -115,7 +137,7 @@ export function LanguageSwitcher({
         {open ? (
           <div
             role="listbox"
-            className="absolute bottom-full left-0 mb-1.5 min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+            className={`${dropdownPanelPositionClass(dropdownPlacement, dropdownAlign)} min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
           >
             {OPTIONS.map((option) => (
               <button
@@ -155,7 +177,7 @@ export function LanguageSwitcher({
         {open ? (
           <div
             role="listbox"
-            className="absolute bottom-full left-0 right-0 mb-1.5 rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+            className={`${menuDropdownPanelClass(dropdownPlacement)} rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
           >
             {OPTIONS.map((option) => (
               <button

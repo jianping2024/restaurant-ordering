@@ -106,7 +106,7 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`bg-brand-card border rounded-2xl p-4 flex gap-4 h-full ${
+      className={`bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-4 h-full overflow-hidden ${
         layout === 'grid' ? 'flex-col sm:flex-row' : ''
       } ${item.available ? 'border-brand-border' : 'border-brand-border opacity-50'}`}
     >
@@ -135,8 +135,10 @@ export function MenuItemCard({
             <p className="text-[11px] text-brand-text-muted mt-1 leading-snug">{limitHint}</p>
           ) : null}
         </div>
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{item.price.toFixed(2)}</span>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className={`mr-auto ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
+            €{item.price.toFixed(2)}
+          </span>
           <MenuItemCardAction
             available={item.available}
             cartQty={cartQty}

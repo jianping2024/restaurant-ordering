@@ -16,6 +16,7 @@ import {
 } from '@/lib/i18n/menu-page-messages';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
+import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
@@ -742,7 +743,7 @@ export function MenuOrderingController({
 
   const rootClassName = isEmbedded
     ? `flex min-h-0 flex-1 flex-col overflow-hidden bg-brand-bg relative ${pageBottomPaddingClass}`
-    : `min-h-screen bg-brand-bg max-w-mobile mx-auto relative ${pageBottomPaddingClass}`;
+    : `min-h-screen bg-brand-bg relative ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
 
   return (
     <div className={rootClassName}>

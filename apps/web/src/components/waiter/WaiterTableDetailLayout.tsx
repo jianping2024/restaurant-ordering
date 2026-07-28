@@ -530,7 +530,7 @@ export function WaiterTableOrderedItemsPanel({
               key={`${line.orderId}-${line.itemIdx}`}
               className={waiterDetailLayout.orderedItemRow}
             >
-              <div className="min-w-0 flex-1">
+              <div className={waiterDetailLayout.orderedItemTextCol}>
                 <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
                 {chargeableHint ? (
                   <p className={waiterDetailLayout.orderedItemChargeableHint}>{chargeableHint}</p>

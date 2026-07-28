@@ -82,9 +82,23 @@ test('ordered-item row keeps name, qty, and minus as one left-aligned cluster', 
   assert.match(waiterDetailLayout.orderedItemRow, /max-w-full/);
   assert.match(waiterDetailLayout.orderedItemRow, /gap-8/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /justify-between/);
+  assert.equal(waiterDetailLayout.orderedItemTextCol, 'min-w-0');
+  assert.doesNotMatch(waiterDetailLayout.orderedItemTextCol, /flex-1/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /flex-1/);
   assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
   assert.match(waiterDetailLayout.orderedItemQty, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemActions, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemActions, /gap-2/);
+});
+
+test('ordered-items panel uses orderedItemTextCol only (no inline flex-1 text col)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const here = dirname(fileURLToPath(import.meta.url));
+  const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
+  const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
+  assert.match(panel, /waiterDetailLayout\.orderedItemTextCol/);
+  assert.doesNotMatch(panel, /min-w-0 flex-1/);
+  assert.doesNotMatch(panel, /className="[^"]*flex-1[^"]*"/);
 });

@@ -9,6 +9,8 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Backdrop / overlay tap closes the dialog when true (default). */
+  dismissOnBackdrop?: boolean;
 }
 
 const sizes = {
@@ -21,7 +23,14 @@ const sizes = {
 const overlayClassName =
   'fixed inset-0 z-[60] flex min-h-0 items-center justify-center overflow-y-auto px-2 pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top,0px))] sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))]';
 
-export function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  dismissOnBackdrop = true,
+}: ModalProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -51,11 +60,13 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
     <div className={overlayClassName}>
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={dismissOnBackdrop ? onClose : undefined}
         aria-hidden
       />
       <div
         className={`relative z-10 mx-auto flex w-full max-h-full flex-col rounded-2xl border border-brand-border bg-brand-card shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${sizes[size]}`}
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
       >
         {title ? (
           <div className="flex flex-shrink-0 items-center justify-between border-b border-brand-border px-4 py-3 sm:px-6 sm:py-4">

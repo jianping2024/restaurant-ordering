@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 
@@ -19,12 +18,11 @@ export function DashboardSettingsMenu({
   open,
   onOpenChange,
 }: Props) {
-  const router = useRouter();
   return (
     <PersonalSettingsMenu
       roleLabel={roleLabel}
       logoutLabel={logoutLabel}
-      onSignOut={() => dashboardSignOutAndRedirect(router)}
+      onSignOut={() => void dashboardSignOutAndRedirect()}
       compact={compact}
       open={open}
       onOpenChange={onOpenChange}

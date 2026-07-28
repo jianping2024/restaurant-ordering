@@ -48,8 +48,10 @@ export function StaffAuthenticatedShell({
       router.push('/dashboard');
       return;
     }
-    if (!isDemo) await staffSignOut();
-    if (!isDemo) router.replace(`/${restaurant.slug}/staff/login`);
+    if (!isDemo) {
+      await staffSignOut();
+      window.location.replace(`/${restaurant.slug}/staff/login`);
+    }
   };
 
   const exitLabel = asOwner ? labels.backToDashboard : labels.signOut;

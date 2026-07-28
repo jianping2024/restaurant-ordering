@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import {
   SignOutConfirmModal,
@@ -16,11 +15,10 @@ type Props = {
 };
 
 export function DashboardAccessError({ message }: Props) {
-  const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).dashboardAccessError;
   const { requestSignOut, modalOpen, modalConfirming, closeModal, confirmSignOut: runSignOut } =
-    useSignOutConfirmState(() => dashboardSignOutAndRedirect(router));
+    useSignOutConfirmState(() => dashboardSignOutAndRedirect());
 
   return (
     <div className="flex-1 flex items-center justify-center p-8">

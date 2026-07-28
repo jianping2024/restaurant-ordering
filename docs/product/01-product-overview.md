@@ -81,10 +81,11 @@
 | **收银员 / Cashier** | 员工登录 → `/dashboard/waiter` + 结账台 | 看板 + 结账台 |
 | **服务员 / Waiter** | 员工登录 → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 关台结账） |
 | **后厨 / Kitchen** | `/{slug}/kitchen` | 订单出餐、退菜（void） |
+| **自定义角色** | 员工登录（按勾选能力） | 店主在「设置 → 角色权限」创建/复制/改名/停用/删除并勾选页面与按钮 |
 | **顾客 / Customer** | `/{slug}/menu`、`/{slug}/bill` | 扫码点餐、分单、呼叫结账（无账号） |
 | **平台运营 / Ops** | `apps/ops` | 餐厅代建、设备吊销、打印任务巡检 |
 
-Dashboard 导航按角色裁剪，注册表见 `apps/web/src/lib/dashboard-feature-registry.ts`（owner / frontdesk / cashier / waiter）。
+员工侧栏与敏感操作按 `restaurant_roles.permissions`（Capability）裁剪；注册表 `apps/web/src/lib/permissions/registry.ts`。预制前台/收银/服务员/厨房默认对齐上表。停用角色后绑定员工不可登录。
 
 ---
 

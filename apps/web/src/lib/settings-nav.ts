@@ -2,6 +2,7 @@ export type SettingsNavId =
   | 'profile'
   | 'features'
   | 'staff'
+  | 'roles'
   | 'buffet'
   | 'print-assistant';
 
@@ -9,6 +10,7 @@ export type SettingsHubLabelKey =
   | 'tabProfile'
   | 'tabFeatures'
   | 'tabStaff'
+  | 'tabRoles'
   | 'tabBuffet'
   | 'tabPrintAssistant';
 
@@ -43,6 +45,13 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     labelKey: 'tabStaff',
     icon: '👥',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/staff'),
+  },
+  {
+    id: 'roles',
+    href: '/dashboard/settings/roles',
+    labelKey: 'tabRoles',
+    icon: '🔐',
+    isActive: (pathname) => pathname.startsWith('/dashboard/settings/roles'),
   },
   {
     id: 'features',

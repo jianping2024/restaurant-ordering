@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { floorBoardCapabilities, isFloorBoardRole } from './floor-board-capabilities';
+import { floorBoardCapabilities } from './floor-board-capabilities';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('floorBoardCapabilities', () => {
-  it('gives desk roles shared checkout and decrement powers', () => {
-    for (const role of ['frontdesk', 'cashier'] as const) {
-      const caps = floorBoardCapabilities(role);
+  it('derives desk powers from frontdesk/cashier templates', () => {
+    for (const preset of ['frontdesk', 'cashier'] as const) {
+      const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES[preset]]));
       assert.equal(caps.canMenuDecrement, true);
       assert.equal(caps.canCheckoutClose, true);
       assert.equal(caps.canAssistBillCheckout, true);
@@ -14,24 +16,26 @@ describe('floorBoardCapabilities', () => {
   });
 
   it('allows session pre_bill print for frontdesk only', () => {
-    assert.equal(floorBoardCapabilities('frontdesk').canPrintSessionPreBill, true);
-    assert.equal(floorBoardCapabilities('cashier').canPrintSessionPreBill, false);
-    assert.equal(floorBoardCapabilities('waiter').canPrintSessionPreBill, false);
+    assert.equal(
+      floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]))
+        .canPrintSessionPreBill,
+      true,
+    );
+    assert.equal(
+      floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])).canPrintSessionPreBill,
+      false,
+    );
+    assert.equal(
+      floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter])).canPrintSessionPreBill,
+      false,
+    );
   });
 
   it('keeps waiter order-assist only', () => {
-    const caps = floorBoardCapabilities('waiter');
+    const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
     assert.equal(caps.canMenuDecrement, false);
     assert.equal(caps.canCheckoutClose, false);
     assert.equal(caps.canAssistBillCheckout, false);
     assert.equal(caps.canOpenCheckoutPendingTables, false);
-  });
-});
-
-describe('isFloorBoardRole', () => {
-  it('accepts floor board roles only', () => {
-    assert.equal(isFloorBoardRole('waiter'), true);
-    assert.equal(isFloorBoardRole('kitchen'), false);
-    assert.equal(isFloorBoardRole(null), false);
   });
 });

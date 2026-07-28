@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
-import { floorBoardCapabilities } from '@/lib/floor-board-capabilities';
+import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('resolveWaiterTableDetailActions', () => {
-  const desk = floorBoardCapabilities('frontdesk');
-  const waiter = floorBoardCapabilities('waiter');
+  const frontdeskCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]);
+  const waiterCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]);
+  const cashierCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]);
+  
+  const desk = floorBoardCapabilitiesFromCaps(frontdeskCaps);
+  const waiter = floorBoardCapabilitiesFromCaps(waiterCaps);
+  const cashier = floorBoardCapabilitiesFromCaps(cashierCaps);
 
   it('shows buffet panel for production open tables with buffet config', () => {
     const flags = resolveWaiterTableDetailActions({
@@ -66,7 +73,6 @@ describe('resolveWaiterTableDetailActions', () => {
   });
 
   it('allows cashier checkout-close when session is open', () => {
-    const cashier = floorBoardCapabilities('cashier');
     const flags = resolveWaiterTableDetailActions({
       caps: cashier,
       isDemo: false,

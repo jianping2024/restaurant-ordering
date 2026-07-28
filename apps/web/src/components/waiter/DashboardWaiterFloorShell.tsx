@@ -4,7 +4,8 @@ import type { ReactNode } from 'react';
 import { notFound, usePathname } from 'next/navigation';
 import { WaiterDisplay } from '@/components/waiter/WaiterDisplay';
 import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
-import type { FloorBoardRole } from '@/lib/floor-board-capabilities';
+import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
+import type { Capabilities } from '@/lib/permissions/can';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 import {
   dashboardWaiterTableIdFromPath,
@@ -14,11 +15,17 @@ import {
 
 type Props = {
   restaurant: FloorBoardRestaurant;
-  floorStaffRole: FloorBoardRole;
+  floorCapabilities: FloorBoardCapabilities;
+  capabilities: Capabilities;
   children: ReactNode;
 };
 
-export function DashboardWaiterFloorShell({ restaurant, floorStaffRole, children }: Props) {
+export function DashboardWaiterFloorShell({
+  restaurant,
+  floorCapabilities,
+  capabilities,
+  children,
+}: Props) {
   const pathname = usePathname();
   const isDetail = isDashboardWaiterTableDetailPath(pathname);
   const isBoardRoute = isDashboardWaiterBoardListPath(pathname);
@@ -32,7 +39,8 @@ export function DashboardWaiterFloorShell({ restaurant, floorStaffRole, children
         restaurant={restaurant}
         tableId={tableId}
         embeddedInDashboard
-        floorStaffRole={floorStaffRole}
+        floorCapabilities={floorCapabilities}
+        capabilities={capabilities}
       />
     );
   }
@@ -43,7 +51,8 @@ export function DashboardWaiterFloorShell({ restaurant, floorStaffRole, children
         <WaiterDisplay
           restaurant={restaurant}
           embeddedInDashboard
-          floorStaffRole={floorStaffRole}
+          floorCapabilities={floorCapabilities}
+          capabilities={capabilities}
         />
       ) : null}
       {children}

@@ -16,10 +16,8 @@ import {
   formatStaffMenuLineLabel,
   formatOrderItemQuantityLabel,
 } from '@/lib/order-list-display';
-import {
-  canDecrementOrderLine,
-  type MenuDecrementOperator,
-} from '@/lib/order-item-decrement/decrement-policy';
+import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
+import type { Capabilities } from '@/lib/permissions/can';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
@@ -63,9 +61,9 @@ type MenuLineCandidate = {
 function resolveMenuLineActionTarget(
   orders: Order[],
   mergeKey: string,
-  operator: MenuDecrementOperator,
+  capabilities: Capabilities,
 ): MenuLineActionTarget {
-  return pickMenuLineActionTarget(orders, operator, (item) => {
+  return pickMenuLineActionTarget(orders, capabilities, (item) => {
     const limitedMenuItemId = menuItemIdFromLimitedBillableKey(mergeKey);
     if (limitedMenuItemId) {
       return item.id === limitedMenuItemId;
@@ -76,7 +74,7 @@ function resolveMenuLineActionTarget(
 
 function pickMenuLineActionTarget(
   orders: Order[],
-  operator: MenuDecrementOperator,
+  capabilities: Capabilities,
   match: (item: OrderItem) => boolean,
 ): MenuLineActionTarget {
   let fallback: MenuLineCandidate | null = null;
@@ -94,7 +92,7 @@ function pickMenuLineActionTarget(
       const loc: MenuLineCandidate = { orderId: order.id, itemIdx, item, order };
       if (!fallback) fallback = loc;
 
-      if (!canDecrementOrderLine(operator, item, order.status)) continue;
+      if (!canDecrementOrderLine(capabilities, item, order.status)) continue;
       if (!bestDecrementable) bestDecrementable = loc;
       if (item.qty > 1 && !bestQtyGt1) bestQtyGt1 = loc;
     }
@@ -108,7 +106,7 @@ function pickMenuLineActionTarget(
   return {
     orderId: chosen.orderId,
     itemIdx: chosen.itemIdx,
-    canDecrement: canDecrementOrderLine(operator, chosen.item, chosen.order.status),
+    canDecrement: canDecrementOrderLine(capabilities, chosen.item, chosen.order.status),
   };
 }
 
@@ -127,7 +125,7 @@ export function buildWaiterTableCard(
   displayName: string,
   orders: Order[],
   itemCodeByMenuId: Record<string, string> = {},
-  menuDecrementOperator: MenuDecrementOperator = 'waiter_staff',
+  capabilities: Capabilities,
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalog = buildBillableSessionItems(orders);
@@ -146,7 +144,7 @@ export function buildWaiterTableCard(
       };
     }
 
-    const action = resolveMenuLineActionTarget(orders, key, menuDecrementOperator);
+    const action = resolveMenuLineActionTarget(orders, key, capabilities);
     const share = chargeableFieldsFromBillableRow(row);
 
     return {

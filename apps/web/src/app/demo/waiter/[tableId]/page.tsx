@@ -3,6 +3,9 @@ import { WaiterTableDetail } from '@/components/waiter/WaiterTableDetail';
 import { DEMO_ORDERS, DEMO_RESTAURANT, DEMO_TABLES } from '@/lib/demo-data';
 import { demoPageMetadata } from '@/lib/demo-page-metadata';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 interface Props {
   params: Promise<{ tableId: string }>;
@@ -18,6 +21,9 @@ export default async function DemoWaiterTablePage({ params }: Props) {
     notFound();
   }
 
+  const capabilities = capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]);
+  const floorCapabilities = floorBoardCapabilitiesFromCaps(capabilities);
+
   return (
     <WaiterTableDetail
       restaurant={{
@@ -30,6 +36,8 @@ export default async function DemoWaiterTablePage({ params }: Props) {
       tableId={table.id}
       displayName={table.display_name}
       isDemo
+      floorCapabilities={floorCapabilities}
+      capabilities={capabilities}
     />
   );
 }

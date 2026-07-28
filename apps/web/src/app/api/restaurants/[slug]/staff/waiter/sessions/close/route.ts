@@ -13,7 +13,7 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(req, slug, 'waiter');
+  const ctx = await staffAuthFromRequest(req, slug, 'tables.checkout_close');
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

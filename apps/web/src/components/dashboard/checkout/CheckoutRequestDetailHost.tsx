@@ -47,14 +47,14 @@ import {
 } from '@/lib/checkout-settlement';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import type { Capabilities } from '@/lib/permissions/can';
 import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 
 type Props = {
   request: BillSplit;
   restaurantId: string;
   restaurantSlug: string;
-  accessMode: DashboardAccessMode;
+  capabilities: Capabilities;
   showBackButton?: boolean;
   onBack: () => void;
   /** Called after the queue row is removed because everyone paid. */
@@ -66,13 +66,13 @@ export function CheckoutRequestDetailHost({
   request,
   restaurantId,
   restaurantSlug,
-  accessMode,
+  capabilities,
   showBackButton = true,
   onBack,
   onAllPaid,
   onCloseTableComplete,
 }: Props) {
-  const canForceCloseTable = mayForceCloseTable(accessMode);
+  const canForceCloseTable = mayForceCloseTable(capabilities);
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
   const waiterBoard = useWaiterBoardOptional();

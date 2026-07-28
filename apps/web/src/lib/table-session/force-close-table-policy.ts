@@ -1,28 +1,19 @@
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import type { Capabilities } from '@/lib/permissions/can';
+import { mayForceCloseFromCaps } from '@/lib/permissions/resolve';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
 
 /**
  * Operational force-close (manual / unpaid reason).
- * Single policy for UI and POST /api/dashboard/close-table-session.
- *
- * Floor-board checkout-close stays in `floorBoardCapabilities`; force-close is policy,
- * not a desk capability flag — see ToolbarCloseTableControl / CheckoutRequestDetailHost.
+ * Single policy for UI and POST /api/dashboard/close-table-session — capability only.
  */
-export function mayForceCloseTable(principal: DashboardAccessMode): boolean {
-  return principal === 'owner' || principal === 'frontdesk';
+export function mayForceCloseTable(capabilities: Capabilities): boolean {
+  return mayForceCloseFromCaps(capabilities);
 }
 
-function manualActorReasonToPrincipal(
-  closedReason: SettledCloseActorReason,
-): Extract<DashboardAccessMode, 'owner' | 'frontdesk' | 'cashier'> {
-  if (closedReason === 'owner_closed') return 'owner';
-  if (closedReason === 'frontdesk_closed') return 'frontdesk';
-  return 'cashier';
-}
-
-/** Service guard for manual force-close using dashboard actor reason from loadCloseTableSessionActor. */
+/** Service guard: settled close reasons that imply force-close privilege. */
 export function mayForceCloseTableForManualActor(
   closedReason: SettledCloseActorReason,
 ): boolean {
-  return mayForceCloseTable(manualActorReasonToPrincipal(closedReason));
+  // cashier_closed is checkout-close path, not force-close.
+  return closedReason === 'owner_closed' || closedReason === 'frontdesk_closed';
 }

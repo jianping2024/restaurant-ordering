@@ -4,10 +4,7 @@ import {
   applyOrderItemDecrement,
   type DecrementOrderItemCode,
 } from '@/lib/order-item-void/decrement-order-item';
-import {
-  menuDecrementAllowedFor,
-  type MenuDecrementOperator,
-} from '@/lib/order-item-decrement/decrement-policy';
+// Import removed - no longer using MenuDecrementOperator
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
@@ -28,7 +25,7 @@ export type DecrementOrderItemInput = {
     status?: Order['status'];
   };
   itemIndex: number;
-  menuDecrementOperator: MenuDecrementOperator;
+  menuDecrementAllowed: boolean;
   /** Optional override when decrement removes the last unit; defaults to qty_adjustment. */
   voidReason?: string | null;
   voidReasonDetail?: string | null;
@@ -50,7 +47,7 @@ export type DecrementOrderItemServiceResult =
 export async function decrementOrderItemWithAudit(
   input: DecrementOrderItemInput,
 ): Promise<DecrementOrderItemServiceResult> {
-  if (!menuDecrementAllowedFor(input.menuDecrementOperator)) {
+  if (!input.menuDecrementAllowed) {
     return { ok: false, code: 'menu_decrement_not_allowed' };
   }
 

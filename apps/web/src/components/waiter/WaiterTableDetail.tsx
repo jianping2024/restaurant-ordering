@@ -29,11 +29,9 @@ import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
-import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
-import {
-  floorBoardCapabilities,
-  type FloorBoardRole,
-} from '@/lib/floor-board-capabilities';
+// Import removed - no longer using resolveMenuDecrementOperator
+import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
+import type { Capabilities } from '@/lib/permissions/can';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -100,8 +98,10 @@ interface Props {
   displayName?: string;
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
-  /** Floor board role — drives close/checkout UI (defaults to waiter). */
-  floorStaffRole?: FloorBoardRole;
+  /** Floor board capabilities — drives close/checkout UI and decrement controls. */
+  floorCapabilities: FloorBoardCapabilities;
+  /** Staff capabilities for API permissions. */
+  capabilities: Capabilities;
 }
 
 function WaiterTableDetailInner({
@@ -114,7 +114,8 @@ function WaiterTableDetailInner({
   displayName = '',
   isDemo = false,
   embeddedInDashboard = false,
-  floorStaffRole,
+  floorCapabilities,
+  capabilities,
 }: Props) {
   const router = useRouter();
   const waiterBoard = useWaiterBoardOptional();
@@ -266,20 +267,13 @@ function WaiterTableDetailInner({
 
   const selectedDisplayName = selectedTable?.display_name || displayName;
 
-  const floorRole: FloorBoardRole = floorStaffRole ?? 'waiter';
-  const floorCaps = useMemo(() => floorBoardCapabilities(floorRole), [floorRole]);
+  const floorCaps = floorCapabilities;
   const {
     printSessionPreBill,
     isPrintPreBillBusy,
   } = useStaffSessionPreBillPrint(restaurant.slug);
 
-  const menuDecrementOperator = useMemo(
-    () =>
-      resolveMenuDecrementOperator({
-        role: floorRole,
-      }),
-    [floorRole],
-  );
+  // Removed menuDecrementOperator - now using capabilities directly
 
   const selectedCard = useMemo(
     () =>
@@ -288,9 +282,9 @@ function WaiterTableDetailInner({
         selectedDisplayName,
         orders,
         itemCodeByMenuId,
-        menuDecrementOperator,
+        capabilities,
       ),
-    [orders, tableId, selectedDisplayName, itemCodeByMenuId, menuDecrementOperator],
+    [orders, tableId, selectedDisplayName, itemCodeByMenuId, capabilities],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);
@@ -335,11 +329,11 @@ function WaiterTableDetailInner({
     return demoTables
       .filter((table) => {
         const view = ordersForWaiterTableView(table.id, initialOrders, activeSessionByTableId);
-        const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId);
+        const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId, capabilities);
         return isWaiterTableCardOccupied(c);
       })
       .map((row) => row.id);
-  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId]);
+  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities]);
 
   const demoTargetCandidates = useMemo(() => {
     if (!isDemo || !operationType || !sourceTable) return [] as RestaurantTableRow[];
@@ -993,7 +987,8 @@ function WaiterTableDetailInner({
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}
             showCheckoutClose={detailActions.showCheckoutClose}
-            floorStaffRole={floorRole}
+            floorCapabilities={floorCaps}
+            capabilities={capabilities}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}
             onDemoCloseClick={() => {

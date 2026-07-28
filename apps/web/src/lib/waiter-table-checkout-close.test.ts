@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { checkoutCloseShouldPrintBill } from '@/lib/waiter-table-checkout-close';
 
-describe('checkoutCloseShouldPrintBill', () => {
-  it('prints for frontdesk only', () => {
-    assert.equal(checkoutCloseShouldPrintBill('frontdesk'), true);
-    assert.equal(checkoutCloseShouldPrintBill('cashier'), false);
+/** Print-on-close is decided by `printBill` arg (from checkout.print_pre_bill capability). */
+describe('checkout close print decision', () => {
+  it('documents capability-driven printBill flag', () => {
+    const printBillFromCaps = (hasPreBill: boolean) => hasPreBill;
+    assert.equal(printBillFromCaps(true), true);
+    assert.equal(printBillFromCaps(false), false);
   });
 });

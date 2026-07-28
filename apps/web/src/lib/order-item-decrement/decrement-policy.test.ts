@@ -2,51 +2,47 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   canDecrementOrderLine,
-  menuDecrementAllowedFor,
-  resolveMenuDecrementOperator,
-} from '@/lib/order-item-decrement/decrement-policy';
+  menuDecrementAllowedFromCaps,
+} from './decrement-policy';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
 import type { OrderItem } from '@/types';
 
-const menuItem = (overrides: Partial<OrderItem> = {}): OrderItem => ({
-  id: 'item-1',
-  name: 'Cola',
-  name_pt: 'Cola',
-  qty: 2,
-  price: 2.5,
-  emoji: '🥤',
-  item_status: 'pending',
-  ...overrides,
-});
+function menuItem(overrides: Partial<OrderItem> = {}): OrderItem {
+  return {
+    id: 'i1',
+    name: 'Sushi',
+    price: 10,
+    qty: 1,
+    item_status: 'pending',
+    ...overrides,
+  } as OrderItem;
+}
 
-describe('resolveMenuDecrementOperator', () => {
-  it('maps owner, floor staff, and waiter roles', () => {
-    assert.equal(resolveMenuDecrementOperator({ role: 'waiter', asOwner: true }), 'owner');
-    assert.equal(resolveMenuDecrementOperator({ role: 'frontdesk' }), 'frontdesk_staff');
-    assert.equal(resolveMenuDecrementOperator({ role: 'cashier' }), 'frontdesk_staff');
-    assert.equal(resolveMenuDecrementOperator({ role: 'waiter' }), 'waiter_staff');
-    assert.equal(resolveMenuDecrementOperator({ role: 'kitchen' }), 'waiter_staff');
-  });
-});
-
-describe('menuDecrementAllowedFor', () => {
-  it('allows frontdesk and owner only', () => {
-    assert.equal(menuDecrementAllowedFor('frontdesk_staff'), true);
-    assert.equal(menuDecrementAllowedFor('owner'), true);
-    assert.equal(menuDecrementAllowedFor('waiter_staff'), false);
+describe('menuDecrementAllowedFromCaps', () => {
+  it('requires orders.menu_decrement', () => {
+    assert.equal(menuDecrementAllowedFromCaps('*'), true);
+    assert.equal(
+      menuDecrementAllowedFromCaps(capabilitiesFromKeys(['orders.menu_decrement'])),
+      true,
+    );
+    assert.equal(menuDecrementAllowedFromCaps(capabilitiesFromKeys(['orders.edit'])), false);
   });
 });
 
 describe('canDecrementOrderLine', () => {
-  it('denies waiter on all menu lines regardless of item type', () => {
-    assert.equal(canDecrementOrderLine('waiter_staff', menuItem(), 'pending'), false);
+  it('blocks without capability', () => {
     assert.equal(
-      canDecrementOrderLine('waiter_staff', menuItem({ item_status: 'cooking' }), 'cooking'),
+      canDecrementOrderLine(capabilitiesFromKeys([]), menuItem(), 'pending'),
       false,
     );
   });
 
-  it('allows floor staff on decrementable menu lines', () => {
-    assert.equal(canDecrementOrderLine('frontdesk_staff', menuItem(), 'pending'), true);
-    assert.equal(canDecrementOrderLine('frontdesk_staff', menuItem({ kind: 'buffet_base' }), 'pending'), false);
+  it('allows pending menu lines with capability', () => {
+    const caps = capabilitiesFromKeys(['orders.menu_decrement']);
+    assert.equal(canDecrementOrderLine(caps, menuItem(), 'pending'), true);
+    assert.equal(
+      canDecrementOrderLine(caps, menuItem({ kind: 'buffet_base' } as Partial<OrderItem>), 'pending'),
+      false,
+    );
   });
 });

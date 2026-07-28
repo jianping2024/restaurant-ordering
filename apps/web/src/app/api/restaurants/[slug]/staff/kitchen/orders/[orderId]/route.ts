@@ -17,7 +17,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'missing_params' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(req, slug, 'kitchen');
+  const ctx = await staffAuthFromRequest(req, slug, 'orders.kitchen_update');
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

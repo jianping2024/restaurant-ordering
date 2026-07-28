@@ -1,8 +1,6 @@
 import { postCheckoutCloseTableSessionClient } from '@/lib/checkout-close-table-session-client';
 import { requestStaffSessionBillPrint } from '@/lib/staff-session-bill-print';
 
-export type CheckoutCloseFloorRole = 'frontdesk' | 'cashier';
-
 export type WaiterTableCheckoutCloseResult =
   | { ok: true }
   | {
@@ -12,25 +10,20 @@ export type WaiterTableCheckoutCloseResult =
       message?: string;
     };
 
-/** Frontdesk prints session bill before close; cashier closes without printing. */
-export function checkoutCloseShouldPrintBill(role: CheckoutCloseFloorRole): boolean {
-  return role === 'frontdesk';
-}
-
 /**
  * Floor checkout close (settled: preserve orders + write settlement).
- * Frontdesk: print session total bill (`checkout_bill`), then close.
- * Cashier: close only (no print).
+ * When printBill is true: print session total bill (`checkout_bill`), then close.
+ * When false: close only (no print).
  */
 export async function runWaiterTableCheckoutClose(params: {
   slug: string;
   tableId: string;
   sessionId: string;
-  floorStaffRole: CheckoutCloseFloorRole;
+  printBill: boolean;
 }): Promise<WaiterTableCheckoutCloseResult> {
-  const { slug, tableId, sessionId, floorStaffRole } = params;
+  const { slug, tableId, sessionId, printBill } = params;
 
-  if (checkoutCloseShouldPrintBill(floorStaffRole)) {
+  if (printBill) {
     const printOutcome = await requestStaffSessionBillPrint({ slug, tableId, sessionId });
     if (!printOutcome.ok) {
       return { ok: false, stage: 'print', code: printOutcome.error };

@@ -21,12 +21,13 @@ import {
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { DashboardQuickNavLink } from '@/components/dashboard/DashboardQuickNavLink';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
+import { fromCapabilitiesPayload } from '@/lib/permissions/can';
 import {
-  canAccessDashboardWaiterBoard,
   DASHBOARD_NAV_ITEMS,
 } from '@/lib/dashboard-feature-registry';
 import { waiterBoardHref } from '@/lib/staff-routes';
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import { can } from '@/lib/permissions/can';
 import {
   checkoutQueueFocusKey,
   hasCheckoutQueueFocus,
@@ -42,7 +43,7 @@ type CheckoutSelection =
 interface Props {
   restaurantId: string;
   restaurantSlug: string;
-  accessMode: DashboardAccessMode;
+  capabilities: CapabilitiesPayload;
   /** URL intent: auto-open this checkout request after queue is fresh. */
   initialFocus?: CheckoutQueueFocus;
 }
@@ -50,15 +51,16 @@ interface Props {
 export function CheckoutRequestsManager({
   restaurantId,
   restaurantSlug,
-  accessMode,
+  capabilities: capabilitiesPayload,
   initialFocus,
 }: Props) {
+  const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
   const { requests, reload, getCollectedForSession } = useCheckoutRequests();
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const navT = getMessages(lang).nav;
-  const showWaiterBoardLink = canAccessDashboardWaiterBoard(accessMode);
+  const showWaiterBoardLink = can(capabilities, 'dashboard.waiter_board.view');
   const waiterBoardNav = DASHBOARD_NAV_ITEMS.waiterBoard;
   const [selection, setSelection] = useState<CheckoutSelection>({ mode: 'follow_focus' });
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -235,7 +237,7 @@ export function CheckoutRequestsManager({
                 request={selectedRequest}
                 restaurantId={restaurantId}
                 restaurantSlug={restaurantSlug}
-                accessMode={accessMode}
+                capabilities={capabilities}
                 showBackButton={!!selectedRequestId}
                 onBack={showList}
                 onAllPaid={clearSelectionAfterComplete}

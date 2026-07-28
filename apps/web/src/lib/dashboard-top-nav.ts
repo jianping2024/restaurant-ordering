@@ -1,8 +1,14 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
-import { navItemsForRole } from '@/lib/dashboard-feature-registry';
+import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
+import {
+  can,
+  fromCapabilitiesPayload,
+  type CapabilitiesPayload,
+} from '@/lib/permissions/can';
+import { NAV_PERMISSION } from '@/lib/permissions/registry';
 
 export type ProductTopNavItem = {
   id: string;
@@ -131,21 +137,37 @@ export function topNavItemLabel(
 
 export function buildDashboardTopNavItems(input: {
   accessMode: DashboardAccessMode;
+  capabilities: CapabilitiesPayload;
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
 }): ProductTopNavItem[] {
-  const { accessMode, restaurantSlug, kitchenShortcutEnabled } = input;
-  const items: ProductTopNavItem[] = navItemsForRole(accessMode).map((item) => ({
-    id: item.id,
-    href: item.href,
-    labelKey: item.key,
-    icon: item.icon,
-    exact: item.exact,
-    matchPrefix: item.matchPrefix,
-    checkoutBadge: item.checkoutBadge,
-  }));
+  const { accessMode, capabilities: capsPayload, restaurantSlug, kitchenShortcutEnabled } =
+    input;
+  const capabilities = fromCapabilitiesPayload(capsPayload);
 
-  if (accessMode === 'frontdesk' && kitchenShortcutEnabled) {
+  /** Owner chrome stays settings-focused until owner_nav_preferences ships. */
+  const ownerNavIds = new Set(['overview', 'valueAnalytics', 'abnormalOps', 'settings']);
+
+  const items: ProductTopNavItem[] = [];
+  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
+    if (accessMode === 'owner' && !ownerNavIds.has(item.id)) continue;
+    const permission = NAV_PERMISSION[item.id];
+    if (!permission || !can(capabilities, permission)) continue;
+    items.push({
+      id: item.id,
+      href: item.href,
+      labelKey: item.key,
+      icon: item.icon,
+      exact: item.exact,
+      matchPrefix: item.matchPrefix,
+      checkoutBadge: item.checkoutBadge,
+    });
+  }
+
+  if (
+    can(capabilities, 'dashboard.kitchen_shortcut.view') &&
+    kitchenShortcutEnabled
+  ) {
     items.push({
       id: 'kitchenBoard',
       href: `/${restaurantSlug}/kitchen`,

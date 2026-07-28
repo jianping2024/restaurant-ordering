@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadStaffAuditActor } from '@/lib/audit';
-import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
+import { menuDecrementAllowedFromCaps } from '@/lib/order-item-decrement/decrement-policy';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
 import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -77,10 +77,7 @@ export async function PATCH(
     role: ctx.role,
   });
 
-  const menuDecrementOperator = resolveMenuDecrementOperator({
-    role: ctx.role,
-    asOwner: ctx.as_owner,
-  });
+  const menuDecrementAllowed = menuDecrementAllowedFromCaps(ctx.capabilities);
 
   const result = await patchOrderItemsWithVoidAudit({
     admin,
@@ -99,7 +96,7 @@ export async function PATCH(
     voidReason,
     voidReasonDetail,
     voidAuditChannel: 'waiter',
-    menuDecrementOperator,
+    menuDecrementAllowed,
   });
 
   if (!result.ok) {

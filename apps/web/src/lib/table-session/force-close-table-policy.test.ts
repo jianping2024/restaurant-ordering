@@ -3,19 +3,21 @@ import { describe, it } from 'node:test';
 import {
   mayForceCloseTable,
   mayForceCloseTableForManualActor,
-} from '@/lib/table-session/force-close-table-policy';
+} from './force-close-table-policy';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
 
-describe('force-close-table-policy', () => {
-  it('allows force close for owner and frontdesk only', () => {
-    assert.equal(mayForceCloseTable('owner'), true);
-    assert.equal(mayForceCloseTable('frontdesk'), true);
-    assert.equal(mayForceCloseTable('cashier'), false);
-    assert.equal(mayForceCloseTable('waiter'), false);
+describe('mayForceCloseTable', () => {
+  it('allows owner star and force_close capability', () => {
+    assert.equal(mayForceCloseTable('*'), true);
+    assert.equal(mayForceCloseTable(capabilitiesFromKeys(['tables.force_close'])), true);
+    assert.equal(mayForceCloseTable(capabilitiesFromKeys(['tables.checkout_close'])), false);
   });
+});
 
-  it('blocks cashier manual actor via settled reason mapping', () => {
-    assert.equal(mayForceCloseTableForManualActor('cashier_closed'), false);
-    assert.equal(mayForceCloseTableForManualActor('frontdesk_closed'), true);
+describe('mayForceCloseTableForManualActor', () => {
+  it('allows owner and frontdesk closed reasons only', () => {
     assert.equal(mayForceCloseTableForManualActor('owner_closed'), true);
+    assert.equal(mayForceCloseTableForManualActor('frontdesk_closed'), true);
+    assert.equal(mayForceCloseTableForManualActor('cashier_closed'), false);
   });
 });

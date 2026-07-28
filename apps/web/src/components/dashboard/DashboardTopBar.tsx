@@ -14,21 +14,24 @@ import {
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
 type TopBarPanel = 'none' | 'nav' | 'settings';
 
 type Props = {
   restaurant: DashboardNavRestaurant;
   accessMode: DashboardAccessMode;
+  capabilities: CapabilitiesPayload;
 };
 
-export function DashboardTopBar({ restaurant, accessMode }: Props) {
+export function DashboardTopBar({ restaurant, accessMode, capabilities }: Props) {
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
   const { pendingCount } = useCheckoutRequests();
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
     accessMode,
+    capabilities,
     restaurantSlug: restaurant.slug,
     kitchenShortcutEnabled,
   });

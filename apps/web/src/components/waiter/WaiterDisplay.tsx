@@ -17,10 +17,10 @@ import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
-import {
-  floorBoardCapabilities,
-  type FloorBoardRole,
-} from '@/lib/floor-board-capabilities';
+import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
+import type { Capabilities } from '@/lib/permissions/can';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
 import {
   buildWaiterBoardStateContext,
   classifyWaiterTableBoardState,
@@ -99,7 +99,8 @@ interface Props {
   isDemo?: boolean;
   embeddedInDashboard?: boolean;
   /** Required for production board card permissions when embedded. */
-  floorStaffRole?: FloorBoardRole;
+  floorCapabilities?: FloorBoardCapabilities;
+  capabilities?: Capabilities;
   initialOpenTableDefaults?: WaiterBoardOpenTableDefaults | null;
 }
 
@@ -195,13 +196,16 @@ function WaiterBoardInner({
   initialPartyMembers = [],
   isDemo = false,
   embeddedInDashboard = false,
-  floorStaffRole = 'waiter',
+  floorCapabilities,
+  capabilities,
   initialOpenTableDefaults = null,
 }: Props) {
   const { lang } = useLanguage();
   const t = WAITER_TEXT[lang];
   const tableGroupsI18n = getMessages(lang).tableGroups;
-  const floorCaps = useMemo(() => floorBoardCapabilities(floorStaffRole), [floorStaffRole]);
+  const floorCaps =
+    floorCapabilities ??
+    floorBoardCapabilitiesFromCaps(capabilities ?? capabilitiesFromKeys([]));
   const dashboardBoard = useWaiterBoardOptional();
   const standaloneBoard = useWaiterOrders(
     restaurant,
@@ -811,14 +815,14 @@ function WaiterBoardInner({
         lang={lang}
       />
 
-      {embeddedInDashboard ? (
+      {embeddedInDashboard && capabilities ? (
         <WaiterBoardCheckoutSheet
           open={checkoutTarget != null}
           onClose={() => setCheckoutTarget(null)}
           restaurantId={restaurant.id}
           restaurantSlug={restaurant.slug}
           tableId={checkoutTarget?.tableId ?? ''}
-          accessMode={floorStaffRole}
+          capabilities={capabilities}
         />
       ) : null}
     </div>

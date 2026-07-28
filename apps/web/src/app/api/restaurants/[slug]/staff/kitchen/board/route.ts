@@ -14,7 +14,7 @@ export async function GET(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await staffAuthFromRequest(_req, slug, 'kitchen');
+  const ctx = await staffAuthFromRequest(_req, slug, 'floor.kitchen_board.view');
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

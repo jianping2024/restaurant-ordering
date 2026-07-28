@@ -1,18 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { StaffRole } from '@/lib/staff-account';
 import type { AuditActor } from '@/lib/audit/types';
 
 export function staffAuditActor(
   userId: string,
   displayName: string,
-  role: StaffRole,
+  role: string,
 ): AuditActor {
   return { kind: 'staff', userId, displayName, role };
 }
 
 export async function loadStaffAuditActor(
   admin: SupabaseClient,
-  params: { restaurantId: string; userId: string; role: StaffRole },
+  params: { restaurantId: string; userId: string; role: string },
 ): Promise<AuditActor> {
   const { data: account } = await admin
     .from('restaurant_staff_accounts')

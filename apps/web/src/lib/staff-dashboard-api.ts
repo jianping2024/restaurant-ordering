@@ -57,13 +57,13 @@ export function staffMetadataPayload(
   accountId: string,
   restaurantId: string,
   slug: string,
-  role: StaffRole,
+  role: string,
   mustChangePassword: boolean,
 ): StaffUserMetadata {
   return {
     account_type: 'staff',
     must_change_password: mustChangePassword,
-    staff_role: role,
+    staff_role: role as StaffRole,
     restaurant_id: restaurantId,
     staff_account_id: accountId,
     restaurant_slug: slug,
@@ -74,12 +74,13 @@ export function validateStaffCreateBody(body: Record<string, unknown>) {
   const display_name = typeof body.display_name === 'string' ? body.display_name.trim() : '';
   const loginRaw = typeof body.login_name === 'string' ? body.login_name : '';
   const role = body.role;
+  const role_id = typeof body.role_id === 'string' ? body.role_id : null;
   const password = typeof body.password === 'string' ? body.password : '';
 
   if (!display_name) return { error: 'display_name_required' as const };
   const login = validateLoginName(loginRaw);
   if (!login.ok) return { error: `login_name_${login.code}` as const };
-  if (!isStaffRole(String(role))) {
+  if (!role_id && !isStaffRole(String(role))) {
     return { error: 'invalid_role' as const };
   }
   if (!staffPasswordValid(password)) return { error: 'password_too_short' as const };
@@ -87,7 +88,8 @@ export function validateStaffCreateBody(body: Record<string, unknown>) {
   return {
     display_name,
     login_name: login.normalized,
-    role: role as StaffAccountRole,
+    role: (isStaffRole(String(role)) ? role : 'waiter') as StaffAccountRole,
+    role_id,
     password,
   };
 }

@@ -12,23 +12,28 @@ import {
   isTopBarLogoHrefActive,
   topNavDesktopScrollNavClassName,
 } from '@/lib/dashboard-top-nav';
+import { toCapabilitiesPayload } from '@/lib/permissions/can';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('buildDashboardTopNavItems', () => {
-  it('lists frontdesk nav items including operational shortcuts', () => {
+  it('lists frontdesk nav from capability template', () => {
     const items = buildDashboardTopNavItems({
       accessMode: 'frontdesk',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
     });
     assert.deepEqual(
-      items.map((item) => item.id),
-      ['waiterBoard', 'checkout', 'orders', 'overview', 'tables', 'menu', 'guestNotice'],
+      items.map((item) => item.id).sort(),
+      ['checkout', 'menu', 'orders', 'overview', 'tables', 'waiterBoard'].sort(),
     );
   });
 
-  it('appends kitchen shortcut for frontdesk when enabled', () => {
+  it('appends kitchen shortcut when capability + flag', () => {
     const items = buildDashboardTopNavItems({
       accessMode: 'frontdesk',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
     });
@@ -38,21 +43,23 @@ describe('buildDashboardTopNavItems', () => {
   it('keeps cashier on waiter board + checkout only', () => {
     const items = buildDashboardTopNavItems({
       accessMode: 'cashier',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
     });
-    assert.deepEqual(items.map((item) => item.id), ['waiterBoard', 'checkout']);
+    assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
   });
 
-  it('lists owner items', () => {
+  it('lists owner settings-focused items', () => {
     const items = buildDashboardTopNavItems({
       accessMode: 'owner',
+      capabilities: '*',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
     });
     assert.deepEqual(
-      items.map((item) => item.id),
-      ['overview', 'valueAnalytics', 'abnormalOps', 'guestNotice', 'settings'],
+      items.map((item) => item.id).sort(),
+      ['abnormalOps', 'overview', 'settings', 'valueAnalytics'].sort(),
     );
   });
 });

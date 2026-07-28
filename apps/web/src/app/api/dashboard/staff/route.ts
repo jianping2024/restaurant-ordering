@@ -8,6 +8,7 @@ import {
   staffMetadataPayload,
   validateStaffCreateBody,
 } from '@/lib/staff-dashboard-api';
+import { findPresetRole, getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -82,12 +83,23 @@ export async function POST(req: Request) {
 
   const userId = createdUser.user.id;
 
+  const presetRole = parsed.role_id
+    ? await getRestaurantRole(loaded.admin, loaded.restaurant.id, parsed.role_id)
+    : await findPresetRole(loaded.admin, loaded.restaurant.id, parsed.role);
+
+  if (!presetRole) {
+    return NextResponse.json({ error: 'invalid_role' }, { status: 400 });
+  }
+
+  const staffRoleLabel = staffRoleLabelForRestaurantRole(presetRole);
+
   const { data: row, error: insertError } = await loaded.admin
     .from('restaurant_staff_accounts')
     .insert({
       restaurant_id: loaded.restaurant.id,
       user_id: userId,
-      role: parsed.role,
+      role: staffRoleLabel,
+      role_id: presetRole.id,
       display_name: parsed.display_name,
       login_name: parsed.login_name,
       created_by: owner?.id ?? null,
@@ -112,7 +124,7 @@ export async function POST(req: Request) {
       account.id,
       loaded.restaurant.id,
       loaded.restaurant.slug,
-      parsed.role,
+      staffRoleLabel,
       true,
     ),
   });

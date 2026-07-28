@@ -21,9 +21,9 @@ import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import {
   runWaiterTableCheckoutClose,
-  type CheckoutCloseFloorRole,
 } from '@/lib/waiter-table-checkout-close';
-import type { FloorBoardRole } from '@/lib/floor-board-capabilities';
+import type { Capabilities } from '@/lib/permissions/can';
+import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 import {
   WaiterBillIcon,
@@ -204,7 +204,7 @@ function ContinueOrderingControl({
 function ToolbarCloseTableControl({
   tableId,
   isCheckoutPending,
-  floorStaffRole,
+  capabilities,
   isDemo,
   closingDemoTable,
   closeLabel,
@@ -213,15 +213,14 @@ function ToolbarCloseTableControl({
 }: {
   tableId: string;
   isCheckoutPending: boolean;
-  floorStaffRole: FloorBoardRole;
+  capabilities: Capabilities;
   isDemo: boolean;
   closingDemoTable: boolean;
   closeLabel: string;
   onDemoCloseClick: () => void;
   onTableClosed: () => void;
 }) {
-  // Force-close is policy (owner/frontdesk), not a floor-board capability flag.
-  if (!mayForceCloseTable(floorStaffRole)) return null;
+  if (!mayForceCloseTable(capabilities)) return null;
 
   const closeIcon = <WaiterPowerIcon className={buttonIcon.sm} />;
 
@@ -262,7 +261,7 @@ function WaiterTableCheckoutCloseControl({
   tableId,
   sessionId,
   label,
-  floorStaffRole,
+  printBillOnClose,
   checkoutLocked,
   onCheckoutLocked,
   onClosed,
@@ -273,7 +272,7 @@ function WaiterTableCheckoutCloseControl({
   tableId: string;
   sessionId: string | null;
   label: string;
-  floorStaffRole: CheckoutCloseFloorRole;
+  printBillOnClose: boolean;
   checkoutLocked: boolean;
   onCheckoutLocked: () => void;
   onClosed: () => void;
@@ -283,8 +282,9 @@ function WaiterTableCheckoutCloseControl({
   const [busy, setBusy] = useState(false);
 
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
-  const confirmTitle =
-    floorStaffRole === 'cashier' ? t.checkoutCloseConfirmTitleCashier : t.checkoutCloseConfirmTitle;
+  const confirmTitle = printBillOnClose
+    ? t.checkoutCloseConfirmTitle
+    : t.checkoutCloseConfirmTitleCashier;
 
   const handleClick = () => {
     if (checkoutLocked) {
@@ -306,7 +306,7 @@ function WaiterTableCheckoutCloseControl({
         slug: restaurantSlug,
         tableId,
         sessionId,
-        floorStaffRole,
+        printBill: printBillOnClose,
       });
       if (!outcome.ok) {
         if (outcome.stage === 'print') {
@@ -372,8 +372,8 @@ type OccupiedToolbarProps = {
   onTransfer: () => void;
   onMerge: () => void;
   showCheckoutClose: boolean;
-  /** Frontdesk/cashier for checkout-close; also drives force-close policy on toolbar. */
-  floorStaffRole: FloorBoardRole;
+  floorCapabilities: FloorBoardCapabilities;
+  capabilities: Capabilities;
   isDemo: boolean;
   closingDemoTable: boolean;
   onDemoCloseClick: () => void;
@@ -393,7 +393,8 @@ export function WaiterTableOccupiedToolbar({
   onTransfer,
   onMerge,
   showCheckoutClose,
-  floorStaffRole,
+  floorCapabilities,
+  capabilities,
   isDemo,
   closingDemoTable,
   onDemoCloseClick,
@@ -434,7 +435,7 @@ export function WaiterTableOccupiedToolbar({
               tableId={tableId}
               sessionId={sessionId}
               label={t.goToBill}
-              floorStaffRole={floorStaffRole === 'cashier' ? 'cashier' : 'frontdesk'}
+              printBillOnClose={floorCapabilities.canPrintOnCheckoutClose}
               checkoutLocked={isCheckoutPending}
               onCheckoutLocked={onCheckoutLocked}
               onClosed={onTableClosed}
@@ -443,7 +444,7 @@ export function WaiterTableOccupiedToolbar({
           <ToolbarCloseTableControl
             tableId={tableId}
             isCheckoutPending={isCheckoutPending}
-            floorStaffRole={floorStaffRole}
+            capabilities={capabilities}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable}
             closeLabel={t.closeTable}

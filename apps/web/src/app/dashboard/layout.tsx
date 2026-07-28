@@ -11,6 +11,8 @@ import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequest
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
+import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
+import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
 
 /**
  * Print-expiry banner loads in its own Suspense island so it never blocks page children.
@@ -29,6 +31,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const access = await getDashboardAccess();
+  const principalCaps = await loadPrincipalWithCapabilities();
 
   if (access.mode === 'unauthenticated') {
     redirect('/auth/login');
@@ -50,11 +53,16 @@ export default async function DashboardLayout({
     );
   }
 
-  /** Waiter must not subscribe to checkout-queue Realtime (no checkout nav). */
-  const checkoutQueueEnabled = access.mode === 'frontdesk' || access.mode === 'cashier';
+  const caps = principalCaps?.capabilities;
+  /** Checkout queue when capability grants checkout view (not role enum). */
+  const checkoutQueueEnabled = Boolean(caps && can(caps, 'dashboard.checkout.view'));
 
   /** Board loads on floor list surface — not on every Dashboard chrome SSR. */
-  const waiterBoardEnabled = canAccessDashboardWaiterBoard(access.mode);
+  const waiterBoardEnabled = Boolean(
+    caps
+      ? can(caps, 'dashboard.waiter_board.view')
+      : canAccessDashboardWaiterBoard(access.mode),
+  );
 
   const showSuspensionBanner =
     (access.mode === 'owner' || access.mode === 'frontdesk') &&
@@ -71,7 +79,13 @@ export default async function DashboardLayout({
         restaurant={{ id: access.restaurant.id, slug: access.restaurant.slug }}
         enabled={waiterBoardEnabled}
       >
-        <DashboardShell restaurant={access.restaurant} accessMode={access.mode}>
+        <DashboardShell
+          restaurant={access.restaurant}
+          accessMode={access.mode}
+          capabilities={toCapabilitiesPayload(
+            caps ?? (access.mode === 'owner' ? '*' : new Set()),
+          )}
+        >
           {showSuspensionBanner ? (
             <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
           ) : null}

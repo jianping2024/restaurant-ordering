@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { loadStaffAuditActor } from '@/lib/audit';
-import { resolveMenuDecrementOperator } from '@/lib/order-item-decrement/decrement-policy';
+import { menuDecrementAllowedFromCaps } from '@/lib/order-item-decrement/decrement-policy';
 import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { can } from '@/lib/permissions/can';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sessionIdBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
 import type { Order } from '@/types';
@@ -22,6 +23,11 @@ export async function POST(
   const ctx = await openTableAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  // Also check menu decrement permission
+  if (!can(ctx.capabilities, 'orders.menu_decrement')) {
+    return NextResponse.json({ error: 'insufficient_permissions' }, { status: 403 });
   }
 
   let body: {
@@ -77,10 +83,7 @@ export async function POST(
     role: ctx.role,
   });
 
-  const menuDecrementOperator = resolveMenuDecrementOperator({
-    role: ctx.role,
-    asOwner: ctx.as_owner,
-  });
+  const menuDecrementAllowed = menuDecrementAllowedFromCaps(ctx.capabilities);
 
   const result = await decrementOrderItemWithAudit({
     admin,
@@ -96,7 +99,7 @@ export async function POST(
       status: existing.status as Order['status'],
     },
     itemIndex,
-    menuDecrementOperator,
+    menuDecrementAllowed,
     voidReason,
     voidReasonDetail,
   });

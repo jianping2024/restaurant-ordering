@@ -46,6 +46,7 @@ export async function resolveDashboardActor(
     if (account.role === 'frontdesk') return 'frontdesk';
     if (account.role === 'cashier') return 'cashier';
     if (account.role === 'waiter') return 'waiter';
+    if (account.role === 'custom') return 'frontdesk'; // path shell; capabilities enforce pages
   }
 
   const meta = parseStaffUserMetadata(userMetadata);

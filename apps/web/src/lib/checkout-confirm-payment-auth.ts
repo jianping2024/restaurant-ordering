@@ -9,7 +9,7 @@ import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-a
 import type { AuditActor } from '@/lib/audit/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { staffAuthFromRequestWithRoles, CHECKOUT_AUTHORIZED_STAFF_ROLES } from '@/lib/staff-api-auth';
+import { checkoutStaffAuthFromRequest } from '@/lib/staff-api-auth';
 
 export type CheckoutConfirmAuthContext =
   | {
@@ -33,7 +33,7 @@ export async function authorizeCheckoutConfirmPayment(
     return { error: 'server_misconfigured', status: 503 };
   }
 
-  const staffCtx = await staffAuthFromRequestWithRoles(req, slug, CHECKOUT_AUTHORIZED_STAFF_ROLES);
+  const staffCtx = await checkoutStaffAuthFromRequest(req, slug);
   if (staffCtx) {
     const { data: rest } = await admin
       .from('restaurants')

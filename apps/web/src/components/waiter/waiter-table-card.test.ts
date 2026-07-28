@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 import { buildWaiterTableCard } from './waiter-table-card';
 import type { Order } from '@/types';
 
@@ -18,6 +20,7 @@ function orderWithTotal(total_amount: number, id = 'o1'): Order {
 }
 
 describe('buildWaiterTableCard', () => {
+  // Remove unused variables
   it('sets sessionTotal from billable items, not stale order.total_amount', () => {
     const card = buildWaiterTableCard('t1', '001', [
       {
@@ -46,7 +49,7 @@ describe('buildWaiterTableCard', () => {
           },
         ],
       },
-    ]);
+    ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 20.5);
   });
 
@@ -81,12 +84,12 @@ describe('buildWaiterTableCard', () => {
         created_at: '2026-01-01T00:00:00.000Z',
         updated_at: '2026-01-01T00:00:00.000Z',
       },
-    ]);
+    ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 3);
   });
 
   it('returns zero sessionTotal for empty orders', () => {
-    const card = buildWaiterTableCard('t1', '001', []);
+    const card = buildWaiterTableCard('t1', '001', [], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 0);
   });
 
@@ -117,6 +120,8 @@ describe('buildWaiterTableCard', () => {
           updated_at: '2026-01-01T00:00:00.000Z',
         },
       ],
+      {},
+      capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.label, '001 Água 500ml');
@@ -149,7 +154,7 @@ describe('buildWaiterTableCard', () => {
         created_at: '2026-01-01T00:00:00.000Z',
         updated_at: '2026-01-01T00:00:00.000Z',
       },
-    ]);
+    ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.label, 'Buffet livre · A2-C1');
   });
@@ -214,7 +219,7 @@ describe('buildWaiterTableCard', () => {
         },
       ],
       {},
-      'frontdesk_staff',
+      capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
 
     assert.equal(card.orderLines.length, 1);
@@ -257,7 +262,7 @@ describe('buildWaiterTableCard', () => {
         created_at: '2026-01-01T00:00:00.000Z',
         updated_at: '2026-01-01T00:00:00.000Z',
       },
-    ]);
+    ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
 
     assert.equal(card.orderLines.length, 2);
     assert.equal(card.orderLines[0]?.quantityLabel, '× 1');
@@ -313,7 +318,7 @@ describe('buildWaiterTableCard', () => {
         },
       ],
       {},
-      'frontdesk_staff',
+      capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
 
     assert.equal(card.orderLines.length, 1);

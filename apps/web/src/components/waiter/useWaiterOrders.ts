@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
+import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
@@ -43,6 +44,15 @@ import {
   applyWaiterSessionRelocationToBoard,
   type WaiterSessionRelocationBoardInput,
 } from '@/lib/waiter-session-relocation-board';
+import {
+  classifyWaiterBoardFetchFailure,
+  initialWaiterBoardSurface,
+  surfaceAfterRefreshFailure,
+  surfaceAfterRefreshSuccess,
+  surfaceForRefreshStart,
+  waiterBoardFloorReady,
+  type WaiterBoardSurface,
+} from '@/lib/waiter-board-surface';
 
 function buildInitialWaiterBoardState(input: {
   initialTableSummaries: WaiterBoardTableSummary[];
@@ -149,17 +159,25 @@ export function useWaiterOrders(
   const [openTableDefaults, setOpenTableDefaults] = useState<WaiterBoardOpenTableDefaults | null>(
     initialBoard.openTableDefaults,
   );
-  /** Floor static present (SSR seed or successful full) — drives list/resume live vs full. */
-  const [floorHydrated, setFloorHydrated] = useState(
-    () => skipEntryReconcile || initialBoard.tables.length > 0,
+  const [boardSurface, setBoardSurface] = useState<WaiterBoardSurface>(() =>
+    initialWaiterBoardSurface(skipEntryReconcile || initialBoard.tables.length > 0),
   );
-  const floorHydratedRef = useRef(floorHydrated);
-  floorHydratedRef.current = floorHydrated;
+  const boardSurfaceRef = useRef(boardSurface);
+  boardSurfaceRef.current = boardSurface;
   const supabase = useMemo(() => createClient(), []);
   const refreshInFlightRef = useRef<Promise<WaiterBoardData | null> | null>(null);
   const reloadSeqRef = useRef(0);
   const pendingScopeRef = useRef<WaiterBoardFetchScope | null>(null);
   const boardRef = useRef<WaiterBoardData>(initialBoard);
+  const disposedRef = useRef(false);
+  const authExitStartedRef = useRef(false);
+
+  useEffect(() => {
+    disposedRef.current = false;
+    return () => {
+      disposedRef.current = true;
+    };
+  }, []);
 
   const activeSessionByTableId = useMemo(
     () => activeSessionIdByTableIdFromMeta(sessionMetaByTableId),
@@ -221,9 +239,16 @@ export function useWaiterOrders(
 
   boardRef.current = currentBoardSnapshot();
 
+  const canApply = useCallback(() => !disposedRef.current && !authExitStartedRef.current, []);
+
+  const applySurface = useCallback((next: WaiterBoardSurface) => {
+    boardSurfaceRef.current = next;
+    setBoardSurface(next);
+  }, []);
+
   const refresh = useCallback(
     async (scope: WaiterBoardFetchScope = 'full') => {
-      if (!enabled) return null;
+      if (!enabled || authExitStartedRef.current) return null;
 
       // full wins over live when both are queued.
       if (scope === 'full' || pendingScopeRef.current !== 'full') {
@@ -231,30 +256,47 @@ export function useWaiterOrders(
       }
       if (refreshInFlightRef.current) return refreshInFlightRef.current;
 
+      applySurface(surfaceForRefreshStart(boardSurfaceRef.current));
+
       const running = (async () => {
         let lastBoard: WaiterBoardData | null = null;
         try {
-          while (pendingScopeRef.current) {
+          while (pendingScopeRef.current && !authExitStartedRef.current) {
             const fetchScope = pendingScopeRef.current;
             pendingScopeRef.current = null;
             const seq = ++reloadSeqRef.current;
-            const result = await fetchWaiterBoardClient(restaurant.slug, fetchScope);
-            if (seq !== reloadSeqRef.current) continue;
+            try {
+              const result = await fetchWaiterBoardClient(restaurant.slug, fetchScope);
+              if (seq !== reloadSeqRef.current || !canApply()) continue;
 
-            const nextBoard =
-              result.scope === 'live'
-                ? applyWaiterBoardLivePatch(boardRef.current, result.live)
-                : result.board;
+              const nextBoard =
+                result.scope === 'live'
+                  ? applyWaiterBoardLivePatch(boardRef.current, result.live)
+                  : result.board;
 
-            const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(nextBoard);
-            clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
-            applyWaiterBoardData(board, boardSetters);
-            boardRef.current = board;
-            if (fetchScope === 'full') {
-              setFloorHydrated(true);
-              floorHydratedRef.current = true;
+              const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(nextBoard);
+              clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+              applyWaiterBoardData(board, boardSetters);
+              boardRef.current = board;
+              applySurface(surfaceAfterRefreshSuccess(fetchScope, boardSurfaceRef.current));
+              lastBoard = board;
+            } catch (err) {
+              if (seq !== reloadSeqRef.current || !canApply()) continue;
+
+              const kind = classifyWaiterBoardFetchFailure(err);
+              console.error('[waiter-board] refresh failed', kind, err);
+
+              const next = surfaceAfterRefreshFailure(boardSurfaceRef.current, kind);
+              if (next === 'auth-exit') {
+                pendingScopeRef.current = null;
+                authExitStartedRef.current = true;
+                void dashboardSignOutAndRedirect();
+                return null;
+              }
+              applySurface(next);
+              // End coalesced run; leave any newly queued pending for a later external refresh.
+              break;
             }
-            lastBoard = board;
           }
           return lastBoard;
         } finally {
@@ -265,7 +307,7 @@ export function useWaiterOrders(
       refreshInFlightRef.current = running;
       return running;
     },
-    [boardSetters, enabled, restaurant.slug],
+    [applySurface, boardSetters, canApply, enabled, restaurant.slug],
   );
 
   const applyPartyState = useCallback(
@@ -297,9 +339,8 @@ export function useWaiterOrders(
     void refresh('live');
   }, [refresh]);
 
-  /** Cold list / resume / list re-shown: one scope rule via floorHydrated. */
   const reconcileOnListActive = useCallback(() => {
-    void refresh(resolveWaiterBoardReconcileScope(floorHydratedRef.current));
+    void refresh(resolveWaiterBoardReconcileScope(waiterBoardFloorReady(boardSurfaceRef.current)));
   }, [refresh]);
 
   useRestaurantStaffEntryReconcile(
@@ -330,7 +371,7 @@ export function useWaiterOrders(
     partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
-    floorHydrated,
+    boardSurface,
     refresh,
     applyPartyState,
     applyBoardFromPublished,

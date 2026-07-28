@@ -24,8 +24,6 @@ export type WaiterBoardContextValue = ReturnType<typeof useWaiterOrders> & {
   reconcileBoardAfterSessionRelocation: (input: WaiterSessionRelocationBoardInput) => void;
   /** Apply POST open-table model to board read-model without a board refresh. */
   applyOpenTableToBoard: (model: WaiterTablePageModel) => void;
-  /** @deprecated Prefer refreshBoardAfterStaffMutation */
-  refreshAfterTableMutation: (tableId: string) => Promise<void>;
 };
 
 const WaiterBoardContext = createContext<WaiterBoardContextValue | null>(null);
@@ -122,19 +120,11 @@ function WaiterBoardProviderInner({
     [store],
   );
 
-  const refreshAfterTableMutation = useCallback(
-    async (tableId: string) => {
-      await refreshBoardAfterStaffMutation([tableId]);
-    },
-    [refreshBoardAfterStaffMutation],
-  );
-
   const value: WaiterBoardContextValue = {
     ...store,
     refreshBoardAfterStaffMutation,
     reconcileBoardAfterSessionRelocation,
     applyOpenTableToBoard,
-    refreshAfterTableMutation,
   };
 
   return (

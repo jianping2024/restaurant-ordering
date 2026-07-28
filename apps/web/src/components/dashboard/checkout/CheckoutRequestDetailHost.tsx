@@ -78,7 +78,7 @@ export function CheckoutRequestDetailHost({
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
     (tableId: string) => {
-      void waiterBoard?.refreshAfterTableMutation(tableId);
+      void waiterBoard?.refreshBoardAfterStaffMutation([tableId]);
     },
     [waiterBoard],
   );

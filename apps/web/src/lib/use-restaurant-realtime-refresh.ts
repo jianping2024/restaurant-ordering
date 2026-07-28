@@ -9,14 +9,16 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
  * 3. Client entry reconcile — when board list is active (`useRestaurantStaffEntryReconcile`);
  *    skip mount when boot seed is authoritative (`reconcileOnMount=false`), still resume on visibility
- * 4. Visibility / list-active reconcile — `resolveWaiterBoardReconcileScope(floorHydrated)`:
- *    cold (no floor static) → full; hydrated floor → live occupancy catch-up
+ * 4. Visibility / list-active reconcile — `resolveWaiterBoardReconcileScope(floorReady)`:
+ *    cold (no floor static) → full; hydrated floor → live occupancy catch-up.
+ *    Pull failures are absorbed into `boardSurface` (loading | failed | ready); they must not
+ *    throw unhandled — unauthorized → shared sign-out redirect; retryable cold fail → list retry UI.
  * 5. Staff menu submit return — dedicated reconcile, then strip query
  * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → live GET
  *    (occupancy slice without floor tables / opener-name resolution); merge onto floor static —
  *    see `waiter-board-live.ts` / `waiter-board-live-merge.ts`
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
- * 8. Detail → list re-shown — same as (4): live when floor hydrated, else full (no second path)
+ * 8. Detail → list re-shown — same as (4): live when floor ready, else full (no second path)
  * 9. Table detail — idle may boot from board open-table defaults; occupancy refresh uses
  *    `scope=live` when board defaults exist and re-attaches that single price source
  *

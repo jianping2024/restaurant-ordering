@@ -49,10 +49,12 @@ export function ThemeToggle({ variant = 'icon' }: Props) {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={isDark}
+      aria-label={t.darkMode}
+      title={t.darkMode}
       onClick={toggleTheme}
       className="h-9 w-9 shrink-0 rounded-full border border-brand-border bg-brand-bg text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-      title={isDark ? '切换到白天主题' : '切换到夜间主题'}
-      aria-label={isDark ? '切换到白天主题' : '切换到夜间主题'}
     >
       {isDark ? '☀️' : '🌙'}
     </button>

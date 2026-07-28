@@ -1,5 +1,5 @@
 /**
- * Shared main region for DashboardShell + WaiterStandaloneShell.
+ * Shared main region for dashboard and staff board shells.
  *
  * Do not put non-visible `overflow-x` on this node: browsers form a scrollport
  * (overflow-y becomes auto) and `position: sticky` under the staff top bar never

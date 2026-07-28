@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import type { getMessages } from '@/lib/i18n/messages';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import {
@@ -33,6 +33,69 @@ type NavContext = {
   onNavigate?: () => void;
 };
 
+function resolveNavItemDisplay(
+  item: ProductTopNavItem,
+  pathname: string,
+  navT: ReturnType<typeof getMessages>['nav'],
+  checkoutCount: number,
+) {
+  return {
+    active: isNavItemActive(pathname, item),
+    label: topNavItemLabel(item, navT),
+    badge: item.checkoutBadge ? checkoutCount : undefined,
+  };
+}
+
+type TopNavItemLinkProps = {
+  item: ProductTopNavItem;
+  active: boolean;
+  className: string;
+  prefetch: boolean;
+  role?: string;
+  onClick?: () => void;
+  children: ReactNode;
+};
+
+/** Single link/anchor for a top-nav item — desktop row or mobile menu row. */
+function TopNavItemLink({
+  item,
+  active,
+  className,
+  prefetch,
+  role,
+  onClick,
+  children,
+}: TopNavItemLinkProps) {
+  if (item.external) {
+    return (
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        role={role}
+        className={className}
+        aria-current={active ? 'page' : undefined}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={item.href}
+      prefetch={prefetch ? shouldPrefetchDashboardNav(item.href) : undefined}
+      role={role}
+      className={className}
+      aria-current={active ? 'page' : undefined}
+      onClick={onClick}
+    >
+      {children}
+    </Link>
+  );
+}
+
 function NavDesktopLinks({
   items,
   pathname,
@@ -44,43 +107,32 @@ function NavDesktopLinks({
   return (
     <div className="flex min-w-max items-center gap-3 px-0.5">
       {items.map((item) => {
-        const active = isNavItemActive(pathname, item);
-        const label = topNavItemLabel(item, navT);
-        const badge = item.checkoutBadge ? checkoutCount : undefined;
-        const className = topNavDesktopLinkClass(active);
-
-        if (item.external) {
-          return (
-            <a
-              key={item.id}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={className}
-              aria-current={active ? 'page' : undefined}
-            >
-              {label}
-              <span className="ml-0.5 text-[10px] opacity-60" aria-hidden>
-                ↗
-              </span>
-            </a>
-          );
-        }
+        const { active, label, badge } = resolveNavItemDisplay(
+          item,
+          pathname,
+          navT,
+          checkoutCount,
+        );
 
         return (
-          <Link
+          <TopNavItemLink
             key={item.id}
-            href={item.href}
-            prefetch={prefetch ? shouldPrefetchDashboardNav(item.href) : undefined}
-            className={className}
-            aria-current={active ? 'page' : undefined}
+            item={item}
+            active={active}
+            prefetch={prefetch}
+            className={topNavDesktopLinkClass(active)}
             onClick={() => onNavigate?.()}
           >
             {label}
+            {item.external ? (
+              <span className="ml-0.5 text-[10px] opacity-60" aria-hidden>
+                ↗
+              </span>
+            ) : null}
             {badge != null && badge > 0 ? (
               <span className="ml-1">{topNavCheckoutCountBadge(badge)}</span>
             ) : null}
-          </Link>
+          </TopNavItemLink>
         );
       })}
     </div>
@@ -98,13 +150,23 @@ function NavMenuRows({
   return (
     <>
       {items.map((item) => {
-        const active = isNavItemActive(pathname, item);
-        const label = topNavItemLabel(item, navT);
-        const badge = item.checkoutBadge ? checkoutCount : undefined;
-        const rowClass = topNavMenuRowClass(active);
+        const { active, label, badge } = resolveNavItemDisplay(
+          item,
+          pathname,
+          navT,
+          checkoutCount,
+        );
 
-        const content = (
-          <>
+        return (
+          <TopNavItemLink
+            key={item.id}
+            item={item}
+            active={active}
+            prefetch={prefetch}
+            role="menuitem"
+            className={topNavMenuRowClass(active)}
+            onClick={onNavigate}
+          >
             <span aria-hidden>{item.icon}</span>
             <span className="flex-1 text-left">{label}</span>
             {badge != null && badge > 0 ? topNavCheckoutCountBadge(badge) : null}
@@ -113,38 +175,7 @@ function NavMenuRows({
                 ↗
               </span>
             ) : null}
-          </>
-        );
-
-        if (item.external) {
-          return (
-            <a
-              key={item.id}
-              href={item.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              role="menuitem"
-              className={rowClass}
-              aria-current={active ? 'page' : undefined}
-              onClick={onNavigate}
-            >
-              {content}
-            </a>
-          );
-        }
-
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            prefetch={prefetch ? shouldPrefetchDashboardNav(item.href) : undefined}
-            role="menuitem"
-            className={rowClass}
-            aria-current={active ? 'page' : undefined}
-            onClick={onNavigate}
-          >
-            {content}
-          </Link>
+          </TopNavItemLink>
         );
       })}
     </>
@@ -213,8 +244,8 @@ export function ProductTopBarMenu({
         >
           <span aria-hidden>☰</span>
           {menuBadgeCount > 0 && !open ? (
-            <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-amber-600 px-1 text-[10px] font-semibold text-white">
-              {menuBadgeCount > 99 ? '99+' : menuBadgeCount}
+            <span className="absolute -right-0.5 -top-0.5">
+              {topNavCheckoutCountBadge(menuBadgeCount)}
             </span>
           ) : null}
           {hasActiveItem && !open && menuBadgeCount <= 0 ? (

@@ -15,12 +15,6 @@ export type ProductTopNavItem = {
   external?: boolean;
 };
 
-/** @deprecated Use ProductTopNavItem */
-export type DashboardTopNavItem = ProductTopNavItem;
-
-/** @deprecated Use ProductTopNavItem */
-export type StaffPersonalTopNavItem = ProductTopNavItem;
-
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
 export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
@@ -57,11 +51,6 @@ export function topNavAccountTriggerClass(open: boolean): string {
   return `inline-flex h-full max-w-[5.5rem] shrink-0 items-center gap-0.5 px-2 text-sm font-medium transition-colors ${
     open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
   }`;
-}
-
-/** @deprecated Use topNavIconTriggerClass */
-export function topNavMenuTriggerClass(open: boolean): string {
-  return topNavIconTriggerClass(open);
 }
 
 /** Desktop horizontal nav — text links inside `mesa-chip-scroll`. */
@@ -139,9 +128,6 @@ export function topNavItemLabel(
   const key = item.labelKey as keyof typeof navT;
   return typeof navT[key] === 'string' ? (navT[key] as string) : item.labelKey;
 }
-
-/** @deprecated Use topNavItemLabel */
-export const dashboardTopNavItemLabel = topNavItemLabel;
 
 export function buildDashboardTopNavItems(input: {
   accessMode: DashboardAccessMode;

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Modal } from '@/components/ui/Modal';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -31,19 +31,18 @@ export function ConfirmModal({
   variant = 'default',
   confirming = false,
 }: ConfirmModalProps) {
-  const inFlightRef = useRef(false);
+  const [localConfirming, setLocalConfirming] = useState(false);
+  const busy = confirming || localConfirming;
 
   useEffect(() => {
-    if (!open) {
-      inFlightRef.current = false;
-    }
+    if (!open) setLocalConfirming(false);
   }, [open]);
 
   const handleConfirm = () => {
-    if (inFlightRef.current || confirming) return;
-    inFlightRef.current = true;
+    if (busy) return;
+    if (!confirming) setLocalConfirming(true);
     void Promise.resolve(onConfirm()).finally(() => {
-      inFlightRef.current = false;
+      if (!confirming) setLocalConfirming(false);
     });
   };
 
@@ -52,14 +51,14 @@ export function ConfirmModal({
       <div className="space-y-4">
         <p className="text-sm text-brand-text leading-relaxed whitespace-pre-wrap">{message}</p>
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={confirming}>
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
             {cancelLabel}
           </Button>
           <Button
             type="button"
             variant={variant === 'danger' ? 'danger' : 'gold'}
             size="sm"
-            loading={confirming}
+            loading={busy}
             onClick={handleConfirm}
           >
             {confirmLabel}

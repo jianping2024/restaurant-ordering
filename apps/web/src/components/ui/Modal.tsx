@@ -29,12 +29,13 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
   }, []);
 
   useEffect(() => {
+    if (!open) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, [open, onClose]);
 
   useEffect(() => {
     if (open) document.body.style.overflow = 'hidden';

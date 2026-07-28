@@ -38,12 +38,11 @@ export function PersonalSettingsMenu({
     useSignOutConfirmState(onSignOut);
 
   const handleLogout = () => {
+    setOpen(false);
     if (confirmSignOut) {
       requestSignOut();
-      window.requestAnimationFrame(() => setOpen(false));
       return;
     }
-    setOpen(false);
     onSignOut();
   };
 
@@ -51,18 +50,14 @@ export function PersonalSettingsMenu({
 
   return (
     <>
-      <div ref={rootRef} className="relative shrink-0">
+      <div ref={rootRef} className="relative shrink-0 self-stretch">
         <button
           type="button"
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={accountAriaLabel}
           onClick={() => setOpen(!open)}
-          className={
-            compact
-              ? `${topNavAccountTriggerClass(open)} max-w-[5.5rem] gap-0.5 px-2.5 py-1.5`
-              : topNavAccountTriggerClass(open)
-          }
+          className={topNavAccountTriggerClass(open)}
         >
           <span className="truncate">{roleLabel}</span>
           <span className="shrink-0 text-[10px] opacity-60" aria-hidden>

@@ -11,7 +11,10 @@ export async function dashboardSignOutAndRedirect(router: {
   push: (path: string) => void;
   refresh: () => void;
 }): Promise<void> {
-  await signOutFromSupabase();
-  router.push('/auth/login');
-  router.refresh();
+  try {
+    await signOutFromSupabase();
+  } finally {
+    router.push('/auth/login');
+    router.refresh();
+  }
 }

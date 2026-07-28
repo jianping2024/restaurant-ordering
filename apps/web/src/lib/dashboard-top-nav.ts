@@ -51,21 +51,23 @@ export function isLogoHrefActive(pathname: string, accessMode: DashboardAccessMo
   return isTopBarLogoHrefActive(pathname, href, accessMode === 'owner');
 }
 
-/** Account / role menu trigger on the top bar. */
-export function topNavAccountTriggerClass(open: boolean): string {
-  const tone = open
-    ? 'bg-brand-gold/15 text-brand-text border border-brand-gold/35'
-    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/80 border border-transparent';
-  return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${tone}`;
+/** Icon trigger aligned to the staff top-bar row — no pill chrome. */
+export function topNavIconTriggerClass(open: boolean): string {
+  return `relative inline-flex h-full min-w-11 shrink-0 items-center justify-center px-2 text-lg leading-none transition-colors ${
+    open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
+  }`;
 }
 
-/** Hamburger nav menu trigger. */
-export function topNavMenuTriggerClass(open: boolean, hasActiveItem: boolean): string {
-  const tone =
-    open || hasActiveItem
-      ? 'bg-brand-gold/15 text-brand-text border border-brand-gold/35'
-      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/80 border border-transparent';
-  return `relative inline-flex shrink-0 items-center justify-center rounded-lg min-h-11 min-w-11 text-base font-medium transition-colors ${tone}`;
+/** Account / role menu trigger — text label, same row alignment, no pill chrome. */
+export function topNavAccountTriggerClass(open: boolean): string {
+  return `inline-flex h-full max-w-[5.5rem] shrink-0 items-center gap-0.5 px-2 text-sm font-medium transition-colors ${
+    open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
+  }`;
+}
+
+/** @deprecated Use topNavIconTriggerClass */
+export function topNavMenuTriggerClass(open: boolean): string {
+  return topNavIconTriggerClass(open);
 }
 
 /** Owner desktop inline nav — text links, not pill buttons. */

@@ -138,7 +138,7 @@
 | 最小点击目标 | 约 44×44px（`py-2 px-3` 及以上） |
 | 底部固定栏 | 考虑 `pb-safe` / 留底边距，避免 Home 条遮挡 |
 | Modal / Drawer | `max-h-[calc(100dvh-*)]` 使用 dynamic viewport |
-| 顶栏 | Dashboard / Waiter 职员顶栏：内容行 `h-14` + `safe-area-inset-top/left/right`（`staffTopBarChrome`）；**餐厅名**为唯一可截断区（`flex-1 min-w-0 truncate`），nav / 菜单 / 账户为 `shrink-0`；`<lg` 栏上仅 quick action 图标 + ⋯ 全量菜单，`≥lg` 横排带标签；看板 lane / 桌台详情吸顶用 `waiterStaffStickyChrome`（总高含 top inset） |
+| 顶栏 | Dashboard / Waiter 职员顶栏：内容行 `h-14` + `safe-area-inset-top/left/right`（`staffTopBarChrome`）；**餐厅名**完整显示；`<lg` 仅 ☰ 汉堡全量菜单 + 角色账户菜单（无 pill 按钮样式），Owner `≥lg` 横排文字 tab；看板 lane / 桌台详情吸顶用 `waiterStaffStickyChrome`（总高含 top inset） |
 | 职员 `main` | 共用 `STAFF_SHELL_MAIN_CLASS`；**禁止**在 `main` 上设 `overflow-x-clip/hidden`（会形成 scrollport，文档滚时 sticky 失效）；横向裁剪放在具体溢出子树（如 `mesa-chip-scroll`） |
 
 ---

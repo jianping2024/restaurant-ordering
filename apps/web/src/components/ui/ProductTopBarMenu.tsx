@@ -8,8 +8,8 @@ import {
   isNavItemActive,
   topNavDesktopLinkClass,
   topNavItemLabel,
+  topNavIconTriggerClass,
   topNavMenuRowClass,
-  topNavMenuTriggerClass,
   type ProductTopNavItem,
   type StaffTopBarNavSurface,
 } from '@/lib/dashboard-top-nav';
@@ -134,7 +134,9 @@ export function ProductTopBarMenu({
     onNavigate?.();
   };
   const hamburgerWrapClass =
-    navSurface === 'hamburger-only' ? 'relative shrink-0' : 'relative shrink-0 lg:hidden';
+    navSurface === 'hamburger-only'
+      ? 'relative flex shrink-0 self-stretch items-stretch'
+      : 'relative flex shrink-0 self-stretch items-stretch lg:hidden';
   const desktopInlineClass =
     navSurface === 'hamburger-mobile-inline-desktop'
       ? 'ml-2 hidden min-w-0 items-center gap-3 lg:flex'
@@ -192,7 +194,7 @@ export function ProductTopBarMenu({
           aria-expanded={open}
           aria-label={navT.mainNav}
           onClick={() => onOpenChange(!open)}
-          className={topNavMenuTriggerClass(open, hasActiveItem)}
+          className={topNavIconTriggerClass(open)}
         >
           <span aria-hidden>☰</span>
           {menuBadgeCount > 0 && !open ? (

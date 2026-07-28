@@ -27,5 +27,5 @@ export function ProductTopBarBrand({
 
 /** Trailing actions slot (account menu, etc.). */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
-  return <div className="ml-auto flex shrink-0 items-center">{children}</div>;
+  return <div className="ml-auto flex shrink-0 self-stretch items-stretch">{children}</div>;
 }

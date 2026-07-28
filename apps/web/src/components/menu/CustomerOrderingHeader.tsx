@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
@@ -88,7 +89,8 @@ export function CustomerOrderingHeader({
           {isStaffAssisted ? (
             tableBadge
           ) : (
-            <div className={customerMenuHeaderTrailingSlotClass}>
+            <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-2`}>
+              <ThemeToggle variant="icon" />
               <LanguageSwitcher
                 variant="icon"
                 dropdownPlacement="below"

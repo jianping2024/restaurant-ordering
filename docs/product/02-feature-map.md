@@ -433,11 +433,12 @@
 
 ---
 
-## 13. 语言设置
+## 13. 语言与外观
 
 ### 已有功能
 
 - **界面语言**（顾客 / 员工 / Dashboard）：pt / en / zh，浏览器端 `LanguageProvider` + `LanguageSwitcher`
+- **界面外观**（明/暗）：全站一份 `ThemeProvider`（`data-theme` + `localStorage['mesa-theme']`）；顾客菜单/账单头栏与员工账户菜单共用 `ThemeToggle`
 - **菜单文案**：菜品与分类 `name_pt` / `name_en` / `name_zh`（缺失时回退）
 - **打印语言**：`restaurants.print_locale`（zh | en | pt），用于 ESC/POS 出票
 - **代理 UI 语言**：print-agent 自有 `ui_locale`（Windows 托盘/向导）
@@ -445,20 +446,22 @@
 ### 业务边界
 
 - 界面语言与打印语言**解耦**（顾客看中文菜单，小票仍可葡语）
-- 界面语言存在 localStorage，按页面切换
+- 界面语言与外观均为**设备本地偏好**（localStorage），与点餐/结账会话无关；代客点餐头栏不重复挂主题入口（员工从账户菜单切换）
 - `country_code`（ISO-2）在设置页可编辑，与票面语言无关
 
 ### 当前不做
 
-- 店主配置默认顾客语言（每次靠用户切换）
+- 店主配置默认顾客语言或默认外观（每次靠用户切换）
 - Dashboard 修改 `print_locale` 的 UI（当前仅 DB/API 侧读取，默认 `pt`）
 - 自动翻译菜品（须人工维护三语字段）
+- 按路由拆分多套主题状态，或跟随系统 `prefers-color-scheme`
 
 ### 相关代码位置
 
 | 类型 | 路径 |
 |------|------|
 | 界面 i18n | `apps/web/src/lib/i18n/messages.ts`、`i18n/menu-page-messages.ts`、`components/providers/LanguageProvider.tsx` |
+| 界面主题 | `components/providers/ThemeProvider.tsx`、`components/ui/ThemeToggle.tsx`；顾客挂载于 `CustomerOrderingHeader` |
 | 打印 locale | `restaurants.print_locale`；读取于 `station-ticket-enqueue.ts`、`order-receipt-enqueue.ts`、`print-agent/claim` |
 | 设置 | `apps/web/src/components/dashboard/SettingsForm.tsx`（country_code；**无 print_locale 表单项**） |
 

@@ -49,8 +49,8 @@ export function parseWaiterBoardFetchScope(value: string | null): WaiterBoardFet
 
 /**
  * List active / visibility resume: occupancy catch-up when floor static already
- * hydrated; otherwise one cold full load.
+ * ready; otherwise one cold full load.
  */
-export function resolveWaiterBoardReconcileScope(floorHydrated: boolean): WaiterBoardFetchScope {
-  return floorHydrated ? 'live' : 'full';
+export function resolveWaiterBoardReconcileScope(floorReady: boolean): WaiterBoardFetchScope {
+  return floorReady ? 'live' : 'full';
 }

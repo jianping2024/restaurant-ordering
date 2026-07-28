@@ -13,6 +13,7 @@ import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvid
 import { useWaiterOrders } from '@/components/waiter/useWaiterOrders';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
@@ -235,7 +236,7 @@ function WaiterBoardInner({
     partyMembers,
     openTableDefaults,
     supportsBuffetOpenTable,
-    floorHydrated,
+    boardSurface,
     refresh,
     applyPartyState,
     applySessionRelocationPatch,
@@ -579,21 +580,40 @@ function WaiterBoardInner({
     return tables.find((row) => tableIdsEqual(row.id, openTableTarget.tableId)) ?? null;
   }, [openTableTarget, tables]);
 
-  if (!isDemo && !floorHydrated) {
+  if (!isDemo && boardSurface !== 'ready') {
+    const coldFailed = boardSurface === 'failed';
     return (
       <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>
         {!embeddedInDashboard ? (
           <h1 className={`${waiterBoardType.pageTitle} mb-6`}>{t.boardTitle}</h1>
         ) : null}
-        <div
-          className={`${waiterUi.cardSurface} p-6 animate-pulse`}
-          aria-busy="true"
-          aria-label={t.boardLoading}
-        >
-          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
-          <div className="h-24 rounded bg-brand-border/40" />
-        </div>
-        <p className="text-sm text-brand-text-muted mt-3">{t.boardLoading}</p>
+        {coldFailed ? (
+          <div className={`${waiterUi.cardSurface} p-6`} role="alert">
+            <p className="text-sm text-brand-text">{t.boardLoadFailed}</p>
+            <Button
+              type="button"
+              variant="gold"
+              className="mt-4"
+              onClick={() => {
+                void refresh('full');
+              }}
+            >
+              {t.boardRetry}
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div
+              className={`${waiterUi.cardSurface} p-6 animate-pulse`}
+              aria-busy="true"
+              aria-label={t.boardLoading}
+            >
+              <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
+              <div className="h-24 rounded bg-brand-border/40" />
+            </div>
+            <p className="text-sm text-brand-text-muted mt-3">{t.boardLoading}</p>
+          </>
+        )}
       </div>
     );
   }

@@ -9,6 +9,7 @@ import {
   type WaiterBoardLivePatch,
 } from '@/lib/waiter-board-live';
 import { fetchWithDependencyTimeout } from '@/lib/dependency-unavailable';
+import { staffBoardFetchError } from '@/lib/waiter-board-surface';
 import type { Order } from '@/types';
 
 export type WaiterBoardClientResult =
@@ -17,7 +18,7 @@ export type WaiterBoardClientResult =
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });
-  if (!res.ok) throw new Error('staff_board_fetch_failed');
+  if (!res.ok) throw staffBoardFetchError(res.status);
   return res.json() as Promise<T>;
 }
 
@@ -63,7 +64,7 @@ export async function fetchWaiterBoardClient(
     credentials: 'include',
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('staff_board_fetch_failed');
+  if (!res.ok) throw staffBoardFetchError(res.status);
   const data = (await res.json()) as
     | { scope?: 'full'; board?: WaiterBoardData }
     | { scope?: 'live'; live?: WaiterBoardLivePatch };
@@ -74,7 +75,7 @@ export async function fetchWaiterBoardClient(
   if (data.scope === 'full' && data.board) {
     return { status: 'ok', scope: 'full', board: normalizeWaiterBoard(data.board) };
   }
-  throw new Error('staff_board_unexpected_body');
+  throw staffBoardFetchError(res.status, 'staff_board_unexpected_body');
 }
 
 /** Single-table waiter page model via authenticated staff API. */

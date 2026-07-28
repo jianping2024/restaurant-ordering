@@ -8,7 +8,7 @@ import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
-import { sumLineTotals } from '@/lib/cart-totals';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { normalizeCheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
@@ -124,7 +124,7 @@ export async function submitCheckoutRequestForTable(
   }
 
   const lineSpecs = buildByItemLineSpecs(orderLines);
-  const total = sumLineTotals(orderLines);
+  const total = sumBillableSessionTotal(orders);
   const validation = validateBillSplit({
     splitMode: normalizedPayload.splitMode,
     total,

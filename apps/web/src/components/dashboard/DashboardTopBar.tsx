@@ -12,7 +12,6 @@ import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import {
   buildDashboardTopNavItems,
   dashboardLogoHref,
-  staffTopBarNavSurface,
 } from '@/lib/dashboard-top-nav';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
@@ -43,7 +42,6 @@ export function DashboardTopBar({ restaurant, accessMode }: Props) {
       logoHref={logoHref}
       restaurantName={restaurant.name}
       navItems={navItems}
-      navSurface={staffTopBarNavSurface(accessMode)}
       navOpen={openPanel === 'nav'}
       onNavOpenChange={(open) => setOpenPanel(open ? 'nav' : 'none')}
       checkoutCount={pendingCount}

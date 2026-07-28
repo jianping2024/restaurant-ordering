@@ -24,12 +24,6 @@ export type StaffPersonalTopNavItem = ProductTopNavItem;
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
 export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
-export type StaffTopBarNavSurface = 'hamburger-only' | 'hamburger-mobile-inline-desktop';
-
-export function staffTopBarNavSurface(accessMode: DashboardAccessMode): StaffTopBarNavSurface {
-  return accessMode === 'owner' ? 'hamburger-mobile-inline-desktop' : 'hamburger-only';
-}
-
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
   if (accessMode === 'cashier' || accessMode === 'frontdesk' || accessMode === 'waiter') {
     return '/dashboard/waiter';
@@ -70,11 +64,16 @@ export function topNavMenuTriggerClass(open: boolean): string {
   return topNavIconTriggerClass(open);
 }
 
-/** Owner desktop inline nav — text links, not pill buttons. */
+/** Desktop horizontal nav — text links inside `mesa-chip-scroll`. */
 export function topNavDesktopLinkClass(active: boolean): string {
   return active
-    ? 'whitespace-nowrap text-sm font-semibold text-brand-text underline decoration-brand-gold/60 underline-offset-4'
-    : 'whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-text';
+    ? 'shrink-0 whitespace-nowrap text-sm font-semibold text-brand-text underline decoration-brand-gold/60 underline-offset-4'
+    : 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-text';
+}
+
+/** Staff top bar: horizontal nav strip (lg+); hamburger below lg. */
+export function topNavDesktopScrollNavClassName(): string {
+  return 'mesa-chip-scroll hidden min-h-full min-w-0 flex-1 items-center lg:flex';
 }
 
 export function topNavMenuRowClass(active: boolean): string {
@@ -89,8 +88,13 @@ export function dashboardTopBarMobileDropdownPanelClass(): string {
   return 'rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
 }
 
-export function dashboardTopBarDesktopDropdownPanelClass(): string {
-  return 'absolute left-0 top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10';
+export type TopBarDropdownAlign = 'start' | 'end';
+
+export function dashboardTopBarDesktopDropdownPanelClass(
+  align: TopBarDropdownAlign = 'start',
+): string {
+  const edge = align === 'end' ? 'right-0' : 'left-0';
+  return `absolute ${edge} top-full z-50 mt-1.5 w-64 rounded-xl border border-brand-border bg-brand-card py-2 shadow-lg shadow-black/10`;
 }
 
 /** Viewport-safe fixed panel for mobile staff top-bar dropdowns (portal to body). */

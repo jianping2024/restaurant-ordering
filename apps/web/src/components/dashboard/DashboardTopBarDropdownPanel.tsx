@@ -7,6 +7,7 @@ import {
   dashboardTopBarDesktopDropdownPanelClass,
   dashboardTopBarMobileDropdownPanelClass,
   dashboardTopBarMobileDropdownPanelStyle,
+  type TopBarDropdownAlign,
 } from '@/lib/dashboard-top-nav';
 
 type Props = {
@@ -16,6 +17,8 @@ type Props = {
   children: ReactNode;
   /** Portal + viewport-safe positioning below the lg breakpoint. */
   mobilePortal?: boolean;
+  /** Desktop dropdown horizontal alignment to the anchor. */
+  align?: TopBarDropdownAlign;
 };
 
 export function DashboardTopBarDropdownPanel({
@@ -24,6 +27,7 @@ export function DashboardTopBarDropdownPanel({
   anchorRef,
   children,
   mobilePortal = false,
+  align = 'start',
 }: Props) {
   const [mounted, setMounted] = useState(false);
   const [usePortal, setUsePortal] = useState(false);
@@ -73,7 +77,7 @@ export function DashboardTopBarDropdownPanel({
       className={
         usePortal
           ? dashboardTopBarMobileDropdownPanelClass()
-          : dashboardTopBarDesktopDropdownPanelClass()
+          : dashboardTopBarDesktopDropdownPanelClass(align)
       }
       style={usePortal ? dashboardTopBarMobileDropdownPanelStyle() : undefined}
     >

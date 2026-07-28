@@ -6,14 +6,13 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { ProductTopBarBrand, ProductTopBarTrailing } from '@/components/ui/ProductTopBarChrome';
 import { ProductTopBarMenu } from '@/components/ui/ProductTopBarMenu';
-import type { ProductTopNavItem, StaffTopBarNavSurface } from '@/lib/dashboard-top-nav';
+import type { ProductTopNavItem } from '@/lib/dashboard-top-nav';
 import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 type Props = {
   logoHref: string;
   restaurantName: string;
   navItems: ProductTopNavItem[];
-  navSurface?: StaffTopBarNavSurface;
   settingsMenu: ReactNode;
   navOpen?: boolean;
   onNavOpenChange?: (open: boolean) => void;
@@ -22,12 +21,11 @@ type Props = {
   onNavigate?: () => void;
 };
 
-/** Sticky personal-app top bar — logo, restaurant, hamburger nav, account menu. */
+/** Sticky personal-app top bar — brand, scroll nav (desktop) / hamburger (mobile), account menu. */
 export function StaffPersonalTopBar({
   logoHref,
   restaurantName,
   navItems,
-  navSurface = 'hamburger-only',
   settingsMenu,
   navOpen: controlledNavOpen,
   onNavOpenChange,
@@ -45,21 +43,20 @@ export function StaffPersonalTopBar({
   return (
     <header className={staffTopBarChrome.headerClassName}>
       <div className={staffTopBarChrome.rowClassName}>
-        <div className={staffTopBarChrome.leadingClassName}>
+        <div className={staffTopBarChrome.brandClassName}>
           <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
-
-          <ProductTopBarMenu
-            items={navItems}
-            pathname={pathname}
-            navT={navT}
-            navSurface={navSurface}
-            checkoutCount={checkoutCount}
-            prefetch={prefetch}
-            open={navOpen}
-            onOpenChange={setNavOpen}
-            onNavigate={onNavigate}
-          />
         </div>
+
+        <ProductTopBarMenu
+          items={navItems}
+          pathname={pathname}
+          navT={navT}
+          checkoutCount={checkoutCount}
+          prefetch={prefetch}
+          open={navOpen}
+          onOpenChange={setNavOpen}
+          onNavigate={onNavigate}
+        />
 
         <ProductTopBarTrailing>{settingsMenu}</ProductTopBarTrailing>
       </div>

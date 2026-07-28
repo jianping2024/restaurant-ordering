@@ -11,12 +11,12 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
       <Link href={href} className="shrink-0">
         <ProductLogo size="sm" />
       </Link>
       <span
-        className="min-w-0 text-sm font-medium text-brand-text-muted whitespace-nowrap sm:text-[15px]"
+        className="shrink-0 text-sm font-medium text-brand-text-muted whitespace-nowrap sm:text-[15px]"
         title={restaurantName}
       >
         {restaurantName}

@@ -67,6 +67,7 @@ export function PersonalSettingsMenu({
           onClose={() => setOpen(false)}
           anchorRef={rootRef}
           mobilePortal={compact}
+          align="end"
         >
           <PersonalSettingsPanel />
           <button

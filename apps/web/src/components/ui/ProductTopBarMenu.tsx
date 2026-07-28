@@ -7,11 +7,11 @@ import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTo
 import {
   isNavItemActive,
   topNavDesktopLinkClass,
+  topNavDesktopScrollNavClassName,
   topNavItemLabel,
   topNavIconTriggerClass,
   topNavMenuRowClass,
   type ProductTopNavItem,
-  type StaffTopBarNavSurface,
 } from '@/lib/dashboard-top-nav';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 
@@ -24,17 +24,68 @@ function topNavCheckoutCountBadge(count: number) {
   );
 }
 
-type Props = {
+type NavContext = {
   items: ProductTopNavItem[];
   pathname: string;
   navT: ReturnType<typeof getMessages>['nav'];
-  navSurface: StaffTopBarNavSurface;
-  checkoutCount?: number;
-  prefetch?: boolean;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  checkoutCount: number;
+  prefetch: boolean;
   onNavigate?: () => void;
 };
+
+function NavDesktopLinks({
+  items,
+  pathname,
+  navT,
+  checkoutCount,
+  prefetch,
+  onNavigate,
+}: NavContext) {
+  return (
+    <div className="flex min-w-max items-center gap-3 px-0.5">
+      {items.map((item) => {
+        const active = isNavItemActive(pathname, item);
+        const label = topNavItemLabel(item, navT);
+        const badge = item.checkoutBadge ? checkoutCount : undefined;
+        const className = topNavDesktopLinkClass(active);
+
+        if (item.external) {
+          return (
+            <a
+              key={item.id}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={className}
+              aria-current={active ? 'page' : undefined}
+            >
+              {label}
+              <span className="ml-0.5 text-[10px] opacity-60" aria-hidden>
+                ↗
+              </span>
+            </a>
+          );
+        }
+
+        return (
+          <Link
+            key={item.id}
+            href={item.href}
+            prefetch={prefetch ? shouldPrefetchDashboardNav(item.href) : undefined}
+            className={className}
+            aria-current={active ? 'page' : undefined}
+            onClick={() => onNavigate?.()}
+          >
+            {label}
+            {badge != null && badge > 0 ? (
+              <span className="ml-1">{topNavCheckoutCountBadge(badge)}</span>
+            ) : null}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 function NavMenuRows({
   items,
@@ -43,14 +94,7 @@ function NavMenuRows({
   checkoutCount,
   prefetch,
   onNavigate,
-}: {
-  items: ProductTopNavItem[];
-  pathname: string;
-  navT: ReturnType<typeof getMessages>['nav'];
-  checkoutCount: number;
-  prefetch: boolean;
-  onNavigate: () => void;
-}) {
+}: NavContext & { onNavigate: () => void }) {
   return (
     <>
       {items.map((item) => {
@@ -107,12 +151,22 @@ function NavMenuRows({
   );
 }
 
-/** Hamburger nav menu (+ optional owner desktop inline links). */
+type Props = {
+  items: ProductTopNavItem[];
+  pathname: string;
+  navT: ReturnType<typeof getMessages>['nav'];
+  checkoutCount?: number;
+  prefetch?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onNavigate?: () => void;
+};
+
+/** Mobile hamburger nav + desktop horizontal scroll links. */
 export function ProductTopBarMenu({
   items,
   pathname,
   navT,
-  navSurface,
   checkoutCount = 0,
   prefetch = false,
   open,
@@ -123,6 +177,14 @@ export function ProductTopBarMenu({
 
   if (items.length === 0) return null;
 
+  const navContext: NavContext = {
+    items,
+    pathname,
+    navT,
+    checkoutCount,
+    prefetch,
+    onNavigate,
+  };
   const hasActiveItem = items.some((item) => isNavItemActive(pathname, item));
   const menuBadgeCount = items.reduce(
     (sum, item) => (item.checkoutBadge ? sum + checkoutCount : sum),
@@ -133,61 +195,14 @@ export function ProductTopBarMenu({
     closeMenu();
     onNavigate?.();
   };
-  const hamburgerWrapClass =
-    navSurface === 'hamburger-only'
-      ? 'relative flex shrink-0 self-stretch items-stretch'
-      : 'relative flex shrink-0 self-stretch items-stretch lg:hidden';
-  const desktopInlineClass =
-    navSurface === 'hamburger-mobile-inline-desktop'
-      ? 'ml-2 hidden min-w-0 items-center gap-3 lg:flex'
-      : 'hidden';
 
   return (
     <>
-      <nav aria-label={navT.mainNav} className={desktopInlineClass}>
-        {items.map((item) => {
-          const active = isNavItemActive(pathname, item);
-          const label = topNavItemLabel(item, navT);
-          const badge = item.checkoutBadge ? checkoutCount : undefined;
-          const className = topNavDesktopLinkClass(active);
-
-          if (item.external) {
-            return (
-              <a
-                key={item.id}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={className}
-                aria-current={active ? 'page' : undefined}
-              >
-                {label}
-                <span className="ml-0.5 text-[10px] opacity-60" aria-hidden>
-                  ↗
-                </span>
-              </a>
-            );
-          }
-
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              prefetch={prefetch ? shouldPrefetchDashboardNav(item.href) : undefined}
-              className={className}
-              aria-current={active ? 'page' : undefined}
-              onClick={() => onNavigate?.()}
-            >
-              {label}
-              {badge != null && badge > 0 ? (
-                <span className="ml-1">{topNavCheckoutCountBadge(badge)}</span>
-              ) : null}
-            </Link>
-          );
-        })}
+      <nav aria-label={navT.mainNav} className={topNavDesktopScrollNavClassName()}>
+        <NavDesktopLinks {...navContext} />
       </nav>
 
-      <div ref={rootRef} className={hamburgerWrapClass}>
+      <div ref={rootRef} className="relative flex shrink-0 self-stretch items-stretch lg:hidden">
         <button
           type="button"
           aria-haspopup="menu"
@@ -212,14 +227,7 @@ export function ProductTopBarMenu({
           anchorRef={rootRef}
           mobilePortal
         >
-          <NavMenuRows
-            items={items}
-            pathname={pathname}
-            navT={navT}
-            checkoutCount={checkoutCount}
-            prefetch={prefetch}
-            onNavigate={handleNavigate}
-          />
+          <NavMenuRows {...navContext} onNavigate={handleNavigate} />
         </DashboardTopBarDropdownPanel>
       </div>
     </>

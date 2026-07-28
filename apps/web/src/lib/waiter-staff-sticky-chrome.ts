@@ -27,13 +27,8 @@ export const staffTopBarChrome = {
    */
   rowClassName:
     'flex h-14 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
-  /** Brand + hamburger nav — grows before trailing account menu. */
-  leadingClassName: 'flex h-full min-w-0 flex-1 items-stretch gap-1.5 sm:gap-2',
-  /**
-   * Inline nav actions — content-sized, never clipped. Restaurant name in the brand
-   * slot is the only flex-shrink target in the row.
-   */
-  navClassName: 'flex shrink-0 items-center',
+  /** MesaGo + restaurant name — never shrinks; full name stays visible. */
+  brandClassName: 'flex shrink-0 items-center',
 } as const;
 
 /**

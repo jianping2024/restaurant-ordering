@@ -8,8 +8,9 @@ import {
   isDashboardWaiterTableDetailPath,
   isLogoHrefActive,
   isNavItemActive,
+  dashboardTopBarDesktopDropdownPanelClass,
   isTopBarLogoHrefActive,
-  staffTopBarNavSurface,
+  topNavDesktopScrollNavClassName,
 } from '@/lib/dashboard-top-nav';
 
 describe('buildDashboardTopNavItems', () => {
@@ -56,11 +57,19 @@ describe('buildDashboardTopNavItems', () => {
   });
 });
 
-describe('staffTopBarNavSurface', () => {
-  it('uses desktop inline links for owner only', () => {
-    assert.equal(staffTopBarNavSurface('owner'), 'hamburger-mobile-inline-desktop');
-    assert.equal(staffTopBarNavSurface('frontdesk'), 'hamburger-only');
-    assert.equal(staffTopBarNavSurface('waiter'), 'hamburger-only');
+describe('topNavDesktopScrollNavClassName', () => {
+  it('uses mesa-chip-scroll and lg breakpoint', () => {
+    const className = topNavDesktopScrollNavClassName();
+    assert.match(className, /mesa-chip-scroll/);
+    assert.match(className, /lg:flex/);
+    assert.match(className, /flex-1/);
+  });
+});
+
+describe('dashboardTopBarDesktopDropdownPanelClass', () => {
+  it('aligns trailing menus to the anchor end edge', () => {
+    assert.match(dashboardTopBarDesktopDropdownPanelClass('start'), /left-0/);
+    assert.match(dashboardTopBarDesktopDropdownPanelClass('end'), /right-0/);
   });
 });
 

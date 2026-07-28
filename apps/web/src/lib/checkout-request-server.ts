@@ -1,14 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { buildByItemAllocationsFromPersons } from '@/lib/bill-split-by-item';
-import { buildBillSplitOrderLines, buildByItemLineSpecs } from '@/lib/bill-split-by-item-lines';
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
+import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
-import { validateBillSplit } from '@/lib/bill-split-validate';
 import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
-import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { normalizeCheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
@@ -100,7 +97,10 @@ export async function submitCheckoutRequestForTable(
     sessionId,
     ascending: true,
   });
-  const orderLines = buildBillSplitOrderLines(orders);
+  const { orderLines, lineSpecs, total, validation } = validateSubmittedCheckoutSplit(
+    orders,
+    normalizedPayload,
+  );
   if (orderLines.length === 0) {
     return { ok: false, error: 'empty_session', status: 400 };
   }
@@ -123,18 +123,6 @@ export async function submitCheckoutRequestForTable(
     return { ok: false, error: 'party_merge_required', status: 400 };
   }
 
-  const lineSpecs = buildByItemLineSpecs(orderLines);
-  const total = sumBillableSessionTotal(orders);
-  const validation = validateBillSplit({
-    splitMode: normalizedPayload.splitMode,
-    total,
-    results: normalizedPayload.result,
-    lineSpecs: normalizedPayload.splitMode === 'by_item' ? lineSpecs : undefined,
-    byItemAllocations:
-      normalizedPayload.splitMode === 'by_item'
-        ? buildByItemAllocationsFromPersons(normalizedPayload.persons, lineSpecs)
-        : undefined,
-  });
   if (!validation.ok) {
     return { ok: false, error: validation.issue, status: 400 };
   }

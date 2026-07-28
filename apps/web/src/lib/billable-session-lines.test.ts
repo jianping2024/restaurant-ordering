@@ -4,6 +4,8 @@ import {
   buildBillableSessionItems,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
+import { buildBillSplitOrderLines } from '@/lib/bill-split-by-item-lines';
+import { sumLineTotals } from '@/lib/cart-totals';
 import { computeOrderTotalsFromItems } from '@/lib/order-item-void/persist-order-items-update';
 import type { Order, OrderItem } from '@/types';
 
@@ -127,6 +129,7 @@ describe('sumBillableSessionTotal', () => {
       },
     );
     assert.equal(sumBillableSessionTotal(orders), 35.9 + 4.5);
+    assert.notEqual(sumLineTotals(buildBillSplitOrderLines(orders)), 35.9 + 4.5);
     assert.equal(orders[0].items[1].qty, 5);
     assert.equal(orders[0].items[1].price, 0);
   });

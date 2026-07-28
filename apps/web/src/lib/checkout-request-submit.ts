@@ -1,5 +1,8 @@
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
+import { buildByItemAllocationsFromPersons } from '@/lib/bill-split-by-item';
+import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import { validateBillSplit, type BillSplitValidationIssue } from '@/lib/bill-split-validate';
 import { deriveBillView } from '@/lib/customer-bill-sync';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 import type { BillSplit, Order } from '@/types';
@@ -49,6 +52,34 @@ export function validateSubmitSplitDraft(
     return { ok: false, issue: validation.issue };
   }
   return { ok: true, submitResults };
+}
+
+/** Server-side: validate client-submitted split against authoritative bill view. */
+export function validateSubmittedCheckoutSplit(
+  orders: Order[],
+  payload: {
+    splitMode: SplitMode;
+    persons: SplitPerson[];
+    result: SplitResult[];
+  },
+): {
+  orderLines: BillSplitOrderLine[];
+  lineSpecs: ByItemLineSpec[];
+  total: number;
+  validation: { ok: true } | { ok: false; issue: BillSplitValidationIssue };
+} {
+  const { orderLines, lineSpecs, total } = deriveBillView(orders);
+  const validation = validateBillSplit({
+    splitMode: payload.splitMode,
+    total,
+    results: payload.result,
+    lineSpecs: payload.splitMode === 'by_item' ? lineSpecs : undefined,
+    byItemAllocations:
+      payload.splitMode === 'by_item'
+        ? buildByItemAllocationsFromPersons(payload.persons, lineSpecs)
+        : undefined,
+  });
+  return { orderLines, lineSpecs, total, validation };
 }
 
 export function buildOptimisticRequestedBillSplit(input: {

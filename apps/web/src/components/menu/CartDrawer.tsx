@@ -129,7 +129,6 @@ export function CartDrawer({
                     const q = Number(item.qty);
                     onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
                   }}
-                  variant="drawer"
                 />
               </div>
 

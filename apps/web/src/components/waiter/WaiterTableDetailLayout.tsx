@@ -97,7 +97,6 @@ export function BuffetGuestCounter({
     <div className={rowClass}>
       <span className={waiterFloorType.guestLabel}>{label}</span>
       <CartQtyStepper
-        variant="drawer"
         qty={qty}
         onQtyChange={onQtyChange}
         qtyInputAriaLabel={label}

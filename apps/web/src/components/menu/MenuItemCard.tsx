@@ -3,20 +3,16 @@
 import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
-import { MENU_IMAGE_UNOPTIMIZED } from '@/lib/menu-image';
+import { MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
 } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
-
-/**
- * Fixed footprint for add / qty stepper / sold-out so the price column
- * does not reflow when cart qty crosses zero.
- * Sized for the widest face (pt "+ Adicionar") and two-digit qty.
- */
-const MENU_ITEM_CARD_ACTION_SHELL =
-  'box-border flex h-9 w-[8.5rem] shrink-0 items-stretch';
+import {
+  MENU_ITEM_CARD_ACTION_COLUMN_CLASS,
+  MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
+} from '@/lib/menu-item-card-layout';
 
 interface Props {
   item: MenuItem;
@@ -48,41 +44,31 @@ function MenuItemCardAction({
 }) {
   if (!available) {
     return (
-      <div className={MENU_ITEM_CARD_ACTION_SHELL}>
-        <span
-          className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-muted ${CUSTOMER_MENU_TYPE.itemSoldOut}`}
-        >
-          {labels.soldOut}
-        </span>
-      </div>
+      <span className={`block text-right ${CUSTOMER_MENU_TYPE.itemSoldOut}`}>{labels.soldOut}</span>
     );
   }
 
   if (cartQty > 0) {
     return (
-      <div className={MENU_ITEM_CARD_ACTION_SHELL}>
-        <CartQtyStepper
-          qty={cartQty}
-          onDecrement={onDecrement}
-          onIncrement={onIncrement}
-          incrementDisabled={incrementDisabled}
-          variant="menu"
-        />
-      </div>
+      <CartQtyStepper
+        qty={cartQty}
+        onDecrement={onDecrement}
+        onIncrement={onIncrement}
+        incrementDisabled={incrementDisabled}
+      />
     );
   }
 
   return (
-    <div className={MENU_ITEM_CARD_ACTION_SHELL}>
-      <button
-        type="button"
-        onClick={onIncrement}
-        disabled={incrementDisabled}
-        className={`flex w-full items-center justify-center rounded-lg bg-brand-border px-2 text-brand-text transition-colors hover:bg-brand-gold/20 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
-      >
-        {labels.add}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onIncrement}
+      disabled={incrementDisabled}
+      aria-label={labels.add}
+      className={`ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
+    >
+      +
+    </button>
   );
 }
 
@@ -98,6 +84,7 @@ export function MenuItemCard({
 }: Props) {
   const label = formatMenuCatalogItemLabel(item, lang);
   const desc = resolveMenuItemLocalizedDescription(item, lang);
+  const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
   const actionLabels: ActionLabels = {
     zh: { add: '+ 加入', soldOut: '已售完' },
     en: { add: '+ Add', soldOut: 'Sold out' },
@@ -106,14 +93,14 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-4 h-full overflow-hidden ${
+      className={`bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full overflow-hidden ${
         layout === 'grid' ? 'flex-col sm:flex-row' : ''
       } ${item.available ? 'border-brand-border' : 'border-brand-border opacity-50'}`}
     >
-      <div className="flex-shrink-0 w-[4.5rem] h-[4.5rem] bg-brand-border rounded-xl overflow-hidden flex items-center justify-center text-3xl relative">
-        {item.image_url ? (
+      <div className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl">
+        {imageSrc ? (
           <Image
-            src={item.image_url}
+            src={imageSrc}
             alt={label}
             fill
             className="object-cover"
@@ -125,28 +112,33 @@ export function MenuItemCard({
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex min-h-[4.5rem] min-w-0 flex-1 flex-col justify-between gap-2">
         <div className="min-w-0">
           <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
           {desc ? (
-            <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-1 line-clamp-2`}>{desc}</p>
+            <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-0.5 line-clamp-2`}>
+              {desc}
+            </p>
           ) : null}
           {limitHint ? (
             <p className="text-[11px] text-brand-text-muted mt-1 leading-snug">{limitHint}</p>
           ) : null}
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className={`mr-auto ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
+
+        <div className={MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS}>
+          <span className={`min-w-0 truncate ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
             €{item.price.toFixed(2)}
           </span>
-          <MenuItemCardAction
-            available={item.available}
-            cartQty={cartQty}
-            labels={actionLabels}
-            incrementDisabled={incrementDisabled}
-            onIncrement={onIncrement}
-            onDecrement={onDecrement}
-          />
+          <div className={`${MENU_ITEM_CARD_ACTION_COLUMN_CLASS} flex items-center justify-end`}>
+            <MenuItemCardAction
+              available={item.available}
+              cartQty={cartQty}
+              labels={actionLabels}
+              incrementDisabled={incrementDisabled}
+              onIncrement={onIncrement}
+              onDecrement={onDecrement}
+            />
+          </div>
         </div>
       </div>
     </div>

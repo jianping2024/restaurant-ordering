@@ -8,7 +8,7 @@ export const CUSTOMER_MENU_TYPE = {
   /** Dish price, cart line total, footer session total. */
   moneyAmount: 'text-base font-semibold tabular-nums text-brand-gold',
   itemAction: 'text-base',
-  itemSoldOut: 'text-base',
+  itemSoldOut: 'text-xs font-medium text-brand-text-muted',
   cartLineName: 'text-lg font-semibold',
   footerSummary: 'truncate text-base font-semibold text-brand-text',
   footerAmountLabel: 'text-base font-medium text-brand-text',

@@ -84,6 +84,35 @@ export function pathFromMenuImagePublicUrl(url: string): string | null {
  */
 export const MENU_IMAGE_UNOPTIMIZED = true;
 
+const LOCAL_SUPABASE_STORAGE_ORIGINS = [
+  'http://127.0.0.1:54321',
+  'http://localhost:54321',
+] as const;
+
+/**
+ * Local dev: DB stores Storage URLs with 127.0.0.1, which phones on LAN cannot reach.
+ * Rewrite to the page host so `http://<lan-ip>:54321/storage/...` loads on real devices.
+ */
+export function resolveMenuImageDisplayUrl(
+  url: string | null | undefined,
+  options?: { clientHostname?: string | null },
+): string | null {
+  if (!url?.trim()) return null;
+  const trimmed = url.trim();
+  const hostname =
+    options?.clientHostname ??
+    (typeof window !== 'undefined' ? window.location.hostname : null);
+  if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+    return trimmed;
+  }
+  for (const origin of LOCAL_SUPABASE_STORAGE_ORIGINS) {
+    if (trimmed.startsWith(`${origin}/`)) {
+      return trimmed.replace(origin, `http://${hostname}:54321`);
+    }
+  }
+  return trimmed;
+}
+
 export async function removeMenuImageFromStorage(
   supabase: SupabaseClient,
   publicUrl: string | null | undefined,

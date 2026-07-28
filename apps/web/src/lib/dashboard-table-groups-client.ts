@@ -1,4 +1,5 @@
 import type { RestaurantTableGroup, RestaurantTableGroupMember } from '@/lib/restaurant-table-groups';
+import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type ApiError = { error: string; message?: string };
 
@@ -25,6 +26,7 @@ async function request<T>(
 export type TableGroupsResponse = {
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
+  tables?: RestaurantTableRow[];
 };
 
 export async function createTableGroupClient(input: {
@@ -57,6 +59,23 @@ export async function moveTableGroupOrderClient(groupId: string, direction: -1 |
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'move_order', group_id: groupId, direction }),
+  });
+}
+
+export async function moveTableGroupMemberOrderClient(
+  groupId: string,
+  tableId: string,
+  direction: -1 | 1,
+) {
+  return request<TableGroupsResponse>('/api/dashboard/table-groups', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'move_member_order',
+      group_id: groupId,
+      table_id: tableId,
+      direction,
+    }),
   });
 }
 

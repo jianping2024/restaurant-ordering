@@ -7,15 +7,46 @@ import {
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
-import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { nextSortOrder, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
+import { parseTableIdParam, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
+import {
+  nextSortOrder,
+  resolveAdjacentSortOrderSwap,
+  swapAdjacentSortOrders,
+  type SortOrderMoveDirection,
+} from '@/lib/sort-order';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 
 export type TableGroupsPayload = {
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
+  tables?: RestaurantTableRow[];
 };
+
+async function loadActiveRestaurantTableRows(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<RestaurantTableRow[] | MutationError> {
+  const { data, error } = await admin
+    .from('restaurant_tables')
+    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
+    .eq('restaurant_id', restaurantId)
+    .is('deleted_at', null);
+
+  if (error) {
+    return { error: 'tables_query_failed', message: error.message, status: 500 };
+  }
+
+  return sortRestaurantTables((data || []) as RestaurantTableRow[]).map(
+    ({ id, display_name, sort_order, seat_min, seat_max }) => ({
+      id,
+      display_name,
+      sort_order,
+      seat_min,
+      seat_max,
+    }),
+  );
+}
 
 export async function loadRestaurantTableGroups(
   admin: SupabaseClient,
@@ -265,6 +296,80 @@ export async function moveTableGroupOrder(
   const payload = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in payload) return payload;
   return { payload };
+}
+
+export async function moveTableGroupMemberOrder(
+  admin: SupabaseClient,
+  restaurantId: string,
+  groupId: string,
+  tableId: string,
+  direction: SortOrderMoveDirection,
+): Promise<{ payload: TableGroupsPayload } | MutationError> {
+  const gid = parseTableIdParam(groupId);
+  const tid = parseTableIdParam(tableId);
+  if (!gid) return { error: 'invalid_group_id', status: 400 };
+  if (!tid) return { error: 'invalid_table_id', status: 400 };
+
+  const existing = await loadRestaurantTableGroups(admin, restaurantId);
+  if ('error' in existing) return existing;
+
+  if (!existing.groups.some((group) => group.id === gid)) {
+    return { error: 'group_not_found', status: 404 };
+  }
+
+  const memberTableIds = existing.members
+    .filter((member) => member.group_id === gid)
+    .map((member) => member.table_id);
+  if (!memberTableIds.includes(tid)) {
+    return { error: 'member_not_in_group', status: 400 };
+  }
+
+  const { data: tableRows, error: tablesError } = await admin
+    .from('restaurant_tables')
+    .select('id, restaurant_id, display_name, sort_order, seat_min, seat_max, deleted_at, created_at')
+    .eq('restaurant_id', restaurantId)
+    .is('deleted_at', null)
+    .in('id', memberTableIds);
+
+  if (tablesError) {
+    return { error: 'tables_query_failed', message: tablesError.message, status: 500 };
+  }
+
+  const ordered = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
+  const index = ordered.findIndex((row) => row.id === tid);
+  if (index < 0) return { error: 'table_not_found', status: 404 };
+
+  const neighborIndex = index + direction;
+  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
+    return { error: 'move_out_of_range', status: 400 };
+  }
+
+  const a = ordered[index];
+  const b = ordered[neighborIndex];
+  const { sortOrderA, sortOrderB } = resolveAdjacentSortOrderSwap(a, b, direction);
+
+  const { error: e1 } = await admin
+    .from('restaurant_tables')
+    .update({ sort_order: sortOrderA })
+    .eq('id', a.id)
+    .eq('restaurant_id', restaurantId);
+  if (e1) return { error: 'update_failed', message: e1.message, status: 500 };
+
+  const { error: e2 } = await admin
+    .from('restaurant_tables')
+    .update({ sort_order: sortOrderB })
+    .eq('id', b.id)
+    .eq('restaurant_id', restaurantId);
+  if (e2) return { error: 'update_failed', message: e2.message, status: 500 };
+
+  const [groupsPayload, tables] = await Promise.all([
+    loadRestaurantTableGroups(admin, restaurantId),
+    loadActiveRestaurantTableRows(admin, restaurantId),
+  ]);
+  if ('error' in groupsPayload) return groupsPayload;
+  if ('error' in tables) return tables;
+
+  return { payload: { ...groupsPayload, tables } };
 }
 
 export async function deleteTableGroup(

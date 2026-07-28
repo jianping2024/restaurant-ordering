@@ -36,6 +36,25 @@ export function swapAdjacentSortOrders(
 }
 
 /**
+ * Target sort_order after swapping adjacent rows in a sorted list.
+ * When values tie, uses direction so the move is not a no-op.
+ */
+export function resolveAdjacentSortOrderSwap(
+  a: { sort_order: number },
+  b: { sort_order: number },
+  direction: SortOrderMoveDirection,
+): { sortOrderA: number; sortOrderB: number } {
+  const swapped = swapAdjacentSortOrders(a, b);
+  if (swapped.sortOrderA !== a.sort_order || swapped.sortOrderB !== b.sort_order) {
+    return swapped;
+  }
+  if (direction === -1) {
+    return { sortOrderA: b.sort_order - 1, sortOrderB: b.sort_order };
+  }
+  return { sortOrderA: b.sort_order + 1, sortOrderB: b.sort_order };
+}
+
+/**
  * Three-step swap under a unique (scope, sort_order) index:
  * A→temp, B→A's old slot, A→B's old slot. Temp must be outside the scope (scopeMax + 1).
  */

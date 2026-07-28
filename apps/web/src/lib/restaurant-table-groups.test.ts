@@ -7,6 +7,7 @@ import {
   isValidTableGroupName,
   sortTablesForGroupAssignPicker,
   sortTablesForGroupPrint,
+  sortTableIdsByRestaurantTableOrder,
   sortWaiterTableCards,
 } from './restaurant-table-groups';
 import type { RestaurantTableGroup, RestaurantTableGroupMember } from './restaurant-table-groups';
@@ -131,6 +132,16 @@ describe('buildTableGroupIdByTableId', () => {
     });
   });
 });
+describe('sortTableIdsByRestaurantTableOrder', () => {
+  it('orders member ids by restaurant table sort_order', () => {
+    const reversed = [
+      { id: 't1', display_name: 'A-01', sort_order: 2 },
+      { id: 't2', display_name: 'A-02', sort_order: 1 },
+    ];
+    assert.deepEqual(sortTableIdsByRestaurantTableOrder(['t1', 't2'], reversed), ['t2', 't1']);
+  });
+});
+
 describe('sortTablesForGroupPrint', () => {
   it('orders tables by group sort then table sort', () => {
     const ordered = sortTablesForGroupPrint(tables, groups, members);

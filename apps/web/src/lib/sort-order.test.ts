@@ -5,6 +5,7 @@ import {
   applyAdjacentSortOrderSwap,
   compareSortOrder,
   nextSortOrder,
+  resolveAdjacentSortOrderSwap,
   sortBySortOrderThenCreatedAt,
   swapAdjacentSortOrders,
 } from './sort-order';
@@ -45,6 +46,29 @@ describe('swapAdjacentSortOrders', () => {
     assert.deepEqual(swapAdjacentSortOrders({ sort_order: 2 }, { sort_order: 5 }), {
       sortOrderA: 5,
       sortOrderB: 2,
+    });
+  });
+});
+
+describe('resolveAdjacentSortOrderSwap', () => {
+  it('exchanges distinct sort orders', () => {
+    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 2 }, { sort_order: 5 }, 1), {
+      sortOrderA: 5,
+      sortOrderB: 2,
+    });
+  });
+
+  it('breaks ties when moving down', () => {
+    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 3 }, { sort_order: 3 }, 1), {
+      sortOrderA: 4,
+      sortOrderB: 3,
+    });
+  });
+
+  it('breaks ties when moving up', () => {
+    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 3 }, { sort_order: 3 }, -1), {
+      sortOrderA: 2,
+      sortOrderB: 3,
     });
   });
 });

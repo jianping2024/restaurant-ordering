@@ -1,7 +1,6 @@
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import {
   compareRestaurantTables,
-  sortRestaurantTables,
   type RestaurantTableRow,
 } from '@/lib/restaurant-tables';
 import { isWaiterTableInCheckout, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -143,6 +142,20 @@ export function groupTableIdsByGroupId(
   return out;
 }
 
+/** Order member table ids by restaurant_tables.sort_order (then display_name). */
+export function sortTableIdsByRestaurantTableOrder(
+  tableIds: string[],
+  tables: readonly Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'>[],
+): string[] {
+  const tableById = new Map(tables.map((t) => [t.id, t]));
+  const scoped = tableIds
+    .map((id) => tableById.get(id))
+    .filter((t): t is Pick<RestaurantTableRow, 'id' | 'sort_order' | 'display_name'> => !!t);
+  return [...scoped]
+    .sort(compareRestaurantTables)
+    .map((t) => t.id);
+}
+
 export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   cards: T[],
   tables: readonly RestaurantTableRow[],
@@ -196,7 +209,7 @@ export function buildWaiterBoardSections(
     sections.push({
       id: group.id,
       title: group.name,
-      tableIds: sortRestaurantTableIds(ids, tables),
+      tableIds: sortTableIdsByRestaurantTableOrder(ids, tables),
     });
   }
 
@@ -210,11 +223,6 @@ export function buildWaiterBoardSections(
   }
 
   return sections;
-}
-
-function sortRestaurantTableIds(tableIds: string[], tables: RestaurantTableRow[]): string[] {
-  const order = new Map(sortRestaurantTables(tables).map((t, index) => [t.id, index]));
-  return [...tableIds].sort((a, b) => (order.get(a) ?? 9999) - (order.get(b) ?? 9999));
 }
 
 export function sortTablesForGroupPrint(

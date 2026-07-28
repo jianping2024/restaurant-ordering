@@ -166,9 +166,18 @@ export function TablesManager({
   );
 
   const handleGroupsChange = useCallback(
-    (nextGroups: RestaurantTableGroup[], nextMembers: RestaurantTableGroupMember[]) => {
+    (
+      nextGroups: RestaurantTableGroup[],
+      nextMembers: RestaurantTableGroupMember[],
+      nextTables?: RestaurantTableRow[],
+    ) => {
       setGroups(nextGroups);
       setMembers(nextMembers);
+      if (nextTables) {
+        const sorted = sortRestaurantTables(nextTables);
+        setTables(sorted);
+        setSavedTables(sorted);
+      }
     },
     [],
   );

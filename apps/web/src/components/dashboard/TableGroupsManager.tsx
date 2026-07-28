@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -10,6 +11,7 @@ import {
   createTableGroupClient,
   deleteTableGroupClient,
   mapTableGroupApiError,
+  moveTableGroupMemberOrderClient,
   moveTableGroupOrderClient,
   updateTableGroupClient,
 } from '@/lib/dashboard-table-groups-client';
@@ -20,6 +22,7 @@ import {
   isValidTableGroupName,
   normalizeTableGroupName,
   sortTableGroups,
+  sortTableIdsByRestaurantTableOrder,
   sortTablesForGroupAssignPicker,
   TABLE_GROUP_REMARKS_MAX_LEN,
   type RestaurantTableGroup,
@@ -39,7 +42,11 @@ interface Props {
   tables: RestaurantTableRow[];
   initialGroups: RestaurantTableGroup[];
   initialMembers: RestaurantTableGroupMember[];
-  onGroupsChange: (groups: RestaurantTableGroup[], members: RestaurantTableGroupMember[]) => void;
+  onGroupsChange: (
+    groups: RestaurantTableGroup[],
+    members: RestaurantTableGroupMember[],
+    tables?: RestaurantTableRow[],
+  ) => void;
   /** When set, parent renders the primary add action in the page toolbar. */
   onRegisterOpenCreate?: (openCreate: () => void) => void;
   hideAddButton?: boolean;
@@ -90,18 +97,22 @@ export function TableGroupsManager({
     return name ? t.assignInGroup.replace('{name}', name) : t.assignUngrouped;
   };
 
-  const publish = (nextGroups: RestaurantTableGroup[], nextMembers: RestaurantTableGroupMember[]) => {
+  const publish = (
+    nextGroups: RestaurantTableGroup[],
+    nextMembers: RestaurantTableGroupMember[],
+    nextTables?: RestaurantTableRow[],
+  ) => {
     const sorted = sortTableGroups(nextGroups);
     setGroups(sorted);
     setMembers(nextMembers);
-    onGroupsChange(sorted, nextMembers);
+    onGroupsChange(sorted, nextMembers, nextTables);
   };
 
-  const tableLabelsForGroup = (groupId: string) => {
-    const ids = tableIdsByGroup[groupId] || [];
+  const tablesForGroup = (groupId: string) => {
+    const ids = sortTableIdsByRestaurantTableOrder(tableIdsByGroup[groupId] || [], sortedTables);
     return ids
-      .map((id) => tableById.get(id)?.display_name)
-      .filter((name): name is string => !!name);
+      .map((id) => tableById.get(id))
+      .filter((row): row is RestaurantTableRow => !!row);
   };
 
   const openCreate = useCallback(() => {
@@ -189,6 +200,16 @@ export function TableGroupsManager({
     publish(result.data.groups, result.data.members);
   };
 
+  const moveMemberRow = async (groupId: string, tableId: string, dir: -1 | 1) => {
+    setError('');
+    const result = await moveTableGroupMemberOrderClient(groupId, tableId, dir);
+    if (!result.ok) {
+      setError(mapTableGroupApiError(result.error, result.message, t));
+      return;
+    }
+    publish(result.data.groups, result.data.members, result.data.tables);
+  };
+
   const runDelete = async () => {
     if (!deleteTarget) return;
     setDeleteLoading(true);
@@ -235,7 +256,7 @@ export function TableGroupsManager({
             </thead>
             <tbody>
               {groups.map((row, index) => {
-                const labels = tableLabelsForGroup(row.id);
+                const groupTables = tablesForGroup(row.id);
                 return (
                   <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
                     <td className="px-4 py-3 font-medium text-brand-text">{row.name}</td>
@@ -243,21 +264,30 @@ export function TableGroupsManager({
                       {row.remarks || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      {labels.length === 0 ? (
+                      {groupTables.length === 0 ? (
                         <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
                       ) : (
                         <div className="space-y-1.5">
                           <span className="text-[12px] text-brand-text-muted">
-                            {t.tablesSummary.replace('{count}', String(labels.length))}
+                            {t.tablesSummary.replace('{count}', String(groupTables.length))}
                           </span>
-                          <div className="flex flex-wrap gap-1">
-                            {labels.map((name, labelIndex) => (
-                              <span
-                                key={`${row.id}-${labelIndex}`}
-                                className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
+                          <div className="space-y-1">
+                            {groupTables.map((table, tableIndex) => (
+                              <div
+                                key={table.id}
+                                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-brand-border/70 bg-brand-bg/80 px-2 py-1"
                               >
-                                {name}
-                              </span>
+                                <span className="text-[12px] text-brand-text tabular-nums">
+                                  {table.display_name}
+                                </span>
+                                <DishSortOrderButtons
+                                  index={tableIndex}
+                                  length={groupTables.length}
+                                  moveUpLabel={t.memberMoveUp}
+                                  moveDownLabel={t.memberMoveDown}
+                                  onMove={(dir) => void moveMemberRow(row.id, table.id, dir)}
+                                />
+                              </div>
                             ))}
                           </div>
                         </div>

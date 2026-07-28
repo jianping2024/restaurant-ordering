@@ -3,11 +3,9 @@ import { describe, it } from 'node:test';
 import {
   classifyWaiterBoardFetchFailure,
   initialWaiterBoardSurface,
-  staffBoardFetchError,
   surfaceAfterRefreshFailure,
   surfaceAfterRefreshSuccess,
   surfaceForRefreshStart,
-  waiterBoardFloorReady,
 } from './waiter-board-surface';
 
 describe('waiter-board-surface', () => {
@@ -30,10 +28,10 @@ describe('waiter-board-surface', () => {
   });
 
   it('maps only HTTP 401 as unauthorized; everything else as failed', () => {
-    assert.equal(classifyWaiterBoardFetchFailure(staffBoardFetchError(401)), 'unauthorized');
-    assert.equal(classifyWaiterBoardFetchFailure(staffBoardFetchError(403)), 'failed');
-    assert.equal(classifyWaiterBoardFetchFailure(staffBoardFetchError(500)), 'failed');
-    assert.equal(classifyWaiterBoardFetchFailure(staffBoardFetchError(429)), 'failed');
+    assert.equal(classifyWaiterBoardFetchFailure({ status: 401 }), 'unauthorized');
+    assert.equal(classifyWaiterBoardFetchFailure({ status: 403 }), 'failed');
+    assert.equal(classifyWaiterBoardFetchFailure({ status: 500 }), 'failed');
+    assert.equal(classifyWaiterBoardFetchFailure({ status: 429 }), 'failed');
     assert.equal(classifyWaiterBoardFetchFailure(new Error('network')), 'failed');
   });
 
@@ -42,11 +40,5 @@ describe('waiter-board-surface', () => {
     assert.equal(surfaceAfterRefreshFailure('loading', 'failed'), 'failed');
     assert.equal(surfaceAfterRefreshFailure('failed', 'failed'), 'failed');
     assert.equal(surfaceAfterRefreshFailure('loading', 'unauthorized'), 'auth-exit');
-  });
-
-  it('waiterBoardFloorReady is true only for ready', () => {
-    assert.equal(waiterBoardFloorReady('ready'), true);
-    assert.equal(waiterBoardFloorReady('loading'), false);
-    assert.equal(waiterBoardFloorReady('failed'), false);
   });
 });

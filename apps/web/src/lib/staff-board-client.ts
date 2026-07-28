@@ -9,12 +9,21 @@ import {
   type WaiterBoardLivePatch,
 } from '@/lib/waiter-board-live';
 import { fetchWithDependencyTimeout } from '@/lib/dependency-unavailable';
-import { staffBoardFetchError } from '@/lib/waiter-board-surface';
 import type { Order } from '@/types';
 
 export type WaiterBoardClientResult =
   | { status: 'ok'; scope: 'full'; board: WaiterBoardData }
   | { status: 'ok'; scope: 'live'; live: WaiterBoardLivePatch };
+
+/** Attach HTTP status so board refresh can classify without parsing Error.message. */
+function staffBoardFetchError(
+  status: number,
+  message = 'staff_board_fetch_failed',
+): Error & { status: number } {
+  const err = new Error(message) as Error & { status: number };
+  err.status = status;
+  return err;
+}
 
 async function fetchStaffBoard<T>(url: string): Promise<T> {
   const res = await fetch(url, { credentials: 'include' });

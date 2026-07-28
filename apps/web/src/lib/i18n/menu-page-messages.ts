@@ -112,7 +112,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     orderedDrawerTitle: 'Ordered ({count})',
     orderedSubmittedHint: 'Submitted items can only be changed by staff.',
     noOrders: 'No orders submitted yet',
-    orderedCount: '{count} item(s) ordered',
+    orderedCount: '{count} item(s)',
     viewOrdered: 'View ordered',
     continueOrdering: 'Order more',
     placeOrder: 'Place order',

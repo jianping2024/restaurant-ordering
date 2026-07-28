@@ -94,15 +94,21 @@ export function OrderedDrawer({
         </div>
 
         <div className="flex items-stretch gap-3 border-t border-brand-border px-5 py-4">
-          <Button type="button" variant="outline" size="lg" className="min-w-0 flex-1" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            size="action"
+            className="min-w-0 flex-1 whitespace-nowrap"
+            onClick={onClose}
+          >
             {labels.continueOrdering}
           </Button>
           {showBillLink ? (
             <ButtonLink
               href={billHref}
               variant="gold"
-              size="lg"
-              className="min-w-0 flex-1"
+              size="action"
+              className="min-w-0 flex-1 whitespace-nowrap"
               disabled={!billEnabled}
             >
               {labels.viewBill}

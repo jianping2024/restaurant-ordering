@@ -461,7 +461,7 @@
 | 类型 | 路径 |
 |------|------|
 | 界面 i18n | `apps/web/src/lib/i18n/messages.ts`、`i18n/menu-page-messages.ts`、`components/providers/LanguageProvider.tsx` |
-| 界面主题 | `components/providers/ThemeProvider.tsx`、`components/ui/ThemeToggle.tsx`；顾客挂载于 `CustomerOrderingHeader` |
+| 界面主题 | `lib/theme.ts`（storage / DOM 单一写路径）、`ThemeProvider`、`ThemeToggle`；顾客挂载于 `CustomerOrderingHeader` |
 | 打印 locale | `restaurants.print_locale`；读取于 `station-ticket-enqueue.ts`、`order-receipt-enqueue.ts`、`print-agent/claim` |
 | 设置 | `apps/web/src/components/dashboard/SettingsForm.tsx`（country_code；**无 print_locale 表单项**） |
 

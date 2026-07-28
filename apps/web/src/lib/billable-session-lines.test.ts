@@ -133,4 +133,84 @@ describe('sumBillableSessionTotal', () => {
     assert.equal(orders[0].items[1].qty, 5);
     assert.equal(orders[0].items[1].price, 0);
   });
+
+  it('bills zero for fully free limited rows when menu price is non-zero', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 35.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'm1',
+            name: 'susi1',
+            name_pt: 'susi1',
+            qty: 3,
+            price: 1.5,
+            emoji: '',
+            per_person_qty_limit: 2,
+            over_limit_unit_price: 4.5,
+            added_at: '2026-01-01T00:00:00.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    assert.equal(sumBillableSessionTotal(orders), 35.9);
+  });
+
+  it('bills only chargeable qty at overage price when menu price is non-zero', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 35.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'm1',
+            name: 'susi1',
+            name_pt: 'susi1',
+            qty: 5,
+            price: 1.5,
+            emoji: '',
+            per_person_qty_limit: 2,
+            over_limit_unit_price: 4.5,
+            added_at: '2026-01-01T00:00:00.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    assert.equal(sumBillableSessionTotal(orders), 35.9 + 4.5);
+  });
 });

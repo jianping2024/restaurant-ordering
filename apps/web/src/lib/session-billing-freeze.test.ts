@@ -78,4 +78,83 @@ describe('freezeBillingLinesOnOrders', () => {
     const frozen = freezeBillingLinesOnOrders(input);
     assert.equal(frozen, input);
   });
+
+  it('zeroes menu price on fully free limited rows at close', () => {
+    const frozen = freezeBillingLinesOnOrders([
+      order([
+        {
+          id: 'buffet:b1',
+          kind: 'buffet_base',
+          buffet_id: 'b1',
+          adult_count: 2,
+          child_count: 0,
+          name: 'Buffet',
+          name_pt: 'Buffet',
+          qty: 1,
+          price: 35.9,
+          emoji: '',
+          item_status: 'done',
+        },
+        {
+          id: 'm1',
+          name: 'susi',
+          name_pt: 'susi',
+          qty: 3,
+          price: 1.5,
+          emoji: '',
+          per_person_qty_limit: 2,
+          over_limit_unit_price: 4.5,
+          added_at: '2026-01-01T00:00:00.000Z',
+          item_status: 'pending',
+        },
+      ]),
+    ]);
+
+    const menu = frozen[0].items.filter((item) => item.id === 'm1');
+    assert.deepEqual(
+      menu.map((item) => ({ qty: item.qty, price: item.price })),
+      [{ qty: 3, price: 0 }],
+    );
+  });
+
+  it('splits non-zero menu price into free (price 0) and chargeable rows', () => {
+    const frozen = freezeBillingLinesOnOrders([
+      order([
+        {
+          id: 'buffet:b1',
+          kind: 'buffet_base',
+          buffet_id: 'b1',
+          adult_count: 2,
+          child_count: 0,
+          name: 'Buffet',
+          name_pt: 'Buffet',
+          qty: 1,
+          price: 35.9,
+          emoji: '',
+          item_status: 'done',
+        },
+        {
+          id: 'm1',
+          name: 'susi',
+          name_pt: 'susi',
+          qty: 5,
+          price: 1.5,
+          emoji: '',
+          per_person_qty_limit: 2,
+          over_limit_unit_price: 4.5,
+          added_at: '2026-01-01T00:00:00.000Z',
+          item_status: 'pending',
+        },
+      ]),
+    ]);
+
+    const menu = frozen[0].items.filter((item) => item.id === 'm1');
+    assert.deepEqual(
+      menu.map((item) => ({ qty: item.qty, price: item.price })),
+      [
+        { qty: 4, price: 0 },
+        { qty: 1, price: 4.5 },
+      ],
+    );
+  });
 });

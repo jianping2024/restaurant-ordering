@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Order } from '@/types';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import {
   buildBillSplitOrderLines,
   buildByItemLineSpecs,
@@ -57,5 +58,54 @@ describe('buildBillSplitOrderLines', () => {
       assert.equal(specs[0].lineQty, 2);
       assert.equal(specs[0].lineTotal, 4);
     }
+  });
+
+  it('uses billable projection for limited sushi lines (free portions are €0)', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 35.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'm1',
+            name: 'susi1',
+            name_pt: 'susi1',
+            qty: 3,
+            price: 1.5,
+            emoji: '',
+            per_person_qty_limit: 2,
+            over_limit_unit_price: 4.5,
+            added_at: '2026-01-01T00:00:00.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = buildBillSplitOrderLines(orders);
+    const specs = buildByItemLineSpecs(lines);
+    const limited = specs.find((spec) => spec.key.startsWith('limited:'));
+    assert.ok(limited && limited.mode === 'menu');
+    if (limited?.mode === 'menu') {
+      assert.equal(limited.lineQty, 3);
+      assert.equal(limited.lineTotal, 0);
+    }
+    const splitTotal = specs.reduce((sum, spec) => sum + spec.lineTotal, 0);
+    assert.equal(splitTotal, sumBillableSessionTotal(orders));
   });
 });

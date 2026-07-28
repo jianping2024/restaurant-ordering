@@ -23,19 +23,31 @@ export function freezeBillingLinesOnOrders(orders: Order[]): Order[] {
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx];
       const allocation = allocations.get(sushiLimitedLineKey(order.id, itemIdx));
-      const alreadyFrozen =
-        !!allocation &&
-        allocation.freeQty === 0 &&
-        item.price === allocation.chargeableUnitPrice;
+      if (!allocation) {
+        nextItems.push(item);
+        continue;
+      }
 
-      if (!allocation || allocation.chargeableQty <= 0 || alreadyFrozen) {
+      if (allocation.chargeableQty <= 0) {
+        if (item.price === 0) {
+          nextItems.push(item);
+          continue;
+        }
+        changed = true;
+        nextItems.push({ ...item, price: 0 });
+        continue;
+      }
+
+      const alreadyFrozen =
+        allocation.freeQty === 0 && item.price === allocation.chargeableUnitPrice;
+      if (alreadyFrozen) {
         nextItems.push(item);
         continue;
       }
 
       changed = true;
       if (allocation.freeQty > 0) {
-        nextItems.push({ ...item, qty: allocation.freeQty });
+        nextItems.push({ ...item, qty: allocation.freeQty, price: 0 });
       }
       nextItems.push({
         ...item,

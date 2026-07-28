@@ -27,12 +27,21 @@ export function billableMenuItemMergeKey(item: OrderItem): string {
   return `${item.id}::${item.price}`;
 }
 
-/** Line money: menu-priced qty plus the upgrade for chargeable shares. */
+/** Sushi limited dishes merge under `limited:{menuItemId}` (see {@link addLimitedMenuGroup}). */
+export function isLimitedBillableRow(row: Pick<BillableSessionItem, 'key'>): boolean {
+  return row.key.startsWith('limited:');
+}
+
+/**
+ * Line money. Unlimited menu rows: qty × unit price. Limited sushi rows: only the
+ * chargeable share is billed (free allowance portions are €0 on read paths).
+ */
 export function billableLineAmount(row: BillableSessionItem): number {
-  const base = lineTotal(row.item);
-  const share = chargeableShareOf(row);
-  if (!share) return base;
-  return base + share.qty * (share.unitPrice - Number(row.item.price));
+  if (isLimitedBillableRow(row)) {
+    const share = chargeableShareOf(row);
+    return share ? share.qty * share.unitPrice : 0;
+  }
+  return lineTotal(row.item);
 }
 
 /** Non-null when this catalog row has a chargeable share beyond the free allowance. */

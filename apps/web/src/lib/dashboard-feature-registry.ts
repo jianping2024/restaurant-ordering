@@ -292,8 +292,8 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'waiter-board',
     path: '/dashboard/waiter',
-    navRoles: ['frontdesk', 'cashier', 'waiter'],
-    pageLoader: 'loadDashboardAccess (floor staff)',
+    navRoles: ['frontdesk', 'store_owner', 'cashier', 'waiter'],
+    pageLoader: 'requireWaiterBoardDashboardAccess (resolveWaiterBoardDashboardAccess)',
     writePattern: 'read-only',
     aliases: ['/api/dashboard/checkout-close-table-session'],
     riskNote: 'Shared floor board entry; close/checkout actions remain desk-role only.',

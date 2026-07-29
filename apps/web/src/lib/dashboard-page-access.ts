@@ -1,39 +1,26 @@
 import { redirect } from 'next/navigation';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
-import type { DashboardAccess } from '@/lib/dashboard-access';
-import { can, type Capabilities } from '@/lib/permissions/can';
-import {
-  floorBoardCapabilitiesFromCaps,
-  type FloorBoardCapabilities,
-} from '@/lib/permissions/resolve';
+import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
+import {
+  resolveWaiterBoardDashboardAccess,
+  type WaiterBoardDashboardContext,
+} from '@/lib/dashboard-waiter-board-access';
 
-type WaiterBoardDashboardAccess = Extract<
-  DashboardAccess,
-  { mode: 'frontdesk' | 'cashier' | 'waiter' }
->;
-
-export type WaiterBoardDashboardContext = {
-  restaurant: WaiterBoardDashboardAccess['restaurant'];
-  capabilities: Capabilities;
-  floorCapabilities: FloorBoardCapabilities;
-};
+export type { WaiterBoardDashboardContext } from '@/lib/dashboard-waiter-board-access';
 
 /** Dashboard floor board — requires dashboard.waiter_board.view capability. */
 export async function requireWaiterBoardDashboardAccess(): Promise<WaiterBoardDashboardContext> {
   const access = await getDashboardAccess();
-  if (access.mode !== 'frontdesk' && access.mode !== 'cashier' && access.mode !== 'waiter') {
-    redirect('/dashboard');
-  }
-
   const loaded = await loadPrincipalWithCapabilities();
-  if (!loaded || !can(loaded.capabilities, 'dashboard.waiter_board.view')) {
-    redirect('/dashboard');
+  const decision = resolveWaiterBoardDashboardAccess(access, loaded?.capabilities ?? null);
+  if (!decision.ok) {
+    redirect(decision.redirectTo);
   }
 
   return {
-    restaurant: access.restaurant,
-    capabilities: loaded.capabilities,
-    floorCapabilities: floorBoardCapabilitiesFromCaps(loaded.capabilities),
+    restaurant: decision.restaurant,
+    capabilities: loaded!.capabilities,
+    floorCapabilities: floorBoardCapabilitiesFromCaps(loaded!.capabilities),
   };
 }

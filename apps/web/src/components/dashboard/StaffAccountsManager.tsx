@@ -123,8 +123,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setSortDir('asc');
   };
 
-  const sortMark = (key: StaffSortKey) =>
-    sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+  const sortMark = (key: StaffSortKey) => {
+    if (sortKey === key) return sortDir === 'asc' ? '↑' : '↓';
+    return '↕';
+  };
 
   const createdLocale = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-PT' : 'en-GB';
 
@@ -263,7 +265,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden">
+    <div className="w-full max-w-full">
       {!embedded && (
         <div className="mb-6">
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
@@ -283,7 +285,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       ) : null}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="w-full sm:w-48">
+        <div className="w-full sm:w-52 shrink-0 p-1">
           <Input
             type="text"
             role="searchbox"
@@ -293,7 +295,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             aria-label={t.searchLogin}
             clearable
             clearLabel={t.clearSearch}
-            className="bg-brand-bg px-3 py-2 text-sm focus:ring-brand-gold/40 focus:border-brand-gold/40"
+            className="bg-brand-bg focus:ring-brand-gold/40 focus:border-brand-gold/40"
           />
         </div>
         <Button
@@ -315,50 +317,81 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         ) : filteredStaff.length === 0 ? (
           <p className="p-8 text-center text-sm text-brand-text-muted">{t.emptyFiltered}</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm">
             <thead>
               <tr className="border-b border-brand-border text-brand-text-muted text-left">
-                <th className="px-4 py-3 font-medium">{t.colName}</th>
-                <th className="px-4 py-3 font-medium hidden sm:table-cell">
+                <th className="w-[24%] px-4 py-3 font-medium">{t.colName}</th>
+                <th className="w-[16%] px-4 py-3 font-medium hidden sm:table-cell">
                   <button
                     type="button"
-                    className="inline-flex items-center hover:text-brand-text"
+                    className="inline-flex max-w-full items-center gap-0.5 cursor-pointer hover:text-brand-text"
                     aria-label={t.sortByLogin}
                     onClick={() => toggleSort('login_name')}
                   >
-                    {t.colLogin}
-                    {sortMark('login_name')}
+                    <span className="truncate">{t.colLogin}</span>
+                    <span
+                      className={`inline-block w-3 shrink-0 text-center ${
+                        sortKey === 'login_name' ? 'text-brand-text' : 'opacity-40'
+                      }`}
+                      aria-hidden
+                    >
+                      {sortMark('login_name')}
+                    </span>
                   </button>
                 </th>
-                <th className="px-4 py-3 font-medium hidden md:table-cell">
+                <th className="w-[10%] px-4 py-3 font-medium">{t.colRole}</th>
+                <th className="w-[8%] px-4 py-3 font-medium">{t.colStatus}</th>
+                <th className="w-[16%] px-4 py-3 font-medium hidden md:table-cell">
                   <button
                     type="button"
-                    className="inline-flex items-center hover:text-brand-text"
+                    className="inline-flex max-w-full items-center gap-0.5 cursor-pointer hover:text-brand-text"
                     aria-label={t.sortByCreated}
                     onClick={() => toggleSort('created_at')}
                   >
-                    {t.colCreated}
-                    {sortMark('created_at')}
+                    <span className="truncate">{t.colCreated}</span>
+                    <span
+                      className={`inline-block w-3 shrink-0 text-center ${
+                        sortKey === 'created_at' ? 'text-brand-text' : 'opacity-40'
+                      }`}
+                      aria-hidden
+                    >
+                      {sortMark('created_at')}
+                    </span>
                   </button>
                 </th>
-                <th className="px-4 py-3 font-medium">{t.colRole}</th>
-                <th className="px-4 py-3 font-medium">{t.colStatus}</th>
-                <th className="px-4 py-3 font-medium text-right">{t.colActions}</th>
+                <th className="w-[26%] px-4 py-3 font-medium text-right whitespace-nowrap">{t.colActions}</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-left">
               {pagination.rows.map((row) => (
                 <tr key={row.id} className="border-b border-brand-border/60 last:border-0">
-                  <td className="px-4 py-3 text-brand-text">{row.display_name}</td>
-                  <td className="px-4 py-3 hidden sm:table-cell">
+                  <td className="max-w-0 px-4 py-3 text-brand-text">
+                    <span className="block truncate" title={row.display_name}>
+                      {row.display_name}
+                    </span>
+                  </td>
+                  <td className="max-w-0 px-4 py-3 hidden sm:table-cell">
                     <button
                       type="button"
                       onClick={() => void copyLoginName(row.login_name)}
-                      className="text-brand-gold hover:underline font-mono text-[12px]"
-                      title={t.copyLoginName}
+                      className="block max-w-full truncate text-left text-brand-gold hover:underline font-mono text-[12px]"
+                      title={row.login_name}
+                      aria-label={t.copyLoginName}
                     >
                       {row.login_name}
                     </button>
+                  </td>
+                  <td className="max-w-0 px-4 py-3 text-brand-text-muted">
+                    <span className="block truncate" title={roleLabel(row.role)}>
+                      {roleLabel(row.role)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {row.disabled_at ? (
+                      <span className="mesa-text-danger">{t.statusDisabled}</span>
+                    ) : (
+                      <span className="text-green-400">{t.statusActive}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-brand-text-muted text-[12px] whitespace-nowrap">
                     {new Date(row.created_at).toLocaleString(createdLocale, {
@@ -369,16 +402,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                       minute: '2-digit',
                     })}
                   </td>
-                  <td className="px-4 py-3 text-brand-text-muted">{roleLabel(row.role)}</td>
                   <td className="px-4 py-3">
-                    {row.disabled_at ? (
-                      <span className="mesa-text-danger">{t.statusDisabled}</span>
-                    ) : (
-                      <span className="text-green-400">{t.statusActive}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap justify-end gap-2 text-[12px]">
+                    <div className="flex flex-wrap justify-end gap-2 text-[12px] whitespace-nowrap">
                       <button
                         type="button"
                         className="text-brand-text-muted hover:text-brand-text"

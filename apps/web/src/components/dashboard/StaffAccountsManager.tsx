@@ -17,9 +17,12 @@ import {
 import {
   filterStaffByLoginName,
   isStaffPageSize,
+  sortStaffAccounts,
   STAFF_DEFAULT_PAGE_SIZE,
   STAFF_PAGE_SIZES,
   type StaffPageSize,
+  type StaffSortDir,
+  type StaffSortKey,
 } from '@/lib/staff-accounts-list';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
@@ -63,6 +66,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const [loginSearch, setLoginSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<StaffPageSize>(STAFF_DEFAULT_PAGE_SIZE);
+  const [sortKey, setSortKey] = useState<StaffSortKey>('created_at');
+  const [sortDir, setSortDir] = useState<StaffSortDir>('asc');
   const [banner, setBanner] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -95,14 +100,33 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     [staff, loginSearch],
   );
 
+  const sortedStaff = useMemo(
+    () => sortStaffAccounts(filteredStaff, sortKey, sortDir),
+    [filteredStaff, sortKey, sortDir],
+  );
+
   const pagination = useMemo(
-    () => paginateList(filteredStaff, page, pageSize),
-    [filteredStaff, page, pageSize],
+    () => paginateList(sortedStaff, page, pageSize),
+    [sortedStaff, page, pageSize],
   );
 
   useEffect(() => {
     setPage(1);
-  }, [loginSearch, pageSize, staff.length]);
+  }, [loginSearch, pageSize, staff.length, sortKey, sortDir]);
+
+  const toggleSort = (key: StaffSortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortKey(key);
+    setSortDir('asc');
+  };
+
+  const sortMark = (key: StaffSortKey) =>
+    sortKey === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+
+  const createdLocale = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-PT' : 'en-GB';
 
   const flash = useCallback((kind: 'ok' | 'err', text: string) => {
     setBanner({ kind, text });
@@ -295,7 +319,28 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             <thead>
               <tr className="border-b border-brand-border text-brand-text-muted text-left">
                 <th className="px-4 py-3 font-medium">{t.colName}</th>
-                <th className="px-4 py-3 font-medium hidden sm:table-cell">{t.colLogin}</th>
+                <th className="px-4 py-3 font-medium hidden sm:table-cell">
+                  <button
+                    type="button"
+                    className="inline-flex items-center hover:text-brand-text"
+                    aria-label={t.sortByLogin}
+                    onClick={() => toggleSort('login_name')}
+                  >
+                    {t.colLogin}
+                    {sortMark('login_name')}
+                  </button>
+                </th>
+                <th className="px-4 py-3 font-medium hidden md:table-cell">
+                  <button
+                    type="button"
+                    className="inline-flex items-center hover:text-brand-text"
+                    aria-label={t.sortByCreated}
+                    onClick={() => toggleSort('created_at')}
+                  >
+                    {t.colCreated}
+                    {sortMark('created_at')}
+                  </button>
+                </th>
                 <th className="px-4 py-3 font-medium">{t.colRole}</th>
                 <th className="px-4 py-3 font-medium">{t.colStatus}</th>
                 <th className="px-4 py-3 font-medium text-right">{t.colActions}</th>
@@ -314,6 +359,15 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     >
                       {row.login_name}
                     </button>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell text-brand-text-muted text-[12px] whitespace-nowrap">
+                    {new Date(row.created_at).toLocaleString(createdLocale, {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </td>
                   <td className="px-4 py-3 text-brand-text-muted">{roleLabel(row.role)}</td>
                   <td className="px-4 py-3">

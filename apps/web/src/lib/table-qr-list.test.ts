@@ -4,9 +4,7 @@ import {
   applyTableQrListFilters,
   filterTablesBySearch,
   isPageFullySelected,
-  paginateTables,
   selectableTableIds,
-  TABLE_QR_PAGE_SIZE,
   TABLE_QR_UNGROUPED,
 } from './table-qr-list';
 import type { RestaurantTableRow } from './restaurant-tables';
@@ -43,21 +41,6 @@ describe('applyTableQrListFilters', () => {
       groupIdByTableId,
     );
     assert.deepEqual(filtered.map((r) => r.id), ['t4']);
-  });
-});
-
-describe('paginateTables', () => {
-  it('returns page slices', () => {
-    const page1 = paginateTables(tables, 1, 2);
-    assert.equal(page1.totalPages, 2);
-    assert.deepEqual(page1.rows.map((r) => r.id), ['t1', 't2']);
-    const page2 = paginateTables(tables, 2, 2);
-    assert.deepEqual(page2.rows.map((r) => r.id), ['t3', 't4']);
-  });
-
-  it('clamps page to valid range', () => {
-    const out = paginateTables(tables, 99, TABLE_QR_PAGE_SIZE);
-    assert.equal(out.page, 1);
   });
 });
 

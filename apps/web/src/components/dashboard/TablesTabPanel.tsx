@@ -19,10 +19,10 @@ import {
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+import { paginateList } from '@/lib/paginate-list';
 import {
   applyTableQrListFilters,
   isPageFullySelected,
-  paginateTables,
   resolveSelectedTables,
   selectableTableIds,
   TABLE_QR_ALL_GROUPS,
@@ -110,7 +110,7 @@ export function TablesTabPanel({
   );
 
   const pagination = useMemo(
-    () => paginateTables(filteredTables, page, TABLE_QR_PAGE_SIZE),
+    () => paginateList(filteredTables, page, TABLE_QR_PAGE_SIZE),
     [filteredTables, page],
   );
 

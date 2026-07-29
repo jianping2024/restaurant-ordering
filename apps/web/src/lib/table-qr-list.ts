@@ -45,32 +45,6 @@ export function applyTableQrListFilters(
   return filterTablesBySearch(byGroup, filters.search);
 }
 
-export type PaginatedTables = {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-  rows: RestaurantTableRow[];
-};
-
-export function paginateTables(
-  tables: RestaurantTableRow[],
-  page: number,
-  pageSize: number = TABLE_QR_PAGE_SIZE,
-): PaginatedTables {
-  const total = tables.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(Math.max(1, Math.floor(page)), totalPages);
-  const start = (safePage - 1) * pageSize;
-  return {
-    page: safePage,
-    pageSize,
-    total,
-    totalPages,
-    rows: tables.slice(start, start + pageSize),
-  };
-}
-
 export function selectableTableIds(
   rows: RestaurantTableRow[],
   occupiedTableIds: ReadonlySet<string>,

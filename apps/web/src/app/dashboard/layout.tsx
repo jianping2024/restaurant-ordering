@@ -10,7 +10,6 @@ import { PrintAgentCredentialExpiryAlert } from '@/components/dashboard/PrintAge
 import { CheckoutRequestsProvider } from '@/components/dashboard/CheckoutRequestsProvider';
 import { WaiterBoardProvider } from '@/components/dashboard/WaiterBoardProvider';
 import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-server';
-import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
@@ -58,12 +57,8 @@ export default async function DashboardLayout({
   /** Checkout queue when capability grants checkout view (not role enum). */
   const checkoutQueueEnabled = Boolean(caps && can(caps, 'dashboard.checkout.view'));
 
-  /** Board loads on floor list surface — not on every Dashboard chrome SSR. */
-  const waiterBoardEnabled = Boolean(
-    caps
-      ? can(caps, 'dashboard.waiter_board.view')
-      : canAccessDashboardWaiterBoard(access.mode),
-  );
+  /** Board loads on floor list surface — capability only (no role-list fallback). */
+  const waiterBoardEnabled = Boolean(caps && can(caps, 'dashboard.waiter_board.view'));
 
   const showSuspensionBanner =
     (access.mode === 'owner' ||

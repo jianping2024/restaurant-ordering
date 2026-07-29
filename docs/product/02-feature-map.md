@@ -369,7 +369,7 @@
 
 ### 已有功能
 
-- 增值分析页 `/dashboard/value-analytics`（**仅店主**）
+- 增值分析页 `/dashboard/value-analytics`（需 `dashboard.value_analytics.view`：餐厅 `owner_id` 与店主员工预设默认有）
 - 按日（近 30 天）/ 按周 / 按月 / 按季：营业额与客流趋势（日经营表 + 当日现算；懒轧账仅回看近 7 天有关台日）
 - 口径：qualifying 关台 `table_sessions`，归属日按 Lisbon `closed_at`；无营业日不写日表
 
@@ -479,7 +479,7 @@
 
 ### 业务边界
 
-- **仅店主**可确认/忽略（`/dashboard/abnormal-operations`）
+- 需 `dashboard.abnormal_ops.view` 可进入并确认/忽略（`/dashboard/abnormal-operations`；餐厅 `owner_id` 与店主员工预设默认有）
 - 异常记录不自动阻断营业，但形成对账与追溯义务
 - 状态迁移受 `canTransitionAbnormalStatus` 约束
 

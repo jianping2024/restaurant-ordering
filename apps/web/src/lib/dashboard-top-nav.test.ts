@@ -26,7 +26,7 @@ describe('buildDashboardTopNavItems', () => {
     });
     assert.deepEqual(
       items.map((item) => item.id).sort(),
-      ['checkout', 'menu', 'orders', 'overview', 'tables', 'waiterBoard'].sort(),
+      ['checkout', 'guestNotice', 'menu', 'orders', 'overview', 'tables', 'waiterBoard'].sort(),
     );
   });
 
@@ -61,6 +61,22 @@ describe('buildDashboardTopNavItems', () => {
       items.map((item) => item.id).sort(),
       ['abnormalOps', 'overview', 'settings', 'valueAnalytics'].sort(),
     );
+  });
+
+  it('lists store_owner from owner preset caps (floor + settings tools, no guest notice)', () => {
+    const items = buildDashboardTopNavItems({
+      accessMode: 'store_owner',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
+      restaurantSlug: 'demo',
+      kitchenShortcutEnabled: false,
+    });
+    const ids = items.map((item) => item.id).sort();
+    assert.ok(ids.includes('settings'));
+    assert.ok(ids.includes('valueAnalytics'));
+    assert.ok(ids.includes('abnormalOps'));
+    assert.ok(ids.includes('waiterBoard'));
+    assert.ok(ids.includes('checkout'));
+    assert.equal(ids.includes('guestNotice'), false);
   });
 });
 

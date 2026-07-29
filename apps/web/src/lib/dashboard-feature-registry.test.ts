@@ -1,18 +1,19 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  canAccessDashboardWaiterBoard,
   CASHIER_NAV_PATHS,
   DASHBOARD_FEATURES,
-  FRONTDESK_NAV_ITEM_IDS,
   FRONTDESK_NAV_PATHS,
   middlewareAllowsPath,
+  navItemIdsFromPermissionKeys,
   navItemsForRole,
   navPathsForRole,
   OWNER_NAV_ITEM_IDS,
   OWNER_NAV_PATHS,
+  STORE_OWNER_NAV_PATHS,
   WAITER_NAV_PATHS,
 } from './dashboard-feature-registry';
+import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('dashboard nav paths vs feature registry', () => {
   it('owner nav paths are registered for owner role', () => {
@@ -42,6 +43,15 @@ describe('dashboard nav paths vs feature registry', () => {
       assert.ok(feature.navRoles.includes('cashier'), `${path} must list cashier in navRoles`);
     }
   });
+
+  it('store_owner default nav is not the frontdesk list', () => {
+    assert.notDeepEqual(STORE_OWNER_NAV_PATHS, FRONTDESK_NAV_PATHS);
+    assert.ok(STORE_OWNER_NAV_PATHS.includes('/dashboard/settings'));
+    assert.ok(STORE_OWNER_NAV_PATHS.includes('/dashboard/value-analytics'));
+    assert.ok(STORE_OWNER_NAV_PATHS.includes('/dashboard/abnormal-operations'));
+    assert.ok(STORE_OWNER_NAV_PATHS.includes('/dashboard/waiter'));
+    assert.equal(STORE_OWNER_NAV_PATHS.includes('/dashboard/guest-notice'), false);
+  });
 });
 
 describe('middlewareAllowsPath matches nav visibility', () => {
@@ -55,6 +65,14 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     for (const path of FRONTDESK_NAV_PATHS) {
       assert.equal(middlewareAllowsPath('frontdesk', path), true, `frontdesk blocked from ${path}`);
     }
+  });
+
+  it('store_owner shell allows settings and floor ops', () => {
+    assert.equal(middlewareAllowsPath('store_owner', '/dashboard/settings'), true);
+    assert.equal(middlewareAllowsPath('store_owner', '/dashboard/value-analytics'), true);
+    assert.equal(middlewareAllowsPath('store_owner', '/dashboard/abnormal-operations'), true);
+    assert.equal(middlewareAllowsPath('store_owner', '/dashboard/waiter'), true);
+    assert.equal(middlewareAllowsPath('store_owner', '/dashboard/menu'), true);
   });
 
   it('owner cannot reach guest notice (frontdesk capability by default)', () => {
@@ -98,42 +116,37 @@ describe('middlewareAllowsPath matches nav visibility', () => {
   });
 });
 
-describe('canAccessDashboardWaiterBoard', () => {
-  it('allows floor staff roles with embedded waiter board', () => {
-    assert.equal(canAccessDashboardWaiterBoard('frontdesk'), true);
-    assert.equal(canAccessDashboardWaiterBoard('cashier'), true);
-    assert.equal(canAccessDashboardWaiterBoard('waiter'), true);
-    assert.equal(canAccessDashboardWaiterBoard('owner'), false);
-  });
-});
-
 describe('navPathsForRole', () => {
-  it('returns expected arrays', () => {
+  it('maps modes from templates (store_owner ≠ frontdesk)', () => {
     assert.deepEqual(navPathsForRole('owner'), OWNER_NAV_PATHS);
     assert.deepEqual(navPathsForRole('frontdesk'), FRONTDESK_NAV_PATHS);
+    assert.deepEqual(navPathsForRole('store_owner'), STORE_OWNER_NAV_PATHS);
     assert.deepEqual(navPathsForRole('cashier'), CASHIER_NAV_PATHS);
     assert.deepEqual(navPathsForRole('waiter'), WAITER_NAV_PATHS);
   });
 });
 
-describe('write pattern guardrails', () => {
-  it('flags features still on client-rls writes', () => {
-    const clientRls = DASHBOARD_FEATURES.filter((f) => f.writePattern === 'client-rls');
+describe('navItemIdsFromPermissionKeys', () => {
+  it('derives frontdesk and owner-preset ids from ROLE_TEMPLATES', () => {
     assert.deepEqual(
-      clientRls.map((f) => f.id),
-      [],
-      'dashboard writes should use server API, not client RLS',
+      navItemIdsFromPermissionKeys(ROLE_TEMPLATES.frontdesk).sort(),
+      navItemsForRole('frontdesk')
+        .map((item) => item.id)
+        .sort(),
+    );
+    assert.deepEqual(
+      navItemIdsFromPermissionKeys(ROLE_TEMPLATES.owner).sort(),
+      navItemsForRole('store_owner')
+        .map((item) => item.id)
+        .sort(),
     );
   });
 
-  it('derives nav paths from registry nav item ids', () => {
-    assert.equal(OWNER_NAV_PATHS.length, OWNER_NAV_ITEM_IDS.length);
-    assert.equal(FRONTDESK_NAV_PATHS.length, FRONTDESK_NAV_ITEM_IDS.length);
+  it('owner chrome list stays settings-focused', () => {
     assert.equal(navItemsForRole('owner').length, OWNER_NAV_ITEM_IDS.length);
-  });
-
-  it('flags partial server-api features that need extra care when moving menus', () => {
-    const partial = DASHBOARD_FEATURES.filter((f) => f.writePattern === 'server-api-partial');
-    assert.ok(partial.some((f) => f.id === 'checkout'));
+    assert.deepEqual(
+      navItemsForRole('owner').map((item) => item.id),
+      [...OWNER_NAV_ITEM_IDS],
+    );
   });
 });

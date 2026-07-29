@@ -1,5 +1,8 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
-import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
+import {
+  DASHBOARD_NAV_ITEMS,
+  OWNER_NAV_ITEM_IDS,
+} from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
@@ -9,6 +12,8 @@ import {
   type CapabilitiesPayload,
 } from '@/lib/permissions/can';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
+
+const OWNER_CHROME_NAV_IDS = new Set<string>(OWNER_NAV_ITEM_IDS);
 
 export type ProductTopNavItem = {
   id: string;
@@ -150,12 +155,10 @@ export function buildDashboardTopNavItems(input: {
     input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
-  /** Owner chrome stays settings-focused until owner_nav_preferences ships. */
-  const ownerNavIds = new Set(['overview', 'valueAnalytics', 'abnormalOps', 'settings']);
-
   const items: ProductTopNavItem[] = [];
   for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
-    if (accessMode === 'owner' && !ownerNavIds.has(item.id)) continue;
+    // restaurants.owner_id chrome stays settings-focused; staff (incl. store_owner) use caps only.
+    if (accessMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
     items.push({

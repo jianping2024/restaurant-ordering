@@ -428,7 +428,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 处理规则
 
-1. **仅店主**可 PATCH 确认/忽略
+1. 需 `dashboard.abnormal_ops.view` 可 PATCH 确认/忽略（默认：餐厅 `owner_id` 与店主员工预设）
 2. 确认须写 `confirmed_by`、`confirmed_at`、`owner_note`（可选）
 3. 异常记录 **不自动阻断** 现场操作；用于事后对账
 4. 须关联 `operation_logs`（`source_action_id` 可选）

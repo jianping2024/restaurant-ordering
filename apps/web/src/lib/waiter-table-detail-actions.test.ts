@@ -24,6 +24,8 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(flags.showBuffetPanel, true);
     assert.equal(flags.showOccupiedToolbar, true);
+    assert.equal(flags.showTransfer, true);
+    assert.equal(flags.showMerge, true);
     assert.equal(flags.showCheckoutClose, true);
   });
 
@@ -59,6 +61,8 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: true,
     });
     assert.equal(waiterFlags.showOccupiedToolbar, true);
+    assert.equal(waiterFlags.showTransfer, true);
+    assert.equal(waiterFlags.showMerge, true);
     assert.equal(waiterFlags.showCheckoutClose, false);
 
     const idle = resolveWaiterTableDetailActions({
@@ -69,6 +73,8 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: true,
     });
     assert.equal(idle.showOccupiedToolbar, false);
+    assert.equal(idle.showTransfer, false);
+    assert.equal(idle.showMerge, false);
     assert.equal(idle.showCheckoutClose, false);
   });
 
@@ -80,6 +86,24 @@ describe('resolveWaiterTableDetailActions', () => {
       hasOpenSession: true,
       hasActiveBuffets: false,
     });
+    assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showTransfer, true);
+    assert.equal(flags.showMerge, true);
+  });
+
+  it('hides transfer/merge without capability even when session is open', () => {
+    const noRelocate = floorBoardCapabilitiesFromCaps(
+      capabilitiesFromKeys(['tables.checkout_close']),
+    );
+    const flags = resolveWaiterTableDetailActions({
+      caps: noRelocate,
+      isDemo: false,
+      isCheckoutPending: false,
+      hasOpenSession: true,
+      hasActiveBuffets: false,
+    });
+    assert.equal(flags.showTransfer, false);
+    assert.equal(flags.showMerge, false);
     assert.equal(flags.showCheckoutClose, true);
   });
 

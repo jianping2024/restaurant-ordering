@@ -371,6 +371,8 @@ type OccupiedToolbarProps = {
   onCheckoutLocked: () => void;
   onTransfer: () => void;
   onMerge: () => void;
+  showTransfer: boolean;
+  showMerge: boolean;
   showCheckoutClose: boolean;
   floorCapabilities: FloorBoardCapabilities;
   capabilities: Capabilities;
@@ -392,6 +394,8 @@ export function WaiterTableOccupiedToolbar({
   onCheckoutLocked,
   onTransfer,
   onMerge,
+  showTransfer,
+  showMerge,
   showCheckoutClose,
   floorCapabilities,
   capabilities,
@@ -411,22 +415,26 @@ export function WaiterTableOccupiedToolbar({
             onCheckoutLocked={onCheckoutLocked}
             onContinueOrdering={onContinueOrdering}
           />
-          <WaiterTableSecondaryButton
-            type="button"
-            onClick={onTransfer}
-            disabled={transferMergeDisabled}
-            icon={<WaiterTransferIcon className={buttonIcon.sm} />}
-          >
-            {t.transfer}
-          </WaiterTableSecondaryButton>
-          <WaiterTableSecondaryButton
-            type="button"
-            onClick={onMerge}
-            disabled={transferMergeDisabled}
-            icon={<WaiterMergeIcon className={buttonIcon.sm} />}
-          >
-            {t.merge}
-          </WaiterTableSecondaryButton>
+          {showTransfer ? (
+            <WaiterTableSecondaryButton
+              type="button"
+              onClick={onTransfer}
+              disabled={transferMergeDisabled}
+              icon={<WaiterTransferIcon className={buttonIcon.sm} />}
+            >
+              {t.transfer}
+            </WaiterTableSecondaryButton>
+          ) : null}
+          {showMerge ? (
+            <WaiterTableSecondaryButton
+              type="button"
+              onClick={onMerge}
+              disabled={transferMergeDisabled}
+              icon={<WaiterMergeIcon className={buttonIcon.sm} />}
+            >
+              {t.merge}
+            </WaiterTableSecondaryButton>
+          ) : null}
           {showCheckoutClose ? (
             <WaiterTableCheckoutCloseControl
               lang={lang}

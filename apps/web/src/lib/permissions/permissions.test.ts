@@ -67,11 +67,15 @@ describe('can / resolve', () => {
     );
     assert.equal(waiter.canMenuDecrement, false);
     assert.equal(waiter.canCheckoutClose, false);
+    assert.equal(waiter.canTransfer, false);
+    assert.equal(waiter.canMerge, false);
 
     const desk = floorBoardCapabilitiesFromCaps(
       capabilitiesFromKeys([
         'orders.menu_decrement',
         'tables.checkout_close',
+        'tables.transfer',
+        'tables.merge',
         'checkout.assist_bill',
         'checkout.open_pending_tables',
         'checkout.print_pre_bill',
@@ -79,6 +83,8 @@ describe('can / resolve', () => {
     );
     assert.equal(desk.canMenuDecrement, true);
     assert.equal(desk.canPrintSessionPreBill, true);
+    assert.equal(desk.canTransfer, true);
+    assert.equal(desk.canMerge, true);
   });
 
   it('force close from caps', () => {

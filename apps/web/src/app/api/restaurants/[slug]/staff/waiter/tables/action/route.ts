@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import { tableInActiveCheckout, tableSessionBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
 import { fetchWaiterTablePageModel } from '@/lib/staff-board';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
@@ -14,11 +15,6 @@ export async function POST(
   const slug = params.slug;
   if (!slug) {
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
-  }
-
-  const ctx = await openTableAuthFromRequest(req, slug);
-  if (!ctx) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   let body: { action?: unknown; from_table_id?: unknown; to_table_id?: unknown };
@@ -37,6 +33,13 @@ export async function POST(
   }
   if (!fromTableId || !toTableId || tableIdsEqual(fromTableId, toTableId)) {
     return NextResponse.json({ error: 'invalid_tables' }, { status: 400 });
+  }
+
+  const permission: PermissionKey =
+    action === 'transfer' ? 'tables.transfer' : 'tables.merge';
+  const ctx = await staffAuthFromRequest(req, slug, permission);
+  if (!ctx) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   let admin;

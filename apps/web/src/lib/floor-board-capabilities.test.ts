@@ -12,6 +12,16 @@ describe('floorBoardCapabilities', () => {
       assert.equal(caps.canCheckoutClose, true);
       assert.equal(caps.canAssistBillCheckout, true);
       assert.equal(caps.canOpenCheckoutPendingTables, true);
+      assert.equal(caps.canTransfer, true);
+      assert.equal(caps.canMerge, true);
+    }
+  });
+
+  it('derives transfer/merge for owner and waiter presets', () => {
+    for (const preset of ['owner', 'waiter'] as const) {
+      const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES[preset]]));
+      assert.equal(caps.canTransfer, true);
+      assert.equal(caps.canMerge, true);
     }
   });
 
@@ -37,5 +47,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(caps.canCheckoutClose, false);
     assert.equal(caps.canAssistBillCheckout, false);
     assert.equal(caps.canOpenCheckoutPendingTables, false);
+    assert.equal(caps.canTransfer, true);
+    assert.equal(caps.canMerge, true);
   });
 });

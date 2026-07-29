@@ -69,6 +69,8 @@ export type FloorBoardCapabilities = {
   canPrintSessionPreBill: boolean;
   /** Print total bill when running 关台结账 (frontdesk default; cashier false). */
   canPrintOnCheckoutClose: boolean;
+  canTransfer: boolean;
+  canMerge: boolean;
 };
 
 export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): FloorBoardCapabilities {
@@ -79,6 +81,8 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
     canOpenCheckoutPendingTables: can(capabilities, 'checkout.open_pending_tables'),
     canPrintSessionPreBill: can(capabilities, 'checkout.print_pre_bill'),
     canPrintOnCheckoutClose: can(capabilities, 'checkout.print_pre_bill'),
+    canTransfer: can(capabilities, 'tables.transfer'),
+    canMerge: can(capabilities, 'tables.merge'),
   };
 }
 

@@ -989,6 +989,8 @@ function WaiterTableDetailInner({
             onCheckoutLocked={notifyCheckoutLocked}
             onTransfer={() => openAction('transfer', selectedCard.tableId)}
             onMerge={() => openAction('merge', selectedCard.tableId)}
+            showTransfer={detailActions.showTransfer}
+            showMerge={detailActions.showMerge}
             showCheckoutClose={detailActions.showCheckoutClose}
             floorCapabilities={floorCaps}
             capabilities={capabilities}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
@@ -8,11 +8,19 @@ import { Modal } from '@/components/ui/Modal';
 import type { RestaurantStaffAccount, StaffAccountRole } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { paginateList } from '@/lib/paginate-list';
 import {
   normalizeLoginName,
   sanitizeStaffLoginInput,
   suggestLoginNameFromDisplay,
 } from '@/lib/staff-account';
+import {
+  filterStaffByLoginName,
+  isStaffPageSize,
+  STAFF_DEFAULT_PAGE_SIZE,
+  STAFF_PAGE_SIZES,
+  type StaffPageSize,
+} from '@/lib/staff-accounts-list';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 
 interface Props {
@@ -52,6 +60,9 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const t = getMessages(lang).staffSettings;
 
   const [staff, setStaff] = useState<RestaurantStaffAccount[]>(initialStaff);
+  const [loginSearch, setLoginSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<StaffPageSize>(STAFF_DEFAULT_PAGE_SIZE);
   const [banner, setBanner] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -78,6 +89,20 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     () => new Set(staff.map((s) => normalizeLoginName(s.login_name))),
     [staff],
   );
+
+  const filteredStaff = useMemo(
+    () => filterStaffByLoginName(staff, loginSearch),
+    [staff, loginSearch],
+  );
+
+  const pagination = useMemo(
+    () => paginateList(filteredStaff, page, pageSize),
+    [filteredStaff, page, pageSize],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [loginSearch, pageSize, staff.length]);
 
   const flash = useCallback((kind: 'ok' | 'err', text: string) => {
     setBanner({ kind, text });
@@ -221,7 +246,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </div>
       )}
 
-
       {banner ? (
         <p
           className={`text-sm rounded-lg px-4 py-2 mb-4 border ${
@@ -234,7 +258,20 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </p>
       ) : null}
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="w-full sm:w-48">
+          <Input
+            type="text"
+            role="searchbox"
+            value={loginSearch}
+            onChange={(e) => setLoginSearch(e.target.value)}
+            placeholder={t.searchLogin}
+            aria-label={t.searchLogin}
+            clearable
+            clearLabel={t.clearSearch}
+            className="bg-brand-bg px-3 py-2 text-sm focus:ring-brand-gold/40 focus:border-brand-gold/40"
+          />
+        </div>
         <Button
           type="button"
           onClick={() => {
@@ -251,82 +288,137 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       <div className="rounded-2xl border border-brand-border bg-brand-card overflow-hidden">
         {staff.length === 0 ? (
           <p className="p-8 text-center text-sm text-brand-text-muted">{t.empty}</p>
+        ) : filteredStaff.length === 0 ? (
+          <p className="p-8 text-center text-sm text-brand-text-muted">{t.emptyFiltered}</p>
         ) : (
           <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-brand-border text-brand-text-muted text-left">
-                  <th className="px-4 py-3 font-medium">{t.colName}</th>
-                  <th className="px-4 py-3 font-medium hidden sm:table-cell">{t.colLogin}</th>
-                  <th className="px-4 py-3 font-medium">{t.colRole}</th>
-                  <th className="px-4 py-3 font-medium">{t.colStatus}</th>
-                  <th className="px-4 py-3 font-medium text-right">{t.colActions}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {staff.map((row) => (
-                  <tr key={row.id} className="border-b border-brand-border/60 last:border-0">
-                    <td className="px-4 py-3 text-brand-text">{row.display_name}</td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
+            <thead>
+              <tr className="border-b border-brand-border text-brand-text-muted text-left">
+                <th className="px-4 py-3 font-medium">{t.colName}</th>
+                <th className="px-4 py-3 font-medium hidden sm:table-cell">{t.colLogin}</th>
+                <th className="px-4 py-3 font-medium">{t.colRole}</th>
+                <th className="px-4 py-3 font-medium">{t.colStatus}</th>
+                <th className="px-4 py-3 font-medium text-right">{t.colActions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagination.rows.map((row) => (
+                <tr key={row.id} className="border-b border-brand-border/60 last:border-0">
+                  <td className="px-4 py-3 text-brand-text">{row.display_name}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <button
+                      type="button"
+                      onClick={() => void copyLoginName(row.login_name)}
+                      className="text-brand-gold hover:underline font-mono text-[12px]"
+                      title={t.copyLoginName}
+                    >
+                      {row.login_name}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-brand-text-muted">{roleLabel(row.role)}</td>
+                  <td className="px-4 py-3">
+                    {row.disabled_at ? (
+                      <span className="mesa-text-danger">{t.statusDisabled}</span>
+                    ) : (
+                      <span className="text-green-400">{t.statusActive}</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap justify-end gap-2 text-[12px]">
                       <button
                         type="button"
-                        onClick={() => void copyLoginName(row.login_name)}
-                        className="text-brand-gold hover:underline font-mono text-[12px]"
-                        title={t.copyLoginName}
+                        className="text-brand-text-muted hover:text-brand-text"
+                        onClick={() => {
+                          setEditTarget(row);
+                          setEditName(row.display_name);
+                        }}
                       >
-                        {row.login_name}
+                        {t.edit}
                       </button>
-                    </td>
-                    <td className="px-4 py-3 text-brand-text-muted">{roleLabel(row.role)}</td>
-                    <td className="px-4 py-3">
-                      {row.disabled_at ? (
-                        <span className="mesa-text-danger">{t.statusDisabled}</span>
-                      ) : (
-                        <span className="text-green-400">{t.statusActive}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap justify-end gap-2 text-[12px]">
-                        <button
-                          type="button"
-                          className="text-brand-text-muted hover:text-brand-text"
-                          onClick={() => {
-                            setEditTarget(row);
-                            setEditName(row.display_name);
-                          }}
-                        >
-                          {t.edit}
-                        </button>
-                        <button
-                          type="button"
-                          className="text-brand-text-muted hover:text-brand-text"
-                          onClick={() => {
-                            setResetTarget(row);
-                            setResetPassword('');
-                          }}
-                        >
-                          {t.resetPassword}
-                        </button>
-                        <button
-                          type="button"
-                          className="text-brand-text-muted hover:text-brand-text"
-                          onClick={() => setToggleTarget(row)}
-                        >
-                          {row.disabled_at ? t.enable : t.disable}
-                        </button>
-                        <button
-                          type="button"
-                          className="text-status-danger hover:text-status-danger/80"
-                          onClick={() => setDeleteTarget(row)}
-                        >
-                          {t.delete}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <button
+                        type="button"
+                        className="text-brand-text-muted hover:text-brand-text"
+                        onClick={() => {
+                          setResetTarget(row);
+                          setResetPassword('');
+                        }}
+                      >
+                        {t.resetPassword}
+                      </button>
+                      <button
+                        type="button"
+                        className="text-brand-text-muted hover:text-brand-text"
+                        onClick={() => setToggleTarget(row)}
+                      >
+                        {row.disabled_at ? t.enable : t.disable}
+                      </button>
+                      <button
+                        type="button"
+                        className="text-status-danger hover:text-status-danger/80"
+                        onClick={() => setDeleteTarget(row)}
+                      >
+                        {t.delete}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
+
+        {staff.length > 0 && filteredStaff.length > 0 ? (
+          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[13px] text-brand-text-muted">
+                {t.pageInfo
+                  .replace('{page}', String(pagination.page))
+                  .replace('{totalPages}', String(pagination.totalPages))
+                  .replace('{total}', String(pagination.total))}
+              </p>
+              <label className="flex items-center gap-2 text-[13px] text-brand-text-muted">
+                <span className="whitespace-nowrap">{t.pageSizeLabel}</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    if (isStaffPageSize(next)) setPageSize(next);
+                  }}
+                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+                  aria-label={t.pageSizeLabel}
+                >
+                  {STAFF_PAGE_SIZES.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {pagination.totalPages > 1 ? (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPage(pagination.page - 1)}
+                >
+                  {t.pagePrev}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => setPage(pagination.page + 1)}
+                >
+                  {t.pageNext}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <Modal open={createOpen} onClose={() => !createSaving && setCreateOpen(false)} title={t.add}>
@@ -361,20 +453,20 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             }}
           />
           <p className="text-[12px] text-brand-text-muted -mt-2">{t.loginNameAutoHint}</p>
-            <button
-              type="button"
-              className="text-[12px] text-brand-gold hover:underline mt-1"
-              disabled={createSaving || !createForm.display_name.trim()}
-              onClick={() => {
-                loginNameTouchedRef.current = false;
-                setCreateForm((f) => ({
-                  ...f,
-                  login_name: suggestLoginNameFromDisplay(f.display_name, f.role, takenLogins),
-                }));
-              }}
-            >
-              {t.regenerateLoginName}
-            </button>
+          <button
+            type="button"
+            className="text-[12px] text-brand-gold hover:underline mt-1"
+            disabled={createSaving || !createForm.display_name.trim()}
+            onClick={() => {
+              loginNameTouchedRef.current = false;
+              setCreateForm((f) => ({
+                ...f,
+                login_name: suggestLoginNameFromDisplay(f.display_name, f.role, takenLogins),
+              }));
+            }}
+          >
+            {t.regenerateLoginName}
+          </button>
           <div>
             <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
             <select

@@ -1,37 +1,37 @@
 import { isRestaurantSuspended } from '@mesa/shared';
-import type { DashboardAccessMode, DashboardAccessResult } from '@/lib/dashboard-access';
+import type { DashboardAccessResult } from '@/lib/dashboard-access';
+import {
+  resolveDashboardCapabilityAccess,
+} from '@/lib/dashboard-capability-access';
+import type { Capabilities } from '@/lib/permissions/can';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
-const OPERATIONAL_DASHBOARD_MODES = new Set<DashboardAccessMode>([
-  'owner',
-  'store_owner',
-  'frontdesk',
-]);
-
+/**
+ * Operational dashboard restaurant scope — capability gate only (no access.mode whitelist).
+ * Reuses resolveDashboardCapabilityAccess; adds optional suspend check for writes.
+ */
 export function resolveDashboardOperationalContext(
   access: DashboardAccessResult,
+  capabilities: Capabilities | null,
+  permission: PermissionKey,
   options?: { requireWritable?: boolean },
 ): { restaurantId: string } | { error: string; status: number } {
-  if (access.mode === 'unauthenticated') {
-    return { error: 'unauthorized', status: 401 };
-  }
-  if (
-    access.mode === 'access_error' ||
-    access.mode === 'onboarding' ||
-    access.mode === 'cashier' ||
-    access.mode === 'waiter'
-  ) {
-    return { error: 'forbidden', status: 403 };
-  }
-  if (!OPERATIONAL_DASHBOARD_MODES.has(access.mode)) {
-    return { error: 'forbidden', status: 403 };
+  const gate = resolveDashboardCapabilityAccess(access, capabilities, permission);
+  if (!gate.ok) {
+    return { error: gate.error, status: gate.status };
   }
 
   if (
     options?.requireWritable &&
-    isRestaurantSuspended(access.restaurant.suspended_at)
+    access.mode !== 'unauthenticated' &&
+    access.mode !== 'onboarding' &&
+    access.mode !== 'access_error' &&
+    isRestaurantSuspended(
+      'suspended_at' in access.restaurant ? access.restaurant.suspended_at : null,
+    )
   ) {
     return { error: 'restaurant_suspended', status: 403 };
   }
 
-  return { restaurantId: access.restaurant.id };
+  return { restaurantId: gate.restaurantId };
 }

@@ -311,16 +311,6 @@ export async function verifyOpenTableStaffAuth(
   return ctx;
 }
 
-export async function staffAuthFromRequestWithRoles(
-  _req: Request,
-  slug: string,
-  permissions: readonly PermissionKey[],
-): Promise<StaffAuthContext | null> {
-  void _req;
-  return requireStaffAnyPermission(slug, permissions);
-}
-
-/** Checkout confirm / receipt printers — capability gate. */
 export async function checkoutStaffAuthFromRequest(
   _req: Request,
   slug: string,

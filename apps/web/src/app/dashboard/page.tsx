@@ -65,7 +65,7 @@ async function OverviewSecondary({
 
 // 数据概览：首屏 KPI/待办与次屏反馈/热销/近单分路加载；鉴权与 layout 共用请求缓存
 export default async function DashboardPage() {
-  const ctx = await getDashboardOperationalContext();
+  const ctx = await getDashboardOperationalContext('dashboard.overview.view');
   if ('error' in ctx) notFound();
 
   const nowIso = new Date().toISOString();

@@ -19,7 +19,7 @@ function jsonGroups(payload: { groups: unknown[]; members: unknown[]; tables?: u
 }
 
 export async function POST(req: Request) {
-  const ctx = await loadWritableOperationalContext();
+  const ctx = await loadWritableOperationalContext('dashboard.tables.view');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const ctx = await loadWritableOperationalContext();
+  const ctx = await loadWritableOperationalContext('dashboard.tables.view');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -101,7 +101,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const ctx = await loadWritableOperationalContext();
+  const ctx = await loadWritableOperationalContext('dashboard.tables.view');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);

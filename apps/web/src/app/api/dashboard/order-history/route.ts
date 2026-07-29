@@ -6,7 +6,7 @@ import { parseOrderHistorySearchParams } from '@/lib/order-history/parse-query';
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
-  const ctx = await getDashboardOperationalContext();
+  const ctx = await getDashboardOperationalContext('dashboard.orders.view');
   if ('error' in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }

@@ -178,6 +178,36 @@ describe('resolveCloseTableSessionDeskActor', () => {
     assert.equal(decision.ok, false);
   });
 
+  it('allows waiter mode when force_close capability is present', () => {
+    const loaded: PrincipalWithCapabilities = {
+      principal: {
+        kind: 'staff',
+        restaurantId: restaurant.id,
+        userId: 'user-w',
+        staffAccountId: 'staff-w',
+        roleId: 'role-w',
+        roleName: 'waiter',
+        presetKey: 'waiter',
+        staffRoleLabel: 'waiter',
+      },
+      capabilities: capabilitiesFromKeys(['tables.force_close']),
+    };
+    const decision = resolveCloseTableSessionDeskActor(
+      {
+        mode: 'waiter',
+        restaurant: {
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          buffet_service_mode: 'classic',
+        },
+      },
+      loaded,
+      'manual',
+    );
+    assert.equal(decision.ok, true);
+  });
+
   it('rejects checkout_close gate without tables.checkout_close', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {

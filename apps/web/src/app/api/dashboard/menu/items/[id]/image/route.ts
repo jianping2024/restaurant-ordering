@@ -9,7 +9,7 @@ interface Props {
 }
 
 export async function POST(req: Request, { params }: Props) {
-  const ctx = await loadWritableOperationalContext();
+  const ctx = await loadWritableOperationalContext('dashboard.menu.view');
   if (ctx instanceof NextResponse) return ctx;
 
   const { id } = await params;

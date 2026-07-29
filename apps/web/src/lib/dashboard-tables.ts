@@ -39,7 +39,7 @@ async function loadOccupiedTableIds(
 }
 
 export async function loadDashboardTables(): Promise<DashboardTables> {
-  const ctx = await getDashboardOperationalContext();
+  const ctx = await getDashboardOperationalContext('dashboard.tables.view');
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }

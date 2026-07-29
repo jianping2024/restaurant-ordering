@@ -44,7 +44,6 @@ export type DashboardNavItemDef = {
 export type DashboardFeature = {
   id: string;
   path: string;
-  navRoles: DashboardAccessMode[];
   pageLoader: string;
   writePattern: DashboardWritePattern;
   aliases?: string[];
@@ -177,21 +176,19 @@ export const WAITER_NAV_PATHS = navPathsForRole('waiter');
 export const STORE_OWNER_NAV_PATHS = navPathsForRole('store_owner');
 
 /**
- * Canonical dashboard feature access map.
- * Live UI nav uses buildDashboardTopNavItems (capability); navRoles document default presets.
+ * Canonical dashboard feature access map (paths / loaders).
+ * Live UI nav: buildDashboardTopNavItems from capabilities; preset defaults: ROLE_TEMPLATES.
  */
 export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'overview',
     path: '/dashboard',
-    navRoles: ['owner', 'store_owner', 'frontdesk'],
-    pageLoader: 'getDashboardOperationalContext',
+    pageLoader: 'getDashboardOperationalContext (dashboard.overview.view)',
     writePattern: 'read-only',
   },
   {
     id: 'value-analytics',
     path: '/dashboard/value-analytics',
-    navRoles: ['owner', 'store_owner'],
     pageLoader: 'getOwnerAnalyticsContext (dashboard.value_analytics.view)',
     writePattern: 'read-only',
     aliases: ['/api/analytics/value-overview'],
@@ -199,7 +196,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'abnormal-operations',
     path: '/dashboard/abnormal-operations',
-    navRoles: ['owner', 'store_owner'],
     pageLoader: 'loadOwnerAbnormalOperationsContext (dashboard.abnormal_ops.view)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/abnormal-operations'],
@@ -207,7 +203,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-profile',
     path: '/dashboard/settings',
-    navRoles: ['owner', 'store_owner'],
     pageLoader: 'requireRestaurantForSettingsPermission (dashboard.settings.view)',
     writePattern: 'server-api',
     aliases: ['/api/restaurant/settings'],
@@ -215,7 +210,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-staff',
     path: '/dashboard/settings/staff',
-    navRoles: ['owner', 'store_owner'],
     pageLoader: 'requireRestaurantForSettingsPermission (settings.staff.manage)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/staff'],
@@ -223,7 +217,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-features',
     path: '/dashboard/settings/features',
-    navRoles: ['owner'],
     pageLoader: 'requireRestaurantForSettingsPermission (settings.features.manage)',
     writePattern: 'server-api',
     aliases: ['/api/restaurant/features'],
@@ -231,7 +224,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-buffet',
     path: '/dashboard/settings/buffet',
-    navRoles: ['owner'],
     pageLoader: 'requireRestaurantForSettingsPermission (settings.buffet.manage)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/buffet'],
@@ -239,7 +231,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-print-assistant',
     path: '/dashboard/settings/print-assistant',
-    navRoles: ['owner'],
     pageLoader: 'requireSettingsRestaurantAuth (settings.print_assistant.manage)',
     writePattern: 'server-api',
     aliases: ['/api/print-agent/pairings', '/api/print-agent/settings', '/api/print-agent/devices'],
@@ -247,7 +238,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'checkout',
     path: '/dashboard/checkout',
-    navRoles: ['frontdesk', 'store_owner', 'cashier'],
     pageLoader: 'loadDashboardAccess',
     writePattern: 'server-api-partial',
     aliases: [
@@ -261,23 +251,20 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'orders',
     path: '/dashboard/orders',
-    navRoles: ['frontdesk', 'store_owner'],
-    pageLoader: 'getDashboardOperationalContext (loadOrderHistoryDashboardContext)',
+    pageLoader: 'loadOrderHistoryDashboardContext (dashboard.orders.view)',
     writePattern: 'read-only',
   },
   {
     id: 'tables',
     path: '/dashboard/tables',
-    navRoles: ['frontdesk', 'store_owner'],
-    pageLoader: 'loadDashboardTables (getDashboardOperationalContext)',
+    pageLoader: 'loadDashboardTables (dashboard.tables.view)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/tables', '/api/dashboard/table-groups', '/dashboard/settings/tables'],
   },
   {
     id: 'menu',
     path: '/dashboard/menu',
-    navRoles: ['frontdesk', 'store_owner'],
-    pageLoader: 'loadDashboardMenu (getDashboardOperationalContext)',
+    pageLoader: 'loadDashboardMenu (dashboard.menu.view)',
     writePattern: 'server-api',
     aliases: [
       '/api/dashboard/menu/categories',
@@ -285,12 +272,11 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/menu/print-stations',
       '/dashboard/settings/print-stations',
     ],
-    riskNote: 'getDashboardOperationalContext also allows mode=owner, but middleware blocks restaurants.owner_id from this path.',
+    riskNote: 'Page gated by dashboard.menu.view; middleware still blocks restaurants.owner_id from this path shell.',
   },
   {
     id: 'guest-notice',
     path: '/dashboard/guest-notice',
-    navRoles: ['frontdesk'],
     pageLoader: 'resolveDashboardCapabilityAccess (dashboard.guest_notice.view)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/guest-notice'],
@@ -298,7 +284,6 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'waiter-board',
     path: '/dashboard/waiter',
-    navRoles: ['frontdesk', 'store_owner', 'cashier', 'waiter'],
     pageLoader: 'requireWaiterBoardDashboardAccess (resolveWaiterBoardDashboardAccess)',
     writePattern: 'read-only',
     aliases: ['/api/dashboard/checkout-close-table-session'],

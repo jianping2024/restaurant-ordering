@@ -4,9 +4,6 @@ export type StaffRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner'
 
 export const STAFF_ROLES: readonly StaffRole[] = ['kitchen', 'waiter', 'cashier', 'frontdesk', 'owner'];
 
-/** Slug + dashboard floor ops: open table, board, transfer, merge, order edits. */
-export const FLOOR_TABLE_STAFF_ROLES: readonly StaffRole[] = ['waiter', 'frontdesk', 'cashier', 'owner'];
-
 export function isStaffRole(role: string): role is StaffRole {
   return (STAFF_ROLES as readonly string[]).includes(role);
 }

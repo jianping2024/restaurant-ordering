@@ -162,7 +162,7 @@
 2. `POST .../decrement-item`；qty>1 减 1；qty=1 直接取消行（服务端默认 `qty_adjustment`）
 3. `decrementOrderItemWithAudit` 持久化（减至 0 写 `void_reason`，不进异常队列；楼面减菜不写 `operation_logs`）
 
-权限由 `lib/order-item-decrement/decrement-policy.ts` 统一判定：`frontdesk` / `cashier` / `owner` 允许；`waiter` / `kitchen` 拒绝。
+权限由 `lib/order-item-decrement/decrement-policy.ts` 统一判定：需 `orders.menu_decrement` 能力；默认前台/收银/店主员工预设有，服务员/厨房预设无。
 
 ### 异常流程
 

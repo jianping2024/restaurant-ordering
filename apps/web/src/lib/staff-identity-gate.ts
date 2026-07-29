@@ -2,29 +2,8 @@ import { isRestaurantSuspended } from '@mesa/shared';
 import {
   isStaffRole,
   parseStaffUserMetadata,
-  FLOOR_TABLE_STAFF_ROLES,
   type StaffRole,
 } from '@/lib/staff-account';
-
-export type StaffAccessOk = {
-  status: 'ok';
-  restaurant_id: string;
-  slug: string;
-  role: StaffRole;
-  user_id: string;
-  as_owner: boolean;
-};
-
-export type StaffAccessDeniedReason =
-  | 'unauthenticated'
-  | 'needs_password_change'
-  | 'wrong_context'
-  | 'disabled'
-  | 'restaurant_suspended';
-
-export type StaffAccessResult =
-  | StaffAccessOk
-  | { status: 'denied'; reason: StaffAccessDeniedReason };
 
 export type StaffLoginPreflightResult =
   | { ok: true }
@@ -61,40 +40,6 @@ export type StaffLoginContextResult =
   | { kind: 'onboarding' }
   | { kind: 'incomplete_staff_meta' };
 
-function denied(reason: StaffAccessDeniedReason): StaffAccessResult {
-  return { status: 'denied', reason };
-}
-
-function okStaff(
-  row: Pick<StaffGateAccount, 'restaurant_id' | 'role' | 'disabled_at'>,
-  slug: string,
-  userId: string,
-): StaffAccessResult {
-  if (row.disabled_at) return denied('disabled');
-  if (!isStaffRole(row.role)) return denied('wrong_context');
-  return {
-    status: 'ok',
-    restaurant_id: row.restaurant_id,
-    slug,
-    role: row.role,
-    user_id: userId,
-    as_owner: false,
-  };
-}
-
-function needsPasswordChangeForSlug(
-  metadata: Record<string, unknown>,
-  slug: string,
-  allowedRoles: StaffRole[],
-): boolean {
-  const meta = parseStaffUserMetadata(metadata);
-  return (
-    meta?.must_change_password === true &&
-    meta.restaurant_slug === slug &&
-    allowedRoles.includes(meta.staff_role)
-  );
-}
-
 export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
   if (!raw || typeof raw !== 'object') return null;
   const row = raw as Record<string, unknown>;
@@ -120,96 +65,6 @@ export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
     role: row.role,
     disabled_at: (row.disabled_at as string | null | undefined) ?? null,
     restaurant,
-  };
-}
-
-/**
- * Slug API gate: owner wins when both match; then staff for this slug/roles.
- * Pure — unit-tested; loaders only supply rows.
- */
-export function deriveStaffAccessForSlug(input: {
-  userId: string;
-  slug: string;
-  allowedRoles: StaffRole[];
-  userMetadata: Record<string, unknown>;
-  owner: OwnerGateRestaurant | null;
-  staff: StaffGateAccount | null;
-}): StaffAccessResult {
-  const { userId, slug, allowedRoles, userMetadata, owner, staff } = input;
-
-  if (needsPasswordChangeForSlug(userMetadata, slug, allowedRoles)) {
-    return denied('needs_password_change');
-  }
-
-  if (owner) {
-    if (isRestaurantSuspended(owner.suspended_at)) {
-      return denied('restaurant_suspended');
-    }
-    return {
-      status: 'ok',
-      restaurant_id: owner.id,
-      slug,
-      role: allowedRoles[0],
-      user_id: userId,
-      as_owner: true,
-    };
-  }
-
-  if (!staff) return denied('unauthenticated');
-  if (!allowedRoles.includes(staff.role as StaffRole)) {
-    return denied('wrong_context');
-  }
-
-  const restaurant = staff.restaurant;
-  if (!restaurant || restaurant.slug !== slug) {
-    return denied('wrong_context');
-  }
-  if (isRestaurantSuspended(restaurant.suspended_at)) {
-    return denied('restaurant_suspended');
-  }
-
-  return okStaff(staff, slug, userId);
-}
-
-/**
- * Known-restaurant open-table gate: matching floor staff first, else owner.
- * Preserves pre-unification precedence (staff before owner).
- */
-export function deriveOpenTableStaffAccess(input: {
-  userId: string;
-  slug: string;
-  restaurantId: string;
-  userMetadata: Record<string, unknown>;
-  owner: Pick<OwnerGateRestaurant, 'id' | 'slug'> | null;
-  staff: StaffGateAccount | null;
-}): StaffAccessResult {
-  const { userId, slug, restaurantId, userMetadata, owner, staff } = input;
-  const openRoles: StaffRole[] = [...FLOOR_TABLE_STAFF_ROLES];
-
-  if (needsPasswordChangeForSlug(userMetadata, slug, openRoles)) {
-    return denied('needs_password_change');
-  }
-
-  if (
-    staff &&
-    !staff.disabled_at &&
-    staff.restaurant_id === restaurantId &&
-    openRoles.includes(staff.role as StaffRole)
-  ) {
-    return okStaff(staff, slug, userId);
-  }
-
-  if (!owner || owner.slug !== slug) {
-    return denied('unauthenticated');
-  }
-
-  return {
-    status: 'ok',
-    restaurant_id: restaurantId,
-    slug,
-    role: 'waiter',
-    user_id: userId,
-    as_owner: true,
   };
 }
 

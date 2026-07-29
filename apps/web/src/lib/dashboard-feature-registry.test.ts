@@ -16,31 +16,28 @@ import {
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('dashboard nav paths vs feature registry', () => {
-  it('owner nav paths are registered for owner role', () => {
+  it('owner nav paths are registered features', () => {
     for (const path of OWNER_NAV_PATHS) {
       const feature = DASHBOARD_FEATURES.find(
         (f) => f.path === path || path.startsWith(`${f.path}/`),
       );
       assert.ok(feature, `missing owner feature for nav path ${path}`);
-      assert.ok(feature.navRoles.includes('owner'), `${path} must list owner in navRoles`);
     }
   });
 
-  it('frontdesk nav paths are registered for frontdesk role', () => {
+  it('frontdesk nav paths are registered features', () => {
     for (const path of FRONTDESK_NAV_PATHS) {
       const feature = DASHBOARD_FEATURES.find(
         (f) => f.path === path || path.startsWith(`${f.path}/`),
       );
       assert.ok(feature, `missing frontdesk feature for nav path ${path}`);
-      assert.ok(feature.navRoles.includes('frontdesk'), `${path} must list frontdesk in navRoles`);
     }
   });
 
-  it('cashier nav paths are registered for cashier role', () => {
+  it('cashier nav paths are registered features', () => {
     for (const path of CASHIER_NAV_PATHS) {
       const feature = DASHBOARD_FEATURES.find((f) => f.path === path);
       assert.ok(feature, `missing cashier feature for nav path ${path}`);
-      assert.ok(feature.navRoles.includes('cashier'), `${path} must list cashier in navRoles`);
     }
   });
 

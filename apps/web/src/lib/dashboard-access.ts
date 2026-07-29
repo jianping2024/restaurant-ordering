@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
-import { resolveDashboardOperationalContext } from '@/lib/dashboard-operational-context';
 
 import {
   dashboardMiddlewareRedirectPath,
@@ -270,24 +269,4 @@ export async function isFrontdeskStaffUser(
   userMetadata: Record<string, unknown> | undefined,
 ): Promise<boolean> {
   return isActiveStaffRole(supabase, userId, userMetadata, 'frontdesk');
-}
-
-/** Server-side admin context for dashboard operational pages and APIs (overview, orders, tables, menu). */
-export async function loadDashboardOperationalContext(options?: {
-  requireWritable?: boolean;
-}): Promise<DashboardOperationalContext> {
-  const access = await loadDashboardAccess();
-  const resolved = resolveDashboardOperationalContext(access, options);
-  if ('error' in resolved) {
-    return resolved;
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured', status: 503 };
-  }
-
-  return { admin, restaurantId: resolved.restaurantId };
 }

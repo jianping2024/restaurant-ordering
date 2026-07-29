@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KitchenDisplay } from '@/components/kitchen/KitchenDisplay';
-import { requireStaffSlugPageAccess } from '@/lib/staff-page-gate';
+import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
 import { loadKitchenBoardInitial } from '@/lib/staff-board';
 
 interface Props {
@@ -20,7 +20,7 @@ export default async function KitchenPage({ params }: Props) {
 
   if (!restaurant) notFound();
 
-  const access = await requireStaffSlugPageAccess(slug, ['kitchen']);
+  const access = await requireStaffSlugPagePermission(slug, 'floor.kitchen_board.view');
   const board = await loadKitchenBoardInitial(access.restaurant_id).catch(() => null);
 
   return (

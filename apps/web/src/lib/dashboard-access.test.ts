@@ -13,6 +13,8 @@ import {
   shouldPrefetchDashboardNav,
 } from './dashboard-paths';
 import { resolveDashboardOperationalContext } from './dashboard-operational-context';
+import { capabilitiesFromKeys } from './permissions/can';
+import { resolveCapabilitiesForOwner } from './permissions/resolve';
 import { isStaffRole } from './staff-account';
 
 describe('isDashboardSettingsPath', () => {
@@ -110,40 +112,71 @@ describe('resolveDashboardOperationalContext', () => {
     suspended_at: null,
     suspension_reason: null,
   };
+  const overviewCaps = capabilitiesFromKeys(['dashboard.overview.view']);
 
-  it('allows owner, store_owner, and frontdesk', () => {
+  it('allows access when capability matches', () => {
     assert.deepEqual(
-      resolveDashboardOperationalContext({ mode: 'owner', restaurant: restaurant as never }),
+      resolveDashboardOperationalContext(
+        { mode: 'owner', restaurant: restaurant as never },
+        resolveCapabilitiesForOwner(),
+        'dashboard.overview.view',
+      ),
       { restaurantId: 'r1' },
     );
     assert.deepEqual(
-      resolveDashboardOperationalContext({ mode: 'store_owner', restaurant }),
+      resolveDashboardOperationalContext(
+        { mode: 'store_owner', restaurant },
+        overviewCaps,
+        'dashboard.overview.view',
+      ),
       { restaurantId: 'r1' },
     );
     assert.deepEqual(
-      resolveDashboardOperationalContext({ mode: 'frontdesk', restaurant }),
+      resolveDashboardOperationalContext(
+        { mode: 'frontdesk', restaurant },
+        overviewCaps,
+        'dashboard.overview.view',
+      ),
       { restaurantId: 'r1' },
     );
   });
 
-  it('rejects floor staff and unauthenticated access', () => {
-    assert.deepEqual(resolveDashboardOperationalContext({ mode: 'unauthenticated' }), {
-      error: 'unauthorized',
-      status: 401,
-    });
+  it('rejects missing capability even for frontdesk mode', () => {
     assert.deepEqual(
-      resolveDashboardOperationalContext({
-        mode: 'cashier',
-        restaurant: { id: 'r1', name: 'Test', slug: 'test', buffet_service_mode: 'classic' },
-      }),
+      resolveDashboardOperationalContext(
+        { mode: 'frontdesk', restaurant },
+        capabilitiesFromKeys(['dashboard.waiter_board.view']),
+        'dashboard.overview.view',
+      ),
       { error: 'forbidden', status: 403 },
     );
+  });
+
+  it('rejects unauthenticated access', () => {
     assert.deepEqual(
-      resolveDashboardOperationalContext({
-        mode: 'waiter',
-        restaurant: { id: 'r1', name: 'Test', slug: 'test', buffet_service_mode: 'classic' },
-      }),
-      { error: 'forbidden', status: 403 },
+      resolveDashboardOperationalContext(
+        { mode: 'unauthenticated' },
+        null,
+        'dashboard.overview.view',
+      ),
+      {
+        error: 'unauthorized',
+        status: 401,
+      },
+    );
+  });
+
+  it('allows cashier when capability is granted', () => {
+    assert.deepEqual(
+      resolveDashboardOperationalContext(
+        {
+          mode: 'cashier',
+          restaurant: { id: 'r1', name: 'Test', slug: 'test', buffet_service_mode: 'classic' },
+        },
+        overviewCaps,
+        'dashboard.overview.view',
+      ),
+      { restaurantId: 'r1' },
     );
   });
 
@@ -151,6 +184,8 @@ describe('resolveDashboardOperationalContext', () => {
     assert.deepEqual(
       resolveDashboardOperationalContext(
         { mode: 'store_owner', restaurant: { ...restaurant, suspended_at: '2026-01-01T00:00:00Z' } },
+        overviewCaps,
+        'dashboard.overview.view',
         { requireWritable: true },
       ),
       { error: 'restaurant_suspended', status: 403 },

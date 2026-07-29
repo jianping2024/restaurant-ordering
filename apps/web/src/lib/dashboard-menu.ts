@@ -11,7 +11,7 @@ export type DashboardMenu =
   | { error: string; status: number };
 
 export async function loadDashboardMenu(): Promise<DashboardMenu> {
-  const ctx = await getDashboardOperationalContext();
+  const ctx = await getDashboardOperationalContext('dashboard.menu.view');
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }

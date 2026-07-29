@@ -4,8 +4,6 @@ import { can, type Capabilities } from '@/lib/permissions/can';
 import type { PrincipalWithCapabilities } from '@/lib/permissions/principal';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
 
-const DESK_CLOSE_ACCESS_MODES = new Set(['store_owner', 'frontdesk', 'cashier']);
-
 export type CloseTableSessionActorGate = 'checkout_close' | 'manual';
 
 export type CloseTableSessionDeskActorDecision =
@@ -34,7 +32,7 @@ export function settledCloseReasonForStaffPreset(
   return 'frontdesk_closed';
 }
 
-/** Pure desk close actor gate: capability + dashboard access — no staff role enum whitelist. */
+/** Pure desk close actor gate: staff principal + close capability (no mode/role whitelist). */
 export function resolveCloseTableSessionDeskActor(
   access: DashboardAccessResult,
   loaded: PrincipalWithCapabilities | null,
@@ -45,9 +43,6 @@ export function resolveCloseTableSessionDeskActor(
     return { ok: false, error: 'unauthorized', status: 401 };
   }
   if (access.mode === 'access_error' || access.mode === 'onboarding') {
-    return { ok: false, error: 'forbidden', status: 403 };
-  }
-  if (!DESK_CLOSE_ACCESS_MODES.has(access.mode)) {
     return { ok: false, error: 'forbidden', status: 403 };
   }
   if (!loaded || loaded.principal.kind !== 'staff') {

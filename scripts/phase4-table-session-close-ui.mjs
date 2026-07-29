@@ -25,23 +25,35 @@ function assertNotContains(name, text, pattern, pass) {
 function main() {
   const pass = [];
   const waiter = read('apps/web/src/components/waiter/WaiterTableDetail.tsx');
-  const owner = read('apps/web/src/components/dashboard/OrdersHistoryManager.tsx');
+  const waiterLayout = read('apps/web/src/components/waiter/WaiterTableDetailLayout.tsx');
+  const owner = read('apps/web/src/components/dashboard/checkout/CheckoutRequestDetail.tsx');
   const closeAction = read('apps/web/src/components/dashboard/CloseTableSessionAction.tsx');
   const messages = read('apps/web/src/lib/i18n/messages.ts');
   const uiLib = read('apps/web/src/lib/close-table-session-ui.ts');
 
-  assertContains('waiter CloseTableSessionAction', waiter, /CloseTableSessionAction/, pass);
+  assertContains('waiter CloseTableSessionAction', waiterLayout, /CloseTableSessionAction/, pass);
   assertContains('waiter isCheckoutPending prop', waiter, /isCheckoutPending=\{isCheckoutPending\}/, pass);
   assertNotContains('waiter shouldPromptCheckoutCloseConfirm', waiter, /shouldPromptCheckoutCloseConfirm/, pass);
   assertNotContains('waiter kitchen canCloseTableCard block', waiter, /canCloseTableCard/, pass);
 
   assertContains('owner CloseTableSessionAction', owner, /CloseTableSessionAction/, pass);
-  assertContains('owner isCheckoutPending prop', owner, /isCheckoutPending=\{isTableCheckoutRequested/, pass);
+  assertContains('owner isCheckoutPending prop', owner, /isCheckoutPending/, pass);
   assertNotContains('owner kitchen canClose block', owner, /card\.cooking > 0 \|\| card\.ready > 0/, pass);
   assertNotContains('owner force_reason (old phase3)', owner, /force_reason/, pass);
   assertNotContains('owner legacy checkout close modal state', owner, /setCheckoutCloseConfirmTableId/, pass);
 
-  assertContains('close action skips generic confirm when checkout pending', closeAction, /if \(isCheckoutPending\) \{[\s\S]*setUnpaidCloseReasonOpen\(true\)/, pass);
+  assertNotContains(
+    'close action does not proactively open unpaid reason when checkout pending',
+    closeAction,
+    /reasonCloseEntry\s*=\s*[^;\n]*isCheckoutPending/,
+    pass,
+  );
+  assertContains(
+    'close action reasonCloseEntry comes only from closeConfirmEntry',
+    closeAction,
+    /const reasonCloseEntry = closeConfirmEntry === 'reason';/,
+    pass,
+  );
   assertContains('close action unpaid checkout message key', closeAction, /closeTableUnpaidReasonMessageCheckout/, pass);
 
   for (const key of ['closeTableConfirmTitle', 'closeTableConfirmMessage', 'closeTableUnpaidReasonMessageCheckout', 'closeTableConfirmButton', 'closeTableCancel']) {
@@ -58,7 +70,7 @@ function main() {
     date: new Date().toISOString(),
     phase4_scope: {
       changes: [
-        'Checkout-pending close opens unpaid-close reason dialog directly',
+        'Checkout-pending close relies on server response to decide unpaid reason',
         'confirm_close:true on reason dialog confirm',
         'Shared CloseTableSessionAction for waiter + owner',
         'Shared interpretCloseTableSessionResponse for response handling',

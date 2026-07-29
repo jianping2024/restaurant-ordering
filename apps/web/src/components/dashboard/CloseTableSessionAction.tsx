@@ -71,7 +71,10 @@ export function CloseTableSessionAction({
     [isCheckoutPending, i18n],
   );
 
-  const reasonCloseEntry = closeConfirmEntry === 'reason' || isCheckoutPending;
+  // Source of truth: only open the unpaid-close reason dialog proactively when
+  // the caller explicitly sets `closeConfirmEntry="reason"`.
+  // Otherwise, rely on the server response (`reason_required`) to decide.
+  const reasonCloseEntry = closeConfirmEntry === 'reason';
 
   const handleCloseTable = async (
     closeTableId: string,

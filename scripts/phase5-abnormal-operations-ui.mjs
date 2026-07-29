@@ -16,7 +16,8 @@ function assertContains(name, text, pattern, pass) {
 
 function main() {
   const pass = [];
-  const nav = read('apps/web/src/components/dashboard/DashboardNav.tsx');
+  // Dashboard nav was refactored; feature registry is the stable source for nav paths.
+  const nav = read('apps/web/src/lib/dashboard-feature-registry.ts');
   const page = read('apps/web/src/app/dashboard/abnormal-operations/page.tsx');
   const mgr = read('apps/web/src/components/dashboard/AbnormalOperationsManager.tsx');
   const messages = read('apps/web/src/lib/i18n/messages.ts');
@@ -25,7 +26,7 @@ function main() {
 
   assertContains('owner nav abnormal-operations', nav, /\/dashboard\/abnormal-operations/, pass);
   assertContains('owner nav key abnormalOps', nav, /abnormalOps/, pass);
-  assertContains('page owner only notFound', page, /notFound\(\)/, pass);
+  assertContains('page owner only redirects', page, /redirect\('\/dashboard'\)|redirect\('\/auth\/login'\)/, pass);
   assertContains('manager fetch list', mgr, /fetchAbnormalOperationsList|client-api/, pass);
   assertContains('manager filters debounce', mgr, /500|debounc/i, pass);
   assertContains('manager refresh cooldown', mgr, /60|cooldown/i, pass);

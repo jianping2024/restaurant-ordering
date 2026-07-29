@@ -117,6 +117,8 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'dashboard.settings.view',
     'settings.profile.manage',
     'settings.staff.manage',
+    'dashboard.value_analytics.view',
+    'dashboard.abnormal_ops.view',
   ],
 };
 

@@ -42,6 +42,8 @@ describe('can / resolve', () => {
     assert.equal(can(caps, 'settings.roles.manage'), true);
     assert.equal(can(caps, 'settings.print_assistant.manage'), true);
     assert.equal(can(caps, 'tables.force_close'), true);
+    assert.equal(can(caps, 'dashboard.value_analytics.view'), true);
+    assert.equal(can(caps, 'dashboard.abnormal_ops.view'), true);
     assert.equal(typeof caps, 'object');
     assert.notEqual((caps as unknown) === '*', true);
   });

@@ -241,9 +241,40 @@ assert_code "waiter buffet API" 403 "$(http_code "$WAIT_JAR" GET /api/dashboard/
 assert_code "waiter profile PATCH gate" 403 "$(http_code "$WAIT_JAR" PATCH /api/restaurant/settings)"
 
 echo "=== Dashboard pages store_owner ==="
-for path in /dashboard /dashboard/orders /dashboard/tables /dashboard/menu /dashboard/waiter /dashboard/settings; do
-  assert_code "store_owner GET $path" 200 "$(http_code "$STORE_JAR" GET "$path")"
+for path in /dashboard /dashboard/orders /dashboard/tables /dashboard/menu /dashboard/waiter /dashboard/settings /dashboard/value-analytics /dashboard/abnormal-operations; do
+  CODE=$(http_code "$STORE_JAR" GET "$path")
+  # Follow redirects manually for owner tools — must stay on path (not bounce to overview)
+  if [ "$path" = "/dashboard/value-analytics" ] || [ "$path" = "/dashboard/abnormal-operations" ]; then
+    url=$(curl -sS -b "$STORE_JAR" -o /tmp/uat-body.json -w '%{url_effective}' -L "$BASE$path")
+    if [[ "$url" == *"$path" ]] && [ "$(curl -sS -b "$STORE_JAR" -o /dev/null -w '%{http_code}' "$BASE$path")" = "200" ]; then
+      pass "store_owner GET $path"
+    else
+      fail "store_owner GET $path" "url=$url code=$(curl -sS -b "$STORE_JAR" -o /dev/null -w '%{http_code}' "$BASE$path")"
+    fi
+  else
+    assert_code "store_owner GET $path" 200 "$CODE"
+  fi
 done
+
+echo "=== Owner tools API by role ==="
+assert_code "store_owner value-overview API" 200 "$(http_code "$STORE_JAR" GET "/api/analytics/value-overview?range=day")"
+assert_code "store_owner abnormal-operations API" 200 "$(http_code "$STORE_JAR" GET /api/dashboard/abnormal-operations)"
+assert_code "backend_admin value-overview API" 200 "$(http_code "$ADMIN_JAR" GET "/api/analytics/value-overview?range=day")"
+assert_code "backend_admin abnormal-operations API" 200 "$(http_code "$ADMIN_JAR" GET /api/dashboard/abnormal-operations)"
+
+FRONT_VA=$(http_code "$FRONT_JAR" GET "/api/analytics/value-overview?range=day")
+if [ "$FRONT_VA" = "401" ] || [ "$FRONT_VA" = "403" ]; then pass "frontdesk value-overview blocked"; else fail "frontdesk value-overview blocked" "got $FRONT_VA"; fi
+FRONT_AB=$(http_code "$FRONT_JAR" GET /api/dashboard/abnormal-operations)
+if [ "$FRONT_AB" = "401" ] || [ "$FRONT_AB" = "403" ]; then pass "frontdesk abnormal-operations blocked"; else fail "frontdesk abnormal-operations blocked" "got $FRONT_AB"; fi
+CASH_VA=$(http_code "$CASH_JAR" GET "/api/analytics/value-overview?range=day")
+if [ "$CASH_VA" = "401" ] || [ "$CASH_VA" = "403" ]; then pass "cashier value-overview blocked"; else fail "cashier value-overview blocked" "got $CASH_VA"; fi
+WAIT_VA=$(http_code "$WAIT_JAR" GET "/api/analytics/value-overview?range=day")
+if [ "$WAIT_VA" = "401" ] || [ "$WAIT_VA" = "403" ]; then pass "waiter value-overview blocked"; else fail "waiter value-overview blocked" "got $WAIT_VA"; fi
+KITCHEN_VA=$(http_code "$KITCHEN_JAR" GET "/api/analytics/value-overview?range=day")
+if [ "$KITCHEN_VA" = "401" ] || [ "$KITCHEN_VA" = "403" ]; then pass "kitchen value-overview blocked"; else fail "kitchen value-overview blocked" "got $KITCHEN_VA"; fi
+
+FRONT_PAGE=$(curl -sS -b "$FRONT_JAR" -o /dev/null -w '%{url_effective}' -L "$BASE/dashboard/value-analytics")
+if [[ "$FRONT_PAGE" != *"/dashboard/value-analytics" ]]; then pass "frontdesk value-analytics redirected"; else fail "frontdesk value-analytics redirected" "$FRONT_PAGE"; fi
 
 echo "=== Waiter board URLs ==="
 for pair in "store_owner:$STORE_JAR" "frontdesk:$FRONT_JAR" "cashier:$CASH_JAR" "waiter:$WAIT_JAR"; do

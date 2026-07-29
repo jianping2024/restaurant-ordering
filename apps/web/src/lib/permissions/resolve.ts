@@ -40,13 +40,9 @@ export function enforcePermissionRequires(keys: readonly PermissionKey[]): Permi
 }
 
 export function resolveCapabilitiesForOwner(): Capabilities {
-  // Owner account acts as restaurant backend admin: explicit permission set,
-  // not the legacy '*' super-admin shortcut.
+  // Restaurant owner (mode=owner): store-owner template + backend-admin settings keys.
   return capabilitiesFromKeys([
-    ...templatePermissions('frontdesk'),
-    'dashboard.settings.view',
-    'settings.profile.manage',
-    'settings.staff.manage',
+    ...templatePermissions('owner'),
     'settings.roles.manage',
     'settings.features.manage',
     'settings.buffet.manage',

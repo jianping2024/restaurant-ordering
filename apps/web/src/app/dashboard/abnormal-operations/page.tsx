@@ -1,15 +1,13 @@
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { AbnormalOperationsManager } from '@/components/dashboard/AbnormalOperationsManager';
-import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { loadOwnerAbnormalOperationsContext } from '@/lib/abnormal-operations/load-owner-context';
 
 export default async function AbnormalOperationsPage() {
-  const access = await loadDashboardAccess();
-  if (access.mode === 'unauthenticated') {
-    redirect('/auth/login');
-  }
-  if (access.mode !== 'owner') {
-    notFound();
+  const ctx = await loadOwnerAbnormalOperationsContext();
+  if ('error' in ctx) {
+    if (ctx.status === 401) redirect('/auth/login');
+    redirect('/dashboard');
   }
 
-  return <AbnormalOperationsManager restaurantSlug={access.restaurant.slug} />;
+  return <AbnormalOperationsManager restaurantSlug={ctx.restaurantSlug} />;
 }

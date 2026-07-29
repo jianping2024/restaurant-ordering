@@ -164,14 +164,12 @@ describe('dashboardMiddlewareRedirectPath', () => {
     );
   });
 
-  it('redirects store_owner away from admin-only owner paths', () => {
+  it('allows store_owner on owner tools and operational routes', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/value-analytics'), null);
     assert.equal(
-      dashboardMiddlewareRedirectPath('store_owner', '/dashboard/value-analytics'),
-      '/dashboard',
+      dashboardMiddlewareRedirectPath('store_owner', '/dashboard/abnormal-operations'),
+      null,
     );
-  });
-
-  it('allows store_owner on settings and operational routes', () => {
     assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/settings'), null);
     assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/settings/staff'), null);
     assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/waiter'), null);

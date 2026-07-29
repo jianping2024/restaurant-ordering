@@ -4,20 +4,29 @@ import { cache } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
+import {
+  OWNER_TOOL_PERMISSIONS,
+  resolveOwnerToolCapabilityAccess,
+} from '@/lib/dashboard-owner-tool-access';
+import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
 export type OwnerAnalyticsContext =
   | { admin: SupabaseClient; restaurantId: string; userId: string }
   | { error: string; status: number; message?: string };
 
-const FORBIDDEN_MESSAGE = '当前账号无权访问增值分析。';
-
 export async function loadOwnerAnalyticsContext(): Promise<OwnerAnalyticsContext> {
   const access = await getDashboardAccess();
-  if (access.mode === 'unauthenticated') {
-    return { error: 'unauthorized', status: 401 };
+  const loaded = await loadPrincipalWithCapabilities();
+  const gate = resolveOwnerToolCapabilityAccess(
+    access,
+    loaded?.capabilities ?? null,
+    OWNER_TOOL_PERMISSIONS.valueAnalytics,
+  );
+  if (!gate.ok) {
+    return { error: gate.error, status: gate.status };
   }
-  if (access.mode !== 'owner') {
-    return { error: 'forbidden', status: 403, message: FORBIDDEN_MESSAGE };
+  if (!loaded) {
+    return { error: 'unauthorized', status: 401 };
   }
 
   let admin;
@@ -29,8 +38,8 @@ export async function loadOwnerAnalyticsContext(): Promise<OwnerAnalyticsContext
 
   return {
     admin,
-    restaurantId: access.restaurant.id,
-    userId: access.restaurant.owner_id,
+    restaurantId: gate.restaurantId,
+    userId: loaded.principal.userId,
   };
 }
 

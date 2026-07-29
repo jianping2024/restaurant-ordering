@@ -83,14 +83,6 @@ export function dashboardMiddlewareRedirectPath(
     return null;
   }
   if (actor === 'store_owner') {
-    if (
-      pathname === '/dashboard/value-analytics' ||
-      pathname.startsWith('/dashboard/value-analytics/') ||
-      pathname === '/dashboard/abnormal-operations' ||
-      pathname.startsWith('/dashboard/abnormal-operations/')
-    ) {
-      return '/dashboard';
-    }
     if (isDashboardSettingsPath(pathname)) return null;
     if (!isFrontdeskOperationalPath(pathname)) return '/dashboard';
     return null;

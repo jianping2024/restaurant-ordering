@@ -10,6 +10,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import { topNavAccountTriggerClass } from '@/lib/dashboard-top-nav';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
+import { StaffChangePasswordDialog } from '@/components/auth/StaffChangePasswordDialog';
 
 type Props = {
   roleLabel: string;
@@ -19,6 +20,8 @@ type Props = {
   compact?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Demo / guest shells without a real session hide voluntary change-password. */
+  allowChangePassword?: boolean;
 };
 
 export function PersonalSettingsMenu({
@@ -29,6 +32,7 @@ export function PersonalSettingsMenu({
   compact = false,
   open: controlledOpen,
   onOpenChange,
+  allowChangePassword = true,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
@@ -36,12 +40,18 @@ export function PersonalSettingsMenu({
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = onOpenChange ?? setUncontrolledOpen;
   const rootRef = useRef<HTMLDivElement>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const signOut = useSignOutConfirmState(onSignOut);
 
   const handleLogout = () => {
     setOpen(false);
     signOut.triggerSignOut(confirmSignOut);
+  };
+
+  const handleOpenChangePassword = () => {
+    setOpen(false);
+    setChangePasswordOpen(true);
   };
 
   const accountAriaLabel = `${roleLabel} — ${t.accountMenu}`;
@@ -70,6 +80,17 @@ export function PersonalSettingsMenu({
           align="end"
         >
           <PersonalSettingsPanel />
+          {allowChangePassword ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleOpenChangePassword}
+              className="flex min-h-11 w-full items-center gap-2 border-b border-brand-border/70 px-3 py-2.5 text-sm text-brand-text hover:bg-brand-surface/80 transition-colors"
+            >
+              <span aria-hidden>🔑</span>
+              <span>{t.changePassword}</span>
+            </button>
+          ) : null}
           <button
             type="button"
             role="menuitem"
@@ -88,6 +109,12 @@ export function PersonalSettingsMenu({
         onConfirm={signOut.confirmSignOut}
         confirming={signOut.modalConfirming}
       />
+      {allowChangePassword ? (
+        <StaffChangePasswordDialog
+          open={changePasswordOpen}
+          onClose={() => setChangePasswordOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

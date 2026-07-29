@@ -404,6 +404,7 @@
 
 - 餐厅资料：名称、地址、电话、Logo、国家码、点餐地理半径
 - 员工账号：kitchen / waiter / cashier / frontdesk CRUD、禁用、重置密码
+- 账户菜单：外观 / 语言 / **自愿修改密码**（与强制改密同一表单与 API）/ 退出登录
 - 功能开关：`kitchen_board`、`bill_receipt_print`
 - 自助餐规则：时段、价格矩阵、周五晚周末、日历覆盖
 - 打印助手：配对、设备、档口、账单打印机、营业时间 schedule

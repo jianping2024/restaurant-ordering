@@ -13,6 +13,7 @@ import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-se
 import { canAccessDashboardWaiterBoard } from '@/lib/dashboard-feature-registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
+import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 
 /**
  * Print-expiry banner loads in its own Suspense island so it never blocks page children.
@@ -65,7 +66,9 @@ export default async function DashboardLayout({
   );
 
   const showSuspensionBanner =
-    (access.mode === 'owner' || access.mode === 'frontdesk') &&
+    (access.mode === 'owner' ||
+      access.mode === 'frontdesk' ||
+      access.mode === 'store_owner') &&
     isRestaurantSuspended(access.restaurant.suspended_at);
 
   return (
@@ -83,7 +86,7 @@ export default async function DashboardLayout({
           restaurant={access.restaurant}
           accessMode={access.mode}
           capabilities={toCapabilitiesPayload(
-            caps ?? (access.mode === 'owner' ? '*' : new Set()),
+            caps ?? (access.mode === 'owner' ? resolveCapabilitiesForOwner() : new Set()),
           )}
         >
           {showSuspensionBanner ? (

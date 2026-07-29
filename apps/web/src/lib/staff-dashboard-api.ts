@@ -1,5 +1,6 @@
+import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { isPrintAgentStaffRole } from '@mesa/shared';
 import {
   staffPasswordValid,
@@ -11,8 +12,11 @@ import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
 
 export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: boolean }) {
-  const auth = await getOwnerRestaurantId(options);
-  if ('error' in auth) return auth;
+  const auth = await requireSettingsRestaurantAuth('settings.staff.manage', options);
+  if (auth instanceof NextResponse) {
+    const body = (await auth.json().catch(() => ({}))) as { error?: string };
+    return { error: (body.error ?? 'forbidden') as string, status: auth.status };
+  }
 
   let admin;
   try {

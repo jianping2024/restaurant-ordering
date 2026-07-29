@@ -6,6 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 import { SETTINGS_NAV_TABS } from '@/lib/settings-nav';
+import { can, fromCapabilitiesPayload, type CapabilitiesPayload } from '@/lib/permissions/can';
 
 function tabClass(active: boolean) {
   return `inline-flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
@@ -15,10 +16,21 @@ function tabClass(active: boolean) {
   }`;
 }
 
-export function SettingsTabs() {
+type Props = {
+  capabilities: CapabilitiesPayload;
+};
+
+export function SettingsTabs({ capabilities: capabilitiesPayload }: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
+  const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
+
+  const visibleTabs = SETTINGS_NAV_TABS.filter((item) => can(capabilities, item.permission));
+
+  if (visibleTabs.length === 0) {
+    return null;
+  }
 
   return (
     <nav
@@ -26,7 +38,7 @@ export function SettingsTabs() {
       className="mb-5 -mx-1 overflow-x-auto overscroll-x-contain [scrollbar-width:thin]"
     >
       <div className="flex min-w-max border-b border-brand-border/80 px-1">
-        {SETTINGS_NAV_TABS.map((item) => {
+        {visibleTabs.map((item) => {
           const active = item.isActive(pathname);
           return (
             <Link

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { buildStaffEmail } from '@/lib/staff-account';
 import {
-  loadOwnerRestaurantWithSlug,
   mapHumanStaffRows,
   mapStaffRow,
   staffMetadataPayload,
@@ -10,19 +9,23 @@ import {
 } from '@/lib/staff-dashboard-api';
 import { findPresetRole, getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { requirePermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
+import { isRestaurantSuspended } from '@mesa/shared';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const loaded = await loadOwnerRestaurantWithSlug();
-  if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
-  }
+  const permission: PermissionKey = 'settings.staff.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
-  const { data, error } = await loaded.admin
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from('restaurant_staff_accounts')
     .select('*')
-    .eq('restaurant_id', loaded.restaurant.id)
+    .eq('restaurant_id', auth.principal.restaurantId)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -36,10 +39,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const loaded = await loadOwnerRestaurantWithSlug({ requireWritable: true });
-  if ('error' in loaded) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
-  }
+  const permission: PermissionKey = 'settings.staff.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let body: Record<string, unknown>;
   try {
@@ -55,12 +57,23 @@ export async function POST(req: Request) {
 
   const email = buildStaffEmail(parsed.login_name);
 
-  const supabase = await createClient();
-  const {
-    data: { user: owner },
-  } = await supabase.auth.getUser();
+  const admin = createAdminClient();
+  const { data: restaurant, error: restErr } = await admin
+    .from('restaurants')
+    .select('id, name, slug, suspended_at')
+    .eq('id', auth.principal.restaurantId)
+    .maybeSingle();
+  if (restErr || !restaurant) {
+    return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
+  }
+  if (isRestaurantSuspended(restaurant.suspended_at)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
+  }
 
-  const { data: createdUser, error: createError } = await loaded.admin.auth.admin.createUser({
+  const supabase = await createClient();
+  const { data: { user: actor } } = await supabase.auth.getUser();
+
+  const { data: createdUser, error: createError } = await admin.auth.admin.createUser({
     email,
     password: parsed.password,
     email_confirm: true,
@@ -68,8 +81,8 @@ export async function POST(req: Request) {
       account_type: 'staff',
       must_change_password: true,
       staff_role: parsed.role,
-      restaurant_id: loaded.restaurant.id,
-      restaurant_slug: loaded.restaurant.slug,
+      restaurant_id: restaurant.id,
+      restaurant_slug: restaurant.slug,
     },
   });
 
@@ -84,8 +97,8 @@ export async function POST(req: Request) {
   const userId = createdUser.user.id;
 
   const presetRole = parsed.role_id
-    ? await getRestaurantRole(loaded.admin, loaded.restaurant.id, parsed.role_id)
-    : await findPresetRole(loaded.admin, loaded.restaurant.id, parsed.role);
+    ? await getRestaurantRole(admin, restaurant.id, parsed.role_id)
+    : await findPresetRole(admin, restaurant.id, parsed.role);
 
   if (!presetRole) {
     return NextResponse.json({ error: 'invalid_role' }, { status: 400 });
@@ -93,22 +106,22 @@ export async function POST(req: Request) {
 
   const staffRoleLabel = staffRoleLabelForRestaurantRole(presetRole);
 
-  const { data: row, error: insertError } = await loaded.admin
+  const { data: row, error: insertError } = await admin
     .from('restaurant_staff_accounts')
     .insert({
-      restaurant_id: loaded.restaurant.id,
+      restaurant_id: restaurant.id,
       user_id: userId,
       role: staffRoleLabel,
       role_id: presetRole.id,
       display_name: parsed.display_name,
       login_name: parsed.login_name,
-      created_by: owner?.id ?? null,
+      created_by: actor?.id ?? null,
     })
     .select('*')
     .single();
 
   if (insertError) {
-    await loaded.admin.auth.admin.deleteUser(userId);
+    await admin.auth.admin.deleteUser(userId);
     if (isDbMigrationRequiredError(insertError)) {
       return NextResponse.json({ error: 'migration_required' }, { status: 503 });
     }
@@ -119,11 +132,11 @@ export async function POST(req: Request) {
   }
 
   const account = mapStaffRow(row as Record<string, unknown>);
-  await loaded.admin.auth.admin.updateUserById(userId, {
+  await admin.auth.admin.updateUserById(userId, {
     user_metadata: staffMetadataPayload(
       account.id,
-      loaded.restaurant.id,
-      loaded.restaurant.slug,
+      restaurant.id,
+      restaurant.slug,
       staffRoleLabel,
       true,
     ),

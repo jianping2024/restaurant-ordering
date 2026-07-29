@@ -13,7 +13,9 @@ import {
 } from '@/lib/print-agent-config';
 import { mergeStoredPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { isRestaurantSuspended } from '@mesa/shared';
+import { requirePermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
@@ -41,10 +43,9 @@ function parseOrderCooldownSecondsPatch(body: unknown): number | undefined | nul
 }
 
 export async function GET() {
-  const auth = await getOwnerRestaurantId();
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const permission: PermissionKey = 'settings.features.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let admin;
   try {
@@ -56,7 +57,7 @@ export async function GET() {
   const { data, error } = await admin
     .from('restaurants')
     .select('feature_flags, print_agent_config, order_cooldown_seconds')
-    .eq('id', auth.restaurantId)
+    .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
   if (error) {
@@ -81,10 +82,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const permission: PermissionKey = 'settings.features.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let body: unknown;
   try {
@@ -124,8 +124,8 @@ export async function PATCH(req: Request) {
 
   const { data: row, error: readError } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds')
-    .eq('id', auth.restaurantId)
+    .select('feature_flags, print_agent_config, order_cooldown_seconds, suspended_at')
+    .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
   if (readError) {
@@ -133,6 +133,10 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'migration_required' }, { status: 503 });
     }
     return NextResponse.json({ error: 'query_failed' }, { status: 500 });
+  }
+
+  if (row?.suspended_at && isRestaurantSuspended(row.suspended_at)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
   const nextFlags = patch
@@ -166,7 +170,7 @@ export async function PATCH(req: Request) {
   const { error } = await admin
     .from('restaurants')
     .update(updatePayload)
-    .eq('id', auth.restaurantId);
+    .eq('id', auth.principal.restaurantId);
 
   if (error) {
     if (isDbMigrationRequiredError(error)) {

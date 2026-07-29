@@ -7,7 +7,7 @@ import {
   findPresetRole,
   staffRoleLabelForRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
-import { isRolePresetKey } from '@/lib/permissions/role-templates';
+import { isRolePresetKey, type RolePresetKey } from '@/lib/permissions/role-templates';
 import { normalizeStoredPermissions } from '@/lib/permissions/resolve';
 import type { Principal, StaffPrincipal } from '@/lib/permissions/types';
 import type { PermissionKey } from '@/lib/permissions/registry';
@@ -59,11 +59,7 @@ async function loadStaffPrincipal(
     permissions = normalizeStoredPermissions(role.permissions);
     disabledAt = role.disabled_at;
   } else if (isRolePresetKey(String(account.role))) {
-    const preset = await findPresetRole(
-      admin,
-      account.restaurant_id as string,
-      account.role as 'kitchen' | 'waiter' | 'cashier' | 'frontdesk',
-    );
+    const preset = await findPresetRole(admin, account.restaurant_id as string, account.role as RolePresetKey);
     if (!preset || preset.disabled_at) return null;
     roleId = preset.id;
     roleName = preset.name;

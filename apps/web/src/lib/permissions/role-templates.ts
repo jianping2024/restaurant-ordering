@@ -4,7 +4,7 @@ import {
 } from '@/lib/permissions/registry';
 
 /** System preset keys seeded per restaurant (not custom). */
-export const ROLE_PRESET_KEYS = ['kitchen', 'waiter', 'cashier', 'frontdesk'] as const;
+export const ROLE_PRESET_KEYS = ['kitchen', 'waiter', 'cashier', 'frontdesk', 'owner'] as const;
 export type RolePresetKey = (typeof ROLE_PRESET_KEYS)[number];
 
 export function isRolePresetKey(value: string): value is RolePresetKey {
@@ -17,6 +17,7 @@ export const ROLE_PRESET_DEFAULT_NAMES: Record<RolePresetKey, string> = {
   waiter: '服务员',
   cashier: '收银员',
   frontdesk: '前台',
+  owner: '店主',
 };
 
 /**
@@ -85,6 +86,37 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'orders.print_receipt',
     'buffet.post_to_table',
     'floor.waiter_board.view',
+  ],
+  owner: [
+    'dashboard.overview.view',
+    'dashboard.checkout.view',
+    'dashboard.orders.view',
+    'dashboard.tables.view',
+    'dashboard.menu.view',
+    'dashboard.waiter_board.view',
+    'dashboard.kitchen_shortcut.view',
+    'checkout.confirm_payment',
+    'checkout.apply_discount',
+    'checkout.request_whole_table',
+    'checkout.assist_bill',
+    'checkout.print_pre_bill',
+    'checkout.open_pending_tables',
+    'print_agent.receipt_printers.read',
+    'tables.manage',
+    'tables.open_session',
+    'tables.checkout_close',
+    'tables.force_close',
+    'tables.transfer',
+    'tables.merge',
+    'orders.append',
+    'orders.edit',
+    'orders.menu_decrement',
+    'orders.print_receipt',
+    'buffet.post_to_table',
+    'floor.waiter_board.view',
+    'dashboard.settings.view',
+    'settings.profile.manage',
+    'settings.staff.manage',
   ],
 };
 

@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { loadBuffetDashboard, type BuffetDashboardData } from '@/lib/dashboard-buffet-server';
@@ -14,6 +15,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
+import { requirePermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
+import { isRestaurantSuspended } from '@mesa/shared';
 
 /** Owner-only settings pages — shares cached auth with dashboard layout. */
 export async function requireOwnerRestaurant(): Promise<Restaurant> {
@@ -21,6 +25,44 @@ export async function requireOwnerRestaurant(): Promise<Restaurant> {
   if (access.mode === 'unauthenticated') redirect('/auth/login');
   if (access.mode !== 'owner') redirect('/dashboard');
   return access.restaurant;
+}
+
+async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Restaurant> {
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    redirect('/dashboard');
+  }
+
+  const { data, error } = await admin
+    .from('restaurants')
+    .select(
+      'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, created_at',
+    )
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (error || !data) redirect('/dashboard');
+  return data as Restaurant;
+}
+
+/**
+ * Settings pages permission-based entry for both owner_id (backend admin) and staff roles.
+ * Keeps the rest of the settings loaders unchanged by returning the restaurant row.
+ */
+export async function requireRestaurantForSettingsPermission(
+  permission: PermissionKey,
+  options?: { requireWritable?: boolean },
+): Promise<Restaurant> {
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) redirect('/dashboard');
+
+  const restaurant = await loadRestaurantByIdForSettings(auth.principal.restaurantId);
+  if (options?.requireWritable && isRestaurantSuspended(restaurant.suspended_at)) {
+    redirect('/dashboard');
+  }
+  return restaurant;
 }
 
 export function toSettingsProfile(restaurant: Restaurant): RestaurantSettingsProfile {

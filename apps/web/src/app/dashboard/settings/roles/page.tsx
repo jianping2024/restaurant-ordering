@@ -1,7 +1,9 @@
 import { RolesPermissionsManager } from './RolesPermissionsManager';
-import { requireOwnerRestaurant } from '@/lib/settings-page-data';
+import { requireRestaurantForSettingsPermission } from '@/lib/settings-page-data';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export default async function SettingsRolesPage() {
-  await requireOwnerRestaurant();
+  const permission: PermissionKey = 'settings.roles.manage';
+  await requireRestaurantForSettingsPermission(permission);
   return <RolesPermissionsManager />;
 }

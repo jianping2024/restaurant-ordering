@@ -44,6 +44,7 @@ export async function resolveDashboardActor(
 
   if (account && !account.disabled_at) {
     if (account.role === 'frontdesk') return 'frontdesk';
+    if (account.role === 'owner') return 'store_owner';
     if (account.role === 'cashier') return 'cashier';
     if (account.role === 'waiter') return 'waiter';
     if (account.role === 'custom') return 'frontdesk'; // path shell; capabilities enforce pages
@@ -51,6 +52,7 @@ export async function resolveDashboardActor(
 
   const meta = parseStaffUserMetadata(userMetadata);
   if (meta?.staff_role === 'frontdesk') return 'frontdesk';
+  if (meta?.staff_role === 'owner') return 'store_owner';
   if (meta?.staff_role === 'cashier') return 'cashier';
   if (meta?.staff_role === 'waiter') return 'waiter';
 
@@ -80,10 +82,11 @@ export type FloorStaffDashboardRestaurant = Pick<
   'id' | 'name' | 'slug' | 'buffet_service_mode'
 >;
 
-export type DashboardAccessMode = 'owner' | 'cashier' | 'frontdesk' | 'waiter';
+export type DashboardAccessMode = 'owner' | 'store_owner' | 'cashier' | 'frontdesk' | 'waiter';
 
 export type DashboardAccess =
   | { mode: 'owner'; restaurant: Restaurant }
+  | { mode: 'store_owner'; restaurant: FrontdeskDashboardRestaurant }
   | { mode: 'cashier'; restaurant: FloorStaffDashboardRestaurant }
   | { mode: 'waiter'; restaurant: FloorStaffDashboardRestaurant }
   | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant };
@@ -202,6 +205,32 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     if (restaurant) {
       return {
         mode: 'frontdesk',
+        restaurant: restaurant as FrontdeskDashboardRestaurant,
+      };
+    }
+  }
+
+  if (account && !account.disabled_at && account.role === 'owner') {
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch {
+      return { mode: 'access_error', message: 'server_misconfigured' };
+    }
+
+    const { data: restaurant, error: restaurantError } = await admin
+      .from('restaurants')
+      .select(FRONTDESK_RESTAURANT_SELECT)
+      .eq('id', account.restaurant_id)
+      .maybeSingle();
+
+    if (restaurantError) {
+      return { mode: 'access_error', message: restaurantError.message };
+    }
+
+    if (restaurant) {
+      return {
+        mode: 'store_owner',
         restaurant: restaurant as FrontdeskDashboardRestaurant,
       };
     }
@@ -412,7 +441,7 @@ export async function resolveOverviewDashboardContext(
   ) {
     return { error: 'forbidden', status: 403 };
   }
-  if (access.mode === 'frontdesk') {
+  if (access.mode === 'frontdesk' || access.mode === 'store_owner') {
     return loadFrontdesk();
   }
 

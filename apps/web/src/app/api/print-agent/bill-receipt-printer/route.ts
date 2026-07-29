@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseDefaultReceiptStationId } from '@/lib/print-agent-config';
 import { mergeAndPersistPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import {
   assertReceiptPrinterIdAllowed,
   loadRestaurantReceiptPrinterSnapshot,
@@ -11,10 +11,10 @@ import {
 export const runtime = 'nodejs';
 
 export async function PATCH(req: Request) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
+    requireWritable: true,
+  });
+  if (auth instanceof NextResponse) return auth;
 
   let body: unknown;
   try {

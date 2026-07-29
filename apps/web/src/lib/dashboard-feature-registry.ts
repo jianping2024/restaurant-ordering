@@ -151,7 +151,7 @@ export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[
   const ids =
     role === 'owner'
       ? OWNER_NAV_ITEM_IDS
-      : role === 'frontdesk'
+      : role === 'frontdesk' || role === 'store_owner'
         ? FRONTDESK_NAV_ITEM_IDS
         : role === 'cashier'
           ? CASHIER_NAV_ITEM_IDS
@@ -235,7 +235,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     id: 'settings-print-assistant',
     path: '/dashboard/settings/print-assistant',
     navRoles: ['owner'],
-    pageLoader: 'getOwnerRestaurantId',
+    pageLoader: 'requireSettingsRestaurantAuth',
     writePattern: 'server-api',
     aliases: ['/api/print-agent/pairings', '/api/print-agent/settings', '/api/print-agent/devices'],
   },
@@ -302,6 +302,10 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
 
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
   if (role === 'owner') return isOwnerDashboardPath(pathname);
+  if (role === 'store_owner') {
+    if (isDashboardSettingsPath(pathname)) return true;
+    return isFrontdeskOperationalPath(pathname);
+  }
   if (role === 'frontdesk') {
     if (isDashboardSettingsPath(pathname)) return false;
     return isFrontdeskOperationalPath(pathname);
@@ -313,7 +317,7 @@ export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string
 
 export function navPathsForRole(role: DashboardAccessMode): readonly string[] {
   if (role === 'owner') return OWNER_NAV_PATHS;
-  if (role === 'frontdesk') return FRONTDESK_NAV_PATHS;
+  if (role === 'frontdesk' || role === 'store_owner') return FRONTDESK_NAV_PATHS;
   if (role === 'cashier') return CASHIER_NAV_PATHS;
   if (role === 'waiter') return WAITER_NAV_PATHS;
   return [];

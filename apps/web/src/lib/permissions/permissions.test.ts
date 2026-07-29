@@ -12,6 +12,7 @@ import {
   enforcePermissionRequires,
   floorBoardCapabilitiesFromCaps,
   mayForceCloseFromCaps,
+  resolveCapabilitiesForOwner,
   staffLandingPathFromCapabilities,
 } from '@/lib/permissions/resolve';
 
@@ -36,6 +37,15 @@ describe('permissions registry integrity', () => {
 });
 
 describe('can / resolve', () => {
+  it('backend admin owner capabilities are explicit, not star', () => {
+    const caps = resolveCapabilitiesForOwner();
+    assert.equal(can(caps, 'settings.roles.manage'), true);
+    assert.equal(can(caps, 'settings.print_assistant.manage'), true);
+    assert.equal(can(caps, 'tables.force_close'), true);
+    assert.equal(typeof caps, 'object');
+    assert.notEqual((caps as unknown) === '*', true);
+  });
+
   it('owner star allows all', () => {
     assert.equal(can('*', 'tables.force_close'), true);
   });

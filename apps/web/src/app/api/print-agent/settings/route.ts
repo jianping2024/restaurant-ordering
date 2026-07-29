@@ -7,15 +7,16 @@ import {
   parsePrintAgentSchedulePollSlice,
 } from '@/lib/print-agent-config';
 import { mergeAndPersistPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { isRestaurantSuspended } from '@mesa/shared';
+import { requirePermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const auth = await getOwnerRestaurantId();
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const permission: PermissionKey = 'settings.print_assistant.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let admin;
   try {
@@ -27,7 +28,7 @@ export async function GET() {
   const { data: row, error } = await admin
     .from('restaurants')
     .select('print_agent_config')
-    .eq('id', auth.restaurantId)
+    .eq('id', auth.principal.restaurantId)
     .single();
 
   if (error) {
@@ -47,10 +48,9 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const permission: PermissionKey = 'settings.print_assistant.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let body: unknown;
   try {
@@ -66,12 +66,24 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
+  const { data: row, error: suspendedReadErr } = await admin
+    .from('restaurants')
+    .select('suspended_at')
+    .eq('id', auth.principal.restaurantId)
+    .maybeSingle();
+  if (suspendedReadErr || !row) {
+    return NextResponse.json({ error: 'query_failed' }, { status: 500 });
+  }
+  if (row.suspended_at && isRestaurantSuspended(row.suspended_at)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
+  }
+
   const parsed = parsePrintAgentSchedulePollSlice(body);
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  const result = await mergeAndPersistPrintAgentConfig(admin, auth.restaurantId, {
+  const result = await mergeAndPersistPrintAgentConfig(admin, auth.principal.restaurantId, {
     schedule: parsed.slice.schedule,
     poll: parsed.slice.poll,
   });

@@ -66,7 +66,7 @@ export function isFrontdeskOperationalPath(pathname: string): boolean {
   return true;
 }
 
-export type DashboardActor = 'owner' | 'frontdesk' | 'cashier' | 'waiter' | 'unknown';
+export type DashboardActor = 'owner' | 'frontdesk' | 'store_owner' | 'cashier' | 'waiter' | 'unknown';
 
 /** Pure redirect target for dashboard middleware (testable). */
 export function dashboardMiddlewareRedirectPath(
@@ -79,6 +79,19 @@ export function dashboardMiddlewareRedirectPath(
   }
   if (actor === 'frontdesk') {
     if (isDashboardSettingsPath(pathname)) return '/dashboard';
+    if (!isFrontdeskOperationalPath(pathname)) return '/dashboard';
+    return null;
+  }
+  if (actor === 'store_owner') {
+    if (
+      pathname === '/dashboard/value-analytics' ||
+      pathname.startsWith('/dashboard/value-analytics/') ||
+      pathname === '/dashboard/abnormal-operations' ||
+      pathname.startsWith('/dashboard/abnormal-operations/')
+    ) {
+      return '/dashboard';
+    }
+    if (isDashboardSettingsPath(pathname)) return null;
     if (!isFrontdeskOperationalPath(pathname)) return '/dashboard';
     return null;
   }

@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 
 export const runtime = 'nodejs';
 
 /** Dashboard: re-queue a failed print job (fresh created_at so agent max-age / offline-backlog rules apply to this retry). */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
+    requireWritable: true,
+  });
+  if (auth instanceof NextResponse) return auth;
 
   const jobId = params.id?.trim();
   if (!jobId) {

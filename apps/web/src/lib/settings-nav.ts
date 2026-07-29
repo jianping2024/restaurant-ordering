@@ -1,3 +1,5 @@
+import type { PermissionKey } from '@/lib/permissions/registry';
+
 export type SettingsNavId =
   | 'profile'
   | 'features'
@@ -26,6 +28,7 @@ export type SettingsNavItem = {
   labelKey: SettingsHubLabelKey;
   hintKey?: SettingsHubHintKey;
   icon: string;
+  permission: PermissionKey;
   isActive: (pathname: string) => boolean;
 };
 
@@ -36,6 +39,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     labelKey: 'tabProfile',
     hintKey: 'hintProfile',
     icon: '🏪',
+    permission: 'settings.profile.manage',
     isActive: (pathname) =>
       pathname === '/dashboard/settings' || pathname === '/dashboard/settings/',
   },
@@ -44,6 +48,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     href: '/dashboard/settings/staff',
     labelKey: 'tabStaff',
     icon: '👥',
+    permission: 'settings.staff.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/staff'),
   },
   {
@@ -51,6 +56,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     href: '/dashboard/settings/roles',
     labelKey: 'tabRoles',
     icon: '🔐',
+    permission: 'settings.roles.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/roles'),
   },
   {
@@ -59,6 +65,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     labelKey: 'tabFeatures',
     hintKey: 'hintFeatures',
     icon: '🧩',
+    permission: 'settings.features.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/features'),
   },
   {
@@ -67,6 +74,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     labelKey: 'tabBuffet',
     hintKey: 'hintBuffet',
     icon: '🍽️',
+    permission: 'settings.buffet.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/buffet'),
   },
   {
@@ -75,6 +83,7 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     labelKey: 'tabPrintAssistant',
     hintKey: 'hintPrintAssistant',
     icon: '🖨️',
+    permission: 'settings.print_assistant.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/print-assistant'),
   },
 ];

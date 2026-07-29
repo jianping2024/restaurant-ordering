@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { randomPairingCode } from '@/lib/print-agent-pairing-code';
 import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 export const runtime = 'nodejs';
 
 export async function POST() {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
+    requireWritable: true,
+  });
+  if (auth instanceof NextResponse) return auth;
 
   let admin;
   try {

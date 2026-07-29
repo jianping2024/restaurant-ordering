@@ -9,8 +9,14 @@ import {
 } from '@/lib/settings-nav';
 import { BuffetSettingsGuide } from '@/components/dashboard/settings/BuffetSettingsGuide';
 import { SettingsTabs } from '@/components/dashboard/settings/SettingsTabs';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
-export function DashboardSettingsShell({ children }: { children: React.ReactNode }) {
+type Props = {
+  children: React.ReactNode;
+  capabilities: CapabilitiesPayload;
+};
+
+export function DashboardSettingsShell({ children, capabilities }: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
@@ -51,7 +57,7 @@ export function DashboardSettingsShell({ children }: { children: React.ReactNode
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">
       <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
-        <SettingsTabs />
+        <SettingsTabs capabilities={capabilities} />
         {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}
       </div>
     </div>

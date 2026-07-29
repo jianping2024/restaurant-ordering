@@ -1,7 +1,9 @@
 import { SettingsForm } from '@/components/dashboard/SettingsForm';
-import { requireOwnerRestaurant, toSettingsProfile } from '@/lib/settings-page-data';
+import { requireRestaurantForSettingsPermission, toSettingsProfile } from '@/lib/settings-page-data';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export default async function SettingsPage() {
-  const restaurant = await requireOwnerRestaurant();
+  const permission: PermissionKey = 'settings.profile.manage';
+  const restaurant = await requireRestaurantForSettingsPermission(permission);
   return <SettingsForm embedded restaurant={toSettingsProfile(restaurant)} />;
 }

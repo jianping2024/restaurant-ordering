@@ -1,8 +1,9 @@
-import { can, type Capabilities } from '@/lib/permissions/can';
+import { can, capabilitiesFromKeys, type Capabilities } from '@/lib/permissions/can';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isPermissionKey } from '@/lib/permissions/registry';
 import type { PermissionDef } from '@/lib/permissions/registry';
 import { PERMISSIONS } from '@/lib/permissions/registry';
+import { templatePermissions } from '@/lib/permissions/role-templates';
 
 /** Parse DB jsonb/text[] into a clean PermissionKey list (unknown keys dropped). */
 export function normalizeStoredPermissions(raw: unknown): PermissionKey[] {
@@ -39,7 +40,18 @@ export function enforcePermissionRequires(keys: readonly PermissionKey[]): Permi
 }
 
 export function resolveCapabilitiesForOwner(): Capabilities {
-  return '*';
+  // Owner account acts as restaurant backend admin: explicit permission set,
+  // not the legacy '*' super-admin shortcut.
+  return capabilitiesFromKeys([
+    ...templatePermissions('frontdesk'),
+    'dashboard.settings.view',
+    'settings.profile.manage',
+    'settings.staff.manage',
+    'settings.roles.manage',
+    'settings.features.manage',
+    'settings.buffet.manage',
+    'settings.print_assistant.manage',
+  ]);
 }
 
 export function resolveCapabilitiesFromRolePermissions(

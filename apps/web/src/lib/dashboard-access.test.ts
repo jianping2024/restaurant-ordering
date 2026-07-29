@@ -78,7 +78,7 @@ describe('isStaffRole', () => {
     assert.equal(isStaffRole('waiter'), true);
     assert.equal(isStaffRole('cashier'), true);
     assert.equal(isStaffRole('frontdesk'), true);
-    assert.equal(isStaffRole('owner'), false);
+    assert.equal(isStaffRole('owner'), true);
     assert.equal(isStaffRole('print_agent'), false);
     assert.equal(isStaffRole(''), false);
   });
@@ -102,6 +102,19 @@ describe('dashboardMiddlewareRedirectPath', () => {
       dashboardMiddlewareRedirectPath('owner', '/dashboard/checkout'),
       '/dashboard/settings',
     );
+  });
+
+  it('redirects store_owner away from admin-only owner paths', () => {
+    assert.equal(
+      dashboardMiddlewareRedirectPath('store_owner', '/dashboard/value-analytics'),
+      '/dashboard',
+    );
+  });
+
+  it('allows store_owner on settings and operational routes', () => {
+    assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/settings'), null);
+    assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/settings/staff'), null);
+    assert.equal(dashboardMiddlewareRedirectPath('store_owner', '/dashboard/waiter'), null);
   });
 
   it('redirects frontdesk away from settings', () => {

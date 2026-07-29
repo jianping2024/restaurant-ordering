@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import {
   rejectForbiddenPrintJobsScopeParams,
   rejectUnexpectedPrintJobsQueryParams,
@@ -40,10 +40,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'unexpected_query_param', param: unexpected }, { status: 400 });
   }
 
-  const auth = await getOwnerRestaurantId();
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage');
+  if (auth instanceof NextResponse) return auth;
 
   const page = parsePage(searchParams.get('page'));
   const status = parseStatus(searchParams.get('status'));

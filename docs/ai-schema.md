@@ -45,9 +45,9 @@ print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [o
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz)
 
-restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk|print_agent|custom], role_id: uuid FK -> restaurant_roles.id nullable, display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
+restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk|owner|print_agent|custom], role_id: uuid FK -> restaurant_roles.id nullable, display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 
-restaurant_roles (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, preset_key: text nullable [kitchen|waiter|cashier|frontdesk], permissions: jsonb PermissionKey[], disabled_at: timestamptz nullable, sort_order: int, created_at, updated_at; unique preset per restaurant; unique lower(name) per restaurant)
+restaurant_roles (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, preset_key: text nullable [kitchen|waiter|cashier|frontdesk|owner], permissions: jsonb PermissionKey[], disabled_at: timestamptz nullable, sort_order: int, created_at, updated_at; unique preset per restaurant; unique lower(name) per restaurant)
 
 platform_admin_accounts (id: uuid PK, user_id: uuid unique FK -> auth.users.id, role: text [support|admin], display_name: text, disabled_at: timestamptz nullable, created_at: timestamptz)
 
@@ -182,7 +182,7 @@ orders.status: pending | cooking | done
 print_jobs.type: order_receipt | station_ticket | pre_bill  
 print_jobs.status: pending | processing | done | failed  
 platform_admin_accounts.role: support | admin  
-restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | print_agent
+restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | owner | print_agent | custom
 restaurants.plan: free | pro  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  

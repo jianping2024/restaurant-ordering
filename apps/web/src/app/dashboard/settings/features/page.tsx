@@ -1,8 +1,10 @@
 import { FeatureFlagsManager } from '@/components/dashboard/FeatureFlagsManager';
-import { loadFeatureSettingsPageData, requireOwnerRestaurant } from '@/lib/settings-page-data';
+import { loadFeatureSettingsPageData, requireRestaurantForSettingsPermission } from '@/lib/settings-page-data';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export default async function SettingsFeaturesPage() {
-  const restaurant = await requireOwnerRestaurant();
+  const permission: PermissionKey = 'settings.features.manage';
+  const restaurant = await requireRestaurantForSettingsPermission(permission);
   const data = await loadFeatureSettingsPageData(restaurant.id, restaurant.feature_flags);
   return (
     <FeatureFlagsManager

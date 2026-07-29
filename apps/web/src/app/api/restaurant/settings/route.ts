@@ -1,17 +1,22 @@
 import { NextResponse } from 'next/server';
-import { normalizeCountryCode, mergeGeoOrderRestrictionFlag, readGeoOrderRestrictionEnabled } from '@mesa/shared';
+import {
+  isRestaurantSuspended,
+  normalizeCountryCode,
+  mergeGeoOrderRestrictionFlag,
+  readGeoOrderRestrictionEnabled,
+} from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseOrderRadiusInput } from '@/lib/order-radius';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requirePermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
 export async function PATCH(req: Request) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const permission: PermissionKey = 'settings.profile.manage';
+  const auth = await requirePermission(permission);
+  if (auth instanceof NextResponse) return auth;
 
   let body: Record<string, unknown>;
   try {
@@ -72,7 +77,7 @@ export async function PATCH(req: Request) {
   const { data: existing, error: loadErr } = await admin
     .from('restaurants')
     .select('feature_flags')
-    .eq('id', auth.restaurantId)
+    .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
   if (loadErr || !existing) {
@@ -100,7 +105,20 @@ export async function PATCH(req: Request) {
     ...(countryCode !== undefined ? { country_code: countryCode } : {}),
   };
 
-  const { error } = await admin.from('restaurants').update(update).eq('id', auth.restaurantId);
+  // Mirror previous owner-only semantics: disallow writes when suspended.
+  const { data: restaurantRow, error: suspendedErr } = await admin
+    .from('restaurants')
+    .select('suspended_at')
+    .eq('id', auth.principal.restaurantId)
+    .maybeSingle();
+  if (suspendedErr || !restaurantRow) {
+    return NextResponse.json({ error: 'query_failed' }, { status: 500 });
+  }
+  if (isRestaurantSuspended(restaurantRow.suspended_at)) {
+    return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
+  }
+
+  const { error } = await admin.from('restaurants').update(update).eq('id', auth.principal.restaurantId);
 
   if (error) {
     if (isDbMigrationRequiredError(error)) {

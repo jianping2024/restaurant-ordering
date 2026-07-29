@@ -8,11 +8,13 @@ import { PrintAssistantLowerSkeleton } from '@/components/dashboard/print-assist
 import { PrintAssistantUpperSection } from '@/components/dashboard/print-assistant/PrintAssistantUpperSection';
 import { PrintAssistantUpperSkeleton } from '@/components/dashboard/print-assistant/PrintAssistantUpperSkeleton';
 import { getServerLanguage } from '@/lib/i18n.server';
-import { requireOwnerRestaurant } from '@/lib/settings-page-data';
+import { requireRestaurantForSettingsPermission } from '@/lib/settings-page-data';
 import { getSiteOrigin } from '@/lib/site-origin';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export default async function PrintAssistantSettingsPage() {
-  const restaurant = await requireOwnerRestaurant();
+  const permission: PermissionKey = 'settings.print_assistant.manage';
+  const restaurant = await requireRestaurantForSettingsPermission(permission);
   const lang = getServerLanguage();
   const siteOrigin = getSiteOrigin();
 

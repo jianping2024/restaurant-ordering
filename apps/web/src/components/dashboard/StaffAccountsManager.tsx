@@ -396,6 +396,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
               <option value="waiter">{t.roleWaiter}</option>
               <option value="cashier">{t.roleCashier}</option>
               <option value="frontdesk">{t.roleFrontdesk}</option>
+              <option value="owner">{t.roleOwner}</option>
             </select>
           </div>
           <PasswordInput

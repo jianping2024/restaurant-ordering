@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { BuffetSettingsManager } from '@/components/dashboard/BuffetSettingsManager';
-import { loadBuffetSettingsPageData, requireOwnerRestaurant } from '@/lib/settings-page-data';
+import { loadBuffetSettingsPageData, requireRestaurantForSettingsPermission } from '@/lib/settings-page-data';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export default async function SettingsBuffetPage() {
-  const restaurant = await requireOwnerRestaurant();
+  const permission: PermissionKey = 'settings.buffet.manage';
+  const restaurant = await requireRestaurantForSettingsPermission(permission, { requireWritable: true });
   if (isRestaurantSuspended(restaurant.suspended_at)) redirect('/dashboard');
 
   const data = await loadBuffetSettingsPageData(restaurant.id);

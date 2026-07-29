@@ -25,7 +25,12 @@ export type ProductTopNavItem = {
 export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
 export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
-  if (accessMode === 'cashier' || accessMode === 'frontdesk' || accessMode === 'waiter') {
+  if (
+    accessMode === 'cashier' ||
+    accessMode === 'frontdesk' ||
+    accessMode === 'store_owner' ||
+    accessMode === 'waiter'
+  ) {
     return '/dashboard/waiter';
   }
   return '/dashboard';

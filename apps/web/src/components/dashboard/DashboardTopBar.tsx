@@ -13,7 +13,7 @@ import {
   buildDashboardTopNavItems,
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
-import { topBarRoleLabel } from '@/lib/top-bar-role-label';
+import { dashboardAccessModeRoleLabel } from '@/lib/top-bar-role-label';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
 type TopBarPanel = 'none' | 'nav' | 'settings';
@@ -37,7 +37,7 @@ export function DashboardTopBar({ restaurant, accessMode, capabilities }: Props)
   });
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 
-  const roleLabel = topBarRoleLabel(lang, accessMode);
+  const roleLabel = dashboardAccessModeRoleLabel(lang, accessMode);
   const logoHref = dashboardLogoHref(accessMode);
 
   return (

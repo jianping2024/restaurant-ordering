@@ -98,7 +98,7 @@ function KitchenDisplayInner({
   const { lang } = useLanguage();
   const t = getMessages(lang).kitchen;
   const demoText = KITCHEN_DEMO_TEXT[lang];
-  const roleLabel = topBarRoleLabel(lang, asOwner ? 'owner' : 'kitchen');
+  const roleLabel = topBarRoleLabel(lang, asOwner ? 'backend_admin' : 'kitchen');
   const locale = UI_LOCALE_BY_LANG[lang];
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [activeTableIds, setActiveTableIds] = useState<string[]>(initialActiveTableIds);

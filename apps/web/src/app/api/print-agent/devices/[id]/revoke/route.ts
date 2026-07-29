@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { revokePrintAgentDevice } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 
 type RouteContext = { params: { id: string } };
 
 /** Owner: revoke a paired print agent device (sets revoked_at). */
 export async function POST(_req: Request, { params }: RouteContext) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
+    requireWritable: true,
+  });
+  if (auth instanceof NextResponse) return auth;
 
   const deviceId = params.id?.trim();
   if (!deviceId) {

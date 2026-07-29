@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { revokePrintAgentPairing } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getOwnerRestaurantId } from '@/lib/print-agent-dashboard-auth';
+import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 
 /** Void an unused pairing code so it no longer counts toward the pending slot limit. */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const auth = await getOwnerRestaurantId({ requireWritable: true });
-  if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
-  }
+  const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
+    requireWritable: true,
+  });
+  if (auth instanceof NextResponse) return auth;
 
   const pairingId = params.id?.trim();
   if (!pairingId) {

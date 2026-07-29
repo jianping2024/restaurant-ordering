@@ -15,7 +15,7 @@ export type SplitMode = 'whole_table' | 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid' | 'cancelled';
 export type Language = 'pt' | 'en' | 'zh';
 export type DishFeedbackVote = 'up' | 'down';
-export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk';
+export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner';
 
 export interface RestaurantStaffAccount {
   id: string;

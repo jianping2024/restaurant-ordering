@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import { GuestNoticeManager } from '@/components/dashboard/GuestNoticeManager';
-import { loadMenuManagementContext } from '@/lib/dashboard-access';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { loadGuestOrderingNotice } from '@/lib/guest-ordering-notice-server';
 
 export default async function GuestNoticeSettingsPage() {
-  const ctx = await loadMenuManagementContext();
+  const ctx = await getDashboardOperationalContext();
   if ('error' in ctx) {
     notFound();
   }

@@ -1,5 +1,5 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
-import { loadMenuManagementContext } from '@/lib/dashboard-access';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 
 export type DashboardMenu =
   | {
@@ -11,7 +11,7 @@ export type DashboardMenu =
   | { error: string; status: number };
 
 export async function loadDashboardMenu(): Promise<DashboardMenu> {
-  const ctx = await loadMenuManagementContext();
+  const ctx = await getDashboardOperationalContext();
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }

@@ -12,6 +12,7 @@ import {
   isWaiterOperationalPath,
   shouldPrefetchDashboardNav,
 } from './dashboard-paths';
+import { resolveDashboardOperationalContext } from './dashboard-operational-context';
 import { isStaffRole } from './staff-account';
 
 describe('isDashboardSettingsPath', () => {
@@ -93,6 +94,65 @@ describe('shouldPrefetchDashboardNav', () => {
     assert.equal(shouldPrefetchDashboardNav('/dashboard/settings/print-assistant'), false);
     assert.equal(shouldPrefetchDashboardNav('/dashboard/value-analytics'), false);
     assert.equal(shouldPrefetchDashboardNav('/dashboard/tables'), true);
+  });
+});
+
+describe('resolveDashboardOperationalContext', () => {
+  const restaurant = {
+    id: 'r1',
+    name: 'Test',
+    slug: 'test',
+    logo_url: null,
+    feature_flags: {},
+    buffet_service_mode: 'classic' as const,
+    suspended_at: null,
+    suspension_reason: null,
+  };
+
+  it('allows owner, store_owner, and frontdesk', () => {
+    assert.deepEqual(
+      resolveDashboardOperationalContext({ mode: 'owner', restaurant: restaurant as never }),
+      { restaurantId: 'r1' },
+    );
+    assert.deepEqual(
+      resolveDashboardOperationalContext({ mode: 'store_owner', restaurant }),
+      { restaurantId: 'r1' },
+    );
+    assert.deepEqual(
+      resolveDashboardOperationalContext({ mode: 'frontdesk', restaurant }),
+      { restaurantId: 'r1' },
+    );
+  });
+
+  it('rejects floor staff and unauthenticated access', () => {
+    assert.deepEqual(resolveDashboardOperationalContext({ mode: 'unauthenticated' }), {
+      error: 'unauthorized',
+      status: 401,
+    });
+    assert.deepEqual(
+      resolveDashboardOperationalContext({
+        mode: 'cashier',
+        restaurant: { id: 'r1', name: 'Test', slug: 'test', buffet_service_mode: 'classic' },
+      }),
+      { error: 'forbidden', status: 403 },
+    );
+    assert.deepEqual(
+      resolveDashboardOperationalContext({
+        mode: 'waiter',
+        restaurant: { id: 'r1', name: 'Test', slug: 'test', buffet_service_mode: 'classic' },
+      }),
+      { error: 'forbidden', status: 403 },
+    );
+  });
+
+  it('blocks writable context when restaurant is suspended', () => {
+    assert.deepEqual(
+      resolveDashboardOperationalContext(
+        { mode: 'store_owner', restaurant: { ...restaurant, suspended_at: '2026-01-01T00:00:00Z' } },
+        { requireWritable: true },
+      ),
+      { error: 'restaurant_suspended', status: 403 },
+    );
   });
 });
 

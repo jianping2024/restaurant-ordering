@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { loadDashboardOperationalContext } from '@/lib/dashboard-access';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -23,8 +23,10 @@ export async function readJsonBody(req: Request): Promise<Record<string, unknown
   }
 }
 
-export async function loadWritableFrontdeskContext(): Promise<WritableOperationalContext | NextResponse> {
-  const ctx = await loadFrontdeskOperationalContext({ requireWritable: true });
+export async function loadWritableOperationalContext(): Promise<
+  WritableOperationalContext | NextResponse
+> {
+  const ctx = await loadDashboardOperationalContext({ requireWritable: true });
   if ('error' in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }

@@ -1,9 +1,10 @@
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import {
   DashboardOverviewPrimaryClient,
   DashboardOverviewSecondaryClient,
 } from '@/components/dashboard/DashboardPageClient';
-import { getOverviewDashboardContext } from '@/lib/dashboard-access-cached';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import {
   loadDashboardOverviewPrimary,
   loadDashboardOverviewSecondary,
@@ -64,8 +65,8 @@ async function OverviewSecondary({
 
 // 数据概览：首屏 KPI/待办与次屏反馈/热销/近单分路加载；鉴权与 layout 共用请求缓存
 export default async function DashboardPage() {
-  const ctx = await getOverviewDashboardContext();
-  if ('error' in ctx) return null;
+  const ctx = await getDashboardOperationalContext();
+  if ('error' in ctx) notFound();
 
   const nowIso = new Date().toISOString();
 

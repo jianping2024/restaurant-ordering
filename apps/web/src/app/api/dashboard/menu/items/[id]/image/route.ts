@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadWritableMenuContext, menuApiError } from '@/lib/dashboard-menu-api';
+import { loadWritableOperationalContext, menuApiError } from '@/lib/dashboard-menu-api';
 import { setMenuItemImage } from '@/lib/dashboard-menu-server';
 
 export const runtime = 'nodejs';
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export async function POST(req: Request, { params }: Props) {
-  const ctx = await loadWritableMenuContext();
+  const ctx = await loadWritableOperationalContext();
   if (ctx instanceof NextResponse) return ctx;
 
   const { id } = await params;

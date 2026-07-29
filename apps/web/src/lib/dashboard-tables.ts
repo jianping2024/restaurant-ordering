@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getFrontdeskOperationalContext } from '@/lib/dashboard-access-cached';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { loadRestaurantTableGroups } from '@/lib/dashboard-table-groups-server';
 import {
   type RestaurantTableGroup,
@@ -7,7 +7,7 @@ import {
 } from '@/lib/restaurant-table-groups';
 import { sortRestaurantTables, type RestaurantTable, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
-export type FrontdeskDashboardTables =
+export type DashboardTables =
   | {
       admin: SupabaseClient;
       restaurant: {
@@ -38,8 +38,8 @@ async function loadOccupiedTableIds(
   return (data || []).map((row) => row.table_id as string);
 }
 
-export async function loadFrontdeskDashboardTables(): Promise<FrontdeskDashboardTables> {
-  const ctx = await getFrontdeskOperationalContext();
+export async function loadDashboardTables(): Promise<DashboardTables> {
+  const ctx = await getDashboardOperationalContext();
   if ('error' in ctx) {
     return { error: ctx.error, status: ctx.status };
   }

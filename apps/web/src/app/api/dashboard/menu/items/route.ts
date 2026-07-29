@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
-  loadWritableMenuContext,
+  loadWritableOperationalContext,
   menuApiError,
   readJsonBody,
 } from '@/lib/dashboard-menu-api';
@@ -16,7 +16,7 @@ import {
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const ctx = await loadWritableMenuContext();
+  const ctx = await loadWritableOperationalContext();
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const ctx = await loadWritableMenuContext();
+  const ctx = await loadWritableOperationalContext();
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -84,7 +84,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const ctx = await loadWritableMenuContext();
+  const ctx = await loadWritableOperationalContext();
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);

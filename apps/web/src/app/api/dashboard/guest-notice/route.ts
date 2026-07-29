@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadMenuManagementContext } from '@/lib/dashboard-access';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { dashboardApiError, readJsonBody } from '@/lib/dashboard-api-shared';
 import {
   loadGuestOrderingNotice,
@@ -9,7 +9,7 @@ import {
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const ctx = await loadMenuManagementContext();
+  const ctx = await getDashboardOperationalContext();
   if ('error' in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const ctx = await loadMenuManagementContext({ requireWritable: true });
+  const ctx = await getDashboardOperationalContext({ requireWritable: true });
   if ('error' in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }

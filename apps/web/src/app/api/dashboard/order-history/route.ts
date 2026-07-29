@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadFrontdeskOperationalContext } from '@/lib/dashboard-access';
+import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { loadOrderHistoryEntries } from '@/lib/order-history/load-entries';
 import { parseOrderHistorySearchParams } from '@/lib/order-history/parse-query';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
-  const ctx = await loadFrontdeskOperationalContext();
+  const ctx = await getDashboardOperationalContext();
   if ('error' in ctx) {
     return NextResponse.json({ error: ctx.error }, { status: ctx.status });
   }

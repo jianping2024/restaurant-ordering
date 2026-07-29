@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
+import { resolveDashboardOperationalContext } from '@/lib/dashboard-operational-context';
 
 import {
   dashboardMiddlewareRedirectPath,
@@ -97,7 +98,7 @@ export type DashboardAccessResult =
   | { mode: 'onboarding' }
   | { mode: 'access_error'; message: string };
 
-export type FrontdeskOperationalContext =
+export type DashboardOperationalContext =
   | { admin: SupabaseClient; restaurantId: string }
   | { error: string; status: number };
 
@@ -338,75 +339,14 @@ export async function loadDashboardFloorStaffContext(options?: {
   };
 }
 
-/** Server-side admin context for frontdesk admin dashboard pages and APIs. */
-
-export async function loadFrontdeskOperationalContext(options?: {
+/** Server-side admin context for dashboard operational pages and APIs (overview, orders, tables, menu). */
+export async function loadDashboardOperationalContext(options?: {
   requireWritable?: boolean;
-}): Promise<FrontdeskOperationalContext> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: 'unauthorized', status: 401 };
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured', status: 503 };
-  }
-
-  const { data: account, error: accountError } = await admin
-    .from('restaurant_staff_accounts')
-    .select('restaurant_id, disabled_at, role')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (accountError || !account || account.disabled_at || account.role !== 'frontdesk') {
-    return { error: 'forbidden', status: 403 };
-  }
-
-  const { data: restaurant, error: restaurantError } = await admin
-    .from('restaurants')
-    .select('id, suspended_at')
-    .eq('id', account.restaurant_id)
-    .maybeSingle();
-
-  if (restaurantError || !restaurant) {
-    return { error: 'restaurant_not_found', status: 404 };
-  }
-
-  if (
-    options?.requireWritable &&
-    isRestaurantSuspended(restaurant.suspended_at as string | null)
-  ) {
-    return { error: 'restaurant_suspended', status: 403 };
-  }
-
-  return { admin, restaurantId: restaurant.id as string };
-}
-
-export type MenuManagementContext =
-  | { admin: SupabaseClient; restaurantId: string }
-  | { error: string; status: number };
-
-/** Server-side admin context for menu management (owner or frontdesk). */
-export async function loadMenuManagementContext(options?: {
-  requireWritable?: boolean;
-}): Promise<MenuManagementContext> {
+}): Promise<DashboardOperationalContext> {
   const access = await loadDashboardAccess();
-  if (access.mode === 'unauthenticated') {
-    return { error: 'unauthorized', status: 401 };
-  }
-  if (
-    access.mode === 'access_error' ||
-    access.mode === 'onboarding' ||
-    access.mode === 'cashier' ||
-    access.mode === 'waiter'
-  ) {
-    return { error: 'forbidden', status: 403 };
+  const resolved = resolveDashboardOperationalContext(access, options);
+  if ('error' in resolved) {
+    return resolved;
   }
 
   let admin;
@@ -416,41 +356,5 @@ export async function loadMenuManagementContext(options?: {
     return { error: 'server_misconfigured', status: 503 };
   }
 
-  if (
-    options?.requireWritable &&
-    isRestaurantSuspended(access.restaurant.suspended_at)
-  ) {
-    return { error: 'restaurant_suspended', status: 403 };
-  }
-
-  return { admin, restaurantId: access.restaurant.id };
-}
-
-export async function resolveOverviewDashboardContext(
-  access: Awaited<ReturnType<typeof loadDashboardAccess>>,
-  loadFrontdesk: () => Promise<FrontdeskOperationalContext>,
-): Promise<FrontdeskOperationalContext> {
-  if (access.mode === 'unauthenticated') {
-    return { error: 'unauthorized', status: 401 };
-  }
-  if (
-    access.mode === 'access_error' ||
-    access.mode === 'onboarding' ||
-    access.mode === 'cashier' ||
-    access.mode === 'waiter'
-  ) {
-    return { error: 'forbidden', status: 403 };
-  }
-  if (access.mode === 'frontdesk' || access.mode === 'store_owner') {
-    return loadFrontdesk();
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured', status: 503 };
-  }
-
-  return { admin, restaurantId: access.restaurant.id };
+  return { admin, restaurantId: resolved.restaurantId };
 }

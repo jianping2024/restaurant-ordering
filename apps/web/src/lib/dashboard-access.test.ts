@@ -30,6 +30,8 @@ describe('isOwnerDashboardPath', () => {
     assert.equal(isOwnerDashboardPath('/dashboard/abnormal-operations'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/value-analytics'), true);
     assert.equal(isOwnerOperationalPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerOperationalPath('/dashboard/guest-notice'), false);
+    assert.equal(isOwnerDashboardPath('/dashboard/guest-notice'), false);
     assert.equal(isOwnerDashboardPath('/dashboard'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/checkout'), false);
   });

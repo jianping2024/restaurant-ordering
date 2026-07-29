@@ -276,6 +276,20 @@ if [ "$KITCHEN_VA" = "401" ] || [ "$KITCHEN_VA" = "403" ]; then pass "kitchen va
 FRONT_PAGE=$(curl -sS -b "$FRONT_JAR" -o /dev/null -w '%{url_effective}' -L "$BASE/dashboard/value-analytics")
 if [[ "$FRONT_PAGE" != *"/dashboard/value-analytics" ]]; then pass "frontdesk value-analytics redirected"; else fail "frontdesk value-analytics redirected" "$FRONT_PAGE"; fi
 
+echo "=== Guest notice capability ==="
+assert_code "frontdesk guest-notice API" 200 "$(http_code "$FRONT_JAR" GET /api/dashboard/guest-notice)"
+assert_code "frontdesk GET /dashboard/guest-notice" 200 "$(http_code "$FRONT_JAR" GET /dashboard/guest-notice)"
+STORE_GN=$(http_code "$STORE_JAR" GET /api/dashboard/guest-notice)
+if [ "$STORE_GN" = "401" ] || [ "$STORE_GN" = "403" ]; then pass "store_owner guest-notice API blocked"; else fail "store_owner guest-notice API blocked" "got $STORE_GN"; fi
+ADMIN_GN=$(http_code "$ADMIN_JAR" GET /api/dashboard/guest-notice)
+if [ "$ADMIN_GN" = "401" ] || [ "$ADMIN_GN" = "403" ]; then pass "backend_admin guest-notice API blocked"; else fail "backend_admin guest-notice API blocked" "got $ADMIN_GN"; fi
+CASH_GN=$(http_code "$CASH_JAR" GET /api/dashboard/guest-notice)
+if [ "$CASH_GN" = "401" ] || [ "$CASH_GN" = "403" ]; then pass "cashier guest-notice API blocked"; else fail "cashier guest-notice API blocked" "got $CASH_GN"; fi
+WAIT_GN=$(http_code "$WAIT_JAR" GET /api/dashboard/guest-notice)
+if [ "$WAIT_GN" = "401" ] || [ "$WAIT_GN" = "403" ]; then pass "waiter guest-notice API blocked"; else fail "waiter guest-notice API blocked" "got $WAIT_GN"; fi
+STORE_GN_PAGE=$(curl -sS -b "$STORE_JAR" -o /dev/null -w '%{url_effective}' -L "$BASE/dashboard/guest-notice")
+if [[ "$STORE_GN_PAGE" != *"/dashboard/guest-notice" ]]; then pass "store_owner guest-notice redirected"; else fail "store_owner guest-notice redirected" "$STORE_GN_PAGE"; fi
+
 echo "=== Waiter board URLs ==="
 for pair in "store_owner:$STORE_JAR" "frontdesk:$FRONT_JAR" "cashier:$CASH_JAR" "waiter:$WAIT_JAR"; do
   role="${pair%%:*}"

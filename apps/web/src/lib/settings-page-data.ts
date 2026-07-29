@@ -2,7 +2,6 @@ import 'server-only';
 
 import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
-import { getDashboardAccess } from '@/lib/dashboard-access-cached';
 import { loadBuffetDashboard, type BuffetDashboardData } from '@/lib/dashboard-buffet-server';
 import {
   normalizeRestaurantFeatureFlags,
@@ -18,14 +17,6 @@ import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { requirePermission } from '@/lib/permissions/require';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isRestaurantSuspended } from '@mesa/shared';
-
-/** Owner-only settings pages — shares cached auth with dashboard layout. */
-export async function requireOwnerRestaurant(): Promise<Restaurant> {
-  const access = await getDashboardAccess();
-  if (access.mode === 'unauthenticated') redirect('/auth/login');
-  if (access.mode !== 'owner') redirect('/dashboard');
-  return access.restaurant;
-}
 
 async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Restaurant> {
   let admin;

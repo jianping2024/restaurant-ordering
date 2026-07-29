@@ -57,8 +57,12 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     }
   });
 
-  it('owner can reach guest notice settings', () => {
-    assert.equal(middlewareAllowsPath('owner', '/dashboard/guest-notice'), true);
+  it('owner cannot reach guest notice (frontdesk capability by default)', () => {
+    assert.equal(middlewareAllowsPath('owner', '/dashboard/guest-notice'), false);
+  });
+
+  it('frontdesk can reach guest notice settings path shell', () => {
+    assert.equal(middlewareAllowsPath('frontdesk', '/dashboard/guest-notice'), true);
   });
 
   it('cashier cannot reach guest notice settings', () => {

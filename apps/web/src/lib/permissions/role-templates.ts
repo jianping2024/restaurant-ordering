@@ -67,6 +67,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'dashboard.menu.view',
     'dashboard.waiter_board.view',
     'dashboard.kitchen_shortcut.view',
+    'dashboard.guest_notice.view',
     'checkout.confirm_payment',
     'checkout.apply_discount',
     'checkout.request_whole_table',

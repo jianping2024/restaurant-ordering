@@ -4,10 +4,8 @@ import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-a
 import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import type { AuditActor } from '@/lib/audit/types';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
-import {
-  OWNER_TOOL_PERMISSIONS,
-  resolveOwnerToolCapabilityAccess,
-} from '@/lib/dashboard-owner-tool-access';
+import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
+import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
 export type OwnerAbnormalOperationsContext =
@@ -23,10 +21,10 @@ export type OwnerAbnormalOperationsContext =
 export async function loadOwnerAbnormalOperationsContext(): Promise<OwnerAbnormalOperationsContext> {
   const access = await loadDashboardAccess();
   const loaded = await loadPrincipalWithCapabilities();
-  const gate = resolveOwnerToolCapabilityAccess(
+  const gate = resolveDashboardCapabilityAccess(
     access,
     loaded?.capabilities ?? null,
-    OWNER_TOOL_PERMISSIONS.abnormalOps,
+    NAV_PERMISSION.abnormalOps,
   );
   if (!gate.ok) {
     return { error: gate.error, status: gate.status };

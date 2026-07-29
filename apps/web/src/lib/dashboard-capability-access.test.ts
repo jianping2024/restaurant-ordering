@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
-import {
-  OWNER_TOOL_PERMISSIONS,
-  resolveOwnerToolCapabilityAccess,
-} from './dashboard-owner-tool-access';
+import { resolveDashboardCapabilityAccess } from './dashboard-capability-access';
 
 const restaurant = {
   id: '88064a0b-1d36-4633-aa21-c928039e4f57',
@@ -18,41 +16,50 @@ const restaurant = {
   suspension_reason: null,
 };
 
-describe('resolveOwnerToolCapabilityAccess', () => {
+describe('resolveDashboardCapabilityAccess', () => {
   it('allows store_owner with value analytics capability', () => {
-    const decision = resolveOwnerToolCapabilityAccess(
+    const decision = resolveDashboardCapabilityAccess(
       { mode: 'store_owner', restaurant },
-      capabilitiesFromKeys([OWNER_TOOL_PERMISSIONS.valueAnalytics]),
-      OWNER_TOOL_PERMISSIONS.valueAnalytics,
+      capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
+      NAV_PERMISSION.valueAnalytics,
     );
     assert.equal(decision.ok, true);
     if (decision.ok) assert.equal(decision.restaurantId, restaurant.id);
   });
 
-  it('allows restaurant owner with backend-admin capabilities', () => {
-    const decision = resolveOwnerToolCapabilityAccess(
+  it('allows restaurant owner with backend-admin capabilities for abnormal ops', () => {
+    const decision = resolveDashboardCapabilityAccess(
       { mode: 'owner', restaurant: restaurant as never },
       resolveCapabilitiesForOwner(),
-      OWNER_TOOL_PERMISSIONS.abnormalOps,
+      NAV_PERMISSION.abnormalOps,
     );
     assert.equal(decision.ok, true);
   });
 
-  it('rejects frontdesk without the capability', () => {
-    const decision = resolveOwnerToolCapabilityAccess(
+  it('allows frontdesk with guest notice capability', () => {
+    const decision = resolveDashboardCapabilityAccess(
       { mode: 'frontdesk', restaurant },
-      capabilitiesFromKeys(['dashboard.overview.view']),
-      OWNER_TOOL_PERMISSIONS.abnormalOps,
+      capabilitiesFromKeys([NAV_PERMISSION.guestNotice]),
+      NAV_PERMISSION.guestNotice,
+    );
+    assert.equal(decision.ok, true);
+  });
+
+  it('rejects store_owner without guest notice capability', () => {
+    const decision = resolveDashboardCapabilityAccess(
+      { mode: 'store_owner', restaurant },
+      capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
+      NAV_PERMISSION.guestNotice,
     );
     assert.equal(decision.ok, false);
     if (!decision.ok) assert.equal(decision.status, 403);
   });
 
   it('rejects unauthenticated', () => {
-    const decision = resolveOwnerToolCapabilityAccess(
+    const decision = resolveDashboardCapabilityAccess(
       { mode: 'unauthenticated' },
       null,
-      OWNER_TOOL_PERMISSIONS.valueAnalytics,
+      NAV_PERMISSION.valueAnalytics,
     );
     assert.equal(decision.ok, false);
     if (!decision.ok) assert.equal(decision.status, 401);

@@ -2,15 +2,13 @@ export function isDashboardSettingsPath(pathname: string): boolean {
   return pathname === '/dashboard/settings' || pathname.startsWith('/dashboard/settings/');
 }
 
-/** Owner-only dashboard routes outside /dashboard/settings (e.g. abnormal operations). */
+/** Owner dashboard routes outside /dashboard/settings (value analytics, abnormal ops). */
 export function isOwnerOperationalPath(pathname: string): boolean {
   return (
     pathname === '/dashboard/abnormal-operations' ||
     pathname.startsWith('/dashboard/abnormal-operations/') ||
     pathname === '/dashboard/value-analytics' ||
-    pathname.startsWith('/dashboard/value-analytics/') ||
-    pathname === '/dashboard/guest-notice' ||
-    pathname.startsWith('/dashboard/guest-notice/')
+    pathname.startsWith('/dashboard/value-analytics/')
   );
 }
 

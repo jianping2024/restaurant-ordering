@@ -39,6 +39,7 @@ export const PERMISSIONS = {
   'dashboard.menu.view': { group: 'dashboard_nav', labelKey: 'dashboardMenu' },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
   'dashboard.kitchen_shortcut.view': { group: 'dashboard_nav', labelKey: 'dashboardKitchenShortcut' },
+  'dashboard.guest_notice.view': { group: 'dashboard_nav', labelKey: 'dashboardGuestNotice' },
 
   // Settings (formerly owner-only; grantable to any role per product)
   'settings.profile.manage': {
@@ -133,6 +134,7 @@ export const NAV_PERMISSION: Record<string, PermissionKey> = {
   tables: 'dashboard.tables.view',
   menu: 'dashboard.menu.view',
   waiterBoard: 'dashboard.waiter_board.view',
+  guestNotice: 'dashboard.guest_notice.view',
 };
 
 /** Dashboard pathname prefix → required permission (longest match wins at resolve time). */
@@ -145,6 +147,7 @@ export const DASHBOARD_ROUTE_PERMISSIONS: { prefix: string; permission: Permissi
   { prefix: '/dashboard/waiter', permission: 'dashboard.waiter_board.view' },
   { prefix: '/dashboard/value-analytics', permission: 'dashboard.value_analytics.view' },
   { prefix: '/dashboard/abnormal-operations', permission: 'dashboard.abnormal_ops.view' },
+  { prefix: '/dashboard/guest-notice', permission: 'dashboard.guest_notice.view' },
   { prefix: '/dashboard', permission: 'dashboard.overview.view' },
 ];
 

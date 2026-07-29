@@ -1,10 +1,7 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
-  isCashierOperationalPath,
-  isDashboardSettingsPath,
-  isFrontdeskOperationalPath,
-  isOwnerDashboardPath,
-  isWaiterOperationalPath,
+  dashboardMiddlewareRedirectPath,
+  type DashboardActor,
 } from '@/lib/dashboard-paths';
 
 /** How server-side writes should be performed for this feature. */
@@ -129,7 +126,6 @@ export const OWNER_NAV_ITEM_IDS = [
   'overview',
   'valueAnalytics',
   'abnormalOps',
-  'guestNotice',
   'settings',
 ] as const;
 
@@ -284,8 +280,8 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'guest-notice',
     path: '/dashboard/guest-notice',
-    navRoles: ['owner', 'frontdesk'],
-    pageLoader: 'getDashboardOperationalContext + loadGuestOrderingNotice',
+    navRoles: ['frontdesk'],
+    pageLoader: 'resolveDashboardCapabilityAccess (dashboard.guest_notice.view)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/guest-notice'],
   },
@@ -300,19 +296,9 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   },
 ];
 
+/** Thin wrapper over the live middleware path policy — one representation. */
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
-  if (role === 'owner') return isOwnerDashboardPath(pathname);
-  if (role === 'store_owner') {
-    if (isDashboardSettingsPath(pathname)) return true;
-    return isFrontdeskOperationalPath(pathname);
-  }
-  if (role === 'frontdesk') {
-    if (isDashboardSettingsPath(pathname)) return false;
-    return isFrontdeskOperationalPath(pathname);
-  }
-  if (role === 'cashier') return isCashierOperationalPath(pathname);
-  if (role === 'waiter') return isWaiterOperationalPath(pathname);
-  return false;
+  return dashboardMiddlewareRedirectPath(role as DashboardActor, pathname) === null;
 }
 
 export function navPathsForRole(role: DashboardAccessMode): readonly string[] {

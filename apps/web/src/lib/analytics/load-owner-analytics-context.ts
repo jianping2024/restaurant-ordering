@@ -4,10 +4,8 @@ import { cache } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getDashboardAccess } from '@/lib/dashboard-access-cached';
-import {
-  OWNER_TOOL_PERMISSIONS,
-  resolveOwnerToolCapabilityAccess,
-} from '@/lib/dashboard-owner-tool-access';
+import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
+import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
 export type OwnerAnalyticsContext =
@@ -17,10 +15,10 @@ export type OwnerAnalyticsContext =
 export async function loadOwnerAnalyticsContext(): Promise<OwnerAnalyticsContext> {
   const access = await getDashboardAccess();
   const loaded = await loadPrincipalWithCapabilities();
-  const gate = resolveOwnerToolCapabilityAccess(
+  const gate = resolveDashboardCapabilityAccess(
     access,
     loaded?.capabilities ?? null,
-    OWNER_TOOL_PERMISSIONS.valueAnalytics,
+    NAV_PERMISSION.valueAnalytics,
   );
   if (!gate.ok) {
     return { error: gate.error, status: gate.status };

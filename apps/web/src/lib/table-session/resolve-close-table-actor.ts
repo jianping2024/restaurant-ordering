@@ -22,15 +22,16 @@ function hasCloseTableCapability(
   capabilities: Capabilities,
   gate: CloseTableSessionActorGate,
 ): boolean {
-  if (can(capabilities, 'tables.checkout_close')) return true;
-  if (gate === 'manual' && can(capabilities, 'tables.force_close')) return true;
-  return false;
+  if (gate === 'checkout_close') return can(capabilities, 'tables.checkout_close');
+  return can(capabilities, 'tables.force_close');
 }
 
 export function settledCloseReasonForStaffPreset(
   presetKey: string | null | undefined,
 ): SettledCloseActorReason {
-  return presetKey === 'cashier' ? 'cashier_closed' : 'frontdesk_closed';
+  if (presetKey === 'cashier') return 'cashier_closed';
+  if (presetKey === 'owner') return 'owner_closed';
+  return 'frontdesk_closed';
 }
 
 /** Pure desk close actor gate: capability + dashboard access — no staff role enum whitelist. */

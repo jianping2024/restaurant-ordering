@@ -992,8 +992,8 @@ function WaiterTableDetailInner({
             showTransfer={detailActions.showTransfer}
             showMerge={detailActions.showMerge}
             showCheckoutClose={detailActions.showCheckoutClose}
+            showForceClose={detailActions.showForceClose}
             floorCapabilities={floorCaps}
-            capabilities={capabilities}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable === selectedCard.tableId}
             onDemoCloseClick={() => {

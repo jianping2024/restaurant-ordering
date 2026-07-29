@@ -39,12 +39,9 @@ function staffPrincipal(presetKey: 'owner' | 'frontdesk' | 'cashier' | 'waiter')
 }
 
 describe('settledCloseReasonForStaffPreset', () => {
-  it('maps cashier preset to cashier_closed', () => {
+  it('maps presets to settled closed reasons', () => {
     assert.equal(settledCloseReasonForStaffPreset('cashier'), 'cashier_closed');
-  });
-
-  it('maps owner and frontdesk presets to frontdesk_closed', () => {
-    assert.equal(settledCloseReasonForStaffPreset('owner'), 'frontdesk_closed');
+    assert.equal(settledCloseReasonForStaffPreset('owner'), 'owner_closed');
     assert.equal(settledCloseReasonForStaffPreset('frontdesk'), 'frontdesk_closed');
   });
 });
@@ -58,7 +55,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
     );
     assert.equal(decision.ok, true);
     if (decision.ok) {
-      assert.equal(decision.closedReason, 'frontdesk_closed');
+      assert.equal(decision.closedReason, 'owner_closed');
       assert.equal(decision.staffRole, 'owner');
     }
   });
@@ -146,6 +143,39 @@ describe('resolveCloseTableSessionDeskActor', () => {
       'manual',
     );
     assert.equal(decision.ok, true);
+    if (decision.ok) {
+      assert.equal(decision.closedReason, 'owner_closed');
+    }
+  });
+
+  it('rejects manual gate with only tables.checkout_close', () => {
+    const loaded: PrincipalWithCapabilities = {
+      principal: {
+        kind: 'staff',
+        restaurantId: restaurant.id,
+        userId: 'user-c',
+        staffAccountId: 'staff-c',
+        roleId: 'role-c',
+        roleName: 'cashier',
+        presetKey: 'cashier',
+        staffRoleLabel: 'cashier',
+      },
+      capabilities: capabilitiesFromKeys(['tables.checkout_close']),
+    };
+    const decision = resolveCloseTableSessionDeskActor(
+      {
+        mode: 'cashier',
+        restaurant: {
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          buffet_service_mode: 'classic',
+        },
+      },
+      loaded,
+      'manual',
+    );
+    assert.equal(decision.ok, false);
   });
 
   it('rejects checkout_close gate without tables.checkout_close', () => {

@@ -6,23 +6,32 @@ import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('floorBoardCapabilities', () => {
   it('derives desk powers from frontdesk/cashier templates', () => {
-    for (const preset of ['frontdesk', 'cashier'] as const) {
-      const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES[preset]]));
-      assert.equal(caps.canMenuDecrement, true);
-      assert.equal(caps.canCheckoutClose, true);
-      assert.equal(caps.canAssistBillCheckout, true);
-      assert.equal(caps.canOpenCheckoutPendingTables, true);
-      assert.equal(caps.canTransfer, true);
-      assert.equal(caps.canMerge, true);
-    }
+    const frontdesk = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
+    assert.equal(frontdesk.canMenuDecrement, true);
+    assert.equal(frontdesk.canCheckoutClose, true);
+    assert.equal(frontdesk.canAssistBillCheckout, true);
+    assert.equal(frontdesk.canOpenCheckoutPendingTables, true);
+    assert.equal(frontdesk.canTransfer, true);
+    assert.equal(frontdesk.canMerge, true);
+    assert.equal(frontdesk.canForceClose, true);
+
+    const cashier = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
+    assert.equal(cashier.canCheckoutClose, true);
+    assert.equal(cashier.canTransfer, true);
+    assert.equal(cashier.canMerge, true);
+    assert.equal(cashier.canForceClose, false);
   });
 
-  it('derives transfer/merge for owner and waiter presets', () => {
-    for (const preset of ['owner', 'waiter'] as const) {
-      const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES[preset]]));
-      assert.equal(caps.canTransfer, true);
-      assert.equal(caps.canMerge, true);
-    }
+  it('derives transfer/merge/force-close for owner and transfer/merge for waiter', () => {
+    const owner = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.owner]));
+    assert.equal(owner.canTransfer, true);
+    assert.equal(owner.canMerge, true);
+    assert.equal(owner.canForceClose, true);
+
+    const waiter = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
+    assert.equal(waiter.canTransfer, true);
+    assert.equal(waiter.canMerge, true);
+    assert.equal(waiter.canForceClose, false);
   });
 
   it('allows session pre_bill print for frontdesk only', () => {
@@ -49,5 +58,6 @@ describe('floorBoardCapabilities', () => {
     assert.equal(caps.canOpenCheckoutPendingTables, false);
     assert.equal(caps.canTransfer, true);
     assert.equal(caps.canMerge, true);
+    assert.equal(caps.canForceClose, false);
   });
 });

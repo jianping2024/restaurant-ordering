@@ -22,9 +22,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   runWaiterTableCheckoutClose,
 } from '@/lib/waiter-table-checkout-close';
-import type { Capabilities } from '@/lib/permissions/can';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
-import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 import {
   WaiterBillIcon,
   WaiterClocheIcon,
@@ -204,7 +202,7 @@ function ContinueOrderingControl({
 function ToolbarCloseTableControl({
   tableId,
   isCheckoutPending,
-  capabilities,
+  showForceClose,
   isDemo,
   closingDemoTable,
   closeLabel,
@@ -213,14 +211,14 @@ function ToolbarCloseTableControl({
 }: {
   tableId: string;
   isCheckoutPending: boolean;
-  capabilities: Capabilities;
+  showForceClose: boolean;
   isDemo: boolean;
   closingDemoTable: boolean;
   closeLabel: string;
   onDemoCloseClick: () => void;
   onTableClosed: () => void;
 }) {
-  if (!mayForceCloseTable(capabilities)) return null;
+  if (!showForceClose) return null;
 
   const closeIcon = <WaiterPowerIcon className={buttonIcon.sm} />;
 
@@ -374,8 +372,8 @@ type OccupiedToolbarProps = {
   showTransfer: boolean;
   showMerge: boolean;
   showCheckoutClose: boolean;
+  showForceClose: boolean;
   floorCapabilities: FloorBoardCapabilities;
-  capabilities: Capabilities;
   isDemo: boolean;
   closingDemoTable: boolean;
   onDemoCloseClick: () => void;
@@ -397,8 +395,8 @@ export function WaiterTableOccupiedToolbar({
   showTransfer,
   showMerge,
   showCheckoutClose,
+  showForceClose,
   floorCapabilities,
-  capabilities,
   isDemo,
   closingDemoTable,
   onDemoCloseClick,
@@ -452,7 +450,7 @@ export function WaiterTableOccupiedToolbar({
           <ToolbarCloseTableControl
             tableId={tableId}
             isCheckoutPending={isCheckoutPending}
-            capabilities={capabilities}
+            showForceClose={showForceClose}
             isDemo={isDemo}
             closingDemoTable={closingDemoTable}
             closeLabel={t.closeTable}

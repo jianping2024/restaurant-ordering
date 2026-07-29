@@ -52,9 +52,6 @@ export type CloseTableSessionServiceResult =
       reasons?: { checkout_requested: number };
     };
 
-const UNPAID_CLOSE_FORBIDDEN_MESSAGE =
-  '当前订单尚未完成收款，当前账号无权限直接关台。请联系前台处理。';
-
 function validateUnpaidCloseReason(
   reason: string | null | undefined,
   reasonDetail: string | null | undefined,
@@ -146,11 +143,7 @@ export async function closeTableSessionManual(
   input: CloseTableSessionServiceInput,
 ): Promise<CloseTableSessionServiceResult> {
   if (!mayForceCloseTableForManualActor(input.closedReason)) {
-    return {
-      ok: false,
-      code: 'forbidden',
-      message: UNPAID_CLOSE_FORBIDDEN_MESSAGE,
-    };
+    return { ok: false, code: 'forbidden' };
   }
 
   const reasonValidation = validateUnpaidCloseReason(
@@ -173,11 +166,7 @@ export async function closeTableSessionManual(
 
   if (!rpcResult.ok) {
     if (rpcResult.code === 'forbidden') {
-      return {
-        ok: false,
-        code: 'forbidden',
-        message: UNPAID_CLOSE_FORBIDDEN_MESSAGE,
-      };
+      return { ok: false, code: 'forbidden' };
     }
     return rpcResult;
   }

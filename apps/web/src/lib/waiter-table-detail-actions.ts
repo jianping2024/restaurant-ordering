@@ -12,11 +12,16 @@ export type WaiterTableDetailActionFlags = {
   showMerge: boolean;
   /** Desk roles may run 关台结账 (frontdesk prints; cashier skips print). */
   showCheckoutClose: boolean;
+  /** Unpaid / force 关台 (tables.force_close); stays available during checkout lock. */
+  showForceClose: boolean;
 };
 
-/** Session-context flags for table detail. Force-close policy is applied in layout, not here. */
+/** Session-context flags for table detail — all toolbar gates from floor caps here. */
 export function resolveWaiterTableDetailActions(input: {
-  caps: Pick<FloorBoardCapabilities, 'canCheckoutClose' | 'canTransfer' | 'canMerge'>;
+  caps: Pick<
+    FloorBoardCapabilities,
+    'canCheckoutClose' | 'canTransfer' | 'canMerge' | 'canForceClose'
+  >;
   isDemo: boolean;
   isCheckoutPending: boolean;
   hasOpenSession: boolean;
@@ -31,5 +36,6 @@ export function resolveWaiterTableDetailActions(input: {
     showTransfer: caps.canTransfer && openAndEditable,
     showMerge: caps.canMerge && openAndEditable,
     showCheckoutClose: caps.canCheckoutClose && openAndEditable,
+    showForceClose: caps.canForceClose && hasOpenSession,
   };
 }

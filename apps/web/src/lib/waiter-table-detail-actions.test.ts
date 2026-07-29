@@ -27,6 +27,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
     assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showForceClose, true);
   });
 
   it('hides buffet panel during checkout and in demo', () => {
@@ -64,6 +65,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(waiterFlags.showTransfer, true);
     assert.equal(waiterFlags.showMerge, true);
     assert.equal(waiterFlags.showCheckoutClose, false);
+    assert.equal(waiterFlags.showForceClose, false);
 
     const idle = resolveWaiterTableDetailActions({
       caps: desk,
@@ -76,6 +78,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(idle.showTransfer, false);
     assert.equal(idle.showMerge, false);
     assert.equal(idle.showCheckoutClose, false);
+    assert.equal(idle.showForceClose, false);
   });
 
   it('allows cashier checkout-close when session is open', () => {
@@ -87,8 +90,21 @@ describe('resolveWaiterTableDetailActions', () => {
       hasActiveBuffets: false,
     });
     assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showForceClose, false);
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
+  });
+
+  it('keeps force-close visible during checkout lock when capability present', () => {
+    const flags = resolveWaiterTableDetailActions({
+      caps: desk,
+      isDemo: false,
+      isCheckoutPending: true,
+      hasOpenSession: true,
+      hasActiveBuffets: false,
+    });
+    assert.equal(flags.showCheckoutClose, false);
+    assert.equal(flags.showForceClose, true);
   });
 
   it('hides transfer/merge without capability even when session is open', () => {
@@ -105,6 +121,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(flags.showTransfer, false);
     assert.equal(flags.showMerge, false);
     assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showForceClose, false);
   });
 
   it('shows toolbar for session-only tables without buffet lines', () => {

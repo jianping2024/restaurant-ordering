@@ -142,6 +142,57 @@ assert_code "waiter merge" 200 "$(http_code "$WAIT_JAR" POST "$ACTION" "$BODY_ME
 ensure_idle "$FROM_TABLE"; ensure_idle "$MERGE_TARGET"; ensure_open "$FROM_TABLE"; ensure_open "$MERGE_TARGET"
 assert_code "kitchen merge blocked" 401 "$(http_code "$KITCHEN_JAR" POST "$ACTION" "$BODY_MERGE")"
 
+echo "=== Force-close / unpaid close by role ==="
+FORCE_BODY=$(python3 -c "import json; print(json.dumps({'table_id':'$CLOSE_TABLE','confirm_close':True,'close_reason':'owner_approved'}))")
+
+ensure_idle "$CLOSE_TABLE"; ensure_open "$CLOSE_TABLE"
+FORCE_CODE=$(http_code "$STORE_JAR" POST "/api/dashboard/close-table-session" "$FORCE_BODY")
+if [ "$FORCE_CODE" = "200" ]; then
+  REASON=$(psql_q "SELECT closed_reason FROM table_sessions WHERE table_id='$CLOSE_TABLE'::uuid ORDER BY closed_at DESC NULLS LAST LIMIT 1;")
+  if [ "$REASON" = "owner_forced" ]; then
+    pass "store_owner force-close owner_forced"
+  else
+    fail "store_owner force-close owner_forced" "closed_reason=$REASON body=$(cat /tmp/uat-body.json | head -c 200)"
+  fi
+else
+  fail "store_owner force-close" "HTTP $FORCE_CODE $(cat /tmp/uat-body.json | head -c 200)"
+fi
+
+ensure_idle "$CLOSE_TABLE"; ensure_open "$CLOSE_TABLE"
+FRONT_FORCE=$(http_code "$FRONT_JAR" POST "/api/dashboard/close-table-session" "$FORCE_BODY")
+if [ "$FRONT_FORCE" = "200" ]; then
+  REASON=$(psql_q "SELECT closed_reason FROM table_sessions WHERE table_id='$CLOSE_TABLE'::uuid ORDER BY closed_at DESC NULLS LAST LIMIT 1;")
+  if [ "$REASON" = "frontdesk_forced" ]; then
+    pass "frontdesk force-close frontdesk_forced"
+  else
+    fail "frontdesk force-close frontdesk_forced" "closed_reason=$REASON"
+  fi
+else
+  fail "frontdesk force-close" "HTTP $FRONT_FORCE $(cat /tmp/uat-body.json | head -c 200)"
+fi
+
+ensure_idle "$CLOSE_TABLE"; ensure_open "$CLOSE_TABLE"
+CASH_FORCE=$(http_code "$CASH_JAR" POST "/api/dashboard/close-table-session" "$FORCE_BODY")
+if [ "$CASH_FORCE" = "401" ] || [ "$CASH_FORCE" = "403" ]; then
+  pass "cashier force-close blocked"
+else
+  fail "cashier force-close blocked" "expected 401/403 got $CASH_FORCE body=$(cat /tmp/uat-body.json | head -c 200)"
+fi
+
+WAIT_FORCE=$(http_code "$WAIT_JAR" POST "/api/dashboard/close-table-session" "$FORCE_BODY")
+if [ "$WAIT_FORCE" = "401" ] || [ "$WAIT_FORCE" = "403" ]; then
+  pass "waiter force-close blocked"
+else
+  fail "waiter force-close blocked" "expected 401/403 got $WAIT_FORCE"
+fi
+
+KITCHEN_FORCE=$(http_code "$KITCHEN_JAR" POST "/api/dashboard/close-table-session" "$FORCE_BODY")
+if [ "$KITCHEN_FORCE" = "401" ] || [ "$KITCHEN_FORCE" = "403" ]; then
+  pass "kitchen force-close blocked"
+else
+  fail "kitchen force-close blocked" "expected 401/403 got $KITCHEN_FORCE"
+fi
+
 echo "=== Checkout close regression ==="
 ensure_idle "$CLOSE_TABLE"; ensure_open "$CLOSE_TABLE"
 CLOSE_BODY=$(python3 -c "import json; print(json.dumps({'table_id':'$CLOSE_TABLE'}))")

@@ -71,7 +71,13 @@ export type FloorBoardCapabilities = {
   canPrintOnCheckoutClose: boolean;
   canTransfer: boolean;
   canMerge: boolean;
+  /** Unpaid / force close (关台); not settled 关台结账. */
+  canForceClose: boolean;
 };
+
+export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
+  return can(capabilities, 'tables.force_close');
+}
 
 export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): FloorBoardCapabilities {
   return {
@@ -83,11 +89,8 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
     canPrintOnCheckoutClose: can(capabilities, 'checkout.print_pre_bill'),
     canTransfer: can(capabilities, 'tables.transfer'),
     canMerge: can(capabilities, 'tables.merge'),
+    canForceClose: mayForceCloseFromCaps(capabilities),
   };
-}
-
-export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
-  return can(capabilities, 'tables.force_close');
 }
 
 /** First dashboard/floor landing path for a staff capability set. */

@@ -1,7 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { isRestaurantSuspended } from '@mesa/shared';
 import { parseStaffUserMetadata, type StaffRole } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
 import { resolveDashboardOperationalContext } from '@/lib/dashboard-operational-context';
@@ -271,72 +270,6 @@ export async function isFrontdeskStaffUser(
   userMetadata: Record<string, unknown> | undefined,
 ): Promise<boolean> {
   return isActiveStaffRole(supabase, userId, userMetadata, 'frontdesk');
-}
-
-
-export type DashboardFloorStaffRole = 'frontdesk' | 'cashier';
-
-export type DashboardFloorStaffContext =
-  | { admin: SupabaseClient; restaurantId: string; role: DashboardFloorStaffRole }
-  | { error: string; status: number };
-
-/** Server-side admin context for dashboard floor staff (waiter board, close table). */
-export async function loadDashboardFloorStaffContext(options?: {
-  requireWritable?: boolean;
-}): Promise<DashboardFloorStaffContext> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: 'unauthorized', status: 401 };
-  }
-
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured', status: 503 };
-  }
-
-  const { data: account, error: accountError } = await admin
-    .from('restaurant_staff_accounts')
-    .select('restaurant_id, disabled_at, role')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  const role = account?.role;
-  if (
-    accountError ||
-    !account ||
-    account.disabled_at ||
-    (role !== 'frontdesk' && role !== 'cashier')
-  ) {
-    return { error: 'forbidden', status: 403 };
-  }
-
-  const { data: restaurant, error: restaurantError } = await admin
-    .from('restaurants')
-    .select('id, suspended_at')
-    .eq('id', account.restaurant_id)
-    .maybeSingle();
-
-  if (restaurantError || !restaurant) {
-    return { error: 'restaurant_not_found', status: 404 };
-  }
-
-  if (
-    options?.requireWritable &&
-    isRestaurantSuspended(restaurant.suspended_at as string | null)
-  ) {
-    return { error: 'restaurant_suspended', status: 403 };
-  }
-
-  return {
-    admin,
-    restaurantId: restaurant.id as string,
-    role: role as DashboardFloorStaffRole,
-  };
 }
 
 /** Server-side admin context for dashboard operational pages and APIs (overview, orders, tables, menu). */

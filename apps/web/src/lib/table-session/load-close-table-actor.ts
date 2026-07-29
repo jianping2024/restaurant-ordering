@@ -1,12 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
-import { loadDashboardAccess, loadDashboardFloorStaffContext } from '@/lib/dashboard-access';
+import { loadDashboardAccess } from '@/lib/dashboard-access';
+import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
+import {
+  resolveCloseTableSessionDeskActor,
+  type CloseTableSessionActorGate,
+} from '@/lib/table-session/resolve-close-table-actor';
 
 export type CloseTableSessionActorContext =
   | {
@@ -18,8 +22,11 @@ export type CloseTableSessionActorContext =
     }
   | { error: string; status: number };
 
+export type { CloseTableSessionActorGate };
+
 export async function loadCloseTableSessionActor(options?: {
   requireWritable?: boolean;
+  gate?: CloseTableSessionActorGate;
 }): Promise<CloseTableSessionActorContext> {
   const access = await loadDashboardAccess();
   if (access.mode === 'owner') {
@@ -51,30 +58,35 @@ export async function loadCloseTableSessionActor(options?: {
     };
   }
 
-  const floorStaff = await loadDashboardFloorStaffContext(options);
-  if ('error' in floorStaff) {
-    return { error: floorStaff.error, status: floorStaff.status };
+  const loaded = await loadPrincipalWithCapabilities();
+  const desk = resolveCloseTableSessionDeskActor(
+    access,
+    loaded,
+    options?.gate ?? 'checkout_close',
+    options,
+  );
+  if (!desk.ok) {
+    return { error: desk.error, status: desk.status };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: 'unauthorized', status: 401 };
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { error: 'server_misconfigured', status: 503 };
   }
 
-  const actor = await loadStaffAuditActor(floorStaff.admin, {
-    restaurantId: floorStaff.restaurantId,
-    userId: user.id,
-    role: floorStaff.role,
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: desk.restaurantId,
+    userId: desk.userId,
+    role: desk.staffRole,
   });
 
   return {
-    admin: floorStaff.admin,
-    restaurantId: floorStaff.restaurantId,
-    userId: user.id,
+    admin,
+    restaurantId: desk.restaurantId,
+    userId: desk.userId,
     actor,
-    closedReason: floorStaff.role === 'cashier' ? 'cashier_closed' : 'frontdesk_closed',
+    closedReason: desk.closedReason,
   };
 }

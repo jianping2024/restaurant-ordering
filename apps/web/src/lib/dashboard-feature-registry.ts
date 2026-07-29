@@ -296,7 +296,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     pageLoader: 'requireWaiterBoardDashboardAccess (resolveWaiterBoardDashboardAccess)',
     writePattern: 'read-only',
     aliases: ['/api/dashboard/checkout-close-table-session'],
-    riskNote: 'Shared floor board entry; close/checkout actions remain desk-role only.',
+    riskNote: 'Floor board via requireWaiterBoardDashboardAccess; close uses resolveCloseTableSessionDeskActor + tables.checkout_close.',
   },
 ];
 

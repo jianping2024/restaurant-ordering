@@ -321,6 +321,7 @@ function KitchenDisplayInner({
             onSignOut={() => void handleSignOut()}
             confirmSignOut={confirmBeforeSignOut}
             compact
+            allowChangePassword={!isDemo}
           />
         }
       />

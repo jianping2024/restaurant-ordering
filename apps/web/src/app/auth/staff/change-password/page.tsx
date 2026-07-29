@@ -3,5 +3,5 @@ import { requireStaffChangePasswordPage } from '@/lib/staff-change-password-gate
 
 export default async function StaffChangePasswordPage() {
   await requireStaffChangePasswordPage();
-  return <StaffChangePasswordForm />;
+  return <StaffChangePasswordForm intent="forced" />;
 }

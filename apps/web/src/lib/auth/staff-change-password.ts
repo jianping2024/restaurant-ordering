@@ -1,11 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
-import { staffRolePath } from '@/lib/staff-routes';
 import { verifyStaffPassword } from '@/lib/verify-staff-password';
 import {
   validateStaffPasswordChangeInput,
   type StaffChangePasswordValidationError,
 } from '@/lib/auth/staff-change-password-validation';
+import { resolveStaffPasswordChangeSuccess } from '@/lib/auth/staff-change-password-outcome';
 
 export type StaffChangePasswordError =
   | 'unauthorized'
@@ -14,7 +14,7 @@ export type StaffChangePasswordError =
   | 'update_failed';
 
 export type StaffChangePasswordResult =
-  | { ok: true; path: string }
+  | { ok: true; path: string | null }
   | { ok: false; error: StaffChangePasswordError };
 
 export async function changeStaffPasswordWithSession(
@@ -39,10 +39,11 @@ export async function changeStaffPasswordWithSession(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const meta = parseStaffUserMetadata(user?.user_metadata as Record<string, unknown> | undefined);
-  if (!user || !meta || meta.must_change_password !== true) {
+  if (!user) {
     return { ok: false, error: 'unauthorized' };
   }
+
+  const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown> | undefined);
 
   const verify = await verifyStaffPassword(currentPassword);
   if (!verify.ok) {
@@ -52,13 +53,13 @@ export async function changeStaffPasswordWithSession(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword,
-    data: { ...user.user_metadata, must_change_password: false },
-  });
+  const { updateData, path } = resolveStaffPasswordChangeSuccess(user, meta);
+  const { error } = await supabase.auth.updateUser(
+    updateData ? { password: newPassword, data: updateData } : { password: newPassword },
+  );
   if (error) {
     return { ok: false, error: 'update_failed' };
   }
 
-  return { ok: true, path: staffRolePath(meta.restaurant_slug, meta.staff_role) };
+  return { ok: true, path };
 }

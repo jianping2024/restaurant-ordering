@@ -189,20 +189,96 @@ async function main() {
     installCode = issue.json?.code || null;
     record('issue install code', issue.status === 200 && Boolean(installCode), `status=${issue.status}`);
 
-    // Claim
-    const claim = await api('POST', '/api/platform/license/claim', {
-      body: { code: installCode, ownerPassword: OWNER_PASSWORD },
+    // Throwaway: platform claim alone must not create Auth / owner_id
+    const throwEmail = `${TAG}-throw@test.mesa.local`;
+    const regThrow = await api('POST', '/api/ops/restaurants', {
+      cookie,
+      body: {
+        deploymentMode: 'on_prem',
+        restaurantName: `Throw ${TAG}`,
+        email: throwEmail,
+        printLocale: 'pt',
+        countryCode: 'PT',
+        slug: `throw-${TAG}`,
+      },
     });
-    checkinCredential = claim.json?.checkinCredential || null;
+    const throwId = regThrow.json?.restaurantId || null;
+    const issueThrow = await api('POST', `/api/ops/licenses/${throwId}/installations`, { cookie });
+    const claimThrow = await api('POST', '/api/platform/license/claim', {
+      body: { code: issueThrow.json?.code },
+    });
+    const throwOwner = (
+      await sb.from('restaurants').select('owner_id').eq('id', throwId).single()
+    ).data?.owner_id;
     record(
-      'claim installation',
-      claim.status === 200 && Boolean(checkinCredential) && Boolean(claim.json?.leaseToken),
-      `status=${claim.status} err=${claim.json?.error || ''}`,
+      'platform claim leaves owner_id null',
+      claimThrow.status === 200 && throwOwner == null,
+      `status=${claimThrow.status} owner=${throwOwner}`,
     );
+    const throwClaimed = (
+      await sb
+        .from('restaurant_installations')
+        .select('status')
+        .eq('restaurant_id', throwId)
+        .eq('status', 'claimed')
+        .maybeSingle()
+    ).data;
+    record('platform claim sets installation claimed', throwClaimed?.status === 'claimed');
+    if (throwId) {
+      await sb.from('restaurant_installations').delete().eq('restaurant_id', throwId);
+      await sb.from('restaurants').delete().eq('id', throwId);
+    }
+
+    // Full bridge: web /api/setup/claim → platform claim + local apply (same DB UAT)
+    const WEB = process.env.WEB_TEST_BASE_URL || 'http://127.0.0.1:3000';
+    const setupRes = await fetch(`${WEB}/api/setup/claim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: installCode,
+        ownerPassword: OWNER_PASSWORD,
+        platformUrl: BASE,
+      }),
+    });
+    const setupJson = await setupRes.json();
+    record(
+      'setup claim+apply',
+      setupRes.status === 200 && setupJson.ok === true && setupJson.redirectTo === '/auth/login',
+      `status=${setupRes.status} err=${setupJson.error || ''} redirect=${setupJson.redirectTo || ''}`,
+    );
+    record('setup does not auto-login', setupJson.redirectTo === '/auth/login' && !setupJson.session);
+
     ownerUserId = (
       await sb.from('restaurants').select('owner_id').eq('id', onPremRestaurantId).single()
     ).data?.owner_id;
-    record('claim sets owner_id', Boolean(ownerUserId));
+    record('apply sets local owner_id', Boolean(ownerUserId), `owner=${ownerUserId}`);
+
+    const licenseCfgPath = path.join(ROOT, 'apps/web/.mesa-license.local.json');
+    let licenseCfg = null;
+    try {
+      licenseCfg = JSON.parse(fs.readFileSync(licenseCfgPath, 'utf8'));
+    } catch {
+      licenseCfg = null;
+    }
+    checkinCredential = licenseCfg?.checkinCredential || null;
+    record(
+      'apply persists platform license config',
+      Boolean(checkinCredential) && Boolean(licenseCfg?.platformUrl) && Boolean(licenseCfg?.leaseSecret),
+      licenseCfgPath,
+    );
+
+    // Owner can password-login via web auth API
+    const loginOwner = await fetch(`${WEB}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account: OWNER_EMAIL, password: OWNER_PASSWORD }),
+    });
+    const loginOwnerJson = await loginOwner.json().catch(() => ({}));
+    record(
+      'owner login after setup',
+      loginOwner.status === 200 && (loginOwnerJson.ok === true || loginOwnerJson.kind === 'owner'),
+      `status=${loginOwner.status} kind=${loginOwnerJson.kind || ''}`,
+    );
 
     // Extend +1m
     const before = (
@@ -356,6 +432,11 @@ async function main() {
         await sb.from('restaurants').delete().eq('id', cloudRestaurantId);
       }
       if (ownerUserId) await sb.auth.admin.deleteUser(ownerUserId);
+      try {
+        fs.unlinkSync(path.join(ROOT, 'apps/web/.mesa-license.local.json'));
+      } catch {
+        /* ignore */
+      }
       // cloud owner email user
       const { data: users } = await sb.auth.admin.listUsers({ page: 1, perPage: 1000 });
       for (const u of users?.users || []) {

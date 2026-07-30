@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-access';
+import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-paths';
 import {
   dashboardStaffMiddlewareRedirectPath,
   middlewareAllowsOwnerPath,

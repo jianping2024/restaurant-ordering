@@ -212,21 +212,21 @@ flowchart LR
 
 ---
 
-## 5. 本地私有化部署（[`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)）
+## 5. 本地私有化部署（[`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md)）
 
-**独立大项**；与 **SaaS 云端共用同一 Postgres-only 架构**（见 [`supabase-to-postgres-migration.zh.md`](./supabase-to-postgres-migration.zh.md) §1.0）。**不建议与首期打印代理上线混排**。
+**独立大项**。步骤与验收以 rollout 文档为准；细设计见 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)。  
+**完成度 / 卡点交接（必读）：** [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md)。控制面 ADR：[`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)。
 
-| 阶段 | 内容 | 预估 |
-|------|------|------|
-| **0** | 产品决策、支持矩阵、验收清单定稿 | ~1 周 |
-| **1** | 单机生产栈（Windows + Docker/WSL2 + **Postgres + Next.js**，非 Supabase 栈） | ~2–3 周 |
-| **2** | 备份与可观测性 | ~2 周 |
-| **3** | 签名升级系统 | ~2–3 周 |
-| **4** | 试点与运营 | ~4 周 |
+| 阶段 | 内容 | 预估 | 交接日快照 |
+|------|------|------|------------|
+| **0** | 产品决策、支持矩阵、验收清单 | ~1 周 | 方案定稿；矩阵一页未勾 |
+| **控制面** | 双模式开户、续期/停运、安装认领、lease | — | 代码在本地 `main`；连云 UAT / push 未完 |
+| **1** | 单机生产栈（WSL + Docker + 自托管 Supabase + Web） | ~2–3 周 | Mode B 脚本/zip 在本机；`deploy/` 未入库 |
+| **2** | 备份与可观测性 | ~2 周 | 脚本雏形，未验收 |
+| **3** | 离线升级包与回滚 | ~2–3 周 | 脚本有；演练未做 |
+| **4** | 试点与运营 | ~4 周 | 未开始 |
 
-**前置**：完成迁移方案阶段 0–7（schema、API、Auth、Realtime、Storage、CI）后，私有化阶段 1 才进入客户交付形态。
-
-§13 上线验收清单（断网营业、重启恢复、TCP 9100、备份恢复、升级回滚等）**全部待勾**。
+**当前最大工程卡点：** `/deploy/` 整树被 `.gitignore`，换机无法从仓库复现发行栈——见交接文档 §3。
 
 ---
 

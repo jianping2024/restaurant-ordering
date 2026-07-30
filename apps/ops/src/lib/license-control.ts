@@ -5,7 +5,6 @@ import {
   SUSPENSION_REASON_LICENSE_LEASE_INVALID,
   SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED,
   buildLicenseLeaseClaims,
-  ensurePrintAgentStaff,
   extendLicenseValidUntil,
   hashLicenseSecret,
   isRestaurantSuspended,
@@ -186,24 +185,31 @@ export type ClaimInstallResult =
   | {
       ok: true;
       restaurantId: string;
+      name: string;
       slug: string;
       ownerEmail: string;
+      printLocale: string;
+      countryCode: string;
       checkinCredential: string;
       licenseValidUntil: string | null;
+      suspendedAt: string | null;
+      suspensionReason: string | null;
       leaseToken: string;
       lease: ReturnType<typeof buildLicenseLeaseClaims>;
     }
   | { ok: false; error: string; status: number; detail?: string };
 
+/**
+ * Platform claim only: consume install code, mint lease + check-in credential.
+ * Does not create Auth users or set restaurants.owner_id — store apply-claim does that locally.
+ * “Claimed” on platform = restaurant_installations.status === 'claimed'.
+ */
 export async function claimOnPremInstallation(
   admin: SupabaseClient,
-  input: { code: string; ownerPassword: string; leaseSecret: string },
+  input: { code: string; leaseSecret: string },
 ): Promise<ClaimInstallResult> {
   const code = input.code.trim().toLowerCase();
   if (!code) return { ok: false, error: 'code_required', status: 400 };
-  if (!input.ownerPassword || input.ownerPassword.length < 6) {
-    return { ok: false, error: 'password_too_short', status: 400 };
-  }
 
   const codeHash = hashLicenseSecret(code);
   const { data: installation, error: fetchError } = await admin
@@ -224,7 +230,7 @@ export async function claimOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, slug, owner_email, owner_id, deployment_mode, license_valid_until, suspended_at, suspension_reason',
+      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, license_valid_until, suspended_at, suspension_reason',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -236,29 +242,17 @@ export async function claimOnPremInstallation(
     return { ok: false, error: 'not_on_prem', status: 400 };
   }
   if (!restaurant.owner_email) return { ok: false, error: 'owner_email_missing', status: 500 };
-  if (restaurant.owner_id) return { ok: false, error: 'already_claimed', status: 409 };
 
-  // One claimed per restaurant — revoke older claimed rows if any (reinstall path uses new pending).
-  await admin
+  const { data: existingClaimed } = await admin
     .from('restaurant_installations')
-    .update({ status: 'revoked', revoked_at: new Date().toISOString() })
+    .select('id')
     .eq('restaurant_id', restaurant.id)
-    .eq('status', 'claimed');
-
-  const { data: userData, error: createUserError } = await admin.auth.admin.createUser({
-    email: restaurant.owner_email,
-    password: input.ownerPassword,
-    email_confirm: true,
-  });
-  if (createUserError || !userData.user) {
-    const msg = createUserError?.message || '';
-    if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('registered')) {
-      return { ok: false, error: 'email_exists', status: 409, detail: msg };
-    }
-    return { ok: false, error: 'create_user_failed', status: 400, detail: msg };
+    .eq('status', 'claimed')
+    .maybeSingle();
+  if (existingClaimed) {
+    return { ok: false, error: 'already_claimed', status: 409 };
   }
 
-  const ownerId = userData.user.id;
   const checkinCredential = mintCheckinSecret();
   const now = new Date();
   const forceSuspended = isOpsForceSuspended(restaurant.suspended_at, restaurant.suspension_reason);
@@ -274,7 +268,6 @@ export async function claimOnPremInstallation(
   const { error: updateRestError } = await admin
     .from('restaurants')
     .update({
-      owner_id: ownerId,
       license_checked_at: lease.server_time,
       license_lease_until: lease.lease_until,
       license_lease_token: leaseToken,
@@ -282,7 +275,6 @@ export async function claimOnPremInstallation(
     .eq('id', restaurant.id);
 
   if (updateRestError) {
-    await admin.auth.admin.deleteUser(ownerId);
     return { ok: false, error: 'claim_restaurant_failed', status: 500, detail: updateRestError.message };
   }
 
@@ -299,26 +291,21 @@ export async function claimOnPremInstallation(
     .eq('id', installation.id);
 
   if (updateInstError) {
-    await admin.from('restaurants').update({ owner_id: null }).eq('id', restaurant.id);
-    await admin.auth.admin.deleteUser(ownerId);
     return { ok: false, error: 'claim_install_failed', status: 500, detail: updateInstError.message };
-  }
-
-  const ensure = await ensurePrintAgentStaff(admin, {
-    restaurantId: restaurant.id,
-    restaurantSlug: restaurant.slug,
-  });
-  if (!ensure.ok) {
-    // Non-fatal for claim identity; print can be repaired later. Keep claim.
   }
 
   return {
     ok: true,
     restaurantId: restaurant.id,
+    name: restaurant.name,
     slug: restaurant.slug,
     ownerEmail: restaurant.owner_email,
+    printLocale: restaurant.print_locale || 'pt',
+    countryCode: restaurant.country_code || 'PT',
     checkinCredential,
     licenseValidUntil: restaurant.license_valid_until,
+    suspendedAt: restaurant.suspended_at,
+    suspensionReason: restaurant.suspension_reason,
     leaseToken,
     lease,
   };

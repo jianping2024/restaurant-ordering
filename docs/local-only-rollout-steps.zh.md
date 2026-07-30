@@ -1,8 +1,9 @@
 # 门店纯本地部署：落地步骤（方案定稿）
 
 > **状态：方案已定稿**（2026-07-24）  
-> 冲突时以本文为准。细设计仍可参考 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)（其中「打印进 Docker」为**不做**的备选）。  
-> ADR：[`ADR-001`](./decisions/ADR-001-offline-first.md)、[`ADR-002`](./decisions/ADR-002-local-database.md)
+> **工程完成度 / 卡点交接（2026-07-30）：** [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md)（控制面代码 + Mode B 包；含「什么绿了、什么卡死」）。  
+> 冲突时以本文为准（产品步骤）。细设计仍可参考 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)（其中「打印进 Docker」为**不做**的备选）。  
+> ADR：[`ADR-001`](./decisions/ADR-001-offline-first.md)、[`ADR-002`](./decisions/ADR-002-local-database.md)、控制面 [`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)
 
 ## 0. 一句话说清楚
 
@@ -327,18 +328,22 @@ Windows 上另跑 print-agent（桥，照旧）
 
 | 文档 | 角色 |
 |------|------|
-| **本文** | 方案定稿、步骤、验收；冲突时最高优先 |
+| **本文** | 方案定稿、步骤、验收；产品步骤冲突时最高优先 |
+| [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md) | **工程完成度与卡点交接**（控制面 + Mode B 包） |
 | [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md) | Compose/备份/升级细设计；打印进 Docker **以本文为准不做** |
 | [`ADR-001`](./decisions/ADR-001-offline-first.md) | 纯本地权威，非 PWA 离线 |
 | [`ADR-002`](./decisions/ADR-002-local-database.md) | 店内自托管 Supabase 为权威 |
 | [`ADR-003`](./decisions/ADR-003-printing-strategy.md) | 打印策略；本地交付时 agent 连本机 |
+| [`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md) | 云/本地双模式 + 授权控制面 |
 
 ---
 
 ## 9. 下一步（实施入口）
 
-方案已定，可按计划开工：
+工程状态先看 [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md) §5。产品步骤仍可按：
 
-1. **步骤 ①** 一页支持矩阵（硬件 / WSL2+Engine / 打印机；扫码方式可写「POC 用局域网」）。  
-2. **步骤 ②+③ 内部 POC**：本机生产栈 + agent 连本机，拔外网开台结账打票。  
+1. **P0：** 把 `deploy/on-prem` 源码入库 + 用最新 stamped zip 把 WSL 验证跑绿。  
+2. **步骤 ①** 一页支持矩阵（硬件 / WSL2+Engine / 打印机；扫码方式可写「POC 用局域网」）。  
+3. **步骤 ②+③ 内部 POC**：本机生产栈 + agent 连本机，拔外网开台结账打票。  
+4. 控制面连云 UAT（push / Ops 密钥）→ 再 ⑤ → ⑥ → ⑦ → ⑧ 试点。  
 3. 再 ⑤ → ⑥（日备上 cloud）→ ⑦ → ⑧ 试点。

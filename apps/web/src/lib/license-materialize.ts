@@ -1,9 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   decideLicenseMaterialize,
+  ensurePrintAgentStaff,
   isRestaurantSuspended,
   type DeploymentMode,
 } from '@mesa/shared';
+import {
+  loadPlatformLicenseConfig,
+  persistPlatformLicenseConfig,
+  type PlatformLicenseConfig,
+} from '@/lib/license-platform-config';
 
 type LicenseRestaurantRow = {
   id: string;
@@ -17,7 +23,7 @@ type LicenseRestaurantRow = {
 };
 
 function leaseSecret(): string | null {
-  return process.env.MESA_LICENSE_LEASE_SECRET?.trim() || null;
+  return loadPlatformLicenseConfig()?.leaseSecret || process.env.MESA_LICENSE_LEASE_SECRET?.trim() || null;
 }
 
 /**
@@ -73,7 +79,6 @@ export async function applyLicenseMaterialize(
     return { changed: !updateError, action: 'suspend' };
   }
 
-  // clear
   const { error: updateError } = await admin
     .from('restaurants')
     .update({ suspended_at: null, suspension_reason: null })
@@ -83,25 +88,23 @@ export async function applyLicenseMaterialize(
 
 /**
  * Optional platform check-in for on-prem, then materialize.
- * Env: MESA_PLATFORM_LICENSE_URL (e.g. http://127.0.0.1:3001), MESA_LICENSE_CHECKIN_CREDENTIAL,
- * MESA_LICENSE_LEASE_SECRET (same HMAC secret as platform).
+ * Config: sole loader `loadPlatformLicenseConfig` (file then env).
  */
 export async function syncOnPremLicenseFromPlatform(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const base = process.env.MESA_PLATFORM_LICENSE_URL?.trim().replace(/\/$/, '');
-  const credential = process.env.MESA_LICENSE_CHECKIN_CREDENTIAL?.trim();
-  if (!base || !credential) {
+  const config = loadPlatformLicenseConfig();
+  if (!config) {
     await applyLicenseMaterialize(admin, restaurantId);
     return { ok: true };
   }
 
   try {
-    const res = await fetch(`${base}/api/platform/license/check-in`, {
+    const res = await fetch(`${config.platformUrl}/api/platform/license/check-in`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${credential}`,
+        Authorization: `Bearer ${config.checkinCredential}`,
         'Content-Type': 'application/json',
       },
       body: '{}',
@@ -133,4 +136,133 @@ export async function syncOnPremLicenseFromPlatform(
     await applyLicenseMaterialize(admin, restaurantId);
     return { ok: false, error: e instanceof Error ? e.message : 'checkin_network_error' };
   }
+}
+
+export type PlatformClaimSnapshot = {
+  restaurantId: string;
+  name: string;
+  slug: string;
+  ownerEmail: string;
+  printLocale: string;
+  countryCode: string;
+  checkinCredential: string;
+  licenseValidUntil: string | null;
+  suspendedAt: string | null;
+  suspensionReason: string | null;
+  leaseToken: string;
+  lease: { server_time: string; lease_until: string; valid_until: string | null };
+};
+
+export type ApplyOnPremClaimResult =
+  | { ok: true; restaurantId: string; ownerEmail: string; slug: string }
+  | { ok: false; error: string; status: number; detail?: string };
+
+/**
+ * Sole local apply-claim: same restaurantId as platform, local Auth owner, persist platform config.
+ */
+export async function applyOnPremClaim(
+  admin: SupabaseClient,
+  input: {
+    snapshot: PlatformClaimSnapshot;
+    ownerPassword: string;
+    platformConfig: PlatformLicenseConfig;
+  },
+): Promise<ApplyOnPremClaimResult> {
+  const password = input.ownerPassword || '';
+  if (password.length < 6) {
+    return { ok: false, error: 'password_too_short', status: 400 };
+  }
+
+  const snap = input.snapshot;
+  const restaurantId = snap.restaurantId;
+  if (!restaurantId || !snap.ownerEmail || !snap.slug || !snap.name) {
+    return { ok: false, error: 'invalid_claim_snapshot', status: 400 };
+  }
+
+  const { data: existing, error: existingError } = await admin
+    .from('restaurants')
+    .select('id, owner_id, deployment_mode')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (existingError) {
+    return { ok: false, error: 'fetch_failed', status: 500, detail: existingError.message };
+  }
+  if (existing?.owner_id) {
+    return { ok: false, error: 'already_claimed', status: 409 };
+  }
+
+  const { data: userData, error: createUserError } = await admin.auth.admin.createUser({
+    email: snap.ownerEmail,
+    password,
+    email_confirm: true,
+  });
+  if (createUserError || !userData.user) {
+    const msg = createUserError?.message || '';
+    if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('registered')) {
+      return { ok: false, error: 'email_exists', status: 409, detail: msg };
+    }
+    return { ok: false, error: 'create_user_failed', status: 400, detail: msg };
+  }
+  const ownerId = userData.user.id;
+
+  const restaurantPatch = {
+    owner_id: ownerId,
+    owner_email: snap.ownerEmail,
+    name: snap.name,
+    slug: snap.slug,
+    print_locale: snap.printLocale || 'pt',
+    country_code: snap.countryCode || 'PT',
+    deployment_mode: 'on_prem' as const,
+    license_valid_until: snap.licenseValidUntil,
+    license_checked_at: snap.lease.server_time,
+    license_lease_until: snap.lease.lease_until,
+    license_lease_token: snap.leaseToken,
+    suspended_at: snap.suspendedAt,
+    suspension_reason: snap.suspensionReason,
+  };
+
+  if (existing) {
+    const { error: updateError } = await admin
+      .from('restaurants')
+      .update(restaurantPatch)
+      .eq('id', restaurantId);
+    if (updateError) {
+      await admin.auth.admin.deleteUser(ownerId);
+      return { ok: false, error: 'restaurant_update_failed', status: 500, detail: updateError.message };
+    }
+  } else {
+    const { error: insertError } = await admin.from('restaurants').insert({
+      id: restaurantId,
+      ...restaurantPatch,
+    });
+    if (insertError) {
+      await admin.auth.admin.deleteUser(ownerId);
+      return { ok: false, error: 'restaurant_insert_failed', status: 500, detail: insertError.message };
+    }
+  }
+
+  const ensure = await ensurePrintAgentStaff(admin, {
+    restaurantId,
+    restaurantSlug: snap.slug,
+  });
+  if (!ensure.ok) {
+    // Non-fatal; print can be repaired later.
+  }
+
+  try {
+    persistPlatformLicenseConfig(input.platformConfig);
+  } catch (e) {
+    await admin.from('restaurants').update({ owner_id: null }).eq('id', restaurantId);
+    await admin.auth.admin.deleteUser(ownerId);
+    return {
+      ok: false,
+      error: 'config_persist_failed',
+      status: 500,
+      detail: e instanceof Error ? e.message : String(e),
+    };
+  }
+
+  await applyLicenseMaterialize(admin, restaurantId);
+  return { ok: true, restaurantId, ownerEmail: snap.ownerEmail, slug: snap.slug };
 }

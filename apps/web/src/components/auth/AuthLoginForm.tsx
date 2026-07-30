@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
@@ -13,6 +14,11 @@ export function AuthLoginForm({ storeSlug }: Props) {
   const { account, setAccount, password, setPassword, loading, error, submit, t } = useAuthLogin({
     storeSlug,
   });
+
+  useEffect(() => {
+    const email = new URLSearchParams(window.location.search).get('email');
+    if (email) setAccount(email);
+  }, [setAccount]);
 
   return (
     <form onSubmit={submit} className="space-y-5" aria-busy={loading}>

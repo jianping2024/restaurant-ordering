@@ -64,7 +64,7 @@
 | 外卖 / 配送 | 仅堂食桌码场景 |
 | GDPR 合规套件 / 数据导出自助 | P3 中长期 |
 | 自建 Postgres 生产替换 Supabase | 有迁移计划文档，未执行 |
-| 本地私有化一键部署 | 方案见 [`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md)；控制面授权/安装认领见 [`../decisions/ADR-004-on-prem-entitlement.md`](../decisions/ADR-004-on-prem-entitlement.md)。当前产品仍以云 SaaS 为主路径 |
+| 本地私有化一键部署 | 方案见 [`../local-only-rollout-steps.zh.md`](../local-only-rollout-steps.zh.md)；控制面+认领终态见 [`../decisions/ADR-004-on-prem-entitlement.md`](../decisions/ADR-004-on-prem-entitlement.md)；**建店路由与完成度**见 [`../on-prem-handoff.zh.md`](../on-prem-handoff.zh.md) §1.3。当前产品仍以云 SaaS 为主路径；本机认领页 `/setup` 尚未交付 |
 | Authenticode 代码签名 | 第一期不签 |
 | 恢复 `table_number` 字段 | 已废弃，禁止回归 |
 

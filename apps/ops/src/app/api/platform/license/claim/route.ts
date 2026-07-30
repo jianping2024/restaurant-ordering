@@ -7,6 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 /**
  * On-prem installer → platform. Auth = one-time install code (not ops session).
+ * Does not create platform Auth — local /setup apply-claim creates the store owner.
  */
 export async function POST(req: Request) {
   const leaseSecret = resolveLicenseLeaseSecret();
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'lease_secret_unconfigured' }, { status: 503 });
   }
 
-  let body: { code?: string; ownerPassword?: string };
+  let body: { code?: string };
   try {
     body = await req.json();
   } catch {
@@ -24,7 +25,6 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const result = await claimOnPremInstallation(admin, {
     code: body.code || '',
-    ownerPassword: body.ownerPassword || '',
     leaseSecret,
   });
 
@@ -38,10 +38,15 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     restaurantId: result.restaurantId,
+    name: result.name,
     slug: result.slug,
     ownerEmail: result.ownerEmail,
+    printLocale: result.printLocale,
+    countryCode: result.countryCode,
     checkinCredential: result.checkinCredential,
     licenseValidUntil: result.licenseValidUntil,
+    suspendedAt: result.suspendedAt,
+    suspensionReason: result.suspensionReason,
     leaseToken: result.leaseToken,
     lease: result.lease,
   });

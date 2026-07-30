@@ -13,6 +13,7 @@ import { getPrintAgentDevicesNeedingRenewal } from '@/lib/print-agent-devices-se
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
+import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
 
 async function OwnerPrintExpiryBanner({ restaurantId }: { restaurantId: string }) {
   const expiringDevices = await getPrintAgentDevicesNeedingRenewal(restaurantId);
@@ -41,6 +42,10 @@ export default async function DashboardLayout({
   }
 
   if (access.mode === 'onboarding') {
+    // On-prem empty host: sole path is /setup claim — not free-name RestaurantOnboarding.
+    if (isOnPremInstallHost()) {
+      redirect('/setup');
+    }
     return (
       <div className="min-h-screen bg-brand-bg flex">
         <RestaurantOnboarding />

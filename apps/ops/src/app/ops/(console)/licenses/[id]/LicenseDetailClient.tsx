@@ -199,7 +199,8 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
         <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
           <h2 className="text-lg font-medium">本地安装</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            店主邮箱（认领时创建本机账号）：{restaurant.ownerEmail || '—'}
+            店主邮箱（在本机 /setup 认领时创建本机账号）：{restaurant.ownerEmail || '—'}
+            。安装码用于店内打开 http://127.0.0.1:3000/setup 。
           </p>
           <button
             type="button"

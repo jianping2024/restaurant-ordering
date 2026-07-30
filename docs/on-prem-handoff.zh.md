@@ -1,7 +1,7 @@
 # 门店本地部署 + 授权控制面：需求与交接
 
 > **日期：** 2026-07-30（§1.4 装机认领终态 2026-07-30 晚补全）  
-> **状态：** 控制面代码已合入本地 `main`（`d0483ee`）；**跨库装机桥（`/setup` + 本机 apply-claim；平台 claim 不建云 Auth）需求已定、代码未完**；发行栈 / 验证包仍在本机磁盘与 zip，**未进 Git**。  
+> **状态：** 控制面 + `/setup` 装机桥已合入本地 `main`（含 `f6114ac`）；发行栈 / 验证包仍在本机磁盘与 zip，**未进 Git**。  
 > **权威方案：** [`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md) · ADR：[`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)（含认领终态）  
 > **相关会话：** [On-prem license control plane](4c9cf0ea-bf55-4120-b093-b05d28c40651) · [WSL verify / pack](6de12965-b99e-4092-a37b-3c905fb90af1) · [Claim bridge /setup](5144df91-bb08-49f4-9e3f-d26bbc47fe6a)
 
@@ -11,7 +11,7 @@
 
 两件事并行：
 
-1. **Ops 授权控制面**（云登记本地店、续期/停运、安装码认领、7 天离线 lease）——控制面代码+云迁移有；**跨库 `/setup` 装机桥需求已定、未编码**；连云端到端 UAT / 推远程 `main` 未完成。  
+1. **Ops 授权控制面**（云登记本地店、续期/停运、安装码认领、7 天离线 lease）——控制面 + `/setup` 装机桥已编码；**连云生产 UAT / 推远程 `main` 未完成**。  
 2. **Mode B 门店发行包**（本机 Docker 栈 + 迁移 baseline + Windows 安装器 / WSL 一键验证）——脚本与最新 zip 在开发机，**整棵 `deploy/` 被 `.gitignore` 排除，交接最大风险**。
 
 商业形态已拍板：**Linux 栈（WSL/Docker）+ Windows Print Agent**；不要再用「Windows Docker Desktop 全栈 zip」当主验证战场。
@@ -117,7 +117,7 @@
 | ADR-004 + schema 摘要 + handoff §1.3 | ✅ | 认领终态已写入 ADR / 本文 |
 | 本地 UAT 脚本 | 🟡 | `scripts/uat-on-prem-license.mjs` 含 platform-no-owner + setup bridge；需 web:3000 + ops:3001 |
 | 推 `origin/main` / 云 Ops 生产 env | ❌ | 本地 ahead 未 push；Vercel Ops 需部署含 license API 的版本，并配 `MESA_LICENSE_LEASE_SECRET` |
-| 连云端到端 UAT（登记→码→`/setup`→登录→check-in→续期/停运） | ❌ | 依赖装机桥 + Ops 部署 + 密钥对齐 |
+| 连云端到端 UAT（登记→码→`/setup`→登录→check-in→续期/停运） | ❌ | 本地同库 UAT 已绿；真云 Ops + 本机双库待 push/部署后验 |
 
 ### 2.2 Mode B 发行栈与验证（磁盘 / zip；**不在 Git**）
 
@@ -148,7 +148,7 @@
 | ⑥ 备份恢复 | 🟡 | 脚本雏形；cloud 日备未验收 |
 | ⑦ 升级回滚 | 🟡 | `Upgrade`/`Rollback` 有；≥3 次演练无 |
 | ⑧ 试点 | ❌ | — |
-| 控制面（ADR-004） | 🟡 | 代码+云迁移+需求文档齐；装机桥未编码；连云 UAT / 推远程未完 |
+| 控制面（ADR-004） | 🟡 | 代码+云迁移+装机桥齐；连云 UAT / 推远程未完 |
 
 ---
 
@@ -214,13 +214,12 @@ No pending incremental migrations (baseline covers current tree).
 
 ## 5. 建议下一手（顺序）
 
-1. **实现 §1.3 装机桥**（平台 claim 去云 Auth；本机 `/setup` + apply-claim；成功只跳 `/auth/login`）。  
-2. **改 `.gitignore`，把 `deploy/on-prem` 源码纳入 Git**（排除 secrets/volumes），并提交 `Dockerfile` / `.dockerignore` / `next.config` standalone。  
-3. **用最新 stamped zip 在 WSL 再跑一遍** `START-WSL-TEST.cmd`，截成功 migrate + 打开 `/setup` 完成认领登录。  
-4. **push 本地 `main`（用户明确说 push 时）**；确认云 Ops 部署与 `MESA_LICENSE_LEASE_SECRET`。  
-5. 跑通连云 UAT：Ops 登记 → 发码 → `/setup` → `/auth/login` → dashboard check-in → 续期/停运。  
-6. Print Agent 指 `http://127.0.0.1:3000`，厨打冒烟。  
-7. 再排 ⑤ 空机 Installer、⑥ 备份、⑦ 升级演练。
+1. **改 `.gitignore`，把 `deploy/on-prem` 源码纳入 Git**（排除 secrets/volumes），并提交 `Dockerfile` / `.dockerignore` / `next.config` standalone。  
+2. **用最新 stamped zip 在 WSL 再跑一遍** `START-WSL-TEST.cmd`，截成功 migrate + 打开 `/setup` 完成认领登录。  
+3. **push 本地 `main`（用户明确说 push 时）**；确认云 Ops 部署与 `MESA_LICENSE_LEASE_SECRET`。  
+4. 跑通连云 UAT：Ops 登记 → 发码 → `/setup` → `/auth/login` → dashboard check-in → 续期/停运。  
+5. Print Agent 指 `http://127.0.0.1:3000`，厨打冒烟。  
+6. 再排 ⑤ 空机 Installer、⑥ 备份、⑦ 升级演练。
 
 ---
 

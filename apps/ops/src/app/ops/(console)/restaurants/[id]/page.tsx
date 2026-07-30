@@ -25,14 +25,14 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason',
+      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until',
     )
     .eq('id', id)
     .maybeSingle();
 
   if (!row) notFound();
 
-  const { data: owner } = await admin.auth.admin.getUserById(row.owner_id);
+  const owner = row.owner_id ? await admin.auth.admin.getUserById(row.owner_id) : null;
   const tenantUrl = getTenantAppUrl();
   const menuUrl = `${tenantUrl}/${row.slug}/menu`;
   const suspended = isRestaurantSuspended(row.suspended_at);
@@ -57,8 +57,12 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           <dd>{row.plan}</dd>
         </div>
         <div>
+          <dt className="text-zinc-500">交付方式</dt>
+          <dd>{row.deployment_mode === 'on_prem' ? '本地安装' : '云'}</dd>
+        </div>
+        <div>
           <dt className="text-zinc-500">店主邮箱</dt>
-          <dd>{owner?.user?.email || '—'}</dd>
+          <dd>{row.owner_email || owner?.data?.user?.email || '—'}</dd>
         </div>
         <div>
           <dt className="text-zinc-500">print_locale</dt>
@@ -117,7 +121,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </>
       ) : (
         <p className="mt-8 text-sm text-zinc-500">
-          support 账号仅可查看信息与重置密码；暂停门店、编辑元数据请使用 admin 账号。
+          support 账号仅可查看信息与重置密码；授权/暂停与编辑元数据请使用 admin 账号。
         </p>
       )}
 

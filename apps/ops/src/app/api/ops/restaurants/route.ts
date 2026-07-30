@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createRestaurantWithOwner, type PrintLocale } from '@mesa/shared';
+import {
+  createRestaurantWithOwner,
+  isDeploymentMode,
+  registerOnPremRestaurant,
+  type PrintLocale,
+} from '@mesa/shared';
 import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
@@ -18,9 +23,10 @@ export async function GET(req: Request) {
 
   let query = admin
     .from('restaurants')
-    .select('id, name, slug, plan, created_at, owner_id, print_locale, feature_flags, suspended_at', {
-      count: 'exact',
-    })
+    .select(
+      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, feature_flags, suspended_at, deployment_mode, license_valid_until',
+      { count: 'exact' },
+    )
     .order('created_at', { ascending: false });
 
   if (plan === 'free' || plan === 'pro') {
@@ -57,7 +63,7 @@ export async function GET(req: Request) {
 
   const ownerEmails = await fetchUserEmailsMap(
     admin,
-    (rows || []).map((r) => r.owner_id),
+    (rows || []).map((r) => r.owner_id).filter((id): id is string => Boolean(id)),
   );
 
   const items = (rows || []).map((r) => ({
@@ -67,10 +73,12 @@ export async function GET(req: Request) {
     plan: r.plan,
     createdAt: r.created_at,
     ownerId: r.owner_id,
-    ownerEmail: ownerEmails.get(r.owner_id) ?? null,
+    ownerEmail: r.owner_email || (r.owner_id ? ownerEmails.get(r.owner_id) ?? null : null),
     printLocale: r.print_locale,
     featureFlags: r.feature_flags,
     suspendedAt: r.suspended_at,
+    deploymentMode: r.deployment_mode,
+    licenseValidUntil: r.license_valid_until,
   }));
 
   return NextResponse.json({
@@ -86,17 +94,55 @@ export async function POST(req: Request) {
   if (error || !ctx || !admin) return error!;
 
   let body: {
+    deploymentMode?: string;
     restaurantName?: string;
     email?: string;
     password?: string;
     printLocale?: PrintLocale;
     countryCode?: string;
     slug?: string;
+    licenseValidUntil?: string | null;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const deploymentMode = body.deploymentMode ?? 'cloud';
+  if (!isDeploymentMode(deploymentMode)) {
+    return NextResponse.json({ error: 'invalid_deployment_mode' }, { status: 400 });
+  }
+
+  if (deploymentMode === 'on_prem') {
+    const result = await registerOnPremRestaurant(admin, {
+      name: body.restaurantName || '',
+      ownerEmail: body.email || '',
+      printLocale: body.printLocale,
+      countryCode: body.countryCode,
+      slug: body.slug,
+      licenseValidUntil: body.licenseValidUntil,
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.error, detail: result.detail },
+        { status: result.status },
+      );
+    }
+    await writePlatformAudit(admin, {
+      actorUserId: ctx.userId,
+      action: 'restaurant.register_on_prem',
+      targetType: 'restaurant',
+      targetId: result.restaurantId,
+      restaurantId: result.restaurantId,
+      metadata: { slug: result.slug, deploymentMode: 'on_prem' },
+    });
+    return NextResponse.json({
+      ok: true,
+      slug: result.slug,
+      restaurantId: result.restaurantId,
+      deploymentMode: 'on_prem',
+    });
   }
 
   const result = await createRestaurantWithOwner(admin, {
@@ -121,12 +167,13 @@ export async function POST(req: Request) {
     targetType: 'restaurant',
     targetId: result.restaurantId,
     restaurantId: result.restaurantId,
-    metadata: { slug: result.slug, ownerId: result.ownerId },
+    metadata: { slug: result.slug, ownerId: result.ownerId, deploymentMode: 'cloud' },
   });
 
   return NextResponse.json({
     ok: true,
     slug: result.slug,
     restaurantId: result.restaurantId,
+    deploymentMode: 'cloud',
   });
 }

@@ -16,6 +16,12 @@ export {
   type PrintLocale,
 } from './create-restaurant';
 export {
+  registerOnPremRestaurant,
+  validateRegisterOnPremRestaurantInput,
+  type RegisterOnPremRestaurantInput,
+  type RegisterOnPremRestaurantResult,
+} from './register-on-prem-restaurant';
+export {
   PRINT_AGENT_STAFF_DISPLAY_NAME,
   PRINT_AGENT_STAFF_ROLE,
   ensurePrintAgentStaff,
@@ -46,7 +52,28 @@ export {
   type RevokePrintAgentDeviceResult,
   type RevokePrintAgentPairingResult,
 } from './print-agent-revoke';
-export { isRestaurantSuspended } from './restaurant-suspension';
+export {
+  LICENSE_OFFLINE_GRACE_MS,
+  SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED,
+  SUSPENSION_REASON_LICENSE_EXPIRED,
+  SUSPENSION_REASON_LICENSE_LEASE_INVALID,
+  SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED,
+  buildLicenseLeaseClaims,
+  decideLicenseMaterialize,
+  extendLicenseValidUntil,
+  hashLicenseSecret,
+  isDeploymentMode,
+  isLicenseExtendPeriod,
+  isRestaurantSuspended,
+  mintCheckinSecret,
+  mintInstallCode,
+  signLicenseLease,
+  verifyLicenseLease,
+  type DeploymentMode,
+  type LicenseExtendPeriod,
+  type LicenseLeaseClaims,
+  type MaterializeDecision,
+} from './restaurant-suspension';
 export { kickStaffUserSessions, setStaffUserBanned } from './staff-user-ban';
 export { signPrintAgentJwt, verifyPrintAgentJwt, type PrintAgentJwtClaims } from './print-agent-jwt';
 export {

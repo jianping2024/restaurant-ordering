@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
+import { applyLicenseMaterialize, syncOnPremLicenseFromPlatform } from '@/lib/license-materialize';
 
 import {
   dashboardMiddlewareRedirectPath,
@@ -88,6 +89,39 @@ async function loadStaffRestaurant(
   return restaurant as StaffDashboardRestaurant;
 }
 
+async function reconcileRestaurantLicense(restaurantId: string): Promise<{
+  suspended_at: string | null;
+  suspension_reason: string | null;
+} | null> {
+  let admin: SupabaseClient;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return null;
+  }
+  const { data: modeRow } = await admin
+    .from('restaurants')
+    .select('deployment_mode')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  if (modeRow?.deployment_mode === 'on_prem') {
+    await syncOnPremLicenseFromPlatform(admin, restaurantId);
+  } else {
+    await applyLicenseMaterialize(admin, restaurantId);
+  }
+  const { data } = await admin
+    .from('restaurants')
+    .select('suspended_at, suspension_reason')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  return data
+    ? {
+        suspended_at: data.suspended_at ?? null,
+        suspension_reason: data.suspension_reason ?? null,
+      }
+    : null;
+}
+
 export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   const supabase = await createClient();
   const {
@@ -107,7 +141,12 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   }
 
   if (ownedRestaurant) {
-    return { mode: 'owner', restaurant: ownedRestaurant as Restaurant };
+    const suspension = await reconcileRestaurantLicense(ownedRestaurant.id as string);
+    const restaurant = {
+      ...(ownedRestaurant as Restaurant),
+      ...(suspension || {}),
+    };
+    return { mode: 'owner', restaurant };
   }
 
   const { data: account, error: staffError } = await supabase
@@ -128,7 +167,11 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     if ('error' in staffRestaurant) {
       return { mode: 'access_error', message: staffRestaurant.error };
     }
-    return { mode: 'staff', restaurant: staffRestaurant };
+    const suspension = await reconcileRestaurantLicense(staffRestaurant.id);
+    return {
+      mode: 'staff',
+      restaurant: { ...staffRestaurant, ...(suspension || {}) },
+    };
   }
 
   const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);

@@ -7,6 +7,7 @@ import { OPS_CONSOLE_NAME } from '@mesa/shared';
 const NAV = [
   { href: '/ops', label: '概览' },
   { href: '/ops/restaurants', label: '餐厅' },
+  { href: '/ops/licenses', label: '授权' },
   { href: '/ops/print/devices', label: '打印' },
   { href: '/ops/audit', label: '审计' },
 ];

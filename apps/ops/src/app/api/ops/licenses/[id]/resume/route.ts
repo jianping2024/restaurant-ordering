@@ -5,24 +5,17 @@ import { writePlatformAudit } from '@/lib/platform-audit';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-/** Kept as thin wrapper → setRestaurantSuspended (licenses UI is the sole ops surface). */
 export async function POST(_req: Request, context: RouteContext) {
   const { ctx, error, admin } = await requirePlatformAdminRole('admin');
   if (error || !ctx || !admin) return error!;
 
   const { id } = await context.params;
-  const { data: restaurant, error: fetchError } = await admin
+  const { data: restaurant } = await admin
     .from('restaurants')
     .select('id, slug')
     .eq('id', id)
     .maybeSingle();
-
-  if (fetchError) {
-    return NextResponse.json({ error: 'fetch_failed', detail: fetchError.message }, { status: 500 });
-  }
-  if (!restaurant) {
-    return NextResponse.json({ error: 'not_found' }, { status: 404 });
-  }
+  if (!restaurant) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
   const result = await setRestaurantSuspended(admin, id, { suspend: false });
   if (!result.ok) {
@@ -38,7 +31,7 @@ export async function POST(_req: Request, context: RouteContext) {
     targetType: 'restaurant',
     targetId: restaurant.id,
     restaurantId: restaurant.id,
-    metadata: { slug: restaurant.slug },
+    metadata: { slug: restaurant.slug, via: 'licenses' },
   });
 
   return NextResponse.json({ ok: true });

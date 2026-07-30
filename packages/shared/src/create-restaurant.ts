@@ -101,8 +101,10 @@ export async function createRestaurantWithOwner(
       name,
       slug,
       owner_id: ownerId,
+      owner_email: mail,
       print_locale: printLocale,
       country_code: countryCode,
+      deployment_mode: 'cloud',
     })
     .select('id')
     .single();

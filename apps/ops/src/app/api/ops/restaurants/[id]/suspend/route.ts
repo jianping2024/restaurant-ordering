@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
+import { setRestaurantSuspended } from '@/lib/license-control';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
+/** Kept as thin wrapper → setRestaurantSuspended (licenses UI is the sole ops surface). */
 export async function POST(req: Request, context: RouteContext) {
   const { ctx, error, admin } = await requirePlatformAdminRole('admin');
   if (error || !ctx || !admin) return error!;
 
   const { id } = await context.params;
-
   const { data: restaurant, error: fetchError } = await admin
     .from('restaurants')
-    .select('id, slug, suspended_at')
+    .select('id, slug')
     .eq('id', id)
     .maybeSingle();
 
@@ -22,9 +23,6 @@ export async function POST(req: Request, context: RouteContext) {
   if (!restaurant) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
-  if (restaurant.suspended_at) {
-    return NextResponse.json({ error: 'already_suspended' }, { status: 409 });
-  }
 
   let body: { reason?: string };
   try {
@@ -32,21 +30,15 @@ export async function POST(req: Request, context: RouteContext) {
   } catch {
     body = {};
   }
-  const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
 
-  const suspendedAt = new Date().toISOString();
-  const { error: updateError } = await admin
-    .from('restaurants')
-    .update({
-      suspended_at: suspendedAt,
-      suspension_reason: reason || null,
-    })
-    .eq('id', id);
-
-  if (updateError) {
+  const result = await setRestaurantSuspended(admin, id, {
+    suspend: true,
+    reason: body.reason,
+  });
+  if (!result.ok) {
     return NextResponse.json(
-      { error: 'suspend_failed', detail: updateError.message },
-      { status: 500 },
+      { error: result.error, detail: result.detail },
+      { status: result.status },
     );
   }
 
@@ -56,8 +48,8 @@ export async function POST(req: Request, context: RouteContext) {
     targetType: 'restaurant',
     targetId: restaurant.id,
     restaurantId: restaurant.id,
-    metadata: { slug: restaurant.slug, reason: reason || null },
+    metadata: { slug: restaurant.slug, reason: body.reason?.trim() || null },
   });
 
-  return NextResponse.json({ ok: true, suspendedAt });
+  return NextResponse.json({ ok: true, suspendedAt: result.suspendedAt });
 }

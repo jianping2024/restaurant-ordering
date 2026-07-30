@@ -5,10 +5,9 @@ import { isPrintAgentStaffRole } from '@mesa/shared';
 import {
   staffPasswordValid,
   validateLoginName,
-  isStaffRole,
   type StaffUserMetadata,
 } from '@/lib/staff-account';
-import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
+import type { RestaurantStaffAccount } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -39,12 +38,23 @@ export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: 
   return { admin, restaurant: restaurant as { id: string; name: string; slug: string; owner_id: string } };
 }
 
+function roleNameFromRow(row: Record<string, unknown>): string {
+  const embedded = row.restaurant_roles;
+  if (embedded && typeof embedded === 'object' && !Array.isArray(embedded)) {
+    const name = (embedded as { name?: string }).name;
+    if (typeof name === 'string' && name.trim()) return name;
+  }
+  return String(row.role ?? '');
+}
+
 export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccount {
   return {
     id: row.id as string,
     restaurant_id: row.restaurant_id as string,
     user_id: row.user_id as string,
-    role: row.role as StaffAccountRole,
+    role_id: String(row.role_id ?? ''),
+    role_name: roleNameFromRow(row),
+    role: String(row.role ?? ''),
     display_name: row.display_name as string,
     login_name: row.login_name as string,
     created_at: row.created_at as string,
@@ -59,7 +69,7 @@ export function mapHumanStaffRows(rows: Record<string, unknown>[]): RestaurantSt
 }
 
 const STAFF_LIST_SELECT =
-  'id, restaurant_id, user_id, role, display_name, login_name, created_at, updated_at, disabled_at';
+  'id, restaurant_id, user_id, role, role_id, display_name, login_name, created_at, updated_at, disabled_at, restaurant_roles(name)';
 
 /**
  * Full restaurant human staff roster for settings.staff.manage (admin client; bypasses staff self-select RLS).
@@ -91,13 +101,13 @@ export function staffMetadataPayload(
   accountId: string,
   restaurantId: string,
   slug: string,
-  role: string,
+  roleLabel: string,
   mustChangePassword: boolean,
 ): StaffUserMetadata {
   return {
     account_type: 'staff',
     must_change_password: mustChangePassword,
-    staff_role: role as StaffRole,
+    staff_role: roleLabel as StaffRole,
     restaurant_id: restaurantId,
     staff_account_id: accountId,
     restaurant_slug: slug,
@@ -107,23 +117,25 @@ export function staffMetadataPayload(
 export function validateStaffCreateBody(body: Record<string, unknown>) {
   const display_name = typeof body.display_name === 'string' ? body.display_name.trim() : '';
   const loginRaw = typeof body.login_name === 'string' ? body.login_name : '';
-  const role = body.role;
-  const role_id = typeof body.role_id === 'string' ? body.role_id : null;
+  const role_id = typeof body.role_id === 'string' ? body.role_id.trim() : '';
   const password = typeof body.password === 'string' ? body.password : '';
 
   if (!display_name) return { error: 'display_name_required' as const };
   const login = validateLoginName(loginRaw);
   if (!login.ok) return { error: `login_name_${login.code}` as const };
-  if (!role_id && !isStaffRole(String(role))) {
-    return { error: 'invalid_role' as const };
-  }
+  if (!role_id) return { error: 'invalid_role' as const };
   if (!staffPasswordValid(password)) return { error: 'password_too_short' as const };
 
   return {
     display_name,
     login_name: login.normalized,
-    role: (isStaffRole(String(role)) ? role : 'waiter') as StaffAccountRole,
     role_id,
     password,
   };
+}
+
+export function validateStaffRoleChange(body: Record<string, unknown>) {
+  const role_id = typeof body.role_id === 'string' ? body.role_id.trim() : '';
+  if (!role_id) return { error: 'invalid_role' as const };
+  return { role_id };
 }

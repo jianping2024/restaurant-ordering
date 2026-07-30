@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { kickStaffUserSessions } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import {
   countStaffOnRole,
   deleteRestaurantRole,
   getRestaurantRole,
+  listStaffUserIdsOnRole,
   updateRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
 import { enforcePermissionRequires, normalizeStoredPermissions } from '@/lib/permissions/resolve';
@@ -94,6 +96,10 @@ export async function PATCH(
       patch,
     );
     await bumpPermissionsVersion(admin, auth.principal.restaurantId);
+    if (patch.permissions !== undefined) {
+      const userIds = await listStaffUserIdsOnRole(admin, auth.principal.restaurantId, params.id);
+      await Promise.all(userIds.map((userId) => kickStaffUserSessions(admin, userId)));
+    }
     return NextResponse.json({ role });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'update_failed';

@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { isPrintAgentStaffRole, kickStaffUserSessions, setStaffUserBanned } from '@mesa/shared';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
-import { loadOwnerRestaurantWithSlug, mapStaffRow } from '@/lib/staff-dashboard-api';
+import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
+import {
+  loadOwnerRestaurantWithSlug,
+  mapStaffRow,
+  staffMetadataPayload,
+  validateStaffRoleChange,
+} from '@/lib/staff-dashboard-api';
 
 export const runtime = 'nodejs';
 
@@ -47,7 +53,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
       .from('restaurant_staff_accounts')
       .update({ disabled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq('id', params.id)
-      .select('*')
+      .select('*, restaurant_roles(name)')
       .single();
     if (error) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 });
@@ -62,7 +68,7 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
       .from('restaurant_staff_accounts')
       .update({ disabled_at: null, updated_at: new Date().toISOString() })
       .eq('id', params.id)
-      .select('*')
+      .select('*, restaurant_roles(name)')
       .single();
     if (error) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 });
@@ -72,19 +78,50 @@ export async function PATCH(req: Request, { params }: RouteCtx) {
   }
 
   const display_name = typeof body.display_name === 'string' ? body.display_name.trim() : '';
-  if (!display_name) {
+  const roleChange = typeof body.role_id === 'string' ? validateStaffRoleChange(body) : null;
+
+  if (!display_name && !roleChange) {
     return NextResponse.json({ error: 'display_name_required' }, { status: 400 });
+  }
+  if (roleChange && 'error' in roleChange) {
+    return NextResponse.json({ error: roleChange.error }, { status: 400 });
+  }
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (display_name) updates.display_name = display_name;
+
+  if (roleChange && !('error' in roleChange)) {
+    const roleRow = await getRestaurantRole(loaded.admin, loaded.restaurant.id, roleChange.role_id);
+    if (!roleRow || roleRow.disabled_at) {
+      return NextResponse.json({ error: 'invalid_role' }, { status: 400 });
+    }
+    updates.role_id = roleRow.id;
+    updates.role = staffRoleLabelForRestaurantRole(roleRow);
   }
 
   const { data, error } = await loaded.admin
     .from('restaurant_staff_accounts')
-    .update({ display_name, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', params.id)
-    .select('*')
+    .select('*, restaurant_roles(name)')
     .single();
 
   if (error) {
     return NextResponse.json({ error: 'update_failed' }, { status: 500 });
+  }
+
+  if (roleChange && !('error' in roleChange)) {
+    const staffRoleLabel = String(data.role);
+    await loaded.admin.auth.admin.updateUserById(existing.user_id as string, {
+      user_metadata: staffMetadataPayload(
+        data.id as string,
+        loaded.restaurant.id,
+        loaded.restaurant.slug,
+        staffRoleLabel,
+        false,
+      ),
+    });
+    await kickStaffUserSessions(loaded.admin, existing.user_id as string);
   }
 
   return NextResponse.json({ staff: mapStaffRow(data as Record<string, unknown>) });

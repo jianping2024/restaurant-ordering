@@ -1,9 +1,5 @@
 import { isRestaurantSuspended } from '@mesa/shared';
-import {
-  isStaffRole,
-  parseStaffUserMetadata,
-  type StaffRole,
-} from '@/lib/staff-account';
+import { parseStaffUserMetadata } from '@/lib/staff-account';
 
 export type StaffLoginPreflightResult =
   | { ok: true }
@@ -30,7 +26,8 @@ export type OwnerGateRestaurant = {
 };
 
 export type StaffLoginContext = {
-  role: StaffRole;
+  /** RLS / display label (preset key or `custom`) — not used for authorization. */
+  roleLabel: string;
   slug: string;
   mustChangePassword: boolean;
 };
@@ -74,8 +71,8 @@ export function deriveStaffLoginPreflight(input: {
   account: {
     disabled_at: string | null;
     role: string;
+    role_id: string | null;
     restaurant_suspended_at: string | null | undefined;
-    /** When staff is bound to a restaurant_roles row that is disabled. */
     role_disabled_at?: string | null;
   } | null;
 }): StaffLoginPreflightResult {
@@ -84,7 +81,8 @@ export function deriveStaffLoginPreflight(input: {
     !account ||
     account.disabled_at ||
     account.role_disabled_at ||
-    !isStaffRole(String(account.role ?? ''))
+    !account.role_id ||
+    account.role === 'print_agent'
   ) {
     return { ok: false, code: 'invalid_credentials' };
   }
@@ -94,10 +92,7 @@ export function deriveStaffLoginPreflight(input: {
   return { ok: true };
 }
 
-/**
- * Derive post-login staff landing from gate rows + metadata.
- * DB role preferred; meta fills role fallback and slug override as before.
- */
+/** Derive post-login staff landing from gate rows + metadata. */
 export function deriveStaffLoginContext(input: {
   userMetadata: Record<string, unknown> | undefined;
   staff: StaffGateAccount | null;
@@ -116,6 +111,10 @@ export function deriveStaffLoginContext(input: {
     return { kind: 'staff_error', code: 'disabled' };
   }
 
+  if (!account.role_id || account.role === 'print_agent') {
+    return { kind: 'staff_error', code: 'incomplete' };
+  }
+
   const restaurantRow = account.restaurant;
   if (
     !input.options?.skipSuspendCheck &&
@@ -124,26 +123,15 @@ export function deriveStaffLoginContext(input: {
     return { kind: 'staff_error', code: 'restaurant_suspended' };
   }
 
-  const roleRaw = String(account.role || meta?.staff_role || '');
-  if (!isStaffRole(roleRaw) && roleRaw !== 'custom') {
-    return { kind: 'staff_error', code: 'incomplete' };
-  }
-
   const slug = meta?.restaurant_slug ?? restaurantRow?.slug;
   if (!slug) {
     return { kind: 'staff_error', code: 'incomplete' };
   }
 
-  const roleForMeta: StaffRole = isStaffRole(roleRaw)
-    ? roleRaw
-    : isStaffRole(String(meta?.staff_role ?? ''))
-      ? (meta!.staff_role as StaffRole)
-      : 'waiter';
-
   return {
     kind: 'staff',
     context: {
-      role: roleForMeta,
+      roleLabel: String(account.role || 'custom'),
       slug,
       mustChangePassword: meta?.must_change_password === true,
     },

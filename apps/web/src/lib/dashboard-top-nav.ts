@@ -1,4 +1,4 @@
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import type { DashboardShellMode } from '@/lib/dashboard-access';
 import {
   DASHBOARD_NAV_ITEMS,
   OWNER_NAV_ITEM_IDS,
@@ -149,19 +149,18 @@ export function topNavItemLabel(
 }
 
 export function buildDashboardTopNavItems(input: {
-  accessMode: DashboardAccessMode;
+  shellMode: DashboardShellMode;
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
   kitchenShortcutEnabled: boolean;
 }): ProductTopNavItem[] {
-  const { accessMode, capabilities: capsPayload, restaurantSlug, kitchenShortcutEnabled } =
+  const { shellMode, capabilities: capsPayload, restaurantSlug, kitchenShortcutEnabled } =
     input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
   for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
-    // restaurants.owner_id chrome stays settings-focused; staff (incl. store_owner) use caps only.
-    if (accessMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
+    if (shellMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
     items.push({

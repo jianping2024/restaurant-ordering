@@ -4,7 +4,6 @@ import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import {
-  findPresetRole,
   staffRoleLabelForRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
 import { isRolePresetKey } from '@/lib/permissions/role-templates';
@@ -70,54 +69,33 @@ export async function loadRestaurantBySlug(slug: string) {
 
 async function loadStaffCapabilities(
   admin: ReturnType<typeof createAdminClient>,
-  staffAccountId: string,
   restaurantId: string,
   roleId: string | null,
-  roleLabel: string,
 ): Promise<{
   role_id: string;
   role_name: string;
   staff_role_label: string;
   capabilities: Capabilities;
 } | null> {
-  let resolvedRoleId = roleId;
-
-  if (!resolvedRoleId && isRolePresetKey(roleLabel)) {
-    const preset = await findPresetRole(admin, restaurantId, roleLabel);
-    if (!preset || preset.disabled_at) return null;
-    resolvedRoleId = preset.id;
-    await admin
-      .from('restaurant_staff_accounts')
-      .update({ role_id: preset.id })
-      .eq('id', staffAccountId);
-    return {
-      role_id: preset.id,
-      role_name: preset.name,
-      staff_role_label: staffRoleLabelForRestaurantRole(preset),
-      capabilities: resolveCapabilitiesFromRolePermissions(preset.permissions),
-    };
-  }
-
-  if (!resolvedRoleId) return null;
+  if (!roleId) return null;
 
   const { data: role } = await admin
     .from('restaurant_roles')
     .select('id, name, preset_key, permissions, disabled_at')
-    .eq('id', resolvedRoleId)
+    .eq('id', roleId)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
 
   if (!role || role.disabled_at) return null;
 
   const permissions = normalizeStoredPermissions(role.permissions);
+  const presetKey = isRolePresetKey(String(role.preset_key ?? ''))
+    ? (role.preset_key as 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner')
+    : null;
   return {
     role_id: role.id as string,
     role_name: String(role.name),
-    staff_role_label: staffRoleLabelForRestaurantRole({
-      preset_key: isRolePresetKey(String(role.preset_key ?? ''))
-        ? (role.preset_key as 'kitchen' | 'waiter' | 'cashier' | 'frontdesk')
-        : null,
-    }),
+    staff_role_label: staffRoleLabelForRestaurantRole({ preset_key: presetKey }),
     capabilities: resolveCapabilitiesFromRolePermissions(permissions),
   };
 }
@@ -166,10 +144,8 @@ export async function staffSessionForSlug(slug: string): Promise<StaffAuthContex
 
   const caps = await loadStaffCapabilities(
     admin,
-    staffRaw.id as string,
     staffRaw.restaurant_id as string,
     (staffRaw.role_id as string | null) ?? null,
-    String(staffRaw.role),
   );
   if (!caps) return null;
 
@@ -207,10 +183,8 @@ export async function staffSessionForRestaurant(target: {
   ) {
     const caps = await loadStaffCapabilities(
       admin,
-      staffRaw.data.id as string,
       target.restaurantId,
       (staffRaw.data.role_id as string | null) ?? null,
-      String(staffRaw.data.role),
     );
     if (caps) {
       return {

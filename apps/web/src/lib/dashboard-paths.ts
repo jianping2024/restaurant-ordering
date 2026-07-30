@@ -64,36 +64,15 @@ export function isFrontdeskOperationalPath(pathname: string): boolean {
   return true;
 }
 
-export type DashboardActor = 'owner' | 'frontdesk' | 'store_owner' | 'cashier' | 'waiter' | 'unknown';
+/** Backend admin (`restaurants.owner_id`) middleware actor only. */
+export type DashboardActor = 'owner';
 
-/** Pure redirect target for dashboard middleware (testable). */
+/** Redirect restaurants.owner_id away from staff operational dashboard routes. */
 export function dashboardMiddlewareRedirectPath(
   actor: DashboardActor,
   pathname: string,
 ): string | null {
-  if (actor === 'owner') {
-    if (!isOwnerDashboardPath(pathname)) return '/dashboard/settings';
-    return null;
-  }
-  if (actor === 'frontdesk') {
-    if (isDashboardSettingsPath(pathname)) return '/dashboard';
-    if (!isFrontdeskOperationalPath(pathname)) return '/dashboard';
-    return null;
-  }
-  if (actor === 'store_owner') {
-    if (isDashboardSettingsPath(pathname)) return null;
-    if (!isFrontdeskOperationalPath(pathname)) return '/dashboard';
-    return null;
-  }
-  if (actor === 'cashier') {
-    if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/waiter';
-    if (!isCashierOperationalPath(pathname)) return '/dashboard/waiter';
-    return null;
-  }
-  if (actor === 'waiter') {
-    if (pathname === '/dashboard' || pathname === '/dashboard/') return '/dashboard/waiter';
-    if (!isWaiterOperationalPath(pathname)) return '/dashboard/waiter';
-    return null;
-  }
+  if (actor !== 'owner') return null;
+  if (!isOwnerDashboardPath(pathname)) return '/dashboard/settings';
   return null;
 }

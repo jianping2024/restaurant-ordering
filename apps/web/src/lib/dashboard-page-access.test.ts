@@ -17,7 +17,7 @@ const restaurant = {
 describe('resolveWaiterBoardDashboardAccess', () => {
   it('allows store_owner with dashboard.waiter_board.view', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys(['dashboard.waiter_board.view']),
     );
     assert.equal(decision.ok, true);
@@ -28,7 +28,7 @@ describe('resolveWaiterBoardDashboardAccess', () => {
 
   it('allows frontdesk with dashboard.waiter_board.view', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'frontdesk', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys(['dashboard.waiter_board.view']),
     );
     assert.equal(decision.ok, true);
@@ -36,7 +36,7 @@ describe('resolveWaiterBoardDashboardAccess', () => {
 
   it('redirects store_owner without waiter board capability to capability landing', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys(['dashboard.overview.view']),
     );
     assert.equal(decision.ok, false);
@@ -58,7 +58,7 @@ describe('resolveWaiterBoardDashboardAccess', () => {
 
   it('redirects kitchen-only staff to kitchen board', () => {
     const decision = resolveWaiterBoardDashboardAccess(
-      { mode: 'waiter', restaurant: { id: restaurant.id, name: restaurant.name, slug: restaurant.slug, buffet_service_mode: 'classic' } },
+      { mode: 'staff', restaurant: { id: restaurant.id, name: restaurant.name, slug: restaurant.slug, buffet_service_mode: 'classic', logo_url: null, feature_flags: {}, suspended_at: null, suspension_reason: null } },
       capabilitiesFromKeys(['floor.kitchen_board.view']),
     );
     assert.equal(decision.ok, false);

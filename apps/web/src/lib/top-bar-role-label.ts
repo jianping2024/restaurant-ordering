@@ -1,4 +1,4 @@
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import type { DashboardShellMode } from '@/lib/dashboard-access';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
 import type { StaffRole } from '@/lib/staff-account';
@@ -24,11 +24,12 @@ export function topBarRoleLabel(lang: UILanguage, role: TopBarActorRole): string
   }
 }
 
-export function dashboardAccessModeRoleLabel(
+export function dashboardShellRoleLabel(
   lang: UILanguage,
-  accessMode: DashboardAccessMode,
+  shellMode: DashboardShellMode,
+  roleName?: string,
 ): string {
-  if (accessMode === 'owner') return topBarRoleLabel(lang, 'backend_admin');
-  if (accessMode === 'store_owner') return topBarRoleLabel(lang, 'owner');
-  return topBarRoleLabel(lang, accessMode);
+  if (shellMode === 'owner') return topBarRoleLabel(lang, 'backend_admin');
+  if (roleName?.trim()) return roleName.trim();
+  return topBarRoleLabel(lang, 'waiter');
 }

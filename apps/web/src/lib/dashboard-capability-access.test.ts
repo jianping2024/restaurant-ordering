@@ -19,7 +19,7 @@ const restaurant = {
 describe('resolveDashboardCapabilityAccess', () => {
   it('allows store_owner with value analytics capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
       NAV_PERMISSION.valueAnalytics,
     );
@@ -38,7 +38,7 @@ describe('resolveDashboardCapabilityAccess', () => {
 
   it('allows frontdesk with guest notice capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'frontdesk', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys([NAV_PERMISSION.guestNotice]),
       NAV_PERMISSION.guestNotice,
     );
@@ -47,7 +47,7 @@ describe('resolveDashboardCapabilityAccess', () => {
 
   it('rejects store_owner without guest notice capability', () => {
     const decision = resolveDashboardCapabilityAccess(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       capabilitiesFromKeys([NAV_PERMISSION.valueAnalytics]),
       NAV_PERMISSION.guestNotice,
     );

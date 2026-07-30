@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
-import type { RestaurantStaffAccount, StaffAccountRole } from '@/types';
+import type { RestaurantStaffAccount } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { paginateList } from '@/lib/paginate-list';
@@ -13,6 +13,8 @@ import {
   normalizeLoginName,
   sanitizeStaffLoginInput,
   suggestLoginNameFromDisplay,
+  isStaffRole,
+  type StaffRole,
 } from '@/lib/staff-account';
 import {
   filterStaffByLoginName,
@@ -24,26 +26,34 @@ import {
   type StaffSortDir,
   type StaffSortKey,
 } from '@/lib/staff-accounts-list';
-import { topBarRoleLabel } from '@/lib/top-bar-role-label';
+import type { RestaurantRoleRow } from '@/lib/permissions/types';
 
 interface Props {
   initialStaff: RestaurantStaffAccount[];
   embedded?: boolean;
 }
 
+type RoleOption = Pick<RestaurantRoleRow, 'id' | 'name' | 'preset_key' | 'disabled_at'>;
+
 type FormState = {
   display_name: string;
   login_name: string;
-  role: StaffAccountRole;
+  role_id: string;
   password: string;
 };
 
 const emptyForm: FormState = {
   display_name: '',
   login_name: '',
-  role: 'kitchen',
+  role_id: '',
   password: '',
 };
+
+function loginTagForRole(role: RoleOption | undefined): StaffRole {
+  const preset = role?.preset_key;
+  if (preset && isStaffRole(preset)) return preset;
+  return 'waiter';
+}
 
 function errorMessage(code: string, t: ReturnType<typeof getMessages>['staffSettings']): string {
   const map: Record<string, string> = {
@@ -54,6 +64,7 @@ function errorMessage(code: string, t: ReturnType<typeof getMessages>['staffSett
     password_too_short: t.errPasswordShort,
     display_name_required: t.errDisplayName,
     migration_required: t.errMigration,
+    invalid_role: t.saveFail,
   };
   return map[code] || t.saveFail;
 }
@@ -63,6 +74,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const t = getMessages(lang).staffSettings;
 
   const [staff, setStaff] = useState<RestaurantStaffAccount[]>(initialStaff);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [loginSearch, setLoginSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<StaffPageSize>(STAFF_DEFAULT_PAGE_SIZE);
@@ -77,6 +89,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
 
   const [editTarget, setEditTarget] = useState<RestaurantStaffAccount | null>(null);
   const [editName, setEditName] = useState('');
+  const [editRoleId, setEditRoleId] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
   const [resetTarget, setResetTarget] = useState<RestaurantStaffAccount | null>(null);
@@ -94,6 +107,18 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     () => new Set(staff.map((s) => normalizeLoginName(s.login_name))),
     [staff],
   );
+
+  const activeRoles = useMemo(() => roles.filter((r) => !r.disabled_at), [roles]);
+
+  const reloadRoles = useCallback(async () => {
+    const res = await fetch('/api/dashboard/roles');
+    const json = (await res.json()) as { roles?: RoleOption[] };
+    if (res.ok && json.roles) setRoles(json.roles);
+  }, []);
+
+  useEffect(() => {
+    void reloadRoles();
+  }, [reloadRoles]);
 
   const filteredStaff = useMemo(
     () => filterStaffByLoginName(staff, loginSearch),
@@ -135,7 +160,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     setTimeout(() => setBanner(null), 4000);
   }, []);
 
-  const roleLabel = (role: StaffAccountRole) => topBarRoleLabel(lang, role);
+  const roleLabel = (row: RestaurantStaffAccount) => row.role_name;
 
   const runCreate = async () => {
     setCreateSaving(true);
@@ -170,7 +195,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       const res = await fetch(`/api/dashboard/staff/${editTarget.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ display_name: editName }),
+        body: JSON.stringify({
+          display_name: editName,
+          ...(editRoleId && editRoleId !== editTarget.role_id ? { role_id: editRoleId } : {}),
+        }),
       });
       const json = (await res.json().catch(() => ({}))) as { staff?: RestaurantStaffAccount; error?: string };
       if (!res.ok || !json.staff) {
@@ -303,7 +331,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
           type="button"
           onClick={() => {
             loginNameTouchedRef.current = false;
-            setCreateForm(emptyForm);
+            const defaultRoleId = activeRoles[0]?.id ?? '';
+            setCreateForm({ ...emptyForm, role_id: defaultRoleId });
             setCreateError('');
             setCreateOpen(true);
           }}
@@ -383,8 +412,8 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     </button>
                   </td>
                   <td className="max-w-0 px-4 py-3 text-brand-text-muted">
-                    <span className="block truncate" title={roleLabel(row.role)}>
-                      {roleLabel(row.role)}
+                    <span className="block truncate" title={roleLabel(row)}>
+                      {roleLabel(row)}
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -411,6 +440,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                         onClick={() => {
                           setEditTarget(row);
                           setEditName(row.display_name);
+                          setEditRoleId(row.role_id);
                         }}
                       >
                         {t.edit}
@@ -509,13 +539,16 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             value={createForm.display_name}
             onChange={(e) => {
               const v = e.target.value;
-              setCreateForm((f) => ({
-                ...f,
-                display_name: v,
-                login_name: loginNameTouchedRef.current
-                  ? f.login_name
-                  : suggestLoginNameFromDisplay(v, f.role, takenLogins),
-              }));
+              setCreateForm((f) => {
+                const role = activeRoles.find((r) => r.id === f.role_id);
+                return {
+                  ...f,
+                  display_name: v,
+                  login_name: loginNameTouchedRef.current
+                    ? f.login_name
+                    : suggestLoginNameFromDisplay(v, loginTagForRole(role), takenLogins),
+                };
+              });
             }}
             disabled={createSaving}
           />
@@ -540,10 +573,17 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             disabled={createSaving || !createForm.display_name.trim()}
             onClick={() => {
               loginNameTouchedRef.current = false;
-              setCreateForm((f) => ({
-                ...f,
-                login_name: suggestLoginNameFromDisplay(f.display_name, f.role, takenLogins),
-              }));
+              setCreateForm((f) => {
+                const role = activeRoles.find((r) => r.id === f.role_id);
+                return {
+                  ...f,
+                  login_name: suggestLoginNameFromDisplay(
+                    f.display_name,
+                    loginTagForRole(role),
+                    takenLogins,
+                  ),
+                };
+              });
             }}
           >
             {t.regenerateLoginName}
@@ -552,24 +592,33 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
             <select
               className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
-              value={createForm.role}
+              value={createForm.role_id}
               onChange={(e) => {
-                const role = e.target.value as StaffAccountRole;
+                const roleId = e.target.value;
+                const role = activeRoles.find((r) => r.id === roleId);
                 setCreateForm((f) => ({
                   ...f,
-                  role,
+                  role_id: roleId,
                   login_name: loginNameTouchedRef.current
                     ? f.login_name
-                    : suggestLoginNameFromDisplay(f.display_name, role, takenLogins),
+                    : suggestLoginNameFromDisplay(
+                        f.display_name,
+                        loginTagForRole(role),
+                        takenLogins,
+                      ),
                 }));
               }}
-              disabled={createSaving}
+              disabled={createSaving || activeRoles.length === 0}
             >
-              <option value="kitchen">{t.roleKitchen}</option>
-              <option value="waiter">{t.roleWaiter}</option>
-              <option value="cashier">{t.roleCashier}</option>
-              <option value="frontdesk">{t.roleFrontdesk}</option>
-              <option value="owner">{t.roleOwner}</option>
+              {activeRoles.length === 0 ? (
+                <option value="">{t.saveFail}</option>
+              ) : (
+                activeRoles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
           <PasswordInput
@@ -589,6 +638,21 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       <Modal open={!!editTarget} onClose={() => !editSaving && setEditTarget(null)} title={t.edit}>
         <div className="space-y-4">
           <Input label={t.fieldDisplayName} value={editName} onChange={(e) => setEditName(e.target.value)} />
+          <div>
+            <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
+            <select
+              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
+              value={editRoleId}
+              onChange={(e) => setEditRoleId(e.target.value)}
+              disabled={editSaving || activeRoles.length === 0}
+            >
+              {activeRoles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <Button className="w-full" onClick={() => void runEdit()} disabled={editSaving}>
             {t.save}
           </Button>

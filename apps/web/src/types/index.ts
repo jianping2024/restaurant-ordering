@@ -15,13 +15,16 @@ export type SplitMode = 'whole_table' | 'even' | 'by_item' | 'custom';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid' | 'cancelled';
 export type Language = 'pt' | 'en' | 'zh';
 export type DishFeedbackVote = 'up' | 'down';
-export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner';
+export type StaffAccountRole = 'kitchen' | 'waiter' | 'cashier' | 'frontdesk' | 'owner' | 'custom';
 
 export interface RestaurantStaffAccount {
   id: string;
   restaurant_id: string;
   user_id: string;
-  role: StaffAccountRole;
+  role_id: string;
+  role_name: string;
+  /** RLS coarse label (preset key or `custom`). */
+  role: string;
   display_name: string;
   login_name: string;
   created_at: string;

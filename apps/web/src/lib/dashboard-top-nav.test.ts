@@ -19,7 +19,7 @@ import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 describe('buildDashboardTopNavItems', () => {
   it('lists frontdesk nav from capability template', () => {
     const items = buildDashboardTopNavItems({
-      accessMode: 'frontdesk',
+      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
@@ -32,7 +32,7 @@ describe('buildDashboardTopNavItems', () => {
 
   it('appends kitchen shortcut when capability + flag', () => {
     const items = buildDashboardTopNavItems({
-      accessMode: 'frontdesk',
+      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
@@ -42,7 +42,7 @@ describe('buildDashboardTopNavItems', () => {
 
   it('keeps cashier on waiter board + checkout only', () => {
     const items = buildDashboardTopNavItems({
-      accessMode: 'cashier',
+      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: true,
@@ -52,7 +52,7 @@ describe('buildDashboardTopNavItems', () => {
 
   it('lists owner settings-focused items', () => {
     const items = buildDashboardTopNavItems({
-      accessMode: 'owner',
+      shellMode: 'owner',
       capabilities: '*',
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,
@@ -63,9 +63,9 @@ describe('buildDashboardTopNavItems', () => {
     );
   });
 
-  it('lists store_owner from owner preset caps (floor + settings tools, no guest notice)', () => {
+  it('lists owner-preset staff from capability template', () => {
     const items = buildDashboardTopNavItems({
-      accessMode: 'store_owner',
+      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
       kitchenShortcutEnabled: false,

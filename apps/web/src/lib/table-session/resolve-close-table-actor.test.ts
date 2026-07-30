@@ -49,7 +49,7 @@ describe('settledCloseReasonForStaffPreset', () => {
 describe('resolveCloseTableSessionDeskActor', () => {
   it('allows store_owner with tables.checkout_close', () => {
     const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       staffPrincipal('owner'),
       'checkout_close',
     );
@@ -138,7 +138,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
       capabilities: capabilitiesFromKeys(['tables.force_close']),
     };
     const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       loaded,
       'manual',
     );
@@ -223,7 +223,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
       capabilities: capabilitiesFromKeys(['tables.force_close']),
     };
     const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'store_owner', restaurant },
+      { mode: 'staff', restaurant },
       loaded,
       'checkout_close',
     );

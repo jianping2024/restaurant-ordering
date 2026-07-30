@@ -7,7 +7,7 @@ import {
   staffMetadataPayload,
   validateStaffCreateBody,
 } from '@/lib/staff-dashboard-api';
-import { findPresetRole, getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
+import { getRestaurantRole, staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requirePermission } from '@/lib/permissions/require';
@@ -66,8 +66,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'restaurant_suspended' }, { status: 403 });
   }
 
+  const roleRow = await getRestaurantRole(admin, restaurant.id, parsed.role_id);
+  if (!roleRow || roleRow.disabled_at) {
+    return NextResponse.json({ error: 'invalid_role' }, { status: 400 });
+  }
+
   const supabase = await createClient();
   const { data: { user: actor } } = await supabase.auth.getUser();
+
+  const staffRoleLabel = staffRoleLabelForRestaurantRole(roleRow);
 
   const { data: createdUser, error: createError } = await admin.auth.admin.createUser({
     email,
@@ -76,7 +83,7 @@ export async function POST(req: Request) {
     user_metadata: {
       account_type: 'staff',
       must_change_password: true,
-      staff_role: parsed.role,
+      staff_role: staffRoleLabel,
       restaurant_id: restaurant.id,
       restaurant_slug: restaurant.slug,
     },
@@ -92,28 +99,18 @@ export async function POST(req: Request) {
 
   const userId = createdUser.user.id;
 
-  const presetRole = parsed.role_id
-    ? await getRestaurantRole(admin, restaurant.id, parsed.role_id)
-    : await findPresetRole(admin, restaurant.id, parsed.role);
-
-  if (!presetRole) {
-    return NextResponse.json({ error: 'invalid_role' }, { status: 400 });
-  }
-
-  const staffRoleLabel = staffRoleLabelForRestaurantRole(presetRole);
-
   const { data: row, error: insertError } = await admin
     .from('restaurant_staff_accounts')
     .insert({
       restaurant_id: restaurant.id,
       user_id: userId,
       role: staffRoleLabel,
-      role_id: presetRole.id,
+      role_id: roleRow.id,
       display_name: parsed.display_name,
       login_name: parsed.login_name,
       created_by: actor?.id ?? null,
     })
-    .select('*')
+    .select('*, restaurant_roles(name, preset_key)')
     .single();
 
   if (insertError) {

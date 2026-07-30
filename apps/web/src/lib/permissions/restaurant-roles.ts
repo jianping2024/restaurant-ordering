@@ -196,6 +196,23 @@ export async function countStaffOnRole(
   return count ?? 0;
 }
 
+export async function listStaffUserIdsOnRole(
+  admin: Admin,
+  restaurantId: string,
+  roleId: string,
+): Promise<string[]> {
+  const { data, error } = await admin
+    .from('restaurant_staff_accounts')
+    .select('user_id')
+    .eq('restaurant_id', restaurantId)
+    .eq('role_id', roleId);
+
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row) => row.user_id)
+    .filter((id): id is string => typeof id === 'string' && id.length > 0);
+}
+
 export async function deleteRestaurantRole(
   admin: Admin,
   restaurantId: string,

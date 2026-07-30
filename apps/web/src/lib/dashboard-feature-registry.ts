@@ -1,13 +1,8 @@
-import type { DashboardAccessMode } from '@/lib/dashboard-access';
+import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-paths';
+import { can, type Capabilities } from '@/lib/permissions/can';
 import {
-  dashboardMiddlewareRedirectPath,
-} from '@/lib/dashboard-paths';
-import { can, capabilitiesFromKeys, type Capabilities } from '@/lib/permissions/can';
-import { NAV_PERMISSION, type PermissionKey } from '@/lib/permissions/registry';
-import {
-  ROLE_TEMPLATES,
-  type RolePresetKey,
-} from '@/lib/permissions/role-templates';
+  dashboardRoutePermission,
+} from '@/lib/permissions/registry';
 import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 
 /** How server-side writes should be performed for this feature. */
@@ -129,8 +124,7 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
 
 /**
  * Backend-admin (`mode=owner` / restaurants.owner_id) chrome only.
- * Staff nav (including store_owner) comes from ROLE_TEMPLATES + NAV_PERMISSION — never hard-bind
- * store_owner to the frontdesk id list.
+ * Staff nav comes from capabilities + NAV_PERMISSION via buildDashboardTopNavItems.
  */
 export const OWNER_NAV_ITEM_IDS = [
   'overview',
@@ -139,46 +133,9 @@ export const OWNER_NAV_ITEM_IDS = [
   'settings',
 ] as const;
 
-const ACCESS_MODE_PRESET: Partial<Record<DashboardAccessMode, RolePresetKey>> = {
-  store_owner: 'owner',
-  frontdesk: 'frontdesk',
-  cashier: 'cashier',
-  waiter: 'waiter',
-  kitchen: 'kitchen',
-};
-
-/** Nav item ids granted by a permission set — order follows DASHBOARD_NAV_ITEMS. */
-export function navItemIdsFromPermissionKeys(keys: readonly PermissionKey[]): string[] {
-  const capabilities = capabilitiesFromKeys([...keys]);
-  return Object.keys(DASHBOARD_NAV_ITEMS).filter((id) => {
-    const permission = NAV_PERMISSION[id];
-    return permission != null && can(capabilities, permission);
-  });
-}
-
-export function navItemsForRole(role: DashboardAccessMode): DashboardNavItemDef[] {
-  if (role === 'owner') {
-    return OWNER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id]);
-  }
-  const preset = ACCESS_MODE_PRESET[role];
-  if (!preset) return [];
-  return navItemIdsFromPermissionKeys(ROLE_TEMPLATES[preset]).map((id) => DASHBOARD_NAV_ITEMS[id]);
-}
-
-export function navPathsForRole(role: DashboardAccessMode): readonly string[] {
-  return navItemsForRole(role).map((item) => item.href);
-}
-
-export const OWNER_NAV_PATHS = navPathsForRole('owner');
-export const FRONTDESK_NAV_PATHS = navPathsForRole('frontdesk');
-export const CASHIER_NAV_PATHS = navPathsForRole('cashier');
-export const WAITER_NAV_PATHS = navPathsForRole('waiter');
-/** Default store-owner staff nav paths (owner preset capabilities). */
-export const STORE_OWNER_NAV_PATHS = navPathsForRole('store_owner');
-
 /**
  * Canonical dashboard feature access map (paths / loaders).
- * Live UI nav: buildDashboardTopNavItems from capabilities; preset defaults: ROLE_TEMPLATES.
+ * Live UI nav: buildDashboardTopNavItems from capabilities only.
  */
 export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
@@ -297,12 +254,9 @@ export function middlewareAllowsPathForCapabilities(
   capabilities: Capabilities,
   pathname: string,
 ): boolean {
-  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
-    const permission = NAV_PERMISSION[item.id];
-    if (!permission || !can(capabilities, permission)) continue;
-    if (pathnameMatchesNavItem(pathname, item)) return true;
-  }
-  return false;
+  const permission = dashboardRoutePermission(pathname);
+  if (!permission) return false;
+  return can(capabilities, permission);
 }
 
 export function pathnameMatchesNavItem(
@@ -331,17 +285,6 @@ export function dashboardStaffMiddlewareRedirectPath(
 ): string | null {
   if (middlewareAllowsPathForCapabilities(capabilities, pathname)) return null;
   return staffLandingPathFromCapabilities(slug, capabilities);
-}
-
-/** Thin wrapper for tests — derives allowed paths from ROLE_TEMPLATES preset, not role enum at runtime. */
-export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
-  if (role === 'owner') return middlewareAllowsOwnerPath(pathname);
-  const preset = ACCESS_MODE_PRESET[role];
-  if (!preset) return false;
-  return middlewareAllowsPathForCapabilities(
-    capabilitiesFromKeys(ROLE_TEMPLATES[preset]),
-    pathname,
-  );
 }
 
 export function featureByPath(pathname: string): DashboardFeature | undefined {

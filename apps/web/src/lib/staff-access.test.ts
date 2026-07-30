@@ -1,5 +1,5 @@
-import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
 import {
   deriveStaffLoginContext,
   deriveStaffLoginPreflight,
@@ -8,12 +8,14 @@ import {
 
 const SLUG = 'restaurant-mohnrib5';
 const RESTAURANT_ID = 'rest-1';
+const ROLE_ID = 'role-kitchen-1';
 
 function staffRow(overrides: Partial<StaffGateAccount> = {}): StaffGateAccount {
   return {
     id: 'staff-1',
     restaurant_id: RESTAURANT_ID,
-    role: 'frontdesk',
+    role: 'kitchen',
+    role_id: ROLE_ID,
     disabled_at: null,
     restaurant: {
       id: RESTAURANT_ID,
@@ -34,7 +36,22 @@ describe('deriveStaffLoginPreflight', () => {
       deriveStaffLoginPreflight({
         account: {
           disabled_at: '2026-01-01T00:00:00Z',
-          role: 'frontdesk',
+          role: 'kitchen',
+          role_id: ROLE_ID,
+          restaurant_suspended_at: null,
+        },
+      }),
+      { ok: false, code: 'invalid_credentials' },
+    );
+  });
+
+  it('rejects staff without role_id', () => {
+    assert.deepEqual(
+      deriveStaffLoginPreflight({
+        account: {
+          disabled_at: null,
+          role: 'kitchen',
+          role_id: null,
           restaurant_suspended_at: null,
         },
       }),
@@ -47,7 +64,8 @@ describe('deriveStaffLoginPreflight', () => {
       deriveStaffLoginPreflight({
         account: {
           disabled_at: null,
-          role: 'frontdesk',
+          role: 'kitchen',
+          role_id: ROLE_ID,
           restaurant_suspended_at: '2026-01-01T00:00:00Z',
         },
       }),
@@ -60,7 +78,8 @@ describe('deriveStaffLoginPreflight', () => {
       deriveStaffLoginPreflight({
         account: {
           disabled_at: null,
-          role: 'frontdesk',
+          role: 'kitchen',
+          role_id: ROLE_ID,
           restaurant_suspended_at: null,
           role_disabled_at: '2026-01-01T00:00:00Z',
         },
@@ -69,12 +88,27 @@ describe('deriveStaffLoginPreflight', () => {
     );
   });
 
-  it('accepts enabled staff', () => {
+  it('accepts enabled staff with role_id', () => {
     assert.deepEqual(
       deriveStaffLoginPreflight({
         account: {
           disabled_at: null,
-          role: 'frontdesk',
+          role: 'kitchen',
+          role_id: ROLE_ID,
+          restaurant_suspended_at: null,
+        },
+      }),
+      { ok: true },
+    );
+  });
+
+  it('accepts custom role label when role_id is set', () => {
+    assert.deepEqual(
+      deriveStaffLoginPreflight({
+        account: {
+          disabled_at: null,
+          role: 'custom',
+          role_id: ROLE_ID,
           restaurant_suspended_at: null,
         },
       }),
@@ -94,14 +128,24 @@ describe('deriveStaffLoginContext', () => {
   it('returns staff landing from gate restaurant slug', () => {
     const result = deriveStaffLoginContext({
       userMetadata: {},
-      staff: staffRow({ role: 'cashier' }),
+      staff: staffRow({ role: 'custom' }),
     });
     assert.equal(result.kind, 'staff');
     if (result.kind === 'staff') {
-      assert.equal(result.context.role, 'cashier');
+      assert.equal(result.context.roleLabel, 'custom');
       assert.equal(result.context.slug, SLUG);
       assert.equal(result.context.mustChangePassword, false);
     }
+  });
+
+  it('rejects staff without role_id', () => {
+    assert.equal(
+      deriveStaffLoginContext({
+        userMetadata: {},
+        staff: staffRow({ role_id: null }),
+      }).kind,
+      'staff_error',
+    );
   });
 
   it('can skip suspend check after preflight', () => {

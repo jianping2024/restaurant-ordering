@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { StaffRole } from '@/lib/staff-account';
 import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 import {
   loadOwnedRestaurantIdForUser,
@@ -11,7 +10,7 @@ import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
 export type PostLoginRedirect =
   | { kind: 'owner'; path: '/dashboard/settings' }
   | { kind: 'onboarding'; path: '/dashboard' }
-  | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; role: StaffRole }
+  | { kind: 'staff'; path: string; mustChangePassword: boolean; slug: string; roleLabel: string }
   | { kind: 'staff_error'; code: 'disabled' | 'incomplete' | 'restaurant_suspended' };
 
 export { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
@@ -59,7 +58,7 @@ export async function resolvePostLoginRedirect(
     return staffResult;
   }
 
-  const { role, slug, mustChangePassword } = staffResult.context;
+  const { roleLabel, slug, mustChangePassword } = staffResult.context;
 
   const path =
     staff != null
@@ -71,6 +70,6 @@ export async function resolvePostLoginRedirect(
     path,
     mustChangePassword,
     slug,
-    role,
+    roleLabel,
   };
 }

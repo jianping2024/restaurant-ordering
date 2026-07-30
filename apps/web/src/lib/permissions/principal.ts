@@ -3,14 +3,10 @@ import 'server-only';
 import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import {
-  findPresetRole,
-  staffRoleLabelForRestaurantRole,
-} from '@/lib/permissions/restaurant-roles';
-import { isRolePresetKey, type RolePresetKey } from '@/lib/permissions/role-templates';
+import { staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
+import { isRolePresetKey } from '@/lib/permissions/role-templates';
 import { normalizeStoredPermissions } from '@/lib/permissions/resolve';
 import type { Principal, StaffPrincipal } from '@/lib/permissions/types';
-import type { PermissionKey } from '@/lib/permissions/registry';
 import {
   resolveCapabilitiesForOwner,
   resolveCapabilitiesFromRolePermissions,
@@ -35,52 +31,30 @@ async function loadStaffPrincipal(
   if (error || !account || account.disabled_at) return null;
   if (account.role === 'print_agent') return null;
 
-  let roleId = account.role_id as string | null;
-  let roleName = '';
-  let presetKey: StaffPrincipal['presetKey'] = null;
-  let permissions: PermissionKey[] = [];
-  let disabledAt: string | null = null;
+  const roleId = account.role_id as string | null;
+  if (!roleId) return null;
 
-  if (roleId) {
-    const { data: role } = await admin
-      .from('restaurant_roles')
-      .select('id, name, preset_key, permissions, disabled_at')
-      .eq('id', roleId)
-      .eq('restaurant_id', account.restaurant_id)
-      .maybeSingle();
+  const { data: role } = await admin
+    .from('restaurant_roles')
+    .select('id, name, preset_key, permissions, disabled_at')
+    .eq('id', roleId)
+    .eq('restaurant_id', account.restaurant_id)
+    .maybeSingle();
 
-    if (!role) return null;
-    if (role.disabled_at) return null;
+  if (!role || role.disabled_at) return null;
 
-    roleName = String(role.name);
-    presetKey = isRolePresetKey(String(role.preset_key ?? ''))
-      ? (role.preset_key as StaffPrincipal['presetKey'])
-      : null;
-    permissions = normalizeStoredPermissions(role.permissions);
-    disabledAt = role.disabled_at;
-  } else if (isRolePresetKey(String(account.role))) {
-    const preset = await findPresetRole(admin, account.restaurant_id as string, account.role as RolePresetKey);
-    if (!preset || preset.disabled_at) return null;
-    roleId = preset.id;
-    roleName = preset.name;
-    presetKey = preset.preset_key;
-    permissions = preset.permissions;
-    await admin
-      .from('restaurant_staff_accounts')
-      .update({ role_id: preset.id })
-      .eq('id', account.id);
-  } else {
-    return null;
-  }
-
-  void disabledAt;
+  const roleName = String(role.name);
+  const presetKey = isRolePresetKey(String(role.preset_key ?? ''))
+    ? (role.preset_key as StaffPrincipal['presetKey'])
+    : null;
+  const permissions = normalizeStoredPermissions(role.permissions);
 
   const principal: StaffPrincipal = {
     kind: 'staff',
     restaurantId: account.restaurant_id as string,
     userId,
     staffAccountId: account.id as string,
-    roleId: roleId!,
+    roleId,
     roleName,
     presetKey,
     staffRoleLabel: staffRoleLabelForRestaurantRole({ preset_key: presetKey }),

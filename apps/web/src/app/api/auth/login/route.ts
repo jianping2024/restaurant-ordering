@@ -112,7 +112,7 @@ export async function POST(req: Request) {
         path: redirect.mustChangePassword ? '/auth/staff/change-password' : redirect.path,
         must_change_password: redirect.mustChangePassword,
         slug: redirect.slug,
-        role: redirect.role,
+        roleLabel: redirect.roleLabel,
       });
       attachCookies(response);
       return response;

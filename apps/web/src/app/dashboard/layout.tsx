@@ -14,11 +14,6 @@ import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 
-/**
- * Print-expiry banner loads in its own Suspense island so it never blocks page children.
- * Checkout queue is not SSR-awaited here: Provider mount reconcile + Realtime fill the badge
- * (layout previously awaited the queue and then remount-reconciled again).
- */
 async function OwnerPrintExpiryBanner({ restaurantId }: { restaurantId: string }) {
   const expiringDevices = await getPrintAgentDevicesNeedingRenewal(restaurantId);
   if (expiringDevices.length === 0) return null;
@@ -54,16 +49,15 @@ export default async function DashboardLayout({
   }
 
   const caps = principalCaps?.capabilities;
-  /** Checkout queue when capability grants checkout view (not role enum). */
   const checkoutQueueEnabled = Boolean(caps && can(caps, 'dashboard.checkout.view'));
-
-  /** Board loads on floor list surface — capability only (no role-list fallback). */
   const waiterBoardEnabled = Boolean(caps && can(caps, 'dashboard.waiter_board.view'));
+  const isOwner = access.mode === 'owner';
+  const roleLabel =
+    principalCaps?.principal.kind === 'staff'
+      ? principalCaps.principal.roleName
+      : undefined;
 
   const showSuspensionBanner =
-    (access.mode === 'owner' ||
-      access.mode === 'frontdesk' ||
-      access.mode === 'store_owner') &&
     isRestaurantSuspended(access.restaurant.suspended_at);
 
   return (
@@ -79,15 +73,16 @@ export default async function DashboardLayout({
       >
         <DashboardShell
           restaurant={access.restaurant}
-          accessMode={access.mode}
+          shellMode={isOwner ? 'owner' : 'staff'}
+          roleLabel={roleLabel}
           capabilities={toCapabilitiesPayload(
-            caps ?? (access.mode === 'owner' ? resolveCapabilitiesForOwner() : new Set()),
+            caps ?? (isOwner ? resolveCapabilitiesForOwner() : new Set()),
           )}
         >
           {showSuspensionBanner ? (
             <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />
           ) : null}
-          {access.mode === 'owner' ? (
+          {isOwner ? (
             <Suspense fallback={null}>
               <OwnerPrintExpiryBanner restaurantId={access.restaurant.id} />
             </Suspense>

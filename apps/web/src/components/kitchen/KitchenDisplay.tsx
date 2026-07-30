@@ -322,7 +322,7 @@ function KitchenDisplayInner({
 
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
-    accessMode: 'kitchen',
+    shellMode: 'staff',
     capabilities,
     restaurantSlug: restaurant.slug,
     kitchenShortcutEnabled,

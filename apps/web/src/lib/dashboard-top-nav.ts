@@ -11,6 +11,7 @@ import {
   fromCapabilitiesPayload,
   type CapabilitiesPayload,
 } from '@/lib/permissions/can';
+import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
 
 const OWNER_CHROME_NAV_IDS = new Set<string>(OWNER_NAV_ITEM_IDS);
@@ -29,30 +30,23 @@ export type ProductTopNavItem = {
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
 export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
-export function dashboardLogoHref(accessMode: DashboardAccessMode): string {
-  if (
-    accessMode === 'cashier' ||
-    accessMode === 'frontdesk' ||
-    accessMode === 'store_owner' ||
-    accessMode === 'waiter'
-  ) {
-    return '/dashboard/waiter';
-  }
-  return '/dashboard';
+export function dashboardLogoHref(
+  restaurantSlug: string,
+  capabilities: CapabilitiesPayload,
+): string {
+  return staffLandingPathFromCapabilities(
+    restaurantSlug,
+    fromCapabilitiesPayload(capabilities),
+  );
 }
 
-export function isTopBarLogoHrefActive(
+export function isLogoHrefActive(
   pathname: string,
-  logoHref: string,
-  exact = false,
+  restaurantSlug: string,
+  capabilities: CapabilitiesPayload,
 ): boolean {
-  if (exact) return pathname === logoHref;
-  return pathname === logoHref || pathname.startsWith(`${logoHref}/`);
-}
-
-export function isLogoHrefActive(pathname: string, accessMode: DashboardAccessMode): boolean {
-  const href = dashboardLogoHref(accessMode);
-  return isTopBarLogoHrefActive(pathname, href, accessMode === 'owner');
+  const href = dashboardLogoHref(restaurantSlug, capabilities);
+  return isTopBarLogoHrefActive(pathname, href, href === '/dashboard');
 }
 
 /** Icon trigger aligned to the staff top-bar row — no pill chrome. */
@@ -121,6 +115,15 @@ export function dashboardTopBarMobileDropdownPanelStyle(): {
     overflowY: 'auto',
     zIndex: 50,
   };
+}
+
+export function isTopBarLogoHrefActive(
+  pathname: string,
+  logoHref: string,
+  exact = false,
+): boolean {
+  if (exact) return pathname === logoHref;
+  return pathname === logoHref || pathname.startsWith(`${logoHref}/`);
 }
 
 export function isNavItemActive(

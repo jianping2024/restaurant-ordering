@@ -1,4 +1,3 @@
-import type { StaffRole } from '@/lib/staff-account';
 import { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
 
 export { dashboardCheckoutTableHref } from '@/lib/checkout-queue-focus';
@@ -10,13 +9,6 @@ type WaiterRouteOptions = {
 };
 
 const DASHBOARD_WAITER_BOARD_PREFIX = '/dashboard/waiter';
-
-/** Post-login / session paths by staff role (safe for server and client). */
-export function staffRolePath(slug: string, role: StaffRole): string {
-  if (role === 'kitchen') return `/${slug}/kitchen`;
-  if (role === 'owner') return '/dashboard';
-  return DASHBOARD_WAITER_BOARD_PREFIX;
-}
 
 export function waiterBoardHref(_slug: string, options: WaiterRouteOptions = {}): string {
   if (options.isDemo) return '/demo/waiter';

@@ -1,10 +1,18 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-access';
 import {
-  dashboardMiddlewareRedirectPath,
-  resolveDashboardActor,
-} from '@/lib/dashboard-access';
+  dashboardStaffMiddlewareRedirectPath,
+  middlewareAllowsOwnerPath,
+} from '@/lib/dashboard-feature-registry';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
+import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  loadOwnedRestaurantIdForUser,
+  loadStaffGateAccountForUser,
+} from '@/lib/staff-gate-db';
+import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -41,16 +49,42 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname.startsWith('/dashboard')) {
-    const actor = await resolveDashboardActor(
-      supabase,
-      user.id,
-      user.user_metadata as Record<string, unknown>,
-    );
-    const redirectPath = dashboardMiddlewareRedirectPath(actor, pathname);
-    if (redirectPath) {
-      const url = request.nextUrl.clone();
-      url.pathname = redirectPath;
-      return NextResponse.redirect(url);
+    let admin;
+    try {
+      admin = createAdminClient();
+    } catch {
+      return supabaseResponse;
+    }
+
+    const ownedRestaurantId = await loadOwnedRestaurantIdForUser(admin, user.id);
+    if (ownedRestaurantId) {
+      if (!middlewareAllowsOwnerPath(pathname)) {
+        const url = request.nextUrl.clone();
+        url.pathname = dashboardMiddlewareRedirectPath('owner', pathname) ?? '/dashboard/settings';
+        return NextResponse.redirect(url);
+      }
+    } else {
+      const staff = await loadStaffGateAccountForUser(admin, user.id);
+      if (staff && !staff.disabled_at) {
+        const meta = parseStaffUserMetadata(
+          user.user_metadata as Record<string, unknown>,
+        );
+        const slug =
+          staff.restaurant?.slug ?? meta?.restaurant_slug ?? '';
+        if (slug) {
+          const capabilities = await loadStaffCapabilitiesForGateAccount(admin, staff);
+          const redirectPath = dashboardStaffMiddlewareRedirectPath(
+            capabilities,
+            pathname,
+            slug,
+          );
+          if (redirectPath) {
+            const url = request.nextUrl.clone();
+            url.pathname = redirectPath;
+            return NextResponse.redirect(url);
+          }
+        }
+      }
     }
   }
 

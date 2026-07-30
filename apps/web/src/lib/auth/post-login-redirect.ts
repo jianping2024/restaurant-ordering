@@ -1,12 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { staffRolePath } from '@/lib/staff-routes';
 import type { StaffRole } from '@/lib/staff-account';
 import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 import {
   loadOwnedRestaurantIdForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
+import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
 
 export type PostLoginRedirect =
   | { kind: 'owner'; path: '/dashboard/settings' }
@@ -61,9 +61,14 @@ export async function resolvePostLoginRedirect(
 
   const { role, slug, mustChangePassword } = staffResult.context;
 
+  const path =
+    staff != null
+      ? await resolveStaffLandingPath(admin, staff, slug)
+      : '/auth/login';
+
   return {
     kind: 'staff',
-    path: staffRolePath(slug, role),
+    path,
     mustChangePassword,
     slug,
     role,

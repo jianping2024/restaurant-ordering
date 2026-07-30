@@ -1,14 +1,14 @@
 import type { DashboardAccessMode } from '@/lib/dashboard-access';
 import {
   dashboardMiddlewareRedirectPath,
-  type DashboardActor,
 } from '@/lib/dashboard-paths';
-import { can, capabilitiesFromKeys } from '@/lib/permissions/can';
+import { can, capabilitiesFromKeys, type Capabilities } from '@/lib/permissions/can';
 import { NAV_PERMISSION, type PermissionKey } from '@/lib/permissions/registry';
 import {
   ROLE_TEMPLATES,
   type RolePresetKey,
 } from '@/lib/permissions/role-templates';
+import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 
 /** How server-side writes should be performed for this feature. */
 export type DashboardWritePattern =
@@ -144,6 +144,7 @@ const ACCESS_MODE_PRESET: Partial<Record<DashboardAccessMode, RolePresetKey>> = 
   frontdesk: 'frontdesk',
   cashier: 'cashier',
   waiter: 'waiter',
+  kitchen: 'kitchen',
 };
 
 /** Nav item ids granted by a permission set — order follows DASHBOARD_NAV_ITEMS. */
@@ -291,9 +292,56 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   },
 ];
 
-/** Thin wrapper over the live middleware path policy — one representation. */
+/** Staff dashboard path shell — capability is the only gate. */
+export function middlewareAllowsPathForCapabilities(
+  capabilities: Capabilities,
+  pathname: string,
+): boolean {
+  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
+    const permission = NAV_PERMISSION[item.id];
+    if (!permission || !can(capabilities, permission)) continue;
+    if (pathnameMatchesNavItem(pathname, item)) return true;
+  }
+  return false;
+}
+
+export function pathnameMatchesNavItem(
+  pathname: string,
+  item: DashboardNavItemDef,
+): boolean {
+  if (item.matchPrefix) {
+    return pathname === item.matchPrefix || pathname.startsWith(`${item.matchPrefix}/`);
+  }
+  if (item.exact) {
+    return pathname === item.href;
+  }
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+/** Owner restaurants.owner_id path policy. */
+export function middlewareAllowsOwnerPath(pathname: string): boolean {
+  return dashboardMiddlewareRedirectPath('owner', pathname) === null;
+}
+
+/** Redirect staff away from dashboard routes their capabilities do not cover. */
+export function dashboardStaffMiddlewareRedirectPath(
+  capabilities: Capabilities,
+  pathname: string,
+  slug: string,
+): string | null {
+  if (middlewareAllowsPathForCapabilities(capabilities, pathname)) return null;
+  return staffLandingPathFromCapabilities(slug, capabilities);
+}
+
+/** Thin wrapper for tests — derives allowed paths from ROLE_TEMPLATES preset, not role enum at runtime. */
 export function middlewareAllowsPath(role: DashboardAccessMode, pathname: string): boolean {
-  return dashboardMiddlewareRedirectPath(role as DashboardActor, pathname) === null;
+  if (role === 'owner') return middlewareAllowsOwnerPath(pathname);
+  const preset = ACCESS_MODE_PRESET[role];
+  if (!preset) return false;
+  return middlewareAllowsPathForCapabilities(
+    capabilitiesFromKeys(ROLE_TEMPLATES[preset]),
+    pathname,
+  );
 }
 
 export function featureByPath(pathname: string): DashboardFeature | undefined {

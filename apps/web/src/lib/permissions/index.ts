@@ -50,6 +50,10 @@ export {
   staffRoleLabelForRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
 
+export {
+  loadStaffCapabilitiesForGateAccount,
+  resolveStaffLandingPath,
+} from '@/lib/permissions/staff-landing';
 export { loadPrincipal, loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 export type { PrincipalWithCapabilities } from '@/lib/permissions/principal';
 

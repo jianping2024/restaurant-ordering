@@ -38,7 +38,7 @@ export function DashboardTopBar({ restaurant, accessMode, capabilities }: Props)
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 
   const roleLabel = dashboardAccessModeRoleLabel(lang, accessMode);
-  const logoHref = dashboardLogoHref(accessMode);
+  const logoHref = dashboardLogoHref(restaurant.slug, capabilities);
 
   return (
     <StaffPersonalTopBar

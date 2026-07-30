@@ -55,9 +55,8 @@ describe('resolveStaffPasswordChangeSuccess', () => {
     restaurant_slug: 'demo-slug',
   };
 
-  it('clears must_change_password and returns role path for staff', () => {
+  it('clears must_change_password for staff', () => {
     const result = resolveStaffPasswordChangeSuccess(user, staffMeta);
-    assert.equal(result.path, '/demo-slug/kitchen');
     assert.deepEqual(result.updateData, {
       account_type: 'staff',
       must_change_password: false,
@@ -65,9 +64,8 @@ describe('resolveStaffPasswordChangeSuccess', () => {
     });
   });
 
-  it('returns no path and no metadata patch for non-staff sessions', () => {
+  it('returns no metadata patch for non-staff sessions', () => {
     const result = resolveStaffPasswordChangeSuccess(user, null);
-    assert.equal(result.path, null);
     assert.equal(result.updateData, undefined);
   });
 });

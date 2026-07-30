@@ -107,5 +107,15 @@ describe('can / resolve', () => {
       ),
       '/demo/kitchen',
     );
+    assert.equal(
+      staffLandingPathFromCapabilities(
+        'demo',
+        capabilitiesFromKeys([
+          'dashboard.overview.view',
+          'floor.kitchen_board.view',
+        ]),
+      ),
+      '/dashboard',
+    );
   });
 });

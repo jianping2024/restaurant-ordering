@@ -5,6 +5,7 @@ import {
   DASHBOARD_FEATURES,
   FRONTDESK_NAV_PATHS,
   middlewareAllowsPath,
+  middlewareAllowsPathForCapabilities,
   navItemIdsFromPermissionKeys,
   navItemsForRole,
   navPathsForRole,
@@ -14,6 +15,7 @@ import {
   WAITER_NAV_PATHS,
 } from './dashboard-feature-registry';
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
+import { capabilitiesFromKeys } from '@/lib/permissions/can';
 
 describe('dashboard nav paths vs feature registry', () => {
   it('owner nav paths are registered features', () => {
@@ -110,6 +112,15 @@ describe('middlewareAllowsPath matches nav visibility', () => {
     assert.equal(middlewareAllowsPath('waiter', '/dashboard/waiter/table-1'), true);
     assert.equal(middlewareAllowsPath('waiter', '/dashboard/checkout'), false);
     assert.equal(middlewareAllowsPath('waiter', '/dashboard/menu'), false);
+  });
+
+  it('kitchen with overview capability may access dashboard overview', () => {
+    const caps = capabilitiesFromKeys([
+      'dashboard.overview.view',
+      'floor.kitchen_board.view',
+    ]);
+    assert.equal(middlewareAllowsPathForCapabilities(caps, '/dashboard'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(caps, '/dashboard/waiter'), false);
   });
 });
 

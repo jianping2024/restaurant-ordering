@@ -6,6 +6,9 @@ import {
   type StaffChangePasswordValidationError,
 } from '@/lib/auth/staff-change-password-validation';
 import { resolveStaffPasswordChangeSuccess } from '@/lib/auth/staff-change-password-outcome';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { loadStaffGateAccountForUser } from '@/lib/staff-gate-db';
+import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
 
 export type StaffChangePasswordError =
   | 'unauthorized'
@@ -53,12 +56,25 @@ export async function changeStaffPasswordWithSession(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const { updateData, path } = resolveStaffPasswordChangeSuccess(user, meta);
+  const { updateData } = resolveStaffPasswordChangeSuccess(user, meta);
   const { error } = await supabase.auth.updateUser(
     updateData ? { password: newPassword, data: updateData } : { password: newPassword },
   );
   if (error) {
     return { ok: false, error: 'update_failed' };
+  }
+
+  let path: string | null = null;
+  if (meta) {
+    try {
+      const admin = createAdminClient();
+      const staff = await loadStaffGateAccountForUser(admin, user.id);
+      if (staff) {
+        path = await resolveStaffLandingPath(admin, staff, meta.restaurant_slug);
+      }
+    } catch {
+      path = null;
+    }
   }
 
   return { ok: true, path };

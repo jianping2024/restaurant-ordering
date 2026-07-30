@@ -8,7 +8,7 @@ import {
 } from '@/lib/staff-identity-gate';
 
 export const STAFF_GATE_SELECT =
-  'id, restaurant_id, role, disabled_at, restaurants(id, slug, suspended_at)';
+  'id, restaurant_id, role, role_id, disabled_at, restaurants(id, slug, suspended_at)';
 
 /** Shared staff+restaurant gate row (admin). Safe for Node routes and Edge middleware. */
 export async function loadStaffGateAccountForUser(

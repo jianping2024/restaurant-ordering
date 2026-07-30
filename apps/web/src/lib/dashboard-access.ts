@@ -75,20 +75,40 @@ export type FrontdeskDashboardRestaurant = Pick<
   | 'buffet_service_mode'
 >;
 
-/** Floor staff restaurant identity + sushi/classic mode for embedded ordering. */
-export type FloorStaffDashboardRestaurant = Pick<
+/** Staff dashboard shell restaurant (nav + floor embed). */
+export type StaffDashboardRestaurant = Pick<
   Restaurant,
-  'id' | 'name' | 'slug' | 'buffet_service_mode'
+  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'buffet_service_mode'
 >;
 
-export type DashboardAccessMode = 'owner' | 'store_owner' | 'cashier' | 'frontdesk' | 'waiter';
+export type DashboardAccessMode =
+  | 'owner'
+  | 'store_owner'
+  | 'cashier'
+  | 'frontdesk'
+  | 'waiter'
+  | 'kitchen';
+
+function staffDashboardAccessMode(role: string): DashboardAccessMode | null {
+  if (role === 'frontdesk') return 'frontdesk';
+  if (role === 'owner') return 'store_owner';
+  if (role === 'cashier') return 'cashier';
+  if (role === 'waiter') return 'waiter';
+  if (role === 'kitchen') return 'kitchen';
+  if (role === 'custom') return 'frontdesk';
+  return null;
+}
+
+const STAFF_DASHBOARD_RESTAURANT_SELECT =
+  'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason';
 
 export type DashboardAccess =
   | { mode: 'owner'; restaurant: Restaurant }
   | { mode: 'store_owner'; restaurant: FrontdeskDashboardRestaurant }
-  | { mode: 'cashier'; restaurant: FloorStaffDashboardRestaurant }
-  | { mode: 'waiter'; restaurant: FloorStaffDashboardRestaurant }
-  | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant };
+  | { mode: 'cashier'; restaurant: StaffDashboardRestaurant }
+  | { mode: 'waiter'; restaurant: StaffDashboardRestaurant }
+  | { mode: 'frontdesk'; restaurant: FrontdeskDashboardRestaurant }
+  | { mode: 'kitchen'; restaurant: StaffDashboardRestaurant };
 
 export type DashboardAccessResult =
   | DashboardAccess
@@ -103,10 +123,45 @@ export type DashboardOperationalContext =
 const OWNER_RESTAURANT_SELECT =
   'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, created_at';
 
-const FRONTDESK_RESTAURANT_SELECT =
-  'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason';
+async function loadStaffDashboardAccess(
+  restaurantId: string,
+  role: string,
+): Promise<DashboardAccess | { error: string }> {
+  const mode = staffDashboardAccessMode(role);
+  if (!mode) return { error: 'unsupported_staff_role' };
 
-const FLOOR_STAFF_RESTAURANT_SELECT = 'id, name, slug, buffet_service_mode';
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { error: 'server_misconfigured' };
+  }
+
+  const { data: restaurant, error: restaurantError } = await admin
+    .from('restaurants')
+    .select(STAFF_DASHBOARD_RESTAURANT_SELECT)
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (restaurantError) {
+    return { error: restaurantError.message };
+  }
+  if (!restaurant) {
+    return { error: 'restaurant_not_found' };
+  }
+
+  if (mode === 'frontdesk' || mode === 'store_owner') {
+    return {
+      mode,
+      restaurant: restaurant as FrontdeskDashboardRestaurant,
+    };
+  }
+
+  return {
+    mode: mode as 'cashier' | 'waiter' | 'kitchen',
+    restaurant: restaurant as StaffDashboardRestaurant,
+  };
+}
 
 async function isActiveStaffRole(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -160,83 +215,27 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     return { mode: 'access_error', message: staffError.message };
   }
 
-  if (
-    account &&
-    !account.disabled_at &&
-    (account.role === 'cashier' || account.role === 'waiter')
-  ) {
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants_public')
-      .select(FLOOR_STAFF_RESTAURANT_SELECT)
-      .eq('id', account.restaurant_id)
-      .maybeSingle();
-
-    if (restaurantError) {
-      return { mode: 'access_error', message: restaurantError.message };
-    }
-
-    if (restaurant) {
-      return {
-        mode: account.role as 'cashier' | 'waiter',
-        restaurant: restaurant as FloorStaffDashboardRestaurant,
-      };
-    }
-  }
-
-  if (account && !account.disabled_at && account.role === 'frontdesk') {
-    let admin;
-    try {
-      admin = createAdminClient();
-    } catch {
-      return { mode: 'access_error', message: 'server_misconfigured' };
-    }
-
-    const { data: restaurant, error: restaurantError } = await admin
-      .from('restaurants')
-      .select(FRONTDESK_RESTAURANT_SELECT)
-      .eq('id', account.restaurant_id)
-      .maybeSingle();
-
-    if (restaurantError) {
-      return { mode: 'access_error', message: restaurantError.message };
-    }
-
-    if (restaurant) {
-      return {
-        mode: 'frontdesk',
-        restaurant: restaurant as FrontdeskDashboardRestaurant,
-      };
-    }
-  }
-
-  if (account && !account.disabled_at && account.role === 'owner') {
-    let admin;
-    try {
-      admin = createAdminClient();
-    } catch {
-      return { mode: 'access_error', message: 'server_misconfigured' };
-    }
-
-    const { data: restaurant, error: restaurantError } = await admin
-      .from('restaurants')
-      .select(FRONTDESK_RESTAURANT_SELECT)
-      .eq('id', account.restaurant_id)
-      .maybeSingle();
-
-    if (restaurantError) {
-      return { mode: 'access_error', message: restaurantError.message };
-    }
-
-    if (restaurant) {
-      return {
-        mode: 'store_owner',
-        restaurant: restaurant as FrontdeskDashboardRestaurant,
-      };
+  if (account && !account.disabled_at) {
+    const staffAccess = await loadStaffDashboardAccess(
+      account.restaurant_id as string,
+      String(account.role),
+    );
+    if ('error' in staffAccess) {
+      if (staffAccess.error === 'unsupported_staff_role') {
+        const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
+        if (meta?.account_type === 'staff' || account) {
+          return { mode: 'unauthenticated' };
+        }
+      } else {
+        return { mode: 'access_error', message: staffAccess.error };
+      }
+    } else {
+      return staffAccess;
     }
   }
 
   const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
-  if (meta?.account_type === 'staff' || (account && !account.disabled_at)) {
+  if (meta?.account_type === 'staff') {
     return { mode: 'unauthenticated' };
   }
 

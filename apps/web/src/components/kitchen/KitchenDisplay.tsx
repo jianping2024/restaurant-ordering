@@ -15,14 +15,25 @@ import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/st
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
-import { staffRolePath } from '@/lib/staff-routes';
+import {
+  buildDashboardTopNavItems,
+  dashboardLogoHref,
+} from '@/lib/dashboard-top-nav';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
+import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 interface Props {
-  restaurant: { id: string; name: string; slug: string };
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+    feature_flags?: Record<string, unknown> | null;
+  };
+  capabilities: CapabilitiesPayload;
   asOwner?: boolean;
   /** SSR successfully loaded board — skip mount entry reconcile. */
   hasAuthoritativeSeed?: boolean;
@@ -85,6 +96,7 @@ function buildInitialTableMeta(tables: RestaurantTableRow[] = []): Map<string, R
 
 function KitchenDisplayInner({
   restaurant,
+  capabilities,
   asOwner = false,
   hasAuthoritativeSeed = false,
   initialOrders = [],
@@ -308,12 +320,21 @@ function KitchenDisplayInner({
     refreshKitchenBoard,
   );
 
+  const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
+  const navItems = buildDashboardTopNavItems({
+    accessMode: 'kitchen',
+    capabilities,
+    restaurantSlug: restaurant.slug,
+    kitchenShortcutEnabled,
+  });
+  const logoHref = isDemo ? '/demo/kitchen' : dashboardLogoHref(restaurant.slug, capabilities);
+
   return (
     <div className="flex min-h-screen flex-col bg-brand-bg">
       <StaffPersonalTopBar
-        logoHref={isDemo ? '/demo/kitchen' : staffRolePath(restaurant.slug, 'kitchen')}
+        logoHref={logoHref}
         restaurantName={restaurant.name}
-        navItems={[]}
+        navItems={navItems}
         settingsMenu={
           <PersonalSettingsMenu
             roleLabel={roleLabel}

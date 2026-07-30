@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  staffRolePath,
   waiterBoardHref,
   waiterTableHref,
   waiterMenuHref,
@@ -56,15 +55,6 @@ describe('waiterBillHref', () => {
     const href = waiterBillHref('cafe-lisboa', tableId);
     assert.ok(href.startsWith('/cafe-lisboa/bill?'));
     assert.ok(href.includes('return=%2Fdashboard%2Fwaiter%2F'));
-  });
-});
-
-describe('staffRolePath', () => {
-  it('routes kitchen to kitchen and floor/desk roles to dashboard waiter board', () => {
-    assert.equal(staffRolePath('cafe-lisboa', 'kitchen'), '/cafe-lisboa/kitchen');
-    assert.equal(staffRolePath('cafe-lisboa', 'waiter'), '/dashboard/waiter');
-    assert.equal(staffRolePath('cafe-lisboa', 'cashier'), '/dashboard/waiter');
-    assert.equal(staffRolePath('cafe-lisboa', 'frontdesk'), '/dashboard/waiter');
   });
 });
 

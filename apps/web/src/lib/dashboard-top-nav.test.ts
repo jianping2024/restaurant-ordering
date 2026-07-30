@@ -103,29 +103,33 @@ describe('STAFF_TOP_BAR_COLLAPSED_NAV_MQ', () => {
 });
 
 describe('dashboardLogoHref', () => {
-  it('routes frontdesk logo to waiter board', () => {
-    assert.equal(dashboardLogoHref('frontdesk'), '/dashboard/waiter');
-  });
-
-  it('routes cashier logo to waiter board', () => {
-    assert.equal(dashboardLogoHref('cashier'), '/dashboard/waiter');
-  });
-
-  it('routes waiter logo to waiter board', () => {
-    assert.equal(dashboardLogoHref('waiter'), '/dashboard/waiter');
+  it('routes from capabilities, not role enum', () => {
+    const frontdeskCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
+    assert.equal(
+      dashboardLogoHref('demo', frontdeskCaps),
+      '/dashboard/waiter',
+    );
+    const overviewCaps = toCapabilitiesPayload(
+      capabilitiesFromKeys(['dashboard.overview.view', 'floor.kitchen_board.view']),
+    );
+    assert.equal(dashboardLogoHref('demo', overviewCaps), '/dashboard');
   });
 });
 
 describe('isLogoHrefActive', () => {
-  it('matches owner overview exactly', () => {
-    assert.equal(isLogoHrefActive('/dashboard', 'owner'), true);
-    assert.equal(isLogoHrefActive('/dashboard/settings', 'owner'), false);
+  const overviewCaps = toCapabilitiesPayload(capabilitiesFromKeys(['dashboard.overview.view']));
+
+  it('matches overview landing for capability set', () => {
+    assert.equal(isLogoHrefActive('/dashboard', 'demo', overviewCaps), true);
+    assert.equal(isLogoHrefActive('/dashboard/settings', 'demo', overviewCaps), false);
   });
 
   it('matches waiter board list and detail paths', () => {
-    assert.equal(isLogoHrefActive('/dashboard/waiter', 'waiter'), true);
-    assert.equal(isLogoHrefActive('/dashboard/waiter/table-1', 'frontdesk'), true);
-    assert.equal(isLogoHrefActive('/dashboard/checkout', 'cashier'), false);
+    const waiterCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
+    assert.equal(isLogoHrefActive('/dashboard/waiter', 'demo', waiterCaps), true);
+    assert.equal(isLogoHrefActive('/dashboard/waiter/table-1', 'demo', waiterCaps), true);
+    const cashierCaps = toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
+    assert.equal(isLogoHrefActive('/dashboard/checkout', 'demo', cashierCaps), false);
   });
 });
 

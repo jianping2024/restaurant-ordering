@@ -14,6 +14,7 @@ export type StaffGateAccount = {
   id: string;
   restaurant_id: string;
   role: string;
+  role_id: string | null;
   disabled_at: string | null;
   restaurant: {
     id: string;
@@ -63,6 +64,7 @@ export function normalizeStaffGateRow(raw: unknown): StaffGateAccount | null {
     id: row.id,
     restaurant_id: row.restaurant_id,
     role: row.role,
+    role_id: (row.role_id as string | null | undefined) ?? null,
     disabled_at: (row.disabled_at as string | null | undefined) ?? null,
     restaurant,
   };
@@ -123,7 +125,7 @@ export function deriveStaffLoginContext(input: {
   }
 
   const roleRaw = String(account.role || meta?.staff_role || '');
-  if (!isStaffRole(roleRaw)) {
+  if (!isStaffRole(roleRaw) && roleRaw !== 'custom') {
     return { kind: 'staff_error', code: 'incomplete' };
   }
 
@@ -132,10 +134,16 @@ export function deriveStaffLoginContext(input: {
     return { kind: 'staff_error', code: 'incomplete' };
   }
 
+  const roleForMeta: StaffRole = isStaffRole(roleRaw)
+    ? roleRaw
+    : isStaffRole(String(meta?.staff_role ?? ''))
+      ? (meta!.staff_role as StaffRole)
+      : 'waiter';
+
   return {
     kind: 'staff',
     context: {
-      role: roleRaw,
+      role: roleForMeta,
       slug,
       mustChangePassword: meta?.must_change_password === true,
     },

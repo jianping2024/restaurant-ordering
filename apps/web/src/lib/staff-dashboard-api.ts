@@ -10,6 +10,7 @@ import {
 } from '@/lib/staff-account';
 import type { StaffAccountRole, RestaurantStaffAccount } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export async function loadOwnerRestaurantWithSlug(options?: { requireWritable?: boolean }) {
   const auth = await requireSettingsRestaurantAuth('settings.staff.manage', options);
@@ -55,6 +56,35 @@ export function mapStaffRow(row: Record<string, unknown>): RestaurantStaffAccoun
 /** Human staff only — system print_agent never appears in owner staff lists. */
 export function mapHumanStaffRows(rows: Record<string, unknown>[]): RestaurantStaffAccount[] {
   return rows.filter((row) => !isPrintAgentStaffRole(String(row.role ?? ''))).map(mapStaffRow);
+}
+
+const STAFF_LIST_SELECT =
+  'id, restaurant_id, user_id, role, display_name, login_name, created_at, updated_at, disabled_at';
+
+/**
+ * Full restaurant human staff roster for settings.staff.manage (admin client; bypasses staff self-select RLS).
+ * Single query+map path shared by GET /api/dashboard/staff and settings SSR.
+ */
+export async function listHumanStaffAccountsForRestaurant(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<{ staff: RestaurantStaffAccount[]; error: { code?: string; message: string } | null }> {
+  const { data, error } = await admin
+    .from('restaurant_staff_accounts')
+    .select(STAFF_LIST_SELECT)
+    .eq('restaurant_id', restaurantId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    return {
+      staff: [],
+      error: { code: error.code, message: error.message },
+    };
+  }
+  return {
+    staff: mapHumanStaffRows((data || []) as Record<string, unknown>[]),
+    error: null,
+  };
 }
 
 export function staffMetadataPayload(

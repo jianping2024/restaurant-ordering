@@ -284,6 +284,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </p>
       ) : null}
 
+      <div className="w-fit max-w-full">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="w-full sm:w-52 shrink-0 p-1">
           <Input
@@ -311,17 +312,17 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-brand-border bg-brand-card overflow-hidden">
+      <div className="w-fit max-w-full rounded-2xl border border-brand-border bg-brand-card overflow-x-auto">
         {staff.length === 0 ? (
           <p className="p-8 text-center text-sm text-brand-text-muted">{t.empty}</p>
         ) : filteredStaff.length === 0 ? (
           <p className="p-8 text-center text-sm text-brand-text-muted">{t.emptyFiltered}</p>
         ) : (
-          <table className="w-full table-fixed text-sm">
+          <table className="w-max table-fixed text-sm text-left">
             <thead>
-              <tr className="border-b border-brand-border text-brand-text-muted text-left">
-                <th className="w-[24%] px-4 py-3 font-medium">{t.colName}</th>
-                <th className="w-[16%] px-4 py-3 font-medium hidden sm:table-cell">
+              <tr className="border-b border-brand-border text-brand-text-muted">
+                <th className="w-28 px-4 py-3 font-medium">{t.colName}</th>
+                <th className="w-32 px-4 py-3 font-medium hidden sm:table-cell">
                   <button
                     type="button"
                     className="inline-flex max-w-full items-center gap-0.5 cursor-pointer hover:text-brand-text"
@@ -339,9 +340,9 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     </span>
                   </button>
                 </th>
-                <th className="w-[10%] px-4 py-3 font-medium">{t.colRole}</th>
-                <th className="w-[8%] px-4 py-3 font-medium">{t.colStatus}</th>
-                <th className="w-[16%] px-4 py-3 font-medium hidden md:table-cell">
+                <th className="w-20 px-4 py-3 font-medium">{t.colRole}</th>
+                <th className="w-16 px-4 py-3 font-medium">{t.colStatus}</th>
+                <th className="w-36 px-4 py-3 font-medium hidden md:table-cell">
                   <button
                     type="button"
                     className="inline-flex max-w-full items-center gap-0.5 cursor-pointer hover:text-brand-text"
@@ -359,10 +360,10 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     </span>
                   </button>
                 </th>
-                <th className="w-[26%] px-4 py-3 font-medium text-right whitespace-nowrap">{t.colActions}</th>
+                <th className="w-52 px-4 py-3 font-medium whitespace-nowrap">{t.colActions}</th>
               </tr>
             </thead>
-            <tbody className="text-left">
+            <tbody>
               {pagination.rows.map((row) => (
                 <tr key={row.id} className="border-b border-brand-border/60 last:border-0">
                   <td className="max-w-0 px-4 py-3 text-brand-text">
@@ -403,7 +404,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap justify-end gap-2 text-[12px] whitespace-nowrap">
+                    <div className="flex flex-nowrap justify-start gap-2 text-[12px] whitespace-nowrap">
                       <button
                         type="button"
                         className="text-brand-text-muted hover:text-brand-text"
@@ -447,7 +448,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         )}
 
         {staff.length > 0 && filteredStaff.length > 0 ? (
-          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-end gap-3">
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-[13px] text-brand-text-muted">
                 {t.pageInfo
@@ -498,6 +499,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
             ) : null}
           </div>
         ) : null}
+      </div>
       </div>
 
       <Modal open={createOpen} onClose={() => !createSaving && setCreateOpen(false)} title={t.add}>

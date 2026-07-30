@@ -58,7 +58,7 @@ export default function SetupClaimPage() {
         <div>
           <h1 className="text-2xl font-semibold text-brand-ink">门店认领</h1>
           <p className="mt-2 text-sm text-brand-muted">
-            输入云 Ops 签发的安装码，并设置本机店主密码。完成后请自行登录，不会自动登录。
+            输入云 Ops 签发的安装码，并设置本机店主密码。完成后请自行登录，不会自动登录。若本机已认领过，可用新安装码重新绑定授权并重设店主密码。
           </p>
         </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

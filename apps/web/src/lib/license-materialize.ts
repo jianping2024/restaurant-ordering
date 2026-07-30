@@ -159,6 +159,8 @@ export type ApplyOnPremClaimResult =
 
 /**
  * Sole local apply-claim: same restaurantId as platform, local Auth owner, persist platform config.
+ * If the restaurant was already claimed locally (owner_id set), rebind license lease + config
+ * and reset the owner password — used when `.mesa-license.local.json` was lost.
  */
 export async function applyOnPremClaim(
   admin: SupabaseClient,
@@ -181,15 +183,67 @@ export async function applyOnPremClaim(
 
   const { data: existing, error: existingError } = await admin
     .from('restaurants')
-    .select('id, owner_id, deployment_mode')
+    .select('id, owner_id, owner_email, deployment_mode')
     .eq('id', restaurantId)
     .maybeSingle();
 
   if (existingError) {
     return { ok: false, error: 'fetch_failed', status: 500, detail: existingError.message };
   }
+
+  const licensePatch = {
+    name: snap.name,
+    slug: snap.slug,
+    owner_email: snap.ownerEmail,
+    print_locale: snap.printLocale || 'pt',
+    country_code: snap.countryCode || 'PT',
+    deployment_mode: 'on_prem' as const,
+    license_valid_until: snap.licenseValidUntil,
+    license_checked_at: snap.lease.server_time,
+    license_lease_until: snap.lease.lease_until,
+    license_lease_token: snap.leaseToken,
+    suspended_at: snap.suspendedAt,
+    suspension_reason: snap.suspensionReason,
+  };
+
+  // Rebind: restaurant already claimed locally — refresh lease/config, reset owner password.
   if (existing?.owner_id) {
-    return { ok: false, error: 'already_claimed', status: 409 };
+    const existingEmail = (existing.owner_email || '').trim().toLowerCase();
+    const snapEmail = snap.ownerEmail.trim().toLowerCase();
+    if (existingEmail && existingEmail !== snapEmail) {
+      return { ok: false, error: 'owner_email_mismatch', status: 409 };
+    }
+
+    const { error: pwdError } = await admin.auth.admin.updateUserById(existing.owner_id, {
+      password,
+      email: snap.ownerEmail,
+      email_confirm: true,
+    });
+    if (pwdError) {
+      return { ok: false, error: 'password_update_failed', status: 400, detail: pwdError.message };
+    }
+
+    const { error: updateError } = await admin
+      .from('restaurants')
+      .update(licensePatch)
+      .eq('id', restaurantId);
+    if (updateError) {
+      return { ok: false, error: 'restaurant_update_failed', status: 500, detail: updateError.message };
+    }
+
+    try {
+      persistPlatformLicenseConfig(input.platformConfig);
+    } catch (e) {
+      return {
+        ok: false,
+        error: 'config_persist_failed',
+        status: 500,
+        detail: e instanceof Error ? e.message : String(e),
+      };
+    }
+
+    await applyLicenseMaterialize(admin, restaurantId);
+    return { ok: true, restaurantId, ownerEmail: snap.ownerEmail, slug: snap.slug };
   }
 
   const { data: userData, error: createUserError } = await admin.auth.admin.createUser({
@@ -208,18 +262,7 @@ export async function applyOnPremClaim(
 
   const restaurantPatch = {
     owner_id: ownerId,
-    owner_email: snap.ownerEmail,
-    name: snap.name,
-    slug: snap.slug,
-    print_locale: snap.printLocale || 'pt',
-    country_code: snap.countryCode || 'PT',
-    deployment_mode: 'on_prem' as const,
-    license_valid_until: snap.licenseValidUntil,
-    license_checked_at: snap.lease.server_time,
-    license_lease_until: snap.lease.lease_until,
-    license_lease_token: snap.leaseToken,
-    suspended_at: snap.suspendedAt,
-    suspension_reason: snap.suspensionReason,
+    ...licensePatch,
   };
 
   if (existing) {

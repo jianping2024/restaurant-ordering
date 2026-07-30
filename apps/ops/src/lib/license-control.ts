@@ -318,7 +318,19 @@ export async function claimOnPremInstallation(
     .eq('status', 'claimed')
     .maybeSingle();
   if (existingClaimed) {
-    return { ok: false, error: 'already_claimed', status: 409 };
+    // Re-claim with a fresh pending code: revoke the prior claimed row first.
+    const { error: revokePriorError } = await admin
+      .from('restaurant_installations')
+      .update({ status: 'revoked', revoked_at: new Date().toISOString() })
+      .eq('id', existingClaimed.id);
+    if (revokePriorError) {
+      return {
+        ok: false,
+        error: 'revoke_prior_claim_failed',
+        status: 500,
+        detail: revokePriorError.message,
+      };
+    }
   }
 
   const checkinCredential = mintCheckinSecret();

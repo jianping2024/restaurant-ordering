@@ -19,7 +19,8 @@ Local (on-prem) stores are the business authority (ADR-001/002). Platform Ops st
 8. **Invoice**: not in product yet; suspend blocks Mesa operations only.
 9. **Cross-DB claim (store install bridge)** — end-state (must ship; see handoff §1.4):
    - Platform `POST /api/platform/license/claim`: validate install code → mark installation `claimed` → mint lease + `checkinCredential` → return restaurant snapshot (`restaurantId`, slug, ownerEmail, lease, credential). **Must not** `createUser` on platform Auth; **must not** set cloud `restaurants.owner_id` for on-prem.
-   - On-prem web **`/setup`**: sole claim UI (install code + owner password). One local apply-claim path: insert local `restaurants` with **the same UUID** as platform `restaurantId`, create **local** Auth owner (email from registry + password from form), persist `MESA_PLATFORM_LICENSE_URL` / `MESA_LICENSE_CHECKIN_CREDENTIAL` / `MESA_LICENSE_LEASE_SECRET`, then materialize.
+   - On-prem web **`/setup`**: sole claim UI (install code + owner password). One local apply-claim path: insert local `restaurants` with **the same UUID** as platform `restaurantId` (first claim), or **rebind** lease + platform license config and reset owner password when the local restaurant already has `owner_id` (recovery after lost license file). Persist `MESA_PLATFORM_LICENSE_URL` / check-in credential / lease secret, then materialize.
+   - Platform claim with a fresh pending install code **revokes** any prior `claimed` installation for that restaurant (re-claim), then marks the new row claimed.
    - On success: redirect to **`/auth/login` only** — **no auto-login**. Owner signs in with registry email + chosen password, then `/dashboard`.
    - On failure: stay on `/setup`; do not create local restaurant.
    - Cloud SaaS first-time `RestaurantOnboarding` on `/dashboard` stays for `cloud` only; on-prem empty store must not use free-name create as a parallel path.

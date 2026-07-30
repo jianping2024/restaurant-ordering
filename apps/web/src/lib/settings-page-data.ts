@@ -9,7 +9,7 @@ import {
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
-import { mapHumanStaffRows } from '@/lib/staff-dashboard-api';
+import { listHumanStaffAccountsForRestaurant } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { Restaurant, RestaurantSettingsProfile, RestaurantStaffAccount } from '@/types';
@@ -71,20 +71,22 @@ export function toSettingsProfile(restaurant: Restaurant): RestaurantSettingsPro
   };
 }
 
+/**
+ * Full human staff list for settings.staff.manage pages.
+ * Same listHumanStaffAccountsForRestaurant path as GET /api/dashboard/staff.
+ */
 export async function loadStaffSettingsPageData(
   restaurantId: string,
 ): Promise<RestaurantStaffAccount[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('restaurant_staff_accounts')
-    .select(
-      'id, restaurant_id, user_id, role, display_name, login_name, created_at, updated_at, disabled_at',
-    )
-    .eq('restaurant_id', restaurantId)
-    .order('created_at', { ascending: true });
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return [];
+  }
 
-  if (error) return [];
-  return mapHumanStaffRows((data || []) as Record<string, unknown>[]);
+  const { staff } = await listHumanStaffAccountsForRestaurant(admin, restaurantId);
+  return staff;
 }
 
 export type FeatureSettingsPageData = {

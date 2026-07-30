@@ -403,7 +403,7 @@
 ### 已有功能
 
 - 餐厅资料：名称、地址、电话、Logo、国家码、点餐地理半径
-- 员工账号：kitchen / waiter / cashier / frontdesk CRUD、禁用、重置密码
+- 员工账号：kitchen / waiter / cashier / frontdesk / owner 等 CRUD、禁用、重置密码；持 `settings.staff.manage` 时列表为全店员工（与 staff API 同 admin 读路径，不依赖员工 RLS 自看）
 - 账户菜单：外观 / 语言 / **自愿修改密码**（与强制改密同一表单与 API）/ 退出登录
 - 功能开关：`kitchen_board`、`bill_receipt_print`
 - 自助餐规则：时段、价格矩阵、周五晚周末、日历覆盖

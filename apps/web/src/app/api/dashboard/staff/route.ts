@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { buildStaffEmail } from '@/lib/staff-account';
 import {
-  mapHumanStaffRows,
+  listHumanStaffAccountsForRestaurant,
   mapStaffRow,
   staffMetadataPayload,
   validateStaffCreateBody,
@@ -22,11 +22,7 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth;
 
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from('restaurant_staff_accounts')
-    .select('*')
-    .eq('restaurant_id', auth.principal.restaurantId)
-    .order('created_at', { ascending: true });
+  const { staff, error } = await listHumanStaffAccountsForRestaurant(admin, auth.principal.restaurantId);
 
   if (error) {
     if (isDbMigrationRequiredError(error)) {
@@ -35,7 +31,7 @@ export async function GET() {
     return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ staff: mapHumanStaffRows((data || []) as Record<string, unknown>[]) });
+  return NextResponse.json({ staff });
 }
 
 export async function POST(req: Request) {

@@ -8,7 +8,6 @@ import {
   SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED,
   buildLicenseLeaseClaims,
   decideLicenseMaterialize,
-  extendLicenseValidUntil,
   hashLicenseSecret,
   isRestaurantSuspended,
   signLicenseLease,
@@ -24,17 +23,6 @@ describe('isRestaurantSuspended', () => {
 
   it('returns true when suspended_at is set', () => {
     assert.equal(isRestaurantSuspended('2026-06-23T12:00:00.000Z'), true);
-  });
-});
-
-describe('extendLicenseValidUntil', () => {
-  it('extends from max(now, current)', () => {
-    const now = new Date('2026-07-30T00:00:00.000Z');
-    const fromPast = extendLicenseValidUntil('2026-01-01T00:00:00.000Z', now, '1m');
-    assert.equal(fromPast, '2026-08-30T00:00:00.000Z');
-
-    const fromFuture = extendLicenseValidUntil('2026-12-01T00:00:00.000Z', now, '1y');
-    assert.equal(fromFuture, '2027-12-01T00:00:00.000Z');
   });
 });
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { lisbonCalendarDateFromInstant, todayLisbonCalendarDate } from '@mesa/shared';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type Installation = {
@@ -26,6 +27,19 @@ type Restaurant = {
   licenseCheckedAt: string | null;
 };
 
+const LICENSE_EXTEND_ACTIONS = [
+  { period: '1d', label: '+1 天' },
+  { period: '1m', label: '+1 月' },
+  { period: '1y', label: '+1 年' },
+] as const;
+
+function licenseDateInputValue(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return '';
+  return lisbonCalendarDateFromInstant(new Date(ms));
+}
+
 export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [installations, setInstallations] = useState<Installation[]>([]);
@@ -36,6 +50,8 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
   const [issuedCode, setIssuedCode] = useState<string | null>(null);
   const [confirmSuspend, setConfirmSuspend] = useState(false);
   const [confirmResume, setConfirmResume] = useState(false);
+  const [licenseDate, setLicenseDate] = useState('');
+  const minLicenseDate = todayLisbonCalendarDate();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,6 +70,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
       setRestaurant(json.restaurant || null);
       setInstallations(json.installations || []);
       setReason(json.restaurant?.suspensionReason || '');
+      setLicenseDate(licenseDateInputValue(json.restaurant?.licenseValidUntil));
     } catch {
       setError('网络错误');
     } finally {
@@ -115,41 +132,58 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
         <h2 className="text-lg font-medium">授权期限</h2>
         <p className="mt-2 text-sm text-zinc-400">
-          截止：
-          {restaurant.licenseValidUntil
-            ? new Date(restaurant.licenseValidUntil).toLocaleString('zh-CN')
-            : '不限期'}
+          截止日按里斯本日历日；当天 23:59:59（Europe/Lisbon）过期。
+          {restaurant.licenseValidUntil ? null : ' 当前：不限期'}
         </p>
         {onPrem && restaurant.licenseCheckedAt ? (
           <p className="mt-1 text-sm text-zinc-500">
             平台侧最近 check-in 时钟：{new Date(restaurant.licenseCheckedAt).toLocaleString('zh-CN')}
           </p>
         ) : null}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label className="block text-sm text-zinc-400">
+            授权截止日
+            <input
+              type="date"
+              value={licenseDate}
+              min={minLicenseDate}
+              onChange={(e) => setLicenseDate(e.target.value)}
+              className="mt-1 block rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 [color-scheme:dark]"
+            />
+          </label>
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || !licenseDate}
             onClick={async () => {
-              const json = await call(`/api/ops/licenses/${restaurantId}/extend`, { period: '1m' });
+              const json = await call(`/api/ops/licenses/${restaurantId}/valid-until`, {
+                date: licenseDate,
+              });
               if (json) void load();
             }}
             className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-60"
           >
-            +1 月
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={async () => {
-              const json = await call(`/api/ops/licenses/${restaurantId}/extend`, { period: '1y' });
-              if (json) void load();
-            }}
-            className="rounded bg-amber-500/80 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-60"
-          >
-            +1 年
+            更新
           </button>
         </div>
-        <p className="mt-2 text-xs text-zinc-500">续期只改截止日，不会自动恢复已暂停的门店。</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {LICENSE_EXTEND_ACTIONS.map((action) => (
+            <button
+              key={action.period}
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                const json = await call(`/api/ops/licenses/${restaurantId}/extend`, {
+                  period: action.period,
+                });
+                if (json) void load();
+              }}
+              className="rounded border border-amber-500/40 bg-zinc-950 px-3 py-2 text-sm font-medium text-amber-400 disabled:opacity-60"
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">续期/更新只改截止日，不会自动恢复已暂停的门店。</p>
       </section>
 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">

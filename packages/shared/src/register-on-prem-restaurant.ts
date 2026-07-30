@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeCountryCode } from './country-code';
+import {
+  isLicenseCalendarDate,
+  resolveLicenseCalendarDate,
+  todayLisbonCalendarDate,
+} from './license-calendar';
 import { defaultRestaurantSlug } from './slug';
 import type { PrintLocale } from './create-restaurant';
 
@@ -9,7 +14,7 @@ export type RegisterOnPremRestaurantInput = {
   printLocale?: PrintLocale;
   countryCode?: string;
   slug?: string;
-  /** Initial license end; null = unlimited. */
+  /** Lisbon calendar day `YYYY-MM-DD`; null/omit = unlimited. Stored as that day's Lisbon EOD. */
   licenseValidUntil?: string | null;
 };
 
@@ -46,8 +51,12 @@ export function validateRegisterOnPremRestaurantInput(
   const countryCode = normalizeCountryCode(input.countryCode ?? 'PT');
   if (!countryCode) return { ok: false, error: 'invalid_country_code', status: 400 };
   if (input.licenseValidUntil != null && input.licenseValidUntil !== '') {
-    const ms = Date.parse(input.licenseValidUntil);
-    if (!Number.isFinite(ms)) return { ok: false, error: 'invalid_license_valid_until', status: 400 };
+    if (!isLicenseCalendarDate(input.licenseValidUntil)) {
+      return { ok: false, error: 'invalid_license_date', status: 400 };
+    }
+    if (input.licenseValidUntil < todayLisbonCalendarDate()) {
+      return { ok: false, error: 'license_date_before_today', status: 400 };
+    }
   }
   return null;
 }
@@ -68,10 +77,14 @@ export async function registerOnPremRestaurant(
   const printLocale = input.printLocale ?? 'pt';
   const countryCode = normalizeCountryCode(input.countryCode ?? 'PT')!;
   const slug = (input.slug || '').trim() || defaultRestaurantSlug(name);
-  const licenseValidUntil =
-    input.licenseValidUntil === undefined || input.licenseValidUntil === ''
-      ? null
-      : input.licenseValidUntil;
+  let licenseValidUntil: string | null = null;
+  if (input.licenseValidUntil != null && input.licenseValidUntil !== '') {
+    const resolved = resolveLicenseCalendarDate(input.licenseValidUntil);
+    if (!resolved.ok) {
+      return { ok: false, error: resolved.error, status: 400 };
+    }
+    licenseValidUntil = resolved.licenseValidUntil;
+  }
 
   const { data: restaurantRow, error: insertError } = await admin
     .from('restaurants')

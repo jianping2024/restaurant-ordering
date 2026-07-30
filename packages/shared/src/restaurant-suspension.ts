@@ -1,5 +1,10 @@
 import { createHash, randomBytes } from 'crypto';
 import { signHmacJwt, verifyHmacJwt } from './hmac-jwt';
+import {
+  addLisbonCalendarPeriod,
+  licenseValidUntilEndOfLisbonDay,
+  lisbonCalendarDateFromInstant,
+} from './license-calendar';
 
 /** Sole runtime gate remains isRestaurantSuspended(suspended_at). */
 export function isRestaurantSuspended(suspendedAt: string | null | undefined): boolean {
@@ -14,7 +19,7 @@ export const SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED = 'license_clock_regresse
 export const SUSPENSION_REASON_LICENSE_LEASE_INVALID = 'license_lease_invalid';
 
 export type DeploymentMode = 'cloud' | 'on_prem';
-export type LicenseExtendPeriod = '1m' | '1y';
+export type LicenseExtendPeriod = '1d' | '1m' | '1y';
 
 export type LicenseLeaseClaims = {
   rid: string;
@@ -32,19 +37,20 @@ export type MaterializeDecision =
 
 const CLOCK_REGRESSION_TOLERANCE_MS = 5 * 60 * 1000;
 
+/**
+ * Relative extend on the Lisbon civil calendar; result is always that day's
+ * Lisbon 23:59:59.999 (sole Ops representation for a license calendar day).
+ */
 export function extendLicenseValidUntil(
   current: string | null | undefined,
   now: Date,
   period: LicenseExtendPeriod,
 ): string {
   const baseMs = Math.max(now.getTime(), current ? Date.parse(current) : 0);
-  const base = new Date(Number.isFinite(baseMs) ? baseMs : now.getTime());
-  if (period === '1y') {
-    base.setUTCFullYear(base.getUTCFullYear() + 1);
-  } else {
-    base.setUTCMonth(base.getUTCMonth() + 1);
-  }
-  return base.toISOString();
+  const baseInstant = new Date(Number.isFinite(baseMs) ? baseMs : now.getTime());
+  const baseYmd = lisbonCalendarDateFromInstant(baseInstant);
+  const nextYmd = addLisbonCalendarPeriod(baseYmd, period);
+  return licenseValidUntilEndOfLisbonDay(nextYmd);
 }
 
 export function hashLicenseSecret(plaintext: string): string {
@@ -186,5 +192,5 @@ export function isDeploymentMode(value: unknown): value is DeploymentMode {
 }
 
 export function isLicenseExtendPeriod(value: unknown): value is LicenseExtendPeriod {
-  return value === '1m' || value === '1y';
+  return value === '1d' || value === '1m' || value === '1y';
 }

@@ -74,6 +74,17 @@ export {
   type LicenseLeaseClaims,
   type MaterializeDecision,
 } from './restaurant-suspension';
+export {
+  LICENSE_CALENDAR_TIMEZONE,
+  addLisbonCalendarPeriod,
+  isLicenseCalendarDate,
+  licenseValidUntilEndOfLisbonDay,
+  lisbonCalendarDateFromInstant,
+  parseLicenseCalendarDate,
+  resolveLicenseCalendarDate,
+  todayLisbonCalendarDate,
+  type ResolveLicenseCalendarDateResult,
+} from './license-calendar';
 export { kickStaffUserSessions, setStaffUserBanned } from './staff-user-ban';
 export { signPrintAgentJwt, verifyPrintAgentJwt, type PrintAgentJwtClaims } from './print-agent-jwt';
 export {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import {
   RESTAURANT_COUNTRY_OPTIONS,
+  todayLisbonCalendarDate,
   type DeploymentMode,
   type PrintLocale,
   type RestaurantCountryCode,
@@ -23,6 +24,7 @@ export default function NewRestaurantPage() {
   const [licenseValidUntil, setLicenseValidUntil] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const minLicenseDate = todayLisbonCalendarDate();
 
   const onPrem = deploymentMode === 'on_prem';
 
@@ -43,7 +45,8 @@ export default function NewRestaurantPage() {
           printLocale,
           countryCode,
           slug: slug.trim() || undefined,
-          licenseValidUntil: onPrem && licenseValidUntil ? new Date(licenseValidUntil).toISOString() : undefined,
+          // Lisbon calendar day only; server normalizes to Europe/Lisbon EOD.
+          licenseValidUntil: onPrem && licenseValidUntil ? licenseValidUntil : undefined,
         }),
       });
       const json = (await res.json()) as {
@@ -134,12 +137,13 @@ export default function NewRestaurantPage() {
           />
         ) : (
           <label className="block text-sm text-zinc-400">
-            初始授权截止（可选）
+            初始授权截止日（可选，里斯本日历日 · 当日 23:59:59 过期）
             <input
-              type="datetime-local"
+              type="date"
               value={licenseValidUntil}
+              min={minLicenseDate}
               onChange={(e) => setLicenseValidUntil(e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2"
+              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 [color-scheme:dark]"
             />
           </label>
         )}

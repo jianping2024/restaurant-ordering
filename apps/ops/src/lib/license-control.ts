@@ -10,6 +10,7 @@ import {
   isRestaurantSuspended,
   mintCheckinSecret,
   mintInstallCode,
+  resolveLicenseCalendarDate,
   signLicenseLease,
   type LicenseExtendPeriod,
 } from '@mesa/shared';
@@ -76,13 +77,47 @@ export async function setRestaurantSuspended(
   return { ok: true, suspendedAt: null };
 }
 
-export async function extendRestaurantLicense(
+type LicenseClockRow = {
+  id: string;
+  license_valid_until: string | null;
+  suspended_at: string | null;
+  suspension_reason: string | null;
+};
+
+async function writeRestaurantLicenseValidUntil(
   admin: SupabaseClient,
-  restaurantId: string,
-  period: LicenseExtendPeriod,
-  now = new Date(),
+  restaurant: LicenseClockRow,
+  licenseValidUntil: string,
 ): Promise<
   | { ok: true; licenseValidUntil: string }
+  | { ok: false; error: string; status: number; detail?: string }
+> {
+  const patch: Record<string, string | null> = { license_valid_until: licenseValidUntil };
+
+  // Setting/extending does not auto-resume force suspend; only clear license_expired materialize.
+  if (
+    isRestaurantSuspended(restaurant.suspended_at) &&
+    restaurant.suspension_reason === 'license_expired'
+  ) {
+    patch.suspended_at = null;
+    patch.suspension_reason = null;
+  }
+
+  const { error: updateError } = await admin
+    .from('restaurants')
+    .update(patch)
+    .eq('id', restaurant.id);
+  if (updateError) {
+    return { ok: false, error: 'license_update_failed', status: 500, detail: updateError.message };
+  }
+  return { ok: true, licenseValidUntil };
+}
+
+async function loadLicenseClockRow(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<
+  | { ok: true; restaurant: LicenseClockRow }
   | { ok: false; error: string; status: number; detail?: string }
 > {
   const { data: restaurant, error: fetchError } = await admin
@@ -93,22 +128,55 @@ export async function extendRestaurantLicense(
 
   if (fetchError) return { ok: false, error: 'fetch_failed', status: 500, detail: fetchError.message };
   if (!restaurant) return { ok: false, error: 'not_found', status: 404 };
+  return { ok: true, restaurant: restaurant as LicenseClockRow };
+}
 
-  const licenseValidUntil = extendLicenseValidUntil(restaurant.license_valid_until, now, period);
-  const patch: Record<string, string | null> = { license_valid_until: licenseValidUntil };
+export async function applyRestaurantLicenseValidUntil(
+  admin: SupabaseClient,
+  restaurantId: string,
+  licenseValidUntil: string,
+): Promise<
+  | { ok: true; licenseValidUntil: string }
+  | { ok: false; error: string; status: number; detail?: string }
+> {
+  const loaded = await loadLicenseClockRow(admin, restaurantId);
+  if (!loaded.ok) return loaded;
+  return writeRestaurantLicenseValidUntil(admin, loaded.restaurant, licenseValidUntil);
+}
 
-  // Extending does not auto-resume force suspend; only clear license_expired materialize.
-  if (
-    isRestaurantSuspended(restaurant.suspended_at) &&
-    restaurant.suspension_reason === 'license_expired'
-  ) {
-    patch.suspended_at = null;
-    patch.suspension_reason = null;
+export async function extendRestaurantLicense(
+  admin: SupabaseClient,
+  restaurantId: string,
+  period: LicenseExtendPeriod,
+  now = new Date(),
+): Promise<
+  | { ok: true; licenseValidUntil: string }
+  | { ok: false; error: string; status: number; detail?: string }
+> {
+  const loaded = await loadLicenseClockRow(admin, restaurantId);
+  if (!loaded.ok) return loaded;
+  const licenseValidUntil = extendLicenseValidUntil(
+    loaded.restaurant.license_valid_until,
+    now,
+    period,
+  );
+  return writeRestaurantLicenseValidUntil(admin, loaded.restaurant, licenseValidUntil);
+}
+
+export async function setRestaurantLicenseValidUntilDate(
+  admin: SupabaseClient,
+  restaurantId: string,
+  ymd: unknown,
+  now = new Date(),
+): Promise<
+  | { ok: true; licenseValidUntil: string }
+  | { ok: false; error: string; status: number; detail?: string }
+> {
+  const resolved = resolveLicenseCalendarDate(ymd, now);
+  if (!resolved.ok) {
+    return { ok: false, error: resolved.error, status: 400 };
   }
-
-  const { error: updateError } = await admin.from('restaurants').update(patch).eq('id', restaurantId);
-  if (updateError) return { ok: false, error: 'extend_failed', status: 500, detail: updateError.message };
-  return { ok: true, licenseValidUntil };
+  return applyRestaurantLicenseValidUntil(admin, restaurantId, resolved.licenseValidUntil);
 }
 
 export async function issueRestaurantInstallCode(

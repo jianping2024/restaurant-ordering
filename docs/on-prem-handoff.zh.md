@@ -38,7 +38,7 @@
 | 云路径 | 保持 `createRestaurantWithOwner`；行为零回归 |
 | 本地路径 | `registerOnPremRestaurant`（云侧只登记，不写店内营业库） |
 | 运行时闸门 | **唯一** `suspended_at` + `isRestaurantSuspended()`；不另开 license 错误码 |
-| 授权时钟 | 唯一 `license_valid_until`；续期只走 `extendLicenseValidUntil` |
+| 授权时钟 | 唯一 `license_valid_until`；Ops 日一律为 **Europe/Lisbon** 日历日，存该日 `23:59:59.999`；相对续期走 `extendLicenseValidUntil`，绝对设置走 `resolveLicenseCalendarDate` → 同一写库路径 |
 | 离线票 | 签名 lease JWT（约 7 天）；`decideLicenseMaterialize` → 只写/清 `suspended_at` |
 | 安装身份 | `restaurant_installations`（pending → claimed \| revoked）；≠ 打印配对 |
 | Ops UI | 单一表面 `/ops/licenses`；餐厅详情只跳转 |
@@ -183,6 +183,7 @@
 - `-v C:/...:/repo` → `invalid mode: /repo`。  
 - PowerShell 5.1 + Unicode 破折号导致脚本解析失败。  
 - 嵌套混淆包名（`mesa-on-prem-onprem-*`）。  
+- **多次短生命周期 `wsl -d Ubuntu -- …` 探活** → `Wsl/Service/0x8007274c`（宿主超时，`exit=-1`）；验证入口只允许 **一次** WSL hop（`START-WSL-TEST.cmd` → `verify-install-wsl.sh`）。  
 - **结论：** 全栈验证只走 WSL Linux 路径；Windows 只跑 Print Agent。
 
 ---
@@ -193,8 +194,8 @@
 
 | 项 | 值（交接日快照，可能已更新） |
 |----|------------------------------|
-| 最新 stamped zip | `dist/mesa-on-prem-d0483ee-20260730T1711Z.zip`（双通道 migrate 重写后） |
-| 内含目录 | `mesa-on-prem-d0483ee-20260730T1711Z/` |
+| 最新 stamped zip | 以 `dist/mesa-on-prem-LATEST-NAME.txt` 为准（verify：shutdown 还内存 + 默认无 `--build`） |
+| 内含目录 | 与 stamped zip 同名 |
 | 验证入口 | 解压后双击 `START-WSL-TEST.cmd` |
 | 客户入口 | `deploy\on-prem\windows\Install-Mesa.ps1` |
 | 重新打包 | `./deploy/on-prem/scripts/pack-release.sh`（在有 `deploy/` 的机器上） |

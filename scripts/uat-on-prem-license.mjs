@@ -163,7 +163,16 @@ async function main() {
         printLocale: 'pt',
         countryCode: 'PT',
         slug: `onprem-${TAG}`,
-        licenseValidUntil: new Date(Date.now() + 30 * 86400000).toISOString(),
+        // Lisbon calendar day; server stores Europe/Lisbon EOD.
+        licenseValidUntil: (() => {
+          const d = new Date(Date.now() + 30 * 86400000);
+          return new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Lisbon',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).format(d);
+        })(),
       },
     });
     onPremRestaurantId = reg.json?.restaurantId || null;
@@ -182,6 +191,23 @@ async function main() {
       'on_prem registry has null owner_id',
       pendingRow?.owner_id == null && pendingRow?.deployment_mode === 'on_prem',
       `owner=${pendingRow?.owner_id}`,
+    );
+    const registeredUntil = pendingRow?.license_valid_until
+      ? new Date(pendingRow.license_valid_until)
+      : null;
+    const registeredLisbon = registeredUntil
+      ? new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Europe/Lisbon',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        }).format(registeredUntil)
+      : '';
+    record(
+      'on_prem register stores Lisbon EOD',
+      Boolean(registeredUntil) && registeredLisbon.startsWith('23:59:59'),
+      `until=${pendingRow?.license_valid_until} lisbon=${registeredLisbon}`,
     );
 
     // Issue install code
@@ -293,6 +319,64 @@ async function main() {
       'extend +1m',
       extend.status === 200 && after && Date.parse(after) > Date.parse(before),
       `${before} → ${after}`,
+    );
+    const afterLisbon = after
+      ? new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Europe/Lisbon',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        }).format(new Date(after))
+      : '';
+    record(
+      'extend +1m lands Lisbon EOD',
+      afterLisbon.startsWith('23:59:59'),
+      `lisbon=${afterLisbon}`,
+    );
+
+    const yesterday = (() => {
+      const d = new Date(Date.now() - 86400000);
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Lisbon',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(d);
+    })();
+    const setPast = await api('POST', `/api/ops/licenses/${onPremRestaurantId}/valid-until`, {
+      cookie,
+      body: { date: yesterday },
+    });
+    record(
+      'set valid-until rejects before today',
+      setPast.status === 400 && setPast.json?.error === 'license_date_before_today',
+      `status=${setPast.status} err=${setPast.json?.error}`,
+    );
+
+    const todayYmd = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Lisbon',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const setToday = await api('POST', `/api/ops/licenses/${onPremRestaurantId}/valid-until`, {
+      cookie,
+      body: { date: todayYmd },
+    });
+    const setTodayLisbon = setToday.json?.licenseValidUntil
+      ? new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Europe/Lisbon',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        }).format(new Date(setToday.json.licenseValidUntil))
+      : '';
+    record(
+      'set valid-until today → Lisbon EOD',
+      setToday.status === 200 && setTodayLisbon.startsWith('23:59:59'),
+      `status=${setToday.status} until=${setToday.json?.licenseValidUntil} lisbon=${setTodayLisbon}`,
     );
 
     // Force suspend + check-in carries force

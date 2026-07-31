@@ -1,9 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr';
+import { getSupabaseUrl } from '@/lib/supabase/url';
 
-// 浏览器端 Supabase 客户端（用于客户端组件）
+/** Browser Supabase client (client components). */
 export function createClient() {
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    getSupabaseUrl(),
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 }

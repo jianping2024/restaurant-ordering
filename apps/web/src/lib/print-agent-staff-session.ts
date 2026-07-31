@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseUrl } from '@/lib/supabase/url';
 
 export type PrintAgentSessionTokens = {
   access_token: string;
@@ -14,9 +15,15 @@ export async function mintPrintAgentSession(
   admin: SupabaseClient,
   email: string,
 ): Promise<PrintAgentSessionTokens | null> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !anonKey) {
+  if (!anonKey) {
+    return null;
+  }
+
+  let supabaseUrl: string;
+  try {
+    supabaseUrl = getSupabaseUrl();
+  } catch {
     return null;
   }
 

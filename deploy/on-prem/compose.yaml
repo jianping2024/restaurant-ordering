@@ -1,0 +1,85 @@
+# Mesa overlay for Mode B — use with the vendored Supabase compose:
+#
+#   docker compose \
+#     -f vendor/supabase-docker/docker-compose.yml \
+#     -f compose.yaml \
+#     up -d
+#
+# Prefer: ./scripts/stack.sh up|down|ps|pull|migrate
+#
+# Primary browser entry is the edge gateway (default :80) — same-origin Web + Kong.
+# Direct :3000 / :8000 remain for debug only.
+#
+# Mode A (dev only): compose.mode-a.yaml
+
+name: mesa-on-prem
+
+services:
+  edge:
+    image: caddy:2.8-alpine
+    ports:
+      - "${MESA_EDGE_PORT:-80}:80"
+    volumes:
+      - ./edge/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      web:
+        condition: service_started
+      kong:
+        condition: service_started
+    restart: unless-stopped
+
+  web:
+    build:
+      # Must be an absolute path the Docker engine understands (starts with /).
+      # On Docker Desktop Windows use /mnt/c/... — NOT C:/... (C:/ is treated as
+      # relative and gets joined onto the compose project dir).
+      context: ${MESA_REPO_ROOT:?set MESA_REPO_ROOT via scripts/stack.sh}
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Browser ignores this when NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=1 (uses page origin).
+        NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_PUBLIC_URL:-http://127.0.0.1}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+        NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN: "1"
+    ports:
+      - "${MESA_WEB_PORT:-3000}:3000"
+    depends_on:
+      kong:
+        condition: service_started
+      auth:
+        condition: service_started
+      rest:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      MESA_ON_PREM: "1"
+      NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN: "1"
+      # Server/internal only — never bake into browser clients.
+      SUPABASE_URL: http://kong:8000
+      # Published edge origin (LAN and/or Tunnel). Same value as SITE_URL / NEXT_PUBLIC_BASE_URL.
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-http://127.0.0.1}
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_PUBLIC_URL:-http://127.0.0.1}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://127.0.0.1}
+      PRINT_AGENT_JWT_SECRET: ${PRINT_AGENT_JWT_SECRET}
+      STAFF_SESSION_SECRET: ${STAFF_SESSION_SECRET:-${PRINT_AGENT_JWT_SECRET}}
+      ORDER_ENQUEUE_SECRET: ${ORDER_ENQUEUE_SECRET:-${PRINT_AGENT_JWT_SECRET}}
+      CRON_SECRET: ${CRON_SECRET:-}
+      # ADR-004 on-prem license check-in (platform Ops)
+      MESA_PLATFORM_LICENSE_URL: ${MESA_PLATFORM_LICENSE_URL:-}
+      MESA_LICENSE_CHECKIN_CREDENTIAL: ${MESA_LICENSE_CHECKIN_CREDENTIAL:-}
+      MESA_LICENSE_LEASE_SECRET: ${MESA_LICENSE_LEASE_SECRET:-}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped

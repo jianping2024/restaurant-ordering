@@ -12,6 +12,8 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone only for Docker image builds (`DOCKER_BUILD=1`). Local `next start` stays normal.
+  ...(process.env.DOCKER_BUILD === '1' ? { output: 'standalone' } : {}),
   transpilePackages: ['@mesa/shared', '@mesa/ui'],
   ...(printAgentVersion
     ? { env: { NEXT_PUBLIC_PRINT_AGENT_VERSION: printAgentVersion } }
@@ -19,6 +21,9 @@ const nextConfig = {
   // Externalize @supabase/* on the server (avoids broken vendor-chunks paths with `@` in filenames).
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
+    ...(process.env.DOCKER_BUILD === '1'
+      ? { outputFileTracingRoot: path.join(configDir, '../..') }
+      : {}),
   },
   async redirects() {
     return [
@@ -42,6 +47,19 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
+      },
+      // On-prem / local Supabase Storage (HTTP gateway).
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+      },
+      {
+        protocol: 'http',
+        hostname: 'host.docker.internal',
       },
     ],
   },

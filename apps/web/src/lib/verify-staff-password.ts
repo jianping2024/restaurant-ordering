@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
 import { createClient as createSessionClient } from '@/lib/supabase/server';
+import { getSupabaseUrl } from '@/lib/supabase/url';
 
 export type VerifyStaffPasswordError = 'unauthorized' | 'invalid_password' | 'misconfigured';
 
@@ -22,9 +23,15 @@ export async function verifyStaffPassword(
     return { ok: false, error: 'unauthorized' };
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
+  if (!anonKey) {
+    return { ok: false, error: 'misconfigured' };
+  }
+
+  let url: string;
+  try {
+    url = getSupabaseUrl();
+  } catch {
     return { ok: false, error: 'misconfigured' };
   }
 

@@ -1,0 +1,17 @@
+# Mesa web image build context (repo root via Dockerfile)
+node_modules
+**/node_modules
+**/.next
+.git
+.gitignore
+.env
+.env.*
+!**/.env.example
+dist
+deploy
+apps/ops
+apps/print-agent
+**/*.md
+**/.DS_Store
+coverage
+.turbo

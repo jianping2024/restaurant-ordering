@@ -7,6 +7,7 @@ import {
 } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getBearerToken } from '@/lib/print-agent-auth';
+import { getPublishedSupabaseUrl } from '@/lib/supabase/url';
 
 export const runtime = 'nodejs';
 
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
     admin,
     claims.device_id,
     claims.restaurant_id,
-    { supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? null },
+    { supabaseUrl: getPublishedSupabaseUrl() },
   );
   if (!snapshot) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });

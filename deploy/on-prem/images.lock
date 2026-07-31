@@ -1,0 +1,31 @@
+# Pinned references for on-prem Mode B (no floating :latest).
+# Vendored stack: vendor/SUPABASE_DOCKER_VENDOR.md
+#
+# Upgrade policy (step ⑦a):
+# - Mesa web + supabase/migrations incremental SQL: via Upgrade-Mesa / scripts/upgrade.sh
+# - Supabase vendor image set / major postgres bumps: NOT automatic — re-vendor + manual guide
+# - print-agent: ship/min version recorded in release manifest.printAgentMinVersion; upgrade agent MSI separately
+
+mesa-web:
+  build: apps/web/Dockerfile
+  note: "Tag as mesa-web:<git-sha> for releases; never mesa-web:latest on customer installs."
+
+supabase-docker-vendor:
+  git: https://github.com/supabase/supabase
+  path: docker/
+  commit: 2b27ed0ab17ec74f17bfa2e4e54175e3a1f5b444
+  images:
+    - supabase/studio:2026.07.07-sha-a6a04f2
+    - kong/kong:3.9.1
+    - supabase/gotrue:v2.189.0
+    - postgrest/postgrest:v14.12
+    - supabase/realtime:v2.102.3
+    - supabase/storage-api:v1.60.4
+    - darthsim/imgproxy:v3.30.1
+    - supabase/postgres-meta:v0.96.6
+    - supabase/edge-runtime:v1.74.0
+    - supabase/postgres:17.6.1.136
+    - supabase/supavisor:2.9.5
+
+mode-a-dev-only:
+  note: "compose.mode-a.yaml — Web against host supabase start; not customer delivery."

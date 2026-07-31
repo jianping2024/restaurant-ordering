@@ -19,6 +19,7 @@ import {
   resolvePrintAgentCredentialTtlSec,
   PRINT_AGENT_NAME,
 } from '@mesa/shared';
+import { getPublishedSupabaseUrl } from '@/lib/supabase/url';
 
 export const runtime = 'nodejs';
 
@@ -191,7 +192,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     agentjwt,
-    supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabase_url: getPublishedSupabaseUrl(),
     valid_until: validUntil,
     restaurant_id: p.restaurant_id,
     ...(access_token && refresh_token && anon_key

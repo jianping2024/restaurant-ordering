@@ -123,18 +123,20 @@
 
 | 项 | 状态 | 说明 |
 |----|------|------|
-| Compose Mode B + bootstrap / stack | 🟡 | 在本机 `deploy/on-prem/`（**被 ignore**） |
+| `edge/Caddyfile` + `compose` `edge` | ✅（本 diff） | 同域 `/`→web，`/auth|/rest|/realtime|…`→Kong；Tunnel 指 `:80` |
+| 浏览器 Supabase URL | ✅（本 diff） | 唯一 `getSupabaseUrl()`；Mode B `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=1` → `location.origin`；云不设该开关 |
+| Auth 双入口白名单 | ✅（本 diff） | bootstrap：`SITE_URL`=局域网 edge；可选 `MESA_TUNNEL_ORIGIN` 写入 `ADDITIONAL_REDIRECT_URLS` |
 | Schema baseline + covered 列表 | 🟡 | `baseline_public.sql` + **67** 条 `baseline_covered_migrations.txt`（与磁盘 migrations 对齐，含 license） |
 | `apply-migrations.sh` | 🟡 | 已修：heredoc 必须 `docker exec -i`；covered 一批事务标记；pending=0 则跳过 incremental |
 | `pack-release.sh` 唯一包名 | 🟡 | `mesa-on-prem-<sha>-<UTC>.zip` + `PACK-ID.txt`；勿只认 `latest` |
 | `START-WSL-TEST.cmd` / `verify-install-wsl.sh` | 🟡 | 验证专用：停栈、docker 清容器、root 擦 `~/mesa-verify`、再安装 |
 | Windows `Install-Mesa.ps1` 等 | 🟡 | 安装/诊断/备份/升级/回滚脚本在 `deploy/on-prem/windows/` |
-| `apps/web/Dockerfile` + `DOCKER_BUILD` standalone | 🟡 | Dockerfile / `.dockerignore` **未提交**；`next.config.mjs` 有本地修改 |
+| `apps/web/Dockerfile` + `DOCKER_BUILD` standalone | ✅（本 diff） | 入库；Mode B build 带 `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN` |
 | WSL 一键验证跑通到 `/setup` | ❌ / 🟡 | 多次 migrate 翻车后已打修复包；**需用人手用最新 stamped zip 再验一次绿** |
 | 客户空机 Installer 无人值守验收 | ❌ | 未做完整空机矩阵 |
 | 拔外网营业日 / Print Agent 联调 | ❌ | 验证焦点尚停在「栈起 + migrate」 |
 | 步骤 ⑥ 备份上云 / ⑦ 升级演练 ≥3 | ❌ | 脚本有雏形，未按验收清单打勾 |
-| **`/deploy/` `/dist/` 纳入版本管理** | ⛔ | `.gitignore` 第 67–68 行；换机/换人即丢，是交接第一卡点 |
+| **`/dist/` 发行 zip** | ignore | 产物仍不入库；源码在 `deploy/on-prem` |
 
 ### 2.3 步骤地图（对照 `local-only-rollout-steps`）
 

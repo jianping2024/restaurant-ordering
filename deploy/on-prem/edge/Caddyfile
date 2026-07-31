@@ -1,0 +1,13 @@
+# Mode B edge: same-origin entry for Web + Kong (Auth/REST/Realtime/Storage).
+# LAN and Cloudflare Tunnel should both target this listener (default host :80).
+# Do not expose Studio, Kong admin, or Postgres on this gateway.
+
+:80 {
+	@supabase path /auth/* /rest/* /realtime/* /storage/* /functions/* /graphql/*
+	handle @supabase {
+		reverse_proxy kong:8000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

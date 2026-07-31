@@ -64,8 +64,17 @@ recovery-codes.txt
 
 # Local tooling / on-prem build artifacts (binaries, secrets, release dumps)
 .tools/
-/deploy/
 /dist/
+# Track deploy/on-prem source in git; exclude secrets & runtime data only.
+deploy/on-prem/.env
+deploy/on-prem/.env.*
+!deploy/on-prem/.env.example
+deploy/on-prem/backups/
+deploy/on-prem/.releases/
+deploy/on-prem/logs/
+deploy/on-prem/data/
+deploy/on-prem/vendor/supabase-docker/volumes/
+deploy/on-prem/windows-test/
 
 # Local one-off UAT scripts (hardcoded restaurant/role/accounts; not for CI)
 scripts/rbac-kitchen-perm-uat.mjs

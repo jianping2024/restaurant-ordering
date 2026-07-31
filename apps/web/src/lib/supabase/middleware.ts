@@ -13,12 +13,13 @@ import {
 } from '@/lib/staff-gate-db';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
+import { getSupabaseUrl } from '@/lib/supabase/url';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {

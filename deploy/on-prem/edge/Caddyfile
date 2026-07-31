@@ -1,9 +1,12 @@
 # Mode B edge: same-origin entry for Web + Kong (Auth/REST/Realtime/Storage).
 # LAN and Cloudflare Tunnel should both target this listener (default host :80).
 # Do not expose Studio, Kong admin, or Postgres on this gateway.
+#
+# IMPORTANT: use /auth/v1/* only — Next.js app routes live under /auth/login,
+# /auth/callback, etc. Broad /auth/* steals those and Kong returns 401 Basic.
 
 :80 {
-	@supabase path /auth/* /rest/* /realtime/* /storage/* /functions/* /graphql/*
+	@supabase path /auth/v1/* /rest/v1/* /realtime/v1/* /storage/v1/* /functions/v1/* /graphql/v1/*
 	handle @supabase {
 		reverse_proxy kong:8000
 	}

@@ -21,8 +21,13 @@ Mesa 门店纯本地 — 安装说明（步骤 ⑤a）
    .\Install-Mesa.ps1 -MesaHome D:\Mesa -NonInteractive
 4. 若提示重启以完成 WSL：重启后执行
    .\Install-Mesa.ps1 -MesaHome <你的目录> -Resume
-5. 浏览器打开 http://127.0.0.1:3000/setup 完成开户
-6. 安装 MesaPrintAgent，服务器地址填 http://127.0.0.1:3000
+5. 浏览器打开安装器提示的本机入口完成开户（常见 http://127.0.0.1/setup 或 :3000，以实际为准）
+6. 安装 MesaPrintAgent「服务器地址」：
+   - Agent 在**别的电脑**、或 Mesa 在 Ubuntu 店机：填 http://<店内局域网IP>
+     （edge 正式入口，不要 :3000，不要 localhost）
+   - 与 Mesa **同机**调试：可填本机正式入口（与浏览器打开后台一致）
+   - 完整对错表：docs/technical/on-prem-pack-install-upgrade.zh.md §2.2
+   - 勿把公网 Tunnel 域当店内主配置（断网则打印断）
 
 六、连云 Ops 授权（测试续期/远程停运时）
 - 先在 https://restaurant-ordering-ops.vercel.app 登记「本地」门店并签发安装码

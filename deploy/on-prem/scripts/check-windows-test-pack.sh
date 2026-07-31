@@ -17,6 +17,8 @@ ok() { echo "  OK: $*"; }
 grep -q "DOCKER_BUILD" "$STAGE/apps/web/next.config.mjs" || fail "next.config.mjs missing DOCKER_BUILD standalone"
 [[ -f "$STAGE/deploy/on-prem/compose.yaml" ]] || fail "compose.yaml"
 [[ -f "$STAGE/deploy/on-prem/schema/baseline_public.sql" ]] || fail "baseline_public.sql"
+[[ -f "$STAGE/deploy/on-prem/schema/ensure_realtime_publication.sql" ]] || fail "ensure_realtime_publication.sql"
+grep -q 'ensure_realtime_publication' "$STAGE/deploy/on-prem/scripts/apply-migrations.sh" || fail "apply-migrations must call ensure_realtime_publication"
 [[ -f "$STAGE/deploy/on-prem/vendor/supabase-docker/.env.example" ]] || fail "vendor .env.example"
 [[ -f "$START" ]] || fail "Start-Mesa-Test.ps1"
 [[ ! -d "$STAGE/deploy/on-prem/windows" ]] || fail "WSL Install-Mesa tree must be removed"

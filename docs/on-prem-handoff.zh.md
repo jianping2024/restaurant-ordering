@@ -25,7 +25,7 @@
 | 项 | 决定 |
 |----|------|
 | 营业权威 | 仅店内 Postgres（自托管 Supabase Mode B） |
-| 打印 | Windows `MesaPrintAgent` 连本机 `http://127.0.0.1:3000`（或域名）；不进 Docker |
+| 打印 | Windows `MesaPrintAgent`；服务器地址推荐 `http://<店内IP>`（edge，见 `on-prem-pack-install-upgrade.zh.md` §2.2）；不进 Docker |
 | 运行时 | 正式倾向 **WSL2 + Docker Engine**；本公司规模下 Docker Desktop 可作演示/研发，不作唯一合同依赖 |
 | 升级 | **离线升级包 only**；无在线升级 API |
 | 发票 | 不做；停运只挡 Mesa 运营 |
@@ -126,8 +126,8 @@
 | `edge/Caddyfile` + `compose` `edge` | ✅（本 diff） | 同域 `/`→web，`/auth/v1|/rest/v1|/realtime/v1|…`→Kong（勿用宽 `/auth/*`，会抢走 Next `/auth/login`）；Tunnel 指 `:80` |
 | 浏览器 Supabase URL | ✅（本 diff） | 唯一 `getSupabaseUrl()`；Mode B `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=1` → `location.origin`；云不设该开关 |
 | 浏览器网页对外 origin（QR / 下载绝对链） | ✅ | 唯一 `getPublicWebOrigin()`（`lib/site-origin.ts`）；浏览器跟 `location.origin`；服务端传 `headers()` 优 Host |
-| Auth 双入口白名单 | ✅（本 diff） | bootstrap：`SITE_URL`=局域网 edge；可选 `MESA_TUNNEL_ORIGIN` 写入 `ADDITIONAL_REDIRECT_URLS` |
-| Schema baseline + covered 列表 | 🟡 | `baseline_public.sql` + **67** 条 `baseline_covered_migrations.txt`（与磁盘 migrations 对齐，含 license） |
+| Auth 双入口白名单 | ✅ | bootstrap：`SITE_URL`=局域网；可选 `MESA_TUNNEL_ORIGIN`→白名单。**后装 Tunnel / 局域网域名**须手改 `.env` 的 `ADDITIONAL_REDIRECT_URLS`（见 `docs/technical/on-prem-pack-install-upgrade.zh.md` §2.1） |
+| Schema baseline + Realtime ensure | ✅ | baseline + covered；`ensure_realtime_publication.sql` 每次 apply；`pack-release` 门禁（§2.3） |
 | `apply-migrations.sh` | 🟡 | 已修：heredoc 必须 `docker exec -i`；covered 一批事务标记；pending=0 则跳过 incremental |
 | `pack-release.sh` 唯一包名 | 🟡 | `mesa-on-prem-<sha>-<UTC>.zip` + `PACK-ID.txt`；勿只认 `latest` |
 | `START-WSL-TEST.cmd` / `verify-install-wsl.sh` | 🟡 | 验证专用：停栈、docker 清容器、root 擦 `~/mesa-verify`、再安装 |
@@ -177,7 +177,7 @@
 ### P1 — 交付前
 
 4. **`apps/web/Dockerfile` 未入库** —— on-prem web `--build` 依赖它；应与 `DOCKER_BUILD` standalone 配置一并提交。  
-5. **Print Agent 指本机 `:3000`** —— migrate / 认领绿之后。  
+5. **Print Agent 服务器地址** —— 店内 edge `http://<店内IP>`（§2.2）；migrate / 认领绿之后厨打冒烟。  
 6. **正式运行时矩阵** —— WSL2+Engine vs Desktop：合同/支持文档写死一条；安装器按该条测。
 
 ### P2 — 已知弯路（不要再走）
@@ -225,7 +225,7 @@ No pending incremental migrations (baseline covers current tree).
 2. **用最新 stamped zip 在 WSL 再跑一遍** `START-WSL-TEST.cmd`，截成功 migrate + 打开 `/setup` 完成认领登录。  
 3. **push 本地 `main`（用户明确说 push 时）**；确认云 Ops 部署与 `MESA_LICENSE_LEASE_SECRET`。  
 4. 跑通连云 UAT：Ops 登记 → 发码 → `/setup` → `/auth/login` → dashboard check-in → 续期/停运。  
-5. Print Agent 指 `http://127.0.0.1:3000`，厨打冒烟。  
+5. Print Agent 指 `http://<店内局域网IP>`（§2.2，勿 localhost / `:3000`），厨打冒烟。  
 6. 再排 ⑤ 空机 Installer、⑥ 备份、⑦ 升级演练。
 
 ---

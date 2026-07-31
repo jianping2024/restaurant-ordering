@@ -6,9 +6,10 @@
 #   2) apply_baseline_if_needed  (DROP public + baseline_public.sql + marker)
 #   3) sync_covered_from_file
 #   4) apply_pending_sql_files   (disk *.sql minus ledger; usually 0)
+#   5) ensure_realtime_publication (every run; baseline omits pub membership)
 #
 # Re-run / upgrade (MESA_MIGRATE_INCREMENTAL_ONLY=1):
-#   skip DROP; require marker; then steps 3–4 only.
+#   skip DROP; require marker; then steps 3–5.
 #
 # Pending is a bash path array from glob + sql_scalar checks — never from psql stdout.
 set -euo pipefail
@@ -18,6 +19,7 @@ ROOT="$(cd "${ONPREM_DIR}/../.." && pwd)"
 MIG_DIR="${ROOT}/supabase/migrations"
 BASELINE="${ONPREM_DIR}/schema/baseline_public.sql"
 COVERED_FILE="${ONPREM_DIR}/schema/baseline_covered_migrations.txt"
+REALTIME_ENSURE="${ONPREM_DIR}/schema/ensure_realtime_publication.sql"
 ENV_FILE="${ONPREM_DIR}/.env"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -213,6 +215,16 @@ SQL
   echo "Applied ${applied} incremental migration(s)."
 }
 
+# Publication membership is not in baseline_public.sql; must run every migrate.
+ensure_realtime_publication() {
+  if [[ ! -f "$REALTIME_ENSURE" ]]; then
+    echo "ERROR: missing ${REALTIME_ENSURE}" >&2
+    exit 1
+  fi
+  echo "Ensuring supabase_realtime publication tables..."
+  sql_exec_file "$REALTIME_ENSURE"
+}
+
 # --- orchestration ---
 ensure_ledger
 
@@ -224,6 +236,7 @@ if [[ "${MESA_MIGRATE_INCREMENTAL_ONLY:-}" == "1" ]]; then
   fi
   sync_covered_from_file
   apply_pending_sql_files
+  ensure_realtime_publication
   echo "Next: ./scripts/stack.sh up --build web"
   exit 0
 fi
@@ -231,4 +244,5 @@ fi
 apply_baseline_if_needed
 sync_covered_from_file
 apply_pending_sql_files
+ensure_realtime_publication
 echo "Next: ./scripts/stack.sh up --build web"

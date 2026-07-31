@@ -27,6 +27,14 @@ sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 
 正式入口：`http://<店内IP>/`（edge `:80`）。桌位二维码用局域网 IP 或公网域打开后台再生成，勿用 localhost。
 
+**Auth 多入口白名单（易漏）：** 见上文档 **§2.1**。配置 `$MESA_HOME/current/deploy/on-prem/.env` 的 `ADDITIONAL_REDIRECT_URLS`（`http://<IP>/**` + 可选局域网名 + 公网 `https://域/**`）；改完 `mesa-stack up -d --force-recreate auth`。仅有 `SITE_URL`、后装 Tunnel 时务必补白名单。
+
+**Print Agent 服务器地址：** 见上文档 **§2.2**。推荐 `http://<店内IP>`（edge，无 `:3000`）；勿 `localhost`；勿把公网域当店内主配置。
+
+**Realtime publication：** §2.3。`pack-release` / `apply-migrations` 每次 ensure；缺则打包失败。
+
+升级慢 / `npm ci` 缓存 / 勿在 shell 敲 `RUN …`：见上文档 **§3.1**。
+
 - Ubuntu 说明副本：`linux/README-INSTALL.zh.txt`（打进包根 `README-UBUNTU.zh.txt`）
 - 卸载：`linux/uninstall-mesa.sh`（默认保留数据）
 
@@ -65,8 +73,9 @@ chmod +x scripts/*.sh
 | `SUPABASE_PUBLIC_URL` | 浏览器/Tunnel 同域入口（edge，默认 `http://127.0.0.1`，**不是** `:8000`） |
 | `SUPABASE_URL`（compose 注入） | 容器内 `http://kong:8000`（仅服务端） |
 | `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN` | `1` 时浏览器用 `window.location.origin` |
-| `SITE_URL` | Auth 站点 URL = edge origin |
-| `ADDITIONAL_REDIRECT_URLS` | 含局域网 origin；可选 `MESA_TUNNEL_ORIGIN` 公网域 |
+| `SITE_URL` | Auth 站点 URL = 局域网 edge origin（无尾斜杠） |
+| `ADDITIONAL_REDIRECT_URLS` | Auth 回调白名单：`origin/**` 逗号分隔；须含店内 IP，有 Tunnel/局域网名则一并写入（见 §2.1） |
+| `MESA_TUNNEL_ORIGIN` | 可选；仅 bootstrap 时自动并入白名单。后装 Tunnel 须手改 `ADDITIONAL_REDIRECT_URLS` |
 | `MESA_ON_PREM=1` | 开启 `/setup` 等本机安装行为 |
 | `MESA_EDGE_PORT` | 同域网关端口，默认 `80` |
 | `MESA_PLATFORM_LICENSE_URL` | 云 Ops 根 URL |
@@ -122,7 +131,12 @@ docker compose -f compose.mode-a.yaml up --build -d web
 
 ## 打印
 
-Windows `MesaPrintAgent`：服务器地址填店内 edge origin（`http://<店内IP>/`，勿填手机侧的 localhost）。
+Windows `MesaPrintAgent`「服务器地址」= 店内 Mesa 正式入口（与后台同源）。详见 [`docs/technical/on-prem-pack-install-upgrade.zh.md`](../../docs/technical/on-prem-pack-install-upgrade.zh.md) **§2.2**。
+
+- **推荐：** `http://<店内IP>`（edge `:80`，无 `:3000`）
+- **可选：** 已解析的局域网名（如 `http://pirata.lan`）
+- **禁止：** `localhost` / `127.0.0.1`（Agent 在另一台机时）
+- **勿作店内主配置：** 公网 Tunnel 域（断外网/Tunnel 则打印断）
 
 ## 目录
 

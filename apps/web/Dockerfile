@@ -8,7 +8,8 @@ COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
 COPY packages/shared/package.json packages/shared/
 COPY packages/ui/package.json packages/ui/
-RUN npm ci
+# BuildKit cache: survives failed/partial npm ci and lock churn (layer CACHED alone does not).
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app

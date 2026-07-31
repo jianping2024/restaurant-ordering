@@ -63,6 +63,24 @@ describe('getSupabaseUrl (server)', () => {
   });
 });
 
+describe('getSupabaseUrl (browser same-origin)', () => {
+  it('uses window.location.origin when SAME_ORIGIN flag is set', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://192.168.0.141';
+    const prevWindow = (globalThis as { window?: unknown }).window;
+    (globalThis as { window?: { location: { origin: string } } }).window = {
+      location: { origin: 'https://pirata.farvoo.com' },
+    };
+    try {
+      assert.equal(getSupabaseUrl(), 'https://pirata.farvoo.com');
+    } finally {
+      if (prevWindow === undefined) delete (globalThis as { window?: unknown }).window;
+      else (globalThis as { window?: unknown }).window = prevWindow;
+    }
+  });
+});
+
 describe('getPublishedSupabaseUrl', () => {
   it('prefers SUPABASE_PUBLIC_URL (edge origin)', () => {
     stashEnv();

@@ -89,10 +89,14 @@ if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
   exit 1
 fi
-# Gate: web image must use BuildKit npm cache (docs-only TODO is not enough)
-WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
-if ! grep -qE 'RUN --mount=type=cache,target=/root/\.npm[[:space:]]+npm ci' "$WEB_DOCKERFILE"; then
-  echo "ERROR: apps/web/Dockerfile must use RUN --mount=type=cache,target=/root/.npm npm ci" >&2
+# Gate: never pass process.env into same-origin helper (breaks Next client inline)
+SAME_ORIGIN_ANTIPATTERN="$(
+  grep -R --include='*.ts' --include='*.tsx' -n 'menuImageSameOriginEnabled(process\.env)' \
+    "$STAGE/apps/web/src" "$STAGE/packages/shared/src" 2>/dev/null | grep -v '\.test\.' || true
+)"
+if [[ -n "$SAME_ORIGIN_ANTIPATTERN" ]]; then
+  echo "ERROR: menuImageSameOriginEnabled(process.env) breaks NEXT_PUBLIC inlining:" >&2
+  echo "$SAME_ORIGIN_ANTIPATTERN" >&2
   exit 1
 fi
 

@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.54
+
+**未配对即可用本机 17892 配对页**
+
+- 托盘启动即监听 `127.0.0.1:17892`（`/pair`、`/configure`、`/api/health`），不再等 Connected 后才起本地 HTTP。
+- 未配对 bootstrap 优先打开同一端口的 `/pair` 并等 JWT 落盘；托盘路径不再并行起 17890。
+- Dashboard「在本机打开设置」与托盘「打印机设置」未配对时也可 probe/打开；CLI `pair` 仍可在无托盘时用 17890。
+
 ## 0.3.53
 
 **启动排障日志；撤回定时补偿与启动总超时**

@@ -13,4 +13,4 @@ Later: tray icon → Printer settings…, or Start menu → Printer settings.
 
 No black console window is required during service.
 
-Note: On first start the agent may also open a separate pairing window (port 17890) before you use Dashboard — either path is fine.
+Note: From agent start, pairing and printer settings share http://127.0.0.1:17892 (/pair and /configure). Dashboard "Open settings on this PC" uses the same port.

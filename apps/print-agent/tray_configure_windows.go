@@ -20,7 +20,10 @@ func (rt *trayRuntime) startTrayConfigureWizard(launchQuery string) {
 
 	addr := trayLocal.listenAddr()
 	if addr == "" {
+		// Should not happen after startTrayLocalHTTP in runAgentTrayFirst; port bind failed.
 		log.Println("tray: configure: local http not ready")
+		loc := rt.uiLocale()
+		messageBoxOK(uiT(loc, "about_title"), uiT(loc, "pair_service_unreachable"))
 		return
 	}
 

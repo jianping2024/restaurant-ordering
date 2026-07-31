@@ -210,16 +210,16 @@ func main() {
 		case "help", "-h", "--help":
 			fmt.Printf("%s %s\n\n", printAgentName, Version)
 			fmt.Println(`Usage:
-  MesaPrintAgent              Run agent (Windows: system tray; first run opens pairing UI)
+  MesaPrintAgent              Run agent (Windows: system tray; first run opens pairing on :17892/pair)
   MesaPrintAgent -console     Run with visible console (debug; Windows)
-  MesaPrintAgent configure     Printer/station mapping (http://127.0.0.1:17892/configure; /pair on same server while tray session is open)
-  MesaPrintAgent pair          Open pairing web UI only (http://127.0.0.1:17890/pair)
+  MesaPrintAgent configure     Printer/station mapping (http://127.0.0.1:17892/configure; /pair on same port)
+  MesaPrintAgent pair          Standalone pairing UI only when tray is not running (http://127.0.0.1:17890/pair)
   MesaPrintAgent setup         Legacy printer setup wizard (first-run bootstrap; port 17891)
   MesaPrintAgent discover      Scan LAN :9100 and list Windows printers
   MesaPrintAgent [-api URL] [-code CODE]   Optional CLI pairing (advanced)
 
-Configure UI: http://127.0.0.1:17892/configure (run MesaPrintAgent configure)
-Pairing UI: http://127.0.0.1:17890/pair
+Tray / Dashboard: http://127.0.0.1:17892/configure and /pair (up from tray start, including unpaired)
+CLI pair only: http://127.0.0.1:17890/pair
 
 Config: schedule + poll intervals. See README.`)
 			return

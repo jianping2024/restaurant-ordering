@@ -13,6 +13,17 @@ func TestNormalizeAPIBase(t *testing.T) {
 	}
 }
 
+func TestPairWizardBaseURL(t *testing.T) {
+	if got := pairWizardBaseURL("127.0.0.1:17892", ""); got != "http://127.0.0.1:17892/pair" {
+		t.Fatalf("empty prefill: got %q", got)
+	}
+	got := pairWizardBaseURL("127.0.0.1:17892", "http://192.168.0.141/")
+	want := "http://127.0.0.1:17892/pair?api=http%3A%2F%2F192.168.0.141"
+	if got != want {
+		t.Fatalf("with api: got %q want %q", got, want)
+	}
+}
+
 func TestDedupePrinterList(t *testing.T) {
 	got := dedupePrinterList([]printerListEntry{
 		{Addr: "winspool:UK56009", Label: "UK56009"},

@@ -73,6 +73,9 @@ func runAgentTrayFirst(args []string) {
 	defer func() { onConfigureWizardReady = nil }()
 	rt.status.set("Starting", printAgentName)
 
+	// Local /pair+/configure must be up before unpaired bootstrap and Dashboard probe (17892).
+	startTrayLocalHTTP(rt)
+
 	go func() {
 		rt.status.set("Setting up", "Complete pairing or printer mapping in the browser if it opened")
 		sess, _, err := initAgentSession(ctx, args)
@@ -95,7 +98,6 @@ func runAgentTrayFirst(args []string) {
 		// Ready here means Connected (can accept jobs); yellow "Setting up" covered bootstrap.
 		rt.status.set("Ready", "Connected to Mesa")
 		log.Println("tray: Connected — accepting print jobs")
-		startTrayLocalHTTP(rt)
 		go runNotificationLoop(ctx, sess, rt.status)
 	}()
 

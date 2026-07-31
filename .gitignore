@@ -30,6 +30,9 @@ yarn-error.log*
 # local env files (`.env*` also covers `.env*.local`; keep example tracked)
 .env*
 !.env.local.example
+!deploy/on-prem/.env.example
+!deploy/on-prem/vendor/supabase-docker/.env.example
+!deploy/on-prem/config/backup.env.example
 
 # vercel
 .vercel

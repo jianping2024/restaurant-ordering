@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
+import { showToast } from '@/components/ui/Toast';
 import type { RestaurantStaffAccount } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -80,7 +81,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const [pageSize, setPageSize] = useState<StaffPageSize>(STAFF_DEFAULT_PAGE_SIZE);
   const [sortKey, setSortKey] = useState<StaffSortKey>('created_at');
   const [sortDir, setSortDir] = useState<StaffSortDir>('asc');
-  const [banner, setBanner] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState<FormState>(emptyForm);
@@ -155,11 +155,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
 
   const createdLocale = lang === 'zh' ? 'zh-CN' : lang === 'pt' ? 'pt-PT' : 'en-GB';
 
-  const flash = useCallback((kind: 'ok' | 'err', text: string) => {
-    setBanner({ kind, text });
-    setTimeout(() => setBanner(null), 4000);
-  }, []);
-
   const roleLabel = (row: RestaurantStaffAccount) => row.role_name;
 
   const runCreate = async () => {
@@ -180,7 +175,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       setCreateOpen(false);
       loginNameTouchedRef.current = false;
       setCreateForm(emptyForm);
-      flash('ok', t.createdOk);
+      showToast(t.createdOk, 'success');
     } catch {
       setCreateError(t.saveFail);
     } finally {
@@ -202,14 +197,14 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       });
       const json = (await res.json().catch(() => ({}))) as { staff?: RestaurantStaffAccount; error?: string };
       if (!res.ok || !json.staff) {
-        flash('err', errorMessage(json.error || 'save_fail', t));
+        showToast(errorMessage(json.error || 'save_fail', t), 'error');
         return;
       }
       setStaff((prev) => prev.map((s) => (s.id === json.staff!.id ? json.staff! : s)));
       setEditTarget(null);
-      flash('ok', t.updatedOk);
+      showToast(t.updatedOk, 'success');
     } catch {
-      flash('err', t.saveFail);
+      showToast(t.saveFail, 'error');
     } finally {
       setEditSaving(false);
     }
@@ -226,14 +221,14 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        flash('err', errorMessage(json.error || 'save_fail', t));
+        showToast(errorMessage(json.error || 'save_fail', t), 'error');
         return;
       }
       setResetTarget(null);
       setResetPassword('');
-      flash('ok', t.resetOk);
+      showToast(t.resetOk, 'success');
     } catch {
-      flash('err', t.saveFail);
+      showToast(t.saveFail, 'error');
     } finally {
       setResetSaving(false);
     }
@@ -251,14 +246,14 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       });
       const json = (await res.json().catch(() => ({}))) as { staff?: RestaurantStaffAccount; error?: string };
       if (!res.ok || !json.staff) {
-        flash('err', errorMessage(json.error || 'save_fail', t));
+        showToast(errorMessage(json.error || 'save_fail', t), 'error');
         return;
       }
       setStaff((prev) => prev.map((s) => (s.id === json.staff!.id ? json.staff! : s)));
       setToggleTarget(null);
-      flash('ok', enabling ? t.enabledOk : t.disabledOk);
+      showToast(enabling ? t.enabledOk : t.disabledOk, 'success');
     } catch {
-      flash('err', t.saveFail);
+      showToast(t.saveFail, 'error');
     } finally {
       setToggleSaving(false);
     }
@@ -270,14 +265,14 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
     try {
       const res = await fetch(`/api/dashboard/staff/${deleteTarget.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        flash('err', t.saveFail);
+        showToast(t.saveFail, 'error');
         return;
       }
       setStaff((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setDeleteTarget(null);
-      flash('ok', t.deletedOk);
+      showToast(t.deletedOk, 'success');
     } catch {
-      flash('err', t.saveFail);
+      showToast(t.saveFail, 'error');
     } finally {
       setDeleteSaving(false);
     }
@@ -286,9 +281,9 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const copyLoginName = async (loginName: string) => {
     try {
       await navigator.clipboard.writeText(loginName);
-      flash('ok', t.copiedLoginName);
+      showToast(t.copiedLoginName, 'success');
     } catch {
-      flash('err', t.copyFail);
+      showToast(t.copyFail, 'error');
     }
   };
 
@@ -299,18 +294,6 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
           <h1 className="font-heading text-3xl text-brand-text">{t.title}</h1>
         </div>
       )}
-
-      {banner ? (
-        <p
-          className={`text-sm rounded-lg px-4 py-2 mb-4 border ${
-            banner.kind === 'ok'
-              ? 'text-green-400 bg-green-400/10 border-green-400/20'
-              : 'mesa-badge-danger'
-          }`}
-        >
-          {banner.text}
-        </p>
-      ) : null}
 
       <div className="w-fit max-w-full">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">

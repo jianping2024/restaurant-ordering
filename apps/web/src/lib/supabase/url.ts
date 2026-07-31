@@ -54,3 +54,26 @@ export function getPublishedSupabaseUrl(): string {
 export function isSupabaseBrowserSameOrigin(): boolean {
   return menuImageSameOriginEnabled();
 }
+
+/**
+ * Hostname of Mode B `SUPABASE_URL` (`http://kong:8000` in compose). Supabase SSR
+ * cookie name is `sb-${hostname.split('.')[0]}-auth-token`.
+ * Keep in sync with deploy/on-prem `SUPABASE_URL=http://kong:8000`.
+ */
+const MODE_B_SUPABASE_URL_HOSTNAME = 'kong';
+
+/**
+ * Sole auth cookieOptions for Mode B same-origin.
+ *
+ * Server clients use `SUPABASE_URL` host `kong` → cookie `sb-kong-auth-token`.
+ * Browser same-origin uses `window.location.origin` → would mint a different
+ * cookie name and miss the session → Realtime joins without JWT → RLS drops CDC.
+ * When same-origin is off (cloud / local CLI), return undefined and let
+ * `@supabase/ssr` derive the name from the URL as usual.
+ */
+export function getSupabaseAuthCookieOptions(): { name: string } | undefined {
+  if (!isSupabaseBrowserSameOrigin()) return undefined;
+  return {
+    name: `sb-${MODE_B_SUPABASE_URL_HOSTNAME.split('.')[0]}-auth-token`,
+  };
+}

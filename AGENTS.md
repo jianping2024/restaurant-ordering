@@ -86,4 +86,4 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 
 ## Retrospectives
 
-If the user catches copy-then-dedupe or the same agent mistake twice, update **one line** in this file or the relevant skill in the same change set — do not only fix the product code. **Docs-only on-prem build advice is a mistake:** agreed Dockerfile/migrate gates must land in code + `pack-release` fail-closed before the next zip (see `.cursor/rules/on-prem-pack.mdc`).
+If the user catches copy-then-dedupe or the same agent mistake twice, update **one line** in this file or the relevant skill in the same change set — do not only fix the product code. **Docs-only on-prem build advice is a mistake:** agreed Dockerfile/migrate gates must land in code + `pack-release` fail-closed before the next zip (see `.cursor/rules/on-prem-pack.mdc`). **Mode B same-origin URL without matching auth cookie name** (`getSupabaseAuthCookieOptions` ↔ `kong` host) leaves Realtime anon and drops CDC — do not ship same-origin alone.

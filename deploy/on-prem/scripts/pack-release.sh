@@ -104,6 +104,36 @@ if [[ -n "$SAME_ORIGIN_ANTIPATTERN" ]]; then
   echo "$SAME_ORIGIN_ANTIPATTERN" >&2
   exit 1
 fi
+# Gate: Mode B auth cookie name must be one helper, wired into every SSR/browser client.
+for f in \
+  "$STAGE/apps/web/src/lib/supabase/client.ts" \
+  "$STAGE/apps/web/src/lib/supabase/server.ts" \
+  "$STAGE/apps/web/src/lib/supabase/middleware.ts" \
+  "$STAGE/apps/web/src/lib/supabase/route-handler-auth.ts"
+do
+  if ! grep -q 'getSupabaseAuthCookieOptions' "$f"; then
+    echo "ERROR: $f must use getSupabaseAuthCookieOptions (Mode B Realtime JWT)" >&2
+    exit 1
+  fi
+done
+COOKIE_NAME_HITS="$(
+  grep -R --include='*.ts' --include='*.tsx' -n 'sb-kong-auth-token' \
+    "$STAGE/apps/web/src" 2>/dev/null \
+    | grep -v '\.test\.' \
+    || true
+)"
+# Literal cookie name may appear only as the documented expected value in url.ts comments
+# or nowhere — the runtime name is built from MODE_B_SUPABASE_URL_HOSTNAME. Fail if a
+# second call-site hardcodes the full cookie string.
+if echo "$COOKIE_NAME_HITS" | grep -v 'lib/supabase/url\.ts' | grep -q .; then
+  echo "ERROR: sb-kong-auth-token must not be hardcoded outside url.ts:" >&2
+  echo "$COOKIE_NAME_HITS" >&2
+  exit 1
+fi
+if ! grep -q 'MODE_B_SUPABASE_URL_HOSTNAME' "$STAGE/apps/web/src/lib/supabase/url.ts"; then
+  echo "ERROR: url.ts must define MODE_B_SUPABASE_URL_HOSTNAME for auth cookie alignment" >&2
+  exit 1
+fi
 
 cat >"$STAGE/README-VERIFY.zh.txt" <<EOF
 Mesa 安装验证 / 客户安装

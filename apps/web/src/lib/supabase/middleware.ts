@@ -13,7 +13,7 @@ import {
 } from '@/lib/staff-gate-db';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
-import { getSupabaseUrl } from '@/lib/supabase/url';
+import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -22,6 +22,7 @@ export async function updateSession(request: NextRequest) {
     getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: getSupabaseAuthCookieOptions(),
       cookies: {
         getAll() {
           return request.cookies.getAll();

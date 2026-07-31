@@ -20,6 +20,12 @@ grep -q "DOCKER_BUILD" "$STAGE/apps/web/next.config.mjs" || fail "next.config.mj
 [[ -f "$STAGE/deploy/on-prem/schema/ensure_realtime_publication.sql" ]] || fail "ensure_realtime_publication.sql"
 grep -q 'ensure_realtime_publication' "$STAGE/deploy/on-prem/scripts/apply-migrations.sh" || fail "apply-migrations must call ensure_realtime_publication"
 grep -qE 'RUN --mount=type=cache,target=/root/\.npm[[:space:]]+npm ci' "$STAGE/apps/web/Dockerfile" || fail "web Dockerfile must use BuildKit npm cache mount"
+for f in client.ts server.ts middleware.ts route-handler-auth.ts; do
+  grep -q 'getSupabaseAuthCookieOptions' "$STAGE/apps/web/src/lib/supabase/$f" \
+    || fail "supabase/$f must use getSupabaseAuthCookieOptions"
+done
+grep -q 'MODE_B_SUPABASE_URL_HOSTNAME' "$STAGE/apps/web/src/lib/supabase/url.ts" \
+  || fail "url.ts must define MODE_B_SUPABASE_URL_HOSTNAME"
 [[ -f "$STAGE/deploy/on-prem/vendor/supabase-docker/.env.example" ]] || fail "vendor .env.example"
 [[ -f "$START" ]] || fail "Start-Mesa-Test.ps1"
 [[ ! -d "$STAGE/deploy/on-prem/windows" ]] || fail "WSL Install-Mesa tree must be removed"

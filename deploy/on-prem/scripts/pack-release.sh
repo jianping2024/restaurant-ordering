@@ -89,6 +89,12 @@ if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
   exit 1
 fi
+# Gate: web image must use BuildKit npm cache (docs-only TODO is not enough)
+WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
+if ! grep -qE 'RUN --mount=type=cache,target=/root/\.npm[[:space:]]+npm ci' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must use RUN --mount=type=cache,target=/root/.npm npm ci" >&2
+  exit 1
+fi
 
 cat >"$STAGE/README-VERIFY.zh.txt" <<EOF
 Mesa 安装验证 / 客户安装

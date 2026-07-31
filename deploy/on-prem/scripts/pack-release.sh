@@ -92,6 +92,12 @@ if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
   exit 1
 fi
+# Gate: web Dockerfile must use BuildKit npm cache (docs / on-prem-pack.mdc — not docs-only).
+WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
+if ! grep -qE 'RUN --mount=type=cache,target=/root/\.npm[[:space:]]+npm ci' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must use BuildKit npm cache: RUN --mount=type=cache,target=/root/.npm npm ci" >&2
+  exit 1
+fi
 # Gate: never pass process.env into same-origin helper (breaks Next client inline).
 # Ignore comments/docs that mention the antipattern by name.
 SAME_ORIGIN_ANTIPATTERN="$(
@@ -140,7 +146,6 @@ fi
 # Gate: print-agent download panel must survive on-prem builds — the web image
 # needs the GitHub repo baked (ARG/ENV) and the pinned VERSION file copied in,
 # otherwise the dashboard silently hides the installer download card.
-WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
 if ! grep -q 'NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO' "$WEB_DOCKERFILE"; then
   echo "ERROR: apps/web/Dockerfile must bake NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO (download panel)" >&2
   exit 1

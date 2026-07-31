@@ -47,6 +47,8 @@ interface TablesManagerProps {
   initialMembers: RestaurantTableGroupMember[];
   initialOccupiedTableIds?: string[];
   initialTab?: TablesManagerTab;
+  /** Request entry origin from `getPublicWebOrigin(headers())` — QR / absolute menu links. */
+  webOrigin: string;
 }
 
 type TablesApiResponse = {
@@ -118,6 +120,7 @@ export function TablesManager({
   initialMembers,
   initialOccupiedTableIds = [],
   initialTab = TABLES_MANAGER_DEFAULT_TAB,
+  webOrigin,
 }: TablesManagerProps) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -409,6 +412,7 @@ export function TablesManager({
       ) : (
         <TablesTabPanel
           restaurant={restaurant}
+          webOrigin={webOrigin}
           tables={tables}
           groups={groups}
           members={members}

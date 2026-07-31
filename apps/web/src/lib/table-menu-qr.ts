@@ -1,3 +1,5 @@
+import { getPublicWebOrigin } from '@/lib/site-origin';
+
 const TABLE_QR_OPTIONS = {
   width: 200,
   margin: 2,
@@ -11,18 +13,18 @@ const STAFF_LOGIN_QR_OPTIONS = {
 } as const;
 
 const tableQrCache = new Map<string, string>();
-let staffLoginQrCache: { slug: string; dataUrl: string } | null = null;
+let staffLoginQrCache: { key: string; dataUrl: string } | null = null;
 
-export function getTableMenuBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+function resolveOrigin(origin?: string): string {
+  return (origin?.replace(/\/$/, '') || getPublicWebOrigin());
 }
 
-export function buildTableMenuQrUrl(slug: string, tableId: string): string {
-  return `${getTableMenuBaseUrl()}/${slug}/menu?table_id=${encodeURIComponent(tableId)}`;
+export function buildTableMenuQrUrl(slug: string, tableId: string, origin?: string): string {
+  return `${resolveOrigin(origin)}/${slug}/menu?table_id=${encodeURIComponent(tableId)}`;
 }
 
-export function buildStaffLoginQrUrl(slug: string): string {
-  return `${getTableMenuBaseUrl()}/${slug}/staff/login`;
+export function buildStaffLoginQrUrl(slug: string, origin?: string): string {
+  return `${resolveOrigin(origin)}/${slug}/staff/login`;
 }
 
 export function tableQrDownloadFilename(displayName: string): string {
@@ -30,40 +32,58 @@ export function tableQrDownloadFilename(displayName: string): string {
   return `table-${safe}-qr.png`;
 }
 
+function tableQrCacheKey(tableId: string, origin: string): string {
+  return `${origin}|${tableId}`;
+}
+
 async function loadQrEncoder() {
   const { default: QRCode } = await import('qrcode');
   return QRCode;
 }
 
-export async function generateTableQrDataUrl(slug: string, tableId: string): Promise<string> {
-  const cached = tableQrCache.get(tableId);
+export async function generateTableQrDataUrl(
+  slug: string,
+  tableId: string,
+  origin?: string,
+): Promise<string> {
+  const base = resolveOrigin(origin);
+  const key = tableQrCacheKey(tableId, base);
+  const cached = tableQrCache.get(key);
   if (cached) return cached;
 
   const QRCode = await loadQrEncoder();
-  const dataUrl = await QRCode.toDataURL(buildTableMenuQrUrl(slug, tableId), TABLE_QR_OPTIONS);
-  tableQrCache.set(tableId, dataUrl);
+  const dataUrl = await QRCode.toDataURL(buildTableMenuQrUrl(slug, tableId, base), TABLE_QR_OPTIONS);
+  tableQrCache.set(key, dataUrl);
   return dataUrl;
 }
 
 export function removeTableQrCache(tableId: string): void {
-  tableQrCache.delete(tableId);
+  const suffix = `|${tableId}`;
+  for (const key of Array.from(tableQrCache.keys())) {
+    if (key.endsWith(suffix)) tableQrCache.delete(key);
+  }
 }
 
 export async function ensureTableQrCodes(
   slug: string,
   tableIds: string[],
+  origin?: string,
 ): Promise<Record<string, string>> {
   const entries = await Promise.all(
-    tableIds.map(async (tableId) => [tableId, await generateTableQrDataUrl(slug, tableId)] as const),
+    tableIds.map(
+      async (tableId) => [tableId, await generateTableQrDataUrl(slug, tableId, origin)] as const,
+    ),
   );
   return Object.fromEntries(entries);
 }
 
-export async function generateStaffLoginQrDataUrl(slug: string): Promise<string> {
-  if (staffLoginQrCache?.slug === slug) return staffLoginQrCache.dataUrl;
+export async function generateStaffLoginQrDataUrl(slug: string, origin?: string): Promise<string> {
+  const base = resolveOrigin(origin);
+  const key = `${base}|${slug}`;
+  if (staffLoginQrCache?.key === key) return staffLoginQrCache.dataUrl;
 
   const QRCode = await loadQrEncoder();
-  const dataUrl = await QRCode.toDataURL(buildStaffLoginQrUrl(slug), STAFF_LOGIN_QR_OPTIONS);
-  staffLoginQrCache = { slug, dataUrl };
+  const dataUrl = await QRCode.toDataURL(buildStaffLoginQrUrl(slug, base), STAFF_LOGIN_QR_OPTIONS);
+  staffLoginQrCache = { key, dataUrl };
   return dataUrl;
 }

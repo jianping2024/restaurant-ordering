@@ -13,6 +13,7 @@ type Props = {
   open: boolean;
   target: PreviewTarget | null;
   restaurantSlug: string;
+  webOrigin: string;
   labels: {
     title: string;
     table: string;
@@ -21,7 +22,14 @@ type Props = {
   onClose: () => void;
 };
 
-export function TableQrPreviewModal({ open, target, restaurantSlug, labels: t, onClose }: Props) {
+export function TableQrPreviewModal({
+  open,
+  target,
+  restaurantSlug,
+  webOrigin,
+  labels: t,
+  onClose,
+}: Props) {
   if (!target) return null;
 
   return (
@@ -34,7 +42,7 @@ export function TableQrPreviewModal({ open, target, restaurantSlug, labels: t, o
           className="mx-auto w-full max-w-[400px] rounded-lg border border-brand-border"
         />
         <a
-          href={buildTableMenuQrUrl(restaurantSlug, target.table.id)}
+          href={buildTableMenuQrUrl(restaurantSlug, target.table.id, webOrigin)}
           target="_blank"
           rel="noreferrer"
           className="inline-block text-[13px] text-brand-gold hover:underline"

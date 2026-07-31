@@ -17,8 +17,10 @@ type ConfigureProbe = 'idle' | 'checking' | 'unreachable' | 'opened';
 
 export function PrintAgentPairingPanel({
   initialPairings = [],
+  siteOrigin,
 }: {
   initialPairings?: PrintAgentPairingListItem[];
+  siteOrigin: string;
 }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
@@ -82,7 +84,6 @@ export function PrintAgentPairingPanel({
 
   const pendingCount = pairings.filter((p) => p.pending).length;
   const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
-  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
   const copyPairingCode = useCallback(async (code: string) => {
     try {

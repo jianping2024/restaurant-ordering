@@ -33,6 +33,7 @@ import { useTableQrCodes } from '@/lib/use-table-qr-codes';
 
 interface TablesTabPanelProps {
   restaurant: { slug: string; name: string; print_locale: 'zh' | 'en' | 'pt' | null };
+  webOrigin: string;
   tables: RestaurantTableRow[];
   groups: RestaurantTableGroup[];
   members: RestaurantTableGroupMember[];
@@ -58,6 +59,7 @@ interface TablesTabPanelProps {
 
 export function TablesTabPanel({
   restaurant,
+  webOrigin,
   tables,
   groups,
   members,
@@ -119,7 +121,7 @@ export function TablesTabPanel({
     [pagination.rows],
   );
 
-  const { qrCodes } = useTableQrCodes(restaurant.slug, visibleTableIds);
+  const { qrCodes } = useTableQrCodes(restaurant.slug, visibleTableIds, webOrigin);
 
   const { resetAfterDelete } = batch;
 
@@ -137,6 +139,7 @@ export function TablesTabPanel({
     async (rows: RestaurantTableRow[]) =>
       buildTableQrStickerAssets({
         slug: restaurant.slug,
+        webOrigin,
         rows,
         groupNameByTableId,
         restaurantName: restaurant.name,
@@ -151,6 +154,7 @@ export function TablesTabPanel({
       restaurant.slug,
       tableLabelForInput,
       tg.ungrouped,
+      webOrigin,
     ],
   );
 
@@ -326,6 +330,7 @@ export function TablesTabPanel({
 
         <TablesQrTable
           restaurantSlug={restaurant.slug}
+          webOrigin={webOrigin}
           pageRows={pagination.rows}
           batchMode={batch.batchMode}
           selectedIds={batch.selectedIds}
@@ -367,7 +372,7 @@ export function TablesTabPanel({
         />
       </div>
 
-      <StaffLoginQrSection slug={restaurant.slug} />
+      <StaffLoginQrSection slug={restaurant.slug} webOrigin={webOrigin} />
 
       <TableQrPreviewModal
         open={!!previewTable}
@@ -380,6 +385,7 @@ export function TablesTabPanel({
             : null
         }
         restaurantSlug={restaurant.slug}
+        webOrigin={webOrigin}
         labels={{
           title: t.qrPreviewTitle,
           table: t.table,

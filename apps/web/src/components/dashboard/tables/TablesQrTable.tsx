@@ -6,6 +6,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type Props = {
   restaurantSlug: string;
+  webOrigin: string;
   pageRows: RestaurantTableRow[];
   batchMode: boolean;
   selectedIds: ReadonlySet<string>;
@@ -48,6 +49,7 @@ type Props = {
 
 export function TablesQrTable({
   restaurantSlug,
+  webOrigin,
   pageRows,
   batchMode,
   selectedIds,
@@ -178,7 +180,7 @@ export function TablesQrTable({
                           {t.printOne}
                         </button>
                         <a
-                          href={buildTableMenuQrUrl(restaurantSlug, table.id)}
+                          href={buildTableMenuQrUrl(restaurantSlug, table.id, webOrigin)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-[13px] text-brand-gold hover:underline"

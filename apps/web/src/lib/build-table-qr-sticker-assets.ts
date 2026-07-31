@@ -6,6 +6,7 @@ import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 export type BuildTableQrStickerAssetsInput = {
   slug: string;
+  webOrigin: string;
   rows: RestaurantTableRow[];
   groupNameByTableId: Record<string, string>;
   restaurantName: string;
@@ -17,6 +18,7 @@ export type BuildTableQrStickerAssetsInput = {
 export async function buildTableQrStickerAssets(input: BuildTableQrStickerAssetsInput): Promise<Record<string, string>> {
   const {
     slug,
+    webOrigin,
     rows,
     groupNameByTableId,
     restaurantName,
@@ -30,6 +32,7 @@ export async function buildTableQrStickerAssets(input: BuildTableQrStickerAssets
   const qrCodes = await ensureTableQrCodes(
     slug,
     rows.map((row) => row.id),
+    webOrigin,
   );
 
   const entries = await Promise.all(

@@ -6,7 +6,7 @@
  */
 
 export function menuImageSameOriginEnabled(
-  env: { NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN?: string | undefined } = process.env,
+  env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
 ): boolean {
   const v = (env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN || '').trim().toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';

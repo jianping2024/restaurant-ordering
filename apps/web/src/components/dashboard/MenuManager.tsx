@@ -17,6 +17,7 @@ import {
   compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
   MENU_IMAGE_UNOPTIMIZED,
+  resolveMenuImageDisplayUrl,
   validateMenuImageFile,
 } from '@/lib/menu-image';
 import {
@@ -911,7 +912,11 @@ export function MenuManager({
         )
       : [];
 
-  const itemModalPreviewSrc = objectPreviewUrl || (!stripImage && editingItem?.image_url ? editingItem.image_url : null);
+  const itemModalPreviewSrc =
+    objectPreviewUrl ||
+    (!stripImage && editingItem?.image_url
+      ? resolveMenuImageDisplayUrl(editingItem.image_url)
+      : null);
 
   const openCategoryEdit = (category: MenuCategory) => {
     setSelectedCategoryId(category.id);
@@ -1365,7 +1370,7 @@ export function MenuManager({
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
                       {item.image_url ? (
                         <Image
-                          src={item.image_url}
+                          src={resolveMenuImageDisplayUrl(item.image_url) || item.image_url}
                           alt=""
                           width={40}
                           height={40}

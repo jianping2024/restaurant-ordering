@@ -1,3 +1,5 @@
+import { menuImageSameOriginEnabled } from '@mesa/shared';
+
 /**
  * Single resolver for Supabase API base URL (Auth / REST / Realtime / Storage).
  *
@@ -46,10 +48,9 @@ export function getPublishedSupabaseUrl(): string {
 /**
  * Mode B edge gateway only. Not the same as MESA_ON_PREM (local CLI can set
  * MESA_ON_PREM for license UAT while still using supabase start :54321).
+ * Env parse lives in `@mesa/shared` (`menuImageSameOriginEnabled`) — one flag read.
  */
 export function isSupabaseBrowserSameOrigin(): boolean {
-  const v = (process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN || '')
-    .trim()
-    .toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes';
+  // Lazy require pattern avoided — direct import at top.
+  return menuImageSameOriginEnabled(process.env);
 }

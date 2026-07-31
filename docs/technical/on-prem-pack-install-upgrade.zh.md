@@ -15,7 +15,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` 含 `RUN --mount=type=cache,target=/root/.npm npm ci`（§2.3 / §3.1）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`（§2.3 / §3.1；否则公网 HTTPS 看板 Realtime Mixed Content）。
 
 产物：
 
@@ -244,7 +244,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 | Tunnel / 局域网域名登录失败 | 查 §2.1：`.env` 补 `ADDITIONAL_REDIRECT_URLS=…/**`，`--force-recreate auth` |
 | 只有 `SITE_URL`、无白名单 | 常见；纯 IP 可暂用。有公网域或 `*.lan` 登录时必须补白名单 |
 | Print Agent 填 localhost / `:3000` / 公网域 | 查 §2.2：填 `http://<店内IP>`（edge，无 `:3000`） |
-| 扫码下单成功但前台不实时 | §2.3：查 `pg_publication_tables`；升含 ensure 的包或应急 ADD TABLE |
+| 扫码下单成功但前台不实时 | §2.3 publication；若公网 HTTPS Console 有 Mixed Content/`ws://局域网` → same-origin 旗须 `menuImageSameOriginEnabled()` 无参（禁止传 `process.env`） |
 | Caddy 宽匹配 `/auth/*` | 只代理 `/auth/v1/*` 等，避免抢走 Next `/auth/login` |
 | 升级失败立刻 Restore | 先 curl 登录页与 `/api/health/*`；确认是否误报 |
 | 终端执行 `RUN --mount=… npm ci` | 那是 **Dockerfile** 行，改 `apps/web/Dockerfile` 后重新打包升级，不是店机 shell 命令 |

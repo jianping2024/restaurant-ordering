@@ -48,9 +48,9 @@ export function getPublishedSupabaseUrl(): string {
 /**
  * Mode B edge gateway only. Not the same as MESA_ON_PREM (local CLI can set
  * MESA_ON_PREM for license UAT while still using supabase start :54321).
- * Env parse lives in `@mesa/shared` (`menuImageSameOriginEnabled`) — one flag read.
+ * Flag parse: `@mesa/shared` `menuImageSameOriginEnabled()` with **no** `process.env`
+ * argument so Next inlines `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN`.
  */
 export function isSupabaseBrowserSameOrigin(): boolean {
-  // Lazy require pattern avoided — direct import at top.
-  return menuImageSameOriginEnabled(process.env);
+  return menuImageSameOriginEnabled();
 }

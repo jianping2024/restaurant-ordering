@@ -1,9 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import {
-  menuImageSameOriginEnabled,
-  toMenuImagePublicRef as formatMenuImagePublicRef,
-} from '@mesa/shared';
+import { toMenuImagePublicRef as formatMenuImagePublicRef } from '@mesa/shared';
 import { getPublishedSupabaseUrl, isSupabaseBrowserSameOrigin } from '@/lib/supabase/url';
 
 /** 与 storage bucket file_size_limit 一致（1MB） */
@@ -131,7 +128,7 @@ export function resolveMenuImageDisplayUrl(
   }
 
   const storagePath = pathFromMenuImagePublicUrl(trimmed);
-  if (storagePath && menuImageSameOriginEnabled(process.env)) {
+  if (storagePath && isSupabaseBrowserSameOrigin()) {
     const origin =
       options?.pageOrigin?.replace(/\/$/, '') ||
       (typeof window !== 'undefined' ? window.location.origin : null);

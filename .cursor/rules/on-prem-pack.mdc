@@ -13,4 +13,5 @@ When packing, upgrading packs, or touching on-prem web build:
    - `schema/ensure_realtime_publication.sql` + `apply-migrations` call
    - `apps/web/Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci`
 3. Do not tell the user “docs say use BuildKit cache” while shipping a pack with bare `RUN npm ci`.
-4. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`
+4. **Same-origin flag:** never `menuImageSameOriginEnabled(process.env)` — Next will not inline nested `NEXT_PUBLIC_*`; call `menuImageSameOriginEnabled()` / `isSupabaseBrowserSameOrigin()` so HTTPS Tunnel uses `wss://` page origin.
+5. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`

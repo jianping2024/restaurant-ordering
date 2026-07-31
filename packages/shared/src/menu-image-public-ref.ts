@@ -5,10 +5,25 @@
  * Cloud / non same-origin: absolute URL under the published Supabase origin.
  */
 
+/**
+ * Mode B browser same-origin flag (`NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN`).
+ *
+ * Default (no `env` arg): reads `process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN`
+ * via a **direct** property access so Next.js can inline it into the client bundle.
+ * Do **not** call as `menuImageSameOriginEnabled(process.env)` — nested `env.NEXT_PUBLIC_*`
+ * is not inlined, and the browser then falls back to a baked LAN `NEXT_PUBLIC_SUPABASE_URL`
+ * (HTTPS page → Mixed Content on `ws://`).
+ *
+ * Pass an `env` object only in tests / Node scripts.
+ */
 export function menuImageSameOriginEnabled(
-  env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,
+  env?: NodeJS.ProcessEnv | Record<string, string | undefined>,
 ): boolean {
-  const v = (env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN || '').trim().toLowerCase();
+  const raw =
+    env !== undefined
+      ? env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN
+      : process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
+  const v = (raw || '').trim().toLowerCase();
   return v === '1' || v === 'true' || v === 'yes';
 }
 

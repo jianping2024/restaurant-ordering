@@ -10,9 +10,9 @@
  *
  * Default (no `env` arg): reads `process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN`
  * via a **direct** property access so Next.js can inline it into the client bundle.
- * Do **not** call as `menuImageSameOriginEnabled(process.env)` — nested `env.NEXT_PUBLIC_*`
- * is not inlined, and the browser then falls back to a baked LAN `NEXT_PUBLIC_SUPABASE_URL`
- * (HTTPS page → Mixed Content on `ws://`).
+ * Do **not** pass the whole `process.env` object into this helper — nested
+ * `env.NEXT_PUBLIC_*` reads are not inlined, and the browser then falls back to a
+ * baked LAN `NEXT_PUBLIC_SUPABASE_URL` (HTTPS page → Mixed Content on `ws://`).
  *
  * Pass an `env` object only in tests / Node scripts.
  */

@@ -89,10 +89,15 @@ if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
   exit 1
 fi
-# Gate: never pass process.env into same-origin helper (breaks Next client inline)
+# Gate: never pass process.env into same-origin helper (breaks Next client inline).
+# Ignore comments/docs that mention the antipattern by name.
 SAME_ORIGIN_ANTIPATTERN="$(
   grep -R --include='*.ts' --include='*.tsx' -n 'menuImageSameOriginEnabled(process\.env)' \
-    "$STAGE/apps/web/src" "$STAGE/packages/shared/src" 2>/dev/null | grep -v '\.test\.' || true
+    "$STAGE/apps/web/src" "$STAGE/packages/shared/src" 2>/dev/null \
+    | grep -v '\.test\.' \
+    | grep -vE '^\S+:[0-9]+:\s*\*' \
+    | grep -vE '^\S+:[0-9]+:\s*//' \
+    || true
 )"
 if [[ -n "$SAME_ORIGIN_ANTIPATTERN" ]]; then
   echo "ERROR: menuImageSameOriginEnabled(process.env) breaks NEXT_PUBLIC inlining:" >&2

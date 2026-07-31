@@ -3,28 +3,31 @@
 > **客户交付路径 = Mode B + Ubuntu `install-ubuntu.sh`（首选）或 Windows ⑤a 安装器**  
 > Mode A（`compose.mode-a.yaml`）仅开发机捷径。
 
-## 打包
+## 打包 / 初装 / 升级
+
+**完整正确流程（唯一说明）：** [`docs/technical/on-prem-pack-install-upgrade.zh.md`](../../docs/technical/on-prem-pack-install-upgrade.zh.md)
+
+摘要：
 
 ```bash
-# 在仓库根目录打包
-chmod +x deploy/on-prem/scripts/pack-release.sh
+# 开发机打 stamped zip（初装与升级同一包）
 ./deploy/on-prem/scripts/pack-release.sh
-# → dist/mesa-on-prem-<ver>.zip（以 PACK-ID / LATEST-NAME 为准）
+# → dist/mesa-on-prem-<sha>-<UTC>.zip（勿只认 latest）
+
+# 店内解压约定：/home/remoteadmin/mesa-on-prem-<ver>/
+
+# 初装
+cd /home/remoteadmin/mesa-on-prem-<ver> && sudo ./install-ubuntu.sh
+
+# 升级（必须 MESA_HOME，且不要 SkipBuild）
+export MESA_HOME=/opt/mesa
+cd /opt/mesa/current/deploy/on-prem
+sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 ```
 
-## Ubuntu 安装（客户首选）
+正式入口：`http://<店内IP>/`（edge `:80`）。桌位二维码用局域网 IP 或公网域打开后台再生成，勿用 localhost。
 
-```bash
-# 目标机已装 Docker Engine + Compose
-cd mesa-on-prem-<ver>
-chmod +x install-ubuntu.sh
-sudo ./install-ubuntu.sh
-# 或指定目录:
-sudo ./install-ubuntu.sh --mesa-home /opt/mesa
-```
-
-- **MESA_HOME** 默认 `/opt/mesa`；数据/日志/配置只认这一份根目录。
-- 说明：`linux/README-INSTALL.zh.txt`（包根 `README-UBUNTU.zh.txt`）
+- Ubuntu 说明副本：`linux/README-INSTALL.zh.txt`（打进包根 `README-UBUNTU.zh.txt`）
 - 卸载：`linux/uninstall-mesa.sh`（默认保留数据）
 
 ## Windows 安装包（⑤a）
@@ -94,14 +97,17 @@ SaaS / Vercel **不要**设 `MESA_ON_PREM` 或 `NEXT_PUBLIC_MESA_SUPABASE_SAME_O
 
 ### 升级与回滚（⑦a）
 
+详见 [`docs/technical/on-prem-pack-install-upgrade.zh.md`](../../docs/technical/on-prem-pack-install-upgrade.zh.md) §3。
+
 ```bash
-./scripts/pack-release.sh
-./scripts/upgrade.sh [--SkipBackup] <unpacked-mesa-on-prem-ver>/
+export MESA_HOME=/opt/mesa   # 必须，否则不同步 apps/web
+cd /opt/mesa/current/deploy/on-prem
+sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>/
 ./scripts/rollback.sh              # 仅文件回滚；已跑迁移则拒绝
 ```
 
 - 版本事实：`config/current.json`（或 Mode B 开发态 `deploy/on-prem/current.json`）+ `logs/LAST_UPGRADE.json`。
-- 升：备份 → `releases/<ver>` → 同步（保留 `.env`）→ 增量迁移 → rebuild web → health。
+- 升：备份 → `releases/<ver>` → 同步（保留 `.env`）→ 增量迁移 → rebuild web → `/api/health/live`+`ready`。
 - **不**自动升 Supabase vendor 大版本（见 `images.lock`）。
 - 迁移已应用后的失败：用 `restore-local` / `Restore-Mesa`，不要假装文件回滚等于库回滚。
 - Windows：`Upgrade-Mesa.ps1 -SourcePack …` / `Rollback-Mesa.ps1`。
@@ -116,14 +122,14 @@ docker compose -f compose.mode-a.yaml up --build -d web
 
 ## 打印
 
-Windows `MesaPrintAgent`：服务器地址填本机 Mesa（`http://127.0.0.1:3000` 或局域网 IP）。
+Windows `MesaPrintAgent`：服务器地址填店内 edge origin（`http://<店内IP>/`，勿填手机侧的 localhost）。
 
 ## 目录
 
 | 路径 | 说明 |
 |------|------|
 | `linux/install-mesa.sh` | Ubuntu / Debian 客户安装器 |
-| `edge/Caddyfile` | 同域网关：`/` → web，`/auth|/rest|/realtime|…` → Kong |
+| `edge/Caddyfile` | 同域网关：`/` → web，`/auth/v1|/rest/v1|/realtime/v1|…` → Kong（勿用宽 `/auth/*`） |
 | `windows/Install-Mesa.ps1` | Windows ⑤a 主安装器 |
 | `compose.yaml` + `scripts/stack.sh` | Mode B |
 | `compose.mode-a.yaml` | Mode A |

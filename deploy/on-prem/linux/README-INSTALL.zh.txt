@@ -39,8 +39,13 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 启停：  sudo /opt/mesa/bin/mesa-stack up|down|ps|logs
 - 备份：  cd /opt/mesa/current/deploy/on-prem && sudo ./scripts/backup-local.sh
 - 恢复：  sudo ./scripts/restore-local.sh [--Force] backups/<stamp>
-- 升级：  sudo ./scripts/upgrade.sh <新解压的 mesa-on-prem-*>/
+- 升级：  （完整流程见仓库 docs/technical/on-prem-pack-install-upgrade.zh.md）
+          export MESA_HOME=/opt/mesa
+          cd /opt/mesa/current/deploy/on-prem
+          sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 - 回滚：  sudo ./scripts/rollback.sh   （已跑迁移则拒绝，请用恢复）
+- 健康：  curl -sS http://127.0.0.1:3000/api/health/live
+          curl -sS http://127.0.0.1:3000/api/health/ready
 - 卸载服务（保留数据）：
   sudo ./deploy/on-prem/linux/uninstall-mesa.sh --mesa-home /opt/mesa
 - 卸载并删数据：
@@ -52,6 +57,9 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 手动：sudo systemctl enable --now mesa-on-prem
 
 七、注意
-- 禁止营业中乱拉 latest；只装我们打好的版本包
+- 禁止营业中乱拉 latest；只装我们打好的 stamped 版本包
 - 首次 web 镜像若未预构建，可加 --build-web（耗内存/时间）
+- 升级含前端变更时不要 --SkipBuild；必须带 MESA_HOME 才能同步 apps/web
+- 桌位二维码：用局域网 IP 或公网域打开后台再生成，勿用 localhost / 127.0.0.1
 - Supabase vendor 大版本升级不在一键脚本内
+- 完整打包/初装/升级说明：docs/technical/on-prem-pack-install-upgrade.zh.md

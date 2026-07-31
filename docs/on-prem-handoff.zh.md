@@ -193,15 +193,18 @@
 
 ## 4. 当前包与命令（本机）
 
-> 包名每次打包唯一；**不要只拷 `mesa-on-prem-latest.zip`**（易覆盖）。以 `dist/mesa-on-prem-LATEST-NAME.txt` 或解压后 `PACK-ID.txt` 为准。
+> **打包 / 初装 / 升级正确流程（唯一操作说明）：** [`docs/technical/on-prem-pack-install-upgrade.zh.md`](./technical/on-prem-pack-install-upgrade.zh.md)  
+> 包名每次打包唯一；**不要只拷 `mesa-on-prem-latest.zip`**。以 `dist/mesa-on-prem-LATEST-NAME.txt` 或解压后 `PACK-ID.txt` 为准。  
+> 店内解压目录约定：`/home/remoteadmin/mesa-on-prem-<ver>/`。
 
 | 项 | 值（交接日快照，可能已更新） |
 |----|------------------------------|
-| 最新 stamped zip | 以 `dist/mesa-on-prem-LATEST-NAME.txt` 为准（verify：shutdown 还内存 + 默认无 `--build`） |
+| 最新 stamped zip | 以 `dist/mesa-on-prem-LATEST-NAME.txt` 为准 |
 | 内含目录 | 与 stamped zip 同名 |
 | 验证入口 | 解压后双击 `START-WSL-TEST.cmd` |
-| 客户入口 | `deploy\on-prem\windows\Install-Mesa.ps1` |
-| 重新打包 | `./deploy/on-prem/scripts/pack-release.sh`（在有 `deploy/` 的机器上） |
+| 客户入口 | `deploy\on-prem\windows\Install-Mesa.ps1` / Ubuntu `install-ubuntu.sh` |
+| 重新打包 | `./deploy/on-prem/scripts/pack-release.sh`（仓库根） |
+| 店内升级 | `MESA_HOME=/opt/mesa` + `sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>` |
 | 重导 baseline | `DB_CONTAINER=supabase_db_restaurant-ordering ./deploy/on-prem/scripts/export-schema-baseline.sh` |
 | 本地授权 UAT | `node scripts/uat-on-prem-license.mjs`（先对齐 `MESA_LICENSE_LEASE_SECRET`） |
 
@@ -232,6 +235,7 @@ No pending incremental migrations (baseline covers current tree).
 | 需求 | 路径 |
 |------|------|
 | 本交接 | `docs/on-prem-handoff.zh.md`（本文） |
+| 打包/初装/升级流程 | `docs/technical/on-prem-pack-install-upgrade.zh.md` |
 | 步骤总方案 | `docs/local-only-rollout-steps.zh.md` |
 | 授权 ADR | `docs/decisions/ADR-004-on-prem-entitlement.md` |
 | 控制面迁移 | `supabase/migrations/20260730140000_on_prem_license_control_plane.sql` |

@@ -12,6 +12,7 @@ When packing, upgrading packs, or touching on-prem web build:
 2. `pack-release.sh` hard-fails without:
    - `schema/ensure_realtime_publication.sql` + `apply-migrations` call
    - `apps/web/Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci`
+   - `apps/web/Dockerfile`: `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY (staged into pack) — otherwise dashboard hides the print-agent download card on-prem
 3. Do not tell the user “docs say use BuildKit cache” while shipping a pack with bare `RUN npm ci`.
 4. **Same-origin flag:** never `menuImageSameOriginEnabled(process.env)` — Next will not inline nested `NEXT_PUBLIC_*`; call `menuImageSameOriginEnabled()` / `isSupabaseBrowserSameOrigin()` so HTTPS Tunnel uses `wss://` page origin.
 5. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`

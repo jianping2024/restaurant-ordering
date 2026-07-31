@@ -42,6 +42,9 @@ rsync -a --delete --exclude node_modules "$ROOT/packages/shared/" "$STAGE/packag
 rsync -a --delete --exclude node_modules "$ROOT/packages/ui/" "$STAGE/packages/ui/"
 rsync -a --delete "$ROOT/supabase/migrations/" "$STAGE/supabase/migrations/"
 cp "$ROOT/package.json" "$ROOT/package-lock.json" "$STAGE/"
+# Web Dockerfile COPYs this for pinned print-agent download links.
+mkdir -p "$STAGE/apps/print-agent"
+cp "$ROOT/apps/print-agent/VERSION" "$STAGE/apps/print-agent/VERSION"
 
 # Build context is pack root (MESA_REPO_ROOT) — dockerignore must live here.
 cat >"$STAGE/.dockerignore" <<'EOF'
@@ -132,6 +135,22 @@ if echo "$COOKIE_NAME_HITS" | grep -v 'lib/supabase/url\.ts' | grep -q .; then
 fi
 if ! grep -q 'MODE_B_SUPABASE_URL_HOSTNAME' "$STAGE/apps/web/src/lib/supabase/url.ts"; then
   echo "ERROR: url.ts must define MODE_B_SUPABASE_URL_HOSTNAME for auth cookie alignment" >&2
+  exit 1
+fi
+# Gate: print-agent download panel must survive on-prem builds — the web image
+# needs the GitHub repo baked (ARG/ENV) and the pinned VERSION file copied in,
+# otherwise the dashboard silently hides the installer download card.
+WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
+if ! grep -q 'NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must bake NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO (download panel)" >&2
+  exit 1
+fi
+if ! grep -q 'apps/print-agent/VERSION' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must COPY apps/print-agent/VERSION (pinned download links)" >&2
+  exit 1
+fi
+if [[ ! -s "$STAGE/apps/print-agent/VERSION" ]]; then
+  echo "ERROR: pack missing apps/print-agent/VERSION" >&2
   exit 1
 fi
 

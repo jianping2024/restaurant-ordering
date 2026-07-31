@@ -118,6 +118,12 @@ rsync -a --delete "$PACK_ROOT/supabase/migrations/" "$DEST_ROOT/supabase/migrati
 cp -a "$PACK_ROOT/package.json" "$PACK_ROOT/package-lock.json" "$DEST_ROOT/"
 [[ -f "$PACK_ROOT/PACK-ID.txt" ]] && cp -a "$PACK_ROOT/PACK-ID.txt" "$DEST_ROOT/"
 [[ -f "$PACK_ROOT/manifest.json" ]] && cp -a "$PACK_ROOT/manifest.json" "$DEST_ROOT/"
+# Dockerfile COPYs this for pinned print-agent download links (must be in build context).
+if [[ -f "$PACK_ROOT/apps/print-agent/VERSION" ]]; then
+  mkdir -p "$DEST_ROOT/apps/print-agent"
+  cp -a "$PACK_ROOT/apps/print-agent/VERSION" "$DEST_ROOT/apps/print-agent/VERSION"
+fi
+[[ -f "$PACK_ROOT/.dockerignore" ]] && cp -a "$PACK_ROOT/.dockerignore" "$DEST_ROOT/.dockerignore"
 
 if [[ -n "$ENV_BACKUP" && -f "$ENV_BACKUP" ]]; then
   cp -a "$ENV_BACKUP" "$ENV_FILE"

@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Static install icons + webmanifest must skip session middleware (no auth, no Supabase).
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Skip static assets and ops health probes (no session / no Supabase round-trip).
+    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|api/health(?:/.*)?|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

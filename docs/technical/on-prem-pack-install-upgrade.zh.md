@@ -15,7 +15,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`schema/ensure_realtime_publication.sql` 存在，且 `apply-migrations.sh` 调用它（§2.3；缺则看板不实时）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` 含 `RUN --mount=type=cache,target=/root/.npm npm ci`（§2.3 / §3.1）。
 
 产物：
 

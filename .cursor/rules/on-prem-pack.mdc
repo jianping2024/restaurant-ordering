@@ -1,0 +1,16 @@
+---
+description: On-prem pack/upgrade — enforce Realtime ensure + BuildKit npm cache in pack, not docs-only
+globs: deploy/on-prem/scripts/pack-release.sh,apps/web/Dockerfile,docs/technical/on-prem-pack-install-upgrade.zh.md
+alwaysApply: false
+---
+
+# On-prem pack gates
+
+When packing, upgrading packs, or touching on-prem web build:
+
+1. **Ship the fix in the artifact**, not only in docs. If §3.1 / handoff names a Dockerfile or migrate ensure, it must already be in the tree **before** `pack-release.sh`.
+2. `pack-release.sh` hard-fails without:
+   - `schema/ensure_realtime_publication.sql` + `apply-migrations` call
+   - `apps/web/Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci`
+3. Do not tell the user “docs say use BuildKit cache” while shipping a pack with bare `RUN npm ci`.
+4. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`

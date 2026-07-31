@@ -219,7 +219,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 
 **网络**：构建中 `npm error network read ETIMEDOUT` 是店机访问 `registry.npmjs.org` 中断。可先 `curl -I https://registry.npmjs.org/` 与 `docker run --rm node:20-bookworm-slim npm ping`；通则直接重跑同一条 `upgrade.sh`。中长期可再考虑预构建 web 镜像随包下发（见交接/后续优化），避免门店现场编译。
 
-**打印助手安装包下载**：web 镜像内已烘入 `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO`（Dockerfile ARG 默认值）并 COPY `apps/print-agent/VERSION`，后台「设置 → 打印助手」才会显示安装包下载卡片；下载按钮 302 到 GitHub Release，店机浏览器需能访问 `github.com`。`pack-release.sh` 对此 fail-closed。
+**打印助手安装包下载**：web 镜像内已烘入 `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO`（Dockerfile ARG 默认值）并 COPY `apps/print-agent/VERSION`，后台「设置 → 打印助手」才会显示安装包下载卡片；下载按钮 302 到 GitHub Release，店机浏览器需能访问 `github.com`。`pack-release.sh` 对此 fail-closed。**不要**指望在店机 `.env` 里加 `NEXT_PUBLIC_*` 再 `restart`——必须 `--build web`。`upgrade.sh` / `install-mesa.sh` 必须把包内 `apps/print-agent/VERSION` 同步进 `$MESA_HOME/current`，否则 Docker `COPY` 失败或仍用旧镜像。
 
 ---
 

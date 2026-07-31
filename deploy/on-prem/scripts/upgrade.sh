@@ -209,6 +209,12 @@ if [[ -n "${MESA_HOME:-}" && -d "$STAGE/apps/web" ]]; then
   [[ -d "$STAGE/supabase/migrations" ]] && rsync -a --delete "$STAGE/supabase/migrations/" "${MESA_HOME}/current/supabase/migrations/"
   [[ -f "$STAGE/package.json" ]] && cp "$STAGE/package.json" "${MESA_HOME}/current/package.json"
   [[ -f "$STAGE/package-lock.json" ]] && cp "$STAGE/package-lock.json" "${MESA_HOME}/current/package-lock.json"
+  # Dockerfile COPYs this for pinned print-agent download links (must be in build context).
+  if [[ -f "$STAGE/apps/print-agent/VERSION" ]]; then
+    mkdir -p "${MESA_HOME}/current/apps/print-agent"
+    cp "$STAGE/apps/print-agent/VERSION" "${MESA_HOME}/current/apps/print-agent/VERSION"
+  fi
+  [[ -f "$STAGE/.dockerignore" ]] && cp "$STAGE/.dockerignore" "${MESA_HOME}/current/.dockerignore"
 fi
 
 cd "$TARGET_ONPREM"

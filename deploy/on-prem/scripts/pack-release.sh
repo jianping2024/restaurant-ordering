@@ -158,6 +158,18 @@ if [[ ! -s "$STAGE/apps/print-agent/VERSION" ]]; then
   echo "ERROR: pack missing apps/print-agent/VERSION" >&2
   exit 1
 fi
+# Gate: install/upgrade must place VERSION into MESA_HOME/current build context
+# (Dockerfile COPY fails otherwise → silent keep of old web image).
+UPGRADE_SH="$STAGE/deploy/on-prem/scripts/upgrade.sh"
+INSTALL_SH="$STAGE/deploy/on-prem/linux/install-mesa.sh"
+if ! grep -q 'apps/print-agent/VERSION' "$UPGRADE_SH"; then
+  echo "ERROR: upgrade.sh must sync apps/print-agent/VERSION into MESA_HOME/current" >&2
+  exit 1
+fi
+if ! grep -q 'apps/print-agent/VERSION' "$INSTALL_SH"; then
+  echo "ERROR: install-mesa.sh must copy apps/print-agent/VERSION into MESA_HOME/current" >&2
+  exit 1
+fi
 
 cat >"$STAGE/README-VERIFY.zh.txt" <<EOF
 Mesa 安装验证 / 客户安装

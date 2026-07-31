@@ -7,7 +7,7 @@ import {
   generateStaffLoginQrDataUrl,
 } from '@/lib/table-menu-qr';
 
-export function useTableQrCodes(slug: string, tableIds: string[]) {
+export function useTableQrCodes(slug: string, tableIds: string[], webOrigin: string) {
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
   const tableIdKey = useMemo(() => tableIds.join('|'), [tableIds]);
 
@@ -25,7 +25,7 @@ export function useTableQrCodes(slug: string, tableIds: string[]) {
     void (async () => {
       await Promise.all(
         tableIds.map(async (tableId) => {
-          const dataUrl = await generateTableQrDataUrl(slug, tableId);
+          const dataUrl = await generateTableQrDataUrl(slug, tableId, webOrigin);
           if (cancelled) return;
           setQrCodes((prev) => (prev[tableId] === dataUrl ? prev : { ...prev, [tableId]: dataUrl }));
         }),
@@ -35,29 +35,29 @@ export function useTableQrCodes(slug: string, tableIds: string[]) {
     return () => {
       cancelled = true;
     };
-  }, [slug, tableIdKey, tableIds]);
+  }, [slug, tableIdKey, tableIds, webOrigin]);
 
   const ensureAll = useCallback(async () => {
-    const codes = await ensureTableQrCodes(slug, tableIds);
+    const codes = await ensureTableQrCodes(slug, tableIds, webOrigin);
     setQrCodes((prev) => ({ ...prev, ...codes }));
     return codes;
-  }, [slug, tableIds]);
+  }, [slug, tableIds, webOrigin]);
 
   return { qrCodes, ensureAll };
 }
 
-export function useStaffLoginQr(slug: string) {
+export function useStaffLoginQr(slug: string, webOrigin: string) {
   const [staffLoginQr, setStaffLoginQr] = useState('');
 
   useEffect(() => {
     let cancelled = false;
-    void generateStaffLoginQrDataUrl(slug).then((dataUrl) => {
+    void generateStaffLoginQrDataUrl(slug, webOrigin).then((dataUrl) => {
       if (!cancelled) setStaffLoginQr(dataUrl);
     });
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, webOrigin]);
 
   return staffLoginQr;
 }

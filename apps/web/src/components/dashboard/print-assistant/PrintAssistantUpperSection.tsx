@@ -5,7 +5,13 @@ import { devicesNeedingRenewal } from '@/lib/print-agent-credential-expiry';
 import { getPrintAgentVersion } from '@/lib/print-agent-download';
 import { loadPrintAssistantUpperData } from '@/lib/print-assistant-page-data';
 
-export async function PrintAssistantUpperSection({ restaurantId }: { restaurantId: string }) {
+export async function PrintAssistantUpperSection({
+  restaurantId,
+  siteOrigin,
+}: {
+  restaurantId: string;
+  siteOrigin: string;
+}) {
   const upper = await loadPrintAssistantUpperData(restaurantId);
   const expiringDevices = devicesNeedingRenewal(upper.devices);
   const printAgentVersion = getPrintAgentVersion();
@@ -19,7 +25,7 @@ export async function PrintAssistantUpperSection({ restaurantId }: { restaurantI
         initialDevices={upper.devices}
         recommendedVersion={printAgentVersion || ''}
       />
-      <PrintAgentPairingPanel initialPairings={upper.pairings} />
+      <PrintAgentPairingPanel initialPairings={upper.pairings} siteOrigin={siteOrigin} />
     </div>
   );
 }

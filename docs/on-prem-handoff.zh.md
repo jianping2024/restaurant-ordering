@@ -123,8 +123,9 @@
 
 | 项 | 状态 | 说明 |
 |----|------|------|
-| `edge/Caddyfile` + `compose` `edge` | ✅（本 diff） | 同域 `/`→web，`/auth|/rest|/realtime|…`→Kong；Tunnel 指 `:80` |
+| `edge/Caddyfile` + `compose` `edge` | ✅（本 diff） | 同域 `/`→web，`/auth/v1|/rest/v1|/realtime/v1|…`→Kong（勿用宽 `/auth/*`，会抢走 Next `/auth/login`）；Tunnel 指 `:80` |
 | 浏览器 Supabase URL | ✅（本 diff） | 唯一 `getSupabaseUrl()`；Mode B `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=1` → `location.origin`；云不设该开关 |
+| 浏览器网页对外 origin（QR / 下载绝对链） | ✅ | 唯一 `getPublicWebOrigin()`（`lib/site-origin.ts`）；浏览器跟 `location.origin`；服务端传 `headers()` 优 Host |
 | Auth 双入口白名单 | ✅（本 diff） | bootstrap：`SITE_URL`=局域网 edge；可选 `MESA_TUNNEL_ORIGIN` 写入 `ADDITIONAL_REDIRECT_URLS` |
 | Schema baseline + covered 列表 | 🟡 | `baseline_public.sql` + **67** 条 `baseline_covered_migrations.txt`（与磁盘 migrations 对齐，含 license） |
 | `apply-migrations.sh` | 🟡 | 已修：heredoc 必须 `docker exec -i`；covered 一批事务标记；pending=0 则跳过 incremental |

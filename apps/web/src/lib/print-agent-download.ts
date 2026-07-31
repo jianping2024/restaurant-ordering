@@ -25,7 +25,7 @@ const ARTIFACT_TO_FILE: Record<PrintAgentDownloadArtifact, string> = {
   'portable-arm64': PRINT_AGENT_GITHUB_ASSETS.portableArm64,
 };
 
-/** Permanent paths on this site (prepend origin, e.g. NEXT_PUBLIC_BASE_URL). */
+/** Permanent paths on this site (prepend via `getPublicWebOrigin`). */
 export const PRINT_AGENT_DOWNLOAD_API_PATHS = {
   setupAmd64: '/api/downloads/print-agent/setup-amd64',
   portableAmd64: '/api/downloads/print-agent/portable-amd64',

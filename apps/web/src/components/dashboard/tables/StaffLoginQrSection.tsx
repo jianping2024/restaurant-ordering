@@ -5,10 +5,10 @@ import { buildStaffLoginQrUrl } from '@/lib/table-menu-qr';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 
-export function StaffLoginQrSection({ slug }: { slug: string }) {
+export function StaffLoginQrSection({ slug, webOrigin }: { slug: string; webOrigin: string }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).tables;
-  const staffLoginQr = useStaffLoginQr(slug);
+  const staffLoginQr = useStaffLoginQr(slug, webOrigin);
 
   const downloadStaffLoginQR = () => {
     if (!staffLoginQr) return;
@@ -39,7 +39,7 @@ export function StaffLoginQrSection({ slug }: { slug: string }) {
             {t.downloadStaff}
           </button>
           <a
-            href={buildStaffLoginQrUrl(slug)}
+            href={buildStaffLoginQrUrl(slug, webOrigin)}
             target="_blank"
             rel="noreferrer"
             className="text-[13px] text-brand-gold hover:underline"

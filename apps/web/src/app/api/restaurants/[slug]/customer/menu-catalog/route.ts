@@ -4,6 +4,7 @@ import { loadCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
 import {
   clientHostnameFromRequest,
+  clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
 } from '@/lib/menu-image';
 
@@ -33,7 +34,10 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
 
   const catalog = await loadCustomerMenuCatalog(loaded.restaurant.id);
   return NextResponse.json(
-    mapCustomerMenuCatalogImageUrls(catalog, clientHostnameFromRequest(req)),
+    mapCustomerMenuCatalogImageUrls(catalog, {
+      clientHostname: clientHostnameFromRequest(req),
+      pageOrigin: clientPageOriginFromRequest(req),
+    }),
     { headers: PRIVATE_SHORT_CACHE_HEADERS },
   );
 }

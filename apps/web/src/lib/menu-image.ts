@@ -1,5 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
+import {
+  menuImageSameOriginEnabled,
+  toMenuImagePublicRef as formatMenuImagePublicRef,
+} from '@mesa/shared';
+import { getPublishedSupabaseUrl, isSupabaseBrowserSameOrigin } from '@/lib/supabase/url';
 
 /** 与 storage bucket file_size_limit 一致（1MB） */
 export const MENU_IMAGE_MAX_BYTES = 1048576;
@@ -34,6 +39,17 @@ export function extensionForImageMime(mime: string): string {
 
 export function menuImageObjectPath(restaurantId: string, menuItemId: string, mime: string): string {
   return `${restaurantId}/${menuItemId}.${extensionForImageMime(mime)}`;
+}
+
+/**
+ * Sole app writer for `menu_items.image_url` after a Storage upload.
+ * Algorithm: `@mesa/shared` `toMenuImagePublicRef` — do not call `getPublicUrl` for persist.
+ */
+export function toMenuImagePublicRef(objectPath: string): string {
+  return formatMenuImagePublicRef(objectPath, {
+    sameOrigin: isSupabaseBrowserSameOrigin(),
+    publishedOrigin: getPublishedSupabaseUrl(),
+  });
 }
 
 /** 返回错误文案 key（由调用方用 i18n 解析）或 null */
@@ -89,16 +105,41 @@ const LOCAL_SUPABASE_STORAGE_ORIGINS = [
   'http://localhost:54321',
 ] as const;
 
+export type ResolveMenuImageDisplayOptions = {
+  /** LAN CLI rewrite host (non same-origin `:54321` only). */
+  clientHostname?: string | null;
+  /** Request page origin for same-origin absolute→current-host rewrite (SSR/API). */
+  pageOrigin?: string | null;
+};
+
 /**
- * Local dev: DB stores Storage URLs with 127.0.0.1, which phones on LAN cannot reach.
- * Rewrite to the page host so `http://<lan-ip>:54321/storage/...` loads on real devices.
+ * Sole display resolver for menu Storage URLs.
+ * - Root-relative `/storage/v1/...` → unchanged (browser uses page origin).
+ * - Same-origin Mode B + absolute menu-images URL → `{pageOrigin|window.origin}/storage/...`.
+ * - Local CLI `:54321` loopback → LAN host rewrite for phones.
+ * - Cloud Supabase absolute URLs → unchanged.
  */
 export function resolveMenuImageDisplayUrl(
   url: string | null | undefined,
-  options?: { clientHostname?: string | null },
+  options?: ResolveMenuImageDisplayOptions,
 ): string | null {
   if (!url?.trim()) return null;
   const trimmed = url.trim();
+
+  if (trimmed.startsWith('/storage/v1/')) {
+    return trimmed;
+  }
+
+  const storagePath = pathFromMenuImagePublicUrl(trimmed);
+  if (storagePath && menuImageSameOriginEnabled(process.env)) {
+    const origin =
+      options?.pageOrigin?.replace(/\/$/, '') ||
+      (typeof window !== 'undefined' ? window.location.origin : null);
+    if (origin) {
+      return `${origin}/storage/v1/object/public/menu-images/${storagePath}`;
+    }
+  }
+
   const hostname =
     options?.clientHostname ??
     (typeof window !== 'undefined' ? window.location.hostname : null);
@@ -119,15 +160,33 @@ export function clientHostnameFromRequest(req: Request): string {
   return new URL(req.url).hostname;
 }
 
-/** Rewrite menu item image URLs for the requesting client (LAN dev phones). */
+/** Prefer forwarded proto + Host so Tunnel HTTPS and LAN HTTP both work. */
+export function clientPageOriginFromRequest(req: Request): string {
+  const host = req.headers.get('host')?.trim();
+  if (host) {
+    const protoHeader = req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+    const proto = protoHeader || new URL(req.url).protocol.replace(/:$/, '') || 'http';
+    return `${proto}://${host}`;
+  }
+  return new URL(req.url).origin;
+}
+
+/** Rewrite menu item image URLs for the requesting client (LAN / same-origin). */
 export function mapCustomerMenuCatalogImageUrls<
   T extends { menuItems: Array<{ image_url?: string | null }> },
->(catalog: T, clientHostname: string): T {
+>(
+  catalog: T,
+  clientHostnameOrOptions: string | ResolveMenuImageDisplayOptions,
+): T {
+  const options: ResolveMenuImageDisplayOptions =
+    typeof clientHostnameOrOptions === 'string'
+      ? { clientHostname: clientHostnameOrOptions }
+      : clientHostnameOrOptions;
   return {
     ...catalog,
     menuItems: catalog.menuItems.map((item) => ({
       ...item,
-      image_url: resolveMenuImageDisplayUrl(item.image_url, { clientHostname }),
+      image_url: resolveMenuImageDisplayUrl(item.image_url, options),
     })),
   };
 }

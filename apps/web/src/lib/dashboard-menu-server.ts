@@ -10,6 +10,7 @@ import {
   MENU_IMAGE_MAX_BYTES,
   menuImageObjectPath,
   pathFromMenuImagePublicUrl,
+  toMenuImagePublicRef,
 } from '@/lib/menu-image';
 import { normalizeMenuItemCode } from '@/lib/menu-print-label';
 import {
@@ -678,8 +679,7 @@ export async function setMenuItemImage(
     if (uploadError) {
       return { error: 'upload_failed', message: uploadError.message, status: 500 };
     }
-    const { data: pub } = admin.storage.from('menu-images').getPublicUrl(path);
-    imageUrl = pub.publicUrl;
+    imageUrl = toMenuImagePublicRef(path);
   }
 
   if (imageUrl === undefined) {

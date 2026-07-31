@@ -137,3 +137,8 @@ export {
   resolveActiveGeoOrderCoords,
   type GeoOrderRestrictionFields,
 } from './geo-order-restriction';
+export {
+  menuImageSameOriginEnabled,
+  toMenuImagePublicRef,
+  type MenuImagePublicRefOptions,
+} from './menu-image-public-ref';

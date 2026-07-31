@@ -24,16 +24,32 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
    sudo ./install-ubuntu.sh --mesa-home /opt/mesa
 4. 浏览器打开 http://127.0.0.1/setup 完成开户（安装码 + 店主密码）
    （同域 edge 默认 :80；不要用 :3000 当正式入口）
-5. 局域网访问用 http://<店内IP>/ ；Print Agent 服务器地址填同一地址
-6. 可选：Cloudflare Tunnel 指到本机 :80；bootstrap 时设 MESA_TUNNEL_ORIGIN=https://你的域
-   以把公网域加入 Auth 回调白名单。店内断网仍用局域网 IP。
+5. 局域网访问用 http://<店内IP>/ ；Print Agent 见下一步
+6. Print Agent（Windows MesaPrintAgent）「服务器地址」（完整见仓库
+   docs/technical/on-prem-pack-install-upgrade.zh.md §2.2）：
+   - 推荐：http://<店内IP>   （edge :80，不要 :3000）
+   - 可选：http://<局域网名>  （DNS 已好且 Auth 白名单已含）
+   - 不要：localhost / 127.0.0.1（Agent 在别的电脑上指不到店机）
+   - 不要把公网域当店内主配置（断 Tunnel/外网则打印断）
+7. Auth 多入口白名单（易漏；完整说明见 §2.1 同文档）：
+   - 配置文件：MESA_HOME/current/deploy/on-prem/.env
+   - 默认常只有 SITE_URL=http://<店内IP>，无 ADDITIONAL_REDIRECT_URLS
+   - 启用 Cloudflare Tunnel（公网域）或局域网域名（如 pirata.lan）时，必须手写：
+     ADDITIONAL_REDIRECT_URLS=http://<店内IP>/**,http://<局域网名>/**,https://<公网域>/**
+   - 仅 ADDITIONAL_REDIRECT_URLS 即可；MESA_TUNNEL_ORIGIN 可选（bootstrap 时设可自动并入）
+   - 改完：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth
+   - 店内断网仍用局域网 IP；DNS 未配好也可先写白名单
+8. 可选：Cloudflare Tunnel 指到本机 :80（公网入口）；白名单见上一步
+9. 看板不实时：见文档 §2.3（publication；升级包会跑 ensure）
 
 四、连云 Ops 授权
 - 先在云 Ops 登记「本地」门店并签发安装码
 - /setup 认领成功后会写入本机配置；若需手改 .env：
   MESA_HOME/current/deploy/on-prem/.env
-  关键：MESA_PLATFORM_LICENSE_URL / MESA_LICENSE_CHECKIN_CREDENTIAL / MESA_LICENSE_LEASE_SECRET
-- 改完后：sudo /opt/mesa/bin/mesa-stack up -d web
+  授权：MESA_PLATFORM_LICENSE_URL / MESA_LICENSE_CHECKIN_CREDENTIAL / MESA_LICENSE_LEASE_SECRET
+  Auth 白名单：ADDITIONAL_REDIRECT_URLS（见上「三、7」）
+- 改授权后：sudo /opt/mesa/bin/mesa-stack up -d web
+- 改 Auth 白名单后：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth
 
 五、常用命令
 - 启停：  sudo /opt/mesa/bin/mesa-stack up|down|ps|logs
@@ -61,5 +77,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 首次 web 镜像若未预构建，可加 --build-web（耗内存/时间）
 - 升级含前端变更时不要 --SkipBuild；必须带 MESA_HOME 才能同步 apps/web
 - 桌位二维码：用局域网 IP 或公网域打开后台再生成，勿用 localhost / 127.0.0.1
+- 有 Tunnel / 局域网域名却漏 ADDITIONAL_REDIRECT_URLS → 登录回调失败（见三、7）
+- Print Agent 勿填 localhost / :3000；推荐 http://<店内IP>（见三、6）
+- 扫码下单不实时 → §2.3 / 三、9（勿轮询）
 - Supabase vendor 大版本升级不在一键脚本内
-- 完整打包/初装/升级说明：docs/technical/on-prem-pack-install-upgrade.zh.md
+- 完整说明：docs/technical/on-prem-pack-install-upgrade.zh.md

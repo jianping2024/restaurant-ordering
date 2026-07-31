@@ -10,5 +10,8 @@ Regenerate after schema-changing migrations land on a green DB:
 ./scripts/export-schema-baseline.sh
 ```
 
-`apply-migrations.sh` loads this baseline, seeds the `menu-images` storage bucket,
-and records migration filenames in `mesa_schema_migrations`.
+`apply-migrations.sh`: baseline → mark covered → pending incrementals → **`ensure_realtime_publication.sql` every run**.
+
+Publication membership is **not** in the public dump; covered migrations skip the initial
+`ALTER PUBLICATION`. Do not remove the ensure step or the `pack-release.sh` gate.
+Ops: `docs/technical/on-prem-pack-install-upgrade.zh.md` §2.3.

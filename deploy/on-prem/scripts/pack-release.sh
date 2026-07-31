@@ -78,6 +78,18 @@ chmod +x "$STAGE/install-ubuntu.sh" \
   "$STAGE/deploy/on-prem/linux/uninstall-mesa.sh" \
   "$STAGE/deploy/on-prem/scripts/"*.sh
 
+# Gate: Mode B Realtime publication ensure (baseline omits membership)
+ENSURE_SQL="$STAGE/deploy/on-prem/schema/ensure_realtime_publication.sql"
+APPLY_SH="$STAGE/deploy/on-prem/scripts/apply-migrations.sh"
+if [[ ! -f "$ENSURE_SQL" ]]; then
+  echo "ERROR: pack missing schema/ensure_realtime_publication.sql" >&2
+  exit 1
+fi
+if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
+  echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
+  exit 1
+fi
+
 cat >"$STAGE/README-VERIFY.zh.txt" <<EOF
 Mesa 安装验证 / 客户安装
 ========================

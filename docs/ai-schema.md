@@ -171,9 +171,9 @@ Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies o
 
 ## Realtime (`supabase_realtime` publication)
 
-Tables with `REPLICA IDENTITY FULL` where filtered subscriptions need it: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, buffet tables (`buffets`, `buffet_time_slots`, `buffet_price_rules`, `buffet_calendar_overrides`).
+Filtered subscriptions need `REPLICA IDENTITY FULL` on: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, buffet tables.
 
-## Domain Values / Check Constraints
+**Mode B:** baseline omits publication membership → `apply-migrations.sh` always runs `deploy/on-prem/schema/ensure_realtime_publication.sql` (`orders`, `table_sessions`, `bill_splits`). See on-prem pack doc §2.3.## Domain Values / Check Constraints
 
 bill_splits.split_mode: whole_table | even | by_item | custom  
 bill_splits.status: pending | confirmed | requested | paid | cancelled  

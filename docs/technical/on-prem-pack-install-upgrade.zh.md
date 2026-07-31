@@ -213,7 +213,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 
 **加速手段（写在 Dockerfile，不要在店机 shell 里敲）**
 
-`RUN --mount=type=cache,target=/root/.npm npm ci` 是 **Dockerfile 语法**，改 `apps/web/Dockerfile` 后重新 `pack-release` 再升级。在店机终端执行 `RUN …` 会报「未找到命令」。加 BuildKit npm 缓存后，即使 deps 层因 lock 变化不能整层 CACHED，重复下载也会快很多。店机需可用 BuildKit（Docker 较新版本默认开启）。
+`apps/web/Dockerfile` deps 已用 `RUN --mount=type=cache,target=/root/.npm npm ci`（BuildKit）。lock 变了或上次 `npm ci` 失败时，重复下载会快很多。店机勿在 shell 敲 `RUN …`。需 Docker BuildKit（较新默认开启）。
 
 **网络**：构建中 `npm error network read ETIMEDOUT` 是店机访问 `registry.npmjs.org` 中断。可先 `curl -I https://registry.npmjs.org/` 与 `docker run --rm node:20-bookworm-slim npm ping`；通则直接重跑同一条 `upgrade.sh`。中长期可再考虑预构建 web 镜像随包下发（见交接/后续优化），避免门店现场编译。
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 import {
   getPublishedSupabaseUrl,
+  getSupabaseAuthCookieOptions,
   getSupabaseUrl,
   isSupabaseBrowserSameOrigin,
 } from './url';
@@ -78,6 +79,21 @@ describe('getSupabaseUrl (browser same-origin)', () => {
       if (prevWindow === undefined) delete (globalThis as { window?: unknown }).window;
       else (globalThis as { window?: unknown }).window = prevWindow;
     }
+  });
+});
+
+describe('getSupabaseAuthCookieOptions', () => {
+  it('is undefined when same-origin is off (cloud / local CLI)', () => {
+    stashEnv();
+    assert.equal(getSupabaseAuthCookieOptions(), undefined);
+  });
+
+  it('pins sb-kong-auth-token when same-origin is on (Mode B)', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
+    assert.deepEqual(getSupabaseAuthCookieOptions(), {
+      name: 'sb-kong-auth-token',
+    });
   });
 });
 

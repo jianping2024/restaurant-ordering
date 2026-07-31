@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import type { NextResponse } from 'next/server';
-import { getSupabaseUrl } from '@/lib/supabase/url';
+import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 
 type CookieStore = {
   getAll(): { name: string; value: string }[];
@@ -23,6 +23,7 @@ export function createRouteHandlerSupabaseAuth(cookieStore: CookieStore) {
     getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: getSupabaseAuthCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();

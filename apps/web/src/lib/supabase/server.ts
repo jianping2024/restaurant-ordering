@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { getSupabaseUrl } from '@/lib/supabase/url';
+import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 
 /** Server Supabase client (Server Components / Route Handlers). */
 export async function createClient() {
@@ -10,6 +10,7 @@ export async function createClient() {
     getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: getSupabaseAuthCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();

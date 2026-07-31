@@ -15,7 +15,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`（§2.3 / §3.1；否则公网 HTTPS 看板 Realtime Mixed Content）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）。
 
 产物：
 
@@ -167,6 +167,8 @@ WHERE pubname='supabase_realtime' ORDER BY 1;
 
 员工须在列表页 `/dashboard/waiter`；详情页楼面 Realtime 按设计休眠。勿用轮询冒充修复。
 
+**Mode B same-origin Auth Cookie（订上频道但无 CDC）：** 服务端 `SUPABASE_URL=http://kong:8000` 写入 `sb-kong-auth-token`；浏览器若用页面 origin 推导 Cookie 名会对不上 → Realtime **无 JWT** → RLS 滤掉 `postgres_changes`。唯一修法：`getSupabaseAuthCookieOptions()`（`apps/web/src/lib/supabase/url.ts`）在 same-origin 下固定与 `kong` host 对齐的 Cookie 名，且 **browser/server/middleware/route-handler** 四处都走该函数。升级后员工 **重新登录** 一次。`pack-release` 门禁校验四处接线。
+
 ---
 
 ## 3. 目标机：升级（已有 `/opt/mesa`）
@@ -244,7 +246,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 | Tunnel / 局域网域名登录失败 | 查 §2.1：`.env` 补 `ADDITIONAL_REDIRECT_URLS=…/**`，`--force-recreate auth` |
 | 只有 `SITE_URL`、无白名单 | 常见；纯 IP 可暂用。有公网域或 `*.lan` 登录时必须补白名单 |
 | Print Agent 填 localhost / `:3000` / 公网域 | 查 §2.2：填 `http://<店内IP>`（edge，无 `:3000`） |
-| 扫码下单成功但前台不实时 | §2.3 publication；若公网 HTTPS Console 有 Mixed Content/`ws://局域网` → same-origin 旗须 `menuImageSameOriginEnabled()` 无参（禁止传 `process.env`） |
+| 扫码下单成功但前台不实时 | §2.3：publication；Mixed Content → same-origin 无参 inline；WS 已 join 但无 CDC → Auth Cookie 名（`getSupabaseAuthCookieOptions`），升级后重新登录 |
 | Caddy 宽匹配 `/auth/*` | 只代理 `/auth/v1/*` 等，避免抢走 Next `/auth/login` |
 | 升级失败立刻 Restore | 先 curl 登录页与 `/api/health/*`；确认是否误报 |
 | 终端执行 `RUN --mount=… npm ci` | 那是 **Dockerfile** 行，改 `apps/web/Dockerfile` 后重新打包升级，不是店机 shell 命令 |

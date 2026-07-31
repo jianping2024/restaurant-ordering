@@ -52,11 +52,11 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 			if prefill == "http://127.0.0.1:3000" {
 				prefill = ""
 			}
-			// Tray may already be visible (runAgentTrayFirst); hint user to use browser wizard.
+			// Tray local HTTP (17892) should already be up; otherwise standalone 17890 wizard.
 			agentLogLocale(localeFromConfigPath(path), "log_pairing_required")
 			ctx, cancel := context.WithTimeout(runCtx, 20*time.Minute)
 			defer cancel()
-			if err := runPairingWizard(ctx, path, prefill); err != nil {
+			if err := waitForAgentPairing(ctx, path, prefill); err != nil {
 				if runCtx.Err() != nil {
 					return nil, *showConsole, runCtx.Err()
 				}

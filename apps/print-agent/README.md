@@ -37,10 +37,10 @@ Use the printed addresses in `config.json` (see below). Map each **print station
 
 1. Install from Dashboard download. On **Select Additional Tasks**: optional **desktop shortcut** and **sign-in startup** (both off by default; portable zip has neither).
 2. **Double-click `MesaPrintAgent`** (or let it start at logon). The agent runs in the **system tray** (taskbar **^** → **Mesa Print**). **No black console window** — you do **not** need to keep a command prompt open while printing.
-3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then **Open settings on this PC** (or tray → **Printer settings…**). If not paired, use the **pairing page** link; on the settings page click **Scan printers**, map stations, **Save** (test print optional). First agent start may also auto-open pairing on port **17890** before you use Dashboard.
-4. **Troubleshooting only:** `MesaPrintAgent.exe -console`, or tray → **Show debug console**; log file under `%LOCALAPPDATA%\Mesa Print Agent\agent.log`. Optional advanced: `MesaPrintAgent.exe -api URL -code 123456` or `MesaPrintAgent pair`.
+3. **First pairing:** generate a 6-digit code in Mesa **打印助手**, then **Open settings on this PC** (or tray → **Printer settings…**). Tray serves **`/pair` and `/configure` on port 17892 from startup** (including before Connected). Map stations, **Save** (test print optional).
+4. **Troubleshooting only:** `MesaPrintAgent.exe -console`, or tray → **Show debug console**; log file under `%LOCALAPPDATA%\Mesa Print Agent\agent.log`. Optional advanced: `MesaPrintAgent.exe -api URL -code 123456` or `MesaPrintAgent pair` (standalone **17890** only when tray is not running).
 
-Local HTTP: settings `http://127.0.0.1:17892/configure` (tray / Dashboard; while open, **`/pair`** is on the same port). Standalone pairing wizard: `http://127.0.0.1:17890/pair` (first-run bootstrap). Legacy setup-only: `http://127.0.0.1:17891/` (`setup` subcommand).
+Local HTTP (tray): `http://127.0.0.1:17892/configure` and **`/pair`** on the same port from tray start. CLI-only pairing: `http://127.0.0.1:17890/pair`. Legacy setup-only: `http://127.0.0.1:17891/` (`setup` subcommand).
 
 **Development** (`go run` from this directory):
 

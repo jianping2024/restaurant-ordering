@@ -32,7 +32,7 @@
 | 日志写 `printed` 但无纸 | USB 未接电脑、`winspool` 队列名与实体机不一致、假成功进 Windows 队列 |
 | 一连上狂打历史单 | 库内长期 `pending` 积压；代理重连后按时间顺序消费（**已修复**：超过 **20 分钟** 的任务在 API 侧作废且不再下发，代理侧二次跳过，见下文「已落地」） |
 | 店主不敢关黑窗口 | **已缓解**：正式包托盘为主、无默认黑窗（见 README / `WINDOWS-README.txt`）；仍有人习惯找「黑窗口」 |
-| 配置分散 / 术语重 | 主路径：**Dashboard 打印助手** → `configure`（`:17892`）。**S0**：映射与配对分页（`/configure` + `/pair` 同端口）；**手动扫描**；`pair`（`:17890`）仍为首启 bootstrap 兜底。下拉 value 仍为 `tcp:` / `winspool:`，展示已友好化 |
+| 配置分散 / 术语重 | 主路径：**Dashboard 打印助手** → `configure`/`pair`（`:17892`，托盘启动即监听）。**S0**：映射与配对同端口；**手动扫描**；CLI `pair`（`:17890`）仅无托盘时用。下拉 value 仍为 `tcp:` / `winspool:`，展示已友好化 |
 
 本文档归纳 **面向餐厅客户的包装改进**，供排期；与 [`print-agent-plan.md`](./print-agent-plan.md) 中 **P0/P1** 条目互补，不重复协议与 RLS 细节。
 
@@ -42,7 +42,8 @@
 
 - **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 打开日志 / 调试控制台 / 关于 / 退出；试打在设置页）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
 - **界面语言（v0.2.43+）**：`config.json` 的 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；**托盘**菜单/tooltip/弹窗、`agent.log` 人话行随此设置。**S0 configure** 不再提供顶栏改语言（文案随磁盘 `ui_locale`）；**`pair_ui`** 仍可用 `?lang=` + `/api/ui-locale`。**`configure` / `pair_ui` / `setup_ui`** 主体走 **`ui_i18n.go`**。**订单/厨房纸面语言**仍用 Mesa `print_locale` → `payload.locale`，与 `ui_locale` 无关。
-- **S0 configure 精简（2026-05）**：`configure_ui.html` 仅 **状态 →（未配对 gate）→ 手动扫描 → 档口映射 → 保存 → 可选试打 → 完成关页**；配对在 **`/pair`**（configure 会话挂载于托盘 **17892** 时与 `/configure` 同端口）。**不**进页自动 LAN 扫描；**不**强制试打确认关页。首启无 JWT 时代理仍可能自动弹 **17890** 配对 + **17891** `setup`（bootstrap），与 Dashboard 深链可并存。
+- **S0 configure 精简（2026-05）**：`configure_ui.html` 仅 **状态 →（未配对 gate）→ 手动扫描 → 档口映射 → 保存 → 可选试打 → 完成关页**；配对在 **`/pair`**（与 `/configure` 同端口 **17892**）。**不**进页自动 LAN 扫描；**不**强制试打确认关页。
+- **托盘本地 HTTP（v0.3.54+）**：`startTrayLocalHTTP` 在托盘启动时即监听 **17892**（含未配对）；Dashboard / 托盘「打印机设置」与首启配对 **只认这一套**。CLI `pair` 在无托盘时仍可用临时 **17890**；托盘路径不再并行起 17890。
 - **心跳与在线（v0.2.56+）**：`POST /api/print-agent/heartbeat`；Dashboard **已配对收银机** 列表（`last_seen`、版本、映射数等）。
 - **首装试打（P0-2，v0.2.42+；S0 调整）**：`POST /api/test-print`；**configure（S0）** 试打为**可选**，关页不二次拦截。**`setup_ui`** 仍保留较完整的试打/排障向导（首启 bootstrap 路径）。保存须至少映射一个出品档口。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。

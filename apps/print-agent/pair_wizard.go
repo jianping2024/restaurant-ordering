@@ -90,15 +90,21 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 		}
 	}()
 
-	baseURL := "http://" + listenAddr + "/pair"
-	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
-		baseURL = "http://" + listenAddr + "/pair?api=" + url.QueryEscape(api)
-	}
+	baseURL := pairWizardBaseURL(listenAddr, prefillAPI)
 
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
 	announceWizardURL("MesaGo 配对", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
+}
+
+// pairWizardBaseURL is the single local pairing page URL builder (tray 17892 or CLI 17890).
+func pairWizardBaseURL(listenAddr, prefillAPI string) string {
+	baseURL := "http://" + listenAddr + "/pair"
+	if api, err := normalizeAPIBase(prefillAPI); err == nil && api != "" {
+		return "http://" + listenAddr + "/pair?api=" + url.QueryEscape(api)
+	}
+	return baseURL
 }
 
 func writePairJSON(w http.ResponseWriter, status int, v any) {

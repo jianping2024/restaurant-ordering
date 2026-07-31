@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Evidence check: tray must start before blocking init (Windows agent_entry_windows.go).
+# Evidence check: tray must start before blocking init; local HTTP before unpaired wait (Windows agent_entry_windows.go).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FILE="$ROOT/agent_entry_windows.go"
+BOOTSTRAP="$ROOT/agent_bootstrap.go"
 if ! grep -q 'runAgentTrayFirst' "$FILE"; then
   echo "FAIL: missing runAgentTrayFirst"
   exit 1
@@ -31,7 +32,20 @@ if "go func()" not in block or block.find("initAgentSession") < block.find("go f
 if "systray.Run" not in block:
     print("FAIL: missing systray.Run in runAgentTrayFirst")
     raise SystemExit(1)
-print("OK: tray path calls systray.Run on main thread; initAgentSession runs in background goroutine")
+if block.count("startTrayLocalHTTP") != 1:
+    print("FAIL: expected exactly one startTrayLocalHTTP in runAgentTrayFirst")
+    raise SystemExit(1)
+if block.find("startTrayLocalHTTP") > block.find("initAgentSession"):
+    print("FAIL: startTrayLocalHTTP must run before initAgentSession (unpaired /pair on 17892)")
+    raise SystemExit(1)
+boot = Path("$BOOTSTRAP").read_text()
+if "waitForAgentPairing" not in boot:
+    print("FAIL: unpaired bootstrap must call waitForAgentPairing")
+    raise SystemExit(1)
+if "runPairingWizard(" in boot:
+    print("FAIL: agent_bootstrap must not call runPairingWizard directly (use waitForAgentPairing)")
+    raise SystemExit(1)
+print("OK: tray HTTP before init; unpaired wait prefers tray 17892")
 PY
 if ! grep -q 'acquireAgentSingleInstance' "$ROOT/single_instance_windows.go"; then
   echo "FAIL: missing single-instance mutex"

@@ -20,7 +20,9 @@ services:
     ports:
       - "${MESA_EDGE_PORT:-80}:80"
     volumes:
-      - ./edge/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Must be absolute: with multiple -f compose files, "./edge/..." resolves under
+      # vendor/supabase-docker/ (first file), not deploy/on-prem/.
+      - ${MESA_REPO_ROOT:?set MESA_REPO_ROOT via scripts/stack.sh}/deploy/on-prem/edge/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       web:
         condition: service_started

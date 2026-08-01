@@ -150,7 +150,7 @@
 | ③ print-agent 本机 | ❌ | 另机 Windows；服务器地址 `http://<店内IP>`（edge） |
 | ④ 域名证书 | ❌ | POC 用局域网 IP |
 | ⑤ 安装器/自启 | 🟡 | Ubuntu 脚本在；空机重复装 + 重启自起未验收 |
-| ⑥ 备份恢复 | 🟡 | `backup-local.sh` + `mesa-daily-cutover`（关台→经营日报→本机快照）；灾备/恢复演练未闭环 |
+| ⑥ 备份恢复 | 🟡 | `backup-local.sh` + `mesa-daily-cutover`（关台→本机快照）；灾备/恢复演练未闭环 |
 | ⑦ 升级回滚 | 🟡 | `upgrade.sh`/`rollback.sh` 有；≥3 次演练无 |
 | ⑧ 试点 | ❌ | — |
 | 控制面（ADR-004） | 🟡 | 代码+云迁移+装机桥齐；连云 UAT / 推远程未完 |
@@ -227,7 +227,7 @@ No pending incremental migrations (baseline covers current tree).
 3. **push 本地 `main`（用户明确说 push 时）**；确认云 Ops 部署与 `MESA_LICENSE_LEASE_SECRET`。  
 4. 跑通连云 UAT：Ops 登记 → 发码 → `/setup` → `/auth/login` → dashboard check-in → 续期/停运。  
 5. Print Agent 指 `http://<店内局域网IP>`（§2.2，勿 localhost / `:3000`），厨打冒烟。  
-6. 再排 ⑤ 空机 Installer、⑥ 经营日报/备份、⑦ 升级演练。
+6. 再排 ⑤ 空机 Installer、⑥ 备份恢复、⑦ 升级演练。
 
 ---
 

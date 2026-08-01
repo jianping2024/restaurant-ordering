@@ -399,7 +399,6 @@ export type CheckInResult =
       leaseToken: string;
       lease: ReturnType<typeof buildLicenseLeaseClaims>;
       desiredSuspended: boolean;
-      dailyBusinessReportEnabled: boolean;
     }
   | { ok: false; error: string; status: number; detail?: string };
 
@@ -425,7 +424,7 @@ export async function checkInOnPremInstallation(
 
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
-    .select('id, deployment_mode, license_valid_until, suspended_at, suspension_reason, daily_business_report_enabled')
+    .select('id, deployment_mode, license_valid_until, suspended_at, suspension_reason')
     .eq('id', installation.restaurant_id)
     .maybeSingle();
 
@@ -473,8 +472,5 @@ export async function checkInOnPremInstallation(
     leaseToken,
     lease,
     desiredSuspended,
-    dailyBusinessReportEnabled: Boolean(
-      (restaurant as { daily_business_report_enabled?: boolean }).daily_business_report_enabled,
-    ),
   };
 }

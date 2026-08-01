@@ -40,7 +40,7 @@ sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 - Ubuntu 说明副本：`linux/README-INSTALL.zh.txt`（打进包根 `README-UBUNTU.zh.txt`）
 - 卸载：`linux/uninstall-mesa.sh`（默认保留数据）
 - 开机拉栈：`mesa-on-prem.service`（`install-mesa.sh` 安装）
-- 日切：`mesa-daily-cutover.timer`（Lisbon 05:05 → `scripts/daily-cutover.sh`：夜间关台 → 经营日报 seal/上报 → 本机 backup）
+- 日切：`mesa-daily-cutover.timer`（Lisbon 05:05 → `scripts/daily-cutover.sh`：夜间关台 → 本机 backup）
 
 ## Mode B（开发机 / 已有 Docker）
 

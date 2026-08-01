@@ -1,5 +1,5 @@
 [Unit]
-Description=Mesa on-prem daily cutover (nightly close + 经营日报 + local backup)
+Description=Mesa on-prem daily cutover (nightly close + local backup)
 After=mesa-on-prem.service docker.service network-online.target
 Wants=mesa-on-prem.service
 

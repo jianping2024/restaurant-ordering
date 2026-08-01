@@ -14,7 +14,6 @@ export function RestaurantDetailTabs({
   const base = `/ops/restaurants/${restaurantId}`;
   const tabs = [
     { href: base, label: '概览', exact: true },
-    { href: `${base}/business-report`, label: '经营日报', exact: false },
     { href: `${base}/print`, label: '打印', exact: false },
     { href: `${base}/staff`, label: '员工', exact: false },
   ];

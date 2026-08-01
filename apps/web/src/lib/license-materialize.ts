@@ -114,7 +114,6 @@ export async function syncOnPremLicenseFromPlatform(
       leaseToken?: string;
       lease?: { server_time: string; lease_until: string; valid_until: string | null };
       licenseValidUntil?: string | null;
-      dailyBusinessReportEnabled?: boolean;
     };
     if (!res.ok || !json.leaseToken || !json.lease) {
       await applyLicenseMaterialize(admin, restaurantId);
@@ -128,7 +127,6 @@ export async function syncOnPremLicenseFromPlatform(
         license_checked_at: json.lease.server_time,
         license_lease_until: json.lease.lease_until,
         license_lease_token: json.leaseToken,
-        daily_business_report_enabled: Boolean(json.dailyBusinessReportEnabled),
       })
       .eq('id', restaurantId);
 

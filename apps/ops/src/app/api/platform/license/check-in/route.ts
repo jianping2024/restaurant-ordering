@@ -45,6 +45,5 @@ export async function POST(req: Request) {
     leaseToken: result.leaseToken,
     lease: result.lease,
     desiredSuspended: result.desiredSuspended,
-    dailyBusinessReportEnabled: result.dailyBusinessReportEnabled,
   });
 }

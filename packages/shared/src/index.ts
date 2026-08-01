@@ -22,12 +22,6 @@ export {
   type RegisterOnPremRestaurantResult,
 } from './register-on-prem-restaurant';
 export {
-  ANALYTICS_DAILY_SCHEMA_VERSION,
-  parseDailyBusinessReport,
-  type DailyBusinessReport,
-  type DailyBusinessReportTopItem,
-} from './daily-business-report';
-export {
   PRINT_AGENT_STAFF_DISPLAY_NAME,
   PRINT_AGENT_STAFF_ROLE,
   ensurePrintAgentStaff,

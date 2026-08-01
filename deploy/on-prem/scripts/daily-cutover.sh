@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Mesa on-prem daily cutover (sole store-side daily job):
 #   1) nightly_close  → GET /api/cron/nightly-close-sessions
-#   2) seal_and_report → GET /api/cron/daily-cutover-report
-#   3) local_backup   → scripts/backup-local.sh
+#   2) local_backup   → scripts/backup-local.sh
 # Scheduled by mesa-daily-cutover.timer (Europe/Lisbon ~05:05).
 set -euo pipefail
 
@@ -42,20 +41,18 @@ write_result() {
   "schemaVersion": 1,
   "finishedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "nightlyClose": "$(json_str "$1")",
-  "sealAndReport": "$(json_str "$2")",
-  "localBackup": "$(json_str "$3")",
-  "detail": "$(json_str "$4")"
+  "localBackup": "$(json_str "$2")",
+  "detail": "$(json_str "$3")"
 }
 JSON
 }
 
 CLOSE_STATUS="skipped"
-REPORT_STATUS="skipped"
 BACKUP_STATUS="skipped"
 DETAIL="ok"
 
 if [[ -z "$CRON_SECRET" ]]; then
-  write_result "failed" "skipped" "skipped" "CRON_SECRET missing"
+  write_result "failed" "skipped" "CRON_SECRET missing"
   echo "CRON_SECRET missing — abort cutover" >&2
   exit 1
 fi
@@ -70,15 +67,7 @@ else
   DETAIL="nightly_close_http_failed"
 fi
 
-echo "Phase 2: seal_and_report → ${BASE_URL}/api/cron/daily-cutover-report"
-if curl -fsS "${auth_hdr[@]}" "${BASE_URL}/api/cron/daily-cutover-report" -o /tmp/mesa-cutover-report.json; then
-  REPORT_STATUS="ok"
-else
-  REPORT_STATUS="failed"
-  DETAIL="${DETAIL};seal_and_report_http_failed"
-fi
-
-echo "Phase 3: local_backup"
+echo "Phase 2: local_backup"
 export MESA_HOME="${MESA_HOME:-}"
 if [[ -x "${ONPREM_DIR}/scripts/backup-local.sh" ]]; then
   if BACKUP_ROOT="${MESA_HOME:+${MESA_HOME}/backups}" "${ONPREM_DIR}/scripts/backup-local.sh"; then
@@ -92,10 +81,9 @@ else
   DETAIL="${DETAIL};backup_script_missing"
 fi
 
-write_result "$CLOSE_STATUS" "$REPORT_STATUS" "$BACKUP_STATUS" "$DETAIL"
+write_result "$CLOSE_STATUS" "$BACKUP_STATUS" "$DETAIL"
 echo "LAST_DAILY_CUTOVER → ${RESULT_FILE}"
 
-# Do not fail the timer unit solely on upload pending; fail if close failed hard.
 if [[ "$CLOSE_STATUS" == "failed" ]]; then
   exit 1
 fi

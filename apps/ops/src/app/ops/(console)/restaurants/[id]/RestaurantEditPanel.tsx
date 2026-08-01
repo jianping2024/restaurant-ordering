@@ -8,7 +8,6 @@ import {
   type ResolvedRestaurantFeatureFlags,
   type RestaurantCountryCode,
 } from '@mesa/shared';
-import { DailyBusinessReportEnabledField } from '@/components/DailyBusinessReportEnabledField';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type Props = {
@@ -22,8 +21,6 @@ type Props = {
     printLocale: PrintLocale;
     countryCode: RestaurantCountryCode;
     featureFlags: ResolvedRestaurantFeatureFlags;
-    deploymentMode: 'cloud' | 'on_prem';
-    dailyBusinessReportEnabled: boolean;
   };
 };
 
@@ -41,10 +38,6 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initial.printLocale);
   const [countryCode, setCountryCode] = useState<RestaurantCountryCode>(initial.countryCode);
   const [flags, setFlags] = useState(initial.featureFlags);
-  const [dailyBusinessReportEnabled, setDailyBusinessReportEnabled] = useState(
-    initial.dailyBusinessReportEnabled,
-  );
-  const onPrem = initial.deploymentMode === 'on_prem';
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -70,7 +63,6 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
           printLocale,
           countryCode,
           featureFlags: flags,
-          dailyBusinessReportEnabled: onPrem ? dailyBusinessReportEnabled : undefined,
           confirmSlugChange: confirmSlugChange || undefined,
         }),
       });
@@ -197,14 +189,6 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
             ))}
           </div>
         </fieldset>
-
-        {onPrem ? (
-          <DailyBusinessReportEnabledField
-            className="sm:col-span-2"
-            checked={dailyBusinessReportEnabled}
-            onChange={setDailyBusinessReportEnabled}
-          />
-        ) : null}
 
         <div className="sm:col-span-2">
           <button

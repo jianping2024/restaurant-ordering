@@ -1,9 +1,5 @@
 /** Bump when sealed daily metrics shape, seal rules, top-items contract, or grain change. */
-export {
-  ANALYTICS_DAILY_SCHEMA_VERSION,
-  type DailyBusinessReport,
-  type DailyBusinessReportTopItem,
-} from '@mesa/shared';
+export const ANALYTICS_DAILY_SCHEMA_VERSION = 3;
 
 export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter';
 

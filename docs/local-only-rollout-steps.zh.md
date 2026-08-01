@@ -52,7 +52,7 @@
 
 | 项 | 状态 | 何时必须定 |
 |----|------|------------|
-| 备份上 cloud、一天一次 | **已定方向** | 经营日报上报 vs 全量灾备 → 步骤 ⑥；见近期方案 |
+| 备份上 cloud、一天一次 | **已废弃上报** | 店内日切只做清台 + 本机 `backup-local`；不上报经营指标 |
 | 店机 OS / 运行时 | **已定** | **Ubuntu 22.04/24.04 + Docker Engine**（原生）；安装器 `install-ubuntu.sh` |
 | 现有云店迁本地 | 未定 | **仅当有存量 SaaS 店要迁**；无则跳过 |
 | 顾客公网扫码：店内 DNS vs 隧道 | 未定 | 试点前；**POC 可用局域网 IP/书签** |
@@ -104,13 +104,13 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 
 开机：Ubuntu `systemd` 单元 `mesa-on-prem.service` 拉栈；不依赖 Windows 计划任务 `MesaOnPremStack` / `MesaOnPremBackup`。
 
-### 2.5 备份 / 经营日报 / 夜间关台——店内一条日切
+### 2.5 夜间关台 + 本机备份——店内一条日切
 
 **已定（店内 Ubuntu）：**
 
-- **一条** `mesa-daily-cutover.timer`（Lisbon 05:05）：夜间关台 → 密封昨日经营日报（开关开才上传云）→ 本机 `backup-local`。  
+- **一条** `mesa-daily-cutover.timer`（Lisbon 05:05）：夜间关台 → 本机 `backup-local`。  
 - 云 SaaS 夜间关台仍走 Vercel cron，互不影响。  
-- Ops 开关 `daily_business_report_enabled`（仅 on_prem）；查看页名 **经营日报**。
+- 不向平台上报经营日报；店主增值分析仍在本机懒密封。
 
 ---
 
@@ -150,7 +150,7 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 - 运行：**Docker Engine + Compose** 跑 Web/库（见 §2.4）。  
 - 打印：另机 **Windows** MesaPrintAgent；USB 与网口均可。  
 - 域名：在「店内 DNS」与「公网 DNS/隧道」中选定推荐项并写进矩阵。  
-- 备份 / 经营日报：本机日任务；细节见步骤 ⑥。  
+- 备份：本机日任务（清台 + backup-local）；细节见步骤 ⑥。  
 - 验收边界：断公网必须能开台、点单、收款、打票、关台；顾客扫码不断网验收。
 
 **怎样算完**

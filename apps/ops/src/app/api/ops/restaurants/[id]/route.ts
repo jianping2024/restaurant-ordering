@@ -30,7 +30,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { data: existing, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, address, phone, print_locale, country_code, feature_flags, deployment_mode, daily_business_report_enabled',
+      'id, name, slug, plan, address, phone, print_locale, country_code, feature_flags, deployment_mode',
     )
     .eq('id', id)
     .maybeSingle();
@@ -112,22 +112,6 @@ export async function PATCH(req: Request, context: RouteContext) {
     const nextFlags = mergeRestaurantFeatureFlagsJsonb(existing.feature_flags, patch);
     updates.feature_flags = nextFlags;
     metadata.featureFlags = patch;
-  }
-
-  if (typeof body.dailyBusinessReportEnabled === 'boolean') {
-    if (existing.deployment_mode !== 'on_prem') {
-      return NextResponse.json({ error: 'report_toggle_on_prem_only' }, { status: 400 });
-    }
-    const prev = Boolean(
-      (existing as { daily_business_report_enabled?: boolean }).daily_business_report_enabled,
-    );
-    if (body.dailyBusinessReportEnabled !== prev) {
-      updates.daily_business_report_enabled = body.dailyBusinessReportEnabled;
-      metadata.dailyBusinessReportEnabled = {
-        from: prev,
-        to: body.dailyBusinessReportEnabled,
-      };
-    }
   }
 
   if (typeof body.slug === 'string') {

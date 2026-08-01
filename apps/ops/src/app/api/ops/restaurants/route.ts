@@ -102,7 +102,6 @@ export async function POST(req: Request) {
     countryCode?: string;
     slug?: string;
     licenseValidUntil?: string | null;
-    dailyBusinessReportEnabled?: boolean;
   };
   try {
     body = await req.json();
@@ -123,7 +122,6 @@ export async function POST(req: Request) {
       countryCode: body.countryCode,
       slug: body.slug,
       licenseValidUntil: body.licenseValidUntil,
-      dailyBusinessReportEnabled: Boolean(body.dailyBusinessReportEnabled),
     });
     if (!result.ok) {
       return NextResponse.json(
@@ -140,7 +138,6 @@ export async function POST(req: Request) {
       metadata: {
         slug: result.slug,
         deploymentMode: 'on_prem',
-        dailyBusinessReportEnabled: Boolean(body.dailyBusinessReportEnabled),
       },
     });
     return NextResponse.json({

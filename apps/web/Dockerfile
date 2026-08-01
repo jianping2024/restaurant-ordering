@@ -33,10 +33,13 @@ ARG NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder
 ARG NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=1
 ARG NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO
+# Pack / on-prem release id (same as manifest version). Runtime also set via compose.
+ARG MESA_WEB_VERSION=
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN=$NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN
 ENV NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO=$NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO
+ENV MESA_WEB_VERSION=$MESA_WEB_VERSION
 RUN npm run build -w @mesa/web
 
 FROM node:20-bookworm-slim AS runner
@@ -48,6 +51,8 @@ ENV HOSTNAME=0.0.0.0
 # Server components read this at runtime — runner stage needs it too.
 ARG NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO
 ENV NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO=$NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO
+ARG MESA_WEB_VERSION=
+ENV MESA_WEB_VERSION=$MESA_WEB_VERSION
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nextjs
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./

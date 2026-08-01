@@ -233,6 +233,21 @@ write_upgrade "running" "migrate" "migrations applied" "true"
 
 write_upgrade "running" "stack" "bringing stack up" "true"
 echo "== stack =="
+# Bake pack version into web image + runtime (getWebAppBuildInfo /settings footer).
+export MESA_WEB_VERSION="$TO_VERSION"
+ENV_FILE="${TARGET_ONPREM}/.env"
+if [[ -f "$ENV_FILE" ]]; then
+  if grep -q '^MESA_WEB_VERSION=' "$ENV_FILE"; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+      sed -i.bak -e "s|^MESA_WEB_VERSION=.*|MESA_WEB_VERSION=${TO_VERSION}|" "$ENV_FILE"
+      rm -f "${ENV_FILE}.bak"
+    else
+      sed -i -e "s|^MESA_WEB_VERSION=.*|MESA_WEB_VERSION=${TO_VERSION}|" "$ENV_FILE"
+    fi
+  else
+    printf 'MESA_WEB_VERSION=%s\n' "$TO_VERSION" >>"$ENV_FILE"
+  fi
+fi
 ./scripts/stack.sh up
 if [[ "$SKIP_BUILD" != "1" ]]; then
   ./scripts/stack.sh up --build web

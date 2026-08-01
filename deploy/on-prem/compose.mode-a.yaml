@@ -20,12 +20,14 @@ services:
         # Baked into the browser bundle (host loopback for Mode A).
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://127.0.0.1:54321}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        MESA_WEB_VERSION: ${MESA_WEB_VERSION:-}
     ports:
       - "${MESA_WEB_PORT:-3000}:3000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
       MESA_ON_PREM: "1"
+      MESA_WEB_VERSION: ${MESA_WEB_VERSION:-}
       # Server runtime (not build-inlined): container → host supabase.
       SUPABASE_URL: ${SUPABASE_URL:-http://host.docker.internal:54321}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://127.0.0.1:54321}

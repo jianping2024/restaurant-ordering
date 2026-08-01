@@ -15,12 +15,15 @@ type Props = {
   children: React.ReactNode;
   capabilities: CapabilitiesPayload;
   showSystemLogs?: boolean;
+  /** From getWebAppBuildInfo — empty hides the footer. */
+  webAppVersion?: string;
 };
 
 export function DashboardSettingsShell({
   children,
   capabilities,
   showSystemLogs = false,
+  webAppVersion = '',
 }: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
@@ -35,6 +38,9 @@ export function DashboardSettingsShell({
   const wide = isSettingsWideLayout(pathname);
   const narrowForm =
     pathname === '/dashboard/settings' || pathname === '/dashboard/settings/';
+  const versionLine = webAppVersion
+    ? hub.appVersion.replaceAll('{version}', webAppVersion)
+    : '';
 
   const pageBody = (
     <>
@@ -56,6 +62,12 @@ export function DashboardSettingsShell({
       ) : null}
 
       {children}
+
+      {versionLine ? (
+        <p className="mt-8 text-[12px] tabular-nums text-brand-text-muted/80" data-testid="web-app-version">
+          {versionLine}
+        </p>
+      ) : null}
     </>
   );
 

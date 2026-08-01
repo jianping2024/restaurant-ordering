@@ -838,6 +838,7 @@ export const MESSAGES = {
       tabPrintAssistant: '打印助手',
       tabBuffet: '自助餐定价',
       tabSystemLogs: '系统日志',
+      appVersion: 'Mesa Web {version}',
     },
     settingsSystemLogs: {
       fromLabel: '开始时间',
@@ -2019,6 +2020,7 @@ export const MESSAGES = {
       tabBuffet: 'Buffet pricing',
       tabPrintAssistant: 'Print assistant',
       tabSystemLogs: 'System logs',
+      appVersion: 'Mesa Web {version}',
     },
     settingsSystemLogs: {
       fromLabel: 'From',
@@ -2947,6 +2949,7 @@ export const MESSAGES = {
       tabBuffet: 'Buffet',
       tabPrintAssistant: 'Assistente',
       tabSystemLogs: 'Logs do sistema',
+      appVersion: 'Mesa Web {version}',
     },
     settingsSystemLogs: {
       fromLabel: 'De',

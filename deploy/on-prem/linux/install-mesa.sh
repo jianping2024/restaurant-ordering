@@ -162,6 +162,24 @@ else
   log "复用已有 .env"
 fi
 
+# Pack manifest version → web build identity (getWebAppBuildInfo / health live / settings).
+PACK_VER=""
+if [[ -f "$PACK_ROOT/manifest.json" ]] && command -v python3 >/dev/null 2>&1; then
+  PACK_VER=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("version") or "")' "$PACK_ROOT/manifest.json" 2>/dev/null || true)
+fi
+if [[ -z "$PACK_VER" && -f "$PACK_ROOT/PACK-ID.txt" ]]; then
+  PACK_VER=$(sed -e 's/^mesa-on-prem-//' "$PACK_ROOT/PACK-ID.txt" | tr -d '\n')
+fi
+if [[ -n "$PACK_VER" ]]; then
+  export MESA_WEB_VERSION="$PACK_VER"
+  if grep -q '^MESA_WEB_VERSION=' .env; then
+    sed -i -e "s|^MESA_WEB_VERSION=.*|MESA_WEB_VERSION=${PACK_VER}|" .env
+  else
+    printf 'MESA_WEB_VERSION=%s\n' "$PACK_VER" >>.env
+  fi
+  log "MESA_WEB_VERSION=${PACK_VER}"
+fi
+
 if [[ "$SKIP_PULL" != "1" ]]; then
   log "拉取镜像…"
   ./scripts/stack.sh pull || log "WARN: pull 有错误，继续尝试 up"

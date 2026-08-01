@@ -62,6 +62,8 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 	const maxInitialRetries = 3
 	retries := 0
 	connected := false
+	// renew exits must always refresh — skew skip caused same-second renew loops.
+	forceRefresh := false
 
 	for {
 		select {
@@ -70,7 +72,7 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		default:
 		}
 
-		if err := r.connect(ctx); err != nil {
+		if err := r.connect(ctx, forceRefresh); err != nil {
 			retries++
 			log.Printf("Realtime: connection failed: %v (attempt %d/%d)", err, retries, maxInitialRetries)
 
@@ -89,6 +91,7 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 
 		connected = true
 		retries = 0
+		forceRefresh = false
 		r.reconnectDelay = 2 * time.Second
 
 		if err := r.compensationFetch(ctx); err != nil {
@@ -98,6 +101,7 @@ func (r *RealtimeNotifier) Start(ctx context.Context) error {
 		switch r.eventLoop(ctx) {
 		case realtimeLoopRenew:
 			log.Println("Realtime: access token near expiry, reconnecting to renew session")
+			forceRefresh = true
 		case realtimeLoopCanceled:
 			return ctx.Err()
 		default:
@@ -115,8 +119,9 @@ const (
 	realtimeLoopCanceled
 )
 
-func (r *RealtimeNotifier) connect(ctx context.Context) error {
-	if err := r.ensureFreshAccessToken(ctx); err != nil {
+func (r *RealtimeNotifier) connect(ctx context.Context, forceRefresh bool) error {
+	log.Printf("Realtime: connect: ensuring access token (forceRefresh=%v)", forceRefresh)
+	if err := r.ensureFreshAccessToken(ctx, forceRefresh); err != nil {
 		return fmt.Errorf("session refresh: %w", err)
 	}
 
@@ -125,6 +130,7 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 		return err
 	}
 
+	log.Println("Realtime: connect: dialing websocket")
 	// Match supabase-js: apikey on the URL only; user JWT goes in phx_join (subscribe).
 	dialer := websocket.Dialer{
 		HandshakeTimeout: 10 * time.Second,
@@ -138,6 +144,7 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 	r.conn = conn
 	r.mu.Unlock()
 
+	log.Println("Realtime: connect: subscribing")
 	if err := r.subscribe(); err != nil {
 		conn.Close()
 		return err
@@ -147,10 +154,11 @@ func (r *RealtimeNotifier) connect(ctx context.Context) error {
 	return nil
 }
 
-func (r *RealtimeNotifier) ensureFreshAccessToken(ctx context.Context) error {
-	if accessTokenUnexpired(r.config.AccessToken, accessTokenRefreshSkew) {
+func (r *RealtimeNotifier) ensureFreshAccessToken(ctx context.Context, force bool) error {
+	if shouldSkipAccessTokenRefresh(r.config.AccessToken, force, accessTokenRefreshSkew) {
 		return nil
 	}
+	log.Println("Realtime: refreshing access token")
 	if err := refreshSupabaseSession(ctx, r.config); err != nil {
 		return err
 	}
@@ -160,6 +168,11 @@ func (r *RealtimeNotifier) ensureFreshAccessToken(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// shouldSkipAccessTokenRefresh is true only for non-forced connects while JWT is still inside skew.
+func shouldSkipAccessTokenRefresh(accessToken string, force bool, skew time.Duration) bool {
+	return !force && accessTokenUnexpired(accessToken, skew)
 }
 
 func (r *RealtimeNotifier) buildWebSocketURL() (string, error) {
@@ -244,7 +257,7 @@ func (r *RealtimeNotifier) eventLoop(ctx context.Context) realtimeLoopExit {
 
 		case <-renewTimer.C:
 			// Same path as tray restart's Realtime segment: drop WS so Start
-			// re-runs ensureFreshAccessToken → connect → subscribe → compensation.
+			// re-runs ensureFreshAccessToken(force) → connect → subscribe → compensation.
 			r.disconnect()
 			return realtimeLoopRenew
 

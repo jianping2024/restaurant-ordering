@@ -5,9 +5,11 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { PrintNotifyModeText } from '@/components/print-agent/PrintNotifyModeText';
 import {
   formatLastSeenRelative,
   isPrintAgentDeviceOnline,
+  parsePrintAgentNotificationMode,
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
 
@@ -152,12 +154,8 @@ export function PrintAgentDevicesPanel({
               <dl className="mt-2 grid gap-1 text-brand-muted sm:grid-cols-2">
                 <div>
                   <dt className="inline">{t.devicesNotificationMode}: </dt>
-                  <dd className="inline text-brand-ink">
-                    {d.notification_mode === 'realtime'
-                      ? t.notificationModeRealtime
-                      : d.notification_mode === 'polling'
-                        ? t.notificationModePolling
-                        : '—'}
+                  <dd className="inline">
+                    <PrintNotifyModeText mode={parsePrintAgentNotificationMode(d.notification_mode)} />
                   </dd>
                 </div>
                 <div>

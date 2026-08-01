@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cache } from 'react';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
 import { stationLabelsFromRoutingSnapshot } from '@/lib/print-agent-routing';
 import type { ReceiptPrinterRoutingSnapshot } from '@/lib/print-receipt-printer-options';
@@ -26,11 +26,22 @@ function mapDeviceHeartbeatRows(
   });
 }
 
+/**
+ * Restaurant-scoped device list. Callers must already authorize
+ * (e.g. requireAnyPermission / print-assistant page). Uses service role because
+ * RLS only allows restaurant owners to SELECT print_agent_devices.
+ */
 async function loadPrintAgentDevicesBundle(
   restaurantId: string,
 ): Promise<PrintAgentDevicesBundle> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  let admin;
+  try {
+    admin = createAdminClient();
+  } catch {
+    return { devices: [], receiptSnapshot: null };
+  }
+
+  const { data, error } = await admin
     .from('print_agent_devices')
     .select(
       'id, label, valid_until, revoked_at, last_seen, agent_version, mapped_station_count, routing_snapshot, paired_at, last_print_at, last_print_status, schedule_open, notification_mode',

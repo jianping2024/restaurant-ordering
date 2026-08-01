@@ -1,29 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { loadPrintAgentDevices } from '@/lib/print-agent-devices-server';
+import { getPrintAgentDevicesBundle } from '@/lib/print-agent-devices-bundle';
+import { requireAnyPermission } from '@/lib/permissions/require';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
-/** Owner: paired print agents with heartbeat fields for Dashboard. */
+const devicesReadPermissions = [
+  'settings.print_assistant.manage',
+  'print_agent.receipt_printers.read',
+] as const satisfies readonly PermissionKey[];
+
+/** Paired print agents + heartbeat fields (Dashboard / staff menu). */
 export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
+  const auth = await requireAnyPermission(devicesReadPermissions);
+  if (auth instanceof NextResponse) return auth;
 
-  const { data: restaurant, error: restErr } = await supabase
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  if (restErr || !restaurant) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-
-  const devices = await loadPrintAgentDevices(restaurant.id);
+  const { devices } = await getPrintAgentDevicesBundle(auth.principal.restaurantId);
   return NextResponse.json({ devices });
 }

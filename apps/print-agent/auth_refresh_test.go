@@ -67,6 +67,21 @@ func TestAccessTokenUnexpired(t *testing.T) {
 	}
 }
 
+func TestShouldSkipAccessTokenRefresh(t *testing.T) {
+	fresh := testAccessJWT(t, time.Now().Add(10*time.Minute))
+	skew := time.Minute
+	if !shouldSkipAccessTokenRefresh(fresh, false, skew) {
+		t.Fatal("non-force + fresh token should skip")
+	}
+	if shouldSkipAccessTokenRefresh(fresh, true, skew) {
+		t.Fatal("force refresh must never skip")
+	}
+	stale := testAccessJWT(t, time.Now().Add(30*time.Second))
+	if shouldSkipAccessTokenRefresh(stale, false, skew) {
+		t.Fatal("near-expiry must not skip")
+	}
+}
+
 func TestTimeUntilAccessTokenRefresh(t *testing.T) {
 	skew := accessTokenRefreshSkew
 

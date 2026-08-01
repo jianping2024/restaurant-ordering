@@ -77,7 +77,7 @@ curl -sS http://127.0.0.1:3000/api/health/ready
 curl -sS http://127.0.0.1/api/health/live
 ```
 
-期望 JSON：`{"ok":true,"status":"live"|"ready"}`。
+期望 JSON：`{"ok":true,"status":"live","version":"<pack VER>"}`（`version` 来自 `MESA_WEB_VERSION` / `getWebAppBuildInfo`，与设置页脚同一字符串）；ready 为 `{"ok":true,"status":"ready"}`（不含 version）。
 
 ### 2.1 Auth 多入口白名单（必查，易漏）
 
@@ -285,7 +285,8 @@ sudo -E MESA_HOME=/opt/mesa bash /opt/mesa/current/deploy/on-prem/scripts/purge-
 | 清经营流水 | `deploy/on-prem/scripts/purge-operational-data.sh` + `schema/purge_operational_data.sql` |
 | Ubuntu 初装 | `install-ubuntu.sh` → `linux/install-mesa.sh` |
 | 栈 | `$MESA_HOME/bin/mesa-stack` 或 `deploy/on-prem/scripts/stack.sh` |
-| Health 实现 | `apps/web/src/lib/ops-health.ts`，`/api/health/live`·`ready` |
+| Health 实现 | `apps/web/src/lib/ops-health.ts` + `web-app-build.ts`，`/api/health/live`（含 `version`）·`ready` |
+| Web 构建身份 | `MESA_WEB_VERSION`（pack `manifest.version`）→ `getWebAppBuildInfo`；设置页脚同串 |
 | 网页对外 origin | `apps/web/src/lib/site-origin.ts` → `getPublicWebOrigin` |
 | Auth 白名单 `.env` | `$MESA_HOME/current/deploy/on-prem/.env` → `ADDITIONAL_REDIRECT_URLS`（§2.1） |
 | Print Agent 服务器地址 | 店内 edge origin，见 §2.2（推荐 `http://<店内IP>`） |

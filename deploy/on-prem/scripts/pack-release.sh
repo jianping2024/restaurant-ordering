@@ -174,6 +174,23 @@ if ! grep -q 'apps/print-agent/VERSION' "$INSTALL_SH"; then
   echo "ERROR: install-mesa.sh must copy apps/print-agent/VERSION into MESA_HOME/current" >&2
   exit 1
 fi
+# Gate: web build identity must be MESA_WEB_VERSION (getWebAppBuildInfo) — not package.json.
+if ! grep -q 'MESA_WEB_VERSION' "$WEB_DOCKERFILE"; then
+  echo "ERROR: apps/web/Dockerfile must bake MESA_WEB_VERSION (web build identity)" >&2
+  exit 1
+fi
+if ! grep -q 'MESA_WEB_VERSION' "$STAGE/deploy/on-prem/compose.yaml"; then
+  echo "ERROR: compose.yaml must pass MESA_WEB_VERSION into web build/runtime" >&2
+  exit 1
+fi
+if ! grep -q 'MESA_WEB_VERSION' "$UPGRADE_SH"; then
+  echo "ERROR: upgrade.sh must set MESA_WEB_VERSION from pack version before web rebuild" >&2
+  exit 1
+fi
+if ! grep -q 'MESA_WEB_VERSION' "$INSTALL_SH"; then
+  echo "ERROR: install-mesa.sh must set MESA_WEB_VERSION from pack manifest" >&2
+  exit 1
+fi
 
 cat >"$STAGE/README-VERIFY.zh.txt" <<EOF
 Mesa 安装验证 / 客户安装

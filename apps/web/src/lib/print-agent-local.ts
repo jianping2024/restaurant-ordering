@@ -53,14 +53,15 @@ export async function probeLocalPrintAgent(timeoutMs = PROBE_TIMEOUT_MS): Promis
  * Do not pass noopener — it prevents navigating the new tab from the opener.
  */
 export async function openPrintAgentConfigure(
-  siteOrigin: string,
   code?: string,
   lang?: string,
 ): Promise<'opened' | 'unreachable'> {
   if (typeof window === 'undefined') {
     return 'unreachable';
   }
-  const url = buildPrintAgentConfigureUrl(siteOrigin, code, lang);
+  // Prefer the scheme/host the staff actually opened — not SSR getPublicWebOrigin
+  // (Tunnel→Caddy often reports X-Forwarded-Proto=http → api=http://… prefill).
+  const url = buildPrintAgentConfigureUrl(window.location.origin, code, lang);
   // Must not use noopener/noreferrer: Chrome then returns null or a tab we cannot assign.
   const popup = window.open('', '_blank');
   const ok = await probeLocalPrintAgent();

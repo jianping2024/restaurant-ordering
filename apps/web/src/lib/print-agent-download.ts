@@ -25,7 +25,7 @@ const ARTIFACT_TO_FILE: Record<PrintAgentDownloadArtifact, string> = {
   'portable-arm64': PRINT_AGENT_GITHUB_ASSETS.portableArm64,
 };
 
-/** Permanent paths on this site (prepend via `getPublicWebOrigin`). */
+/** Permanent same-origin paths (href relative — do not prefix a guessed http origin). */
 export const PRINT_AGENT_DOWNLOAD_API_PATHS = {
   setupAmd64: '/api/downloads/print-agent/setup-amd64',
   portableAmd64: '/api/downloads/print-agent/portable-amd64',
@@ -201,11 +201,15 @@ export async function resolvePrintAgentDownloadStatus(): Promise<PrintAgentDownl
   }
 }
 
-/** Stable dashboard links on this deployment (origin required). */
-export function getPrintAgentDownloadUrls(siteOrigin: string): PrintAgentDownloadUrls | null {
+/**
+ * Dashboard installer links. Paths are same-origin relative so the browser keeps
+ * the page scheme (https:// when the staff opened https://). Absolute origins from
+ * getPublicWebOrigin can be http:// under Tunnel→Caddy X-Forwarded-Proto and Chrome
+ * then hard-blocks the download as insecure.
+ */
+export function getPrintAgentDownloadUrls(): PrintAgentDownloadUrls | null {
   const repo = getPrintAgentGithubRepo();
-  const origin = siteOrigin.replace(/\/$/, '');
-  if (!repo || !origin) return null;
+  if (!repo) return null;
 
   const version = getPrintAgentVersion();
   const releasesPage = version
@@ -213,10 +217,10 @@ export function getPrintAgentDownloadUrls(siteOrigin: string): PrintAgentDownloa
     : `https://github.com/${repo}/releases`;
 
   return {
-    setupAmd64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.setupAmd64}`,
-    zipAmd64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.portableAmd64}`,
-    setupArm64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.setupArm64}`,
-    zipArm64: `${origin}${PRINT_AGENT_DOWNLOAD_API_PATHS.portableArm64}`,
+    setupAmd64: PRINT_AGENT_DOWNLOAD_API_PATHS.setupAmd64,
+    zipAmd64: PRINT_AGENT_DOWNLOAD_API_PATHS.portableAmd64,
+    setupArm64: PRINT_AGENT_DOWNLOAD_API_PATHS.setupArm64,
+    zipArm64: PRINT_AGENT_DOWNLOAD_API_PATHS.portableArm64,
     releasesPage,
   };
 }

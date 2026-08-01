@@ -22,8 +22,8 @@ export function PrintAgentDownloadSkeleton() {
   );
 }
 
-export async function PrintAgentDownloadSection({ siteOrigin }: { siteOrigin: string }) {
-  const urls = getPrintAgentDownloadUrls(siteOrigin);
+export async function PrintAgentDownloadSection() {
+  const urls = getPrintAgentDownloadUrls();
   if (!urls) return null;
 
   const version = getPrintAgentVersion();

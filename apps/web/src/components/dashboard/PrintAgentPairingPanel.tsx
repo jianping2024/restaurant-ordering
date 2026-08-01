@@ -17,10 +17,8 @@ type ConfigureProbe = 'idle' | 'checking' | 'unreachable' | 'opened';
 
 export function PrintAgentPairingPanel({
   initialPairings = [],
-  siteOrigin,
 }: {
   initialPairings?: PrintAgentPairingListItem[];
-  siteOrigin: string;
 }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).printAssistant;
@@ -115,7 +113,7 @@ export function PrintAgentPairingPanel({
       if (code) {
         await copyPairingCode(code);
       }
-      const result = await openPrintAgentConfigure(siteOrigin, code, lang);
+      const result = await openPrintAgentConfigure(code, lang);
       if (result === 'unreachable') {
         setConfigureProbe('unreachable');
       } else {
@@ -123,7 +121,7 @@ export function PrintAgentPairingPanel({
         setOpenCooldownUntil(Date.now() + 10_000);
       }
     },
-    [copyPairingCode, lang, siteOrigin],
+    [copyPairingCode, lang],
   );
 
   const createPairing = async () => {

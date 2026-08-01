@@ -14,7 +14,7 @@
 | **数据库** | 纯 Postgres（Neon / Render PG / 同机 PG 等） |
 | **文件** | 菜单图：S3 / R2 / Blob（与计算平台可分离） |
 | **市场** | 葡萄牙餐厅为主 → **欧盟区延迟** 比全球边缘更重要 |
-| **并行路线** | Windows 私有化也会用 Docker + Postgres → 与 **Hetzner/Coolify** 技能可复用 |
+| **并行路线** | 门店 Ubuntu 私有化也会用 Docker + Postgres → 与 **Hetzner/Coolify** 技能可复用 |
 
 **计费口径**（与 §4.4 一致）：「店」= 活跃租户餐厅；轮询成本 ∝ **营业中的员工 tab 数**，与扫码顾客数弱相关。
 
@@ -151,7 +151,7 @@ Serverless 里最省钱   → Cloudflare Workers + Neon（若 OpenNext 验收通
 **优点**：
 
 - **€4～7/月** 含 **20TB** 流量 → 轮询再猛也几乎不另收费
-- 长驻 Node → **NOTIFY + SSE**；与 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md) / Windows 私有化 **同一套 Compose 经验**
+- 长驻 Node → **NOTIFY + SSE**；与本地私有化（Ubuntu Compose）经验可复用，见 [`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md)
 - 葡萄牙访问欧盟机房延迟可接受（通常 &lt;50ms 级到 DE/FI）
 
 **缺点**：
@@ -238,7 +238,7 @@ Serverless 里最省钱   → Cloudflare Workers + Neon（若 OpenNext 验收通
 1. **短期（迁移 Postgres）**：**不要同时换云**；继续 **Vercel Pro + Neon**，用 §4.4 的 **B 轻量轮询**，控制 30 店内月费约 **$45～60**。
 2. **中期性价比（30～100 店、少自运维）**：**Render（法兰克福）** — 固定 **~$55～130/月**，并可把实时改成 **SSE**，从根上避免轮询税；与产品「私有化也用长驻 Next」一致。
 3. **中期性价比（偏技术、请求量大）**：**Cloudflare Workers + Neon** — 百店可比 Vercel **省约 40～50% 计算侧**；需专门 spike 验证 Next.js 14 全功能。
-4. **长期底价（愿运维）**：**Hetzner + Coolify** — 百店仍可能 **&lt;€20/月** 计算+库（单机）；适合与 **Windows 私有化** 共用 Docker 知识，但不替代客户现场安装支持流程。
+4. **长期底价（愿运维）**：**Hetzner + Coolify** — 百店仍可能 **&lt;€20/月** 计算+库（单机）；适合与 **店内 Ubuntu Compose** 共用 Docker 知识，但不替代客户现场安装支持流程。
 5. **不推荐**：仅为省钱上 **笨轮询**；店数一多 **Vercel / 任何按次计费** 都会痛。
 
 ---

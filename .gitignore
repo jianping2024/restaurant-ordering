@@ -77,7 +77,6 @@ deploy/on-prem/.releases/
 deploy/on-prem/logs/
 deploy/on-prem/data/
 deploy/on-prem/vendor/supabase-docker/volumes/
-deploy/on-prem/windows-test/
 
 # Local one-off UAT scripts (hardcoded restaurant/role/accounts; not for CI)
 scripts/rbac-kitchen-perm-uat.mjs

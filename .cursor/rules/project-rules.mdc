@@ -32,6 +32,7 @@ No third root “强制规则” markdown. Product truth under `docs/`.
 | UI conventions | `docs/design/` |
 | Architecture & API | `docs/technical/` |
 | On-prem 打包/初装/升级 | `docs/technical/on-prem-pack-install-upgrade.zh.md` |
+| local-perm 安装技术工具清单 | `docs/technical/local-perm-install-tools.zh.md` |
 | ADRs | `docs/decisions/` |
 | DB compact schema | `docs/ai-schema.md` |
 | Historical plans | `docs/*-plan.md`, `docs/*.zh.md` |

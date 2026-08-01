@@ -1,23 +1,20 @@
 # Mesa 客户本地私有化部署方案
 
-> 状态：架构建议稿（细设计参考）  
-> 日期：2026-06-23；打印路径于 2026-07-24 与定稿对齐  
-> 适用范围：未来仅向餐厅客户提供 Windows 本地安装版本；Web、数据库、认证、实时服务、图片存储运行在本机 Docker 中。  
-> **方案定稿（人话步骤，冲突时以它为准）**：[`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md)。  
-> **打印定稿**：print-agent **留在 Windows 宿主机**（桥接），**不**强制进入 Compose；下文「打印进 Docker / 取消托盘」视为远期备选，第一版不做。
+> **状态（2026-08-01）：** Windows **单机跑 Web/库全栈** 方案已作废。  
+> **现行交付：** 店机 **Ubuntu + Docker Engine**（Mode B）；打印仍为 **另机 Windows print-agent**。  
+> **操作真源：** [`technical/on-prem-pack-install-upgrade.zh.md`](./technical/on-prem-pack-install-upgrade.zh.md) · 产品步骤 [`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md) · 工具 [`technical/local-perm-install-tools.zh.md`](./technical/local-perm-install-tools.zh.md)。  
+> 下文大量「Windows 宿主机 + Docker Desktop/WSL2 跑 Compose」内容仅作历史细设计，**勿再按该路径实现或验收**。print-agent 相关（WinSpool / 托盘 / 不进 Docker）仍然有效。
 
-## 1. 结论
+## 1. 现行结论（替换旧「专用 Windows 主机跑全栈」）
 
-建议把 Mesa 从当前的“开发环境切换模式”改造成一个有明确版本、可安装、可运维、可恢复的本地软件产品：
+- 每家餐厅一台 **Ubuntu** 店机，Docker Engine + Compose 跑 Web + 自托管 Supabase + edge。
+- 固定版本、固定镜像摘要的 stamped zip 交付（`pack-release.sh`）。
+- **打印：** 现有 Windows `MesaPrintAgent` 装在收银/打印机，指向店内 Ubuntu 的 Mesa origin（edge `:80`）；**不**进 Compose。
+- 客户端只需浏览器；断公网时局域网营业与打印仍可用。
 
-- 每家餐厅部署一台专用 Windows 主机，通过 Docker Desktop + WSL2 运行 Linux 容器栈。
-- 使用固定版本、固定镜像摘要的 Docker Compose 发行包交付。
-- Web、完整自托管 Supabase、反向代理、备份代理、日志代理和升级代理进入 Docker Compose；**打印使用现有 Windows print-agent，指向本机 Web API**。
-- 客户端只需要浏览器，不要求在收银机、厨房屏或手机安装开发工具。
-- 安装、升级、备份和日志上传只允许主动向外发起 HTTPS 连接，不开放数据库或远程管理端口到公网。
-- 互联网中断时，点餐、后台、厨房、结账和打印继续在本地运行；远程备份、日志上传和升级检查延后执行。
+不建议把 `npm run dev` / `stage` / `cloud` 直接交付客户。
 
-不建议把当前 `npm run dev`、`npm run stage`、`npm run cloud` 中任何一种直接交付给客户。这些命令运行的是开发服务器，并依赖人工管理环境文件，不具备生产级进程管理、备份、升级和恢复能力。现有 print-agent **可继续作为客户版打印桥**（USB / WinSpool / TCP 9100），但须对接本机 Mesa，而非平台云；第一版不改造成容器内 `print-worker`。
+> 以下 §2 起为 2026-06 细设计原稿（多处仍写 Windows 宿主机）。实现与合同以文首「现行结论」与 pack 文档为准。
 
 ## 2. 当前项目判断
 

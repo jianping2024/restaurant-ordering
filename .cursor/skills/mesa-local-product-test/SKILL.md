@@ -3,8 +3,8 @@ name: mesa-local-product-test
 description: >-
   Local product verification for Mesa: mesa-local-uat API first, Chrome DevTools MCP for UI,
   shared test account, cleanup writes; no checklist skip unless truly blocked.
-  Use when user says 开始测试, 联调, 手工验收, 回归测试, or asks to verify product
-  behavior on localhost (not only lint/unit).
+  Use when user says 开始测试, 联调, 手工验收, 回归测试, 本地回归,
+  or asks to verify product behavior on localhost (not only lint/unit).
 ---
 
 # Mesa: local product testing
@@ -31,6 +31,8 @@ Use **owner** when the staff restaurant lacks buffet/menu seed needed for open-t
 Repo `.cursor/mcp.json` registers `supabase-local`. Ensure local `supabase start` before using it.
 
 ## Method
+
+Default stack (do not substitute “lint only” or raw curl when this skill applies):
 
 1. **API first — `scripts/mesa-local-uat.mjs`** (preferred over raw curl):
    - `node scripts/mesa-local-uat.mjs stack-health`

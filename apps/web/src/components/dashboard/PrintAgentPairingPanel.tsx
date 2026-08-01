@@ -34,6 +34,8 @@ export function PrintAgentPairingPanel({
   const [countdown, setCountdown] = useState('');
   const [codeExpired, setCodeExpired] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  /** After opening local /pair, lock open buttons briefly (code is single-use). */
+  const [openCooldownUntil, setOpenCooldownUntil] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,8 +84,20 @@ export function PrintAgentPairingPanel({
     return () => window.clearInterval(id);
   }, [freshCode?.expires_at]);
 
+  useEffect(() => {
+    if (openCooldownUntil <= 0) return;
+    const ms = openCooldownUntil - Date.now();
+    if (ms <= 0) {
+      setOpenCooldownUntil(0);
+      return;
+    }
+    const id = window.setTimeout(() => setOpenCooldownUntil(0), ms);
+    return () => window.clearTimeout(id);
+  }, [openCooldownUntil]);
+
   const pendingCount = pairings.filter((p) => p.pending).length;
   const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
+  const openButtonsLocked = configureProbe === 'checking' || openCooldownUntil > Date.now();
 
   const copyPairingCode = useCallback(async (code: string) => {
     try {
@@ -106,6 +120,7 @@ export function PrintAgentPairingPanel({
         setConfigureProbe('unreachable');
       } else {
         setConfigureProbe('opened');
+        setOpenCooldownUntil(Date.now() + 10_000);
       }
     },
     [copyPairingCode, lang, siteOrigin],
@@ -209,7 +224,7 @@ export function PrintAgentPairingPanel({
           <div className="flex flex-wrap gap-2 pt-1">
             <button
               type="button"
-              disabled={configureProbe === 'checking'}
+              disabled={openButtonsLocked}
               onClick={() => void openConfigure(freshCode.code)}
               className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors disabled:opacity-60"
             >
@@ -309,7 +324,7 @@ export function PrintAgentPairingPanel({
         <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.configureSubtitle}</p>
         <button
           type="button"
-          disabled={configureProbe === 'checking'}
+          disabled={openButtonsLocked}
           onClick={() => void openConfigure()}
           className="inline-flex text-[12px] text-brand-gold hover:underline font-medium disabled:opacity-60"
         >

@@ -4,18 +4,34 @@ import (
 	"testing"
 )
 
-// Test getSupabaseURL with explicit configuration
-func TestGetSupabaseURLExplicit(t *testing.T) {
+// Test Mode B heal: same host http supabase_url follows https api_base
+func TestAlignSupabaseURLWithAPIBaseSameHost(t *testing.T) {
 	c := &config{
-		APIBase:     "https://example.com",
-		SupabaseURL: "https://xxx.supabase.co",
+		APIBase:     "https://pirata.farvoo.com",
+		SupabaseURL: "http://pirata.farvoo.com",
 	}
-	
-	got := c.getSupabaseURL()
-	want := "https://xxx.supabase.co"
-	
-	if got != want {
-		t.Errorf("getSupabaseURL() = %q, want %q", got, want)
+	if !alignSupabaseURLWithAPIBase(c) {
+		t.Fatal("expected align")
+	}
+	if c.SupabaseURL != "https://pirata.farvoo.com" {
+		t.Fatalf("got %q", c.SupabaseURL)
+	}
+	if c.getSupabaseURL() != "https://pirata.farvoo.com" {
+		t.Fatalf("getSupabaseURL %q", c.getSupabaseURL())
+	}
+}
+
+// Cloud: different hosts must not overwrite supabase project URL
+func TestAlignSupabaseURLLeavesCloudProject(t *testing.T) {
+	c := &config{
+		APIBase:     "https://app.example.com",
+		SupabaseURL: "https://xxxx.supabase.co",
+	}
+	if alignSupabaseURLWithAPIBase(c) {
+		t.Fatal("must not align different hosts")
+	}
+	if c.getSupabaseURL() != "https://xxxx.supabase.co" {
+		t.Fatalf("got %q", c.getSupabaseURL())
 	}
 }
 

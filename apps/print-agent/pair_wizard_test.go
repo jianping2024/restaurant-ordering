@@ -47,14 +47,21 @@ func TestDedupePrinterList(t *testing.T) {
 }
 
 func TestPairSuccessInvokesOnSuccess(t *testing.T) {
-	mesa := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var gotAPIBase string
+	var mesa *httptest.Server
+	mesa = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/print-agent/claim" {
 			http.NotFound(w, r)
 			return
 		}
+		var body struct {
+			APIBase string `json:"api_base"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		gotAPIBase = body.APIBase
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"agentjwt":      "test-jwt",
-			"supabase_url":  "https://pirata.farvoo.com",
+			"supabase_url":  mesa.URL,
 			"restaurant_id": "00000000-0000-4000-8000-000000000001",
 			"valid_until":   time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339),
 		})
@@ -78,5 +85,9 @@ func TestPairSuccessInvokesOnSuccess(t *testing.T) {
 	}
 	if called != 1 {
 		t.Fatalf("onPairSuccess called %d times, want 1", called)
+	}
+	wantBase := strings.TrimRight(mesa.URL, "/")
+	if gotAPIBase != wantBase {
+		t.Fatalf("claim api_base=%q want %q", gotAPIBase, wantBase)
 	}
 }

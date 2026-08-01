@@ -19,7 +19,7 @@ import {
   resolvePrintAgentCredentialTtlSec,
   PRINT_AGENT_NAME,
 } from '@mesa/shared';
-import { getPrintAgentClaimSupabaseUrl } from '@/lib/supabase/url';
+import { resolvePrintAgentClaimSupabaseUrl } from '@/lib/supabase/url';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
   }
 
-  let body: { code?: unknown; device_id?: unknown; label?: unknown };
+  let body: { code?: unknown; device_id?: unknown; label?: unknown; api_base?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -49,6 +49,7 @@ export async function POST(req: Request) {
   const code = typeof body.code === 'string' ? body.code.trim() : '';
   const deviceId = typeof body.device_id === 'string' ? body.device_id.trim() : '';
   const label = typeof body.label === 'string' ? body.label.trim().slice(0, 120) : '';
+  const apiBase = typeof body.api_base === 'string' ? body.api_base.trim() : '';
 
   if (!/^[0-9]{6}$/.test(code) || !isUuid(deviceId)) {
     claimRecordFailure(ip);
@@ -192,7 +193,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     agentjwt,
-    supabase_url: getPrintAgentClaimSupabaseUrl(req.headers),
+    supabase_url: resolvePrintAgentClaimSupabaseUrl(apiBase, req.headers),
     valid_until: validUntil,
     restaurant_id: p.restaurant_id,
     ...(access_token && refresh_token && anon_key

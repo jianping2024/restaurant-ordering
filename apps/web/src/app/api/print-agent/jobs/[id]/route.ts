@@ -70,6 +70,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const current = job.status as PrintJobStatus;
 
   if (status === 'processing') {
+    // Idempotent: same device already holds the claim (e.g. claim-on-fetch + older agent).
+    if (current === 'processing' && job.claimed_by === ctx.device_id) {
+      return NextResponse.json({
+        ok: true,
+        job: { id: job.id, status: 'processing' },
+      });
+    }
     if (current !== 'pending') {
       return NextResponse.json({ error: 'invalid_transition' }, { status: 409 });
     }

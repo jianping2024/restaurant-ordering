@@ -104,7 +104,7 @@ While **inside** schedule:
 | Phase | When | Default interval |
 |-------|------|------------------|
 | **after_print** | After the whole fetched batch is printed | `after_print_interval_sec` (default 5s) before next `pending-jobs` pull |
-| **busy** | Failed to claim job (`processing`) | `busy_interval_sec` (default 5s) |
+| **busy** | Failed to claim job on older servers (`processing` PATCH) | `busy_interval_sec` (default 5s) |
 | **warm** | No pending jobs, but printed or saw pending within `warm_after_activity_sec` | 5s |
 | **idle** | Open hours, no recent activity | 20s |
 
@@ -112,7 +112,9 @@ While **outside** schedule: sleep `closed_check_sec` (default 60s), no HTTP poll
 
 **Dashboard overrides:** Owners can edit lunch/dinner hours and poll seconds under **Dashboard → Print assistant** (saved to `restaurants.print_agent_config`). The agent fetches this once at **startup** via `GET /api/print-agent/runtime-config`; it is **not** hot-reloaded while running—restart the tray agent after saving. Dashboard defaults: after-batch **8s**, warm **9s**, quiet-period (`idle_interval_sec`) **10s**; allowed range for those three is **5–60** (idle max **120**). Lower values print sooner but use more API traffic.
 
-**Job max age:** `GET /api/print-agent/pending-jobs` only returns `pending` rows **newer than 10 minutes**. Older `pending`/`processing` rows are marked `failed` by a **server cron (every 5 minutes)** and defensively skipped by the agent. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
+**Job claim:** `GET /api/print-agent/pending-jobs` atomically claims matching `pending` rows (`processing` + `claimed_by`) before returning them. The agent PATCHes `done`/`failed` only; a `processing` PATCH remains idempotent for the same device (rolling upgrades). Older agents that still PATCH `processing` after fetch keep working.
+
+**Job max age:** `GET /api/print-agent/pending-jobs` only claims `pending` rows **newer than 10 minutes**. Older `pending`/`processing` rows are marked `failed` by a **server cron (every 5 minutes)** and defensively skipped by the agent. Reconnecting after days offline will **not** replay old kitchen tickets (use dashboard **Retry** if you need a reprint).
 
 Set `poll.fixed_interval_sec` to disable dynamic tiers and use a single interval (legacy behaviour).
 

@@ -16,6 +16,7 @@ import {
 } from '@/lib/waiter-staff-mutation-sync';
 import type { WaiterSessionRelocationBoardInput } from '@/lib/waiter-session-relocation-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import { resolveWaiterBoardReconcileScope } from '@/lib/waiter-board-live';
 
 export type WaiterBoardContextValue = ReturnType<typeof useWaiterOrders> & {
   /** Drop optimistic bridge for affected tables, then pull Staff board API. */
@@ -93,23 +94,25 @@ function WaiterBoardProviderInner({
   );
 
   const refresh = store.refresh;
+  /** Same scope rule as list entry/visibility — live when floor ready, else full. */
+  const mutationRefreshScope = resolveWaiterBoardReconcileScope(store.boardSurface === 'ready');
 
   const refreshBoardAfterStaffMutation = useCallback(
     async (tableIds: readonly string[]) => {
       if (tableIds.length === 0) return;
       releaseWaiterBoardTableBridge(tableIds);
-      await refresh('full');
+      await refresh(mutationRefreshScope);
     },
-    [refresh],
+    [mutationRefreshScope, refresh],
   );
 
   const reconcileBoardAfterSessionRelocation = useCallback(
     (input: WaiterSessionRelocationBoardInput) => {
       store.applySessionRelocationPatch(input);
       releaseWaiterBoardTableBridge([input.sourceTableId]);
-      void refresh('full');
+      void refresh(mutationRefreshScope);
     },
-    [refresh, store],
+    [mutationRefreshScope, refresh, store],
   );
 
   const applyOpenTableToBoard = useCallback(

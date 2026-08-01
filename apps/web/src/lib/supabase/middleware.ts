@@ -13,9 +13,20 @@ import {
 } from '@/lib/staff-gate-db';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
+import {
+  isInvalidRefreshTokenError,
+  shouldBypassMiddlewareSession,
+} from '@/lib/supabase/middleware-session-policy';
 import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Defense in depth — matcher should already exclude these (same policy module).
+  if (shouldBypassMiddlewareSession(pathname)) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -40,17 +51,25 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+  if (isInvalidRefreshTokenError(userError)) {
+    // Clear bad cookies once so Edge/Auth stop thrashing on every request.
+    await supabase.auth.signOut();
+  }
 
-  if (!user && pathname.startsWith('/dashboard')) {
+  const sessionUser = isInvalidRefreshTokenError(userError) ? null : user;
+
+  if (!sessionUser && pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname.startsWith('/dashboard')) {
+  if (sessionUser && pathname.startsWith('/dashboard')) {
     let admin;
     try {
       admin = createAdminClient();
@@ -58,7 +77,7 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse;
     }
 
-    const ownedRestaurantId = await loadOwnedRestaurantIdForUser(admin, user.id);
+    const ownedRestaurantId = await loadOwnedRestaurantIdForUser(admin, sessionUser.id);
     if (ownedRestaurantId) {
       if (!middlewareAllowsOwnerPath(pathname)) {
         const url = request.nextUrl.clone();
@@ -66,10 +85,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
     } else {
-      const staff = await loadStaffGateAccountForUser(admin, user.id);
+      const staff = await loadStaffGateAccountForUser(admin, sessionUser.id);
       if (staff && !staff.disabled_at) {
         const meta = parseStaffUserMetadata(
-          user.user_metadata as Record<string, unknown>,
+          sessionUser.user_metadata as Record<string, unknown>,
         );
         const slug =
           staff.restaurant?.slug ?? meta?.restaurant_slug ?? '';
@@ -93,12 +112,15 @@ export async function updateSession(request: NextRequest) {
   // Logged-in users accessing login pages → redirect to their workspace
   // Aligns with mainstream SaaS behavior (GitHub, Slack, etc.)
   // Reuses resolvePostLoginRedirect to handle must_change_password correctly
-  if (user && (pathname === '/auth/login' || pathname.match(/^\/[^/]+\/staff\/login$/))) {
+  if (
+    sessionUser &&
+    (pathname === '/auth/login' || pathname.match(/^\/[^/]+\/staff\/login$/))
+  ) {
     try {
       const redirect = await resolvePostLoginRedirect(
         supabase,
-        user.id,
-        user.user_metadata as Record<string, unknown>,
+        sessionUser.id,
+        sessionUser.user_metadata as Record<string, unknown>,
       );
 
       if (redirect.kind === 'staff_error') {

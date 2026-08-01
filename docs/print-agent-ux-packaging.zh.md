@@ -46,7 +46,7 @@
 - **托盘本地 HTTP（v0.3.54+）**：`startTrayLocalHTTP` 在托盘启动时即监听 **17892**（含未配对）；Dashboard / 托盘「打印机设置」与首启配对 **只认这一套**。CLI `pair` 在无托盘时仍可用临时 **17890**；托盘路径不再并行起 17890。
 - **心跳与在线（v0.2.56+）**：`POST /api/print-agent/heartbeat`；Dashboard **已配对收银机** 列表（`last_seen`、版本、映射数等）。
 - **首装试打（P0-2，v0.2.42+；S0 调整）**：`POST /api/test-print`；**configure（S0）** 试打为**可选**，关页不二次拦截。**`setup_ui`** 仍保留较完整的试打/排障向导（首启 bootstrap 路径）。保存须至少映射一个出品档口。
-- **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；仅返回 `created_at` 在窗口内的 `pending`；Go 代理处理前再次跳过。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
+- **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；匹配行在返回前 **claim→processing**；Go 代理处理前再次跳过过期任务。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。
 - **配对码槽位与作废（Web，2026-05）**：单店最多 **3 个待使用** 码（`expires_at > now` 且 `consumed_at` / `revoked_at` 均为空）；**已核销不占槽**（重装、换机、重配后可立刻再生成）；列表对未使用码提供 **作废**（`POST /api/print-agent/pairings/[id]/revoke` → `revoked_at`），误生成可腾槽。迁移：`supabase/migrations/20260531140000_print_agent_pairing_revoked_at.sql`。
 - **安装（§9）**：Inno `mesa-print-agent.iss` — 装前/装后说明（SmartScreen、zip 对比、USB 驱动链）、**登录自启**（开始菜单「启动」文件夹快捷方式，默认勾选）、开始菜单 **Printer settings**（`configure`）与 **UNYKA driver (web)**、完成页默认 **立即启动代理**；`WINDOWS-README.txt` 与之一致。

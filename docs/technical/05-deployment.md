@@ -140,7 +140,7 @@
 
 | 路径 | 调度（UTC） | 职责 |
 |------|-------------|------|
-| `/api/cron/nightly-close-sessions` | `0 4 * * *`、`0 5 * * *` | 批量关台（`auto_nightly`） |
+| `/api/cron/nightly-close-sessions` | `0 4,5 * * *`（UTC，单条） | 批量关台（`auto_nightly`；`isNightlyAutoCloseDue` 里斯本 05:00） |
 
 鉴权：`CRON_SECRET` 环境变量。
 

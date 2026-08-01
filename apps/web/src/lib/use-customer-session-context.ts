@@ -37,6 +37,9 @@ type InFlightRefresh = {
   token: object;
 };
 
+/** Skip visibility/mount re-pull when a fresh context was applied recently. */
+const CUSTOMER_SESSION_RESUME_TTL_MS = 15_000;
+
 function scopeCovers(running: CustomerSessionScope, requested: CustomerSessionScope) {
   return running === 'full' || requested === 'gate';
 }
@@ -64,6 +67,7 @@ export function useCustomerSessionContext(
 
   const contextRef = useRef<CustomerSessionContext | null>(bootContext);
   const refreshInFlightRef = useRef<InFlightRefresh | null>(null);
+  const lastFreshAtRef = useRef(hasAuthoritativeSeed ? Date.now() : 0);
   const prevTableIdRef = useRef(params.tableId);
 
   const applyContext = useCallback(
@@ -73,6 +77,7 @@ export function useCustomerSessionContext(
 
       const merged = applyCustomerSessionScopeMerge(contextRef.current, data, scope);
       contextRef.current = merged;
+      lastFreshAtRef.current = Date.now();
       const next = stateFromContext(merged);
       setActiveSession(next.activeSession);
       setRecentOrders(next.recentOrders);
@@ -120,6 +125,7 @@ export function useCustomerSessionContext(
     if (prevTableIdRef.current === params.tableId) return;
     prevTableIdRef.current = params.tableId;
     refreshInFlightRef.current = null;
+    lastFreshAtRef.current = 0;
     const nextBoot = resolveBootContext(params.tableId, initialContext);
     contextRef.current = nextBoot;
     const next = stateFromContext(nextBoot);
@@ -128,6 +134,7 @@ export function useCustomerSessionContext(
     const seededForTable =
       !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
     setSessionResolved(isDemo || seededForTable);
+    if (seededForTable) lastFreshAtRef.current = Date.now();
   }, [initialContext, isDemo, params.tableId]);
 
   // SSR / published-model boot per table entry — omit initialContext from reconcile deps.
@@ -140,7 +147,16 @@ export function useCustomerSessionContext(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
   }, [params.tableId]);
 
-  const resumeRefresh = useCallback(() => refresh(resumeScope), [refresh, resumeScope]);
+  const resumeRefresh = useCallback(() => {
+    if (
+      contextRef.current &&
+      contextRef.current.table_id === params.tableId &&
+      Date.now() - lastFreshAtRef.current < CUSTOMER_SESSION_RESUME_TTL_MS
+    ) {
+      return Promise.resolve(contextRef.current);
+    }
+    return refresh(resumeScope);
+  }, [params.tableId, refresh, resumeScope]);
 
   useRestaurantStaffEntryReconcile(
     !isDemo,

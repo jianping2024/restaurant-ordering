@@ -370,7 +370,7 @@
   手动「打印账单」/ 前台「关台结账」 → checkout_bill（不受开关限制；收银员「关台结账」不打印）
   （业务三类 vs 四种 receipt_variant：见 docs/technical/04-printing.md §3.1）
 代理：
-  配对 claim JWT → GET pending-jobs → 打印 → PATCH done/failed
+  配对 claim JWT → GET pending-jobs（服务端 claim→processing）→ 打印 → PATCH done/failed
 ```
 
 ### 异常流程

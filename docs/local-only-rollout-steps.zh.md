@@ -104,16 +104,13 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 
 开机：Ubuntu `systemd` 单元 `mesa-on-prem.service` 拉栈；不依赖 Windows 计划任务 `MesaOnPremStack` / `MesaOnPremBackup`。
 
-### 2.5 备份上哪？——现有 cloud，每天一次
+### 2.5 备份 / 经营日报 / 夜间关台——店内一条日切
 
-**已定：**
+**已定（店内 Ubuntu）：**
 
-- 营业权威仍在**本机**；cloud **不参与**开台/点单/结账/打票。  
-- 本机先做一致性备份（库 + Storage 等），再 **每天上传一次**到现有 **cloud 环境**（当远端灾备仓）。  
-- 断公网：跳过上传，本地备份照做；联网后补传。  
-- 恢复：优先本机备份；本机整机没了再从 cloud 拉回。
-
-实现细节（桶/路径/加密密钥、restic 或对象存储、鉴权）在步骤 ⑥ / 安装器里定；产品规则就是「日备上云」。
+- **一条** `mesa-daily-cutover.timer`（Lisbon 05:05）：夜间关台 → 密封昨日经营日报（开关开才上传云）→ 本机 `backup-local`。  
+- 云 SaaS 夜间关台仍走 Vercel cron，互不影响。  
+- Ops 开关 `daily_business_report_enabled`（仅 on_prem）；查看页名 **经营日报**。
 
 ---
 

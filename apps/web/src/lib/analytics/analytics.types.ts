@@ -1,3 +1,10 @@
+/** Bump when sealed daily metrics shape, seal rules, top-items contract, or grain change. */
+export {
+  ANALYTICS_DAILY_SCHEMA_VERSION,
+  type DailyBusinessReport,
+  type DailyBusinessReportTopItem,
+} from '@mesa/shared';
+
 export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter';
 
 export const ANALYTICS_RANGES: readonly AnalyticsRange[] = [
@@ -6,9 +13,6 @@ export const ANALYTICS_RANGES: readonly AnalyticsRange[] = [
   'month',
   'quarter',
 ] as const;
-
-/** Bump when sealed daily metrics shape, seal rules, or grain contract change. */
-export const ANALYTICS_DAILY_SCHEMA_VERSION = 2;
 
 export type RevenueTrendPoint = {
   /** Period key: YYYY-MM-DD | YYYY-Www | YYYY-MM | YYYY-Qn */

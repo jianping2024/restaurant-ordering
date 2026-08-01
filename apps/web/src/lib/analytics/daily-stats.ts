@@ -18,6 +18,14 @@ import {
 } from '@/lib/analytics/closed-session-revenue';
 import { buildCustomerTrend } from '@/lib/analytics/build-overview';
 import {
+  aggregateMenuItemsFromOrders,
+  rankMenuItemAggs,
+  type MenuItemAgg,
+} from '@/lib/analytics/aggregate-items';
+import {
+  replaceDailyMenuItemStats,
+} from '@/lib/analytics/daily-menu-item-stats';
+import {
   aggregateDailyPointsByGrain,
   hasBusinessActivity,
   toTrendSeries,
@@ -34,6 +42,8 @@ export type DailyStatMetrics = {
   customerCount: number;
   qualifyingSessionCount: number;
 };
+
+export const DAILY_TOP_MENU_ITEM_LIMIT = 10;
 
 function metricsFromTrends(
   businessDate: string,
@@ -53,12 +63,14 @@ function metricsFromTrends(
   };
 }
 
-/** Compute one Lisbon business day from source tables (same qualifying/revenue/guest rules). */
+/** Compute one Lisbon business day from source tables (same qualifying/revenue/guest/top rules). */
 export async function computeRestaurantBusinessDayMetrics(
   admin: SupabaseClient,
   restaurantId: string,
   businessDate: string,
-): Promise<{ ok: true; metrics: DailyStatMetrics } | AnalyticsQueryError> {
+): Promise<
+  { ok: true; metrics: DailyStatMetrics; topItems: MenuItemAgg[] } | AnalyticsQueryError
+> {
   const startUtc = lisbonDayStartUtcIso(businessDate);
   const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(businessDate, 1));
   const dateKeys = [businessDate];
@@ -85,6 +97,7 @@ export async function computeRestaurantBusinessDayMetrics(
     return {
       ok: true,
       metrics: metricsFromTrends(businessDate, revenueTrend, [], 0),
+      topItems: [],
     };
   }
 
@@ -97,15 +110,22 @@ export async function computeRestaurantBusinessDayMetrics(
     return itemOrdersResult;
   }
 
-  const customerTrend = buildCustomerTrend(
-    dateKeys,
-    qualifying,
-    groupOrdersBySession(itemOrdersResult.rows),
+  const ordersBySession = groupOrdersBySession(itemOrdersResult.rows);
+  const customerTrend = buildCustomerTrend(dateKeys, qualifying, ordersBySession);
+  const topItems = rankMenuItemAggs(
+    aggregateMenuItemsFromOrders(
+      itemOrdersResult.rows.map((order) => ({
+        status: order.status,
+        items: order.items || [],
+      })),
+    ),
+    DAILY_TOP_MENU_ITEM_LIMIT,
   );
 
   return {
     ok: true,
     metrics: metricsFromTrends(businessDate, revenueTrend, customerTrend, qualifying.length),
+    topItems,
   };
 }
 
@@ -138,14 +158,22 @@ export async function upsertDailyRestaurantStat(
 }
 
 /**
- * Seal one Lisbon day that had closed sessions.
+ * Seal one Lisbon day that had closed sessions (restaurant metrics + top menu items).
  * No-op insert when metrics have no business activity (hard rule: no zero rows).
  */
 export async function sealRestaurantBusinessDay(
   admin: SupabaseClient,
   restaurantId: string,
   businessDate: string,
-): Promise<{ ok: true; metrics: DailyStatMetrics; written: boolean } | AnalyticsQueryError> {
+): Promise<
+  | {
+      ok: true;
+      metrics: DailyStatMetrics;
+      topItems: MenuItemAgg[];
+      written: boolean;
+    }
+  | AnalyticsQueryError
+> {
   const computed = await computeRestaurantBusinessDayMetrics(admin, restaurantId, businessDate);
   if (!computed.ok) {
     return computed;
@@ -156,13 +184,27 @@ export async function sealRestaurantBusinessDay(
       customerCount: computed.metrics.customerCount,
     })
   ) {
-    return { ok: true, metrics: computed.metrics, written: false };
+    return { ok: true, metrics: computed.metrics, topItems: [], written: false };
   }
   const written = await upsertDailyRestaurantStat(admin, restaurantId, computed.metrics);
   if (!written.ok) {
     return written;
   }
-  return { ok: true, metrics: computed.metrics, written: true };
+  const topWritten = await replaceDailyMenuItemStats(
+    admin,
+    restaurantId,
+    businessDate,
+    computed.topItems,
+  );
+  if (!topWritten.ok) {
+    return topWritten;
+  }
+  return {
+    ok: true,
+    metrics: computed.metrics,
+    topItems: computed.topItems,
+    written: true,
+  };
 }
 
 export async function fetchDailyRestaurantStats(

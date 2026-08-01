@@ -1,0 +1,10 @@
+[Unit]
+Description=Mesa on-prem daily cutover timer (Europe/Lisbon ~05:05)
+
+[Timer]
+OnCalendar=*-*-* 05:05:00 Europe/Lisbon
+Persistent=true
+Unit=mesa-daily-cutover.service
+
+[Install]
+WantedBy=timers.target

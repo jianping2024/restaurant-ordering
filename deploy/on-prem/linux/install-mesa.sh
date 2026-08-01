@@ -237,6 +237,18 @@ EOF
     systemctl daemon-reload
     systemctl enable mesa-on-prem.service >/dev/null
     log "已启用 systemd: mesa-on-prem.service"
+
+    CUTOVER_UNIT=/etc/systemd/system/mesa-daily-cutover.service
+    CUTOVER_TIMER=/etc/systemd/system/mesa-daily-cutover.timer
+    sed \
+      -e "s|__MESA_HOME__|${MESA_HOME}|g" \
+      -e "s|__ONPREM_DIR__|${DEST_ONPREM}|g" \
+      "$DEST_ONPREM/systemd/mesa-daily-cutover.service.in" >"$CUTOVER_UNIT"
+    cp "$DEST_ONPREM/systemd/mesa-daily-cutover.timer" "$CUTOVER_TIMER"
+    chmod +x "$DEST_ONPREM/scripts/daily-cutover.sh"
+    systemctl daemon-reload
+    systemctl enable --now mesa-daily-cutover.timer >/dev/null
+    log "已启用 systemd timer: mesa-daily-cutover.timer（OnCalendar Europe/Lisbon 05:05）"
   else
     log "WARN: 无 systemctl，跳过开机自启"
   fi

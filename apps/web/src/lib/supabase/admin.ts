@@ -1,6 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseUrl } from '@/lib/supabase/url';
 
+/** Avoid Next.js fetch Data Cache on admin REST GETs (stale reads after writes). */
+function adminFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, { ...init, cache: 'no-store' });
+}
+
 /** Server-only: Supabase Admin API (requires SUPABASE_SERVICE_ROLE_KEY). */
 export function createAdminClient() {
   const url = getSupabaseUrl();
@@ -10,5 +15,6 @@ export function createAdminClient() {
   }
   return createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
+    global: { fetch: adminFetch },
   });
 }

@@ -25,7 +25,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until',
+      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, country_code, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until, daily_business_report_enabled',
     )
     .eq('id', id)
     .maybeSingle();
@@ -60,6 +60,12 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           <dt className="text-zinc-500">交付方式</dt>
           <dd>{row.deployment_mode === 'on_prem' ? '本地安装' : '云'}</dd>
         </div>
+        {row.deployment_mode === 'on_prem' ? (
+          <div>
+            <dt className="text-zinc-500">经营日报上报</dt>
+            <dd>{row.daily_business_report_enabled ? '已启用' : '未启用'}</dd>
+          </div>
+        ) : null}
         <div>
           <dt className="text-zinc-500">店主邮箱</dt>
           <dd>{row.owner_email || owner?.data?.user?.email || '—'}</dd>
@@ -116,6 +122,8 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
               printLocale: row.print_locale as PrintLocale,
               countryCode,
               featureFlags,
+              deploymentMode: row.deployment_mode === 'on_prem' ? 'on_prem' : 'cloud',
+              dailyBusinessReportEnabled: Boolean(row.daily_business_report_enabled),
             }}
           />
         </>

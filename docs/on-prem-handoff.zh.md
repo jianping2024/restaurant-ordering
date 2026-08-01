@@ -150,7 +150,7 @@
 | ③ print-agent 本机 | ❌ | 另机 Windows；服务器地址 `http://<店内IP>`（edge） |
 | ④ 域名证书 | ❌ | POC 用局域网 IP |
 | ⑤ 安装器/自启 | 🟡 | Ubuntu 脚本在；空机重复装 + 重启自起未验收 |
-| ⑥ 备份恢复 | 🟡 | `backup-local.sh` 雏形；经营日报上报未落地 |
+| ⑥ 备份恢复 | 🟡 | `backup-local.sh` + `mesa-daily-cutover`（关台→经营日报→本机快照）；灾备/恢复演练未闭环 |
 | ⑦ 升级回滚 | 🟡 | `upgrade.sh`/`rollback.sh` 有；≥3 次演练无 |
 | ⑧ 试点 | ❌ | — |
 | 控制面（ADR-004） | 🟡 | 代码+云迁移+装机桥齐；连云 UAT / 推远程未完 |

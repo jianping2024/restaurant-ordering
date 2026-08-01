@@ -1,0 +1,10 @@
+[Unit]
+Description=Mesa on-prem daily cutover (nightly close + 经营日报 + local backup)
+After=mesa-on-prem.service docker.service network-online.target
+Wants=mesa-on-prem.service
+
+[Service]
+Type=oneshot
+Environment=MESA_HOME=__MESA_HOME__
+WorkingDirectory=__ONPREM_DIR__
+ExecStart=__ONPREM_DIR__/scripts/daily-cutover.sh

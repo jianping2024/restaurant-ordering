@@ -39,6 +39,7 @@
 --   abnormal_operations         异常经营记录（折扣 / 减菜 / 未付关台等）
 --   operation_logs              操作审计日志
 --   analytics_daily_restaurant_stats  按营业日汇总的营收人数等
+--   analytics_daily_menu_item_stats   按营业日 Top10 菜品
 --
 -- 打印助手临时凭证
 --   print_agent_support_tokens  远程支持一次性 token（设备配对保留）
@@ -85,6 +86,7 @@ TRUNCATE TABLE
   public.table_party_group_members,
   public.table_party_groups,
   -- 经营日汇总
+  public.analytics_daily_menu_item_stats,
   public.analytics_daily_restaurant_stats,
   -- 打印助手临时支持 token
   public.print_agent_support_tokens

@@ -16,6 +16,8 @@ export type RegisterOnPremRestaurantInput = {
   slug?: string;
   /** Lisbon calendar day `YYYY-MM-DD`; null/omit = unlimited. Stored as that day's Lisbon EOD. */
   licenseValidUntil?: string | null;
+  /** Ops: enable daily 经营日报 upload from store cutover. Default false. */
+  dailyBusinessReportEnabled?: boolean;
 };
 
 export type RegisterOnPremRestaurantSuccess = {
@@ -97,6 +99,7 @@ export async function registerOnPremRestaurant(
       country_code: countryCode,
       deployment_mode: 'on_prem',
       license_valid_until: licenseValidUntil,
+      daily_business_report_enabled: Boolean(input.dailyBusinessReportEnabled),
     })
     .select('id')
     .single();

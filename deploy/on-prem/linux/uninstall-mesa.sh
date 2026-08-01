@@ -43,9 +43,12 @@ fi
 
 if command -v systemctl >/dev/null 2>&1; then
   systemctl disable --now mesa-on-prem.service 2>/dev/null || true
+  systemctl disable --now mesa-daily-cutover.timer 2>/dev/null || true
   rm -f /etc/systemd/system/mesa-on-prem.service
+  rm -f /etc/systemd/system/mesa-daily-cutover.service
+  rm -f /etc/systemd/system/mesa-daily-cutover.timer
   systemctl daemon-reload || true
-  echo "已移除 systemd: mesa-on-prem.service"
+  echo "已移除 systemd: mesa-on-prem.service / mesa-daily-cutover.timer"
 fi
 
 if [[ "$REMOVE_DATA" == "1" ]]; then

@@ -11,6 +11,7 @@ import {
   type RestaurantCountryCode,
 } from '@mesa/shared';
 import { PasswordInput } from '@mesa/ui';
+import { DailyBusinessReportEnabledField } from '@/components/DailyBusinessReportEnabledField';
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function NewRestaurantPage() {
   const [countryCode, setCountryCode] = useState<RestaurantCountryCode>('PT');
   const [slug, setSlug] = useState('');
   const [licenseValidUntil, setLicenseValidUntil] = useState('');
+  const [dailyBusinessReportEnabled, setDailyBusinessReportEnabled] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const minLicenseDate = todayLisbonCalendarDate();
@@ -47,6 +49,7 @@ export default function NewRestaurantPage() {
           slug: slug.trim() || undefined,
           // Lisbon calendar day only; server normalizes to Europe/Lisbon EOD.
           licenseValidUntil: onPrem && licenseValidUntil ? licenseValidUntil : undefined,
+          dailyBusinessReportEnabled: onPrem ? dailyBusinessReportEnabled : undefined,
         }),
       });
       const json = (await res.json()) as {
@@ -136,16 +139,22 @@ export default function NewRestaurantPage() {
             inputClassName="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 pr-10"
           />
         ) : (
-          <label className="block text-sm text-zinc-400">
-            初始授权截止日（可选，里斯本日历日 · 当日 23:59:59 过期）
-            <input
-              type="date"
-              value={licenseValidUntil}
-              min={minLicenseDate}
-              onChange={(e) => setLicenseValidUntil(e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 [color-scheme:dark]"
+          <>
+            <label className="block text-sm text-zinc-400">
+              初始授权截止日（可选，里斯本日历日 · 当日 23:59:59 过期）
+              <input
+                type="date"
+                value={licenseValidUntil}
+                min={minLicenseDate}
+                onChange={(e) => setLicenseValidUntil(e.target.value)}
+                className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 [color-scheme:dark]"
+              />
+            </label>
+            <DailyBusinessReportEnabledField
+              checked={dailyBusinessReportEnabled}
+              onChange={setDailyBusinessReportEnabled}
             />
-          </label>
+          </>
         )}
         <label className="block text-sm text-zinc-400">
           打印语言

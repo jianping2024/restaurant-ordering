@@ -66,7 +66,7 @@ sudo ./install-ubuntu.sh
 2. 云 Ops 安装码 + 店主密码认领 → 跳转 `/auth/login`
 3. 局域网正式入口：`http://<店内IP>/`（如 `http://192.168.0.141/`）
 4. Print Agent「服务器地址」：按 **§2.2**（局域网 edge origin，勿 `localhost` / `:3000`）
-5. 若启用公网 Tunnel 或局域网域名：按 **§2.1** 配 Auth 回调白名单（易漏）
+5. 若启用公网 Tunnel / HTTPS：按 **§2.1**（Auth 白名单）+ **§2.4**（http→https 清单）
 
 健康探针（装机/升级脚本与 compose 使用）：
 
@@ -172,6 +172,62 @@ WHERE pubname='supabase_realtime' ORDER BY 1;
 
 **Mode B same-origin Auth Cookie（订上频道但无 CDC）：** 服务端 `SUPABASE_URL=http://kong:8000` 写入 `sb-kong-auth-token`；浏览器若用页面 origin 推导 Cookie 名会对不上 → Realtime **无 JWT** → RLS 滤掉 `postgres_changes`。唯一修法：`getSupabaseAuthCookieOptions()`（`apps/web/src/lib/supabase/url.ts`）在 same-origin 下固定与 `kong` host 对齐的 Cookie 名，且 **browser/server/middleware/route-handler** 四处都走该函数。升级后员工 **重新登录** 一次。`pack-release` 门禁校验四处接线。
 
+### 2.4 局域网仍是 HTTP，公网改 HTTPS（Tunnel）要做的事
+
+店内 edge 继续 `http://<店内IP>/`；公网用 Cloudflare Tunnel 到 `https://你的域`。**不是**整机装证书，而是加一条公网 https 入口。
+
+#### Cloudflare / cloudflared（必做）
+
+**面板（Zero Trust → Networks → Tunnels → 该 Tunnel → Public Hostname）**
+
+| 项 | 填法 |
+|----|------|
+| Hostname | `你的域`（如 `pirata.farvoo.com`） |
+| Service | **`http://127.0.0.1:80`**（店机 Caddy edge；**禁止** `:3000`） |
+| WebSockets | Cloudflare 域 **Network → WebSockets = On**（一般默认开） |
+
+**店机 `cloudflared`：强制 `http2`（公网 Realtime 关键）**
+
+默认 `protocol=auto` 常走 **QUIC**，到源站时容易丢掉 `Upgrade: websocket` → Agent 日志 `websocket: bad handshake` → 掉 polling。
+
+本店常见是 **token 安装、没有 `config.yml`**。改 unit：
+
+```bash
+sudo systemctl cat cloudflared
+# 看 ExecStart；常见：
+# /usr/bin/cloudflared --no-autoupdate tunnel run --token-file /etc/cloudflared/token
+```
+
+编辑 `/etc/systemd/system/cloudflared.service`，在 `tunnel` 与 `run` 之间加 `--protocol http2`：
+
+```ini
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --protocol http2 run --token-file /etc/cloudflared/token
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart cloudflared
+sudo journalctl -u cloudflared -n 30 --no-pager
+# 日志须出现 protocol=http2，不要 quic
+```
+
+若用 `config.yml`（少见），在文件顶层加一行 `protocol: http2` 后重启同样服务。
+
+**不要**让 Print Agent / 深链用 `http://公网域`：Cloudflare 会 301→https，Go 跟随重定向时 **POST 变 GET** → heartbeat / routing / token 全 **405**。公网域一律 **`https://`**。
+
+#### Mesa 侧清单
+
+| 步骤 | 做什么 |
+|------|--------|
+| 1. Auth 白名单 | `.env` 的 `ADDITIONAL_REDIRECT_URLS` **追加** `https://你的域/**`（保留 `http://IP/**`）；`mesa-stack up -d --force-recreate auth`（§2.1） |
+| 2. 网页验收 | `https://你的域` 登录、看板；Realtime 无推送 → 含 Cookie 修复的包后 **重新登录**（§2.3） |
+| 3. 打印助手版本 | Mode B 用 **≥ 0.3.57**（claim 带 `api_base`，避免错误 proto → `ws://`）。**Cloud（Vercel）先用 0.3.56**，勿用 ≥0.3.57 |
+| 4. Agent 服务器地址 | 店内主填 **`http://<店内IP>`**（§2.2）。必须走公网时填 **`https://你的域`**（禁止 http），并 **重新配对** |
+| 5. 下载 / 配对页 | 下载用相对 `/api/downloads/...`；本机 pair 的 `api=` 用浏览器 `location.origin`。勿信 Tunnel 的 `X-Forwarded-Proto=http` |
+| 6. 抽查 | `curl -sI https://你的域/api/health/live`；Agent：`Realtime: connected and subscribed`；试打一张 |
+
+**为何容易坑：** 外网 https，Tunnel→Caddy 常仍报 `X-Forwarded-Proto=http`；再叠加 QUIC 丢 WebSocket 升级头。Mode B claim 优先 Agent 的 `https://` `api_base`；cloudflared 用 **http2**。
+
 ---
 
 ## 3. 目标机：升级（已有 `/opt/mesa`）
@@ -250,7 +306,11 @@ sudo /opt/mesa/bin/mesa-stack ps
 | 正式入口用 `:3000` | 正式用 edge `:80` → `http://<IP>/` |
 | Tunnel / 局域网域名登录失败 | 查 §2.1：`.env` 补 `ADDITIONAL_REDIRECT_URLS=…/**`，`--force-recreate auth` |
 | 只有 `SITE_URL`、无白名单 | 常见；纯 IP 可暂用。有公网域或 `*.lan` 登录时必须补白名单 |
-| Print Agent 填 localhost / `:3000` / 公网域 | 查 §2.2：填 `http://<店内IP>`（edge，无 `:3000`） |
+| 公网已 https，登录/打印仍怪 | 查 **§2.4**（白名单 + Agent 版本 + 重新配对；勿信 `X-Forwarded-Proto=http`） |
+| 公网 Realtime `bad handshake` / 掉 polling | §2.4：`cloudflared` 加 `--protocol http2`，日志确认非 quic；Service 指 `:80` |
+| 公网域用 `http://` → Agent 405 | Cloudflare 301 后 POST→GET；改 `https://` 并重配 |
+| Print Agent 填 localhost / `:3000` / 公网域 | 查 §2.2：店内主填 `http://<店内IP>`；公网 https 见 §2.4 |
+| Cloud Agent ≥0.3.57 Realtime 不通 | 已知：claim 误用网站域名当 `supabase_url`；Cloud 暂用 **0.3.56** |
 | 扫码下单成功但前台不实时 | §2.3：publication；Mixed Content → same-origin 无参 inline；WS 已 join 但无 CDC → Auth Cookie 名（`getSupabaseAuthCookieOptions`），升级后重新登录 |
 | Caddy 宽匹配 `/auth/*` | 只代理 `/auth/v1/*` 等，避免抢走 Next `/auth/login` |
 | 升级失败立刻 Restore | 先 curl 登录页与 `/api/health/*`；确认是否误报 |
@@ -289,7 +349,8 @@ sudo -E MESA_HOME=/opt/mesa bash /opt/mesa/current/deploy/on-prem/scripts/purge-
 | Web 构建身份 | `MESA_WEB_VERSION`（pack `manifest.version`）→ `getWebAppBuildInfo`；设置页脚同串 |
 | 网页对外 origin | `apps/web/src/lib/site-origin.ts` → `getPublicWebOrigin` |
 | Auth 白名单 `.env` | `$MESA_HOME/current/deploy/on-prem/.env` → `ADDITIONAL_REDIRECT_URLS`（§2.1） |
-| Print Agent 服务器地址 | 店内 edge origin，见 §2.2（推荐 `http://<店内IP>`） |
+| 公网 HTTPS / Tunnel | §2.4 |
+| Print Agent 服务器地址 | 店内 edge origin，见 §2.2（推荐 `http://<店内IP>`）；公网见 §2.4 |
 | Realtime publication | §2.3；ensure：`schema/ensure_realtime_publication.sql` ← `apply-migrations.sh` |
 | 交接总览 | `docs/on-prem-handoff.zh.md` |
 | 技术工具清单 | `docs/technical/local-perm-install-tools.zh.md` |

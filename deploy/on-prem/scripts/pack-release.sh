@@ -92,6 +92,10 @@ if ! grep -q 'ensure_realtime_publication' "$APPLY_SH"; then
   echo "ERROR: apply-migrations.sh must call ensure_realtime_publication" >&2
   exit 1
 fi
+if ! grep -qE "ARRAY\[.*'print_jobs'" "$ENSURE_SQL"; then
+  echo "ERROR: ensure_realtime_publication.sql must include print_jobs (print-agent Realtime CDC)" >&2
+  exit 1
+fi
 # Gate: web Dockerfile must use BuildKit npm cache (docs / on-prem-pack.mdc — not docs-only).
 WEB_DOCKERFILE="$STAGE/apps/web/Dockerfile"
 if ! grep -qE 'RUN --mount=type=cache,target=/root/\.npm[[:space:]]+npm ci' "$WEB_DOCKERFILE"; then

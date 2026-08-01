@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 import {
+  getPrintAgentClaimSupabaseUrl,
   getPublishedSupabaseUrl,
   getSupabaseAuthCookieOptions,
   getSupabaseUrl,
@@ -109,5 +110,34 @@ describe('getPublishedSupabaseUrl', () => {
     stashEnv();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co';
     assert.equal(getPublishedSupabaseUrl(), 'https://abc.supabase.co');
+  });
+});
+
+describe('getPrintAgentClaimSupabaseUrl', () => {
+  it('Mode B: uses request edge origin (not SUPABASE_PUBLIC_URL)', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
+    process.env.SUPABASE_PUBLIC_URL = 'http://192.168.0.141';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://192.168.0.141';
+    const headers = {
+      get(name: string) {
+        if (name === 'x-forwarded-host') return 'pirata.farvoo.com';
+        if (name === 'x-forwarded-proto') return 'https';
+        return null;
+      },
+    };
+    assert.equal(getPrintAgentClaimSupabaseUrl(headers), 'https://pirata.farvoo.com');
+  });
+
+  it('cloud: uses getPublishedSupabaseUrl (ignores request Host)', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co';
+    const headers = {
+      get(name: string) {
+        if (name === 'host') return 'restaurant-ordering-beryl-three.vercel.app';
+        return null;
+      },
+    };
+    assert.equal(getPrintAgentClaimSupabaseUrl(headers), 'https://abc.supabase.co');
   });
 });

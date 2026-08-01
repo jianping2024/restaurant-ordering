@@ -33,7 +33,13 @@ func (t *trayLocalHTTP) mountConfigureRoutes(configPath string) {
 	cfgPtr := &cfg
 	mux := http.NewServeMux()
 	// done=nil: tray keeps routes until exit; configure-done only closes the browser tab.
-	registerConfigureWizardRoutes(mux, configPath, cfgPtr, nil)
+	// Pair while already Connected: restart so Realtime binds the new api_base/supabase_url.
+	onPairSuccess := func() {
+		if t.rt != nil {
+			t.rt.onPairConfigSaved()
+		}
+	}
+	registerConfigureWizardRoutes(mux, configPath, cfgPtr, nil, onPairSuccess)
 	t.mu.Lock()
 	t.configureMux = mux
 	t.mu.Unlock()

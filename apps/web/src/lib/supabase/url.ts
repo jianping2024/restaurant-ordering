@@ -1,4 +1,5 @@
 import { menuImageSameOriginEnabled } from '@mesa/shared';
+import { getPublicWebOrigin } from '../site-origin';
 
 /**
  * Single resolver for Supabase API base URL (Auth / REST / Realtime / Storage).
@@ -32,7 +33,10 @@ export function getSupabaseUrl(): string {
 
 /**
  * URL for external clients (print-agent Realtime/Auth). Never docker-internal (`kong`).
- * Mode B: `SUPABASE_PUBLIC_URL` = edge origin. Cloud: `NEXT_PUBLIC_SUPABASE_URL` project URL.
+ * Mode B env default: `SUPABASE_PUBLIC_URL` = edge origin. Cloud: `NEXT_PUBLIC_SUPABASE_URL` project URL.
+ *
+ * Print-agent **claim** must not use this alone on Mode B — see `getPrintAgentClaimSupabaseUrl`
+ * (request edge origin so api_base and Realtime host cannot diverge).
  */
 export function getPublishedSupabaseUrl(): string {
   const published = process.env.SUPABASE_PUBLIC_URL?.trim();
@@ -43,6 +47,20 @@ export function getPublishedSupabaseUrl(): string {
   if (base) return base;
   if (typeof window !== 'undefined') return window.location.origin;
   throw new Error('SUPABASE_PUBLIC_URL or NEXT_PUBLIC_SUPABASE_URL must be set');
+}
+
+type HeaderReader = { get(name: string): string | null };
+
+/**
+ * Sole `supabase_url` for print-agent claim JSON.
+ * Mode B same-origin: request public edge (`getPublicWebOrigin`) — matches the api_base host
+ * the agent already reached. Cloud: `getPublishedSupabaseUrl()`.
+ */
+export function getPrintAgentClaimSupabaseUrl(requestHeaders: HeaderReader): string {
+  if (isSupabaseBrowserSameOrigin()) {
+    return getPublicWebOrigin(requestHeaders);
+  }
+  return getPublishedSupabaseUrl();
 }
 
 /**

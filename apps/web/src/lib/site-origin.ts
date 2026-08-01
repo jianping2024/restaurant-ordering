@@ -32,7 +32,9 @@ function originFromBrowserLocation(): string | null {
  * 2. Browser `location.origin` (LAN vs domain follows how the page was opened)
  * 3. `NEXT_PUBLIC_BASE_URL`, then `http://localhost:3000`
  *
- * Not for Supabase API base — use `getSupabaseUrl()` in `lib/supabase/url.ts`.
+ * Not for cloud Supabase project URL — use `getSupabaseUrl()` / `getPublishedSupabaseUrl()`.
+ * Mode B print-agent claim Realtime edge: `getPrintAgentClaimSupabaseUrl` reuses this
+ * (same-origin edge = the host the agent used for claim).
  */
 export function getPublicWebOrigin(requestHeaders?: HeaderReader): string {
   if (requestHeaders) {

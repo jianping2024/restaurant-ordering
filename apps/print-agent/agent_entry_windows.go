@@ -45,6 +45,18 @@ func (rt *trayRuntime) syncConfigFromDisk() {
 	reloadAgentSessionConfig(sess)
 }
 
+// onPairConfigSaved runs after /api/pair writes config. First-time pair (still bootstrapping)
+// continues into Connected with the new file. Re-pair while Connected restarts the process so
+// RealtimeNotifier is rebuilt against the new api_base/supabase_url (no stale WS + new PATCH).
+func (rt *trayRuntime) onPairConfigSaved() {
+	_, err, done := rt.snapshot()
+	if !done || err != nil {
+		return
+	}
+	log.Println("tray: pair updated — restarting to bind Realtime to new server")
+	requestTrayRestart(rt)
+}
+
 func runAgent(args []string) {
 	if agentArgsWantConsole(args) {
 		sess, _, err := initAgentSession(context.Background(), args)

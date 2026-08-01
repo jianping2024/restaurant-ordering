@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.55
+
+**重配后重建 Realtime；店内 CDC 含 print_jobs**
+
+- Connected 后再配对成功会自动重启托盘进程，避免旧 Realtime 会话 + 新 `api_base` PATCH 分裂（`job_not_found`）。
+- 首次未配对配对仍走原 bootstrap，不额外重启。
+- 配合 Web：Mode B claim 的 `supabase_url` 跟请求边沿 origin；on-prem ensure 将 `print_jobs` 加入 `supabase_realtime`。
+
 ## 0.3.54
 
 **未配对即可用本机 17892 配对页**

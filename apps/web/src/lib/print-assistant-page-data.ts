@@ -11,16 +11,19 @@ import {
 import type { PrintAgentDeviceHeartbeatRow } from '@/lib/print-agent-heartbeat';
 import { getPrintAgentDevicesBundle } from '@/lib/print-agent-devices-bundle';
 import { loadPrintAgentPairings, type PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
+import { queryRecentPrintJobs } from '@/lib/print-jobs-recent';
 import {
   presentReceiptPrintersForCheckout,
   type ReceiptPrinterOption,
 } from '@/lib/print-receipt-printer-options';
 import type { ReceiptPrinterRoutingSnapshot } from '@/lib/print-receipt-printer-options';
 import type { UILanguage } from '@/lib/i18n';
+import type { PrintJobSummary } from '@/types';
 
 export type PrintAssistantUpperData = {
   devices: PrintAgentDeviceHeartbeatRow[];
   pairings: PrintAgentPairingListItem[];
+  recentJobs: PrintJobSummary[];
 };
 
 export type PrintAssistantLowerData = {
@@ -86,18 +89,21 @@ async function loadPrintAgentConfig(
   }
 }
 
-/** Devices + pairings for print-assistant upper panels (single device query via bundle). */
+/** Devices + pairings + recent jobs for print-assistant upper panels. */
 export async function loadPrintAssistantUpperData(
   restaurantId: string,
 ): Promise<PrintAssistantUpperData> {
-  const [bundle, pairings] = await Promise.all([
+  const admin = createAdminClient();
+  const [bundle, pairings, recent] = await Promise.all([
     getPrintAgentDevicesBundle(restaurantId),
     loadPrintAgentPairings(),
+    queryRecentPrintJobs(admin, restaurantId),
   ]);
 
   return {
     devices: bundle.devices,
     pairings,
+    recentJobs: recent.jobs,
   };
 }
 

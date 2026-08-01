@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.59
+
+**配对成功直接进入打印机设置**
+
+- `/api/pair` 成功后浏览器唯一出口：`location.replace` 到 `/configure`（不再停在成功面板/可选链接，避免误以为失败）。
+- Connected 重配触发的托盘重启延迟约 2s，先让跳转落地再杀本机 HTTP。
+
 ## 0.3.58
 
 **配对成功后禁用「连接并保存」10 秒**

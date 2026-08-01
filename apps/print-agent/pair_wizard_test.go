@@ -47,6 +47,10 @@ func TestDedupePrinterList(t *testing.T) {
 }
 
 func TestPairSuccessInvokesOnSuccess(t *testing.T) {
+	prev := pairSuccessOnSuccessDelay
+	pairSuccessOnSuccessDelay = 0
+	defer func() { pairSuccessOnSuccessDelay = prev }()
+
 	var gotAPIBase string
 	var mesa *httptest.Server
 	mesa = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -89,5 +93,37 @@ func TestPairSuccessInvokesOnSuccess(t *testing.T) {
 	wantBase := strings.TrimRight(mesa.URL, "/")
 	if gotAPIBase != wantBase {
 		t.Fatalf("claim api_base=%q want %q", gotAPIBase, wantBase)
+	}
+}
+
+func TestSchedulePairOnSuccessDeferred(t *testing.T) {
+	prev := pairSuccessOnSuccessDelay
+	pairSuccessOnSuccessDelay = 30 * time.Millisecond
+	defer func() { pairSuccessOnSuccessDelay = prev }()
+
+	called := make(chan struct{}, 1)
+	schedulePairOnSuccess(func() { called <- struct{}{} })
+	select {
+	case <-called:
+		t.Fatal("onSuccess ran before delay")
+	case <-time.After(5 * time.Millisecond):
+	}
+	select {
+	case <-called:
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("onSuccess not called after delay")
+	}
+}
+
+func TestPairUISuccessNavigatesToConfigure(t *testing.T) {
+	html := string(pairUIHTML)
+	if !strings.Contains(html, "location.replace(configurePath())") {
+		t.Fatal("pair_ui.html must location.replace to /configure on success")
+	}
+	if strings.Contains(html, "showConfigureLinkIfAvailable") {
+		t.Fatal("pair_ui.html must not keep optional configure-link success path")
+	}
+	if strings.Contains(html, `id="ok"`) {
+		t.Fatal("pair_ui.html must not keep parallel success panel")
 	}
 }

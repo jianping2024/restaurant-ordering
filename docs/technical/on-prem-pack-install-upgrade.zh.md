@@ -257,12 +257,29 @@ sudo /opt/mesa/bin/mesa-stack ps
 
 ---
 
+## 5.1 清理日常经营数据（保留配置）
+
+联调 / 试营业后若要清空开台、订单、结账、打印队列，**保留**菜单、桌位、员工、License、打印助手配对：
+
+```bash
+# 建议先备份
+sudo -E MESA_HOME=/opt/mesa bash /opt/mesa/current/deploy/on-prem/scripts/backup-local.sh
+
+sudo -E MESA_HOME=/opt/mesa bash /opt/mesa/current/deploy/on-prem/scripts/purge-operational-data.sh --i-understand-wipe-ops-data
+# 只看行数、不删：加 --dry-run
+```
+
+表清单与「清 / 留」写在 `deploy/on-prem/schema/purge_operational_data.sql` 文件头注释。不可恢复；缺确认参数脚本会拒绝执行。
+
+---
+
 ## 6. 相关路径
 
 | 用途 | 路径 |
 |------|------|
 | 打包 | `deploy/on-prem/scripts/pack-release.sh` |
 | 升级 | `deploy/on-prem/scripts/upgrade.sh` |
+| 清经营流水 | `deploy/on-prem/scripts/purge-operational-data.sh` + `schema/purge_operational_data.sql` |
 | Ubuntu 初装 | `install-ubuntu.sh` → `linux/install-mesa.sh` |
 | 栈 | `$MESA_HOME/bin/mesa-stack` 或 `deploy/on-prem/scripts/stack.sh` |
 | Health 实现 | `apps/web/src/lib/ops-health.ts`，`/api/health/live`·`ready` |

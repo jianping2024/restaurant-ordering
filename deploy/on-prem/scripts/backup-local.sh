@@ -9,7 +9,7 @@ cd "$ONPREM_DIR"
 
 ENV_FILE="${ONPREM_DIR}/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Missing .env — run bootstrap-mode-b.sh / Install-Mesa first." >&2
+  echo "Missing .env — run bootstrap-mode-b.sh / install-mesa.sh first." >&2
   exit 1
 fi
 

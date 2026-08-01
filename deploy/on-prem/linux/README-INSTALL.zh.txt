@@ -6,6 +6,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - root（sudo）
 - Docker Engine + Compose 插件（docker compose）
 - 装机时建议有外网（首次拉镜像）
+- 远程运维强烈建议：Tailscale + openssh-server（运维通道；不是顾客入口）
+- 公网扫码：Cloudflare Tunnel（cloudflared）指到本机 :80；与 Tailscale 分工
 - 打印：另需一台可跑 Windows MesaPrintAgent 的电脑（打印不进 Docker）
 
 二、安装目录（MESA_HOME）
@@ -82,3 +84,4 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 扫码下单不实时 → §2.3 / 三、9（勿轮询）
 - Supabase vendor 大版本升级不在一键脚本内
 - 完整说明：docs/technical/on-prem-pack-install-upgrade.zh.md
+- 技术工具清单：docs/technical/local-perm-install-tools.zh.md

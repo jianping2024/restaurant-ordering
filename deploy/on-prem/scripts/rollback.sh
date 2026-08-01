@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Roll back Mesa web/files to previous release when migrations were NOT applied.
-# If LAST_UPGRADE.migrationsApplied=true, refuse and point to restore-local / Restore-Mesa.
+# If LAST_UPGRADE.migrationsApplied=true, refuse and point to restore-local.
 set -euo pipefail
 
 ONPREM_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -51,7 +51,6 @@ if [[ "$migrations_applied" == "true" && "$FORCE" != "1" ]]; then
 Refusing file rollback: migrations were already applied.
 Database may not match older app files.
 Use: ./scripts/restore-local.sh --Force <backup-snapshot>
-  or Windows Restore-Mesa.ps1
 Pass --Force only if you accept a file-only rollback (dangerous).
 EOF
   exit 3

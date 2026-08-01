@@ -1,9 +1,9 @@
 # 门店本地部署 + 授权控制面：需求与交接
 
-> **日期：** 2026-07-30（§1.4 装机认领终态 2026-07-30 晚补全）  
-> **状态：** 控制面 + `/setup` 装机桥已合入本地 `main`（含 `f6114ac`）；发行栈 / 验证包仍在本机磁盘与 zip，**未进 Git**。  
-> **权威方案：** [`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md) · ADR：[`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)（含认领终态）  
-> **相关会话：** [On-prem license control plane](4c9cf0ea-bf55-4120-b093-b05d28c40651) · [WSL verify / pack](6de12965-b99e-4092-a37b-3c905fb90af1) · [Claim bridge /setup](5144df91-bb08-49f4-9e3f-d26bbc47fe6a)
+> **日期：** 2026-07-30（§1.4 装机认领终态 2026-07-30 晚补全；**2026-08-01** 废止 Windows/WSL Web 全栈安装器）  
+> **状态：** 控制面 + `/setup` 装机桥已合入；Mode B 发行以 **Ubuntu `install-ubuntu.sh`** 为准。  
+> **权威方案：** [`local-only-rollout-steps.zh.md`](./local-only-rollout-steps.zh.md) · 打包 [`technical/on-prem-pack-install-upgrade.zh.md`](./technical/on-prem-pack-install-upgrade.zh.md) · ADR：[`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)  
+> **相关会话：** [On-prem license control plane](4c9cf0ea-bf55-4120-b093-b05d28c40651) · [Claim bridge /setup](5144df91-bb08-49f4-9e3f-d26bbc47fe6a)
 
 ---
 
@@ -12,9 +12,10 @@
 两件事并行：
 
 1. **Ops 授权控制面**（云登记本地店、续期/停运、安装码认领、7 天离线 lease）——控制面 + `/setup` 装机桥已编码；**连云生产 UAT / 推远程 `main` 未完成**。  
-2. **Mode B 门店发行包**（本机 Docker 栈 + 迁移 baseline + Windows 安装器 / WSL 一键验证）——脚本与最新 zip 在开发机，**整棵 `deploy/` 被 `.gitignore` 排除，交接最大风险**。
+2. **Mode B 门店发行包**（本机 Docker 栈 + 迁移 baseline + **Ubuntu** 安装器）——`deploy/on-prem` 源码应在 Git；产物 zip 仍可不入库。
 
-商业形态已拍板：**Linux 栈（WSL/Docker）+ Windows Print Agent**；不要再用「Windows Docker Desktop 全栈 zip」当主验证战场。
+商业形态：**Ubuntu 店机（Docker Engine）+ 另机 Windows Print Agent**。  
+**已作废：** Windows/WSL/Docker Desktop 跑 Mesa Web+库全栈；`deploy/on-prem/windows/**`、`Install-Mesa.ps1`、`START-WSL-TEST.cmd`、`MesaOnPremBackup` / `MesaOnPremStack` 已删除。
 
 ---
 
@@ -26,7 +27,7 @@
 |----|------|
 | 营业权威 | 仅店内 Postgres（自托管 Supabase Mode B） |
 | 打印 | Windows `MesaPrintAgent`；服务器地址推荐 `http://<店内IP>`（edge，见 `on-prem-pack-install-upgrade.zh.md` §2.2）；不进 Docker |
-| 运行时 | 正式倾向 **WSL2 + Docker Engine**；本公司规模下 Docker Desktop 可作演示/研发，不作唯一合同依赖 |
+| 运行时 | **Ubuntu + Docker Engine**（唯一店机路径）；Windows 只跑 Print Agent |
 | 升级 | **离线升级包 only**；无在线升级 API |
 | 发票 | 不做；停运只挡 Mesa 运营 |
 
@@ -93,10 +94,11 @@
 
 | 目标 | 说明 |
 |------|------|
-| 主路径 | WSL2 Ubuntu + Docker（Desktop 的 Ubuntu 集成即可）+ Linux 安装脚本 |
-| 一键验证 | 解压包 → `START-WSL-TEST.cmd` → 清理旧栈 → `~/mesa-verify` 全新装 → migrate 成功 → `:3000/setup` |
-| 客户路径 | `deploy/on-prem/windows/Install-Mesa.ps1`（与验证入口分离） |
-| 明确不做 | Windows Docker Desktop 全栈抛掷 zip 继续迭代；`mesa-windows-test-*` 作废战场 |
+| 主路径 | **原生 Ubuntu** + Docker Engine + `install-ubuntu.sh` / Mode B 脚本 |
+| 验证 | 解压 stamped zip → `sudo ./install-ubuntu.sh` → migrate 成功 → `/setup` |
+| 客户路径 | 包根 `install-ubuntu.sh`（默认 `MESA_HOME=/opt/mesa`） |
+| 明确不做 / 已删除 | Windows/WSL 全栈安装器；`deploy/on-prem/windows/**`；`START-WSL-TEST.cmd`；`MesaOnPremBackup` / `MesaOnPremStack` |
+| 打印 | **另机** Windows `MesaPrintAgent`（`apps/print-agent` 发行），不进本 zip |
 
 ---
 
@@ -130,12 +132,12 @@
 | Schema baseline + Realtime ensure | ✅ | baseline + covered；`ensure_realtime_publication.sql` 每次 apply；`pack-release` 门禁（§2.3） |
 | `apply-migrations.sh` | 🟡 | 已修：heredoc 必须 `docker exec -i`；covered 一批事务标记；pending=0 则跳过 incremental |
 | `pack-release.sh` 唯一包名 | 🟡 | `mesa-on-prem-<sha>-<UTC>.zip` + `PACK-ID.txt`；勿只认 `latest` |
-| `START-WSL-TEST.cmd` / `verify-install-wsl.sh` | 🟡 | 验证专用：停栈、docker 清容器、root 擦 `~/mesa-verify`、再安装 |
-| Windows `Install-Mesa.ps1` 等 | 🟡 | 安装/诊断/备份/升级/回滚脚本在 `deploy/on-prem/windows/` |
-| `apps/web/Dockerfile` + `DOCKER_BUILD` standalone | ✅（本 diff） | 入库；Mode B build 带 `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN` |
-| WSL 一键验证跑通到 `/setup` | ❌ / 🟡 | 多次 migrate 翻车后已打修复包；**需用人手用最新 stamped zip 再验一次绿** |
+| Ubuntu `install-mesa.sh` / `install-ubuntu.sh` | ✅ | 客户唯一装机入口；`mesa-on-prem.service` 开机拉栈 |
+| Windows/WSL Web 全栈安装器 | ✅ 已删除 | `deploy/on-prem/windows/` 移除（2026-08-01） |
+| `apps/web/Dockerfile` + `DOCKER_BUILD` standalone | ✅ | Mode B build 带 `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN` |
+| Ubuntu 干净机装到 `/setup` | 🟡 | 以 stamped zip + `install-ubuntu.sh` 验收 |
 | 客户空机 Installer 无人值守验收 | ❌ | 未做完整空机矩阵 |
-| 拔外网营业日 / Print Agent 联调 | ❌ | 验证焦点尚停在「栈起 + migrate」 |
+| 拔外网营业日 / Print Agent 联调 | ❌ | Agent 另机 Windows；联调待排 |
 | 步骤 ⑥ 备份上云 / ⑦ 升级演练 ≥3 | ❌ | 脚本有雏形，未按验收清单打勾 |
 | **`/dist/` 发行 zip** | ignore | 产物仍不入库；源码在 `deploy/on-prem` |
 
@@ -145,11 +147,11 @@
 |------|--------|------|
 | ① 支持范围 | 🟡 | 大方向定；支持矩阵一页仍缺正式勾选 |
 | ② 本机生产栈 | 🟡 | 包与脚本有；干净机绿跑未闭环 |
-| ③ print-agent 本机 | ❌ | 路径已知（`:3000`），未在本轮验证闭环 |
-| ④ 域名证书 | ❌ | POC 用 `127.0.0.1` |
-| ⑤ 安装器/自启 | 🟡 | 脚本在；空机重复装 + 重启自起未验收 |
-| ⑥ 备份恢复 | 🟡 | 脚本雏形；cloud 日备未验收 |
-| ⑦ 升级回滚 | 🟡 | `Upgrade`/`Rollback` 有；≥3 次演练无 |
+| ③ print-agent 本机 | ❌ | 另机 Windows；服务器地址 `http://<店内IP>`（edge） |
+| ④ 域名证书 | ❌ | POC 用局域网 IP |
+| ⑤ 安装器/自启 | 🟡 | Ubuntu 脚本在；空机重复装 + 重启自起未验收 |
+| ⑥ 备份恢复 | 🟡 | `backup-local.sh` 雏形；经营日报上报未落地 |
+| ⑦ 升级回滚 | 🟡 | `upgrade.sh`/`rollback.sh` 有；≥3 次演练无 |
 | ⑧ 试点 | ❌ | — |
 | 控制面（ADR-004） | 🟡 | 代码+云迁移+装机桥齐；连云 UAT / 推远程未完 |
 
@@ -164,10 +166,10 @@
    - 后果：另一台机器 / 另一人无法从仓库复现；只靠拷贝 zip 或本机目录。  
    - 建议：拆「可提交源」vs「产物」——提交 `deploy/on-prem/**`（排除 `.env`、volumes、`.releases`、`data/`）；继续 ignore `/dist/*.zip`。用 `git add -f` 或改 `.gitignore` 后提交。
 
-2. **WSL 验证尚未用最新修复包确认绿**  
-   - 历史翻车：covered 标记失败 → 重跑 `platform_admin`「表已存在」；heredoc 无 `-i` → `mesa_schema_migrations` 未创建。  
-   - 当前应使用 stamped 包（见 §4）；成功日志必须含：  
-     `Marked baseline-covered ... 67` + `No pending incremental migrations`。  
+2. **Ubuntu 验证尚未用最新 stamped zip 确认绿**  
+   - 历史翻车（WSL 时代）：covered 标记失败 → 重跑 `platform_admin`「表已存在」；heredoc 无 `-i` → `mesa_schema_migrations` 未创建。  
+   - 当前应使用 stamped 包 + `sudo ./install-ubuntu.sh`；成功日志必须含：  
+     `Marked baseline-covered ...` + `No pending incremental migrations`。  
    - `WARN: storage.buckets not ready` **可忽略**（非阻断）。
 
 3. **控制面未推远程 / Ops 生产未配密钥**  
@@ -176,24 +178,23 @@
 
 ### P1 — 交付前
 
-4. **`apps/web/Dockerfile` 未入库** —— on-prem web `--build` 依赖它；应与 `DOCKER_BUILD` standalone 配置一并提交。  
+4. **`apps/web/Dockerfile` 须在发行包内** —— on-prem web `--build` 依赖它；`pack-release` 已打入。  
 5. **Print Agent 服务器地址** —— 店内 edge `http://<店内IP>`（§2.2）；migrate / 认领绿之后厨打冒烟。  
-6. **正式运行时矩阵** —— WSL2+Engine vs Desktop：合同/支持文档写死一条；安装器按该条测。
+6. **店机 OS** —— 合同/支持只写 **Ubuntu + Docker Engine**；Windows 仅 Print Agent。
 
 ### P2 — 已知弯路（不要再走）
 
-- Windows 主机直接 `docker compose` + `MESA_REPO_ROOT=C:/...`：路径被拼进 `/mnt/c/...`，引擎不认 Windows 绝对路径。  
-- `-v C:/...:/repo` → `invalid mode: /repo`。  
-- PowerShell 5.1 + Unicode 破折号导致脚本解析失败。  
+- Windows 主机直接 `docker compose` 跑 Mesa 全栈（路径/WSL 坑）——**路径已废，勿复活**。  
+- PowerShell 5.1 + Unicode 破折号导致脚本解析失败（旧 Windows 安装器）。  
 - 嵌套混淆包名（`mesa-on-prem-onprem-*`）。  
-- **多次短生命周期 `wsl -d Ubuntu -- …` 探活** → `Wsl/Service/0x8007274c`（宿主超时，`exit=-1`）；验证入口只允许 **一次** WSL hop（`START-WSL-TEST.cmd` → `verify-install-wsl.sh`）。  
-- **结论：** 全栈验证只走 WSL Linux 路径；Windows 只跑 Print Agent。
+- **结论：** 全栈只走原生 Ubuntu；Windows 只跑 Print Agent。
 
 ---
 
 ## 4. 当前包与命令（本机）
 
 > **打包 / 初装 / 升级正确流程（唯一操作说明）：** [`docs/technical/on-prem-pack-install-upgrade.zh.md`](./technical/on-prem-pack-install-upgrade.zh.md)  
+> **local-perm 安装技术工具清单：** [`docs/technical/local-perm-install-tools.zh.md`](./technical/local-perm-install-tools.zh.md)  
 > 包名每次打包唯一；**不要只拷 `mesa-on-prem-latest.zip`**。以 `dist/mesa-on-prem-LATEST-NAME.txt` 或解压后 `PACK-ID.txt` 为准。  
 > 店内解压目录约定：`/home/remoteadmin/mesa-on-prem-<ver>/`。
 
@@ -201,12 +202,12 @@
 |----|------------------------------|
 | 最新 stamped zip | 以 `dist/mesa-on-prem-LATEST-NAME.txt` 为准 |
 | 内含目录 | 与 stamped zip 同名 |
-| 验证入口 | 解压后双击 `START-WSL-TEST.cmd` |
-| 客户入口 | `deploy\on-prem\windows\Install-Mesa.ps1` / Ubuntu `install-ubuntu.sh` |
+| 验证 / 客户入口 | `sudo ./install-ubuntu.sh`（详见包内 `README-UBUNTU.zh.txt`） |
 | 重新打包 | `./deploy/on-prem/scripts/pack-release.sh`（仓库根） |
 | 店内升级 | `MESA_HOME=/opt/mesa` + `sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>` |
 | 重导 baseline | `DB_CONTAINER=supabase_db_restaurant-ordering ./deploy/on-prem/scripts/export-schema-baseline.sh` |
 | 本地授权 UAT | `node scripts/uat-on-prem-license.mjs`（先对齐 `MESA_LICENSE_LEASE_SECRET`） |
+| Print Agent | 另装 Windows 发行包；服务器地址 `http://<店内IP>` |
 
 成功 migrate 期望：
 
@@ -221,12 +222,12 @@ No pending incremental migrations (baseline covers current tree).
 
 ## 5. 建议下一手（顺序）
 
-1. **改 `.gitignore`，把 `deploy/on-prem` 源码纳入 Git**（排除 secrets/volumes），并提交 `Dockerfile` / `.dockerignore` / `next.config` standalone。  
-2. **用最新 stamped zip 在 WSL 再跑一遍** `START-WSL-TEST.cmd`，截成功 migrate + 打开 `/setup` 完成认领登录。  
+1. **确认 `deploy/on-prem` 源码在 Git**（排除 secrets/volumes），Dockerfile / pack 门禁齐全。  
+2. **用最新 stamped zip 在 Ubuntu 再跑一遍** `install-ubuntu.sh`，截成功 migrate + `/setup` 认领登录。  
 3. **push 本地 `main`（用户明确说 push 时）**；确认云 Ops 部署与 `MESA_LICENSE_LEASE_SECRET`。  
 4. 跑通连云 UAT：Ops 登记 → 发码 → `/setup` → `/auth/login` → dashboard check-in → 续期/停运。  
 5. Print Agent 指 `http://<店内局域网IP>`（§2.2，勿 localhost / `:3000`），厨打冒烟。  
-6. 再排 ⑤ 空机 Installer、⑥ 备份、⑦ 升级演练。
+6. 再排 ⑤ 空机 Installer、⑥ 经营日报/备份、⑦ 升级演练。
 
 ---
 
@@ -236,6 +237,7 @@ No pending incremental migrations (baseline covers current tree).
 |------|------|
 | 本交接 | `docs/on-prem-handoff.zh.md`（本文） |
 | 打包/初装/升级流程 | `docs/technical/on-prem-pack-install-upgrade.zh.md` |
+| local-perm 技术工具清单 | `docs/technical/local-perm-install-tools.zh.md` |
 | 步骤总方案 | `docs/local-only-rollout-steps.zh.md` |
 | 授权 ADR | `docs/decisions/ADR-004-on-prem-entitlement.md` |
 | 控制面迁移 | `supabase/migrations/20260730140000_on_prem_license_control_plane.sql` |

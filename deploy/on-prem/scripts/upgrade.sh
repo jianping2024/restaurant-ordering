@@ -253,7 +253,7 @@ for i in $(seq 1 60); do
 done
 if [[ "$ok" != "1" ]]; then
   write_upgrade "failed" "health" "health check failed after upgrade" "true"
-  echo "Health check failed. migrationsApplied=true — use Restore-Mesa / restore-local if needed." >&2
+  echo "Health check failed. migrationsApplied=true — use restore-local if needed." >&2
   exit 1
 fi
 

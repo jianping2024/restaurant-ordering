@@ -12,11 +12,12 @@
 
 采用 **门店纯本地权威**，不是浏览器 PWA 离线，也不是云↔本地自动切换：
 
-1. 客户交付：店内主机跑 Web + 自托管 Supabase；营业数据只写本机库。  
+1. 客户交付：店内 **Ubuntu** 主机跑 Web + 自托管 Supabase；营业数据只写本机库。  
 2. 店员始终访问本机；无「故障切换」。  
 3. 顾客扫码：域名指向本机；断公网扫不了可接受。  
-4. 打印：现有 Windows print-agent 留在宿主机（= 桥），对接本机 API；不进 Docker。  
-5. 不做 IndexedDB 双写订单、不做双库智能合并。
+4. 打印：现有 Windows print-agent 留在 **另机/收银 Windows**（= 桥），对接本机 API；不进 Docker。  
+5. 不做 IndexedDB 双写订单、不做双库智能合并。  
+6. 不作 Windows/WSL 跑 Mesa Web+库全栈（已废）。
 
 ## 后果
 

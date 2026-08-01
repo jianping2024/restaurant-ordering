@@ -1,8 +1,11 @@
 # On-prem：打升级包 / 初装包与装机升级流程
 
-> 门店 Mode B（Ubuntu 默认 `/opt/mesa`）的**唯一操作说明**。  
+> 门店 Mode B / **local-perm**（Ubuntu 默认 `/opt/mesa`）的**唯一操作说明**。  
+> 店机 = **原生 Ubuntu + Docker Engine**（Windows/WSL 全栈安装已作废）。  
+> 打印 = 另机 Windows `MesaPrintAgent`（不在本包）。  
 > 打包脚本：`deploy/on-prem/scripts/pack-release.sh`；升级：`deploy/on-prem/scripts/upgrade.sh`。  
-> 初装细节补充见包内 `README-UBUNTU.zh.txt`（源：`deploy/on-prem/linux/README-INSTALL.zh.txt`）。
+> 初装细节补充见包内 `README-UBUNTU.zh.txt`（源：`deploy/on-prem/linux/README-INSTALL.zh.txt`）。  
+> **技术工具清单：** [`local-perm-install-tools.zh.md`](./local-perm-install-tools.zh.md)。
 
 ## 1. 开发机：打发行包（初装与升级用同一 zip）
 
@@ -288,3 +291,4 @@ sudo -E MESA_HOME=/opt/mesa bash /opt/mesa/current/deploy/on-prem/scripts/purge-
 | Print Agent 服务器地址 | 店内 edge origin，见 §2.2（推荐 `http://<店内IP>`） |
 | Realtime publication | §2.3；ensure：`schema/ensure_realtime_publication.sql` ← `apply-migrations.sh` |
 | 交接总览 | `docs/on-prem-handoff.zh.md` |
+| 技术工具清单 | `docs/technical/local-perm-install-tools.zh.md` |

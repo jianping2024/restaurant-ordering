@@ -1,8 +1,9 @@
 # 门店纯本地部署：落地步骤（方案定稿）
 
-> **状态：方案已定稿**（2026-07-24）  
-> **工程完成度 / 卡点交接（2026-07-30）：** [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md)（控制面代码 + Mode B 包；含「什么绿了、什么卡死」）。  
-> 冲突时以本文为准（产品步骤）。细设计仍可参考 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)（其中「打印进 Docker」为**不做**的备选）。  
+> **状态：方案已定稿**（2026-07-24；**2026-08-01** 明确：店机 = 原生 Ubuntu，Windows/WSL 全栈安装作废；打印仍 Windows agent）  
+> **工程完成度 / 卡点交接：** [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md)  
+> 冲突时以本文为准（产品步骤）。细设计历史稿 [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md)（文首已标明作废的 Windows 全栈路径）。  
+> **打包真源：** [`technical/on-prem-pack-install-upgrade.zh.md`](./technical/on-prem-pack-install-upgrade.zh.md)  
 > ADR：[`ADR-001`](./decisions/ADR-001-offline-first.md)、[`ADR-002`](./decisions/ADR-002-local-database.md)、控制面 [`ADR-004`](./decisions/ADR-004-on-prem-entitlement.md)
 
 ## 0. 一句话说清楚
@@ -44,14 +45,15 @@
 - 云 ↔ 本地自动切换、双库智能合并  
 - 把 print-agent 收进 Docker / 取消托盘（第一版）  
 - 用 `npm run dev` 当客户生产  
-- 第一版强依赖「无 Docker 授权的任意破电脑」
+- 第一版强依赖「无 Docker 授权的任意破电脑」  
+- **Windows / WSL / Docker Desktop 跑 Mesa Web+库全栈**（已作废；店机仅 Ubuntu）
 
 ### 1.2 还剩什么（多数不挡 POC）
 
 | 项 | 状态 | 何时必须定 |
 |----|------|------------|
-| 备份上 cloud、一天一次 | **已定** | 实现细节 → 步骤 ⑥ |
-| 容器运行时用 WSL2 + Docker Engine | **已定** | 步骤 ①/⑤ 安装器按此做 |
+| 备份上 cloud、一天一次 | **已定方向** | 经营日报上报 vs 全量灾备 → 步骤 ⑥；见近期方案 |
+| 店机 OS / 运行时 | **已定** | **Ubuntu 22.04/24.04 + Docker Engine**（原生）；安装器 `install-ubuntu.sh` |
 | 现有云店迁本地 | 未定 | **仅当有存量 SaaS 店要迁**；无则跳过 |
 | 顾客公网扫码：店内 DNS vs 隧道 | 未定 | 试点前；**POC 可用局域网 IP/书签** |
 | 单店是否装 `apps/ops` | 默认不装 | 有平台代运需求再加 |
@@ -82,37 +84,25 @@ Docker 里的 Linux 栈碰不到本机 USB 队列；所以要有一个 **Windows
 
 一张清单（`compose.yaml`），一句命令拉起网关、Web、库、Auth、Realtime、Storage 等。打印**不在** Compose 里，旁边跑 Windows agent。镜像版本钉死，禁止客户机拉 `latest`。
 
-### 2.4 Docker 要付费吗？免费替代是什么？
+### 2.4 店机跑 Docker：Ubuntu（不是 Windows Desktop）
 
-**两件事分开：**
-
-| | 是什么 | 钱 |
-|--|--------|-----|
-| **Docker Engine** | 真正跑容器的引擎（开源） | **免费** |
-| **Docker Desktop** | Windows 上的一键安装壳（GUI + 帮你管 WSL） | 小公司常免费；大公司要订阅 |
-
-Docker 官方：Desktop 免费适用于个人、教育、开源，以及 **员工少于 250 且年收入低于约 1000 万美元** 的小企业；更大就要付费。单店餐馆多数落在免费档，但**产品交付不宜绑死在 Desktop 授权上**。
-
-**免费、可作正式交付的替代（推荐写进支持矩阵）：**
+**定稿：**
 
 ```text
-Windows 11
-  └─ WSL2（Ubuntu 等）
-        └─ 安装 Docker Engine + Compose 插件（apt/官方脚本，开源免费）
-              └─ 在此跑 Mesa Compose（Web + Supabase…）
-Windows 上另跑 print-agent（桥，照旧）
+Ubuntu 22.04 / 24.04 LTS（店机）
+  └─ Docker Engine + Compose 插件（apt / 官方脚本，开源免费）
+        └─ Mesa Compose（Web + 自托管 Supabase + edge）
+另机 Windows
+  └─ MesaPrintAgent（桥 → USB / 网口）
 ```
 
-| 方案 | 费用 | 适合 | 代价 |
-|------|------|------|------|
-| **WSL2 + Docker Engine** | 免费 | **正式交付首选** | 无官方漂亮 GUI；安装器要替客户装好 WSL/引擎/开机拉起 |
-| Rancher Desktop | 免费开源 | 想要一点 GUI | 多一个第三方运行时，要进兼容矩阵单独验 |
-| Podman / Podman Desktop | 免费 | 极客向 | 与现成 `docker compose` 文档不完全同构，第一版不建议 |
-| Docker Desktop | 小店常免费；大组织可能要钱 | 内部试用、装机图省事 | 授权与无人值守策略要写进合同 |
+| 方案 | 费用 | 地位 |
+|------|------|------|
+| **Ubuntu + Docker Engine** | 免费 | **唯一客户交付店机路径** |
+| Windows + WSL / Docker Desktop 跑全栈 | — | **已作废**（代码与安装器已移除） |
+| 仅 Windows 跑 print-agent | — | **保留**（打印桥，不跑 Web/库） |
 
-**定稿倾向：** 客户机默认走 **WSL2 + Docker Engine**；文档和安装器按这条做。Docker Desktop 可写「仅开发/演示可选」，不作为唯一依赖。
-
-开机：用 Windows 计划任务或服务调用 `wsl -d <发行版> -- docker compose -f ... up -d`，不依赖有人登录 Desktop 托盘。
+开机：Ubuntu `systemd` 单元 `mesa-on-prem.service` 拉栈；不依赖 Windows 计划任务 `MesaOnPremStack` / `MesaOnPremBackup`。
 
 ### 2.5 备份上哪？——现有 cloud，每天一次
 
@@ -159,11 +149,11 @@ Windows 上另跑 print-agent（桥，照旧）
 
 **干什么**
 
-- 主机：Windows 11 Pro；建议 4 核 / 16GB / 256GB SSD；常开 + 建议 UPS。  
-- 运行：**WSL2 + Docker Engine（免费）** 跑 Web/库；**同机**跑 print-agent。Docker Desktop 不作硬依赖（见 §2.4）。  
-- 打印机：USB 与网口均可。  
+- 主机：**Ubuntu 22.04/24.04**；建议 4 核 / 16GB / 256GB SSD；常开 + 建议 UPS。  
+- 运行：**Docker Engine + Compose** 跑 Web/库（见 §2.4）。  
+- 打印：另机 **Windows** MesaPrintAgent；USB 与网口均可。  
 - 域名：在「店内 DNS」与「公网 DNS/隧道」中选定推荐项并写进矩阵。  
-- 备份：**每天**本机备份后上传到现有 **cloud**（见 §2.5）；断网只留本地、联网补传。  
+- 备份 / 经营日报：本机日任务；细节见步骤 ⑥。  
 - 验收边界：断公网必须能开台、点单、收款、打票、关台；顾客扫码不断网验收。
 
 **怎样算完**
@@ -230,14 +220,14 @@ Windows 上另跑 print-agent（桥，照旧）
 
 **干什么**
 
-- 安装向导：检查虚拟化 / WSL / Docker / 磁盘 / 端口 → 目录与密钥 → 起栈 → 迁移 → 建店主 → 装并配对 agent → 测打印。  
-- 开机自启：Docker 栈 + print-agent（不依赖店员登录才启动）。  
+- 安装：`install-ubuntu.sh`（Docker / 磁盘 / 端口 → 目录与密钥 → 起栈 → 迁移 → `/setup` 认领）。  
+- 开机自启：`mesa-on-prem.service` 拉 Docker 栈；print-agent 在 **Windows 另机** 自启（托盘/登录，见 agent 文档）。  
 - 健康检查：首页、登录、DB、Realtime、agent 心跳/最近打印、磁盘。
 
 **怎样算完**
 
-- [ ] 空机重复装到可营业  
-- [ ] 重启 Windows 后无需手点  
+- [ ] 空机（Ubuntu）重复装到可营业  
+- [ ] 重启店机后栈自动起来、无需手点  
 - [ ] 失败有人话原因  
 
 ---
@@ -330,6 +320,7 @@ Windows 上另跑 print-agent（桥，照旧）
 |------|------|
 | **本文** | 方案定稿、步骤、验收；产品步骤冲突时最高优先 |
 | [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md) | **工程完成度与卡点交接**（控制面 + Mode B 包） |
+| [`technical/local-perm-install-tools.zh.md`](./technical/local-perm-install-tools.zh.md) | local-perm 安装技术工具清单（OS / Docker / 镜像 / 可选组件） |
 | [`local-on-premise-deployment-plan.md`](./local-on-premise-deployment-plan.md) | Compose/备份/升级细设计；打印进 Docker **以本文为准不做** |
 | [`ADR-001`](./decisions/ADR-001-offline-first.md) | 纯本地权威，非 PWA 离线 |
 | [`ADR-002`](./decisions/ADR-002-local-database.md) | 店内自托管 Supabase 为权威 |
@@ -342,8 +333,7 @@ Windows 上另跑 print-agent（桥，照旧）
 
 工程状态先看 [`on-prem-handoff.zh.md`](./on-prem-handoff.zh.md) §5。产品步骤仍可按：
 
-1. **P0：** 把 `deploy/on-prem` 源码入库 + 用最新 stamped zip 把 WSL 验证跑绿。  
-2. **步骤 ①** 一页支持矩阵（硬件 / WSL2+Engine / 打印机；扫码方式可写「POC 用局域网」）。  
-3. **步骤 ②+③ 内部 POC**：本机生产栈 + agent 连本机，拔外网开台结账打票。  
-4. 控制面连云 UAT（push / Ops 密钥）→ 再 ⑤ → ⑥ → ⑦ → ⑧ 试点。  
-3. 再 ⑤ → ⑥（日备上 cloud）→ ⑦ → ⑧ 试点。
+1. **P0：** 用最新 stamped zip 在 **Ubuntu** 店机/验证机跑绿 `install-ubuntu.sh` → `/setup`。  
+2. **步骤 ①** 一页支持矩阵（Ubuntu 硬件 / Docker Engine / 打印机；扫码方式可写「POC 用局域网」）。  
+3. **步骤 ②+③ 内部 POC**：本机生产栈 + **另机** agent 连本机，拔外网开台结账打票。  
+4. 控制面连云 UAT（push / Ops 密钥）→ 再 ⑤ → ⑥ → ⑦ → ⑧ 试点。

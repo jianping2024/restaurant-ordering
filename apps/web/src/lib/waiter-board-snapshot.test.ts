@@ -4,7 +4,6 @@ import type { Order } from '@/types';
 import {
   buildWaiterBoardTableSummaries,
   sortWaiterBoardTableSummaries,
-  waiterBoardSummaryToSortInput,
 } from './waiter-board-snapshot';
 
 const TABLE_A = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -99,27 +98,14 @@ describe('buildWaiterBoardTableSummaries', () => {
   });
 });
 
-describe('waiterBoardSummaryToSortInput', () => {
-  it('uses placeholder line when occupied by menu only', () => {
-    const input = waiterBoardSummaryToSortInput({
-      tableId: TABLE_A,
-      displayName: '1',
-      buffetHeadcount: { adults: 1, children: 0 },
-      sessionTotal: 5,
-      hasBuffet: false,
-      occupied: true,
-      updatedAt: '',
-    });
-    assert.equal(input.orderLines.length, 1);
-  });
-});
-
 describe('sortWaiterBoardTableSummaries', () => {
   it('ranks checkout pending before idle tables', () => {
     const summaries = [
       {
         tableId: TABLE_A,
         displayName: '1',
+        seatMin: 2,
+        seatMax: 4,
         buffetHeadcount: null,
         sessionTotal: 0,
         hasBuffet: false,
@@ -129,6 +115,8 @@ describe('sortWaiterBoardTableSummaries', () => {
       {
         tableId: TABLE_B,
         displayName: '2',
+        seatMin: 2,
+        seatMax: 4,
         buffetHeadcount: { adults: 2, children: 0 },
         sessionTotal: 20,
         hasBuffet: false,
@@ -145,5 +133,37 @@ describe('sortWaiterBoardTableSummaries', () => {
       },
     );
     assert.equal(sorted[0]?.tableId, TABLE_B);
+  });
+
+  it('does not bump occupied ahead of earlier sort_order when neither is checkout', () => {
+    const summaries = [
+      {
+        tableId: TABLE_B,
+        displayName: '2',
+        seatMin: 2,
+        seatMax: 4,
+        buffetHeadcount: { adults: 2, children: 0 },
+        sessionTotal: 20,
+        hasBuffet: true,
+        occupied: true,
+        updatedAt: '',
+      },
+      {
+        tableId: TABLE_A,
+        displayName: '1',
+        seatMin: 2,
+        seatMax: 4,
+        buffetHeadcount: null,
+        sessionTotal: 0,
+        hasBuffet: false,
+        occupied: false,
+        updatedAt: '',
+      },
+    ];
+    const sorted = sortWaiterBoardTableSummaries(summaries, tables, [], {});
+    assert.deepEqual(
+      sorted.map((row) => row.tableId),
+      [TABLE_A, TABLE_B],
+    );
   });
 });

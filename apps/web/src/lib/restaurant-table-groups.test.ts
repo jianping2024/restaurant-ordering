@@ -95,18 +95,34 @@ describe('buildWaiterBoardSections', () => {
 describe('sortWaiterTableCards', () => {
   const t1 = '550e8400-e29b-41d4-a716-446655440001';
   const t2 = '550e8400-e29b-41d4-a716-446655440002';
+  const t3 = '550e8400-e29b-41d4-a716-446655440003';
   const uuidTables = [
     { id: t1, display_name: 'A-01', sort_order: 1 },
     { id: t2, display_name: 'A-02', sort_order: 2 },
+    { id: t3, display_name: 'A-03', sort_order: 3 },
   ];
 
   it('prioritizes checkout pending within a section', () => {
     const cards = [
-      { tableId: t1, displayName: 'A-01', orderLines: [], hasBuffet: false },
-      { tableId: t2, displayName: 'A-02', orderLines: [{ id: '1' }], hasBuffet: false },
+      { tableId: t1, displayName: 'A-01' },
+      { tableId: t2, displayName: 'A-02' },
     ];
-    const sorted = sortWaiterTableCards(cards, uuidTables, [t1], {});
-    assert.equal(sorted[0].tableId, t1);
+    const sorted = sortWaiterTableCards(cards, uuidTables, [t2], {});
+    assert.equal(sorted[0].tableId, t2);
+    assert.equal(sorted[1].tableId, t1);
+  });
+
+  it('keeps restaurant table order when occupancy differs', () => {
+    const cards = [
+      { tableId: t3, displayName: 'A-03' },
+      { tableId: t1, displayName: 'A-01' },
+      { tableId: t2, displayName: 'A-02' },
+    ];
+    const sorted = sortWaiterTableCards(cards, uuidTables, [], {});
+    assert.deepEqual(
+      sorted.map((c) => c.tableId),
+      [t1, t2, t3],
+    );
   });
 });
 

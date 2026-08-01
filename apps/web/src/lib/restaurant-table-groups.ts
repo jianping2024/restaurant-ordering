@@ -1,4 +1,3 @@
-import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import {
   compareRestaurantTables,
   type RestaurantTableRow,
@@ -42,8 +41,6 @@ export type TableGroupAssignment = {
 export type WaiterTableCardSortInput = {
   tableId: string;
   displayName: string;
-  orderLines: unknown[];
-  hasBuffet: boolean;
 };
 
 export type WaiterBoardSection = {
@@ -195,6 +192,10 @@ export function formatGroupMemberTablePreview(
   };
 }
 
+/**
+ * Board card order: checkout-pending first, then stable floor layout
+ * (`restaurant_tables.sort_order` / display_name). Occupancy does not reorder.
+ */
 export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
   cards: T[],
   tables: readonly RestaurantTableRow[],
@@ -218,10 +219,6 @@ export function sortWaiterTableCards<T extends WaiterTableCardSortInput>(
       ? 1
       : 0;
     if (aCheckout !== bCheckout) return bCheckout - aCheckout;
-
-    const aActive = isWaiterTableCardOccupied(a) ? 1 : 0;
-    const bActive = isWaiterTableCardOccupied(b) ? 1 : 0;
-    if (aActive !== bActive) return bActive - aActive;
 
     const ta = tableById.get(a.tableId);
     const tb = tableById.get(b.tableId);

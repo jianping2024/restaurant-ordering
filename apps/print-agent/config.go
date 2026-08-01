@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,12 +55,75 @@ func (c *config) resolveNotificationMode() NotificationMode {
 	return NotificationModeRealtime
 }
 
-// getSupabaseURL returns the configured Supabase URL or infers from api_base.
+// getSupabaseURL returns the Realtime/Auth edge URL after aligning same-host
+// supabase_url scheme with api_base (Mode B Tunnel proto mismatch heal).
 func (c *config) getSupabaseURL() string {
-	if c.SupabaseURL != "" {
-		return c.SupabaseURL
+	_ = alignSupabaseURLWithAPIBase(c)
+	if strings.TrimSpace(c.SupabaseURL) != "" {
+		return strings.TrimRight(strings.TrimSpace(c.SupabaseURL), "/")
 	}
 	return inferSupabaseURL(c.APIBase)
+}
+
+// alignSupabaseURLWithAPIBase is the sole heal for claim/proxy writing http:// on the
+// same host the agent reached via https:// api_base. Different hosts (cloud Supabase
+// project URL vs Vercel app) are left unchanged. Returns true if SupabaseURL changed.
+func alignSupabaseURLWithAPIBase(c *config) bool {
+	if c == nil {
+		return false
+	}
+	apiOrigin, apiHost, ok := httpOriginAndHost(c.APIBase)
+	if !ok {
+		return false
+	}
+	sb := strings.TrimSpace(c.SupabaseURL)
+	if sb == "" {
+		return false
+	}
+	_, sbHost, ok := httpOriginAndHost(sb)
+	if !ok || !strings.EqualFold(apiHost, sbHost) {
+		return false
+	}
+	want := strings.TrimRight(apiOrigin, "/")
+	cur := strings.TrimRight(sb, "/")
+	if strings.EqualFold(cur, want) {
+		if cur != want {
+			c.SupabaseURL = want
+			return true
+		}
+		return false
+	}
+	c.SupabaseURL = want
+	return true
+}
+
+func httpOriginAndHost(raw string) (origin string, host string, ok bool) {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return "", "", false
+	}
+	u, err := url.Parse(s)
+	if err != nil || u.Host == "" {
+		return "", "", false
+	}
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return "", "", false
+	}
+	return scheme + "://" + u.Host, u.Hostname(), true
+}
+
+// persistAlignedSupabaseURL writes config when same-host scheme heal changed the file.
+func persistAlignedSupabaseURL(path string, c *config) {
+	if c == nil || path == "" {
+		return
+	}
+	if !alignSupabaseURLWithAPIBase(c) {
+		return
+	}
+	if err := saveConfig(path, c); err != nil {
+		return
+	}
 }
 
 // configPathOverride is set by tests only.
@@ -232,6 +296,7 @@ func savePairConfig(configPath string, next *config) error {
 		prev = p
 	}
 	mergePairConfig(prev, next)
+	_ = alignSupabaseURLWithAPIBase(next)
 	return saveConfig(configPath, next)
 }
 

@@ -4,11 +4,27 @@ function normalizeOrigin(origin: string): string {
   return origin.replace(/\/$/, '');
 }
 
+/** Origin of an absolute http(s) URL, or null if not usable. */
+export function originFromAbsoluteHttpUrl(raw: string | null | undefined): string | null {
+  const s = typeof raw === 'string' ? raw.trim() : '';
+  if (!s) return null;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    return normalizeOrigin(u.origin);
+  } catch {
+    return null;
+  }
+}
+
 function originFromHeaders(requestHeaders: HeaderReader): string | null {
   const host = requestHeaders.get('x-forwarded-host') || requestHeaders.get('host');
   if (!host) return null;
+  // Tunnel→Caddy is often plain HTTP, so X-Forwarded-Proto may be "http" even when
+  // the client used https://. Prefer the left-most proto if a chain is present.
+  const forwarded = requestHeaders.get('x-forwarded-proto')?.split(',')[0]?.trim();
   const proto =
-    requestHeaders.get('x-forwarded-proto') ||
+    forwarded ||
     (host.includes('localhost') || host.startsWith('127.') ? 'http' : 'https');
   return normalizeOrigin(`${proto}://${host}`);
 }
@@ -33,8 +49,8 @@ function originFromBrowserLocation(): string | null {
  * 3. `NEXT_PUBLIC_BASE_URL`, then `http://localhost:3000`
  *
  * Not for cloud Supabase project URL — use `getSupabaseUrl()` / `getPublishedSupabaseUrl()`.
- * Mode B print-agent claim Realtime edge: `getPrintAgentClaimSupabaseUrl` reuses this
- * (same-origin edge = the host the agent used for claim).
+ * Mode B print-agent claim Realtime edge: `resolvePrintAgentClaimSupabaseUrl` prefers
+ * agent `api_base`, then falls back to this helper.
  */
 export function getPublicWebOrigin(requestHeaders?: HeaderReader): string {
   if (requestHeaders) {

@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getPublicWebOrigin } from './site-origin.ts';
+import { getPublicWebOrigin, originFromAbsoluteHttpUrl } from './site-origin.ts';
+
+describe('originFromAbsoluteHttpUrl', () => {
+  it('returns https origin', () => {
+    assert.equal(originFromAbsoluteHttpUrl('https://pirata.farvoo.com/'), 'https://pirata.farvoo.com');
+  });
+  it('rejects non-http', () => {
+    assert.equal(originFromAbsoluteHttpUrl('ftp://x'), null);
+    assert.equal(originFromAbsoluteHttpUrl(''), null);
+  });
+});
 
 describe('getPublicWebOrigin', () => {
   it('prefers request Host over browser location and NEXT_PUBLIC_BASE_URL', () => {
@@ -25,6 +35,17 @@ describe('getPublicWebOrigin', () => {
       if (prevBase === undefined) delete process.env.NEXT_PUBLIC_BASE_URL;
       else process.env.NEXT_PUBLIC_BASE_URL = prevBase;
     }
+  });
+
+  it('uses left-most X-Forwarded-Proto when chained', () => {
+    const headers = {
+      get(name: string) {
+        if (name === 'host') return 'pirata.farvoo.com';
+        if (name === 'x-forwarded-proto') return 'https, http';
+        return null;
+      },
+    };
+    assert.equal(getPublicWebOrigin(headers), 'https://pirata.farvoo.com');
   });
 
   it('uses browser location when no request headers', () => {

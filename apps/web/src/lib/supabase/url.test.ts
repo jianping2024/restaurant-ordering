@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 import {
-  getPrintAgentClaimSupabaseUrl,
   getPublishedSupabaseUrl,
   getSupabaseAuthCookieOptions,
   getSupabaseUrl,
   isSupabaseBrowserSameOrigin,
+  resolvePrintAgentClaimSupabaseUrl,
 } from './url';
 
 const KEYS = [
@@ -113,8 +113,25 @@ describe('getPublishedSupabaseUrl', () => {
   });
 });
 
-describe('getPrintAgentClaimSupabaseUrl', () => {
-  it('Mode B: uses request edge origin (not SUPABASE_PUBLIC_URL)', () => {
+describe('resolvePrintAgentClaimSupabaseUrl', () => {
+  it('prefers agent api_base origin over forwarded proto http', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
+    process.env.SUPABASE_PUBLIC_URL = 'http://192.168.0.141';
+    const headers = {
+      get(name: string) {
+        if (name === 'x-forwarded-host') return 'pirata.farvoo.com';
+        if (name === 'x-forwarded-proto') return 'http';
+        return null;
+      },
+    };
+    assert.equal(
+      resolvePrintAgentClaimSupabaseUrl('https://pirata.farvoo.com', headers),
+      'https://pirata.farvoo.com',
+    );
+  });
+
+  it('Mode B fallback: request edge origin when api_base missing', () => {
     stashEnv();
     process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
     process.env.SUPABASE_PUBLIC_URL = 'http://192.168.0.141';
@@ -126,7 +143,7 @@ describe('getPrintAgentClaimSupabaseUrl', () => {
         return null;
       },
     };
-    assert.equal(getPrintAgentClaimSupabaseUrl(headers), 'https://pirata.farvoo.com');
+    assert.equal(resolvePrintAgentClaimSupabaseUrl('', headers), 'https://pirata.farvoo.com');
   });
 
   it('cloud: uses getPublishedSupabaseUrl (ignores request Host)', () => {
@@ -138,6 +155,6 @@ describe('getPrintAgentClaimSupabaseUrl', () => {
         return null;
       },
     };
-    assert.equal(getPrintAgentClaimSupabaseUrl(headers), 'https://abc.supabase.co');
+    assert.equal(resolvePrintAgentClaimSupabaseUrl('', headers), 'https://abc.supabase.co');
   });
 });

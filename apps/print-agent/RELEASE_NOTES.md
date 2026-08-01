@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.57
+
+**Realtime：`supabase_url` 跟 `api_base` 同 host 时对齐 scheme**
+
+- claim 上报 `api_base`；服务端以该 origin 写 `supabase_url`（避免 Tunnel 把 proto 弄成 http → `ws://` bad handshake）。
+- 启动/配对落盘：`alignSupabaseURLWithAPIBase` 纠正已有错误配置（同 host 的 http→https）；云端不同 host（Vercel vs `*.supabase.co`）不改。
+
 ## 0.3.56
 
 **claim-on-fetch；JWT renew 强制 refresh**

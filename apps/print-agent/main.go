@@ -28,7 +28,11 @@ func newUUID() string {
 }
 
 func claim(apiBase, code, deviceID string) (*config, error) {
-	bodyMap := map[string]string{"code": code, "device_id": deviceID}
+	bodyMap := map[string]string{
+		"code":      code,
+		"device_id": deviceID,
+		"api_base":  strings.TrimRight(strings.TrimSpace(apiBase), "/"),
+	}
 	if host, err := os.Hostname(); err == nil {
 		if label := strings.TrimSpace(host); label != "" {
 			bodyMap["label"] = label
@@ -64,8 +68,8 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 	if out.AgentJWT == "" {
 		return nil, fmt.Errorf("claim: missing agentjwt")
 	}
-	return &config{
-		APIBase:      apiBase,
+	cfg := &config{
+		APIBase:      strings.TrimRight(strings.TrimSpace(apiBase), "/"),
 		AgentJWT:     out.AgentJWT,
 		DeviceID:     deviceID,
 		RestaurantID: out.RestaurantID,
@@ -74,7 +78,9 @@ func claim(apiBase, code, deviceID string) (*config, error) {
 		AccessToken:  out.AccessToken,
 		RefreshToken: out.RefreshToken,
 		AnonKey:      out.AnonKey,
-	}, nil
+	}
+	_ = alignSupabaseURLWithAPIBase(cfg)
+	return cfg, nil
 }
 
 type printJob struct {

@@ -74,6 +74,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 	if cfg.APIBase == "" {
 		cfg.APIBase = *apiBase
 	}
+	persistAlignedSupabaseURL(path, cfg)
 	if dp := strings.TrimSpace(*defaultPrinter); dp != "" {
 		cfg.DefaultPrinter = dp
 		cfg.PrinterHost = dp

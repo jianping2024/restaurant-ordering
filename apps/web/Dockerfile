@@ -2,10 +2,10 @@
 # Build from repo root:
 #   docker build -f apps/web/Dockerfile -t mesa-web:local .
 
-# Print-agent download panel: without this repo the dashboard hides the download
-# card entirely (getPrintAgentDownloadUrls returns null). Single default here;
-# per-stage ARG below inherits it.
-ARG NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO=jianping2024/restaurant-ordering
+# Print-agent download panel: sole visibility gate is getPrintAgentDownloadUrls()
+# (null when NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO unset). On-prem / Mode B builds
+# leave this empty so the card stays hidden. Cloud/Vercel sets the repo at build time.
+ARG NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO=
 
 FROM node:20-bookworm-slim AS deps
 WORKDIR /app
@@ -23,7 +23,7 @@ COPY package.json package-lock.json ./
 COPY apps/web apps/web
 COPY packages/shared packages/shared
 COPY packages/ui packages/ui
-# Pinned print-agent version for download links (read via fs at runtime too).
+# Pinned print-agent version for dashboard recommended-version badge (fs + bake).
 COPY apps/print-agent/VERSION apps/print-agent/VERSION
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production

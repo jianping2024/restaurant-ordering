@@ -12,7 +12,7 @@ When packing, upgrading packs, or touching on-prem web build:
 2. `pack-release.sh` hard-fails without:
    - `schema/ensure_realtime_publication.sql` + `apply-migrations` call
    - `apps/web/Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci`
-   - `apps/web/Dockerfile`: `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY (staged into pack) — otherwise dashboard hides the print-agent download card on-prem
+   - `apps/web/Dockerfile`: do **not** default `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` to a repo (empty ARG) so on-prem hides the download card via `getPrintAgentDownloadUrls()===null`; still `COPY apps/print-agent/VERSION` for recommended-version badge
    - `apps/web/Dockerfile` + `compose.yaml` + `upgrade.sh` / `install-mesa.sh`: `MESA_WEB_VERSION` (web build id for `/api/health/live` + settings footer via `getWebAppBuildInfo`)
    - `upgrade.sh` / `install-mesa.sh`: sync `apps/print-agent/VERSION` into `$MESA_HOME/current` build context (Dockerfile COPY otherwise fails / keeps old image)
 3. Do not tell the user “docs say use BuildKit cache” while shipping a pack with bare `RUN npm ci`.

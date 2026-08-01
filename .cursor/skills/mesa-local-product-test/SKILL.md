@@ -1,7 +1,7 @@
 ---
 name: mesa-local-product-test
 description: >-
-  Local product verification for Mesa: curl APIs first, Chrome DevTools MCP for UI,
+  Local product verification for Mesa: mesa-local-uat API first, Chrome DevTools MCP for UI,
   shared test account, cleanup writes; no checklist skip unless truly blocked.
   Use when user says 开始测试, 联调, 手工验收, 回归测试, or asks to verify product
   behavior on localhost (not only lint/unit).
@@ -11,7 +11,9 @@ description: >-
 
 ## Environment
 
-- **Host:** `http://localhost:3000` (`npm run cloud` or `npm run dev`)
+- **Host:** `http://localhost:3000`
+  - `npm run dev` → local Docker Supabase (Studio `:54323`, MCP `http://127.0.0.1:54321/mcp`)
+  - `npm run cloud` → cloud project (use existing `user-supabase` / cloud MCP, read-only)
 - **Staff (default UAT):** `qiantai1` / `123456` — frontdesk on 白云 `restaurant-mohnrib5`
 - **Owner (setup / buffet / menu):** `baiyun@gmail.com` / `123456` — owner of 白云 `restaurant-mohnrib5`
 - **Forbidden account:** `qiantai@mesa.in` — do not use for local product testing
@@ -19,12 +21,36 @@ description: >-
 
 Use **owner** when the staff restaurant lacks buffet/menu seed needed for open-table / order flows; then switch back to **qiantai1** for floor UAT when possible.
 
+### MCP / DB binding
+
+| App start | DB asserts |
+|-----------|------------|
+| `npm run dev` | MCP **`supabase-local`** / **`user-supabase-local`** → `http://127.0.0.1:54321/mcp` (SQL / tables). Do **not** query cloud MCP for local data. |
+| `npm run cloud` / `stage` | Cloud/staging Supabase MCP (`user-supabase`), keep **read-only** for asserts. Mutations via product APIs only. |
+
+Repo `.cursor/mcp.json` registers `supabase-local`. Ensure local `supabase start` before using it.
+
 ## Method
 
-1. **API first — curl** (session cookies after login). Assert status, stable `error` codes, payload shape.
+1. **API first — `scripts/mesa-local-uat.mjs`** (preferred over raw curl):
+   - `node scripts/mesa-local-uat.mjs stack-health`
+   - `node scripts/mesa-local-uat.mjs login --role staff` (or `owner`)
+   - `node scripts/mesa-local-uat.mjs req GET|POST /api/... --jar staff --body '...'`
+   - Assert `status` + stable `error` codes; optional `wait-json` after mutations
+   - DB side-effects: **supabase-local** (dev) or cloud read-only SQL — never `db reset` unless user approved
 2. **UI second — Chrome DevTools MCP** (`user-chrome-devtools`). Navigate/snapshot/click; verify disabled controls, lists, toasts. No Playwright unless user asks.
-3. **Cleanup** — reverse writes via normal product APIs.
-4. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc` (No skip unless truly blocked).
+3. **Cleanup** — reverse writes via product APIs (`close-session`, void/cancel as appropriate).
+4. **Print smoke (when print in scope):** `node scripts/mesa-print-smoke.mjs` then full e2e only if agent/`npm run print` is up.
+5. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc`.
+
+### Realtime / dual-tab recipe (do not skip)
+
+1. `login` + baseline `req GET` of the read model (board / session / bill).
+2. UI: two tabs via chrome-devtools `new_page` / `select_page` (or ide-browser tabs) on the same surface.
+3. Mutate in tab A **or** via `mesa-local-uat req` (preferred for determinism).
+4. Passive tab: `wait_for` text/state change; if flaky, `evaluate_script` for channel/subscribed hints, then one-shot GET.
+5. API gate: `wait-json GET <same read model> --jar … --path <field>` until post-mutation value appears (UAT wait only — not product polling).
+6. Report **fail** if API updated but passive UI never reflects within timeout; do not skip as “realtime hard”.
 
 Do not skip for convenience, dual-tab/realtime difficulty, or “unit already covers it”. Pure presentation may omit API-first but must still run a UI assertion (not skip). If localhost/login/MCP is down after a real attempt, `skip` that blocked surface with the blocker noted; still report lint/build/unit.
 
@@ -41,9 +67,10 @@ For **localhost** product testing of the shared UAT restaurant (`restaurant-mohn
 
 - Typing / filling documented UAT passwords (`qiantai1`, `baiyun@gmail.com`) into localhost login UI or `/api/auth/login`
 - **`user-chrome-devtools` and `cursor-ide-browser` MCP** on localhost: navigate, snapshot, screenshot, click, fill, type, scroll, evaluate, dual tabs
-- Product API mutations on the test restaurant: open/close table, buffet/menu seed create/update/delete, orders, checkout, board refresh/ETag checks
+- **`mesa-local-uat` / `mesa-print-smoke` scripts** and **supabase-local** read-only SQL asserts on the UAT restaurant
+- Product API mutations on the test restaurant: open/close table, buffet/menu seed create/update/delete, orders, checkout, board refresh checks
 
-**No approval popups:** Repo `.cursor/permissions.json` allowlists both browser MCP servers. User should use **Run mode = Auto-review** in Cursor Settings. **Never** retry with `requestSmartModeApproval` — that shows the confirmation card the user opted out of. If still blocked, report Run mode / permissions.json instead of asking per click.
+**No approval popups:** Repo `.cursor/permissions.json` allowlists browser + local UAT MCP/scripts. User should use **Run mode = Auto-review** in Cursor Settings. **Never** retry with `requestSmartModeApproval` — that shows the confirmation card the user opted out of. If still blocked, report Run mode / permissions.json instead of asking per click.
 
 **Still ask first:** anything that wipes the database (`supabase db reset` / equivalent hard wipe).
 
@@ -51,7 +78,9 @@ Lint/build/unit remain in `AGENTS.md` / `push-verification.mdc`.
 
 ## Verification
 
-- [ ] API assertions done (or skip only with documented blocker)
+- [ ] `stack-health` (or equivalent) known before UAT
+- [ ] API assertions via `mesa-local-uat` (or skip only with documented blocker)
 - [ ] UI checked via Chrome DevTools MCP when needed (or skip only with documented blocker)
+- [ ] Realtime/dual-tab items used the recipe above when in scope
 - [ ] Throwaway data cleaned up
 - [ ] Checklist reported pass/fail; any skip cites an objective blocker

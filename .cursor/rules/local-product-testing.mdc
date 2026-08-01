@@ -10,7 +10,7 @@ alwaysApply: false
 
 When the user asks to **开始测试**, **联调**, **手工验收**, **回归测试**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
 
-Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (curl API first, Chrome DevTools MCP for UI, cleanup, pass/fail report).
+Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** (`mesa-local-uat` API first, Chrome DevTools MCP for UI, realtime dual-tab recipe, cleanup, pass/fail report).
 
 ## No skip unless truly blocked
 
@@ -39,10 +39,12 @@ On localhost UAT for `restaurant-mohnrib5`, treat the user as having **already a
 **Pre-authorized:**
 
 - Documented UAT credentials on localhost (`qiantai1`, `baiyun@gmail.com`)
+- **`node scripts/mesa-local-uat.mjs`** / **`mesa-print-smoke.mjs`** against localhost
+- **`supabase-local`** MCP read-only asserts when using `npm run dev` (local Docker); cloud MCP read-only when using `npm run cloud`
 - **Chrome DevTools MCP (`user-chrome-devtools`)** on localhost: `navigate_page`, `new_page`, `select_page`, `take_snapshot`, `take_screenshot`, `click`, `fill`, `fill_form`, `type_text`, `press_key`, `hover`, `drag`, `handle_dialog`, `upload_file`, `evaluate_script`, network/console/wait helpers, dual-tab flows
 - **Cursor IDE Browser MCP (`cursor-ide-browser`)** — same localhost UAT scope; prefer when both are available
 - Product API writes + cleanup on the test restaurant (open/close table, buffet/menu seed, orders, checkout, board)
 
-**No approval popups:** Project `.cursor/permissions.json` allowlists both browser MCP servers. Ensure **Settings → Agents → Approvals & Execution → Run mode = Auto-review** (or Allowlist with those MCP tools added). Do **not** retry blocked calls with `requestSmartModeApproval` — that is what triggers the confirmation card. If a browser tool is still blocked, tell the user to check Run mode + permissions.json reload (file is watched automatically).
+**No approval popups:** Project `.cursor/permissions.json` allowlists browser MCPs, `supabase-local`, and UAT scripts. Ensure **Settings → Agents → Approvals & Execution → Run mode = Auto-review** (or Allowlist with those MCP tools added). Do **not** retry blocked calls with `requestSmartModeApproval` — that is what triggers the confirmation card. If a browser tool is still blocked, tell the user to check Run mode + permissions.json reload (file is watched automatically).
 
 **Must still ask:** `supabase db reset` or any hard database wipe.

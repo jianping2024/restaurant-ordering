@@ -53,8 +53,20 @@ services:
         condition: service_started
       db:
         condition: service_healthy
+    # Web runtime logs: single stdout/stderr stream; size-ring ~100MB (not calendar days).
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    # Read-only Engine API for Settings → 系统日志 (owner-only). No app dual-write.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       MESA_ON_PREM: "1"
+      MESA_DOCKER_SOCK: /var/run/docker.sock
+      MESA_COMPOSE_PROJECT: mesa-on-prem
+      MESA_WEB_LOG_SERVICE: web
       NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN: "1"
       # Server/internal only — never bake into browser clients.
       SUPABASE_URL: http://kong:8000

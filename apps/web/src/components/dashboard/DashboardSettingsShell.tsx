@@ -14,9 +14,14 @@ import type { CapabilitiesPayload } from '@/lib/permissions/can';
 type Props = {
   children: React.ReactNode;
   capabilities: CapabilitiesPayload;
+  showSystemLogs?: boolean;
 };
 
-export function DashboardSettingsShell({ children, capabilities }: Props) {
+export function DashboardSettingsShell({
+  children,
+  capabilities,
+  showSystemLogs = false,
+}: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
@@ -57,7 +62,7 @@ export function DashboardSettingsShell({ children, capabilities }: Props) {
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden">
       <div className={`min-w-0 w-full ${wide ? '' : 'max-w-4xl'}`}>
-        <SettingsTabs capabilities={capabilities} />
+        <SettingsTabs capabilities={capabilities} showSystemLogs={showSystemLogs} />
         {narrowForm ? <div className="w-full max-w-2xl">{pageBody}</div> : pageBody}
       </div>
     </div>

@@ -18,15 +18,23 @@ function tabClass(active: boolean) {
 
 type Props = {
   capabilities: CapabilitiesPayload;
+  /** local-prem + backend admin — sole nav gate for system logs. */
+  showSystemLogs?: boolean;
 };
 
-export function SettingsTabs({ capabilities: capabilitiesPayload }: Props) {
+export function SettingsTabs({
+  capabilities: capabilitiesPayload,
+  showSystemLogs = false,
+}: Props) {
   const pathname = usePathname();
   const { lang } = useLanguage();
   const hub = getMessages(lang).settingsHub;
   const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
 
-  const visibleTabs = SETTINGS_NAV_TABS.filter((item) => can(capabilities, item.permission));
+  const visibleTabs = SETTINGS_NAV_TABS.filter((item) => {
+    if (item.backendAdminOnPremOnly) return showSystemLogs;
+    return Boolean(item.permission && can(capabilities, item.permission));
+  });
 
   if (visibleTabs.length === 0) {
     return null;

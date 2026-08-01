@@ -29,6 +29,8 @@ sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 
 正式入口：`http://<店内IP>/`（edge `:80`）。桌位二维码用局域网 IP 或公网域打开后台再生成，勿用 localhost。
 
+**Web 运行日志：** `compose.yaml` 中 `web` 使用 json-file `max-size=20m` / `max-file=5`（约 100MB 环形）。后台管理员可在设置「系统日志」按时间段+关键字查询；容器只读挂载 `docker.sock` 供该 API 读 Engine logs（应用仍只打 stdout，不另写第二份文件）。
+
 **Auth 多入口白名单（易漏）：** 见上文档 **§2.1**。配置 `$MESA_HOME/current/deploy/on-prem/.env` 的 `ADDITIONAL_REDIRECT_URLS`（`http://<IP>/**` + 可选局域网名 + 公网 `https://域/**`）；改完 `mesa-stack up -d --force-recreate auth`。仅有 `SITE_URL`、后装 Tunnel 时务必补白名单。
 
 **Print Agent 服务器地址：** 见上文档 **§2.2**。推荐 `http://<店内IP>`（edge，无 `:3000`）；勿 `localhost`；勿把公网域当店内主配置。

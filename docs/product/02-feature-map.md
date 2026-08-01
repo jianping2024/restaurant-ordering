@@ -412,7 +412,8 @@
 
 ### 业务边界
 
-- 设置子导航见 `settings-nav.ts`：profile / staff / features / buffet / print-assistant
+- 设置子导航见 `settings-nav.ts`：profile / staff / features / buffet / print-assistant / **system-logs（仅 local-perm + 后台管理员）**
+- **系统日志**：只读本机 `web` 容器运行日志（Docker json-file `20m×5`）；时间段 + 关键字一次拉取；不看 Print Agent / 业务 `operation_logs`
 - 桌位、菜单管理在 Dashboard 主导航，不在 settings 子页（`settings/menu` 已 redirect）
 - `plan`（free/pro）影响功能限制（如桌位数），非完整计费系统
 - 餐厅暂停（`suspended_at`）后顾客见维护页
@@ -427,10 +428,10 @@
 
 | 类型 | 路径 |
 |------|------|
-| 页面 | `apps/web/src/app/dashboard/settings/**` |
-| UI | `SettingsForm.tsx`、`StaffAccountsManager.tsx`、`FeatureFlagsManager.tsx`、`BuffetSettingsManager.tsx`、打印相关 Panel |
-| API | `apps/web/src/app/api/restaurant/settings/route.ts`、`features/route.ts`、`dashboard/staff/*` |
-| Lib | `apps/web/src/lib/settings-nav.ts`、`restaurant-features.ts`、`staff-account.ts` |
+| 页面 | `apps/web/src/app/dashboard/settings/**`（含 `system-logs`） |
+| UI | `SettingsForm.tsx`、`StaffAccountsManager.tsx`、`FeatureFlagsManager.tsx`、`BuffetSettingsManager.tsx`、`SystemLogsViewer.tsx`、打印相关 Panel |
+| API | `apps/web/src/app/api/restaurant/settings/route.ts`、`features/route.ts`、`dashboard/staff/*`、`dashboard/system-logs` |
+| Lib | `apps/web/src/lib/settings-nav.ts`、`system-logs/*`、`restaurant-features.ts`、`staff-account.ts` |
 
 ---
 

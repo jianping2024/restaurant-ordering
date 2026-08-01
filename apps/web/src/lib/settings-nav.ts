@@ -6,7 +6,8 @@ export type SettingsNavId =
   | 'staff'
   | 'roles'
   | 'buffet'
-  | 'print-assistant';
+  | 'print-assistant'
+  | 'system-logs';
 
 export type SettingsHubLabelKey =
   | 'tabProfile'
@@ -14,13 +15,15 @@ export type SettingsHubLabelKey =
   | 'tabStaff'
   | 'tabRoles'
   | 'tabBuffet'
-  | 'tabPrintAssistant';
+  | 'tabPrintAssistant'
+  | 'tabSystemLogs';
 
 export type SettingsHubHintKey =
   | 'hintProfile'
   | 'hintFeatures'
   | 'hintBuffet'
-  | 'hintPrintAssistant';
+  | 'hintPrintAssistant'
+  | 'hintSystemLogs';
 
 export type SettingsNavItem = {
   id: SettingsNavId;
@@ -28,7 +31,13 @@ export type SettingsNavItem = {
   labelKey: SettingsHubLabelKey;
   hintKey?: SettingsHubHintKey;
   icon: string;
-  permission: PermissionKey;
+  /** Capability gate; omit when backendAdminOnPremOnly. */
+  permission?: PermissionKey;
+  /**
+   * Visible only when local-perm + restaurants.owner_id (后台管理员).
+   * Not a grantable permission — sole access representation with canAccessSystemLogs.
+   */
+  backendAdminOnPremOnly?: boolean;
   isActive: (pathname: string) => boolean;
 };
 
@@ -85,6 +94,15 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     icon: '🖨️',
     permission: 'settings.print_assistant.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/print-assistant'),
+  },
+  {
+    id: 'system-logs',
+    href: '/dashboard/settings/system-logs',
+    labelKey: 'tabSystemLogs',
+    hintKey: 'hintSystemLogs',
+    icon: '📜',
+    backendAdminOnPremOnly: true,
+    isActive: (pathname) => pathname.startsWith('/dashboard/settings/system-logs'),
   },
 ];
 

@@ -5,25 +5,11 @@ import {
   rejectForbiddenPrintJobsScopeParams,
   rejectUnexpectedPrintJobsQueryParams,
 } from '@/lib/print-jobs-scope';
-import type { PrintJobStatus, PrintJobSummary } from '@/types';
+import { PRINT_JOBS_RECENT_LIMIT, queryRecentPrintJobs } from '@/lib/print-jobs-recent';
 
 export const runtime = 'nodejs';
 
-const PAGE_SIZE = 10;
-
-function parsePage(raw: string | null): number {
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return 1;
-  return Math.max(1, Math.floor(n));
-}
-
-function parseStatus(raw: string | null): PrintJobStatus | 'invalid' | null {
-  if (!raw) return null;
-  if (raw === 'pending' || raw === 'processing' || raw === 'done' || raw === 'failed') return raw;
-  return 'invalid';
-}
-
-/** Dashboard: recent print_jobs for the logged-in owner's restaurant only (no restaurant_id param). */
+/** Dashboard: newest print_jobs for the logged-in owner's restaurant (fixed top-N, no paging). */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -35,7 +21,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const unexpected = rejectUnexpectedPrintJobsQueryParams(searchParams, ['page', 'status']);
+  const unexpected = rejectUnexpectedPrintJobsQueryParams(searchParams, []);
   if (unexpected) {
     return NextResponse.json({ error: 'unexpected_query_param', param: unexpected }, { status: 400 });
   }
@@ -43,40 +29,15 @@ export async function GET(req: Request) {
   const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage');
   if (auth instanceof NextResponse) return auth;
 
-  const page = parsePage(searchParams.get('page'));
-  const status = parseStatus(searchParams.get('status'));
-  if (status === 'invalid') {
-    return NextResponse.json({ error: 'invalid_status' }, { status: 400 });
-  }
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
-
   const supabase = await createClient();
-  let query = supabase
-    .from('print_jobs')
-    .select('id, type, status, created_at, error_message, table_display, table_id', { count: 'exact' })
-    .eq('restaurant_id', auth.restaurantId)
-    .order('created_at', { ascending: false });
+  const { jobs, errorMessage } = await queryRecentPrintJobs(supabase, auth.restaurantId);
 
-  if (status) {
-    query = query.eq('status', status);
+  if (errorMessage) {
+    return NextResponse.json({ error: 'query_failed', message: errorMessage }, { status: 500 });
   }
-
-  const { data: rows, error, count } = await query.range(from, to);
-
-  if (error) {
-    return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
-  }
-
-  const jobs = (rows || []) as PrintJobSummary[];
-  const total = count || 0;
 
   return NextResponse.json({
     jobs,
-    page,
-    pageSize: PAGE_SIZE,
-    status: status || 'all',
-    total,
-    totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    limit: PRINT_JOBS_RECENT_LIMIT,
   });
 }

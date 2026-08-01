@@ -9,6 +9,14 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 - Realtime 因 token 临近过期退出后，重连前**必定** refresh（不再因仍在 skew 内跳过），避免同秒连续 renew。
 - `connect` 分步日志：ensuring token → dial → subscribe → connected，便于现场对照静默卡死。
 
+## 0.3.56
+
+**pending-jobs 已认领则跳过 processing PATCH**
+
+- `GET pending-jobs` 服务端已 claim-on-fetch 时，agent 不再对已非 `pending` 的任务重复 PATCH `processing`。
+- 仍兼容旧服务端：任务仍为 `pending`/空状态时照旧 PATCH claim。
+- 滚动升级时同设备 `processing` 重 claim 保持幂等。
+
 ## 0.3.55
 
 **重配后重建 Realtime；店内 CDC 含 print_jobs**

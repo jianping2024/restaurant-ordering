@@ -1,10 +1,7 @@
 import { buildWaiterTableCard } from '@/components/waiter/waiter-table-card';
 import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
-import {
-  sortWaiterTableCards,
-  type WaiterTableCardSortInput,
-} from '@/lib/restaurant-table-groups';
+import { sortWaiterTableCards } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { DEFAULT_TABLE_SEAT_MIN, DEFAULT_TABLE_SEAT_MAX } from '@/lib/restaurant-tables';
 import {
@@ -75,18 +72,6 @@ export function stubFloorTablesForLiveOccupancy(
   }));
 }
 
-/** Adapter for board sort — occupancy without shipping order lines to the client. */
-export function waiterBoardSummaryToSortInput(
-  summary: WaiterBoardTableSummary,
-): WaiterTableCardSortInput {
-  return {
-    tableId: summary.tableId,
-    displayName: summary.displayName,
-    hasBuffet: summary.hasBuffet,
-    orderLines: summary.occupied && !summary.hasBuffet ? [{}] : [],
-  };
-}
-
 export function sortWaiterBoardTableSummaries(
   summaries: WaiterBoardTableSummary[],
   tables: readonly RestaurantTableRow[],
@@ -95,7 +80,10 @@ export function sortWaiterBoardTableSummaries(
 ): WaiterBoardTableSummary[] {
   const byTableId = new Map(summaries.map((summary) => [summary.tableId, summary]));
   const sorted = sortWaiterTableCards(
-    summaries.map(waiterBoardSummaryToSortInput),
+    summaries.map((summary) => ({
+      tableId: summary.tableId,
+      displayName: summary.displayName,
+    })),
     tables,
     checkoutRequestedTableIds,
     sessionMetaByTableId,

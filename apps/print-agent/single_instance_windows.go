@@ -9,8 +9,6 @@ import (
 	"unsafe"
 )
 
-const agentMutexName = "Global\\MesaPrintAgent-SingleInstance-v1"
-
 const errorAlreadyExists = syscall.Errno(183)
 
 // Held until process exit so the mutex stays owned by this instance.

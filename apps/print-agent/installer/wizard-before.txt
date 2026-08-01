@@ -1,6 +1,11 @@
 Before you install
 ==================
 
+Administrator / upgrade
+  This Setup asks for administrator permission so it installs under Program Files
+  and can update an existing Mesa Print Agent (same folder / Add or Remove Programs entry).
+  If the agent is already running, Setup will close MesaPrintAgent.exe before replacing files.
+
 SmartScreen (unsigned build)
   Windows may show "Unknown publisher". Click More info, then Run anyway.
   Or: right-click the installer → Properties → check Unblock → OK.

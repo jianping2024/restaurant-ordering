@@ -94,7 +94,7 @@ print_jobs → ESC/POS bytes → PrinterSink.Write(raw) → 设备
 2. **RAW 提交**：`DOC_INFO_1` + `pDataType = "RAW"`（或 `"XPS_PASS"` 禁用 — 必须 RAW ESC/POS）。  
 3. **独占**：打印期间持有打印机句柄；失败时 `error_message` 写清「队列忙 / 权限 / 驱动」。  
 4. **驱动前提**：文档要求安装 UK56009 **ESC/POS 驱动** 或「Generic / Text Only」+ RAW（以实机为准）；**安装包不捆绑驱动**（许可与体积）。  
-5. **权限**：代理以 **当前登录用户** 运行（与现有 `PrivilegesRequired=lowest`、配对向导一致）；服务账户跑代理列 **P2.1 风险**。
+5. **权限**：Setup 以 **管理员** 安装到 Program Files（`PrivilegesRequired=admin`）；代理进程仍以 **当前登录用户** 托盘运行（配对向导不变）；服务账户跑代理列 **P2.1 风险**。
 
 ### 3.4 配对 / 设置向导（傻瓜化，与 USB 对齐）
 

@@ -1,5 +1,9 @@
 ; Mesa Print Agent — Inno Setup (x64). From apps/print-agent:
 ;   ISCC /DMyAppVersion=0.1.0 installer\mesa-print-agent.iss
+;
+; Upgrade story (sole path): elevated Setup → AppMutex + CloseApplications stop the running
+; tray → overwrite Program Files → optional launch. AppMutex MUST match agentMutexName in
+; single_instance_common.go (Global\MesaPrintAgent-SingleInstance-v1).
 
 #ifndef MyAppVersion
   #define MyAppVersion "0.1.0"
@@ -19,6 +23,14 @@ AppPublisherURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+; Admin: match Program Files + HKLM uninstall so Setup detects prior install (overwrite, not "new").
+PrivilegesRequired=admin
+UsePreviousAppDir=yes
+; Same string as Go agentMutexName — Inno closes the holding process before file copy.
+AppMutex=Global\MesaPrintAgent-SingleInstance-v1
+CloseApplications=yes
+CloseApplicationsFilter=MesaPrintAgent.exe
+RestartApplications=no
 OutputDir=..\dist
 OutputBaseFilename=MesaPrintAgent-Setup-amd64
 Compression=lzma2
@@ -35,7 +47,7 @@ Name: "desktopicon"; Description: "Create a Mesa Print Agent shortcut on the des
 Name: "autostart"; Description: "Start Mesa Print Agent when you sign in to Windows"; GroupDescription: "Sign-in startup:"; Flags: unchecked
 
 [Files]
-Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\amd64\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 Source: "..\dist\amd64\VERSION.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "WINDOWS-README.txt"; DestDir: "{app}"; Flags: ignoreversion
 

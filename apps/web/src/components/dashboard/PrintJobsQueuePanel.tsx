@@ -33,7 +33,6 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
   const [loadError, setLoadError] = useState(false);
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [openingConfigure, setOpeningConfigure] = useState(false);
-  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 
   const labelType = (type: string) => {
     if (!isPrintJobType(type)) return type;
@@ -124,7 +123,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
             disabled={openingConfigure}
             onClick={() => {
               setOpeningConfigure(true);
-              void openPrintAgentConfigure(siteOrigin, undefined, lang).finally(() =>
+              void openPrintAgentConfigure(undefined, lang).finally(() =>
                 setOpeningConfigure(false),
               );
             }}

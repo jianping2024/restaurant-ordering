@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
 import {
+  STAFF_BOARD_SIGNAL_DEBOUNCE_MS,
   useDebouncedPostgresRealtimeRefresh,
   useRestaurantStaffEntryReconcile,
 } from '@/lib/use-restaurant-realtime-refresh';
@@ -101,6 +102,8 @@ export function useWaiterTableDetail(
   const searchParams = useSearchParams();
   const reloadSeqRef = useRef(0);
   const refreshInFlightRef = useRef<Promise<WaiterTablePageModel | null> | null>(null);
+  /** Coalesce Realtime doorbells while a pull is in flight (one pending drain). */
+  const pendingRefreshRef = useRef(false);
   const staffReturnSyncRef = useRef(false);
   const prevTableIdRef = useRef(tableId);
   const openTableDefaultsRef = useRef(openTableDefaults);
@@ -137,12 +140,15 @@ export function useWaiterTableDetail(
 
   const refresh = useCallback(async () => {
     if (!enabled) return null;
-    if (refreshInFlightRef.current) return refreshInFlightRef.current;
+    if (refreshInFlightRef.current) {
+      pendingRefreshRef.current = true;
+      return refreshInFlightRef.current;
+    }
 
-    const seq = ++reloadSeqRef.current;
-    const scope: WaiterTableDetailFetchScope =
-      openTableDefaultsRef.current != null ? 'live' : 'full';
-    const running = (async (): Promise<WaiterTablePageModel | null> => {
+    const runOnce = async (): Promise<WaiterTablePageModel | null> => {
+      const seq = ++reloadSeqRef.current;
+      const scope: WaiterTableDetailFetchScope =
+        openTableDefaultsRef.current != null ? 'live' : 'full';
       try {
         const fetched = await fetchWaiterTablePageModelClient(restaurant.slug, tableId, scope);
         const nextModel = attachOpenTableDefaultsToPageModel(
@@ -163,10 +169,19 @@ export function useWaiterTableDetail(
         setCheckoutRequestedAt(null);
         setDetailLoaded(true);
         return null;
+      }
+    };
+
+    const running = (async (): Promise<WaiterTablePageModel | null> => {
+      let last: WaiterTablePageModel | null = null;
+      try {
+        do {
+          pendingRefreshRef.current = false;
+          last = await runOnce();
+        } while (pendingRefreshRef.current);
+        return last;
       } finally {
-        if (reloadSeqRef.current === seq) {
-          refreshInFlightRef.current = null;
-        }
+        refreshInFlightRef.current = null;
       }
     })();
     refreshInFlightRef.current = running;
@@ -178,6 +193,7 @@ export function useWaiterTableDetail(
     prevTableIdRef.current = tableId;
     reloadSeqRef.current += 1;
     refreshInFlightRef.current = null;
+    pendingRefreshRef.current = false;
     setModel(null);
     setTable(null);
     setOrderRows([]);
@@ -241,7 +257,7 @@ export function useWaiterTableDetail(
     () => {
       void refresh();
     },
-    1200,
+    STAFF_BOARD_SIGNAL_DEBOUNCE_MS,
   );
 
   const resolvedTable = useMemo(() => {

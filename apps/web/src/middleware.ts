@@ -1,13 +1,12 @@
 import { type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
+import { buildMiddlewareMatcher } from '@/lib/supabase/middleware-session-policy';
 
 export async function middleware(request: NextRequest) {
   return await updateSession(request);
 }
 
 export const config = {
-  matcher: [
-    // Skip static assets and ops health probes (no session / no Supabase round-trip).
-    '/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|api/health(?:/.*)?|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  // Sole skip list: apps/web/src/lib/supabase/middleware-session-policy.ts
+  matcher: buildMiddlewareMatcher(),
 };

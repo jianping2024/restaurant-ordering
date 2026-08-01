@@ -100,7 +100,7 @@ async function fetchCatalogFromApi(slug: string): Promise<CustomerMenuCatalog> {
 
 /**
  * Ensure catalog is available — memory/localStorage first, then one shared GET.
- * Used by staff overlay and optional client refresh on customer menu.
+ * Used by staff overlay, customer entry reconcile, and optional client refresh.
  */
 export function ensureCustomerMenuCatalog(params: {
   restaurantId: string;
@@ -134,22 +134,28 @@ export function ensureCustomerMenuCatalog(params: {
 }
 
 /**
- * Customer menu entry: show cache immediately (SWR), always reconcile once in background.
+ * Customer menu entry: show cache immediately (SWR).
+ * Network only when cache miss/stale — sole path is {@link ensureCustomerMenuCatalog}.
  */
 export function reconcileCustomerMenuCatalogOnEntry(params: {
   restaurantId: string;
   slug: string;
+  seed?: CustomerMenuCatalog | null;
 }): {
   initial: CustomerMenuCatalog | null;
   ready: Promise<CustomerMenuCatalog>;
 } {
+  if (params.seed) {
+    seedCustomerMenuCatalogCache(params.restaurantId, params.seed);
+  }
   const initial = peekCustomerMenuCatalogCache(params.restaurantId);
-  const ready = fetchCatalogFromApi(params.slug)
-    .then((catalog) => commitEntry(params.restaurantId, catalog))
-    .catch(() => {
-      if (initial) return initial;
-      throw new Error('menu_catalog_fetch_failed');
-    });
+  const ready = ensureCustomerMenuCatalog({
+    restaurantId: params.restaurantId,
+    slug: params.slug,
+  }).catch(() => {
+    if (initial) return initial;
+    throw new Error('menu_catalog_fetch_failed');
+  });
   return { initial, ready };
 }
 

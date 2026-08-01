@@ -67,6 +67,29 @@ export async function GET(req: Request) {
   }
 
   const scoped = filterPrintJobsByRestaurant(rows, ctx.restaurant_id);
-  const jobs = filterPrintJobsForDevice(scoped, deviceStationIds).slice(0, 25);
-  return NextResponse.json({ jobs });
+  const candidates = filterPrintJobsForDevice(scoped, deviceStationIds).slice(0, 25);
+
+  // Claim on fetch — sole lock path for the agent hot loop (pending → processing).
+  // PATCH processing stays for idempotent same-device re-claim during rolling upgrades.
+  const claimed = [];
+  for (const job of candidates) {
+    const nextAttempts = (typeof job.attempts === 'number' ? job.attempts : 0) + 1;
+    const { data: updated, error: claimErr } = await admin
+      .from('print_jobs')
+      .update({
+        status: 'processing',
+        claimed_by: ctx.device_id,
+        attempts: nextAttempts,
+      })
+      .eq('id', job.id)
+      .eq('status', 'pending')
+      .eq('restaurant_id', ctx.restaurant_id)
+      .select('id, restaurant_id, type, payload, status, created_at, attempts, error_message')
+      .maybeSingle();
+
+    if (claimErr || !updated) continue;
+    claimed.push(updated);
+  }
+
+  return NextResponse.json({ jobs: claimed });
 }

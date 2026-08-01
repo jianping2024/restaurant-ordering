@@ -67,8 +67,16 @@ function readCachedValueOverview(
 
 /**
  * Owner-facing ValueOverview supply used by RSC + API.
- * One DTO shape; aggregation stays in `getValueOverview`; this layer only memoizes successes.
+ * One DTO shape; aggregation stays in `getValueOverview`; this layer only memoizes successes
+ * and cools down repeated `query_limit_exceeded` hits on a warm Fluid instance.
  */
+const overviewFailureCooldownUntil = new Map<string, number>();
+const OVERVIEW_FAILURE_COOLDOWN_MS = 60_000;
+
+function overviewFailureKey(restaurantId: string, range: AnalyticsRange, businessDay: string) {
+  return `${restaurantId}:${range}:${businessDay}`;
+}
+
 export async function getCachedValueOverview(
   restaurantId: string,
   range: AnalyticsRange,
@@ -77,16 +85,33 @@ export async function getCachedValueOverview(
   const now = options?.now ?? new Date();
 
   if (options?.bypassCache) {
+    overviewFailureCooldownUntil.delete(
+      overviewFailureKey(
+        restaurantId,
+        range,
+        valueOverviewCacheKeyParts(restaurantId, range, now).businessDay,
+      ),
+    );
     const admin = createAdminClient();
     return getValueOverview(admin, restaurantId, range, now);
   }
 
   const { businessDay } = valueOverviewCacheKeyParts(restaurantId, range, now);
+  const failKey = overviewFailureKey(restaurantId, range, businessDay);
+  const coolUntil = overviewFailureCooldownUntil.get(failKey);
+  if (coolUntil != null && Date.now() < coolUntil) {
+    return { ok: false, code: 'query_limit_exceeded' };
+  }
+
   try {
     const data = await readCachedValueOverview(restaurantId, range, businessDay);
+    overviewFailureCooldownUntil.delete(failKey);
     return { ok: true, data };
   } catch (err) {
     const code = overviewQueryCode(err);
+    if (code === 'query_limit_exceeded') {
+      overviewFailureCooldownUntil.set(failKey, Date.now() + OVERVIEW_FAILURE_COOLDOWN_MS);
+    }
     if (code) {
       return {
         ok: false,

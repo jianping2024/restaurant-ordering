@@ -142,13 +142,19 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 		p.setStatus("Printing", summarizeJobPayload(job))
 
 		printStarted := time.Now()
-		if !patchJobStatus(ctx, p.config, job.ID, map[string]any{"status": "processing"}, "processing") {
-			// Claim failed (network or state race): keep trying via queue, do not drop.
-			p.queue.Requeue(job)
-			sleepOrCancel(ctx, 5*time.Second)
-			continue
+		// pending-jobs claim-on-fetch already sets processing; only PATCH when still pending
+		// (older servers / race). Same-device processing re-claim is idempotent on the API.
+		if job.Status == "" || job.Status == "pending" {
+			if !patchJobStatus(ctx, p.config, job.ID, map[string]any{"status": "processing"}, "processing") {
+				// Claim failed (network or state race): keep trying via queue, do not drop.
+				p.queue.Requeue(job)
+				sleepOrCancel(ctx, 5*time.Second)
+				continue
+			}
+			agentLog(p.config, "log_job_claimed", job.ID)
+		} else {
+			agentLog(p.config, "log_job_claimed", job.ID)
 		}
-		agentLog(p.config, "log_job_claimed", job.ID)
 
 		data := escposFromJob(job)
 		if err := printToTarget(target, data); err != nil {

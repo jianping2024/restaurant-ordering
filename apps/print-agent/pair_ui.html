@@ -157,6 +157,16 @@
             document.getElementById('formWrap').classList.add('hidden');
             document.getElementById('ok').style.display = 'block';
             showConfigureLinkIfAvailable();
+            // Used codes are single-shot; keep Connect disabled briefly and drop code from the URL
+            // so refresh / second click cannot reuse the same pairing code.
+            codeEl.value = '';
+            try {
+              var u = new URL(location.href);
+              u.searchParams.delete('code');
+              var q = u.searchParams.toString();
+              history.replaceState({}, '', u.pathname + (q ? '?' + q : ''));
+            } catch (e) { /* ignore */ }
+            window.setTimeout(function () { btn.disabled = false; }, 10000);
           })
           .catch(function () {
             err.textContent = t('pair_service_unreachable');

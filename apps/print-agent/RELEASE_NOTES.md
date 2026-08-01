@@ -2,6 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.58
+
+**配对成功后禁用「连接并保存」10 秒**
+
+- 成功后清掉 URL/输入框里的配对码，避免刷新或连点复用一次性码。
+
 ## 0.3.57
 
 **Realtime：`supabase_url` 跟 `api_base` 同 host 时对齐 scheme**

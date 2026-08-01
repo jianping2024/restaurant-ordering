@@ -30,6 +30,7 @@ echo "Staging $STAGE"
 rsync -a --delete \
   --exclude '.env' \
   --exclude 'vendor/supabase-docker/volumes/db/data' \
+  --exclude 'vendor/supabase-docker/volumes/db/data.legacy*' \
   --exclude 'vendor/supabase-docker/volumes/storage' \
   --exclude 'data' \
   --exclude 'backups' \

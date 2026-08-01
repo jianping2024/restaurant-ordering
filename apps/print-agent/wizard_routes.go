@@ -295,8 +295,9 @@ func registerPairWizardRoute(mux *http.ServeMux, configPath string, cfg **config
 		}
 		agentLogLocale(localeFromConfigPath(configPath), "log_pair_ok")
 		writePairJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-		if onSuccess != nil {
-			onSuccess()
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
 		}
+		schedulePairOnSuccess(onSuccess)
 	})
 }

@@ -64,8 +64,9 @@ func pickLocalListenAddr(startPort int) (string, error) {
 	return "", fmt.Errorf("no free port near %d", startPort)
 }
 
-// runPairingWizard serves a local web UI until pairing succeeds or ctx is cancelled.
+// runPairingWizard serves a local web UI until pairing + optional configure-done, or ctx cancel.
 // prefillAPI is optional (e.g. from -api flag); query ?api= and ?code= override in the browser.
+// Same mux as tray: /pair and /configure so pair success can location.replace to /configure.
 func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error {
 	listenAddr, err := pickLocalListenAddr(PairWizardPort)
 	if err != nil {
@@ -76,12 +77,8 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 	mux := http.NewServeMux()
 	var cfg *config
 	cfgPtr := &cfg
-	registerPairWebRoutes(mux, configPath, cfgPtr, "pairing wizard", func() { done <- nil })
+	registerConfigureWizardRoutes(mux, configPath, cfgPtr, done, nil)
 	registerUILocaleRoute(mux, configPath, cfgPtr)
-	mux.HandleFunc("/api/setup-state", func(w http.ResponseWriter, r *http.Request) {
-		*cfgPtr = reloadConfig(configPath, *cfgPtr)
-		writeConfigureState(w, *cfgPtr)
-	})
 
 	srv := &http.Server{Addr: listenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
@@ -111,4 +108,21 @@ func writePairJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+// pairSuccessOnSuccessDelay lets the browser finish the /api/pair response and
+// navigate to /configure before Connected re-pair restarts the tray (kills :17892).
+// Tests set this to 0 for synchronous onSuccess.
+var pairSuccessOnSuccessDelay = 2 * time.Second
+
+func schedulePairOnSuccess(onSuccess func()) {
+	if onSuccess == nil {
+		return
+	}
+	d := pairSuccessOnSuccessDelay
+	if d <= 0 {
+		onSuccess()
+		return
+	}
+	time.AfterFunc(d, onSuccess)
 }

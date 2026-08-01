@@ -15,7 +15,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY（打印助手下载卡片）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY；**且** `upgrade.sh` / `install-mesa.sh` 必须把 `VERSION` 同步进 `$MESA_HOME/current`（否则店机 `--build web` 会报 `COPY …/VERSION: not found`）。
 
 产物：
 

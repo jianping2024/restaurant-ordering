@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.60
+
+**Setup 覆盖升级（管理员 + 关闭运行中进程）**
+
+- Inno：`PrivilegesRequired=admin`（匹配 Program Files / HKLM 卸载项，升级而非“新装”）。
+- `AppMutex` 与托盘单实例互斥名一致 + `CloseApplications`；exe 用 `restartreplace`；`UsePreviousAppDir=yes`。
+- 向导前提示会请求管理员权限并在替换前关闭 `MesaPrintAgent.exe`。
+
 ## 0.3.59
 
 **配对成功直接进入打印机设置**

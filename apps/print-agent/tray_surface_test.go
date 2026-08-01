@@ -19,7 +19,7 @@ func TestTrayConfigureSurfaceHealthAndPair(t *testing.T) {
 	cfg := reloadConfig(path, &config{})
 	cfgPtr := &cfg
 	mux := http.NewServeMux()
-	registerConfigureWizardRoutes(mux, path, cfgPtr, nil)
+	registerConfigureWizardRoutes(mux, path, cfgPtr, nil, nil)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && r.URL.Path == "/api/health" {
@@ -65,7 +65,7 @@ func TestLiveTraySurfaceListenAndWaitPair(t *testing.T) {
 	cfg := reloadConfig(path, &config{})
 	cfgPtr := &cfg
 	mux := http.NewServeMux()
-	registerConfigureWizardRoutes(mux, path, cfgPtr, nil)
+	registerConfigureWizardRoutes(mux, path, cfgPtr, nil, nil)
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

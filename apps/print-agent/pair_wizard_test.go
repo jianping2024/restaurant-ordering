@@ -1,6 +1,14 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+)
 
 func TestNormalizeAPIBase(t *testing.T) {
 	got, err := normalizeAPIBase("https://restaurant-ordering-beryl-three.vercel.app/dashboard/settings/print-assistant")
@@ -35,5 +43,40 @@ func TestDedupePrinterList(t *testing.T) {
 	}
 	if got[0].Addr != "winspool:UK56009" || got[1].Addr != "tcp:192.168.1.50:9100" {
 		t.Fatalf("unexpected entries: %#v", got)
+	}
+}
+
+func TestPairSuccessInvokesOnSuccess(t *testing.T) {
+	mesa := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/print-agent/claim" {
+			http.NotFound(w, r)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"agentjwt":      "test-jwt",
+			"supabase_url":  "https://pirata.farvoo.com",
+			"restaurant_id": "00000000-0000-4000-8000-000000000001",
+			"valid_until":   time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339),
+		})
+	}))
+	defer mesa.Close()
+
+	called := 0
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	cfg := reloadConfig(path, &config{})
+	cfgPtr := &cfg
+	mux := http.NewServeMux()
+	registerConfigureWizardRoutes(mux, path, cfgPtr, nil, func() { called++ })
+
+	body := `{"api_base":"` + mesa.URL + `","code":"123456"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/pair", strings.NewReader(body))
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	if called != 1 {
+		t.Fatalf("onPairSuccess called %d times, want 1", called)
 	}
 }

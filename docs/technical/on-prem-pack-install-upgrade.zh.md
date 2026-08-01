@@ -15,7 +15,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY；**且** `upgrade.sh` / `install-mesa.sh` 必须把 `VERSION` 同步进 `$MESA_HOME/current`（否则店机 `--build web` 会报 `COPY …/VERSION: not found`）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线且含 `print_jobs`；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY；**且** `upgrade.sh` / `install-mesa.sh` 必须把 `VERSION` 同步进 `$MESA_HOME/current`（否则店机 `--build web` 会报 `COPY …/VERSION: not found`）。
 
 产物：
 
@@ -150,7 +150,7 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://192.168.0.141/dashboard/setting
 
 **原因：** `baseline_public.sql` 不带 `supabase_realtime` 成员；initial 的 `ALTER PUBLICATION` 又在 covered 里被跳过 → 店库常 **0 表**。与公网/局域网无关。
 
-**打包/装机/升级（唯一修法）：** `apply-migrations.sh` **每次**跑 `schema/ensure_realtime_publication.sql`（幂等，至少 `orders`/`table_sessions`/`bill_splits`）。`pack-release.sh` 缺文件或未调用则打包失败。  
+**打包/装机/升级（唯一修法）：** `apply-migrations.sh` **每次**跑 `schema/ensure_realtime_publication.sql`（幂等：`orders`/`table_sessions`/`bill_splits`/`print_jobs`）。`pack-release.sh` 缺文件、未调用、或 ensure 未含 `print_jobs` 则打包失败。  
 **不要**只靠一条会被 `baseline_covered` 跳过的 migration。
 
 **已装店应急 / 抽查：**
@@ -160,9 +160,9 @@ docker exec -it supabase-db psql -U postgres -d postgres -c "
 SELECT tablename FROM pg_publication_tables
 WHERE pubname='supabase_realtime' ORDER BY 1;
 "
-# 若为空，升含 ensure 的包，或临时：
+# 若缺表，升含 ensure 的包，或临时：
 # ALTER PUBLICATION supabase_realtime ADD TABLE
-#   public.orders, public.table_sessions, public.bill_splits;
+#   public.orders, public.table_sessions, public.bill_splits, public.print_jobs;
 ```
 
 员工须在列表页 `/dashboard/waiter`；详情页楼面 Realtime 按设计休眠。勿用轮询冒充修复。

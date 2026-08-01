@@ -12,13 +12,13 @@ import (
 //go:embed configure_ui.html
 var configureUIHTML []byte
 
-func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr **config, done chan<- error) {
+func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr **config, done chan<- error, onPairSuccess func()) {
 	mux.HandleFunc("/configure", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_, _ = w.Write(configureUIHTML)
 	})
 
-	registerPairWebRoutes(mux, configPath, cfgPtr, "configure wizard", nil)
+	registerPairWebRoutes(mux, configPath, cfgPtr, "configure wizard", onPairSuccess)
 	registerPrinterWizardRoutes(mux, configPath, cfgPtr, "configure wizard")
 	registerUILocaleRoute(mux, configPath, cfgPtr) // pair page at /pair
 
@@ -76,7 +76,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI, rawQ
 
 	done := make(chan error, 1)
 	mux := http.NewServeMux()
-	registerConfigureWizardRoutes(mux, configPath, cfgPtr, done)
+	registerConfigureWizardRoutes(mux, configPath, cfgPtr, done, nil)
 
 	srv := &http.Server{Addr: listenAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() {

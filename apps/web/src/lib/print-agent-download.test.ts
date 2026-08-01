@@ -27,3 +27,16 @@ test('getPrintAgentDownloadUrls uses relative same-origin paths', () => {
     else process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO = prev;
   }
 });
+
+test('getPrintAgentDownloadUrls is null without GitHub repo (on-prem hide)', () => {
+  const prev = process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO;
+  delete process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO;
+  try {
+    assert.equal(getPrintAgentDownloadUrls(), null);
+    process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO = '';
+    assert.equal(getPrintAgentDownloadUrls(), null);
+  } finally {
+    if (prev === undefined) delete process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO;
+    else process.env.NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO = prev;
+  }
+});

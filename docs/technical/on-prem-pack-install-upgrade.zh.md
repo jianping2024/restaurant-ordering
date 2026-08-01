@@ -18,7 +18,7 @@ chmod +x deploy/on-prem/scripts/pack-release.sh
 ./deploy/on-prem/scripts/pack-release.sh
 ```
 
-打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线且含 `print_jobs`；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` ARG/ENV + `apps/print-agent/VERSION` COPY；**且** `upgrade.sh` / `install-mesa.sh` 必须把 `VERSION` 同步进 `$MESA_HOME/current`（否则店机 `--build web` 会报 `COPY …/VERSION: not found`）。
+打包门禁（脚本会硬失败）：`ensure_realtime_publication` 接线且含 `print_jobs`；`apps/web/Dockerfile` BuildKit npm cache；禁止 `menuImageSameOriginEnabled(process.env)`；Mode B Auth Cookie 四处必须 `getSupabaseAuthCookieOptions`（§2.3 / §3.1）；`NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` **不得**非空默认（on-prem 靠空值隐藏下载卡）+ `apps/print-agent/VERSION` COPY（推荐版本）；**且** `upgrade.sh` / `install-mesa.sh` 必须把 `VERSION` 同步进 `$MESA_HOME/current`（否则店机 `--build web` 会报 `COPY …/VERSION: not found`）。
 
 产物：
 
@@ -222,7 +222,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 
 **网络**：构建中 `npm error network read ETIMEDOUT` 是店机访问 `registry.npmjs.org` 中断。可先 `curl -I https://registry.npmjs.org/` 与 `docker run --rm node:20-bookworm-slim npm ping`；通则直接重跑同一条 `upgrade.sh`。中长期可再考虑预构建 web 镜像随包下发（见交接/后续优化），避免门店现场编译。
 
-**打印助手安装包下载**：web 镜像内已烘入 `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO`（Dockerfile ARG 默认值）并 COPY `apps/print-agent/VERSION`，后台「设置 → 打印助手」才会显示安装包下载卡片；下载按钮 302 到 GitHub Release，店机浏览器需能访问 `github.com`。`pack-release.sh` 对此 fail-closed。**不要**指望在店机 `.env` 里加 `NEXT_PUBLIC_*` 再 `restart`——必须 `--build web`。`upgrade.sh` / `install-mesa.sh` 必须把包内 `apps/print-agent/VERSION` 同步进 `$MESA_HOME/current`，否则 Docker `COPY` 失败或仍用旧镜像。
+**打印助手安装包下载（on-prem 隐藏）**：下载卡唯一门闩是 `getPrintAgentDownloadUrls()`（无 `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO` → null → 不渲染）。Mode B Dockerfile **不**烘入该 repo（ARG 默认空）；`pack-release.sh` 对「非空默认」fail-closed。云 / 本地 SaaS 仍在构建环境设该变量以显示下载卡。`apps/print-agent/VERSION` 仍 COPY，供设备列表「推荐版本」。改 Dockerfile 后店机须 `--build web`，不能只 `restart`。`upgrade.sh` / `install-mesa.sh` 必须把包内 `apps/print-agent/VERSION` 同步进 `$MESA_HOME/current`，否则 Docker `COPY` 失败或仍用旧镜像。
 
 ---
 

@@ -25,6 +25,32 @@ export function parsePrintAgentNotificationMode(
   return null;
 }
 
+/**
+ * Restaurant-level mode for staff surfaces: any online polling wins (warning-first);
+ * else realtime if any online device reports it; else null (offline / unknown).
+ */
+export function resolveRestaurantPrintNotifyMode(
+  devices: readonly PrintAgentDeviceHeartbeatRow[],
+  now = Date.now(),
+): PrintAgentNotificationMode | null {
+  const online = devices.filter((d) => isPrintAgentDeviceOnline(d.last_seen, now));
+  if (online.length === 0) return null;
+  if (online.some((d) => d.notification_mode === 'polling')) return 'polling';
+  if (online.some((d) => d.notification_mode === 'realtime')) return 'realtime';
+  return null;
+}
+
+/** Shared tone for realtime (neutral) vs polling (strong warning). */
+export function printNotifyModeClass(mode: PrintAgentNotificationMode | null): string {
+  if (mode === 'polling') {
+    return 'rounded px-1.5 py-0.5 font-semibold text-status-danger bg-[rgb(var(--color-status-danger-border)/0.14)]';
+  }
+  if (mode === 'realtime') {
+    return 'text-brand-ink';
+  }
+  return 'text-brand-muted';
+}
+
 export function isPrintAgentDeviceOnline(
   lastSeen: string | null | undefined,
   now = Date.now(),

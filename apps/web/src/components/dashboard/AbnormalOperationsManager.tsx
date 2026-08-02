@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
 import { Button } from '@/components/ui/Button';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { Modal } from '@/components/ui/Modal';
@@ -13,7 +13,7 @@ import {
 } from '@/lib/abnormal-operations/client-api';
 import type { AbnormalOperationsListResult } from '@/lib/abnormal-operations/owner-query';
 import {
-  abnormalOperationTableHref,
+  abnormalOperationHasSessionHistory,
   formatAbnormalOperationReasonText,
 } from '@/lib/abnormal-operations/reason-display';
 import type {
@@ -28,10 +28,12 @@ import {
 } from '@/lib/abnormal-operations';
 import { mergePatchedAbnormalOperationRow } from '@/lib/abnormal-operations/list-patch-merge';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import {
   LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@/lib/paginate-list';
+import { fetchOrderHistoryPage } from '@/lib/use-order-history-feed';
 
 const REFRESH_COOLDOWN_MS = 60_000;
 const FILTER_DEBOUNCE_MS = 500;
@@ -136,6 +138,10 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const [patching, setPatching] = useState(false);
   const [refreshCooldownSec, setRefreshCooldownSec] = useState(0);
   const lastRefreshAtRef = useRef(0);
+  const [historyEntry, setHistoryEntry] = useState<OrderHistoryEntry | null>(null);
+  const [historyEntries, setHistoryEntries] = useState<OrderHistoryEntry[]>([]);
+  const [historyItemCodes, setHistoryItemCodes] = useState<Record<string, string>>({});
+  const [historyLoadingSessionId, setHistoryLoadingSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedFilters(filters), FILTER_DEBOUNCE_MS);
@@ -232,6 +238,36 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const closeDetail = useCallback(() => {
     setSelected(null);
     setOwnerNoteDraft('');
+  }, []);
+
+  const openSessionHistory = useCallback(
+    async (row: Pick<AbnormalOperationRow, 'session_id'>) => {
+      const sessionId = row.session_id?.trim();
+      if (!sessionId) return;
+      setHistoryLoadingSessionId(sessionId);
+      const result = await fetchOrderHistoryPage(0, 1, { tableIds: [], sessionId });
+      setHistoryLoadingSessionId(null);
+      const entry = result?.items[0];
+      if (!entry || !result) {
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      setHistoryItemCodes(result.itemCodeByMenuId);
+      setHistoryEntries([entry]);
+      setHistoryEntry(entry);
+    },
+    [t.actionFailed],
+  );
+
+  const closeSessionHistory = useCallback(() => {
+    setHistoryEntry(null);
+  }, []);
+
+  const selectHistoryEntry = useCallback((entry: OrderHistoryEntry) => {
+    setHistoryEntry(entry);
+    setHistoryEntries((prev) =>
+      prev.some((row) => row.sessionId === entry.sessionId) ? prev : [...prev, entry],
+    );
   }, []);
 
   const applyPatch = async (patch: {
@@ -424,7 +460,8 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
               <tbody>
                 {data.items.map((row) => {
                   const reasonText = formatAbnormalOperationReasonText(lang, row);
-                  const tableOrdersHref = abnormalOperationTableHref(restaurantSlug, row);
+                  const canOpenHistory = abnormalOperationHasSessionHistory(row);
+                  const historyBusy = historyLoadingSessionId === row.session_id?.trim();
 
                   return (
                   <tr
@@ -436,13 +473,15 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
                     </td>
                     <td className="px-4 py-2 text-[13px]">{typeLabel(t, row.type)}</td>
                     <td className="px-4 py-2 text-[13px]">
-                      {tableOrdersHref ? (
-                        <Link
-                          href={tableOrdersHref}
-                          className="text-brand-gold hover:underline whitespace-nowrap"
+                      {canOpenHistory ? (
+                        <button
+                          type="button"
+                          onClick={() => void openSessionHistory(row)}
+                          disabled={historyBusy}
+                          className="text-brand-gold hover:underline whitespace-nowrap disabled:opacity-50"
                         >
                           {row.table_name ?? '—'}
-                        </Link>
+                        </button>
                       ) : (
                         row.table_name ?? '—'
                       )}
@@ -482,13 +521,15 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
                         >
                           {t.viewDetail}
                         </button>
-                        {tableOrdersHref ? (
-                          <Link
-                            href={tableOrdersHref}
-                            className="text-[13px] text-brand-text-muted hover:text-brand-gold hover:underline whitespace-nowrap"
+                        {canOpenHistory ? (
+                          <button
+                            type="button"
+                            onClick={() => void openSessionHistory(row)}
+                            disabled={historyBusy}
+                            className="text-[13px] text-brand-text-muted hover:text-brand-gold hover:underline whitespace-nowrap disabled:opacity-50"
                           >
                             {t.viewTableOrders}
-                          </Link>
+                          </button>
                         ) : null}
                       </div>
                     </td>
@@ -532,21 +573,23 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
                 <p className="text-brand-text-muted text-[13px]">{t.colType}</p>
                 <p className="text-brand-text">{typeLabel(t, selected.type)}</p>
               </div>
-            <div>
-              <p className="text-brand-text-muted text-[13px]">{t.colTable}</p>
-              <p className="text-brand-text">
-                {selected.table_id ? (
-                  <Link
-                    href={abnormalOperationTableHref(restaurantSlug, selected)!}
-                    className="text-brand-gold hover:underline"
-                  >
-                    {selected.table_name ?? '—'}
-                  </Link>
-                ) : (
-                  selected.table_name ?? '—'
-                )}
-              </p>
-            </div>
+              <div>
+                <p className="text-brand-text-muted text-[13px]">{t.colTable}</p>
+                <p className="text-brand-text">
+                  {abnormalOperationHasSessionHistory(selected) ? (
+                    <button
+                      type="button"
+                      onClick={() => void openSessionHistory(selected)}
+                      disabled={historyLoadingSessionId === selected.session_id?.trim()}
+                      className="text-brand-gold hover:underline disabled:opacity-50"
+                    >
+                      {selected.table_name ?? '—'}
+                    </button>
+                  ) : (
+                    selected.table_name ?? '—'
+                  )}
+                </p>
+              </div>
               <div>
                 <p className="text-brand-text-muted text-[13px]">{t.colOperator}</p>
                 <p className="text-brand-text">
@@ -564,14 +607,16 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
                 {formatAbnormalOperationReasonText(lang, selected)}
               </p>
             </div>
-            {selected.table_id ? (
+            {abnormalOperationHasSessionHistory(selected) ? (
               <div>
-                <Link
-                  href={abnormalOperationTableHref(restaurantSlug, selected)!}
-                  className="text-sm text-brand-gold hover:underline"
+                <button
+                  type="button"
+                  onClick={() => void openSessionHistory(selected)}
+                  disabled={historyLoadingSessionId === selected.session_id?.trim()}
+                  className="text-sm text-brand-gold hover:underline disabled:opacity-50"
                 >
                   {t.viewTableOrders}
-                </Link>
+                </button>
               </div>
             ) : null}
             <label className="block">
@@ -614,6 +659,15 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
           </div>
         ) : null}
       </Modal>
+
+      <OrderHistoryDetailModal
+        entry={historyEntry}
+        entries={historyEntries}
+        itemCodeByMenuId={historyItemCodes}
+        restaurantSlug={restaurantSlug}
+        onClose={closeSessionHistory}
+        onSelectEntry={selectHistoryEntry}
+      />
     </div>
   );
 }

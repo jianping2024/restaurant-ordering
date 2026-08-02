@@ -15,7 +15,7 @@ type FeedState = OrderHistoryPageResult & {
 
 const FILTER_DEBOUNCE_MS = 300;
 
-async function fetchOrderHistoryPage(
+export async function fetchOrderHistoryPage(
   offset: number,
   limit: number,
   filters: OrderHistoryFilters,

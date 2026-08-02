@@ -1,7 +1,9 @@
+import type {
+  AbnormalOperationRow,
+  AbnormalOperationType,
+} from '@/lib/abnormal-operations/types';
 import type { UILanguage } from '@/lib/i18n';
 import { getMessages } from '@/lib/i18n/messages';
-import type { AbnormalOperationRow, AbnormalOperationType } from '@/lib/abnormal-operations/types';
-import { waiterTableHref } from '@/lib/staff-routes';
 
 export function abnormalOperationReasonLabel(
   lang: UILanguage,
@@ -27,11 +29,9 @@ export function formatAbnormalOperationReasonText(
   return detail ? `${label}：${detail}` : label;
 }
 
-/** Owner abnormal-ops list: open table orders on the staff waiter board (owner has slug access). */
-export function abnormalOperationTableHref(
-  slug: string,
-  row: Pick<AbnormalOperationRow, 'table_id'>,
-): string | null {
-  if (!row.table_id) return null;
-  return waiterTableHref(slug, row.table_id);
+/** True when the row can open closed-session order history detail. */
+export function abnormalOperationHasSessionHistory(
+  row: Pick<AbnormalOperationRow, 'session_id'>,
+): boolean {
+  return Boolean(row.session_id?.trim());
 }

@@ -105,15 +105,19 @@ function applyTableSessionFilter<T extends {
 }
 
 function applySessionFilters<T extends {
+  eq(column: string, value: string): T;
   in(column: string, values: string[]): T;
   or(filter: string): T;
   gte(column: string, value: string): T;
   lte(column: string, value: string): T;
 }>(
   query: T,
-  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo'>,
+  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo' | 'sessionId'>,
   transferSessionIds: string[],
 ): T {
+  if (filters.sessionId) {
+    return query.eq('id', filters.sessionId);
+  }
   let next = applyTableSessionFilter(query, filters.tableIds, transferSessionIds);
   next = applyDateSessionFilters(next, filters);
   return next;
@@ -218,11 +222,13 @@ export async function loadOrderHistoryEntries(
     return { ...EMPTY_PAGE, cappedTotal: 0 };
   }
 
-  const transferSessionIds = await loadSessionIdsTransferredFromTables(
-    admin,
-    query.restaurantId,
-    query.tableIds,
-  );
+  const transferSessionIds = query.sessionId
+    ? []
+    : await loadSessionIdsTransferredFromTables(
+        admin,
+        query.restaurantId,
+        query.tableIds,
+      );
 
   let countQuery = admin
     .from('table_sessions')
@@ -353,7 +359,9 @@ export async function loadOrderHistoryEntries(
 
 export function defaultOrderHistoryQuery(
   restaurant: { id: string; owner_id: string; name: string },
-  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo'> = { tableIds: [] },
+  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo' | 'sessionId'> = {
+    tableIds: [],
+  },
 ): OrderHistoryQuery {
   return {
     restaurantId: restaurant.id,
@@ -365,5 +373,6 @@ export function defaultOrderHistoryQuery(
     tableIds: filters.tableIds,
     closedFrom: filters.closedFrom,
     closedTo: filters.closedTo,
+    sessionId: filters.sessionId,
   };
 }

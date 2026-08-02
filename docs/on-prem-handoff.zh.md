@@ -70,7 +70,7 @@
                               本机 apply-claim（同 id 建店+店主+写配置）
                               成功 → 跳转 /auth/login（不自动登录）
                               店主用登记邮箱 + 刚才密码登录
-                              → /dashboard（进门 check-in 一次）
+                              → /dashboard（进门 reconcile：check-in + materialize）
 ```
 
 | 步 | 路由 / API | 行为 |
@@ -81,8 +81,8 @@
 | 4 | 本机 `http://127.0.0.1:3000/setup` | 唯一认领页；字段：安装码、店主密码（邮箱以云登记为准，可只读展示） |
 | 5 | 云 `POST /api/platform/license/claim` | 平台侧：claimed + lease + 凭证；**不**建云用户 |
 | 6 | 本机 apply-claim（服务端） | 本地库：`restaurants.id = 平台 restaurantId`；本地 Auth 店主；写入 `MESA_PLATFORM_LICENSE_URL`、`MESA_LICENSE_CHECKIN_CREDENTIAL`、`MESA_LICENSE_LEASE_SECRET` |
-| 7 | `/auth/login` | 认领成功后的落地页；**禁止**自动建 session |
-| 8 | `/dashboard` | 登录后营业；lifecycle check-in → `syncOnPremLicenseFromPlatform` → `applyLicenseMaterialize` |
+| 7 | `/auth/login` | 认领成功后的落地页；**禁止**自动建 session；员工登录 preflight 走 `reconcileRestaurantLicense` |
+| 8 | `/dashboard` | 登录后营业；lifecycle `reconcileRestaurantLicense` → on_prem check-in → `applyLicenseMaterialize` |
 
 失败：停在 `/setup`，提示码无效/过期/已用等，**不**写本地店。
 
@@ -114,7 +114,7 @@
 | Shared：注册/续期/lease/materialize | ✅ | `packages/shared` + 单测 |
 | Ops：`/ops/licenses` + API | ✅ | extend / suspend / resume / installations |
 | Platform：`/api/platform/license/claim` · `check-in` | ✅ | claim **不**建平台 Auth；已认领 = installation `claimed` |
-| Web：dashboard 进门 materialize / check-in | ✅ | `license-materialize.ts` · config via `license-platform-config.ts` |
+| Web：业务边界 reconcile（登录 / 顾客入口 / dashboard） | ✅ | 唯一 `reconcileRestaurantLicense` · `license-materialize.ts` |
 | 本机 `/setup` + apply-claim 装机桥 | ✅ | `/setup` + `/api/setup/claim` + `applyOnPremClaim`；成功只跳 `/auth/login` |
 | ADR-004 + schema 摘要 + handoff §1.3 | ✅ | 认领终态已写入 ADR / 本文 |
 | 本地 UAT 脚本 | 🟡 | `scripts/uat-on-prem-license.mjs` 含 platform-no-owner + setup bridge；需 web:3000 + ops:3001 |

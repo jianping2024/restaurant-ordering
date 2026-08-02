@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import { autoEnqueueRateLimitCheck } from '@/lib/station-ticket-auto-rate-limit';
 import { orderEnqueueSecret, verifyOrderEnqueueToken } from '@/lib/order-enqueue-token';

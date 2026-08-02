@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadGuestOrderingNotice } from '@/lib/guest-ordering-notice-server';
-import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 
 export const runtime = 'nodejs';
 

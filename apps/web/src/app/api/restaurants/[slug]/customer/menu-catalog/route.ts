@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
-import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import {
   clientHostnameFromRequest,
   clientPageOriginFromRequest,

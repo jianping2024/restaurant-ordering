@@ -2,10 +2,8 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
-import {
-  loadCustomerRestaurantGate,
-  loadCustomerSessionContext,
-} from '@/lib/customer-session-context';
+import { loadCustomerRestaurantGate } from '@/lib/customer-restaurant-gate';
+import { loadCustomerSessionContext } from '@/lib/customer-session-context';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';

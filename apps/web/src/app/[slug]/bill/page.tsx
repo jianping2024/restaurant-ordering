@@ -1,10 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerBillContext } from '@/lib/customer-bill-context';
-import {
-  loadCustomerRestaurantGate,
-  resolveCustomerTableContext,
-} from '@/lib/customer-session-context';
+import { loadCustomerRestaurantGate } from '@/lib/customer-restaurant-gate';
+import { resolveCustomerTableContext } from '@/lib/customer-session-context';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { BillPage } from '@/components/menu/BillPage';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';

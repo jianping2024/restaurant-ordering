@@ -1,3 +1,5 @@
+import 'server-only';
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isRestaurantSuspended, resolveActiveGeoOrderCoords } from '@mesa/shared';
 import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
@@ -5,6 +7,7 @@ import {
   normalizeBuffetServiceMode,
   type BuffetServiceMode,
 } from '@/lib/buffet-service-mode';
+import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 export type OrderRestaurantMode = 'guest' | 'staff';
 
@@ -41,7 +44,10 @@ export async function resolveOrderRestaurant(
   if (error || !data) {
     return { ok: false, status: 404, error: 'restaurant_not_found' };
   }
-  if (isRestaurantSuspended(data.suspended_at as string | null)) {
+  const suspension = await reconcileRestaurantLicense(admin, data.id as string, {
+    checkIn: false,
+  });
+  if (isRestaurantSuspended(suspension?.suspended_at ?? (data.suspended_at as string | null))) {
     return { ok: false, status: 403, error: 'restaurant_suspended' };
   }
 

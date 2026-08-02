@@ -7,6 +7,7 @@ import {
   deriveStaffLoginPreflight,
   type StaffLoginPreflightResult,
 } from '@/lib/staff-identity-gate';
+import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 export type {
   StaffLoginPreflightResult,
@@ -57,7 +58,9 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
 
   const { data, error } = await admin
     .from('restaurant_staff_accounts')
-    .select('id, disabled_at, role, role_id, restaurants(suspended_at), restaurant_roles!role_id(disabled_at)')
+    .select(
+      'id, disabled_at, role, role_id, restaurant_id, restaurant_roles!role_id(disabled_at)',
+    )
     .eq('login_name', loginName)
     .maybeSingle();
 
@@ -69,7 +72,10 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
     return deriveStaffLoginPreflight({ account: null });
   }
 
-  const embedded = (data as { restaurants?: { suspended_at?: string | null } | null }).restaurants;
+  const restaurantId = data.restaurant_id as string | null;
+  const suspension = restaurantId
+    ? await reconcileRestaurantLicense(admin, restaurantId)
+    : null;
   const roleEmbed = (
     data as { restaurant_roles?: { disabled_at?: string | null } | null }
   ).restaurant_roles;
@@ -78,7 +84,7 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
       disabled_at: (data.disabled_at as string | null) ?? null,
       role: String(data.role ?? ''),
       role_id: (data.role_id as string | null) ?? null,
-      restaurant_suspended_at: embedded?.suspended_at,
+      restaurant_suspended_at: suspension?.suspended_at ?? null,
       role_disabled_at: roleEmbed?.disabled_at ?? null,
     },
   });

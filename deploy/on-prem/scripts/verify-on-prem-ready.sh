@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Sole on-prem readiness check for license URL + durable config + required runtime params.
 # Phases:
-#   install     — before/after first stack up: URL + compose mount + .env essentials (no platform.json)
-#   post-claim  — after /setup: platform.json trio must be complete
-#   upgrade     — install checks + require complete platform.json (live store)
+#   install     — URL + compose mount + .env essentials (no platform.json)
+#   post-claim  — after /setup: platform.json trio must be complete (hard fail)
+#   upgrade     — install checks; if platform.json exists validate it; if missing
+#                 WARN only (recovery via /setup must not block upgrade)
 #
 # Usage (from deploy/on-prem):
 #   ./scripts/verify-on-prem-ready.sh install
@@ -20,6 +21,7 @@ PLATFORM_JSON="${MESA_LICENSE_PLATFORM_JSON:-$LICENSE_STATE_DIR/platform.json}"
 
 die() { printf '[mesa-verify] ERROR: %s\n' "$*" >&2; exit 1; }
 ok() { printf '[mesa-verify] OK: %s\n' "$*"; }
+warn() { printf '[mesa-verify] WARN: %s\n' "$*" >&2; }
 usage() {
   cat <<EOF
 Usage: $0 <install|post-claim|upgrade>
@@ -90,7 +92,7 @@ check_install() {
     local lease
     lease="$(env_val MESA_LICENSE_LEASE_SECRET || true)"
     if [[ -n "$lease" ]]; then
-      printf '[mesa-verify] WARN: MESA_LICENSE_LEASE_SECRET in .env is unused for claim; prefer license-state after /setup\n' >&2
+      warn "MESA_LICENSE_LEASE_SECRET in .env is unused for claim; prefer license-state after /setup"
     fi
   fi
 }
@@ -107,8 +109,13 @@ case "$PHASE" in
     ;;
   upgrade)
     check_install
-    check_platform_json
-    ok "phase upgrade passed"
+    if [[ -f "$PLATFORM_JSON" ]]; then
+      check_platform_json
+      ok "phase upgrade passed (license-state present)"
+    else
+      warn "missing ${PLATFORM_JSON} — upgrade continues; open /setup with install code to claim, then run: ./scripts/verify-on-prem-ready.sh post-claim"
+      ok "phase upgrade passed (claim pending via /setup)"
+    fi
     ;;
   *)
     usage >&2

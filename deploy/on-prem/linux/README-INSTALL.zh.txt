@@ -55,8 +55,8 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 - 安装/升级自检：
     cd $MESA_HOME/current/deploy/on-prem
     sudo ./scripts/verify-on-prem-ready.sh install      # 装机：URL + 运行必备参数
-    sudo ./scripts/verify-on-prem-ready.sh post-claim  # 认领后：platform.json 三字段
-    （upgrade.sh 会跑 upgrade 阶段，要求已有 platform.json）
+    sudo ./scripts/verify-on-prem-ready.sh post-claim  # 认领后：platform.json 三字段（硬拦）
+    （upgrade.sh 跑 upgrade 阶段：无 platform.json 只警告，须随后 /setup；有文件则校验齐全）
 - Auth 白名单：ADDITIONAL_REDIRECT_URLS（见上「三、7」）
 - 改 .env 后：sudo /opt/mesa/bin/mesa-stack up -d web
 - 改 Auth 白名单后：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth

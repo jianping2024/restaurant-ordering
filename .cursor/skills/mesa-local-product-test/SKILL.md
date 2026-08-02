@@ -40,7 +40,7 @@ Default stack (do not substitute “lint only” or raw curl when this skill app
    - `node scripts/mesa-local-uat.mjs req GET|POST /api/... --jar staff --body '...'`
    - Assert `status` + stable `error` codes; optional `wait-json` after mutations
    - DB side-effects: **supabase-local** (dev) or cloud read-only SQL — never `db reset` unless user approved
-2. **UI second — Chrome DevTools MCP** (`user-chrome-devtools`). Navigate/snapshot/click; verify disabled controls, lists, toasts. No Playwright unless user asks.
+2. **UI second — Chrome DevTools MCP** (`user-chrome-devtools`). Navigate/snapshot/click; verify disabled controls, lists, toasts. **Chrome/top-bar placement:** screenshot and check neighbor alignment against the approved end-state (same row / vertical mid) — not only that the label exists or a urgency class matches. No Playwright unless user asks.
 3. **Cleanup** — reverse writes via product APIs (`close-session`, void/cancel as appropriate).
 4. **Print smoke (when print in scope):** `node scripts/mesa-print-smoke.mjs` then full e2e only if agent/`npm run print` is up.
 5. **Report** — each checklist item: `pass` / `fail` (+ brief note). **`skip` only if truly blocked** — see `.cursor/rules/local-product-testing.mdc`.

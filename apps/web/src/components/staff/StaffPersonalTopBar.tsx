@@ -14,6 +14,8 @@ type Props = {
   restaurantName: string;
   navItems: ProductTopNavItem[];
   settingsMenu: ReactNode;
+  /** Optional chrome before the account menu (e.g. license expiry). */
+  trailingStart?: ReactNode;
   navOpen?: boolean;
   onNavOpenChange?: (open: boolean) => void;
   checkoutCount?: number;
@@ -27,6 +29,7 @@ export function StaffPersonalTopBar({
   restaurantName,
   navItems,
   settingsMenu,
+  trailingStart,
   navOpen: controlledNavOpen,
   onNavOpenChange,
   checkoutCount,
@@ -58,7 +61,10 @@ export function StaffPersonalTopBar({
           onNavigate={onNavigate}
         />
 
-        <ProductTopBarTrailing>{settingsMenu}</ProductTopBarTrailing>
+        <ProductTopBarTrailing>
+          {trailingStart}
+          {settingsMenu}
+        </ProductTopBarTrailing>
       </div>
     </header>
   );

@@ -25,7 +25,7 @@ export {
 
 export type DashboardNavRestaurant = Pick<
   Restaurant,
-  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags'
+  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'license_valid_until'
 >;
 
 export type StaffDashboardRestaurant = Pick<
@@ -38,6 +38,7 @@ export type StaffDashboardRestaurant = Pick<
   | 'buffet_service_mode'
   | 'suspended_at'
   | 'suspension_reason'
+  | 'license_valid_until'
 >;
 
 /** Top-bar / layout chrome only — not used for route authorization. */
@@ -58,10 +59,10 @@ export type DashboardOperationalContext =
   | { error: string; status: number };
 
 const OWNER_RESTAURANT_SELECT =
-  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, created_at';
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, suspended_at, suspension_reason, license_valid_until, created_at';
 
 const STAFF_DASHBOARD_RESTAURANT_SELECT =
-  'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason';
+  'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason, license_valid_until';
 
 async function loadStaffRestaurant(
   restaurantId: string,

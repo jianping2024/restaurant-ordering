@@ -7,6 +7,7 @@ import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
+import { DashboardLicenseValidUntil } from '@/components/dashboard/DashboardLicenseValidUntil';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import {
@@ -51,6 +52,9 @@ export function DashboardTopBar({ restaurant, shellMode, roleLabel, capabilities
       checkoutCount={pendingCount}
       prefetch
       onNavigate={() => setOpenPanel('none')}
+      trailingStart={
+        <DashboardLicenseValidUntil licenseValidUntil={restaurant.license_valid_until} />
+      }
       settingsMenu={
         <PersonalSettingsMenu
           roleLabel={label}

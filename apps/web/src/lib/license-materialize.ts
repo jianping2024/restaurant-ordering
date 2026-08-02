@@ -93,6 +93,7 @@ export async function applyLicenseMaterialize(
 export type ReconcileRestaurantLicenseResult = {
   suspended_at: string | null;
   suspension_reason: string | null;
+  license_valid_until: string | null;
 };
 
 /**
@@ -122,7 +123,7 @@ export async function reconcileRestaurantLicense(
 
   const { data } = await admin
     .from('restaurants')
-    .select('suspended_at, suspension_reason')
+    .select('suspended_at, suspension_reason, license_valid_until')
     .eq('id', restaurantId)
     .maybeSingle();
 
@@ -130,6 +131,7 @@ export async function reconcileRestaurantLicense(
     ? {
         suspended_at: data.suspended_at ?? null,
         suspension_reason: data.suspension_reason ?? null,
+        license_valid_until: data.license_valid_until ?? null,
       }
     : null;
 }

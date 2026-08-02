@@ -87,6 +87,8 @@ export interface Restaurant {
   buffet_service_mode?: BuffetServiceMode;
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */
   feature_flags?: Record<string, boolean> | null;
+  /** Platform license clock (Lisbon end-of-day); null = unlimited. */
+  license_valid_until?: string | null;
   suspended_at?: string | null;
   suspension_reason?: string | null;
   created_at: string;

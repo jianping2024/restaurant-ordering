@@ -251,6 +251,10 @@ export const MESSAGES = {
         ctaLabel: '请联系店主或平台',
       },
     },
+    licenseExpiry: {
+      label: '授权到期 {date}',
+      contactTitle: '联系续费',
+    },
     dashboardAccessError: {
       title: '无法加载餐厅后台',
       desc: '您的登录状态有效，但暂时无法读取餐厅信息。这通常不是数据丢失，请重试或重新登录。',
@@ -1660,6 +1664,10 @@ export const MESSAGES = {
         ctaLabel: 'Contact the owner or platform',
       },
     },
+    licenseExpiry: {
+      label: 'License ends {date}',
+      contactTitle: 'Contact to renew',
+    },
     dashboardAccessError: { title: 'Cannot load dashboard', desc: 'You are signed in, but we could not load your restaurant. This is usually not data loss — retry or sign in again.', retry: 'Retry', signOut: 'Sign out and sign in again', backToLogin: 'Back to login' },
     signOutConfirm: { title: 'Sign out?', message: 'You will need to sign in again to continue.', confirm: 'Sign out', cancel: 'Cancel' },
     authRegister: { passwordLength: 'Password must be at least 6 characters', restaurantRequired: 'Please enter restaurant name', alreadyRegistered: 'This email is already registered, please sign in', registerFailed: 'Registration failed, please try again', createFailed: 'Failed to create restaurant: ', network: 'Network error, please try again later', verifyTitle: 'Registration successful!', verifySentTo: 'Confirmation email was sent to', verifyTip: 'Please click the confirmation link in your email to finish setup.', verifySpam: 'No email? Check your spam folder.', verified: 'Already verified?', toLogin: 'Go to login', subtitle: 'Create your restaurant and start taking orders', restaurantName: 'Restaurant name', menuLink: 'Menu link: ', email: 'Email', password: 'Password', passwordPlaceholder: 'At least 6 characters', submit: 'Create account', hasAccount: 'Already have an account?', directLogin: 'Sign in', closedTitle: 'Public registration is closed', closedBody: 'New owner accounts are created via the administrator-only endpoint. If you already have credentials, sign in below.', closedToLogin: 'Sign in' },
@@ -2614,6 +2622,10 @@ export const MESSAGES = {
         body: 'Login e alteracoes de configuracao indisponiveis. Contacte o dono ou a plataforma.',
         ctaLabel: 'Contacte o dono ou a plataforma',
       },
+    },
+    licenseExpiry: {
+      label: 'Licenca ate {date}',
+      contactTitle: 'Contactar para renovar',
     },
     dashboardAccessError: { title: 'Nao foi possivel carregar o painel', desc: 'Sessao valida, mas nao foi possivel ler o restaurante. Normalmente nao e perda de dados — tente de novo ou faca login novamente.', retry: 'Tentar de novo', signOut: 'Sair e entrar novamente', backToLogin: 'Voltar ao login' },
     signOutConfirm: { title: 'Sair da sessao?', message: 'Sera necessario iniciar sessao novamente para continuar.', confirm: 'Sair', cancel: 'Cancelar' },

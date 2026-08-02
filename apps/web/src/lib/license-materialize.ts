@@ -25,7 +25,9 @@ type LicenseRestaurantRow = {
 };
 
 function leaseSecret(): string | null {
-  return loadPlatformLicenseConfig()?.leaseSecret || process.env.MESA_LICENSE_LEASE_SECRET?.trim() || null;
+  // Fail closed: do not use bare MESA_LICENSE_LEASE_SECRET without full check-in config.
+  // Otherwise deleting platform.json while leaving lease secret in .env keeps the store open.
+  return loadPlatformLicenseConfig()?.leaseSecret || null;
 }
 
 /**
@@ -207,7 +209,7 @@ export type ApplyOnPremClaimResult =
 /**
  * Sole local apply-claim: same restaurantId as platform, local Auth owner, persist platform config.
  * If the restaurant was already claimed locally (owner_id set), rebind license lease + config
- * and reset the owner password — used when `.mesa-license.local.json` was lost.
+ * and reset the owner password — used when host `license-state/platform.json` was lost.
  */
 export async function applyOnPremClaim(
   admin: SupabaseClient,

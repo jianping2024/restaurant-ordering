@@ -46,11 +46,14 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 
 四、连云 Ops 授权
 - 先在云 Ops 登记「本地」门店并签发安装码
-- /setup 认领成功后会写入本机配置；若需手改 .env：
-  MESA_HOME/current/deploy/on-prem/.env
-  授权：MESA_PLATFORM_LICENSE_URL / MESA_LICENSE_CHECKIN_CREDENTIAL / MESA_LICENSE_LEASE_SECRET
+- /setup 认领成功后写入宿主机权威文件（升级保留）：
+    $MESA_HOME/current/deploy/on-prem/license-state/platform.json
+  （容器内 MESA_LICENSE_CONFIG_PATH=/mesa-license-state/platform.json）
+- 无该文件且 .env 三元组不全 → 签到失败且授权票据无法校验 → 停业（fail closed）
+- 若需手改 bootstrap（认领前）：$MESA_HOME/current/deploy/on-prem/.env
+  MESA_PLATFORM_LICENSE_URL / MESA_LICENSE_LEASE_SECRET（CHECKIN 由认领写入文件）
   Auth 白名单：ADDITIONAL_REDIRECT_URLS（见上「三、7」）
-- 改授权后：sudo /opt/mesa/bin/mesa-stack up -d web
+- 改 .env 后：sudo /opt/mesa/bin/mesa-stack up -d web
 - 改 Auth 白名单后：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth
 
 五、常用命令

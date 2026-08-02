@@ -112,6 +112,8 @@ export type OrderHistoryFilters = {
   tableIds: string[];
   closedFrom?: string;
   closedTo?: string;
+  /** When set, load that closed session by id (deep link from abnormal ops). */
+  sessionId?: string;
 };
 
 export type OrderHistoryQuery = OrderHistoryFilters & {

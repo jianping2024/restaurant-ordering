@@ -17,11 +17,12 @@ export function parseOrderHistorySearchParams(
 
   const closedFrom = searchParams.get('closedFrom')?.trim() || undefined;
   const closedTo = searchParams.get('closedTo')?.trim() || undefined;
+  const sessionId = searchParams.get('sessionId')?.trim() || undefined;
 
   return {
     offset,
     limit,
-    filters: { tableIds, closedFrom, closedTo },
+    filters: { tableIds, closedFrom, closedTo, sessionId },
   };
 }
 
@@ -39,6 +40,7 @@ export function orderHistoryFiltersToSearchParams(
   }
   if (filters.closedFrom) params.set('closedFrom', filters.closedFrom);
   if (filters.closedTo) params.set('closedTo', filters.closedTo);
+  if (filters.sessionId) params.set('sessionId', filters.sessionId);
   return params;
 }
 

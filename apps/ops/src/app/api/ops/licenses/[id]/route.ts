@@ -3,11 +3,16 @@ import { requirePlatformAdmin } from '@/lib/platform-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, context: RouteContext) {
+const INSTALLATION_SELECT =
+  'id, status, expires_at, consumed_at, claimed_at, revoked_at, last_checkin_at, created_at';
+
+export async function GET(req: Request, context: RouteContext) {
   const { ctx, error, admin } = await requirePlatformAdmin();
   if (error || !ctx || !admin) return error!;
 
   const { id } = await context.params;
+  const includeHistory = new URL(req.url).searchParams.get('history') === '1';
+
   const { data: row, error: fetchError } = await admin
     .from('restaurants')
     .select(
@@ -23,15 +28,32 @@ export async function GET(_req: Request, context: RouteContext) {
 
   const { data: installations, error: instError } = await admin
     .from('restaurant_installations')
-    .select(
-      'id, status, expires_at, consumed_at, claimed_at, revoked_at, last_checkin_at, created_at',
-    )
+    .select(INSTALLATION_SELECT)
     .eq('restaurant_id', id)
-    .order('created_at', { ascending: false })
-    .limit(20);
+    .in('status', ['pending', 'claimed'])
+    .order('created_at', { ascending: false });
 
   if (instError) {
     return NextResponse.json({ error: 'installations_failed', detail: instError.message }, { status: 500 });
+  }
+
+  let installationHistory: unknown[] | undefined;
+  if (includeHistory) {
+    const { data: history, error: historyError } = await admin
+      .from('restaurant_installations')
+      .select(INSTALLATION_SELECT)
+      .eq('restaurant_id', id)
+      .eq('status', 'revoked')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (historyError) {
+      return NextResponse.json(
+        { error: 'installations_failed', detail: historyError.message },
+        { status: 500 },
+      );
+    }
+    installationHistory = history || [];
   }
 
   return NextResponse.json({
@@ -50,5 +72,6 @@ export async function GET(_req: Request, context: RouteContext) {
       createdAt: row.created_at,
     },
     installations: installations || [],
+    ...(includeHistory ? { installationHistory } : {}),
   });
 }

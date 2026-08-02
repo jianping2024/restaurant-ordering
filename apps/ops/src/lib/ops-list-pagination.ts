@@ -1,8 +1,11 @@
-/** Default page size for ops restaurant / print lists. */
-export const OPS_LIST_PAGE_SIZE = 20;
+/** Allowed page sizes for ops list footers (default 20). */
+export const OPS_LIST_PAGE_SIZES = [10, 20] as const;
+export type OpsListPageSize = (typeof OPS_LIST_PAGE_SIZES)[number];
+export const OPS_LIST_DEFAULT_PAGE_SIZE: OpsListPageSize = 20;
 
-/** Denser page size for ops audit / license lists. */
-export const OPS_LIST_PAGE_SIZE_DENSE = 30;
+export function isOpsListPageSize(value: number): value is OpsListPageSize {
+  return (OPS_LIST_PAGE_SIZES as readonly number[]).includes(value);
+}
 
 export function parseOpsListPage(searchParams: { get(name: string): string | null }): number {
   const raw = Number(searchParams.get('page') || '1');
@@ -10,12 +13,23 @@ export function parseOpsListPage(searchParams: { get(name: string): string | nul
   return Math.max(1, Math.floor(raw));
 }
 
+export function parseOpsListPageSize(searchParams: {
+  get(name: string): string | null;
+}): OpsListPageSize {
+  const raw = Number(searchParams.get('pageSize') || '');
+  if (isOpsListPageSize(raw)) return raw;
+  return OPS_LIST_DEFAULT_PAGE_SIZE;
+}
+
 export function opsListPageCount(total: number, pageSize: number): number {
   const size = Math.max(1, Math.floor(pageSize));
   return Math.max(1, Math.ceil(Math.max(0, total) / size));
 }
 
-/** Build a list URL; skips empty filter values. Always includes `page`. */
+/**
+ * Build a list URL. Always includes `page`.
+ * Includes `pageSize` only when it differs from the default (20).
+ */
 export function opsListHref(
   pathname: string,
   page: number,
@@ -24,7 +38,9 @@ export function opsListHref(
   const params = new URLSearchParams();
   params.set('page', String(Math.max(1, Math.floor(page) || 1)));
   for (const [key, value] of Object.entries(filters)) {
-    if (value != null && value !== '') params.set(key, value);
+    if (value == null || value === '') continue;
+    if (key === 'pageSize' && Number(value) === OPS_LIST_DEFAULT_PAGE_SIZE) continue;
+    params.set(key, value);
   }
   return `${pathname}?${params.toString()}`;
 }

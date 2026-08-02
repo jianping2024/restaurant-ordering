@@ -9,15 +9,14 @@ import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 import {
-  OPS_LIST_PAGE_SIZE,
   isOpsListRangeUnsatisfiable,
   parseOpsListPage,
+  parseOpsListPageSize,
   opsListEmptyPagePayload,
 } from '@/lib/ops-list-pagination';
 import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
 import { countOpsSuspendedRestaurants } from '@/lib/ops-suspended-count';
 
-const PAGE_SIZE = OPS_LIST_PAGE_SIZE;
 
 export async function GET(req: Request) {
   const { ctx, error, admin } = await requirePlatformAdmin();
@@ -25,6 +24,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const page = parseOpsListPage(url.searchParams);
+  const pageSize = parseOpsListPageSize(url.searchParams);
   const q = (url.searchParams.get('q') || '').trim();
   const plan = (url.searchParams.get('plan') || '').trim();
   const ownerEmail = (url.searchParams.get('ownerEmail') || '').trim().toLowerCase();
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
       return NextResponse.json({
         items: [],
         page,
-        pageSize: PAGE_SIZE,
+        pageSize: pageSize,
         total: 0,
         summary,
       });
@@ -74,9 +74,9 @@ export async function GET(req: Request) {
     query = query.or(`name.ilike.%${escaped}%,slug.ilike.%${escaped}%`);
   }
 
-  const from = (page - 1) * PAGE_SIZE;
+  const from = (page - 1) * pageSize;
   const [{ data: rows, error: listError, count }, summary] = await Promise.all([
-    query.range(from, from + PAGE_SIZE - 1),
+    query.range(from, from + pageSize - 1),
     countOpsSuspendedRestaurants(admin).catch(() => ({
       restaurantCount: 0,
       suspendedCount: 0,
@@ -86,7 +86,7 @@ export async function GET(req: Request) {
   if (listError) {
     if (isOpsListRangeUnsatisfiable(listError)) {
       return NextResponse.json({
-        ...opsListEmptyPagePayload(page, PAGE_SIZE, listError),
+        ...opsListEmptyPagePayload(page, pageSize, listError),
         summary,
       });
     }
@@ -133,7 +133,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     items,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize: pageSize,
     total: count ?? 0,
     summary,
   });

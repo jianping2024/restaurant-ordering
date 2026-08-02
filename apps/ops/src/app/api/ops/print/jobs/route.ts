@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
 import {
-  OPS_LIST_PAGE_SIZE,
   isOpsListRangeUnsatisfiable,
   parseOpsListPage,
+  parseOpsListPageSize,
   opsListEmptyPagePayload,
 } from '@/lib/ops-list-pagination';
 import { pickRestaurantJoin, type RestaurantJoinRow } from '@/lib/supabase-restaurant-join';
 
-const PAGE_SIZE = OPS_LIST_PAGE_SIZE;
 
 const JOB_TYPES = new Set(['order_receipt', 'station_ticket', 'pre_bill']);
 const JOB_STATUSES = new Set(['pending', 'processing', 'done', 'failed']);
@@ -33,6 +32,7 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const page = parseOpsListPage(url.searchParams);
+  const pageSize = parseOpsListPageSize(url.searchParams);
   const restaurantId = (url.searchParams.get('restaurantId') || '').trim();
   const type = (url.searchParams.get('type') || '').trim();
   const status = (url.searchParams.get('status') || '').trim();
@@ -67,12 +67,12 @@ export async function GET(req: Request) {
     query = query.ilike('table_display', `%${escaped}%`);
   }
 
-  const from = (page - 1) * PAGE_SIZE;
-  const { data: rows, error: listError, count } = await query.range(from, from + PAGE_SIZE - 1);
+  const from = (page - 1) * pageSize;
+  const { data: rows, error: listError, count } = await query.range(from, from + pageSize - 1);
 
   if (listError) {
     if (isOpsListRangeUnsatisfiable(listError)) {
-      return NextResponse.json(opsListEmptyPagePayload(page, PAGE_SIZE, listError));
+      return NextResponse.json(opsListEmptyPagePayload(page, pageSize, listError));
     }
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
   }
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     items,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize: pageSize,
     total: count ?? 0,
   });
 }

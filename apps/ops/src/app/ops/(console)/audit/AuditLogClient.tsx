@@ -9,9 +9,12 @@ import {
   platformAuditActionLabel,
 } from '@/lib/platform-audit';
 import {
+  OPS_LIST_DEFAULT_PAGE_SIZE,
   opsListHref,
   opsListPageCount,
   parseOpsListPage,
+  parseOpsListPageSize,
+  type OpsListPageSize,
 } from '@/lib/ops-list-pagination';
 
 type AuditRow = {
@@ -30,19 +33,19 @@ export default function AuditLogClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = parseOpsListPage(searchParams);
+  const pageSize = parseOpsListPageSize(searchParams);
   const action = searchParams.get('action') || '';
   const restaurantId = searchParams.get('restaurantId') || '';
 
   const [items, setItems] = useState<AuditRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState(action);
   const [restaurantFilter, setRestaurantFilter] = useState(restaurantId);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(page) });
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (action) params.set('action', action);
     if (restaurantId) params.set('restaurantId', restaurantId);
     const res = await fetch(`/api/ops/audit?${params}`, { credentials: 'include' });
@@ -53,9 +56,8 @@ export default function AuditLogClient() {
     };
     setItems(json.items || []);
     setTotal(json.total || 0);
-    setPageSize(json.pageSize || 1);
     setLoading(false);
-  }, [page, action, restaurantId]);
+  }, [page, pageSize, action, restaurantId]);
 
   useEffect(() => {
     void load();
@@ -71,11 +73,15 @@ export default function AuditLogClient() {
     const params = new URLSearchParams();
     if (actionFilter) params.set('action', actionFilter);
     if (restaurantFilter.trim()) params.set('restaurantId', restaurantFilter.trim());
+    if (pageSize !== OPS_LIST_DEFAULT_PAGE_SIZE) params.set('pageSize', String(pageSize));
     router.push(`/ops/audit?${params}`);
   };
 
   const pageCount = opsListPageCount(total, pageSize);
-  const listFilters = { action, restaurantId };
+  const listFilters = { action, restaurantId, pageSize: String(pageSize) };
+  const hrefForPage = (p: number) => opsListHref('/ops/audit', p, listFilters);
+  const hrefForPageSize = (size: OpsListPageSize) =>
+    opsListHref('/ops/audit', 1, { ...listFilters, pageSize: String(size) });
   const exportParams = new URLSearchParams();
   if (action) exportParams.set('action', action);
   if (restaurantId) exportParams.set('restaurantId', restaurantId);
@@ -172,7 +178,9 @@ export default function AuditLogClient() {
       <OpsListPagination
         page={page}
         pageCount={pageCount}
-        hrefForPage={(p) => opsListHref('/ops/audit', p, listFilters)}
+        pageSize={pageSize}
+        hrefForPage={hrefForPage}
+        hrefForPageSize={hrefForPageSize}
       />
     </div>
   );

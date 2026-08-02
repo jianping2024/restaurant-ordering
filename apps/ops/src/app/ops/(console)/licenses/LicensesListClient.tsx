@@ -11,9 +11,12 @@ import {
   type InstallPhase,
 } from '@/lib/ops-license-status';
 import {
+  OPS_LIST_DEFAULT_PAGE_SIZE,
   opsListHref,
   opsListPageCount,
   parseOpsListPage,
+  parseOpsListPageSize,
+  type OpsListPageSize,
 } from '@/lib/ops-list-pagination';
 
 type LicenseItem = {
@@ -49,12 +52,12 @@ export function LicensesListClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = parseOpsListPage(searchParams);
+  const pageSize = parseOpsListPageSize(searchParams);
   const q = searchParams.get('q') || '';
   const mode = searchParams.get('mode') || '';
 
   const [items, setItems] = useState<LicenseItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [pageSize, setPageSize] = useState(1);
   const [query, setQuery] = useState(q);
   const [modeFilter, setModeFilter] = useState(mode);
   const [error, setError] = useState('');
@@ -64,7 +67,7 @@ export function LicensesListClient() {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams({ page: String(page) });
+      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       if (q) params.set('q', q);
       if (mode) params.set('mode', mode);
       const res = await fetch(`/api/ops/licenses?${params}`, { credentials: 'include' });
@@ -80,13 +83,12 @@ export function LicensesListClient() {
       }
       setItems(json.items || []);
       setTotal(json.total || 0);
-      setPageSize(json.pageSize || 1);
     } catch {
       setError('网络错误');
     } finally {
       setLoading(false);
     }
-  }, [page, q, mode]);
+  }, [page, pageSize, q, mode]);
 
   useEffect(() => {
     void load();
@@ -101,11 +103,15 @@ export function LicensesListClient() {
     const params = new URLSearchParams();
     if (query.trim()) params.set('q', query.trim());
     if (modeFilter) params.set('mode', modeFilter);
+    if (pageSize !== OPS_LIST_DEFAULT_PAGE_SIZE) params.set('pageSize', String(pageSize));
     router.push(`/ops/licenses?${params}`);
   };
 
   const pageCount = opsListPageCount(total, pageSize);
-  const listFilters = { q, mode };
+  const listFilters = { q, mode, pageSize: String(pageSize) };
+  const hrefForPage = (p: number) => opsListHref('/ops/licenses', p, listFilters);
+  const hrefForPageSize = (size: OpsListPageSize) =>
+    opsListHref('/ops/licenses', 1, { ...listFilters, pageSize: String(size) });
 
   return (
     <div>
@@ -206,7 +212,9 @@ export function LicensesListClient() {
       <OpsListPagination
         page={page}
         pageCount={pageCount}
-        hrefForPage={(p) => opsListHref('/ops/licenses', p, listFilters)}
+        pageSize={pageSize}
+        hrefForPage={hrefForPage}
+        hrefForPageSize={hrefForPageSize}
       />
     </div>
   );

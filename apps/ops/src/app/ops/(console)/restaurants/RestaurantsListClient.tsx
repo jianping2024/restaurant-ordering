@@ -12,9 +12,12 @@ import {
   type InstallPhase,
 } from '@/lib/ops-license-status';
 import {
+  OPS_LIST_DEFAULT_PAGE_SIZE,
   opsListHref,
   opsListPageCount,
   parseOpsListPage,
+  parseOpsListPageSize,
+  type OpsListPageSize,
 } from '@/lib/ops-list-pagination';
 
 type RestaurantRow = {
@@ -52,13 +55,13 @@ export default function RestaurantsListClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = parseOpsListPage(searchParams);
+  const pageSize = parseOpsListPageSize(searchParams);
   const q = searchParams.get('q') || '';
   const plan = searchParams.get('plan') || '';
   const ownerEmail = searchParams.get('ownerEmail') || '';
 
   const [items, setItems] = useState<RestaurantRow[]>([]);
   const [total, setTotal] = useState(0);
-  const [pageSize, setPageSize] = useState(1);
   const [summary, setSummary] = useState<Summary>({ restaurantCount: 0, suspendedCount: 0 });
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(q);
@@ -67,7 +70,7 @@ export default function RestaurantsListClient() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ page: String(page) });
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (q) params.set('q', q);
     if (plan) params.set('plan', plan);
     if (ownerEmail) params.set('ownerEmail', ownerEmail);
@@ -80,10 +83,9 @@ export default function RestaurantsListClient() {
     };
     setItems(json.items || []);
     setTotal(json.total || 0);
-    setPageSize(json.pageSize || 1);
     setSummary(json.summary || { restaurantCount: 0, suspendedCount: 0 });
     setLoading(false);
-  }, [page, q, plan, ownerEmail]);
+  }, [page, pageSize, q, plan, ownerEmail]);
 
   useEffect(() => {
     void load();
@@ -101,12 +103,17 @@ export default function RestaurantsListClient() {
     if (query.trim()) params.set('q', query.trim());
     if (planFilter) params.set('plan', planFilter);
     if (ownerEmailFilter.trim()) params.set('ownerEmail', ownerEmailFilter.trim());
+    if (pageSize !== OPS_LIST_DEFAULT_PAGE_SIZE) params.set('pageSize', String(pageSize));
     const qs = params.toString();
     router.push(qs ? `/ops?${qs}` : '/ops');
   };
 
   const pageCount = opsListPageCount(total, pageSize);
-  const listFilters = { q, plan, ownerEmail };
+  const listFilters = { q, plan, ownerEmail, pageSize: String(pageSize) };
+
+  const hrefForPage = (p: number) => opsListHref('/ops', p, listFilters);
+  const hrefForPageSize = (size: OpsListPageSize) =>
+    opsListHref('/ops', 1, { ...listFilters, pageSize: String(size) });
 
   return (
     <div>
@@ -236,7 +243,9 @@ export default function RestaurantsListClient() {
       <OpsListPagination
         page={page}
         pageCount={pageCount}
-        hrefForPage={(p) => opsListHref('/ops', p, listFilters)}
+        pageSize={pageSize}
+        hrefForPage={hrefForPage}
+        hrefForPageSize={hrefForPageSize}
       />
     </div>
   );

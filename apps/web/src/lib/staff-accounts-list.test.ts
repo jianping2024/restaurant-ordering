@@ -2,10 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   filterStaffByLoginName,
-  isStaffPageSize,
   sortStaffAccounts,
-  STAFF_DEFAULT_PAGE_SIZE,
-  STAFF_PAGE_SIZES,
 } from './staff-accounts-list';
 import type { RestaurantStaffAccount } from '../types';
 
@@ -65,15 +62,5 @@ describe('sortStaffAccounts', () => {
       sortStaffAccounts(rows, 'created_at', 'desc').map((r) => r.login_name),
       ['zeta', 'beta', 'alpha'],
     );
-  });
-});
-
-describe('staff page sizes', () => {
-  it('exposes 10 and 20 only, default 10', () => {
-    assert.deepEqual([...STAFF_PAGE_SIZES], [10, 20]);
-    assert.equal(STAFF_DEFAULT_PAGE_SIZE, 10);
-    assert.equal(isStaffPageSize(10), true);
-    assert.equal(isStaffPageSize(20), true);
-    assert.equal(isStaffPageSize(15), false);
   });
 });

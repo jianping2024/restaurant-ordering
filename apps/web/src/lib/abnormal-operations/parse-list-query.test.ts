@@ -32,4 +32,10 @@ describe('parseAbnormalOperationsListQuery', () => {
     assert.equal(filters.riskLevel, undefined);
     assert.equal(filters.status, undefined);
   });
+
+  it('defaults page size to shared list default', () => {
+    const filters = parseAbnormalOperationsListQuery(new URLSearchParams(), 'rest-1');
+    assert.equal(filters.page, 1);
+    assert.equal(filters.pageSize, 10);
+  });
 });

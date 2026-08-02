@@ -4,6 +4,7 @@ import type {
   AbnormalRiskLevel,
 } from '@/lib/abnormal-operations/types';
 import type { AbnormalOperationsListFilters } from '@/lib/abnormal-operations/owner-query';
+import { LIST_DEFAULT_PAGE_SIZE } from '../paginate-list';
 
 const TYPES = new Set<AbnormalOperationType>([
   'DISCOUNT_APPLIED',
@@ -24,7 +25,9 @@ export function parseAbnormalOperationsListQuery(
   const pageSizeRaw = searchParams.get('page_size');
 
   const page = pageRaw ? Number.parseInt(pageRaw, 10) : 1;
-  const pageSize = pageSizeRaw ? Number.parseInt(pageSizeRaw, 10) : 20;
+  const pageSize = pageSizeRaw
+    ? Number.parseInt(pageSizeRaw, 10)
+    : LIST_DEFAULT_PAGE_SIZE;
 
   return {
     restaurantId,
@@ -42,6 +45,6 @@ export function parseAbnormalOperationsListQuery(
       ? (statusRaw as AbnormalOperationStatus)
       : undefined,
     page: Number.isFinite(page) ? page : 1,
-    pageSize: Number.isFinite(pageSize) ? pageSize : 20,
+    pageSize: Number.isFinite(pageSize) ? pageSize : LIST_DEFAULT_PAGE_SIZE,
   };
 }

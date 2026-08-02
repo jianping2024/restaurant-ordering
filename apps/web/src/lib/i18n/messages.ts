@@ -1316,7 +1316,8 @@ export const MESSAGES = {
       tableTitle: '异常记录',
       pagePrev: '上一页',
       pageNext: '下一页',
-      pageInfo: '第 {page} 页 · 共 {total} 条',
+      pageInfo: '第 {page} / {totalPages} 页 · 共 {total} 条',
+      pageSizeLabel: '每页',
     },
     valueAnalytics: {
       title: '增值分析',
@@ -2373,7 +2374,8 @@ export const MESSAGES = {
       tableTitle: 'Records',
       pagePrev: 'Previous',
       pageNext: 'Next',
-      pageInfo: 'Page {page} · {total} total',
+      pageInfo: 'Page {page} / {totalPages} · {total} total',
+      pageSizeLabel: 'Per page',
     },
     valueAnalytics: {
       title: 'Value analytics',
@@ -3327,7 +3329,8 @@ export const MESSAGES = {
       tableTitle: 'Registos',
       pagePrev: 'Anterior',
       pageNext: 'Seguinte',
-      pageInfo: 'Pagina {page} · {total} no total',
+      pageInfo: 'Pagina {page} / {totalPages} · {total} no total',
+      pageSizeLabel: 'Por pagina',
     },
     valueAnalytics: {
       title: 'Analise de valor',

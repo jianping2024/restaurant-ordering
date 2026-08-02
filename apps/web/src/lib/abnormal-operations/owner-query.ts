@@ -16,6 +16,7 @@ import type {
   AbnormalRiskLevel,
   AbnormalOperationType,
 } from '@/lib/abnormal-operations/types';
+import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 
 export type ParsedAbnormalDateRange =
   | {
@@ -143,7 +144,7 @@ export async function listAbnormalOperations(
     return { ok: false, code: 'invalid_date_range' };
   }
 
-  const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? 20));
+  const pageSize = Math.min(50, Math.max(1, filters.pageSize ?? LIST_DEFAULT_PAGE_SIZE));
   const page = Math.max(1, filters.page ?? 1);
 
   const { data, error } = await admin.rpc('abnormal_operations_owner_list', {

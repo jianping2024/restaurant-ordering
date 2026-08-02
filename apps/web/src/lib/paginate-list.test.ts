@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { paginateList } from './paginate-list';
+import {
+  isListPageSize,
+  LIST_DEFAULT_PAGE_SIZE,
+  LIST_PAGE_SIZES,
+  paginateList,
+} from './paginate-list';
 
 describe('paginateList', () => {
   const items = ['a', 'b', 'c', 'd'];
@@ -24,5 +29,15 @@ describe('paginateList', () => {
     assert.equal(out.page, 1);
     assert.equal(out.totalPages, 1);
     assert.deepEqual(out.rows, []);
+  });
+});
+
+describe('list page sizes', () => {
+  it('exposes 10 and 20 only, default 10', () => {
+    assert.deepEqual([...LIST_PAGE_SIZES], [10, 20]);
+    assert.equal(LIST_DEFAULT_PAGE_SIZE, 10);
+    assert.equal(isListPageSize(10), true);
+    assert.equal(isListPageSize(20), true);
+    assert.equal(isListPageSize(15), false);
   });
 });

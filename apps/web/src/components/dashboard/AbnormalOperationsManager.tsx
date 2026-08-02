@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { Modal } from '@/components/ui/Modal';
 import { showToast } from '@/components/ui/Toast';
 import {
@@ -27,6 +28,10 @@ import {
 } from '@/lib/abnormal-operations';
 import { mergePatchedAbnormalOperationRow } from '@/lib/abnormal-operations/list-patch-merge';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@/lib/paginate-list';
 
 const REFRESH_COOLDOWN_MS = 60_000;
 const FILTER_DEBOUNCE_MS = 500;
@@ -37,12 +42,11 @@ type Filters = {
   type: AbnormalOperationType | '';
   riskLevel: AbnormalRiskLevel | '';
   status: AbnormalOperationStatus | '';
-  page: number;
 };
 
 type DatePreset = 'today' | 'last7' | 'last30';
 
-const DEFAULT_FILTERS = (today: string): Omit<Filters, 'page'> => ({
+const DEFAULT_FILTERS = (today: string): Filters => ({
   startDate: today,
   endDate: today,
   type: '',
@@ -121,15 +125,10 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
-  const [filters, setFilters] = useState<Filters>({
-    startDate: today,
-    endDate: today,
-    type: '',
-    riskLevel: '',
-    status: '',
-    page: 1,
-  });
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS(today));
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
   const [data, setData] = useState<AbnormalOperationsListResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AbnormalOperationRow | null>(null);
@@ -159,8 +158,8 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
       type: debouncedFilters.type || undefined,
       riskLevel: debouncedFilters.riskLevel || undefined,
       status: debouncedFilters.status || undefined,
-      page: debouncedFilters.page,
-      pageSize: 20,
+      page,
+      pageSize,
     });
     setLoading(false);
     if (!result.ok) {
@@ -172,7 +171,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
       if (!prev) return prev;
       return result.data.items.find((row) => row.id === prev.id) ?? prev;
     });
-  }, [debouncedFilters, t.actionFailed]);
+  }, [debouncedFilters, page, pageSize, t.actionFailed]);
 
   useEffect(() => {
     void load();
@@ -199,19 +198,23 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
         : preset === 'last7'
           ? { startDate: addCalendarDays(today, -6), endDate: today }
           : { startDate: addCalendarDays(today, -29), endDate: today };
-    setFilters((prev) => ({ ...prev, ...next, page: 1 }));
+    setPage(1);
+    setFilters((prev) => ({ ...prev, ...next }));
   };
 
   const resetFilters = () => {
-    const defaults = DEFAULT_FILTERS(today);
-    setFilters((prev) => ({ ...prev, ...defaults, page: 1 }));
+    setPage(1);
+    setFilters(DEFAULT_FILTERS(today));
   };
 
-  const updateFilter = <K extends keyof Omit<Filters, 'page'>>(
-    key: K,
-    value: Omit<Filters, 'page'>[K],
-  ) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
+    setPage(1);
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handlePageSizeChange = (next: ListPageSize) => {
+    setPage(1);
+    setPageSize(next);
   };
 
   const presetBtnClass = (active: boolean) =>
@@ -497,30 +500,22 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
           </div>
         )}
 
-        {data && data.total > data.pageSize ? (
-          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[13px] text-brand-text-muted">
-              {t.pageInfo.replace('{page}', String(data.page)).replace('{total}', String(data.total))}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page <= 1 || loading}
-                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
-              >
-                {t.pagePrev}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.page >= totalPages || loading}
-                onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
-              >
-                {t.pageNext}
-              </Button>
-            </div>
-          </div>
+        {data && data.total > 0 ? (
+          <ListPaginationBar
+            page={data.page}
+            totalPages={totalPages}
+            total={data.total}
+            pageSize={pageSize}
+            labels={{
+              pageInfo: t.pageInfo,
+              pageSizeLabel: t.pageSizeLabel,
+              pagePrev: t.pagePrev,
+              pageNext: t.pageNext,
+            }}
+            onPageChange={setPage}
+            onPageSizeChange={handlePageSizeChange}
+            disabled={loading}
+          />
         ) : null}
       </div>
 

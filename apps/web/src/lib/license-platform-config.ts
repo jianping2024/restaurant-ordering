@@ -10,6 +10,11 @@ export type PlatformLicenseConfig = {
   leaseSecret: string;
 };
 
+/**
+ * Mode B authority: MESA_LICENSE_CONFIG_PATH → host-mounted license-state/platform.json.
+ * Without CONFIG_PATH (local npm run): cwd `.mesa-license.local.json`, then env trio.
+ * Env alone is bootstrap/fallback — not a second Mode B write target.
+ */
 const CONFIG_BASENAME = '.mesa-license.local.json';
 
 function configFilePath(): string {
@@ -46,6 +51,10 @@ export function loadPlatformLicenseConfig(): PlatformLicenseConfig | null {
   return fromFile() || fromEnv();
 }
 
+/**
+ * Persist claim/check-in trio. Mode B: writes MESA_LICENSE_CONFIG_PATH (host volume).
+ * Fail closed at runtime if this file is missing and env trio is incomplete.
+ */
 export function persistPlatformLicenseConfig(config: PlatformLicenseConfig): void {
   const payload: PlatformLicenseConfig = {
     platformUrl: config.platformUrl.trim().replace(/\/$/, ''),

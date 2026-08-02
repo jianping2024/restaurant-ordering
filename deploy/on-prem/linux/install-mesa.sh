@@ -79,10 +79,17 @@ DEST_ROOT="$MESA_HOME/current"
 DEST_ONPREM="$DEST_ROOT/deploy/on-prem"
 ENV_FILE="$DEST_ONPREM/.env"
 ENV_BACKUP=""
+LICENSE_STATE_DIR="$DEST_ONPREM/license-state"
+LICENSE_STATE_BACKUP=""
 if [[ -f "$ENV_FILE" ]]; then
   ENV_BACKUP="$(mktemp)"
   cp -a "$ENV_FILE" "$ENV_BACKUP"
   log "已有 .env，安装后会保留"
+fi
+if [[ -d "$LICENSE_STATE_DIR" ]] && [[ -n "$(ls -A "$LICENSE_STATE_DIR" 2>/dev/null || true)" ]]; then
+  LICENSE_STATE_BACKUP="$(mktemp -d)"
+  cp -a "$LICENSE_STATE_DIR/." "$LICENSE_STATE_BACKUP/"
+  log "已有 license-state，安装后会保留"
 fi
 
 sync_tree() {
@@ -91,6 +98,7 @@ sync_tree() {
   if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete \
       --exclude '.env' \
+      --exclude 'license-state' \
       --exclude 'node_modules' \
       --exclude '.next' \
       --exclude 'vendor/supabase-docker/volumes/db/data' \
@@ -128,6 +136,11 @@ fi
 if [[ -n "$ENV_BACKUP" && -f "$ENV_BACKUP" ]]; then
   cp -a "$ENV_BACKUP" "$ENV_FILE"
   rm -f "$ENV_BACKUP"
+fi
+mkdir -p "$LICENSE_STATE_DIR"
+if [[ -n "$LICENSE_STATE_BACKUP" ]]; then
+  cp -a "$LICENSE_STATE_BACKUP/." "$LICENSE_STATE_DIR/"
+  rm -rf "$LICENSE_STATE_BACKUP"
 fi
 
 # Persist DB/storage under MESA_HOME/data via bind mounts (symlinks into vendor volumes).

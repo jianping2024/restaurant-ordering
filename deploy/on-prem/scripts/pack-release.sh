@@ -173,6 +173,24 @@ if ! grep -q 'apps/print-agent/VERSION' "$INSTALL_SH"; then
   echo "ERROR: install-mesa.sh must copy apps/print-agent/VERSION into MESA_HOME/current" >&2
   exit 1
 fi
+# Gate: claim/check-in config must survive web rebuild (host license-state volume).
+COMPOSE_YAML="$STAGE/deploy/on-prem/compose.yaml"
+if ! grep -q 'license-state:/mesa-license-state' "$COMPOSE_YAML"; then
+  echo "ERROR: compose.yaml must bind-mount deploy/on-prem/license-state for durable check-in config" >&2
+  exit 1
+fi
+if ! grep -q 'MESA_LICENSE_CONFIG_PATH: /mesa-license-state/platform.json' "$COMPOSE_YAML"; then
+  echo "ERROR: compose.yaml must set MESA_LICENSE_CONFIG_PATH to mounted platform.json" >&2
+  exit 1
+fi
+if ! grep -q "exclude 'license-state'" "$UPGRADE_SH"; then
+  echo "ERROR: upgrade.sh must preserve license-state across sync" >&2
+  exit 1
+fi
+if ! grep -q "exclude 'license-state'" "$INSTALL_SH"; then
+  echo "ERROR: install-mesa.sh must preserve license-state across sync" >&2
+  exit 1
+fi
 # Gate: web build identity must be MESA_WEB_VERSION (getWebAppBuildInfo) — not package.json.
 if ! grep -q 'MESA_WEB_VERSION' "$WEB_DOCKERFILE"; then
   echo "ERROR: apps/web/Dockerfile must bake MESA_WEB_VERSION (web build identity)" >&2

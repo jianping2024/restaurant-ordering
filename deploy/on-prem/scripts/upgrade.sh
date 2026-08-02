@@ -179,11 +179,16 @@ if [[ ! -d "$STAGED_ONPREM" ]]; then
   exit 1
 fi
 
-# Preserve live .env
+# Preserve live .env + durable license check-in state (claim writes platform.json here)
 ENV_BAK=""
+LICENSE_STATE_BAK=""
 if [[ -f "${TARGET_ONPREM}/.env" ]]; then
   ENV_BAK=$(mktemp)
   cp "${TARGET_ONPREM}/.env" "$ENV_BAK"
+fi
+if [[ -d "${TARGET_ONPREM}/license-state" ]]; then
+  LICENSE_STATE_BAK=$(mktemp -d)
+  cp -a "${TARGET_ONPREM}/license-state/." "${LICENSE_STATE_BAK}/"
 fi
 
 echo "== sync staged → ${TARGET_ONPREM} =="
@@ -191,6 +196,7 @@ write_upgrade "running" "sync" "syncing release files" "false"
 # Keep vendor volumes / data junctions intact: exclude volume data paths
 rsync -a \
   --exclude '.env' \
+  --exclude 'license-state' \
   --exclude 'vendor/supabase-docker/volumes/db/data' \
   --exclude 'vendor/supabase-docker/volumes/storage' \
   --exclude 'backups' \
@@ -198,6 +204,11 @@ rsync -a \
 if [[ -n "$ENV_BAK" ]]; then
   cp "$ENV_BAK" "${TARGET_ONPREM}/.env"
   rm -f "$ENV_BAK"
+fi
+mkdir -p "${TARGET_ONPREM}/license-state"
+if [[ -n "$LICENSE_STATE_BAK" ]]; then
+  cp -a "${LICENSE_STATE_BAK}/." "${TARGET_ONPREM}/license-state/"
+  rm -rf "$LICENSE_STATE_BAK"
 fi
 
 # If pack includes apps/web, sync into MESA_HOME/current for image rebuild context

@@ -62,14 +62,17 @@ services:
         max-size: "20m"
         max-file: "5"
     # Read-only Engine API for Settings → 系统日志 (owner-only). No app dual-write.
+    # License check-in config: host durable dir (survives web rebuild); sole Mode B authority.
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${MESA_REPO_ROOT:?set MESA_REPO_ROOT via scripts/stack.sh}/deploy/on-prem/license-state:/mesa-license-state
     environment:
       MESA_ON_PREM: "1"
       MESA_DOCKER_SOCK: /var/run/docker.sock
       MESA_COMPOSE_PROJECT: mesa-on-prem
       MESA_WEB_LOG_SERVICE: web
       MESA_WEB_VERSION: ${MESA_WEB_VERSION:-}
+      MESA_LICENSE_CONFIG_PATH: /mesa-license-state/platform.json
       NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN: "1"
       # Server/internal only — never bake into browser clients.
       SUPABASE_URL: http://kong:8000
@@ -83,7 +86,7 @@ services:
       STAFF_SESSION_SECRET: ${STAFF_SESSION_SECRET:-${PRINT_AGENT_JWT_SECRET}}
       ORDER_ENQUEUE_SECRET: ${ORDER_ENQUEUE_SECRET:-${PRINT_AGENT_JWT_SECRET}}
       CRON_SECRET: ${CRON_SECRET:-}
-      # ADR-004 on-prem license check-in (platform Ops)
+      # Bootstrap / claim only — runtime check-in prefers MESA_LICENSE_CONFIG_PATH file.
       MESA_PLATFORM_LICENSE_URL: ${MESA_PLATFORM_LICENSE_URL:-}
       MESA_LICENSE_CHECKIN_CREDENTIAL: ${MESA_LICENSE_CHECKIN_CREDENTIAL:-}
       MESA_LICENSE_LEASE_SECRET: ${MESA_LICENSE_LEASE_SECRET:-}

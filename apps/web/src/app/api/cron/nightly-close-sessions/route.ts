@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { isNightlyAutoCloseDue } from '@/lib/auto-close-active-sessions';
+import {
+  type NightlyAutoClosePolicy,
+  shouldRunNightlyAutoClose,
+} from '@/lib/auto-close-active-sessions';
 import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
 import { executeNightlyAutoClose } from '@/lib/run-nightly-auto-close';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -8,8 +11,17 @@ import { verifyCronSecret } from '@/lib/verify-cron-secret';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function parsePolicy(req: Request): NightlyAutoClosePolicy | null {
+  const raw = new URL(req.url).searchParams.get('policy');
+  if (raw == null || raw === '') return 'due';
+  if (raw === 'due' || raw === 'always') return raw;
+  return null;
+}
+
 /**
- * Vercel Cron (04:00 + 05:00 UTC) — gated by Europe/Lisbon hour === 5 for DST safety.
+ * Vercel Cron (04:00 + 05:00 UTC): default policy=due (Lisbon hour === 5, DST-safe).
+ * On-prem daily-cutover: policy=always (systemd / manual start already owns the schedule).
+ * Auth: CRON_SECRET for both.
  */
 export async function GET(req: Request) {
   if (!process.env.CRON_SECRET) {
@@ -19,8 +31,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
   }
 
-  if (!isNightlyAutoCloseDue()) {
-    return NextResponse.json({ ok: true, skipped: true, reason: 'not_due' });
+  const policy = parsePolicy(req);
+  if (!policy) {
+    return NextResponse.json({ ok: false, error: 'invalid_policy' }, { status: 400 });
+  }
+
+  if (!shouldRunNightlyAutoClose({ policy })) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'not_due', policy });
   }
 
   try {
@@ -32,8 +49,8 @@ export async function GET(req: Request) {
 
     const { closedCount, dateKey } = await executeNightlyAutoClose();
     const expiredPrintJobs = expireError ? 0 : expiredCount;
-    console.info('[mesa nightly-auto-close] cron:', { closedCount, dateKey, expiredPrintJobs });
-    return NextResponse.json({ ok: true, closedCount, dateKey, expiredPrintJobs });
+    console.info('[mesa nightly-auto-close] cron:', { closedCount, dateKey, expiredPrintJobs, policy });
+    return NextResponse.json({ ok: true, closedCount, dateKey, expiredPrintJobs, policy });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown_error';
     console.error('[mesa nightly-auto-close] cron failed:', e);

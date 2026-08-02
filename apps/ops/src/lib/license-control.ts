@@ -10,6 +10,8 @@ import {
   isRestaurantSuspended,
   mintCheckinSecret,
   mintInstallCode,
+  normalizeOfflineGraceDays,
+  offlineGraceDaysToMs,
   resolveLicenseCalendarDate,
   signLicenseLease,
   type LicenseExtendPeriod,
@@ -142,6 +144,38 @@ export async function applyRestaurantLicenseValidUntil(
   const loaded = await loadLicenseClockRow(admin, restaurantId);
   if (!loaded.ok) return loaded;
   return writeRestaurantLicenseValidUntil(admin, loaded.restaurant, licenseValidUntil);
+}
+
+export async function setRestaurantOfflineGraceDays(
+  admin: SupabaseClient,
+  restaurantId: string,
+  daysRaw: unknown,
+): Promise<
+  | { ok: true; offlineGraceDays: number }
+  | { ok: false; error: string; status: number; detail?: string }
+> {
+  const n = typeof daysRaw === 'number' ? daysRaw : Number(daysRaw);
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 1 || n > 365) {
+    return { ok: false, error: 'invalid_grace_days', status: 400 };
+  }
+  const offlineGraceDays = normalizeOfflineGraceDays(n);
+
+  const { data: restaurant, error: fetchError } = await admin
+    .from('restaurants')
+    .select('id')
+    .eq('id', restaurantId)
+    .maybeSingle();
+  if (fetchError) return { ok: false, error: 'fetch_failed', status: 500, detail: fetchError.message };
+  if (!restaurant) return { ok: false, error: 'not_found', status: 404 };
+
+  const { error: updateError } = await admin
+    .from('restaurants')
+    .update({ license_offline_grace_days: offlineGraceDays })
+    .eq('id', restaurantId);
+  if (updateError) {
+    return { ok: false, error: 'grace_update_failed', status: 500, detail: updateError.message };
+  }
+  return { ok: true, offlineGraceDays };
 }
 
 export async function extendRestaurantLicense(
@@ -298,7 +332,7 @@ export async function claimOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, license_valid_until, suspended_at, suspension_reason',
+      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -336,12 +370,14 @@ export async function claimOnPremInstallation(
   const checkinCredential = mintCheckinSecret();
   const now = new Date();
   const forceSuspended = isOpsForceSuspended(restaurant.suspended_at, restaurant.suspension_reason);
+  const graceMs = offlineGraceDaysToMs(restaurant.license_offline_grace_days);
   const lease = buildLicenseLeaseClaims({
     restaurantId: restaurant.id,
     licenseValidUntil: restaurant.license_valid_until,
     serverTime: now,
     forceSuspended,
     suspensionReason: forceSuspended ? restaurant.suspension_reason : null,
+    graceMs,
   });
   const leaseToken = signLicenseLease(lease, input.leaseSecret);
 
@@ -424,7 +460,9 @@ export async function checkInOnPremInstallation(
 
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
-    .select('id, deployment_mode, license_valid_until, suspended_at, suspension_reason')
+    .select(
+      'id, deployment_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
+    )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
 
@@ -437,12 +475,14 @@ export async function checkInOnPremInstallation(
 
   const now = new Date();
   const desiredSuspended = isOpsForceSuspended(restaurant.suspended_at, restaurant.suspension_reason);
+  const graceMs = offlineGraceDaysToMs(restaurant.license_offline_grace_days);
   const lease = buildLicenseLeaseClaims({
     restaurantId: restaurant.id,
     licenseValidUntil: restaurant.license_valid_until,
     serverTime: now,
     forceSuspended: desiredSuspended,
     suspensionReason: desiredSuspended ? restaurant.suspension_reason : null,
+    graceMs,
   });
   const leaseToken = signLicenseLease(lease, input.leaseSecret);
   const checkedAt = lease.server_time;

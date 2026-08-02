@@ -13,6 +13,7 @@ import { getTenantAppUrl } from '@/lib/tenant-app-url';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
 import { RestaurantEditPanel } from './RestaurantEditPanel';
 import { RestaurantSuspensionActions } from './RestaurantSuspensionActions';
+import { BUSINESS_STATUS_LABEL, suspensionReasonLabel } from '@/lib/ops-license-status';
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -43,8 +44,8 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
     <div>
       {suspended ? (
         <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-300">
-          已暂停营业
-          {row.suspension_reason ? ` — ${row.suspension_reason}` : ''}
+          {BUSINESS_STATUS_LABEL.suspended}
+          {row.suspension_reason ? ` — ${suspensionReasonLabel(row.suspension_reason)}` : ''}
         </p>
       ) : null}
       <dl className="grid gap-3 text-sm sm:grid-cols-2">

@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { listTopPrintFailureRestaurants, PRINT_FAIL_WINDOW_MS } from '@/lib/ops-print-summary';
 import { getPlatformAdmin } from '@/lib/platform-auth';
 import { isRestaurantSuspended } from '@mesa/shared';
+import { BUSINESS_STATUS_LABEL } from '@/lib/ops-license-status';
 
 const RECENT_LIMIT = 8;
 const PRINT_ISSUE_LIMIT = 10;
@@ -43,7 +44,7 @@ export default async function OpsHomePage() {
           <p className="mt-1 text-3xl font-semibold">{restaurantCount ?? 0}</p>
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-          <p className="text-sm text-zinc-500">已暂停</p>
+          <p className="text-sm text-zinc-500">{BUSINESS_STATUS_LABEL.suspended}</p>
           <p className="mt-1 text-3xl font-semibold text-amber-400">{suspendedCount ?? 0}</p>
         </div>
         <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
@@ -82,7 +83,7 @@ export default async function OpsHomePage() {
                     <p>{r.plan}</p>
                     <p>{new Date(r.created_at).toLocaleDateString('zh-CN')}</p>
                     {isRestaurantSuspended(r.suspended_at) ? (
-                      <p className="text-amber-400">已暂停</p>
+                      <p className="text-amber-400">{BUSINESS_STATUS_LABEL.suspended}</p>
                     ) : null}
                   </div>
                 </li>

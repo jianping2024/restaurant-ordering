@@ -53,6 +53,7 @@ export {
   type RevokePrintAgentPairingResult,
 } from './print-agent-revoke';
 export {
+  LICENSE_OFFLINE_GRACE_DAYS_DEFAULT,
   LICENSE_OFFLINE_GRACE_MS,
   SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED,
   SUSPENSION_REASON_LICENSE_EXPIRED,
@@ -69,6 +70,8 @@ export {
   licenseSuspensionCtaHref,
   mintCheckinSecret,
   mintInstallCode,
+  normalizeOfflineGraceDays,
+  offlineGraceDaysToMs,
   signLicenseLease,
   verifyLicenseLease,
   type DeploymentMode,

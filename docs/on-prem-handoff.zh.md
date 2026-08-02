@@ -40,7 +40,7 @@
 | 本地路径 | `registerOnPremRestaurant`（云侧只登记，不写店内营业库） |
 | 运行时闸门 | **唯一** `suspended_at` + `isRestaurantSuspended()`；不另开 license 错误码 |
 | 授权时钟 | 唯一 `license_valid_until`；Ops 日一律为 **Europe/Lisbon** 日历日，存该日 `23:59:59.999`；相对续期走 `extendLicenseValidUntil`，绝对设置走 `resolveLicenseCalendarDate` → 同一写库路径 |
-| 离线票 | 签名 lease JWT（约 7 天）；`decideLicenseMaterialize` → 只写/清 `suspended_at` |
+| 离线票 | 签名 lease JWT；宽限天数 = `restaurants.license_offline_grace_days`（默认 7）；`decideLicenseMaterialize` → 只写/清 `suspended_at` |
 | 安装身份 | `restaurant_installations`（pending → claimed \| revoked）；≠ 打印配对 |
 | Ops UI | 单一表面 `/ops/licenses`；餐厅详情只跳转 |
 | Check-in | 进店主后台 **生命周期一次**（lifecycle one-shot）；禁止读模型 interval 轮询 |

@@ -12,9 +12,9 @@ Local (on-prem) stores are the business authority (ADR-001/002). Platform Ops st
 1. **Two delivery modes** via `restaurants.deployment_mode`: `cloud` | `on_prem`. Create UI must choose; cloud keeps `createRestaurantWithOwner`; on-prem uses `registerOnPremRestaurant` (registry only — no cloud Auth owner, no store business DB writes).
 2. **One runtime gate**: `restaurants.suspended_at` + `isRestaurantSuspended()` + existing maintenance UI / `restaurant_suspended`. No second license gate or error code.
 3. **One license clock**: `license_valid_until`. Ops calendar days are **Europe/Lisbon**; stored value is that day's `23:59:59.999` local. Relative renew via `extendLicenseValidUntil`; absolute set via `resolveLicenseCalendarDate` → one write path (`writeRestaurantLicenseValidUntil`).
-4. **One offline ticket**: signed lease JWT (`license_lease_token`) with `server_time` / `lease_until` (~7d). Materialize via `decideLicenseMaterialize` → write/clear `suspended_at` only.
-5. **One install identity**: `restaurant_installations` (pending → claimed | revoked). Not print pairing. **Platform “claimed” signal is only `restaurant_installations.status === 'claimed'`** — not cloud `restaurants.owner_id`.
-6. **Ops UI single surface**: `/ops/licenses` for extend / suspend / resume / issue-revoke install codes. Restaurant detail only links there.
+4. **One offline ticket**: signed lease JWT (`license_lease_token`) with `server_time` / `lease_until`. Grace length is per-restaurant `license_offline_grace_days` (default **7**, sole config; mint via `buildLicenseLeaseClaims({ graceMs })`). Materialize via `decideLicenseMaterialize` → write/clear `suspended_at` only.
+5. **One install identity**: `restaurant_installations` (pending → claimed | revoked). Not print pairing. **Platform “claimed” signal is only `restaurant_installations.status === 'claimed'`** — not cloud `restaurants.owner_id`. Ops install copy sole source: `INSTALLATION_STATUS_LABEL` (`未签发` / `待认领` / `已认领` / `已吊销`) in `apps/ops/src/lib/ops-license-status.ts`. List primary badge: suspended → unfinished install → `营业中` (no dual green「已认领+营业中」).
+6. **Ops UI single surface**: `/ops/licenses` for extend / suspend / resume / issue-revoke install codes / offline grace days. Restaurant detail only links there.
 7. **Upgrade**: offline package only — no upgrade API.
 8. **Invoice**: not in product yet; suspend blocks Mesa operations only.
 9. **Cross-DB claim (store install bridge)** — end-state (must ship; see handoff §1.4):

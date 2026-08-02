@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  LICENSE_OFFLINE_GRACE_DAYS_DEFAULT,
   LICENSE_OFFLINE_GRACE_MS,
   SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED,
   SUSPENSION_REASON_LICENSE_EXPIRED,
@@ -12,6 +13,8 @@ import {
   isRestaurantSuspended,
   licenseSuspensionAction,
   licenseSuspensionCtaHref,
+  normalizeOfflineGraceDays,
+  offlineGraceDaysToMs,
   signLicenseLease,
   verifyLicenseLease,
 } from './restaurant-suspension';
@@ -208,5 +211,28 @@ describe('licenseSuspensionAction', () => {
     assert.equal(licenseSuspensionAction(null), 'generic');
     assert.equal(licenseSuspensionCtaHref('reconfigure'), '/setup');
     assert.equal(licenseSuspensionCtaHref('renew'), null);
+  });
+});
+
+describe('offline grace days', () => {
+  it('normalizeOfflineGraceDays defaults and clamps', () => {
+    assert.equal(normalizeOfflineGraceDays(null), LICENSE_OFFLINE_GRACE_DAYS_DEFAULT);
+    assert.equal(normalizeOfflineGraceDays(0), LICENSE_OFFLINE_GRACE_DAYS_DEFAULT);
+    assert.equal(normalizeOfflineGraceDays(3), 3);
+    assert.equal(normalizeOfflineGraceDays(400), 365);
+    assert.equal(offlineGraceDaysToMs(3), 3 * 24 * 60 * 60 * 1000);
+  });
+
+  it('buildLicenseLeaseClaims uses custom graceMs', () => {
+    const serverTime = new Date('2026-07-01T00:00:00.000Z');
+    const claims = buildLicenseLeaseClaims({
+      restaurantId: '11111111-1111-1111-1111-111111111111',
+      licenseValidUntil: null,
+      serverTime,
+      forceSuspended: false,
+      suspensionReason: null,
+      graceMs: offlineGraceDaysToMs(3),
+    });
+    assert.equal(claims.lease_until, '2026-07-04T00:00:00.000Z');
   });
 });

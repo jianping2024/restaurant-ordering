@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { BUSINESS_STATUS_LABEL } from '@/lib/ops-license-status';
 
 type RestaurantRow = {
   id: string;
@@ -132,9 +133,11 @@ export default function RestaurantsListClient() {
                   <td className="px-3 py-2">{r.plan}</td>
                   <td className="px-3 py-2">
                     {r.suspendedAt ? (
-                      <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">已暂停</span>
+                      <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">
+                        {BUSINESS_STATUS_LABEL.suspended}
+                      </span>
                     ) : (
-                      <span className="text-zinc-500">营业中</span>
+                      <span className="text-zinc-500">{BUSINESS_STATUS_LABEL.open}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-zinc-400">

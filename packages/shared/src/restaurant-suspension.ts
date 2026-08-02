@@ -11,7 +11,26 @@ export function isRestaurantSuspended(suspendedAt: string | null | undefined): b
   return suspendedAt != null && suspendedAt !== '';
 }
 
-export const LICENSE_OFFLINE_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+/** Default offline grace when restaurant has no/invalid license_offline_grace_days. */
+export const LICENSE_OFFLINE_GRACE_DAYS_DEFAULT = 7;
+
+export const LICENSE_OFFLINE_GRACE_MS = LICENSE_OFFLINE_GRACE_DAYS_DEFAULT * 24 * 60 * 60 * 1000;
+
+const OFFLINE_GRACE_DAYS_MIN = 1;
+const OFFLINE_GRACE_DAYS_MAX = 365;
+
+/** Clamp / default per-restaurant offline grace days (sole config representation). */
+export function normalizeOfflineGraceDays(value: unknown): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return LICENSE_OFFLINE_GRACE_DAYS_DEFAULT;
+  const days = Math.floor(n);
+  if (days < OFFLINE_GRACE_DAYS_MIN) return LICENSE_OFFLINE_GRACE_DAYS_DEFAULT;
+  return Math.min(OFFLINE_GRACE_DAYS_MAX, days);
+}
+
+export function offlineGraceDaysToMs(days: number): number {
+  return normalizeOfflineGraceDays(days) * 24 * 60 * 60 * 1000;
+}
 
 export const SUSPENSION_REASON_LICENSE_EXPIRED = 'license_expired';
 export const SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED = 'license_offline_grace_exceeded';

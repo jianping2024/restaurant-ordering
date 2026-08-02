@@ -16,7 +16,7 @@ export async function GET(req: Request, context: RouteContext) {
   const { data: row, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, deployment_mode, license_valid_until, suspended_at, suspension_reason, owner_email, owner_id, license_checked_at, created_at',
+      'id, name, slug, plan, deployment_mode, license_valid_until, suspended_at, suspension_reason, owner_email, owner_id, license_checked_at, license_offline_grace_days, license_lease_until, created_at',
     )
     .eq('id', id)
     .maybeSingle();
@@ -69,6 +69,8 @@ export async function GET(req: Request, context: RouteContext) {
       ownerEmail: row.owner_email,
       ownerId: row.owner_id,
       licenseCheckedAt: row.license_checked_at,
+      licenseLeaseUntil: row.license_lease_until,
+      offlineGraceDays: row.license_offline_grace_days ?? 7,
       createdAt: row.created_at,
     },
     installations: installations || [],

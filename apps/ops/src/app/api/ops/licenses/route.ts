@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
+import { resolveInstallPhase } from '@/lib/ops-license-status';
 
 const PAGE_SIZE = 30;
 
@@ -25,7 +26,7 @@ export async function GET(req: Request) {
   let query = admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, deployment_mode, license_valid_until, suspended_at, suspension_reason, owner_email, owner_id, created_at',
+      'id, name, slug, plan, deployment_mode, license_valid_until, suspended_at, suspension_reason, owner_email, owner_id, license_checked_at, license_offline_grace_days, created_at',
       { count: 'exact' },
     )
     .order('created_at', { ascending: false });
@@ -69,6 +70,10 @@ export async function GET(req: Request) {
     const insts = installByRestaurant.get(r.id) || [];
     const claimed = insts.find((i) => i.status === 'claimed') || null;
     const pending = insts.find((i) => i.status === 'pending') || null;
+    const installPhase = resolveInstallPhase({
+      claimed: Boolean(claimed),
+      pending: Boolean(pending),
+    });
     return {
       id: r.id,
       name: r.name,
@@ -81,8 +86,10 @@ export async function GET(req: Request) {
       ownerEmail: r.owner_email,
       ownerId: r.owner_id,
       createdAt: r.created_at,
-      installStatus: claimed ? 'claimed' : pending ? 'pending' : 'none',
+      installPhase,
+      licenseCheckedAt: r.license_checked_at ?? null,
       lastCheckinAt: claimed?.last_checkin_at ?? null,
+      offlineGraceDays: r.license_offline_grace_days ?? 7,
       pendingExpiresAt: pending?.expires_at ?? null,
     };
   });

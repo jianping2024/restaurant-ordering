@@ -1,6 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import {
+  BUSINESS_STATUS_LABEL,
+  suspensionReasonLabel,
+} from '@/lib/ops-license-status';
 
 type Props = {
   restaurantId: string;
@@ -17,11 +21,12 @@ export function RestaurantSuspensionActions({ restaurantId, suspended, suspensio
         暂停、恢复与续期统一在授权管理操作，避免与餐厅元数据编辑混用。
       </p>
       <p className={`mt-3 text-sm ${suspended ? 'text-amber-400' : 'text-emerald-500'}`}>
-        {suspended ? '当前已暂停营业' : '当前营业中'}
+        {suspended ? BUSINESS_STATUS_LABEL.suspended : BUSINESS_STATUS_LABEL.open}
       </p>
       {suspended && suspensionReason ? (
         <p className="mt-1 text-sm text-zinc-400">
-          原因：<span className="text-zinc-200">{suspensionReason}</span>
+          原因：
+          <span className="text-zinc-200">{suspensionReasonLabel(suspensionReason)}</span>
         </p>
       ) : null}
       <Link

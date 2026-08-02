@@ -2,8 +2,19 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { lisbonCalendarDateFromInstant, todayLisbonCalendarDate } from '@mesa/shared';
+import {
+  LICENSE_OFFLINE_GRACE_DAYS_DEFAULT,
+  lisbonCalendarDateFromInstant,
+  todayLisbonCalendarDate,
+} from '@mesa/shared';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import {
+  BUSINESS_STATUS_LABEL,
+  installationStatusLabel,
+  resolveInstallPhase,
+  resolveOpsLicenseHealth,
+  suspensionReasonLabel,
+} from '@/lib/ops-license-status';
 
 type Installation = {
   id: string;
@@ -25,13 +36,8 @@ type Restaurant = {
   suspensionReason: string | null;
   ownerEmail: string | null;
   licenseCheckedAt: string | null;
-};
-
-/** Sole user-visible labels for installation.status — never render the raw enum. */
-const INSTALLATION_STATUS_LABEL: Record<string, string> = {
-  pending: '待认领',
-  claimed: '已认领',
-  revoked: '已吊销',
+  licenseLeaseUntil: string | null;
+  offlineGraceDays: number;
 };
 
 const LICENSE_EXTEND_ACTIONS = [
@@ -45,10 +51,6 @@ function licenseDateInputValue(iso: string | null | undefined): string {
   const ms = Date.parse(iso);
   if (!Number.isFinite(ms)) return '';
   return lisbonCalendarDateFromInstant(new Date(ms));
-}
-
-function statusLabel(status: string): string {
-  return INSTALLATION_STATUS_LABEL[status] ?? status;
 }
 
 export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) {
@@ -68,6 +70,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
   const [confirmResume, setConfirmResume] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<Installation | null>(null);
   const [licenseDate, setLicenseDate] = useState('');
+  const [graceDaysInput, setGraceDaysInput] = useState(String(LICENSE_OFFLINE_GRACE_DAYS_DEFAULT));
   const minLicenseDate = todayLisbonCalendarDate();
   /** True after first GET finishes — later loads stay silent (no full-page loading). */
   const initialLoadDoneRef = useRef(false);
@@ -82,6 +85,9 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
         setRestaurant(json.restaurant);
         setReason(json.restaurant.suspensionReason || '');
         setLicenseDate(licenseDateInputValue(json.restaurant.licenseValidUntil));
+        setGraceDaysInput(
+          String(json.restaurant.offlineGraceDays ?? LICENSE_OFFLINE_GRACE_DAYS_DEFAULT),
+        );
       }
       setInstallations(json.installations || []);
       if (json.installationHistory !== undefined) {
@@ -180,10 +186,25 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
   if (loading) return <p className="mt-6 text-sm text-zinc-500">加载中…</p>;
   if (!restaurant) return <p className="mt-6 text-sm text-red-400">{error || '未找到'}</p>;
 
-  const suspended = Boolean(restaurant.suspendedAt);
   const onPrem = restaurant.deploymentMode === 'on_prem';
   const claimed = installations.find((i) => i.status === 'claimed') ?? null;
   const pending = installations.find((i) => i.status === 'pending') ?? null;
+  const installPhase = resolveInstallPhase({
+    claimed: Boolean(claimed),
+    pending: Boolean(pending),
+  });
+  const health = resolveOpsLicenseHealth({
+    deploymentMode: restaurant.deploymentMode,
+    suspendedAt: restaurant.suspendedAt,
+    suspensionReason: restaurant.suspensionReason,
+    licenseValidUntil: restaurant.licenseValidUntil,
+    licenseCheckedAt: restaurant.licenseCheckedAt,
+    lastCheckinAt: claimed?.last_checkin_at ?? null,
+    installPhase,
+    offlineGraceDays: restaurant.offlineGraceDays,
+  });
+  const canResume =
+    health.primary.kind === 'suspended' && health.primary.canResume;
 
   return (
     <div className="space-y-8">
@@ -198,6 +219,23 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
             餐厅详情
           </Link>
         </p>
+        <p
+          className={`mt-2 text-sm ${
+            health.primary.kind === 'suspended'
+              ? 'text-amber-400'
+              : health.primary.kind === 'install'
+                ? 'text-sky-400'
+                : 'text-emerald-500'
+          }`}
+        >
+          {health.primary.label}
+          {health.primary.kind === 'suspended' && health.primary.observationOnly
+            ? '（观察：店端下次对账将落库）'
+            : ''}
+        </p>
+        {health.lastOnline ? (
+          <p className="mt-1 text-sm text-zinc-500">{health.lastOnline.line}</p>
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
@@ -208,11 +246,6 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
           截止日按里斯本日历日；当天 23:59:59（Europe/Lisbon）过期。
           {restaurant.licenseValidUntil ? null : ' 当前：不限期'}
         </p>
-        {onPrem && restaurant.licenseCheckedAt ? (
-          <p className="mt-1 text-sm text-zinc-500">
-            平台侧最近 check-in 时钟：{new Date(restaurant.licenseCheckedAt).toLocaleString('zh-CN')}
-          </p>
-        ) : null}
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <label className="block text-sm text-zinc-400">
             授权截止日
@@ -257,6 +290,43 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
           ))}
         </div>
         <p className="mt-2 text-xs text-zinc-500">续期/更新只改截止日，不会自动恢复已暂停的门店。</p>
+
+        {onPrem ? (
+          <div className="mt-6 border-t border-zinc-800 pt-4">
+            <label className="block text-sm text-zinc-400">
+              离线宽限（天）
+              <input
+                type="number"
+                min={1}
+                max={365}
+                step={1}
+                value={graceDaysInput}
+                onChange={(e) => setGraceDaysInput(e.target.value)}
+                className="mt-1 block w-28 rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                const days = Number(graceDaysInput);
+                const json = await call(`/api/ops/licenses/${restaurantId}/grace-days`, { days });
+                if (json) void refresh();
+              }}
+              className="mt-3 rounded border border-zinc-600 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800 disabled:opacity-60"
+            >
+              保存宽限
+            </button>
+            <p className="mt-2 text-xs text-zinc-500">
+              默认 {LICENSE_OFFLINE_GRACE_DAYS_DEFAULT} 天。修改后在下次认领 / check-in
+              签新 lease 时生效
+              {restaurant.licenseLeaseUntil
+                ? `；当前 lease 到期 ${new Date(restaurant.licenseLeaseUntil).toLocaleString('zh-CN')}`
+                : ''}
+              。
+            </p>
+          </div>
+        ) : null}
       </section>
 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
@@ -264,12 +334,15 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
         <p className="mt-1 text-sm text-zinc-500">
           暂停后顾客无法点餐，员工无法登录；店主仍可登录后台查看数据。
         </p>
-        {suspended ? (
+        {canResume ? (
           <div className="mt-4 space-y-3">
-            <p className="text-sm text-amber-400">当前已暂停营业</p>
+            <p className="text-sm text-amber-400">{BUSINESS_STATUS_LABEL.suspended}</p>
             {restaurant.suspensionReason ? (
               <p className="text-sm text-zinc-400">
-                原因：<span className="text-zinc-200">{restaurant.suspensionReason}</span>
+                原因：
+                <span className="text-zinc-200">
+                  {suspensionReasonLabel(restaurant.suspensionReason)}
+                </span>
               </p>
             ) : null}
             <button
@@ -283,6 +356,13 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
           </div>
         ) : (
           <div className="mt-4 space-y-3">
+            {health.primary.kind === 'suspended' && health.primary.observationOnly ? (
+              <p className="text-sm text-amber-300">
+                {health.primary.label}（观察态，平台尚未写入暂停；不可点恢复）
+              </p>
+            ) : (
+              <p className="text-sm text-emerald-500">{BUSINESS_STATUS_LABEL.open}</p>
+            )}
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -312,19 +392,15 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
 
           <div className="mt-4 rounded border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm">
             {!claimed && !pending ? (
-              <p className="text-zinc-400">当前状态：尚未签发或已全部吊销</p>
+              <p className="text-zinc-400">当前状态：{installationStatusLabel('none')}</p>
             ) : null}
             {claimed ? (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <span className="text-zinc-200">{statusLabel('claimed')}</span>
-                  {claimed.last_checkin_at ? (
-                    <span className="ml-2 text-zinc-500">
-                      最近 check-in {new Date(claimed.last_checkin_at).toLocaleString('zh-CN')}
-                    </span>
-                  ) : (
-                    <span className="ml-2 text-zinc-500">尚无 check-in</span>
-                  )}
+                  <span className="text-zinc-200">{installationStatusLabel('claimed')}</span>
+                  {health.lastOnline ? (
+                    <span className="ml-2 text-zinc-500">{health.lastOnline.line}</span>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -341,7 +417,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
                 className={`flex flex-wrap items-center justify-between gap-2 ${claimed ? 'mt-3 border-t border-zinc-800 pt-3' : ''}`}
               >
                 <div>
-                  <span className="text-zinc-200">{statusLabel('pending')}</span>
+                  <span className="text-zinc-200">{installationStatusLabel('pending')}</span>
                   <span className="ml-2 text-zinc-500">
                     过期 {new Date(pending.expires_at).toLocaleString('zh-CN')}
                   </span>
@@ -418,7 +494,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
               ) : (
                 installationHistory.map((inst) => (
                   <li key={inst.id} className="py-2 text-zinc-500">
-                    <span className="text-zinc-400">{statusLabel(inst.status)}</span>
+                    <span className="text-zinc-400">{installationStatusLabel(inst.status)}</span>
                     {inst.revoked_at ? (
                       <span className="ml-2">
                         {new Date(inst.revoked_at).toLocaleString('zh-CN')}

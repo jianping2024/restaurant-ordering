@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const ENV_FILE = resolve(ROOT, '.env.local');

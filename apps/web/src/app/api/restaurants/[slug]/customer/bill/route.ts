@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerBillContext } from '@/lib/customer-bill-context';
-import {
-  parseCustomerBillScope,
-  loadCustomerRestaurantForApi,
-} from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
+import { parseCustomerBillScope } from '@/lib/customer-session-context';
 
 export const runtime = 'nodejs';
 

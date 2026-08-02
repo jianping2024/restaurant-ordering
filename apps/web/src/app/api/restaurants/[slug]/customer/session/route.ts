@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import {
-  loadCustomerRestaurantForApi,
   loadCustomerSessionContext,
   parseCustomerSessionScope,
 } from '@/lib/customer-session-context';

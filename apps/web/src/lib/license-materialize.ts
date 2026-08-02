@@ -1,3 +1,5 @@
+import 'server-only';
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   decideLicenseMaterialize,
@@ -27,8 +29,8 @@ function leaseSecret(): string | null {
 }
 
 /**
- * Apply decideLicenseMaterialize onto restaurants.suspended_at — sole runtime gate.
- * Lifecycle one-shot (dashboard enter / explicit reconcile), not interval polling.
+ * Apply decideLicenseMaterialize onto restaurants.suspended_at — sole runtime gate writer.
+ * Prefer reconcileRestaurantLicense at business boundaries; this stays for sync/claim internals.
  */
 export async function applyLicenseMaterialize(
   admin: SupabaseClient,
@@ -86,9 +88,54 @@ export async function applyLicenseMaterialize(
   return { changed: !updateError, action: 'clear' };
 }
 
+export type ReconcileRestaurantLicenseResult = {
+  suspended_at: string | null;
+  suspension_reason: string | null;
+};
+
+/**
+ * Sole public orchestrator before isRestaurantSuspended gates (login / order / dashboard).
+ * on_prem + checkIn (default true): syncOnPremLicenseFromPlatform then read back.
+ * cloud, or checkIn:false (hot guest paths): applyLicenseMaterialize only — no platform round-trip.
+ * Lifecycle one-shot per request boundary — not interval polling.
+ */
+export async function reconcileRestaurantLicense(
+  admin: SupabaseClient,
+  restaurantId: string,
+  options?: { checkIn?: boolean },
+): Promise<ReconcileRestaurantLicenseResult | null> {
+  const wantCheckIn = options?.checkIn !== false;
+
+  const { data: modeRow } = await admin
+    .from('restaurants')
+    .select('deployment_mode')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (wantCheckIn && modeRow?.deployment_mode === 'on_prem') {
+    await syncOnPremLicenseFromPlatform(admin, restaurantId);
+  } else {
+    await applyLicenseMaterialize(admin, restaurantId);
+  }
+
+  const { data } = await admin
+    .from('restaurants')
+    .select('suspended_at, suspension_reason')
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  return data
+    ? {
+        suspended_at: data.suspended_at ?? null,
+        suspension_reason: data.suspension_reason ?? null,
+      }
+    : null;
+}
+
 /**
  * Optional platform check-in for on-prem, then materialize.
  * Config: sole loader `loadPlatformLicenseConfig` (file then env).
+ * Call via reconcileRestaurantLicense at gates — not a second public gate entry.
  */
 export async function syncOnPremLicenseFromPlatform(
   admin: SupabaseClient,

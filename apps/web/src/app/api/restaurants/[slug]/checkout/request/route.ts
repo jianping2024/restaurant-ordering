@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { loadCustomerRestaurantForApi } from '@/lib/customer-session-context';
+import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';

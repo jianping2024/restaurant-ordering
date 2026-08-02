@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import type { Restaurant } from '@/types';
-import { applyLicenseMaterialize, syncOnPremLicenseFromPlatform } from '@/lib/license-materialize';
+import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 import {
   dashboardMiddlewareRedirectPath,
@@ -89,37 +89,13 @@ async function loadStaffRestaurant(
   return restaurant as StaffDashboardRestaurant;
 }
 
-async function reconcileRestaurantLicense(restaurantId: string): Promise<{
-  suspended_at: string | null;
-  suspension_reason: string | null;
-} | null> {
-  let admin: SupabaseClient;
+/** Dashboard RSC has no admin yet — bootstrap then sole reconcileRestaurantLicense. */
+async function reconcileLicenseForDashboard(restaurantId: string) {
   try {
-    admin = createAdminClient();
+    return await reconcileRestaurantLicense(createAdminClient(), restaurantId);
   } catch {
     return null;
   }
-  const { data: modeRow } = await admin
-    .from('restaurants')
-    .select('deployment_mode')
-    .eq('id', restaurantId)
-    .maybeSingle();
-  if (modeRow?.deployment_mode === 'on_prem') {
-    await syncOnPremLicenseFromPlatform(admin, restaurantId);
-  } else {
-    await applyLicenseMaterialize(admin, restaurantId);
-  }
-  const { data } = await admin
-    .from('restaurants')
-    .select('suspended_at, suspension_reason')
-    .eq('id', restaurantId)
-    .maybeSingle();
-  return data
-    ? {
-        suspended_at: data.suspended_at ?? null,
-        suspension_reason: data.suspension_reason ?? null,
-      }
-    : null;
 }
 
 export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
@@ -141,7 +117,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   }
 
   if (ownedRestaurant) {
-    const suspension = await reconcileRestaurantLicense(ownedRestaurant.id as string);
+    const suspension = await reconcileLicenseForDashboard(ownedRestaurant.id as string);
     const restaurant = {
       ...(ownedRestaurant as Restaurant),
       ...(suspension || {}),
@@ -167,7 +143,7 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
     if ('error' in staffRestaurant) {
       return { mode: 'access_error', message: staffRestaurant.error };
     }
-    const suspension = await reconcileRestaurantLicense(staffRestaurant.id);
+    const suspension = await reconcileLicenseForDashboard(staffRestaurant.id);
     return {
       mode: 'staff',
       restaurant: { ...staffRestaurant, ...(suspension || {}) },

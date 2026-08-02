@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type DeviceRow = {
   id: string;
@@ -29,13 +35,14 @@ export default function PrintDevicesClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+  const page = parseOpsListPage(searchParams);
   const q = searchParams.get('q') || '';
   const status = searchParams.get('status') || 'all';
   const restaurantId = fixedRestaurantId || searchParams.get('restaurantId') || '';
 
   const [items, setItems] = useState<DeviceRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(q);
   const [statusFilter, setStatusFilter] = useState(status);
@@ -56,9 +63,14 @@ export default function PrintDevicesClient({
     if (status && status !== 'all') params.set('status', status);
     if (restaurantId) params.set('restaurantId', restaurantId);
     const res = await fetch(`/api/ops/print/devices?${params}`, { credentials: 'include' });
-    const json = (await res.json()) as { items?: DeviceRow[]; total?: number };
+    const json = (await res.json()) as {
+      items?: DeviceRow[];
+      total?: number;
+      pageSize?: number;
+    };
     setItems(json.items || []);
     setTotal(json.total || 0);
+    setPageSize(json.pageSize || 1);
     setLoading(false);
   }, [page, q, status, restaurantId]);
 
@@ -134,16 +146,14 @@ export default function PrintDevicesClient({
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(total / 20));
+  const pageCount = opsListPageCount(total, pageSize);
   const listBase = fixedRestaurantId
     ? `/ops/restaurants/${fixedRestaurantId}/print`
     : '/ops/print/devices';
-  const listQuerySuffix = [
-    q ? `q=${encodeURIComponent(q)}` : '',
-    status && status !== 'all' ? `status=${encodeURIComponent(status)}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
+  const listFilters = {
+    q,
+    status: status !== 'all' ? status : undefined,
+  };
 
   return (
     <div>
@@ -271,29 +281,11 @@ export default function PrintDevicesClient({
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <div className="mt-4 flex gap-2 text-sm">
-          {page > 1 ? (
-            <Link
-              href={`${listBase}?page=${page - 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              上一页
-            </Link>
-          ) : null}
-          <span className="text-zinc-500">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link
-              href={`${listBase}?page=${page + 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              下一页
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref(listBase, p, listFilters)}
+      />
 
       <ConfirmModal
         open={revokeTarget != null}

@@ -8,15 +8,16 @@ import {
 import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
+import { OPS_LIST_PAGE_SIZE, isOpsListRangeUnsatisfiable, parseOpsListPage, opsListEmptyPagePayload } from '@/lib/ops-list-pagination';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = OPS_LIST_PAGE_SIZE;
 
 export async function GET(req: Request) {
   const { ctx, error, admin } = await requirePlatformAdmin();
   if (error || !ctx || !admin) return error!;
 
   const url = new URL(req.url);
-  const page = Math.max(1, Number(url.searchParams.get('page') || '1'));
+  const page = parseOpsListPage(url.searchParams);
   const q = (url.searchParams.get('q') || '').trim();
   const plan = (url.searchParams.get('plan') || '').trim();
   const ownerEmail = (url.searchParams.get('ownerEmail') || '').trim().toLowerCase();
@@ -58,6 +59,9 @@ export async function GET(req: Request) {
   const { data: rows, error: listError, count } = await query.range(from, from + PAGE_SIZE - 1);
 
   if (listError) {
+    if (isOpsListRangeUnsatisfiable(listError)) {
+      return NextResponse.json(opsListEmptyPagePayload(page, PAGE_SIZE, listError));
+    }
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
   }
 

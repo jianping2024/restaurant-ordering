@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { LicensesListClient } from './LicensesListClient';
 
 export default function LicensesPage() {
@@ -8,7 +9,9 @@ export default function LicensesPage() {
         续期、暂停/恢复、本地安装码签发与认领状态。餐厅详情不再放这些操作。
       </p>
       <div className="mt-6">
-        <LicensesListClient />
+        <Suspense fallback={<p className="text-zinc-500">加载中…</p>}>
+          <LicensesListClient />
+        </Suspense>
       </div>
     </div>
   );

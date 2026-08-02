@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type PairingRow = {
   id: string;
@@ -25,12 +31,13 @@ export default function PrintPairingsClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+  const page = parseOpsListPage(searchParams);
   const pendingOnly = searchParams.get('pending') !== '0';
   const restaurantId = fixedRestaurantId || searchParams.get('restaurantId') || '';
 
   const [items, setItems] = useState<PairingRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [pendingFilter, setPendingFilter] = useState(pendingOnly);
   const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -43,9 +50,14 @@ export default function PrintPairingsClient({
     if (!pendingOnly) params.set('pending', '0');
     if (restaurantId) params.set('restaurantId', restaurantId);
     const res = await fetch(`/api/ops/print/pairings?${params}`, { credentials: 'include' });
-    const json = (await res.json()) as { items?: PairingRow[]; total?: number };
+    const json = (await res.json()) as {
+      items?: PairingRow[];
+      total?: number;
+      pageSize?: number;
+    };
     setItems(json.items || []);
     setTotal(json.total || 0);
+    setPageSize(json.pageSize || 1);
     setLoading(false);
   }, [page, pendingOnly, restaurantId]);
 
@@ -87,9 +99,9 @@ export default function PrintPairingsClient({
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(total / 20));
+  const pageCount = opsListPageCount(total, pageSize);
   const listBase = '/ops/print/pairings';
-  const listQuerySuffix = !pendingOnly ? 'pending=0' : '';
+  const listFilters = { pending: pendingOnly ? undefined : '0' };
 
   return (
     <div>
@@ -183,29 +195,11 @@ export default function PrintPairingsClient({
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <div className="mt-4 flex gap-2 text-sm">
-          {page > 1 ? (
-            <Link
-              href={`${listBase}?page=${page - 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              上一页
-            </Link>
-          ) : null}
-          <span className="text-zinc-500">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link
-              href={`${listBase}?page=${page + 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              下一页
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref(listBase, p, listFilters)}
+      />
 
       <ConfirmModal
         open={revokeTarget != null}

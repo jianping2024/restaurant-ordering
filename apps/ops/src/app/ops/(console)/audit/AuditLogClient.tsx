@@ -3,10 +3,16 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
 import {
   PLATFORM_AUDIT_ACTION_LABELS,
   platformAuditActionLabel,
 } from '@/lib/platform-audit';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type AuditRow = {
   id: string;
@@ -23,12 +29,13 @@ type AuditRow = {
 export default function AuditLogClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+  const page = parseOpsListPage(searchParams);
   const action = searchParams.get('action') || '';
   const restaurantId = searchParams.get('restaurantId') || '';
 
   const [items, setItems] = useState<AuditRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState(action);
   const [restaurantFilter, setRestaurantFilter] = useState(restaurantId);
@@ -39,15 +46,25 @@ export default function AuditLogClient() {
     if (action) params.set('action', action);
     if (restaurantId) params.set('restaurantId', restaurantId);
     const res = await fetch(`/api/ops/audit?${params}`, { credentials: 'include' });
-    const json = (await res.json()) as { items?: AuditRow[]; total?: number };
+    const json = (await res.json()) as {
+      items?: AuditRow[];
+      total?: number;
+      pageSize?: number;
+    };
     setItems(json.items || []);
     setTotal(json.total || 0);
+    setPageSize(json.pageSize || 1);
     setLoading(false);
   }, [page, action, restaurantId]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setActionFilter(action);
+    setRestaurantFilter(restaurantId);
+  }, [action, restaurantId]);
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -57,15 +74,13 @@ export default function AuditLogClient() {
     router.push(`/ops/audit?${params}`);
   };
 
-  const pageCount = Math.max(1, Math.ceil(total / 30));
-  const querySuffix = [
-    action ? `action=${encodeURIComponent(action)}` : '',
-    restaurantId ? `restaurantId=${encodeURIComponent(restaurantId)}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
-
-  const exportHref = `/api/ops/audit/export${querySuffix ? `?${querySuffix}` : ''}`;
+  const pageCount = opsListPageCount(total, pageSize);
+  const listFilters = { action, restaurantId };
+  const exportParams = new URLSearchParams();
+  if (action) exportParams.set('action', action);
+  if (restaurantId) exportParams.set('restaurantId', restaurantId);
+  const exportQs = exportParams.toString();
+  const exportHref = `/api/ops/audit/export${exportQs ? `?${exportQs}` : ''}`;
 
   return (
     <div>
@@ -154,29 +169,11 @@ export default function AuditLogClient() {
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <div className="mt-4 flex gap-2 text-sm">
-          {page > 1 ? (
-            <Link
-              href={`/ops/audit?page=${page - 1}${querySuffix ? `&${querySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              上一页
-            </Link>
-          ) : null}
-          <span className="text-zinc-500">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link
-              href={`/ops/audit?page=${page + 1}${querySuffix ? `&${querySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              下一页
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref('/ops/audit', p, listFilters)}
+      />
     </div>
   );
 }

@@ -63,6 +63,15 @@ export async function POST(req: Request) {
         if (!preflight.ok) {
           authLoginRecordFailure(email, ip);
           const status = preflight.code === 'restaurant_suspended' ? 403 : 401;
+          if (preflight.code === 'restaurant_suspended') {
+            return NextResponse.json(
+              {
+                error: preflight.code,
+                suspension_reason: preflight.suspension_reason,
+              },
+              { status },
+            );
+          }
           return NextResponse.json({ error: preflight.code }, { status });
         }
       } catch (e) {

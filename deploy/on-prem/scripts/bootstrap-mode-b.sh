@@ -99,12 +99,17 @@ PRINT_AGENT_JWT_SECRET=${JWT_APP}
 STAFF_SESSION_SECRET=${JWT_APP}
 ORDER_ENQUEUE_SECRET=${JWT_APP}
 CRON_SECRET=${CRON_SECRET}
+MESA_PLATFORM_LICENSE_URL=${MESA_PLATFORM_LICENSE_URL:-https://restaurant-ordering-ops.vercel.app}
 EOF
 else
   patch_env MESA_EDGE_PORT "$MESA_EDGE_PORT"
   patch_env MESA_WEB_PORT "$MESA_WEB_PORT"
   patch_env NEXT_PUBLIC_BASE_URL "$PUBLIC_ORIGIN"
   patch_env NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN "1"
+  if ! grep -q '^MESA_PLATFORM_LICENSE_URL=' "$OUT"; then
+    printf 'MESA_PLATFORM_LICENSE_URL=%s\n' \
+      "${MESA_PLATFORM_LICENSE_URL:-https://restaurant-ordering-ops.vercel.app}" >>"$OUT"
+  fi
 fi
 
 # Optional Tunnel origin (extra Auth redirect allowlist only; does not replace LAN origin).

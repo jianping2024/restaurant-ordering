@@ -65,6 +65,8 @@ export {
   isDeploymentMode,
   isLicenseExtendPeriod,
   isRestaurantSuspended,
+  licenseSuspensionAction,
+  licenseSuspensionCtaHref,
   mintCheckinSecret,
   mintInstallCode,
   signLicenseLease,
@@ -72,6 +74,7 @@ export {
   type DeploymentMode,
   type LicenseExtendPeriod,
   type LicenseLeaseClaims,
+  type LicenseSuspensionAction,
   type MaterializeDecision,
 } from './restaurant-suspension';
 export {

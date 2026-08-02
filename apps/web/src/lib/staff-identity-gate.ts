@@ -3,7 +3,12 @@ import { parseStaffUserMetadata } from '@/lib/staff-account';
 
 export type StaffLoginPreflightResult =
   | { ok: true }
-  | { ok: false; code: 'invalid_credentials' | 'restaurant_suspended' };
+  | { ok: false; code: 'invalid_credentials' }
+  | {
+      ok: false;
+      code: 'restaurant_suspended';
+      suspension_reason: string | null;
+    };
 
 /** Staff row + restaurant gate fields loaded in one round (embed). */
 export type StaffGateAccount = {
@@ -73,6 +78,7 @@ export function deriveStaffLoginPreflight(input: {
     role: string;
     role_id: string | null;
     restaurant_suspended_at: string | null | undefined;
+    suspension_reason?: string | null;
     role_disabled_at?: string | null;
   } | null;
 }): StaffLoginPreflightResult {
@@ -87,7 +93,11 @@ export function deriveStaffLoginPreflight(input: {
     return { ok: false, code: 'invalid_credentials' };
   }
   if (isRestaurantSuspended(account.restaurant_suspended_at)) {
-    return { ok: false, code: 'restaurant_suspended' };
+    return {
+      ok: false,
+      code: 'restaurant_suspended',
+      suspension_reason: account.suspension_reason ?? null,
+    };
   }
   return { ok: true };
 }

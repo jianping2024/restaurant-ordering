@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { getMessages } from '@/lib/i18n/messages';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { licenseSuspensionCopy } from '@/lib/license-suspension-copy';
 import {
   fetchWithDependencyTimeout,
   isDependencyFailure,
@@ -16,6 +17,7 @@ export type AuthLoginResponse = {
   slug?: string;
   role?: string;
   error?: string;
+  suspension_reason?: string | null;
   retry_after_sec?: number;
 };
 
@@ -64,7 +66,8 @@ export function useAuthLogin(options: Options = {}) {
         } else if (json.error === 'incomplete') {
           setError(t.staffIncomplete);
         } else if (json.error === 'restaurant_suspended') {
-          setError(t.restaurantSuspended);
+          const copy = licenseSuspensionCopy(lang, json.suspension_reason);
+          setError(`${copy.title}. ${copy.body}`);
         } else if (
           res.status === 503 ||
           isDependencyUnavailableCode(json.error)

@@ -10,6 +10,8 @@ import {
   decideLicenseMaterialize,
   hashLicenseSecret,
   isRestaurantSuspended,
+  licenseSuspensionAction,
+  licenseSuspensionCtaHref,
   signLicenseLease,
   verifyLicenseLease,
 } from './restaurant-suspension';
@@ -190,5 +192,21 @@ describe('license lease + materialize', () => {
       deploymentMode: 'cloud',
     });
     assert.deepEqual(d, { action: 'suspend', reason: SUSPENSION_REASON_LICENSE_EXPIRED });
+  });
+});
+
+describe('licenseSuspensionAction', () => {
+  it('maps suspension reasons to customer actions', () => {
+    assert.equal(licenseSuspensionAction(SUSPENSION_REASON_LICENSE_EXPIRED), 'renew');
+    assert.equal(licenseSuspensionAction(SUSPENSION_REASON_LICENSE_LEASE_INVALID), 'reconfigure');
+    assert.equal(
+      licenseSuspensionAction(SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED),
+      'network_or_clock',
+    );
+    assert.equal(licenseSuspensionAction(SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED), 'network_or_clock');
+    assert.equal(licenseSuspensionAction('ops_force'), 'platform');
+    assert.equal(licenseSuspensionAction(null), 'generic');
+    assert.equal(licenseSuspensionCtaHref('reconfigure'), '/setup');
+    assert.equal(licenseSuspensionCtaHref('renew'), null);
   });
 });

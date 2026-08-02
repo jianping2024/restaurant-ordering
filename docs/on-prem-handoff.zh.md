@@ -47,7 +47,7 @@
 | 平台「已认领」 | **仅** `restaurant_installations.status === 'claimed'`（不用云 `restaurants.owner_id`） |
 | 平台 claim | 验码 → 标 claimed → 签 lease + mint 凭证 → 返回快照；**禁止**平台 `createUser` / 写云 `owner_id` |
 | 本机认领 UI | **唯一**页面 `/setup`（安装码 + 店主密码） |
-| 本机落库 | **唯一** apply-claim：同 `restaurantId`；首装建本地店+Auth；**已认领则可重绑** lease/配置并重设店主密码；签到三元组权威落盘 **`deploy/on-prem/license-state/platform.json`**（升级保留；缺文件+票据无效 → fail-closed 停业） |
+| 本机落库 | **唯一** apply-claim：同 `restaurantId`；首装建本地店+Auth；**已认领则可重绑** lease/配置并重设店主密码；包内只预置 `MESA_PLATFORM_LICENSE_URL`；认领响应下发 checkin+leaseSecret → **`deploy/on-prem/license-state/platform.json`**（升级保留；缺文件+票据无效 → fail-closed）；装机门闩 `verify-on-prem-ready.sh` |
 | 认领成功导航 | **只跳** `/auth/login`，**不自动登录** |
 | 云店 onboarding | 现有 `/dashboard` → `RestaurantOnboarding` **仅 cloud**；on-prem 空库不得平行「只填店名建店」 |
 
@@ -80,7 +80,7 @@
 | 3 | `/ops/licenses/[id]` | 签发安装码；明文码只展示一次 |
 | 4 | 本机 `http://127.0.0.1:3000/setup` | 唯一认领页；字段：安装码、店主密码（邮箱以云登记为准，可只读展示） |
 | 5 | 云 `POST /api/platform/license/claim` | 平台侧：claimed + lease + 凭证；**不**建云用户 |
-| 6 | 本机 apply-claim（服务端） | 本地库：`restaurants.id = 平台 restaurantId`；本地 Auth 店主；写入 `MESA_PLATFORM_LICENSE_URL`、`MESA_LICENSE_CHECKIN_CREDENTIAL`、`MESA_LICENSE_LEASE_SECRET` |
+| 6 | 本机 apply-claim（服务端） | 本地库：`restaurants.id = 平台 restaurantId`；本地 Auth 店主；认领响应的 checkin+leaseSecret + URL → `license-state/platform.json` |
 | 7 | `/auth/login` | 认领成功后的落地页；**禁止**自动建 session；员工登录 preflight 走 `reconcileRestaurantLicense` |
 | 8 | `/dashboard` | 登录后营业；lifecycle `reconcileRestaurantLicense` → on_prem check-in → `applyLicenseMaterialize` |
 
@@ -173,7 +173,7 @@
    - `WARN: storage.buckets not ready` **可忽略**（非阻断）。
 
 3. **控制面未推远程 / Ops 生产未配密钥**  
-   - 本地 `main` ahead；连云 claim/check-in 依赖已部署 Ops + `MESA_LICENSE_LEASE_SECRET` 与店端一致。  
+   - 本地 `main` ahead；连云 claim/check-in 依赖已部署 Ops（Ops 配 `MESA_LICENSE_LEASE_SECRET`；店端由认领写入 `platform.json`，包内只预置 URL）。  
    - 装机桥（`/setup` + apply-claim）**代码已合入本分支**；真·云 Ops + 本机双库仍需连云 UAT。
 
 ### P1 — 交付前

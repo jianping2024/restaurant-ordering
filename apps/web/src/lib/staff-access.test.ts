@@ -67,9 +67,14 @@ describe('deriveStaffLoginPreflight', () => {
           role: 'kitchen',
           role_id: ROLE_ID,
           restaurant_suspended_at: '2026-01-01T00:00:00Z',
+          suspension_reason: 'license_expired',
         },
       }),
-      { ok: false, code: 'restaurant_suspended' },
+      {
+        ok: false,
+        code: 'restaurant_suspended',
+        suspension_reason: 'license_expired',
+      },
     );
   });
 

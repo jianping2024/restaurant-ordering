@@ -191,6 +191,19 @@ if ! grep -q "exclude 'license-state'" "$INSTALL_SH"; then
   echo "ERROR: install-mesa.sh must preserve license-state across sync" >&2
   exit 1
 fi
+VERIFY_SH="$STAGE/deploy/on-prem/scripts/verify-on-prem-ready.sh"
+if [[ ! -f "$VERIFY_SH" ]]; then
+  echo "ERROR: pack must include scripts/verify-on-prem-ready.sh" >&2
+  exit 1
+fi
+if ! grep -q 'verify-on-prem-ready.sh install' "$INSTALL_SH"; then
+  echo "ERROR: install-mesa.sh must run verify-on-prem-ready.sh install" >&2
+  exit 1
+fi
+if ! grep -q 'verify-on-prem-ready.sh upgrade' "$UPGRADE_SH"; then
+  echo "ERROR: upgrade.sh must run verify-on-prem-ready.sh upgrade" >&2
+  exit 1
+fi
 # Gate: web build identity must be MESA_WEB_VERSION (getWebAppBuildInfo) — not package.json.
 if ! grep -q 'MESA_WEB_VERSION' "$WEB_DOCKERFILE"; then
   echo "ERROR: apps/web/Dockerfile must bake MESA_WEB_VERSION (web build identity)" >&2

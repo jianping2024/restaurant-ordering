@@ -175,6 +175,9 @@ else
   log "复用已有 .env"
 fi
 
+log "安装期就绪检查（URL + 必备参数；认领文件稍后）…"
+./scripts/verify-on-prem-ready.sh install
+
 # Pack manifest version → web build identity (getWebAppBuildInfo / health live / settings).
 PACK_VER=""
 if [[ -f "$PACK_ROOT/manifest.json" ]] && command -v python3 >/dev/null 2>&1; then
@@ -305,6 +308,7 @@ log "  开户:  ${WEB_URL}/setup"
 log "  主页:  $WEB_URL"
 log "  栈目录: $DEST_ONPREM"
 log "  启停:  $MESA_HOME/bin/mesa-stack up|down|ps|logs"
+log "  认领后必跑: cd $DEST_ONPREM && sudo ./scripts/verify-on-prem-ready.sh post-claim"
 log "  打印:  另装 Windows MesaPrintAgent，服务器地址填 $WEB_URL"
 log "  Cloudflare Tunnel → 本机 edge :${MESA_EDGE_PORT:-80}；店内断网仍用局域网打开同一套路径。"
 log ""

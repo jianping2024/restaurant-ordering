@@ -194,3 +194,37 @@ export function isDeploymentMode(value: unknown): value is DeploymentMode {
 export function isLicenseExtendPeriod(value: unknown): value is LicenseExtendPeriod {
   return value === '1d' || value === '1m' || value === '1y';
 }
+
+/**
+ * Sole customer-facing action for a suspension_reason (login + dashboard banner).
+ * renew = Ops extend; reconfigure = /setup re-claim; others = contact / fix clock-network.
+ */
+export type LicenseSuspensionAction =
+  | 'renew'
+  | 'reconfigure'
+  | 'network_or_clock'
+  | 'platform'
+  | 'generic';
+
+export function licenseSuspensionAction(
+  reason: string | null | undefined,
+): LicenseSuspensionAction {
+  switch (reason) {
+    case SUSPENSION_REASON_LICENSE_EXPIRED:
+      return 'renew';
+    case SUSPENSION_REASON_LICENSE_LEASE_INVALID:
+      return 'reconfigure';
+    case SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED:
+    case SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED:
+      return 'network_or_clock';
+    default:
+      return reason ? 'platform' : 'generic';
+  }
+}
+
+/** CTA path for reconfigure only; renew/platform are contact-ops (no in-app route). */
+export function licenseSuspensionCtaHref(
+  action: LicenseSuspensionAction,
+): '/setup' | null {
+  return action === 'reconfigure' ? '/setup' : null;
+}

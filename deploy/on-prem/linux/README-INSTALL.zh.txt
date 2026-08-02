@@ -46,13 +46,18 @@ Mesa 门店纯本地 — Ubuntu / Debian 安装说明
 
 四、连云 Ops 授权
 - 先在云 Ops 登记「本地」门店并签发安装码
-- /setup 认领成功后写入宿主机权威文件（升级保留）：
+- 安装包只预置 MESA_PLATFORM_LICENSE_URL（bootstrap 写入 .env）
+- /setup 认领成功后，平台下发 checkinCredential + leaseSecret，写入宿主机权威文件（升级保留）：
     $MESA_HOME/current/deploy/on-prem/license-state/platform.json
   （容器内 MESA_LICENSE_CONFIG_PATH=/mesa-license-state/platform.json）
-- 无该文件且 .env 三元组不全 → 签到失败且授权票据无法校验 → 停业（fail closed）
-- 若需手改 bootstrap（认领前）：$MESA_HOME/current/deploy/on-prem/.env
-  MESA_PLATFORM_LICENSE_URL / MESA_LICENSE_LEASE_SECRET（CHECKIN 由认领写入文件）
-  Auth 白名单：ADDITIONAL_REDIRECT_URLS（见上「三、7」）
+- 无该文件 → 签到失败且授权票据无法校验 → 停业（fail closed）；UI 提示前往 /setup 重配
+- 授权过期 → UI 提示联系平台续约
+- 安装/升级自检：
+    cd $MESA_HOME/current/deploy/on-prem
+    sudo ./scripts/verify-on-prem-ready.sh install      # 装机：URL + 运行必备参数
+    sudo ./scripts/verify-on-prem-ready.sh post-claim  # 认领后：platform.json 三字段
+    （upgrade.sh 会跑 upgrade 阶段，要求已有 platform.json）
+- Auth 白名单：ADDITIONAL_REDIRECT_URLS（见上「三、7」）
 - 改 .env 后：sudo /opt/mesa/bin/mesa-stack up -d web
 - 改 Auth 白名单后：sudo /opt/mesa/bin/mesa-stack up -d --force-recreate auth
 

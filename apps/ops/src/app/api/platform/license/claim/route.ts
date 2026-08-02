@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     printLocale: result.printLocale,
     countryCode: result.countryCode,
     checkinCredential: result.checkinCredential,
+    /** Store persists this into license-state; pack must not ship it. */
+    leaseSecret,
     licenseValidUntil: result.licenseValidUntil,
     suspendedAt: result.suspendedAt,
     suspensionReason: result.suspensionReason,

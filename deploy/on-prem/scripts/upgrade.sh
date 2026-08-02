@@ -211,6 +211,13 @@ if [[ -n "$LICENSE_STATE_BAK" ]]; then
   rm -rf "$LICENSE_STATE_BAK"
 fi
 
+# After sync: new verify script is on target; require durable claim config for live upgrades.
+write_upgrade "running" "preflight" "verify-on-prem-ready upgrade" "false"
+(cd "$TARGET_ONPREM" && ./scripts/verify-on-prem-ready.sh upgrade) || {
+  write_upgrade "failed" "preflight" "verify-on-prem-ready upgrade failed — re-claim /setup if license-state missing" "false"
+  exit 1
+}
+
 # If pack includes apps/web, sync into MESA_HOME/current for image rebuild context
 if [[ -n "${MESA_HOME:-}" && -d "$STAGE/apps/web" ]]; then
   mkdir -p "${MESA_HOME}/current/apps" "${MESA_HOME}/current/packages" "${MESA_HOME}/current/supabase"

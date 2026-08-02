@@ -86,8 +86,9 @@ services:
       STAFF_SESSION_SECRET: ${STAFF_SESSION_SECRET:-${PRINT_AGENT_JWT_SECRET}}
       ORDER_ENQUEUE_SECRET: ${ORDER_ENQUEUE_SECRET:-${PRINT_AGENT_JWT_SECRET}}
       CRON_SECRET: ${CRON_SECRET:-}
-      # Bootstrap / claim only — runtime check-in prefers MESA_LICENSE_CONFIG_PATH file.
+      # Bootstrap: MESA_PLATFORM_LICENSE_URL only. checkin + leaseSecret from /setup claim → license-state.
       MESA_PLATFORM_LICENSE_URL: ${MESA_PLATFORM_LICENSE_URL:-}
+      # Optional legacy env fallback (not pack-shipped; claim file wins).
       MESA_LICENSE_CHECKIN_CREDENTIAL: ${MESA_LICENSE_CHECKIN_CREDENTIAL:-}
       MESA_LICENSE_LEASE_SECRET: ${MESA_LICENSE_LEASE_SECRET:-}
     healthcheck:

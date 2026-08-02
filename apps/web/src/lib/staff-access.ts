@@ -85,6 +85,7 @@ export async function preflightStaffLogin(loginName: string): Promise<StaffLogin
       role: String(data.role ?? ''),
       role_id: (data.role_id as string | null) ?? null,
       restaurant_suspended_at: suspension?.suspended_at ?? null,
+      suspension_reason: suspension?.suspension_reason ?? null,
       role_disabled_at: roleEmbed?.disabled_at ?? null,
     },
   });

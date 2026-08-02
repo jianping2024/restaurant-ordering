@@ -11,9 +11,10 @@ export type PlatformLicenseConfig = {
 };
 
 /**
- * Mode B authority: MESA_LICENSE_CONFIG_PATH → host-mounted license-state/platform.json.
- * Without CONFIG_PATH (local npm run): cwd `.mesa-license.local.json`, then env trio.
- * Env alone is bootstrap/fallback — not a second Mode B write target.
+ * Mode B authority: MESA_LICENSE_CONFIG_PATH → host-mounted license-state/platform.json
+ * (written by /setup claim: checkinCredential + leaseSecret from Ops; platformUrl from env).
+ * Without CONFIG_PATH (local npm run): cwd `.mesa-license.local.json`, then env trio fallback.
+ * Pack must not ship lease/checkin secrets — only MESA_PLATFORM_LICENSE_URL.
  */
 const CONFIG_BASENAME = '.mesa-license.local.json';
 

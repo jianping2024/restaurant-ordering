@@ -25,7 +25,11 @@ export function ProductTopBarBrand({
   );
 }
 
-/** Trailing actions slot (account menu, etc.). */
+/** Trailing actions slot (account menu, license meta, etc.) — one row, vertically centered. */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
-  return <div className="ml-auto flex shrink-0 self-stretch items-stretch">{children}</div>;
+  return (
+    <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 self-stretch">
+      {children}
+    </div>
+  );
 }

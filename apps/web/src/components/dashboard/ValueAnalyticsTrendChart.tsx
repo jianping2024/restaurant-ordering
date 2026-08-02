@@ -66,7 +66,7 @@ function renderTrendTooltip(
 
     return (
       <div className="rounded-lg border border-brand-border bg-brand-card px-3 py-2 text-[13px] shadow-md">
-        <p className="text-brand-text-muted mb-1">{point.date}</p>
+        <p className="text-brand-text-muted mb-1">{point.dateLabel}</p>
         {variant === 'revenue' ? (
           <p className="text-brand-text font-medium">{valueFormatter(point.value)}</p>
         ) : (

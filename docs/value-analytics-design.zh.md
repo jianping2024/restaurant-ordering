@@ -650,7 +650,7 @@ useEffect(() => {
 </ResponsiveContainer>
 ```
 
-- X 轴：`date` → 格式化为 `MM/dd`（`date-fns` + locale）。
+- X 轴 / tooltip 周期文案：唯一出口 `formatPeriodLabel(periodKey, grain)`。按日 `MM/dd`；按周/月/季直接用 period key（`yyyy-Www` / `yyyy-MM` / `yyyy-Qn`），禁止 `MM/YY`（与按日 `MM/dd` 撞形）。
 - Y 轴营业额：`€` 前缀或 tooltip 内 `€{v.toFixed(2)}`。
 - 客流 tooltip 自定义：
 

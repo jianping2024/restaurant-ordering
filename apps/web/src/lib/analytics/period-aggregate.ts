@@ -35,20 +35,16 @@ export function periodKeyForDay(dateStr: string, grain: AnalyticsRange): string 
   return `${dateStr.slice(0, 4)}-Q${quarter}`;
 }
 
+/**
+ * Sole user-visible period string for charts (axis + tooltip).
+ * day: MM/dd (short within the rolling day window).
+ * week/month/quarter: period key itself (yyyy-Www / yyyy-MM / yyyy-Qn) — never MM/YY.
+ */
 export function formatPeriodLabel(periodKey: string, grain: AnalyticsRange): string {
   if (grain === 'day') {
     return format(parseISO(periodKey), 'MM/dd');
   }
-  if (grain === 'week') {
-    const match = /^(\d{4})-W(\d{2})$/.exec(periodKey);
-    return match ? `W${match[2]}` : periodKey;
-  }
-  if (grain === 'month') {
-    const match = /^(\d{4})-(\d{2})$/.exec(periodKey);
-    return match ? `${match[2]}/${match[1].slice(2)}` : periodKey;
-  }
-  const q = /^(\d{4})-Q(\d)$/.exec(periodKey);
-  return q ? `Q${q[2]}` : periodKey;
+  return periodKey;
 }
 
 export function hasBusinessActivity(point: {

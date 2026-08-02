@@ -7,6 +7,7 @@ import { getValueOverview } from '@/lib/analytics/analytics.service';
 import { buildGrainTrends } from '@/lib/analytics/daily-stats';
 import {
   aggregateDailyPointsByGrain,
+  formatPeriodLabel,
   hasBusinessActivity,
   isValueOverviewEmpty,
   periodKeyForDay,
@@ -101,6 +102,13 @@ describe('period aggregate', () => {
     assert.match(periodKeyForDay('2026-07-15', 'week'), /^2026-W\d{2}$/);
     assert.equal(periodKeyForDay('2026-07-15', 'month'), '2026-07');
     assert.equal(periodKeyForDay('2026-07-15', 'quarter'), '2026-Q3');
+  });
+
+  it('formats period labels without colliding month MM/YY with day MM/dd', () => {
+    assert.equal(formatPeriodLabel('2026-07-15', 'day'), '07/15');
+    assert.equal(formatPeriodLabel('2026-W29', 'week'), '2026-W29');
+    assert.equal(formatPeriodLabel('2026-07', 'month'), '2026-07');
+    assert.equal(formatPeriodLabel('2026-Q3', 'quarter'), '2026-Q3');
   });
 
   it('trims leading empty periods for week grain only', () => {

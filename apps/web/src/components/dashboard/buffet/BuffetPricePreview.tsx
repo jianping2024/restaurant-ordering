@@ -13,7 +13,7 @@ import {
   type CalendarOverrideRow,
 } from '@/lib/buffet-pricing-admin';
 import { TimeHmInput } from '@/components/ui/TimeHmInput';
-import { DashboardDatePicker } from '@/components/dashboard/DashboardDatePicker';
+import { DatePicker } from '@mesa/ui';
 import { Button } from '@/components/ui/Button';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
@@ -152,7 +152,7 @@ export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(fu
         </label>
         <label className="text-brand-text-muted text-[12px]">
           {t.previewDate}
-          <DashboardDatePicker
+          <DatePicker
             className="mt-0.5 w-full min-w-[160px]"
             value={date}
             onChange={setDate}

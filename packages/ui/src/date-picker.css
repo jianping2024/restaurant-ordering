@@ -1,0 +1,209 @@
+/* Shared DayPicker themes for @mesa/ui DatePicker (+ web range pickers). */
+.mesa-rdp {
+  --rdp-day-width: 2.1rem;
+  --rdp-day-height: 2.1rem;
+  --rdp-day_button-border-radius: 0.5rem;
+  --rdp-nav_button-width: 1.75rem;
+  --rdp-nav_button-height: 1.75rem;
+}
+
+.mesa-rdp .rdp-weekday {
+  font-size: 0.72rem;
+}
+
+.mesa-rdp .rdp-dropdowns {
+  gap: 0.35rem;
+}
+
+.mesa-rdp .rdp-dropdown {
+  font-size: 0.85rem;
+  border-radius: 0.375rem;
+  padding: 0.15rem 0.35rem;
+}
+
+.mesa-rdp .rdp-button_previous,
+.mesa-rdp .rdp-button_next {
+  border-radius: 0.375rem;
+}
+
+/* Brand (tenant dashboard) — dark default */
+.mesa-rdp--brand {
+  --rdp-accent-color: #d4a843;
+  --rdp-accent-background-color: rgba(212, 168, 67, 0.14);
+  color: #d7d0c3;
+}
+
+.mesa-rdp--brand .rdp-weekday {
+  color: #9f9788;
+}
+
+.mesa-rdp--brand .rdp-day_button {
+  color: #cec6b8;
+  background: #14110d;
+}
+
+.mesa-rdp--brand .rdp-day_button:hover {
+  background: #221d15;
+  color: #ddd5c8;
+}
+
+.mesa-rdp--brand .rdp-outside .rdp-day_button {
+  color: #5e584f;
+  background: #11100d;
+}
+
+.mesa-rdp--brand .rdp-selected .rdp-day_button {
+  background: #d4a843;
+  color: #0f0e0c;
+}
+
+.mesa-rdp--brand .rdp-range_middle .rdp-day_button {
+  background: rgba(212, 168, 67, 0.12);
+  color: #d3ccbf;
+}
+
+.mesa-rdp--brand .rdp-today .rdp-day_button {
+  border: 1px solid rgba(212, 168, 67, 0.6);
+}
+
+.mesa-rdp--brand .rdp-button_previous,
+.mesa-rdp--brand .rdp-button_next {
+  border: 1px solid #2a2520;
+  color: #d4ccbe;
+  background: #14110d;
+}
+
+.mesa-rdp--brand .rdp-button_previous:hover,
+.mesa-rdp--brand .rdp-button_next:hover {
+  border-color: rgba(212, 168, 67, 0.45);
+  background: #221d15;
+}
+
+.mesa-rdp--brand .rdp-dropdown {
+  background: #14110d;
+  color: #d7d0c3;
+  border: 1px solid #2a2520;
+}
+
+[data-theme='light'] .mesa-rdp--brand {
+  --rdp-accent-color: rgb(var(--color-brand-gold));
+  --rdp-accent-background-color: rgba(172, 126, 22, 0.12);
+  color: rgb(var(--color-brand-text-muted));
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-weekday {
+  color: rgb(var(--color-brand-text-muted));
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-day_button {
+  color: rgb(var(--color-brand-text));
+  background: #f9f5ec;
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-day_button:hover {
+  background: #efe6d6;
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-outside .rdp-day_button {
+  color: #b9ae9c;
+  background: #faf7f0;
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-selected .rdp-day_button {
+  background: rgb(var(--color-brand-gold));
+  color: #fff;
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-range_middle .rdp-day_button {
+  background: rgba(172, 126, 22, 0.14);
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-today .rdp-day_button {
+  border: 1px solid rgba(172, 126, 22, 0.45);
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-button_previous,
+[data-theme='light'] .mesa-rdp--brand .rdp-button_next {
+  border-color: rgb(var(--color-brand-border));
+  background: #f6f0e5;
+  color: rgb(var(--color-brand-text));
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-button_previous:hover,
+[data-theme='light'] .mesa-rdp--brand .rdp-button_next:hover {
+  border-color: rgba(172, 126, 22, 0.45);
+  background: #efe4d1;
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-dropdown {
+  background: #f9f5ec;
+  color: rgb(var(--color-brand-text));
+  border: 1px solid rgb(var(--color-brand-border));
+}
+
+/* Zinc (ops console) */
+.mesa-rdp--zinc {
+  --rdp-accent-color: #f59e0b;
+  --rdp-accent-background-color: rgba(245, 158, 11, 0.14);
+  color: #e4e4e7;
+}
+
+.mesa-rdp--zinc .rdp-weekday {
+  color: #a1a1aa;
+}
+
+.mesa-rdp--zinc .rdp-day_button {
+  color: #e4e4e7;
+  background: #09090b;
+}
+
+.mesa-rdp--zinc .rdp-day_button:hover {
+  background: #27272a;
+  color: #fafafa;
+}
+
+.mesa-rdp--zinc .rdp-outside .rdp-day_button {
+  color: #52525b;
+  background: #09090b;
+}
+
+.mesa-rdp--zinc .rdp-selected .rdp-day_button {
+  background: #f59e0b;
+  color: #09090b;
+}
+
+.mesa-rdp--zinc .rdp-range_middle .rdp-day_button {
+  background: rgba(245, 158, 11, 0.12);
+  color: #e4e4e7;
+}
+
+.mesa-rdp--zinc .rdp-today .rdp-day_button {
+  border: 1px solid rgba(245, 158, 11, 0.55);
+}
+
+.mesa-rdp--zinc .rdp-disabled .rdp-day_button {
+  color: #3f3f46;
+  background: #09090b;
+  opacity: 0.55;
+}
+
+.mesa-rdp--zinc .rdp-button_previous,
+.mesa-rdp--zinc .rdp-button_next {
+  border: 1px solid #3f3f46;
+  color: #e4e4e7;
+  background: #09090b;
+}
+
+.mesa-rdp--zinc .rdp-button_previous:hover,
+.mesa-rdp--zinc .rdp-button_next:hover {
+  border-color: rgba(245, 158, 11, 0.45);
+  background: #27272a;
+}
+
+.mesa-rdp--zinc .rdp-dropdown {
+  background: #09090b;
+  color: #e4e4e7;
+  border: 1px solid #3f3f46;
+}

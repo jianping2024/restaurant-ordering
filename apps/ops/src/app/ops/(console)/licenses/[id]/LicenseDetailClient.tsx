@@ -7,6 +7,7 @@ import {
   lisbonCalendarDateFromInstant,
   todayLisbonCalendarDate,
 } from '@mesa/shared';
+import { DatePicker } from '@mesa/ui';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   BUSINESS_STATUS_LABEL,
@@ -249,12 +250,14 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <label className="block text-sm text-zinc-400">
             授权截止日
-            <input
-              type="date"
+            <DatePicker
+              variant="zinc"
+              lang="zh"
               value={licenseDate}
               min={minLicenseDate}
-              onChange={(e) => setLicenseDate(e.target.value)}
-              className="mt-1 block rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 [color-scheme:dark]"
+              onChange={setLicenseDate}
+              placeholder="选择截止日"
+              className="mt-1 block min-w-[200px]"
             />
           </label>
           <button

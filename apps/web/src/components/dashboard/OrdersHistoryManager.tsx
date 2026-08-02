@@ -8,6 +8,7 @@ import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fn
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
+import '@mesa/ui/date-picker.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
 import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
@@ -376,7 +377,7 @@ export function OrdersHistoryManager({
                 mode="range"
                 selected={dateRange}
                 onSelect={setDateRange}
-                className="orders-rdp"
+                className="mesa-rdp mesa-rdp--brand"
               />
               <div className="mt-3 flex items-center justify-between">
                 <button type="button" onClick={clearRange} className="text-[13px] text-brand-text-muted hover:text-brand-text">

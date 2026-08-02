@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DayPicker } from 'react-day-picker';
+import { DayPicker, type Matcher } from 'react-day-picker';
 import { format, isValid, parse } from 'date-fns';
 import { enUS, pt, zhCN } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
-import type { UILanguage } from '@/lib/i18n';
 import 'react-day-picker/dist/style.css';
+import './date-picker.css';
 
-const LOCALES: Record<UILanguage, Locale> = {
+export type DatePickerLang = 'zh' | 'en' | 'pt';
+export type DatePickerVariant = 'brand' | 'zinc';
+
+const LOCALES: Record<DatePickerLang, Locale> = {
   zh: zhCN,
   en: enUS,
   pt,
@@ -19,7 +22,25 @@ const POPUP_GAP = 6;
 const POPUP_MIN_WIDTH = 280;
 const VIEWPORT_PAD = 8;
 
-function parseIsoDate(value: string): Date | undefined {
+const VARIANT_UI: Record<
+  DatePickerVariant,
+  { trigger: string; popup: string; rdp: string }
+> = {
+  brand: {
+    trigger:
+      'mt-0.5 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-left text-sm text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35 disabled:cursor-not-allowed disabled:opacity-50',
+    popup: 'fixed z-[100] rounded-xl border border-brand-border bg-brand-card p-3 shadow-xl',
+    rdp: 'mesa-rdp mesa-rdp--brand',
+  },
+  zinc: {
+    trigger:
+      'mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-left text-sm text-zinc-100 transition-colors hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:cursor-not-allowed disabled:opacity-50',
+    popup: 'fixed z-[100] rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl',
+    rdp: 'mesa-rdp mesa-rdp--zinc',
+  },
+};
+
+function parseIsoDate(value: string | undefined): Date | undefined {
   if (!value?.trim()) return undefined;
   const d = parse(value.trim(), 'yyyy-MM-dd', new Date());
   return isValid(d) ? d : undefined;
@@ -43,36 +64,49 @@ function computePopupCoords(anchor: HTMLElement, popup: HTMLElement) {
   return { top, left };
 }
 
-export interface DashboardDatePickerProps {
+export interface DatePickerProps {
   value: string;
   onChange: (isoDate: string) => void;
-  lang: UILanguage;
-  placeholder: string;
+  lang?: DatePickerLang;
+  placeholder?: string;
   disabled?: boolean;
   className?: string;
+  variant?: DatePickerVariant;
+  /** Inclusive lower bound as yyyy-MM-dd */
+  min?: string;
+  /** Inclusive upper bound as yyyy-MM-dd */
+  max?: string;
   /** Month shown when opening if no value yet */
   defaultMonth?: Date;
+  triggerClassName?: string;
 }
 
 /**
- * Single-date picker styled for Mesa dashboard (reuses `.orders-rdp` DayPicker theme in globals.css).
+ * Single-date picker (portal popup + DayPicker). Brand = tenant dashboard; zinc = ops.
  */
-export function DashboardDatePicker({
+export function DatePicker({
   value,
   onChange,
-  lang,
-  placeholder,
+  lang = 'zh',
+  placeholder = '选择日期',
   disabled,
   className = '',
+  variant = 'brand',
+  min,
+  max,
   defaultMonth,
-}: DashboardDatePickerProps) {
+  triggerClassName,
+}: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const locale = LOCALES[lang];
+  const ui = VARIANT_UI[variant];
 
   const selected = useMemo(() => parseIsoDate(value), [value]);
+  const minDate = useMemo(() => parseIsoDate(min), [min]);
+  const maxDate = useMemo(() => parseIsoDate(max), [max]);
 
   const label = useMemo(() => {
     if (!selected) return placeholder;
@@ -83,6 +117,13 @@ export function DashboardDatePicker({
     const y = new Date().getFullYear();
     return { startMonth: new Date(y - 3, 0, 1), endMonth: new Date(y + 8, 11, 31) };
   }, []);
+
+  const disabledMatchers = useMemo(() => {
+    const matchers: Matcher[] = [];
+    if (minDate) matchers.push({ before: minDate });
+    if (maxDate) matchers.push({ after: maxDate });
+    return matchers.length > 0 ? matchers : undefined;
+  }, [minDate, maxDate]);
 
   const updateCoords = useCallback(() => {
     const anchor = anchorRef.current;
@@ -122,15 +163,27 @@ export function DashboardDatePicker({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
-        className="mt-0.5 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-left text-sm text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35 disabled:cursor-not-allowed disabled:opacity-50"
+        className={triggerClassName ?? ui.trigger}
       >
-        <span className={selected ? 'text-brand-text' : 'text-brand-text-muted'}>{label}</span>
+        <span
+          className={
+            selected
+              ? variant === 'brand'
+                ? 'text-brand-text'
+                : 'text-zinc-100'
+              : variant === 'brand'
+                ? 'text-brand-text-muted'
+                : 'text-zinc-500'
+          }
+        >
+          {label}
+        </span>
       </button>
       {open &&
         createPortal(
           <div
             ref={popupRef}
-            className="fixed z-[100] rounded-xl border border-brand-border bg-brand-card p-3 shadow-xl"
+            className={ui.popup}
             style={{
               minWidth: POPUP_MIN_WIDTH,
               top: coords?.top ?? 0,
@@ -142,13 +195,14 @@ export function DashboardDatePicker({
               mode="single"
               selected={selected}
               locale={locale}
-              defaultMonth={selected ?? defaultMonth ?? new Date()}
+              defaultMonth={selected ?? defaultMonth ?? minDate ?? new Date()}
               captionLayout="dropdown"
               startMonth={startMonth}
               endMonth={endMonth}
-              className="orders-rdp"
+              disabled={disabledMatchers}
+              className={ui.rdp}
               onSelect={(d) => {
-                if (d) onChange(format(d, 'yyyy-MM-dd'));
+                onChange(d ? format(d, 'yyyy-MM-dd') : '');
                 setOpen(false);
               }}
             />

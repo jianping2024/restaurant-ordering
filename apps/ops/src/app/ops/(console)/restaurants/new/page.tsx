@@ -10,7 +10,7 @@ import {
   type PrintLocale,
   type RestaurantCountryCode,
 } from '@mesa/shared';
-import { PasswordInput } from '@mesa/ui';
+import { DatePicker, PasswordInput } from '@mesa/ui';
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -139,12 +139,15 @@ export default function NewRestaurantPage() {
           <>
             <label className="block text-sm text-zinc-400">
               初始授权截止日（可选，里斯本日历日 · 当日 23:59:59 过期）
-              <input
-                type="date"
+              <DatePicker
+                variant="zinc"
+                lang="zh"
                 value={licenseValidUntil}
                 min={minLicenseDate}
-                onChange={(e) => setLicenseValidUntil(e.target.value)}
-                className="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 [color-scheme:dark]"
+                onChange={setLicenseValidUntil}
+                placeholder="可选，选择截止日"
+                className="mt-1 w-full"
+                triggerClassName="mt-1 w-full rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-sm text-zinc-100 transition-colors hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </label>
           </>

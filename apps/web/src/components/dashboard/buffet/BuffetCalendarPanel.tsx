@@ -10,7 +10,7 @@ import {
   hasActiveRuleForDayKind,
   type CalendarOverrideRow,
 } from '@/lib/buffet-pricing-admin';
-import { DashboardDatePicker } from '@/components/dashboard/DashboardDatePicker';
+import { DatePicker } from '@mesa/ui';
 import { showToast } from '@/components/ui/Toast';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
@@ -87,7 +87,7 @@ export function BuffetCalendarPanel({
         <div className="flex flex-wrap gap-2 items-end">
           <label className="text-brand-text-muted text-[12px] block min-w-[180px]">
             {t.calendarDate}
-            <DashboardDatePicker
+            <DatePicker
               className="mt-0.5 w-full max-w-[240px]"
               value={calDate}
               onChange={setCalDate}
@@ -121,7 +121,7 @@ export function BuffetCalendarPanel({
           <div className="flex flex-wrap gap-2 items-end">
             <label className="text-brand-text-muted text-[12px]">
               {t.calendarRangeFrom}
-              <DashboardDatePicker
+              <DatePicker
                 className="mt-0.5 w-full min-w-[160px]"
                 value={rangeFrom}
                 onChange={setRangeFrom}
@@ -131,7 +131,7 @@ export function BuffetCalendarPanel({
             </label>
             <label className="text-brand-text-muted text-[12px]">
               {t.calendarRangeTo}
-              <DashboardDatePicker
+              <DatePicker
                 className="mt-0.5 w-full min-w-[160px]"
                 value={rangeTo}
                 onChange={setRangeTo}

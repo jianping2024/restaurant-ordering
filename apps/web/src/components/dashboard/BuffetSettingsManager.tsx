@@ -7,7 +7,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import { showToast } from '@/components/ui/Toast';
 import { PromptModal } from '@/components/ui/PromptModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { DashboardDatePicker } from '@/components/dashboard/DashboardDatePicker';
+import { DatePicker } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
@@ -886,7 +886,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.validFrom}
-                    <DashboardDatePicker
+                    <DatePicker
                       className="mt-0.5 w-full"
                       value={ruleDraft.valid_from}
                       onChange={(iso) => {
@@ -899,7 +899,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                   </label>
                   <label className="text-brand-text-muted text-[12px]">
                     {t.validTo}
-                    <DashboardDatePicker
+                    <DatePicker
                       className="mt-0.5 w-full"
                       value={ruleDraft.valid_to}
                       onChange={(iso) => {

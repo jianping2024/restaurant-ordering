@@ -77,7 +77,7 @@
 |----|------------|------|
 | 1 | `/ops/login` | 平台管理员登录 |
 | 2 | `/ops/restaurants/new` | `deploymentMode=on_prem`；只登记；不建云 Auth |
-| 3 | `/ops/licenses/[id]` | 签发安装码；明文码只展示一次 |
+| 3 | `/ops/licenses/[id]` | 签发安装码；明文码只展示一次；默认只看活跃安装（pending/claimed），已吊销进「查看历史」；签发/吊销不整页重载 |
 | 4 | 本机 `http://127.0.0.1:3000/setup` | 唯一认领页；字段：安装码、店主密码（邮箱以云登记为准，可只读展示） |
 | 5 | 云 `POST /api/platform/license/claim` | 平台侧：claimed + lease + 凭证；**不**建云用户 |
 | 6 | 本机 apply-claim（服务端） | 本地库：`restaurants.id = 平台 restaurantId`；本地 Auth 店主；认领响应的 checkin+leaseSecret + URL → `license-state/platform.json` |

@@ -11,6 +11,17 @@ export function isNightlyAutoCloseDue(now = new Date()): boolean {
   return hour === NIGHTLY_AUTO_CLOSE_HOUR;
 }
 
+/** Who decides "run now": `due` = Lisbon hour gate (Vercel); `always` = caller already scheduled (on-prem). */
+export type NightlyAutoClosePolicy = 'due' | 'always';
+
+export function shouldRunNightlyAutoClose(opts: {
+  policy?: NightlyAutoClosePolicy;
+  now?: Date;
+} = {}): boolean {
+  if (opts.policy === 'always') return true;
+  return isNightlyAutoCloseDue(opts.now);
+}
+
 /**
  * Nightly cutover: same operational close as waiter/owner (cancel unpaid splits, void lines, close session).
  * Does NOT use manual close RPC — intentionally bypasses checkout confirm (05:00 Lisbon).

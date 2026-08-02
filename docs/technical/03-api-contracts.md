@@ -167,7 +167,7 @@
 
 | 方法 | 路径 | 调度 | 职责 |
 |------|------|------|------|
-| GET/POST | `/api/cron/nightly-close-sessions` | Vercel Cron `0 4,5 * * *` UTC（单条；里斯本 05:00 门闸） | 里斯本夜间批量关台 |
+| GET/POST | `/api/cron/nightly-close-sessions` | Vercel Cron `0 4,5 * * *` UTC（默认 `policy=due` 里斯本 05:00 门闸）；on-prem 日切 `?policy=always` | 批量关台（`auto_nightly`；仍需 `CRON_SECRET`） |
 
 ---
 

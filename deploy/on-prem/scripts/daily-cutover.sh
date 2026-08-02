@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Mesa on-prem daily cutover (sole store-side daily job):
-#   1) nightly_close  → GET /api/cron/nightly-close-sessions
+#   1) nightly_close  → GET /api/cron/nightly-close-sessions?policy=always
 #   2) local_backup   → scripts/backup-local.sh
 # Scheduled by mesa-daily-cutover.timer (Europe/Lisbon ~05:05).
+# policy=always: caller owns schedule (timer + manual systemctl start); skip Lisbon due gate.
 set -euo pipefail
 
 ONPREM_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -18,6 +19,7 @@ else
 fi
 mkdir -p "$RESULT_DIR"
 RESULT_FILE="${RESULT_DIR}/LAST_DAILY_CUTOVER.json"
+CLOSE_BODY="/tmp/mesa-cutover-close.json"
 
 BASE_URL="${MESA_CUTOVER_BASE_URL:-}"
 if [[ -z "$BASE_URL" && -f "$ENV_FILE" ]]; then
@@ -58,14 +60,49 @@ if [[ -z "$CRON_SECRET" ]]; then
 fi
 
 auth_hdr=(-H "Authorization: Bearer ${CRON_SECRET}")
+CLOSE_URL="${BASE_URL}/api/cron/nightly-close-sessions?policy=always"
 
-echo "Phase 1: nightly_close → ${BASE_URL}/api/cron/nightly-close-sessions"
-if curl -fsS "${auth_hdr[@]}" "${BASE_URL}/api/cron/nightly-close-sessions" -o /tmp/mesa-cutover-close.json; then
-  CLOSE_STATUS="ok"
+echo "Phase 1: nightly_close → ${CLOSE_URL}"
+if curl -fsS "${auth_hdr[@]}" "$CLOSE_URL" -o "$CLOSE_BODY"; then
+  # Prefer python for JSON; fall back to grep if unavailable.
+  if command -v python3 >/dev/null 2>&1; then
+    PARSE=$(python3 - "$CLOSE_BODY" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    d = json.load(f)
+ok = bool(d.get("ok"))
+skipped = bool(d.get("skipped"))
+closed = d.get("closedCount")
+err = d.get("error") or d.get("reason") or ""
+if not ok:
+    print(f"failed\t{err or 'ok_false'}")
+elif skipped:
+    print(f"skipped\t{err or 'skipped'}")
+else:
+    print(f"ok\tclosedCount={closed if closed is not None else '?'}")
+PY
+)
+    CLOSE_STATUS="${PARSE%%$'\t'*}"
+    DETAIL="${PARSE#*$'\t'}"
+  else
+    if grep -q '"skipped"[[:space:]]*:[[:space:]]*true' "$CLOSE_BODY"; then
+      CLOSE_STATUS="skipped"
+      DETAIL="skipped_without_python"
+    elif grep -q '"ok"[[:space:]]*:[[:space:]]*true' "$CLOSE_BODY"; then
+      CLOSE_STATUS="ok"
+      DETAIL="ok_grep"
+    else
+      CLOSE_STATUS="failed"
+      DETAIL="parse_failed"
+    fi
+  fi
 else
   CLOSE_STATUS="failed"
   DETAIL="nightly_close_http_failed"
 fi
+
+echo "Phase 1 result: nightlyClose=${CLOSE_STATUS} detail=${DETAIL}"
 
 echo "Phase 2: local_backup"
 export MESA_HOME="${MESA_HOME:-}"
@@ -84,7 +121,7 @@ fi
 write_result "$CLOSE_STATUS" "$BACKUP_STATUS" "$DETAIL"
 echo "LAST_DAILY_CUTOVER → ${RESULT_FILE}"
 
-if [[ "$CLOSE_STATUS" == "failed" ]]; then
+if [[ "$CLOSE_STATUS" != "ok" ]]; then
   exit 1
 fi
 exit 0

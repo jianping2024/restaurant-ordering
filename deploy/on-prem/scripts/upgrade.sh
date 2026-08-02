@@ -211,10 +211,11 @@ if [[ -n "$LICENSE_STATE_BAK" ]]; then
   rm -rf "$LICENSE_STATE_BAK"
 fi
 
-# After sync: new verify script is on target; require durable claim config for live upgrades.
+# After sync: new verify script is on target. Missing platform.json must NOT block upgrade
+# (recovery is /setup claim). Incomplete existing file still fails closed.
 write_upgrade "running" "preflight" "verify-on-prem-ready upgrade" "false"
 (cd "$TARGET_ONPREM" && ./scripts/verify-on-prem-ready.sh upgrade) || {
-  write_upgrade "failed" "preflight" "verify-on-prem-ready upgrade failed — re-claim /setup if license-state missing" "false"
+  write_upgrade "failed" "preflight" "verify-on-prem-ready upgrade failed" "false"
   exit 1
 }
 

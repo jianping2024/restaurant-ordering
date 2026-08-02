@@ -73,7 +73,7 @@ export default function NewRestaurantPage() {
 
   return (
     <div className="max-w-lg">
-      <Link href="/ops/restaurants" className="text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/ops" className="text-sm text-zinc-500 hover:text-zinc-300">
         ← 返回列表
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">{onPrem ? '登记本地门店' : '创建云餐厅 + 店主'}</h1>

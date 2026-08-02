@@ -83,7 +83,7 @@
 | **后厨 / Kitchen** | `/{slug}/kitchen` | 订单出餐、退菜（void） |
 | **自定义角色** | 员工登录（按勾选能力） | 店主在「设置 → 角色权限」创建/复制/改名/停用/删除并勾选页面与按钮 |
 | **顾客 / Customer** | `/{slug}/menu`、`/{slug}/bill` | 扫码点餐、分单、呼叫结账（无账号） |
-| **平台运营 / Ops** | `apps/ops` | 餐厅代建、设备吊销、打印任务巡检 |
+| **平台运营 / Ops** | `apps/ops` | 餐厅代建与资料、授权、审计 |
 
 员工侧栏与敏感操作按 `restaurant_roles.permissions`（Capability）裁剪；注册表 `apps/web/src/lib/permissions/registry.ts`。预制前台/收银/服务员/厨房默认对齐上表。停用角色后绑定员工不可登录。
 

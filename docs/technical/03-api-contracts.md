@@ -179,7 +179,7 @@
 | Bootstrap | `/api/ops/bootstrap` |
 | 餐厅 | `/api/ops/restaurants`、`[id]`、`suspend`、`resume` |
 | 员工代管 | `/api/ops/restaurants/[id]/staff` |
-| 打印运维 | `/api/ops/print/jobs`、`pairings`、`devices`、`revoke` |
+| 打印运维（API 保留，Ops UI 已下线） | `/api/ops/print/jobs`、`pairings`、`devices`、`revoke` |
 | 平台管理员 | `/api/ops/admins` |
 | 审计 | `/api/ops/audit`、`export` |
 

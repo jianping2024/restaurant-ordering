@@ -1,10 +1,6 @@
-import { Suspense } from 'react';
-import RestaurantsListClient from './RestaurantsListClient';
+import { redirect } from 'next/navigation';
 
+/** Restaurant list lives on `/ops`; keep this path as a bookmark alias. */
 export default function RestaurantsPage() {
-  return (
-    <Suspense fallback={<p className="text-zinc-500">加载中…</p>}>
-      <RestaurantsListClient />
-    </Suspense>
-  );
+  redirect('/ops');
 }

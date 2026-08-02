@@ -2,7 +2,14 @@
 
 import { useState } from 'react';
 
-export function RestaurantDetailActions({ restaurantId }: { restaurantId: string }) {
+export function RestaurantDetailActions({
+  restaurantId,
+  embedded = false,
+}: {
+  restaurantId: string;
+  /** When true, omit outer card chrome (parent already provides section). */
+  embedded?: boolean;
+}) {
   const [password, setPassword] = useState('');
   const [result, setResult] = useState('');
   const [error, setError] = useState('');
@@ -36,10 +43,16 @@ export function RestaurantDetailActions({ restaurantId }: { restaurantId: string
     }
   };
 
-  return (
-    <section className="mt-10 rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-      <h2 className="text-lg font-medium">重置店主密码</h2>
-      <p className="mt-1 text-sm text-zinc-500">操作会写入审计日志</p>
+  const body = (
+    <>
+      {!embedded ? (
+        <>
+          <h2 className="text-lg font-medium">重置店主密码</h2>
+          <p className="mt-1 text-sm text-zinc-500">操作会写入审计日志</p>
+        </>
+      ) : (
+        <h3 className="mt-6 text-sm font-medium text-zinc-300">重置密码</h3>
+      )}
       {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
       {result ? (
         <p className="mt-3 text-sm text-emerald-400">
@@ -71,6 +84,12 @@ export function RestaurantDetailActions({ restaurantId }: { restaurantId: string
           生成随机密码
         </button>
       </div>
-    </section>
+    </>
+  );
+
+  if (embedded) return <div>{body}</div>;
+
+  return (
+    <section className="mt-10 rounded-lg border border-zinc-800 bg-zinc-900 p-5">{body}</section>
   );
 }

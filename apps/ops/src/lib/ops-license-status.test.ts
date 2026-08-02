@@ -7,6 +7,8 @@ import {
 import {
   BUSINESS_STATUS_LABEL,
   INSTALLATION_STATUS_LABEL,
+  formatOpsPrimaryLabel,
+  isOpsPrimarySuspended,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
   suspensionReasonLabel,
@@ -125,5 +127,38 @@ describe('ops-license-status', () => {
     assert.equal(h.primary.observationOnly, true);
     assert.match(h.primary.label, /离线超时/);
     assert.ok(h.lastOnline && h.lastOnline.daysAgo >= 7);
+  });
+
+  it('formatOpsPrimaryLabel is sole observation suffix', () => {
+    const expired = resolveOpsLicenseHealth({
+      now,
+      deploymentMode: 'cloud',
+      suspendedAt: null,
+      suspensionReason: null,
+      licenseValidUntil: '2026-07-01T22:59:59.999Z',
+      licenseCheckedAt: null,
+      lastCheckinAt: null,
+      installPhase: 'none',
+    });
+    assert.equal(expired.primary.kind, 'suspended');
+    if (expired.primary.kind !== 'suspended') throw new Error('expected suspended');
+    assert.equal(
+      formatOpsPrimaryLabel(expired.primary),
+      `${expired.primary.label}（观察）`,
+    );
+    assert.equal(isOpsPrimarySuspended(expired), true);
+
+    const open = resolveOpsLicenseHealth({
+      now,
+      deploymentMode: 'cloud',
+      suspendedAt: null,
+      suspensionReason: null,
+      licenseValidUntil: '2026-12-01T22:59:59.999Z',
+      licenseCheckedAt: null,
+      lastCheckinAt: null,
+      installPhase: 'none',
+    });
+    assert.equal(formatOpsPrimaryLabel(open.primary), BUSINESS_STATUS_LABEL.open);
+    assert.equal(isOpsPrimarySuspended(open), false);
   });
 });

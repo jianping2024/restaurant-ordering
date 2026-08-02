@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { OpsListPagination } from '@/components/OpsListPagination';
 import {
+  formatOpsPrimaryLabel,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
   type InstallPhase,
@@ -186,10 +187,7 @@ export function LicensesListClient() {
                     health.primary.kind === 'suspended' ? health.primary.observationOnly : false,
                   )}
                 >
-                  {health.primary.label}
-                  {health.primary.kind === 'suspended' && health.primary.observationOnly
-                    ? '（观察）'
-                    : ''}
+                  {formatOpsPrimaryLabel(health.primary)}
                 </div>
                 {health.lastOnline ? (
                   <div className={`text-xs ${lastOnlineClass(health.lastOnline.tone)}`}>

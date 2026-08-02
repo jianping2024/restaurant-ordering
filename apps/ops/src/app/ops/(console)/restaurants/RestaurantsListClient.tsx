@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { OpsListPagination } from '@/components/OpsListPagination';
-import { BUSINESS_STATUS_LABEL } from '@/lib/ops-license-status';
+import {
+  BUSINESS_STATUS_LABEL,
+  formatOpsPrimaryLabel,
+  resolveInstallPhase,
+  resolveOpsLicenseHealth,
+  type InstallPhase,
+} from '@/lib/ops-license-status';
 import {
   opsListHref,
   opsListPageCount,
@@ -19,7 +25,28 @@ type RestaurantRow = {
   ownerEmail: string | null;
   createdAt: string;
   suspendedAt: string | null;
+  suspensionReason: string | null;
+  deploymentMode: string;
+  licenseValidUntil: string | null;
+  licenseCheckedAt: string | null;
+  lastCheckinAt: string | null;
+  installPhase: InstallPhase;
+  offlineGraceDays: number;
 };
+
+type Summary = { restaurantCount: number; suspendedCount: number };
+
+function primaryClass(kind: string, observationOnly?: boolean): string {
+  if (kind === 'suspended') {
+    return observationOnly
+      ? 'rounded bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300'
+      : 'rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-400';
+  }
+  if (kind === 'install') {
+    return 'rounded bg-sky-500/15 px-2 py-0.5 text-xs text-sky-400';
+  }
+  return 'text-zinc-500';
+}
 
 export default function RestaurantsListClient() {
   const router = useRouter();
@@ -32,6 +59,7 @@ export default function RestaurantsListClient() {
   const [items, setItems] = useState<RestaurantRow[]>([]);
   const [total, setTotal] = useState(0);
   const [pageSize, setPageSize] = useState(1);
+  const [summary, setSummary] = useState<Summary>({ restaurantCount: 0, suspendedCount: 0 });
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(q);
   const [planFilter, setPlanFilter] = useState(plan);
@@ -48,10 +76,12 @@ export default function RestaurantsListClient() {
       items?: RestaurantRow[];
       total?: number;
       pageSize?: number;
+      summary?: Summary;
     };
     setItems(json.items || []);
     setTotal(json.total || 0);
     setPageSize(json.pageSize || 1);
+    setSummary(json.summary || { restaurantCount: 0, suspendedCount: 0 });
     setLoading(false);
   }, [page, q, plan, ownerEmail]);
 
@@ -71,7 +101,8 @@ export default function RestaurantsListClient() {
     if (query.trim()) params.set('q', query.trim());
     if (planFilter) params.set('plan', planFilter);
     if (ownerEmailFilter.trim()) params.set('ownerEmail', ownerEmailFilter.trim());
-    router.push(`/ops/restaurants?${params}`);
+    const qs = params.toString();
+    router.push(qs ? `/ops?${qs}` : '/ops');
   };
 
   const pageCount = opsListPageCount(total, pageSize);
@@ -80,13 +111,27 @@ export default function RestaurantsListClient() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">餐厅列表</h1>
+        <div>
+          <h1 className="text-2xl font-semibold">餐厅</h1>
+          <p className="mt-1 text-sm text-zinc-500">创建与管理基本信息、重置店主密码</p>
+        </div>
         <Link
           href="/ops/restaurants/new"
           className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400"
         >
-          新建餐厅
+          创建餐厅 + 店主
         </Link>
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+          <p className="text-sm text-zinc-500">入驻餐厅</p>
+          <p className="mt-1 text-3xl font-semibold">{summary.restaurantCount}</p>
+        </div>
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+          <p className="text-sm text-zinc-500">{BUSINESS_STATUS_LABEL.suspended}</p>
+          <p className="mt-1 text-3xl font-semibold text-amber-400">{summary.suspendedCount}</p>
+        </div>
       </div>
 
       <form onSubmit={onSearch} className="mt-6 flex flex-wrap gap-2">
@@ -133,30 +178,49 @@ export default function RestaurantsListClient() {
               </tr>
             </thead>
             <tbody>
-              {items.map((r) => (
-                <tr key={r.id} className="border-t border-zinc-800 hover:bg-zinc-900/50">
-                  <td className="px-3 py-2">
-                    <Link href={`/ops/restaurants/${r.id}`} className="text-amber-400 hover:underline">
-                      {r.name}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs text-zinc-400">{r.slug}</td>
-                  <td className="px-3 py-2">{r.ownerEmail || '—'}</td>
-                  <td className="px-3 py-2">{r.plan}</td>
-                  <td className="px-3 py-2">
-                    {r.suspendedAt ? (
-                      <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">
-                        {BUSINESS_STATUS_LABEL.suspended}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500">{BUSINESS_STATUS_LABEL.open}</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-zinc-400">
-                    {new Date(r.createdAt).toLocaleString('zh-CN')}
-                  </td>
-                </tr>
-              ))}
+              {items.map((r) => {
+                const installPhase =
+                  r.installPhase ?? resolveInstallPhase({ claimed: false, pending: false });
+                const health = resolveOpsLicenseHealth({
+                  deploymentMode: r.deploymentMode,
+                  suspendedAt: r.suspendedAt,
+                  suspensionReason: r.suspensionReason,
+                  licenseValidUntil: r.licenseValidUntil,
+                  licenseCheckedAt: r.licenseCheckedAt,
+                  lastCheckinAt: r.lastCheckinAt,
+                  installPhase,
+                  offlineGraceDays: r.offlineGraceDays,
+                });
+                return (
+                  <tr key={r.id} className="border-t border-zinc-800 hover:bg-zinc-900/50">
+                    <td className="px-3 py-2">
+                      <Link href={`/ops/restaurants/${r.id}`} className="text-amber-400 hover:underline">
+                        {r.name}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2 font-mono text-xs text-zinc-400">{r.slug}</td>
+                    <td className="px-3 py-2">{r.ownerEmail || '—'}</td>
+                    <td className="px-3 py-2">{r.plan}</td>
+                    <td className="px-3 py-2">
+                      {health.primary.kind === 'suspended' ? (
+                        <Link
+                          href={`/ops/licenses/${r.id}`}
+                          className={primaryClass(health.primary.kind, health.primary.observationOnly)}
+                        >
+                          {formatOpsPrimaryLabel(health.primary)}
+                        </Link>
+                      ) : (
+                        <span className={primaryClass(health.primary.kind)}>
+                          {formatOpsPrimaryLabel(health.primary)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-zinc-400">
+                      {new Date(r.createdAt).toLocaleString('zh-CN')}
+                    </td>
+                  </tr>
+                );
+              })}
               {items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-8 text-center text-zinc-500">
@@ -172,7 +236,7 @@ export default function RestaurantsListClient() {
       <OpsListPagination
         page={page}
         pageCount={pageCount}
-        hrefForPage={(p) => opsListHref('/ops/restaurants', p, listFilters)}
+        hrefForPage={(p) => opsListHref('/ops', p, listFilters)}
       />
     </div>
   );

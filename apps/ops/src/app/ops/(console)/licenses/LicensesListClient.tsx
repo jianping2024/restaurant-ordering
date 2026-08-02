@@ -1,12 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
 import {
   resolveInstallPhase,
   resolveOpsLicenseHealth,
   type InstallPhase,
 } from '@/lib/ops-license-status';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type LicenseItem = {
   id: string;
@@ -38,9 +45,17 @@ function lastOnlineClass(tone: 'ok' | 'warn' | 'danger'): string {
 }
 
 export function LicensesListClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const page = parseOpsListPage(searchParams);
+  const q = searchParams.get('q') || '';
+  const mode = searchParams.get('mode') || '';
+
   const [items, setItems] = useState<LicenseItem[]>([]);
-  const [q, setQ] = useState('');
-  const [mode, setMode] = useState('');
+  const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
+  const [query, setQuery] = useState(q);
+  const [modeFilter, setModeFilter] = useState(mode);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -48,26 +63,48 @@ export function LicensesListClient() {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      if (q.trim()) params.set('q', q.trim());
+      const params = new URLSearchParams({ page: String(page) });
+      if (q) params.set('q', q);
       if (mode) params.set('mode', mode);
       const res = await fetch(`/api/ops/licenses?${params}`, { credentials: 'include' });
-      const json = (await res.json()) as { items?: LicenseItem[]; error?: string };
+      const json = (await res.json()) as {
+        items?: LicenseItem[];
+        total?: number;
+        pageSize?: number;
+        error?: string;
+      };
       if (!res.ok) {
         setError(json.error || '加载失败');
         return;
       }
       setItems(json.items || []);
+      setTotal(json.total || 0);
+      setPageSize(json.pageSize || 1);
     } catch {
       setError('网络错误');
     } finally {
       setLoading(false);
     }
-  }, [q, mode]);
+  }, [page, q, mode]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setQuery(q);
+    setModeFilter(mode);
+  }, [q, mode]);
+
+  const applyFilters = () => {
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    if (modeFilter) params.set('mode', modeFilter);
+    router.push(`/ops/licenses?${params}`);
+  };
+
+  const pageCount = opsListPageCount(total, pageSize);
+  const listFilters = { q, mode };
 
   return (
     <div>
@@ -75,8 +112,8 @@ export function LicensesListClient() {
         <label className="text-sm text-zinc-400">
           搜索
           <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             className="mt-1 block w-56 rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm"
             placeholder="名称 / slug / 邮箱"
           />
@@ -84,8 +121,8 @@ export function LicensesListClient() {
         <label className="text-sm text-zinc-400">
           模式
           <select
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
+            value={modeFilter}
+            onChange={(e) => setModeFilter(e.target.value)}
             className="mt-1 block rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm"
           >
             <option value="">全部</option>
@@ -93,6 +130,13 @@ export function LicensesListClient() {
             <option value="on_prem">本地</option>
           </select>
         </label>
+        <button
+          type="button"
+          onClick={applyFilters}
+          className="rounded border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800"
+        >
+          筛选
+        </button>
         <button
           type="button"
           onClick={() => void load()}
@@ -160,6 +204,12 @@ export function LicensesListClient() {
           <li className="px-4 py-8 text-center text-sm text-zinc-500">暂无餐厅</li>
         ) : null}
       </ul>
+
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref('/ops/licenses', p, listFilters)}
+      />
     </div>
   );
 }

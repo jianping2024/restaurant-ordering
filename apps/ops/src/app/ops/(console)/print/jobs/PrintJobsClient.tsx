@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type JobRow = {
   id: string;
@@ -20,7 +26,7 @@ type JobRow = {
 export default function PrintJobsClient({ fixedRestaurantId }: { fixedRestaurantId?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+  const page = parseOpsListPage(searchParams);
   const type = searchParams.get('type') || '';
   const status = searchParams.get('status') || '';
   const table = searchParams.get('table') || '';
@@ -28,6 +34,7 @@ export default function PrintJobsClient({ fixedRestaurantId }: { fixedRestaurant
 
   const [items, setItems] = useState<JobRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState(type);
   const [statusFilter, setStatusFilter] = useState(status);
@@ -41,9 +48,14 @@ export default function PrintJobsClient({ fixedRestaurantId }: { fixedRestaurant
     if (table) params.set('table', table);
     if (restaurantId) params.set('restaurantId', restaurantId);
     const res = await fetch(`/api/ops/print/jobs?${params}`, { credentials: 'include' });
-    const json = (await res.json()) as { items?: JobRow[]; total?: number };
+    const json = (await res.json()) as {
+      items?: JobRow[];
+      total?: number;
+      pageSize?: number;
+    };
     setItems(json.items || []);
     setTotal(json.total || 0);
+    setPageSize(json.pageSize || 1);
     setLoading(false);
   }, [page, type, status, table, restaurantId]);
 
@@ -61,17 +73,11 @@ export default function PrintJobsClient({ fixedRestaurantId }: { fixedRestaurant
     router.push(`/ops/print/jobs?${params}`);
   };
 
-  const pageCount = Math.max(1, Math.ceil(total / 20));
+  const pageCount = opsListPageCount(total, pageSize);
   const listBase = fixedRestaurantId
     ? `/ops/restaurants/${fixedRestaurantId}/print`
     : '/ops/print/jobs';
-  const listQuerySuffix = [
-    type ? `type=${encodeURIComponent(type)}` : '',
-    status ? `status=${encodeURIComponent(status)}` : '',
-    table ? `table=${encodeURIComponent(table)}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
+  const listFilters = { type, status, table };
 
   return (
     <div>
@@ -167,29 +173,11 @@ export default function PrintJobsClient({ fixedRestaurantId }: { fixedRestaurant
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <div className="mt-4 flex gap-2 text-sm">
-          {page > 1 ? (
-            <Link
-              href={`${listBase}?page=${page - 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              上一页
-            </Link>
-          ) : null}
-          <span className="text-zinc-500">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link
-              href={`${listBase}?page=${page + 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              下一页
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref(listBase, p, listFilters)}
+      />
     </div>
   );
 }

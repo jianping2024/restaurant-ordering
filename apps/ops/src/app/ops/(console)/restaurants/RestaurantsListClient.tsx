@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { OpsListPagination } from '@/components/OpsListPagination';
 import { BUSINESS_STATUS_LABEL } from '@/lib/ops-license-status';
+import {
+  opsListHref,
+  opsListPageCount,
+  parseOpsListPage,
+} from '@/lib/ops-list-pagination';
 
 type RestaurantRow = {
   id: string;
@@ -18,13 +24,14 @@ type RestaurantRow = {
 export default function RestaurantsListClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page') || '1'));
+  const page = parseOpsListPage(searchParams);
   const q = searchParams.get('q') || '';
   const plan = searchParams.get('plan') || '';
   const ownerEmail = searchParams.get('ownerEmail') || '';
 
   const [items, setItems] = useState<RestaurantRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState(q);
   const [planFilter, setPlanFilter] = useState(plan);
@@ -37,15 +44,26 @@ export default function RestaurantsListClient() {
     if (plan) params.set('plan', plan);
     if (ownerEmail) params.set('ownerEmail', ownerEmail);
     const res = await fetch(`/api/ops/restaurants?${params}`, { credentials: 'include' });
-    const json = (await res.json()) as { items?: RestaurantRow[]; total?: number };
+    const json = (await res.json()) as {
+      items?: RestaurantRow[];
+      total?: number;
+      pageSize?: number;
+    };
     setItems(json.items || []);
     setTotal(json.total || 0);
+    setPageSize(json.pageSize || 1);
     setLoading(false);
   }, [page, q, plan, ownerEmail]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setQuery(q);
+    setPlanFilter(plan);
+    setOwnerEmailFilter(ownerEmail);
+  }, [q, plan, ownerEmail]);
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -56,14 +74,8 @@ export default function RestaurantsListClient() {
     router.push(`/ops/restaurants?${params}`);
   };
 
-  const pageCount = Math.max(1, Math.ceil(total / 20));
-  const listQuerySuffix = [
-    q ? `q=${encodeURIComponent(q)}` : '',
-    plan ? `plan=${encodeURIComponent(plan)}` : '',
-    ownerEmail ? `ownerEmail=${encodeURIComponent(ownerEmail)}` : '',
-  ]
-    .filter(Boolean)
-    .join('&');
+  const pageCount = opsListPageCount(total, pageSize);
+  const listFilters = { q, plan, ownerEmail };
 
   return (
     <div>
@@ -157,29 +169,11 @@ export default function RestaurantsListClient() {
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <div className="mt-4 flex gap-2 text-sm">
-          {page > 1 ? (
-            <Link
-              href={`/ops/restaurants?page=${page - 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              上一页
-            </Link>
-          ) : null}
-          <span className="text-zinc-500">
-            {page} / {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link
-              href={`/ops/restaurants?page=${page + 1}${listQuerySuffix ? `&${listQuerySuffix}` : ''}`}
-              className="text-amber-400"
-            >
-              下一页
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
+      <OpsListPagination
+        page={page}
+        pageCount={pageCount}
+        hrefForPage={(p) => opsListHref('/ops/restaurants', p, listFilters)}
+      />
     </div>
   );
 }

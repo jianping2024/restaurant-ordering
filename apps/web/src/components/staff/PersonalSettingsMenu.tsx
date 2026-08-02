@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   SignOutConfirmModalGate,
   useSignOutConfirmState,
@@ -9,8 +9,15 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { topNavAccountTriggerClass } from '@/lib/dashboard-top-nav';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
-import { PersonalSettingsPanel } from '@/components/staff/PersonalSettingsPanel';
+import {
+  PersonalSettingsPanel,
+  type PersonalSettingsNotifyMode,
+} from '@/components/staff/PersonalSettingsPanel';
 import { StaffChangePasswordDialog } from '@/components/auth/StaffChangePasswordDialog';
+import {
+  resolveRestaurantPrintNotifyMode,
+  type PrintAgentDeviceHeartbeatRow,
+} from '@/lib/print-agent-heartbeat';
 
 type Props = {
   roleLabel: string;
@@ -41,8 +48,41 @@ export function PersonalSettingsMenu({
   const setOpen = onOpenChange ?? setUncontrolledOpen;
   const rootRef = useRef<HTMLDivElement>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [notifyMode, setNotifyMode] = useState<PersonalSettingsNotifyMode>({
+    status: 'loading',
+  });
 
   const signOut = useSignOutConfirmState(onSignOut);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch('/api/print-agent/devices', { credentials: 'include' });
+        if (cancelled) return;
+        if (res.status === 401 || res.status === 403) {
+          setNotifyMode({ status: 'denied' });
+          return;
+        }
+        if (!res.ok) {
+          setNotifyMode({ status: 'ready', mode: null });
+          return;
+        }
+        const json = (await res.json()) as { devices?: PrintAgentDeviceHeartbeatRow[] };
+        if (!cancelled) {
+          setNotifyMode({
+            status: 'ready',
+            mode: resolveRestaurantPrintNotifyMode(json.devices || []),
+          });
+        }
+      } catch {
+        if (!cancelled) setNotifyMode({ status: 'ready', mode: null });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogout = () => {
     setOpen(false);
@@ -79,7 +119,7 @@ export function PersonalSettingsMenu({
           mobilePortal={compact}
           align="end"
         >
-          <PersonalSettingsPanel />
+          <PersonalSettingsPanel notifyMode={notifyMode} />
           {allowChangePassword ? (
             <button
               type="button"

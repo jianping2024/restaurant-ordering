@@ -1,7 +1,8 @@
 /**
- * Sole Ops copy + health view-model for license list/detail.
- * Runtime gate remains restaurants.suspended_at (ADR-004); this module is display-only
- * except that primary.canResume mirrors whether suspended_at is already written.
+ * Sole Ops copy + health view-model for restaurant list, license list/detail, and
+ * suspended summary counts. Runtime gate remains restaurants.suspended_at (ADR-004);
+ * this module is display-only except that primary.canResume mirrors whether
+ * suspended_at is already written.
  */
 import {
   SUSPENSION_REASON_LICENSE_CLOCK_REGRESSED,
@@ -74,6 +75,18 @@ export function installationStatusLabel(status: string): string {
 export function suspensionReasonLabel(reason: string | null | undefined): string {
   if (!reason) return '平台暂停';
   return SUSPENSION_REASON_LABEL[reason] ?? (reason.trim() ? reason : '平台暂停');
+}
+
+/** Sole user-visible primary line (includes observation suffix when needed). */
+export function formatOpsPrimaryLabel(primary: OpsPrimaryBadge): string {
+  if (primary.kind === 'suspended' && primary.observationOnly) {
+    return `${primary.label}（观察）`;
+  }
+  return primary.label;
+}
+
+export function isOpsPrimarySuspended(health: OpsLicenseHealth): boolean {
+  return health.primary.kind === 'suspended';
 }
 
 export function resolveInstallPhase(input: {

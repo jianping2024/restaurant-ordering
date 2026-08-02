@@ -5,14 +5,22 @@ import { usePathname, useRouter } from 'next/navigation';
 import { OPS_CONSOLE_NAME } from '@mesa/shared';
 
 const NAV = [
-  { href: '/ops', label: '概览' },
-  { href: '/ops/restaurants', label: '餐厅' },
-  { href: '/ops/licenses', label: '授权' },
-  { href: '/ops/print/devices', label: '打印' },
-  { href: '/ops/audit', label: '审计' },
+  { href: '/ops', label: '餐厅', match: 'restaurants' as const },
+  { href: '/ops/licenses', label: '授权', match: 'prefix' as const },
+  { href: '/ops/audit', label: '审计', match: 'prefix' as const },
 ];
 
 const ADMIN_NAV = { href: '/ops/settings/admins', label: '账号' };
+
+function navActive(pathname: string, item: (typeof NAV)[number]): boolean {
+  if (item.match === 'restaurants') {
+    return (
+      pathname === '/ops' ||
+      pathname.startsWith('/ops/restaurants')
+    );
+  }
+  return pathname.startsWith(item.href);
+}
 
 export function OpsShell({
   children,
@@ -40,12 +48,7 @@ export function OpsShell({
             <span className="text-sm font-semibold tracking-wide text-amber-400">{OPS_CONSOLE_NAME}</span>
             <nav className="flex gap-3 text-sm">
               {NAV.map((item) => {
-                const active =
-                  item.href === '/ops'
-                    ? pathname === '/ops'
-                    : item.href.startsWith('/ops/print')
-                      ? pathname.startsWith('/ops/print')
-                      : pathname.startsWith(item.href);
+                const active = navActive(pathname, item);
                 return (
                   <Link
                     key={item.href}

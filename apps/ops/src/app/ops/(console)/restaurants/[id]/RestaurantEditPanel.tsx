@@ -12,6 +12,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 type Props = {
   restaurantId: string;
+  readOnly?: boolean;
   initial: {
     name: string;
     slug: string;
@@ -29,7 +30,10 @@ const FEATURE_LABELS: Record<string, string> = {
   bill_receipt_print: '结账小票打印',
 };
 
-export function RestaurantEditPanel({ restaurantId, initial }: Props) {
+const fieldClass =
+  'mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-70';
+
+export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }: Props) {
   const [name, setName] = useState(initial.name);
   const [slug, setSlug] = useState(initial.slug);
   const [plan, setPlan] = useState(initial.plan);
@@ -46,6 +50,7 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
 
   const save = async (confirmSlugChange = false) => {
+    if (readOnly) return;
     setLoading(true);
     setError('');
     setSuccess('');
@@ -93,9 +98,11 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
   };
 
   return (
-    <section className="mt-8 rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-      <h2 className="text-lg font-medium">编辑餐厅</h2>
-      <p className="mt-1 text-sm text-zinc-500">仅 admin 可修改；操作写入审计日志</p>
+    <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+      <h2 className="text-lg font-medium">基本信息</h2>
+      <p className="mt-1 text-sm text-zinc-500">
+        {readOnly ? 'support 账号只读；编辑请使用 admin。' : '仅 admin 可修改；操作写入审计日志'}
+      </p>
 
       {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
       {success ? <p className="mt-3 text-sm text-emerald-400">{success}</p> : null}
@@ -105,26 +112,29 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
           餐厅名称
           <input
             required
+            disabled={readOnly}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           />
         </label>
         <label className="block text-sm text-zinc-400">
           slug
           <input
             required
+            disabled={readOnly}
             value={slug}
             onChange={(e) => setSlug(e.target.value.trim().toLowerCase())}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm"
+            className={`${fieldClass} font-mono text-sm`}
           />
         </label>
         <label className="block text-sm text-zinc-400">
           plan
           <select
+            disabled={readOnly}
             value={plan}
             onChange={(e) => setPlan(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           >
             <option value="free">free</option>
             <option value="pro">pro</option>
@@ -133,25 +143,28 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
         <label className="block text-sm text-zinc-400 sm:col-span-2">
           地址
           <input
+            disabled={readOnly}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           />
         </label>
         <label className="block text-sm text-zinc-400 sm:col-span-2">
           电话
           <input
+            disabled={readOnly}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           />
         </label>
         <label className="block text-sm text-zinc-400">
           print_locale
           <select
+            disabled={readOnly}
             value={printLocale}
             onChange={(e) => setPrintLocale(e.target.value as PrintLocale)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           >
             <option value="zh">zh</option>
             <option value="en">en</option>
@@ -161,9 +174,10 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
         <label className="block text-sm text-zinc-400">
           国家/地区
           <select
+            disabled={readOnly}
             value={countryCode}
             onChange={(e) => setCountryCode(e.target.value as RestaurantCountryCode)}
-            className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2"
+            className={fieldClass}
           >
             {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
               <option key={opt.code} value={opt.code}>
@@ -180,9 +194,10 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
               <label key={def.key} className="flex items-center gap-2 text-sm text-zinc-300">
                 <input
                   type="checkbox"
+                  disabled={readOnly}
                   checked={flags[def.key]}
                   onChange={(e) => setFlags((prev) => ({ ...prev, [def.key]: e.target.checked }))}
-                  className="rounded border-zinc-600"
+                  className="rounded border-zinc-600 disabled:opacity-70"
                 />
                 {FEATURE_LABELS[def.key] || def.key}
               </label>
@@ -190,15 +205,17 @@ export function RestaurantEditPanel({ restaurantId, initial }: Props) {
           </div>
         </fieldset>
 
-        <div className="sm:col-span-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400 disabled:opacity-50"
-          >
-            {loading ? '保存中…' : '保存更改'}
-          </button>
-        </div>
+        {!readOnly ? (
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-amber-400 disabled:opacity-50"
+            >
+              {loading ? '保存中…' : '保存更改'}
+            </button>
+          </div>
+        ) : null}
       </form>
 
       <ConfirmModal

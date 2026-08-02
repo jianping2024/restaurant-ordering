@@ -13,14 +13,13 @@ export function RestaurantDetailTabs({
   const pathname = usePathname();
   const base = `/ops/restaurants/${restaurantId}`;
   const tabs = [
-    { href: base, label: '概览', exact: true },
-    { href: `${base}/print`, label: '打印', exact: false },
+    { href: base, label: '资料', exact: true },
     { href: `${base}/staff`, label: '员工', exact: false },
   ];
 
   return (
     <div className="mb-6">
-      <Link href="/ops/restaurants" className="text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/ops" className="text-sm text-zinc-500 hover:text-zinc-300">
         ← 返回列表
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">{restaurantName}</h1>

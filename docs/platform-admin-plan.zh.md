@@ -130,10 +130,9 @@ created_at timestamptz
 | 路径 | 页面（`apps/ops`） |
 |------|------|
 | `/ops/login` | 运营登录 |
-| `/ops` | 概览（门店数、近期新建、异常打印摘要） |
-| `/ops/restaurants` | 餐厅列表 |
+| `/ops` | 餐厅列表（入驻/已暂停摘要、创建、筛选）；`/ops/restaurants` 重定向至此 |
 | `/ops/restaurants/new` | 创建餐厅 + 店主 |
-| `/ops/restaurants/[id]` | 详情 Tab：概览 / 打印 / 员工（P1/P2） |
+| `/ops/restaurants/[id]` | 详情 Tab：资料（基本信息 + 重置密码）/ 员工 |
 | `/ops/audit` | 审计日志（P0 基础 / P2 完整） |
 | `/ops/settings/admins` | 运营账号管理（P2） |
 

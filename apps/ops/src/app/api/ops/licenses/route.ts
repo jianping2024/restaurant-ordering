@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdmin } from '@/lib/platform-auth';
-import { resolveInstallPhase } from '@/lib/ops-license-status';
+import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
 
 const PAGE_SIZE = 30;
-
-type InstallationRow = {
-  id: string;
-  restaurant_id: string;
-  status: string;
-  expires_at: string;
-  claimed_at: string | null;
-  last_checkin_at: string | null;
-  created_at: string;
-};
 
 export async function GET(req: Request) {
   const { ctx, error, admin } = await requirePlatformAdmin();
@@ -48,32 +38,14 @@ export async function GET(req: Request) {
   }
 
   const ids = (rows || []).map((r) => r.id as string);
-  let installations: InstallationRow[] = [];
-  if (ids.length > 0) {
-    const { data } = await admin
-      .from('restaurant_installations')
-      .select('id, restaurant_id, status, expires_at, claimed_at, last_checkin_at, created_at')
-      .in('restaurant_id', ids)
-      .in('status', ['pending', 'claimed'])
-      .order('created_at', { ascending: false });
-    installations = (data || []) as InstallationRow[];
-  }
-
-  const installByRestaurant = new Map<string, InstallationRow[]>();
-  for (const inst of installations) {
-    const list = installByRestaurant.get(inst.restaurant_id) || [];
-    list.push(inst);
-    installByRestaurant.set(inst.restaurant_id, list);
-  }
+  const installById = await loadRestaurantInstallContexts(admin, ids);
 
   const items = (rows || []).map((r) => {
-    const insts = installByRestaurant.get(r.id) || [];
-    const claimed = insts.find((i) => i.status === 'claimed') || null;
-    const pending = insts.find((i) => i.status === 'pending') || null;
-    const installPhase = resolveInstallPhase({
-      claimed: Boolean(claimed),
-      pending: Boolean(pending),
-    });
+    const ctx = installById.get(r.id) || {
+      installPhase: 'none' as const,
+      lastCheckinAt: null,
+      pendingExpiresAt: null,
+    };
     return {
       id: r.id,
       name: r.name,
@@ -86,11 +58,11 @@ export async function GET(req: Request) {
       ownerEmail: r.owner_email,
       ownerId: r.owner_id,
       createdAt: r.created_at,
-      installPhase,
+      installPhase: ctx.installPhase,
       licenseCheckedAt: r.license_checked_at ?? null,
-      lastCheckinAt: claimed?.last_checkin_at ?? null,
+      lastCheckinAt: ctx.lastCheckinAt,
       offlineGraceDays: r.license_offline_grace_days ?? 7,
-      pendingExpiresAt: pending?.expires_at ?? null,
+      pendingExpiresAt: ctx.pendingExpiresAt,
     };
   });
 

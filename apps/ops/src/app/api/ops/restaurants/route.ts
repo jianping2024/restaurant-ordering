@@ -8,6 +8,8 @@ import {
 import { fetchUserEmailsMap } from '@/lib/ops-user-lookup';
 import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
+import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
+import { countOpsSuspendedRestaurants } from '@/lib/ops-suspended-count';
 
 const PAGE_SIZE = 20;
 
@@ -24,7 +26,7 @@ export async function GET(req: Request) {
   let query = admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, feature_flags, suspended_at, deployment_mode, license_valid_until',
+      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, feature_flags, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
       { count: 'exact' },
     )
     .order('created_at', { ascending: false });
@@ -45,7 +47,19 @@ export async function GET(req: Request) {
     }
     const owner = ownerData.users.find((u) => u.email?.toLowerCase() === ownerEmail);
     if (!owner) {
-      return NextResponse.json({ items: [], page, pageSize: PAGE_SIZE, total: 0 });
+      let summary = { restaurantCount: 0, suspendedCount: 0 };
+      try {
+        summary = await countOpsSuspendedRestaurants(admin);
+      } catch {
+        /* keep zeros */
+      }
+      return NextResponse.json({
+        items: [],
+        page,
+        pageSize: PAGE_SIZE,
+        total: 0,
+        summary,
+      });
     }
     query = query.eq('owner_id', owner.id);
   }
@@ -55,7 +69,13 @@ export async function GET(req: Request) {
   }
 
   const from = (page - 1) * PAGE_SIZE;
-  const { data: rows, error: listError, count } = await query.range(from, from + PAGE_SIZE - 1);
+  const [{ data: rows, error: listError, count }, summary] = await Promise.all([
+    query.range(from, from + PAGE_SIZE - 1),
+    countOpsSuspendedRestaurants(admin).catch(() => ({
+      restaurantCount: 0,
+      suspendedCount: 0,
+    })),
+  ]);
 
   if (listError) {
     return NextResponse.json({ error: 'list_failed', detail: listError.message }, { status: 500 });
@@ -66,26 +86,44 @@ export async function GET(req: Request) {
     (rows || []).map((r) => r.owner_id).filter((id): id is string => Boolean(id)),
   );
 
-  const items = (rows || []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    slug: r.slug,
-    plan: r.plan,
-    createdAt: r.created_at,
-    ownerId: r.owner_id,
-    ownerEmail: r.owner_email || (r.owner_id ? ownerEmails.get(r.owner_id) ?? null : null),
-    printLocale: r.print_locale,
-    featureFlags: r.feature_flags,
-    suspendedAt: r.suspended_at,
-    deploymentMode: r.deployment_mode,
-    licenseValidUntil: r.license_valid_until,
-  }));
+  const installById = await loadRestaurantInstallContexts(
+    admin,
+    (rows || []).map((r) => r.id as string),
+  );
+
+  const items = (rows || []).map((r) => {
+    const ctx = installById.get(r.id) || {
+      installPhase: 'none' as const,
+      lastCheckinAt: null,
+      pendingExpiresAt: null,
+    };
+    return {
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      plan: r.plan,
+      createdAt: r.created_at,
+      ownerId: r.owner_id,
+      ownerEmail: r.owner_email || (r.owner_id ? ownerEmails.get(r.owner_id) ?? null : null),
+      printLocale: r.print_locale,
+      featureFlags: r.feature_flags,
+      suspendedAt: r.suspended_at,
+      suspensionReason: r.suspension_reason,
+      deploymentMode: r.deployment_mode,
+      licenseValidUntil: r.license_valid_until,
+      licenseCheckedAt: r.license_checked_at ?? null,
+      lastCheckinAt: ctx.lastCheckinAt,
+      installPhase: ctx.installPhase,
+      offlineGraceDays: r.license_offline_grace_days ?? 7,
+    };
+  });
 
   return NextResponse.json({
     items,
     page,
     pageSize: PAGE_SIZE,
     total: count ?? 0,
+    summary,
   });
 }
 

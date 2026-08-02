@@ -6,6 +6,15 @@ export type PaginatedList<T> = {
   rows: T[];
 };
 
+/** Shared page-size choices for dashboard list footers (staff, abnormal ops, …). */
+export const LIST_PAGE_SIZES = [10, 20] as const;
+export type ListPageSize = (typeof LIST_PAGE_SIZES)[number];
+export const LIST_DEFAULT_PAGE_SIZE: ListPageSize = 10;
+
+export function isListPageSize(value: number): value is ListPageSize {
+  return (LIST_PAGE_SIZES as readonly number[]).includes(value);
+}
+
 /** Clamp page into range and slice one page of an in-memory list. */
 export function paginateList<T>(
   items: readonly T[],

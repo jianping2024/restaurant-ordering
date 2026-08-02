@@ -9,7 +9,12 @@ import { showToast } from '@/components/ui/Toast';
 import type { RestaurantStaffAccount } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { paginateList } from '@/lib/paginate-list';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
+import {
+  LIST_DEFAULT_PAGE_SIZE,
+  paginateList,
+  type ListPageSize,
+} from '@/lib/paginate-list';
 import {
   normalizeLoginName,
   sanitizeStaffLoginInput,
@@ -19,11 +24,7 @@ import {
 } from '@/lib/staff-account';
 import {
   filterStaffByLoginName,
-  isStaffPageSize,
   sortStaffAccounts,
-  STAFF_DEFAULT_PAGE_SIZE,
-  STAFF_PAGE_SIZES,
-  type StaffPageSize,
   type StaffSortDir,
   type StaffSortKey,
 } from '@/lib/staff-accounts-list';
@@ -78,7 +79,7 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [loginSearch, setLoginSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<StaffPageSize>(STAFF_DEFAULT_PAGE_SIZE);
+  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
   const [sortKey, setSortKey] = useState<StaffSortKey>('created_at');
   const [sortDir, setSortDir] = useState<StaffSortDir>('asc');
 
@@ -461,56 +462,20 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
         )}
 
         {staff.length > 0 && filteredStaff.length > 0 ? (
-          <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-end gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <p className="text-[13px] text-brand-text-muted">
-                {t.pageInfo
-                  .replace('{page}', String(pagination.page))
-                  .replace('{totalPages}', String(pagination.totalPages))
-                  .replace('{total}', String(pagination.total))}
-              </p>
-              <label className="flex items-center gap-2 text-[13px] text-brand-text-muted">
-                <span className="whitespace-nowrap">{t.pageSizeLabel}</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    const next = Number(e.target.value);
-                    if (isStaffPageSize(next)) setPageSize(next);
-                  }}
-                  className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
-                  aria-label={t.pageSizeLabel}
-                >
-                  {STAFF_PAGE_SIZES.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            {pagination.totalPages > 1 ? (
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.page <= 1}
-                  onClick={() => setPage(pagination.page - 1)}
-                >
-                  {t.pagePrev}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => setPage(pagination.page + 1)}
-                >
-                  {t.pageNext}
-                </Button>
-              </div>
-            ) : null}
-          </div>
+          <ListPaginationBar
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pageSize}
+            labels={{
+              pageInfo: t.pageInfo,
+              pageSizeLabel: t.pageSizeLabel,
+              pagePrev: t.pagePrev,
+              pageNext: t.pageNext,
+            }}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         ) : null}
       </div>
       </div>

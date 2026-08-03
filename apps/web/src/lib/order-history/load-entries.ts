@@ -53,6 +53,7 @@ type ClosedSessionRow = {
   opened_at: string | null;
   closed_at: string;
   closed_reason: string | null;
+  settled_payable_amount: number | null;
   opened_by_user_id: string | null;
   closed_by_user_id: string | null;
   merge_into_session_id: string | null;
@@ -179,6 +180,7 @@ function buildEntry(
           collectedPayments,
           orders: sessionOrders,
           closedReason: session.closed_reason,
+          settledPayableAmount: session.settled_payable_amount,
         }),
     closeAnnotation,
     mergeContext: isMergedSourceCloseKind(closeKind)
@@ -249,7 +251,7 @@ export async function loadOrderHistoryEntries(
   let sessionQuery = admin
     .from('table_sessions')
     .select(
-      'id, table_id, opened_at, closed_at, closed_reason, opened_by_user_id, closed_by_user_id, merge_into_session_id',
+      'id, table_id, opened_at, closed_at, closed_reason, settled_payable_amount, opened_by_user_id, closed_by_user_id, merge_into_session_id',
     )
     .eq('restaurant_id', query.restaurantId)
     .eq('status', 'closed')

@@ -29,7 +29,12 @@ export function buildRevenueTrend(
     const bucket = sessionDateKeyFromIso(session.closed_at);
     const orders = ordersBySession.get(session.id) || [];
     const splits = splitsBySession.get(session.id) || [];
-    const revenue = sessionRevenue(orders, splits, true);
+    const revenue = sessionRevenue(
+      orders,
+      splits,
+      true,
+      session.settled_payable_amount,
+    );
     daily.set(bucket, auditMoney((daily.get(bucket) || 0) + revenue));
   }
 

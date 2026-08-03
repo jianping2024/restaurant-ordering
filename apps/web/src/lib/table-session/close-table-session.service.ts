@@ -7,12 +7,13 @@ import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-re
 import type { UnpaidTableClosedAuditContext } from '@/lib/audit/builders/unpaid-table-closed';
 import type { AuditActor } from '@/lib/audit/types';
 import { auditMoney } from '@/lib/audit/money';
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import {
   closeActiveTableSessionSettled,
   type CloseTableSettledResult,
 } from '@/lib/close-active-table-session-with-cleanup';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
-import { freezeSessionBillingLines } from '@/lib/session-billing-freeze';
+import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
@@ -83,23 +84,28 @@ function snapshotToAuditContext(
 }
 
 export type CloseTableSessionFrontdeskCheckoutResult =
-  | { ok: true; session_id: string }
+  | {
+      ok: true;
+      session_id: string;
+      /** Present when print was requested; false means enqueue failed after close. */
+      print_ok?: boolean;
+    }
   | {
       ok: false;
       code: 'no_session' | 'update_failed';
       message?: string;
     };
 
-/** Cash/frontdesk checkout close — settled path with ledger + paid split, orders preserved. */
+/** Cash/frontdesk checkout close — settled payable snapshot + close; optional best-effort bill print. */
 export async function closeTableSessionFrontdeskCheckout(input: {
   admin: SupabaseClient;
   restaurantId: string;
   tableId: string;
   userId: string;
   closedReason: SettledCloseActorReason;
+  /** When true, enqueue checkout_bill after successful close (failure does not fail close). */
+  printBill?: boolean;
 }): Promise<CloseTableSessionFrontdeskCheckoutResult> {
-  // The closing RPC prices the session from `orders.items` in SQL, so the sushi free
-  // allowance has to be frozen into the stored lines before the session is closed.
   const { data: session } = await input.admin
     .from('table_sessions')
     .select('id')
@@ -108,28 +114,90 @@ export async function closeTableSessionFrontdeskCheckout(input: {
     .in('status', ['open', 'billing'])
     .maybeSingle();
 
-  if (session?.id) {
-    const orders = await loadCustomerSessionOrders({
-      admin: input.admin,
-      restaurantId: input.restaurantId,
-      sessionId: session.id as string,
-      ascending: true,
-    });
-    const frozen = await freezeSessionBillingLines(input.admin, input.restaurantId, orders);
-    if (!frozen.ok) {
-      return { ok: false, code: 'update_failed', message: frozen.message };
-    }
-  }
+  const sessionId = typeof session?.id === 'string' ? session.id : null;
+  const orders = sessionId
+    ? await loadCustomerSessionOrders({
+        admin: input.admin,
+        restaurantId: input.restaurantId,
+        sessionId,
+        ascending: true,
+      })
+    : [];
+  const settledPayable = auditMoney(sumBillableSessionTotal(orders));
 
   const closed = await closeActiveTableSessionSettled(
     input.admin,
     input.restaurantId,
     input.tableId,
     input.closedReason,
-    { closed_by_user_id: input.userId },
+    {
+      closed_by_user_id: input.userId,
+      settled_payable_amount: settledPayable,
+    },
   );
 
-  return mapSettledCloseResult(closed);
+  if (!closed.ok) {
+    return mapSettledCloseResult(closed);
+  }
+
+  if (!input.printBill || !sessionId) {
+    return { ok: true, session_id: closed.session_id };
+  }
+
+  const printOk = await enqueueCheckoutCloseBillPrint({
+    admin: input.admin,
+    restaurantId: input.restaurantId,
+    tableId: input.tableId,
+    sessionId,
+  });
+
+  return { ok: true, session_id: closed.session_id, print_ok: printOk };
+}
+
+async function enqueueCheckoutCloseBillPrint(params: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  tableId: string;
+  sessionId: string;
+}): Promise<boolean> {
+  const [{ data: tableRow }, { data: restaurantRow }] = await Promise.all([
+    params.admin
+      .from('restaurant_tables')
+      .select('display_name')
+      .eq('restaurant_id', params.restaurantId)
+      .eq('id', params.tableId)
+      .maybeSingle(),
+    params.admin
+      .from('restaurants')
+      .select('print_locale')
+      .eq('id', params.restaurantId)
+      .maybeSingle(),
+  ]);
+
+  const tableDisplayName =
+    typeof tableRow?.display_name === 'string' && tableRow.display_name.trim()
+      ? tableRow.display_name.trim()
+      : null;
+  if (!tableDisplayName) return false;
+
+  try {
+    const result = await enqueueReceiptPrint({
+      admin: params.admin,
+      restaurantId: params.restaurantId,
+      printLocale: (restaurantRow?.print_locale as string | null) ?? null,
+      sessionId: params.sessionId,
+      tableId: params.tableId,
+      tableDisplayName,
+      variant: 'checkout_bill',
+      printSource: 'staff_manual',
+    });
+    if (!result.ok) {
+      return result.code === 'no_orders';
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function mapSettledCloseResult(result: CloseTableSettledResult): CloseTableSessionFrontdeskCheckoutResult {

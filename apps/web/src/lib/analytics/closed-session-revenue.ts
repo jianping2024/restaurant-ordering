@@ -120,7 +120,7 @@ export function filterQualifyingClosedSessions(
   return sessions.filter((session) => {
     const orders = ordersBySession.get(session.id) || [];
     const splits = splitsBySession.get(session.id) || [];
-    return isQualifyingSession(orders, splits);
+    return isQualifyingSession(orders, splits, session.settled_payable_amount);
   });
 }
 
@@ -193,7 +193,7 @@ export function revenueSessionCountForDateKey(
 
     const orders = bundle.ordersBySession.get(session.id) || [];
     const splits = bundle.splitsBySession.get(session.id) || [];
-    if (sessionRevenue(orders, splits, true) <= 0) continue;
+    if (sessionRevenue(orders, splits, true, session.settled_payable_amount) <= 0) continue;
     count += 1;
   }
   return count;

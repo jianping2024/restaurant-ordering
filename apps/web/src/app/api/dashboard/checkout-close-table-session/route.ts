@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: actorCtx.error }, { status: actorCtx.status });
   }
 
-  let body: { table_id?: unknown };
+  let body: { table_id?: unknown; print_bill?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -24,12 +24,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
+  const printBill = body.print_bill === true;
+
   const result = await closeTableSessionFrontdeskCheckout({
     admin: actorCtx.admin,
     restaurantId: actorCtx.restaurantId,
     userId: actorCtx.userId,
     closedReason: actorCtx.closedReason,
     tableId,
+    printBill,
   });
 
   if (!result.ok) {
@@ -39,5 +42,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: result.code, message: result.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, session_id: result.session_id });
+  return NextResponse.json({
+    ok: true,
+    session_id: result.session_id,
+    ...(printBill ? { print_ok: result.print_ok === true } : {}),
+  });
 }

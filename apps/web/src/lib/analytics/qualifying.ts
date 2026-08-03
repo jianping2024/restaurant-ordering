@@ -1,5 +1,6 @@
 import { auditMoney } from '@/lib/audit/money';
 import { aggregateBuffetHeadcountForOrders } from '@/lib/buffet-order';
+import { resolveSettledSessionPayableForRevenue } from '@/lib/settled-session-payable';
 import type { BillSplit, Order, SplitResult } from '@/types';
 
 function applyDiscountToAmount(amount: number, discountRate: number): number {
@@ -10,9 +11,14 @@ function applyDiscountToAmount(amount: number, discountRate: number): number {
 export function isQualifyingSession(
   orders: Pick<Order, 'total_amount'>[],
   splits: Pick<BillSplit, 'status'>[],
+  settledPayableAmount?: number | null,
 ): boolean {
   const hasPaidSplit = splits.some((split) => split.status === 'paid');
   if (hasPaidSplit) return true;
+
+  if (settledPayableAmount != null && Number.isFinite(Number(settledPayableAmount))) {
+    return Number(settledPayableAmount) > 0.0001;
+  }
 
   const orderTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
   return orderTotal > 0.0001;
@@ -22,6 +28,7 @@ export function sessionRevenue(
   orders: Pick<Order, 'total_amount'>[],
   splits: Pick<BillSplit, 'status' | 'result' | 'total_amount' | 'discount_rate'>[],
   sessionClosed: boolean = false,
+  settledPayableAmount?: number | null,
 ): number {
   const paidSplits = splits.filter((split) => split.status === 'paid');
   if (paidSplits.length > 0) {
@@ -46,11 +53,15 @@ export function sessionRevenue(
     return auditMoney(total);
   }
 
-  const orderTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
-
   if (!sessionClosed) {
     return 0;
   }
+
+  const orderTotal = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+  const payable = resolveSettledSessionPayableForRevenue({
+    settledPayableAmount,
+    orderTotalAmountSum: orderTotal,
+  });
 
   const discountSplits = splits.filter(
     (split) => split.status !== 'cancelled' && split.status !== 'paid',
@@ -58,10 +69,10 @@ export function sessionRevenue(
   if (discountSplits.length > 0) {
     const lastSplit = discountSplits[discountSplits.length - 1]!;
     const discountRate = Number(lastSplit.discount_rate) || 0;
-    return applyDiscountToAmount(orderTotal, discountRate);
+    return applyDiscountToAmount(payable, discountRate);
   }
 
-  return auditMoney(orderTotal);
+  return payable;
 }
 
 export function sessionGuestCounts(

@@ -161,27 +161,59 @@ describe('closeActiveTableSessionWithOperationalCleanup', () => {
 });
 
 describe('closeTableSessionFrontdeskCheckout', () => {
-  it('delegates to settled close RPC', async () => {
+  it('delegates to settled close RPC with payable snapshot', async () => {
     let rpcName = '';
+    let rpcArgs: Record<string, unknown> | null = null;
+    const emptyOrders = {
+      then: (resolve: (value: { data: unknown[]; error: null }) => unknown) =>
+        Promise.resolve(resolve({ data: [], error: null })),
+    };
     const admin = {
-      rpc: async (name: string) => {
+      rpc: async (name: string, args: Record<string, unknown>) => {
         rpcName = name;
+        rpcArgs = args;
         return { data: { ok: true, session_id: 'sess-1' }, error: null };
       },
-      from: () => ({
-        select: () => ({
-          eq: () => ({
+      from: (table: string) => {
+        if (table === 'table_sessions') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  in: () => ({
+                    maybeSingle: async () => ({ data: { id: 'sess-1' }, error: null }),
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  order: () => emptyOrders,
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: () => ({
             eq: () => ({
-              maybeSingle: async () => ({ data: null, error: null }),
+              eq: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
             }),
           }),
-        }),
-        delete: () => ({
-          eq: () => ({
-            eq: async () => ({ error: null }),
+          delete: () => ({
+            eq: () => ({
+              eq: async () => ({ error: null }),
+            }),
           }),
-        }),
-      }),
+        };
+      },
     } as unknown as SupabaseClient;
 
     const result = await closeTableSessionFrontdeskCheckout({
@@ -193,6 +225,7 @@ describe('closeTableSessionFrontdeskCheckout', () => {
     });
 
     assert.equal(rpcName, 'close_table_session_settled');
+    assert.equal(rpcArgs?.p_settled_payable_amount, 0);
     assert.equal(result.ok, true);
   });
 
@@ -201,6 +234,17 @@ describe('closeTableSessionFrontdeskCheckout', () => {
       rpc: async () => ({
         data: { ok: false, code: 'no_session' },
         error: null,
+      }),
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            eq: () => ({
+              in: () => ({
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          }),
+        }),
       }),
     } as unknown as SupabaseClient;
 

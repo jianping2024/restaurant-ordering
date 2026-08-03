@@ -10,6 +10,8 @@ export type CloseTableOperationalReason = OperationalCloseReason;
 export type CloseTableSessionAudit = {
   /** Supabase auth user id for manual close (waiter/owner). Omit for auto_nightly. */
   closed_by_user_id?: string | null;
+  /** Billable payable snapshot for settled checkout close (written on session). */
+  settled_payable_amount?: number | null;
 };
 
 export type CloseTableOperationalResult =
@@ -56,7 +58,7 @@ function mapSettledRpcPayload(payload: CloseTableRpcPayload | null): CloseTableS
 
 /**
  * Settled close for frontdesk/cashier checkout: cancel unpaid splits, preserve orders,
- * close session. Revenue uses preserved order totals — no invented paid split/ledger.
+ * close session. Writes settled_payable_amount; does not invent paid split/ledger or mutate items.
  * See docs/table-session-close.zh.md.
  */
 export async function closeActiveTableSessionSettled(
@@ -71,6 +73,7 @@ export async function closeActiveTableSessionSettled(
     p_table_id: tableId,
     p_closed_reason: closedReason,
     p_closed_by_user_id: audit.closed_by_user_id ?? null,
+    p_settled_payable_amount: audit.settled_payable_amount ?? null,
   });
 
   if (rpcErr) {

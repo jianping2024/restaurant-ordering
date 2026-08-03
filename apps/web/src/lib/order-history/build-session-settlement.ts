@@ -16,6 +16,7 @@ import {
 import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-splits';
 import { countOrderListItems } from '@/lib/order-list-display';
 import { sessionOrderLineConsumption } from '@/lib/order-history/session-order-consumption';
+import { resolveSettledSessionPayable } from '@/lib/settled-session-payable';
 import { isSettledCloseReason } from '@/lib/table-session/operational-close-reasons';
 import type { Order } from '@/types';
 import type {
@@ -131,12 +132,14 @@ function reconcileHistorySettlementSummary(
   };
 }
 
-/** 关台结账：应付只来自订单；忽略已取消的结账草稿分账；不虚构已收。 */
-function buildSettledPayableSummary(orders: Order[]): CheckoutSettlementSummary {
-  const consumption = sessionOrderLineConsumption(orders);
-  const payable = auditMoney(consumption || sessionRevenue(orders, [], true));
+/** 关台结账：应付只认 settled_payable_amount（或同算法 billable 回算）；不虚构已收。 */
+function buildSettledPayableSummary(
+  orders: Order[],
+  settledPayableAmount?: number | null,
+): CheckoutSettlementSummary {
+  const payable = resolveSettledSessionPayable({ settledPayableAmount, orders });
   return {
-    consumption: !isNearZero(consumption) ? consumption : payable,
+    consumption: payable,
     payable,
     discountRate: 0,
     collected: 0,
@@ -193,21 +196,22 @@ export function buildOrderHistorySessionSettlement(input: {
   collectedPayments: SessionCollectedPayment[];
   orders: Order[];
   closedReason?: string | null;
+  settledPayableAmount?: number | null;
 }): OrderHistorySessionSettlement {
-  const { billSplit, collectedPayments, orders, closedReason } = input;
+  const { billSplit, collectedPayments, orders, closedReason, settledPayableAmount } = input;
   const outcome = resolveOrderHistoryCloseOutcome(billSplit, collectedPayments, closedReason);
 
   const ledgerPaid = billSplit?.status === 'paid';
   const settledAttested = !ledgerPaid && isSettledCloseReason(closedReason);
 
   const summary = settledAttested
-    ? buildSettledPayableSummary(orders)
+    ? buildSettledPayableSummary(orders, settledPayableAmount)
     : buildLedgerSummary(billSplit, collectedPayments, orders);
 
   const paidRevenue = ledgerPaid
     ? sessionRevenue(orders, [billSplit!])
     : settledAttested
-      ? sessionRevenue(orders, [], true)
+      ? sessionRevenue(orders, [], true, settledPayableAmount)
       : null;
 
   const { amount: listAmount, kind: listAmountKind } = listAmountForOutcome(

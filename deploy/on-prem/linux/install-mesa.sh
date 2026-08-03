@@ -283,6 +283,11 @@ EOF
     systemctl daemon-reload
     systemctl enable --now mesa-daily-cutover.timer >/dev/null
     log "已启用 systemd timer: mesa-daily-cutover.timer（OnCalendar Europe/Lisbon 05:05）"
+
+    if [[ -x "$DEST_ONPREM/scripts/tunnel-health.sh" ]]; then
+      MESA_HOME="$MESA_HOME" "$DEST_ONPREM/scripts/tunnel-health.sh" install-timer \
+        || log "WARN: mesa-tunnel-health.timer 安装失败（可稍后 sudo …/tunnel-health.sh install-timer）"
+    fi
   else
     log "WARN: 无 systemctl，跳过开机自启"
   fi

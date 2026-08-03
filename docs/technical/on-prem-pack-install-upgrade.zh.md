@@ -215,6 +215,36 @@ sudo journalctl -u cloudflared -n 30 --no-pager
 
 **不要**让 Print Agent / 深链用 `http://公网域`：Cloudflare 会 301→https，Go 跟随重定向时 **POST 变 GET** → heartbeat / routing / token 全 **405**。公网域一律 **`https://`**。
 
+#### Tunnel 健康监测（装机/升级自带）
+
+发行包装入 `scripts/tunnel-health.sh` + `mesa-tunnel-health.timer`（每 5 分钟增量扫 journal + 本机/公网 health）。
+
+**公网探测域名：** 从 `.env` 的 `ADDITIONAL_REDIRECT_URLS` 取第一个 host 含 `farvoo` 的 `https://…`（可用 `MESA_PUBLIC_HOST_MATCH` 改关键词）。**不读** `MESA_TUNNEL_ORIGIN`。找不到只记 WARN，**不退出失败**；journal + 本机探针照做。
+
+**日志（耐久目录，不被升级覆盖）：**
+
+| 路径 | 内容 |
+|------|------|
+| `/opt/mesa/logs/tunnel/latest.txt` | 最近一次人话摘要 |
+| `/opt/mesa/logs/tunnel/events.jsonl` | 追加异常事件 |
+| `/opt/mesa/logs/tunnel/journal.cursor` | journal 游标（去重） |
+
+```bash
+# 一次检测
+sudo /opt/mesa/current/deploy/on-prem/scripts/tunnel-health.sh check
+
+# 今天异常汇总
+sudo /opt/mesa/current/deploy/on-prem/scripts/tunnel-health.sh since today
+
+# 看最近摘要 / 原始事件
+cat /opt/mesa/logs/tunnel/latest.txt
+tail -50 /opt/mesa/logs/tunnel/events.jsonl
+
+# 已装店若升级时非 root：手动启用 timer
+sudo MESA_HOME=/opt/mesa /opt/mesa/current/deploy/on-prem/scripts/tunnel-health.sh install-timer
+systemctl list-timers mesa-tunnel-health.timer
+```
+
 #### Mesa 侧清单
 
 | 步骤 | 做什么 |
@@ -225,6 +255,7 @@ sudo journalctl -u cloudflared -n 30 --no-pager
 | 4. Agent 服务器地址 | 店内主填 **`http://<店内IP>`**（§2.2）。必须走公网时填 **`https://你的域`**（禁止 http），并 **重新配对** |
 | 5. 下载 / 配对页 | 下载用相对 `/api/downloads/...`；本机 pair 的 `api=` 用浏览器 `location.origin`。勿信 Tunnel 的 `X-Forwarded-Proto=http` |
 | 6. 抽查 | `curl -sI https://你的域/api/health/live`；Agent：`Realtime: connected and subscribed`；试打一张 |
+| 7. Tunnel 监测 | 见上；`check` / `since today` / `latest.txt` |
 
 **为何容易坑：** 外网 https，Tunnel→Caddy 常仍报 `X-Forwarded-Proto=http`；再叠加 QUIC 丢 WebSocket 升级头。Mode B claim 优先 Agent 的 `https://` `api_base`；cloudflared 用 **http2**。
 

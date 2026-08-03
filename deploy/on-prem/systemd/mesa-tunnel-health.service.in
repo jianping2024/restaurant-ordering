@@ -1,0 +1,10 @@
+[Unit]
+Description=Mesa on-prem Cloudflare Tunnel health probe
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=MESA_HOME=__MESA_HOME__
+WorkingDirectory=__ONPREM_DIR__
+ExecStart=__ONPREM_DIR__/scripts/tunnel-health.sh watch

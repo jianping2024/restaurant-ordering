@@ -41,6 +41,10 @@ import {
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
+import {
+  BUFFET_OPEN_ALREADY_OPEN,
+  type BuffetWaiterOpenIntent,
+} from '@/lib/buffet-waiter-open-intent';
 
 async function loadSessionSplitContinuation(
   admin: SupabaseClient,
@@ -88,6 +92,7 @@ export type BuffetWaiterPipelineInput = {
   userId: string;
   tableId: string;
   buffets: BuffetGuestEntry[];
+  intent: BuffetWaiterOpenIntent;
 };
 
 export type BuffetWaiterPipelineSuccess = {
@@ -122,13 +127,12 @@ export async function runBuffetWaiterOpenPipeline(
   admin: SupabaseClient,
   input: BuffetWaiterPipelineInput,
 ): Promise<BuffetWaiterPipelineResult> {
-  const { restaurantId, userId, tableId, buffets } = input;
+  const { restaurantId, userId, tableId, buffets, intent } = input;
   const targetSnapshot = snapshotFromBuffetEntries(buffets);
 
-  const [{ table, sessionRow }, activeBuffets, checkout] = await Promise.all([
+  const [{ table, sessionRow }, activeBuffets] = await Promise.all([
     loadTableAndSession(admin, restaurantId, tableId),
     loadActiveBuffets(admin, restaurantId),
-    fetchCheckoutRequestedForTable(admin, restaurantId, tableId),
   ]);
 
   if (!table) {
@@ -144,6 +148,15 @@ export async function runBuffetWaiterOpenPipeline(
 
   const displayName = table.display_name;
   const existingSession = sessionRow ? tableSessionRefFromRow(sessionRow) : null;
+  const isColdOpen = existingSession == null;
+
+  if (intent === 'open' && existingSession) {
+    return pipelineFailure(409, BUFFET_OPEN_ALREADY_OPEN, { code: BUFFET_OPEN_ALREADY_OPEN });
+  }
+
+  const checkout = isColdOpen
+    ? { requested: false, at: null as string | null }
+    : await fetchCheckoutRequestedForTable(admin, restaurantId, tableId);
 
   const ensured = await openTableSessionIfAbsent(
     admin,
@@ -164,82 +177,110 @@ export async function runBuffetWaiterOpenPipeline(
 
   const sessionId = ensured.session.id;
   const openedByUserId = sessionRow?.opened_by_user_id ?? userId;
-  const openedByName = await resolveActiveSessionOpenedByName(
-    admin,
-    restaurantId,
-    openedByUserId,
-  );
-  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session, openedByName);
 
   let orders: Order[];
+  let openedByName: string | null;
   try {
-    orders = await loadTableOrdersForSession(admin, restaurantId, sessionId);
+    const [name, loadedOrders] = await Promise.all([
+      resolveActiveSessionOpenedByName(admin, restaurantId, openedByUserId),
+      isColdOpen
+        ? Promise.resolve([] as Order[])
+        : loadTableOrdersForSession(admin, restaurantId, sessionId),
+    ]);
+    openedByName = name;
+    orders = loadedOrders;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'orders_lookup_failed';
     return pipelineFailure(500, 'orders_lookup_failed', { message });
   }
 
+  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session, openedByName);
   const sessionOrders = mapToBuffetSessionOrders(orders);
   const unchanged = isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot);
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
   if (!unchanged) {
-    try {
-      const { split, collectedPayments } = await loadSessionSplitContinuation(
-        admin,
-        restaurantId,
-        sessionId,
-      );
+    if (!isColdOpen) {
+      try {
+        const { split, collectedPayments } = await loadSessionSplitContinuation(
+          admin,
+          restaurantId,
+          sessionId,
+        );
 
-      const floors = lockedBuffetHeadcountByBuffetId(
-        split,
-        collectedPayments.length > 0,
-        collectedPayments,
-      );
-      const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
-      if (floorViolation) {
-        return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
-          code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
-          message:
-            `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
-            + `; proposed adults ${floorViolation.proposedAdults},`
-            + ` children ${floorViolation.proposedChildren}`,
-        });
+        const floors = lockedBuffetHeadcountByBuffetId(
+          split,
+          collectedPayments.length > 0,
+          collectedPayments,
+        );
+        const floorViolation = findBuffetHeadcountBelowPaidFloor(targetSnapshot, floors);
+        if (floorViolation) {
+          return pipelineFailure(409, BUFFET_HEADCOUNT_BELOW_PAID_FLOOR, {
+            code: BUFFET_HEADCOUNT_BELOW_PAID_FLOOR,
+            message:
+              `min adults ${floorViolation.minAdults}, children ${floorViolation.minChildren}`
+              + `; proposed adults ${floorViolation.proposedAdults},`
+              + ` children ${floorViolation.proposedChildren}`,
+          });
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'headcount_floor_lookup_failed';
+        return pipelineFailure(500, 'headcount_floor_lookup_failed', { message });
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'headcount_floor_lookup_failed';
-      return pipelineFailure(500, 'headcount_floor_lookup_failed', { message });
     }
 
     const currentSnapshot = buffetSnapshotFromOrders(sessionOrders);
     const { voidBuffetIds, upsertBuffetIds } = diffBuffetSnapshots(currentSnapshot, targetSnapshot);
 
+    const lineResults = await Promise.all(
+      upsertBuffetIds.map(async (buffetId) => {
+        const counts = targetSnapshot[buffetId];
+        if (!counts) return { ok: true as const, line: null, buffetId, resolved: null };
+
+        const buffet = activeBuffetById.get(buffetId);
+        if (!buffet) {
+          return {
+            ok: false as const,
+            status: 404,
+            error: 'buffet_not_found',
+            code: 'buffet_not_found',
+          };
+        }
+
+        const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffetId);
+        if (!resolved) {
+          return { ok: false as const, status: 500, error: 'price_resolve_failed' };
+        }
+
+        const line = buildBuffetBaseLine({
+          buffet,
+          adultCount: counts.adults,
+          childCount: counts.children,
+          resolved,
+        });
+        if (!line) {
+          return {
+            ok: false as const,
+            status: 400,
+            error: 'no_price_rule',
+            code: 'no_price_rule',
+          };
+        }
+        return { ok: true as const, line, buffetId, resolved };
+      }),
+    );
+
     const lines = [];
-    for (const buffetId of upsertBuffetIds) {
-      const counts = targetSnapshot[buffetId];
-      if (!counts) continue;
-
-      const buffet = activeBuffetById.get(buffetId);
-      if (!buffet) {
-        return pipelineFailure(404, 'buffet_not_found', { code: 'buffet_not_found' });
+    for (const result of lineResults) {
+      if (!result.ok) {
+        return pipelineFailure(result.status, result.error, {
+          code: 'code' in result ? result.code : undefined,
+        });
       }
-
-      const resolved = await resolveBuffetPricesServer(admin, restaurantId, buffetId);
-      if (!resolved) {
-        return pipelineFailure(500, 'price_resolve_failed');
+      if (result.line) {
+        lines.push(result.line);
+        resolvedByBuffetId[result.buffetId] = result.resolved;
       }
-      resolvedByBuffetId[buffetId] = resolved;
-
-      const line = buildBuffetBaseLine({
-        buffet,
-        adultCount: counts.adults,
-        childCount: counts.children,
-        resolved,
-      });
-      if (!line) {
-        return pipelineFailure(400, 'no_price_rule', { code: 'no_price_rule' });
-      }
-      lines.push(line);
     }
 
     const applied = await applyBuffetOpenToSession(admin, {

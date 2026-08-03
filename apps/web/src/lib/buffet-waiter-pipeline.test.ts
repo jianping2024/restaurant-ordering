@@ -1,9 +1,29 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  buffetWaiterOpenIntentFromSession,
+  parseBuffetWaiterOpenIntent,
+} from '@/lib/buffet-waiter-open-intent';
+import {
   sessionMetaFromEnsuredSession,
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
+
+describe('parseBuffetWaiterOpenIntent', () => {
+  it('accepts only open and save', () => {
+    assert.equal(parseBuffetWaiterOpenIntent('open'), 'open');
+    assert.equal(parseBuffetWaiterOpenIntent('save'), 'save');
+    assert.equal(parseBuffetWaiterOpenIntent(''), null);
+    assert.equal(parseBuffetWaiterOpenIntent(undefined), null);
+  });
+});
+
+describe('buffetWaiterOpenIntentFromSession', () => {
+  it('maps idle confirm to open and occupied save to save', () => {
+    assert.equal(buffetWaiterOpenIntentFromSession(false), 'open');
+    assert.equal(buffetWaiterOpenIntentFromSession(true), 'save');
+  });
+});
 
 describe('buffet waiter session helpers', () => {
   it('tableSessionRefFromRow maps session row fields', () => {

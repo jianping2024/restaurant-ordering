@@ -1,5 +1,6 @@
 import { showToast } from '@/components/ui/Toast';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
+import { BUFFET_OPEN_ALREADY_OPEN } from '@/lib/buffet-waiter-open-intent';
 import { BUFFET_HEADCOUNT_BELOW_PAID_FLOOR } from '@/lib/buffet-paid-headcount-floor';
 import {
   DEPENDENCY_UNAVAILABLE,
@@ -9,6 +10,7 @@ import {
 type WaiterCopy = (typeof WAITER_TEXT)[keyof typeof WAITER_TEXT];
 
 export type WaiterBuffetOpenFailureKind =
+  | 'already_open'
   | 'session_billing'
   | 'paid_floor'
   | 'no_price'
@@ -20,6 +22,7 @@ export function classifyWaiterBuffetOpenFailure(result: {
   status?: number;
   code?: string;
 }): WaiterBuffetOpenFailureKind {
+  if (result.status === 409 && result.code === BUFFET_OPEN_ALREADY_OPEN) return 'already_open';
   if (result.status === 409 && result.code === 'session_billing') return 'session_billing';
   if (result.status === 409 && result.code === BUFFET_HEADCOUNT_BELOW_PAID_FLOOR) {
     return 'paid_floor';
@@ -42,6 +45,9 @@ export function toastWaiterBuffetOpenFailure(
   result: { status?: number; code?: string },
 ): void {
   switch (classifyWaiterBuffetOpenFailure(result)) {
+    case 'already_open':
+      showToast(t.refreshHint, 'info');
+      return;
     case 'session_billing':
       showToast(t.checkoutLockedHint, 'info');
       return;

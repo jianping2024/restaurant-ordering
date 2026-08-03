@@ -8,6 +8,7 @@ import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
 import {
   buffetOpenSubmitBlockReason,
+  buffetWaiterOpenIntentFromSession,
   postWaiterBuffetOpenAndCommit,
 } from '@/lib/waiter-buffet-open-submit';
 import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
@@ -806,6 +807,7 @@ function WaiterTableDetailInner({
         tableId,
         guestSnapshot,
         activeBuffetIds,
+        intent: buffetWaiterOpenIntentFromSession(hasOpenSession),
       });
       if (!result.ok) {
         if (result.status === 409) {

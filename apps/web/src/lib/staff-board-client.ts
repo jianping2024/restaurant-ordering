@@ -115,6 +115,7 @@ export async function postWaiterBuffetOpenClient(
   slug: string,
   body: {
     table_id: string;
+    intent: 'open' | 'save';
     buffets: Array<{
       buffet_id: string;
       adult_count: number;

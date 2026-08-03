@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { parseBuffetWaiterOpenIntent } from '@/lib/buffet-waiter-open-intent';
 import {
   parseBuffetWaiterRequestBody,
   runBuffetWaiterOpenPipeline,
@@ -29,6 +30,7 @@ export async function POST(
     let body: {
       table_id?: unknown;
       buffets?: unknown;
+      intent?: unknown;
     };
     try {
       body = await req.json();
@@ -38,8 +40,9 @@ export async function POST(
 
     const tableId = parseTableIdParam(body.table_id);
     const parsedBuffets = parseBuffetWaiterRequestBody(body.buffets);
+    const intent = parseBuffetWaiterOpenIntent(body.intent);
 
-    if (!tableId || !parsedBuffets.ok) {
+    if (!tableId || !parsedBuffets.ok || !intent) {
       return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
     }
 
@@ -55,6 +58,7 @@ export async function POST(
       userId: ctx.user_id,
       tableId,
       buffets: parsedBuffets.buffets,
+      intent,
     });
 
     if (!result.ok) {

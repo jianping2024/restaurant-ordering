@@ -32,8 +32,3 @@ export function buildIdleOpenTablePageModel(
 export function activeBuffetsFromModel(model: WaiterTablePageModel) {
   return model.buffets.filter((b) => b.is_active);
 }
-
-/** True when an idle open-table attempt must stop because the table already has a session. */
-export function isTableOccupiedForIdleOpen(model: WaiterTablePageModel): boolean {
-  return model.detail.sessionMeta != null;
-}

@@ -4,33 +4,26 @@ import {
   type BuffetGuestSnapshot,
 } from '@/lib/buffet-order';
 import {
+  BUFFET_OPEN_ALREADY_OPEN,
+  buffetWaiterOpenIntentFromSession,
+  type BuffetWaiterOpenIntent,
+} from '@/lib/buffet-waiter-open-intent';
+import {
   DEPENDENCY_UNAVAILABLE,
   isDependencyFailure,
 } from '@/lib/dependency-unavailable';
-import { fetchWaiterTablePageModelClient, postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
-import { isTableOccupiedForIdleOpen } from '@/lib/waiter-board-open-table';
+import { postWaiterBuffetOpenClient } from '@/lib/staff-board-client';
 import { commitAuthoritativeWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import type { Order } from '@/types';
 
-export type IdleOpenPrecheckResult = 'idle' | 'already_open' | 'unavailable';
-
-/** Submit-time guard: board idle card may be stale; confirm no session before opening. */
-export async function precheckIdleOpenTable(
-  restaurantSlug: string,
-  tableId: string,
-): Promise<IdleOpenPrecheckResult> {
-  try {
-    const model = await fetchWaiterTablePageModelClient(restaurantSlug, tableId);
-    if (!model.detail.table) return 'unavailable';
-    if (isTableOccupiedForIdleOpen(model)) return 'already_open';
-    return 'idle';
-  } catch {
-    return 'unavailable';
-  }
-}
-
 export type BuffetOpenSubmitBlockReason = 'unchanged' | 'editor_not_ready';
+
+export {
+  BUFFET_OPEN_ALREADY_OPEN,
+  buffetWaiterOpenIntentFromSession,
+};
+export type { BuffetWaiterOpenIntent };
 
 /** Client-side guards before POST …/staff/waiter/buffet. */
 export function buffetOpenSubmitBlockReason(
@@ -58,10 +51,12 @@ export async function postWaiterBuffetOpenAndCommit(input: {
   tableId: string;
   guestSnapshot: BuffetGuestSnapshot;
   activeBuffetIds: string[];
+  intent: BuffetWaiterOpenIntent;
 }): Promise<WaiterBuffetOpenPostResult> {
   try {
     const nextModel = await postWaiterBuffetOpenClient(input.restaurantSlug, {
       table_id: input.tableId,
+      intent: input.intent,
       buffets: buffetEntriesFromSnapshot(input.guestSnapshot, input.activeBuffetIds).map(
         (entry) => ({
           buffet_id: entry.buffetId,
@@ -77,6 +72,10 @@ export async function postWaiterBuffetOpenAndCommit(input: {
     if (isDependencyFailure(err) || apiErr.code === DEPENDENCY_UNAVAILABLE) {
       return { ok: false, status: 503, code: DEPENDENCY_UNAVAILABLE };
     }
-    return { ok: false, status: apiErr.status, code: apiErr.code ?? apiErr.message };
+    return {
+      ok: false,
+      status: apiErr.status,
+      code: apiErr.code ?? apiErr.message,
+    };
   }
 }

@@ -4,9 +4,10 @@ import { useCallback, useState } from 'react';
 import { showToast } from '@/components/ui/Toast';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
+  BUFFET_OPEN_ALREADY_OPEN,
   buffetOpenSubmitBlockReason,
+  buffetWaiterOpenIntentFromSession,
   postWaiterBuffetOpenAndCommit,
-  precheckIdleOpenTable,
 } from '@/lib/waiter-buffet-open-submit';
 import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
 import type { BuffetGuestSnapshot } from '@/lib/buffet-order';
@@ -65,30 +66,18 @@ export function useWaiterBuffetOpenMutation({
 
     setSubmitting(true);
 
-    if (!hasOpenSession) {
-      const precheck = await precheckIdleOpenTable(restaurantSlug, tableId);
-      if (precheck === 'already_open') {
-        setSubmitting(false);
-        showToast(t.refreshHint, 'info');
-        return { kind: 'already_open' };
-      }
-      if (precheck === 'unavailable') {
-        setSubmitting(false);
-        showToast(t.actionFailed, 'error');
-        return { kind: 'failed' };
-      }
-    }
-
     const result = await postWaiterBuffetOpenAndCommit({
       restaurantSlug,
       tableId,
       guestSnapshot,
       activeBuffetIds,
+      intent: buffetWaiterOpenIntentFromSession(hasOpenSession),
     });
 
     if (!result.ok) {
       setSubmitting(false);
       toastWaiterBuffetOpenFailure(t, result);
+      if (result.code === BUFFET_OPEN_ALREADY_OPEN) return { kind: 'already_open' };
       return { kind: 'failed' };
     }
 

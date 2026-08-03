@@ -35,17 +35,17 @@
 ```
 
 ```
-① 读   并行：桌台、自助餐定义、已有 session
+① 读   并行：桌台、自助餐定义
+         → intent=open 且已有 active session → 409 already_open（不写）
+         → 冷开台跳过 checkout / orders / 人数地板空读；否则按需加载
          → ensure session（open）
-         → 拉 session 内 orders 一次
          → mapToBuffetSessionOrders（只映射一次，全程复用）
 
 ② 判   isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot)
          true  → 跳到 ④（unchanged: true）
          false → 继续 ③
 
-③ 写   diffBuffetSnapshots → 对每个 upsert 的 buffet_id：
-         resolve_buffet_prices → buildBuffetBaseLine
+③ 写   diffBuffetSnapshots → upsert 套餐并行 resolve_buffet_prices → buildBuffetBaseLine
          → planBuffetOpenWrites（lines + voidBuffetIds）→ applyBuffetOpenToSession
 
 ④ 返   buildActiveWaiterTablePageModel
@@ -57,6 +57,7 @@
 - 在 ② 为 true 时调用 `resolve_buffet_prices` 或 `applyBuffetOpenToSession`
 - 在 ④ 再次全量 `loadWaiterTablePageModel`（重复读 table/session/orders/价格）
 - 对同一批 session orders 多次 `mapToBuffetSessionOrders`
+- 客户端确认前 GET 桌模型做占桌预检（陈旧守卫只走 `already_open`）
 
 ---
 
@@ -71,11 +72,12 @@
 
 **已开台** = session 内存在 active `buffet_base`（与 `aggregateBuffetForOrders` 一致）。布局重构（如 `WaiterTableBuffetPanel`）须通过 **`buffetActionLabel` prop** 传入文案，**不得**在 `WaiterTableDetailLayout` 内写死「确认开台」或「保存人数」。
 
-1. 点击主按钮前：`isBuffetGuestCountsUnchanged(tableOrders, …)` → 未变则 toast，**不发请求**。
-2. 有变化：`applyBuffetOpenOptimisticToOrders` 乐观更新 → `postWaiterBuffetOpenClient` → `applyModel` + `commitAuthoritativeWaiterTablePageModel`；详情 reconcile 会再次 commit；看板 `reconcileWaiterBoardWithPublished` 在 API 确认 session 后才按桌 clear。
-3. 失败：回滚乐观状态；409 冲突时 `refresh()`。
+1. 点击主按钮前：`isBuffetSubmitSnapshotUnchanged` / `buffetOpenSubmitBlockReason` → 未变或编辑器未就绪则 toast，**不发请求**。
+2. 有变化：一次 `POST …/staff/waiter/buffet`，body 带 **`intent`**：`open`（看板确认开台 / 详情无 session）或 `save`（已开台保存人数）。由 `buffetWaiterOpenIntentFromSession(hasOpenSession)` 派生，**禁止**确认前再 GET 桌模型做占桌预检。
+3. 成功：`commitAuthoritativeWaiterTablePageModel` + 看板 `applyOpenTableToBoard`（用响应 `model`）；详情 `applyModel`。
+4. 失败：`toastWaiterBuffetOpenFailure`。`intent=open` 且桌已有 active session → `409` / `already_open`（服务端唯一陈旧守卫，不写人头）；看板 sheet 关 sheet + `onStaleBoard`；详情 409 时 `refresh()`。
 
-判定函数与服务器共用：`isBuffetGuestCountsUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
+判定函数与服务器共用：`isBuffetSubmitSnapshotUnchanged`（`apps/web/src/lib/buffet-order.ts`）。
 
 ---
 
@@ -91,9 +93,10 @@
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |
 | 写后内存投影 | `applyBuffetOpenWritePlanToOrders` |
 | 响应组装 | `buildActiveWaiterTablePageModel` |
-| 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline` |
+| 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline`（`intent` + `already_open`） |
+| 客户端提交 | `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession` |
 | 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
-| API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]`） |
+| API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]` + `intent`） |
 | Session 创建 | `openTableSessionIfAbsent` |
 | 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |
 | 并台按套餐合并 | `merge_table_sessions`（migration `20260706123000_*`） |
@@ -102,4 +105,4 @@
 
 ## 扩展新规则时
 
-只改 **② 判定**（例如：时段变价是否强制重算），或 `planBuffetOpenWrites` 的写入语义。**不要**新开 API 分支或第二条 detail 拉取路径。
+只改 **② 判定**（例如：时段变价是否强制重算），或 `planBuffetOpenWrites` 的写入语义。**不要**新开 API 分支、确认前 GET 预检，或第二条 detail 拉取路径。

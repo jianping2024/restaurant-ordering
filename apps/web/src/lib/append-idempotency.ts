@@ -142,14 +142,3 @@ export async function releaseAppendIdempotencyClaim(params: {
     .eq('status', 'pending');
 }
 
-export function logOrderAppendEvent(
-  event: string,
-  fields: Record<string, string | number | boolean | undefined | null>,
-): void {
-  const payload: Record<string, string | number | boolean> = { event };
-  for (const [key, value] of Object.entries(fields)) {
-    if (value === undefined || value === null) continue;
-    payload[key] = value;
-  }
-  console.info('[order_append]', JSON.stringify(payload));
-}

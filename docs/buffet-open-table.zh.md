@@ -97,6 +97,7 @@
 | 客户端提交 | `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession` |
 | 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
 | API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]` + `intent`） |
+| 失败日志 | 唯一出口 `respondWaiterBuffetFailure` → `[waiter_buffet] {"event":"open_failed",status,error,code?,table_id?,intent?,parse_*?}`（与 `logJsonConsoleEvent` / `order_append` 同形） |
 | Session 创建 | `openTableSessionIfAbsent` |
 | 加菜门禁 | `guestOrderingEnabled` + [`menu-order-append.zh.md`](menu-order-append.zh.md) |
 | 并台按套餐合并 | `merge_table_sessions`（migration `20260706123000_*`） |

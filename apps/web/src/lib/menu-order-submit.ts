@@ -3,7 +3,7 @@ import { coerceCartQty } from '@/lib/cart-totals';
 import type { CustomerGeoOrderFailure, CustomerGeoOrderResult } from '@/lib/customer-geo-order';
 import type { GuestOrderGateResult } from '@/lib/customer-menu-order-gate';
 import type { SessionStatus } from '@/types';
-import { logOrderAppendEvent } from '@/lib/append-idempotency';
+import { logJsonConsoleEvent } from '@/lib/json-console-log';
 
 export type MenuOrderSubmitFlow = 'guest' | 'staff_assisted';
 
@@ -222,7 +222,7 @@ export async function executeMenuOrderSubmit(params: {
   }
 
   const lineCount = params.cart.length;
-  logOrderAppendEvent('client_submit_start', {
+  logJsonConsoleEvent('order_append', 'client_submit_start', {
     client_request_id: clientRequestId,
     table_id: params.tableId,
     slug: params.slug,
@@ -242,7 +242,7 @@ export async function executeMenuOrderSubmit(params: {
       fetchImpl: params.fetchImpl,
     });
     if (!append.ok) {
-      logOrderAppendEvent('client_submit_failed', {
+      logJsonConsoleEvent('order_append', 'client_submit_failed', {
         client_request_id: clientRequestId,
         table_id: params.tableId,
         slug: params.slug,
@@ -252,7 +252,7 @@ export async function executeMenuOrderSubmit(params: {
       return { kind: 'append', code: append.code, clientRequestId };
     }
 
-    logOrderAppendEvent('client_submit_ok', {
+    logJsonConsoleEvent('order_append', 'client_submit_ok', {
       client_request_id: clientRequestId,
       table_id: params.tableId,
       slug: params.slug,
@@ -274,7 +274,7 @@ export async function executeMenuOrderSubmit(params: {
       idempotentReplay: append.idempotentReplay,
     };
   } catch {
-    logOrderAppendEvent('client_submit_network', {
+    logJsonConsoleEvent('order_append', 'client_submit_network', {
       client_request_id: clientRequestId,
       table_id: params.tableId,
       slug: params.slug,

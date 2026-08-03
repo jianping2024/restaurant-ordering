@@ -12,10 +12,10 @@ import { writeAppendBatch } from '@/lib/append-write-batch';
 import {
   claimAppendIdempotency,
   completeAppendIdempotency,
-  logOrderAppendEvent,
   parseAppendClientRequestId,
   releaseAppendIdempotencyClaim,
 } from '@/lib/append-idempotency';
+import { logJsonConsoleEvent } from '@/lib/json-console-log';
 
 export const runtime = 'nodejs';
 
@@ -129,7 +129,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   }
 
   if (claim.kind === 'in_progress') {
-    logOrderAppendEvent('append_in_progress', {
+    logJsonConsoleEvent('order_append', 'append_in_progress', {
       restaurant_id: rid,
       session_id: sessionId,
       table_id: tableId,
@@ -149,7 +149,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       },
       secret,
     );
-    logOrderAppendEvent('append_replay', {
+    logJsonConsoleEvent('order_append', 'append_replay', {
       restaurant_id: rid,
       session_id: sessionId,
       table_id: tableId,
@@ -224,7 +224,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   // If complete failed, same-key callers may see in_progress until the row is repaired;
   // never reclaim pending for a second write.
   if (!completed.ok) {
-    logOrderAppendEvent('append_complete_failed', {
+    logJsonConsoleEvent('order_append', 'append_complete_failed', {
       restaurant_id: rid,
       session_id: sessionId,
       table_id: tableId,
@@ -235,7 +235,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       duration_ms: Date.now() - startedAt,
     });
   } else {
-    logOrderAppendEvent('append_written', {
+    logJsonConsoleEvent('order_append', 'append_written', {
       restaurant_id: rid,
       session_id: sessionId,
       table_id: tableId,

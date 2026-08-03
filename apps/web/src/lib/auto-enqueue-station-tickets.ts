@@ -1,7 +1,7 @@
 import type { Language } from '@/types';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { showToast } from '@/components/ui/Toast';
-import { logOrderAppendEvent } from '@/lib/append-idempotency';
+import { logJsonConsoleEvent } from '@/lib/json-console-log';
 
 const SILENT_ERRORS = new Set(['nothing_enqueued']);
 
@@ -27,7 +27,7 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
   const { slug, orderId, batchId, enqueueToken, waiterFlow, lang, clientRequestId } = params;
   const t = MENU_PAGE_MESSAGES[lang];
 
-  logOrderAppendEvent('enqueue_start', {
+  logJsonConsoleEvent('order_append', 'enqueue_start', {
     client_request_id: clientRequestId,
     order_id: orderId,
     batch_id: batchId,
@@ -47,7 +47,7 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
     });
     const data = (await res.json()) as { error?: string };
     if (res.ok) {
-      logOrderAppendEvent('enqueue_ok', {
+      logJsonConsoleEvent('order_append', 'enqueue_ok', {
         client_request_id: clientRequestId,
         order_id: orderId,
         batch_id: batchId,
@@ -58,7 +58,7 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
     }
 
     const code = typeof data.error === 'string' ? data.error : '';
-    logOrderAppendEvent('enqueue_failed', {
+    logJsonConsoleEvent('order_append', 'enqueue_failed', {
       client_request_id: clientRequestId,
       order_id: orderId,
       batch_id: batchId,
@@ -71,7 +71,7 @@ export async function autoEnqueueStationTicketsAfterSubmit(params: {
 
     showToast(messageForError(code, t), code === 'no_station_bound_lines' ? 'info' : 'error');
   } catch {
-    logOrderAppendEvent('enqueue_network', {
+    logJsonConsoleEvent('order_append', 'enqueue_network', {
       client_request_id: clientRequestId,
       order_id: orderId,
       batch_id: batchId,

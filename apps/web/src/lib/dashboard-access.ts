@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
+import { loadAuthOwnershipGate } from '@/lib/staff-access';
 import type { Restaurant } from '@/types';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
@@ -65,15 +66,9 @@ const STAFF_DASHBOARD_RESTAURANT_SELECT =
   'id, name, slug, logo_url, feature_flags, buffet_service_mode, suspended_at, suspension_reason, license_valid_until';
 
 async function loadStaffRestaurant(
+  admin: ReturnType<typeof createAdminClient>,
   restaurantId: string,
 ): Promise<StaffDashboardRestaurant | { error: string }> {
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { error: 'server_misconfigured' };
-  }
-
   const { data: restaurant, error: restaurantError } = await admin
     .from('restaurants')
     .select(STAFF_DASHBOARD_RESTAURANT_SELECT)
@@ -90,68 +85,75 @@ async function loadStaffRestaurant(
   return restaurant as StaffDashboardRestaurant;
 }
 
-/** Dashboard RSC has no admin yet — bootstrap then sole reconcileRestaurantLicense. */
-async function reconcileLicenseForDashboard(restaurantId: string) {
+async function loadOwnerRestaurant(
+  admin: ReturnType<typeof createAdminClient>,
+  restaurantId: string,
+): Promise<Restaurant | { error: string }> {
+  const { data: restaurant, error } = await admin
+    .from('restaurants')
+    .select(OWNER_RESTAURANT_SELECT)
+    .eq('id', restaurantId)
+    .maybeSingle();
+
+  if (error) {
+    return { error: error.message };
+  }
+  if (!restaurant) {
+    return { error: 'restaurant_not_found' };
+  }
+  return restaurant as Restaurant;
+}
+
+/** Soft-fail wrapper — dashboard chrome must still render if license sync blips. */
+async function reconcileLicenseForDashboard(
+  admin: ReturnType<typeof createAdminClient>,
+  restaurantId: string,
+) {
   try {
-    return await reconcileRestaurantLicense(createAdminClient(), restaurantId);
+    return await reconcileRestaurantLicense(admin, restaurantId);
   } catch {
     return null;
   }
 }
 
 export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const gate = await loadAuthOwnershipGate();
+  if (!gate) return { mode: 'unauthenticated' };
 
-  if (!user) return { mode: 'unauthenticated' };
+  const { auth, ownedRestaurantId, staff } = gate;
+  const { admin, user } = auth;
 
-  const { data: ownedRestaurant, error: ownerError } = await supabase
-    .from('restaurants')
-    .select(OWNER_RESTAURANT_SELECT)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-
-  if (ownerError) {
-    return { mode: 'access_error', message: ownerError.message };
-  }
-
-  if (ownedRestaurant) {
-    const suspension = await reconcileLicenseForDashboard(ownedRestaurant.id as string);
-    const restaurant = {
-      ...(ownedRestaurant as Restaurant),
-      ...(suspension || {}),
+  if (ownedRestaurantId) {
+    const ownedRestaurant = await loadOwnerRestaurant(admin, ownedRestaurantId);
+    if ('error' in ownedRestaurant) {
+      return { mode: 'access_error', message: ownedRestaurant.error };
+    }
+    const suspension = await reconcileLicenseForDashboard(admin, ownedRestaurant.id);
+    return {
+      mode: 'owner',
+      restaurant: {
+        ...ownedRestaurant,
+        ...(suspension || {}),
+      },
     };
-    return { mode: 'owner', restaurant };
   }
 
-  const { data: account, error: staffError } = await supabase
-    .from('restaurant_staff_accounts')
-    .select('restaurant_id, disabled_at, role_id, role')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (staffError) {
-    return { mode: 'access_error', message: staffError.message };
-  }
-
-  if (account && !account.disabled_at) {
-    if (!account.role_id || account.role === 'print_agent') {
+  if (staff && !staff.disabled_at) {
+    if (!staff.role_id || staff.role === 'print_agent') {
       return { mode: 'unauthenticated' };
     }
-    const staffRestaurant = await loadStaffRestaurant(account.restaurant_id as string);
+    const staffRestaurant = await loadStaffRestaurant(admin, staff.restaurant_id);
     if ('error' in staffRestaurant) {
       return { mode: 'access_error', message: staffRestaurant.error };
     }
-    const suspension = await reconcileLicenseForDashboard(staffRestaurant.id);
+    const suspension = await reconcileLicenseForDashboard(admin, staffRestaurant.id);
     return {
       mode: 'staff',
       restaurant: { ...staffRestaurant, ...(suspension || {}) },
     };
   }
 
-  const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown>);
+  const meta = parseStaffUserMetadata(user.user_metadata);
   if (meta?.account_type === 'staff') {
     return { mode: 'unauthenticated' };
   }

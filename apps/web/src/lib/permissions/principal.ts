@@ -2,7 +2,6 @@ import 'server-only';
 
 import { cache } from 'react';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 import { staffRoleLabelForRestaurantRole } from '@/lib/permissions/restaurant-roles';
 import { isRolePresetKey } from '@/lib/permissions/role-templates';
 import { normalizeStoredPermissions } from '@/lib/permissions/resolve';
@@ -12,26 +11,23 @@ import {
   resolveCapabilitiesFromRolePermissions,
 } from '@/lib/permissions/resolve';
 import type { Capabilities } from '@/lib/permissions/can';
+import { loadAuthOwnershipGate } from '@/lib/staff-access';
+import type { StaffGateAccount } from '@/lib/staff-identity-gate';
 
 export type PrincipalWithCapabilities = {
   principal: Principal;
   capabilities: Capabilities;
 };
 
-async function loadStaffPrincipal(
+async function loadStaffPrincipalFromGate(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
+  account: StaffGateAccount,
 ): Promise<PrincipalWithCapabilities | null> {
-  const { data: account, error } = await admin
-    .from('restaurant_staff_accounts')
-    .select('id, restaurant_id, role, role_id, disabled_at')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (error || !account || account.disabled_at) return null;
+  if (account.disabled_at) return null;
   if (account.role === 'print_agent') return null;
 
-  const roleId = account.role_id as string | null;
+  const roleId = account.role_id;
   if (!roleId) return null;
 
   const { data: role } = await admin
@@ -51,9 +47,9 @@ async function loadStaffPrincipal(
 
   const principal: StaffPrincipal = {
     kind: 'staff',
-    restaurantId: account.restaurant_id as string,
+    restaurantId: account.restaurant_id,
     userId,
-    staffAccountId: account.id as string,
+    staffAccountId: account.id,
     roleId,
     roleName,
     presetKey,
@@ -69,40 +65,28 @@ async function loadStaffPrincipal(
 /**
  * Request-scoped identity + capabilities.
  * Owner wins over staff row. Disabled role → null (cannot authenticate).
+ * Auth user + ownership gate: sole via loadAuthOwnershipGate → loadAuthUserWithAdmin.
  */
 export const loadPrincipalWithCapabilities = cache(
   async (): Promise<PrincipalWithCapabilities | null> => {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return null;
+    const gate = await loadAuthOwnershipGate();
+    if (!gate) return null;
 
-    let admin: ReturnType<typeof createAdminClient>;
-    try {
-      admin = createAdminClient();
-    } catch {
-      return null;
-    }
+    const { auth, ownedRestaurantId, staff } = gate;
 
-    const { data: owned } = await admin
-      .from('restaurants')
-      .select('id')
-      .eq('owner_id', user.id)
-      .maybeSingle();
-
-    if (owned?.id) {
+    if (ownedRestaurantId) {
       return {
         principal: {
           kind: 'owner',
-          restaurantId: owned.id as string,
-          userId: user.id,
+          restaurantId: ownedRestaurantId,
+          userId: auth.user.id,
         },
         capabilities: resolveCapabilitiesForOwner(),
       };
     }
 
-    return loadStaffPrincipal(admin, user.id);
+    if (!staff) return null;
+    return loadStaffPrincipalFromGate(auth.admin, auth.user.id, staff);
   },
 );
 

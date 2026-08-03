@@ -96,6 +96,18 @@ func TestPairSuccessInvokesOnSuccess(t *testing.T) {
 	}
 }
 
+func TestSchedulePairOnSuccessImmediate(t *testing.T) {
+	prev := pairSuccessOnSuccessDelay
+	pairSuccessOnSuccessDelay = 0
+	defer func() { pairSuccessOnSuccessDelay = prev }()
+
+	called := false
+	schedulePairOnSuccess(func() { called = true })
+	if !called {
+		t.Fatal("expected immediate onSuccess when delay is 0")
+	}
+}
+
 func TestSchedulePairOnSuccessDeferred(t *testing.T) {
 	prev := pairSuccessOnSuccessDelay
 	pairSuccessOnSuccessDelay = 30 * time.Millisecond

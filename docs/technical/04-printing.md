@@ -95,7 +95,7 @@ Web 入队（service role）
 | 步骤 | API / 行为 |
 |------|------------|
 | 1. 配对 | Dashboard `POST /api/print-agent/pairing` → 六位码 |
-| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + **agentjwt**；并 ensure 系统 `print_agent` 员工、尽量签发 Auth session（`access_token` / `refresh_token` / `anon_key`）供 Realtime；**换店**时同一 `device_id` **转移**到新 `restaurant_id`（旧 JWT 失效），Agent 清空本地档口映射 |
+| 2. Claim | 代理 `POST /api/print-agent/claim` → `print_agent_devices` + **agentjwt**；并 ensure 系统 `print_agent` 员工、尽量签发 Auth session（`access_token` / `refresh_token` / `anon_key`）供 Realtime；响应 **`supabase_url`** 唯一经 `resolvePrintAgentClaimSupabaseUrl`：**Mode B** 可优先 agent `api_base` origin；**cloud** 固定 `getPublishedSupabaseUrl()`（`*.supabase.co`），勿用 Vercel `api_base`。**换店**时同一 `device_id` **转移**到新 `restaurant_id`（旧 JWT 失效），Agent 清空本地档口映射。Connected 重配：agent **进程内 rebind** 工作回路（不杀托盘 HTTP） |
 | 3. 发现任务 | 默认 **Realtime**（员工 session + anon_key）；失败或无 session → **polling** `GET /api/print-agent/pending-jobs`。Realtime 在 access JWT **临期前主动重连**（换票 → 再订 → compensation），与托盘重启的 Realtime 段同一路径，避免过期后假活停推 |
 | 4. 执行 | 本地 `preparePrint` → Write → `PATCH jobs/[id]`（始终 agentjwt） |
 | 5. 心跳 | `POST /api/print-agent/heartbeat`（版本、映射档口数、最近打印） |

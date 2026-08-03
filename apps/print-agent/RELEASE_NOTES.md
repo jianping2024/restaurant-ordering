@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.61
+
+**Cloud claim Realtime URL；重配热切换；托盘一键卸载**
+
+- Connected 重配：进程内 `rebindTrayAgentWork`（不杀托盘 / `:17892`）；菜单「重启」仍整进程重启。
+- 托盘新增「卸载…」：清除本机配置与日志，并拉起 Setup 卸载器（便携版仅清数据并提示手删）。
+- 须配合 Web：cloud claim 的 `supabase_url` 固定 `getPublishedSupabaseUrl()`（`*.supabase.co`），Mode B 仍可优先 `api_base`。
+
 ## 0.3.60
 
 **Setup 覆盖升级（管理员 + 关闭运行中进程）**

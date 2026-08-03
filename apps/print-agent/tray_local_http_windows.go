@@ -33,7 +33,7 @@ func (t *trayLocalHTTP) mountConfigureRoutes(configPath string) {
 	cfgPtr := &cfg
 	mux := http.NewServeMux()
 	// done=nil: tray keeps routes until exit; configure-done only closes the browser tab.
-	// Pair while already Connected: restart so Realtime binds the new api_base/supabase_url.
+	// Pair while already Connected: rebindTrayAgentWork (in-process), not process restart.
 	onPairSuccess := func() {
 		if t.rt != nil {
 			t.rt.onPairConfigSaved()

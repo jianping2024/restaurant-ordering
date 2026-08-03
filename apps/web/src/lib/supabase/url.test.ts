@@ -114,7 +114,7 @@ describe('getPublishedSupabaseUrl', () => {
 });
 
 describe('resolvePrintAgentClaimSupabaseUrl', () => {
-  it('prefers agent api_base origin over forwarded proto http', () => {
+  it('Mode B: prefers agent api_base origin over forwarded proto http', () => {
     stashEnv();
     process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
     process.env.SUPABASE_PUBLIC_URL = 'http://192.168.0.141';
@@ -146,7 +146,7 @@ describe('resolvePrintAgentClaimSupabaseUrl', () => {
     assert.equal(resolvePrintAgentClaimSupabaseUrl('', headers), 'https://pirata.farvoo.com');
   });
 
-  it('cloud: uses getPublishedSupabaseUrl (ignores request Host)', () => {
+  it('cloud: uses getPublishedSupabaseUrl when api_base empty (ignores request Host)', () => {
     stashEnv();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co';
     const headers = {
@@ -156,5 +156,20 @@ describe('resolvePrintAgentClaimSupabaseUrl', () => {
       },
     };
     assert.equal(resolvePrintAgentClaimSupabaseUrl('', headers), 'https://abc.supabase.co');
+  });
+
+  it('cloud: ignores Vercel api_base — Realtime must stay on supabase.co', () => {
+    stashEnv();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co';
+    const headers = {
+      get(name: string) {
+        if (name === 'host') return 'restaurant-ordering-beryl-three.vercel.app';
+        return null;
+      },
+    };
+    assert.equal(
+      resolvePrintAgentClaimSupabaseUrl('https://restaurant-ordering-beryl-three.vercel.app', headers),
+      'https://abc.supabase.co',
+    );
   });
 });

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { openPrintAgentConfigure } from '@/lib/print-agent-local';
 import type { PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
 import {
   formatPairingCountdown,
@@ -12,8 +11,6 @@ import {
 import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 type PairingRow = PrintAgentPairingListItem;
-
-type ConfigureProbe = 'idle' | 'checking' | 'unreachable' | 'opened';
 
 export function PrintAgentPairingPanel({
   initialPairings = [],
@@ -27,13 +24,10 @@ export function PrintAgentPairingPanel({
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freshCode, setFreshCode] = useState<{ code: string; expires_at: string } | null>(null);
-  const [configureProbe, setConfigureProbe] = useState<ConfigureProbe>('idle');
   const [codeCopied, setCodeCopied] = useState(false);
   const [countdown, setCountdown] = useState('');
   const [codeExpired, setCodeExpired] = useState(false);
   const [revokingId, setRevokingId] = useState<string | null>(null);
-  /** After opening local /pair, lock open buttons briefly (code is single-use). */
-  const [openCooldownUntil, setOpenCooldownUntil] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,20 +76,8 @@ export function PrintAgentPairingPanel({
     return () => window.clearInterval(id);
   }, [freshCode?.expires_at]);
 
-  useEffect(() => {
-    if (openCooldownUntil <= 0) return;
-    const ms = openCooldownUntil - Date.now();
-    if (ms <= 0) {
-      setOpenCooldownUntil(0);
-      return;
-    }
-    const id = window.setTimeout(() => setOpenCooldownUntil(0), ms);
-    return () => window.clearTimeout(id);
-  }, [openCooldownUntil]);
-
   const pendingCount = pairings.filter((p) => p.pending).length;
   const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
-  const openButtonsLocked = configureProbe === 'checking' || openCooldownUntil > Date.now();
 
   const copyPairingCode = useCallback(async (code: string) => {
     try {
@@ -107,28 +89,10 @@ export function PrintAgentPairingPanel({
     }
   }, []);
 
-  const openConfigure = useCallback(
-    async (code?: string) => {
-      setConfigureProbe('checking');
-      if (code) {
-        await copyPairingCode(code);
-      }
-      const result = await openPrintAgentConfigure(code, lang);
-      if (result === 'unreachable') {
-        setConfigureProbe('unreachable');
-      } else {
-        setConfigureProbe('opened');
-        setOpenCooldownUntil(Date.now() + 10_000);
-      }
-    },
-    [copyPairingCode, lang],
-  );
-
   const createPairing = async () => {
     setCreating(true);
     setError(null);
     setFreshCode(null);
-    setConfigureProbe('idle');
     setCodeCopied(false);
     try {
       const res = await fetch('/api/print-agent/pairing', {
@@ -147,7 +111,7 @@ export function PrintAgentPairingPanel({
       }
       if (data.code && data.expires_at) {
         setFreshCode({ code: data.code, expires_at: data.expires_at });
-        await openConfigure(data.code);
+        await copyPairingCode(data.code);
       }
       await load();
     } catch {
@@ -222,19 +186,8 @@ export function PrintAgentPairingPanel({
           <div className="flex flex-wrap gap-2 pt-1">
             <button
               type="button"
-              disabled={openButtonsLocked}
-              onClick={() => void openConfigure(freshCode.code)}
-              className="inline-flex items-center justify-center rounded-lg bg-brand-gold text-brand-on-gold px-4 py-2 text-sm font-semibold hover:bg-brand-gold-light transition-colors disabled:opacity-60"
-            >
-              {configureProbe === 'checking' ? '…' : t.configureOpenWithCode}
-            </button>
-            <button
-              type="button"
               className="text-[12px] px-3 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-brand-text"
-              onClick={() => {
-                setFreshCode(null);
-                setConfigureProbe('idle');
-              }}
+              onClick={() => setFreshCode(null)}
             >
               {t.pairingDismiss}
             </button>
@@ -246,18 +199,6 @@ export function PrintAgentPairingPanel({
       {freshCode && codeExpired ? (
         <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
           {t.pairingExpired}
-        </p>
-      ) : null}
-
-      {configureProbe === 'unreachable' ? (
-        <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 leading-relaxed">
-          {t.configureUnreachable}
-        </p>
-      ) : null}
-
-      {configureProbe === 'opened' ? (
-        <p className="text-[13px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 leading-relaxed">
-          {t.configureOpenedHint}
         </p>
       ) : null}
 
@@ -317,18 +258,8 @@ export function PrintAgentPairingPanel({
         )}
       </div>
 
-      <div className="border-t border-brand-border/60 pt-3 space-y-2">
-        <p className="text-[12px] font-medium text-brand-text">{t.configureTitle}</p>
-        <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.configureSubtitle}</p>
-        <button
-          type="button"
-          disabled={openButtonsLocked}
-          onClick={() => void openConfigure()}
-          className="inline-flex text-[12px] text-brand-gold hover:underline font-medium disabled:opacity-60"
-        >
-          {configureProbe === 'checking' ? '…' : t.configureOpenIdle}
-        </button>
-        <p className="text-[12px] text-brand-text-muted leading-relaxed pt-1">{t.pairingAgentHint}</p>
+      <div className="border-t border-brand-border/60 pt-3">
+        <p className="text-[12px] text-brand-text-muted leading-relaxed">{t.pairingAgentHint}</p>
       </div>
     </div>
   );

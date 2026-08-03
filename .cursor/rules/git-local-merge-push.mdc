@@ -23,3 +23,15 @@ If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not
 - Local commits on a feature branch
 - Local `git merge` into local `main` when the user asked to land the change that way
 - Pushing `main` only when the user explicitly says push / `pnpm push` / ship
+
+## After land on local `main` (mandatory last step — no extra ask)
+
+When the user asked to merge/land this task’s feature branch (or the task’s approved end is “合进 main”): **do not stop on the feature branch/worktree.** Immediately:
+
+1. Ensure local `main` has the merge commit.
+2. `git worktree remove` this task’s feature worktree (if any); `--force` only for throwaway untracked junk in that worktree.
+3. `git branch -d <feature>` (local only; do not delete unrelated worktrees/branches).
+4. Primary checkout + agent root on **`main`**: shell `git checkout main` in the canonical repo path; `move_agent_to_root` only after the feature branch is deleted (or never existed on `origin`) — otherwise MCP fetch of the prior local-only branch fails.
+5. Report: on `main` @ `<sha>`, feature branch/worktree gone.
+
+Skip only if the user explicitly says keep the branch/worktree.

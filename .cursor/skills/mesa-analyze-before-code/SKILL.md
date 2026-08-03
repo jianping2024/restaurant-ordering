@@ -48,7 +48,7 @@ Hard phrase gate and short always-on summary: `.cursor/rules/analysis-before-cod
 
 ### After confirmation
 
-1. State base branch; create/switch from **`main`** (or user-named baseline) without touching other tasks’ WIP. If worktree has unrelated dirty files, use a **separate git worktree** — do not stash their WIP.
+1. State base branch; create/switch from **`main`** (or user-named baseline) without touching other tasks’ WIP. If worktree has unrelated dirty files, use a **separate git worktree** — do not stash their WIP. **Do not** `move_agent_to_root` / `move_agent_to_cloned_root` to “enter” a Mesa worktree when the prior chat branch is local-only — those MCP calls `git fetch origin <prior-branch>` and fail; use shell `git worktree` + absolute paths (see `AGENTS.md` retrospectives).
 2. Implement only the approved plan (end-state shape already).
 3. **Implementation gate (answerable from the diff):**
    - No parallel component/helper vs reuse verdict

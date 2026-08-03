@@ -31,7 +31,11 @@ test('primary session actions share one layout class', () => {
 });
 
 test('back-to-board footer uses page footer spacing and secondary action width', () => {
-  assert.match(waiterDetailLayout.pageFooter, /mt-4/);
+  assert.match(waiterDetailLayout.pageFooterSlot, /mt-4/);
+  assert.match(waiterDetailLayout.pageFooterSlot, /min-h-12/);
+  assert.match(waiterDetailLayout.pageBodySlot, /min-h-/);
+  assert.match(waiterDetailLayout.pageFooter, /flex/);
+  assert.doesNotMatch(waiterDetailLayout.pageFooter, /mt-4/);
   assert.match(waiterDetailLayout.secondaryAction, /w-full/);
 });
 
@@ -110,6 +114,11 @@ test('table detail cold load uses one shared content skeleton (no parallel pulse
   const here = dirname(fileURLToPath(import.meta.url));
   const detail = await readFile(join(here, 'WaiterTableDetail.tsx'), 'utf8');
   assert.match(detail, /WaiterTableDetailContentSkeleton/);
+  assert.match(detail, /paintPhase/);
+  assert.match(detail, /pageBodySlot/);
+  assert.match(detail, /pageFooterSlot/);
+  assert.doesNotMatch(detail, /detailBodyReady/);
+  assert.doesNotMatch(detail, /showColdContent/);
   assert.doesNotMatch(detail, /animate-pulse/);
   assert.match(detail, /isAuthoritativeIdleWaiterTableBoot/);
   const loading = await readFile(

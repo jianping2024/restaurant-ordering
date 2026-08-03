@@ -51,8 +51,15 @@ export const waiterDetailLayout = {
   buffetDetailSummaryActions: 'flex flex-wrap items-center justify-end gap-3 sm:col-span-2',
   /** Occupied-table actions — one centered row; buttons wrap on narrow viewports. */
   occupiedToolbarRow: 'flex flex-wrap items-center justify-center gap-2',
-  /** Page exit — below ordered items, above modals. */
-  pageFooter: 'mt-4 flex justify-center',
+  /** Page exit — filled by footer slot (`pageFooterSlot`). */
+  pageFooter: 'flex justify-center',
+  /**
+   * Single detail shell slots — stable height so cold→chrome→ready does not jump the page.
+   * Body min-height ≈ buffet card + ordered header block (not full order list).
+   */
+  pageBodySlot: 'min-h-[18rem]',
+  pageFooterSlot: 'mt-4 flex min-h-12 justify-center',
+  pageFooterPlaceholder: 'invisible h-11 w-full max-w-xs',
   /**
    * Page identity chrome — sticks under staff top bars.
    * Opaque page bg; fixed `h-14` so ordered-items offset stays aligned (`belowPageHeading`).
@@ -232,21 +239,33 @@ export function WaiterTableBackToBoardFooter({
   );
 }
 
-/** Sole cold-load content placeholder — reused by detail shell and route loading.tsx. */
-export function WaiterTableDetailContentSkeleton({ label }: { label: string }) {
-  return (
-    <>
-      <div
-        className={`${waiterUi.cardSurface} p-6 animate-pulse`}
-        aria-busy="true"
-        aria-label={label || undefined}
-      >
-        <div className="mb-4 h-5 w-48 rounded bg-brand-border/60" />
-        <div className="h-24 rounded bg-brand-border/40" />
-      </div>
-      {label ? <p className="mt-3 text-sm text-brand-text-muted">{label}</p> : null}
-    </>
+/** Sole body placeholder — cold slot, chrome ordered wait, and route loading.tsx. */
+export function WaiterTableDetailContentSkeleton({
+  label,
+  /** One card under chrome toolbar; full = two cards for cold / route loading. */
+  density = 'full',
+}: {
+  label: string;
+  density?: 'full' | 'ordered';
+}) {
+  const card = (titleW: string, bodyH: string) => (
+    <div className={`${waiterUi.cardSurface} p-6 animate-pulse`}>
+      <div className={`mb-4 h-5 ${titleW} rounded bg-brand-border/60`} />
+      <div className={`${bodyH} rounded bg-brand-border/40`} />
+    </div>
   );
+  return (
+    <div className="space-y-4" aria-busy="true" aria-label={label || undefined}>
+      {card('w-48', 'h-24')}
+      {density === 'full' ? card('w-40', 'h-16') : null}
+      {label ? <p className="text-sm text-brand-text-muted">{label}</p> : null}
+    </div>
+  );
+}
+
+/** Footer slot filler — same footprint as WaiterTableBackToBoardFooter before ready. */
+export function WaiterTableDetailFooterPlaceholder() {
+  return <div className={waiterDetailLayout.pageFooterPlaceholder} aria-hidden />;
 }
 
 export { buttonIcon };

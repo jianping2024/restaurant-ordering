@@ -80,20 +80,25 @@ export function isAuthoritativeIdleWaiterTableBoot(
   return model != null && model.detail.table != null && model.detail.sessionMeta == null;
 }
 
+/** Sole paint phase for table detail shell (header / body slot / footer slot). */
+export type WaiterTableDetailPaintPhase = 'cold' | 'chrome' | 'ready';
+
 /**
- * Sole gate for back-to-board footer (+ any UI that must wait on first GET body).
- * Not the same as detailLoaded (occupied chrome stub can load chrome early).
+ * Sole UI readiness representation — cold skeleton, chrome (toolbar ok, body waiting),
+ * or ready (footer + authoritative body). Replaces parallel showColdContent / detailBodyReady.
  */
-export function resolveWaiterTableDetailBodyReady(input: {
+export function resolveWaiterTableDetailPaintPhase(input: {
   isDemo: boolean;
+  /** Table chrome can paint (boot/GET set detailLoaded). */
+  detailLoaded: boolean;
   /** Mount will run Staff entry reconcile (occupied stub / cold pull). */
   needsEntryPull: boolean;
-  hasTable: boolean;
   entryPullCompleted: boolean;
-}): boolean {
-  if (input.isDemo) return true;
-  if (!input.needsEntryPull) return input.hasTable;
-  return input.entryPullCompleted;
+}): WaiterTableDetailPaintPhase {
+  if (input.isDemo) return 'ready';
+  if (!input.detailLoaded) return 'cold';
+  if (input.needsEntryPull && !input.entryPullCompleted) return 'chrome';
+  return 'ready';
 }
 
 /**

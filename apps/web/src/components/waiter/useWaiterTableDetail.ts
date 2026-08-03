@@ -31,7 +31,7 @@ import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table
 import {
   attachOpenTableDefaultsToPageModel,
   isAuthoritativeIdleWaiterTableBoot,
-  resolveWaiterTableDetailBodyReady,
+  resolveWaiterTableDetailPaintPhase,
   type WaiterTableDetailFetchScope,
 } from '@/lib/waiter-table-detail-scope';
 
@@ -278,10 +278,10 @@ export function useWaiterTableDetail(
     return ordersForWaiterTableView(tableId, orderRows, activeSessionByTableId);
   }, [activeSessionByTableId, isDemo, orderRows, tableId]);
 
-  const detailBodyReady = resolveWaiterTableDetailBodyReady({
+  const paintPhase = resolveWaiterTableDetailPaintPhase({
     isDemo,
+    detailLoaded,
     needsEntryPull,
-    hasTable: isDemo || table != null,
     entryPullCompleted: isDemo || entryPullCompleted,
   });
 
@@ -295,7 +295,7 @@ export function useWaiterTableDetail(
     checkoutRequested,
     checkoutRequestedAt,
     detailLoaded,
-    detailBodyReady,
+    paintPhase,
     refresh,
     applyModel,
     supabase,

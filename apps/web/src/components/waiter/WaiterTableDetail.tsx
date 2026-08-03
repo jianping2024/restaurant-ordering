@@ -86,6 +86,8 @@ import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actio
 import {
   WaiterTableBackToBoardFooter,
   WaiterTableDetailContentSkeleton,
+  WaiterTableDetailFooterPlaceholder,
+  waiterDetailLayout,
 } from '@/components/waiter/waiter-table-detail-ui';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
@@ -160,7 +162,7 @@ function WaiterTableDetailInner({
     checkoutRequestedAt,
     supabase,
     detailLoaded,
-    detailBodyReady,
+    paintPhase,
     activeSessionByTableId,
     checkoutRequested: isCheckoutPending,
     demoTables,
@@ -724,21 +726,6 @@ function WaiterTableDetailInner({
     t.printPreBill,
   ]);
 
-  if (!isDemo && detailLoaded && !selectedTable) {
-    return (
-      <div className={pageShellClass}>
-        <WaiterTableDetailHeader heading={formatWaiterTableDetailHeading(lang, displayName || '…')} />
-        <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
-          {t.noOrdersOnTable}
-        </div>
-        {detailBodyReady ? (
-          <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
-        ) : null}
-      </div>
-    );
-  }
-
-  const showColdContent = !isDemo && !detailLoaded;
   const closeDemoTable = async (closeTableId: string) => {
     setClosingDemoTable(closeTableId);
     try {
@@ -966,97 +953,115 @@ function WaiterTableDetailInner({
           lang,
           selectedCard.displayName || selectedDisplayName || '…',
         )}
-        updatedAtLabel={showColdContent ? undefined : tableUpdatedLabel}
+        updatedAtLabel={paintPhase === 'cold' ? undefined : tableUpdatedLabel}
       />
 
-      {showColdContent ? (
-        <WaiterTableDetailContentSkeleton label={t.tableDetailLoading} />
-      ) : (
-        <div className={`space-y-4${detailActionsArmed ? '' : ' pointer-events-none'}`}>
-          {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
+      <div className={waiterDetailLayout.pageBodySlot}>
+        {paintPhase === 'cold' ? (
+          <WaiterTableDetailContentSkeleton label={t.tableDetailLoading} />
+        ) : !selectedTable ? (
+          paintPhase === 'ready' ? (
+            <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
+              {t.noOrdersOnTable}
+            </div>
+          ) : (
+            <WaiterTableDetailContentSkeleton label={t.tableDetailLoading} />
+          )
+        ) : (
+          <div className={`space-y-4${detailActionsArmed ? '' : ' pointer-events-none'}`}>
+            {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
 
-          {detailActions.showBuffetPanel ? (
-            <WaiterTableBuffetPanel
-              lang={lang}
-              activeBuffets={activeBuffets}
-              guestSnapshot={guestSnapshot}
-              onSetGuestCount={(buffetId, which, value) => {
-                whenDetailActionsArmed(() => setBuffetGuestCount(buffetId, which, value));
-              }}
-              resolvedByBuffetId={resolvedByBuffetId}
-              buffetPriceLoading={buffetPriceLoading}
-              buffetActionLabel={buffetActionLabel}
-              buffetSubmitting={buffetSubmitting}
-              onSave={() => whenDetailActionsArmed(() => void applyBuffetToTable())}
-            />
-          ) : null}
+            {detailActions.showBuffetPanel ? (
+              <WaiterTableBuffetPanel
+                lang={lang}
+                activeBuffets={activeBuffets}
+                guestSnapshot={guestSnapshot}
+                onSetGuestCount={(buffetId, which, value) => {
+                  whenDetailActionsArmed(() => setBuffetGuestCount(buffetId, which, value));
+                }}
+                resolvedByBuffetId={resolvedByBuffetId}
+                buffetPriceLoading={buffetPriceLoading}
+                buffetActionLabel={buffetActionLabel}
+                buffetSubmitting={buffetSubmitting}
+                onSave={() => whenDetailActionsArmed(() => void applyBuffetToTable())}
+              />
+            ) : null}
 
-          {detailActions.showOccupiedToolbar ? (
-            <WaiterTableOccupiedToolbar
-              t={t}
-              lang={lang}
-              tableId={selectedCard.tableId}
-              sessionId={sessionMeta?.sessionId ?? null}
-              onContinueOrdering={() => {
-                whenDetailActionsArmed(() => {
-                  // Open first so catalog ensure/prefetch can paint; then refresh layout
-                  // restaurant (buffet_service_mode) without blocking the panel on RSC.
-                  setOrderingOpen(true);
-                  if (!isDemo) {
-                    queueMicrotask(() => {
-                      void router.refresh();
-                    });
-                  }
-                });
-              }}
-              isCheckoutPending={isCheckoutPending}
-              inTableParty={inTableParty}
-              onCheckoutLocked={notifyCheckoutLocked}
-              onTransfer={() => whenDetailActionsArmed(() => openAction('transfer', selectedCard.tableId))}
-              onMerge={() => whenDetailActionsArmed(() => openAction('merge', selectedCard.tableId))}
-              showTransfer={detailActions.showTransfer}
-              showMerge={detailActions.showMerge}
-              showCheckoutClose={detailActions.showCheckoutClose}
-              showForceClose={detailActions.showForceClose}
-              floorCapabilities={floorCaps}
-              isDemo={isDemo}
-              closingDemoTable={closingDemoTable === selectedCard.tableId}
-              onDemoCloseClick={() => {
-                whenDetailActionsArmed(() => {
-                  if (isCheckoutPending) {
-                    void closeDemoTable(selectedCard.tableId);
-                    return;
-                  }
-                  setDemoCloseConfirmTableId(selectedCard.tableId);
-                });
-              }}
-              onTableClosed={() => {
-                finishTableClose(selectedCard.tableId);
-              }}
-            />
-          ) : null}
+            {detailActions.showOccupiedToolbar ? (
+              <WaiterTableOccupiedToolbar
+                t={t}
+                lang={lang}
+                tableId={selectedCard.tableId}
+                sessionId={sessionMeta?.sessionId ?? null}
+                onContinueOrdering={() => {
+                  whenDetailActionsArmed(() => {
+                    // Open first so catalog ensure/prefetch can paint; then refresh layout
+                    // restaurant (buffet_service_mode) without blocking the panel on RSC.
+                    setOrderingOpen(true);
+                    if (!isDemo) {
+                      queueMicrotask(() => {
+                        void router.refresh();
+                      });
+                    }
+                  });
+                }}
+                isCheckoutPending={isCheckoutPending}
+                inTableParty={inTableParty}
+                onCheckoutLocked={notifyCheckoutLocked}
+                onTransfer={() => whenDetailActionsArmed(() => openAction('transfer', selectedCard.tableId))}
+                onMerge={() => whenDetailActionsArmed(() => openAction('merge', selectedCard.tableId))}
+                showTransfer={detailActions.showTransfer}
+                showMerge={detailActions.showMerge}
+                showCheckoutClose={detailActions.showCheckoutClose}
+                showForceClose={detailActions.showForceClose}
+                floorCapabilities={floorCaps}
+                isDemo={isDemo}
+                closingDemoTable={closingDemoTable === selectedCard.tableId}
+                onDemoCloseClick={() => {
+                  whenDetailActionsArmed(() => {
+                    if (isCheckoutPending) {
+                      void closeDemoTable(selectedCard.tableId);
+                      return;
+                    }
+                    setDemoCloseConfirmTableId(selectedCard.tableId);
+                  });
+                }}
+                onTableClosed={() => {
+                  finishTableClose(selectedCard.tableId);
+                }}
+              />
+            ) : null}
 
-          <WaiterTableOrderedItemsPanel
-            title={t.orderedItems}
-            sessionTotalText={orderedItemsSessionTotalText}
-            preBillPrint={orderedItemsPreBillPrint}
-            lines={selectedCard.orderLines}
-            formatChargeableHint={(qty, unitPrice) =>
-              formatChargeableShareHint(lang, qty, unitPrice)
-            }
-            isCheckoutPending={isCheckoutPending}
-            decrementingKey={decrementingKey}
-            orderLineKey={orderLineKey}
-            onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
-          />
-        </div>
-      )}
+            {paintPhase === 'ready' ? (
+              <WaiterTableOrderedItemsPanel
+                title={t.orderedItems}
+                sessionTotalText={orderedItemsSessionTotalText}
+                preBillPrint={orderedItemsPreBillPrint}
+                lines={selectedCard.orderLines}
+                formatChargeableHint={(qty, unitPrice) =>
+                  formatChargeableShareHint(lang, qty, unitPrice)
+                }
+                isCheckoutPending={isCheckoutPending}
+                decrementingKey={decrementingKey}
+                orderLineKey={orderLineKey}
+                onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
+              />
+            ) : (
+              <WaiterTableDetailContentSkeleton label="" density="ordered" />
+            )}
+          </div>
+        )}
+      </div>
 
-      {detailBodyReady ? (
-        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
-      ) : null}
+      <div className={waiterDetailLayout.pageFooterSlot}>
+        {paintPhase === 'ready' ? (
+          <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+        ) : (
+          <WaiterTableDetailFooterPlaceholder />
+        )}
+      </div>
 
-      {!showColdContent ? (
+      {paintPhase !== 'cold' ? (
         <>
           <WaiterStaffOrderingPanel
             open={orderingOpen}

@@ -5,7 +5,7 @@ import {
   buildWaiterTableDetailBootFromBoard,
   isAuthoritativeIdleWaiterTableBoot,
   parseWaiterTableDetailFetchScope,
-  resolveWaiterTableDetailBodyReady,
+  resolveWaiterTableDetailPaintPhase,
 } from './waiter-table-detail-scope';
 import type { WaiterTablePageModel } from './waiter-table-detail-types';
 
@@ -18,51 +18,60 @@ describe('waiter-table-detail-scope', () => {
     assert.equal(parseWaiterTableDetailFetchScope('other'), 'full');
   });
 
-  it('resolveWaiterTableDetailBodyReady is the sole footer/body gate', () => {
+  it('resolveWaiterTableDetailPaintPhase is the sole paint gate', () => {
     assert.equal(
-      resolveWaiterTableDetailBodyReady({
+      resolveWaiterTableDetailPaintPhase({
         isDemo: true,
+        detailLoaded: false,
         needsEntryPull: true,
-        hasTable: false,
         entryPullCompleted: false,
       }),
-      true,
+      'ready',
     );
     assert.equal(
-      resolveWaiterTableDetailBodyReady({
+      resolveWaiterTableDetailPaintPhase({
         isDemo: false,
-        needsEntryPull: false,
-        hasTable: true,
+        detailLoaded: false,
+        needsEntryPull: true,
         entryPullCompleted: false,
       }),
-      true,
+      'cold',
     );
     assert.equal(
-      resolveWaiterTableDetailBodyReady({
+      resolveWaiterTableDetailPaintPhase({
         isDemo: false,
-        needsEntryPull: false,
-        hasTable: false,
+        detailLoaded: true,
+        needsEntryPull: true,
+        entryPullCompleted: false,
+      }),
+      'chrome',
+    );
+    assert.equal(
+      resolveWaiterTableDetailPaintPhase({
+        isDemo: false,
+        detailLoaded: true,
+        needsEntryPull: true,
         entryPullCompleted: true,
       }),
-      false,
+      'ready',
     );
     assert.equal(
-      resolveWaiterTableDetailBodyReady({
+      resolveWaiterTableDetailPaintPhase({
         isDemo: false,
-        needsEntryPull: true,
-        hasTable: true,
+        detailLoaded: true,
+        needsEntryPull: false,
         entryPullCompleted: false,
       }),
-      false,
+      'ready',
     );
     assert.equal(
-      resolveWaiterTableDetailBodyReady({
+      resolveWaiterTableDetailPaintPhase({
         isDemo: false,
-        needsEntryPull: true,
-        hasTable: false,
-        entryPullCompleted: true,
+        detailLoaded: false,
+        needsEntryPull: false,
+        entryPullCompleted: false,
       }),
-      true,
+      'cold',
     );
   });
 

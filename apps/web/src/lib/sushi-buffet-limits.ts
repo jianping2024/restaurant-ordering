@@ -439,6 +439,19 @@ export function previewStaffCartOverage(params: {
   return { status: 'overage', lines };
 }
 
+/** True when guest cart includes any limited sushi line (needs session orders for precheck). */
+export function guestCartHasLimitedSushiItems(params: {
+  serviceMode: unknown;
+  cart: Array<{ menuItemId: string }>;
+  resolveItem: (menuItemId: string) => SushiLimitMenuFields | null;
+}): boolean {
+  for (const row of params.cart) {
+    const item = params.resolveItem(row.menuItemId);
+    if (item && isLimitedSushiMenuItem(params.serviceMode, item)) return true;
+  }
+  return false;
+}
+
 /**
  * Guest submit gate: same rule as append (`checkSushiLimitForCartLine`, not staff).
  * UI may keep limited dishes tappable; authority is submit (+ server).

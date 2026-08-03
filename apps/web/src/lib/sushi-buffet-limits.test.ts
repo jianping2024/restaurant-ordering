@@ -8,6 +8,7 @@ import {
   freeRemainingQty,
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
+  guestCartHasLimitedSushiItems,
   previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
@@ -209,6 +210,35 @@ describe('sushi buffet limits', () => {
         resolveItem: () => item,
       }),
       { ok: true },
+    );
+  });
+
+  it('guestCartHasLimitedSushiItems detects limited lines only', () => {
+    const limited = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const plain = { per_person_qty_limit: null, over_limit_unit_price: null };
+    assert.equal(
+      guestCartHasLimitedSushiItems({
+        serviceMode: 'sushi',
+        cart: [{ menuItemId: 'm1' }],
+        resolveItem: () => plain,
+      }),
+      false,
+    );
+    assert.equal(
+      guestCartHasLimitedSushiItems({
+        serviceMode: 'sushi',
+        cart: [{ menuItemId: 'm1' }, { menuItemId: 'm2' }],
+        resolveItem: (id) => (id === 'm2' ? limited : plain),
+      }),
+      true,
+    );
+    assert.equal(
+      guestCartHasLimitedSushiItems({
+        serviceMode: 'chinese',
+        cart: [{ menuItemId: 'm2' }],
+        resolveItem: () => limited,
+      }),
+      false,
     );
   });
 

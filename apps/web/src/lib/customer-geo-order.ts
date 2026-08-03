@@ -22,6 +22,16 @@ type RestaurantGeoConfig = GeoOrderRestrictionFields & {
 /** Reuse warmed coords on submit when still within TTL and inside fence. */
 export const CUSTOMER_GEO_WARM_TTL_MS = 90_000;
 
+/**
+ * Sole browser PositionOptions for guest fence warm + submit cold path.
+ * Coarse anti-remote (≤~1 km OK) — not doorway GPS / high-accuracy.
+ */
+const CUSTOMER_GEO_BROWSER_OPTIONS: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 10_000,
+  maximumAge: 120_000,
+};
+
 type WarmGeoSnapshot = {
   latitude: number;
   longitude: number;
@@ -56,30 +66,15 @@ function coordsWithinFence(
   return distanceMeters(latitude, longitude, anchor.latitude, anchor.longitude) <= maxMeters;
 }
 
-async function getBrowserLocation(options: PositionOptions) {
+/** One geolocation entry for warm + submit — always {@link CUSTOMER_GEO_BROWSER_OPTIONS}. */
+async function getCoarseBrowserLocation() {
   if (typeof window === 'undefined' || !navigator.geolocation) {
     throw new Error('not-supported');
   }
 
   return new Promise<GeolocationPosition>((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    navigator.geolocation.getCurrentPosition(resolve, reject, CUSTOMER_GEO_BROWSER_OPTIONS);
   });
-}
-
-async function getBrowserLocationForSubmit() {
-  try {
-    return await getBrowserLocation({
-      enableHighAccuracy: true,
-      timeout: 8000,
-      maximumAge: 0,
-    });
-  } catch {
-    return getBrowserLocation({
-      enableHighAccuracy: false,
-      timeout: 20000,
-      maximumAge: 120000,
-    });
-  }
 }
 
 function classifyGeoError(error: unknown): CustomerGeoOrderFailure {
@@ -116,11 +111,7 @@ export function warmCustomerGeoForOrder(params: {
 
   void (async () => {
     try {
-      const position = await getBrowserLocation({
-        enableHighAccuracy: false,
-        timeout: 10_000,
-        maximumAge: 120_000,
-      });
+      const position = await getCoarseBrowserLocation();
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
       if (coordsWithinFence(latitude, longitude, anchor, params.restaurant.order_radius_meters)) {
@@ -151,7 +142,7 @@ export async function resolveCustomerGeoForOrder(params: {
 
   let position: GeolocationPosition;
   try {
-    position = await getBrowserLocationForSubmit();
+    position = await getCoarseBrowserLocation();
   } catch (error) {
     if (isLocalDevHost) {
       return {

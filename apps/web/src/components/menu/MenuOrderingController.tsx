@@ -62,6 +62,7 @@ import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   classifyStaffQtyIncrease,
+  guestCartHasLimitedSushiItems,
   previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
@@ -181,6 +182,7 @@ export function MenuOrderingController({
     recentOrders,
     sessionResolved,
     refresh: refreshSessionContext,
+    isSessionContextFresh,
   } = useCustomerSessionContext(initialSessionContext, {
     slug: restaurant.slug,
     tableId,
@@ -496,6 +498,18 @@ export function MenuOrderingController({
     [clearSubmitCart, onStaffAppendSuccess, t.orderSuccess],
   );
 
+  const resolveLimitItem = useCallback(
+    (id: string) => {
+      const item = menuItems.find((m) => m.id === id);
+      if (!item) return null;
+      return {
+        per_person_qty_limit: item.per_person_qty_limit,
+        over_limit_unit_price: item.over_limit_unit_price,
+      };
+    },
+    [menuItems],
+  );
+
   useEffect(() => {
     if (!staffAssisted || staffSubmitMode !== 'navigate') return;
     router.prefetch(staffAssisted.returnHref);
@@ -588,6 +602,36 @@ export function MenuOrderingController({
     setSubmitting(true);
 
     try {
+      const cartQtyRows = cart.map((c) => ({
+        menuItemId: c.menuItemId,
+        qty: coerceCartQty(c.qty),
+      }));
+
+      // Guest sushi precheck under submitting spinner — one full refresh only when needed.
+      if (!staffAssisted) {
+        let sessionOrders = recentOrders;
+        const needsOrders = guestCartHasLimitedSushiItems({
+          serviceMode: buffetServiceMode,
+          cart: cartQtyRows,
+          resolveItem: resolveLimitItem,
+        });
+        if (needsOrders && !isSessionContextFresh()) {
+          const fresh = await refreshSessionContext('full');
+          sessionOrders = fresh?.recent_orders ?? recentOrders;
+        }
+        const sushiGate = previewGuestCartSushiGate({
+          serviceMode: buffetServiceMode,
+          guestCount: sessionGuestCountForLimits(sessionOrders),
+          sessionOrders,
+          cart: cartQtyRows,
+          resolveItem: resolveLimitItem,
+        });
+        if (!sushiGate.ok) {
+          showToast(messageForSushiLimitError(sushiGate.error, t), 'info');
+          return;
+        }
+      }
+
       const intent = resolveAppendClientRequestId({
         cart,
         previous: pendingAppendIntentRef.current,
@@ -659,14 +703,6 @@ export function MenuOrderingController({
     if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
     if (submittingRef.current) return;
 
-    const resolveLimitItem = (id: string) => {
-      const item = menuItems.find((m) => m.id === id);
-      if (!item) return null;
-      return {
-        per_person_qty_limit: item.per_person_qty_limit,
-        over_limit_unit_price: item.over_limit_unit_price,
-      };
-    };
     const cartQtyRows = cart.map((c) => ({
       menuItemId: c.menuItemId,
       qty: coerceCartQty(c.qty),
@@ -701,21 +737,6 @@ export function MenuOrderingController({
             t,
           ),
         });
-        return;
-      }
-    } else if (!isDemo) {
-      // One-shot full session before guest sushi gate (no poll / no menu realtime).
-      const fresh = await refreshSessionContext('full');
-      const sessionOrders = fresh?.recent_orders ?? recentOrders;
-      const gate = previewGuestCartSushiGate({
-        serviceMode: buffetServiceMode,
-        guestCount: sessionGuestCountForLimits(sessionOrders),
-        sessionOrders,
-        cart: cartQtyRows,
-        resolveItem: resolveLimitItem,
-      });
-      if (!gate.ok) {
-        showToast(messageForSushiLimitError(gate.error, t), 'info');
         return;
       }
     }

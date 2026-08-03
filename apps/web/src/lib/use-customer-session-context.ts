@@ -37,8 +37,8 @@ type InFlightRefresh = {
   token: object;
 };
 
-/** Skip visibility/mount re-pull when a fresh context was applied recently. */
-const CUSTOMER_SESSION_RESUME_TTL_MS = 15_000;
+/** Skip visibility/mount / submit sushi re-pull when a fresh context was applied recently. */
+export const CUSTOMER_SESSION_RESUME_TTL_MS = 15_000;
 
 function scopeCovers(running: CustomerSessionScope, requested: CustomerSessionScope) {
   return running === 'full' || requested === 'gate';
@@ -147,16 +147,20 @@ export function useCustomerSessionContext(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
   }, [params.tableId]);
 
-  const resumeRefresh = useCallback(() => {
-    if (
-      contextRef.current &&
+  const isSessionContextFresh = useCallback(() => {
+    return (
+      contextRef.current != null &&
       contextRef.current.table_id === params.tableId &&
       Date.now() - lastFreshAtRef.current < CUSTOMER_SESSION_RESUME_TTL_MS
-    ) {
+    );
+  }, [params.tableId]);
+
+  const resumeRefresh = useCallback(() => {
+    if (isSessionContextFresh() && contextRef.current) {
       return Promise.resolve(contextRef.current);
     }
     return refresh(resumeScope);
-  }, [params.tableId, refresh, resumeScope]);
+  }, [isSessionContextFresh, refresh, resumeScope]);
 
   useRestaurantStaffEntryReconcile(
     !isDemo,
@@ -170,5 +174,6 @@ export function useCustomerSessionContext(
     recentOrders,
     sessionResolved,
     refresh,
+    isSessionContextFresh,
   };
 }

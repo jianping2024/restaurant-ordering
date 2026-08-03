@@ -19,7 +19,9 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  *    see `waiter-board-live.ts` / `waiter-board-live-merge.ts`
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
  * 8. Detail → list re-shown — same as (4): live when floor ready, else full (no second path)
- * 9. Table detail — idle may boot from board open-table defaults; occupancy refresh uses
+ * 9. Table detail — board boot paints idle full model or occupied chrome stub
+ *    (`buildWaiterTableDetailBootFromBoard`); only authoritative idle skips mount
+ *    reconcile (`isAuthoritativeIdleWaiterTableBoot`). Occupancy refresh uses
  *    `scope=live` when board defaults exist and re-attaches that single price source
  *
  * Waiter board Realtime/entry pulls run only while the board list is visible (active);

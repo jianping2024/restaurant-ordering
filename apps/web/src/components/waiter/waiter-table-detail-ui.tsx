@@ -232,4 +232,21 @@ export function WaiterTableBackToBoardFooter({
   );
 }
 
+/** Sole cold-load content placeholder — reused by detail shell and route loading.tsx. */
+export function WaiterTableDetailContentSkeleton({ label }: { label: string }) {
+  return (
+    <>
+      <div
+        className={`${waiterUi.cardSurface} p-6 animate-pulse`}
+        aria-busy="true"
+        aria-label={label || undefined}
+      >
+        <div className="mb-4 h-5 w-48 rounded bg-brand-border/60" />
+        <div className="h-24 rounded bg-brand-border/40" />
+      </div>
+      {label ? <p className="mt-3 text-sm text-brand-text-muted">{label}</p> : null}
+    </>
+  );
+}
+
 export { buttonIcon };

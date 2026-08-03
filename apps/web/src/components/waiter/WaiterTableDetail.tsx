@@ -50,7 +50,10 @@ import {
   commitAuthoritativeWaiterTablePageModel,
   commitWaiterSessionRelocation,
 } from '@/lib/waiter-staff-mutation-sync';
-import { buildWaiterTableDetailBootFromBoard } from '@/lib/waiter-table-detail-scope';
+import {
+  buildWaiterTableDetailBootFromBoard,
+  isAuthoritativeIdleWaiterTableBoot,
+} from '@/lib/waiter-table-detail-scope';
 import { patchWaiterTableModelAfterStaffAppend, buildOptimisticOrderAfterStaffAppend } from '@/lib/staff-order-append-optimistic-patch';
 import type { MenuOrderSubmitSuccess } from '@/lib/menu-order-submit';
 import type { CustomerMenuCatalog } from '@/lib/customer-menu-catalog-client-cache';
@@ -80,7 +83,10 @@ import {
   useStaffSessionPreBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
-import { WaiterTableBackToBoardFooter } from '@/components/waiter/waiter-table-detail-ui';
+import {
+  WaiterTableBackToBoardFooter,
+  WaiterTableDetailContentSkeleton,
+} from '@/components/waiter/waiter-table-detail-ui';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
 /** Stable empty map — avoids buffet-form effect loops when model not yet loaded. */
@@ -126,7 +132,7 @@ function WaiterTableDetailInner({
   const locale = UI_LOCALE_BY_LANG[lang];
   const t = WAITER_TEXT[lang];
   const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
-  const boardIdleBoot = useMemo(() => {
+  const boardBoot = useMemo(() => {
     if (!embeddedInDashboard || !waiterBoard) return null;
     return buildWaiterTableDetailBootFromBoard(
       {
@@ -134,13 +140,16 @@ function WaiterTableDetailInner({
         sessionMetaByTableId: waiterBoard.sessionMetaByTableId,
         openTableDefaults: waiterBoard.openTableDefaults,
         partyMembers: waiterBoard.partyMembers,
+        checkoutRequestedTableIds: waiterBoard.checkoutRequestedTableIds,
+        checkoutRequestedAtByTableId: waiterBoard.checkoutRequestedAtByTableId,
       },
       tableId,
     );
   }, [embeddedInDashboard, tableId, waiterBoard]);
-  const resolvedInitialModel = initialModel ?? boardIdleBoot;
-  // Published seed is honored inside useWaiterTableDetail; only idle board boot skips mount pull here.
-  const skipEntryReconcile = hasAuthoritativeSeed || boardIdleBoot != null;
+  const resolvedInitialModel = initialModel ?? boardBoot;
+  // Published seed / idle board boot skip mount pull; occupied chrome stub still reconciles orders.
+  const skipEntryReconcile =
+    hasAuthoritativeSeed || isAuthoritativeIdleWaiterTableBoot(boardBoot);
   const {
     table: selectedTable,
     orders,
@@ -202,6 +211,25 @@ function WaiterTableDetailInner({
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
   const [orderingOpen, setOrderingOpen] = useState(false);
   const [cartDraft, setCartDraft] = useState<CartItem[]>([]);
+  /**
+   * Board→detail click-through guard: occupied chrome boots under the same pointer up.
+   * CSS blocks hit-testing until armed; ref ignores late handler delivery.
+   */
+  const detailActionsArmedRef = useRef(false);
+  const [detailActionsArmed, setDetailActionsArmed] = useState(false);
+  useEffect(() => {
+    detailActionsArmedRef.current = false;
+    setDetailActionsArmed(false);
+    const timer = window.setTimeout(() => {
+      detailActionsArmedRef.current = true;
+      setDetailActionsArmed(true);
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [tableId]);
+  const whenDetailActionsArmed = useCallback((action: () => void) => {
+    if (!detailActionsArmedRef.current) return;
+    action();
+  }, []);
   const activeBuffets = useMemo(
     () => (model?.buffets ?? []).filter((b) => b.is_active),
     [model?.buffets],
@@ -695,24 +723,6 @@ function WaiterTableDetailInner({
     t.printPreBill,
   ]);
 
-  if (!isDemo && !detailLoaded) {
-    return (
-      <div className={pageShellClass}>
-        <WaiterTableDetailHeader heading={formatWaiterTableDetailHeading(lang, '…')} />
-        <div
-          className={`${waiterUi.cardSurface} p-6 animate-pulse`}
-          aria-busy="true"
-          aria-label={t.tableDetailLoading}
-        >
-          <div className="h-5 w-48 rounded bg-brand-border/60 mb-4" />
-          <div className="h-24 rounded bg-brand-border/40" />
-        </div>
-        <p className="text-sm text-brand-text-muted mt-3">{t.tableDetailLoading}</p>
-        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
-      </div>
-    );
-  }
-
   if (!isDemo && detailLoaded && !selectedTable) {
     return (
       <div className={pageShellClass}>
@@ -725,6 +735,7 @@ function WaiterTableDetailInner({
     );
   }
 
+  const showColdContent = !isDemo && !detailLoaded;
   const closeDemoTable = async (closeTableId: string) => {
     setClosingDemoTable(closeTableId);
     try {
@@ -948,173 +959,190 @@ function WaiterTableDetailInner({
       )}
 
       <WaiterTableDetailHeader
-        heading={formatWaiterTableDetailHeading(lang, selectedCard.displayName)}
-        updatedAtLabel={tableUpdatedLabel}
+        heading={formatWaiterTableDetailHeading(
+          lang,
+          selectedCard.displayName || selectedDisplayName || '…',
+        )}
+        updatedAtLabel={showColdContent ? undefined : tableUpdatedLabel}
       />
 
-      <div className="space-y-4">
-        {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
+      {showColdContent ? (
+        <WaiterTableDetailContentSkeleton label={t.tableDetailLoading} />
+      ) : (
+        <div className={`space-y-4${detailActionsArmed ? '' : ' pointer-events-none'}`}>
+          {isCheckoutPending ? <WaiterCheckoutPendingBanner message={t.checkoutPendingBanner} /> : null}
 
-        {detailActions.showBuffetPanel ? (
-          <WaiterTableBuffetPanel
-            lang={lang}
-            activeBuffets={activeBuffets}
-            guestSnapshot={guestSnapshot}
-            onSetGuestCount={setBuffetGuestCount}
-            resolvedByBuffetId={resolvedByBuffetId}
-            buffetPriceLoading={buffetPriceLoading}
-            buffetActionLabel={buffetActionLabel}
-            buffetSubmitting={buffetSubmitting}
-            onSave={() => void applyBuffetToTable()}
-          />
-        ) : null}
+          {detailActions.showBuffetPanel ? (
+            <WaiterTableBuffetPanel
+              lang={lang}
+              activeBuffets={activeBuffets}
+              guestSnapshot={guestSnapshot}
+              onSetGuestCount={(buffetId, which, value) => {
+                whenDetailActionsArmed(() => setBuffetGuestCount(buffetId, which, value));
+              }}
+              resolvedByBuffetId={resolvedByBuffetId}
+              buffetPriceLoading={buffetPriceLoading}
+              buffetActionLabel={buffetActionLabel}
+              buffetSubmitting={buffetSubmitting}
+              onSave={() => whenDetailActionsArmed(() => void applyBuffetToTable())}
+            />
+          ) : null}
 
-        {detailActions.showOccupiedToolbar ? (
-          <WaiterTableOccupiedToolbar
-            t={t}
-            lang={lang}
-            restaurantSlug={restaurant.slug}
-            tableId={selectedCard.tableId}
-            sessionId={sessionMeta?.sessionId ?? null}
-            onContinueOrdering={() => {
-              // Open first so catalog ensure/prefetch can paint; then refresh layout
-              // restaurant (buffet_service_mode) without blocking the panel on RSC.
-              setOrderingOpen(true);
-              if (!isDemo) {
-                queueMicrotask(() => {
-                  void router.refresh();
+          {detailActions.showOccupiedToolbar ? (
+            <WaiterTableOccupiedToolbar
+              t={t}
+              lang={lang}
+              restaurantSlug={restaurant.slug}
+              tableId={selectedCard.tableId}
+              sessionId={sessionMeta?.sessionId ?? null}
+              onContinueOrdering={() => {
+                whenDetailActionsArmed(() => {
+                  // Open first so catalog ensure/prefetch can paint; then refresh layout
+                  // restaurant (buffet_service_mode) without blocking the panel on RSC.
+                  setOrderingOpen(true);
+                  if (!isDemo) {
+                    queueMicrotask(() => {
+                      void router.refresh();
+                    });
+                  }
                 });
-              }
-            }}
-            isCheckoutPending={isCheckoutPending}
-            inTableParty={inTableParty}
-            onCheckoutLocked={notifyCheckoutLocked}
-            onTransfer={() => openAction('transfer', selectedCard.tableId)}
-            onMerge={() => openAction('merge', selectedCard.tableId)}
-            showTransfer={detailActions.showTransfer}
-            showMerge={detailActions.showMerge}
-            showCheckoutClose={detailActions.showCheckoutClose}
-            showForceClose={detailActions.showForceClose}
-            floorCapabilities={floorCaps}
-            isDemo={isDemo}
-            closingDemoTable={closingDemoTable === selectedCard.tableId}
-            onDemoCloseClick={() => {
-              if (isCheckoutPending) {
-                void closeDemoTable(selectedCard.tableId);
-                return;
-              }
-              setDemoCloseConfirmTableId(selectedCard.tableId);
-            }}
-            onTableClosed={() => {
-              finishTableClose(selectedCard.tableId);
-            }}
-          />
-        ) : null}
+              }}
+              isCheckoutPending={isCheckoutPending}
+              inTableParty={inTableParty}
+              onCheckoutLocked={notifyCheckoutLocked}
+              onTransfer={() => whenDetailActionsArmed(() => openAction('transfer', selectedCard.tableId))}
+              onMerge={() => whenDetailActionsArmed(() => openAction('merge', selectedCard.tableId))}
+              showTransfer={detailActions.showTransfer}
+              showMerge={detailActions.showMerge}
+              showCheckoutClose={detailActions.showCheckoutClose}
+              showForceClose={detailActions.showForceClose}
+              floorCapabilities={floorCaps}
+              isDemo={isDemo}
+              closingDemoTable={closingDemoTable === selectedCard.tableId}
+              onDemoCloseClick={() => {
+                whenDetailActionsArmed(() => {
+                  if (isCheckoutPending) {
+                    void closeDemoTable(selectedCard.tableId);
+                    return;
+                  }
+                  setDemoCloseConfirmTableId(selectedCard.tableId);
+                });
+              }}
+              onTableClosed={() => {
+                finishTableClose(selectedCard.tableId);
+              }}
+            />
+          ) : null}
 
-        <WaiterTableOrderedItemsPanel
-          title={t.orderedItems}
-          sessionTotalText={orderedItemsSessionTotalText}
-          preBillPrint={orderedItemsPreBillPrint}
-          lines={selectedCard.orderLines}
-          formatChargeableHint={(qty, unitPrice) =>
-            formatChargeableShareHint(lang, qty, unitPrice)
-          }
-          isCheckoutPending={isCheckoutPending}
-          decrementingKey={decrementingKey}
-          orderLineKey={orderLineKey}
-          onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
-        />
-      </div>
+          <WaiterTableOrderedItemsPanel
+            title={t.orderedItems}
+            sessionTotalText={orderedItemsSessionTotalText}
+            preBillPrint={orderedItemsPreBillPrint}
+            lines={selectedCard.orderLines}
+            formatChargeableHint={(qty, unitPrice) =>
+              formatChargeableShareHint(lang, qty, unitPrice)
+            }
+            isCheckoutPending={isCheckoutPending}
+            decrementingKey={decrementingKey}
+            orderLineKey={orderLineKey}
+            onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
+          />
+        </div>
+      )}
 
       <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
 
-      <WaiterStaffOrderingPanel
-        open={orderingOpen}
-        title={t.continueOrdering}
-        onClose={() => setOrderingOpen(false)}
-        restaurant={restaurant}
-        tableId={tableId}
-        displayName={selectedDisplayName}
-        sessionMeta={sessionMeta}
-        orders={orders}
-        cartDraft={cartDraft}
-        onCartDraftChange={setCartDraft}
-        onStaffAppendSuccess={handleStaffAppendSuccess}
-        isDemo={isDemo}
-        embeddedInDashboard={embeddedInDashboard}
-      />
+      {!showColdContent ? (
+        <>
+          <WaiterStaffOrderingPanel
+            open={orderingOpen}
+            title={t.continueOrdering}
+            onClose={() => setOrderingOpen(false)}
+            restaurant={restaurant}
+            tableId={tableId}
+            displayName={selectedDisplayName}
+            sessionMeta={sessionMeta}
+            orders={orders}
+            cartDraft={cartDraft}
+            onCartDraftChange={setCartDraft}
+            onStaffAppendSuccess={handleStaffAppendSuccess}
+            isDemo={isDemo}
+            embeddedInDashboard={embeddedInDashboard}
+          />
 
-      <Modal
-        open={!!operationType}
-        onClose={closeAction}
-        title={operationType === 'transfer' ? t.transferTitle : t.mergeTitle}
-        size="sm"
-      >
-        <p className="text-[13px] text-brand-text-muted mb-4">
-          {operationType === 'transfer' ? t.transferHint : t.mergeHint}
-        </p>
-        <div className="space-y-3">
-          <div>
-            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
-            <input
-              value={sourceTableLabel}
-              disabled
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text"
-            />
-          </div>
-          <div>
-            <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
-            <select
-              value={targetTable ?? ''}
-              onChange={(e) => setTargetTable(e.target.value || null)}
-              disabled={actionTargetsLoading}
-              className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-60"
-            >
-              <option value="">
-                {actionTargetsLoading ? t.tableDetailLoading : '--'}
-              </option>
-              {targetCandidates.map((table) => (
-                <option key={table.id} value={table.id}>
-                  {t.table} {table.display_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="ghost" size="sm" onClick={closeAction}>
-            {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
-          </Button>
-          <Button
-            type="button"
-            variant="gold"
+          <Modal
+            open={!!operationType}
+            onClose={closeAction}
+            title={operationType === 'transfer' ? t.transferTitle : t.mergeTitle}
             size="sm"
-            onClick={handleActionSubmit}
-            disabled={!sourceTable || !targetTable || operating}
           >
-            {operationType === 'transfer'
-              ? (operating ? t.operatingTransfer : t.confirmTransfer)
-              : (operating ? t.operatingMerge : t.confirmMerge)}
-          </Button>
-        </div>
-      </Modal>
-      {isDemo ? (
-        <ConfirmModal
-          open={demoCloseConfirmTableId != null}
-          onClose={() => setDemoCloseConfirmTableId(null)}
-          title={demoCloseConfirmCopy.title}
-          message={demoCloseConfirmCopy.message}
-          confirmLabel={t.closeTableConfirmButton}
-          cancelLabel={t.closeTableCancel}
-          variant="danger"
-          confirming={closingDemoTable === demoCloseConfirmTableId}
-          onConfirm={async () => {
-            if (!demoCloseConfirmTableId) return;
-            const closeTableId = demoCloseConfirmTableId;
-            setDemoCloseConfirmTableId(null);
-            await closeDemoTable(closeTableId);
-          }}
-        />
+            <p className="text-[13px] text-brand-text-muted mb-4">
+              {operationType === 'transfer' ? t.transferHint : t.mergeHint}
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>
+                <input
+                  value={sourceTableLabel}
+                  disabled
+                  className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text"
+                />
+              </div>
+              <div>
+                <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.targetTable}</label>
+                <select
+                  value={targetTable ?? ''}
+                  onChange={(e) => setTargetTable(e.target.value || null)}
+                  disabled={actionTargetsLoading}
+                  className="w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2.5 text-base text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-60"
+                >
+                  <option value="">
+                    {actionTargetsLoading ? t.tableDetailLoading : '--'}
+                  </option>
+                  {targetCandidates.map((table) => (
+                    <option key={table.id} value={table.id}>
+                      {t.table} {table.display_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" size="sm" onClick={closeAction}>
+                {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
+              </Button>
+              <Button
+                type="button"
+                variant="gold"
+                size="sm"
+                onClick={handleActionSubmit}
+                disabled={!sourceTable || !targetTable || operating}
+              >
+                {operationType === 'transfer'
+                  ? (operating ? t.operatingTransfer : t.confirmTransfer)
+                  : (operating ? t.operatingMerge : t.confirmMerge)}
+              </Button>
+            </div>
+          </Modal>
+          {isDemo ? (
+            <ConfirmModal
+              open={demoCloseConfirmTableId != null}
+              onClose={() => setDemoCloseConfirmTableId(null)}
+              title={demoCloseConfirmCopy.title}
+              message={demoCloseConfirmCopy.message}
+              confirmLabel={t.closeTableConfirmButton}
+              cancelLabel={t.closeTableCancel}
+              variant="danger"
+              confirming={closingDemoTable === demoCloseConfirmTableId}
+              onConfirm={async () => {
+                if (!demoCloseConfirmTableId) return;
+                const closeTableId = demoCloseConfirmTableId;
+                setDemoCloseConfirmTableId(null);
+                await closeDemoTable(closeTableId);
+              }}
+            />
+          ) : null}
+        </>
       ) : null}
     </div>
   );

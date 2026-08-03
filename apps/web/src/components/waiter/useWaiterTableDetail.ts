@@ -30,6 +30,7 @@ import {
 import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table';
 import {
   attachOpenTableDefaultsToPageModel,
+  isAuthoritativeIdleWaiterTableBoot,
   type WaiterTableDetailFetchScope,
 } from '@/lib/waiter-table-detail-scope';
 
@@ -63,8 +64,8 @@ function detailFromModel(model: WaiterTablePageModel | null | undefined) {
  * Table detail client state — single WaiterTablePageModel source.
  *
  * Freshness layers:
- * 1. Boot seed — published mutation cache, idle board open-table seed, optional SSR/demo
- * 2. Entry reconcile — Staff API on mount / tableId change (skipped when boot authoritative)
+ * 1. Boot seed — published mutation cache, board boot (idle full / occupied chrome stub), optional SSR/demo
+ * 2. Entry reconcile — Staff API on mount / tableId change (skipped only for authoritative idle boot)
  * 3. menu_submit return — Staff API reconcile, then strip query
  * 4. Realtime while mounted — debounced refresh for this tableId
  *
@@ -83,8 +84,9 @@ export function useWaiterTableDetail(
   openTableDefaults: WaiterBoardOpenTableDefaults | null = null,
 ) {
   const bootModel = resolveTableDetailBootModel(tableId, initialModel);
-  const hasAuthoritativeBoot = bootModel?.detail.table != null;
-  const reconcileOnMount = !skipEntryReconcile && !hasAuthoritativeBoot;
+  // Occupied chrome stubs have a table but still need mount GET for orders.
+  const skipMountBecauseIdleBoot = isAuthoritativeIdleWaiterTableBoot(bootModel);
+  const reconcileOnMount = !skipEntryReconcile && !skipMountBecauseIdleBoot;
   const detailFetchScope: WaiterTableDetailFetchScope =
     openTableDefaults != null ? 'live' : 'full';
 

@@ -102,3 +102,20 @@ test('ordered-items panel uses orderedItemTextCol only (no inline flex-1 text co
   assert.doesNotMatch(panel, /min-w-0 flex-1/);
   assert.doesNotMatch(panel, /className="[^"]*flex-1[^"]*"/);
 });
+
+test('table detail cold load uses one shared content skeleton (no parallel pulse tree)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const here = dirname(fileURLToPath(import.meta.url));
+  const detail = await readFile(join(here, 'WaiterTableDetail.tsx'), 'utf8');
+  assert.match(detail, /WaiterTableDetailContentSkeleton/);
+  assert.doesNotMatch(detail, /animate-pulse/);
+  assert.match(detail, /isAuthoritativeIdleWaiterTableBoot/);
+  const loading = await readFile(
+    join(here, '../../app/dashboard/waiter/[tableId]/loading.tsx'),
+    'utf8',
+  );
+  assert.match(loading, /WaiterTableDetailContentSkeleton/);
+  assert.doesNotMatch(loading, /waiterUi\.cardSurface/);
+});

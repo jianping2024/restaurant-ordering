@@ -5,8 +5,13 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import {
   deriveStaffLoginPreflight,
+  type StaffGateAccount,
   type StaffLoginPreflightResult,
 } from '@/lib/staff-identity-gate';
+import {
+  loadOwnedRestaurantIdForUser,
+  loadStaffGateAccountForUser,
+} from '@/lib/staff-gate-db';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 export type {
@@ -20,14 +25,17 @@ export {
   deriveStaffLoginContext,
 } from '@/lib/staff-identity-gate';
 
-/**
- * Request-scoped getUser + admin for Node route handlers / RSC.
- * Not imported by Edge middleware (react.cache is unavailable there).
- */
-export const loadAuthUserWithAdmin = cache(async (): Promise<{
+export type AuthUserWithAdmin = {
   user: { id: string; user_metadata: Record<string, unknown> };
   admin: ReturnType<typeof createAdminClient>;
-} | null> => {
+};
+
+/**
+ * Request-scoped getUser + admin for Node route handlers / RSC.
+ * Sole RSC/auth-user bootstrap — do not call createClient().auth.getUser() beside this
+ * in dashboard layout consumers. Not imported by Edge middleware (react.cache unavailable).
+ */
+export const loadAuthUserWithAdmin = cache(async (): Promise<AuthUserWithAdmin | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -45,6 +53,24 @@ export const loadAuthUserWithAdmin = cache(async (): Promise<{
   } catch {
     return null;
   }
+});
+
+/**
+ * Request-scoped owner id + staff gate for the current auth user.
+ * Dedupes the parallel lookups shared by dashboard access + principal.
+ */
+export const loadAuthOwnershipGate = cache(async (): Promise<{
+  auth: AuthUserWithAdmin;
+  ownedRestaurantId: string | null;
+  staff: StaffGateAccount | null;
+} | null> => {
+  const auth = await loadAuthUserWithAdmin();
+  if (!auth) return null;
+  const [ownedRestaurantId, staff] = await Promise.all([
+    loadOwnedRestaurantIdForUser(auth.admin, auth.user.id),
+    loadStaffGateAccountForUser(auth.admin, auth.user.id),
+  ]);
+  return { auth, ownedRestaurantId, staff };
 });
 
 /** Check staff account exists, is enabled, and restaurant is not suspended — before Supabase sign-in. */

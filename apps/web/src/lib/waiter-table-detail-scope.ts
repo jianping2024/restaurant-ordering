@@ -81,6 +81,22 @@ export function isAuthoritativeIdleWaiterTableBoot(
 }
 
 /**
+ * Sole gate for back-to-board footer (+ any UI that must wait on first GET body).
+ * Not the same as detailLoaded (occupied chrome stub can load chrome early).
+ */
+export function resolveWaiterTableDetailBodyReady(input: {
+  isDemo: boolean;
+  /** Mount will run Staff entry reconcile (occupied stub / cold pull). */
+  needsEntryPull: boolean;
+  hasTable: boolean;
+  entryPullCompleted: boolean;
+}): boolean {
+  if (input.isDemo) return true;
+  if (!input.needsEntryPull) return input.hasTable;
+  return input.entryPullCompleted;
+}
+
+/**
  * Board → detail boot — one WaiterTablePageModel shape:
  * - idle: full open-table defaults (skip entry reconcile)
  * - occupied: chrome stub (session + checkout + buffet defaults, orders []); always reconcile

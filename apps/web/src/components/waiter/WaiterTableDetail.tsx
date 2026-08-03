@@ -160,6 +160,7 @@ function WaiterTableDetailInner({
     checkoutRequestedAt,
     supabase,
     detailLoaded,
+    detailBodyReady,
     activeSessionByTableId,
     checkoutRequested: isCheckoutPending,
     demoTables,
@@ -730,7 +731,9 @@ function WaiterTableDetailInner({
         <div className={`${waiterUi.cardSurface} p-4 text-sm text-brand-text-muted`}>
           {t.noOrdersOnTable}
         </div>
-        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+        {detailBodyReady ? (
+          <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+        ) : null}
       </div>
     );
   }
@@ -1050,7 +1053,9 @@ function WaiterTableDetailInner({
         </div>
       )}
 
-      <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+      {detailBodyReady ? (
+        <WaiterTableBackToBoardFooter boardHref={boardHref} label={t.backToBoard} />
+      ) : null}
 
       {!showColdContent ? (
         <>

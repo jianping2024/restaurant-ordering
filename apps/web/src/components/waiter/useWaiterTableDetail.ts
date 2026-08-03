@@ -31,6 +31,7 @@ import type { WaiterBoardOpenTableDefaults } from '@/lib/waiter-board-open-table
 import {
   attachOpenTableDefaultsToPageModel,
   isAuthoritativeIdleWaiterTableBoot,
+  resolveWaiterTableDetailBodyReady,
   type WaiterTableDetailFetchScope,
 } from '@/lib/waiter-table-detail-scope';
 
@@ -87,6 +88,7 @@ export function useWaiterTableDetail(
   // Occupied chrome stubs have a table but still need mount GET for orders.
   const skipMountBecauseIdleBoot = isAuthoritativeIdleWaiterTableBoot(bootModel);
   const reconcileOnMount = !skipEntryReconcile && !skipMountBecauseIdleBoot;
+  const needsEntryPull = reconcileOnMount;
   const detailFetchScope: WaiterTableDetailFetchScope =
     openTableDefaults != null ? 'live' : 'full';
 
@@ -98,6 +100,7 @@ export function useWaiterTableDetail(
   const [checkoutRequested, setCheckoutRequested] = useState(boot.checkoutRequested);
   const [checkoutRequestedAt, setCheckoutRequestedAt] = useState(boot.checkoutRequestedAt);
   const [detailLoaded, setDetailLoaded] = useState(isDemo || !!bootModel?.detail.table);
+  const [entryPullCompleted, setEntryPullCompleted] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const pathname = usePathname();
@@ -160,6 +163,7 @@ export function useWaiterTableDetail(
         if (seq !== reloadSeqRef.current) return null;
         const normalized = applyModel(nextModel);
         commitAuthoritativeWaiterTablePageModel(normalized);
+        setEntryPullCompleted(true);
         return normalized;
       } catch {
         if (seq !== reloadSeqRef.current) return null;
@@ -170,6 +174,7 @@ export function useWaiterTableDetail(
         setCheckoutRequested(false);
         setCheckoutRequestedAt(null);
         setDetailLoaded(true);
+        setEntryPullCompleted(true);
         return null;
       }
     };
@@ -203,6 +208,7 @@ export function useWaiterTableDetail(
     setCheckoutRequested(false);
     setCheckoutRequestedAt(null);
     setDetailLoaded(false);
+    setEntryPullCompleted(false);
   }, [tableId]);
 
   // Boot seed per table entry — published / idle board / SSR; omit initialModel from deps.
@@ -272,6 +278,13 @@ export function useWaiterTableDetail(
     return ordersForWaiterTableView(tableId, orderRows, activeSessionByTableId);
   }, [activeSessionByTableId, isDemo, orderRows, tableId]);
 
+  const detailBodyReady = resolveWaiterTableDetailBodyReady({
+    isDemo,
+    needsEntryPull,
+    hasTable: isDemo || table != null,
+    entryPullCompleted: isDemo || entryPullCompleted,
+  });
+
   return {
     table: resolvedTable,
     orders,
@@ -282,6 +295,7 @@ export function useWaiterTableDetail(
     checkoutRequested,
     checkoutRequestedAt,
     detailLoaded,
+    detailBodyReady,
     refresh,
     applyModel,
     supabase,

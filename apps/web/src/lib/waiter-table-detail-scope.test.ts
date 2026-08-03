@@ -5,6 +5,7 @@ import {
   buildWaiterTableDetailBootFromBoard,
   isAuthoritativeIdleWaiterTableBoot,
   parseWaiterTableDetailFetchScope,
+  resolveWaiterTableDetailBodyReady,
 } from './waiter-table-detail-scope';
 import type { WaiterTablePageModel } from './waiter-table-detail-types';
 
@@ -15,6 +16,54 @@ describe('waiter-table-detail-scope', () => {
     assert.equal(parseWaiterTableDetailFetchScope(null), 'full');
     assert.equal(parseWaiterTableDetailFetchScope('live'), 'live');
     assert.equal(parseWaiterTableDetailFetchScope('other'), 'full');
+  });
+
+  it('resolveWaiterTableDetailBodyReady is the sole footer/body gate', () => {
+    assert.equal(
+      resolveWaiterTableDetailBodyReady({
+        isDemo: true,
+        needsEntryPull: true,
+        hasTable: false,
+        entryPullCompleted: false,
+      }),
+      true,
+    );
+    assert.equal(
+      resolveWaiterTableDetailBodyReady({
+        isDemo: false,
+        needsEntryPull: false,
+        hasTable: true,
+        entryPullCompleted: false,
+      }),
+      true,
+    );
+    assert.equal(
+      resolveWaiterTableDetailBodyReady({
+        isDemo: false,
+        needsEntryPull: false,
+        hasTable: false,
+        entryPullCompleted: true,
+      }),
+      false,
+    );
+    assert.equal(
+      resolveWaiterTableDetailBodyReady({
+        isDemo: false,
+        needsEntryPull: true,
+        hasTable: true,
+        entryPullCompleted: false,
+      }),
+      false,
+    );
+    assert.equal(
+      resolveWaiterTableDetailBodyReady({
+        isDemo: false,
+        needsEntryPull: true,
+        hasTable: false,
+        entryPullCompleted: true,
+      }),
+      true,
+    );
   });
 
   it('attachOpenTableDefaultsToPageModel fills empty buffets only', () => {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerBillContext } from '@/lib/customer-bill-context';
+import { CUSTOMER_READ_NO_STORE_HEADERS } from '@/lib/customer-read-http-headers';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { parseCustomerBillScope } from '@/lib/customer-session-context';
 
@@ -9,19 +10,28 @@ export const runtime = 'nodejs';
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   const slug = params.slug?.trim();
   if (!slug) {
-    return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'missing_slug' },
+      { status: 400, headers: CUSTOMER_READ_NO_STORE_HEADERS },
+    );
   }
 
   let admin;
   try {
     admin = createAdminClient();
   } catch {
-    return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+    return NextResponse.json(
+      { error: 'server_misconfigured' },
+      { status: 503, headers: CUSTOMER_READ_NO_STORE_HEADERS },
+    );
   }
 
   const loaded = await loadCustomerRestaurantForApi(admin, slug);
   if (!loaded.ok) {
-    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    return NextResponse.json(
+      { error: loaded.error },
+      { status: loaded.status, headers: CUSTOMER_READ_NO_STORE_HEADERS },
+    );
   }
   const restaurant = loaded.restaurant;
 
@@ -33,7 +43,10 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     scope: parseCustomerBillScope(searchParams.get('scope')),
   });
   if (!bill) {
-    return NextResponse.json({ error: 'table_not_available' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'table_not_available' },
+      { status: 404, headers: CUSTOMER_READ_NO_STORE_HEADERS },
+    );
   }
-  return NextResponse.json(bill);
+  return NextResponse.json(bill, { headers: CUSTOMER_READ_NO_STORE_HEADERS });
 }

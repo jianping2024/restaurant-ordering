@@ -3,7 +3,7 @@ import {
   type GuestOrderingNotice,
 } from '@/lib/guest-ordering-notice';
 
-/** Align with guest-notice API `Cache-Control: private, max-age=60`. */
+/** Client memory TTL for guest notice; HTTP remains `CUSTOMER_READ_NO_STORE_HEADERS`. */
 const NOTICE_TTL_MS = 60_000;
 
 type NoticeEntry = {

@@ -120,8 +120,10 @@
 
 | 方法 | 路径 | 鉴权 | 职责 |
 |------|------|------|------|
-| GET | `/api/restaurants/[slug]/customer/session` | 顾客 | 活跃会话；`scope=gate` 仅桌台+瘦会话，`scope=full`（默认）含近期订单 |
-| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页数据；`scope=live` 仅活跃会话 + 全量账单订单 + 同行组人数，`scope=full`（默认）再含分单与已收款台账 |
+| GET | `/api/restaurants/[slug]/customer/session` | 顾客 | 活跃会话；`scope=gate` 仅桌台+瘦会话，`scope=full`（默认）含近期订单；`Cache-Control: private, no-store`（`CUSTOMER_READ_NO_STORE_HEADERS`） |
+| GET | `/api/restaurants/[slug]/customer/bill` | 顾客 | 账单页数据；`scope=live` 仅活跃会话 + 全量账单订单 + 同行组人数，`scope=full`（默认）再含分单与已收款台账；同上 no-store |
+| GET | `/api/restaurants/[slug]/customer/menu-catalog` | 顾客 | 菜单目录；HTTP no-store；新鲜度靠服务端 `unstable_cache` + 客户端 `ensureCustomerMenuCatalog` |
+| GET | `/api/restaurants/[slug]/customer/guest-notice` | 顾客 | 顾客公告；HTTP no-store；客户端内存 TTL |
 
 分单提交走 `checkout/request`，无独立 `bill_splits` CRUD API。
 

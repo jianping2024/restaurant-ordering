@@ -3945,7 +3945,7 @@ CREATE TABLE public.restaurants (
     print_agent_config jsonb DEFAULT '{}'::jsonb NOT NULL,
     kitchen_password_version integer DEFAULT 1 NOT NULL,
     waiter_password_version integer DEFAULT 1 NOT NULL,
-    order_radius_meters integer DEFAULT 50 NOT NULL,
+    order_radius_meters integer DEFAULT 1000 NOT NULL,
     buffet_friday_weekend_from time without time zone,
     feature_flags jsonb DEFAULT '{}'::jsonb NOT NULL,
     suspended_at timestamp with time zone,

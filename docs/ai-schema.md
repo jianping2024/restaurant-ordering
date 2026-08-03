@@ -192,7 +192,7 @@ restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | owner |
 restaurants.plan: free | pro  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  
-restaurants.order_radius_meters: 10..10000  
+restaurants.order_radius_meters: 10..10000 (column default 1000; existing rows unchanged by default migration)  
 table_sessions.status: open | billing | closed
 
 ## Indexes

@@ -1,4 +1,5 @@
-export const DEFAULT_ORDER_RADIUS_METERS = 50;
+/** Default fence when unset — coarse “near the restaurant”, not doorway GPS. */
+export const DEFAULT_ORDER_RADIUS_METERS = 1000;
 export const MIN_ORDER_RADIUS_METERS = 10;
 export const MAX_ORDER_RADIUS_METERS = 10_000;
 

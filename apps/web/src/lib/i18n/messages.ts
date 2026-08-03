@@ -499,9 +499,9 @@ export const MESSAGES = {
         '安装包未做代码签名，Windows 可能提示「未知发布者」。请选择「更多信息」→「仍要运行」，或在文件属性中勾选「解除锁定」。可在 GitHub Release 页核对 SHA256SUMS。',
       pairingTitle: '配对 Windows 打印助手',
       pairingSubtitle:
-        '新收银机或重新连接时，在这里生成配对码。请在同一台收银电脑上打开 {brand}，并确认右下角托盘有 {brand} 图标。',
+        '新收银机或重新连接时，在这里生成配对码并复制。请到打印那台电脑：确认托盘有 {trayIcon} 图标，打开「打印机设置」粘贴配对码。换机前请先在上方「已配对收银机」吊销旧设备，避免档口冲突。',
       pairingWizardNote:
-        '若未自动打开设置页，请点上方金色按钮；须在本机浏览器操作，且托盘 {brand} 图标已启动。',
+        '配对与打印机映射只在收银电脑的托盘「打印机设置」里完成；请勿指望在其他电脑上打开本机地址。',
       pairingGenerate: '生成配对码',
       pairingRefreshList: '刷新列表',
       pairingListTitle: '配对记录',
@@ -520,20 +520,10 @@ export const MESSAGES = {
       pairingSlotFull: '待使用配对码已满 3 个，请作废不需要的码或等待过期后再生成。',
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
-        '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。无需新配对码时可用下方「在本机打开设置」。',
-      configureTitle: '本机打印机设置',
-      configureSubtitle:
-        '在本机设置页为每个出品档口选择打印机；建议试打确认。结账和账单打印会使用这里保存的映射。重新配对请在本机配对页完成。',
-      configureOpenWithCode: '在本机打开设置（已填入配对码）',
-      configureOpenIdle: '在本机打开设置',
-      configureUnreachable:
-        '未检测到本机打印助手。请在收银电脑上确认托盘有 {brand} 图标并已启动，再点「打开设置」；须在本机浏览器打开 {brand}，不能在其他电脑操作。',
-      configureOpenedHint:
-        '已在本机打开设置页（配对码已填入）。若未看到浏览器窗口，请检查是否被拦截或点「在本机打开设置」重试。',
+        '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。彻底卸掉本机助手：托盘「卸载…」（会删除程序与本机配置）。',
       configureStep1: '在收银电脑安装并启动 {printAgent}（任务栏托盘图标）',
-      configureStep2: '生成配对码后会自动打开本机设置；也可手动点下方按钮',
-      configureStep3:
-        '浏览器打开后：若未配对，先进入配对页输入码；回到设置页点「扫描打印机」→ 选档口 → 保存（试打可选）',
+      configureStep2: '复制上方配对码，在托盘「打印机设置」的配对页粘贴并连接',
+      configureStep3: '扫描打印机 → 为每个出品档口选打印机 → 保存（试打可选）',
       failedJobsOpenConfigure: '在本机打开打印机设置',
       queueTitle: '最近打印队列',
       refresh: '刷新',
@@ -1867,9 +1857,9 @@ export const MESSAGES = {
         'Builds are not Authenticode-signed. If SmartScreen blocks the installer, choose More info → Run anyway, or Unblock in file Properties. Verify SHA256SUMS on the GitHub release page.',
       pairingTitle: 'Pair Windows print agent',
       pairingSubtitle:
-        'Generate a code when adding a new POS PC or reconnecting one. Open {brand} on that same POS PC and make sure the {trayIcon} tray icon is running.',
+        'Generate and copy a code when adding or reconnecting a POS PC. On that print PC, confirm the {trayIcon} tray icon, open Printer settings, and paste the code. Revoke the old device under Paired POS PCs first if stations are still occupied.',
       pairingWizardNote:
-        'If settings did not open automatically, use the gold button above. Use this PC’s browser with the {trayIcon} tray icon running.',
+        'Pairing and printer mapping happen only on the POS tray → Printer settings. Do not expect localhost links from another computer.',
       pairingGenerate: 'Generate pairing code',
       pairingRefreshList: 'Refresh list',
       pairingListTitle: 'Pairing history',
@@ -1889,20 +1879,10 @@ export const MESSAGES = {
         'You already have 3 pending codes; void one you do not need or wait for expiry before creating another.',
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
-        'After pairing, change printers from the tray menu → Printer settings. Use Open settings below when you do not need a new code.',
-      configureTitle: 'Printer settings on this PC',
-      configureSubtitle:
-        'Choose a printer for each print station on this PC; a test print is recommended. Checkout and bills use these mappings. Re-pair on the local pairing page if needed.',
-      configureOpenWithCode: 'Open settings on this PC (code filled in)',
-      configureOpenIdle: 'Open settings on this PC',
-      configureUnreachable:
-        'Print agent not detected on this computer. On the POS PC, check the {trayIcon} tray icon is running, then try again. Open {brand} in this PC’s browser—not from another machine.',
-      configureOpenedHint:
-        'Local settings opened with your code filled in. If you do not see a browser tab, check for pop-up blockers or tap Open settings again.',
+        'After pairing, change printers from the tray menu → Printer settings. To remove the agent and local config: tray → Uninstall…',
       configureStep1: 'Install and start {printAgent} on the POS PC (system tray icon)',
-      configureStep2: 'After generating a code, settings open automatically—or use the button below',
-      configureStep3:
-        'In the browser: if not paired yet, open the pairing page and enter the code; then Scan printers → map stations → Save (test print optional)',
+      configureStep2: 'Copy the code above, paste it on the tray Printer settings pairing page, and connect',
+      configureStep3: 'Scan printers → map each station → Save (test print optional)',
       failedJobsOpenConfigure: 'Open printer settings on this PC',
       queueTitle: 'Recent print queue',
       refresh: 'Refresh',
@@ -2826,9 +2806,9 @@ export const MESSAGES = {
         'Sem assinatura Authenticode. Se o SmartScreen bloquear, escolha Mais informacoes → Executar mesmo assim, ou Desbloquear nas propriedades. Verifique SHA256SUMS no GitHub.',
       pairingTitle: 'Emparelhar agente Windows',
       pairingSubtitle:
-        'Gere um codigo ao adicionar um novo PC da caixa ou ao religar um existente. Abra o {brand} nesse mesmo PC e confirme o icone {brand} na bandeja.',
+        'Gere e copie um codigo ao adicionar ou religar um PC da caixa. Nesse PC de impressao, confirme o icone {trayIcon}, abra Definicoes de impressora e cole o codigo. Antes de trocar de PC, revogue o dispositivo antigo em PCs emparelhados para libertar estacoes.',
       pairingWizardNote:
-        'Se as definicoes nao abriram sozinhas, use o botao dourado acima. Use o browser deste PC com o icone {brand} na bandeja.',
+        'Emparelhamento e mapeamento so no PC da caixa: bandeja → Definicoes de impressora. Nao espere links localhost noutro computador.',
       pairingGenerate: 'Gerar codigo',
       pairingRefreshList: 'Atualizar lista',
       pairingListTitle: 'Historico de emparelhamento',
@@ -2848,20 +2828,10 @@ export const MESSAGES = {
         'Ja existem 3 codigos pendentes; anule um que nao precise ou aguarde expirar antes de criar outro.',
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
-        'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Use Abrir definicoes abaixo sem codigo novo.',
-      configureTitle: 'Definicoes de impressora neste PC',
-      configureSubtitle:
-        'Escolha uma impressora por estacao neste PC; recomenda-se um teste. Checkout e contas usam estes mapeamentos. Para reemparelhar, use a pagina de emparelhamento local.',
-      configureOpenWithCode: 'Abrir definicoes neste PC (codigo preenchido)',
-      configureOpenIdle: 'Abrir definicoes neste PC',
-      configureUnreachable:
-        'Agente nao detetado neste PC. No PC da caixa, confirme o icone {brand} na bandeja e tente de novo. Abra o {brand} neste browser, nao noutro computador.',
-      configureOpenedHint:
-        'Definicoes locais abertas com o codigo preenchido. Se nao vir o browser, verifique pop-ups ou toque em Abrir definicoes novamente.',
+        'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Para remover o agente e a configuracao local: bandeja → Desinstalar…',
       configureStep1: 'Instale e inicie o {printAgent} no PC da caixa (icone na bandeja)',
-      configureStep2: 'Apos gerar o codigo, as definicoes abrem sozinhas — ou use o botao abaixo',
-      configureStep3:
-        'No browser: se ainda nao emparelhou, abra a pagina de emparelhamento e introduza o codigo; depois Voltar a procurar → mapear estacoes → Guardar (teste opcional)',
+      configureStep2: 'Copie o codigo acima, cole na pagina de emparelhamento das Definicoes de impressora e ligue',
+      configureStep3: 'Voltar a procurar → mapear estacoes → Guardar (teste opcional)',
       failedJobsOpenConfigure: 'Abrir definicoes de impressora neste PC',
       queueTitle: 'Fila recente',
       refresh: 'Atualizar',

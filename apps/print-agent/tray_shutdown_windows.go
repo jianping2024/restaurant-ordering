@@ -17,8 +17,17 @@ var exitOnce sync.Once
 // stopTrayAgentWork cancels polling/init and stops local HTTP wizards. Safe from any goroutine.
 func stopTrayAgentWork(rt *trayRuntime) {
 	log.Println("tray: stop work")
-	if rt != nil && rt.cancel != nil {
-		rt.cancel()
+	if rt != nil {
+		rt.mu.Lock()
+		if rt.workCancel != nil {
+			rt.workCancel()
+			rt.workCancel = nil
+		}
+		cancel := rt.cancel
+		rt.mu.Unlock()
+		if cancel != nil {
+			cancel()
+		}
 	}
 	shutdownAllWizardServers()
 	shutdownTrayLocalHTTP()
@@ -27,7 +36,7 @@ func stopTrayAgentWork(rt *trayRuntime) {
 }
 
 // requestTrayRestart spawns a replacement instance, then exits. Spawn runs first so a
-// failure leaves the current agent running.
+// failure leaves the current agent running. Menu "Restart" only — pair success uses rebind.
 func requestTrayRestart(rt *trayRuntime) {
 	log.Println("tray: restart requested")
 	if err := spawnAgentRestart(); err != nil {

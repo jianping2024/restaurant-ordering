@@ -15,13 +15,17 @@ import (
 )
 
 type trayRuntime struct {
-	mu       sync.Mutex
-	ctx      context.Context
+	mu sync.Mutex
+	// ctx/cancel: tray shell lifetime (exit cancels everything).
+	ctx    context.Context
+	cancel context.CancelFunc
+	// workCancel: print loops only — rebind cancels this without killing tray HTTP.
+	workCancel context.CancelFunc
+
 	sess     *agentSession
 	initErr  error
 	initDone bool
 	status   *agentStatus
-	cancel   context.CancelFunc
 
 	configureURL string
 }
@@ -45,16 +49,50 @@ func (rt *trayRuntime) syncConfigFromDisk() {
 	reloadAgentSessionConfig(sess)
 }
 
+// startTrayAgentWork cancels any prior work loop and starts runNotificationLoop under the shell ctx.
+func (rt *trayRuntime) startTrayAgentWork(sess *agentSession) {
+	if rt == nil || sess == nil {
+		return
+	}
+	rt.mu.Lock()
+	if rt.workCancel != nil {
+		rt.workCancel()
+		rt.workCancel = nil
+	}
+	parent := rt.ctx
+	rt.mu.Unlock()
+	if parent == nil {
+		parent = context.Background()
+	}
+	workCtx, workCancel := context.WithCancel(parent)
+	rt.mu.Lock()
+	rt.workCancel = workCancel
+	rt.mu.Unlock()
+	go runNotificationLoop(workCtx, sess, rt.status)
+}
+
+// rebindTrayAgentWork is the sole Connected re-pair path: reload disk config and restart
+// work loops without killing the tray or :17892.
+func (rt *trayRuntime) rebindTrayAgentWork() {
+	sess, err, done := rt.snapshot()
+	if !done || err != nil || sess == nil {
+		return
+	}
+	log.Println("tray: pair updated — rebinding work loops (Realtime/polling)")
+	reloadAgentSessionConfig(sess)
+	ensureLocalPollController(sess)
+	rt.status.set("Ready", "Connected to Mesa")
+	rt.startTrayAgentWork(sess)
+}
+
 // onPairConfigSaved runs after /api/pair writes config. First-time pair (still bootstrapping)
-// continues into Connected with the new file. Re-pair while Connected restarts the process so
-// RealtimeNotifier is rebuilt against the new api_base/supabase_url (no stale WS + new PATCH).
+// continues into Connected with the new file. Re-pair while Connected rebinds work in-process.
 func (rt *trayRuntime) onPairConfigSaved() {
 	_, err, done := rt.snapshot()
 	if !done || err != nil {
 		return
 	}
-	log.Println("tray: pair updated — restarting to bind Realtime to new server")
-	requestTrayRestart(rt)
+	rt.rebindTrayAgentWork()
 }
 
 func runAgent(args []string) {
@@ -110,7 +148,7 @@ func runAgentTrayFirst(args []string) {
 		// Ready here means Connected (can accept jobs); yellow "Setting up" covered bootstrap.
 		rt.status.set("Ready", "Connected to Mesa")
 		log.Println("tray: Connected — accepting print jobs")
-		go runNotificationLoop(ctx, sess, rt.status)
+		rt.startTrayAgentWork(sess)
 	}()
 
 	runtime.LockOSThread()
@@ -163,6 +201,7 @@ func onTrayReady(rt *trayRuntime) {
 	systray.AddSeparator()
 	mAbout := systray.AddMenuItem(uiT(loc, "menu_about"), uiT(loc, "menu_about_tip"))
 	mRestart := systray.AddMenuItem(uiT(loc, "menu_restart"), uiT(loc, "menu_restart_tip"))
+	mUninstall := systray.AddMenuItem(uiT(loc, "menu_uninstall"), uiT(loc, "menu_uninstall_tip"))
 	mQuit := systray.AddMenuItem(uiT(loc, "menu_quit"), uiT(loc, "menu_quit_tip"))
 
 	go func() {
@@ -175,7 +214,7 @@ func onTrayReady(rt *trayRuntime) {
 			if loc != lastLoc {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
-				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
+				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mUninstall, mQuit, loc)
 				applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
@@ -203,7 +242,7 @@ func onTrayReady(rt *trayRuntime) {
 		agentLogLocale(code, "log_tray_ui_locale", uiLocaleOptionLogLabel(code))
 		loc = code
 		systray.SetTitle(uiT(loc, "tray_title"))
-		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
+		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mUninstall, mQuit, loc)
 		applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 		systray.SetTooltip(rt.status.tooltip(Version, loc))
 	}
@@ -245,6 +284,13 @@ func onTrayReady(rt *trayRuntime) {
 					continue
 				}
 				requestTrayRestart(rt)
+				return
+			case <-mUninstall.ClickedCh:
+				loc := rt.uiLocale()
+				if !confirmTrayUninstall(loc) {
+					continue
+				}
+				uninstallAgentWithUserData(rt)
 				return
 			case <-mQuit.ClickedCh:
 				loc := rt.uiLocale()

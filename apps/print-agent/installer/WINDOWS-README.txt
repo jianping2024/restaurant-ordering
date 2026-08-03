@@ -17,12 +17,12 @@ First-time setup (no command line)
 1. Install UNYKA UK56009 driver if using USB (Start menu -> UNYKA driver (web), or https://unykach.com/).
 2. Keep Mesa Print Agent running after install (finish page "Launch now", or sign in if autostart was enabled).
 3. Return to Mesa Dashboard -> Print assistant.
-4. Click "Generate pairing code", then "Open settings on this PC".
-5. Browser: if not paired, open /pair on http://127.0.0.1:17892 (tray serves it from agent start);
-   on the printer settings page click Scan printers, map each print station, Save. Test print is optional.
+4. Click "Generate pairing code", copy the code on the Dashboard.
+5. On the POS PC tray → Printer settings: open /pair if needed, paste the code; then Scan printers,
+   map each print station, Save. Test print is optional. (Tray serves http://127.0.0.1:17892 from start.)
 6. The agent stays in the Windows system tray (near the clock, click ^ if hidden).
    Icon color: green = OK, yellow = outside hours or setup, red = error.
-   Right-click: printer settings (includes test print), open log folder, exit.
+   Right-click: printer settings (includes test print), open log folder, Uninstall… (removes app + local config), exit.
    No need to keep a black console window open.
 
 Debug (show console logs): MesaPrintAgent.exe -console

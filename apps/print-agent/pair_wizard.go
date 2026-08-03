@@ -110,10 +110,9 @@ func writePairJSON(w http.ResponseWriter, status int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
-// pairSuccessOnSuccessDelay lets the browser finish the /api/pair response and
-// navigate to /configure before Connected re-pair restarts the tray (kills :17892).
-// Tests set this to 0 for synchronous onSuccess.
-var pairSuccessOnSuccessDelay = 2 * time.Second
+// pairSuccessOnSuccessDelay is for tests that need to observe async onSuccess.
+// Product path runs onSuccess immediately (rebind does not kill :17892).
+var pairSuccessOnSuccessDelay = time.Duration(0)
 
 func schedulePairOnSuccess(onSuccess func()) {
 	if onSuccess == nil {

@@ -49,8 +49,8 @@ function originFromBrowserLocation(): string | null {
  * 3. `NEXT_PUBLIC_BASE_URL`, then `http://localhost:3000`
  *
  * Not for cloud Supabase project URL — use `getSupabaseUrl()` / `getPublishedSupabaseUrl()`.
- * Mode B print-agent claim Realtime edge: `resolvePrintAgentClaimSupabaseUrl` prefers
- * agent `api_base`, then falls back to this helper.
+ * Mode B print-agent claim may fall back to this helper when `api_base` is missing;
+ * cloud claim never uses app Host as Realtime (see `resolvePrintAgentClaimSupabaseUrl`).
  */
 export function getPublicWebOrigin(requestHeaders?: HeaderReader): string {
   if (requestHeaders) {

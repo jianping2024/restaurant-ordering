@@ -35,8 +35,8 @@ export function getSupabaseUrl(): string {
  * URL for external clients (print-agent Realtime/Auth). Never docker-internal (`kong`).
  * Mode B env default: `SUPABASE_PUBLIC_URL` = edge origin. Cloud: `NEXT_PUBLIC_SUPABASE_URL` project URL.
  *
- * Print-agent **claim** must not use this alone on Mode B — see `resolvePrintAgentClaimSupabaseUrl`
- * (agent `api_base` origin first so Realtime scheme cannot diverge from REST).
+ * Print-agent **claim** uses `resolvePrintAgentClaimSupabaseUrl` (Mode B may prefer agent `api_base`;
+ * cloud always uses this published project URL).
  */
 export function getPublishedSupabaseUrl(): string {
   const published = process.env.SUPABASE_PUBLIC_URL?.trim();
@@ -53,17 +53,19 @@ type HeaderReader = { get(name: string): string | null };
 
 /**
  * Sole `supabase_url` for print-agent claim JSON.
- * Prefer the agent’s `api_base` origin (what it used to reach claim) so Realtime scheme
- * cannot diverge from REST when proxies rewrite X-Forwarded-Proto to http.
- * Fallback: Mode B request edge / cloud published URL.
+ *
+ * - Mode B (`NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN`): prefer agent `api_base` origin so Realtime
+ *   scheme matches REST when proxies rewrite X-Forwarded-Proto to http; else request edge origin.
+ * - Cloud / local CLI (flag off): always `getPublishedSupabaseUrl()` (`*.supabase.co`). Never use
+ *   Vercel/app `api_base` as Realtime — that yields `wss://…vercel.app/realtime` bad handshake.
  */
 export function resolvePrintAgentClaimSupabaseUrl(
   apiBase: string | null | undefined,
   requestHeaders: HeaderReader,
 ): string {
-  const fromApiBase = originFromAbsoluteHttpUrl(apiBase);
-  if (fromApiBase) return fromApiBase;
   if (isSupabaseBrowserSameOrigin()) {
+    const fromApiBase = originFromAbsoluteHttpUrl(apiBase);
+    if (fromApiBase) return fromApiBase;
     return getPublicWebOrigin(requestHeaders);
   }
   return getPublishedSupabaseUrl();

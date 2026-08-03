@@ -316,6 +316,20 @@ JSON
 
 trap - ERR
 write_upgrade "ok" "done" "upgrade succeeded" "true"
+
+# Idempotent: enable tunnel health timer when systemd is available (existing stores).
+if [[ -n "${MESA_HOME:-}" ]] && command -v systemctl >/dev/null 2>&1 \
+  && [[ -x "${TARGET_ONPREM}/scripts/tunnel-health.sh" ]]; then
+  if [[ "$(id -u)" -eq 0 ]]; then
+    MESA_HOME="$MESA_HOME" "${TARGET_ONPREM}/scripts/tunnel-health.sh" install-timer \
+      || echo "WARN: mesa-tunnel-health.timer install failed" >&2
+  else
+    echo "NOTE: run as root to enable tunnel timer:"
+    echo "  sudo MESA_HOME=${MESA_HOME} ${TARGET_ONPREM}/scripts/tunnel-health.sh install-timer"
+  fi
+fi
+
 echo "Upgrade OK → ${TO_VERSION}"
 echo "CURRENT → ${CURRENT_JSON}"
 echo "LAST_UPGRADE → ${LAST_UPGRADE}"
+echo "Tunnel logs → ${MESA_HOME:-/opt/mesa}/logs/tunnel/"

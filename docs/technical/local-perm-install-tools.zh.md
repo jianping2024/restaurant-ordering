@@ -60,6 +60,7 @@ Ubuntu 自带的简单主机防火墙：决定「谁可以连进这台机的哪�
 | 工具 | 何时需要 |
 |------|----------|
 | **cloudflared** | 要公网 HTTPS 扫码（指到本机 `:80`） |
+| **tunnel-health**（随包） | 检测/记录 Tunnel 闪断；日志 `/opt/mesa/logs/tunnel/`；timer 每 5 分钟 |
 | **restic** | 本机日备后加密上传 S3/R2 等（配 `MESA_HOME/config/backup.env`） |
 | **jq** / **python3** | 少数 vendor/回滚辅助；非营业硬依赖 |
 

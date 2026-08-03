@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import {
-  isNonBlockingCheckoutClosePrintError,
-  runWaiterTableCheckoutClose,
-} from './waiter-table-checkout-close';
+import { runWaiterTableCheckoutClose } from './waiter-table-checkout-close';
 
 /** Print-on-close is decided by `printBill` arg (from checkout.print_pre_bill capability). */
 describe('checkout close print decision', () => {
@@ -12,67 +9,60 @@ describe('checkout close print decision', () => {
     assert.equal(printBillFromCaps(true), true);
     assert.equal(printBillFromCaps(false), false);
   });
-
-  it('treats only no_orders as non-blocking print failure', () => {
-    assert.equal(isNonBlockingCheckoutClosePrintError('no_orders'), true);
-    assert.equal(isNonBlockingCheckoutClosePrintError('unauthorized'), false);
-    assert.equal(isNonBlockingCheckoutClosePrintError('network_error'), false);
-    assert.equal(isNonBlockingCheckoutClosePrintError('insert_failed'), false);
-  });
 });
 
 describe('runWaiterTableCheckoutClose', () => {
   const base = {
-    slug: 'demo',
     tableId: 'table-1',
-    sessionId: 'session-1',
   };
 
-  it('skips print on no_orders and still closes', async () => {
-    let closeCalls = 0;
+  it('closes with print_bill and surfaces printFailed when print_ok is false', async () => {
+    let closeBody: { table_id?: string; print_bill?: boolean } | null = null;
     const outcome = await runWaiterTableCheckoutClose(
       { ...base, printBill: true },
       {
-        requestBillPrint: async () => ({ ok: false, error: 'no_orders' }),
-        postClose: async () => {
-          closeCalls += 1;
-          return { status: 200, body: { ok: true } };
+        postClose: async (body) => {
+          closeBody = body;
+          return { status: 200, body: { ok: true, print_ok: false } };
         },
       },
     );
-    assert.deepEqual(outcome, { ok: true });
-    assert.equal(closeCalls, 1);
+    assert.deepEqual(outcome, { ok: true, printFailed: true });
+    assert.deepEqual(closeBody, { table_id: 'table-1', print_bill: true });
   });
 
-  it('blocks close on other print failures', async () => {
-    let closeCalls = 0;
+  it('does not set printFailed when print succeeds', async () => {
     const outcome = await runWaiterTableCheckoutClose(
       { ...base, printBill: true },
       {
-        requestBillPrint: async () => ({ ok: false, error: 'unauthorized' }),
-        postClose: async () => {
-          closeCalls += 1;
-          return { status: 200, body: { ok: true } };
-        },
+        postClose: async () => ({ status: 200, body: { ok: true, print_ok: true } }),
       },
     );
-    assert.deepEqual(outcome, { ok: false, stage: 'print', code: 'unauthorized' });
-    assert.equal(closeCalls, 0);
+    assert.deepEqual(outcome, { ok: true, printFailed: false });
   });
 
-  it('closes without printing when printBill is false', async () => {
-    let printCalls = 0;
+  it('closes without print_bill when printBill is false', async () => {
+    let closeBody: { table_id?: string; print_bill?: boolean } | null = null;
     const outcome = await runWaiterTableCheckoutClose(
       { ...base, printBill: false },
       {
-        requestBillPrint: async () => {
-          printCalls += 1;
-          return { ok: true };
+        postClose: async (body) => {
+          closeBody = body;
+          return { status: 200, body: { ok: true } };
         },
-        postClose: async () => ({ status: 200, body: { ok: true } }),
       },
     );
-    assert.deepEqual(outcome, { ok: true });
-    assert.equal(printCalls, 0);
+    assert.deepEqual(outcome, { ok: true, printFailed: false });
+    assert.deepEqual(closeBody, { table_id: 'table-1', print_bill: false });
+  });
+
+  it('maps no_session from close API', async () => {
+    const outcome = await runWaiterTableCheckoutClose(
+      { ...base, printBill: false },
+      {
+        postClose: async () => ({ status: 404, body: { error: 'no_session' } }),
+      },
+    );
+    assert.deepEqual(outcome, { ok: false, stage: 'close', code: 'no_session' });
   });
 });

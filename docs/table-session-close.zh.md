@@ -26,19 +26,19 @@
 
 ### 1.1 关台结账（settled）
 
-**适用：** 桌台详情「关台结账」——客人已付款、前台收台（前台可先打 `checkout_bill`；收银员不打印）。
+**适用：** 桌台详情「关台结账」——客人已付款、前台收台（前台可顺带入队 `checkout_bill`，失败不挡关台；收银员不打印）。
 
-**RPC：** `close_table_session_settled`
+**RPC：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
 
 **效果（同一事务）：**
 
 1. 餐次须为 `open` 或 `billing`（无活跃餐次 → **404** `no_session`）。
 2. **未支付分账**：`pending` / `confirmed` / `requested` → **`cancelled`**（已 `paid` 的不动）。
-3. **保留**订单行与 `total_amount`（**不** void、**不**清零；**不**发明整桌 `paid` 分账 / `session_collected_payments`）。
+3. **保留**订单行与 `total_amount`（**不** void、**不**清零、**不**为寿司冻结改行）；应付写入 `settled_payable_amount`。
 4. `table_sessions` → `closed`，`closed_reason` 为 `frontdesk_closed` / `cashier_closed` / `owner_closed`，写入 `closed_by_user_id`。
 
-分析侧：已关闭且非强制路径的 session，用订单金额计入营业额。  
-订单历史：`closed_reason` 属 settled 集合时 outcome 为 `fully_paid`（已结账关台）；金额只展示应付/本单（不虚构已收）；`canPrintBill` 仅已结账且有菜；补打走会话级 `checkout_bill`。现网关台结账与分账收款路径不相交。
+分析侧：已关闭且非强制路径的 session，优先用 `settled_payable_amount` 计入营业额（无快照的旧行回退订单合计）。  
+订单历史：`closed_reason` 属 settled 集合时 outcome 为 `fully_paid`（已结账关台）；金额认结算快照 / 同投影；`canPrintBill` 仅已结账且有菜；补打走会话级 `checkout_bill`。现网关台结账与分账收款路径不相交。
 
 ### 1.2 强制关台（operational）
 
@@ -62,7 +62,7 @@
 
 | 场景 | 入口 |
 |------|------|
-| 前台 / 收银员桌台详情「关台结账」 | `POST /api/dashboard/checkout-close-table-session` → `closeTableSessionFrontdeskCheckout` → **`close_table_session_settled`** |
+| 前台 / 收银员桌台详情「关台结账」 | `POST /api/dashboard/checkout-close-table-session`（可选 `print_bill`）→ `closeTableSessionFrontdeskCheckout` → billable 投影 → **`close_table_session_settled`** → 尽力入队打印 |
 | 前台 / 店主强制关台 | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（映射为 `*_forced`）→ **`close_table_session_operational`** |
 | 服务员强制关台 | waiter sessions close → `waiter_closed` → **operational** |
 | 里斯本 05:00 夜间批量关台 | `auto_nightly` → **operational** |

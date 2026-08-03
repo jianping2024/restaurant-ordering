@@ -995,7 +995,6 @@ function WaiterTableDetailInner({
             <WaiterTableOccupiedToolbar
               t={t}
               lang={lang}
-              restaurantSlug={restaurant.slug}
               tableId={selectedCard.tableId}
               sessionId={sessionMeta?.sessionId ?? null}
               onContinueOrdering={() => {

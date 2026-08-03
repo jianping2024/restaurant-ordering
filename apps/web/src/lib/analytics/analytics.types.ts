@@ -46,6 +46,8 @@ export type ClosedSessionRow = {
   closed_at: string;
   /** Used to exclude operational / force / nightly closes from revenue. */
   closed_reason?: string | null;
+  /** Settled checkout close billable payable snapshot. */
+  settled_payable_amount?: number | null;
 };
 
 export type AnalyticsDailyRestaurantStatRow = {

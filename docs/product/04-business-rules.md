@@ -139,8 +139,8 @@
 - 员工交互：第一次跨过免费额度时确认；已在超额区内再加份仅提示；提交时若车内仍有超额再汇总确认
 - 计数：本餐该菜未作废总份数；void/减份释放额度
 - **计费投影（读）**：台面合计 / 客人账单 / 预结单 / 分账均从「订单原始行 + 行上限量快照 + 当前人数」派生免费/收费份；下单时把限量规则快照写入订单行；**读路径不改库**
-- **关台落账（写）**：仅 frontdesk「关台结账」把同一投影冻结进订单行（供 SQL 关台金额与历史）；`classic` 或未配限量不进入
-- `classic` 或未配限量：行为与原先无限加菜一致
+- **关台结账落账**：同一投影写入 `table_sessions.settled_payable_amount`（营业额/历史认此字段）；**不**改 `orders.items`；`classic` / sushi 同一关台路径
+- `classic` 或未配限量：投影与行价一致，流程仍相同
 
 ### 相关代码
 
@@ -253,7 +253,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 |----------|-------------------|-----------|
 | 预结算 | `pre_bill` | **自动**（呼叫结账成功后入队）或 **前台手动**（桌台详情「打印预结单」；`staff_manual`，不受开关限制） |
 | 分单 | `split_payment` | 自动（确认某人收款） |
-| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账 / 历史重打；收银员关台结账不触发） |
+| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账顺带入队 / 历史重打；收银员关台结账不触发）。关台结账：**先关台再尽力入队**，入队失败不挡关台 |
 | 总账单（收讫后） | `final` | 自动（全员付清） |
 
 「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。
@@ -365,13 +365,14 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 1. **已付清收款**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和，**应用 `discount_rate` 折扣**
 2. **已付清回退**：`paid` split 的 `total_amount`，应用平均折扣率
 3. **已关台（非强制）**：会话 `status='closed'` 且 `closed_reason` **不属于**强制集合（`waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly`），且**不在** `abnormal_operations.type='UNPAID_TABLE_CLOSED'` 中
-   - 有未 cancelled/paid 的 split：可应用其折扣到订单总额
-   - 否则：订单原价（无折扣）
+   - 有 `paid` split：按分账收款合计（见上）
+   - 否则优先 `table_sessions.settled_payable_amount`（关台结账快照）；无快照的旧数据回退 `orders.total_amount` 合计
+   - 有未 cancelled/paid 的 split：可应用其折扣到上述应付
 4. **未关台 / 强制关台**：不计入营业额统计
 5. 金额经 `auditMoney` 四舍五入
 
 **关台路径与统计：**
-- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（关台结账 settled）→ 计入营业额（订单金额）
+- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（关台结账 settled）→ 计入营业额（`settled_payable_amount` / 账单投影）
 - ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
 - ❌ `waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly` → **不计入**
 - ❌ `UNPAID_TABLE_CLOSED` 异常记录 → **不计入**

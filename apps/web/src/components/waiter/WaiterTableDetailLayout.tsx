@@ -254,7 +254,6 @@ function ToolbarCloseTableControl({
 function WaiterTableCheckoutCloseControl({
   lang,
   t,
-  restaurantSlug,
   tableId,
   sessionId,
   label,
@@ -265,7 +264,6 @@ function WaiterTableCheckoutCloseControl({
 }: {
   lang: UILanguage;
   t: WaiterCopy;
-  restaurantSlug: string;
   tableId: string;
   sessionId: string | null;
   label: string;
@@ -300,16 +298,10 @@ function WaiterTableCheckoutCloseControl({
     setBusy(true);
     try {
       const outcome = await runWaiterTableCheckoutClose({
-        slug: restaurantSlug,
         tableId,
-        sessionId,
         printBill: printBillOnClose,
       });
       if (!outcome.ok) {
-        if (outcome.stage === 'print') {
-          showToast(t.checkoutClosePrintFailed, 'error');
-          return;
-        }
         if (outcome.code === 'no_session') {
           showToast(t.checkoutCloseNoSession, 'error');
           return;
@@ -319,6 +311,9 @@ function WaiterTableCheckoutCloseControl({
       }
       setConfirmOpen(false);
       showToast(orderHistory.closeTableSuccess, 'success');
+      if (outcome.printFailed) {
+        showToast(t.checkoutClosePrintFailed, 'error');
+      }
       onClosed();
     } catch {
       showToast(t.checkoutCloseFailed, 'error');
@@ -358,7 +353,6 @@ function WaiterTableCheckoutCloseControl({
 type OccupiedToolbarProps = {
   t: WaiterCopy;
   lang: UILanguage;
-  restaurantSlug: string;
   tableId: string;
   sessionId: string | null;
   onContinueOrdering: () => void;
@@ -382,7 +376,6 @@ type OccupiedToolbarProps = {
 export function WaiterTableOccupiedToolbar({
   t,
   lang,
-  restaurantSlug,
   tableId,
   sessionId,
   onContinueOrdering,
@@ -436,7 +429,6 @@ export function WaiterTableOccupiedToolbar({
             <WaiterTableCheckoutCloseControl
               lang={lang}
               t={t}
-              restaurantSlug={restaurantSlug}
               tableId={tableId}
               sessionId={sessionId}
               label={t.goToBill}

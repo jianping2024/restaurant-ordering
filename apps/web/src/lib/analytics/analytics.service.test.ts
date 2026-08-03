@@ -238,6 +238,13 @@ describe('sessionRevenue', () => {
     ];
     assert.equal(sessionRevenue([], splits), 50);
   });
+
+  it('prefers settled_payable_amount over order totals when closed', () => {
+    assert.equal(
+      sessionRevenue([{ total_amount: 40 }], [], true, 12.5),
+      12.5,
+    );
+  });
 });
 
 describe('sessionGuestCounts', () => {

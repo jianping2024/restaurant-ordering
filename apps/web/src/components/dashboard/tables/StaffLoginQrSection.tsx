@@ -1,5 +1,6 @@
 'use client';
 
+import { PreferBrowserHttpLink } from '@/components/pwa/PreferBrowserHttpLink';
 import { useStaffLoginQr } from '@/lib/use-table-qr-codes';
 import { buildStaffLoginQrUrl } from '@/lib/table-menu-qr';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -38,14 +39,12 @@ export function StaffLoginQrSection({ slug, webOrigin }: { slug: string; webOrig
           >
             {t.downloadStaff}
           </button>
-          <a
+          <PreferBrowserHttpLink
             href={buildStaffLoginQrUrl(slug, webOrigin)}
-            target="_blank"
-            rel="noreferrer"
             className="text-[13px] text-brand-gold hover:underline"
           >
             {t.openStaffLogin}
-          </a>
+          </PreferBrowserHttpLink>
         </div>
       </div>
     </div>

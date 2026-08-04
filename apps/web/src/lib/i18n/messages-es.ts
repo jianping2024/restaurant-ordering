@@ -642,6 +642,8 @@ export const MESSAGES_ES = {
     "downloadStaff": "Descargar QR",
     "openStaffLogin": "Abrir la página de acceso",
     "openOrder": "Abrir la carta para pedir",
+    "openInBrowserCopied": "Enlace copiado: peguelo en una pestana del navegador (evita una segunda ventana de la app)",
+    "openInBrowserCopyFail": "No se pudo copiar el enlace; copie la direccion manualmente y abraela en el navegador",
     "sourceTable": "Mesa de origen",
     "sourceTables": "Mesas de origen (selección múltiple)",
     "targetTable": "Mesa de destino",

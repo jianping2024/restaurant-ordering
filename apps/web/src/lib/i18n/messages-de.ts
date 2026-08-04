@@ -642,6 +642,8 @@ export const MESSAGES_DE = {
     "downloadStaff": "QR herunterladen",
     "openStaffLogin": "Anmeldeseite öffnen",
     "openOrder": "Bestellansicht öffnen",
+    "openInBrowserCopied": "Link kopiert — im Browser-Tab einfugen (vermeidet ein zweites App-Fenster)",
+    "openInBrowserCopyFail": "Link konnte nicht kopiert werden; Adresse manuell kopieren und im Browser offnen",
     "sourceTable": "Ausgangstisch",
     "sourceTables": "Ausgangstische (Mehrfachauswahl)",
     "targetTable": "Zieltisch",

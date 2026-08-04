@@ -1,5 +1,6 @@
 'use client';
 
+import { PreferBrowserHttpLink } from '@/components/pwa/PreferBrowserHttpLink';
 import { Button } from '@/components/ui/Button';
 import { buildTableMenuQrUrl } from '@/lib/table-menu-qr';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -179,14 +180,12 @@ export function TablesQrTable({
                         >
                           {t.printOne}
                         </button>
-                        <a
+                        <PreferBrowserHttpLink
                           href={buildTableMenuQrUrl(restaurantSlug, table.id, webOrigin)}
-                          target="_blank"
-                          rel="noreferrer"
                           className="text-[13px] text-brand-gold hover:underline"
                         >
                           {t.openOrder}
-                        </a>
+                        </PreferBrowserHttpLink>
                         {!batchMode ? (
                           <button
                             type="button"

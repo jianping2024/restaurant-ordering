@@ -1,5 +1,6 @@
 'use client';
 
+import { PreferBrowserHttpLink } from '@/components/pwa/PreferBrowserHttpLink';
 import { Modal } from '@/components/ui/Modal';
 import { buildTableMenuQrUrl } from '@/lib/table-menu-qr';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
@@ -41,14 +42,12 @@ export function TableQrPreviewModal({
           alt={`${t.table} ${target.table.display_name}`}
           className="mx-auto w-full max-w-[400px] rounded-lg border border-brand-border"
         />
-        <a
+        <PreferBrowserHttpLink
           href={buildTableMenuQrUrl(restaurantSlug, target.table.id, webOrigin)}
-          target="_blank"
-          rel="noreferrer"
           className="inline-block text-[13px] text-brand-gold hover:underline"
         >
           {t.openOrder}
-        </a>
+        </PreferBrowserHttpLink>
       </div>
     </Modal>
   );

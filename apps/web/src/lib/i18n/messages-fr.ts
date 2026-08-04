@@ -642,6 +642,8 @@ export const MESSAGES_FR = {
     "downloadStaff": "Télécharger le QR code",
     "openStaffLogin": "Ouvrir la page de connexion",
     "openOrder": "Ouvrir la commande",
+    "openInBrowserCopied": "Lien copie — collez-le dans un onglet du navigateur (evite une seconde fenetre d'app)",
+    "openInBrowserCopyFail": "Impossible de copier le lien ; copiez l'adresse manuellement et ouvrez-la dans le navigateur",
     "sourceTable": "Table d'origine",
     "sourceTables": "Tables d'origine (sélection multiple)",
     "targetTable": "Table de destination",

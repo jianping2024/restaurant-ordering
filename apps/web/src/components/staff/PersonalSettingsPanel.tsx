@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { PrintNotifyModeText } from '@/components/print-agent/PrintNotifyModeText';
 import { getMessages } from '@/lib/i18n/messages';
@@ -45,7 +45,11 @@ export function PersonalSettingsPanel({ notifyMode }: Props) {
         <ThemeToggle variant="row" />
       </section>
       <section className="border-b border-brand-border/70 px-3 py-2">
-        <LanguageSwitcher variant="nested" />
+        <p className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-brand-text-muted">
+          <span aria-hidden>🌐</span>
+          <span>{t.languageSettings}</span>
+        </p>
+        <LanguageSwitcherIconChrome />
       </section>
     </>
   );

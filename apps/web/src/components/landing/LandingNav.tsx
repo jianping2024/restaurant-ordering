@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
@@ -31,7 +31,7 @@ export function LandingNav() {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
-          <LanguageSwitcher compact />
+          <LanguageSwitcherIconChrome />
           <Link
             href="/auth/login"
             className="text-[13px] text-brand-text-muted transition-colors hover:text-brand-gold sm:text-sm"

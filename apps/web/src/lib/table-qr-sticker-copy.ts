@@ -1,9 +1,12 @@
-export type TableQrStickerLocale = 'zh' | 'en' | 'pt';
+import type { UILanguage } from '@/lib/i18n';
+
+/** Sticker CTA locale — same set as dashboard UI language. */
+export type TableQrStickerLocale = UILanguage;
 
 const TABLE_QR_SCAN_CTA: Record<TableQrStickerLocale, string> = {
-  zh: '扫码开始点餐 ›',
-  en: 'Scan to Order ›',
-  pt: 'Digitalize para pedir ›',
+  zh: '点餐 ›',
+  en: 'Order ›',
+  pt: 'Pedir ›',
 };
 
 export function resolveTableQrStickerLocale(

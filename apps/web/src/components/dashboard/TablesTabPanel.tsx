@@ -32,7 +32,7 @@ import { useTableBatchSelection } from '@/lib/use-table-batch-selection';
 import { useTableQrCodes } from '@/lib/use-table-qr-codes';
 
 interface TablesTabPanelProps {
-  restaurant: { slug: string; name: string; print_locale: 'zh' | 'en' | 'pt' | null };
+  restaurant: { slug: string; name: string };
   webOrigin: string;
   tables: RestaurantTableRow[];
   groups: RestaurantTableGroup[];
@@ -142,12 +142,12 @@ export function TablesTabPanel({
         webOrigin,
         rows,
         restaurantName: restaurant.name,
-        printLocale: restaurant.print_locale,
+        uiLocale: lang,
         resolveDisplayName: tableLabelForInput,
       }),
     [
+      lang,
       restaurant.name,
-      restaurant.print_locale,
       restaurant.slug,
       tableLabelForInput,
       webOrigin,

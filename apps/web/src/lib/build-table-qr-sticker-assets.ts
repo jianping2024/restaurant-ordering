@@ -9,7 +9,8 @@ export type BuildTableQrStickerAssetsInput = {
   webOrigin: string;
   rows: RestaurantTableRow[];
   restaurantName: string;
-  printLocale?: TableQrStickerLocale | null;
+  /** Dashboard UI language — preview / print / ZIP share this one locale. */
+  uiLocale?: TableQrStickerLocale | null;
   resolveDisplayName?: (row: RestaurantTableRow) => string;
 };
 
@@ -19,11 +20,11 @@ export async function buildTableQrStickerAssets(input: BuildTableQrStickerAssets
     webOrigin,
     rows,
     restaurantName,
-    printLocale,
+    uiLocale,
     resolveDisplayName,
   } = input;
   if (rows.length === 0) return {};
-  const scanCta = resolveTableQrStickerScanCta(printLocale);
+  const scanCta = resolveTableQrStickerScanCta(uiLocale);
 
   const qrCodes = await ensureTableQrCodes(
     slug,

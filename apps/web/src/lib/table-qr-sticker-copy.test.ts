@@ -13,10 +13,10 @@ describe('resolveTableQrStickerLocale', () => {
 
 describe('resolveTableQrStickerScanCta', () => {
   it('returns Chinese CTA for zh locale', () => {
-    assert.equal(resolveTableQrStickerScanCta('zh'), '扫码开始点餐 ›');
+    assert.equal(resolveTableQrStickerScanCta('zh'), '点餐 ›');
   });
 
   it('returns Portuguese CTA by default', () => {
-    assert.equal(resolveTableQrStickerScanCta(undefined), 'Digitalize para pedir ›');
+    assert.equal(resolveTableQrStickerScanCta(undefined), 'Pedir ›');
   });
 });

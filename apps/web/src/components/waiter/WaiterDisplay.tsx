@@ -59,13 +59,13 @@ import { waiterTableHref } from '@/lib/staff-routes';
 import { formatCheckoutPinnedSectionTitle } from '@/lib/waiter-board-permissions';
 import {
   floorLaneKey,
-  loadWaiterBoardSelectedLaneKey,
+  loadWaiterBoardViewPreference,
   parseWaiterBoardLaneKey,
   partyLaneKey,
   resolveWaiterBoardSelectedLaneKey,
-  saveWaiterBoardSelectedLaneKey,
+  saveWaiterBoardViewPreference,
   type WaiterBoardLaneKey,
-} from '@/lib/waiter-board-section-preference';
+} from '@/lib/waiter-board-view-preference';
 import {
   WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS,
   WAITER_BOARD_TABLES_GRID_CLASS,
@@ -286,7 +286,7 @@ function WaiterBoardInner({
   const [boardFilter, setBoardFilter] = useState<WaiterBoardFilter>('all');
   const [tableSearch, setTableSearch] = useState('');
   const [selectedLaneKey, setSelectedLaneKey] = useState<WaiterBoardLaneKey | null>(null);
-  const [lanePrefsHydrated, setLanePrefsHydrated] = useState(false);
+  const [viewPrefsHydrated, setViewPrefsHydrated] = useState(false);
   const [partyBusy, setPartyBusy] = useState(false);
   const partyActionsRef = useRef<WaiterBoardPartySectionHandle>(null);
   const [openTableTarget, setOpenTableTarget] = useState<{
@@ -296,15 +296,22 @@ function WaiterBoardInner({
   const [checkoutTarget, setCheckoutTarget] = useState<{ tableId: string } | null>(null);
 
   useEffect(() => {
-    setLanePrefsHydrated(false);
-    setSelectedLaneKey(loadWaiterBoardSelectedLaneKey(restaurant.id));
-    setLanePrefsHydrated(true);
+    setViewPrefsHydrated(false);
+    const pref = loadWaiterBoardViewPreference(restaurant.id);
+    setBoardFilter(pref.filter);
+    setTableSearch(pref.search);
+    setSelectedLaneKey(pref.laneKey);
+    setViewPrefsHydrated(true);
   }, [restaurant.id]);
 
   useEffect(() => {
-    if (!lanePrefsHydrated) return;
-    saveWaiterBoardSelectedLaneKey(restaurant.id, selectedLaneKey);
-  }, [restaurant.id, selectedLaneKey, lanePrefsHydrated]);
+    if (!viewPrefsHydrated) return;
+    saveWaiterBoardViewPreference(restaurant.id, {
+      laneKey: selectedLaneKey,
+      filter: boardFilter,
+      search: tableSearch,
+    });
+  }, [restaurant.id, selectedLaneKey, boardFilter, tableSearch, viewPrefsHydrated]);
 
   useEffect(() => {
     setNowMs(Date.now());
@@ -549,11 +556,11 @@ function WaiterBoardInner({
   );
 
   useEffect(() => {
-    if (!lanePrefsHydrated) return;
+    if (!viewPrefsHydrated) return;
     if (resolvedLaneKey !== selectedLaneKey) {
       setSelectedLaneKey(resolvedLaneKey);
     }
-  }, [lanePrefsHydrated, resolvedLaneKey, selectedLaneKey]);
+  }, [viewPrefsHydrated, resolvedLaneKey, selectedLaneKey]);
 
   const selectLane = useCallback((key: WaiterBoardLaneKey) => {
     setSelectedLaneKey(key);

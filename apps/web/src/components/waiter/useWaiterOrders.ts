@@ -15,10 +15,8 @@ import {
   boardSupportsBuffetOpenTable,
   type WaiterBoardOpenTableDefaults,
 } from '@/lib/waiter-board-open-table';
-import {
-  useRestaurantRealtimeRefresh,
-  useRestaurantStaffEntryReconcile,
-} from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import type {
   RestaurantTableGroup,
   RestaurantTableGroupMember,

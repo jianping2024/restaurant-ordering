@@ -11,7 +11,8 @@ import {
  * Staff surface freshness contract (production):
  * 1. Boot seed — optional SSR/demo seed; Dashboard chrome does not SSR the waiter board
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
- * 3. Client entry reconcile — when board list is active (`useRestaurantStaffEntryReconcile`);
+ * 3. Client entry reconcile — when board list is active (`useRestaurantStaffEntryReconcile`
+ *    in `@/lib/use-restaurant-staff-entry-reconcile`);
  *    skip mount when boot seed is authoritative (`reconcileOnMount=false`), still resume on visibility
  * 4. Visibility / list-active reconcile — `resolveWaiterBoardReconcileScope(floorReady)`:
  *    cold (no floor static) → full; hydrated floor → live occupancy catch-up.
@@ -70,37 +71,7 @@ export function realtimeChannelTopic(channelKey: string, generation: number): st
   return `${channelKey}:${generation}`;
 }
 
-/**
- * Reconcile authoritative staff read-models when a surface becomes active:
- * mount / entry navigation (optional), and document visible after being hidden.
- */
-export function useRestaurantStaffEntryReconcile(
-  enabled: boolean,
-  refresh: () => void | Promise<unknown>,
-  entryKey?: string | number,
-  /** When false, skip mount pull (SSR already authoritative) but still resume. Default true. */
-  reconcileOnMount = true,
-) {
-  const refreshRef = useRef(refresh);
-  refreshRef.current = refresh;
-
-  useEffect(() => {
-    if (!enabled || !reconcileOnMount) return;
-    void refresh();
-  }, [enabled, refresh, entryKey, reconcileOnMount]);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    const onVisibility = () => {
-      if (document.visibilityState !== 'visible') return;
-      void refreshRef.current();
-    };
-
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [enabled, entryKey]);
-}
+/** Entry / visibility reconcile — sole export: `@/lib/use-restaurant-staff-entry-reconcile`. */
 
 export type PostgresRealtimeBinding = {
   table: string;

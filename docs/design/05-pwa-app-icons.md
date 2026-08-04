@@ -23,6 +23,7 @@
 - **要做什么：** Chrome「安装应用」/ 创建快捷方式，或登录页员工向安装提示；打开后无浏览器地址栏（`display: standalone`）。
 - **不要做什么：** Service Worker、离线缓存、断网点餐。断网经营靠门店本地部署，不靠浏览器壳。
 - **谁看到安装提示：** 仅员工登录表单（`AuthLoginForm` → `AuthPwaInstallPrompt`）；顾客扫码菜单不挂。
+- **链接打开：** manifest `handle_links: not-preferred` — 从图标启动仍是独立窗口；浏览器 / 扫码打开同站 URL（含 `/{slug}/menu`）应留在浏览器，不自动跳进已装 App。已安装用户若仍被劫持：`chrome://apps` 卸载重装，或在该应用设置里关闭「用应用打开链接」。
 - **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts` + `use-pwa-install.ts`。
 
 ---

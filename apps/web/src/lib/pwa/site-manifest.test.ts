@@ -13,6 +13,7 @@ describe('buildSiteManifest', () => {
     assert.equal(manifest.start_url, '/auth/login');
     assert.equal(manifest.scope, '/');
     assert.equal(manifest.display, 'standalone');
+    assert.equal(manifest.handle_links, 'not-preferred');
     assert.equal(manifest.name, PRODUCT_NAME);
     assert.equal(manifest.short_name, PRODUCT_NAME);
   });

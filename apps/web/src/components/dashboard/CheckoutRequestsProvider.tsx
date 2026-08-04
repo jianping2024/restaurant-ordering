@@ -28,7 +28,7 @@ import {
 import { groupCollectedPaymentsBySession } from '@/lib/checkout-settlement';
 import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
 import { useBillSplitsRealtimeRefresh } from '@/lib/use-bill-splits-realtime-refresh';
-import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import type { BillSplit } from '@/types';
 
 type CheckoutRequestsContextValue = {

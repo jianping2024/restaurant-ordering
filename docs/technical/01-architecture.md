@@ -105,7 +105,7 @@ JWT（print-agent、support）、餐厅功能开关、代建餐厅、国家码�
 | 页面局部 UI | React `useState` / `useMemo` / `useCallback` |
 | 语言 / 主题 | `LanguageProvider`、`ThemeProvider`（client） |
 | Dashboard 首屏 | Server Components + `loadDashboardAccess()` 等 server loader |
-| 服务员/厨房/结账实时 | `useRestaurantStaffEntryReconcile`（进页 + 回前台拉权威读模型）+ `useRestaurantRealtimeRefresh`（表面 active 时 `postgres_changes` 门铃 → 权威 GET；waiter board 仅列表可见时 active）。楼面拉取失败进入 `boardSurface`（loading / failed / ready），不抛未处理异常；401 走统一登出硬跳 |
+| 服务员/厨房/结账实时 | `useRestaurantStaffEntryReconcile`（`@/lib/use-restaurant-staff-entry-reconcile`；进页 + 回前台拉权威读模型；无 supabase 依赖以便顾客菜单 SSR）+ `useRestaurantRealtimeRefresh`（表面 active 时 `postgres_changes` 门铃 → 权威 GET；waiter board 仅列表可见时 active）。楼面拉取失败进入 `boardSurface`（loading / failed / ready），不抛未处理异常；401 走统一登出硬跳 |
 | 结账队列角标 | Realtime + `useCheckoutRequestCount` |
 | 权威业务状态 | **Postgres**（会话、订单、分单）；非前端全局 store |
 | 结账写操作 | **SECURITY DEFINER RPC**（`confirm_bill_split_payment` 等）保证原子性 |

@@ -155,11 +155,26 @@ type ConfirmDialogState =
       batchCount?: number;
     };
 
-const NOTE_UI_TEXT = {
+const NOTE_UI_TEXT: Record<
+  import('@/lib/i18n').UILanguage,
+  { title: string; hint: string }
+> = {
   zh: { title: '预选备注', hint: '可选。顾客下单时会显示这些快捷备注，建议按菜品类型勾选。' },
   en: { title: 'Preset notes', hint: 'Optional. Selected notes are shown as quick options during ordering.' },
   pt: { title: 'Observacoes predefinidas', hint: 'Opcional. Estas observacoes aparecem como atalhos no pedido.' },
-} as const;
+  es: {
+    title: 'Notas predefinidas',
+    hint: 'Opcional. Estas notas aparecen como atajos al pedir.',
+  },
+  fr: {
+    title: 'Notes prédéfinies',
+    hint: 'Facultatif. Ces notes apparaissent comme raccourcis à la commande.',
+  },
+  de: {
+    title: 'Vorgegebene Notizen',
+    hint: 'Optional. Diese Notizen erscheinen als Schnelloptionen beim Bestellen.',
+  },
+};
 
 export function MenuManager({
   restaurantId,

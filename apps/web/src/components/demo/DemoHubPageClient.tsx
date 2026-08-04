@@ -41,6 +41,42 @@ const DEMO_HUB_TEXT = {
       { title: 'Painel do garcom', desc: 'Ver mesas prontas para servir e prioridades.', step: 'Passo 3' },
     ],
   },
+  es: {
+    tag: 'demo en vivo',
+    title: 'Muestre el flujo completo del servicio',
+    desc: 'Use esta ruta guiada para mostrar como un pedido pasa por cliente, cocina y camarero.',
+    start: 'Iniciar demo',
+    back: 'Volver al inicio',
+    cards: [
+      { title: 'Flujo del cliente', desc: 'Escanear QR de mesa, pedir y solicitar la cuenta.', step: 'Paso 1' },
+      { title: 'Interfaz de cocina', desc: 'Recibir pedidos y actualizar el estado de los platos.', step: 'Paso 2' },
+      { title: 'Panel del camarero', desc: 'Ver mesas listas para servir y prioridades.', step: 'Paso 3' },
+    ],
+  },
+  fr: {
+    tag: 'demo en direct',
+    title: 'Montrez le flux complet du service',
+    desc: 'Utilisez ce parcours guide pour montrer comment une commande traverse client, cuisine et serveur.',
+    start: 'Demarrer la demo',
+    back: "Retour a l'accueil",
+    cards: [
+      { title: 'Parcours client', desc: 'Scanner le QR de table, commander et demander l addition.', step: 'Etape 1' },
+      { title: 'Interface cuisine', desc: 'Recevoir les tickets et mettre a jour le statut des plats.', step: 'Etape 2' },
+      { title: 'Tableau serveur', desc: 'Suivre les tables pretes a servir et les priorites.', step: 'Etape 3' },
+    ],
+  },
+  de: {
+    tag: 'Live-Demo',
+    title: 'Den gesamten Serviceablauf zeigen',
+    desc: 'Mit diesem gefuhrten Pfad zeigen, wie eine Bestellung uber Gast, Kuche und Service lauft.',
+    start: 'Demo starten',
+    back: 'Zuruck zur Startseite',
+    cards: [
+      { title: 'Gastablauf', desc: 'Tisch-QR scannen, bestellen und Rechnung anfordern.', step: 'Schritt 1' },
+      { title: 'Kuchenansicht', desc: 'Neue Tickets empfangen und Gerichtstatus aktualisieren.', step: 'Schritt 2' },
+      { title: 'Service-Board', desc: 'Servierbereite Tische und Prioritaten verfolgen.', step: 'Schritt 3' },
+    ],
+  },
 } as const satisfies Record<
   UILanguage,
   {

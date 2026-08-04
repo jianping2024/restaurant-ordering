@@ -50,6 +50,15 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   staffOverageCancel: string;
   subcategoryAll: string;
   catalogLoading: string;
+  /** Cart drawer title. */
+  cartTitle: string;
+  /** Cart drawer total label (no currency). */
+  cartTotalLabel: string;
+  cartNotePlaceholder: string;
+  /** Menu card + button aria-label. */
+  itemAdd: string;
+  itemSoldOut: string;
+  noQuickNotes: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -104,6 +113,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Tudo',
     catalogLoading: 'A carregar menu…',
+    cartTitle: 'Carrinho',
+    cartTotalLabel: 'Total',
+    cartNotePlaceholder: 'Nota (ex.: sem sal, sem cebola)',
+    itemAdd: '+ Adicionar',
+    itemSoldOut: 'Esgotado',
+    noQuickNotes: 'Sem observacoes rapidas configuradas para este prato.',
   },
   en: {
     table: 'Table',
@@ -158,6 +173,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancel',
     subcategoryAll: 'All',
     catalogLoading: 'Loading menu…',
+    cartTitle: 'Cart',
+    cartTotalLabel: 'Total',
+    cartNotePlaceholder: 'Notes (e.g. less salt, no onion)',
+    itemAdd: '+ Add',
+    itemSoldOut: 'Sold out',
+    noQuickNotes: 'No quick notes configured for this dish.',
   },
   zh: {
     table: '桌号',
@@ -212,6 +233,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: '取消',
     subcategoryAll: '全部',
     catalogLoading: '正在加载菜单…',
+    cartTitle: '购物车',
+    cartTotalLabel: '合计',
+    cartNotePlaceholder: '备注（如：少盐、不要洋葱）',
+    itemAdd: '+ 加入',
+    itemSoldOut: '已售完',
+    noQuickNotes: '该菜品暂无快捷备注，请直接输入。',
   },
   es: {
     table: 'Mesa',
@@ -273,6 +300,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Todo',
     catalogLoading: 'Cargando la carta…',
+    cartTitle: 'Carrito',
+    cartTotalLabel: 'Total',
+    cartNotePlaceholder: 'Notas (p. ej. poca sal, sin cebolla)',
+    itemAdd: '+ Añadir',
+    itemSoldOut: 'Agotado',
+    noQuickNotes: 'Este plato no tiene notas rápidas; escríbelas aquí.',
   },
   fr: {
     table: 'Table',
@@ -338,6 +371,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Annuler',
     subcategoryAll: 'Tout',
     catalogLoading: 'Chargement de la carte…',
+    cartTitle: 'Panier',
+    cartTotalLabel: 'Total',
+    cartNotePlaceholder: 'Notes (ex. : peu de sel, sans oignon)',
+    itemAdd: '+ Ajouter',
+    itemSoldOut: 'Épuisé',
+    noQuickNotes: 'Pas de notes rapides pour ce plat ; saisissez-les ici.',
   },
   de: {
     table: 'Tisch',
@@ -402,6 +441,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Abbrechen',
     subcategoryAll: 'Alle',
     catalogLoading: 'Karte wird geladen…',
+    cartTitle: 'Warenkorb',
+    cartTotalLabel: 'Summe',
+    cartNotePlaceholder: 'Notiz (z. B. wenig Salz, ohne Zwiebel)',
+    itemAdd: '+ Hinzufügen',
+    itemSoldOut: 'Ausverkauft',
+    noQuickNotes: 'Keine Schnellnotizen für dieses Gericht; bitte direkt eingeben.',
   },
 };
 

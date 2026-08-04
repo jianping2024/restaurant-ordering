@@ -6,7 +6,7 @@ export type TableQrStickerLocale = UILanguage;
 const TABLE_QR_SCAN_CTA: Record<TableQrStickerLocale, string> = {
   zh: '点餐 ›',
   en: 'Order ›',
-  pt: 'Pedir ›',
+  pt: 'Peça já ›',
 };
 
 export function resolveTableQrStickerLocale(

@@ -17,6 +17,6 @@ describe('resolveTableQrStickerScanCta', () => {
   });
 
   it('returns Portuguese CTA by default', () => {
-    assert.equal(resolveTableQrStickerScanCta(undefined), 'Pedir ›');
+    assert.equal(resolveTableQrStickerScanCta(undefined), 'Peça já ›');
   });
 });

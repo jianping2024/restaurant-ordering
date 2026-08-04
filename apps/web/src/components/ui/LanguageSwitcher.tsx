@@ -12,18 +12,27 @@ import {
 interface LanguageSwitcherProps {
   compact?: boolean;
   /**
-   * - inline: flag/code pills (landing, auth, customer header)
-   * - menu / icon: compact trigger + dropdown
+   * - inline: short-code pills (landing)
+   * - icon: globe trigger + dropdown (auth shell, customer ordering header)
+   * - menu: full-width trigger + dropdown
    * - nested: one row showing current language; expands to scrollable list (account menu)
    */
   variant?: 'inline' | 'menu' | 'icon' | 'nested';
-  /** Match customer menu header pills (flag + code). */
-  showFlags?: boolean;
   /** Dropdown panel placement for menu/icon variants. */
   dropdownPlacement?: 'above' | 'below';
   /** Horizontal alignment of the dropdown panel. */
   dropdownAlign?: 'start' | 'end';
 }
+
+/** Sole chrome for auth shell + customer ordering header language control. */
+export const LANGUAGE_SWITCHER_ICON_CHROME = {
+  variant: 'icon',
+  dropdownPlacement: 'below',
+  dropdownAlign: 'end',
+} as const satisfies Pick<
+  LanguageSwitcherProps,
+  'variant' | 'dropdownPlacement' | 'dropdownAlign'
+>;
 
 function dropdownPanelPositionClass(
   placement: 'above' | 'below',
@@ -86,7 +95,6 @@ function OptionRows({
 export function LanguageSwitcher({
   compact = false,
   variant = 'inline',
-  showFlags = false,
   dropdownPlacement = 'above',
   dropdownAlign = 'start',
 }: LanguageSwitcherProps) {
@@ -205,8 +213,6 @@ export function LanguageSwitcher({
     );
   }
 
-  const pillTextClass = showFlags ? 'text-[13px]' : 'text-xs';
-
   return (
     <div
       className={`flex flex-wrap items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1 ${compact ? '' : 'w-fit'}`}
@@ -220,13 +226,13 @@ export function LanguageSwitcher({
           role="option"
           aria-selected={lang === option.id}
           onClick={() => selectLang(option.id)}
-          className={`px-2.5 py-1 rounded-full ${pillTextClass} transition-all ${
+          className={`px-2.5 py-1 rounded-full text-xs transition-all ${
             lang === option.id
               ? 'bg-brand-gold text-brand-on-gold font-semibold'
               : 'text-brand-text-muted hover:text-brand-text'
           }`}
         >
-          {showFlags ? `${option.flag} ${option.shortLabel}` : option.shortLabel}
+          {option.shortLabel}
         </button>
       ))}
     </div>

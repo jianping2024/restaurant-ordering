@@ -1,7 +1,7 @@
 'use client';
 
 import { ProductLogo } from '@/components/ui/ProductLogo';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { LANGUAGE_SWITCHER_ICON_CHROME, LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { AuthIconTextRow } from '@/components/auth/AuthIconTextRow';
 import { AuthTrustBadges } from '@/components/auth/AuthTrustBadges';
 import { AuthShieldIcon } from '@/components/auth/auth-icons';
@@ -37,7 +37,7 @@ export function AuthPageShell({ variant, copy, toolbar, footer, children }: Prop
       <div className="relative z-[1] w-full max-w-lg">
         {showLanguageSwitcher ? (
           <div className="flex justify-end mb-4">
-            <LanguageSwitcher compact />
+            <LanguageSwitcher {...LANGUAGE_SWITCHER_ICON_CHROME} />
           </div>
         ) : null}
 

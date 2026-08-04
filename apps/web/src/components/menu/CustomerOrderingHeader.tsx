@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { LANGUAGE_SWITCHER_ICON_CHROME, LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -91,11 +91,7 @@ export function CustomerOrderingHeader({
           ) : (
             <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-2`}>
               <ThemeToggle variant="icon" />
-              <LanguageSwitcher
-                variant="icon"
-                dropdownPlacement="below"
-                dropdownAlign="end"
-              />
+              <LanguageSwitcher {...LANGUAGE_SWITCHER_ICON_CHROME} />
             </div>
           )}
         </div>

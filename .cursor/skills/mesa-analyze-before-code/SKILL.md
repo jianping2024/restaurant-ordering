@@ -48,7 +48,7 @@ Hard phrase gate and short always-on summary: `.cursor/rules/analysis-before-cod
 
 ### After confirmation
 
-1. State base branch; create/switch from **`main`** (or user-named baseline) without touching other tasks’ WIP. If worktree has unrelated dirty files, use a **separate git worktree** — do not stash their WIP. **Do not** `move_agent_to_root` / `move_agent_to_cloned_root` to “enter” a Mesa worktree when the prior chat branch is local-only — those MCP calls `git fetch origin <prior-branch>` and fail; use shell `git worktree` + absolute paths (see `AGENTS.md` retrospectives).
+1. State base branch; create/switch from **`main`** (or user-named baseline) without touching other tasks’ WIP. If worktree has unrelated dirty files, use a **separate git worktree** — do not stash their WIP. **Never** use `move_agent_to_root` / `move_agent_to_cloned_root` for Mesa branch/worktree switches **or** land-to-main cleanup (including “切回主仓”) — those MCP tools `git fetch origin <prior-branch>` and blow up / leave deleted worktrees open; use shell `git checkout` / `git worktree` + absolute paths only (see `AGENTS.md` retrospectives).
 2. Implement only the approved plan (end-state shape already).
 3. **Implementation gate (answerable from the diff):**
    - No parallel component/helper vs reuse verdict
@@ -77,6 +77,6 @@ Before finishing an implementation turn:
 - [ ] Diff has **one representation** per those concepts (no parallel flat+array / parallel labels)
 - [ ] Reuse search covered domain UI + `messages` labels when UI/copy changed
 - [ ] Branch/base isolation respected; unrelated WIP untouched
-- [ ] After user-asked merge to main: feature worktree/branch removed; agent on `main`
+- [ ] After user-asked merge to main: done-gate — `test ! -e` feature worktree path, branch deleted, canonical `main` (not `worktree list` alone)
 - [ ] `AGENTS.md` checks run; manual items reported pass/fail (skip only if blocked)
 - [ ] No commit unless user asked (unless push/ship)

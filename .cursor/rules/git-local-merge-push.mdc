@@ -29,9 +29,11 @@ If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not
 When the user asked to merge/land this task’s feature branch (or the task’s approved end is “合进 main”): **do not stop on the feature branch/worktree.** Immediately:
 
 1. Ensure local `main` has the merge commit.
-2. `git worktree remove` this task’s feature worktree (if any); `--force` only for throwaway untracked junk in that worktree.
+2. `git worktree remove` this task’s feature worktree (if any); `--force` for throwaway untracked junk (`node_modules` symlinks, etc.). **Unregister ≠ gone:** if the directory still exists after remove, `rm -rf` that **same** throwaway path (land permission covers it).
 3. `git branch -d <feature>` (local only; do not delete unrelated worktrees/branches).
-4. Primary checkout + agent root on **`main`**: shell `git checkout main` in the canonical repo path; `move_agent_to_root` only after the feature branch is deleted (or never existed on `origin`) — otherwise MCP fetch of the prior local-only branch fails.
-5. Report: on `main` @ `<sha>`, feature branch/worktree gone.
+4. Primary checkout on **`main`**: if a helper worktree is holding `main`, `git worktree remove` it first, then shell `git checkout main` in the canonical repo. **Never** call `move_agent_to_root` / `move_agent_to_cloned_root` during land (or any Mesa branch/worktree switch) — even to “go back to main”; those MCP tools still `git fetch origin <prior-branch>` and blow up / leave the chat on a deleted tree. Stay on shell + absolute paths under the canonical repo. Done only when canonical `git branch --show-current` is `main` (not detached).
+5. **Done-gate (all must pass before the user-facing report):** `git worktree list` has no feature path; `test ! -e <feature-worktree-path>`; feature branch absent; canonical `git branch --show-current` is `main` (not detached). `git worktree list` alone is a **false pass** if the folder husk remains. Stash/AGENTS conflicts on main WIP must not interrupt this gate — finish delete/assert first, then resolve WIP.
+
+6. Report only after step 5: on `main` @ `<sha>`, feature branch/worktree gone.
 
 Skip only if the user explicitly says keep the branch/worktree.

@@ -27,8 +27,7 @@ var pairUIHTML []byte
 // registerPairWebRoutes serves /pair and POST /api/pair on the given mux (configure tray session or pair wizard).
 func registerPairWebRoutes(mux *http.ServeMux, configPath string, cfg **config, logPrefix string, onSuccess func()) {
 	mux.HandleFunc("/pair", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(pairUIHTML)
+		writeBrandHTML(w, pairUIHTML)
 	})
 	registerPairWizardRoute(mux, configPath, cfg, logPrefix, onSuccess)
 }
@@ -90,7 +89,7 @@ func runPairingWizard(ctx context.Context, configPath, prefillAPI string) error 
 	baseURL := pairWizardBaseURL(listenAddr, prefillAPI)
 
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
-	announceWizardURL("MesaGo 配对", baseURL)
+	announceWizardURL(productName+" 配对", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

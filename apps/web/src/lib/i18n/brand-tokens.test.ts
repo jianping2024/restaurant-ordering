@@ -11,13 +11,13 @@ describe('brand-tokens', () => {
     );
     assert.equal(
       out,
-      '在收银电脑安装并启动 MesaGo 打印助手；托盘 MesaGo 图标；从 MesaGo 拉取',
+      '在收银电脑安装并启动 FARVOO 打印助手；托盘 FARVOO 图标；从 FARVOO 拉取',
     );
   });
 
   it('resolves en tray icon token', () => {
     const tokens = getBrandTokens('en');
     const out = applyBrandTokens('Open {brand} with the {trayIcon} tray icon running', tokens);
-    assert.equal(out, 'Open MesaGo with the MesaGo Print tray icon running');
+    assert.equal(out, 'Open FARVOO with the FARVOO Print tray icon running');
   });
 });

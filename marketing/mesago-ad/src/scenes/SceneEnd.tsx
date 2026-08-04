@@ -53,7 +53,7 @@ export const SceneEnd: React.FC<AdProps> = ({
           }),
         }}
       >
-        MesaGo
+        FARVOO
       </Interactive.Div>
 
       <Interactive.Div

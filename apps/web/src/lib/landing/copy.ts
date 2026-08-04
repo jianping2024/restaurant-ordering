@@ -1,3 +1,4 @@
+import { PRODUCT_NAME } from '@mesa/shared';
 import type { LandingCopy, LandingLanguage } from '@/lib/landing/types';
 
 const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
@@ -79,7 +80,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     preview: {
       title: '产品界面预览',
-      subtitle: '以下为 MesaGo 实际系统界面（演示数据）。',
+      subtitle: `以下为 ${PRODUCT_NAME} 实际系统界面（演示数据）。`,
       remoteDemo: '想亲自操作？通过 WhatsApp 预约远程演示',
       screens: [
         { id: 'waiter-open' as const, label: '开台', caption: '服务员确认成人 / 儿童人数' },
@@ -93,7 +94,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: '客户案例',
       name: 'Restaurante Pirata',
       location: '葡萄牙 · 中餐自助',
-      quote: 'MesaGo 试点客户，使用系统管理自助餐开台计费与酒水点单流程。',
+      quote: `${PRODUCT_NAME} 试点客户，使用系统管理自助餐开台计费与酒水点单流程。`,
       tags: ['中餐自助', '人头计费', '三语菜单'],
     },
     contact: {
@@ -187,7 +188,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     preview: {
       title: 'Product screens',
-      subtitle: 'Actual MesaGo UI with demo data.',
+      subtitle: `Actual ${PRODUCT_NAME} UI with demo data.`,
       remoteDemo: 'Want a live walkthrough? Book a remote demo via WhatsApp',
       screens: [
         { id: 'waiter-open' as const, label: 'Open table', caption: 'Staff confirm adult / child count' },
@@ -201,7 +202,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Customer story',
       name: 'Restaurante Pirata',
       location: 'Portugal · Chinese buffet',
-      quote: 'MesaGo pilot customer using the system for buffet open-table billing and drink orders.',
+      quote: `${PRODUCT_NAME} pilot customer using the system for buffet open-table billing and drink orders.`,
       tags: ['Chinese buffet', 'Per-guest billing', 'Trilingual menu'],
     },
     contact: {
@@ -295,7 +296,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     preview: {
       title: 'Interfaces do produto',
-      subtitle: 'UI real MesaGo com dados de demonstracao.',
+      subtitle: `UI real ${PRODUCT_NAME} com dados de demonstracao.`,
       remoteDemo: 'Quer ver ao vivo? Marque demo remota por WhatsApp',
       screens: [
         { id: 'waiter-open' as const, label: 'Abertura', caption: 'Confirmar adultos e criancas' },
@@ -309,7 +310,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       title: 'Cliente',
       name: 'Restaurante Pirata',
       location: 'Portugal · Buffet chines',
-      quote: 'Cliente piloto MesaGo para abertura buffet e pedidos de bebidas.',
+      quote: `Cliente piloto ${PRODUCT_NAME} para abertura buffet e pedidos de bebidas.`,
       tags: ['Buffet chines', 'Por pessoa', 'Menu trilingue'],
     },
     contact: {

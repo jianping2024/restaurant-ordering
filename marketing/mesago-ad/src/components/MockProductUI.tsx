@@ -29,7 +29,7 @@ export const MockMenuUI: React.FC = () => (
         fontSize: 32,
       }}
     >
-      MesaGo · 扫码菜单
+      FARVOO · 扫码菜单
     </div>
     <div style={{ padding: 16, overflow: "hidden" }}>
       {[

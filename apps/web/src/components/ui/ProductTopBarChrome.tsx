@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 
-/** MesaGo + restaurant name — shared by dashboard and staff sticky top bars. */
+/** FARVOO + restaurant name — shared by dashboard and staff sticky top bars. */
 export function ProductTopBarBrand({
   href,
   restaurantName,

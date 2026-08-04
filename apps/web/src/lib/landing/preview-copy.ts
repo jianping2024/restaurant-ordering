@@ -1,13 +1,14 @@
+import { PRODUCT_NAME } from '@mesa/shared';
 import type { LandingLanguage, LandingPreviewCopy } from '@/lib/landing/types';
 
 const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
   zh: {
     chrome: {
-      banner: '界面预览 · MesaGo 演示数据',
+      banner: `界面预览 · ${PRODUCT_NAME} 演示数据`,
     },
     shared: {
       tableLabel: '桌 {name}',
-      restaurantName: 'MesaGo 演示',
+      restaurantName: `${PRODUCT_NAME} 演示`,
     },
     waiterOpen: {
       roleHint: '服务员 · 开台确认',
@@ -63,11 +64,11 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
   },
   en: {
     chrome: {
-      banner: 'UI preview · MesaGo demo data',
+      banner: `UI preview · ${PRODUCT_NAME} demo data`,
     },
     shared: {
       tableLabel: 'Table {name}',
-      restaurantName: 'MesaGo Demo',
+      restaurantName: `${PRODUCT_NAME} Demo`,
     },
     waiterOpen: {
       roleHint: 'Waiter · Open table',
@@ -123,11 +124,11 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
   },
   pt: {
     chrome: {
-      banner: 'Pre-visualizacao · Dados demo MesaGo',
+      banner: `Pre-visualizacao · Dados demo ${PRODUCT_NAME}`,
     },
     shared: {
       tableLabel: 'Mesa {name}',
-      restaurantName: 'MesaGo Demo',
+      restaurantName: `${PRODUCT_NAME} Demo`,
     },
     waiterOpen: {
       roleHint: 'Empregado · Abrir mesa',

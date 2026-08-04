@@ -4,18 +4,7 @@ import {
   estimateTableQrCardHeight,
   fitSingleLineFontSize,
   TABLE_QR_CARD_LAYOUT,
-  resolveTableQrGroupLabel,
 } from './table-qr-card-layout';
-
-describe('resolveTableQrGroupLabel', () => {
-  it('returns ungrouped label when table has no group', () => {
-    assert.equal(resolveTableQrGroupLabel('t1', {}, '未分组'), '未分组');
-  });
-
-  it('returns group name when assigned', () => {
-    assert.equal(resolveTableQrGroupLabel('t1', { t1: '大厅1' }, '未分组'), '大厅1');
-  });
-});
 
 describe('fitSingleLineFontSize', () => {
   it('shrinks font until text fits', () => {
@@ -32,11 +21,13 @@ describe('fitSingleLineFontSize', () => {
 });
 
 describe('estimateTableQrCardHeight', () => {
-  it('includes the scan CTA section in the card height', () => {
+  it('includes restaurant, product, and scan CTA sections', () => {
     const height = estimateTableQrCardHeight();
     const minimumExpected =
       TABLE_QR_CARD_LAYOUT.padding * 2
       + TABLE_QR_CARD_LAYOUT.qrSize
+      + TABLE_QR_CARD_LAYOUT.restaurantNameFontSize * TABLE_QR_CARD_LAYOUT.restaurantNameLineHeight
+      + TABLE_QR_CARD_LAYOUT.productNameFontSize * TABLE_QR_CARD_LAYOUT.productNameLineHeight
       + TABLE_QR_CARD_LAYOUT.scanCtaFontSize * TABLE_QR_CARD_LAYOUT.scanCtaLineHeight;
 
     assert.ok(height > minimumExpected);

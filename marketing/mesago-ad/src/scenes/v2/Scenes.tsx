@@ -84,7 +84,7 @@ export const S03Menu: React.FC = () => (
     <ContrastSplit
       badTitle="旧做法"
       badBody="平板墙 €60,000+"
-      goodTitle="MesaGo"
+      goodTitle="FARVOO"
       goodBody="客人手机扫码"
       delay={20}
     />
@@ -116,7 +116,7 @@ export const S05OpenTable: React.FC = () => (
     <ContrastSplit
       badTitle="普通桌码"
       badBody="带走也能点"
-      goodTitle="MesaGo"
+      goodTitle="FARVOO"
       goodBody="开台后才能点"
       delay={12}
     />
@@ -190,7 +190,7 @@ export const S08End: React.FC<AdProps> = ({
           }),
         }}
       >
-        MesaGo
+        FARVOO
       </Interactive.Div>
       <Interactive.Div
         name="Tag"

@@ -2,7 +2,7 @@
 
 > **状态**：2026-07-15  
 > **读者**：设计、前端、AI 图像生成  
-> **用途**：生成 MesaGo Web App 在 iOS / Android「添加到主屏幕」所需的全部图标资产
+> **用途**：生成 FARVOO Web App 在 iOS / Android「添加到主屏幕」所需的全部图标资产
 
 关联文档：[`01-design-principles.md`](./01-design-principles.md)、[`04-mobile-rules.md`](./04-mobile-rules.md)
 
@@ -12,7 +12,7 @@
 
 | 项 | 值 |
 |---|---|
-| 产品名 | **MesaGo** |
+| 产品名 | **FARVOO** |
 | 定位 | 葡萄牙餐厅点餐 SaaS（扫码点餐、厨房显示、分单结账） |
 | 主屏入口角色 | 服务员 `/waiter`、厨房 `/kitchen`、老板 `/dashboard` |
 | 技术栈 | Next.js Web App（非 App Store 原生应用） |
@@ -24,7 +24,7 @@
 
 ### 2.1 整体方向
 
-- **风格**：现代、专业、餐馆 SaaS；偏 **极简几何** 或 **字母标（M / MG）**，不要复杂插画
+- **风格**：现代、专业、餐馆 SaaS；偏 **极简几何** 或 **字母标（F）**，不要复杂插画
 - **气质**：可靠、高效、略具葡萄牙/欧式餐馆的 **金色点缀**；避免卡通、渐变霓虹、3D 拟物
 - **识别性**：在 **48×48** 缩略图下仍可辨认；不要细线、小字、复杂纹理
 - **禁止**：真实食物摄影、过多文字（除单个字母外）、透明背景、设计稿预加圆角/阴影
@@ -75,7 +75,7 @@
 - 线宽 ≥ 画布 8%，避免细线
 
 **方案 C — 文字标**  
-- 深底 + 金色 **「MesaGo」** 仅在小尺寸（≥512）可读；192/180 需仍能用 **「M」** 识别  
+- 深底 + 金色 **「FARVOO」** 仅在小尺寸（≥512）可读；192/180 需仍能用 **「F」** 识别  
 - 若选 C，须同时交付 **字母标变体** 供小尺寸使用
 
 ### 2.5 交付前视觉 QA
@@ -205,7 +205,7 @@ icons: [
 ### 5.1 母版 1024×1024（普通 icon）
 
 ```text
-Design a square app icon for "MesaGo", a professional restaurant ordering SaaS for Portuguese restaurants.
+Design a square app icon for "FARVOO", a professional restaurant ordering SaaS for Portuguese restaurants.
 
 Style: minimal, flat, modern B2B SaaS. No photorealistic food, no 3D, no neon gradients, no cartoon.
 Logo direction: {方案 — e.g. bold geometric letter "M" in gold on dark background}.
@@ -227,7 +227,7 @@ Output: 1024×1024 PNG, sRGB, crisp edges, app icon for iOS and Android home scr
 ### 5.2 Maskable 512×512（Android 自适应）
 
 ```text
-Same MesaGo app icon as before, but for Android adaptive icon (maskable).
+Same FARVOO app icon as before, but for Android adaptive icon (maskable).
 
 Background: solid #0F0E0C full bleed to all edges.
 Logo: gold #D4A843, centered in the middle 60% only — keep all important shapes inside a centered circle of 60% diameter.

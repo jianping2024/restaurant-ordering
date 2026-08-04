@@ -111,6 +111,39 @@ function drawBottomAccent(
   ctx.restore();
 }
 
+function drawCornerOrnaments(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  inset: number,
+  size: number,
+  color: string,
+): void {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  const corners: Array<[number, number, number, number]> = [
+    [inset, inset, 1, 1],
+    [width - inset, inset, -1, 1],
+    [inset, height - inset, 1, -1],
+    [width - inset, height - inset, -1, -1],
+  ];
+  for (const [x, y, sx, sy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + sy * size);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + sx * size, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + sx * 4, y + sy * 4);
+    ctx.lineTo(x + sx * 4, y + sy * (size - 2));
+    ctx.moveTo(x + sx * 4, y + sy * 4);
+    ctx.lineTo(x + sx * (size - 2), y + sy * 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawSideOrnaments(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -144,9 +177,10 @@ async function ensureTableQrFontsLoaded(): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts?.load) return;
   if (!fontsReady) {
     fontsReady = Promise.all([
-      document.fonts.load(`600 58px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`),
-      document.fonts.load(`400 18px ${TABLE_QR_CARD_LAYOUT.secondaryFontFamily}`),
-      document.fonts.load(`500 24px ${TABLE_QR_CARD_LAYOUT.scanCtaFontFamily}`),
+      document.fonts.load(`600 54px ${TABLE_QR_CARD_LAYOUT.displayNameFontFamily}`),
+      document.fonts.load(`600 22px ${TABLE_QR_CARD_LAYOUT.restaurantNameFontFamily}`),
+      document.fonts.load(`500 16px ${TABLE_QR_CARD_LAYOUT.productNameFontFamily}`),
+      document.fonts.load(`500 20px ${TABLE_QR_CARD_LAYOUT.scanCtaFontFamily}`),
     ]).then(() => undefined);
   }
   await fontsReady;
@@ -170,11 +204,20 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
   roundedRectPath(ctx, 0, 0, layout.width, height, layout.borderRadius);
   ctx.fill();
   ctx.strokeStyle = layout.borderColor;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
   roundedRectPath(ctx, 8, 8, layout.width - 16, height - 16, layout.borderRadius - 2);
   ctx.strokeStyle = layout.innerBorderColor;
+  ctx.lineWidth = 1;
   ctx.stroke();
+  drawCornerOrnaments(
+    ctx,
+    layout.width,
+    height,
+    layout.cornerOrnamentInset,
+    layout.cornerOrnamentSize,
+    layout.borderColor,
+  );
 
   const innerWidth = layout.width - layout.padding * 2;
   let y = layout.padding;
@@ -194,21 +237,17 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
   );
   ctx.font = `${layout.displayNameFontWeight} ${displayFontSize}px ${layout.displayNameFontFamily}`;
   ctx.fillText(content.displayName.trim(), layout.width / 2, y);
-  y += displayFontSize * layout.displayNameLineHeight + layout.topSectionGap;
-
-  ctx.fillStyle = layout.groupNameColor;
-  ctx.font = `${layout.secondaryFontWeight} ${layout.secondaryFontSize}px ${layout.secondaryFontFamily}`;
-  ctx.fillText(content.groupName.trim(), layout.width / 2, y);
+  y += displayFontSize * layout.displayNameLineHeight + layout.topSectionGap * 0.45;
   drawDivider(
     ctx,
     layout.width / 2,
-    y + layout.secondaryFontSize * layout.secondaryLineHeight / 2,
+    y,
     layout.dividerLineWidth,
     layout.dividerGap,
     layout.dividerDiamondSize,
     layout.innerBorderColor,
   );
-  y += layout.secondaryFontSize * layout.secondaryLineHeight + layout.groupSectionGap;
+  y += layout.topSectionGap * 0.55;
 
   const qrX = (layout.width - layout.qrSize) / 2;
   ctx.drawImage(qrImage, qrX, y, layout.qrSize, layout.qrSize);
@@ -221,9 +260,34 @@ export async function composeTableQrPng(content: TableQrCardContent): Promise<st
   y += layout.qrSize + layout.bottomSectionGap;
 
   ctx.fillStyle = layout.restaurantNameColor;
-  ctx.font = `${layout.secondaryFontWeight} ${layout.secondaryFontSize}px ${layout.secondaryFontFamily}`;
+  const restaurantFontSize = fitSingleLineFontSize(
+    content.restaurantName,
+    innerWidth,
+    layout.restaurantNameFontSize,
+    layout.restaurantNameFontSizeMin,
+    (value, fontSize) => {
+      ctx.font = `${layout.restaurantNameFontWeight} ${fontSize}px ${layout.restaurantNameFontFamily}`;
+      return ctx.measureText(value).width;
+    },
+  );
+  ctx.font = `${layout.restaurantNameFontWeight} ${restaurantFontSize}px ${layout.restaurantNameFontFamily}`;
   ctx.fillText(content.restaurantName.trim(), layout.width / 2, y);
-  y += layout.secondaryFontSize * layout.secondaryLineHeight + layout.scanCtaSectionGap;
+  y += restaurantFontSize * layout.restaurantNameLineHeight + layout.brandStackGap;
+
+  ctx.fillStyle = layout.productNameColor;
+  const productFontSize = fitSingleLineFontSize(
+    content.productName,
+    innerWidth,
+    layout.productNameFontSize,
+    layout.productNameFontSizeMin,
+    (value, fontSize) => {
+      ctx.font = `${layout.productNameFontWeight} ${fontSize}px ${layout.productNameFontFamily}`;
+      return ctx.measureText(value).width;
+    },
+  );
+  ctx.font = `${layout.productNameFontWeight} ${productFontSize}px ${layout.productNameFontFamily}`;
+  ctx.fillText(content.productName.trim(), layout.width / 2, y);
+  y += productFontSize * layout.productNameLineHeight + layout.scanCtaSectionGap;
 
   drawBottomAccent(ctx, layout.width / 2, y - 9, layout.innerBorderColor);
   ctx.fillStyle = layout.scanCtaColor;

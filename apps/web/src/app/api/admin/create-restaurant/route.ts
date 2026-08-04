@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { OPS_CONSOLE_NAME } from '@mesa/shared';
 import { getOpsAppUrl } from '@/lib/ops-app-url';
 
-/** @deprecated Use MesaGo Ops `POST /api/ops/restaurants` (authenticated platform admin). */
+/** @deprecated Use FARVOO Ops `POST /api/ops/restaurants` (authenticated platform admin). */
 export async function POST() {
   const opsUrl = getOpsAppUrl();
   return NextResponse.json(

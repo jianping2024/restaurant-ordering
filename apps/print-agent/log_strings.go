@@ -1,13 +1,13 @@
 package main
 
 func init() {
-	for k, v := range logStringsZH() {
+	for k, v := range brandizeUIMap(logStringsZH()) {
 		uiBundles["zh"][k] = v
 	}
-	for k, v := range logStringsEN() {
+	for k, v := range brandizeUIMap(logStringsEN()) {
 		uiBundles["en"][k] = v
 	}
-	for k, v := range logStringsPT() {
+	for k, v := range brandizeUIMap(logStringsPT()) {
 		uiBundles["pt"][k] = v
 	}
 }
@@ -29,7 +29,7 @@ func logStringsZH() map[string]string {
 		"log_skipped_expired":       "已跳过超过 10 分钟的旧任务（单号 %s）",
 		"log_printer_not_ready":     "打印机不可达 [%s] 档口 %s：%s",
 		"log_prepare_print_error":   "打印前检查失败（单号 %s）：%s",
-		"log_job_still_pending":     "任务仍为 pending（单号 %s，步骤 %s），请查 MesaGo 连接",
+		"log_job_still_pending":     "任务仍为 pending（单号 %s，步骤 %s），请查 {brand} 连接",
 		"log_printing_job":          "开始打印：单号 %s，档口 %s，打印机 %s（%s）",
 		"log_receipt_deferred":      "结账小票等待打印机映射（最多约 10 分钟）",
 		"log_route_error":           "任务路由失败（单号 %s，档口 %s）：%s",
@@ -50,9 +50,9 @@ func logStringsZH() map[string]string {
 		"log_no_station_mapping":    "尚未映射出品档口，请在「打印机设置」中配置",
 		"log_saved_config":          "配置已保存：%s",
 		"log_wizard_open":           "请在浏览器中打开：%s",
-		"log_routing_sync_fail":     "档口映射同步到 MesaGo 失败",
+		"log_routing_sync_fail":     "档口映射同步到 {brand} 失败",
 		"log_routing_sync_http":     "档口映射同步失败（HTTP %d）",
-		"log_routing_sync_ok":       "档口映射已同步到 MesaGo（%d 个）",
+		"log_routing_sync_ok":       "档口映射已同步到 {brand}（%d 个）",
 		"log_station_maps_saved":    "已保存 %d 个档口打印机映射",
 		"log_station_maps_cleared":  "已清除全部档口打印机映射（本机不再接收打印任务）",
 		"log_test_print_station":    "试打：档口 %s",
@@ -79,7 +79,7 @@ func logStringsEN() map[string]string {
 		"log_skipped_expired":       "Skipped job older than 10 minutes (id %s)",
 		"log_printer_not_ready":     "Printer not reachable [%s] station %s: %s",
 		"log_prepare_print_error":   "Pre-print check failed (id %s): %s",
-		"log_job_still_pending":     "Job still pending (id %s, step %s); check MesaGo connectivity",
+		"log_job_still_pending":     "Job still pending (id %s, step %s); check {brand} connectivity",
 		"log_printing_job":          "Printing: id %s, station %s, printer %s (%s)",
 		"log_receipt_deferred":      "Receipt waiting for printer mapping (up to ~10 min)",
 		"log_route_error":           "Job routing failed (id %s, station %s): %s",
@@ -100,9 +100,9 @@ func logStringsEN() map[string]string {
 		"log_no_station_mapping":    "No station printers mapped — open Printer settings",
 		"log_saved_config":          "Config saved: %s",
 		"log_wizard_open":           "Open in browser: %s",
-		"log_routing_sync_fail":     "Failed to sync station mapping to MesaGo",
+		"log_routing_sync_fail":     "Failed to sync station mapping to {brand}",
 		"log_routing_sync_http":     "Station mapping sync failed (HTTP %d)",
-		"log_routing_sync_ok":       "Station mapping synced to MesaGo (%d)",
+		"log_routing_sync_ok":       "Station mapping synced to {brand} (%d)",
 		"log_station_maps_saved":    "Saved %d station printer mapping(s)",
 		"log_station_maps_cleared":  "Cleared all station mappings (this PC will not receive print jobs)",
 		"log_test_print_station":    "Test print: station %s",
@@ -129,7 +129,7 @@ func logStringsPT() map[string]string {
 		"log_skipped_expired":       "Ignorado trabalho com mais de 10 min (id %s)",
 		"log_printer_not_ready":     "Impressora inacessível [%s] estação %s: %s",
 		"log_prepare_print_error":   "Falha na verificação pré-impressão (id %s): %s",
-		"log_job_still_pending":     "Trabalho ainda pending (id %s, passo %s); verifique ligação ao MesaGo",
+		"log_job_still_pending":     "Trabalho ainda pending (id %s, passo %s); verifique ligação ao {brand}",
 		"log_printing_job":          "A imprimir: id %s, estação %s, impressora %s (%s)",
 		"log_receipt_deferred":      "Conta à espera de impressora mapeada (até ~10 min)",
 		"log_route_error":           "Falha de encaminhamento (id %s, estação %s): %s",
@@ -150,7 +150,7 @@ func logStringsPT() map[string]string {
 		"log_no_station_mapping":    "Sem estações mapeadas — abra Definições de impressora",
 		"log_saved_config":          "Configuração guardada: %s",
 		"log_wizard_open":           "Abra no browser: %s",
-		"log_routing_sync_fail":     "Falha ao sincronizar mapeamento com MesaGo",
+		"log_routing_sync_fail":     "Falha ao sincronizar mapeamento com {brand}",
 		"log_routing_sync_http":     "Sincronização falhou (HTTP %d)",
 		"log_routing_sync_ok":       "Mapeamento sincronizado (%d)",
 		"log_station_maps_saved":    "Guardadas %d estações",

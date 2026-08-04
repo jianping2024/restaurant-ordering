@@ -10,17 +10,17 @@ import {
 } from './brand';
 
 describe('brand', () => {
-  it('defines MesaGo product naming', () => {
-    assert.equal(PRODUCT_NAME, 'MesaGo');
-    assert.equal(OPS_CONSOLE_NAME, 'MesaGo Ops');
-    assert.equal(PRINT_AGENT_NAME, 'MesaGo Print Agent');
-    assert.equal(PRINT_AGENT_TRAY_TITLE, 'MesaGo Print');
-    assert.equal(PRODUCT_SITE_TITLE, 'MesaGo — 葡萄牙餐厅点餐系统');
+  it('defines FARVOO product naming', () => {
+    assert.equal(PRODUCT_NAME, 'FARVOO');
+    assert.equal(OPS_CONSOLE_NAME, 'FARVOO Ops');
+    assert.equal(PRINT_AGENT_NAME, 'FARVOO Print Agent');
+    assert.equal(PRINT_AGENT_TRAY_TITLE, 'FARVOO Print');
+    assert.equal(PRODUCT_SITE_TITLE, 'FARVOO — 葡萄牙餐厅点餐系统');
   });
 
   it('localizes print agent label', () => {
-    assert.equal(printAgentLabel('zh'), 'MesaGo 打印助手');
-    assert.equal(printAgentLabel('en'), 'MesaGo Print Agent');
-    assert.equal(printAgentLabel('pt'), 'MesaGo Print Agent');
+    assert.equal(printAgentLabel('zh'), 'FARVOO 打印助手');
+    assert.equal(printAgentLabel('en'), 'FARVOO Print Agent');
+    assert.equal(printAgentLabel('pt'), 'FARVOO Print Agent');
   });
 });

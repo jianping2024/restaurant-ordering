@@ -31,7 +31,7 @@ func (rt *trayRuntime) startTrayConfigureWizard(launchQuery string) {
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)
 	}
-	announceWizardURL("MesaGo 打印机设置", baseURL)
+	announceWizardURL(productName+" 打印机设置", baseURL)
 }
 
 func (rt *trayRuntime) rememberConfigureWizardURL(url string) {

@@ -19,7 +19,7 @@ func waitForAgentPairing(ctx context.Context, configPath, prefillAPI string) err
 func waitPairingOnListenAddr(ctx context.Context, configPath, prefillAPI, listenAddr string) error {
 	baseURL := pairWizardBaseURL(listenAddr, prefillAPI)
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
-	announceWizardURL("MesaGo 配对", baseURL)
+	announceWizardURL(productName+" 配对", baseURL)
 
 	tick := time.NewTicker(500 * time.Millisecond)
 	defer tick.Stop()

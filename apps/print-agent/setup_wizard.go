@@ -21,8 +21,7 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/setup", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(setupUIHTML)
+		writeBrandHTML(w, setupUIHTML)
 	})
 
 	registerPrinterWizardRoutes(mux, configPath, &cfg, "setup wizard")
@@ -46,7 +45,7 @@ func runSetupWizard(ctx context.Context, configPath string, cfg *config) error {
 
 	baseURL := "http://" + listenAddr + "/setup"
 	agentLogLocale(localeFromConfigPath(configPath), "log_wizard_open", baseURL)
-	announceWizardURL("MesaGo 打印机映射", baseURL)
+	announceWizardURL(productName+" 打印机映射", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

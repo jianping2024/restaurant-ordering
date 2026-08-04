@@ -14,8 +14,7 @@ var configureUIHTML []byte
 
 func registerConfigureWizardRoutes(mux *http.ServeMux, configPath string, cfgPtr **config, done chan<- error, onPairSuccess func()) {
 	mux.HandleFunc("/configure", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write(configureUIHTML)
+		writeBrandHTML(w, configureUIHTML)
 	})
 
 	registerPairWebRoutes(mux, configPath, cfgPtr, "configure wizard", onPairSuccess)
@@ -90,7 +89,7 @@ func runConfigureWizard(ctx context.Context, configPath string, prefillAPI, rawQ
 	if onConfigureWizardReady != nil {
 		onConfigureWizardReady(baseURL)
 	}
-	announceWizardURL("MesaGo 打印机设置", baseURL)
+	announceWizardURL(productName+" 打印机设置", baseURL)
 
 	return waitLocalWizard(ctx, srv, done)
 }

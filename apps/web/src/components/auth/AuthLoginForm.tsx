@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { AuthPwaInstallPrompt } from '@/components/auth/AuthPwaInstallPrompt';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@mesa/ui';
@@ -53,6 +54,8 @@ export function AuthLoginForm({ storeSlug }: Props) {
       <Button type="submit" className="w-full" size="lg" loading={loading}>
         {t.login}
       </Button>
+
+      <AuthPwaInstallPrompt />
     </form>
   );
 }

@@ -57,18 +57,24 @@ func parseRoutingSyncError(status int, body []byte) error {
 	if code == "station_mapping_conflict" || len(payload.Conflicts) > 0 {
 		return &RoutingSyncError{Code: "station_mapping_conflict", Message: msg, Conflicts: payload.Conflicts}
 	}
+	if status == http.StatusUnauthorized {
+		return &RoutingSyncError{Code: "unauthorized", Message: msg}
+	}
 	if code != "" {
 		return &RoutingSyncError{Code: code, Message: msg}
 	}
 	return fmt.Errorf("HTTP %d: %s", status, msg)
 }
 
-func syncRoutingToCloud(cfg *config) error {
+func syncRoutingToCloud(cfg *config, forceTakeover bool) error {
 	if cfg == nil || strings.TrimSpace(cfg.AgentJWT) == "" || strings.TrimSpace(cfg.APIBase) == "" {
 		return nil
 	}
 	body := map[string]any{
 		"station_printers": cfg.StationPrinters,
+	}
+	if forceTakeover {
+		body["force_takeover"] = true
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {

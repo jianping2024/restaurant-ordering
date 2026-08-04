@@ -562,6 +562,8 @@ export const MESSAGES = {
       devicesRevoke: '吊销',
       devicesRevokeTitle: '吊销打印助手',
       devicesRevokeMessage: '确认吊销「{name}」？吊销后该收银机将无法继续打印，需重新配对才能恢复。',
+      devicesRevokeMessageUnmapped:
+        '确认吊销「{name}」？这台尚未映射档口，多半是刚配对、正在配置的机器。吊销后需重新配对才能继续。若你是要腾出档口给新机，请吊销占用档口的那台旧机。',
       devicesRevokeConfirm: '确认吊销',
       devicesRevokeCancel: '取消',
       devicesRefresh: '刷新',
@@ -574,7 +576,8 @@ export const MESSAGES = {
       devicesLastSeen: '最近心跳',
       devicesVersion: '代理版本',
       devicesVersionBehind: '建议升级至 {ver}',
-      devicesMappedStations: '已映射档口数',
+      devicesMappedStations: '已映射档口',
+      devicesUnmapped: '尚未映射档口',
       devicesLastPrint: '最近打印',
       devicesUnlabeled: '收银机',
       billReceipt: {
@@ -1926,6 +1929,8 @@ export const MESSAGES = {
       devicesRevokeTitle: 'Revoke print agent',
       devicesRevokeMessage:
         'Revoke “{name}”? It will stop printing until you pair again.',
+      devicesRevokeMessageUnmapped:
+        'Revoke “{name}”? It has no mapped stations — often a newly paired PC still being set up. After revoke you must pair again. To free stations for a new PC, revoke the older device that holds those stations.',
       devicesRevokeConfirm: 'Revoke',
       devicesRevokeCancel: 'Cancel',
       devicesRefresh: 'Refresh',
@@ -1939,6 +1944,7 @@ export const MESSAGES = {
       devicesVersion: 'Agent version',
       devicesVersionBehind: 'upgrade to {ver}',
       devicesMappedStations: 'Mapped stations',
+      devicesUnmapped: 'No stations mapped yet',
       devicesLastPrint: 'Last print',
       devicesUnlabeled: 'Register',
       billReceipt: {
@@ -2879,6 +2885,8 @@ export const MESSAGES = {
       devicesRevokeTitle: 'Revogar agente de impressao',
       devicesRevokeMessage:
         'Revogar “{name}”? Deixara de imprimir ate reemparelhar.',
+      devicesRevokeMessageUnmapped:
+        'Revogar “{name}”? Ainda sem estacoes mapeadas — muitas vezes e o PC acabado de emparelhar. Depois precisa emparelhar de novo. Para libertar estacoes, revogue o dispositivo antigo que as ocupa.',
       devicesRevokeConfirm: 'Confirmar',
       devicesRevokeCancel: 'Cancelar',
       devicesRefresh: 'Atualizar',
@@ -2892,6 +2900,7 @@ export const MESSAGES = {
       devicesVersion: 'Versao do agente',
       devicesVersionBehind: 'atualizar para {ver}',
       devicesMappedStations: 'Estacoes mapeadas',
+      devicesUnmapped: 'Ainda sem estacoes mapeadas',
       devicesLastPrint: 'Ultima impressao',
       devicesUnlabeled: 'Caixa',
       billReceipt: {

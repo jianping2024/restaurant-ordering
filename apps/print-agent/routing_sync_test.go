@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 )
@@ -29,12 +30,10 @@ func TestParseRoutingSyncErrorConflict(t *testing.T) {
 	}
 }
 
-func TestParseRoutingSyncErrorGeneric(t *testing.T) {
-	err := parseRoutingSyncError(http.StatusInternalServerError, []byte(`{"message":"db down"}`))
-	if _, ok := isRoutingSyncConflict(err); ok {
-		t.Fatal("expected generic error")
-	}
-	if err.Error() == "" {
-		t.Fatal("expected message")
+func TestParseRoutingSyncErrorUnauthorized(t *testing.T) {
+	err := parseRoutingSyncError(http.StatusUnauthorized, []byte(`{"error":"unauthorized"}`))
+	var rse *RoutingSyncError
+	if !errors.As(err, &rse) || rse.Code != "unauthorized" {
+		t.Fatalf("expected unauthorized RoutingSyncError, got %v", err)
 	}
 }

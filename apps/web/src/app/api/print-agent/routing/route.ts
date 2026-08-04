@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  let body: { station_printers?: unknown };
+  let body: { station_printers?: unknown; force_takeover?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
   }
 
   const stationPrinters = normalizeStationPrintersInput(body.station_printers);
+  const forceTakeover = body.force_takeover === true;
 
   const { data: stations } = await admin
     .from('print_stations')
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
     deviceId: auth.device_id,
     stationPrinters,
     stations: stations || [],
+    forceTakeover,
   });
 
   if (!result.ok) {

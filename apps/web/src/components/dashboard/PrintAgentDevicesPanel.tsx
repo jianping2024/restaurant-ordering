@@ -87,6 +87,19 @@ export function PrintAgentDevicesPanel({
     }
   };
 
+  function deviceHasMappedStations(d: PrintAgentDeviceHeartbeatRow): boolean {
+    if (d.mapped_station_labels && d.mapped_station_labels.length > 0) return true;
+    return (d.mapped_station_count ?? 0) > 0;
+  }
+
+  function revokeConfirmMessage(d: PrintAgentDeviceHeartbeatRow): string {
+    const name = deviceLabel(d, t.devicesUnlabeled);
+    if (!deviceHasMappedStations(d)) {
+      return t.devicesRevokeMessageUnmapped.replace('{name}', name);
+    }
+    return t.devicesRevokeMessage.replace('{name}', name);
+  }
+
   if (devices.length === 0) {
     return (
       <section className="rounded-xl border border-brand-border bg-white p-5 shadow-sm">
@@ -182,7 +195,7 @@ export function PrintAgentDevicesPanel({
                       ? d.mapped_station_labels.join(' · ')
                       : d.mapped_station_count != null && d.mapped_station_count > 0
                         ? String(d.mapped_station_count)
-                        : '—'}
+                        : t.devicesUnmapped}
                   </dd>
                 </div>
                 <div>
@@ -209,11 +222,7 @@ export function PrintAgentDevicesPanel({
         open={revokeTarget != null}
         onClose={() => setRevokeTarget(null)}
         title={t.devicesRevokeTitle}
-        message={
-          revokeTarget
-            ? t.devicesRevokeMessage.replace('{name}', deviceLabel(revokeTarget, t.devicesUnlabeled))
-            : ''
-        }
+        message={revokeTarget ? revokeConfirmMessage(revokeTarget) : ''}
         confirmLabel={t.devicesRevokeConfirm}
         cancelLabel={t.devicesRevokeCancel}
         variant="danger"

@@ -16,6 +16,7 @@ type printerListEntry struct {
 
 type setupRequestBody struct {
 	StationPrinters map[string]string `json:"station_printers"`
+	ForceTakeover   bool              `json:"force_takeover,omitempty"`
 	UILocale        string            `json:"ui_locale,omitempty"`
 	TextEncoding    string            `json:"text_encoding,omitempty"`
 }

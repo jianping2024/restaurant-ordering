@@ -107,7 +107,7 @@ func initAgentSession(runCtx context.Context, args []string) (*agentSession, boo
 
 	agentLog(cfg, "log_bootstrap_routing_sync")
 	t1 := time.Now()
-	syncRoutingToCloud(cfg)
+	syncRoutingToCloud(cfg, false)
 	agentLog(cfg, "log_bootstrap_phase_done", "routing-sync", time.Since(t1).Round(time.Millisecond))
 
 	stationCount := 0

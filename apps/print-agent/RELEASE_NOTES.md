@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.63
+
+**档口冲突：向导内「接管并保存」；凭证失效提示重配**
+
+- 云端 `POST /api/print-agent/routing` 支持 `force_takeover`：从其他活跃设备摘掉冲突档口再写入本机（不必误吊刚配对设备）。
+- Setup/Configure：冲突时显示「接管并保存」；401/吊销失效时提示重新配对。
+- Dashboard「已配对收银机」：无映射标「尚未映射档口」；吊销未映射设备时加强确认文案。
+
 ## 0.3.62
 
 **托盘卸载：找对 Inno 卸载项并真正拉起 unins000**

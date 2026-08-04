@@ -22,15 +22,31 @@
     return s;
   }
 
-  function formatSaveError(ui, payload) {
+  function isStationMappingConflict(res) {
+    return !!(res && res.j && res.j.error_code === 'station_mapping_conflict');
+  }
+
+  function isAgentAuthFailed(res) {
+    if (!res) return false;
+    if (res.status === 401) return true;
+    var j = res.j || {};
+    if (j.error_code === 'agent_revoked' || j.error_code === 'unauthorized') return true;
+    return /HTTP 401|\bunauthorized\b/i.test(String(j.error || ''));
+  }
+
+  function formatSaveError(ui, payload, status) {
     var j = payload || {};
+    if (isAgentAuthFailed({ status: status || 0, j: j })) {
+      return t(ui, 'save_auth_revoked');
+    }
     if (j.error_code === 'station_mapping_conflict' && Array.isArray(j.conflicts) && j.conflicts.length) {
       var lines = j.conflicts.map(function (c) {
         var dev = (c.other_device_label && String(c.other_device_label).trim()) ||
           String(c.other_device_id || '').slice(0, 8);
         return fmt2(ui, 'save_station_conflict_line', c.station_label || c.station_id || '?', dev);
       });
-      return t(ui, 'save_station_conflict_title') + '\n' + lines.join('\n');
+      return t(ui, 'save_station_conflict_title') + '\n' + lines.join('\n') +
+        '\n' + t(ui, 'save_station_conflict_takeover_hint');
     }
     return j.error || t(ui, 'save_failed');
   }
@@ -63,16 +79,25 @@
     return isMappingCleared(maps) ? t(ui, 'save_cleared_ok') : t(ui, 'save_ok');
   }
 
-  function postSetup(stationPrinters) {
+  function postSetup(stationPrinters, opts) {
+    opts = opts || {};
+    var body = { station_printers: stationPrinters || {} };
+    if (opts.forceTakeover) body.force_takeover = true;
     return fetch('/api/setup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ station_printers: stationPrinters || {} }),
+      body: JSON.stringify(body),
     }).then(function (r) {
       return r.json().then(function (j) {
         return { ok: r.ok, status: r.status, j: j };
       });
     });
+  }
+
+  function setTakeoverVisible(btn, show) {
+    if (!btn) return;
+    btn.classList.toggle('hidden', !show);
+    if (!show) btn.onclick = null;
   }
 
   function setTestBlockVisible(show, ids) {
@@ -88,11 +113,14 @@
     fmt: fmt,
     fmt2: fmt2,
     formatSaveError: formatSaveError,
+    isStationMappingConflict: isStationMappingConflict,
+    isAgentAuthFailed: isAgentAuthFailed,
     collectFromRows: collectFromRows,
     mappingCount: mappingCount,
     isMappingCleared: isMappingCleared,
     saveOkMessage: saveOkMessage,
     postSetup: postSetup,
+    setTakeoverVisible: setTakeoverVisible,
     setTestBlockVisible: setTestBlockVisible,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

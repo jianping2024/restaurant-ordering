@@ -7,6 +7,7 @@ import {
   parseReceiptStationId,
   printJobTargetStationId,
   stationIdsFromRoutingSnapshot,
+  stripStationsFromRoutingSnapshot,
 } from '@/lib/print-agent-routing';
 
 const kitchenId = '11111111-1111-1111-1111-111111111111';
@@ -132,5 +133,27 @@ describe('normalizeStationPrintersInput', () => {
       }),
       { [kitchenId]: 'tcp:1.2.3.4:9100' },
     );
+  });
+});
+
+describe('stripStationsFromRoutingSnapshot', () => {
+  it('removes only requested station entries and keeps others', () => {
+    const raw = {
+      receipt_printers: [
+        { id: `station:${kitchenId}`, label: 'Kitchen', role: 'station' as const },
+        { id: `station:${barId}`, label: 'Bar', role: 'station' as const },
+      ],
+      updated_at: '2026-06-27T12:00:00.000Z',
+    };
+    const next = stripStationsFromRoutingSnapshot(raw, new Set([kitchenId]));
+    assert.equal(next.receipt_printers.length, 1);
+    assert.equal(next.receipt_printers[0]?.id, `station:${barId}`);
+    assert.equal(stationIdsFromRoutingSnapshot(next).has(kitchenId), false);
+    assert.equal(stationIdsFromRoutingSnapshot(next).has(barId), true);
+  });
+
+  it('returns empty printers for null/invalid snapshot', () => {
+    const next = stripStationsFromRoutingSnapshot(null, new Set([kitchenId]));
+    assert.deepEqual(next.receipt_printers, []);
   });
 });

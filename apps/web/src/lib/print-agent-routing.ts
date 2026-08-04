@@ -173,6 +173,64 @@ export async function findStationMappingConflicts(
   return conflicts;
 }
 
+/** Drop station:* entries from a device routing snapshot (force-takeover helper). */
+export function stripStationsFromRoutingSnapshot(
+  raw: unknown,
+  stationIdsToRemove: ReadonlySet<string>,
+): ReceiptPrinterRoutingSnapshot {
+  const parsed = parseReceiptPrinterRoutingSnapshot(raw);
+  const kept = (parsed?.receipt_printers ?? []).filter((p) => {
+    const sid = parseReceiptStationId(p.id);
+    return !sid || !stationIdsToRemove.has(sid);
+  });
+  return {
+    receipt_printers: kept,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Remove claimed stations from other active devices' snapshots.
+ * Sole path used when saveDeviceRoutingSnapshot({ forceTakeover: true }).
+ */
+async function releaseStationsFromOtherDevices(
+  admin: SupabaseClient,
+  restaurantId: string,
+  deviceId: string,
+  stationIds: readonly string[],
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const remove = new Set(stationIds.filter(Boolean));
+  if (remove.size === 0) return { ok: true };
+
+  const { data: devices, error } = await admin
+    .from('print_agent_devices')
+    .select('id, routing_snapshot')
+    .eq('restaurant_id', restaurantId)
+    .is('revoked_at', null)
+    .neq('id', deviceId);
+
+  if (error) return { ok: false, message: error.message };
+  if (!devices?.length) return { ok: true };
+
+  for (const row of devices as Array<{ id: string; routing_snapshot: unknown }>) {
+    const occupied = stationIdsFromRoutingSnapshot(row.routing_snapshot);
+    const hits = stationIds.some((sid) => sid && occupied.has(sid));
+    if (!hits) continue;
+
+    const next = stripStationsFromRoutingSnapshot(row.routing_snapshot, remove);
+    const { error: upErr } = await admin
+      .from('print_agent_devices')
+      .update({
+        routing_snapshot: next,
+        mapped_station_count: next.receipt_printers.length,
+      })
+      .eq('id', row.id)
+      .eq('restaurant_id', restaurantId);
+    if (upErr) return { ok: false, message: upErr.message };
+  }
+  return { ok: true };
+}
+
 export async function saveDeviceRoutingSnapshot(
   admin: SupabaseClient,
   params: {
@@ -180,6 +238,8 @@ export async function saveDeviceRoutingSnapshot(
     deviceId: string;
     stationPrinters: Record<string, string>;
     stations: StationRow[];
+    /** When true, strip conflicting stations from other active devices then save. */
+    forceTakeover?: boolean;
   },
 ): Promise<SaveDeviceRoutingResult> {
   const validStationIds = new Set(params.stations.map((s) => s.id));
@@ -198,7 +258,18 @@ export async function saveDeviceRoutingSnapshot(
     params.stations,
   );
   if (conflicts.length > 0) {
-    return { ok: false, code: 'station_mapping_conflict', conflicts };
+    if (!params.forceTakeover) {
+      return { ok: false, code: 'station_mapping_conflict', conflicts };
+    }
+    const released = await releaseStationsFromOtherDevices(
+      admin,
+      params.restaurantId,
+      params.deviceId,
+      incomingIds,
+    );
+    if (!released.ok) {
+      return { ok: false, code: 'update_failed', message: released.message };
+    }
   }
 
   const snapshot = buildReceiptPrinterSnapshot({

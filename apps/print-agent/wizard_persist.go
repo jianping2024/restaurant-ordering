@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -17,12 +18,19 @@ func persistStationPrinterSetup(
 		return http.StatusBadRequest, map[string]any{"error": err.Error()}
 	}
 
-	if syncErr := syncRoutingToCloud(c); syncErr != nil {
+	if syncErr := syncRoutingToCloud(c, body.ForceTakeover); syncErr != nil {
 		if rse, ok := isRoutingSyncConflict(syncErr); ok {
 			return http.StatusConflict, map[string]any{
 				"error":      rse.Message,
 				"error_code": rse.Code,
 				"conflicts":  rse.Conflicts,
+			}
+		}
+		var rse *RoutingSyncError
+		if errors.As(syncErr, &rse) && rse.Code == "unauthorized" {
+			return http.StatusUnauthorized, map[string]any{
+				"error":      rse.Message,
+				"error_code": "agent_revoked",
 			}
 		}
 		msg := strings.TrimSpace(syncErr.Error())

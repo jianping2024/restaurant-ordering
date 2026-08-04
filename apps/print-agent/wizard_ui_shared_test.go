@@ -22,8 +22,11 @@ func TestWizardUISharedJSEmbedded(t *testing.T) {
 	if !strings.Contains(body, "postSetup") {
 		t.Fatal("missing postSetup helper")
 	}
-	if !strings.Contains(body, "save_cleared_ok") {
-		t.Fatal("missing save_cleared_ok key reference")
+	if !strings.Contains(body, "force_takeover") {
+		t.Fatal("missing force_takeover in postSetup")
+	}
+	if !strings.Contains(body, "save_auth_revoked") {
+		t.Fatal("missing save_auth_revoked key reference")
 	}
 }
 
@@ -50,7 +53,10 @@ func TestSetupUIUsesSharedWizardJS(t *testing.T) {
 func TestMappingSaveI18nKeys(t *testing.T) {
 	for _, loc := range []string{"zh", "en", "pt"} {
 		bundle := uiBundleMap(loc)
-		for _, key := range []string{"save_ok", "save_cleared_ok", "save_need_mapping"} {
+		for _, key := range []string{
+			"save_ok", "save_cleared_ok", "save_need_mapping",
+			"save_station_conflict_takeover_hint", "save_takeover_btn", "save_auth_revoked",
+		} {
 			if strings.TrimSpace(bundle[key]) == "" || bundle[key] == key {
 				t.Fatalf("locale %s missing %s", loc, key)
 			}

@@ -59,6 +59,7 @@
         <div id="stations"></div>
       </div>
       <button type="button" id="saveBtn">Save and start printing</button>
+      <button type="button" id="takeoverBtn" class="hidden">Take over & save</button>
       <p class="err" id="err"></p>
     </div>
     <div id="ok" class="ok" style="display:none">
@@ -132,6 +133,8 @@
         document.getElementById('refreshBtn').textContent = t('scan_again');
         document.getElementById('stationsTitle').textContent = t('stations_title');
         document.getElementById('saveBtn').textContent = t('setup_save_btn');
+        var takeoverBtnLabel = document.getElementById('takeoverBtn');
+        if (takeoverBtnLabel) takeoverBtnLabel.textContent = t('save_takeover_btn');
         document.getElementById('okTitle').textContent = t('setup_saved_title');
         document.getElementById('okSub').textContent = t('test_section_hint').replace('%s', testPhrase());
         document.getElementById('testStationLabel').textContent = t('test_station_label');
@@ -501,6 +504,8 @@
       document.getElementById('saveBtn').addEventListener('click', function () {
         if (uiBusy || printerScanInFlight) return;
         err.textContent = '';
+        var takeoverBtn = document.getElementById('takeoverBtn');
+        MesaWizardUI.setTakeoverVisible(takeoverBtn, false);
         if (!window.MesaWizardUI) {
           err.textContent = t('save_failed') + ' (wizard-ui-shared.js)';
           return;
@@ -508,24 +513,48 @@
         var station_printers = MesaWizardUI.collectFromRows(document, { draft: draftMappings });
         uiBusy = true;
         updateActionButtons();
+        function applySaveOk(res) {
+          saved.station_printers = res.j.station_printers || station_printers;
+          seedDraftFromSaved();
+          lastSavedMaps = station_printers;
+          savedMappingEmpty = MesaWizardUI.isMappingCleared(station_printers);
+          testConfirmed = false;
+          document.getElementById('formWrap').classList.add('hidden');
+          document.getElementById('ok').style.display = 'block';
+          MesaWizardUI.setTakeoverVisible(takeoverBtn, false);
+          if (savedMappingEmpty) {
+            document.getElementById('okSub').textContent = MesaWizardUI.saveOkMessage(ui, station_printers);
+            setTestBlockVisible(false);
+          } else {
+            document.getElementById('okSub').textContent = t('test_section_hint').replace('%s', testPhrase());
+            setTestBlockVisible(true);
+            fillTestStationSelect(lastSavedMaps);
+          }
+        }
         MesaWizardUI.postSetup(station_printers)
           .then(function (res) {
-            if (!res.ok) { err.textContent = MesaWizardUI.formatSaveError(ui, res.j); return; }
-            saved.station_printers = res.j.station_printers || station_printers;
-            seedDraftFromSaved();
-            lastSavedMaps = station_printers;
-            savedMappingEmpty = MesaWizardUI.isMappingCleared(station_printers);
-            testConfirmed = false;
-            document.getElementById('formWrap').classList.add('hidden');
-            document.getElementById('ok').style.display = 'block';
-            if (savedMappingEmpty) {
-              document.getElementById('okSub').textContent = MesaWizardUI.saveOkMessage(ui, station_printers);
-              setTestBlockVisible(false);
-            } else {
-              document.getElementById('okSub').textContent = t('test_section_hint').replace('%s', testPhrase());
-              setTestBlockVisible(true);
-              fillTestStationSelect(lastSavedMaps);
+            if (!res.ok) {
+              err.textContent = MesaWizardUI.formatSaveError(ui, res.j, res.status);
+              if (MesaWizardUI.isStationMappingConflict(res) && takeoverBtn) {
+                MesaWizardUI.setTakeoverVisible(takeoverBtn, true);
+                takeoverBtn.onclick = function () {
+                  takeoverBtn.disabled = true;
+                  err.textContent = '';
+                  MesaWizardUI.postSetup(station_printers, { forceTakeover: true })
+                    .then(function (takeRes) {
+                      if (!takeRes.ok) {
+                        err.textContent = MesaWizardUI.formatSaveError(ui, takeRes.j, takeRes.status);
+                        return;
+                      }
+                      applySaveOk(takeRes);
+                    })
+                    .catch(function () { err.textContent = t('pair_service_unreachable'); })
+                    .finally(function () { takeoverBtn.disabled = false; });
+                };
+              }
+              return;
             }
+            applySaveOk(res);
           }).catch(function () { err.textContent = t('pair_service_unreachable'); })
           .finally(function () {
             uiBusy = false;

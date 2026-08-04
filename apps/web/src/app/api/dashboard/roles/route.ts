@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requirePermission } from '@/lib/permissions/require';
+import { requireAnyPermission, requirePermission } from '@/lib/permissions/require';
 import {
   createRestaurantRole,
   listRestaurantRoles,
@@ -9,6 +9,12 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isPermissionKey, type PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
+
+/** List roles for staff assignment or role editor (mutate stays roles.manage). */
+const rolesListPermissions = [
+  'settings.staff.manage',
+  'settings.roles.manage',
+] as const satisfies readonly PermissionKey[];
 
 async function bumpPermissionsVersion(
   admin: ReturnType<typeof createAdminClient>,
@@ -23,14 +29,19 @@ async function bumpPermissionsVersion(
   await admin.from('restaurants').update({ permissions_version: next }).eq('id', restaurantId);
 }
 
-/** Owner has *; staff need settings.roles.manage (grantable). */
+/** Staff managers need role options; role editors need the same list. */
 export async function GET() {
-  const auth = await requirePermission('settings.roles.manage');
+  const auth = await requireAnyPermission(rolesListPermissions);
   if (auth instanceof NextResponse) return auth;
 
-  const admin = createAdminClient();
-  const roles = await listRestaurantRoles(admin, auth.principal.restaurantId);
-  return NextResponse.json({ roles });
+  try {
+    const admin = createAdminClient();
+    const roles = await listRestaurantRoles(admin, auth.principal.restaurantId);
+    return NextResponse.json({ roles });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'list_failed';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {

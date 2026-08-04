@@ -37,6 +37,10 @@ interface Props {
 
 type RoleOption = Pick<RestaurantRoleRow, 'id' | 'name' | 'preset_key' | 'disabled_at'>;
 
+type RolesLoadState = 'loading' | 'ready' | 'error';
+
+type StaffSettingsCopy = ReturnType<typeof getMessages>['staffSettings'];
+
 type FormState = {
   display_name: string;
   login_name: string;
@@ -57,7 +61,7 @@ function loginTagForRole(role: RoleOption | undefined): StaffRole {
   return 'waiter';
 }
 
-function errorMessage(code: string, t: ReturnType<typeof getMessages>['staffSettings']): string {
+function errorMessage(code: string, t: StaffSettingsCopy): string {
   const map: Record<string, string> = {
     login_name_invalid: t.errLoginInvalid,
     login_name_reserved: t.errLoginReserved,
@@ -71,12 +75,77 @@ function errorMessage(code: string, t: ReturnType<typeof getMessages>['staffSett
   return map[code] || t.saveFail;
 }
 
+function rolesSelectPlaceholder(loadState: RolesLoadState, t: StaffSettingsCopy): string {
+  if (loadState === 'loading') return t.rolesLoading;
+  if (loadState === 'error') return t.rolesLoadFail;
+  return t.rolesEmpty;
+}
+
+/** One role picker for create + edit; empty/error copy is not saveFail. */
+function StaffRoleSelect({
+  value,
+  onChange,
+  disabled,
+  activeRoles,
+  loadState,
+  t,
+  onRetry,
+}: {
+  value: string;
+  onChange: (roleId: string, role: RoleOption | undefined) => void;
+  disabled: boolean;
+  activeRoles: RoleOption[];
+  loadState: RolesLoadState;
+  t: StaffSettingsCopy;
+  onRetry: () => void;
+}) {
+  const empty = activeRoles.length === 0;
+  return (
+    <div>
+      <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
+      <select
+        className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
+        value={value}
+        onChange={(e) => {
+          const roleId = e.target.value;
+          onChange(
+            roleId,
+            activeRoles.find((r) => r.id === roleId),
+          );
+        }}
+        disabled={disabled || empty}
+      >
+        {empty ? (
+          <option value="">{rolesSelectPlaceholder(loadState, t)}</option>
+        ) : (
+          activeRoles.map((role) => (
+            <option key={role.id} value={role.id}>
+              {role.name}
+            </option>
+          ))
+        )}
+      </select>
+      {loadState === 'error' ? (
+        <button
+          type="button"
+          className="text-[12px] text-brand-gold hover:underline mt-1.5"
+          disabled={disabled}
+          onClick={onRetry}
+        >
+          {t.rolesRetry}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).staffSettings;
 
   const [staff, setStaff] = useState<RestaurantStaffAccount[]>(initialStaff);
   const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [rolesLoadState, setRolesLoadState] = useState<RolesLoadState>('loading');
   const [loginSearch, setLoginSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
@@ -112,9 +181,21 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
   const activeRoles = useMemo(() => roles.filter((r) => !r.disabled_at), [roles]);
 
   const reloadRoles = useCallback(async () => {
-    const res = await fetch('/api/dashboard/roles');
-    const json = (await res.json()) as { roles?: RoleOption[] };
-    if (res.ok && json.roles) setRoles(json.roles);
+    setRolesLoadState('loading');
+    try {
+      const res = await fetch('/api/dashboard/roles');
+      const json = (await res.json().catch(() => ({}))) as { roles?: RoleOption[] };
+      if (!res.ok || !Array.isArray(json.roles)) {
+        setRoles([]);
+        setRolesLoadState('error');
+        return;
+      }
+      setRoles(json.roles);
+      setRolesLoadState('ready');
+    } catch {
+      setRoles([]);
+      setRolesLoadState('error');
+    }
   }, []);
 
   useEffect(() => {
@@ -536,39 +617,27 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
           >
             {t.regenerateLoginName}
           </button>
-          <div>
-            <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
-            <select
-              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
-              value={createForm.role_id}
-              onChange={(e) => {
-                const roleId = e.target.value;
-                const role = activeRoles.find((r) => r.id === roleId);
-                setCreateForm((f) => ({
-                  ...f,
-                  role_id: roleId,
-                  login_name: loginNameTouchedRef.current
-                    ? f.login_name
-                    : suggestLoginNameFromDisplay(
-                        f.display_name,
-                        loginTagForRole(role),
-                        takenLogins,
-                      ),
-                }));
-              }}
-              disabled={createSaving || activeRoles.length === 0}
-            >
-              {activeRoles.length === 0 ? (
-                <option value="">{t.saveFail}</option>
-              ) : (
-                activeRoles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+          <StaffRoleSelect
+            value={createForm.role_id}
+            activeRoles={activeRoles}
+            loadState={rolesLoadState}
+            t={t}
+            disabled={createSaving}
+            onRetry={() => void reloadRoles()}
+            onChange={(roleId, role) => {
+              setCreateForm((f) => ({
+                ...f,
+                role_id: roleId,
+                login_name: loginNameTouchedRef.current
+                  ? f.login_name
+                  : suggestLoginNameFromDisplay(
+                      f.display_name,
+                      loginTagForRole(role),
+                      takenLogins,
+                    ),
+              }));
+            }}
+          />
           <PasswordInput
             label={t.fieldPassword}
             value={createForm.password}
@@ -586,21 +655,15 @@ export function StaffAccountsManager({ initialStaff, embedded }: Props) {
       <Modal open={!!editTarget} onClose={() => !editSaving && setEditTarget(null)} title={t.edit}>
         <div className="space-y-4">
           <Input label={t.fieldDisplayName} value={editName} onChange={(e) => setEditName(e.target.value)} />
-          <div>
-            <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
-            <select
-              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
-              value={editRoleId}
-              onChange={(e) => setEditRoleId(e.target.value)}
-              disabled={editSaving || activeRoles.length === 0}
-            >
-              {activeRoles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <StaffRoleSelect
+            value={editRoleId}
+            activeRoles={activeRoles}
+            loadState={rolesLoadState}
+            t={t}
+            disabled={editSaving}
+            onRetry={() => void reloadRoles()}
+            onChange={(roleId) => setEditRoleId(roleId)}
+          />
           <Button className="w-full" onClick={() => void runEdit()} disabled={editSaving}>
             {t.save}
           </Button>

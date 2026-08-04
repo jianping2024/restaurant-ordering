@@ -223,6 +223,12 @@ export const MESSAGES = {
         supportTitle: '专业支持',
         supportBody: '为餐厅运营场景设计的产品能力',
       },
+      pwaInstall: {
+        hint: '安装到桌面后无浏览器地址栏，适合前台与楼面长时间使用（仍需联网）。',
+        installButton: '安装到桌面',
+        manualHint:
+          '可将本页安装为应用：Chrome 菜单 →「安装应用」或「创建快捷方式」；iPhone/iPad 用分享 →「添加到主屏幕」。安装后仍需联网，不支持离线点餐。',
+      },
     },
     licenseSuspension: {
       renew: {
@@ -1633,6 +1639,12 @@ export const MESSAGES = {
         supportTitle: 'Built for restaurants',
         supportBody: 'Designed for day-to-day restaurant operations',
       },
+      pwaInstall: {
+        hint: 'Install to the desktop for a browser-chrome-free window — ideal for front desk and floor (still requires network).',
+        installButton: 'Install to desktop',
+        manualHint:
+          'Install this page as an app: Chrome menu → “Install app” or “Create shortcut”; on iPhone/iPad use Share → “Add to Home Screen”. Still requires network — offline ordering is not supported.',
+      },
     },
     licenseSuspension: {
       renew: {
@@ -2588,6 +2600,12 @@ export const MESSAGES = {
         efficientBody: 'Ementa, cozinha e sala num so fluxo',
         supportTitle: 'Para restaurantes',
         supportBody: 'Concebido para operacao diaria',
+      },
+      pwaInstall: {
+        hint: 'Instale no ambiente de trabalho para uma janela sem barra do browser — ideal para rececao e sala (continua a precisar de rede).',
+        installButton: 'Instalar no ambiente de trabalho',
+        manualHint:
+          'Pode instalar esta pagina como aplicacao: menu do Chrome → “Instalar aplicacao” ou “Criar atalho”; no iPhone/iPad use Partilhar → “Adicionar ao ecra principal”. Continua a precisar de rede — nao ha pedidos offline.',
       },
     },
     licenseSuspension: {

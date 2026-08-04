@@ -18,6 +18,13 @@
 | 技术栈 | Next.js Web App（非 App Store 原生应用） |
 | 离线 | **不支持**离线；图标仅用于桌面快捷方式与全屏打开 |
 
+### 门店安装（install-only，无离线）
+
+- **要做什么：** Chrome「安装应用」/ 创建快捷方式，或登录页员工向安装提示；打开后无浏览器地址栏（`display: standalone`）。
+- **不要做什么：** Service Worker、离线缓存、断网点餐。断网经营靠门店本地部署，不靠浏览器壳。
+- **谁看到安装提示：** 仅员工登录表单（`AuthLoginForm` → `AuthPwaInstallPrompt`）；顾客扫码菜单不挂。
+- **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts` + `use-pwa-install.ts`。
+
 ---
 
 ## 2. 设计风格要求（给 AI 的硬性约束）

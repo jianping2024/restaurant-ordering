@@ -100,6 +100,87 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       ],
     },
   },
+  es: {
+    modes: {
+      even: { label: 'A partes iguales', when: 'Dividir el total entre los comensales.' },
+      by_item: {
+        label: 'Por plato',
+        when: 'Cada uno paga lo que ha pedido. Asigna los platos a cada persona.',
+      },
+      custom: {
+        label: 'Importes',
+        when: 'Ya habéis acordado las cantidades: escribe cada importe hasta cuadrar con el total.',
+      },
+    },
+    optionalHint:
+      '¿Queréis dividir la cuenta? Elige una forma arriba. Si paga toda la mesa, pide la cuenta sin elegir ninguna.',
+    introStep: {
+      title: 'Dividir la cuenta',
+      body: 'Si cada uno ha pedido platos distintos, usa Por plato: asigna cada plato a quien corresponda.',
+    },
+    introPreview: {
+      caption: 'Ejemplo: cada uno paga lo que pidió',
+      lines: ['Arroz frito ×1 → Lucía', 'Pescado a la plancha ×1 → ½ Lucía · ½ Marcos'],
+      people: [
+        { name: 'Lucía', amount: '14,20' },
+        { name: 'Marcos', amount: '9,80' },
+      ],
+    },
+  },
+  fr: {
+    modes: {
+      even: { label: 'Parts égales', when: 'Partager le total entre les convives.' },
+      by_item: {
+        label: 'Par plat',
+        when: 'Chacun paie ce qu’il a commandé. Attribuez les plats aux convives.',
+      },
+      custom: {
+        label: 'Montants',
+        when: 'Vous avez déjà convenu des montants : saisissez chaque part jusqu’au total.',
+      },
+    },
+    optionalHint:
+      'Envie de partager ? Choisissez une méthode ci-dessus. Si vous réglez toute la table, demandez l’addition sans rien choisir.',
+    introStep: {
+      title: 'Partager l’addition',
+      body: 'Si chacun a commandé des plats différents, utilisez Par plat : attribuez chaque plat à la bonne personne.',
+    },
+    introPreview: {
+      caption: 'Exemple : chacun paie ce qu’il a commandé',
+      lines: ['Riz cantonais ×1 → Camille', 'Poisson grillé ×1 → ½ Camille · ½ Julien'],
+      people: [
+        { name: 'Camille', amount: '14,20' },
+        { name: 'Julien', amount: '9,80' },
+      ],
+    },
+  },
+  de: {
+    modes: {
+      even: { label: 'Gleich aufteilen', when: 'Die Summe gleichmäßig auf alle Gäste aufteilen.' },
+      by_item: {
+        label: 'Nach Gericht',
+        when: 'Jeder zahlt, was er bestellt hat. Gerichte den Gästen zuordnen.',
+      },
+      custom: {
+        label: 'Beträge',
+        when: 'Die Beträge sind schon abgesprochen: Anteile eintragen, bis die Summe stimmt.',
+      },
+    },
+    optionalHint:
+      'Rechnung teilen? Wählen Sie oben eine Methode. Wer den ganzen Tisch bezahlt, kann die Rechnung ohne Auswahl rufen.',
+    introStep: {
+      title: 'Rechnung teilen',
+      body: 'Wenn alle unterschiedlich bestellt haben, nutzen Sie Nach Gericht: Jedes Gericht der richtigen Person zuordnen.',
+    },
+    introPreview: {
+      caption: 'Beispiel: Jeder zahlt, was er bestellt hat',
+      lines: ['Gebratener Reis ×1 → Lena', 'Gegrillter Fisch ×1 → ½ Lena · ½ Jonas'],
+      people: [
+        { name: 'Lena', amount: '14,20' },
+        { name: 'Jonas', amount: '9,80' },
+      ],
+    },
+  },
 };
 
 export function getGuestSplitGuidance(lang: UILanguage): GuestSplitGuidanceCopy {

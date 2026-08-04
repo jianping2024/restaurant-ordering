@@ -21,6 +21,18 @@ export const STAFF_ASSISTED_MESSAGES: Record<
     backToTable: '返回桌台',
     backToBoard: '返回看板',
   },
+  es: {
+    backToTable: 'Volver a la mesa',
+    backToBoard: 'Volver al panel',
+  },
+  fr: {
+    backToTable: 'Retour à la table',
+    backToBoard: 'Retour au tableau',
+  },
+  de: {
+    backToTable: 'Zurück zum Tisch',
+    backToBoard: 'Zurück zum Board',
+  },
 };
 
 export function staffAssistedReturnLabel(flow: StaffAssistedFlow, lang: Language): string {

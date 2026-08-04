@@ -2,9 +2,10 @@ import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import type { UILanguage } from '@/lib/i18n';
 
 export function getPrintStationDisplayName(station: PrintStation, lang: UILanguage): string {
-  if (lang === 'en') return station.name_en?.trim() || station.name_pt;
   if (lang === 'zh') return station.name_zh?.trim() || station.name_pt;
-  return station.name_pt;
+  if (lang === 'pt') return station.name_pt;
+  // en / es / fr / de
+  return station.name_en?.trim() || station.name_pt;
 }
 
 export function countPrintStationBindings(

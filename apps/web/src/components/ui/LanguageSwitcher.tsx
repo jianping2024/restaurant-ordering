@@ -3,26 +3,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import type { UILanguage } from '@/lib/i18n';
-
-const OPTIONS: { id: UILanguage; label: string; menuLabel: string; flag: string }[] = [
-  { id: 'pt', label: 'PT', menuLabel: 'PT', flag: '🇵🇹' },
-  { id: 'en', label: 'EN', menuLabel: 'EN', flag: '🇬🇧' },
-  { id: 'zh', label: '中', menuLabel: '中文', flag: '🇨🇳' },
-];
-
-const LIST_ORDER: UILanguage[] = ['zh', 'en', 'pt'];
-
-function langOptionLabel(uiLang: UILanguage, optionId: UILanguage): string {
-  const nav = getMessages(uiLang).nav;
-  if (optionId === 'zh') return nav.langOptionZh;
-  if (optionId === 'en') return nav.langOptionEn;
-  return nav.langOptionPt;
-}
+import {
+  UI_LANGUAGE_OPTIONS,
+  uiLanguageOption,
+  type UILanguage,
+} from '@/lib/i18n';
 
 interface LanguageSwitcherProps {
   compact?: boolean;
-  variant?: 'inline' | 'menu' | 'icon' | 'list';
+  /**
+   * - inline: flag/code pills (landing, auth, customer header)
+   * - menu / icon: compact trigger + dropdown
+   * - nested: one row showing current language; expands to scrollable list (account menu)
+   */
+  variant?: 'inline' | 'menu' | 'icon' | 'nested';
   /** Match customer menu header pills (flag + code). */
   showFlags?: boolean;
   /** Dropdown panel placement for menu/icon variants. */
@@ -47,6 +41,48 @@ function menuDropdownPanelClass(placement: 'above' | 'below'): string {
   return `absolute ${vertical} left-0 right-0`;
 }
 
+function OptionRows({
+  lang,
+  onSelect,
+}: {
+  lang: UILanguage;
+  onSelect: (id: UILanguage) => void;
+}) {
+  return (
+    <>
+      {UI_LANGUAGE_OPTIONS.map((option) => {
+        const selected = lang === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            role="option"
+            aria-selected={selected}
+            onClick={() => onSelect(option.id)}
+            className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors ${
+              selected
+                ? 'bg-brand-gold/15 text-brand-text font-medium'
+                : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/70'
+            }`}
+          >
+            <span aria-hidden className="shrink-0 text-base leading-none">
+              {option.flag}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-left">{option.nativeName}</span>
+            {selected ? (
+              <span aria-hidden className="shrink-0 text-brand-gold">
+                ✓
+              </span>
+            ) : (
+              <span aria-hidden className="shrink-0 w-3" />
+            )}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
 export function LanguageSwitcher({
   compact = false,
   variant = 'inline',
@@ -58,10 +94,11 @@ export function LanguageSwitcher({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const current = OPTIONS.find((o) => o.id === lang) ?? OPTIONS[0];
+  const current = uiLanguageOption(lang);
+  const listLabel = getMessages(lang).nav.languageSettings;
 
   useEffect(() => {
-    if ((variant !== 'menu' && variant !== 'icon') || !open) return;
+    if ((variant !== 'menu' && variant !== 'icon' && variant !== 'nested') || !open) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
@@ -82,40 +119,35 @@ export function LanguageSwitcher({
     setOpen(false);
   };
 
-  if (variant === 'list') {
+  if (variant === 'nested') {
     return (
-      <div role="listbox" aria-label={getMessages(lang).nav.languageSettings} className="py-1">
-        {LIST_ORDER.map((optionId) => {
-          const option = OPTIONS.find((item) => item.id === optionId);
-          if (!option) return null;
-          const selected = lang === option.id;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              onClick={() => selectLang(option.id)}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors ${
-                selected
-                  ? 'bg-brand-gold/15 text-brand-text font-medium'
-                  : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/70'
-              }`}
-            >
-              <span aria-hidden className="shrink-0 text-base leading-none">
-                {option.flag}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-left">{langOptionLabel(lang, option.id)}</span>
-              {selected ? (
-                <span aria-hidden className="shrink-0 text-brand-gold">
-                  ✓
-                </span>
-              ) : (
-                <span aria-hidden className="shrink-0 w-3" />
-              )}
-            </button>
-          );
-        })}
+      <div ref={rootRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-2 rounded-lg px-0 py-1.5 text-sm text-brand-text transition-colors hover:text-brand-gold"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-label={listLabel}
+        >
+          <span aria-hidden className="shrink-0">
+            🌐
+          </span>
+          <span className="min-w-0 flex-1 truncate text-left font-medium">{listLabel}</span>
+          <span className="shrink-0 text-brand-text-muted">{current.nativeName}</span>
+          <span aria-hidden className="shrink-0 text-brand-text-muted">
+            ›
+          </span>
+        </button>
+        {open ? (
+          <div
+            role="listbox"
+            aria-label={listLabel}
+            className="mt-1 max-h-56 overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+          >
+            <OptionRows lang={lang} onSelect={selectLang} />
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -127,34 +159,20 @@ export function LanguageSwitcher({
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="h-9 w-9 rounded-full border border-brand-border bg-brand-bg text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-          title={current.menuLabel}
+          title={current.nativeName}
           aria-expanded={open}
           aria-haspopup="listbox"
-          aria-label={current.menuLabel}
+          aria-label={current.nativeName}
         >
           🌐
         </button>
         {open ? (
           <div
             role="listbox"
-            className={`${dropdownPanelPositionClass(dropdownPlacement, dropdownAlign)} min-w-[7rem] rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
+            aria-label={listLabel}
+            className={`${dropdownPanelPositionClass(dropdownPlacement, dropdownAlign)} max-h-56 min-w-[10rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
           >
-            {OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="option"
-                aria-selected={lang === option.id}
-                onClick={() => selectLang(option.id)}
-                className={`flex w-full items-center px-3 py-2 text-sm transition-colors ${
-                  lang === option.id
-                    ? 'bg-brand-gold/15 text-brand-gold font-medium'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50'
-                }`}
-              >
-                {option.menuLabel}
-              </button>
-            ))}
+            <OptionRows lang={lang} onSelect={selectLang} />
           </div>
         ) : null}
       </div>
@@ -172,29 +190,15 @@ export function LanguageSwitcher({
           aria-haspopup="listbox"
         >
           <span aria-hidden>🌐</span>
-          <span className="truncate">{current.menuLabel}</span>
+          <span className="truncate">{current.nativeName}</span>
         </button>
         {open ? (
           <div
             role="listbox"
-            className={`${menuDropdownPanelClass(dropdownPlacement)} rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
+            aria-label={listLabel}
+            className={`${menuDropdownPanelClass(dropdownPlacement)} max-h-56 overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm`}
           >
-            {OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="option"
-                aria-selected={lang === option.id}
-                onClick={() => selectLang(option.id)}
-                className={`flex w-full items-center px-3 py-2 text-sm transition-colors ${
-                  lang === option.id
-                    ? 'bg-brand-gold/15 text-brand-gold font-medium'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-border/50'
-                }`}
-              >
-                {option.menuLabel}
-              </button>
-            ))}
+            <OptionRows lang={lang} onSelect={selectLang} />
           </div>
         ) : null}
       </div>
@@ -204,11 +208,17 @@ export function LanguageSwitcher({
   const pillTextClass = showFlags ? 'text-[13px]' : 'text-xs';
 
   return (
-    <div className={`flex items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1 ${compact ? '' : 'w-fit'}`}>
-      {OPTIONS.map((option) => (
+    <div
+      className={`flex flex-wrap items-center gap-1 bg-brand-card border border-brand-border rounded-full p-1 ${compact ? '' : 'w-fit'}`}
+      role="listbox"
+      aria-label={listLabel}
+    >
+      {UI_LANGUAGE_OPTIONS.map((option) => (
         <button
           key={option.id}
           type="button"
+          role="option"
+          aria-selected={lang === option.id}
           onClick={() => selectLang(option.id)}
           className={`px-2.5 py-1 rounded-full ${pillTextClass} transition-all ${
             lang === option.id
@@ -216,7 +226,7 @@ export function LanguageSwitcher({
               : 'text-brand-text-muted hover:text-brand-text'
           }`}
         >
-          {showFlags ? `${option.flag} ${option.label}` : option.label}
+          {showFlags ? `${option.flag} ${option.shortLabel}` : option.shortLabel}
         </button>
       ))}
     </div>

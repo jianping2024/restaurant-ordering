@@ -4,18 +4,21 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom';
 import { DayPicker, type Matcher } from 'react-day-picker';
 import { format, isValid, parse } from 'date-fns';
-import { enUS, pt, zhCN } from 'date-fns/locale';
+import { de, enUS, es, fr, pt, zhCN } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 import 'react-day-picker/dist/style.css';
 import './date-picker.css';
 
-export type DatePickerLang = 'zh' | 'en' | 'pt';
+export type DatePickerLang = 'zh' | 'en' | 'pt' | 'es' | 'fr' | 'de';
 export type DatePickerVariant = 'brand' | 'zinc';
 
 const LOCALES: Record<DatePickerLang, Locale> = {
   zh: zhCN,
   en: enUS,
   pt,
+  es,
+  fr,
+  de,
 };
 
 const POPUP_GAP = 6;

@@ -19,4 +19,16 @@ describe('resolveTableQrStickerScanCta', () => {
   it('returns Portuguese CTA by default', () => {
     assert.equal(resolveTableQrStickerScanCta(undefined), 'Peça já ›');
   });
+
+  it('returns Spanish CTA for es locale', () => {
+    assert.equal(resolveTableQrStickerScanCta('es'), 'Pida ya ›');
+  });
+
+  it('returns French CTA for fr locale', () => {
+    assert.equal(resolveTableQrStickerScanCta('fr'), 'Commandez ›');
+  });
+
+  it('returns German CTA for de locale', () => {
+    assert.equal(resolveTableQrStickerScanCta('de'), 'Jetzt bestellen ›');
+  });
 });

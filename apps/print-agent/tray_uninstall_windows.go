@@ -5,15 +5,10 @@ package main
 import (
 	"log"
 	"os"
-	"os/exec"
 	"strings"
-	"syscall"
 
 	"golang.org/x/sys/windows/registry"
 )
-
-// Inno AppId from installer/mesa-print-agent.iss (without surrounding braces in some keys).
-const mesaPrintAgentInnoAppID = "{A3B8F2E1-9C4D-4A2B-8E1F-0D5C6B7A8E9F}_is1"
 
 // uninstallAgentWithUserData is the sole tray uninstall path: wipe local config+logs,
 // launch Setup uninstaller when present, then exit so files can be removed.
@@ -56,20 +51,22 @@ func removeAgentUserDataDirs() bool {
 }
 
 func findMesaPrintAgentUninstallCommand() string {
-	keys := []struct {
-		root registry.Key
-		path string
-	}{
-		{registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\` + mesaPrintAgentInnoAppID},
-		{registry.LOCAL_MACHINE, `SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\` + mesaPrintAgentInnoAppID},
-		{registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\` + mesaPrintAgentInnoAppID},
-	}
-	for _, k := range keys {
-		if cmd := readUninstallString(k.root, k.path); cmd != "" {
-			return cmd
+	for _, keyName := range mesaPrintAgentUninstallRegistryKeyNames() {
+		for _, root := range []registry.Key{registry.LOCAL_MACHINE, registry.CURRENT_USER} {
+			for _, base := range []string{
+				`SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`,
+				`SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\`,
+			} {
+				if cmd := readUninstallString(root, base+keyName); cmd != "" {
+					return cmd
+				}
+			}
 		}
 	}
-	return findUninstallByDisplayName("Mesa Print Agent")
+	if cmd := findUninstallByDisplayName(); cmd != "" {
+		return cmd
+	}
+	return uninstallCommandBesideExecutable()
 }
 
 func readUninstallString(root registry.Key, path string) string {
@@ -89,8 +86,7 @@ func readUninstallString(root registry.Key, path string) string {
 	return strings.TrimSpace(s)
 }
 
-func findUninstallByDisplayName(want string) string {
-	want = strings.TrimSpace(want)
+func findUninstallByDisplayName() string {
 	roots := []registry.Key{registry.LOCAL_MACHINE, registry.CURRENT_USER}
 	subPaths := []string{
 		`SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`,
@@ -115,7 +111,7 @@ func findUninstallByDisplayName(want string) string {
 				}
 				display, _, _ := sk.GetStringValue("DisplayName")
 				_ = sk.Close()
-				if strings.EqualFold(strings.TrimSpace(display), want) {
+				if mesaPrintAgentUninstallDisplayNameMatch(display) {
 					if cmd := readUninstallString(root, path); cmd != "" {
 						return cmd
 					}
@@ -126,17 +122,13 @@ func findUninstallByDisplayName(want string) string {
 	return ""
 }
 
+// startWindowsUninstaller is the sole uninstaller launch path: parse cmdline → ShellExecute.
+// Never cmd /C + HideWindow (breaks quoted Program Files paths and UAC).
 func startWindowsUninstaller(cmdline string) error {
-	cmdline = strings.TrimSpace(cmdline)
-	if cmdline == "" {
-		return os.ErrInvalid
+	exe, args, err := parseWindowsCommandLine(cmdline)
+	if err != nil {
+		return err
 	}
-	// Prefer silent when Inno left QuietUninstallString; else append /SILENT for UninstallString.
-	if !strings.Contains(strings.ToUpper(cmdline), "/SILENT") &&
-		!strings.Contains(strings.ToUpper(cmdline), "/VERYSILENT") {
-		cmdline = cmdline + " /SILENT"
-	}
-	cmd := exec.Command("cmd", "/C", cmdline)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	return cmd.Start()
+	args = ensureInnoSilentArgs(args)
+	return shellExecute("open", exe, args)
 }

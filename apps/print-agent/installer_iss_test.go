@@ -23,6 +23,9 @@ func TestInnoSetupUpgradeStory(t *testing.T) {
 		"CloseApplications=yes",
 		"CloseApplicationsFilter=MesaPrintAgent.exe",
 		"Flags: ignoreversion restartreplace",
+		"AppId={{"+mesaPrintAgentInnoGUID+"}}",
+		"AppVerName={#MyAppName}",
+		"UninstallDisplayName={#MyAppName}",
 	}
 	for _, s := range mustContain {
 		if !strings.Contains(iss, s) {

@@ -15,9 +15,14 @@
 #define MyAppURL "https://github.com/jianping2024/restaurant-ordering"
 
 [Setup]
+; AppId={{GUID}} → Uninstall registry subkey "{GUID}}_is1" (extra "}"). Tray find derives
+; keys from mesaPrintAgentInnoGUID in tray_uninstall_common.go — keep GUID in lockstep.
 AppId={{A3B8F2E1-9C4D-4A2B-8E1F-0D5C6B7A8E9F}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+; Stable DisplayName stem (no " version X") so tray prefix match stays one product name.
+AppVerName={#MyAppName}
+UninstallDisplayName={#MyAppName}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}

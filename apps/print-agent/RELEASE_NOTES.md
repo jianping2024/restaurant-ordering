@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.62
+
+**托盘卸载：找对 Inno 卸载项并真正拉起 unins000**
+
+- 注册表键认 Inno 实际写入的 `{GUID}}_is1`（外加 DisplayName 前缀匹配、exe 旁 `unins000.exe` 兜底）。
+- 启动卸载器：解析 UninstallString → `ShellExecute`（不再 `cmd /C` + HideWindow）。
+- Setup：`AppVerName` / `UninstallDisplayName` 固定为产品名，避免 DisplayName 带 `version X`。
+
 ## 0.3.61
 
 **Cloud claim Realtime URL；重配热切换；托盘一键卸载**

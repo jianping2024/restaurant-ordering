@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+import {
+  REALTIME_SUBSCRIBE_STATES,
+  type RealtimeChannel,
+  type SupabaseClient,
+} from '@supabase/supabase-js';
 
 /**
  * Staff surface freshness contract (production):
@@ -17,6 +21,10 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
  * 6. Realtime while the surface is active (`useRestaurantRealtimeRefresh`) — doorbell → live GET
  *    (occupancy slice without floor tables / opener-name resolution); merge onto floor static —
  *    see `waiter-board-live.ts` / `waiter-board-live-merge.ts`
+ *    Transport also owns channel failure → backoff resubscribe on a **generation-unique** topic →
+ *    one catch-up refresh on the next SUBSCRIBED (same `onRefresh` as doorbell). Intentional
+ *    hide/teardown does not catch-up; visibility resume stays with entry reconcile.
+ *    No interval API polling.
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
  * 8. Detail → list re-shown — same as (4): live when floor ready, else full (no second path)
  * 9. Table detail — board boot paints idle full model or occupied chrome stub
@@ -33,6 +41,34 @@ import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
 /** Debounce for Realtime → staff board signal refresh (not used for reconcile). */
 export const STAFF_BOARD_SIGNAL_DEBOUNCE_MS = 2000;
+
+/** Backoff base for channel failure → resubscribe (not API polling). */
+export const REALTIME_RECONNECT_BASE_MS = 1000;
+
+/** Cap for channel reconnect backoff. */
+export const REALTIME_RECONNECT_MAX_MS = 15_000;
+
+/**
+ * Hard subscribe failures that should always resubscribe.
+ * CLOSED is handled separately (often follows TIMED_OUT / intentional leave).
+ */
+export function isRealtimeSubscribeHardFailure(status: string): boolean {
+  return (
+    status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR ||
+    status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT
+  );
+}
+
+/** Exponential backoff for the Nth reconnect attempt (0-based). */
+export function realtimeReconnectDelayMs(attempt: number): number {
+  const exp = Math.max(0, Math.min(attempt, 4));
+  return Math.min(REALTIME_RECONNECT_BASE_MS * 2 ** exp, REALTIME_RECONNECT_MAX_MS);
+}
+
+/** Unique Realtime topic so resubscribe never reuses a half-dead channel object. */
+export function realtimeChannelTopic(channelKey: string, generation: number): string {
+  return `${channelKey}:${generation}`;
+}
 
 /**
  * Reconcile authoritative staff read-models when a surface becomes active:
@@ -73,7 +109,9 @@ export type PostgresRealtimeBinding = {
 
 /**
  * Shared transport: subscribe while the tab is visible; debounce postgres_changes → onRefresh.
- * Lifecycle reconcile (mount / resume) stays in `useRestaurantStaffEntryReconcile`.
+ * On CHANNEL_ERROR / TIMED_OUT (and unexpected CLOSED): backoff resubscribe on a new topic, then
+ * one catch-up onRefresh when SUBSCRIBED again. Browser `online` while visible forces the same
+ * recovery path. Lifecycle reconcile (mount / resume) stays in `useRestaurantStaffEntryReconcile`.
  */
 export function useDebouncedPostgresRealtimeRefresh(
   supabase: SupabaseClient,
@@ -93,6 +131,12 @@ export function useDebouncedPostgresRealtimeRefresh(
 
     let channel: RealtimeChannel | null = null;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectAttempt = 0;
+    let generation = 0;
+    let intentionalTeardown = false;
+    let catchUpOnNextSubscribed = false;
+    let disposed = false;
 
     const scheduleRefresh = () => {
       if (document.visibilityState !== 'visible') return;
@@ -103,9 +147,50 @@ export function useDebouncedPostgresRealtimeRefresh(
       }, debounceMs);
     };
 
+    const clearReconnectTimer = () => {
+      if (!reconnectTimer) return;
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    };
+
+    const scheduleReconnect = () => {
+      if (disposed || document.visibilityState !== 'visible') return;
+      clearReconnectTimer();
+      const delay = realtimeReconnectDelayMs(reconnectAttempt);
+      reconnectAttempt += 1;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        if (disposed || document.visibilityState !== 'visible') return;
+        subscribe();
+      }, delay);
+    };
+
+    /** Drop local ref; optionally removeChannel. Always bumps generation for the next topic. */
+    const releaseChannel = (mode: 'intentional' | 'failure') => {
+      const dropping = channel;
+      channel = null;
+      if (mode === 'intentional') {
+        intentionalTeardown = true;
+        catchUpOnNextSubscribed = false;
+      } else {
+        catchUpOnNextSubscribed = true;
+      }
+      if (dropping) void supabase.removeChannel(dropping);
+    };
+
+    const recoverLiveSubscription = () => {
+      if (disposed || intentionalTeardown) return;
+      if (document.visibilityState !== 'visible') return;
+      releaseChannel('failure');
+      scheduleReconnect();
+    };
+
     const subscribe = () => {
-      if (channel) return;
-      let next = supabase.channel(channelKey);
+      if (disposed || channel) return;
+      if (document.visibilityState !== 'visible') return;
+      intentionalTeardown = false;
+      const topic = realtimeChannelTopic(channelKey, generation++);
+      let next = supabase.channel(topic);
       for (const binding of bindingsRef.current) {
         next = next.on(
           'postgres_changes',
@@ -118,18 +203,40 @@ export function useDebouncedPostgresRealtimeRefresh(
           scheduleRefresh,
         );
       }
-      channel = next.subscribe();
+      channel = next.subscribe((status) => {
+        // Ignore late callbacks from a channel we already dropped/replaced.
+        if (disposed || channel !== next) return;
+        if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
+          reconnectAttempt = 0;
+          if (catchUpOnNextSubscribed) {
+            catchUpOnNextSubscribed = false;
+            scheduleRefresh();
+          }
+          return;
+        }
+        if (isRealtimeSubscribeHardFailure(status)) {
+          recoverLiveSubscription();
+          return;
+        }
+        // Unexpected CLOSED while we still want the surface live (socket/channel drop).
+        if (
+          status === REALTIME_SUBSCRIBE_STATES.CLOSED &&
+          !intentionalTeardown &&
+          document.visibilityState === 'visible'
+        ) {
+          recoverLiveSubscription();
+        }
+      });
     };
 
     const unsubscribe = () => {
+      clearReconnectTimer();
+      reconnectAttempt = 0;
       if (debounceTimer) {
         clearTimeout(debounceTimer);
         debounceTimer = null;
       }
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
+      releaseChannel('intentional');
     };
 
     const onVisible = () => {
@@ -137,12 +244,26 @@ export function useDebouncedPostgresRealtimeRefresh(
       else unsubscribe();
     };
 
+    /** Recover zombie sockets that never emit CLOSED while the tab stayed visible. */
+    const onOnline = () => {
+      if (disposed || document.visibilityState !== 'visible') return;
+      releaseChannel('intentional');
+      intentionalTeardown = false;
+      catchUpOnNextSubscribed = true;
+      reconnectAttempt = 0;
+      clearReconnectTimer();
+      subscribe();
+    };
+
     if (document.visibilityState === 'visible') subscribe();
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('online', onOnline);
 
     return () => {
-      unsubscribe();
+      disposed = true;
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', onOnline);
+      unsubscribe();
     };
     // bindings are read via ref; restaurant-scoped filters are in channelKey / enabled deps of callers
   }, [channelKey, debounceMs, enabled, supabase]);

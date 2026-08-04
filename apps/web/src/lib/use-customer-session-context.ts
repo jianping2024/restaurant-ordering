@@ -8,7 +8,7 @@ import {
   type CustomerSessionScope,
 } from '@/lib/customer-session-context';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
-import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { peekPublishedWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
 import type { Order, TableSession } from '@/types';
 

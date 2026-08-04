@@ -13,6 +13,7 @@ import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
 } from '@/lib/menu-item-card-layout';
+import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 interface Props {
   item: MenuItem;
@@ -85,11 +86,8 @@ export function MenuItemCard({
   const label = formatMenuCatalogItemLabel(item, lang);
   const desc = resolveMenuItemLocalizedDescription(item, lang);
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
-  const actionLabels: ActionLabels = {
-    zh: { add: '+ 加入', soldOut: '已售完' },
-    en: { add: '+ Add', soldOut: 'Sold out' },
-    pt: { add: '+ Adicionar', soldOut: 'Esgotado' },
-  }[lang];
+  const t = MENU_PAGE_MESSAGES[lang];
+  const actionLabels: ActionLabels = { add: t.itemAdd, soldOut: t.itemSoldOut };
 
   return (
     <div

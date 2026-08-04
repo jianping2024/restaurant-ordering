@@ -8,8 +8,8 @@ import { fetchWaiterTablePageModelClient } from '@/lib/staff-board-client';
 import {
   STAFF_BOARD_SIGNAL_DEBOUNCE_MS,
   useDebouncedPostgresRealtimeRefresh,
-  useRestaurantStaffEntryReconcile,
 } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import {
   isStaffAssistedMenuSubmitReturn,

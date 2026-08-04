@@ -16,27 +16,6 @@ import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
-const DRAWER_TEXT: Record<Language, { title: string; total: string; submit: string; notePlaceholder: string }> = {
-  zh: {
-    title: '购物车',
-    total: '合计',
-    submit: '提交订单',
-    notePlaceholder: '备注（如：少盐、不要洋葱）',
-  },
-  en: {
-    title: 'Cart',
-    total: 'Total',
-    submit: 'Place order',
-    notePlaceholder: 'Notes (e.g. less salt, no onion)',
-  },
-  pt: {
-    title: 'Carrinho',
-    total: 'Total',
-    submit: 'Enviar pedido',
-    notePlaceholder: 'Nota (ex.: sem sal, sem cebola)',
-  },
-};
-
 interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
@@ -60,7 +39,7 @@ export function CartDrawer({
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  const text = DRAWER_TEXT[lang];
+  const t = MENU_PAGE_MESSAGES[lang];
 
   const appendNote = (current: string | undefined, next: string) => {
     const value = (current || '').trim();
@@ -72,11 +51,8 @@ export function CartDrawer({
   const cartTotal = sumLineTotals(cart);
   const cooldownActive = submitCooldownRemaining > 0;
   const submitLabel = cooldownActive
-    ? formatSubmitCooldownWaitMessage(
-        MENU_PAGE_MESSAGES[lang].submitCooldownWait,
-        submitCooldownRemaining,
-      )
-    : text.submit;
+    ? formatSubmitCooldownWaitMessage(t.submitCooldownWait, submitCooldownRemaining)
+    : t.placeOrder;
 
   return (
     <>
@@ -101,7 +77,7 @@ export function CartDrawer({
         </div>
 
         <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between">
-          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{text.title}</h2>
+          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{t.cartTitle}</h2>
           <button onClick={onClose} className="text-brand-text-muted hover:text-brand-text">✕</button>
         </div>
 
@@ -136,7 +112,7 @@ export function CartDrawer({
               <div className="mt-3">
                 <input
                   type="text"
-                  placeholder={text.notePlaceholder}
+                  placeholder={t.cartNotePlaceholder}
                   value={item.note || ''}
                   maxLength={APPEND_CART_NOTE_MAX_LEN}
                   onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
@@ -175,7 +151,7 @@ export function CartDrawer({
                   })}
                   {(!item.notePresetKeys || item.notePresetKeys.length === 0) && (
                     <p className="text-[13px] text-brand-text-muted">
-                      {lang === 'zh' ? '该菜品暂无快捷备注，请直接输入。' : lang === 'en' ? 'No quick notes configured for this dish.' : 'Sem observacoes rapidas configuradas para este prato.'}
+                      {t.noQuickNotes}
                     </p>
                   )}
                 </div>
@@ -187,7 +163,7 @@ export function CartDrawer({
         {/* 底部结算 */}
         <div className="px-5 py-4 border-t border-brand-border">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-brand-text text-sm font-medium">{text.total}</span>
+            <span className="text-brand-text text-sm font-medium">{t.cartTotalLabel}</span>
             <span className={CUSTOMER_MENU_TYPE.cartDrawerTotal}>€{cartTotal.toFixed(2)}</span>
           </div>
           <Button

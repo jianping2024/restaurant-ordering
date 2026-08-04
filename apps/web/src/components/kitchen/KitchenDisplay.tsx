@@ -22,7 +22,8 @@ import {
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
-import { useRestaurantRealtimeRefresh, useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { compareRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
@@ -44,7 +45,19 @@ interface Props {
   isDemo?: boolean;
 }
 
-const KITCHEN_DEMO_TEXT = {
+const KITCHEN_DEMO_TEXT: Record<
+  import('@/lib/i18n').UILanguage,
+  {
+    title: string;
+    enter: string;
+    passwordHint: string;
+    step: string;
+    openCustomer: string;
+    openWaiter: string;
+    backHub: string;
+    conflict: string;
+  }
+> = {
   zh: {
     title: '演示后厨',
     enter: '进入演示后厨',
@@ -75,7 +88,37 @@ const KITCHEN_DEMO_TEXT = {
     backHub: 'Voltar ao hub demo',
     conflict: 'O pedido foi atualizado em outro dispositivo. A lista foi atualizada, tente novamente.',
   },
-} as const;
+  es: {
+    title: 'Cocina demo',
+    enter: 'Entrar en la cocina demo',
+    passwordHint: 'Contrasena demo',
+    step: 'Paso 2/3: la cocina recibe y actualiza el estado de los platos en tiempo real.',
+    openCustomer: 'Abrir vista del cliente',
+    openWaiter: 'Abrir panel del camarero',
+    backHub: 'Volver al hub demo',
+    conflict: 'El pedido se actualizo en otro dispositivo. Los datos se refrescaron; reintente.',
+  },
+  fr: {
+    title: 'Cuisine demo',
+    enter: 'Entrer dans la cuisine demo',
+    passwordHint: 'Mot de passe demo',
+    step: 'Etape 2/3 : la cuisine recoit et met a jour le statut des plats en temps reel.',
+    openCustomer: 'Ouvrir la vue client',
+    openWaiter: 'Ouvrir le tableau serveur',
+    backHub: 'Retour au hub demo',
+    conflict: 'La commande a ete mise a jour sur un autre appareil. Donnees rafraichies; reessayez.',
+  },
+  de: {
+    title: 'Demo-Kuche',
+    enter: 'Demo-Kuche offnen',
+    passwordHint: 'Demo-Passwort',
+    step: 'Schritt 2/3: Die Kuche empfangt und aktualisiert den Gerichtstatus in Echtzeit.',
+    openCustomer: 'Gastansicht offnen',
+    openWaiter: 'Service-Board offnen',
+    backHub: 'Zuruck zum Demo-Hub',
+    conflict: 'Die Bestellung wurde auf einem anderen Gerat aktualisiert. Daten aktualisiert; bitte erneut versuchen.',
+  },
+};
 
 export function KitchenDisplay(props: Props) {
   return (

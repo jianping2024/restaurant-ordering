@@ -13,8 +13,20 @@ const PWA_ICON_PATHS = {
   maskable512: '/icons/icon-512-maskable.png',
 } as const;
 
+/**
+ * Install-only staff shell: keep full-origin scope so in-app staff navigation
+ * (incl. assisted `/{slug}/menu`) stays in the standalone window, but tell the UA
+ * not to capture browser/QR navigations into the installed app.
+ * @see https://github.com/WICG/pwa-url-handler/blob/main/handle_links/explainer.md
+ */
+export type PwaHandleLinks = 'auto' | 'preferred' | 'not-preferred';
+
 /** Web App Manifest fields — single source for manifest.ts. */
-export function buildSiteManifest(): MetadataRoute.Manifest {
+export type SiteManifest = MetadataRoute.Manifest & {
+  handle_links: PwaHandleLinks;
+};
+
+export function buildSiteManifest(): SiteManifest {
   return {
     name: PRODUCT_NAME,
     short_name: PRODUCT_NAME,
@@ -25,6 +37,7 @@ export function buildSiteManifest(): MetadataRoute.Manifest {
     orientation: 'any',
     theme_color: PWA_THEME_COLOR,
     background_color: PWA_BACKGROUND_COLOR,
+    handle_links: 'not-preferred',
     icons: [
       {
         src: PWA_ICON_PATHS.any192,

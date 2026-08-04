@@ -3394,9 +3394,9 @@ export const MESSAGES = {
 export type AppMessages = (typeof MESSAGES)['en'];
 
 const MERGED_UI_PACKS: Record<'es' | 'fr' | 'de', AppMessages> = {
-  es: deepMerge(MESSAGES.en as AppMessages, MESSAGES_ES as Partial<AppMessages>),
-  fr: deepMerge(MESSAGES.en as AppMessages, MESSAGES_FR as Partial<AppMessages>),
-  de: deepMerge(MESSAGES.en as AppMessages, MESSAGES_DE as Partial<AppMessages>),
+  es: deepMerge(MESSAGES.en as AppMessages, MESSAGES_ES as unknown as Partial<AppMessages>),
+  fr: deepMerge(MESSAGES.en as AppMessages, MESSAGES_FR as unknown as Partial<AppMessages>),
+  de: deepMerge(MESSAGES.en as AppMessages, MESSAGES_DE as unknown as Partial<AppMessages>),
 };
 
 export function getMessages(lang: UILanguage) {

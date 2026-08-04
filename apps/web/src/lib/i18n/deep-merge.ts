@@ -23,10 +23,10 @@ export function deepMerge<T>(target: T, source: Partial<T>): T {
       if (sourceValue !== undefined) {
         if (typeof sourceValue === 'object' && !Array.isArray(sourceValue) && sourceValue !== null) {
           // Recursively merge objects
-          result[key] = deepMerge(result[key], sourceValue);
+          result[key] = deepMerge(result[key], sourceValue as Partial<T[Extract<keyof T, string>]>);
         } else {
           // Replace arrays and primitives
-          result[key] = sourceValue;
+          result[key] = sourceValue as T[Extract<keyof T, string>];
         }
       }
     }

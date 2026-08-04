@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deriveBillView, syncCustomerBill } from '@/lib/customer-bill-sync';
-import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-realtime-refresh';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import type { Order } from '@/types';
 
 export type BillOrdersRefresh = {

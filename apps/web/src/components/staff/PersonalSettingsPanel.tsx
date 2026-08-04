@@ -25,16 +25,16 @@ export function PersonalSettingsPanel({ notifyMode }: Props) {
   return (
     <>
       {notifyMode.status !== 'denied' ? (
-        <section className="border-b border-brand-border/70 px-3 py-2">
-          <p className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-brand-text-muted">
-            <span aria-hidden>🖨</span>
-            <span>{printT.devicesNotificationMode}</span>
-          </p>
-          <div className="px-0 text-sm">
-            <PrintNotifyModeText
-              mode={notifyMode.status === 'ready' ? notifyMode.mode : null}
-            />
-          </div>
+        <section className="flex items-center gap-1.5 border-b border-brand-border/70 px-3 py-2 text-sm">
+          <span aria-hidden className="text-[11px] text-brand-text-muted">
+            🖨
+          </span>
+          <span className="text-[11px] font-medium text-brand-text-muted">
+            {printT.devicesNotificationMode}:
+          </span>
+          <PrintNotifyModeText
+            mode={notifyMode.status === 'ready' ? notifyMode.mode : null}
+          />
         </section>
       ) : null}
       <section className="border-b border-brand-border/70 px-3 py-2">

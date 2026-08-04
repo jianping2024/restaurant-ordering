@@ -45,11 +45,7 @@ export function PersonalSettingsPanel({ notifyMode }: Props) {
         <ThemeToggle variant="row" />
       </section>
       <section className="border-b border-brand-border/70 px-3 py-2">
-        <p className="mb-1 flex items-center gap-1.5 px-0 text-[11px] font-medium text-brand-text-muted">
-          <span aria-hidden>🌐</span>
-          <span>{t.languageSettings}</span>
-        </p>
-        <LanguageSwitcher variant="list" />
+        <LanguageSwitcher variant="nested" />
       </section>
     </>
   );

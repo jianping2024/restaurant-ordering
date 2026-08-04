@@ -121,6 +121,18 @@ const DURATION_LABELS: Record<UILanguage, DurationLabels> = {
     hoursMinutes: (hours, minutes) => `${hours}h ${minutes}m`,
     minutesOnly: (minutes) => `${minutes}m`,
   },
+  es: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}min`,
+    minutesOnly: (minutes) => `${minutes}min`,
+  },
+  fr: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}min`,
+    minutesOnly: (minutes) => `${minutes}min`,
+  },
+  de: {
+    hoursMinutes: (hours, minutes) => `${hours}Std ${minutes}Min`,
+    minutesOnly: (minutes) => `${minutes}Min`,
+  },
 };
 
 /** Compact hm labels for waiter floor board cards (zh 「9时59分」). */
@@ -136,6 +148,18 @@ const BOARD_CARD_DURATION_LABELS: Record<UILanguage, DurationLabels> = {
   pt: {
     hoursMinutes: (hours, minutes) => `${hours}h ${minutes}m`,
     minutesOnly: (minutes) => `${minutes}m`,
+  },
+  es: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}min`,
+    minutesOnly: (minutes) => `${minutes}min`,
+  },
+  fr: {
+    hoursMinutes: (hours, minutes) => `${hours}h ${minutes}min`,
+    minutesOnly: (minutes) => `${minutes}min`,
+  },
+  de: {
+    hoursMinutes: (hours, minutes) => `${hours}Std ${minutes}Min`,
+    minutesOnly: (minutes) => `${minutes}Min`,
   },
 };
 

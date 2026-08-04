@@ -15,5 +15,6 @@ export function pickTrilingualName(row: TrilingualName, lang: UILanguage): strin
   if (lang === 'pt') {
     return (row.namePt || row.nameEn || row.nameZh || '').trim();
   }
+  // en / es / fr / de: prefer English dish names, then Portuguese, then Chinese.
   return (row.nameEn || row.namePt || row.nameZh || '').trim();
 }

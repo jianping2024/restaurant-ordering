@@ -335,6 +335,330 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       copyright: 'Plataforma para buffet chines em Portugal',
     },
   },
+  es: {
+    nav: {
+      solutions: 'Soluciones',
+      preview: 'Interfaz',
+      caseStudy: 'Clientes',
+      contact: 'Contacto',
+      login: 'Iniciar sesión',
+    },
+    hero: {
+      tag: 'Buffet chino en Portugal · Operaciones profesionales',
+      titleA: 'Facturación por persona más precisa',
+      titleB: 'Operaciones de restaurante más tranquilas',
+      desc: 'El personal confirma el número de personas al abrir mesa, los clientes piden bebidas por QR, los pedidos van directo al bar, y el pago admite división inteligente — creado para restaurantes buffet.',
+      whatsappCta: 'Chat por WhatsApp',
+      wechatCta: 'WeChat',
+      previewHint: 'Ver pantallas del producto abajo',
+    },
+    pain: {
+      title: 'Desafíos diarios que enfrentan los propietarios de buffet',
+      items: [
+        {
+          title: 'Conteo en horas pico',
+          problem: 'Los precios de adulto y niño difieren según el día; los recuentos manuales son propensos a errores.',
+          solution: 'El personal confirma huéspedes al abrir mesa; las reglas de precios se aplican automáticamente.',
+        },
+        {
+          title: 'Pedidos antes de abrir mesa',
+          problem: 'Los pedidos de bebidas realizados antes de confirmar el número de personas mezclan los ingresos del buffet y del bar.',
+          solution: 'Los pedidos se desbloquean después de abrir mesa; la base del buffet y los pedidos de bebidas permanecen separados.',
+        },
+        {
+          title: 'Huéspedes multilingües',
+          problem: 'Propietarios, personal y huéspedes a menudo necesitan más de un idioma.',
+          solution: 'Menús en portugués, inglés y chino con un toque.',
+        },
+      ],
+    },
+    buffet: {
+      title: 'Creado para restaurantes buffet',
+      subtitle: 'Cobertura de extremo a extremo desde abrir mesa hasta el pago.',
+      items: [
+        {
+          title: 'Precios inteligentes por huésped',
+          desc: 'Tarifas de adulto y niño con reglas de días laborables, fines de semana y días festivos.',
+        },
+        {
+          title: 'Control de apertura de mesa',
+          desc: 'El personal verifica el número de personas antes de que los huéspedes puedan pedir bebidas.',
+        },
+        {
+          title: 'Bebidas y bar',
+          desc: 'Los pedidos de bebidas llegan a la pantalla del bar en tiempo real; los informes permanecen claros.',
+        },
+        {
+          title: 'Pago y división',
+          desc: 'División equitativa, por artículo o personalizada — base del buffet incluida.',
+        },
+      ],
+    },
+    support: {
+      title: 'Todo lo demás que necesitas',
+      items: [
+        { title: 'Menú trilingüe', desc: 'Portugués, inglés y chino para huéspedes diversos.' },
+        { title: 'Insights de negocio', desc: 'Ingresos de hoy y bebidas más vendidas de un vistazo.' },
+        { title: 'Impresión de bar', desc: 'Tickets de bar y recibos por estación.' },
+      ],
+    },
+    preview: {
+      title: 'Pantallas del producto',
+      subtitle: `Interfaz real de ${PRODUCT_NAME} con datos de demostración.`,
+      remoteDemo: '¿Quieres una demostración en vivo? Reserva una demo remota por WhatsApp',
+      screens: [
+        { id: 'waiter-open' as const, label: 'Abrir mesa', caption: 'El personal confirma conteo de adultos / niños' },
+        { id: 'menu' as const, label: 'Bebidas', caption: 'Menú de bebidas y vino de frutas — pedidos al bar' },
+        { id: 'bar' as const, label: 'Bar', caption: 'Pedidos de bebidas enrutados al bar con estado claro' },
+        { id: 'bill' as const, label: 'División de cuenta', caption: 'Modos flexibles de división al pagar' },
+        { id: 'dashboard' as const, label: 'Panel', caption: 'Ingresos y más vendidos' },
+      ],
+    },
+    caseStudy: {
+      title: 'Historia de cliente',
+      name: 'Restaurante Pirata',
+      location: 'Portugal · Buffet chino',
+      quote: `Cliente piloto de ${PRODUCT_NAME} usando el sistema para facturación de apertura de buffet y pedidos de bebidas.`,
+      tags: ['Buffet chino', 'Facturación por huésped', 'Menú trilingüe'],
+    },
+    contact: {
+      title: 'Ponte en contacto',
+      subtitle: 'Los precios y la configuración están adaptados a tu restaurante. La incorporación se maneja personalmente — sin auto-registro.',
+      pricingNote: 'Contáctanos para un presupuesto personalizado',
+      whatsappLabel: 'WhatsApp',
+      wechatLabel: 'WeChat',
+      wechatScanHint: 'Escanea o busca ID de WeChat',
+      wechatCopy: 'Copiar ID de WeChat',
+      wechatCopied: 'Copiado',
+      stepsTitle: 'Cómo funciona la incorporación',
+      steps: [
+        { title: 'Contacta', desc: 'Cuéntanos sobre tu restaurante por WhatsApp o WeChat' },
+        { title: 'Planifica', desc: 'Recomendamos configuración y precios para tus necesidades' },
+        { title: 'Provisiona', desc: 'Configuramos cuentas, menú e impresión' },
+        { title: 'En vivo', desc: 'Capacitación y soporte hasta que funciones sin problemas' },
+      ],
+    },
+    footer: {
+      login: '¿Ya tienes una cuenta? Iniciar sesión',
+      copyright: 'Plataforma de operaciones para restaurantes buffet chinos en Portugal',
+    },
+  },
+  fr: {
+    nav: {
+      solutions: 'Solutions',
+      preview: 'Interface',
+      caseStudy: 'Clients',
+      contact: 'Contact',
+      login: 'Se connecter',
+    },
+    hero: {
+      tag: 'Buffet chinois au Portugal · Opérations professionnelles',
+      titleA: 'Facturation par personne plus précise',
+      titleB: 'Opérations de restaurant plus calmes',
+      desc: 'Le personnel confirme le nombre de convives à l\'ouverture de table, les clients commandent des boissons par QR, les commandes vont directement au bar, et le paiement prend en charge la division intelligente — conçu pour les restaurants buffet.',
+      whatsappCta: 'Chat sur WhatsApp',
+      wechatCta: 'WeChat',
+      previewHint: 'Voir les écrans du produit ci-dessous',
+    },
+    pain: {
+      title: 'Défis quotidiens des propriétaires de buffet',
+      items: [
+        {
+          title: 'Décompte aux heures de pointe',
+          problem: 'Les tarifs adulte et enfant diffèrent selon le jour ; les décomptes manuels sont sujets aux erreurs.',
+          solution: 'Le personnel confirme les invités à l\'ouverture de table ; les règles de tarification s\'appliquent automatiquement.',
+        },
+        {
+          title: 'Commandes avant ouverture de table',
+          problem: 'Les commandes de boissons passées avant confirmation du nombre de personnes mélangent les revenus buffet et bar.',
+          solution: 'Les commandes se débloquent après ouverture de table ; la base buffet et les commandes de boissons restent séparées.',
+        },
+        {
+          title: 'Invités multilingues',
+          problem: 'Propriétaires, personnel et invités ont souvent besoin de plus d\'une langue.',
+          solution: 'Menus en portugais, anglais et chinois d\'un simple toucher.',
+        },
+      ],
+    },
+    buffet: {
+      title: 'Conçu pour les restaurants buffet',
+      subtitle: 'Couverture de bout en bout de l\'ouverture de table au paiement.',
+      items: [
+        {
+          title: 'Tarification intelligente par invité',
+          desc: 'Tarifs adulte et enfant avec règles de jours de semaine, week-end et jours fériés.',
+        },
+        {
+          title: 'Contrôle d\'ouverture de table',
+          desc: 'Le personnel vérifie le nombre de personnes avant que les invités puissent commander des boissons.',
+        },
+        {
+          title: 'Boissons et bar',
+          desc: 'Les commandes de boissons arrivent sur l\'écran du bar en temps réel ; les rapports restent clairs.',
+        },
+        {
+          title: 'Paiement et division',
+          desc: 'Division équitable, par article ou personnalisée — base buffet incluse.',
+        },
+      ],
+    },
+    support: {
+      title: 'Tout le reste dont vous avez besoin',
+      items: [
+        { title: 'Menu trilingue', desc: 'Portugais, anglais et chinois pour des invités diversifiés.' },
+        { title: 'Insights métier', desc: 'Revenus du jour et boissons populaires en un coup d\'œil.' },
+        { title: 'Impression bar', desc: 'Tickets de bar et reçus par station.' },
+      ],
+    },
+    preview: {
+      title: 'Écrans du produit',
+      subtitle: `Interface réelle ${PRODUCT_NAME} avec données de démonstration.`,
+      remoteDemo: 'Vous voulez une présentation en direct ? Réservez une démo à distance via WhatsApp',
+      screens: [
+        { id: 'waiter-open' as const, label: 'Ouvrir table', caption: 'Le personnel confirme le décompte adultes / enfants' },
+        { id: 'menu' as const, label: 'Boissons', caption: 'Menu boissons et vin de fruits — commandes au bar' },
+        { id: 'bar' as const, label: 'Bar', caption: 'Commandes de boissons acheminées au bar avec statut clair' },
+        { id: 'bill' as const, label: 'Division note', caption: 'Modes de division flexibles au paiement' },
+        { id: 'dashboard' as const, label: 'Tableau de bord', caption: 'Revenus et meilleures ventes' },
+      ],
+    },
+    caseStudy: {
+      title: 'Histoire client',
+      name: 'Restaurante Pirata',
+      location: 'Portugal · Buffet chinois',
+      quote: `Client pilote ${PRODUCT_NAME} utilisant le système pour la facturation d\'ouverture de buffet et les commandes de boissons.`,
+      tags: ['Buffet chinois', 'Facturation par invité', 'Menu trilingue'],
+    },
+    contact: {
+      title: 'Entrer en contact',
+      subtitle: 'Les prix et la configuration sont adaptés à votre restaurant. L\'intégration est gérée personnellement — pas d\'auto-inscription.',
+      pricingNote: 'Contactez-nous pour un devis personnalisé',
+      whatsappLabel: 'WhatsApp',
+      wechatLabel: 'WeChat',
+      wechatScanHint: 'Scannez ou recherchez l\'ID WeChat',
+      wechatCopy: 'Copier l\'ID WeChat',
+      wechatCopied: 'Copié',
+      stepsTitle: 'Comment fonctionne l\'intégration',
+      steps: [
+        { title: 'Contactez', desc: 'Parlez-nous de votre restaurant sur WhatsApp ou WeChat' },
+        { title: 'Planifiez', desc: 'Nous recommandons configuration et tarifs pour vos besoins' },
+        { title: 'Provisionnez', desc: 'Nous configurons comptes, menu et impression' },
+        { title: 'En direct', desc: 'Formation et support jusqu\'à ce que vous fonctionniez sans problème' },
+      ],
+    },
+    footer: {
+      login: 'Vous avez déjà un compte ? Se connecter',
+      copyright: 'Plateforme d\'opérations pour restaurants buffet chinois au Portugal',
+    },
+  },
+  de: {
+    nav: {
+      solutions: 'Lösungen',
+      preview: 'Benutzeroberfläche',
+      caseStudy: 'Kunden',
+      contact: 'Kontakt',
+      login: 'Anmelden',
+    },
+    hero: {
+      tag: 'Chinesisches Buffet in Portugal · Professionelle Abläufe',
+      titleA: 'Genauere Abrechnung pro Person',
+      titleB: 'Ruhigere Restaurantabläufe',
+      desc: 'Personal bestätigt Personenzahl beim Tisch öffnen, Gäste bestellen Getränke per QR, Bestellungen gehen direkt an die Bar, und Zahlung unterstützt intelligente Rechnungsaufteilung — für Buffet-Restaurants entwickelt.',
+      whatsappCta: 'Chat über WhatsApp',
+      wechatCta: 'WeChat',
+      previewHint: 'Produktbildschirme unten ansehen',
+    },
+    pain: {
+      title: 'Tägliche Herausforderungen für Buffet-Besitzer',
+      items: [
+        {
+          title: 'Zählung zu Stoßzeiten',
+          problem: 'Erwachsenen- und Kinderpreise unterscheiden sich je nach Tag; manuelle Zählungen sind fehleranfällig.',
+          solution: 'Personal bestätigt Gäste beim Tisch öffnen; Preisregeln werden automatisch angewendet.',
+        },
+        {
+          title: 'Bestellungen vor Tisch öffnen',
+          problem: 'Getränkebestellungen vor Personenzahl-Bestätigung vermischen Buffet- und Bar-Umsätze.',
+          solution: 'Bestellungen werden nach Tisch öffnen freigeschaltet; Buffet-Basis und Getränkebestellungen bleiben getrennt.',
+        },
+        {
+          title: 'Mehrsprachige Gäste',
+          problem: 'Besitzer, Personal und Gäste benötigen oft mehr als eine Sprache.',
+          solution: 'Menüs auf Portugiesisch, Englisch und Chinesisch mit einem Tippen.',
+        },
+      ],
+    },
+    buffet: {
+      title: 'Für Buffet-Restaurants entwickelt',
+      subtitle: 'Ende-zu-Ende-Abdeckung vom Tisch öffnen bis zur Zahlung.',
+      items: [
+        {
+          title: 'Intelligente Pro-Gast-Preisgestaltung',
+          desc: 'Erwachsenen- und Kindertarife mit Wochentags-, Wochenend- und Feiertagsregeln.',
+        },
+        {
+          title: 'Tisch-Öffnungs-Kontrolle',
+          desc: 'Personal überprüft Personenzahl bevor Gäste Getränke bestellen können.',
+        },
+        {
+          title: 'Getränke und Bar',
+          desc: 'Getränkebestellungen erreichen das Bar-Display in Echtzeit; Berichte bleiben klar.',
+        },
+        {
+          title: 'Zahlung und Aufteilung',
+          desc: 'Gleichmäßige, artikelweise oder benutzerdefinierte Aufteilungen — Buffet-Basis inbegriffen.',
+        },
+      ],
+    },
+    support: {
+      title: 'Alles andere was Sie brauchen',
+      items: [
+        { title: 'Dreisprachiges Menü', desc: 'Portugiesisch, Englisch und Chinesisch für vielfältige Gäste.' },
+        { title: 'Geschäftseinsichten', desc: 'Heutige Umsätze und Top-Getränke auf einen Blick.' },
+        { title: 'Bar-Druck', desc: 'Bar-Tickets und Belege nach Station.' },
+      ],
+    },
+    preview: {
+      title: 'Produktbildschirme',
+      subtitle: `Echte ${PRODUCT_NAME} Benutzeroberfläche mit Demo-Daten.`,
+      remoteDemo: 'Möchten Sie eine Live-Präsentation? Buchen Sie eine Remote-Demo über WhatsApp',
+      screens: [
+        { id: 'waiter-open' as const, label: 'Tisch öffnen', caption: 'Personal bestätigt Erwachsenen- / Kinderzahl' },
+        { id: 'menu' as const, label: 'Getränke', caption: 'Getränke- und Fruchtwein-Menü — Bestellungen an die Bar' },
+        { id: 'bar' as const, label: 'Bar', caption: 'Getränkebestellungen an die Bar mit klarem Status geleitet' },
+        { id: 'bill' as const, label: 'Rechnung teilen', caption: 'Flexible Aufteilungsmodi beim Bezahlen' },
+        { id: 'dashboard' as const, label: 'Dashboard', caption: 'Umsätze und Bestseller' },
+      ],
+    },
+    caseStudy: {
+      title: 'Kundengeschichte',
+      name: 'Restaurante Pirata',
+      location: 'Portugal · Chinesisches Buffet',
+      quote: `${PRODUCT_NAME} Pilotkunde, der das System für Buffet-Tisch-Öffnungs-Abrechnung und Getränkebestellungen verwendet.`,
+      tags: ['Chinesisches Buffet', 'Pro-Gast-Abrechnung', 'Dreisprachiges Menü'],
+    },
+    contact: {
+      title: 'Kontakt aufnehmen',
+      subtitle: 'Preise und Einrichtung sind auf Ihr Restaurant zugeschnitten. Das Onboarding wird persönlich durchgeführt — keine Selbstregistrierung.',
+      pricingNote: 'Kontaktieren Sie uns für ein maßgeschneidertes Angebot',
+      whatsappLabel: 'WhatsApp',
+      wechatLabel: 'WeChat',
+      wechatScanHint: 'QR scannen oder WeChat-ID suchen',
+      wechatCopy: 'WeChat-ID kopieren',
+      wechatCopied: 'Kopiert',
+      stepsTitle: 'Wie das Onboarding funktioniert',
+      steps: [
+        { title: 'Kontaktaufnahme', desc: 'Erzählen Sie uns über Ihr Restaurant über WhatsApp oder WeChat' },
+        { title: 'Planen', desc: 'Wir empfehlen Einrichtung und Preise für Ihre Bedürfnisse' },
+        { title: 'Bereitstellung', desc: 'Wir konfigurieren Konten, Menü und Druck' },
+        { title: 'Live gehen', desc: 'Schulung und Support bis Sie reibungslos laufen' },
+      ],
+    },
+    footer: {
+      login: 'Haben Sie bereits ein Konto? Anmelden',
+      copyright: 'Betriebsplattform für chinesische Buffet-Restaurants in Portugal',
+    },
+  },
 };
 
 export function getLandingCopy(lang: LandingLanguage): LandingCopy {

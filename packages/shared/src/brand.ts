@@ -16,6 +16,6 @@ export const PRODUCT_SITE_DESCRIPTION_ZH =
 export const PRODUCT_SITE_TITLE = `${PRODUCT_NAME} — ${PRODUCT_TAGLINE_ZH}`;
 
 /** Localized print-assistant product label for dashboard copy. */
-export function printAgentLabel(lang: 'zh' | 'en' | 'pt'): string {
+export function printAgentLabel(lang: string): string {
   return lang === 'zh' ? `${PRODUCT_NAME} 打印助手` : PRINT_AGENT_NAME;
 }

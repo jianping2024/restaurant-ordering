@@ -213,6 +213,196 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     subcategoryAll: '全部',
     catalogLoading: '正在加载菜单…',
   },
+  es: {
+    table: 'Mesa',
+    noItems: 'No hay platos en esta categoría',
+    orderedTitle: 'Ya pedido',
+    orderedDrawerTitle: 'Ya pedido ({count})',
+    orderedSubmittedHint: 'Los platos ya enviados solo los puede modificar el personal.',
+    noOrders: 'Todavía no has enviado ningún pedido',
+    orderedCount: '{count} plato(s)',
+    viewOrdered: 'Ver lo pedido',
+    continueOrdering: 'Pedir más',
+    placeOrder: 'Enviar pedido',
+    viewBillLink: 'Ver cuenta',
+    billDisabledHint: 'Esta mesa está cerrando la cuenta. Ahora no se pueden añadir platos.',
+    submitCooldownWait: 'Espera {seconds} s',
+    orderSuccess: '¡Pedido enviado!',
+    demoMode: 'Modo demo · los datos son solo de muestra, el pedido no se envía',
+    freeSignup: 'Acceso del propietario',
+    demoToastTitle: 'Modo demostración',
+    demoToastDesc: 'En un local real, la cocina recibe tu pedido al instante.',
+    submitFailed: 'No se ha podido enviar el pedido. Inténtalo de nuevo.',
+    submitRateLimited: 'Demasiados pedidos seguidos; inténtalo de nuevo en un momento.',
+    demoStep: 'Paso 1/3: haz el pedido desde la vista del cliente.',
+    demoOpenKitchen: 'Abrir vista de cocina',
+    demoOpenWaiter: 'Abrir panel de sala',
+    demoBackHub: 'Volver al inicio de la demo',
+    viewCart: 'Ver carrito',
+    footerTotal: 'Total:',
+    locationNotSupported: 'Este dispositivo no admite ubicación. No se puede enviar el pedido.',
+    locationPermissionDenied: 'Permite el acceso a la ubicación para pedir en este restaurante.',
+    locationCheckFailed: 'No se ha podido verificar tu ubicación. Inténtalo de nuevo.',
+    locationTooFar: 'Estás demasiado lejos del restaurante para pedir.',
+    locationBypassedLocal:
+      'Entorno local detectado: se ha omitido la validación de ubicación para pruebas.',
+    printEnqueueNoStation:
+      'Pedido guardado, pero no se ha enviado ningún ticket de partida: asigna una impresora de partida a la categoría o al plato en Ajustes del menú.',
+    printEnqueueFailed:
+      'Pedido guardado, pero falló el envío a la cola de impresión. Revisa el asistente de impresión.',
+    printEnqueueRateLimited: 'Demasiadas solicitudes de impresión; inténtalo de nuevo en un minuto.',
+    waitingForBuffet:
+      'Espera un momento: el personal debe registrar el bufé de esta mesa antes de pedir platos.',
+    buffetRequired:
+      'Esta mesa aún no está abierta para pedidos. Pide al personal que registre el bufé.',
+    sushiLimitHint:
+      'Incluye {perPerson} por persona; cada extra €{price}. Pide al personal para superar el límite.',
+    perPersonLimitReached:
+      'Has alcanzado el límite incluido. Pide al personal que añada más (precio de extra).',
+    limitedItemNeedsHeadcount:
+      'El personal debe registrar el número de comensales antes de pedir este plato.',
+    staffOverageConfirmTitle: 'Confirmar precio de extra',
+    staffOverageFirstCrossMessage:
+      '«{name}» incluirá {qty} unidad(es) a €{price} cada una como extra al cerrar la cuenta (subtotal €{subtotal}). ¿Continuar?',
+    staffOverageMoreToast:
+      '«{name}»: +{qty} se cobrarán a €{price} cada una como extra al cerrar la cuenta.',
+    staffOverageSubmitTitle: 'Confirmar pedido con extras',
+    staffOverageSubmitIntro: 'Al cerrar la cuenta se cobrará precio de extra por:',
+    staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
+    staffOverageConfirm: 'Confirmar',
+    staffOverageCancel: 'Cancelar',
+    subcategoryAll: 'Todo',
+    catalogLoading: 'Cargando la carta…',
+  },
+  fr: {
+    table: 'Table',
+    noItems: 'Aucun plat dans cette catégorie',
+    orderedTitle: 'Déjà commandé',
+    orderedDrawerTitle: 'Déjà commandé ({count})',
+    orderedSubmittedHint:
+      'Les plats déjà envoyés ne peuvent être modifiés que par le personnel.',
+    noOrders: 'Aucune commande envoyée pour le moment',
+    orderedCount: '{count} plat(s)',
+    viewOrdered: 'Voir la commande',
+    continueOrdering: 'Commander encore',
+    placeOrder: 'Envoyer la commande',
+    viewBillLink: 'Voir l’addition',
+    billDisabledHint:
+      'Cette table est en cours d’encaissement. Impossible d’ajouter des plats pour le moment.',
+    submitCooldownWait: 'Patientez {seconds} s',
+    orderSuccess: 'Commande envoyée !',
+    demoMode: 'Mode démo · données fictives, la commande ne sera pas envoyée',
+    freeSignup: 'Connexion gérant',
+    demoToastTitle: 'Mode démonstration',
+    demoToastDesc: 'En conditions réelles, la cuisine reçoit votre commande immédiatement.',
+    submitFailed: 'Échec de l’envoi de la commande, veuillez réessayer.',
+    submitRateLimited: 'Trop de commandes envoyées ; réessayez dans un instant.',
+    demoStep: 'Étape 1/3 : passez commande depuis la vue client.',
+    demoOpenKitchen: 'Ouvrir la vue cuisine',
+    demoOpenWaiter: 'Ouvrir le tableau de salle',
+    demoBackHub: 'Retour à l’accueil de la démo',
+    viewCart: 'Voir le panier',
+    footerTotal: 'Total :',
+    locationNotSupported:
+      'Cet appareil ne prend pas en charge la localisation. Commande impossible.',
+    locationPermissionDenied:
+      'Autorisez l’accès à la localisation pour commander dans ce restaurant.',
+    locationCheckFailed: 'Impossible de vérifier votre position. Veuillez réessayer.',
+    locationTooFar: 'Vous êtes trop loin du restaurant pour passer commande.',
+    locationBypassedLocal:
+      'Environnement local détecté : la vérification de position a été ignorée pour les tests.',
+    printEnqueueNoStation:
+      'Commande enregistrée, mais aucun bon de poste n’a été mis en file : associez un poste d’impression à la catégorie ou au plat dans les réglages du menu.',
+    printEnqueueFailed:
+      'Commande enregistrée, mais l’envoi vers la file d’impression a échoué. Vérifiez l’assistant d’impression.',
+    printEnqueueRateLimited: 'Trop de demandes d’impression ; réessayez dans une minute.',
+    waitingForBuffet:
+      'Un instant : le personnel doit enregistrer le buffet de cette table avant toute commande.',
+    buffetRequired:
+      'Cette table n’est pas encore ouverte. Demandez au personnel d’enregistrer le buffet.',
+    sushiLimitHint:
+      'Comprend {perPerson}/personne ; supplément €{price} la pièce. Demandez au personnel pour aller au-delà.',
+    perPersonLimitReached:
+      'Limite incluse atteinte. Demandez au personnel d’en ajouter (prix supplément).',
+    limitedItemNeedsHeadcount:
+      'Le personnel doit saisir le nombre de couverts avant de commander ce plat.',
+    staffOverageConfirmTitle: 'Confirmer le prix supplément',
+    staffOverageFirstCrossMessage:
+      '« {name} » comptera {qty} pièce(s) au supplément de €{price} l’unité à l’encaissement (sous-total €{subtotal}). Continuer ?',
+    staffOverageMoreToast:
+      '« {name} » : +{qty} seront facturées au supplément de €{price} l’unité à l’encaissement.',
+    staffOverageSubmitTitle: 'Confirmer la commande avec supplément',
+    staffOverageSubmitIntro: 'À l’encaissement, un supplément sera facturé pour :',
+    staffOverageSubmitLine: '• {name} : {qty} × €{price} = €{subtotal}',
+    staffOverageConfirm: 'Confirmer',
+    staffOverageCancel: 'Annuler',
+    subcategoryAll: 'Tout',
+    catalogLoading: 'Chargement de la carte…',
+  },
+  de: {
+    table: 'Tisch',
+    noItems: 'Keine Gerichte in dieser Kategorie',
+    orderedTitle: 'Bestellt',
+    orderedDrawerTitle: 'Bestellt ({count})',
+    orderedSubmittedHint: 'Bereits abgeschickte Gerichte kann nur das Servicepersonal ändern.',
+    noOrders: 'Noch keine Bestellung abgeschickt',
+    orderedCount: '{count} Gericht(e)',
+    viewOrdered: 'Bestellung ansehen',
+    continueOrdering: 'Weiter bestellen',
+    placeOrder: 'Bestellung abschicken',
+    viewBillLink: 'Rechnung ansehen',
+    billDisabledHint:
+      'Dieser Tisch wird gerade abgerechnet. Es können vorerst keine Gerichte hinzugefügt werden.',
+    submitCooldownWait: 'Bitte {seconds} s warten',
+    orderSuccess: 'Bestellung aufgegeben!',
+    demoMode: 'Demomodus · Daten dienen nur zur Anzeige, es wird nichts bestellt',
+    freeSignup: 'Inhaber-Login',
+    demoToastTitle: 'Demomodus',
+    demoToastDesc: 'Im echten Betrieb erhält die Küche Ihre Bestellung sofort.',
+    submitFailed: 'Bestellung konnte nicht gesendet werden. Bitte erneut versuchen.',
+    submitRateLimited: 'Zu viele Bestellungen; bitte in einem Moment erneut versuchen.',
+    demoStep: 'Schritt 1/3: In der Gastansicht bestellen.',
+    demoOpenKitchen: 'Küchenansicht öffnen',
+    demoOpenWaiter: 'Service-Board öffnen',
+    demoBackHub: 'Zurück zur Demo-Übersicht',
+    viewCart: 'Warenkorb ansehen',
+    footerTotal: 'Summe:',
+    locationNotSupported:
+      'Dieses Gerät unterstützt keine Standortbestimmung. Bestellung nicht möglich.',
+    locationPermissionDenied:
+      'Bitte Standortzugriff erlauben, um in diesem Restaurant zu bestellen.',
+    locationCheckFailed: 'Ihr Standort konnte nicht geprüft werden. Bitte erneut versuchen.',
+    locationTooFar: 'Sie sind zu weit vom Restaurant entfernt, um zu bestellen.',
+    locationBypassedLocal:
+      'Lokale Umgebung erkannt: Die Standortprüfung wurde zum Testen übersprungen.',
+    printEnqueueNoStation:
+      'Bestellung gespeichert, aber kein Stationsbon erstellt: Weisen Sie der Kategorie oder dem Gericht in den Menü-Einstellungen eine Druckstation zu.',
+    printEnqueueFailed:
+      'Bestellung gespeichert, aber die Übergabe an die Druckwarteschlange ist fehlgeschlagen. Prüfen Sie den Druckassistenten.',
+    printEnqueueRateLimited: 'Zu viele Druckaufträge; bitte in einer Minute erneut versuchen.',
+    waitingForBuffet:
+      'Bitte warten: Das Personal muss zuerst das Buffet für diesen Tisch erfassen.',
+    buffetRequired:
+      'Dieser Tisch ist noch nicht geöffnet. Bitten Sie das Personal, das Buffet zu erfassen.',
+    sushiLimitHint:
+      'Inklusive {perPerson} pro Person; jedes weitere €{price}. Für mehr bitte das Personal fragen.',
+    perPersonLimitReached:
+      'Inklusivmenge erreicht. Für mehr bitte das Personal fragen (Aufpreis).',
+    limitedItemNeedsHeadcount:
+      'Das Personal muss zuerst die Personenzahl erfassen, bevor dieses Gericht bestellt wird.',
+    staffOverageConfirmTitle: 'Aufpreis bestätigen',
+    staffOverageFirstCrossMessage:
+      '„{name}“ enthält bei der Abrechnung {qty} Stück zum Aufpreis von €{price} je Stück (Zwischensumme €{subtotal}). Fortfahren?',
+    staffOverageMoreToast:
+      '„{name}“: +{qty} werden bei der Abrechnung mit €{price} je Stück berechnet.',
+    staffOverageSubmitTitle: 'Bestellung mit Aufpreis bestätigen',
+    staffOverageSubmitIntro: 'Bei der Abrechnung wird ein Aufpreis berechnet für:',
+    staffOverageSubmitLine: '• {name}: {qty} × €{price} = €{subtotal}',
+    staffOverageConfirm: 'Bestätigen',
+    staffOverageCancel: 'Abbrechen',
+    subcategoryAll: 'Alle',
+    catalogLoading: 'Karte wird geladen…',
+  },
 };
 
 /** Interpolate staff overage confirm/toast/submit copy ({name}, {qty}, {price}, {subtotal}). */

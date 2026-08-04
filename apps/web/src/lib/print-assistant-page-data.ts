@@ -35,6 +35,7 @@ export type PrintAssistantLowerData = {
 function uiLangToReceiptLocale(lang: UILanguage): 'pt' | 'en' | 'zh' {
   if (lang === 'zh') return 'zh';
   if (lang === 'en') return 'en';
+  // pt / es / fr / de → Portuguese paper default (print_locale set stays separate).
   return 'pt';
 }
 

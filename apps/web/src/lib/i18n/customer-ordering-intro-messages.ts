@@ -93,6 +93,66 @@ const CUSTOMER_ORDERING_INTRO_SHELL: Record<UILanguage, IntroShell> = {
     cta: '开始点餐',
     footnote: '此提示仅显示一次',
   },
+  es: {
+    title: 'Bienvenido: pedidos desde la mesa',
+    subtitle: 'Cuatro pasos sencillos para pedir y pagar',
+    stepsWithoutSplit: [
+      {
+        title: 'Pedir',
+        body: 'Consulta la carta, añade al carrito y envía el pedido',
+      },
+      {
+        title: 'Ver cuenta',
+        body: 'Toca «Ver cuenta» en la barra inferior para abrir la cuenta',
+      },
+      {
+        title: 'Pedir la cuenta',
+        body: 'Solicita el cierre y acércate a la barra con el móvil para pagar',
+      },
+    ],
+    cta: 'Empezar a pedir',
+    footnote: 'Se muestra solo una vez',
+  },
+  fr: {
+    title: 'Bienvenue : commande à table',
+    subtitle: 'Quatre étapes simples pour commander et payer',
+    stepsWithoutSplit: [
+      {
+        title: 'Commander',
+        body: 'Parcourez la carte, ajoutez au panier et envoyez la commande',
+      },
+      {
+        title: 'Voir l’addition',
+        body: 'Touchez « Voir l’addition » dans la barre du bas pour ouvrir la note',
+      },
+      {
+        title: 'Demander l’addition',
+        body: 'Demandez l’encaissement, puis présentez votre téléphone au comptoir pour payer',
+      },
+    ],
+    cta: 'Commencer à commander',
+    footnote: 'Affiché une seule fois',
+  },
+  de: {
+    title: 'Willkommen: Bestellen am Tisch',
+    subtitle: 'In vier einfachen Schritten bestellen und bezahlen',
+    stepsWithoutSplit: [
+      {
+        title: 'Bestellen',
+        body: 'Karte ansehen, in den Warenkorb legen und Bestellung abschicken',
+      },
+      {
+        title: 'Rechnung ansehen',
+        body: 'Unten in der Leiste auf „Rechnung ansehen“ tippen',
+      },
+      {
+        title: 'Rechnung rufen',
+        body: 'Abrechnung anfordern und mit dem Handy zum Kassenbereich kommen',
+      },
+    ],
+    cta: 'Bestellung starten',
+    footnote: 'Wird nur einmal angezeigt',
+  },
 };
 
 /** Assembled intro copy — split step always from `getGuestSplitGuidance`. */

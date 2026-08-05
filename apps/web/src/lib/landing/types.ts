@@ -34,6 +34,21 @@ export type LandingPreviewScreen = {
   caption: string;
 };
 
+/** Brand pillars — exactly these four ids; one row in copy.pillars.items. */
+export type LandingPillarId = 'economy' | 'security' | 'stability' | 'convenience';
+
+export type LandingPillar = {
+  id: LandingPillarId;
+  title: string;
+  body: string;
+};
+
+export type LandingAgentRecruit = {
+  title: string;
+  subtitle: string;
+  note: string;
+};
+
 export type LandingCopy = {
   nav: {
     solutions: string;
@@ -49,7 +64,12 @@ export type LandingCopy = {
     desc: string;
     whatsappCta: string;
     wechatCta: string;
+    agentCta: string;
     previewHint: string;
+  };
+  pillars: {
+    title: string;
+    items: LandingPillar[];
   };
   pain: {
     title: string;
@@ -88,6 +108,7 @@ export type LandingCopy = {
     wechatCopied: string;
     stepsTitle: string;
     steps: LandingOnboardingStep[];
+    agent: LandingAgentRecruit;
   };
   footer: {
     login: string;

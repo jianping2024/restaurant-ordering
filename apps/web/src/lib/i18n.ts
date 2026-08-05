@@ -8,6 +8,7 @@ export const DEFAULT_UI_LANG: UILanguage = 'pt';
 /**
  * Single catalog of UI languages. Labels are always native names (not translated
  * per current UI lang) so the picker stays one representation everywhere.
+ * `pickerVisible: false` keeps messages/copy wired but hides the option in the switcher.
  */
 export const UI_LANGUAGE_OPTIONS: readonly {
   id: UILanguage;
@@ -16,16 +17,21 @@ export const UI_LANGUAGE_OPTIONS: readonly {
   /** Native endonym shown in pickers (Español, Français, …). */
   nativeName: string;
   flag: string;
+  /** When false, language stays in catalog/messages but is hidden from the picker. */
+  pickerVisible: boolean;
 }[] = [
-  { id: 'zh', shortLabel: '中', nativeName: '简体中文', flag: '🇨🇳' },
-  { id: 'en', shortLabel: 'EN', nativeName: 'English', flag: '🇬🇧' },
-  { id: 'pt', shortLabel: 'PT', nativeName: 'Português', flag: '🇵🇹' },
-  { id: 'es', shortLabel: 'ES', nativeName: 'Español', flag: '🇪🇸' },
-  { id: 'fr', shortLabel: 'FR', nativeName: 'Français', flag: '🇫🇷' },
-  { id: 'de', shortLabel: 'DE', nativeName: 'Deutsch', flag: '🇩🇪' },
+  { id: 'zh', shortLabel: '中', nativeName: '简体中文', flag: '🇨🇳', pickerVisible: true },
+  { id: 'en', shortLabel: 'EN', nativeName: 'English', flag: '🇬🇧', pickerVisible: true },
+  { id: 'pt', shortLabel: 'PT', nativeName: 'Português', flag: '🇵🇹', pickerVisible: true },
+  { id: 'es', shortLabel: 'ES', nativeName: 'Español', flag: '🇪🇸', pickerVisible: false },
+  { id: 'fr', shortLabel: 'FR', nativeName: 'Français', flag: '🇫🇷', pickerVisible: false },
+  { id: 'de', shortLabel: 'DE', nativeName: 'Deutsch', flag: '🇩🇪', pickerVisible: false },
 ] as const;
 
 export const SUPPORTED_UI_LANGS: UILanguage[] = UI_LANGUAGE_OPTIONS.map((o) => o.id);
+
+/** Options shown in LanguageSwitcher — derived once from the catalog. */
+export const UI_LANGUAGE_PICKER_OPTIONS = UI_LANGUAGE_OPTIONS.filter((o) => o.pickerVisible);
 
 export const HTML_LANG_BY_UI: Record<UILanguage, string> = {
   zh: 'zh-Hans',

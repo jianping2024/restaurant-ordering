@@ -53,19 +53,18 @@ export function LandingHero() {
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-text-muted sm:text-lg md:mx-0">
             {copy.desc}
           </p>
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:items-start">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap md:items-start">
             <LandingWhatsAppButton className="w-full sm:w-auto">
               {copy.whatsappCta}
             </LandingWhatsAppButton>
             <LandingButton href="#contact" variant="secondary" className="w-full sm:w-auto">
               {copy.wechatCta}
             </LandingButton>
+            <LandingButton href="#agents" variant="ghost" className="w-full sm:w-auto">
+              {copy.agentCta}
+            </LandingButton>
           </div>
-          <p className="mt-4 text-[13px] text-brand-text-muted">
-            <a href="#preview" className="hover:text-brand-gold">
-              {copy.previewHint} ↓
-            </a>
-          </p>
+          <p className="mt-4 text-[13px] text-brand-text-muted">{copy.previewHint}</p>
         </div>
         <HeroPreviewStack />
       </div>

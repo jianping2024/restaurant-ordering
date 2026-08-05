@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import {
-  UI_LANGUAGE_OPTIONS,
+  UI_LANGUAGE_PICKER_OPTIONS,
   uiLanguageOption,
   type UILanguage,
 } from '@/lib/i18n';
@@ -17,9 +17,13 @@ function OptionRows({
   lang: UILanguage;
   onSelect: (id: UILanguage) => void;
 }) {
+  // Picker list is UI_LANGUAGE_PICKER_OPTIONS; keep a hidden current lang so user can leave it.
+  const options = UI_LANGUAGE_PICKER_OPTIONS.some((o) => o.id === lang)
+    ? UI_LANGUAGE_PICKER_OPTIONS
+    : [...UI_LANGUAGE_PICKER_OPTIONS, uiLanguageOption(lang)];
   return (
     <>
-      {UI_LANGUAGE_OPTIONS.map((option) => {
+      {options.map((option) => {
         const selected = lang === option.id;
         return (
           <button

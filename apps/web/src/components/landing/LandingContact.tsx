@@ -8,14 +8,26 @@ import {
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
 export function LandingContact() {
-  const copy = useLandingCopy();
-  const { contact } = copy;
+  const { contact } = useLandingCopy();
 
   return (
     <LandingSection id="contact" className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
       <LandingSectionHeader title={contact.title} subtitle={contact.subtitle} />
 
       <p className="mb-8 text-center text-[14px] font-medium text-brand-gold">{contact.pricingNote}</p>
+
+      <div
+        id="agents"
+        className="mx-auto mb-10 max-w-2xl rounded-2xl border border-brand-gold/40 bg-brand-gold/10 p-6 sm:p-8"
+      >
+        <h3 className="text-center font-heading text-2xl text-brand-gold sm:text-3xl">
+          {contact.agent.title}
+        </h3>
+        <p className="mt-2 text-center text-[15px] font-medium text-brand-text">
+          {contact.agent.subtitle}
+        </p>
+        <p className="mt-3 text-center text-[14px] text-brand-text-muted">{contact.agent.note}</p>
+      </div>
 
       <div className="mx-auto max-w-lg">
         <LandingContactChannels

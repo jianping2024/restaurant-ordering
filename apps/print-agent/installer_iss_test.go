@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 )
 
-// Sole upgrade story in mesa-print-agent.iss — fail if a second privilege/mutex path appears.
+// Sole upgrade story in mesa-print-agent.iss — fail if AppMutex / CloseApplications
+// yes-no / lowest privilege reappears beside admin + PrepareToInstall taskkill.
 func TestInnoSetupUpgradeStory(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join("installer", "mesa-print-agent.iss"))
 	if err != nil {
@@ -19,13 +19,14 @@ func TestInnoSetupUpgradeStory(t *testing.T) {
 	mustContain := []string{
 		"PrivilegesRequired=admin",
 		"UsePreviousAppDir=yes",
-		"AppMutex=" + agentMutexName,
-		"CloseApplications=yes",
-		"CloseApplicationsFilter=MesaPrintAgent.exe",
+		"CloseApplications=no",
 		"Flags: ignoreversion restartreplace",
-		"AppId={{"+mesaPrintAgentInnoGUID+"}}",
+		"AppId={{" + mesaPrintAgentInnoGUID + "}}",
 		"AppVerName={#MyAppName}",
 		"UninstallDisplayName={#MyAppName}",
+		"function PrepareToInstall(",
+		"taskkill.exe",
+		"/F /IM {#MyAppExe} /T",
 	}
 	for _, s := range mustContain {
 		if !strings.Contains(iss, s) {
@@ -35,22 +36,23 @@ func TestInnoSetupUpgradeStory(t *testing.T) {
 	if strings.Contains(iss, "PrivilegesRequired=lowest") {
 		t.Fatal("PrivilegesRequired=lowest must not remain — admin is the sole Setup privilege path")
 	}
-	if strings.Count(iss, "AppMutex=") != 1 {
-		t.Fatal("expected exactly one AppMutex= line")
+	if strings.Contains(iss, "AppMutex=") {
+		t.Fatal("AppMutex must not appear — it blocks Setup with please-close OK/Cancel")
+	}
+	if strings.Contains(iss, "CloseApplications=yes") || strings.Contains(iss, "CloseApplications=force") {
+		t.Fatal("CloseApplications yes/force must not appear — that asks the user to close apps")
 	}
 	if strings.Count(iss, "PrivilegesRequired=") != 1 {
 		t.Fatal("expected exactly one PrivilegesRequired= line")
 	}
-	re := regexp.MustCompile(`(?m)^AppMutex=(.+)$`)
-	m := re.FindStringSubmatch(iss)
-	if len(m) != 2 || m[1] != agentMutexName {
-		t.Fatalf("AppMutex must equal agentMutexName %q, got %q", agentMutexName, m)
+	if strings.Count(iss, "function PrepareToInstall(") != 1 {
+		t.Fatal("expected exactly one PrepareToInstall — sole quiet-close path")
 	}
 }
 
 func TestAgentMutexNameStable(t *testing.T) {
 	const want = `Global\MesaPrintAgent-SingleInstance-v1`
 	if agentMutexName != want {
-		t.Fatalf("agentMutexName changed to %q; update Inno AppMutex in lockstep", agentMutexName)
+		t.Fatalf("agentMutexName is tray single-instance only; changed to %q", agentMutexName)
 	}
 }

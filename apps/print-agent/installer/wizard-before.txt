@@ -4,7 +4,8 @@ Before you install
 Administrator / upgrade
   This Setup asks for administrator permission so it installs under Program Files
   and can update an existing Mesa Print Agent (same folder / Add or Remove Programs entry).
-  If the agent is already running, Setup will close MesaPrintAgent.exe before replacing files.
+  If the agent is already running, Setup stops MesaPrintAgent.exe automatically before
+  replacing files (no separate "please exit" / yes-no close step). Continue with Next.
 
 SmartScreen (unsigned build)
   Windows may show "Unknown publisher". Click More info, then Run anyway.

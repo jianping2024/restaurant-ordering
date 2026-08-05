@@ -1,9 +1,9 @@
 ; Mesa Print Agent — Inno Setup (x64). From apps/print-agent:
 ;   ISCC /DMyAppVersion=0.1.0 installer\mesa-print-agent.iss
 ;
-; Upgrade story (sole path): elevated Setup → AppMutex + CloseApplications stop the running
-; tray → overwrite Program Files → optional launch. AppMutex MUST match agentMutexName in
-; single_instance_common.go (Global\MesaPrintAgent-SingleInstance-v1).
+; Upgrade story (sole path): elevated Setup → PrepareToInstall taskkill of
+; MesaPrintAgent.exe (no AppMutex, no CloseApplications yes/no) → overwrite
+; Program Files → optional launch. Tray single-instance mutex stays in Go only.
 
 #ifndef MyAppVersion
   #define MyAppVersion "0.1.0"
@@ -31,10 +31,9 @@ DisableProgramGroupPage=yes
 ; Admin: match Program Files + HKLM uninstall so Setup detects prior install (overwrite, not "new").
 PrivilegesRequired=admin
 UsePreviousAppDir=yes
-; Same string as Go agentMutexName — Inno closes the holding process before file copy.
-AppMutex=Global\MesaPrintAgent-SingleInstance-v1
-CloseApplications=yes
-CloseApplicationsFilter=MesaPrintAgent.exe
+; No AppMutex (that blocks with "please close then OK/Cancel"). No CloseApplications
+; (that asks yes/no to close). PrepareToInstall kills the tray quietly before file copy.
+CloseApplications=no
 RestartApplications=no
 OutputDir=..\dist
 OutputBaseFilename=MesaPrintAgent-Setup-amd64
@@ -65,3 +64,13 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: autost
 
 [Run]
 Filename: "{app}\{#MyAppExe}"; Description: "Launch Mesa Print Agent now"; Flags: nowait postinstall skipifsilent
+
+[Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  { Quiet stop so Program Files exe can be replaced; ignore non-zero if not running. }
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM {#MyAppExe} /T', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Result := '';
+end;

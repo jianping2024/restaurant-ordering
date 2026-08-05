@@ -26,12 +26,21 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 - 托盘新增「卸载…」：清除本机配置与日志，并拉起 Setup 卸载器（便携版仅清数据并提示手删）。
 - 须配合 Web：cloud claim 的 `supabase_url` 固定 `getPublishedSupabaseUrl()`（`*.supabase.co`），Mode B 仍可优先 `api_base`。
 
+## 0.3.64
+
+**Setup 覆盖升级：运行中直接装，不要先退出 / yes-no**
+
+- 去掉 `AppMutex`（会挡在「请先关闭再 OK/Cancel」）。
+- 去掉 `CloseApplications=yes/force`（会问是否关闭应用）。
+- 唯一关托盘路径：`PrepareToInstall` 静默 `taskkill /F /IM MesaPrintAgent.exe`；仍 `PrivilegesRequired=admin` + `UsePreviousAppDir` + `restartreplace`。
+- 托盘 `agentMutexName` 只防第二进程启动，不参与 Setup。
+
 ## 0.3.60
 
 **Setup 覆盖升级（管理员 + 关闭运行中进程）**
 
 - Inno：`PrivilegesRequired=admin`（匹配 Program Files / HKLM 卸载项，升级而非“新装”）。
-- `AppMutex` 与托盘单实例互斥名一致 + `CloseApplications`；exe 用 `restartreplace`；`UsePreviousAppDir=yes`。
+- （已被 0.3.64 取代）曾用 `AppMutex` + `CloseApplications`；exe 用 `restartreplace`；`UsePreviousAppDir=yes`。
 - 向导前提示会请求管理员权限并在替换前关闭 `MesaPrintAgent.exe`。
 
 ## 0.3.59

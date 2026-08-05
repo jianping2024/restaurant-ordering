@@ -19,16 +19,20 @@ export const STAFF_TOP_BAR_TOTAL_HEIGHT =
   'calc(3.5rem + env(safe-area-inset-top, 0px))';
 
 export const staffTopBarChrome = {
-  headerClassName:
-    'sticky top-0 z-30 shrink-0 border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
   /**
-   * Content row. Gap tightened vs legacy gap-2/px-3 so brand and trailing
-   * sit closer to the horizontal safe edges without overlapping nav.
+   * Clip children only — do not put overflow on `main` (that creates a
+   * scrollport and breaks board/detail sticky under this bar).
+   */
+  headerClassName:
+    'sticky top-0 z-30 min-w-0 shrink-0 overflow-x-clip border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
+  /**
+   * Content row. Brand is flex-1 + min-w-0 so long names absorb squeeze;
+   * hamburger and trailing stay shrink-0 and never push the document wide.
    */
   rowClassName:
     'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
-  /** Logo + restaurant name — name truncates on narrow viewports so the row never overflows. */
-  brandClassName: 'flex min-w-0 shrink items-center',
+  /** Logo + restaurant name — sole flex grow slot; truncates instead of overflowing. */
+  brandClassName: 'flex min-w-0 flex-1 items-center',
 } as const;
 
 /**

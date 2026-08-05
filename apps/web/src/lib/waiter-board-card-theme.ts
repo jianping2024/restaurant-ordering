@@ -39,7 +39,7 @@ export const WAITER_BOARD_LANE_CHROME = {
  * Opaque page bg so table cards never show through; offset = `waiterStaffStickyChrome`.
  */
 export const WAITER_BOARD_LANE_STICKY_SHELL =
-  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 mb-4 border-b border-brand-border/40 bg-brand-bg py-2`;
+  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 mb-4 min-w-0 max-w-full border-b border-brand-border/40 bg-brand-bg py-2`;
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =

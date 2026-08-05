@@ -15,10 +15,13 @@ describe('staffTopBarChrome', () => {
       'calc(3.5rem + env(safe-area-inset-top, 0px))',
     );
     assert.match(staffTopBarChrome.headerClassName, /pt-\[env\(safe-area-inset-top/);
+    assert.match(staffTopBarChrome.headerClassName, /overflow-x-clip/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-right/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
-    assert.match(staffTopBarChrome.brandClassName, /shrink-0/);
+    assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
+    assert.match(staffTopBarChrome.brandClassName, /flex-1/);
+    assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,
       'top-[calc(3.5rem+env(safe-area-inset-top,0px))]',

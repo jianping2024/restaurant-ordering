@@ -58,7 +58,7 @@ export function topNavIconTriggerClass(open: boolean): string {
 
 /** Account / role menu trigger — text label, same row alignment, no pill chrome. */
 export function topNavAccountTriggerClass(open: boolean): string {
-  return `inline-flex h-full max-w-[5.5rem] shrink-0 items-center gap-0.5 px-2 text-sm font-medium transition-colors ${
+  return `inline-flex h-full max-w-[5.5rem] shrink-0 items-center gap-0.5 truncate px-2 text-sm font-medium transition-colors ${
     open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
   }`;
 }

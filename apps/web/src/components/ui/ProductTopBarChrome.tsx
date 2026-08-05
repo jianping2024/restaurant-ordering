@@ -11,7 +11,7 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex min-w-0 max-w-full items-center gap-1.5 sm:gap-2">
+    <div className="flex min-w-0 w-full items-center gap-1.5 sm:gap-2">
       <Link href={href} className="shrink-0">
         <ProductLogo size="sm" />
       </Link>
@@ -25,10 +25,10 @@ export function ProductTopBarBrand({
   );
 }
 
-/** Trailing actions slot (account menu, license meta, etc.) — one row, vertically centered. */
+/** Trailing actions slot (account menu, license meta, etc.) — fixed on the right, never shrinks the row wide. */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
   return (
-    <div className="ml-auto flex min-w-0 shrink items-center gap-1 self-stretch">
+    <div className="ml-auto flex shrink-0 items-center gap-1 self-stretch">
       {children}
     </div>
   );

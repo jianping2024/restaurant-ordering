@@ -9,6 +9,8 @@ description: >-
 
 # Mesa: local product testing
 
+**Delivery gate:** For functional product changes, this skill is mandatory before commit/merge/done — see `.cursor/rules/uat-before-delivery.mdc`. Do not deliver on lint/unit alone.
+
 ## Environment
 
 - **Host:** `http://localhost:3000`

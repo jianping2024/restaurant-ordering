@@ -8,7 +8,9 @@ alwaysApply: false
 
 # Local product testing
 
-When the user asks to **开始测试**, **联调**, **手工验收**, **回归测试**, **本地回归**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests):
+**Also a delivery gate:** functional code changes must run this UAT to **pass** before commit/merge/done — see always-on `uat-before-delivery.mdc` (not only when the user says “开始测试”).
+
+When the user asks to **开始测试**, **联调**, **手工验收**, **回归测试**, **本地回归**, **按本地测试规则测**, or otherwise verify product behavior on a running app (not only lint/build/unit tests) — **or** when delivering a functional change:
 
 Read and follow **`.cursor/skills/mesa-local-product-test/SKILL.md`**. Mandatory stack: **`mesa-local-uat` API first** → Chrome DevTools MCP for UI → realtime dual-tab recipe when in scope → cleanup → pass/fail report (not lint-only). On `npm run dev`, use **supabase-local** / **user-supabase-local** for DB asserts.
 

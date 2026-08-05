@@ -1,0 +1,44 @@
+---
+description: >-
+  Functional code changes must pass localhost product UAT before delivery
+  (commit / merge / done report). Lint-only is not enough.
+alwaysApply: true
+---
+
+# UAT before delivery (hard gate)
+
+**Functional** product changes are not delivered until localhost **product UAT passes**.
+
+## Applies when
+
+Any change that affects runtime behavior or operator/customer-visible UI, including:
+
+- Staff / customer / kitchen / checkout / board / settings flows
+- API, session, print, auth, permissions, Realtime, middleware
+- Layout / chrome that users see on phone or desktop (overflow, zoom, sticky, nav)
+
+## Does NOT apply
+
+- Typos, comments, docs-only, pure format/lint with no behavior change
+- Test-only or dead-code deletion with no product path change
+- User explicitly waives UAT in-thread (“先合，UAT 后补” / “skip UAT”)
+
+## Delivery means
+
+Do **not** treat the task as done, and do **not** commit / merge to local `main` / say “已交付”, until UAT for the changed surface is **pass**.
+
+Lint / unit / `npm run build` alone **do not** satisfy this gate.
+
+## Required UAT
+
+Follow **`.cursor/skills/mesa-local-product-test/SKILL.md`** and `.cursor/rules/local-product-testing.mdc`:
+
+1. `mesa-local-uat` (stack-health + login + API asserts for the touched path)
+2. Chrome DevTools (or IDE browser) on localhost — exercise the changed UI; for layout/chrome, **screenshot + measure**, not “class exists”
+3. Report each item **pass** / **fail**; `skip` only when truly blocked (same rule as local-product-testing)
+
+If UAT **fails**: fix or report fail — do not merge/deliver. If blocked: report blocker; do not claim delivery.
+
+## Order with analyze / implement
+
+Analyze → implement → **UAT pass** → then commit/merge when the user asked for land. User “按方案改 / go ahead” includes this UAT gate unless they waived it.

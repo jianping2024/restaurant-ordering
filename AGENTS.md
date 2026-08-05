@@ -69,6 +69,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 - Web: `npm run lint`; also `npm run build` when touching `apps/web/src/app|lib|types`, env, or build config. Ops/shared: `npm run build:ops`.
 - Print-agent: Docker `go test` + `go vet` + Windows cross-build (above).
 - Migration/RLS: verify tenant isolation; not only happy paths. No broad web unit suite — add targeted tests when justified. Fix narrow failures; do not loop full-project builds.
+- **Functional delivery gate:** behavior/UI/API changes need localhost product UAT **pass** (`mesa-local-product-test`) before commit/merge/done — see `.cursor/rules/uat-before-delivery.mdc`. Lint/unit alone is not delivery.
 
 ## Boundaries
 

@@ -9,9 +9,10 @@ alwaysApply: true
 
 1. [`AGENTS.md`](../../AGENTS.md) — stack, commands, safety, tenant, DB, checks, token discipline
 2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
-3. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
-4. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
-5. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache must be in artifact (not docs-only)
+3. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
+4. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
+5. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
+6. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache must be in artifact (not docs-only)
 
 **Skills (read when task matches `description`)**
 
@@ -46,7 +47,7 @@ Before non-trivial edits: read matching rows only — not a whole-repo scan. Pre
 2. **Plan** — non-trivial logic: follow analysis gates + `mesa-analyze-before-code` skill
 3. **Scope** — no out-of-scope features, unrelated files, silent rewrites, or temporary patches
 4. **Sync docs** — business rules → `docs/product/` or `docs/technical/`; major tech → `docs/decisions/`
-5. **Verify** — checks per `AGENTS.md`; product UAT via `mesa-local-product-test` when asked
+5. **Verify** — checks per `AGENTS.md`; **functional changes:** localhost product UAT must **pass** before delivery (`uat-before-delivery.mdc` + `mesa-local-product-test`) — not lint-only
 
 ## High-risk (explicit user approval)
 

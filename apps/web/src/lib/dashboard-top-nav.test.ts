@@ -81,11 +81,11 @@ describe('buildDashboardTopNavItems', () => {
 });
 
 describe('topNavDesktopScrollNavClassName', () => {
-  it('uses mesa-chip-scroll and lg breakpoint', () => {
+  it('uses mesa-chip-scroll and lg breakpoint without flex-1 (brand is sole grower)', () => {
     const className = topNavDesktopScrollNavClassName();
     assert.match(className, /mesa-chip-scroll/);
     assert.match(className, /lg:flex/);
-    assert.match(className, /flex-1/);
+    assert.doesNotMatch(className, /flex-1/);
   });
 });
 

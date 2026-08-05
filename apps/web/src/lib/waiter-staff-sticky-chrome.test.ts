@@ -24,6 +24,9 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
     assert.match(staffTopBarChrome.brandClassName, /flex-1/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
+    assert.match(staffTopBarChrome.rightClusterClassName, /min-w-0/);
+    assert.doesNotMatch(staffTopBarChrome.rightClusterClassName, /flex-1/);
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,
       'top-[calc(3.5rem+env(safe-area-inset-top,0px))]',

@@ -9,8 +9,9 @@
  *
  * Layout end-state (no overflow-clip safety net):
  * - brand slot is the sole flex-1 min-w-0 grower (name truncates)
- * - hamburger + trailing are shrink-0
- * - intentional horizontal scroll only via `.mesa-chip-scroll`
+ * - nav + trailing share one right cluster (`rightClusterClassName`, ml-auto)
+ * - hamburger + trailing are shrink-0 inside the cluster
+ * - intentional horizontal scroll only via `.mesa-chip-scroll` on desktop nav
  *
  * Tailwind class strings must be full literals (no ${} inside class names) so JIT
  * can emit utilities from this file.
@@ -40,6 +41,9 @@ export const staffTopBarChrome = {
     'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
   /** Logo + restaurant name — sole flex grow slot; truncates instead of overflowing. */
   brandClassName: 'flex min-w-0 flex-1 items-center',
+  /** Desktop nav + hamburger + trailing — single right-aligned cluster; may shrink for chip scroll. */
+  rightClusterClassName:
+    'ml-auto flex min-w-0 shrink items-center self-stretch',
 } as const;
 
 /**

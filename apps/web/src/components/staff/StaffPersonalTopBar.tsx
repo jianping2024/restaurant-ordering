@@ -50,21 +50,23 @@ export function StaffPersonalTopBar({
           <ProductTopBarBrand href={logoHref} restaurantName={restaurantName} />
         </div>
 
-        <ProductTopBarMenu
-          items={navItems}
-          pathname={pathname}
-          navT={navT}
-          checkoutCount={checkoutCount}
-          prefetch={prefetch}
-          open={navOpen}
-          onOpenChange={setNavOpen}
-          onNavigate={onNavigate}
-        />
+        <div className={staffTopBarChrome.rightClusterClassName}>
+          <ProductTopBarMenu
+            items={navItems}
+            pathname={pathname}
+            navT={navT}
+            checkoutCount={checkoutCount}
+            prefetch={prefetch}
+            open={navOpen}
+            onOpenChange={setNavOpen}
+            onNavigate={onNavigate}
+          />
 
-        <ProductTopBarTrailing>
-          {trailingStart}
-          {settingsMenu}
-        </ProductTopBarTrailing>
+          <ProductTopBarTrailing>
+            {trailingStart}
+            {settingsMenu}
+          </ProductTopBarTrailing>
+        </div>
       </div>
     </header>
   );

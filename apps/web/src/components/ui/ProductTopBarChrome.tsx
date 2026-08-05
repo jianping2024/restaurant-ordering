@@ -25,10 +25,10 @@ export function ProductTopBarBrand({
   );
 }
 
-/** Trailing actions slot (account menu, license meta, etc.) — fixed on the right, never shrinks the row wide. */
+/** Trailing actions slot (account menu, license meta, etc.) — inside `staffTopBarChrome.rightClusterClassName`. */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
   return (
-    <div className="ml-auto flex shrink-0 items-center gap-1 self-stretch">
+    <div className="flex shrink-0 items-center gap-1 self-stretch">
       {children}
     </div>
   );

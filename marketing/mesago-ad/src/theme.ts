@@ -51,6 +51,9 @@ export type AdWeChatContact = {
 export type AdProps = {
   contactLine: string;
   ctaLine: string;
+  /** Agent-recruit headline on end beat (same contact channels). */
+  agentLine: string;
+  agentSubline: string;
   whatsapps: string[];
   wechats: AdWeChatContact[];
 };
@@ -59,6 +62,8 @@ export const defaultAdProps: AdProps = {
   contactLine:
     'WhatsApp +351 911 092 527 / +351 925 736 572 · 微信 p9110925 / 强',
   ctaLine: '欢迎预约演示',
+  agentLine: '诚招代理',
+  agentSubline: '区域合作 · 本地部署支持',
   whatsapps: ['+351 911 092 527', '+351 925 736 572'],
   wechats: [
     { display: 'p9110925', qrFile: 'contact/wechat-qr.png' },

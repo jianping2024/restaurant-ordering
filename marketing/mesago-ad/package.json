@@ -22,16 +22,21 @@
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
     "eslint": "9.19.0",
+    "playwright": "^1.62.1",
     "prettier": "3.8.1",
+    "puppeteer": "^24.43.1",
     "typescript": "5.9.3"
   },
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
-    "render": "remotion render MesaGoAdV2 out/mesago-ad-v2.mp4",
+    "render": "remotion render MesaGoAdV3 out/mesago-ad-v3.mp4",
+    "render:v2": "remotion render MesaGoAdV2 out/mesago-ad-v2.mp4",
     "render:v1": "remotion render MesaGoAd out/mesago-ad.mp4",
+    "vo:v3": "node scripts/generate-vo-v3.mjs",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "capture:pirata": "node scripts/capture-pirata-ad.mjs"
   },
   "sideEffects": [
     "*.css"

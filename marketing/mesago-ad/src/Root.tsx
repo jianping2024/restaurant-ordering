@@ -2,6 +2,7 @@ import React from "react";
 import { Composition, Folder } from "remotion";
 import { MesaGoAd, MESAGO_AD_DURATION } from "./MesaGoAd";
 import { MesaGoAdV2, MESAGO_AD_V2_DURATION } from "./MesaGoAdV2";
+import { MesaGoAdV3, MESAGO_AD_V3_DURATION } from "./MesaGoAdV3";
 import { SceneBusy } from "./scenes/SceneBusy";
 import { SceneScan } from "./scenes/SceneScan";
 import { SceneBackend } from "./scenes/SceneBackend";
@@ -24,6 +25,13 @@ const sceneMeta = {
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="MesaGoAdV3"
+        component={MesaGoAdV3}
+        durationInFrames={MESAGO_AD_V3_DURATION}
+        {...sceneMeta}
+        defaultProps={defaultAdProps satisfies AdProps}
+      />
       <Composition
         id="MesaGoAdV2"
         component={MesaGoAdV2}

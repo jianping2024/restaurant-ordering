@@ -92,9 +92,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: '客户案例',
-      name: 'Restaurante Pirata',
-      location: '葡萄牙 · 中餐自助',
-      quote: `${PRODUCT_NAME} 试点客户，使用系统管理自助餐开台计费与酒水点单流程。`,
+      name: '葡萄牙大型中餐自助',
+      location: '已入住 · 稳定使用中',
+      quote: `${PRODUCT_NAME} 帮助大型自助餐厅管理开台计费、酒水点单与楼面运营。`,
       tags: ['中餐自助', '人头计费', '三语菜单'],
     },
     contact: {
@@ -200,9 +200,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Customer story',
-      name: 'Restaurante Pirata',
-      location: 'Portugal · Chinese buffet',
-      quote: `${PRODUCT_NAME} pilot customer using the system for buffet open-table billing and drink orders.`,
+      name: 'Large Chinese buffet (Portugal)',
+      location: 'Live · in stable use',
+      quote: `${PRODUCT_NAME} supports open-table billing, drink orders, and floor operations for large buffet restaurants.`,
       tags: ['Chinese buffet', 'Per-guest billing', 'Trilingual menu'],
     },
     contact: {
@@ -308,9 +308,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Cliente',
-      name: 'Restaurante Pirata',
-      location: 'Portugal · Buffet chines',
-      quote: `Cliente piloto ${PRODUCT_NAME} para abertura buffet e pedidos de bebidas.`,
+      name: 'Buffet chines de grande porte',
+      location: 'Em uso estavel',
+      quote: `${PRODUCT_NAME} gere abertura buffet, pedidos de bebidas e operacao de sala em restaurantes de grande escala.`,
       tags: ['Buffet chines', 'Por pessoa', 'Menu trilingue'],
     },
     contact: {
@@ -416,9 +416,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Historia de cliente',
-      name: 'Restaurante Pirata',
-      location: 'Portugal · Buffet chino',
-      quote: `Cliente piloto de ${PRODUCT_NAME} usando el sistema para facturación de apertura de buffet y pedidos de bebidas.`,
+      name: 'Gran buffet chino (Portugal)',
+      location: 'En uso estable',
+      quote: `${PRODUCT_NAME} ayuda a grandes buffets chinos con apertura de mesa, pedidos de bebidas y operaciones de sala.`,
       tags: ['Buffet chino', 'Facturación por huésped', 'Menú trilingüe'],
     },
     contact: {
@@ -524,9 +524,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Histoire client',
-      name: 'Restaurante Pirata',
-      location: 'Portugal · Buffet chinois',
-      quote: `Client pilote ${PRODUCT_NAME} utilisant le système pour la facturation d\'ouverture de buffet et les commandes de boissons.`,
+      name: 'Grand buffet chinois (Portugal)',
+      location: 'En usage stable',
+      quote: `${PRODUCT_NAME} accompagne les grands buffets chinois : ouverture de table, boissons et exploitation de salle.`,
       tags: ['Buffet chinois', 'Facturation par invité', 'Menu trilingue'],
     },
     contact: {
@@ -632,9 +632,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Kundengeschichte',
-      name: 'Restaurante Pirata',
-      location: 'Portugal · Chinesisches Buffet',
-      quote: `${PRODUCT_NAME} Pilotkunde, der das System für Buffet-Tisch-Öffnungs-Abrechnung und Getränkebestellungen verwendet.`,
+      name: 'Großes chinesisches Buffet (Portugal)',
+      location: 'Im stabilen Einsatz',
+      quote: `${PRODUCT_NAME} unterstützt große chinesische Buffets bei Tisch-Öffnung, Getränkebestellungen und Floor-Betrieb.`,
       tags: ['Chinesisches Buffet', 'Pro-Gast-Abrechnung', 'Dreisprachiges Menü'],
     },
     contact: {

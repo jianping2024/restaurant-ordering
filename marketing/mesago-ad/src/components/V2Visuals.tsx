@@ -14,7 +14,8 @@ import { colors, fonts } from "../theme";
 export const assets = {
   hallA: staticFile("video/pirata-hall-a.mp4"),
   hallB: staticFile("video/pirata-hall-b.mp4"),
-  bgm: staticFile("audio/bgm.mp3"),
+  sy2Head: staticFile("video/sy2-head.mp4"),
+  bgm: staticFile("audio/bgm-music-candidate.mp3"),
   whoosh: staticFile("audio/whoosh.wav"),
   vo1: staticFile("audio/v2-01.mp3"),
   vo2: staticFile("audio/v2-02.mp3"),
@@ -24,13 +25,142 @@ export const assets = {
   vo6: staticFile("audio/v2-06.mp3"),
   vo6b: staticFile("audio/v2-06b-phone.mp3"),
   vo7: staticFile("audio/v2-07.mp3"),
+  vo8: staticFile("audio/v2-08.mp3"),
   uiMenu: staticFile("ui/menu-mobile.png"),
   uiBoard: staticFile("ui/board-mobile.png"),
   uiBoardDesktop: staticFile("ui/board-desktop.png"),
   uiBuffet: staticFile("ui/buffet-prices-mobile.png"),
+  uiBuffetSlots: staticFile("ui/buffet-slots.png"),
   uiBuffetFallback: staticFile("ui/buffet-mobile.png"),
   uiDashMobile: staticFile("ui/dashboard-mobile.png"),
   uiDashDesktop: staticFile("ui/dashboard-desktop.png"),
+  flowBoardIdle: staticFile("ui/flow/01-board-idle.png"),
+  flowOpenDialog: staticFile("ui/flow/02-open-dialog.png"),
+  flowOpenAdult: staticFile("ui/flow/03-open-adult.png"),
+  flowBoardOpen: staticFile("ui/flow/04-board-open.png"),
+  flowDash: staticFile("ui/flow/05-dashboard.png"),
+  flowSettingsHub: staticFile("ui/flow/06-settings-hub.png"),
+  flowMenuHome: staticFile("ui/flow/10-menu-home.png"),
+  flowMenuDrinks: staticFile("ui/flow/11-menu-drinks.png"),
+  flowMenuAdded: staticFile("ui/flow/12-menu-added.png"),
+};
+
+export type ClickStep = {
+  src: string;
+  /** frames to show this screen before transitioning */
+  hold: number;
+  /** tap point as 0–1 inside the UI frame; omit = no finger */
+  tap?: { x: number; y: number };
+};
+
+/** Phone UI with finger tap + page swap, synced to step holds */
+export const ClickFlowUi: React.FC<{
+  steps: ClickStep[];
+  delay?: number;
+  cropTop?: number;
+}> = ({ steps, delay = 0, cropTop = 0.02 }) => {
+  const frame = useCurrentFrame();
+  const local = Math.max(0, frame - delay);
+  let cursor = 0;
+  let stepIndex = 0;
+  let within = 0;
+  for (let i = 0; i < steps.length; i++) {
+    const h = steps[i]!.hold;
+    if (local < cursor + h || i === steps.length - 1) {
+      stepIndex = i;
+      within = local - cursor;
+      break;
+    }
+    cursor += h;
+  }
+  const step = steps[stepIndex]!;
+  const next = steps[stepIndex + 1];
+  const tapAt = Math.max(0, step.hold - 10);
+  const tapping = step.tap && within >= tapAt;
+  const cross = next
+    ? interpolate(within, [tapAt + 4, step.hold], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 0;
+  const imgH = `${100 / (1 - cropTop)}%`;
+  const imgTop = `${(-cropTop * 100) / (1 - cropTop)}%`;
+  const imgStyle: React.CSSProperties = {
+    width: "100%",
+    height: imgH,
+    marginTop: imgTop,
+    objectFit: "cover",
+    objectPosition: "top center",
+  };
+
+  return (
+    <Interactive.Div
+      name="Click flow UI"
+      style={{
+        position: "absolute",
+        left: 28,
+        right: 28,
+        top: 72,
+        bottom: 210,
+        borderRadius: 28,
+        overflow: "hidden",
+        border: `3px solid ${colors.goldDark}`,
+        boxShadow: "0 24px 70px rgba(0,0,0,0.55)",
+        backgroundColor: "#0a0a0a",
+        opacity: interpolate(frame, [delay, delay + 8], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        }),
+      }}
+    >
+      <Img
+        src={step.src}
+        style={{
+          position: "absolute",
+          inset: 0,
+          ...imgStyle,
+          opacity: 1 - cross * 0.35,
+        }}
+      />
+      {next ? (
+        <Img
+          src={next.src}
+          style={{
+            position: "absolute",
+            inset: 0,
+            ...imgStyle,
+            opacity: cross,
+          }}
+        />
+      ) : null}
+      {step.tap && tapping ? (
+        <div
+          style={{
+            position: "absolute",
+            left: `${step.tap.x * 100}%`,
+            top: `${step.tap.y * 100}%`,
+            width: 54,
+            height: 54,
+            marginLeft: -27,
+            marginTop: -27,
+            borderRadius: "50%",
+            border: "3px solid rgba(255,255,255,0.95)",
+            backgroundColor: "rgba(212,168,67,0.45)",
+            boxShadow: "0 0 0 10px rgba(212,168,67,0.18)",
+            scale: interpolate(within, [tapAt, tapAt + 6], [1.25, 0.85], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              output: "perceptual-scale",
+            }),
+            opacity: interpolate(within, [tapAt, tapAt + 2, step.hold], [0, 1, 0.3], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            }),
+          }}
+        />
+      ) : null}
+    </Interactive.Div>
+  );
 };
 
 export const CoverVideo: React.FC<{
@@ -54,9 +184,7 @@ export const CoverVideo: React.FC<{
 export const FullUi: React.FC<{
   src: string;
   delay?: number;
-  /** fraction of image height to crop from top (0–0.35) */
   cropTop?: number;
-  /** blur the bottom fraction of the visible frame (0–0.7), e.g. hide live prices */
   blurBottom?: number;
 }> = ({ src, delay = 0, cropTop = 0.14, blurBottom = 0 }) => {
   const frame = useCurrentFrame();

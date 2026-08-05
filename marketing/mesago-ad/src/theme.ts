@@ -58,7 +58,7 @@ export type AdProps = {
 export const defaultAdProps: AdProps = {
   contactLine:
     'WhatsApp +351 911 092 527 / +351 925 736 572 · 微信 p9110925 / 强',
-  ctaLine: '预约免费演示',
+  ctaLine: '欢迎预约演示',
   whatsapps: ['+351 911 092 527', '+351 925 736 572'],
   wechats: [
     { display: 'p9110925', qrFile: 'contact/wechat-qr.png' },

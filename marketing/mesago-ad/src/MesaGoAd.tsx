@@ -25,7 +25,7 @@ export const MesaGoAd: React.FC<AdProps> = (props) => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0F0E0C" }}>
-      <Sequence from={0} durationInFrames={5 * FPS} name="Busy">
+      <Sequence durationInFrames={5 * FPS} name="Busy">
         <SceneBusy />
       </Sequence>
       <Sequence from={5 * FPS} durationInFrames={5 * FPS} name="Scan">

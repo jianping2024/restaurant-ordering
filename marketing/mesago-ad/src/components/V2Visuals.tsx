@@ -185,8 +185,7 @@ export const FullUi: React.FC<{
   src: string;
   delay?: number;
   cropTop?: number;
-  blurBottom?: number;
-}> = ({ src, delay = 0, cropTop = 0.14, blurBottom = 0 }) => {
+}> = ({ src, delay = 0, cropTop = 0.14 }) => {
   const frame = useCurrentFrame();
   const imgH = `${100 / (1 - cropTop)}%`;
   const imgTop = `${(-cropTop * 100) / (1 - cropTop)}%`;
@@ -224,34 +223,6 @@ export const FullUi: React.FC<{
       }}
     >
       <Img src={src} style={imgStyle} />
-      {blurBottom > 0 ? (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            clipPath: `inset(${(1 - blurBottom) * 100}% 0 0 0)`,
-            pointerEvents: "none",
-          }}
-        >
-          <Img
-            src={src}
-            style={{
-              ...imgStyle,
-              filter: "blur(16px)",
-              transform: "scale(1.08)",
-              transformOrigin: "center bottom",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(to bottom, transparent 0%, rgba(10,10,10,0.28) 100%)",
-            }}
-          />
-        </div>
-      ) : null}
     </Interactive.Div>
   );
 };

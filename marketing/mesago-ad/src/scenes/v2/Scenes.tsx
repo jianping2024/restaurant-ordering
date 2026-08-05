@@ -91,10 +91,10 @@ export const S03Menu: React.FC = () => {
           <CoverVideo src={assets.hallA} startFrom={180} dark={0.62} />
           <ClickFlowUi
             delay={hookEnd}
-            cropTop={0.08}
+            cropTop={0.2}
             steps={[
-              { src: assets.flowMenuHome, hold: 48, tap: { x: 0.55, y: 0.28 } },
-              { src: assets.flowMenuDrinks, hold: 45, tap: { x: 0.88, y: 0.48 } },
+              { src: assets.flowMenuHome, hold: 48, tap: { x: 0.55, y: 0.32 } },
+              { src: assets.flowMenuDrinks, hold: 45, tap: { x: 0.88, y: 0.42 } },
               { src: assets.flowMenuAdded, hold: 70 },
             ]}
           />

@@ -38,7 +38,7 @@ export function AuthPageShell({ variant, copy, toolbar, footer, children }: Prop
       <div className="relative z-[1] w-full max-w-lg">
         {showAppearanceChrome ? (
           <div className="mb-4 flex items-center justify-end gap-2">
-            <ThemeToggle variant="icon" />
+            <ThemeToggle />
             <LanguageSwitcherIconChrome />
           </div>
         ) : null}

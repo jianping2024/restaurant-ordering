@@ -38,6 +38,21 @@ export function AuthClockIcon({ className }: IconProps) {
   );
 }
 
+/** Staff account menu trigger — person silhouette, stroke matches auth icons. */
+export function StaffAccountIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="8" r="3.25" stroke="currentColor" strokeWidth={STROKE} />
+      <path
+        d="M6.5 19.25c.85-2.75 3-4.5 5.5-4.5s4.65 1.75 5.5 4.5"
+        stroke="currentColor"
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function AuthHeadsetIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>

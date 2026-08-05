@@ -8,6 +8,7 @@ import {
   uiLanguageOption,
   type UILanguage,
 } from '@/lib/i18n';
+import { appearanceChromeIconButtonClass } from '@/lib/appearance-chrome';
 
 function OptionRows({
   lang,
@@ -29,8 +30,8 @@ function OptionRows({
             onClick={() => onSelect(option.id)}
             className={`flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors ${
               selected
-                ? 'bg-brand-gold/15 text-brand-text font-medium'
-                : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-bg/70'
+                ? 'bg-brand-gold/15 font-medium text-brand-text'
+                : 'text-brand-text-muted hover:bg-brand-bg/70 hover:text-brand-text'
             }`}
           >
             <span aria-hidden className="shrink-0 text-base leading-none">
@@ -42,7 +43,7 @@ function OptionRows({
                 ✓
               </span>
             ) : (
-              <span aria-hidden className="shrink-0 w-3" />
+              <span aria-hidden className="w-3 shrink-0" />
             )}
           </button>
         );
@@ -51,10 +52,15 @@ function OptionRows({
   );
 }
 
+type Props = {
+  /** Personal settings row: show current language name beside the globe button. */
+  showCurrentLanguage?: boolean;
+};
+
 /**
  * Sole UI language control: landing, auth, customer ordering header, personal settings.
  */
-export function LanguageSwitcherIconChrome() {
+export function LanguageSwitcherIconChrome({ showCurrentLanguage = false }: Props) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -85,11 +91,16 @@ export function LanguageSwitcherIconChrome() {
   };
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative flex items-center gap-2">
+      {showCurrentLanguage ? (
+        <span className="max-w-[5.5rem] truncate text-sm text-brand-text-muted sm:max-w-[7rem]">
+          {current.nativeName}
+        </span>
+      ) : null}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="h-9 w-9 rounded-full border border-brand-border bg-brand-bg text-sm text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+        className={appearanceChromeIconButtonClass()}
         title={current.nativeName}
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -101,7 +112,7 @@ export function LanguageSwitcherIconChrome() {
         <div
           role="listbox"
           aria-label={listLabel}
-          className="absolute top-full right-0 mt-1.5 max-h-56 min-w-[10rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
+          className="absolute top-full right-0 z-[60] mt-1.5 max-h-56 min-w-[10rem] overflow-y-auto rounded-xl border border-brand-border bg-brand-card py-1 shadow-sm"
         >
           <OptionRows lang={lang} onSelect={selectLang} />
         </div>

@@ -90,7 +90,7 @@ export function CustomerOrderingHeader({
             tableBadge
           ) : (
             <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-2`}>
-              <ThemeToggle variant="icon" />
+              <ThemeToggle />
               <LanguageSwitcherIconChrome />
             </div>
           )}

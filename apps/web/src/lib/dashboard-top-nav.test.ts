@@ -10,6 +10,9 @@ import {
   isNavItemActive,
   dashboardTopBarDesktopDropdownPanelClass,
   isTopBarLogoHrefActive,
+  personalSettingsDropdownActionRowClass,
+  personalSettingsDropdownRowClass,
+  topNavAccountTriggerClass,
   topNavDesktopScrollNavClassName,
 } from '@/lib/dashboard-top-nav';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
@@ -93,6 +96,21 @@ describe('dashboardTopBarDesktopDropdownPanelClass', () => {
   it('aligns trailing menus to the anchor end edge', () => {
     assert.match(dashboardTopBarDesktopDropdownPanelClass('start'), /left-0/);
     assert.match(dashboardTopBarDesktopDropdownPanelClass('end'), /right-0/);
+  });
+});
+
+describe('personal settings dropdown chrome', () => {
+  it('uses single-line row classes for settings and actions', () => {
+    assert.match(personalSettingsDropdownRowClass(), /justify-between/);
+    assert.match(personalSettingsDropdownRowClass(), /min-h-11/);
+    assert.match(personalSettingsDropdownActionRowClass(), /min-h-11/);
+    assert.doesNotMatch(personalSettingsDropdownActionRowClass(), /justify-between/);
+  });
+
+  it('account trigger includes person icon spacing and desktop width relief', () => {
+    const className = topNavAccountTriggerClass(false);
+    assert.match(className, /gap-1/);
+    assert.match(className, /sm:max-w-none/);
   });
 });
 

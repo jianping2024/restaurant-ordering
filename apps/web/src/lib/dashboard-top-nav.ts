@@ -57,11 +57,21 @@ export function topNavIconTriggerClass(open: boolean): string {
   }`;
 }
 
-/** Account / role menu trigger — text label, same row alignment, no pill chrome. */
+/** Account / role menu trigger — SVG person + role label + chevron; same row alignment, no pill chrome. */
 export function topNavAccountTriggerClass(open: boolean): string {
-  return `inline-flex h-full ${STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS} shrink-0 items-center gap-0.5 truncate px-2 text-sm font-medium transition-colors ${
+  return `inline-flex h-full ${STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS} shrink-0 items-center gap-1 truncate px-2 text-sm font-medium transition-colors sm:max-w-none ${
     open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
   }`;
+}
+
+/** Personal settings dropdown — single-line rows (notify / theme / language). */
+export function personalSettingsDropdownRowClass(): string {
+  return 'flex min-h-11 w-full items-center justify-between gap-2 border-b border-brand-border/70 px-3 py-2 text-sm text-brand-text';
+}
+
+/** Personal settings dropdown — action rows (change password, sign out). */
+export function personalSettingsDropdownActionRowClass(): string {
+  return 'flex min-h-11 w-full items-center gap-2 border-b border-brand-border/70 px-3 py-2.5 text-sm transition-colors';
 }
 
 /** Desktop horizontal nav — text links inside `mesa-chip-scroll`. */

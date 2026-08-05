@@ -21,6 +21,7 @@ export const MESSAGES_FR = {
     "accountMenu": "Compte et préférences",
     "appearance": "Apparence",
     "appearanceSettings": "Apparence",
+    "language": "Langue",
     "languageSettings": "Langue",
     "darkMode": "Mode sombre",
     "changePassword": "Changer le mot de passe",

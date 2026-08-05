@@ -7,7 +7,11 @@ import {
 } from '@/lib/auth/sign-out-confirm';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { topNavAccountTriggerClass } from '@/lib/dashboard-top-nav';
+import { StaffAccountIcon } from '@/components/auth/auth-icons';
+import {
+  personalSettingsDropdownActionRowClass,
+  topNavAccountTriggerClass,
+} from '@/lib/dashboard-top-nav';
 import { DashboardTopBarDropdownPanel } from '@/components/dashboard/DashboardTopBarDropdownPanel';
 import {
   PersonalSettingsPanel,
@@ -106,7 +110,9 @@ export function PersonalSettingsMenu({
           aria-label={accountAriaLabel}
           onClick={() => setOpen(!open)}
           className={topNavAccountTriggerClass(open)}
+          title={roleLabel}
         >
+          <StaffAccountIcon className="h-4 w-4 shrink-0" />
           <span className="truncate">{roleLabel}</span>
           <span className="shrink-0 text-[10px] opacity-60" aria-hidden>
             ▾
@@ -125,7 +131,7 @@ export function PersonalSettingsMenu({
               type="button"
               role="menuitem"
               onClick={handleOpenChangePassword}
-              className="flex min-h-11 w-full items-center gap-2 border-b border-brand-border/70 px-3 py-2.5 text-sm text-brand-text hover:bg-brand-surface/80 transition-colors"
+              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-surface/80`}
             >
               <span aria-hidden>🔑</span>
               <span>{t.changePassword}</span>
@@ -135,7 +141,7 @@ export function PersonalSettingsMenu({
             type="button"
             role="menuitem"
             onClick={handleLogout}
-            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)] transition-colors"
+            className={`${personalSettingsDropdownActionRowClass()} text-status-danger hover:bg-[rgb(var(--color-status-danger-border)/0.08)]`}
           >
             <span aria-hidden>🚪</span>
             <span>{logoutLabel}</span>

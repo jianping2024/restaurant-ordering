@@ -199,6 +199,20 @@ export const MESSAGES_ES = {
       "efficientBody": "Carta, cocina y sala en un mismo flujo",
       "supportTitle": "Hecho para restaurantes",
       "supportBody": "Diseñado para el día a día de la restauración"
+    },
+    "pwaInstall": {
+      "hint": "Instálalo en el escritorio para una ventana sin barra del navegador — ideal para recepción y sala (sigue haciendo falta red).",
+      "installButton": "Instalar en el escritorio",
+      "manualLead": "Puedes instalarlo como app de escritorio (sigue haciendo falta red).",
+      "howToInstall": "¿Cómo instalar?",
+      "guideTitle": "Instalar en el escritorio",
+      "steps": [
+        "Chrome: ⋮ arriba a la derecha → “Cast, save and share” / “Emitir, guardar y compartir” → “Install page as app…” / “Instalar página como aplicación…”.",
+        "Si no está: ⋮ → “More tools” / “Más herramientas” → “Create shortcut…” / “Crear acceso directo…”, marca “Open as window” / “Abrir como ventana”.",
+        "Preferible localhost o HTTPS; http://IP-LAN a menudo no muestra instalar.",
+        "iPhone/iPad: Compartir → “Añadir a pantalla de inicio”.",
+        "Sigue haciendo falta red — no hay pedidos sin conexión."
+      ]
     }
   },
   "licenseSuspension": {

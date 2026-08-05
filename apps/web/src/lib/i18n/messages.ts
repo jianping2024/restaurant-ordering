@@ -233,8 +233,16 @@ export const MESSAGES = {
       pwaInstall: {
         hint: '安装到桌面后无浏览器地址栏，适合前台与楼面长时间使用（仍需联网）。',
         installButton: '安装到桌面',
-        manualHint:
-          '可将本页安装为应用：Chrome 菜单 →「安装应用」或「创建快捷方式」；iPhone/iPad 用分享 →「添加到主屏幕」。安装后仍需联网，不支持离线点餐。',
+        manualLead: '可安装为桌面应用，仍需联网。',
+        howToInstall: '如何安装？',
+        guideTitle: '安装到桌面',
+        steps: [
+          'Chrome：右上角 ⋮ →「投射、保存和分享」→「将网页安装为应用…」。',
+          '若无此项：⋮ →「更多工具」→「创建快捷方式…」，勾选「作为窗口打开」。',
+          '请用 localhost 或 HTTPS；局域网 IP 的 http 常无安装项。',
+          'iPhone/iPad：分享 →「添加到主屏幕」。',
+          '安装后仍需联网，不支持离线点餐。',
+        ],
       },
     },
     licenseSuspension: {
@@ -1651,8 +1659,16 @@ export const MESSAGES = {
       pwaInstall: {
         hint: 'Install to the desktop for a browser-chrome-free window — ideal for front desk and floor (still requires network).',
         installButton: 'Install to desktop',
-        manualHint:
-          'Install this page as an app: Chrome menu → “Install app” or “Create shortcut”; on iPhone/iPad use Share → “Add to Home Screen”. Still requires network — offline ordering is not supported.',
+        manualLead: 'You can install this as a desktop app (still requires network).',
+        howToInstall: 'How to install?',
+        guideTitle: 'Install to desktop',
+        steps: [
+          'Chrome: top-right ⋮ → “Cast, save and share” → “Install page as app…”.',
+          'If missing: ⋮ → “More tools” → “Create shortcut…”, check “Open as window”.',
+          'Prefer localhost or HTTPS — http://LAN-IP often hides install.',
+          'iPhone/iPad: Share → “Add to Home Screen”.',
+          'Still requires network — offline ordering is not supported.',
+        ],
       },
     },
     licenseSuspension: {
@@ -2613,8 +2629,16 @@ export const MESSAGES = {
       pwaInstall: {
         hint: 'Instale no ambiente de trabalho para uma janela sem barra do browser — ideal para rececao e sala (continua a precisar de rede).',
         installButton: 'Instalar no ambiente de trabalho',
-        manualHint:
-          'Pode instalar esta pagina como aplicacao: menu do Chrome → “Instalar aplicacao” ou “Criar atalho”; no iPhone/iPad use Partilhar → “Adicionar ao ecra principal”. Continua a precisar de rede — nao ha pedidos offline.',
+        manualLead: 'Pode instalar como aplicacao de ambiente de trabalho (continua a precisar de rede).',
+        howToInstall: 'Como instalar?',
+        guideTitle: 'Instalar no ambiente de trabalho',
+        steps: [
+          'Chrome: ⋮ no canto superior direito → “Cast, save and share” / “Transmitir, guardar e partilhar” → “Install page as app…” / “Instalar pagina como aplicacao…”.',
+          'Se nao aparecer: ⋮ → “More tools” / “Mais ferramentas” → “Create shortcut…” / “Criar atalho…”, assinale “Open as window” / “Abrir como janela”.',
+          'Prefira localhost ou HTTPS — http://IP-LAN muitas vezes nao mostra instalacao.',
+          'iPhone/iPad: Partilhar → “Adicionar ao ecra principal”.',
+          'Continua a precisar de rede — nao ha pedidos offline.',
+        ],
       },
     },
     licenseSuspension: {

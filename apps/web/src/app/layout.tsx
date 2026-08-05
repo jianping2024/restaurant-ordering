@@ -4,6 +4,7 @@ import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@
 import { PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
 import {
   PWA_LAUNCH_SHELL_ID,
+  PWA_LAUNCH_MARK_PX,
   buildPwaLaunchShellBootScript,
   buildPwaLaunchShellStyle,
 } from '@/lib/pwa/launch-shell';
@@ -72,8 +73,8 @@ export default function RootLayout({
           <img
             src={PWA_ICON_PATHS.any192}
             alt=""
-            width={96}
-            height={96}
+            width={PWA_LAUNCH_MARK_PX}
+            height={PWA_LAUNCH_MARK_PX}
             decoding="async"
           />
         </div>

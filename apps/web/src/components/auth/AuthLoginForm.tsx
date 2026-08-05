@@ -55,7 +55,7 @@ export function AuthLoginForm({ storeSlug }: Props) {
         {t.login}
       </Button>
 
-      <StaffPwaInstallPrompt variant="login" />
+      <StaffPwaInstallPrompt />
     </form>
   );
 }

@@ -7,24 +7,18 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { usePwaInstall } from '@/lib/pwa/use-pwa-install';
 
-export type StaffPwaInstallVariant = 'login' | 'shell';
-
 /** Login form footer — one slot height for browser_prompt and manual_entry. */
 const LOGIN_INSTALL_SLOT_CLASS =
   'mt-5 border-t border-brand-border/60 pt-5 text-center space-y-2 min-h-[5.75rem] flex flex-col justify-center';
 
-/** Dashboard shell bar — stable min height across surfaces. */
-const SHELL_INSTALL_SLOT_CLASS =
-  'mb-4 flex min-h-[4.5rem] flex-col gap-2 rounded-lg border border-brand-border/60 bg-brand-card/50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between';
-
 /**
- * Sole staff-facing install CTA (login + dashboard shell). Customer menu must not mount this.
+ * Sole staff-facing install CTA (login only). Customer menu and dashboard shell must not mount this.
  * No Service Worker / offline.
  *
  * Surfaces: hidden | browser_prompt (short hint + button) |
  * manual_entry (short lead + how-to → one steps[] guide in Modal).
  */
-export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPwaInstallVariant }) {
+export function StaffPwaInstallPrompt() {
   const { lang } = useLanguage();
   const t = getMessages(lang).staffPwaInstall;
   const { surface, surfaceReady, promptInstall } = usePwaInstall();
@@ -42,44 +36,6 @@ export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPw
       </ol>
     </Modal>
   );
-
-  if (variant === 'shell') {
-    if (surface === 'browser_prompt') {
-      return (
-        <div className={`${SHELL_INSTALL_SLOT_CLASS} gap-3`} role="status">
-          <p className="text-brand-text-muted leading-relaxed">{t.hint}</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            loading={busy}
-            onClick={() => {
-              setBusy(true);
-              void promptInstall().finally(() => setBusy(false));
-            }}
-          >
-            {t.installButton}
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div className={SHELL_INSTALL_SLOT_CLASS} role="status">
-        <p className="text-brand-text-muted leading-relaxed">{t.manualLead}</p>
-        <button
-          type="button"
-          onClick={() => setGuideOpen(true)}
-          className="shrink-0 text-sm text-brand-gold underline-offset-2 hover:underline sm:text-right"
-          aria-haspopup="dialog"
-        >
-          {t.howToInstall}
-        </button>
-        {guideModal}
-      </div>
-    );
-  }
 
   if (surface === 'browser_prompt') {
     return (

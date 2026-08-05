@@ -7,6 +7,11 @@
  * Horizontal inset uses safe-area with a tighter floor than legacy px-3 so brand
  * sits slightly left and trailing (role) sits slightly right.
  *
+ * Layout end-state (no overflow-clip safety net):
+ * - brand slot is the sole flex-1 min-w-0 grower (name truncates)
+ * - hamburger + trailing are shrink-0
+ * - intentional horizontal scroll only via `.mesa-chip-scroll`
+ *
  * Tailwind class strings must be full literals (no ${} inside class names) so JIT
  * can emit utilities from this file.
  */
@@ -18,13 +23,15 @@ export const STAFF_TOP_BAR_CONTENT_HEIGHT = '3.5rem';
 export const STAFF_TOP_BAR_TOTAL_HEIGHT =
   'calc(3.5rem + env(safe-area-inset-top, 0px))';
 
+/**
+ * Sole narrow-viewport max-width for trailing text controls (license + role).
+ * Desktop may widen via `sm:max-w-*` at the call site; do not invent a second mobile cap.
+ */
+export const STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS = 'max-w-[5.5rem]';
+
 export const staffTopBarChrome = {
-  /**
-   * Clip children only — do not put overflow on `main` (that creates a
-   * scrollport and breaks board/detail sticky under this bar).
-   */
   headerClassName:
-    'sticky top-0 z-30 min-w-0 shrink-0 overflow-x-clip border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
+    'sticky top-0 z-30 min-w-0 shrink-0 border-b border-brand-border bg-brand-card pt-[env(safe-area-inset-top,0px)]',
   /**
    * Content row. Brand is flex-1 + min-w-0 so long names absorb squeeze;
    * hamburger and trailing stay shrink-0 and never push the document wide.

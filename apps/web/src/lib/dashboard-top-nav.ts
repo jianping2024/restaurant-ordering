@@ -1,4 +1,5 @@
 import type { DashboardShellMode } from '@/lib/dashboard-access';
+import { STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS } from '@/lib/waiter-staff-sticky-chrome';
 import {
   DASHBOARD_NAV_ITEMS,
   OWNER_NAV_ITEM_IDS,
@@ -58,7 +59,7 @@ export function topNavIconTriggerClass(open: boolean): string {
 
 /** Account / role menu trigger — text label, same row alignment, no pill chrome. */
 export function topNavAccountTriggerClass(open: boolean): string {
-  return `inline-flex h-full max-w-[5.5rem] shrink-0 items-center gap-0.5 truncate px-2 text-sm font-medium transition-colors ${
+  return `inline-flex h-full ${STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS} shrink-0 items-center gap-0.5 truncate px-2 text-sm font-medium transition-colors ${
     open ? 'text-brand-text' : 'text-brand-text-muted hover:text-brand-text'
   }`;
 }

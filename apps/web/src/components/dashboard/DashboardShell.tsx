@@ -16,7 +16,7 @@ type Props = {
 
 export function DashboardShell({ restaurant, shellMode, roleLabel, capabilities, children }: Props) {
   return (
-    <div className="flex min-h-screen min-w-0 w-full max-w-full flex-col bg-brand-bg">
+    <div className="flex min-h-screen min-w-0 flex-col bg-brand-bg">
       <DashboardTopBar
         restaurant={restaurant}
         shellMode={shellMode}

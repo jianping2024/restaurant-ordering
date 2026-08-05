@@ -20,13 +20,13 @@
 
 ### 门店安装（install-only，无离线）
 
-- **要做什么：** Chrome「安装应用」/ 创建快捷方式，或登录页员工向安装提示；打开后无浏览器地址栏（`display: standalone`）。
-- **不要做什么：** Service Worker、离线缓存、断网点餐。断网经营靠门店本地部署，不靠浏览器壳。
+- **要做什么：** 桌面壳（无浏览器地址栏）。登录页员工向安装区：有浏览器安装信号时显示「安装到桌面」按钮；否则一行短句 +「如何安装？」打开步骤说明（Modal）。Chrome 步骤唯一源是文案 `authLogin.pwaInstall.steps`：⋮ →「Cast, save and share / 投射、保存和分享」→「Install page as app…」；备选 ⋮ →「More tools / 更多工具」→「Create shortcut…」并勾选「Open as window」。请用 localhost/HTTPS（局域网 `http://IP` 常无安装项）。iOS：分享 →「添加到主屏幕」。
+- **不要做什么：** Service Worker、离线缓存、断网点餐。断网经营靠门店本地部署，不靠浏览器壳。登录页不常驻长段菜单说明书；勿使用含糊的「Chrome 菜单 → 安装应用」。
 - **谁看到安装提示：** 仅员工登录表单（`AuthLoginForm` → `AuthPwaInstallPrompt`）；顾客扫码菜单不挂。
 - **链接打开：**
   - 从浏览器 / 扫码打开同站 URL：manifest `handle_links: not-preferred`，应留在浏览器，不自动跳进已装 App。已安装用户若仍被劫持：`chrome://apps` 卸载重装，或在该应用设置里关闭「用应用打开链接」。
   - **在已装 App 内**点「打开点餐页 / 打开登录页」：不得再开第二个 App 窗。唯一写法 → `openHttpUrlPreferBrowser` + `PreferBrowserHttpLink`（非 standalone 新开浏览器标签；standalone 只复制链接并 toast 提示去浏览器粘贴）。
-- **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts` + `use-pwa-install.ts`；App 内打开顾客/扫码 URL → `lib/pwa/open-prefer-browser.ts` + `components/pwa/PreferBrowserHttpLink.tsx`。
+- **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts`（`hidden` | `browser_prompt` | `manual_entry`）+ `use-pwa-install.ts`；安装步骤文案 → `authLogin.pwaInstall.steps`（无并行 `manualHint` 长段落）；App 内打开顾客/扫码 URL → `lib/pwa/open-prefer-browser.ts` + `components/pwa/PreferBrowserHttpLink.tsx`。
 
 ---
 

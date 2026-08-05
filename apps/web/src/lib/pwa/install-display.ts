@@ -3,7 +3,7 @@
  * Single place for “already app window?” and which install CTA surface to show.
  */
 
-export type PwaInstallSurface = 'hidden' | 'browser_prompt' | 'manual_hint';
+export type PwaInstallSurface = 'hidden' | 'browser_prompt' | 'manual_entry';
 
 /** True when the document is already running as an installed app window. */
 export function isStandaloneDisplay(
@@ -21,7 +21,7 @@ export function isStandaloneDisplay(
 
 /**
  * One mapping: standalone → hide; native install event ready → prompt button;
- * otherwise → short manual install hint (Chrome menu / iOS Add to Home Screen).
+ * otherwise → short manual entry (lead + how-to opens steps guide).
  */
 export function resolvePwaInstallSurface(input: {
   standalone: boolean;
@@ -29,5 +29,5 @@ export function resolvePwaInstallSurface(input: {
 }): PwaInstallSurface {
   if (input.standalone) return 'hidden';
   if (input.deferredPromptAvailable) return 'browser_prompt';
-  return 'manual_hint';
+  return 'manual_entry';
 }

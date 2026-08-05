@@ -199,6 +199,20 @@ export const MESSAGES_DE = {
       "efficientBody": "Speisekarte, Küche und Service in einem Ablauf",
       "supportTitle": "Für die Gastronomie gemacht",
       "supportBody": "Entwickelt für den täglichen Restaurantbetrieb"
+    },
+    "pwaInstall": {
+      "hint": "Als Desktop-App ohne Browserleiste — ideal für Empfang und Service (Netzwerk weiterhin nötig).",
+      "installButton": "Auf dem Desktop installieren",
+      "manualLead": "Als Desktop-App installierbar (Netzwerk weiterhin nötig).",
+      "howToInstall": "Wie installieren?",
+      "guideTitle": "Auf dem Desktop installieren",
+      "steps": [
+        "Chrome: oben rechts ⋮ → „Cast, save and share“ / „Streamen, speichern und teilen“ → „Install page as app…“ / „Seite als App installieren…“.",
+        "Falls fehlend: ⋮ → „More tools“ / „Weitere Tools“ → „Create shortcut…“ / „Verknüpfung erstellen…“, „Open as window“ / „Als Fenster öffnen“ anhaken.",
+        "Bevorzugt localhost oder HTTPS — unter http://LAN-IP fehlt die Installation oft.",
+        "iPhone/iPad: Teilen → „Zum Home-Bildschirm“.",
+        "Weiterhin Netzwerk nötig — keine Offline-Bestellung."
+      ]
     }
   },
   "licenseSuspension": {

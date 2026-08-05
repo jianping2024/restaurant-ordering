@@ -37,10 +37,10 @@ describe('resolvePwaInstallSurface', () => {
     );
   });
 
-  it('falls back to manual hint otherwise', () => {
+  it('falls back to manual entry otherwise', () => {
     assert.equal(
       resolvePwaInstallSurface({ standalone: false, deferredPromptAvailable: false }),
-      'manual_hint',
+      'manual_entry',
     );
   });
 });

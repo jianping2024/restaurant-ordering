@@ -2,6 +2,7 @@
 
 import { ProductLogo } from '@/components/ui/ProductLogo';
 import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthIconTextRow } from '@/components/auth/AuthIconTextRow';
 import { AuthTrustBadges } from '@/components/auth/AuthTrustBadges';
 import { AuthShieldIcon } from '@/components/auth/auth-icons';
@@ -30,13 +31,14 @@ function ShellSecurityNote({ text }: { text: string }) {
 }
 
 export function AuthPageShell({ variant, copy, toolbar, footer, children }: Props) {
-  const { showTrustBadges, showLanguageSwitcher } = AUTH_SHELL_VARIANTS[variant];
+  const { showTrustBadges, showAppearanceChrome } = AUTH_SHELL_VARIANTS[variant];
 
   return (
     <div className="min-h-screen mesa-auth-bg flex flex-col items-center justify-center p-4">
       <div className="relative z-[1] w-full max-w-lg">
-        {showLanguageSwitcher ? (
-          <div className="flex justify-end mb-4">
+        {showAppearanceChrome ? (
+          <div className="mb-4 flex items-center justify-end gap-2">
+            <ThemeToggle variant="icon" />
             <LanguageSwitcherIconChrome />
           </div>
         ) : null}

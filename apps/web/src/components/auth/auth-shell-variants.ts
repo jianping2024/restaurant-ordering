@@ -8,11 +8,12 @@ export type AuthShellCopy = {
   forgotHint?: string;
 };
 
+/** Pre-auth top chrome: theme + language (one cluster, one flag). */
 export const AUTH_SHELL_VARIANTS: Record<
   AuthShellVariant,
-  { showTrustBadges: boolean; showLanguageSwitcher: boolean }
+  { showTrustBadges: boolean; showAppearanceChrome: boolean }
 > = {
-  login: { showTrustBadges: true, showLanguageSwitcher: true },
-  'change-password': { showTrustBadges: false, showLanguageSwitcher: false },
-  info: { showTrustBadges: false, showLanguageSwitcher: true },
+  login: { showTrustBadges: true, showAppearanceChrome: true },
+  'change-password': { showTrustBadges: false, showAppearanceChrome: false },
+  info: { showTrustBadges: false, showAppearanceChrome: true },
 };

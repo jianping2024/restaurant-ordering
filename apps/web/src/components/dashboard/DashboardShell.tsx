@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard-access';
 import { DashboardTopBar } from '@/components/dashboard/DashboardTopBar';
+import { StaffPwaInstallPrompt } from '@/components/pwa/StaffPwaInstallPrompt';
 import { STAFF_SHELL_MAIN_CLASS } from '@/lib/staff-shell-layout';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
@@ -23,7 +24,10 @@ export function DashboardShell({ restaurant, shellMode, roleLabel, capabilities,
         roleLabel={roleLabel}
         capabilities={capabilities}
       />
-      <main className={STAFF_SHELL_MAIN_CLASS}>{children}</main>
+      <main className={STAFF_SHELL_MAIN_CLASS}>
+        <StaffPwaInstallPrompt variant="shell" />
+        {children}
+      </main>
     </div>
   );
 }

@@ -199,21 +199,22 @@ export const MESSAGES_FR = {
       "efficientBody": "Carte, cuisine et salle dans un même flux",
       "supportTitle": "Conçu pour la restauration",
       "supportBody": "Pensé pour les opérations quotidiennes d'un restaurant"
-    },
-    "pwaInstall": {
-      "hint": "Installez sur le bureau pour une fenêtre sans barre du navigateur — idéal pour l'accueil et la salle (réseau toujours requis).",
-      "installButton": "Installer sur le bureau",
-      "manualLead": "Vous pouvez l'installer comme application de bureau (réseau toujours requis).",
-      "howToInstall": "Comment installer ?",
-      "guideTitle": "Installer sur le bureau",
-      "steps": [
-        "Chrome : ⋮ en haut à droite → « Cast, save and share » / « Diffuser, enregistrer et partager » → « Install page as app… » / « Installer la page en tant qu'application… ».",
-        "Sinon : ⋮ → « More tools » / « Plus d'outils » → « Create shortcut… » / « Créer un raccourci… », cochez « Open as window » / « Ouvrir dans une fenêtre ».",
-        "Préférez localhost ou HTTPS — http://IP-LAN masque souvent l'installation.",
-        "iPhone/iPad : Partager → « Sur l'écran d'accueil ».",
-        "Le réseau reste nécessaire — pas de commande hors ligne."
-      ]
     }
+  },
+  "staffPwaInstall": {
+    "hint": "Installez sur le bureau pour supprimer la barre du navigateur et l'avertissement « Not secure » — idéal pour l'accueil et la salle (réseau toujours requis).",
+    "installButton": "Installer sur le bureau",
+    "manualLead": "Installez en application de bureau pour retirer la barre et « Not secure » (réseau toujours requis).",
+    "howToInstall": "Comment installer ?",
+    "guideTitle": "Installer sur le bureau",
+    "steps": [
+      "Après installation, ouvrez FARVOO depuis l'icône bureau/écran d'accueil — pas l'onglet du navigateur.",
+      "Chrome : ⋮ en haut à droite → « Cast, save and share » / « Diffuser, enregistrer et partager » → « Install page as app… » / « Installer la page en tant qu'application… ».",
+      "Sinon : ⋮ → « More tools » / « Plus d'outils » → « Create shortcut… » / « Créer un raccourci… », cochez « Open as window » / « Ouvrir dans une fenêtre ».",
+      "Préférez localhost ou HTTPS — http://IP-LAN masque souvent l'installation.",
+      "iPhone/iPad : Partager → « Sur l'écran d'accueil ».",
+      "Le réseau reste nécessaire — pas de commande hors ligne."
+    ]
   },
   "licenseSuspension": {
     "renew": {

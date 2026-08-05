@@ -105,13 +105,13 @@ export function TablesQrToolbar({
                 aria-label={t.searchTable}
                 clearable
                 clearLabel={t.clearSearch}
-                className="bg-brand-bg px-3 py-2 text-sm focus:ring-brand-gold/40 focus:border-brand-gold/40"
+                className="bg-brand-bg px-3 py-2 focus:ring-brand-gold/40 focus:border-brand-gold/40"
               />
             </div>
             <select
               value={groupId}
               onChange={(e) => onGroupChange(e.target.value)}
-              className="w-full sm:w-40 rounded-lg bg-brand-bg border border-brand-border px-3 py-2 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+              className="w-full sm:w-40 rounded-lg bg-brand-bg border border-brand-border px-3 py-2 text-base text-brand-text focus:outline-none focus:border-brand-gold/40"
             >
               <option value={TABLE_QR_ALL_GROUPS}>{t.allGroups}</option>
               <option value={TABLE_QR_UNGROUPED}>{t.ungrouped}</option>
@@ -137,7 +137,7 @@ export function TablesQrToolbar({
                 max={maxAddCount}
                 disabled={adding || totalCount >= RESTAURANT_TABLE_LIST_MAX}
                 onChange={(n) => onAddCountChange(Math.max(1, Math.min(n, maxAddCount)))}
-                className="w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-center text-sm text-brand-text focus:outline-none focus:border-brand-gold/40"
+                className="w-16 rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-center text-brand-text focus:outline-none focus:border-brand-gold/40"
                 aria-label={t.addTableCountLabel}
               />
             </div>

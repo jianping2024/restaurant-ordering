@@ -603,7 +603,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                 <>
                   <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-brand-border/50">
                     <select
-                      className={`${buffetFieldClass} text-[13px] py-1.5 min-w-[9rem]`}
+                      className={`${buffetFieldClass} py-1.5 min-w-[9rem]`}
                       value={filterBuffetId}
                       onChange={(e) => setFilterBuffetId(e.target.value)}
                       aria-label={t.filterBuffet}
@@ -618,7 +618,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       ))}
                     </select>
                     <select
-                      className={`${buffetFieldClass} text-[13px] py-1.5 min-w-[9rem]`}
+                      className={`${buffetFieldClass} py-1.5 min-w-[9rem]`}
                       value={filterSlotId}
                       onChange={(e) => setFilterSlotId(e.target.value)}
                       aria-label={t.filterSlot}
@@ -633,7 +633,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       ))}
                     </select>
                     <select
-                      className={`${buffetFieldClass} text-[13px] py-1.5 min-w-[9rem]`}
+                      className={`${buffetFieldClass} py-1.5 min-w-[9rem]`}
                       value={filterDayKind}
                       onChange={(e) => setFilterDayKind(e.target.value as BuffetCalendarKind | '')}
                       aria-label={t.filterDayKind}
@@ -648,7 +648,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                       ))}
                     </select>
                     <select
-                      className={`${buffetFieldClass} text-[13px] py-1.5 min-w-[9rem]`}
+                      className={`${buffetFieldClass} py-1.5 min-w-[9rem]`}
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value as RuleStatusFilter | 'all')}
                       aria-label={t.filterStatus}
@@ -944,7 +944,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                   <label className="text-brand-text-muted text-[12px] sm:col-span-2">
                     {t.note}
                     <input
-                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-brand-text"
+                      className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-2 text-base text-brand-text"
                       value={ruleDraft.note}
                       onChange={(e) =>
                         setRuleDraft((d) => (d ? { ...d, note: e.target.value } : d))

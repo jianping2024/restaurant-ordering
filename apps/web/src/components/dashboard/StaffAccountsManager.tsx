@@ -104,7 +104,7 @@ function StaffRoleSelect({
     <div>
       <label className="text-sm text-brand-text-muted block mb-1.5">{t.fieldRole}</label>
       <select
-        className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text"
+        className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text"
         value={value}
         onChange={(e) => {
           const roleId = e.target.value;

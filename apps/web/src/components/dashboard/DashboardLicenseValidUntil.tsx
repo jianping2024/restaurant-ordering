@@ -35,7 +35,7 @@ export function DashboardLicenseValidUntil({ licenseValidUntil }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex max-w-[10rem] items-center truncate whitespace-nowrap px-1.5 text-[11px] leading-none sm:max-w-[13rem] sm:text-[13px] ${urgencyClass}`}
+        className={`inline-flex max-w-[5.5rem] items-center truncate whitespace-nowrap px-1 text-[11px] leading-none sm:max-w-[13rem] sm:px-1.5 sm:text-[13px] ${urgencyClass}`}
         title={label}
         aria-haspopup="dialog"
         aria-expanded={open}

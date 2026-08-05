@@ -90,7 +90,7 @@ export function SystemLogsViewer() {
             type="datetime-local"
             value={fromLocal}
             onChange={(e) => setFromLocal(e.target.value)}
-            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-brand-text"
+            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text"
             required
           />
         </label>
@@ -100,7 +100,7 @@ export function SystemLogsViewer() {
             type="datetime-local"
             value={toLocal}
             onChange={(e) => setToLocal(e.target.value)}
-            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-brand-text"
+            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text"
             required
           />
         </label>
@@ -111,7 +111,7 @@ export function SystemLogsViewer() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t.keywordPlaceholder}
-            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-brand-text"
+            className="rounded-md border border-brand-border bg-brand-card px-3 py-2 text-base text-brand-text"
             maxLength={200}
           />
         </label>

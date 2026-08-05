@@ -9,6 +9,7 @@ import {
   type PointerEvent,
   type Ref,
 } from 'react';
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -90,7 +91,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             }}
             className={`
             w-full bg-brand-card border rounded-lg px-4 py-2.5
-            text-base text-brand-text placeholder-brand-muted
+            ${FORM_CONTROL_TEXT_CLASS} text-brand-text placeholder-brand-muted
             focus:outline-none focus:ring-2 focus:ring-brand-gold/50
             transition-colors duration-200
             ${error ? 'border-red-500' : 'border-brand-border'}

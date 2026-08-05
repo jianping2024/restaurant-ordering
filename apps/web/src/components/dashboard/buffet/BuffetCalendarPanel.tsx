@@ -98,7 +98,7 @@ export function BuffetCalendarPanel({
           <label className="text-brand-text-muted text-[12px]">
             {t.calendarTag}
             <select
-              className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text"
+              className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-base text-brand-text"
               value={calKind}
               onChange={(e) => setCalKind(e.target.value as 'holiday' | 'special')}
             >
@@ -142,7 +142,7 @@ export function BuffetCalendarPanel({
             <label className="text-brand-text-muted text-[12px]">
               {t.calendarTag}
               <select
-                className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text"
+                className="mt-0.5 block rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-base text-brand-text"
                 value={calKind}
                 onChange={(e) => setCalKind(e.target.value as 'holiday' | 'special')}
               >

@@ -92,7 +92,7 @@ function statusLabel(
 }
 
 const COMPACT_SELECT_CLASS =
-  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-[13px] text-brand-text';
+  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
@@ -626,7 +626,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
                 onChange={(e) => setOwnerNoteDraft(e.target.value)}
                 placeholder={t.ownerNotePlaceholder}
                 rows={3}
-                className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-base"
               />
             </label>
             <div className="flex flex-wrap gap-2 justify-end pt-2">

@@ -139,7 +139,7 @@ export const BuffetPricePreview = forwardRef<BuffetPricePreviewHandle, Props>(fu
         <label className="text-brand-text-muted text-[12px] min-w-[140px]">
           {t.previewBuffet}
           <select
-            className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-brand-text"
+            className="mt-0.5 w-full rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-base text-brand-text"
             value={buffetId}
             onChange={(e) => setBuffetId(e.target.value)}
           >

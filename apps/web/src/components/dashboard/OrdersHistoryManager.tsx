@@ -352,7 +352,7 @@ export function OrdersHistoryManager({
           menuPosition="fixed"
           placeholder={i18n.filterTable}
           styles={selectStyles}
-          className="w-full text-sm"
+          className="w-full text-base"
           classNamePrefix="orders-table-select"
           noOptionsMessage={() => i18n.empty}
           isClearable

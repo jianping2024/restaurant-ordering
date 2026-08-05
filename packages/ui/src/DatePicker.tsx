@@ -31,13 +31,13 @@ const VARIANT_UI: Record<
 > = {
   brand: {
     trigger:
-      'mt-0.5 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-left text-sm text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35 disabled:cursor-not-allowed disabled:opacity-50',
+      'mt-0.5 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35 disabled:cursor-not-allowed disabled:opacity-50',
     popup: 'fixed z-[100] rounded-xl border border-brand-border bg-brand-card p-3 shadow-xl',
     rdp: 'mesa-rdp mesa-rdp--brand',
   },
   zinc: {
     trigger:
-      'mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-left text-sm text-zinc-100 transition-colors hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:cursor-not-allowed disabled:opacity-50',
+      'mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-left text-base text-zinc-100 transition-colors hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 disabled:cursor-not-allowed disabled:opacity-50',
     popup: 'fixed z-[100] rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl',
     rdp: 'mesa-rdp mesa-rdp--zinc',
   },

@@ -121,7 +121,7 @@ export function PrintAgentSchedulePanel({
           <select
             value={form.timezone}
             onChange={(e) => setField('timezone', e.target.value)}
-            className="w-full max-w-md rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 text-[13px] text-brand-text"
+            className="w-full max-w-md rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 text-base text-brand-text"
           >
             {TIMEZONES.map((tz) => (
               <option key={tz} value={tz}>
@@ -281,7 +281,7 @@ function PollIntervalField({
           max={max}
           value={value}
           onChange={onChange}
-          className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-[15px] text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+          className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
         />
         {suffix && <span className="text-[12px] text-brand-text-muted shrink-0">{suffix}</span>}
       </div>

@@ -76,7 +76,7 @@ export function ReceiptPrinterSelect({
           <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
           >
             <option value="">{t.receiptPrinterNone}</option>
             {printers.map((p) => (

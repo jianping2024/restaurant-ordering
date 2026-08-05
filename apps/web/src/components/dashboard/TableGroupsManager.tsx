@@ -391,7 +391,7 @@ export function TableGroupsManager({
               onChange={(e) => setForm((prev) => ({ ...prev, remarks: e.target.value }))}
               maxLength={TABLE_GROUP_REMARKS_MAX_LEN}
               rows={3}
-              className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full rounded-lg border border-brand-border bg-brand-card px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             />
           </div>
           <div>

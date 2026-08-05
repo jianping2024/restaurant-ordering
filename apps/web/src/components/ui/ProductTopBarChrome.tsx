@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ProductLogo } from '@/components/ui/ProductLogo';
 
-/** FARVOO + restaurant name — shared by dashboard and staff sticky top bars. */
+/** Logo + restaurant name — name truncates on narrow viewports; full name in title. */
 export function ProductTopBarBrand({
   href,
   restaurantName,
@@ -11,12 +11,12 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+    <div className="flex min-w-0 max-w-full items-center gap-1.5 sm:gap-2">
       <Link href={href} className="shrink-0">
         <ProductLogo size="sm" />
       </Link>
       <span
-        className="shrink-0 text-sm font-medium text-brand-text-muted whitespace-nowrap sm:text-[15px]"
+        className="min-w-0 truncate text-sm font-medium text-brand-text-muted sm:text-[15px]"
         title={restaurantName}
       >
         {restaurantName}
@@ -28,7 +28,7 @@ export function ProductTopBarBrand({
 /** Trailing actions slot (account menu, license meta, etc.) — one row, vertically centered. */
 export function ProductTopBarTrailing({ children }: { children: ReactNode }) {
   return (
-    <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1 self-stretch">
+    <div className="ml-auto flex min-w-0 shrink items-center gap-1 self-stretch">
       {children}
     </div>
   );

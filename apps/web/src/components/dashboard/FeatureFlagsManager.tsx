@@ -163,7 +163,7 @@ export function FeatureFlagsManager({
                   min={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN}
                   max={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX}
                   onChange={setCredentialTtlDays}
-                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-sm text-brand-text tabular-nums"
+                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-brand-text tabular-nums"
                   aria-label={t.credentialTtlDays}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.credentialTtlDaysUnit}</span>
@@ -188,7 +188,7 @@ export function FeatureFlagsManager({
                   min={5}
                   max={60}
                   onChange={setOrderCooldownSeconds}
-                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-sm text-brand-text tabular-nums"
+                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-brand-text tabular-nums"
                   aria-label={t.orderCooldownSeconds}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.orderCooldownSecondsUnit}</span>

@@ -23,7 +23,7 @@ type Props = {
   onNavigate?: () => void;
 };
 
-/** Sticky personal-app top bar — brand, scroll nav (desktop) / hamburger (mobile), account menu. */
+/** Sticky personal-app top bar — brand (name truncates on narrow), hamburger / desktop scroll nav, account menu. */
 export function StaffPersonalTopBar({
   logoHref,
   restaurantName,

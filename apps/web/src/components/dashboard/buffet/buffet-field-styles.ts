@@ -1,12 +1,14 @@
 /** Shared field styles for buffet settings tables. */
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
+
 export const buffetFieldClass =
-  'rounded-lg bg-brand-bg border border-brand-border px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40 transition-colors';
+  `rounded-lg bg-brand-bg border border-brand-border px-3 py-2 ${FORM_CONTROL_TEXT_CLASS} text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40 transition-colors`;
 
 export const buffetTimeFieldClass =
-  'w-[4.75rem] shrink-0 rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 text-sm text-brand-text tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40 transition-colors';
+  `w-[4.75rem] shrink-0 rounded-lg bg-brand-bg border border-brand-border px-2.5 py-2 ${FORM_CONTROL_TEXT_CLASS} text-brand-text tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40 transition-colors`;
 
 export const buffetSelectClass =
-  'w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40';
+  `w-full rounded-lg bg-brand-bg border border-brand-border px-3 py-2 ${FORM_CONTROL_TEXT_CLASS} text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40`;
 
 /** Primary workspace card (matrix, lists). */
 export const buffetPanelClass =

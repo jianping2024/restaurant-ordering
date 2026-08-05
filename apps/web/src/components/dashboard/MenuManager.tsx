@@ -80,7 +80,7 @@ const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', 
 
 /** Shared height/padding for dish-list search + category filter (matches form selects). */
 const MENU_TOOLBAR_CONTROL =
-  'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-sm text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
+  'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
 
 interface MenuManagerProps {
   restaurantId: string;
@@ -1234,7 +1234,7 @@ export function MenuManager({
                     onChange={(e) =>
                       setCategoryDraft((prev) => ({ ...prev, print_station_id: e.target.value }))
                     }
-                    className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                    className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
                   >
                     <option value="">{t.printStationCategoryNone}</option>
                     {printStations.map((ps) => (
@@ -1588,7 +1588,7 @@ export function MenuManager({
               <select
                 value={itemForm.vat_rate}
                 onChange={(e) => setItemForm((f) => ({ ...f, vat_rate: e.target.value }))}
-                className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
               >
                 {MENU_VAT_RATE_OPTIONS.map((rate) => (
                   <option key={rate} value={String(rate)}>
@@ -1638,7 +1638,7 @@ export function MenuManager({
             <select
               value={itemForm.category_id}
               onChange={(e) => setItemForm((f) => ({ ...f, category_id: e.target.value }))}
-              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             >
               <option value="">{t.category}</option>
               {groupedCategoryOptions.map(({ top, children }) => (
@@ -1659,7 +1659,7 @@ export function MenuManager({
             <select
               value={itemForm.print_station_id}
               onChange={(e) => setItemForm((f) => ({ ...f, print_station_id: e.target.value }))}
-              className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+              className="w-full max-w-md bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             >
               <option value="">{t.printStationItemInherit}</option>
               {printStations.map((ps) => (
@@ -1767,7 +1767,7 @@ export function MenuManager({
                 <select
                   value={deleteMigrateTargetId}
                   onChange={(e) => setDeleteMigrateTargetId(e.target.value)}
-                  className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                  className="w-full bg-brand-card border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
                 >
                   {deleteCategoryMigrateOptions.map((c) => (
                     <option key={c.id} value={c.id}>

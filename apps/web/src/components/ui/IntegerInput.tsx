@@ -1,6 +1,7 @@
 'use client';
 
 import { InputHTMLAttributes, useState } from 'react';
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 import { parseNonNegativeInt, sanitizeIntegerDraft } from '@/lib/number-input';
 
 type IntegerInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> & {
@@ -45,7 +46,7 @@ export function IntegerInput({
         onBlur?.(e);
       }}
       onChange={(e) => setDraft(sanitizeIntegerDraft(e.target.value))}
-      className={className}
+      className={`${FORM_CONTROL_TEXT_CLASS} ${className}`.trim()}
     />
   );
 }

@@ -140,7 +140,7 @@ export function TablesQrTable({
                           max={99}
                           value={table.seat_min}
                           onChange={(e) => onSeatChange(table.id, 'seat_min', e.target.value)}
-                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-base tabular-nums focus:outline-none focus:border-brand-gold/40"
                           aria-label={`${t.seatMin} ${table.display_name}`}
                         />
                         <span className="text-brand-text-muted">–</span>
@@ -150,7 +150,7 @@ export function TablesQrTable({
                           max={99}
                           value={table.seat_max}
                           onChange={(e) => onSeatChange(table.id, 'seat_max', e.target.value)}
-                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-sm tabular-nums focus:outline-none focus:border-brand-gold/40"
+                          className="w-14 rounded-lg bg-brand-card border border-brand-border px-2 py-1.5 text-base tabular-nums focus:outline-none focus:border-brand-gold/40"
                           aria-label={`${t.seatMax} ${table.display_name}`}
                         />
                       </div>

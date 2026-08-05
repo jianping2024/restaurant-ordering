@@ -1,6 +1,7 @@
 'use client';
 
 import { InputHTMLAttributes, useEffect, useState } from 'react';
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 import { formatDecimalInputValue, normalizeDecimalInput, parseDecimalInput } from '@/lib/number-input';
 
 type DecimalInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'onChange'> & {
@@ -42,7 +43,7 @@ export function DecimalInput({
         setText(formatted);
         onChange(n);
       }}
-      className={className}
+      className={`${FORM_CONTROL_TEXT_CLASS} ${className}`.trim()}
     />
   );
 }

@@ -57,7 +57,7 @@ export function ListPaginationBar({
               if (isListPageSize(next)) onPageSizeChange(next);
             }}
             disabled={disabled}
-            className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-sm text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-50"
+            className="rounded-lg bg-brand-bg border border-brand-border px-2 py-1.5 text-base text-brand-text focus:outline-none focus:border-brand-gold/40 disabled:opacity-50"
             aria-label={labels.pageSizeLabel}
           >
             {LIST_PAGE_SIZES.map((size) => (

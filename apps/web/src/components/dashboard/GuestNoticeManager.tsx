@@ -49,7 +49,7 @@ function LocaleFieldsEditor({
               }
               rows={4}
               placeholder={placeholders[locale]}
-              className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold/50 focus:outline-none focus:ring-1 focus:ring-brand-gold/30"
+              className="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-base text-brand-text placeholder:text-brand-text-muted/70 focus:border-brand-gold/50 focus:outline-none focus:ring-1 focus:ring-brand-gold/30"
             />
           ) : (
             <Input

@@ -454,7 +454,7 @@ export function RolesPermissionsManager() {
               <label className="block text-sm text-brand-text">
                 <span className="font-medium">{t.copyFrom}</span>
                 <select
-                  className="mt-1 w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2.5 text-sm text-brand-text"
+                  className="mt-1 w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2.5 text-base text-brand-text"
                   value={draft.copyFromId}
                   onChange={(e) => applyCopyFrom(e.target.value)}
                 >

@@ -497,7 +497,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
                           cancelRename();
                         }
                       }}
-                      className="min-w-[8rem] max-w-[14rem] rounded-lg border border-brand-border bg-brand-bg px-2.5 py-1.5 text-sm font-semibold text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+                      className="min-w-[8rem] max-w-[14rem] rounded-lg border border-brand-border bg-brand-bg px-2.5 py-1.5 text-base font-semibold text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
                       aria-label={selectedParty.name}
                     />
                   ) : (

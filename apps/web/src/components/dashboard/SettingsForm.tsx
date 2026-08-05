@@ -197,7 +197,7 @@ export function SettingsForm({
                     countryCode: e.target.value as RestaurantCountryCode,
                   }))
                 }
-                className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-brand-text text-sm"
+                className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-base text-brand-text"
               >
                 {RESTAURANT_COUNTRY_OPTIONS.map((opt) => (
                   <option key={opt.code} value={opt.code}>

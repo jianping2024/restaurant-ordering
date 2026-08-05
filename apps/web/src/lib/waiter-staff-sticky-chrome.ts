@@ -26,9 +26,9 @@ export const staffTopBarChrome = {
    * sit closer to the horizontal safe edges without overlapping nav.
    */
   rowClassName:
-    'flex h-14 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
-  /** FARVOO + restaurant name — never shrinks; full name stays visible. */
-  brandClassName: 'flex shrink-0 items-center',
+    'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
+  /** Logo + restaurant name — name truncates on narrow viewports so the row never overflows. */
+  brandClassName: 'flex min-w-0 shrink items-center',
 } as const;
 
 /**

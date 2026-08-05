@@ -125,7 +125,7 @@ function SettlementBar({
             onChange={onDiscountRateChange}
             onFocus={onDiscountRateFocus}
             onBlur={onDiscountRateBlur}
-            className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-sm text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+            className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
             placeholder="0"
             disabled={discountLocked || discountApplying || detailLocked}
             title={discountLocked ? t.discountLockedAfterPayment : undefined}

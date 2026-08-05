@@ -1,10 +1,11 @@
 'use client';
 
 import type { SelectHTMLAttributes } from 'react';
+import { FORM_CONTROL_TEXT_CLASS } from '@/lib/form-control-text';
 
 /** Compact toolbar select — label sits beside, not stacked above. */
 export const buffetToolbarSelectClass =
-  'h-9 min-w-[10.5rem] max-w-[16rem] w-auto pl-3 pr-9 text-[13px] leading-none rounded-lg border border-brand-border bg-brand-card text-brand-text appearance-none cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/35 focus:border-brand-gold/40 transition-colors';
+  `h-9 min-w-[10.5rem] max-w-[16rem] w-auto pl-3 pr-9 ${FORM_CONTROL_TEXT_CLASS} leading-none rounded-lg border border-brand-border bg-brand-card text-brand-text appearance-none cursor-pointer shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold/35 focus:border-brand-gold/40 transition-colors`;
 
 export const buffetToolbarChipClass =
   'inline-flex items-center h-9 max-w-[16rem] px-3 rounded-lg border border-brand-border/70 bg-brand-bg/40 text-[13px] font-medium text-brand-text truncate';

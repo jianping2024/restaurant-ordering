@@ -7,11 +7,15 @@ export const PWA_THEME_COLOR = '#0F0E0C';
 /** Splash / install canvas — same as theme for a consistent home-screen handoff. */
 export const PWA_BACKGROUND_COLOR = PWA_THEME_COLOR;
 
-const PWA_ICON_PATHS = {
+/** Sole icon path table — manifest icons + launch-shell mark. */
+export const PWA_ICON_PATHS = {
   any192: '/icons/icon-192.png',
   any512: '/icons/icon-512.png',
   maskable512: '/icons/icon-512-maskable.png',
 } as const;
+
+/** Cold-start entry: dashboard so logged-in staff skip login→redirect hop. */
+export const PWA_START_URL = '/dashboard';
 
 /**
  * Install-only staff shell: keep full-origin scope so in-app staff navigation
@@ -31,7 +35,7 @@ export function buildSiteManifest(): SiteManifest {
     name: PRODUCT_NAME,
     short_name: PRODUCT_NAME,
     description: PRODUCT_SITE_DESCRIPTION_ZH,
-    start_url: '/auth/login',
+    start_url: PWA_START_URL,
     scope: '/',
     display: 'standalone',
     orientation: 'any',

@@ -5,6 +5,15 @@
 
 export type PwaInstallSurface = 'hidden' | 'browser_prompt' | 'manual_entry';
 
+/**
+ * Sole display-mode queries for “installed app window”.
+ * Shared by `isStandaloneDisplay` and the PWA launch-shell boot script.
+ */
+export const STANDALONE_DISPLAY_MEDIA_QUERIES = [
+  '(display-mode: standalone)',
+  '(display-mode: window-controls-overlay)',
+] as const;
+
 /** True when the document is already running as an installed app window. */
 export function isStandaloneDisplay(
   mediaMatches: (query: string) => boolean = (q) =>
@@ -13,8 +22,9 @@ export function isStandaloneDisplay(
     ? (navigator as { standalone?: boolean })
     : undefined,
 ): boolean {
-  if (mediaMatches('(display-mode: standalone)')) return true;
-  if (mediaMatches('(display-mode: window-controls-overlay)')) return true;
+  for (const query of STANDALONE_DISPLAY_MEDIA_QUERIES) {
+    if (mediaMatches(query)) return true;
+  }
   if (nav?.standalone === true) return true;
   return false;
 }

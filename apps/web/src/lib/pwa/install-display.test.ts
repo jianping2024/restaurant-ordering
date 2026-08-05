@@ -1,11 +1,26 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { isStandaloneDisplay, resolvePwaInstallSurface } from './install-display.ts';
+import {
+  STANDALONE_DISPLAY_MEDIA_QUERIES,
+  isStandaloneDisplay,
+  resolvePwaInstallSurface,
+} from './install-display.ts';
 
 describe('isStandaloneDisplay', () => {
   it('detects CSS display-mode standalone', () => {
     assert.equal(
       isStandaloneDisplay((q) => q.includes('display-mode: standalone'), {}),
+      true,
+    );
+  });
+
+  it('detects window-controls-overlay from the shared query list', () => {
+    assert.equal(
+      STANDALONE_DISPLAY_MEDIA_QUERIES.includes('(display-mode: window-controls-overlay)'),
+      true,
+    );
+    assert.equal(
+      isStandaloneDisplay((q) => q.includes('window-controls-overlay'), {}),
       true,
     );
   });

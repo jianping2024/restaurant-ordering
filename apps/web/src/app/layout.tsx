@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
-import { PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
+import { PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
+import {
+  PWA_LAUNCH_SHELL_ID,
+  buildPwaLaunchShellBootScript,
+  buildPwaLaunchShellStyle,
+} from '@/lib/pwa/launch-shell';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -43,6 +48,8 @@ export const viewport: Viewport = {
 };
 
 const themeInitScript = buildThemeInitScript();
+const pwaLaunchShellStyle = buildPwaLaunchShellStyle();
+const pwaLaunchShellBootScript = buildPwaLaunchShellBootScript();
 
 export default function RootLayout({
   children,
@@ -54,10 +61,22 @@ export default function RootLayout({
 
   return (
     <html lang={htmlLang} className={`${cormorant.variable} ${jost.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="antialiased bg-brand-bg text-brand-text font-body">
+        {/* Early paint: launch CSS/boot before providers (no manual <head> — App Router owns head). */}
+        <style dangerouslySetInnerHTML={{ __html: pwaLaunchShellStyle }} />
+        <script dangerouslySetInnerHTML={{ __html: pwaLaunchShellBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <div id={PWA_LAUNCH_SHELL_ID} aria-hidden="true">
+          {/* Raw img: cold-start mark must paint without next/image runtime. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={PWA_ICON_PATHS.any192}
+            alt=""
+            width={96}
+            height={96}
+            decoding="async"
+          />
+        </div>
         <ThemeProvider>
           <LanguageProvider initialLang={initialLang}>
             {children}

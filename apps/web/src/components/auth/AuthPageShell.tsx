@@ -50,7 +50,7 @@ export function AuthPageShell({ variant, copy, toolbar, footer, children }: Prop
             <div className="flex justify-center mb-4">
               <ProductLogo size="md" />
             </div>
-            <h1 className="font-heading text-3xl text-brand-gold mb-2">{copy.title}</h1>
+            <h1 className="font-heading text-3xl text-brand-gold mb-2 min-h-[2.25rem]">{copy.title}</h1>
             {copy.subtitle ? (
               <p className="text-brand-text-muted text-sm">{copy.subtitle}</p>
             ) : null}

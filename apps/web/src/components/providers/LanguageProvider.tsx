@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   DEFAULT_UI_LANG,
-  getClientLanguage,
   HTML_LANG_BY_UI,
   setClientLanguage,
   type UILanguage,
@@ -28,14 +27,6 @@ export function LanguageProvider({
   initialLang: UILanguage;
 }) {
   const [lang, setLangState] = useState<UILanguage>(initialLang);
-
-  useEffect(() => {
-    const stored = getClientLanguage();
-    if (stored !== initialLang) {
-      setLangState(stored);
-      setClientLanguage(stored);
-    }
-  }, [initialLang]);
 
   useEffect(() => {
     document.documentElement.lang = HTML_LANG_BY_UI[lang];

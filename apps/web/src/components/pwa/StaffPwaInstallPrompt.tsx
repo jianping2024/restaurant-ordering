@@ -9,6 +9,14 @@ import { usePwaInstall } from '@/lib/pwa/use-pwa-install';
 
 export type StaffPwaInstallVariant = 'login' | 'shell';
 
+/** Login form footer — one slot height for browser_prompt and manual_entry. */
+const LOGIN_INSTALL_SLOT_CLASS =
+  'mt-5 border-t border-brand-border/60 pt-5 text-center space-y-2 min-h-[5.75rem] flex flex-col justify-center';
+
+/** Dashboard shell bar — stable min height across surfaces. */
+const SHELL_INSTALL_SLOT_CLASS =
+  'mb-4 flex min-h-[4.5rem] flex-col gap-2 rounded-lg border border-brand-border/60 bg-brand-card/50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between';
+
 /**
  * Sole staff-facing install CTA (login + dashboard shell). Customer menu must not mount this.
  * No Service Worker / offline.
@@ -19,11 +27,11 @@ export type StaffPwaInstallVariant = 'login' | 'shell';
 export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPwaInstallVariant }) {
   const { lang } = useLanguage();
   const t = getMessages(lang).staffPwaInstall;
-  const { surface, promptInstall } = usePwaInstall();
+  const { surface, surfaceReady, promptInstall } = usePwaInstall();
   const [busy, setBusy] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
 
-  if (surface === 'hidden') return null;
+  if (!surfaceReady || surface === 'hidden') return null;
 
   const guideModal = (
     <Modal open={guideOpen} onClose={() => setGuideOpen(false)} title={t.guideTitle} size="md">
@@ -38,10 +46,7 @@ export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPw
   if (variant === 'shell') {
     if (surface === 'browser_prompt') {
       return (
-        <div
-          className="mb-4 flex flex-col gap-3 rounded-lg border border-brand-border/60 bg-brand-card/50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
-          role="status"
-        >
+        <div className={`${SHELL_INSTALL_SLOT_CLASS} gap-3`} role="status">
           <p className="text-brand-text-muted leading-relaxed">{t.hint}</p>
           <Button
             type="button"
@@ -61,10 +66,7 @@ export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPw
     }
 
     return (
-      <div
-        className="mb-4 flex flex-col gap-2 rounded-lg border border-brand-border/60 bg-brand-card/50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
-        role="status"
-      >
+      <div className={SHELL_INSTALL_SLOT_CLASS} role="status">
         <p className="text-brand-text-muted leading-relaxed">{t.manualLead}</p>
         <button
           type="button"
@@ -81,7 +83,7 @@ export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPw
 
   if (surface === 'browser_prompt') {
     return (
-      <div className="mt-5 border-t border-brand-border/60 pt-5 text-center space-y-2">
+      <div className={LOGIN_INSTALL_SLOT_CLASS}>
         <p className="text-brand-text-muted text-xs leading-relaxed">{t.hint}</p>
         <Button
           type="button"
@@ -100,7 +102,7 @@ export function StaffPwaInstallPrompt({ variant = 'login' }: { variant?: StaffPw
   }
 
   return (
-    <div className="mt-5 border-t border-brand-border/60 pt-5 text-center space-y-2">
+    <div className={LOGIN_INSTALL_SLOT_CLASS}>
       <p className="text-brand-text-muted text-xs leading-relaxed">{t.manualLead}</p>
       <button
         type="button"

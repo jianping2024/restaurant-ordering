@@ -44,8 +44,23 @@ export function isUILanguage(value: string | null | undefined): value is UILangu
   return !!value && SUPPORTED_UI_LANGS.includes(value as UILanguage);
 }
 
+/** Read UI lang cookie in the browser — same source as getServerLanguage() on SSR. */
+export function readUiLangCookie(): UILanguage | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${UI_LANG_COOKIE}=([^;]*)`));
+  if (!match) return null;
+  try {
+    const value = decodeURIComponent(match[1]);
+    return isUILanguage(value) ? value : null;
+  } catch {
+    return isUILanguage(match[1]) ? match[1] : null;
+  }
+}
+
 export function getClientLanguage(): UILanguage {
   if (typeof window === 'undefined') return DEFAULT_UI_LANG;
+  const fromCookie = readUiLangCookie();
+  if (fromCookie) return fromCookie;
   const saved = localStorage.getItem(UI_LANG_COOKIE);
   if (isUILanguage(saved)) return saved;
   const legacy = localStorage.getItem(LEGACY_UI_LANG_STORAGE_KEY);

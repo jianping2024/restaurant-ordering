@@ -46,6 +46,13 @@ describe('getClientLanguage', () => {
     assert.equal(data.has(LEGACY_KEY), false);
   });
 
+  it('prefers cookie over localStorage', () => {
+    const data = mockBrowserStorage();
+    data.set(UI_LANG_COOKIE, 'zh');
+    document.cookie = `${UI_LANG_COOKIE}=en; path=/`;
+    assert.equal(getClientLanguage(), 'en');
+  });
+
   it('prefers canonical key over legacy', () => {
     const data = mockBrowserStorage();
     data.set(UI_LANG_COOKIE, 'en');

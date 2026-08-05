@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
 import {
   DEFAULT_THEME,
   applyDocumentTheme,
@@ -23,7 +23,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Must match server HTML on first paint; real theme is applied via layout inline script + useEffect below.
+  // Must match server HTML on first paint; inline script + useLayoutEffect sync before paint.
   const [theme, setThemeState] = useState<ThemeMode>(DEFAULT_THEME);
 
   const setTheme = useCallback((next: ThemeMode) => {
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyDocumentTheme(next);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const initial =
       readStoredTheme() ??
       parseThemeMode(document.documentElement.getAttribute('data-theme')) ??

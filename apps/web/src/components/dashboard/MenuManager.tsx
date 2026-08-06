@@ -3,7 +3,8 @@
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
 import { Button } from '@/components/ui/Button';
@@ -217,8 +218,6 @@ export function MenuManager({
   const [dishSearch, setDishSearch] = useState('');
   const [dishListError, setDishListError] = useState('');
   const [dishReorderBusy, setDishReorderBusy] = useState(false);
-  const [dishDragFromIndex, setDishDragFromIndex] = useState<number | null>(null);
-  const [dishDragOverIndex, setDishDragOverIndex] = useState<number | null>(null);
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
@@ -701,32 +700,11 @@ export function MenuManager({
     }
   };
 
-  const onDishDragStart = (index: number, event: DragEvent) => {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', String(index));
-    setDishDragFromIndex(index);
-  };
-
-  const onDishDragOver = (index: number, event: DragEvent) => {
+  const onDishDragEnd = (result: DropResult) => {
     if (!canReorderDishes || dishReorderBusy) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    if (dishDragOverIndex !== index) setDishDragOverIndex(index);
-  };
-
-  const onDishDrop = (index: number, event: DragEvent) => {
-    event.preventDefault();
-    const raw = event.dataTransfer.getData('text/plain');
-    const fromIndex = Number.parseInt(raw, 10);
-    setDishDragFromIndex(null);
-    setDishDragOverIndex(null);
-    if (!Number.isFinite(fromIndex)) return;
-    void commitDishReorder(fromIndex, index);
-  };
-
-  const onDishDragEnd = () => {
-    setDishDragFromIndex(null);
-    setDishDragOverIndex(null);
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    void commitDishReorder(result.source.index, result.destination.index);
   };
 
   const createCategory = async (parentId: string | null) => {
@@ -1394,139 +1372,179 @@ export function MenuManager({
               </p>
             </div>
           ) : (
-            <div className="space-y-1.5">
-              {visibleItems.map((item, index) => {
-                const code = item.item_code?.trim();
-                const nameEn = item.name_en?.trim() || t.listNameEmpty;
-                const nameZh = item.name_zh?.trim() || t.listNameEmpty;
-                const categoryLine = getItemCategoryLine(item);
-                const stationName = getEffectiveStationName(item);
-                const primaryTitle = [
-                  code ? `[${code}]` : null,
-                  `${t.listNamePt}: ${item.name_pt}`,
-                  `${t.listNameEn}: ${nameEn}`,
-                  `${t.listNameZh}: ${nameZh}`,
-                ]
-                  .filter(Boolean)
-                  .join(' · ');
-                const metaTitle = stationName
-                  ? `${t.itemType}: ${categoryLine} · ${t.effectiveStationPrefix}: ${stationName}`
-                  : `${t.itemType}: ${categoryLine}`;
-
-                return (
+            <DragDropContext onDragEnd={onDishDragEnd}>
+              <Droppable droppableId="menu-dish-reorder" isDropDisabled={!canReorderDishes || dishReorderBusy}>
+                {(droppableProvided) => (
                   <div
-                    key={item.id}
-                    onDragOver={canReorderDishes ? (event) => onDishDragOver(index, event) : undefined}
-                    onDrop={canReorderDishes ? (event) => onDishDrop(index, event) : undefined}
-                    onDragEnd={canReorderDishes ? onDishDragEnd : undefined}
-                    className={`bg-brand-card border rounded-lg px-3 py-2 sm:px-4 flex items-center gap-3 sm:gap-4 transition-colors ${
-                      item.available ? 'border-brand-border' : 'border-brand-border/70 bg-brand-bg/40'
-                    } ${
-                      dishDragFromIndex === index ? 'opacity-50' : ''
-                    } ${
-                      dishDragOverIndex === index && dishDragFromIndex !== index
-                        ? 'ring-1 ring-brand-gold/50'
-                        : ''
-                    }`}
+                    ref={droppableProvided.innerRef}
+                    {...droppableProvided.droppableProps}
+                    className="space-y-1.5"
                   >
-                    {canReorderDishes ? (
-                      <DishDragHandle
-                        label={t.dishSortOrderHint}
-                        disabled={dishReorderBusy}
-                        onDragStart={(event) => onDishDragStart(index, event)}
-                      />
-                    ) : null}
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
-                      {item.image_url ? (
-                        <Image
-                          src={resolveMenuImageDisplayUrl(item.image_url) || item.image_url}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="object-cover w-10 h-10"
-                          unoptimized={MENU_IMAGE_UNOPTIMIZED}
-                        />
-                      ) : (
-                        item.emoji
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 min-w-0">
-                        <p className="flex-1 min-w-0 text-sm truncate" title={primaryTitle}>
-                          {code ? (
-                            <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1.5">[{code}]</span>
-                          ) : null}
-                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNamePt}:</span>{' '}
-                          <span className="font-medium text-brand-text">{item.name_pt}</span>
-                          <span className="mx-1 text-brand-border">·</span>
-                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNameEn}:</span> {nameEn}
-                          <span className="mx-1 text-brand-border">·</span>
-                          <span className="text-brand-text-muted/70 text-[11px]">{t.listNameZh}:</span> {nameZh}
-                        </p>
-                        {!item.available ? (
-                          <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
-                            {t.unavailableBadge}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-[11px] text-brand-text-muted truncate mt-0.5" title={metaTitle}>
-                        <span className="text-brand-text-muted/70">{t.itemType}:</span> {categoryLine}
-                        {stationName ? (
-                          <>
-                            <span className="mx-1 text-brand-border">·</span>
-                            <span className="text-brand-text-muted/70">{t.effectiveStationPrefix}:</span> {stationName}
-                          </>
-                        ) : null}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                      <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
-                        EUR{item.price.toFixed(2)}
-                      </span>
-                      <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
-                        {t.vatRateShort.replace('{rate}', String(normalizeMenuVatRate(item.vat_rate)))}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => toggleItemAvailable(item)}
-                        className={`relative w-9 h-[18px] rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
-                        title={item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle}
-                        aria-label={item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle}
-                      >
-                        <span
-                          className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
-                            item.available ? 'translate-x-[18px]' : 'translate-x-0.5'
-                          }`}
-                        />
-                      </button>
-                      <div className="hidden sm:block w-px h-3.5 bg-brand-border/80" />
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <button
-                          type="button"
-                          onClick={() => openItemEditModal(item)}
-                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-xs sm:text-sm whitespace-nowrap"
+                    {visibleItems.map((item, index) => {
+                      const code = item.item_code?.trim();
+                      const nameEn = item.name_en?.trim() || t.listNameEmpty;
+                      const nameZh = item.name_zh?.trim() || t.listNameEmpty;
+                      const categoryLine = getItemCategoryLine(item);
+                      const stationName = getEffectiveStationName(item);
+                      const primaryTitle = [
+                        code ? `[${code}]` : null,
+                        `${t.listNamePt}: ${item.name_pt}`,
+                        `${t.listNameEn}: ${nameEn}`,
+                        `${t.listNameZh}: ${nameZh}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ');
+                      const metaTitle = stationName
+                        ? `${t.itemType}: ${categoryLine} · ${t.effectiveStationPrefix}: ${stationName}`
+                        : `${t.itemType}: ${categoryLine}`;
+                      const dragDisabled = !canReorderDishes || dishReorderBusy;
+
+                      return (
+                        <Draggable
+                          key={item.id}
+                          draggableId={item.id}
+                          index={index}
+                          isDragDisabled={dragDisabled}
                         >
-                          {t.edit}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDialog({
-                            open: true,
-                            intent: 'delete_item',
-                            title: t.deleteConfirm,
-                            message: `${t.deleteConfirm} "${item.name_pt}"?`,
-                            itemId: item.id,
-                          })}
-                          className="text-brand-text-muted hover:text-status-danger transition-colors text-xs sm:text-sm whitespace-nowrap"
-                        >
-                          {t.remove}
-                        </button>
-                      </div>
-                    </div>
+                          {(draggableProvided, snapshot) => (
+                            <div
+                              ref={draggableProvided.innerRef}
+                              {...draggableProvided.draggableProps}
+                              className={`bg-brand-card border rounded-lg px-3 py-2 sm:px-4 flex items-center gap-3 sm:gap-4 transition-shadow ${
+                                item.available
+                                  ? 'border-brand-border'
+                                  : 'border-brand-border/70 bg-brand-bg/40'
+                              } ${
+                                snapshot.isDragging
+                                  ? 'shadow-lg ring-1 ring-brand-gold/40 z-10'
+                                  : ''
+                              }`}
+                              style={draggableProvided.draggableProps.style}
+                            >
+                              {canReorderDishes ? (
+                                <DishDragHandle
+                                  label={t.dishSortOrderHint}
+                                  disabled={dishReorderBusy}
+                                  dragHandleProps={draggableProvided.dragHandleProps}
+                                />
+                              ) : null}
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
+                                {item.image_url ? (
+                                  <Image
+                                    src={resolveMenuImageDisplayUrl(item.image_url) || item.image_url}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className="object-cover w-10 h-10"
+                                    unoptimized={MENU_IMAGE_UNOPTIMIZED}
+                                  />
+                                ) : (
+                                  item.emoji
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-baseline gap-2 min-w-0">
+                                  <p className="flex-1 min-w-0 text-sm truncate" title={primaryTitle}>
+                                    {code ? (
+                                      <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1.5">
+                                        [{code}]
+                                      </span>
+                                    ) : null}
+                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNamePt}:</span>{' '}
+                                    <span className="font-medium text-brand-text">{item.name_pt}</span>
+                                    <span className="mx-1 text-brand-border">·</span>
+                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNameEn}:</span>{' '}
+                                    {nameEn}
+                                    <span className="mx-1 text-brand-border">·</span>
+                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNameZh}:</span>{' '}
+                                    {nameZh}
+                                  </p>
+                                  {!item.available ? (
+                                    <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
+                                      {t.unavailableBadge}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p
+                                  className="text-[11px] text-brand-text-muted truncate mt-0.5"
+                                  title={metaTitle}
+                                >
+                                  <span className="text-brand-text-muted/70">{t.itemType}:</span>{' '}
+                                  {categoryLine}
+                                  {stationName ? (
+                                    <>
+                                      <span className="mx-1 text-brand-border">·</span>
+                                      <span className="text-brand-text-muted/70">
+                                        {t.effectiveStationPrefix}:
+                                      </span>{' '}
+                                      {stationName}
+                                    </>
+                                  ) : null}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                                <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                                  EUR{item.price.toFixed(2)}
+                                </span>
+                                <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
+                                  {t.vatRateShort.replace(
+                                    '{rate}',
+                                    String(normalizeMenuVatRate(item.vat_rate)),
+                                  )}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleItemAvailable(item)}
+                                  className={`relative w-9 h-[18px] rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                  title={
+                                    item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle
+                                  }
+                                  aria-label={
+                                    item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle
+                                  }
+                                >
+                                  <span
+                                    className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                                      item.available ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                    }`}
+                                  />
+                                </button>
+                                <div className="hidden sm:block w-px h-3.5 bg-brand-border/80" />
+                                <div className="flex items-center gap-2 sm:gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => openItemEditModal(item)}
+                                    className="text-brand-text-muted hover:text-brand-gold transition-colors text-xs sm:text-sm whitespace-nowrap"
+                                  >
+                                    {t.edit}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setConfirmDialog({
+                                        open: true,
+                                        intent: 'delete_item',
+                                        title: t.deleteConfirm,
+                                        message: `${t.deleteConfirm} "${item.name_pt}"?`,
+                                        itemId: item.id,
+                                      })
+                                    }
+                                    className="text-brand-text-muted hover:text-status-danger transition-colors text-xs sm:text-sm whitespace-nowrap"
+                                  >
+                                    {t.remove}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {droppableProvided.placeholder}
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           )}
           {canReorderDishes && visibleItems.length > 0 ? (
             <p className="text-[12px] text-brand-text-muted mt-2">{t.dishSortOrderHint}</p>

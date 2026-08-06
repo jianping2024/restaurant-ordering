@@ -67,13 +67,12 @@
 
 | 项 | 第一期推荐 | 理由 |
 |----|------------|------|
-| **形态** | **6 位数字**（`crypto` 随机；**禁止**弱码如 `000000`、`111111` 等可配置黑名单） | 易口述、易输入；空间仅 **10⁶**，**必须**靠 TTL + **claim 强限流** + **生成频率** 补安全。升级路径（P2）：**8 位**不含混字符集（去 `0`/`O`、`1`/`I`）提高熵。 |
+| **形态** | **6 位数字**（`crypto` 随机；**禁止**弱码如 `000000`、`111111` 等可配置黑名单） | 易口述、易输入；空间仅 **10⁶**，**必须**靠 TTL + **claim 强限流** 补安全。升级路径（P2）：**8 位**不含混字符集（去 `0`/`O`、`1`/`I`）提高熵。 |
 | **有效期 TTL** | **10 分钟**（可配置 **5～15 分钟**） | 平衡「店员走到收银机」与「缩短枚举窗口」；**不宜**超过 15 分钟。 |
-| **生成频率（网络安全）** | **按店 `restaurant_id` 滑动窗口**：例如 **最多 6 条有效配对/小时**（成功写入 `pairings` 即计数）；**按操作者**：同一登录用户 **最多 10 次/小时**；**防抖**：两次点击间隔 **≥ 60s（1 分钟）** | 防盗刷、防误触连点；**1 分钟**比 30 秒更压脚本/连点，仍远小于 TTL（10 分钟），正常「生成 → 走去输入」几乎不受影响。 |
-| **配对码并行条数（单店，待使用槽）** | 同一 `restaurant_id` 下，**待使用** 行上限为 **3**：`expires_at > now()` **且** `consumed_at` 为空 **且** `revoked_at` 为空。**已核销**（`consumed_at` 非空）**不占槽** — 便于重装、换机、重配后立刻再生成。**作废**：店主对未使用码调用 **`POST .../pairings/[id]/revoke`**，写 **`revoked_at`**，**立即释放槽位**（适合误生成）；`claim` **须**排除 `revoked_at` 非空行。**再 `create`**：若 **待使用行数 ≥ 3** → **409**；否则 insert。**不**自动删改最旧行。**过期后** 自然不再计入。**Mesa**：`GET .../pairings` 列出 **未过期且未作废** 行（可标「待使用 / 已使用」）；待使用行展示 **作废**；**待使用 ≥ 3** 时禁用「生成」（服务端为准）。实现：`src/lib/print-agent-pairing-slots.ts`；迁移 `20260531140000_print_agent_pairing_revoked_at.sql`。 |
+| **生成频率 / 并行条数** | **无**店长侧生成限流、**无**待使用并行条数上限。入口已要求登录 + `settings.print_assistant.manage`；滥用面交给 **claim IP 限流** 与 **TTL**。 | 店长可连续生成多个未过期码；误发用 **作废**（`POST .../pairings/[id]/revoke` → `revoked_at`）。`claim` **须**排除 `revoked_at` 非空行。实现：`POST /api/print-agent/pairing`；作废迁移 `20260531140000_print_agent_pairing_revoked_at.sql`。 |
 | **`claim` 限流** | **按客户端 IP**：例如 **30 次/分钟**（全路径合计）；**错误码惩罚**：同一 IP **连续 5 次错误** → **15 分钟内拒绝 claim**（HTTP 429 + `Retry-After`） | 防对公网 `claim` **撞码**；与 TTL 叠加控制暴力枚举成本。 |
 | **核销语义** | **仅成功 claim 写 `consumed_at`**；错误尝试 **不消费** 码但 **计失败次数**（可对「单码」设每码每 IP 5 次/分钟） | 防「试到锁死合法用户」：单码限次要略宽松于全局限流。 |
-| **`GET .../pairings` 与 `POST .../pairing` 的码展示（已定）** | **`GET` 响应**：每条仅 **`code_mask`**（**禁止**字段名 **`code`** 或 **6 位明文**）。**`code_mask` 规则**（`code` 为 **6 位数字**）：① **`consumed_at` 为空**（待使用）：**前 4 位为 `*`，后 2 位为原码第 5–6 位** → 固定 **6** 字符，例 **`****56`**。② **`consumed_at` 非空**（已核销）：**`******`**（全掩）。**`POST` `create` 成功**：响应体 **须含** **`code` 完整 6 位** + `expires_at` 等（**仅此一次**明文出网；供店长当次口述/复制）；Mesa **须**显著弹层/横幅展示；**再次 `GET` 列表**时该行仅以 **`code_mask`** 出现。 | 列表防 shoulder surfing / 截图泄露；仍能在最多 3 条待使用中区分「后两位不同」；漏记依赖 **新码**（受并行条数与限流约束）。 |
+| **`GET .../pairings` 与 `POST .../pairing` 的码展示（已定）** | 列表每条唯一字段 **`code`**（**不**再用 `code_mask`）：① **待使用**（`consumed_at` 空）：**完整 6 位明文**；② **已核销**：固定 **`******`**。`POST` `create` 成功体仍含明文 `code` + `expires_at`（当次横幅）；刷新后列表仍可见待使用明文。 | 有权限的店员可复读/抄码；已核销不回明文。`pairingListCode` in `print-agent-pairing-code.ts`。 |
 
 ### 已确认代理 token 生命周期（与 §5.2 一致）
 
@@ -142,14 +141,14 @@
 
 **推荐（第一期）**：代理持有 **单条 scoped JWT**（**90d `exp`**），由 **`claim` 下发**；形态见文首 **「已确认代理 token 生命周期 · 第一期凭证形态」**。（历史备选：短 access + refresh，列 **P2**。）
 
-1. **Route：`POST /api/print-agent/pairing`**（需登录 dashboard）  
-   - Body：`{ "action": "create" }` → 统计本店 **待使用** 行（`expires_at > now()` **且** `consumed_at` / `revoked_at` 均为空）；**少于 3** 则生成 `code`、`expires_at` 并写入；**待使用 ≥ 3** → **409**（见 **已确认配对码与安全参数 · 配对码并行条数**）。**成功 `200`**：JSON **须含** **`code`（6 位明文，仅此响应）**、`id`、`expires_at` 等；**不**依赖后续 `GET` 取明文。
+1. **Route：`POST /api/print-agent/pairing`**（需登录 dashboard + `settings.print_assistant.manage`）  
+   - 生成 `code`、`expires_at` 并写入；**无**待使用并行上限、**无**店/用户每小时或 60s 生成限流。**成功 `200`**：JSON **须含** **`code`（6 位明文）**、`id`、`expires_at` 等。列表 `GET` 对**待使用**行同样返回明文 `code`。
 
 2. **Route：`GET /api/print-agent/pairings`（已定，只读）**（需登录 dashboard）  
-   - 返回本店 **`expires_at > now()` 且 `revoked_at` 为空** 的行（含已核销，列表可标状态），每条 **`code_mask`**、**`expires_at`**、**`consumed_at`**、**`pending`**（派生）等；**禁止** **`code`** 明文。**打印助手**进入区块时调用此 `GET` 刷新。
+   - 返回本店 **`expires_at > now()` 且 `revoked_at` 为空** 的行（含已核销，列表可标状态），每条 **`code`**（待使用=完整 6 位；已核销=`******`）、**`expires_at`**、**`consumed_at`**、**`pending`**（派生）等；**不**使用并行字段 `code_mask`。**打印助手**进入区块时调用此 `GET` 刷新。
 
 2b. **Route：`POST /api/print-agent/pairings/[id]/revoke`（已定）**（需登录 dashboard / owner）  
-   - 仅当该行 **未核销、未作废、未过期** 时写 **`revoked_at = now()`**；否则 **409**。成功后 **待使用槽位 -1**。
+   - 仅当该行 **未核销、未作废、未过期** 时写 **`revoked_at = now()`**；否则 **409**。成功后该码不可再 claim。
 
 3. **Route：`GET /api/print-agent/print-jobs/recent`（已定，只读）**（需登录 dashboard）  
    - Query：默认 **`limit=5`**（上限例如 **20**，防刷）。返回本店 **`print_jobs`**，**`ORDER BY created_at DESC`**；字段至少 **`id`、`type`、`status`、`created_at`、`error_message`**（可空）；**不**默认返回完整 **`payload`**（体积与敏感快照；若需可另加 **截断摘要** 字段 — 实现期定）。**「打印助手」** 内 **排障列表** **仅经此 `GET`**（与 **`GET .../pairings`** 一致，**不**经浏览器直连表）。
@@ -173,7 +172,7 @@
 ### P0-D：后台 UI（Mesa）
 
 1. **餐厅设置**（或桌位旁）新增 **「打印助手」** 区块：  
-   - 按钮：**生成配对码**；**成功创建后** 以 **`POST` 响应中的 `code`（6 位明文，仅此一次）** 做 **显著弹层/可复制**；**进入区块时** 调用 **`GET /api/print-agent/pairings`**，行内 **`code_mask`** + **待使用/已使用**；**待使用行** 提供 **作废**（`POST .../revoke`）。若 **待使用码已达 3**：**禁用「生成」** 或提示（与 **409** 一致）；**已核销不占槽**。  
+   - 按钮：**生成配对码**；**成功创建后** 以 **`POST` 响应中的 `code`** 做 **显著弹层/可复制**；**进入区块时** 调用 **`GET /api/print-agent/pairings`**，行内 **`code`**（待使用完整显示）+ **待使用/已使用**；**待使用行** 提供 **复制** 与 **作废**（`POST .../revoke`）。**不**因待使用条数禁用「生成」。  
    - 链接：**下载 Windows 打印助手** — **主：Inno 安装包（amd64）**；**次：便携 zip**（见 **已确认安装包分发**）。  
    - 短文：**安装 → 打开助手 → 输入码 → 填打印机局域网 IP（建议路由器 DHCP 保留）→ 点试打**。  
    - **默认打印语言**：由 **`print_locale`**（`zh` / `en` / **`pt` = 欧洲葡 `pt-PT`**）决定（见 **已确认产品与场景**）；在 **餐厅设置** 中展示并允许修改。  
@@ -311,11 +310,11 @@
 
 | 风险 | 说明 | 缓解 |
 |------|------|------|
-| **暴力枚举** | 6 位数字空间小 | **短 TTL**；**claim 按 IP 限流 + 错误冷却**；**生成按店/按用户限流**；码 **一次性成功核销**（`consumed_at`） |
+| **暴力枚举** | 6 位数字空间小 | **短 TTL**；**claim 按 IP 限流 + 错误冷却**；码 **一次性成功核销**（`consumed_at`） |
 | **弱码 / 可预测** | 非随机或规律码 | **CSPRNG**；弱码黑名单 |
 | **重放 claim** | 截获请求重复换 token | 成功 **单次核销**；token **绑定 `device_id`**；设备吊销见 §5.2 |
 | **无 HTTPS** | 中间人 | **仅 HTTPS**；生产 **HSTS** |
-| **刷配对行 / 滥用 owner 会话** | 高频点「生成码」 | **每店每小时上限**、**每用户每小时上限**、**最短间隔**；**待使用码达 3 时 create 返回 409**（见文首 **配对码并行条数**）；误生成可 **作废** 腾槽，**不**叠新行 |
+| **刷配对行 / 滥用 owner 会话** | 高频点「生成码」 | 入口需 **登录 + 打印助手权限**；误发可 **作废**；**不**再对 create 做店/用户小时上限或并行槽位 409 |
 
 ### 5.2 代理凭证（JWT）
 
@@ -407,7 +406,7 @@
 - [x] **Dashboard**：`/dashboard/settings/print-stations`（档口 CRUD、排序、`ticket_layout`）+ **菜单设置** 内分类/菜品绑定与列表展示 **有效出品档口**（`COALESCE(品, 类目)`）  
 - [x] **`print_jobs`（首期：`station_ticket` 入队 + `print_locale`）** — `20260514120000_print_jobs_and_print_locale.sql`；**`station-tickets/auto`**（订单提交后自动入队；**无**手动出品打印 UI）  
 - [x] **`print_agent_pairings`**（含 `revoked_at`：`20260531140000_...`）及 **配对 / 列表 / 作废 / claim** API  
-- [x] **`app/api`（Next）**：`POST .../pairing`、`GET .../pairings`、**`POST .../pairings/[id]/revoke`**、`GET .../print-jobs/recent`、`POST .../claim`；**待使用槽 ≤3**（已核销不占槽、可作废）；凭证 **180 天**、**提前 30 天** 提醒见「已确认代理 token 生命周期」  
+- [x] **`app/api`（Next）**：`POST .../pairing`、`GET .../pairings`、**`POST .../pairings/[id]/revoke`**、`GET .../print-jobs/recent`、`POST .../claim`；**无**待使用槽位上限 / create 生成限流；列表待使用 **明文 `code`**、已核销掩码；凭证 **180 天**、**提前 30 天** 提醒见「已确认代理 token 生命周期」  
 - [ ] `print_agent_devices`（或等价）：`paired_at`、`valid_until`（**+90d**）、`revoked_at`、`device_id`（**列可先预留**）；**claim 仅影响本行、不踢同店其它设备**（见 **已确认代理 token 生命周期 · 多设备**）；**`print_jobs` 代理 RLS + `revoked_at` 即时失效** — **在 `print_stations` 与出品入队主线之后**闭环（见 **实施顺序**、**吊销后 JWT…**）
 - [ ] **到期前 15 天（必做，Next/Mesa 功能端）**：**`print_agent_devices`** 驱动 — **`/dashboard` layout 顶栏全局条（已定）** + **「打印助手」** 区块强提示 + 日期（见 **P0-D**，**两处缺一不可**）；**已配对设备列表**；**按设备吊销（`revoked_at`）** — **UI 与 RLS 验收** 与上条 **同期或略晚**（不挡 `print_stations`）；**claim** 在 `valid_until` 后拒绝并提示重新配对。**与代理托盘（P1-3）双通道**，功能端 **不因未装代理而省略**
 - [ ] **无代理 / 未配对**：Mesa **保留 `window.print()` HTML 兜底**；**有代理** 以 **`print_jobs`** 为主路径（见 **无代理时打印**）

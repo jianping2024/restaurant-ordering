@@ -491,7 +491,6 @@ export const MESSAGES_FR = {
     "pairingDismiss": "Fermer",
     "pairingPending": "En attente",
     "pairingUsed": "Utilisé",
-    "pairingSlotFull": "Vous avez déjà 3 codes en attente ; annulez-en un dont vous n'avez pas besoin ou attendez son expiration avant d'en créer un autre.",
     "pairingErrorPrefix": "Une erreur est survenue : ",
     "pairingAgentHint": "Après l'appairage, changez les imprimantes depuis le menu de la zone de notification → Paramètres d'imprimante. Pour supprimer l'agent et la configuration locale : zone de notification → Désinstaller…",
     "configureStep1": "Installez et démarrez {printAgent} sur le PC de caisse (icône dans la zone de notification)",

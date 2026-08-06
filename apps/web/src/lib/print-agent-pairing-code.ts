@@ -26,8 +26,11 @@ export function randomPairingCode(): string {
   return String(randomInt(100000, 1_000_000)).padStart(6, '0');
 }
 
-export function maskPairingCode(code: string, consumed: boolean): string {
-  if (consumed) return '******';
-  if (code.length !== 6) return '******';
-  return `****${code.slice(4)}`;
+/**
+ * List display for a pairing row: full 6-digit when still pending;
+ * masked when already consumed (or malformed).
+ */
+export function pairingListCode(code: string, consumed: boolean): string {
+  if (consumed || code.length !== 6) return '******';
+  return code;
 }

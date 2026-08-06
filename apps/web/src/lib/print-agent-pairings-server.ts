@@ -1,18 +1,19 @@
 import 'server-only';
 
 import { createClient } from '@/lib/supabase/server';
-import { maskPairingCode } from '@/lib/print-agent-pairing-code';
+import { pairingListCode } from '@/lib/print-agent-pairing-code';
 import { isPendingPairing } from '@/lib/print-agent-pairing-slots';
 
 export type PrintAgentPairingListItem = {
   id: string;
   expires_at: string;
   consumed_at: string | null;
-  code_mask: string;
+  /** Pending: full 6-digit code. Consumed: `******`. */
+  code: string;
   pending: boolean;
 };
 
-/** Active pairing rows for dashboard (masked codes only; plaintext only from POST /pairing). */
+/** Active pairing rows for dashboard (pending codes are plaintext). */
 export async function loadPrintAgentPairings(): Promise<PrintAgentPairingListItem[]> {
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
@@ -28,15 +29,18 @@ export async function loadPrintAgentPairings(): Promise<PrintAgentPairingListIte
     return [];
   }
 
-  return (rows || []).map((r) => ({
-    id: r.id,
-    expires_at: r.expires_at,
-    consumed_at: r.consumed_at,
-    code_mask: maskPairingCode(String(r.code), Boolean(r.consumed_at)),
-    pending: isPendingPairing({
+  return (rows || []).map((r) => {
+    const consumed = Boolean(r.consumed_at);
+    return {
+      id: r.id,
       expires_at: r.expires_at,
       consumed_at: r.consumed_at,
-      revoked_at: r.revoked_at,
-    }),
-  }));
+      code: pairingListCode(String(r.code), consumed),
+      pending: isPendingPairing({
+        expires_at: r.expires_at,
+        consumed_at: r.consumed_at,
+        revoked_at: r.revoked_at,
+      }),
+    };
+  });
 }

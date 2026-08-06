@@ -3,7 +3,7 @@ import { revokePrintAgentPairing } from '@mesa/shared';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 
-/** Void an unused pairing code so it no longer counts toward the pending slot limit. */
+/** Void an unused pairing code so it cannot be claimed. */
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const auth = await requireSettingsRestaurantAuth('settings.print_assistant.manage', {
     requireWritable: true,

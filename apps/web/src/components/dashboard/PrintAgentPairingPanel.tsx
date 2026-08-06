@@ -9,7 +9,6 @@ import {
   formatPairingCountdown,
   pairingExpiryRemainingMs,
 } from '@/lib/pairing-code-countdown';
-import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 type PairingRow = PrintAgentPairingListItem;
 
@@ -76,9 +75,6 @@ export function PrintAgentPairingPanel({
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, [freshCode?.expires_at]);
-
-  const pendingCount = pairings.filter((p) => p.pending).length;
-  const canCreate = pendingCount < PRINT_AGENT_PAIRING_PENDING_SLOT_MAX;
 
   const copyPairingCode = useCallback(async (code: string) => {
     try {
@@ -208,7 +204,7 @@ export function PrintAgentPairingPanel({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          disabled={!canCreate || creating}
+          disabled={creating}
           onClick={() => void createPairing()}
           className="text-[13px] px-4 py-2 rounded-lg bg-brand-gold text-brand-on-gold font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -222,7 +218,6 @@ export function PrintAgentPairingPanel({
         >
           {loading ? '…' : t.pairingRefreshList}
         </button>
-        {!canCreate && <span className="text-[12px] mesa-text-warning">{t.pairingSlotFull}</span>}
       </div>
 
       <div>
@@ -236,21 +231,34 @@ export function PrintAgentPairingPanel({
                 key={p.id}
                 className="flex flex-wrap items-center justify-between gap-2 border border-brand-border/60 rounded-lg px-3 py-2"
               >
-                <span className="font-mono tracking-wider">{p.code_mask}</span>
+                <span
+                  className={`font-mono tracking-wider tabular-nums ${p.pending ? 'select-all text-brand-text' : 'text-brand-text-muted'}`}
+                >
+                  {p.code}
+                </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-brand-text-muted text-[12px]">
                     {p.consumed_at ? t.pairingUsed : t.pairingPending} ·{' '}
                     {new Date(p.expires_at).toLocaleString()}
                   </span>
                   {p.pending ? (
-                    <button
-                      type="button"
-                      disabled={revokingId === p.id}
-                      onClick={() => void revokePairing(p.id)}
-                      className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-red-700 hover:border-red-200 transition-colors disabled:opacity-50"
-                    >
-                      {revokingId === p.id ? '…' : t.pairingRevoke}
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => void copyPairingCode(p.code)}
+                        className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
+                      >
+                        {t.pairingCopyCode}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={revokingId === p.id}
+                        onClick={() => void revokePairing(p.id)}
+                        className="text-[12px] px-2 py-1 rounded-md border border-brand-border text-brand-text-muted hover:text-red-700 hover:border-red-200 transition-colors disabled:opacity-50"
+                      >
+                        {revokingId === p.id ? '…' : t.pairingRevoke}
+                      </button>
+                    </>
                   ) : null}
                 </div>
               </li>

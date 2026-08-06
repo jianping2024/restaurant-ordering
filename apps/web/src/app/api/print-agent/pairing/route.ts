@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { randomPairingCode } from '@/lib/print-agent-pairing-code';
-import { PRINT_AGENT_PAIRING_PENDING_SLOT_MAX } from '@/lib/print-agent-pairing-slots';
 
 export const runtime = 'nodejs';
 
@@ -30,68 +29,6 @@ export async function POST() {
 
   const rid = auth.restaurantId;
   const nowIso = new Date().toISOString();
-
-  const { count: slotCount, error: cErr } = await admin
-    .from('print_agent_pairings')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', rid)
-    .is('consumed_at', null)
-    .is('revoked_at', null)
-    .gt('expires_at', nowIso);
-
-  if (cErr) {
-    return NextResponse.json({ error: 'query_failed', message: cErr.message }, { status: 500 });
-  }
-  if ((slotCount ?? 0) >= PRINT_AGENT_PAIRING_PENDING_SLOT_MAX) {
-    return NextResponse.json(
-      {
-        error: 'pairing_slot_full',
-        message: `At most ${PRINT_AGENT_PAIRING_PENDING_SLOT_MAX} unused pairing codes per restaurant.`,
-      },
-      { status: 409 },
-    );
-  }
-
-  const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
-  const { count: rHour } = await admin
-    .from('print_agent_pairings')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', rid)
-    .gte('created_at', hourAgo);
-  if ((rHour ?? 0) >= 6) {
-    return NextResponse.json(
-      { error: 'pairing_rate_restaurant', message: 'Too many pairing codes created this hour for this restaurant.' },
-      { status: 429 },
-    );
-  }
-
-  const { count: uHour } = await admin
-    .from('print_agent_pairings')
-    .select('id', { count: 'exact', head: true })
-    .eq('created_by', user.id)
-    .gte('created_at', hourAgo);
-  if ((uHour ?? 0) >= 10) {
-    return NextResponse.json(
-      { error: 'pairing_rate_user', message: 'Too many pairing codes created this hour for this account.' },
-      { status: 429 },
-    );
-  }
-
-  const minAgo = new Date(Date.now() - 60_000).toISOString();
-  const { data: recent } = await admin
-    .from('print_agent_pairings')
-    .select('id')
-    .eq('restaurant_id', rid)
-    .gte('created_at', minAgo)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (recent) {
-    return NextResponse.json(
-      { error: 'pairing_debounce', message: 'Wait at least 60 seconds between generating pairing codes.' },
-      { status: 429 },
-    );
-  }
 
   let code = '';
   for (let attempt = 0; attempt < 48; attempt += 1) {

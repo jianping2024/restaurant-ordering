@@ -535,7 +535,6 @@ export const MESSAGES = {
       pairingDismiss: '收起',
       pairingPending: '待使用',
       pairingUsed: '已核销',
-      pairingSlotFull: '待使用配对码已满 3 个，请作废不需要的码或等待过期后再生成。',
       pairingErrorPrefix: '操作失败：',
       pairingAgentHint:
         '已配对后调整打印机：收银电脑托盘右键「打印机设置…」。彻底卸掉本机助手：托盘「卸载…」（会删除程序与本机配置）。',
@@ -1909,8 +1908,6 @@ export const MESSAGES = {
       pairingDismiss: 'Dismiss',
       pairingPending: 'Pending',
       pairingUsed: 'Used',
-      pairingSlotFull:
-        'You already have 3 pending codes; void one you do not need or wait for expiry before creating another.',
       pairingErrorPrefix: 'Something went wrong: ',
       pairingAgentHint:
         'After pairing, change printers from the tray menu → Printer settings. To remove the agent and local config: tray → Uninstall…',
@@ -2875,8 +2872,6 @@ export const MESSAGES = {
       pairingDismiss: 'Fechar',
       pairingPending: 'Pendente',
       pairingUsed: 'Usado',
-      pairingSlotFull:
-        'Ja existem 3 codigos pendentes; anule um que nao precise ou aguarde expirar antes de criar outro.',
       pairingErrorPrefix: 'Erro: ',
       pairingAgentHint:
         'Depois de emparelhar, mude impressoras no menu da bandeja → Definicoes de impressora. Para remover o agente e a configuracao local: bandeja → Desinstalar…',

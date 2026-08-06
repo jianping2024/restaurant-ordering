@@ -491,7 +491,6 @@ export const MESSAGES_DE = {
     "pairingDismiss": "Verwerfen",
     "pairingPending": "Ausstehend",
     "pairingUsed": "Verwendet",
-    "pairingSlotFull": "Sie haben bereits 3 ausstehende Codes; annullieren Sie einen nicht benötigten Code oder warten Sie, bis er abläuft, bevor Sie einen neuen erstellen.",
     "pairingErrorPrefix": "Etwas ist schiefgelaufen: ",
     "pairingAgentHint": "Ändern Sie Drucker nach der Kopplung über das Menü im Systemtray → Druckereinstellungen. Zum Entfernen des Agenten und der lokalen Konfiguration: Systemtray → Deinstallieren…",
     "configureStep1": "{printAgent} auf dem Kassen-PC installieren und starten (Symbol im Systemtray)",

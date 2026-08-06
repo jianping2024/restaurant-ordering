@@ -491,7 +491,6 @@ export const MESSAGES_ES = {
     "pairingDismiss": "Descartar",
     "pairingPending": "Pendiente",
     "pairingUsed": "Usado",
-    "pairingSlotFull": "Ya tienes 3 códigos pendientes; anula uno que no necesites o espera a que caduque antes de crear otro.",
     "pairingErrorPrefix": "Se ha producido un error: ",
     "pairingAgentHint": "Tras emparejar, cambia las impresoras desde el menú de la bandeja → Ajustes de impresora. Para eliminar el agente y la configuración local: bandeja → Desinstalar…",
     "configureStep1": "Instala e inicia {printAgent} en el PC de TPV (icono de la bandeja del sistema)",

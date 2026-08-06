@@ -48,7 +48,7 @@
 - **首装试打（P0-2，v0.2.42+；S0 调整）**：`POST /api/test-print`；**configure（S0）** 试打为**可选**，关页不二次拦截。**`setup_ui`** 仍保留较完整的试打/排障向导（首启 bootstrap 路径）。保存须至少映射一个出品档口。
 - **任务最大年龄 20 分钟**：`GET /api/print-agent/pending-jobs` 拉取前将超时 `pending`/`processing` 标为 `failed`；匹配行在返回前 **claim→processing**；Go 代理处理前再次跳过过期任务。实现：`src/lib/print-job-max-age.ts`、`src/lib/expire-stale-print-jobs.ts`、`apps/print-agent/job_max_age.go`。
 - **Dashboard**：打印助手配对码、最近任务、`print-job-error-hints` 中文/英/葡 hint；`buildPrintAgentConfigureUrl` 深链本机 `http://127.0.0.1:17892/configure`。
-- **配对码槽位与作废（Web，2026-05）**：单店最多 **3 个待使用** 码（`expires_at > now` 且 `consumed_at` / `revoked_at` 均为空）；**已核销不占槽**（重装、换机、重配后可立刻再生成）；列表对未使用码提供 **作废**（`POST /api/print-agent/pairings/[id]/revoke` → `revoked_at`），误生成可腾槽。迁移：`supabase/migrations/20260531140000_print_agent_pairing_revoked_at.sql`。
+- **配对码与作废（Web）**：店长可连续生成多个待使用码（**无**并行条数 / create 限流）；列表对**待使用**展示**完整 6 位**，已核销为 `******`；**作废**（`POST /api/print-agent/pairings/[id]/revoke` → `revoked_at`）使码不可 claim。迁移：`supabase/migrations/20260531140000_print_agent_pairing_revoked_at.sql`。
 - **安装（§9）**：Inno `mesa-print-agent.iss` — 装前/装后说明（SmartScreen、zip 对比、USB 驱动链）、**登录自启**（开始菜单「启动」文件夹快捷方式，默认勾选）、开始菜单 **Printer settings**（`configure`）与 **UNYKA driver (web)**、完成页默认 **立即启动代理**；`WINDOWS-README.txt` 与之一致。
 - **版本提示（§8，v0.2.66+）**：`runtime-config.recommended_agent_version`；旧版代理每日托盘提醒；Dashboard 设备列表与下载区升级说明。
 - **API 试打任务**：`claim` 成功可插入 `connection_test` 的 `order_receipt`（服务端 P0-3）；与向导本地试打（P0-2）互补，非同一 UI。
@@ -157,8 +157,8 @@ flowchart LR
 ### 7. Mesa 打印助手闭环按钮
 
 - **「在本机打开设置」**：探测 `127.0.0.1:17892`；不可达则提示先启动 Mesa Print Agent。
-- 生成配对码：**大号 6 位 + 过期倒计时 + 复制**；生成后自动带 `code` 打开 configure（Dashboard `PrintAgentPairingPanel`）。
-- **槽位规则**：仅 **待使用** 码计入上限 3；**已核销** 不占槽；**作废** 未使用码立即释放槽位（见「已落地」）。
+- 生成配对码：**大号 6 位 + 过期倒计时 + 复制**；列表待使用行同样完整显示并可复制；生成后可带 `code` 打开 configure（Dashboard `PrintAgentPairingPanel`）。
+- **列表规则**：待使用明文；已核销掩码；**作废**未使用码使其不可 claim（见「已落地」）。
 - 任务 `failed`：展示 `print-job-error-hints` + **在本机打开打印机设置**（深链 configure）。
 
 ---

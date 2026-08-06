@@ -208,11 +208,11 @@ export async function batchSetMenuItemsAvailableClient(itemIds: string[], availa
   });
 }
 
-export async function moveMenuItemOrderClient(itemId: string, direction: -1 | 1) {
+export async function reorderMenuItemsClient(orderedIds: string[]) {
   return request<{ ok: true }>('/api/dashboard/menu/items', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'move_order', item_id: itemId, direction }),
+    body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 

@@ -1,46 +1,39 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { adjacentSortOrderSwapSteps } from '@/lib/sort-order';
 
-/** Persist adjacent swap for menu_items (unique index on category sort_order requires 3-step). */
-export async function persistMenuItemSortOrderSwap(
+/**
+ * Persist a full scope order for menu_items under unique (restaurant, category, sort_order).
+ * Two-phase: first park at offset+i, then write final 0..n-1.
+ */
+export async function persistMenuItemSortOrders(
   admin: SupabaseClient,
   restaurantId: string,
-  rowA: { id: string; sort_order: number },
-  rowB: { id: string; sort_order: number },
+  orderedIds: readonly string[],
   scopeMaxSortOrder: number,
 ): Promise<{ ok: true } | { error: 'update_failed'; message: string }> {
-  const steps = adjacentSortOrderSwapSteps(rowA, rowB, scopeMaxSortOrder);
-  if (!steps) {
-    return { ok: true };
+  if (orderedIds.length === 0) return { ok: true };
+
+  const offset = scopeMaxSortOrder + 1;
+
+  for (let i = 0; i < orderedIds.length; i += 1) {
+    const { error } = await admin
+      .from('menu_items')
+      .update({ sort_order: offset + i })
+      .eq('id', orderedIds[i])
+      .eq('restaurant_id', restaurantId);
+    if (error) {
+      return { error: 'update_failed', message: error.message };
+    }
   }
 
-  const { tempOrder, finalSortOrderA, finalSortOrderB } = steps;
-
-  const { error: e1 } = await admin
-    .from('menu_items')
-    .update({ sort_order: tempOrder })
-    .eq('id', rowA.id)
-    .eq('restaurant_id', restaurantId);
-  if (e1) {
-    return { error: 'update_failed', message: e1.message };
-  }
-
-  const { error: e2 } = await admin
-    .from('menu_items')
-    .update({ sort_order: finalSortOrderB })
-    .eq('id', rowB.id)
-    .eq('restaurant_id', restaurantId);
-  if (e2) {
-    return { error: 'update_failed', message: e2.message };
-  }
-
-  const { error: e3 } = await admin
-    .from('menu_items')
-    .update({ sort_order: finalSortOrderA })
-    .eq('id', rowA.id)
-    .eq('restaurant_id', restaurantId);
-  if (e3) {
-    return { error: 'update_failed', message: e3.message };
+  for (let i = 0; i < orderedIds.length; i += 1) {
+    const { error } = await admin
+      .from('menu_items')
+      .update({ sort_order: i })
+      .eq('id', orderedIds[i])
+      .eq('restaurant_id', restaurantId);
+    if (error) {
+      return { error: 'update_failed', message: error.message };
+    }
   }
 
   return { ok: true };

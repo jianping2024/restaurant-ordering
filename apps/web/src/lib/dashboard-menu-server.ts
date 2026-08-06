@@ -18,8 +18,12 @@ import {
   parseMenuVatRate,
 } from '@/lib/menu-vat-rate';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
-import { compareMenuItemsForDisplay, menuItemSiblingsInScope } from '@/lib/menu-item-order';
-import { persistMenuItemSortOrderSwap } from '@/lib/sort-order-persist';
+import {
+  compareMenuItemsForDisplay,
+  menuItemSiblingsInScope,
+  orderedIdsMatchSiblingSet,
+} from '@/lib/menu-item-order';
+import { persistMenuItemSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, sortBySortOrderThenCreatedAt, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
@@ -458,36 +462,49 @@ export async function createMenuItem(
   return { item: data as MenuItem };
 }
 
-export async function moveMenuItemOrder(
+export async function reorderMenuItems(
   admin: SupabaseClient,
   restaurantId: string,
-  itemId: string,
-  direction: SortOrderMoveDirection,
+  orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuMutationError> {
-  const id = parseTableIdParam(itemId);
-  if (!id) {
-    return { error: 'invalid_item_id', status: 400 };
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  if (orderedIdsRaw.some((id) => typeof id !== 'string')) {
+    return { error: 'invalid_ordered_ids', status: 400 };
   }
 
-  const { data: item, error: itemError } = await admin
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw as string[]) {
+    const id = parseTableIdParam(raw);
+    if (!id) {
+      return { error: 'invalid_ordered_ids', status: 400 };
+    }
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const { data: firstRow, error: firstError } = await admin
     .from('menu_items')
-    .select('id, sort_order, category_id, created_at')
-    .eq('id', id)
+    .select('id, category_id')
+    .eq('id', orderedIds[0]!)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
-  if (itemError) {
-    return { error: 'menu_items_query_failed', message: itemError.message, status: 500 };
+  if (firstError) {
+    return { error: 'menu_items_query_failed', message: firstError.message, status: 500 };
   }
-  if (!item) {
+  if (!firstRow) {
     return { error: 'item_not_found', status: 404 };
   }
 
   let siblingsQuery = admin
     .from('menu_items')
-    .select('id, sort_order, category_id, created_at')
+    .select('id, sort_order, category_id')
     .eq('restaurant_id', restaurantId);
-  siblingsQuery = item.category_id
-    ? siblingsQuery.eq('category_id', item.category_id)
+  siblingsQuery = firstRow.category_id
+    ? siblingsQuery.eq('category_id', firstRow.category_id)
     : siblingsQuery.is('category_id', null);
 
   const { data: siblings, error: siblingsError } = await siblingsQuery;
@@ -495,21 +512,14 @@ export async function moveMenuItemOrder(
     return { error: 'menu_items_query_failed', message: siblingsError.message, status: 500 };
   }
 
-  const ordered = sortBySortOrderThenCreatedAt(siblings ?? []);
-  const index = ordered.findIndex((row) => row.id === id);
-  if (index < 0) {
-    return { error: 'item_not_found', status: 404 };
+  const siblingRows = siblings ?? [];
+  if (!orderedIdsMatchSiblingSet(siblingRows, orderedIds)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
-  const neighborIndex = index + direction;
-  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
-    return { error: 'move_out_of_range', status: 400 };
-  }
-
-  const a = ordered[index];
-  const b = ordered[neighborIndex];
-  const scopeMax = Math.max(...ordered.map((row) => row.sort_order));
-  const persisted = await persistMenuItemSortOrderSwap(admin, restaurantId, a, b, scopeMax);
+  const scopeMax =
+    siblingRows.length === 0 ? -1 : Math.max(...siblingRows.map((row) => row.sort_order));
+  const persisted = await persistMenuItemSortOrders(admin, restaurantId, orderedIds, scopeMax);
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }

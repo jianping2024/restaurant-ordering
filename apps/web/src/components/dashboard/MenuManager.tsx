@@ -3,7 +3,7 @@
 import Image from 'next/image';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import Tree from 'rc-tree';
 import type { DataNode } from 'rc-tree/lib/interface';
 import { Button } from '@/components/ui/Button';
@@ -44,14 +44,15 @@ import {
 } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import {
+  applyOrderedMenuItemSortOrders,
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
+  moveIdInOrderedList,
 } from '@/lib/menu-item-order';
-import { applyAdjacentSortOrderSwap } from '@/lib/sort-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
-import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
+import { DishDragHandle } from '@/components/dashboard/DishDragHandle';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
   isMenuManagerTab,
@@ -70,7 +71,7 @@ import {
   mapMenuCategoryApiError,
   mapMenuItemApiError,
   setMenuItemImageClient,
-  moveMenuItemOrderClient,
+  reorderMenuItemsClient,
   updateMenuCategoryClient,
   updateMenuItemClient,
 } from '@/lib/dashboard-menu-client';
@@ -215,6 +216,9 @@ export function MenuManager({
   };
   const [dishSearch, setDishSearch] = useState('');
   const [dishListError, setDishListError] = useState('');
+  const [dishReorderBusy, setDishReorderBusy] = useState(false);
+  const [dishDragFromIndex, setDishDragFromIndex] = useState<number | null>(null);
+  const [dishDragOverIndex, setDishDragOverIndex] = useState<number | null>(null);
   const [deleteMigrateTargetId, setDeleteMigrateTargetId] = useState('');
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
@@ -677,18 +681,52 @@ export function MenuManager({
     });
   };
 
-  const moveDishRow = async (index: number, dir: -1 | 1) => {
-    const j = index + dir;
-    if (j < 0 || j >= visibleItems.length) return;
-    const a = visibleItems[index];
-    const b = visibleItems[j];
+  const commitDishReorder = async (fromIndex: number, toIndex: number) => {
+    const orderedIds = moveIdInOrderedList(
+      visibleItems.map((row) => row.id),
+      fromIndex,
+      toIndex,
+    );
+    if (!orderedIds || dishReorderBusy) return;
+
+    const previous = items;
     setDishListError('');
-    const result = await moveMenuItemOrderClient(a.id, dir);
+    setItems((prev) => applyOrderedMenuItemSortOrders(prev, orderedIds));
+    setDishReorderBusy(true);
+    const result = await reorderMenuItemsClient(orderedIds);
+    setDishReorderBusy(false);
     if (!result.ok) {
+      setItems(previous);
       setDishListError(mapMenuItemApiError(result.error, result.message, t));
-      return;
     }
-    setItems((prev) => applyAdjacentSortOrderSwap(prev, a.id, b.id));
+  };
+
+  const onDishDragStart = (index: number, event: DragEvent) => {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', String(index));
+    setDishDragFromIndex(index);
+  };
+
+  const onDishDragOver = (index: number, event: DragEvent) => {
+    if (!canReorderDishes || dishReorderBusy) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    if (dishDragOverIndex !== index) setDishDragOverIndex(index);
+  };
+
+  const onDishDrop = (index: number, event: DragEvent) => {
+    event.preventDefault();
+    const raw = event.dataTransfer.getData('text/plain');
+    const fromIndex = Number.parseInt(raw, 10);
+    setDishDragFromIndex(null);
+    setDishDragOverIndex(null);
+    if (!Number.isFinite(fromIndex)) return;
+    void commitDishReorder(fromIndex, index);
+  };
+
+  const onDishDragEnd = () => {
+    setDishDragFromIndex(null);
+    setDishDragOverIndex(null);
   };
 
   const createCategory = async (parentId: string | null) => {
@@ -1378,10 +1416,26 @@ export function MenuManager({
                 return (
                   <div
                     key={item.id}
+                    onDragOver={canReorderDishes ? (event) => onDishDragOver(index, event) : undefined}
+                    onDrop={canReorderDishes ? (event) => onDishDrop(index, event) : undefined}
+                    onDragEnd={canReorderDishes ? onDishDragEnd : undefined}
                     className={`bg-brand-card border rounded-lg px-3 py-2 sm:px-4 flex items-center gap-3 sm:gap-4 transition-colors ${
                       item.available ? 'border-brand-border' : 'border-brand-border/70 bg-brand-bg/40'
+                    } ${
+                      dishDragFromIndex === index ? 'opacity-50' : ''
+                    } ${
+                      dishDragOverIndex === index && dishDragFromIndex !== index
+                        ? 'ring-1 ring-brand-gold/50'
+                        : ''
                     }`}
                   >
+                    {canReorderDishes ? (
+                      <DishDragHandle
+                        label={t.dishSortOrderHint}
+                        disabled={dishReorderBusy}
+                        onDragStart={(event) => onDishDragStart(index, event)}
+                      />
+                    ) : null}
                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
                       {item.image_url ? (
                         <Image
@@ -1426,15 +1480,6 @@ export function MenuManager({
                       </p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                      {canReorderDishes ? (
-                        <DishSortOrderButtons
-                          index={index}
-                          length={visibleItems.length}
-                          moveUpLabel={t.dishMoveUp}
-                          moveDownLabel={t.dishMoveDown}
-                          onMove={(dir) => moveDishRow(index, dir)}
-                        />
-                      ) : null}
                       <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                         EUR{item.price.toFixed(2)}
                       </span>

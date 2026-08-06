@@ -8,6 +8,7 @@ import {
   type PrintAgentSettingsForm,
 } from '@/lib/print-agent-config';
 import { getMessages } from '@/lib/i18n/messages';
+import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { Button } from '@/components/ui/Button';
 import { TimeHmInput } from '@/components/ui/TimeHmInput';
@@ -103,7 +104,7 @@ export function PrintAgentSchedulePanel({
     .replace('{minFreq}', String(L.afterPrintIntervalSec.min));
 
   return (
-    <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-6">
+    <div className={`${printAssistantPanelShell} space-y-6`}>
       <div>
         <h2 className="font-heading text-lg text-brand-text">{t.scheduleTitle}</h2>
         <p className="text-[13px] text-brand-text-muted mt-1 max-w-2xl leading-relaxed">{t.scheduleSubtitle}</p>

@@ -46,7 +46,7 @@ export function printNotifyModeClass(mode: PrintAgentNotificationMode | null): s
     return 'rounded px-1.5 py-0.5 font-semibold text-status-danger bg-[rgb(var(--color-status-danger-border)/0.14)]';
   }
   if (mode === 'realtime') {
-    return 'text-brand-ink';
+    return 'text-brand-text';
   }
   return 'text-brand-muted';
 }

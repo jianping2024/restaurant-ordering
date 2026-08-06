@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PrintJobSummary, PrintJobStatus, PrintJobType } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { Button } from '@/components/ui/Button';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { printJobErrorHint } from '@/lib/print-job-error-hints';
@@ -98,11 +99,11 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
   const failedCount = jobs.filter((j) => j.status === 'failed').length;
 
   return (
-    <section className="rounded-xl border border-brand-border bg-white p-5 shadow-sm">
+    <section className={printAssistantPanelShell}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-brand-ink">{t.queueTitle}</h2>
-          <p className="mt-1 text-sm text-brand-muted">{t.tableHint}</p>
+          <h2 className="text-lg font-semibold text-brand-text">{t.queueTitle}</h2>
+          <p className="mt-1 text-sm text-brand-text-muted">{t.tableHint}</p>
         </div>
         <Button
           type="button"
@@ -133,14 +134,14 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
           </button>
         </div>
       ) : null}
-      {loadError ? <p className="mt-3 text-sm text-red-600">{t.loadError}</p> : null}
+      {loadError ? <p className="mt-3 text-sm mesa-text-danger">{t.loadError}</p> : null}
       {jobs.length === 0 ? (
-        <p className="mt-4 py-2 text-sm text-brand-muted">{t.empty}</p>
+        <p className="mt-4 py-2 text-sm text-brand-text-muted">{t.empty}</p>
       ) : (
         <div className="mt-4 -mx-1 overflow-x-auto">
           <table className="w-full min-w-[580px] text-left text-sm">
             <thead>
-              <tr className="border-b border-brand-border text-brand-muted">
+              <tr className="border-b border-brand-border text-brand-text-muted">
                 <th className="py-2 pr-3 font-medium">{t.colTime}</th>
                 <th className="whitespace-nowrap py-2 pr-3 font-medium">{t.colTable}</th>
                 <th className="py-2 pr-3 font-medium">{t.colType}</th>
@@ -155,7 +156,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                 const hint = printJobErrorHint(row.error_message, lang);
                 return (
                   <tr key={row.id} className="border-b border-brand-border/60 last:border-0">
-                    <td className="whitespace-nowrap py-2 pr-3 text-brand-ink">
+                    <td className="whitespace-nowrap py-2 pr-3 text-brand-text">
                       {new Date(row.created_at).toLocaleString(locale, {
                         month: '2-digit',
                         day: '2-digit',
@@ -164,14 +165,14 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                         second: '2-digit',
                       })}
                     </td>
-                    <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-brand-ink">
+                    <td className="whitespace-nowrap py-2 pr-3 tabular-nums text-brand-text">
                       {row.table_display != null ? (
                         <span>{row.table_display}</span>
                       ) : (
-                        <span className="text-brand-muted">—</span>
+                        <span className="text-brand-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-2 pr-3 text-brand-ink">{labelType(row.type)}</td>
+                    <td className="py-2 pr-3 text-brand-text">{labelType(row.type)}</td>
                     <td className="py-2 pr-3">
                       <span
                         className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium ${
@@ -181,7 +182,7 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                               ? 'mesa-badge-success'
                               : row.status === 'processing'
                                 ? 'mesa-badge-warning'
-                                : 'border-slate-500/30 bg-slate-500/10 text-slate-700'
+                                : 'border-brand-border/60 bg-brand-bg/40 text-brand-text-muted'
                         }`}
                       >
                         {labelStatus(row.status)}
@@ -191,17 +192,17 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                       {row.error_message ? (
                         <div className="space-y-0.5">
                           <p
-                            className="line-clamp-2 text-xs text-red-800/90"
+                            className="line-clamp-2 text-xs mesa-text-danger"
                             title={row.error_message}
                           >
                             {row.error_message}
                           </p>
                           {hint ? (
-                            <p className="text-[11px] leading-snug text-brand-muted">{hint}</p>
+                            <p className="text-[11px] leading-snug text-brand-text-muted">{hint}</p>
                           ) : null}
                         </div>
                       ) : (
-                        <span className="text-brand-muted">—</span>
+                        <span className="text-brand-text-muted">—</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap py-2 pr-3">
@@ -215,10 +216,10 @@ export function PrintJobsQueuePanel({ initialJobs }: { initialJobs: PrintJobSumm
                           {retryingId === row.id ? '…' : t.retryFailed}
                         </button>
                       ) : (
-                        <span className="text-brand-muted">—</span>
+                        <span className="text-brand-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-2 font-mono text-[11px] text-brand-muted">
+                    <td className="py-2 font-mono text-[11px] text-brand-text-muted">
                       {row.id.slice(0, 8)}…
                     </td>
                   </tr>

@@ -1,5 +1,6 @@
 'use client';
 
+import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { PrintAgentDownloadUrls, PublishedPrintAgentFallback } from '@/lib/print-agent-download';
@@ -30,7 +31,7 @@ export function PrintAgentDownloadPanel({
     !releaseReady && publishedFallback && publishedFallback.version !== version;
 
   return (
-    <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-3">
+    <div className={`${printAssistantPanelShell} space-y-3`}>
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-medium text-brand-text">{t.downloadTitle}</h3>

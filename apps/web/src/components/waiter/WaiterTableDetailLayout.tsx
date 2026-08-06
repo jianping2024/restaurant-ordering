@@ -489,7 +489,7 @@ export function WaiterTableOrderedItemsPanel({
   return (
     <WaiterDetailCard>
       <div className={waiterDetailLayout.orderedItemsHeader}>
-        <div className="flex min-w-0 items-center gap-2">
+        <div className={waiterDetailLayout.orderedItemsTitleRow}>
           <WaiterClocheIcon className={`${buttonIcon.md} shrink-0 text-brand-gold`} />
           <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
         </div>

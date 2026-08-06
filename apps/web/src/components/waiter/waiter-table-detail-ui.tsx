@@ -75,9 +75,10 @@ export const waiterDetailLayout = {
    * Ordered-items chrome — sticks under page identity.
    * Opaque card bg so list rows never show through while scrolling.
    */
-  orderedItemsHeader: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex items-center justify-between gap-3 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
-  orderedItemsTitle: waiterFloorType.listBody,
-  orderedItemsHeaderActions: 'flex shrink-0 items-center gap-2',
+  orderedItemsHeader: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex flex-col items-stretch gap-2 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3`,
+  orderedItemsTitleRow: 'flex shrink-0 items-center gap-2',
+  orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
+  orderedItemsHeaderActions: 'flex shrink-0 items-center justify-end gap-2',
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
    * Name + qty + minus left-aligned (not justify-between / not label flex-1).

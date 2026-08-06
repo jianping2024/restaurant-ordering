@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { PrintAgentPairingListItem } from '@/lib/print-agent-pairings-server';
@@ -143,7 +144,7 @@ export function PrintAgentPairingPanel({
   };
 
   return (
-    <div className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 space-y-4">
+    <div className={`${printAssistantPanelShell} space-y-4`}>
       <div>
         <h2 className="font-heading text-lg text-brand-text">{t.pairingTitle}</h2>
         <p className="text-[13px] text-brand-text-muted mt-1 max-w-2xl leading-relaxed">{t.pairingSubtitle}</p>
@@ -166,7 +167,7 @@ export function PrintAgentPairingPanel({
             <button
               type="button"
               onClick={() => void copyPairingCode(freshCode.code)}
-              className="text-[12px] px-3 py-2 rounded-lg border border-brand-border bg-white/80 text-brand-text hover:border-brand-gold/50 transition-colors"
+              className="text-[12px] px-3 py-2 rounded-lg border border-brand-border bg-brand-card text-brand-text hover:border-brand-gold/50 transition-colors"
             >
               {codeCopied ? t.pairingCopied : t.pairingCopyCode}
             </button>

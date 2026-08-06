@@ -5,6 +5,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
+import { printAssistantPanelShell } from '@/components/dashboard/print-assistant/print-assistant-ui';
 import { PrintNotifyModeText } from '@/components/print-agent/PrintNotifyModeText';
 import {
   formatLastSeenRelative,
@@ -102,19 +103,19 @@ export function PrintAgentDevicesPanel({
 
   if (devices.length === 0) {
     return (
-      <section className="rounded-xl border border-brand-border bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-brand-ink">{t.devicesTitle}</h2>
-        <p className="mt-2 text-sm text-brand-muted">{t.devicesEmpty}</p>
+      <section className={printAssistantPanelShell}>
+        <h2 className="text-lg font-semibold text-brand-text">{t.devicesTitle}</h2>
+        <p className="mt-2 text-sm text-brand-text-muted">{t.devicesEmpty}</p>
       </section>
     );
   }
 
   return (
-    <section className="rounded-xl border border-brand-border bg-white p-5 shadow-sm">
+    <section className={printAssistantPanelShell}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-brand-ink">{t.devicesTitle}</h2>
-          <p className="mt-1 text-sm text-brand-muted">{t.devicesSubtitle}</p>
+          <h2 className="text-lg font-semibold text-brand-text">{t.devicesTitle}</h2>
+          <p className="mt-1 text-sm text-brand-text-muted">{t.devicesSubtitle}</p>
         </div>
         <Button
           type="button"
@@ -127,7 +128,7 @@ export function PrintAgentDevicesPanel({
           {t.devicesRefresh}
         </Button>
       </div>
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm mesa-text-danger">{error}</p> : null}
       <ul className="modal-scroll mt-4 max-h-96 space-y-3 overflow-y-auto">
         {devices.map((d) => {
           const online = isPrintAgentDeviceOnline(d.last_seen, nowMs);
@@ -147,24 +148,24 @@ export function PrintAgentDevicesPanel({
                     className={`inline-block h-2 w-2 rounded-full ${online ? 'bg-emerald-500' : 'bg-gray-400'}`}
                     aria-hidden
                   />
-                  <span className="font-medium text-brand-ink">{name}</span>
-                  <span className={online ? 'text-emerald-700' : 'text-brand-muted'}>
+                  <span className="font-medium text-brand-text">{name}</span>
+                  <span className={online ? 'mesa-text-success' : 'text-brand-text-muted'}>
                     {online ? t.devicesOnline : t.devicesOffline}
                   </span>
                   {d.schedule_open === false && online ? (
-                    <span className="text-amber-700">{t.devicesOutsideSchedule}</span>
+                    <span className="mesa-text-warning">{t.devicesOutsideSchedule}</span>
                   ) : null}
                 </div>
                 <button
                   type="button"
                   disabled={revokingId === d.id}
                   onClick={() => setRevokeTarget(d)}
-                  className="text-sm text-red-600 hover:underline disabled:opacity-50"
+                  className="text-sm mesa-text-danger hover:underline disabled:opacity-50"
                 >
                   {t.devicesRevoke}
                 </button>
               </div>
-              <dl className="mt-2 grid gap-1 text-brand-muted sm:grid-cols-2">
+              <dl className="mt-2 grid gap-1 text-brand-text-muted sm:grid-cols-2">
                 <div>
                   <dt className="inline">{t.devicesNotificationMode}: </dt>
                   <dd className="inline">
@@ -173,16 +174,16 @@ export function PrintAgentDevicesPanel({
                 </div>
                 <div>
                   <dt className="inline">{t.devicesLastSeen}: </dt>
-                  <dd className="inline text-brand-ink">
+                  <dd className="inline text-brand-text">
                     {formatLastSeenRelative(d.last_seen, locale, nowMs)}
                   </dd>
                 </div>
                 <div>
                   <dt className="inline">{t.devicesVersion}: </dt>
-                  <dd className="inline text-brand-ink">
+                  <dd className="inline text-brand-text">
                     {d.agent_version || '—'}
                     {versionBehind ? (
-                      <span className="ml-1 text-amber-700">
+                      <span className="ml-1 mesa-text-warning">
                         ({t.devicesVersionBehind.replace('{ver}', recommendedVersion!)})
                       </span>
                     ) : null}
@@ -190,7 +191,7 @@ export function PrintAgentDevicesPanel({
                 </div>
                 <div>
                   <dt className="inline">{t.devicesMappedStations}: </dt>
-                  <dd className="inline text-brand-ink">
+                  <dd className="inline text-brand-text">
                     {d.mapped_station_labels?.length
                       ? d.mapped_station_labels.join(' · ')
                       : d.mapped_station_count != null && d.mapped_station_count > 0
@@ -200,7 +201,7 @@ export function PrintAgentDevicesPanel({
                 </div>
                 <div>
                   <dt className="inline">{t.devicesLastPrint}: </dt>
-                  <dd className="inline text-brand-ink">
+                  <dd className="inline text-brand-text">
                     {d.last_print_at
                       ? `${formatLastSeenRelative(d.last_print_at, locale, nowMs)} — ${
                           d.last_print_status === 'done'

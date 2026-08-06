@@ -43,6 +43,7 @@ export async function POST(req: Request) {
     ownerEmail: result.ownerEmail,
     printLocale: result.printLocale,
     countryCode: result.countryCode,
+    buffetServiceMode: result.buffetServiceMode,
     checkinCredential: result.checkinCredential,
     /** Store persists this into license-state; pack must not ship it. */
     leaseSecret,

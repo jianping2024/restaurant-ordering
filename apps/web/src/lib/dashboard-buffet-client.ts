@@ -110,19 +110,6 @@ export async function updateBuffetFridayPolicyClient(buffetFridayWeekendFrom: st
   });
 }
 
-export async function updateBuffetServiceModeClient(
-  mode: import('@/lib/buffet-service-mode').BuffetServiceMode,
-) {
-  return requestPatch('/api/dashboard/buffet', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      resource: 'service_mode',
-      buffet_service_mode: mode,
-    }),
-  });
-}
-
 export async function deleteBuffetClient(id: string) {
   return requestPatch('/api/dashboard/buffet', {
     method: 'DELETE',

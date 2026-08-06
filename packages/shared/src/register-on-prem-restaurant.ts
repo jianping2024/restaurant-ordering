@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  parseBuffetServiceMode,
+  type BuffetServiceMode,
+} from './buffet-service-mode';
 import { normalizeCountryCode } from './country-code';
 import {
   isLicenseCalendarDate,
@@ -11,6 +15,8 @@ import type { PrintLocale } from './create-restaurant';
 export type RegisterOnPremRestaurantInput = {
   name: string;
   ownerEmail: string;
+  /** Required — platform chooses classic vs sushi at create time. */
+  buffetServiceMode: BuffetServiceMode;
   printLocale?: PrintLocale;
   countryCode?: string;
   slug?: string;
@@ -50,6 +56,9 @@ export function validateRegisterOnPremRestaurantInput(
   }
   const countryCode = normalizeCountryCode(input.countryCode ?? 'PT');
   if (!countryCode) return { ok: false, error: 'invalid_country_code', status: 400 };
+  if (!parseBuffetServiceMode(input.buffetServiceMode)) {
+    return { ok: false, error: 'invalid_buffet_service_mode', status: 400 };
+  }
   if (input.licenseValidUntil != null && input.licenseValidUntil !== '') {
     if (!isLicenseCalendarDate(input.licenseValidUntil)) {
       return { ok: false, error: 'invalid_license_date', status: 400 };
@@ -76,6 +85,7 @@ export async function registerOnPremRestaurant(
   const ownerEmail = input.ownerEmail.trim().toLowerCase();
   const printLocale = input.printLocale ?? 'pt';
   const countryCode = normalizeCountryCode(input.countryCode ?? 'PT')!;
+  const buffetServiceMode = parseBuffetServiceMode(input.buffetServiceMode)!;
   const slug = (input.slug || '').trim() || defaultRestaurantSlug(name);
   let licenseValidUntil: string | null = null;
   if (input.licenseValidUntil != null && input.licenseValidUntil !== '') {
@@ -95,6 +105,7 @@ export async function registerOnPremRestaurant(
       owner_email: ownerEmail,
       print_locale: printLocale,
       country_code: countryCode,
+      buffet_service_mode: buffetServiceMode,
       deployment_mode: 'on_prem',
       license_valid_until: licenseValidUntil,
     })

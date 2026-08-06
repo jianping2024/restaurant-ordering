@@ -16,12 +16,10 @@ import {
   toggleBuffetPriceRuleActive,
   updateBuffet,
   updateBuffetFridayPolicy,
-  updateBuffetServiceMode,
   updateBuffetPriceRule,
   updateBuffetTimeSlot,
   upsertBuffetCalendarOverrides,
 } from '@/lib/dashboard-buffet-server';
-import { parseBuffetServiceMode } from '@/lib/buffet-service-mode';
 
 export const runtime = 'nodejs';
 
@@ -123,13 +121,10 @@ export async function PATCH(req: Request) {
   }
 
   if (body.resource === 'service_mode') {
-    const mode = parseBuffetServiceMode(body.buffet_service_mode);
-    if (!mode) {
-      return NextResponse.json({ error: 'invalid_service_mode' }, { status: 400 });
-    }
-    const result = await updateBuffetServiceMode(ctx.admin, ctx.restaurantId, mode);
-    if ('error' in result) return dashboardApiError(result);
-    return jsonData({ patch: result.patch });
+    return NextResponse.json(
+      { error: 'service_mode_ops_only', message: 'Buffet service mode can only be changed in Ops.' },
+      { status: 403 },
+    );
   }
 
   if (typeof body.id !== 'string') {

@@ -6,7 +6,7 @@ import { normalizeOrderRadiusMeters } from '@/lib/order-radius';
 import {
   normalizeBuffetServiceMode,
   type BuffetServiceMode,
-} from '@/lib/buffet-service-mode';
+} from '@mesa/shared';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 export type OrderRestaurantMode = 'guest' | 'staff';

@@ -92,6 +92,7 @@ export async function POST(req: Request) {
       ownerEmail: claimJson.ownerEmail,
       printLocale: claimJson.printLocale,
       countryCode: claimJson.countryCode,
+      buffetServiceMode: claimJson.buffetServiceMode,
       checkinCredential: claimJson.checkinCredential,
       licenseValidUntil: claimJson.licenseValidUntil ?? null,
       suspendedAt: claimJson.suspendedAt ?? null,

@@ -12,8 +12,8 @@ import {
   sessionOrderedQtyForMenuItem,
   type SushiLimitError,
 } from '@/lib/sushi-buffet-limits';
-import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
-import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
+import type { BuffetServiceMode } from '@mesa/shared';
+import { normalizeBuffetServiceMode } from '@mesa/shared';
 import type { Order, OrderItem } from '@/types';
 import {
   APPEND_CART_MAX_LINES,

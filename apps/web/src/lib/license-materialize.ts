@@ -5,6 +5,7 @@ import {
   decideLicenseMaterialize,
   ensurePrintAgentStaff,
   isRestaurantSuspended,
+  normalizeBuffetServiceMode,
   type DeploymentMode,
 } from '@mesa/shared';
 import {
@@ -165,6 +166,7 @@ export async function syncOnPremLicenseFromPlatform(
       leaseToken?: string;
       lease?: { server_time: string; lease_until: string; valid_until: string | null };
       licenseValidUntil?: string | null;
+      buffetServiceMode?: string | null;
     };
     if (!res.ok || !json.leaseToken || !json.lease) {
       await applyLicenseMaterialize(admin, restaurantId);
@@ -178,6 +180,7 @@ export async function syncOnPremLicenseFromPlatform(
         license_checked_at: json.lease.server_time,
         license_lease_until: json.lease.lease_until,
         license_lease_token: json.leaseToken,
+        buffet_service_mode: normalizeBuffetServiceMode(json.buffetServiceMode),
       })
       .eq('id', restaurantId);
 
@@ -196,6 +199,8 @@ export type PlatformClaimSnapshot = {
   ownerEmail: string;
   printLocale: string;
   countryCode: string;
+  /** Platform buffet_service_mode; missing/invalid → classic. */
+  buffetServiceMode?: string | null;
   checkinCredential: string;
   licenseValidUntil: string | null;
   suspendedAt: string | null;
@@ -248,6 +253,7 @@ export async function applyOnPremClaim(
     owner_email: snap.ownerEmail,
     print_locale: snap.printLocale || 'pt',
     country_code: snap.countryCode || 'PT',
+    buffet_service_mode: normalizeBuffetServiceMode(snap.buffetServiceMode),
     deployment_mode: 'on_prem' as const,
     license_valid_until: snap.licenseValidUntil,
     license_checked_at: snap.lease.server_time,

@@ -200,11 +200,10 @@ export const MESSAGES = {
       fridayWeekendRulesHint:
         '请在下方价目矩阵中为「周末」列填写晚市价格；周五晚上达到起算时刻后会自动使用这些价格。',
       serviceModeTitle: '自助业态',
-      serviceModeHint:
-        '经典自助：菜品无限量。寿司自助：可在菜单里为部分菜设置每人限量与超额单价；客人只能点到免费额度，员工代点可超额并按超额价计费。',
+      serviceModeOpsOnlyHint:
+        '由平台 Ops 在开店或餐厅详情中设定。经典自助：菜品无限量。寿司自助：可在菜单里为部分菜设置每人限量与超额单价。',
       serviceModeClassic: '经典自助',
       serviceModeSushi: '寿司自助',
-      serviceModeSaved: '已保存自助业态',
       saving: '保存中…',
       kindHelpHoliday: '仅当该日在「特殊日期」中标记为「节假日」时适用（会覆盖同日的周末判断）。',
       kindHelpSpecial: '仅当该日在「特殊日期」中标记为「活动日」时适用（如店庆；与「节假日」分开定价）。',
@@ -1625,11 +1624,10 @@ export const MESSAGES = {
       fridayWeekendRulesHint:
         'Set Weekend column prices in the grid below; Friday evening uses them after the cutoff time.',
       serviceModeTitle: 'Buffet service mode',
-      serviceModeHint:
-        'Classic: unlimited dishes. Sushi: set per-person limits and overage prices on menu items; guests stop at the free allowance, staff can add more at the overage price.',
+      serviceModeOpsOnlyHint:
+        'Set by platform Ops at store creation or restaurant edit. Classic: unlimited dishes. Sushi: optional per-person limits and overage prices on menu items.',
       serviceModeClassic: 'Classic buffet',
       serviceModeSushi: 'Sushi buffet',
-      serviceModeSaved: 'Buffet service mode saved',
       saving: 'Saving…',
       kindHelpHoliday: 'Only when that day is marked Holiday under Special dates (overrides weekend on that day).',
       kindHelpSpecial: 'Only when that day is marked Event day under Special dates (priced separately from holiday).',
@@ -2594,11 +2592,10 @@ export const MESSAGES = {
       fridayWeekendRulesHint:
         'Preencha a coluna Fim de semana na grelha; a sexta a noite usa esses precos apos a hora indicada.',
       serviceModeTitle: 'Modo de buffet',
-      serviceModeHint:
-        'Classico: pratos ilimitados. Sushi: limites por pessoa e preco extra no menu; clientes param na franquia, staff pode ultrapassar ao preco extra.',
+      serviceModeOpsOnlyHint:
+        'Definido pela plataforma Ops na criacao ou edicao do restaurante. Classico: pratos ilimitados. Sushi: limites por pessoa e preco extra no menu.',
       serviceModeClassic: 'Buffet classico',
       serviceModeSushi: 'Buffet sushi',
-      serviceModeSaved: 'Modo de buffet guardado',
       saving: 'A guardar…',
       kindHelpHoliday: 'So quando o dia esta marcado Feriado em Datas especiais (substitui fim de semana nesse dia).',
       kindHelpSpecial: 'So quando o dia esta marcado Dia de evento em Datas especiais (preco separado de feriado).',

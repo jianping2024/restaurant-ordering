@@ -4,6 +4,8 @@ import { FormEvent, useState } from 'react';
 import {
   RESTAURANT_COUNTRY_OPTIONS,
   RESTAURANT_FEATURE_DEFINITIONS,
+  normalizeBuffetServiceMode,
+  type BuffetServiceMode,
   type PrintLocale,
   type ResolvedRestaurantFeatureFlags,
   type RestaurantCountryCode,
@@ -21,6 +23,7 @@ type Props = {
     phone: string | null;
     printLocale: PrintLocale;
     countryCode: RestaurantCountryCode;
+    buffetServiceMode: BuffetServiceMode;
     featureFlags: ResolvedRestaurantFeatureFlags;
   };
 };
@@ -41,6 +44,9 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
   const [phone, setPhone] = useState(initial.phone || '');
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initial.printLocale);
   const [countryCode, setCountryCode] = useState<RestaurantCountryCode>(initial.countryCode);
+  const [buffetServiceMode, setBuffetServiceMode] = useState<BuffetServiceMode>(
+    normalizeBuffetServiceMode(initial.buffetServiceMode),
+  );
   const [flags, setFlags] = useState(initial.featureFlags);
 
   const [error, setError] = useState('');
@@ -67,6 +73,7 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
           phone: phone.trim() || null,
           printLocale,
           countryCode,
+          buffetServiceMode,
           featureFlags: flags,
           confirmSlugChange: confirmSlugChange || undefined,
         }),
@@ -186,6 +193,48 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
             ))}
           </select>
         </label>
+
+        <fieldset className="sm:col-span-2 space-y-2">
+          <legend className="text-sm text-zinc-400">自助业态（仅 Ops 可改）</legend>
+          <div className="flex flex-wrap gap-2">
+            <label
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
+                readOnly ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+              } ${
+                buffetServiceMode === 'classic'
+                  ? 'border-amber-500/60 bg-amber-500/10 text-zinc-100'
+                  : 'border-zinc-700 text-zinc-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="buffetServiceMode"
+                disabled={readOnly}
+                checked={buffetServiceMode === 'classic'}
+                onChange={() => setBuffetServiceMode('classic')}
+              />
+              经典自助
+            </label>
+            <label
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm ${
+                readOnly ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'
+              } ${
+                buffetServiceMode === 'sushi'
+                  ? 'border-amber-500/60 bg-amber-500/10 text-zinc-100'
+                  : 'border-zinc-700 text-zinc-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="buffetServiceMode"
+                disabled={readOnly}
+                checked={buffetServiceMode === 'sushi'}
+                onChange={() => setBuffetServiceMode('sushi')}
+              />
+              寿司自助
+            </label>
+          </div>
+        </fieldset>
 
         <fieldset className="sm:col-span-2">
           <legend className="text-sm text-zinc-400">功能开关（运营覆盖，优先于店主自助设置）</legend>

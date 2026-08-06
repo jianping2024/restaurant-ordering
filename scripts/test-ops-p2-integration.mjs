@@ -127,6 +127,7 @@ async function main() {
         email: `${TAG}-owner@test.mesa.local`,
         password: PASSWORD,
         printLocale: 'pt',
+        buffetServiceMode: 'classic',
       });
       if (!createdRestaurant.ok) {
         record('create ephemeral restaurant', false, createdRestaurant.error);

@@ -6,7 +6,7 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import {
   normalizeBuffetServiceMode,
   type BuffetServiceMode,
-} from '@/lib/buffet-service-mode';
+} from '@mesa/shared';
 
 export type BuffetDashboardData = {
   buffets: Buffet[];
@@ -444,20 +444,4 @@ export async function updateBuffetFridayPolicy(
       buffet_friday_weekend_from: restaurantRes.buffet_friday_weekend_from,
     },
   };
-}
-
-export async function updateBuffetServiceMode(
-  admin: SupabaseClient,
-  restaurantId: string,
-  mode: BuffetServiceMode,
-): Promise<BuffetMutationResult> {
-  const { error } = await admin
-    .from('restaurants')
-    .update({ buffet_service_mode: mode })
-    .eq('id', restaurantId);
-  if (error) return { error: 'update_failed', message: error.message, status: 500 };
-
-  const restaurantRes = await loadRestaurantBuffetSettingsSlice(admin, restaurantId);
-  if ('error' in restaurantRes) return restaurantRes;
-  return { patch: { buffet_service_mode: restaurantRes.buffet_service_mode } };
 }

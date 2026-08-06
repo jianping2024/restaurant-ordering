@@ -1,6 +1,6 @@
 import type { Order } from '@/types';
 import { aggregateBuffetHeadcountForOrders, totalGuestsFromCounts } from '@/lib/buffet-order';
-import { isSushiBuffetMode } from '@/lib/buffet-service-mode';
+import { isSushiBuffetMode } from '@mesa/shared';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 
 export type SushiLimitMenuFields = {

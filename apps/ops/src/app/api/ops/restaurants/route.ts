@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   createRestaurantWithOwner,
   isDeploymentMode,
+  parseBuffetServiceMode,
   registerOnPremRestaurant,
   type PrintLocale,
 } from '@mesa/shared';
@@ -152,11 +153,17 @@ export async function POST(req: Request) {
     countryCode?: string;
     slug?: string;
     licenseValidUntil?: string | null;
+    buffetServiceMode?: string;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const buffetServiceMode = parseBuffetServiceMode(body.buffetServiceMode);
+  if (!buffetServiceMode) {
+    return NextResponse.json({ error: 'invalid_buffet_service_mode' }, { status: 400 });
   }
 
   const deploymentMode = body.deploymentMode ?? 'cloud';
@@ -172,6 +179,7 @@ export async function POST(req: Request) {
       countryCode: body.countryCode,
       slug: body.slug,
       licenseValidUntil: body.licenseValidUntil,
+      buffetServiceMode,
     });
     if (!result.ok) {
       return NextResponse.json(
@@ -188,6 +196,7 @@ export async function POST(req: Request) {
       metadata: {
         slug: result.slug,
         deploymentMode: 'on_prem',
+        buffetServiceMode,
       },
     });
     return NextResponse.json({
@@ -205,6 +214,7 @@ export async function POST(req: Request) {
     printLocale: body.printLocale,
     countryCode: body.countryCode,
     slug: body.slug,
+    buffetServiceMode,
   });
 
   if (!result.ok) {
@@ -220,7 +230,12 @@ export async function POST(req: Request) {
     targetType: 'restaurant',
     targetId: result.restaurantId,
     restaurantId: result.restaurantId,
-    metadata: { slug: result.slug, ownerId: result.ownerId, deploymentMode: 'cloud' },
+    metadata: {
+      slug: result.slug,
+      ownerId: result.ownerId,
+      deploymentMode: 'cloud',
+      buffetServiceMode,
+    },
   });
 
   return NextResponse.json({

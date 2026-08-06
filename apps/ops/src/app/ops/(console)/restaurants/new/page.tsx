@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import {
+  DEFAULT_BUFFET_SERVICE_MODE,
   RESTAURANT_COUNTRY_OPTIONS,
   todayLisbonCalendarDate,
+  type BuffetServiceMode,
   type DeploymentMode,
   type PrintLocale,
   type RestaurantCountryCode,
@@ -15,6 +17,8 @@ import { DatePicker, PasswordInput } from '@mesa/ui';
 export default function NewRestaurantPage() {
   const router = useRouter();
   const [deploymentMode, setDeploymentMode] = useState<DeploymentMode>('cloud');
+  const [buffetServiceMode, setBuffetServiceMode] =
+    useState<BuffetServiceMode>(DEFAULT_BUFFET_SERVICE_MODE);
   const [restaurantName, setRestaurantName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,6 +43,7 @@ export default function NewRestaurantPage() {
         credentials: 'include',
         body: JSON.stringify({
           deploymentMode,
+          buffetServiceMode,
           restaurantName,
           email,
           password: onPrem ? undefined : password,
@@ -104,6 +109,44 @@ export default function NewRestaurantPage() {
             />
             本地安装（on-prem）
           </label>
+        </fieldset>
+        <fieldset className="space-y-2">
+          <legend className="text-sm text-zinc-400">自助业态</legend>
+          <p className="text-xs text-zinc-500">
+            开店时选定；仅 Ops 可改。经典：菜品无限量。寿司：菜单可配置每人限量与超额价。
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <label
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm cursor-pointer ${
+                buffetServiceMode === 'classic'
+                  ? 'border-amber-500/60 bg-amber-500/10 text-zinc-100'
+                  : 'border-zinc-700 text-zinc-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="buffetServiceMode"
+                checked={buffetServiceMode === 'classic'}
+                onChange={() => setBuffetServiceMode('classic')}
+              />
+              经典自助
+            </label>
+            <label
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm cursor-pointer ${
+                buffetServiceMode === 'sushi'
+                  ? 'border-amber-500/60 bg-amber-500/10 text-zinc-100'
+                  : 'border-zinc-700 text-zinc-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="buffetServiceMode"
+                checked={buffetServiceMode === 'sushi'}
+                onChange={() => setBuffetServiceMode('sushi')}
+              />
+              寿司自助
+            </label>
+          </div>
         </fieldset>
         <label className="block text-sm text-zinc-400">
           餐厅名称

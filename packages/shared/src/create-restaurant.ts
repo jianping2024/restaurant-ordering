@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  parseBuffetServiceMode,
+  type BuffetServiceMode,
+} from './buffet-service-mode';
 import { normalizeCountryCode } from './country-code';
 import { ensurePrintAgentStaff } from './print-agent-staff';
 import { defaultRestaurantSlug } from './slug';
@@ -9,6 +13,8 @@ export type CreateRestaurantInput = {
   name: string;
   email: string;
   password: string;
+  /** Required — platform chooses classic vs sushi at create time. */
+  buffetServiceMode: BuffetServiceMode;
   printLocale?: PrintLocale;
   countryCode?: string;
   slug?: string;
@@ -54,6 +60,9 @@ export function validateCreateRestaurantInput(input: CreateRestaurantInput): Cre
   if (!countryCode) {
     return { ok: false, error: 'invalid_country_code', status: 400 };
   }
+  if (!parseBuffetServiceMode(input.buffetServiceMode)) {
+    return { ok: false, error: 'invalid_buffet_service_mode', status: 400 };
+  }
   return null;
 }
 
@@ -69,6 +78,7 @@ export async function createRestaurantWithOwner(
   const pwd = input.password;
   const printLocale = input.printLocale ?? 'pt';
   const countryCode = normalizeCountryCode(input.countryCode ?? 'PT')!;
+  const buffetServiceMode = parseBuffetServiceMode(input.buffetServiceMode)!;
   const slug = (input.slug || '').trim() || defaultRestaurantSlug(name);
 
   const { data: userData, error: createUserError } = await admin.auth.admin.createUser({
@@ -104,6 +114,7 @@ export async function createRestaurantWithOwner(
       owner_email: mail,
       print_locale: printLocale,
       country_code: countryCode,
+      buffet_service_mode: buffetServiceMode,
       deployment_mode: 'cloud',
     })
     .select('id')

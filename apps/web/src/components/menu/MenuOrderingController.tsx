@@ -69,8 +69,8 @@ import {
   sessionOrderedQtyForMenuItem,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
-import { normalizeBuffetServiceMode } from '@/lib/buffet-service-mode';
-import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import { normalizeBuffetServiceMode } from '@mesa/shared';
+import type { BuffetServiceMode } from '@mesa/shared';
 import {
   resolveGuestOrderingNoticeForDisplay,
   type GuestOrderingNotice,

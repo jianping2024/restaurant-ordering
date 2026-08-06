@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   mergeRestaurantFeatureFlagsJsonb,
   normalizeCountryCode,
+  parseBuffetServiceMode,
   parseFeatureFlagsRecord,
   type PrintLocale,
 } from '@mesa/shared';
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { data: existing, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, address, phone, print_locale, country_code, feature_flags, deployment_mode',
+      'id, name, slug, plan, address, phone, print_locale, country_code, buffet_service_mode, feature_flags, deployment_mode',
     )
     .eq('id', id)
     .maybeSingle();
@@ -91,6 +92,20 @@ export async function PATCH(req: Request, context: RouteContext) {
     if (countryCode !== existing.country_code) {
       updates.country_code = countryCode;
       metadata.countryCode = { from: existing.country_code, to: countryCode };
+    }
+  }
+
+  if (body.buffetServiceMode !== undefined) {
+    const buffetServiceMode = parseBuffetServiceMode(body.buffetServiceMode);
+    if (!buffetServiceMode) {
+      return NextResponse.json({ error: 'invalid_buffet_service_mode' }, { status: 400 });
+    }
+    if (buffetServiceMode !== existing.buffet_service_mode) {
+      updates.buffet_service_mode = buffetServiceMode;
+      metadata.buffetServiceMode = {
+        from: existing.buffet_service_mode,
+        to: buffetServiceMode,
+      };
     }
   }
 

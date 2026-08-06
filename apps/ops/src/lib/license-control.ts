@@ -10,6 +10,7 @@ import {
   isRestaurantSuspended,
   mintCheckinSecret,
   mintInstallCode,
+  normalizeBuffetServiceMode,
   normalizeOfflineGraceDays,
   offlineGraceDaysToMs,
   resolveLicenseCalendarDate,
@@ -292,6 +293,7 @@ export type ClaimInstallResult =
       ownerEmail: string;
       printLocale: string;
       countryCode: string;
+      buffetServiceMode: string;
       checkinCredential: string;
       licenseValidUntil: string | null;
       suspendedAt: string | null;
@@ -332,7 +334,7 @@ export async function claimOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
+      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, buffet_service_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -418,6 +420,7 @@ export async function claimOnPremInstallation(
     ownerEmail: restaurant.owner_email,
     printLocale: restaurant.print_locale || 'pt',
     countryCode: restaurant.country_code || 'PT',
+    buffetServiceMode: normalizeBuffetServiceMode(restaurant.buffet_service_mode),
     checkinCredential,
     licenseValidUntil: restaurant.license_valid_until,
     suspendedAt: restaurant.suspended_at,
@@ -435,6 +438,7 @@ export type CheckInResult =
       leaseToken: string;
       lease: ReturnType<typeof buildLicenseLeaseClaims>;
       desiredSuspended: boolean;
+      buffetServiceMode: string;
     }
   | { ok: false; error: string; status: number; detail?: string };
 
@@ -461,7 +465,7 @@ export async function checkInOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, deployment_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
+      'id, deployment_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days, buffet_service_mode',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -512,5 +516,6 @@ export async function checkInOnPremInstallation(
     leaseToken,
     lease,
     desiredSuspended,
+    buffetServiceMode: normalizeBuffetServiceMode(restaurant.buffet_service_mode),
   };
 }

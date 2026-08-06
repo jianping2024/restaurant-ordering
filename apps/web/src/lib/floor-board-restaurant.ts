@@ -1,4 +1,4 @@
-import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import type { BuffetServiceMode } from '@mesa/shared';
 
 /**
  * Restaurant fields the floor board and embedded staff ordering panel need.

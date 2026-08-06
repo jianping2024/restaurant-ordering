@@ -5,7 +5,7 @@ import {
   isSushiBuffetMode,
   normalizeBuffetServiceMode,
   parseBuffetServiceMode,
-} from '@/lib/buffet-service-mode';
+} from './buffet-service-mode';
 
 describe('buffet service mode', () => {
   it('defaults unknown to classic', () => {

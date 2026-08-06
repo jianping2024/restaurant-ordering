@@ -3,7 +3,7 @@
 // ============================================================
 
 export type { RestaurantTable, RestaurantTableRow } from '@/lib/restaurant-tables';
-import type { BuffetServiceMode } from '@/lib/buffet-service-mode';
+import type { BuffetServiceMode } from '@mesa/shared';
 export type { BuffetServiceMode };
 
 export type Plan = 'free' | 'pro';
@@ -83,7 +83,8 @@ export interface Restaurant {
   buffet_friday_weekend_from?: string | null;
   /**
    * classic = unlimited menu after open; sushi = optional per-person limits + overage price.
-   * See `lib/buffet-service-mode.ts`.
+   * Set only via Ops (create / restaurant edit); dashboard is read-only.
+   * See `@mesa/shared` buffet-service-mode.
    */
   buffet_service_mode?: BuffetServiceMode;
   /** Owner toggles for optional product modules; see `src/lib/restaurant-features.ts`. */

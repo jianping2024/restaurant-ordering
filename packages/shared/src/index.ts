@@ -9,6 +9,15 @@ export {
   printAgentLabel,
 } from './brand';
 export {
+  BUFFET_SERVICE_MODES,
+  DEFAULT_BUFFET_SERVICE_MODE,
+  isBuffetServiceMode,
+  isSushiBuffetMode,
+  normalizeBuffetServiceMode,
+  parseBuffetServiceMode,
+  type BuffetServiceMode,
+} from './buffet-service-mode';
+export {
   createRestaurantWithOwner,
   validateCreateRestaurantInput,
   type CreateRestaurantInput,

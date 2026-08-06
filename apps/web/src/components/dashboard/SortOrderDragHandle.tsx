@@ -10,10 +10,10 @@ const handleClass =
   'h-8 w-6 shrink-0 inline-flex items-center justify-center rounded-md text-brand-text-muted hover:text-brand-gold cursor-grab active:cursor-grabbing select-none touch-none disabled:opacity-35 disabled:cursor-not-allowed';
 
 /**
- * Sole dish-list reorder control: @hello-pangea/dnd drag handle
- * (desktop + touch; no HTML5 draggable).
+ * Sole list-reorder control for dashboard sort_order surfaces:
+ * @hello-pangea/dnd drag handle (desktop + touch; no HTML5 draggable / ↑↓).
  */
-export function DishDragHandle({ label, disabled, dragHandleProps }: Props) {
+export function SortOrderDragHandle({ label, disabled, dragHandleProps }: Props) {
   return (
     <span
       {...(disabled ? undefined : dragHandleProps)}

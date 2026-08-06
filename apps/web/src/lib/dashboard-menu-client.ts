@@ -245,11 +245,11 @@ export async function updatePrintStationClient(stationId: string, input: PrintSt
   });
 }
 
-export async function movePrintStationOrderClient(stationId: string, direction: -1 | 1) {
+export async function reorderPrintStationsClient(orderedIds: string[]) {
   return request<{ ok: true }>('/api/dashboard/menu/print-stations', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'move_order', station_id: stationId, direction }),
+    body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 

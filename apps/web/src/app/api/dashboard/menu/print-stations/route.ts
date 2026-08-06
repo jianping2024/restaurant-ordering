@@ -8,7 +8,7 @@ import {
   createPrintStation,
   deletePrintStation,
   parsePrintStationBody,
-  movePrintStationOrder,
+  reorderPrintStations,
   updatePrintStation,
 } from '@/lib/dashboard-menu-server';
 
@@ -36,21 +36,14 @@ export async function PATCH(req: Request) {
   const body = await readJsonBody(req);
   if (body instanceof NextResponse) return body;
 
-  if (body.action === 'move_order') {
-    if (typeof body.station_id !== 'string') {
-      return NextResponse.json({ error: 'invalid_station_id' }, { status: 400 });
-    }
-    if (body.direction !== -1 && body.direction !== 1) {
-      return NextResponse.json({ error: 'invalid_direction' }, { status: 400 });
-    }
-    const result = await movePrintStationOrder(
-      ctx.admin,
-      ctx.restaurantId,
-      body.station_id,
-      body.direction,
-    );
+  if (body.action === 'reorder') {
+    const result = await reorderPrintStations(ctx.admin, ctx.restaurantId, body.ordered_ids);
     if ('error' in result) return menuApiError(result);
     return NextResponse.json({ ok: true });
+  }
+
+  if (typeof body.action === 'string') {
+    return NextResponse.json({ error: 'unknown_action' }, { status: 400 });
   }
 
   if (typeof body.station_id !== 'string') {

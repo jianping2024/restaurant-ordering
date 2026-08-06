@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  applyAdjacentSortOrderSwap,
+  applyOrderedSortOrders,
+  applyPermutedSortOrders,
   compareSortOrder,
+  moveIdInOrderedList,
   nextSortOrder,
-  resolveAdjacentSortOrderSwap,
+  orderedIdsMatchSiblingSet,
+  permuteSortOrderAssignments,
   sortBySortOrderThenCreatedAt,
-  swapAdjacentSortOrders,
 } from './sort-order';
 
 describe('nextSortOrder', () => {
@@ -40,54 +42,71 @@ describe('compareSortOrder', () => {
   });
 });
 
-describe('swapAdjacentSortOrders', () => {
-  it('exchanges sort orders', () => {
-    assert.deepEqual(swapAdjacentSortOrders({ sort_order: 2 }, { sort_order: 5 }), {
-      sortOrderA: 5,
-      sortOrderB: 2,
-    });
+describe('moveIdInOrderedList', () => {
+  it('moves an id to a new index', () => {
+    assert.deepEqual(moveIdInOrderedList(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
+  });
+
+  it('returns null when unchanged or out of range', () => {
+    assert.equal(moveIdInOrderedList(['a', 'b'], 0, 0), null);
+    assert.equal(moveIdInOrderedList(['a', 'b'], -1, 1), null);
   });
 });
 
-describe('resolveAdjacentSortOrderSwap', () => {
-  it('exchanges distinct sort orders', () => {
-    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 2 }, { sort_order: 5 }, 1), {
-      sortOrderA: 5,
-      sortOrderB: 2,
-    });
+describe('orderedIdsMatchSiblingSet', () => {
+  it('accepts a full permutation of sibling ids', () => {
+    assert.equal(
+      orderedIdsMatchSiblingSet([{ id: 'a' }, { id: 'b' }], ['b', 'a']),
+      true,
+    );
   });
 
-  it('breaks ties when moving down', () => {
-    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 3 }, { sort_order: 3 }, 1), {
-      sortOrderA: 4,
-      sortOrderB: 3,
-    });
-  });
-
-  it('breaks ties when moving up', () => {
-    assert.deepEqual(resolveAdjacentSortOrderSwap({ sort_order: 3 }, { sort_order: 3 }, -1), {
-      sortOrderA: 2,
-      sortOrderB: 3,
-    });
+  it('rejects extras, missing ids, or duplicates', () => {
+    assert.equal(orderedIdsMatchSiblingSet([{ id: 'a' }], ['a', 'b']), false);
+    assert.equal(orderedIdsMatchSiblingSet([{ id: 'a' }, { id: 'b' }], ['a', 'a']), false);
   });
 });
 
-describe('applyAdjacentSortOrderSwap', () => {
-  it('updates only the swapped pair', () => {
+describe('applyOrderedSortOrders', () => {
+  it('assigns zero-based order from orderedIds', () => {
     const rows = [
-      { id: 'a', sort_order: 3 },
-      { id: 'b', sort_order: 4 },
-      { id: 'c', sort_order: 5 },
+      { id: 'a', sort_order: 0 },
+      { id: 'b', sort_order: 1 },
+      { id: 'c', sort_order: 2 },
     ];
-    const next = applyAdjacentSortOrderSwap(rows, 'b', 'a');
     assert.deepEqual(
-      next.map((row) => [row.id, row.sort_order]),
+      applyOrderedSortOrders(rows, ['c', 'a', 'b']).map((row) => [row.id, row.sort_order]),
       [
-        ['a', 4],
-        ['b', 3],
-        ['c', 5],
+        ['a', 1],
+        ['b', 2],
+        ['c', 0],
       ],
     );
+  });
+});
+
+describe('applyPermutedSortOrders / permuteSortOrderAssignments', () => {
+  it('reuses existing order values in sorted order', () => {
+    const rows = [
+      { id: 'a', sort_order: 10 },
+      { id: 'b', sort_order: 30 },
+      { id: 'c', sort_order: 20 },
+      { id: 'x', sort_order: 99 },
+    ];
+    assert.deepEqual(
+      applyPermutedSortOrders(rows, ['b', 'a', 'c']).map((row) => [row.id, row.sort_order]),
+      [
+        ['a', 20],
+        ['b', 10],
+        ['c', 30],
+        ['x', 99],
+      ],
+    );
+    assert.deepEqual(permuteSortOrderAssignments(rows.slice(0, 3), ['b', 'a', 'c']), [
+      { id: 'b', sort_order: 10 },
+      { id: 'a', sort_order: 20 },
+      { id: 'c', sort_order: 30 },
+    ]);
   });
 });
 

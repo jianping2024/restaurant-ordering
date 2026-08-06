@@ -21,10 +21,9 @@ import { parseTableIdParam } from '@/lib/restaurant-tables';
 import {
   compareMenuItemsForDisplay,
   menuItemSiblingsInScope,
-  orderedIdsMatchSiblingSet,
 } from '@/lib/menu-item-order';
-import { persistMenuItemSortOrders } from '@/lib/sort-order-persist';
-import { nextSortOrder, sortBySortOrderThenCreatedAt, swapAdjacentSortOrders, type SortOrderMoveDirection } from '@/lib/sort-order';
+import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
+import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
@@ -519,7 +518,13 @@ export async function reorderMenuItems(
 
   const scopeMax =
     siblingRows.length === 0 ? -1 : Math.max(...siblingRows.map((row) => row.sort_order));
-  const persisted = await persistMenuItemSortOrders(admin, restaurantId, orderedIds, scopeMax);
+  const persisted = await persistZeroBasedSortOrders(
+    admin,
+    'menu_items',
+    restaurantId,
+    orderedIds,
+    scopeMax,
+  );
   if ('error' in persisted) {
     return { error: persisted.error, message: persisted.message, status: 500 };
   }
@@ -788,56 +793,54 @@ export async function updatePrintStation(
   return { station: data as PrintStation };
 }
 
-export async function movePrintStationOrder(
+export async function reorderPrintStations(
   admin: SupabaseClient,
   restaurantId: string,
-  stationId: string,
-  direction: SortOrderMoveDirection,
+  orderedIdsRaw: unknown,
 ): Promise<{ ok: true } | MenuMutationError> {
-  const id = parseTableIdParam(stationId);
-  if (!id) {
-    return { error: 'invalid_station_id', status: 400 };
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  if (orderedIdsRaw.some((id) => typeof id !== 'string')) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw as string[]) {
+    const id = parseTableIdParam(raw);
+    if (!id) {
+      return { error: 'invalid_ordered_ids', status: 400 };
+    }
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
   }
 
   const { data: rows, error: listError } = await admin
     .from('print_stations')
-    .select('id, sort_order, created_at')
+    .select('id, sort_order')
     .eq('restaurant_id', restaurantId);
   if (listError) {
     return { error: 'print_stations_query_failed', message: listError.message, status: 500 };
   }
 
-  const ordered = sortBySortOrderThenCreatedAt(rows ?? []);
-  const index = ordered.findIndex((row) => row.id === id);
-  if (index < 0) {
-    return { error: 'station_not_found', status: 404 };
+  const siblingRows = rows ?? [];
+  if (!orderedIdsMatchSiblingSet(siblingRows, orderedIds)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
-  const neighborIndex = index + direction;
-  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
-    return { error: 'move_out_of_range', status: 400 };
-  }
-
-  const a = ordered[index];
-  const b = ordered[neighborIndex];
-  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
-
-  const { error: e1 } = await admin
-    .from('print_stations')
-    .update({ sort_order: sortOrderA })
-    .eq('id', a.id)
-    .eq('restaurant_id', restaurantId);
-  if (e1) {
-    return { error: 'update_failed', message: e1.message, status: 500 };
-  }
-
-  const { error: e2 } = await admin
-    .from('print_stations')
-    .update({ sort_order: sortOrderB })
-    .eq('id', b.id)
-    .eq('restaurant_id', restaurantId);
-  if (e2) {
-    return { error: 'update_failed', message: e2.message, status: 500 };
+  const scopeMax =
+    siblingRows.length === 0 ? -1 : Math.max(...siblingRows.map((row) => row.sort_order));
+  const persisted = await persistZeroBasedSortOrders(
+    admin,
+    'print_stations',
+    restaurantId,
+    orderedIds,
+    scopeMax,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
   }
 
   return { ok: true };

@@ -54,27 +54,22 @@ export async function updateTableGroupClient(input: {
   });
 }
 
-export async function moveTableGroupOrderClient(groupId: string, direction: -1 | 1) {
+export async function reorderTableGroupsClient(orderedIds: string[]) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'move_order', group_id: groupId, direction }),
+    body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
 
-export async function moveTableGroupMemberOrderClient(
-  groupId: string,
-  tableId: string,
-  direction: -1 | 1,
-) {
+export async function reorderTableGroupMembersClient(groupId: string, orderedIds: string[]) {
   return request<TableGroupsResponse>('/api/dashboard/table-groups', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      action: 'move_member_order',
+      action: 'reorder_members',
       group_id: groupId,
-      table_id: tableId,
-      direction,
+      ordered_ids: orderedIds,
     }),
   });
 }

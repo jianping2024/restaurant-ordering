@@ -45,7 +45,7 @@ import {
 } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import {
-  applyOrderedMenuItemSortOrders,
+  applyOrderedSortOrders,
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
   moveIdInOrderedList,
@@ -53,7 +53,7 @@ import {
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
-import { DishDragHandle } from '@/components/dashboard/DishDragHandle';
+import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
   isMenuManagerTab,
@@ -690,7 +690,7 @@ export function MenuManager({
 
     const previous = items;
     setDishListError('');
-    setItems((prev) => applyOrderedMenuItemSortOrders(prev, orderedIds));
+    setItems((prev) => applyOrderedSortOrders(prev, orderedIds));
     setDishReorderBusy(true);
     const result = await reorderMenuItemsClient(orderedIds);
     setDishReorderBusy(false);
@@ -1422,7 +1422,7 @@ export function MenuManager({
                               style={draggableProvided.draggableProps.style}
                             >
                               {canReorderDishes ? (
-                                <DishDragHandle
+                                <SortOrderDragHandle
                                   label={t.dishSortOrderHint}
                                   disabled={dishReorderBusy}
                                   dragHandleProps={draggableProvided.dragHandleProps}

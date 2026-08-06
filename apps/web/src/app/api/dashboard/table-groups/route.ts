@@ -7,8 +7,8 @@ import {
 import {
   createTableGroup,
   deleteTableGroup,
-  moveTableGroupMemberOrder,
-  moveTableGroupOrder,
+  reorderTableGroupMembers,
+  reorderTableGroups,
   updateTableGroup,
 } from '@/lib/dashboard-table-groups-server';
 
@@ -47,42 +47,25 @@ export async function PATCH(req: Request) {
   const body = await readJsonBody(req);
   if (body instanceof NextResponse) return body;
 
-  if (body.action === 'move_order') {
-    if (typeof body.group_id !== 'string') {
-      return NextResponse.json({ error: 'invalid_group_id' }, { status: 400 });
-    }
-    if (body.direction !== -1 && body.direction !== 1) {
-      return NextResponse.json({ error: 'invalid_direction' }, { status: 400 });
-    }
-    const result = await moveTableGroupOrder(
+  if (body.action === 'reorder') {
+    const result = await reorderTableGroups(ctx.admin, ctx.restaurantId, body.ordered_ids);
+    if ('error' in result) return dashboardApiError(result);
+    return jsonGroups(result.payload);
+  }
+
+  if (body.action === 'reorder_members') {
+    const result = await reorderTableGroupMembers(
       ctx.admin,
       ctx.restaurantId,
       body.group_id,
-      body.direction,
+      body.ordered_ids,
     );
     if ('error' in result) return dashboardApiError(result);
     return jsonGroups(result.payload);
   }
 
-  if (body.action === 'move_member_order') {
-    if (typeof body.group_id !== 'string') {
-      return NextResponse.json({ error: 'invalid_group_id' }, { status: 400 });
-    }
-    if (typeof body.table_id !== 'string') {
-      return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
-    }
-    if (body.direction !== -1 && body.direction !== 1) {
-      return NextResponse.json({ error: 'invalid_direction' }, { status: 400 });
-    }
-    const result = await moveTableGroupMemberOrder(
-      ctx.admin,
-      ctx.restaurantId,
-      body.group_id,
-      body.table_id,
-      body.direction,
-    );
-    if ('error' in result) return dashboardApiError(result);
-    return jsonGroups(result.payload);
+  if (typeof body.action === 'string') {
+    return NextResponse.json({ error: 'unknown_action' }, { status: 400 });
   }
 
   if (typeof body.group_id !== 'string' || typeof body.name !== 'string') {

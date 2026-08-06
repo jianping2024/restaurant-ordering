@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -11,10 +13,14 @@ import { countPrintStationBindings, getPrintStationDisplayName } from '@/lib/pri
 import {
   createPrintStationClient,
   deletePrintStationClient,
-  movePrintStationOrderClient,
+  reorderPrintStationsClient,
   updatePrintStationClient,
 } from '@/lib/dashboard-menu-client';
-import { applyAdjacentSortOrderSwap, compareSortOrderThenCreatedAt } from '@/lib/sort-order';
+import {
+  applyOrderedSortOrders,
+  compareSortOrderThenCreatedAt,
+  moveIdInOrderedList,
+} from '@/lib/sort-order';
 
 interface PrintStationsManagerProps {
   restaurantId: string;
@@ -47,13 +53,14 @@ export function PrintStationsManager({
   const tm = getMessages(lang).menuManager;
 
   const [stations, setStations] = useState<PrintStation[]>(() =>
-    [...initialStations].sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at)),
+    [...initialStations].sort(compareSortOrderThenCreatedAt),
   );
 
   useEffect(() => {
     onStationsChange?.(stations);
   }, [stations, onStationsChange]);
   const [error, setError] = useState('');
+  const [reorderBusy, setReorderBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<PrintStation | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -73,6 +80,7 @@ export function PrintStationsManager({
   };
 
   const deleteTargetBindings = deleteTarget ? bindingsForStation(deleteTarget.id) : null;
+  const canReorder = stations.length >= 2;
 
   const openStationCreateModal = () => {
     setEditingStation(null);
@@ -127,9 +135,7 @@ export function PrintStationsManager({
         const result = await createPrintStationClient(input);
         if (!result.ok) throw new Error(result.error);
         setStations((prev) =>
-          [...prev, result.data.station].sort(
-            (a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at),
-          ),
+          [...prev, result.data.station].sort(compareSortOrderThenCreatedAt),
         );
       }
       resetStationModal();
@@ -140,20 +146,33 @@ export function PrintStationsManager({
     }
   };
 
-  const moveRow = async (index: number, dir: -1 | 1) => {
-    const j = index + dir;
-    if (j < 0 || j >= stations.length) return;
-    const a = stations[index];
-    const b = stations[j];
-    setError('');
-    const result = await movePrintStationOrderClient(a.id, dir);
-    if (!result.ok) {
-      setError(t.saveFail);
-      return;
-    }
-    setStations((prev) =>
-      [...applyAdjacentSortOrderSwap(prev, a.id, b.id)].sort(compareSortOrderThenCreatedAt),
+  const commitReorder = async (fromIndex: number, toIndex: number) => {
+    const orderedIds = moveIdInOrderedList(
+      stations.map((row) => row.id),
+      fromIndex,
+      toIndex,
     );
+    if (!orderedIds || reorderBusy) return;
+
+    const previous = stations;
+    setError('');
+    setStations((prev) =>
+      [...applyOrderedSortOrders(prev, orderedIds)].sort(compareSortOrderThenCreatedAt),
+    );
+    setReorderBusy(true);
+    const result = await reorderPrintStationsClient(orderedIds);
+    setReorderBusy(false);
+    if (!result.ok) {
+      setStations(previous);
+      setError(t.saveFail);
+    }
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!canReorder || reorderBusy) return;
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    void commitReorder(result.source.index, result.destination.index);
   };
 
   const runDelete = async () => {
@@ -191,127 +210,81 @@ export function PrintStationsManager({
         </div>
       ) : (
         <>
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-brand-border text-left text-brand-text-muted">
-                  <th className="px-4 py-3 font-medium" scope="col">
-                    {t.colName}
-                  </th>
-                  <th className="px-4 py-3 font-medium" scope="col">
-                    {t.colBindings}
-                  </th>
-                  <th className="px-4 py-3 font-medium text-right w-[14rem]" scope="col">
-                    {t.colActions}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {stations.map((row, index) => (
-                  <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
-                    <td className="px-4 py-3 min-w-[10rem]">
-                      <p className="text-brand-text font-medium">
-                        {getPrintStationDisplayName(row, lang)}
-                      </p>
-                      {row.name_pt !== getPrintStationDisplayName(row, lang) ? (
-                        <p className="text-[12px] text-brand-text-muted mt-0.5">PT: {row.name_pt}</p>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-3 text-[13px] text-brand-text-muted">{bindingsLabel(row.id)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center justify-end gap-1.5">
-                        <button
-                          type="button"
-                          aria-label={t.moveUp}
-                          title={t.moveUp}
-                          disabled={index === 0}
-                          onClick={() => moveRow(index, -1)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={t.moveDown}
-                          title={t.moveDown}
-                          disabled={index === stations.length - 1}
-                          onClick={() => moveRow(index, 1)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted hover:text-brand-gold disabled:opacity-35"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openStationEditModal(row)}
-                          className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm px-2 py-1"
-                        >
-                          {tm.edit}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(row)}
-                          className="mesa-text-danger hover:opacity-90 transition-colors text-sm px-2 py-1"
-                        >
-                          {tm.remove}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="hidden md:block text-[12px] text-brand-text-muted mt-2">{t.sortOrderHint}</p>
-
-          <div className="md:hidden space-y-2">
-            {stations.map((row, index) => (
-              <div
-                key={row.id}
-                className="bg-brand-card border border-brand-border rounded-xl px-4 py-4 flex flex-col gap-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-brand-text font-medium">{getPrintStationDisplayName(row, lang)}</p>
-                  <p className="text-[12px] text-brand-text-muted mt-0.5">{bindingsLabel(row.id)}</p>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="print-station-reorder" isDropDisabled={!canReorder || reorderBusy}>
+              {(droppableProvided) => (
+                <div
+                  ref={droppableProvided.innerRef}
+                  {...droppableProvided.droppableProps}
+                  className="space-y-2"
+                >
+                  {stations.map((row, index) => {
+                    const dragDisabled = !canReorder || reorderBusy;
+                    return (
+                      <Draggable
+                        key={row.id}
+                        draggableId={row.id}
+                        index={index}
+                        isDragDisabled={dragDisabled}
+                      >
+                        {(draggableProvided, snapshot) => (
+                          <div
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                            className={`bg-brand-card border border-brand-border rounded-xl px-3 py-3 sm:px-4 flex items-center gap-3 transition-shadow ${
+                              snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 z-10' : ''
+                            }`}
+                            style={draggableProvided.draggableProps.style}
+                          >
+                            {canReorder ? (
+                              <SortOrderDragHandle
+                                label={t.sortOrderHint}
+                                disabled={reorderBusy}
+                                dragHandleProps={draggableProvided.dragHandleProps}
+                              />
+                            ) : null}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-brand-text font-medium">
+                                {getPrintStationDisplayName(row, lang)}
+                              </p>
+                              {row.name_pt !== getPrintStationDisplayName(row, lang) ? (
+                                <p className="text-[12px] text-brand-text-muted mt-0.5">
+                                  PT: {row.name_pt}
+                                </p>
+                              ) : null}
+                              <p className="text-[12px] text-brand-text-muted mt-0.5">
+                                {bindingsLabel(row.id)}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => openStationEditModal(row)}
+                                className="text-brand-text-muted hover:text-brand-gold transition-colors text-sm px-2 py-1"
+                              >
+                                {tm.edit}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(row)}
+                                className="mesa-text-danger hover:opacity-90 transition-colors text-sm px-2 py-1"
+                              >
+                                {tm.remove}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {droppableProvided.placeholder}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 border-t border-brand-border pt-3">
-                  <button
-                    type="button"
-                    aria-label={t.moveUp}
-                    disabled={index === 0}
-                    onClick={() => moveRow(index, -1)}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t.moveDown}
-                    disabled={index === stations.length - 1}
-                    onClick={() => moveRow(index, 1)}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-md border border-brand-border/70 text-brand-text-muted disabled:opacity-35"
-                  >
-                    ↓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openStationEditModal(row)}
-                    className="text-brand-text-muted hover:text-brand-gold text-sm ml-auto"
-                  >
-                    {tm.edit}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(row)}
-                    className="mesa-text-danger text-sm"
-                  >
-                    {tm.remove}
-                  </button>
-                </div>
-              </div>
-            ))}
-            <p className="text-[12px] text-brand-text-muted px-1">{t.sortOrderHint}</p>
-          </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+          {canReorder ? (
+            <p className="text-[12px] text-brand-text-muted mt-2 px-1">{t.sortOrderHint}</p>
+          ) : null}
         </>
       )}
 

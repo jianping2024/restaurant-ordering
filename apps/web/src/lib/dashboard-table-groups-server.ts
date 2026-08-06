@@ -10,10 +10,10 @@ import {
 import { parseTableIdParam, sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 import {
   nextSortOrder,
-  resolveAdjacentSortOrderSwap,
-  swapAdjacentSortOrders,
-  type SortOrderMoveDirection,
+  orderedIdsMatchSiblingSet,
+  permuteSortOrderAssignments,
 } from '@/lib/sort-order';
+import { persistAssignedSortOrders, persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import type { MutationError } from '@/lib/dashboard-api-shared';
 import { uniqueViolation } from '@/lib/dashboard-api-shared';
 
@@ -254,61 +254,83 @@ export async function updateTableGroup(
   return { payload };
 }
 
-export async function moveTableGroupOrder(
+export async function reorderTableGroups(
   admin: SupabaseClient,
   restaurantId: string,
-  groupId: string,
-  direction: SortOrderMoveDirection,
+  orderedIdsRaw: unknown,
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
-  const id = parseTableIdParam(groupId);
-  if (!id) return { error: 'invalid_group_id', status: 400 };
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  if (orderedIdsRaw.some((id) => typeof id !== 'string')) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw as string[]) {
+    const id = parseTableIdParam(raw);
+    if (!id) return { error: 'invalid_ordered_ids', status: 400 };
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
 
   const existing = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in existing) return existing;
 
-  const ordered = sortTableGroups(existing.groups);
-  const index = ordered.findIndex((group) => group.id === id);
-  if (index < 0) return { error: 'group_not_found', status: 404 };
-
-  const neighborIndex = index + direction;
-  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
-    return { error: 'move_out_of_range', status: 400 };
+  if (!orderedIdsMatchSiblingSet(existing.groups, orderedIds)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
-  const a = ordered[index];
-  const b = ordered[neighborIndex];
-  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
-
-  const { error: e1 } = await admin
-    .from('restaurant_table_groups')
-    .update({ sort_order: sortOrderA })
-    .eq('id', a.id)
-    .eq('restaurant_id', restaurantId);
-  if (e1) return { error: 'update_failed', message: e1.message, status: 500 };
-
-  const { error: e2 } = await admin
-    .from('restaurant_table_groups')
-    .update({ sort_order: sortOrderB })
-    .eq('id', b.id)
-    .eq('restaurant_id', restaurantId);
-  if (e2) return { error: 'update_failed', message: e2.message, status: 500 };
+  const scopeMax =
+    existing.groups.length === 0
+      ? -1
+      : Math.max(...existing.groups.map((row) => row.sort_order));
+  const persisted = await persistZeroBasedSortOrders(
+    admin,
+    'restaurant_table_groups',
+    restaurantId,
+    orderedIds,
+    scopeMax,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
+  }
 
   const payload = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in payload) return payload;
   return { payload };
 }
 
-export async function moveTableGroupMemberOrder(
+export async function reorderTableGroupMembers(
   admin: SupabaseClient,
   restaurantId: string,
-  groupId: string,
-  tableId: string,
-  direction: SortOrderMoveDirection,
+  groupIdRaw: unknown,
+  orderedIdsRaw: unknown,
 ): Promise<{ payload: TableGroupsPayload } | MutationError> {
-  const gid = parseTableIdParam(groupId);
-  const tid = parseTableIdParam(tableId);
+  if (typeof groupIdRaw !== 'string') {
+    return { error: 'invalid_group_id', status: 400 };
+  }
+  const gid = parseTableIdParam(groupIdRaw);
   if (!gid) return { error: 'invalid_group_id', status: 400 };
-  if (!tid) return { error: 'invalid_table_id', status: 400 };
+
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  if (orderedIdsRaw.some((id) => typeof id !== 'string')) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw as string[]) {
+    const id = parseTableIdParam(raw);
+    if (!id) return { error: 'invalid_ordered_ids', status: 400 };
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
 
   const existing = await loadRestaurantTableGroups(admin, restaurantId);
   if ('error' in existing) return existing;
@@ -320,8 +342,8 @@ export async function moveTableGroupMemberOrder(
   const memberTableIds = existing.members
     .filter((member) => member.group_id === gid)
     .map((member) => member.table_id);
-  if (!memberTableIds.includes(tid)) {
-    return { error: 'member_not_in_group', status: 400 };
+  if (memberTableIds.length === 0) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
   const { data: tableRows, error: tablesError } = await admin
@@ -335,32 +357,28 @@ export async function moveTableGroupMemberOrder(
     return { error: 'tables_query_failed', message: tablesError.message, status: 500 };
   }
 
-  const ordered = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
-  const index = ordered.findIndex((row) => row.id === tid);
-  if (index < 0) return { error: 'table_not_found', status: 404 };
-
-  const neighborIndex = index + direction;
-  if (neighborIndex < 0 || neighborIndex >= ordered.length) {
-    return { error: 'move_out_of_range', status: 400 };
+  const siblings = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
+  const assignments = permuteSortOrderAssignments(siblings, orderedIds);
+  if (!assignments) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
   }
 
-  const a = ordered[index];
-  const b = ordered[neighborIndex];
-  const { sortOrderA, sortOrderB } = resolveAdjacentSortOrderSwap(a, b, direction);
+  const allTables = await loadActiveRestaurantTableRows(admin, restaurantId);
+  if ('error' in allTables) return allTables;
+  const restaurantMax =
+    allTables.length === 0 ? -1 : Math.max(...allTables.map((row) => row.sort_order));
+  const tempBase = restaurantMax + 1;
 
-  const { error: e1 } = await admin
-    .from('restaurant_tables')
-    .update({ sort_order: sortOrderA })
-    .eq('id', a.id)
-    .eq('restaurant_id', restaurantId);
-  if (e1) return { error: 'update_failed', message: e1.message, status: 500 };
-
-  const { error: e2 } = await admin
-    .from('restaurant_tables')
-    .update({ sort_order: sortOrderB })
-    .eq('id', b.id)
-    .eq('restaurant_id', restaurantId);
-  if (e2) return { error: 'update_failed', message: e2.message, status: 500 };
+  const persisted = await persistAssignedSortOrders(
+    admin,
+    'restaurant_tables',
+    restaurantId,
+    assignments,
+    tempBase,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
+  }
 
   const [groupsPayload, tables] = await Promise.all([
     loadRestaurantTableGroups(admin, restaurantId),

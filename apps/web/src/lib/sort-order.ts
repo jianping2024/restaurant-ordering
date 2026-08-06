@@ -1,6 +1,3 @@
-/** -1 = move toward list start (up), 1 = move toward list end (down). */
-export type SortOrderMoveDirection = -1 | 1;
-
 /** Next sort_order for a new row appended after existing siblings in the same scope. */
 export function nextSortOrder(existing: ReadonlyArray<{ sort_order: number }>): number {
   if (existing.length === 0) return 0;
@@ -27,46 +24,79 @@ export function sortBySortOrderThenCreatedAt<T extends { sort_order: number; cre
   return [...rows].sort(compareSortOrderThenCreatedAt);
 }
 
-/** Exchange sort_order between two adjacent rows (requires distinct values in scope). */
-export function swapAdjacentSortOrders(
-  a: { sort_order: number },
-  b: { sort_order: number },
-): { sortOrderA: number; sortOrderB: number } {
-  return { sortOrderA: b.sort_order, sortOrderB: a.sort_order };
+/** Move one id within an ordered list; returns null when indexes are invalid or unchanged. */
+export function moveIdInOrderedList(
+  ids: readonly string[],
+  fromIndex: number,
+  toIndex: number,
+): string[] | null {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= ids.length ||
+    toIndex >= ids.length
+  ) {
+    return null;
+  }
+  const next = [...ids];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved!);
+  return next;
+}
+
+/** True when orderedIds is exactly the sibling id set (same length, no extras/dupes). */
+export function orderedIdsMatchSiblingSet(
+  siblings: readonly { id: string }[],
+  orderedIds: readonly string[],
+): boolean {
+  if (siblings.length !== orderedIds.length || orderedIds.length === 0) return false;
+  if (new Set(orderedIds).size !== orderedIds.length) return false;
+  const siblingIds = new Set(siblings.map((row) => row.id));
+  return orderedIds.every((id) => siblingIds.has(id));
+}
+
+/** Optimistic UI: assign sort_order from orderedIds index for matching rows. */
+export function applyOrderedSortOrders<T extends { id: string; sort_order: number }>(
+  rows: readonly T[],
+  orderedIds: readonly string[],
+): T[] {
+  const orderIndex = new Map(orderedIds.map((id, index) => [id, index]));
+  return rows.map((row) => {
+    const nextOrder = orderIndex.get(row.id);
+    if (nextOrder === undefined || row.sort_order === nextOrder) return row;
+    return { ...row, sort_order: nextOrder };
+  });
 }
 
 /**
- * Target sort_order after swapping adjacent rows in a sorted list.
- * When values tie, uses direction so the move is not a no-op.
+ * Optimistic UI for member-table reorder: reassign the existing sort_order values
+ * (sorted ascending) onto the new id order without inventing new numbers.
  */
-export function resolveAdjacentSortOrderSwap(
-  a: { sort_order: number },
-  b: { sort_order: number },
-  direction: SortOrderMoveDirection,
-): { sortOrderA: number; sortOrderB: number } {
-  const swapped = swapAdjacentSortOrders(a, b);
-  if (swapped.sortOrderA !== a.sort_order || swapped.sortOrderB !== b.sort_order) {
-    return swapped;
-  }
-  if (direction === -1) {
-    return { sortOrderA: b.sort_order - 1, sortOrderB: b.sort_order };
-  }
-  return { sortOrderA: b.sort_order + 1, sortOrderB: b.sort_order };
+export function applyPermutedSortOrders<T extends { id: string; sort_order: number }>(
+  rows: readonly T[],
+  orderedIds: readonly string[],
+): T[] {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const scoped = orderedIds
+    .map((id) => byId.get(id))
+    .filter((row): row is T => row != null);
+  if (scoped.length !== orderedIds.length) return [...rows];
+  const orders = [...scoped.map((row) => row.sort_order)].sort((a, b) => a - b);
+  const assigned = new Map(orderedIds.map((id, index) => [id, orders[index]!]));
+  return rows.map((row) => {
+    const nextOrder = assigned.get(row.id);
+    if (nextOrder === undefined || row.sort_order === nextOrder) return row;
+    return { ...row, sort_order: nextOrder };
+  });
 }
 
-/** Optimistic UI: swap sort_order for two rows by id. */
-export function applyAdjacentSortOrderSwap<T extends { id: string; sort_order: number }>(
-  rows: readonly T[],
-  itemIdA: string,
-  itemIdB: string,
-): T[] {
-  const a = rows.find((row) => row.id === itemIdA);
-  const b = rows.find((row) => row.id === itemIdB);
-  if (!a || !b) return [...rows];
-  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(a, b);
-  return rows.map((row) => {
-    if (row.id === itemIdA) return { ...row, sort_order: sortOrderA };
-    if (row.id === itemIdB) return { ...row, sort_order: sortOrderB };
-    return row;
-  });
+/** Build { id, sort_order } assignments by permuting existing order values onto orderedIds. */
+export function permuteSortOrderAssignments(
+  siblings: readonly { id: string; sort_order: number }[],
+  orderedIds: readonly string[],
+): { id: string; sort_order: number }[] | null {
+  if (!orderedIdsMatchSiblingSet(siblings, orderedIds)) return null;
+  const orders = [...siblings.map((row) => row.sort_order)].sort((a, b) => a - b);
+  return orderedIds.map((id, index) => ({ id, sort_order: orders[index]! }));
 }

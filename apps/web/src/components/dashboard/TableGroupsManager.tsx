@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
-import { DishSortOrderButtons } from '@/components/dashboard/DishSortOrderButtons';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { TableGroupMemberOrderModal } from '@/components/dashboard/TableGroupMemberOrderModal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -12,8 +13,8 @@ import {
   createTableGroupClient,
   deleteTableGroupClient,
   mapTableGroupApiError,
-  moveTableGroupMemberOrderClient,
-  moveTableGroupOrderClient,
+  reorderTableGroupMembersClient,
+  reorderTableGroupsClient,
   updateTableGroupClient,
 } from '@/lib/dashboard-table-groups-client';
 import {
@@ -30,6 +31,11 @@ import {
   type RestaurantTableGroup,
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
+import {
+  applyOrderedSortOrders,
+  applyPermutedSortOrders,
+  moveIdInOrderedList,
+} from '@/lib/sort-order';
 import { sortRestaurantTables, type RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type GroupForm = {
@@ -68,7 +74,10 @@ export function TableGroupsManager({
 
   const [groups, setGroups] = useState<RestaurantTableGroup[]>(() => sortTableGroups(initialGroups));
   const [members, setMembers] = useState<RestaurantTableGroupMember[]>(initialMembers);
+  const [localTables, setLocalTables] = useState<RestaurantTableRow[]>(tables);
   const [error, setError] = useState('');
+  const [groupReorderBusy, setGroupReorderBusy] = useState(false);
+  const [memberReorderBusy, setMemberReorderBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<RestaurantTableGroup | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -79,7 +88,11 @@ export function TableGroupsManager({
   const [orderTarget, setOrderTarget] = useState<RestaurantTableGroup | null>(null);
   const [orderError, setOrderError] = useState('');
 
-  const sortedTables = useMemo(() => sortRestaurantTables(tables), [tables]);
+  useEffect(() => {
+    setLocalTables(tables);
+  }, [tables]);
+
+  const sortedTables = useMemo(() => sortRestaurantTables(localTables), [localTables]);
   const tableIdsByGroup = useMemo(() => groupTableIdsByGroupId(members), [members]);
   const tableById = useMemo(() => new Map(sortedTables.map((row) => [row.id, row])), [sortedTables]);
   const groupIdByTableId = useMemo(() => buildTableGroupIdByTableId(members), [members]);
@@ -98,6 +111,8 @@ export function TableGroupsManager({
     return listGroupMemberTablesInOrder(tableIdsByGroup[orderTarget.id] || [], sortedTables);
   }, [orderTarget, sortedTables, tableIdsByGroup]);
 
+  const canReorderGroups = groups.length >= 2;
+
   const assignStatusLabel = (tableId: string) => {
     const groupId = groupIdByTableId[tableId];
     if (!groupId) return t.assignUngrouped;
@@ -114,6 +129,7 @@ export function TableGroupsManager({
     const sorted = sortTableGroups(nextGroups);
     setGroups(sorted);
     setMembers(nextMembers);
+    if (nextTables) setLocalTables(nextTables);
     onGroupsChange(sorted, nextMembers, nextTables);
   };
 
@@ -155,6 +171,7 @@ export function TableGroupsManager({
   };
 
   const closeMemberOrder = () => {
+    if (memberReorderBusy) return;
     setOrderTarget(null);
     setOrderError('');
   };
@@ -202,23 +219,58 @@ export function TableGroupsManager({
     }
   };
 
-  const moveRow = async (index: number, dir: -1 | 1) => {
-    const j = index + dir;
-    if (j < 0 || j >= groups.length) return;
-    const a = groups[index];
+  const commitGroupReorder = async (fromIndex: number, toIndex: number) => {
+    const orderedIds = moveIdInOrderedList(
+      groups.map((row) => row.id),
+      fromIndex,
+      toIndex,
+    );
+    if (!orderedIds || groupReorderBusy) return;
+
+    const previousGroups = groups;
+    const previousMembers = members;
     setError('');
-    const result = await moveTableGroupOrderClient(a.id, dir);
+    setGroups(sortTableGroups(applyOrderedSortOrders(groups, orderedIds)));
+    setGroupReorderBusy(true);
+    const result = await reorderTableGroupsClient(orderedIds);
+    setGroupReorderBusy(false);
     if (!result.ok) {
+      setGroups(previousGroups);
+      setMembers(previousMembers);
       setError(mapTableGroupApiError(result.error, result.message, t));
       return;
     }
     publish(result.data.groups, result.data.members);
   };
 
-  const moveMemberRow = async (groupId: string, tableId: string, dir: -1 | 1) => {
+  const onGroupDragEnd = (result: DropResult) => {
+    if (!canReorderGroups || groupReorderBusy) return;
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    void commitGroupReorder(result.source.index, result.destination.index);
+  };
+
+  const commitMemberReorder = async (fromIndex: number, toIndex: number) => {
+    if (!orderTarget) return;
+    const orderedIds = moveIdInOrderedList(
+      orderTargetTables.map((row) => row.id),
+      fromIndex,
+      toIndex,
+    );
+    if (!orderedIds || memberReorderBusy) return;
+
+    const previousTables = localTables;
+    const previousMembers = members;
+    const previousGroups = groups;
     setOrderError('');
-    const result = await moveTableGroupMemberOrderClient(groupId, tableId, dir);
+    setLocalTables(applyPermutedSortOrders(localTables, orderedIds));
+    setMemberReorderBusy(true);
+    const result = await reorderTableGroupMembersClient(orderTarget.id, orderedIds);
+    setMemberReorderBusy(false);
     if (!result.ok) {
+      setLocalTables(previousTables);
+      setMembers(previousMembers);
+      setGroups(previousGroups);
       setOrderError(mapTableGroupApiError(result.error, result.message, t));
       return;
     }
@@ -262,92 +314,116 @@ export function TableGroupsManager({
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-brand-border bg-brand-card">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-brand-border text-left text-brand-text-muted">
-                <th className="px-4 py-3 font-medium">{t.colName}</th>
-                <th className="hidden md:table-cell px-4 py-3 font-medium">{t.colRemarks}</th>
-                <th className="px-4 py-3 font-medium">{t.colTables}</th>
-                <th className="px-4 py-3 font-medium text-right w-[14rem]">{t.colActions}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((row, index) => {
-                const preview = memberPreviewForGroup(row.id);
-                const canReorder = preview.totalCount >= 2;
-                return (
-                  <tr key={row.id} className="border-b border-brand-border/80 last:border-0">
-                    <td className="px-4 py-3 font-medium text-brand-text">{row.name}</td>
-                    <td className="hidden md:table-cell px-4 py-3 text-brand-text-muted max-w-[12rem] truncate">
-                      {row.remarks || '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      {preview.totalCount === 0 ? (
-                        <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
-                      ) : (
-                        <div className="space-y-1.5">
-                          <span className="text-[12px] text-brand-text-muted">
-                            {t.tablesSummary.replace('{count}', String(preview.totalCount))}
-                          </span>
-                          <div className="flex flex-wrap gap-1">
-                            {preview.chips.map((chip) => (
-                              <span
-                                key={chip.id}
-                                className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
-                              >
-                                {chip.display_name}
-                              </span>
-                            ))}
-                            {preview.overflowCount > 0 ? (
-                              <span className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
-                                {t.tablesOverflow.replace('{count}', String(preview.overflowCount))}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center justify-end gap-1.5">
-                        <DishSortOrderButtons
-                          index={index}
-                          length={groups.length}
-                          moveUpLabel={t.moveUp}
-                          moveDownLabel={t.moveDown}
-                          onMove={(dir) => void moveRow(index, dir)}
-                        />
-                        {canReorder ? (
-                          <button
-                            type="button"
-                            onClick={() => openMemberOrder(row)}
-                            className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1 whitespace-nowrap"
+        <>
+          <DragDropContext onDragEnd={onGroupDragEnd}>
+            <Droppable droppableId="table-group-reorder" isDropDisabled={!canReorderGroups || groupReorderBusy}>
+              {(droppableProvided) => (
+                <div
+                  ref={droppableProvided.innerRef}
+                  {...droppableProvided.droppableProps}
+                  className="space-y-2"
+                >
+                  {groups.map((row, index) => {
+                    const preview = memberPreviewForGroup(row.id);
+                    const canReorderMembers = preview.totalCount >= 2;
+                    const dragDisabled = !canReorderGroups || groupReorderBusy;
+                    return (
+                      <Draggable
+                        key={row.id}
+                        draggableId={row.id}
+                        index={index}
+                        isDragDisabled={dragDisabled}
+                      >
+                        {(draggableProvided, snapshot) => (
+                          <div
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
+                            className={`bg-brand-card border border-brand-border rounded-xl px-3 py-3 sm:px-4 flex flex-col gap-3 sm:flex-row sm:items-center transition-shadow ${
+                              snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 z-10' : ''
+                            }`}
+                            style={draggableProvided.draggableProps.style}
                           >
-                            {t.reorderMembers}
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() => openEdit(row)}
-                          className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1"
-                        >
-                          {tm.edit}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(row)}
-                          className="mesa-text-danger hover:opacity-90 text-sm px-2 py-1"
-                        >
-                          {tm.remove}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                            <div className="flex items-start gap-3 min-w-0 flex-1">
+                              {canReorderGroups ? (
+                                <SortOrderDragHandle
+                                  label={t.sortOrderHint}
+                                  disabled={groupReorderBusy}
+                                  dragHandleProps={draggableProvided.dragHandleProps}
+                                />
+                              ) : null}
+                              <div className="min-w-0 flex-1 space-y-1.5">
+                                <p className="font-medium text-brand-text">{row.name}</p>
+                                {row.remarks ? (
+                                  <p className="text-[12px] text-brand-text-muted truncate">{row.remarks}</p>
+                                ) : null}
+                                {preview.totalCount === 0 ? (
+                                  <span className="text-[13px] text-brand-text-muted">{t.tablesEmpty}</span>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    <span className="text-[12px] text-brand-text-muted">
+                                      {t.tablesSummary.replace('{count}', String(preview.totalCount))}
+                                    </span>
+                                    <div className="flex flex-wrap gap-1">
+                                      {preview.chips.map((chip) => (
+                                        <span
+                                          key={chip.id}
+                                          className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text tabular-nums"
+                                        >
+                                          {chip.display_name}
+                                        </span>
+                                      ))}
+                                      {preview.overflowCount > 0 ? (
+                                        <span className="inline-flex rounded-md border border-brand-border/70 bg-brand-bg/80 px-1.5 py-0.5 text-[11px] text-brand-text-muted tabular-nums">
+                                          {t.tablesOverflow.replace(
+                                            '{count}',
+                                            String(preview.overflowCount),
+                                          )}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 sm:justify-end shrink-0">
+                              {canReorderMembers ? (
+                                <button
+                                  type="button"
+                                  onClick={() => openMemberOrder(row)}
+                                  className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1 whitespace-nowrap"
+                                >
+                                  {t.reorderMembers}
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => openEdit(row)}
+                                className="text-brand-text-muted hover:text-brand-gold text-sm px-2 py-1"
+                              >
+                                {tm.edit}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteTarget(row)}
+                                className="mesa-text-danger hover:opacity-90 text-sm px-2 py-1"
+                              >
+                                {tm.remove}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {droppableProvided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+          {canReorderGroups ? (
+            <p className="text-[12px] text-brand-text-muted mt-2 px-1">{t.sortOrderHint}</p>
+          ) : null}
+        </>
       )}
 
       <TableGroupMemberOrderModal
@@ -355,17 +431,15 @@ export function TableGroupsManager({
         group={orderTarget}
         tables={orderTargetTables}
         error={orderError}
+        busy={memberReorderBusy}
         labels={{
           title: t.reorderMembersTitle,
           hint: t.reorderMembersHint,
-          moveUp: t.memberMoveUp,
-          moveDown: t.memberMoveDown,
           close: tm.cancel,
         }}
         onClose={closeMemberOrder}
-        onMove={(tableId, dir) => {
-          if (!orderTarget) return;
-          void moveMemberRow(orderTarget.id, tableId, dir);
+        onReorder={(fromIndex, toIndex) => {
+          void commitMemberReorder(fromIndex, toIndex);
         }}
       />
 

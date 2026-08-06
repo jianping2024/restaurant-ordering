@@ -54,26 +54,6 @@ export function resolveAdjacentSortOrderSwap(
   return { sortOrderA: b.sort_order + 1, sortOrderB: b.sort_order };
 }
 
-/**
- * Three-step swap under a unique (scope, sort_order) index:
- * A→temp, B→A's old slot, A→B's old slot. Temp must be outside the scope (scopeMax + 1).
- */
-export function adjacentSortOrderSwapSteps(
-  rowA: { sort_order: number },
-  rowB: { sort_order: number },
-  scopeMaxSortOrder: number,
-): { tempOrder: number; finalSortOrderA: number; finalSortOrderB: number } | null {
-  const { sortOrderA, sortOrderB } = swapAdjacentSortOrders(rowA, rowB);
-  if (sortOrderA === rowA.sort_order && sortOrderB === rowB.sort_order) {
-    return null;
-  }
-  return {
-    tempOrder: scopeMaxSortOrder + 1,
-    finalSortOrderA: sortOrderA,
-    finalSortOrderB: sortOrderB,
-  };
-}
-
 /** Optimistic UI: swap sort_order for two rows by id. */
 export function applyAdjacentSortOrderSwap<T extends { id: string; sort_order: number }>(
   rows: readonly T[],

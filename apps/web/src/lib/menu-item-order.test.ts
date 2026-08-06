@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  applyOrderedMenuItemSortOrders,
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
+  moveIdInOrderedList,
+  orderedIdsMatchSiblingSet,
 } from './menu-item-order';
 import type { MenuItem } from '@/types';
 
@@ -59,6 +62,50 @@ describe('compareMenuItemsForDisplay', () => {
     assert.deepEqual(
       [...rows].sort(compareMenuItemsForDisplay).map((row) => row.id),
       ['a', 'c', 'b'],
+    );
+  });
+});
+
+describe('moveIdInOrderedList', () => {
+  it('moves an id to a new index', () => {
+    assert.deepEqual(moveIdInOrderedList(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
+  });
+
+  it('returns null when unchanged or out of range', () => {
+    assert.equal(moveIdInOrderedList(['a', 'b'], 0, 0), null);
+    assert.equal(moveIdInOrderedList(['a', 'b'], -1, 1), null);
+  });
+});
+
+describe('orderedIdsMatchSiblingSet', () => {
+  it('accepts a permutation of the sibling set', () => {
+    assert.equal(
+      orderedIdsMatchSiblingSet([{ id: 'a' }, { id: 'b' }], ['b', 'a']),
+      true,
+    );
+  });
+
+  it('rejects missing, extra, or duplicate ids', () => {
+    assert.equal(orderedIdsMatchSiblingSet([{ id: 'a' }, { id: 'b' }], ['a']), false);
+    assert.equal(orderedIdsMatchSiblingSet([{ id: 'a' }], ['a', 'b']), false);
+    assert.equal(orderedIdsMatchSiblingSet([{ id: 'a' }, { id: 'b' }], ['a', 'a']), false);
+  });
+});
+
+describe('applyOrderedMenuItemSortOrders', () => {
+  it('assigns sort_order from ordered ids', () => {
+    const rows = [
+      { id: 'a', sort_order: 0 },
+      { id: 'b', sort_order: 1 },
+      { id: 'c', sort_order: 9 },
+    ];
+    assert.deepEqual(
+      applyOrderedMenuItemSortOrders(rows, ['b', 'a']).map((row) => [row.id, row.sort_order]),
+      [
+        ['a', 1],
+        ['b', 0],
+        ['c', 9],
+      ],
     );
   });
 });

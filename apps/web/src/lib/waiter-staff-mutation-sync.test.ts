@@ -4,6 +4,7 @@ import type { WaiterBoardData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import {
   clearAllPublishedWaiterTablePageModels,
+  clearConfirmedPublishedWaiterTablePageModels,
   commitAuthoritativeWaiterTablePageModel,
   commitWaiterSessionRelocation,
   mergePublishedModelsIntoWaiterBoard,
@@ -43,7 +44,14 @@ function idleBoard(): WaiterBoardData {
   };
 }
 
-function openTableModel(): WaiterTablePageModel {
+function openTableModel(overrides: {
+  adults?: number;
+  children?: number;
+  total?: number;
+} = {}): WaiterTablePageModel {
+  const adults = overrides.adults ?? 2;
+  const children = overrides.children ?? 0;
+  const total = overrides.total ?? 39.9;
   return {
     detail: {
       table: { id: TABLE_ID, display_name: '004', sort_order: 4, seat_min: 2, seat_max: 4 },
@@ -69,13 +77,13 @@ function openTableModel(): WaiterTablePageModel {
               qty: 1,
               price: 39.9,
               emoji: '🍽️',
-              adult_count: 2,
-              child_count: 0,
+              adult_count: adults,
+              child_count: children,
               buffet_id: 'buffet-1',
               added_at: '2026-01-01T10:00:00.000Z',
             },
           ],
-          total_amount: 39.9,
+          total_amount: total,
           created_at: '2026-01-01T10:00:00.000Z',
           updated_at: '2026-01-01T10:00:00.000Z',
         },
@@ -89,7 +97,14 @@ function openTableModel(): WaiterTablePageModel {
   };
 }
 
-function boardWithSession(): WaiterBoardData {
+function boardWithSession(summary?: {
+  adults: number;
+  children: number;
+  total: number;
+}): WaiterBoardData {
+  const adults = summary?.adults ?? 2;
+  const children = summary?.children ?? 0;
+  const total = summary?.total ?? 39.9;
   return {
     ...idleBoard(),
     sessionMetaByTableId: {
@@ -99,6 +114,19 @@ function boardWithSession(): WaiterBoardData {
         status: 'open',
       },
     },
+    tableSummaries: [
+      {
+        tableId: TABLE_ID,
+        displayName: '004',
+        buffetHeadcount: { adults, children },
+        sessionTotal: total,
+        hasBuffet: true,
+        occupied: true,
+        seatMin: 2,
+        seatMax: 4,
+        updatedAt: '2026-01-01T12:00:00.000Z',
+      },
+    ],
   };
 }
 
@@ -123,7 +151,7 @@ describe('waiter-staff-mutation-sync', () => {
     assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
   });
 
-  it('mergePublishedModelsIntoWaiterBoard marks table dining with buffet', () => {
+  it('mergePublishedModelsIntoWaiterBoard marks table dining with buffet (local-ahead)', () => {
     commitAuthoritativeWaiterTablePageModel(openTableModel());
     const merged = mergePublishedModelsIntoWaiterBoard(idleBoard());
     assert.ok(merged.sessionMetaByTableId[TABLE_ID]);
@@ -134,30 +162,31 @@ describe('waiter-staff-mutation-sync', () => {
     assert.deepEqual(card.buffetHeadcount, { adults: 2, children: 0 });
   });
 
-  it('reconcile keeps published when API board lacks session', () => {
+  it('reconcile returns pure API board and drops bridge when session closed remotely', () => {
     commitAuthoritativeWaiterTablePageModel(openTableModel());
     const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(idleBoard());
-    assert.ok(board.sessionMetaByTableId[TABLE_ID]);
-    assert.deepEqual(confirmedTableIds, []);
-    assert.ok(peekPublishedWaiterTablePageModel(TABLE_ID));
-  });
-
-  it('reconcile confirms and allows clear when API matches published session', () => {
-    commitAuthoritativeWaiterTablePageModel(openTableModel());
-    const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(boardWithSession());
-    assert.ok(board.sessionMetaByTableId[TABLE_ID]);
+    clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+    assert.equal(board.sessionMetaByTableId[TABLE_ID], undefined);
+    assert.equal(board.tableSummaries[0]?.occupied, false);
     assert.deepEqual(confirmedTableIds, [TABLE_ID]);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
   });
 
-  it('detail-board round trip: commit after detail keeps bootstrap dining on stale SSR', () => {
-    commitAuthoritativeWaiterTablePageModel(openTableModel());
-    const first = reconcileWaiterBoardWithPublished(idleBoard());
-    assert.ok(first.board.sessionMetaByTableId[TABLE_ID]);
-    assert.deepEqual(first.confirmedTableIds, []);
+  it('reconcile keeps API headcount/amount — does not overlay stale published orders', () => {
+    commitAuthoritativeWaiterTablePageModel(openTableModel({ adults: 2, total: 39.9 }));
+    const apiBoard = boardWithSession({ adults: 4, children: 1, total: 99.5 });
+    const { board, confirmedTableIds } = reconcileWaiterBoardWithPublished(apiBoard);
+    clearConfirmedPublishedWaiterTablePageModels(confirmedTableIds);
+    assert.equal(board, apiBoard);
+    assert.deepEqual(board.tableSummaries[0]?.buffetHeadcount, { adults: 4, children: 1 });
+    assert.equal(board.tableSummaries[0]?.sessionTotal, 99.5);
+    assert.equal(peekPublishedWaiterTablePageModel(TABLE_ID), null);
+  });
 
+  it('local merge still paints open-table before the next board API', () => {
     commitAuthoritativeWaiterTablePageModel(openTableModel());
     const boot = mergePublishedModelsIntoWaiterBoard(idleBoard());
-    assert.ok(boot.sessionMetaByTableId[TABLE_ID], 'board first frame should be dining');
+    assert.ok(boot.sessionMetaByTableId[TABLE_ID], 'local-ahead first frame should be dining');
   });
 
   it('releaseWaiterBoardTableBridge clears published before checkout refresh', () => {

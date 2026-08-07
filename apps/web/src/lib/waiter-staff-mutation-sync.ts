@@ -5,11 +5,20 @@ import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normali
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 
-/** Ephemeral cross-route cache — bridges staff mutations until Staff API confirms. */
+/**
+ * Ephemeral cross-route cache for **local-ahead** paint only (open-table / detail
+ * bootstrap via `mergePublishedModelsIntoWaiterBoard`).
+ *
+ * After any Staff board API response, occupancy is the API board alone —
+ * `reconcileWaiterBoardWithPublished` returns that board and drops every bridge.
+ * Never re-apply published orders/session over a fetched board (remote close,
+ * headcount, amounts).
+ */
 const publishedTableModels = new Map<string, WaiterTablePageModel>();
 
 export type WaiterBoardReconcileResult = {
   board: WaiterBoardData;
+  /** Bridges dropped because a Staff board API response is now authoritative. */
   confirmedTableIds: string[];
 };
 
@@ -41,11 +50,6 @@ export function commitWaiterSessionRelocation(input: WaiterSessionRelocationInpu
   if (!targetTableId) return [input.sourceTableId];
   if (tableIdsEqual(targetTableId, input.sourceTableId)) return [input.sourceTableId];
   return [input.sourceTableId, targetTableId];
-}
-
-/** @deprecated Use commitAuthoritativeWaiterTablePageModel */
-export function publishWaiterTablePageModel(model: WaiterTablePageModel): void {
-  commitAuthoritativeWaiterTablePageModel(model);
 }
 
 export function peekPublishedWaiterTablePageModel(tableId: string): WaiterTablePageModel | null {
@@ -81,44 +85,20 @@ function tableIdOwningSession(
   return null;
 }
 
-/** Published session may overlay only the table that still owns it on the API board. */
-function shouldApplyPublishedSessionOverlay(
-  tableId: string,
-  model: WaiterTablePageModel,
-  apiSessionMetaByTableId: Record<string, WaiterTableSessionMeta>,
-): boolean {
-  const pubSession = model.detail.sessionMeta;
-  if (!pubSession) return true;
-
-  const ownerTableId = tableIdOwningSession(pubSession.sessionId, apiSessionMetaByTableId);
-  if (ownerTableId === null) return true;
-  return tableIdsEqual(ownerTableId, tableId);
-}
-
-function isPublishedModelConfirmedByApiBoard(
-  tableId: string,
-  apiBoard: WaiterBoardData,
-  published: WaiterTablePageModel,
-): boolean {
-  const pubSession = published.detail.sessionMeta;
-  const apiSession = apiBoard.sessionMetaByTableId[tableId];
-  if (!pubSession) return !apiSession;
-  return apiSession?.sessionId === pubSession.sessionId;
-}
-
-/** Merge published models, then list tableIds safe to clear (API session matches published). */
+/**
+ * After Staff board GET (live/full): board occupancy is only `apiBoard`.
+ * Drop every published bridge — do not overlay stale session/orders/headcount.
+ */
 export function reconcileWaiterBoardWithPublished(apiBoard: WaiterBoardData): WaiterBoardReconcileResult {
-  const merged = mergePublishedModelsIntoWaiterBoard(apiBoard);
-  const confirmedTableIds: string[] = [];
-  for (const [tableId, published] of Array.from(publishedTableModels.entries())) {
-    if (isPublishedModelConfirmedByApiBoard(tableId, apiBoard, published)) {
-      confirmedTableIds.push(tableId);
-    }
-  }
-  return { board: merged, confirmedTableIds };
+  const confirmedTableIds = Array.from(publishedTableModels.keys());
+  return { board: apiBoard, confirmedTableIds };
 }
 
-/** Merge published table models into board read-model (session meta + card summaries). */
+/**
+ * Local-ahead only: paint published models onto the **client** board (open-table /
+ * bootstrap). Skip when this board already shows the session on another table.
+ * Never used to reinterpret a Staff board API response — that path is reconcile.
+ */
 export function mergePublishedModelsIntoWaiterBoard(board: WaiterBoardData): WaiterBoardData {
   if (publishedTableModels.size === 0) return board;
 
@@ -129,25 +109,23 @@ export function mergePublishedModelsIntoWaiterBoard(board: WaiterBoardData): Wai
     const table = model.detail.table;
     if (!table) continue;
 
-    if (
-      model.detail.sessionMeta
-      && !shouldApplyPublishedSessionOverlay(tableId, model, board.sessionMetaByTableId)
-    ) {
-      publishedTableModels.delete(tableId);
-      continue;
-    }
-
-    if (model.detail.sessionMeta) {
+    const pubSession = model.detail.sessionMeta;
+    if (pubSession) {
+      const ownerTableId = tableIdOwningSession(pubSession.sessionId, board.sessionMetaByTableId);
+      if (ownerTableId !== null && !tableIdsEqual(ownerTableId, tableId)) {
+        publishedTableModels.delete(tableId);
+        continue;
+      }
       sessionMetaByTableId = {
         ...sessionMetaByTableId,
-        [tableId]: model.detail.sessionMeta,
+        [tableId]: pubSession,
       };
     }
 
     const [patchSummary] = buildWaiterBoardTableSummaries(
       [table],
       model.detail.orders,
-      model.detail.sessionMeta ? { [tableId]: model.detail.sessionMeta } : sessionMetaByTableId,
+      pubSession ? { [tableId]: pubSession } : sessionMetaByTableId,
     );
     if (!patchSummary) continue;
 

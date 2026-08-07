@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
-export const KITCHEN_SCREEN_MAX_STATIONS = 2;
+export { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 
 export type KitchenScreenMutationError = {
   error: string;

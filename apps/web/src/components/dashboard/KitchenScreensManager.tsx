@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import type { KitchenScreen, PrintStation } from '@/types';
 
-const KITCHEN_SCREEN_MAX_STATIONS = 2;
 type Props = {
   initialScreens: KitchenScreen[];
   kitchenStations: PrintStation[];

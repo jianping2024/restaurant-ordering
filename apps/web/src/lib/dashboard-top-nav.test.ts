@@ -25,22 +25,39 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: false,
     });
     assert.deepEqual(
       items.map((item) => item.id).sort(),
-      ['checkout', 'guestNotice', 'menu', 'orders', 'overview', 'tables', 'waiterBoard'].sort(),
+      [
+        'checkout',
+        'dishHistory',
+        'guestNotice',
+        'kitchenBoard',
+        'menu',
+        'orders',
+        'overview',
+        'tables',
+        'waiterBoard',
+      ].sort(),
     );
   });
 
-  it('appends kitchen shortcut when capability + flag', () => {
+  it('appends kitchen shortcut when capability is present', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: true,
     });
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
+  });
+
+  it('omits kitchen shortcut without capability', () => {
+    const items = buildDashboardTopNavItems({
+      shellMode: 'staff',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
+      restaurantSlug: 'demo',
+    });
+    assert.equal(items.some((item) => item.id === 'kitchenBoard'), false);
   });
 
   it('keeps cashier on waiter board + checkout only', () => {
@@ -48,7 +65,6 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: true,
     });
     assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
   });
@@ -58,7 +74,6 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'owner',
       capabilities: '*',
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: false,
     });
     assert.deepEqual(
       items.map((item) => item.id).sort(),
@@ -71,7 +86,6 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: false,
     });
     const ids = items.map((item) => item.id).sort();
     assert.ok(ids.includes('settings'));
@@ -79,6 +93,7 @@ describe('buildDashboardTopNavItems', () => {
     assert.ok(ids.includes('abnormalOps'));
     assert.ok(ids.includes('waiterBoard'));
     assert.ok(ids.includes('checkout'));
+    assert.ok(ids.includes('kitchenBoard'));
     assert.equal(ids.includes('guestNotice'), false);
   });
 });

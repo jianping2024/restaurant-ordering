@@ -129,7 +129,6 @@ export {
   RESTAURANT_FEATURE_MODULES,
   getRestaurantFeatureModule,
   groupRestaurantFeaturesByModule,
-  isDashboardKitchenShortcutEnabled,
   isRestaurantFeatureEnabled,
   mergeRestaurantFeatureFlags,
   mergeRestaurantFeatureFlagsJsonb,

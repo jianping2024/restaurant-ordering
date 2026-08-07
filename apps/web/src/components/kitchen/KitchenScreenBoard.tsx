@@ -15,7 +15,6 @@ import {
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
-import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
@@ -148,12 +147,10 @@ function KitchenScreenBoardInner({
     }
   };
 
-  const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
     shellMode: 'staff',
     capabilities,
     restaurantSlug: restaurant.slug,
-    kitchenShortcutEnabled,
   });
   const logoHref = dashboardLogoHref(restaurant.slug, capabilities);
 

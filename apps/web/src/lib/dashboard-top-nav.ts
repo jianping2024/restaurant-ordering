@@ -163,10 +163,8 @@ export function buildDashboardTopNavItems(input: {
   shellMode: DashboardShellMode;
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
-  kitchenShortcutEnabled: boolean;
 }): ProductTopNavItem[] {
-  const { shellMode, capabilities: capsPayload, restaurantSlug, kitchenShortcutEnabled } =
-    input;
+  const { shellMode, capabilities: capsPayload, restaurantSlug } = input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
@@ -185,9 +183,10 @@ export function buildDashboardTopNavItems(input: {
     });
   }
 
+  // Staff chrome only — owner shell stays OWNER_CHROME_NAV_IDS. Nav gate is permission alone.
   if (
-    can(capabilities, 'dashboard.kitchen_shortcut.view') &&
-    kitchenShortcutEnabled
+    shellMode !== 'owner' &&
+    can(capabilities, 'dashboard.kitchen_shortcut.view')
   ) {
     items.push({
       id: 'kitchenBoard',

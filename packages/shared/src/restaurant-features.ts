@@ -1,8 +1,8 @@
 /** Known restaurant feature keys — extend this union when adding toggles. */
-export type RestaurantFeatureKey = 'kitchen_board' | 'bill_receipt_print' | 'kitchen_serve_to_table';
+export type RestaurantFeatureKey = 'bill_receipt_print' | 'kitchen_serve_to_table';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
-export type RestaurantFeatureModuleId = 'dashboard_nav' | 'billing' | 'kitchen';
+export type RestaurantFeatureModuleId = 'billing' | 'kitchen';
 
 export type RestaurantFeatureFlags = Partial<Record<RestaurantFeatureKey, boolean>>;
 
@@ -10,7 +10,7 @@ export type ResolvedRestaurantFeatureFlags = Record<RestaurantFeatureKey, boolea
 
 export type RestaurantFeatureModuleDefinition = {
   id: RestaurantFeatureModuleId;
-  labelKey: 'moduleDashboardNav' | 'moduleBilling' | 'moduleKitchen';
+  labelKey: 'moduleBilling' | 'moduleKitchen';
   sortOrder: number;
 };
 
@@ -18,9 +18,8 @@ export type RestaurantFeatureDefinition = {
   key: RestaurantFeatureKey;
   moduleId: RestaurantFeatureModuleId;
   defaultEnabled: boolean;
-  labelKey: 'kitchenBoard' | 'billReceiptPrint' | 'kitchenServeToTable';
-  descKey: 'kitchenBoardDesc' | 'billReceiptPrintDesc' | 'kitchenServeToTableDesc';
-  dashboardShortcut?: 'kitchen';
+  labelKey: 'billReceiptPrint' | 'kitchenServeToTable';
+  descKey: 'billReceiptPrintDesc' | 'kitchenServeToTableDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -28,21 +27,15 @@ export type RestaurantFeatureModuleGroup = {
   features: readonly RestaurantFeatureDefinition[];
 };
 
+/** Retired store flags — stripped on merge so jsonb does not keep a second nav gate. */
+const RETIRED_FEATURE_KEYS = ['kitchen_board'] as const;
+
 export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinition[] = [
-  { id: 'dashboard_nav', labelKey: 'moduleDashboardNav', sortOrder: 10 },
   { id: 'kitchen', labelKey: 'moduleKitchen', sortOrder: 15 },
   { id: 'billing', labelKey: 'moduleBilling', sortOrder: 20 },
 ] as const;
 
 export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinition[] = [
-  {
-    key: 'kitchen_board',
-    moduleId: 'dashboard_nav',
-    defaultEnabled: false,
-    labelKey: 'kitchenBoard',
-    descKey: 'kitchenBoardDesc',
-    dashboardShortcut: 'kitchen',
-  },
   {
     key: 'kitchen_serve_to_table',
     moduleId: 'kitchen',
@@ -148,6 +141,9 @@ export function mergeRestaurantFeatureFlagsJsonb(
   for (const def of RESTAURANT_FEATURE_DEFINITIONS) {
     base[def.key] = patch[def.key] ?? normalized[def.key];
   }
+  for (const key of RETIRED_FEATURE_KEYS) {
+    delete base[key];
+  }
   return base;
 }
 
@@ -156,8 +152,4 @@ export function mergeRestaurantFeatureFlags(
   patch: RestaurantFeatureFlags,
 ): ResolvedRestaurantFeatureFlags {
   return normalizeRestaurantFeatureFlags(mergeRestaurantFeatureFlagsJsonb(current, patch));
-}
-
-export function isDashboardKitchenShortcutEnabled(flags: unknown): boolean {
-  return isRestaurantFeatureEnabled(flags, 'kitchen_board');
 }

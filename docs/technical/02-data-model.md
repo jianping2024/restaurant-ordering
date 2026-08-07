@@ -19,7 +19,7 @@
 | `slug` | 唯一，URL 与 API 路径 |
 | `owner_id` | 店主 Auth 用户 |
 | `plan` | `free` \| `pro`（桌位等限制） |
-| `feature_flags` | jsonb，如 `kitchen_board`、`bill_receipt_print` |
+| `feature_flags` | jsonb，如 `kitchen_serve_to_table`、`bill_receipt_print` |
 | `print_locale` | `zh` \| `en` \| `pt`，票面语言 |
 | `country_code` | ISO-2，与票面语言解耦 |
 | `print_agent_config` | jsonb，代理 TTL、schedule 等 |

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard-access';
-import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { DashboardLicenseValidUntil } from '@/components/dashboard/DashboardLicenseValidUntil';
@@ -30,12 +29,10 @@ export function DashboardTopBar({ restaurant, shellMode, roleLabel, capabilities
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
   const { pendingCount } = useCheckoutRequests();
-  const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
     shellMode,
     capabilities,
     restaurantSlug: restaurant.slug,
-    kitchenShortcutEnabled,
   });
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 

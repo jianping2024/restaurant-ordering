@@ -11,7 +11,6 @@ import {
   dashboardLogoHref,
 } from '@/lib/dashboard-top-nav';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
-import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 
@@ -52,12 +51,10 @@ function KitchenScreensHomeInner({
   const t = KITCHEN_SCREEN_TEXT[lang];
   const roleLabel = topBarRoleLabel(lang, asOwner ? 'backend_admin' : 'kitchen');
 
-  const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
     shellMode: 'staff',
     capabilities,
     restaurantSlug: restaurant.slug,
-    kitchenShortcutEnabled,
   });
   const logoHref = dashboardLogoHref(restaurant.slug, capabilities);
 

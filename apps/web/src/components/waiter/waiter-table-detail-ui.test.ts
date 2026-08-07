@@ -65,20 +65,20 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.match(waiterDetailLayout.pageHeading, /h-14/);
   assert.doesNotMatch(waiterDetailLayout.pageHeading, /py-3/);
   assert.match(waiterDetailLayout.pageHeadingTitle, /truncate/);
-  assert.match(waiterDetailLayout.orderedItemsHeader, /sticky/);
+  assert.match(waiterDetailLayout.orderedItemsMoneyChrome, /sticky/);
   assert.equal(
-    waiterDetailLayout.orderedItemsHeader.includes(waiterStaffStickyChrome.belowPageHeading),
+    waiterDetailLayout.orderedItemsMoneyChrome.includes(waiterStaffStickyChrome.belowPageHeading),
     true,
   );
-  assert.doesNotMatch(waiterDetailLayout.orderedItemsHeader, /top-14\b/);
-  assert.match(waiterDetailLayout.orderedItemsHeader, /bg-brand-card/);
-  assert.match(waiterDetailLayout.orderedItemsHeader, /flex-col/);
-  assert.match(waiterDetailLayout.orderedItemsHeader, /sm:flex-row/);
-  assert.match(waiterDetailLayout.orderedItemsHeader, /sm:justify-between/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemsMoneyChrome, /top-14\b/);
+  assert.match(waiterDetailLayout.orderedItemsMoneyChrome, /bg-brand-card/);
+  assert.match(waiterDetailLayout.orderedItemsMoneyChrome, /justify-end/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemsMoneyChrome, /flex-col-reverse/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemsMoneyChrome, /sm:flex-row/);
+  assert.match(waiterDetailLayout.sectionBody, /pt-2/);
   assert.match(waiterDetailLayout.orderedItemsTitleRow, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /whitespace-nowrap/);
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
-  assert.match(waiterDetailLayout.orderedItemsHeaderActions, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
@@ -110,6 +110,21 @@ test('ordered-items panel uses orderedItemTextCol only (no inline flex-1 text co
   assert.match(panel, /waiterDetailLayout\.orderedItemTextCol/);
   assert.doesNotMatch(panel, /min-w-0 flex-1/);
   assert.doesNotMatch(panel, /className="[^"]*flex-1[^"]*"/);
+});
+
+test('ordered-items panel splits money chrome from list title (one representation)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const here = dirname(fileURLToPath(import.meta.url));
+  const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
+  const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
+  assert.match(panel, /waiterDetailLayout\.orderedItemsMoneyChrome/);
+  assert.match(panel, /waiterDetailLayout\.sectionBody/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemsTitle/);
+  assert.doesNotMatch(panel, /orderedItemsHeader\b/);
+  assert.doesNotMatch(panel, /orderedItemsHeaderActions/);
+  assert.doesNotMatch(panel, /flex-col-reverse/);
 });
 
 test('table detail cold load uses one shared content skeleton (no parallel pulse tree)', async () => {

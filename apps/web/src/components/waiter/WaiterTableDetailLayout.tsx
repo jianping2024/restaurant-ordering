@@ -488,31 +488,29 @@ export function WaiterTableOrderedItemsPanel({
 
   return (
     <WaiterDetailCard>
-      <div className={waiterDetailLayout.orderedItemsHeader}>
+      {sessionTotalText || preBillPrint ? (
+        <div className={waiterDetailLayout.orderedItemsMoneyChrome}>
+          {sessionTotalText ? (
+            <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
+          ) : null}
+          {preBillPrint ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              loading={preBillPrint.busy}
+              onClick={preBillPrint.onPrint}
+            >
+              {preBillPrint.label}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      <div className={waiterDetailLayout.sectionBody}>
         <div className={waiterDetailLayout.orderedItemsTitleRow}>
           <WaiterClocheIcon className={`${buttonIcon.md} shrink-0 text-brand-gold`} />
           <h2 className={waiterDetailLayout.orderedItemsTitle}>{title}</h2>
         </div>
-        {sessionTotalText || preBillPrint ? (
-          <div className={waiterDetailLayout.orderedItemsHeaderActions}>
-            {sessionTotalText ? (
-              <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
-            ) : null}
-            {preBillPrint ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                loading={preBillPrint.busy}
-                onClick={preBillPrint.onPrint}
-              >
-                {preBillPrint.label}
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-      <div className={waiterDetailLayout.sectionBody}>
         {lines.map((line) => {
           const share = chargeableShareOf({
             chargeableQty: line.chargeableQty ?? undefined,

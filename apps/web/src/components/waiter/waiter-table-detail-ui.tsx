@@ -39,7 +39,8 @@ export const buffetDetailPackageRow =
  */
 export const waiterDetailLayout = {
   cardBody: `${WAITER_DETAIL_GUTTER_PX} py-4`,
-  sectionBody: `space-y-2 ${WAITER_DETAIL_GUTTER_PX} py-3`,
+  /** Ordered dish rows — list title sits at top of this block, flush above first row. */
+  sectionBody: `space-y-2 ${WAITER_DETAIL_GUTTER_PX} pt-2 pb-3`,
   /** Save guests, continue ordering, close table — same action footprint. */
   primaryAction: 'w-full justify-center sm:w-auto whitespace-nowrap sm:max-w-none xl:w-auto',
   /** Transfer, merge, call bill. */
@@ -72,13 +73,12 @@ export const waiterDetailLayout = {
   pageHeadingMeta:
     'inline-flex shrink-0 items-center gap-1.5 text-[13px] text-brand-text-muted tabular-nums',
   /**
-   * Ordered-items chrome — sticks under page identity.
+   * Session money chrome — sticky under page identity; total + pre_bill only (not the list title).
    * Opaque card bg so list rows never show through while scrolling.
    */
-  orderedItemsHeader: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex flex-col items-stretch gap-2 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3`,
+  orderedItemsMoneyChrome: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex items-center justify-end gap-2 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
   orderedItemsTitleRow: 'flex shrink-0 items-center gap-2',
   orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
-  orderedItemsHeaderActions: 'flex shrink-0 items-center justify-end gap-2',
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
    * Name + qty + minus left-aligned (not justify-between / not label flex-1).

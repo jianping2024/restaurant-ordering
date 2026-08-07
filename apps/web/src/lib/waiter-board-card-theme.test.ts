@@ -51,7 +51,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.amber, /mesa-board-shell-checkout/);
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.emerald, /mesa-board-shell-idle/);
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.neutral, /mesa-board-shell-neutral/);
-    assert.equal(WAITER_BOARD_SELECTED_EMPHASIS, 'mesa-surface-selected');
+    assert.equal(WAITER_BOARD_SELECTED_EMPHASIS, 'mesa-relief-gold-face');
     assert.doesNotMatch(WAITER_BOARD_SELECTED_EMPHASIS, /bg-brand-gold/);
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.dining, 'mesa-badge-danger');
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.checkout, 'mesa-badge-warning');
@@ -60,7 +60,7 @@ describe('waiter-board-card-theme theme tokens', () => {
 
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
-    assert.match(WAITER_BOARD_LANE_CHROME.active, /mesa-surface-selected/);
+    assert.match(WAITER_BOARD_LANE_CHROME.active, /mesa-relief-gold-face/);
     assert.match(WAITER_BOARD_PARTY_PANEL_CLASS, /brand-gold/);
     for (const className of [
       ...Object.values(waiterBoardType),
@@ -89,7 +89,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.equal(waiterBoardKpiChromeClass(true), WAITER_BOARD_SELECTED_EMPHASIS);
     assert.equal(waiterBoardKpiChromeClass(false), '');
     assert.doesNotMatch(WAITER_BOARD_SELECTED_EMPHASIS, /\bring-/);
-    assert.equal(WAITER_BOARD_SELECTED_EMPHASIS, 'mesa-surface-selected');
+    assert.equal(WAITER_BOARD_SELECTED_EMPHASIS, 'mesa-relief-gold-face');
     assert.equal(WAITER_BOARD_LANE_CHROME.active.includes(WAITER_BOARD_SELECTED_EMPHASIS), true);
     assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.checkout, /mesa-text-warning/);
     assert.match(WAITER_BOARD_FILTER_KPI_ICON_CLASS.dining, /mesa-text-danger/);

@@ -32,7 +32,7 @@ export const STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS = 'max-w-[5.5rem]';
 
 export const staffTopBarChrome = {
   headerClassName:
-    'sticky top-0 z-30 min-w-0 shrink-0 border-b border-brand-border/80 bg-brand-card/90 backdrop-blur-md mesa-surface-top pt-[env(safe-area-inset-top,0px)]',
+    'sticky top-0 z-30 min-w-0 shrink-0 border-b border-brand-border/80 bg-brand-card/90 backdrop-blur-md mesa-relief-top-bar pt-[env(safe-area-inset-top,0px)]',
   /**
    * Content row. Brand is flex-1 + min-w-0 so long names absorb squeeze;
    * hamburger and trailing stay shrink-0 and never push the document wide.

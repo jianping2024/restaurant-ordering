@@ -36,7 +36,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     openScreen: '打开',
     backToScreens: '返回大屏列表',
     viewByTable: '按桌',
-    viewByDish: '按菜统计',
+    viewByDish: '按菜',
     prep: '备餐',
     prepBusy: '备餐中…',
     maximize: '最大化',

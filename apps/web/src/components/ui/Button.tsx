@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { ButtonHTMLAttributes, ComponentProps, forwardRef } from 'react';
-import { MESA_RELIEF } from '@/lib/mesa-relief-chrome';
 
 export type ButtonVariant = 'gold' | 'outline' | 'ghost' | 'danger' | 'soft' | 'close';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'action';
@@ -17,7 +16,7 @@ const baseClass =
 
 const variants: Record<ButtonVariant, string> = {
   gold:
-    `${MESA_RELIEF.goldFace} font-semibold hover:brightness-110 active:scale-[0.98] focus-visible:ring-brand-gold/45`,
+    'border border-transparent bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold mesa-relief-gold-face active:scale-[0.98] focus-visible:ring-brand-gold/45',
   outline: 'border border-brand-gold text-brand-gold hover:bg-brand-gold/10 font-semibold focus-visible:ring-brand-gold/30',
   ghost:
     'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-gold/30',

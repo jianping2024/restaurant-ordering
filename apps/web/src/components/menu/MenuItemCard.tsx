@@ -69,7 +69,7 @@ function MenuItemCardAction({
       onClick={onIncrement}
       disabled={incrementDisabled}
       aria-label={labels.add}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl font-medium leading-none transition-[filter] hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${MESA_RELIEF.goldFace} ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${MESA_RELIEF.goldFace} ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
       +
     </button>

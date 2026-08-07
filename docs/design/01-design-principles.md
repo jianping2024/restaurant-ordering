@@ -146,27 +146,24 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
-### 金浮雕表面语言（暗金 / 亮金）
+### 金浮雕 chrome（暗金 / 亮金）
 
-整站气质升级：**改壳不改骨**（网格 / 字号 / 字段顺序不动）。
+整站气质升级默认 **只换皮、不改排版**：
 
-| 唯一写法 | 用途 |
-|----------|------|
-| `MESA_RELIEF`（`mesa-relief-chrome.ts`） | card / goldFace / dock / topBar 类名入口 |
-| `mesa-relief-gold-face` | **唯一**金面填充（KPI 选中、lane 选中、`Button` gold、点餐主 CTA）；禁止并列 `bg-brand-gold` |
-| `mesa-board-shell-*` | 楼面桌卡 **与** KPI 未选中态同一套浮起壳（中性 / 用餐 / 待结 / 空闲）；状态靠左边光+边色+外柔光，**禁止**整块染色底板 |
-| `MENU_ITEM_CARD_SHELL_CLASS` | 顾客菜卡壳（含 `mesa-relief-card`） |
-| `mesa-badge-*` | 仅小徽章/标签，不充当 KPI 大面 |
+| 允许 | 禁止（须单独开布局任务） |
+|------|--------------------------|
+| `--mesa-relief-*` 阴影 / 顶边高光 / 状态柔光 | 改 `p-` / `gap-` / `text-` / 网格列数 / 卡片 `min-h` |
+| `mesa-relief-card` / `gold-face` / `dock` / `top-bar` | 透底实景、强金属拉丝、长动画 |
+| 顶栏 / 底栏 `backdrop-blur` + 透明度 | 另起第二套状态色盘 |
 
-允许氛围底 / 磨砂顶底栏；禁止透底实景、第二套状态色盘、长动画。
+类名单一入口：`apps/web/src/lib/mesa-relief-chrome.ts`（`MESA_RELIEF`）。员工看板壳仍走 `mesa-board-shell-*`；顾客菜卡壳走 `MENU_ITEM_CARD_SHELL_CLASS`。明暗共用同一套 elevation 语法，仅阴影强度不同。
 
 状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：
 
 - 待结账 `checkout`：warning（琥珀）
 - 用餐中 `dining`：danger（红）
 - 空闲 `idle`：success（绿）
-- 看板卡片壳 / KPI 未选中：`mesa-board-shell-*`（浮起卡面 + 状态边光；按 `data-theme` 分条声明）；正文一律 `brand-text`，状态色只用于壳边/徽章/左边光
-- KPI / lane / 主 CTA 金面：仅 `mesa-relief-gold-face`
+- 看板卡片壳：`mesa-board-shell-*`（按 `data-theme` 分条声明，色值与 `--color-status-*` 对齐）；正文一律 `brand-text`，状态色只用于壳/徽章/边框
 - 成功/收款：`mesa-badge-success`
 - 危险操作：`Button danger` / `mesa-text-danger`
 

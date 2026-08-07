@@ -5,7 +5,7 @@ import { useDebouncedPostgresRealtimeRefresh } from '@/lib/use-restaurant-realti
 
 /**
  * Supabase Realtime on bill_splits only — debounced reload when checkout queue may have changed.
- * Mount / visibility resume reconcile belongs with `useRestaurantStaffEntryReconcile`.
+ * Mount / visibility / focus resume reconcile belongs with `useRestaurantStaffEntryReconcile`.
  */
 export function useBillSplitsRealtimeRefresh(
   supabase: SupabaseClient,

@@ -13,8 +13,9 @@ import {
  * 2. Published staff model cache — detail commits after Staff API; board clears per-table when API confirms
  * 3. Client entry reconcile — when board list is active (`useRestaurantStaffEntryReconcile`
  *    in `@/lib/use-restaurant-staff-entry-reconcile`);
- *    skip mount when boot seed is authoritative (`reconcileOnMount=false`), still resume on visibility
- * 4. Visibility / list-active reconcile — `resolveWaiterBoardReconcileScope(floorReady)`:
+ *    skip mount when boot seed is authoritative (`reconcileOnMount=false`), still resume on
+ *    visibility **and window focus** (always-visible desktop after a phone mutation).
+ * 4. Visibility / focus / list-active reconcile — `resolveWaiterBoardReconcileScope(floorReady)`:
  *    cold (no floor static) → full; hydrated floor → live occupancy catch-up.
  *    Pull failures are absorbed into `boardSurface` (loading | failed | ready); they must not
  *    throw unhandled — unauthorized → shared sign-out redirect; retryable cold fail → list retry UI.
@@ -24,7 +25,8 @@ import {
  *    see `waiter-board-live.ts` / `waiter-board-live-merge.ts`
  *    Transport also owns channel failure → backoff resubscribe on a **generation-unique** topic →
  *    one catch-up refresh on the next SUBSCRIBED (same `onRefresh` as doorbell). Intentional
- *    hide/teardown does not catch-up; visibility resume stays with entry reconcile.
+ *    hide/teardown does not catch-up; attention resume (visibility/focus) stays with entry reconcile
+ *    only — no second focus listener here.
  *    No interval API polling.
  * 7. Dashboard staff mutations — `WaiterBoardProvider.refreshBoardAfterStaffMutation` (full)
  * 8. Detail → list re-shown — same as (4): live when floor ready, else full (no second path)
@@ -71,7 +73,7 @@ export function realtimeChannelTopic(channelKey: string, generation: number): st
   return `${channelKey}:${generation}`;
 }
 
-/** Entry / visibility reconcile — sole export: `@/lib/use-restaurant-staff-entry-reconcile`. */
+/** Entry / visibility / focus reconcile — sole export: `@/lib/use-restaurant-staff-entry-reconcile`. */
 
 export type PostgresRealtimeBinding = {
   table: string;
@@ -82,7 +84,8 @@ export type PostgresRealtimeBinding = {
  * Shared transport: subscribe while the tab is visible; debounce postgres_changes → onRefresh.
  * On CHANNEL_ERROR / TIMED_OUT (and unexpected CLOSED): backoff resubscribe on a new topic, then
  * one catch-up onRefresh when SUBSCRIBED again. Browser `online` while visible forces the same
- * recovery path. Lifecycle reconcile (mount / resume) stays in `useRestaurantStaffEntryReconcile`.
+ * recovery path. Lifecycle reconcile (mount / visibility / focus) stays in
+ * `useRestaurantStaffEntryReconcile` only.
  */
 export function useDebouncedPostgresRealtimeRefresh(
   supabase: SupabaseClient,

@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import type { KitchenScreen } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
@@ -27,8 +25,6 @@ type Props = {
   capabilities: CapabilitiesPayload;
   asOwner?: boolean;
   screens: KitchenScreen[];
-  /** When exactly one screen, auto-navigate. */
-  autoOpenSingle?: boolean;
 };
 
 export function KitchenScreensHome(props: Props) {
@@ -48,21 +44,13 @@ function KitchenScreensHomeInner({
   capabilities,
   asOwner = false,
   screens,
-  autoOpenSingle = true,
   handleSignOut,
   exitLabel,
   confirmBeforeSignOut,
 }: Props & StaffShellContext) {
   const { lang } = useLanguage();
   const t = KITCHEN_SCREEN_TEXT[lang];
-  const router = useRouter();
   const roleLabel = topBarRoleLabel(lang, asOwner ? 'backend_admin' : 'kitchen');
-
-  useEffect(() => {
-    if (autoOpenSingle && screens.length === 1) {
-      router.replace(`/${restaurant.slug}/kitchen/${screens[0].id}`);
-    }
-  }, [autoOpenSingle, screens, restaurant.slug, router]);
 
   const kitchenShortcutEnabled = isDashboardKitchenShortcutEnabled(restaurant.feature_flags);
   const navItems = buildDashboardTopNavItems({
@@ -97,8 +85,6 @@ function KitchenScreensHomeInner({
             <p className="text-lg text-brand-text">{t.screensEmpty}</p>
             <p className="mt-2 text-sm text-brand-text-muted">{t.screensEmptyHint}</p>
           </div>
-        ) : screens.length === 1 && autoOpenSingle ? (
-          <p className="text-brand-text-muted text-sm">…</p>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {screens.map((screen) => (

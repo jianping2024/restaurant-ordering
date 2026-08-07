@@ -5,6 +5,7 @@ export const DEMO_RESTAURANT = {
   id: 'demo',
   name: 'Casa Portuguesa',
   slug: 'demo',
+  kitchen_enabled_station_ids: [] as string[],
 } as const;
 
 function demoTableId(n: number): string {

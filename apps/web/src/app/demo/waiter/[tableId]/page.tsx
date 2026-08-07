@@ -30,6 +30,7 @@ export default async function DemoWaiterTablePage({ params }: Props) {
         id: DEMO_RESTAURANT.id,
         name: DEMO_RESTAURANT.name,
         slug: DEMO_RESTAURANT.slug,
+        kitchen_enabled_station_ids: [...DEMO_RESTAURANT.kitchen_enabled_station_ids],
       }}
       tables={DEMO_TABLES}
       initialOrders={DEMO_ORDERS}

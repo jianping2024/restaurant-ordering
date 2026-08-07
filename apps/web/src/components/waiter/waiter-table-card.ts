@@ -22,15 +22,22 @@ import { normalizeOrderItemStatus, effectiveItemStatus } from '@/lib/order-statu
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
+import type { UILanguage } from '@/lib/i18n';
+import {
+  resolveKitchenItemProgressLabel,
+  shouldShowKitchenItemProgress,
+} from '@/lib/kitchen-progress-display';
 
 export type WaiterOrderLine = {
   orderId: string;
   itemIdx: number;
   label: string;
+  /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
+  statusLabel: string | null;
   /** Menu lines: `× N` shown beside the decrement control. */
   quantityLabel: string | null;
   canDecrement: boolean;
-  /** When feature + capability + effective ready. */
+  /** Feature + capability + kitchen station gate + effective ready. */
   canServe: boolean;
   serveOrderId: string | null;
   serveItemIdx: number | null;
@@ -73,6 +80,7 @@ function resolveMenuLineActionTarget(
   serveEnabled: boolean,
   readyAfterMinutes: number,
   nowMs: number,
+  kitchenEnabledStationIds: readonly string[],
 ): MenuLineActionTarget {
   const match = (item: OrderItem) => {
     const limitedMenuItemId = menuItemIdFromLimitedBillableKey(mergeKey);
@@ -94,6 +102,15 @@ function resolveMenuLineActionTarget(
         const item = items[itemIdx];
         if (!item || isBuffetBaseItem(item)) continue;
         if (!match(item)) continue;
+        if (
+          !shouldShowKitchenItemProgress({
+            printStationId: item.print_station_id,
+            kitchenEnabledStationIds,
+            item,
+          })
+        ) {
+          continue;
+        }
         const effective = effectiveItemStatus({
           item,
           orderStatus: order.status,
@@ -180,6 +197,8 @@ export function buildWaiterTableCard(
     serveEnabled?: boolean;
     readyAfterMinutes?: number;
     nowMs?: number;
+    lang?: UILanguage;
+    kitchenEnabledStationIds?: readonly string[];
   } = {},
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
@@ -188,6 +207,8 @@ export function buildWaiterTableCard(
   const readyAfterMinutes =
     options.readyAfterMinutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;
   const nowMs = options.nowMs ?? Date.now();
+  const lang = options.lang ?? 'zh';
+  const kitchenEnabledStationIds = options.kitchenEnabledStationIds ?? [];
 
   const orderLines: WaiterOrderLine[] = catalog.map((row) => {
     const { key, item } = row;
@@ -196,6 +217,7 @@ export function buildWaiterTableCard(
         orderId: '',
         itemIdx: -1,
         label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
+        statusLabel: null,
         quantityLabel: null,
         canDecrement: false,
         canServe: false,
@@ -213,12 +235,29 @@ export function buildWaiterTableCard(
       serveEnabled,
       readyAfterMinutes,
       nowMs,
+      kitchenEnabledStationIds,
     );
     const share = chargeableFieldsFromBillableRow(row);
+    const statusOrder =
+      action.orderId !== '' ? orders.find((order) => order.id === action.orderId) : undefined;
+    const statusItem =
+      statusOrder && action.itemIdx >= 0
+        ? statusOrder.items?.[action.itemIdx] ?? item
+        : item;
+    const statusLabel = resolveKitchenItemProgressLabel({
+      lang,
+      item: statusItem,
+      orderStatus: statusOrder?.status ?? 'pending',
+      nowMs,
+      readyAfterMinutes,
+      printStationId: statusItem.print_station_id,
+      kitchenEnabledStationIds,
+    });
 
     return {
       ...action,
       label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
+      statusLabel,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       chargeableQty: share.chargeableQty ?? null,
       chargeableUnitPrice: share.chargeableUnitPrice ?? null,

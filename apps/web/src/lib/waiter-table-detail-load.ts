@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Buffet, Order } from '@/types';
 import type { ResolvedBuffetPriceRow } from '@/lib/buffet-order';
+import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
@@ -66,7 +67,7 @@ async function loadTableOrdersForSession(
     .in('status', [...ACTIVE_ORDER_STATUSES])
     .order('updated_at', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data || []) as Order[];
+  return enrichKitchenOrdersWithStations(admin, restaurantId, (data || []) as Order[]);
 }
 
 async function loadTableAndSession(

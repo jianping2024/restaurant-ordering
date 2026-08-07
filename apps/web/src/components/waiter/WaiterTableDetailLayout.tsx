@@ -537,6 +537,9 @@ export function WaiterTableOrderedItemsPanel({
             >
               <div className={waiterDetailLayout.orderedItemTextCol}>
                 <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
+                {line.statusLabel ? (
+                  <p className={waiterDetailLayout.orderedItemChargeableHint}>{line.statusLabel}</p>
+                ) : null}
                 {chargeableHint ? (
                   <p className={waiterDetailLayout.orderedItemChargeableHint}>{chargeableHint}</p>
                 ) : null}

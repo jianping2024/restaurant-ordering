@@ -327,4 +327,93 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines[0]?.itemIdx, 0);
     assert.equal(card.orderLines[0]?.canDecrement, true);
   });
+
+  it('shows statusLabel and canServe for kitchen-enabled stations when effectively ready', () => {
+    const stationId = 'station-kitchen';
+    const caps = capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]);
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'cooking',
+          items: [
+            {
+              id: 'd1',
+              name: 'Bife',
+              name_pt: 'Bife',
+              qty: 1,
+              price: 10,
+              emoji: '🥩',
+              item_code: '010',
+              item_status: 'cooking',
+              started_at: '2020-01-01T00:00:00.000Z',
+              print_station_id: stationId,
+            },
+          ],
+          total_amount: 10,
+          created_at: '2020-01-01T00:00:00.000Z',
+          updated_at: '2020-01-01T00:00:00.000Z',
+        },
+      ],
+      {},
+      caps,
+      {
+        serveEnabled: true,
+        readyAfterMinutes: 0,
+        nowMs: Date.parse('2026-01-01T00:00:00.000Z'),
+        lang: 'zh',
+        kitchenEnabledStationIds: [stationId],
+      },
+    );
+    assert.equal(card.orderLines[0]?.statusLabel, '已出餐');
+    assert.equal(card.orderLines[0]?.canServe, true);
+  });
+
+  it('hides progress and serve for pending lines on non-kitchen stations', () => {
+    const caps = capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]);
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 1,
+              price: 2,
+              emoji: '🥤',
+              item_code: '002',
+              print_station_id: 'station-bar',
+            },
+          ],
+          total_amount: 2,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      {},
+      caps,
+      {
+        serveEnabled: true,
+        readyAfterMinutes: 0,
+        nowMs: Date.parse('2026-01-01T00:00:00.000Z'),
+        lang: 'zh',
+        kitchenEnabledStationIds: ['station-kitchen'],
+      },
+    );
+    assert.equal(card.orderLines[0]?.statusLabel, null);
+    assert.equal(card.orderLines[0]?.canServe, false);
+  });
 });

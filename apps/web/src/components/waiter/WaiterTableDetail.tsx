@@ -331,9 +331,21 @@ function WaiterTableDetailInner({
           readyAfterMinutes:
             restaurant.kitchen_ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT,
           nowMs: Date.now(),
+          lang,
+          kitchenEnabledStationIds: restaurant.kitchen_enabled_station_ids ?? [],
         },
       ),
-    [orders, tableId, selectedDisplayName, itemCodeByMenuId, capabilities, serveEnabled, restaurant.kitchen_ready_after_minutes],
+    [
+      orders,
+      tableId,
+      selectedDisplayName,
+      itemCodeByMenuId,
+      capabilities,
+      serveEnabled,
+      restaurant.kitchen_ready_after_minutes,
+      restaurant.kitchen_enabled_station_ids,
+      lang,
+    ],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);

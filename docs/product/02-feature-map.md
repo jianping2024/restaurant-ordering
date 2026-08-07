@@ -248,7 +248,7 @@
 |------|------|
 | Lib | `apps/web/src/lib/order-item-void/*`、`apps/web/src/lib/order-item-decrement/decrement-policy.ts` |
 | API | `apps/web/src/app/api/restaurants/[slug]/staff/waiter/orders/[orderId]/decrement-item/route.ts` |
-| UI | `KitchenDisplay.tsx`（后厨 void + 原因弹框）、`WaiterTableDetail.tsx` + `WaiterOrderQtyMinus.tsx`（楼面减号，无弹框） |
+| UI | `WaiterTableDetail.tsx` + `WaiterOrderQtyMinus.tsx`（楼面减号，无弹框；后厨已不提供 void） |
 | 审计 | `apps/web/src/lib/audit/builders/item-deleted.ts` |
 
 ---

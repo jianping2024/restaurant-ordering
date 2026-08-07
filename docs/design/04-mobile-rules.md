@@ -154,7 +154,7 @@
 | `WaiterDisplay` | 筛选 chip、桌卡可点区域够大、待结账色明显；lane tab 行上滑后吸在职员顶栏下（`waiterStaffStickyChrome.belowStaffTopBar`） |
 | `WaiterTableDetail` | 自助餐步进器、订单列表不截断主按钮 |
 | `CheckoutRequestsManager` | 返回列表、收款钮、金额字号 |
-| `KitchenDisplay` | 大行可点、void 确认不挡下一单 |
+| `KitchenScreenBoard` / `KitchenStationPane` | 档口格子可勾选备餐、最大化不挡操作 |
 
 ---
 

@@ -8,9 +8,9 @@ import {
   listStaffUserIdsOnRole,
   updateRestaurantRole,
 } from '@/lib/permissions/restaurant-roles';
-import { enforcePermissionRequires, normalizeStoredPermissions } from '@/lib/permissions/resolve';
+import { normalizeRolePermissions } from '@/lib/permissions/role-permission-set';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isPermissionKey, type PermissionKey } from '@/lib/permissions/registry';
+import type { PermissionKey } from '@/lib/permissions/registry';
 import { templatePermissions, isRolePresetKey } from '@/lib/permissions/role-templates';
 
 export const runtime = 'nodejs';
@@ -78,11 +78,7 @@ export async function PATCH(
     }
     patch.permissions = templatePermissions(existing.preset_key);
   } else if (Array.isArray(body.permissions)) {
-    patch.permissions = enforcePermissionRequires(
-      normalizeStoredPermissions(
-        body.permissions.filter((k): k is string => typeof k === 'string' && isPermissionKey(k)),
-      ),
-    );
+    patch.permissions = normalizeRolePermissions(body.permissions);
   }
 
   if (body.disabled === true) patch.disabled = true;

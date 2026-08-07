@@ -39,6 +39,14 @@ export {
 } from '@/lib/permissions/resolve';
 
 export {
+  SETTINGS_ENTRY_PERMISSION,
+  permissionDependents,
+  settingsPermissionChildren,
+  normalizeRolePermissions,
+  applyPermissionToggle,
+} from '@/lib/permissions/role-permission-set';
+
+export {
   ensureRestaurantPresetRoles,
   listRestaurantRoles,
   getRestaurantRole,

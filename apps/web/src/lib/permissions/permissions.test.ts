@@ -15,7 +15,13 @@ import {
   resolveCapabilitiesForOwner,
   staffLandingPathFromCapabilities,
 } from '@/lib/permissions/resolve';
-
+import {
+  SETTINGS_ENTRY_PERMISSION,
+  applyPermissionToggle,
+  normalizeRolePermissions,
+  settingsPermissionChildren,
+} from '@/lib/permissions/role-permission-set';
+import { SETTINGS_NAV_TABS, firstAccessibleSettingsChildHref, resolveSettingsHubDestination } from '@/lib/settings-nav';
 describe('permissions registry integrity', () => {
   it('every ROLE_TEMPLATES key is registered', () => {
     const known = new Set(ALL_PERMISSION_KEYS);
@@ -116,6 +122,86 @@ describe('can / resolve', () => {
         ]),
       ),
       '/dashboard',
+    );
+  });
+});
+
+describe('settings permission tree / cascade', () => {
+  it('settings nav tab permissions are requires-children of settings entry (one tree)', () => {
+    const children = new Set(settingsPermissionChildren());
+    for (const item of SETTINGS_NAV_TABS) {
+      if (!item.permission || item.backendAdminOnPremOnly) continue;
+      assert.equal(
+        children.has(item.permission),
+        true,
+        `${item.id} permission ${item.permission} must require ${SETTINGS_ENTRY_PERMISSION}`,
+      );
+    }
+  });
+
+  it('normalizeRolePermissions 补父 for settings child', () => {
+    const keys = normalizeRolePermissions(['settings.profile.manage']);
+    assert.equal(keys.includes(SETTINGS_ENTRY_PERMISSION), true);
+    assert.equal(keys.includes('settings.profile.manage'), true);
+  });
+
+  it('toggle child on 补父; toggle entry off 剔子', () => {
+    let set = applyPermissionToggle(new Set(), 'settings.profile.manage', true);
+    assert.equal(set.has(SETTINGS_ENTRY_PERMISSION), true);
+    assert.equal(set.has('settings.profile.manage'), true);
+
+    set = applyPermissionToggle(set, 'floor.kitchen_screens.manage', true);
+    assert.equal(set.has('floor.kitchen_screens.manage'), true);
+
+    set = applyPermissionToggle(set, SETTINGS_ENTRY_PERMISSION, false);
+    assert.equal(set.has(SETTINGS_ENTRY_PERMISSION), false);
+    assert.equal(set.has('settings.profile.manage'), false);
+    assert.equal(set.has('floor.kitchen_screens.manage'), false);
+  });
+
+  it('toggle entry on does not auto-enable children', () => {
+    const set = applyPermissionToggle(new Set(), SETTINGS_ENTRY_PERMISSION, true);
+    assert.equal(set.has(SETTINGS_ENTRY_PERMISSION), true);
+    assert.equal(set.has('settings.profile.manage'), false);
+  });
+
+  it('firstAccessibleSettingsChildHref skips profile hub', () => {
+    assert.equal(
+      firstAccessibleSettingsChildHref(
+        capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION, 'settings.staff.manage']),
+      ),
+      '/dashboard/settings/staff',
+    );
+    assert.equal(
+      firstAccessibleSettingsChildHref(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION])),
+      null,
+    );
+    assert.equal(
+      can(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION]), SETTINGS_ENTRY_PERMISSION),
+      true,
+    );
+  });
+
+  it('resolveSettingsHubDestination: profile / child / empty (kitchen bug)', () => {
+    assert.equal(
+      resolveSettingsHubDestination(
+        capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION, 'settings.profile.manage']),
+      ).kind,
+      'profile',
+    );
+    assert.deepEqual(
+      resolveSettingsHubDestination(
+        capabilitiesFromKeys([
+          SETTINGS_ENTRY_PERMISSION,
+          'dashboard.menu.view',
+          'floor.kitchen_screens.manage',
+        ]),
+      ),
+      { kind: 'redirect', href: '/dashboard/settings/kitchen-screens' },
+    );
+    assert.equal(
+      resolveSettingsHubDestination(capabilitiesFromKeys([SETTINGS_ENTRY_PERMISSION])).kind,
+      'empty',
     );
   });
 });

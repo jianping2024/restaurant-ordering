@@ -190,7 +190,10 @@ export async function listDishHistory(params: {
 
   const page = flat.slice(startIdx, startIdx + pageSize);
   const next = flat[startIdx + pageSize];
-  const rows: DishHistoryRow[] = page.map(({ sortKey: _s, ...row }) => row);
+  const rows: DishHistoryRow[] = page.map(({ sortKey, ...row }) => {
+    void sortKey;
+    return row;
+  });
 
   return {
     ok: true,

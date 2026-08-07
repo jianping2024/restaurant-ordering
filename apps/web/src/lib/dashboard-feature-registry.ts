@@ -169,7 +169,8 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
     id: 'settings-profile',
     path: '/dashboard/settings',
-    pageLoader: 'requireRestaurantForSettingsPermission (dashboard.settings.view)',
+    pageLoader:
+      'settings hub: dashboard.settings.view; profile body: settings.profile.manage; else firstAccessibleSettingsChildHref',
     writePattern: 'server-api',
     aliases: ['/api/restaurant/settings'],
   },

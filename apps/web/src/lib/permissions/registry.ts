@@ -109,7 +109,12 @@ export const PERMISSIONS = {
 
   // Floor boards
   'floor.kitchen_board.view': { group: 'floor', labelKey: 'floorKitchenBoard' },
-  'floor.kitchen_screens.manage': { group: 'floor', labelKey: 'floorKitchenScreensManage' },
+  /** Lives under 餐厅设置 hub; group settings so role UI nests it once under settings entry. */
+  'floor.kitchen_screens.manage': {
+    group: 'settings',
+    labelKey: 'floorKitchenScreensManage',
+    requires: ['dashboard.settings.view'],
+  },
   'floor.waiter_board.view': { group: 'floor', labelKey: 'floorWaiterBoard' },
 
   // Dish history (当日菜品检索)

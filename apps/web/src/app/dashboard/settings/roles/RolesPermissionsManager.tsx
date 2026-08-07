@@ -13,6 +13,11 @@ import {
   PERMISSION_GROUPS,
   type PermissionKey,
 } from '@/lib/permissions/registry';
+import {
+  SETTINGS_ENTRY_PERMISSION,
+  applyPermissionToggle,
+  settingsPermissionChildren,
+} from '@/lib/permissions/role-permission-set';
 import type { RestaurantRoleRow } from '@/lib/permissions/types';
 
 type RoleListItem = RestaurantRoleRow & { staff_count?: number };
@@ -80,16 +85,21 @@ export function RolesPermissionsManager() {
   }, [reload]);
 
   const groupedKeys = useMemo(() => {
+    const nestedUnderSettings = new Set(settingsPermissionChildren());
     const map = new Map<string, PermissionKey[]>();
     for (const group of PERMISSION_GROUPS) {
-      map.set(
-        group,
-        ALL_PERMISSION_KEYS.filter((key) => PERMISSIONS[key].group === group),
-      );
+      const keys = ALL_PERMISSION_KEYS.filter((key) => {
+        if (PERMISSIONS[key].group !== group) return false;
+        // Settings children render once under 餐厅设置 — not again in the settings group list.
+        if (group === 'settings' && nestedUnderSettings.has(key)) return false;
+        return true;
+      });
+      if (keys.length > 0) map.set(group, keys);
     }
     return map;
   }, []);
 
+  const settingsChildren = useMemo(() => settingsPermissionChildren(), []);
   const isDirty = draft != null && draftFingerprint(draft) !== baselineFp;
 
   const openCreate = () => {
@@ -155,10 +165,11 @@ export function RolesPermissionsManager() {
   const togglePerm = (key: PermissionKey) => {
     setDraft((prev) => {
       if (!prev) return prev;
-      const next = new Set(prev.permissions);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return { ...prev, permissions: next };
+      const enabled = !prev.permissions.has(key);
+      return {
+        ...prev,
+        permissions: applyPermissionToggle(prev.permissions, key, enabled),
+      };
     });
   };
 
@@ -486,25 +497,59 @@ export function RolesPermissionsManager() {
               <section key={group}>
                 <h3 className="text-sm font-medium text-brand-text mb-2">{groupLabel(group)}</h3>
                 <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
-                  {keys.map((key) => (
-                    <label
-                      key={key}
-                      className="flex items-start gap-3 px-4 py-3.5 cursor-pointer select-none hover:bg-brand-border/20 transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-                        checked={draft.permissions.has(key)}
-                        onChange={() => togglePerm(key)}
-                      />
-                      <span className="min-w-0 text-[15px] text-brand-text">
-                        {permLabel(key)}
-                        {Boolean((PERMISSIONS[key] as { dangerous?: boolean }).dangerous) ? (
-                          <span className="ml-1 text-xs text-amber-800">({t.dangerous})</span>
+                  {keys.map((key) => {
+                    const isSettingsEntry = key === SETTINGS_ENTRY_PERMISSION;
+                    return (
+                      <div key={key}>
+                        <label
+                          className="flex items-start gap-3 px-4 py-3.5 cursor-pointer select-none hover:bg-brand-border/20 transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+                            checked={draft.permissions.has(key)}
+                            onChange={() => togglePerm(key)}
+                          />
+                          <span className="min-w-0 text-[15px] text-brand-text">
+                            {permLabel(key)}
+                            {Boolean((PERMISSIONS[key] as { dangerous?: boolean }).dangerous) ? (
+                              <span className="ml-1 text-xs text-amber-800">({t.dangerous})</span>
+                            ) : null}
+                          </span>
+                        </label>
+                        {isSettingsEntry && settingsChildren.length > 0 ? (
+                          <div
+                            className="border-t border-brand-border/60 bg-brand-bg/40"
+                            data-testid="settings-perm-tree"
+                          >
+                            {settingsChildren.map((child) => (
+                              <label
+                                key={child}
+                                className="flex items-start gap-3 py-3 pl-10 pr-4 cursor-pointer select-none hover:bg-brand-border/20 transition-colors border-t border-brand-border/40 first:border-t-0"
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+                                  checked={draft.permissions.has(child)}
+                                  onChange={() => togglePerm(child)}
+                                />
+                                <span className="min-w-0 text-[15px] text-brand-text">
+                                  {permLabel(child)}
+                                  {Boolean(
+                                    (PERMISSIONS[child] as { dangerous?: boolean }).dangerous,
+                                  ) ? (
+                                    <span className="ml-1 text-xs text-amber-800">
+                                      ({t.dangerous})
+                                    </span>
+                                  ) : null}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
                         ) : null}
-                      </span>
-                    </label>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
             ))}

@@ -4,9 +4,9 @@ import {
   createRestaurantRole,
   listRestaurantRoles,
 } from '@/lib/permissions/restaurant-roles';
-import { enforcePermissionRequires, normalizeStoredPermissions } from '@/lib/permissions/resolve';
+import { normalizeRolePermissions } from '@/lib/permissions/role-permission-set';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isPermissionKey, type PermissionKey } from '@/lib/permissions/registry';
+import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
@@ -63,11 +63,7 @@ export async function POST(req: Request) {
 
   let permissions: PermissionKey[] = [];
   if (Array.isArray(body.permissions)) {
-    permissions = enforcePermissionRequires(
-      normalizeStoredPermissions(
-        body.permissions.filter((k): k is string => typeof k === 'string' && isPermissionKey(k)),
-      ),
-    );
+    permissions = normalizeRolePermissions(body.permissions);
   }
 
   try {

@@ -887,6 +887,8 @@ export const MESSAGES = {
       tabBuffet: '自助餐定价',
       tabSystemLogs: '系统日志',
       appVersion: 'Mesa Web {version}',
+      hubEmpty:
+        '已开通餐厅设置入口，但尚未授予任何设置子项。请在「角色权限」中勾选需要的子权限（如基本资料、后厨大屏）。',
     },
     settingsSystemLogs: {
       fromLabel: '开始时间',
@@ -2163,6 +2165,8 @@ export const MESSAGES = {
       tabKitchenScreens: 'Kitchen screens',
       tabSystemLogs: 'System logs',
       appVersion: 'Mesa Web {version}',
+      hubEmpty:
+        'Restaurant settings entry is on, but no settings sub-permission is granted. Enable items under Roles (e.g. Profile, Kitchen screens).',
     },
     settingsSystemLogs: {
       fromLabel: 'From',
@@ -3201,6 +3205,8 @@ export const MESSAGES = {
       tabKitchenScreens: 'Ecrans cozinha',
       tabSystemLogs: 'Logs do sistema',
       appVersion: 'Mesa Web {version}',
+      hubEmpty:
+        'A entrada de definições está ativa, mas nenhuma subpermissão foi concedida. Ative itens em Funções (ex.: Perfil, Ecrãs cozinha).',
     },
     settingsSystemLogs: {
       fromLabel: 'De',

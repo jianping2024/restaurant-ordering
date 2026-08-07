@@ -1,3 +1,4 @@
+import { can, type Capabilities } from '@/lib/permissions/can';
 import type { PermissionKey } from '@/lib/permissions/registry';
 
 export type SettingsNavId =
@@ -124,4 +125,34 @@ export function getActiveSettingsNavItem(pathname: string): SettingsNavItem | nu
 
 export function isSettingsWideLayout(pathname: string): boolean {
   return pathname.startsWith('/dashboard/settings/buffet');
+}
+
+/**
+ * First settings sub-route the principal can open (SETTINGS_NAV_TABS order).
+ * Omits profile hub `/dashboard/settings` itself — caller handles profile vs empty.
+ */
+export function firstAccessibleSettingsChildHref(capabilities: Capabilities): string | null {
+  for (const item of SETTINGS_NAV_TABS) {
+    if (item.id === 'profile') continue;
+    if (item.backendAdminOnPremOnly) continue;
+    if (item.permission && can(capabilities, item.permission)) {
+      return item.href;
+    }
+  }
+  return null;
+}
+
+/** Sole settings-hub landing decision (used by `/dashboard/settings` page). */
+export type SettingsHubDestination =
+  | { kind: 'profile' }
+  | { kind: 'redirect'; href: string }
+  | { kind: 'empty' };
+
+export function resolveSettingsHubDestination(
+  capabilities: Capabilities,
+): SettingsHubDestination {
+  if (can(capabilities, 'settings.profile.manage')) return { kind: 'profile' };
+  const childHref = firstAccessibleSettingsChildHref(capabilities);
+  if (childHref) return { kind: 'redirect', href: childHref };
+  return { kind: 'empty' };
 }

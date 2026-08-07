@@ -25,7 +25,7 @@ import type {
   OrderHistorySessionSettlement,
 } from '@/lib/order-history/types';
 
-const MERGED_SOURCE_SETTLEMENT: OrderHistorySessionSettlement = {
+const OPERATIONAL_SOURCE_SETTLEMENT: OrderHistorySessionSettlement = {
   outcome: 'closed_without_billing',
   summary: null,
   showFinancialDetails: false,
@@ -36,12 +36,9 @@ const MERGED_SOURCE_SETTLEMENT: OrderHistorySessionSettlement = {
   canPrintBill: false,
 };
 
-/**
- * Merged source sessions carry no billable orders (moved to target).
- * Ignore orphan ledger rows on the source session — presentation only.
- */
-export function buildMergedSourceSessionSettlement(): OrderHistorySessionSettlement {
-  return MERGED_SOURCE_SETTLEMENT;
+/** Source-table operational closes (merged / transferred out). */
+export function buildOperationalSourceSessionSettlement(): OrderHistorySessionSettlement {
+  return OPERATIONAL_SOURCE_SETTLEMENT;
 }
 
 const MONEY_EPSILON = 0.004;

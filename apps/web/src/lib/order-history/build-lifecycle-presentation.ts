@@ -4,9 +4,12 @@ import type {
   OrderHistoryEntry,
   OrderHistoryLifecycleStep,
 } from '@/lib/order-history/types';
-import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
 import {
-  resolveMergedSourceOutcomeBadge,
+  isOperationalSourceCloseKind,
+  isTransferredSourceCloseKind,
+} from '@/lib/order-history/close-kind';
+import {
+  resolveOperationalSourceOutcomeBadge,
   resolveOrderHistoryOutcomeBadge,
   type OrderHistoryOutcomeBadge,
 } from '@/lib/order-history/build-detail-presentation';
@@ -116,6 +119,11 @@ export function formatOrderHistoryLifecycleStepLine(
         .replace('{time}', when)
         .replace('{detail}', step.detail ?? '—')
         .replace('{operator}', operator);
+    case 'transferred_out':
+      return i18n.lifecycleTransferredOut
+        .replace('{time}', when)
+        .replace('{table}', step.detail ?? '—')
+        .replace('{operator}', operator);
     case 'merged_in':
       return i18n.lifecycleMergedIn
         .replace('{time}', when)
@@ -136,25 +144,29 @@ export function formatOrderHistoryLifecycleStepLine(
   }
 }
 
-export function buildMergedIntoSummaryLine(
+export function buildContinuedSessionSummaryLine(
   entry: OrderHistoryEntry,
   i18n: OrderHistoryI18n,
 ): string {
   const ctx = entry.mergeContext;
+  const isTransfer = isTransferredSourceCloseKind(entry.closeKind);
+
   if (!ctx?.targetDisplayName || ctx.targetDisplayName === '—') {
-    return i18n.mergedIntoUnknown;
+    return isTransfer ? i18n.transferredIntoUnknown : i18n.mergedIntoUnknown;
   }
   if (ctx.targetStatus === 'open' || ctx.targetStatus === 'billing') {
-    return i18n.mergedIntoInProgress.replace('{table}', ctx.targetDisplayName);
+    const template = isTransfer ? i18n.transferredIntoInProgress : i18n.mergedIntoInProgress;
+    return template.replace('{table}', ctx.targetDisplayName);
   }
-  return i18n.mergedIntoSummary.replace('{table}', ctx.targetDisplayName);
+  const template = isTransfer ? i18n.transferredIntoSummary : i18n.mergedIntoSummary;
+  return template.replace('{table}', ctx.targetDisplayName);
 }
 
-export function buildMergedSourceDetailStatus(
+export function buildOperationalSourceDetailStatus(
   entry: OrderHistoryEntry,
   i18n: OrderHistoryI18n,
 ): string {
-  return `${buildMergedIntoSummaryLine(entry, i18n)} · ${i18n.mergedSourceOrdersTransferred}`;
+  return `${buildContinuedSessionSummaryLine(entry, i18n)} · ${i18n.operationalSourceOrdersTransferred}`;
 }
 
 export type OrderHistorySurfaceMeta = {
@@ -173,14 +185,14 @@ export function buildOrderHistorySurfaceMeta(
 ): OrderHistorySurfaceMeta {
   const { lifecycleSteps } = entry;
 
-  if (isMergedSourceCloseKind(entry.closeKind)) {
+  if (isOperationalSourceCloseKind(entry.closeKind)) {
     return {
-      outcomeBadge: resolveMergedSourceOutcomeBadge(i18n),
+      outcomeBadge: resolveOperationalSourceOutcomeBadge(entry.closeKind, i18n),
       abnormal: 'none',
       lifecycleSteps,
       cardClass: resolveOrderHistoryCardClass('none'),
       lifecycleBoxClass: resolveOrderHistoryLifecycleBoxClass('none'),
-      mergeSummaryLine: buildMergedIntoSummaryLine(entry, i18n),
+      mergeSummaryLine: buildContinuedSessionSummaryLine(entry, i18n),
     };
   }
 

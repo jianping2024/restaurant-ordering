@@ -12,6 +12,7 @@ const closedAt = '2026-07-05T12:00:00.000Z';
 
 function baseEntry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
   return {
+    historyRecordId: 'sess-1',
     sessionId: 'sess-1',
     tableId: 'table-1',
     displayName: 'A-01',

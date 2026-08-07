@@ -8,10 +8,10 @@ import {
   OrderHistoryMergeTargetLink,
 } from '@/components/dashboard/OrderHistoryMergeNavigation';
 import { Modal } from '@/components/ui/Modal';
-import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
+import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
 import { buildOrderHistoryBillDetailView } from '@/lib/order-history/build-bill-detail-view';
 import {
-  buildMergedSourceDetailStatus,
+  buildOperationalSourceDetailStatus,
   buildOrderHistorySurfaceMeta,
 } from '@/lib/order-history/build-lifecycle-presentation';
 import {
@@ -67,7 +67,7 @@ export function OrderHistoryDetailModal({
 
   const detail = useMemo(
     () =>
-      entry && !isMergedSourceCloseKind(entry.closeKind)
+      entry && !isOperationalSourceCloseKind(entry.closeKind)
         ? buildOrderHistoryBillDetailView(entry, itemCodeByMenuId, lang)
         : null,
     [entry, itemCodeByMenuId, lang],
@@ -82,8 +82,8 @@ export function OrderHistoryDetailModal({
       <div className="flex flex-wrap items-center gap-2">
         <OrderHistoryOutcomeBadge badge={outcomeBadge} size="md" />
         <p className="text-sm text-brand-text">
-          {isMergedSourceCloseKind(entry.closeKind)
-            ? buildMergedSourceDetailStatus(entry, i18n)
+          {isOperationalSourceCloseKind(entry.closeKind)
+            ? buildOperationalSourceDetailStatus(entry, i18n)
             : detail?.statusStrip}
         </p>
       </div>
@@ -95,7 +95,7 @@ export function OrderHistoryDetailModal({
     </div>
   );
 
-  if (isMergedSourceCloseKind(entry.closeKind)) {
+  if (isOperationalSourceCloseKind(entry.closeKind)) {
     return (
       <Modal
         open

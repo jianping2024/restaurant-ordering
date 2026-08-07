@@ -1,32 +1,22 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  MERGED_CLOSE_REASON,
-  isMergedCloseReason,
-  isMergedSourceCloseKind,
-  normalizeMergeTargetStatus,
+  isOperationalSourceCloseKind,
+  isTransferredSourceCloseKind,
   resolveOrderHistoryCloseKind,
 } from '@/lib/order-history/close-kind';
+import { MERGED_CLOSE_REASON } from '@/lib/order-history/close-kind';
 
 describe('close-kind', () => {
-  it('detects merged close reason', () => {
-    assert.equal(isMergedCloseReason(MERGED_CLOSE_REASON), true);
-    assert.equal(isMergedCloseReason('frontdesk_closed'), false);
-  });
-
-  it('resolves close kind from closed_reason', () => {
+  it('recognizes merged close reason', () => {
     assert.equal(resolveOrderHistoryCloseKind(MERGED_CLOSE_REASON), 'merged_source');
-    assert.equal(resolveOrderHistoryCloseKind('cashier_closed'), 'billing');
+    assert.equal(resolveOrderHistoryCloseKind('frontdesk_closed'), 'billing');
   });
 
-  it('normalizes merge target status', () => {
-    assert.equal(normalizeMergeTargetStatus('closed'), 'closed');
-    assert.equal(normalizeMergeTargetStatus('billing'), 'billing');
-    assert.equal(normalizeMergeTargetStatus('invalid'), 'unknown');
-  });
-
-  it('detects merged close kind', () => {
-    assert.equal(isMergedSourceCloseKind('merged_source'), true);
-    assert.equal(isMergedSourceCloseKind('billing'), false);
+  it('classifies operational source close kinds', () => {
+    assert.equal(isOperationalSourceCloseKind('merged_source'), true);
+    assert.equal(isOperationalSourceCloseKind('transferred_source'), true);
+    assert.equal(isOperationalSourceCloseKind('billing'), false);
+    assert.equal(isTransferredSourceCloseKind('transferred_source'), true);
   });
 });

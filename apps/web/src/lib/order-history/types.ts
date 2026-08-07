@@ -64,6 +64,7 @@ export type OrderHistoryTransferEvent = {
 export type OrderHistoryLifecycleStepKind =
   | 'opened'
   | 'transferred'
+  | 'transferred_out'
   | 'merged_in'
   | 'merged_out'
   | 'closed';
@@ -79,6 +80,8 @@ export type OrderHistoryLifecycleStep = {
 };
 
 export type OrderHistoryEntry = {
+  /** Stable list key: session id for billing closes; `transfer:{eventId}` for transfer-out rows. */
+  historyRecordId: string;
   sessionId: string;
   tableId: string;
   displayName: string;
@@ -93,7 +96,7 @@ export type OrderHistoryEntry = {
   itemCount: number;
   settlement: OrderHistorySessionSettlement;
   closeAnnotation: OrderHistoryCloseAnnotation;
-  /** Set when closeKind is merged_source. */
+  /** Continued meal on target table (merge-out or transfer-out source rows). */
   mergeContext?: OrderHistoryMergeTargetContext;
   /** Direct tables merged into this billing session. */
   mergeSources?: OrderHistoryMergeSourceRef[];

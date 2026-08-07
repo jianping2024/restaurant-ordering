@@ -193,13 +193,14 @@
 - 首页概览：今日订单数、营业额、进行中订单、最近订单
 - 厨房/服务员看板：活跃订单实时刷新（Realtime）
 - 订单数据存于 `orders.items` JSONB，含行级 `item_status`
+- **转出台 / 并出台** 立刻出现在来源桌订单历史：并台复用 `closed_reason=merged` 关台会话；转台由 `table_session_events(transfer)` 投影为 `transferred_source` 行（不插假关台会话）；UI 统一为操作来源关台（`isOperationalSourceCloseKind`）
 
 ### 业务边界
 
 - 历史页为**只读查看**，不在此修改订单状态
 - 订单归属 `session_id` + `table_id` + `display_name` 快照
 - 订单级 `status` 由 items 聚合（`deriveOrderStatusFromItems`）
-- 合并/转台后订单挂到目标会话与桌位
+- 合并/转台后订单挂到目标会话与桌位；来源桌历史只做加法，保留目标桌正餐历史不变
 
 ### 当前不做
 

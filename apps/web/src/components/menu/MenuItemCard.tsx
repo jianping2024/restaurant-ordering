@@ -14,7 +14,7 @@ import {
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_SHELL_CLASS,
 } from '@/lib/menu-item-card-layout';
-import { MESA_RELIEF } from '@/lib/mesa-relief-chrome';
+import { MESA_SURFACE } from '@/lib/mesa-surface-chrome';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 
@@ -69,7 +69,7 @@ function MenuItemCardAction({
       onClick={onIncrement}
       disabled={incrementDisabled}
       aria-label={labels.add}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl font-medium leading-none transition-[filter] hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${MESA_RELIEF.goldFace} ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl font-medium leading-none transition-[filter] hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${MESA_SURFACE.selected} ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
       +
     </button>

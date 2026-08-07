@@ -1,5 +1,5 @@
 import type { WaiterBoardFilter, WaiterTableBoardState } from '@/lib/waiter-board-session';
-import { MESA_RELIEF } from '@/lib/mesa-relief-chrome';
+import { MESA_SURFACE } from '@/lib/mesa-surface-chrome';
 import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
@@ -23,9 +23,9 @@ export const waiterBoardType = {
 
 /**
  * Shared selected face — KPI pressed + lane selected.
- * Sole gold fill: `MESA_RELIEF.goldFace` (no parallel bg-brand-gold).
+ * Sole gold fill: `MESA_SURFACE.selected` (no parallel bg-brand-gold).
  */
-export const WAITER_BOARD_SELECTED_EMPHASIS = MESA_RELIEF.goldFace;
+export const WAITER_BOARD_SELECTED_EMPHASIS = MESA_SURFACE.selected;
 
 /** Lane tabs + together-group dropdown — shared height; active = solid gold face. */
 export const WAITER_BOARD_LANE_CHROME = {
@@ -43,7 +43,7 @@ export const WAITER_BOARD_LANE_STICKY_SHELL =
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =
-  `rounded-2xl border-2 border-brand-gold/40 bg-brand-card p-4 ${MESA_RELIEF.card}`;
+  `rounded-2xl border-2 border-brand-gold/40 bg-brand-card p-4 ${MESA_SURFACE.raised}`;
 
 /** Visual tokens for one waiter board table card — keyed by business board state only. */
 export type WaiterBoardCardTheme = {

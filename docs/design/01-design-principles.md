@@ -146,27 +146,27 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
-### 金浮雕表面语言（暗金 / 亮金）
+### 表面与选中态（elevation + selected）
 
-整站气质升级：**改壳不改骨**（网格 / 字号 / 字段顺序不动）。
+整站气质：**克制抬升 + 语义状态边**，不靠彩光/金雾堆高级感。网格 / 字号 / 字段顺序不动。
 
 | 唯一写法 | 用途 |
 |----------|------|
-| `MESA_RELIEF`（`mesa-relief-chrome.ts`） | card / goldFace / dock / topBar 类名入口 |
-| `mesa-relief-gold-face` | **唯一**金面填充（KPI 选中、lane 选中、`Button` gold、点餐主 CTA）；禁止并列 `bg-brand-gold` |
-| `mesa-board-shell-*` | 楼面桌卡 **与** KPI 未选中态同一套浮起壳（中性 / 用餐 / 待结 / 空闲）；状态靠左边光+边色+外柔光，**禁止**整块染色底板 |
-| `MENU_ITEM_CARD_SHELL_CLASS` | 顾客菜卡壳（含 `mesa-relief-card`） |
+| `MESA_SURFACE`（`mesa-surface-chrome.ts`） | raised / selected / dock / topBar 类名入口 |
+| `mesa-surface-selected` | **唯一**金面填充（KPI 选中、lane 选中、`Button` gold、点餐主 CTA）；禁止并列 `bg-brand-gold` |
+| `mesa-board-shell-*` | 楼面桌卡 **与** KPI 未选中态同一套壳（中性 / 用餐 / 待结 / 空闲）；状态靠左边细条+边色+`elev-1`，**禁止**整块染色底板与彩色外柔光 |
+| `MENU_ITEM_CARD_SHELL_CLASS` | 顾客菜卡壳（含 `mesa-surface-raised`） |
 | `mesa-badge-*` | 仅小徽章/标签，不充当 KPI 大面 |
 
-允许氛围底 / 磨砂顶底栏；禁止透底实景、第二套状态色盘、长动画。
+允许磨砂顶底栏；禁止页面金雾径向底、第二套状态色盘、长动画。
 
 状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：
 
 - 待结账 `checkout`：warning（琥珀）
 - 用餐中 `dining`：danger（红）
 - 空闲 `idle`：success（绿）
-- 看板卡片壳 / KPI 未选中：`mesa-board-shell-*`（浮起卡面 + 状态边光；按 `data-theme` 分条声明）；正文一律 `brand-text`，状态色只用于壳边/徽章/左边光
-- KPI / lane / 主 CTA 金面：仅 `mesa-relief-gold-face`
+- 看板卡片壳 / KPI 未选中：`mesa-board-shell-*`（卡面 + 左边细条；按 `data-theme` 分条声明）；正文一律 `brand-text`，状态色只用于壳边/徽章/左边条
+- KPI / lane / 主 CTA 金面：仅 `mesa-surface-selected`
 - 成功/收款：`mesa-badge-success`
 - 危险操作：`Button danger` / `mesa-text-danger`
 

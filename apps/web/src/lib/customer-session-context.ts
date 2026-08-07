@@ -3,8 +3,13 @@ import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { BillSplit, Order, TableSession } from '@/types';
 import { filterOrdersForCustomerDisplay } from '@/lib/customer-orders-display';
 import {
+  loadKitchenEnabledStationIds,
+  type CustomerKitchenProgress,
+} from '@/lib/kitchen-progress-display';
+import {
   type GuestOrderingNotice,
 } from '@/lib/guest-ordering-notice';
+import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
 import type {
   WaiterTableDetailData,
@@ -39,6 +44,8 @@ export type CustomerSessionContext = {
   display_name: string;
   active_session: TableSession | null;
   recent_orders: Order[];
+  /** Present on full scope when restaurant has kitchen stations (guest progress). */
+  kitchen_progress?: CustomerKitchenProgress | null;
 };
 
 export type CustomerBillCollectedPayment = SessionCollectedPayment;
@@ -92,11 +99,12 @@ export function applyCustomerSessionScopeMerge(
   const prevSessionId = previous?.active_session?.id ?? null;
   const nextSessionId = incoming.active_session?.id ?? null;
   if (!nextSessionId || nextSessionId !== prevSessionId) {
-    return { ...incoming, recent_orders: [] };
+    return { ...incoming, recent_orders: [], kitchen_progress: null };
   }
   return {
     ...incoming,
     recent_orders: previous?.recent_orders ?? [],
+    kitchen_progress: previous?.kitchen_progress ?? null,
   };
 }
 
@@ -202,6 +210,7 @@ export function customerSessionContextFromWaiterDetail(
     display_name: table.display_name,
     active_session,
     recent_orders: active_session ? detail.orders : [],
+    kitchen_progress: null,
   };
 }
 
@@ -232,22 +241,60 @@ export async function loadCustomerSessionContext(params: {
   const tableContext = await resolveCustomerTableContext(params);
   if (!tableContext) return null;
 
-  const recent_orders =
-    scope === 'full' && tableContext.activeSession?.id
-      ? await loadCustomerSessionOrders({
+  if (scope !== 'full') {
+    return {
+      table_id: tableContext.tableId,
+      display_name: tableContext.displayName,
+      active_session: tableContext.activeSession,
+      recent_orders: [],
+      kitchen_progress: null,
+    };
+  }
+
+  const sessionId = tableContext.activeSession?.id;
+  const [rawOrders, enabledStationIds, restaurantRow] = await Promise.all([
+    sessionId
+      ? loadCustomerSessionOrders({
           admin: params.admin,
           restaurantId: params.restaurantId,
-          sessionId: tableContext.activeSession.id,
+          sessionId,
           ascending: false,
           limit: 20,
         })
+      : Promise.resolve([] as Order[]),
+    loadKitchenEnabledStationIds(params.admin, params.restaurantId),
+    params.admin
+      .from('restaurants')
+      .select('print_agent_config')
+      .eq('id', params.restaurantId)
+      .maybeSingle(),
+  ]);
+
+  // Dynamic import keeps this server-only module out of client bundles that import
+  // customer-session-context helpers/types (useCustomerSessionContext / MenuOrderingController).
+  const recent_orders =
+    rawOrders.length > 0
+      ? await (
+          await import('@/lib/kitchen-order-station-enrich')
+        ).enrichKitchenOrdersWithStations(params.admin, params.restaurantId, rawOrders)
       : [];
+
+  const kitchen_progress: CustomerKitchenProgress | null =
+    enabledStationIds.length > 0
+      ? {
+          ready_after_minutes: kitchenReadyAfterMinutesFromConfig(
+            restaurantRow.data?.print_agent_config,
+          ),
+          enabled_station_ids: enabledStationIds,
+        }
+      : null;
 
   return {
     table_id: tableContext.tableId,
     display_name: tableContext.displayName,
     active_session: tableContext.activeSession,
     recent_orders,
+    kitchen_progress,
   };
 }
 

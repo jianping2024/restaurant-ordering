@@ -180,6 +180,7 @@ export function MenuOrderingController({
   const {
     activeSession,
     recentOrders,
+    kitchenProgress,
     sessionResolved,
     refresh: refreshSessionContext,
     isSessionContextFresh,
@@ -959,6 +960,7 @@ export function MenuOrderingController({
         orders={recentOrders}
         lang={lang}
         sessionResolved={sessionResolved}
+        kitchenProgress={kitchenProgress}
         labels={{
           title: formatCountLabel(t.orderedDrawerTitle, footer.submittedCount),
           empty: t.noOrders,

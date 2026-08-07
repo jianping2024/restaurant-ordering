@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Order, Buffet, OrderItem } from '@/types';
+import type { Order, Buffet } from '@/types';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   sortTableGroups,
@@ -36,10 +36,10 @@ import {
 } from '@/lib/table-party-groups';
 import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
 import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
-import { isBuffetBaseItem } from '@/lib/order-items';
-import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
-import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
+
+export { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -145,59 +145,6 @@ export type KitchenBoardData = {
   tables: RestaurantTableRow[];
   kitchen_ready_after_minutes: number;
 };
-
-async function enrichKitchenOrdersWithStations(
-  admin: SupabaseClient,
-  restaurantId: string,
-  orders: Order[],
-): Promise<Order[]> {
-  const menuIds = new Set<string>();
-  for (const order of orders) {
-    for (const item of order.items || []) {
-      if (isBuffetBaseItem(item)) continue;
-      if (item.print_station_id) continue;
-      if (item.id) menuIds.add(item.id);
-    }
-  }
-
-  const menuStationById = new Map<
-    string,
-    { print_station_id: string | null; category_id: string | null }
-  >();
-  if (menuIds.size > 0) {
-    const { data: menuRows } = await admin
-      .from('menu_items')
-      .select('id, category_id, print_station_id')
-      .eq('restaurant_id', restaurantId)
-      .in('id', Array.from(menuIds));
-    for (const row of menuRows || []) {
-      menuStationById.set(row.id as string, {
-        print_station_id: (row.print_station_id as string | null) ?? null,
-        category_id: (row.category_id as string | null) ?? null,
-      });
-    }
-  }
-
-  const categories =
-    menuStationById.size > 0 ? await loadMenuCategoriesForEnqueue(restaurantId) : [];
-
-  return orders.map((order) => ({
-    ...order,
-    items: (order.items || []).map((item: OrderItem) => {
-      if (isBuffetBaseItem(item)) return item;
-      if (item.print_station_id) return item;
-      const menu = menuStationById.get(item.id);
-      if (!menu) return item;
-      const resolved = resolveEffectivePrintStationId(
-        menu.print_station_id,
-        menu.category_id,
-        categories,
-      );
-      if (!resolved) return item;
-      return { ...item, print_station_id: resolved };
-    }),
-  }));
-}
 
 export async function fetchKitchenBoard(
   admin: SupabaseClient,

@@ -17,7 +17,8 @@ function stateFromContext(context: CustomerSessionContext | null | undefined) {
   const recentOrders = activeSession
     ? ((context?.recent_orders ?? []) as Order[])
     : [];
-  return { activeSession, recentOrders };
+  const kitchenProgress = activeSession ? (context?.kitchen_progress ?? null) : null;
+  return { activeSession, recentOrders, kitchenProgress };
 }
 
 function resolveBootContext(
@@ -63,6 +64,7 @@ export function useCustomerSessionContext(
 
   const [activeSession, setActiveSession] = useState<TableSession | null>(seeded.activeSession);
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
+  const [kitchenProgress, setKitchenProgress] = useState(seeded.kitchenProgress);
   const [sessionResolved, setSessionResolved] = useState(isDemo || hasAuthoritativeSeed);
 
   const contextRef = useRef<CustomerSessionContext | null>(bootContext);
@@ -81,6 +83,7 @@ export function useCustomerSessionContext(
       const next = stateFromContext(merged);
       setActiveSession(next.activeSession);
       setRecentOrders(next.recentOrders);
+      setKitchenProgress(next.kitchenProgress);
       setSessionResolved(true);
       return merged;
     },
@@ -131,6 +134,7 @@ export function useCustomerSessionContext(
     const next = stateFromContext(nextBoot);
     setActiveSession(next.activeSession);
     setRecentOrders(next.recentOrders);
+    setKitchenProgress(next.kitchenProgress);
     const seededForTable =
       !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
     setSessionResolved(isDemo || seededForTable);
@@ -144,6 +148,7 @@ export function useCustomerSessionContext(
     const next = stateFromContext(nextBoot);
     setActiveSession(next.activeSession);
     setRecentOrders(next.recentOrders);
+    setKitchenProgress(next.kitchenProgress);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
   }, [params.tableId]);
 
@@ -172,6 +177,7 @@ export function useCustomerSessionContext(
   return {
     activeSession,
     recentOrders,
+    kitchenProgress,
     sessionResolved,
     refresh,
     isSessionContextFresh,

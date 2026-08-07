@@ -6,6 +6,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
 import { buildCustomerSubmittedDisplayOrders } from '@/lib/customer-submitted-order-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import type { CustomerKitchenProgress } from '@/lib/kitchen-progress-display';
 import type { Language } from '@/types';
 
 type Labels = {
@@ -21,6 +22,7 @@ type Props = {
   orders: Order[];
   lang: Language;
   sessionResolved: boolean;
+  kitchenProgress?: CustomerKitchenProgress | null;
   labels: Labels;
   billHref: string;
   billEnabled: boolean;
@@ -33,6 +35,7 @@ export function OrderedDrawer({
   orders,
   lang,
   sessionResolved,
+  kitchenProgress = null,
   labels,
   billHref,
   billEnabled,
@@ -48,8 +51,11 @@ export function OrderedDrawer({
   }, [open]);
 
   const groups = useMemo(
-    () => (open && sessionResolved ? buildCustomerSubmittedDisplayOrders(orders, lang) : []),
-    [lang, open, orders, sessionResolved],
+    () =>
+      open && sessionResolved
+        ? buildCustomerSubmittedDisplayOrders(orders, lang, { kitchenProgress })
+        : [],
+    [kitchenProgress, lang, open, orders, sessionResolved],
   );
 
   const showSubmittedHint = open && sessionResolved && groups.length > 0;

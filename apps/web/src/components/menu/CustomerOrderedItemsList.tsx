@@ -46,9 +46,17 @@ export function CustomerOrderedItemsList({
             <BatchTimeDivider label={group.submittedTimeLabel} />
             <div className="space-y-1">
               {group.lines.map((line) => (
-                <p key={line.key} className="text-sm text-brand-text">
-                  {line.label}
-                </p>
+                <div
+                  key={line.key}
+                  className="flex items-baseline justify-between gap-3 text-sm text-brand-text"
+                >
+                  <p className="min-w-0 flex-1">{line.label}</p>
+                  {line.statusLabel ? (
+                    <span className="shrink-0 text-[12px] text-brand-text-muted tabular-nums">
+                      {line.statusLabel}
+                    </span>
+                  ) : null}
+                </div>
               ))}
             </div>
           </section>

@@ -107,7 +107,7 @@
 
 ### 相关代码
 
-`lib/order-item-void/*`、`lib/resolve-append-cart-items.ts`、`components/kitchen/KitchenDisplay.tsx`（将演进为档口大屏格子）
+`lib/order-item-void/*`、`lib/resolve-append-cart-items.ts`、`components/kitchen/KitchenScreenBoard.tsx` / `KitchenStationPane.tsx`（档口大屏；退菜仅楼面）
 
 ---
 

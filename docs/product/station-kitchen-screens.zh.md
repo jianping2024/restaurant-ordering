@@ -213,4 +213,4 @@
 - 状态表：本文件 §3 为准；同步 `04-business-rules.md`  
 - 功能开关：`docs/restaurant-features.zh.md`  
 - 打印：`docs/technical/04-printing.md`（后厨开 → 备餐入队）  
-- 现码：`KitchenDisplay.tsx`、`station-ticket-enqueue.ts`、`order-status.ts`、`print_stations`
+- 现码：`KitchenScreenBoard.tsx` / `KitchenStationPane.tsx`、`station-ticket-enqueue.ts`、`order-status.ts`、`print_stations`

@@ -192,7 +192,7 @@
 
 ### 相关代码位置
 
-`components/kitchen/KitchenDisplay.tsx`、`components/waiter/WaiterTableDetail.tsx`、`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/*`、`api/.../decrement-item/route.ts`、`lib/audit/*`
+`components/waiter/WaiterTableDetail.tsx`、`lib/order-item-decrement/decrement-policy.ts`、`lib/order-item-void/*`、`api/.../decrement-item/route.ts`、`lib/audit/*`
 
 ---
 

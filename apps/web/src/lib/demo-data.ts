@@ -1,12 +1,50 @@
-import type { Order } from '@/types';
+import type { KitchenScreen, Order, PrintStation } from '@/types';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
+
+export const DEMO_KITCHEN_STATION_HOT = 'demo-station-hot';
+export const DEMO_KITCHEN_STATION_GRILL = 'demo-station-grill';
 
 export const DEMO_RESTAURANT = {
   id: 'demo',
   name: 'Casa Portuguesa',
   slug: 'demo',
-  kitchen_enabled_station_ids: [] as string[],
+  kitchen_enabled_station_ids: [DEMO_KITCHEN_STATION_HOT, DEMO_KITCHEN_STATION_GRILL] as string[],
 } as const;
+
+const DEMO_TS = '2026-01-01T00:00:00.000Z';
+
+/** Demo kitchen panes (matches station-kitchen-screens board). */
+export const DEMO_PRINT_STATIONS: PrintStation[] = [
+  {
+    id: DEMO_KITCHEN_STATION_HOT,
+    restaurant_id: DEMO_RESTAURANT.id,
+    name_pt: 'Cozinha',
+    name_en: 'Hot kitchen',
+    name_zh: '热菜',
+    sort_order: 0,
+    created_at: DEMO_TS,
+    kitchen_enabled: true,
+  },
+  {
+    id: DEMO_KITCHEN_STATION_GRILL,
+    restaurant_id: DEMO_RESTAURANT.id,
+    name_pt: 'Grelhados',
+    name_en: 'Grill',
+    name_zh: '烧烤',
+    sort_order: 1,
+    created_at: DEMO_TS,
+    kitchen_enabled: true,
+  },
+];
+
+export const DEMO_KITCHEN_SCREEN: KitchenScreen = {
+  id: 'demo-kitchen-screen-1',
+  restaurant_id: DEMO_RESTAURANT.id,
+  name: 'Kitchen / 后厨',
+  sort_order: 0,
+  created_at: DEMO_TS,
+  station_ids: [DEMO_KITCHEN_STATION_HOT, DEMO_KITCHEN_STATION_GRILL],
+};
 
 function demoTableId(n: number): string {
   return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -46,6 +84,7 @@ export const DEMO_ORDERS: Order[] = [
         item_status: 'pending',
         batch_id: 'batch-a',
         added_at: new Date(now - 1000 * 60 * 4).toISOString(),
+        print_station_id: DEMO_KITCHEN_STATION_HOT,
       },
       {
         id: 'd10',
@@ -57,6 +96,7 @@ export const DEMO_ORDERS: Order[] = [
         item_status: 'pending',
         batch_id: 'batch-a',
         added_at: new Date(now - 1000 * 60 * 4).toISOString(),
+        // Bar / no kitchen pane — omitted from station board.
       },
     ],
     total_amount: 26.5,
@@ -83,6 +123,7 @@ export const DEMO_ORDERS: Order[] = [
         started_at: new Date(now - 1000 * 60 * 14).toISOString(),
         done_at: new Date(now - 1000 * 60 * 6).toISOString(),
         added_at: new Date(now - 1000 * 60 * 15).toISOString(),
+        print_station_id: DEMO_KITCHEN_STATION_GRILL,
       },
       {
         id: 'd7',
@@ -96,6 +137,7 @@ export const DEMO_ORDERS: Order[] = [
         batch_id: 'batch-c',
         started_at: new Date(now - 1000 * 60 * 4).toISOString(),
         added_at: new Date(now - 1000 * 60 * 5).toISOString(),
+        print_station_id: DEMO_KITCHEN_STATION_HOT,
       },
     ],
     total_amount: 37,
@@ -122,6 +164,7 @@ export const DEMO_ORDERS: Order[] = [
         started_at: new Date(now - 1000 * 60 * 18).toISOString(),
         done_at: new Date(now - 1000 * 60 * 11).toISOString(),
         added_at: new Date(now - 1000 * 60 * 20).toISOString(),
+        print_station_id: DEMO_KITCHEN_STATION_HOT,
       },
       {
         id: 'd14',
@@ -134,6 +177,7 @@ export const DEMO_ORDERS: Order[] = [
         batch_id: 'batch-d',
         done_at: new Date(now - 1000 * 60 * 11).toISOString(),
         added_at: new Date(now - 1000 * 60 * 20).toISOString(),
+        print_station_id: DEMO_KITCHEN_STATION_HOT,
       },
     ],
     total_amount: 22.5,

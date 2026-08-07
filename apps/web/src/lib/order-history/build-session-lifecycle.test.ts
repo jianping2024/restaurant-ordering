@@ -5,6 +5,7 @@ import type { OrderHistoryEntry } from '@/lib/order-history/types';
 
 function entry(overrides: Partial<OrderHistoryEntry>): OrderHistoryEntry {
   return {
+    historyRecordId: 'sess-1',
     sessionId: 'sess-1',
     tableId: 'table-1',
     displayName: 'A-02',
@@ -86,5 +87,25 @@ describe('buildSessionLifecycleSteps', () => {
     assert.deepEqual(steps.map((step) => step.kind), ['opened', 'merged_out']);
     assert.equal(steps[1]?.operatorName, 'Dave');
     assert.equal(steps[1]?.detail, 'A-02');
+  });
+
+  it('uses transferred_out for transfer source sessions', () => {
+    const steps = buildSessionLifecycleSteps(
+      entry({
+        historyRecordId: 'transfer:evt-1',
+        closeKind: 'transferred_source',
+        closedReason: null,
+        closedByName: 'Dave',
+        mergeContext: {
+          targetSessionId: 'target-1',
+          targetTableId: 't-target',
+          targetDisplayName: 'B-03',
+          targetStatus: 'billing',
+        },
+      }),
+    );
+
+    assert.deepEqual(steps.map((step) => step.kind), ['opened', 'transferred_out']);
+    assert.equal(steps[1]?.detail, 'B-03');
   });
 });

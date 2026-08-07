@@ -1,12 +1,17 @@
-import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
+import {
+  isMergedSourceCloseKind,
+  isOperationalSourceCloseKind,
+  isTransferredSourceCloseKind,
+} from '@/lib/order-history/close-kind';
 import type { OrderHistoryEntry, OrderHistoryLifecycleStep } from '@/lib/order-history/types';
 
 const LIFECYCLE_KIND_ORDER: Record<OrderHistoryLifecycleStep['kind'], number> = {
   opened: 0,
   transferred: 1,
-  merged_in: 2,
-  merged_out: 3,
-  closed: 4,
+  transferred_out: 2,
+  merged_in: 3,
+  merged_out: 4,
+  closed: 5,
 };
 
 function formatOperator(name: string | null | undefined): string | null {
@@ -28,14 +33,27 @@ export function buildSessionLifecycleSteps(entry: OrderHistoryEntry): OrderHisto
     });
   }
 
-  for (const transfer of entry.transferEvents ?? []) {
+  if (!isOperationalSourceCloseKind(entry.closeKind)) {
+    for (const transfer of entry.transferEvents ?? []) {
+      steps.push({
+        kind: 'transferred',
+        at: transfer.occurredAt,
+        operatorName: formatOperator(transfer.operatorName),
+        detail: `${transfer.fromDisplayName} → ${transfer.toDisplayName}`,
+        sortKey: transfer.id,
+      });
+    }
+  }
+
+  if (isTransferredSourceCloseKind(entry.closeKind)) {
     steps.push({
-      kind: 'transferred',
-      at: transfer.occurredAt,
-      operatorName: formatOperator(transfer.operatorName),
-      detail: `${transfer.fromDisplayName} → ${transfer.toDisplayName}`,
-      sortKey: transfer.id,
+      kind: 'transferred_out',
+      at: entry.closedAt,
+      operatorName: formatOperator(entry.closedByName),
+      detail: entry.mergeContext?.targetDisplayName ?? null,
+      sortKey: 'transferred_out',
     });
+    return sortLifecycleSteps(steps);
   }
 
   if (isMergedSourceCloseKind(entry.closeKind)) {

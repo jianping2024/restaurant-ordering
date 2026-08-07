@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   ORDER_HISTORY_FORCED_SUMMARY_CLASS,
-  buildMergedIntoSummaryLine,
+  buildContinuedSessionSummaryLine,
   buildOrderHistorySurfaceMeta,
   formatOrderHistoryLifecycleStepLine,
   resolveOrderHistoryAbnormalEmphasis,
@@ -12,7 +12,7 @@ import {
 import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-lifecycle';
 import {
   ORDER_HISTORY_OUTCOME_BADGE_CLASS,
-  resolveMergedSourceOutcomeBadge,
+  resolveOperationalSourceOutcomeBadge,
 } from '@/lib/order-history/build-detail-presentation';
 import { getMessages } from '@/lib/i18n/messages';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
@@ -128,6 +128,7 @@ function mergedEntry(
   overrides: Partial<OrderHistoryEntry> = {},
 ): OrderHistoryEntry {
   const base: OrderHistoryEntry = {
+    historyRecordId: 'source-1',
     sessionId: 'source-1',
     tableId: 'table-source',
     displayName: 'B-03',
@@ -165,17 +166,22 @@ function mergedEntry(
 
 describe('merge surface presentation', () => {
   it('uses merged outcome badge label', () => {
-    const badge = resolveMergedSourceOutcomeBadge(i18n);
+    const badge = resolveOperationalSourceOutcomeBadge('merged_source', i18n);
     assert.equal(badge.label, '已并台');
     assert.equal(badge.tone, 'muted');
   });
 
+  it('uses transferred outcome badge label', () => {
+    const badge = resolveOperationalSourceOutcomeBadge('transferred_source', i18n);
+    assert.equal(badge.label, '已转台');
+  });
+
   it('builds merged into summary for closed target', () => {
-    assert.equal(buildMergedIntoSummaryLine(mergedEntry(), i18n), '已并入 A-04');
+    assert.equal(buildContinuedSessionSummaryLine(mergedEntry(), i18n), '已并入 A-04');
   });
 
   it('builds in-progress summary when target still active', () => {
-    const line = buildMergedIntoSummaryLine(
+    const line = buildContinuedSessionSummaryLine(
       mergedEntry({
         mergeContext: {
           targetSessionId: 'target-1',

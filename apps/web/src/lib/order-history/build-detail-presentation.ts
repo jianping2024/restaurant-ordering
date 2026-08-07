@@ -7,6 +7,8 @@ import type { SplitSettlementRow } from '@/lib/checkout-split-settlement';
 import type { OrderHistoryBillSplitSummary } from '@/lib/order-history-bill-splits';
 import { isWholeTableSplit } from '@/lib/checkout-split-intent';
 import type { OrderHistoryCloseOutcome } from '@/lib/order-history/types';
+import type { OrderHistoryCloseKind } from '@/lib/order-history/close-kind';
+import { isTransferredSourceCloseKind } from '@/lib/order-history/close-kind';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 import type { SplitMode } from '@/types';
 import type { getMessages } from '@/lib/i18n/messages';
@@ -52,9 +54,13 @@ export function resolveOrderHistoryOutcomeBadge(
   }
 }
 
-export function resolveMergedSourceOutcomeBadge(
+export function resolveOperationalSourceOutcomeBadge(
+  closeKind: OrderHistoryCloseKind,
   i18n: OrderHistoryI18n,
 ): OrderHistoryOutcomeBadge {
+  if (isTransferredSourceCloseKind(closeKind)) {
+    return { label: i18n.outcomeTransferred, tone: 'muted' };
+  }
   return { label: i18n.outcomeMerged, tone: 'muted' };
 }
 

@@ -11,7 +11,7 @@ import 'react-day-picker/dist/style.css';
 import '@mesa/ui/date-picker.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
-import { isMergedSourceCloseKind } from '@/lib/order-history/close-kind';
+import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
 import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
 import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
@@ -275,11 +275,11 @@ export function OrdersHistoryManager({
       : null;
     const { outcomeBadge, lifecycleSteps, cardClass, mergeSummaryLine } =
       buildOrderHistorySurfaceMeta(entry, i18n);
-    const isMergedSource = isMergedSourceCloseKind(entry.closeKind);
+    const isOperationalSource = isOperationalSourceCloseKind(entry.closeKind);
 
     return (
     <div
-      key={entry.sessionId}
+      key={entry.historyRecordId}
       role="button"
       tabIndex={0}
       className={cardClass}
@@ -297,7 +297,7 @@ export function OrdersHistoryManager({
         </span>
         {META_SEP}
         <OrderHistoryOutcomeBadge badge={outcomeBadge} />
-        {!isMergedSource ? (
+        {!isOperationalSource ? (
           <>
             {META_SEP}
             <span className="text-brand-text-muted">

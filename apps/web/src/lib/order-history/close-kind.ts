@@ -1,7 +1,7 @@
 /** Source table session closed by merge_table_sessions RPC. */
 export const MERGED_CLOSE_REASON = 'merged' as const;
 
-export type OrderHistoryCloseKind = 'billing' | 'merged_source';
+export type OrderHistoryCloseKind = 'billing' | 'merged_source' | 'transferred_source';
 
 export type OrderHistoryMergeTargetStatus = 'closed' | 'open' | 'billing' | 'unknown';
 
@@ -21,6 +21,19 @@ export function isMergedSourceCloseKind(
   closeKind: OrderHistoryCloseKind,
 ): closeKind is 'merged_source' {
   return closeKind === 'merged_source';
+}
+
+export function isTransferredSourceCloseKind(
+  closeKind: OrderHistoryCloseKind,
+): closeKind is 'transferred_source' {
+  return closeKind === 'transferred_source';
+}
+
+/** Source-table operational closes (merge or transfer-out); not billing closes. */
+export function isOperationalSourceCloseKind(
+  closeKind: OrderHistoryCloseKind,
+): closeKind is 'merged_source' | 'transferred_source' {
+  return closeKind === 'merged_source' || closeKind === 'transferred_source';
 }
 
 export function normalizeMergeTargetStatus(

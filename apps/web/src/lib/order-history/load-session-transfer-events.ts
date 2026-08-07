@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrderHistoryTransferEvent } from '@/lib/order-history/types';
 
-type TransferEventRow = {
+export type TransferOutEventRow = {
   id: string;
   session_id: string;
   occurred_at: string;
@@ -12,33 +12,96 @@ type TransferEventRow = {
   to_display_name: string;
 };
 
-/** Session ids that transferred out from any of the filtered tables (S2). Fail-soft on error. */
-export async function loadSessionIdsTransferredFromTables(
+type TransferEventRow = TransferOutEventRow;
+
+function startOfDayIso(dateKey: string): string {
+  const date = new Date(dateKey);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+function endOfDayIso(dateKey: string): string {
+  const date = new Date(dateKey);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
+
+type TransferOutEventFilters = {
+  tableIds: string[];
+  closedFrom?: string;
+  closedTo?: string;
+};
+
+function applyTransferOutEventFilters<T extends {
+  in(column: string, values: string[]): T;
+  gte(column: string, value: string): T;
+  lte(column: string, value: string): T;
+}>(
+  query: T,
+  filters: TransferOutEventFilters,
+): T {
+  let next = query;
+  if (filters.tableIds.length > 0) {
+    next = next.in('from_table_id', filters.tableIds);
+  }
+  if (filters.closedFrom) {
+    next = next.gte('occurred_at', startOfDayIso(filters.closedFrom));
+  }
+  if (filters.closedTo) {
+    next = next.lte('occurred_at', endOfDayIso(filters.closedTo));
+  }
+  return next;
+}
+
+/** Transfer-out events for source-table history rows. Fail-soft on error. */
+export async function loadTransferOutEventsForHistory(
   admin: SupabaseClient,
   restaurantId: string,
-  fromTableIds: string[],
-): Promise<string[]> {
-  const uniqueTableIds = Array.from(new Set(fromTableIds.filter(Boolean)));
-  if (uniqueTableIds.length === 0) return [];
-
-  const { data, error } = await admin
+  filters: TransferOutEventFilters,
+): Promise<TransferOutEventRow[]> {
+  let dataQuery = admin
     .from('table_session_events')
-    .select('session_id')
+    .select(
+      'id, session_id, occurred_at, operator_user_id, from_table_id, to_table_id, from_display_name, to_display_name',
+    )
     .eq('restaurant_id', restaurantId)
     .eq('event_type', 'transfer')
-    .in('from_table_id', uniqueTableIds);
+    .order('occurred_at', { ascending: false });
+
+  dataQuery = applyTransferOutEventFilters(dataQuery, filters);
+
+  const { data, error } = await dataQuery;
 
   if (error) {
-    console.error('[order-history] transfer filter lookup failed', error.message);
+    console.error('[order-history] transfer-out events load failed', error.message);
     return [];
   }
 
-  return Array.from(
-    new Set((data || []).map((row) => (row as { session_id: string }).session_id).filter(Boolean)),
-  );
+  return (data || []) as TransferOutEventRow[];
 }
 
-/** Transfer events for closed sessions on the current page. Fail-soft on error. */
+export async function countTransferOutEventsForHistory(
+  admin: SupabaseClient,
+  restaurantId: string,
+  filters: TransferOutEventFilters,
+): Promise<number> {
+  let query = admin
+    .from('table_session_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('restaurant_id', restaurantId)
+    .eq('event_type', 'transfer');
+
+  query = applyTransferOutEventFilters(query, filters);
+
+  const { count, error } = await query;
+  if (error) {
+    console.error('[order-history] transfer-out count failed', error.message);
+    return 0;
+  }
+  return count ?? 0;
+}
+
+/** Transfer events for billing session lifecycle (mid-meal moves). Fail-soft on error. */
 export async function loadTransferEventsBySessionIds(
   admin: SupabaseClient,
   restaurantId: string,

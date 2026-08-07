@@ -49,10 +49,10 @@ Default stack (do not substitute “lint only” or raw curl when this skill app
 
 ### Realtime / dual-tab recipe (do not skip)
 
-1. `login` + baseline `req GET` of the read model (board / session / bill).
-2. UI: two tabs via chrome-devtools `new_page` / `select_page` (or ide-browser tabs) on the same surface.
-3. Mutate in tab A **or** via `mesa-local-uat req` (preferred for determinism).
-4. Passive tab: `wait_for` text/state change; if flaky, `evaluate_script` for channel/subscribed hints, then one-shot GET.
+1. `login` + baseline `req GET` of the read model (board / session / bill). Confirm `stack-health` / `ready` first — Docker/DB down is not a Realtime product fail.
+2. UI: two isolated contexts (e.g. chrome-devtools `new_page` + `isolatedContext`) on the same board **list** surface; leave the **passive** page selected/`visibilityState=visible`.
+3. Mutate via `mesa-local-uat req` (preferred) or the **active** tab only. **Never** `select_page` / focus the passive tab between mutate and assert — that fires focus/visibility catch-up and falsely “proves” sync.
+4. Passive tab (still selected): `wait_for` text/state change; if flaky, `evaluate_script` for channel/subscribed hints, then one-shot GET.
 5. API gate: `wait-json GET <same read model> --jar … --path <field>` until post-mutation value appears (UAT wait only — not product polling).
 6. Report **fail** if API updated but passive UI never reflects within timeout; do not skip as “realtime hard”.
 

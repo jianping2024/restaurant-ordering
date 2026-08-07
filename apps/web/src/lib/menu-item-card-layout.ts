@@ -1,14 +1,7 @@
-import { MESA_SURFACE } from '@/lib/mesa-surface-chrome';
-
 /**
  * Menu list card — fixed price / action row (MenuItemCard).
  * Single grid contract: price column + 6.75rem action column (compact stepper).
- * Shell chrome is gold-relief only (shadow); padding/gap/type stay fixed.
  */
-
-/** Outer card shell — border + relief elevation (no size change). */
-export const MENU_ITEM_CARD_SHELL_CLASS =
-  `bg-brand-card border border-brand-border rounded-2xl p-3 flex min-w-0 gap-3 h-full overflow-hidden ${MESA_SURFACE.raised}`;
 
 /** Tailwind JIT: keep grid template as one static string. */
 export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =

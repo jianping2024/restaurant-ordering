@@ -145,7 +145,7 @@ function BoardKpiCard({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all ${surfaceClass}`}
+      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${surfaceClass}`}
     >
       <div className="flex items-center justify-between gap-2">
         <p className={waiterBoardType.kpiCount}>{count}</p>

@@ -18,7 +18,6 @@ import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 interface Props {
   item: MenuItem;
   lang: Language;
-  layout?: 'list' | 'grid';
   cartQty: number;
   limitHint?: string | null;
   incrementDisabled?: boolean;
@@ -73,10 +72,10 @@ function MenuItemCardAction({
   );
 }
 
+/** Sole catalog card: thumb left, name/desc + price/action row (guest and staff-assisted). */
 export function MenuItemCard({
   item,
   lang,
-  layout = 'list',
   cartQty,
   limitHint,
   incrementDisabled,
@@ -92,8 +91,8 @@ export function MenuItemCard({
   return (
     <div
       className={`bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full overflow-hidden ${
-        layout === 'grid' ? 'flex-col sm:flex-row' : ''
-      } ${item.available ? 'border-brand-border' : 'border-brand-border opacity-50'}`}
+        item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
+      }`}
     >
       <div className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl">
         {imageSrc ? (

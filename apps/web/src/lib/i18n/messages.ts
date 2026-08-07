@@ -815,12 +815,9 @@ export const MESSAGES = {
     },
     featureSettings: {
       title: '功能管理',
-      desc: '控制后台侧栏与可选产品功能。未勾选的功能不会在主页侧栏出现，或不会执行对应行为。',
-      moduleDashboardNav: '后台导航',
+      desc: '勾选可选产品功能；关闭则不执行对应行为。',
       moduleBilling: '结账与账单',
       moduleKitchen: '后厨流程',
-      kitchenBoard: '厨房看板',
-      kitchenBoardDesc: '在后台侧栏显示「厨房看板」入口，可新窗口打开厨房显示页。',
       kitchenServeToTable: '上桌',
       kitchenServeToTableDesc: '开启后，楼面可在已出餐菜品上点击「上桌」，将状态写为已上桌。',
       billReceiptPrint: '打印账单',
@@ -871,7 +868,7 @@ export const MESSAGES = {
       title: '餐厅设置',
       helpLabel: '帮助',
       hintProfile: '餐厅名称、地址、电话；门店定位与下单距离见下方表单。厨房/楼面 PIN 在「员工管理」。',
-      hintFeatures: '勾选要在后台侧栏显示的可选功能；默认关闭，按需开启。',
+      hintFeatures: '勾选可选产品功能；关闭则不执行对应行为。',
       hintMenu: '先建分类与菜品，在「出品档口」Tab 定义窗口并绑定；打印机配对见「打印助手」。',
       hintBuffet: '配置自助餐方案、时段与节假日价格规则；与菜单分类独立，用于按人/时段计价。',
       hintPrintAssistant: '下载打印助手并配对打印机。档口在菜单管理里配置，configure 将档口映射到本机打印机。',
@@ -2090,12 +2087,9 @@ export const MESSAGES = {
     settings: { nameEmpty: 'Restaurant name is required', kitchenPwd: 'Kitchen password must be 4 digits', waiterPwd: 'Waiter password must be 4 digits', saveFail: 'Save failed, please retry', migrationRequired: 'Database migration missing. From project root run: supabase db push', title: 'Restaurant Settings', desc: 'Manage your restaurant profile', name: 'Restaurant name *', slug: 'Restaurant slug (URL)', slugTip: 'Slug cannot be changed after creation', address: 'Address', phone: 'Phone', countryCode: 'Country / region', countryCodeHint: 'Store location (ISO code). Does not change receipt print language.', countryCodeInvalid: 'Please select a valid country / region', geoSectionTitle: 'Location & ordering radius', geoRestrictionEnabled: 'Require customer GPS to order', geoRestrictionEnabledDesc: 'When on, customers must allow location and be within the radius below. When off, location is not checked.', geoRestrictionCoordsRequired: 'Set restaurant coordinates when GPS ordering restriction is enabled.', geoLatitude: 'Restaurant latitude', geoLongitude: 'Restaurant longitude', geoHint: 'Set restaurant coordinates and the max ordering distance below.', orderRadiusMeters: 'Max ordering distance (meters)', orderRadiusHint: 'Straight-line distance from restaurant coords ({min}–{max} m, integer).', orderRadiusInvalid: 'Distance must be an integer between {min} and {max} meters.', useCurrentLocation: 'Use current location', geoInvalid: 'Please enter valid coordinates (latitude -90~90, longitude -180~180)', geoLocateFail: 'Failed to get current location; check location permission', kitchenLabel: 'Kitchen password (4 digits)', kitchenTip: 'Staff use this password to access kitchen display.', waiterLabel: 'Waiter password (4 digits)', waiterTip: 'Staff use this password to access waiter board.', passwordPlaceholder: 'Leave blank to keep', passwordKeepHint: 'Leave blank to keep current PIN; enter 4 digits to set a new one.', saved: 'Settings saved', save: 'Save settings', danger: 'Danger Zone', dangerTip: 'Actions below are irreversible.', openKitchen: 'Open kitchen display' },
     featureSettings: {
       title: 'Feature management',
-      desc: 'Choose optional modules in the dashboard and control product behaviors. Disabled features stay hidden from shortcuts or skip related actions.',
-      moduleDashboardNav: 'Dashboard navigation',
+      desc: 'Enable optional product behaviors; when off, the related action is skipped.',
       moduleBilling: 'Checkout & bills',
       moduleKitchen: 'Kitchen workflow',
-      kitchenBoard: 'Kitchen display',
-      kitchenBoardDesc: 'Show the kitchen display shortcut in the dashboard sidebar (opens in a new window).',
       kitchenServeToTable: 'Serve to table',
       kitchenServeToTableDesc: 'When enabled, floor staff can mark ready dishes as served to the table.',
       billReceiptPrint: 'Print bills',
@@ -2148,7 +2142,7 @@ export const MESSAGES = {
       helpLabel: 'Help',
       hintProfile:
         'Name, address, phone; location and order radius are in the form below. Staff PINs are under Staff.',
-      hintFeatures: 'Enable optional shortcuts in the dashboard sidebar; off by default until you turn them on.',
+      hintFeatures: 'Enable optional product behaviors; when off, the related action is skipped.',
       hintMenu:
         'Categories, dishes, and print stations (stations tab). Pair physical printers under Print assistant.',
       hintBuffet: 'Buffet plans, time slots, and holiday price rules. Separate from menu categories; used for per-guest pricing.',
@@ -3130,12 +3124,9 @@ export const MESSAGES = {
     settings: { nameEmpty: 'Nome do restaurante e obrigatorio', kitchenPwd: 'Senha da cozinha deve ter 4 digitos', waiterPwd: 'Senha do garcom deve ter 4 digitos', saveFail: 'Falha ao salvar, tente novamente', migrationRequired: 'Migracao em falta. Na raiz do projeto execute: supabase db push', title: 'Configuracoes do restaurante', desc: 'Gerencie os dados basicos do restaurante', name: 'Nome do restaurante *', slug: 'Slug do restaurante (URL)', slugTip: 'O slug nao pode ser alterado', address: 'Endereco', phone: 'Telefone', countryCode: 'Pais / regiao', countryCodeHint: 'Localizacao da loja (codigo ISO). Nao altera o idioma do talao.', countryCodeInvalid: 'Selecione um pais / regiao valido', geoSectionTitle: 'Localizacao e raio de pedido', geoRestrictionEnabled: 'Exigir GPS do cliente para pedir', geoRestrictionEnabledDesc: 'Ativo: o cliente deve permitir localizacao e estar dentro do raio abaixo. Desativado: sem verificacao de localizacao.', geoRestrictionCoordsRequired: 'Preencha as coordenadas do restaurante quando a restricao GPS estiver ativa.', geoLatitude: 'Latitude do restaurante', geoLongitude: 'Longitude do restaurante', geoHint: 'Defina as coordenadas do restaurante e a distancia maxima para pedir abaixo.', orderRadiusMeters: 'Distancia maxima para pedir (metros)', orderRadiusHint: 'Distancia em linha reta ate o restaurante ({min}–{max} m, inteiro).', orderRadiusInvalid: 'A distancia deve ser um inteiro entre {min} e {max} metros.', useCurrentLocation: 'Usar localizacao atual', geoInvalid: 'Informe coordenadas validas (latitude -90~90, longitude -180~180)', geoLocateFail: 'Falha ao obter localizacao atual; verifique a permissao', kitchenLabel: 'Senha da cozinha (4 digitos)', kitchenTip: 'Equipe usa esta senha para abrir a tela da cozinha.', waiterLabel: 'Senha do garcom (4 digitos)', waiterTip: 'Equipe usa esta senha para abrir o painel do garcom.', passwordPlaceholder: 'Deixe em branco para manter', passwordKeepHint: 'Deixe em branco para manter o PIN atual; digite 4 numeros para definir um novo.', saved: 'Configuracoes salvas', save: 'Salvar configuracoes', danger: 'Area de risco', dangerTip: 'As acoes abaixo nao podem ser desfeitas.', openKitchen: 'Abrir tela da cozinha' },
     featureSettings: {
       title: 'Gestao de funcionalidades',
-      desc: 'Escolha modulos opcionais no painel e controle comportamentos do produto. Funcoes desativadas nao aparecem nos atalhos ou nao executam a acao relacionada.',
-      moduleDashboardNav: 'Navegacao do painel',
+      desc: 'Ative comportamentos opcionais do produto; desligado, a acao correspondente nao e executada.',
       moduleBilling: 'Checkout e contas',
       moduleKitchen: 'Fluxo de cozinha',
-      kitchenBoard: 'Tela da cozinha',
-      kitchenBoardDesc: 'Mostra o atalho da cozinha no menu lateral (abre numa nova janela).',
       kitchenServeToTable: 'Servir a mesa',
       kitchenServeToTableDesc: 'Ativo: a equipa de sala pode marcar pratos prontos como servidos a mesa.',
       billReceiptPrint: 'Imprimir contas',
@@ -3188,7 +3179,7 @@ export const MESSAGES = {
       helpLabel: 'Ajuda',
       hintProfile:
         'Nome, morada, telefone; localizacao e distancia maxima no formulario. PINs em Funcionarios.',
-      hintFeatures: 'Ative atalhos opcionais no menu lateral; desligados por defeito.',
+      hintFeatures: 'Ative comportamentos opcionais do produto; desligados, a acao correspondente nao e executada.',
       hintMenu:
         'Categorias, pratos e estacoes (separador Estacoes). Emparelhe impressoras em Assistente de impressao.',
       hintBuffet: 'Planos buffet, horarios e precos em feriados. Separado das categorias do menu.',

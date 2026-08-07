@@ -29,8 +29,8 @@ type Props = {
 };
 
 const FEATURE_LABELS: Record<string, string> = {
-  kitchen_board: '厨房看板快捷入口',
   bill_receipt_print: '结账小票打印',
+  kitchen_serve_to_table: '上桌流程',
 };
 
 const fieldClass =

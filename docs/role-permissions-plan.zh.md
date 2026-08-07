@@ -242,7 +242,7 @@ type PermissionKey = keyof typeof PERMISSIONS; // 见 §5
 | 运营 | `dashboard.overview.view` | 概览 |
 | 运营 | `dashboard.tables.view` | 桌位运营 |
 | 运营 | `dashboard.waiter_board.view` | 内嵌服务员看板 |
-| 快捷 | `dashboard.kitchen_shortcut.view` | 新窗口打开厨房（且 `feature_flags.kitchen_board`） |
+| 快捷 | `dashboard.kitchen_shortcut.view` | 新窗口打开厨房（仅权限；无店级 feature flag） |
 | 快捷 | `floor.kitchen_board.view` | 侧栏链到 `/{slug}/kitchen`（可选，与上二选一或并存） |
 | 快捷 | `floor.waiter_board.view` | 侧栏链到 `/{slug}/waiter`（可选） |
 
@@ -303,7 +303,7 @@ type PermissionKey = keyof typeof PERMISSIONS; // 见 §5
 function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: PermissionKey[] | null) {
   if (principal.kind === 'owner') {
     const catalog = OWNER_NAV_CATALOG.filter(
-      (item) => featureAllows(item) // kitchen_board 等
+      (item) => featureAllows(item) // 仍绑定店级 flag 的入口（若有）
     );
     const enabled = navPrefs ?? OWNER_NAV_DEFAULT; // 未配置 → 代码默认（§4.1.2）
     return catalog.filter((item) => enabled.includes(item.permission));
@@ -727,11 +727,11 @@ return set
 
 | 机制 | 职责 |
 |------|------|
-| `restaurants.feature_flags` | 功能是否**对本店启用**（如厨房侧栏快捷入口） |
+| `restaurants.feature_flags` | 功能是否**对本店启用**（如 `bill_receipt_print`、`kitchen_serve_to_table`） |
 | `restaurant_role_permissions` | 员工角色能力 |
 | `owner_nav_preferences` | **仅**店主侧栏显示项（方案 A） |
 
-示例：厨房快捷入口 = `isDashboardKitchenShortcutEnabled(flags)` **且**（员工 `can(caps, key)` **或** owner 在 `owner_nav_preferences` 中含该项）。
+示例：厨房快捷入口 = 员工 `can(caps, 'dashboard.kitchen_shortcut.view')` **或** owner 在 `owner_nav_preferences` 中含该项（无店级 flag）。
 
 ---
 

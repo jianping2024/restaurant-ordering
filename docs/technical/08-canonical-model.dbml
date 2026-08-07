@@ -26,9 +26,9 @@ Table restaurant_order_policies [note: '点餐运营策略：地理围栏等规�
   updated_at timestamp [not null, note: '最后更新时间']
 }
 
-Table restaurant_features [note: '产品功能开关：模块是否对该店启用'] {
+Table restaurant_features [note: '产品功能开关：模块是否对该店启用（实现上多为 restaurants.feature_flags jsonb）'] {
   restaurant_id uuid [pk, note: '餐厅 ID，与 restaurants 1:1']
-  kitchen_board_enabled boolean [not null, default: false, note: '是否启用厨房看板']
+  kitchen_serve_to_table_enabled boolean [not null, default: false, note: '是否启用上桌流程']
   bill_receipt_print_enabled boolean [not null, default: false, note: '结账小票/预结单是否走打印代理']
   updated_at timestamp [not null, note: '最后更新时间']
 }

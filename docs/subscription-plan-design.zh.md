@@ -163,10 +163,10 @@ Mesa 当前定位为 Buffet 餐厅的点餐、开台、结账与桌台管理工�
 
 | 维度 | `feature_flags` | Plan Entitlements |
 |------|-----------------|-------------------|
-| 控制对象 | 可选产品模块（如厨房看板、账单打印） | 订阅套餐能力 |
+| 控制对象 | 可选产品行为（如上桌、账单打印） | 订阅套餐能力 |
 | 谁修改 | 店主在设置页 | 运营手动 / 未来支付 webhook |
-| 典型键 | `kitchen_board`, `bill_receipt_print` | `ABNORMAL_OPERATIONS`, `TREND_ANALYTICS` |
-| 与角色关系 | 侧栏：`flags && permission` | 访问：`planFeature && permission` |
+| 典型键 | `kitchen_serve_to_table`, `bill_receipt_print` | `ABNORMAL_OPERATIONS`, `TREND_ANALYTICS` |
+| 与角色关系 | 行为：`flags && permission`（入口另可仅 permission） | 访问：`planFeature && permission` |
 
 **最终门控公式**（与权限架构一致）：
 

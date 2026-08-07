@@ -36,7 +36,6 @@ describe('buildDashboardTopNavItems owner chrome', () => {
       shellMode: 'owner',
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
-      kitchenShortcutEnabled: true,
     });
     assert.deepEqual(
       new Set(items.map((i) => i.id)),

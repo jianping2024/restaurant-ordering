@@ -16,7 +16,7 @@ const baseClass =
 
 const variants: Record<ButtonVariant, string> = {
   gold:
-    'border border-transparent bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-gold/45',
+    'border border-transparent bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold mesa-relief-gold-face active:scale-[0.98] focus-visible:ring-brand-gold/45',
   outline: 'border border-brand-gold text-brand-gold hover:bg-brand-gold/10 font-semibold focus-visible:ring-brand-gold/30',
   ghost:
     'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-gold/30',

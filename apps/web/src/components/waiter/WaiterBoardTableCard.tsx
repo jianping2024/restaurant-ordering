@@ -44,7 +44,7 @@ type Props = {
 const CARD_BASE_CLASS =
   'flex min-h-[8.25rem] flex-col rounded-xl border text-left w-full p-4';
 const CARD_INTERACTIVE_CLASS =
-  'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
+  'group transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
 export function WaiterBoardTableCard({
   card,

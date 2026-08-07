@@ -146,6 +146,18 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
+### 金浮雕 chrome（暗金 / 亮金）
+
+整站气质升级默认 **只换皮、不改排版**：
+
+| 允许 | 禁止（须单独开布局任务） |
+|------|--------------------------|
+| `--mesa-relief-*` 阴影 / 顶边高光 / 状态柔光 | 改 `p-` / `gap-` / `text-` / 网格列数 / 卡片 `min-h` |
+| `mesa-relief-card` / `gold-face` / `dock` / `top-bar` | 透底实景、强金属拉丝、长动画 |
+| 顶栏 / 底栏 `backdrop-blur` + 透明度 | 另起第二套状态色盘 |
+
+类名单一入口：`apps/web/src/lib/mesa-relief-chrome.ts`（`MESA_RELIEF`）。员工看板壳仍走 `mesa-board-shell-*`；顾客菜卡壳走 `MENU_ITEM_CARD_SHELL_CLASS`。明暗共用同一套 elevation 语法，仅阴影强度不同。
+
 状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：
 
 - 待结账 `checkout`：warning（琥珀）

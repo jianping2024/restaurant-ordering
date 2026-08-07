@@ -63,7 +63,7 @@ export function CustomerOrderingHeader({
     <header
       className={
         sticky
-          ? 'sticky top-0 z-30 bg-brand-bg/95 backdrop-blur border-b border-brand-border'
+          ? 'sticky top-0 z-30 bg-brand-bg/90 backdrop-blur-md border-b border-brand-border/80 mesa-relief-top-bar'
           : 'border-b border-brand-border'
       }
     >

@@ -27,6 +27,16 @@
   --color-status-danger-bg: 60 24 24;
   --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
+  /* Gold-relief chrome — shadows only (no layout size). Dark = 暗金浮雕. */
+  --mesa-relief-inset: 0 1px 0 rgb(255 255 255 / 0.05) inset;
+  --mesa-relief-elev:
+    var(--mesa-relief-inset), 0 10px 28px rgb(0 0 0 / 0.38), 0 2px 8px rgb(0 0 0 / 0.28);
+  --mesa-relief-gold:
+    var(--mesa-relief-inset), 0 8px 28px rgb(212 168 67 / 0.32), 0 2px 8px rgb(0 0 0 / 0.28);
+  --mesa-relief-dock: 0 -8px 28px rgb(0 0 0 / 0.35);
+  --mesa-relief-top: 0 8px 24px rgb(0 0 0 / 0.28);
+  --mesa-relief-page-glow-a: rgb(212 168 67 / 0.07);
+  --mesa-relief-page-glow-b: rgb(212 168 67 / 0.045);
 }
 
 [data-theme='light'] {
@@ -51,6 +61,16 @@
   --color-status-danger-bg: 252 232 232;
   --color-status-danger-border: 185 28 28;
   --auth-pattern-opacity: 0.08;
+  /* Light = 亮金浮雕 — same elevation grammar, softer ink. */
+  --mesa-relief-inset: 0 1px 0 rgb(255 255 255 / 0.95) inset;
+  --mesa-relief-elev:
+    var(--mesa-relief-inset), 0 12px 32px rgb(15 14 12 / 0.1), 0 2px 8px rgb(15 14 12 / 0.05);
+  --mesa-relief-gold:
+    var(--mesa-relief-inset), 0 10px 28px rgb(122 86 8 / 0.28), 0 2px 8px rgb(15 14 12 / 0.08);
+  --mesa-relief-dock: 0 -10px 28px rgb(15 14 12 / 0.1);
+  --mesa-relief-top: 0 8px 24px rgb(15 14 12 / 0.08);
+  --mesa-relief-page-glow-a: rgb(122 86 8 / 0.06);
+  --mesa-relief-page-glow-b: rgb(122 86 8 / 0.04);
 }
 
 * {
@@ -71,6 +91,10 @@ html {
 
 body {
   background-color: rgb(var(--color-brand-bg));
+  background-image:
+    radial-gradient(ellipse 72% 58% at 16% 8%, var(--mesa-relief-page-glow-a), transparent 58%),
+    radial-gradient(ellipse 64% 50% at 86% 94%, var(--mesa-relief-page-glow-b), transparent 52%);
+  background-attachment: fixed;
   color: rgb(var(--color-brand-text));
   font-family: var(--font-jost), var(--font-cjk-sans);
   font-size: 16px;
@@ -188,52 +212,76 @@ body {
  * Card copy stays brand-text.
  */
 [data-theme='light'] .mesa-board-shell-dining {
-  border-color: rgb(185 28 28 / 0.5);
+  border-color: rgb(185 28 28 / 0.45);
   background-color: rgb(252 232 232);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(15 14 12 / 0.08), 0 0 24px rgb(185 28 28 / 0.12);
 }
 [data-theme='dark'] .mesa-board-shell-dining {
-  border-color: rgb(239 68 68 / 0.5);
+  border-color: rgb(239 68 68 / 0.45);
   background-color: rgb(60 24 24);
+  box-shadow:
+    var(--mesa-relief-inset), 0 10px 28px rgb(0 0 0 / 0.35), 0 0 22px rgb(239 68 68 / 0.16);
 }
 [data-theme='light'] .mesa-board-shell-checkout {
-  border-color: rgb(180 83 9 / 0.5);
+  border-color: rgb(180 83 9 / 0.45);
   background-color: rgb(255 243 224);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(15 14 12 / 0.08), 0 0 24px rgb(180 83 9 / 0.14);
 }
 [data-theme='dark'] .mesa-board-shell-checkout {
-  border-color: rgb(217 119 6 / 0.5);
+  border-color: rgb(217 119 6 / 0.45);
   background-color: rgb(69 45 12);
+  box-shadow:
+    var(--mesa-relief-inset), 0 10px 28px rgb(0 0 0 / 0.35), 0 0 22px rgb(217 119 6 / 0.18);
 }
 [data-theme='light'] .mesa-board-shell-idle {
-  border-color: rgb(5 130 90 / 0.5);
+  border-color: rgb(5 130 90 / 0.45);
   background-color: rgb(220 245 232);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(15 14 12 / 0.08), 0 0 24px rgb(5 130 90 / 0.12);
 }
 [data-theme='dark'] .mesa-board-shell-idle {
-  border-color: rgb(34 197 94 / 0.5);
+  border-color: rgb(34 197 94 / 0.45);
   background-color: rgb(20 48 32);
+  box-shadow:
+    var(--mesa-relief-inset), 0 10px 28px rgb(0 0 0 / 0.35), 0 0 22px rgb(34 197 94 / 0.14);
 }
 [data-theme='light'] a.mesa-board-shell-dining:hover,
 [data-theme='light'] button.mesa-board-shell-dining:hover {
-  border-color: rgb(185 28 28 / 0.8);
+  border-color: rgb(185 28 28 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 14px 36px rgb(15 14 12 / 0.1), 0 0 28px rgb(185 28 28 / 0.16);
 }
 [data-theme='dark'] a.mesa-board-shell-dining:hover,
 [data-theme='dark'] button.mesa-board-shell-dining:hover {
-  border-color: rgb(239 68 68 / 0.8);
+  border-color: rgb(239 68 68 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(0 0 0 / 0.4), 0 0 26px rgb(239 68 68 / 0.22);
 }
 [data-theme='light'] a.mesa-board-shell-checkout:hover,
 [data-theme='light'] button.mesa-board-shell-checkout:hover {
-  border-color: rgb(180 83 9 / 0.8);
+  border-color: rgb(180 83 9 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 14px 36px rgb(15 14 12 / 0.1), 0 0 28px rgb(180 83 9 / 0.18);
 }
 [data-theme='dark'] a.mesa-board-shell-checkout:hover,
 [data-theme='dark'] button.mesa-board-shell-checkout:hover {
-  border-color: rgb(217 119 6 / 0.8);
+  border-color: rgb(217 119 6 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(0 0 0 / 0.4), 0 0 26px rgb(217 119 6 / 0.24);
 }
 [data-theme='light'] a.mesa-board-shell-idle:hover,
 [data-theme='light'] button.mesa-board-shell-idle:hover {
-  border-color: rgb(5 130 90 / 0.8);
+  border-color: rgb(5 130 90 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 14px 36px rgb(15 14 12 / 0.1), 0 0 28px rgb(5 130 90 / 0.16);
 }
 [data-theme='dark'] a.mesa-board-shell-idle:hover,
 [data-theme='dark'] button.mesa-board-shell-idle:hover {
-  border-color: rgb(34 197 94 / 0.8);
+  border-color: rgb(34 197 94 / 0.75);
+  box-shadow:
+    var(--mesa-relief-inset), 0 12px 32px rgb(0 0 0 / 0.4), 0 0 26px rgb(34 197 94 / 0.2);
 }
 
 [data-theme='light'] .mesa-board-footer-dining,
@@ -268,13 +316,29 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  /**
+   * Gold-relief chrome utilities — box-shadow / blur only.
+   * Do not pair with layout changes (padding, gap, type scale, grid).
+   */
+  .mesa-relief-card {
+    box-shadow: var(--mesa-relief-elev);
+  }
+  .mesa-relief-gold-face {
+    box-shadow: var(--mesa-relief-gold);
+  }
+  .mesa-relief-dock {
+    box-shadow: var(--mesa-relief-dock);
+  }
+  .mesa-relief-top-bar {
+    box-shadow: var(--mesa-relief-top);
+  }
   /* 卡片悬停效果 */
   .card-hover {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(212, 168, 67, 0.15);
+    box-shadow: var(--mesa-relief-gold);
   }
 
   .mesa-auth-bg {

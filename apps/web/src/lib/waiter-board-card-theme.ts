@@ -23,10 +23,9 @@ export const waiterBoardType = {
 
 /**
  * Shared selected face — KPI pressed + lane selected.
- * Solid fill + on-gold text (no ring/offset double-border).
+ * Sole gold fill: `MESA_RELIEF.goldFace` (no parallel bg-brand-gold).
  */
-export const WAITER_BOARD_SELECTED_EMPHASIS =
-  `border border-brand-gold bg-brand-gold text-brand-on-gold ${MESA_RELIEF.goldFace}`;
+export const WAITER_BOARD_SELECTED_EMPHASIS = MESA_RELIEF.goldFace;
 
 /** Lane tabs + together-group dropdown — shared height; active = solid gold face. */
 export const WAITER_BOARD_LANE_CHROME = {
@@ -59,17 +58,17 @@ export type WaiterBoardCardTheme = {
 };
 
 /**
- * KPI filter chip tones — map to the same status badges as board shells
- * (warning=checkout, danger=dining, success=idle).
+ * KPI filter surfaces — same floating shell family as table cards
+ * (warning=checkout, danger=dining, success=idle). Not mesa-badge (badge = pill only).
  */
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
-  amber: `mesa-badge-warning ${MESA_RELIEF.card}`,
-  emerald: `mesa-badge-success ${MESA_RELIEF.card}`,
-  rose: `mesa-badge-danger ${MESA_RELIEF.card}`,
-  /** 「全部」has no board-state card — keep brand neutral. */
-  neutral: `border border-brand-border bg-brand-card text-brand-text ${MESA_RELIEF.card}`,
+  amber: 'mesa-board-shell-checkout',
+  emerald: 'mesa-board-shell-idle',
+  rose: 'mesa-board-shell-dining',
+  /** 「全部」idle face — brand neutral shell (active uses gold face). */
+  neutral: 'mesa-board-shell-neutral',
 };
 
 export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoardKpiTone> = {

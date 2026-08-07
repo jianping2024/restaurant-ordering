@@ -1,6 +1,7 @@
 /**
- * Gold-relief chrome class names — one representation for staff + customer.
- * Shadows / blur only; do not change padding, gap, type scale, or grid with these.
+ * Gold-relief surface class names — one representation for staff + customer.
+ * `goldFace` owns fill + shadow (do not also set bg-brand-gold).
+ * Layout sizes (padding/gap/type/grid) stay outside these tokens.
  */
 export const MESA_RELIEF = {
   card: 'mesa-relief-card',

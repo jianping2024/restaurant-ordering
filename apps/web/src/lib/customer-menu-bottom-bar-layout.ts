@@ -33,7 +33,7 @@ const customerMenuBottomBarPrimaryActionBaseClass =
   `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
 
 export const customerMenuBottomBarPrimaryActionClass =
-  `${customerMenuBottomBarPrimaryActionBaseClass} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98] ${MESA_RELIEF.goldFace}`;
+  `${customerMenuBottomBarPrimaryActionBaseClass} transition-[filter] hover:brightness-110 active:scale-[0.98] ${MESA_RELIEF.goldFace}`;
 
 export const customerMenuBottomBarDisabledActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} pointer-events-none bg-brand-border/20 text-brand-text-muted`;

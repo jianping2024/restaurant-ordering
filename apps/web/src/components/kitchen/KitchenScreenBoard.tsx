@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { KitchenScreen, Order, PrintStation } from '@/types';
@@ -16,13 +17,18 @@ import {
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import { isDashboardKitchenShortcutEnabled } from '@/lib/restaurant-features';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
-import { useRestaurantRealtimeRefresh } from '@/lib/use-restaurant-realtime-refresh';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { KitchenStationPane } from '@/components/kitchen/KitchenStationPane';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
+
+const KitchenScreenRealtime = dynamic(
+  () =>
+    import('@/components/kitchen/KitchenScreenRealtime').then((m) => m.KitchenScreenRealtime),
+  { ssr: false },
+);
 
 type Props = {
   restaurant: {
@@ -97,14 +103,6 @@ function KitchenScreenBoardInner({
     true,
   );
 
-  useRestaurantRealtimeRefresh(
-    supabase,
-    restaurant.id,
-    `kitchen-screen-${screen.id}`,
-    true,
-    refreshKitchenBoard,
-  );
-
   // Local clock for effective ready display — no API poll.
   useEffect(() => {
     const id = window.setInterval(() => setNowMs(Date.now()), 15_000);
@@ -156,6 +154,12 @@ function KitchenScreenBoardInner({
 
   return (
     <div className="flex min-h-screen flex-col bg-brand-bg">
+      <KitchenScreenRealtime
+        supabase={supabase}
+        restaurantId={restaurant.id}
+        screenId={screen.id}
+        onRefresh={refreshKitchenBoard}
+      />
       <StaffPersonalTopBar
         logoHref={logoHref}
         restaurantName={restaurant.name}

@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KitchenScreensHome } from '@/components/kitchen/KitchenScreensHome';
 import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
@@ -55,10 +55,6 @@ export default async function KitchenPage({ params }: Props) {
     screens = [];
   }
 
-  if (screens.length === 1) {
-    redirect(`/${slug}/kitchen/${screens[0].id}`);
-  }
-
   const principalCaps = await loadPrincipalWithCapabilities();
   const capabilities = toCapabilitiesPayload(principalCaps?.capabilities ?? new Set());
 
@@ -68,7 +64,6 @@ export default async function KitchenPage({ params }: Props) {
       capabilities={capabilities}
       asOwner={access.as_owner}
       screens={screens}
-      autoOpenSingle={false}
     />
   );
 }

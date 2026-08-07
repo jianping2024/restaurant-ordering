@@ -1,5 +1,4 @@
 import type { WaiterBoardFilter, WaiterTableBoardState } from '@/lib/waiter-board-session';
-import { MESA_RELIEF } from '@/lib/mesa-relief-chrome';
 import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
@@ -26,7 +25,7 @@ export const waiterBoardType = {
  * Solid fill + on-gold text (no ring/offset double-border).
  */
 export const WAITER_BOARD_SELECTED_EMPHASIS =
-  `border border-brand-gold bg-brand-gold text-brand-on-gold ${MESA_RELIEF.goldFace}`;
+  'border border-brand-gold bg-brand-gold text-brand-on-gold shadow-sm';
 
 /** Lane tabs + together-group dropdown — shared height; active = solid gold face. */
 export const WAITER_BOARD_LANE_CHROME = {
@@ -44,7 +43,7 @@ export const WAITER_BOARD_LANE_STICKY_SHELL =
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =
-  `rounded-2xl border-2 border-brand-gold/40 bg-brand-card p-4 ${MESA_RELIEF.card}`;
+  'rounded-2xl border-2 border-brand-gold/40 bg-brand-card p-4 shadow-sm';
 
 /** Visual tokens for one waiter board table card — keyed by business board state only. */
 export type WaiterBoardCardTheme = {
@@ -65,11 +64,11 @@ export type WaiterBoardCardTheme = {
 export type WaiterBoardKpiTone = 'amber' | 'emerald' | 'neutral' | 'rose';
 
 export const WAITER_BOARD_KPI_TONE_CLASS: Record<WaiterBoardKpiTone, string> = {
-  amber: `mesa-badge-warning ${MESA_RELIEF.card}`,
-  emerald: `mesa-badge-success ${MESA_RELIEF.card}`,
-  rose: `mesa-badge-danger ${MESA_RELIEF.card}`,
+  amber: 'mesa-badge-warning shadow-sm',
+  emerald: 'mesa-badge-success shadow-sm',
+  rose: 'mesa-badge-danger shadow-sm',
   /** 「全部」has no board-state card — keep brand neutral. */
-  neutral: `border border-brand-border bg-brand-card text-brand-text ${MESA_RELIEF.card}`,
+  neutral: 'border border-brand-border bg-brand-card text-brand-text shadow-sm',
 };
 
 export const WAITER_BOARD_FILTER_KPI_TONE: Record<WaiterBoardFilter, WaiterBoardKpiTone> = {
@@ -92,9 +91,9 @@ export function waiterBoardKpiChromeClass(active: boolean): string {
 }
 
 const BOARD_SHELL: Record<WaiterTableBoardState, string> = {
-  dining: 'mesa-board-shell-dining',
-  checkout: 'mesa-board-shell-checkout',
-  idle: 'mesa-board-shell-idle',
+  dining: 'mesa-board-shell-dining shadow-sm',
+  checkout: 'mesa-board-shell-checkout shadow-sm',
+  idle: 'mesa-board-shell-idle shadow-sm',
 };
 
 /** Shell class for board cards (hover is CSS on a/button — no media `dark:`). */

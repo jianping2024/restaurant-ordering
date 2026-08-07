@@ -12,11 +12,8 @@ import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
-  MENU_ITEM_CARD_SHELL_CLASS,
 } from '@/lib/menu-item-card-layout';
-import { MESA_RELIEF } from '@/lib/mesa-relief-chrome';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-
 
 interface Props {
   item: MenuItem;
@@ -69,11 +66,10 @@ function MenuItemCardAction({
       onClick={onIncrement}
       disabled={incrementDisabled}
       aria-label={labels.add}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${MESA_RELIEF.goldFace} ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
       +
     </button>
-
   );
 }
 
@@ -95,9 +91,9 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`${MENU_ITEM_CARD_SHELL_CLASS} ${
+      className={`bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full overflow-hidden ${
         layout === 'grid' ? 'flex-col sm:flex-row' : ''
-      } ${item.available ? '' : 'opacity-50'}`}
+      } ${item.available ? 'border-brand-border' : 'border-brand-border opacity-50'}`}
     >
       <div className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl">
         {imageSrc ? (

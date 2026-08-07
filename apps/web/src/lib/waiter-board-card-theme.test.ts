@@ -50,8 +50,6 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.rose, /mesa-badge-danger/);
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.amber, /mesa-badge-warning/);
     assert.match(WAITER_BOARD_KPI_TONE_CLASS.emerald, /mesa-badge-success/);
-    assert.match(WAITER_BOARD_KPI_TONE_CLASS.neutral, /mesa-relief-card/);
-    assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /mesa-relief-gold-face/);
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.dining, 'mesa-badge-danger');
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.checkout, 'mesa-badge-warning');
     assert.equal(WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS.idle, 'mesa-badge-success');

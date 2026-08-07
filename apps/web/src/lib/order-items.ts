@@ -5,6 +5,11 @@ export function isBuffetBaseItem(item: Pick<OrderItem, 'kind'>): boolean {
   return item.kind === 'buffet_base';
 }
 
+/** Kitchen remake lines: staff-only, €0, hidden from guest submitted list and billables. */
+export function isKitchenRemakeItem(item: Pick<OrderItem, 'kitchen_remake'>): boolean {
+  return item.kitchen_remake === true;
+}
+
 export function kitchenRelevantItems(items: OrderItem[]): OrderItem[] {
   return items.filter((i) => !isBuffetBaseItem(i));
 }

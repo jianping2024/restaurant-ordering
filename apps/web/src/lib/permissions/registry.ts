@@ -101,6 +101,7 @@ export const PERMISSIONS = {
   'orders.edit': { group: 'orders', labelKey: 'ordersEdit' },
   'orders.menu_decrement': { group: 'orders', labelKey: 'ordersMenuDecrement', dangerous: true },
   'orders.kitchen_update': { group: 'orders', labelKey: 'ordersKitchenUpdate' },
+  'orders.serve_to_table': { group: 'orders', labelKey: 'ordersServeToTable' },
   'orders.print_receipt': { group: 'orders', labelKey: 'ordersPrintReceipt' },
 
   // Buffet
@@ -108,7 +109,11 @@ export const PERMISSIONS = {
 
   // Floor boards
   'floor.kitchen_board.view': { group: 'floor', labelKey: 'floorKitchenBoard' },
+  'floor.kitchen_screens.manage': { group: 'floor', labelKey: 'floorKitchenScreensManage' },
   'floor.waiter_board.view': { group: 'floor', labelKey: 'floorWaiterBoard' },
+
+  // Dish history (当日菜品检索)
+  'dashboard.dish_history.view': { group: 'dashboard_nav', labelKey: 'dashboardDishHistory' },
 
   // Print agent dashboard
   'print_agent.manage': { group: 'print', labelKey: 'printAgentManage', dangerous: true },
@@ -131,6 +136,7 @@ export const NAV_PERMISSION: Record<string, PermissionKey> = {
   settings: 'dashboard.settings.view',
   checkout: 'dashboard.checkout.view',
   orders: 'dashboard.orders.view',
+  dishHistory: 'dashboard.dish_history.view',
   tables: 'dashboard.tables.view',
   menu: 'dashboard.menu.view',
   waiterBoard: 'dashboard.waiter_board.view',
@@ -142,6 +148,7 @@ export const DASHBOARD_ROUTE_PERMISSIONS: { prefix: string; permission: Permissi
   { prefix: '/dashboard/settings', permission: 'dashboard.settings.view' },
   { prefix: '/dashboard/checkout', permission: 'dashboard.checkout.view' },
   { prefix: '/dashboard/orders', permission: 'dashboard.orders.view' },
+  { prefix: '/dashboard/dish-history', permission: 'dashboard.dish_history.view' },
   { prefix: '/dashboard/tables', permission: 'dashboard.tables.view' },
   { prefix: '/dashboard/menu', permission: 'dashboard.menu.view' },
   { prefix: '/dashboard/waiter', permission: 'dashboard.waiter_board.view' },

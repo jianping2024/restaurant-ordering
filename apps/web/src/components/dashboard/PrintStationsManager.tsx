@@ -34,12 +34,14 @@ type StationForm = {
   name_pt: string;
   name_en: string;
   name_zh: string;
+  kitchen_enabled: boolean;
 };
 
 const defaultStationForm: StationForm = {
   name_pt: '',
   name_en: '',
   name_zh: '',
+  kitchen_enabled: false,
 };
 
 export function PrintStationsManager({
@@ -95,6 +97,7 @@ export function PrintStationsManager({
       name_pt: row.name_pt,
       name_en: row.name_en ?? '',
       name_zh: row.name_zh ?? '',
+      kitchen_enabled: Boolean(row.kitchen_enabled),
     });
     setStationError('');
     setStationModalOpen(true);
@@ -124,6 +127,7 @@ export function PrintStationsManager({
         name_pt: stationForm.name_pt.trim(),
         name_en: stationForm.name_en.trim() || null,
         name_zh: stationForm.name_zh.trim() || null,
+        kitchen_enabled: stationForm.kitchen_enabled,
       };
       if (editingStation) {
         const result = await updatePrintStationClient(editingStation.id, input);
@@ -254,6 +258,7 @@ export function PrintStationsManager({
                               ) : null}
                               <p className="text-[12px] text-brand-text-muted mt-0.5">
                                 {bindingsLabel(row.id)}
+                                {row.kitchen_enabled ? ` · ${t.kitchenEnabledBadge}` : ''}
                               </p>
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
@@ -315,6 +320,22 @@ export function PrintStationsManager({
             onChange={(e) => setStationForm((f) => ({ ...f, name_zh: e.target.value }))}
             placeholder="后厨"
           />
+          <label className="flex items-start gap-2.5 rounded-xl border border-brand-border px-3 py-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={stationForm.kitchen_enabled}
+              onChange={(e) =>
+                setStationForm((f) => ({ ...f, kitchen_enabled: e.target.checked }))
+              }
+            />
+            <span>
+              <span className="block text-sm text-brand-text">{t.kitchenEnabled}</span>
+              <span className="block text-[12px] text-brand-text-muted mt-0.5">
+                {t.kitchenEnabledHint}
+              </span>
+            </span>
+          </label>
           {stationError ? (
             <p className="mesa-alert-danger text-sm px-4 py-2">{stationError}</p>
           ) : null}

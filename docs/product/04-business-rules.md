@@ -85,25 +85,29 @@
 
 | `item_status` | 含义 |
 |---------------|------|
-| `pending` | 待厨房处理 |
-| `cooking` | 制作中 |
-| `done` | 已出餐 |
+| `pending` | 已下单 / 待厨房处理 |
+| `cooking` | 备餐中 |
+| `ready` | 已出餐（开了后厨的档口；见档口大屏方案） |
+| `done` | 已上桌（开了后厨时由楼面「上桌」写入；语义以档口方案为准） |
 | `voided` | 已退菜 |
+
+> **档口后厨大屏（已锁定）**：状态流转、备餐出票、自动已出餐（**展示计算、不写库**）、上桌、大屏编排、当日检索与厨房补单 → [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)。未开后厨的档口/菜保持历史行为（下单自动出品联；多端不强制进度 UI）。
 
 ### 推导与兼容
 
 - 旧数据无 `item_status` 时，按订单 `status` fallback（`normalizeOrderItemStatus`）
+- 旧数据无 `ready`：到期展示与懒晋升规则见档口方案 §4
 - `kind=buffet_base` 为自助餐人头行，服务员不可 decrement
 
 ### 硬规则
 
-- 退菜必须 `voided` + 原因（厨房/减至 0）
+- 退菜必须 `voided` + 原因；**后厨不可退菜**（减餐仅 `orders.menu_decrement`）
 - void 行不参与分单金额加总（过滤 voided）
-- 厨房 void `done` 行 → 高风险异常
+- 厨房侧不再提供 void；楼面减 `done`/`ready` 行的风险规则以实现时审计为准
 
 ### 相关代码
 
-`lib/order-item-void/*`、`lib/resolve-append-cart-items.ts`、`components/kitchen/KitchenDisplay.tsx`
+`lib/order-item-void/*`、`lib/resolve-append-cart-items.ts`、`components/kitchen/KitchenDisplay.tsx`（将演进为档口大屏格子）
 
 ---
 

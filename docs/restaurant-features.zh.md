@@ -121,3 +121,7 @@ supabase db push
 - `src/app/api/restaurant/features/route.ts` — REST API
 - `src/components/dashboard/FeatureFlagsManager.tsx` — 设置 UI
 - `src/components/dashboard/DashboardNav.tsx` — 侧栏门控
+
+## 档口后厨（规划中）
+
+店级将增加「上桌」开关、`kitchen_ready_after_minutes` 等；档口「后厨流程」在 `print_stations` 上配置。权威产品方案：[`docs/product/station-kitchen-screens.zh.md`](./product/station-kitchen-screens.zh.md)。落地前勿假定旧 `kitchen_board` 仍表示后厨能力总闸。

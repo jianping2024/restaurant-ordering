@@ -103,6 +103,38 @@ describe('buildCustomerSubmittedDisplayOrders', () => {
     assert.equal(groups.length, 0);
   });
 
+  it('hides kitchen_remake lines from guest submitted list', () => {
+    const groups = buildCustomerSubmittedDisplayOrders([
+      orderWithItems([
+        {
+          id: 'i1',
+          name: 'Guest',
+          name_pt: 'Guest',
+          qty: 1,
+          price: 3,
+          emoji: '🥣',
+          batch_id: 'batch-a',
+          added_at: '2026-07-15T12:30:00.000Z',
+        },
+        {
+          id: 'i1',
+          name: 'Remake',
+          name_pt: 'Remake',
+          qty: 1,
+          price: 0,
+          emoji: '🥣',
+          kitchen_remake: true,
+          batch_id: 'batch-b',
+          added_at: '2026-07-15T12:35:00.000Z',
+        },
+      ]),
+    ], 'en');
+
+    assert.equal(groups.length, 1);
+    assert.equal(groups[0]?.lines.length, 1);
+    assert.match(groups[0]?.lines[0]?.label ?? '', /Guest/);
+  });
+
   it('handles missing items array', () => {
     const groups = buildCustomerSubmittedDisplayOrders([
       { ...orderWithItems([]), items: undefined as unknown as Order['items'] },

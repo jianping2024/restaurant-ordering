@@ -17,10 +17,11 @@ import {
   formatOrderItemQuantityLabel,
 } from '@/lib/order-list-display';
 import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
-import type { Capabilities } from '@/lib/permissions/can';
-import { normalizeOrderItemStatus } from '@/lib/order-status';
+import { can, type Capabilities } from '@/lib/permissions/can';
+import { normalizeOrderItemStatus, effectiveItemStatus } from '@/lib/order-status';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
+import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 
 export type WaiterOrderLine = {
   orderId: string;
@@ -29,6 +30,10 @@ export type WaiterOrderLine = {
   /** Menu lines: `× N` shown beside the decrement control. */
   quantityLabel: string | null;
   canDecrement: boolean;
+  /** When feature + capability + effective ready. */
+  canServe: boolean;
+  serveOrderId: string | null;
+  serveItemIdx: number | null;
   /** Sushi limited dish: chargeable share of this row (null when fully included). */
   chargeableQty: number | null;
   chargeableUnitPrice: number | null;
@@ -44,7 +49,10 @@ export interface WaiterTableCardData {
   updatedAt: string;
 }
 
-type MenuLineActionTarget = Pick<WaiterOrderLine, 'orderId' | 'itemIdx' | 'canDecrement'>;
+type MenuLineActionTarget = Pick<
+  WaiterOrderLine,
+  'orderId' | 'itemIdx' | 'canDecrement' | 'canServe' | 'serveOrderId' | 'serveItemIdx'
+>;
 
 type MenuLineCandidate = {
   orderId: string;
@@ -62,21 +70,62 @@ function resolveMenuLineActionTarget(
   orders: Order[],
   mergeKey: string,
   capabilities: Capabilities,
+  serveEnabled: boolean,
+  readyAfterMinutes: number,
+  nowMs: number,
 ): MenuLineActionTarget {
-  return pickMenuLineActionTarget(orders, capabilities, (item) => {
+  const match = (item: OrderItem) => {
     const limitedMenuItemId = menuItemIdFromLimitedBillableKey(mergeKey);
     if (limitedMenuItemId) {
       return item.id === limitedMenuItemId;
     }
     return billableMenuItemMergeKey(item) === mergeKey;
-  });
+  };
+
+  const base = pickMenuLineActionTarget(orders, capabilities, match);
+  let canServe = false;
+  let serveOrderId: string | null = null;
+  let serveItemIdx: number | null = null;
+
+  if (serveEnabled && can(capabilities, 'orders.serve_to_table')) {
+    for (const order of orders) {
+      const items = order.items || [];
+      for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+        const item = items[itemIdx];
+        if (!item || isBuffetBaseItem(item)) continue;
+        if (!match(item)) continue;
+        const effective = effectiveItemStatus({
+          item,
+          orderStatus: order.status,
+          nowMs,
+          readyAfterMinutes,
+        });
+        if (effective === 'ready') {
+          canServe = true;
+          serveOrderId = order.id;
+          serveItemIdx = itemIdx;
+          break;
+        }
+      }
+      if (canServe) break;
+    }
+  }
+
+  return {
+    orderId: base.orderId,
+    itemIdx: base.itemIdx,
+    canDecrement: base.canDecrement,
+    canServe,
+    serveOrderId,
+    serveItemIdx,
+  };
 }
 
 function pickMenuLineActionTarget(
   orders: Order[],
   capabilities: Capabilities,
   match: (item: OrderItem) => boolean,
-): MenuLineActionTarget {
+): Pick<WaiterOrderLine, 'orderId' | 'itemIdx' | 'canDecrement'> {
   let fallback: MenuLineCandidate | null = null;
   let bestDecrementable: MenuLineCandidate | null = null;
   let bestQtyGt1: MenuLineCandidate | null = null;
@@ -127,9 +176,18 @@ export function buildWaiterTableCard(
   itemCodeByMenuId: Record<string, string> = {},
   /** Board list summaries may omit this; decrement flags then stay false. */
   capabilities: Capabilities = new Set(),
+  options: {
+    serveEnabled?: boolean;
+    readyAfterMinutes?: number;
+    nowMs?: number;
+  } = {},
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalog = buildBillableSessionItems(orders);
+  const serveEnabled = options.serveEnabled === true;
+  const readyAfterMinutes =
+    options.readyAfterMinutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;
+  const nowMs = options.nowMs ?? Date.now();
 
   const orderLines: WaiterOrderLine[] = catalog.map((row) => {
     const { key, item } = row;
@@ -140,12 +198,22 @@ export function buildWaiterTableCard(
         label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
         quantityLabel: null,
         canDecrement: false,
+        canServe: false,
+        serveOrderId: null,
+        serveItemIdx: null,
         chargeableQty: null,
         chargeableUnitPrice: null,
       };
     }
 
-    const action = resolveMenuLineActionTarget(orders, key, capabilities);
+    const action = resolveMenuLineActionTarget(
+      orders,
+      key,
+      capabilities,
+      serveEnabled,
+      readyAfterMinutes,
+      nowMs,
+    );
     const share = chargeableFieldsFromBillableRow(row);
 
     return {

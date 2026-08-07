@@ -150,6 +150,7 @@ export type PrintStationInput = {
   name_pt: string;
   name_en?: string | null;
   name_zh?: string | null;
+  kitchen_enabled?: boolean;
 };
 
 export async function createMenuCategoryClient(input: CreateCategoryInput) {

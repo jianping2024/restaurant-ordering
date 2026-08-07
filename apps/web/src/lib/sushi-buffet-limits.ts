@@ -1,6 +1,7 @@
 import type { Order } from '@/types';
 import { aggregateBuffetHeadcountForOrders, totalGuestsFromCounts } from '@/lib/buffet-order';
 import { isSushiBuffetMode } from '@mesa/shared';
+import { isKitchenRemakeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 
 export type SushiLimitMenuFields = {
@@ -23,12 +24,13 @@ export function sessionOrderedQtyForMenuItem(
   return sumSessionMenuItemQty(orders, menuItemId, () => true);
 }
 
-/** Non-voided menu line (excludes buffet_base). Single predicate for session + settlement. */
+/** Non-voided menu line (excludes buffet_base + kitchen remake). Single predicate for session + settlement. */
 export function isActiveSessionMenuLine(
   item: NonNullable<Order['items']>[number],
   orderStatus: Order['status'],
 ): boolean {
   if (item.kind === 'buffet_base') return false;
+  if (isKitchenRemakeItem(item)) return false;
   return normalizeOrderItemStatus(item, orderStatus) !== 'voided';
 }
 

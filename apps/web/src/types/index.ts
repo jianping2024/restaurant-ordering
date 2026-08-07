@@ -8,7 +8,8 @@ export type { BuffetServiceMode };
 
 export type Plan = 'free' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
-export type OrderItemStatus = 'pending' | 'cooking' | 'done' | 'voided';
+/** pending→cooking(备餐)→ready(已出餐, often display-only)→done(已上桌); voided */
+export type OrderItemStatus = 'pending' | 'cooking' | 'ready' | 'done' | 'voided';
 export type SessionStatus = 'open' | 'billing' | 'closed';
 export type Category = string;
 export type SplitMode = 'whole_table' | 'even' | 'by_item' | 'custom';
@@ -56,6 +57,8 @@ export interface PrintStation {
   name_zh?: string | null;
   sort_order: number;
   created_at: string;
+  /** Kitchen screen workflow for this station (plan: station-kitchen-screens). */
+  kitchen_enabled?: boolean;
 }
 
 export interface Restaurant {
@@ -192,9 +195,27 @@ export interface OrderItem {
   batch_id?: string; // 同一餐次内的加单批次
   started_at?: string;
   done_at?: string;
+  ready_at?: string;
   added_at?: string;
   voided_at?: string;
   void_reason?: string;
+  /**
+   * Kitchen remake line: not shown on guest ordered list; not billed.
+   * See docs/product/station-kitchen-screens.zh.md §9.
+   */
+  kitchen_remake?: boolean;
+  /** Snapshot station at remake/prep routing time when set. */
+  print_station_id?: string | null;
+}
+
+export interface KitchenScreen {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+  updated_at?: string;
+  station_ids: string[];
 }
 
 /**

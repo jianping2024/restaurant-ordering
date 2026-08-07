@@ -31,6 +31,8 @@ export type PrintAgentCloudConfig = {
   default_receipt_station_id?: string;
   /** When true, station tickets print centered top-level category group headers. Default false. */
   station_slip_show_category_group?: boolean;
+  /** Minutes after prep (`started_at`) before cooking displays as ready. Default 15. */
+  kitchen_ready_after_minutes?: number;
 };
 
 /** Schedule + poll only — owned by Print assistant schedule UI / settings PUT. */
@@ -51,6 +53,7 @@ export type PrintAgentCloudConfigPatch = {
   default_receipt_station_id?: string | null;
   /** `false` clears (absent = off). */
   station_slip_show_category_group?: boolean;
+  kitchen_ready_after_minutes?: number;
 };
 
 /** Flat form used on the dashboard settings page. */
@@ -201,12 +204,14 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
   const default_receipt_station_id = parseDefaultReceiptStationId(o.default_receipt_station_id);
   const station_slip_show_category_group =
     o.station_slip_show_category_group === true ? true : undefined;
+  const kitchen_ready_after_minutes = resolveKitchenReadyAfterMinutes(o.kitchen_ready_after_minutes);
   return {
     schedule,
     poll,
     credential_ttl_days: resolvePrintAgentCredentialTtlDays(o),
     ...(default_receipt_station_id ? { default_receipt_station_id } : {}),
     ...(station_slip_show_category_group ? { station_slip_show_category_group: true } : {}),
+    kitchen_ready_after_minutes,
   };
 }
 
@@ -244,12 +249,40 @@ export function applyPrintAgentCloudConfigPatch(
     raw.station_slip_show_category_group = true;
   }
 
+  if (patch.kitchen_ready_after_minutes !== undefined) {
+    raw.kitchen_ready_after_minutes = resolveKitchenReadyAfterMinutes(
+      patch.kitchen_ready_after_minutes,
+    );
+  } else if (base.kitchen_ready_after_minutes !== undefined) {
+    raw.kitchen_ready_after_minutes = base.kitchen_ready_after_minutes;
+  }
+
   return normalizePrintAgentCloudConfig(raw);
 }
 
 /** Guest-order / station slip: print `(Bebidas/ Drinks2)` group headers between item blocks. */
 export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
   return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
+}
+
+export const KITCHEN_READY_AFTER_MINUTES_DEFAULT = 15;
+export const KITCHEN_READY_AFTER_MINUTES_MIN = 1;
+export const KITCHEN_READY_AFTER_MINUTES_MAX = 240;
+
+export function resolveKitchenReadyAfterMinutes(raw: unknown): number {
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return KITCHEN_READY_AFTER_MINUTES_DEFAULT;
+  return Math.min(
+    KITCHEN_READY_AFTER_MINUTES_MAX,
+    Math.max(KITCHEN_READY_AFTER_MINUTES_MIN, Math.round(n)),
+  );
+}
+
+export function kitchenReadyAfterMinutesFromConfig(raw: unknown): number {
+  return (
+    normalizePrintAgentCloudConfig(raw).kitchen_ready_after_minutes ??
+    KITCHEN_READY_AFTER_MINUTES_DEFAULT
+  );
 }
 
 export function parseStationSlipShowCategoryGroupPatch(

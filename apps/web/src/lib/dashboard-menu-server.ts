@@ -48,6 +48,7 @@ export type PrintStationBodyFields = {
   name_pt: string;
   name_en: string | null;
   name_zh: string | null;
+  kitchen_enabled?: boolean;
 };
 
 function uniqueViolation(error: { code?: string } | null): boolean {
@@ -722,6 +723,7 @@ export async function createPrintStation(
     name_pt: string;
     name_en?: string | null;
     name_zh?: string | null;
+    kitchen_enabled?: boolean;
   },
 ): Promise<{ station: PrintStation } | MenuMutationError> {
   const namePt = input.name_pt.trim();
@@ -745,6 +747,9 @@ export async function createPrintStation(
       name_en: input.name_en?.trim() || null,
       name_zh: input.name_zh?.trim() || null,
       sort_order: nextSortOrder(rows ?? []),
+      ...(typeof input.kitchen_enabled === 'boolean'
+        ? { kitchen_enabled: input.kitchen_enabled }
+        : {}),
     })
     .select()
     .single();
@@ -762,6 +767,7 @@ export async function updatePrintStation(
     name_pt: string;
     name_en?: string | null;
     name_zh?: string | null;
+    kitchen_enabled?: boolean;
   },
 ): Promise<{ station: PrintStation } | MenuMutationError> {
   const id = parseTableIdParam(stationId);
@@ -779,6 +785,9 @@ export async function updatePrintStation(
       name_pt: namePt,
       name_en: input.name_en?.trim() || null,
       name_zh: input.name_zh?.trim() || null,
+      ...(typeof input.kitchen_enabled === 'boolean'
+        ? { kitchen_enabled: input.kitchen_enabled }
+        : {}),
     })
     .eq('id', id)
     .eq('restaurant_id', restaurantId)
@@ -896,10 +905,16 @@ export function parsePrintStationBody(
   if (typeof raw.name_pt !== 'string') {
     return { error: 'invalid_station_body', status: 400 };
   }
+  if (raw.kitchen_enabled !== undefined && typeof raw.kitchen_enabled !== 'boolean') {
+    return { error: 'invalid_kitchen_enabled', status: 400 };
+  }
   return {
     name_pt: raw.name_pt,
     name_en: typeof raw.name_en === 'string' ? raw.name_en : null,
     name_zh: typeof raw.name_zh === 'string' ? raw.name_zh : null,
+    ...(typeof raw.kitchen_enabled === 'boolean'
+      ? { kitchen_enabled: raw.kitchen_enabled }
+      : {}),
   };
 }
 

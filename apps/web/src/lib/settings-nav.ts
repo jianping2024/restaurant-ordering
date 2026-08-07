@@ -7,6 +7,7 @@ export type SettingsNavId =
   | 'roles'
   | 'buffet'
   | 'print-assistant'
+  | 'kitchen-screens'
   | 'system-logs';
 
 export type SettingsHubLabelKey =
@@ -16,6 +17,7 @@ export type SettingsHubLabelKey =
   | 'tabRoles'
   | 'tabBuffet'
   | 'tabPrintAssistant'
+  | 'tabKitchenScreens'
   | 'tabSystemLogs';
 
 export type SettingsHubHintKey =
@@ -23,6 +25,7 @@ export type SettingsHubHintKey =
   | 'hintFeatures'
   | 'hintBuffet'
   | 'hintPrintAssistant'
+  | 'hintKitchenScreens'
   | 'hintSystemLogs';
 
 export type SettingsNavItem = {
@@ -94,6 +97,15 @@ export const SETTINGS_NAV_TABS: SettingsNavItem[] = [
     icon: '🖨️',
     permission: 'settings.print_assistant.manage',
     isActive: (pathname) => pathname.startsWith('/dashboard/settings/print-assistant'),
+  },
+  {
+    id: 'kitchen-screens',
+    href: '/dashboard/settings/kitchen-screens',
+    labelKey: 'tabKitchenScreens',
+    hintKey: 'hintKitchenScreens',
+    icon: '📺',
+    permission: 'floor.kitchen_screens.manage',
+    isActive: (pathname) => pathname.startsWith('/dashboard/settings/kitchen-screens'),
   },
   {
     id: 'system-logs',

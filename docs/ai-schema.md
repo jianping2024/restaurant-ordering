@@ -43,7 +43,11 @@ print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, cod
 
 print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
 
-print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz)
+print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz, kitchen_enabled: boolean NOT NULL default false)
+
+kitchen_screens (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name: text, sort_order: integer, created_at: timestamptz, updated_at: timestamptz)
+
+kitchen_screen_stations (screen_id: uuid PK FK -> kitchen_screens.id, print_station_id: uuid PK FK -> print_stations.id, sort_order: integer; max 2 stations per screen via trigger)
 
 restaurant_staff_accounts (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, user_id: uuid unique FK -> auth.users.id, role: text [kitchen|waiter|cashier|frontdesk|owner|print_agent|custom], role_id: uuid FK -> restaurant_roles.id nullable, display_name: text, login_name: text unique, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, updated_at: timestamptz, disabled_at: timestamptz nullable)
 

@@ -65,5 +65,6 @@ describe('normalizeRestaurantFeatureFlags', () => {
     const flags = normalizeRestaurantFeatureFlags({});
     assert.equal(flags.kitchen_board, false);
     assert.equal(flags.bill_receipt_print, false);
+    assert.equal(flags.kitchen_serve_to_table, false);
   });
 });

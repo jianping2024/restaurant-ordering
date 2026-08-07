@@ -469,8 +469,11 @@ type OrderedItemsProps = {
   formatChargeableHint?: (qty: number, unitPrice: number) => string;
   isCheckoutPending: boolean;
   decrementingKey: string | null;
+  servingKey: string | null;
   orderLineKey: (orderId: string, itemIdx: number) => string;
   onDecrement: (orderId: string, itemIdx: number) => void;
+  onServe: (orderId: string, itemIdx: number) => void;
+  serveLabel: string;
 };
 
 export function WaiterTableOrderedItemsPanel({
@@ -481,8 +484,11 @@ export function WaiterTableOrderedItemsPanel({
   formatChargeableHint,
   isCheckoutPending,
   decrementingKey,
+  servingKey,
   orderLineKey,
   onDecrement,
+  onServe,
+  serveLabel,
 }: OrderedItemsProps) {
   if (lines.length === 0) return null;
 
@@ -520,9 +526,13 @@ export function WaiterTableOrderedItemsPanel({
             formatChargeableHint && share
               ? formatChargeableHint(share.qty, share.unitPrice)
               : null;
+          const serveKey =
+            line.canServe && line.serveOrderId != null && line.serveItemIdx != null
+              ? orderLineKey(line.serveOrderId, line.serveItemIdx)
+              : null;
           return (
             <div
-              key={`${line.orderId}-${line.itemIdx}`}
+              key={`${line.orderId}-${line.itemIdx}-${line.label}`}
               className={waiterDetailLayout.orderedItemRow}
             >
               <div className={waiterDetailLayout.orderedItemTextCol}>
@@ -531,10 +541,22 @@ export function WaiterTableOrderedItemsPanel({
                   <p className={waiterDetailLayout.orderedItemChargeableHint}>{chargeableHint}</p>
                 ) : null}
               </div>
-              {(line.quantityLabel || line.canDecrement) ? (
+              {(line.quantityLabel || line.canDecrement || line.canServe) ? (
                 <div className={waiterDetailLayout.orderedItemActions}>
                   {line.quantityLabel ? (
                     <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
+                  ) : null}
+                  {line.canServe && line.serveOrderId != null && line.serveItemIdx != null ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isCheckoutPending}
+                      loading={servingKey === serveKey}
+                      onClick={() => onServe(line.serveOrderId!, line.serveItemIdx!)}
+                    >
+                      {serveLabel}
+                    </Button>
                   ) : null}
                   {line.canDecrement ? (
                     <WaiterOrderQtyMinus

@@ -19,6 +19,7 @@ export type DashboardNavItemKey =
   | 'settings'
   | 'checkout'
   | 'orders'
+  | 'dishHistory'
   | 'tables'
   | 'menu'
   | 'guestNotice'
@@ -90,6 +91,13 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
     key: 'orders',
     icon: '📋',
     featureId: 'orders',
+  },
+  dishHistory: {
+    id: 'dishHistory',
+    href: '/dashboard/dish-history',
+    key: 'dishHistory',
+    icon: '🔎',
+    featureId: 'dish-history',
   },
   tables: {
     id: 'tables',
@@ -211,6 +219,16 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     path: '/dashboard/orders',
     pageLoader: 'loadOrderHistoryDashboardContext (dashboard.orders.view)',
     writePattern: 'read-only',
+  },
+  {
+    id: 'dish-history',
+    path: '/dashboard/dish-history',
+    pageLoader: 'DishHistoryPage (dashboard.dish_history.view)',
+    writePattern: 'server-api',
+    aliases: [
+      '/api/restaurants/[slug]/staff/dish-history',
+      '/api/restaurants/[slug]/staff/dish-history/remake',
+    ],
   },
   {
     id: 'tables',

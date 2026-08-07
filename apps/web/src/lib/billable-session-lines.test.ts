@@ -80,6 +80,30 @@ describe('sumBillableSessionTotal', () => {
     assert.equal(sumBillableSessionTotal(orders), 5);
   });
 
+  it('excludes kitchen_remake lines from payable totals', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          { id: 'd1', name: 'Água', name_pt: 'Água', qty: 1, price: 2, emoji: '💧' },
+          {
+            id: 'd1',
+            name: 'Água remake',
+            name_pt: 'Água remake',
+            qty: 1,
+            price: 0,
+            emoji: '💧',
+            kitchen_remake: true,
+          },
+        ],
+      },
+    ] as Order[];
+
+    assert.equal(sumBillableSessionTotal(orders), 2);
+    assert.equal(buildBillableSessionItems(orders).length, 1);
+  });
+
   it('excludes voided lines (matches bill details after decrement + append)', () => {
     const voided: OrderItem = {
       id: 'd1',

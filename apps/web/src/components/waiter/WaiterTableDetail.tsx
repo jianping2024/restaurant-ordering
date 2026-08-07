@@ -35,6 +35,8 @@ import {
   fromCapabilitiesPayload,
   type CapabilitiesPayload,
 } from '@/lib/permissions/can';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
+import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
@@ -212,6 +214,7 @@ function WaiterTableDetailInner({
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
+  const [servingKey, setServingKey] = useState<string | null>(null);
   const [orderingOpen, setOrderingOpen] = useState(false);
   const [cartDraft, setCartDraft] = useState<CartItem[]>([]);
   /**
@@ -310,6 +313,11 @@ function WaiterTableDetailInner({
 
   // Removed menuDecrementOperator - now using capabilities directly
 
+  const serveEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'kitchen_serve_to_table',
+  );
+
   const selectedCard = useMemo(
     () =>
       buildWaiterTableCard(
@@ -318,8 +326,14 @@ function WaiterTableDetailInner({
         orders,
         itemCodeByMenuId,
         capabilities,
+        {
+          serveEnabled,
+          readyAfterMinutes:
+            restaurant.kitchen_ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT,
+          nowMs: Date.now(),
+        },
       ),
-    [orders, tableId, selectedDisplayName, itemCodeByMenuId, capabilities],
+    [orders, tableId, selectedDisplayName, itemCodeByMenuId, capabilities, serveEnabled, restaurant.kitchen_ready_after_minutes],
   );
 
   const wasCheckoutPendingRef = useRef(isCheckoutPending);
@@ -364,11 +378,15 @@ function WaiterTableDetailInner({
     return demoTables
       .filter((table) => {
         const view = ordersForWaiterTableView(table.id, initialOrders, activeSessionByTableId);
-        const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId, capabilities);
+        const c = buildWaiterTableCard(table.id, table.display_name, view, itemCodeByMenuId, capabilities, {
+          serveEnabled,
+          readyAfterMinutes:
+            restaurant.kitchen_ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT,
+        });
         return isWaiterTableCardOccupied(c);
       })
       .map((row) => row.id);
-  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities]);
+  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities, serveEnabled]);
 
   const demoTargetCandidates = useMemo(() => {
     if (!isDemo || !operationType || !sourceTable) return [] as RestaurantTableRow[];
@@ -909,6 +927,47 @@ function WaiterTableDetailInner({
     void executeDecrementOrderLine(orderId, itemIdx, order);
   };
 
+  const handleServeOrderLine = async (orderId: string, itemIdx: number) => {
+    if (isCheckoutPending) {
+      notifyCheckoutLocked();
+      return;
+    }
+    if (isDemo) {
+      showToast(t.actionFailed, 'error');
+      return;
+    }
+    const key = orderLineKey(orderId, itemIdx);
+    setServingKey(key);
+    try {
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/serve`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selections: [{ order_id: orderId, item_index: itemIdx }],
+          }),
+        },
+      );
+      if (!res.ok) {
+        if (res.status === 409) {
+          showToast(t.refreshHint, 'error');
+          await refresh();
+          return;
+        }
+        showToast(t.actionFailed, 'error');
+        return;
+      }
+      await refresh();
+      showToast(t.serveDone, 'success');
+    } catch {
+      showToast(t.actionFailed, 'error');
+    } finally {
+      setServingKey(null);
+    }
+  };
+
   const tableUpdatedLabel = selectedCard.updatedAt
     ? new Date(selectedCard.updatedAt).toLocaleString(locale, {
       month: '2-digit',
@@ -1043,8 +1102,11 @@ function WaiterTableDetailInner({
                 }
                 isCheckoutPending={isCheckoutPending}
                 decrementingKey={decrementingKey}
+                servingKey={servingKey}
                 orderLineKey={orderLineKey}
                 onDecrement={(orderId, itemIdx) => void handleDecrementOrderLine(orderId, itemIdx)}
+                onServe={(orderId, itemIdx) => void handleServeOrderLine(orderId, itemIdx)}
+                serveLabel={t.serveToTable}
               />
             ) : (
               <WaiterTableDetailContentSkeleton label="" density="ordered" />

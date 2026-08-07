@@ -26,14 +26,15 @@ function isUuid(s: string): boolean {
   return UUID_RE.test(s);
 }
 
-type StationRow = {
+export type StationRow = {
   id: string;
   name_pt: string;
   name_en: string | null;
   name_zh: string | null;
+  kitchen_enabled?: boolean;
 };
 
-function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
+export function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
   if (locale === 'zh') return (st.name_zh || st.name_en || st.name_pt || '').trim() || st.name_pt;
   if (locale === 'en') return (st.name_en || st.name_pt || st.name_zh || '').trim() || st.name_pt;
   return (st.name_pt || st.name_en || st.name_zh || '').trim() || st.name_pt;
@@ -97,7 +98,7 @@ type OrderRowForGuestCount = {
   updated_at: string;
 };
 
-async function resolveGuestCountForStationTicket(
+export async function resolveGuestCountForStationTicket(
   admin: SupabaseClient,
   restaurantId: string,
   order: {
@@ -145,7 +146,7 @@ async function resolveGuestCountForStationTicket(
   return guestCountFromTableOrders((sessionOrderRows || []) as OrderRowForGuestCount[]);
 }
 
-async function resolvePrintAgentConfig(
+export async function resolvePrintAgentConfig(
   admin: SupabaseClient,
   restaurant: RestaurantEnqueueRow,
 ): Promise<unknown> {
@@ -360,7 +361,7 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const { data: stations, error: sErr } = await admin
     .from('print_stations')
-    .select('id, name_pt, name_en, name_zh')
+    .select('id, name_pt, name_en, name_zh, kitchen_enabled')
     .eq('restaurant_id', restaurantId)
     .in('id', stationIds);
 
@@ -370,11 +371,30 @@ export async function enqueueStationTicketsForOrder(params: {
 
   const stationById = new Map(stations.map((s) => [s.id, s as StationRow]));
 
+  // Kitchen-enabled stations: no auto station_ticket on order; prep prints instead.
+  const autoPrintLines = linesInBatch.filter((l) => {
+    const st = stationById.get(l.station_id as string);
+    return st && !st.kitchen_enabled;
+  });
+  if (autoPrintLines.length === 0) {
+    return {
+      ok: true,
+      batch_id: batchId,
+      inserted: 0,
+      skipped_duplicates: 0,
+      station_names: [],
+    };
+  }
+
+  const autoStationIds = Array.from(
+    new Set(autoPrintLines.map((l) => l.station_id as string)),
+  );
+
   let inserted = 0;
   let skipped_duplicates = 0;
   const stationNames: string[] = [];
 
-  for (const sid of stationIds) {
+  for (const sid of autoStationIds) {
     if (hasPendingDuplicate(sid)) {
       skipped_duplicates += 1;
       continue;
@@ -383,7 +403,7 @@ export async function enqueueStationTicketsForOrder(params: {
     const stMeta = stationById.get(sid);
     if (!stMeta) continue;
 
-    const stationLines = linesInBatch.filter((l) => l.station_id === sid);
+    const stationLines = autoPrintLines.filter((l) => l.station_id === sid);
     const payload: StationTicketJobPayload = {
       order_id: orderId,
       batch_id: batchId,

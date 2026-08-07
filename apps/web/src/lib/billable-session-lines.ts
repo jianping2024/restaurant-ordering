@@ -3,7 +3,7 @@ import {
   listActiveBuffetLineSummaries,
 } from '@/lib/buffet-order';
 import { lineTotal } from '@/lib/cart-totals';
-import { isBuffetBaseItem } from '@/lib/order-items';
+import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import {
   allocateSessionSushiLimitedLines,
@@ -209,6 +209,7 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
     const items = order.items || [];
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx];
+      if (isKitchenRemakeItem(item)) continue;
       const st = normalizeOrderItemStatus(item, order.status);
       if (st === 'voided') continue;
       if (isBuffetBaseItem(item) && buffetSummaries.length > 0) continue;

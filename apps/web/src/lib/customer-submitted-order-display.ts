@@ -1,6 +1,6 @@
 import { formatCustomerOrderSubmittedTime } from '@/lib/format-dashboard-date';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
-import { orderBatchDisplayGroupKey, orderItemBatchKey } from '@/lib/order-items';
+import { isKitchenRemakeItem, orderBatchDisplayGroupKey, orderItemBatchKey } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { stationTicketOrderTimeIso } from '@/lib/table-guest-count';
 import type { UILanguage } from '@/lib/i18n';
@@ -34,6 +34,7 @@ export function buildCustomerSubmittedDisplayOrders(
     const items = order.items ?? [];
     for (let idx = 0; idx < items.length; idx += 1) {
       const item = items[idx];
+      if (isKitchenRemakeItem(item)) continue;
       if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
 
       const batchKey = orderItemBatchKey(item);

@@ -32,5 +32,6 @@ export async function GET(
     orders: board.orders,
     activeTableIds: board.activeTableIds,
     tables: board.tables,
+    kitchen_ready_after_minutes: board.kitchen_ready_after_minutes,
   });
 }

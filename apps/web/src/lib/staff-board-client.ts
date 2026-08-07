@@ -219,6 +219,7 @@ type KitchenBoardResponse = {
   orders?: Order[];
   activeTableIds?: string[];
   tables?: RestaurantTableRow[];
+  kitchen_ready_after_minutes?: number;
 };
 
 /** Kitchen active board via authenticated staff API. */
@@ -234,5 +235,13 @@ export async function fetchKitchenBoardClient(slug: string) {
     if (ta && tb) return compareRestaurantTables(ta, tb);
     return a.localeCompare(b);
   });
-  return { orders: board.orders || [], activeTableIds, tableById };
+  return {
+    orders: board.orders || [],
+    activeTableIds,
+    tableById,
+    kitchen_ready_after_minutes:
+      typeof board.kitchen_ready_after_minutes === 'number'
+        ? board.kitchen_ready_after_minutes
+        : 15,
+  };
 }

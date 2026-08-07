@@ -4,8 +4,6 @@ import type { ReactNode } from 'react';
 import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
-import { useLanguage } from '@/components/providers/LanguageProvider';
-import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
 
@@ -21,7 +19,10 @@ interface Props {
   staffAssisted?: StaffAssistedFlow | null;
   /** Secondary line, e.g. bill settlement label. */
   subtitle?: string | null;
-  /** Guest bill/menu back navigation (not used in staff-assisted; nav row comes from staffAssisted). */
+  /**
+   * Sole header back control (guest or page-mode staff-assisted).
+   * Overlay Continuar pedido uses StaffOrderingShell ✕ — pass null there.
+   */
   backLink?: BackLink | null;
   sticky?: boolean;
   /** Bill page uses a larger restaurant title. */
@@ -40,9 +41,7 @@ export function CustomerOrderingHeader({
   headingSize = 'menu',
   children,
 }: Props) {
-  const { lang } = useLanguage();
-  const assistedFlow = staffAssisted ?? null;
-  const isStaffAssisted = assistedFlow !== null;
+  const isStaffAssisted = staffAssisted !== null;
 
   const headingClass =
     headingSize === 'bill'
@@ -68,12 +67,9 @@ export function CustomerOrderingHeader({
       }
     >
       <div className={`px-4 ${sticky ? 'py-3' : 'py-5'}`}>
-        {isStaffAssisted ? (
+        {backLink ? (
           <div className="mb-2">
-            <StaffAssistedBackLink
-              href={assistedFlow.returnHref}
-              label={staffAssistedReturnLabel(assistedFlow, lang)}
-            />
+            <StaffAssistedBackLink href={backLink.href} label={backLink.label} />
           </div>
         ) : null}
 
@@ -95,12 +91,6 @@ export function CustomerOrderingHeader({
             </div>
           )}
         </div>
-
-        {!isStaffAssisted && backLink ? (
-          <div className="mt-2">
-            <StaffAssistedBackLink href={backLink.href} label={backLink.label} />
-          </div>
-        ) : null}
       </div>
 
       {children}

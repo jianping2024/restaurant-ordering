@@ -97,6 +97,7 @@ export function BillCheckoutSubmittedScreen({
         tableLabel={tableLabel}
         staffAssisted={staffAssisted}
         headingSize="bill"
+        backLink={{ href: backHref, label: backLabel }}
       />
 
       <main className="px-4 py-6 space-y-4">

@@ -500,7 +500,7 @@ export function BillPage({
         staffAssisted={staffAssisted}
         subtitle={t.settlement}
         headingSize="bill"
-        backLink={staffAssisted ? null : { href: backHref, label: backLabel }}
+        backLink={{ href: backHref, label: backLabel }}
       />
 
       <BillDetailsSection

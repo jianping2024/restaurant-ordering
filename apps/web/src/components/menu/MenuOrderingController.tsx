@@ -49,6 +49,7 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
@@ -821,6 +822,14 @@ export function MenuOrderingController({
         tableLabel={t.table}
         staffAssisted={staffAssisted}
         sticky
+        backLink={
+          staffAssisted && !isEmbedded
+            ? {
+                href: staffAssisted.returnHref,
+                label: staffAssistedReturnLabel(staffAssisted, lang),
+              }
+            : null
+        }
       >
         <div className="mesa-chip-scroll flex gap-0 px-4 pb-3">
           {topCategories.map(cat => (

@@ -22,7 +22,15 @@ import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import { KitchenStationPane } from '@/components/kitchen/KitchenStationPane';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
+import { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
+
+function kitchenPaneGridClass(paneCount: number): string {
+  if (paneCount <= 1) return 'grid-cols-1';
+  if (paneCount === 2) return 'grid-cols-1 lg:grid-cols-2';
+  if (paneCount === 3) return 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3';
+  return 'grid-cols-1 md:grid-cols-2';
+}
 
 const KitchenScreenRealtime = dynamic(
   () =>
@@ -82,7 +90,9 @@ function KitchenScreenBoardInner({
   const supabase = createClient();
 
   const stationById = new Map(stations.map((s) => [s.id, s]));
-  const paneStationIds = screen.station_ids.filter((id) => stationById.has(id)).slice(0, 2);
+  const paneStationIds = screen.station_ids
+    .filter((id) => stationById.has(id))
+    .slice(0, KITCHEN_SCREEN_MAX_STATIONS);
 
   const refreshKitchenBoard = useCallback(async () => {
     const board = await fetchKitchenBoardClient(restaurant.slug);
@@ -192,9 +202,7 @@ function KitchenScreenBoardInner({
           <p className="text-brand-text-muted py-16 text-center">{t.noLines}</p>
         ) : (
           <div
-            className={`grid min-h-0 flex-1 gap-4 ${
-              visiblePanes.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
-            }`}
+            className={`grid min-h-0 flex-1 gap-4 ${kitchenPaneGridClass(visiblePanes.length)}`}
           >
             {visiblePanes.map((stationId) => {
               const station = stationById.get(stationId)!;

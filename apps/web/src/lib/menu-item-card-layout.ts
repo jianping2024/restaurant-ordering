@@ -1,5 +1,5 @@
 /**
- * Menu list card — fixed price / action row (MenuItemCard).
+ * Sole menu catalog card price/action row (MenuItemCard — guest and staff-assisted).
  * Single grid contract: price column + 6.75rem action column (compact stepper).
  */
 

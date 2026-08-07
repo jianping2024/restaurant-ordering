@@ -889,7 +889,7 @@ export function MenuOrderingController({
         ) : currentItems.length === 0 ? (
           <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
         ) : (
-          <div className={isEmbedded ? 'grid grid-cols-1 gap-3 md:grid-cols-2' : 'space-y-3'}>
+          <div className="space-y-3">
             {currentItems.map((item) => {
               const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);
@@ -903,7 +903,6 @@ export function MenuOrderingController({
                   key={item.id}
                   item={item}
                   lang={lang}
-                  layout={isEmbedded ? 'grid' : 'list'}
                   cartQty={cartQty}
                   limitHint={limitHint}
                   onIncrement={() => bumpCartItem(item, 1)}

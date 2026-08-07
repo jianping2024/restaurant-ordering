@@ -140,6 +140,8 @@ export async function closeTableSessionFrontdeskCheckout(input: {
     return mapSettledCloseResult(closed);
   }
 
+  await bumpSessionOrdersForKitchenRealtime(input.admin, input.restaurantId, closed.session_id);
+
   if (!input.printBill || !sessionId) {
     return { ok: true, session_id: closed.session_id };
   }
@@ -207,6 +209,26 @@ function mapSettledCloseResult(result: CloseTableSettledResult): CloseTableSessi
   return result;
 }
 
+/**
+ * Close only writes `table_sessions`; kitchen boards subscribe to `orders` for CDC.
+ * Bump `orders.updated_at` so Realtime doorbells clear closed sessions from the board
+ * without interval polling (same GET refresh path as order mutations).
+ */
+async function bumpSessionOrdersForKitchenRealtime(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionId: string,
+): Promise<void> {
+  const { error } = await admin
+    .from('orders')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('restaurant_id', restaurantId)
+    .eq('session_id', sessionId);
+  if (error) {
+    console.warn('[close-table-session] bump orders for kitchen realtime failed', error.message);
+  }
+}
+
 export async function closeTableSessionManual(
   input: CloseTableSessionServiceInput,
 ): Promise<CloseTableSessionServiceResult> {
@@ -254,5 +276,6 @@ export async function closeTableSessionManual(
 
   // Manual RPC closes via SQL operational (not the JS wrapper) — purge here.
   await purgeTablePartyMembership(input.admin, input.restaurantId, input.tableId);
+  await bumpSessionOrdersForKitchenRealtime(input.admin, input.restaurantId, rpcResult.session_id);
   return { ok: true, session_id: rpcResult.session_id };
 }

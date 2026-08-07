@@ -57,6 +57,18 @@
   box-sizing: border-box;
 }
 
+/**
+ * Document scrollport only — keep horizontal layout stable when vertical
+ * overflow toggles (e.g. floor KPI filters). `overflow-y: scroll` keeps a
+ * classic gutter when the OS uses non-overlay scrollbars; `scrollbar-gutter`
+ * covers engines that reserve without forcing scroll. Do not put overflow /
+ * gutter on STAFF_SHELL_MAIN_CLASS (breaks sticky under the staff top bar).
+ */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 body {
   background-color: rgb(var(--color-brand-bg));
   color: rgb(var(--color-brand-text));

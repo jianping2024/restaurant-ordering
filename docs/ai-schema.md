@@ -167,7 +167,8 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `get_active_restaurant_table(restaurant_id, table_id)` | — | Resolve non-deleted table row |
 | `auth_owned_restaurant_ids()` | — | SECURITY DEFINER helper for owner RLS |
 | `auth_staff_restaurant_ids()` | — | SECURITY DEFINER helper for staff RLS |
-| `is_active_restaurant_staff(restaurant_id, roles?)` | — | Staff role check (default kitchen+waiter) |
+| `is_active_restaurant_staff(restaurant_id, roles?)` | — | Staff role-name check (default kitchen+waiter); not for configurable board Realtime |
+| `staff_has_restaurant_permission(restaurant_id, permissions[])` | — | Staff capability check via `restaurant_roles.permissions` (any match); excludes print_agent |
 
 Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant`, `seed_default_print_stations_for_restaurant`, `seed_default_restaurant_tables_for_restaurant`, `recalc_order_total_from_items`, `void_active_buffet_lines_in_items`, `void_all_line_items_for_forced_close`, `merge_split_result_paid`, `rls_auto_enable`.
 
@@ -470,7 +471,7 @@ table_sessions:
 
 - SELECT: authenticated owner by restaurant ownership.
 - UPDATE: authenticated owner by restaurant ownership, with matching `WITH CHECK`.
-- SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
+- SELECT: authenticated staff via `staff_has_restaurant_permission(restaurant_id, ['dashboard.waiter_board.view','floor.waiter_board.view'])` (Realtime CDC / board listen; same capability keys as board API entry).
 
 ## Important Notes
 

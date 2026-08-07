@@ -1,15 +1,16 @@
 'use client';
 
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
+import {
+  CheckoutRequestsContext,
+} from '@/components/dashboard/checkout-requests-context';
 import { createClient } from '@/lib/supabase/client';
 import {
   applyConfirmPaymentToRequests,
@@ -27,33 +28,23 @@ import {
 } from '@/lib/checkout-session-payments';
 import { groupCollectedPaymentsBySession } from '@/lib/checkout-settlement';
 import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
-import { useBillSplitsRealtimeRefresh } from '@/lib/use-bill-splits-realtime-refresh';
+import dynamic from 'next/dynamic';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import type { BillSplit } from '@/types';
 
-type CheckoutRequestsContextValue = {
-  requests: BillSplit[];
-  pendingCount: number;
-  reload: () => Promise<void>;
-  updateRequests: (updater: (prev: BillSplit[]) => BillSplit[]) => void;
-  upsertRequestFromSubmit: (row: BillSplit) => void;
-  getCollectedForSession: (sessionId: string | null | undefined) => SessionCollectedPayment[];
-  applyConfirmPaymentOutcome: (params: {
-    billSplitId: string;
-    sessionId: string | null | undefined;
-    outcome: ConfirmPaymentClientOutcome;
-  }) => void;
-};
+const CheckoutRequestsRealtime = dynamic(
+  () =>
+    import('@/components/dashboard/CheckoutRequestsRealtime').then(
+      (m) => m.CheckoutRequestsRealtime,
+    ),
+  { ssr: false },
+);
 
-const CheckoutRequestsContext = createContext<CheckoutRequestsContextValue | null>(null);
-
-export function useCheckoutRequests(): CheckoutRequestsContextValue {
-  const ctx = useContext(CheckoutRequestsContext);
-  if (!ctx) {
-    throw new Error('useCheckoutRequests must be used within CheckoutRequestsProvider');
-  }
-  return ctx;
-}
+export {
+  useCheckoutRequests,
+  useCheckoutRequestsPendingCount,
+} from '@/components/dashboard/checkout-requests-context';
+export type { CheckoutRequestsContextValue } from '@/components/dashboard/checkout-requests-context';
 
 type Props = {
   restaurantId: string;
@@ -181,15 +172,6 @@ export function CheckoutRequestsProvider({
 
   useRestaurantStaffEntryReconcile(enabled, reload);
 
-  useBillSplitsRealtimeRefresh(
-    supabase,
-    restaurantId,
-    `checkout-queue-${restaurantId}`,
-    enabled,
-    () => {
-      void reload();
-    },
-  );
 
   const value = useMemo(
     () => ({
@@ -205,6 +187,16 @@ export function CheckoutRequestsProvider({
   );
 
   return (
-    <CheckoutRequestsContext.Provider value={value}>{children}</CheckoutRequestsContext.Provider>
+    <CheckoutRequestsContext.Provider value={value}>
+      <CheckoutRequestsRealtime
+        supabase={supabase}
+        restaurantId={restaurantId}
+        enabled={enabled}
+        onRefresh={() => {
+          void reload();
+        }}
+      />
+      {children}
+    </CheckoutRequestsContext.Provider>
   );
 }

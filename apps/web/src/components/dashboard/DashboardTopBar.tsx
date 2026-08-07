@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard-access';
-import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
+import { useCheckoutRequestsPendingCount } from '@/components/dashboard/checkout-requests-context';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { DashboardLicenseValidUntil } from '@/components/dashboard/DashboardLicenseValidUntil';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
@@ -28,7 +28,7 @@ type Props = {
 export function DashboardTopBar({ restaurant, shellMode, roleLabel, capabilities }: Props) {
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
-  const { pendingCount } = useCheckoutRequests();
+  const pendingCount = useCheckoutRequestsPendingCount();
   const navItems = buildDashboardTopNavItems({
     shellMode,
     capabilities,

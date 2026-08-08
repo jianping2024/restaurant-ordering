@@ -24,16 +24,16 @@
   --color-brand-text-muted: 212 206 194;
   --color-on-gold: 27 26 22;
   --color-on-ink: 27 26 22;
-  /* Soft azulejo status — checkout / dining / idle */
-  --color-status-warning-fg: 228 200 138;
-  --color-status-warning-bg: 72 56 28;
-  --color-status-warning-border: 228 200 138;
-  --color-status-success-fg: 180 200 164;
-  --color-status-success-bg: 36 48 32;
-  --color-status-success-border: 180 200 164;
-  --color-status-danger-fg: 224 154 130;
-  --color-status-danger-bg: 64 36 32;
-  --color-status-danger-border: 224 154 130;
+  /* Floor / badge status — pre-FARVOO saturated checkout / dining / idle */
+  --color-status-warning-fg: 253 230 138;
+  --color-status-warning-bg: 69 45 12;
+  --color-status-warning-border: 217 119 6;
+  --color-status-success-fg: 167 243 208;
+  --color-status-success-bg: 20 48 32;
+  --color-status-success-border: 34 197 94;
+  --color-status-danger-fg: 252 165 165;
+  --color-status-danger-bg: 60 24 24;
+  --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
 }
 
@@ -53,15 +53,15 @@
   --color-brand-text-muted: 138 131 119;
   --color-on-gold: 247 244 238;
   --color-on-ink: 247 244 238;
-  --color-status-warning-fg: 154 111 40;
-  --color-status-warning-bg: 247 240 228;
-  --color-status-warning-border: 154 111 40;
-  --color-status-success-fg: 79 101 67;
-  --color-status-success-bg: 236 240 232;
-  --color-status-success-border: 79 101 67;
-  --color-status-danger-fg: 143 74 56;
-  --color-status-danger-bg: 247 236 232;
-  --color-status-danger-border: 143 74 56;
+  --color-status-warning-fg: 92 40 8;
+  --color-status-warning-bg: 255 243 224;
+  --color-status-warning-border: 180 83 9;
+  --color-status-success-fg: 4 72 52;
+  --color-status-success-bg: 220 245 232;
+  --color-status-success-border: 5 130 90;
+  --color-status-danger-fg: 127 20 20;
+  --color-status-danger-bg: 252 232 232;
+  --color-status-danger-border: 185 28 28;
   --auth-pattern-opacity: 0.08;
 }
 
@@ -219,16 +219,16 @@ body {
   }
   .mesa-scroll-frame.is-dining {
     border-width: 2px;
-    border-color: rgb(var(--color-status-danger-border));
+    border-color: rgb(var(--color-status-danger-border) / 0.5);
   }
   .mesa-scroll-frame.is-pending {
     border-width: 2px;
-    border-color: rgb(var(--color-status-warning-border));
+    border-color: rgb(var(--color-status-warning-border) / 0.5);
   }
   .mesa-scroll-frame.is-free {
     border-width: 2px;
     border-style: dashed;
-    border-color: rgb(var(--color-status-success-border));
+    border-color: rgb(var(--color-status-success-border) / 0.5);
   }
   .mesa-scroll-frame__inner {
     border: 0.5px solid rgb(var(--color-brand-gold) / 0.5);
@@ -236,46 +236,21 @@ body {
     background: rgb(var(--color-brand-card));
   }
   /**
-   * Sole tinted card face (mockup truth): paper/card mixed with status hue.
-   * Ratios: dining 72/28, pending 65/35, free 78/22. Not status-*-bg solids.
+   * Sole card face: status-*-bg solid (same paint as pre-FARVOO mesa-board-shell).
    * Theme flip follows --color-* vars — no parallel [data-theme] RGB copies.
    */
   .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
-    border-color: color-mix(
-      in srgb,
-      rgb(var(--color-status-danger-border)) 70%,
-      transparent
-    );
-    background: color-mix(
-      in srgb,
-      rgb(var(--color-brand-card)) 72%,
-      rgb(var(--color-status-danger-border))
-    );
+    border-color: rgb(var(--color-status-danger-border) / 0.55);
+    background: rgb(var(--color-status-danger-bg));
   }
   .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
-    border-color: color-mix(
-      in srgb,
-      rgb(var(--color-status-warning-border)) 80%,
-      transparent
-    );
-    background: color-mix(
-      in srgb,
-      rgb(var(--color-brand-card)) 65%,
-      rgb(var(--color-status-warning-border))
-    );
+    border-color: rgb(var(--color-status-warning-border) / 0.55);
+    background: rgb(var(--color-status-warning-bg));
   }
   .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
     border-style: dashed;
-    border-color: color-mix(
-      in srgb,
-      rgb(var(--color-status-success-border)) 70%,
-      transparent
-    );
-    background: color-mix(
-      in srgb,
-      rgb(var(--color-brand-card)) 78%,
-      rgb(var(--color-status-success-border))
-    );
+    border-color: rgb(var(--color-status-success-border) / 0.55);
+    background: rgb(var(--color-status-success-bg));
   }
 
   /** Floor search — mockup mesa-search (ink hairline, raised paper). */

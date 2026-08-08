@@ -146,16 +146,16 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `pageTitle` | 看板页标题（`text-brand-ink`） |
 | `kpiCount` / `kpiLabel` | 顶部细线 KPI（标签上、数字下、色线） |
 | `laneLabel` / `laneMeta` | 横滑楼面 lane 与同行组下拉触发器；外壳 `WAITER_BOARD_LANE_STICKY_SHELL`（`sticky` + `waiterStaffStickyChrome.belowStaffTopBar`；条↔卡唯一间距 `WAITER_BOARD_LANE_TO_CARD_CLEARANCE`：壳内 `shellPadBottom` 不透明纸底 + 坞下网格 `gridScrollMargin`，不用壳外 `mb`）+ 唯一尾随 `WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE`（`pb-24`，保证滚到底能把卡顶停在停靠带下）；楼面 tab 与同行组入口同在一条 `mesa-chip-scroll`（同行组紧跟最后一桌组，不再条尾贴右）；菜单 portal 到 `body` 避免横滑 overflow 裁切；菜单顶区「创建」为 `Button` gold（选项列表可滚，创建不跟滚） |
-| `cardTitle` / `cardOpener` / `cardBadge` / `cardMeta` / `cardAmount` / `cardAmountSlot` / `cardCta` / `cardStatus` | 桌卡唯一排版面：桌号（display，body 面 `text-4xl`，≥2× 旧 `text-lg`）、金边角标、元信息行（`text-xs` + `brand-text`）、**开桌人仅在横线下方**（`cardOpener`）、金额（body 面 `text-[22px]` + `font-semibold` + `tabular-nums` + `brand-ink`；**不**用 `.mesa-money` / `font-heading` / 淡金/按态 `mesa-text-*`；状态只走壳/竖排/CTA）、金额槽 `cardAmountSlot`（空/有价同 `h-7`，避免 CTA 横跳）、CTA、竖排状态（`.mesa-status-vertical`）；禁止在卡片组件另写平行 badge/meta/cta/status/opener class；`WAITER_BOARD_CARD_THEME` 无 `amount` 字段 |
+| `cardTitle` / `cardOpener` / `cardBadge` / `cardMeta` / `cardAmount` / `cardAmountSlot` / `cardCta` / `cardStatus` | 桌卡唯一排版面：桌号（display，body 面 `text-4xl`，≥2× 旧 `text-lg`）、金边角标、元信息行（`text-xs` + `brand-text`）、**开桌人仅在横线下方**（`cardOpener`：`text-sm`）、金额（body 面 `text-[22px]` + `font-semibold` + `tabular-nums` + `brand-ink`；**不**用 `.mesa-money` / `font-heading` / 淡金/按态 `mesa-text-*`；状态只走壳/竖排/CTA）、金额槽 `cardAmountSlot`（空/有价同 `h-7`，避免 CTA 横跳）、CTA、竖排状态（`.mesa-status-vertical`）；禁止在卡片组件另写平行 badge/meta/cta/status/opener class；`WAITER_BOARD_CARD_THEME` 无 `amount` 字段 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
 状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-scroll-frame`）：
 
-- 待结账 `checkout`：warning（灰调赭金）→ `is-pending`
-- 用餐中 `dining`：danger（灰调赤陶）→ `is-dining`
-- 空闲 `idle`：success（灰调鼠尾草）→ `is-free`
-- 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；外框统一 `2px`（idle 虚线全不透明）；正文一律 `brand-text`；**内底唯一写法**为 `color-mix(brand-card, status-*-border, mockup 比例)`（dining 72/28、pending 65/35、free 78/22），禁止 `[data-theme]` 硬编码 RGB / 禁止用 `status-*-bg` 实心当桌卡底（`status-*-bg` 仅徽章等）
+- 待结账 `checkout`：warning（琥珀）→ `is-pending`
+- 用餐中 `dining`：danger（红）→ `is-dining`
+- 空闲 `idle`：success（绿）→ `is-free`
+- 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；外框统一 `2px`（idle 虚线；边框 `status-*-border` @ ~50%）；正文一律 `brand-text`；**内底唯一写法**为 `rgb(status-*-bg)` 实心（与改造前 `mesa-board-shell-*` 同色），禁止 `[data-theme]` 硬编码 RGB / 禁止平行第二套楼面色板
 - Modal 等面板：`mesa-panel-frame`（外靛内金）
 - 成功/收款：`mesa-badge-success`
 - 危险操作：`Button danger` / `mesa-text-danger`

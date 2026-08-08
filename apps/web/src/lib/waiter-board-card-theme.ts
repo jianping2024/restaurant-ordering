@@ -18,7 +18,7 @@ export const waiterBoardType = {
     'min-w-0 truncate text-left text-4xl font-bold leading-none',
   /** Sole opener face — below card rule only (not title-row, not a meta chip). */
   cardOpener:
-    'mt-1.5 truncate text-xs font-medium text-brand-text opacity-85',
+    'mt-1.5 truncate text-sm font-medium text-brand-text opacity-85',
   /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
   cardBadge:
     'shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium text-brand-gold border border-brand-gold/50',

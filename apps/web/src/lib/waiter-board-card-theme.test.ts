@@ -6,6 +6,7 @@ import {
   WAITER_BOARD_KPI_COUNT_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
   WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
@@ -78,6 +79,10 @@ describe('waiter-board-card-theme theme tokens', () => {
     );
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /bg-brand-bg/);
     assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /z-20/);
+    // Dock breath is inside paint (pb), not exterior margin (cards would show through).
+    assert.match(WAITER_BOARD_LANE_STICKY_SHELL, /\bpb-4\b/);
+    assert.doesNotMatch(WAITER_BOARD_LANE_STICKY_SHELL, /\bmb-/);
+    assert.match(WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE, /\bpb-24\b/);
     assertNoSkyPalette(WAITER_BOARD_LANE_STICKY_SHELL);
   });
 

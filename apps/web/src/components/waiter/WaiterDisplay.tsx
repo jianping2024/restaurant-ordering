@@ -75,6 +75,7 @@ import {
   WAITER_BOARD_KPI_LABEL_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_LANE_CHROME,
+  WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
   waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
@@ -641,7 +642,14 @@ function WaiterBoardInner({
   }
 
   return (
-    <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>
+    <div
+      className={[
+        isDemo ? 'min-h-screen bg-brand-bg p-4' : '',
+        showLaneChrome ? WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {isDemo && (
         <div className="mb-4 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">{t.step}</p>

@@ -32,10 +32,18 @@ export const WAITER_BOARD_LANE_CHROME = {
 
 /**
  * Board lane tablist shell — sticks under staff top bar while the grid scrolls.
- * Opaque page bg so table cards never show through; offset = `waiterStaffStickyChrome`.
+ * Opaque page bg paints the full dock (tabs + breath before cards) so cards never
+ * show through a transparent margin gap; offset = `waiterStaffStickyChrome`.
+ * Spacing before the grid is shell padding-bottom only — not exterior margin.
  */
 export const WAITER_BOARD_LANE_STICKY_SHELL =
-  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 mb-4 min-w-0 border-b border-brand-border/40 bg-brand-bg py-2`;
+  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 min-w-0 border-b border-brand-border/40 bg-brand-bg pt-2 pb-4`;
+
+/**
+ * Sole trailing scroll room for the sticky lane dock — enough that max-scroll can
+ * park table cards fully below the opaque dock (no second spacer at call sites).
+ */
+export const WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE = 'pb-24';
 
 /** Selected together-group panel — brand chrome, not a second accent palette. */
 export const WAITER_BOARD_PARTY_PANEL_CLASS =

@@ -21,10 +21,15 @@ export const waiterBoardType = {
   /**
    * Sole floor-card amount face — money stack + high-contrast ink (not pale gold on wash)
    * + ~2× prior size for oldstyle optical loss (status stays on shell/CTA).
+   * Height lives only on `cardAmountSlot` — this face must fit inside that box.
    */
   cardAmount: 'mesa-money text-[32px] !font-semibold leading-none text-brand-ink',
-  /** Always-on amount row slot — same height empty or filled so CTA does not jump. */
-  cardAmountSlot: 'inline-flex min-h-[2rem] min-w-0 items-baseline',
+  /**
+   * Sole amount-row height (empty or filled). Fixed `h-10` matches the measured
+   * mesa-money 32px oldstyle line box (~40px); never a smaller min-h that lets
+   * dining overflow and idle collapse (grid row stretch → card 伸缩).
+   */
+  cardAmountSlot: 'inline-flex h-10 min-w-0 items-center',
   cardCta: 'shrink-0 text-sm font-semibold',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',

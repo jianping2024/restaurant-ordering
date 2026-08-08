@@ -62,7 +62,10 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.cardAmount, /text-\[32px\]/);
     assert.match(waiterBoardType.cardAmount, /!font-semibold/);
     assert.match(waiterBoardType.cardAmount, /text-brand-ink/);
-    assert.match(waiterBoardType.cardAmountSlot, /min-h-\[2rem\]/);
+    // Sole amount-row height on the slot — fixed h, not a short min-h that dining overflows.
+    assert.match(waiterBoardType.cardAmountSlot, /\bh-10\b/);
+    assert.doesNotMatch(waiterBoardType.cardAmountSlot, /\bmin-h-/);
+    assert.doesNotMatch(waiterBoardType.cardAmount, /\b(?:min-h-|h-10|h-\[)/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);

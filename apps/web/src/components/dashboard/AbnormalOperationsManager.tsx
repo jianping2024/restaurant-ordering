@@ -300,7 +300,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <div className="max-w-6xl">
+    <div>
       <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <p className="text-sm text-brand-text-muted">{t.subtitle}</p>
         <Button

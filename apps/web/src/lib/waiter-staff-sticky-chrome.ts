@@ -12,10 +12,14 @@
  * - nav + trailing share one right cluster (`rightClusterClassName`, ml-auto)
  * - hamburger + trailing are shrink-0 inside the cluster
  * - intentional horizontal scroll only via `.mesa-chip-scroll` on desktop nav
+ * - row width uses sole `STAFF_SHELL_CONTENT_CLASS` (same column as DashboardShell)
  *
  * Tailwind class strings must be full literals (no ${} inside class names) so JIT
- * can emit utilities from this file.
+ * can emit utilities from this file. Content max-width is composed from the
+ * imported sole token (complete utility names live in staff-shell-layout).
  */
+
+import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 /** Content row height only (Tailwind h-14). */
 export const STAFF_TOP_BAR_CONTENT_HEIGHT = '3.5rem';
@@ -36,9 +40,12 @@ export const staffTopBarChrome = {
   /**
    * Content row. Brand is flex-1 + min-w-0 so long names absorb squeeze;
    * hamburger and trailing stay shrink-0 and never push the document wide.
+   * Width = sole staff content column (aligned with DashboardShell).
    */
-  rowClassName:
+  rowClassName: [
+    STAFF_SHELL_CONTENT_CLASS,
     'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
+  ].join(' '),
   /** Logo + restaurant name — sole flex grow slot; truncates instead of overflowing. */
   brandClassName: 'flex min-w-0 flex-1 items-baseline',
   /**

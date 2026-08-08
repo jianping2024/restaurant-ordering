@@ -9,4 +9,12 @@
  * `min-w-0` is the sole flex shrink contract so chip strips scroll inside
  * themselves instead of widening the document.
  */
+
+/**
+ * Sole staff content column (mockup `max-w-6xl` / topbar `72rem`).
+ * Used by DashboardShell main inner + staff top-bar row — do not redeclare
+ * `max-w-6xl` on dashboard feature pages.
+ */
+export const STAFF_SHELL_CONTENT_CLASS = 'mx-auto w-full max-w-6xl';
+
 export const STAFF_SHELL_MAIN_CLASS = 'min-h-0 min-w-0 flex-1 p-4 sm:p-6 lg:p-8';

@@ -83,6 +83,7 @@ import {
 } from '@/lib/waiter-board-card-theme';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
+import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 interface Props {
   restaurant: FloorBoardRestaurant;
@@ -648,7 +649,7 @@ function WaiterBoardInner({
   return (
     <div
       className={[
-        isDemo ? 'min-h-screen bg-brand-bg p-4' : '',
+        isDemo ? `min-h-screen bg-brand-bg p-4 ${STAFF_SHELL_CONTENT_CLASS}` : '',
         showLaneChrome ? WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE : '',
       ]
         .filter(Boolean)

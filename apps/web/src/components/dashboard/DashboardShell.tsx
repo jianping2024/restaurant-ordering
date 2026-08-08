@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard-access';
 import { DashboardTopBar } from '@/components/dashboard/DashboardTopBar';
-import { STAFF_SHELL_MAIN_CLASS } from '@/lib/staff-shell-layout';
+import { STAFF_SHELL_CONTENT_CLASS, STAFF_SHELL_MAIN_CLASS } from '@/lib/staff-shell-layout';
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
 type Props = {
@@ -24,7 +24,7 @@ export function DashboardShell({ restaurant, shellMode, roleLabel, capabilities,
         capabilities={capabilities}
       />
       <main className={STAFF_SHELL_MAIN_CLASS}>
-        {children}
+        <div className={STAFF_SHELL_CONTENT_CLASS}>{children}</div>
       </main>
     </div>
   );

@@ -256,18 +256,16 @@ export function ValueAnalyticsPageClient({
 
   if (viewState === 'forbidden') {
     return (
-      <div className="max-w-6xl">
-        <StateCard>
-          <p className="text-brand-text-muted">{t.forbidden}</p>
-        </StateCard>
-      </div>
+      <StateCard>
+        <p className="text-brand-text-muted">{t.forbidden}</p>
+      </StateCard>
     );
   }
 
   const showContent = viewState === 'ready' && data;
 
   return (
-    <div className="max-w-6xl">
+    <div>
       <header className="mb-5">
         <p className="text-sm text-brand-text-muted">{t.subtitle}</p>
       </header>

@@ -21,6 +21,8 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-right/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
+    assert.match(staffTopBarChrome.rowClassName, /max-w-6xl/);
+    assert.match(staffTopBarChrome.rowClassName, /mx-auto/);
     assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
     assert.match(staffTopBarChrome.brandClassName, /flex-1/);
     assert.match(staffTopBarChrome.brandClassName, /items-baseline/);

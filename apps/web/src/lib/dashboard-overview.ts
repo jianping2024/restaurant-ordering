@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import {
   loadClosedSessionRevenueBundleRpc,
+  splitTodayRevenueByDaypart,
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
@@ -9,10 +10,14 @@ import { aggregateBuffetForOrders } from '@/lib/buffet-order';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
 import { pickTrilingualName, type TrilingualName } from '@/lib/i18n/pick-trilingual-name';
+import { lisbonLocalClockUtcIso } from '@/lib/lisbon-calendar';
 import type { OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
 
 export type { TrilingualName };
+
+/** Sole Lisbon clock cutoff for overview noon/evening (HH:MM, Europe/Lisbon). */
+export const OVERVIEW_DAYPART_CUTOFF_LISBON = '17:00';
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
@@ -102,12 +107,25 @@ export type DashboardFeedbackInsights = {
   topPraise: DashboardFeedbackPraise[];
 };
 
+export type DashboardTodayDaypart = {
+  orderCount: number;
+  revenue: number;
+};
+
 export type DashboardTodayKpis = {
   todayOrderCount: number;
   todayRevenue: number;
   avgTicketPrice: number;
   /** false when closed-session revenue raw materials failed (do not show fake €0). */
   revenueAvailable: boolean;
+  /**
+   * Sole noon/evening partition of today’s totals (Lisbon `OVERVIEW_DAYPART_CUTOFF_LISBON`).
+   * noon.* + evening.* === corresponding day totals when revenueAvailable (orders always).
+   */
+  dayparts: {
+    noon: DashboardTodayDaypart;
+    evening: DashboardTodayDaypart;
+  };
 };
 
 export type DashboardRecentOrderView = {
@@ -195,6 +213,10 @@ function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {
 export function computeTodayKpis(
   todayOrderCount: number,
   revenue: { todayRevenue: number; revenueSessionCount: number } | null,
+  dayparts: {
+    noon: DashboardTodayDaypart;
+    evening: DashboardTodayDaypart;
+  },
 ): DashboardTodayKpis {
   if (!revenue) {
     return {
@@ -202,11 +224,21 @@ export function computeTodayKpis(
       todayRevenue: 0,
       avgTicketPrice: 0,
       revenueAvailable: false,
+      dayparts: {
+        noon: { orderCount: dayparts.noon.orderCount, revenue: 0 },
+        evening: { orderCount: dayparts.evening.orderCount, revenue: 0 },
+      },
     };
   }
   const { todayRevenue, revenueSessionCount } = revenue;
   const avgTicketPrice = revenueSessionCount > 0 ? todayRevenue / revenueSessionCount : 0;
-  return { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable: true };
+  return {
+    todayOrderCount,
+    todayRevenue,
+    avgTicketPrice,
+    revenueAvailable: true,
+    dayparts,
+  };
 }
 
 export function buildTodayTopSellingItems(
@@ -337,9 +369,11 @@ export async function loadDashboardOverviewPrimary(
   now = new Date(),
 ): Promise<DashboardOverviewPrimaryView> {
   const todayWindow = resolveTodayLisbonWindow(now);
+  const cutoffUtc = lisbonLocalClockUtcIso(todayWindow.today, OVERVIEW_DAYPART_CUTOFF_LISBON);
 
   const [
-    { count: todayOrderCount },
+    { count: noonOrderCount },
+    { count: eveningOrderCount },
     { count: inProgressOrderCount },
     pendingCheckoutCount,
     { count: pendingAbnormalCount },
@@ -351,6 +385,12 @@ export async function loadDashboardOverviewPrimary(
       .select('id', { count: 'exact', head: true })
       .eq('restaurant_id', restaurantId)
       .gte('created_at', todayWindow.startUtc)
+      .lt('created_at', cutoffUtc),
+    admin
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', restaurantId)
+      .gte('created_at', cutoffUtc)
       .lt('created_at', todayWindow.endExclusiveUtc),
     admin
       .from('orders')
@@ -377,12 +417,22 @@ export async function loadDashboardOverviewPrimary(
     ),
   ]);
 
+  const noonOrders = noonOrderCount ?? 0;
+  const eveningOrders = eveningOrderCount ?? 0;
+  const todayOrderCount = noonOrders + eveningOrders;
+
   const todayRevenue = revenueBundleResult.ok
     ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
     : null;
+  const revenueDayparts = revenueBundleResult.ok
+    ? splitTodayRevenueByDaypart(revenueBundleResult.bundle, todayWindow.today, cutoffUtc)
+    : { noon: 0, evening: 0 };
 
   return {
-    todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue),
+    todayKpis: computeTodayKpis(todayOrderCount, todayRevenue, {
+      noon: { orderCount: noonOrders, revenue: revenueDayparts.noon },
+      evening: { orderCount: eveningOrders, revenue: revenueDayparts.evening },
+    }),
     pendingActions: {
       inProgressOrders: inProgressOrderCount ?? 0,
       pendingCheckout: pendingCheckoutCount,

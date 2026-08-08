@@ -22,6 +22,8 @@ export function StoreStaffLoginClient({ storeSlug, restaurantName }: Props) {
         subtitle: t.subtitle,
         contextLine: restaurantName,
         securityNote: t.staffSecurityNote,
+        hero: t.hero,
+        support: t.support,
       }}
     >
       <AuthLoginForm storeSlug={storeSlug} />

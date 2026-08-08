@@ -173,12 +173,13 @@ export const MESSAGES_ES = {
     "ruleConflictSave": "Guardar de todos modos"
   },
   "authLogin": {
-    "title": "Accede al panel de tu restaurante",
-    "subtitle": "Gestiona la operativa de tu restaurante con eficacia",
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Accede al centro de gestión FARVOO",
     "account": "Cuenta",
     "accountPlaceholder": "Correo o nombre de usuario",
     "clearAccount": "Borrar cuenta",
     "password": "Contraseña",
+    "passwordPlaceholder": "Introduce la contraseña",
     "login": "Iniciar sesión",
     "invalid": "Cuenta o contraseña incorrectas",
     "network": "Error de red, inténtalo de nuevo más tarde",
@@ -189,16 +190,18 @@ export const MESSAGES_ES = {
     "staffDisabled": "Esta cuenta de personal está desactivada",
     "staffIncomplete": "La cuenta de personal está incompleta: pide al propietario que la vuelva a crear en Ajustes de personal",
     "wrongStore": "Esta cuenta no pertenece a este local",
-    "forgotHint": "¿Has olvidado la contraseña? Contacta con el administrador del restaurante",
     "securityNote": "El acceso está protegido con cifrado HTTPS",
     "staffSecurityNote": "Solo para personal autorizado de este local",
-    "trustBadges": {
-      "secureTitle": "Seguro",
-      "secureBody": "Transmisión cifrada; las cuentas las gestiona tu restaurante",
-      "efficientTitle": "Eficiente",
-      "efficientBody": "Carta, cocina y sala en un mismo flujo",
-      "supportTitle": "Hecho para restaurantes",
-      "supportBody": "Diseñado para el día a día de la restauración"
+    "hero": {
+      "eyebrow": "FARVOO RESTAURANT OS",
+      "headline": "Haz más eficiente la operación del restaurante",
+      "body": "Pedidos, operación y servicio — un solo back office."
+    },
+    "support": {
+      "install": "Instalar app de escritorio",
+      "forgotPassword": "¿Has olvidado la contraseña?",
+      "contactAdmin": "Contactar al administrador",
+      "adminHelpDetail": "Para restablecer la contraseña o crear cuentas, contacta con el administrador del restaurante."
     }
   },
   "staffPwaInstall": {

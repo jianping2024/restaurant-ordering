@@ -20,13 +20,13 @@
 
 ### 门店安装（install-only，无离线）
 
-- **要做什么：** 桌面壳（无浏览器顶栏、无「不安全」提示）。**仅员工登录页**（`AuthLoginForm` → `StaffPwaInstallPrompt`）：有浏览器安装信号时显示「安装到桌面」；否则短句 +「如何安装？」打开步骤 Modal。Chrome 步骤唯一源是 `staffPwaInstall.steps`：⋮ →「Cast, save and share / 投射、保存和分享」→「Install page as app…」；备选 ⋮ →「More tools / 更多工具」→「Create shortcut…」并勾选「Open as window」。请用 localhost/HTTPS（局域网 `http://IP` 常无安装项）。iOS：分享 →「添加到主屏幕」。装完后从桌面图标打开，勿继续用浏览器标签。
+- **要做什么：** 桌面壳（无浏览器顶栏、无「不安全」提示）。**仅员工登录页支持链**（`AuthLoginSupportLinks` → `StaffPwaInstallPrompt`）：有浏览器安装信号时点「安装桌面应用」走原生安装；否则打开步骤 Modal。Chrome 步骤唯一源是 `staffPwaInstall.steps`：⋮ →「Cast, save and share / 投射、保存和分享」→「Install page as app…」；备选 ⋮ →「More tools / 更多工具」→「Create shortcut…」并勾选「Open as window」。请用 localhost/HTTPS（局域网 `http://IP` 常无安装项）。iOS：分享 →「添加到主屏幕」。装完后从桌面图标打开，勿继续用浏览器标签。
 - **不要做什么：** Service Worker、离线缓存、断网点餐。勿在代码里试图隐藏浏览器「Not secure」——只有 standalone 或 HTTPS 能解决。已登录 dashboard **不**挂安装提示。
-- **谁看到安装提示：** 仅员工登录表单（`AuthLoginForm`，含 `StoreStaffLoginClient` 门店登录）；顾客扫码菜单与 `DashboardShell` 不挂。
+- **谁看到安装提示：** 仅员工登录支持链（`AuthLoginSupportLinks` / `StaffPwaInstallPrompt`，含门店 `StoreStaffLoginClient`）；顾客扫码菜单与 `DashboardShell` 不挂。
 - **链接打开：**
   - 从浏览器 / 扫码打开同站 URL：manifest `handle_links: not-preferred`，应留在浏览器，不自动跳进已装 App。已安装用户若仍被劫持：`chrome://apps` 卸载重装，或在该应用设置里关闭「用应用打开链接」。
   - **在已装 App 内**点「打开点餐页 / 打开登录页」：不得再开第二个 App 窗。唯一写法 → `openHttpUrlPreferBrowser` + `PreferBrowserHttpLink`（非 standalone 新开浏览器标签；standalone 只复制链接并 toast 提示去浏览器粘贴）。
-- **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`（含 `PWA_START_URL=/dashboard`、主题/启动底色、`PWA_ICON_PATHS`）；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts`（`STANDALONE_DISPLAY_MEDIA_QUERIES` + `hidden` | `browser_prompt` | `manual_entry`）+ `use-pwa-install.ts`；冷启动品牌壳 → `lib/pwa/launch-shell.ts`（style/boot：`off→in→hold→out`，`PWA_LAUNCH_FADE_MS` / `PWA_LAUNCH_HOLD_MS` / `PWA_LAUNCH_MARK_PX` 各一份）+ `app/layout.tsx` 唯一 DOM（深底+大号 `PWA_ICON_PATHS.any192`，仅 standalone；无第二套 splash 色/图/时长常量）；安装 UI → `components/pwa/StaffPwaInstallPrompt.tsx`（仅登录页）；步骤文案 → `staffPwaInstall.steps`（无并行 `authLogin.pwaInstall` / `manualHint`）；App 内打开顾客/扫码 URL → `lib/pwa/open-prefer-browser.ts` + `components/pwa/PreferBrowserHttpLink.tsx`。
+- **实现唯一源：** manifest → `lib/pwa/site-manifest.ts`（含 `PWA_START_URL=/dashboard`、主题/启动底色、`PWA_ICON_PATHS`）；是否已安装 / 展示哪类 CTA → `lib/pwa/install-display.ts`（`STANDALONE_DISPLAY_MEDIA_QUERIES` + `hidden` | `browser_prompt` | `manual_entry`）+ `use-pwa-install.ts`；冷启动品牌壳 → `lib/pwa/launch-shell.ts`（style/boot：`off→in→hold→out`，`PWA_LAUNCH_FADE_MS` / `PWA_LAUNCH_HOLD_MS` / `PWA_LAUNCH_MARK_PX` 各一份）+ `app/layout.tsx` 唯一 DOM（深底+大号 `PWA_ICON_PATHS.any192`，仅 standalone；无第二套 splash 色/图/时长常量）；安装 UI → `components/pwa/StaffPwaInstallPrompt.tsx`（仅登录支持链 `presentation="supportLink"`）；步骤文案 → `staffPwaInstall.steps`（无并行 `authLogin.pwaInstall` / `manualHint`）；App 内打开顾客/扫码 URL → `lib/pwa/open-prefer-browser.ts` + `components/pwa/PreferBrowserHttpLink.tsx`。
 - **冷启动入口：** `start_url` 为 `/dashboard`（未登录 middleware 进登录；已登录少一次 login→工作台跳转）。系统 splash 与 HTML 首绘壳共用 `PWA_BACKGROUND_COLOR`（`#0F0E0C`）。HTML 到达后品牌层为加载仪式：淡入 → 停留 → 淡出（约 1.6s），不是闪一下。网页未到之前的系统启动页（尤其 iOS）仍可能是纯色——要系统级带图需另做 `apple-touch-startup-image`。
 
 ---

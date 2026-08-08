@@ -173,12 +173,13 @@ export const MESSAGES_FR = {
     "ruleConflictSave": "Enregistrer quand même"
   },
   "authLogin": {
-    "title": "Connectez-vous au tableau de bord de votre restaurant",
-    "subtitle": "Gérez efficacement les opérations de votre restaurant",
+    "title": "Bon retour",
+    "subtitle": "Connectez-vous au centre de gestion FARVOO",
     "account": "Compte",
     "accountPlaceholder": "E-mail ou identifiant",
     "clearAccount": "Effacer le compte",
     "password": "Mot de passe",
+    "passwordPlaceholder": "Saisissez votre mot de passe",
     "login": "Se connecter",
     "invalid": "Compte ou mot de passe incorrect",
     "network": "Erreur réseau, veuillez réessayer plus tard",
@@ -189,16 +190,18 @@ export const MESSAGES_FR = {
     "staffDisabled": "Ce compte collaborateur est désactivé",
     "staffIncomplete": "Le compte collaborateur est incomplet — demandez au responsable de le recréer dans les paramètres du personnel",
     "wrongStore": "Ce compte n'appartient pas à cet établissement",
-    "forgotHint": "Mot de passe oublié ? Contactez l'administrateur de votre restaurant",
     "securityNote": "La connexion est protégée par un chiffrement HTTPS",
     "staffSecurityNote": "Réservé au personnel autorisé de cet établissement",
-    "trustBadges": {
-      "secureTitle": "Sécurisé",
-      "secureBody": "Transmission chiffrée ; comptes gérés par votre restaurant",
-      "efficientTitle": "Efficace",
-      "efficientBody": "Carte, cuisine et salle dans un même flux",
-      "supportTitle": "Conçu pour la restauration",
-      "supportBody": "Pensé pour les opérations quotidiennes d'un restaurant"
+    "hero": {
+      "eyebrow": "FARVOO RESTAURANT OS",
+      "headline": "Gérez votre restaurant plus efficacement",
+      "body": "Commandes, opérations et service — un seul back-office."
+    },
+    "support": {
+      "install": "Installer l'application bureau",
+      "forgotPassword": "Mot de passe oublié ?",
+      "contactAdmin": "Contacter l'administrateur",
+      "adminHelpDetail": "Pour réinitialiser le mot de passe ou créer des comptes, contactez l'administrateur du restaurant."
     }
   },
   "staffPwaInstall": {

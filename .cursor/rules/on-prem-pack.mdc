@@ -1,6 +1,6 @@
 ---
-description: On-prem pack/upgrade — enforce Realtime ensure + BuildKit npm cache in pack, not docs-only
-globs: deploy/on-prem/scripts/pack-release.sh,apps/web/Dockerfile,docs/technical/on-prem-pack-install-upgrade.zh.md
+description: On-prem pack/upgrade — artifact gates + local next build before shipping web changes
+globs: deploy/on-prem/scripts/pack-release.sh,apps/web/Dockerfile,docs/technical/on-prem-pack-install-upgrade.zh.md,apps/web/src/lib/mesa-money-font.ts,apps/web/src/app/layout.tsx
 alwaysApply: false
 ---
 
@@ -18,3 +18,18 @@ When packing, upgrading packs, or touching on-prem web build:
 3. Do not tell the user “docs say use BuildKit cache” while shipping a pack with bare `RUN npm ci`.
 4. **Same-origin flag:** never `menuImageSameOriginEnabled(process.env)` — Next will not inline nested `NEXT_PUBLIC_*`; call `menuImageSameOriginEnabled()` / `isSupabaseBrowserSameOrigin()` so HTTPS Tunnel uses `wss://` page origin.
 5. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`
+
+## Local `next build` before pack (hard)
+
+`pack-release.sh` only zips sources — **web typecheck/compile runs on the store** during `upgrade.sh --build web`. Lint / `next dev` / Chrome UAT **do not** prove Docker `npm run build -w @mesa/web` will pass.
+
+**Before** `pack-release.sh` or telling Will to upgrade, when the release includes changes under `apps/web/src/app|lib|types`, fonts/`next/font`, `middleware`, or Dockerfile-affecting web code:
+
+1. On the **same commit** that will be packed: `npm run build -w @mesa/web` (or repo `npm run build`) must **pass**.
+2. Do not ship a zip whose only verification was `lint` + localhost UAT.
+
+### `next/font/local` trap (caught 2026-08-08 on Pirata)
+
+- Google `next/font` often allows `adjustFontFallback: true`.
+- **`next/font/local` only:** `adjustFontFallback?: false | 'Arial' | 'Times New Roman'` — **`true` is a type error** and fails store `next build`.
+- Prefer omit the option, or set an allowed string / `false`. Never copy Google-font boolean onto `localFont`.

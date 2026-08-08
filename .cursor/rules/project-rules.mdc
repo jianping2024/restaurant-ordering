@@ -12,7 +12,7 @@ alwaysApply: true
 3. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
 4. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
 5. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
-6. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache must be in artifact (not docs-only)
+6. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
 7. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
 
 **Skills (read when task matches `description`)**

@@ -35,7 +35,10 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.brandClassName, /items-baseline/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
     assert.match(staffTopBarChrome.restaurantNameClassName, /font-heading/);
-    assert.match(staffTopBarChrome.restaurantNameClassName, /text-brand-text-muted/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /\btext-base\b/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /text-brand-text/);
+    assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /text-brand-text-muted/);
+    assert.doesNotMatch(staffTopBarChrome.restaurantNameClassName, /\btext-sm\b/);
     assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
     assert.match(staffTopBarChrome.rightClusterClassName, /min-w-0/);
     assert.match(staffTopBarChrome.rightClusterClassName, /max-w-\[calc\(100%-7rem\)\]/);

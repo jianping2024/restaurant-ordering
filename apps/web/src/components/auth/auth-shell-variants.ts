@@ -6,22 +6,12 @@ export type AuthShellHeroCopy = {
   body: string;
 };
 
-/** Login help row — sole representation for install / forgot / contact-admin. */
-export type AuthShellSupportCopy = {
-  install: string;
-  forgotPassword: string;
-  contactAdmin: string;
-  /** One tip for both forgot + contact actions. */
-  adminHelpDetail: string;
-};
-
 export type AuthShellCopy = {
   title: string;
   subtitle?: string;
   contextLine?: string;
   securityNote?: string;
   hero?: AuthShellHeroCopy;
-  support?: AuthShellSupportCopy;
 };
 
 /** Pre-auth chrome flags. `login` uses split shell; others stay centered card. */

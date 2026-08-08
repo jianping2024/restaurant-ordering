@@ -54,21 +54,6 @@ export const MESSAGES = {
       mainNav: '主导航',
       restaurantSettings: '餐厅设置',
     },
-    staffPwaInstall: {
-      hint: '安装到桌面后无浏览器顶栏，不再显示「不安全」，适合前台与楼面长时间使用（仍需联网）。',
-      installButton: '安装到桌面',
-      manualLead: '建议安装为桌面应用，可去掉浏览器顶栏与「不安全」提示（仍需联网）。',
-      howToInstall: '如何安装？',
-      guideTitle: '安装到桌面',
-      steps: [
-        '安装完成后从桌面/主屏幕图标打开 FARVOO，不要继续用浏览器标签。',
-        'Chrome：右上角 ⋮ →「投射、保存和分享」→「将网页安装为应用…」。',
-        '若无此项：⋮ →「更多工具」→「创建快捷方式…」，勾选「作为窗口打开」。',
-        '请用 localhost 或 HTTPS；局域网 IP 的 http 常无安装项。',
-        'iPhone/iPad：分享 →「添加到主屏幕」。',
-        '安装后仍需联网，不支持离线点餐。',
-      ],
-    },
     buffetAdmin: {
       title: '自助餐 / 人头费',
       subtitle: '自助产品、供餐时段、价目表与特殊日期；楼面按里斯本日期时间自动匹配价格。',
@@ -242,12 +227,6 @@ export const MESSAGES = {
         eyebrow: 'FARVOO RESTAURANT OS',
         headline: '让餐厅运营更高效',
         body: '点餐、运营与服务管理集中在一个后台。',
-      },
-      support: {
-        install: '安装桌面应用',
-        forgotPassword: '忘记密码？',
-        contactAdmin: '联系餐厅管理员',
-        adminHelpDetail: '忘记密码或需要开通账号时，请联系餐厅管理员协助处理。',
       },
     },
     licenseSuspension: {
@@ -1531,21 +1510,6 @@ export const MESSAGES = {
   },
   en: {
     nav: { overview: 'Overview', tables: 'Tables', checkout: 'Checkout', printAssistant: 'Print', menu: 'Menu', buffet: 'Buffet', orders: 'Orders', dishHistory: 'Dishes', settings: 'Settings', abnormalOps: 'Abnormal', valueAnalytics: 'Value', viewKitchen: 'Kitchen', viewWaiter: 'Waiter', guestNotice: 'Notice', logout: 'Log out', systemSettings: 'System', moreMenu: 'More', settingsMenu: 'Settings', accountMenu: 'Account & preferences', appearance: 'Appearance', appearanceSettings: 'Appearance', language: 'Language', languageSettings: 'Language', darkMode: 'Dark mode', changePassword: 'Change password', mainNav: 'Main navigation', restaurantSettings: 'Restaurant settings' },
-    staffPwaInstall: {
-      hint: 'Install to the desktop for no browser top bar or “Not secure” warning — ideal for front desk and floor (still requires network).',
-      installButton: 'Install to desktop',
-      manualLead: 'Install as a desktop app to remove the browser bar and “Not secure” warning (still requires network).',
-      howToInstall: 'How to install?',
-      guideTitle: 'Install to desktop',
-      steps: [
-        'After installing, open FARVOO from the desktop/home-screen icon — not the browser tab.',
-        'Chrome: top-right ⋮ → “Cast, save and share” → “Install page as app…”.',
-        'If missing: ⋮ → “More tools” → “Create shortcut…”, check “Open as window”.',
-        'Prefer localhost or HTTPS — http://LAN-IP often hides install.',
-        'iPhone/iPad: Share → “Add to Home Screen”.',
-        'Still requires network — offline ordering is not supported.',
-      ],
-    },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
       subtitle: 'Buffet products, time slots, price grid, and special dates; floor board uses Lisbon date and time.',
@@ -1720,12 +1684,6 @@ export const MESSAGES = {
         eyebrow: 'FARVOO RESTAURANT OS',
         headline: 'Run your restaurant more efficiently',
         body: 'Ordering, operations, and service — one back office.',
-      },
-      support: {
-        install: 'Install desktop app',
-        forgotPassword: 'Forgot password?',
-        contactAdmin: 'Contact restaurant admin',
-        adminHelpDetail: 'For password resets or new accounts, contact your restaurant administrator.',
       },
     },
     licenseSuspension: {
@@ -2571,21 +2529,6 @@ export const MESSAGES = {
   },
   pt: {
     nav: { overview: 'Inicio', tables: 'Mesas', checkout: 'Fechar', printAssistant: 'Impressao', menu: 'Menu', buffet: 'Buffet', orders: 'Pedidos', dishHistory: 'Pratos', settings: 'Configuracoes', abnormalOps: 'Anomalias', valueAnalytics: 'Valor', viewKitchen: 'Cozinha', viewWaiter: 'Sala', guestNotice: 'Avisos', logout: 'Sair', systemSettings: 'Sistema', moreMenu: 'Mais', settingsMenu: 'Definicoes', accountMenu: 'Conta e preferencias', appearance: 'Aparencia', appearanceSettings: 'Aparencia', language: 'Idioma', languageSettings: 'Idioma', darkMode: 'Modo escuro', changePassword: 'Alterar senha', mainNav: 'Navegacao principal', restaurantSettings: 'Definicoes do restaurante' },
-    staffPwaInstall: {
-      hint: 'Instale no ambiente de trabalho para remover a barra do browser e o aviso «Not secure» — ideal para rececao e sala (continua a precisar de rede).',
-      installButton: 'Instalar no ambiente de trabalho',
-      manualLead: 'Instale como aplicacao de ambiente de trabalho para remover a barra do browser e «Not secure» (continua a precisar de rede).',
-      howToInstall: 'Como instalar?',
-      guideTitle: 'Instalar no ambiente de trabalho',
-      steps: [
-        'Depois de instalar, abra o FARVOO pelo icone no ambiente de trabalho/ecra principal — nao pela tab do browser.',
-        'Chrome: ⋮ no canto superior direito → “Cast, save and share” / “Transmitir, guardar e partilhar” → “Install page as app…” / “Instalar pagina como aplicacao…”.',
-        'Se nao aparecer: ⋮ → “More tools” / “Mais ferramentas” → “Create shortcut…” / “Criar atalho…”, assinale “Open as window” / “Abrir como janela”.',
-        'Prefira localhost ou HTTPS — http://IP-LAN muitas vezes nao mostra instalacao.',
-        'iPhone/iPad: Partilhar → “Adicionar ao ecra principal”.',
-        'Continua a precisar de rede — nao ha pedidos offline.',
-      ],
-    },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
       subtitle: 'Produtos buffet, horarios, grelha de precos e datas especiais; garcom usa data/hora de Lisboa.',
@@ -2760,13 +2703,6 @@ export const MESSAGES = {
         eyebrow: 'FARVOO RESTAURANT OS',
         headline: 'Opere o restaurante com mais eficiencia',
         body: 'Pedidos, operacao e servico — um so backoffice.',
-      },
-      support: {
-        install: 'Instalar aplicacao de ambiente de trabalho',
-        forgotPassword: 'Esqueceu a senha?',
-        contactAdmin: 'Contactar administrador do restaurante',
-        adminHelpDetail:
-          'Para repor a senha ou criar contas, contacte o administrador do restaurante.',
       },
     },
     licenseSuspension: {

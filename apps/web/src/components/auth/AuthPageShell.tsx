@@ -4,7 +4,6 @@ import { ProductLogo } from '@/components/ui/ProductLogo';
 import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { AuthIconTextRow } from '@/components/auth/AuthIconTextRow';
-import { AuthLoginSupportLinks } from '@/components/auth/AuthLoginSupportLinks';
 import { AuthShieldIcon } from '@/components/auth/auth-icons';
 import {
   AUTH_SHELL_VARIANTS,
@@ -159,7 +158,6 @@ function SplitLoginShell({
           <TitleBlock copy={copy} align="start" />
           {toolbar ? <div className="mb-4">{toolbar}</div> : null}
           {children}
-          {copy.support ? <AuthLoginSupportLinks copy={copy.support} /> : null}
           {copy.securityNote ? <ShellSecurityNote text={copy.securityNote} /> : null}
           {footer ? <div className="mt-4">{footer}</div> : null}
         </div>

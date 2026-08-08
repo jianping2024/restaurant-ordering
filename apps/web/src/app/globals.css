@@ -218,15 +218,17 @@ body {
     background: transparent;
   }
   .mesa-scroll-frame.is-dining {
+    border-width: 2px;
     border-color: rgb(var(--color-status-danger-border));
   }
   .mesa-scroll-frame.is-pending {
-    border-width: 1.5px;
+    border-width: 2px;
     border-color: rgb(var(--color-status-warning-border));
   }
   .mesa-scroll-frame.is-free {
+    border-width: 2px;
     border-style: dashed;
-    border-color: rgb(var(--color-status-success-border) / 0.7);
+    border-color: rgb(var(--color-status-success-border));
   }
   .mesa-scroll-frame__inner {
     border: 0.5px solid rgb(var(--color-brand-gold) / 0.5);
@@ -235,30 +237,30 @@ body {
   }
   /**
    * Sole tinted card face (mockup truth): paper/card mixed with status hue.
-   * Ratios: dining 88/12, pending 82/18, free 85/15. Not status-*-bg solids.
+   * Ratios: dining 72/28, pending 65/35, free 78/22. Not status-*-bg solids.
    * Theme flip follows --color-* vars — no parallel [data-theme] RGB copies.
    */
   .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
     border-color: color-mix(
       in srgb,
-      rgb(var(--color-status-danger-border)) 45%,
+      rgb(var(--color-status-danger-border)) 70%,
       transparent
     );
     background: color-mix(
       in srgb,
-      rgb(var(--color-brand-card)) 88%,
+      rgb(var(--color-brand-card)) 72%,
       rgb(var(--color-status-danger-border))
     );
   }
   .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
     border-color: color-mix(
       in srgb,
-      rgb(var(--color-status-warning-border)) 55%,
+      rgb(var(--color-status-warning-border)) 80%,
       transparent
     );
     background: color-mix(
       in srgb,
-      rgb(var(--color-brand-card)) 82%,
+      rgb(var(--color-brand-card)) 65%,
       rgb(var(--color-status-warning-border))
     );
   }
@@ -266,12 +268,12 @@ body {
     border-style: dashed;
     border-color: color-mix(
       in srgb,
-      rgb(var(--color-status-success-border)) 45%,
+      rgb(var(--color-status-success-border)) 70%,
       transparent
     );
     background: color-mix(
       in srgb,
-      rgb(var(--color-brand-card)) 85%,
+      rgb(var(--color-brand-card)) 78%,
       rgb(var(--color-status-success-border))
     );
   }
@@ -287,7 +289,7 @@ body {
   .mesa-status-vertical {
     writing-mode: vertical-rl;
     font-family: var(--font-cjk-serif), serif;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.2em;
     padding-left: 0.375rem;
@@ -297,15 +299,15 @@ body {
   }
   .mesa-scroll-frame.is-dining .mesa-status-vertical {
     color: rgb(var(--color-status-danger-fg));
-    border-left-color: rgb(var(--color-status-danger-border) / 0.4);
+    border-left-color: rgb(var(--color-status-danger-border) / 0.75);
   }
   .mesa-scroll-frame.is-pending .mesa-status-vertical {
     color: rgb(var(--color-status-warning-fg));
-    border-left-color: rgb(var(--color-status-warning-border) / 0.45);
+    border-left-color: rgb(var(--color-status-warning-border) / 0.8);
   }
   .mesa-scroll-frame.is-free .mesa-status-vertical {
     color: rgb(var(--color-status-success-fg));
-    border-left-color: rgb(var(--color-status-success-border) / 0.4);
+    border-left-color: rgb(var(--color-status-success-border) / 0.7);
   }
 
   .mesa-card-rule {
@@ -313,13 +315,13 @@ body {
     border-top: 0.5px solid rgb(var(--color-brand-gold) / 0.5);
   }
   .mesa-scroll-frame.is-dining .mesa-card-rule {
-    border-top-color: rgb(var(--color-status-danger-border) / 0.4);
+    border-top-color: rgb(var(--color-status-danger-border) / 0.7);
   }
   .mesa-scroll-frame.is-pending .mesa-card-rule {
-    border-top-color: rgb(var(--color-status-warning-border) / 0.5);
+    border-top-color: rgb(var(--color-status-warning-border) / 0.8);
   }
   .mesa-scroll-frame.is-free .mesa-card-rule {
-    border-top-color: rgb(var(--color-status-success-border) / 0.4);
+    border-top-color: rgb(var(--color-status-success-border) / 0.7);
   }
 
   /* Fine-line KPI stats (mockup) — sole KPI face; no solid chips */

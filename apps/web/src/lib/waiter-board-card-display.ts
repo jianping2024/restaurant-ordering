@@ -34,9 +34,9 @@ export type WaiterBoardCardMetaChip = {
 };
 
 /**
- * Sole floor-card display shape (6-col dense mockup).
- * Title row = tableTitle + openerName; titleBadge = gold pill only;
- * meta = seats/time; below rule = amountText XOR idleHint.
+ * Sole floor-card display shape (6-col dense).
+ * Title row = tableTitle + titleBadge; meta = seats/time;
+ * below rule = openerName (optional) then amountText XOR idleHint.
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
@@ -48,7 +48,7 @@ export type WaiterBoardCardViewModel = {
    * Relation prefix + buffet headcount — not a second badge slot.
    */
   titleBadge: string | null;
-  /** Opener beside table title (dining/checkout only). */
+  /** Opener below card rule (dining/checkout only). */
   openerName: string | null;
   metaChips: WaiterBoardCardMetaChip[];
   /**

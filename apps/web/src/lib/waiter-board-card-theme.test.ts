@@ -57,10 +57,14 @@ describe('waiter-board-card-theme theme tokens', () => {
   });
 
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
-    assert.match(waiterBoardType.cardTitle, /font-heading/);
-    assert.match(waiterBoardType.cardAmount, /mesa-money/);
+    // Floor title + amount: body face only (no font-heading / .mesa-money).
+    assert.doesNotMatch(waiterBoardType.cardTitle, /font-heading/);
+    assert.match(waiterBoardType.cardTitle, /\btext-4xl\b/);
+    assert.doesNotMatch(waiterBoardType.cardTitle, /\btext-(?:lg|xl|2xl|3xl)\b/);
+    assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-money/);
     assert.match(waiterBoardType.cardAmount, /text-\[22px\]/);
-    assert.match(waiterBoardType.cardAmount, /!font-semibold/);
+    assert.match(waiterBoardType.cardAmount, /\bfont-semibold\b/);
+    assert.match(waiterBoardType.cardAmount, /tabular-nums/);
     assert.match(waiterBoardType.cardAmount, /text-brand-ink/);
     // Sole amount-row height on the slot — fixed h, not a short min-h that dining overflows.
     assert.match(waiterBoardType.cardAmountSlot, /\bh-7\b/);
@@ -73,6 +77,8 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.cardMeta, /text-xs/);
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
     assert.match(waiterBoardType.cardOpener, /truncate/);
+    assert.match(waiterBoardType.cardOpener, /\bmt-1\.5\b/);
+    assert.doesNotMatch(waiterBoardType.cardOpener, /max-w-/);
     assert.match(waiterBoardType.cardIdleHint, /truncate/);
     assert.match(waiterBoardType.cardCta, /font-semibold/);
     for (const theme of Object.values(WAITER_BOARD_CARD_THEME)) {

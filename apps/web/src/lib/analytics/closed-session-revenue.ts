@@ -1,4 +1,3 @@
-import { auditMoney } from '@/lib/audit/money';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   ANALYTICS_MAX_CLOSED_SESSIONS,
@@ -229,36 +228,4 @@ export function todayRevenueFromBundle(
     todayRevenue: trend[0]?.revenue ?? 0,
     revenueSessionCount: revenueSessionCountForDateKey(bundle, todayDateKey, qualifying),
   };
-}
-
-/**
- * Sole daypart split for overview “today” revenue: Lisbon calendar day sessions
- * partitioned by `closed_at` vs `cutoffUtcIso` (exclusive end of noon).
- * noon + evening === todayRevenueFromBundle(...).todayRevenue for the same inputs.
- */
-export function splitTodayRevenueByDaypart(
-  bundle: ClosedSessionRevenueBundle,
-  todayDateKey: string,
-  cutoffUtcIso: string,
-): { noon: number; evening: number } {
-  const qualifying = filterQualifyingClosedSessions(
-    bundle.sessions,
-    bundle.ordersBySession,
-    bundle.splitsBySession,
-  );
-  let noon = 0;
-  let evening = 0;
-  for (const session of qualifying) {
-    if (bundle.forcedClosedSessionIds.has(session.id)) continue;
-    if (!session.closed_at || sessionDateKeyFromIso(session.closed_at) !== todayDateKey) continue;
-
-    const orders = bundle.ordersBySession.get(session.id) || [];
-    const splits = bundle.splitsBySession.get(session.id) || [];
-    const amount = sessionRevenue(orders, splits, true, session.settled_payable_amount);
-    if (amount <= 0) continue;
-
-    if (session.closed_at < cutoffUtcIso) noon += amount;
-    else evening += amount;
-  }
-  return { noon: auditMoney(noon), evening: auditMoney(evening) };
 }

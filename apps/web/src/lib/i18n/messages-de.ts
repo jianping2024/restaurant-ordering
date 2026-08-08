@@ -173,12 +173,13 @@ export const MESSAGES_DE = {
     "ruleConflictSave": "Trotzdem speichern"
   },
   "authLogin": {
-    "title": "Beim Restaurant-Dashboard anmelden",
-    "subtitle": "Steuern Sie Ihren Restaurantbetrieb effizient",
+    "title": "Willkommen zurück",
+    "subtitle": "Bei FARVOO Management anmelden",
     "account": "Konto",
     "accountPlaceholder": "E-Mail oder Anmeldename",
     "clearAccount": "Konto löschen",
     "password": "Passwort",
+    "passwordPlaceholder": "Passwort eingeben",
     "login": "Anmelden",
     "invalid": "Konto oder Passwort ungültig",
     "network": "Netzwerkfehler, bitte später erneut versuchen",
@@ -189,16 +190,18 @@ export const MESSAGES_DE = {
     "staffDisabled": "Dieses Mitarbeiterkonto ist deaktiviert",
     "staffIncomplete": "Mitarbeiterkonto ist unvollständig – bitten Sie die Inhaberin bzw. den Inhaber, es in den Personaleinstellungen neu anzulegen",
     "wrongStore": "Dieses Konto gehört nicht zu diesem Standort",
-    "forgotHint": "Passwort vergessen? Wenden Sie sich an die Restaurantverwaltung",
     "securityNote": "Die Anmeldung ist mit HTTPS-Verschlüsselung geschützt",
     "staffSecurityNote": "Nur für autorisiertes Personal dieses Standorts",
-    "trustBadges": {
-      "secureTitle": "Sicher",
-      "secureBody": "Verschlüsselte Übertragung; Konten werden von Ihrem Restaurant verwaltet",
-      "efficientTitle": "Effizient",
-      "efficientBody": "Speisekarte, Küche und Service in einem Ablauf",
-      "supportTitle": "Für die Gastronomie gemacht",
-      "supportBody": "Entwickelt für den täglichen Restaurantbetrieb"
+    "hero": {
+      "eyebrow": "FARVOO RESTAURANT OS",
+      "headline": "Restaurantbetrieb effizienter gestalten",
+      "body": "Bestellung, Betrieb und Service — ein Backoffice."
+    },
+    "support": {
+      "install": "Desktop-App installieren",
+      "forgotPassword": "Passwort vergessen?",
+      "contactAdmin": "Restaurantverwaltung kontaktieren",
+      "adminHelpDetail": "Für Passwort-Reset oder neue Konten wenden Sie sich an die Restaurantverwaltung."
     }
   },
   "staffPwaInstall": {

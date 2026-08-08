@@ -15,8 +15,9 @@ export default function LoginPage() {
       copy={{
         title: t.title,
         subtitle: t.subtitle,
-        forgotHint: t.forgotHint,
         securityNote: t.securityNote,
+        hero: t.hero,
+        support: t.support,
       }}
     >
       <AuthLoginForm />

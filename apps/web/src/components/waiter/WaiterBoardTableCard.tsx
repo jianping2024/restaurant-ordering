@@ -41,7 +41,7 @@ type Props = {
 /** Layout only — shell `mesa-scroll-frame` + status comes solely from `waiterBoardCardShellClass`. */
 const CARD_BASE_CLASS = 'flex w-full text-left';
 const CARD_INNER_CLASS =
-  'mesa-scroll-frame__inner flex min-h-[8.5rem] w-full gap-2 p-3';
+  'mesa-scroll-frame__inner flex min-h-[9.25rem] w-full gap-2 p-3';
 const CARD_INTERACTIVE_CLASS =
   'group transition-shadow duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
@@ -109,14 +109,7 @@ export function WaiterBoardTableCard({
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex min-h-[1.25rem] items-center justify-between gap-1.5">
-          <div className="flex min-w-0 items-baseline gap-1.5">
-            <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
-            {view.openerName ? (
-              <span className={waiterBoardType.cardOpener} title={view.openerName}>
-                {view.openerName}
-              </span>
-            ) : null}
-          </div>
+          <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
           {view.titleBadge ? (
             <span className={waiterBoardType.cardBadge}>{view.titleBadge}</span>
           ) : null}
@@ -132,6 +125,12 @@ export function WaiterBoardTableCard({
         </div>
 
         <div className="mesa-card-rule mb-auto" />
+
+        {view.openerName ? (
+          <p className={waiterBoardType.cardOpener} title={view.openerName}>
+            {view.openerName}
+          </p>
+        ) : null}
 
         <div className="mt-1.5 flex items-center justify-between gap-1">
           <span className={waiterBoardType.cardAmountSlot}>

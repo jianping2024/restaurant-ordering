@@ -72,7 +72,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.ctaDisabled, false);
   });
 
-  it('dining card: opener beside title; seats/time meta; headcount as title badge only', () => {
+  it('dining card: opener below rule; seats/time meta; headcount as title badge only', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 0 }, sessionTotal: 89.9 }),
       boardState: 'dining',
@@ -283,7 +283,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.openerName, null);
   });
 
-  it('checkout card shows opener beside title, not as meta chip', () => {
+  it('checkout card shows opener below rule, not as meta chip', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',

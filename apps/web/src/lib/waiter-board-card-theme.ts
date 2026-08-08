@@ -3,8 +3,9 @@ import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
  * Board surface typography roles — one map for KPI / lanes / cards.
- * Font stacks: heading=display (Cormorant+Noto Serif SC), body default, money=.mesa-money,
- * statusVertical=.mesa-status-vertical (Noto Serif SC only). Colors = brand-* / status tokens.
+ * Floor card title + amount use body (default) stack — not font-heading / .mesa-money.
+ * KPI/pageTitle keep heading; statusVertical=.mesa-status-vertical (Noto Serif SC only).
+ * Colors = brand-* / status tokens.
  */
 export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-ink mb-4',
@@ -12,26 +13,27 @@ export const waiterBoardType = {
   kpiLabel: 'text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
+  /** Sole floor-card table number — body face, ≥2× former text-lg → text-4xl. */
   cardTitle:
-    'min-w-0 truncate text-left font-heading text-lg font-bold leading-tight',
-  /** Opener beside table title — not a meta chip. */
+    'min-w-0 truncate text-left text-4xl font-bold leading-none',
+  /** Sole opener face — below card rule only (not title-row, not a meta chip). */
   cardOpener:
-    'max-w-[4.5rem] truncate text-xs font-medium text-brand-text opacity-85',
+    'mt-1.5 truncate text-xs font-medium text-brand-text opacity-85',
   /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
   cardBadge:
     'shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium text-brand-gold border border-brand-gold/50',
   cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
   /**
-   * Sole floor-card amount face — money stack + brand ink.
+   * Sole floor-card amount face — body stack + brand ink (not .mesa-money).
    * Dense 6-col: ~22px so amount fits without overlapping CTA.
    * Height lives only on `cardAmountSlot` — this face must fit inside that box.
    */
-  cardAmount: 'mesa-money text-[22px] !font-semibold leading-none text-brand-ink',
+  cardAmount: 'text-[22px] font-semibold tabular-nums leading-none text-brand-ink',
   /** Idle hint in the same below-rule slot as amount (mutually exclusive). */
   cardIdleHint: 'truncate text-xs leading-snug text-brand-text',
   /**
    * Sole amount-row height (amount, idle hint, or empty). Fixed `h-7` matches
-   * mesa-money 22px line box; never a smaller min-h that dining overflows and
+   * 22px line box; never a smaller min-h that dining overflows and
    * idle collapses (grid row stretch → card 伸缩).
    */
   cardAmountSlot: 'inline-flex h-7 min-w-0 items-center',

@@ -143,7 +143,8 @@ export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[]
 }
 
 /**
- * Same table + same dish + same effective status + same note → one UI row.
+ * Same table + same dish + same effective status + same note (trim) → one UI row.
+ * Different notes never merge. Used by workbench (by-table + by-dish L2) and 已出餐 rail.
  * Selection maps to all underlying order lines (prep/reprint).
  */
 export type AccumulatedTableRow = {

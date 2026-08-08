@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import {
@@ -13,12 +13,14 @@ import {
   stationDishTotalQty,
   sumLineQty,
   type AccumulatedTableRow,
-  type KitchenBoardLine,
 } from '@/components/kitchen/kitchen-board-lines';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 import type { UILanguage } from '@/lib/i18n';
 
 type PaneView = 'table' | 'dish';
+
+/** One UI shape for every selectable kitchen row (workbench + ready rail). */
+type AccumulatedLayout = 'workbench-table' | 'workbench-dish-l2' | 'ready';
 
 type Props = {
   stationId: string;
@@ -49,72 +51,59 @@ function statusTone(status: OrderItemStatus): string {
   return 'text-red-800 bg-red-100';
 }
 
-/** Workbench by-table: one order line = one row (共 n = workbench dish total only). */
-function WorkbenchLineRow({
-  line,
-  checked,
-  dishTotal,
-  t,
-  onToggle,
-}: {
-  line: KitchenBoardLine;
-  checked: boolean;
-  dishTotal: number;
-  t: Labels;
-  onToggle: () => void;
-}) {
-  return (
-    <label
-      className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
-        checked ? 'bg-brand-gold/12' : 'hover:bg-brand-bg/70'
-      } ${line.selectable ? 'cursor-pointer' : 'opacity-55'}`}
-    >
-      <input
-        type="checkbox"
-        className="h-5 w-5 shrink-0"
-        checked={checked}
-        disabled={!line.selectable}
-        onChange={onToggle}
-      />
-      <span className="shrink-0 min-w-[3rem] text-center text-xl font-semibold tabular-nums text-brand-gold">
-        {t.qtyBadge.replace('{n}', String(dishTotal))}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {line.item.name || line.item.name_pt}
-        {line.item.note ? (
-          <span className="ml-2 text-xl font-normal text-amber-800/90">· {line.item.note}</span>
-        ) : null}
-      </span>
-      <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-        × {line.item.qty}
-      </span>
-      <span
-        className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
-      >
-        {statusLabel(line.effectiveStatus, t)}
-      </span>
-    </label>
-  );
-}
-
 /**
- * By-dish L2 / ready rail: accumulated table row.
- * No station「共 n」; dish name only when showDishName (ready rail).
+ * Accumulated selectable row — sole workbench/ready line UI.
+ * Merge key (elsewhere): menuItemId × tableId × status × note (trim); different notes never merge.
  */
 function AccumulatedRow({
   row,
   checked,
-  showDishName,
+  layout,
+  dishTotal,
   t,
   onToggle,
 }: {
   row: AccumulatedTableRow;
   checked: boolean;
-  showDishName: boolean;
+  layout: AccumulatedLayout;
+  /** Workbench-table only: station workbench total for this dish. */
+  dishTotal?: number;
   t: Labels;
   onToggle: () => void;
 }) {
   const selectable = row.lines.some((l) => l.selectable);
+  const noteEl = row.note ? (
+    <span className="ml-2 text-xl font-normal text-amber-800/90">· {row.note}</span>
+  ) : null;
+
+  let title: ReactNode;
+  if (layout === 'workbench-table') {
+    title = (
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+        {row.name}
+        {noteEl}
+      </span>
+    );
+  } else if (layout === 'ready') {
+    title = (
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+        {row.name}
+        {noteEl}
+        <span className="ml-2 text-xl font-normal text-brand-text-muted">
+          {' '}
+          {row.tableDisplay}
+        </span>
+      </span>
+    );
+  } else {
+    title = (
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+        {row.tableDisplay}
+        {noteEl}
+      </span>
+    );
+  }
+
   return (
     <label
       className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
@@ -128,25 +117,12 @@ function AccumulatedRow({
         disabled={!selectable}
         onChange={onToggle}
       />
-      {showDishName ? (
-        <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-          {row.name}
-          {row.note ? (
-            <span className="ml-2 text-xl font-normal text-amber-800/90">· {row.note}</span>
-          ) : null}
-          <span className="ml-2 text-xl font-normal text-brand-text-muted">
-            {' '}
-            {row.tableDisplay}
-          </span>
+      {layout === 'workbench-table' && dishTotal != null ? (
+        <span className="shrink-0 min-w-[3rem] text-center text-xl font-semibold tabular-nums text-brand-gold">
+          {t.qtyBadge.replace('{n}', String(dishTotal))}
         </span>
-      ) : (
-        <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-          {row.tableDisplay}
-          {row.note ? (
-            <span className="ml-2 text-xl font-normal text-amber-800/90">· {row.note}</span>
-          ) : null}
-        </span>
-      )}
+      ) : null}
+      {title}
       <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
         × {row.qty}
       </span>
@@ -199,15 +175,6 @@ export function KitchenStationPane({
   const byDish = useMemo(() => aggregateLinesByDish(workbench), [workbench]);
   const readyRows = useMemo(() => accumulateRowsByTableDishStatusNote(ready), [ready]);
   const readyQty = useMemo(() => sumLineQty(ready), [ready]);
-
-  const toggleLine = (key: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
 
   const toggleAccumulated = (row: AccumulatedTableRow) => {
     setSelected((prev) => {
@@ -284,6 +251,7 @@ export function KitchenStationPane({
         ) : view === 'table' ? (
           byTable.map((group) => {
             const collapsed = collapsedTables.has(group.tableId);
+            const rows = accumulateRowsByTableDishStatusNote(group.lines);
             return (
               <div key={group.tableId}>
                 <button
@@ -300,14 +268,15 @@ export function KitchenStationPane({
                 </button>
                 {collapsed
                   ? null
-                  : group.lines.map((line) => (
-                      <WorkbenchLineRow
-                        key={line.key}
-                        line={line}
-                        checked={selected.has(line.key)}
-                        dishTotal={stationDishTotalQty(workbench, line.menuItemId)}
+                  : rows.map((row) => (
+                      <AccumulatedRow
+                        key={row.key}
+                        row={row}
+                        checked={rowFullySelected(row, selected)}
+                        layout="workbench-table"
+                        dishTotal={stationDishTotalQty(workbench, row.menuItemId)}
                         t={t}
-                        onToggle={() => toggleLine(line.key)}
+                        onToggle={() => toggleAccumulated(row)}
                       />
                     ))}
               </div>
@@ -345,7 +314,7 @@ export function KitchenStationPane({
                         key={row.key}
                         row={row}
                         checked={rowFullySelected(row, selected)}
-                        showDishName={false}
+                        layout="workbench-dish-l2"
                         t={t}
                         onToggle={() => toggleAccumulated(row)}
                       />
@@ -368,7 +337,7 @@ export function KitchenStationPane({
                   key={row.key}
                   row={row}
                   checked={rowFullySelected(row, selected)}
-                  showDishName
+                  layout="ready"
                   t={t}
                   onToggle={() => toggleAccumulated(row)}
                 />

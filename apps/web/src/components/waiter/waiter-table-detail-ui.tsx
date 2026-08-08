@@ -81,13 +81,14 @@ export const waiterDetailLayout = {
   orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
-   * Name + qty + minus left-aligned (not justify-between / not label flex-1).
-   * `gap-8` is the name↔qty breath; qty↔minus stays tight via orderedItemActions.
-   * Text col is `min-w-0` only so chargeable hint can stack under the name without pushing qty to the far right.
+   * One dish = one horizontal row (unique shape):
+   * name (flex-1, fills width) · kitchen status · qty · serve/minus.
+   * Chargeable hint is the only allowed secondary line (rare limited-dish note).
    */
-  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
-  orderedItemTextCol: 'min-w-0',
-  orderedItemLabel: waiterFloorType.listBodyTruncate,
+  orderedItemRow: 'flex w-full min-w-0 items-center gap-3',
+  orderedItemLabel: `${waiterFloorType.listBodyTruncate} flex-1`,
+  orderedItemStatus:
+    'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-950',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',
   orderedItemQty: waiterFloorType.listQty,
   orderedItemActions: 'flex shrink-0 items-center gap-2',

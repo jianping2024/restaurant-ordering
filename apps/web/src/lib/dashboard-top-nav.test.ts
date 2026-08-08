@@ -115,7 +115,7 @@ describe('topNavDesktopLinkClass / topNavMenuRowClass', () => {
     const idle = topNavDesktopLinkClass(false);
     assert.match(active, /text-brand-ink/);
     assert.match(active, /decoration-brand-gold/);
-    assert.match(active, /font-semibold/);
+    assert.match(active, /font-medium/);
     assert.doesNotMatch(active, /text-brand-text[^-]/);
     assert.match(idle, /text-brand-text-muted/);
     assert.match(idle, /hover:text-brand-ink/);

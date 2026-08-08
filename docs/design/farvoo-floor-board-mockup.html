@@ -14,10 +14,10 @@
   [data-theme="light"] {
     --color-paper: #EDEAE2;          /* 页面底色，暖调米纸 */
     --color-paper-raised: #F7F4EE;   /* 卡片表面 */
-    --color-ink: #1A1612;            /* 正文主色：近黑，生意场景可读优先 */
-    --color-ink-soft: #3D362E;       /* 次要文字：仍高对比，禁止浅灰 */
+    --color-ink: #2B2620;            /* 正文主色，暖近黑 */
+    --color-ink-soft: #8A8377;       /* 次要 / 顶栏未选中 — 与 brand-ink 对比 */
     --color-brand-ink: #1F3E52;      /* 品牌主色：靛青（azulejo） */
-    --color-brand-gold: #8B6530;     /* 暖金：加深，金额可读 */
+    --color-brand-gold: #A9814A;     /* 品牌点缀：暖金 */
 
     --color-status-dining: #8F4A38;      /* 用餐中：灰调赤陶（加深） */
     --color-status-dining-bg: #A6604A1A;
@@ -30,10 +30,10 @@
   [data-theme="dark"] {
     --color-paper: #1B1A16;
     --color-paper-raised: #232019;
-    --color-ink: #F2EFE7;
-    --color-ink-soft: #D4CEC2;       /* 暗色次要字：提亮可读 */
-    --color-brand-ink: #9BC0D8;
-    --color-brand-gold: #D4B078;
+    --color-ink: #EDEAE2;
+    --color-ink-soft: #9C9689;
+    --color-brand-ink: #7FA6C2;
+    --color-brand-gold: #C9A66E;
   }
   [data-theme="dark"] { --color-status-dining: #E09A82; --color-status-pending: #E4C88A; --color-status-free: #B4C8A4; }
 
@@ -131,19 +131,19 @@
     border-top-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
   }
 
-  /* 顶栏导航：未选 muted / 选中 brand-ink + 金下划线（对齐 dashboard-top-nav topNavDesktopLinkClass） */
+  /* 顶栏导航：对齐参考稿 — 未选 ink-soft / 选中 brand-ink + 金底边 */
   .mesa-nav-tab {
-    font-size: 0.875rem;
+    font-size: 0.875rem; /* 产品 text-sm；参考稿 12px 不跟 */
     font-weight: 500;
     color: var(--color-ink-soft);
     letter-spacing: 0.02em;
   }
   .mesa-nav-tab.is-active {
     color: var(--color-brand-ink);
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: var(--color-brand-gold);
-    text-underline-offset: 4px;
+    font-weight: 500;
+    border-bottom: 1.5px solid var(--color-brand-gold);
+    padding-bottom: 10px;
+    margin-bottom: -11px;
   }
 
   /* KPI 字号对齐 waiterBoardType：count text-2xl / label text-sm */
@@ -202,7 +202,7 @@
   </div>
 
   <!-- ===== 导航菜单栏 ===== -->
-  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid color-mix(in srgb, var(--color-brand-ink) 22%, transparent)">
+  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid var(--color-brand-ink)">
     <span class="mesa-nav-tab">数据概览</span>
     <span class="mesa-nav-tab">结账请求</span>
     <span class="mesa-nav-tab">历史订单</span>

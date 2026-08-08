@@ -121,7 +121,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `brand-ink` | **品牌主色**（靛青 azulejo）：主 CTA、选中态、页面标题、导航强调 |
 | `brand-gold` | **点缀**：金额、细线、金额区边框 |
 | `brand-text` | **正文主色**（菜品名、金额、桌号、时长必须用此色，禁止淡灰） |
-| `brand-text-muted` | 仅次要说明 / 占位 / 非关键标签（仍须高对比，禁止浅灰） |
+| `brand-text-muted` | 次要说明 / 占位 / **顶栏未选中导航**（ink-soft `#8A8377`，与 `brand-ink` 选中态拉开对比；菜品名/金额仍用 `brand-text`） |
 | `brand-on-ink` | 靛青实心底上的文字 |
 | `font-heading` / `font-body` | 标题 / 正文；CJK 回退由 Tailwind + `globals.css` 统一 |
 

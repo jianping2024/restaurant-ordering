@@ -42,11 +42,12 @@
   --color-brand-gold: 139 101 48;
   --color-brand-gold-light: 168 125 60;
   --color-brand-gold-dark: 110 80 36;
-  --color-brand-muted: 61 54 46;
+  --color-brand-muted: 138 131 119;
   --color-brand-border: 186 178 164;
   /* Near-black primary copy — never use pale gray for dishes or money. */
   --color-brand-text: 26 22 18;
-  --color-brand-text-muted: 61 54 46;
+  /* ink-soft: idle chrome / hints — soft enough that brand-ink active nav pops */
+  --color-brand-text-muted: 138 131 119;
   --color-on-gold: 247 244 238;
   --color-on-ink: 247 244 238;
   --color-status-warning-fg: 154 111 40;

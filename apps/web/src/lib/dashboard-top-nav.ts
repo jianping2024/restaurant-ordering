@@ -74,10 +74,10 @@ export function personalSettingsDropdownActionRowClass(): string {
   return 'flex min-h-11 w-full items-center gap-2 border-b border-brand-border/70 px-3 py-2.5 text-sm transition-colors';
 }
 
-/** Desktop horizontal nav — text links inside `mesa-chip-scroll` (FARVOO: ink active + gold rule). */
+/** Desktop horizontal nav — FARVOO: idle ink-soft muted vs active brand-ink + gold rule. */
 export function topNavDesktopLinkClass(active: boolean): string {
   return active
-    ? 'shrink-0 whitespace-nowrap text-sm font-semibold text-brand-ink underline decoration-brand-gold underline-offset-4'
+    ? 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-ink underline decoration-brand-gold underline-offset-4'
     : 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-ink';
 }
 
@@ -89,7 +89,7 @@ export function topNavDesktopScrollNavClassName(): string {
 export function topNavMenuRowClass(active: boolean): string {
   return `flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
     active
-      ? 'bg-brand-ink/10 text-brand-ink border-l-2 border-brand-gold font-semibold'
+      ? 'bg-brand-ink/10 text-brand-ink border-l-2 border-brand-gold font-medium'
       : 'text-brand-text-muted hover:bg-brand-bg/80 hover:text-brand-ink border-l-2 border-transparent'
   }`;
 }

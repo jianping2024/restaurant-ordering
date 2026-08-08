@@ -78,6 +78,8 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
     assert.match(waiterBoardType.cardOpener, /truncate/);
     assert.match(waiterBoardType.cardOpener, /\bmt-1\.5\b/);
+    assert.match(waiterBoardType.cardOpener, /\btext-sm\b/);
+    assert.doesNotMatch(waiterBoardType.cardOpener, /\btext-xs\b/);
     assert.doesNotMatch(waiterBoardType.cardOpener, /max-w-/);
     assert.match(waiterBoardType.cardIdleHint, /truncate/);
     assert.match(waiterBoardType.cardCta, /font-semibold/);

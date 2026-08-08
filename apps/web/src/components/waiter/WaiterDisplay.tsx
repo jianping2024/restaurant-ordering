@@ -649,7 +649,7 @@ function WaiterBoardInner({
   return (
     <div
       className={[
-        isDemo ? `min-h-screen bg-brand-bg p-4 ${STAFF_SHELL_CONTENT_CLASS}` : '',
+        isDemo ? `min-h-screen bg-brand-bg py-4 ${STAFF_SHELL_CONTENT_CLASS}` : '',
         showLaneChrome ? WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE : '',
       ]
         .filter(Boolean)

@@ -7,6 +7,7 @@ import {
   staffTopBarChrome,
   waiterStaffStickyChrome,
 } from '@/lib/waiter-staff-sticky-chrome';
+import { STAFF_SHELL_CONTENT_CLASS } from '@/lib/staff-shell-layout';
 
 describe('staffTopBarChrome', () => {
   it('uses h-14 content row, safe-area insets, flex-1 brand, no overflow clip', () => {
@@ -18,11 +19,14 @@ describe('staffTopBarChrome', () => {
     assert.equal(STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS, 'max-w-[5.5rem]');
     assert.match(staffTopBarChrome.headerClassName, /pt-\[env\(safe-area-inset-top/);
     assert.doesNotMatch(staffTopBarChrome.headerClassName, /overflow-/);
-    assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
-    assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-right/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
     assert.match(staffTopBarChrome.rowClassName, /max-w-6xl/);
     assert.match(staffTopBarChrome.rowClassName, /mx-auto/);
+    assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
+    assert.doesNotMatch(
+      staffTopBarChrome.rowClassName.replace(STAFF_SHELL_CONTENT_CLASS, ''),
+      /pl-\[|pr-\[/,
+    );
     assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
     assert.match(staffTopBarChrome.brandClassName, /flex-1/);
     assert.match(staffTopBarChrome.brandClassName, /items-baseline/);

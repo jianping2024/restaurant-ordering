@@ -4,8 +4,7 @@
  * mobile dropdown positioning.
  *
  * Content row stays h-14 (3.5rem). Total sticky height adds safe-area-inset-top.
- * Horizontal inset uses safe-area with a tighter floor than legacy px-3 so brand
- * sits slightly left and trailing (role) sits slightly right.
+ * Horizontal inset lives solely on `STAFF_SHELL_CONTENT_CLASS` (same as main).
  *
  * Layout end-state (no overflow-clip safety net):
  * - brand slot is the sole flex-1 min-w-0 grower (name truncates)
@@ -40,11 +39,11 @@ export const staffTopBarChrome = {
   /**
    * Content row. Brand is flex-1 + min-w-0 so long names absorb squeeze;
    * hamburger and trailing stay shrink-0 and never push the document wide.
-   * Width = sole staff content column (aligned with DashboardShell).
+   * Width + X-pad = sole `STAFF_SHELL_CONTENT_CLASS` (no second pl/pr here).
    */
   rowClassName: [
     STAFF_SHELL_CONTENT_CLASS,
-    'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
+    'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2',
   ].join(' '),
   /** Logo + restaurant name — sole flex grow slot; truncates instead of overflowing. */
   brandClassName: 'flex min-w-0 flex-1 items-baseline',

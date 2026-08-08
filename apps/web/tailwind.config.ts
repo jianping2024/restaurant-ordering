@@ -34,9 +34,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Display = Latin Cormorant + CJK serif; body = Jost + system CJK sans.
-        // Stacks read layout next/font vars + sole --font-cjk-sans in globals.css.
-        heading: ["var(--font-cormorant)", "var(--font-cjk-serif)", "serif"],
+        // Sole product face: Jost + system CJK sans (heading aliases body).
+        heading: ["var(--font-jost)", "var(--font-cjk-sans)"],
         body: ["var(--font-jost)", "var(--font-cjk-sans)"],
       },
       maxWidth: {

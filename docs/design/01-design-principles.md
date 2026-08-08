@@ -87,8 +87,8 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 ### 标题层级
 
-- 页面主标题：`font-heading` + `text-brand-gold` 或 `text-brand-text`
-- 桌号/金额：`font-heading` + 大号数字
+- 页面主标题：`font-heading`（= body 栈）+ `text-brand-gold` 或 `text-brand-text`
+- 桌号/金额：大号数字；金额类名 `.mesa-money`（同 body + `tabular-nums`）；看板 KPI 件数/% 用 `DASHBOARD_METRIC_TYPE.figure`（body + `tabular-nums`），禁止数值挂 `font-heading`
 - 辅助说明：`text-brand-text-muted` + `text-[13px]` 或 `text-sm`
 
 ### 三语
@@ -123,7 +123,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `brand-text` | **正文主色**（菜品名、金额、桌号、时长必须用此色，禁止淡灰） |
 | `brand-text-muted` | 次要说明 / 占位 / **顶栏未选中导航与餐厅名**（ink-soft `#8A8377`，与 `brand-ink` 选中态/字标拉开对比；菜品名/金额仍用 `brand-text`） |
 | `brand-on-ink` | 靛青实心底上的文字 |
-| `font-heading` / `font-body` | **Display** = `--font-cormorant` + `--font-cjk-serif`（Noto Serif SC）；**Body** = `--font-jost` + `--font-cjk-sans`（系统 CJK 无衬线）。`--font-cormorant` / `--font-jost` / `--font-cjk-serif` / `--font-mesa-money` **仅**由 `layout.tsx` 的 `next/font` 写入，禁止在 `globals.css` 用字面量 `@font-face` 再挂一份金额字体。**欧元价码**唯一写法为 `.mesa-money`：消费 `--font-mesa-money`（`lib/mesa-money-font.ts` → `next/font/local` 完整 Cormorant + `display: optional` + preload，含 `onum`）+ `oldstyle-nums`；禁止 `tabular-nums` / 勿用 Latin 子集 `--font-cormorant` 当金额。竖排题跋唯一面为 `.mesa-status-vertical`（`--font-cjk-serif` only）。见 `docs/design/farvoo-floor-board-mockup.html` |
+| `font-heading` / `font-body` / `.mesa-money` / `.mesa-status-vertical` | **唯一产品正文字体** = `--font-jost`（`layout.tsx` 的 `next/font` Jost）+ `--font-cjk-sans`（系统无衬线）。`font-heading` 与 `font-body` 同栈；**欧元价码**仍走 `.mesa-money` 类名（同 body + `tabular-nums`），禁止再挂 Cormorant / 独立 money `@font-face`；看板 KPI 数值唯一写法为 `DASHBOARD_METRIC_TYPE`（`money` / `figure`）；竖排状态 `.mesa-status-vertical` 同 body。禁止在 `globals.css` 用字面量 `@font-face` 再写一份 Latin 字体。 |
 
 参照稿（楼面视觉唯一真理）：`docs/design/farvoo-floor-board-mockup.html`。产品只保留骨架（顶栏壳、Provider/Realtime、sticky lane、弹层与路由）；KPI / 搜索 / 桌卡内外视觉与该 HTML 一一对应。
 

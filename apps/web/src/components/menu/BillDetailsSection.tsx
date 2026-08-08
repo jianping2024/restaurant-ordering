@@ -51,7 +51,7 @@ export function BillDetailsSection({
         })}
         <div className="flex items-center justify-between px-4 py-3 bg-brand-border/30">
           <span className="text-brand-text font-medium">{totalLabel}</span>
-          <span className="font-heading text-xl text-brand-gold tabular-nums">€{total.toFixed(2)}</span>
+          <span className="mesa-money text-xl text-brand-gold">€{total.toFixed(2)}</span>
         </div>
       </div>
     </div>

@@ -167,7 +167,7 @@ export function BillSplitPanel({
               >
                 −
               </button>
-              <span className="font-heading text-xl text-brand-gold">{personCount}</span>
+              <span className="text-xl font-semibold tabular-nums text-brand-gold">{personCount}</span>
               <button
                 type="button"
                 disabled={splitLocked}

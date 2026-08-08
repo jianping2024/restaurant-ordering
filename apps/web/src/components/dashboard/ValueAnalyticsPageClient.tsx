@@ -12,6 +12,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
 import { getMessages } from '@/lib/i18n/messages';
+import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 
 const ValueAnalyticsTrendChart = dynamic(
   () =>
@@ -75,6 +76,7 @@ type KpiItem = {
   label: string;
   value: string;
   color?: string;
+  face: keyof typeof DASHBOARD_METRIC_TYPE;
 };
 
 function ValueAnalyticsKpiGrid({ items, dimmed }: { items: KpiItem[]; dimmed?: boolean }) {
@@ -86,7 +88,9 @@ function ValueAnalyticsKpiGrid({ items, dimmed }: { items: KpiItem[]; dimmed?: b
           className="bg-brand-card border border-brand-border rounded-2xl p-5 sm:p-6 shadow-sm"
         >
           <p className="text-brand-text-muted text-[13px] mb-2">{item.label}</p>
-          <p className={`font-heading text-xl sm:text-2xl ${item.color ?? 'text-brand-text'}`}>
+          <p
+            className={`${DASHBOARD_METRIC_TYPE[item.face]} text-xl sm:text-2xl ${item.color ?? 'text-brand-text'}`}
+          >
             {item.value}
           </p>
         </div>
@@ -231,16 +235,19 @@ export function ValueAnalyticsPageClient({
         label: t.kpiTotalRevenue,
         value: formatMoney(totalRevenue),
         color: 'text-brand-gold',
+        face: 'money',
       },
       {
         label: t.kpiTotalGuests,
         value: String(totalGuests),
         color: 'text-brand-text',
+        face: 'figure',
       },
       {
         label: t.kpiAvgDailyRevenue,
         value: formatMoney(avgDaily),
         color: 'text-brand-text',
+        face: 'money',
       },
     ];
   }, [data, t]);

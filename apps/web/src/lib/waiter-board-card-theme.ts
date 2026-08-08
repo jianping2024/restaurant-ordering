@@ -3,13 +3,13 @@ import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
  * Board surface typography roles — one map for KPI / lanes / cards.
- * Floor card title + amount use body (default) stack — not font-heading / .mesa-money.
- * KPI/pageTitle keep heading; statusVertical=.mesa-status-vertical (Noto Serif SC only).
+ * Product face is body (Jost); `font-heading` utility aliases the same stack.
+ * KPI counts use body tabular (not font-heading). statusVertical=.mesa-status-vertical (same body).
  * Colors = brand-* / status tokens.
  */
 export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-ink mb-4',
-  kpiCount: 'font-heading text-2xl font-semibold tabular-nums leading-none',
+  kpiCount: 'text-2xl font-semibold tabular-nums leading-none',
   kpiLabel: 'text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',

@@ -14,6 +14,7 @@ import {
   type DashboardOverviewPrimaryView,
   type DashboardOverviewSecondaryView,
 } from '@/lib/dashboard-overview';
+import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 
 function orderStatusBadgeClass(status: OrderStatus): string {
@@ -51,6 +52,7 @@ export function DashboardOverviewPrimaryClient({
       unit: '',
       color: revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted',
       prominent: true,
+      face: 'money' as const,
     },
     {
       key: 'orders',
@@ -59,6 +61,7 @@ export function DashboardOverviewPrimaryClient({
       unit: i18n.unitOrder,
       color: 'text-brand-text',
       prominent: false,
+      face: 'figure' as const,
     },
     {
       key: 'inProgress',
@@ -67,6 +70,7 @@ export function DashboardOverviewPrimaryClient({
       unit: i18n.unitOrder,
       color: inProgressOrderCount > 0 ? 'text-amber-400' : 'text-brand-text',
       prominent: false,
+      face: 'figure' as const,
     },
     {
       key: 'avgTicket',
@@ -75,6 +79,7 @@ export function DashboardOverviewPrimaryClient({
       unit: '',
       color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
       prominent: false,
+      face: 'money' as const,
     },
   ];
 
@@ -94,7 +99,7 @@ export function DashboardOverviewPrimaryClient({
           >
             <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
             <p
-              className={`font-heading ${stat.prominent ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${stat.color}`}
+              className={`${DASHBOARD_METRIC_TYPE[stat.face]} ${stat.prominent ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${stat.color}`}
             >
               {stat.value}
               {stat.unit && (
@@ -240,7 +245,7 @@ export function DashboardOverviewSecondaryClient({
                         {guests ? <span className="ml-2">{guests}</span> : null}
                       </p>
                     </div>
-                    <p className="text-sm text-brand-gold shrink-0 tabular-nums">
+                    <p className="mesa-money text-sm text-brand-gold shrink-0">
                       €{order.total_amount.toFixed(2)}
                     </p>
                   </div>

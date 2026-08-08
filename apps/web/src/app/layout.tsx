@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost, Noto_Serif_SC } from "next/font/google";
+import { Jost } from "next/font/google";
 import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
 import { PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
 import {
@@ -8,7 +8,6 @@ import {
   buildPwaLaunchShellBootScript,
   buildPwaLaunchShellStyle,
 } from '@/lib/pwa/launch-shell';
-import { mesaMoneyFont } from '@/lib/mesa-money-font';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -18,29 +17,14 @@ import { HTML_LANG_BY_UI } from '@/lib/i18n';
 import { buildThemeInitScript } from '@/lib/theme';
 
 /**
- * Sole writers of --font-cormorant / --font-jost / --font-cjk-serif / --font-mesa-money.
- * globals.css must not redeclare these (literal names leave next/font unloaded).
- * Euro amounts: mesaMoneyFont (full onum) → `.mesa-money` — not the Latin Cormorant subset.
+ * Sole next/font writer: --font-jost (product body face).
+ * heading / .mesa-money / .mesa-status-vertical all consume this + --font-cjk-sans.
+ * Do not redeclare --font-jost in globals.css (literal override leaves next/font unloaded).
  */
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
 const jost = Jost({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-jost",
-  display: "swap",
-});
-
-/** Floor vertical status + heading CJK — matches farvoo-floor-board-mockup Noto Serif SC. */
-const notoSerifSc = Noto_Serif_SC({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-cjk-serif",
   display: "swap",
 });
 
@@ -77,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang={htmlLang}
-      className={`${cormorant.variable} ${jost.variable} ${notoSerifSc.variable} ${mesaMoneyFont.variable}`}
+      className={jost.variable}
       suppressHydrationWarning
     >
       <body className="antialiased bg-brand-bg text-brand-text font-body">

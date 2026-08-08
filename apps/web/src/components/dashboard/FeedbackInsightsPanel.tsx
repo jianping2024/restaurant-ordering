@@ -1,3 +1,5 @@
+import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
+
 interface FeedbackIssue {
   menu_item_id: string;
   dish_name: string;
@@ -73,15 +75,21 @@ export function FeedbackInsightsPanel({
       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="rounded-xl border border-brand-border p-3">
           <p className="text-[13px] text-brand-text-muted">{touchedLabel}</p>
-          <p className="mt-1 text-2xl font-heading text-brand-text">{formatPercent(touchedRate)}</p>
+          <p className={`mt-1 text-2xl ${DASHBOARD_METRIC_TYPE.figure} text-brand-text`}>
+            {formatPercent(touchedRate)}
+          </p>
         </div>
         <div className="rounded-xl border border-brand-border p-3">
           <p className="text-[13px] text-brand-text-muted">{completedLabel}</p>
-          <p className="mt-1 text-2xl font-heading text-brand-text">{formatPercent(completedRate)}</p>
+          <p className={`mt-1 text-2xl ${DASHBOARD_METRIC_TYPE.figure} text-brand-text`}>
+            {formatPercent(completedRate)}
+          </p>
         </div>
         <div className="rounded-xl border border-brand-border p-3">
           <p className="text-[13px] text-brand-text-muted">{actionableLabel}</p>
-          <p className="mt-1 text-2xl font-heading text-brand-text">{formatPercent(actionableRate)}</p>
+          <p className={`mt-1 text-2xl ${DASHBOARD_METRIC_TYPE.figure} text-brand-text`}>
+            {formatPercent(actionableRate)}
+          </p>
         </div>
       </div>
       <p className="mt-3 text-[13px] text-brand-text-muted">

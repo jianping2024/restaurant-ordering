@@ -5,7 +5,7 @@ export const CUSTOMER_MENU_TYPE = {
   categorySub: 'text-base',
   itemName: 'text-lg font-semibold leading-tight',
   itemDesc: 'text-sm leading-relaxed',
-  /** Dish price, cart line total, footer session total — artistic Cormorant old-style nums. */
+  /** Dish price, cart line total, footer session total — body face via `.mesa-money`. */
   moneyAmount: 'mesa-money text-[15px] text-brand-gold',
   itemAction: 'text-base',
   itemSoldOut: 'text-xs font-medium text-brand-text-muted',

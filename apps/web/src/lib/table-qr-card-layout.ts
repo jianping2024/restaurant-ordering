@@ -13,7 +13,8 @@ export const TABLE_QR_CARD_LAYOUT = {
   displayNameFontSizeMin: 28,
   displayNameLineHeight: 1.02,
   displayNameFontWeight: 600,
-  displayNameFontFamily: '"Cormorant Garamond", serif',
+  displayNameFontFamily:
+    '"Jost", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif',
   restaurantNameFontSize: 22,
   restaurantNameFontSizeMin: 16,
   restaurantNameLineHeight: 1.2,

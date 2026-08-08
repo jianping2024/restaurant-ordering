@@ -76,7 +76,7 @@ export function PreviewStatCard({
   return (
     <div className="rounded-xl border border-brand-border bg-brand-bg px-4 py-3">
       <p className="text-[12px] text-brand-text-muted">{label}</p>
-      <p className="mt-1 font-heading text-2xl text-brand-gold">{value}</p>
+      <p className="mt-1 mesa-money text-2xl text-brand-gold">{value}</p>
     </div>
   );
 }

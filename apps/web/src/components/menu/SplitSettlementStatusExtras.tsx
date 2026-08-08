@@ -42,7 +42,7 @@ export function SplitSettlementPartialBreakdown({ row, copy }: RowProps) {
 
 export function SplitSettlementAmount({ row }: { row: CustomerSplitRowDisplay }) {
   return (
-    <span className="font-heading text-brand-gold font-medium shrink-0">
+    <span className="mesa-money text-brand-gold font-medium shrink-0">
       €{splitRowDisplayAmount(row).toFixed(2)}
     </span>
   );

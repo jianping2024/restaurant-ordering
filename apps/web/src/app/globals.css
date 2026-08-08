@@ -4,9 +4,8 @@
 
 :root {
   /*
-   * Latin display/body (--font-cormorant / --font-jost) and CJK serif
-   * (--font-cjk-serif) are written only by next/font in layout.tsx.
-   * Do not redeclare those names here — literal overrides leave next/font unloaded.
+   * Latin body (--font-jost) is written only by next/font in layout.tsx.
+   * Do not redeclare that name here — literal overrides leave next/font unloaded.
    */
   --font-cjk-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   /* FARVOO paper / azulejo — dark theme (default :root) */
@@ -91,17 +90,15 @@ body {
 }
 
 /**
- * Artistic euro amounts — family from `mesaMoneyFont` / `--font-mesa-money` only
- * (`lib/mesa-money-font.ts` + root layout). Do not add a parallel @font-face here.
- * next/font Latin Cormorant subset drops onum; do not use var(--font-cormorant) here.
- * Do not pair with tabular-nums / lining-nums.
+ * Sole euro-amount face — same body stack as the rest of the product UI.
+ * Class name `.mesa-money` stays as the amount token; do not reintroduce a
+ * parallel display/money font family.
  */
 .mesa-money {
-  font-family: var(--font-mesa-money), 'Cormorant Garamond', serif;
-  font-weight: 500;
+  font-family: var(--font-jost), var(--font-cjk-sans);
+  font-weight: 600;
   font-style: normal;
-  font-variant-numeric: oldstyle-nums;
-  font-feature-settings: 'onum' 1;
+  font-variant-numeric: tabular-nums;
   line-height: 1.25;
 }
 
@@ -260,10 +257,10 @@ body {
     background: rgb(var(--color-brand-card));
   }
 
-  /* 竖排题跋状态 — mockup: Noto Serif SC only (via --font-cjk-serif) */
+  /* 竖排状态 — same body face as the rest of the product UI */
   .mesa-status-vertical {
     writing-mode: vertical-rl;
-    font-family: var(--font-cjk-serif), serif;
+    font-family: var(--font-jost), var(--font-cjk-sans);
     font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.2em;

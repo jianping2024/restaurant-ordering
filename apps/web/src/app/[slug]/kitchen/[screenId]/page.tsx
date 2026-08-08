@@ -3,8 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { KitchenScreenBoard } from '@/components/kitchen/KitchenScreenBoard';
 import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
 import { loadKitchenBoardInitial } from '@/lib/staff-board';
-import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
-import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { listKitchenScreens } from '@/lib/kitchen-screens-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -71,13 +69,9 @@ export default async function KitchenScreenPage({ params }: Props) {
 
     if (!screen) notFound();
 
-    const principalCaps = await loadPrincipalWithCapabilities();
-    const capabilities = toCapabilitiesPayload(principalCaps?.capabilities ?? new Set());
-
     return (
       <KitchenScreenBoard
         restaurant={{ ...restaurant, feature_flags }}
-        capabilities={capabilities}
         asOwner={access.as_owner}
         screen={screen}
         stations={stations}

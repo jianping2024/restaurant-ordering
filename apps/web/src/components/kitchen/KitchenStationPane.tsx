@@ -40,12 +40,13 @@ function statusLabel(
   return t.statusPending;
 }
 
-function statusClass(status: OrderItemStatus): string {
-  if (status === 'ready') return 'mesa-badge-success';
-  if (status === 'cooking') return 'mesa-badge-warning';
-  return 'mesa-badge-danger';
+function statusTone(status: OrderItemStatus): string {
+  if (status === 'ready') return 'text-emerald-800 bg-emerald-100';
+  if (status === 'cooking') return 'text-amber-900 bg-amber-100';
+  return 'text-red-800 bg-red-100';
 }
 
+/** One dish = one horizontal row (no nested card, no wrapped status block). */
 function LineRow({
   line,
   checked,
@@ -65,35 +66,34 @@ function LineRow({
     line.effectiveStatus === 'ready';
   return (
     <label
-      className={`flex items-start gap-2 rounded-lg border px-2.5 py-2 ${
-        checked ? 'border-brand-gold/50 bg-brand-gold/8' : 'border-brand-border/60'
-      } ${canSelect ? 'cursor-pointer' : 'opacity-60'}`}
+      className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
+        checked ? 'bg-brand-gold/12' : 'hover:bg-brand-bg/70'
+      } ${canSelect ? 'cursor-pointer' : 'opacity-55'}`}
     >
       <input
         type="checkbox"
-        className="mt-1"
+        className="h-5 w-5 shrink-0"
         checked={checked}
         disabled={!canSelect}
         onChange={onToggle}
       />
-      <span className="text-lg flex-shrink-0" aria-hidden>
-        {line.item.emoji || '🍽️'}
+      <span className="shrink-0 min-w-[3.5rem] text-center text-2xl font-semibold tabular-nums text-brand-gold">
+        {t.qtyBadge.replace('{n}', String(dishTotal))}
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm text-brand-text">
-          <span className="mr-1.5 inline-flex min-w-[1.75rem] justify-center rounded bg-brand-gold/15 px-1.5 text-[11px] font-semibold text-brand-gold">
-            {t.qtyBadge.replace('{n}', String(dishTotal))}
-          </span>
-          {line.item.name || line.item.name_pt}
-          <span className="ml-2 text-brand-gold">× {line.item.qty}</span>
-        </p>
+      <span className="min-w-0 flex-1 truncate text-3xl font-medium leading-tight text-brand-text">
+        {line.item.name || line.item.name_pt}
         {line.item.note ? (
-          <p className="mt-0.5 text-[12px] text-amber-800/90">{line.item.note}</p>
+          <span className="ml-2 text-2xl font-normal text-amber-800/90">· {line.item.note}</span>
         ) : null}
-        <span className={`mt-1 inline-flex text-[10px] px-2 py-0.5 rounded-full ${statusClass(line.effectiveStatus)}`}>
-          {statusLabel(line.effectiveStatus, t)}
-        </span>
-      </div>
+      </span>
+      <span className="shrink-0 text-3xl font-semibold tabular-nums text-brand-gold">
+        × {line.item.qty}
+      </span>
+      <span
+        className={`shrink-0 rounded-md px-2.5 py-1 text-2xl font-medium ${statusTone(line.effectiveStatus)}`}
+      >
+        {statusLabel(line.effectiveStatus, t)}
+      </span>
     </label>
   );
 }
@@ -150,25 +150,27 @@ export function KitchenStationPane({
 
   return (
     <section
-      className={`flex min-h-0 flex-col rounded-2xl border-2 border-brand-border bg-brand-card ${
-        maximized ? 'col-span-full min-h-[70vh]' : ''
+      className={`flex min-h-0 flex-col bg-brand-card ${
+        maximized
+          ? 'h-full border-0'
+          : 'rounded-xl border border-brand-border'
       }`}
     >
-      <header className="flex flex-wrap items-center gap-2 border-b border-brand-border/70 px-3 py-2.5">
-        <h2 className="font-heading text-xl text-brand-gold flex-1 min-w-0 truncate">
+      <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-brand-border/70 px-3 py-2">
+        <h2 className="min-w-0 flex-1 truncate font-heading text-3xl text-brand-gold">
           {stationName}
         </h2>
-        <div className="flex rounded-lg border border-brand-border overflow-hidden text-[12px]">
+        <div className="flex overflow-hidden rounded-lg border border-brand-border text-lg">
           <button
             type="button"
-            className={`px-2.5 py-1.5 ${view === 'table' ? 'bg-brand-gold/20 text-brand-text font-medium' : 'text-brand-text-muted'}`}
+            className={`px-3 py-1.5 ${view === 'table' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
             onClick={() => setView('table')}
           >
             {t.viewByTable}
           </button>
           <button
             type="button"
-            className={`px-2.5 py-1.5 border-l border-brand-border ${view === 'dish' ? 'bg-brand-gold/20 text-brand-text font-medium' : 'text-brand-text-muted'}`}
+            className={`border-l border-brand-border px-3 py-1.5 ${view === 'dish' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
             onClick={() => setView('dish')}
           >
             {t.viewByDish}
@@ -177,7 +179,7 @@ export function KitchenStationPane({
         {canMaximize ? (
           <button
             type="button"
-            className="text-[12px] text-brand-text-muted hover:text-brand-text px-2 py-1"
+            className="px-3 py-1.5 text-lg font-medium text-brand-text-muted hover:text-brand-text"
             onClick={onToggleMaximize}
           >
             {maximized ? t.restore : t.maximize}
@@ -185,13 +187,15 @@ export function KitchenStationPane({
         ) : null}
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {lines.length === 0 ? (
-          <p className="text-center text-brand-text-muted py-10">{t.noLines}</p>
+          <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : view === 'table' ? (
           byTable.map((group) => (
-            <div key={group.tableId} className="rounded-xl border border-brand-border/70 p-2.5 space-y-2">
-              <p className="font-heading text-lg text-brand-text px-0.5">{group.tableDisplay}</p>
+            <div key={group.tableId}>
+              <p className="sticky top-0 z-[1] border-b border-brand-border/60 bg-brand-bg/95 px-3 py-2 font-heading text-3xl text-brand-text backdrop-blur-sm">
+                {group.tableDisplay}
+              </p>
               {group.lines.map((line) => (
                 <LineRow
                   key={line.key}
@@ -208,35 +212,29 @@ export function KitchenStationPane({
           byDish.map((dish) => {
             const open = expandedDish === dish.menuItemId;
             return (
-              <div key={dish.menuItemId} className="rounded-xl border border-brand-border/70 overflow-hidden">
+              <div key={dish.menuItemId}>
                 <button
                   type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left hover:bg-brand-bg/60"
+                  className="flex w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 text-left hover:bg-brand-bg/70"
                   onClick={() =>
                     setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId))
                   }
                 >
-                  <span className="text-xl" aria-hidden>
-                    {dish.emoji}
+                  <span className="min-w-0 flex-1 truncate text-3xl font-medium leading-tight text-brand-text">
+                    {dish.name}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-brand-text">
-                      {dish.name}
-                      <span className="ml-2 text-brand-gold">
-                        {t.qtyBadge.replace('{n}', String(dish.totalQty))}
-                      </span>
-                    </p>
-                    <p className="text-[11px] text-brand-text-muted truncate">
-                      {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
-                    </p>
-                  </div>
-                  <span className="text-[11px] text-brand-text-muted">
+                  <span className="shrink-0 text-3xl font-semibold tabular-nums text-brand-gold">
+                    {t.qtyBadge.replace('{n}', String(dish.totalQty))}
+                  </span>
+                  <span className="min-w-0 max-w-[40%] truncate text-2xl text-brand-text-muted">
+                    {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
+                  </span>
+                  <span className="shrink-0 text-xl text-brand-text-muted">
                     {open ? t.collapseDish : t.expandDish}
                   </span>
                 </button>
-                {open ? (
-                  <div className="space-y-2 border-t border-brand-border/60 p-2.5">
-                    {dish.lines.map((line) => (
+                {open
+                  ? dish.lines.map((line) => (
                       <LineRow
                         key={line.key}
                         line={line}
@@ -245,21 +243,21 @@ export function KitchenStationPane({
                         t={t}
                         onToggle={() => toggleLine(line.key)}
                       />
-                    ))}
-                  </div>
-                ) : null}
+                    ))
+                  : null}
               </div>
             );
           })
         )}
       </div>
 
-      <footer className="flex items-center gap-3 border-t border-brand-border/70 px-3 py-2.5">
-        <p className="text-[12px] text-brand-text-muted flex-1">{t.selectLines}</p>
+      <footer className="flex shrink-0 items-center justify-end border-t border-brand-border/70 px-3 py-2.5">
         <Button
           type="button"
+          className="min-h-12 px-6 text-xl"
           disabled={selected.size === 0 || prepBusy}
           loading={prepBusy}
+          title={t.selectLines}
           onClick={() => void handlePrep()}
         >
           {prepBusy ? t.prepBusy : t.prep}

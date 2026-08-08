@@ -8,13 +8,7 @@ import type { KitchenScreen, Order, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
-import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
-import {
-  buildDashboardTopNavItems,
-  dashboardLogoHref,
-} from '@/lib/dashboard-top-nav';
-import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
@@ -87,7 +81,6 @@ type Props = {
     slug: string;
     feature_flags?: Record<string, unknown> | null;
   };
-  capabilities: CapabilitiesPayload;
   asOwner?: boolean;
   isDemo?: boolean;
   screen: KitchenScreen;
@@ -138,7 +131,6 @@ function applyDemoPrep(
 
 function KitchenScreenBoardInner({
   restaurant,
-  capabilities,
   asOwner = false,
   isDemo = false,
   screen,
@@ -226,20 +218,24 @@ function KitchenScreenBoardInner({
     }
   };
 
-  const navItems = buildDashboardTopNavItems({
-    shellMode: 'staff',
-    capabilities,
-    restaurantSlug: restaurant.slug,
-  });
-  const logoHref = isDemo ? '/demo/kitchen' : dashboardLogoHref(restaurant.slug, capabilities);
+  const maximized = maximizedStationId != null;
+  const visiblePanes = maximized
+    ? paneStationIds.filter((id) => id === maximizedStationId)
+    : paneStationIds;
 
-  const visiblePanes =
-    maximizedStationId != null
-      ? paneStationIds.filter((id) => id === maximizedStationId)
-      : paneStationIds;
+  const settingsMenu = (
+    <PersonalSettingsMenu
+      roleLabel={roleLabel}
+      logoutLabel={exitLabel}
+      onSignOut={() => void handleSignOut()}
+      confirmSignOut={confirmBeforeSignOut}
+      compact
+      allowChangePassword={!isDemo}
+    />
+  );
 
   return (
-    <div className="flex min-h-screen flex-col bg-brand-bg">
+    <div className="flex h-dvh flex-col overflow-hidden bg-brand-bg">
       {!isDemo ? (
         <KitchenScreenRealtime
           supabase={supabase}
@@ -248,68 +244,53 @@ function KitchenScreenBoardInner({
           onRefresh={refreshKitchenBoard}
         />
       ) : null}
-      <StaffPersonalTopBar
-        logoHref={logoHref}
-        restaurantName={restaurant.name}
-        navItems={navItems}
-        settingsMenu={
-          <PersonalSettingsMenu
-            roleLabel={roleLabel}
-            logoutLabel={exitLabel}
-            onSignOut={() => void handleSignOut()}
-            confirmSignOut={confirmBeforeSignOut}
-            compact
-            allowChangePassword={!isDemo}
-          />
-        }
-      />
-      <div className="min-h-0 flex-1 overflow-x-clip p-4 flex flex-col gap-3">
-        {isDemo ? (
-          <div className="rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3">
-            <p className="text-[13px] text-brand-text">{demoText.step}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Link
-                href="/demo/menu"
-                className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-              >
+
+      {/* Split mode only: thin kitchen chrome (no dashboard nav). Maximize hides this entirely. */}
+      {!maximized ? (
+        <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-brand-border/70 bg-brand-card px-3 py-2">
+          {isDemo ? (
+            <>
+              <h1 className="shrink-0 font-heading text-2xl text-brand-ink">{screen.name}</h1>
+              <p className="min-w-0 flex-1 truncate text-lg text-brand-text-muted">{demoText.step}</p>
+              <Link href="/demo/menu" className="text-lg text-brand-text-muted hover:text-brand-text">
                 {demoText.openCustomer}
               </Link>
-              <Link
-                href="/demo/waiter"
-                className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-              >
+              <Link href="/demo/waiter" className="text-lg text-brand-text-muted hover:text-brand-text">
                 {demoText.openWaiter}
               </Link>
-              <Link
-                href="/demo"
-                className="text-[13px] rounded-lg border border-brand-border px-3 py-1.5 text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40 transition-colors"
-              >
+              <Link href="/demo" className="text-lg text-brand-text-muted hover:text-brand-text">
                 {demoText.backHub}
               </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href={`/${restaurant.slug}/kitchen`}
-              className="text-sm text-brand-text-muted hover:text-brand-text"
-            >
-              ← {t.backToScreens}
-            </Link>
-            <h1 className="font-heading text-2xl text-brand-ink">{screen.name}</h1>
-          </div>
-        )}
-        {!isDemo ? null : (
-          <h1 className="font-heading text-2xl text-brand-ink">{screen.name}</h1>
-        )}
-        {error ? (
-          <div className="mesa-alert-warning px-4 py-2 text-sm">{error}</div>
-        ) : null}
+            </>
+          ) : (
+            <>
+              <Link
+                href={`/${restaurant.slug}/kitchen`}
+                className="shrink-0 text-lg text-brand-text-muted hover:text-brand-text"
+              >
+                ← {t.backToScreens}
+              </Link>
+              <h1 className="min-w-0 flex-1 truncate font-heading text-2xl text-brand-ink">
+                {screen.name}
+              </h1>
+            </>
+          )}
+          <div className="ml-auto shrink-0">{settingsMenu}</div>
+        </header>
+      ) : null}
+
+      {error ? (
+        <div className="shrink-0 mesa-alert-warning px-4 py-2 text-lg">{error}</div>
+      ) : null}
+
+      <div
+        className={`min-h-0 flex-1 ${maximized ? 'p-0' : 'p-2'} flex flex-col`}
+      >
         {visiblePanes.length === 0 ? (
-          <p className="text-brand-text-muted py-16 text-center">{t.noLines}</p>
+          <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : (
           <div
-            className={`grid min-h-0 flex-1 gap-4 ${kitchenPaneGridClass(visiblePanes.length)}`}
+            className={`grid min-h-0 flex-1 ${maximized ? 'gap-0' : 'gap-2'} ${kitchenPaneGridClass(visiblePanes.length)}`}
           >
             {visiblePanes.map((stationId) => {
               const station = stationById.get(stationId)!;

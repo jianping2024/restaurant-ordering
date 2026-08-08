@@ -123,7 +123,7 @@ export function MenuItemCard({
         </div>
 
         <div className={MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS}>
-          <span className={`min-w-0 truncate ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
+          <span className={`shrink-0 ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
             €{item.price.toFixed(2)}
           </span>
           <div className={MENU_ITEM_CARD_ACTION_SLOT_CLASS}>

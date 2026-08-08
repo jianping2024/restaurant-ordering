@@ -3,18 +3,22 @@ import { describe, it } from 'node:test';
 import {
   buildWaiterBoardCardViewModel,
   formatWaiterBoardCardAmount,
+  formatWaiterBoardTitleBadge,
 } from '@/lib/waiter-board-card-display';
 import { WAITER_BOARD_CARD_MAX_AMOUNT_LABEL } from '@/lib/waiter-board-card-layout';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
+import { applyBoardSessionRelations } from '@/lib/waiter-board-session-relation';
 
 const LABELS = {
   seatCapacity: '{min}–{max} 座',
-  cardIdleReadyHint: '干净整洁，可开台',
-  cardDiningDuration: '用时 {duration}',
+  cardIdleReadyHint: '干净整洁 · 可开台',
+  cardDiningDuration: '{duration}',
   cardActionOpenTable: '开台',
   cardActionViewOrder: '详情',
   cardActionCheckout: '结账',
   checkoutPendingSubtitle: '待收银收款',
+  cardMergedBadge: '拼桌',
+  cardTransferredBadge: '转桌',
 } as const;
 
 const STATUS = { checkout: '待结账', dining: '用餐中', idle: '空闲' } as const;
@@ -61,7 +65,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       ['seats', 'note'],
     );
     assert.equal(chipText(view, 'seats'), '2–4 座');
-    assert.equal(chipText(view, 'note'), '干净整洁，可开台');
+    assert.equal(chipText(view, 'note'), '干净整洁 · 可开台');
     assert.equal(view.amountText, '');
     assert.equal(view.ctaLabel, '开台');
     assert.equal(view.ctaDisabled, false);
@@ -88,7 +92,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.titleBadge, 'A3');
     assert.equal(chipText(view, 'seats'), '2–4 座');
     assert.equal(chipText(view, 'staff'), '张三');
-    assert.equal(chipText(view, 'time'), '用时 2时0分');
+    assert.equal(chipText(view, 'time'), '2时00分');
     assert.equal(view.amountText, '€89.90');
     assert.equal(view.ctaLabel, '详情');
     assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
@@ -113,6 +117,44 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.titleBadge, 'A3-C2');
   });
 
+  it('title badge prefixes 拼桌 / 转桌; merge wins over transfer', () => {
+    assert.equal(
+      formatWaiterBoardTitleBadge({
+        boardState: 'dining',
+        headcount: { adults: 2, children: 3 },
+        boardRelation: 'merged',
+        labels: LABELS,
+      }),
+      '拼桌 A2-C3',
+    );
+    assert.equal(
+      formatWaiterBoardTitleBadge({
+        boardState: 'dining',
+        headcount: { adults: 1, children: 0 },
+        boardRelation: 'transferred',
+        labels: LABELS,
+      }),
+      '转桌 A1',
+    );
+    const merged = buildWaiterBoardCardViewModel({
+      card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 10 }),
+      boardState: 'dining',
+      action: { kind: 'navigate', href: '/waiter/t1' },
+      session: {
+        sessionId: 's1',
+        openedAt: '2026-07-05T18:00:00.000Z',
+        status: 'open',
+        boardRelation: 'merged',
+      },
+      checkoutRequestedAt: null,
+      lang: 'zh',
+      nowMs,
+      labels: LABELS,
+      statusLabels: STATUS,
+    });
+    assert.equal(merged.titleBadge, '拼桌 A2');
+  });
+
   it('formats six-digit amounts incl. decimals for board cards', () => {
     assert.equal(formatWaiterBoardCardAmount(9999.99), WAITER_BOARD_CARD_MAX_AMOUNT_LABEL);
   });
@@ -135,7 +177,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.equal(view.statusLabel, '待结账');
     assert.equal(view.titleBadge, 'A2');
-    assert.match(chipText(view, 'time') ?? '', /^用时 /);
+    assert.equal(chipText(view, 'time'), '1时00分');
     assert.equal(view.amountText, '€40.00');
     assert.equal(view.ctaLabel, '待收银收款');
     assert.equal(view.ctaDisabled, true);
@@ -191,7 +233,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(chipText(view, 'time'), '用时 9时59分');
+    assert.equal(chipText(view, 'time'), '9时59分');
     assert.equal(view.amountText, '€9999.99');
   });
 
@@ -255,5 +297,22 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(chipText(view, 'seats'), '2–4 座');
     assert.equal(view.statusLabel, '待结账');
     assert.match(view.ariaLabel, /李四/);
+  });
+});
+
+describe('applyBoardSessionRelations', () => {
+  it('stamps merged / transferred onto session meta (merge preferred upstream)', () => {
+    const next = applyBoardSessionRelations(
+      {
+        t1: { sessionId: 's1', openedAt: 'x', status: 'open' },
+        t2: { sessionId: 's2', openedAt: 'x', status: 'open' },
+      },
+      new Map([
+        ['s1', 'merged'],
+        ['s2', 'transferred'],
+      ]),
+    );
+    assert.equal(next.t1.boardRelation, 'merged');
+    assert.equal(next.t2.boardRelation, 'transferred');
   });
 });

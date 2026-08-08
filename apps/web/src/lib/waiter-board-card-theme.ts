@@ -13,7 +13,7 @@ export const waiterBoardType = {
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   cardTitle:
     'min-w-0 truncate text-left font-heading text-lg sm:text-[22px] font-bold leading-tight',
-  cardAmount: 'text-sm font-semibold leading-none tabular-nums',
+  cardAmount: 'mesa-money text-[15px]',
 } as const;
 
 /**
@@ -55,6 +55,12 @@ export type WaiterBoardCardTheme = {
   amount: string;
   cta: string;
 };
+
+/** Sole KPI strip layout (mockup `grid-cols-2 sm:grid-cols-4 gap-4`). */
+export const WAITER_BOARD_KPI_GRID_CLASS = 'grid grid-cols-2 sm:grid-cols-4 gap-4';
+
+/** Active KPI underline — always gold (mockup selected rule). */
+export const WAITER_BOARD_KPI_RULE_ACTIVE_CLASS = 'bg-brand-gold';
 
 /** Fine-line KPI rule + count colors (mockup stats — not solid chips). */
 export const WAITER_BOARD_KPI_RULE_CLASS: Record<WaiterBoardFilter, string> = {

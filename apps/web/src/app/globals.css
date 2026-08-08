@@ -87,6 +87,34 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/**
+ * Artistic euro amounts — self-hosted Cormorant (full GSUB onum).
+ * next/font Latin subset drops old-style figures; do not use var(--font-cormorant) here.
+ * Do not pair with tabular-nums / lining-nums.
+ */
+@font-face {
+  font-family: 'Mesa Money';
+  src: url('/fonts/CormorantGaramond-Variable.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Mesa Money';
+  src: url('/fonts/CormorantGaramond-Italic-Variable.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: italic;
+  font-display: swap;
+}
+.mesa-money {
+  font-family: 'Mesa Money', 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-style: normal;
+  font-variant-numeric: oldstyle-nums;
+  font-feature-settings: 'onum' 1;
+  line-height: 1.25;
+}
+
 /* 滚动条样式 — width=竖条，height=横条；缺 height 时 WebKit 横滑会变成粗杠 */
 ::-webkit-scrollbar {
   width: 4px;
@@ -190,30 +218,36 @@ body {
   }
 
   /**
-   * Hand-scroll double frame — floor table cards + optional panels.
-   * Outer = status / ink; inner = gold hairline on raised paper.
+   * Hand-scroll double frame — sole floor-card shell (mockup truth).
+   * Outer 1px status/ink; pad 3px; inner 0.5px gold hairline.
    */
   .mesa-scroll-frame {
-    border: 1.5px solid rgb(var(--color-brand-ink));
+    border: 1px solid rgb(var(--color-brand-ink));
     border-radius: 4px;
-    padding: 4px;
+    padding: 3px;
     background: transparent;
   }
   .mesa-scroll-frame.is-dining {
     border-color: rgb(var(--color-status-danger-border));
   }
   .mesa-scroll-frame.is-pending {
-    border-width: 2px;
+    border-width: 1.5px;
     border-color: rgb(var(--color-status-warning-border));
   }
   .mesa-scroll-frame.is-free {
     border-style: dashed;
-    border-width: 1.5px;
-    border-color: rgb(var(--color-status-success-border) / 0.75);
+    border-color: rgb(var(--color-status-success-border) / 0.7);
   }
   .mesa-scroll-frame__inner {
-    border: 1px solid rgb(var(--color-brand-gold) / 0.65);
+    border: 0.5px solid rgb(var(--color-brand-gold) / 0.5);
     border-radius: 2px;
+    background: rgb(var(--color-brand-card));
+  }
+
+  /** Floor search — mockup mesa-search (ink hairline, raised paper). */
+  .mesa-board-search {
+    border: 1px solid rgb(var(--color-brand-ink) / 0.28);
+    border-radius: 0.75rem;
     background: rgb(var(--color-brand-card));
   }
 
@@ -313,27 +347,6 @@ body {
   border-style: dashed;
   border-color: rgb(180 200 164 / 0.45);
   background-color: rgb(36 48 32);
-}
-
-[data-theme='light'] .mesa-board-footer-dining,
-[data-theme='dark'] .mesa-board-footer-dining {
-  border-color: rgb(var(--color-status-danger-border) / 0.8);
-  color: rgb(var(--color-brand-text));
-}
-[data-theme='light'] .mesa-board-footer-checkout,
-[data-theme='dark'] .mesa-board-footer-checkout {
-  border-color: rgb(var(--color-status-warning-border) / 0.8);
-  color: rgb(var(--color-brand-text));
-}
-[data-theme='light'] .mesa-board-footer-idle,
-[data-theme='dark'] .mesa-board-footer-idle {
-  border-color: rgb(var(--color-status-success-border) / 0.8);
-  color: rgb(var(--color-brand-text));
-}
-.group:hover .mesa-board-footer-dining,
-.group:hover .mesa-board-footer-checkout,
-.group:hover .mesa-board-footer-idle {
-  background-color: rgb(var(--color-brand-text) / 0.04);
 }
 
 @layer utilities {

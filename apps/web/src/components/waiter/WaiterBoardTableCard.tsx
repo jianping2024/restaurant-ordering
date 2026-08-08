@@ -46,7 +46,11 @@ const CARD_INNER_CLASS =
 const CARD_INTERACTIVE_CLASS =
   'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
-const CHIP_ICON = 'h-3.5 w-3.5 shrink-0 text-brand-text';
+/** Sole title-row gold pill (mockup merge badge). */
+const TITLE_BADGE_CLASS =
+  'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50';
+
+const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 
 function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
   if (kind === 'seats') return <WaiterSeatCapacityIcon className={CHIP_ICON} />;
@@ -85,6 +89,8 @@ export function WaiterBoardTableCard({
       cardActionViewOrder: t.cardActionViewOrder,
       cardActionCheckout: t.cardActionCheckout,
       checkoutPendingSubtitle: t.checkoutPendingSubtitle,
+      cardMergedBadge: t.cardMergedBadge,
+      cardTransferredBadge: t.cardTransferredBadge,
     },
     statusLabels: {
       checkout: t.checkoutPendingShort,
@@ -108,16 +114,12 @@ export function WaiterBoardTableCard({
   const body = (
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[1.25rem] items-baseline gap-2">
+        <div className="flex min-h-[1.25rem] items-start justify-between gap-2">
           <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
-          {view.titleBadge ? (
-            <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium text-brand-gold border border-brand-gold/50">
-              {view.titleBadge}
-            </span>
-          ) : null}
+          {view.titleBadge ? <span className={TITLE_BADGE_CLASS}>{view.titleBadge}</span> : null}
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-brand-text">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-text">
           {view.metaChips.map((chip) => (
             <span key={`${chip.kind}-${chip.text}`} className="inline-flex min-w-0 items-center gap-1">
               <MetaChipIcon kind={chip.kind} />

@@ -72,7 +72,9 @@ import {
 } from '@/lib/waiter-board-card-layout';
 import {
   WAITER_BOARD_KPI_COUNT_CLASS,
+  WAITER_BOARD_KPI_GRID_CLASS,
   WAITER_BOARD_KPI_LABEL_CLASS,
+  WAITER_BOARD_KPI_RULE_ACTIVE_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
@@ -156,7 +158,9 @@ function BoardKpiCard({
         {count}
       </div>
       <div
-        className={`mesa-stat__rule mt-2.5 ${WAITER_BOARD_KPI_RULE_CLASS[filter]}`}
+        className={`mesa-stat__rule mt-2.5 ${
+          active ? WAITER_BOARD_KPI_RULE_ACTIVE_CLASS : WAITER_BOARD_KPI_RULE_CLASS[filter]
+        }`}
         aria-hidden
       />
     </button>
@@ -680,7 +684,7 @@ function WaiterBoardInner({
           <h1 className={waiterBoardType.pageTitle}>{t.boardTitle}</h1>
         ) : null}
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label={t.boardTitle}>
+        <div className={WAITER_BOARD_KPI_GRID_CLASS} role="group" aria-label={t.boardTitle}>
           {BOARD_KPI_ITEMS.map((item) => (
             <BoardKpiCard
               key={item.filter}
@@ -696,7 +700,7 @@ function WaiterBoardInner({
           ))}
         </div>
 
-        <div className="mt-3">
+        <div className="mt-5">
           <Input
             type="text"
             role="searchbox"
@@ -706,7 +710,7 @@ function WaiterBoardInner({
             aria-label={t.searchTables}
             clearable
             clearLabel={t.clearSearch}
-            className="px-3 py-2 focus:ring-brand-gold/40 placeholder:text-brand-text-muted"
+            className="mesa-board-search px-3 py-2 focus:ring-brand-ink/20 placeholder:text-brand-text-muted"
           />
         </div>
       </div>

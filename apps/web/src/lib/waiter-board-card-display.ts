@@ -1,7 +1,10 @@
 import type { UILanguage } from '@/lib/i18n';
 import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
-import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
+import type {
+  WaiterBoardSessionRelation,
+  WaiterTableBoardState,
+} from '@/lib/waiter-board-session';
 import { formatSessionDurationForBoardCard, type WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   waiterBoardCardActionLabelKey,
@@ -11,11 +14,15 @@ import {
 export type WaiterBoardCardDisplayLabels = {
   seatCapacity: string;
   cardIdleReadyHint: string;
+  /** Board duration chip — mockup is bare `{duration}` (no 「用时」prefix). */
   cardDiningDuration: string;
   cardActionOpenTable: string;
   cardActionViewOrder: string;
   cardActionCheckout: string;
   checkoutPendingSubtitle: string;
+  /** Title-badge relation prefixes (mockup 拼桌 / 转桌). */
+  cardMergedBadge: string;
+  cardTransferredBadge: string;
 };
 
 /** One meta chip on the mockup card — seats / staff / time / idle note. */
@@ -28,14 +35,17 @@ export type WaiterBoardCardMetaChip = {
 
 /**
  * Sole floor-card display shape (mockup template).
- * No parallel row1–4 / capacityLine / footerIcon representations.
+ * Title-row gold pill = `titleBadge` only (relation prefix + headcount).
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
   tableTitle: string;
   /** Vertical colophon status. */
   statusLabel: string;
-  /** Headcount pill beside title (e.g. A3-C2) — one place only. */
+  /**
+   * Sole title-row gold pill: `拼桌 A3-C2` / `转桌 A3` / `A3-C2` / null.
+   * Relation prefix + buffet headcount — not a second badge slot.
+   */
   titleBadge: string | null;
   metaChips: WaiterBoardCardMetaChip[];
   amountText: string;
@@ -66,13 +76,28 @@ function statusLabelForState(
   return statusLabels.idle;
 }
 
-function titleBadgeForCard(
-  boardState: WaiterTableBoardState,
-  headcount: WaiterBoardTableSummary['buffetHeadcount'],
-): string | null {
-  if (boardState === 'idle' || !headcount) return null;
-  const label = formatBuffetReceiptQtyLabel(headcount.adults, headcount.children);
-  return label || null;
+/** Sole title-badge composer — relation prefix then headcount. */
+export function formatWaiterBoardTitleBadge(input: {
+  boardState: WaiterTableBoardState;
+  headcount: WaiterBoardTableSummary['buffetHeadcount'];
+  boardRelation: WaiterBoardSessionRelation | null | undefined;
+  labels: Pick<WaiterBoardCardDisplayLabels, 'cardMergedBadge' | 'cardTransferredBadge'>;
+}): string | null {
+  const headcountLabel =
+    input.boardState === 'idle' || !input.headcount
+      ? null
+      : formatBuffetReceiptQtyLabel(input.headcount.adults, input.headcount.children) || null;
+
+  const prefix =
+    input.boardRelation === 'merged'
+      ? input.labels.cardMergedBadge
+      : input.boardRelation === 'transferred'
+        ? input.labels.cardTransferredBadge
+        : null;
+
+  if (prefix && headcountLabel) return `${prefix} ${headcountLabel}`;
+  if (prefix) return prefix;
+  return headcountLabel;
 }
 
 function diningDurationText(
@@ -170,7 +195,12 @@ export function buildWaiterBoardCardViewModel(input: {
     boardState: input.boardState,
     tableTitle: input.card.displayName,
     statusLabel: statusLabelForState(input.boardState, input.statusLabels),
-    titleBadge: titleBadgeForCard(input.boardState, input.card.buffetHeadcount),
+    titleBadge: formatWaiterBoardTitleBadge({
+      boardState: input.boardState,
+      headcount: input.card.buffetHeadcount,
+      boardRelation: input.session?.boardRelation,
+      labels: input.labels,
+    }),
     metaChips: buildMetaChips({
       boardState: input.boardState,
       capacityText,

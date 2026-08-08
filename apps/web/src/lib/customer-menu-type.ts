@@ -5,8 +5,8 @@ export const CUSTOMER_MENU_TYPE = {
   categorySub: 'text-base',
   itemName: 'text-lg font-semibold leading-tight',
   itemDesc: 'text-sm leading-relaxed',
-  /** Dish price, cart line total, footer session total. */
-  moneyAmount: 'text-base font-semibold tabular-nums text-brand-gold',
+  /** Dish price, cart line total, footer session total — artistic Cormorant old-style nums. */
+  moneyAmount: 'mesa-money text-[15px] text-brand-gold',
   itemAction: 'text-base',
   itemSoldOut: 'text-xs font-medium text-brand-text-muted',
   cartLineName: 'text-lg font-semibold',
@@ -15,5 +15,5 @@ export const CUSTOMER_MENU_TYPE = {
   footerHint: 'truncate text-base text-brand-text-muted',
   footerPrimaryAction: 'text-base font-semibold',
   drawerTitle: 'font-heading text-xl text-brand-gold',
-  cartDrawerTotal: 'font-heading text-2xl font-semibold tabular-nums text-brand-gold',
+  cartDrawerTotal: 'mesa-money text-2xl text-brand-gold',
 } as const;

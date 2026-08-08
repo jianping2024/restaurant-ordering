@@ -36,6 +36,7 @@ import {
 } from '@/lib/table-party-groups';
 import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
 import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
+import { attachBoardSessionRelations } from '@/lib/waiter-board-session-relation';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 
@@ -90,9 +91,14 @@ async function loadWaiterBoardOccupancyCore(
 
   const sessionRows = (sessions || []) as WaiterTableSessionRow[];
   const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
-  const sessionMetaByTableId = resolveOpenerNames
+  let sessionMetaByTableId = resolveOpenerNames
     ? await buildActiveSessionMetaByTableId(admin, restaurantId, sessionRows)
     : sessionMetaByTableIdFromSessions(sessionRows);
+  sessionMetaByTableId = await attachBoardSessionRelations(
+    admin,
+    restaurantId,
+    sessionMetaByTableId,
+  );
 
   return {
     sessionRows,

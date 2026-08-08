@@ -4,6 +4,8 @@ import { waiterStaffStickyChrome } from './waiter-staff-sticky-chrome';
 import {
   WAITER_BOARD_CARD_THEME,
   WAITER_BOARD_KPI_COUNT_CLASS,
+  WAITER_BOARD_KPI_GRID_CLASS,
+  WAITER_BOARD_KPI_RULE_ACTIVE_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
@@ -95,5 +97,8 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.dining, /mesa-text-danger/);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.idle, /mesa-text-success/);
     assert.match(WAITER_BOARD_KPI_RULE_CLASS.all, /brand-gold/);
+    assert.equal(WAITER_BOARD_KPI_RULE_ACTIVE_CLASS, 'bg-brand-gold');
+    assert.match(WAITER_BOARD_KPI_GRID_CLASS, /grid-cols-2/);
+    assert.match(WAITER_BOARD_KPI_GRID_CLASS, /sm:grid-cols-4/);
   });
 });

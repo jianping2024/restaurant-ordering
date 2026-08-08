@@ -2,12 +2,19 @@ import type { UILanguage } from '@/lib/i18n';
 import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
 import type { Order } from '@/types';
 
+export type WaiterBoardSessionRelation = 'merged' | 'transferred';
+
 export type WaiterTableSessionMeta = {
   sessionId: string;
   openedAt: string;
   status: 'open' | 'billing';
   /** Resolved staff display name for table_sessions.opened_by_user_id (board display). */
   openedByName?: string | null;
+  /**
+   * Title-badge relation for this active session (merge target / transferred-in).
+   * Sole board field — loaded in occupancy; merge wins over transfer.
+   */
+  boardRelation?: WaiterBoardSessionRelation | null;
 };
 
 export type WaiterBoardFilter = 'all' | 'checkout' | 'dining' | 'idle';
@@ -138,7 +145,8 @@ const DURATION_LABELS: Record<UILanguage, DurationLabels> = {
 /** Compact hm labels for waiter floor board cards (zh 「9时59分」). */
 const BOARD_CARD_DURATION_LABELS: Record<UILanguage, DurationLabels> = {
   zh: {
-    hoursMinutes: (hours, minutes) => `${hours}时${minutes}分`,
+    hoursMinutes: (hours, minutes) =>
+      `${hours}时${String(minutes).padStart(2, '0')}分`,
     minutesOnly: (minutes) => `${minutes}分`,
   },
   en: {

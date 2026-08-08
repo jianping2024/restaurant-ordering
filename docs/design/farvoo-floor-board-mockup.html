@@ -12,12 +12,13 @@
   /* ===== 品牌 / 状态 CSS 变量：对齐 apps/web globals.css 的 --color-brand-* / --color-status-* 命名约定 ===== */
   :root,
   [data-theme="light"] {
-    --color-paper: #EDEAE2;          /* 页面底色，暖调米纸 */
-    --color-paper-raised: #F7F4EE;   /* 卡片表面 */
-    --color-ink: #2B2620;            /* 正文主色，暖近黑 */
-    --color-ink-soft: #8A8377;       /* 次要 / 顶栏未选中 — 与 brand-ink 对比 */
+    --color-paper: #EDEAE2;          /* 页面底色，暖调米纸 — brand-bg */
+    --color-paper-raised: #F7F4EE;   /* 卡片 / 顶栏表面 — brand-card */
+    --color-ink: #2B2620;            /* 正文主色 */
+    --color-ink-soft: #8A8377;       /* 次要 / 未选中导航 — brand-text-muted */
     --color-brand-ink: #1F3E52;      /* 品牌主色：靛青（azulejo） */
     --color-brand-gold: #A9814A;     /* 品牌点缀：暖金 */
+    --color-brand-border: #BAB2A4;   /* 顶栏底边 — brand-border */
 
     --color-status-dining: #8F4A38;      /* 用餐中：灰调赤陶（加深） */
     --color-status-dining-bg: #A6604A1A;
@@ -34,6 +35,7 @@
     --color-ink-soft: #9C9689;
     --color-brand-ink: #7FA6C2;
     --color-brand-gold: #C9A66E;
+    --color-brand-border: #3A362E;
   }
   [data-theme="dark"] { --color-status-dining: #E09A82; --color-status-pending: #E4C88A; --color-status-free: #B4C8A4; }
 
@@ -45,6 +47,23 @@
   }
   .font-display { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
   .font-body { font-family: 'Jost', 'Noto Sans SC', sans-serif; }
+  /* Full Cormorant (onum) — same files as apps/web/public/fonts; Google CDN strips old-style figures */
+  @font-face {
+    font-family: 'Mesa Money';
+    src: url('../../apps/web/public/fonts/CormorantGaramond-Variable.ttf') format('truetype');
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  .mesa-money {
+    font-family: 'Mesa Money', 'Cormorant Garamond', serif;
+    font-weight: 500;
+    font-style: normal;
+    font-variant-numeric: oldstyle-nums;
+    font-feature-settings: "onum" 1;
+    font-size: 15px;
+    line-height: 1.25;
+  }
   input::placeholder { color: var(--color-ink-soft); opacity: 1; }
 
   /* 双线裱边：外线按状态着色、内线细金 —— 空闲虚线 / 用餐实线赤陶 / 待结账实线赭金 */
@@ -131,19 +150,87 @@
     border-top-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
   }
 
-  /* 顶栏导航：对齐参考稿 — 未选 ink-soft / 选中 brand-ink + 金底边 */
+  /* 顶栏 — 对齐 staffTopBarChrome + topNavDesktopLinkClass */
+  .mesa-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--color-paper-raised);
+    border-bottom: 1px solid var(--color-brand-border);
+  }
+  .mesa-topbar__row {
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+    gap: 0.5rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .mesa-topbar__brand {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: baseline;
+    gap: 0.625rem;
+  }
+  .mesa-topbar__logo {
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--color-brand-ink);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .mesa-topbar__store {
+    font-family: 'Cormorant Garamond', 'Noto Serif SC', serif;
+    font-size: 0.875rem;
+    color: var(--color-ink-soft);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mesa-topbar__right {
+    display: flex;
+    min-width: 0;
+    align-items: stretch;
+    align-self: stretch;
+    margin-left: auto;
+  }
+  .mesa-topbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mesa-topbar__nav::-webkit-scrollbar { display: none; }
   .mesa-nav-tab {
-    font-size: 0.875rem; /* 产品 text-sm；参考稿 12px 不跟 */
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.875rem;
     font-weight: 500;
     color: var(--color-ink-soft);
-    letter-spacing: 0.02em;
+    transition: color 0.15s ease;
   }
+  .mesa-nav-tab:hover { color: var(--color-brand-ink); }
   .mesa-nav-tab.is-active {
     color: var(--color-brand-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-brand-gold);
+    text-underline-offset: 4px;
+  }
+  .mesa-topbar__account {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    border-bottom: 1.5px solid var(--color-brand-gold);
-    padding-bottom: 10px;
-    margin-bottom: -11px;
+    color: var(--color-ink-soft);
   }
 
   /* KPI 字号对齐 waiterBoardType：count text-2xl / label text-sm */
@@ -190,28 +277,30 @@
 </head>
 <body class="font-body min-h-screen">
 
-<main class="max-w-6xl mx-auto px-6 py-8">
-
-  <!-- ===== 顶部品牌行 ===== -->
-  <div class="flex items-baseline justify-between mb-4">
-    <div class="flex items-baseline gap-2.5">
-      <span class="font-display font-semibold text-xl tracking-wide" style="color:var(--color-brand-ink)">FARVOO</span>
-      <span class="font-display text-sm" style="color:var(--color-ink-soft)">白云餐厅</span>
+<!-- ===== 顶栏：对齐 staffTopBarChrome（纸卡底 + border-brand + ink/金导航） ===== -->
+<header class="mesa-topbar">
+  <div class="mesa-topbar__row">
+    <div class="mesa-topbar__brand">
+      <span class="mesa-topbar__logo">FARVOO</span>
+      <span class="mesa-topbar__store">白云餐厅</span>
     </div>
-    <span class="text-xs" style="color:var(--color-ink-soft)">前台 · 张三</span>
+    <div class="mesa-topbar__right">
+      <nav class="mesa-topbar__nav" aria-label="主导航">
+        <span class="mesa-nav-tab">数据概览</span>
+        <span class="mesa-nav-tab">结账请求</span>
+        <span class="mesa-nav-tab">历史订单</span>
+        <span class="mesa-nav-tab">桌位配置</span>
+        <span class="mesa-nav-tab">菜单管理</span>
+        <span class="mesa-nav-tab">顾客通知</span>
+        <span class="mesa-nav-tab is-active">楼面看板</span>
+        <span class="mesa-nav-tab">厨房看板</span>
+      </nav>
+      <span class="mesa-topbar__account">前台 · 张三</span>
+    </div>
   </div>
+</header>
 
-  <!-- ===== 导航菜单栏 ===== -->
-  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid var(--color-brand-ink)">
-    <span class="mesa-nav-tab">数据概览</span>
-    <span class="mesa-nav-tab">结账请求</span>
-    <span class="mesa-nav-tab">历史订单</span>
-    <span class="mesa-nav-tab">桌位配置</span>
-    <span class="mesa-nav-tab">菜单管理</span>
-    <span class="mesa-nav-tab">顾客通知</span>
-    <span class="mesa-nav-tab is-active">楼面看板</span>
-    <span class="mesa-nav-tab">厨房看板</span>
-  </nav>
+<main class="max-w-6xl mx-auto px-6 py-8">
 
   <!-- ===== 主内容区：顺序对齐 WaiterDisplay（嵌入 Dashboard 无重复标题） ===== -->
   <!-- KPI 四卡 — 细线风格 + 产品字号（text-2xl / text-sm） -->
@@ -265,16 +354,16 @@
           <span class="mesa-card-title font-display min-w-0 flex-1 truncate text-left" style="color:var(--color-ink)" data-field="table"></span>
           <span class="hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-medium" style="color:var(--color-brand-gold);border:0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent)" data-field="merge"></span>
         </div>
-        <!-- row2：text-xs 对齐 WAITER_BOARD_CARD_ROW2_LAYOUT -->
+        <!-- row2：meta chips — seats / staff / time (mockup icons injected in script) -->
         <div class="flex items-center gap-3 mt-1.5 text-xs flex-wrap" style="color:var(--color-ink)">
           <span data-field="seats"></span>
           <span data-field="staff"></span>
           <span data-field="time"></span>
         </div>
         <div class="mesa-card-rule mb-auto"></div>
-        <!-- amount：waiterBoardType.cardAmount；CTA text-sm 对齐 theme.cta -->
+        <!-- amount：.mesa-money（自托管 Cormorant 旧式数字） -->
         <div class="mt-2 flex items-baseline justify-between gap-x-1.5">
-          <span class="text-sm font-semibold leading-none tabular-nums" style="color:var(--color-brand-gold)" data-field="price"></span>
+          <span class="mesa-money shrink-0" style="color:var(--color-brand-gold)" data-field="price"></span>
           <span class="text-sm font-semibold cursor-pointer" style="color:var(--color-brand-ink)" data-field="cta"></span>
         </div>
       </div>

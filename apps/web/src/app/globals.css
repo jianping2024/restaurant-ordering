@@ -246,6 +246,48 @@ body {
     border-radius: 2px;
     background: rgb(var(--color-brand-card));
   }
+  /**
+   * Sole tinted card face (mockup truth): paper/card mixed with status hue.
+   * Ratios: dining 88/12, pending 82/18, free 85/15. Not status-*-bg solids.
+   * Theme flip follows --color-* vars — no parallel [data-theme] RGB copies.
+   */
+  .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
+    border-color: color-mix(
+      in srgb,
+      rgb(var(--color-status-danger-border)) 45%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      rgb(var(--color-brand-card)) 88%,
+      rgb(var(--color-status-danger-border))
+    );
+  }
+  .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
+    border-color: color-mix(
+      in srgb,
+      rgb(var(--color-status-warning-border)) 55%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      rgb(var(--color-brand-card)) 82%,
+      rgb(var(--color-status-warning-border))
+    );
+  }
+  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
+    border-style: dashed;
+    border-color: color-mix(
+      in srgb,
+      rgb(var(--color-status-success-border)) 45%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      rgb(var(--color-brand-card)) 85%,
+      rgb(var(--color-status-success-border))
+    );
+  }
 
   /** Floor search — mockup mesa-search (ink hairline, raised paper). */
   .mesa-board-search {
@@ -322,34 +364,6 @@ body {
     border-radius: 0.85rem;
     background: rgb(var(--color-brand-card));
   }
-}
-
-/* Floor card tinted faces — literal per theme (avoid stale rgb(var()) bg on flip). */
-[data-theme='light'] .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
-  border-color: rgb(143 74 56 / 0.45);
-  background-color: rgb(247 236 232);
-}
-[data-theme='dark'] .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
-  border-color: rgb(224 154 130 / 0.45);
-  background-color: rgb(64 36 32);
-}
-[data-theme='light'] .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
-  border-color: rgb(154 111 40 / 0.55);
-  background-color: rgb(247 240 228);
-}
-[data-theme='dark'] .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
-  border-color: rgb(228 200 138 / 0.55);
-  background-color: rgb(72 56 28);
-}
-[data-theme='light'] .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
-  border-style: dashed;
-  border-color: rgb(79 101 67 / 0.45);
-  background-color: rgb(236 240 232);
-}
-[data-theme='dark'] .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
-  border-style: dashed;
-  border-color: rgb(180 200 164 / 0.45);
-  background-color: rgb(36 48 32);
 }
 
 @layer utilities {

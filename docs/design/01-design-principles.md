@@ -155,7 +155,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 - 待结账 `checkout`：warning（灰调赭金）→ `is-pending`
 - 用餐中 `dining`：danger（灰调赤陶）→ `is-dining`
 - 空闲 `idle`：success（灰调鼠尾草）→ `is-free`
-- 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；正文一律 `brand-text`，状态色只用于壳/徽章/边框
+- 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；正文一律 `brand-text`；**内底唯一写法**为 `color-mix(brand-card, status-*-border, mockup 比例)`（dining 88/12、pending 82/18、free 85/15），禁止 `[data-theme]` 硬编码 RGB / 禁止用 `status-*-bg` 实心当桌卡底（`status-*-bg` 仅徽章等）
 - Modal 等面板：`mesa-panel-frame`（外靛内金）
 - 成功/收款：`mesa-badge-success`
 - 危险操作：`Button danger` / `mesa-text-danger`

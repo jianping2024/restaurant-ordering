@@ -37,7 +37,7 @@ import {
 } from '@/lib/table-party-one-click-merge';
 import { postWaiterTableActionClient } from '@/lib/staff-board-client';
 import { buildVisibleWaiterBoardPartyLanes } from '@/lib/waiter-board-party-lanes';
-import { WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS } from '@/lib/waiter-board-card-layout';
+import { WAITER_BOARD_TABLES_GRID_CLASS } from '@/lib/waiter-board-card-layout';
 import {
   WAITER_BOARD_PARTY_PANEL_CLASS,
   WAITER_BOARD_PARTY_REMOVE_CHIP_CLASS,
@@ -554,7 +554,7 @@ export const WaiterBoardPartySections = forwardRef<WaiterBoardPartySectionHandle
             {selectedCards.length === 0 ? (
               <p className="text-sm text-brand-text-muted">{t.partyEmpty}</p>
             ) : (
-              <div className={WAITER_BOARD_CHECKOUT_PINNED_GRID_CLASS}>
+              <div className={WAITER_BOARD_TABLES_GRID_CLASS}>
                 {selectedCards.map((card) => {
                   const boardState = classifyWaiterTableBoardState(
                     card.tableId,

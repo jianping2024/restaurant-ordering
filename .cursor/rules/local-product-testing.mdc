@@ -28,9 +28,13 @@ Default every checklist / regression item to **run** and report **`pass`** or **
 
 Every `skip` **must** state the blocker in one line. Prefer a weaker but real assertion (API shape, HTTP status, unit for retired route) over skip. If the user says **不允许 skip**, treat soft blockers as **fail** or keep trying — do not skip.
 
+## Port conflicts
+
+If `:3000` / `:3001` (or the intended listen port) is already taken: **do not kill** that process. Start or reuse a **free** port and point browser + `MESA_UAT_BASE` at it. Full rule: always-on `.cursor/rules/dev-port-isolation.mdc`.
+
 ## Local accounts
 
-- **UI login:** always `http://localhost:3000/auth/login` (unified owner/staff; never `/login` or staff-only legacy paths for routine UAT)
+- **UI login:** always `{MESA_UAT_BASE or http://localhost:3000}/auth/login` (unified owner/staff; never `/login` or staff-only legacy paths for routine UAT)
 - Staff UAT: `qiantai1` / `123456` (白云 `restaurant-mohnrib5`)
 - Owner setup: `baiyun@gmail.com` / `123456` (same restaurant)
 - Forbidden: `qiantai@mesa.in`

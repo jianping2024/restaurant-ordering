@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ProductLogo } from '@/components/ui/ProductLogo';
+import { staffTopBarChrome } from '@/lib/waiter-staff-sticky-chrome';
 
-/** Logo + restaurant name — name truncates on narrow viewports; full name in title. */
+/** Logo + restaurant name — FARVOO ink wordmark + ink-soft store name (floor mockup). */
 export function ProductTopBarBrand({
   href,
   restaurantName,
@@ -11,12 +12,12 @@ export function ProductTopBarBrand({
   restaurantName: string;
 }) {
   return (
-    <div className="flex min-w-0 w-full items-center gap-1.5 sm:gap-2">
-      <Link href={href} className="shrink-0">
-        <ProductLogo size="sm" />
+    <div className="flex min-w-0 w-full items-baseline gap-2 sm:gap-2.5">
+      <Link href={href} className="shrink-0 leading-none">
+        <ProductLogo size="sm" tone="ink" />
       </Link>
       <span
-        className="min-w-0 truncate text-sm font-medium text-brand-text-muted sm:text-[15px]"
+        className={staffTopBarChrome.restaurantNameClassName}
         title={restaurantName}
       >
         {restaurantName}

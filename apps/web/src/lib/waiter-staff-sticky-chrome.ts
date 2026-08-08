@@ -40,7 +40,13 @@ export const staffTopBarChrome = {
   rowClassName:
     'flex h-14 min-w-0 items-center gap-1.5 sm:gap-2 pl-[max(0.5rem,env(safe-area-inset-left,0px))] pr-[max(0.5rem,env(safe-area-inset-right,0px))] sm:pl-[max(0.75rem,env(safe-area-inset-left,0px))] sm:pr-[max(0.75rem,env(safe-area-inset-right,0px))]',
   /** Logo + restaurant name — sole flex grow slot; truncates instead of overflowing. */
-  brandClassName: 'flex min-w-0 flex-1 items-center',
+  brandClassName: 'flex min-w-0 flex-1 items-baseline',
+  /**
+   * Store name beside FARVOO — mockup ink-soft + display face.
+   * Sole staff-chrome restaurant label class (ProductTopBarBrand only).
+   */
+  restaurantNameClassName:
+    'min-w-0 truncate font-heading text-sm text-brand-text-muted',
   /** Desktop nav + hamburger + trailing — single right-aligned cluster; may shrink for chip scroll. */
   rightClusterClassName:
     'ml-auto flex min-w-0 shrink items-center self-stretch',

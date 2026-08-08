@@ -23,7 +23,10 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
     assert.match(staffTopBarChrome.brandClassName, /min-w-0/);
     assert.match(staffTopBarChrome.brandClassName, /flex-1/);
+    assert.match(staffTopBarChrome.brandClassName, /items-baseline/);
     assert.doesNotMatch(staffTopBarChrome.brandClassName, /shrink-0/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /font-heading/);
+    assert.match(staffTopBarChrome.restaurantNameClassName, /text-brand-text-muted/);
     assert.match(staffTopBarChrome.rightClusterClassName, /ml-auto/);
     assert.match(staffTopBarChrome.rightClusterClassName, /min-w-0/);
     assert.doesNotMatch(staffTopBarChrome.rightClusterClassName, /flex-1/);

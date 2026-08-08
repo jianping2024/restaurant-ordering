@@ -58,8 +58,10 @@ describe('waiter-board-card-theme theme tokens', () => {
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardAmount, /mesa-money/);
-    assert.match(waiterBoardType.cardAmount, /text-base/);
-    assert.match(waiterBoardType.cardAmount, /text-brand-gold/);
+    assert.match(waiterBoardType.cardAmount, /text-\[32px\]/);
+    assert.match(waiterBoardType.cardAmount, /!font-semibold/);
+    assert.match(waiterBoardType.cardAmount, /text-brand-ink/);
+    assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
     assert.match(waiterBoardType.cardBadge, /text-brand-gold/);

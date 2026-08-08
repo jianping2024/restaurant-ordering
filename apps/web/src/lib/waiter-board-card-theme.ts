@@ -18,8 +18,11 @@ export const waiterBoardType = {
   cardBadge:
     'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50',
   cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-text',
-  /** Sole floor-card amount face: money stack + readable size + gold (status stays on shell/CTA). */
-  cardAmount: 'mesa-money text-base text-brand-gold',
+  /**
+   * Sole floor-card amount face — money stack + high-contrast ink (not pale gold on wash)
+   * + ~2× prior size for oldstyle optical loss (status stays on shell/CTA).
+   */
+  cardAmount: 'mesa-money text-[32px] !font-semibold leading-none text-brand-ink',
   cardCta: 'shrink-0 text-sm font-semibold',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',

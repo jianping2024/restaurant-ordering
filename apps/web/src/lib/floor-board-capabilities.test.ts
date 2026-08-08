@@ -14,12 +14,14 @@ describe('floorBoardCapabilities', () => {
     assert.equal(frontdesk.canTransfer, true);
     assert.equal(frontdesk.canMerge, true);
     assert.equal(frontdesk.canForceClose, true);
+    assert.equal(frontdesk.canOpenTableSession, true);
 
     const cashier = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
     assert.equal(cashier.canCheckoutClose, true);
     assert.equal(cashier.canTransfer, true);
     assert.equal(cashier.canMerge, true);
     assert.equal(cashier.canForceClose, false);
+    assert.equal(cashier.canOpenTableSession, true);
   });
 
   it('derives transfer/merge/force-close for owner and transfer/merge for waiter', () => {

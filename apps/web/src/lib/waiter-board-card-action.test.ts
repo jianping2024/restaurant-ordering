@@ -14,9 +14,21 @@ describe('resolveWaiterBoardCardAction', () => {
       boardState: 'idle',
       canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
+      canOpenTableSession: true,
       detailHref,
     });
     assert.equal(action.kind, 'open_table_sheet');
+  });
+
+  it('idle without open-session capability navigates to detail', () => {
+    const action = resolveWaiterBoardCardAction({
+      boardState: 'idle',
+      canOpenCheckoutPendingTables: true,
+      supportsBuffetOpenTable: true,
+      canOpenTableSession: false,
+      detailHref,
+    });
+    assert.deepEqual(action, { kind: 'navigate', href: detailHref });
   });
 
   it('idle without buffet config is disabled', () => {
@@ -24,6 +36,7 @@ describe('resolveWaiterBoardCardAction', () => {
       boardState: 'idle',
       canOpenCheckoutPendingTables: false,
       supportsBuffetOpenTable: false,
+      canOpenTableSession: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'disabled', reason: 'no_buffet_config' });
@@ -34,6 +47,7 @@ describe('resolveWaiterBoardCardAction', () => {
       boardState: 'dining',
       canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
+      canOpenTableSession: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'navigate', href: detailHref });
@@ -44,6 +58,7 @@ describe('resolveWaiterBoardCardAction', () => {
       boardState: 'checkout',
       canOpenCheckoutPendingTables: true,
       supportsBuffetOpenTable: true,
+      canOpenTableSession: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'open_checkout_sheet' });
@@ -54,6 +69,7 @@ describe('resolveWaiterBoardCardAction', () => {
       boardState: 'checkout',
       canOpenCheckoutPendingTables: false,
       supportsBuffetOpenTable: true,
+      canOpenTableSession: true,
       detailHref,
     });
     assert.deepEqual(action, { kind: 'disabled', reason: 'waiter_checkout' });

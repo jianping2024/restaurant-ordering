@@ -9,7 +9,6 @@ export const PERMISSION_GROUPS = [
   'checkout',
   'tables',
   'orders',
-  'buffet',
   'floor',
   'print',
 ] as const;
@@ -88,8 +87,9 @@ export const PERMISSIONS = {
   'checkout.print_pre_bill': { group: 'checkout', labelKey: 'checkoutPrintPreBill' },
   'checkout.open_pending_tables': { group: 'checkout', labelKey: 'checkoutOpenPendingTables' },
 
-  // Tables / sessions
+  // Tables / sessions (楼面 · 桌台详情 actions)
   'tables.manage': { group: 'tables', labelKey: 'tablesManage', dangerous: true },
+  /** Sole gate for 开台 / 保存人数 on table detail (POST …/waiter/buffet). */
   'tables.open_session': { group: 'tables', labelKey: 'tablesOpenSession' },
   'tables.checkout_close': { group: 'tables', labelKey: 'tablesCheckoutClose', dangerous: true },
   'tables.force_close': { group: 'tables', labelKey: 'tablesForceClose', dangerous: true },
@@ -104,9 +104,6 @@ export const PERMISSIONS = {
   'orders.serve_to_table': { group: 'orders', labelKey: 'ordersServeToTable' },
   'orders.print_receipt': { group: 'orders', labelKey: 'ordersPrintReceipt' },
 
-  // Buffet
-  'buffet.post_to_table': { group: 'buffet', labelKey: 'buffetPostToTable' },
-
   // Floor boards
   'floor.kitchen_board.view': { group: 'floor', labelKey: 'floorKitchenBoard' },
   /** Lives under 餐厅设置 hub; group settings so role UI nests it once under settings entry. */
@@ -115,9 +112,8 @@ export const PERMISSIONS = {
     labelKey: 'floorKitchenScreensManage',
     requires: ['dashboard.settings.view'],
   },
-  'floor.waiter_board.view': { group: 'floor', labelKey: 'floorWaiterBoard' },
 
-  // Dish history (当日菜品检索)
+  // Dish history (当日菜品)
   'dashboard.dish_history.view': { group: 'dashboard_nav', labelKey: 'dashboardDishHistory' },
 
   // Print agent dashboard

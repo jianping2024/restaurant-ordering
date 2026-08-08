@@ -12,6 +12,7 @@ import {
   enforcePermissionRequires,
   floorBoardCapabilitiesFromCaps,
   mayForceCloseFromCaps,
+  normalizeStoredPermissions,
   resolveCapabilitiesForOwner,
   staffLandingPathFromCapabilities,
 } from '@/lib/permissions/resolve';
@@ -77,6 +78,7 @@ describe('can / resolve', () => {
     assert.equal(waiter.canCheckoutClose, false);
     assert.equal(waiter.canTransfer, false);
     assert.equal(waiter.canMerge, false);
+    assert.equal(waiter.canOpenTableSession, false);
 
     const desk = floorBoardCapabilitiesFromCaps(
       capabilitiesFromKeys([
@@ -87,12 +89,23 @@ describe('can / resolve', () => {
         'checkout.assist_bill',
         'checkout.open_pending_tables',
         'checkout.print_pre_bill',
+        'tables.open_session',
       ]),
     );
     assert.equal(desk.canMenuDecrement, true);
     assert.equal(desk.canPrintSessionPreBill, true);
     assert.equal(desk.canTransfer, true);
     assert.equal(desk.canMerge, true);
+    assert.equal(desk.canOpenTableSession, true);
+  });
+
+  it('legacy permission aliases normalize to sole live keys', () => {
+    const keys = normalizeStoredPermissions([
+      'buffet.post_to_table',
+      'floor.waiter_board.view',
+      'tables.open_session',
+    ]);
+    assert.deepEqual(keys.sort(), ['dashboard.waiter_board.view', 'tables.open_session'].sort());
   });
 
   it('force close from caps', () => {

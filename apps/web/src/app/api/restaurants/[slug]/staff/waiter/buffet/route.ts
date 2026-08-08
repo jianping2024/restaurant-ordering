@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { tableSessionOpenAuthFromRequest } from '@/lib/staff-api-auth';
 import { parseBuffetWaiterOpenIntent } from '@/lib/buffet-waiter-open-intent';
 import {
   parseBuffetWaiterRequestBody,
@@ -62,7 +62,7 @@ export async function POST(
   }
 
   try {
-    const ctx = await openTableAuthFromRequest(req, slug);
+    const ctx = await tableSessionOpenAuthFromRequest(req, slug);
     if (!ctx) {
       return respondWaiterBuffetFailure({
         slug,

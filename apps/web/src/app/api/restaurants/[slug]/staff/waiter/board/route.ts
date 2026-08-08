@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { waiterBoardAuthFromRequest } from '@/lib/staff-api-auth';
 import { fetchWaiterBoard, fetchWaiterBoardLive } from '@/lib/staff-board';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseWaiterBoardFetchScope } from '@/lib/waiter-board-live';
@@ -15,7 +15,7 @@ export async function GET(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await openTableAuthFromRequest(req, slug);
+  const ctx = await waiterBoardAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

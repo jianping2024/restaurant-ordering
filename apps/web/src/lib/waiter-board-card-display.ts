@@ -25,8 +25,8 @@ export type WaiterBoardCardDisplayLabels = {
   cardTransferredBadge: string;
 };
 
-/** One meta chip on the mockup card — seats / staff / time / idle note. */
-export type WaiterBoardCardMetaChipKind = 'seats' | 'staff' | 'time' | 'note';
+/** Meta row only — seats and dining duration (opener / idle hint are not chips). */
+export type WaiterBoardCardMetaChipKind = 'seats' | 'time';
 
 export type WaiterBoardCardMetaChip = {
   kind: WaiterBoardCardMetaChipKind;
@@ -34,8 +34,9 @@ export type WaiterBoardCardMetaChip = {
 };
 
 /**
- * Sole floor-card display shape (mockup template).
- * Title-row gold pill = `titleBadge` only (relation prefix + headcount).
+ * Sole floor-card display shape (6-col dense mockup).
+ * Title row = tableTitle + openerName; titleBadge = gold pill only;
+ * meta = seats/time; below rule = amountText XOR idleHint.
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
@@ -47,7 +48,13 @@ export type WaiterBoardCardViewModel = {
    * Relation prefix + buffet headcount — not a second badge slot.
    */
   titleBadge: string | null;
+  /** Opener beside table title (dining/checkout only). */
+  openerName: string | null;
   metaChips: WaiterBoardCardMetaChip[];
+  /**
+   * Idle-only hint below the rule (amount slot). Mutually exclusive with amountText.
+   */
+  idleHint: string | null;
   amountText: string;
   ctaLabel: string;
   ctaDisabled: boolean;
@@ -129,18 +136,12 @@ function buildMetaChips(input: {
   checkoutRequestedAt: string | null;
   lang: UILanguage;
   nowMs: number;
-  labels: Pick<WaiterBoardCardDisplayLabels, 'cardIdleReadyHint' | 'cardDiningDuration'>;
+  labels: Pick<WaiterBoardCardDisplayLabels, 'cardDiningDuration'>;
 }): WaiterBoardCardMetaChip[] {
   const chips: WaiterBoardCardMetaChip[] = [{ kind: 'seats', text: input.capacityText }];
 
   if (input.boardState === 'idle') {
-    chips.push({ kind: 'note', text: input.labels.cardIdleReadyHint });
     return chips;
-  }
-
-  const opener = input.session?.openedByName?.trim();
-  if (opener) {
-    chips.push({ kind: 'staff', text: opener });
   }
 
   const timeText = diningDurationText(
@@ -157,12 +158,23 @@ function buildMetaChips(input: {
   return chips;
 }
 
+function openerNameForState(
+  boardState: WaiterTableBoardState,
+  session: WaiterTableSessionMeta | undefined,
+): string | null {
+  if (boardState === 'idle') return null;
+  const opener = session?.openedByName?.trim();
+  return opener || null;
+}
+
 function buildAriaLabel(view: Omit<WaiterBoardCardViewModel, 'ariaLabel'>): string {
   const parts = [
     view.tableTitle,
+    view.openerName,
     view.statusLabel,
     view.titleBadge,
     ...view.metaChips.map((chip) => chip.text),
+    view.idleHint,
     view.amountText,
     view.ctaLabel,
   ].filter((part): part is string => Boolean(part && part.length > 0));
@@ -190,6 +202,7 @@ export function buildWaiterBoardCardViewModel(input: {
     input.card.seatMax,
     input.labels.seatCapacity,
   );
+  const isIdle = input.boardState === 'idle';
 
   const draft: Omit<WaiterBoardCardViewModel, 'ariaLabel'> = {
     boardState: input.boardState,
@@ -201,6 +214,7 @@ export function buildWaiterBoardCardViewModel(input: {
       boardRelation: input.session?.boardRelation,
       labels: input.labels,
     }),
+    openerName: openerNameForState(input.boardState, input.session),
     metaChips: buildMetaChips({
       boardState: input.boardState,
       capacityText,
@@ -210,10 +224,8 @@ export function buildWaiterBoardCardViewModel(input: {
       nowMs: input.nowMs,
       labels: input.labels,
     }),
-    amountText:
-      input.boardState === 'idle'
-        ? ''
-        : formatWaiterBoardCardAmount(input.card.sessionTotal),
+    idleHint: isIdle ? input.labels.cardIdleReadyHint : null,
+    amountText: isIdle ? '' : formatWaiterBoardCardAmount(input.card.sessionTotal),
     ctaLabel: input.labels[actionLabelKey],
     ctaDisabled: input.action.kind === 'disabled',
   };

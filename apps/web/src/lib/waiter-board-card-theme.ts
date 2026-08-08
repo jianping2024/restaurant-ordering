@@ -13,24 +13,29 @@ export const waiterBoardType = {
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   cardTitle:
-    'min-w-0 truncate text-left font-heading text-lg sm:text-[22px] font-bold leading-tight',
+    'min-w-0 truncate text-left font-heading text-lg font-bold leading-tight',
+  /** Opener beside table title — not a meta chip. */
+  cardOpener:
+    'max-w-[4.5rem] truncate text-xs font-medium text-brand-text opacity-85',
   /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
   cardBadge:
-    'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50',
-  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-text',
+    'shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium text-brand-gold border border-brand-gold/50',
+  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
   /**
-   * Sole floor-card amount face — money stack + high-contrast ink (not pale gold on wash)
-   * + ~2× prior size for oldstyle optical loss (status stays on shell/CTA).
+   * Sole floor-card amount face — money stack + brand ink.
+   * Dense 6-col: ~22px so amount fits without overlapping CTA.
    * Height lives only on `cardAmountSlot` — this face must fit inside that box.
    */
-  cardAmount: 'mesa-money text-[32px] !font-semibold leading-none text-brand-ink',
+  cardAmount: 'mesa-money text-[22px] !font-semibold leading-none text-brand-ink',
+  /** Idle hint in the same below-rule slot as amount (mutually exclusive). */
+  cardIdleHint: 'truncate text-xs leading-snug text-brand-text',
   /**
-   * Sole amount-row height (empty or filled). Fixed `h-10` matches the measured
-   * mesa-money 32px oldstyle line box (~40px); never a smaller min-h that lets
-   * dining overflow and idle collapse (grid row stretch → card 伸缩).
+   * Sole amount-row height (amount, idle hint, or empty). Fixed `h-7` matches
+   * mesa-money 22px line box; never a smaller min-h that dining overflows and
+   * idle collapses (grid row stretch → card 伸缩).
    */
-  cardAmountSlot: 'inline-flex h-10 min-w-0 items-center',
-  cardCta: 'shrink-0 text-sm font-semibold',
+  cardAmountSlot: 'inline-flex h-7 min-w-0 items-center',
+  cardCta: 'shrink-0 text-[0.8125rem] font-semibold',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',
 } as const;

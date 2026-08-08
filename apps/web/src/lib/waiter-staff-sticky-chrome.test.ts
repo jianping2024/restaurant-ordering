@@ -22,7 +22,7 @@ describe('staffTopBarChrome', () => {
     assert.match(staffTopBarChrome.headerClassName, /pt-\[env\(safe-area-inset-top/);
     assert.doesNotMatch(staffTopBarChrome.headerClassName, /overflow-/);
     assert.match(staffTopBarChrome.rowClassName, /h-14/);
-    assert.match(staffTopBarChrome.rowClassName, /max-w-6xl/);
+    assert.match(staffTopBarChrome.rowClassName, /max-w-\[120rem\]/);
     assert.match(staffTopBarChrome.rowClassName, /mx-auto/);
     assert.match(staffTopBarChrome.rowClassName, /safe-area-inset-left/);
     assert.doesNotMatch(

@@ -141,7 +141,7 @@
 | Modal / Drawer | `max-h-[calc(100dvh-*)]` 使用 dynamic viewport |
 | 顶栏 | Dashboard / Waiter 职员顶栏：内容行 `h-14` + `safe-area-inset-top/left/right`（`staffTopBarChrome`）；**FARVOO + 餐厅名**：`brand` 为 `flex-1` + logo 地板 `STAFF_TOP_BAR_BRAND_MIN_CLASS`（`min-w-[7rem]`）+ `overflow-hidden`，店名截断（`title` 全名）；右侧 cluster `max-w-[calc(100%-7rem)]`（与地板同一 `7rem`）；☰ 与 trailing（授权 + 角色）`shrink-0`；窄屏 trailing 文案宽度唯一 token：`STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS`；**禁止**用 header `overflow-x-clip` 藏溢出；整行靠 flex 收缩，不得撑出文档横滑；故意横滑只走 `.mesa-chip-scroll`；`<lg` 仅 ☰ + 角色菜单，`≥lg` 品牌后 **bounded** chip 横滑 nav（`max-w-full` 于 cluster 内）；看板 lane / 桌台详情吸顶用 `waiterStaffStickyChrome` |
 | 表单字号 | 可聚焦的 `input` / `select` / `textarea` 统一 ≥16px；唯一 token：`FORM_CONTROL_TEXT_CLASS`（`apps/web/src/lib/form-control-text.ts`）。共享控件（`Input` / `IntegerInput` / `DecimalInput` / buffet field styles / customer form styles）必须引用该 token；裸控件写 `text-base`。禁止 `text-sm` 等盖掉；字号写在控件自身，不靠外层 label 继承 |
-| 职员 `main` | 共用 `STAFF_SHELL_MAIN_CLASS`（仅纵向 `py-*`）+ 内层唯一内容栏 `STAFF_SHELL_CONTENT_CLASS`（`max-w-6xl mx-auto` + 含 safe-area 的左右 pad，与顶栏 row **同一左缘**）；**禁止**在 dashboard 业务页或顶栏 row 再包一层 `max-w-6xl` / 第二套 `pl/pr`；**禁止**在 `main`/顶栏 header 上设 `overflow-x-clip/hidden`；故意横滑只在 `.mesa-chip-scroll` |
+| 职员 `main` | 共用 `STAFF_SHELL_MAIN_CLASS`（仅纵向 `py-*`）+ 内层唯一内容栏 `STAFF_SHELL_CONTENT_CLASS`（`max-w-[120rem]` ≈ 1920 + 含 safe-area 的左右 pad，与顶栏 row **同一左缘**）；**禁止**在 dashboard 业务页或顶栏 row 再包一层 max-w / 第二套 `pl/pr`；**禁止**在 `main`/顶栏 header 上设 `overflow-x-clip/hidden`；故意横滑只在 `.mesa-chip-scroll` |
 
 ---
 

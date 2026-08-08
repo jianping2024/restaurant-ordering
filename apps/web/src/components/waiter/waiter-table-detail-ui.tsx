@@ -81,15 +81,17 @@ export const waiterDetailLayout = {
   orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
-   * One dish = one horizontal row (unique shape):
-   * item code · name (flex-1) · kitchen status · qty · serve/minus.
+   * One dish = one horizontal left-cluster row (unique shape):
+   * [code · name · status] —gap-8— [qty · serve/minus].
+   * Status follows the dish name (not the far-right qty). Label is not flex-1 —
+   * restores original name↔qty breath; wide viewports may leave empty space on the right.
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
-   * Slightly smaller than buffet package titles (`listBody` text-lg).
    */
-  orderedItemRow: 'flex w-full min-w-0 items-center gap-2.5',
+  orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
+  orderedItemIdentity: 'flex min-w-0 items-center gap-2.5',
   orderedItemCode:
     'shrink-0 min-w-[2rem] text-left text-sm font-semibold tabular-nums text-brand-gold',
-  orderedItemLabel: 'min-w-0 flex-1 truncate text-base font-semibold text-brand-text leading-snug',
+  orderedItemLabel: 'min-w-0 truncate text-base font-semibold text-brand-text leading-snug',
   orderedItemStatus:
     'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',

@@ -87,13 +87,16 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
 
-test('ordered-item row is one full-width horizontal line (code + name flex-1 + status + qty + actions)', () => {
+test('ordered-item row is a left cluster (identity —gap-8— qty/actions; label not flex-1)', () => {
   assert.match(waiterDetailLayout.orderedItemRow, /flex/);
-  assert.match(waiterDetailLayout.orderedItemRow, /w-full/);
+  assert.match(waiterDetailLayout.orderedItemRow, /gap-8/);
   assert.match(waiterDetailLayout.orderedItemRow, /items-center/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemRow, /justify-between/);
+  assert.match(waiterDetailLayout.orderedItemIdentity, /flex/);
+  assert.match(waiterDetailLayout.orderedItemIdentity, /min-w-0/);
   assert.match(waiterDetailLayout.orderedItemCode, /shrink-0/);
   assert.match(waiterDetailLayout.orderedItemCode, /tabular-nums/);
-  assert.match(waiterDetailLayout.orderedItemLabel, /flex-1/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /flex-1/);
   assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
   assert.match(waiterDetailLayout.orderedItemStatus, /shrink-0/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemStatus, /muted/);
@@ -103,28 +106,34 @@ test('ordered-item row is one full-width horizontal line (code + name flex-1 + s
   assert.equal(
     'orderedItemTextCol' in waiterDetailLayout,
     false,
-    'retired text-col wrapper — status is inline on the row',
+    'retired text-col — identity cluster is the sole name/status wrapper',
   );
 });
 
-test('ordered-items panel puts code + status on the main row (not chargeable-hint stack)', async () => {
+test('ordered-items panel: status in identity cluster; qty with actions (one left-cluster shape)', async () => {
   const { readFile } = await import('node:fs/promises');
   const { fileURLToPath } = await import('node:url');
   const { dirname, join } = await import('node:path');
   const here = dirname(fileURLToPath(import.meta.url));
   const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
   const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
+  assert.match(panel, /waiterDetailLayout\.orderedItemIdentity/);
   assert.match(panel, /waiterDetailLayout\.orderedItemCode/);
   assert.match(panel, /line\.itemCode/);
   assert.match(panel, /waiterDetailLayout\.orderedItemStatus/);
   assert.match(panel, /waiterDetailLayout\.orderedItemLabel/);
   assert.match(panel, /waiterDetailLayout\.orderedItemQty/);
   assert.doesNotMatch(panel, /orderedItemTextCol/);
-  // status must not reuse the muted chargeable-hint class
+  // status lives inside identity, not as a muted second line
   assert.doesNotMatch(
     panel,
     /statusLabel[\s\S]{0,120}orderedItemChargeableHint/,
   );
+  // qty is grouped with actions (after identity), not a flex-1 spacer sibling
+  const identityIdx = panel.indexOf('orderedItemIdentity');
+  const statusIdx = panel.indexOf('orderedItemStatus');
+  const qtyIdx = panel.indexOf('orderedItemQty');
+  assert.ok(identityIdx >= 0 && statusIdx > identityIdx && qtyIdx > statusIdx);
 });
 
 test('ordered-items panel splits money chrome from list title (one representation)', async () => {

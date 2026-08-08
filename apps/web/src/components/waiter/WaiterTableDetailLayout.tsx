@@ -536,18 +536,20 @@ export function WaiterTableOrderedItemsPanel({
               className="min-w-0"
             >
               <div className={waiterDetailLayout.orderedItemRow}>
-                {line.itemCode ? (
-                  <span className={waiterDetailLayout.orderedItemCode}>{line.itemCode}</span>
-                ) : null}
-                <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
-                {line.statusLabel ? (
-                  <span className={waiterDetailLayout.orderedItemStatus}>{line.statusLabel}</span>
-                ) : null}
-                {line.quantityLabel ? (
-                  <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
-                ) : null}
-                {(line.canDecrement || line.canServe) ? (
+                <div className={waiterDetailLayout.orderedItemIdentity}>
+                  {line.itemCode ? (
+                    <span className={waiterDetailLayout.orderedItemCode}>{line.itemCode}</span>
+                  ) : null}
+                  <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
+                  {line.statusLabel ? (
+                    <span className={waiterDetailLayout.orderedItemStatus}>{line.statusLabel}</span>
+                  ) : null}
+                </div>
+                {(line.quantityLabel || line.canDecrement || line.canServe) ? (
                   <div className={waiterDetailLayout.orderedItemActions}>
+                    {line.quantityLabel ? (
+                      <span className={waiterDetailLayout.orderedItemQty}>{line.quantityLabel}</span>
+                    ) : null}
                     {line.canServe && line.serveOrderId != null && line.serveItemIdx != null ? (
                       <Button
                         type="button"

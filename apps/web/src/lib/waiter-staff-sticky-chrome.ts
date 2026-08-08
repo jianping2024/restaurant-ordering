@@ -61,7 +61,7 @@ export const staffTopBarChrome = {
    * Sole staff-chrome restaurant label class (ProductTopBarBrand only).
    */
   restaurantNameClassName:
-    'min-w-0 truncate font-heading text-sm text-brand-text-muted',
+    'min-w-0 truncate font-heading text-base font-medium text-brand-text sm:text-lg',
   /**
    * Nav + hamburger + trailing. Cap leaves the brand logo floor; desktop nav
    * scrolls inside (`.mesa-chip-scroll`), never competes past this width.

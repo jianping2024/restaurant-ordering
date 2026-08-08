@@ -139,7 +139,7 @@ function BoardKpiCard({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className="mesa-stat min-w-[5.5rem] flex-1 text-left"
+      className="mesa-stat min-w-0 w-full text-left"
       data-active={active ? 'true' : 'false'}
     >
       <div

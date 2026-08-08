@@ -197,27 +197,6 @@ export const MESSAGES_FR = {
       "headline": "Gérez votre restaurant plus efficacement",
       "body": "Commandes, opérations et service — un seul back-office."
     },
-    "support": {
-      "install": "Installer l'application bureau",
-      "forgotPassword": "Mot de passe oublié ?",
-      "contactAdmin": "Contacter l'administrateur",
-      "adminHelpDetail": "Pour réinitialiser le mot de passe ou créer des comptes, contactez l'administrateur du restaurant."
-    }
-  },
-  "staffPwaInstall": {
-    "hint": "Installez sur le bureau pour supprimer la barre du navigateur et l'avertissement « Not secure » — idéal pour l'accueil et la salle (réseau toujours requis).",
-    "installButton": "Installer sur le bureau",
-    "manualLead": "Installez en application de bureau pour retirer la barre et « Not secure » (réseau toujours requis).",
-    "howToInstall": "Comment installer ?",
-    "guideTitle": "Installer sur le bureau",
-    "steps": [
-      "Après installation, ouvrez FARVOO depuis l'icône bureau/écran d'accueil — pas l'onglet du navigateur.",
-      "Chrome : ⋮ en haut à droite → « Cast, save and share » / « Diffuser, enregistrer et partager » → « Install page as app… » / « Installer la page en tant qu'application… ».",
-      "Sinon : ⋮ → « More tools » / « Plus d'outils » → « Create shortcut… » / « Créer un raccourci… », cochez « Open as window » / « Ouvrir dans une fenêtre ».",
-      "Préférez localhost ou HTTPS — http://IP-LAN masque souvent l'installation.",
-      "iPhone/iPad : Partager → « Sur l'écran d'accueil ».",
-      "Le réseau reste nécessaire — pas de commande hors ligne."
-    ]
   },
   "licenseSuspension": {
     "renew": {

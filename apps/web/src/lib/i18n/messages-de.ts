@@ -197,27 +197,6 @@ export const MESSAGES_DE = {
       "headline": "Restaurantbetrieb effizienter gestalten",
       "body": "Bestellung, Betrieb und Service — ein Backoffice."
     },
-    "support": {
-      "install": "Desktop-App installieren",
-      "forgotPassword": "Passwort vergessen?",
-      "contactAdmin": "Restaurantverwaltung kontaktieren",
-      "adminHelpDetail": "Für Passwort-Reset oder neue Konten wenden Sie sich an die Restaurantverwaltung."
-    }
-  },
-  "staffPwaInstall": {
-    "hint": "Als Desktop-App ohne Browserleiste und ohne «Not secure» — ideal für Empfang und Service (Netzwerk weiterhin nötig).",
-    "installButton": "Auf dem Desktop installieren",
-    "manualLead": "Als Desktop-App installieren, um Browserleiste und «Not secure» zu entfernen (Netzwerk weiterhin nötig).",
-    "howToInstall": "Wie installieren?",
-    "guideTitle": "Auf dem Desktop installieren",
-    "steps": [
-      "Nach der Installation FARVOO über das Desktop-/Home-Bildschirm-Symbol öffnen — nicht den Browser-Tab.",
-      "Chrome: oben rechts ⋮ → „Cast, save and share“ / „Streamen, speichern und teilen“ → „Install page as app…“ / „Seite als App installieren…“.",
-      "Falls fehlend: ⋮ → „More tools“ / „Weitere Tools“ → „Create shortcut…“ / „Verknüpfung erstellen…“, „Open as window“ / „Als Fenster öffnen“ anhaken.",
-      "Bevorzugt localhost oder HTTPS — unter http://LAN-IP fehlt die Installation oft.",
-      "iPhone/iPad: Teilen → „Zum Home-Bildschirm“.",
-      "Weiterhin Netzwerk nötig — keine Offline-Bestellung."
-    ]
   },
   "licenseSuspension": {
     "renew": {

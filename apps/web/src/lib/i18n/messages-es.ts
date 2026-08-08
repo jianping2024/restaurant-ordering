@@ -197,27 +197,6 @@ export const MESSAGES_ES = {
       "headline": "Haz más eficiente la operación del restaurante",
       "body": "Pedidos, operación y servicio — un solo back office."
     },
-    "support": {
-      "install": "Instalar app de escritorio",
-      "forgotPassword": "¿Has olvidado la contraseña?",
-      "contactAdmin": "Contactar al administrador",
-      "adminHelpDetail": "Para restablecer la contraseña o crear cuentas, contacta con el administrador del restaurante."
-    }
-  },
-  "staffPwaInstall": {
-    "hint": "Instálalo en el escritorio para quitar la barra del navegador y el aviso «Not secure» — ideal para recepción y sala (sigue haciendo falta red).",
-    "installButton": "Instalar en el escritorio",
-    "manualLead": "Instala como app de escritorio para quitar la barra y «Not secure» (sigue haciendo falta red).",
-    "howToInstall": "¿Cómo instalar?",
-    "guideTitle": "Instalar en el escritorio",
-    "steps": [
-      "Tras instalar, abre FARVOO desde el icono del escritorio/pantalla de inicio — no desde la pestaña del navegador.",
-      "Chrome: ⋮ arriba a la derecha → “Cast, save and share” / “Emitir, guardar y compartir” → “Install page as app…” / “Instalar página como aplicación…”.",
-      "Si no está: ⋮ → “More tools” / “Más herramientas” → “Create shortcut…” / “Crear acceso directo…”, marca “Open as window” / “Abrir como ventana”.",
-      "Preferible localhost o HTTPS; http://IP-LAN a menudo no muestra instalar.",
-      "iPhone/iPad: Compartir → “Añadir a pantalla de inicio”.",
-      "Sigue haciendo falta red — no hay pedidos sin conexión."
-    ]
   },
   "licenseSuspension": {
     "renew": {

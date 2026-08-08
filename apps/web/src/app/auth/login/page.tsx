@@ -17,7 +17,6 @@ export default function LoginPage() {
         subtitle: t.subtitle,
         securityNote: t.securityNote,
         hero: t.hero,
-        support: t.support,
       }}
     >
       <AuthLoginForm />

@@ -23,6 +23,8 @@ export const waiterBoardType = {
    * + ~2× prior size for oldstyle optical loss (status stays on shell/CTA).
    */
   cardAmount: 'mesa-money text-[32px] !font-semibold leading-none text-brand-ink',
+  /** Always-on amount row slot — same height empty or filled so CTA does not jump. */
+  cardAmountSlot: 'inline-flex min-h-[2rem] min-w-0 items-baseline',
   cardCta: 'shrink-0 text-sm font-semibold',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',

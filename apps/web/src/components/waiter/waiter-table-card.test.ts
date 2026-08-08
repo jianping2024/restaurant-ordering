@@ -124,7 +124,8 @@ describe('buildWaiterTableCard', () => {
       capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
     assert.equal(card.orderLines.length, 1);
-    assert.equal(card.orderLines[0]?.label, '001 Água 500ml');
+    assert.equal(card.orderLines[0]?.itemCode, '001');
+    assert.equal(card.orderLines[0]?.label, 'Água 500ml');
     assert.equal(card.orderLines[0]?.quantityLabel, '× 1');
   });
 
@@ -223,7 +224,8 @@ describe('buildWaiterTableCard', () => {
     );
 
     assert.equal(card.orderLines.length, 1);
-    assert.equal(card.orderLines[0]?.label, '001 Água 500ml');
+    assert.equal(card.orderLines[0]?.itemCode, '001');
+    assert.equal(card.orderLines[0]?.label, 'Água 500ml');
     assert.equal(card.orderLines[0]?.quantityLabel, '× 3');
     assert.equal(card.orderLines[0]?.canDecrement, true);
     assert.equal(card.orderLines[0]?.orderId, 'o1');

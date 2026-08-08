@@ -13,7 +13,7 @@ import {
 } from '@/lib/buffet-order';
 import {
   formatStaffBuffetLineLabel,
-  formatStaffMenuLineLabel,
+  formatOrderItemPlainName,
   formatOrderItemQuantityLabel,
 } from '@/lib/order-list-display';
 import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
@@ -31,6 +31,9 @@ import {
 export type WaiterOrderLine = {
   orderId: string;
   itemIdx: number;
+  /** Menu item code prefix (`018`); null for buffet / missing code. */
+  itemCode: string | null;
+  /** Dish/buffet name (no item code — code is `itemCode`). */
   label: string;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
   statusLabel: string | null;
@@ -216,6 +219,7 @@ export function buildWaiterTableCard(
       return {
         orderId: '',
         itemIdx: -1,
+        itemCode: null,
         label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
         statusLabel: null,
         quantityLabel: null,
@@ -256,7 +260,8 @@ export function buildWaiterTableCard(
 
     return {
       ...action,
-      label: formatStaffMenuLineLabel(item, resolveMenuItemCode(item, itemCodeByMenuId)),
+      itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
+      label: formatOrderItemPlainName(item),
       statusLabel,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       chargeableQty: share.chargeableQty ?? null,

@@ -44,7 +44,8 @@ test('floor list body is one tier for ordered dishes and buffet package names', 
   assert.match(waiterFloorType.listBody, /font-semibold/);
   assert.match(waiterFloorType.listBody, /text-brand-text/);
   assert.equal(waiterDetailLayout.orderedItemsTitle.includes(waiterFloorType.listBody), true);
-  assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-base/);
+  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /text-lg/);
   assert.match(waiterFloorType.priceLine, /text-\[15px\]/);
   assert.match(waiterFloorType.priceLine, /text-brand-text/);
   assert.doesNotMatch(waiterFloorType.priceLine, /muted/);
@@ -81,15 +82,17 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /tabular-nums/);
-  assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
-  assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-base/);
+  assert.match(waiterDetailLayout.orderedItemQty, /text-base/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
 
-test('ordered-item row is one full-width horizontal line (name flex-1 + status + qty + actions)', () => {
+test('ordered-item row is one full-width horizontal line (code + name flex-1 + status + qty + actions)', () => {
   assert.match(waiterDetailLayout.orderedItemRow, /flex/);
   assert.match(waiterDetailLayout.orderedItemRow, /w-full/);
   assert.match(waiterDetailLayout.orderedItemRow, /items-center/);
+  assert.match(waiterDetailLayout.orderedItemCode, /shrink-0/);
+  assert.match(waiterDetailLayout.orderedItemCode, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemLabel, /flex-1/);
   assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
   assert.match(waiterDetailLayout.orderedItemStatus, /shrink-0/);
@@ -104,13 +107,15 @@ test('ordered-item row is one full-width horizontal line (name flex-1 + status +
   );
 });
 
-test('ordered-items panel puts status on the main row (not chargeable-hint stack)', async () => {
+test('ordered-items panel puts code + status on the main row (not chargeable-hint stack)', async () => {
   const { readFile } = await import('node:fs/promises');
   const { fileURLToPath } = await import('node:url');
   const { dirname, join } = await import('node:path');
   const here = dirname(fileURLToPath(import.meta.url));
   const src = await readFile(join(here, 'WaiterTableDetailLayout.tsx'), 'utf8');
   const panel = src.slice(src.indexOf('WaiterTableOrderedItemsPanel'));
+  assert.match(panel, /waiterDetailLayout\.orderedItemCode/);
+  assert.match(panel, /line\.itemCode/);
   assert.match(panel, /waiterDetailLayout\.orderedItemStatus/);
   assert.match(panel, /waiterDetailLayout\.orderedItemLabel/);
   assert.match(panel, /waiterDetailLayout\.orderedItemQty/);

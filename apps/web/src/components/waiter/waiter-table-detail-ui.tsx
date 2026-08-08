@@ -82,15 +82,18 @@ export const waiterDetailLayout = {
   orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
   /**
    * One dish = one horizontal row (unique shape):
-   * name (flex-1, fills width) · kitchen status · qty · serve/minus.
+   * item code · name (flex-1) · kitchen status · qty · serve/minus.
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
+   * Slightly smaller than buffet package titles (`listBody` text-lg).
    */
-  orderedItemRow: 'flex w-full min-w-0 items-center gap-3',
-  orderedItemLabel: `${waiterFloorType.listBodyTruncate} flex-1`,
+  orderedItemRow: 'flex w-full min-w-0 items-center gap-2.5',
+  orderedItemCode:
+    'shrink-0 min-w-[2rem] text-left text-sm font-semibold tabular-nums text-brand-gold',
+  orderedItemLabel: 'min-w-0 flex-1 truncate text-base font-semibold text-brand-text leading-snug',
   orderedItemStatus:
-    'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-950',
+    'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',
-  orderedItemQty: waiterFloorType.listQty,
+  orderedItemQty: 'shrink-0 text-base font-semibold text-brand-text tabular-nums',
   orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;
 

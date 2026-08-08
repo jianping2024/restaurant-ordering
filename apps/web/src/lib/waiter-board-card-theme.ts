@@ -43,13 +43,24 @@ export const WAITER_BOARD_LANE_CHROME = {
 } as const;
 
 /**
+ * Sole lane→card clearance under the sticky dock (one spacing step, two faces).
+ * - `shellPadBottom` — interior pad on the sticky shell (in opaque paint; never exterior `mb`)
+ * - `gridScrollMargin` — matching `scroll-margin-top` on below-lane card grids only
+ * Sized to clear `mesa-scroll-frame` double-frame top when the dock is stuck.
+ */
+export const WAITER_BOARD_LANE_TO_CARD_CLEARANCE = {
+  shellPadBottom: 'pb-8',
+  gridScrollMargin: 'scroll-mt-8',
+} as const;
+
+/**
  * Board lane tablist shell — sticks under staff top bar while the grid scrolls.
- * Opaque page bg paints the full dock (tabs + breath before cards) so cards never
+ * Opaque page bg paints the full dock (tabs + lane→card clearance) so cards never
  * show through a transparent margin gap; offset = `waiterStaffStickyChrome`.
  * Spacing before the grid is shell padding-bottom only — not exterior margin.
  */
 export const WAITER_BOARD_LANE_STICKY_SHELL =
-  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 min-w-0 border-b border-brand-border/40 bg-brand-bg pt-2 pb-4`;
+  `sticky ${waiterStaffStickyChrome.belowStaffTopBar} z-20 min-w-0 border-b border-brand-border/40 bg-brand-bg pt-2 ${WAITER_BOARD_LANE_TO_CARD_CLEARANCE.shellPadBottom}`;
 
 /**
  * Sole trailing scroll room for the sticky lane dock — enough that max-scroll can

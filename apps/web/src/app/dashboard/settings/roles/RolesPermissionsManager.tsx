@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '@/components/ui/Input';
@@ -8,16 +8,13 @@ import { showToast } from '@/components/ui/Toast';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { rolePermissionsMessages } from '@/lib/i18n/role-permissions-messages';
 import {
-  ALL_PERMISSION_KEYS,
-  PERMISSIONS,
-  PERMISSION_GROUPS,
-  type PermissionKey,
-} from '@/lib/permissions/registry';
-import {
-  SETTINGS_ENTRY_PERMISSION,
-  applyPermissionToggle,
-  settingsPermissionChildren,
-} from '@/lib/permissions/role-permission-set';
+  ROLE_PERMISSION_PAGE_TREE,
+  permissionTreeNodeDangerous,
+  resolvePermissionTreeLabel,
+  type PermissionTreeNode,
+} from '@/lib/permissions/permission-page-tree';
+import type { PermissionKey } from '@/lib/permissions/registry';
+import { applyPermissionToggle } from '@/lib/permissions/role-permission-set';
 import type { RestaurantRoleRow } from '@/lib/permissions/types';
 
 type RoleListItem = RestaurantRoleRow & { staff_count?: number };
@@ -52,6 +49,61 @@ function draftFingerprint(d: FormDraft): string {
   });
 }
 
+function PermissionTreeCheckboxList(props: {
+  nodes: readonly PermissionTreeNode[];
+  depth: number;
+  selected: ReadonlySet<PermissionKey>;
+  onToggle: (key: PermissionKey) => void;
+  dangerousLabel: string;
+  lang: Parameters<typeof resolvePermissionTreeLabel>[1];
+}) {
+  const { nodes, depth, selected, onToggle, dangerousLabel, lang } = props;
+  const pad = depth === 0 ? 'px-4' : depth === 1 ? 'pl-10 pr-4' : 'pl-14 pr-4';
+  const nestBg = depth > 0 ? 'bg-brand-bg/40' : '';
+
+  return (
+    <>
+      {nodes.map((node) => (
+        <div key={node.permission} className={depth > 0 ? 'border-t border-brand-border/40' : undefined}>
+          <label
+            className={`flex items-start gap-3 py-3.5 cursor-pointer select-none hover:bg-brand-border/20 transition-colors ${pad} ${nestBg}`}
+          >
+            <input
+              type="checkbox"
+              className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              checked={selected.has(node.permission)}
+              onChange={() => onToggle(node.permission)}
+            />
+            <span className="min-w-0 text-[15px] text-brand-text">
+              {resolvePermissionTreeLabel(node.label, lang)}
+              {permissionTreeNodeDangerous(node.permission) ? (
+                <span className="ml-1 text-xs text-amber-800">({dangerousLabel})</span>
+              ) : null}
+            </span>
+          </label>
+          {node.children && node.children.length > 0 ? (
+            <div
+              className="border-t border-brand-border/60"
+              data-testid={
+                node.permission === 'dashboard.settings.view' ? 'settings-perm-tree' : undefined
+              }
+            >
+              <PermissionTreeCheckboxList
+                nodes={node.children}
+                depth={depth + 1}
+                selected={selected}
+                onToggle={onToggle}
+                dangerousLabel={dangerousLabel}
+                lang={lang}
+              />
+            </div>
+          ) : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function RolesPermissionsManager() {
   const { lang } = useLanguage();
   const t = rolePermissionsMessages(lang);
@@ -84,22 +136,6 @@ export function RolesPermissionsManager() {
     void reload();
   }, [reload]);
 
-  const groupedKeys = useMemo(() => {
-    const nestedUnderSettings = new Set(settingsPermissionChildren());
-    const map = new Map<string, PermissionKey[]>();
-    for (const group of PERMISSION_GROUPS) {
-      const keys = ALL_PERMISSION_KEYS.filter((key) => {
-        if (PERMISSIONS[key].group !== group) return false;
-        // Settings children render once under 餐厅设置 — not again in the settings group list.
-        if (group === 'settings' && nestedUnderSettings.has(key)) return false;
-        return true;
-      });
-      if (keys.length > 0) map.set(group, keys);
-    }
-    return map;
-  }, []);
-
-  const settingsChildren = useMemo(() => settingsPermissionChildren(), []);
   const isDirty = draft != null && draftFingerprint(draft) !== baselineFp;
 
   const openCreate = () => {
@@ -320,16 +356,6 @@ export function RolesPermissionsManager() {
     }
   };
 
-  const permLabel = (key: PermissionKey) => {
-    const labelKey = PERMISSIONS[key].labelKey as keyof typeof t.perm;
-    return t.perm[labelKey] || key;
-  };
-
-  const groupLabel = (group: string) => {
-    const k = group as keyof typeof t.groups;
-    return t.groups[k] || group;
-  };
-
   const confirmCopy = (() => {
     if (!pending) return { title: '', message: '', confirmLabel: t.confirm, variant: 'default' as const };
     if (pending.kind === 'leave') {
@@ -492,67 +518,15 @@ export function RolesPermissionsManager() {
             ) : null}
           </div>
 
-          <div className="space-y-6">
-            {Array.from(groupedKeys.entries()).map(([group, keys]) => (
-              <section key={group}>
-                <h3 className="text-sm font-medium text-brand-text mb-2">{groupLabel(group)}</h3>
-                <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
-                  {keys.map((key) => {
-                    const isSettingsEntry = key === SETTINGS_ENTRY_PERMISSION;
-                    return (
-                      <div key={key}>
-                        <label
-                          className="flex items-start gap-3 px-4 py-3.5 cursor-pointer select-none hover:bg-brand-border/20 transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-                            checked={draft.permissions.has(key)}
-                            onChange={() => togglePerm(key)}
-                          />
-                          <span className="min-w-0 text-[15px] text-brand-text">
-                            {permLabel(key)}
-                            {Boolean((PERMISSIONS[key] as { dangerous?: boolean }).dangerous) ? (
-                              <span className="ml-1 text-xs text-amber-800">({t.dangerous})</span>
-                            ) : null}
-                          </span>
-                        </label>
-                        {isSettingsEntry && settingsChildren.length > 0 ? (
-                          <div
-                            className="border-t border-brand-border/60 bg-brand-bg/40"
-                            data-testid="settings-perm-tree"
-                          >
-                            {settingsChildren.map((child) => (
-                              <label
-                                key={child}
-                                className="flex items-start gap-3 py-3 pl-10 pr-4 cursor-pointer select-none hover:bg-brand-border/20 transition-colors border-t border-brand-border/40 first:border-t-0"
-                              >
-                                <input
-                                  type="checkbox"
-                                  className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
-                                  checked={draft.permissions.has(child)}
-                                  onChange={() => togglePerm(child)}
-                                />
-                                <span className="min-w-0 text-[15px] text-brand-text">
-                                  {permLabel(child)}
-                                  {Boolean(
-                                    (PERMISSIONS[child] as { dangerous?: boolean }).dangerous,
-                                  ) ? (
-                                    <span className="ml-1 text-xs text-amber-800">
-                                      ({t.dangerous})
-                                    </span>
-                                  ) : null}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+          <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border overflow-hidden">
+            <PermissionTreeCheckboxList
+              nodes={ROLE_PERMISSION_PAGE_TREE}
+              depth={0}
+              selected={draft.permissions}
+              onToggle={togglePerm}
+              dangerousLabel={t.dangerous}
+              lang={lang}
+            />
           </div>
 
           <div className="fixed bottom-0 inset-x-0 z-20 border-t border-brand-border bg-brand-bg/95 backdrop-blur-sm px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">

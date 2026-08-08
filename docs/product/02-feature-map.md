@@ -133,6 +133,7 @@
 ### 业务边界
 
 - 店主（后台管理员）与 frontdesk 可通过 `/dashboard/menu` 管理；后台管理员顶栏默认含「菜单管理」
+- 角色权限勾选为产品页面树（`ROLE_PERMISSION_PAGE_TREE`）：设置子页（含后厨大屏）挂在「餐厅设置」下，与设置 Tab 同文案同源
 - `/dashboard/settings/menu` 已重定向到 settings 主页；**菜单管理主入口是 `/dashboard/menu`**
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
 

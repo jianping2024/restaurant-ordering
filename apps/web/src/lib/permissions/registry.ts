@@ -16,8 +16,12 @@ export const PERMISSION_GROUPS = [
 export type PermissionGroup = (typeof PERMISSION_GROUPS)[number];
 
 export type PermissionDef = {
+  /** Catalog bucket only — role editor IA is ROLE_PERMISSION_PAGE_TREE, not these groups. */
   group: PermissionGroup;
-  /** i18n key under messages.rolePermissions.perm.* */
+  /**
+   * Stable id for action-row copy in rolePermissionsMessages.perm.* when the page tree
+   * uses source:'action'. Page/settings nodes resolve labels from nav/settingsHub instead.
+   */
   labelKey: string;
   dangerous?: boolean;
   requires?: readonly string[];

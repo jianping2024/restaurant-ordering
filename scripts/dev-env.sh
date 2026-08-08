@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Load env file into the shell, then start Next.js (web or ops workspace).
 # Shell exports take precedence over .env.local (Next.js does not overwrite existing process.env).
+# Port policy: never kill an existing listener — pick the next free port (see .cursor/rules/dev-port-isolation.mdc).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="${1:-.env.local.dev}"
@@ -16,31 +17,46 @@ set -a
 source "$ENV_FILE"
 set +a
 
-free_listen_port() {
+port_in_use() {
   local port="$1"
-  local pids
-  pids="$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)"
-  if [[ -n "$pids" ]]; then
-    echo "Port $port in use (PIDs: $pids); stopping..." >&2
-    # shellcheck disable=SC2086
-    kill $pids 2>/dev/null || true
-    sleep 1
-  fi
-  if command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx 'mesa-on-prem-web-1'; then
-    echo "Stopping mesa-on-prem-web-1 (binds :$port)..." >&2
-    docker stop mesa-on-prem-web-1 >/dev/null 2>&1 || true
-  fi
+  lsof -ti :"$port" -sTCP:LISTEN >/dev/null 2>&1
+}
+
+# Prefer preferred; if busy, walk upward. skip_port (optional) avoids web↔ops collision.
+pick_listen_port() {
+  local preferred="$1"
+  local skip_port="${2:-}"
+  local port="$preferred"
+  local max=$((preferred + 40))
+  while (( port <= max )); do
+    if [[ -n "$skip_port" && "$port" -eq "$skip_port" ]]; then
+      port=$((port + 1))
+      continue
+    fi
+    if ! port_in_use "$port"; then
+      if [[ "$port" -ne "$preferred" ]]; then
+        echo "Port $preferred in use; starting on $port instead (left occupant alone)." >&2
+        echo "UAT: MESA_UAT_BASE=http://localhost:$port  (or MESA_UAT_OPS_BASE for ops)" >&2
+      fi
+      echo "$port"
+      return 0
+    fi
+    port=$((port + 1))
+  done
+  echo "No free listen port near $preferred (tried through $max)" >&2
+  exit 1
 }
 
 case "$TARGET" in
   web)
-    free_listen_port 3000
+    WEB_PORT="$(pick_listen_port 3000 3001)"
     cd apps/web
-    exec npx next dev --hostname 0.0.0.0 --port 3000
+    exec npx next dev --hostname 0.0.0.0 --port "$WEB_PORT"
     ;;
   ops)
+    OPS_PORT="$(pick_listen_port 3001 3000)"
     cd apps/ops
-    exec npx next dev --hostname 0.0.0.0 --port 3001
+    exec npx next dev --hostname 0.0.0.0 --port "$OPS_PORT"
     ;;
   *)
     echo "Unknown target: $TARGET (use web or ops)" >&2

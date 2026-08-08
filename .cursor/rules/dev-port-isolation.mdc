@@ -1,0 +1,32 @@
+---
+description: >-
+  Never kill or hijack a busy localhost listen port. On conflict, start a new
+  free port and point UAT/browser at it (MESA_UAT_BASE).
+alwaysApply: true
+---
+
+# Dev / UAT port isolation
+
+**省冲突第一。** Another process already listening on web `:3000` / ops `:3001` (or any target port) is **not** yours to reclaim.
+
+## Forbidden
+
+- `kill` / `kill -9` / `lsof -ti :PORT | xargs kill` on a listen port you did not start in **this** thread
+- Stopping unrelated Docker containers (e.g. `mesa-on-prem-web-1`) just to free `:3000`
+- Forcing `npm run dev` / `next dev` onto a busy port, or editing shared scripts to auto-kill listeners
+- Assuming UAT must be `:3000` when the healthy stack is already elsewhere
+
+## Required when the default port is busy
+
+1. **Leave the occupant alone.**
+2. **Start on the next free port** (web: try `3002+` if `3000` busy; ops: try `3011+` if `3001` busy — or any free high port). Prefer `PORT=<n> npx next dev --hostname 0.0.0.0 --port <n>` from the workspace, or rely on `scripts/dev-env.sh` which must **pick** a free port, never free-by-kill.
+3. **Point all checks at that base:**
+   - Browser / MCP → `http://localhost:<n>/…`
+   - `MESA_UAT_BASE=http://localhost:<n>` for `mesa-local-uat` / print smoke
+   - Report the chosen base in the UAT summary
+4. Prefer an **already-healthy** stack on `:3000` for UAT when it serves this checkout — do not start a second server then fight for the port.
+
+## Defaults (when free)
+
+- Web: `http://localhost:3000` · Ops: `http://localhost:3001`
+- Env override: `MESA_UAT_BASE` / `MESA_UAT_OPS_BASE` (see `scripts/mesa-local-uat.mjs`)

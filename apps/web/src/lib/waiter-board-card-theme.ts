@@ -37,11 +37,14 @@ export const waiterBoardType = {
 export const WAITER_BOARD_SELECTED_EMPHASIS =
   'border border-brand-ink bg-brand-ink text-brand-on-ink shadow-sm';
 
-/** Lane tabs + together-group dropdown — shared height; active = solid ink face. */
+/**
+ * Lane tabs + together-group dropdown — shared geometry (height + font-weight);
+ * active = solid ink face only (colors), never a second weight that reflows width.
+ */
 export const WAITER_BOARD_LANE_CHROME = {
-  base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] transition-colors',
-  idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted font-medium hover:border-brand-ink/35 hover:text-brand-text',
-  active: `font-semibold ${WAITER_BOARD_SELECTED_EMPHASIS}`,
+  base: 'inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2.5 min-h-[2.75rem] font-semibold transition-colors',
+  idle: 'border border-brand-border/70 bg-brand-card/40 text-brand-text-muted hover:border-brand-ink/35 hover:text-brand-text',
+  active: WAITER_BOARD_SELECTED_EMPHASIS,
 } as const;
 
 /**

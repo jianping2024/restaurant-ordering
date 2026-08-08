@@ -128,7 +128,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.doesNotMatch(WAITER_BOARD_SELECTED_EMPHASIS, /\bring-/);
     assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /bg-brand-ink/);
     assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /text-brand-on-ink/);
-    assert.equal(WAITER_BOARD_LANE_CHROME.active.includes(WAITER_BOARD_SELECTED_EMPHASIS), true);
+    assert.equal(WAITER_BOARD_LANE_CHROME.active, WAITER_BOARD_SELECTED_EMPHASIS);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.checkout, /mesa-text-warning/);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.dining, /mesa-text-danger/);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.idle, /mesa-text-success/);
@@ -136,5 +136,12 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.equal(WAITER_BOARD_KPI_RULE_ACTIVE_CLASS, 'bg-brand-gold');
     assert.match(WAITER_BOARD_KPI_GRID_CLASS, /grid-cols-2/);
     assert.match(WAITER_BOARD_KPI_GRID_CLASS, /sm:grid-cols-4/);
+  });
+
+  it('lane chrome weight lives only on base — idle/active never reflow width', () => {
+    assert.match(WAITER_BOARD_LANE_CHROME.base, /\bfont-semibold\b/);
+    assert.doesNotMatch(WAITER_BOARD_LANE_CHROME.base, /\bfont-medium\b/);
+    assert.doesNotMatch(WAITER_BOARD_LANE_CHROME.idle, /\bfont-(?:medium|semibold|bold)\b/);
+    assert.doesNotMatch(WAITER_BOARD_LANE_CHROME.active, /\bfont-(?:medium|semibold|bold)\b/);
   });
 });

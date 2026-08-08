@@ -30,6 +30,7 @@ Every `skip` **must** state the blocker in one line. Prefer a weaker but real as
 
 ## Local accounts
 
+- **UI login:** always `http://localhost:3000/auth/login` (unified owner/staff; never `/login` or staff-only legacy paths for routine UAT)
 - Staff UAT: `qiantai1` / `123456` (白云 `restaurant-mohnrib5`)
 - Owner setup: `baiyun@gmail.com` / `123456` (same restaurant)
 - Forbidden: `qiantai@mesa.in`

@@ -136,7 +136,7 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | 路径 | 说明 |
 |------|------|
 | `/` | 产品落地页 |
-| `/auth/login` | 登录 |
+| `/auth/login` | **统一登录**（店主邮箱或员工登录名；一页 + `POST /api/auth/login`） |
 | `/auth/register` | 提示「公开注册已关闭」（跳转登录） |
 | `/auth/admin/register` | **已下线** — 重定向至运营后台 `/ops/login`（需 `NEXT_PUBLIC_OPS_APP_URL`） |
 | `/dashboard` | 餐厅后台概览 |
@@ -146,8 +146,8 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 | `/dashboard/settings` | 餐厅设置 **Hub**（基本资料、员工管理、桌位、菜单等 Tab） |
 | `/dashboard/settings/staff` | 员工账号（创建、停用、删除、重置密码等） |
 | `/[slug]/menu?table_id={uuid}` | 顾客点餐页（手机端；QR 绑稳定 `table_id`，界面显示 `display_name` 如 A-01） |
-| `/[slug]/staff/login` | 员工登录（店内入口；登录名或完整 `{login}@mesa.in`） |
-| `/auth/staff/login` | 员工登录（全局入口；不选店） |
+| `/[slug]/staff/login` | 店内扫码别名（同款统一登录 UI，带店名上下文） |
+| `/auth/staff/login` | **已合并** — 重定向至 `/auth/login` |
 | `/auth/staff/change-password` | 员工首次登录 / 重置密码后的强制改密 |
 | `/[slug]/kitchen` | 厨房显示页（需 **已登录** 的厨房角色员工） |
 | `/[slug]/waiter` | 服务员观察页（需 **已登录** 的服务员角色员工） |
@@ -167,7 +167,7 @@ Supabase **内置邮件**不是给公开注册用的：在未配置 **自定义 
 
 ## 后厨与服务员看板（实时与会话）
 
-- **员工账号登录**（或 **店主**从后台侧边栏打开看板，**同一浏览器会话**无需再录员工密码）后，页面通过 **Supabase Realtime** 订阅 `orders` 与 `table_sessions`，并在进入时 **立即拉取** 最新数据（未满足则跳转到 `/[slug]/staff/login`）。
+- **统一登录 `/auth/login`**（或 **店主**从后台侧边栏打开看板，**同一浏览器会话**无需再录员工密码）后，页面通过 **Supabase Realtime** 订阅 `orders` 与 `table_sessions`，并在进入时 **立即拉取** 最新数据（未满足则跳转到登录页）。
 - **仅展示活跃餐次下的订单**：`table_sessions` 为 `open` 或 `billing` 时，对应 `orders.session_id` 会出现在后厨与服务员看板；餐次关闭后，这些订单从两页看板消失（无需整页刷新）。
 - **服务员「关台」**：当该桌没有「制作中」且没有「可端菜」时，可结束当前餐次（`closed_reason = waiter_closed`），用于未开做前撤台、错台等；已有出餐中的桌台需先跟随后厨流程或逐单处理。详见 [`docs/table-transfer-merge-plan.zh.md`](docs/table-transfer-merge-plan.zh.md) 中「服务员关台与看板可见性」。
 - **员工账号（替换 PIN）**：Hub「员工管理」`/dashboard/settings/staff`；实施顺序与 CRUD/API/RLS 约定见 [`docs/staff-accounts-plan.md`](docs/staff-accounts-plan.md)。
@@ -214,12 +214,12 @@ git push -u origin main
 ## 快速使用流程
 
 1. 配置 `SUPABASE_SERVICE_ROLE_KEY` 与 `ADMIN_BOOTSTRAP_SECRET`，在运营后台 `/ops/bootstrap` 创建首个运营账号，再在 `/ops/restaurants/new` 创建店主与餐厅（见 [`docs/platform-admin-plan.zh.md`](docs/platform-admin-plan.zh.md)）。
-2. 店主在 `/auth/login` 登录，在 `/dashboard/settings/menu` 添加菜品
+2. 店主在 **`/auth/login`** 登录，在 `/dashboard/settings/menu` 添加菜品
 3. 在 `/dashboard/tables` 生成桌位二维码并打印
 4. 在 `/dashboard/settings/staff` **创建厨房 / 服务员员工账号**（每人 **`{登录名}@mesa.in`** + 初始密码；登录名全平台唯一）
-5. 在 `/dashboard/tables` 下载或打印 **桌位二维码** 与 **`/[slug]/staff/login` 员工登录二维码**
-6. 员工用手机打开 **`/[slug]/staff/login`**，用登录名（或完整邮箱）+ 密码登录；首次或重置后须完成 **`/auth/staff/change-password`**
-7. 再打开 **`/[slug]/kitchen`** 或 **`/[slug]/waiter`** 进入对应看板（角色不匹配会提示错误）
+5. 在 `/dashboard/tables` 下载或打印 **桌位二维码**（店内登录二维码可指向 `/[slug]/staff/login`，与统一登录同款）
+6. 员工打开 **`/auth/login`**（或店内扫码别名），用登录名 + 密码登录；首次或重置后须完成 **`/auth/staff/change-password`**
+7. 再打开 **`/[slug]/kitchen`** 或 **`/dashboard/waiter`** 进入对应看板（角色不匹配会提示错误）
 8. 顾客扫描二维码点餐，加单会追加到同一餐次
 9. 顾客下单后可随时进入账单页，金额按该餐次实际下单总额计算
 10. 服务端确认收款并关台后，顾客刷新账单页会自动回到点单页

@@ -158,10 +158,10 @@
 
 | 方法 | 路径 | 职责 |
 |------|------|------|
-| POST | `/api/auth/login` | 店主登录 |
-| POST | `/api/auth/staff/login` | 员工登录（按 slug/角色） |
+| POST | `/api/auth/login` | **统一登录**（店主邮箱或员工 `login_name` / `{login}@mesa.in`；返回 `kind` + 落地 `path`） |
 
-员工现场页：`/[slug]/kitchen`；楼面看板统一：`/dashboard/waiter`；Dashboard 员工：`/dashboard/*`（middleware 角色分流）。
+UI 入口：**`/auth/login`**（店内扫码别名 `/[slug]/staff/login` 共用同一 API）。无独立 `/api/auth/staff/login`。  
+员工现场页：`/[slug]/kitchen`；楼面看板统一：`/dashboard/waiter`；Dashboard 员工：`/dashboard/*`（middleware 能力分流）。
 
 ---
 

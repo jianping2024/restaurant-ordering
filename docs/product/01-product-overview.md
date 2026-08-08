@@ -76,14 +76,16 @@
 
 | 角色 | 入口 | 主要职责 |
 |------|------|----------|
-| **店主 / Owner** | `/auth/login` → `/dashboard` | 设置、菜单、桌位、经营分析、异常确认、员工管理 |
-| **前台 / Frontdesk** | 员工登录 → Dashboard 子集 | 服务员看板嵌入、结账、订单、桌位、菜单查看 |
-| **收银员 / Cashier** | 员工登录 → `/dashboard/waiter` + 结账台 | 看板 + 结账台 |
-| **服务员 / Waiter** | 员工登录 → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 关台结账） |
-| **后厨 / Kitchen** | `/{slug}/kitchen` | 订单出餐、退菜（void） |
-| **自定义角色** | 员工登录（按勾选能力） | 店主在「设置 → 角色权限」创建/复制/改名/停用/删除并勾选页面与按钮 |
+| **店主 / Owner** | **统一登录** `/auth/login`（邮箱）→ `/dashboard` | 设置、菜单、桌位、经营分析、异常确认、员工管理 |
+| **前台 / Frontdesk** | **统一登录** `/auth/login`（登录名）→ Dashboard 子集 | 服务员看板嵌入、结账、订单、桌位、菜单查看 |
+| **收银员 / Cashier** | **统一登录** `/auth/login` → `/dashboard/waiter` + 结账台 | 看板 + 结账台 |
+| **服务员 / Waiter** | **统一登录** `/auth/login` → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 关台结账） |
+| **后厨 / Kitchen** | **统一登录** `/auth/login` → `/{slug}/kitchen` | 订单出餐、退菜（void） |
+| **自定义角色** | **统一登录** `/auth/login`（按勾选能力落地） | 店主在「设置 → 角色权限」创建/复制/改名/停用/删除并勾选页面与按钮 |
 | **顾客 / Customer** | `/{slug}/menu`、`/{slug}/bill` | 扫码点餐、分单、呼叫结账（无账号） |
 | **平台运营 / Ops** | `apps/ops` | 餐厅代建与资料、授权、审计 |
+
+店主与员工共用 **`/auth/login`**（一页、一个 `POST /api/auth/login`）；填邮箱或员工登录名即可，系统解析身份并跳转。`/{slug}/staff/login` 仅为同款店内扫码别名；`/auth/staff/login` 重定向到统一入口。本地/UAT 浏览器登录一律走 `/auth/login`。
 
 员工侧栏与敏感操作按 `restaurant_roles.permissions`（Capability）裁剪；注册表 `apps/web/src/lib/permissions/registry.ts`。预制前台/收银/服务员/厨房默认对齐上表。停用角色后绑定员工不可登录。
 

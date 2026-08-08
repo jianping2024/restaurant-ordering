@@ -35,11 +35,11 @@
 
 | 身份 | 代码 `accessMode` / 登录态 | 典型登录入口 | 默认落地 |
 |------|---------------------------|--------------|----------|
-| 店主 | `owner` | `/auth/login`（店主注册/登录） | `/dashboard/settings` |
-| 前台员工 | `frontdesk` | `/{slug}/staff/login` 或 `/auth/staff/login` | `/dashboard` |
+| 店主 | `owner` | **统一** `/auth/login`（邮箱） | `/dashboard/settings` |
+| 前台员工 | `frontdesk` | **统一** `/auth/login`（登录名；店内扫码别名 `/{slug}/staff/login`） | `/dashboard` |
 | 收银员 | `cashier` | 同上 | `/dashboard/checkout` |
-| 厨房员工 | （无 Dashboard 模式） | 员工登录 | `/{slug}/kitchen` |
-| 服务员 | （无 Dashboard 模式） | 员工登录 | `/{slug}/waiter` |
+| 厨房员工 | （无 Dashboard 模式） | 同上 | `/{slug}/kitchen` |
+| 服务员 | （无 Dashboard 模式） | 同上 | `/dashboard/waiter` |
 
 店主**可以**在已登录 Dashboard 的情况下打开 `/{slug}/kitchen|waiter`（代码里 owner fallback），但这是**店主冒充员工上下文**，不改变其身份仍是 `owner`。
 
@@ -629,7 +629,7 @@ export async function requirePermission(
 
 ### 9.3 楼面页集成
 
-`/[slug]/kitchen|waiter` layout 在 server 端 `resolvePermissions`，无权限 redirect 到 `/{slug}/staff/login`。
+`/[slug]/kitchen|waiter` layout 在 server 端 `resolvePermissions`，无权限 redirect 到 **`/auth/login`**（店内上下文下亦可落到 `/{slug}/staff/login` 别名）。
 
 `StaffAuthenticatedShell`：`expectedRole` **保留**（身份 + 登录入口），另加 permission 检查（能力）。
 
@@ -746,7 +746,7 @@ return set
 
 Owner 保存 `owner_nav_preferences` 后：**可选**将落地页改为偏好中第一项（非 P0 必须）。
 
-Middleware 拒绝（员工无 route permission）：重定向到 **`NAV_ITEMS` 中第一个 `can()` 为 true 的 href**；若无一可访问 → `/auth/staff/login` 或提示联系店主（**禁止**落到无权限页）。
+Middleware 拒绝（员工无 route permission）：重定向到 **`NAV_ITEMS` 中第一个 `can()` 为 true 的 href**；若无一可访问 → **`/auth/login`** 或提示联系店主（**禁止**落到无权限页）。
 
 ---
 

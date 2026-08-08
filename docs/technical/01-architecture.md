@@ -146,13 +146,17 @@ middleware（角色路由）→ RSC 页面 load* server 函数
   → 部分读：owner 会话 + RLS 的 createClient()
 ```
 
-### 5.4 员工（厨房/服务员）
+### 5.4 店主与员工（统一登录）
 
 ```text
-/[slug]/staff/login → Supabase Auth
-  → staff API：staffAuthFromRequest（staff 表 + slug 校验）
+/auth/login → POST /api/auth/login（邮箱或 login_name）
+  → Supabase Auth session
+  → kind=owner|staff → post-login redirect（dashboard / kitchen / waiter…）
+  → staff API：staffAuthFromRequest（staff 表 + 能力校验）
   → 写订单/void：admin client + 审计
 ```
+
+`/[slug]/staff/login` 为同款店内扫码别名；`/auth/staff/login` 重定向到 `/auth/login`。
 
 ### 5.5 打印代理
 

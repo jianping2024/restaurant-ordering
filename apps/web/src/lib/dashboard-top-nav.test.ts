@@ -14,6 +14,8 @@ import {
   personalSettingsDropdownRowClass,
   topNavAccountTriggerClass,
   topNavDesktopScrollNavClassName,
+  topNavDesktopLinkClass,
+  topNavMenuRowClass,
 } from '@/lib/dashboard-top-nav';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { capabilitiesFromKeys } from '@/lib/permissions/can';
@@ -104,6 +106,27 @@ describe('topNavDesktopScrollNavClassName', () => {
     assert.match(className, /mesa-chip-scroll/);
     assert.match(className, /lg:flex/);
     assert.doesNotMatch(className, /flex-1/);
+  });
+});
+
+describe('topNavDesktopLinkClass / topNavMenuRowClass', () => {
+  it('marks active desktop links with brand-ink + gold underline; idle is muted', () => {
+    const active = topNavDesktopLinkClass(true);
+    const idle = topNavDesktopLinkClass(false);
+    assert.match(active, /text-brand-ink/);
+    assert.match(active, /decoration-brand-gold/);
+    assert.match(active, /font-semibold/);
+    assert.doesNotMatch(active, /text-brand-text[^-]/);
+    assert.match(idle, /text-brand-text-muted/);
+    assert.match(idle, /hover:text-brand-ink/);
+  });
+
+  it('marks active mobile rows with brand-ink; idle is muted', () => {
+    const active = topNavMenuRowClass(true);
+    const idle = topNavMenuRowClass(false);
+    assert.match(active, /text-brand-ink/);
+    assert.match(active, /border-brand-gold/);
+    assert.match(idle, /text-brand-text-muted/);
   });
 });
 

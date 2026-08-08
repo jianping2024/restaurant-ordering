@@ -131,14 +131,19 @@
     border-top-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
   }
 
-  /* 导航侧栏/顶栏导航常见 text-sm */
-  .mesa-nav-tab { font-size: 0.875rem; color: var(--color-ink); letter-spacing: 0.02em; }
+  /* 顶栏导航：未选 muted / 选中 brand-ink + 金下划线（对齐 dashboard-top-nav topNavDesktopLinkClass） */
+  .mesa-nav-tab {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+    letter-spacing: 0.02em;
+  }
   .mesa-nav-tab.is-active {
     color: var(--color-brand-ink);
-    font-weight: 500;
-    border-bottom: 1.5px solid var(--color-brand-gold);
-    padding-bottom: 10px;
-    margin-bottom: -11px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--color-brand-gold);
+    text-underline-offset: 4px;
   }
 
   /* KPI 字号对齐 waiterBoardType：count text-2xl / label text-sm */
@@ -197,7 +202,7 @@
   </div>
 
   <!-- ===== 导航菜单栏 ===== -->
-  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid var(--color-brand-ink)">
+  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid color-mix(in srgb, var(--color-brand-ink) 22%, transparent)">
     <span class="mesa-nav-tab">数据概览</span>
     <span class="mesa-nav-tab">结账请求</span>
     <span class="mesa-nav-tab">历史订单</span>

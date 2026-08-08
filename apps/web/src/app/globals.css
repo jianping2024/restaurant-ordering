@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --font-cormorant: 'Cormorant Garamond', serif;
-  --font-jost: 'Jost', sans-serif;
+  /*
+   * Latin display/body (--font-cormorant / --font-jost) and CJK serif
+   * (--font-cjk-serif) are written only by next/font in layout.tsx.
+   * Do not redeclare those names here — literal overrides leave next/font unloaded.
+   */
   --font-cjk-sans: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
   /* FARVOO paper / azulejo — dark theme (default :root) */
   --color-brand-bg: 27 26 22;
@@ -251,10 +254,10 @@ body {
     background: rgb(var(--color-brand-card));
   }
 
-  /* 竖排题跋状态 — mockup mesa-status-vertical */
+  /* 竖排题跋状态 — mockup: Noto Serif SC only (via --font-cjk-serif) */
   .mesa-status-vertical {
     writing-mode: vertical-rl;
-    font-family: var(--font-cormorant), 'Noto Serif SC', 'PingFang SC', serif;
+    font-family: var(--font-cjk-serif), serif;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.2em;

@@ -58,6 +58,11 @@ describe('waiter-board-card-theme theme tokens', () => {
 
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
+    assert.match(waiterBoardType.cardAmount, /mesa-money/);
+    assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
+    assert.match(waiterBoardType.cardBadge, /text-brand-gold/);
+    assert.match(waiterBoardType.cardMeta, /text-xs/);
+    assert.match(waiterBoardType.cardCta, /text-sm/);
     assert.match(WAITER_BOARD_LANE_CHROME.active, /bg-brand-ink/);
     assert.match(WAITER_BOARD_PARTY_PANEL_CLASS, /brand-ink/);
     for (const className of [
@@ -70,6 +75,20 @@ describe('waiter-board-card-theme theme tokens', () => {
     ]) {
       assertNoSkyPalette(className);
       assertNoMediaDark(className);
+    }
+  });
+
+  it('card surface roles are complete — no parallel badge/meta/cta/status class strings at call sites', () => {
+    const keys = Object.keys(waiterBoardType);
+    for (const key of [
+      'cardTitle',
+      'cardBadge',
+      'cardMeta',
+      'cardAmount',
+      'cardCta',
+      'cardStatus',
+    ]) {
+      assert.equal(keys.includes(key), true, `missing waiterBoardType.${key}`);
     }
   });
 

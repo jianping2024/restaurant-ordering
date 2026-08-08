@@ -3,7 +3,8 @@ import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
 
 /**
  * Board surface typography roles — one map for KPI / lanes / cards.
- * Colors stay brand-* / status tokens; no ad-hoc sky palette.
+ * Font stacks: heading=display (Cormorant+Noto Serif SC), body default, money=.mesa-money,
+ * statusVertical=.mesa-status-vertical (Noto Serif SC only). Colors = brand-* / status tokens.
  */
 export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-ink mb-4',
@@ -13,7 +14,14 @@ export const waiterBoardType = {
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   cardTitle:
     'min-w-0 truncate text-left font-heading text-lg sm:text-[22px] font-bold leading-tight',
+  /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
+  cardBadge:
+    'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50',
+  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-text',
   cardAmount: 'mesa-money text-[15px]',
+  cardCta: 'shrink-0 text-sm font-semibold',
+  /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
+  cardStatus: 'mesa-status-vertical',
 } as const;
 
 /**

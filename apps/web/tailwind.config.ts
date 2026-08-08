@@ -34,22 +34,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: [
-          "var(--font-cormorant)",
-          "PingFang SC",
-          "Hiragino Sans GB",
-          "Noto Sans SC",
-          "Microsoft YaHei",
-          "serif",
-        ],
-        body: [
-          "var(--font-jost)",
-          "PingFang SC",
-          "Hiragino Sans GB",
-          "Noto Sans SC",
-          "Microsoft YaHei",
-          "sans-serif",
-        ],
+        // Display = Latin Cormorant + CJK serif; body = Jost + system CJK sans.
+        // Stacks read layout next/font vars + sole --font-cjk-sans in globals.css.
+        heading: ["var(--font-cormorant)", "var(--font-cjk-serif)", "serif"],
+        body: ["var(--font-jost)", "var(--font-cjk-sans)"],
       },
       maxWidth: {
         mobile: "430px",

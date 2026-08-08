@@ -46,10 +46,6 @@ const CARD_INNER_CLASS =
 const CARD_INTERACTIVE_CLASS =
   'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
-/** Sole title-row gold pill (mockup merge badge). */
-const TITLE_BADGE_CLASS =
-  'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50';
-
 const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 
 function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
@@ -116,10 +112,12 @@ export function WaiterBoardTableCard({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex min-h-[1.25rem] items-start justify-between gap-2">
           <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
-          {view.titleBadge ? <span className={TITLE_BADGE_CLASS}>{view.titleBadge}</span> : null}
+          {view.titleBadge ? (
+            <span className={waiterBoardType.cardBadge}>{view.titleBadge}</span>
+          ) : null}
         </div>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-text">
+        <div className={waiterBoardType.cardMeta}>
           {view.metaChips.map((chip) => (
             <span key={`${chip.kind}-${chip.text}`} className="inline-flex min-w-0 items-center gap-1">
               <MetaChipIcon kind={chip.kind} />
@@ -138,7 +136,7 @@ export function WaiterBoardTableCard({
           )}
           <span
             aria-hidden
-            className={`shrink-0 text-sm font-semibold ${theme.cta} ${
+            className={`${waiterBoardType.cardCta} ${theme.cta} ${
               view.ctaDisabled ? 'opacity-55' : ''
             }`}
           >
@@ -147,7 +145,7 @@ export function WaiterBoardTableCard({
         </div>
       </div>
 
-      <div className="mesa-status-vertical" aria-hidden>
+      <div className={waiterBoardType.cardStatus} aria-hidden>
         {view.statusLabel}
       </div>
     </div>

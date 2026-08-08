@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Jost, Noto_Serif_SC } from "next/font/google";
 import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
 import { PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
 import {
@@ -16,6 +16,11 @@ import { getServerLanguage } from '@/lib/i18n.server';
 import { HTML_LANG_BY_UI } from '@/lib/i18n';
 import { buildThemeInitScript } from '@/lib/theme';
 
+/**
+ * Sole writers of --font-cormorant / --font-jost / --font-cjk-serif.
+ * globals.css must not redeclare these (literal names leave next/font unloaded).
+ * Euro amounts stay on self-hosted .mesa-money (full onum) — not this Latin subset.
+ */
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -27,6 +32,14 @@ const jost = Jost({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   variable: "--font-jost",
+  display: "swap",
+});
+
+/** Floor vertical status + heading CJK — matches farvoo-floor-board-mockup Noto Serif SC. */
+const notoSerifSc = Noto_Serif_SC({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-cjk-serif",
   display: "swap",
 });
 
@@ -61,7 +74,11 @@ export default function RootLayout({
   const htmlLang = HTML_LANG_BY_UI[initialLang];
 
   return (
-    <html lang={htmlLang} className={`${cormorant.variable} ${jost.variable}`} suppressHydrationWarning>
+    <html
+      lang={htmlLang}
+      className={`${cormorant.variable} ${jost.variable} ${notoSerifSc.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased bg-brand-bg text-brand-text font-body">
         {/* Early paint: launch CSS/boot before providers (no manual <head> — App Router owns head). */}
         <style dangerouslySetInnerHTML={{ __html: pwaLaunchShellStyle }} />

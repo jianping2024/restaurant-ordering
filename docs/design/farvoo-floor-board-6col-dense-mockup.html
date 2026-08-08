@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FARVOO · 楼面 6 列密集卡 — 设计稿</title>
+<!--
+  楼面 6 列密集卡 — 与产品 WaiterBoardTableCard / STAFF_SHELL_CONTENT_CLASS 对齐。
+  信息架构：开台人贴桌号；时长贴座位；「干净整洁 · 可开台」在横线下方；金额 ~22px。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&family=Noto+Serif+SC:wght@500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --color-paper: #EDEAE2;
+    --color-paper-raised: #F7F4EE;
+    --color-ink: #2B2620;
+    --color-ink-soft: #8A8377;
+    --color-brand-ink: #1F3E52;
+    --color-brand-gold: #A9814A;
+    --color-brand-border: #BAB2A4;
+    --color-status-dining: #8F4A38;
+    --color-status-pending: #9A6F28;
+    --color-status-free: #4F6543;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: 'Jost', 'Noto Sans SC', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .font-display { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
+  @font-face {
+    font-family: 'Mesa Money';
+    src: url('../../apps/web/public/fonts/CormorantGaramond-Variable.ttf') format('truetype');
+    font-weight: 300 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  .mesa-money {
+    font-family: 'Mesa Money', 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-variant-numeric: oldstyle-nums;
+    font-feature-settings: 'onum' 1;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--color-brand-ink);
+  }
+
+  .mesa-scroll-frame {
+    border: 1px solid var(--color-brand-ink);
+    border-radius: 4px;
+    padding: 3px;
+  }
+  .mesa-scroll-frame.is-dining { border-color: var(--color-status-dining); }
+  .mesa-scroll-frame.is-pending {
+    border-color: var(--color-status-pending);
+    border-width: 1.5px;
+  }
+  .mesa-scroll-frame.is-free {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-status-free) 70%, transparent);
+  }
+  .mesa-scroll-frame__inner {
+    border: 0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent);
+    border-radius: 2px;
+    background: var(--color-paper-raised);
+  }
+  .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
+    border-color: color-mix(in srgb, var(--color-status-dining) 45%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 88%, var(--color-status-dining));
+  }
+  .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
+    border-color: color-mix(in srgb, var(--color-status-pending) 55%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 82%, var(--color-status-pending));
+  }
+  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-status-free) 45%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 85%, var(--color-status-free));
+  }
+
+  .mesa-status-vertical {
+    writing-mode: vertical-rl;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    padding-left: 0.375rem;
+    border-left: 0.5px solid transparent;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+  .mesa-scroll-frame.is-dining .mesa-status-vertical {
+    color: var(--color-status-dining);
+    border-left-color: color-mix(in srgb, var(--color-status-dining) 40%, transparent);
+  }
+  .mesa-scroll-frame.is-pending .mesa-status-vertical {
+    color: var(--color-status-pending);
+    border-left-color: color-mix(in srgb, var(--color-status-pending) 45%, transparent);
+  }
+  .mesa-scroll-frame.is-free .mesa-status-vertical {
+    color: var(--color-status-free);
+    border-left-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
+  }
+
+  .mesa-card-rule {
+    margin-top: 0.4rem;
+    border-top: 0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent);
+  }
+  .mesa-scroll-frame.is-dining .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-dining) 40%, transparent);
+  }
+  .mesa-scroll-frame.is-pending .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-pending) 50%, transparent);
+  }
+  .mesa-scroll-frame.is-free .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
+  }
+
+  .mesa-card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .mesa-staff-inline {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    opacity: 0.85;
+    max-width: 4.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mesa-meta {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    color: var(--color-ink);
+  }
+  .mesa-note {
+    font-size: 0.75rem;
+    color: var(--color-ink);
+    line-height: 1.3;
+  }
+  .mesa-badge {
+    shrink: 0;
+    border-radius: 9999px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--color-brand-gold);
+    border: 1px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent);
+  }
+  .mesa-cta { font-size: 0.8125rem; font-weight: 600; }
+  .mesa-scroll-frame.is-dining .mesa-cta { color: var(--color-brand-ink); }
+  .mesa-scroll-frame.is-pending .mesa-cta { color: var(--color-status-pending); font-weight: 700; }
+  .mesa-scroll-frame.is-free .mesa-cta { color: var(--color-status-free); }
+
+  .mesa-amount-slot {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    min-width: 0;
+  }
+
+  .mesa-lane {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid color-mix(in srgb, var(--color-brand-border) 70%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 40%, transparent);
+    color: var(--color-ink-soft);
+  }
+  .mesa-lane[data-active="true"] {
+    border-color: var(--color-brand-ink);
+    background: var(--color-brand-ink);
+    color: #F7F4EE;
+  }
+
+  .design-banner {
+    border: 1px dashed color-mix(in srgb, var(--color-brand-gold) 55%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 70%, var(--color-brand-gold));
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-30 border-b bg-[var(--color-paper-raised)]" style="border-color:var(--color-brand-border)">
+  <div class="mx-auto flex max-w-[120rem] items-center gap-3 px-8" style="min-height:3.5rem">
+    <div class="font-display text-lg font-semibold tracking-wide" style="color:var(--color-brand-ink)">FARVOO</div>
+    <div class="font-display text-sm" style="color:var(--color-ink-soft)">白云餐厅</div>
+    <div class="ml-auto text-xs font-medium" style="color:var(--color-ink-soft)">产品对齐 · 一排 6 桌</div>
+  </div>
+</header>
+
+<main class="mx-auto max-w-[120rem] px-8 py-6">
+  <section class="design-banner mb-6 rounded-xl px-4 py-3 text-sm">
+    <p class="font-medium" style="color:var(--color-brand-ink)">卡面信息架构（与 WaiterBoardTableCard 一致）</p>
+    <ul class="mt-1 list-disc space-y-0.5 pl-5" style="color:var(--color-ink)">
+      <li>开台人紧贴桌号（同一行）</li>
+      <li>时长紧贴座位数（同一行）</li>
+      <li>「干净整洁 · 可开台」在横线下方（仅空闲；横线位置与用餐卡一致）</li>
+      <li>内容区 <code class="text-xs">max-w-[120rem]</code>（约 1920px）；宽屏 <code class="text-xs">grid-cols-6</code>；金额约 22px</li>
+    </ul>
+  </section>
+
+  <div class="mb-4 flex flex-wrap gap-2">
+    <button class="mesa-lane" data-active="true" type="button">VIP1 10 桌</button>
+    <button class="mesa-lane" data-active="false" type="button">VIP2 10 桌</button>
+    <button class="mesa-lane" data-active="false" type="button">同行组 ▾</button>
+  </div>
+
+  <div id="table-grid" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6"></div>
+</main>
+
+<template id="card-tpl">
+  <article class="mesa-scroll-frame" data-card>
+    <div class="mesa-scroll-frame__inner flex min-h-[8.5rem] gap-2 p-3">
+      <div class="flex min-w-0 flex-1 flex-col">
+        <!-- 标题行：桌号 + 开台人 | 角标 -->
+        <div class="flex min-h-[1.25rem] items-center justify-between gap-1.5">
+          <div class="flex min-w-0 items-baseline gap-1.5">
+            <span class="mesa-card-title font-display truncate" data-f="table"></span>
+            <span class="mesa-staff-inline hidden" data-f="staff" title=""></span>
+          </div>
+          <span class="mesa-badge hidden shrink-0" data-f="badge"></span>
+        </div>
+        <!-- 座 + 时长（同行） -->
+        <div class="mesa-meta">
+          <span class="inline-flex items-center gap-1" data-f="seats"></span>
+          <span class="inline-flex items-center gap-1 hidden" data-f="time"></span>
+        </div>
+        <!-- 横线贴 meta 后，mb-auto 顶住底部；空闲文案在线下方（金额位） -->
+        <div class="mesa-card-rule mb-auto"></div>
+        <div class="mt-1.5 flex items-center justify-between gap-1">
+          <span class="mesa-amount-slot min-w-0">
+            <span class="mesa-money hidden" data-f="price"></span>
+            <span class="mesa-note hidden truncate" data-f="note"></span>
+          </span>
+          <span class="mesa-cta shrink-0" data-f="cta"></span>
+        </div>
+      </div>
+      <div class="mesa-status-vertical" data-f="status"></div>
+    </div>
+  </article>
+</template>
+
+<script>
+  const ICON = {
+    seats: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    time: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+  };
+
+  const DATA = [
+    { table: 'A-01', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+    { table: 'A-02', status: '用餐中', seats: '2–4 座', staff: 'qiantai1', time: '34分', price: '€29.95', badge: 'A1-C1', cta: '详情 →', cls: 'is-dining' },
+    { table: 'A-03', status: '用餐中', seats: '2–4 座', staff: 'qiantai1', time: '1时12分', price: '€169.60', badge: 'A8-C1', cta: '详情 →', cls: 'is-dining' },
+    { table: 'A-04', status: '用餐中', seats: '2–4 座', staff: 'qiantai1', time: '48分', price: '€29.95', badge: 'A1-C1', cta: '详情 →', cls: 'is-dining' },
+    { table: 'A-05', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+    { table: 'A-06', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+    { table: 'A-17', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+    { table: 'A-18', status: '待结账', seats: '2–4 座', staff: 'qiantai1', time: '2时05分', price: '€88.00', cta: '结账 →', cls: 'is-pending' },
+    { table: 'A-19', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+    { table: 'A-20', status: '空闲', seats: '2–4 座', note: '干净整洁 · 可开台', cta: '开台 →', cls: 'is-free' },
+  ];
+
+  const grid = document.getElementById('table-grid');
+  const tpl = document.getElementById('card-tpl');
+
+  for (const row of DATA) {
+    const node = tpl.content.cloneNode(true);
+    const card = node.querySelector('[data-card]');
+    card.classList.add(row.cls);
+
+    node.querySelector('[data-f="table"]').textContent = row.table;
+    node.querySelector('[data-f="status"]').textContent = row.status;
+    node.querySelector('[data-f="cta"]').textContent = row.cta;
+    node.querySelector('[data-f="seats"]').innerHTML = `${ICON.seats}<span>${row.seats}</span>`;
+
+    const staff = node.querySelector('[data-f="staff"]');
+    if (row.staff) {
+      staff.textContent = row.staff;
+      staff.title = row.staff;
+      staff.classList.remove('hidden');
+    }
+
+    const time = node.querySelector('[data-f="time"]');
+    if (row.time) {
+      time.innerHTML = `${ICON.time}<span>${row.time}</span>`;
+      time.classList.remove('hidden');
+    }
+
+    const note = node.querySelector('[data-f="note"]');
+    if (row.note) {
+      note.textContent = row.note;
+      note.classList.remove('hidden');
+    }
+
+    const badge = node.querySelector('[data-f="badge"]');
+    if (row.badge) {
+      badge.textContent = row.badge;
+      badge.classList.remove('hidden');
+    }
+
+    const price = node.querySelector('[data-f="price"]');
+    if (row.price) {
+      price.textContent = row.price;
+      price.classList.remove('hidden');
+    }
+
+    grid.appendChild(node);
+  }
+</script>
+</body>
+</html>

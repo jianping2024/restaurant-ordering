@@ -59,20 +59,22 @@ describe('waiter-board-card-theme theme tokens', () => {
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardAmount, /mesa-money/);
-    assert.match(waiterBoardType.cardAmount, /text-\[32px\]/);
+    assert.match(waiterBoardType.cardAmount, /text-\[22px\]/);
     assert.match(waiterBoardType.cardAmount, /!font-semibold/);
     assert.match(waiterBoardType.cardAmount, /text-brand-ink/);
     // Sole amount-row height on the slot — fixed h, not a short min-h that dining overflows.
-    assert.match(waiterBoardType.cardAmountSlot, /\bh-10\b/);
+    assert.match(waiterBoardType.cardAmountSlot, /\bh-7\b/);
     assert.doesNotMatch(waiterBoardType.cardAmountSlot, /\bmin-h-/);
-    assert.doesNotMatch(waiterBoardType.cardAmount, /\b(?:min-h-|h-10|h-\[)/);
+    assert.doesNotMatch(waiterBoardType.cardAmount, /\b(?:min-h-|h-7|h-10|h-\[)/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
     assert.match(waiterBoardType.cardBadge, /text-brand-gold/);
-    assert.match(waiterBoardType.cardMeta, /text-sm/);
+    assert.match(waiterBoardType.cardMeta, /text-xs/);
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
-    assert.match(waiterBoardType.cardCta, /text-sm/);
+    assert.match(waiterBoardType.cardOpener, /truncate/);
+    assert.match(waiterBoardType.cardIdleHint, /truncate/);
+    assert.match(waiterBoardType.cardCta, /font-semibold/);
     for (const theme of Object.values(WAITER_BOARD_CARD_THEME)) {
       assert.equal('amount' in theme, false, 'amount color lives only on waiterBoardType.cardAmount');
     }
@@ -95,9 +97,11 @@ describe('waiter-board-card-theme theme tokens', () => {
     const keys = Object.keys(waiterBoardType);
     for (const key of [
       'cardTitle',
+      'cardOpener',
       'cardBadge',
       'cardMeta',
       'cardAmount',
+      'cardIdleHint',
       'cardAmountSlot',
       'cardCta',
       'cardStatus',

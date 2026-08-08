@@ -20,7 +20,6 @@ import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import {
   WaiterClockIcon,
   WaiterSeatCapacityIcon,
-  WaiterTableIcon,
 } from '@/components/waiter/waiter-table-detail-icons';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { UILanguage } from '@/lib/i18n';
@@ -42,7 +41,7 @@ type Props = {
 /** Layout only — shell `mesa-scroll-frame` + status comes solely from `waiterBoardCardShellClass`. */
 const CARD_BASE_CLASS = 'flex w-full text-left';
 const CARD_INNER_CLASS =
-  'mesa-scroll-frame__inner flex min-h-[8.25rem] w-full gap-2.5 p-4';
+  'mesa-scroll-frame__inner flex min-h-[8.5rem] w-full gap-2 p-3';
 const CARD_INTERACTIVE_CLASS =
   'group transition-shadow duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
@@ -50,7 +49,6 @@ const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 
 function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
   if (kind === 'seats') return <WaiterSeatCapacityIcon className={CHIP_ICON} />;
-  if (kind === 'staff') return <WaiterTableIcon className={CHIP_ICON} />;
   if (kind === 'time') return <WaiterClockIcon className={CHIP_ICON} />;
   return null;
 }
@@ -110,8 +108,15 @@ export function WaiterBoardTableCard({
   const body = (
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[1.25rem] items-start justify-between gap-2">
-          <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
+        <div className="flex min-h-[1.25rem] items-center justify-between gap-1.5">
+          <div className="flex min-w-0 items-baseline gap-1.5">
+            <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
+            {view.openerName ? (
+              <span className={waiterBoardType.cardOpener} title={view.openerName}>
+                {view.openerName}
+              </span>
+            ) : null}
+          </div>
           {view.titleBadge ? (
             <span className={waiterBoardType.cardBadge}>{view.titleBadge}</span>
           ) : null}
@@ -128,10 +133,12 @@ export function WaiterBoardTableCard({
 
         <div className="mesa-card-rule mb-auto" />
 
-        <div className="mt-2 flex items-baseline justify-between gap-x-1.5">
+        <div className="mt-1.5 flex items-center justify-between gap-1">
           <span className={waiterBoardType.cardAmountSlot}>
             {view.amountText ? (
               <span className={waiterBoardType.cardAmount}>{view.amountText}</span>
+            ) : view.idleHint ? (
+              <span className={waiterBoardType.cardIdleHint}>{view.idleHint}</span>
             ) : null}
           </span>
           <span

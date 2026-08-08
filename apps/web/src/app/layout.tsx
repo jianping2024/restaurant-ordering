@@ -8,6 +8,7 @@ import {
   buildPwaLaunchShellBootScript,
   buildPwaLaunchShellStyle,
 } from '@/lib/pwa/launch-shell';
+import { mesaMoneyFont } from '@/lib/mesa-money-font';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -17,9 +18,9 @@ import { HTML_LANG_BY_UI } from '@/lib/i18n';
 import { buildThemeInitScript } from '@/lib/theme';
 
 /**
- * Sole writers of --font-cormorant / --font-jost / --font-cjk-serif.
+ * Sole writers of --font-cormorant / --font-jost / --font-cjk-serif / --font-mesa-money.
  * globals.css must not redeclare these (literal names leave next/font unloaded).
- * Euro amounts stay on self-hosted .mesa-money (full onum) — not this Latin subset.
+ * Euro amounts: mesaMoneyFont (full onum) → `.mesa-money` — not the Latin Cormorant subset.
  */
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -76,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang={htmlLang}
-      className={`${cormorant.variable} ${jost.variable} ${notoSerifSc.variable}`}
+      className={`${cormorant.variable} ${jost.variable} ${notoSerifSc.variable} ${mesaMoneyFont.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased bg-brand-bg text-brand-text font-body">

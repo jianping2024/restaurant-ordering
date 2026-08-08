@@ -44,7 +44,7 @@ const CARD_BASE_CLASS = 'flex w-full text-left';
 const CARD_INNER_CLASS =
   'mesa-scroll-frame__inner flex min-h-[8.25rem] w-full gap-2.5 p-4';
 const CARD_INTERACTIVE_CLASS =
-  'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
+  'group transition-shadow duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
 const CHIP_ICON = 'h-3 w-3 shrink-0 text-brand-text';
 
@@ -129,11 +129,11 @@ export function WaiterBoardTableCard({
         <div className="mesa-card-rule mb-auto" />
 
         <div className="mt-2 flex items-baseline justify-between gap-x-1.5">
-          {view.amountText ? (
-            <span className={waiterBoardType.cardAmount}>{view.amountText}</span>
-          ) : (
-            <span />
-          )}
+          <span className={waiterBoardType.cardAmountSlot}>
+            {view.amountText ? (
+              <span className={waiterBoardType.cardAmount}>{view.amountText}</span>
+            ) : null}
+          </span>
           <span
             aria-hidden
             className={`${waiterBoardType.cardCta} ${theme.cta} ${

@@ -61,6 +61,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.cardAmount, /text-\[32px\]/);
     assert.match(waiterBoardType.cardAmount, /!font-semibold/);
     assert.match(waiterBoardType.cardAmount, /text-brand-ink/);
+    assert.match(waiterBoardType.cardAmountSlot, /min-h-\[2rem\]/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
@@ -93,6 +94,7 @@ describe('waiter-board-card-theme theme tokens', () => {
       'cardBadge',
       'cardMeta',
       'cardAmount',
+      'cardAmountSlot',
       'cardCta',
       'cardStatus',
     ]) {

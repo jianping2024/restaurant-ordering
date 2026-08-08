@@ -91,26 +91,13 @@ body {
 }
 
 /**
- * Artistic euro amounts — self-hosted Cormorant (full GSUB onum).
- * next/font Latin subset drops old-style figures; do not use var(--font-cormorant) here.
+ * Artistic euro amounts — family from `mesaMoneyFont` / `--font-mesa-money` only
+ * (`lib/mesa-money-font.ts` + root layout). Do not add a parallel @font-face here.
+ * next/font Latin Cormorant subset drops onum; do not use var(--font-cormorant) here.
  * Do not pair with tabular-nums / lining-nums.
  */
-@font-face {
-  font-family: 'Mesa Money';
-  src: url('/fonts/CormorantGaramond-Variable.ttf') format('truetype');
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Mesa Money';
-  src: url('/fonts/CormorantGaramond-Italic-Variable.ttf') format('truetype');
-  font-weight: 300 700;
-  font-style: italic;
-  font-display: swap;
-}
 .mesa-money {
-  font-family: 'Mesa Money', 'Cormorant Garamond', serif;
+  font-family: var(--font-mesa-money), 'Cormorant Garamond', serif;
   font-weight: 500;
   font-style: normal;
   font-variant-numeric: oldstyle-nums;

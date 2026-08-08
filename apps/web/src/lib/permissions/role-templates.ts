@@ -32,7 +32,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
   waiter: [
     'dashboard.waiter_board.view',
     'dashboard.dish_history.view',
-    'floor.waiter_board.view',
     'tables.open_session',
     'tables.transfer',
     'tables.merge',
@@ -40,7 +39,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'orders.edit',
     'orders.serve_to_table',
     'orders.print_receipt',
-    'buffet.post_to_table',
   ],
   cashier: [
     'dashboard.waiter_board.view',
@@ -58,8 +56,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'orders.edit',
     'orders.menu_decrement',
     'orders.print_receipt',
-    'buffet.post_to_table',
-    'floor.waiter_board.view',
   ],
   frontdesk: [
     'dashboard.overview.view',
@@ -89,8 +85,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'orders.menu_decrement',
     'orders.serve_to_table',
     'orders.print_receipt',
-    'buffet.post_to_table',
-    'floor.waiter_board.view',
     'floor.kitchen_screens.manage',
   ],
   owner: [
@@ -120,8 +114,6 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'orders.menu_decrement',
     'orders.serve_to_table',
     'orders.print_receipt',
-    'buffet.post_to_table',
-    'floor.waiter_board.view',
     'floor.kitchen_screens.manage',
     'dashboard.settings.view',
     'settings.profile.manage',

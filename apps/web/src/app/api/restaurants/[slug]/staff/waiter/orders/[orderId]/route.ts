@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { loadStaffAuditActor } from '@/lib/audit';
 import { menuDecrementAllowedFromCaps } from '@/lib/order-item-decrement/decrement-policy';
-import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { waiterBoardAuthFromRequest } from '@/lib/staff-api-auth';
 import { patchOrderItemsWithVoidAudit } from '@/lib/order-item-void/patch-order-items.service';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sessionIdBlocksWaiterMutation, sessionBillingResponse } from '@/lib/waiter-session-guard';
@@ -19,7 +19,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'missing_params' }, { status: 400 });
   }
 
-  const ctx = await openTableAuthFromRequest(req, slug);
+  const ctx = await waiterBoardAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

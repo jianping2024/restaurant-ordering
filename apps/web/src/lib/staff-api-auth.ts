@@ -251,21 +251,22 @@ export async function staffAuthForPage(
   return requireStaffPermission(slug, permission);
 }
 
-export async function openTableAuthFromRequest(
+/** Floor board page APIs — sole dashboard.waiter_board.view. */
+export async function waiterBoardAuthFromRequest(
   _req: Request,
   slug: string,
 ): Promise<StaffAuthContext | null> {
   void _req;
-  return requireStaffAnyPermission(slug, [
-    'dashboard.waiter_board.view',
-    'floor.waiter_board.view',
-    'tables.open_session',
-    'orders.append',
-    'orders.edit',
-    'buffet.post_to_table',
-    'tables.transfer',
-    'tables.merge',
-  ]);
+  return requireStaffPermission(slug, 'dashboard.waiter_board.view');
+}
+
+/** Table detail 开台 / 保存人数 — sole tables.open_session. */
+export async function tableSessionOpenAuthFromRequest(
+  _req: Request,
+  slug: string,
+): Promise<StaffAuthContext | null> {
+  void _req;
+  return requireStaffPermission(slug, 'tables.open_session');
 }
 
 export async function verifyOpenTableStaffAuth(
@@ -277,7 +278,6 @@ export async function verifyOpenTableStaffAuth(
   if (!ctx) return null;
   const keys: PermissionKey[] = [
     'dashboard.waiter_board.view',
-    'floor.waiter_board.view',
     'tables.open_session',
     'orders.append',
   ];

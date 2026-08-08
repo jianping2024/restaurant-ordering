@@ -32,7 +32,7 @@ describe('checkoutRequestCallerFromCapabilities', () => {
 
   it('forbids staff without checkout request capabilities', () => {
     assert.equal(
-      checkoutRequestCallerFromCapabilities(capabilitiesFromKeys(['floor.waiter_board.view'])),
+      checkoutRequestCallerFromCapabilities(capabilitiesFromKeys(['dashboard.waiter_board.view'])),
       'forbidden_staff',
     );
   });

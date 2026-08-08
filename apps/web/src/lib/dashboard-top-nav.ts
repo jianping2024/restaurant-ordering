@@ -172,7 +172,11 @@ export function buildDashboardTopNavItems(input: {
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
-  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
+  const navDefs =
+    shellMode === 'owner'
+      ? OWNER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id]).filter(Boolean)
+      : Object.values(DASHBOARD_NAV_ITEMS);
+  for (const item of navDefs) {
     if (shellMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;

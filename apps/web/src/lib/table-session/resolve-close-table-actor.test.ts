@@ -102,7 +102,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
         presetKey: 'waiter',
         staffRoleLabel: 'waiter',
       },
-      capabilities: capabilitiesFromKeys(['floor.waiter_board.view']),
+      capabilities: capabilitiesFromKeys(['dashboard.waiter_board.view']),
     };
     const decision = resolveCloseTableSessionDeskActor(
       {

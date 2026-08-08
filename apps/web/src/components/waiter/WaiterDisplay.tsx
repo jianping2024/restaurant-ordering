@@ -438,6 +438,7 @@ function WaiterBoardInner({
       boardState,
       canOpenCheckoutPendingTables: floorCaps.canOpenCheckoutPendingTables,
       supportsBuffetOpenTable,
+      canOpenTableSession: floorCaps.canOpenTableSession,
       detailHref,
     });
 

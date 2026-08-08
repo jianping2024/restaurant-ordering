@@ -26,20 +26,21 @@ describe('middlewareAllowsOwnerPath', () => {
   it('allows owner chrome paths only', () => {
     assert.equal(middlewareAllowsOwnerPath('/dashboard/settings'), true);
     assert.equal(middlewareAllowsOwnerPath('/dashboard/value-analytics'), true);
+    assert.equal(middlewareAllowsOwnerPath('/dashboard/menu'), true);
     assert.equal(middlewareAllowsOwnerPath('/dashboard/checkout'), false);
   });
 });
 
 describe('buildDashboardTopNavItems owner chrome', () => {
-  it('limits backend owner nav to owner chrome ids', () => {
+  it('limits backend owner nav to owner chrome ids in OWNER_NAV order', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'owner',
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
     assert.deepEqual(
-      new Set(items.map((i) => i.id)),
-      new Set(OWNER_NAV_ITEM_IDS),
+      items.map((i) => i.id),
+      [...OWNER_NAV_ITEM_IDS],
     );
   });
 });

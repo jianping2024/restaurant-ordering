@@ -5,15 +5,26 @@ import type { PermissionDef } from '@/lib/permissions/registry';
 import { PERMISSIONS } from '@/lib/permissions/registry';
 import { templatePermissions } from '@/lib/permissions/role-templates';
 
-/** Parse DB jsonb/text[] into a clean PermissionKey list (unknown keys dropped). */
+/**
+ * Retired keys → sole live PermissionKey (one representation after normalize).
+ * DB migration rewrites rows; this keeps unread/unsaved arrays coherent.
+ */
+const LEGACY_PERMISSION_ALIASES: Record<string, PermissionKey> = {
+  'buffet.post_to_table': 'tables.open_session',
+  'floor.waiter_board.view': 'dashboard.waiter_board.view',
+};
+
+/** Parse DB jsonb/text[] into a clean PermissionKey list (unknown keys dropped; legacy aliased). */
 export function normalizeStoredPermissions(raw: unknown): PermissionKey[] {
   if (!Array.isArray(raw)) return [];
   const out: PermissionKey[] = [];
   const seen = new Set<string>();
   for (const item of raw) {
-    if (typeof item !== 'string' || !isPermissionKey(item) || seen.has(item)) continue;
-    seen.add(item);
-    out.push(item);
+    if (typeof item !== 'string') continue;
+    const mapped = LEGACY_PERMISSION_ALIASES[item] ?? item;
+    if (!isPermissionKey(mapped) || seen.has(mapped)) continue;
+    seen.add(mapped);
+    out.push(mapped);
   }
   return out;
 }
@@ -69,6 +80,8 @@ export type FloorBoardCapabilities = {
   canMerge: boolean;
   /** Unpaid / force close (关台); not settled 关台结账. */
   canForceClose: boolean;
+  /** 开台 / 保存人数 on table detail — sole tables.open_session. */
+  canOpenTableSession: boolean;
 };
 
 export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
@@ -86,6 +99,7 @@ export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): Floo
     canTransfer: can(capabilities, 'tables.transfer'),
     canMerge: can(capabilities, 'tables.merge'),
     canForceClose: mayForceCloseFromCaps(capabilities),
+    canOpenTableSession: can(capabilities, 'tables.open_session'),
   };
 }
 
@@ -102,6 +116,5 @@ export function staffLandingPathFromCapabilities(
   if (can(capabilities, 'dashboard.menu.view')) return '/dashboard/menu';
   if (can(capabilities, 'dashboard.settings.view')) return '/dashboard/settings';
   if (can(capabilities, 'floor.kitchen_board.view')) return `/${slug}/kitchen`;
-  if (can(capabilities, 'floor.waiter_board.view')) return '/dashboard/waiter';
   return '/dashboard/waiter';
 }

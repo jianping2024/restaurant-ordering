@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { openTableAuthFromRequest } from '@/lib/staff-api-auth';
+import { waiterBoardAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   addTablesToParty,
@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await openTableAuthFromRequest(req, slug);
+  const ctx = await waiterBoardAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
@@ -55,7 +55,7 @@ export async function POST(
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
 
-  const ctx = await openTableAuthFromRequest(req, slug);
+  const ctx = await waiterBoardAuthFromRequest(req, slug);
   if (!ctx) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }

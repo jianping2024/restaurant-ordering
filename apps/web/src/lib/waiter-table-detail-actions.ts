@@ -20,7 +20,7 @@ export type WaiterTableDetailActionFlags = {
 export function resolveWaiterTableDetailActions(input: {
   caps: Pick<
     FloorBoardCapabilities,
-    'canCheckoutClose' | 'canTransfer' | 'canMerge' | 'canForceClose'
+    'canCheckoutClose' | 'canTransfer' | 'canMerge' | 'canForceClose' | 'canOpenTableSession'
   >;
   isDemo: boolean;
   isCheckoutPending: boolean;
@@ -31,7 +31,8 @@ export function resolveWaiterTableDetailActions(input: {
   const openAndEditable = hasOpenSession && !isCheckoutPending;
 
   return {
-    showBuffetPanel: hasActiveBuffets && !isDemo && !isCheckoutPending,
+    showBuffetPanel:
+      hasActiveBuffets && !isDemo && !isCheckoutPending && caps.canOpenTableSession,
     showOccupiedToolbar: hasOpenSession,
     showTransfer: caps.canTransfer && openAndEditable,
     showMerge: caps.canMerge && openAndEditable,

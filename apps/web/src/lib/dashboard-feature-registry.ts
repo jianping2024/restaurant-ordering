@@ -133,11 +133,13 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
 /**
  * Backend-admin (`mode=owner` / restaurants.owner_id) chrome only.
  * Staff nav comes from capabilities + NAV_PERMISSION via buildDashboardTopNavItems.
+ * Order here is the owner top-bar order (buildDashboardTopNavItems iterates this list).
  */
 export const OWNER_NAV_ITEM_IDS = [
   'overview',
   'valueAnalytics',
   'abnormalOps',
+  'menu',
   'settings',
 ] as const;
 
@@ -249,7 +251,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/menu/print-stations',
       '/dashboard/settings/print-stations',
     ],
-    riskNote: 'Page gated by dashboard.menu.view; middleware still blocks restaurants.owner_id from this path shell.',
+    riskNote: 'Page gated by dashboard.menu.view; owner chrome includes menu via OWNER_NAV_ITEM_IDS.',
   },
   {
     id: 'guest-notice',

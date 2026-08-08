@@ -71,16 +71,19 @@ describe('buildDashboardTopNavItems', () => {
     assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
   });
 
-  it('lists owner settings-focused items', () => {
+  it('lists owner chrome items including menu in OWNER_NAV order', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'owner',
       capabilities: '*',
       restaurantSlug: 'demo',
     });
-    assert.deepEqual(
-      items.map((item) => item.id).sort(),
-      ['abnormalOps', 'overview', 'settings', 'valueAnalytics'].sort(),
-    );
+    assert.deepEqual(items.map((item) => item.id), [
+      'overview',
+      'valueAnalytics',
+      'abnormalOps',
+      'menu',
+      'settings',
+    ]);
   });
 
   it('lists owner-preset staff from capability template', () => {

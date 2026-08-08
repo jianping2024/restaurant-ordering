@@ -15,9 +15,17 @@ export function resolveWaiterBoardCardAction(input: {
   boardState: WaiterTableBoardState;
   canOpenCheckoutPendingTables: boolean;
   supportsBuffetOpenTable: boolean;
+  /** Sole tables.open_session — idle open-table sheet. */
+  canOpenTableSession: boolean;
   detailHref: string;
 }): WaiterBoardCardAction {
-  const { boardState, canOpenCheckoutPendingTables, supportsBuffetOpenTable, detailHref } = input;
+  const {
+    boardState,
+    canOpenCheckoutPendingTables,
+    supportsBuffetOpenTable,
+    canOpenTableSession,
+    detailHref,
+  } = input;
 
   if (boardState === 'checkout') {
     if (isWaiterBoardTableCardClickable(canOpenCheckoutPendingTables, boardState)) {
@@ -32,6 +40,10 @@ export function resolveWaiterBoardCardAction(input: {
 
   if (!supportsBuffetOpenTable) {
     return { kind: 'disabled', reason: 'no_buffet_config' };
+  }
+
+  if (!canOpenTableSession) {
+    return { kind: 'navigate', href: detailHref };
   }
 
   return { kind: 'open_table_sheet' };

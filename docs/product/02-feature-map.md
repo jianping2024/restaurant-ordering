@@ -132,7 +132,7 @@
 
 ### 业务边界
 
-- 店主与 frontdesk 可通过 `/dashboard/menu` 管理（角色见 feature registry）
+- 店主（后台管理员）与 frontdesk 可通过 `/dashboard/menu` 管理；后台管理员顶栏默认含「菜单管理」
 - `/dashboard/settings/menu` 已重定向到 settings 主页；**菜单管理主入口是 `/dashboard/menu`**
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
 

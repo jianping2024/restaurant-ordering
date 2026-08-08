@@ -43,7 +43,6 @@ describe('waiter-board-card-theme theme tokens', () => {
       assert.match(shell, expected[state]);
       assertNoMediaDark(shell);
       assertNoMediaDark(theme.title);
-      assertNoMediaDark(theme.amount);
       assertNoMediaDark(theme.cta);
       assertNoHardBlack(theme.title);
       assert.match(theme.title, /text-brand-text/);
@@ -59,10 +58,17 @@ describe('waiter-board-card-theme theme tokens', () => {
   it('board type and lane chrome use brand tokens only (no sky palette)', () => {
     assert.match(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardAmount, /mesa-money/);
+    assert.match(waiterBoardType.cardAmount, /text-base/);
+    assert.match(waiterBoardType.cardAmount, /text-brand-gold/);
+    assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
     assert.match(waiterBoardType.cardBadge, /text-brand-gold/);
-    assert.match(waiterBoardType.cardMeta, /text-xs/);
+    assert.match(waiterBoardType.cardMeta, /text-sm/);
+    assert.match(waiterBoardType.cardMeta, /text-brand-text/);
     assert.match(waiterBoardType.cardCta, /text-sm/);
+    for (const theme of Object.values(WAITER_BOARD_CARD_THEME)) {
+      assert.equal('amount' in theme, false, 'amount color lives only on waiterBoardType.cardAmount');
+    }
     assert.match(WAITER_BOARD_LANE_CHROME.active, /bg-brand-ink/);
     assert.match(WAITER_BOARD_PARTY_PANEL_CLASS, /brand-ink/);
     for (const className of [

@@ -146,7 +146,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | `pageTitle` | 看板页标题（`text-brand-ink`） |
 | `kpiCount` / `kpiLabel` | 顶部细线 KPI（标签上、数字下、色线） |
 | `laneLabel` / `laneMeta` | 横滑楼面 lane 与同行组下拉触发器；外壳 `WAITER_BOARD_LANE_STICKY_SHELL`（`sticky` + `waiterStaffStickyChrome.belowStaffTopBar`；条与卡间距为壳内 `pb-4`，不透明纸底盖满停靠带，不用壳外 `mb`）+ 唯一尾随 `WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE`（`pb-24`，保证滚到底能把卡顶停在停靠带下）；楼面 tab 与同行组入口同在一条 `mesa-chip-scroll`（同行组紧跟最后一桌组，不再条尾贴右）；菜单 portal 到 `body` 避免横滑 overflow 裁切；菜单顶区「创建」为 `Button` gold（选项列表可滚，创建不跟滚） |
-| `cardTitle` / `cardBadge` / `cardMeta` / `cardAmount` / `cardCta` / `cardStatus` | 桌卡唯一排版面：桌号（display）、金边角标、元信息行、金额（`.mesa-money`）、CTA、竖排状态（`.mesa-status-vertical`）；禁止在卡片组件另写平行 badge/meta/cta/status class |
+| `cardTitle` / `cardBadge` / `cardMeta` / `cardAmount` / `cardCta` / `cardStatus` | 桌卡唯一排版面：桌号（display）、金边角标、元信息行（`text-sm` + `brand-text`）、金额（`.mesa-money` + `text-base` + `brand-gold`，**不**按态染 `mesa-text-*`；状态只走壳/竖排/CTA）、CTA、竖排状态（`.mesa-status-vertical`）；禁止在卡片组件另写平行 badge/meta/cta/status class；`WAITER_BOARD_CARD_THEME` 无 `amount` 字段 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 

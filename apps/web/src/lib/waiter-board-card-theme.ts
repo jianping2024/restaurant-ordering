@@ -17,8 +17,9 @@ export const waiterBoardType = {
   /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
   cardBadge:
     'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium text-brand-gold border border-brand-gold/50',
-  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-text',
-  cardAmount: 'mesa-money text-[15px]',
+  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-text',
+  /** Sole floor-card amount face: money stack + readable size + gold (status stays on shell/CTA). */
+  cardAmount: 'mesa-money text-base text-brand-gold',
   cardCta: 'shrink-0 text-sm font-semibold',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',
@@ -60,7 +61,6 @@ export const WAITER_BOARD_PARTY_PANEL_CLASS =
 /** Visual tokens for one waiter board table card — keyed by business board state only. */
 export type WaiterBoardCardTheme = {
   title: string;
-  amount: string;
   cta: string;
 };
 
@@ -113,17 +113,14 @@ const BOARD_COPY = 'text-brand-text';
 export const WAITER_BOARD_CARD_THEME: Record<WaiterTableBoardState, WaiterBoardCardTheme> = {
   dining: {
     title: BOARD_COPY,
-    amount: 'mesa-text-danger',
     cta: 'text-brand-ink',
   },
   checkout: {
     title: BOARD_COPY,
-    amount: 'mesa-text-warning',
     cta: 'mesa-text-warning font-bold',
   },
   idle: {
     title: BOARD_COPY,
-    amount: '',
     cta: 'mesa-text-success',
   },
 };

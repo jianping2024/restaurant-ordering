@@ -130,7 +130,7 @@ export function WaiterBoardTableCard({
 
         <div className="mt-2 flex items-baseline justify-between gap-x-1.5">
           {view.amountText ? (
-            <span className={`${waiterBoardType.cardAmount} ${theme.amount}`}>{view.amountText}</span>
+            <span className={waiterBoardType.cardAmount}>{view.amountText}</span>
           ) : (
             <span />
           )}

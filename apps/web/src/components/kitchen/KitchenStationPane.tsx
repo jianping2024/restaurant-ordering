@@ -77,20 +77,21 @@ function LineRow({
         disabled={!canSelect}
         onChange={onToggle}
       />
-      <span className="shrink-0 min-w-[3.5rem] text-center text-2xl font-semibold tabular-nums text-brand-gold">
+      <span className="shrink-0 min-w-[3rem] text-center text-xl font-semibold tabular-nums text-brand-gold">
         {t.qtyBadge.replace('{n}', String(dishTotal))}
       </span>
-      <span className="min-w-0 flex-1 truncate text-3xl font-medium leading-tight text-brand-text">
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
         {line.item.name || line.item.name_pt}
         {line.item.note ? (
-          <span className="ml-2 text-2xl font-normal text-amber-800/90">· {line.item.note}</span>
+          <span className="ml-2 text-xl font-normal text-amber-800/90">· {line.item.note}</span>
         ) : null}
       </span>
-      <span className="shrink-0 text-3xl font-semibold tabular-nums text-brand-gold">
+      {/* Qty secondary to dish name — text-2xl was reading larger than the name on KDS. */}
+      <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
         × {line.item.qty}
       </span>
       <span
-        className={`shrink-0 rounded-md px-2.5 py-1 text-2xl font-medium ${statusTone(line.effectiveStatus)}`}
+        className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
       >
         {statusLabel(line.effectiveStatus, t)}
       </span>
@@ -220,16 +221,16 @@ export function KitchenStationPane({
                     setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId))
                   }
                 >
-                  <span className="min-w-0 flex-1 truncate text-3xl font-medium leading-tight text-brand-text">
+                  <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
                     {dish.name}
                   </span>
-                  <span className="shrink-0 text-3xl font-semibold tabular-nums text-brand-gold">
+                  <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
                     {t.qtyBadge.replace('{n}', String(dish.totalQty))}
                   </span>
-                  <span className="min-w-0 max-w-[40%] truncate text-2xl text-brand-text-muted">
+                  <span className="min-w-0 max-w-[40%] truncate text-lg text-brand-text-muted">
                     {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
                   </span>
-                  <span className="shrink-0 text-xl text-brand-text-muted">
+                  <span className="shrink-0 text-base text-brand-text-muted">
                     {open ? t.collapseDish : t.expandDish}
                   </span>
                 </button>

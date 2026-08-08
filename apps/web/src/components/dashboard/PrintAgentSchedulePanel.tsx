@@ -109,7 +109,7 @@ export function PrintAgentSchedulePanel({
         <h2 className="font-heading text-lg text-brand-text">{t.scheduleTitle}</h2>
         <p className="text-[13px] text-brand-text-muted mt-1 max-w-2xl leading-relaxed">{t.scheduleSubtitle}</p>
         <p
-          className="mt-3 max-w-2xl rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text"
+          className="mt-3 max-w-2xl rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-3.5 py-2.5 text-[12px] leading-relaxed text-brand-text"
           role="note"
         >
           {scheduleApplyNote}

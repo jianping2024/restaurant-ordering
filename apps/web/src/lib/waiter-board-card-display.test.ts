@@ -3,8 +3,6 @@ import { describe, it } from 'node:test';
 import {
   buildWaiterBoardCardViewModel,
   formatWaiterBoardCardAmount,
-  formatWaiterBoardCardCapacityLine,
-  formatWaiterBoardCardRow3Meta,
 } from '@/lib/waiter-board-card-display';
 import { WAITER_BOARD_CARD_MAX_AMOUNT_LABEL } from '@/lib/waiter-board-card-layout';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
@@ -36,10 +34,14 @@ function summary(overrides: Partial<WaiterBoardTableSummary> = {}): WaiterBoardT
   };
 }
 
+function chipText(view: ReturnType<typeof buildWaiterBoardCardViewModel>, kind: string) {
+  return view.metaChips.find((chip) => chip.kind === kind)?.text ?? null;
+}
+
 describe('buildWaiterBoardCardViewModel', () => {
   const nowMs = Date.parse('2026-07-05T20:00:00.000Z');
 
-  it('idle card fills fixed slots without guest count or amount', () => {
+  it('idle card: seats + note chips, no amount or title badge', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary(),
       boardState: 'idle',
@@ -51,20 +53,21 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.badgeLabel, '空闲');
-    assert.equal(view.row1.tableTitle, '002');
-    assert.equal(view.row2.openerLabel, null);
-    assert.equal(view.row2.capacityText, '2–4 座');
-    assert.equal(view.row2.guestCountText, '');
-    assert.equal(view.row3.metaPrefix, '干净整洁，可开台');
-    assert.equal(view.row3.metaHighlight, '');
-    assert.equal(view.row3.amountText, '');
-    assert.equal(view.row4.footerLabel, '开台');
-    assert.equal(view.row4.footerIcon, 'open_table');
-    assert.equal(view.row4.footerDisabled, false);
+    assert.equal(view.statusLabel, '空闲');
+    assert.equal(view.tableTitle, '002');
+    assert.equal(view.titleBadge, null);
+    assert.deepEqual(
+      view.metaChips.map((c) => c.kind),
+      ['seats', 'note'],
+    );
+    assert.equal(chipText(view, 'seats'), '2–4 座');
+    assert.equal(chipText(view, 'note'), '干净整洁，可开台');
+    assert.equal(view.amountText, '');
+    assert.equal(view.ctaLabel, '开台');
+    assert.equal(view.ctaDisabled, false);
   });
 
-  it('dining card uses compact board duration and amount on row3', () => {
+  it('dining card: seats/staff/time chips, headcount as title badge only', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 0 }, sessionTotal: 89.9 }),
       boardState: 'dining',
@@ -81,23 +84,17 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.badgeLabel, '用餐中');
-    assert.equal(view.row1.tableTitle, '002');
-    assert.equal(view.row2.openerLabel, '张三');
-    assert.equal(
-      formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel),
-      '2–4 座 张三',
-    );
-    assert.equal(view.row2.guestCountText, 'A3');
-    assert.equal(view.row3.metaPrefix, '用时 ');
-    assert.equal(view.row3.metaHighlight, '2时0分');
-    assert.equal(formatWaiterBoardCardRow3Meta(view.row3), '用时 2时0分');
-    assert.equal(view.row3.amountText, '€89.90');
-    assert.equal(view.row4.footerLabel, '详情');
-    assert.equal(view.row4.footerIcon, 'view_order');
+    assert.equal(view.statusLabel, '用餐中');
+    assert.equal(view.titleBadge, 'A3');
+    assert.equal(chipText(view, 'seats'), '2–4 座');
+    assert.equal(chipText(view, 'staff'), '张三');
+    assert.equal(chipText(view, 'time'), '用时 2时0分');
+    assert.equal(view.amountText, '€89.90');
+    assert.equal(view.ctaLabel, '详情');
+    assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
   });
 
-  it('dining card shows A3-C2 when both adult and child counts are set', () => {
+  it('dining card title badge is A3-C2 when both counts set', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 2 }, sessionTotal: 58.4 }),
       boardState: 'dining',
@@ -113,14 +110,14 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row2.guestCountText, 'A3-C2');
+    assert.equal(view.titleBadge, 'A3-C2');
   });
 
   it('formats six-digit amounts incl. decimals for board cards', () => {
     assert.equal(formatWaiterBoardCardAmount(9999.99), WAITER_BOARD_CARD_MAX_AMOUNT_LABEL);
   });
 
-  it('checkout card on waiter board is display-only with awaiting-payment footer', () => {
+  it('checkout card on waiter board is display-only with awaiting-payment CTA', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -136,13 +133,12 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row1.badgeLabel, '待结账');
-    assert.equal(view.row2.guestCountText, 'A2');
-    assert.match(formatWaiterBoardCardRow3Meta(view.row3), /^用时 /);
-    assert.equal(view.row3.amountText, '€40.00');
-    assert.equal(view.row4.footerLabel, '待收银收款');
-    assert.equal(view.row4.footerIcon, 'checkout');
-    assert.equal(view.row4.footerDisabled, true);
+    assert.equal(view.statusLabel, '待结账');
+    assert.equal(view.titleBadge, 'A2');
+    assert.match(chipText(view, 'time') ?? '', /^用时 /);
+    assert.equal(view.amountText, '€40.00');
+    assert.equal(view.ctaLabel, '待收银收款');
+    assert.equal(view.ctaDisabled, true);
   });
 
   it('idle card hides amount even when summary has session total', () => {
@@ -157,10 +153,10 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row3.amountText, '');
+    assert.equal(view.amountText, '');
   });
 
-  it('checkout on dashboard uses go-to-checkout footer', () => {
+  it('checkout on dashboard uses go-to-checkout CTA', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -176,8 +172,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row4.footerLabel, '结账');
-    assert.equal(view.row4.footerIcon, 'checkout');
+    assert.equal(view.ctaLabel, '结账');
   });
 
   it('board card duration supports single-digit hour ceiling (9时59分)', () => {
@@ -196,9 +191,8 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row3.metaHighlight, '9时59分');
-    assert.equal(formatWaiterBoardCardRow3Meta(view.row3), '用时 9时59分');
-    assert.equal(view.row3.amountText, '€9999.99');
+    assert.equal(chipText(view, 'time'), '用时 9时59分');
+    assert.equal(view.amountText, '€9999.99');
   });
 
   it('idle card hides opener even when session meta carries openedByName', () => {
@@ -218,10 +212,10 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row2.openerLabel, null);
+    assert.equal(chipText(view, 'staff'), null);
   });
 
-  it('dining card hides opener when openedByName is missing', () => {
+  it('dining card omits staff chip when openedByName is missing', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 10 }),
       boardState: 'dining',
@@ -237,10 +231,10 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row2.openerLabel, null);
+    assert.equal(chipText(view, 'staff'), null);
   });
 
-  it('checkout card shows opener merged into capacity line', () => {
+  it('checkout card shows opener as staff chip only', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',
@@ -257,12 +251,9 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.equal(view.row2.openerLabel, '李四');
-    assert.equal(
-      formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel),
-      '2–4 座 李四',
-    );
-    assert.equal(view.row1.badgeLabel, '待结账');
+    assert.equal(chipText(view, 'staff'), '李四');
+    assert.equal(chipText(view, 'seats'), '2–4 座');
+    assert.equal(view.statusLabel, '待结账');
     assert.match(view.ariaLabel, /李四/);
   });
 });

@@ -4,17 +4,12 @@ import Link from 'next/link';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import {
   buildWaiterBoardCardViewModel,
-  formatWaiterBoardCardCapacityLine,
+  type WaiterBoardCardMetaChipKind,
 } from '@/lib/waiter-board-card-display';
 import {
   isWaiterBoardCardInteractive,
   type WaiterBoardCardAction,
 } from '@/lib/waiter-board-card-action';
-import {
-  WAITER_BOARD_CARD_ROW1_LAYOUT,
-  WAITER_BOARD_CARD_ROW2_LAYOUT,
-  WAITER_BOARD_CARD_ROW3_LAYOUT,
-} from '@/lib/waiter-board-card-layout';
 import {
   WAITER_BOARD_CARD_THEME,
   waiterBoardCardShellClass,
@@ -22,8 +17,11 @@ import {
 } from '@/lib/waiter-board-card-theme';
 import type { WaiterTableBoardState } from '@/lib/waiter-board-session';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
-import { WaiterBoardCardFooter } from '@/components/waiter/WaiterBoardCardFooter';
-import { WaiterSeatCapacityIcon } from '@/components/waiter/waiter-table-detail-icons';
+import {
+  WaiterClockIcon,
+  WaiterSeatCapacityIcon,
+  WaiterTableIcon,
+} from '@/components/waiter/waiter-table-detail-icons';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import type { UILanguage } from '@/lib/i18n';
 
@@ -41,10 +39,21 @@ type Props = {
   onDisabledClick: () => void;
 };
 
-const CARD_BASE_CLASS =
-  'flex min-h-[8.25rem] flex-col rounded-xl border text-left w-full p-4';
+/** Layout only — shell `mesa-scroll-frame` + status comes solely from `waiterBoardCardShellClass`. */
+const CARD_BASE_CLASS = 'flex w-full text-left';
+const CARD_INNER_CLASS =
+  'mesa-scroll-frame__inner flex min-h-[8.25rem] w-full gap-2.5 p-4';
 const CARD_INTERACTIVE_CLASS =
-  'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
+  'group transition-all duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
+
+const CHIP_ICON = 'h-3.5 w-3.5 shrink-0 text-brand-text';
+
+function MetaChipIcon({ kind }: { kind: WaiterBoardCardMetaChipKind }) {
+  if (kind === 'seats') return <WaiterSeatCapacityIcon className={CHIP_ICON} />;
+  if (kind === 'staff') return <WaiterTableIcon className={CHIP_ICON} />;
+  if (kind === 'time') return <WaiterClockIcon className={CHIP_ICON} />;
+  return null;
+}
 
 export function WaiterBoardTableCard({
   card,
@@ -97,59 +106,49 @@ export function WaiterBoardTableCard({
     .join(' ');
 
   const body = (
-    <>
-      <div className="flex items-start justify-between gap-2 min-h-[1.25rem]">
-        <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>
-          {view.row1.tableTitle}
-        </p>
-        <span className={`${WAITER_BOARD_CARD_ROW1_LAYOUT.badge} ${theme.badge}`}>
-          {view.row1.badgeLabel}
-        </span>
-      </div>
-
-      <div className={WAITER_BOARD_CARD_ROW2_LAYOUT.row}>
-        <p className={WAITER_BOARD_CARD_ROW2_LAYOUT.capacity}>
-          <WaiterSeatCapacityIcon className={WAITER_BOARD_CARD_ROW2_LAYOUT.capacityIcon} />
-          <span
-            className="truncate"
-            title={
-              view.row2.openerLabel
-                ? formatWaiterBoardCardCapacityLine(
-                    view.row2.capacityText,
-                    view.row2.openerLabel,
-                  )
-                : undefined
-            }
-          >
-            {formatWaiterBoardCardCapacityLine(view.row2.capacityText, view.row2.openerLabel)}
-          </span>
-        </p>
-        <p className={WAITER_BOARD_CARD_ROW2_LAYOUT.guestCount}>{view.row2.guestCountText}</p>
-      </div>
-
-      <div className={WAITER_BOARD_CARD_ROW3_LAYOUT.row}>
-        <p className={`${WAITER_BOARD_CARD_ROW3_LAYOUT.meta} ${theme.row3}`}>
-          <span className={theme.meta}>{view.row3.metaPrefix}</span>
-          {view.row3.metaHighlight ? (
-            <span className={theme.durationAccent}>{view.row3.metaHighlight}</span>
+    <div className={CARD_INNER_CLASS}>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-[1.25rem] items-baseline gap-2">
+          <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
+          {view.titleBadge ? (
+            <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium text-brand-gold border border-brand-gold/50">
+              {view.titleBadge}
+            </span>
           ) : null}
-        </p>
-        {view.row3.amountText ? (
-          <span className={`${WAITER_BOARD_CARD_ROW3_LAYOUT.amount} ${theme.row3} ${theme.amount}`}>
-            {view.row3.amountText}
+        </div>
+
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-brand-text">
+          {view.metaChips.map((chip) => (
+            <span key={`${chip.kind}-${chip.text}`} className="inline-flex min-w-0 items-center gap-1">
+              <MetaChipIcon kind={chip.kind} />
+              <span className="truncate">{chip.text}</span>
+            </span>
+          ))}
+        </div>
+
+        <div className="mesa-card-rule mb-auto" />
+
+        <div className="mt-2 flex items-baseline justify-between gap-x-1.5">
+          {view.amountText ? (
+            <span className={`${waiterBoardType.cardAmount} ${theme.amount}`}>{view.amountText}</span>
+          ) : (
+            <span />
+          )}
+          <span
+            aria-hidden
+            className={`shrink-0 text-sm font-semibold ${theme.cta} ${
+              view.ctaDisabled ? 'opacity-55' : ''
+            }`}
+          >
+            {view.ctaLabel} →
           </span>
-        ) : null}
+        </div>
       </div>
 
-      <div className="mt-auto">
-        <WaiterBoardCardFooter
-          label={view.row4.footerLabel}
-          icon={view.row4.footerIcon}
-          footerClassName={theme.footer}
-          disabled={view.row4.footerDisabled}
-        />
+      <div className="mesa-status-vertical" aria-hidden>
+        {view.statusLabel}
       </div>
-    </>
+    </div>
   );
 
   if (action.kind === 'disabled' && action.reason === 'waiter_checkout') {

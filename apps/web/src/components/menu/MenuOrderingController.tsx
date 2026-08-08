@@ -880,7 +880,7 @@ export function MenuOrderingController({
       </CustomerOrderingHeader>
 
       {!isDemo && sessionResolved && !guestCanOrder && (
-        <div className="mx-4 mt-3 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-[13px] text-brand-text">
+        <div className="mx-4 mt-3 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3 text-[13px] text-brand-text">
           {guestOrderingHints.banner}
         </div>
       )}

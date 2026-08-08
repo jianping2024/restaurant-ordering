@@ -115,13 +115,17 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 
 | 令牌 | 用途 |
 |------|------|
-| `brand-bg` | 页面背景 |
+| `brand-bg` | 页面背景（米纸） |
 | `brand-card` | 卡片、抽屉、Modal 底 |
 | `brand-border` | 分割线、边框 |
-| `brand-gold` | 主色、强调金额、标题点缀 |
-| `brand-text` | **正文主色**（菜品名、金额、桌号、时长必须用此色，禁止灰/`muted`） |
-| `brand-text-muted` | 仅次要说明 / 占位 / 非关键标签 |
+| `brand-ink` | **品牌主色**（靛青 azulejo）：主 CTA、选中态、页面标题、导航强调 |
+| `brand-gold` | **点缀**：金额、细线、金额区边框 |
+| `brand-text` | **正文主色**（菜品名、金额、桌号、时长必须用此色，禁止淡灰） |
+| `brand-text-muted` | 仅次要说明 / 占位 / 非关键标签（仍须高对比，禁止浅灰） |
+| `brand-on-ink` | 靛青实心底上的文字 |
 | `font-heading` / `font-body` | 标题 / 正文；CJK 回退由 Tailwind + `globals.css` 统一 |
+
+参照稿：`docs/design/farvoo-floor-board-mockup.html`。
 
 ### 楼面文字角色（服务员看板 / 桌台详情）
 
@@ -135,25 +139,28 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
 
-**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）。楼面 lane 与同行组下拉触发器 **同一 chrome**；选中为实心 `bg-brand-gold` + `text-brand-on-gold`（`WAITER_BOARD_SELECTED_EMPHASIS`，无 ring 双线）。KPI 图标在 `waiter-board-kpi-icons.tsx`，色经 `WAITER_BOARD_FILTER_KPI_ICON_CLASS` 跟 status fg；新建同行组 `sort_order` **append**（菜单列表按 ASC；条上不再为每组占一个 tab）。
+**服务员看板**角色类在 `waiterBoardType` / `WAITER_BOARD_LANE_CHROME`（`waiter-board-card-theme.ts`）。楼面 lane 与同行组下拉触发器 **同一 chrome**；选中为实心 `bg-brand-ink` + `text-brand-on-ink`（`WAITER_BOARD_SELECTED_EMPHASIS`，无 ring 双线）。桌卡壳为 `mesa-scroll-frame` + `is-dining` / `is-pending` / `is-free`（双线裱边）。桌卡展示唯一形状为 `WaiterBoardCardViewModel`（`metaChips` + 竖排 `statusLabel` + 标题旁 `titleBadge`）；KPI 为细线 `mesa-stat`（非实心图标卡）。新建同行组 `sort_order` **append**（菜单列表按 ASC；条上不再为每组占一个 tab）。
 
 | 角色 | 用途 |
 |------|------|
-| `pageTitle` | 看板页标题 |
-| `kpiCount` / `kpiLabel` / `kpiIconSlot` + `kpiIcon` | 顶部筛选 KPI（无副文案；图标固定槽光学居中） |
+| `pageTitle` | 看板页标题（`text-brand-ink`） |
+| `kpiCount` / `kpiLabel` | 顶部细线 KPI（标签上、数字下、色线） |
 | `laneLabel` / `laneMeta` | 横滑楼面 lane 与同行组下拉触发器；外壳 `WAITER_BOARD_LANE_STICKY_SHELL`（`sticky` + `waiterStaffStickyChrome.belowStaffTopBar`）；楼面 tab 与同行组入口同在一条 `mesa-chip-scroll`（同行组紧跟最后一桌组，不再条尾贴右）；菜单 portal 到 `body` 避免横滑 overflow 裁切；菜单顶区「创建」为 `Button` gold（选项列表可滚，创建不跟滚） |
-| `cardTitle` / `cardRow3` | 桌卡桌号与用时/金额行 |
+| `cardTitle` / `cardAmount` | 桌卡桌号与金额 |
 
 支持 **明/暗主题**（`ThemeProvider` 写 `data-theme`）。Tailwind `dark:` 必须跟随 `[data-theme="dark"]`（见 `tailwind.config.ts`），**禁止**依赖系统 `prefers-color-scheme`。改色须同时检查 `:root` 与 `[data-theme='light']` 两套 CSS 变量。
 
-状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-board-shell-*`）：
+状态色（业务语义，经 `--color-status-*` / `mesa-badge-*` / `mesa-scroll-frame`）：
 
-- 待结账 `checkout`：warning（琥珀）
-- 用餐中 `dining`：danger（红）
-- 空闲 `idle`：success（绿）
-- 看板卡片壳：`mesa-board-shell-*`（按 `data-theme` 分条声明，色值与 `--color-status-*` 对齐）；正文一律 `brand-text`，状态色只用于壳/徽章/边框
+- 待结账 `checkout`：warning（灰调赭金）→ `is-pending`
+- 用餐中 `dining`：danger（灰调赤陶）→ `is-dining`
+- 空闲 `idle`：success（灰调鼠尾草）→ `is-free`
+- 看板卡片壳：`mesa-scroll-frame` + 上列 modifier；正文一律 `brand-text`，状态色只用于壳/徽章/边框
+- Modal 等面板：`mesa-panel-frame`（外靛内金）
 - 成功/收款：`mesa-badge-success`
 - 危险操作：`Button danger` / `mesa-text-danger`
+
+`Button variant="gold"` 视觉主面为 **靛青**（API 名保留 `gold`）；金额与结账金额区仍用 `brand-gold`。
 
 ---
 

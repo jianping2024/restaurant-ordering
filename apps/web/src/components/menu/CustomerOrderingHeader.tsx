@@ -45,11 +45,11 @@ export function CustomerOrderingHeader({
 
   const headingClass =
     headingSize === 'bill'
-      ? 'font-heading text-2xl text-brand-gold truncate'
-      : 'font-heading text-xl text-brand-gold truncate';
+      ? 'font-heading text-2xl text-brand-ink truncate'
+      : 'font-heading text-xl text-brand-ink truncate';
 
   const tableBadge = (
-    <span className="shrink-0 rounded-full border border-brand-gold/40 bg-brand-gold/10 px-2.5 py-1 text-[13px] font-medium text-brand-gold tabular-nums">
+    <span className="shrink-0 rounded-full border border-brand-ink/40 bg-brand-ink/10 px-2.5 py-1 text-[13px] font-medium text-brand-ink tabular-nums">
       {tableLabel} {displayName}
     </span>
   );

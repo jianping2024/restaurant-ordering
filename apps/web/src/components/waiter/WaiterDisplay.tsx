@@ -71,15 +71,13 @@ import {
   WAITER_BOARD_TABLES_GRID_CLASS,
 } from '@/lib/waiter-board-card-layout';
 import {
-  WAITER_BOARD_FILTER_KPI_ICON_CLASS,
-  WAITER_BOARD_FILTER_KPI_TONE,
+  WAITER_BOARD_KPI_COUNT_CLASS,
+  WAITER_BOARD_KPI_LABEL_CLASS,
+  WAITER_BOARD_KPI_RULE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_LANE_STICKY_SHELL,
-  waiterBoardKpiChromeClass,
-  waiterBoardKpiToneClass,
   waiterBoardType,
 } from '@/lib/waiter-board-card-theme';
-import { WAITER_BOARD_KPI_ICON_BY_FILTER } from '@/components/waiter/waiter-board-kpi-icons';
 import { waiterUi } from '@/components/waiter/waiter-ui';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
 
@@ -132,28 +130,34 @@ function BoardKpiCard({
   filter: WaiterBoardFilter;
   onClick: () => void;
 }) {
-  const toneClass = waiterBoardKpiToneClass(WAITER_BOARD_FILTER_KPI_TONE[filter]);
-  const surfaceClass = active ? waiterBoardKpiChromeClass(true) : toneClass;
-  const Icon = WAITER_BOARD_KPI_ICON_BY_FILTER[filter];
-  const iconClass = [
-    waiterBoardType.kpiIcon,
-    active ? 'text-inherit' : WAITER_BOARD_FILTER_KPI_ICON_CLASS[filter],
-  ].join(' ');
-
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-xl border px-4 py-3 text-left min-w-[6.5rem] flex-1 transition-all hover:shadow-sm ${surfaceClass}`}
+      className="mesa-stat min-w-[5.5rem] flex-1 text-left"
+      data-active={active ? 'true' : 'false'}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className={waiterBoardType.kpiCount}>{count}</p>
-        <span className={waiterBoardType.kpiIconSlot}>
-          <Icon className={iconClass} />
-        </span>
+      <div
+        className={`${waiterBoardType.kpiLabel} ${
+          active ? 'text-brand-ink' : WAITER_BOARD_KPI_LABEL_CLASS[filter]
+        }`}
+      >
+        {label}
       </div>
-      <p className={waiterBoardType.kpiLabel}>{label}</p>
+      <div
+        className={`${waiterBoardType.kpiCount} mt-1.5 ${
+          active && filter === 'all'
+            ? 'text-brand-text'
+            : WAITER_BOARD_KPI_COUNT_CLASS[filter]
+        }`}
+      >
+        {count}
+      </div>
+      <div
+        className={`mesa-stat__rule mt-2.5 ${WAITER_BOARD_KPI_RULE_CLASS[filter]}`}
+        aria-hidden
+      />
     </button>
   );
 }
@@ -639,7 +643,7 @@ function WaiterBoardInner({
   return (
     <div className={isDemo ? 'min-h-screen bg-brand-bg p-4' : ''}>
       {isDemo && (
-        <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
+        <div className="mb-4 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">{t.step}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Link

@@ -265,7 +265,7 @@ function KitchenScreenBoardInner({
       />
       <div className="min-h-0 flex-1 overflow-x-clip p-4 flex flex-col gap-3">
         {isDemo ? (
-          <div className="rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
+          <div className="rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3">
             <p className="text-[13px] text-brand-text">{demoText.step}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <Link
@@ -296,11 +296,11 @@ function KitchenScreenBoardInner({
             >
               ← {t.backToScreens}
             </Link>
-            <h1 className="font-heading text-2xl text-brand-gold">{screen.name}</h1>
+            <h1 className="font-heading text-2xl text-brand-ink">{screen.name}</h1>
           </div>
         )}
         {!isDemo ? null : (
-          <h1 className="font-heading text-2xl text-brand-gold">{screen.name}</h1>
+          <h1 className="font-heading text-2xl text-brand-ink">{screen.name}</h1>
         )}
         {error ? (
           <div className="mesa-alert-warning px-4 py-2 text-sm">{error}</div>

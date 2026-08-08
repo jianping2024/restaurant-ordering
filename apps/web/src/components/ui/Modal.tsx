@@ -64,13 +64,14 @@ export function Modal({
         aria-hidden
       />
       <div
-        className={`relative z-10 mx-auto flex w-full max-h-full flex-col rounded-2xl border border-brand-border bg-brand-card shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${sizes[size]}`}
+        className={`mesa-panel-frame relative z-10 mx-auto flex w-full max-h-full flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${sizes[size]}`}
         onClick={(event) => event.stopPropagation()}
         onPointerDown={(event) => event.stopPropagation()}
       >
+        <div className="mesa-panel-frame__inner flex max-h-full min-h-0 w-full flex-col overflow-hidden">
         {title ? (
           <div className="flex flex-shrink-0 items-center justify-between border-b border-brand-border px-4 py-3 sm:px-6 sm:py-4">
-            <h2 className="font-heading text-xl text-brand-gold">{title}</h2>
+            <h2 className="font-heading text-xl text-brand-ink">{title}</h2>
             <button
               type="button"
               onClick={onClose}
@@ -83,6 +84,7 @@ export function Modal({
           </div>
         ) : null}
         <div className="modal-scroll min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
+        </div>
       </div>
     </div>,
     document.body,

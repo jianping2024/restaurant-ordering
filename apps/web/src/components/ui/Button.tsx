@@ -15,14 +15,16 @@ const baseClass =
   'relative inline-flex items-center justify-center outline-none transition-all duration-200 cursor-pointer focus-visible:ring-2';
 
 const variants: Record<ButtonVariant, string> = {
+  /** Primary face — azulejo ink (variant id `gold` kept for call-site stability). */
   gold:
-    'border border-transparent bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-gold/45',
-  outline: 'border border-brand-gold text-brand-gold hover:bg-brand-gold/10 font-semibold focus-visible:ring-brand-gold/30',
+    'border border-transparent bg-brand-ink text-brand-on-ink hover:bg-brand-ink-light font-semibold shadow-sm shadow-black/10 active:scale-[0.98] focus-visible:ring-brand-ink/45',
+  outline:
+    'border border-brand-ink text-brand-ink hover:bg-brand-ink/10 font-semibold focus-visible:ring-brand-ink/30',
   ghost:
-    'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-gold/30',
+    'text-brand-text-muted hover:text-brand-text hover:bg-brand-border font-medium focus-visible:ring-brand-ink/30',
   danger: 'bg-red-600 text-white hover:bg-red-700 font-semibold focus-visible:ring-red-400/40',
   soft:
-    'border border-transparent bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-gold/30',
+    'border border-transparent bg-brand-border/30 text-brand-text hover:bg-brand-border/50 font-medium focus-visible:ring-brand-ink/30',
   close:
     'border border-rose-500 bg-brand-card text-rose-700 hover:bg-rose-500/8 font-medium focus-visible:ring-rose-400/40',
 };

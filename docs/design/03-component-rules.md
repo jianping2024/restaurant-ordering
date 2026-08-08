@@ -62,7 +62,7 @@
 **文件**：`components/ui/Modal.tsx`
 
 - 遮罩 `bg-black/70 backdrop-blur-sm`，点击关闭
-- 内容 `bg-brand-card rounded-2xl`，标题 `font-heading text-brand-gold`
+- 内容 `mesa-panel-frame` + 内层 `mesa-panel-frame__inner`，标题 `font-heading text-brand-ink`
 - 尺寸：`sm` 确认框 · `md` 默认 · `lg/xl` 复杂表单
 - ESC 关闭；打开时 `body` 锁滚动
 

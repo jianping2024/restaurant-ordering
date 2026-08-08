@@ -76,7 +76,7 @@ function KitchenScreensHomeInner({
         }
       />
       <div className="min-h-0 flex-1 p-4">
-        <h1 className="font-heading text-3xl text-brand-gold mb-6">{t.screensTitle}</h1>
+        <h1 className="font-heading text-3xl text-brand-ink mb-6">{t.screensTitle}</h1>
         {screens.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-brand-border bg-brand-card px-6 py-16 text-center">
             <p className="text-lg text-brand-text">{t.screensEmpty}</p>
@@ -95,7 +95,7 @@ function KitchenScreensHomeInner({
                     {screen.station_ids.length} station
                     {screen.station_ids.length === 1 ? '' : 's'}
                   </p>
-                  <span className="mt-3 inline-block text-sm text-brand-gold">{t.openScreen} →</span>
+                  <span className="mt-3 inline-block text-sm text-brand-ink">{t.openScreen} →</span>
                 </Link>
               </li>
             ))}

@@ -18,17 +18,29 @@ export type WaiterBoardCardDisplayLabels = {
   checkoutPendingSubtitle: string;
 };
 
-export type WaiterBoardCardFooterIcon = 'open_table' | 'view_order' | 'checkout';
+/** One meta chip on the mockup card — seats / staff / time / idle note. */
+export type WaiterBoardCardMetaChipKind = 'seats' | 'staff' | 'time' | 'note';
 
-export type WaiterBoardCardRowSlots = {
-  row1: { tableTitle: string; badgeLabel: string };
-  row2: { capacityText: string; openerLabel: string | null; guestCountText: string };
-  row3: { metaPrefix: string; metaHighlight: string; amountText: string };
-  row4: { footerLabel: string; footerIcon: WaiterBoardCardFooterIcon; footerDisabled: boolean };
+export type WaiterBoardCardMetaChip = {
+  kind: WaiterBoardCardMetaChipKind;
+  text: string;
 };
 
-export type WaiterBoardCardViewModel = WaiterBoardCardRowSlots & {
+/**
+ * Sole floor-card display shape (mockup template).
+ * No parallel row1–4 / capacityLine / footerIcon representations.
+ */
+export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
+  tableTitle: string;
+  /** Vertical colophon status. */
+  statusLabel: string;
+  /** Headcount pill beside title (e.g. A3-C2) — one place only. */
+  titleBadge: string | null;
+  metaChips: WaiterBoardCardMetaChip[];
+  amountText: string;
+  ctaLabel: string;
+  ctaDisabled: boolean;
   ariaLabel: string;
 };
 
@@ -45,20 +57,7 @@ export function formatWaiterBoardCardAmount(sessionTotal: number): string {
   return `€${sessionTotal.toFixed(2)}`;
 }
 
-export function formatWaiterBoardCardCapacityLine(
-  capacityText: string,
-  openerLabel: string | null,
-): string {
-  if (!openerLabel) return capacityText;
-  return `${capacityText} ${openerLabel}`;
-}
-
-export function formatWaiterBoardCardRow3Meta(row3: WaiterBoardCardRowSlots['row3']): string {
-  if (!row3.metaHighlight) return row3.metaPrefix;
-  return `${row3.metaPrefix}${row3.metaHighlight}`;
-}
-
-function badgeLabelForState(
+function statusLabelForState(
   boardState: WaiterTableBoardState,
   statusLabels: { checkout: string; dining: string; idle: string },
 ): string {
@@ -67,33 +66,24 @@ function badgeLabelForState(
   return statusLabels.idle;
 }
 
-function openerLabelForCard(
-  boardState: WaiterTableBoardState,
-  session: WaiterTableSessionMeta | undefined,
-): string | null {
-  if (boardState === 'idle') return null;
-  const name = session?.openedByName?.trim();
-  return name || null;
-}
-
-function boardHeadcountText(
+function titleBadgeForCard(
   boardState: WaiterTableBoardState,
   headcount: WaiterBoardTableSummary['buffetHeadcount'],
-): string {
-  if (boardState === 'idle' || !headcount) return '';
-  return formatBuffetReceiptQtyLabel(headcount.adults, headcount.children);
+): string | null {
+  if (boardState === 'idle' || !headcount) return null;
+  const label = formatBuffetReceiptQtyLabel(headcount.adults, headcount.children);
+  return label || null;
 }
 
-function diningDurationSlots(
+function diningDurationText(
   session: WaiterTableSessionMeta | undefined,
   checkoutRequestedAt: string | null,
   lang: UILanguage,
   nowMs: number,
   template: string,
-): { metaPrefix: string; metaHighlight: string } {
-  const withoutDuration = template.replace(/\s*\{duration\}\s*/g, '').trim();
+): string {
   if (!session) {
-    return { metaPrefix: withoutDuration, metaHighlight: '' };
+    return template.replace(/\s*\{duration\}\s*/g, '').trim();
   }
   const duration = formatSessionDurationForBoardCard(
     session.openedAt,
@@ -102,65 +92,54 @@ function diningDurationSlots(
     nowMs,
   );
   if (!duration) {
-    return { metaPrefix: withoutDuration, metaHighlight: '' };
+    return template.replace(/\s*\{duration\}\s*/g, '').trim();
   }
-  const placeholder = '{duration}';
-  const index = template.indexOf(placeholder);
-  if (index === -1) {
-    return { metaPrefix: template, metaHighlight: duration };
-  }
-  return {
-    metaPrefix: template.slice(0, index),
-    metaHighlight: duration,
-  };
+  return template.replace('{duration}', duration);
 }
 
-function row3Slots(input: {
+function buildMetaChips(input: {
   boardState: WaiterTableBoardState;
-  sessionTotal: number;
+  capacityText: string;
   session: WaiterTableSessionMeta | undefined;
   checkoutRequestedAt: string | null;
   lang: UILanguage;
   nowMs: number;
   labels: Pick<WaiterBoardCardDisplayLabels, 'cardIdleReadyHint' | 'cardDiningDuration'>;
-}): WaiterBoardCardRowSlots['row3'] {
+}): WaiterBoardCardMetaChip[] {
+  const chips: WaiterBoardCardMetaChip[] = [{ kind: 'seats', text: input.capacityText }];
+
   if (input.boardState === 'idle') {
-    return {
-      metaPrefix: input.labels.cardIdleReadyHint,
-      metaHighlight: '',
-      amountText: '',
-    };
+    chips.push({ kind: 'note', text: input.labels.cardIdleReadyHint });
+    return chips;
   }
-  const duration = diningDurationSlots(
+
+  const opener = input.session?.openedByName?.trim();
+  if (opener) {
+    chips.push({ kind: 'staff', text: opener });
+  }
+
+  const timeText = diningDurationText(
     input.session,
     input.checkoutRequestedAt,
     input.lang,
     input.nowMs,
     input.labels.cardDiningDuration,
   );
-  return {
-    ...duration,
-    amountText: formatWaiterBoardCardAmount(input.sessionTotal),
-  };
+  if (timeText) {
+    chips.push({ kind: 'time', text: timeText });
+  }
+
+  return chips;
 }
 
-function footerIconForLabelKey(
-  labelKey: ReturnType<typeof waiterBoardCardActionLabelKey>,
-): WaiterBoardCardFooterIcon {
-  if (labelKey === 'cardActionOpenTable') return 'open_table';
-  if (labelKey === 'cardActionCheckout' || labelKey === 'checkoutPendingSubtitle') return 'checkout';
-  return 'view_order';
-}
-
-function buildAriaLabel(slots: WaiterBoardCardRowSlots): string {
+function buildAriaLabel(view: Omit<WaiterBoardCardViewModel, 'ariaLabel'>): string {
   const parts = [
-    slots.row1.tableTitle,
-    slots.row1.badgeLabel,
-    formatWaiterBoardCardCapacityLine(slots.row2.capacityText, slots.row2.openerLabel),
-    slots.row2.guestCountText,
-    formatWaiterBoardCardRow3Meta(slots.row3),
-    slots.row3.amountText,
-    slots.row4.footerLabel,
+    view.tableTitle,
+    view.statusLabel,
+    view.titleBadge,
+    ...view.metaChips.map((chip) => chip.text),
+    view.amountText,
+    view.ctaLabel,
   ].filter((part): part is string => Boolean(part && part.length > 0));
   return parts.join('，');
 }
@@ -180,44 +159,37 @@ export function buildWaiterBoardCardViewModel(input: {
     idle: string;
   };
 }): WaiterBoardCardViewModel {
-  const actionLabelKey = waiterBoardCardActionLabelKey(
-    input.action,
-    input.boardState,
+  const actionLabelKey = waiterBoardCardActionLabelKey(input.action, input.boardState);
+  const capacityText = formatTableSeatCapacity(
+    input.card.seatMin,
+    input.card.seatMax,
+    input.labels.seatCapacity,
   );
 
-  const slots: WaiterBoardCardRowSlots = {
-    row1: {
-      tableTitle: input.card.displayName,
-      badgeLabel: badgeLabelForState(input.boardState, input.statusLabels),
-    },
-    row2: {
-      capacityText: formatTableSeatCapacity(
-        input.card.seatMin,
-        input.card.seatMax,
-        input.labels.seatCapacity,
-      ),
-      openerLabel: openerLabelForCard(input.boardState, input.session),
-      guestCountText: boardHeadcountText(input.boardState, input.card.buffetHeadcount),
-    },
-    row3: row3Slots({
+  const draft: Omit<WaiterBoardCardViewModel, 'ariaLabel'> = {
+    boardState: input.boardState,
+    tableTitle: input.card.displayName,
+    statusLabel: statusLabelForState(input.boardState, input.statusLabels),
+    titleBadge: titleBadgeForCard(input.boardState, input.card.buffetHeadcount),
+    metaChips: buildMetaChips({
       boardState: input.boardState,
-      sessionTotal: input.card.sessionTotal,
+      capacityText,
       session: input.session,
       checkoutRequestedAt: input.checkoutRequestedAt,
       lang: input.lang,
       nowMs: input.nowMs,
       labels: input.labels,
     }),
-    row4: {
-      footerLabel: input.labels[actionLabelKey],
-      footerIcon: footerIconForLabelKey(actionLabelKey),
-      footerDisabled: input.action.kind === 'disabled',
-    },
+    amountText:
+      input.boardState === 'idle'
+        ? ''
+        : formatWaiterBoardCardAmount(input.card.sessionTotal),
+    ctaLabel: input.labels[actionLabelKey],
+    ctaDisabled: input.action.kind === 'disabled',
   };
 
   return {
-    ...slots,
-    boardState: input.boardState,
-    ariaLabel: buildAriaLabel(slots),
+    ...draft,
+    ariaLabel: buildAriaLabel(draft),
   };
 }

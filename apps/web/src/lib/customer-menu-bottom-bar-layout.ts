@@ -26,7 +26,7 @@ export const customerMenuBottomBarActionSlotClass = 'shrink-0';
 /** Icon + text block spacing (draft cart / ordered bag). */
 export const customerMenuBottomBarIconGapClass = 'gap-4';
 
-export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-gold';
+export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-ink';
 
 const customerMenuBottomBarPrimaryActionBaseClass =
   `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;

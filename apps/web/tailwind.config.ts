@@ -15,6 +15,8 @@ const config: Config = {
         brand: {
           bg: "rgb(var(--color-brand-bg) / <alpha-value>)",
           card: "rgb(var(--color-brand-card) / <alpha-value>)",
+          ink: "rgb(var(--color-brand-ink) / <alpha-value>)",
+          "ink-light": "rgb(var(--color-brand-ink-light) / <alpha-value>)",
           gold: "rgb(var(--color-brand-gold) / <alpha-value>)",
           "gold-light": "rgb(var(--color-brand-gold-light) / <alpha-value>)",
           "gold-dark": "rgb(var(--color-brand-gold-dark) / <alpha-value>)",
@@ -23,6 +25,7 @@ const config: Config = {
           text: "rgb(var(--color-brand-text) / <alpha-value>)",
           "text-muted": "rgb(var(--color-brand-text-muted) / <alpha-value>)",
           "on-gold": "rgb(var(--color-on-gold) / <alpha-value>)",
+          "on-ink": "rgb(var(--color-on-ink) / <alpha-value>)",
         },
         status: {
           warning: "rgb(var(--color-status-warning-fg) / <alpha-value>)",

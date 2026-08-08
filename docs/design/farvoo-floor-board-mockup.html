@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FARVOO 白云餐厅 · 楼面看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500&family=Noto+Serif+SC:wght@500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* ===== 品牌 / 状态 CSS 变量：对齐 apps/web globals.css 的 --color-brand-* / --color-status-* 命名约定 ===== */
+  :root,
+  [data-theme="light"] {
+    --color-paper: #EDEAE2;          /* 页面底色，暖调米纸 */
+    --color-paper-raised: #F7F4EE;   /* 卡片表面 */
+    --color-ink: #1A1612;            /* 正文主色：近黑，生意场景可读优先 */
+    --color-ink-soft: #3D362E;       /* 次要文字：仍高对比，禁止浅灰 */
+    --color-brand-ink: #1F3E52;      /* 品牌主色：靛青（azulejo） */
+    --color-brand-gold: #8B6530;     /* 暖金：加深，金额可读 */
+
+    --color-status-dining: #8F4A38;      /* 用餐中：灰调赤陶（加深） */
+    --color-status-dining-bg: #A6604A1A;
+    --color-status-pending: #9A6F28;     /* 待结账：灰调赭金（加深） */
+    --color-status-pending-bg: #C0954B1A;
+    --color-status-free: #4F6543;        /* 空闲：灰调鼠尾草（加深） */
+    --color-status-free-bg: #7C8F6E1A;
+  }
+
+  [data-theme="dark"] {
+    --color-paper: #1B1A16;
+    --color-paper-raised: #232019;
+    --color-ink: #F2EFE7;
+    --color-ink-soft: #D4CEC2;       /* 暗色次要字：提亮可读 */
+    --color-brand-ink: #9BC0D8;
+    --color-brand-gold: #D4B078;
+  }
+  [data-theme="dark"] { --color-status-dining: #E09A82; --color-status-pending: #E4C88A; --color-status-free: #B4C8A4; }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-size: 16px; /* 对齐 apps/web globals.css body */
+    line-height: 1.5;
+  }
+  .font-display { font-family: 'Cormorant Garamond', 'Noto Serif SC', serif; }
+  .font-body { font-family: 'Jost', 'Noto Sans SC', sans-serif; }
+  input::placeholder { color: var(--color-ink-soft); opacity: 1; }
+
+  /* 双线裱边：外线按状态着色、内线细金 —— 空闲虚线 / 用餐实线赤陶 / 待结账实线赭金 */
+  .mesa-scroll-frame {
+    border: 1px solid var(--color-brand-ink);
+    border-radius: 4px;
+    padding: 3px;
+  }
+  .mesa-scroll-frame.is-dining {
+    border-color: var(--color-status-dining);
+  }
+  .mesa-scroll-frame.is-pending {
+    border-color: var(--color-status-pending);
+    border-width: 1.5px;
+  }
+  .mesa-scroll-frame.is-free {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-status-free) 70%, transparent);
+  }
+  .mesa-scroll-frame__inner {
+    border: 0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent);
+    border-radius: 2px;
+    background: var(--color-paper-raised);
+  }
+  .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
+    border-color: color-mix(in srgb, var(--color-status-dining) 45%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 88%, var(--color-status-dining));
+  }
+  .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
+    border-color: color-mix(in srgb, var(--color-status-pending) 55%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 82%, var(--color-status-pending));
+  }
+  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-status-free) 45%, transparent);
+    background: color-mix(in srgb, var(--color-paper-raised) 85%, var(--color-status-free));
+  }
+
+  /* 竖排状态文字：右侧题跋位 — text-xs 对齐产品 badge */
+  .mesa-status-vertical {
+    writing-mode: vertical-rl;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    padding-left: 6px;
+    border-left: 0.5px solid transparent;
+  }
+  .mesa-scroll-frame.is-dining .mesa-status-vertical {
+    color: var(--color-status-dining);
+    border-left-color: color-mix(in srgb, var(--color-status-dining) 40%, transparent);
+  }
+  .mesa-scroll-frame.is-pending .mesa-status-vertical {
+    color: var(--color-status-pending);
+    border-left-color: color-mix(in srgb, var(--color-status-pending) 45%, transparent);
+  }
+  .mesa-scroll-frame.is-free .mesa-status-vertical {
+    color: var(--color-status-free);
+    border-left-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
+  }
+
+  /* 金额 / CTA：按状态略强调（待结账更醒目） */
+  .mesa-scroll-frame.is-dining [data-field="price"] { color: var(--color-status-dining); }
+  .mesa-scroll-frame.is-pending [data-field="price"] { color: var(--color-status-pending); }
+  .mesa-scroll-frame.is-pending [data-field="cta"] {
+    color: var(--color-status-pending);
+    font-weight: 700;
+  }
+  .mesa-scroll-frame.is-dining [data-field="cta"] { color: var(--color-brand-ink); }
+  .mesa-scroll-frame.is-free [data-field="cta"] { color: var(--color-status-free); }
+
+  /* 分隔线跟状态色 */
+  .mesa-card-rule {
+    margin-top: 0.5rem;
+    border-top: 0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent);
+  }
+  .mesa-scroll-frame.is-dining .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-dining) 40%, transparent);
+  }
+  .mesa-scroll-frame.is-pending .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-pending) 50%, transparent);
+  }
+  .mesa-scroll-frame.is-free .mesa-card-rule {
+    border-top-color: color-mix(in srgb, var(--color-status-free) 40%, transparent);
+  }
+
+  /* 导航侧栏/顶栏导航常见 text-sm */
+  .mesa-nav-tab { font-size: 0.875rem; color: var(--color-ink); letter-spacing: 0.02em; }
+  .mesa-nav-tab.is-active {
+    color: var(--color-brand-ink);
+    font-weight: 500;
+    border-bottom: 1.5px solid var(--color-brand-gold);
+    padding-bottom: 10px;
+    margin-bottom: -11px;
+  }
+
+  /* KPI 字号对齐 waiterBoardType：count text-2xl / label text-sm */
+  .mesa-stat[data-active="true"] .mesa-stat__rule { height: 2px; background: var(--color-brand-gold); }
+  .mesa-stat[data-active="false"] .mesa-stat__rule { height: 1px; opacity: 0.45; }
+  .mesa-stat[data-active="false"] .mesa-stat__label { color: var(--color-ink); }
+  .mesa-stat__count {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .mesa-stat__label {
+    margin-top: 0.375rem; /* mt-1.5 */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+  }
+
+  .mesa-group-tab[data-active="true"] { background: var(--color-brand-ink); color: var(--color-paper-raised); }
+  .mesa-group-tab[data-active="false"] { border: 0.5px solid color-mix(in srgb, var(--color-brand-ink) 45%, transparent); color: var(--color-ink); }
+
+  .mesa-search {
+    border: 1px solid color-mix(in srgb, var(--color-brand-ink) 28%, transparent);
+    border-radius: 0.75rem;
+    background: var(--color-paper-raised);
+  }
+
+  .mesa-lane-shell {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-brand-ink) 22%, transparent);
+  }
+
+  /* 桌号对齐 waiterBoardType.cardTitle */
+  .mesa-card-title {
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  @media (min-width: 640px) {
+    .mesa-card-title { font-size: 22px; }
+  }
+
+  .mesa-card-hidden { display: none !important; }
+</style>
+</head>
+<body class="font-body min-h-screen">
+
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- ===== 顶部品牌行 ===== -->
+  <div class="flex items-baseline justify-between mb-4">
+    <div class="flex items-baseline gap-2.5">
+      <span class="font-display font-semibold text-lg tracking-wide" style="color:var(--color-brand-ink)">FARVOO</span>
+      <span class="font-body text-sm" style="color:var(--color-ink)">白云餐厅</span>
+    </div>
+    <span class="text-sm" style="color:var(--color-ink)">前台 · 张三</span>
+  </div>
+
+  <!-- ===== 导航菜单栏 ===== -->
+  <nav class="flex gap-5 flex-wrap pb-2.5 mb-5" style="border-bottom:1px solid var(--color-brand-ink)">
+    <span class="mesa-nav-tab">数据概览</span>
+    <span class="mesa-nav-tab">结账请求</span>
+    <span class="mesa-nav-tab">历史订单</span>
+    <span class="mesa-nav-tab">桌位配置</span>
+    <span class="mesa-nav-tab">菜单管理</span>
+    <span class="mesa-nav-tab">顾客通知</span>
+    <span class="mesa-nav-tab is-active">楼面看板</span>
+    <span class="mesa-nav-tab">厨房看板</span>
+  </nav>
+
+  <!-- ===== 主内容区：顺序对齐 WaiterDisplay（嵌入 Dashboard 无重复标题） ===== -->
+  <!-- KPI 四卡 — 细线风格 + 产品字号（text-2xl / text-sm） -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5" role="group" aria-label="楼面看板筛选">
+    <button class="mesa-stat text-left" data-filter="all" data-active="true">
+      <div class="mesa-stat__label" style="color:var(--color-brand-ink);margin-top:0">全部</div>
+      <div class="mesa-stat__count font-display mt-1.5" style="color:var(--color-ink)">10</div>
+      <div class="mesa-stat__rule mt-2.5" style="background:var(--color-brand-gold)"></div>
+    </button>
+    <button class="mesa-stat text-left" data-filter="待结账" data-active="false">
+      <div class="mesa-stat__label" style="margin-top:0">待结账</div>
+      <div class="mesa-stat__count font-display mt-1.5" style="color:var(--color-status-pending)">2</div>
+      <div class="mesa-stat__rule mt-2.5" style="background:var(--color-status-pending)"></div>
+    </button>
+    <button class="mesa-stat text-left" data-filter="用餐中" data-active="false">
+      <div class="mesa-stat__label" style="margin-top:0">用餐中</div>
+      <div class="mesa-stat__count font-display mt-1.5" style="color:var(--color-status-dining)">6</div>
+      <div class="mesa-stat__rule mt-2.5" style="background:var(--color-status-dining)"></div>
+    </button>
+    <button class="mesa-stat text-left" data-filter="空闲" data-active="false">
+      <div class="mesa-stat__label" style="margin-top:0">空闲</div>
+      <div class="mesa-stat__count font-display mt-1.5" style="color:var(--color-status-free)">2</div>
+      <div class="mesa-stat__rule mt-2.5" style="background:var(--color-status-free)"></div>
+    </button>
+  </div>
+
+  <!-- 搜索：产品 Input text-sm -->
+  <div class="mesa-search flex items-center gap-2 px-3 py-2 mb-6">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--color-ink)"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="table-search" placeholder="按桌位名称搜索" class="border-none bg-transparent outline-none text-sm flex-1 font-body" style="color:var(--color-ink)" />
+  </div>
+
+  <!-- lane：text-sm 对齐 WAITER_BOARD_LANE_CHROME -->
+  <div class="mesa-lane-shell flex gap-2 pb-2 mb-4 overflow-x-auto">
+    <button class="mesa-group-tab px-3.5 py-2.5 rounded-xl text-sm font-medium shrink-0" data-active="true">VIP1 · 10</button>
+    <button class="mesa-group-tab px-3.5 py-2.5 rounded-xl text-sm font-medium shrink-0" data-active="false">VIP2 · 10</button>
+    <button class="mesa-group-tab px-3.5 py-2.5 rounded-xl text-sm font-medium shrink-0" data-active="false">同行组</button>
+  </div>
+
+  <!-- 桌位卡网格 -->
+  <div id="table-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  </div>
+
+</main>
+
+<template id="card-template">
+  <div class="mesa-scroll-frame" data-card data-table="" data-status="">
+    <div class="mesa-scroll-frame__inner p-4 flex gap-2.5 min-h-[8.25rem]">
+      <div class="flex-1 min-w-0 flex flex-col">
+        <div class="flex items-start justify-between gap-2 min-h-[1.25rem]">
+          <span class="mesa-card-title font-display min-w-0 flex-1 truncate text-left" style="color:var(--color-ink)" data-field="table"></span>
+          <span class="hidden shrink-0 rounded-full px-2 py-0.5 text-xs font-medium" style="color:var(--color-brand-gold);border:0.5px solid color-mix(in srgb, var(--color-brand-gold) 50%, transparent)" data-field="merge"></span>
+        </div>
+        <!-- row2：text-xs 对齐 WAITER_BOARD_CARD_ROW2_LAYOUT -->
+        <div class="flex items-center gap-3 mt-1.5 text-xs flex-wrap" style="color:var(--color-ink)">
+          <span data-field="seats"></span>
+          <span data-field="staff"></span>
+          <span data-field="time"></span>
+        </div>
+        <div class="mesa-card-rule mb-auto"></div>
+        <!-- amount：waiterBoardType.cardAmount；CTA text-sm 对齐 theme.cta -->
+        <div class="mt-2 flex items-baseline justify-between gap-x-1.5">
+          <span class="text-sm font-semibold leading-none tabular-nums" style="color:var(--color-brand-gold)" data-field="price"></span>
+          <span class="text-sm font-semibold cursor-pointer" style="color:var(--color-brand-ink)" data-field="cta"></span>
+        </div>
+      </div>
+      <div class="mesa-status-vertical" data-field="status-text"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+  const DATA = [
+    { table: "A-01", status: "待结账", seats: "2-4 座", staff: "qiantai1", time: "2时05分", price: "€128.50", cta: "结账 →" },
+    { table: "A-02", status: "待结账", seats: "2-4 座", staff: "qiantai1", time: "1时48分", price: "€69.90", cta: "结账 →", merge: "拼桌 A2-C3" },
+    { table: "A-03", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "1时32分", price: "€29.95", cta: "详情 →", merge: "拼桌 A1-C1" },
+    { table: "A-04", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "1时32分", price: "€45.00", cta: "详情 →" },
+    { table: "A-05", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "0时48分", price: "€18.50", cta: "详情 →" },
+    { table: "A-06", status: "空闲",   seats: "2-4 座", note: "干净整洁 · 可开台", cta: "开台 →" },
+    { table: "A-17", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "1时32分", price: "€52.00", cta: "详情 →" },
+    { table: "A-18", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "1时16分", price: "€33.20", cta: "详情 →" },
+    { table: "A-19", status: "空闲",   seats: "2-4 座", note: "干净整洁 · 可开台", cta: "开台 →" },
+    { table: "A-20", status: "用餐中", seats: "2-4 座", staff: "qiantai1", time: "1时31分", price: "€41.00", cta: "详情 →" },
+  ];
+
+  const STATUS_CLASS = {
+    "用餐中": "is-dining",
+    "待结账": "is-pending",
+    "空闲": "is-free",
+  };
+
+  const grid = document.getElementById("table-grid");
+  const tpl = document.getElementById("card-template");
+
+  DATA.forEach((row) => {
+    const node = tpl.content.cloneNode(true);
+    const frame = node.querySelector("[data-card]");
+    frame.dataset.table = row.table;
+    frame.dataset.status = row.status;
+    const statusClass = STATUS_CLASS[row.status];
+    if (statusClass) frame.classList.add(statusClass);
+
+    node.querySelector('[data-field="table"]').textContent = row.table;
+
+    const mergeEl = node.querySelector('[data-field="merge"]');
+    if (row.merge) { mergeEl.textContent = row.merge; mergeEl.classList.remove("hidden"); }
+    else { mergeEl.remove(); }
+
+    node.querySelector('[data-field="seats"]').innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-1px;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${row.seats}`;
+
+    const staffEl = node.querySelector('[data-field="staff"]');
+    if (row.staff) staffEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-1px;margin-right:3px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>${row.staff}`;
+    else staffEl.remove();
+
+    const timeEl = node.querySelector('[data-field="time"]');
+    if (row.time) timeEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-1px;margin-right:3px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${row.time}`;
+    else if (row.note) timeEl.textContent = row.note;
+    else timeEl.remove();
+
+    const priceEl = node.querySelector('[data-field="price"]');
+    if (row.price) priceEl.textContent = row.price; else priceEl.remove();
+
+    node.querySelector('[data-field="cta"]').textContent = row.cta;
+    node.querySelector('[data-field="status-text"]').textContent = row.status;
+
+    grid.appendChild(node);
+  });
+
+  // ===== 统计筛选交互 =====
+  const statButtons = document.querySelectorAll(".mesa-stat");
+  statButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      statButtons.forEach((b) => (b.dataset.active = "false"));
+      btn.dataset.active = "true";
+      const filter = btn.dataset.filter;
+      document.querySelectorAll("[data-card]").forEach((card) => {
+        const match = filter === "all" || card.dataset.status === filter;
+        card.classList.toggle("mesa-card-hidden", !match);
+      });
+    });
+  });
+
+  // ===== 搜索交互 =====
+  document.getElementById("table-search").addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll("[data-card]").forEach((card) => {
+      const match = card.dataset.table.toLowerCase().includes(q);
+      card.classList.toggle("mesa-card-hidden", !match);
+    });
+  });
+
+  // ===== 分组标签交互（视觉态，桌位分组切换逻辑接后端时补） =====
+  document.querySelectorAll(".mesa-group-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".mesa-group-tab").forEach((t) => (t.dataset.active = "false"));
+      tab.dataset.active = "true";
+    });
+  });
+</script>
+
+</body>
+</html>

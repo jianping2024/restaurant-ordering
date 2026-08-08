@@ -992,7 +992,7 @@ function WaiterTableDetailInner({
   return (
     <div className={pageShellClass}>
       {isDemo && (
-        <div className="mb-4 rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3">
+        <div className="mb-4 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3">
           <p className="text-[13px] text-brand-text">
             {t.step}
           </p>

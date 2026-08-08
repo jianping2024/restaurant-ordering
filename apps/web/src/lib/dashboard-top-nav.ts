@@ -81,9 +81,13 @@ export function topNavDesktopLinkClass(active: boolean): string {
     : 'shrink-0 whitespace-nowrap text-sm font-medium text-brand-text-muted transition-colors hover:text-brand-ink';
 }
 
-/** Staff top bar: horizontal nav strip (lg+); hamburger below lg. Lives inside `staffTopBarChrome.rightClusterClassName`. */
+/**
+ * Staff top bar desktop nav (lg+): sole bounded scroll strip inside
+ * `staffTopBarChrome.rightClusterClassName`. `max-w-full` + `.mesa-chip-scroll`
+ * — no parallel “More” overflow UI. Hamburger below lg.
+ */
 export function topNavDesktopScrollNavClassName(): string {
-  return 'mesa-chip-scroll hidden min-h-full min-w-0 items-center lg:flex';
+  return 'mesa-chip-scroll hidden min-h-full min-w-0 max-w-full items-center lg:flex';
 }
 
 export function topNavMenuRowClass(active: boolean): string {

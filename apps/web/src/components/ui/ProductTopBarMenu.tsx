@@ -193,7 +193,7 @@ type Props = {
   onNavigate?: () => void;
 };
 
-/** Mobile hamburger nav + desktop horizontal scroll links. */
+/** Mobile hamburger nav + desktop bounded chip-scroll links (cluster-capped). */
 export function ProductTopBarMenu({
   items,
   pathname,

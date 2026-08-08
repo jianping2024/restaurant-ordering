@@ -26,53 +26,34 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
 }
 
 describe('computeTodayKpis', () => {
-  const emptyDayparts = {
-    noon: { orderCount: 0, revenue: 0 },
-    evening: { orderCount: 0, revenue: 0 },
-  };
-
   it('returns zero avg ticket when there are no revenue sessions', () => {
-    const kpis = computeTodayKpis(0, { todayRevenue: 0, revenueSessionCount: 0 }, emptyDayparts);
+    const kpis = computeTodayKpis(0, { todayRevenue: 0, revenueSessionCount: 0 });
     assert.equal(kpis.todayOrderCount, 0);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.avgTicketPrice, 0);
     assert.equal(kpis.revenueAvailable, true);
-    assert.deepEqual(kpis.dayparts, emptyDayparts);
   });
 
   it('keeps today order count separate from closed-session revenue', () => {
-    const dayparts = {
-      noon: { orderCount: 1, revenue: 10 },
-      evening: { orderCount: 1, revenue: 19.95 },
-    };
-    const kpis = computeTodayKpis(2, { todayRevenue: 29.95, revenueSessionCount: 1 }, dayparts);
+    const kpis = computeTodayKpis(2, { todayRevenue: 29.95, revenueSessionCount: 1 });
     assert.equal(kpis.todayOrderCount, 2);
     assert.equal(kpis.todayRevenue, 29.95);
     assert.equal(kpis.avgTicketPrice, 29.95);
     assert.equal(kpis.revenueAvailable, true);
-    assert.deepEqual(kpis.dayparts, dayparts);
   });
 
   it('uses qualifying closed session count as avg ticket denominator', () => {
-    const kpis = computeTodayKpis(0, { todayRevenue: 100, revenueSessionCount: 2 }, emptyDayparts);
+    const kpis = computeTodayKpis(0, { todayRevenue: 100, revenueSessionCount: 2 });
     assert.equal(kpis.avgTicketPrice, 50);
     assert.equal(kpis.revenueAvailable, true);
   });
 
-  it('marks revenue unavailable when bundle load failed but keeps order dayparts', () => {
-    const dayparts = {
-      noon: { orderCount: 2, revenue: 99 },
-      evening: { orderCount: 1, revenue: 1 },
-    };
-    const kpis = computeTodayKpis(3, null, dayparts);
+  it('marks revenue unavailable when bundle load failed', () => {
+    const kpis = computeTodayKpis(3, null);
     assert.equal(kpis.todayOrderCount, 3);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.avgTicketPrice, 0);
     assert.equal(kpis.revenueAvailable, false);
-    assert.equal(kpis.dayparts.noon.orderCount, 2);
-    assert.equal(kpis.dayparts.evening.orderCount, 1);
-    assert.equal(kpis.dayparts.noon.revenue, 0);
-    assert.equal(kpis.dayparts.evening.revenue, 0);
   });
 });
 

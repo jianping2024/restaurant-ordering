@@ -995,8 +995,6 @@ export const MESSAGES_DE = {
     "todayOrders": "Bestellungen heute",
     "todayRevenue": "Umsatz heute",
     "todayRevenueUnavailable": "Nicht verfügbar",
-    "daypartNoon": "Mittag",
-    "daypartEvening": "Abend",
     "inProgressOrders": "In Bearbeitung",
     "avgTicket": "Ø Bonwert",
     "unitOrder": "",

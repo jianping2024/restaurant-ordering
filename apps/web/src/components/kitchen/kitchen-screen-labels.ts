@@ -24,8 +24,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: string;
     qtyBadge: string;
     tablesLabel: string;
-    expandDish: string;
-    collapseDish: string;
+    expandGroup: string;
+    collapseGroup: string;
+    readyRailShow: string;
+    readyRailHide: string;
+    readyRailEmpty: string;
     prepFailed: string;
     conflict: string;
   }
@@ -50,8 +53,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.zh.done,
     qtyBadge: '共 {n}',
     tablesLabel: '桌：{tables}',
-    expandDish: '展开',
-    collapseDish: '收起',
+    expandGroup: '展开',
+    collapseGroup: '收起',
+    readyRailShow: '已出餐 · {n}',
+    readyRailHide: '收起已出餐',
+    readyRailEmpty: '暂无已出餐',
     prepFailed: '备餐失败，请重试',
     conflict: '数据已更新，请重试',
   },
@@ -75,8 +81,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.en.done,
     qtyBadge: '×{n}',
     tablesLabel: 'Tables: {tables}',
-    expandDish: 'Expand',
-    collapseDish: 'Collapse',
+    expandGroup: 'Expand',
+    collapseGroup: 'Collapse',
+    readyRailShow: 'Ready · {n}',
+    readyRailHide: 'Hide ready',
+    readyRailEmpty: 'No ready dishes',
     prepFailed: 'Prep failed — try again',
     conflict: 'Board updated — please retry',
   },
@@ -100,8 +109,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.pt.done,
     qtyBadge: '×{n}',
     tablesLabel: 'Mesas: {tables}',
-    expandDish: 'Expandir',
-    collapseDish: 'Recolher',
+    expandGroup: 'Expandir',
+    collapseGroup: 'Recolher',
+    readyRailShow: 'Pronto · {n}',
+    readyRailHide: 'Ocultar prontos',
+    readyRailEmpty: 'Sem pratos prontos',
     prepFailed: 'Falha ao preparar',
     conflict: 'Quadro atualizado — tente de novo',
   },
@@ -125,8 +137,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.es.done,
     qtyBadge: '×{n}',
     tablesLabel: 'Mesas: {tables}',
-    expandDish: 'Expandir',
-    collapseDish: 'Cerrar',
+    expandGroup: 'Expandir',
+    collapseGroup: 'Cerrar',
+    readyRailShow: 'Listo · {n}',
+    readyRailHide: 'Ocultar listos',
+    readyRailEmpty: 'Sin platos listos',
     prepFailed: 'Error al preparar',
     conflict: 'Tablero actualizado — reintente',
   },
@@ -150,8 +165,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.fr.done,
     qtyBadge: '×{n}',
     tablesLabel: 'Tables : {tables}',
-    expandDish: 'Ouvrir',
-    collapseDish: 'Fermer',
+    expandGroup: 'Ouvrir',
+    collapseGroup: 'Fermer',
+    readyRailShow: 'Pret · {n}',
+    readyRailHide: 'Masquer prets',
+    readyRailEmpty: 'Aucun plat pret',
     prepFailed: 'Echec preparation',
     conflict: 'Tableau mis a jour — reessayez',
   },
@@ -175,8 +193,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusDone: KITCHEN_ITEM_STATUS_LABEL.de.done,
     qtyBadge: '×{n}',
     tablesLabel: 'Tische: {tables}',
-    expandDish: 'Aufklappen',
-    collapseDish: 'Zuklappen',
+    expandGroup: 'Aufklappen',
+    collapseGroup: 'Zuklappen',
+    readyRailShow: 'Fertig · {n}',
+    readyRailHide: 'Fertige ausblenden',
+    readyRailEmpty: 'Keine fertigen Gerichte',
     prepFailed: 'Vorbereitung fehlgeschlagen',
     conflict: 'Board aktualisiert — erneut versuchen',
   },

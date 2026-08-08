@@ -16,5 +16,6 @@ export const mesaMoneyFont = localFont({
   variable: '--font-mesa-money',
   display: 'optional',
   preload: true,
-  adjustFontFallback: true,
+  // next/font/local: false | 'Arial' | 'Times New Roman' only — never Google-font `true`
+  adjustFontFallback: false,
 });

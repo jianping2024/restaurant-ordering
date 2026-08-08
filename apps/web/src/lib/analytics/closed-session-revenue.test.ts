@@ -4,9 +4,11 @@ import type { BillSplit, Order } from '@/types';
 import {
   filterQualifyingClosedSessions,
   mergeForcedCloseSessionIds,
+  splitTodayRevenueByDaypart,
   todayRevenueFromBundle,
   type ClosedSessionRevenueBundle,
 } from '@/lib/analytics/closed-session-revenue';
+import { lisbonLocalClockUtcIso } from '@/lib/lisbon-calendar';
 
 function bundle(partial: Partial<ClosedSessionRevenueBundle>): ClosedSessionRevenueBundle {
   return {
@@ -119,5 +121,55 @@ describe('filterQualifyingClosedSessions', () => {
       new Map(),
     );
     assert.equal(qualifying.length, 0);
+  });
+});
+
+describe('splitTodayRevenueByDaypart', () => {
+  it('partitions by Lisbon 17:00 cutoff and sums to todayRevenue', () => {
+    const noonOrders: Order[] = [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        table_id: 't1',
+        display_name: '1',
+        session_id: 's-noon',
+        status: 'done',
+        items: [],
+        total_amount: 10,
+        created_at: '2026-07-21T10:00:00.000Z',
+        updated_at: '2026-07-21T10:00:00.000Z',
+      },
+    ];
+    const eveningOrders: Order[] = [
+      {
+        id: 'o2',
+        restaurant_id: 'r1',
+        table_id: 't2',
+        display_name: '2',
+        session_id: 's-eve',
+        status: 'done',
+        items: [],
+        total_amount: 20,
+        created_at: '2026-07-21T18:00:00.000Z',
+        updated_at: '2026-07-21T18:00:00.000Z',
+      },
+    ];
+    const b = bundle({
+      sessions: [
+        // Lisbon summer: 16:00Z = 17:00 WEST — exclusive end of noon → evening
+        { id: 's-noon', closed_at: '2026-07-21T15:59:00.000Z', closed_reason: 'frontdesk_closed' },
+        { id: 's-eve', closed_at: '2026-07-21T16:00:00.000Z', closed_reason: 'frontdesk_closed' },
+      ],
+      ordersBySession: new Map([
+        ['s-noon', noonOrders],
+        ['s-eve', eveningOrders],
+      ]),
+    });
+    const cutoff = lisbonLocalClockUtcIso('2026-07-21', '17:00');
+    const parts = splitTodayRevenueByDaypart(b, '2026-07-21', cutoff);
+    const total = todayRevenueFromBundle(b, '2026-07-21');
+    assert.equal(parts.noon, 10);
+    assert.equal(parts.evening, 20);
+    assert.equal(parts.noon + parts.evening, total.todayRevenue);
   });
 });

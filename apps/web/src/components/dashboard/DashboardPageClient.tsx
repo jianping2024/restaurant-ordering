@@ -41,7 +41,7 @@ export function DashboardOverviewPrimaryClient({
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
-  const { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable } = todayKpis;
+  const { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable, dayparts } = todayKpis;
   const inProgressOrderCount = pendingActions.inProgressOrders;
 
   const stats = [
@@ -53,6 +53,20 @@ export function DashboardOverviewPrimaryClient({
       color: revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted',
       prominent: true,
       face: 'money' as const,
+      dayparts: [
+        {
+          label: i18n.daypartNoon,
+          value: revenueAvailable
+            ? `€${dayparts.noon.revenue.toFixed(2)}`
+            : i18n.todayRevenueUnavailable,
+        },
+        {
+          label: i18n.daypartEvening,
+          value: revenueAvailable
+            ? `€${dayparts.evening.revenue.toFixed(2)}`
+            : i18n.todayRevenueUnavailable,
+        },
+      ],
     },
     {
       key: 'orders',
@@ -62,6 +76,16 @@ export function DashboardOverviewPrimaryClient({
       color: 'text-brand-text',
       prominent: false,
       face: 'figure' as const,
+      dayparts: [
+        {
+          label: i18n.daypartNoon,
+          value: `${dayparts.noon.orderCount}${i18n.unitOrder ? ` ${i18n.unitOrder}` : ''}`,
+        },
+        {
+          label: i18n.daypartEvening,
+          value: `${dayparts.evening.orderCount}${i18n.unitOrder ? ` ${i18n.unitOrder}` : ''}`,
+        },
+      ],
     },
     {
       key: 'inProgress',
@@ -71,6 +95,7 @@ export function DashboardOverviewPrimaryClient({
       color: inProgressOrderCount > 0 ? 'text-amber-400' : 'text-brand-text',
       prominent: false,
       face: 'figure' as const,
+      dayparts: null as null,
     },
     {
       key: 'avgTicket',
@@ -80,6 +105,7 @@ export function DashboardOverviewPrimaryClient({
       color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
       prominent: false,
       face: 'money' as const,
+      dayparts: null as null,
     },
   ];
 
@@ -98,14 +124,28 @@ export function DashboardOverviewPrimaryClient({
             }`}
           >
             <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
-            <p
-              className={`${DASHBOARD_METRIC_TYPE[stat.face]} ${stat.prominent ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${stat.color}`}
-            >
-              {stat.value}
-              {stat.unit && (
-                <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>
-              )}
-            </p>
+            <div className={stat.dayparts ? 'flex items-end justify-between gap-3' : undefined}>
+              <p
+                className={`${DASHBOARD_METRIC_TYPE[stat.face]} ${stat.prominent ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${stat.color} min-w-0`}
+              >
+                {stat.value}
+                {stat.unit && (
+                  <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>
+                )}
+              </p>
+              {stat.dayparts ? (
+                <div className="shrink-0 space-y-1 text-right">
+                  {stat.dayparts.map((row) => (
+                    <p key={row.label} className="text-[13px] leading-snug text-brand-text">
+                      <span className="text-brand-text-muted">{row.label}</span>{' '}
+                      <span className={`${DASHBOARD_METRIC_TYPE[stat.face]} tabular-nums`}>
+                        {row.value}
+                      </span>
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         ))}
       </div>

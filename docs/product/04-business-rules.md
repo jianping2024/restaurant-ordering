@@ -366,6 +366,8 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 **首页「今日营业额」与增值分析同口径**：Lisbon 自然日 + `table_sessions.closed_at` 归属；`sessionRevenue` 汇总 qualifying 已关台 session（排除 `UNPAID_TABLE_CLOSED`）。**今日订单数**仍按 Lisbon 日 `orders.created_at`（运营下单量，可与营业额日不一致）。
 
+**午/晚拆分（概览卡右侧）**：同一 Lisbon 日用唯一分界 `OVERVIEW_DAYPART_CUTOFF_LISBON = 17:00`（`Europe/Lisbon`）切开——`[日始, 17:00)` = 中午，`[17:00, 日末)` = 晚上。营业额按 `closed_at`、订单按 `created_at` 分桶；`dayparts.noon.* + dayparts.evening.*` **等于**对应全日主数（无第三段）。
+
 **统计口径（2026-07-21 更新）**：
 1. **已付清收款**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和，**应用 `discount_rate` 折扣**
 2. **已付清回退**：`paid` split 的 `total_amount`，应用平均折扣率

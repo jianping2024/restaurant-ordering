@@ -6,7 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
-import { formatBuffetReceiptQtyLabel } from '@/lib/buffet-order';
+import { formatBuffetReceiptQtyLabel, totalGuestsFromCounts } from '@/lib/buffet-order';
 import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
 import {
   localizeTopSellingItems,
@@ -28,7 +28,8 @@ export function DashboardOverviewPrimaryClient({
   primary: DashboardOverviewPrimaryView;
 }) {
   const { lang } = useLanguage();
-  const i18n = getMessages(lang).dashboard;
+  const messages = getMessages(lang);
+  const i18n = messages.dashboard;
   const { todayKpis, pendingActions } = primary;
 
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
@@ -41,8 +42,12 @@ export function DashboardOverviewPrimaryClient({
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
-  const { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable } = todayKpis;
-  const inProgressOrderCount = pendingActions.inProgressOrders;
+  const { todayOrderCount, todayRevenue, revenueAvailable, diningTableCount, diningGuests } =
+    todayKpis;
+  const diningGuestCount = totalGuestsFromCounts(diningGuests);
+  const diningGuestDetail = messages.bill.buffetGuestCounts
+    .replace('{adults}', String(diningGuests.adults))
+    .replace('{children}', String(diningGuests.children));
 
   const stats = [
     {
@@ -50,6 +55,7 @@ export function DashboardOverviewPrimaryClient({
       label: i18n.todayRevenue,
       value: revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable,
       unit: '',
+      detail: null as string | null,
       color: revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted',
       prominent: true,
       face: 'money' as const,
@@ -59,27 +65,30 @@ export function DashboardOverviewPrimaryClient({
       label: i18n.todayOrders,
       value: todayOrderCount,
       unit: i18n.unitOrder,
+      detail: null as string | null,
       color: 'text-brand-text',
       prominent: false,
       face: 'figure' as const,
     },
     {
-      key: 'inProgress',
-      label: i18n.inProgressOrders,
-      value: inProgressOrderCount,
-      unit: i18n.unitOrder,
-      color: inProgressOrderCount > 0 ? 'text-amber-400' : 'text-brand-text',
+      key: 'diningTables',
+      label: i18n.diningTables,
+      value: diningTableCount,
+      unit: i18n.unitTable,
+      detail: null as string | null,
+      color: 'text-brand-text',
       prominent: false,
       face: 'figure' as const,
     },
     {
-      key: 'avgTicket',
-      label: i18n.avgTicket,
-      value: revenueAvailable ? `€${avgTicketPrice.toFixed(2)}` : i18n.todayRevenueUnavailable,
-      unit: '',
-      color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
+      key: 'diningGuests',
+      label: i18n.diningGuests,
+      value: diningGuestCount,
+      unit: i18n.unitGuest,
+      detail: diningGuestDetail,
+      color: 'text-brand-text',
       prominent: false,
-      face: 'money' as const,
+      face: 'figure' as const,
     },
   ];
 
@@ -106,6 +115,9 @@ export function DashboardOverviewPrimaryClient({
                 <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>
               )}
             </p>
+            {stat.detail ? (
+              <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">{stat.detail}</p>
+            ) : null}
           </div>
         ))}
       </div>

@@ -5,6 +5,7 @@ import {
   buildFeedbackInsights,
   buildTodayTopSellingItems,
   buildTopSellingRows,
+  computeDiningFloorKpis,
   computeTodayKpis,
   localizeTopSellingItems,
   pendingActionsTotal,
@@ -25,35 +26,85 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
   };
 }
 
-describe('computeTodayKpis', () => {
-  it('returns zero avg ticket when there are no revenue sessions', () => {
-    const kpis = computeTodayKpis(0, { todayRevenue: 0, revenueSessionCount: 0 });
-    assert.equal(kpis.todayOrderCount, 0);
-    assert.equal(kpis.todayRevenue, 0);
-    assert.equal(kpis.avgTicketPrice, 0);
-    assert.equal(kpis.revenueAvailable, true);
-  });
+const emptyDining = { diningTableCount: 0, diningGuests: { adults: 0, children: 0 } };
 
+describe('computeTodayKpis', () => {
   it('keeps today order count separate from closed-session revenue', () => {
-    const kpis = computeTodayKpis(2, { todayRevenue: 29.95, revenueSessionCount: 1 });
+    const kpis = computeTodayKpis(2, { todayRevenue: 29.95 }, emptyDining);
     assert.equal(kpis.todayOrderCount, 2);
     assert.equal(kpis.todayRevenue, 29.95);
-    assert.equal(kpis.avgTicketPrice, 29.95);
     assert.equal(kpis.revenueAvailable, true);
-  });
-
-  it('uses qualifying closed session count as avg ticket denominator', () => {
-    const kpis = computeTodayKpis(0, { todayRevenue: 100, revenueSessionCount: 2 });
-    assert.equal(kpis.avgTicketPrice, 50);
-    assert.equal(kpis.revenueAvailable, true);
+    assert.equal(kpis.diningTableCount, 0);
+    assert.deepEqual(kpis.diningGuests, { adults: 0, children: 0 });
   });
 
   it('marks revenue unavailable when bundle load failed', () => {
-    const kpis = computeTodayKpis(3, null);
+    const kpis = computeTodayKpis(3, null, {
+      diningTableCount: 2,
+      diningGuests: { adults: 4, children: 1 },
+    });
     assert.equal(kpis.todayOrderCount, 3);
     assert.equal(kpis.todayRevenue, 0);
-    assert.equal(kpis.avgTicketPrice, 0);
     assert.equal(kpis.revenueAvailable, false);
+    assert.equal(kpis.diningTableCount, 2);
+    assert.deepEqual(kpis.diningGuests, { adults: 4, children: 1 });
+  });
+});
+
+describe('computeDiningFloorKpis', () => {
+  it('sums per-session headcount even when buffet_id is shared', () => {
+    const dining = computeDiningFloorKpis(2, [
+      order({
+        id: 'o1',
+        session_id: 's1',
+        table_id: 't1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:1',
+            kind: 'buffet_base',
+            buffet_id: 'pkg',
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 20,
+            emoji: '🍽️',
+            adult_count: 3,
+            child_count: 1,
+          },
+        ],
+      }),
+      order({
+        id: 'o2',
+        session_id: 's2',
+        table_id: 't2',
+        status: 'cooking',
+        items: [
+          {
+            id: 'buffet:2',
+            kind: 'buffet_base',
+            buffet_id: 'pkg',
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 20,
+            emoji: '🍽️',
+            adult_count: 2,
+            child_count: 0,
+          },
+        ],
+      }),
+    ]);
+    assert.equal(dining.diningTableCount, 2);
+    assert.deepEqual(dining.diningGuests, { adults: 5, children: 1 });
+  });
+
+  it('returns zero guests when no buffet_base lines', () => {
+    const dining = computeDiningFloorKpis(1, [
+      order({ id: 'o1', session_id: 's1', status: 'pending', items: [] }),
+    ]);
+    assert.equal(dining.diningTableCount, 1);
+    assert.deepEqual(dining.diningGuests, { adults: 0, children: 0 });
   });
 });
 

@@ -5,12 +5,18 @@ import {
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
-import { aggregateBuffetForOrders } from '@/lib/buffet-order';
+import {
+  aggregateBuffetForOrders,
+  aggregateBuffetHeadcountForOrders,
+  type BuffetGuestHeadcount,
+} from '@/lib/buffet-order';
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
 import { pickTrilingualName, type TrilingualName } from '@/lib/i18n/pick-trilingual-name';
-import type { OrderItem, OrderStatus } from '@/types';
+import type { Order, OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
+import { loadOrdersForActiveWaiterBoardSessions } from '@/lib/waiter-board-active-orders';
+import type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
 
 export type { TrilingualName };
 
@@ -105,9 +111,12 @@ export type DashboardFeedbackInsights = {
 export type DashboardTodayKpis = {
   todayOrderCount: number;
   todayRevenue: number;
-  avgTicketPrice: number;
   /** false when closed-session revenue raw materials failed (do not show fake €0). */
   revenueAvailable: boolean;
+  /** Active open|billing table sessions (floor dining tables). */
+  diningTableCount: number;
+  /** Sole guest headcount shape — UI total = adults + children. */
+  diningGuests: BuffetGuestHeadcount;
 };
 
 export type DashboardRecentOrderView = {
@@ -191,22 +200,70 @@ function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {
   };
 }
 
+/**
+ * Floor dining KPIs: session count + headcount summed per session/table group.
+ * Do not call aggregateBuffetHeadcountForOrders on the whole floor — it dedupes by
+ * buffet_id and would undercount when many tables share one package id.
+ */
+export function computeDiningFloorKpis(
+  diningTableCount: number,
+  orders: Array<Pick<Order, 'items' | 'status' | 'session_id' | 'table_id'>>,
+): Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'> {
+  const byGroup = new Map<string, Array<Pick<Order, 'items' | 'status'>>>();
+  for (const order of orders) {
+    const key = order.session_id
+      ? `session:${order.session_id}`
+      : order.table_id
+        ? `table:${order.table_id}`
+        : null;
+    if (!key) continue;
+    const list = byGroup.get(key);
+    if (list) list.push(order);
+    else byGroup.set(key, [order]);
+  }
+
+  let adults = 0;
+  let children = 0;
+  for (const group of byGroup.values()) {
+    const headcount = aggregateBuffetHeadcountForOrders(group);
+    if (!headcount) continue;
+    adults += headcount.adults;
+    children += headcount.children;
+  }
+
+  return {
+    diningTableCount,
+    diningGuests: { adults, children },
+  };
+}
+
 /** Today orders = Lisbon-day created_at; revenue = Lisbon-day closed_at (same as value analytics). */
 export function computeTodayKpis(
   todayOrderCount: number,
-  revenue: { todayRevenue: number; revenueSessionCount: number } | null,
+  revenue: { todayRevenue: number } | null,
+  dining: Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>,
 ): DashboardTodayKpis {
-  if (!revenue) {
-    return {
-      todayOrderCount,
-      todayRevenue: 0,
-      avgTicketPrice: 0,
-      revenueAvailable: false,
-    };
-  }
-  const { todayRevenue, revenueSessionCount } = revenue;
-  const avgTicketPrice = revenueSessionCount > 0 ? todayRevenue / revenueSessionCount : 0;
-  return { todayOrderCount, todayRevenue, avgTicketPrice, revenueAvailable: true };
+  return {
+    todayOrderCount,
+    todayRevenue: revenue?.todayRevenue ?? 0,
+    revenueAvailable: revenue != null,
+    diningTableCount: dining.diningTableCount,
+    diningGuests: dining.diningGuests,
+  };
+}
+
+async function loadDiningFloorKpis(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>> {
+  const { data } = await admin
+    .from('table_sessions')
+    .select('id, table_id, opened_at, status')
+    .eq('restaurant_id', restaurantId)
+    .in('status', ['open', 'billing']);
+  const sessionRows = (data || []) as WaiterTableSessionRow[];
+  const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
+  return computeDiningFloorKpis(sessionRows.length, orders);
 }
 
 export function buildTodayTopSellingItems(
@@ -345,6 +402,7 @@ export async function loadDashboardOverviewPrimary(
     { count: pendingAbnormalCount },
     { count: pendingPrintCount },
     revenueBundleResult,
+    diningFloor,
   ] = await Promise.all([
     admin
       .from('orders')
@@ -375,6 +433,7 @@ export async function loadDashboardOverviewPrimary(
       todayWindow.startUtc,
       todayWindow.endExclusiveUtc,
     ),
+    loadDiningFloorKpis(admin, restaurantId),
   ]);
 
   const todayRevenue = revenueBundleResult.ok
@@ -382,7 +441,7 @@ export async function loadDashboardOverviewPrimary(
     : null;
 
   return {
-    todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue),
+    todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue, diningFloor),
     pendingActions: {
       inProgressOrders: inProgressOrderCount ?? 0,
       pendingCheckout: pendingCheckoutCount,

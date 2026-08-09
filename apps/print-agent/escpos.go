@@ -504,23 +504,22 @@ func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string 
 	return string(buf)
 }
 
-// stationSlipItemLine — Latin/column layout. Callers must wrap Han labels first;
-// leftLabel is not truncateDisplay'd (wrap-only for menu names).
+// stationSlipItemLine — sole Items/Qty row layout (Latin ESC/POS and Han bitmap).
+// Places by display columns so Han glyphs (2 cols) do not shove Qty off the first line.
+// Callers must wrap leftLabel to stationSlipItemMaxWidth(width); no truncate of menu names.
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
-	qty := []rune(truncateDisplay(padFieldCenter(qtyStr, stationSlipQtyColWidth), stationSlipQtyColWidth))
-	buf := make([]rune, width)
-	for i := range buf {
-		buf[i] = ' '
+	qtyStart := stationSlipQtyColStart(width)
+	qtyField := truncateDisplay(padFieldCenter(strings.TrimSpace(qtyStr), stationSlipQtyColWidth), stationSlipQtyColWidth)
+	left := strings.Repeat(" ", stationSlipItemLeftMargin) + leftLabel
+	pad := qtyStart - displayWidth(left)
+	if pad < 0 {
+		pad = 0
 	}
-	placeRunesAt(buf, stationSlipItemLeftMargin, []rune(leftLabel))
-	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
-	return string(buf)
-}
-
-// stationSlipItemBitmapLine — compact label+qty for Han bitmaps (no full-width pad that blows past 384px).
-func stationSlipItemBitmapLine(leftLabel, qtyStr string) string {
-	indent := strings.Repeat(" ", stationSlipItemLeftMargin)
-	return indent + leftLabel + "  " + strings.TrimSpace(qtyStr)
+	line := left + strings.Repeat(" ", pad) + qtyField
+	if trail := width - displayWidth(line); trail > 0 {
+		line += strings.Repeat(" ", trail)
+	}
+	return line
 }
 
 func stationSlipItemLabel(ln jobLine) string {
@@ -693,33 +692,24 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 
 func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, width int) {
 	label := stationSlipItemLabel(ln)
-	maxLeft := stationSlipItemMaxWidth(width)
+	layoutWidth := width
+	if needsBitmapText(label) {
+		// Bitmap canvas cols (not Font A 48) — same Items/Qty column constants.
+		layoutWidth = bitmapMaxDisplayCols(w.hanFontPx)
+	}
+	maxLeft := stationSlipItemMaxWidth(layoutWidth)
 	chunks := wrapDisplay(label, maxLeft)
 	if len(chunks) == 0 {
 		chunks = []string{label}
 	}
 	qtyStr := fmt.Sprintf("%d", qty)
 	w.writeBody1x2()
-	if needsBitmapText(chunks[0]) {
-		w.text(stationSlipItemBitmapLine(chunks[0], qtyStr))
-	} else {
-		w.text(stationSlipItemLine(chunks[0], qtyStr, width))
-	}
+	w.text(stationSlipItemLine(chunks[0], qtyStr, layoutWidth))
 	w.lf()
+	indent := strings.Repeat(" ", stationSlipItemLeftMargin)
 	for _, c := range chunks[1:] {
 		w.writeBody1x2()
-		if needsBitmapText(c) {
-			w.text(strings.Repeat(" ", stationSlipItemLeftMargin) + c)
-		} else {
-			var b strings.Builder
-			col := 0
-			for col < stationSlipItemLeftMargin {
-				b.WriteByte(' ')
-				col++
-			}
-			b.WriteString(c)
-			w.text(b.String())
-		}
+		w.text(indent + c)
 		w.lf()
 	}
 }

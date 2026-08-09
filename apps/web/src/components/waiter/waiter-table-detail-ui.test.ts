@@ -44,8 +44,9 @@ test('floor list body is one tier for ordered dishes and buffet package names', 
   assert.match(waiterFloorType.listBody, /font-semibold/);
   assert.match(waiterFloorType.listBody, /text-brand-text/);
   assert.equal(waiterDetailLayout.orderedItemsTitle.includes(waiterFloorType.listBody), true);
-  assert.match(waiterDetailLayout.orderedItemLabel, /text-base/);
-  assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /text-lg/);
+  assert.equal(waiterDetailLayout.orderedItemLabel, waiterFloorType.listBodyTruncate);
+  assert.equal(waiterDetailLayout.orderedItemQty, waiterFloorType.listQty);
+  assert.match(waiterDetailLayout.orderedItemCode, /text-sm/);
   assert.match(waiterFloorType.priceLine, /text-\[15px\]/);
   assert.match(waiterFloorType.priceLine, /text-brand-text/);
   assert.doesNotMatch(waiterFloorType.priceLine, /muted/);
@@ -82,8 +83,8 @@ test('page identity and ordered-items share one sticky chrome stack', () => {
   assert.match(waiterDetailLayout.orderedItemsTitle, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /text-lg/);
   assert.match(waiterDetailLayout.orderedItemsTotal, /tabular-nums/);
-  assert.match(waiterDetailLayout.orderedItemLabel, /text-base/);
-  assert.match(waiterDetailLayout.orderedItemQty, /text-base/);
+  assert.match(waiterDetailLayout.orderedItemLabel, /text-lg/);
+  assert.match(waiterDetailLayout.orderedItemQty, /text-lg/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /font-mono/);
 });
 

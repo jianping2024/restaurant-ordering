@@ -40,14 +40,14 @@ describe('formatWaiterOrderedItemsSessionTotal', () => {
   it('prefixes meals amount before total when meals > 0 (zh)', () => {
     assert.equal(
       formatWaiterOrderedItemsSessionTotal('zh', 595.35, 300),
-      '餐食: €300.00 合计: €595.35',
+      '饮食: €300.00 合计: €595.35',
     );
   });
 
   it('prefixes meals amount before total when meals > 0 (en)', () => {
     assert.equal(
       formatWaiterOrderedItemsSessionTotal('en', 595.35, 300),
-      'Meals: €300.00 Total: €595.35',
+      'Food & drink: €300.00 Total: €595.35',
     );
   });
 

@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.65
+
+**中文票面改为位图输出**
+
+- 默认中文打印不再依赖整票 GBK 模式，中文行转为 ESC/POS raster bitmap。
+- 显式 UTF-8 配置继续保留；旧 GBK 配置按自动位图处理。
+- 出品联、结账小票、连接测试统一走同一中文输出策略。
+
 ## 0.3.63
 
 **档口冲突：向导内「接管并保存」；凭证失效提示重配**

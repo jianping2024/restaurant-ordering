@@ -83,7 +83,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 
 ## Token discipline
 
-- Plan 2–4 search/edit bullets before tools. Search before broad reads. Default inspect **3–5** files; if more, stop and explain why / ask. Concise replies; no full-file dumps or huge logs. Minimal diff **when end-state allows** — not “add onto a duplicated shape and dedupe later.”
+- Plan 2–4 search/edit bullets before tools. Search before broad reads. Default inspect **3–5** files; if more, stop and explain why / ask. Concise replies; no full-file dumps, pasted code, huge logs, or nonessential progress chatter. Minimal diff **when end-state allows** — not “add onto a duplicated shape and dedupe later.”
 
 ## Retrospectives
 

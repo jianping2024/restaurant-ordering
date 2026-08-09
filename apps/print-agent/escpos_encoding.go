@@ -6,7 +6,6 @@ import (
 	"unicode"
 
 	"golang.org/x/text/encoding/charmap"
-	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 var defaultGuestPayerRe = regexp.MustCompile(`(?i)^(客人|Guest|Pessoa)\s*(\d+)$`)
@@ -32,7 +31,7 @@ func hasHan(s string) bool {
 	return false
 }
 
-func payloadNeedsGBK(p jobPayload) bool {
+func payloadNeedsBitmap(p jobPayload) bool {
 	if localeUsesGBK(p.Locale) {
 		return true
 	}
@@ -47,8 +46,8 @@ func payloadNeedsGBK(p jobPayload) bool {
 	return false
 }
 
-// stationTicketNeedsGBK — internal station slips use a fixed English header ("restaurant").
-func stationTicketNeedsGBK(p jobPayload) bool {
+// stationTicketNeedsBitmap — internal station slips use a fixed English header, but menu text may be Chinese.
+func stationTicketNeedsBitmap(p jobPayload) bool {
 	if localeUsesGBK(p.Locale) {
 		return true
 	}
@@ -78,9 +77,9 @@ func receiptLabelsFor(locale string) ticketLabels {
 	return receiptTicketLabels()
 }
 
-// receiptTicketNeedsGBK — receipt/pre-bill paper uses English headers and does not print
-// restaurant_name; do not switch the whole ticket to GBK because of a Chinese venue name in payload.
-func receiptTicketNeedsGBK(p jobPayload) bool {
+// receiptTicketNeedsBitmap — receipt/pre-bill paper does not print restaurant_name; do not switch
+// because of a Chinese venue name in payload.
+func receiptTicketNeedsBitmap(p jobPayload) bool {
 	if localeUsesGBK(p.Locale) {
 		return true
 	}
@@ -95,8 +94,8 @@ func receiptTicketNeedsGBK(p jobPayload) bool {
 	return false
 }
 
-// connectionTestNeedsGBK — local test slips: zh UI locale must use GBK for「打印测试」even when venue line is ASCII URL.
-func connectionTestNeedsGBK(p jobPayload) bool {
+// connectionTestNeedsBitmap — local test slips must render「打印测试」for zh UI even when venue is ASCII.
+func connectionTestNeedsBitmap(p jobPayload) bool {
 	if localeUsesGBK(p.Locale) || normalizeUILocale(p.Locale) == "zh" {
 		return true
 	}
@@ -145,25 +144,6 @@ func encodeWindows1252(s string) []byte {
 				b.WriteRune(r)
 			}
 			// Skip unmappable runes (never print "?" placeholders on receipts).
-		}
-		out, _ = enc.Bytes([]byte(b.String()))
-	}
-	return out
-}
-
-func encodeGBK(s string) []byte {
-	enc := simplifiedchinese.GBK.NewEncoder()
-	out, err := enc.Bytes([]byte(s))
-	if err != nil {
-		var b strings.Builder
-		for _, r := range s {
-			t := string(r)
-			if _, err2 := enc.Bytes([]byte(t)); err2 == nil {
-				b.WriteRune(r)
-			} else if r < 128 {
-				b.WriteRune(r)
-			}
-			// Skip unmappable runes.
 		}
 		out, _ = enc.Bytes([]byte(b.String()))
 	}

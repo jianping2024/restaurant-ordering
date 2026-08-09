@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.73
+
+**中文菜单位图：固定 24px + 只折行不截断；清理 GBK 误导命名**
+
+- Han 字号唯一 `bitmapTextBaseFontPx=24`（`DoubleH`/`DoubleW` 不再加倍 TrueType）。
+- `escposBitmapText` / 出品联菜名与备注：`wrapDisplay` 折行，不截断；菜名续行无 Qty，首行保留数量。
+- `localeUsesGBK` → `printLocaleIsZh`；删除 `text_encoding_gbk` 文案；无 GBK 出纸路径。
+
 ## 0.3.72
 
 **回退：恢复 0.3.67 中文位图出纸（店端已验证可读）**

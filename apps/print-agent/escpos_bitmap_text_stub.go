@@ -2,35 +2,42 @@
 
 package main
 
+// renderBitmapText draws a stub glyph grid (tests on non-Windows). Never truncateDisplay.
+// Height tracks the sole Han size (bitmapTextBaseFontPx); DoubleH/DoubleW do not enlarge it.
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
-	charW := 12
-	charH := 16
-	if style.DoubleW {
-		charW *= 2
+	charW := bitmapTextBaseFontPx / 2
+	if charW < 1 {
+		charW = 1
 	}
-	if style.DoubleH {
-		charH *= 2
+	charH := bitmapTextBaseFontPx
+	width := displayWidth(s)*charW + 2
+	if width > bitmapTextMaxWidthPx {
+		width = bitmapTextMaxWidthPx
 	}
-	width := len([]rune(s))*charW + 2
 	height := charH + 2
 	pixels := make([]byte, width*height)
-	for i, r := range []rune(s) {
+	col := 0
+	for _, r := range s {
+		span := displayCols(r)
 		if r == ' ' {
+			col += span
 			continue
 		}
-		x0 := i*charW + 1
+		x0 := col*charW + 1
+		x1 := x0 + span*charW
 		for y := 1; y < height-1; y++ {
-			for x := x0; x < x0+charW-2 && x < width-1; x++ {
-				border := x == x0 || x == x0+charW-3 || y == 1 || y == height-2
+			for x := x0; x < x1-1 && x < width-1; x++ {
+				border := x == x0 || x == x1-2 || y == 1 || y == height-2
 				stroke := (x+y+int(r))%7 == 0
 				if border || stroke || style.Bold && (x+y+int(r))%5 == 0 {
 					pixels[y*width+x] = 1
 				}
 			}
 		}
+		col += span
 	}
 	return bitmapTextImage{Width: width, Height: height, Pixels: pixels}
 }

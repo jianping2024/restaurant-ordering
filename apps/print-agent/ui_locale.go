@@ -31,7 +31,7 @@ func normalizePrintLocale(raw string) string {
 	}
 }
 
-func localeUsesGBK(locale string) bool {
+func printLocaleIsZh(locale string) bool {
 	return normalizePrintLocale(locale) == "zh"
 }
 

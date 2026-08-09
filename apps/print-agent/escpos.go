@@ -414,25 +414,25 @@ const (
 )
 
 func padField(s string, width int, alignRight bool) string {
-	r := []rune(truncateRunes(s, width))
-	gap := width - len(r)
+	s = truncateDisplay(s, width)
+	gap := width - displayWidth(s)
 	if gap < 0 {
 		gap = 0
 	}
 	if alignRight {
-		return strings.Repeat(" ", gap) + string(r)
+		return strings.Repeat(" ", gap) + s
 	}
-	return string(r) + strings.Repeat(" ", gap)
+	return s + strings.Repeat(" ", gap)
 }
 
 func padFieldCenter(s string, width int) string {
-	r := []rune(truncateRunes(s, width))
-	gap := width - len(r)
+	s = truncateDisplay(s, width)
+	gap := width - displayWidth(s)
 	if gap <= 0 {
-		return string(r)
+		return s
 	}
 	left := gap / 2
-	return strings.Repeat(" ", left) + string(r) + strings.Repeat(" ", gap-left)
+	return strings.Repeat(" ", left) + s + strings.Repeat(" ", gap-left)
 }
 
 func escposThreeColLine(left, mid, right string) string {
@@ -488,8 +488,8 @@ func placeRunesAt(buf []rune, start int, r []rune) {
 }
 
 func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string {
-	items := []rune(truncateRunes(itemsLabel, stationSlipHeaderItemsMaxWidth(width)))
-	qty := []rune(truncateRunes(padFieldCenter(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
+	items := []rune(truncateDisplay(itemsLabel, stationSlipHeaderItemsMaxWidth(width)))
+	qty := []rune(truncateDisplay(padFieldCenter(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
 	buf := make([]rune, width)
 	for i := range buf {
 		buf[i] = ' '
@@ -499,16 +499,23 @@ func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string 
 	return string(buf)
 }
 
+// stationSlipItemLine — Latin/column layout. Callers must wrap Han labels first;
+// leftLabel is not truncateDisplay'd (wrap-only for menu names).
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
-	left := []rune(truncateRunes(leftLabel, stationSlipItemMaxWidth(width)))
-	qty := []rune(truncateRunes(padFieldCenter(qtyStr, stationSlipQtyColWidth), stationSlipQtyColWidth))
+	qty := []rune(truncateDisplay(padFieldCenter(qtyStr, stationSlipQtyColWidth), stationSlipQtyColWidth))
 	buf := make([]rune, width)
 	for i := range buf {
 		buf[i] = ' '
 	}
-	placeRunesAt(buf, stationSlipItemLeftMargin, left)
+	placeRunesAt(buf, stationSlipItemLeftMargin, []rune(leftLabel))
 	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
 	return string(buf)
+}
+
+// stationSlipItemBitmapLine — compact label+qty for Han bitmaps (no full-width pad that blows past 384px).
+func stationSlipItemBitmapLine(leftLabel, qtyStr string) string {
+	indent := strings.Repeat(" ", stationSlipItemLeftMargin)
+	return indent + leftLabel + "  " + strings.TrimSpace(qtyStr)
 }
 
 func stationSlipItemLabel(ln jobLine) string {
@@ -530,9 +537,9 @@ func stationSlipItemLabel(ln jobLine) string {
 }
 
 func escposPadLine(left, right string, width int) string {
-	left = truncateRunes(left, width-2)
-	right = truncateRunes(right, width-2)
-	gap := width - runeLen(left) - runeLen(right)
+	left = truncateDisplay(left, width-2)
+	right = truncateDisplay(right, width-2)
+	gap := width - displayWidth(left) - displayWidth(right)
 	if gap < 1 {
 		gap = 1
 	}
@@ -647,7 +654,8 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
 	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
-	for _, line := range wrapRunes(escposItemNotePrefix+note, maxW) {
+	// One channel: wrap prefix+body (display cols), then w.text — Han → whole-line bitmap; never truncate.
+	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
 		w.text(indent + line)
 		w.lf()
 	}
@@ -663,7 +671,7 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
 		if showGroup && groupHeader != "" && groupHeader != lastGroupHeader {
 			w.align(1)
-			w.text(truncateRunes(groupHeader, escposWidth))
+			w.text(groupHeader) // wrap inside escposBitmapText when Han
 			w.lf()
 			w.align(0)
 			lastGroupHeader = groupHeader
@@ -673,9 +681,41 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		if qty <= 0 {
 			qty = 1
 		}
-		w.text(stationSlipItemLine(stationSlipItemLabel(ln), fmt.Sprintf("%d", qty), escposWidth))
-		w.lf()
+		w.writeStationMenuItem(ln, qty, escposWidth)
 		w.writeStationItemNoteLine(ln.Note, escposWidth)
+	}
+}
+
+func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, width int) {
+	label := stationSlipItemLabel(ln)
+	maxLeft := stationSlipItemMaxWidth(width)
+	chunks := wrapDisplay(label, maxLeft)
+	if len(chunks) == 0 {
+		chunks = []string{label}
+	}
+	qtyStr := fmt.Sprintf("%d", qty)
+	w.writeBody1x2()
+	if needsBitmapText(chunks[0]) {
+		w.text(stationSlipItemBitmapLine(chunks[0], qtyStr))
+	} else {
+		w.text(stationSlipItemLine(chunks[0], qtyStr, width))
+	}
+	w.lf()
+	for _, c := range chunks[1:] {
+		w.writeBody1x2()
+		if needsBitmapText(c) {
+			w.text(strings.Repeat(" ", stationSlipItemLeftMargin) + c)
+		} else {
+			var b strings.Builder
+			col := 0
+			for col < stationSlipItemLeftMargin {
+				b.WriteByte(' ')
+				col++
+			}
+			b.WriteString(c)
+			w.text(b.String())
+		}
+		w.lf()
 	}
 }
 
@@ -690,39 +730,6 @@ func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
 	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
 	w.lf()
-}
-
-func runeLen(s string) int {
-	return len([]rune(s))
-}
-
-func truncateRunes(s string, max int) string {
-	r := []rune(s)
-	if len(r) <= max {
-		return s
-	}
-	if max <= 1 {
-		return "…"
-	}
-	return string(r[:max-1]) + "…"
-}
-
-// wrapRunes splits s into rune chunks of at most max (no ellipsis). max <= 0 yields nil.
-func wrapRunes(s string, max int) []string {
-	if max <= 0 {
-		return nil
-	}
-	r := []rune(s)
-	if len(r) == 0 {
-		return nil
-	}
-	out := make([]string, 0, (len(r)+max-1)/max)
-	for len(r) > max {
-		out = append(out, string(r[:max]))
-		r = r[max:]
-	}
-	out = append(out, string(r))
-	return out
 }
 
 func formatItemLabel(idx int, name string) string {

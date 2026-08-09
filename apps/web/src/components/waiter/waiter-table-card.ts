@@ -57,7 +57,7 @@ export interface WaiterTableCardData {
   hasBuffet: boolean;
   buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
-  /** Non-buffet billable total for ordered-items money chrome (餐食). */
+  /** Non-buffet billable total for ordered-items money chrome (饮食). */
   mealsTotal: number;
   updatedAt: string;
 }

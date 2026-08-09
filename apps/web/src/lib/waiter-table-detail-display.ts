@@ -12,7 +12,7 @@ export function formatWaiterTableDetailHeading(
 
 /**
  * Ordered-items sticky money chrome — sole display string for this bar.
- * Shape: optional `餐食: €{meals}` then `合计: €{total}` (never a head-fee segment).
+ * Shape: optional `饮食: €{meals}` then `合计: €{total}` (never a head-fee segment).
  * Null when session total is not positive.
  */
 export function formatWaiterOrderedItemsSessionTotal(

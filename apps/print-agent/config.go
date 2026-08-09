@@ -32,7 +32,7 @@ type config struct {
 	UILocale string `json:"ui_locale,omitempty"`
 	// ValidUntil: RFC3339 from claim; used for tray renewal hints (half-year credential).
 	ValidUntil string `json:"valid_until,omitempty"`
-	// TextEncoding: auto | utf8 | latin — Chinese auto mode renders raster bitmaps; unknown values (incl. legacy gbk) normalize to auto.
+	// TextEncoding: auto | utf8 | latin — Chinese auto mode renders raster bitmaps; legacy gbk normalizes to auto.
 	TextEncoding string `json:"text_encoding,omitempty"`
 }
 

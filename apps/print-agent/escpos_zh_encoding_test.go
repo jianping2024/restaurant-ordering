@@ -20,7 +20,7 @@ func TestBuildConnectionTestZHUsesBitmapByDefault(t *testing.T) {
 		t.Fatal("expected raster bitmap command for Chinese headline")
 	}
 	if bytes.Contains(raw, []byte{0x1C, 0x26}) || bytes.Contains(raw, []byte{0x1C, 0x2E}) {
-		t.Fatal("bitmap mode must not emit FS & / FS . Chinese commands")
+		t.Fatal("bitmap mode must not enter/exit GBK Chinese mode")
 	}
 	if bytes.Contains(raw, []byte{0x1B, 0x39, 0x01}) {
 		t.Fatal("auto mode should not use ESC 9 UTF-8 on connection test")
@@ -93,7 +93,7 @@ func TestBuildStationTicketZHMenuUsesBitmapWithEnglishHeader(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
 	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
-		t.Fatal("station ticket must not emit FS & Chinese commands")
+		t.Fatal("station ticket must not enter GBK mode")
 	}
 	if !bytes.Contains(raw, []byte("Guest Order")) {
 		t.Fatal("expected fixed English guest-order header")

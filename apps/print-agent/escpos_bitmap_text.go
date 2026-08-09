@@ -24,43 +24,6 @@ type bitmapTextImage struct {
 	Pixels []byte
 }
 
-// Bitmap cells match Font A pitch on 80mm (48 cols × 8 dots = 384).
-// Cell height 20 (1×1) / 40 (1×2) — same contract as 0.3.68.
-const (
-	bitmapCellDotsX = 8
-	bitmapCellDotsY = 20
-	bitmapFontMinPx = 12
-)
-
-func bitmapCellSize(style bitmapTextStyle) (cellW, cellH int) {
-	cellW = bitmapCellDotsX
-	cellH = bitmapCellDotsY
-	if style.DoubleW {
-		cellW *= 2
-	}
-	if style.DoubleH {
-		cellH *= 2
-	}
-	return cellW, cellH
-}
-
-func bitmapFontPx(style bitmapTextStyle) int {
-	_, cellH := bitmapCellSize(style)
-	px := cellH - 2
-	if px < bitmapFontMinPx {
-		return bitmapFontMinPx
-	}
-	return px
-}
-
-func bitmapMaxCols(style bitmapTextStyle) int {
-	cellW, _ := bitmapCellSize(style)
-	if cellW <= 0 {
-		return escposWidth
-	}
-	return (escposWidth * bitmapCellDotsX) / cellW
-}
-
 func textModeForConfiguredChinese(needChinese bool) escposTextMode {
 	if !needChinese {
 		return escposTextLatin
@@ -81,27 +44,8 @@ func needsBitmapText(s string) bool {
 	return hasHan(s)
 }
 
-// escposBitmapText renders s as one or more GS v 0 rasters. Over-wide strings are
-// wrapDisplay'd (never truncateDisplay) so every rune is emitted.
 func escposBitmapText(s string, style bitmapTextStyle) []byte {
-	s = strings.TrimRight(s, "\r\n")
-	if s == "" {
-		return nil
-	}
-	maxCols := bitmapMaxCols(style)
-	chunks := wrapDisplay(s, maxCols)
-	if len(chunks) == 0 {
-		return nil
-	}
-	var out []byte
-	for _, chunk := range chunks {
-		out = append(out, escposBitmapTextOne(chunk, style)...)
-	}
-	return out
-}
-
-func escposBitmapTextOne(s string, style bitmapTextStyle) []byte {
-	img := renderBitmapText(s, style)
+	img := renderBitmapText(strings.TrimRight(s, "\r\n"), style)
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return encodeWindows1252(s)
 	}
@@ -122,13 +66,6 @@ func escposBitmapTextOne(s string, style bitmapTextStyle) []byte {
 		byte(img.Height & 0xff), byte((img.Height >> 8) & 0xff),
 	}
 	out = append(out, data...)
-	for remain := img.Height; remain > 0; {
-		n := remain
-		if n > 255 {
-			n = 255
-		}
-		out = append(out, 0x1B, 0x4A, byte(n))
-		remain -= n
-	}
+	out = append(out, '\n')
 	return out
 }

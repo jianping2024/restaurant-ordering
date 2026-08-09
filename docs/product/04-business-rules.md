@@ -135,7 +135,7 @@
 
 ### 寿司自助限量（`buffet_service_mode = sushi`）
 
-- 餐厅业态：`restaurants.buffet_service_mode` = `classic` | `sushi`（**仅 Ops** 开店必选 / 餐厅详情可改；店内 Dashboard 只读；默认 classic）
+- 餐厅业态：`restaurants.buffet_service_mode` = `classic` | `sushi`（**仅 Ops** 开店必选 / 餐厅详情可改；店内 Dashboard **不展示、不可改**；默认 classic）
 - On-prem：认领快照与 check-in 同步该字段到本机营业库
 - 菜品可选：`per_person_qty_limit`（每人份）+ `over_limit_unit_price`（须成对；空=无限量）
 - 免费额度 = 每人限量 ×（成人+儿童，多套餐求和）；人数为 0 时限量菜不可成功下单（客人列表不灰，下单前对齐会话后校验；服务端仍权威）

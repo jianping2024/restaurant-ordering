@@ -32,7 +32,7 @@ func hasHan(s string) bool {
 }
 
 func payloadNeedsBitmap(p jobPayload) bool {
-	if localeUsesGBK(p.Locale) {
+	if printLocaleIsZh(p.Locale) {
 		return true
 	}
 	if hasHan(p.RestaurantName) || hasHan(p.stationName()) {
@@ -48,7 +48,7 @@ func payloadNeedsBitmap(p jobPayload) bool {
 
 // stationTicketNeedsBitmap — internal station slips use a fixed English header, but menu text may be Chinese.
 func stationTicketNeedsBitmap(p jobPayload) bool {
-	if localeUsesGBK(p.Locale) {
+	if printLocaleIsZh(p.Locale) {
 		return true
 	}
 	for _, ln := range p.Lines {
@@ -71,7 +71,7 @@ func receiptTicketLabels() ticketLabels {
 
 // receiptLabelsFor uses Chinese ticket labels when print_locale is zh.
 func receiptLabelsFor(locale string) ticketLabels {
-	if localeUsesGBK(locale) {
+	if printLocaleIsZh(locale) {
 		return labelsFor("zh")
 	}
 	return receiptTicketLabels()
@@ -80,7 +80,7 @@ func receiptLabelsFor(locale string) ticketLabels {
 // receiptTicketNeedsBitmap — receipt/pre-bill paper does not print restaurant_name; do not switch
 // because of a Chinese venue name in payload.
 func receiptTicketNeedsBitmap(p jobPayload) bool {
-	if localeUsesGBK(p.Locale) {
+	if printLocaleIsZh(p.Locale) {
 		return true
 	}
 	if hasHan(formatSplitPayerForReceipt(p.PayerName)) {
@@ -96,13 +96,13 @@ func receiptTicketNeedsBitmap(p jobPayload) bool {
 
 // connectionTestNeedsBitmap — local test slips must render「打印测试」for zh UI even when venue is ASCII.
 func connectionTestNeedsBitmap(p jobPayload) bool {
-	if localeUsesGBK(p.Locale) || normalizeUILocale(p.Locale) == "zh" {
+	if printLocaleIsZh(p.Locale) || normalizeUILocale(p.Locale) == "zh" {
 		return true
 	}
 	return hasHan(p.venueName()) || hasHan(labelsFor(p.Locale).connectionTest)
 }
 
-// labelsASCII strips accents for printers in GBK mode with pt/en locale.
+// labelsASCII strips accents for printers when headers stay Latin (pt/en).
 func labelsASCII(lab ticketLabels) ticketLabels {
 	return ticketLabels{
 		connectionTest: "TESTE IMPRESSAO",

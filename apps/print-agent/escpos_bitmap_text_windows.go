@@ -41,8 +41,7 @@ var (
 )
 
 // renderBitmapText draws s into a cell grid. Caller must wrap to bitmapMaxCols;
-// this function does not truncateDisplay (overflow runes still advance by displayCols).
-// CreateFontW uses cWidth=0 (device aspect) — same contract as 0.3.68; do not force slot width.
+// this function does not truncateDisplay. CreateFontW uses cWidth=0 (0.3.68 contract).
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}

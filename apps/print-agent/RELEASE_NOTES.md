@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.71
+
+**热修：完整恢复 0.3.68 位图合同（修 0.3.70 仍乱码）**
+
+- `text()` 再次按 `DoubleW/DoubleH` 定格（菜单体 1×2 → 格高 40，字 `cellH-2`）；去掉强制 `FontPx=24`。
+- GDI 单字体、`cWidth=0`；备注整行 `wrapDisplay(Observação:+正文)` → `w.text`。
+- 保留只折行、不截断；删除无用的 GBK UI/命名残留（无 GBK 出纸路径）。
+
 ## 0.3.70
 
 **热修：恢复 0.3.68 整行中文位图合同（修 0.3.69 乱码）**

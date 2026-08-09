@@ -6,12 +6,15 @@ import (
 )
 
 func TestRenderBitmapTextHasInkForHan(t *testing.T) {
-	img := renderBitmapText("打印测试", bitmapTextStyle{Align: 1, Bold: true, FontPx: bitmapFontDishPx})
+	// Menu body 1×2 → cellH 40 (0.3.68 contract).
+	style := bitmapTextStyle{Align: 1, Bold: true, DoubleH: true}
+	img := renderBitmapText("打印测试", style)
 	if img.Width <= 0 || img.Height <= 0 {
 		t.Fatalf("expected image, got %dx%d", img.Width, img.Height)
 	}
-	if img.Height != bitmapFontDishPx {
-		t.Fatalf("dish FontPx height want %d got %d", bitmapFontDishPx, img.Height)
+	wantH := bitmapCellDotsY * 2
+	if img.Height != wantH {
+		t.Fatalf("1×2 cell height want %d got %d", wantH, img.Height)
 	}
 	if img.Width > escposWidth*bitmapCellDotsX {
 		t.Fatalf("Han bitmap must not exceed paper width: %d", img.Width)
@@ -25,7 +28,7 @@ func TestRenderBitmapTextHasInkForHan(t *testing.T) {
 	if ink == 0 {
 		t.Fatal("Han bitmap must contain ink pixels")
 	}
-	raw := escposBitmapText("打印测试", bitmapTextStyle{Align: 1, FontPx: bitmapFontDishPx})
+	raw := escposBitmapText("打印测试", style)
 	if rasterInkBits(raw) == 0 {
 		t.Fatal("escposBitmapText must emit non-blank GS v 0 payload")
 	}
@@ -35,9 +38,8 @@ func TestRenderBitmapTextHasInkForHan(t *testing.T) {
 }
 
 func TestEscposBitmapTextWrapsNeverTruncates(t *testing.T) {
-	// Wider than one paper line in display cols — must wrap, no ellipsis.
 	long := stringsRepeatHan(40) // 80 display cols
-	raw := escposBitmapText(long, bitmapTextStyle{FontPx: bitmapFontDishPx})
+	raw := escposBitmapText(long, bitmapTextStyle{DoubleH: true})
 	if bytes.Contains(raw, []byte("…")) || bytes.Contains(raw, []byte{0xe2, 0x80, 0xa6}) {
 		t.Fatal("bitmap path must not emit ellipsis truncation")
 	}

@@ -9,8 +9,9 @@ import { waiterStaffStickyChrome } from '@/lib/waiter-staff-sticky-chrome';
  */
 export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-ink mb-4',
-  kpiCount: 'text-2xl font-semibold tabular-nums leading-none',
-  kpiLabel: 'text-sm font-medium',
+  /** Sole KPI count face — centered + large for glanceable floor filters. */
+  kpiCount: 'text-center text-4xl font-bold tabular-nums leading-none',
+  kpiLabel: 'text-center text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   /** Sole floor-card table number — body face, ≥2× former text-lg → text-4xl. */

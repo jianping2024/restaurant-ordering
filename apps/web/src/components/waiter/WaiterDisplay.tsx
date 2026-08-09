@@ -140,7 +140,7 @@ function BoardKpiCard({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`mesa-stat min-w-0 w-full text-left ${WAITER_BOARD_KPI_SURFACE_CLASS[filter]}`}
+      className={`mesa-stat min-w-0 w-full text-center ${WAITER_BOARD_KPI_SURFACE_CLASS[filter]}`}
       data-active={active ? 'true' : 'false'}
     >
       <div
@@ -151,7 +151,7 @@ function BoardKpiCard({
         {label}
       </div>
       <div
-        className={`${waiterBoardType.kpiCount} mt-1.5 ${
+        className={`${waiterBoardType.kpiCount} mt-2 ${
           active && filter === 'all'
             ? 'text-brand-text'
             : WAITER_BOARD_KPI_COUNT_CLASS[filter]

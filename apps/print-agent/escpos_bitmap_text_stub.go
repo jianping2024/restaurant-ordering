@@ -2,38 +2,35 @@
 
 package main
 
-// renderBitmapText draws a stub glyph grid (tests on non-Windows). Never truncateDisplay.
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
-	cellW, cellH := bitmapCellSize(style)
-	cols := displayWidth(s)
-	if cols <= 0 {
-		return bitmapTextImage{}
+	charW := 12
+	charH := 16
+	if style.DoubleW {
+		charW *= 2
 	}
-	width := cols * cellW
-	height := cellH
+	if style.DoubleH {
+		charH *= 2
+	}
+	width := len([]rune(s))*charW + 2
+	height := charH + 2
 	pixels := make([]byte, width*height)
-	col := 0
-	for _, r := range s {
-		span := displayCols(r)
+	for i, r := range []rune(s) {
 		if r == ' ' {
-			col += span
 			continue
 		}
-		x0 := col * cellW
-		x1 := x0 + span*cellW
+		x0 := i*charW + 1
 		for y := 1; y < height-1; y++ {
-			for x := x0 + 1; x < x1-1 && x < width; x++ {
-				border := x == x0+1 || x == x1-2 || y == 1 || y == height-2
+			for x := x0; x < x0+charW-2 && x < width-1; x++ {
+				border := x == x0 || x == x0+charW-3 || y == 1 || y == height-2
 				stroke := (x+y+int(r))%7 == 0
 				if border || stroke || style.Bold && (x+y+int(r))%5 == 0 {
 					pixels[y*width+x] = 1
 				}
 			}
 		}
-		col += span
 	}
 	return bitmapTextImage{Width: width, Height: height, Pixels: pixels}
 }

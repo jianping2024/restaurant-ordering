@@ -107,64 +107,36 @@ func TestStationSlipSkipsCategoryHeaderWhenDisabled(t *testing.T) {
 
 func TestStationSlipItemLineLayout(t *testing.T) {
 	line := stationSlipItemLine("001-Agua 500ml", "3", escposWidth)
-	if displayWidth(line) != escposWidth {
-		t.Fatalf("display width %d want %d", displayWidth(line), escposWidth)
-	}
 	runes := []rune(line)
 	if runes[stationSlipItemLeftMargin] != '0' {
 		t.Fatalf("expected item label at col %d, got %q", stationSlipItemLeftMargin, runes[stationSlipItemLeftMargin])
 	}
-	qtyCol := padFieldCenter("3", stationSlipQtyColWidth)
+	qtyCol := []rune(padFieldCenter("3", stationSlipQtyColWidth))
 	qtyStart := stationSlipQtyColStart(escposWidth)
-	// Walk display columns to find qty band.
-	col := 0
-	var gotQty strings.Builder
-	for _, r := range line {
-		w := displayCols(r)
-		if col >= qtyStart && col < qtyStart+stationSlipQtyColWidth {
-			gotQty.WriteRune(r)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("expected centered qty at col %d: got %q want %q", qtyStart, string(runes[qtyStart:qtyStart+len(qtyCol)]), string(qtyCol))
 		}
-		col += w
 	}
-	if gotQty.String() != qtyCol {
-		t.Fatalf("qty band got %q want %q", gotQty.String(), qtyCol)
-	}
-}
-
-func TestStationSlipItemLineKeepsQtyWithHan(t *testing.T) {
-	line := stationSlipItemLine("001-中水", "1", escposWidth)
-	if displayWidth(line) != escposWidth {
-		t.Fatalf("display width %d want %d", displayWidth(line), escposWidth)
-	}
-	if !strings.Contains(line, "1") {
-		t.Fatalf("qty missing from Han item line: %q", line)
-	}
-	if !strings.Contains(line, "中水") {
-		t.Fatalf("Han label missing: %q", line)
-	}
-	qtyStart := stationSlipQtyColStart(escposWidth)
-	col := 0
-	found := false
-	for _, r := range line {
-		if col >= qtyStart && r == '1' {
-			found = true
-			break
+	for i := len(runes) - stationSlipSideMargin; i < len(runes); i++ {
+		if runes[i] != ' ' {
+			t.Fatalf("expected right margin %d cols", stationSlipSideMargin)
 		}
-		col += displayCols(r)
-	}
-	if !found {
-		t.Fatalf("qty not in qty column for %q", line)
 	}
 }
 
 func TestStationSlipColumnHeaderLayout(t *testing.T) {
 	line := stationSlipColumnHeaderLine("Items", "Qty", escposWidth)
-	if displayWidth(line) != escposWidth {
-		t.Fatalf("display width %d want %d", displayWidth(line), escposWidth)
-	}
 	runes := []rune(line)
 	if runes[stationSlipSideMargin] != 'I' {
-		t.Fatalf("expected Items at col %d, got %q", stationSlipSideMargin, runes[stationSlipSideMargin])
+		t.Fatalf("expected Items at col %d (Guest 't'), got %q", stationSlipSideMargin, runes[stationSlipSideMargin])
+	}
+	qtyCol := []rune(padFieldCenter("Qty", stationSlipQtyColWidth))
+	qtyStart := stationSlipQtyColStart(escposWidth)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("expected centered Qty header at col %d: got %q want %q", qtyStart, string(runes[qtyStart:qtyStart+len(qtyCol)]), string(qtyCol))
+		}
 	}
 }
 
@@ -193,14 +165,14 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	}
 }
 
-func TestWrapDisplay(t *testing.T) {
-	if got := wrapDisplay("", 10); got != nil {
+func TestWrapRunes(t *testing.T) {
+	if got := wrapRunes("", 10); got != nil {
 		t.Fatalf("empty want nil, got %v", got)
 	}
-	if got := wrapDisplay("ab", 0); got != nil {
+	if got := wrapRunes("ab", 0); got != nil {
 		t.Fatalf("max<=0 want nil, got %v", got)
 	}
-	got := wrapDisplay("abcdefghij", 4)
+	got := wrapRunes("abcdefghij", 4)
 	want := []string{"abcd", "efgh", "ij"}
 	if len(got) != len(want) {
 		t.Fatalf("len got %v want %v", got, want)
@@ -209,11 +181,6 @@ func TestWrapDisplay(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("got %v want %v", got, want)
 		}
-	}
-	han := wrapDisplay("Observação: 我要冰的", 20)
-	joined := strings.Join(han, "")
-	if !strings.Contains(joined, "我要冰的") {
-		t.Fatalf("Han note must survive wrap, got %v", han)
 	}
 }
 
@@ -229,7 +196,7 @@ func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 	note := "2 pacotes de acucar 1 pacote de leite em po sem canela e bem quente por favor"
 	full := escposItemNotePrefix + note
 	maxW := stationSlipNoteMaxWidth(escposWidth)
-	chunks := wrapDisplay(full, maxW)
+	chunks := wrapRunes(full, maxW)
 	if len(chunks) < 2 {
 		t.Fatal("fixture note too short to exercise wrap")
 	}
@@ -254,76 +221,13 @@ func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 		t.Fatal("station note must not use ellipsis truncation")
 	}
 	itemLine := stationSlipItemLine("903-Cafe", "2", escposWidth)
-	if !strings.Contains(itemLine, "2") {
-		t.Fatalf("qty column disturbed: got %q", itemLine)
-	}
-}
-
-func TestStationTicketHanNoteUsesBitmapFeed(t *testing.T) {
-	payload, _ := json.Marshal(jobPayload{
-		Locale:           "zh",
-		TableDisplayName: "A-01",
-		Lines: []jobLine{{
-			ItemCode:    "001",
-			ItemName:    "中水",
-			DisplayName: "001-中水",
-			Qty:         1,
-			Note:        "我要冰的",
-		}},
-	})
-	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
-	if !bytes.Contains(raw, []byte{0x1D, 0x76, 0x30, 0x00}) {
-		t.Fatal("expected GS v 0 for Han lines")
-	}
-	if !bytes.Contains(raw, []byte{0x1B, 0x4A}) {
-		t.Fatal("expected ESC J feed after bitmap")
-	}
-	// Whole-line note (0.3.68): Observação:+Han is one bitmap — must NOT emit Latin prefix then GS v 0.
-	obsLatin := encodeWindows1252("Observação: ")
-	if idx := bytes.Index(raw, obsLatin); idx >= 0 {
-		after := raw[idx+len(obsLatin):]
-		if i := bytes.Index(after, []byte{0x1D, 0x76, 0x30, 0x00}); i >= 0 && i < 8 {
-			t.Fatal("Han note must not mix Latin Observação: with immediately following GS v 0")
+	qtyStart := stationSlipQtyColStart(escposWidth)
+	qtyCol := []rune(padFieldCenter("2", stationSlipQtyColWidth))
+	runes := []rune(itemLine)
+	for i, c := range qtyCol {
+		if runes[qtyStart+i] != c {
+			t.Fatalf("qty column disturbed: got %q", itemLine)
 		}
-	}
-	if bytes.Contains(raw, []byte("…")) {
-		t.Fatal("Han note ticket must not truncate with ellipsis")
-	}
-	dish := renderBitmapText(stationSlipItemLine("001-中水", "1", escposWidth), bitmapTextStyle{DoubleH: true})
-	wantH := bitmapCellDotsY * 2
-	if dish.Height != wantH {
-		t.Fatalf("1×2 dish bitmap height want %d got %d", wantH, dish.Height)
-	}
-	joined := strings.Join(wrapDisplay(escposItemNotePrefix+"我要冰的", stationSlipNoteMaxWidth(escposWidth)), "")
-	if joined != escposItemNotePrefix+"我要冰的" {
-		t.Fatalf("note wrap must preserve prefix+body, got %q", joined)
-	}
-}
-
-func TestStationTicketLongHanDishWrapsNoEllipsis(t *testing.T) {
-	longName := "红烧茄子加牛肉加豆腐加青椒加洋葱特供"
-	payload, _ := json.Marshal(jobPayload{
-		Locale:           "zh",
-		TableDisplayName: "A-01",
-		Lines: []jobLine{{
-			ItemCode:    "999",
-			ItemName:    longName,
-			DisplayName: "999-" + longName,
-			Qty:         2,
-		}},
-	})
-	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
-	if bytes.Contains(raw, []byte("…")) {
-		t.Fatal("long Han dish must wrap, not ellipsis-truncate")
-	}
-	label := stationSlipItemLabel(jobLine{ItemCode: "999", ItemName: longName})
-	chunks := wrapDisplay(label, stationSlipItemMaxWidth(escposWidth))
-	joined := strings.Join(chunks, "")
-	if joined != label {
-		t.Fatalf("wrap must preserve dish label: got %q want %q", joined, label)
-	}
-	if len(chunks) < 2 {
-		t.Fatalf("fixture should wrap, got %d chunks", len(chunks))
 	}
 }
 
@@ -338,6 +242,6 @@ func TestStationTicketUsesLatinEncodingOnly(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
 	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
-		t.Fatal("station slip must not emit FS & Chinese commands")
+		t.Fatal("station slip must not enter GBK mode")
 	}
 }

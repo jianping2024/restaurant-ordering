@@ -1,23 +1,11 @@
 package main
 
-import (
-	"bytes"
-	"testing"
-)
+import "testing"
 
 func TestRenderBitmapTextHasInkForHan(t *testing.T) {
-	// Menu body 1×2 → cellH 40 (0.3.68 contract).
-	style := bitmapTextStyle{Align: 1, Bold: true, DoubleH: true}
-	img := renderBitmapText("打印测试", style)
+	img := renderBitmapText("打印测试", bitmapTextStyle{Align: 1, Bold: true, DoubleW: true, DoubleH: true})
 	if img.Width <= 0 || img.Height <= 0 {
 		t.Fatalf("expected image, got %dx%d", img.Width, img.Height)
-	}
-	wantH := bitmapCellDotsY * 2
-	if img.Height != wantH {
-		t.Fatalf("1×2 cell height want %d got %d", wantH, img.Height)
-	}
-	if img.Width > escposWidth*bitmapCellDotsX {
-		t.Fatalf("Han bitmap must not exceed paper width: %d", img.Width)
 	}
 	ink := 0
 	for _, p := range img.Pixels {
@@ -28,31 +16,8 @@ func TestRenderBitmapTextHasInkForHan(t *testing.T) {
 	if ink == 0 {
 		t.Fatal("Han bitmap must contain ink pixels")
 	}
-	raw := escposBitmapText("打印测试", style)
+	raw := escposBitmapText("打印测试", bitmapTextStyle{Align: 1})
 	if rasterInkBits(raw) == 0 {
 		t.Fatal("escposBitmapText must emit non-blank GS v 0 payload")
 	}
-	if !bytes.Contains(raw, []byte{0x1B, 0x4A}) {
-		t.Fatal("expected ESC J after raster")
-	}
-}
-
-func TestEscposBitmapTextWrapsNeverTruncates(t *testing.T) {
-	long := stringsRepeatHan(40) // 80 display cols
-	raw := escposBitmapText(long, bitmapTextStyle{DoubleH: true})
-	if bytes.Contains(raw, []byte("…")) || bytes.Contains(raw, []byte{0xe2, 0x80, 0xa6}) {
-		t.Fatal("bitmap path must not emit ellipsis truncation")
-	}
-	gsCount := bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00})
-	if gsCount < 2 {
-		t.Fatalf("expected multiple rasters for wrap, got %d", gsCount)
-	}
-}
-
-func stringsRepeatHan(n int) string {
-	var b []rune
-	for i := 0; i < n; i++ {
-		b = append(b, '中')
-	}
-	return string(b)
 }

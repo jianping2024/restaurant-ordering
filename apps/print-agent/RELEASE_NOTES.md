@@ -2,37 +2,12 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
-## 0.3.71
+## 0.3.72
 
-**热修：完整恢复 0.3.68 位图合同（修 0.3.70 仍乱码）**
+**回退：恢复 0.3.67 中文位图出纸（店端已验证可读）**
 
-- `text()` 再次按 `DoubleW/DoubleH` 定格（菜单体 1×2 → 格高 40，字 `cellH-2`）；去掉强制 `FontPx=24`。
-- GDI 单字体、`cWidth=0`；备注整行 `wrapDisplay(Observação:+正文)` → `w.text`。
-- 保留只折行、不截断；删除无用的 GBK UI/命名残留（无 GBK 出纸路径）。
-
-## 0.3.70
-
-**热修：恢复 0.3.68 整行中文位图合同（修 0.3.69 乱码）**
-
-- 备注改回 `wrapDisplay(Observação:+正文)` 后整行 `w.text`：有汉字则整行一张位图，禁止拉丁前缀后紧接 `GS v 0`。
-- GDI `CreateFontW` 恢复 `cWidth=0`、单字体（去掉按槽宽挤字）。
-- 仍只折行、不截断；汉字体字号统一 `bitmapFontDishPx`（24）。
-
-## 0.3.69
-
-**中文出品联：菜名 24px / 备注 16px，只折行不截断**
-
-- 含汉字的菜名位图固定 24px；备注正文 16px；`Observação:` 仍为 ESC/POS 拉丁字号。
-- 位图路径用 `wrapDisplay` 折行，去掉 `truncateDisplay`；长菜名折到续行，Qty 留在首行。
-- GDI 按显示列槽宽约束字形，避免字比格宽造成的视觉切边。
-
-## 0.3.68
-
-**出品联中文位图：列宽格子 + 略缩小字号**
-
-- 票面宽度统一按「显示列」计量（汉字 2 列、拉丁 1 列）；菜名行 Qty 与长备注不再被位图裁掉。
-- 中文位图按 Font A 格子渲染（8×20 / 1×2 为 8×40），不再用加倍 TrueType 方字撑爆宽度；打完用 `ESC J` 按图高走纸。
-- 出品联左右边距收紧（侧边/菜名缩进 2），给中文菜名更多列宽。
+- print-agent 源码整体回退到 `7f9c1126`（当时 VERSION 为 0.3.67）：含「先清白再 TextOutW」位图、试打中英葡；不含 0.3.68+ 格子/`ESC J`/强制 FontPx/拉丁半行混打等后续改动。
+- 本版号 **0.3.72**（不可复用已发的 0.3.69–0.3.71）；行为对齐本地已验证的 0.3.67 包。
 
 ## 0.3.67
 

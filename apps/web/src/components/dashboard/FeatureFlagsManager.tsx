@@ -14,6 +14,14 @@ import {
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 
+/** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
+const FEATURES_CONTROL_SURFACE =
+  'rounded-lg border border-brand-border bg-brand-bg text-brand-text';
+const PRINT_LOCALE_OPTION_IDLE = `${FEATURES_CONTROL_SURFACE} hover:border-brand-gold/60`;
+const PRINT_LOCALE_OPTION_SELECTED =
+  'rounded-lg border border-brand-gold bg-brand-gold/10 text-brand-text';
+const FEATURES_INTEGER_INPUT = `w-24 ${FEATURES_CONTROL_SURFACE} px-3 py-2 tabular-nums`;
+
 type Props = {
   embedded?: boolean;
   initialFlags: ResolvedRestaurantFeatureFlags;
@@ -152,10 +160,8 @@ export function FeatureFlagsManager({
                     key={optionId}
                     type="button"
                     onClick={() => setPrintLocale(optionId)}
-                    className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      selected
-                        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
-                        : 'border-brand-border bg-white/80 text-brand-text hover:border-brand-gold/60'
+                    className={`px-3 py-2 text-left text-sm transition ${
+                      selected ? PRINT_LOCALE_OPTION_SELECTED : PRINT_LOCALE_OPTION_IDLE
                     }`}
                     aria-pressed={selected}
                   >
@@ -200,7 +206,7 @@ export function FeatureFlagsManager({
                   min={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN}
                   max={PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX}
                   onChange={setCredentialTtlDays}
-                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-brand-text tabular-nums"
+                  className={FEATURES_INTEGER_INPUT}
                   aria-label={t.credentialTtlDays}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.credentialTtlDaysUnit}</span>
@@ -225,7 +231,7 @@ export function FeatureFlagsManager({
                   min={5}
                   max={60}
                   onChange={setOrderCooldownSeconds}
-                  className="w-24 rounded-lg border border-brand-border bg-white/80 px-3 py-2 text-brand-text tabular-nums"
+                  className={FEATURES_INTEGER_INPUT}
                   aria-label={t.orderCooldownSeconds}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.orderCooldownSecondsUnit}</span>

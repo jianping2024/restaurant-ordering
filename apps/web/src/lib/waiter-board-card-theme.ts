@@ -19,9 +19,9 @@ export const waiterBoardType = {
   /** Sole opener face — below card rule only (not title-row, not a meta chip). */
   cardOpener:
     'mt-1.5 truncate text-sm font-medium text-brand-text opacity-85',
-  /** Sole gold title-row pill (拼桌 / 转桌 · 人头). */
+  /** Sole gold title-row pill (拼桌 / 转桌 · vertical A/C) — one circle, stacked lines. */
   cardBadge:
-    'shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium text-brand-gold border border-brand-gold/50',
+    'inline-flex shrink-0 flex-col items-center justify-center gap-0 rounded-full px-1.5 py-0.5 text-center text-[0.65rem] font-medium leading-tight text-brand-gold border border-brand-gold/50',
   cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
   /**
    * Sole floor-card amount face — body stack + brand ink (not .mesa-money).

@@ -13,6 +13,7 @@ import {
   type BillSplitOrderLine,
 } from '@/lib/bill-split-by-item-lines';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
+import type { PrintLocale } from '@/lib/i18n';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import type { BillSplit, Order } from '@/types';
 
@@ -47,6 +48,7 @@ export function buildSplitPersonShareLines(
   split: BillSplit,
   personIndex: number,
   orders: Order[],
+  printLocale: PrintLocale,
 ): SplitPersonShareLine[] {
   if (split.split_mode !== 'by_item') return [];
 
@@ -86,7 +88,7 @@ export function buildSplitPersonShareLines(
 
     lines.push({
       key,
-      receiptLabel: orderItemReceiptLineLabel(catalogLine),
+      receiptLabel: orderItemReceiptLineLabel(catalogLine, printLocale),
       quantityLabel,
       shareAmount,
     });
@@ -106,7 +108,8 @@ export function buildCheckoutPersonShareLines(
     checkoutLinesFromOrders(orders, itemCodeByMenuId).map((line) => [line.key, line.label]),
   );
 
-  return buildSplitPersonShareLines(split, personIndex, orders).map((row) => ({
+  // Screen labels prefer checkoutLinesFromOrders; receiptLabel is rare fallback (pt).
+  return buildSplitPersonShareLines(split, personIndex, orders, 'pt').map((row) => ({
     key: row.key,
     label: staffLabelByKey.get(row.key) ?? row.receiptLabel,
     quantityLabel: row.quantityLabel,

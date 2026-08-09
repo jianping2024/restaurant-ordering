@@ -8,13 +8,16 @@ import (
 type testPrintRequest struct {
 	StationID string `json:"station_id"`
 	Printer   string `json:"printer,omitempty"`
+	// Locale: slip language zh|en|pt — independent of tray ui_locale.
+	Locale string `json:"locale,omitempty"`
 }
 
-func runTestPrintForStation(cfg *config, stationID, printerOverride string) error {
+func runTestPrintForStation(cfg *config, stationID, printerOverride, printLocale string) error {
 	if cfg == nil {
 		return uiError("zh", "err_not_loaded")
 	}
-	loc := cfg.uiLocale()
+	uiLoc := cfg.uiLocale()
+	slipLoc := normalizePrintLocale(printLocale)
 	stationID = strings.TrimSpace(stationID)
 	printerOverride = strings.TrimSpace(printerOverride)
 
@@ -28,7 +31,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 		stationID, rawAddr = cfg.firstMappedStation()
 	}
 	if rawAddr == "" {
-		return uiError(loc, "err_save_mapping_first")
+		return uiError(uiLoc, "err_save_mapping_first")
 	}
 
 	target, err := parsePrinterTarget(rawAddr)
@@ -49,7 +52,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 
 	payload := jobPayload{
 		ConnectionTest: true,
-		Locale:         loc,
+		Locale:         slipLoc,
 		RestaurantName: venue,
 	}
 	raw, err := json.Marshal(payload)
@@ -59,7 +62,7 @@ func runTestPrintForStation(cfg *config, stationID, printerOverride string) erro
 	job := printJob{Type: "order_receipt", Payload: raw}
 	data := escposFromJob(job)
 	if err := printToTarget(target, data); err != nil {
-		return uiError(loc, "err_print_failed", target.Display, err)
+		return uiError(uiLoc, "err_print_failed", target.Display, err)
 	}
 	return nil
 }

@@ -79,6 +79,12 @@
         <p class="section-title" id="testOptionalTitle">…</p>
         <label for="testStation" id="testStationLabel">…</label>
         <select id="testStation"></select>
+        <label for="testPrintLocale" id="testPrintLocaleLabel">…</label>
+        <select id="testPrintLocale">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+          <option value="pt">Português</option>
+        </select>
         <button type="button" id="testPrintBtn" class="secondary">…</button>
         <p class="err" id="testErr"></p>
         <p class="ok-msg" id="testSent"></p>
@@ -245,6 +251,7 @@
         document.getElementById('stateRetryBtn').textContent = t('state_retry');
         document.getElementById('testOptionalTitle').textContent = t('configure_test_optional');
         document.getElementById('testStationLabel').textContent = t('test_station_label');
+        document.getElementById('testPrintLocaleLabel').textContent = t('test_print_locale_label');
         document.getElementById('testPrintBtn').textContent = t('test_print_btn');
         document.getElementById('doneBtn').textContent = t('done_btn');
         document.title = t('configure_page_title');
@@ -860,10 +867,11 @@
           testErr.textContent = t('save_need_mapping');
           return;
         }
+        var slipLocale = document.getElementById('testPrintLocale').value || 'pt';
         fetch('/api/test-print', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ station_id: sid, printer: printer })
+          body: JSON.stringify({ station_id: sid, printer: printer, locale: slipLocale })
         })
           .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
           .then(function (res) {

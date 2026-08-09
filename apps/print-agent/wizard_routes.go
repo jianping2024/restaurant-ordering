@@ -241,7 +241,7 @@ func registerPrinterWizardRoutes(mux *http.ServeMux, configPath string, cfg **co
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": "无效的请求"})
 			return
 		}
-		if err := runTestPrintForStation(c, body.StationID, body.Printer); err != nil {
+		if err := runTestPrintForStation(c, body.StationID, body.Printer, body.Locale); err != nil {
 			writePairJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}

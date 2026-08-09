@@ -7,6 +7,7 @@ import { billableLineAmount, buildBillableSessionItems } from '@/lib/billable-se
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
+import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
@@ -63,11 +64,15 @@ function buffetReceiptShareQtyLabel(item: OrderItem): string | undefined {
   return label || undefined;
 }
 
-function receiptLineFromOrderItem(item: OrderItem, itemIndex: number): OrderReceiptJobPayload['lines'][number] {
+function receiptLineFromOrderItem(
+  item: OrderItem,
+  itemIndex: number,
+  locale: PrintLocale,
+): OrderReceiptJobPayload['lines'][number] {
   const share_qty_label = buffetReceiptShareQtyLabel(item);
   return {
     item_index: itemIndex,
-    display_name: orderItemReceiptLineLabel(item),
+    display_name: orderItemReceiptLineLabel(item, locale),
     qty: item.qty,
     unit_price: item.price,
     ...(share_qty_label ? { share_qty_label } : {}),
@@ -79,6 +84,7 @@ export { billableMenuItemMergeKey as receiptMenuItemMergeKey } from '@/lib/billa
 
 export function buildReceiptLinesFromOrders(
   orders: Order[],
+  locale: PrintLocale = 'pt',
 ): OrderReceiptJobPayload['lines'] {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
@@ -93,6 +99,7 @@ export function buildReceiptLinesFromOrders(
       receiptLineFromOrderItem(
         unitPrice === row.item.price ? row.item : { ...row.item, price: unitPrice },
         itemIndex,
+        locale,
       ),
     );
   }
@@ -105,8 +112,9 @@ export function buildSplitPersonReceiptLines(
   split: BillSplit,
   personIndex: number,
   orders: Order[],
+  locale: PrintLocale = 'pt',
 ): OrderReceiptJobPayload['lines'] {
-  return buildSplitPersonShareLines(split, personIndex, orders).map((row, index) => ({
+  return buildSplitPersonShareLines(split, personIndex, orders, locale).map((row, index) => ({
     item_index: index + 1,
     display_name: row.receiptLabel,
     qty: 1,
@@ -257,7 +265,7 @@ export async function enqueueReceiptPrint(
     return { ok: true, skipped: true };
   }
 
-  const locale = (printLocale || 'pt') as 'zh' | 'en' | 'pt';
+  const locale = normalizePrintLocale(printLocale);
   const jobType: PrintJobType = variant === 'pre_bill' ? 'pre_bill' : 'order_receipt';
 
   const idempotencyKey =
@@ -309,7 +317,7 @@ export async function enqueueReceiptPrint(
 
   const orderRows = orders as Order[];
 
-  let lines = buildReceiptLinesFromOrders(orderRows);
+  let lines = buildReceiptLinesFromOrders(orderRows, locale);
   let amountDue = lines.reduce((sum, ln) => sum + ln.unit_price * ln.qty, 0);
 
   if (variant === 'split_payment') {
@@ -319,7 +327,7 @@ export async function enqueueReceiptPrint(
     if (!billSplit) {
       return { ok: false, status: 404, code: 'bill_split_not_found' };
     }
-    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows);
+    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows, locale);
     const rowAmount = Number(billSplit.result?.[personIndex]?.amount ?? personAmount ?? 0);
     amountDue = rowAmount;
   }

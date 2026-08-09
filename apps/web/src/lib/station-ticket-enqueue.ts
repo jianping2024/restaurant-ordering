@@ -4,9 +4,10 @@ import { isBuffetBaseItem, orderItemBatchKey } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
-  orderItemBaseName,
+  menuLocalizedName,
   orderItemStationSlipLabel,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
@@ -34,10 +35,13 @@ export type StationRow = {
   kitchen_enabled?: boolean;
 };
 
-export function stationLabelForLocale(st: StationRow, locale: 'zh' | 'en' | 'pt'): string {
-  if (locale === 'zh') return (st.name_zh || st.name_en || st.name_pt || '').trim() || st.name_pt;
-  if (locale === 'en') return (st.name_en || st.name_pt || st.name_zh || '').trim() || st.name_pt;
-  return (st.name_pt || st.name_en || st.name_zh || '').trim() || st.name_pt;
+export function stationLabelForLocale(st: StationRow, locale: PrintLocale): string {
+  return (
+    menuLocalizedName(
+      { name_pt: st.name_pt, name_en: st.name_en, name_zh: st.name_zh },
+      locale,
+    ) || st.name_pt
+  );
 }
 
 export type StationTicketJobPayload = {
@@ -182,7 +186,7 @@ export async function enqueueStationTicketsForOrder(params: {
 > {
   const { admin, restaurant, orderId, batchId } = params;
   const restaurantId = restaurant.id;
-  const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
+  const locale = normalizePrintLocale(restaurant.print_locale);
 
   let printAgentConfig: unknown;
   try {
@@ -419,8 +423,8 @@ export async function enqueueStationTicketsForOrder(params: {
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {
         const group = categoryGroupForMenuItem(l.item.id);
-        const itemName = orderItemBaseName(l.item);
-        const slipLabel = orderItemStationSlipLabel(l.item);
+        const itemName = menuLocalizedName(l.item, locale);
+        const slipLabel = orderItemStationSlipLabel(l.item, locale);
         return {
           item_index: l.idx,
           menu_item_id: l.item.id,

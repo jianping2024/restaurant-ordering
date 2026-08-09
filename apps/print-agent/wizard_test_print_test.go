@@ -1,27 +1,32 @@
 package main
 
-import (
-	"strings"
-	"testing"
-)
+import "testing"
 
 func TestRunTestPrintForStationNeedsMapping(t *testing.T) {
-	err := runTestPrintForStation(&config{StationPrinters: map[string]string{}}, "", "")
+	err := runTestPrintForStation(&config{StationPrinters: map[string]string{}}, "", "", "zh")
 	if err == nil {
-		t.Fatal("expected error")
+		t.Fatal("expected mapping error")
 	}
 }
 
 func TestRunTestPrintForStationPicksFirstMapped(t *testing.T) {
 	cfg := &config{
-		StationPrinters: map[string]string{"s1": "tcp:127.0.0.1:1"},
-		APIBase:         "https://demo.example.com",
+		StationPrinters: map[string]string{
+			"st-1": "tcp://127.0.0.1:9100",
+		},
 	}
-	err := runTestPrintForStation(cfg, "", "")
+	// Will fail at printToTarget (no printer), but must get past mapping / locale normalize.
+	err := runTestPrintForStation(cfg, "", "", "en")
 	if err == nil {
-		t.Fatal("expected print error to unreachable printer")
+		t.Fatal("expected print failure without live printer")
 	}
-	if !strings.Contains(err.Error(), "打印失败") {
-		t.Logf("got: %v", err)
+}
+
+func TestNormalizePrintLocaleForTestSlip(t *testing.T) {
+	if got := normalizePrintLocale("zh"); got != "zh" {
+		t.Fatalf("got %q", got)
+	}
+	if got := normalizePrintLocale(""); got != "pt" {
+		t.Fatalf("empty should default pt, got %q", got)
 	}
 }

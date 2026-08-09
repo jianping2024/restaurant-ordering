@@ -1,3 +1,4 @@
+import type { PrintLocale } from '@/lib/i18n';
 import type { OrderItem } from '@/types';
 
 export type MenuCategoryForPrint = {
@@ -20,11 +21,32 @@ export type MenuItemForPrint = {
   item_code?: string | null;
 };
 
+type LocalizedMenuNames = {
+  name_pt?: string | null;
+  name_en?: string | null;
+  name_zh?: string | null;
+  /** Legacy alias often equal to name_pt on order lines. */
+  name?: string | null;
+};
+
 /** Trim and cap menu/category code for storage and print. */
 export function normalizeMenuItemCode(raw: string | null | undefined): string | null {
   const s = (raw ?? '').trim();
   if (!s) return null;
   return s.slice(0, 10);
+}
+
+/**
+ * Sole picker for printable dish/category titles from trilingual menu fields.
+ * Fallback: requested locale → other locales (never prefer pt when print_locale is zh/en).
+ */
+export function menuLocalizedName(names: LocalizedMenuNames, locale: PrintLocale): string {
+  const pt = (names.name_pt || names.name || '').trim();
+  const en = (names.name_en || '').trim();
+  const zh = (names.name_zh || '').trim();
+  if (locale === 'zh') return zh || en || pt;
+  if (locale === 'en') return en || pt || zh;
+  return pt || en || zh;
 }
 
 /** Root → leaf category codes (non-empty only). */
@@ -66,18 +88,12 @@ export function formatMenuPrintDisplayName(params: {
   return `${segments.join('-')}-${name}`;
 }
 
-export function orderItemBaseName(
-  item: Pick<OrderItem, 'name_pt' | 'name' | 'name_en' | 'name_zh'>,
-): string {
-  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-}
-
 /** Bill / receipt thermal line: same as station slip (`001-Água`); buffet name only. */
-export function orderItemReceiptLineLabel(item: OrderItem): string {
+export function orderItemReceiptLineLabel(item: OrderItem, locale: PrintLocale): string {
   if (item.kind === 'buffet_base') {
-    return orderItemBaseName(item);
+    return menuLocalizedName(item, locale);
   }
-  return orderItemStationSlipLabel(item);
+  return orderItemStationSlipLabel(item, locale);
 }
 
 /** Station slip item line: `{itemCode}-{name}` only (no category path). */
@@ -94,10 +110,11 @@ export function formatStationSlipItemLabel(params: {
 
 export function orderItemStationSlipLabel(
   item: Pick<OrderItem, 'item_code' | 'name_pt' | 'name' | 'name_en' | 'name_zh'>,
+  locale: PrintLocale,
 ): string {
   return formatStationSlipItemLabel({
     itemCode: item.item_code ?? null,
-    itemName: orderItemBaseName(item),
+    itemName: menuLocalizedName(item, locale),
   });
 }
 
@@ -121,32 +138,13 @@ export function topLevelCategoryId(
   return topId;
 }
 
-/** `(Bebidas/ Drinks2)` — bilingual names with optional top-level category code suffix. */
+/** `(Drinks)` / `(饮料2)` — single name for ticket locale + optional category code. */
 export function formatTopCategoryTicketHeader(
   cat: Pick<MenuCategoryForStationTicket, 'item_code' | 'name_pt' | 'name_en' | 'name_zh'>,
-  locale: 'zh' | 'en' | 'pt',
+  locale: PrintLocale,
 ): string {
   const code = normalizeMenuItemCode(cat.item_code);
-  const pt = (cat.name_pt || '').trim();
-  const en = (cat.name_en || '').trim();
-
-  let primary = pt || en;
-  let secondary = en;
-  if (locale === 'en') {
-    primary = en || pt;
-    secondary = pt;
-  } else {
-    primary = pt || en;
-    secondary = en;
-  }
-  if (!secondary || secondary === primary) {
-    secondary = '';
-  }
-
-  let inner = primary;
-  if (secondary) {
-    inner = `${primary}/ ${secondary}`;
-  }
+  let inner = menuLocalizedName(cat, locale);
   if (code) {
     inner = `${inner}${code}`;
   }

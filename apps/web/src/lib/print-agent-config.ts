@@ -260,7 +260,7 @@ export function applyPrintAgentCloudConfigPatch(
   return normalizePrintAgentCloudConfig(raw);
 }
 
-/** Guest-order / station slip: print `(Bebidas/ Drinks2)` group headers between item blocks. */
+/** Guest-order / station slip: print `(Drinks2)` / `(饮料2)` group headers (print_locale) between item blocks. */
 export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
   return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
 }

@@ -2,6 +2,17 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.67
+
+**配对/设置页：试打可选中英葡**
+
+- configure / setup 试打增加「试打语言」三选一（zh / en / pt），与托盘界面语言无关。
+- `/api/test-print` 接受 `locale`，纸面标签与编码路径跟所选语言走。
+
+**修复：中文位图试打空白**
+
+- Windows GDI 渲染改为先清白再 `TextOutW` 再采样；画完后不再整帧刷白（此前会打出空白光栅）。
+
 ## 0.3.66
 
 **隐藏托盘卸载入口**

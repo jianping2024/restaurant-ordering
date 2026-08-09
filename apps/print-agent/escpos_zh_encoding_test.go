@@ -29,6 +29,36 @@ func TestBuildConnectionTestZHUsesBitmapByDefault(t *testing.T) {
 	if !bytes.Contains(raw, venue) {
 		t.Fatal("expected venue line")
 	}
+	if rasterInkBits(raw) == 0 {
+		t.Fatal("Chinese connection-test raster must have ink (blank wipe regression)")
+	}
+}
+
+func rasterInkBits(escpos []byte) int {
+	const marker = "\x1d\x76\x30\x00"
+	ink := 0
+	for {
+		i := bytes.Index(escpos, []byte(marker))
+		if i < 0 || i+8 > len(escpos) {
+			break
+		}
+		wb := int(escpos[i+4]) | int(escpos[i+5])<<8
+		h := int(escpos[i+6]) | int(escpos[i+7])<<8
+		start := i + 8
+		end := start + wb*h
+		if wb <= 0 || h <= 0 || end > len(escpos) {
+			break
+		}
+		for _, b := range escpos[start:end] {
+			for bit := 0; bit < 8; bit++ {
+				if b&(0x80>>uint(bit)) != 0 {
+					ink++
+				}
+			}
+		}
+		escpos = escpos[end:]
+	}
+	return ink
 }
 
 func TestBuildConnectionTestZHUsesUTF8WhenConfigured(t *testing.T) {

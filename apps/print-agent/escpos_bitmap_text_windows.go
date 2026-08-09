@@ -7,11 +7,6 @@ import (
 	"unsafe"
 )
 
-const (
-	bitmapTextBaseFontPx = 24
-	bitmapTextMaxWidthPx = 384
-)
-
 type gdiSize struct{ CX, CY int32 }
 type gdiBitmapInfoHeader struct {
 	Size          uint32
@@ -47,6 +42,9 @@ var (
 	procTextOutW           = gdi32.NewProc("TextOutW")
 )
 
+// renderBitmapText draws s at the sole Han size (bitmapTextBaseFontPx). Caller must
+// wrap to bitmapMaxDisplayCols; this function does not truncateDisplay. DoubleH/DoubleW
+// do not change font size (ESC/POS GS ! remains separate for Latin).
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
@@ -58,9 +56,6 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	defer procDeleteDC.Call(dc)
 
 	fontPx := bitmapTextBaseFontPx
-	if style.DoubleH || style.DoubleW {
-		fontPx = bitmapTextBaseFontPx * 2
-	}
 	weight := uintptr(400)
 	if style.Bold {
 		weight = 700
@@ -111,7 +106,6 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 
 	raw := unsafe.Slice((*byte)(bits), stride*height)
 	// DIB starts uninitialized — clear to white *before* TextOutW.
-	// Never wipe after draw (that erased Chinese glyphs → blank slips).
 	for i := range raw {
 		raw[i] = 0xff
 	}

@@ -24,6 +24,12 @@ type bitmapTextImage struct {
 	Pixels []byte
 }
 
+// Sole Han TrueType size for station/menu bitmaps (not doubled by DoubleH/DoubleW).
+const (
+	bitmapTextBaseFontPx = 24
+	bitmapTextMaxWidthPx = 384
+)
+
 func textModeForConfiguredChinese(needChinese bool) escposTextMode {
 	if !needChinese {
 		return escposTextLatin
@@ -44,8 +50,27 @@ func needsBitmapText(s string) bool {
 	return hasHan(s)
 }
 
+// escposBitmapText renders s as one or more GS v 0 rasters. Over-wide strings are
+// wrapDisplay'd (never truncateDisplay) so every rune is emitted.
 func escposBitmapText(s string, style bitmapTextStyle) []byte {
-	img := renderBitmapText(strings.TrimRight(s, "\r\n"), style)
+	s = strings.TrimRight(s, "\r\n")
+	if s == "" {
+		return nil
+	}
+	maxCols := bitmapMaxDisplayCols()
+	chunks := wrapDisplay(s, maxCols)
+	if len(chunks) == 0 {
+		return nil
+	}
+	var out []byte
+	for _, chunk := range chunks {
+		out = append(out, escposBitmapTextOne(chunk, style)...)
+	}
+	return out
+}
+
+func escposBitmapTextOne(s string, style bitmapTextStyle) []byte {
+	img := renderBitmapText(s, style)
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return encodeWindows1252(s)
 	}

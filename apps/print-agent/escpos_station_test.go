@@ -165,14 +165,14 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	}
 }
 
-func TestWrapRunes(t *testing.T) {
-	if got := wrapRunes("", 10); got != nil {
+func TestWrapDisplay(t *testing.T) {
+	if got := wrapDisplay("", 10); got != nil {
 		t.Fatalf("empty want nil, got %v", got)
 	}
-	if got := wrapRunes("ab", 0); got != nil {
+	if got := wrapDisplay("ab", 0); got != nil {
 		t.Fatalf("max<=0 want nil, got %v", got)
 	}
-	got := wrapRunes("abcdefghij", 4)
+	got := wrapDisplay("abcdefghij", 4)
 	want := []string{"abcd", "efgh", "ij"}
 	if len(got) != len(want) {
 		t.Fatalf("len got %v want %v", got, want)
@@ -180,6 +180,16 @@ func TestWrapRunes(t *testing.T) {
 	for i := range want {
 		if got[i] != want[i] {
 			t.Fatalf("got %v want %v", got, want)
+		}
+	}
+	// Han = 2 cols
+	han := wrapDisplay("测试测试测试", 4)
+	if len(han) < 2 {
+		t.Fatalf("Han wrap want >=2 chunks, got %v", han)
+	}
+	for _, c := range han {
+		if displayWidth(c) > 4 {
+			t.Fatalf("chunk %q wider than 4 cols", c)
 		}
 	}
 }
@@ -196,7 +206,7 @@ func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 	note := "2 pacotes de acucar 1 pacote de leite em po sem canela e bem quente por favor"
 	full := escposItemNotePrefix + note
 	maxW := stationSlipNoteMaxWidth(escposWidth)
-	chunks := wrapRunes(full, maxW)
+	chunks := wrapDisplay(full, maxW)
 	if len(chunks) < 2 {
 		t.Fatal("fixture note too short to exercise wrap")
 	}
@@ -228,6 +238,31 @@ func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 		if runes[qtyStart+i] != c {
 			t.Fatalf("qty column disturbed: got %q", itemLine)
 		}
+	}
+}
+
+func TestStationTicketLongZhNameWrapsNoEllipsis(t *testing.T) {
+	longName := "超长中文菜名测试一二三四五六七八九十甲乙丙丁戊己庚辛"
+	payload, _ := json.Marshal(jobPayload{
+		Locale:           "zh",
+		TableDisplayName: "A-01",
+		Lines: []jobLine{{
+			ItemCode:    "001",
+			ItemName:    longName,
+			DisplayName: "001-" + longName,
+			Qty:         1,
+			Note:        "我要冰的备注要打全",
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	if bytes.Contains(raw, []byte("…")) {
+		t.Fatal("zh station slip must not ellipsis-truncate menu or note")
+	}
+	if !bytes.Contains(raw, []byte{0x1D, 0x76, 0x30, 0x00}) {
+		t.Fatal("expected GS v 0 for zh menu")
+	}
+	if bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00}) < 2 {
+		t.Fatal("long zh name+note should emit multiple bitmaps")
 	}
 }
 

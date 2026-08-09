@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import type { Order } from '@/types';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
 import { fetchWaiterBoardClient } from '@/lib/staff-board-client';
+import { classifyStaffBoardFetchFailure } from '@/lib/staff-board-fetch-failure';
 import type { WaiterBoardData } from '@/lib/staff-board';
 import {
   applyWaiterBoardLivePatch,
@@ -43,7 +44,6 @@ import {
   type WaiterSessionRelocationBoardInput,
 } from '@/lib/waiter-session-relocation-board';
 import {
-  classifyWaiterBoardFetchFailure,
   initialWaiterBoardSurface,
   surfaceAfterRefreshFailure,
   surfaceAfterRefreshSuccess,
@@ -279,7 +279,7 @@ export function useWaiterOrders(
             } catch (err) {
               if (seq !== reloadSeqRef.current || !canApply()) continue;
 
-              const kind = classifyWaiterBoardFetchFailure(err);
+              const kind = classifyStaffBoardFetchFailure(err);
               console.error('[waiter-board] refresh failed', kind, err);
 
               const next = surfaceAfterRefreshFailure(boardSurfaceRef.current, kind);

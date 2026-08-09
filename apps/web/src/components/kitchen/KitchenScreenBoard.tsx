@@ -9,6 +9,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { StaffAuthenticatedShell, type StaffShellContext } from '@/components/staff/StaffAuthenticatedShell';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { fetchKitchenBoardClient } from '@/lib/staff-board-client';
+import { classifyStaffBoardFetchFailure } from '@/lib/staff-board-fetch-failure';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { playCheckoutRequestChime } from '@/lib/checkout-notification-sound';
@@ -161,16 +162,23 @@ function KitchenScreenBoardInner({
 
   const refreshKitchenBoard = useCallback(async () => {
     if (isDemo) return;
-    const board = await fetchKitchenBoardClient(restaurant.slug);
-    board.orders.forEach((o) => {
-      if (!prevOrderIds.current.has(o.id)) {
-        playCheckoutRequestChime();
-        prevOrderIds.current.add(o.id);
-      }
-    });
-    setOrders(board.orders);
-    setReadyAfterMinutes(board.kitchen_ready_after_minutes);
-  }, [isDemo, restaurant.slug]);
+    try {
+      const board = await fetchKitchenBoardClient(restaurant.slug);
+      board.orders.forEach((o) => {
+        if (!prevOrderIds.current.has(o.id)) {
+          playCheckoutRequestChime();
+          prevOrderIds.current.add(o.id);
+        }
+      });
+      setOrders(board.orders);
+      setReadyAfterMinutes(board.kitchen_ready_after_minutes);
+    } catch (err) {
+      // Entry reconcile + Realtime call this via void — never throw (stale-while-revalidate).
+      const kind = classifyStaffBoardFetchFailure(err);
+      console.error('[kitchen-screen] board refresh failed', kind, err);
+      if (kind === 'unauthorized') void handleSignOut();
+    }
+  }, [handleSignOut, isDemo, restaurant.slug]);
 
   useRestaurantStaffEntryReconcile(
     !isDemo,

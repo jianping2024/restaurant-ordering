@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  classifyWaiterBoardFetchFailure,
   initialWaiterBoardSurface,
   surfaceAfterRefreshFailure,
   surfaceAfterRefreshSuccess,
@@ -25,14 +24,6 @@ describe('waiter-board-surface', () => {
     assert.equal(surfaceAfterRefreshSuccess('full', 'failed'), 'ready');
     assert.equal(surfaceAfterRefreshSuccess('live', 'loading'), 'loading');
     assert.equal(surfaceAfterRefreshSuccess('live', 'ready'), 'ready');
-  });
-
-  it('maps only HTTP 401 as unauthorized; everything else as failed', () => {
-    assert.equal(classifyWaiterBoardFetchFailure({ status: 401 }), 'unauthorized');
-    assert.equal(classifyWaiterBoardFetchFailure({ status: 403 }), 'failed');
-    assert.equal(classifyWaiterBoardFetchFailure({ status: 500 }), 'failed');
-    assert.equal(classifyWaiterBoardFetchFailure({ status: 429 }), 'failed');
-    assert.equal(classifyWaiterBoardFetchFailure(new Error('network')), 'failed');
   });
 
   it('keeps ready on soft sync failure; cold path fails', () => {

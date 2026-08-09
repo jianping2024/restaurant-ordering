@@ -1,3 +1,4 @@
+import type { StaffBoardFetchFailureKind } from '@/lib/staff-board-fetch-failure';
 import type { WaiterBoardFetchScope } from '@/lib/waiter-board-live';
 
 /**
@@ -5,8 +6,6 @@ import type { WaiterBoardFetchScope } from '@/lib/waiter-board-live';
  * Do not pair a separate ready-flag + error — that allows illegal combos.
  */
 export type WaiterBoardSurface = 'loading' | 'failed' | 'ready';
-
-export type WaiterBoardFetchFailureKind = 'unauthorized' | 'failed';
 
 export function initialWaiterBoardSurface(hasFloorStatic: boolean): WaiterBoardSurface {
   return hasFloorStatic ? 'ready' : 'loading';
@@ -25,20 +24,10 @@ export function surfaceAfterRefreshSuccess(
   return current;
 }
 
-/** Only HTTP 401 is session-exit; 403/429/5xx/network stay retryable failed. */
-export function classifyWaiterBoardFetchFailure(err: unknown): WaiterBoardFetchFailureKind {
-  const status =
-    typeof err === 'object' && err !== null && 'status' in err
-      ? Number((err as { status?: unknown }).status)
-      : NaN;
-  if (status === 401) return 'unauthorized';
-  return 'failed';
-}
-
 /** Ready stays ready (stale-while-revalidate); cold path becomes failed. */
 export function surfaceAfterRefreshFailure(
   current: WaiterBoardSurface,
-  kind: WaiterBoardFetchFailureKind,
+  kind: StaffBoardFetchFailureKind,
 ): WaiterBoardSurface | 'auth-exit' {
   if (kind === 'unauthorized') return 'auth-exit';
   return current === 'ready' ? current : 'failed';

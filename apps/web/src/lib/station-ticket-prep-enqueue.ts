@@ -5,9 +5,10 @@ import { isBuffetBaseItem } from '@/lib/order-items';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
+import { normalizePrintLocale } from '@/lib/i18n';
 import {
   formatTopCategoryTicketHeader,
-  orderItemBaseName,
+  menuLocalizedName,
   orderItemStationSlipLabel,
   topLevelCategoryId,
   type MenuCategoryForStationTicket,
@@ -68,7 +69,7 @@ export async function enqueueStationTicketsForPrepSelection(params: {
 > {
   const { admin, restaurant, selections } = params;
   const restaurantId = restaurant.id;
-  const locale = (restaurant.print_locale || 'pt') as 'zh' | 'en' | 'pt';
+  const locale = normalizePrintLocale(restaurant.print_locale);
   const printStationId = parseTableIdParam(params.printStationId);
   if (!printStationId) {
     return { ok: false, status: 400, code: 'invalid_print_station_id' };
@@ -269,8 +270,8 @@ export async function enqueueStationTicketsForPrepSelection(params: {
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: tableLines.map((l: PrepLine) => {
         const group = categoryGroupForMenuItem(l.item.id);
-        const itemName = orderItemBaseName(l.item);
-        const slipLabel = orderItemStationSlipLabel(l.item);
+        const itemName = menuLocalizedName(l.item, locale);
+        const slipLabel = orderItemStationSlipLabel(l.item, locale);
         return {
           item_index: l.itemIndex,
           menu_item_id: l.item.id,

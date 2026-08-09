@@ -3,7 +3,7 @@
   'use strict';
 
   var DEFAULT_TEST_BLOCK_IDS = [
-    'testStationLabel', 'testStation', 'testPrintBtn', 'testErr', 'testSent',
+    'testStationLabel', 'testStation', 'testPrintLocaleLabel', 'testPrintLocale', 'testPrintBtn', 'testErr', 'testSent',
     'testConfirmBlock', 'testDone',
   ];
 

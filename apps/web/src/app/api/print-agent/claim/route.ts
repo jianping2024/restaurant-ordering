@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { PRINT_AGENT_CONNECTION_TEST_ORDER_ID } from '@/lib/print-agent-constants';
+import {
+  PRINT_AGENT_CONNECTION_TEST_ORDER_ID,
+  printAgentConnectionTestLine,
+} from '@/lib/print-agent-constants';
 import { signPrintAgentJwt } from '@/lib/print-agent-jwt';
 import {
   claimRateLimitCheck,
@@ -19,6 +22,7 @@ import {
   resolvePrintAgentCredentialTtlSec,
   PRINT_AGENT_NAME,
 } from '@mesa/shared';
+import { normalizePrintLocale } from '@/lib/i18n';
 import { resolvePrintAgentClaimSupabaseUrl } from '@/lib/supabase/url';
 
 export const runtime = 'nodejs';
@@ -118,7 +122,7 @@ export async function POST(req: Request) {
     .eq('id', p.restaurant_id)
     .single();
 
-  const locale = (restRow?.print_locale as 'zh' | 'en' | 'pt' | undefined) ?? 'pt';
+  const locale = normalizePrintLocale(restRow?.print_locale);
   const restaurantSlug = typeof restRow?.slug === 'string' ? restRow.slug : '';
   const credentialTtlSec = resolvePrintAgentCredentialTtlSec(restRow?.print_agent_config);
   const validUntil = new Date(Date.now() + credentialTtlSec * 1000).toISOString();
@@ -152,7 +156,7 @@ export async function POST(req: Request) {
       order_id: PRINT_AGENT_CONNECTION_TEST_ORDER_ID,
       locale,
       connection_test: true,
-      lines: [{ display_name: `${PRINT_AGENT_NAME} — connection test`, qty: 1 }],
+      lines: [{ display_name: printAgentConnectionTestLine(PRINT_AGENT_NAME, locale), qty: 1 }],
     },
   });
 

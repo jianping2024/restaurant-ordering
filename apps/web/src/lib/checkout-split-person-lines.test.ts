@@ -74,7 +74,7 @@ const orders: Order[] = [
 
 describe('buildSplitPersonShareLines', () => {
   it('returns share qty and amount for by_item person', () => {
-    const lines = buildSplitPersonShareLines(byItemSplit(), 0, orders);
+    const lines = buildSplitPersonShareLines(byItemSplit(), 0, orders, 'pt');
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.key, MENU_KEY);
     assert.equal(lines[0]?.quantityLabel, '1/3');
@@ -90,6 +90,7 @@ describe('buildSplitPersonShareLines', () => {
       }),
       0,
       orders,
+      'pt',
     );
     assert.deepEqual(lines, []);
   });
@@ -173,7 +174,7 @@ describe('limited sushi by_item person shares', () => {
       created_at: '2026-06-22T00:00:00.000Z',
     };
 
-    const lines = buildSplitPersonShareLines(split, 0, limitedSushiOrders);
+    const lines = buildSplitPersonShareLines(split, 0, limitedSushiOrders, 'pt');
     const sushi = lines.find((line) => line.key === LIMITED_KEY);
     assert.ok(sushi);
     assert.equal(sushi?.shareAmount, 9);

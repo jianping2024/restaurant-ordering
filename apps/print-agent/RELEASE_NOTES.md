@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.75
+
+**修复：中文站票 Qty 掉行 / 与菜名粘在续行**
+
+- 站票菜品行只走 `stationSlipItemLine`（按 display 列钉 Qty）；删除 `stationSlipItemBitmapLine` 拼接后再 wrap 的路径。
+- 含汉字时按 `bitmapMaxDisplayCols` 折菜名；数量只在首行右侧，续行仅菜名。
+
 ## 0.3.74
 
 **中文位图字号可配置（功能设置 → payload）**

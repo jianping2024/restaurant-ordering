@@ -107,6 +107,9 @@ func TestStationSlipSkipsCategoryHeaderWhenDisabled(t *testing.T) {
 
 func TestStationSlipItemLineLayout(t *testing.T) {
 	line := stationSlipItemLine("001-Agua 500ml", "3", escposWidth)
+	if displayWidth(line) != escposWidth {
+		t.Fatalf("line display width %d want %d", displayWidth(line), escposWidth)
+	}
 	runes := []rune(line)
 	if runes[stationSlipItemLeftMargin] != '0' {
 		t.Fatalf("expected item label at col %d, got %q", stationSlipItemLeftMargin, runes[stationSlipItemLeftMargin])
@@ -123,6 +126,74 @@ func TestStationSlipItemLineLayout(t *testing.T) {
 			t.Fatalf("expected right margin %d cols", stationSlipSideMargin)
 		}
 	}
+}
+
+// Han item+qty: sole stationSlipItemLine layout at bitmap cols; Qty stays on first display row.
+func TestStationSlipItemLineHanQtyOnFirstBitmapRow(t *testing.T) {
+	fontPx := bitmapTextDefaultFontPx
+	width := bitmapMaxDisplayCols(fontPx)
+	maxLeft := stationSlipItemMaxWidth(width)
+	labels := []string{"002-冰水 500毫升", "003-冰Vitalis 750ml"}
+	for _, label := range labels {
+		chunks := wrapDisplay(label, maxLeft)
+		if len(chunks) == 0 {
+			t.Fatalf("empty wrap for %q", label)
+		}
+		line := stationSlipItemLine(chunks[0], "1", width)
+		if displayWidth(line) != width {
+			t.Fatalf("%q line display width %d want %d (%q)", label, displayWidth(line), width, line)
+		}
+		// Must not re-wrap inside escposBitmapText (that dropped Qty onto the next left-aligned row).
+		wrapped := wrapDisplay(line, width)
+		if len(wrapped) != 1 {
+			t.Fatalf("%q first row re-wrapped into %v", label, wrapped)
+		}
+		qtyField := padFieldCenter("1", stationSlipQtyColWidth)
+		qtyStart := stationSlipQtyColStart(width)
+		prefix := displaySlice(line, 0, qtyStart)
+		gotQty := displaySlice(line, qtyStart, qtyStart+stationSlipQtyColWidth)
+		if strings.Contains(prefix, "1") && !strings.Contains(chunks[0], "1") {
+			t.Fatalf("%q qty leaked into label band: %q", label, prefix)
+		}
+		if gotQty != qtyField {
+			t.Fatalf("%q qty band got %q want %q (line=%q)", label, gotQty, qtyField, line)
+		}
+		for _, cont := range chunks[1:] {
+			contLine := strings.Repeat(" ", stationSlipItemLeftMargin) + cont
+			if displayWidth(contLine) > width {
+				t.Fatalf("continuation wider than canvas: %q", contLine)
+			}
+			if strings.TrimSpace(cont) == "1" {
+				t.Fatalf("qty must not be a continuation chunk for %q", label)
+			}
+		}
+	}
+}
+
+// displaySlice returns the substring covering display columns [start, end).
+func displaySlice(s string, start, end int) string {
+	if end <= start || start < 0 {
+		return ""
+	}
+	var b []rune
+	col := 0
+	for _, r := range s {
+		cw := displayCols(r)
+		next := col + cw
+		if next <= start {
+			col = next
+			continue
+		}
+		if col >= end {
+			break
+		}
+		b = append(b, r)
+		col = next
+		if col >= end {
+			break
+		}
+	}
+	return string(b)
 }
 
 func TestStationSlipColumnHeaderLayout(t *testing.T) {

@@ -1128,7 +1128,6 @@ export const MESSAGES_FR = {
     "transferredIntoSummary": "Transférée vers {table}",
     "transferredIntoInProgress": "Repas cible en cours · {table}",
     "transferredIntoUnknown": "Transférée (cible indisponible)",
-    "operationalSourceOrdersTransferred": "Commandes déplacées vers la table cible",
     "mergeSourcesNavTitle": "Services liés",
     "viewSourceSession": "Voir le service {table}",
     "mergeSourceLine": "{table} · {time}",

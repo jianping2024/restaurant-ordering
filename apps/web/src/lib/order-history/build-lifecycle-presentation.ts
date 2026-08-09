@@ -166,7 +166,7 @@ export function buildOperationalSourceDetailStatus(
   entry: OrderHistoryEntry,
   i18n: OrderHistoryI18n,
 ): string {
-  return `${buildContinuedSessionSummaryLine(entry, i18n)} · ${i18n.operationalSourceOrdersTransferred}`;
+  return buildContinuedSessionSummaryLine(entry, i18n);
 }
 
 export type OrderHistorySurfaceMeta = {

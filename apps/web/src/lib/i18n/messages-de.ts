@@ -1128,7 +1128,6 @@ export const MESSAGES_DE = {
     "transferredIntoSummary": "Umgebucht nach {table}",
     "transferredIntoInProgress": "Zielbesuch läuft · {table}",
     "transferredIntoUnknown": "Umgebucht (Ziel nicht verfügbar)",
-    "operationalSourceOrdersTransferred": "Bestellungen auf den Zieltisch verschoben",
     "mergeSourcesNavTitle": "Verknüpfte Sitzungen",
     "viewSourceSession": "Sitzung {table} ansehen",
     "mergeSourceLine": "{table} · {time}",

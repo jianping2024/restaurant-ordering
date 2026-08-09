@@ -2,6 +2,10 @@
  * Sole middleware session-bypass policy.
  * Matcher negative-lookahead and updateSession early-return both use this module —
  * do not add a second skip list in middleware.ts.
+ *
+ * Restaurant customer + staff APIs authenticate in the route handler (session /
+ * staffSessionForSlug). Skipping Edge getUser here removes a duplicate Auth RTT;
+ * cookie refresh still runs on /dashboard and other non-bypassed navigations.
  */
 
 const SESSION_BYPASS_PREFIXES = [
@@ -14,9 +18,12 @@ const SESSION_BYPASS_PREFIXES = [
 /**
  * Full-pathname regex sources (leading `/`).
  * Matcher alts are derived via {@link pathnameBypassSourceToMatcherAlt} — one list only.
+ *
+ * One pattern for tenant restaurant APIs that own auth in the handler
+ * (`customer` | `staff`). Do not split into parallel customer-only / staff-only lists.
  */
 const SESSION_BYPASS_PATHNAME_REGEX_SOURCES = [
-  '^/api/restaurants/[^/]+/customer(?:/|$)',
+  '^/api/restaurants/[^/]+/(?:customer|staff)(?:/|$)',
 ] as const;
 
 const SESSION_BYPASS_PATHNAME_REGEXES = SESSION_BYPASS_PATHNAME_REGEX_SOURCES.map(

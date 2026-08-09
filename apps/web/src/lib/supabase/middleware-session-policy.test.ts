@@ -15,13 +15,26 @@ describe('shouldBypassMiddlewareSession', () => {
     assert.equal(shouldBypassMiddlewareSession('/api/downloads/print-agent/foo'), true);
   });
 
-  it('bypasses customer public APIs only', () => {
+  it('bypasses restaurant customer and staff APIs that auth in-route', () => {
     assert.equal(
       shouldBypassMiddlewareSession('/api/restaurants/r1/customer/session'),
       true,
     );
     assert.equal(
       shouldBypassMiddlewareSession('/api/restaurants/r1/staff/waiter/board'),
+      true,
+    );
+    assert.equal(
+      shouldBypassMiddlewareSession('/api/restaurants/r1/staff/kitchen/board'),
+      true,
+    );
+    // Checkout / orders still refresh session in middleware (not under customer|staff).
+    assert.equal(
+      shouldBypassMiddlewareSession('/api/restaurants/r1/checkout/requests'),
+      false,
+    );
+    assert.equal(
+      shouldBypassMiddlewareSession('/api/restaurants/r1/orders/append'),
       false,
     );
   });
@@ -33,21 +46,31 @@ describe('shouldBypassMiddlewareSession', () => {
 });
 
 describe('buildMiddlewareMatcher', () => {
-  it('embeds every bypass prefix and derived customer alt', () => {
+  it('embeds every bypass prefix and the sole customer|staff restaurant alt', () => {
     const [matcher] = buildMiddlewareMatcher();
     assert.match(matcher, /api\/print-agent/);
     assert.match(matcher, /api\/cron/);
     assert.match(matcher, /api\/health/);
     assert.match(matcher, /api\/downloads/);
-    assert.match(matcher, /api\/restaurants\/\[\^\/\]\+\/customer/);
+    assert.match(
+      matcher,
+      /api\/restaurants\/\[\^\/\]\+\/\(\?:customer\|staff\)/,
+    );
+    // One representation — not parallel customer-only + staff-only alts.
+    assert.equal(
+      (matcher.match(/api\/restaurants\/\[\^\/\]\+\/\(\?:customer\|staff\)/g) ?? []).length,
+      1,
+    );
   });
 });
 
 describe('pathnameBypassSourceToMatcherAlt', () => {
   it('strips leading slash anchor for matcher capture group', () => {
     assert.equal(
-      pathnameBypassSourceToMatcherAlt('^/api/restaurants/[^/]+/customer(?:/|$)'),
-      'api/restaurants/[^/]+/customer(?:/.*)?',
+      pathnameBypassSourceToMatcherAlt(
+        '^/api/restaurants/[^/]+/(?:customer|staff)(?:/|$)',
+      ),
+      'api/restaurants/[^/]+/(?:customer|staff)(?:/.*)?',
     );
   });
 });

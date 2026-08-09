@@ -35,6 +35,8 @@ Hard phrase gate and short always-on summary: `.cursor/rules/analysis-before-cod
 ### 4. 需要修改的文件/组件
 ### 5. 风险点和验证方式
 
+Under **问题根因**: only state what evidence supports (code path, DB/API row, log, photo/measurement, repro). Split **已证实** vs **未证实/待查**. Do not use 多半/应该是/大概 as a root cause — see `.cursor/rules/evidence-based-conclusions.mdc`.
+
 3. Under heading 3:
    - Prefer robust end-to-end design; reject temporary if/else patches.
    - **End-state shape (1–2 sentences):** after this change, how each owned concept is represented (e.g. “a step is `{ title, body }` in one `steps[]`; guest label is `bill.guest`”). Do not plan “add fields onto a shape that remaps/duplicates.” End-state wins over minimal patch / copy-nearby-layout. Design what remains — no delete/merge inventories.

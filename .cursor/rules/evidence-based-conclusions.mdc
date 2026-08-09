@@ -1,0 +1,26 @@
+---
+description: Conclusions require evidence; no speculative root causes presented as fact
+alwaysApply: true
+---
+
+# Evidence-based conclusions (hard gate)
+
+**禁止算命。** 任何结论（根因、归责、「就是 X」「多半是 Y」）必须有**可核对依据**；没有依据就标成未证实，不要写成事实。
+
+## Required
+
+1. **结论 ↔ 依据成对出现。** 依据可以是：代码路径 + 行号/符号、测试、DB/API 实查结果、日志、实打小票/截图上的可观察事实、用户提供的可复现步骤。
+2. **未查到的数据不要猜。** 例如未查菜单 `name_zh`、未查 `print_jobs.payload`、未复现打印，就不得断言「没填中文名」「备注导致变葡语」等。
+3. **假设必须显式标注。** 用「待证假设」/「未证实」；禁止用「多半」「应该是」「大概」「像是」把猜测扮成结论。
+4. **分析文档结构：** 「已证实」与「未证实 / 待查」分开写；不得混在同一句里当根因。
+5. **纠正优先于圆场。** 被指出信口开河时，先收回无依据结论，再补证据或标明缺口。
+
+## Forbidden
+
+- 用相关当因果（例如「有备注的票是葡语菜名」→「填备注导致变葡语」）而无 payload/代码证明
+- 把「代码里存在某 fallback」直接说成「这次事故就是打到了该 fallback」，除非有本次数据证明走了那条路径
+- 分析/排障回复里用概率话术代替取证
+
+## When evidence is missing
+
+写清要查什么（例如：该 `item_code` 的 `name_zh`、对应 `print_jobs.payload.lines[].item_name`、Agent 版本与 `text_encoding`），停在待查；不要用猜测填洞。

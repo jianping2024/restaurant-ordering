@@ -22,8 +22,9 @@ For non-trivial bugs, behavior changes, or multi-file logic: **do not edit code 
 1. Do **not** edit code, create implementation branches, or run mutating fixes.
 2. Reply with **exact** headings in order:  
    `### 1. 当前业务流程和状态流转` → `### 2. 问题根因` → `### 3. 推荐方案和理由` → `### 4. 需要修改的文件/组件` → `### 5. 风险点和验证方式`
-3. Heading 3 must include **end-state shape** (one–two sentences) + reuse verdict. End-state wins over minimal patch / copy-nearby-layout.
-4. Ask for confirmation before implementing.
+3. Heading 2: **已证实** vs **未证实/待查** only; no 多半/应该是 as root cause (see `evidence-based-conclusions.mdc`).
+4. Heading 3 must include **end-state shape** (one–two sentences) + reuse verdict. End-state wins over minimal patch / copy-nearby-layout.
+5. Ask for confirmation before implementing.
 
 ## After confirmation (summary)
 

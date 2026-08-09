@@ -7,11 +7,6 @@ import (
 	"unsafe"
 )
 
-const (
-	bitmapTextBaseFontPx = 24
-	bitmapTextMaxWidthPx = 384
-)
-
 type gdiSize struct{ CX, CY int32 }
 type gdiBitmapInfoHeader struct {
 	Size          uint32
@@ -39,7 +34,6 @@ var (
 	procCreateFontW        = gdi32.NewProc("CreateFontW")
 	procSelectObject       = gdi32.NewProc("SelectObject")
 	procDeleteObject       = gdi32.NewProc("DeleteObject")
-	procGetTextExtentPoint = gdi32.NewProc("GetTextExtentPoint32W")
 	procCreateDIBSection   = gdi32.NewProc("CreateDIBSection")
 	procSetBkColor         = gdi32.NewProc("SetBkColor")
 	procSetTextColor       = gdi32.NewProc("SetTextColor")
@@ -51,15 +45,28 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
+	cellW, cellH := bitmapCellSize(style)
+	maxCols := bitmapMaxCols(style)
+	if displayWidth(s) > maxCols {
+		s = truncateDisplay(s, maxCols)
+	}
+	cols := displayWidth(s)
+	if cols <= 0 {
+		return bitmapTextImage{}
+	}
+	width := cols * cellW
+	height := cellH
+
 	dc, _, _ := procCreateCompatibleDC.Call(0)
 	if dc == 0 {
 		return bitmapTextImage{}
 	}
 	defer procDeleteDC.Call(dc)
 
-	fontPx := bitmapTextBaseFontPx
-	if style.DoubleH || style.DoubleW {
-		fontPx = bitmapTextBaseFontPx * 2
+	// Font height tracks cell height only (1×2 = taller, not wider square glyphs).
+	fontPx := cellH - 2
+	if fontPx < 12 {
+		fontPx = 12
 	}
 	weight := uintptr(400)
 	if style.Bold {
@@ -76,22 +83,6 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	defer procDeleteObject.Call(font)
 	oldFont, _, _ := procSelectObject.Call(dc, font)
 	defer procSelectObject.Call(dc, oldFont)
-
-	utf16, _ := syscall.UTF16FromString(s)
-	if len(utf16) <= 1 {
-		return bitmapTextImage{}
-	}
-	chars := uintptr(len(utf16) - 1)
-	var size gdiSize
-	procGetTextExtentPoint.Call(dc, uintptr(unsafe.Pointer(&utf16[0])), chars, uintptr(unsafe.Pointer(&size)))
-	width := int(size.CX) + 8
-	height := int(size.CY) + 8
-	if width <= 0 || height <= 0 {
-		return bitmapTextImage{}
-	}
-	if width > bitmapTextMaxWidthPx {
-		width = bitmapTextMaxWidthPx
-	}
 
 	var bits unsafe.Pointer
 	stride := ((width*32 + 31) / 32) * 4
@@ -110,8 +101,6 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	defer procSelectObject.Call(dc, oldBitmap)
 
 	raw := unsafe.Slice((*byte)(bits), stride*height)
-	// DIB starts uninitialized — clear to white *before* TextOutW.
-	// Never wipe after draw (that erased Chinese glyphs → blank slips).
 	for i := range raw {
 		raw[i] = 0xff
 	}
@@ -119,7 +108,18 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	procSetBkColor.Call(dc, 0x00ffffff)
 	procSetTextColor.Call(dc, 0x00000000)
 	procSetBkMode.Call(dc, 2)
-	procTextOutW.Call(dc, 4, 4, uintptr(unsafe.Pointer(&utf16[0])), chars)
+
+	col := 0
+	y := 1
+	for _, r := range s {
+		span := displayCols(r)
+		x := col * cellW
+		utf16, err := syscall.UTF16FromString(string(r))
+		if err == nil && len(utf16) > 1 {
+			procTextOutW.Call(dc, uintptr(x), uintptr(y), uintptr(unsafe.Pointer(&utf16[0])), uintptr(len(utf16)-1))
+		}
+		col += span
+	}
 
 	pixels := make([]byte, width*height)
 	for y := 0; y < height; y++ {

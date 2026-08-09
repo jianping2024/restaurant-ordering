@@ -14,10 +14,10 @@ import (
 const escposWidth = 48
 
 // Station slip menu body column model (Agent-side layout only).
-// Header "Items" aligns with 't' in "Guest"; item rows align with 't' in "Items".
+// Tight side margins leave more columns for CJK item labels + Qty.
 const (
-	stationSlipSideMargin     = 4
-	stationSlipItemLeftMargin = 5
+	stationSlipSideMargin     = 2
+	stationSlipItemLeftMargin = 2
 	stationSlipQtyColWidth    = 8
 )
 
@@ -414,25 +414,25 @@ const (
 )
 
 func padField(s string, width int, alignRight bool) string {
-	r := []rune(truncateRunes(s, width))
-	gap := width - len(r)
+	s = truncateDisplay(s, width)
+	gap := width - displayWidth(s)
 	if gap < 0 {
 		gap = 0
 	}
 	if alignRight {
-		return strings.Repeat(" ", gap) + string(r)
+		return strings.Repeat(" ", gap) + s
 	}
-	return string(r) + strings.Repeat(" ", gap)
+	return s + strings.Repeat(" ", gap)
 }
 
 func padFieldCenter(s string, width int) string {
-	r := []rune(truncateRunes(s, width))
-	gap := width - len(r)
+	s = truncateDisplay(s, width)
+	gap := width - displayWidth(s)
 	if gap <= 0 {
-		return string(r)
+		return s
 	}
 	left := gap / 2
-	return strings.Repeat(" ", left) + string(r) + strings.Repeat(" ", gap-left)
+	return strings.Repeat(" ", left) + s + strings.Repeat(" ", gap-left)
 }
 
 func escposThreeColLine(left, mid, right string) string {
@@ -478,37 +478,32 @@ func stationSlipItemMaxWidth(width int) int {
 	return stationSlipQtyColStart(width) - stationSlipItemLeftMargin
 }
 
-func placeRunesAt(buf []rune, start int, r []rune) {
-	for i, c := range r {
-		pos := start + i
-		if pos >= 0 && pos < len(buf) {
-			buf[pos] = c
-		}
-	}
-}
-
 func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string {
-	items := []rune(truncateRunes(itemsLabel, stationSlipHeaderItemsMaxWidth(width)))
-	qty := []rune(truncateRunes(padFieldCenter(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
-	buf := make([]rune, width)
-	for i := range buf {
-		buf[i] = ' '
-	}
-	placeRunesAt(buf, stationSlipSideMargin, items)
-	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
-	return string(buf)
+	var b strings.Builder
+	col := padDisplayCols(&b, 0, stationSlipSideMargin)
+	items := truncateDisplay(itemsLabel, stationSlipHeaderItemsMaxWidth(width))
+	b.WriteString(items)
+	col += displayWidth(items)
+	col = padDisplayCols(&b, col, stationSlipQtyColStart(width))
+	qty := padFieldCenter(qtyLabel, stationSlipQtyColWidth)
+	b.WriteString(qty)
+	col += displayWidth(qty)
+	padDisplayCols(&b, col, width)
+	return b.String()
 }
 
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
-	left := []rune(truncateRunes(leftLabel, stationSlipItemMaxWidth(width)))
-	qty := []rune(truncateRunes(padFieldCenter(qtyStr, stationSlipQtyColWidth), stationSlipQtyColWidth))
-	buf := make([]rune, width)
-	for i := range buf {
-		buf[i] = ' '
-	}
-	placeRunesAt(buf, stationSlipItemLeftMargin, left)
-	placeRunesAt(buf, stationSlipQtyColStart(width), qty)
-	return string(buf)
+	var b strings.Builder
+	col := padDisplayCols(&b, 0, stationSlipItemLeftMargin)
+	left := truncateDisplay(leftLabel, stationSlipItemMaxWidth(width))
+	b.WriteString(left)
+	col += displayWidth(left)
+	col = padDisplayCols(&b, col, stationSlipQtyColStart(width))
+	qty := padFieldCenter(qtyStr, stationSlipQtyColWidth)
+	b.WriteString(qty)
+	col += displayWidth(qty)
+	padDisplayCols(&b, col, width)
+	return b.String()
 }
 
 func stationSlipItemLabel(ln jobLine) string {
@@ -530,9 +525,9 @@ func stationSlipItemLabel(ln jobLine) string {
 }
 
 func escposPadLine(left, right string, width int) string {
-	left = truncateRunes(left, width-2)
-	right = truncateRunes(right, width-2)
-	gap := width - runeLen(left) - runeLen(right)
+	left = truncateDisplay(left, width-2)
+	right = truncateDisplay(right, width-2)
+	gap := width - displayWidth(left) - displayWidth(right)
 	if gap < 1 {
 		gap = 1
 	}
@@ -647,7 +642,7 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
 	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
-	for _, line := range wrapRunes(escposItemNotePrefix+note, maxW) {
+	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
 		w.text(indent + line)
 		w.lf()
 	}
@@ -663,7 +658,7 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
 		if showGroup && groupHeader != "" && groupHeader != lastGroupHeader {
 			w.align(1)
-			w.text(truncateRunes(groupHeader, escposWidth))
+			w.text(truncateDisplay(groupHeader, escposWidth))
 			w.lf()
 			w.align(0)
 			lastGroupHeader = groupHeader
@@ -690,39 +685,6 @@ func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
 	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
 	w.lf()
-}
-
-func runeLen(s string) int {
-	return len([]rune(s))
-}
-
-func truncateRunes(s string, max int) string {
-	r := []rune(s)
-	if len(r) <= max {
-		return s
-	}
-	if max <= 1 {
-		return "…"
-	}
-	return string(r[:max-1]) + "…"
-}
-
-// wrapRunes splits s into rune chunks of at most max (no ellipsis). max <= 0 yields nil.
-func wrapRunes(s string, max int) []string {
-	if max <= 0 {
-		return nil
-	}
-	r := []rune(s)
-	if len(r) == 0 {
-		return nil
-	}
-	out := make([]string, 0, (len(r)+max-1)/max)
-	for len(r) > max {
-		out = append(out, string(r[:max]))
-		r = r[max:]
-	}
-	out = append(out, string(r))
-	return out
 }
 
 func formatItemLabel(idx int, name string) string {

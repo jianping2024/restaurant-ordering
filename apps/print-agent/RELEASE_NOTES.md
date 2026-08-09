@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.68
+
+**出品联中文位图：列宽格子 + 略缩小字号**
+
+- 票面宽度统一按「显示列」计量（汉字 2 列、拉丁 1 列）；菜名行 Qty 与长备注不再被位图裁掉。
+- 中文位图按 Font A 格子渲染（8×20 / 1×2 为 8×40），不再用加倍 TrueType 方字撑爆宽度；打完用 `ESC J` 按图高走纸。
+- 出品联左右边距收紧（侧边/菜名缩进 2），给中文菜名更多列宽。
+
 ## 0.3.67
 
 **配对/设置页：试打可选中英葡**

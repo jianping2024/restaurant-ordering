@@ -24,6 +24,33 @@ type bitmapTextImage struct {
 	Pixels []byte
 }
 
+// Bitmap cells match Font A pitch on 80mm (48 cols × 8 dots = 384).
+// Cell height 20 (1×1) / 40 (1×2) — slightly under classic 24/48 so CJK reads smaller.
+const (
+	bitmapCellDotsX = 8
+	bitmapCellDotsY = 20
+)
+
+func bitmapCellSize(style bitmapTextStyle) (cellW, cellH int) {
+	cellW = bitmapCellDotsX
+	cellH = bitmapCellDotsY
+	if style.DoubleW {
+		cellW *= 2
+	}
+	if style.DoubleH {
+		cellH *= 2
+	}
+	return cellW, cellH
+}
+
+func bitmapMaxCols(style bitmapTextStyle) int {
+	cellW, _ := bitmapCellSize(style)
+	if cellW <= 0 {
+		return escposWidth
+	}
+	return (escposWidth * bitmapCellDotsX) / cellW
+}
+
 func textModeForConfiguredChinese(needChinese bool) escposTextMode {
 	if !needChinese {
 		return escposTextLatin
@@ -66,6 +93,15 @@ func escposBitmapText(s string, style bitmapTextStyle) []byte {
 		byte(img.Height & 0xff), byte((img.Height >> 8) & 0xff),
 	}
 	out = append(out, data...)
-	out = append(out, '\n')
+	// Feed exactly the raster height (ESC J n). Do not append '\n' — writer.lf()
+	// skips once after bitmap so Latin/CJK line spacing stays one advance.
+	for remain := img.Height; remain > 0; {
+		n := remain
+		if n > 255 {
+			n = 255
+		}
+		out = append(out, 0x1B, 0x4A, byte(n))
+		remain -= n
+	}
 	return out
 }

@@ -14,6 +14,7 @@ alwaysApply: true
 5. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
 6. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
 7. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
+8. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 
 **Skills (read when task matches `description`)**
 

@@ -252,3 +252,14 @@ export function sumBillableSessionTotal(orders: Order[]): number {
     0,
   );
 }
+
+/**
+ * Non-buffet billable total (meal add-ons / drinks / sushi overage).
+ * Same line basis as {@link sumBillableSessionTotal}, excluding `buffet_base`.
+ */
+export function sumBillableNonBuffetTotal(orders: Order[]): number {
+  return buildBillableSessionItems(orders).reduce((sum, row) => {
+    if (isBuffetBaseItem(row.item)) return sum;
+    return sum + billableLineAmount(row);
+  }, 0);
+}

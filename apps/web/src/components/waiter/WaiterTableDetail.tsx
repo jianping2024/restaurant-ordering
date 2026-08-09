@@ -727,6 +727,7 @@ function WaiterTableDetailInner({
   const orderedItemsSessionTotalText = formatWaiterOrderedItemsSessionTotal(
     lang,
     selectedCard.sessionTotal,
+    selectedCard.mealsTotal,
   );
   const orderedItemsPreBillPrint = useMemo(() => {
     const sessionId = sessionMeta?.sessionId ?? null;

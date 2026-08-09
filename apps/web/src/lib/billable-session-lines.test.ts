@@ -8,6 +8,7 @@ import {
   isLimitedBillableRow,
   limitedBillableMergeKey,
   menuItemIdFromLimitedBillableKey,
+  sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import { buildBillSplitOrderLines } from '@/lib/bill-split-by-item-lines';
@@ -78,6 +79,45 @@ describe('sumBillableSessionTotal', () => {
     ] as Order[];
 
     assert.equal(sumBillableSessionTotal(orders), 5);
+    assert.equal(sumBillableNonBuffetTotal(orders), 5);
+  });
+
+  it('sums non-buffet lines only for meals total', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 2,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 35.9,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'd1',
+            name: 'Água',
+            name_pt: 'Água',
+            qty: 2,
+            price: 1.5,
+            emoji: '💧',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    assert.equal(sumBillableSessionTotal(orders), 38.9);
+    assert.equal(sumBillableNonBuffetTotal(orders), 3);
   });
 
   it('excludes kitchen_remake lines from payable totals', () => {

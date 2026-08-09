@@ -83,6 +83,7 @@ export const waiterDetailLayout = {
   /**
    * One dish = one horizontal left-cluster row (unique shape):
    * [code · name · status] —gap-8— [qty · serve/minus].
+   * Name/qty share `waiterFloorType.listBody` (text-lg); code stays a smaller gold prefix.
    * Status follows the dish name (not the far-right qty). Label is not flex-1 —
    * restores original name↔qty breath; wide viewports may leave empty space on the right.
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
@@ -91,11 +92,11 @@ export const waiterDetailLayout = {
   orderedItemIdentity: 'flex min-w-0 items-center gap-2.5',
   orderedItemCode:
     'shrink-0 min-w-[2rem] text-left text-sm font-semibold tabular-nums text-brand-gold',
-  orderedItemLabel: 'min-w-0 truncate text-base font-semibold text-brand-text leading-snug',
+  orderedItemLabel: waiterFloorType.listBodyTruncate,
   orderedItemStatus:
     'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',
-  orderedItemQty: 'shrink-0 text-base font-semibold text-brand-text tabular-nums',
+  orderedItemQty: waiterFloorType.listQty,
   orderedItemActions: 'flex shrink-0 items-center gap-2',
 } as const;
 

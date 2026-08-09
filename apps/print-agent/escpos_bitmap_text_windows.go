@@ -109,15 +109,18 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	oldBitmap, _, _ := procSelectObject.Call(dc, bitmap)
 	defer procSelectObject.Call(dc, oldBitmap)
 
+	raw := unsafe.Slice((*byte)(bits), stride*height)
+	// DIB starts uninitialized — clear to white *before* TextOutW.
+	// Never wipe after draw (that erased Chinese glyphs → blank slips).
+	for i := range raw {
+		raw[i] = 0xff
+	}
+
 	procSetBkColor.Call(dc, 0x00ffffff)
 	procSetTextColor.Call(dc, 0x00000000)
 	procSetBkMode.Call(dc, 2)
 	procTextOutW.Call(dc, 4, 4, uintptr(unsafe.Pointer(&utf16[0])), chars)
 
-	raw := unsafe.Slice((*byte)(bits), stride*height)
-	for i := range raw {
-		raw[i] = 0xff
-	}
 	pixels := make([]byte, width*height)
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {

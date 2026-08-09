@@ -11,9 +11,9 @@ func TestTextModeForConfiguredChineseDefaultsBitmap(t *testing.T) {
 	}
 }
 
-func TestNormalizeTextEncodingNoGBKMode(t *testing.T) {
+func TestNormalizeTextEncodingUnknownFallsToAuto(t *testing.T) {
 	if got := normalizeTextEncoding("gbk"); got != "auto" {
-		t.Fatalf("gbk must fall back to auto bitmap mode, got %q", got)
+		t.Fatalf("legacy/unknown encoding must fall back to auto, got %q", got)
 	}
 	if got := normalizeTextEncoding("utf-8"); got != "utf8" {
 		t.Fatalf("utf8 alias = %q", got)

@@ -16,9 +16,6 @@ type bitmapTextStyle struct {
 	Underline bool
 	DoubleW   bool
 	DoubleH   bool
-	// FontPx: when > 0, raster cell height and GDI font use this size (Han body = bitmapFontDishPx).
-	// When 0, height follows bitmapCellDotsY and DoubleH/DoubleW.
-	FontPx int
 }
 
 type bitmapTextImage struct {
@@ -28,39 +25,26 @@ type bitmapTextImage struct {
 }
 
 // Bitmap cells match Font A pitch on 80mm (48 cols × 8 dots = 384).
+// Cell height 20 (1×1) / 40 (1×2) — same contract as 0.3.68.
 const (
-	bitmapCellDotsX  = 8
-	bitmapCellDotsY  = 20
-	bitmapFontDishPx = 24 // sole Han body size (dish + note whole-line bitmap)
-	bitmapFontMinPx  = 12
+	bitmapCellDotsX = 8
+	bitmapCellDotsY = 20
+	bitmapFontMinPx = 12
 )
 
 func bitmapCellSize(style bitmapTextStyle) (cellW, cellH int) {
 	cellW = bitmapCellDotsX
-	if style.FontPx > 0 {
-		cellH = style.FontPx
-		if cellH < bitmapFontMinPx {
-			cellH = bitmapFontMinPx
-		}
-	} else {
-		cellH = bitmapCellDotsY
-		if style.DoubleH {
-			cellH *= 2
-		}
-	}
+	cellH = bitmapCellDotsY
 	if style.DoubleW {
 		cellW *= 2
+	}
+	if style.DoubleH {
+		cellH *= 2
 	}
 	return cellW, cellH
 }
 
 func bitmapFontPx(style bitmapTextStyle) int {
-	if style.FontPx > 0 {
-		if style.FontPx < bitmapFontMinPx {
-			return bitmapFontMinPx
-		}
-		return style.FontPx
-	}
 	_, cellH := bitmapCellSize(style)
 	px := cellH - 2
 	if px < bitmapFontMinPx {

@@ -289,9 +289,10 @@ func TestStationTicketHanNoteUsesBitmapFeed(t *testing.T) {
 	if bytes.Contains(raw, []byte("…")) {
 		t.Fatal("Han note ticket must not truncate with ellipsis")
 	}
-	dish := renderBitmapText(stationSlipItemLine("001-中水", "1", escposWidth), bitmapTextStyle{FontPx: bitmapFontDishPx})
-	if dish.Height != bitmapFontDishPx {
-		t.Fatalf("dish bitmap height want %d got %d", bitmapFontDishPx, dish.Height)
+	dish := renderBitmapText(stationSlipItemLine("001-中水", "1", escposWidth), bitmapTextStyle{DoubleH: true})
+	wantH := bitmapCellDotsY * 2
+	if dish.Height != wantH {
+		t.Fatalf("1×2 dish bitmap height want %d got %d", wantH, dish.Height)
 	}
 	joined := strings.Join(wrapDisplay(escposItemNotePrefix+"我要冰的", stationSlipNoteMaxWidth(escposWidth)), "")
 	if joined != escposItemNotePrefix+"我要冰的" {
@@ -337,6 +338,6 @@ func TestStationTicketUsesLatinEncodingOnly(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
 	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
-		t.Fatal("station slip must not enter GBK mode")
+		t.Fatal("station slip must not emit FS & Chinese commands")
 	}
 }

@@ -350,12 +350,13 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 
 func (w *escposWriter) text(s string) {
 	if w.textMode == escposTextBitmap && needsBitmapText(s) {
-		// CJK body default: fixed dish size (not DoubleH-scaled ~38px).
+		// 0.3.68 contract: cell size follows DoubleW/DoubleH (menu body 1×2 → ~40px tall).
 		w.content.Write(escposBitmapText(s, bitmapTextStyle{
 			Align:     w.alignMode,
 			Bold:      w.boldOn,
 			Underline: w.underlineOn,
-			FontPx:    bitmapFontDishPx,
+			DoubleW:   w.doubleW,
+			DoubleH:   w.doubleH,
 		}))
 		w.lastTextBitmap = true
 		return

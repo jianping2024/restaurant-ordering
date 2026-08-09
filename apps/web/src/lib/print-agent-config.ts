@@ -280,8 +280,6 @@ export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
 export const HAN_BITMAP_FONT_PX_DEFAULT = 24;
 export const HAN_BITMAP_FONT_PX_MIN = 16;
 export const HAN_BITMAP_FONT_PX_MAX = 40;
-/** Presets shown in Feature settings (values still clamped via resolveHanBitmapFontPx). */
-export const HAN_BITMAP_FONT_PX_OPTIONS = [18, 20, 24, 28, 32] as const;
 
 export function resolveHanBitmapFontPx(raw: unknown): number {
   const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;

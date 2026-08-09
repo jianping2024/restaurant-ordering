@@ -13,7 +13,10 @@ import {
   groupRestaurantFeaturesByModule,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
-import { HAN_BITMAP_FONT_PX_OPTIONS } from '@/lib/print-agent-config';
+import {
+  HAN_BITMAP_FONT_PX_MAX,
+  HAN_BITMAP_FONT_PX_MIN,
+} from '@/lib/print-agent-config';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
 const FEATURES_CONTROL_SURFACE =
@@ -201,32 +204,25 @@ export function FeatureFlagsManager({
                 </span>
               </span>
             </label>
-            <div className="px-4 py-4">
+            <label className="block px-4 py-4">
               <span className="block text-[15px] font-medium text-brand-text">
                 {t.hanBitmapFontPx}
               </span>
               <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
                 {t.hanBitmapFontPxDesc}
               </span>
-              <div className="flex flex-wrap gap-2" role="group" aria-label={t.hanBitmapFontPx}>
-                {HAN_BITMAP_FONT_PX_OPTIONS.map((px) => {
-                  const selected = hanBitmapFontPx === px;
-                  return (
-                    <button
-                      key={px}
-                      type="button"
-                      onClick={() => setHanBitmapFontPx(px)}
-                      className={`min-w-[3.25rem] px-3 py-2 text-sm tabular-nums transition ${
-                        selected ? PRINT_LOCALE_OPTION_SELECTED : PRINT_LOCALE_OPTION_IDLE
-                      }`}
-                      aria-pressed={selected}
-                    >
-                      {px}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={hanBitmapFontPx}
+                  min={HAN_BITMAP_FONT_PX_MIN}
+                  max={HAN_BITMAP_FONT_PX_MAX}
+                  onChange={setHanBitmapFontPx}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.hanBitmapFontPx}
+                />
+                <span className="text-[13px] text-brand-text-muted">{t.hanBitmapFontPxUnit}</span>
               </div>
-            </div>
+            </label>
             <label className="block px-4 py-4">
               <span className="block text-[15px] font-medium text-brand-text">
                 {t.credentialTtlDays}

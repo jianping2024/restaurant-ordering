@@ -163,13 +163,13 @@ type jobPayload struct {
 	StationDisplayNameZh string              `json:"station_display_name_zh"`
 	StationSlipOptions   *stationSlipOptions `json:"station_slip_options"`
 	Lines                []jobLine           `json:"lines"`
-	Subtotal             float64   `json:"subtotal"`
-	AmountDue            float64   `json:"amount_due"`
-	AmountPaid           float64   `json:"amount_paid"`
-	PaymentMethod        string    `json:"payment_method"`
-	OrderedBy            string    `json:"ordered_by"`
-	OrderTime            string    `json:"order_time"`
-	PrintTime            string    `json:"print_time"`
+	Subtotal             float64             `json:"subtotal"`
+	AmountDue            float64             `json:"amount_due"`
+	AmountPaid           float64             `json:"amount_paid"`
+	PaymentMethod        string              `json:"payment_method"`
+	OrderedBy            string              `json:"ordered_by"`
+	OrderTime            string              `json:"order_time"`
+	PrintTime            string              `json:"print_time"`
 	// pre_bill | checkout_bill | split_payment | final (empty → final on order_receipt)
 	ReceiptVariant string `json:"receipt_variant"`
 	PayerName      string `json:"payer_name"`
@@ -241,9 +241,14 @@ func (p jobPayload) stationSlipShowCategoryGroup() bool {
 type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
-	enc             paperEncoding
-	gbkActive       bool // true while FS & Chinese mode is on (per-line enter/exit for ASCII)
+	textMode        escposTextMode
 	hadDoubleHeight bool
+	alignMode       byte
+	boldOn          bool
+	underlineOn     bool
+	doubleW         bool
+	doubleH         bool
+	lastTextBitmap  bool
 }
 
 func writeMarginLines(b *bytes.Buffer, lines int) {
@@ -260,77 +265,52 @@ func cutFeedDots(hadDoubleHeight bool) byte {
 }
 
 func newEscpos() *escposWriter {
-	w := &escposWriter{}
+	w := &escposWriter{textMode: escposTextLatin}
 	w.init()
 	return w
 }
 
-func newEscposForStationTicket(_ jobPayload) *escposWriter {
+func newEscposForStationTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
-	w.applyEncoding(paperEncLatin)
+	w.applyTextMode(textModeForConfiguredChinese(stationTicketNeedsBitmap(p)))
 	return w
 }
 
 func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
-	w.applyEncoding(loadPaperEncodingForPayload(receiptTicketNeedsGBK(p)))
+	w.applyTextMode(textModeForConfiguredChinese(receiptTicketNeedsBitmap(p)))
 	return w
 }
 
 func newEscposForConnectionTest(p jobPayload) *escposWriter {
 	w := newEscpos()
-	w.applyEncoding(loadPaperEncodingForPayload(connectionTestNeedsGBK(p)))
+	w.applyTextMode(textModeForConfiguredChinese(connectionTestNeedsBitmap(p)))
 	return w
 }
 
-func (w *escposWriter) applyEncoding(enc paperEncoding) {
-	switch enc {
-	case paperEncGBK:
-		w.enableGBK()
-	case paperEncUTF8:
+func (w *escposWriter) init() { w.prefix = append(w.prefix, 0x1B, 0x40) }
+
+func (w *escposWriter) applyTextMode(mode escposTextMode) {
+	w.textMode = mode
+	switch mode {
+	case escposTextUTF8:
 		w.enableUTF8()
 	default:
 		w.enableLatin()
 	}
 }
 
-func (w *escposWriter) init() { w.prefix = append(w.prefix, 0x1B, 0x40) }
-
 // enableLatin selects WPC1252 (covers Portuguese accents on most 80mm printers).
 func (w *escposWriter) enableLatin() {
-	w.enc = paperEncLatin
 	w.prefix = append(w.prefix, 0x1B, 0x74, 16)
 }
 
-// enableGBK — per-line FS & / FS . in text(); do not leave FS & on for whole ticket (UNYKA ASCII needs FS .).
-func (w *escposWriter) enableGBK() {
-	w.enc = paperEncGBK
-	w.gbkActive = false
-}
-
-func (w *escposWriter) gbkEnter() {
-	if w.gbkActive {
-		return
-	}
-	w.content.Write([]byte{0x1C, 0x26}) // FS &
-	w.gbkActive = true
-}
-
-func (w *escposWriter) gbkExit() {
-	if !w.gbkActive {
-		return
-	}
-	w.content.Write([]byte{0x1C, 0x2E}) // FS .
-	w.gbkActive = false
-}
-
-// enableUTF8 — ESC 9 (common on Xprinter / many 80mm; works when GBK mode is ignored).
 func (w *escposWriter) enableUTF8() {
-	w.enc = paperEncUTF8
 	w.prefix = append(w.prefix, 0x1B, 0x39, 0x01)
 }
 
 func (w *escposWriter) align(mode byte) {
+	w.alignMode = mode
 	w.content.Write([]byte{0x1B, 0x61, mode})
 }
 
@@ -339,6 +319,7 @@ func (w *escposWriter) bold(on bool) {
 	if on {
 		n = 1
 	}
+	w.boldOn = on
 	w.content.Write([]byte{0x1B, 0x45, n})
 }
 
@@ -347,6 +328,7 @@ func (w *escposWriter) underline(on bool) {
 	if on {
 		n = 1
 	}
+	w.underlineOn = on
 	w.content.Write([]byte{0x1B, 0x2D, n})
 }
 
@@ -361,27 +343,37 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 	if doubleW {
 		n |= 0x10
 	}
+	w.doubleW = doubleW
+	w.doubleH = doubleH
 	w.content.Write([]byte{0x1D, 0x21, n})
 }
 
 func (w *escposWriter) text(s string) {
-	switch w.enc {
-	case paperEncGBK:
-		if hasHan(s) {
-			w.gbkEnter()
-			w.content.Write(encodeGBK(s))
-		} else {
-			w.gbkExit()
-			w.content.Write([]byte(s))
-		}
-	case paperEncUTF8:
-		w.content.Write([]byte(s))
-	default:
-		w.content.Write(encodeWindows1252(s))
+	if w.textMode == escposTextBitmap && needsBitmapText(s) {
+		w.content.Write(escposBitmapText(s, bitmapTextStyle{
+			Align:     w.alignMode,
+			Bold:      w.boldOn,
+			Underline: w.underlineOn,
+			DoubleW:   w.doubleW,
+			DoubleH:   w.doubleH,
+		}))
+		w.lastTextBitmap = true
+		return
 	}
+	if w.textMode == escposTextUTF8 {
+		w.content.Write([]byte(s))
+		w.lastTextBitmap = false
+		return
+	}
+	w.content.Write(encodeWindows1252(s))
+	w.lastTextBitmap = false
 }
 
 func (w *escposWriter) lf() {
+	if w.lastTextBitmap {
+		w.lastTextBitmap = false
+		return
+	}
 	w.content.WriteByte('\n')
 }
 
@@ -390,12 +382,7 @@ func (w *escposWriter) writeResetPrintMode(out *bytes.Buffer) {
 	out.Write([]byte{0x1D, 0x21, 0})
 	out.Write([]byte{0x1B, 0x45, 0})
 	out.Write([]byte{0x1B, 0x2D, 0})
-	out.Write([]byte{0x1C, 0x21, 0x00}) // FS ! — reset Chinese print modes (GS ! does not affect Han)
-	out.Write([]byte{0x1B, 0x32})       // ESC 2 — default line spacing
-	if w.enc == paperEncGBK && w.gbkActive {
-		out.Write([]byte{0x1C, 0x2E})
-		w.gbkActive = false
-	}
+	out.Write([]byte{0x1B, 0x32}) // ESC 2 — default line spacing
 }
 
 // finish assembles init + top pad + body + bottom pad (+ cut feed when cut is true).
@@ -806,9 +793,6 @@ func nowLocal() string {
 func escposFromJob(job printJob) []byte {
 	p := parseJobPayload(job)
 	lab := labelsFor(p.Locale)
-	if payloadNeedsGBK(p) && p.Locale == "pt" {
-		lab = labelsASCII(lab)
-	}
 
 	switch job.Type {
 	case "station_ticket":
@@ -935,16 +919,11 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 func buildConnectionTest(p jobPayload, lab ticketLabels) []byte {
 	w := newEscposForConnectionTest(p)
 	w.align(1)
-	// GBK / UNYKA USB: plain FS & + GBK bytes — FS ! / GS ! / ESC E often garble Han on clone firmware.
-	if w.enc == paperEncGBK {
-		w.text(lab.connectionTest)
-	} else {
-		w.bold(true)
-		w.size(true, true)
-		w.text(lab.connectionTest)
-		w.size(false, false)
-		w.bold(false)
-	}
+	w.bold(true)
+	w.size(true, true)
+	w.text(lab.connectionTest)
+	w.size(false, false)
+	w.bold(false)
 	w.lf()
 	w.separator('-')
 	w.align(0)

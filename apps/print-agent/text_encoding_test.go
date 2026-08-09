@@ -2,19 +2,20 @@ package main
 
 import "testing"
 
-func TestResolvePaperEncodingAutoGBK(t *testing.T) {
-	cfg := &config{TextEncoding: "auto"}
-	if cfg.resolvePaperEncoding(true) != paperEncGBK {
-		t.Fatal("auto + chinese should default gbk for UNYKA-class printers")
+func TestTextModeForConfiguredChineseDefaultsBitmap(t *testing.T) {
+	if got := textModeForConfiguredChinese(true); got != escposTextBitmap {
+		t.Fatalf("default chinese text mode = %v", got)
 	}
-	if cfg.resolvePaperEncoding(false) != paperEncLatin {
-		t.Fatal("latin when no chinese")
+	if got := textModeForConfiguredChinese(false); got != escposTextLatin {
+		t.Fatalf("latin text mode = %v", got)
 	}
 }
 
-func TestResolvePaperEncodingGBK(t *testing.T) {
-	cfg := &config{TextEncoding: "gbk"}
-	if cfg.resolvePaperEncoding(true) != paperEncGBK {
-		t.Fatal("gbk")
+func TestNormalizeTextEncodingNoGBKMode(t *testing.T) {
+	if got := normalizeTextEncoding("gbk"); got != "auto" {
+		t.Fatalf("gbk must fall back to auto bitmap mode, got %q", got)
+	}
+	if got := normalizeTextEncoding("utf-8"); got != "utf8" {
+		t.Fatalf("utf8 alias = %q", got)
 	}
 }

@@ -12,36 +12,29 @@ func TestEncodeWindows1252Portuguese(t *testing.T) {
 	}
 }
 
-func TestEncodeGBKChinese(t *testing.T) {
-	raw := encodeGBK("川味")
-	if len(raw) < 4 {
-		t.Fatalf("GBK encoding too short: % x", raw)
+func TestPayloadNeedsBitmap(t *testing.T) {
+	if !payloadNeedsBitmap(jobPayload{Locale: "pt", RestaurantName: "川味"}) {
+		t.Fatal("expected bitmap for Chinese restaurant name")
 	}
-}
-
-func TestPayloadNeedsGBK(t *testing.T) {
-	if !payloadNeedsGBK(jobPayload{Locale: "pt", RestaurantName: "川味"}) {
-		t.Fatal("expected GBK for Chinese restaurant name")
-	}
-	if payloadNeedsGBK(jobPayload{Locale: "pt", RestaurantName: "Mesa"}) {
+	if payloadNeedsBitmap(jobPayload{Locale: "pt", RestaurantName: "Mesa"}) {
 		t.Fatal("expected Latin for ASCII-only pt payload")
 	}
 }
 
-func TestReceiptTicketNeedsGBKPayer(t *testing.T) {
-	if !receiptTicketNeedsGBK(jobPayload{PayerName: "王小明"}) {
-		t.Fatal("expected GBK for custom Chinese payer name")
+func TestReceiptTicketNeedsBitmapPayer(t *testing.T) {
+	if !receiptTicketNeedsBitmap(jobPayload{PayerName: "王小明"}) {
+		t.Fatal("expected bitmap for custom Chinese payer name")
 	}
-	if receiptTicketNeedsGBK(jobPayload{PayerName: "2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
+	if receiptTicketNeedsBitmap(jobPayload{PayerName: "2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
 		t.Fatal("expected Latin for numeric placeholder payer")
 	}
-	if receiptTicketNeedsGBK(jobPayload{PayerName: "客人 2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
+	if receiptTicketNeedsBitmap(jobPayload{PayerName: "客人 2", Lines: []jobLine{{DisplayName: "Soup"}}}) {
 		t.Fatal("split placeholder payer should use Latin after formatting")
 	}
 }
 
-func TestReceiptTicketNeedsGBKIgnoresRestaurantName(t *testing.T) {
-	if receiptTicketNeedsGBK(jobPayload{
+func TestReceiptTicketNeedsBitmapIgnoresRestaurantName(t *testing.T) {
+	if receiptTicketNeedsBitmap(jobPayload{
 		RestaurantName: "川味餐厅",
 		Lines:          []jobLine{{DisplayName: "Chá camomila"}},
 	}) {
@@ -49,20 +42,20 @@ func TestReceiptTicketNeedsGBKIgnoresRestaurantName(t *testing.T) {
 	}
 }
 
-func TestConnectionTestNeedsGBK(t *testing.T) {
-	if !connectionTestNeedsGBK(jobPayload{RestaurantName: "川味"}) {
-		t.Fatal("connection test should use GBK when venue name has Han")
+func TestConnectionTestNeedsBitmap(t *testing.T) {
+	if !connectionTestNeedsBitmap(jobPayload{RestaurantName: "川味"}) {
+		t.Fatal("connection test should use bitmap when venue name has Han")
 	}
-	if !connectionTestNeedsGBK(jobPayload{Locale: "zh", RestaurantName: "restaurant-ordering.vercel.app"}) {
-		t.Fatal("zh locale test slip needs GBK for 打印测试 headline")
+	if !connectionTestNeedsBitmap(jobPayload{Locale: "zh", RestaurantName: "restaurant-ordering.vercel.app"}) {
+		t.Fatal("zh locale test slip needs bitmap for Chinese headline")
 	}
-	if !connectionTestNeedsGBK(jobPayload{Locale: "zh-CN", RestaurantName: "mesa.example.com"}) {
-		t.Fatal("zh-CN locale test slip needs GBK")
+	if !connectionTestNeedsBitmap(jobPayload{Locale: "zh-CN", RestaurantName: "mesa.example.com"}) {
+		t.Fatal("zh-CN locale test slip needs bitmap")
 	}
-	if !receiptTicketNeedsGBK(jobPayload{Locale: "zh", Lines: []jobLine{{DisplayName: "Soup"}}}) {
-		t.Fatal("zh locale receipt must use GBK even for ASCII-only lines")
+	if !receiptTicketNeedsBitmap(jobPayload{Locale: "zh", Lines: []jobLine{{DisplayName: "Soup"}}}) {
+		t.Fatal("zh locale receipt must use bitmap even for ASCII-only lines")
 	}
-	if connectionTestNeedsGBK(jobPayload{Locale: "en", RestaurantName: "Mesa Lisboa"}) {
+	if connectionTestNeedsBitmap(jobPayload{Locale: "en", RestaurantName: "Mesa Lisboa"}) {
 		t.Fatal("en locale + ASCII venue should use Latin on connection test")
 	}
 }

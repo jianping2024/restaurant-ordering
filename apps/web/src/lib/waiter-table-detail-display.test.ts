@@ -37,8 +37,27 @@ describe('formatWaiterOrderedItemsSessionTotal', () => {
     assert.equal(formatWaiterOrderedItemsSessionTotal('pt', 27.95), 'Total: €27.95');
   });
 
+  it('prefixes meals amount before total when meals > 0 (zh)', () => {
+    assert.equal(
+      formatWaiterOrderedItemsSessionTotal('zh', 595.35, 300),
+      '餐食: €300.00 合计: €595.35',
+    );
+  });
+
+  it('prefixes meals amount before total when meals > 0 (en)', () => {
+    assert.equal(
+      formatWaiterOrderedItemsSessionTotal('en', 595.35, 300),
+      'Meals: €300.00 Total: €595.35',
+    );
+  });
+
+  it('omits meals segment when meals is zero', () => {
+    assert.equal(formatWaiterOrderedItemsSessionTotal('zh', 105.3, 0), '合计: €105.30');
+  });
+
   it('hides zero or negative totals', () => {
     assert.equal(formatWaiterOrderedItemsSessionTotal('zh', 0), null);
     assert.equal(formatWaiterOrderedItemsSessionTotal('zh', -1), null);
+    assert.equal(formatWaiterOrderedItemsSessionTotal('zh', 0, 10), null);
   });
 });

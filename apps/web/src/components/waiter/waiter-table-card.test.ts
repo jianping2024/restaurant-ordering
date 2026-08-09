@@ -51,6 +51,7 @@ describe('buildWaiterTableCard', () => {
       },
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 20.5);
+    assert.equal(card.mealsTotal, 20.5);
   });
 
   it('ignores voided items and inflated total_amount when computing sessionTotal', () => {
@@ -86,11 +87,13 @@ describe('buildWaiterTableCard', () => {
       },
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 3);
+    assert.equal(card.mealsTotal, 3);
   });
 
   it('returns zero sessionTotal for empty orders', () => {
     const card = buildWaiterTableCard('t1', '001', [], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.sessionTotal, 0);
+    assert.equal(card.mealsTotal, 0);
   });
 
   it('formats menu lines as code plus plain name without emoji', () => {
@@ -158,6 +161,57 @@ describe('buildWaiterTableCard', () => {
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.label, 'Buffet livre · A2-C1');
+    assert.equal(card.sessionTotal, 55.9);
+    assert.equal(card.mealsTotal, 0);
+  });
+
+  it('splits mealsTotal from buffet head fee in sessionTotal', () => {
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'buffet:1',
+              kind: 'buffet_base',
+              name: 'Buffet livre',
+              name_pt: 'Buffet livre',
+              qty: 1,
+              price: 295.35,
+              emoji: '',
+              adult_count: 10,
+              child_count: 0,
+              buffet_id: 'b1',
+              adult_unit_price: 29.535,
+              child_unit_price: 0,
+              item_status: 'done',
+            },
+            {
+              id: 'd1',
+              name: 'Água',
+              name_pt: 'Água',
+              qty: 2,
+              price: 150,
+              emoji: '',
+              item_status: 'pending',
+            },
+          ],
+          total_amount: 595.35,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      {},
+      capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
+    );
+    assert.equal(card.sessionTotal, 595.35);
+    assert.equal(card.mealsTotal, 300);
   });
 
   it('merges identical menu lines with the billable catalog key (ignores notes)', () => {

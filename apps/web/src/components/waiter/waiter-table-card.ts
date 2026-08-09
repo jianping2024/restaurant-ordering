@@ -4,6 +4,7 @@ import {
   buildBillableSessionItems,
   chargeableFieldsFromBillableRow,
   menuItemIdFromLimitedBillableKey,
+  sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
 import {
@@ -56,6 +57,8 @@ export interface WaiterTableCardData {
   hasBuffet: boolean;
   buffetHeadcount: BuffetGuestHeadcount | null;
   sessionTotal: number;
+  /** Non-buffet billable total for ordered-items money chrome (餐食). */
+  mealsTotal: number;
   updatedAt: string;
 }
 
@@ -276,6 +279,7 @@ export function buildWaiterTableCard(
     hasBuffet: buffetSummaries.length > 0,
     buffetHeadcount: aggregateBuffetHeadcountForOrders(orders),
     sessionTotal: sumBillableSessionTotal(orders),
+    mealsTotal: sumBillableNonBuffetTotal(orders),
     updatedAt: latestOrderTimestamp(orders),
   };
 }

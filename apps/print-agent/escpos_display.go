@@ -81,6 +81,43 @@ func wrapDisplay(s string, maxCols int) []string {
 	return out
 }
 
+// wrapDisplayFirstRest wraps s so the first chunk uses firstMax columns and the
+// remainder uses restMax (e.g. note body after a same-line Latin prefix).
+func wrapDisplayFirstRest(s string, firstMax, restMax int) []string {
+	if restMax <= 0 || s == "" {
+		return nil
+	}
+	if firstMax <= 0 {
+		return wrapDisplay(s, restMax)
+	}
+	var first strings.Builder
+	cols := 0
+	runes := []rune(s)
+	i := 0
+	for i < len(runes) {
+		w := displayCols(runes[i])
+		if cols+w > firstMax {
+			break
+		}
+		first.WriteRune(runes[i])
+		cols += w
+		i++
+	}
+	var out []string
+	if first.Len() > 0 {
+		out = append(out, first.String())
+	}
+	rest := string(runes[i:])
+	if rest == "" {
+		return out
+	}
+	if first.Len() == 0 {
+		// first rune wider than firstMax — fall back to restMax wrapping
+		return wrapDisplay(s, restMax)
+	}
+	return append(out, wrapDisplay(rest, restMax)...)
+}
+
 func padDisplayCols(b *strings.Builder, current, target int) int {
 	for current < target {
 		b.WriteByte(' ')

@@ -350,12 +350,12 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 
 func (w *escposWriter) text(s string) {
 	if w.textMode == escposTextBitmap && needsBitmapText(s) {
+		// CJK body default: fixed dish size (not DoubleH-scaled ~38px).
 		w.content.Write(escposBitmapText(s, bitmapTextStyle{
 			Align:     w.alignMode,
 			Bold:      w.boldOn,
 			Underline: w.underlineOn,
-			DoubleW:   w.doubleW,
-			DoubleH:   w.doubleH,
+			FontPx:    bitmapFontDishPx,
 		}))
 		w.lastTextBitmap = true
 		return
@@ -365,6 +365,27 @@ func (w *escposWriter) text(s string) {
 		w.lastTextBitmap = false
 		return
 	}
+	w.content.Write(encodeWindows1252(s))
+	w.lastTextBitmap = false
+}
+
+// textBitmapFont prints Han via bitmap at an explicit px size (notes use 16).
+func (w *escposWriter) textBitmapFont(s string, fontPx int) {
+	if w.textMode == escposTextBitmap && needsBitmapText(s) {
+		w.content.Write(escposBitmapText(s, bitmapTextStyle{
+			Align:     w.alignMode,
+			Bold:      w.boldOn,
+			Underline: w.underlineOn,
+			FontPx:    fontPx,
+		}))
+		w.lastTextBitmap = true
+		return
+	}
+	w.text(s)
+}
+
+// writeLatinRaw always emits Windows-1252 (Observação: prefix stays ESC/POS sized).
+func (w *escposWriter) writeLatinRaw(s string) {
 	w.content.Write(encodeWindows1252(s))
 	w.lastTextBitmap = false
 }
@@ -641,9 +662,31 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	w.writeBody1x2()
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
 	maxW := stationSlipNoteMaxWidth(width)
+	prefix := escposItemNotePrefix
 	w.underline(true)
-	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
-		w.text(indent + line)
+
+	// Latin-only notes: one wrap pass (prefix+body), ESC/POS text.
+	if !(w.textMode == escposTextBitmap && needsBitmapText(note)) {
+		for _, line := range wrapDisplay(prefix+note, maxW) {
+			w.text(indent + line)
+			w.lf()
+		}
+		w.underline(false)
+		return
+	}
+
+	// Han notes: Observação: stays ESC/POS 1×2; Chinese body bitmap 16px, wrap only.
+	w.writeLatinRaw(indent + prefix)
+	firstMax := maxW - displayWidth(prefix)
+	chunks := wrapDisplayFirstRest(note, firstMax, maxW)
+	contPad := indent + strings.Repeat(" ", displayWidth(prefix))
+	for i, chunk := range chunks {
+		if i == 0 {
+			w.textBitmapFont(chunk, bitmapFontNotePx)
+		} else {
+			w.writeLatinRaw(contPad)
+			w.textBitmapFont(chunk, bitmapFontNotePx)
+		}
 		w.lf()
 	}
 	w.underline(false)
@@ -658,7 +701,7 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		groupHeader := strings.TrimSpace(ln.CategoryGroupHeader)
 		if showGroup && groupHeader != "" && groupHeader != lastGroupHeader {
 			w.align(1)
-			w.text(truncateDisplay(groupHeader, escposWidth))
+			w.text(groupHeader) // wrap inside escposBitmapText when Han; latin still one line
 			w.lf()
 			w.align(0)
 			lastGroupHeader = groupHeader
@@ -668,9 +711,30 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		if qty <= 0 {
 			qty = 1
 		}
-		w.text(stationSlipItemLine(stationSlipItemLabel(ln), fmt.Sprintf("%d", qty), escposWidth))
-		w.lf()
+		w.writeStationMenuItem(ln, qty, escposWidth)
 		w.writeStationItemNoteLine(ln.Note, escposWidth)
+	}
+}
+
+func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, width int) {
+	label := stationSlipItemLabel(ln)
+	maxLeft := stationSlipItemMaxWidth(width)
+	chunks := wrapDisplay(label, maxLeft)
+	if len(chunks) == 0 {
+		chunks = []string{label}
+	}
+	w.writeBody1x2()
+	w.text(stationSlipItemLine(chunks[0], fmt.Sprintf("%d", qty), width))
+	w.lf()
+	for _, c := range chunks[1:] {
+		var b strings.Builder
+		col := padDisplayCols(&b, 0, stationSlipItemLeftMargin)
+		b.WriteString(c)
+		col += displayWidth(c)
+		padDisplayCols(&b, col, width)
+		w.writeBody1x2()
+		w.text(b.String())
+		w.lf()
 	}
 }
 

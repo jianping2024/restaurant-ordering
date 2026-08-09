@@ -7,7 +7,6 @@ import (
 	"unsafe"
 )
 
-type gdiSize struct{ CX, CY int32 }
 type gdiBitmapInfoHeader struct {
 	Size          uint32
 	Width         int32
@@ -41,48 +40,26 @@ var (
 	procTextOutW           = gdi32.NewProc("TextOutW")
 )
 
+// renderBitmapText draws s into a cell grid. Caller must wrap to bitmapMaxCols;
+// this function does not truncateDisplay (overflow runes still advance by displayCols).
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
 	cellW, cellH := bitmapCellSize(style)
-	maxCols := bitmapMaxCols(style)
-	if displayWidth(s) > maxCols {
-		s = truncateDisplay(s, maxCols)
-	}
 	cols := displayWidth(s)
 	if cols <= 0 {
 		return bitmapTextImage{}
 	}
 	width := cols * cellW
 	height := cellH
+	fontPx := bitmapFontPx(style)
 
 	dc, _, _ := procCreateCompatibleDC.Call(0)
 	if dc == 0 {
 		return bitmapTextImage{}
 	}
 	defer procDeleteDC.Call(dc)
-
-	// Font height tracks cell height only (1×2 = taller, not wider square glyphs).
-	fontPx := cellH - 2
-	if fontPx < 12 {
-		fontPx = 12
-	}
-	weight := uintptr(400)
-	if style.Bold {
-		weight = 700
-	}
-	face, _ := syscall.UTF16PtrFromString("Microsoft YaHei")
-	font, _, _ := procCreateFontW.Call(
-		uintptr(^uint32(fontPx-1)+1), 0, 0, 0, weight, 0, uintptr(boolToUintptr(style.Underline)), 0,
-		1, 4, 0, 0, 0, uintptr(unsafe.Pointer(face)),
-	)
-	if font == 0 {
-		return bitmapTextImage{}
-	}
-	defer procDeleteObject.Call(font)
-	oldFont, _, _ := procSelectObject.Call(dc, font)
-	defer procSelectObject.Call(dc, oldFont)
 
 	var bits unsafe.Pointer
 	stride := ((width*32 + 31) / 32) * 4
@@ -109,14 +86,31 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	procSetTextColor.Call(dc, 0x00000000)
 	procSetBkMode.Call(dc, 2)
 
+	weight := uintptr(400)
+	if style.Bold {
+		weight = 700
+	}
+	face, _ := syscall.UTF16PtrFromString("Microsoft YaHei")
+	underline := boolToUintptr(style.Underline)
+
 	col := 0
 	y := 1
 	for _, r := range s {
 		span := displayCols(r)
-		x := col * cellW
-		utf16, err := syscall.UTF16FromString(string(r))
-		if err == nil && len(utf16) > 1 {
-			procTextOutW.Call(dc, uintptr(x), uintptr(y), uintptr(unsafe.Pointer(&utf16[0])), uintptr(len(utf16)-1))
+		slotW := span * cellW
+		// Force glyph into its display-column slot so tall fonts (24) do not spill past 2×8.
+		font, _, _ := procCreateFontW.Call(
+			uintptr(^uint32(fontPx-1)+1), uintptr(slotW), 0, 0, weight, 0, underline, 0,
+			1, 4, 0, 0, 0, uintptr(unsafe.Pointer(face)),
+		)
+		if font != 0 {
+			oldFont, _, _ := procSelectObject.Call(dc, font)
+			utf16, err := syscall.UTF16FromString(string(r))
+			if err == nil && len(utf16) > 1 {
+				procTextOutW.Call(dc, uintptr(col*cellW), uintptr(y), uintptr(unsafe.Pointer(&utf16[0])), uintptr(len(utf16)-1))
+			}
+			procSelectObject.Call(dc, oldFont)
+			procDeleteObject.Call(font)
 		}
 		col += span
 	}

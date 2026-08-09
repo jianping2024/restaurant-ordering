@@ -16,6 +16,9 @@ type bitmapTextStyle struct {
 	Underline bool
 	DoubleW   bool
 	DoubleH   bool
+	// FontPx: when > 0, raster cell height and GDI font use this size (dish=24, note=16).
+	// When 0, height follows bitmapCellDotsY and DoubleH/DoubleW.
+	FontPx int
 }
 
 type bitmapTextImage struct {
@@ -25,22 +28,46 @@ type bitmapTextImage struct {
 }
 
 // Bitmap cells match Font A pitch on 80mm (48 cols × 8 dots = 384).
-// Cell height 20 (1×1) / 40 (1×2) — slightly under classic 24/48 so CJK reads smaller.
 const (
-	bitmapCellDotsX = 8
-	bitmapCellDotsY = 20
+	bitmapCellDotsX    = 8
+	bitmapCellDotsY    = 20
+	bitmapFontDishPx   = 24
+	bitmapFontNotePx   = 16
+	bitmapFontMinPx    = 12
 )
 
 func bitmapCellSize(style bitmapTextStyle) (cellW, cellH int) {
 	cellW = bitmapCellDotsX
-	cellH = bitmapCellDotsY
+	if style.FontPx > 0 {
+		cellH = style.FontPx
+		if cellH < bitmapFontMinPx {
+			cellH = bitmapFontMinPx
+		}
+	} else {
+		cellH = bitmapCellDotsY
+		if style.DoubleH {
+			cellH *= 2
+		}
+	}
 	if style.DoubleW {
 		cellW *= 2
 	}
-	if style.DoubleH {
-		cellH *= 2
-	}
 	return cellW, cellH
+}
+
+func bitmapFontPx(style bitmapTextStyle) int {
+	if style.FontPx > 0 {
+		if style.FontPx < bitmapFontMinPx {
+			return bitmapFontMinPx
+		}
+		return style.FontPx
+	}
+	_, cellH := bitmapCellSize(style)
+	px := cellH - 2
+	if px < bitmapFontMinPx {
+		return bitmapFontMinPx
+	}
+	return px
 }
 
 func bitmapMaxCols(style bitmapTextStyle) int {
@@ -71,8 +98,27 @@ func needsBitmapText(s string) bool {
 	return hasHan(s)
 }
 
+// escposBitmapText renders s as one or more GS v 0 rasters. Over-wide strings are
+// wrapDisplay'd (never truncateDisplay) so every rune is emitted.
 func escposBitmapText(s string, style bitmapTextStyle) []byte {
-	img := renderBitmapText(strings.TrimRight(s, "\r\n"), style)
+	s = strings.TrimRight(s, "\r\n")
+	if s == "" {
+		return nil
+	}
+	maxCols := bitmapMaxCols(style)
+	chunks := wrapDisplay(s, maxCols)
+	if len(chunks) == 0 {
+		return nil
+	}
+	var out []byte
+	for _, chunk := range chunks {
+		out = append(out, escposBitmapTextOne(chunk, style)...)
+	}
+	return out
+}
+
+func escposBitmapTextOne(s string, style bitmapTextStyle) []byte {
+	img := renderBitmapText(s, style)
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return encodeWindows1252(s)
 	}
@@ -93,8 +139,6 @@ func escposBitmapText(s string, style bitmapTextStyle) []byte {
 		byte(img.Height & 0xff), byte((img.Height >> 8) & 0xff),
 	}
 	out = append(out, data...)
-	// Feed exactly the raster height (ESC J n). Do not append '\n' — writer.lf()
-	// skips once after bitmap so Latin/CJK line spacing stays one advance.
 	for remain := img.Height; remain > 0; {
 		n := remain
 		if n > 255 {

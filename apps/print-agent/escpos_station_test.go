@@ -278,12 +278,52 @@ func TestStationTicketHanNoteUsesBitmapFeed(t *testing.T) {
 	if !bytes.Contains(raw, []byte{0x1B, 0x4A}) {
 		t.Fatal("expected ESC J feed after bitmap")
 	}
-	img := renderBitmapText(stationSlipItemLine("001-中水", "1", escposWidth), bitmapTextStyle{DoubleH: true})
-	if img.Width > escposWidth*bitmapCellDotsX {
-		t.Fatalf("bitmap wider than paper: %d", img.Width)
+	// Observação: is Latin ESC/POS (Windows-1252), not lost to bitmap-only path.
+	if !bytes.Contains(raw, encodeWindows1252("Observação: ")) {
+		t.Fatal("expected Latin Observação: prefix")
 	}
-	if img.Height != bitmapCellDotsY*2 {
-		t.Fatalf("1×2 cell height want %d got %d", bitmapCellDotsY*2, img.Height)
+	if bytes.Contains(raw, []byte("…")) {
+		t.Fatal("Han note ticket must not truncate with ellipsis")
+	}
+	dish := renderBitmapText(stationSlipItemLine("001-中水", "1", escposWidth), bitmapTextStyle{FontPx: bitmapFontDishPx})
+	if dish.Height != bitmapFontDishPx {
+		t.Fatalf("dish bitmap height want %d got %d", bitmapFontDishPx, dish.Height)
+	}
+	note := renderBitmapText("我要冰的", bitmapTextStyle{FontPx: bitmapFontNotePx})
+	if note.Height != bitmapFontNotePx {
+		t.Fatalf("note bitmap height want %d got %d", bitmapFontNotePx, note.Height)
+	}
+	// Full note survives wrapFirstRest + wrapDisplay (no truncate).
+	joined := strings.Join(wrapDisplayFirstRest("我要冰的", 20, 37), "")
+	if joined != "我要冰的" {
+		t.Fatalf("note wrap must preserve text, got %q", joined)
+	}
+}
+
+func TestStationTicketLongHanDishWrapsNoEllipsis(t *testing.T) {
+	longName := "红烧茄子加牛肉加豆腐加青椒加洋葱特供"
+	payload, _ := json.Marshal(jobPayload{
+		Locale:           "zh",
+		TableDisplayName: "A-01",
+		Lines: []jobLine{{
+			ItemCode:    "999",
+			ItemName:    longName,
+			DisplayName: "999-" + longName,
+			Qty:         2,
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	if bytes.Contains(raw, []byte("…")) {
+		t.Fatal("long Han dish must wrap, not ellipsis-truncate")
+	}
+	label := stationSlipItemLabel(jobLine{ItemCode: "999", ItemName: longName})
+	chunks := wrapDisplay(label, stationSlipItemMaxWidth(escposWidth))
+	joined := strings.Join(chunks, "")
+	if joined != label {
+		t.Fatalf("wrap must preserve dish label: got %q want %q", joined, label)
+	}
+	if len(chunks) < 2 {
+		t.Fatalf("fixture should wrap, got %d chunks", len(chunks))
 	}
 }
 

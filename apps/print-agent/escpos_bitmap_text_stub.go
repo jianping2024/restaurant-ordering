@@ -2,15 +2,12 @@
 
 package main
 
+// renderBitmapText draws a stub glyph grid (tests on non-Windows). Never truncateDisplay.
 func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
 	cellW, cellH := bitmapCellSize(style)
-	maxCols := bitmapMaxCols(style)
-	if displayWidth(s) > maxCols {
-		s = truncateDisplay(s, maxCols)
-	}
 	cols := displayWidth(s)
 	if cols <= 0 {
 		return bitmapTextImage{}

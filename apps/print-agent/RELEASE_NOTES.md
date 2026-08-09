@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.69
+
+**中文出品联：菜名 24px / 备注 16px，只折行不截断**
+
+- 含汉字的菜名位图固定 24px；备注正文 16px；`Observação:` 仍为 ESC/POS 拉丁字号。
+- 位图路径用 `wrapDisplay` 折行，去掉 `truncateDisplay`；长菜名折到续行，Qty 留在首行。
+- GDI 按显示列槽宽约束字形，避免字比格宽造成的视觉切边。
+
 ## 0.3.68
 
 **出品联中文位图：列宽格子 + 略缩小字号**

@@ -22,7 +22,7 @@ First-time setup (no command line)
    map each print station, Save. Test print is optional. (Tray serves http://127.0.0.1:17892 from start.)
 6. The agent stays in the Windows system tray (near the clock, click ^ if hidden).
    Icon color: green = OK, yellow = outside hours or setup, red = error.
-   Right-click: printer settings (includes test print), open log folder, Uninstall… (removes app + local config), exit.
+   Right-click: printer settings (includes test print), open log folder, exit.
    No need to keep a black console window open.
 
 Debug (show console logs): MesaPrintAgent.exe -console

@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.66
+
+**隐藏托盘卸载入口**
+
+- 托盘右键菜单不再显示卸载按钮。
+- 安装器/Windows 系统卸载路径保留。
+
 ## 0.3.65
 
 **中文票面改为位图输出**

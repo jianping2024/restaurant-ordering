@@ -201,7 +201,6 @@ func onTrayReady(rt *trayRuntime) {
 	systray.AddSeparator()
 	mAbout := systray.AddMenuItem(uiT(loc, "menu_about"), uiT(loc, "menu_about_tip"))
 	mRestart := systray.AddMenuItem(uiT(loc, "menu_restart"), uiT(loc, "menu_restart_tip"))
-	mUninstall := systray.AddMenuItem(uiT(loc, "menu_uninstall"), uiT(loc, "menu_uninstall_tip"))
 	mQuit := systray.AddMenuItem(uiT(loc, "menu_quit"), uiT(loc, "menu_quit_tip"))
 
 	go func() {
@@ -214,7 +213,7 @@ func onTrayReady(rt *trayRuntime) {
 			if loc != lastLoc {
 				lastLoc = loc
 				systray.SetTitle(uiT(loc, "tray_title"))
-				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mUninstall, mQuit, loc)
+				applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
 				applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 			}
 			mStatus.SetTitle(rt.status.menuStatusLine(loc))
@@ -242,7 +241,7 @@ func onTrayReady(rt *trayRuntime) {
 		agentLogLocale(code, "log_tray_ui_locale", uiLocaleOptionLogLabel(code))
 		loc = code
 		systray.SetTitle(uiT(loc, "tray_title"))
-		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mUninstall, mQuit, loc)
+		applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit, loc)
 		applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt, loc)
 		systray.SetTooltip(rt.status.tooltip(Version, loc))
 	}
@@ -284,13 +283,6 @@ func onTrayReady(rt *trayRuntime) {
 					continue
 				}
 				requestTrayRestart(rt)
-				return
-			case <-mUninstall.ClickedCh:
-				loc := rt.uiLocale()
-				if !confirmTrayUninstall(loc) {
-					continue
-				}
-				uninstallAgentWithUserData(rt)
 				return
 			case <-mQuit.ClickedCh:
 				loc := rt.uiLocale()

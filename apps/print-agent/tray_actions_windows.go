@@ -82,7 +82,7 @@ func applyTrayUILocaleSubmenu(mUILang, mLangZh, mLangEn, mLangPt interface {
 	mLangPt.SetTitle(uiLocaleOptionTitle(locale, "pt"))
 }
 
-func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mUninstall, mQuit interface {
+func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole, mAbout, mRestart, mQuit interface {
 	SetTitle(string)
 	SetTooltip(string)
 }, locale string) {
@@ -99,8 +99,6 @@ func applyTrayMenuLabels(mStatus, mSettings, mOpenLog, mOpenLogDir, mShowConsole
 	mAbout.SetTooltip(uiT(locale, "menu_about_tip"))
 	mRestart.SetTitle(uiT(locale, "menu_restart"))
 	mRestart.SetTooltip(uiT(locale, "menu_restart_tip"))
-	mUninstall.SetTitle(uiT(locale, "menu_uninstall"))
-	mUninstall.SetTooltip(uiT(locale, "menu_uninstall_tip"))
 	mQuit.SetTitle(uiT(locale, "menu_quit"))
 	mQuit.SetTooltip(uiT(locale, "menu_quit_tip"))
 }

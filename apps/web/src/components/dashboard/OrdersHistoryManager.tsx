@@ -1,19 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { DayPicker, type DateRange } from 'react-day-picker';
-import { endOfMonth, format, startOfMonth, startOfToday, subDays } from 'date-fns';
+import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns';
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
 import 'react-day-picker/dist/style.css';
 import '@mesa/ui/date-picker.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import { ORDER_HISTORY_MAX_TOTAL, type OrderHistoryEntry } from '@/lib/order-history/types';
-import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
-import { formatDateRangeFilter } from '@/lib/order-history/parse-query';
-import { useDebouncedOrderHistoryFilters, useOrderHistoryFeed } from '@/lib/use-order-history-feed';
+import type { OrderHistoryEntry } from '@/lib/order-history/types';
+import {
+  defaultOrderHistoryClosedRange,
+  formatOrderHistoryDateKey,
+  formatOrderHistoryPickerFilter,
+  orderHistoryClosedRangeToPicker,
+  ORDER_HISTORY_MAX_RANGE_DAYS,
+} from '@/lib/order-history/date-range';
+import { useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import {
   ORDER_HISTORY_FORCED_SUMMARY_CLASS,
@@ -24,14 +29,24 @@ import {
   OrderHistoryOutcomeBadge,
 } from '@/components/dashboard/OrderHistoryLifecycleSteps';
 import { resolveBillPrintButtonLabel } from '@/lib/order-history/order-history-print-labels';
-import { useStaffCheckoutBillPrint, staffBillPrintCooldownKey, staffSessionBillCooldownKey } from '@/lib/use-staff-checkout-bill-print';
+import {
+  useStaffCheckoutBillPrint,
+  staffBillPrintCooldownKey,
+  staffSessionBillCooldownKey,
+} from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
+import { showToast } from '@/components/ui/Toast';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
+import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
+import { daysBetweenInclusive } from '@/lib/lisbon-calendar';
+import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@/lib/paginate-list';
 
 interface Props {
   initialItems: OrderHistoryEntry[];
-  initialHasMore: boolean;
-  initialCappedTotal: number;
+  initialTotal: number;
   initialItemCodeByMenuId?: Record<string, string>;
+  initialClosedFrom: string;
+  initialClosedTo: string;
   tables?: RestaurantTableRow[];
   restaurantSlug: string;
 }
@@ -45,9 +60,10 @@ const META_SEP = <span className="text-brand-text-muted/50" aria-hidden>·</span
 
 export function OrdersHistoryManager({
   initialItems,
-  initialHasMore,
-  initialCappedTotal,
+  initialTotal,
   initialItemCodeByMenuId = {},
+  initialClosedFrom,
+  initialClosedTo,
   tables = [],
   restaurantSlug,
 }: Props) {
@@ -63,30 +79,45 @@ export function OrdersHistoryManager({
     isOnCooldown,
   } = useStaffCheckoutBillPrint(restaurantSlug);
 
+  const initialPickerRange = useMemo(
+    () =>
+      orderHistoryClosedRangeToPicker({
+        closedFrom: initialClosedFrom,
+        closedTo: initialClosedTo,
+      }),
+    [initialClosedFrom, initialClosedTo],
+  );
+
   const {
     entries,
-    hasMore,
-    cappedTotal,
+    total,
     itemCodeByMenuId,
-    filters,
+    page,
+    pageSize,
     loading,
     setFilters,
-    reload,
-    loadMore,
+    goToPage,
+    changePageSize,
   } = useOrderHistoryFeed({
     items: initialItems,
-    hasMore: initialHasMore,
-    cappedTotal: initialCappedTotal,
+    total: initialTotal,
     itemCodeByMenuId: initialItemCodeByMenuId,
-    filters: { tableIds: [] },
+    filters: {
+      tableIds: [],
+      closedFrom: initialClosedFrom,
+      closedTo: initialClosedTo,
+    },
+    page: 1,
+    pageSize: LIST_DEFAULT_PAGE_SIZE,
   });
 
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialPickerRange);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
   const pickerRef = useRef<HTMLDivElement | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const tableOptions = useMemo<TableOption[]>(
     () =>
@@ -148,14 +179,18 @@ export function OrdersHistoryManager({
 
   useEffect(() => {
     const tableIds = selectedTables.map((item) => item.value);
-    const { closedFrom, closedTo } = formatDateRangeFilter({
+    const closed = formatOrderHistoryPickerFilter({
       from: dateRange?.from,
       to: dateRange?.to,
     });
-    setFilters({ tableIds, closedFrom, closedTo });
+    if (!closed) {
+      const fallback = defaultOrderHistoryClosedRange();
+      setDateRange(orderHistoryClosedRangeToPicker(fallback));
+      setFilters({ tableIds, ...fallback });
+      return;
+    }
+    setFilters({ tableIds, ...closed });
   }, [dateRange, selectedTables, setFilters]);
-
-  useDebouncedOrderHistoryFilters(filters, reload);
 
   const rangeLabel = useMemo(() => {
     if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
@@ -173,13 +208,33 @@ export function OrdersHistoryManager({
       return;
     }
     if (preset === 'last7') {
-      setDateRange({ from: subDays(today, 6), to: today });
+      setDateRange(orderHistoryClosedRangeToPicker(defaultOrderHistoryClosedRange()));
       return;
     }
     setDateRange({ from: startOfMonth(today), to: endOfMonth(today) });
   };
 
-  const clearRange = () => setDateRange(undefined);
+  const resetRange = () => {
+    setDateRange(orderHistoryClosedRangeToPicker(defaultOrderHistoryClosedRange()));
+  };
+
+  const onPickerSelect = (next: DateRange | undefined) => {
+    if (!next?.from) {
+      resetRange();
+      return;
+    }
+    const fromKey = formatOrderHistoryDateKey(next.from);
+    const toKey = formatOrderHistoryDateKey(next.to ?? next.from);
+    if (daysBetweenInclusive(fromKey, toKey) > ORDER_HISTORY_MAX_RANGE_DAYS) {
+      showToast(i18n.dateRangeTooLong, 'error');
+    }
+    const closed = formatOrderHistoryPickerFilter(next);
+    if (!closed) {
+      resetRange();
+      return;
+    }
+    setDateRange(orderHistoryClosedRangeToPicker(closed));
+  };
 
   useEffect(() => {
     if (!pickerOpen) return;
@@ -198,20 +253,6 @@ export function OrdersHistoryManager({
       document.removeEventListener('keydown', onEsc);
     };
   }, [pickerOpen]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore || loading) return;
-
-    const observer = new IntersectionObserver(
-      (records) => {
-        if (records[0]?.isIntersecting) void loadMore();
-      },
-      { rootMargin: '120px' },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loadMore, loading]);
 
   const renderMetaAmount = (entry: OrderHistoryEntry) => {
     const { listAmount, listAmountKind } = entry.settlement;
@@ -278,66 +319,50 @@ export function OrdersHistoryManager({
     const isOperationalSource = isOperationalSourceCloseKind(entry.closeKind);
 
     return (
-    <div
-      key={entry.historyRecordId}
-      role="button"
-      tabIndex={0}
-      className={cardClass}
-      onClick={() => setSelectedEntry(entry)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          setSelectedEntry(entry);
-        }
-      }}
-    >
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
-        <span className="font-medium text-brand-text">
-          {i18n.table} {entry.displayName}
-        </span>
-        {META_SEP}
-        <OrderHistoryOutcomeBadge badge={outcomeBadge} />
-        {!isOperationalSource ? (
-          <>
-            {META_SEP}
-            <span className="text-brand-text-muted">
-              {entry.itemCount} {i18n.items}
-            </span>
-            {META_SEP}
-            {renderMetaAmount(entry)}
-            {renderPrintButton(entry)}
-          </>
-        ) : null}
-      </div>
-      <OrderHistoryLifecycleSteps
-        steps={lifecycleSteps}
-        i18n={i18n}
-        className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted"
-      />
+      <div
+        key={entry.historyRecordId}
+        role="button"
+        tabIndex={0}
+        className={cardClass}
+        onClick={() => setSelectedEntry(entry)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            setSelectedEntry(entry);
+          }
+        }}
+      >
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+          <span className="font-medium text-brand-text">
+            {i18n.table} {entry.displayName}
+          </span>
+          {META_SEP}
+          <OrderHistoryOutcomeBadge badge={outcomeBadge} />
+          {!isOperationalSource ? (
+            <>
+              {META_SEP}
+              <span className="text-brand-text-muted">
+                {entry.itemCount} {i18n.items}
+              </span>
+              {META_SEP}
+              {renderMetaAmount(entry)}
+              {renderPrintButton(entry)}
+            </>
+          ) : null}
+        </div>
+        <OrderHistoryLifecycleSteps
+          steps={lifecycleSteps}
+          i18n={i18n}
+          className="mt-2 space-y-0.5 text-[13px] text-brand-text-muted"
+        />
         {mergeSummaryLine ? (
           <p className="mt-0.5 text-[13px] text-brand-text">{mergeSummaryLine}</p>
         ) : null}
-      {forcedCloseSummary ? (
-        <p className={ORDER_HISTORY_FORCED_SUMMARY_CLASS}>{forcedCloseSummary}</p>
-      ) : null}
-    </div>
+        {forcedCloseSummary ? (
+          <p className={ORDER_HISTORY_FORCED_SUMMARY_CLASS}>{forcedCloseSummary}</p>
+        ) : null}
+      </div>
     );
-  };
-
-  const listFooter = (): ReactNode => {
-    if (loading && entries.length > 0) {
-      return <p className="py-3 text-center text-[13px] text-brand-text-muted">{i18n.loadingMore}</p>;
-    }
-    if (!hasMore && entries.length > 0) {
-      return (
-        <p className="py-3 text-center text-[13px] text-brand-text-muted">
-          {entries.length >= cappedTotal && cappedTotal >= ORDER_HISTORY_MAX_TOTAL
-            ? i18n.maxRecordsHint
-            : i18n.allLoaded}
-        </p>
-      );
-    }
-    return null;
   };
 
   return (
@@ -376,12 +401,12 @@ export function OrdersHistoryManager({
               <DayPicker
                 mode="range"
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={onPickerSelect}
                 className="mesa-rdp mesa-rdp--brand"
               />
               <div className="mt-3 flex items-center justify-between">
-                <button type="button" onClick={clearRange} className="text-[13px] text-brand-text-muted hover:text-brand-text">
-                  {i18n.clearDate}
+                <button type="button" onClick={resetRange} className="text-[13px] text-brand-text-muted hover:text-brand-text">
+                  {i18n.resetDate}
                 </button>
                 <button type="button" onClick={() => setPickerOpen(false)} className="text-[13px] text-brand-gold hover:underline">
                   OK
@@ -392,23 +417,37 @@ export function OrdersHistoryManager({
         </div>
       </div>
 
-      <div className="mb-3 text-[13px] text-brand-text-muted">
-        {i18n.total} {cappedTotal} {i18n.records}
-      </div>
-
       {loading && entries.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
-          <p className="text-brand-text-muted">{i18n.loadingMore}</p>
+          <p className="text-brand-text-muted">{i18n.loading}</p>
         </div>
       ) : entries.length === 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-2xl p-12 text-center">
           <p className="text-brand-text-muted">{i18n.empty}</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {entries.map(renderHistoryCard)}
-          <div ref={sentinelRef} className="h-1" aria-hidden />
-          {listFooter()}
+        <div className="bg-brand-card border border-brand-border rounded-2xl overflow-hidden">
+          <div className="space-y-3 p-3">
+            {entries.map(renderHistoryCard)}
+            {loading ? (
+              <p className="py-2 text-center text-[13px] text-brand-text-muted">{i18n.loading}</p>
+            ) : null}
+          </div>
+          <ListPaginationBar
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={pageSize}
+            labels={{
+              pageInfo: i18n.pageInfo,
+              pageSizeLabel: i18n.pageSizeLabel,
+              pagePrev: i18n.pagePrev,
+              pageNext: i18n.pageNext,
+            }}
+            onPageChange={goToPage}
+            onPageSizeChange={(next: ListPageSize) => changePageSize(next)}
+            disabled={loading}
+          />
         </div>
       )}
 

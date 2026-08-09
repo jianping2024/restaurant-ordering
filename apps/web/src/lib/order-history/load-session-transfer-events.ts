@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  orderHistoryDayEndIso,
+  orderHistoryDayStartIso,
+} from '@/lib/order-history/date-range';
 import type { OrderHistoryTransferEvent } from '@/lib/order-history/types';
 
 export type TransferOutEventRow = {
@@ -13,18 +17,6 @@ export type TransferOutEventRow = {
 };
 
 type TransferEventRow = TransferOutEventRow;
-
-function startOfDayIso(dateKey: string): string {
-  const date = new Date(dateKey);
-  date.setHours(0, 0, 0, 0);
-  return date.toISOString();
-}
-
-function endOfDayIso(dateKey: string): string {
-  const date = new Date(dateKey);
-  date.setHours(23, 59, 59, 999);
-  return date.toISOString();
-}
 
 type TransferOutEventFilters = {
   tableIds: string[];
@@ -45,10 +37,10 @@ function applyTransferOutEventFilters<T extends {
     next = next.in('from_table_id', filters.tableIds);
   }
   if (filters.closedFrom) {
-    next = next.gte('occurred_at', startOfDayIso(filters.closedFrom));
+    next = next.gte('occurred_at', orderHistoryDayStartIso(filters.closedFrom));
   }
   if (filters.closedTo) {
-    next = next.lte('occurred_at', endOfDayIso(filters.closedTo));
+    next = next.lte('occurred_at', orderHistoryDayEndIso(filters.closedTo));
   }
   return next;
 }

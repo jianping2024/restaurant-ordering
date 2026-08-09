@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { orderHistoryFiltersToSearchParams } from '@/lib/order-history/parse-query';
-import {
-  ORDER_HISTORY_PAGE_SIZE,
-  type OrderHistoryEntry,
-  type OrderHistoryFilters,
-  type OrderHistoryPageResult,
+import type {
+  OrderHistoryEntry,
+  OrderHistoryFilters,
+  OrderHistoryPageResult,
 } from '@/lib/order-history/types';
+import {
+  type ListPageSize,
+} from '@/lib/paginate-list';
 
-type FeedState = OrderHistoryPageResult & {
+type FeedState = {
+  items: OrderHistoryEntry[];
+  total: number;
+  itemCodeByMenuId: Record<string, string>;
   filters: OrderHistoryFilters;
+  page: number;
+  pageSize: ListPageSize;
 };
 
 const FILTER_DEBOUNCE_MS = 300;
@@ -28,78 +35,80 @@ export async function fetchOrderHistoryPage(
 
 export function useOrderHistoryFeed(initial: FeedState) {
   const [entries, setEntries] = useState<OrderHistoryEntry[]>(initial.items);
-  const [hasMore, setHasMore] = useState(initial.hasMore);
-  const [cappedTotal, setCappedTotal] = useState(initial.cappedTotal);
+  const [total, setTotal] = useState(initial.total);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState(initial.itemCodeByMenuId);
   const [filters, setFilters] = useState<OrderHistoryFilters>(initial.filters);
+  const [page, setPage] = useState(initial.page);
+  const [pageSize, setPageSize] = useState<ListPageSize>(initial.pageSize);
   const [loading, setLoading] = useState(false);
   const requestIdRef = useRef(0);
+  const skipFilterReloadRef = useRef(true);
 
-  const reload = useCallback(async (nextFilters: OrderHistoryFilters) => {
-    const requestId = ++requestIdRef.current;
-    setLoading(true);
-    const result = await fetchOrderHistoryPage(0, ORDER_HISTORY_PAGE_SIZE, nextFilters);
-    if (requestId !== requestIdRef.current) return;
-    setLoading(false);
-    if (!result) return;
-    setEntries(result.items);
-    setHasMore(result.hasMore);
-    setCappedTotal(result.cappedTotal);
-    setItemCodeByMenuId(result.itemCodeByMenuId);
-    setFilters(nextFilters);
-  }, []);
+  const loadPage = useCallback(
+    async (next: {
+      page: number;
+      pageSize: ListPageSize;
+      filters: OrderHistoryFilters;
+    }) => {
+      const requestId = ++requestIdRef.current;
+      setLoading(true);
+      const offset = (next.page - 1) * next.pageSize;
+      const result = await fetchOrderHistoryPage(offset, next.pageSize, next.filters);
+      if (requestId !== requestIdRef.current) return;
+      setLoading(false);
+      if (!result) return;
+      setEntries(result.items);
+      setTotal(result.total);
+      setItemCodeByMenuId(result.itemCodeByMenuId);
+      setFilters(next.filters);
+      setPage(next.page);
+      setPageSize(next.pageSize);
+    },
+    [],
+  );
 
-  const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
-    const requestId = ++requestIdRef.current;
-    setLoading(true);
-    const result = await fetchOrderHistoryPage(entries.length, ORDER_HISTORY_PAGE_SIZE, filters);
-    if (requestId !== requestIdRef.current) return;
-    setLoading(false);
-    if (!result) return;
-
-    setEntries((prev) => {
-      const seen = new Set(prev.map((entry) => entry.sessionId));
-      const merged = [...prev];
-      for (const item of result.items) {
-        if (seen.has(item.sessionId)) continue;
-        merged.push(item);
-        seen.add(item.sessionId);
-      }
-      return merged;
-    });
-    setHasMore(result.hasMore);
-    setCappedTotal(result.cappedTotal);
-    setItemCodeByMenuId((prev) => ({ ...prev, ...result.itemCodeByMenuId }));
-  }, [entries.length, filters, hasMore, loading]);
-
-  return {
-    entries,
-    hasMore,
-    cappedTotal,
-    itemCodeByMenuId,
-    filters,
-    loading,
-    setFilters,
-    reload,
-    loadMore,
-  };
-}
-
-export function useDebouncedOrderHistoryFilters(
-  filters: OrderHistoryFilters,
-  reload: (filters: OrderHistoryFilters) => Promise<void>,
-) {
-  const isFirstRun = useRef(true);
+  const reloadFromFilters = useCallback(
+    async (nextFilters: OrderHistoryFilters) => {
+      await loadPage({ page: 1, pageSize, filters: nextFilters });
+    },
+    [loadPage, pageSize],
+  );
 
   useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
+    if (skipFilterReloadRef.current) {
+      skipFilterReloadRef.current = false;
       return;
     }
     const timer = window.setTimeout(() => {
-      void reload(filters);
+      void reloadFromFilters(filters);
     }, FILTER_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [filters, reload]);
+  }, [filters, reloadFromFilters]);
+
+  const goToPage = useCallback(
+    (nextPage: number) => {
+      void loadPage({ page: nextPage, pageSize, filters });
+    },
+    [filters, loadPage, pageSize],
+  );
+
+  const changePageSize = useCallback(
+    (nextSize: ListPageSize) => {
+      void loadPage({ page: 1, pageSize: nextSize, filters });
+    },
+    [filters, loadPage],
+  );
+
+  return {
+    entries,
+    total,
+    itemCodeByMenuId,
+    filters,
+    page,
+    pageSize,
+    loading,
+    setFilters,
+    goToPage,
+    changePageSize,
+  };
 }

@@ -1,28 +1,73 @@
+import {
+  defaultOrderHistoryClosedRange,
+  parseOrderHistoryClosedRange,
+  type OrderHistoryClosedRange,
+} from '@/lib/order-history/date-range';
 import type { OrderHistoryFilters } from '@/lib/order-history/types';
+import {
+  isListPageSize,
+  LIST_DEFAULT_PAGE_SIZE,
+  type ListPageSize,
+} from '@/lib/paginate-list';
+
+export type ParsedOrderHistorySearchParams =
+  | {
+      ok: true;
+      offset: number;
+      limit: number;
+      filters: OrderHistoryFilters;
+    }
+  | { ok: false; code: 'invalid_date_range' };
 
 export function parseOrderHistorySearchParams(
   searchParams: URLSearchParams,
-): {
-  offset: number;
-  limit: number;
-  filters: OrderHistoryFilters;
-} {
+): ParsedOrderHistorySearchParams {
   const offset = Math.max(0, Number(searchParams.get('offset') || 0) || 0);
-  const limit = Math.max(1, Math.min(20, Number(searchParams.get('limit') || 10) || 10));
+  const limitRaw = Number(searchParams.get('limit') || LIST_DEFAULT_PAGE_SIZE) || LIST_DEFAULT_PAGE_SIZE;
 
   const tableIds = (searchParams.get('tableIds') || '')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
 
-  const closedFrom = searchParams.get('closedFrom')?.trim() || undefined;
-  const closedTo = searchParams.get('closedTo')?.trim() || undefined;
   const sessionId = searchParams.get('sessionId')?.trim() || undefined;
+  const closedFromRaw = searchParams.get('closedFrom')?.trim() || undefined;
+  const closedToRaw = searchParams.get('closedTo')?.trim() || undefined;
+
+  if (sessionId) {
+    return {
+      ok: true,
+      offset,
+      limit: Math.max(1, Math.min(20, Number.isFinite(limitRaw) ? limitRaw : 1)),
+      filters: {
+        tableIds,
+        sessionId,
+        closedFrom: closedFromRaw,
+        closedTo: closedToRaw,
+      },
+    };
+  }
+
+  const limit: ListPageSize = isListPageSize(limitRaw) ? limitRaw : LIST_DEFAULT_PAGE_SIZE;
+
+  const parsedRange = parseOrderHistoryClosedRange({
+    closedFrom: closedFromRaw,
+    closedTo: closedToRaw,
+    applyDefaultWhenMissing: true,
+  });
+  if (!parsedRange.ok) {
+    return { ok: false, code: 'invalid_date_range' };
+  }
 
   return {
+    ok: true,
     offset,
     limit,
-    filters: { tableIds, closedFrom, closedTo, sessionId },
+    filters: {
+      tableIds,
+      closedFrom: parsedRange.range.closedFrom,
+      closedTo: parsedRange.range.closedTo,
+    },
   };
 }
 
@@ -44,22 +89,20 @@ export function orderHistoryFiltersToSearchParams(
   return params;
 }
 
-export function formatDateRangeFilter(range: { from?: Date; to?: Date }): Pick<
-  OrderHistoryFilters,
-  'closedFrom' | 'closedTo'
-> {
-  const closedFrom = range.from ? formatDateKey(range.from) : undefined;
-  const closedTo = range.to
-    ? formatDateKey(range.to)
-    : range.from
-      ? formatDateKey(range.from)
-      : undefined;
-  return { closedFrom, closedTo };
-}
-
-function formatDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+export function resolveListFiltersOrDefault(
+  filters: Pick<OrderHistoryFilters, 'tableIds' | 'closedFrom' | 'closedTo'> = {
+    tableIds: [],
+  },
+): OrderHistoryFilters & OrderHistoryClosedRange {
+  const parsed = parseOrderHistoryClosedRange({
+    closedFrom: filters.closedFrom,
+    closedTo: filters.closedTo,
+    applyDefaultWhenMissing: true,
+  });
+  const range = parsed.ok ? parsed.range : defaultOrderHistoryClosedRange();
+  return {
+    tableIds: filters.tableIds,
+    closedFrom: range.closedFrom,
+    closedTo: range.closedTo,
+  };
 }

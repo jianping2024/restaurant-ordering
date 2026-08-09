@@ -41,12 +41,16 @@ import {
   menuItemCodeLookupFromRows,
 } from '@/lib/menu-item-code';
 import {
-  ORDER_HISTORY_MAX_TOTAL,
-  ORDER_HISTORY_PAGE_SIZE,
-  type OrderHistoryEntry,
-  type OrderHistoryPageResult,
-  type OrderHistoryQuery,
+  orderHistoryDayEndIso,
+  orderHistoryDayStartIso,
+} from '@/lib/order-history/date-range';
+import { resolveListFiltersOrDefault } from '@/lib/order-history/parse-query';
+import type {
+  OrderHistoryEntry,
+  OrderHistoryPageResult,
+  OrderHistoryQuery,
 } from '@/lib/order-history/types';
+import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 import type { Order } from '@/types';
 
 type ClosedSessionRow = {
@@ -67,18 +71,6 @@ type TransferSourceSessionMetaRow = {
   opened_by_user_id: string | null;
 };
 
-function startOfDayIso(dateKey: string): string {
-  const date = new Date(dateKey);
-  date.setHours(0, 0, 0, 0);
-  return date.toISOString();
-}
-
-function endOfDayIso(dateKey: string): string {
-  const date = new Date(dateKey);
-  date.setHours(23, 59, 59, 999);
-  return date.toISOString();
-}
-
 function applyDateSessionFilters<T extends {
   gte(column: string, value: string): T;
   lte(column: string, value: string): T;
@@ -88,10 +80,10 @@ function applyDateSessionFilters<T extends {
 ): T {
   let next = query;
   if (filters.closedFrom) {
-    next = next.gte('closed_at', startOfDayIso(filters.closedFrom));
+    next = next.gte('closed_at', orderHistoryDayStartIso(filters.closedFrom));
   }
   if (filters.closedTo) {
-    next = next.lte('closed_at', endOfDayIso(filters.closedTo));
+    next = next.lte('closed_at', orderHistoryDayEndIso(filters.closedTo));
   }
   return next;
 }
@@ -234,24 +226,18 @@ function mergeHistoryFeed(
   offset: number,
   limit: number,
   matchingTotal: number,
-  maxTotal: number,
-): Pick<OrderHistoryPageResult, 'items' | 'cappedTotal' | 'hasMore'> {
+): Pick<OrderHistoryPageResult, 'items' | 'total'> {
   const merged = [...closedEntries, ...transferSourceEntries].sort((left, right) =>
     right.closedAt.localeCompare(left.closedAt),
   );
 
-  const cappedTotal = Math.min(matchingTotal, maxTotal);
   const items = merged.slice(offset, offset + limit);
-  const loadedThrough = offset + items.length;
-  const hasMore = items.length === limit && loadedThrough < cappedTotal;
-
-  return { items, cappedTotal, hasMore };
+  return { items, total: matchingTotal };
 }
 
 const EMPTY_PAGE: OrderHistoryPageResult = {
   items: [],
-  cappedTotal: 0,
-  hasMore: false,
+  total: 0,
   itemCodeByMenuId: {},
 };
 
@@ -259,10 +245,9 @@ export async function loadOrderHistoryEntries(
   admin: SupabaseClient,
   query: OrderHistoryQuery,
 ): Promise<OrderHistoryPageResult> {
-  const maxTotal = query.maxTotal ?? ORDER_HISTORY_MAX_TOTAL;
-  const limit = Math.min(query.limit, maxTotal - query.offset);
-  if (limit <= 0 || query.offset >= maxTotal) {
-    return { ...EMPTY_PAGE, cappedTotal: 0 };
+  const limit = Math.max(1, query.limit);
+  if (limit <= 0 || query.offset < 0) {
+    return EMPTY_PAGE;
   }
 
   const eventFilters = {
@@ -294,6 +279,9 @@ export async function loadOrderHistoryEntries(
   }
 
   const matchingTotal = (count ?? 0) + transferOutCount;
+  if (query.offset > 0 && query.offset >= matchingTotal) {
+    return { ...EMPTY_PAGE, total: matchingTotal };
+  }
 
   let sessionQuery = admin
     .from('table_sessions')
@@ -302,8 +290,7 @@ export async function loadOrderHistoryEntries(
     )
     .eq('restaurant_id', query.restaurantId)
     .eq('status', 'closed')
-    .order('closed_at', { ascending: false })
-    .limit(maxTotal);
+    .order('closed_at', { ascending: false });
 
   sessionQuery = applySessionFilters(sessionQuery, query);
 
@@ -455,16 +442,15 @@ export async function loadOrderHistoryEntries(
       )
     : [];
 
-  const { items, cappedTotal, hasMore } = mergeHistoryFeed(
+  const { items, total } = mergeHistoryFeed(
     closedEntries,
     transferSourceEntries,
     query.offset,
     limit,
     matchingTotal,
-    maxTotal,
   );
 
-  return { items, cappedTotal, hasMore, itemCodeByMenuId };
+  return { items, total, itemCodeByMenuId };
 }
 
 export function defaultOrderHistoryQuery(
@@ -473,16 +459,21 @@ export function defaultOrderHistoryQuery(
     tableIds: [],
   },
 ): OrderHistoryQuery {
+  const listFilters = filters.sessionId
+    ? {
+        tableIds: filters.tableIds,
+        closedFrom: filters.closedFrom,
+        closedTo: filters.closedTo,
+        sessionId: filters.sessionId,
+      }
+    : resolveListFiltersOrDefault(filters);
+
   return {
     restaurantId: restaurant.id,
     ownerId: restaurant.owner_id,
     restaurantName: restaurant.name,
     offset: 0,
-    limit: ORDER_HISTORY_PAGE_SIZE,
-    maxTotal: ORDER_HISTORY_MAX_TOTAL,
-    tableIds: filters.tableIds,
-    closedFrom: filters.closedFrom,
-    closedTo: filters.closedTo,
-    sessionId: filters.sessionId,
+    limit: LIST_DEFAULT_PAGE_SIZE,
+    ...listFilters,
   };
 }

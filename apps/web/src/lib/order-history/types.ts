@@ -108,9 +108,6 @@ export type OrderHistoryEntry = {
   orders: Order[];
 };
 
-export const ORDER_HISTORY_PAGE_SIZE = 10;
-export const ORDER_HISTORY_MAX_TOTAL = 100;
-
 export type OrderHistoryFilters = {
   tableIds: string[];
   closedFrom?: string;
@@ -125,12 +122,11 @@ export type OrderHistoryQuery = OrderHistoryFilters & {
   restaurantName: string;
   offset: number;
   limit: number;
-  maxTotal?: number;
 };
 
 export type OrderHistoryPageResult = {
   items: OrderHistoryEntry[];
-  cappedTotal: number;
-  hasMore: boolean;
+  /** Matching rows in the active closed-date window (or 1 for sessionId deep link). */
+  total: number;
   itemCodeByMenuId: Record<string, string>;
 };

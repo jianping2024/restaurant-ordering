@@ -4,13 +4,10 @@ import {
   defaultOrderHistoryQuery,
   loadOrderHistoryEntries,
 } from '@/lib/order-history/load-entries';
-import {
-  ORDER_HISTORY_MAX_TOTAL,
-  ORDER_HISTORY_PAGE_SIZE,
-} from '@/lib/order-history/types';
+import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 
 describe('defaultOrderHistoryQuery', () => {
-  it('returns first page with default filters', () => {
+  it('returns first page with default last-7 closed range', () => {
     const query = defaultOrderHistoryQuery({
       id: 'rest-1',
       owner_id: 'owner-1',
@@ -21,17 +18,41 @@ describe('defaultOrderHistoryQuery', () => {
     assert.equal(query.ownerId, 'owner-1');
     assert.equal(query.restaurantName, 'Test Restaurant');
     assert.equal(query.offset, 0);
-    assert.equal(query.limit, ORDER_HISTORY_PAGE_SIZE);
-    assert.equal(query.maxTotal, ORDER_HISTORY_MAX_TOTAL);
+    assert.equal(query.limit, LIST_DEFAULT_PAGE_SIZE);
     assert.deepEqual(query.tableIds, []);
+    assert.ok(query.closedFrom);
+    assert.ok(query.closedTo);
+    assert.ok(query.closedFrom <= query.closedTo);
   });
 });
 
 describe('loadOrderHistoryEntries', () => {
-  it('returns empty result when offset exceeds max total', async () => {
+  it('returns empty items with total when offset is past matching total', async () => {
     const admin = {
-      from() {
-        throw new Error('should not query');
+      from(table: string) {
+        if (table !== 'table_sessions') {
+          throw new Error(`unexpected table ${table}`);
+        }
+        return {
+          select() {
+            return this;
+          },
+          eq() {
+            return this;
+          },
+          gte() {
+            return this;
+          },
+          lte() {
+            return this;
+          },
+          order() {
+            return this;
+          },
+          then(resolve: (value: { count: number; error: null; data: unknown[] }) => unknown) {
+            return Promise.resolve(resolve({ count: 2, error: null, data: [] }));
+          },
+        };
       },
     };
 
@@ -39,11 +60,13 @@ describe('loadOrderHistoryEntries', () => {
       restaurantId: 'rest-1',
       ownerId: 'owner-1',
       restaurantName: 'Test Restaurant',
-      offset: ORDER_HISTORY_MAX_TOTAL,
-      limit: ORDER_HISTORY_PAGE_SIZE,
+      offset: 10,
+      limit: LIST_DEFAULT_PAGE_SIZE,
       tableIds: [],
+      sessionId: 'sess-1',
     });
 
-    assert.deepEqual(result, { items: [], cappedTotal: 0, hasMore: false, itemCodeByMenuId: {} });
+    assert.equal(result.items.length, 0);
+    assert.equal(result.total, 2);
   });
 });

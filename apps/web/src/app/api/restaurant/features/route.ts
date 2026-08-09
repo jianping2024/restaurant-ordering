@@ -15,12 +15,41 @@ import { mergeStoredPrintAgentConfig } from '@/lib/print-agent-config-patch-serv
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
+import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
 import type { PermissionKey } from '@/lib/permissions/registry';
 
 export const runtime = 'nodejs';
 
 const ORDER_COOLDOWN_SECONDS_MIN = 5;
 const ORDER_COOLDOWN_SECONDS_MAX = 60;
+
+function featureSettingsResponse(input: {
+  featureFlags: unknown;
+  printAgentConfig: unknown;
+  orderCooldownSeconds: unknown;
+  printLocale: string | null | undefined;
+}) {
+  return {
+    flags: normalizeRestaurantFeatureFlags(input.featureFlags),
+    credentialTtlDays: resolvePrintAgentCredentialTtlDays(input.printAgentConfig),
+    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(input.printAgentConfig),
+    orderCooldownSeconds: Math.max(
+      ORDER_COOLDOWN_SECONDS_MIN,
+      Math.min(
+        ORDER_COOLDOWN_SECONDS_MAX,
+        Number(input.orderCooldownSeconds ?? ORDER_COOLDOWN_SECONDS_MIN),
+      ),
+    ),
+    printLocale: normalizePrintLocale(input.printLocale),
+  };
+}
+
+function parsePrintLocalePatch(body: unknown): 'pt' | 'en' | 'zh' | undefined | null {
+  if (!body || typeof body !== 'object' || !('printLocale' in body)) return undefined;
+  const raw = (body as { printLocale?: unknown }).printLocale;
+  if (typeof raw !== 'string' || !isPrintLocale(raw)) return null;
+  return raw;
+}
 
 function parseOrderCooldownSecondsPatch(body: unknown): number | undefined | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
@@ -56,7 +85,7 @@ export async function GET() {
 
   const { data, error } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds')
+    .select('feature_flags, print_agent_config, order_cooldown_seconds, print_locale')
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -67,18 +96,14 @@ export async function GET() {
     return NextResponse.json({ error: 'query_failed' }, { status: 500 });
   }
 
-  return NextResponse.json({
-    flags: normalizeRestaurantFeatureFlags(data?.feature_flags),
-    credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
-    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
-    orderCooldownSeconds: Math.max(
-      ORDER_COOLDOWN_SECONDS_MIN,
-      Math.min(
-        ORDER_COOLDOWN_SECONDS_MAX,
-        Number(data?.order_cooldown_seconds ?? ORDER_COOLDOWN_SECONDS_MIN),
-      ),
-    ),
-  });
+  return NextResponse.json(
+    featureSettingsResponse({
+      featureFlags: data?.feature_flags,
+      printAgentConfig: data?.print_agent_config,
+      orderCooldownSeconds: data?.order_cooldown_seconds,
+      printLocale: data?.print_locale,
+    }),
+  );
 }
 
 export async function PATCH(req: Request) {
@@ -97,11 +122,13 @@ export async function PATCH(req: Request) {
   const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
   const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
+  const printLocale = parsePrintLocalePatch(body);
   if (
     !patch &&
     credentialTtlDays === undefined &&
     stationSlipShowCategoryGroup === undefined &&
-    orderCooldownSeconds === undefined
+    orderCooldownSeconds === undefined &&
+    printLocale === undefined
   ) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
@@ -114,6 +141,9 @@ export async function PATCH(req: Request) {
   if (orderCooldownSeconds === null) {
     return NextResponse.json({ error: 'invalid_order_cooldown_seconds' }, { status: 400 });
   }
+  if (printLocale === null) {
+    return NextResponse.json({ error: 'invalid_print_locale' }, { status: 400 });
+  }
 
   let admin;
   try {
@@ -124,7 +154,7 @@ export async function PATCH(req: Request) {
 
   const { data: row, error: readError } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds, suspended_at')
+    .select('feature_flags, print_agent_config, order_cooldown_seconds, print_locale, suspended_at')
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -158,6 +188,7 @@ export async function PATCH(req: Request) {
     feature_flags?: Record<string, unknown>;
     print_agent_config?: unknown;
     order_cooldown_seconds?: number;
+    print_locale?: 'pt' | 'en' | 'zh';
   } = {};
   if (patch) {
     updatePayload.feature_flags = mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch);
@@ -165,6 +196,9 @@ export async function PATCH(req: Request) {
   if (nextConfig) updatePayload.print_agent_config = nextConfig;
   if (orderCooldownSeconds !== undefined) {
     updatePayload.order_cooldown_seconds = orderCooldownSeconds;
+  }
+  if (printLocale !== undefined && printLocale !== null) {
+    updatePayload.print_locale = printLocale;
   }
 
   const { error } = await admin
@@ -185,16 +219,11 @@ export async function PATCH(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    flags: nextFlags,
-    credentialTtlDays: resolvePrintAgentCredentialTtlDays(
-      nextConfig ?? row?.print_agent_config,
-    ),
-    stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(
-      nextConfig ?? row?.print_agent_config,
-    ),
-    orderCooldownSeconds: Math.max(
-      ORDER_COOLDOWN_SECONDS_MIN,
-      Math.min(ORDER_COOLDOWN_SECONDS_MAX, nextOrderCooldownSeconds),
-    ),
+    ...featureSettingsResponse({
+      featureFlags: nextFlags,
+      printAgentConfig: nextConfig ?? row?.print_agent_config,
+      orderCooldownSeconds: nextOrderCooldownSeconds,
+      printLocale: printLocale ?? row?.print_locale,
+    }),
   });
 }

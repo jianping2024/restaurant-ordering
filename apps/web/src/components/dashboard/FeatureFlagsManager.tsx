@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { printLocaleOption, SUPPORTED_PRINT_LOCALES, type PrintLocale } from '@/lib/i18n';
 import {
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,
@@ -19,6 +20,7 @@ type Props = {
   initialCredentialTtlDays: number;
   initialStationSlipShowCategoryGroup: boolean;
   initialOrderCooldownSeconds: number;
+  initialPrintLocale: PrintLocale;
 };
 
 export function FeatureFlagsManager({
@@ -27,6 +29,7 @@ export function FeatureFlagsManager({
   initialCredentialTtlDays,
   initialStationSlipShowCategoryGroup,
   initialOrderCooldownSeconds,
+  initialPrintLocale,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -37,6 +40,7 @@ export function FeatureFlagsManager({
     initialStationSlipShowCategoryGroup,
   );
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
+  const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -55,6 +59,7 @@ export function FeatureFlagsManager({
           credentialTtlDays,
           stationSlipShowCategoryGroup,
           orderCooldownSeconds,
+          printLocale,
         }),
       });
 
@@ -64,6 +69,7 @@ export function FeatureFlagsManager({
         credentialTtlDays?: number;
         stationSlipShowCategoryGroup?: boolean;
         orderCooldownSeconds?: number;
+        printLocale?: PrintLocale;
       };
 
       if (!res.ok) {
@@ -79,6 +85,7 @@ export function FeatureFlagsManager({
         setStationSlipShowCategoryGroup(json.stationSlipShowCategoryGroup);
       }
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
+      if (json.printLocale) setPrintLocale(json.printLocale);
 
       router.refresh();
       setSuccess(true);
@@ -130,6 +137,36 @@ export function FeatureFlagsManager({
             </div>
           </section>
         ))}
+
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.printLocale}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
+            <p className="text-[13px] text-brand-text-muted mb-3">{t.printLocaleDesc}</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {SUPPORTED_PRINT_LOCALES.map((optionId) => {
+                const option = printLocaleOption(optionId);
+                const selected = printLocale === optionId;
+                return (
+                  <button
+                    key={optionId}
+                    type="button"
+                    onClick={() => setPrintLocale(optionId)}
+                    className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+                      selected
+                        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+                        : 'border-brand-border bg-white/80 text-brand-text hover:border-brand-gold/60'
+                    }`}
+                    aria-pressed={selected}
+                  >
+                    <span className="block font-medium">{option.nativeName}</span>
+                    <span className="block text-xs text-brand-text-muted">{option.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
         <section>
           <h2 className="text-sm font-medium text-brand-text mb-2">{t.modulePrintAgent}</h2>

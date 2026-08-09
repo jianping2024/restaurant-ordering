@@ -1,4 +1,5 @@
 export type UILanguage = 'zh' | 'en' | 'pt' | 'es' | 'fr' | 'de';
+export type PrintLocale = Extract<UILanguage, 'zh' | 'en' | 'pt'>;
 
 export const UI_LANG_COOKIE = 'mesa-ui-lang';
 /** @deprecated Migrated to {@link UI_LANG_COOKIE}; read once then removed. */
@@ -29,6 +30,7 @@ export const UI_LANGUAGE_OPTIONS: readonly {
 ] as const;
 
 export const SUPPORTED_UI_LANGS: UILanguage[] = UI_LANGUAGE_OPTIONS.map((o) => o.id);
+export const SUPPORTED_PRINT_LOCALES: PrintLocale[] = ['pt', 'en', 'zh'];
 
 /** Options shown in LanguageSwitcher — derived once from the catalog. */
 export const UI_LANGUAGE_PICKER_OPTIONS = UI_LANGUAGE_OPTIONS.filter((o) => o.pickerVisible);
@@ -82,4 +84,16 @@ export function setClientLanguage(lang: UILanguage) {
   localStorage.setItem(UI_LANG_COOKIE, lang);
   localStorage.removeItem(LEGACY_UI_LANG_STORAGE_KEY);
   document.cookie = `${UI_LANG_COOKIE}=${lang}; path=/; max-age=31536000; samesite=lax`;
+}
+
+export function isPrintLocale(value: string | null | undefined): value is PrintLocale {
+  return !!value && SUPPORTED_PRINT_LOCALES.includes(value as PrintLocale);
+}
+
+export function normalizePrintLocale(value: string | null | undefined): PrintLocale {
+  return isPrintLocale(value) ? value : 'pt';
+}
+
+export function printLocaleOption(id: PrintLocale) {
+  return uiLanguageOption(id);
 }

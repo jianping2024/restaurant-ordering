@@ -5,7 +5,7 @@ import type { PermissionKey } from '@/lib/permissions/registry';
 export default async function SettingsFeaturesPage() {
   const permission: PermissionKey = 'settings.features.manage';
   const restaurant = await requireRestaurantForSettingsPermission(permission);
-  const data = await loadFeatureSettingsPageData(restaurant.id, restaurant.feature_flags);
+  const data = await loadFeatureSettingsPageData(restaurant.id, restaurant.feature_flags, restaurant.print_locale);
   return (
     <FeatureFlagsManager
       embedded
@@ -13,6 +13,7 @@ export default async function SettingsFeaturesPage() {
       initialCredentialTtlDays={data.credentialTtlDays}
       initialStationSlipShowCategoryGroup={data.stationSlipShowCategoryGroup}
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
+      initialPrintLocale={data.printLocale}
     />
   );
 }

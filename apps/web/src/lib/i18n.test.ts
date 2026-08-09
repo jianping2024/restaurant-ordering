@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
-import { getClientLanguage, setClientLanguage, UI_LANG_COOKIE } from './i18n';
+import { getClientLanguage, normalizePrintLocale, printLocaleOption, setClientLanguage, UI_LANG_COOKIE } from './i18n';
 
 const LEGACY_KEY = 'mesa-lang';
 
@@ -67,5 +67,16 @@ describe('getClientLanguage', () => {
     setClientLanguage('en');
     assert.equal(data.get(UI_LANG_COOKIE), 'en');
     assert.equal(data.has(LEGACY_KEY), false);
+  });
+});
+
+describe('print locale', () => {
+  it('defaults to Portuguese and reuses UI language option labels', () => {
+    assert.equal(normalizePrintLocale(null), 'pt');
+    assert.equal(normalizePrintLocale('de'), 'pt');
+    assert.equal(normalizePrintLocale('zh'), 'zh');
+    assert.equal(printLocaleOption('pt').id, 'pt');
+    assert.equal(printLocaleOption('en').id, 'en');
+    assert.equal(printLocaleOption('zh').id, 'zh');
   });
 });

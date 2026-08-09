@@ -9,6 +9,7 @@ import {
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
 import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
+import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import { listHumanStaffAccountsForRestaurant } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -94,12 +95,14 @@ export type FeatureSettingsPageData = {
   credentialTtlDays: number;
   stationSlipShowCategoryGroup: boolean;
   orderCooldownSeconds: number;
+  printLocale: PrintLocale;
 };
 
 /** Loads print-agent config only; feature_flags come from cached dashboard access. */
 export async function loadFeatureSettingsPageData(
   restaurantId: string,
   featureFlags: Restaurant['feature_flags'],
+  printLocale: Restaurant['print_locale'],
 ): Promise<FeatureSettingsPageData> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -118,6 +121,7 @@ export async function loadFeatureSettingsPageData(
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
     orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
+    printLocale: normalizePrintLocale(printLocale),
   };
 }
 

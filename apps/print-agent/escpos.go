@@ -369,27 +369,6 @@ func (w *escposWriter) text(s string) {
 	w.lastTextBitmap = false
 }
 
-// textBitmapFont prints Han via bitmap at an explicit px size (notes use 16).
-func (w *escposWriter) textBitmapFont(s string, fontPx int) {
-	if w.textMode == escposTextBitmap && needsBitmapText(s) {
-		w.content.Write(escposBitmapText(s, bitmapTextStyle{
-			Align:     w.alignMode,
-			Bold:      w.boldOn,
-			Underline: w.underlineOn,
-			FontPx:    fontPx,
-		}))
-		w.lastTextBitmap = true
-		return
-	}
-	w.text(s)
-}
-
-// writeLatinRaw always emits Windows-1252 (Observação: prefix stays ESC/POS sized).
-func (w *escposWriter) writeLatinRaw(s string) {
-	w.content.Write(encodeWindows1252(s))
-	w.lastTextBitmap = false
-}
-
 func (w *escposWriter) lf() {
 	if w.lastTextBitmap {
 		w.lastTextBitmap = false
@@ -662,31 +641,11 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
 	w.writeBody1x2()
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
 	maxW := stationSlipNoteMaxWidth(width)
-	prefix := escposItemNotePrefix
 	w.underline(true)
-
-	// Latin-only notes: one wrap pass (prefix+body), ESC/POS text.
-	if !(w.textMode == escposTextBitmap && needsBitmapText(note)) {
-		for _, line := range wrapDisplay(prefix+note, maxW) {
-			w.text(indent + line)
-			w.lf()
-		}
-		w.underline(false)
-		return
-	}
-
-	// Han notes: Observação: stays ESC/POS 1×2; Chinese body bitmap 16px, wrap only.
-	w.writeLatinRaw(indent + prefix)
-	firstMax := maxW - displayWidth(prefix)
-	chunks := wrapDisplayFirstRest(note, firstMax, maxW)
-	contPad := indent + strings.Repeat(" ", displayWidth(prefix))
-	for i, chunk := range chunks {
-		if i == 0 {
-			w.textBitmapFont(chunk, bitmapFontNotePx)
-		} else {
-			w.writeLatinRaw(contPad)
-			w.textBitmapFont(chunk, bitmapFontNotePx)
-		}
+	// One channel per line (0.3.68 contract): wrap prefix+body, then w.text.
+	// Han → whole-line bitmap via text(); never Latin prefix + half-line GS v 0.
+	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
+		w.text(indent + line)
 		w.lf()
 	}
 	w.underline(false)

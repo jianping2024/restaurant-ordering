@@ -37,17 +37,13 @@ func TestRenderBitmapTextHasInkForHan(t *testing.T) {
 func TestEscposBitmapTextWrapsNeverTruncates(t *testing.T) {
 	// Wider than one paper line in display cols — must wrap, no ellipsis.
 	long := stringsRepeatHan(40) // 80 display cols
-	raw := escposBitmapText(long, bitmapTextStyle{FontPx: bitmapFontNotePx})
+	raw := escposBitmapText(long, bitmapTextStyle{FontPx: bitmapFontDishPx})
 	if bytes.Contains(raw, []byte("…")) || bytes.Contains(raw, []byte{0xe2, 0x80, 0xa6}) {
 		t.Fatal("bitmap path must not emit ellipsis truncation")
 	}
 	gsCount := bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00})
 	if gsCount < 2 {
 		t.Fatalf("expected multiple rasters for wrap, got %d", gsCount)
-	}
-	img := renderBitmapText("我要冰的", bitmapTextStyle{FontPx: bitmapFontNotePx})
-	if img.Height != bitmapFontNotePx {
-		t.Fatalf("note FontPx height want %d got %d", bitmapFontNotePx, img.Height)
 	}
 }
 

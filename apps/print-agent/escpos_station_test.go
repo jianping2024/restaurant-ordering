@@ -278,9 +278,13 @@ func TestStationTicketHanNoteUsesBitmapFeed(t *testing.T) {
 	if !bytes.Contains(raw, []byte{0x1B, 0x4A}) {
 		t.Fatal("expected ESC J feed after bitmap")
 	}
-	// Observação: is Latin ESC/POS (Windows-1252), not lost to bitmap-only path.
-	if !bytes.Contains(raw, encodeWindows1252("Observação: ")) {
-		t.Fatal("expected Latin Observação: prefix")
+	// Whole-line note (0.3.68): Observação:+Han is one bitmap — must NOT emit Latin prefix then GS v 0.
+	obsLatin := encodeWindows1252("Observação: ")
+	if idx := bytes.Index(raw, obsLatin); idx >= 0 {
+		after := raw[idx+len(obsLatin):]
+		if i := bytes.Index(after, []byte{0x1D, 0x76, 0x30, 0x00}); i >= 0 && i < 8 {
+			t.Fatal("Han note must not mix Latin Observação: with immediately following GS v 0")
+		}
 	}
 	if bytes.Contains(raw, []byte("…")) {
 		t.Fatal("Han note ticket must not truncate with ellipsis")
@@ -289,14 +293,9 @@ func TestStationTicketHanNoteUsesBitmapFeed(t *testing.T) {
 	if dish.Height != bitmapFontDishPx {
 		t.Fatalf("dish bitmap height want %d got %d", bitmapFontDishPx, dish.Height)
 	}
-	note := renderBitmapText("我要冰的", bitmapTextStyle{FontPx: bitmapFontNotePx})
-	if note.Height != bitmapFontNotePx {
-		t.Fatalf("note bitmap height want %d got %d", bitmapFontNotePx, note.Height)
-	}
-	// Full note survives wrapFirstRest + wrapDisplay (no truncate).
-	joined := strings.Join(wrapDisplayFirstRest("我要冰的", 20, 37), "")
-	if joined != "我要冰的" {
-		t.Fatalf("note wrap must preserve text, got %q", joined)
+	joined := strings.Join(wrapDisplay(escposItemNotePrefix+"我要冰的", stationSlipNoteMaxWidth(escposWidth)), "")
+	if joined != escposItemNotePrefix+"我要冰的" {
+		t.Fatalf("note wrap must preserve prefix+body, got %q", joined)
 	}
 }
 

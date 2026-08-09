@@ -2,6 +2,14 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.70
+
+**热修：恢复 0.3.68 整行中文位图合同（修 0.3.69 乱码）**
+
+- 备注改回 `wrapDisplay(Observação:+正文)` 后整行 `w.text`：有汉字则整行一张位图，禁止拉丁前缀后紧接 `GS v 0`。
+- GDI `CreateFontW` 恢复 `cWidth=0`、单字体（去掉按槽宽挤字）。
+- 仍只折行、不截断；汉字体字号统一 `bitmapFontDishPx`（24）。
+
 ## 0.3.69
 
 **中文出品联：菜名 24px / 备注 16px，只折行不截断**

@@ -79,10 +79,11 @@ func wrapDisplay(s string, maxCols int) []string {
 	return out
 }
 
-// bitmapMaxDisplayCols — how many display columns fit in the 80mm bitmap canvas at the sole Han size.
-func bitmapMaxDisplayCols() int {
-	// 1 display col ≈ half of bitmapTextBaseFontPx (Han glyph ≈ 2 cols ≈ font px).
-	colPx := bitmapTextBaseFontPx / 2
+// bitmapMaxDisplayCols — how many display columns fit in the 80mm bitmap canvas at fontPx.
+func bitmapMaxDisplayCols(fontPx int) int {
+	fontPx = resolveHanBitmapFontPx(fontPx)
+	// 1 display col ≈ half of fontPx (Han glyph ≈ 2 cols ≈ font px).
+	colPx := fontPx / 2
 	if colPx < 1 {
 		colPx = 1
 	}

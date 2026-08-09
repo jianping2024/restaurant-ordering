@@ -162,6 +162,7 @@ type jobPayload struct {
 	StationDisplayNameEn string              `json:"station_display_name_en"`
 	StationDisplayNameZh string              `json:"station_display_name_zh"`
 	StationSlipOptions   *stationSlipOptions `json:"station_slip_options"`
+	HanBitmapFontPx      int                 `json:"han_bitmap_font_px"`
 	Lines                []jobLine           `json:"lines"`
 	Subtotal             float64             `json:"subtotal"`
 	AmountDue            float64             `json:"amount_due"`
@@ -242,6 +243,7 @@ type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
 	textMode        escposTextMode
+	hanFontPx       int
 	hadDoubleHeight bool
 	alignMode       byte
 	boldOn          bool
@@ -265,25 +267,28 @@ func cutFeedDots(hadDoubleHeight bool) byte {
 }
 
 func newEscpos() *escposWriter {
-	w := &escposWriter{textMode: escposTextLatin}
+	w := &escposWriter{textMode: escposTextLatin, hanFontPx: bitmapTextDefaultFontPx}
 	w.init()
 	return w
 }
 
 func newEscposForStationTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(stationTicketNeedsBitmap(p)))
 	return w
 }
 
 func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(receiptTicketNeedsBitmap(p)))
 	return w
 }
 
 func newEscposForConnectionTest(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(connectionTestNeedsBitmap(p)))
 	return w
 }
@@ -356,7 +361,7 @@ func (w *escposWriter) text(s string) {
 			Underline: w.underlineOn,
 			DoubleW:   w.doubleW,
 			DoubleH:   w.doubleH,
-		}))
+		}, w.hanFontPx))
 		w.lastTextBitmap = true
 		return
 	}

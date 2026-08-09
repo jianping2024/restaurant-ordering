@@ -3,16 +3,17 @@
 package main
 
 // renderBitmapText draws a stub glyph grid (tests on non-Windows). Never truncateDisplay.
-// Height tracks the sole Han size (bitmapTextBaseFontPx); DoubleH/DoubleW do not enlarge it.
-func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
+// Height tracks fontPx; DoubleH/DoubleW do not enlarge it.
+func renderBitmapText(s string, style bitmapTextStyle, fontPx int) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
-	charW := bitmapTextBaseFontPx / 2
+	fontPx = resolveHanBitmapFontPx(fontPx)
+	charW := fontPx / 2
 	if charW < 1 {
 		charW = 1
 	}
-	charH := bitmapTextBaseFontPx
+	charH := fontPx
 	width := displayWidth(s)*charW + 2
 	if width > bitmapTextMaxWidthPx {
 		width = bitmapTextMaxWidthPx

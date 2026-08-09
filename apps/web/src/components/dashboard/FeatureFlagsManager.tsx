@@ -13,6 +13,7 @@ import {
   groupRestaurantFeaturesByModule,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
+import { HAN_BITMAP_FONT_PX_OPTIONS } from '@/lib/print-agent-config';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
 const FEATURES_CONTROL_SURFACE =
@@ -27,6 +28,7 @@ type Props = {
   initialFlags: ResolvedRestaurantFeatureFlags;
   initialCredentialTtlDays: number;
   initialStationSlipShowCategoryGroup: boolean;
+  initialHanBitmapFontPx: number;
   initialOrderCooldownSeconds: number;
   initialPrintLocale: PrintLocale;
 };
@@ -36,6 +38,7 @@ export function FeatureFlagsManager({
   initialFlags,
   initialCredentialTtlDays,
   initialStationSlipShowCategoryGroup,
+  initialHanBitmapFontPx,
   initialOrderCooldownSeconds,
   initialPrintLocale,
 }: Props) {
@@ -47,6 +50,7 @@ export function FeatureFlagsManager({
   const [stationSlipShowCategoryGroup, setStationSlipShowCategoryGroup] = useState(
     initialStationSlipShowCategoryGroup,
   );
+  const [hanBitmapFontPx, setHanBitmapFontPx] = useState(initialHanBitmapFontPx);
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [saving, setSaving] = useState(false);
@@ -66,6 +70,7 @@ export function FeatureFlagsManager({
           flags,
           credentialTtlDays,
           stationSlipShowCategoryGroup,
+          hanBitmapFontPx,
           orderCooldownSeconds,
           printLocale,
         }),
@@ -76,6 +81,7 @@ export function FeatureFlagsManager({
         flags?: ResolvedRestaurantFeatureFlags;
         credentialTtlDays?: number;
         stationSlipShowCategoryGroup?: boolean;
+        hanBitmapFontPx?: number;
         orderCooldownSeconds?: number;
         printLocale?: PrintLocale;
       };
@@ -83,6 +89,7 @@ export function FeatureFlagsManager({
       if (!res.ok) {
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
+        else if (json.error === 'invalid_han_bitmap_font_px') setError(t.hanBitmapFontPxInvalid);
         else setError(t.saveFail);
         return;
       }
@@ -92,6 +99,7 @@ export function FeatureFlagsManager({
       if (json.stationSlipShowCategoryGroup != null) {
         setStationSlipShowCategoryGroup(json.stationSlipShowCategoryGroup);
       }
+      if (json.hanBitmapFontPx != null) setHanBitmapFontPx(json.hanBitmapFontPx);
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
       if (json.printLocale) setPrintLocale(json.printLocale);
 
@@ -193,6 +201,32 @@ export function FeatureFlagsManager({
                 </span>
               </span>
             </label>
+            <div className="px-4 py-4">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.hanBitmapFontPx}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.hanBitmapFontPxDesc}
+              </span>
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t.hanBitmapFontPx}>
+                {HAN_BITMAP_FONT_PX_OPTIONS.map((px) => {
+                  const selected = hanBitmapFontPx === px;
+                  return (
+                    <button
+                      key={px}
+                      type="button"
+                      onClick={() => setHanBitmapFontPx(px)}
+                      className={`min-w-[3.25rem] px-3 py-2 text-sm tabular-nums transition ${
+                        selected ? PRINT_LOCALE_OPTION_SELECTED : PRINT_LOCALE_OPTION_IDLE
+                      }`}
+                      aria-pressed={selected}
+                    >
+                      {px}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <label className="block px-4 py-4">
               <span className="block text-[15px] font-medium text-brand-text">
                 {t.credentialTtlDays}

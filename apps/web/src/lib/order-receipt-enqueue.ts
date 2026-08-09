@@ -11,6 +11,7 @@ import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
+import { hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -47,6 +48,8 @@ export type OrderReceiptJobPayload = {
   ordered_by?: string;
   /** Checkout confirm dedup; ignored by print agent */
   idempotency_key?: string;
+  /** Chinese bitmap TrueType size (px); agent default 24 when omitted. */
+  han_bitmap_font_px: number;
   lines: Array<{
     item_index: number;
     display_name: string;
@@ -246,7 +249,7 @@ export async function enqueueReceiptPrint(
 
   const { data: restaurantRow, error: restaurantErr } = await admin
     .from('restaurants')
-    .select('feature_flags')
+    .select('feature_flags, print_agent_config')
     .eq('id', restaurantId)
     .maybeSingle();
   if (restaurantErr) {
@@ -264,6 +267,8 @@ export async function enqueueReceiptPrint(
   ) {
     return { ok: true, skipped: true };
   }
+
+  const hanBitmapFontPx = hanBitmapFontPxFromConfig(restaurantRow?.print_agent_config);
 
   const locale = normalizePrintLocale(printLocale);
   const jobType: PrintJobType = variant === 'pre_bill' ? 'pre_bill' : 'order_receipt';
@@ -364,6 +369,7 @@ export async function enqueueReceiptPrint(
   const payload: OrderReceiptJobPayload = {
     order_id: firstOrder.id,
     locale,
+    han_bitmap_font_px: hanBitmapFontPx,
     ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
     ...(printerId ? { receipt_printer_id: printerId } : {}),
     receipt_variant: variant,

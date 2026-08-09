@@ -2,11 +2,18 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.74
+
+**中文位图字号可配置（功能设置 → payload）**
+
+- 读 `print_jobs.payload.han_bitmap_font_px`（缺省/越界回退 24）；折行列宽随字号变。
+- 店级配置在功能设置「打印助手」；下一张云端打印任务即生效。
+
 ## 0.3.73
 
 **中文菜单位图：固定 24px + 只折行不截断；清理 GBK 误导命名**
 
-- Han 字号唯一 `bitmapTextBaseFontPx=24`（`DoubleH`/`DoubleW` 不再加倍 TrueType）。
+- Han 字号默认 `bitmapTextDefaultFontPx=24`（`DoubleH`/`DoubleW` 不再加倍 TrueType）。
 - `escposBitmapText` / 出品联菜名与备注：`wrapDisplay` 折行，不截断；菜名续行无 Qty，首行保留数量。
 - `localeUsesGBK` → `printLocaleIsZh`；删除 `text_encoding_gbk` 文案；无 GBK 出纸路径。
 

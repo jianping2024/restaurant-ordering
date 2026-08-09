@@ -14,7 +14,10 @@ import {
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
 } from '@/lib/menu-print-label';
-import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
+import {
+  hanBitmapFontPxFromConfig,
+  isStationSlipShowCategoryGroupEnabled,
+} from '@/lib/print-agent-config';
 import { formatStationTicketOrderTime } from '@/lib/table-guest-count';
 import {
   resolveGuestCountForStationTicket,
@@ -167,6 +170,7 @@ export async function enqueueStationTicketsForPrepSelection(params: {
     return { ok: false, status: 500, code: 'restaurant_lookup_failed', message };
   }
   const showCategoryGroup = isStationSlipShowCategoryGroupEnabled(printAgentConfig);
+  const hanBitmapFontPx = hanBitmapFontPxFromConfig(printAgentConfig);
 
   const [menuResult, categoryList] = await Promise.all([
     admin
@@ -266,6 +270,7 @@ export async function enqueueStationTicketsForPrepSelection(params: {
       table_id: primary.table_id,
       display_name: primary.display_name || '',
       station_slip_options: { show_category_group: showCategoryGroup },
+      han_bitmap_font_px: hanBitmapFontPx,
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: tableLines.map((l: PrepLine) => {

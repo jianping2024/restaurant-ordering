@@ -181,7 +181,6 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
     rules: data.rules,
     calendarRows: data.calendarRows,
     fridayWeekendFrom: data.buffet_friday_weekend_from,
-    buffetServiceMode: data.buffet_service_mode,
     fridayEnabled,
     fridayDraftFrom,
     fridaySaving,

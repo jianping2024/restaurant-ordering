@@ -79,7 +79,7 @@
 | Lib | `apps/web/src/lib/buffet-open-table.ts`、`buffet-order.ts`、`table-session-open.ts` |
 | 门禁 | `apps/web/src/lib/guest-table-ordering.ts` |
 | UI | 服务员桌台详情内自助餐面板（`WaiterTableDetail.tsx` / Layout） |
-| 设置 | `apps/web/src/app/dashboard/settings/buffet`、`BuffetSettingsManager.tsx`（业态只读；`buffet_service_mode` 仅 Ops 开店/详情可写） |
+| 设置 | `apps/web/src/app/dashboard/settings/buffet`、`BuffetSettingsManager.tsx`（价目运营；`buffet_service_mode` 仅 Ops 开店/详情可写，店内不展示） |
 
 ---
 

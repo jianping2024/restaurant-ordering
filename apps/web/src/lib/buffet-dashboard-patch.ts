@@ -16,9 +16,5 @@ export function mergeBuffetDashboardPatch(
       patch.buffet_friday_weekend_from !== undefined
         ? patch.buffet_friday_weekend_from
         : current.buffet_friday_weekend_from,
-    buffet_service_mode:
-      patch.buffet_service_mode !== undefined
-        ? patch.buffet_service_mode
-        : current.buffet_service_mode,
   };
 }

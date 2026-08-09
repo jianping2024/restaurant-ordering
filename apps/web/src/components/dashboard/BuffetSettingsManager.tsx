@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/Button';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
-import { BuffetServiceModePanel } from '@/components/dashboard/buffet/BuffetServiceModePanel';
 import { BuffetTimeSlotsPanel } from '@/components/dashboard/buffet/BuffetTimeSlotsPanel';
 import {
   BuffetSettingsTabs,
@@ -74,7 +73,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     rules,
     calendarRows,
     fridayWeekendFrom,
-    buffetServiceMode,
     fridayEnabled,
     fridayDraftFrom,
     fridaySaving,
@@ -372,10 +370,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
 
   const showPricingTools = tab === 'rules' || tab === 'calendar';
 
-  const serviceModeBlock = (embedded = false) => (
-    <BuffetServiceModePanel embedded={embedded} t={t} mode={buffetServiceMode} />
-  );
-
   const fridayPolicyBlock = (embedded = false) =>
     showPricingTools && (
       <BuffetFridayWeekendPanel
@@ -463,8 +457,6 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
         activeId={tab}
         onChange={(id) => setTab(id as (typeof tabs)[number]['id'])}
       />
-
-      {serviceModeBlock(!!embedded)}
 
       {tab === 'buffets' && (
         <div className="bg-brand-card border border-brand-border rounded-xl p-4 space-y-4">

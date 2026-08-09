@@ -76,6 +76,7 @@ import {
   WAITER_BOARD_KPI_LABEL_CLASS,
   WAITER_BOARD_KPI_RULE_ACTIVE_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
+  WAITER_BOARD_KPI_SURFACE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
@@ -139,7 +140,7 @@ function BoardKpiCard({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className="mesa-stat min-w-0 w-full text-left"
+      className={`mesa-stat min-w-0 w-full text-left ${WAITER_BOARD_KPI_SURFACE_CLASS[filter]}`}
       data-active={active ? 'true' : 'false'}
     >
       <div

@@ -43,7 +43,7 @@ export const waiterBoardType = {
 } as const;
 
 /**
- * Shared selected face — lane selected (KPI uses fine-line rules, not this fill).
+ * Shared selected face — lane selected only (KPI selection = gold rule, not this fill).
  * Solid azulejo ink + on-ink text.
  */
 export const WAITER_BOARD_SELECTED_EMPHASIS =
@@ -98,10 +98,22 @@ export type WaiterBoardCardTheme = {
 /** Sole KPI strip layout (mockup `grid-cols-2 sm:grid-cols-4 gap-4`). */
 export const WAITER_BOARD_KPI_GRID_CLASS = 'grid grid-cols-2 sm:grid-cols-4 gap-4';
 
-/** Active KPI underline — always gold (mockup selected rule). */
+/**
+ * Sole KPI filter surface modifiers — same `is-dining` / `is-pending` / `is-free`
+ * paint as board cards (shared CSS with `.mesa-scroll-frame__inner`); `all` = brand-card.
+ * Geometry (radius/pad) lives on `.mesa-stat` only.
+ */
+export const WAITER_BOARD_KPI_SURFACE_CLASS: Record<WaiterBoardFilter, string> = {
+  all: 'is-all',
+  checkout: 'is-pending',
+  dining: 'is-dining',
+  idle: 'is-free',
+};
+
+/** Active KPI underline — always gold (selected rule). */
 export const WAITER_BOARD_KPI_RULE_ACTIVE_CLASS = 'bg-brand-gold';
 
-/** Fine-line KPI rule + count colors (mockup stats — not solid chips). */
+/** Idle KPI underline colors (selected always uses RULE_ACTIVE). */
 export const WAITER_BOARD_KPI_RULE_CLASS: Record<WaiterBoardFilter, string> = {
   all: 'bg-brand-gold',
   checkout: 'bg-[rgb(var(--color-status-warning-border))]',

@@ -233,21 +233,30 @@ body {
     background: rgb(var(--color-brand-card));
   }
   /**
-   * Sole card face: status-*-bg solid (same paint as pre-FARVOO mesa-board-shell).
+   * Sole status-face paint — board card inner + KPI filter (same status-*-bg).
    * Theme flip follows --color-* vars — no parallel [data-theme] RGB copies.
    */
-  .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner {
+  .mesa-scroll-frame.is-dining .mesa-scroll-frame__inner,
+  .mesa-stat.is-dining {
     border-color: rgb(var(--color-status-danger-border) / 0.55);
     background: rgb(var(--color-status-danger-bg));
   }
-  .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner {
+  .mesa-scroll-frame.is-pending .mesa-scroll-frame__inner,
+  .mesa-stat.is-pending {
     border-color: rgb(var(--color-status-warning-border) / 0.55);
     background: rgb(var(--color-status-warning-bg));
   }
-  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
-    border-style: dashed;
+  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner,
+  .mesa-stat.is-free {
     border-color: rgb(var(--color-status-success-border) / 0.55);
     background: rgb(var(--color-status-success-bg));
+  }
+  .mesa-scroll-frame.is-free .mesa-scroll-frame__inner {
+    border-style: dashed;
+  }
+  .mesa-stat.is-all {
+    border-color: rgb(var(--color-brand-border));
+    background: rgb(var(--color-brand-card));
   }
 
   /** Floor search — mockup mesa-search (ink hairline, raised paper). */
@@ -296,11 +305,16 @@ body {
     border-top-color: rgb(var(--color-status-success-border) / 0.7);
   }
 
-  /* Fine-line KPI stats (mockup) — sole KPI face; no solid chips */
+  /**
+   * Sole KPI filter chrome — geometry only; paint via WAITER_BOARD_KPI_SURFACE_CLASS
+   * (same status-*-bg as board cards). Selection = rule thicken, not ink fill.
+   */
   .mesa-stat {
-    background: transparent;
-    border: none;
-    padding: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    box-shadow: 0 1px 2px rgb(var(--color-brand-ink) / 0.06);
     cursor: pointer;
   }
   .mesa-stat .mesa-stat__rule {

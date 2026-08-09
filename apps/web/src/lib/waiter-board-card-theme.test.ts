@@ -7,6 +7,7 @@ import {
   WAITER_BOARD_KPI_GRID_CLASS,
   WAITER_BOARD_KPI_RULE_ACTIVE_CLASS,
   WAITER_BOARD_KPI_RULE_CLASS,
+  WAITER_BOARD_KPI_SURFACE_CLASS,
   WAITER_BOARD_LANE_CHROME,
   WAITER_BOARD_LANE_STICKY_SCROLL_CLEARANCE,
   WAITER_BOARD_LANE_STICKY_SHELL,
@@ -141,11 +142,15 @@ describe('waiter-board-card-theme theme tokens', () => {
     assertNoSkyPalette(WAITER_BOARD_LANE_STICKY_SHELL);
   });
 
-  it('selected lane face is solid ink without ring; KPI uses fine-line rule colors', () => {
+  it('selected lane face is solid ink without ring; KPI shares card status-face modifiers', () => {
     assert.doesNotMatch(WAITER_BOARD_SELECTED_EMPHASIS, /\bring-/);
     assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /bg-brand-ink/);
     assert.match(WAITER_BOARD_SELECTED_EMPHASIS, /text-brand-on-ink/);
     assert.equal(WAITER_BOARD_LANE_CHROME.active, WAITER_BOARD_SELECTED_EMPHASIS);
+    assert.equal(WAITER_BOARD_KPI_SURFACE_CLASS.all, 'is-all');
+    assert.equal(WAITER_BOARD_KPI_SURFACE_CLASS.checkout, 'is-pending');
+    assert.equal(WAITER_BOARD_KPI_SURFACE_CLASS.dining, 'is-dining');
+    assert.equal(WAITER_BOARD_KPI_SURFACE_CLASS.idle, 'is-free');
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.checkout, /mesa-text-warning/);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.dining, /mesa-text-danger/);
     assert.match(WAITER_BOARD_KPI_COUNT_CLASS.idle, /mesa-text-success/);

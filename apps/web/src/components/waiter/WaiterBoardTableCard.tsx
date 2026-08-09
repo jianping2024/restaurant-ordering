@@ -111,7 +111,12 @@ export function WaiterBoardTableCard({
         <div className="flex min-h-[1.25rem] items-center justify-between gap-1.5">
           <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
           {view.titleBadge ? (
-            <span className={waiterBoardType.cardBadge}>{view.titleBadge}</span>
+            <span className={waiterBoardType.cardBadge}>
+              {view.titleBadge.relation ? <span>{view.titleBadge.relation}</span> : null}
+              {view.titleBadge.tokens.map((token) => (
+                <span key={token}>{token}</span>
+              ))}
+            </span>
           ) : null}
         </div>
 

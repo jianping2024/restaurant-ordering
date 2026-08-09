@@ -11,11 +11,11 @@ import {
   computeBuffetSubtotal,
   deriveBuffetFormSnapshot,
   diffBuffetSnapshots,
-  formatBuffetCompactHeadcountLabel,
   formatBuffetGuestCountsOptional,
   formatBuffetHeadcountLabel,
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
+  buffetHeadcountTokenParts,
   isBuffetSnapshotUnchanged,
   listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
@@ -227,10 +227,12 @@ describe('formatBuffetHeadcountLabel', () => {
   });
 });
 
-describe('formatBuffetCompactHeadcountLabel', () => {
-  it('joins non-zero adult and child without separator', () => {
-    assert.equal(formatBuffetCompactHeadcountLabel(3, 2), 'A3C2');
-    assert.equal(formatBuffetCompactHeadcountLabel(2, 0), 'A2');
+describe('buffetHeadcountTokenParts', () => {
+  it('returns adult-first A/C tokens without joining', () => {
+    assert.deepEqual(buffetHeadcountTokenParts(3, 2), ['A3', 'C2']);
+    assert.deepEqual(buffetHeadcountTokenParts(2, 0), ['A2']);
+    assert.deepEqual(buffetHeadcountTokenParts(0, 1), ['C1']);
+    assert.deepEqual(buffetHeadcountTokenParts(0, 0), []);
   });
 });
 

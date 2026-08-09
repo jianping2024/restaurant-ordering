@@ -343,8 +343,11 @@ export function applyBuffetLinesToOrderItems(
   return items;
 }
 
-/** Non-zero A/C tokens shared by staff, board, and receipt headcount labels. */
-function buffetHeadcountTokenParts(adults: number, children: number): string[] {
+/**
+ * Sole adult-first A/C token list for staff / board / receipt joins.
+ * Board vertical pill uses this array as-is; other surfaces only choose a join.
+ */
+export function buffetHeadcountTokenParts(adults: number, children: number): string[] {
   const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
   const parts: string[] = [];
   if (a > 0) parts.push(`A${a}`);
@@ -355,11 +358,6 @@ function buffetHeadcountTokenParts(adults: number, children: number): string[] {
 /** Staff order lists: spaced tokens (`A7 C3`, `A2`). */
 export function formatBuffetHeadcountLabel(adults: number, children: number): string {
   return buffetHeadcountTokenParts(adults, children).join(' ');
-}
-
-/** Board cards: concatenated tokens (`A3C2`, `A2`). */
-export function formatBuffetCompactHeadcountLabel(adults: number, children: number): string {
-  return buffetHeadcountTokenParts(adults, children).join('');
 }
 
 /** Receipt qty column: hyphenated tokens (`A4-C2`, `A2`). */

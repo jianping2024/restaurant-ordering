@@ -224,7 +224,7 @@ export function computeDiningFloorKpis(
 
   let adults = 0;
   let children = 0;
-  for (const group of byGroup.values()) {
+  for (const group of Array.from(byGroup.values())) {
     const headcount = aggregateBuffetHeadcountForOrders(group);
     if (!headcount) continue;
     adults += headcount.adults;

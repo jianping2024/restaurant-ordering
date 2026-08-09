@@ -10,6 +10,8 @@ import {
 import {
   isStationSlipShowCategoryGroupEnabled,
   parseStationSlipShowCategoryGroupPatch,
+  hanBitmapFontPxFromConfig,
+  parseHanBitmapFontPxPatch,
 } from '@/lib/print-agent-config';
 import { mergeStoredPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -33,6 +35,7 @@ function featureSettingsResponse(input: {
     flags: normalizeRestaurantFeatureFlags(input.featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(input.printAgentConfig),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(input.printAgentConfig),
+    hanBitmapFontPx: hanBitmapFontPxFromConfig(input.printAgentConfig),
     orderCooldownSeconds: Math.max(
       ORDER_COOLDOWN_SECONDS_MIN,
       Math.min(
@@ -121,12 +124,14 @@ export async function PATCH(req: Request) {
   const patch = parseFeatureFlagsPatch(body);
   const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
   const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
+  const hanBitmapFontPx = parseHanBitmapFontPxPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
   const printLocale = parsePrintLocalePatch(body);
   if (
     !patch &&
     credentialTtlDays === undefined &&
     stationSlipShowCategoryGroup === undefined &&
+    hanBitmapFontPx === undefined &&
     orderCooldownSeconds === undefined &&
     printLocale === undefined
   ) {
@@ -137,6 +142,9 @@ export async function PATCH(req: Request) {
   }
   if (stationSlipShowCategoryGroup === null) {
     return NextResponse.json({ error: 'invalid_station_slip_show_category_group' }, { status: 400 });
+  }
+  if (hanBitmapFontPx === null) {
+    return NextResponse.json({ error: 'invalid_han_bitmap_font_px' }, { status: 400 });
   }
   if (orderCooldownSeconds === null) {
     return NextResponse.json({ error: 'invalid_order_cooldown_seconds' }, { status: 400 });
@@ -175,12 +183,15 @@ export async function PATCH(req: Request) {
       )
     : normalizeRestaurantFeatureFlags(row?.feature_flags);
   const nextConfig =
-    credentialTtlDays !== undefined || stationSlipShowCategoryGroup !== undefined
+    credentialTtlDays !== undefined ||
+    stationSlipShowCategoryGroup !== undefined ||
+    hanBitmapFontPx !== undefined
       ? mergeStoredPrintAgentConfig(row?.print_agent_config, {
           ...(credentialTtlDays !== undefined ? { credential_ttl_days: credentialTtlDays } : {}),
           ...(stationSlipShowCategoryGroup !== undefined
             ? { station_slip_show_category_group: stationSlipShowCategoryGroup }
             : {}),
+          ...(hanBitmapFontPx !== undefined ? { han_bitmap_font_px: hanBitmapFontPx } : {}),
         })
       : undefined;
 

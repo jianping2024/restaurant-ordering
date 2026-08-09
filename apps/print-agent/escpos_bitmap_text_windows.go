@@ -42,10 +42,10 @@ var (
 	procTextOutW           = gdi32.NewProc("TextOutW")
 )
 
-// renderBitmapText draws s at the sole Han size (bitmapTextBaseFontPx). Caller must
-// wrap to bitmapMaxDisplayCols; this function does not truncateDisplay. DoubleH/DoubleW
-// do not change font size (ESC/POS GS ! remains separate for Latin).
-func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
+// renderBitmapText draws s at fontPx (clamped). Caller must wrap to bitmapMaxDisplayCols;
+// this function does not truncateDisplay. DoubleH/DoubleW do not change font size
+// (ESC/POS GS ! remains separate for Latin).
+func renderBitmapText(s string, style bitmapTextStyle, fontPx int) bitmapTextImage {
 	if s == "" {
 		return bitmapTextImage{}
 	}
@@ -55,7 +55,7 @@ func renderBitmapText(s string, style bitmapTextStyle) bitmapTextImage {
 	}
 	defer procDeleteDC.Call(dc)
 
-	fontPx := bitmapTextBaseFontPx
+	fontPx = resolveHanBitmapFontPx(fontPx)
 	weight := uintptr(400)
 	if style.Bold {
 		weight = 700

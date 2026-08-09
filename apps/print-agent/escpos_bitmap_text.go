@@ -24,11 +24,26 @@ type bitmapTextImage struct {
 	Pixels []byte
 }
 
-// Sole Han TrueType size for station/menu bitmaps (not doubled by DoubleH/DoubleW).
+// Han bitmap TrueType size: default when job omits han_bitmap_font_px; clamp matches web.
 const (
-	bitmapTextBaseFontPx = 24
-	bitmapTextMaxWidthPx = 384
+	bitmapTextDefaultFontPx = 24
+	bitmapTextMinFontPx     = 16
+	bitmapTextMaxFontPx     = 40
+	bitmapTextMaxWidthPx    = 384
 )
+
+func resolveHanBitmapFontPx(n int) int {
+	if n < bitmapTextMinFontPx {
+		if n <= 0 {
+			return bitmapTextDefaultFontPx
+		}
+		return bitmapTextMinFontPx
+	}
+	if n > bitmapTextMaxFontPx {
+		return bitmapTextMaxFontPx
+	}
+	return n
+}
 
 func textModeForConfiguredChinese(needChinese bool) escposTextMode {
 	if !needChinese {
@@ -52,25 +67,26 @@ func needsBitmapText(s string) bool {
 
 // escposBitmapText renders s as one or more GS v 0 rasters. Over-wide strings are
 // wrapDisplay'd (never truncateDisplay) so every rune is emitted.
-func escposBitmapText(s string, style bitmapTextStyle) []byte {
+func escposBitmapText(s string, style bitmapTextStyle, fontPx int) []byte {
 	s = strings.TrimRight(s, "\r\n")
 	if s == "" {
 		return nil
 	}
-	maxCols := bitmapMaxDisplayCols()
+	fontPx = resolveHanBitmapFontPx(fontPx)
+	maxCols := bitmapMaxDisplayCols(fontPx)
 	chunks := wrapDisplay(s, maxCols)
 	if len(chunks) == 0 {
 		return nil
 	}
 	var out []byte
 	for _, chunk := range chunks {
-		out = append(out, escposBitmapTextOne(chunk, style)...)
+		out = append(out, escposBitmapTextOne(chunk, style, fontPx)...)
 	}
 	return out
 }
 
-func escposBitmapTextOne(s string, style bitmapTextStyle) []byte {
-	img := renderBitmapText(s, style)
+func escposBitmapTextOne(s string, style bitmapTextStyle, fontPx int) []byte {
+	img := renderBitmapText(s, style, fontPx)
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return encodeWindows1252(s)
 	}

@@ -13,7 +13,10 @@ import {
   type MenuCategoryForStationTicket,
   type MenuItemForPrint,
 } from '@/lib/menu-print-label';
-import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
+import {
+  hanBitmapFontPxFromConfig,
+  isStationSlipShowCategoryGroupEnabled,
+} from '@/lib/print-agent-config';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -59,6 +62,8 @@ export type StationTicketJobPayload = {
   station_slip_options: {
     show_category_group: boolean;
   };
+  /** Chinese bitmap TrueType size (px); agent default 24 when omitted. */
+  han_bitmap_font_px: number;
   lines: Array<{
     item_index: number;
     menu_item_id: string;
@@ -197,6 +202,7 @@ export async function enqueueStationTicketsForOrder(params: {
   }
 
   const showCategoryGroup = isStationSlipShowCategoryGroupEnabled(printAgentConfig);
+  const hanBitmapFontPx = hanBitmapFontPxFromConfig(printAgentConfig);
 
   const { data: order, error: oErr } = await admin
     .from('orders')
@@ -419,6 +425,7 @@ export async function enqueueStationTicketsForOrder(params: {
       table_id: order.table_id as string,
       display_name: (order.display_name as string) || '',
       station_slip_options: { show_category_group: showCategoryGroup },
+      han_bitmap_font_px: hanBitmapFontPx,
       ...(guestCount > 0 ? { guest_count: guestCount } : {}),
       ...(orderTime ? { order_time: orderTime } : {}),
       lines: stationLines.map((l) => {

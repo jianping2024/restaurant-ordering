@@ -8,7 +8,10 @@ import {
   isStationSlipShowCategoryGroupEnabled,
   normalizePrintAgentCloudConfig,
   parseDefaultReceiptStationId,
+  parseHanBitmapFontPxPatch,
   parsePrintAgentSchedulePollSlice,
+  resolveHanBitmapFontPx,
+  HAN_BITMAP_FONT_PX_DEFAULT,
   PRINT_AGENT_POLL_LIMITS,
   sanitizePollConfig,
 } from './print-agent-config';
@@ -104,6 +107,16 @@ describe('normalizePrintAgentCloudConfig', () => {
       true,
     );
     assert.equal(isStationSlipShowCategoryGroupEnabled({}), false);
+  });
+
+  it('defaults and clamps han_bitmap_font_px', () => {
+    assert.equal(normalizePrintAgentCloudConfig({}).han_bitmap_font_px, HAN_BITMAP_FONT_PX_DEFAULT);
+    assert.equal(normalizePrintAgentCloudConfig({ han_bitmap_font_px: 28 }).han_bitmap_font_px, 28);
+    assert.equal(resolveHanBitmapFontPx(12), 16);
+    assert.equal(resolveHanBitmapFontPx(99), 40);
+    assert.equal(parseHanBitmapFontPxPatch({ hanBitmapFontPx: 32 }), 32);
+    assert.equal(parseHanBitmapFontPxPatch({ hanBitmapFontPx: 99 }), null);
+    assert.equal(parseHanBitmapFontPxPatch({}), undefined);
   });
 });
 

@@ -31,6 +31,8 @@ export type PrintAgentCloudConfig = {
   default_receipt_station_id?: string;
   /** When true, station tickets print centered top-level category group headers. Default false. */
   station_slip_show_category_group?: boolean;
+  /** Chinese bitmap TrueType size (px) for agent Han raster. Default 24. */
+  han_bitmap_font_px?: number;
   /** Minutes after prep (`started_at`) before cooking displays as ready. Default 15. */
   kitchen_ready_after_minutes?: number;
 };
@@ -53,6 +55,7 @@ export type PrintAgentCloudConfigPatch = {
   default_receipt_station_id?: string | null;
   /** `false` clears (absent = off). */
   station_slip_show_category_group?: boolean;
+  han_bitmap_font_px?: number;
   kitchen_ready_after_minutes?: number;
 };
 
@@ -106,6 +109,7 @@ export function sanitizePollConfig(poll: PrintAgentPollConfig | undefined): Prin
 export function defaultPrintAgentCloudConfig(): PrintAgentCloudConfig {
   return {
     credential_ttl_days: PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
+    han_bitmap_font_px: HAN_BITMAP_FONT_PX_DEFAULT,
     schedule: {
       timezone: 'Europe/Lisbon',
       weekday: {
@@ -204,6 +208,7 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
   const default_receipt_station_id = parseDefaultReceiptStationId(o.default_receipt_station_id);
   const station_slip_show_category_group =
     o.station_slip_show_category_group === true ? true : undefined;
+  const han_bitmap_font_px = resolveHanBitmapFontPx(o.han_bitmap_font_px);
   const kitchen_ready_after_minutes = resolveKitchenReadyAfterMinutes(o.kitchen_ready_after_minutes);
   return {
     schedule,
@@ -211,6 +216,7 @@ export function normalizePrintAgentCloudConfig(raw: unknown): PrintAgentCloudCon
     credential_ttl_days: resolvePrintAgentCredentialTtlDays(o),
     ...(default_receipt_station_id ? { default_receipt_station_id } : {}),
     ...(station_slip_show_category_group ? { station_slip_show_category_group: true } : {}),
+    han_bitmap_font_px,
     kitchen_ready_after_minutes,
   };
 }
@@ -249,6 +255,11 @@ export function applyPrintAgentCloudConfigPatch(
     raw.station_slip_show_category_group = true;
   }
 
+  raw.han_bitmap_font_px =
+    patch.han_bitmap_font_px !== undefined
+      ? resolveHanBitmapFontPx(patch.han_bitmap_font_px)
+      : (base.han_bitmap_font_px ?? HAN_BITMAP_FONT_PX_DEFAULT);
+
   if (patch.kitchen_ready_after_minutes !== undefined) {
     raw.kitchen_ready_after_minutes = resolveKitchenReadyAfterMinutes(
       patch.kitchen_ready_after_minutes,
@@ -263,6 +274,38 @@ export function applyPrintAgentCloudConfigPatch(
 /** Guest-order / station slip: print `(Drinks2)` / `(饮料2)` group headers (print_locale) between item blocks. */
 export function isStationSlipShowCategoryGroupEnabled(raw: unknown): boolean {
   return normalizePrintAgentCloudConfig(raw).station_slip_show_category_group === true;
+}
+
+/** Default / clamp for Chinese bitmap font px (sole store: print_agent_config.han_bitmap_font_px). */
+export const HAN_BITMAP_FONT_PX_DEFAULT = 24;
+export const HAN_BITMAP_FONT_PX_MIN = 16;
+export const HAN_BITMAP_FONT_PX_MAX = 40;
+/** Presets shown in Feature settings (values still clamped via resolveHanBitmapFontPx). */
+export const HAN_BITMAP_FONT_PX_OPTIONS = [18, 20, 24, 28, 32] as const;
+
+export function resolveHanBitmapFontPx(raw: unknown): number {
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return HAN_BITMAP_FONT_PX_DEFAULT;
+  return Math.min(
+    HAN_BITMAP_FONT_PX_MAX,
+    Math.max(HAN_BITMAP_FONT_PX_MIN, Math.round(n)),
+  );
+}
+
+/** Read Han bitmap size from restaurants.print_agent_config (default 24). */
+export function hanBitmapFontPxFromConfig(raw: unknown): number {
+  return normalizePrintAgentCloudConfig(raw).han_bitmap_font_px ?? HAN_BITMAP_FONT_PX_DEFAULT;
+}
+
+export function parseHanBitmapFontPxPatch(body: unknown): number | undefined | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
+  const raw = (body as Record<string, unknown>).hanBitmapFontPx;
+  if (raw === undefined) return undefined;
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return null;
+  const rounded = Math.round(n);
+  if (rounded < HAN_BITMAP_FONT_PX_MIN || rounded > HAN_BITMAP_FONT_PX_MAX) return null;
+  return rounded;
 }
 
 export const KITCHEN_READY_AFTER_MINUTES_DEFAULT = 15;

@@ -8,7 +8,7 @@ import {
   resolvePrintAgentCredentialTtlDays,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
-import { isStationSlipShowCategoryGroupEnabled } from '@/lib/print-agent-config';
+import { isStationSlipShowCategoryGroupEnabled, hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import { listHumanStaffAccountsForRestaurant } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -94,6 +94,7 @@ export type FeatureSettingsPageData = {
   flags: ResolvedRestaurantFeatureFlags;
   credentialTtlDays: number;
   stationSlipShowCategoryGroup: boolean;
+  hanBitmapFontPx: number;
   orderCooldownSeconds: number;
   printLocale: PrintLocale;
 };
@@ -120,6 +121,7 @@ export async function loadFeatureSettingsPageData(
     flags: normalizeRestaurantFeatureFlags(featureFlags),
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
+    hanBitmapFontPx: hanBitmapFontPxFromConfig(data?.print_agent_config),
     orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
     printLocale: normalizePrintLocale(printLocale),
   };

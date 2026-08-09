@@ -12,6 +12,7 @@ export default async function SettingsFeaturesPage() {
       initialFlags={data.flags}
       initialCredentialTtlDays={data.credentialTtlDays}
       initialStationSlipShowCategoryGroup={data.stationSlipShowCategoryGroup}
+      initialHanBitmapFontPx={data.hanBitmapFontPx}
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
       initialPrintLocale={data.printLocale}
     />

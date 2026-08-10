@@ -142,7 +142,7 @@
 
 旧「全店一张厨房板」产品入口由大屏列表/默认大屏覆盖；代码改造成格子，禁止长期两套后厨主 UI。
 
-店级 flag `kitchen_board` 已移除；后台厨房快捷入口仅由权限 `dashboard.kitchen_shortcut.view` 控制（合并写回时剥离退役键）。
+店级 flag `kitchen_board` 已移除；后台顶栏厨房入口与 `/{slug}/kitchen` 页共用权限 `floor.kitchen_board.view`（合并写回时剥离退役键；旧 `dashboard.kitchen_shortcut.view` 已并入）。
 
 ---
 

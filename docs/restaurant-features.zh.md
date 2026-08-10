@@ -11,7 +11,7 @@
 | `kitchen_serve_to_table` | **关闭** | 勾选后楼面可在已出餐菜品上点「上桌」 |
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单、分单小票与结账小票；未勾选时跳过自动打印（厨房单不受影响）；后台「打印账单」手动补打不受影响 |
 
-**已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台厨房快捷入口仅由权限 `dashboard.kitchen_shortcut.view` 控制（店主侧栏另受 `owner_nav_preferences`）；楼面厨房页仍为 `floor.kitchen_board.view`。二者**不再**读店级 feature flag。
+**已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 
 未勾选打印账单时，呼叫结账与确认收款流程照常，仅跳过自动触发的 `pre_bill` / `split_payment` / `final` 类 `print_jobs` 入队；员工在结账详情手动点「打印账单」（`checkout_bill`）仍会入队。
 
@@ -100,7 +100,7 @@
 | 路径 | 说明 |
 |------|------|
 | `/dashboard/settings/features` | 功能管理页（`FeatureFlagsManager`） |
-| `DashboardNav` / top nav | 厨房快捷：`dashboard.kitchen_shortcut.view`（无店级 flag） |
+| `DashboardNav` / top nav | 厨房入口：`floor.kitchen_board.view`（与厨房页同一 key；无店级 flag） |
 | `enqueueReceiptPrint` | 自动账单 variant（`pre_bill` / `split_payment` / `final`）受 `bill_receipt_print` 门控；手动 `checkout_bill` 不受限 |
 
 设置子导航见 `src/lib/settings-nav.ts`（分组「功能」）。

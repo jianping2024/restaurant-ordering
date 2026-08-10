@@ -52,4 +52,20 @@ describe('ROLE_PERMISSION_PAGE_TREE', () => {
     const openCount = flattenPermissionTreeKeys().filter((k) => k === 'tables.open_session').length;
     assert.equal(openCount, 1);
   });
+
+  it('kitchen board is one tree row (top-nav + page share floor.kitchen_board.view)', () => {
+    const kitchenRows = ROLE_PERMISSION_PAGE_TREE.filter(
+      (n) => n.permission === 'floor.kitchen_board.view',
+    );
+    assert.equal(kitchenRows.length, 1);
+    assert.ok(kitchenRows[0]?.children?.some((c) => c.permission === 'orders.kitchen_update'));
+    assert.equal(
+      flattenPermissionTreeKeys().filter((k) => k === 'dashboard.kitchen_shortcut.view').length,
+      0,
+    );
+    const zh = resolvePermissionTreeLabel({ source: 'navExtra', key: 'viewKitchen' }, 'zh');
+    assert.equal(zh, '厨房看板');
+    const labels = ROLE_PERMISSION_PAGE_TREE.map((n) => resolvePermissionTreeLabel(n.label, 'zh'));
+    assert.equal(labels.filter((l) => l === '厨房看板').length, 1);
+  });
 });

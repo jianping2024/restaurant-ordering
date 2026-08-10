@@ -160,12 +160,8 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
     },
   ]),
   {
-    permission: 'dashboard.kitchen_shortcut.view',
-    label: { source: 'navExtra', key: 'viewKitchen' },
-  },
-  {
     permission: 'floor.kitchen_board.view',
-    label: { source: 'action', labelKey: 'floorKitchenBoard' },
+    label: { source: 'navExtra', key: 'viewKitchen' },
     children: [
       {
         permission: 'orders.kitchen_update',

@@ -12,6 +12,7 @@ import { templatePermissions } from '@/lib/permissions/role-templates';
 const LEGACY_PERMISSION_ALIASES: Record<string, PermissionKey> = {
   'buffet.post_to_table': 'tables.open_session',
   'floor.waiter_board.view': 'dashboard.waiter_board.view',
+  'dashboard.kitchen_shortcut.view': 'floor.kitchen_board.view',
 };
 
 /** Parse DB jsonb/text[] into a clean PermissionKey list (unknown keys dropped; legacy aliased). */

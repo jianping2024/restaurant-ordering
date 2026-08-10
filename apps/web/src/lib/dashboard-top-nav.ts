@@ -191,10 +191,10 @@ export function buildDashboardTopNavItems(input: {
     });
   }
 
-  // Staff chrome only — owner shell stays OWNER_CHROME_NAV_IDS. Nav gate is permission alone.
+  // Staff chrome only — owner shell stays OWNER_CHROME_NAV_IDS. Same gate as kitchen pages.
   if (
     shellMode !== 'owner' &&
-    can(capabilities, 'dashboard.kitchen_shortcut.view')
+    can(capabilities, 'floor.kitchen_board.view')
   ) {
     items.push({
       id: 'kitchenBoard',

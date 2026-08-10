@@ -2,6 +2,12 @@ package main
 
 import "strings"
 
+// Vertical padding for Han GS v 0 rows — keep tight vs Font A 1×2 (avoid paper waste).
+const (
+	hanBitmapPadY      = 1
+	hanBitmapHeightPad = 2
+)
+
 // Han typography roles — map Latin ESC/POS size tiers to bitmap px (base B = han_bitmap_font_px).
 type hanFontRole int
 
@@ -205,6 +211,21 @@ func wrapHanTextByPx(s string, maxPx, fontPx int, bold bool) []string {
 	return out
 }
 
+func fitHanTextToPx(s string, maxPx, fontPx int, bold bool) string {
+	s = strings.TrimSpace(s)
+	if s == "" || maxPx <= 0 {
+		return s
+	}
+	if measureHanTextWidth(s, fontPx, bold) <= maxPx {
+		return s
+	}
+	chunks := wrapHanTextByPx(s, maxPx, fontPx, bold)
+	if len(chunks) == 0 {
+		return s
+	}
+	return chunks[0]
+}
+
 func escposBitmapRaster(img bitmapTextImage, align byte) []byte {
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return nil
@@ -226,7 +247,7 @@ func escposBitmapRaster(img bitmapTextImage, align byte) []byte {
 		byte(img.Height & 0xff), byte((img.Height >> 8) & 0xff),
 	}
 	out = append(out, data...)
-	out = append(out, '\n')
+	// GS v 0 already advances by image height — do not append LF (that adds a blank line of paper).
 	return out
 }
 
@@ -237,6 +258,18 @@ func escposHanColumnRow(left, right string, kind hanColumnRowKind, fontPx int, s
 
 func escposHanLeftRow(text string, leftPx int, fontPx int, style bitmapTextStyle) []byte {
 	img := renderBitmapLeftRow(text, leftPx, fontPx, style)
+	return escposBitmapRaster(img, style.Align)
+}
+
+// escposHanReceiptRow — one 576px raster: items | qty | price (Latin 25/9/14 col bands).
+func escposHanReceiptRow(left, mid, right string, fontPx int, style bitmapTextStyle) []byte {
+	img := renderBitmapReceiptRow(left, mid, right, fontPx, style)
+	return escposBitmapRaster(img, style.Align)
+}
+
+// escposHanPadRow — one 576px raster: left label + right-aligned value (fee lines).
+func escposHanPadRow(left, right string, fontPx int, style bitmapTextStyle) []byte {
+	img := renderBitmapPadRow(left, right, fontPx, style)
 	return escposBitmapRaster(img, style.Align)
 }
 

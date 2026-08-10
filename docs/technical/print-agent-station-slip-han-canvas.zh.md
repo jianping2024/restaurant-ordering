@@ -30,20 +30,25 @@
 |------|----------|
 | Han Items/Qty | `escposHanColumnRow` → `renderBitmapColumnRow` |
 | Han 备注 | `escposHanLeftRow` → `renderBitmapLeftRow` |
+| Han 预结/结账菜单三栏 | `escposHanReceiptRow` → `renderBitmapReceiptRow` |
+| Han 预结合计左右栏 | `escposHanPadRow` → `renderBitmapPadRow` |
 | Qty 位置 | `hanQtyTextStartPx` |
 | 备注折行 | `wrapHanNoteLines` + `wrapHanTextByPx` |
 | 备注文案 | `labelsFor(locale).itemNote` |
 | 拉丁 Items/Qty | `stationSlipColumnHeaderLine` / `stationSlipItemLine` + `padFieldRight` |
+| GS v 0 出图 | `escposBitmapRaster`（**无尾随 LF**；图高已走纸） |
 
-**禁止：** 半号前缀；`escposHanNoteRow`；硬编码 `Observação:`；384 画布。
+**禁止：** 半号前缀；`escposHanNoteRow`；硬编码 `Observação:`；384 画布；预结菜单「垫 48 列再 `wrapDisplay`」。
 
 ## 像素
 
 - `bitmapTextMaxWidthPx = 576`
 - `escposDisplayColToPx(col) = col * 576 / 48`（= col×12）
+- 竖向：`hanBitmapPadY` / `hanBitmapHeightPad`（紧凑，避免中文行距虚高）
 
 ## 版本
 
+- **0.3.81**：去 GS 尾随 LF；预结 Han 单行三栏
 - **0.3.80**：Qty 列 4
 - **0.3.79**：576 + 语言前缀 + 同号
 - 0.3.78：对称 col4（仍 384，已 supersede）

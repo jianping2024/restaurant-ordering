@@ -4,6 +4,13 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.81
+
+**修复：中文位图废纸（档口行距 + 预结单拆行）**
+
+- GS v 0 **不再尾随 LF**（图高已走纸）；收紧位图上下 padding。
+- 预结/结账含汉字菜单行：唯一入口 `escposHanReceiptRow`（576 单行三栏）；合计 `escposHanPadRow`；禁止垫 48 列再 `wrapDisplay`。
+
 ## 0.3.80
 
 **出品联：Qty 列 8→4，菜名/备注可贴得更近数字**

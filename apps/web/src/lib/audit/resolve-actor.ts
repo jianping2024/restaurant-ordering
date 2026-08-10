@@ -9,19 +9,49 @@ export function staffAuditActor(
   return { kind: 'staff', userId, displayName, role };
 }
 
+/** Operator label for staff audits: login name (never role name/label). */
+export function resolveStaffOperatorDisplayName(account: {
+  login_name?: string | null;
+  display_name?: string | null;
+}): string {
+  const login = account.login_name?.trim();
+  if (login) return login;
+  const display = account.display_name?.trim();
+  if (display) return display;
+  return '';
+}
+
+async function resolveOperatorUsernameFromAuthUser(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const { data } = await admin.auth.admin.getUserById(userId);
+  return data.user?.email?.split('@')[0]?.trim() || '';
+}
+
 export async function loadStaffAuditActor(
   admin: SupabaseClient,
   params: { restaurantId: string; userId: string; role: string },
 ): Promise<AuditActor> {
   const { data: account } = await admin
     .from('restaurant_staff_accounts')
-    .select('display_name')
+    .select('login_name, display_name')
     .eq('restaurant_id', params.restaurantId)
     .eq('user_id', params.userId)
     .maybeSingle();
 
-  const displayName =
-    (account?.display_name as string | undefined)?.trim() || params.role;
+  let displayName = resolveStaffOperatorDisplayName({
+    login_name: account?.login_name as string | null | undefined,
+    display_name: account?.display_name as string | null | undefined,
+  });
+  if (!displayName) {
+    displayName = await resolveOperatorUsernameFromAuthUser(admin, params.userId);
+  }
+  if (!displayName) displayName = '—';
+
+  if (params.role === 'owner') {
+    return ownerAuditActor(params.userId, displayName);
+  }
   return staffAuditActor(params.userId, displayName, params.role);
 }
 

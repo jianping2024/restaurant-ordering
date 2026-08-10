@@ -3,7 +3,7 @@ import {
   assertCheckoutRequestAllowed,
   resolveCheckoutRequestCaller,
 } from '@/lib/checkout-request-auth';
-import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
+import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
@@ -165,13 +165,14 @@ export async function POST(
     const { staffSessionForSlug } = await import('@/lib/staff-api-auth');
     const staffCtx = await staffSessionForSlug(slug);
     if (staffCtx) {
+      const actor = await loadStaffAuditActor(admin, {
+        restaurantId: loaded.restaurant.id,
+        userId: staffCtx.user_id,
+        role: staffCtx.role,
+      });
       scheduleRecordAudit(admin, AUDIT_EVENT.CHECKOUT_REQUESTED, {
         restaurantId: loaded.restaurant.id,
-        actor: staffAuditActor(
-          staffCtx.user_id,
-          staffCtx.role_name || staffCtx.role,
-          staffCtx.role,
-        ),
+        actor,
         context: {
           billSplitId: submitResult.bill_split_id,
           sessionId: submitResult.session_id,

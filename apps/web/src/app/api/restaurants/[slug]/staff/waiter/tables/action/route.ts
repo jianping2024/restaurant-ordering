@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
+import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
@@ -96,7 +96,11 @@ export async function POST(
       (typeof row.display_name === 'string' && row.display_name.trim()) || '—',
     ]),
   );
-  const actor = staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role);
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    role: ctx.role,
+  });
   if (sessionId && action === 'transfer') {
     scheduleRecordAudit(admin, AUDIT_EVENT.TABLE_TRANSFERRED, {
       restaurantId: ctx.restaurant_id,

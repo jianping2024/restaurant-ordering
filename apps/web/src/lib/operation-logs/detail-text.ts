@@ -39,6 +39,17 @@ export function formatOperationLogDetail(lang: UILanguage, row: OperationLogRow)
       const children = asNumber(after.childCount) ?? 0;
       return t.detailOpen.replace('{adults}', String(adults)).replace('{children}', String(children));
     }
+    case AUDIT_EVENT.GUEST_COUNT_CHANGED: {
+      const fromAdults = asNumber(before.adultCount) ?? 0;
+      const fromChildren = asNumber(before.childCount) ?? 0;
+      const toAdults = asNumber(after.adultCount) ?? 0;
+      const toChildren = asNumber(after.childCount) ?? 0;
+      return t.detailGuestCount
+        .replace('{fromAdults}', String(fromAdults))
+        .replace('{fromChildren}', String(fromChildren))
+        .replace('{toAdults}', String(toAdults))
+        .replace('{toChildren}', String(toChildren));
+    }
     case AUDIT_EVENT.TABLE_CLOSED: {
       const amount = asNumber(after.amount);
       const kind = asString(after.closeKind);
@@ -65,6 +76,31 @@ export function formatOperationLogDetail(lang: UILanguage, row: OperationLogRow)
       return t.detailMerge
         .replace('{from}', asString(before.sourceTableName) || '—')
         .replace('{to}', asString(after.targetTableName) || '—');
+    case AUDIT_EVENT.TABLE_PARTY: {
+      const action = asString(after.action);
+      const partyName = asString(after.partyName) || '—';
+      const tables = Array.isArray(after.tableNames)
+        ? after.tableNames.map((v) => asString(v)).filter(Boolean).join('、')
+        : '';
+      if (action === 'create') return t.detailPartyCreate.replace('{name}', partyName);
+      if (action === 'rename') {
+        return t.detailPartyRename
+          .replace('{from}', asString(before.partyName) || '—')
+          .replace('{to}', partyName);
+      }
+      if (action === 'dissolve') return t.detailPartyDissolve.replace('{name}', partyName);
+      if (action === 'add_tables') {
+        return t.detailPartyAdd
+          .replace('{name}', partyName)
+          .replace('{tables}', tables || '—');
+      }
+      if (action === 'remove_table') {
+        return t.detailPartyRemove
+          .replace('{name}', partyName)
+          .replace('{tables}', tables || '—');
+      }
+      return partyName;
+    }
     case AUDIT_EVENT.CHECKOUT_REQUESTED: {
       const total = asNumber(after.totalAmount);
       return total != null
@@ -77,6 +113,19 @@ export function formatOperationLogDetail(lang: UILanguage, row: OperationLogRow)
       return amount != null
         ? t.detailPayment.replace('{name}', name).replace('{amount}', amount.toFixed(2))
         : t.detailPaymentNoAmount.replace('{name}', name);
+    }
+    case AUDIT_EVENT.ORDER_APPENDED: {
+      const summary = itemsSummary(after);
+      return summary || '—';
+    }
+    case AUDIT_EVENT.ITEM_QTY_DECREMENTED: {
+      const name = asString(after.itemName) || asString(before.itemName) || '—';
+      const fromQty = asNumber(before.qty) ?? 0;
+      const toQty = asNumber(after.qty) ?? 0;
+      return t.detailDecrement
+        .replace('{name}', name)
+        .replace('{from}', String(fromQty))
+        .replace('{to}', String(toQty));
     }
     case AUDIT_EVENT.KITCHEN_PREP:
     case AUDIT_EVENT.KITCHEN_PREP_REPRINT:
@@ -97,6 +146,9 @@ export function operationLogTableLabel(row: OperationLogRow): string {
   }
   if (row.action_type === AUDIT_EVENT.TABLE_MERGED) {
     return `${asString(before.sourceTableName) || '—'}→${asString(after.targetTableName) || '—'}`;
+  }
+  if (row.action_type === AUDIT_EVENT.TABLE_PARTY) {
+    return asString(after.partyName) || '—';
   }
   return asString(after.tableName) || '—';
 }

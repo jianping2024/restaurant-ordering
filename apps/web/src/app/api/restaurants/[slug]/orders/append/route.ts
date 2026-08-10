@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { AUDIT_EVENT, scheduleStaffRecordAudit } from '@/lib/audit';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
 import { orderAppendRateLimitCheck } from '@/lib/order-append-rate-limit';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
@@ -16,6 +17,7 @@ import {
   releaseAppendIdempotencyClaim,
 } from '@/lib/append-idempotency';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
+import { orderItemAuditLabel } from '@/lib/audit/order-item-audit-label';
 
 export const runtime = 'nodejs';
 
@@ -246,6 +248,23 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
       waiter_flow: waiterFlow,
       is_first_order: writeResult.isFirstOrder,
       duration_ms: Date.now() - startedAt,
+    });
+  }
+
+  if (waiterFlow && gate.staffAuth && resolved.items.length > 0) {
+    scheduleStaffRecordAudit(admin, AUDIT_EVENT.ORDER_APPENDED, {
+      restaurantId: rid,
+      userId: gate.staffAuth.user_id,
+      role: gate.staffAuth.role,
+      context: {
+        orderId: writeResult.orderId,
+        sessionId,
+        tableName: displayName,
+        items: resolved.items.map((item) => ({
+          itemName: orderItemAuditLabel(item),
+          qty: item.qty,
+        })),
+      },
     });
   }
 

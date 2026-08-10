@@ -1,5 +1,5 @@
 export { recordAudit } from '@/lib/audit/audit.service';
-export { scheduleRecordAudit } from '@/lib/audit/schedule-record-audit';
+export { scheduleRecordAudit, scheduleStaffRecordAudit } from '@/lib/audit/schedule-record-audit';
 export {
   AUDIT_EVENT,
   OPERATION_LOG_ACTION_TYPES,

@@ -59,19 +59,28 @@ function parseTableIdList(raw: unknown): string[] | null {
   return ids;
 }
 
+export type TablePartyAuditHint = {
+  action: 'create' | 'rename' | 'dissolve' | 'add_tables' | 'remove_table';
+  partyId: string;
+  partyName: string;
+  beforePartyName?: string;
+  tableNames?: string[];
+};
+
 export type TablePartyMutationResult =
   | {
       ok: true;
       parties: TablePartyGroup[];
       partyMembers: TablePartyGroupMember[];
       createdPartyId?: string;
+      audit?: TablePartyAuditHint;
     }
   | { ok: false; status: number; error: string; conflicts?: TablePartyGroupMember[] };
 
 async function reloadResult(
   admin: SupabaseClient,
   restaurantId: string,
-  extra?: { createdPartyId?: string },
+  extra?: { createdPartyId?: string; audit?: TablePartyAuditHint },
 ): Promise<Extract<TablePartyMutationResult, { ok: true }>> {
   const loaded = await loadTablePartyGroups(admin, restaurantId);
   return { ok: true, ...loaded, ...extra };
@@ -141,7 +150,14 @@ export async function createTablePartyGroup(
       .single();
 
     if (!error && data?.id) {
-      return reloadResult(admin, restaurantId, { createdPartyId: data.id as string });
+      return reloadResult(admin, restaurantId, {
+        createdPartyId: data.id as string,
+        audit: {
+          action: 'create',
+          partyId: data.id as string,
+          partyName: name,
+        },
+      });
     }
     if (uniqueViolation(error)) {
       if (customName) {
@@ -190,7 +206,14 @@ export async function renameTablePartyGroup(
     }
     return { ok: false, status: 400, error: error.message };
   }
-  return reloadResult(admin, restaurantId);
+  return reloadResult(admin, restaurantId, {
+    audit: {
+      action: 'rename',
+      partyId,
+      partyName: name,
+      beforePartyName: party.name,
+    },
+  });
 }
 
 export async function dissolveTablePartyGroup(
@@ -203,7 +226,7 @@ export async function dissolveTablePartyGroup(
 
   const { data: party, error: findError } = await admin
     .from('table_party_groups')
-    .select('id')
+    .select('id, name')
     .eq('id', partyId)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
@@ -216,7 +239,13 @@ export async function dissolveTablePartyGroup(
     .eq('id', partyId)
     .eq('restaurant_id', restaurantId);
   if (error) return { ok: false, status: 400, error: error.message };
-  return reloadResult(admin, restaurantId);
+  return reloadResult(admin, restaurantId, {
+    audit: {
+      action: 'dissolve',
+      partyId,
+      partyName: typeof party.name === 'string' ? party.name : '—',
+    },
+  });
 }
 
 /**
@@ -270,6 +299,17 @@ export async function removeTableFromParty(
     return { ok: false, status: 400, error: 'invalid_ids' };
   }
 
+  const loaded = await loadTablePartyGroups(admin, restaurantId);
+  const party = loaded.parties.find((p) => p.id === partyId);
+  if (!party) return { ok: false, status: 404, error: 'party_not_found' };
+
+  const { data: tableRow } = await admin
+    .from('restaurant_tables')
+    .select('display_name')
+    .eq('restaurant_id', restaurantId)
+    .eq('id', tableId)
+    .maybeSingle();
+
   const { error } = await admin
     .from('table_party_group_members')
     .delete()
@@ -279,7 +319,16 @@ export async function removeTableFromParty(
   if (error) return { ok: false, status: 400, error: error.message };
 
   await dissolvePartyIfEmpty(admin, restaurantId, partyId);
-  return reloadResult(admin, restaurantId);
+  return reloadResult(admin, restaurantId, {
+    audit: {
+      action: 'remove_table',
+      partyId,
+      partyName: party.name,
+      tableNames: [
+        typeof tableRow?.display_name === 'string' ? tableRow.display_name : '—',
+      ],
+    },
+  });
 }
 
 /** True when the table is a member of any together-group in this restaurant. */
@@ -418,7 +467,7 @@ export async function addTablesToParty(
 
   const { data: party, error: findError } = await admin
     .from('table_party_groups')
-    .select('id')
+    .select('id, name')
     .eq('id', partyId)
     .eq('restaurant_id', restaurantId)
     .maybeSingle();
@@ -427,7 +476,7 @@ export async function addTablesToParty(
 
   const { data: tableRows, error: tablesError } = await admin
     .from('restaurant_tables')
-    .select('id')
+    .select('id, display_name')
     .eq('restaurant_id', restaurantId)
     .is('deleted_at', null)
     .in('id', tableIds);
@@ -504,5 +553,22 @@ export async function addTablesToParty(
     if (insertError) return { ok: false, status: 400, error: insertError.message };
   }
 
-  return reloadResult(admin, restaurantId);
+  const nameById = new Map(
+    (tableRows || []).map((row) => [
+      row.id as string,
+      typeof row.display_name === 'string' ? row.display_name : '—',
+    ]),
+  );
+  const affectedIds = toInsert.length > 0 ? toInsert : tableIds;
+  return reloadResult(admin, restaurantId, {
+    audit:
+      toInsert.length > 0
+        ? {
+            action: 'add_tables',
+            partyId,
+            partyName: typeof party.name === 'string' ? party.name : '—',
+            tableNames: affectedIds.map((id) => nameById.get(id) || '—'),
+          }
+        : undefined,
+  });
 }

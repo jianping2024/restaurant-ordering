@@ -39,6 +39,8 @@ export const itemQtyDecrementedDefinition: AuditEventDefinition<ItemQtyDecrement
         unitAmount,
       },
       afterData: {
+        tableName: context.tableName,
+        itemName: context.itemName,
         qty: context.qtyAfter,
         qtyRemoved: 1,
         unitAmount,

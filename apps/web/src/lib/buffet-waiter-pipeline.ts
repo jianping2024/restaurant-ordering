@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillSplit, Order } from '@/types';
 import {
+  aggregateBuffetHeadcountForOrders,
   buffetSnapshotFromOrders,
   buildBuffetBaseLine,
   diffBuffetSnapshots,
@@ -101,10 +102,14 @@ export type BuffetWaiterPipelineSuccess = {
   unchanged?: true;
   /** Present when this call cold-opened a session (audit / open-table side effects). */
   sessionOpened?: true;
+  /** Present when an existing session's buffet headcount changed (not cold open). */
+  guestCountChanged?: true;
   sessionId?: string;
   tableName?: string;
   adultCount?: number;
   childCount?: number;
+  previousAdultCount?: number;
+  previousChildCount?: number;
 };
 
 export type BuffetWaiterPipelineFailure = {
@@ -202,6 +207,12 @@ export async function runBuffetWaiterOpenPipeline(
 
   const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session, openedByName);
   const sessionOrders = mapToBuffetSessionOrders(orders);
+  const previousHeadcount = aggregateBuffetHeadcountForOrders(orders) ?? {
+    adults: 0,
+    children: 0,
+  };
+  const nextAdultCount = buffets.reduce((n, b) => n + (b.adults || 0), 0);
+  const nextChildCount = buffets.reduce((n, b) => n + (b.children || 0), 0);
   const unchanged = isBuffetSnapshotUnchanged(sessionOrders, targetSnapshot);
   const resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null> = {};
 
@@ -333,16 +344,24 @@ export async function runBuffetWaiterOpenPipeline(
   return {
     ok: true,
     model,
+    sessionId,
+    tableName: displayName,
     ...(unchanged ? { unchanged: true } : {}),
     ...(isColdOpen
       ? {
           sessionOpened: true as const,
-          sessionId,
-          tableName: displayName,
-          adultCount: buffets.reduce((n, b) => n + (b.adults || 0), 0),
-          childCount: buffets.reduce((n, b) => n + (b.children || 0), 0),
+          adultCount: nextAdultCount,
+          childCount: nextChildCount,
         }
-      : {}),
+      : !unchanged
+        ? {
+            guestCountChanged: true as const,
+            adultCount: nextAdultCount,
+            childCount: nextChildCount,
+            previousAdultCount: previousHeadcount.adults,
+            previousChildCount: previousHeadcount.children,
+          }
+        : {}),
   };
 }
 

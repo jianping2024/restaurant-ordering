@@ -1,23 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
-import { DayPicker, type DateRange } from 'react-day-picker';
-import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns';
 import Select from 'react-select';
 import type { MultiValue, StylesConfig } from 'react-select';
-import 'react-day-picker/dist/style.css';
-import '@mesa/ui/date-picker.css';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
-import {
-  defaultOrderHistoryClosedRange,
-  formatOrderHistoryDateKey,
-  formatOrderHistoryPickerFilter,
-  orderHistoryClosedRangeToPicker,
-  ORDER_HISTORY_MAX_RANGE_DAYS,
-} from '@/lib/order-history/date-range';
 import { useOrderHistoryFeed } from '@/lib/use-order-history-feed';
 import { formatForcedUnpaidCloseAnnotation } from '@/lib/order-history/resolve-close-annotation-label';
 import {
@@ -35,10 +24,9 @@ import {
   staffSessionBillCooldownKey,
 } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
-import { showToast } from '@/components/ui/Toast';
+import { DashboardDateRangePicker } from '@/components/ui/DashboardDateRangePicker';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
-import { daysBetweenInclusive } from '@/lib/lisbon-calendar';
 import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@/lib/paginate-list';
 
 interface Props {
@@ -79,15 +67,6 @@ export function OrdersHistoryManager({
     isOnCooldown,
   } = useStaffCheckoutBillPrint(restaurantSlug);
 
-  const initialPickerRange = useMemo(
-    () =>
-      orderHistoryClosedRangeToPicker({
-        closedFrom: initialClosedFrom,
-        closedTo: initialClosedTo,
-      }),
-    [initialClosedFrom, initialClosedTo],
-  );
-
   const {
     entries,
     total,
@@ -112,10 +91,9 @@ export function OrdersHistoryManager({
   });
 
   const [selectedTables, setSelectedTables] = useState<TableOption[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialPickerRange);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [closedFrom, setClosedFrom] = useState(initialClosedFrom);
+  const [closedTo, setClosedTo] = useState(initialClosedTo);
   const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
-  const pickerRef = useRef<HTMLDivElement | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -179,80 +157,8 @@ export function OrdersHistoryManager({
 
   useEffect(() => {
     const tableIds = selectedTables.map((item) => item.value);
-    const closed = formatOrderHistoryPickerFilter({
-      from: dateRange?.from,
-      to: dateRange?.to,
-    });
-    if (!closed) {
-      const fallback = defaultOrderHistoryClosedRange();
-      setDateRange(orderHistoryClosedRangeToPicker(fallback));
-      setFilters({ tableIds, ...fallback });
-      return;
-    }
-    setFilters({ tableIds, ...closed });
-  }, [dateRange, selectedTables, setFilters]);
-
-  const rangeLabel = useMemo(() => {
-    if (!dateRange?.from && !dateRange?.to) return i18n.filterDateRange;
-    if (dateRange?.from && dateRange?.to) {
-      return `${format(dateRange.from, 'yyyy-MM-dd')} ~ ${format(dateRange.to, 'yyyy-MM-dd')}`;
-    }
-    if (dateRange?.from) return format(dateRange.from, 'yyyy-MM-dd');
-    return i18n.filterDateRange;
-  }, [dateRange, i18n.filterDateRange]);
-
-  const applyPreset = (preset: 'today' | 'last7' | 'month') => {
-    const today = startOfToday();
-    if (preset === 'today') {
-      setDateRange({ from: today, to: today });
-      return;
-    }
-    if (preset === 'last7') {
-      setDateRange(orderHistoryClosedRangeToPicker(defaultOrderHistoryClosedRange()));
-      return;
-    }
-    setDateRange({ from: startOfMonth(today), to: endOfMonth(today) });
-  };
-
-  const resetRange = () => {
-    setDateRange(orderHistoryClosedRangeToPicker(defaultOrderHistoryClosedRange()));
-  };
-
-  const onPickerSelect = (next: DateRange | undefined) => {
-    if (!next?.from) {
-      resetRange();
-      return;
-    }
-    const fromKey = formatOrderHistoryDateKey(next.from);
-    const toKey = formatOrderHistoryDateKey(next.to ?? next.from);
-    if (daysBetweenInclusive(fromKey, toKey) > ORDER_HISTORY_MAX_RANGE_DAYS) {
-      showToast(i18n.dateRangeTooLong, 'error');
-    }
-    const closed = formatOrderHistoryPickerFilter(next);
-    if (!closed) {
-      resetRange();
-      return;
-    }
-    setDateRange(orderHistoryClosedRangeToPicker(closed));
-  };
-
-  useEffect(() => {
-    if (!pickerOpen) return;
-    const onPointerDown = (event: MouseEvent) => {
-      if (!pickerRef.current?.contains(event.target as Node)) {
-        setPickerOpen(false);
-      }
-    };
-    const onEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setPickerOpen(false);
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, [pickerOpen]);
+    setFilters({ tableIds, closedFrom, closedTo });
+  }, [closedFrom, closedTo, selectedTables, setFilters]);
 
   const renderMetaAmount = (entry: OrderHistoryEntry) => {
     const { listAmount, listAmountKind } = entry.settlement;
@@ -383,38 +289,23 @@ export function OrdersHistoryManager({
           isClearable
           closeMenuOnSelect
         />
-        <div className="relative" ref={pickerRef}>
-          <button
-            type="button"
-            onClick={() => setPickerOpen((value) => !value)}
-            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-left text-brand-text focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-          >
-            {rangeLabel}
-          </button>
-          {pickerOpen && (
-            <div className="absolute z-20 mt-2 right-0 bg-brand-card border border-brand-border rounded-xl p-3 shadow-xl min-w-[300px]">
-              <div className="flex items-center gap-2 mb-3">
-                <button type="button" onClick={() => applyPreset('today')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateToday}</button>
-                <button type="button" onClick={() => applyPreset('last7')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateLast7}</button>
-                <button type="button" onClick={() => applyPreset('month')} className="text-[13px] px-2 py-1 rounded border border-brand-border text-brand-text-muted hover:text-brand-text hover:border-brand-gold/40">{i18n.dateThisMonth}</button>
-              </div>
-              <DayPicker
-                mode="range"
-                selected={dateRange}
-                onSelect={onPickerSelect}
-                className="mesa-rdp mesa-rdp--brand"
-              />
-              <div className="mt-3 flex items-center justify-between">
-                <button type="button" onClick={resetRange} className="text-[13px] text-brand-text-muted hover:text-brand-text">
-                  {i18n.resetDate}
-                </button>
-                <button type="button" onClick={() => setPickerOpen(false)} className="text-[13px] text-brand-gold hover:underline">
-                  OK
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <DashboardDateRangePicker
+          startDate={closedFrom}
+          endDate={closedTo}
+          onChange={({ startDate, endDate }) => {
+            setClosedFrom(startDate);
+            setClosedTo(endDate);
+          }}
+          presets={['today', 'last7', 'month']}
+          labels={{
+            filterDateRange: i18n.filterDateRange,
+            dateToday: i18n.dateToday,
+            dateLast7: i18n.dateLast7,
+            dateThisMonth: i18n.dateThisMonth,
+            resetDate: i18n.resetDate,
+            dateRangeTooLong: i18n.dateRangeTooLong,
+          }}
+        />
       </div>
 
       {loading && entries.length === 0 ? (

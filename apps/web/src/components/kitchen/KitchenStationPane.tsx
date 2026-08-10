@@ -1,18 +1,25 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react';
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import {
-  accumulateRowsByTableDishStatusNote,
   aggregateLinesByDish,
   collectStationBoardLines,
   groupLinesByTable,
+  lineNoteKey,
   lineSelectionKey,
+  lineWaitMinutes,
   partitionStationLines,
-  stationDishTotalQty,
   sumLineQty,
-  type AccumulatedTableRow,
+  type KitchenBoardLine,
 } from '@/components/kitchen/kitchen-board-lines';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 import type { UILanguage } from '@/lib/i18n';
@@ -20,7 +27,7 @@ import type { UILanguage } from '@/lib/i18n';
 type PaneView = 'table' | 'dish';
 
 /** One UI shape for every selectable kitchen row (workbench + ready rail). */
-type AccumulatedLayout = 'workbench-table' | 'workbench-dish-l2' | 'ready';
+type LineLayout = 'workbench-table' | 'workbench-dish-l2' | 'ready';
 
 type Props = {
   stationId: string;
@@ -38,6 +45,8 @@ type Props = {
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
 
+const SWIPE_PREP_THRESHOLD_PX = 88;
+
 function statusLabel(status: OrderItemStatus, t: Labels): string {
   if (status === 'ready') return t.statusReady;
   if (status === 'cooking') return t.statusCooking;
@@ -52,91 +61,177 @@ function statusTone(status: OrderItemStatus): string {
 }
 
 /**
- * Accumulated selectable row — sole workbench/ready line UI.
- * Merge key (elsewhere): menuItemId × tableId × status × note (trim); different notes never merge.
+ * Sole kitchen board row UI — one order line (`orderId:itemIndex`), never merged.
+ * Right-swipe past threshold commits prep for this line only.
  */
-function AccumulatedRow({
-  row,
+function KitchenBoardLineRow({
+  line,
   checked,
   layout,
-  dishTotal,
+  nowMs,
   t,
+  prepBusy,
   onToggle,
+  onSwipePrep,
 }: {
-  row: AccumulatedTableRow;
+  line: KitchenBoardLine;
   checked: boolean;
-  layout: AccumulatedLayout;
-  /** Workbench-table only: station workbench total for this dish. */
-  dishTotal?: number;
+  layout: LineLayout;
+  nowMs: number;
   t: Labels;
+  prepBusy: boolean;
   onToggle: () => void;
+  onSwipePrep: () => void;
 }) {
-  const selectable = row.lines.some((l) => l.selectable);
-  const noteEl = row.note ? (
-    <span className="ml-2 text-xl font-normal text-amber-800/90">· {row.note}</span>
+  const note = lineNoteKey(line.item);
+  const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
+  const [dragX, setDragX] = useState(0);
+  const [animatingOut, setAnimatingOut] = useState(false);
+  const startRef = useRef<{ x: number; y: number; tracking: boolean } | null>(null);
+  const dragXRef = useRef(0);
+  const armedRef = useRef(false);
+
+  const noteEl = note ? (
+    <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
   ) : null;
 
   let title: ReactNode;
   if (layout === 'workbench-table') {
     title = (
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {row.name}
+        {line.displayName}
         {noteEl}
       </span>
     );
   } else if (layout === 'ready') {
     title = (
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {row.name}
+        {line.displayName}
         {noteEl}
-        <span className="ml-2 text-xl font-normal text-brand-text-muted">
-          {' '}
-          {row.tableDisplay}
-        </span>
+        <span className="ml-2 text-xl font-normal text-brand-text-muted"> {line.tableDisplay}</span>
       </span>
     );
   } else {
     title = (
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {row.tableDisplay}
+        {line.tableDisplay}
         {noteEl}
       </span>
     );
   }
 
-  return (
-    <label
-      className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
-        checked ? 'bg-brand-gold/12' : 'hover:bg-brand-bg/70'
-      } ${selectable ? 'cursor-pointer' : 'opacity-55'}`}
-    >
-      <input
-        type="checkbox"
-        className="h-5 w-5 shrink-0"
-        checked={checked}
-        disabled={!selectable}
-        onChange={onToggle}
-      />
-      {layout === 'workbench-table' && dishTotal != null ? (
-        <span className="shrink-0 min-w-[3rem] text-center text-xl font-semibold tabular-nums text-brand-gold">
-          {t.qtyBadge.replace('{n}', String(dishTotal))}
-        </span>
-      ) : null}
-      {title}
-      <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-        × {row.qty}
-      </span>
-      <span
-        className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(row.effectiveStatus)}`}
-      >
-        {statusLabel(row.effectiveStatus, t)}
-      </span>
-    </label>
-  );
-}
+  const resetDrag = useCallback(() => {
+    dragXRef.current = 0;
+    setDragX(0);
+    startRef.current = null;
+    armedRef.current = false;
+  }, []);
 
-function rowFullySelected(row: AccumulatedTableRow, selected: Set<string>): boolean {
-  return row.lineKeys.length > 0 && row.lineKeys.every((k) => selected.has(k));
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!line.selectable || prepBusy || animatingOut) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('input, button, label')) return;
+    startRef.current = { x: e.clientX, y: e.clientY, tracking: false };
+    armedRef.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const start = startRef.current;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (!start.tracking) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        startRef.current = null;
+        return;
+      }
+      start.tracking = true;
+    }
+    const next = Math.max(0, Math.min(dx, 140));
+    dragXRef.current = next;
+    setDragX(next);
+    armedRef.current = next >= SWIPE_PREP_THRESHOLD_PX;
+  };
+
+  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!startRef.current) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
+    const commit = armedRef.current && line.selectable && !prepBusy;
+    if (commit) {
+      setAnimatingOut(true);
+      setDragX(160);
+      window.setTimeout(() => {
+        onSwipePrep();
+        setAnimatingOut(false);
+        resetDrag();
+      }, 180);
+      return;
+    }
+    resetDrag();
+  };
+
+  const onPointerCancel = () => {
+    if (animatingOut) return;
+    resetDrag();
+  };
+
+  const revealProgress = Math.min(1, dragX / SWIPE_PREP_THRESHOLD_PX);
+
+  return (
+    <div className="relative overflow-hidden border-b border-brand-border/50">
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 flex w-40 items-center justify-center bg-emerald-600 text-xl font-semibold text-white"
+        style={{ opacity: 0.35 + revealProgress * 0.65 }}
+        aria-hidden
+      >
+        {t.prep}
+      </div>
+      <div
+        role="presentation"
+        className={`relative flex items-center gap-3 px-2 py-2.5 touch-pan-y ${
+          checked ? 'bg-brand-gold/12' : 'bg-brand-card'
+        } ${line.selectable ? '' : 'opacity-55'} ${animatingOut ? 'transition-transform duration-150 ease-out' : dragX > 0 ? '' : 'transition-transform duration-150 ease-out'}`}
+        style={{ transform: `translateX(${dragX}px)` }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+      >
+        <label className={`flex min-w-0 flex-1 items-center gap-3 ${line.selectable ? 'cursor-pointer' : ''}`}>
+          <input
+            type="checkbox"
+            className="h-5 w-5 shrink-0"
+            checked={checked}
+            disabled={!line.selectable}
+            onChange={onToggle}
+            onClick={(e) => e.stopPropagation()}
+          />
+          {title}
+          <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
+            × {Number(line.item.qty) || 0}
+          </span>
+          <span
+            className="shrink-0 text-lg tabular-nums text-brand-text-muted"
+            suppressHydrationWarning
+          >
+            {t.waitMinutes.replace('{n}', String(waitMin))}
+          </span>
+          <span
+            className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
+          >
+            {statusLabel(line.effectiveStatus, t)}
+          </span>
+        </label>
+      </div>
+    </div>
+  );
 }
 
 export function KitchenStationPane({
@@ -173,19 +268,33 @@ export function KitchenStationPane({
   const { workbench, ready } = useMemo(() => partitionStationLines(allLines), [allLines]);
   const byTable = useMemo(() => groupLinesByTable(workbench), [workbench]);
   const byDish = useMemo(() => aggregateLinesByDish(workbench), [workbench]);
-  const readyRows = useMemo(() => accumulateRowsByTableDishStatusNote(ready), [ready]);
   const readyQty = useMemo(() => sumLineQty(ready), [ready]);
 
-  const toggleAccumulated = (row: AccumulatedTableRow) => {
+  const toggleLine = (key: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      const allOn = row.lineKeys.every((k) => next.has(k));
-      for (const k of row.lineKeys) {
-        if (allOn) next.delete(k);
-        else next.add(k);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const selectAllForTable = (lines: KitchenBoardLine[]) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const selectable = lines.filter((l) => l.selectable);
+      const allOn = selectable.length > 0 && selectable.every((l) => next.has(l.key));
+      for (const l of selectable) {
+        if (allOn) next.delete(l.key);
+        else next.add(l.key);
       }
       return next;
     });
+  };
+
+  const tableAllSelected = (lines: KitchenBoardLine[]) => {
+    const selectable = lines.filter((l) => l.selectable);
+    return selectable.length > 0 && selectable.every((l) => selected.has(l.key));
   };
 
   const toggleTableCollapsed = (tableId: string) => {
@@ -206,12 +315,34 @@ export function KitchenStationPane({
     setSelected(new Set());
   };
 
+  const handleSwipePrep = async (line: KitchenBoardLine) => {
+    if (!line.selectable || prepBusy) return;
+    await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.delete(line.key);
+      return next;
+    });
+  };
+
+  const renderLine = (line: KitchenBoardLine, layout: LineLayout) => (
+    <KitchenBoardLineRow
+      key={line.key}
+      line={line}
+      checked={selected.has(line.key)}
+      layout={layout}
+      nowMs={nowMs}
+      t={t}
+      prepBusy={prepBusy}
+      onToggle={() => toggleLine(line.key)}
+      onSwipePrep={() => void handleSwipePrep(line)}
+    />
+  );
+
   return (
     <section
       className={`flex min-h-0 flex-col bg-brand-card ${
-        maximized
-          ? 'h-full border-0'
-          : 'rounded-xl border border-brand-border'
+        maximized ? 'h-full border-0' : 'rounded-xl border border-brand-border'
       }`}
     >
       <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-brand-border/70 px-3 py-2">
@@ -251,41 +382,40 @@ export function KitchenStationPane({
         ) : view === 'table' ? (
           byTable.map((group) => {
             const collapsed = collapsedTables.has(group.tableId);
-            const rows = accumulateRowsByTableDishStatusNote(group.lines);
+            const allOn = tableAllSelected(group.lines);
             return (
               <div key={group.tableId}>
-                <button
-                  type="button"
-                  className="sticky top-0 z-[1] flex w-full items-center gap-2 border-b border-brand-border/60 bg-brand-bg/95 px-3 py-2 text-left backdrop-blur-sm"
-                  onClick={() => toggleTableCollapsed(group.tableId)}
-                >
-                  <span className="min-w-0 flex-1 truncate text-2xl font-medium text-brand-text">
+                <div className="sticky top-0 z-[1] flex w-full items-center gap-2 border-b border-brand-border/60 bg-brand-bg/95 px-3 py-2 backdrop-blur-sm">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 truncate text-left text-2xl font-medium text-brand-text"
+                    onClick={() => toggleTableCollapsed(group.tableId)}
+                  >
                     {group.tableDisplay}
-                  </span>
-                  <span className="shrink-0 text-base text-brand-text-muted">
+                  </button>
+                  <button
+                    type="button"
+                    className="shrink-0 rounded-md border border-brand-border px-2.5 py-1 text-base font-medium text-brand-text hover:bg-brand-bg"
+                    disabled={group.lines.every((l) => !l.selectable)}
+                    onClick={() => selectAllForTable(group.lines)}
+                  >
+                    {allOn ? t.deselectAll : t.selectAll}
+                  </button>
+                  <button
+                    type="button"
+                    className="shrink-0 text-base text-brand-text-muted"
+                    onClick={() => toggleTableCollapsed(group.tableId)}
+                  >
                     {collapsed ? t.expandGroup : t.collapseGroup}
-                  </span>
-                </button>
-                {collapsed
-                  ? null
-                  : rows.map((row) => (
-                      <AccumulatedRow
-                        key={row.key}
-                        row={row}
-                        checked={rowFullySelected(row, selected)}
-                        layout="workbench-table"
-                        dishTotal={stationDishTotalQty(workbench, row.menuItemId)}
-                        t={t}
-                        onToggle={() => toggleAccumulated(row)}
-                      />
-                    ))}
+                  </button>
+                </div>
+                {collapsed ? null : group.lines.map((line) => renderLine(line, 'workbench-table'))}
               </div>
             );
           })
         ) : (
           byDish.map((dish) => {
             const open = expandedDish === dish.menuItemId;
-            const tableRows = accumulateRowsByTableDishStatusNote(dish.lines);
             return (
               <div key={dish.menuItemId}>
                 <button
@@ -299,7 +429,10 @@ export function KitchenStationPane({
                     {dish.name}
                   </span>
                   <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-                    {t.qtyBadge.replace('{n}', String(dish.totalQty))}
+                    {t.portionBadge.replace('{n}', String(dish.totalQty))}
+                  </span>
+                  <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-text">
+                    {t.tablesCountBadge.replace('{n}', String(dish.tableCount))}
                   </span>
                   <span className="min-w-0 max-w-[40%] truncate text-lg text-brand-text-muted">
                     {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
@@ -308,18 +441,7 @@ export function KitchenStationPane({
                     {open ? t.collapseGroup : t.expandGroup}
                   </span>
                 </button>
-                {open
-                  ? tableRows.map((row) => (
-                      <AccumulatedRow
-                        key={row.key}
-                        row={row}
-                        checked={rowFullySelected(row, selected)}
-                        layout="workbench-dish-l2"
-                        t={t}
-                        onToggle={() => toggleAccumulated(row)}
-                      />
-                    ))
-                  : null}
+                {open ? dish.lines.map((line) => renderLine(line, 'workbench-dish-l2')) : null}
               </div>
             );
           })
@@ -329,19 +451,10 @@ export function KitchenStationPane({
       <footer className="flex shrink-0 flex-col border-t border-brand-border/70">
         {readyRailOpen ? (
           <div className="max-h-64 min-h-0 overflow-y-auto border-b border-brand-border/60 bg-brand-bg/40">
-            {readyRows.length === 0 ? (
+            {ready.length === 0 ? (
               <p className="px-3 py-4 text-center text-xl text-brand-text-muted">{t.readyRailEmpty}</p>
             ) : (
-              readyRows.map((row) => (
-                <AccumulatedRow
-                  key={row.key}
-                  row={row}
-                  checked={rowFullySelected(row, selected)}
-                  layout="ready"
-                  t={t}
-                  onToggle={() => toggleAccumulated(row)}
-                />
-              ))
+              ready.map((line) => renderLine(line, 'ready'))
             )}
           </div>
         ) : null}

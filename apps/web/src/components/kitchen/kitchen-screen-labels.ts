@@ -17,13 +17,19 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: string;
     restore: string;
     selectLines: string;
+    selectAll: string;
+    deselectAll: string;
     noLines: string;
     statusPending: string;
     statusCooking: string;
     statusReady: string;
     statusDone: string;
-    qtyBadge: string;
+    /** By-dish L1: workbench portion total for this dish. */
+    portionBadge: string;
+    /** By-dish L1: distinct table count (never line/qty count). */
+    tablesCountBadge: string;
     tablesLabel: string;
+    waitMinutes: string;
     expandGroup: string;
     collapseGroup: string;
     readyRailShow: string;
@@ -46,13 +52,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: '最大化',
     restore: '复原',
     selectLines: '勾选后点击备餐',
+    selectAll: '全选',
+    deselectAll: '取消全选',
     noLines: '暂无待备餐菜品',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.zh.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.zh.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.zh.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.zh.done,
-    qtyBadge: '共 {n}',
+    portionBadge: '共 {n} 份',
+    tablesCountBadge: '共 {n} 桌',
     tablesLabel: '桌：{tables}',
+    waitMinutes: '等 {n} 分',
     expandGroup: '展开',
     collapseGroup: '收起',
     readyRailShow: '已出餐 · {n}',
@@ -74,13 +84,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: 'Maximize',
     restore: 'Restore',
     selectLines: 'Select lines, then prep',
+    selectAll: 'Select all',
+    deselectAll: 'Deselect all',
     noLines: 'No dishes waiting',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.en.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.en.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.en.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.en.done,
-    qtyBadge: '×{n}',
+    portionBadge: '{n} pcs',
+    tablesCountBadge: '{n} tables',
     tablesLabel: 'Tables: {tables}',
+    waitMinutes: '{n}m wait',
     expandGroup: 'Expand',
     collapseGroup: 'Collapse',
     readyRailShow: 'Ready · {n}',
@@ -102,13 +116,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: 'Maximizar',
     restore: 'Restaurar',
     selectLines: 'Selecione e prepare',
+    selectAll: 'Selecionar tudo',
+    deselectAll: 'Desmarcar',
     noLines: 'Sem pratos a preparar',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.pt.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.pt.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.pt.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.pt.done,
-    qtyBadge: '×{n}',
+    portionBadge: '{n} un.',
+    tablesCountBadge: '{n} mesas',
     tablesLabel: 'Mesas: {tables}',
+    waitMinutes: '{n} min',
     expandGroup: 'Expandir',
     collapseGroup: 'Recolher',
     readyRailShow: 'Pronto · {n}',
@@ -130,13 +148,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: 'Maximizar',
     restore: 'Restaurar',
     selectLines: 'Seleccione y prepare',
+    selectAll: 'Seleccionar todo',
+    deselectAll: 'Deseleccionar',
     noLines: 'Sin platos pendientes',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.es.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.es.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.es.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.es.done,
-    qtyBadge: '×{n}',
+    portionBadge: '{n} uds',
+    tablesCountBadge: '{n} mesas',
     tablesLabel: 'Mesas: {tables}',
+    waitMinutes: '{n} min',
     expandGroup: 'Expandir',
     collapseGroup: 'Cerrar',
     readyRailShow: 'Listo · {n}',
@@ -158,13 +180,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: 'Agrandir',
     restore: 'Restaurer',
     selectLines: 'Selectionnez puis preparez',
+    selectAll: 'Tout select.',
+    deselectAll: 'Tout deselect.',
     noLines: 'Aucun plat en attente',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.fr.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.fr.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.fr.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.fr.done,
-    qtyBadge: '×{n}',
+    portionBadge: '{n} pcs',
+    tablesCountBadge: '{n} tables',
     tablesLabel: 'Tables : {tables}',
+    waitMinutes: '{n} min',
     expandGroup: 'Ouvrir',
     collapseGroup: 'Fermer',
     readyRailShow: 'Pret · {n}',
@@ -186,13 +212,17 @@ export const KITCHEN_SCREEN_TEXT: Record<
     maximize: 'Maximieren',
     restore: 'Wiederherstellen',
     selectLines: 'Zeilen waehlen, dann vorbereiten',
+    selectAll: 'Alles',
+    deselectAll: 'Nichts',
     noLines: 'Keine offenen Gerichte',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.de.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.de.cooking,
     statusReady: KITCHEN_ITEM_STATUS_LABEL.de.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.de.done,
-    qtyBadge: '×{n}',
+    portionBadge: '{n} Stk',
+    tablesCountBadge: '{n} Tische',
     tablesLabel: 'Tische: {tables}',
+    waitMinutes: '{n} Min',
     expandGroup: 'Aufklappen',
     collapseGroup: 'Zuklappen',
     readyRailShow: 'Fertig · {n}',

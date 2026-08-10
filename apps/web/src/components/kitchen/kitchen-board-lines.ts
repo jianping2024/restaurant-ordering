@@ -4,6 +4,8 @@ import {
   effectiveItemStatus,
   isKitchenBoardOpenStatus,
 } from '@/lib/order-status';
+import { formatOnScreenMenuItemLabel } from '@/lib/menu-item-display';
+import { resolveMenuItemCode } from '@/lib/menu-item-code';
 
 export type KitchenBoardLine = {
   key: string;
@@ -14,8 +16,14 @@ export type KitchenBoardLine = {
   tableId: string;
   tableDisplay: string;
   menuItemId: string;
+  /** Catalog/on-ticket item code snapshot (may be empty). */
+  itemCode: string | null;
+  /** Display name with optional code prefix — sole kitchen row title for the dish. */
+  displayName: string;
   effectiveStatus: OrderItemStatus;
   selectable: boolean;
+  /** Ordered-at epoch ms (item.added_at || order.created_at). */
+  orderedAtMs: number;
 };
 
 /** Workbench only: pending + still-cooking (not yet display-ready). */
@@ -34,6 +42,18 @@ export function lineSelectionKey(orderId: string, itemIndex: number): string {
 
 export function lineNoteKey(item: OrderItem): string {
   return (item.note || '').trim();
+}
+
+export function lineOrderedAtMs(order: Order, item: OrderItem): number {
+  const raw = item.added_at || order.created_at;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+/** Whole minutes waited since ordered-at (floor, min 0). */
+export function lineWaitMinutes(orderedAtMs: number, nowMs: number): number {
+  if (!orderedAtMs) return 0;
+  return Math.max(0, Math.floor((nowMs - orderedAtMs) / 60_000));
 }
 
 /** Lines for one station pane: open statuses, matching print_station_id. */
@@ -61,6 +81,8 @@ export function collectStationBoardLines(input: {
         effectiveStatus === 'pending' ||
         effectiveStatus === 'cooking' ||
         effectiveStatus === 'ready';
+      const name = item.name || item.name_pt || item.id;
+      const itemCode = resolveMenuItemCode(item);
       lines.push({
         key: lineSelectionKey(order.id, itemIndex),
         orderId: order.id,
@@ -70,16 +92,15 @@ export function collectStationBoardLines(input: {
         tableId: order.table_id,
         tableDisplay: (order.display_name || '').trim() || order.table_id.slice(0, 8),
         menuItemId: item.id,
+        itemCode,
+        displayName: formatOnScreenMenuItemLabel(name, itemCode),
         effectiveStatus,
         selectable,
+        orderedAtMs: lineOrderedAtMs(order, item),
       });
     }
   }
-  lines.sort((a, b) => {
-    const ta = new Date(a.item.added_at || a.order.created_at).getTime();
-    const tb = new Date(b.item.added_at || b.order.created_at).getTime();
-    return ta - tb;
-  });
+  lines.sort((a, b) => a.orderedAtMs - b.orderedAtMs);
   return lines;
 }
 
@@ -101,93 +122,58 @@ export function sumLineQty(lines: KitchenBoardLine[]): number {
   return lines.reduce((sum, l) => sum + (Number(l.item.qty) || 0), 0);
 }
 
-/** Total workbench qty for same menu_item_id (excludes ready rail). */
-export function stationDishTotalQty(
-  workbenchLines: KitchenBoardLine[],
-  menuItemId: string,
-): number {
-  return sumLineQty(workbenchLines.filter((l) => l.menuItemId === menuItemId));
-}
-
 export type DishAggregate = {
   menuItemId: string;
   name: string;
-  emoji: string;
+  /** Workbench portion total for this dish (not table count). */
   totalQty: number;
+  /** Distinct tables with this dish on the workbench. */
+  tableCount: number;
   tableDisplays: string[];
   lines: KitchenBoardLine[];
 };
 
+/** Group workbench lines by dish; tableDisplays / tableCount are unique by tableId. */
 export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[] {
-  const byId = new Map<string, DishAggregate>();
+  type Acc = {
+    menuItemId: string;
+    name: string;
+    totalQty: number;
+    tableDisplays: string[];
+    lines: KitchenBoardLine[];
+    tableIds: Set<string>;
+  };
+  const byId = new Map<string, Acc>();
   for (const line of lines) {
     let agg = byId.get(line.menuItemId);
     if (!agg) {
       agg = {
         menuItemId: line.menuItemId,
-        name: line.item.name || line.item.name_pt || line.menuItemId,
-        emoji: line.item.emoji || '🍽️',
+        name: line.displayName,
         totalQty: 0,
         tableDisplays: [],
         lines: [],
+        tableIds: new Set(),
       };
       byId.set(line.menuItemId, agg);
     }
     agg.totalQty += Number(line.item.qty) || 0;
     agg.lines.push(line);
-    if (!agg.tableDisplays.includes(line.tableDisplay)) {
+    if (!agg.tableIds.has(line.tableId)) {
+      agg.tableIds.add(line.tableId);
       agg.tableDisplays.push(line.tableDisplay);
     }
   }
-  return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/**
- * Same table + same dish + same effective status + same note (trim) → one UI row.
- * Different notes never merge. Used by workbench (by-table + by-dish L2) and 已出餐 rail.
- * Selection maps to all underlying order lines (prep/reprint).
- */
-export type AccumulatedTableRow = {
-  key: string;
-  menuItemId: string;
-  name: string;
-  tableId: string;
-  tableDisplay: string;
-  note: string;
-  qty: number;
-  effectiveStatus: OrderItemStatus;
-  lineKeys: string[];
-  lines: KitchenBoardLine[];
-};
-
-export function accumulateRowsByTableDishStatusNote(
-  lines: KitchenBoardLine[],
-): AccumulatedTableRow[] {
-  const byKey = new Map<string, AccumulatedTableRow>();
-  for (const line of lines) {
-    const note = lineNoteKey(line.item);
-    const key = `${line.menuItemId}\0${line.tableId}\0${line.effectiveStatus}\0${note}`;
-    let row = byKey.get(key);
-    if (!row) {
-      row = {
-        key,
-        menuItemId: line.menuItemId,
-        name: line.item.name || line.item.name_pt || line.menuItemId,
-        tableId: line.tableId,
-        tableDisplay: line.tableDisplay,
-        note,
-        qty: 0,
-        effectiveStatus: line.effectiveStatus,
-        lineKeys: [],
-        lines: [],
-      };
-      byKey.set(key, row);
-    }
-    row.qty += Number(line.item.qty) || 0;
-    row.lineKeys.push(line.key);
-    row.lines.push(line);
-  }
-  return Array.from(byKey.values());
+  return Array.from(byId.values())
+    .map((agg) => ({
+      menuItemId: agg.menuItemId,
+      name: agg.name,
+      totalQty: agg.totalQty,
+      tableCount: agg.tableDisplays.length,
+      tableDisplays: agg.tableDisplays,
+      lines: agg.lines,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function groupLinesByTable(lines: KitchenBoardLine[]): Array<{

@@ -28,8 +28,8 @@ export function PreviewDashboardContent({ showLabel = true }: FrameOptions) {
         <PreviewSectionTitle>{copy.dashboard.title}</PreviewSectionTitle>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <PreviewStatCard
-            label={copy.dashboard.todayOrders}
-            value={String(PREVIEW_DASHBOARD.todayOrders)}
+            label={copy.dashboard.todayTables}
+            value={String(PREVIEW_DASHBOARD.todayTables)}
           />
           <PreviewStatCard
             label={copy.dashboard.todayRevenue}

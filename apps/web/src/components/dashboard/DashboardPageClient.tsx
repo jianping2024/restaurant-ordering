@@ -42,7 +42,7 @@ export function DashboardOverviewPrimaryClient({
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
-  const { todayOrderCount, todayRevenue, revenueAvailable, diningTableCount, diningGuests } =
+  const { todayTableCount, todayRevenue, revenueAvailable, diningTableCount, diningGuests } =
     todayKpis;
   const diningGuestCount = totalGuestsFromCounts(diningGuests);
   const diningGuestDetail = messages.bill.buffetGuestCounts
@@ -61,12 +61,12 @@ export function DashboardOverviewPrimaryClient({
       face: 'money' as const,
     },
     {
-      key: 'orders',
-      label: i18n.todayOrders,
-      value: todayOrderCount,
-      unit: i18n.unitOrder,
+      key: 'tables',
+      label: i18n.todayTables,
+      value: revenueAvailable ? todayTableCount : i18n.todayRevenueUnavailable,
+      unit: revenueAvailable ? i18n.unitTable : '',
       detail: null as string | null,
-      color: 'text-brand-text',
+      color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
       prominent: false,
       face: 'figure' as const,
     },

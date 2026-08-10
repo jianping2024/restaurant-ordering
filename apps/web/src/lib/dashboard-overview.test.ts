@@ -29,9 +29,12 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
 const emptyDining = { diningTableCount: 0, diningGuests: { adults: 0, children: 0 } };
 
 describe('computeTodayKpis', () => {
-  it('keeps today order count separate from closed-session revenue', () => {
-    const kpis = computeTodayKpis(2, { todayRevenue: 29.95 }, emptyDining);
-    assert.equal(kpis.todayOrderCount, 2);
+  it('keeps today table count aligned with closed-session revenue set', () => {
+    const kpis = computeTodayKpis(
+      { todayRevenue: 29.95, revenueSessionCount: 2 },
+      emptyDining,
+    );
+    assert.equal(kpis.todayTableCount, 2);
     assert.equal(kpis.todayRevenue, 29.95);
     assert.equal(kpis.revenueAvailable, true);
     assert.equal(kpis.diningTableCount, 0);
@@ -39,11 +42,11 @@ describe('computeTodayKpis', () => {
   });
 
   it('marks revenue unavailable when bundle load failed', () => {
-    const kpis = computeTodayKpis(3, null, {
+    const kpis = computeTodayKpis(null, {
       diningTableCount: 2,
       diningGuests: { adults: 4, children: 1 },
     });
-    assert.equal(kpis.todayOrderCount, 3);
+    assert.equal(kpis.todayTableCount, 0);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.revenueAvailable, false);
     assert.equal(kpis.diningTableCount, 2);

@@ -178,7 +178,7 @@ export type LandingPreviewCopy = {
   };
   dashboard: {
     title: string;
-    todayOrders: string;
+    todayTables: string;
     todayRevenue: string;
     topDrinksTitle: string;
     drinkColumn: string;

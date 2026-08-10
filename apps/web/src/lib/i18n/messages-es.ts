@@ -989,12 +989,11 @@ export const MESSAGES_ES = {
   },
   "dashboard": {
     "title": "Resumen",
-    "todayOrders": "Pedidos de hoy",
+    "todayTables": "Mesas de hoy",
     "todayRevenue": "Ingresos de hoy",
     "todayRevenueUnavailable": "No disponible",
     "diningTables": "Mesas comiendo",
     "diningGuests": "Comensales actuales",
-    "unitOrder": "",
     "unitTable": "",
     "unitGuest": "",
     "unitDish": "",

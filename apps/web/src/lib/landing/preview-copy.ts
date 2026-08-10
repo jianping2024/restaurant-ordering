@@ -55,7 +55,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: '数据概览',
-      todayOrders: '今日订单',
+      todayTables: '今日桌数',
       todayRevenue: '今日营业额',
       topDrinksTitle: '今日热销酒水',
       drinkColumn: '酒水',
@@ -115,7 +115,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: 'Overview',
-      todayOrders: 'Orders today',
+      todayTables: 'Tables today',
       todayRevenue: 'Revenue today',
       topDrinksTitle: 'Top drinks today',
       drinkColumn: 'Drink',
@@ -175,7 +175,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: 'Visao geral',
-      todayOrders: 'Pedidos hoje',
+      todayTables: 'Mesas hoje',
       todayRevenue: 'Faturamento hoje',
       topDrinksTitle: 'Bebidas mais vendidas',
       drinkColumn: 'Bebida',
@@ -235,7 +235,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: 'Resumen',
-      todayOrders: 'Pedidos hoy',
+      todayTables: 'Mesas de hoy',
       todayRevenue: 'Ingresos hoy',
       topDrinksTitle: 'Top bebidas hoy',
       drinkColumn: 'Bebida',
@@ -295,7 +295,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: 'Vue d\'ensemble',
-      todayOrders: 'Commandes aujourd\'hui',
+      todayTables: 'Tables du jour',
       todayRevenue: 'Revenus aujourd\'hui',
       topDrinksTitle: 'Top boissons aujourd\'hui',
       drinkColumn: 'Boisson',
@@ -355,7 +355,7 @@ const LANDING_PREVIEW_COPY: Record<LandingLanguage, LandingPreviewCopy> = {
     },
     dashboard: {
       title: 'Übersicht',
-      todayOrders: 'Bestellungen heute',
+      todayTables: 'Tische heute',
       todayRevenue: 'Umsatz heute',
       topDrinksTitle: 'Top-Getränke heute',
       drinkColumn: 'Getränk',

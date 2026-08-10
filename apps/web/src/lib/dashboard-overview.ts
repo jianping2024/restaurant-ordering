@@ -109,9 +109,13 @@ export type DashboardFeedbackInsights = {
 };
 
 export type DashboardTodayKpis = {
-  todayOrderCount: number;
+  /**
+   * Qualifying closed sessions with revenue on Lisbon today — same set as todayRevenue
+   * (`revenueSessionCount` from the closed-session revenue bundle).
+   */
+  todayTableCount: number;
   todayRevenue: number;
-  /** false when closed-session revenue raw materials failed (do not show fake €0). */
+  /** false when closed-session revenue raw materials failed (do not show fake €0 / table count). */
   revenueAvailable: boolean;
   /** Active open|billing table sessions (floor dining tables). */
   diningTableCount: number;
@@ -237,14 +241,13 @@ export function computeDiningFloorKpis(
   };
 }
 
-/** Today orders = Lisbon-day created_at; revenue = Lisbon-day closed_at (same as value analytics). */
+/** Today tables + revenue share Lisbon-day closed_at qualifying set (value analytics). */
 export function computeTodayKpis(
-  todayOrderCount: number,
-  revenue: { todayRevenue: number } | null,
+  revenue: { todayRevenue: number; revenueSessionCount: number } | null,
   dining: Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>,
 ): DashboardTodayKpis {
   return {
-    todayOrderCount,
+    todayTableCount: revenue?.revenueSessionCount ?? 0,
     todayRevenue: revenue?.todayRevenue ?? 0,
     revenueAvailable: revenue != null,
     diningTableCount: dining.diningTableCount,
@@ -396,7 +399,6 @@ export async function loadDashboardOverviewPrimary(
   const todayWindow = resolveTodayLisbonWindow(now);
 
   const [
-    { count: todayOrderCount },
     { count: inProgressOrderCount },
     pendingCheckoutCount,
     { count: pendingAbnormalCount },
@@ -404,12 +406,6 @@ export async function loadDashboardOverviewPrimary(
     revenueBundleResult,
     diningFloor,
   ] = await Promise.all([
-    admin
-      .from('orders')
-      .select('id', { count: 'exact', head: true })
-      .eq('restaurant_id', restaurantId)
-      .gte('created_at', todayWindow.startUtc)
-      .lt('created_at', todayWindow.endExclusiveUtc),
     admin
       .from('orders')
       .select('id', { count: 'exact', head: true })
@@ -441,7 +437,7 @@ export async function loadDashboardOverviewPrimary(
     : null;
 
   return {
-    todayKpis: computeTodayKpis(todayOrderCount ?? 0, todayRevenue, diningFloor),
+    todayKpis: computeTodayKpis(todayRevenue, diningFloor),
     pendingActions: {
       inProgressOrders: inProgressOrderCount ?? 0,
       pendingCheckout: pendingCheckoutCount,

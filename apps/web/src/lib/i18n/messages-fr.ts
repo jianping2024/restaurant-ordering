@@ -993,12 +993,11 @@ export const MESSAGES_FR = {
   },
   "dashboard": {
     "title": "Vue d’ensemble",
-    "todayOrders": "Commandes du jour",
+    "todayTables": "Tables du jour",
     "todayRevenue": "Chiffre d’affaires du jour",
     "todayRevenueUnavailable": "Indisponible",
     "diningTables": "Tables en cours",
     "diningGuests": "Convives en salle",
-    "unitOrder": "",
     "unitTable": "",
     "unitGuest": "",
     "unitDish": "",

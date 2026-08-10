@@ -150,7 +150,7 @@ export type PreviewDashboardTopItem = {
 };
 
 export const PREVIEW_DASHBOARD = {
-  todayOrders: 42,
+  todayTables: 42,
   todayRevenue: 1286.5,
   topItems: [
     { code: '007', qty: 86 },

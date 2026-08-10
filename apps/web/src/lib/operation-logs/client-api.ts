@@ -22,11 +22,13 @@ function toQuery(params: OperationLogsListParams): string {
 
 export async function fetchOperationLogs(
   params: OperationLogsListParams,
+  init?: { signal?: AbortSignal },
 ): Promise<{ ok: true; data: OperationLogsListResult } | { ok: false; error: string }> {
   try {
     const res = await fetch(`/api/dashboard/operation-logs${toQuery(params)}`, {
       credentials: 'include',
       cache: 'no-store',
+      signal: init?.signal,
     });
     const data = (await res.json().catch(() => ({}))) as OperationLogsListResult & {
       error?: string;
@@ -35,7 +37,10 @@ export async function fetchOperationLogs(
       return { ok: false, error: data.error || 'fetch_failed' };
     }
     return { ok: true, data };
-  } catch {
+  } catch (err) {
+    if (init?.signal?.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+      return { ok: false, error: 'aborted' };
+    }
     return { ok: false, error: 'network_error' };
   }
 }

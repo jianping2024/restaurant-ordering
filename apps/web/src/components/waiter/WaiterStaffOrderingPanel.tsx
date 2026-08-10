@@ -53,7 +53,7 @@ export function WaiterStaffOrderingPanel({
   embeddedInDashboard = false,
 }: Props) {
   const [catalog, setCatalog] = useState<CustomerMenuCatalog | null>(() =>
-    isDemo ? getDemoMenuCatalog() : null,
+    isDemo ? getDemoMenuCatalog() : peekCustomerMenuCatalogCache(restaurant.id),
   );
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState(false);
@@ -66,15 +66,23 @@ export function WaiterStaffOrderingPanel({
     setCatalogLoading(false);
   }, [isDemo, open]);
 
-  // Paint warm/prefetch cache before first paint when Continue ordering opens.
+  // Paint warm/prefetch cache when Continue ordering opens (and catch late warm writes).
   useLayoutEffect(() => {
     if (!open || isDemo) return;
-    const cached = peekCustomerMenuCatalogCache(restaurant.id);
-    if (cached) {
+    const syncFromCache = () => {
+      const cached = peekCustomerMenuCatalogCache(restaurant.id);
+      if (!cached) return;
       setCatalog(cached);
       setCatalogLoading(false);
       setCatalogError(false);
-    }
+    };
+    syncFromCache();
+    const t0 = window.setTimeout(syncFromCache, 0);
+    const t1 = window.setTimeout(syncFromCache, 400);
+    return () => {
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+    };
   }, [isDemo, open, restaurant.id]);
 
   const refreshCatalog = useCallback(() => {

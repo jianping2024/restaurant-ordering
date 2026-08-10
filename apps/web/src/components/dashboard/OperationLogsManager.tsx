@@ -1,13 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
-import { DashboardDateRangePicker } from '@/components/ui/DashboardDateRangePicker';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { showToast } from '@/components/ui/Toast';
+import {
+  ABNORMAL_OPERATION_MAX_LOOKBACK_DAYS,
+  ABNORMAL_OPERATION_MAX_RANGE_DAYS,
+} from '@/lib/audit/reasons';
 import { OPERATION_LOG_ACTION_TYPES, type OperationLogActionType } from '@/lib/audit/types';
-import { calendarDateInTimezone } from '@/lib/lisbon-calendar';
+import {
+  addCalendarDays,
+  calendarDateInTimezone,
+} from '@/lib/lisbon-calendar';
 import { fetchOperationLogs } from '@/lib/operation-logs/client-api';
 import {
   formatOperationLogDetail,
@@ -30,18 +37,36 @@ type Filters = {
   actionType: OperationLogActionType | '';
 };
 
+type DatePreset = 'today' | 'last7' | 'last30';
+
 const DEFAULT_FILTERS = (today: string): Filters => ({
   startDate: today,
   endDate: today,
   actionType: '',
 });
 
+function detectDatePreset(
+  startDate: string,
+  endDate: string,
+  today: string,
+): DatePreset | null {
+  if (startDate === today && endDate === today) return 'today';
+  if (startDate === addCalendarDays(today, -6) && endDate === today) return 'last7';
+  if (startDate === addCalendarDays(today, -29) && endDate === today) return 'last30';
+  return null;
+}
+
 const COMPACT_SELECT_CLASS =
-  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
+  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';const DATE_PICKER_TRIGGER_CLASS =
+  'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
+const PRESET_BTN_BASE =
+  'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
 export function OperationLogsManager() {
   const { lang } = useLanguage();
-  const t = getMessages(lang).operationLogs;
+  const messages = getMessages(lang);
+  const t = messages.operationLogs;
+  const pickDate = messages.buffetAdmin.pickDate;
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
@@ -100,33 +125,71 @@ export function OperationLogsManager() {
     void load();
   };
 
+  const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
+
+  const applyDatePreset = (preset: DatePreset) => {
+    const next =
+      preset === 'today'
+        ? { startDate: today, endDate: today }
+        : preset === 'last7'
+          ? { startDate: addCalendarDays(today, -6), endDate: today }
+          : { startDate: addCalendarDays(today, -29), endDate: today };
+    setPage(1);
+    setFilters((prev) => ({ ...prev, ...next }));
+  };
+
   const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setPage(1);
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  const presetBtnClass = (active: boolean) =>
+    `${PRESET_BTN_BASE} ${
+      active
+        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+        : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text'
+    }`;
+
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / pageSize));
+  const lookbackMin = addCalendarDays(today, -(ABNORMAL_OPERATION_MAX_LOOKBACK_DAYS - 1));
+  const startMinByEnd = addCalendarDays(filters.endDate, -(ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1));
+  const startMin = startMinByEnd > lookbackMin ? startMinByEnd : lookbackMin;
+  const startMax = filters.endDate < today ? filters.endDate : today;
+  const endMaxByStart = addCalendarDays(filters.startDate, ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1);
+  const endMax = endMaxByStart < today ? endMaxByStart : today;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <DashboardDateRangePicker
-          className="w-[16rem]"
-          startDate={filters.startDate}
-          endDate={filters.endDate}
-          onChange={({ startDate, endDate }) => {
-            setPage(1);
-            setFilters((prev) => ({ ...prev, startDate, endDate }));
-          }}
-          presets={['today', 'last7', 'last30']}
-          labels={{
-            filterDateRange: t.filterDateRange,
-            dateToday: t.dateToday,
-            dateLast7: t.dateLast7,
-            dateLast30: t.dateLast30,
-            resetDate: t.resetDate,
-            dateRangeTooLong: t.dateRangeTooLong,
-          }}
+        <button type="button" className={presetBtnClass(activeDatePreset === 'today')} onClick={() => applyDatePreset('today')}>
+          {t.dateToday}
+        </button>
+        <button type="button" className={presetBtnClass(activeDatePreset === 'last7')} onClick={() => applyDatePreset('last7')}>
+          {t.dateLast7}
+        </button>
+        <button type="button" className={presetBtnClass(activeDatePreset === 'last30')} onClick={() => applyDatePreset('last30')}>
+          {t.dateLast30}
+        </button>
+        <DatePicker
+          className="w-[10.5rem]"
+          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+          value={filters.startDate}
+          onChange={(iso) => updateFilter('startDate', iso || today)}
+          lang={lang}
+          min={startMin}
+          max={startMax}
+          placeholder={pickDate}
+        />
+        <span className="text-brand-text-muted">—</span>
+        <DatePicker
+          className="w-[10.5rem]"
+          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+          value={filters.endDate}
+          onChange={(iso) => updateFilter('endDate', iso || today)}
+          lang={lang}
+          min={filters.startDate}
+          max={endMax}
+          placeholder={pickDate}
         />
         <select
           className={COMPACT_SELECT_CLASS}
@@ -181,7 +244,7 @@ export function OperationLogsManager() {
             )}
             {!loading &&
               data?.items.map((row) => (
-                <tr key={row.id} className="border-t border-brand-border/60">
+                <tr key={row.id} className="border-t border-brand-border/70">
                   <td className="whitespace-nowrap px-3 py-2 text-brand-text-muted">
                     {new Date(row.created_at).toLocaleString(locale, {
                       month: '2-digit',
@@ -207,20 +270,20 @@ export function OperationLogsManager() {
       <ListPaginationBar
         page={page}
         totalPages={totalPages}
-        total={data?.total ?? 0}
         pageSize={pageSize}
+        total={data?.total ?? 0}
+        disabled={loading}
+        onPageChange={setPage}
+        onPageSizeChange={(next) => {
+          setPage(1);
+          setPageSize(next);
+        }}
         labels={{
           pageInfo: t.pageInfo,
           pageSizeLabel: t.pageSizeLabel,
           pagePrev: t.pagePrev,
           pageNext: t.pageNext,
         }}
-        onPageChange={setPage}
-        onPageSizeChange={(next) => {
-          setPage(1);
-          setPageSize(next);
-        }}
-        disabled={loading}
       />
     </div>
   );

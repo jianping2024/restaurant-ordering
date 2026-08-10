@@ -80,7 +80,7 @@ export function writeDashboardListCache(key: string, data: unknown, now = Date.n
 /** Drop every entry for a restaurant list surface (e.g. after abnormal PATCH). */
 export function invalidateDashboardListCache(scope: string, restaurantId: string): void {
   const prefix = `${scope}\u0001${restaurantId}\u0001`;
-  for (const key of [...store.keys()]) {
+  for (const key of Array.from(store.keys())) {
     if (key.startsWith(prefix)) store.delete(key);
   }
 }

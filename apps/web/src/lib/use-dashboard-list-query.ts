@@ -192,7 +192,10 @@ export function useDashboardListQuery<TFilters, TData>(options: {
   const setData = useCallback(
     (updater: TData | null | ((prev: TData | null) => TData | null)) => {
       setDataState((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
+        const next =
+          typeof updater === 'function'
+            ? (updater as (p: TData | null) => TData | null)(prev)
+            : updater;
         const activeCache = cacheRef.current;
         if (next && activeCache?.restaurantId) {
           writeDashboardListCache(cacheKeyFor(activeCache, queryRef.current), next);

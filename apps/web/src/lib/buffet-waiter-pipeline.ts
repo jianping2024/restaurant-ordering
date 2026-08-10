@@ -99,6 +99,12 @@ export type BuffetWaiterPipelineSuccess = {
   ok: true;
   model: WaiterTablePageModel;
   unchanged?: true;
+  /** Present when this call cold-opened a session (audit / open-table side effects). */
+  sessionOpened?: true;
+  sessionId?: string;
+  tableName?: string;
+  adultCount?: number;
+  childCount?: number;
 };
 
 export type BuffetWaiterPipelineFailure = {

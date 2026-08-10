@@ -231,7 +231,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/close-table-session',
     ],
     riskNote:
-      'Page read uses client bill_splits RLS; confirm-payment is capability-gated. Force-close API: tables.force_close (RPC allows restaurants.owner_id or staff frontdesk|owner).',
+      'Page read uses client bill_splits RLS; confirm-payment is capability-gated. Force-close API: tables.force_close only (RPC: owner_id or any active staff).',
   },
   {
     id: 'orders',

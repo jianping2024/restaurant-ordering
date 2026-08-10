@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  peekCustomerMenuCatalogCache,
   reconcileCustomerMenuCatalogOnEntry,
   seedCustomerMenuCatalogCache,
   type CustomerMenuCatalog,
@@ -15,6 +16,7 @@ import {
   MenuOrderingController,
   type MenuOrderingRestaurant,
 } from '@/components/menu/MenuOrderingController';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
@@ -62,41 +64,39 @@ export function MenuPage({
   }, [isDemo, restaurant.guest_ordering_notice, restaurant.slug]);
 
   useEffect(() => {
-    if (seededCatalog) {
-      seedCustomerMenuCatalogCache(restaurant.id, seededCatalog);
-      setCatalog(seededCatalog);
-      setCatalogReady(true);
-      return;
-    }
+    if (!seededCatalog) return;
+    seedCustomerMenuCatalogCache(restaurant.id, seededCatalog);
+    setCatalog(seededCatalog);
+    setCatalogReady(true);
+  }, [restaurant.id, seededCatalog]);
 
-    let cancelled = false;
+  const refreshCatalog = useCallback(() => {
     const { initial, ready } = reconcileCustomerMenuCatalogOnEntry({
       restaurantId: restaurant.id,
       slug: restaurant.slug,
     });
-
     if (initial) {
       setCatalog(initial);
       setCatalogReady(true);
     }
-
-    void ready
+    return ready
       .then((next) => {
-        if (!cancelled) {
-          setCatalog(next);
-          setCatalogReady(true);
-        }
+        setCatalog(next);
+        setCatalogReady(true);
       })
       .catch(() => {
-        if (!cancelled && !initial) {
+        if (!peekCustomerMenuCatalogCache(restaurant.id)) {
           setCatalogReady(true);
         }
       });
+  }, [restaurant.id, restaurant.slug]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [restaurant.id, restaurant.slug, seededCatalog]);
+  useRestaurantStaffEntryReconcile(
+    Boolean(!isDemo && !seededCatalog),
+    refreshCatalog,
+    restaurant.id,
+    true,
+  );
 
   const menuItems = catalog?.menuItems ?? [];
   const menuCategories = catalog?.menuCategories ?? [];

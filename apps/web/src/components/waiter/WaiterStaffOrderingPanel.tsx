@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
   MenuOrderingController,
 } from '@/components/menu/MenuOrderingController';
@@ -19,6 +19,7 @@ import { waiterTableHref } from '@/lib/staff-routes';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { CartItem, Order } from '@/types';
 import type { FloorBoardRestaurant } from '@/lib/floor-board-restaurant';
+import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 
 type Props = {
   open: boolean;
@@ -59,19 +60,25 @@ export function WaiterStaffOrderingPanel({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-
-    if (isDemo) {
-      setCatalog(getDemoMenuCatalog());
-      setCatalogError(false);
-      setCatalogLoading(false);
-      return;
-    }
-
-    let cancelled = false;
+    if (!open || !isDemo) return;
+    setCatalog(getDemoMenuCatalog());
     setCatalogError(false);
-    // Prefer warm/prefetch cache so Continue ordering is not stuck on "…" when
-    // router.refresh() races the async ensure (cancelled finally would skip loading=false).
+    setCatalogLoading(false);
+  }, [isDemo, open]);
+
+  // Paint warm/prefetch cache before first paint when Continue ordering opens.
+  useLayoutEffect(() => {
+    if (!open || isDemo) return;
+    const cached = peekCustomerMenuCatalogCache(restaurant.id);
+    if (cached) {
+      setCatalog(cached);
+      setCatalogLoading(false);
+      setCatalogError(false);
+    }
+  }, [isDemo, open, restaurant.id]);
+
+  const refreshCatalog = useCallback(() => {
+    setCatalogError(false);
     const cached = peekCustomerMenuCatalogCache(restaurant.id);
     if (cached) {
       setCatalog(cached);
@@ -80,29 +87,25 @@ export function WaiterStaffOrderingPanel({
       setCatalogLoading(true);
     }
 
-    void ensureCustomerMenuCatalog({
+    return ensureCustomerMenuCatalog({
       restaurantId: restaurant.id,
       slug: restaurant.slug,
     })
       .then((loaded) => {
-        if (cancelled) return;
         setCatalog(loaded);
         setCatalogError(false);
       })
       .catch(() => {
-        if (cancelled) return;
         if (!peekCustomerMenuCatalogCache(restaurant.id)) {
           setCatalogError(true);
         }
       })
       .finally(() => {
-        if (!cancelled) setCatalogLoading(false);
+        setCatalogLoading(false);
       });
+  }, [restaurant.id, restaurant.slug]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isDemo, open, restaurant.id, restaurant.slug]);
+  useRestaurantStaffEntryReconcile(open && !isDemo, refreshCatalog, restaurant.id, true);
 
   const staffAssisted = useMemo((): StaffAssistedFlow => ({
     returnHref: waiterTableHref(restaurant.slug, tableId, { isDemo, embeddedInDashboard }),
@@ -143,11 +146,11 @@ export function WaiterStaffOrderingPanel({
       onClose={onClose}
       closeDisabled={submitting}
     >
-      {catalogLoading ? (
+      {catalogLoading && !catalog ? (
         <div className="flex flex-1 items-center justify-center p-8 text-sm text-brand-text-muted">
           …
         </div>
-      ) : catalogError ? (
+      ) : catalogError && !catalog ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="text-sm text-brand-text-muted">菜单加载失败</p>
           <button

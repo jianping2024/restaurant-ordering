@@ -1067,14 +1067,9 @@ function WaiterTableDetailInner({
                 sessionId={sessionMeta?.sessionId ?? null}
                 onContinueOrdering={() => {
                   whenDetailActionsArmed(() => {
-                    // Open first so catalog ensure/prefetch can paint; then refresh layout
-                    // restaurant (buffet_service_mode) without blocking the panel on RSC.
+                    // Do not router.refresh() here — RSC remount races the catalog panel and
+                    // can leave Continuar pedido stuck on "…" despite a warm client cache.
                     setOrderingOpen(true);
-                    if (!isDemo) {
-                      queueMicrotask(() => {
-                        void router.refresh();
-                      });
-                    }
                   });
                 }}
                 isCheckoutPending={isCheckoutPending}

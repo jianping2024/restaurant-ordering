@@ -22,12 +22,13 @@
 1. 左右对称 col 4；Qty 在 576 尺子上贴右。
 2. 菜名默认一行；仅超 Font A 可用列宽才折；续行无 Qty。
 3. 备注前缀 = `labelsFor(print_locale).itemNote`，与正文 **同字号**；续行 hanging；只折一次。
-4. 站票表头仍英文（`stationTicketLabels`）；**仅备注标签跟语言**。
+4. 站票固定壳跟 `print_locale`（与预结同一入口 `printTicketLabels`）；备注标签仍为 `labelsFor(locale).itemNote`。
 
 ## 唯一函数
 
 | 能力 | 唯一入口 |
 |------|----------|
+| 票面固定壳（出品联+预结/收据） | `printTicketLabels(locale)` |
 | Han Items/Qty | `escposHanColumnRow` → `renderBitmapColumnRow` |
 | Han 备注 | `escposHanLeftRow` → `renderBitmapLeftRow` |
 | Han 预结/结账菜单三栏 | `escposHanReceiptRow` → `renderBitmapReceiptRow` |
@@ -37,8 +38,9 @@
 | 备注文案 | `labelsFor(locale).itemNote` |
 | 拉丁 Items/Qty | `stationSlipColumnHeaderLine` / `stationSlipItemLine` + `padFieldRight` |
 | GS v 0 出图 | `escposBitmapRaster`（**无尾随 LF**；图高已走纸） |
+| 票头 branding | `ticketBrandingWord(locale)` |
 
-**禁止：** 半号前缀；`escposHanNoteRow`；硬编码 `Observação:`；384 画布；预结菜单「垫 48 列再 `wrapDisplay`」。
+**禁止：** 半号前缀；`escposHanNoteRow`；硬编码 `Observação:`；384 画布；预结菜单「垫 48 列再 `wrapDisplay`」；出品联另写一套英文壳。
 
 ## 像素
 
@@ -48,6 +50,7 @@
 
 ## 版本
 
+- **0.3.82**：出品联固定壳跟 `print_locale`（与预结同一 `printTicketLabels`）
 - **0.3.81**：去 GS 尾随 LF；预结 Han 单行三栏
 - **0.3.80**：Qty 列 4
 - **0.3.79**：576 + 语言前缀 + 同号

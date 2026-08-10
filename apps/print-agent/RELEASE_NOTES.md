@@ -4,6 +4,14 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.82
+
+**出品联固定壳跟打印语言（与预结同一规则）**
+
+- 唯一入口 `printTicketLabels(locale)`：zh→中文壳，否则英文；出品联/预结/收据共用。
+- 删除出品联强制 `stationTicketLabels()` 英文第二套。
+- 票头/页脚 branding：`ticketBrandingWord`（zh `餐厅` / 其它 `restaurant`）。
+
 ## 0.3.81
 
 **修复：中文位图废纸（档口行距 + 预结单拆行）**

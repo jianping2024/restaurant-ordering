@@ -67,7 +67,7 @@ func TestReceiptItemsHeaderFollowsMenuSeparator(t *testing.T) {
 	})
 	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
 	s := string(raw)
-	lab := receiptLabelsFor("en")
+	lab := printTicketLabels("en")
 	itemsLine := escposThreeColLine(lab.items, lab.qty, lab.originalPrice)
 	idx := strings.Index(s, itemsLine)
 	if idx < 0 {
@@ -287,7 +287,7 @@ func TestReceiptMenuLinesUse1x2Bold(t *testing.T) {
 		},
 	})
 	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
-	lab := receiptLabelsFor("en")
+	lab := printTicketLabels("en")
 	headerLine := escposThreeColLine(lab.items, lab.qty, lab.originalPrice)
 	idx := bytes.Index(raw, []byte(headerLine))
 	if idx < 0 {

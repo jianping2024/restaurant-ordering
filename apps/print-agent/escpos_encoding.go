@@ -59,22 +59,13 @@ func stationTicketNeedsBitmap(p jobPayload) bool {
 	return false
 }
 
-// stationTicketLabels — fixed English layout per docs/print-samples guest-order reference.
-func stationTicketLabels() ticketLabels {
-	return labelsFor("en")
-}
-
-// receiptTicketLabels — fixed English checkout receipt per reference sample.
-func receiptTicketLabels() ticketLabels {
-	return labelsFor("en")
-}
-
-// receiptLabelsFor uses Chinese ticket labels when print_locale is zh.
-func receiptLabelsFor(locale string) ticketLabels {
+// printTicketLabels — station + receipt/pre-bill fixed chrome. zh → Chinese; else English
+// (same rule for all ticket types; dish lines still come from payload).
+func printTicketLabels(locale string) ticketLabels {
 	if printLocaleIsZh(locale) {
 		return labelsFor("zh")
 	}
-	return receiptTicketLabels()
+	return labelsFor("en")
 }
 
 // receiptTicketNeedsBitmap — receipt/pre-bill paper does not print restaurant_name; do not switch

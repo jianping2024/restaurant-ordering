@@ -85,7 +85,7 @@ func TestBuildConnectionTestZHUsesUTF8WhenConfigured(t *testing.T) {
 	}
 }
 
-func TestBuildStationTicketZHMenuUsesBitmapWithEnglishHeader(t *testing.T) {
+func TestBuildStationTicketZHMenuUsesBitmapWithZhHeader(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
 		Locale:           "zh",
 		TableDisplayName: "8",
@@ -95,11 +95,15 @@ func TestBuildStationTicketZHMenuUsesBitmapWithEnglishHeader(t *testing.T) {
 	if bytes.Contains(raw, []byte{0x1C, 0x26}) {
 		t.Fatal("station ticket must not enter GBK mode")
 	}
-	if !bytes.Contains(raw, []byte("Guest Order")) {
-		t.Fatal("expected fixed English guest-order header")
+	for _, en := range []string{"Guest Order", "Items", "Qty", "Table No.", "Printed By", "Order Time"} {
+		if bytes.Contains(raw, []byte(en)) {
+			t.Fatalf("zh station ticket must not contain English chrome %q", en)
+		}
 	}
-	if !bytes.Contains(raw, []byte{0x1D, 0x76, 0x30, 0x00}) {
-		t.Fatal("expected bitmap for Chinese menu item")
+	// zh chrome + dish names are GS v 0 bitmaps (not raw UTF-8 in ESC/POS stream).
+	gs := bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00})
+	if gs < 2 {
+		t.Fatalf("expected Han bitmaps for zh chrome+item, got %d GS v 0", gs)
 	}
 }
 

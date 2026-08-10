@@ -243,6 +243,7 @@ type escposWriter struct {
 	prefix          []byte
 	content         bytes.Buffer
 	textMode        escposTextMode
+	printLocale     string
 	hanFontPx       int
 	hanRole         hanFontRole
 	hadDoubleHeight bool
@@ -275,6 +276,7 @@ func newEscpos() *escposWriter {
 
 func newEscposForStationTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.printLocale = normalizePrintLocale(p.Locale)
 	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(stationTicketNeedsBitmap(p)))
 	return w
@@ -282,6 +284,7 @@ func newEscposForStationTicket(p jobPayload) *escposWriter {
 
 func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.printLocale = normalizePrintLocale(p.Locale)
 	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(receiptTicketNeedsBitmap(p)))
 	return w
@@ -289,6 +292,7 @@ func newEscposForReceiptTicket(p jobPayload) *escposWriter {
 
 func newEscposForConnectionTest(p jobPayload) *escposWriter {
 	w := newEscpos()
+	w.printLocale = normalizePrintLocale(p.Locale)
 	w.hanFontPx = resolveHanBitmapFontPx(p.HanBitmapFontPx)
 	w.applyTextMode(textModeForConfiguredChinese(connectionTestNeedsBitmap(p)))
 	return w
@@ -625,10 +629,17 @@ func (w *escposWriter) writeHanColumnRow(left, right string, kind hanColumnRowKi
 	w.lastTextBitmap = true
 }
 
+func ticketBrandingWord(locale string) string {
+	if printLocaleIsZh(locale) {
+		return "餐厅"
+	}
+	return "restaurant"
+}
+
 func (w *escposWriter) writeTicketBranding() {
 	w.align(0)
 	w.writeBody1x1()
-	w.text("restaurant")
+	w.text(ticketBrandingWord(w.printLocale))
 	w.lf()
 }
 
@@ -814,7 +825,7 @@ func (w *escposWriter) writeStationSlipFooter(p jobPayload, lab ticketLabels) {
 	}
 	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
 	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, ticketBrandingWord(w.printLocale)))
 	w.lf()
 }
 
@@ -899,18 +910,18 @@ func escposFromJob(job printJob) []byte {
 			variant = "final"
 		}
 		withPayment := variant == "final" || variant == "split_payment"
-		return buildOrderReceipt(p, receiptLabelsFor(p.Locale), withPayment, variant)
+		return buildOrderReceipt(p, printTicketLabels(p.Locale), withPayment, variant)
 	case "pre_bill":
 		p.ReceiptVariant = "pre_bill"
-		return buildOrderReceipt(p, receiptLabelsFor(p.Locale), false, "pre_bill")
+		return buildOrderReceipt(p, printTicketLabels(p.Locale), false, "pre_bill")
 	default:
 		return buildStationTicket(p)
 	}
 }
 
-// buildStationTicket — internal station slip; English layout by default, Chinese when locale is zh.
+// buildStationTicket — internal station slip; fixed chrome follows print_locale (zh vs en).
 func buildStationTicket(p jobPayload) []byte {
-	lab := stationTicketLabels()
+	lab := printTicketLabels(p.Locale)
 	w := newEscposForStationTicket(p)
 	w.writeStationSlipHeader(p, lab)
 	w.writeStationMenuLines(p, p.Lines)
@@ -999,7 +1010,7 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.orderTime, orderAt))
 	w.lf()
-	w.text(fmt.Sprintf("%s:%s", lab.printedBy, "restaurant"))
+	w.text(fmt.Sprintf("%s:%s", lab.printedBy, ticketBrandingWord(w.printLocale)))
 	w.lf()
 	w.text(fmt.Sprintf("%s:%s", lab.printTime, printAt))
 	w.lf()

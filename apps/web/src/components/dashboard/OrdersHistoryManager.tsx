@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { endOfMonth, startOfMonth, startOfToday } from 'date-fns';
+import { DatePicker } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import Select from 'react-select';
@@ -24,10 +26,21 @@ import {
   staffSessionBillCooldownKey,
 } from '@/lib/use-staff-checkout-bill-print';
 import { OrderHistoryDetailModal } from '@/components/dashboard/OrderHistoryDetailModal';
-import { DashboardDateRangePicker } from '@/components/ui/DashboardDateRangePicker';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
+import { showToast } from '@/components/ui/Toast';
 import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
+import {
+  ORDER_HISTORY_MAX_RANGE_DAYS,
+  defaultOrderHistoryClosedRange,
+  formatOrderHistoryDateKey,
+} from '@/lib/order-history/date-range';
+import { addCalendarDays, calendarDateInTimezone, daysBetweenInclusive } from '@/lib/lisbon-calendar';
 import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@/lib/paginate-list';
+
+const DATE_PICKER_TRIGGER_CLASS =
+  'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
+const PRESET_BTN_BASE =
+  'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
 interface Props {
   initialItems: OrderHistoryEntry[];
@@ -94,6 +107,60 @@ export function OrdersHistoryManager({
   const [closedFrom, setClosedFrom] = useState(initialClosedFrom);
   const [closedTo, setClosedTo] = useState(initialClosedTo);
   const [selectedEntry, setSelectedEntry] = useState<OrderHistoryEntry | null>(null);
+  const today = useMemo(() => calendarDateInTimezone(new Date()), []);
+  const pickDate = getMessages(lang).buffetAdmin.pickDate;
+
+  const applyClosedRange = (nextFrom: string, nextTo: string) => {
+    let from = nextFrom || today;
+    let to = nextTo || today;
+    if (from > to) {
+      from = to;
+    }
+    if (daysBetweenInclusive(from, to) > ORDER_HISTORY_MAX_RANGE_DAYS) {
+      showToast(i18n.dateRangeTooLong, 'error');
+      to = addCalendarDays(from, ORDER_HISTORY_MAX_RANGE_DAYS - 1);
+    }
+    setClosedFrom(from);
+    setClosedTo(to);
+  };
+
+  const applyPreset = (preset: 'today' | 'last7' | 'month') => {
+    if (preset === 'today') {
+      applyClosedRange(today, today);
+      return;
+    }
+    if (preset === 'last7') {
+      const range = defaultOrderHistoryClosedRange();
+      applyClosedRange(range.closedFrom, range.closedTo);
+      return;
+    }
+    const monthStart = formatOrderHistoryDateKey(startOfMonth(startOfToday()));
+    const monthEnd = formatOrderHistoryDateKey(endOfMonth(startOfToday()));
+    applyClosedRange(monthStart, monthEnd > today ? today : monthEnd);
+  };
+
+  const activeDatePreset = useMemo(() => {
+    if (closedFrom === today && closedTo === today) return 'today';
+    const last7 = defaultOrderHistoryClosedRange();
+    if (closedFrom === last7.closedFrom && closedTo === last7.closedTo) return 'last7';
+    const monthStart = formatOrderHistoryDateKey(startOfMonth(startOfToday()));
+    const monthEndRaw = formatOrderHistoryDateKey(endOfMonth(startOfToday()));
+    const monthEnd = monthEndRaw > today ? today : monthEndRaw;
+    if (closedFrom === monthStart && closedTo === monthEnd) return 'month';
+    return null;
+  }, [closedFrom, closedTo, today]);
+
+  const presetBtnClass = (active: boolean) =>
+    `${PRESET_BTN_BASE} ${
+      active
+        ? 'border-brand-gold bg-brand-gold/10 text-brand-text'
+        : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text'
+    }`;
+
+  const startMin = addCalendarDays(closedTo, -(ORDER_HISTORY_MAX_RANGE_DAYS - 1));
+  const startMax = closedTo < today ? closedTo : today;
+  const endMaxByStart = addCalendarDays(closedFrom, ORDER_HISTORY_MAX_RANGE_DAYS - 1);
+  const endMax = endMaxByStart < today ? endMaxByStart : today;
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -289,23 +356,50 @@ export function OrdersHistoryManager({
           isClearable
           closeMenuOnSelect
         />
-        <DashboardDateRangePicker
-          startDate={closedFrom}
-          endDate={closedTo}
-          onChange={({ startDate, endDate }) => {
-            setClosedFrom(startDate);
-            setClosedTo(endDate);
-          }}
-          presets={['today', 'last7', 'month']}
-          labels={{
-            filterDateRange: i18n.filterDateRange,
-            dateToday: i18n.dateToday,
-            dateLast7: i18n.dateLast7,
-            dateThisMonth: i18n.dateThisMonth,
-            resetDate: i18n.resetDate,
-            dateRangeTooLong: i18n.dateRangeTooLong,
-          }}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className={presetBtnClass(activeDatePreset === 'today')}
+            onClick={() => applyPreset('today')}
+          >
+            {i18n.dateToday}
+          </button>
+          <button
+            type="button"
+            className={presetBtnClass(activeDatePreset === 'last7')}
+            onClick={() => applyPreset('last7')}
+          >
+            {i18n.dateLast7}
+          </button>
+          <button
+            type="button"
+            className={presetBtnClass(activeDatePreset === 'month')}
+            onClick={() => applyPreset('month')}
+          >
+            {i18n.dateThisMonth}
+          </button>
+          <DatePicker
+            className="w-[10.5rem]"
+            triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+            value={closedFrom}
+            onChange={(iso) => applyClosedRange(iso || today, closedTo)}
+            lang={lang}
+            min={startMin}
+            max={startMax}
+            placeholder={pickDate}
+          />
+          <span className="text-brand-text-muted">—</span>
+          <DatePicker
+            className="w-[10.5rem]"
+            triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+            value={closedTo}
+            onChange={(iso) => applyClosedRange(closedFrom, iso || today)}
+            lang={lang}
+            min={closedFrom}
+            max={endMax}
+            placeholder={pickDate}
+          />
+        </div>
       </div>
 
       {loading && entries.length === 0 ? (

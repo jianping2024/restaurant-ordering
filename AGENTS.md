@@ -53,7 +53,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 
 ## Coding invariants
 
-- Prefer nearby **idiom/style**; do **not** copy a parallel data/copy shape when analysis requires one end-state representation. Do not add private mint helpers that only wrap/forward into a public twin — one function per capability. Runtime auth is `can`/`requirePermission` only — never add a parallel role/mode whitelist beside capability. Middleware session bypass lives only in `middleware-session-policy.ts` (matcher + early-return). Dashboard list **date-range** UI is only `DashboardDateRangePicker` (not a second DayPicker range inline, not two single DatePickers for the same range filter).
+- Prefer nearby **idiom/style**; do **not** copy a parallel data/copy shape when analysis requires one end-state representation. Do not add private mint helpers that only wrap/forward into a public twin — one function per capability. Runtime auth is `can`/`requirePermission` only — never add a parallel role/mode whitelist beside capability. Middleware session bypass lives only in `middleware-session-policy.ts` (matcher + early-return). Dashboard list **date-range** UI is two `@mesa/ui` `DatePicker`s (start + end); do not add a parallel `DayPicker mode="range"` / `DashboardDateRangePicker` for the same filter job.
 - **No API polling except named realtime fallback** — see `.cursor/rules/no-polling-except-fallback.mdc` (lifecycle one-shots OK; interval fetch of read models forbidden).
 - Scope to requested behavior; `@/*` imports; no service keys on the client; restaurant-scoped queries/APIs.
 - UI: `src/components/ui` + brand tokens.

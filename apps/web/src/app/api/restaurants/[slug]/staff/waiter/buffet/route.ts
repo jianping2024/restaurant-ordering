@@ -10,7 +10,7 @@ import {
   isDependencyFailure,
 } from '@/lib/dependency-unavailable';
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
-import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
+import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -170,9 +170,14 @@ export async function POST(
       typeof result.sessionId === 'string' &&
       result.sessionId
     ) {
+      const actor = await loadStaffAuditActor(admin, {
+        restaurantId: ctx.restaurant_id,
+        userId: ctx.user_id,
+        role: ctx.role,
+      });
       scheduleRecordAudit(admin, AUDIT_EVENT.SESSION_OPENED, {
         restaurantId: ctx.restaurant_id,
-        actor: staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role),
+        actor,
         context: {
           sessionId: result.sessionId,
           tableName: result.tableName || '—',

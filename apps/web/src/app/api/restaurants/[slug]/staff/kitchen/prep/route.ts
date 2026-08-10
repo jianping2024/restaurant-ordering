@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { applyKitchenPrep, parseKitchenLineSelections } from '@/lib/kitchen-prep-serve';
-import { staffAuditActor } from '@/lib/audit';
+import { loadStaffAuditActor } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -55,6 +55,11 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
   }
 
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    role: ctx.role,
+  });
   const result = await applyKitchenPrep({
     admin,
     restaurant: {
@@ -64,7 +69,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     },
     printStationId,
     selections,
-    actor: staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role),
+    actor,
   });
 
   if (!result.ok) {

@@ -23,5 +23,6 @@ export {
   loadStaffAuditActor,
   ownerAuditActor,
   resolveOwnerOperatorName,
+  resolveStaffOperatorDisplayName,
   staffAuditActor,
 } from '@/lib/audit/resolve-actor';

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isRestaurantFeatureEnabled } from '@mesa/shared';
-import { staffAuditActor } from '@/lib/audit';
+import { loadStaffAuditActor } from '@/lib/audit';
 import { applyKitchenServe, parseKitchenLineSelections } from '@/lib/kitchen-prep-serve';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -51,12 +51,17 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'feature_disabled' }, { status: 403 });
   }
 
+  const actor = await loadStaffAuditActor(admin, {
+    restaurantId: ctx.restaurant_id,
+    userId: ctx.user_id,
+    role: ctx.role,
+  });
   const result = await applyKitchenServe({
     admin,
     restaurantId: ctx.restaurant_id,
     printAgentConfig: restaurant.print_agent_config,
     selections,
-    actor: staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role),
+    actor,
   });
 
   if (!result.ok) {

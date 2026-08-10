@@ -171,6 +171,94 @@ func renderBitmapLeftRow(text string, leftPx int, fontPx int, style bitmapTextSt
 	return bitmapTextImage{Width: canvasW, Height: height, Pixels: pixels}
 }
 
+func renderBitmapNoteRow(prefix, body string, leftPx, prefixFontPx, bodyFontPx int, style bitmapTextStyle) bitmapTextImage {
+	prefix = strings.TrimSpace(prefix)
+	body = strings.TrimSpace(body)
+	if prefix == "" && body == "" {
+		return bitmapTextImage{}
+	}
+	if prefix == "" {
+		return renderBitmapLeftRow(body, leftPx, bodyFontPx, style)
+	}
+
+	dc, _, _ := procCreateCompatibleDC.Call(0)
+	if dc == 0 {
+		return bitmapTextImage{}
+	}
+	defer procDeleteDC.Call(dc)
+
+	prefixFontPx = resolveHanBitmapFontPx(prefixFontPx)
+	bodyFontPx = resolveHanBitmapFontPx(bodyFontPx)
+	weight := uintptr(400)
+	if style.Bold {
+		weight = 700
+	}
+	face, _ := syscall.UTF16PtrFromString("Microsoft YaHei")
+
+	drawWithFont := func(s string, x, y, fontPx int) {
+		if s == "" {
+			return
+		}
+		font, _, _ := procCreateFontW.Call(
+			uintptr(^uint32(fontPx-1)+1), 0, 0, 0, weight, 0, uintptr(boolToUintptr(style.Underline)), 0,
+			1, 4, 0, 0, 0, uintptr(unsafe.Pointer(face)),
+		)
+		if font == 0 {
+			return
+		}
+		defer procDeleteObject.Call(font)
+		oldFont, _, _ := procSelectObject.Call(dc, font)
+		defer procSelectObject.Call(dc, oldFont)
+		drawTextOutW(dc, x, y, s)
+	}
+
+	canvasW := bitmapTextMaxWidthPx
+	height := textLineHeightPx(dc, prefix+body, bodyFontPx)
+	if height <= 0 {
+		height = bodyFontPx + 8
+	}
+
+	var bits unsafe.Pointer
+	stride := ((canvasW*32 + 31) / 32) * 4
+	bi := gdiBitmapInfo{}
+	bi.Header.Size = uint32(unsafe.Sizeof(bi.Header))
+	bi.Header.Width = int32(canvasW)
+	bi.Header.Height = -int32(height)
+	bi.Header.Planes = 1
+	bi.Header.BitCount = 32
+	bitmap, _, _ := procCreateDIBSection.Call(dc, uintptr(unsafe.Pointer(&bi)), 0, uintptr(unsafe.Pointer(&bits)), 0, 0)
+	if bitmap == 0 || bits == nil {
+		return bitmapTextImage{}
+	}
+	defer procDeleteObject.Call(bitmap)
+	oldBitmap, _, _ := procSelectObject.Call(dc, bitmap)
+	defer procSelectObject.Call(dc, oldBitmap)
+
+	raw := unsafe.Slice((*byte)(bits), stride*height)
+	for i := range raw {
+		raw[i] = 0xff
+	}
+	procSetBkColor.Call(dc, 0x00ffffff)
+	procSetTextColor.Call(dc, 0x00000000)
+	procSetBkMode.Call(dc, 2)
+
+	const padY = 4
+	drawWithFont(prefix, leftPx, padY, prefixFontPx)
+	bodyX := leftPx + measureHanTextWidth(prefix, prefixFontPx, style.Bold)
+	drawWithFont(body, bodyX, padY, bodyFontPx)
+
+	pixels := make([]byte, canvasW*height)
+	for y := 0; y < height; y++ {
+		for x := 0; x < canvasW; x++ {
+			off := y*stride + x*4
+			if raw[off] < 128 || raw[off+1] < 128 || raw[off+2] < 128 {
+				pixels[y*canvasW+x] = 1
+			}
+		}
+	}
+	return bitmapTextImage{Width: canvasW, Height: height, Pixels: pixels}
+}
+
 func textLineHeightPx(dc uintptr, s string, fontPx int) int {
 	if s == "" {
 		return 0

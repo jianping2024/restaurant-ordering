@@ -4,6 +4,14 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.78
+
+**修复：站票左右边距对称 + 备注首行可写满**
+
+- 菜名、备注左缘统一为 `Items` 表头左缘（col `stationSlipSideMargin` = 4）；删除 col 5 菜名 / col 1 备注第二套左距。
+- 拉丁 Qty 表头/数量在 8 列 field 内 **右对齐**（`padFieldRight`），与 Han `hanQtyTextStartPx` 一致。
+- 备注 `wrapHanNoteLines`：首行先扣前缀宽再折正文，避免 font 34 下「Observação:」占满首行只剩两字。
+
 ## 0.3.77
 
 **修复：Qty 贴右 + 中文备注并入 Han canvas（唯一标尺）**

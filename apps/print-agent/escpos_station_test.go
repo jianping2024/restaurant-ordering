@@ -111,10 +111,10 @@ func TestStationSlipItemLineLayout(t *testing.T) {
 		t.Fatalf("line display width %d want %d", displayWidth(line), escposWidth)
 	}
 	runes := []rune(line)
-	if runes[stationSlipItemLeftMargin] != '0' {
-		t.Fatalf("expected item label at col %d, got %q", stationSlipItemLeftMargin, runes[stationSlipItemLeftMargin])
+	if runes[stationSlipSideMargin] != '0' {
+		t.Fatalf("expected item label at col %d, got %q", stationSlipSideMargin, runes[stationSlipSideMargin])
 	}
-	qtyCol := []rune(padFieldCenter("3", stationSlipQtyColWidth))
+	qtyCol := []rune(padFieldRight("3", stationSlipQtyColWidth))
 	qtyStart := stationSlipQtyColStart(escposWidth)
 	for i, c := range qtyCol {
 		if runes[qtyStart+i] != c {
@@ -164,14 +164,15 @@ func TestHanNoteWrapUsesPixelWidth(t *testing.T) {
 	if len(lines) < 2 {
 		t.Fatal("expected multi-line note wrap")
 	}
-	w0 := measureHanTextWidth(lines[0].text, fontPx, false)
-	if w0 > hanNoteMaxPx() {
-		t.Fatalf("first line width %d exceeds max %d", w0, hanNoteMaxPx())
+	w0 := measureHanTextWidth(lines[0].prefix, hanNotePrefixFontPx(fontPx), false) +
+		measureHanTextWidth(lines[0].text, fontPx, false)
+	lineEnd := hanNoteLeftPx() + w0
+	if lineEnd > hanQtyColStartPx()-hanColumnGapPx() {
+		t.Fatalf("first line extends past qty band: end %d max %d", lineEnd, hanQtyColStartPx()-hanColumnGapPx())
 	}
-	prefixW := measureHanTextWidth(escposItemNotePrefix, fontPx, false)
-	firstBody := strings.TrimPrefix(lines[0].text, escposItemNotePrefix)
-	if len([]rune(firstBody)) < 10 {
-		t.Fatalf("first line too short (%d Han runes), regresses early 31-col wrap", len([]rune(firstBody)))
+	prefixW := hanNotePrefixWidthPx(escposItemNotePrefix, fontPx, false)
+	if len([]rune(lines[0].text)) < 4 {
+		t.Fatalf("first line body too short (%d Han runes), regresses early wrap", len([]rune(lines[0].text)))
 	}
 	if lines[1].x <= lines[0].x {
 		t.Fatalf("continuation must hang indent past prefix: x0=%d x1=%d", lines[0].x, lines[1].x)
@@ -205,6 +206,57 @@ func TestHanNoteEscposSingleWrapPath(t *testing.T) {
 	}
 }
 
+func TestHanColumnLeftMatchesItemsMargin(t *testing.T) {
+	want := escposDisplayColToPx(stationSlipSideMargin)
+	if got := hanColumnLeftPx(hanColHeader); got != want {
+		t.Fatalf("header left px %d want %d", got, want)
+	}
+	if got := hanColumnLeftPx(hanColItem); got != want {
+		t.Fatalf("item left px %d want %d", got, want)
+	}
+	if got := hanNoteLeftPx(); got != want {
+		t.Fatalf("note left px %d want %d", got, want)
+	}
+}
+
+func TestHanItemLabelFont34SingleLine(t *testing.T) {
+	fontPx := 34
+	label := "002-冰水 500毫升"
+	maxPx := hanColumnLabelMaxPx(hanColItem)
+	maxCols := stationSlipItemMaxWidth(escposWidth)
+	var chunks []string
+	if displayWidth(label) <= maxCols {
+		chunks = []string{label}
+	} else {
+		chunks = wrapHanTextByPx(label, maxPx, fontPx, false)
+	}
+	if len(chunks) != 1 {
+		t.Fatalf("want single line for %q at font %d, got %d chunks %v", label, fontPx, len(chunks), chunks)
+	}
+	if chunks[0] != label {
+		t.Fatalf("chunk %q want %q", chunks[0], label)
+	}
+}
+
+func TestHanNoteFont34FirstLineFitsBody(t *testing.T) {
+	fontPx := 34
+	note := strings.Repeat("不要香菜", 6)
+	lines := wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false)
+	if len(lines) < 2 {
+		t.Fatal("expected multi-line note")
+	}
+	firstBody := lines[0].text
+	if len([]rune(firstBody)) < 4 {
+		t.Fatalf("first line body too short (%q), prefix must not eat entire line width", firstBody)
+	}
+	if lines[0].prefix != escposItemNotePrefix {
+		t.Fatalf("first line prefix got %q", lines[0].prefix)
+	}
+	if lines[0].x != hanNoteLeftPx() {
+		t.Fatalf("first line x got %d want %d", lines[0].x, hanNoteLeftPx())
+	}
+}
+
 func absInt(n int) int {
 	if n < 0 {
 		return -n
@@ -231,7 +283,7 @@ func TestStationSlipColumnHeaderLayout(t *testing.T) {
 	if runes[stationSlipSideMargin] != 'I' {
 		t.Fatalf("expected Items at col %d (Guest 't'), got %q", stationSlipSideMargin, runes[stationSlipSideMargin])
 	}
-	qtyCol := []rune(padFieldCenter("Qty", stationSlipQtyColWidth))
+	qtyCol := []rune(padFieldRight("Qty", stationSlipQtyColWidth))
 	qtyStart := stationSlipQtyColStart(escposWidth)
 	for i, c := range qtyCol {
 		if runes[qtyStart+i] != c {
@@ -256,7 +308,7 @@ func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	if labelIdx < 0 {
 		t.Fatal("missing Observação: prefix")
 	}
-	prefix := raw[max(0, labelIdx-4):labelIdx]
+	prefix := raw[max(0, labelIdx-16):labelIdx]
 	if !bytes.Contains(prefix, []byte{0x1B, 0x2D, 0x01}) {
 		t.Fatal("expected ESC - 1 underline before item note")
 	}
@@ -296,9 +348,9 @@ func TestWrapDisplay(t *testing.T) {
 
 func TestStationSlipNoteMaxWidthLeftOfQty(t *testing.T) {
 	maxW := stationSlipNoteMaxWidth(escposWidth)
-	if escposNoteIndentSpaces+maxW > stationSlipQtyColStart(escposWidth) {
+	if stationSlipSideMargin+maxW > stationSlipQtyColStart(escposWidth) {
 		t.Fatalf("note text band overlaps qty column: indent=%d max=%d qtyStart=%d",
-			escposNoteIndentSpaces, maxW, stationSlipQtyColStart(escposWidth))
+			stationSlipSideMargin, maxW, stationSlipQtyColStart(escposWidth))
 	}
 }
 
@@ -332,7 +384,7 @@ func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 	}
 	itemLine := stationSlipItemLine("903-Cafe", "2", escposWidth)
 	qtyStart := stationSlipQtyColStart(escposWidth)
-	qtyCol := []rune(padFieldCenter("2", stationSlipQtyColWidth))
+	qtyCol := []rune(padFieldRight("2", stationSlipQtyColWidth))
 	runes := []rune(itemLine)
 	for i, c := range qtyCol {
 		if runes[qtyStart+i] != c {

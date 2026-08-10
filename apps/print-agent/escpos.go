@@ -14,15 +14,11 @@ import (
 const escposWidth = 48
 
 // Station slip menu body column model (Agent-side layout only).
-// Header "Items" aligns with 't' in "Guest"; item rows align with 't' in "Items".
+// Left/right symmetric: stationSlipSideMargin cols; Items, item rows, and notes share the same left edge.
 const (
-	stationSlipSideMargin     = 4
-	stationSlipItemLeftMargin = 5
-	stationSlipQtyColWidth    = 8
+	stationSlipSideMargin  = 4
+	stationSlipQtyColWidth = 8
 )
-
-// escposNoteIndentSpaces — sub-line indent before underlined station-slip item notes.
-const escposNoteIndentSpaces = 1
 
 // Top: no extra LF — most printers already feed after ESC @ init.
 // Bottom: 2× single-height "restaurant" row before cut (visible pad only).
@@ -442,6 +438,15 @@ func padFieldCenter(s string, width int) string {
 	return strings.Repeat(" ", left) + s + strings.Repeat(" ", gap-left)
 }
 
+func padFieldRight(s string, width int) string {
+	s = truncateDisplay(s, width)
+	gap := width - displayWidth(s)
+	if gap <= 0 {
+		return s
+	}
+	return strings.Repeat(" ", gap) + s
+}
+
 func escposThreeColLine(left, mid, right string) string {
 	return padField(left, escposColItems, false) +
 		padFieldCenter(mid, escposColQty) +
@@ -482,7 +487,7 @@ func stationSlipHeaderItemsMaxWidth(width int) int {
 }
 
 func stationSlipItemMaxWidth(width int) int {
-	return stationSlipQtyColStart(width) - stationSlipItemLeftMargin
+	return stationSlipQtyColStart(width) - stationSlipSideMargin
 }
 
 func placeRunesAt(buf []rune, start int, r []rune) {
@@ -496,7 +501,7 @@ func placeRunesAt(buf []rune, start int, r []rune) {
 
 func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string {
 	items := []rune(truncateDisplay(itemsLabel, stationSlipHeaderItemsMaxWidth(width)))
-	qty := []rune(truncateDisplay(padFieldCenter(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
+	qty := []rune(truncateDisplay(padFieldRight(qtyLabel, stationSlipQtyColWidth), stationSlipQtyColWidth))
 	buf := make([]rune, width)
 	for i := range buf {
 		buf[i] = ' '
@@ -509,8 +514,8 @@ func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string 
 // stationSlipItemLine — Latin Font A column layout only (48 cols). Han uses escposHanColumnRow.
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
 	qtyStart := stationSlipQtyColStart(width)
-	qtyField := truncateDisplay(padFieldCenter(strings.TrimSpace(qtyStr), stationSlipQtyColWidth), stationSlipQtyColWidth)
-	left := strings.Repeat(" ", stationSlipItemLeftMargin) + leftLabel
+	qtyField := truncateDisplay(padFieldRight(strings.TrimSpace(qtyStr), stationSlipQtyColWidth), stationSlipQtyColWidth)
+	left := strings.Repeat(" ", stationSlipSideMargin) + leftLabel
 	pad := qtyStart - displayWidth(left)
 	if pad < 0 {
 		pad = 0
@@ -664,7 +669,7 @@ func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 }
 
 func stationSlipNoteMaxWidth(width int) int {
-	return stationSlipQtyColStart(width) - escposNoteIndentSpaces
+	return stationSlipQtyColStart(width) - stationSlipSideMargin
 }
 
 func (w *escposWriter) writeHanStationNote(note string) {
@@ -676,7 +681,11 @@ func (w *escposWriter) writeHanStationNote(note string) {
 	}
 	for _, nl := range wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false) {
 		w.writeBody1x2()
-		w.content.Write(escposHanLeftRow(nl.text, nl.x, fontPx, style))
+		if nl.prefix != "" {
+			w.content.Write(escposHanNoteRow(nl.prefix, nl.text, nl.x, nl.prefixFont, fontPx, style))
+		} else {
+			w.content.Write(escposHanLeftRow(nl.text, nl.x, fontPx, style))
+		}
 		w.lastTextBitmap = true
 	}
 }
@@ -691,7 +700,7 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int, p jobPay
 		w.writeHanStationNote(note)
 		return
 	}
-	indent := strings.Repeat(" ", escposNoteIndentSpaces)
+	indent := strings.Repeat(" ", stationSlipSideMargin)
 	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
 	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
@@ -732,7 +741,13 @@ func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, p jobPayload) {
 	if stationSlipColumnBlockUsesHanCanvas(p, w) {
 		fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
 		maxPx := hanColumnLabelMaxPx(hanColItem)
-		chunks := wrapHanTextByPx(label, maxPx, fontPx, false)
+		maxCols := stationSlipItemMaxWidth(escposWidth)
+		var chunks []string
+		if displayWidth(label) <= maxCols {
+			chunks = []string{label}
+		} else {
+			chunks = wrapHanTextByPx(label, maxPx, fontPx, false)
+		}
 		if len(chunks) == 0 {
 			chunks = []string{label}
 		}
@@ -757,7 +772,7 @@ func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, p jobPayload) {
 		w.writeBody1x2()
 		var b strings.Builder
 		col := 0
-		for col < stationSlipItemLeftMargin {
+		for col < stationSlipSideMargin {
 			b.WriteByte(' ')
 			col++
 		}

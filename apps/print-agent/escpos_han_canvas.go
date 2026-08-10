@@ -72,7 +72,7 @@ func hanQtyTextStartPx(s string, fontPx int, bold bool) int {
 }
 
 func hanNoteLeftPx() int {
-	return escposDisplayColToPx(escposNoteIndentSpaces)
+	return escposDisplayColToPx(stationSlipSideMargin)
 }
 
 func hanNoteMaxPx() int {
@@ -83,43 +83,66 @@ func hanNoteMaxPx() int {
 	return max
 }
 
-func hanNoteContinuationMaxPx(prefix string, fontPx int, bold bool) int {
-	hangPx := hanNoteLeftPx() + measureHanTextWidth(prefix, fontPx, bold)
-	max := hanQtyColStartPx() - hangPx - hanColumnGapPx()
-	if max < 1 {
-		return 1
-	}
-	return max
-}
-
 type hanNoteLine struct {
-	x    int
-	text string
+	x          int
+	text       string
+	prefix     string
+	prefixFont int // 0 → body font only (text holds full line)
 }
 
-// wrapHanNoteLines — single pixel wrap; first line full width, continuations hang after prefix.
+func hanNotePrefixFontPx(bodyFontPx int) int {
+	if bodyFontPx >= 28 {
+		half := bodyFontPx / 2
+		if half < bitmapTextMinFontPx {
+			return bitmapTextMinFontPx
+		}
+		return half
+	}
+	return bodyFontPx
+}
+
+func hanNotePrefixWidthPx(prefix string, fontPx int, bold bool) int {
+	return measureHanTextWidth(prefix, hanNotePrefixFontPx(fontPx), bold)
+}
+
+// wrapHanNoteLines — prefix on first line only; body wraps before Qty column; continuations hang after prefix.
 func wrapHanNoteLines(note, prefix string, fontPx int, bold bool) []hanNoteLine {
 	note = strings.TrimSpace(note)
 	if note == "" {
 		return nil
 	}
-	full := prefix + note
-	firstChunks := wrapHanTextByPx(full, hanNoteMaxPx(), fontPx, bold)
-	if len(firstChunks) == 0 {
-		return nil
+	leftPx := hanNoteLeftPx()
+	prefixFontPx := hanNotePrefixFontPx(fontPx)
+	prefixW := measureHanTextWidth(prefix, prefixFontPx, bold)
+	firstBodyMax := hanNoteMaxPx() - prefixW
+	if firstBodyMax < 1 {
+		firstBodyMax = 1
 	}
-	out := []hanNoteLine{{x: hanNoteLeftPx(), text: firstChunks[0]}}
-	consumed := len([]rune(firstChunks[0]))
-	fullRunes := []rune(full)
-	if consumed >= len(fullRunes) {
+	bodyChunks := wrapHanTextByPx(note, firstBodyMax, fontPx, bold)
+	if len(bodyChunks) == 0 {
+		return []hanNoteLine{{x: leftPx, text: prefix + note}}
+	}
+	out := []hanNoteLine{{
+		x:          leftPx,
+		prefix:     prefix,
+		text:       bodyChunks[0],
+		prefixFont: prefixFontPx,
+	}}
+	consumed := len([]rune(bodyChunks[0]))
+	noteRunes := []rune(note)
+	if consumed >= len(noteRunes) {
 		return out
 	}
-	remaining := strings.TrimSpace(string(fullRunes[consumed:]))
+	remaining := strings.TrimSpace(string(noteRunes[consumed:]))
 	if remaining == "" {
 		return out
 	}
-	hangPx := hanNoteLeftPx() + measureHanTextWidth(prefix, fontPx, bold)
-	for _, c := range wrapHanTextByPx(remaining, hanNoteContinuationMaxPx(prefix, fontPx, bold), fontPx, bold) {
+	hangPx := leftPx + prefixW
+	contMax := hanQtyColStartPx() - hangPx - hanColumnGapPx()
+	if contMax < 1 {
+		contMax = 1
+	}
+	for _, c := range wrapHanTextByPx(remaining, contMax, fontPx, bold) {
 		out = append(out, hanNoteLine{x: hangPx, text: c})
 	}
 	return out
@@ -132,11 +155,8 @@ const (
 	hanColItem
 )
 
-func hanColumnLeftPx(kind hanColumnRowKind) int {
-	if kind == hanColHeader {
-		return escposDisplayColToPx(stationSlipSideMargin)
-	}
-	return escposDisplayColToPx(stationSlipItemLeftMargin)
+func hanColumnLeftPx(_ hanColumnRowKind) int {
+	return escposDisplayColToPx(stationSlipSideMargin)
 }
 
 func hanColumnLabelMaxPx(kind hanColumnRowKind) int {
@@ -240,6 +260,11 @@ func escposHanColumnRow(left, right string, kind hanColumnRowKind, fontPx int, s
 
 func escposHanLeftRow(text string, leftPx int, fontPx int, style bitmapTextStyle) []byte {
 	img := renderBitmapLeftRow(text, leftPx, fontPx, style)
+	return escposBitmapRaster(img, style.Align)
+}
+
+func escposHanNoteRow(prefix, body string, leftPx, prefixFontPx, bodyFontPx int, style bitmapTextStyle) []byte {
+	img := renderBitmapNoteRow(prefix, body, leftPx, prefixFontPx, bodyFontPx, style)
 	return escposBitmapRaster(img, style.Align)
 }
 

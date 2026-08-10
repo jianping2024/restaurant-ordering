@@ -221,6 +221,7 @@ describe('closeTableSessionFrontdeskCheckout', () => {
       restaurantId: 'rest-1',
       tableId: 'table-1',
       userId: 'user-1',
+      actor: { kind: 'frontdesk', userId: 'user-1', displayName: 'Desk' },
       closedReason: 'frontdesk_closed',
     });
 
@@ -253,6 +254,7 @@ describe('closeTableSessionFrontdeskCheckout', () => {
       restaurantId: 'rest-1',
       tableId: 'table-1',
       userId: 'user-1',
+      actor: { kind: 'frontdesk', userId: 'user-1', displayName: 'Desk' },
       closedReason: 'cashier_closed',
     });
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam, tableIdsEqual } from '@/lib/restaurant-tables';
@@ -81,6 +82,41 @@ export async function POST(
       { error: 'rpc_failed', message: error.message },
       { status: 400 },
     );
+  }
+
+  const sessionId = typeof rpcResult === 'string' ? rpcResult : String(rpcResult ?? '');
+  const { data: nameRows } = await admin
+    .from('restaurant_tables')
+    .select('id, display_name')
+    .eq('restaurant_id', ctx.restaurant_id)
+    .in('id', [fromTableId, toTableId]);
+  const nameById = new Map(
+    (nameRows || []).map((row) => [
+      row.id as string,
+      (typeof row.display_name === 'string' && row.display_name.trim()) || '—',
+    ]),
+  );
+  const actor = staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role);
+  if (sessionId && action === 'transfer') {
+    scheduleRecordAudit(admin, AUDIT_EVENT.TABLE_TRANSFERRED, {
+      restaurantId: ctx.restaurant_id,
+      actor,
+      context: {
+        sessionId,
+        fromTableName: nameById.get(fromTableId) || '—',
+        toTableName: nameById.get(toTableId) || '—',
+      },
+    });
+  } else if (sessionId && action === 'merge') {
+    scheduleRecordAudit(admin, AUDIT_EVENT.TABLE_MERGED, {
+      restaurantId: ctx.restaurant_id,
+      actor,
+      context: {
+        sessionId,
+        sourceTableName: nameById.get(fromTableId) || '—',
+        targetTableName: nameById.get(toTableId) || '—',
+      },
+    });
   }
 
   const model = await fetchWaiterTablePageModel(admin, ctx.restaurant_id, toTableId);

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { applyKitchenPrep, parseKitchenLineSelections } from '@/lib/kitchen-prep-serve';
+import { staffAuditActor } from '@/lib/audit';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -63,6 +64,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     },
     printStationId,
     selections,
+    actor: staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role),
   });
 
   if (!result.ok) {

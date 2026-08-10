@@ -71,6 +71,7 @@ export async function POST(
     personIndex,
     collectedAmount,
     createdByUserId: auth.actor.userId,
+    actor: auth.actor,
     receiptPrinterId,
     billReceiptPrintEnabled: auth.billReceiptPrintEnabled,
   });

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SplitResult } from '@/types';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
@@ -182,6 +183,7 @@ export async function confirmBillSplitPayment(params: {
   personIndex: number;
   collectedAmount?: number;
   createdByUserId?: string;
+  actor?: AuditActor;
   receiptPrinterId?: string;
   billReceiptPrintEnabled?: boolean;
 }): Promise<ConfirmPaymentResult> {
@@ -193,6 +195,7 @@ export async function confirmBillSplitPayment(params: {
     personIndex,
     collectedAmount,
     createdByUserId,
+    actor,
     receiptPrinterId,
     billReceiptPrintEnabled = false,
   } = params;
@@ -232,6 +235,40 @@ export async function confirmBillSplitPayment(params: {
   const collectedPaymentId =
     typeof payload.collected_payment_id === 'string' ? payload.collected_payment_id : null;
   const collection = parseCollectionRecord(payload);
+  const tableName =
+    typeof payload.display_name === 'string' && payload.display_name.trim()
+      ? payload.display_name.trim()
+      : '—';
+  const sessionId =
+    typeof payload.session_id === 'string' && payload.session_id ? payload.session_id : null;
+
+  if (actor) {
+    scheduleRecordAudit(admin, AUDIT_EVENT.PAYMENT_CONFIRMED, {
+      restaurantId,
+      actor,
+      context: {
+        billSplitId,
+        tableName,
+        personName: collection?.person_name || payload.row_name || '—',
+        amount: rowAmount,
+        allPaid,
+        sessionId,
+      },
+    });
+
+    if (payload.should_close_session && sessionId) {
+      scheduleRecordAudit(admin, AUDIT_EVENT.TABLE_CLOSED, {
+        restaurantId,
+        actor,
+        context: {
+          sessionId,
+          tableName,
+          closeKind: 'paid',
+          amount: finalAmount,
+        },
+      });
+    }
+  }
 
   if (payload.should_close_session && typeof payload.table_id === 'string' && payload.table_id) {
     await purgeTablePartyMembership(admin, restaurantId, payload.table_id);

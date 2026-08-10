@@ -67,6 +67,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'dashboard.kitchen_shortcut.view',
     'dashboard.guest_notice.view',
     'dashboard.dish_history.view',
+    'dashboard.operation_logs.view',
     'checkout.confirm_payment',
     'checkout.apply_discount',
     'checkout.request_whole_table',
@@ -120,6 +121,7 @@ export const ROLE_TEMPLATES: Record<RolePresetKey, readonly PermissionKey[]> = {
     'settings.staff.manage',
     'dashboard.value_analytics.view',
     'dashboard.abnormal_ops.view',
+    'dashboard.operation_logs.view',
   ],
 };
 

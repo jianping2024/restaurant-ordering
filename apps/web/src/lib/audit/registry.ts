@@ -7,6 +7,17 @@ import { discountAppliedDefinition } from '@/lib/audit/builders/discount-applied
 import { itemDeletedDefinition } from '@/lib/audit/builders/item-deleted';
 import { itemQtyDecrementedDefinition } from '@/lib/audit/builders/item-qty-decremented';
 import { itemVoidedDefinition } from '@/lib/audit/builders/item-voided';
+import {
+  checkoutRequestedDefinition,
+  kitchenPrepDefinition,
+  kitchenPrepReprintDefinition,
+  kitchenServeDefinition,
+  paymentConfirmedDefinition,
+  sessionOpenedDefinition,
+  tableClosedDefinition,
+  tableMergedDefinition,
+  tableTransferredDefinition,
+} from '@/lib/audit/builders/staff-operations';
 import { unpaidTableClosedDefinition } from '@/lib/audit/builders/unpaid-table-closed';
 import type { AuditEventDefinition } from '@/lib/audit/types';
 import { AUDIT_EVENT, type AuditEventKey } from '@/lib/audit/types';
@@ -21,6 +32,15 @@ const REGISTRY: Record<AuditEventKey, AuditEventDefinition<any>> = {
   [AUDIT_EVENT.ABNORMAL_CONFIRMED]: abnormalConfirmedDefinition,
   [AUDIT_EVENT.ABNORMAL_IGNORED]: abnormalIgnoredDefinition,
   [AUDIT_EVENT.ABNORMAL_NOTE_ADDED]: abnormalNoteAddedDefinition,
+  [AUDIT_EVENT.SESSION_OPENED]: sessionOpenedDefinition,
+  [AUDIT_EVENT.TABLE_CLOSED]: tableClosedDefinition,
+  [AUDIT_EVENT.TABLE_TRANSFERRED]: tableTransferredDefinition,
+  [AUDIT_EVENT.TABLE_MERGED]: tableMergedDefinition,
+  [AUDIT_EVENT.CHECKOUT_REQUESTED]: checkoutRequestedDefinition,
+  [AUDIT_EVENT.PAYMENT_CONFIRMED]: paymentConfirmedDefinition,
+  [AUDIT_EVENT.KITCHEN_PREP]: kitchenPrepDefinition,
+  [AUDIT_EVENT.KITCHEN_PREP_REPRINT]: kitchenPrepReprintDefinition,
+  [AUDIT_EVENT.KITCHEN_SERVE]: kitchenServeDefinition,
 };
 
 export function getAuditEventDefinition(key: AuditEventKey): AuditEventDefinition<unknown> | null {

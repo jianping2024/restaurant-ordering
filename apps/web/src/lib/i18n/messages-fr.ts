@@ -10,6 +10,7 @@ export const MESSAGES_FR = {
     "orders": "Historique des commandes",
     "settings": "Paramètres",
     "abnormalOps": "Opérations anormales",
+    "operationLogs": "Journal d'opérations",
     "valueAnalytics": "Analyse de valeur",
     "viewKitchen": "Ouvrir l'écran cuisine",
     "viewWaiter": "Tableau de salle",

@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     admin: actorCtx.admin,
     restaurantId: actorCtx.restaurantId,
     userId: actorCtx.userId,
+    actor: actorCtx.actor,
     closedReason: actorCtx.closedReason,
     tableId,
     printBill,

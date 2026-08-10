@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
+import type { KitchenLineAuditItem } from '@/lib/audit/builders/staff-operations';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import {
@@ -13,6 +15,37 @@ import {
 } from '@/lib/station-ticket-prep-enqueue';
 import type { RestaurantEnqueueRow } from '@/lib/station-ticket-enqueue';
 import type { Order, OrderItem } from '@/types';
+
+function kitchenItemLabel(item: OrderItem): string {
+  const raw =
+    item.name_zh?.trim() ||
+    item.name_pt?.trim() ||
+    item.name?.trim() ||
+    item.name_en?.trim() ||
+    '';
+  return raw || '—';
+}
+
+function scheduleKitchenLineAudit(params: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  actor: AuditActor;
+  eventKey: typeof AUDIT_EVENT.KITCHEN_PREP | typeof AUDIT_EVENT.KITCHEN_PREP_REPRINT | typeof AUDIT_EVENT.KITCHEN_SERVE;
+  orderId: string;
+  tableName: string;
+  items: KitchenLineAuditItem[];
+}): void {
+  if (params.items.length === 0) return;
+  scheduleRecordAudit(params.admin, params.eventKey, {
+    restaurantId: params.restaurantId,
+    actor: params.actor,
+    context: {
+      orderId: params.orderId,
+      tableName: params.tableName,
+      items: params.items,
+    },
+  });
+}
 
 export type KitchenLineSelection = {
   orderId: string;
@@ -72,11 +105,12 @@ export async function applyKitchenPrep(params: {
   restaurant: RestaurantEnqueueRow;
   printStationId: string;
   selections: KitchenLineSelection[];
+  actor?: AuditActor;
 }): Promise<
   | { ok: true; printed_tables: string[]; errors?: string[] }
   | { ok: false; status: number; error: string; message?: string }
 > {
-  const { admin, restaurant, selections } = params;
+  const { admin, restaurant, selections, actor } = params;
   const restaurantId = restaurant.id;
   const printStationId = parseTableIdParam(params.printStationId);
   if (!printStationId) {
@@ -104,6 +138,9 @@ export async function applyKitchenPrep(params: {
 
   const nowIso = new Date().toISOString();
   const nextByOrder = new Map<string, { row: OrderRow; items: OrderItem[] }>();
+  const prepItems: KitchenLineAuditItem[] = [];
+  const reprintItems: KitchenLineAuditItem[] = [];
+  const firstOrderId = selections[0]?.orderId ?? '';
 
   for (const sel of selections) {
     const row = orderById.get(sel.orderId)!;
@@ -125,6 +162,14 @@ export async function applyKitchenPrep(params: {
     if (stored === 'done') {
       return { ok: false, status: 400, error: 'item_already_done' };
     }
+
+    const line: KitchenLineAuditItem = {
+      itemName: kitchenItemLabel(item),
+      qty: Math.max(1, Number(item.qty) || 1),
+    };
+    // pending → first prep; already cooking/ready → 补打
+    if (stored === 'pending') prepItems.push(line);
+    else reprintItems.push(line);
 
     // pending → cooking; already cooking/ready → keep cooking for 补打 (no started_at reset).
     working.items[sel.itemIndex] = {
@@ -160,14 +205,6 @@ export async function applyKitchenPrep(params: {
     selections: prepSelections,
   });
 
-  if (!printed.ok) {
-    return {
-      ok: true,
-      printed_tables: [],
-      errors: [printed.code],
-    };
-  }
-
   const printedTables = Array.from(
     new Set(
       selections
@@ -175,6 +212,36 @@ export async function applyKitchenPrep(params: {
         .filter(Boolean),
     ),
   );
+
+  if (actor && firstOrderId) {
+    const tableName = printedTables.join(' · ') || '—';
+    scheduleKitchenLineAudit({
+      admin,
+      restaurantId,
+      actor,
+      eventKey: AUDIT_EVENT.KITCHEN_PREP,
+      orderId: firstOrderId,
+      tableName,
+      items: prepItems,
+    });
+    scheduleKitchenLineAudit({
+      admin,
+      restaurantId,
+      actor,
+      eventKey: AUDIT_EVENT.KITCHEN_PREP_REPRINT,
+      orderId: firstOrderId,
+      tableName,
+      items: reprintItems,
+    });
+  }
+
+  if (!printed.ok) {
+    return {
+      ok: true,
+      printed_tables: [],
+      errors: [printed.code],
+    };
+  }
 
   return { ok: true, printed_tables: printedTables };
 }
@@ -184,11 +251,12 @@ export async function applyKitchenServe(params: {
   restaurantId: string;
   printAgentConfig: unknown;
   selections: KitchenLineSelection[];
+  actor?: AuditActor;
 }): Promise<
   | { ok: true; served: number }
   | { ok: false; status: number; error: string; message?: string }
 > {
-  const { admin, restaurantId, selections } = params;
+  const { admin, restaurantId, selections, actor } = params;
   if (selections.length === 0) {
     return { ok: false, status: 400, error: 'selections_required' };
   }
@@ -200,7 +268,7 @@ export async function applyKitchenServe(params: {
   const orderIds = Array.from(new Set(selections.map((s) => s.orderId)));
   const { data: orderRows, error: oErr } = await admin
     .from('orders')
-    .select('id, restaurant_id, status, items, updated_at')
+    .select('id, restaurant_id, status, items, updated_at, display_name')
     .eq('restaurant_id', restaurantId)
     .in('id', orderIds);
 
@@ -211,7 +279,7 @@ export async function applyKitchenServe(params: {
   const orderById = new Map(
     (orderRows || []).map((row) => [
       row.id as string,
-      row as Pick<OrderRow, 'id' | 'restaurant_id' | 'status' | 'items' | 'updated_at'>,
+      row as Pick<OrderRow, 'id' | 'restaurant_id' | 'status' | 'items' | 'updated_at' | 'display_name'>,
     ]),
   );
   if (orderById.size !== orderIds.length) {
@@ -221,11 +289,13 @@ export async function applyKitchenServe(params: {
   const nextByOrder = new Map<
     string,
     {
-      row: Pick<OrderRow, 'id' | 'restaurant_id' | 'status' | 'items' | 'updated_at'>;
+      row: Pick<OrderRow, 'id' | 'restaurant_id' | 'status' | 'items' | 'updated_at' | 'display_name'>;
       items: OrderItem[];
     }
   >();
   let served = 0;
+  const serveItems: KitchenLineAuditItem[] = [];
+  const firstOrderId = selections[0]?.orderId ?? '';
 
   for (const sel of selections) {
     const row = orderById.get(sel.orderId)!;
@@ -259,6 +329,11 @@ export async function applyKitchenServe(params: {
       return { ok: false, status: 400, error: 'item_not_ready' };
     }
 
+    serveItems.push({
+      itemName: kitchenItemLabel(item),
+      qty: Math.max(1, Number(item.qty) || 1),
+    });
+
     // Single write path: cooking/ready → done (never write ready).
     working.items[sel.itemIndex] = {
       ...item,
@@ -281,6 +356,26 @@ export async function applyKitchenServe(params: {
     if (!persisted.ok) {
       return { ok: false, status: 409, error: 'conflict' };
     }
+  }
+
+  if (actor && firstOrderId && serveItems.length > 0) {
+    const tableName =
+      Array.from(
+        new Set(
+          selections
+            .map((s) => orderById.get(s.orderId)?.display_name?.trim() || '')
+            .filter(Boolean),
+        ),
+      ).join(' · ') || '—';
+    scheduleKitchenLineAudit({
+      admin,
+      restaurantId,
+      actor,
+      eventKey: AUDIT_EVENT.KITCHEN_SERVE,
+      orderId: firstOrderId,
+      tableName,
+      items: serveItems,
+    });
   }
 
   return { ok: true, served };

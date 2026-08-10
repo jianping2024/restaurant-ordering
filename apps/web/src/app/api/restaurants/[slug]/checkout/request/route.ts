@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { assertCheckoutRequestAllowed } from '@/lib/checkout-request-auth';
+import {
+  assertCheckoutRequestAllowed,
+  resolveCheckoutRequestCaller,
+} from '@/lib/checkout-request-auth';
+import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
@@ -154,6 +158,29 @@ export async function POST(
       { error: submitResult.error, message: submitResult.message },
       { status: submitResult.status },
     );
+  }
+
+  const caller = await resolveCheckoutRequestCaller(slug);
+  if (caller.kind === 'authorized_staff') {
+    const { staffSessionForSlug } = await import('@/lib/staff-api-auth');
+    const staffCtx = await staffSessionForSlug(slug);
+    if (staffCtx) {
+      scheduleRecordAudit(admin, AUDIT_EVENT.CHECKOUT_REQUESTED, {
+        restaurantId: loaded.restaurant.id,
+        actor: staffAuditActor(
+          staffCtx.user_id,
+          staffCtx.role_name || staffCtx.role,
+          staffCtx.role,
+        ),
+        context: {
+          billSplitId: submitResult.bill_split_id,
+          sessionId: submitResult.session_id,
+          tableName: submitResult.table_name || '—',
+          splitMode: submitResult.split_mode,
+          totalAmount: submitResult.total_amount,
+        },
+      });
+    }
   }
 
   return NextResponse.json({

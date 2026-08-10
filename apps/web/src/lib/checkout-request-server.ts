@@ -17,7 +17,15 @@ import type { BillSplit, SplitResult } from '@/types';
 export type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 
 export type CheckoutRequestResult =
-  | { ok: true; bill_split_id: string; result: SplitResult[]; total_amount: number }
+  | {
+      ok: true;
+      bill_split_id: string;
+      result: SplitResult[];
+      total_amount: number;
+      session_id: string;
+      table_name: string;
+      split_mode: string;
+    }
   | { ok: false; error: string; status: number; message?: string };
 
 /** Same pattern as confirm-payment automatic receipts: never block checkout on print. */
@@ -223,5 +231,8 @@ export async function submitCheckoutRequestForTable(
     bill_split_id: billSplitId,
     result: (rpcPayload.result || normalizedPayload.result) as SplitResult[],
     total_amount: rpcPayload.total_amount ?? total,
+    session_id: sessionId,
+    table_name: tableRow.display_name as string,
+    split_mode: normalizedPayload.splitMode,
   };
 }

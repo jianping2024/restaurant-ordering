@@ -468,8 +468,33 @@ func (w *escposWriter) rightLine(s string, bold bool) {
 }
 
 func (w *escposWriter) writeReceiptMenuBodyLine(left, mid, right string) {
+	if w.textMode == escposTextBitmap && (hasHan(left) || hasHan(mid) || hasHan(right)) {
+		fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
+		w.content.Write(escposHanReceiptRow(left, mid, right, fontPx, bitmapTextStyle{
+			Align: w.alignMode,
+			Bold:  true,
+		}))
+		w.lastTextBitmap = true
+		w.lf()
+		return
+	}
 	w.writeBody1x2Bold()
 	w.text(escposThreeColLine(left, mid, right))
+	w.lf()
+}
+
+func (w *escposWriter) writeReceiptPadLine(left, right string) {
+	if w.textMode == escposTextBitmap && (hasHan(left) || hasHan(right)) {
+		fontPx := hanFontPxForRole(w.hanFontPx, w.hanRole)
+		w.content.Write(escposHanPadRow(left, right, fontPx, bitmapTextStyle{
+			Align: w.alignMode,
+			Bold:  w.boldOn,
+		}))
+		w.lastTextBitmap = true
+		w.lf()
+		return
+	}
+	w.text(escposPadLine(left, right, escposWidth))
 	w.lf()
 }
 
@@ -931,10 +956,8 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 		if !isSplit {
 			w.text(lab.feeDetails)
 			w.lf()
-			w.text(escposPadLine(lab.originalTotal, formatMoney(sum), escposWidth))
-			w.lf()
-			w.text(escposPadLine(lab.subtotal, formatMoney(sum), escposWidth))
-			w.lf()
+			w.writeReceiptPadLine(lab.originalTotal, formatMoney(sum))
+			w.writeReceiptPadLine(lab.subtotal, formatMoney(sum))
 		}
 		due := sum
 		if p.AmountDue > 0 {

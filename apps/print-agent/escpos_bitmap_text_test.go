@@ -27,6 +27,9 @@ func TestRenderBitmapTextHasInkForHan(t *testing.T) {
 	if rasterInkBits(raw) == 0 {
 		t.Fatal("escposBitmapText must emit non-blank GS v 0 payload")
 	}
+	if bytes.HasSuffix(raw, []byte{'\n'}) {
+		t.Fatal("GS v 0 raster must not trailing LF (double line feed wastes paper)")
+	}
 }
 
 func TestEscposBitmapTextWrapsLongHanNoEllipsis(t *testing.T) {

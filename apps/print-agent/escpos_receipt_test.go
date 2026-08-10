@@ -314,3 +314,56 @@ func TestReceiptMenuLinesUse1x2Bold(t *testing.T) {
 		t.Fatal("Amount Due must use 1×2 bold")
 	}
 }
+
+func TestZhPreBillMenuOneRasterPerLine(t *testing.T) {
+	fontPx := bitmapTextDefaultFontPx
+	style := bitmapTextStyle{Bold: true}
+	// Old path: pad to 48 cols then escposBitmapText/wrapDisplay → multi GS per logical line.
+	padded := escposThreeColLine("001-中水", "9", "16.65")
+	oldGS := bytes.Count(escposBitmapText(padded, style, fontPx), []byte{0x1D, 0x76, 0x30, 0x00})
+	if oldGS < 2 {
+		t.Fatalf("sanity: padded three-col wrap should be ≥2 GS, got %d", oldGS)
+	}
+	newGS := bytes.Count(escposHanReceiptRow("001-中水", "9", "16.65", fontPx, style), []byte{0x1D, 0x76, 0x30, 0x00})
+	if newGS != 1 {
+		t.Fatalf("escposHanReceiptRow must emit exactly 1 GS v 0, got %d", newGS)
+	}
+
+	payload, _ := json.Marshal(jobPayload{
+		Locale:           "zh",
+		TableDisplayName: "A-01",
+		GuestCount:       2,
+		ReceiptVariant:   "pre_bill",
+		Subtotal:         16.65,
+		AmountDue:        16.65,
+		Lines: []jobLine{{
+			ItemCode:    "001",
+			ItemName:    "中水",
+			DisplayName: "001-中水",
+			Qty:         9,
+			UnitPrice:   1.85,
+		}, {
+			ItemCode:    "002",
+			ItemName:    "冰水 500毫升",
+			DisplayName: "002-冰水 500毫升",
+			Qty:         10,
+			UnitPrice:   1.85,
+		}},
+	})
+	raw := escposFromJob(printJob{Type: "pre_bill", Payload: payload})
+	gs := bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00})
+	// zh chrome + menu(header+2) + pads + footer ≈ one GS per Han line (~14), not 2× menu wrap.
+	if gs < 10 || gs > 18 {
+		t.Fatalf("zh pre_bill GS v 0 count %d outside one-raster-per-line band [10,18]", gs)
+	}
+	img := renderBitmapReceiptRow("001-中水", "9", "16.65", fontPx, style)
+	if img.Width != bitmapTextMaxWidthPx {
+		t.Fatalf("receipt row width %d want %d", img.Width, bitmapTextMaxWidthPx)
+	}
+	if !bitmapInkInXBand(img, escposDisplayColToPx(escposColItems), escposDisplayColToPx(escposColItems+escposColQty)) {
+		t.Fatal("qty ink missing in mid band")
+	}
+	if bitmapInkMaxX(img) < bitmapTextMaxWidthPx-escposDisplayColToPx(escposColPrice) {
+		t.Fatal("price ink should sit in right price band")
+	}
+}

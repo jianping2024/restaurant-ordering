@@ -79,8 +79,8 @@ func renderBitmapText(s string, style bitmapTextStyle, fontPx int) bitmapTextIma
 	chars := uintptr(len(utf16) - 1)
 	var size gdiSize
 	procGetTextExtentPoint.Call(dc, uintptr(unsafe.Pointer(&utf16[0])), chars, uintptr(unsafe.Pointer(&size)))
-	width := int(size.CX) + 8
-	height := int(size.CY) + 8
+	width := int(size.CX) + 2
+	height := int(size.CY) + hanBitmapHeightPad
 	if width <= 0 || height <= 0 {
 		return bitmapTextImage{}
 	}
@@ -113,7 +113,7 @@ func renderBitmapText(s string, style bitmapTextStyle, fontPx int) bitmapTextIma
 	procSetBkColor.Call(dc, 0x00ffffff)
 	procSetTextColor.Call(dc, 0x00000000)
 	procSetBkMode.Call(dc, 2)
-	procTextOutW.Call(dc, 4, 4, uintptr(unsafe.Pointer(&utf16[0])), chars)
+	procTextOutW.Call(dc, hanBitmapPadY, hanBitmapPadY, uintptr(unsafe.Pointer(&utf16[0])), chars)
 
 	pixels := make([]byte, width*height)
 	for y := 0; y < height; y++ {

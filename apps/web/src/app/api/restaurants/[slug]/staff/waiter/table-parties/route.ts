@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AUDIT_EVENT, scheduleStaffRecordAudit } from '@/lib/audit';
 import { waiterBoardAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
@@ -119,6 +120,21 @@ export async function POST(
       },
       { status: result.status },
     );
+  }
+
+  if (result.audit) {
+    scheduleStaffRecordAudit(admin, AUDIT_EVENT.TABLE_PARTY, {
+      restaurantId: ctx.restaurant_id,
+      userId: ctx.user_id,
+      role: ctx.role,
+      context: {
+        partyId: result.audit.partyId,
+        partyName: result.audit.partyName,
+        action: result.audit.action,
+        beforePartyName: result.audit.beforePartyName,
+        tableNames: result.audit.tableNames,
+      },
+    });
   }
 
   return NextResponse.json({

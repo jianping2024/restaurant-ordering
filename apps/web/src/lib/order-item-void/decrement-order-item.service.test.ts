@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AUDIT_EVENT } from '@/lib/audit/types';
 import { decrementOrderItemWithAudit } from '@/lib/order-item-void/decrement-order-item.service';
 import type { OrderItem } from '@/types';
 
@@ -97,11 +98,19 @@ function mockAdmin(): MockAdmin {
   return admin as unknown as MockAdmin;
 }
 
-describe('decrementOrderItemWithAudit', () => {
-  const actor = { userId: 'user-1', displayName: 'Frontdesk', role: 'frontdesk' as const };
-  const operator = 'frontdesk_staff' as const;
+async function flushAudit(): Promise<void> {
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+}
 
-  it('rejects waiter menu decrement', async () => {
+describe('decrementOrderItemWithAudit', () => {
+  const actor = {
+    kind: 'frontdesk' as const,
+    userId: 'user-1',
+    displayName: 'Frontdesk',
+  };
+
+  it('rejects when menu decrement is not allowed', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -115,16 +124,17 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
-      menuDecrementOperator: 'waiter_staff',
+      menuDecrementAllowed: false,
     });
 
     assert.equal(result.ok, false);
     if (result.ok) return;
     assert.equal(result.code, 'menu_decrement_not_allowed');
+    await flushAudit();
     assert.equal(admin.auditEvents.length, 0);
   });
 
-  it('does not write operation_logs for qty decrement', async () => {
+  it('writes ITEM_QTY_DECREMENTED for qty decrement', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -141,16 +151,17 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
-      menuDecrementOperator: operator,
+      menuDecrementAllowed: true,
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'decremented');
-    assert.equal(admin.auditEvents.length, 0);
+    await flushAudit();
+    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_QTY_DECREMENTED]);
     assert.equal(admin.abnormalInserts, 0);
   });
 
-  it('does not write operation_logs for voided decrement', async () => {
+  it('writes ITEM_QTY_DECREMENTED for voided decrement', async () => {
     const admin = mockAdmin();
 
     const result = await decrementOrderItemWithAudit({
@@ -164,13 +175,14 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
-      menuDecrementOperator: operator,
+      menuDecrementAllowed: true,
       voidReason: 'customer_cancelled',
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
-    assert.equal(admin.auditEvents.length, 0);
+    await flushAudit();
+    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_QTY_DECREMENTED]);
     assert.equal(admin.abnormalInserts, 0);
   });
 
@@ -188,33 +200,13 @@ describe('decrementOrderItemWithAudit', () => {
         status: 'pending',
       },
       itemIndex: 0,
-      menuDecrementOperator: operator,
+      menuDecrementAllowed: true,
     });
 
     assert.equal(result.ok, true);
     assert.equal(result.ok && result.outcome, 'voided');
-    assert.equal(admin.auditEvents.length, 0);
+    await flushAudit();
+    assert.deepEqual(admin.auditEvents, [AUDIT_EVENT.ITEM_QTY_DECREMENTED]);
     assert.equal(admin.abnormalInserts, 0);
-  });
-
-  it('allows cashier floor staff to decrement menu lines', async () => {
-    const admin = mockAdmin();
-
-    const result = await decrementOrderItemWithAudit({
-      admin,
-      restaurantId: 'rest-1',
-      actor: { userId: 'user-2', displayName: 'Cashier', role: 'cashier' },
-      orderId: 'order-1',
-      existing: {
-        items: [baseItem()],
-        updated_at: '2026-01-01T00:00:00.000Z',
-        status: 'pending',
-      },
-      itemIndex: 0,
-      menuDecrementOperator: 'frontdesk_staff',
-    });
-
-    assert.equal(result.ok, true);
-    assert.equal(result.ok && result.outcome, 'decremented');
   });
 });

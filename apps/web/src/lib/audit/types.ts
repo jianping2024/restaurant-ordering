@@ -11,11 +11,14 @@ export const AUDIT_EVENT = {
   ABNORMAL_NOTE_ADDED: 'ABNORMAL_NOTE_ADDED',
   /** Staff operation log (dashboard list). */
   SESSION_OPENED: 'SESSION_OPENED',
+  GUEST_COUNT_CHANGED: 'GUEST_COUNT_CHANGED',
   TABLE_CLOSED: 'TABLE_CLOSED',
   TABLE_TRANSFERRED: 'TABLE_TRANSFERRED',
   TABLE_MERGED: 'TABLE_MERGED',
+  TABLE_PARTY: 'TABLE_PARTY',
   CHECKOUT_REQUESTED: 'CHECKOUT_REQUESTED',
   PAYMENT_CONFIRMED: 'PAYMENT_CONFIRMED',
+  ORDER_APPENDED: 'ORDER_APPENDED',
   KITCHEN_PREP: 'KITCHEN_PREP',
   KITCHEN_PREP_REPRINT: 'KITCHEN_PREP_REPRINT',
   KITCHEN_SERVE: 'KITCHEN_SERVE',
@@ -24,12 +27,16 @@ export const AUDIT_EVENT = {
 /** Sole action_type set shown/filtered on 操作记录 (subset of AUDIT_EVENT). */
 export const OPERATION_LOG_ACTION_TYPES = [
   AUDIT_EVENT.SESSION_OPENED,
+  AUDIT_EVENT.GUEST_COUNT_CHANGED,
   AUDIT_EVENT.TABLE_CLOSED,
   AUDIT_EVENT.UNPAID_TABLE_CLOSED,
   AUDIT_EVENT.TABLE_TRANSFERRED,
   AUDIT_EVENT.TABLE_MERGED,
+  AUDIT_EVENT.TABLE_PARTY,
   AUDIT_EVENT.CHECKOUT_REQUESTED,
   AUDIT_EVENT.PAYMENT_CONFIRMED,
+  AUDIT_EVENT.ORDER_APPENDED,
+  AUDIT_EVENT.ITEM_QTY_DECREMENTED,
   AUDIT_EVENT.KITCHEN_PREP,
   AUDIT_EVENT.KITCHEN_PREP_REPRINT,
   AUDIT_EVENT.KITCHEN_SERVE,
@@ -43,7 +50,12 @@ export function isOperationLogActionType(value: string): value is OperationLogAc
 
 export type AuditEventKey = (typeof AUDIT_EVENT)[keyof typeof AUDIT_EVENT];
 
-export type AuditEntityType = 'table_session' | 'order' | 'bill_split' | 'abnormal_operation';
+export type AuditEntityType =
+  | 'table_session'
+  | 'order'
+  | 'bill_split'
+  | 'abnormal_operation'
+  | 'table_party';
 
 export type AuditActor =
   | { kind: 'owner'; userId: string; displayName: string }

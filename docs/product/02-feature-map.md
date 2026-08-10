@@ -228,7 +228,7 @@
 - 后厨：将订单行标为 `voided`（须 `VoidItemReasonDialog` 填原因）
 - 楼面（前台 / 收银员）：`/dashboard/waiter` 桌台详情减数量（`decrement-item`），`pending`/`cooking` 可减；点减号直接生效，无弹框
 - 服务员（同一 `/dashboard/waiter`，角色禁止）：**不可**菜单减数量（API `403 menu_decrement_not_allowed`）
-- 减到 0 等价退菜，写 `void_reason`（reason 默认 `qty_adjustment`），不写 `operation_logs`，不进异常队列
+- 减到 0 等价退菜，写 `void_reason`（reason 默认 `qty_adjustment`），写 `ITEM_QTY_DECREMENTED` 操作记录，不进异常队列
 - 风险等级（后厨 void）：pending→LOW、cooking→MEDIUM、done→HIGH
 
 ### 业务边界
@@ -508,14 +508,18 @@
 
 ### 已有功能
 
-- 记录：开台、关台、强制关台、转台、并台、呼叫结账、确认收款、备餐、备餐补打、上桌
-- 写入：`scheduleRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）
+- 记录：开台、改人数、关台、强制关台、转台、并台、同行组、呼叫结账、确认收款、加菜、减菜、备餐、备餐补打、上桌
+- 写入：`scheduleRecordAudit` / `scheduleStaffRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）
 - 查询：日期窗（31/90 天）+ `action_type` 筛选；侧栏「操作记录」
 
 ### 业务边界
 
 - 权限：`dashboard.operation_logs.view`（默认前台 + 店主，角色可配置）
 - 顾客发起的呼叫结账不记（仅员工）
+- 顾客自助加菜不记；仅 `waiter_flow` 员工加菜记 `ORDER_APPENDED`（每批一条）
+- 楼面减菜记 `ITEM_QTY_DECREMENTED`（含减到 0），不进异常队列
+- 改人数：会话已开后的 buffet 保存记 `GUEST_COUNT_CHANGED`；冷开台只记 `SESSION_OPENED`
+- 同行组：仅员工显式 create/rename/dissolve/add/remove；系统空组解散不记
 - 与异常操作页分离：异常页仍管折扣/退菜确认队列
 
 ### 相关代码位置

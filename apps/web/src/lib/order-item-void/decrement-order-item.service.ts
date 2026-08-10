@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AUDIT_EVENT, scheduleRecordAudit } from '@/lib/audit';
+import { itemLineAmount } from '@/lib/audit/builders/item-void-audit-payload';
+import type { AuditActor } from '@/lib/audit/types';
+import { coerceCartQty } from '@/lib/cart-totals';
 import { applyVoidReasonToItems } from '@/lib/order-item-void/apply-void-reason-to-items';
 import {
   applyOrderItemDecrement,
@@ -7,7 +11,7 @@ import {
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import { validateVoidItemReason } from '@/lib/order-item-void/validate-void-reason';
 import { VOID_ITEM_QTY_ADJUSTMENT_REASON } from '@/lib/audit/reasons';
-import type { AuditActor } from '@/lib/audit/types';
+import { orderItemAuditLabel } from '@/lib/audit/order-item-audit-label';
 import type { Order } from '@/types';
 
 export type DecrementOrderItemInput = {
@@ -98,7 +102,25 @@ export async function decrementOrderItemWithAudit(
     return { ok: false, code: 'conflict' };
   }
 
-  const orderRow = persist.order;
+  const qtyBefore = coerceCartQty(applied.before.qty);
+  const qtyAfter = applied.outcome === 'voided' ? 0 : coerceCartQty(applied.after.qty);
+  scheduleRecordAudit(input.admin, AUDIT_EVENT.ITEM_QTY_DECREMENTED, {
+    restaurantId: input.restaurantId,
+    actor: input.actor,
+    context: {
+      orderId: input.orderId,
+      sessionId: input.existing.session_id ?? null,
+      tableId: input.existing.table_id ?? null,
+      tableName: input.existing.display_name ?? null,
+      itemIndex: applied.itemIndex,
+      itemId: applied.before.id,
+      itemName: orderItemAuditLabel(applied.before),
+      itemStatusBefore: applied.statusBefore,
+      qtyBefore,
+      qtyAfter,
+      unitAmount: itemLineAmount({ ...applied.before, qty: 1 }),
+    },
+  });
 
-  return { ok: true, order: orderRow, outcome: applied.outcome };
+  return { ok: true, order: persist.order, outcome: applied.outcome };
 }

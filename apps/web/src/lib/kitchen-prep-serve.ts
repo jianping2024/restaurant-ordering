@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
 import type { KitchenLineAuditItem } from '@/lib/audit/builders/staff-operations';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import { orderItemAuditLabel } from '@/lib/audit/order-item-audit-label';
 import { persistOrderItemsUpdate } from '@/lib/order-item-void/persist-order-items-update';
 import {
   effectiveItemStatus,
@@ -15,16 +16,6 @@ import {
 } from '@/lib/station-ticket-prep-enqueue';
 import type { RestaurantEnqueueRow } from '@/lib/station-ticket-enqueue';
 import type { Order, OrderItem } from '@/types';
-
-function kitchenItemLabel(item: OrderItem): string {
-  const raw =
-    item.name_zh?.trim() ||
-    item.name_pt?.trim() ||
-    item.name?.trim() ||
-    item.name_en?.trim() ||
-    '';
-  return raw || '—';
-}
 
 function scheduleKitchenLineAudit(params: {
   admin: SupabaseClient;
@@ -164,7 +155,7 @@ export async function applyKitchenPrep(params: {
     }
 
     const line: KitchenLineAuditItem = {
-      itemName: kitchenItemLabel(item),
+      itemName: orderItemAuditLabel(item),
       qty: Math.max(1, Number(item.qty) || 1),
     };
     // pending → first prep; already cooking/ready → 补打
@@ -330,7 +321,7 @@ export async function applyKitchenServe(params: {
     }
 
     serveItems.push({
-      itemName: kitchenItemLabel(item),
+      itemName: orderItemAuditLabel(item),
       qty: Math.max(1, Number(item.qty) || 1),
     });
 

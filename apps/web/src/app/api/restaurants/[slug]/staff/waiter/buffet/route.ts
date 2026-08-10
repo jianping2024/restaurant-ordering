@@ -10,7 +10,7 @@ import {
   isDependencyFailure,
 } from '@/lib/dependency-unavailable';
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
-import { AUDIT_EVENT, loadStaffAuditActor, scheduleRecordAudit } from '@/lib/audit';
+import { AUDIT_EVENT, scheduleStaffRecordAudit } from '@/lib/audit';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -170,17 +170,31 @@ export async function POST(
       typeof result.sessionId === 'string' &&
       result.sessionId
     ) {
-      const actor = await loadStaffAuditActor(admin, {
+      scheduleStaffRecordAudit(admin, AUDIT_EVENT.SESSION_OPENED, {
         restaurantId: ctx.restaurant_id,
         userId: ctx.user_id,
         role: ctx.role,
-      });
-      scheduleRecordAudit(admin, AUDIT_EVENT.SESSION_OPENED, {
-        restaurantId: ctx.restaurant_id,
-        actor,
         context: {
           sessionId: result.sessionId,
           tableName: result.tableName || '—',
+          adultCount: result.adultCount ?? 0,
+          childCount: result.childCount ?? 0,
+        },
+      });
+    } else if (
+      result.guestCountChanged === true &&
+      typeof result.sessionId === 'string' &&
+      result.sessionId
+    ) {
+      scheduleStaffRecordAudit(admin, AUDIT_EVENT.GUEST_COUNT_CHANGED, {
+        restaurantId: ctx.restaurant_id,
+        userId: ctx.user_id,
+        role: ctx.role,
+        context: {
+          sessionId: result.sessionId,
+          tableName: result.tableName || '—',
+          previousAdultCount: result.previousAdultCount ?? 0,
+          previousChildCount: result.previousChildCount ?? 0,
           adultCount: result.adultCount ?? 0,
           childCount: result.childCount ?? 0,
         },

@@ -49,4 +49,51 @@ describe('formatOperationLogDetail', () => {
     };
     assert.match(formatOperationLogDetail('zh', open), /2/);
   });
+
+  it('formats guest count, party, append, and decrement details', () => {
+    const base: OperationLogRow = {
+      id: '1',
+      restaurant_id: 'r',
+      action_type: AUDIT_EVENT.GUEST_COUNT_CHANGED,
+      entity_type: 'table_session',
+      entity_id: 's',
+      operator_id: 'u',
+      operator_name: 'A',
+      operator_role: 'frontdesk',
+      before_data: { adultCount: 1, childCount: 0 },
+      after_data: { tableName: 'A1', adultCount: 2, childCount: 1 },
+      reason: null,
+      reason_detail: null,
+      created_at: new Date().toISOString(),
+    };
+    assert.match(formatOperationLogDetail('zh', base), /1→2/);
+
+    const party: OperationLogRow = {
+      ...base,
+      action_type: AUDIT_EVENT.TABLE_PARTY,
+      entity_type: 'table_party',
+      before_data: {},
+      after_data: { partyName: 'g1', action: 'create' },
+    };
+    assert.equal(operationLogTableLabel(party), 'g1');
+    assert.match(formatOperationLogDetail('zh', party), /创建/);
+
+    const append: OperationLogRow = {
+      ...base,
+      action_type: AUDIT_EVENT.ORDER_APPENDED,
+      entity_type: 'order',
+      before_data: {},
+      after_data: { tableName: 'A1', items: [{ itemName: 'Cola', qty: 2 }] },
+    };
+    assert.match(formatOperationLogDetail('zh', append), /Cola×2/);
+
+    const dec: OperationLogRow = {
+      ...base,
+      action_type: AUDIT_EVENT.ITEM_QTY_DECREMENTED,
+      entity_type: 'order',
+      before_data: { itemName: 'Cola', qty: 2 },
+      after_data: { tableName: 'A1', itemName: 'Cola', qty: 1 },
+    };
+    assert.match(formatOperationLogDetail('zh', dec), /2→1/);
+  });
 });

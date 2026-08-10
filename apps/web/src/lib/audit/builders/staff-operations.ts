@@ -35,6 +35,103 @@ export const sessionOpenedDefinition: AuditEventDefinition<SessionOpenedAuditCon
   },
 };
 
+export type GuestCountChangedAuditContext = {
+  sessionId: string;
+  tableName: string;
+  previousAdultCount: number;
+  previousChildCount: number;
+  adultCount: number;
+  childCount: number;
+};
+
+export const guestCountChangedDefinition: AuditEventDefinition<GuestCountChangedAuditContext> = {
+  actionType: AUDIT_EVENT.GUEST_COUNT_CHANGED,
+  entityType: 'table_session',
+  createsAbnormal: false,
+  build(context) {
+    return {
+      entityId: context.sessionId,
+      sessionId: context.sessionId,
+      tableName: context.tableName,
+      amountImpact: 0,
+      beforeData: {
+        adultCount: context.previousAdultCount,
+        childCount: context.previousChildCount,
+      },
+      afterData: {
+        tableName: context.tableName,
+        sessionId: context.sessionId,
+        adultCount: context.adultCount,
+        childCount: context.childCount,
+      },
+    };
+  },
+};
+
+export type TablePartyAuditAction =
+  | 'create'
+  | 'rename'
+  | 'dissolve'
+  | 'add_tables'
+  | 'remove_table';
+
+export type TablePartyAuditContext = {
+  partyId: string;
+  partyName: string;
+  action: TablePartyAuditAction;
+  beforePartyName?: string;
+  tableNames?: string[];
+};
+
+export const tablePartyDefinition: AuditEventDefinition<TablePartyAuditContext> = {
+  actionType: AUDIT_EVENT.TABLE_PARTY,
+  entityType: 'table_party',
+  createsAbnormal: false,
+  build(context) {
+    return {
+      entityId: context.partyId,
+      amountImpact: 0,
+      beforeData: {
+        ...(context.beforePartyName != null ? { partyName: context.beforePartyName } : {}),
+      },
+      afterData: {
+        partyName: context.partyName,
+        action: context.action,
+        ...(context.tableNames && context.tableNames.length > 0
+          ? { tableNames: context.tableNames }
+          : {}),
+      },
+    };
+  },
+};
+
+export type OrderAppendedAuditContext = {
+  orderId: string;
+  sessionId: string;
+  tableName: string;
+  items: KitchenLineAuditItem[];
+};
+
+export const orderAppendedDefinition: AuditEventDefinition<OrderAppendedAuditContext> = {
+  actionType: AUDIT_EVENT.ORDER_APPENDED,
+  entityType: 'order',
+  createsAbnormal: false,
+  build(context) {
+    return {
+      entityId: context.orderId,
+      orderId: context.orderId,
+      sessionId: context.sessionId,
+      tableName: context.tableName,
+      amountImpact: 0,
+      beforeData: {},
+      afterData: {
+        tableName: context.tableName,
+        items: context.items,
+      },
+    };
+  },
+};
+
 export type TableClosedAuditContext = {
   sessionId: string;
   tableName: string;

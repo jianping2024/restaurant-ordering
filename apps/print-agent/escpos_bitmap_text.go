@@ -90,23 +90,5 @@ func escposBitmapTextOne(s string, style bitmapTextStyle, fontPx int) []byte {
 	if img.Width <= 0 || img.Height <= 0 || len(img.Pixels) != img.Width*img.Height {
 		return encodeWindows1252(s)
 	}
-	widthBytes := (img.Width + 7) / 8
-	data := make([]byte, widthBytes*img.Height)
-	for y := 0; y < img.Height; y++ {
-		for x := 0; x < img.Width; x++ {
-			if img.Pixels[y*img.Width+x] == 0 {
-				continue
-			}
-			data[y*widthBytes+x/8] |= 0x80 >> uint(x%8)
-		}
-	}
-	out := []byte{
-		0x1B, 0x61, style.Align,
-		0x1D, 0x76, 0x30, 0x00,
-		byte(widthBytes & 0xff), byte((widthBytes >> 8) & 0xff),
-		byte(img.Height & 0xff), byte((img.Height >> 8) & 0xff),
-	}
-	out = append(out, data...)
-	out = append(out, '\n')
-	return out
+	return escposBitmapRaster(img, style.Align)
 }

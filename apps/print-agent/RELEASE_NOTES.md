@@ -2,6 +2,13 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+## 0.3.76
+
+**修复：中文站票 Qty 与表头同列（384px 画布 + 像素锚点）**
+
+- 含汉字的 Items/Qty 区块：表头与菜品行同一张 384px 画布；数量 `TextOut` 钉在 Qty 列像素带，不再用空格假对齐。
+- 纯拉丁行仍走 Font A 48 列；中文位图按角色字号（页脚 0.75×B / 正文 B / 标题 1.5×B）。
+
 ## 0.3.75
 
 **修复：中文站票 Qty 掉行 / 与菜名粘在续行**

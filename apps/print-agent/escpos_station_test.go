@@ -128,72 +128,49 @@ func TestStationSlipItemLineLayout(t *testing.T) {
 	}
 }
 
-// Han item+qty: sole stationSlipItemLine layout at bitmap cols; Qty stays on first display row.
-func TestStationSlipItemLineHanQtyOnFirstBitmapRow(t *testing.T) {
+// Han column row: Qty ink must land in the Qty pixel band on a full 384px canvas.
+func TestHanColumnRowQtyInkInBand(t *testing.T) {
 	fontPx := bitmapTextDefaultFontPx
-	width := bitmapMaxDisplayCols(fontPx)
-	maxLeft := stationSlipItemMaxWidth(width)
-	labels := []string{"002-冰水 500毫升", "003-冰Vitalis 750ml"}
+	labels := []string{"001-中水", "002-冰水 500毫升", "003-冰Vitalis 750ml"}
+	qtyStart := hanQtyColStartPx()
+	qtyEnd := qtyStart + hanQtyColWidthPx()
+
 	for _, label := range labels {
-		chunks := wrapDisplay(label, maxLeft)
+		maxPx := hanColumnLabelMaxPx(hanColItem)
+		chunks := wrapHanTextByPx(label, maxPx, fontPx, false)
 		if len(chunks) == 0 {
 			t.Fatalf("empty wrap for %q", label)
 		}
-		line := stationSlipItemLine(chunks[0], "1", width)
-		if displayWidth(line) != width {
-			t.Fatalf("%q line display width %d want %d (%q)", label, displayWidth(line), width, line)
+		img := renderBitmapColumnRow(chunks[0], "1", hanColItem, fontPx, bitmapTextStyle{})
+		if img.Width != bitmapTextMaxWidthPx {
+			t.Fatalf("%q canvas width %d want %d", label, img.Width, bitmapTextMaxWidthPx)
 		}
-		// Must not re-wrap inside escposBitmapText (that dropped Qty onto the next left-aligned row).
-		wrapped := wrapDisplay(line, width)
-		if len(wrapped) != 1 {
-			t.Fatalf("%q first row re-wrapped into %v", label, wrapped)
+		if !bitmapInkInXBand(img, qtyStart, qtyEnd) {
+			t.Fatalf("%q qty ink missing from band [%d,%d)", label, qtyStart, qtyEnd)
 		}
-		qtyField := padFieldCenter("1", stationSlipQtyColWidth)
-		qtyStart := stationSlipQtyColStart(width)
-		prefix := displaySlice(line, 0, qtyStart)
-		gotQty := displaySlice(line, qtyStart, qtyStart+stationSlipQtyColWidth)
-		if strings.Contains(prefix, "1") && !strings.Contains(chunks[0], "1") {
-			t.Fatalf("%q qty leaked into label band: %q", label, prefix)
+		raw := escposHanColumnRow(chunks[0], "1", hanColItem, fontPx, bitmapTextStyle{})
+		if len(raw) == 0 || !bytes.Contains(raw, []byte{0x1D, 0x76, 0x30, 0x00}) {
+			t.Fatalf("%q missing GS v 0 raster", label)
 		}
-		if gotQty != qtyField {
-			t.Fatalf("%q qty band got %q want %q (line=%q)", label, gotQty, qtyField, line)
-		}
-		for _, cont := range chunks[1:] {
-			contLine := strings.Repeat(" ", stationSlipItemLeftMargin) + cont
-			if displayWidth(contLine) > width {
-				t.Fatalf("continuation wider than canvas: %q", contLine)
-			}
-			if strings.TrimSpace(cont) == "1" {
-				t.Fatalf("qty must not be a continuation chunk for %q", label)
-			}
+		gsIdx := bytes.Index(raw, []byte{0x1D, 0x76, 0x30, 0x00})
+		widthBytes := int(raw[gsIdx+4]) | int(raw[gsIdx+5])<<8
+		if widthBytes != 48 { // 384px / 8
+			t.Fatalf("%q raster widthBytes %d want 48 (full canvas)", label, widthBytes)
 		}
 	}
 }
 
-// displaySlice returns the substring covering display columns [start, end).
-func displaySlice(s string, start, end int) string {
-	if end <= start || start < 0 {
-		return ""
+func TestHanFontPxForRole(t *testing.T) {
+	base := 24
+	if got := hanFontPxForRole(base, hanFontSmall); got != 18 {
+		t.Fatalf("small want 18 got %d", got)
 	}
-	var b []rune
-	col := 0
-	for _, r := range s {
-		cw := displayCols(r)
-		next := col + cw
-		if next <= start {
-			col = next
-			continue
-		}
-		if col >= end {
-			break
-		}
-		b = append(b, r)
-		col = next
-		if col >= end {
-			break
-		}
+	if got := hanFontPxForRole(base, hanFontBody); got != 24 {
+		t.Fatalf("body want 24 got %d", got)
 	}
-	return string(b)
+	if got := hanFontPxForRole(base, hanFontLarge); got != 36 {
+		t.Fatalf("large want 36 got %d", got)
+	}
 }
 
 func TestStationSlipColumnHeaderLayout(t *testing.T) {

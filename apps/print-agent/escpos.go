@@ -244,6 +244,7 @@ type escposWriter struct {
 	content         bytes.Buffer
 	textMode        escposTextMode
 	hanFontPx       int
+	hanRole         hanFontRole
 	hadDoubleHeight bool
 	alignMode       byte
 	boldOn          bool
@@ -355,13 +356,14 @@ func (w *escposWriter) size(doubleW, doubleH bool) {
 
 func (w *escposWriter) text(s string) {
 	if w.textMode == escposTextBitmap && needsBitmapText(s) {
+		fontPx := hanFontPxForRole(w.hanFontPx, w.hanRole)
 		w.content.Write(escposBitmapText(s, bitmapTextStyle{
 			Align:     w.alignMode,
 			Bold:      w.boldOn,
 			Underline: w.underlineOn,
 			DoubleW:   w.doubleW,
 			DoubleH:   w.doubleH,
-		}, w.hanFontPx))
+		}, fontPx))
 		w.lastTextBitmap = true
 		return
 	}
@@ -504,9 +506,7 @@ func stationSlipColumnHeaderLine(itemsLabel, qtyLabel string, width int) string 
 	return string(buf)
 }
 
-// stationSlipItemLine — sole Items/Qty row layout (Latin ESC/POS and Han bitmap).
-// Places by display columns so Han glyphs (2 cols) do not shove Qty off the first line.
-// Callers must wrap leftLabel to stationSlipItemMaxWidth(width); no truncate of menu names.
+// stationSlipItemLine — Latin Font A column layout only (48 cols). Han uses escposHanColumnRow.
 func stationSlipItemLine(leftLabel, qtyStr string, width int) string {
 	qtyStart := stationSlipQtyColStart(width)
 	qtyField := truncateDisplay(padFieldCenter(strings.TrimSpace(qtyStr), stationSlipQtyColWidth), stationSlipQtyColWidth)
@@ -555,6 +555,7 @@ func (w *escposWriter) writeBody1x1() {
 	w.size(false, false)
 	w.bold(false)
 	w.underline(false)
+	w.hanRole = hanFontSmall
 }
 
 // writeBody1x2 — Font A double height (station slip menu body).
@@ -562,6 +563,7 @@ func (w *escposWriter) writeBody1x2() {
 	w.size(false, true)
 	w.bold(false)
 	w.underline(false)
+	w.hanRole = hanFontBody
 }
 
 // writeBody1x2Bold — receipt menu block and amount due (Font A 1×2 bold).
@@ -569,12 +571,24 @@ func (w *escposWriter) writeBody1x2Bold() {
 	w.size(false, true)
 	w.bold(true)
 	w.underline(false)
+	w.hanRole = hanFontBody
 }
 
 // writeMasthead2x2Bold — ticket title and table number emphasis only.
 func (w *escposWriter) writeMasthead2x2Bold() {
 	w.size(true, true)
 	w.bold(true)
+	w.hanRole = hanFontLarge
+}
+
+func (w *escposWriter) writeHanColumnRow(left, right string, kind hanColumnRowKind) {
+	fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
+	w.content.Write(escposHanColumnRow(left, right, kind, fontPx, bitmapTextStyle{
+		Align:     w.alignMode,
+		Bold:      w.boldOn,
+		Underline: w.underlineOn,
+	}))
+	w.lastTextBitmap = true
 }
 
 func (w *escposWriter) writeTicketBranding() {
@@ -641,8 +655,12 @@ func (w *escposWriter) writeStationSlipHeader(p jobPayload, lab ticketLabels) {
 	w.writeTableContext(p, lab, false, meta...)
 	w.separator('-')
 	w.writeBody1x2()
-	w.text(stationSlipColumnHeaderLine(lab.items, lab.qty, escposWidth))
-	w.lf()
+	if stationSlipColumnBlockUsesHanCanvas(p, w) {
+		w.writeHanColumnRow(lab.items, lab.qty, hanColHeader)
+	} else {
+		w.text(stationSlipColumnHeaderLine(lab.items, lab.qty, escposWidth))
+		w.lf()
+	}
 }
 
 func stationSlipNoteMaxWidth(width int) int {
@@ -685,31 +703,49 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 		if qty <= 0 {
 			qty = 1
 		}
-		w.writeStationMenuItem(ln, qty, escposWidth)
+		w.writeStationMenuItem(ln, qty, p)
 		w.writeStationItemNoteLine(ln.Note, escposWidth)
 	}
 }
 
-func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, width int) {
+func (w *escposWriter) writeStationMenuItem(ln jobLine, qty int, p jobPayload) {
 	label := stationSlipItemLabel(ln)
-	layoutWidth := width
-	if needsBitmapText(label) {
-		// Bitmap canvas cols (not Font A 48) — same Items/Qty column constants.
-		layoutWidth = bitmapMaxDisplayCols(w.hanFontPx)
+	qtyStr := fmt.Sprintf("%d", qty)
+
+	if stationSlipColumnBlockUsesHanCanvas(p, w) {
+		fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
+		maxPx := hanColumnLabelMaxPx(hanColItem)
+		chunks := wrapHanTextByPx(label, maxPx, fontPx, false)
+		if len(chunks) == 0 {
+			chunks = []string{label}
+		}
+		w.writeBody1x2()
+		w.writeHanColumnRow(chunks[0], qtyStr, hanColItem)
+		for _, c := range chunks[1:] {
+			w.writeBody1x2()
+			w.writeHanColumnRow(c, "", hanColItem)
+		}
+		return
 	}
-	maxLeft := stationSlipItemMaxWidth(layoutWidth)
+
+	maxLeft := stationSlipItemMaxWidth(escposWidth)
 	chunks := wrapDisplay(label, maxLeft)
 	if len(chunks) == 0 {
 		chunks = []string{label}
 	}
-	qtyStr := fmt.Sprintf("%d", qty)
 	w.writeBody1x2()
-	w.text(stationSlipItemLine(chunks[0], qtyStr, layoutWidth))
+	w.text(stationSlipItemLine(chunks[0], qtyStr, escposWidth))
 	w.lf()
-	indent := strings.Repeat(" ", stationSlipItemLeftMargin)
 	for _, c := range chunks[1:] {
 		w.writeBody1x2()
-		w.text(indent + c)
+		var b strings.Builder
+		col := 0
+		for col < stationSlipItemLeftMargin {
+			b.WriteByte(' ')
+			col++
+		}
+		b.WriteString(c)
+		w.text(b.String())
 		w.lf()
 	}
 }

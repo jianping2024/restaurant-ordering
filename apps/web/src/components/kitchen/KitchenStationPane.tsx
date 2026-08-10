@@ -49,6 +49,19 @@ type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
 
 const SWIPE_PREP_THRESHOLD_PX = 88;
 const SWIPE_MAX_PX = 120;
+/** Movement before deciding tap vs scroll vs swipe. */
+const GESTURE_LOCK_SLOP_PX = 12;
+
+type RowGesture = {
+  pointerId: number;
+  x: number;
+  y: number;
+  /** Undecided until past slop; swipe only after horizontal lock. */
+  mode: 'undecided' | 'swipe';
+  captured: boolean;
+  /** Past prep threshold while mode === 'swipe'. */
+  armed: boolean;
+};
 
 function statusLabel(status: OrderItemStatus, t: Labels): string {
   if (status === 'ready') return t.statusReady;
@@ -66,7 +79,7 @@ function statusTone(status: OrderItemStatus): string {
 /**
  * Sole kitchen board row UI — one order line (`orderId:itemIndex`), never merged.
  * Whole-row tap toggles select; right-swipe past threshold preps (row stays; snap-back).
- * No reveal strip — follow-finger drag only.
+ * Gesture (sole): undecided → lock horizontal then capture; vertical → abandon (no capture).
  */
 function KitchenBoardLineRow({
   line,
@@ -91,9 +104,7 @@ function KitchenBoardLineRow({
   const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
   const [dragX, setDragX] = useState(0);
   const [snapping, setSnapping] = useState(false);
-  const startRef = useRef<{ x: number; y: number; tracking: boolean } | null>(null);
-  const armedRef = useRef(false);
-  const skipTapRef = useRef(false);
+  const gestureRef = useRef<RowGesture | null>(null);
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -124,9 +135,17 @@ function KitchenBoardLineRow({
     );
   }
 
+  const releaseIfCaptured = useCallback((el: HTMLElement, pointerId: number, captured: boolean) => {
+    if (!captured) return;
+    try {
+      el.releasePointerCapture(pointerId);
+    } catch {
+      /* already released */
+    }
+  }, []);
+
   const clearGesture = useCallback(() => {
-    startRef.current = null;
-    armedRef.current = false;
+    gestureRef.current = null;
   }, []);
 
   const snapBack = useCallback(
@@ -146,71 +165,72 @@ function KitchenBoardLineRow({
     if (!line.selectable || prepBusy || snapping) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const target = e.target as HTMLElement | null;
-    // Checkbox keeps its own toggle; do not start row gesture there.
-    if (target?.closest('input')) {
-      skipTapRef.current = true;
-      return;
-    }
-    skipTapRef.current = false;
-    startRef.current = { x: e.clientX, y: e.clientY, tracking: false };
-    armedRef.current = false;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (target?.closest('input')) return;
+    // Do not capture yet — leave the list free to scroll until horizontal lock.
+    gestureRef.current = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      mode: 'undecided',
+      captured: false,
+      armed: false,
+    };
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const start = startRef.current;
-    if (!start) return;
-    const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    if (!start.tracking) {
-      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
-      // Vertical intent → abandon; let the list scroll.
-      if (Math.abs(dy) >= Math.abs(dx)) {
+    const g = gestureRef.current;
+    if (!g || g.pointerId !== e.pointerId) return;
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
+
+    if (g.mode === 'undecided') {
+      if (absX < GESTURE_LOCK_SLOP_PX && absY < GESTURE_LOCK_SLOP_PX) return;
+      // Vertical (or diagonal-up/down) → abandon; never captured, scroll stays native.
+      if (absY >= absX) {
         clearGesture();
-        try {
-          e.currentTarget.releasePointerCapture(e.pointerId);
-        } catch {
-          /* ignore */
-        }
         return;
       }
-      start.tracking = true;
-      skipTapRef.current = true;
+      // Horizontal lock: capture only now.
+      g.mode = 'swipe';
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        g.captured = true;
+      } catch {
+        g.captured = false;
+      }
     }
+
+    if (g.mode !== 'swipe') return;
     if (e.cancelable) e.preventDefault();
     const next = Math.max(0, Math.min(dx, SWIPE_MAX_PX));
     setDragX(next);
-    armedRef.current = next >= SWIPE_PREP_THRESHOLD_PX;
+    g.armed = next >= SWIPE_PREP_THRESHOLD_PX;
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (skipTapRef.current && !startRef.current) {
-      skipTapRef.current = false;
-      return;
-    }
-    const start = startRef.current;
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      /* already released */
-    }
-    if (!start) return;
+    const g = gestureRef.current;
+    if (!g || g.pointerId !== e.pointerId) return;
+    releaseIfCaptured(e.currentTarget, g.pointerId, g.captured);
 
-    const wasSwipe = start.tracking;
-    const commit = wasSwipe && armedRef.current && line.selectable && !prepBusy;
-
-    if (wasSwipe) {
+    if (g.mode === 'swipe') {
+      const commit = g.armed && line.selectable && !prepBusy;
       snapBack(commit ? () => onSwipePrep() : undefined);
       return;
     }
 
-    // Tap on row body → toggle select (kitchen-size hit target).
+    // Undecided + pointerup = tap.
     clearGesture();
     setDragX(0);
     if (line.selectable && !prepBusy) onToggle();
   };
 
-  const onPointerCancel = () => {
+  const onPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const g = gestureRef.current;
+    if (g && g.pointerId === e.pointerId) {
+      releaseIfCaptured(e.currentTarget, g.pointerId, g.captured);
+    }
     if (snapping) return;
     setDragX(0);
     clearGesture();

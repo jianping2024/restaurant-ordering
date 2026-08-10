@@ -214,7 +214,7 @@ export function OperationLogsManager() {
         </select>
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           size="sm"
           onClick={handleRefresh}
           disabled={refreshCooldownSec > 0}

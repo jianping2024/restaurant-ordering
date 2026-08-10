@@ -27,6 +27,7 @@ import {
   calendarDateInTimezone,
 } from '@/lib/abnormal-operations';
 import { mergePatchedAbnormalOperationRow } from '@/lib/abnormal-operations/list-patch-merge';
+import { invalidateDashboardListCache } from '@/lib/dashboard-list-query-cache';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import {
@@ -117,10 +118,11 @@ function ReasonCell({ text }: { text: string }) {
 }
 
 type Props = {
+  restaurantId: string;
   restaurantSlug: string;
 };
 
-export function AbnormalOperationsManager({ restaurantSlug }: Props) {
+export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).abnormalOps;
   const locale = UI_LOCALE_BY_LANG[lang];
@@ -180,6 +182,12 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   } = useDashboardListQuery<Filters, AbnormalOperationsListResult>({
     initialFilters: DEFAULT_FILTERS(today),
     fetchList,
+    cache: {
+      scope: 'abnormal-operations',
+      restaurantId,
+      today,
+      rangeEndDate: (filters) => filters.endDate,
+    },
     onFetchError: () => showToast(t.actionFailed, 'error'),
     onSuccess: (next) => {
       setSelected((prev) => {
@@ -294,6 +302,8 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
       return;
     }
     closeDetail();
+    // Drop sibling pages for this surface; write-through restores the current page below.
+    invalidateDashboardListCache('abnormal-operations', restaurantId);
     setData((prev) =>
       prev
         ? mergePatchedAbnormalOperationRow(

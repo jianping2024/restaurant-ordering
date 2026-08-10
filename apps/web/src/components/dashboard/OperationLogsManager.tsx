@@ -60,7 +60,11 @@ const DATE_PICKER_TRIGGER_CLASS =
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
-export function OperationLogsManager() {
+type Props = {
+  restaurantId: string;
+};
+
+export function OperationLogsManager({ restaurantId }: Props) {
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const t = messages.operationLogs;
@@ -108,6 +112,12 @@ export function OperationLogsManager() {
   } = useDashboardListQuery<Filters, OperationLogsListResult>({
     initialFilters: DEFAULT_FILTERS(today),
     fetchList,
+    cache: {
+      scope: 'operation-logs',
+      restaurantId,
+      today,
+      rangeEndDate: (filters) => filters.endDate,
+    },
     onFetchError: () => showToast(t.actionFailed, 'error'),
   });
 
@@ -230,11 +240,11 @@ export function OperationLogsManager() {
         <table className="min-w-full text-left text-sm">
           <thead className="bg-brand-bg/60 text-brand-text-muted">
             <tr>
-              <th className="px-3 py-2 font-medium">{t.colTime}</th>
               <th className="px-3 py-2 font-medium">{t.colAction}</th>
               <th className="px-3 py-2 font-medium">{t.colOperator}</th>
               <th className="px-3 py-2 font-medium">{t.colTable}</th>
               <th className="px-3 py-2 font-medium">{t.colDetail}</th>
+              <th className="px-3 py-2 font-medium">{t.colTime}</th>
             </tr>
           </thead>
           <tbody>
@@ -255,14 +265,6 @@ export function OperationLogsManager() {
             {!showInitialLoading &&
               data?.items.map((row) => (
                 <tr key={row.id} className="border-t border-brand-border/60">
-                  <td className="whitespace-nowrap px-3 py-2 text-brand-text-muted">
-                    {new Date(row.created_at).toLocaleString(locale, {
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </td>
                   <td className="whitespace-nowrap px-3 py-2">
                     {operationLogActionLabel(lang, row.action_type)}
                   </td>
@@ -270,6 +272,14 @@ export function OperationLogsManager() {
                   <td className="whitespace-nowrap px-3 py-2">{operationLogTableLabel(row)}</td>
                   <td className="max-w-[18rem] truncate px-3 py-2" title={formatOperationLogDetail(lang, row)}>
                     {formatOperationLogDetail(lang, row)}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2 text-brand-text-muted">
+                    {new Date(row.created_at).toLocaleString(locale, {
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </td>
                 </tr>
               ))}

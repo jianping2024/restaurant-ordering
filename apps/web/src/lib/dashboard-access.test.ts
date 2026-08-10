@@ -35,9 +35,11 @@ describe('isOwnerDashboardPath', () => {
     assert.equal(isOwnerDashboardPath('/dashboard/settings'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/settings/staff'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerDashboardPath('/dashboard/operation-logs'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/value-analytics'), true);
     assert.equal(isOwnerDashboardPath('/dashboard/menu'), true);
     assert.equal(isOwnerOperationalPath('/dashboard/abnormal-operations'), true);
+    assert.equal(isOwnerOperationalPath('/dashboard/operation-logs'), true);
     assert.equal(isOwnerOperationalPath('/dashboard/menu'), true);
     assert.equal(isOwnerOperationalPath('/dashboard/guest-notice'), false);
     assert.equal(isOwnerDashboardPath('/dashboard/guest-notice'), false);
@@ -188,6 +190,7 @@ describe('dashboardMiddlewareRedirectPath (owner only)', () => {
 
   it('allows owner on settings and owner tools', () => {
     assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/value-analytics'), null);
+    assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/operation-logs'), null);
     assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/settings'), null);
     assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/settings/staff'), null);
   });

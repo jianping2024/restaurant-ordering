@@ -7,6 +7,8 @@ export function isOwnerOperationalPath(pathname: string): boolean {
   return (
     pathname === '/dashboard/abnormal-operations' ||
     pathname.startsWith('/dashboard/abnormal-operations/') ||
+    pathname === '/dashboard/operation-logs' ||
+    pathname.startsWith('/dashboard/operation-logs/') ||
     pathname === '/dashboard/value-analytics' ||
     pathname.startsWith('/dashboard/value-analytics/') ||
     pathname === '/dashboard/menu' ||

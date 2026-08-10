@@ -9,5 +9,10 @@ export default async function AbnormalOperationsPage() {
     redirect('/dashboard');
   }
 
-  return <AbnormalOperationsManager restaurantSlug={ctx.restaurantSlug} />;
+  return (
+    <AbnormalOperationsManager
+      restaurantId={ctx.restaurantId}
+      restaurantSlug={ctx.restaurantSlug}
+    />
+  );
 }

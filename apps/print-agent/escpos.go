@@ -17,7 +17,7 @@ const escposWidth = 48
 // Left/right symmetric: stationSlipSideMargin cols; Items, item rows, and notes share the same left edge.
 const (
 	stationSlipSideMargin  = 4
-	stationSlipQtyColWidth = 8
+	stationSlipQtyColWidth = 4 // fits "Qty" / 1–9999; frees item+note band toward right
 )
 
 // Top: no extra LF — most printers already feed after ESC @ init.

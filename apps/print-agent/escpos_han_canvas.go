@@ -56,7 +56,7 @@ func hanColumnGapPx() int {
 	return escposDisplayColToPx(1)
 }
 
-// hanQtyTextStartPx — right-align s in the 8-col Qty field (Font A column semantics → px).
+// hanQtyTextStartPx — right-align s in the Qty field (Font A column semantics → px).
 func hanQtyTextStartPx(s string, fontPx int, bold bool) int {
 	if strings.TrimSpace(s) == "" {
 		return hanQtyColStartPx()

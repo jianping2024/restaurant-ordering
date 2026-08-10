@@ -4,6 +4,13 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.80
+
+**出品联：Qty 列 8→4，菜名/备注可贴得更近数字**
+
+- 唯一列宽 `stationSlipQtyColWidth = 4`（仍右对齐贴右 4 列边距内侧）；正文折行右界随 `stationSlipQtyColStart` 自动右移。
+- 菜名「列宽够则一行」、576 画布、备注跟语言：不变。
+
 ## 0.3.79
 
 **修复：POS-80 576 满纸 + 备注跟打印语言 + 取消前缀半号**

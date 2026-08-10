@@ -279,6 +279,12 @@ func TestHanCanvasWidthIsPOS80(t *testing.T) {
 	if escposDisplayColToPx(1) != 12 {
 		t.Fatalf("col pitch %d want 12", escposDisplayColToPx(1))
 	}
+	if stationSlipQtyColWidth != 4 {
+		t.Fatalf("qty col width %d want 4", stationSlipQtyColWidth)
+	}
+	if stationSlipQtyColStart(escposWidth) != 40 {
+		t.Fatalf("qty start col %d want 40", stationSlipQtyColStart(escposWidth))
+	}
 }
 
 func absInt(n int) int {

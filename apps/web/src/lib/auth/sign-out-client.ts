@@ -1,5 +1,6 @@
 'use client';
 
+import { clearCustomerMenuCatalogCache } from '@/lib/customer-menu-catalog-client-cache';
 import { createClient } from '@/lib/supabase/client';
 
 async function signOutViaServer(): Promise<boolean> {
@@ -28,6 +29,7 @@ export async function signOutAndRedirect(loginPath: string): Promise<void> {
   try {
     await signOutFromSupabase();
   } finally {
+    clearCustomerMenuCatalogCache();
     window.location.replace(loginPath);
   }
 }

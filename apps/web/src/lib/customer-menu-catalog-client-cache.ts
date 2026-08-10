@@ -5,14 +5,27 @@ export type CustomerMenuCatalog = {
   menuCategories: MenuCategory[];
 };
 
-const CACHE_SCHEMA_VERSION = 1;
-const DEFAULT_TTL_MS = 30 * 60 * 1000;
+/** Full catalog payload from GET menu-catalog (version + body). */
+export type CustomerMenuCatalogPayload = CustomerMenuCatalog & {
+  version: number;
+};
+
+/** Conditional GET: same knownVersion → unchanged. */
+export type CustomerMenuCatalogUnchanged = {
+  version: number;
+  unchanged: true;
+};
+
+export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
+
+const CACHE_SCHEMA_VERSION = 2;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
   version: number;
   restaurantId: string;
-  fetchedAt: number;
+  /** Durable server menu_catalog_version — sole client freshness signal. */
+  catalogVersion: number;
   catalog: CustomerMenuCatalog;
 };
 
@@ -23,10 +36,6 @@ function storageKey(restaurantId: string): string {
   return `${STORAGE_KEY_PREFIX}:v${CACHE_SCHEMA_VERSION}:${restaurantId}`;
 }
 
-function isFresh(entry: CacheEntry, ttlMs: number): boolean {
-  return Date.now() - entry.fetchedAt < ttlMs;
-}
-
 function readStorage(restaurantId: string): CacheEntry | null {
   if (typeof localStorage === 'undefined') return null;
   try {
@@ -35,6 +44,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     const parsed = JSON.parse(raw) as CacheEntry;
     if (parsed.version !== CACHE_SCHEMA_VERSION) return null;
     if (parsed.restaurantId !== restaurantId) return null;
+    if (!Number.isFinite(parsed.catalogVersion)) return null;
     if (!parsed.catalog?.menuItems || !parsed.catalog?.menuCategories) return null;
     return parsed;
   } catch {
@@ -51,11 +61,15 @@ function writeStorage(entry: CacheEntry): void {
   }
 }
 
-function commitEntry(restaurantId: string, catalog: CustomerMenuCatalog): CustomerMenuCatalog {
+function commitEntry(
+  restaurantId: string,
+  catalogVersion: number,
+  catalog: CustomerMenuCatalog,
+): CustomerMenuCatalog {
   const entry: CacheEntry = {
     version: CACHE_SCHEMA_VERSION,
     restaurantId,
-    fetchedAt: Date.now(),
+    catalogVersion,
     catalog,
   };
   memoryByRestaurantId.set(restaurantId, entry);
@@ -63,68 +77,139 @@ function commitEntry(restaurantId: string, catalog: CustomerMenuCatalog): Custom
   return catalog;
 }
 
-/** Seed client cache from SSR or a successful network fetch (idempotent). */
+function readEntry(restaurantId: string): CacheEntry | null {
+  const mem = memoryByRestaurantId.get(restaurantId);
+  if (mem) return mem;
+  const stored = readStorage(restaurantId);
+  if (!stored) return null;
+  memoryByRestaurantId.set(restaurantId, stored);
+  return stored;
+}
+
+/** Seed client cache from SSR/demo when version is known. */
 export function seedCustomerMenuCatalogCache(
   restaurantId: string,
   catalog: CustomerMenuCatalog,
+  catalogVersion = 0,
 ): void {
-  commitEntry(restaurantId, catalog);
+  commitEntry(restaurantId, catalogVersion, catalog);
 }
 
-/** Read memory or localStorage without network. */
-export function peekCustomerMenuCatalogCache(
-  restaurantId: string,
-  ttlMs = DEFAULT_TTL_MS,
-): CustomerMenuCatalog | null {
-  const mem = memoryByRestaurantId.get(restaurantId);
-  if (mem && isFresh(mem, ttlMs)) return mem.catalog;
-
-  const stored = readStorage(restaurantId);
-  if (!stored || !isFresh(stored, ttlMs)) return null;
-  memoryByRestaurantId.set(restaurantId, stored);
-  return stored.catalog;
+/** Read memory or localStorage without network (version-gated freshness is via ensure). */
+export function peekCustomerMenuCatalogCache(restaurantId: string): CustomerMenuCatalog | null {
+  return readEntry(restaurantId)?.catalog ?? null;
 }
 
-async function fetchCatalogFromApi(slug: string): Promise<CustomerMenuCatalog> {
-  const res = await fetch(`/api/restaurants/${encodeURIComponent(slug)}/customer/menu-catalog`, {
-    credentials: 'include',
-    cache: 'no-store',
-  });
-  if (!res.ok) throw new Error('menu_catalog_fetch_failed');
-  const data = (await res.json()) as CustomerMenuCatalog;
-  if (!Array.isArray(data.menuItems) || !Array.isArray(data.menuCategories)) {
+export function peekCustomerMenuCatalogVersion(restaurantId: string): number | null {
+  const entry = readEntry(restaurantId);
+  return entry ? entry.catalogVersion : null;
+}
+
+/** Drop memory + localStorage for one restaurant (or all Mesa catalog keys). */
+export function clearCustomerMenuCatalogCache(restaurantId?: string): void {
+  if (restaurantId) {
+    memoryByRestaurantId.delete(restaurantId);
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem(storageKey(restaurantId));
+      } catch {
+        /* ignore */
+      }
+    }
+    return;
+  }
+  memoryByRestaurantId.clear();
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(STORAGE_KEY_PREFIX)) keys.push(key);
+    }
+    for (const key of keys) localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function isCustomerMenuCatalogUnchanged(
+  body: CustomerMenuCatalogApiBody,
+): body is CustomerMenuCatalogUnchanged {
+  return 'unchanged' in body && body.unchanged === true;
+}
+
+export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCatalogApiBody {
+  if (!data || typeof data !== 'object') throw new Error('menu_catalog_invalid_body');
+  const row = data as Record<string, unknown>;
+  const version = Number(row.version);
+  if (!Number.isFinite(version)) throw new Error('menu_catalog_invalid_version');
+  if (row.unchanged === true) return { version, unchanged: true };
+  if (!Array.isArray(row.menuItems) || !Array.isArray(row.menuCategories)) {
     throw new Error('menu_catalog_invalid_body');
   }
-  return data;
+  return {
+    version,
+    menuItems: row.menuItems as MenuItem[],
+    menuCategories: row.menuCategories as MenuCategory[],
+  };
+}
+
+async function fetchCatalogFromApi(
+  slug: string,
+  knownVersion: number | null,
+  forceRefresh: boolean,
+): Promise<CustomerMenuCatalogApiBody> {
+  const params = new URLSearchParams();
+  if (!forceRefresh && knownVersion != null) {
+    params.set('knownVersion', String(knownVersion));
+  }
+  const qs = params.toString();
+  const res = await fetch(
+    `/api/restaurants/${encodeURIComponent(slug)}/customer/menu-catalog${qs ? `?${qs}` : ''}`,
+    {
+      credentials: 'include',
+      cache: 'no-store',
+    },
+  );
+  if (!res.ok) throw new Error('menu_catalog_fetch_failed');
+  return parseCustomerMenuCatalogApiBody(await res.json());
 }
 
 /**
- * Ensure catalog is available — memory/localStorage first, then one shared GET.
- * Used by staff overlay, customer entry reconcile, and optional client refresh.
+ * Ensure catalog is current — compare server menu_catalog_version, full GET only on mismatch.
+ * Sole network path for customer + staff-assisted catalog.
  */
 export function ensureCustomerMenuCatalog(params: {
   restaurantId: string;
   slug: string;
   seed?: CustomerMenuCatalog | null;
-  ttlMs?: number;
+  seedVersion?: number;
   forceRefresh?: boolean;
 }): Promise<CustomerMenuCatalog> {
-  const ttlMs = params.ttlMs ?? DEFAULT_TTL_MS;
-
   if (params.seed) {
-    seedCustomerMenuCatalogCache(params.restaurantId, params.seed);
-  }
-
-  if (!params.forceRefresh) {
-    const cached = peekCustomerMenuCatalogCache(params.restaurantId, ttlMs);
-    if (cached) return Promise.resolve(cached);
+    seedCustomerMenuCatalogCache(params.restaurantId, params.seed, params.seedVersion ?? 0);
   }
 
   const running = inFlightByRestaurantId.get(params.restaurantId);
-  if (running) return running;
+  if (running && !params.forceRefresh) return running;
 
-  const promise = fetchCatalogFromApi(params.slug)
-    .then((catalog) => commitEntry(params.restaurantId, catalog))
+  const knownVersion = params.forceRefresh
+    ? null
+    : peekCustomerMenuCatalogVersion(params.restaurantId);
+
+  const promise = fetchCatalogFromApi(params.slug, knownVersion, Boolean(params.forceRefresh))
+    .then((body) => {
+      if (isCustomerMenuCatalogUnchanged(body)) {
+        const cached = peekCustomerMenuCatalogCache(params.restaurantId);
+        if (!cached) throw new Error('menu_catalog_unchanged_without_cache');
+        commitEntry(params.restaurantId, body.version, cached);
+        return cached;
+      }
+      return commitEntry(params.restaurantId, body.version, {
+        menuItems: body.menuItems,
+        menuCategories: body.menuCategories,
+      });
+    })
     .finally(() => {
       inFlightByRestaurantId.delete(params.restaurantId);
     });
@@ -134,19 +219,20 @@ export function ensureCustomerMenuCatalog(params: {
 }
 
 /**
- * Customer menu entry: show cache immediately (SWR).
- * Network only when cache miss/stale — sole path is {@link ensureCustomerMenuCatalog}.
+ * Customer menu entry / attention resume: show cache immediately, then version-reconcile.
+ * Sole path is {@link ensureCustomerMenuCatalog}.
  */
 export function reconcileCustomerMenuCatalogOnEntry(params: {
   restaurantId: string;
   slug: string;
   seed?: CustomerMenuCatalog | null;
+  seedVersion?: number;
 }): {
   initial: CustomerMenuCatalog | null;
   ready: Promise<CustomerMenuCatalog>;
 } {
   if (params.seed) {
-    seedCustomerMenuCatalogCache(params.restaurantId, params.seed);
+    seedCustomerMenuCatalogCache(params.restaurantId, params.seed, params.seedVersion ?? 0);
   }
   const initial = peekCustomerMenuCatalogCache(params.restaurantId);
   const ready = ensureCustomerMenuCatalog({

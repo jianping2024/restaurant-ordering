@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
@@ -52,13 +53,16 @@ function detectDatePreset(
 }
 
 const COMPACT_SELECT_CLASS =
-  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
+  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';const DATE_PICKER_TRIGGER_CLASS =
+  'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
 export function OperationLogsManager() {
   const { lang } = useLanguage();
-  const t = getMessages(lang).operationLogs;
+  const messages = getMessages(lang);
+  const t = messages.operationLogs;
+  const pickDate = messages.buffetAdmin.pickDate;
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
@@ -156,20 +160,24 @@ export function OperationLogsManager() {
         <button type="button" className={presetBtnClass(activeDatePreset === 'last30')} onClick={() => applyDatePreset('last30')}>
           {t.dateLast30}
         </button>
-        <input
-          type="date"
-          className={COMPACT_SELECT_CLASS}
+        <DatePicker
+          className="w-[10.5rem]"
+          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
           value={filters.startDate}
+          onChange={(iso) => updateFilter('startDate', iso || today)}
+          lang={lang}
           max={today}
-          onChange={(e) => updateFilter('startDate', e.target.value)}
+          placeholder={pickDate}
         />
         <span className="text-brand-text-muted">—</span>
-        <input
-          type="date"
-          className={COMPACT_SELECT_CLASS}
+        <DatePicker
+          className="w-[10.5rem]"
+          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
           value={filters.endDate}
+          onChange={(iso) => updateFilter('endDate', iso || today)}
+          lang={lang}
           max={today}
-          onChange={(e) => updateFilter('endDate', e.target.value)}
+          placeholder={pickDate}
         />
         <select
           className={COMPACT_SELECT_CLASS}

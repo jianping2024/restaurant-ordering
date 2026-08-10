@@ -407,7 +407,7 @@
 - 餐厅资料：名称、地址、电话、Logo、国家码、点餐地理半径
 - 员工账号：kitchen / waiter / cashier / frontdesk / owner 等 CRUD、禁用、重置密码；持 `settings.staff.manage` 时列表为全店员工（与 staff API 同 admin 读路径，不依赖员工 RLS 自看）；新建/改角色下拉经 `GET /api/dashboard/roles`，持 `settings.staff.manage` 或 `settings.roles.manage` 可读（改角色定义仍仅 `settings.roles.manage`）
 - 账户菜单：外观 / 语言 / **自愿修改密码**（与强制改密同一表单与 API）/ 退出登录
-- 功能开关：`kitchen_serve_to_table`、`bill_receipt_print`（档口后厨大屏 / 自动已出餐等见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台厨房快捷仅权限 `dashboard.kitchen_shortcut.view`）
+- 功能开关：`kitchen_serve_to_table`、`bill_receipt_print`（档口后厨大屏 / 自动已出餐等见 [`station-kitchen-screens.zh.md`](./station-kitchen-screens.zh.md)；后台顶栏厨房入口与厨房页共用 `floor.kitchen_board.view`）
 - 自助餐规则：时段、价格矩阵、周五晚周末、日历覆盖
 - 打印助手：配对、设备、档口、账单打印机、营业时间 schedule
 - 桌位与分组：也可从 `/dashboard/tables` 进入（设置 hub 外）

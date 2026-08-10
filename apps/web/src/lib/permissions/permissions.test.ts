@@ -103,9 +103,13 @@ describe('can / resolve', () => {
     const keys = normalizeStoredPermissions([
       'buffet.post_to_table',
       'floor.waiter_board.view',
+      'dashboard.kitchen_shortcut.view',
       'tables.open_session',
     ]);
-    assert.deepEqual(keys.sort(), ['dashboard.waiter_board.view', 'tables.open_session'].sort());
+    assert.deepEqual(
+      keys.sort(),
+      ['dashboard.waiter_board.view', 'floor.kitchen_board.view', 'tables.open_session'].sort(),
+    );
   });
 
   it('force close from caps', () => {

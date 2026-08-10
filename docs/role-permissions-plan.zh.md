@@ -242,7 +242,7 @@ type PermissionKey = keyof typeof PERMISSIONS; // 见 §5
 | 运营 | `dashboard.overview.view` | 概览 |
 | 运营 | `dashboard.tables.view` | 桌位运营 |
 | 运营 | `dashboard.waiter_board.view` | 内嵌服务员看板 |
-| 快捷 | `dashboard.kitchen_shortcut.view` | 新窗口打开厨房（仅权限；无店级 feature flag） |
+| 厨房看板 | `floor.kitchen_board.view` | 进 `/{slug}/kitchen` + 员工顶栏厨房入口（旧 shortcut 已并入） |
 | 快捷 | `floor.kitchen_board.view` | 侧栏链到 `/{slug}/kitchen`（可选，与上二选一或并存） |
 | 快捷 | `floor.waiter_board.view` | 侧栏链到 `/{slug}/waiter`（可选） |
 
@@ -363,7 +363,7 @@ function visibleNavItems(principal: Principal, caps: Capabilities, navPrefs: Per
 | `dashboard.overview.view` | Dashboard 首页 `/dashboard` | frontdesk |
 | `dashboard.tables.view` | 桌位运营页 `/dashboard/tables` | frontdesk |
 | `dashboard.waiter_board.view` | 内嵌服务员看板 `/dashboard/waiter` | frontdesk |
-| `dashboard.kitchen_shortcut.view` | 侧栏打开 `/{slug}/kitchen` | frontdesk（且 feature flag） |
+| `floor.kitchen_board.view` | 进厨房页 + 顶栏入口 | kitchen / frontdesk / owner |
 
 ### 5.2 Dashboard 设置子页（`ownerOnly`，整组）
 
@@ -731,7 +731,7 @@ return set
 | `restaurant_role_permissions` | 员工角色能力 |
 | `owner_nav_preferences` | **仅**店主侧栏显示项（方案 A） |
 
-示例：厨房快捷入口 = 员工 `can(caps, 'dashboard.kitchen_shortcut.view')` **或** owner 在 `owner_nav_preferences` 中含该项（无店级 flag）。
+示例：厨房入口 = 员工 `can(caps, 'floor.kitchen_board.view')`（顶栏与页同一 key；无店级 flag）。
 
 ---
 

@@ -36,6 +36,7 @@ describe('buildDashboardTopNavItems', () => {
         'guestNotice',
         'kitchenBoard',
         'menu',
+        'operationLogs',
         'orders',
         'overview',
         'tables',
@@ -44,7 +45,7 @@ describe('buildDashboardTopNavItems', () => {
     );
   });
 
-  it('appends kitchen shortcut when capability is present', () => {
+  it('appends kitchen top-nav entry when board capability is present', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
@@ -53,7 +54,7 @@ describe('buildDashboardTopNavItems', () => {
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
   });
 
-  it('omits kitchen shortcut without capability', () => {
+  it('omits kitchen top-nav entry without board capability', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
@@ -81,6 +82,7 @@ describe('buildDashboardTopNavItems', () => {
       'overview',
       'valueAnalytics',
       'abnormalOps',
+      'operationLogs',
       'menu',
       'settings',
     ]);

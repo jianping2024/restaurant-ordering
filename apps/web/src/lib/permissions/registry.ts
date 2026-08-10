@@ -42,7 +42,6 @@ export const PERMISSIONS = {
   'dashboard.tables.view': { group: 'dashboard_nav', labelKey: 'dashboardTables' },
   'dashboard.menu.view': { group: 'dashboard_nav', labelKey: 'dashboardMenu' },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
-  'dashboard.kitchen_shortcut.view': { group: 'dashboard_nav', labelKey: 'dashboardKitchenShortcut' },
   'dashboard.guest_notice.view': { group: 'dashboard_nav', labelKey: 'dashboardGuestNotice' },
 
   // Settings (formerly owner-only; grantable to any role per product)

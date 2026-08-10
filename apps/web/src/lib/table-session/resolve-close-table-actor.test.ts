@@ -178,6 +178,39 @@ describe('resolveCloseTableSessionDeskActor', () => {
     assert.equal(decision.ok, false);
   });
 
+  it('allows cashier preset when tables.force_close is present', () => {
+    const loaded: PrincipalWithCapabilities = {
+      principal: {
+        kind: 'staff',
+        restaurantId: restaurant.id,
+        userId: 'user-c',
+        staffAccountId: 'staff-c',
+        roleId: 'role-c',
+        roleName: 'cashier',
+        presetKey: 'cashier',
+        staffRoleLabel: 'cashier',
+      },
+      capabilities: capabilitiesFromKeys(['tables.force_close']),
+    };
+    const decision = resolveCloseTableSessionDeskActor(
+      {
+        mode: 'cashier',
+        restaurant: {
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          buffet_service_mode: 'classic',
+        },
+      },
+      loaded,
+      'manual',
+    );
+    assert.equal(decision.ok, true);
+    if (decision.ok) {
+      assert.equal(decision.closedReason, 'cashier_closed');
+    }
+  });
+
   it('allows waiter mode when force_close capability is present', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {

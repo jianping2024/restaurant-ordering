@@ -168,7 +168,7 @@ Principal   = owner | staff(StaffRole)                        // 权限解析用
 以下行为在初版 capability 清单中**未单独列出**，实施时必须纳入注册表：
 
 1. **前台可操作桌位 CRUD**：`/api/dashboard/tables`（增删改桌位、分组）走 `loadFrontdeskDashboardTables`，不仅是 `tables.view`。
-2. **关台权限分级**：`waiter` 调 `sessions/close` 固定 403；关台在 Dashboard `/api/dashboard/close-table-session`（frontdesk）。
+2. **关台权限分级**：`waiter` 调 `sessions/close` 固定 403；Dashboard 强制关台 `/api/dashboard/close-table-session` 认 `tables.force_close`（默认前台/店主；收银勾选后同样生效）。
 3. **整桌发起结账请求**：`/api/dashboard/checkout-request`（frontdesk）。
 4. **折扣**：结账 UI 与 `confirm-payment` 的 `discount_rate` 目前与确认收款同一批角色，宜拆为独立 capability 便于将来只给店长/前台。
 5. **厨房改菜品状态**：`kitchen/orders/[orderId]` PATCH。

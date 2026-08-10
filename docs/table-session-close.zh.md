@@ -63,7 +63,7 @@
 | 场景 | 入口 |
 |------|------|
 | 前台 / 收银员桌台详情「关台结账」 | `POST /api/dashboard/checkout-close-table-session`（可选 `print_bill`）→ `closeTableSessionFrontdeskCheckout` → billable 投影 → **`close_table_session_settled`** → 尽力入队打印 |
-| 前台 / 店主强制关台 | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（映射为 `*_forced`）→ **`close_table_session_operational`** |
+| 有 `tables.force_close` 的员工强制关台（含勾选后的收银） | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（映射为 `*_forced`）→ **`close_table_session_operational`** |
 | 服务员强制关台 | waiter sessions close → `waiter_closed` → **operational** |
 | 里斯本 05:00 夜间批量关台 | `auto_nightly` → **operational** |
 

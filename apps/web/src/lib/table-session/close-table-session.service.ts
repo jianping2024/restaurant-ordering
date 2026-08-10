@@ -17,7 +17,6 @@ import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { invokeCloseTableSessionManual } from '@/lib/table-session/close-table-session.repository';
 import type { ManualCloseTableRpcPayload } from '@/lib/table-session/close-table-session.repository';
-import { mayForceCloseTableForManualActor } from '@/lib/table-session/force-close-table-policy';
 import {
   settledActorReasonToForced,
   type SettledCloseActorReason,
@@ -255,10 +254,8 @@ async function bumpSessionOrdersForKitchenRealtime(
 export async function closeTableSessionManual(
   input: CloseTableSessionServiceInput,
 ): Promise<CloseTableSessionServiceResult> {
-  if (!mayForceCloseTableForManualActor(input.closedReason)) {
-    return { ok: false, code: 'forbidden' };
-  }
-
+  // Authz is tables.force_close only (resolveCloseTableSessionDeskActor gate=manual).
+  // closedReason → *_forced is audit labeling, not a second role whitelist.
   const reasonValidation = validateUnpaidCloseReason(
     input.unpaidReason,
     input.unpaidReasonDetail,

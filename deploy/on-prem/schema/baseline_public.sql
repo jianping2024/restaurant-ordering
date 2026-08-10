@@ -276,7 +276,6 @@ BEGIN
     FROM public.restaurant_staff_accounts a
     WHERE a.restaurant_id = p_restaurant_id
       AND a.user_id = p_operator_user_id
-      AND a.role = ANY (ARRAY['frontdesk', 'owner', 'custom']::text[])
       AND a.disabled_at IS NULL
   )
   INTO v_is_operator;
@@ -285,7 +284,7 @@ BEGIN
     RETURN jsonb_build_object(
       'ok', false,
       'code', 'forbidden',
-      'message', 'unpaid_close_role_forbidden'
+      'message', 'unpaid_close_operator_forbidden'
     );
   END IF;
 
@@ -349,7 +348,7 @@ $$;
 -- Name: FUNCTION close_table_session_manual(p_restaurant_id uuid, p_table_id uuid, p_operator_user_id uuid, p_closed_reason text, p_confirm_close boolean, p_unpaid_reason text, p_unpaid_reason_detail text); Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON FUNCTION public.close_table_session_manual(p_restaurant_id uuid, p_table_id uuid, p_operator_user_id uuid, p_closed_reason text, p_confirm_close boolean, p_unpaid_reason text, p_unpaid_reason_detail text) IS 'Manual unpaid/force close. Operator: restaurant owner_id or active staff role frontdesk|owner|custom. App enforces tables.force_close.';
+COMMENT ON FUNCTION public.close_table_session_manual(p_restaurant_id uuid, p_table_id uuid, p_operator_user_id uuid, p_closed_reason text, p_confirm_close boolean, p_unpaid_reason text, p_unpaid_reason_detail text) IS 'Manual unpaid/force close. Operator: restaurant owner_id or any active staff. App enforces tables.force_close.';
 
 
 --

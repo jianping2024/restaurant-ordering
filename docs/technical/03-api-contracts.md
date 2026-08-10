@@ -39,7 +39,7 @@
 |------|------|------|------|
 | GET/PATCH/POST | `/api/dashboard/tables` | Owner / frontdesk | 桌位 CRUD、排序 |
 | GET/POST/PATCH/DELETE | `/api/dashboard/table-groups` | Owner / frontdesk | 分组与成员 |
-| POST | `/api/dashboard/close-table-session` | Owner / frontdesk | 强制关台 → `close_table_session_*` RPC |
+| POST | `/api/dashboard/close-table-session` | `tables.force_close` | 强制关台 → `close_table_session_manual` RPC |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]` | Waiter+ | 桌台详情 |
 | GET | `/api/restaurants/[slug]/staff/waiter/board` | Waiter+ | 楼面看板权威快照；`Cache-Control: private, no-store` |
 | GET | `/api/restaurants/[slug]/staff/waiter/tables/[tableId]/action-targets` | Waiter+ | 转台/并台目标桌列表 |

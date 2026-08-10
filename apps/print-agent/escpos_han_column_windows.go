@@ -3,12 +3,13 @@
 package main
 
 import (
+	"strings"
 	"syscall"
 	"unsafe"
 )
 
 // renderBitmapColumnRow draws left + right fields on a full-width 384px canvas.
-// Right field is centered in the Qty column band (pixel anchor — no space padding).
+// Right field is right-aligned in the Qty column field (pixel anchor — no space padding).
 func renderBitmapColumnRow(left, right string, kind hanColumnRowKind, fontPx int, style bitmapTextStyle) bitmapTextImage {
 	canvasW := bitmapTextMaxWidthPx
 	if left == "" && right == "" {
@@ -74,20 +75,89 @@ func renderBitmapColumnRow(left, right string, kind hanColumnRowKind, fontPx int
 
 	const padY = 4
 	leftX := hanColumnLeftPx(kind)
-	qtyStart := hanQtyColStartPx()
-	qtyWidth := hanQtyColWidthPx()
 
 	if left != "" {
 		drawTextOutW(dc, leftX, padY, left)
 	}
 	if right != "" {
-		rw := measureHanTextWidth(right, fontPx, style.Bold)
-		rx := qtyStart + (qtyWidth-rw)/2
-		if rx < qtyStart {
-			rx = qtyStart
-		}
+		rx := hanQtyTextStartPx(right, fontPx, style.Bold)
 		drawTextOutW(dc, rx, padY, right)
 	}
+
+	pixels := make([]byte, canvasW*height)
+	for y := 0; y < height; y++ {
+		for x := 0; x < canvasW; x++ {
+			off := y*stride + x*4
+			if raw[off] < 128 || raw[off+1] < 128 || raw[off+2] < 128 {
+				pixels[y*canvasW+x] = 1
+			}
+		}
+	}
+	return bitmapTextImage{Width: canvasW, Height: height, Pixels: pixels}
+}
+
+// renderBitmapLeftRow draws one underlined note/menu line at leftPx on a full-width canvas.
+func renderBitmapLeftRow(text string, leftPx int, fontPx int, style bitmapTextStyle) bitmapTextImage {
+	canvasW := bitmapTextMaxWidthPx
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return bitmapTextImage{}
+	}
+
+	dc, _, _ := procCreateCompatibleDC.Call(0)
+	if dc == 0 {
+		return bitmapTextImage{}
+	}
+	defer procDeleteDC.Call(dc)
+
+	fontPx = resolveHanBitmapFontPx(fontPx)
+	weight := uintptr(400)
+	if style.Bold {
+		weight = 700
+	}
+	face, _ := syscall.UTF16PtrFromString("Microsoft YaHei")
+	font, _, _ := procCreateFontW.Call(
+		uintptr(^uint32(fontPx-1)+1), 0, 0, 0, weight, 0, uintptr(boolToUintptr(style.Underline)), 0,
+		1, 4, 0, 0, 0, uintptr(unsafe.Pointer(face)),
+	)
+	if font == 0 {
+		return bitmapTextImage{}
+	}
+	defer procDeleteObject.Call(font)
+	oldFont, _, _ := procSelectObject.Call(dc, font)
+	defer procSelectObject.Call(dc, oldFont)
+
+	height := textLineHeightPx(dc, text, fontPx)
+	if height <= 0 {
+		height = fontPx + 8
+	}
+
+	var bits unsafe.Pointer
+	stride := ((canvasW*32 + 31) / 32) * 4
+	bi := gdiBitmapInfo{}
+	bi.Header.Size = uint32(unsafe.Sizeof(bi.Header))
+	bi.Header.Width = int32(canvasW)
+	bi.Header.Height = -int32(height)
+	bi.Header.Planes = 1
+	bi.Header.BitCount = 32
+	bitmap, _, _ := procCreateDIBSection.Call(dc, uintptr(unsafe.Pointer(&bi)), 0, uintptr(unsafe.Pointer(&bits)), 0, 0)
+	if bitmap == 0 || bits == nil {
+		return bitmapTextImage{}
+	}
+	defer procDeleteObject.Call(bitmap)
+	oldBitmap, _, _ := procSelectObject.Call(dc, bitmap)
+	defer procSelectObject.Call(dc, oldBitmap)
+
+	raw := unsafe.Slice((*byte)(bits), stride*height)
+	for i := range raw {
+		raw[i] = 0xff
+	}
+	procSetBkColor.Call(dc, 0x00ffffff)
+	procSetTextColor.Call(dc, 0x00000000)
+	procSetBkMode.Call(dc, 2)
+
+	const padY = 4
+	drawTextOutW(dc, leftPx, padY, text)
 
 	pixels := make([]byte, canvasW*height)
 	for y := 0; y < height; y++ {

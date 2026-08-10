@@ -128,12 +128,12 @@ func TestStationSlipItemLineLayout(t *testing.T) {
 	}
 }
 
-// Han column row: Qty ink must land in the Qty pixel band on a full 384px canvas.
+// Han column row: Qty ink right-aligned in the Qty field on a full 384px canvas.
 func TestHanColumnRowQtyInkInBand(t *testing.T) {
 	fontPx := bitmapTextDefaultFontPx
 	labels := []string{"001-中水", "002-冰水 500毫升", "003-冰Vitalis 750ml"}
-	qtyStart := hanQtyColStartPx()
-	qtyEnd := qtyStart + hanQtyColWidthPx()
+	fieldEnd := hanQtyFieldEndPx()
+	tol := fontPx
 
 	for _, label := range labels {
 		maxPx := hanColumnLabelMaxPx(hanColItem)
@@ -145,19 +145,71 @@ func TestHanColumnRowQtyInkInBand(t *testing.T) {
 		if img.Width != bitmapTextMaxWidthPx {
 			t.Fatalf("%q canvas width %d want %d", label, img.Width, bitmapTextMaxWidthPx)
 		}
-		if !bitmapInkInXBand(img, qtyStart, qtyEnd) {
-			t.Fatalf("%q qty ink missing from band [%d,%d)", label, qtyStart, qtyEnd)
+		maxX := bitmapInkMaxX(img)
+		if maxX < fieldEnd-tol {
+			t.Fatalf("%q qty right edge %d want near field end %d", label, maxX, fieldEnd)
 		}
-		raw := escposHanColumnRow(chunks[0], "1", hanColItem, fontPx, bitmapTextStyle{})
-		if len(raw) == 0 || !bytes.Contains(raw, []byte{0x1D, 0x76, 0x30, 0x00}) {
-			t.Fatalf("%q missing GS v 0 raster", label)
-		}
-		gsIdx := bytes.Index(raw, []byte{0x1D, 0x76, 0x30, 0x00})
-		widthBytes := int(raw[gsIdx+4]) | int(raw[gsIdx+5])<<8
-		if widthBytes != 48 { // 384px / 8
-			t.Fatalf("%q raster widthBytes %d want 48 (full canvas)", label, widthBytes)
+		header := renderBitmapColumnRow("Items", "Qty", hanColHeader, fontPx, bitmapTextStyle{})
+		headerMax := bitmapInkMaxX(header)
+		if absInt(headerMax-maxX) > tol {
+			t.Fatalf("%q qty x mismatch header=%d item=%d", label, headerMax, maxX)
 		}
 	}
+}
+
+func TestHanNoteWrapUsesPixelWidth(t *testing.T) {
+	fontPx := bitmapTextDefaultFontPx
+	note := strings.Repeat("测", 40)
+	lines := wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false)
+	if len(lines) < 2 {
+		t.Fatal("expected multi-line note wrap")
+	}
+	w0 := measureHanTextWidth(lines[0].text, fontPx, false)
+	if w0 > hanNoteMaxPx() {
+		t.Fatalf("first line width %d exceeds max %d", w0, hanNoteMaxPx())
+	}
+	prefixW := measureHanTextWidth(escposItemNotePrefix, fontPx, false)
+	firstBody := strings.TrimPrefix(lines[0].text, escposItemNotePrefix)
+	if len([]rune(firstBody)) < 10 {
+		t.Fatalf("first line too short (%d Han runes), regresses early 31-col wrap", len([]rune(firstBody)))
+	}
+	if lines[1].x <= lines[0].x {
+		t.Fatalf("continuation must hang indent past prefix: x0=%d x1=%d", lines[0].x, lines[1].x)
+	}
+	if lines[1].x != hanNoteLeftPx()+prefixW {
+		t.Fatalf("hang x got %d want %d", lines[1].x, hanNoteLeftPx()+prefixW)
+	}
+}
+
+func TestHanNoteEscposSingleWrapPath(t *testing.T) {
+	longNote := strings.Repeat("德萨发生发顺丰", 8)
+	payload, _ := json.Marshal(jobPayload{
+		Locale:           "zh",
+		TableDisplayName: "A-01",
+		Lines: []jobLine{{
+			ItemCode:    "001",
+			ItemName:    "中水",
+			DisplayName: "001-中水",
+			Qty:         1,
+			Note:        longNote,
+		}},
+	})
+	fontPx := bitmapTextDefaultFontPx
+	wantLines := len(wrapHanNoteLines(longNote, escposItemNotePrefix, fontPx, false))
+	itemLines := 1
+	wantRaster := wantLines + itemLines + 1 // header row
+	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
+	gotRaster := bytes.Count(raw, []byte{0x1D, 0x76, 0x30, 0x00})
+	if gotRaster < wantRaster {
+		t.Fatalf("GS v 0 count %d want at least %d (note must not double-wrap via escposBitmapText)", gotRaster, wantRaster)
+	}
+}
+
+func absInt(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 func TestHanFontPxForRole(t *testing.T) {

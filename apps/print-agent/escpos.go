@@ -667,16 +667,33 @@ func stationSlipNoteMaxWidth(width int) int {
 	return stationSlipQtyColStart(width) - escposNoteIndentSpaces
 }
 
-func (w *escposWriter) writeStationItemNoteLine(note string, width int) {
+func (w *escposWriter) writeHanStationNote(note string) {
+	fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
+	style := bitmapTextStyle{
+		Align:     w.alignMode,
+		Bold:      w.boldOn,
+		Underline: true,
+	}
+	for _, nl := range wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false) {
+		w.writeBody1x2()
+		w.content.Write(escposHanLeftRow(nl.text, nl.x, fontPx, style))
+		w.lastTextBitmap = true
+	}
+}
+
+func (w *escposWriter) writeStationItemNoteLine(note string, width int, p jobPayload) {
 	note = strings.TrimSpace(note)
 	if note == "" {
 		return
 	}
 	w.writeBody1x2()
+	if stationSlipColumnBlockUsesHanCanvas(p, w) {
+		w.writeHanStationNote(note)
+		return
+	}
 	indent := strings.Repeat(" ", escposNoteIndentSpaces)
 	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
-	// One channel: wrap prefix+body (display cols), then w.text — Han → whole-line bitmap; never truncate.
 	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
 		w.text(indent + line)
 		w.lf()
@@ -704,7 +721,7 @@ func (w *escposWriter) writeStationMenuLines(p jobPayload, lines []jobLine) {
 			qty = 1
 		}
 		w.writeStationMenuItem(ln, qty, p)
-		w.writeStationItemNoteLine(ln.Note, escposWidth)
+		w.writeStationItemNoteLine(ln.Note, escposWidth, p)
 	}
 }
 

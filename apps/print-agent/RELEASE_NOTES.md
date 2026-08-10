@@ -2,6 +2,16 @@
 
 Each release section starts with `## X.Y.Z`. The release workflow reads the matching section and appends standard install instructions.
 
+Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
+
+## 0.3.77
+
+**修复：Qty 贴右 + 中文备注并入 Han canvas（唯一标尺）**
+
+- Qty 表头/行内数量在 8 列 field 内 **右对齐**（`hanQtyTextStartPx`），不再 band 内居中留大块右侧空白。
+- 备注与菜名同 canvas：`wrapHanNoteLines` + `escposHanLeftRow`；**禁止** `wrapDisplay` → `escposBitmapText` 二次折行。
+- 续行 hanging indent；`wrapHanTextByPx` 优先在空格处断行。
+
 ## 0.3.76
 
 **修复：中文站票 Qty 与表头同列（384px 画布 + 像素锚点）**

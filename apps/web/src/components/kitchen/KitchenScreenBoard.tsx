@@ -196,13 +196,13 @@ function KitchenScreenBoardInner({
   const postPrep = async (
     printStationId: string,
     selections: Array<{ order_id: string; item_index: number }>,
-  ) => {
+  ): Promise<boolean> => {
     setError(null);
     setPrepBusyStationId(printStationId);
     try {
       if (isDemo) {
         setOrders((prev) => applyDemoPrep(prev, selections));
-        return;
+        return true;
       }
       const res = await fetch(
         `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/prep`,
@@ -216,11 +216,13 @@ function KitchenScreenBoardInner({
       if (!res.ok) {
         setError(t.prepFailed);
         if (res.status === 409) await refreshKitchenBoard();
-        return;
+        return false;
       }
       await refreshKitchenBoard();
+      return true;
     } catch {
       setError(t.prepFailed);
+      return false;
     } finally {
       setPrepBusyStationId(null);
     }

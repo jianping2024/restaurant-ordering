@@ -35,6 +35,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: string;
     readyRailHide: string;
     readyRailEmpty: string;
+    prepSuccess: string;
     prepFailed: string;
     conflict: string;
   }
@@ -68,6 +69,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: '已出餐 · {n}',
     readyRailHide: '收起已出餐',
     readyRailEmpty: '暂无已出餐',
+    prepSuccess: '已备餐',
     prepFailed: '备餐失败，请重试',
     conflict: '数据已更新，请重试',
   },
@@ -100,6 +102,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Ready · {n}',
     readyRailHide: 'Hide ready',
     readyRailEmpty: 'No ready dishes',
+    prepSuccess: 'Prepped',
     prepFailed: 'Prep failed — try again',
     conflict: 'Board updated — please retry',
   },
@@ -132,6 +135,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Pronto · {n}',
     readyRailHide: 'Ocultar prontos',
     readyRailEmpty: 'Sem pratos prontos',
+    prepSuccess: 'Preparado',
     prepFailed: 'Falha ao preparar',
     conflict: 'Quadro atualizado — tente de novo',
   },
@@ -164,6 +168,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Listo · {n}',
     readyRailHide: 'Ocultar listos',
     readyRailEmpty: 'Sin platos listos',
+    prepSuccess: 'Preparado',
     prepFailed: 'Error al preparar',
     conflict: 'Tablero actualizado — reintente',
   },
@@ -196,6 +201,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Pret · {n}',
     readyRailHide: 'Masquer prets',
     readyRailEmpty: 'Aucun plat pret',
+    prepSuccess: 'Prepare',
     prepFailed: 'Echec preparation',
     conflict: 'Tableau mis a jour — reessayez',
   },
@@ -228,6 +234,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Fertig · {n}',
     readyRailHide: 'Fertige ausblenden',
     readyRailEmpty: 'Keine fertigen Gerichte',
+    prepSuccess: 'Vorbereitet',
     prepFailed: 'Vorbereitung fehlgeschlagen',
     conflict: 'Board aktualisiert — erneut versuchen',
   },

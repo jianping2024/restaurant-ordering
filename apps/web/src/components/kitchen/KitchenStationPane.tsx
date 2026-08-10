@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { showToast } from '@/components/ui/Toast';
 import {
   aggregateLinesByDish,
   collectStationBoardLines,
@@ -39,13 +40,15 @@ type Props = {
   maximized: boolean;
   canMaximize: boolean;
   onToggleMaximize: () => void;
-  onPrep: (selections: Array<{ order_id: string; item_index: number }>) => Promise<void>;
+  /** Returns true when prep API/demo succeeded. */
+  onPrep: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
   prepBusy: boolean;
 };
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
 
 const SWIPE_PREP_THRESHOLD_PX = 88;
+const SWIPE_MAX_PX = 120;
 
 function statusLabel(status: OrderItemStatus, t: Labels): string {
   if (status === 'ready') return t.statusReady;
@@ -62,7 +65,8 @@ function statusTone(status: OrderItemStatus): string {
 
 /**
  * Sole kitchen board row UI — one order line (`orderId:itemIndex`), never merged.
- * Right-swipe past threshold commits prep for this line only.
+ * Whole-row tap toggles select; right-swipe past threshold preps (row stays; snap-back).
+ * No reveal strip — follow-finger drag only.
  */
 function KitchenBoardLineRow({
   line,
@@ -86,10 +90,10 @@ function KitchenBoardLineRow({
   const note = lineNoteKey(line.item);
   const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
   const [dragX, setDragX] = useState(0);
-  const [animatingOut, setAnimatingOut] = useState(false);
+  const [snapping, setSnapping] = useState(false);
   const startRef = useRef<{ x: number; y: number; tracking: boolean } | null>(null);
-  const dragXRef = useRef(0);
   const armedRef = useRef(false);
+  const skipTapRef = useRef(false);
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -120,18 +124,34 @@ function KitchenBoardLineRow({
     );
   }
 
-  const resetDrag = useCallback(() => {
-    dragXRef.current = 0;
-    setDragX(0);
+  const clearGesture = useCallback(() => {
     startRef.current = null;
     armedRef.current = false;
   }, []);
 
+  const snapBack = useCallback(
+    (then?: () => void) => {
+      setSnapping(true);
+      setDragX(0);
+      window.setTimeout(() => {
+        setSnapping(false);
+        clearGesture();
+        then?.();
+      }, 160);
+    },
+    [clearGesture],
+  );
+
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!line.selectable || prepBusy || animatingOut) return;
+    if (!line.selectable || prepBusy || snapping) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest('input, button, label')) return;
+    // Checkbox keeps its own toggle; do not start row gesture there.
+    if (target?.closest('input')) {
+      skipTapRef.current = true;
+      return;
+    }
+    skipTapRef.current = false;
     startRef.current = { x: e.clientX, y: e.clientY, tracking: false };
     armedRef.current = false;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -143,93 +163,97 @@ function KitchenBoardLineRow({
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     if (!start.tracking) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (Math.abs(dy) > Math.abs(dx)) {
-        startRef.current = null;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      // Vertical intent → abandon; let the list scroll.
+      if (Math.abs(dy) >= Math.abs(dx)) {
+        clearGesture();
+        try {
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        } catch {
+          /* ignore */
+        }
         return;
       }
       start.tracking = true;
+      skipTapRef.current = true;
     }
-    const next = Math.max(0, Math.min(dx, 140));
-    dragXRef.current = next;
+    if (e.cancelable) e.preventDefault();
+    const next = Math.max(0, Math.min(dx, SWIPE_MAX_PX));
     setDragX(next);
     armedRef.current = next >= SWIPE_PREP_THRESHOLD_PX;
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!startRef.current) return;
+    if (skipTapRef.current && !startRef.current) {
+      skipTapRef.current = false;
+      return;
+    }
+    const start = startRef.current;
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {
       /* already released */
     }
-    const commit = armedRef.current && line.selectable && !prepBusy;
-    if (commit) {
-      setAnimatingOut(true);
-      setDragX(160);
-      window.setTimeout(() => {
-        onSwipePrep();
-        setAnimatingOut(false);
-        resetDrag();
-      }, 180);
+    if (!start) return;
+
+    const wasSwipe = start.tracking;
+    const commit = wasSwipe && armedRef.current && line.selectable && !prepBusy;
+
+    if (wasSwipe) {
+      snapBack(commit ? () => onSwipePrep() : undefined);
       return;
     }
-    resetDrag();
+
+    // Tap on row body → toggle select (kitchen-size hit target).
+    clearGesture();
+    setDragX(0);
+    if (line.selectable && !prepBusy) onToggle();
   };
 
   const onPointerCancel = () => {
-    if (animatingOut) return;
-    resetDrag();
+    if (snapping) return;
+    setDragX(0);
+    clearGesture();
   };
 
-  const revealProgress = Math.min(1, dragX / SWIPE_PREP_THRESHOLD_PX);
-
   return (
-    <div className="relative overflow-hidden border-b border-brand-border/50">
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 flex w-40 items-center justify-center bg-emerald-600 text-xl font-semibold text-white"
-        style={{ opacity: 0.35 + revealProgress * 0.65 }}
-        aria-hidden
+    <div
+      role="presentation"
+      className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
+        checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
+      } ${line.selectable ? '' : 'opacity-55'} ${
+        snapping || dragX === 0 ? 'transition-transform duration-150 ease-out' : ''
+      }`}
+      style={{ transform: `translateX(${dragX}px)`, touchAction: 'pan-y' }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+    >
+      <input
+        type="checkbox"
+        className="h-6 w-6 shrink-0"
+        checked={checked}
+        disabled={!line.selectable}
+        onChange={onToggle}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={line.displayName}
+      />
+      {title}
+      <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
+        × {Number(line.item.qty) || 0}
+      </span>
+      <span
+        className="shrink-0 text-lg tabular-nums text-brand-text-muted"
+        suppressHydrationWarning
       >
-        {t.prep}
-      </div>
-      <div
-        role="presentation"
-        className={`relative flex items-center gap-3 px-2 py-2.5 touch-pan-y ${
-          checked ? 'bg-brand-gold/12' : 'bg-brand-card'
-        } ${line.selectable ? '' : 'opacity-55'} ${animatingOut ? 'transition-transform duration-150 ease-out' : dragX > 0 ? '' : 'transition-transform duration-150 ease-out'}`}
-        style={{ transform: `translateX(${dragX}px)` }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerCancel}
+        {t.waitMinutes.replace('{n}', String(waitMin))}
+      </span>
+      <span
+        className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
       >
-        <label className={`flex min-w-0 flex-1 items-center gap-3 ${line.selectable ? 'cursor-pointer' : ''}`}>
-          <input
-            type="checkbox"
-            className="h-5 w-5 shrink-0"
-            checked={checked}
-            disabled={!line.selectable}
-            onChange={onToggle}
-            onClick={(e) => e.stopPropagation()}
-          />
-          {title}
-          <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-            × {Number(line.item.qty) || 0}
-          </span>
-          <span
-            className="shrink-0 text-lg tabular-nums text-brand-text-muted"
-            suppressHydrationWarning
-          >
-            {t.waitMinutes.replace('{n}', String(waitMin))}
-          </span>
-          <span
-            className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
-          >
-            {statusLabel(line.effectiveStatus, t)}
-          </span>
-        </label>
-      </div>
+        {statusLabel(line.effectiveStatus, t)}
+      </span>
     </div>
   );
 }
@@ -311,18 +335,24 @@ export function KitchenStationPane({
       .filter((l) => selected.has(l.key))
       .map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
     if (selections.length === 0) return;
-    await onPrep(selections);
-    setSelected(new Set());
+    const ok = await onPrep(selections);
+    if (ok) {
+      showToast(t.prepSuccess, 'success');
+      setSelected(new Set());
+    }
   };
 
   const handleSwipePrep = async (line: KitchenBoardLine) => {
     if (!line.selectable || prepBusy) return;
-    await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.delete(line.key);
-      return next;
-    });
+    const ok = await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
+    if (ok) {
+      showToast(t.prepSuccess, 'success');
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(line.key);
+        return next;
+      });
+    }
   };
 
   const renderLine = (line: KitchenBoardLine, layout: LineLayout) => (

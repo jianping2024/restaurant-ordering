@@ -504,7 +504,32 @@
 
 ---
 
-## 模块依赖简图
+## 14b. 操作记录
+
+### 已有功能
+
+- 记录：开台、关台、强制关台、转台、并台、呼叫结账、确认收款、备餐、备餐补打、上桌
+- 写入：`scheduleRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）
+- 查询：日期窗（31/90 天）+ `action_type` 筛选；侧栏「操作记录」
+
+### 业务边界
+
+- 权限：`dashboard.operation_logs.view`（默认前台 + 店主，角色可配置）
+- 顾客发起的呼叫结账不记（仅员工）
+- 与异常操作页分离：异常页仍管折扣/退菜确认队列
+
+### 相关代码位置
+
+| 类型 | 路径 |
+|------|------|
+| 页面 | `apps/web/src/app/dashboard/operation-logs/page.tsx` |
+| UI | `apps/web/src/components/dashboard/OperationLogsManager.tsx` |
+| API | `apps/web/src/app/api/dashboard/operation-logs/route.ts` |
+| Lib | `apps/web/src/lib/operation-logs/*`、`lib/audit/schedule-record-audit.ts`、`lib/audit/builders/staff-operations.ts` |
+
+---
+
+## 15. 模块依赖简图
 
 ```text
 开台 → 点餐 → 订单 → 厨房/退菜

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   AUDIT_EVENT,
-  recordAudit,
+  scheduleRecordAudit,
 } from '@/lib/audit';
 import { validateRequiredAbnormalReason } from '@/lib/audit/validate-abnormal-reason';
 import type { UnpaidTableClosedAuditContext } from '@/lib/audit/builders/unpaid-table-closed';
@@ -102,6 +102,7 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   restaurantId: string;
   tableId: string;
   userId: string;
+  actor: AuditActor;
   closedReason: SettledCloseActorReason;
   /** When true, enqueue checkout_bill after successful close (failure does not fail close). */
   printBill?: boolean;
@@ -141,6 +142,28 @@ export async function closeTableSessionFrontdeskCheckout(input: {
   }
 
   await bumpSessionOrdersForKitchenRealtime(input.admin, input.restaurantId, closed.session_id);
+
+  const { data: tableRow } = await input.admin
+    .from('restaurant_tables')
+    .select('display_name')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('id', input.tableId)
+    .maybeSingle();
+  const tableName =
+    typeof tableRow?.display_name === 'string' && tableRow.display_name.trim()
+      ? tableRow.display_name.trim()
+      : '—';
+
+  scheduleRecordAudit(input.admin, AUDIT_EVENT.TABLE_CLOSED, {
+    restaurantId: input.restaurantId,
+    actor: input.actor,
+    context: {
+      sessionId: closed.session_id,
+      tableName,
+      closeKind: 'frontdesk',
+      amount: settledPayable,
+    },
+  });
 
   if (!input.printBill || !sessionId) {
     return { ok: true, session_id: closed.session_id };
@@ -264,7 +287,7 @@ export async function closeTableSessionManual(
   if (rpcResult.is_unpaid_close && rpcResult.audit_snapshot) {
     const auditContext = snapshotToAuditContext(rpcResult.audit_snapshot);
     if (auditContext && input.unpaidReason?.trim()) {
-      await recordAudit(input.admin, AUDIT_EVENT.UNPAID_TABLE_CLOSED, {
+      scheduleRecordAudit(input.admin, AUDIT_EVENT.UNPAID_TABLE_CLOSED, {
         restaurantId: input.restaurantId,
         actor: input.actor,
         context: auditContext,

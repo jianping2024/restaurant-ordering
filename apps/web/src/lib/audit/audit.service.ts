@@ -39,6 +39,7 @@ export async function recordAudit<TContext>(
   }
 
   const operatorRole = auditOperatorRole(input.actor);
+  const reason = input.reason?.trim() || null;
   const logResult = await insertOperationLog(admin, {
     restaurant_id: input.restaurantId,
     action_type: definition.actionType,
@@ -49,7 +50,7 @@ export async function recordAudit<TContext>(
     operator_role: operatorRole,
     before_data: payload.beforeData,
     after_data: payload.afterData,
-    reason: input.reason,
+    reason,
     reason_detail: input.reasonDetail ?? null,
     ip_address: input.meta?.ipAddress ?? null,
     device_info: input.meta?.deviceInfo ?? null,
@@ -83,7 +84,7 @@ export async function recordAudit<TContext>(
     operator_name: input.actor.displayName,
     operator_role: operatorRole,
     amount_impact: payload.amountImpact,
-    reason: input.reason,
+    reason: reason ?? 'unspecified',
     reason_detail: input.reasonDetail ?? null,
     before_data: payload.beforeData,
     after_data: payload.afterData,

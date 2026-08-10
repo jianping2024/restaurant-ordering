@@ -10,6 +10,7 @@ export const MESSAGES_DE = {
     "orders": "Bestellverlauf",
     "settings": "Einstellungen",
     "abnormalOps": "Auffällige Vorgänge",
+    "operationLogs": "Betriebsprotokoll",
     "valueAnalytics": "Wertanalyse",
     "viewKitchen": "Küchenanzeige öffnen",
     "viewWaiter": "Service-Board",

@@ -79,6 +79,7 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
   navPage('overview'),
   navPage('valueAnalytics'),
   navPage('abnormalOps'),
+  navPage('operationLogs'),
   navPage('settings', settingsTabNodes()),
   navPage('checkout', [
     {

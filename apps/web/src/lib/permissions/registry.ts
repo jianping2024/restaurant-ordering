@@ -35,6 +35,7 @@ export const PERMISSIONS = {
   'dashboard.overview.view': { group: 'dashboard_nav', labelKey: 'dashboardOverview' },
   'dashboard.value_analytics.view': { group: 'dashboard_nav', labelKey: 'dashboardValueAnalytics' },
   'dashboard.abnormal_ops.view': { group: 'dashboard_nav', labelKey: 'dashboardAbnormalOps' },
+  'dashboard.operation_logs.view': { group: 'dashboard_nav', labelKey: 'dashboardOperationLogs' },
   'dashboard.settings.view': { group: 'dashboard_nav', labelKey: 'dashboardSettings' },
   'dashboard.checkout.view': { group: 'dashboard_nav', labelKey: 'dashboardCheckout' },
   'dashboard.orders.view': { group: 'dashboard_nav', labelKey: 'dashboardOrders' },
@@ -138,6 +139,7 @@ export const NAV_PERMISSION: Record<string, PermissionKey> = {
   overview: 'dashboard.overview.view',
   valueAnalytics: 'dashboard.value_analytics.view',
   abnormalOps: 'dashboard.abnormal_ops.view',
+  operationLogs: 'dashboard.operation_logs.view',
   settings: 'dashboard.settings.view',
   checkout: 'dashboard.checkout.view',
   orders: 'dashboard.orders.view',
@@ -159,6 +161,7 @@ export const DASHBOARD_ROUTE_PERMISSIONS: { prefix: string; permission: Permissi
   { prefix: '/dashboard/waiter', permission: 'dashboard.waiter_board.view' },
   { prefix: '/dashboard/value-analytics', permission: 'dashboard.value_analytics.view' },
   { prefix: '/dashboard/abnormal-operations', permission: 'dashboard.abnormal_ops.view' },
+  { prefix: '/dashboard/operation-logs', permission: 'dashboard.operation_logs.view' },
   { prefix: '/dashboard/guest-notice', permission: 'dashboard.guest_notice.view' },
   { prefix: '/dashboard', permission: 'dashboard.overview.view' },
 ];

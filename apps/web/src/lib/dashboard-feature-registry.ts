@@ -16,6 +16,7 @@ export type DashboardNavItemKey =
   | 'overview'
   | 'valueAnalytics'
   | 'abnormalOps'
+  | 'operationLogs'
   | 'settings'
   | 'checkout'
   | 'orders'
@@ -68,6 +69,13 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
     key: 'abnormalOps',
     icon: '⚠️',
     featureId: 'abnormal-operations',
+  },
+  operationLogs: {
+    id: 'operationLogs',
+    href: '/dashboard/operation-logs',
+    key: 'operationLogs',
+    icon: '📝',
+    featureId: 'operation-logs',
   },
   settings: {
     id: 'settings',
@@ -139,6 +147,7 @@ export const OWNER_NAV_ITEM_IDS = [
   'overview',
   'valueAnalytics',
   'abnormalOps',
+  'operationLogs',
   'menu',
   'settings',
 ] as const;
@@ -167,6 +176,13 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     pageLoader: 'loadOwnerAbnormalOperationsContext (dashboard.abnormal_ops.view)',
     writePattern: 'server-api',
     aliases: ['/api/dashboard/abnormal-operations'],
+  },
+  {
+    id: 'operation-logs',
+    path: '/dashboard/operation-logs',
+    pageLoader: 'loadOperationLogsAccessContext (dashboard.operation_logs.view)',
+    writePattern: 'read-only',
+    aliases: ['/api/dashboard/operation-logs'],
   },
   {
     id: 'settings-profile',

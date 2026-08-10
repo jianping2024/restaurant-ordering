@@ -10,6 +10,7 @@ import {
   isDependencyFailure,
 } from '@/lib/dependency-unavailable';
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
+import { AUDIT_EVENT, scheduleRecordAudit, staffAuditActor } from '@/lib/audit';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -161,6 +162,23 @@ export async function POST(
         error: result.error,
         code: result.code,
         message: result.message,
+      });
+    }
+
+    if (
+      result.sessionOpened === true &&
+      typeof result.sessionId === 'string' &&
+      result.sessionId
+    ) {
+      scheduleRecordAudit(admin, AUDIT_EVENT.SESSION_OPENED, {
+        restaurantId: ctx.restaurant_id,
+        actor: staffAuditActor(ctx.user_id, ctx.role_name || ctx.role, ctx.role),
+        context: {
+          sessionId: result.sessionId,
+          tableName: result.tableName || '—',
+          adultCount: result.adultCount ?? 0,
+          childCount: result.childCount ?? 0,
+        },
       });
     }
 

@@ -324,7 +324,20 @@ export async function runBuffetWaiterOpenPipeline(
     buffetPricesByBuffetId,
   });
 
-  return { ok: true, model, ...(unchanged ? { unchanged: true } : {}) };
+  return {
+    ok: true,
+    model,
+    ...(unchanged ? { unchanged: true } : {}),
+    ...(isColdOpen
+      ? {
+          sessionOpened: true as const,
+          sessionId,
+          tableName: displayName,
+          adultCount: buffets.reduce((n, b) => n + (b.adults || 0), 0),
+          childCount: buffets.reduce((n, b) => n + (b.children || 0), 0),
+        }
+      : {}),
+  };
 }
 
 export function parseBuffetWaiterRequestBody(

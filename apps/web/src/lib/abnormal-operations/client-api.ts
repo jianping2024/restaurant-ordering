@@ -35,6 +35,7 @@ function toQuery(params: AbnormalOperationsListParams): string {
 
 export async function fetchAbnormalOperations(
   params: AbnormalOperationsListParams,
+  init?: { signal?: AbortSignal },
 ): Promise<
   | { ok: true; data: AbnormalOperationsListResult }
   | { ok: false; error: string }
@@ -42,6 +43,7 @@ export async function fetchAbnormalOperations(
   try {
     const res = await fetch(`/api/dashboard/abnormal-operations${toQuery(params)}`, {
       credentials: 'include',
+      signal: init?.signal,
     });
     const data = (await res.json().catch(() => ({}))) as AbnormalOperationsListResult & {
       error?: string;
@@ -50,7 +52,10 @@ export async function fetchAbnormalOperations(
       return { ok: false, error: data.error || 'fetch_failed' };
     }
     return { ok: true, data };
-  } catch {
+  } catch (err) {
+    if (init?.signal?.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+      return { ok: false, error: 'aborted' };
+    }
     return { ok: false, error: 'network_error' };
   }
 }

@@ -23,13 +23,10 @@ import {
 } from '@/lib/operation-logs/detail-text';
 import type { OperationLogsListResult } from '@/lib/operation-logs/query';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
-import {
-  LIST_DEFAULT_PAGE_SIZE,
-  type ListPageSize,
-} from '@/lib/paginate-list';
+import { type ListPageSize } from '@/lib/paginate-list';
+import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 const REFRESH_COOLDOWN_MS = 60_000;
-const FILTER_DEBOUNCE_MS = 500;
 
 type Filters = {
   startDate: string;
@@ -57,7 +54,8 @@ function detectDatePreset(
 }
 
 const COMPACT_SELECT_CLASS =
-  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';const DATE_PICKER_TRIGGER_CLASS =
+  'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
+const DATE_PICKER_TRIGGER_CLASS =
   'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
@@ -70,19 +68,51 @@ export function OperationLogsManager() {
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS(today));
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
-  const [data, setData] = useState<OperationLogsListResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const fetchList = useCallback(
+    async ({
+      filters,
+      page,
+      pageSize,
+      signal,
+    }: {
+      filters: Filters;
+      page: number;
+      pageSize: ListPageSize;
+      signal: AbortSignal;
+    }) => {
+      const result = await fetchOperationLogs(
+        {
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          actionType: filters.actionType || undefined,
+          page,
+          pageSize,
+        },
+        { signal },
+      );
+      if (!result.ok) return result;
+      return { ok: true as const, data: result.data };
+    },
+    [],
+  );
+
+  const {
+    draftFilters,
+    patchDraftFilters,
+    query,
+    data,
+    loading,
+    setPage,
+    setPageSize,
+    refresh,
+  } = useDashboardListQuery<Filters, OperationLogsListResult>({
+    initialFilters: DEFAULT_FILTERS(today),
+    fetchList,
+    onFetchError: () => showToast(t.actionFailed, 'error'),
+  });
+
   const [refreshCooldownSec, setRefreshCooldownSec] = useState(0);
   const lastRefreshAtRef = useRef(0);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedFilters(filters), FILTER_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [filters]);
 
   useEffect(() => {
     if (refreshCooldownSec <= 0) return;
@@ -91,27 +121,6 @@ export function OperationLogsManager() {
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [refreshCooldownSec]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const result = await fetchOperationLogs({
-      startDate: debouncedFilters.startDate,
-      endDate: debouncedFilters.endDate,
-      actionType: debouncedFilters.actionType || undefined,
-      page,
-      pageSize,
-    });
-    setLoading(false);
-    if (!result.ok) {
-      showToast(t.actionFailed, 'error');
-      return;
-    }
-    setData(result.data);
-  }, [debouncedFilters, page, pageSize, t.actionFailed]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const handleRefresh = () => {
     const now = Date.now();
@@ -122,10 +131,10 @@ export function OperationLogsManager() {
     }
     lastRefreshAtRef.current = now;
     setRefreshCooldownSec(Math.ceil(REFRESH_COOLDOWN_MS / 1000));
-    void load();
+    refresh();
   };
 
-  const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
+  const activeDatePreset = detectDatePreset(draftFilters.startDate, draftFilters.endDate, today);
 
   const applyDatePreset = (preset: DatePreset) => {
     const next =
@@ -134,13 +143,7 @@ export function OperationLogsManager() {
         : preset === 'last7'
           ? { startDate: addCalendarDays(today, -6), endDate: today }
           : { startDate: addCalendarDays(today, -29), endDate: today };
-    setPage(1);
-    setFilters((prev) => ({ ...prev, ...next }));
-  };
-
-  const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
-    setPage(1);
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    patchDraftFilters(next);
   };
 
   const presetBtnClass = (active: boolean) =>
@@ -150,13 +153,15 @@ export function OperationLogsManager() {
         : 'border-brand-border text-brand-text-muted hover:border-brand-gold/40 hover:text-brand-text'
     }`;
 
-  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / pageSize));
+  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / query.pageSize));
   const lookbackMin = addCalendarDays(today, -(ABNORMAL_OPERATION_MAX_LOOKBACK_DAYS - 1));
-  const startMinByEnd = addCalendarDays(filters.endDate, -(ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1));
+  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1));
   const startMin = startMinByEnd > lookbackMin ? startMinByEnd : lookbackMin;
-  const startMax = filters.endDate < today ? filters.endDate : today;
-  const endMaxByStart = addCalendarDays(filters.startDate, ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1);
+  const startMax = draftFilters.endDate < today ? draftFilters.endDate : today;
+  const endMaxByStart = addCalendarDays(draftFilters.startDate, ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1);
   const endMax = endMaxByStart < today ? endMaxByStart : today;
+  const showInitialLoading = loading && !data;
+  const tableBusy = loading && !!data;
 
   return (
     <div className="space-y-4">
@@ -173,8 +178,8 @@ export function OperationLogsManager() {
         <DatePicker
           className="w-[10.5rem]"
           triggerClassName={DATE_PICKER_TRIGGER_CLASS}
-          value={filters.startDate}
-          onChange={(iso) => updateFilter('startDate', iso || today)}
+          value={draftFilters.startDate}
+          onChange={(iso) => patchDraftFilters({ startDate: iso || today })}
           lang={lang}
           min={startMin}
           max={startMax}
@@ -184,18 +189,20 @@ export function OperationLogsManager() {
         <DatePicker
           className="w-[10.5rem]"
           triggerClassName={DATE_PICKER_TRIGGER_CLASS}
-          value={filters.endDate}
-          onChange={(iso) => updateFilter('endDate', iso || today)}
+          value={draftFilters.endDate}
+          onChange={(iso) => patchDraftFilters({ endDate: iso || today })}
           lang={lang}
-          min={filters.startDate}
+          min={draftFilters.startDate}
           max={endMax}
           placeholder={pickDate}
         />
         <select
           className={COMPACT_SELECT_CLASS}
-          value={filters.actionType}
+          value={draftFilters.actionType}
           onChange={(e) =>
-            updateFilter('actionType', (e.target.value || '') as Filters['actionType'])
+            patchDraftFilters({
+              actionType: (e.target.value || '') as Filters['actionType'],
+            })
           }
         >
           <option value="">{t.typeAll}</option>
@@ -216,7 +223,10 @@ export function OperationLogsManager() {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-brand-border">
+      <div
+        className={`overflow-x-auto rounded-lg border border-brand-border ${tableBusy ? 'opacity-60' : ''}`}
+        aria-busy={loading || undefined}
+      >
         <table className="min-w-full text-left text-sm">
           <thead className="bg-brand-bg/60 text-brand-text-muted">
             <tr>
@@ -228,23 +238,23 @@ export function OperationLogsManager() {
             </tr>
           </thead>
           <tbody>
-            {loading && (
+            {showInitialLoading && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-brand-text-muted">
                   {t.loading}
                 </td>
               </tr>
             )}
-            {!loading && (data?.items.length ?? 0) === 0 && (
+            {!showInitialLoading && (data?.items.length ?? 0) === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-8 text-center text-brand-text-muted">
                   {t.empty}
                 </td>
               </tr>
             )}
-            {!loading &&
+            {!showInitialLoading &&
               data?.items.map((row) => (
-                <tr key={row.id} className="border-t border-brand-border/70">
+                <tr key={row.id} className="border-t border-brand-border/60">
                   <td className="whitespace-nowrap px-3 py-2 text-brand-text-muted">
                     {new Date(row.created_at).toLocaleString(locale, {
                       month: '2-digit',
@@ -268,22 +278,19 @@ export function OperationLogsManager() {
       </div>
 
       <ListPaginationBar
-        page={page}
+        page={query.page}
         totalPages={totalPages}
-        pageSize={pageSize}
         total={data?.total ?? 0}
-        disabled={loading}
-        onPageChange={setPage}
-        onPageSizeChange={(next) => {
-          setPage(1);
-          setPageSize(next);
-        }}
+        pageSize={query.pageSize}
         labels={{
           pageInfo: t.pageInfo,
           pageSizeLabel: t.pageSizeLabel,
           pagePrev: t.pagePrev,
           pageNext: t.pageNext,
         }}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        disabled={loading}
       />
     </div>
   );

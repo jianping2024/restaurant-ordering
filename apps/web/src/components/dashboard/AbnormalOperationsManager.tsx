@@ -30,13 +30,12 @@ import { mergePatchedAbnormalOperationRow } from '@/lib/abnormal-operations/list
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import type { OrderHistoryEntry } from '@/lib/order-history/types';
 import {
-  LIST_DEFAULT_PAGE_SIZE,
   type ListPageSize,
 } from '@/lib/paginate-list';
 import { fetchOrderHistoryPage } from '@/lib/use-order-history-feed';
+import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 const REFRESH_COOLDOWN_MS = 60_000;
-const FILTER_DEBOUNCE_MS = 500;
 
 type Filters = {
   startDate: string;
@@ -127,12 +126,6 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS(today));
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<ListPageSize>(LIST_DEFAULT_PAGE_SIZE);
-  const [data, setData] = useState<AbnormalOperationsListResult | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AbnormalOperationRow | null>(null);
   const [ownerNoteDraft, setOwnerNoteDraft] = useState('');
   const [patching, setPatching] = useState(false);
@@ -143,10 +136,58 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
   const [historyItemCodes, setHistoryItemCodes] = useState<Record<string, string>>({});
   const [historyLoadingSessionId, setHistoryLoadingSessionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedFilters(filters), FILTER_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [filters]);
+  const fetchList = useCallback(
+    async ({
+      filters,
+      page,
+      pageSize,
+      signal,
+    }: {
+      filters: Filters;
+      page: number;
+      pageSize: ListPageSize;
+      signal: AbortSignal;
+    }) => {
+      const result = await fetchAbnormalOperations(
+        {
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          type: filters.type || undefined,
+          riskLevel: filters.riskLevel || undefined,
+          status: filters.status || undefined,
+          page,
+          pageSize,
+        },
+        { signal },
+      );
+      if (!result.ok) return result;
+      return { ok: true as const, data: result.data };
+    },
+    [],
+  );
+
+  const {
+    draftFilters,
+    patchDraftFilters,
+    replaceDraftFilters,
+    query,
+    data,
+    setData,
+    loading,
+    setPage,
+    setPageSize,
+    refresh,
+  } = useDashboardListQuery<Filters, AbnormalOperationsListResult>({
+    initialFilters: DEFAULT_FILTERS(today),
+    fetchList,
+    onFetchError: () => showToast(t.actionFailed, 'error'),
+    onSuccess: (next) => {
+      setSelected((prev) => {
+        if (!prev) return prev;
+        return next.items.find((row) => row.id === prev.id) ?? prev;
+      });
+    },
+  });
 
   useEffect(() => {
     if (refreshCooldownSec <= 0) return;
@@ -155,33 +196,6 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
     }, 1000);
     return () => window.clearTimeout(timer);
   }, [refreshCooldownSec]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    const result = await fetchAbnormalOperations({
-      startDate: debouncedFilters.startDate,
-      endDate: debouncedFilters.endDate,
-      type: debouncedFilters.type || undefined,
-      riskLevel: debouncedFilters.riskLevel || undefined,
-      status: debouncedFilters.status || undefined,
-      page,
-      pageSize,
-    });
-    setLoading(false);
-    if (!result.ok) {
-      showToast(t.actionFailed, 'error');
-      return;
-    }
-    setData(result.data);
-    setSelected((prev) => {
-      if (!prev) return prev;
-      return result.data.items.find((row) => row.id === prev.id) ?? prev;
-    });
-  }, [debouncedFilters, page, pageSize, t.actionFailed]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const handleRefresh = () => {
     const now = Date.now();
@@ -192,10 +206,10 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
     }
     lastRefreshAtRef.current = now;
     setRefreshCooldownSec(Math.ceil(REFRESH_COOLDOWN_MS / 1000));
-    void load();
+    refresh();
   };
 
-  const activeDatePreset = detectDatePreset(filters.startDate, filters.endDate, today);
+  const activeDatePreset = detectDatePreset(draftFilters.startDate, draftFilters.endDate, today);
 
   const applyDatePreset = (preset: DatePreset) => {
     const next =
@@ -204,22 +218,18 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
         : preset === 'last7'
           ? { startDate: addCalendarDays(today, -6), endDate: today }
           : { startDate: addCalendarDays(today, -29), endDate: today };
-    setPage(1);
-    setFilters((prev) => ({ ...prev, ...next }));
+    patchDraftFilters(next);
   };
 
   const resetFilters = () => {
-    setPage(1);
-    setFilters(DEFAULT_FILTERS(today));
+    replaceDraftFilters(DEFAULT_FILTERS(today));
   };
 
   const updateFilter = <K extends keyof Filters>(key: K, value: Filters[K]) => {
-    setPage(1);
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    patchDraftFilters({ [key]: value } as Partial<Filters>);
   };
 
   const handlePageSizeChange = (next: ListPageSize) => {
-    setPage(1);
     setPageSize(next);
   };
 
@@ -290,7 +300,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
             prev,
             previous,
             result.row,
-            debouncedFilters.status,
+            query.filters.status,
           )
         : prev,
     );
@@ -298,6 +308,8 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
 
   const stats = data?.stats;
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+  const showInitialLoading = loading && !data;
+  const tableBusy = loading && !!data;
 
   return (
     <div>
@@ -381,7 +393,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
               <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
                 <span>{t.filterType}</span>
                 <select
-                  value={filters.type}
+                  value={draftFilters.type}
                   onChange={(e) =>
                     updateFilter('type', e.target.value as Filters['type'])
                   }
@@ -397,7 +409,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
               <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
                 <span>{t.filterRisk}</span>
                 <select
-                  value={filters.riskLevel}
+                  value={draftFilters.riskLevel}
                   onChange={(e) =>
                     updateFilter('riskLevel', e.target.value as Filters['riskLevel'])
                   }
@@ -413,7 +425,7 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
               <label className="inline-flex items-center gap-1 text-[13px] text-brand-text-muted">
                 <span>{t.filterStatus}</span>
                 <select
-                  value={filters.status}
+                  value={draftFilters.status}
                   onChange={(e) =>
                     updateFilter('status', e.target.value as Filters['status'])
                   }
@@ -437,12 +449,12 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
           </div>
         </div>
 
-        {loading ? (
+        {showInitialLoading ? (
           <p className="px-4 py-6 text-center text-brand-text-muted text-sm">{t.loading}</p>
         ) : !data?.items.length ? (
           <p className="px-4 py-10 text-center text-brand-text-muted text-sm">{t.empty}</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto ${tableBusy ? 'opacity-60' : ''}`} aria-busy={loading || undefined}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-border text-brand-text-muted text-left text-[13px]">
@@ -543,10 +555,10 @@ export function AbnormalOperationsManager({ restaurantSlug }: Props) {
 
         {data && data.total > 0 ? (
           <ListPaginationBar
-            page={data.page}
+            page={query.page}
             totalPages={totalPages}
             total={data.total}
-            pageSize={pageSize}
+            pageSize={query.pageSize}
             labels={{
               pageInfo: t.pageInfo,
               pageSizeLabel: t.pageSizeLabel,

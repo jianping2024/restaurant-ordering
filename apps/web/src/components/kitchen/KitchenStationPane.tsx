@@ -52,6 +52,10 @@ const SWIPE_MAX_PX = 120;
 /** Movement before deciding tap vs scroll vs swipe. */
 const GESTURE_LOCK_SLOP_PX = 12;
 
+/** Workbench / ready rails: vertical scroll only — bare overflow-y-auto promotes X and steals row swipe. */
+const VERTICAL_ONLY_SCROLL =
+  'min-h-0 overflow-y-auto overflow-x-hidden overscroll-x-none';
+
 type RowGesture = {
   pointerId: number;
   x: number;
@@ -239,7 +243,7 @@ function KitchenBoardLineRow({
   return (
     <div
       role="presentation"
-      className={`flex items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
+      className={`flex min-w-0 w-full max-w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
         checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
       } ${line.selectable ? '' : 'opacity-55'} ${
         snapping || dragX === 0 ? 'transition-transform duration-150 ease-out' : ''
@@ -391,7 +395,7 @@ export function KitchenStationPane({
 
   return (
     <section
-      className={`flex min-h-0 flex-col bg-brand-card ${
+      className={`flex min-h-0 min-w-0 flex-col bg-brand-card ${
         maximized ? 'h-full border-0' : 'rounded-xl border border-brand-border'
       }`}
     >
@@ -426,7 +430,7 @@ export function KitchenStationPane({
         ) : null}
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className={`flex-1 ${VERTICAL_ONLY_SCROLL}`}>
         {workbench.length === 0 ? (
           <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : view === 'table' ? (
@@ -500,7 +504,7 @@ export function KitchenStationPane({
 
       <footer className="flex shrink-0 flex-col border-t border-brand-border/70">
         {readyRailOpen ? (
-          <div className="max-h-64 min-h-0 overflow-y-auto border-b border-brand-border/60 bg-brand-bg/40">
+          <div className={`max-h-64 border-b border-brand-border/60 bg-brand-bg/40 ${VERTICAL_ONLY_SCROLL}`}>
             {ready.length === 0 ? (
               <p className="px-3 py-4 text-center text-xl text-brand-text-muted">{t.readyRailEmpty}</p>
             ) : (

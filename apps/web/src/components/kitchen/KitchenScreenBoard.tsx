@@ -245,7 +245,7 @@ function KitchenScreenBoardInner({
   );
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-brand-bg">
+    <div className="flex h-dvh flex-col overflow-hidden overscroll-x-none bg-brand-bg">
       {!isDemo ? (
         <KitchenScreenRealtime
           supabase={supabase}
@@ -300,7 +300,7 @@ function KitchenScreenBoardInner({
           <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : (
           <div
-            className={`grid min-h-0 flex-1 ${maximized ? 'gap-0' : 'gap-2'} ${kitchenPaneGridClass(visiblePanes.length)}`}
+            className={`grid min-h-0 min-w-0 flex-1 ${maximized ? 'gap-0' : 'gap-2'} ${kitchenPaneGridClass(visiblePanes.length)}`}
           >
             {visiblePanes.map((stationId) => {
               const station = stationById.get(stationId)!;

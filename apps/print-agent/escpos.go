@@ -54,6 +54,7 @@ type ticketLabels struct {
 	orderedBy      string
 	amountPaid     string
 	station        string
+	itemNote       string // underlined guest note label, e.g. "备注: " / "Note: " / "Observação: "
 }
 
 func labelsFor(locale string) ticketLabels {
@@ -80,6 +81,7 @@ func labelsFor(locale string) ticketLabels {
 			orderedBy:      "下单方",
 			amountPaid:     "实付",
 			station:        "档口",
+			itemNote:       "备注: ",
 		}
 	case "en":
 		return ticketLabels{
@@ -103,6 +105,7 @@ func labelsFor(locale string) ticketLabels {
 			orderedBy:      "Ordered By",
 			amountPaid:     "Amount Paid",
 			station:        "Station",
+			itemNote:       "Note: ",
 		}
 	default: // pt (pt-PT semantics)
 		return ticketLabels{
@@ -126,6 +129,7 @@ func labelsFor(locale string) ticketLabels {
 			orderedBy:      "Pedido por",
 			amountPaid:     "Valor pago",
 			station:        "Estação",
+			itemNote:       "Observação: ",
 		}
 	}
 }
@@ -635,9 +639,6 @@ func (w *escposWriter) writeTableContext(p jobPayload, lab ticketLabels, tableCe
 	}
 }
 
-// escposItemNotePrefix — label before underlined guest note on station slips.
-const escposItemNotePrefix = "Observação: "
-
 func sortStationMenuLines(lines []jobLine) []jobLine {
 	out := append([]jobLine(nil), lines...)
 	sort.SliceStable(out, func(i, j int) bool {
@@ -672,20 +673,16 @@ func stationSlipNoteMaxWidth(width int) int {
 	return stationSlipQtyColStart(width) - stationSlipSideMargin
 }
 
-func (w *escposWriter) writeHanStationNote(note string) {
+func (w *escposWriter) writeHanStationNote(note, prefix string) {
 	fontPx := hanFontPxForRole(w.hanFontPx, hanFontBody)
 	style := bitmapTextStyle{
 		Align:     w.alignMode,
 		Bold:      w.boldOn,
 		Underline: true,
 	}
-	for _, nl := range wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false) {
+	for _, nl := range wrapHanNoteLines(note, prefix, fontPx, false) {
 		w.writeBody1x2()
-		if nl.prefix != "" {
-			w.content.Write(escposHanNoteRow(nl.prefix, nl.text, nl.x, nl.prefixFont, fontPx, style))
-		} else {
-			w.content.Write(escposHanLeftRow(nl.text, nl.x, fontPx, style))
-		}
+		w.content.Write(escposHanLeftRow(nl.text, nl.x, fontPx, style))
 		w.lastTextBitmap = true
 	}
 }
@@ -695,15 +692,16 @@ func (w *escposWriter) writeStationItemNoteLine(note string, width int, p jobPay
 	if note == "" {
 		return
 	}
+	prefix := labelsFor(p.Locale).itemNote
 	w.writeBody1x2()
 	if stationSlipColumnBlockUsesHanCanvas(p, w) {
-		w.writeHanStationNote(note)
+		w.writeHanStationNote(note, prefix)
 		return
 	}
 	indent := strings.Repeat(" ", stationSlipSideMargin)
 	maxW := stationSlipNoteMaxWidth(width)
 	w.underline(true)
-	for _, line := range wrapDisplay(escposItemNotePrefix+note, maxW) {
+	for _, line := range wrapDisplay(prefix+note, maxW) {
 		w.text(indent + line)
 		w.lf()
 	}

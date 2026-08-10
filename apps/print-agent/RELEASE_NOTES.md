@@ -4,6 +4,15 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.79
+
+**修复：POS-80 576 满纸 + 备注跟打印语言 + 取消前缀半号**
+
+- Han/GS v 0 画布 `bitmapTextMaxWidthPx = 576`（48×12）；禁止 384。
+- 备注标签唯一来源 `labelsFor(locale).itemNote`（zh `备注: ` / en `Note: ` / pt `Observação: `）；删除死常量。
+- 前缀与正文同字号；删除 `hanNotePrefixFontPx` / `escposHanNoteRow` / `renderBitmapNoteRow`。
+- 菜名折行：保持 Font A 列宽闸门（不回退）。
+
 ## 0.3.78
 
 **修复：站票左右边距对称 + 备注首行可写满**

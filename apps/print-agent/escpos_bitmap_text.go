@@ -29,7 +29,8 @@ const (
 	bitmapTextDefaultFontPx = 24
 	bitmapTextMinFontPx     = 16
 	bitmapTextMaxFontPx     = 40
-	bitmapTextMaxWidthPx    = 384
+	// POS-80 / 80mm printable width: Font A 48 cols × 12 dots = 576 (never 384 = 48×8).
+	bitmapTextMaxWidthPx = 576
 )
 
 func resolveHanBitmapFontPx(n int) int {

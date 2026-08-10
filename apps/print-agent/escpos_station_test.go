@@ -128,7 +128,7 @@ func TestStationSlipItemLineLayout(t *testing.T) {
 	}
 }
 
-// Han column row: Qty ink right-aligned in the Qty field on a full 384px canvas.
+// Han column row: Qty ink right-aligned in the Qty field on a full 576px canvas.
 func TestHanColumnRowQtyInkInBand(t *testing.T) {
 	fontPx := bitmapTextDefaultFontPx
 	labels := []string{"001-中水", "002-冰水 500毫升", "003-冰Vitalis 750ml"}
@@ -159,20 +159,21 @@ func TestHanColumnRowQtyInkInBand(t *testing.T) {
 
 func TestHanNoteWrapUsesPixelWidth(t *testing.T) {
 	fontPx := bitmapTextDefaultFontPx
+	prefix := labelsFor("zh").itemNote
 	note := strings.Repeat("测", 40)
-	lines := wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false)
+	lines := wrapHanNoteLines(note, prefix, fontPx, false)
 	if len(lines) < 2 {
 		t.Fatal("expected multi-line note wrap")
 	}
-	w0 := measureHanTextWidth(lines[0].prefix, hanNotePrefixFontPx(fontPx), false) +
-		measureHanTextWidth(lines[0].text, fontPx, false)
+	w0 := measureHanTextWidth(lines[0].text, fontPx, false)
 	lineEnd := hanNoteLeftPx() + w0
 	if lineEnd > hanQtyColStartPx()-hanColumnGapPx() {
 		t.Fatalf("first line extends past qty band: end %d max %d", lineEnd, hanQtyColStartPx()-hanColumnGapPx())
 	}
-	prefixW := hanNotePrefixWidthPx(escposItemNotePrefix, fontPx, false)
-	if len([]rune(lines[0].text)) < 4 {
-		t.Fatalf("first line body too short (%d Han runes), regresses early wrap", len([]rune(lines[0].text)))
+	prefixW := measureHanTextWidth(prefix, fontPx, false)
+	firstBody := strings.TrimPrefix(lines[0].text, prefix)
+	if len([]rune(firstBody)) < 4 {
+		t.Fatalf("first line body too short (%d Han runes), regresses early wrap", len([]rune(firstBody)))
 	}
 	if lines[1].x <= lines[0].x {
 		t.Fatalf("continuation must hang indent past prefix: x0=%d x1=%d", lines[0].x, lines[1].x)
@@ -184,6 +185,7 @@ func TestHanNoteWrapUsesPixelWidth(t *testing.T) {
 
 func TestHanNoteEscposSingleWrapPath(t *testing.T) {
 	longNote := strings.Repeat("德萨发生发顺丰", 8)
+	prefix := labelsFor("zh").itemNote
 	payload, _ := json.Marshal(jobPayload{
 		Locale:           "zh",
 		TableDisplayName: "A-01",
@@ -196,7 +198,7 @@ func TestHanNoteEscposSingleWrapPath(t *testing.T) {
 		}},
 	})
 	fontPx := bitmapTextDefaultFontPx
-	wantLines := len(wrapHanNoteLines(longNote, escposItemNotePrefix, fontPx, false))
+	wantLines := len(wrapHanNoteLines(longNote, prefix, fontPx, false))
 	itemLines := 1
 	wantRaster := wantLines + itemLines + 1 // header row
 	raw := escposFromJob(printJob{Type: "station_ticket", Payload: payload})
@@ -240,20 +242,42 @@ func TestHanItemLabelFont34SingleLine(t *testing.T) {
 
 func TestHanNoteFont34FirstLineFitsBody(t *testing.T) {
 	fontPx := 34
+	prefix := labelsFor("zh").itemNote
 	note := strings.Repeat("不要香菜", 6)
-	lines := wrapHanNoteLines(note, escposItemNotePrefix, fontPx, false)
+	lines := wrapHanNoteLines(note, prefix, fontPx, false)
 	if len(lines) < 2 {
 		t.Fatal("expected multi-line note")
 	}
-	firstBody := lines[0].text
+	if !strings.HasPrefix(lines[0].text, prefix) {
+		t.Fatalf("first line %q missing prefix %q", lines[0].text, prefix)
+	}
+	firstBody := strings.TrimPrefix(lines[0].text, prefix)
 	if len([]rune(firstBody)) < 4 {
 		t.Fatalf("first line body too short (%q), prefix must not eat entire line width", firstBody)
 	}
-	if lines[0].prefix != escposItemNotePrefix {
-		t.Fatalf("first line prefix got %q", lines[0].prefix)
-	}
 	if lines[0].x != hanNoteLeftPx() {
 		t.Fatalf("first line x got %d want %d", lines[0].x, hanNoteLeftPx())
+	}
+}
+
+func TestItemNotePrefixFollowsLocale(t *testing.T) {
+	if got := labelsFor("zh").itemNote; got != "备注: " {
+		t.Fatalf("zh itemNote %q", got)
+	}
+	if got := labelsFor("en").itemNote; got != "Note: " {
+		t.Fatalf("en itemNote %q", got)
+	}
+	if got := labelsFor("pt").itemNote; got != "Observação: " {
+		t.Fatalf("pt itemNote %q", got)
+	}
+}
+
+func TestHanCanvasWidthIsPOS80(t *testing.T) {
+	if bitmapTextMaxWidthPx != 576 {
+		t.Fatalf("canvas width %d want 576 (POS-80)", bitmapTextMaxWidthPx)
+	}
+	if escposDisplayColToPx(1) != 12 {
+		t.Fatalf("col pitch %d want 12", escposDisplayColToPx(1))
 	}
 }
 
@@ -294,6 +318,7 @@ func TestStationSlipColumnHeaderLayout(t *testing.T) {
 
 func TestStationTicketItemNoteUsesUnderline(t *testing.T) {
 	payload, _ := json.Marshal(jobPayload{
+		Locale:           "pt",
 		TableDisplayName: "A-1",
 		Lines: []jobLine{{
 			ItemCode:    "001",
@@ -356,7 +381,7 @@ func TestStationSlipNoteMaxWidthLeftOfQty(t *testing.T) {
 
 func TestStationTicketItemNoteWrapsFullText(t *testing.T) {
 	note := "2 pacotes de acucar 1 pacote de leite em po sem canela e bem quente por favor"
-	full := escposItemNotePrefix + note
+	full := labelsFor("pt").itemNote + note
 	maxW := stationSlipNoteMaxWidth(escposWidth)
 	chunks := wrapDisplay(full, maxW)
 	if len(chunks) < 2 {

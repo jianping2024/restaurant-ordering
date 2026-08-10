@@ -32,7 +32,7 @@ func hanFontPxForRole(basePx int, role hanFontRole) int {
 	return px
 }
 
-// escposDisplayColToPx maps Font A display columns to fixed 384px canvas coordinates.
+// escposDisplayColToPx maps Font A display columns to POS-80 576-dot canvas (12 dots/col).
 func escposDisplayColToPx(col int) int {
 	if col <= 0 {
 		return 0
@@ -84,36 +84,18 @@ func hanNoteMaxPx() int {
 }
 
 type hanNoteLine struct {
-	x          int
-	text       string
-	prefix     string
-	prefixFont int // 0 → body font only (text holds full line)
+	x    int
+	text string
 }
 
-func hanNotePrefixFontPx(bodyFontPx int) int {
-	if bodyFontPx >= 28 {
-		half := bodyFontPx / 2
-		if half < bitmapTextMinFontPx {
-			return bitmapTextMinFontPx
-		}
-		return half
-	}
-	return bodyFontPx
-}
-
-func hanNotePrefixWidthPx(prefix string, fontPx int, bold bool) int {
-	return measureHanTextWidth(prefix, hanNotePrefixFontPx(fontPx), bold)
-}
-
-// wrapHanNoteLines — prefix on first line only; body wraps before Qty column; continuations hang after prefix.
+// wrapHanNoteLines — prefix on first line only (same font as body); continuations hang after prefix.
 func wrapHanNoteLines(note, prefix string, fontPx int, bold bool) []hanNoteLine {
 	note = strings.TrimSpace(note)
 	if note == "" {
 		return nil
 	}
 	leftPx := hanNoteLeftPx()
-	prefixFontPx := hanNotePrefixFontPx(fontPx)
-	prefixW := measureHanTextWidth(prefix, prefixFontPx, bold)
+	prefixW := measureHanTextWidth(prefix, fontPx, bold)
 	firstBodyMax := hanNoteMaxPx() - prefixW
 	if firstBodyMax < 1 {
 		firstBodyMax = 1
@@ -122,12 +104,7 @@ func wrapHanNoteLines(note, prefix string, fontPx int, bold bool) []hanNoteLine 
 	if len(bodyChunks) == 0 {
 		return []hanNoteLine{{x: leftPx, text: prefix + note}}
 	}
-	out := []hanNoteLine{{
-		x:          leftPx,
-		prefix:     prefix,
-		text:       bodyChunks[0],
-		prefixFont: prefixFontPx,
-	}}
+	out := []hanNoteLine{{x: leftPx, text: prefix + bodyChunks[0]}}
 	consumed := len([]rune(bodyChunks[0]))
 	noteRunes := []rune(note)
 	if consumed >= len(noteRunes) {
@@ -169,7 +146,7 @@ func hanColumnLabelMaxPx(kind hanColumnRowKind) int {
 	return max
 }
 
-// stationSlipColumnBlockUsesHanCanvas — Items/Qty block uses one 384px ruler when any line needs Han bitmap.
+// stationSlipColumnBlockUsesHanCanvas — Items/Qty block uses one 576px ruler when any line needs Han bitmap.
 func stationSlipColumnBlockUsesHanCanvas(p jobPayload, w *escposWriter) bool {
 	if w.textMode != escposTextBitmap {
 		return false
@@ -260,11 +237,6 @@ func escposHanColumnRow(left, right string, kind hanColumnRowKind, fontPx int, s
 
 func escposHanLeftRow(text string, leftPx int, fontPx int, style bitmapTextStyle) []byte {
 	img := renderBitmapLeftRow(text, leftPx, fontPx, style)
-	return escposBitmapRaster(img, style.Align)
-}
-
-func escposHanNoteRow(prefix, body string, leftPx, prefixFontPx, bodyFontPx int, style bitmapTextStyle) []byte {
-	img := renderBitmapNoteRow(prefix, body, leftPx, prefixFontPx, bodyFontPx, style)
 	return escposBitmapRaster(img, style.Align)
 }
 

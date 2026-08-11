@@ -23,7 +23,7 @@ const VO_DUR_SEC = {
   vo5: 6.22,
   vo6: 6.38,
   vo7: 7.44,
-  voProof: 7.25,
+  voProof: 7.61,
   vo8: 7.01,
   voAgent: 4.58,
 } as const;

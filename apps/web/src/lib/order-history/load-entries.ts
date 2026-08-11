@@ -28,9 +28,8 @@ import { buildSessionLifecycleSteps } from '@/lib/order-history/build-session-li
 import { collectOrderHistoryOperatorIds } from '@/lib/order-history/collect-order-history-operator-ids';
 import {
   attachTransferEventOperatorNames,
-  countTransferOutEventsForHistory,
   loadTransferEventsBySessionIds,
-  loadTransferOutEventsForHistory,
+  type TransferOutEventRow,
 } from '@/lib/order-history/load-session-transfer-events';
 import { loadSessionCollectedPaymentsForOrderHistory } from '@/lib/order-history/load-session-collected-payments';
 import { countOrderListItems } from '@/lib/order-list-display';
@@ -71,46 +70,26 @@ type TransferSourceSessionMetaRow = {
   opened_by_user_id: string | null;
 };
 
-function applyDateSessionFilters<T extends {
-  gte(column: string, value: string): T;
-  lte(column: string, value: string): T;
-}>(
-  query: T,
-  filters: Pick<OrderHistoryQuery, 'closedFrom' | 'closedTo'>,
-): T {
-  let next = query;
-  if (filters.closedFrom) {
-    next = next.gte('closed_at', orderHistoryDayStartIso(filters.closedFrom));
-  }
-  if (filters.closedTo) {
-    next = next.lte('closed_at', orderHistoryDayEndIso(filters.closedTo));
-  }
-  return next;
-}
+type OrderHistoryFeedRpcItem = {
+  kind: 'closed' | 'transfer';
+  sort_at: string;
+  session_id: string;
+  event_id: string | null;
+  payload: Record<string, unknown>;
+};
 
-function applyClosedSessionTableFilter<T extends { in(column: string, values: string[]): T }>(
-  query: T,
-  tableIds: string[],
-): T {
-  if (tableIds.length === 0) return query;
-  return query.in('table_id', tableIds);
-}
+type OrderHistoryFeedRpcPayload = {
+  total?: number;
+  items?: OrderHistoryFeedRpcItem[];
+};
 
-function applySessionFilters<T extends {
-  eq(column: string, value: string): T;
-  in(column: string, values: string[]): T;
-  gte(column: string, value: string): T;
-  lte(column: string, value: string): T;
-}>(
-  query: T,
-  filters: Pick<OrderHistoryQuery, 'tableIds' | 'closedFrom' | 'closedTo' | 'sessionId'>,
-): T {
-  if (filters.sessionId) {
-    return query.eq('id', filters.sessionId);
+export class OrderHistoryLoadError extends Error {
+  readonly code = 'order_history_load_failed' as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'OrderHistoryLoadError';
   }
-  let next = applyClosedSessionTableFilter(query, filters.tableIds);
-  next = applyDateSessionFilters(next, filters);
-  return next;
 }
 
 async function loadMenuItemCodeLookup(
@@ -220,19 +199,91 @@ async function loadTransferSourceSessionMetaById(
   return map;
 }
 
-function mergeHistoryFeed(
-  closedEntries: OrderHistoryEntry[],
-  transferSourceEntries: OrderHistoryEntry[],
-  offset: number,
-  limit: number,
-  matchingTotal: number,
-): Pick<OrderHistoryPageResult, 'items' | 'total'> {
-  const merged = [...closedEntries, ...transferSourceEntries].sort((left, right) =>
-    right.closedAt.localeCompare(left.closedAt),
-  );
+/** Sole orders loader for order-history pages — callers must pass page-sized session ids. */
+async function loadOrdersForOrderHistoryPage(
+  admin: SupabaseClient,
+  restaurantId: string,
+  sessionIds: string[],
+): Promise<Order[]> {
+  const uniqueSessionIds = Array.from(new Set(sessionIds.filter(Boolean)));
+  if (uniqueSessionIds.length === 0) return [];
 
-  const items = merged.slice(offset, offset + limit);
-  return { items, total: matchingTotal };
+  const { data, error } = await admin
+    .from('orders')
+    .select('*')
+    .eq('restaurant_id', restaurantId)
+    .in('session_id', uniqueSessionIds)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new OrderHistoryLoadError(`orders_query_failed: ${error.message}`);
+  }
+
+  return (data || []) as Order[];
+}
+
+function parseClosedSessionPayload(payload: Record<string, unknown>): ClosedSessionRow {
+  return {
+    id: String(payload.id),
+    table_id: String(payload.table_id),
+    opened_at: (payload.opened_at as string | null) ?? null,
+    closed_at: String(payload.closed_at),
+    closed_reason: (payload.closed_reason as string | null) ?? null,
+    settled_payable_amount:
+      payload.settled_payable_amount == null ? null : Number(payload.settled_payable_amount),
+    opened_by_user_id: (payload.opened_by_user_id as string | null) ?? null,
+    closed_by_user_id: (payload.closed_by_user_id as string | null) ?? null,
+    merge_into_session_id: (payload.merge_into_session_id as string | null) ?? null,
+  };
+}
+
+function parseTransferEventPayload(payload: Record<string, unknown>): TransferOutEventRow {
+  return {
+    id: String(payload.id),
+    session_id: String(payload.session_id),
+    occurred_at: String(payload.occurred_at),
+    operator_user_id: (payload.operator_user_id as string | null) ?? null,
+    from_table_id: String(payload.from_table_id),
+    to_table_id: String(payload.to_table_id),
+    from_display_name: String(payload.from_display_name ?? ''),
+    to_display_name: String(payload.to_display_name ?? ''),
+  };
+}
+
+/** Sole feed page fetch — DB union + sort + offset/limit. */
+async function fetchOrderHistoryFeedPage(
+  admin: SupabaseClient,
+  query: OrderHistoryQuery,
+  limit: number,
+): Promise<{ total: number; items: OrderHistoryFeedRpcItem[] }> {
+  const includeTransfers = !query.sessionId;
+  const { data, error } = await admin.rpc('order_history_feed_page', {
+    p_restaurant_id: query.restaurantId,
+    p_closed_from: query.closedFrom ? orderHistoryDayStartIso(query.closedFrom) : null,
+    p_closed_to: query.closedTo ? orderHistoryDayEndIso(query.closedTo) : null,
+    p_table_ids: query.tableIds.length > 0 ? query.tableIds : null,
+    p_session_id: query.sessionId ?? null,
+    p_include_transfers: includeTransfers,
+    p_offset: query.offset,
+    p_limit: limit,
+  });
+
+  if (error) {
+    throw new OrderHistoryLoadError(`feed_page_rpc_failed: ${error.message}`);
+  }
+
+  const payload = (data || {}) as OrderHistoryFeedRpcPayload;
+  const items = Array.isArray(payload.items) ? payload.items : [];
+  return {
+    total: Number(payload.total) || 0,
+    items: items.filter(
+      (item): item is OrderHistoryFeedRpcItem =>
+        !!item &&
+        (item.kind === 'closed' || item.kind === 'transfer') &&
+        !!item.payload &&
+        typeof item.payload === 'object',
+    ),
+  };
 }
 
 const EMPTY_PAGE: OrderHistoryPageResult = {
@@ -245,105 +296,55 @@ export async function loadOrderHistoryEntries(
   admin: SupabaseClient,
   query: OrderHistoryQuery,
 ): Promise<OrderHistoryPageResult> {
-  const limit = Math.max(1, query.limit);
-  if (limit <= 0 || query.offset < 0) {
+  const limit = Math.max(1, Math.min(query.limit, 50));
+  if (query.offset < 0) {
     return EMPTY_PAGE;
   }
 
-  const eventFilters = {
-    tableIds: query.tableIds,
-    closedFrom: query.closedFrom,
-    closedTo: query.closedTo,
-  };
-
-  const includeTransferSourceRows = !query.sessionId;
-
-  let countQuery = admin
-    .from('table_sessions')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', query.restaurantId)
-    .eq('status', 'closed');
-
-  countQuery = applySessionFilters(countQuery, query);
-
-  const [closedCountResult, transferOutCount] = await Promise.all([
-    countQuery,
-    includeTransferSourceRows
-      ? countTransferOutEventsForHistory(admin, query.restaurantId, eventFilters)
-      : Promise.resolve(0),
-  ]);
-
-  const { count, error: countError } = closedCountResult;
-  if (countError) {
+  const feed = await fetchOrderHistoryFeedPage(admin, query, limit);
+  if (feed.total === 0) {
     return EMPTY_PAGE;
   }
-
-  const matchingTotal = (count ?? 0) + transferOutCount;
-  if (query.offset > 0 && query.offset >= matchingTotal) {
-    return { ...EMPTY_PAGE, total: matchingTotal };
+  if (query.offset > 0 && query.offset >= feed.total) {
+    return { ...EMPTY_PAGE, total: feed.total };
+  }
+  if (feed.items.length === 0) {
+    return { ...EMPTY_PAGE, total: feed.total };
   }
 
-  let sessionQuery = admin
-    .from('table_sessions')
-    .select(
-      'id, table_id, opened_at, closed_at, closed_reason, settled_payable_amount, opened_by_user_id, closed_by_user_id, merge_into_session_id',
-    )
-    .eq('restaurant_id', query.restaurantId)
-    .eq('status', 'closed')
-    .order('closed_at', { ascending: false });
-
-  sessionQuery = applySessionFilters(sessionQuery, query);
-
-  const [sessionResult, transferOutEvents] = await Promise.all([
-    sessionQuery,
-    includeTransferSourceRows
-      ? loadTransferOutEventsForHistory(admin, query.restaurantId, eventFilters)
-      : Promise.resolve([]),
-  ]);
-
-  const { data: sessionRows, error: sessionError } = sessionResult;
-  if (sessionError) {
-    return EMPTY_PAGE;
+  const pageClosedSessions: ClosedSessionRow[] = [];
+  const pageTransferEvents: TransferOutEventRow[] = [];
+  for (const item of feed.items) {
+    if (item.kind === 'closed') {
+      pageClosedSessions.push(parseClosedSessionPayload(item.payload));
+    } else {
+      pageTransferEvents.push(parseTransferEventPayload(item.payload));
+    }
   }
-
-  const sessions = (sessionRows || []) as ClosedSessionRow[];
-  const sessionIds = sessions.map((session) => session.id);
+  const pageClosedSessionIds = pageClosedSessions.map((session) => session.id);
 
   const continuedSessionIds = Array.from(
     new Set([
-      ...sessions
+      ...pageClosedSessions
         .map((session) => session.merge_into_session_id)
         .filter((id): id is string => !!id),
-      ...transferOutEvents.map((event) => event.session_id),
+      ...pageTransferEvents.map((event) => event.session_id),
     ]),
   );
 
-  const transferMetaBySessionId = includeTransferSourceRows
-    ? await loadTransferSourceSessionMetaById(
-        admin,
-        query.restaurantId,
-        transferOutEvents.map((event) => event.session_id),
-      )
-    : new Map<string, TransferSourceSessionMetaRow>();
+  const [orderRows, transferMetaBySessionId] = await Promise.all([
+    loadOrdersForOrderHistoryPage(admin, query.restaurantId, pageClosedSessionIds),
+    pageTransferEvents.length > 0
+      ? loadTransferSourceSessionMetaById(
+          admin,
+          query.restaurantId,
+          pageTransferEvents.map((event) => event.session_id),
+        )
+      : Promise.resolve(new Map<string, TransferSourceSessionMetaRow>()),
+  ]);
 
-  const { data: orderRows, error: ordersError } =
-    sessionIds.length === 0
-      ? { data: [] as Order[], error: null }
-      : await admin
-          .from('orders')
-          .select('*')
-          .eq('restaurant_id', query.restaurantId)
-          .in('session_id', sessionIds)
-          .order('created_at', { ascending: true });
-
-  if (ordersError) {
-    return EMPTY_PAGE;
-  }
-
-  const ordersBySession = groupOrdersBySession((orderRows || []) as Order[]);
-  const allSessionOrders = (orderRows || []) as Order[];
-
-  const mergeTargetSessionIds = sessions
+  const ordersBySession = groupOrdersBySession(orderRows);
+  const mergeTargetSessionIds = pageClosedSessions
     .map((session) => session.merge_into_session_id)
     .filter((id): id is string => !!id);
 
@@ -357,17 +358,17 @@ export async function loadOrderHistoryEntries(
     transferEventsBySession,
     continuedSessionById,
   ] = await Promise.all([
-    loadBillSplitsForOrderHistory(admin, query.restaurantId, sessionIds),
-    loadSessionCollectedPaymentsForOrderHistory(admin, query.restaurantId, sessionIds),
-    loadForcedUnpaidCloseAnnotations(admin, query.restaurantId, sessionIds),
-    loadMenuItemCodeLookup(admin, query.restaurantId, allSessionOrders),
+    loadBillSplitsForOrderHistory(admin, query.restaurantId, pageClosedSessionIds),
+    loadSessionCollectedPaymentsForOrderHistory(admin, query.restaurantId, pageClosedSessionIds),
+    loadForcedUnpaidCloseAnnotations(admin, query.restaurantId, pageClosedSessionIds),
+    loadMenuItemCodeLookup(admin, query.restaurantId, orderRows),
     loadMergeTargetSessionsById(admin, query.restaurantId, mergeTargetSessionIds),
-    loadMergeSourceSessionsByTargetId(admin, query.restaurantId, sessionIds),
-    loadTransferEventsBySessionIds(admin, query.restaurantId, sessionIds),
+    loadMergeSourceSessionsByTargetId(admin, query.restaurantId, pageClosedSessionIds),
+    loadTransferEventsBySessionIds(admin, query.restaurantId, pageClosedSessionIds),
     loadMergeTargetSessionsById(admin, query.restaurantId, continuedSessionIds),
   ]);
 
-  const transferTableIds = transferOutEvents.flatMap((event) => [
+  const transferTableIds = pageTransferEvents.flatMap((event) => [
     event.from_table_id,
     event.to_table_id,
   ]);
@@ -376,17 +377,17 @@ export async function loadOrderHistoryEntries(
     admin,
     query.restaurantId,
     [
-      ...collectOrderHistoryTableIds(sessions, mergeTargetById, mergeSourcesByTargetId),
+      ...collectOrderHistoryTableIds(pageClosedSessions, mergeTargetById, mergeSourcesByTargetId),
       ...transferTableIds,
     ],
   );
 
   const operatorIds = collectOrderHistoryOperatorIds(
-    sessions,
+    pageClosedSessions,
     mergeSourcesByTargetId,
     transferEventsBySession,
   );
-  for (const event of transferOutEvents) {
+  for (const event of pageTransferEvents) {
     if (event.operator_user_id) operatorIds.push(event.operator_user_id);
     const meta = transferMetaBySessionId.get(event.session_id);
     if (meta?.opened_by_user_id) operatorIds.push(meta.opened_by_user_id);
@@ -400,7 +401,28 @@ export async function loadOrderHistoryEntries(
   });
   attachTransferEventOperatorNames(transferEventsBySession, operatorNames);
 
-  const closedEntries = sessions.map((session) => {
+  const closedById = new Map(pageClosedSessions.map((session) => [session.id, session]));
+  const transferByEventId = new Map(pageTransferEvents.map((event) => [event.id, event]));
+
+  const items: OrderHistoryEntry[] = feed.items.map((item) => {
+    if (item.kind === 'transfer') {
+      const event = transferByEventId.get(String(item.event_id ?? item.payload.id));
+      if (!event) {
+        throw new OrderHistoryLoadError('transfer_payload_missing');
+      }
+      return buildTransferredSourceEntry(
+        event,
+        transferMetaBySessionId.get(event.session_id),
+        tableDisplayById,
+        continuedSessionById,
+        operatorNames,
+      );
+    }
+
+    const session = closedById.get(String(item.session_id ?? item.payload.id));
+    if (!session) {
+      throw new OrderHistoryLoadError('closed_payload_missing');
+    }
     const sessionOrders = ordersBySession.get(session.id) || [];
     const billSplit = billSplitBySessionId[session.id];
     const collectedPayments = collectedPaymentsBySession.get(session.id) ?? [];
@@ -430,27 +452,7 @@ export async function loadOrderHistoryEntries(
     );
   });
 
-  const transferSourceEntries = includeTransferSourceRows
-    ? transferOutEvents.map((event) =>
-        buildTransferredSourceEntry(
-          event,
-          transferMetaBySessionId.get(event.session_id),
-          tableDisplayById,
-          continuedSessionById,
-          operatorNames,
-        ),
-      )
-    : [];
-
-  const { items, total } = mergeHistoryFeed(
-    closedEntries,
-    transferSourceEntries,
-    query.offset,
-    limit,
-    matchingTotal,
-  );
-
-  return { items, total, itemCodeByMenuId };
+  return { items, total: feed.total, itemCodeByMenuId };
 }
 
 export function defaultOrderHistoryQuery(

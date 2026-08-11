@@ -1,8 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {
-  orderHistoryDayEndIso,
-  orderHistoryDayStartIso,
-} from '@/lib/order-history/date-range';
 import type { OrderHistoryTransferEvent } from '@/lib/order-history/types';
 
 export type TransferOutEventRow = {
@@ -17,81 +13,6 @@ export type TransferOutEventRow = {
 };
 
 type TransferEventRow = TransferOutEventRow;
-
-type TransferOutEventFilters = {
-  tableIds: string[];
-  closedFrom?: string;
-  closedTo?: string;
-};
-
-function applyTransferOutEventFilters<T extends {
-  in(column: string, values: string[]): T;
-  gte(column: string, value: string): T;
-  lte(column: string, value: string): T;
-}>(
-  query: T,
-  filters: TransferOutEventFilters,
-): T {
-  let next = query;
-  if (filters.tableIds.length > 0) {
-    next = next.in('from_table_id', filters.tableIds);
-  }
-  if (filters.closedFrom) {
-    next = next.gte('occurred_at', orderHistoryDayStartIso(filters.closedFrom));
-  }
-  if (filters.closedTo) {
-    next = next.lte('occurred_at', orderHistoryDayEndIso(filters.closedTo));
-  }
-  return next;
-}
-
-/** Transfer-out events for source-table history rows. Fail-soft on error. */
-export async function loadTransferOutEventsForHistory(
-  admin: SupabaseClient,
-  restaurantId: string,
-  filters: TransferOutEventFilters,
-): Promise<TransferOutEventRow[]> {
-  let dataQuery = admin
-    .from('table_session_events')
-    .select(
-      'id, session_id, occurred_at, operator_user_id, from_table_id, to_table_id, from_display_name, to_display_name',
-    )
-    .eq('restaurant_id', restaurantId)
-    .eq('event_type', 'transfer')
-    .order('occurred_at', { ascending: false });
-
-  dataQuery = applyTransferOutEventFilters(dataQuery, filters);
-
-  const { data, error } = await dataQuery;
-
-  if (error) {
-    console.error('[order-history] transfer-out events load failed', error.message);
-    return [];
-  }
-
-  return (data || []) as TransferOutEventRow[];
-}
-
-export async function countTransferOutEventsForHistory(
-  admin: SupabaseClient,
-  restaurantId: string,
-  filters: TransferOutEventFilters,
-): Promise<number> {
-  let query = admin
-    .from('table_session_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('restaurant_id', restaurantId)
-    .eq('event_type', 'transfer');
-
-  query = applyTransferOutEventFilters(query, filters);
-
-  const { count, error } = await query;
-  if (error) {
-    console.error('[order-history] transfer-out count failed', error.message);
-    return 0;
-  }
-  return count ?? 0;
-}
 
 /** Transfer events for billing session lifecycle (mid-meal moves). Fail-soft on error. */
 export async function loadTransferEventsBySessionIds(

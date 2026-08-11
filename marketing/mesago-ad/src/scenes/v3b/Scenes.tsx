@@ -164,7 +164,7 @@ const V3bS09EndImpl: React.FC<
       >
         专业餐厅点餐系统解决方案服务商
         <br />
-        大型自助 · 寿司自助 · 小餐馆，均可安装落地
+        大型自助 · 寿司自助 · 小餐馆，均可安装使用
       </Interactive.Div>
 
       {/* Phase A — product pillars + demo CTA */}

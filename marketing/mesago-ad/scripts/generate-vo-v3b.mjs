@@ -31,7 +31,7 @@ const tracks = [
   },
   {
     file: "v3b-08-proof-classic-sushi.mp3",
-    text: "我们是专业的餐厅点餐系统服务商。大型自助已有门店落地，小餐馆同样可以安装使用。",
+    text: "我们是专业的餐厅点餐系统服务商。已有大型自助餐厅在稳定使用，小餐馆同样可以安装。",
   },
   {
     file: "v3b-09-end-classic-sushi.mp3",

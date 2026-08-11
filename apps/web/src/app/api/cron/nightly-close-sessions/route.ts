@@ -4,7 +4,6 @@ import {
   shouldRunNightlyAutoClose,
 } from '@/lib/auto-close-active-sessions';
 import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
-import { isOperationLogsHostEnabled } from '@/lib/operation-logs/access';
 import { purgeExpiredOperationLogs } from '@/lib/operation-logs/purge-expired-operation-logs';
 import { executeNightlyAutoClose } from '@/lib/run-nightly-auto-close';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -38,8 +37,27 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: 'invalid_policy' }, { status: 400 });
   }
 
+  let purgedOperationLogs = 0;
+  try {
+    const admin = createAdminClient();
+    const { deletedCount, error: purgeError } = await purgeExpiredOperationLogs(admin);
+    if (purgeError) {
+      console.error('[mesa nightly-auto-close] purge expired operation logs failed:', purgeError);
+    } else {
+      purgedOperationLogs = deletedCount;
+    }
+  } catch (e) {
+    console.error('[mesa nightly-auto-close] purge expired operation logs failed:', e);
+  }
+
   if (!shouldRunNightlyAutoClose({ policy })) {
-    return NextResponse.json({ ok: true, skipped: true, reason: 'not_due', policy });
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: 'not_due',
+      policy,
+      purgedOperationLogs,
+    });
   }
 
   try {
@@ -47,16 +65,6 @@ export async function GET(req: Request) {
     const { expiredCount, error: expireError } = await expireStalePrintJobs(admin);
     if (expireError) {
       console.error('[mesa nightly-auto-close] expire stale print jobs failed:', expireError);
-    }
-
-    let purgedOperationLogs = 0;
-    if (isOperationLogsHostEnabled()) {
-      const { deletedCount, error: purgeError } = await purgeExpiredOperationLogs(admin);
-      if (purgeError) {
-        console.error('[mesa nightly-auto-close] purge expired operation logs failed:', purgeError);
-      } else {
-        purgedOperationLogs = deletedCount;
-      }
     }
 
     const { closedCount, dateKey } = await executeNightlyAutoClose();

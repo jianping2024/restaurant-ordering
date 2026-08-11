@@ -510,13 +510,13 @@
 
 - 记录：开台、改人数、关台、强制关台、转台、并台、同行组、呼叫结账、确认收款、加菜、减菜、备餐、备餐补打、上桌
 - 写入：`scheduleRecordAudit` / `scheduleStaffRecordAudit` → `operation_logs`（异步 fail-open，不挡主流程）
-- 查询：日期窗（7 天，含首尾）+ `action_type` 筛选；侧栏「操作记录」；默认近 7 天
-- 保留：仅保留最近 7 个日历日；夜间 cron 清理更早的 `operation_logs` 行
+- 查询：日期窗（默认近 7 天，可配置 7–90 天）+ `action_type` 筛选；侧栏「操作记录」；Cloud 与 on-prem 均可用
+- 保留：`restaurants.operation_log_retention_days`（默认 7）；`resolveOperationLogRetentionDays` 统一驱动查询窗、日期选择与夜间 purge；现有 Vercel cron `/api/cron/nightly-close-sessions` 在 auto-close 门控之前执行 purge
 
 ### 业务边界
 
-- **仅 on-prem**（`MESA_ON_PREM=1`）：Cloud SaaS 默认不展示操作记录页/API/导航；门控唯一入口 `isOperationLogsHostEnabled()`
-- 权限：`dashboard.operation_logs.view`（默认前台 + 店主，角色可配置；on-prem 角色编辑器可见）
+- 权限：`dashboard.operation_logs.view`（默认前台 + 店主，角色可配置）
+- 配置：`settings.features.manage` → 功能管理「日志保留天数」（7–90，默认 7）
 - 顾客发起的呼叫结账不记（仅员工）
 - 顾客自助加菜不记；仅 `waiter_flow` 员工加菜记 `ORDER_APPENDED`（每批一条）
 - 楼面减菜记 `ITEM_QTY_DECREMENTED`（含减到 0），不进异常队列
@@ -531,7 +531,7 @@
 | 页面 | `apps/web/src/app/dashboard/operation-logs/page.tsx` |
 | UI | `apps/web/src/components/dashboard/OperationLogsManager.tsx` |
 | API | `apps/web/src/app/api/dashboard/operation-logs/route.ts` |
-| Lib | `apps/web/src/lib/operation-logs/*`（含 `access.ts` 主机门控）、`lib/audit/schedule-record-audit.ts`、`lib/audit/builders/staff-operations.ts` |
+| Lib | `apps/web/src/lib/operation-logs/*`（含 `retention-days.ts`）、`lib/audit/schedule-record-audit.ts`、`lib/audit/builders/staff-operations.ts` |
 
 ---
 

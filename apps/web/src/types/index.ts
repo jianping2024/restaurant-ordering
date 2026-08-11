@@ -75,6 +75,8 @@ export interface Restaurant {
   order_radius_meters?: number;
   /** Min seconds between two customer add-to-cart submissions; default 5. */
   order_cooldown_seconds?: number;
+  /** Operation log retention in calendar days; default 7, range 7-90. */
+  operation_log_retention_days?: number;
   plan: Plan;
   /** bcrypt hash; never send to browser */
   kitchen_password?: string;

@@ -171,16 +171,6 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
   },
 ];
 
-/** Role editor tree — omit operation logs off on-prem hosts. */
-export function rolePermissionPageTreeForHost(
-  operationLogsHostEnabled: boolean,
-): readonly PermissionTreeNode[] {
-  if (operationLogsHostEnabled) return ROLE_PERMISSION_PAGE_TREE;
-  return ROLE_PERMISSION_PAGE_TREE.filter(
-    (node) => node.permission !== NAV_PERMISSION.operationLogs,
-  );
-}
-
 /** Flatten tree permissions in DFS order. */
 export function flattenPermissionTreeKeys(
   nodes: readonly PermissionTreeNode[] = ROLE_PERMISSION_PAGE_TREE,

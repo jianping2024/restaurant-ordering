@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { KitchenScreensHome } from '@/components/kitchen/KitchenScreensHome';
 import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
-import { isOperationLogsHostEnabled } from '@/lib/operation-logs/access';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -63,7 +62,6 @@ export default async function KitchenPage({ params }: Props) {
     <KitchenScreensHome
       restaurant={{ ...restaurant, feature_flags }}
       capabilities={capabilities}
-      operationLogsHostEnabled={isOperationLogsHostEnabled()}
       asOwner={access.as_owner}
       screens={screens}
     />

@@ -6,10 +6,6 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { showToast } from '@/components/ui/Toast';
-import {
-  OPERATION_LOG_MAX_LOOKBACK_DAYS,
-  OPERATION_LOG_MAX_RANGE_DAYS,
-} from '@/lib/operation-logs/date-range';
 import { OPERATION_LOG_ACTION_TYPES, type OperationLogActionType } from '@/lib/audit/types';
 import {
   addCalendarDays,
@@ -36,8 +32,8 @@ type Filters = {
 
 type DatePreset = 'today' | 'last7';
 
-const DEFAULT_FILTERS = (today: string): Filters => ({
-  startDate: addCalendarDays(today, -(OPERATION_LOG_MAX_RANGE_DAYS - 1)),
+const DEFAULT_FILTERS = (today: string, retentionDays: number): Filters => ({
+  startDate: addCalendarDays(today, -(retentionDays - 1)),
   endDate: today,
   actionType: '',
 });
@@ -61,9 +57,10 @@ const PRESET_BTN_BASE =
 
 type Props = {
   restaurantId: string;
+  retentionDays: number;
 };
 
-export function OperationLogsManager({ restaurantId }: Props) {
+export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const t = messages.operationLogs;
@@ -109,7 +106,7 @@ export function OperationLogsManager({ restaurantId }: Props) {
     setPageSize,
     refresh,
   } = useDashboardListQuery<Filters, OperationLogsListResult>({
-    initialFilters: DEFAULT_FILTERS(today),
+    initialFilters: DEFAULT_FILTERS(today, retentionDays),
     fetchList,
     cache: {
       scope: 'operation-logs',
@@ -161,11 +158,11 @@ export function OperationLogsManager({ restaurantId }: Props) {
     }`;
 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / query.pageSize));
-  const lookbackMin = addCalendarDays(today, -(OPERATION_LOG_MAX_LOOKBACK_DAYS - 1));
-  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(OPERATION_LOG_MAX_RANGE_DAYS - 1));
+  const lookbackMin = addCalendarDays(today, -(retentionDays - 1));
+  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(retentionDays - 1));
   const startMin = startMinByEnd > lookbackMin ? startMinByEnd : lookbackMin;
   const startMax = draftFilters.endDate < today ? draftFilters.endDate : today;
-  const endMaxByStart = addCalendarDays(draftFilters.startDate, OPERATION_LOG_MAX_RANGE_DAYS - 1);
+  const endMaxByStart = addCalendarDays(draftFilters.startDate, retentionDays - 1);
   const endMax = endMaxByStart < today ? endMaxByStart : today;
   const showInitialLoading = loading && !data;
   const tableBusy = loading && !!data;

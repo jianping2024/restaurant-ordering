@@ -23,7 +23,6 @@ type Props = {
   shellMode: DashboardShellMode;
   roleLabel?: string;
   capabilities: CapabilitiesPayload;
-  operationLogsHostEnabled: boolean;
 };
 
 export function DashboardTopBar({
@@ -31,7 +30,6 @@ export function DashboardTopBar({
   shellMode,
   roleLabel,
   capabilities,
-  operationLogsHostEnabled,
 }: Props) {
   const { lang } = useLanguage();
   const navT = getMessages(lang).nav;
@@ -40,7 +38,6 @@ export function DashboardTopBar({
     shellMode,
     capabilities,
     restaurantSlug: restaurant.slug,
-    operationLogsHostEnabled,
   });
   const [openPanel, setOpenPanel] = useState<TopBarPanel>('none');
 

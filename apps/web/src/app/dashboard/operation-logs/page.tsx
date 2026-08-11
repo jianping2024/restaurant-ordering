@@ -9,5 +9,5 @@ export default async function OperationLogsPage() {
     redirect('/dashboard');
   }
 
-  return <OperationLogsManager restaurantId={ctx.restaurantId} />;
+  return <OperationLogsManager restaurantId={ctx.restaurantId} retentionDays={ctx.retentionDays} />;
 }

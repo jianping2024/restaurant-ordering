@@ -14,6 +14,7 @@ export default async function SettingsFeaturesPage() {
       initialStationSlipShowCategoryGroup={data.stationSlipShowCategoryGroup}
       initialHanBitmapFontPx={data.hanBitmapFontPx}
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
+      initialOperationLogRetentionDays={data.operationLogRetentionDays}
       initialPrintLocale={data.printLocale}
     />
   );

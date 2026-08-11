@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import {
+  OPERATION_LOG_RETENTION_DAYS_MAX,
+  OPERATION_LOG_RETENTION_DAYS_MIN,
+  resolveOperationLogRetentionDays,
+} from '@/lib/operation-logs/retention-days';
+import {
   mergeRestaurantFeatureFlagsJsonb,
   normalizeRestaurantFeatureFlags,
   parseFeatureFlagsPatch,
@@ -29,6 +34,7 @@ function featureSettingsResponse(input: {
   featureFlags: unknown;
   printAgentConfig: unknown;
   orderCooldownSeconds: unknown;
+  operationLogRetentionDays: unknown;
   printLocale: string | null | undefined;
 }) {
   return {
@@ -43,6 +49,7 @@ function featureSettingsResponse(input: {
         Number(input.orderCooldownSeconds ?? ORDER_COOLDOWN_SECONDS_MIN),
       ),
     ),
+    operationLogRetentionDays: resolveOperationLogRetentionDays(input.operationLogRetentionDays),
     printLocale: normalizePrintLocale(input.printLocale),
   };
 }
@@ -74,6 +81,26 @@ function parseOrderCooldownSecondsPatch(body: unknown): number | undefined | nul
   return rounded;
 }
 
+function parseOperationLogRetentionDaysPatch(body: unknown): number | undefined | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
+  const raw = (body as Record<string, unknown>).operationLogRetentionDays;
+  if (raw === undefined) return undefined;
+
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return null;
+
+  const rounded = Math.round(n);
+  if (
+    rounded < OPERATION_LOG_RETENTION_DAYS_MIN ||
+    rounded > OPERATION_LOG_RETENTION_DAYS_MAX ||
+    !Number.isInteger(rounded)
+  ) {
+    return null;
+  }
+
+  return rounded;
+}
+
 export async function GET() {
   const permission: PermissionKey = 'settings.features.manage';
   const auth = await requirePermission(permission);
@@ -88,7 +115,7 @@ export async function GET() {
 
   const { data, error } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds, print_locale')
+    .select('feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale')
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -104,6 +131,7 @@ export async function GET() {
       featureFlags: data?.feature_flags,
       printAgentConfig: data?.print_agent_config,
       orderCooldownSeconds: data?.order_cooldown_seconds,
+      operationLogRetentionDays: data?.operation_log_retention_days,
       printLocale: data?.print_locale,
     }),
   );
@@ -126,6 +154,7 @@ export async function PATCH(req: Request) {
   const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
   const hanBitmapFontPx = parseHanBitmapFontPxPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
+  const operationLogRetentionDays = parseOperationLogRetentionDaysPatch(body);
   const printLocale = parsePrintLocalePatch(body);
   if (
     !patch &&
@@ -133,6 +162,7 @@ export async function PATCH(req: Request) {
     stationSlipShowCategoryGroup === undefined &&
     hanBitmapFontPx === undefined &&
     orderCooldownSeconds === undefined &&
+    operationLogRetentionDays === undefined &&
     printLocale === undefined
   ) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
@@ -149,6 +179,9 @@ export async function PATCH(req: Request) {
   if (orderCooldownSeconds === null) {
     return NextResponse.json({ error: 'invalid_order_cooldown_seconds' }, { status: 400 });
   }
+  if (operationLogRetentionDays === null) {
+    return NextResponse.json({ error: 'invalid_operation_log_retention_days' }, { status: 400 });
+  }
   if (printLocale === null) {
     return NextResponse.json({ error: 'invalid_print_locale' }, { status: 400 });
   }
@@ -162,7 +195,7 @@ export async function PATCH(req: Request) {
 
   const { data: row, error: readError } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds, print_locale, suspended_at')
+    .select('feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, suspended_at')
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -199,6 +232,7 @@ export async function PATCH(req: Request) {
     feature_flags?: Record<string, unknown>;
     print_agent_config?: unknown;
     order_cooldown_seconds?: number;
+    operation_log_retention_days?: number;
     print_locale?: 'pt' | 'en' | 'zh';
   } = {};
   if (patch) {
@@ -207,6 +241,9 @@ export async function PATCH(req: Request) {
   if (nextConfig) updatePayload.print_agent_config = nextConfig;
   if (orderCooldownSeconds !== undefined) {
     updatePayload.order_cooldown_seconds = orderCooldownSeconds;
+  }
+  if (operationLogRetentionDays !== undefined) {
+    updatePayload.operation_log_retention_days = operationLogRetentionDays;
   }
   if (printLocale !== undefined && printLocale !== null) {
     updatePayload.print_locale = printLocale;
@@ -227,6 +264,9 @@ export async function PATCH(req: Request) {
   const nextOrderCooldownSeconds =
     orderCooldownSeconds ??
     Number(row?.order_cooldown_seconds ?? ORDER_COOLDOWN_SECONDS_MIN);
+  const nextOperationLogRetentionDays = resolveOperationLogRetentionDays(
+    operationLogRetentionDays ?? row?.operation_log_retention_days,
+  );
 
   return NextResponse.json({
     ok: true,
@@ -234,6 +274,7 @@ export async function PATCH(req: Request) {
       featureFlags: nextFlags,
       printAgentConfig: nextConfig ?? row?.print_agent_config,
       orderCooldownSeconds: nextOrderCooldownSeconds,
+      operationLogRetentionDays: nextOperationLogRetentionDays,
       printLocale: printLocale ?? row?.print_locale,
     }),
   });

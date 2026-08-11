@@ -18,6 +18,7 @@ import { isDbMigrationRequiredError } from '@/lib/db-migration-error';
 import { requirePermission } from '@/lib/permissions/require';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isRestaurantSuspended } from '@mesa/shared';
+import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
 
 async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Restaurant> {
   let admin;
@@ -96,6 +97,7 @@ export type FeatureSettingsPageData = {
   stationSlipShowCategoryGroup: boolean;
   hanBitmapFontPx: number;
   orderCooldownSeconds: number;
+  operationLogRetentionDays: number;
   printLocale: PrintLocale;
 };
 
@@ -108,7 +110,7 @@ export async function loadFeatureSettingsPageData(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('restaurants')
-    .select('print_agent_config, order_cooldown_seconds')
+    .select('print_agent_config, order_cooldown_seconds, operation_log_retention_days')
     .eq('id', restaurantId)
     .single();
 
@@ -116,6 +118,9 @@ export async function loadFeatureSettingsPageData(
   const orderCooldownSeconds = !isMigrationRequired
     ? Number(data?.order_cooldown_seconds ?? 5)
     : 5;
+  const operationLogRetentionDays = !isMigrationRequired
+    ? resolveOperationLogRetentionDays(data?.operation_log_retention_days)
+    : resolveOperationLogRetentionDays(undefined);
 
   return {
     flags: normalizeRestaurantFeatureFlags(featureFlags),
@@ -123,6 +128,7 @@ export async function loadFeatureSettingsPageData(
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
     hanBitmapFontPx: hanBitmapFontPxFromConfig(data?.print_agent_config),
     orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
+    operationLogRetentionDays,
     printLocale: normalizePrintLocale(printLocale),
   };
 }

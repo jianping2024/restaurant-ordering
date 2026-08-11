@@ -5,9 +5,8 @@ import {
   assertPermissionPageTreeCoversRegistry,
   flattenPermissionTreeKeys,
   resolvePermissionTreeLabel,
-  rolePermissionPageTreeForHost,
 } from '@/lib/permissions/permission-page-tree';
-import { ALL_PERMISSION_KEYS, NAV_PERMISSION } from '@/lib/permissions/registry';
+import { ALL_PERMISSION_KEYS } from '@/lib/permissions/registry';
 import { settingsPermissionChildren } from '@/lib/permissions/role-permission-set';
 import { SETTINGS_NAV_TABS } from '@/lib/settings-nav';
 
@@ -68,16 +67,5 @@ describe('ROLE_PERMISSION_PAGE_TREE', () => {
     assert.equal(zh, '厨房看板');
     const labels = ROLE_PERMISSION_PAGE_TREE.map((n) => resolvePermissionTreeLabel(n.label, 'zh'));
     assert.equal(labels.filter((l) => l === '厨房看板').length, 1);
-  });
-});
-
-describe('rolePermissionPageTreeForHost', () => {
-  it('drops operation logs permission off on-prem hosts', () => {
-    const cloudTree = rolePermissionPageTreeForHost(false);
-    assert.equal(
-      cloudTree.some((n) => n.permission === NAV_PERMISSION.operationLogs),
-      false,
-    );
-    assert.equal(rolePermissionPageTreeForHost(true), ROLE_PERMISSION_PAGE_TREE);
   });
 });

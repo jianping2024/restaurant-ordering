@@ -9,6 +9,7 @@ import type { OperationLogRow } from '@/lib/operation-logs/types';
 
 export type OperationLogsListFilters = {
   restaurantId: string;
+  retentionDays: number;
   startDate?: string;
   endDate?: string;
   actionType?: OperationLogActionType;
@@ -16,6 +17,8 @@ export type OperationLogsListFilters = {
   pageSize?: number;
   now?: Date;
 };
+
+export type OperationLogsListQueryParams = Omit<OperationLogsListFilters, 'retentionDays'>;
 
 export type OperationLogsListResult = {
   items: OperationLogRow[];
@@ -35,6 +38,7 @@ export async function listOperationLogs(
     startDate: filters.startDate,
     endDate: filters.endDate,
     now: filters.now,
+    retentionDays: filters.retentionDays,
   });
   if (!parsed.ok) {
     return { ok: false, code: 'invalid_date_range' };

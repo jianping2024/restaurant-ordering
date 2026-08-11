@@ -22,7 +22,6 @@ type Props = {
     feature_flags?: Record<string, unknown> | null;
   };
   capabilities: CapabilitiesPayload;
-  operationLogsHostEnabled: boolean;
   asOwner?: boolean;
   screens: KitchenScreen[];
 };
@@ -42,7 +41,6 @@ export function KitchenScreensHome(props: Props) {
 function KitchenScreensHomeInner({
   restaurant,
   capabilities,
-  operationLogsHostEnabled,
   asOwner = false,
   screens,
   handleSignOut,
@@ -57,7 +55,6 @@ function KitchenScreensHomeInner({
     shellMode: 'staff',
     capabilities,
     restaurantSlug: restaurant.slug,
-    operationLogsHostEnabled,
   });
   const logoHref = dashboardLogoHref(restaurant.slug, capabilities);
 

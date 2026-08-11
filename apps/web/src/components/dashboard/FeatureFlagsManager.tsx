@@ -17,6 +17,10 @@ import {
   HAN_BITMAP_FONT_PX_MAX,
   HAN_BITMAP_FONT_PX_MIN,
 } from '@/lib/print-agent-config';
+import {
+  OPERATION_LOG_RETENTION_DAYS_MAX,
+  OPERATION_LOG_RETENTION_DAYS_MIN,
+} from '@/lib/operation-logs/retention-days';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
 const FEATURES_CONTROL_SURFACE =
@@ -33,6 +37,7 @@ type Props = {
   initialStationSlipShowCategoryGroup: boolean;
   initialHanBitmapFontPx: number;
   initialOrderCooldownSeconds: number;
+  initialOperationLogRetentionDays: number;
   initialPrintLocale: PrintLocale;
 };
 
@@ -43,6 +48,7 @@ export function FeatureFlagsManager({
   initialStationSlipShowCategoryGroup,
   initialHanBitmapFontPx,
   initialOrderCooldownSeconds,
+  initialOperationLogRetentionDays,
   initialPrintLocale,
 }: Props) {
   const router = useRouter();
@@ -55,6 +61,9 @@ export function FeatureFlagsManager({
   );
   const [hanBitmapFontPx, setHanBitmapFontPx] = useState(initialHanBitmapFontPx);
   const [orderCooldownSeconds, setOrderCooldownSeconds] = useState(initialOrderCooldownSeconds);
+  const [operationLogRetentionDays, setOperationLogRetentionDays] = useState(
+    initialOperationLogRetentionDays,
+  );
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -75,6 +84,7 @@ export function FeatureFlagsManager({
           stationSlipShowCategoryGroup,
           hanBitmapFontPx,
           orderCooldownSeconds,
+          operationLogRetentionDays,
           printLocale,
         }),
       });
@@ -86,6 +96,7 @@ export function FeatureFlagsManager({
         stationSlipShowCategoryGroup?: boolean;
         hanBitmapFontPx?: number;
         orderCooldownSeconds?: number;
+        operationLogRetentionDays?: number;
         printLocale?: PrintLocale;
       };
 
@@ -93,6 +104,9 @@ export function FeatureFlagsManager({
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
         else if (json.error === 'invalid_han_bitmap_font_px') setError(t.hanBitmapFontPxInvalid);
+        else if (json.error === 'invalid_operation_log_retention_days') {
+          setError(t.operationLogRetentionDaysInvalid);
+        }
         else setError(t.saveFail);
         return;
       }
@@ -104,6 +118,9 @@ export function FeatureFlagsManager({
       }
       if (json.hanBitmapFontPx != null) setHanBitmapFontPx(json.hanBitmapFontPx);
       if (json.orderCooldownSeconds != null) setOrderCooldownSeconds(json.orderCooldownSeconds);
+      if (json.operationLogRetentionDays != null) {
+        setOperationLogRetentionDays(json.operationLogRetentionDays);
+      }
       if (json.printLocale) setPrintLocale(json.printLocale);
 
       router.refresh();
@@ -265,6 +282,33 @@ export function FeatureFlagsManager({
                   aria-label={t.orderCooldownSeconds}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.orderCooldownSecondsUnit}</span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleOperationLogs}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl px-4 py-4">
+            <label className="block">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.operationLogRetentionDays}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.operationLogRetentionDaysDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={operationLogRetentionDays}
+                  min={OPERATION_LOG_RETENTION_DAYS_MIN}
+                  max={OPERATION_LOG_RETENTION_DAYS_MAX}
+                  onChange={setOperationLogRetentionDays}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.operationLogRetentionDays}
+                />
+                <span className="text-[13px] text-brand-text-muted">
+                  {t.operationLogRetentionDaysUnit}
+                </span>
               </div>
             </label>
           </div>

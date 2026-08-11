@@ -21,7 +21,10 @@ export async function GET(req: Request) {
   }
 
   const filters = parseOperationLogsListQuery(new URL(req.url).searchParams, ctx.restaurantId);
-  const result = await listOperationLogs(ctx.admin, filters);
+  const result = await listOperationLogs(ctx.admin, {
+    ...filters,
+    retentionDays: ctx.retentionDays,
+  });
   if (!result.ok) {
     const status = result.code === 'invalid_date_range' ? 400 : 500;
     return NextResponse.json({ error: result.code, message: result.message }, { status });

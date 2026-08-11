@@ -60,8 +60,6 @@ export const MESSAGES = {
       title: '开通 Pro 会员',
       desc: '「{feature}」属于 Pro 功能，请联系运营开通或续费。',
       contactHint: '可通过以下方式联系我们：',
-      wechatCta: '微信联系',
-      whatsappCta: 'WhatsApp 联系',
       backToDashboard: '返回后台',
       features: {
         valueAnalytics: '增值分析',
@@ -1592,7 +1590,7 @@ export const MESSAGES = {
   },
   en: {
     nav: { overview: 'Overview', tables: 'Tables', checkout: 'Checkout', printAssistant: 'Print', menu: 'Menu', buffet: 'Buffet', orders: 'Orders', dishHistory: 'Dishes', settings: 'Settings', abnormalOps: 'Abnormal', operationLogs: 'Ops log', valueAnalytics: 'Value', viewKitchen: 'Kitchen', viewWaiter: 'Waiter', guestNotice: 'Notice', logout: 'Log out', systemSettings: 'System', moreMenu: 'More', settingsMenu: 'Settings', accountMenu: 'Account & preferences', appearance: 'Appearance', appearanceSettings: 'Appearance', language: 'Language', languageSettings: 'Language', darkMode: 'Dark mode', changePassword: 'Change password', mainNav: 'Main navigation', restaurantSettings: 'Restaurant settings' },
-    premiumUpgrade: { proBadge: 'Pro', title: 'Upgrade to Pro', desc: '"{feature}" is a Pro feature. Contact us to upgrade or renew.', contactHint: 'Reach us via:', wechatCta: 'WeChat', whatsappCta: 'WhatsApp', backToDashboard: 'Back to dashboard', features: { valueAnalytics: 'Value analytics', abnormalOps: 'Abnormal operations', operationLogs: 'Operation logs' } },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Upgrade to Pro', desc: '"{feature}" is a Pro feature. Contact us to upgrade or renew.', contactHint: 'Reach us via:', backToDashboard: 'Back to dashboard', features: { valueAnalytics: 'Value analytics', abnormalOps: 'Abnormal operations', operationLogs: 'Operation logs' } },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
       subtitle: 'Buffet products, time slots, price grid, and special dates; floor board uses Lisbon date and time.',
@@ -2680,7 +2678,7 @@ export const MESSAGES = {
   },
   pt: {
     nav: { overview: 'Inicio', tables: 'Mesas', checkout: 'Fechar', printAssistant: 'Impressao', menu: 'Menu', buffet: 'Buffet', orders: 'Pedidos', dishHistory: 'Pratos', settings: 'Configuracoes', abnormalOps: 'Anomalias', operationLogs: 'Registos', valueAnalytics: 'Valor', viewKitchen: 'Cozinha', viewWaiter: 'Sala', guestNotice: 'Avisos', logout: 'Sair', systemSettings: 'Sistema', moreMenu: 'Mais', settingsMenu: 'Definicoes', accountMenu: 'Conta e preferencias', appearance: 'Aparencia', appearanceSettings: 'Aparencia', language: 'Idioma', languageSettings: 'Idioma', darkMode: 'Modo escuro', changePassword: 'Alterar senha', mainNav: 'Navegacao principal', restaurantSettings: 'Definicoes do restaurante' },
-    premiumUpgrade: { proBadge: 'Pro', title: 'Ativar Pro', desc: '"{feature}" e uma funcao Pro. Contacte-nos para ativar ou renovar.', contactHint: 'Contacte-nos:', wechatCta: 'WeChat', whatsappCta: 'WhatsApp', backToDashboard: 'Voltar ao painel', features: { valueAnalytics: 'Analise de valor', abnormalOps: 'Operacoes anormais', operationLogs: 'Registo de operacoes' } },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Ativar Pro', desc: '"{feature}" e uma funcao Pro. Contacte-nos para ativar ou renovar.', contactHint: 'Contacte-nos:', backToDashboard: 'Voltar ao painel', features: { valueAnalytics: 'Analise de valor', abnormalOps: 'Operacoes anormais', operationLogs: 'Registo de operacoes' } },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
       subtitle: 'Produtos buffet, horarios, grelha de precos e datas especiais; garcom usa data/hora de Lisboa.',

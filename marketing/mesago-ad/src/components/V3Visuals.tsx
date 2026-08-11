@@ -339,7 +339,9 @@ export const PhoneProof: React.FC<{
 export const BottomCaption: React.FC<{
   lines: string[];
   delay?: number;
-}> = ({ lines, delay = 6 }) => {
+  /** Distance from canvas bottom — keep clear of phone CTAs / platform chrome. */
+  bottom?: number;
+}> = ({ lines, delay = 6, bottom = 300 }) => {
   const frame = useCurrentFrame();
   return (
     <Interactive.Div
@@ -348,8 +350,8 @@ export const BottomCaption: React.FC<{
         position: "absolute",
         left: 28,
         right: 28,
-        bottom: 72,
-        padding: "18px 20px",
+        bottom,
+        padding: "16px 20px",
         borderRadius: 16,
         backgroundColor: "rgba(15,14,12,0.9)",
         border: `1px solid rgba(212,168,67,0.4)`,

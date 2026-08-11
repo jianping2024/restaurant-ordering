@@ -309,9 +309,9 @@ export const DualDevice: React.FC<{
         style={{
           position: "absolute",
           left: "50%",
-          bottom: 230,
+          bottom: 420,
           width: 420,
-          height: 760,
+          height: 700,
           marginLeft: -210,
           borderRadius: 32,
           overflow: "hidden",

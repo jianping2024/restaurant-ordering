@@ -58,6 +58,65 @@ export const v3Assets = {
   fallbackOwner: staticFile("images/scene-owner-phone.png"),
 };
 
+/** Top portion of mobile screenshot to scale into the phone frame (hides same-color bottom padding). */
+export function phoneFillRatioForSrc(src: string): number {
+  if (
+    src.includes("10-menu") ||
+    src.includes("11-menu") ||
+    src.includes("12-menu")
+  ) {
+    return 0.41;
+  }
+  if (src.includes("buffet-prices")) return 0.52;
+  if (src.includes("board-mobile")) return 0.68;
+  if (src.includes("board-open") || src.includes("board-idle")) return 0.68;
+  if (src.includes("31-order-history-detail")) return 0.7;
+  if (src.includes("30-order-history")) return 0.85;
+  if (src.includes("order-history")) return 0.7;
+  return 0.92;
+}
+
+export function phoneTopFillStyle(fillRatio: number): React.CSSProperties {
+  const ratio = Math.min(0.98, Math.max(0.35, fillRatio));
+  return {
+    width: "100%",
+    height: `${100 / ratio}%`,
+    marginTop: 0,
+    objectFit: "cover",
+    objectPosition: "top center",
+  };
+}
+
+/** Soft fog so product UI reads as real, but text/prices stay unreadable. */
+export const UI_PRIVACY_BLUR_PX = 4.5;
+
+export function isProductUiSrc(src: string): boolean {
+  return /\/ui\/|ui%2F|flow\/|buffet-|board-|dashboard-|menu-/.test(src);
+}
+
+export function uiPrivacyFilter(extra?: string): string {
+  const base = `blur(${UI_PRIVACY_BLUR_PX}px) saturate(0.88) contrast(0.96) brightness(1.04)`;
+  return extra ? `${base} ${extra}` : base;
+}
+
+/** Mist veil on top of blurred screenshots (labels stay crisp above this). */
+export const UiPrivacyFog: React.FC<{ intensity?: number }> = ({
+  intensity = 1,
+}) => (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      background: `linear-gradient(165deg,
+        rgba(252,249,242,${0.22 * intensity}) 0%,
+        rgba(236,232,224,${0.34 * intensity}) 45%,
+        rgba(248,245,238,${0.26 * intensity}) 100%)`,
+      boxShadow: "inset 0 0 60px rgba(255,255,255,0.18)",
+    }}
+  />
+);
+
 /** Full-bleed left | right compare for 9:16 shorts */
 export const VsSplit: React.FC<{
   leftSrc: string;
@@ -134,7 +193,9 @@ const Panel: React.FC<{
   badgeBg: string;
   badgeColor: string;
   mark: string;
-}> = ({ src, label, body, tint, badgeBg, badgeColor, mark }) => (
+}> = ({ src, label, body, tint, badgeBg, badgeColor, mark }) => {
+  const uiShot = isProductUiSrc(src);
+  return (
   <div style={{ flexGrow: 1, position: "relative", overflow: "hidden" }}>
     <Img
       src={src}
@@ -143,8 +204,11 @@ const Panel: React.FC<{
         height: "100%",
         objectFit: "cover",
         objectPosition: "center",
+        filter: uiShot ? uiPrivacyFilter() : undefined,
+        transform: uiShot ? "scale(1.06)" : undefined,
       }}
     />
+    {uiShot ? <UiPrivacyFog intensity={0.85} /> : null}
     <div style={{ position: "absolute", inset: 0, backgroundColor: tint }} />
     <Interactive.Div
       name={`${mark} ${label}`}
@@ -183,15 +247,19 @@ const Panel: React.FC<{
       </div>
     </Interactive.Div>
   </div>
-);
+  );
+};
 
 export const PhoneProof: React.FC<{
   src: string;
   delay?: number;
   label?: string;
   side?: "center" | "right";
-}> = ({ src, delay = 4, label, side = "center" }) => {
+  /** Top fraction of screenshot to fill the phone frame (auto from src when omitted). */
+  fillRatio?: number;
+}> = ({ src, delay = 4, label, side = "center", fillRatio }) => {
   const frame = useCurrentFrame();
+  const imgStyle = phoneTopFillStyle(fillRatio ?? phoneFillRatioForSrc(src));
   const left =
     side === "right" ? "52%" : side === "center" ? "50%" : "50%";
   return (
@@ -223,19 +291,19 @@ export const PhoneProof: React.FC<{
       <Img
         src={src}
         style={{
-          width: "100%",
-          height: "112%",
-          marginTop: "-4%",
-          objectFit: "cover",
-          objectPosition: "top",
+          ...imgStyle,
+          filter: uiPrivacyFilter(),
+          transform: "scale(1.08)",
         }}
       />
+      <UiPrivacyFog />
       {label ? (
         <div
           style={{
             position: "absolute",
             left: 12,
             top: 12,
+            zIndex: 2,
             padding: "8px 12px",
             borderRadius: 999,
             backgroundColor: "rgba(15,14,12,0.88)",

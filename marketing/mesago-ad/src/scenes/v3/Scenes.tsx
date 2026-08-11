@@ -12,6 +12,8 @@ import {
   BottomCaption,
   BulletStack,
   PhoneProof,
+  UiPrivacyFog,
+  uiPrivacyFilter,
   VsSplit,
   v3Assets,
 } from "../../components/V3Visuals";
@@ -218,8 +220,11 @@ export const V3S06Prices: React.FC = () => {
               height: "100%",
               objectFit: "cover",
               objectPosition: "top",
+              filter: uiPrivacyFilter(),
+              transform: "scale(1.06)",
             }}
           />
+          <UiPrivacyFog intensity={0.75} />
           <AbsoluteFill style={{ backgroundColor: "rgba(10,8,6,0.35)" }} />
           <PhoneProof src={v3Assets.uiBuffet} delay={42} label="Buffet 价目" />
           <BottomCaption
@@ -266,9 +271,11 @@ export const V3S07History: React.FC = () => {
               height: "100%",
               objectFit: "cover",
               objectPosition: "top",
-              filter: "brightness(0.45)",
+              filter: uiPrivacyFilter("brightness(0.45)"),
+              transform: "scale(1.06)",
             }}
           />
+          <UiPrivacyFog intensity={0.7} />
           <PhoneProof
             src={v3Assets.flowOrderHistoryDetail}
             delay={72}

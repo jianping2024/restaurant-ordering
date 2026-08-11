@@ -447,13 +447,13 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
           从大型自助到邻家小馆
         </div>
       </Interactive.Div>
-      {/* Thumb strip only once we own the frame — skip during Google */}
+      {/* Thumb strip above venue + raised caption (platform-safe lower band) */}
       <div
         style={{
           position: "absolute",
           left: 36,
           right: 36,
-          bottom: 360,
+          bottom: 590,
           display: "flex",
           gap: 10,
           opacity: interpolate(
@@ -473,7 +473,7 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             src={src}
             style={{
               flexGrow: 1,
-              height: 120,
+              height: 110,
               objectFit: "cover",
               borderRadius: 12,
               border: `2px solid ${colors.goldDark}`,
@@ -488,7 +488,7 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             position: "absolute",
             left: 40,
             right: 40,
-            bottom: 176,
+            bottom: 430,
             padding: "12px 16px",
             borderRadius: 14,
             backgroundColor: "rgba(15,14,12,0.78)",

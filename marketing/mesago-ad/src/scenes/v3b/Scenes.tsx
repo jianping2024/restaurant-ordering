@@ -235,7 +235,7 @@ const V3bS09EndImpl: React.FC<
           position: "absolute",
           left: 40,
           right: 40,
-          top: 420,
+          top: 360,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -287,17 +287,44 @@ const V3bS09EndImpl: React.FC<
         name="Contacts"
         style={{
           position: "absolute",
-          left: 40,
-          right: 40,
-          bottom: 120,
+          left: 28,
+          right: 28,
+          // Clear Douyin/WeChat chrome (~200–240px); keep QRs in the mid-lower safe band
+          bottom: 300,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 10,
+          gap: 12,
           opacity: contactOpacity,
         }}
       >
-        <div style={{ display: "flex", gap: 22 }}>
+        <div
+          style={{
+            fontFamily: fonts.zh,
+            fontSize: 30,
+            fontWeight: 800,
+            color: colors.goldLight,
+            letterSpacing: "0.06em",
+          }}
+        >
+          微信扫码 · WhatsApp
+        </div>
+        <div style={{ fontFamily: fonts.zh, textAlign: "center" }}>
+          {whatsapps.map((n) => (
+            <div
+              key={n}
+              style={{
+                fontSize: 40,
+                fontWeight: 900,
+                color: colors.text,
+                lineHeight: 1.3,
+              }}
+            >
+              {n}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 24, marginTop: 4 }}>
           {wechats.map((c) => (
             <div
               key={c.display}
@@ -305,36 +332,30 @@ const V3bS09EndImpl: React.FC<
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 6,
+                gap: 10,
               }}
             >
-              {/* We keep the same behavior as v3 (qrFile points to public/contact/*). */}
               <Img
                 src={staticFile(c.qrFile)}
                 style={{
-                  width: 110,
-                  height: 110,
-                  borderRadius: 10,
-                  border: `2px solid ${colors.goldDark}`,
+                  width: 240,
+                  height: 240,
+                  borderRadius: 16,
+                  border: `4px solid ${colors.gold}`,
+                  backgroundColor: "#fff",
+                  padding: 10,
                 }}
               />
               <div
                 style={{
                   fontFamily: fonts.zh,
-                  fontSize: 24,
+                  fontSize: 32,
                   fontWeight: 800,
                   color: colors.goldLight,
                 }}
               >
                 {c.display}
               </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ fontFamily: fonts.zh, textAlign: "center" }}>
-          {whatsapps.map((n) => (
-            <div key={n} style={{ fontSize: 26, fontWeight: 800, color: colors.text }}>
-              {n}
             </div>
           ))}
         </div>

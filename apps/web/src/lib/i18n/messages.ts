@@ -265,8 +265,13 @@ export const MESSAGES = {
       },
     },
     licenseExpiry: {
-      label: '授权到期 {date}',
+      menuLabel: '授权至 {date}',
+      topBarCta: '请联系续费',
       contactTitle: '联系续费',
+      dailyTitle: '授权即将到期',
+      dailyBody: '授权将于 {date} 到期（剩余 {days} 天）。请尽快联系续费，以免影响门店使用。',
+      dailyBodyExpired: '授权已于 {date} 到期。请尽快联系续费，以免影响门店使用。',
+      snoozeToday: '今天不再提醒',
     },
     dashboardAccessError: {
       title: '无法加载餐厅后台',
@@ -1790,8 +1795,15 @@ export const MESSAGES = {
       },
     },
     licenseExpiry: {
-      label: 'License ends {date}',
+      menuLabel: 'Licensed until {date}',
+      topBarCta: 'Contact to renew',
       contactTitle: 'Contact to renew',
+      dailyTitle: 'License expiring soon',
+      dailyBody:
+        'Your license ends on {date} ({days} days left). Please renew soon so the restaurant stays available.',
+      dailyBodyExpired:
+        'Your license ended on {date}. Please renew soon so the restaurant stays available.',
+      snoozeToday: 'Don’t remind me today',
     },
     dashboardAccessError: { title: 'Cannot load dashboard', desc: 'You are signed in, but we could not load your restaurant. This is usually not data loss — retry or sign in again.', retry: 'Retry', signOut: 'Sign out and sign in again', backToLogin: 'Back to login' },
     signOutConfirm: { title: 'Sign out?', message: 'You will need to sign in again to continue.', confirm: 'Sign out', cancel: 'Cancel' },
@@ -2878,8 +2890,15 @@ export const MESSAGES = {
       },
     },
     licenseExpiry: {
-      label: 'Licenca ate {date}',
+      menuLabel: 'Licenca ate {date}',
+      topBarCta: 'Contactar para renovar',
       contactTitle: 'Contactar para renovar',
+      dailyTitle: 'Licenca a expirar',
+      dailyBody:
+        'A licenca termina em {date} (faltam {days} dias). Renove em breve para manter o restaurante disponivel.',
+      dailyBodyExpired:
+        'A licenca terminou em {date}. Renove em breve para manter o restaurante disponivel.',
+      snoozeToday: 'Nao lembrar hoje',
     },
     dashboardAccessError: { title: 'Nao foi possivel carregar o painel', desc: 'Sessao valida, mas nao foi possivel ler o restaurante. Normalmente nao e perda de dados — tente de novo ou faca login novamente.', retry: 'Tentar de novo', signOut: 'Sair e entrar novamente', backToLogin: 'Voltar ao login' },
     signOutConfirm: { title: 'Sair da sessao?', message: 'Sera necessario iniciar sessao novamente para continuar.', confirm: 'Sair', cancel: 'Cancelar' },

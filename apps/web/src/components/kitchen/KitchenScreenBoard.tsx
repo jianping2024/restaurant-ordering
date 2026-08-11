@@ -214,6 +214,11 @@ function KitchenScreenBoardInner({
         },
       );
       if (!res.ok) {
+        // Same auth-exit as board refresh — never paint prepFailed for session 401.
+        if (classifyStaffBoardFetchFailure(res.status) === 'unauthorized') {
+          void handleSignOut();
+          return false;
+        }
         setError(t.prepFailed);
         if (res.status === 409) await refreshKitchenBoard();
         return false;

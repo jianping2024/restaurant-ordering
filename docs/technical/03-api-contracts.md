@@ -179,7 +179,7 @@ UI 入口：**`/auth/login`**（店内扫码别名 `/[slug]/staff/login` 共用�
 |------|----------|
 | 认证 | `/api/ops/auth/login`、`logout` |
 | Bootstrap | `/api/ops/bootstrap` |
-| 餐厅 | `/api/ops/restaurants`、`[id]`、`suspend`、`resume` |
+| 餐厅 | `/api/ops/restaurants`、`[id]`（PATCH/DELETE）、`suspend`、`resume`；DELETE 须 `confirmSlug`，且不得为「营业中」（`isOpsRestaurantDeletable`） |
 | 员工代管 | `/api/ops/restaurants/[id]/staff` |
 | 打印运维（API 保留，Ops UI 已下线） | `/api/ops/print/jobs`、`pairings`、`devices`、`revoke` |
 | 平台管理员 | `/api/ops/admins` |

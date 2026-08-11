@@ -6,6 +6,7 @@ import {
 } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
+import { purgeRestaurantForOps } from '@/lib/purge-restaurant';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -192,4 +193,44 @@ export async function PATCH(req: Request, context: RouteContext) {
   });
 
   return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(req: Request, context: RouteContext) {
+  const { ctx, error, admin } = await requirePlatformAdminRole('admin');
+  if (error || !ctx || !admin) return error!;
+
+  const { id } = await context.params;
+
+  let body: { confirmSlug?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  const result = await purgeRestaurantForOps({
+    admin,
+    restaurantId: id,
+    confirmSlug: typeof body.confirmSlug === 'string' ? body.confirmSlug : '',
+    actorUserId: ctx.userId,
+  });
+
+  if (!result.ok) {
+    return NextResponse.json(
+      {
+        error: result.error,
+        detail: result.detail,
+        message: result.message,
+      },
+      { status: result.status },
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    restaurantId: result.restaurantId,
+    slug: result.slug,
+    authUsersDeleted: result.authUsersDeleted,
+    authUsersFailed: result.authUsersFailed,
+  });
 }

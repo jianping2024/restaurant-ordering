@@ -89,6 +89,11 @@ export function isOpsPrimarySuspended(health: OpsLicenseHealth): boolean {
   return health.primary.kind === 'suspended';
 }
 
+/** Sole gate: 营业中 (primary.kind === 'open') cannot be hard-deleted from Ops. */
+export function isOpsRestaurantDeletable(health: OpsLicenseHealth): boolean {
+  return health.primary.kind !== 'open';
+}
+
 export function resolveInstallPhase(input: {
   claimed: boolean;
   pending: boolean;

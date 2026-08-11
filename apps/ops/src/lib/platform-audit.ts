@@ -22,6 +22,7 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'restaurant.suspend': '暂停餐厅',
   'restaurant.resume': '恢复餐厅',
   'restaurant.update': '更新餐厅信息',
+  'restaurant.delete': '删除餐厅',
   'license.set_valid_until': '设置授权截止日',
   'license.extend': '续期授权',
   'license.set_offline_grace_days': '设置离线宽限天数',

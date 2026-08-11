@@ -13,8 +13,10 @@ import { getTenantAppUrl } from '@/lib/tenant-app-url';
 import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
 import {
   formatOpsPrimaryLabel,
+  isOpsRestaurantDeletable,
   resolveOpsLicenseHealth,
 } from '@/lib/ops-license-status';
+import { RestaurantDeletePanel } from './RestaurantDeletePanel';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
 import { RestaurantEditPanel } from './RestaurantEditPanel';
 import { RestaurantProPanel } from './RestaurantProPanel';
@@ -134,6 +136,13 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </dl>
         <RestaurantDetailActions restaurantId={row.id} embedded />
       </section>
+
+      <RestaurantDeletePanel
+        restaurantId={row.id}
+        slug={row.slug}
+        deletable={isOpsRestaurantDeletable(health)}
+        readOnly={!isAdmin}
+      />
     </div>
   );
 }

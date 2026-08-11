@@ -9,6 +9,7 @@ import {
   INSTALLATION_STATUS_LABEL,
   formatOpsPrimaryLabel,
   isOpsPrimarySuspended,
+  isOpsRestaurantDeletable,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
   suspensionReasonLabel,
@@ -160,5 +161,33 @@ describe('ops-license-status', () => {
     });
     assert.equal(formatOpsPrimaryLabel(open.primary), BUSINESS_STATUS_LABEL.open);
     assert.equal(isOpsPrimarySuspended(open), false);
+    assert.equal(isOpsRestaurantDeletable(open), false);
+  });
+
+  it('deletable sole gate: open blocked; suspended and install allowed', () => {
+    const suspended = resolveOpsLicenseHealth({
+      now,
+      deploymentMode: 'cloud',
+      suspendedAt: '2026-08-01T00:00:00.000Z',
+      suspensionReason: 'manual',
+      licenseValidUntil: null,
+      licenseCheckedAt: null,
+      lastCheckinAt: null,
+      installPhase: 'none',
+    });
+    assert.equal(isOpsRestaurantDeletable(suspended), true);
+
+    const install = resolveOpsLicenseHealth({
+      now,
+      deploymentMode: 'on_prem',
+      suspendedAt: null,
+      suspensionReason: null,
+      licenseValidUntil: null,
+      licenseCheckedAt: null,
+      lastCheckinAt: null,
+      installPhase: 'pending',
+      offlineGraceDays: 7,
+    });
+    assert.equal(isOpsRestaurantDeletable(install), true);
   });
 });

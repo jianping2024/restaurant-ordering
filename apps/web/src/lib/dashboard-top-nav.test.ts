@@ -27,6 +27,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     assert.deepEqual(
       items.map((item) => item.id).sort(),
@@ -50,6 +51,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
   });
@@ -59,6 +61,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), false);
   });
@@ -68,6 +71,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
   });
@@ -77,6 +81,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'owner',
       capabilities: '*',
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     assert.deepEqual(items.map((item) => item.id), [
       'overview',
@@ -93,6 +98,7 @@ describe('buildDashboardTopNavItems', () => {
       shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
+      operationLogsHostEnabled: true,
     });
     const ids = items.map((item) => item.id).sort();
     assert.ok(ids.includes('settings'));
@@ -102,6 +108,33 @@ describe('buildDashboardTopNavItems', () => {
     assert.ok(ids.includes('checkout'));
     assert.ok(ids.includes('kitchenBoard'));
     assert.equal(ids.includes('guestNotice'), false);
+  });
+
+  it('omits operation logs nav when host gate is off', () => {
+    const items = buildDashboardTopNavItems({
+      shellMode: 'staff',
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
+      restaurantSlug: 'demo',
+      operationLogsHostEnabled: false,
+    });
+    assert.equal(items.some((item) => item.id === 'operationLogs'), false);
+  });
+
+  it('omits operation logs from owner chrome when host gate is off', () => {
+    const items = buildDashboardTopNavItems({
+      shellMode: 'owner',
+      capabilities: '*',
+      restaurantSlug: 'demo',
+      operationLogsHostEnabled: false,
+    });
+    assert.equal(items.some((item) => item.id === 'operationLogs'), false);
+    assert.deepEqual(items.map((item) => item.id), [
+      'overview',
+      'valueAnalytics',
+      'abnormalOps',
+      'menu',
+      'settings',
+    ]);
   });
 });
 

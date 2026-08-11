@@ -4,6 +4,8 @@ import {
   shouldRunNightlyAutoClose,
 } from '@/lib/auto-close-active-sessions';
 import { expireStalePrintJobs } from '@/lib/expire-stale-print-jobs';
+import { isOperationLogsHostEnabled } from '@/lib/operation-logs/access';
+import { purgeExpiredOperationLogs } from '@/lib/operation-logs/purge-expired-operation-logs';
 import { executeNightlyAutoClose } from '@/lib/run-nightly-auto-close';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyCronSecret } from '@/lib/verify-cron-secret';
@@ -47,10 +49,33 @@ export async function GET(req: Request) {
       console.error('[mesa nightly-auto-close] expire stale print jobs failed:', expireError);
     }
 
+    let purgedOperationLogs = 0;
+    if (isOperationLogsHostEnabled()) {
+      const { deletedCount, error: purgeError } = await purgeExpiredOperationLogs(admin);
+      if (purgeError) {
+        console.error('[mesa nightly-auto-close] purge expired operation logs failed:', purgeError);
+      } else {
+        purgedOperationLogs = deletedCount;
+      }
+    }
+
     const { closedCount, dateKey } = await executeNightlyAutoClose();
     const expiredPrintJobs = expireError ? 0 : expiredCount;
-    console.info('[mesa nightly-auto-close] cron:', { closedCount, dateKey, expiredPrintJobs, policy });
-    return NextResponse.json({ ok: true, closedCount, dateKey, expiredPrintJobs, policy });
+    console.info('[mesa nightly-auto-close] cron:', {
+      closedCount,
+      dateKey,
+      expiredPrintJobs,
+      purgedOperationLogs,
+      policy,
+    });
+    return NextResponse.json({
+      ok: true,
+      closedCount,
+      dateKey,
+      expiredPrintJobs,
+      purgedOperationLogs,
+      policy,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'unknown_error';
     console.error('[mesa nightly-auto-close] cron failed:', e);

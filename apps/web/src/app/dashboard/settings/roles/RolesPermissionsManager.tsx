@@ -8,7 +8,7 @@ import { showToast } from '@/components/ui/Toast';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { rolePermissionsMessages } from '@/lib/i18n/role-permissions-messages';
 import {
-  ROLE_PERMISSION_PAGE_TREE,
+  rolePermissionPageTreeForHost,
   permissionTreeNodeDangerous,
   resolvePermissionTreeLabel,
   type PermissionTreeNode,
@@ -104,7 +104,11 @@ function PermissionTreeCheckboxList(props: {
   );
 }
 
-export function RolesPermissionsManager() {
+export function RolesPermissionsManager({
+  operationLogsHostEnabled,
+}: {
+  operationLogsHostEnabled: boolean;
+}) {
   const { lang } = useLanguage();
   const t = rolePermissionsMessages(lang);
 
@@ -520,7 +524,7 @@ export function RolesPermissionsManager() {
 
           <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border overflow-hidden">
             <PermissionTreeCheckboxList
-              nodes={ROLE_PERMISSION_PAGE_TREE}
+              nodes={rolePermissionPageTreeForHost(operationLogsHostEnabled)}
               depth={0}
               selected={draft.permissions}
               onToggle={togglePerm}

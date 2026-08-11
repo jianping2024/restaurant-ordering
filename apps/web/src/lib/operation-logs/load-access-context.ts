@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
+import { isOperationLogsHostEnabled } from '@/lib/operation-logs/access';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
@@ -15,6 +16,10 @@ export type OperationLogsAccessContext =
   | { error: string; status: number };
 
 export async function loadOperationLogsAccessContext(): Promise<OperationLogsAccessContext> {
+  if (!isOperationLogsHostEnabled()) {
+    return { error: 'not_found', status: 404 };
+  }
+
   const access = await loadDashboardAccess();
   const loaded = await loadPrincipalWithCapabilities();
   const gate = resolveDashboardCapabilityAccess(

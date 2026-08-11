@@ -167,8 +167,11 @@ export function buildDashboardTopNavItems(input: {
   shellMode: DashboardShellMode;
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
+  /** Sole host gate — from isOperationLogsHostEnabled() on the server. */
+  operationLogsHostEnabled: boolean;
 }): ProductTopNavItem[] {
-  const { shellMode, capabilities: capsPayload, restaurantSlug } = input;
+  const { shellMode, capabilities: capsPayload, restaurantSlug, operationLogsHostEnabled } =
+    input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
@@ -178,6 +181,7 @@ export function buildDashboardTopNavItems(input: {
       : Object.values(DASHBOARD_NAV_ITEMS);
   for (const item of navDefs) {
     if (shellMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
+    if (item.id === 'operationLogs' && !operationLogsHostEnabled) continue;
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
     items.push({

@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { showToast } from '@/components/ui/Toast';
 import {
-  ABNORMAL_OPERATION_MAX_LOOKBACK_DAYS,
-  ABNORMAL_OPERATION_MAX_RANGE_DAYS,
-} from '@/lib/audit/reasons';
+  OPERATION_LOG_MAX_LOOKBACK_DAYS,
+  OPERATION_LOG_MAX_RANGE_DAYS,
+} from '@/lib/operation-logs/date-range';
 import { OPERATION_LOG_ACTION_TYPES, type OperationLogActionType } from '@/lib/audit/types';
 import {
   addCalendarDays,
@@ -34,10 +34,10 @@ type Filters = {
   actionType: OperationLogActionType | '';
 };
 
-type DatePreset = 'today' | 'last7' | 'last30';
+type DatePreset = 'today' | 'last7';
 
 const DEFAULT_FILTERS = (today: string): Filters => ({
-  startDate: today,
+  startDate: addCalendarDays(today, -(OPERATION_LOG_MAX_RANGE_DAYS - 1)),
   endDate: today,
   actionType: '',
 });
@@ -49,7 +49,6 @@ function detectDatePreset(
 ): DatePreset | null {
   if (startDate === today && endDate === today) return 'today';
   if (startDate === addCalendarDays(today, -6) && endDate === today) return 'last7';
-  if (startDate === addCalendarDays(today, -29) && endDate === today) return 'last30';
   return null;
 }
 
@@ -150,9 +149,7 @@ export function OperationLogsManager({ restaurantId }: Props) {
     const next =
       preset === 'today'
         ? { startDate: today, endDate: today }
-        : preset === 'last7'
-          ? { startDate: addCalendarDays(today, -6), endDate: today }
-          : { startDate: addCalendarDays(today, -29), endDate: today };
+        : { startDate: addCalendarDays(today, -6), endDate: today };
     patchDraftFilters(next);
   };
 
@@ -164,11 +161,11 @@ export function OperationLogsManager({ restaurantId }: Props) {
     }`;
 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / query.pageSize));
-  const lookbackMin = addCalendarDays(today, -(ABNORMAL_OPERATION_MAX_LOOKBACK_DAYS - 1));
-  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1));
+  const lookbackMin = addCalendarDays(today, -(OPERATION_LOG_MAX_LOOKBACK_DAYS - 1));
+  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(OPERATION_LOG_MAX_RANGE_DAYS - 1));
   const startMin = startMinByEnd > lookbackMin ? startMinByEnd : lookbackMin;
   const startMax = draftFilters.endDate < today ? draftFilters.endDate : today;
-  const endMaxByStart = addCalendarDays(draftFilters.startDate, ABNORMAL_OPERATION_MAX_RANGE_DAYS - 1);
+  const endMaxByStart = addCalendarDays(draftFilters.startDate, OPERATION_LOG_MAX_RANGE_DAYS - 1);
   const endMax = endMaxByStart < today ? endMaxByStart : today;
   const showInitialLoading = loading && !data;
   const tableBusy = loading && !!data;
@@ -181,9 +178,6 @@ export function OperationLogsManager({ restaurantId }: Props) {
         </button>
         <button type="button" className={presetBtnClass(activeDatePreset === 'last7')} onClick={() => applyDatePreset('last7')}>
           {t.dateLast7}
-        </button>
-        <button type="button" className={presetBtnClass(activeDatePreset === 'last30')} onClick={() => applyDatePreset('last30')}>
-          {t.dateLast30}
         </button>
         <DatePicker
           className="w-[10.5rem]"

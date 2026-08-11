@@ -11,10 +11,18 @@ type Props = {
   shellMode: DashboardShellMode;
   roleLabel?: string;
   capabilities: CapabilitiesPayload;
+  operationLogsHostEnabled: boolean;
   children: ReactNode;
 };
 
-export function DashboardShell({ restaurant, shellMode, roleLabel, capabilities, children }: Props) {
+export function DashboardShell({
+  restaurant,
+  shellMode,
+  roleLabel,
+  capabilities,
+  operationLogsHostEnabled,
+  children,
+}: Props) {
   return (
     <div className="flex min-h-screen min-w-0 flex-col bg-brand-bg">
       <DashboardTopBar
@@ -22,6 +30,7 @@ export function DashboardShell({ restaurant, shellMode, roleLabel, capabilities,
         shellMode={shellMode}
         roleLabel={roleLabel}
         capabilities={capabilities}
+        operationLogsHostEnabled={operationLogsHostEnabled}
       />
       <main className={STAFF_SHELL_MAIN_CLASS}>
         <div className={STAFF_SHELL_CONTENT_CLASS}>{children}</div>

@@ -3,7 +3,7 @@ import {
   OPERATION_LOG_ACTION_TYPES,
   type OperationLogActionType,
 } from '@/lib/audit/types';
-import { parseAbnormalOperationsDateRange } from '@/lib/abnormal-operations/owner-query';
+import { parseOperationLogsDateRange } from '@/lib/operation-logs/date-range';
 import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 import type { OperationLogRow } from '@/lib/operation-logs/types';
 
@@ -31,7 +31,7 @@ export async function listOperationLogs(
   | { ok: true; result: OperationLogsListResult }
   | { ok: false; code: 'invalid_date_range' | 'query_failed'; message?: string }
 > {
-  const parsed = parseAbnormalOperationsDateRange({
+  const parsed = parseOperationLogsDateRange({
     startDate: filters.startDate,
     endDate: filters.endDate,
     now: filters.now,

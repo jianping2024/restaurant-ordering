@@ -211,6 +211,9 @@ abnormal_operations:
 
 operation_logs:
 
+- Host surface (page/API/nav/purge): on-prem only via `isOperationLogsHostEnabled()` (`MESA_ON_PREM`); cloud default off. Writes via audit still occur.
+- Retention: 7 calendar days; nightly cron deletes rows with `created_at` before Lisbon start of (today − 6) on on-prem hosts only.
+
 - operation_logs_pkey: PK btree(id)
 - idx_operation_logs_restaurant_created: btree(restaurant_id, created_at DESC)
 

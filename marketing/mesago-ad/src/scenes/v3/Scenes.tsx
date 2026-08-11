@@ -149,10 +149,10 @@ export const V3S03Roles: React.FC = () => {
             items={[
               "服务员：开台 · 转台 · 并台 · 点单",
               "收银员：核单 · 收款 · 结账",
-              "每步记录员工 · 时间 · 内容",
+              "店主 / 股东：营业额 · 桌况，随时可查",
             ]}
           />
-          <BottomCaption lines={["分角色操作，全流程有记录"]} delay={208} />
+          <BottomCaption lines={["一线执行，老板随时看清经营"]} delay={208} />
         </>
       )}
     </AbsoluteFill>
@@ -433,7 +433,7 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             letterSpacing: "0.04em",
           }}
         >
-          已落地 · 稳定使用中
+          专业点餐系统服务商
         </div>
         <div
           style={{
@@ -444,7 +444,7 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             lineHeight: 1.35,
           }}
         >
-          葡萄牙大型自助餐厅
+          从大型自助到邻家小馆
         </div>
       </Interactive.Div>
       {/* Thumb strip only once we own the frame — skip during Google */}
@@ -545,7 +545,7 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
         </Interactive.Div>
       ) : null}
       <BottomCaption
-        lines={["少投入 · 不断网 · 流程可追溯"]}
+        lines={["落地实施 · 本地部署 · 持续支持"]}
         delay={PROOF_GOOGLE_FRAMES + 20}
       />
     </AbsoluteFill>

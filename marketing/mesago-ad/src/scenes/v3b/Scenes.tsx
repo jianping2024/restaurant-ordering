@@ -151,7 +151,7 @@ const V3bS09EndImpl: React.FC<
         name="Title"
         style={{
           fontFamily: fonts.zh,
-          fontSize: 34,
+          fontSize: 30,
           fontWeight: 800,
           color: colors.text,
           textAlign: "center",
@@ -162,9 +162,9 @@ const V3bS09EndImpl: React.FC<
           }),
         }}
       >
-        经典 Buffet & 寿司自助
+        专业餐厅点餐系统解决方案服务商
         <br />
-        本地餐厅管理系统
+        大型自助 · 寿司自助 · 小餐馆，均可安装落地
       </Interactive.Div>
 
       {/* Phase A — product pillars + demo CTA */}

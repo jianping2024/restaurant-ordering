@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   extendProValidUntil,
-  mergeRestaurantFeatureFlagsJsonb,
   normalizeCountryCode,
   parseBuffetServiceMode,
-  parseFeatureFlagsRecord,
   type PrintLocale,
 } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
@@ -32,7 +30,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { data: existing, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, pro_valid_until, address, phone, print_locale, country_code, buffet_service_mode, feature_flags, deployment_mode',
+      'id, name, slug, plan, pro_valid_until, address, phone, print_locale, country_code, buffet_service_mode, deployment_mode',
     )
     .eq('id', id)
     .maybeSingle();
@@ -132,14 +130,16 @@ export async function PATCH(req: Request, context: RouteContext) {
     }
   }
 
+  // Store product toggles (kitchen_serve_to_table / bill_receipt_print) — owner-only via
+  // PATCH /api/restaurant/features. Ops must not write restaurants.feature_flags.
   if (body.featureFlags !== undefined) {
-    const patch = parseFeatureFlagsRecord(body.featureFlags);
-    if (!patch) {
-      return NextResponse.json({ error: 'invalid_feature_flags' }, { status: 400 });
-    }
-    const nextFlags = mergeRestaurantFeatureFlagsJsonb(existing.feature_flags, patch);
-    updates.feature_flags = nextFlags;
-    metadata.featureFlags = patch;
+    return NextResponse.json(
+      {
+        error: 'feature_flags_owner_only',
+        message: '店级功能开关仅店主在「功能管理」可改；Ops 不可写 feature_flags。',
+      },
+      { status: 400 },
+    );
   }
 
   if (typeof body.slug === 'string') {

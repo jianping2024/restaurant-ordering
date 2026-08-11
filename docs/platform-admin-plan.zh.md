@@ -79,7 +79,7 @@
 |------|------|
 | **暂停 / 恢复门店** | 建议新增 `restaurants.suspended_at`、`suspension_reason`（migration）；暂停后：顾客扫码点餐不可用（维护页）、员工无法登录、店主 dashboard 只读或只显示暂停说明（产品二选一，**推荐**：店主可登录看数据但不可改配置、不可接单） |
 | **编辑餐厅元数据** | 名称、地址、电话、`print_locale`、`country_code`；**slug 变更** 须二次确认（QR 失效风险） |
-| **Plan 与功能开关（运营覆盖）** | 写 `plan`；可选 `feature_flags` 平台强制项（如 beta 功能），与店主自助开关的关系：**运营覆盖优先** 或 **合并策略** 须在 UI 标明 |
+| **Plan 与功能开关（运营覆盖）** | 写 `plan`。**店级** `kitchen_serve_to_table` / `bill_receipt_print` **仅店主**「功能管理」可写（Ops 不提供第二入口）。若未来需要平台强制项，须另设独立强制层 + UI 标明合并策略——**禁止**再复用 Ops 直写同一 `feature_flags` 冒充覆盖 |
 | **员工账号只读 + 代客停用** | 跨店读 `restaurant_staff_accounts`；滥用场景写 `disabled_at`（与店主 HR 操作同效，须审计） |
 | **运营账号管理** | 多运营人员：邀请、停用、角色（`support` / `admin`）；**不再** 依赖单一 `ADMIN_BOOTSTRAP_SECRET` 调业务 API |
 | **审计日志（完整）** | 吊销设备、暂停门店、改 plan、停用员工等全部入表；支持按餐厅、操作人、时间导出 |

@@ -3,11 +3,9 @@
 import { FormEvent, useState } from 'react';
 import {
   RESTAURANT_COUNTRY_OPTIONS,
-  RESTAURANT_FEATURE_DEFINITIONS,
   normalizeBuffetServiceMode,
   type BuffetServiceMode,
   type PrintLocale,
-  type ResolvedRestaurantFeatureFlags,
   type RestaurantCountryCode,
 } from '@mesa/shared';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -23,13 +21,7 @@ type Props = {
     printLocale: PrintLocale;
     countryCode: RestaurantCountryCode;
     buffetServiceMode: BuffetServiceMode;
-    featureFlags: ResolvedRestaurantFeatureFlags;
   };
-};
-
-const FEATURE_LABELS: Record<string, string> = {
-  bill_receipt_print: '结账小票打印',
-  kitchen_serve_to_table: '上桌流程',
 };
 
 const fieldClass =
@@ -45,7 +37,6 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
   const [buffetServiceMode, setBuffetServiceMode] = useState<BuffetServiceMode>(
     normalizeBuffetServiceMode(initial.buffetServiceMode),
   );
-  const [flags, setFlags] = useState(initial.featureFlags);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -71,7 +62,6 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
           printLocale,
           countryCode,
           buffetServiceMode,
-          featureFlags: flags,
           confirmSlugChange: confirmSlugChange || undefined,
         }),
       });
@@ -218,24 +208,6 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
               />
               寿司自助
             </label>
-          </div>
-        </fieldset>
-
-        <fieldset className="sm:col-span-2">
-          <legend className="text-sm text-zinc-400">功能开关（运营覆盖，优先于店主自助设置）</legend>
-          <div className="mt-2 space-y-2">
-            {RESTAURANT_FEATURE_DEFINITIONS.map((def) => (
-              <label key={def.key} className="flex items-center gap-2 text-sm text-zinc-300">
-                <input
-                  type="checkbox"
-                  disabled={readOnly}
-                  checked={flags[def.key]}
-                  onChange={(e) => setFlags((prev) => ({ ...prev, [def.key]: e.target.checked }))}
-                  className="rounded border-zinc-600 disabled:opacity-70"
-                />
-                {FEATURE_LABELS[def.key] || def.key}
-              </label>
-            ))}
           </div>
         </fieldset>
 

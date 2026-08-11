@@ -1,5 +1,9 @@
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  mapCustomerMenuCatalogImageUrls,
+  type ResolveMenuImageDisplayOptions,
+} from '@/lib/menu-image';
 import type { MenuCategory, MenuItem } from '@/types';
 
 export function customerMenuCatalogTag(restaurantId: string): string {
@@ -75,4 +79,16 @@ export function loadCustomerMenuCatalog(restaurantId: string) {
     revalidate: 60,
     tags: [customerMenuCatalogTag(restaurantId)],
   })(restaurantId);
+}
+
+/**
+ * Sole customer-facing catalog for SSR + GET menu-catalog: cached rows + display image URLs.
+ * Do not call {@link loadCustomerMenuCatalog} + {@link mapCustomerMenuCatalogImageUrls} beside this.
+ */
+export async function loadCustomerMenuCatalogForDisplay(
+  restaurantId: string,
+  imageOpts: ResolveMenuImageDisplayOptions,
+): Promise<{ menuItems: MenuItem[]; menuCategories: MenuCategory[] }> {
+  const catalog = await loadCustomerMenuCatalog(restaurantId);
+  return mapCustomerMenuCatalogImageUrls(catalog, imageOpts);
 }

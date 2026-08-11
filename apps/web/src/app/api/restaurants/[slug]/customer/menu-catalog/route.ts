@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
-  loadCustomerMenuCatalog,
+  loadCustomerMenuCatalogForDisplay,
   loadCustomerMenuCatalogVersion,
 } from '@/lib/customer-menu-catalog';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
@@ -9,7 +9,6 @@ import { CUSTOMER_READ_NO_STORE_HEADERS } from '@/lib/customer-read-http-headers
 import {
   clientHostnameFromRequest,
   clientPageOriginFromRequest,
-  mapCustomerMenuCatalogImageUrls,
 } from '@/lib/menu-image';
 
 export const runtime = 'nodejs';
@@ -59,14 +58,14 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     );
   }
 
-  const catalog = await loadCustomerMenuCatalog(restaurantId);
+  const catalog = await loadCustomerMenuCatalogForDisplay(restaurantId, {
+    clientHostname: clientHostnameFromRequest(req),
+    pageOrigin: clientPageOriginFromRequest(req),
+  });
   return NextResponse.json(
     {
       version,
-      ...mapCustomerMenuCatalogImageUrls(catalog, {
-        clientHostname: clientHostnameFromRequest(req),
-        pageOrigin: clientPageOriginFromRequest(req),
-      }),
+      ...catalog,
     },
     { headers: CUSTOMER_READ_NO_STORE_HEADERS },
   );

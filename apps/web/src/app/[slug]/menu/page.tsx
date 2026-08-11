@@ -1,13 +1,19 @@
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { RestaurantMaintenancePage } from '@/components/customer/RestaurantMaintenancePage';
 import { loadCustomerRestaurantGate } from '@/lib/customer-restaurant-gate';
 import { loadCustomerSessionContext } from '@/lib/customer-session-context';
+import { loadCustomerMenuCatalogForDisplay } from '@/lib/customer-menu-catalog';
 import { MenuPage } from '@/components/menu/MenuPage';
 import { resolveStaffAssistedFlow } from '@/lib/staff-routes';
 import { resolveCheckoutRequestCaller } from '@/lib/checkout-request-auth';
 import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
+import {
+  clientHostnameFromHeaders,
+  clientPageOriginFromHeaders,
+} from '@/lib/menu-image';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -31,11 +37,20 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
   }
   const restaurant = gate.restaurant;
 
-  const sessionContext = await loadCustomerSessionContext({
-    admin,
-    restaurantId: restaurant.id,
-    tableIdParam,
-  });
+  const headerBag = headers();
+  const imageOpts = {
+    clientHostname: clientHostnameFromHeaders(headerBag),
+    pageOrigin: clientPageOriginFromHeaders(headerBag),
+  };
+
+  const [sessionContext, initialMenuCatalog] = await Promise.all([
+    loadCustomerSessionContext({
+      admin,
+      restaurantId: restaurant.id,
+      tableIdParam,
+    }),
+    loadCustomerMenuCatalogForDisplay(restaurant.id, imageOpts),
+  ]);
   if (!sessionContext) notFound();
 
   const staffAssisted = resolveStaffAssistedFlow(
@@ -58,6 +73,7 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
       displayName={sessionContext.display_name}
       orderCooldownSeconds={clampOrderCooldownSeconds(restaurant.order_cooldown_seconds)}
       initialSessionContext={sessionContext}
+      initialMenuCatalog={initialMenuCatalog}
       staffAssisted={staffAssisted}
     />
   );

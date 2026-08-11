@@ -151,21 +151,35 @@ export function resolveMenuImageDisplayUrl(
   return trimmed;
 }
 
+/** Hostname from Host header (no port). Sole header reader — Request/RSC wrappers use this. */
+export function clientHostnameFromHeaders(headerBag: Headers): string | null {
+  const fromHeader = headerBag.get('host')?.split(':')[0]?.trim();
+  return fromHeader || null;
+}
+
 export function clientHostnameFromRequest(req: Request): string {
-  const fromHeader = req.headers.get('host')?.split(':')[0]?.trim();
-  if (fromHeader) return fromHeader;
-  return new URL(req.url).hostname;
+  return clientHostnameFromHeaders(req.headers) ?? new URL(req.url).hostname;
+}
+
+/**
+ * Page origin from Host + X-Forwarded-Proto (Tunnel HTTPS / LAN HTTP).
+ * Sole header reader — Request/RSC wrappers use this.
+ */
+export function clientPageOriginFromHeaders(
+  headerBag: Headers,
+  fallbackProto = 'http',
+): string | null {
+  const host = headerBag.get('host')?.trim();
+  if (!host) return null;
+  const protoHeader = headerBag.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const proto = protoHeader || fallbackProto;
+  return `${proto}://${host}`;
 }
 
 /** Prefer forwarded proto + Host so Tunnel HTTPS and LAN HTTP both work. */
 export function clientPageOriginFromRequest(req: Request): string {
-  const host = req.headers.get('host')?.trim();
-  if (host) {
-    const protoHeader = req.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
-    const proto = protoHeader || new URL(req.url).protocol.replace(/:$/, '') || 'http';
-    return `${proto}://${host}`;
-  }
-  return new URL(req.url).origin;
+  const urlProto = new URL(req.url).protocol.replace(/:$/, '') || 'http';
+  return clientPageOriginFromHeaders(req.headers, urlProto) ?? new URL(req.url).origin;
 }
 
 /** Rewrite menu item image URLs for the requesting client (LAN / same-origin). */

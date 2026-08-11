@@ -20,7 +20,7 @@ import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-ent
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
-  /** Demo/seed path — skips client catalog fetch. */
+  /** SSR/demo seed — skips mount catalog reconcile when present. */
   initialMenuCatalog?: CustomerMenuCatalog | null;
   tableId: string;
   displayName: string;

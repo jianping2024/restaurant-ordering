@@ -84,6 +84,8 @@ function statusTone(status: OrderItemStatus): string {
  * Sole kitchen board row UI — one order line (`orderId:itemIndex`), never merged.
  * Whole-row tap toggles select; right-swipe past threshold preps (row stays; snap-back).
  * Gesture (sole): undecided → lock horizontal then capture; vertical → abandon (no capture).
+ * End (sole): `finishRowGesture` — clears active gesture first so late moves cannot rewrite dragX;
+ * pointerup / cancel / lostcapture / capture-fail window end all converge here.
  */
 function KitchenBoardLineRow({
   line,
@@ -109,6 +111,16 @@ function KitchenBoardLineRow({
   const [dragX, setDragX] = useState(0);
   const [snapping, setSnapping] = useState(false);
   const gestureRef = useRef<RowGesture | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const detachWindowEndRef = useRef<(() => void) | null>(null);
+  const lineSelectableRef = useRef(line.selectable);
+  const prepBusyRef = useRef(prepBusy);
+  const onSwipePrepRef = useRef(onSwipePrep);
+  const onToggleRef = useRef(onToggle);
+  lineSelectableRef.current = line.selectable;
+  prepBusyRef.current = prepBusy;
+  onSwipePrepRef.current = onSwipePrep;
+  onToggleRef.current = onToggle;
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -148,21 +160,72 @@ function KitchenBoardLineRow({
     }
   }, []);
 
-  const clearGesture = useCallback(() => {
-    gestureRef.current = null;
+  const detachWindowEnd = useCallback(() => {
+    detachWindowEndRef.current?.();
+    detachWindowEndRef.current = null;
   }, []);
 
-  const snapBack = useCallback(
-    (then?: () => void) => {
-      setSnapping(true);
+  /** Animate dragX → 0; gesture must already be cleared by finishRowGesture. */
+  const snapBack = useCallback((then?: () => void) => {
+    setSnapping(true);
+    setDragX(0);
+    window.setTimeout(() => {
+      setSnapping(false);
+      then?.();
+    }, 160);
+  }, []);
+
+  /**
+   * Sole gesture terminator. Clears `gestureRef` before release/snap so
+   * lostpointercapture and late pointermove cannot resurrect dragX.
+   */
+  const finishRowGesture = useCallback(
+    (kind: 'swipe-commit' | 'swipe-abort' | 'tap' | 'abort', el?: HTMLElement | null) => {
+      const g = gestureRef.current;
+      if (!g) return;
+      const pointerId = g.pointerId;
+      const captured = g.captured;
+      const mode = g.mode;
+      const armed = g.armed;
+      // Clear first — ended gate for all subsequent events.
+      gestureRef.current = null;
+      detachWindowEnd();
+      const target = el ?? rowRef.current;
+      if (target) releaseIfCaptured(target, pointerId, captured);
+
+      if (mode === 'swipe') {
+        const commit =
+          kind === 'swipe-commit' && armed && lineSelectableRef.current && !prepBusyRef.current;
+        snapBack(commit ? () => onSwipePrepRef.current() : undefined);
+        return;
+      }
       setDragX(0);
-      window.setTimeout(() => {
-        setSnapping(false);
-        clearGesture();
-        then?.();
-      }, 160);
+      if (kind === 'tap' && lineSelectableRef.current && !prepBusyRef.current) {
+        onToggleRef.current();
+      }
     },
-    [clearGesture],
+    [detachWindowEnd, releaseIfCaptured, snapBack],
+  );
+
+  const attachWindowEndIfUncaptured = useCallback(
+    (pointerId: number) => {
+      detachWindowEnd();
+      const onEnd = (ev: PointerEvent) => {
+        if (ev.pointerId !== pointerId) return;
+        const cur = gestureRef.current;
+        if (!cur || cur.pointerId !== pointerId) return;
+        const kind =
+          cur.mode === 'swipe' && cur.armed ? 'swipe-commit' : cur.mode === 'swipe' ? 'swipe-abort' : 'abort';
+        finishRowGesture(kind, rowRef.current);
+      };
+      window.addEventListener('pointerup', onEnd, true);
+      window.addEventListener('pointercancel', onEnd, true);
+      detachWindowEndRef.current = () => {
+        window.removeEventListener('pointerup', onEnd, true);
+        window.removeEventListener('pointercancel', onEnd, true);
+      };
+    },
+    [detachWindowEnd, finishRowGesture],
   );
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -170,6 +233,8 @@ function KitchenBoardLineRow({
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const target = e.target as HTMLElement | null;
     if (target?.closest('input')) return;
+    // Orphan translate (no active gesture) — reset before a new gesture.
+    if (dragX !== 0 && !gestureRef.current) setDragX(0);
     // Do not capture yet — leave the list free to scroll until horizontal lock.
     gestureRef.current = {
       pointerId: e.pointerId,
@@ -193,7 +258,7 @@ function KitchenBoardLineRow({
       if (absX < GESTURE_LOCK_SLOP_PX && absY < GESTURE_LOCK_SLOP_PX) return;
       // Vertical (or diagonal-up/down) → abandon; never captured, scroll stays native.
       if (absY >= absX) {
-        clearGesture();
+        gestureRef.current = null;
         return;
       }
       // Horizontal lock: capture only now.
@@ -204,6 +269,8 @@ function KitchenBoardLineRow({
       } catch {
         g.captured = false;
       }
+      // Capture failed → element may miss pointerup; window end shares finishRowGesture.
+      if (!g.captured) attachWindowEndIfUncaptured(e.pointerId);
     }
 
     if (g.mode !== 'swipe') return;
@@ -216,32 +283,29 @@ function KitchenBoardLineRow({
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const g = gestureRef.current;
     if (!g || g.pointerId !== e.pointerId) return;
-    releaseIfCaptured(e.currentTarget, g.pointerId, g.captured);
-
     if (g.mode === 'swipe') {
-      const commit = g.armed && line.selectable && !prepBusy;
-      snapBack(commit ? () => onSwipePrep() : undefined);
+      finishRowGesture(g.armed ? 'swipe-commit' : 'swipe-abort', e.currentTarget);
       return;
     }
-
-    // Undecided + pointerup = tap.
-    clearGesture();
-    setDragX(0);
-    if (line.selectable && !prepBusy) onToggle();
+    finishRowGesture('tap', e.currentTarget);
   };
 
   const onPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
     const g = gestureRef.current;
-    if (g && g.pointerId === e.pointerId) {
-      releaseIfCaptured(e.currentTarget, g.pointerId, g.captured);
-    }
-    if (snapping) return;
-    setDragX(0);
-    clearGesture();
+    if (!g || g.pointerId !== e.pointerId) return;
+    finishRowGesture(g.mode === 'swipe' ? 'swipe-abort' : 'abort', e.currentTarget);
+  };
+
+  /** Browser stole capture (or we released after clear) — only acts while gesture still live. */
+  const onLostPointerCapture = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const g = gestureRef.current;
+    if (!g || g.pointerId !== e.pointerId) return;
+    finishRowGesture(g.mode === 'swipe' ? 'swipe-abort' : 'abort', e.currentTarget);
   };
 
   return (
     <div
+      ref={rowRef}
       role="presentation"
       className={`flex min-w-0 w-full max-w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
         checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
@@ -253,6 +317,7 @@ function KitchenBoardLineRow({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
+      onLostPointerCapture={onLostPointerCapture}
     >
       <input
         type="checkbox"

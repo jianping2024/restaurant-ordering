@@ -15,6 +15,7 @@ import {
   phoneTopFillStyle,
   UiPrivacyFog,
   uiPrivacyFilter,
+  useUiPrivacyEnabled,
 } from "./V3Visuals";
 
 export const assets = {
@@ -91,14 +92,15 @@ export const ClickFlowUi: React.FC<{
     : 0;
   const imgH = `${100 / (1 - cropTop)}%`;
   const imgTop = `${(-cropTop * 100) / (1 - cropTop)}%`;
+  const privacy = useUiPrivacyEnabled();
   const imgStyle: React.CSSProperties = {
     width: "100%",
     height: imgH,
     marginTop: imgTop,
     objectFit: "cover",
     objectPosition: "top center",
-    filter: uiPrivacyFilter(),
-    transform: "scale(1.08)",
+    filter: privacy ? uiPrivacyFilter() : undefined,
+    transform: privacy ? "scale(1.08)" : undefined,
   };
 
   return (
@@ -198,14 +200,15 @@ export const FullUi: React.FC<{
   const frame = useCurrentFrame();
   const imgH = `${100 / (1 - cropTop)}%`;
   const imgTop = `${(-cropTop * 100) / (1 - cropTop)}%`;
+  const privacy = useUiPrivacyEnabled();
   const imgStyle: React.CSSProperties = {
     width: "100%",
     height: imgH,
     marginTop: imgTop,
     objectFit: "cover",
     objectPosition: "top center",
-    filter: uiPrivacyFilter(),
-    transform: "scale(1.08)",
+    filter: privacy ? uiPrivacyFilter() : undefined,
+    transform: privacy ? "scale(1.08)" : undefined,
   };
   return (
     <Interactive.Div
@@ -246,6 +249,7 @@ export const DualDevice: React.FC<{
   phoneFillRatio?: number;
 }> = ({ phoneSrc, desktopSrc, delay = 4, phoneFillRatio }) => {
   const frame = useCurrentFrame();
+  const privacy = useUiPrivacyEnabled();
   const phoneImgStyle = phoneTopFillStyle(
     phoneFillRatio ?? phoneFillRatioForSrc(phoneSrc),
   );
@@ -277,8 +281,8 @@ export const DualDevice: React.FC<{
             marginTop: "-8%",
             objectFit: "cover",
             objectPosition: "top",
-            filter: uiPrivacyFilter(),
-            transform: "scale(1.06)",
+            filter: privacy ? uiPrivacyFilter() : undefined,
+            transform: privacy ? "scale(1.06)" : undefined,
           }}
         />
         <UiPrivacyFog intensity={0.9} />
@@ -319,8 +323,8 @@ export const DualDevice: React.FC<{
           src={phoneSrc}
           style={{
             ...phoneImgStyle,
-            filter: uiPrivacyFilter(),
-            transform: "scale(1.08)",
+            filter: privacy ? uiPrivacyFilter() : undefined,
+            transform: privacy ? "scale(1.08)" : undefined,
           }}
         />
         <UiPrivacyFog />

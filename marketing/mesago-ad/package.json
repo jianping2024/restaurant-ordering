@@ -32,6 +32,7 @@
     "build": "remotion bundle",
     "render": "remotion render MesaGoAdV3 out/mesago-ad-v3.mp4",
     "render:v3b": "remotion render MesaGoAdV3b out/mesago-ad-v3b.mp4",
+    "render:v3b-clear": "remotion render MesaGoAdV3bClear out/mesago-ad-v3b-clear.mp4",
     "render:v2": "remotion render MesaGoAdV2 out/mesago-ad-v2.mp4",
     "render:v1": "remotion render MesaGoAd out/mesago-ad.mp4",
     "vo:v3": "node scripts/generate-vo-v3.mjs",

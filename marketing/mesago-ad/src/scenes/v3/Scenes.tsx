@@ -14,11 +14,12 @@ import {
   PhoneProof,
   UiPrivacyFog,
   uiPrivacyFilter,
+  useUiPrivacyEnabled,
   VsSplit,
   v3Assets,
 } from "../../components/V3Visuals";
 import { DualDevice } from "../../components/V2Visuals";
-import { AdProps, colors, fonts } from "../../theme";
+import { AdProps, ClientVenueInfo, colors, fonts } from "../../theme";
 
 /** 0–8s 开店成本 */
 export const V3S01Cost: React.FC = () => {
@@ -107,10 +108,11 @@ export const V3S02Offline: React.FC = () => (
   </AbsoluteFill>
 );
 
-/** 15–26s 角色权限与留痕 */
+/** 15–28s 角色权限与留痕 — hold each phase so bullets stay readable. */
 export const V3S03Roles: React.FC = () => {
   const frame = useCurrentFrame();
-  const showGood = frame >= 55;
+  // Pain ~0–6.5s, solution ~6.5–13s when parent gives 13s.
+  const showGood = frame >= 195;
   return (
     <AbsoluteFill style={{ backgroundColor: colors.bg }}>
       {!showGood ? (
@@ -123,6 +125,7 @@ export const V3S03Roles: React.FC = () => {
           <BulletStack
             tone="bad"
             delay={8}
+            stagger={10}
             items={[
               "换桌靠口头通知",
               "并台写在纸上",
@@ -130,7 +133,7 @@ export const V3S03Roles: React.FC = () => {
               "出了问题难追查",
             ]}
           />
-          <BottomCaption lines={["靠口头沟通，难追责"]} delay={6} />
+          <BottomCaption lines={["靠口头沟通，难追责"]} delay={8} />
         </>
       ) : (
         <>
@@ -141,14 +144,15 @@ export const V3S03Roles: React.FC = () => {
           <AbsoluteFill style={{ backgroundColor: "rgba(8,20,14,0.55)" }} />
           <BulletStack
             tone="good"
-            delay={58}
+            delay={204}
+            stagger={12}
             items={[
               "服务员：开台 · 转台 · 并台 · 点单",
               "收银员：核单 · 收款 · 结账",
               "每步记录员工 · 时间 · 内容",
             ]}
           />
-          <BottomCaption lines={["分角色操作，全流程有记录"]} delay={60} />
+          <BottomCaption lines={["分角色操作，全流程有记录"]} delay={208} />
         </>
       )}
     </AbsoluteFill>
@@ -195,6 +199,7 @@ export const V3S05Devices: React.FC = () => (
 /** 41–48s 价格自动执行（老板后台真实设置） */
 export const V3S06Prices: React.FC = () => {
   const frame = useCurrentFrame();
+  const privacy = useUiPrivacyEnabled();
   const showUi = frame >= 40;
   return (
     <AbsoluteFill style={{ backgroundColor: colors.bg }}>
@@ -220,8 +225,8 @@ export const V3S06Prices: React.FC = () => {
               height: "100%",
               objectFit: "cover",
               objectPosition: "top",
-              filter: uiPrivacyFilter(),
-              transform: "scale(1.06)",
+              filter: privacy ? uiPrivacyFilter() : undefined,
+              transform: privacy ? "scale(1.06)" : undefined,
             }}
           />
           <UiPrivacyFog intensity={0.75} />
@@ -240,6 +245,7 @@ export const V3S06Prices: React.FC = () => {
 /** 48–55s 订单历史可追溯 */
 export const V3S07History: React.FC = () => {
   const frame = useCurrentFrame();
+  const privacy = useUiPrivacyEnabled();
   const showDetail = frame >= 70;
   return (
     <AbsoluteFill style={{ backgroundColor: colors.bg }}>
@@ -271,8 +277,10 @@ export const V3S07History: React.FC = () => {
               height: "100%",
               objectFit: "cover",
               objectPosition: "top",
-              filter: uiPrivacyFilter("brightness(0.45)"),
-              transform: "scale(1.06)",
+              filter: privacy
+                ? uiPrivacyFilter("brightness(0.45)")
+                : "brightness(0.45)",
+              transform: privacy ? "scale(1.06)" : undefined,
             }}
           />
           <UiPrivacyFog intensity={0.7} />
@@ -292,12 +300,18 @@ export const V3S07History: React.FC = () => {
 };
 
 /** 55–63s 已落地大型 Buffet — 真实店面 p1/p2/p3 + 实拍剪辑 */
-export const V3S08Proof: React.FC = () => {
+export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
+  clientVenue,
+}) => {
   const frame = useCurrentFrame();
   const photo =
     frame < 28 ? v3Assets.proofP1 : frame < 56 ? v3Assets.proofP2 : v3Assets.proofP3;
   const showVideo = frame >= 72;
   const showM2 = frame >= 150;
+  const venueOpacity = interpolate(frame, [22, 34, 210, 230], [0, 1, 1, 0.85], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
   return (
     <AbsoluteFill style={{ backgroundColor: colors.bg }}>
       {!showVideo ? (
@@ -331,7 +345,7 @@ export const V3S08Proof: React.FC = () => {
           position: "absolute",
           left: 40,
           right: 40,
-          top: 200,
+          top: 180,
           textAlign: "center",
           opacity: interpolate(frame, [6, 18], [0, 1], {
             extrapolateLeft: "clamp",
@@ -342,10 +356,11 @@ export const V3S08Proof: React.FC = () => {
         <div
           style={{
             fontFamily: fonts.zh,
-            fontSize: 28,
+            fontSize: 26,
             color: colors.goldLight,
             fontWeight: 700,
-            marginBottom: 14,
+            marginBottom: 12,
+            letterSpacing: "0.04em",
           }}
         >
           已落地 · 稳定使用中
@@ -353,15 +368,15 @@ export const V3S08Proof: React.FC = () => {
         <div
           style={{
             fontFamily: fonts.zh,
-            fontSize: 44,
+            fontSize: 40,
             color: colors.text,
             fontWeight: 900,
             lineHeight: 1.35,
           }}
         >
-          葡萄牙大型中餐自助
+          葡萄牙大型 Buffet Livre
           <br />
-          真实门店在用
+          亚洲餐 + 葡餐 · 真实门店在用
         </div>
       </Interactive.Div>
       <div
@@ -369,7 +384,7 @@ export const V3S08Proof: React.FC = () => {
           position: "absolute",
           left: 36,
           right: 36,
-          bottom: 280,
+          bottom: 360,
           display: "flex",
           gap: 10,
           opacity: interpolate(frame, [18, 30], [0, 1], {
@@ -384,7 +399,7 @@ export const V3S08Proof: React.FC = () => {
             src={src}
             style={{
               flexGrow: 1,
-              height: 160,
+              height: 120,
               objectFit: "cover",
               borderRadius: 12,
               border: `2px solid ${colors.goldDark}`,
@@ -392,6 +407,61 @@ export const V3S08Proof: React.FC = () => {
           />
         ))}
       </div>
+      {clientVenue ? (
+        <Interactive.Div
+          name="Client venue"
+          style={{
+            position: "absolute",
+            left: 40,
+            right: 40,
+            bottom: 176,
+            padding: "12px 16px",
+            borderRadius: 14,
+            backgroundColor: "rgba(15,14,12,0.78)",
+            border: `1px solid ${colors.goldDark}55`,
+            opacity: venueOpacity,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: fonts.zh,
+              fontSize: 22,
+              fontWeight: 800,
+              color: colors.goldLight,
+              marginBottom: 4,
+            }}
+          >
+            {clientVenue.title}
+          </div>
+          <div
+            style={{
+              fontFamily: fonts.zh,
+              fontSize: 20,
+              fontWeight: 600,
+              color: colors.text,
+              lineHeight: 1.35,
+            }}
+          >
+            {clientVenue.intro}
+          </div>
+          <div
+            style={{
+              marginTop: 6,
+              fontFamily: fonts.sans,
+              fontSize: 18,
+              fontWeight: 500,
+              color: colors.textMuted,
+              lineHeight: 1.4,
+            }}
+          >
+            {clientVenue.address}
+            <br />
+            {clientVenue.hours}
+            <br />
+            {clientVenue.note}
+          </div>
+        </Interactive.Div>
+      ) : null}
       <BottomCaption lines={["少投入 · 不断网 · 流程可追溯"]} delay={24} />
     </AbsoluteFill>
   );

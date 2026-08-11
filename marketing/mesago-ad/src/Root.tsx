@@ -31,7 +31,14 @@ export const RemotionRoot: React.FC = () => {
         component={MesaGoAdV3b}
         durationInFrames={MESAGO_AD_V3B_DURATION}
         {...sceneMeta}
-        defaultProps={defaultAdProps satisfies AdProps}
+        defaultProps={{ ...defaultAdProps, privacyFog: true } satisfies AdProps}
+      />
+      <Composition
+        id="MesaGoAdV3bClear"
+        component={MesaGoAdV3b}
+        durationInFrames={MESAGO_AD_V3B_DURATION}
+        {...sceneMeta}
+        defaultProps={{ ...defaultAdProps, privacyFog: false } satisfies AdProps}
       />
       <Composition
         id="MesaGoAdV3"

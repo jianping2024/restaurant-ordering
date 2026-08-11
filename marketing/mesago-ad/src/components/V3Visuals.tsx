@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createContext, useContext } from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -90,6 +90,13 @@ export function phoneTopFillStyle(fillRatio: number): React.CSSProperties {
 /** Soft fog so product UI reads as real, but text/prices stay unreadable. */
 export const UI_PRIVACY_BLUR_PX = 4.5;
 
+/** When false, product screenshots render sharp (clear export). Default true. */
+export const UiPrivacyContext = createContext(true);
+
+export function useUiPrivacyEnabled(): boolean {
+  return useContext(UiPrivacyContext);
+}
+
 export function isProductUiSrc(src: string): boolean {
   return /\/ui\/|ui%2F|flow\/|buffet-|board-|dashboard-|menu-/.test(src);
 }
@@ -102,20 +109,24 @@ export function uiPrivacyFilter(extra?: string): string {
 /** Mist veil on top of blurred screenshots (labels stay crisp above this). */
 export const UiPrivacyFog: React.FC<{ intensity?: number }> = ({
   intensity = 1,
-}) => (
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      pointerEvents: "none",
-      background: `linear-gradient(165deg,
+}) => {
+  const enabled = useUiPrivacyEnabled();
+  if (!enabled) return null;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        background: `linear-gradient(165deg,
         rgba(252,249,242,${0.22 * intensity}) 0%,
         rgba(236,232,224,${0.34 * intensity}) 45%,
         rgba(248,245,238,${0.26 * intensity}) 100%)`,
-      boxShadow: "inset 0 0 60px rgba(255,255,255,0.18)",
-    }}
-  />
-);
+        boxShadow: "inset 0 0 60px rgba(255,255,255,0.18)",
+      }}
+    />
+  );
+};
 
 /** Full-bleed left | right compare for 9:16 shorts */
 export const VsSplit: React.FC<{
@@ -194,7 +205,9 @@ const Panel: React.FC<{
   badgeColor: string;
   mark: string;
 }> = ({ src, label, body, tint, badgeBg, badgeColor, mark }) => {
+  const privacy = useUiPrivacyEnabled();
   const uiShot = isProductUiSrc(src);
+  const fogUi = privacy && uiShot;
   return (
   <div style={{ flexGrow: 1, position: "relative", overflow: "hidden" }}>
     <Img
@@ -204,11 +217,11 @@ const Panel: React.FC<{
         height: "100%",
         objectFit: "cover",
         objectPosition: "center",
-        filter: uiShot ? uiPrivacyFilter() : undefined,
-        transform: uiShot ? "scale(1.06)" : undefined,
+        filter: fogUi ? uiPrivacyFilter() : undefined,
+        transform: fogUi ? "scale(1.06)" : undefined,
       }}
     />
-    {uiShot ? <UiPrivacyFog intensity={0.85} /> : null}
+    {fogUi ? <UiPrivacyFog intensity={0.85} /> : null}
     <div style={{ position: "absolute", inset: 0, backgroundColor: tint }} />
     <Interactive.Div
       name={`${mark} ${label}`}
@@ -259,6 +272,7 @@ export const PhoneProof: React.FC<{
   fillRatio?: number;
 }> = ({ src, delay = 4, label, side = "center", fillRatio }) => {
   const frame = useCurrentFrame();
+  const privacy = useUiPrivacyEnabled();
   const imgStyle = phoneTopFillStyle(fillRatio ?? phoneFillRatioForSrc(src));
   const left =
     side === "right" ? "52%" : side === "center" ? "50%" : "50%";
@@ -292,8 +306,8 @@ export const PhoneProof: React.FC<{
         src={src}
         style={{
           ...imgStyle,
-          filter: uiPrivacyFilter(),
-          transform: "scale(1.08)",
+          filter: privacy ? uiPrivacyFilter() : undefined,
+          transform: privacy ? "scale(1.08)" : undefined,
         }}
       />
       <UiPrivacyFog />
@@ -366,7 +380,9 @@ export const BulletStack: React.FC<{
   items: string[];
   delay?: number;
   tone?: "good" | "bad";
-}> = ({ items, delay = 10, tone = "good" }) => {
+  /** Frames between each bullet reveal (default 8 ≈ 0.27s — too fast for long copy). */
+  stagger?: number;
+}> = ({ items, delay = 10, tone = "good", stagger = 8 }) => {
   const frame = useCurrentFrame();
   return (
     <div
@@ -381,7 +397,7 @@ export const BulletStack: React.FC<{
       }}
     >
       {items.map((item, i) => {
-        const t0 = delay + i * 8;
+        const t0 = delay + i * stagger;
         return (
           <Interactive.Div
             key={item}
@@ -397,11 +413,11 @@ export const BulletStack: React.FC<{
                 tone === "good"
                   ? "1px solid rgba(34,197,94,0.4)"
                   : "1px solid rgba(239,68,68,0.4)",
-              opacity: interpolate(frame, [t0, t0 + 8], [0, 1], {
+              opacity: interpolate(frame, [t0, t0 + 10], [0, 1], {
                 extrapolateLeft: "clamp",
                 extrapolateRight: "clamp",
               }),
-              translate: interpolate(frame, [t0, t0 + 8], ["0px 12px", "0px 0px"], {
+              translate: interpolate(frame, [t0, t0 + 10], ["0px 12px", "0px 0px"], {
                 extrapolateLeft: "clamp",
                 extrapolateRight: "clamp",
               }),

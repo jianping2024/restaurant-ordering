@@ -126,6 +126,16 @@ export function resolveLicenseCalendarDate(
 
 export type LicenseCalendarExtendPeriod = '1d' | '1m' | '1y';
 
+/** Add whole calendar days on the Lisbon civil YMD (YMD arithmetic only). */
+export function addLisbonCalendarDays(ymd: string, days: number): string {
+  if (!Number.isInteger(days)) throw new Error('invalid_lisbon_calendar_days');
+  const parsed = parseLicenseCalendarDate(ymd);
+  if (!parsed) throw new Error('invalid_license_calendar_date');
+  const probe = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
+  probe.setUTCDate(probe.getUTCDate() + days);
+  return formatYmd(probe.getUTCFullYear(), probe.getUTCMonth() + 1, probe.getUTCDate());
+}
+
 /** Add a period on the Lisbon civil calendar (YMD arithmetic only). */
 export function addLisbonCalendarPeriod(
   ymd: string,
@@ -133,17 +143,26 @@ export function addLisbonCalendarPeriod(
 ): string {
   const parsed = parseLicenseCalendarDate(ymd);
   if (!parsed) throw new Error('invalid_license_calendar_date');
-  const probe = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
   switch (period) {
     case '1d':
-      probe.setUTCDate(probe.getUTCDate() + 1);
-      break;
-    case '1m':
+      return addLisbonCalendarDays(ymd, 1);
+    case '1m': {
+      const probe = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
       probe.setUTCMonth(probe.getUTCMonth() + 1);
-      break;
-    case '1y':
+      return formatYmd(probe.getUTCFullYear(), probe.getUTCMonth() + 1, probe.getUTCDate());
+    }
+    case '1y': {
+      const probe = new Date(Date.UTC(parsed.y, parsed.m - 1, parsed.d));
       probe.setUTCFullYear(probe.getUTCFullYear() + 1);
-      break;
+      return formatYmd(probe.getUTCFullYear(), probe.getUTCMonth() + 1, probe.getUTCDate());
+    }
   }
-  return formatYmd(probe.getUTCFullYear(), probe.getUTCMonth() + 1, probe.getUTCDate());
+}
+
+/** ISO timestamptz → Lisbon `YYYY-MM-DD` for DatePicker value; empty when unset/invalid. */
+export function lisbonCalendarDateInputValue(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return '';
+  return lisbonCalendarDateFromInstant(new Date(ms));
 }

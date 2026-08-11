@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   LICENSE_CALENDAR_TIMEZONE,
+  addLisbonCalendarDays,
   addLisbonCalendarPeriod,
   isLicenseCalendarDate,
   licenseValidUntilEndOfLisbonDay,
   lisbonCalendarDateFromInstant,
+  lisbonCalendarDateInputValue,
   resolveLicenseCalendarDate,
   todayLisbonCalendarDate,
 } from './license-calendar';
@@ -53,6 +55,20 @@ describe('license calendar (Europe/Lisbon)', () => {
     assert.equal(addLisbonCalendarPeriod('2026-07-30', '1d'), '2026-07-31');
     assert.equal(addLisbonCalendarPeriod('2026-07-30', '1m'), '2026-08-30');
     assert.equal(addLisbonCalendarPeriod('2026-07-30', '1y'), '2027-07-30');
+  });
+
+  it('adds whole calendar days on YMD', () => {
+    assert.equal(addLisbonCalendarDays('2026-01-01', 90), '2026-04-01');
+    assert.equal(addLisbonCalendarDays('2026-07-30', 1), '2026-07-31');
+  });
+
+  it('lisbonCalendarDateInputValue maps ISO to YMD or empty', () => {
+    assert.equal(lisbonCalendarDateInputValue(null), '');
+    assert.equal(lisbonCalendarDateInputValue('not-a-date'), '');
+    assert.equal(
+      lisbonCalendarDateInputValue(licenseValidUntilEndOfLisbonDay('2026-07-30')),
+      '2026-07-30',
+    );
   });
 });
 

@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   LICENSE_OFFLINE_GRACE_DAYS_DEFAULT,
-  lisbonCalendarDateFromInstant,
+  lisbonCalendarDateInputValue,
   todayLisbonCalendarDate,
+  type LicenseExtendPeriod,
 } from '@mesa/shared';
-import { DatePicker } from '@mesa/ui';
+import { OpsCalendarValidUntilEditor } from '@/components/OpsCalendarValidUntilEditor';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   BUSINESS_STATUS_LABEL,
@@ -41,19 +42,6 @@ type Restaurant = {
   offlineGraceDays: number;
 };
 
-const LICENSE_EXTEND_ACTIONS = [
-  { period: '1d', label: '+1 天' },
-  { period: '1m', label: '+1 月' },
-  { period: '1y', label: '+1 年' },
-] as const;
-
-function licenseDateInputValue(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) return '';
-  return lisbonCalendarDateFromInstant(new Date(ms));
-}
-
 export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   /** Active only: pending | claimed. Revoked lives in installationHistory. */
@@ -85,7 +73,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
       if (json.restaurant) {
         setRestaurant(json.restaurant);
         setReason(json.restaurant.suspensionReason || '');
-        setLicenseDate(licenseDateInputValue(json.restaurant.licenseValidUntil));
+        setLicenseDate(lisbonCalendarDateInputValue(json.restaurant.licenseValidUntil));
         setGraceDaysInput(
           String(json.restaurant.offlineGraceDays ?? LICENSE_OFFLINE_GRACE_DAYS_DEFAULT),
         );
@@ -241,61 +229,32 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
 
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
-      <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
-        <h2 className="text-lg font-medium">授权期限</h2>
-        <p className="mt-2 text-sm text-zinc-400">
-          截止日按里斯本日历日；当天 23:59:59（Europe/Lisbon）过期。
-          {restaurant.licenseValidUntil ? null : ' 当前：不限期'}
-        </p>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <label className="block text-sm text-zinc-400">
-            授权截止日
-            <DatePicker
-              variant="zinc"
-              lang="zh"
-              value={licenseDate}
-              min={minLicenseDate}
-              onChange={setLicenseDate}
-              placeholder="选择截止日"
-              className="mt-1 block min-w-[200px]"
-            />
-          </label>
-          <button
-            type="button"
-            disabled={busy || !licenseDate}
-            onClick={async () => {
-              const json = await call(`/api/ops/licenses/${restaurantId}/valid-until`, {
-                date: licenseDate,
-              });
-              if (json) void refresh();
-            }}
-            className="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-zinc-950 disabled:opacity-60"
-          >
-            更新
-          </button>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {LICENSE_EXTEND_ACTIONS.map((action) => (
-            <button
-              key={action.period}
-              type="button"
-              disabled={busy}
-              onClick={async () => {
-                const json = await call(`/api/ops/licenses/${restaurantId}/extend`, {
-                  period: action.period,
-                });
-                if (json) void refresh();
-              }}
-              className="rounded border border-amber-500/40 bg-zinc-950 px-3 py-2 text-sm font-medium text-amber-400 disabled:opacity-60"
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">续期/更新只改截止日，不会自动恢复已暂停的门店。</p>
+      <div className="space-y-0">
+        <OpsCalendarValidUntilEditor
+          title="授权期限"
+          description={`截止日按里斯本日历日；当天 23:59:59（Europe/Lisbon）过期。${
+            restaurant.licenseValidUntil ? '' : ' 当前：不限期'
+          }`}
+          dateLabel="授权截止日"
+          dateValue={licenseDate}
+          minDate={minLicenseDate}
+          busy={busy}
+          footerNote="续期/更新只改截止日，不会自动恢复已暂停的门店。"
+          onDateChange={setLicenseDate}
+          onUpdate={async () => {
+            const json = await call(`/api/ops/licenses/${restaurantId}/valid-until`, {
+              date: licenseDate,
+            });
+            if (json) void refresh();
+          }}
+          onExtend={async (period: LicenseExtendPeriod) => {
+            const json = await call(`/api/ops/licenses/${restaurantId}/extend`, { period });
+            if (json) void refresh();
+          }}
+        />
 
         {onPrem ? (
-          <div className="mt-6 border-t border-zinc-800 pt-4">
+          <section className="mt-4 rounded-lg border border-zinc-800 bg-zinc-900 p-5">
             <label className="block text-sm text-zinc-400">
               离线宽限（天）
               <input
@@ -328,9 +287,9 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
                 : ''}
               。
             </p>
-          </div>
+          </section>
         ) : null}
-      </section>
+      </div>
 
       <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
         <h2 className="text-lg font-medium">营业状态</h2>

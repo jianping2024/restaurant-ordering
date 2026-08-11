@@ -29,7 +29,6 @@ export {
   PREMIUM_KEYS,
   PRO_TRIAL_DAYS,
   canUsePremiumFeature,
-  extendProValidUntil,
   isPremiumKey,
   isProEffective,
   isRestaurantPlan,
@@ -106,10 +105,12 @@ export {
 } from './restaurant-suspension';
 export {
   LICENSE_CALENDAR_TIMEZONE,
+  addLisbonCalendarDays,
   addLisbonCalendarPeriod,
   isLicenseCalendarDate,
   licenseValidUntilEndOfLisbonDay,
   lisbonCalendarDateFromInstant,
+  lisbonCalendarDateInputValue,
   parseLicenseCalendarDate,
   resolveLicenseCalendarDate,
   todayLisbonCalendarDate,

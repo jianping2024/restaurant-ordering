@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import {
-  extendProValidUntil,
   normalizeCountryCode,
   parseBuffetServiceMode,
   type PrintLocale,
@@ -25,6 +24,17 @@ export async function PATCH(req: Request, context: RouteContext) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  if (body.extendProDays !== undefined || body.proValidUntilDate !== undefined) {
+    return NextResponse.json(
+      {
+        error: 'pro_valid_until_use_calendar_routes',
+        message:
+          'Pro 到期请用 POST …/pro-valid-until（日历截止日）或 …/pro-extend（+1d/+1m/+1y）。',
+      },
+      { status: 400 },
+    );
   }
 
   const { data: existing, error: fetchError } = await admin
@@ -108,18 +118,6 @@ export async function PATCH(req: Request, context: RouteContext) {
     }
   }
 
-  if (typeof body.extendProDays === 'number') {
-    const days = body.extendProDays;
-    if (!Number.isInteger(days) || days < 1) {
-      return NextResponse.json({ error: 'invalid_extend_days' }, { status: 400 });
-    }
-    const nextUntil = extendProValidUntil(existing.pro_valid_until, days);
-    updates.plan = 'pro';
-    updates.pro_valid_until = nextUntil;
-    metadata.extendProDays = days;
-    metadata.proValidUntil = { from: existing.pro_valid_until, to: nextUntil };
-  }
-
   if (typeof body.plan === 'string') {
     if (!PLANS.has(body.plan)) {
       return NextResponse.json({ error: 'invalid_plan' }, { status: 400 });
@@ -193,10 +191,5 @@ export async function PATCH(req: Request, context: RouteContext) {
     metadata,
   });
 
-  return NextResponse.json({
-    ok: true,
-    ...(typeof updates.pro_valid_until === 'string'
-      ? { proValidUntil: updates.pro_valid_until as string }
-      : {}),
-  });
+  return NextResponse.json({ ok: true });
 }

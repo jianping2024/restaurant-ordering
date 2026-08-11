@@ -1,4 +1,10 @@
-/** Pro trial length for newly registered restaurants. */
+import {
+  addLisbonCalendarDays,
+  licenseValidUntilEndOfLisbonDay,
+  lisbonCalendarDateFromInstant,
+} from './license-calendar';
+
+/** Pro trial length for newly registered restaurants (Lisbon civil days). */
 export const PRO_TRIAL_DAYS = 90;
 
 export type RestaurantPlan = 'basic' | 'pro';
@@ -27,27 +33,14 @@ export function normalizePremiumKeys(raw: unknown): PremiumKey[] {
   return out.length > 0 ? out : [...DEFAULT_PREMIUM_KEYS];
 }
 
-/** ISO timestamp PRO_TRIAL_DAYS from `from`. */
+/**
+ * Pro trial expiry: Lisbon civil date of `from` + PRO_TRIAL_DAYS, end of that Lisbon day.
+ * Same calendar representation as Ops license / Pro valid-until.
+ */
 export function proTrialValidUntil(from = new Date()): string {
-  const d = new Date(from);
-  d.setUTCDate(d.getUTCDate() + PRO_TRIAL_DAYS);
-  return d.toISOString();
-}
-
-/** Extend Pro from current expiry (or now when expired) by `days`. */
-export function extendProValidUntil(
-  current: string | null | undefined,
-  days: number,
-  from = new Date(),
-): string {
-  if (!Number.isFinite(days) || days < 1 || !Number.isInteger(days)) {
-    throw new Error('invalid_extend_days');
-  }
-  const base =
-    current && new Date(current).getTime() > from.getTime() ? new Date(current) : new Date(from);
-  const next = new Date(base);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next.toISOString();
+  const startYmd = lisbonCalendarDateFromInstant(from);
+  const endYmd = addLisbonCalendarDays(startYmd, PRO_TRIAL_DAYS);
+  return licenseValidUntilEndOfLisbonDay(endYmd);
 }
 
 export type ProEffectiveInput = {

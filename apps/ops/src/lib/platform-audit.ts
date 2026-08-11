@@ -25,6 +25,8 @@ export const PLATFORM_AUDIT_ACTION_LABELS: Record<string, string> = {
   'license.set_valid_until': '设置授权截止日',
   'license.extend': '续期授权',
   'license.set_offline_grace_days': '设置离线宽限天数',
+  'restaurant.pro_set_valid_until': '设置 Pro 截止日',
+  'restaurant.pro_extend': '续期 Pro',
   'platform_admin.create': '创建运营账号',
   'platform_admin.disable': '停用运营账号',
   'platform_admin.enable': '启用运营账号',

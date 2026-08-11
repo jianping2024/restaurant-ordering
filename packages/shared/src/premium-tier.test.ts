@@ -2,34 +2,23 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   canUsePremiumFeature,
-  extendProValidUntil,
   isProEffective,
   normalizePremiumKeys,
   proTrialValidUntil,
   PRO_TRIAL_DAYS,
 } from './premium-tier';
+import {
+  addLisbonCalendarDays,
+  licenseValidUntilEndOfLisbonDay,
+  lisbonCalendarDateFromInstant,
+} from './license-calendar';
 
 describe('premium-tier', () => {
-  it('proTrialValidUntil adds PRO_TRIAL_DAYS', () => {
-    const from = new Date('2026-01-01T00:00:00.000Z');
-    const until = proTrialValidUntil(from);
-    const expected = new Date(from);
-    expected.setUTCDate(expected.getUTCDate() + PRO_TRIAL_DAYS);
-    assert.equal(until, expected.toISOString());
-  });
-
-  it('extendProValidUntil stacks from expiry when still active', () => {
-    const now = new Date('2026-06-01T00:00:00.000Z');
-    const current = '2026-12-01T00:00:00.000Z';
-    const next = extendProValidUntil(current, 30, now);
-    assert.equal(next, '2026-12-31T00:00:00.000Z');
-  });
-
-  it('extendProValidUntil starts from now when expired', () => {
-    const now = new Date('2026-06-01T00:00:00.000Z');
-    const current = '2026-01-01T00:00:00.000Z';
-    const next = extendProValidUntil(current, 30, now);
-    assert.equal(next, '2026-07-01T00:00:00.000Z');
+  it('proTrialValidUntil is Lisbon calendar day + PRO_TRIAL_DAYS end-of-day', () => {
+    const from = new Date('2026-01-01T12:00:00.000Z');
+    const startYmd = lisbonCalendarDateFromInstant(from);
+    const endYmd = addLisbonCalendarDays(startYmd, PRO_TRIAL_DAYS);
+    assert.equal(proTrialValidUntil(from), licenseValidUntilEndOfLisbonDay(endYmd));
   });
 
   it('isProEffective requires plan pro and valid windows', () => {

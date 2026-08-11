@@ -196,7 +196,7 @@ print_jobs.status: pending | processing | done | failed
 platform_admin_accounts.role: support | admin  
 restaurant_staff_accounts.role: kitchen | waiter | cashier | frontdesk | owner | print_agent | custom
 restaurants.plan: basic | pro  
-restaurants.pro_valid_until: timestamptz nullable — Pro membership expiry; effective Pro also requires license_valid_until when set  
+restaurants.pro_valid_until: timestamptz nullable — Pro membership expiry (Ops: Lisbon calendar day → that day 23:59:59.999 Europe/Lisbon, same as license_valid_until); effective Pro also requires license_valid_until when set  
 platform_pro_settings (id: text PK default 'default', premium_keys: jsonb, wechat_url: text nullable, whatsapp_url: text nullable, updated_at: timestamptz) — singleton global Pro catalog + upgrade contact links  
 restaurants.print_locale: zh | en | pt
 restaurants.country_code: ISO 3166-1 alpha-2 (e.g. PT, CN)  

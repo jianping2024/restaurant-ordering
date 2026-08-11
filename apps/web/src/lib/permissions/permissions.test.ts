@@ -44,19 +44,12 @@ describe('permissions registry integrity', () => {
 });
 
 describe('can / resolve', () => {
-  it('backend admin owner capabilities are explicit, not star', () => {
+  it('backend admin owner capabilities are sole star covering registry', () => {
     const caps = resolveCapabilitiesForOwner();
-    assert.equal(can(caps, 'settings.roles.manage'), true);
-    assert.equal(can(caps, 'settings.print_assistant.manage'), true);
-    assert.equal(can(caps, 'tables.force_close'), true);
-    assert.equal(can(caps, 'dashboard.value_analytics.view'), true);
-    assert.equal(can(caps, 'dashboard.abnormal_ops.view'), true);
-    assert.equal(typeof caps, 'object');
-    assert.notEqual((caps as unknown) === '*', true);
-  });
-
-  it('owner star allows all', () => {
-    assert.equal(can('*', 'tables.force_close'), true);
+    assert.equal(caps, '*');
+    for (const key of ALL_PERMISSION_KEYS) {
+      assert.equal(can(caps, key), true, key);
+    }
   });
 
   it('set membership works', () => {

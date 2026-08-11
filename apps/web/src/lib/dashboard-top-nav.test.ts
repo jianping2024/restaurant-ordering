@@ -19,6 +19,7 @@ import {
 } from '@/lib/dashboard-top-nav';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { capabilitiesFromKeys } from '@/lib/permissions/can';
+import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
 describe('buildDashboardTopNavItems', () => {
@@ -75,7 +76,7 @@ describe('buildDashboardTopNavItems', () => {
   it('lists owner chrome items including menu in OWNER_NAV order', () => {
     const items = buildDashboardTopNavItems({
       shellMode: 'owner',
-      capabilities: '*',
+      capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
     assert.deepEqual(items.map((item) => item.id), [

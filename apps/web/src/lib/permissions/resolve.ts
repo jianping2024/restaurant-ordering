@@ -1,9 +1,8 @@
-import { can, capabilitiesFromKeys, type Capabilities } from '@/lib/permissions/can';
+import { can, type Capabilities } from '@/lib/permissions/can';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isPermissionKey } from '@/lib/permissions/registry';
 import type { PermissionDef } from '@/lib/permissions/registry';
 import { PERMISSIONS } from '@/lib/permissions/registry';
-import { templatePermissions } from '@/lib/permissions/role-templates';
 
 /**
  * Retired keys → sole live PermissionKey (one representation after normalize).
@@ -51,15 +50,9 @@ export function enforcePermissionRequires(keys: readonly PermissionKey[]): Permi
   return Array.from(set);
 }
 
+/** Backend admin (`restaurants.owner_id`): sole full-access form is `*`. Staff stays a finite Set. */
 export function resolveCapabilitiesForOwner(): Capabilities {
-  // Restaurant owner (mode=owner): store-owner template + backend-admin settings keys.
-  return capabilitiesFromKeys([
-    ...templatePermissions('owner'),
-    'settings.roles.manage',
-    'settings.features.manage',
-    'settings.buffet.manage',
-    'settings.print_assistant.manage',
-  ]);
+  return '*';
 }
 
 export function resolveCapabilitiesFromRolePermissions(

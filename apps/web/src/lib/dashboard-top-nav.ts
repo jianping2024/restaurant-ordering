@@ -27,8 +27,6 @@ export type ProductTopNavItem = {
   matchPrefix?: string;
   checkoutBadge?: boolean;
   external?: boolean;
-  /** Pro-gated nav item — show badge; href points to upgrade when locked. */
-  proLocked?: boolean;
 };
 
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
@@ -186,6 +184,7 @@ export function buildDashboardTopNavItems(input: {
     if (!permission || !can(capabilities, permission)) continue;
     const premiumKey = NAV_PREMIUM_KEY[item.id as keyof typeof NAV_PREMIUM_KEY];
     const proLocked = Boolean(premiumLockedNavIds?.has(item.id) && premiumKey);
+    // Pro lock = upgrade href only; no top-nav Pro chrome (upgrade page owns Pro copy).
     items.push({
       id: item.id,
       href: proLocked
@@ -196,7 +195,6 @@ export function buildDashboardTopNavItems(input: {
       exact: item.exact,
       matchPrefix: item.matchPrefix,
       checkoutBadge: item.checkoutBadge,
-      proLocked,
     });
   }
 

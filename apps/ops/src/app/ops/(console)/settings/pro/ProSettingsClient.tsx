@@ -49,7 +49,7 @@ export function ProSettingsClient({ initial }: Props) {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          premiumKeys: [...premiumKeys],
+          premiumKeys: Array.from(premiumKeys),
           wechatUrl: wechatUrl.trim() || null,
           whatsappUrl: whatsappUrl.trim() || null,
         }),

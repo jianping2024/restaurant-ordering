@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
-import { loadOrderHistoryEntries } from '@/lib/order-history/load-entries';
+import {
+  loadOrderHistoryEntries,
+  OrderHistoryLoadError,
+} from '@/lib/order-history/load-entries';
 import { parseOrderHistorySearchParams } from '@/lib/order-history/parse-query';
 
 export const runtime = 'nodejs';
@@ -27,14 +30,21 @@ export async function GET(req: Request) {
   }
 
   const { offset, limit, filters } = parsed;
-  const result = await loadOrderHistoryEntries(ctx.admin, {
-    restaurantId: restaurant.id as string,
-    ownerId: restaurant.owner_id as string,
-    restaurantName: restaurant.name as string,
-    offset,
-    limit,
-    ...filters,
-  });
-
-  return NextResponse.json(result);
+  try {
+    const result = await loadOrderHistoryEntries(ctx.admin, {
+      restaurantId: restaurant.id as string,
+      ownerId: restaurant.owner_id as string,
+      restaurantName: restaurant.name as string,
+      offset,
+      limit,
+      ...filters,
+    });
+    return NextResponse.json(result);
+  } catch (err) {
+    if (err instanceof OrderHistoryLoadError) {
+      console.error('[order-history]', err.message);
+      return NextResponse.json({ error: err.code }, { status: 500 });
+    }
+    throw err;
+  }
 }

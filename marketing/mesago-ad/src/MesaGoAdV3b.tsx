@@ -14,21 +14,21 @@ import { v3bAssets } from "./components/V3bVisuals";
 import { UiPrivacyContext } from "./components/V3Visuals";
 import { AdProps, FPS, defaultAdProps } from "./theme";
 
-/** Measured VO durations (seconds) — v3b tracks regenerated 2026-08-11. */
+/** Measured VO durations (seconds) — proof/end regenerated 2026-08-11 (provider scope). */
 const VO_DUR_SEC = {
   vo1: 7.32,
   vo2: 6.29,
-  vo3: 7.56,
+  vo3: 8.14,
   vo4: 6.19,
   vo5: 6.22,
   vo6: 6.38,
   vo7: 7.44,
-  voProof: 7.54,
-  vo8: 8.42,
+  voProof: 7.25,
+  vo8: 7.01,
   voAgent: 4.58,
 } as const;
 
-const VO_GAP = 4;
+const VO_GAP = 15; // ~0.5s @ 30fps — keep consecutive VO from overlapping
 
 function scheduleVoTracks(
   tracks: { key: keyof typeof VO_DUR_SEC; sceneStart: number }[],
@@ -92,7 +92,8 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
       { key: "vo5", sceneStart: S.s5 },
       { key: "vo6", sceneStart: S.s6 },
       { key: "vo7", sceneStart: S.s7 },
-      { key: "voProof", sceneStart: S.s8 },
+      // After Google Maps establish (3s) — avoid talking over the listing UI
+      { key: "voProof", sceneStart: S.s8 + 3 * FPS },
       { key: "vo8", sceneStart: S.s9 },
     ],
     voIn,

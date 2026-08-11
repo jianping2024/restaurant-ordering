@@ -48,6 +48,15 @@ export type AdWeChatContact = {
   qrFile: string;
 };
 
+/** Quiet venue credit for proof beat — address + short intro only. */
+export type ClientVenueInfo = {
+  title: string;
+  intro: string;
+  address: string;
+  hours: string;
+  note: string;
+};
+
 export type AdProps = {
   contactLine: string;
   ctaLine: string;
@@ -56,6 +65,10 @@ export type AdProps = {
   agentSubline: string;
   whatsapps: string[];
   wechats: AdWeChatContact[];
+  /** Soft-blur product UI screenshots (default true for publish exports). */
+  privacyFog?: boolean;
+  /** Optional client venue credit shown on the live-proof beat. */
+  clientVenue?: ClientVenueInfo;
 };
 
 export const defaultAdProps: AdProps = {
@@ -69,4 +82,12 @@ export const defaultAdProps: AdProps = {
     { display: 'p9110925', qrFile: 'contact/wechat-qr.png' },
     { display: '强', qrFile: 'contact/wechat-qr-qiang.png' },
   ],
+  privacyFog: true,
+  clientVenue: {
+    title: 'Torres Vedras · Buffet Livre',
+    intro: '中式 / 亚洲餐 + 葡餐综合自助',
+    address: '2560-250 Torres Vedras',
+    hours: '午餐 12:00–15:00 · 晚餐 19:00–23:00',
+    note: '约 €15–20/人 · 评分约 4.3',
+  },
 };

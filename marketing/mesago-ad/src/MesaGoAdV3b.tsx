@@ -11,6 +11,7 @@ import {
 } from "./scenes/v3/Scenes";
 import { V3bS02Offline, V3bS04GuestNet, V3bS09End } from "./scenes/v3b/Scenes";
 import { v3bAssets } from "./components/V3bVisuals";
+import { UiPrivacyContext } from "./components/V3Visuals";
 import { AdProps, FPS, defaultAdProps } from "./theme";
 
 /** Measured VO durations (seconds) — v3b tracks regenerated 2026-08-11. */
@@ -55,8 +56,8 @@ const S = {
   s1: 0,
   s2: 8 * FPS,
   s3: 15 * FPS,
-  s4: 26 * FPS,
-  s5: 33 * FPS,
+  s4: 28 * FPS,
+  s5: 34 * FPS,
   s6: 41 * FPS,
   s7: 48 * FPS,
   s8: 55 * FPS,
@@ -66,9 +67,9 @@ const S = {
 const D = {
   s1: 8 * FPS,
   s2: 7 * FPS,
-  s3: 11 * FPS,
-  s4: 7 * FPS,
-  s5: 8 * FPS,
+  s3: 13 * FPS,
+  s4: 6 * FPS,
+  s5: 7 * FPS,
   s6: 7 * FPS,
   s7: 7 * FPS,
   s8: 8 * FPS,
@@ -77,6 +78,7 @@ const D = {
 
 export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
   const merged = { ...defaultAdProps, ...props };
+  const privacyFog = merged.privacyFog !== false;
   const voIn = 6;
   const agentVoAt = S.s9 + 5 * FPS + voIn;
 
@@ -115,6 +117,7 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
   };
 
   return (
+    <UiPrivacyContext.Provider value={privacyFog}>
     <AbsoluteFill style={{ backgroundColor: "#0F0E0C" }}>
       <Sequence from={S.s1} durationInFrames={D.s1} name="Cost">
         <V3S01Cost />
@@ -138,7 +141,7 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
         <V3S07History />
       </Sequence>
       <Sequence from={S.s8} durationInFrames={D.s8} name="Proof">
-        <V3S08Proof />
+        <V3S08Proof clientVenue={merged.clientVenue} />
       </Sequence>
       <Sequence from={S.s9} durationInFrames={D.s9} name="End">
         <V3bS09End {...merged} />
@@ -192,6 +195,7 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
         }
       />
     </AbsoluteFill>
+    </UiPrivacyContext.Provider>
   );
 };
 

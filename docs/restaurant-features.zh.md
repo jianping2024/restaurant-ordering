@@ -4,6 +4,8 @@
 
 店主可在 **餐厅设置 → 功能管理**（`/dashboard/settings/features`）控制可选产品行为是否执行。
 
+**唯一可写入口：** 店主侧 `PATCH /api/restaurant/features`（UI：`FeatureFlagsManager`）。Ops 餐厅详情**不**编辑、**不**写入 `restaurants.feature_flags`（`PATCH /api/ops/restaurants/[id]` 若带 `featureFlags` 返回 `400 feature_flags_owner_only`）。
+
 当前内置功能：
 
 | 功能键 | 默认 | 作用 |

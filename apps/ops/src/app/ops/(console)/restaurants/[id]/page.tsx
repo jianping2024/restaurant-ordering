@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import {
   normalizeBuffetServiceMode,
   normalizeCountryCode,
-  normalizeRestaurantFeatureFlags,
   type BuffetServiceMode,
   type PrintLocale,
   type RestaurantCountryCode,
@@ -31,7 +30,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, pro_valid_until, created_at, owner_id, owner_email, print_locale, country_code, buffet_service_mode, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
+      'id, name, slug, plan, pro_valid_until, created_at, owner_id, owner_email, print_locale, country_code, buffet_service_mode, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
     )
     .eq('id', id)
     .maybeSingle();
@@ -41,7 +40,6 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const owner = row.owner_id ? await admin.auth.admin.getUserById(row.owner_id) : null;
   const tenantUrl = getTenantAppUrl();
   const menuUrl = `${tenantUrl}/${row.slug}/menu`;
-  const featureFlags = normalizeRestaurantFeatureFlags(row.feature_flags);
   const countryCode = (normalizeCountryCode(row.country_code ?? 'PT') ?? 'PT') as RestaurantCountryCode;
   const buffetServiceMode = normalizeBuffetServiceMode(row.buffet_service_mode) as BuffetServiceMode;
 
@@ -100,7 +98,6 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
           printLocale: row.print_locale as PrintLocale,
           countryCode,
           buffetServiceMode,
-          featureFlags,
         }}
       />
 

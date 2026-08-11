@@ -33,7 +33,7 @@ export async function GET(req: Request) {
   let query = admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, feature_flags, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
+      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
       { count: 'exact' },
     )
     .order('created_at', { ascending: false });
@@ -119,7 +119,6 @@ export async function GET(req: Request) {
       ownerId: r.owner_id,
       ownerEmail: r.owner_email || (r.owner_id ? ownerEmails.get(r.owner_id) ?? null : null),
       printLocale: r.print_locale,
-      featureFlags: r.feature_flags,
       suspendedAt: r.suspended_at,
       suspensionReason: r.suspension_reason,
       deploymentMode: r.deployment_mode,

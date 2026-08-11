@@ -223,8 +223,13 @@ export const MESSAGES_ES = {
     }
   },
   "licenseExpiry": {
-    "label": "La licencia termina el {date}",
-    "contactTitle": "Contactar para renovar"
+    "menuLabel": "Licencia hasta {date}",
+    "topBarCta": "Contactar para renovar",
+    "contactTitle": "Contactar para renovar",
+    "dailyTitle": "La licencia vence pronto",
+    "dailyBody": "La licencia termina el {date} (quedan {days} días). Renueva pronto para que el restaurante siga disponible.",
+    "dailyBodyExpired": "La licencia terminó el {date}. Renueva pronto para que el restaurante siga disponible.",
+    "snoozeToday": "No recordar hoy"
   },
   "dashboardAccessError": {
     "title": "No se puede cargar el panel",

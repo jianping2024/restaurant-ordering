@@ -223,8 +223,13 @@ export const MESSAGES_DE = {
     }
   },
   "licenseExpiry": {
-    "label": "Lizenz endet am {date}",
-    "contactTitle": "Zur Verlängerung kontaktieren"
+    "menuLabel": "Lizenz bis {date}",
+    "topBarCta": "Zur Verlängerung kontaktieren",
+    "contactTitle": "Zur Verlängerung kontaktieren",
+    "dailyTitle": "Lizenz läuft bald ab",
+    "dailyBody": "Ihre Lizenz endet am {date} (noch {days} Tage). Bitte verlängern Sie rechtzeitig, damit das Restaurant verfügbar bleibt.",
+    "dailyBodyExpired": "Ihre Lizenz endete am {date}. Bitte verlängern Sie, damit das Restaurant verfügbar bleibt.",
+    "snoozeToday": "Heute nicht mehr erinnern"
   },
   "dashboardAccessError": {
     "title": "Dashboard kann nicht geladen werden",

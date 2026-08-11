@@ -22,6 +22,7 @@ import {
   resolveRestaurantPrintNotifyMode,
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
+import type { DashboardLicenseMenuRow } from '@/components/dashboard/DashboardLicenseRenewalHost';
 
 type Props = {
   roleLabel: string;
@@ -33,6 +34,8 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
   /** Demo / guest shells without a real session hide voluntary change-password. */
   allowChangePassword?: boolean;
+  /** Sole account-menu entry for restaurant license clock (opens shared renewal contact). */
+  licenseMenu?: DashboardLicenseMenuRow | null;
 };
 
 export function PersonalSettingsMenu({
@@ -44,6 +47,7 @@ export function PersonalSettingsMenu({
   open: controlledOpen,
   onOpenChange,
   allowChangePassword = true,
+  licenseMenu = null,
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).nav;
@@ -125,6 +129,19 @@ export function PersonalSettingsMenu({
           mobilePortal={compact}
           align="end"
         >
+          {licenseMenu ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                licenseMenu.onClick();
+              }}
+              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-surface/80`}
+            >
+              <span className="min-w-0 truncate">{licenseMenu.label}</span>
+            </button>
+          ) : null}
           <PersonalSettingsPanel notifyMode={notifyMode} />
           {allowChangePassword ? (
             <button

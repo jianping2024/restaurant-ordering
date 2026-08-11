@@ -6,7 +6,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import type { DashboardNavRestaurant, DashboardShellMode } from '@/lib/dashboard-access';
 import { useCheckoutRequestsPendingCount } from '@/components/dashboard/checkout-requests-context';
 import { dashboardSignOutAndRedirect } from '@/lib/auth/sign-out-client';
-import { DashboardLicenseValidUntil } from '@/components/dashboard/DashboardLicenseValidUntil';
+import { DashboardLicenseRenewalHost } from '@/components/dashboard/DashboardLicenseRenewalHost';
 import { PersonalSettingsMenu } from '@/components/staff/PersonalSettingsMenu';
 import { StaffPersonalTopBar } from '@/components/staff/StaffPersonalTopBar';
 import {
@@ -48,28 +48,34 @@ export function DashboardTopBar({
   const logoHref = dashboardLogoHref(restaurant.slug, capabilities);
 
   return (
-    <StaffPersonalTopBar
-      logoHref={logoHref}
-      restaurantName={restaurant.name}
-      navItems={navItems}
-      navOpen={openPanel === 'nav'}
-      onNavOpenChange={(open) => setOpenPanel(open ? 'nav' : 'none')}
-      checkoutCount={pendingCount}
-      prefetch
-      onNavigate={() => setOpenPanel('none')}
-      trailingStart={
-        <DashboardLicenseValidUntil licenseValidUntil={restaurant.license_valid_until} />
-      }
-      settingsMenu={
-        <PersonalSettingsMenu
-          roleLabel={label}
-          logoutLabel={navT.logout}
-          compact
-          open={openPanel === 'settings'}
-          onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
-          onSignOut={() => void dashboardSignOutAndRedirect()}
+    <DashboardLicenseRenewalHost
+      restaurantId={restaurant.id}
+      licenseValidUntil={restaurant.license_valid_until}
+    >
+      {({ trailingStart, licenseMenu }) => (
+        <StaffPersonalTopBar
+          logoHref={logoHref}
+          restaurantName={restaurant.name}
+          navItems={navItems}
+          navOpen={openPanel === 'nav'}
+          onNavOpenChange={(open) => setOpenPanel(open ? 'nav' : 'none')}
+          checkoutCount={pendingCount}
+          prefetch
+          onNavigate={() => setOpenPanel('none')}
+          trailingStart={trailingStart}
+          settingsMenu={
+            <PersonalSettingsMenu
+              roleLabel={label}
+              logoutLabel={navT.logout}
+              compact
+              licenseMenu={licenseMenu}
+              open={openPanel === 'settings'}
+              onOpenChange={(open) => setOpenPanel(open ? 'settings' : 'none')}
+              onSignOut={() => void dashboardSignOutAndRedirect()}
+            />
+          }
         />
-      }
-    />
+      )}
+    </DashboardLicenseRenewalHost>
   );
 }

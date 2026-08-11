@@ -223,8 +223,13 @@ export const MESSAGES_FR = {
     }
   },
   "licenseExpiry": {
-    "label": "Licence jusqu'au {date}",
-    "contactTitle": "Contacter pour renouveler"
+    "menuLabel": "Licence jusqu'au {date}",
+    "topBarCta": "Contacter pour renouveler",
+    "contactTitle": "Contacter pour renouveler",
+    "dailyTitle": "Licence bientôt expirée",
+    "dailyBody": "Votre licence se termine le {date} (encore {days} jours). Renouvelez bientôt pour garder le restaurant disponible.",
+    "dailyBodyExpired": "Votre licence s'est terminée le {date}. Renouvelez bientôt pour garder le restaurant disponible.",
+    "snoozeToday": "Ne plus rappeler aujourd'hui"
   },
   "dashboardAccessError": {
     "title": "Impossible de charger le tableau de bord",

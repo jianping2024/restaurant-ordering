@@ -10,7 +10,10 @@ const NAV = [
   { href: '/ops/audit', label: '审计', match: 'prefix' as const },
 ];
 
-const ADMIN_NAV = { href: '/ops/settings/admins', label: '账号' };
+const ADMIN_NAV = [
+  { href: '/ops/settings/pro', label: 'Pro' },
+  { href: '/ops/settings/admins', label: '账号' },
+];
 
 function navActive(pathname: string, item: (typeof NAV)[number]): boolean {
   if (item.match === 'restaurants') {
@@ -59,18 +62,21 @@ export function OpsShell({
                   </Link>
                 );
               })}
-              {role === 'admin' ? (
-                <Link
-                  href={ADMIN_NAV.href}
-                  className={
-                    pathname.startsWith(ADMIN_NAV.href)
-                      ? 'text-white'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }
-                >
-                  {ADMIN_NAV.label}
-                </Link>
-              ) : null}
+              {role === 'admin'
+                ? ADMIN_NAV.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={
+                        pathname.startsWith(item.href)
+                          ? 'text-white'
+                          : 'text-zinc-400 hover:text-zinc-200'
+                      }
+                    >
+                      {item.label}
+                    </Link>
+                  ))
+                : null}
             </nav>
           </div>
           <div className="flex items-center gap-3 text-sm text-zinc-400">

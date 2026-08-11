@@ -5,13 +5,14 @@ import {
 import { loadOwnerAbnormalOperationsContext } from '@/lib/abnormal-operations/load-owner-context';
 import { parseAbnormalOperationsListQuery } from '@/lib/abnormal-operations/parse-list-query';
 import { listAbnormalOperations } from '@/lib/abnormal-operations/owner-query';
+import { jsonForLoaderError } from '@/lib/premium/page-gate';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   const ctx = await loadOwnerAbnormalOperationsContext();
   if ('error' in ctx) {
-    return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+    return jsonForLoaderError(ctx);
   }
 
   const rate = abnormalOperationsListRateLimitCheck(ctx.userId, ctx.restaurantId);

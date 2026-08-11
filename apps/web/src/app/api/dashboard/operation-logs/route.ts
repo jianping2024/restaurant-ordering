@@ -3,13 +3,14 @@ import { abnormalOperationsListRateLimitCheck } from '@/lib/abnormal-operations-
 import { loadOperationLogsAccessContext } from '@/lib/operation-logs/load-access-context';
 import { parseOperationLogsListQuery } from '@/lib/operation-logs/parse-list-query';
 import { listOperationLogs } from '@/lib/operation-logs/query';
+import { jsonForLoaderError } from '@/lib/premium/page-gate';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   const ctx = await loadOperationLogsAccessContext();
   if ('error' in ctx) {
-    return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+    return jsonForLoaderError(ctx);
   }
 
   const rate = abnormalOperationsListRateLimitCheck(ctx.userId, ctx.restaurantId);

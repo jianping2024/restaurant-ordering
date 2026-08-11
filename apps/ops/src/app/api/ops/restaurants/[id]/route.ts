@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  extendProValidUntil,
   mergeRestaurantFeatureFlagsJsonb,
   normalizeCountryCode,
   parseBuffetServiceMode,
@@ -13,7 +14,7 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const PRINT_LOCALES = new Set<PrintLocale>(['zh', 'en', 'pt']);
-const PLANS = new Set(['free', 'pro']);
+const PLANS = new Set(['basic', 'pro']);
 
 export async function PATCH(req: Request, context: RouteContext) {
   const { ctx, error, admin } = await requirePlatformAdminRole('admin');
@@ -31,7 +32,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { data: existing, error: fetchError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, address, phone, print_locale, country_code, buffet_service_mode, feature_flags, deployment_mode',
+      'id, name, slug, plan, pro_valid_until, address, phone, print_locale, country_code, buffet_service_mode, feature_flags, deployment_mode',
     )
     .eq('id', id)
     .maybeSingle();
@@ -109,6 +110,18 @@ export async function PATCH(req: Request, context: RouteContext) {
     }
   }
 
+  if (typeof body.extendProDays === 'number') {
+    const days = body.extendProDays;
+    if (!Number.isInteger(days) || days < 1) {
+      return NextResponse.json({ error: 'invalid_extend_days' }, { status: 400 });
+    }
+    const nextUntil = extendProValidUntil(existing.pro_valid_until, days);
+    updates.plan = 'pro';
+    updates.pro_valid_until = nextUntil;
+    metadata.extendProDays = days;
+    metadata.proValidUntil = { from: existing.pro_valid_until, to: nextUntil };
+  }
+
   if (typeof body.plan === 'string') {
     if (!PLANS.has(body.plan)) {
       return NextResponse.json({ error: 'invalid_plan' }, { status: 400 });
@@ -180,5 +193,10 @@ export async function PATCH(req: Request, context: RouteContext) {
     metadata,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    ...(typeof updates.pro_valid_until === 'string'
+      ? { proValidUntil: updates.pro_valid_until as string }
+      : {}),
+  });
 }

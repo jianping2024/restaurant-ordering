@@ -14,6 +14,10 @@ import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can, toCapabilitiesPayload } from '@/lib/permissions/can';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
+import {
+  computePremiumLockedNavIds,
+  loadPlatformProSettings,
+} from '@/lib/premium/access';
 
 async function OwnerPrintExpiryBanner({ restaurantId }: { restaurantId: string }) {
   const expiringDevices = await getPrintAgentDevicesNeedingRenewal(restaurantId);
@@ -65,6 +69,9 @@ export default async function DashboardLayout({
   const showSuspensionBanner =
     isRestaurantSuspended(access.restaurant.suspended_at);
 
+  const proSettings = await loadPlatformProSettings();
+  const premiumLockedNavIds = computePremiumLockedNavIds(access.restaurant, proSettings);
+
   return (
     <CheckoutRequestsProvider
       restaurantId={access.restaurant.id}
@@ -83,6 +90,7 @@ export default async function DashboardLayout({
           capabilities={toCapabilitiesPayload(
             caps ?? (isOwner ? resolveCapabilitiesForOwner() : new Set()),
           )}
+          premiumLockedNavIds={premiumLockedNavIds}
         >
           {showSuspensionBanner ? (
             <RestaurantSuspensionBanner reason={access.restaurant.suspension_reason} />

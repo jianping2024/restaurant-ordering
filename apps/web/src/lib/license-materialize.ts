@@ -166,6 +166,8 @@ export async function syncOnPremLicenseFromPlatform(
       leaseToken?: string;
       lease?: { server_time: string; lease_until: string; valid_until: string | null };
       licenseValidUntil?: string | null;
+      plan?: string | null;
+      proValidUntil?: string | null;
       buffetServiceMode?: string | null;
     };
     if (!res.ok || !json.leaseToken || !json.lease) {
@@ -181,6 +183,8 @@ export async function syncOnPremLicenseFromPlatform(
         license_lease_until: json.lease.lease_until,
         license_lease_token: json.leaseToken,
         buffet_service_mode: normalizeBuffetServiceMode(json.buffetServiceMode),
+        ...(typeof json.plan === 'string' ? { plan: json.plan } : {}),
+        ...(json.proValidUntil !== undefined ? { pro_valid_until: json.proValidUntil } : {}),
       })
       .eq('id', restaurantId);
 
@@ -203,6 +207,8 @@ export type PlatformClaimSnapshot = {
   buffetServiceMode?: string | null;
   checkinCredential: string;
   licenseValidUntil: string | null;
+  plan?: string | null;
+  proValidUntil?: string | null;
   suspendedAt: string | null;
   suspensionReason: string | null;
   leaseToken: string;
@@ -261,6 +267,8 @@ export async function applyOnPremClaim(
     license_lease_token: snap.leaseToken,
     suspended_at: snap.suspendedAt,
     suspension_reason: snap.suspensionReason,
+    ...(typeof snap.plan === 'string' ? { plan: snap.plan } : {}),
+    ...(snap.proValidUntil !== undefined ? { pro_valid_until: snap.proValidUntil } : {}),
   };
 
   // Rebind: restaurant already claimed locally — refresh lease/config, reset owner password.

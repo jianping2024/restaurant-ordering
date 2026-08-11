@@ -18,6 +18,7 @@ import {
 } from '@/lib/ops-license-status';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
 import { RestaurantEditPanel } from './RestaurantEditPanel';
+import { RestaurantProPanel } from './RestaurantProPanel';
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -30,7 +31,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
   const { data: row } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, plan, created_at, owner_id, owner_email, print_locale, country_code, buffet_service_mode, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
+      'id, name, slug, plan, pro_valid_until, created_at, owner_id, owner_email, print_locale, country_code, buffet_service_mode, feature_flags, address, phone, suspended_at, suspension_reason, deployment_mode, license_valid_until, license_checked_at, license_offline_grace_days',
     )
     .eq('id', id)
     .maybeSingle();
@@ -94,13 +95,21 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         initial={{
           name: row.name,
           slug: row.slug,
-          plan: row.plan,
           address: row.address,
           phone: row.phone,
           printLocale: row.print_locale as PrintLocale,
           countryCode,
           buffetServiceMode,
           featureFlags,
+        }}
+      />
+
+      <RestaurantProPanel
+        restaurantId={row.id}
+        readOnly={!isAdmin}
+        initial={{
+          plan: row.plan,
+          proValidUntil: row.pro_valid_until,
         }}
       />
 

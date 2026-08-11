@@ -154,7 +154,7 @@ export default function RestaurantsListClient() {
           className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm"
         >
           <option value="">全部 plan</option>
-          <option value="free">free</option>
+          <option value="basic">basic</option>
           <option value="pro">pro</option>
         </select>
         <input

@@ -5,6 +5,7 @@ import { loadStaffAuditActor } from '@/lib/audit/resolve-actor';
 import type { AuditActor } from '@/lib/audit/types';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
+import { premiumLoaderCheck } from '@/lib/premium/access';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 
@@ -16,7 +17,7 @@ export type OwnerAbnormalOperationsContext =
       userId: string;
       actor: AuditActor;
     }
-  | { error: string; status: number };
+  | { error: string; status: number; premiumKey?: import('@mesa/shared').PremiumKey };
 
 export async function loadOwnerAbnormalOperationsContext(): Promise<OwnerAbnormalOperationsContext> {
   const access = await loadDashboardAccess();
@@ -37,6 +38,9 @@ export async function loadOwnerAbnormalOperationsContext(): Promise<OwnerAbnorma
   ) {
     return { error: 'unauthorized', status: 401 };
   }
+
+  const premiumBlock = await premiumLoaderCheck(access.restaurant, 'abnormal_ops');
+  if (premiumBlock) return premiumBlock;
 
   let admin;
   try {

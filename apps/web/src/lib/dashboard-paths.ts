@@ -5,6 +5,8 @@ export function isDashboardSettingsPath(pathname: string): boolean {
 /** Owner dashboard routes outside /dashboard/settings (ops + menu). */
 export function isOwnerOperationalPath(pathname: string): boolean {
   return (
+    pathname === '/dashboard/upgrade' ||
+    pathname.startsWith('/dashboard/upgrade/') ||
     pathname === '/dashboard/abnormal-operations' ||
     pathname.startsWith('/dashboard/abnormal-operations/') ||
     pathname === '/dashboard/operation-logs' ||

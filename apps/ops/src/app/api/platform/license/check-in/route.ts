@@ -42,6 +42,8 @@ export async function POST(req: Request) {
     ok: true,
     restaurantId: result.restaurantId,
     licenseValidUntil: result.licenseValidUntil,
+    plan: result.plan,
+    proValidUntil: result.proValidUntil,
     leaseToken: result.leaseToken,
     lease: result.lease,
     desiredSuspended: result.desiredSuspended,

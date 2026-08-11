@@ -5,6 +5,7 @@ import {
 } from './buffet-service-mode';
 import { normalizeCountryCode } from './country-code';
 import { ensurePrintAgentStaff } from './print-agent-staff';
+import { proTrialValidUntil } from './premium-tier';
 import { defaultRestaurantSlug } from './slug';
 
 export type PrintLocale = 'zh' | 'en' | 'pt';
@@ -105,6 +106,8 @@ export async function createRestaurantWithOwner(
     return { ok: false, error: 'confirm_email_failed', status: 500, detail: confirmError.message };
   }
 
+  const proValidUntil = proTrialValidUntil();
+
   const { data: restaurantRow, error: insertError } = await admin
     .from('restaurants')
     .insert({
@@ -116,6 +119,8 @@ export async function createRestaurantWithOwner(
       country_code: countryCode,
       buffet_service_mode: buffetServiceMode,
       deployment_mode: 'cloud',
+      plan: 'pro',
+      pro_valid_until: proValidUntil,
     })
     .select('id')
     .single();

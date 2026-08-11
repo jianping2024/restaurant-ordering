@@ -291,6 +291,9 @@ export function middlewareAllowsPathForCapabilities(
   capabilities: Capabilities,
   pathname: string,
 ): boolean {
+  if (pathname === '/dashboard/upgrade' || pathname.startsWith('/dashboard/upgrade/')) {
+    return true;
+  }
   const permission = dashboardRoutePermission(pathname);
   if (!permission) return false;
   return can(capabilities, permission);

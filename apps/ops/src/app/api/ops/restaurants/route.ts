@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     )
     .order('created_at', { ascending: false });
 
-  if (plan === 'free' || plan === 'pro') {
+  if (plan === 'basic' || plan === 'pro') {
     query = query.eq('plan', plan);
   }
   if (ownerEmail) {

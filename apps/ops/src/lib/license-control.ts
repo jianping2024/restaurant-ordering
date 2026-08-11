@@ -296,6 +296,8 @@ export type ClaimInstallResult =
       buffetServiceMode: string;
       checkinCredential: string;
       licenseValidUntil: string | null;
+      plan: string;
+      proValidUntil: string | null;
       suspendedAt: string | null;
       suspensionReason: string | null;
       leaseToken: string;
@@ -334,7 +336,7 @@ export async function claimOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, buffet_service_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
+      'id, name, slug, owner_email, deployment_mode, print_locale, country_code, buffet_service_mode, license_valid_until, plan, pro_valid_until, suspended_at, suspension_reason, license_offline_grace_days',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -423,6 +425,8 @@ export async function claimOnPremInstallation(
     buffetServiceMode: normalizeBuffetServiceMode(restaurant.buffet_service_mode),
     checkinCredential,
     licenseValidUntil: restaurant.license_valid_until,
+    plan: restaurant.plan,
+    proValidUntil: restaurant.pro_valid_until ?? null,
     suspendedAt: restaurant.suspended_at,
     suspensionReason: restaurant.suspension_reason,
     leaseToken,
@@ -439,6 +443,8 @@ export type CheckInResult =
       lease: ReturnType<typeof buildLicenseLeaseClaims>;
       desiredSuspended: boolean;
       buffetServiceMode: string;
+      plan: string;
+      proValidUntil: string | null;
     }
   | { ok: false; error: string; status: number; detail?: string };
 
@@ -465,7 +471,7 @@ export async function checkInOnPremInstallation(
   const { data: restaurant, error: restError } = await admin
     .from('restaurants')
     .select(
-      'id, deployment_mode, license_valid_until, suspended_at, suspension_reason, license_offline_grace_days, buffet_service_mode',
+      'id, deployment_mode, license_valid_until, plan, pro_valid_until, suspended_at, suspension_reason, license_offline_grace_days, buffet_service_mode',
     )
     .eq('id', installation.restaurant_id)
     .maybeSingle();
@@ -517,5 +523,7 @@ export async function checkInOnPremInstallation(
     lease,
     desiredSuspended,
     buffetServiceMode: normalizeBuffetServiceMode(restaurant.buffet_service_mode),
+    plan: restaurant.plan,
+    proValidUntil: restaurant.pro_valid_until ?? null,
   };
 }

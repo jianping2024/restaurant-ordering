@@ -26,7 +26,7 @@ export {
 
 export type DashboardNavRestaurant = Pick<
   Restaurant,
-  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'license_valid_until'
+  'id' | 'name' | 'slug' | 'logo_url' | 'feature_flags' | 'license_valid_until' | 'plan' | 'pro_valid_until'
 >;
 
 export type StaffDashboardRestaurant = Pick<
@@ -40,6 +40,8 @@ export type StaffDashboardRestaurant = Pick<
   | 'suspended_at'
   | 'suspension_reason'
   | 'license_valid_until'
+  | 'plan'
+  | 'pro_valid_until'
 > & {
   print_agent_config?: unknown;
 };
@@ -62,10 +64,10 @@ export type DashboardOperationalContext =
   | { error: string; status: number };
 
 const OWNER_RESTAURANT_SELECT =
-  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, print_locale, country_code, feature_flags, buffet_service_mode, print_agent_config, suspended_at, suspension_reason, license_valid_until, created_at';
+  'id, name, slug, owner_id, logo_url, address, phone, geo_latitude, geo_longitude, order_radius_meters, plan, pro_valid_until, print_locale, country_code, feature_flags, buffet_service_mode, print_agent_config, suspended_at, suspension_reason, license_valid_until, created_at';
 
 const STAFF_DASHBOARD_RESTAURANT_SELECT =
-  'id, name, slug, logo_url, feature_flags, buffet_service_mode, print_agent_config, suspended_at, suspension_reason, license_valid_until';
+  'id, name, slug, logo_url, feature_flags, buffet_service_mode, print_agent_config, suspended_at, suspension_reason, license_valid_until, plan, pro_valid_until';
 
 async function loadStaffRestaurant(
   admin: ReturnType<typeof createAdminClient>,

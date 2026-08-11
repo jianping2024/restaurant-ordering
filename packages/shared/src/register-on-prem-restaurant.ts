@@ -9,6 +9,7 @@ import {
   resolveLicenseCalendarDate,
   todayLisbonCalendarDate,
 } from './license-calendar';
+import { proTrialValidUntil } from './premium-tier';
 import { defaultRestaurantSlug } from './slug';
 import type { PrintLocale } from './create-restaurant';
 
@@ -96,6 +97,8 @@ export async function registerOnPremRestaurant(
     licenseValidUntil = resolved.licenseValidUntil;
   }
 
+  const proValidUntil = proTrialValidUntil();
+
   const { data: restaurantRow, error: insertError } = await admin
     .from('restaurants')
     .insert({
@@ -108,6 +111,8 @@ export async function registerOnPremRestaurant(
       buffet_service_mode: buffetServiceMode,
       deployment_mode: 'on_prem',
       license_valid_until: licenseValidUntil,
+      plan: 'pro',
+      pro_valid_until: proValidUntil,
     })
     .select('id')
     .single();

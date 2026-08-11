@@ -5,6 +5,7 @@ import {
 import { loadOwnerAbnormalOperationsContext } from '@/lib/abnormal-operations/load-owner-context';
 import { patchAbnormalOperationWithAudit } from '@/lib/abnormal-operations/patch-abnormal-operation.service';
 import type { AbnormalOperationStatus } from '@/lib/abnormal-operations/types';
+import { jsonForLoaderError } from '@/lib/premium/page-gate';
 
 export const runtime = 'nodejs';
 
@@ -21,7 +22,7 @@ export async function PATCH(
 
   const ctx = await loadOwnerAbnormalOperationsContext();
   if ('error' in ctx) {
-    return NextResponse.json({ error: ctx.error }, { status: ctx.status });
+    return jsonForLoaderError(ctx);
   }
 
   const rate = abnormalOperationsPatchRateLimitCheck(ctx.userId, ctx.restaurantId);

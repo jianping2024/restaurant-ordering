@@ -6,7 +6,7 @@ export type { RestaurantTable, RestaurantTableRow } from '@/lib/restaurant-table
 import type { BuffetServiceMode } from '@mesa/shared';
 export type { BuffetServiceMode };
 
-export type Plan = 'free' | 'pro';
+export type Plan = 'basic' | 'pro';
 export type OrderStatus = 'pending' | 'cooking' | 'done';
 /** pending→cooking(备餐)→ready(已出餐, often display-only)→done(已上桌); voided */
 export type OrderItemStatus = 'pending' | 'cooking' | 'ready' | 'done' | 'voided';
@@ -78,6 +78,8 @@ export interface Restaurant {
   /** Operation log retention in calendar days; default 7, range 7-90. */
   operation_log_retention_days?: number;
   plan: Plan;
+  /** Pro membership expiry (UTC); null with plan=pro means no pro expiry. */
+  pro_valid_until?: string | null;
   /** bcrypt hash; never send to browser */
   kitchen_password?: string;
   waiter_password?: string;

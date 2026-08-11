@@ -54,6 +54,21 @@ export const MESSAGES = {
       changePassword: '修改密码',
       mainNav: '主导航',
       restaurantSettings: '餐厅设置',
+      proBadge: 'Pro',
+    },
+    premiumUpgrade: {
+      proBadge: 'Pro',
+      title: '开通 Pro 会员',
+      desc: '「{feature}」属于 Pro 功能，请联系运营开通或续费。',
+      contactHint: '可通过以下方式联系我们：',
+      wechatCta: '微信联系',
+      whatsappCta: 'WhatsApp 联系',
+      backToDashboard: '返回后台',
+      features: {
+        valueAnalytics: '增值分析',
+        abnormalOps: '异常操作',
+        operationLogs: '操作记录',
+      },
     },
     buffetAdmin: {
       title: '自助餐 / 人头费',
@@ -1577,7 +1592,8 @@ export const MESSAGES = {
     },
   },
   en: {
-    nav: { overview: 'Overview', tables: 'Tables', checkout: 'Checkout', printAssistant: 'Print', menu: 'Menu', buffet: 'Buffet', orders: 'Orders', dishHistory: 'Dishes', settings: 'Settings', abnormalOps: 'Abnormal', operationLogs: 'Ops log', valueAnalytics: 'Value', viewKitchen: 'Kitchen', viewWaiter: 'Waiter', guestNotice: 'Notice', logout: 'Log out', systemSettings: 'System', moreMenu: 'More', settingsMenu: 'Settings', accountMenu: 'Account & preferences', appearance: 'Appearance', appearanceSettings: 'Appearance', language: 'Language', languageSettings: 'Language', darkMode: 'Dark mode', changePassword: 'Change password', mainNav: 'Main navigation', restaurantSettings: 'Restaurant settings' },
+    nav: { overview: 'Overview', tables: 'Tables', checkout: 'Checkout', printAssistant: 'Print', menu: 'Menu', buffet: 'Buffet', orders: 'Orders', dishHistory: 'Dishes', settings: 'Settings', abnormalOps: 'Abnormal', operationLogs: 'Ops log', valueAnalytics: 'Value', viewKitchen: 'Kitchen', viewWaiter: 'Waiter', guestNotice: 'Notice', logout: 'Log out', systemSettings: 'System', moreMenu: 'More', settingsMenu: 'Settings', accountMenu: 'Account & preferences', appearance: 'Appearance', appearanceSettings: 'Appearance', language: 'Language', languageSettings: 'Language', darkMode: 'Dark mode', changePassword: 'Change password', mainNav: 'Main navigation', restaurantSettings: 'Restaurant settings', proBadge: 'Pro' },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Upgrade to Pro', desc: '"{feature}" is a Pro feature. Contact us to upgrade or renew.', contactHint: 'Reach us via:', wechatCta: 'WeChat', whatsappCta: 'WhatsApp', backToDashboard: 'Back to dashboard', features: { valueAnalytics: 'Value analytics', abnormalOps: 'Abnormal operations', operationLogs: 'Operation logs' } },
     buffetAdmin: {
       title: 'Buffet / per-person cover',
       subtitle: 'Buffet products, time slots, price grid, and special dates; floor board uses Lisbon date and time.',
@@ -2664,7 +2680,8 @@ export const MESSAGES = {
     bill: { guest: 'Guest', wholeTable: 'Whole table', actionFailed: 'Action failed, please retry', checkoutSubmittedHint: 'Please bring the split bill on your phone to the counter to pay', feedbackTitle: 'How was each dish?', feedbackHint: 'Takes about 10 seconds, optional', feedbackSkip: 'Skip', feedbackSubmit: 'Submit feedback', feedbackThanks: 'Thanks, your feedback helps us improve', thumbsUp: 'Like', thumbsDown: 'Dislike', reasonTaste: 'Taste issue', reasonTemp: 'Temperature issue', reasonSlow: 'Too slow', reasonMismatch: 'Not as described', reasonOther: 'Other', cancelledTag: 'Cancelled', noFeedbackItems: 'No reviewable dishes this time', totalLabel: 'Total', table: 'Table', settlement: 'Bill Settlement', details: 'Bill Details', total: 'Total', chargeableHint: 'Beyond free allowance: {qty} × €{price}', splitMode: 'Split mode', people: 'People', addPerson: 'Add person', splitResult: 'Split result', splitPaid: 'Paid', splitPartialPaid: 'Partially paid', splitAmountBreakdown: 'Owed €{obligation} · Paid €{collected}', callBill: 'Call for bill', guestCountRequired: 'Guest count is not set. Please ask a waiter to confirm and update it.', partyMergeRequired: 'Other tables are in this together-group. Ask a waiter to merge them before calling for the bill.', refreshPage: 'Refresh page', backToMenu: 'Back to ordering', splitUnassignedItems: 'Some dishes are not assigned — finish splitting before calling for the bill', splitIncompleteQty: 'Some dish quantities are not fully allocated — check each item', splitAmountMismatch: 'Split amounts do not match the total — adjust before calling for the bill', splitPlanLocked: 'Payments recorded; paid guests’ allocations stay fixed and the rest can still be adjusted', billSyncFailed: 'Could not load the latest bill — please try again', billIncomplete: 'The bill was updated (e.g. new dishes). Review the details and finish splitting before calling for the bill', addConsumer: 'Add consumer', consumerNamePlaceholder: 'Name', consumerQtyPlaceholder: 'Qty', byItemRemaining: '{qty} left · {allocated} allocated', byItemComplete: 'Fully allocated · {qty}', byItemOver: '{qty} over · {allocated} allocated', byItemMissingNames: 'Enter a name for each row', byItemDuplicateNames: 'Same person cannot appear twice on one dish', byItemUnassigned: '{qty} left', byItemInvalidQty: 'Invalid quantity', byItemBuffetComplete: 'Fully allocated', byItemBuffetShortAdult: '{n} adult(s) left', byItemBuffetShortChild: '{n} child(ren) left', byItemBuffetOverAdult: '{n} adult(s) over', byItemBuffetOverChild: '{n} child(ren) over', byItemBuffetMissingGuestType: 'Select adult or child', byItemBuffetAdultProgress: 'Adults {allocated}/{total}', byItemBuffetChildProgress: 'Children {allocated}/{total}', byItemGuestTypeAdult: 'Adult', byItemGuestTypeChild: 'Child', byItemProgress: 'Split progress', byItemExpandDetails: 'Expand allocation details', byItemCollapseDetails: 'Collapse allocation details', qtyWholePlaceholder: 'Int', qtyNumPlaceholder: 'Num', qtyDenPlaceholder: 'Den', qtyMissingDen: 'Enter numerator and denominator', qtyZeroDen: 'Denominator cannot be 0', qtyImproperFraction: 'Fraction must be less than 1', removeConsumer: 'Remove payer', consumerUseName: 'Use "{name}"', nifLabel: 'NIF (optional)', nifPlaceholder: '123 456 789', nifHint: 'For invoice — Portuguese tax ID (9 digits)', nifInvalid: 'Invalid NIF — check the 9 digits', itemPending: 'Pending', itemCooking: 'Preparing', itemDone: 'Served', buffetGuestCounts: '{adults} adults · {children} children' },
   },
   pt: {
-    nav: { overview: 'Inicio', tables: 'Mesas', checkout: 'Fechar', printAssistant: 'Impressao', menu: 'Menu', buffet: 'Buffet', orders: 'Pedidos', dishHistory: 'Pratos', settings: 'Configuracoes', abnormalOps: 'Anomalias', operationLogs: 'Registos', valueAnalytics: 'Valor', viewKitchen: 'Cozinha', viewWaiter: 'Sala', guestNotice: 'Avisos', logout: 'Sair', systemSettings: 'Sistema', moreMenu: 'Mais', settingsMenu: 'Definicoes', accountMenu: 'Conta e preferencias', appearance: 'Aparencia', appearanceSettings: 'Aparencia', language: 'Idioma', languageSettings: 'Idioma', darkMode: 'Modo escuro', changePassword: 'Alterar senha', mainNav: 'Navegacao principal', restaurantSettings: 'Definicoes do restaurante' },
+    nav: { overview: 'Inicio', tables: 'Mesas', checkout: 'Fechar', printAssistant: 'Impressao', menu: 'Menu', buffet: 'Buffet', orders: 'Pedidos', dishHistory: 'Pratos', settings: 'Configuracoes', abnormalOps: 'Anomalias', operationLogs: 'Registos', valueAnalytics: 'Valor', viewKitchen: 'Cozinha', viewWaiter: 'Sala', guestNotice: 'Avisos', logout: 'Sair', systemSettings: 'Sistema', moreMenu: 'Mais', settingsMenu: 'Definicoes', accountMenu: 'Conta e preferencias', appearance: 'Aparencia', appearanceSettings: 'Aparencia', language: 'Idioma', languageSettings: 'Idioma', darkMode: 'Modo escuro', changePassword: 'Alterar senha', mainNav: 'Navegacao principal', restaurantSettings: 'Definicoes do restaurante', proBadge: 'Pro' },
+    premiumUpgrade: { proBadge: 'Pro', title: 'Ativar Pro', desc: '"{feature}" e uma funcao Pro. Contacte-nos para ativar ou renovar.', contactHint: 'Contacte-nos:', wechatCta: 'WeChat', whatsappCta: 'WhatsApp', backToDashboard: 'Voltar ao painel', features: { valueAnalytics: 'Analise de valor', abnormalOps: 'Operacoes anormais', operationLogs: 'Registo de operacoes' } },
     buffetAdmin: {
       title: 'Buffet / taxa por pessoa',
       subtitle: 'Produtos buffet, horarios, grelha de precos e datas especiais; garcom usa data/hora de Lisboa.',

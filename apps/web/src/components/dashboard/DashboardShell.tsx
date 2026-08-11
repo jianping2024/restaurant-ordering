@@ -11,6 +11,7 @@ type Props = {
   shellMode: DashboardShellMode;
   roleLabel?: string;
   capabilities: CapabilitiesPayload;
+  premiumLockedNavIds?: ReadonlySet<string>;
   children: ReactNode;
 };
 
@@ -19,6 +20,7 @@ export function DashboardShell({
   shellMode,
   roleLabel,
   capabilities,
+  premiumLockedNavIds,
   children,
 }: Props) {
   return (
@@ -28,6 +30,7 @@ export function DashboardShell({
         shellMode={shellMode}
         roleLabel={roleLabel}
         capabilities={capabilities}
+        premiumLockedNavIds={premiumLockedNavIds}
       />
       <main className={STAFF_SHELL_MAIN_CLASS}>
         <div className={STAFF_SHELL_CONTENT_CLASS}>{children}</div>

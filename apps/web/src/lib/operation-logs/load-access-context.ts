@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { resolveDashboardCapabilityAccess } from '@/lib/dashboard-capability-access';
+import { premiumLoaderCheck } from '@/lib/premium/access';
 import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
@@ -14,7 +15,7 @@ export type OperationLogsAccessContext =
       userId: string;
       retentionDays: number;
     }
-  | { error: string; status: number };
+  | { error: string; status: number; premiumKey?: import('@mesa/shared').PremiumKey };
 
 export async function loadOperationLogsAccessContext(): Promise<OperationLogsAccessContext> {
   const access = await loadDashboardAccess();
@@ -35,6 +36,9 @@ export async function loadOperationLogsAccessContext(): Promise<OperationLogsAcc
   ) {
     return { error: 'unauthorized', status: 401 };
   }
+
+  const premiumBlock = await premiumLoaderCheck(access.restaurant, 'operation_logs');
+  if (premiumBlock) return premiumBlock;
 
   let admin;
   try {

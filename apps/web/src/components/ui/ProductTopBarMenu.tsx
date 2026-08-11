@@ -15,6 +15,14 @@ import {
 } from '@/lib/dashboard-top-nav';
 import { shouldPrefetchDashboardNav } from '@/lib/dashboard-paths';
 
+function topNavProBadge(label: string) {
+  return (
+    <span className="ml-1 inline-flex rounded border border-brand-gold/40 bg-brand-gold/10 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-gold">
+      {label}
+    </span>
+  );
+}
+
 function topNavCheckoutCountBadge(count: number) {
   if (count <= 0) return null;
   return (
@@ -124,6 +132,7 @@ function NavDesktopLinks({
             onClick={() => onNavigate?.()}
           >
             {label}
+            {item.proLocked ? topNavProBadge(navT.proBadge) : null}
             {item.external ? (
               <span className="ml-0.5 text-[10px] opacity-60" aria-hidden>
                 ↗
@@ -169,6 +178,7 @@ function NavMenuRows({
           >
             <span aria-hidden>{item.icon}</span>
             <span className="flex-1 text-left">{label}</span>
+            {item.proLocked ? topNavProBadge(navT.proBadge) : null}
             {badge != null && badge > 0 ? topNavCheckoutCountBadge(badge) : null}
             {item.external ? (
               <span className="text-[10px] opacity-60" aria-hidden>

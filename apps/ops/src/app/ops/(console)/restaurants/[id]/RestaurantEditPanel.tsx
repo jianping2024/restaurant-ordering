@@ -18,7 +18,6 @@ type Props = {
   initial: {
     name: string;
     slug: string;
-    plan: string;
     address: string | null;
     phone: string | null;
     printLocale: PrintLocale;
@@ -39,7 +38,6 @@ const fieldClass =
 export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }: Props) {
   const [name, setName] = useState(initial.name);
   const [slug, setSlug] = useState(initial.slug);
-  const [plan, setPlan] = useState(initial.plan);
   const [address, setAddress] = useState(initial.address || '');
   const [phone, setPhone] = useState(initial.phone || '');
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initial.printLocale);
@@ -68,7 +66,6 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
         body: JSON.stringify({
           name,
           slug: pendingSlug ?? slug,
-          plan,
           address: address.trim() || null,
           phone: phone.trim() || null,
           printLocale,
@@ -134,18 +131,6 @@ export function RestaurantEditPanel({ restaurantId, initial, readOnly = false }:
             onChange={(e) => setSlug(e.target.value.trim().toLowerCase())}
             className={`${fieldClass} font-mono text-sm`}
           />
-        </label>
-        <label className="block text-sm text-zinc-400">
-          plan
-          <select
-            disabled={readOnly}
-            value={plan}
-            onChange={(e) => setPlan(e.target.value)}
-            className={fieldClass}
-          >
-            <option value="free">free</option>
-            <option value="pro">pro</option>
-          </select>
         </label>
         <label className="block text-sm text-zinc-400 sm:col-span-2">
           地址

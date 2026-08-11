@@ -25,6 +25,21 @@ export {
   type PrintLocale,
 } from './create-restaurant';
 export {
+  DEFAULT_PREMIUM_KEYS,
+  PREMIUM_KEYS,
+  PRO_TRIAL_DAYS,
+  canUsePremiumFeature,
+  extendProValidUntil,
+  isPremiumKey,
+  isProEffective,
+  isRestaurantPlan,
+  normalizePremiumKeys,
+  premiumKeyRequiresPro,
+  proTrialValidUntil,
+  type PremiumKey,
+  type RestaurantPlan,
+} from './premium-tier';
+export {
   registerOnPremRestaurant,
   validateRegisterOnPremRestaurantInput,
   type RegisterOnPremRestaurantInput,

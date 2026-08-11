@@ -14,6 +14,7 @@ import {
 } from '@/lib/permissions/can';
 import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
+import { NAV_PREMIUM_KEY } from '@/lib/premium/catalog';
 
 const OWNER_CHROME_NAV_IDS = new Set<string>(OWNER_NAV_ITEM_IDS);
 
@@ -26,6 +27,8 @@ export type ProductTopNavItem = {
   matchPrefix?: string;
   checkoutBadge?: boolean;
   external?: boolean;
+  /** Pro-gated nav item — show badge; href points to upgrade when locked. */
+  proLocked?: boolean;
 };
 
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
@@ -167,8 +170,9 @@ export function buildDashboardTopNavItems(input: {
   shellMode: DashboardShellMode;
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
+  premiumLockedNavIds?: ReadonlySet<string>;
 }): ProductTopNavItem[] {
-  const { shellMode, capabilities: capsPayload, restaurantSlug } = input;
+  const { shellMode, capabilities: capsPayload, restaurantSlug, premiumLockedNavIds } = input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
@@ -180,14 +184,19 @@ export function buildDashboardTopNavItems(input: {
     if (shellMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
+    const premiumKey = NAV_PREMIUM_KEY[item.id as keyof typeof NAV_PREMIUM_KEY];
+    const proLocked = Boolean(premiumLockedNavIds?.has(item.id) && premiumKey);
     items.push({
       id: item.id,
-      href: item.href,
+      href: proLocked
+        ? `/dashboard/upgrade?feature=${encodeURIComponent(premiumKey!)}`
+        : item.href,
       labelKey: item.key,
       icon: item.icon,
       exact: item.exact,
       matchPrefix: item.matchPrefix,
       checkoutBadge: item.checkoutBadge,
+      proLocked,
     });
   }
 

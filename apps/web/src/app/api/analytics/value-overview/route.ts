@@ -3,16 +3,14 @@ import { analyticsValueOverviewRateLimitCheck } from '@/lib/analytics/analytics.
 import { loadOwnerAnalyticsContext } from '@/lib/analytics/load-owner-analytics-context';
 import { parseAnalyticsRange } from '@/lib/analytics/date-window';
 import { getCachedValueOverview } from '@/lib/analytics/value-overview-cache';
+import { jsonForLoaderError } from '@/lib/premium/page-gate';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   const ctx = await loadOwnerAnalyticsContext();
   if ('error' in ctx) {
-    return NextResponse.json(
-      { error: ctx.error, ...(ctx.message ? { message: ctx.message } : {}) },
-      { status: ctx.status },
-    );
+    return jsonForLoaderError(ctx);
   }
 
   const rate = analyticsValueOverviewRateLimitCheck(ctx.userId, ctx.restaurantId);

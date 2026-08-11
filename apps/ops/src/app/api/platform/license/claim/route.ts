@@ -48,6 +48,8 @@ export async function POST(req: Request) {
     /** Store persists this into license-state; pack must not ship it. */
     leaseSecret,
     licenseValidUntil: result.licenseValidUntil,
+    plan: result.plan,
+    proValidUntil: result.proValidUntil,
     suspendedAt: result.suspendedAt,
     suspensionReason: result.suspensionReason,
     leaseToken: result.leaseToken,

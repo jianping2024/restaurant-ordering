@@ -1,0 +1,40 @@
+---
+description: >-
+  After local work, keep a usable web/dev stack up for retest; only stop this
+  thread’s redundant processes; never wipe local DB or kill other sessions’
+  agents/servers.
+alwaysApply: true
+---
+
+# Local dev services (keep usable / session hygiene)
+
+**测完可复测第一。** Delivery or land does **not** mean tear down the localhost stack the human still needs.
+
+## Keep available (required)
+
+After implement / UAT / merge in this thread:
+
+1. Leave **at least one** healthy product web for the checkout under test (`npm run dev` / the port used for UAT), and leave **local Supabase** running when this thread used `npm run dev` + supabase-local.
+2. Report the live base in the closing note (`http://localhost:<port>`, `MESA_UAT_BASE` if not `:3000`).
+3. Prefer **reuse** an already-healthy server that serves this checkout over starting a disposable second instance then killing everything.
+
+## Session hygiene (allowed)
+
+To cut noise / CPU, you may stop processes that are **clearly started by this thread** and **not** needed for further testing of this checkout — e.g. a second Next on `:3002+` when a healthy primary for the same checkout remains, or a finished one-shot build/lint shell.
+
+Before stopping anything: confirm PID/cwd/port belong to **this** conversation’s commands (terminal metadata / the PID you spawned).
+
+## Forbidden
+
+- Killing or reclaiming a listen port / agent / `npm run dev|cloud|stage` / ops / print-agent you did **not** start in this thread (includes other Cursor chats and human terminals) — same spirit as [`dev-port-isolation.mdc`](./dev-port-isolation.mdc)
+- `supabase db reset`, `docker compose down -v`, deleting local DB volumes, or any hard local DB wipe — unless the user explicitly asks in-thread
+- Stopping local Supabase / Docker DB “for cleanup” after UAT
+- Ending the **only** remaining healthy web for this checkout just because the task checklist is done
+- Broad `pkill -f next` / `killall node` / port-wide kills that can hit other sessions
+
+## Order of operations (end of thread)
+
+1. Ensure one usable web (+ local Supabase if used) is **up**.
+2. Optionally stop **this-thread-only** redundant extras.
+3. Do **not** touch other sessions’ agents or the local database.
+4. Tell the user what is still listening.

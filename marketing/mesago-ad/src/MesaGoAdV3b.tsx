@@ -61,7 +61,8 @@ const S = {
   s6: 41 * FPS,
   s7: 48 * FPS,
   s8: 55 * FPS,
-  s9: 63 * FPS,
+  /** Proof extended +3s for Google Pirata storefront clip */
+  s9: 66 * FPS,
 } as const;
 
 const D = {
@@ -72,7 +73,7 @@ const D = {
   s5: 7 * FPS,
   s6: 7 * FPS,
   s7: 7 * FPS,
-  s8: 8 * FPS,
+  s8: 11 * FPS,
   s9: 14 * FPS,
 } as const;
 
@@ -188,7 +189,7 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
         loop
         loopVolumeCurveBehavior="extend"
         volume={(f) =>
-          interpolate(f, [0, 18, 71 * FPS, 77 * FPS], [0, 0.18, 0.16, 0], {
+          interpolate(f, [0, 18, 74 * FPS, 80 * FPS], [0, 0.18, 0.16, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
@@ -199,5 +200,5 @@ export const MesaGoAdV3b: React.FC<AdProps> = (props) => {
   );
 };
 
-export const MESAGO_AD_V3B_DURATION = 77 * FPS;
+export const MESAGO_AD_V3B_DURATION = 80 * FPS;
 

@@ -53,8 +53,8 @@ export type ClientVenueInfo = {
   title: string;
   intro: string;
   address: string;
-  hours: string;
-  note: string;
+  hours?: string;
+  note?: string;
 };
 
 export type AdProps = {
@@ -84,10 +84,10 @@ export const defaultAdProps: AdProps = {
   ],
   privacyFog: true,
   clientVenue: {
-    title: 'Torres Vedras · Buffet Livre',
-    intro: '中式 / 亚洲餐 + 葡餐综合自助',
-    address: '2560-250 Torres Vedras',
+    title: '客户门店 · Pirata',
+    intro: '里斯本近郊 Torres Vedras · Buffet Livre · 亚洲餐与葡餐',
+    address: 'Sentido Torres Vedras 9, 2560-250 Silveira, Torres Vedras',
     hours: '午餐 12:00–15:00 · 晚餐 19:00–23:00',
-    note: '约 €15–20/人 · 评分约 4.3',
+    note: '',
   },
 };

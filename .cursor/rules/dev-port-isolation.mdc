@@ -30,3 +30,5 @@ alwaysApply: true
 
 - Web: `http://localhost:3000` · Ops: `http://localhost:3001`
 - Env override: `MESA_UAT_BASE` / `MESA_UAT_OPS_BASE` (see `scripts/mesa-local-uat.mjs`)
+
+After the task finishes, **keep** a usable stack for retest — do not tear down the only healthy web or local Supabase “because UAT ended.” See [`local-dev-services.mdc`](./local-dev-services.mdc).

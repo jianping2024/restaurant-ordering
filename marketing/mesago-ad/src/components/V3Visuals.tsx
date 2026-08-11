@@ -46,6 +46,8 @@ export const v3Assets = {
   proofP3: staticFile("images/proof/p3.jpg"),
   proofM1: staticFile("video/proof-m1-clip.mp4"),
   proofM2: staticFile("video/proof-m2-clip.mp4"),
+  /** Google Maps / Street View Pirata storefront — first 3s of raw/gg.MP4 */
+  proofGoogle: staticFile("video/pirata-google-clip.mp4"),
   uiBuffetSlots: staticFile("ui/buffet-slots.png"),
   uiBuffet: staticFile("ui/buffet-prices-mobile.png"),
   uiBoard: staticFile("ui/board-mobile.png"),

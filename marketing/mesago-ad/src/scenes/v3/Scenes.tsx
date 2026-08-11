@@ -299,22 +299,54 @@ export const V3S07History: React.FC = () => {
   );
 };
 
-/** 55–63s 已落地大型 Buffet — 真实店面 p1/p2/p3 + 实拍剪辑 */
+/**
+ * Proof beat — Google Maps 门店页立真实感 → 自有实拍承接 → 文案/店卡后入场。
+ * Google 前 3s 不加主标题，避免与 Maps UI 文案叠字；尾部 12f 叠化进 p1。
+ */
+const PROOF_GOOGLE_FRAMES = 3 * 30; // 90 @ 30fps
+const PROOF_XFADE = 12;
+
 export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
   clientVenue,
 }) => {
   const frame = useCurrentFrame();
+  const local = Math.max(0, frame - PROOF_GOOGLE_FRAMES);
+  const googleOpacity = interpolate(
+    frame,
+    [PROOF_GOOGLE_FRAMES - PROOF_XFADE, PROOF_GOOGLE_FRAMES],
+    [1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+  const showGoogle = googleOpacity > 0.01;
   const photo =
-    frame < 28 ? v3Assets.proofP1 : frame < 56 ? v3Assets.proofP2 : v3Assets.proofP3;
-  const showVideo = frame >= 72;
-  const showM2 = frame >= 150;
-  const venueOpacity = interpolate(frame, [22, 34, 210, 230], [0, 1, 1, 0.85], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+    local < 28 ? v3Assets.proofP1 : local < 56 ? v3Assets.proofP2 : v3Assets.proofP3;
+  const showVideo = frame >= PROOF_GOOGLE_FRAMES && local >= 72;
+  const showM2 = local >= 150;
+  const afterGoogle = frame >= PROOF_GOOGLE_FRAMES - PROOF_XFADE;
+  const venueOpacity = interpolate(
+    frame,
+    [
+      PROOF_GOOGLE_FRAMES + 28,
+      PROOF_GOOGLE_FRAMES + 42,
+      PROOF_GOOGLE_FRAMES + 210,
+      PROOF_GOOGLE_FRAMES + 230,
+    ],
+    [0, 1, 1, 0.85],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
+  const dimAlpha = interpolate(
+    frame,
+    [PROOF_GOOGLE_FRAMES - PROOF_XFADE, PROOF_GOOGLE_FRAMES],
+    [0.22, 0.42],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
   return (
     <AbsoluteFill style={{ backgroundColor: colors.bg }}>
-      {!showVideo ? (
+      {/* Own plates under Google so the xfade has a destination */}
+      {!showVideo && afterGoogle ? (
         <Img
           src={photo}
           style={{
@@ -322,14 +354,21 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             height: "100%",
             objectFit: "cover",
             objectPosition: "center",
-            scale: interpolate(frame, [0, 70], [1.04, 1.12], {
+            opacity: interpolate(
+              frame,
+              [PROOF_GOOGLE_FRAMES - PROOF_XFADE, PROOF_GOOGLE_FRAMES],
+              [0, 1],
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+            ),
+            scale: interpolate(local, [0, 70], [1.04, 1.12], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               output: "perceptual-scale",
             }),
           }}
         />
-      ) : (
+      ) : null}
+      {showVideo ? (
         <Video
           key={showM2 ? "m2" : "m1"}
           src={showM2 ? v3Assets.proofM2 : v3Assets.proofM1}
@@ -337,8 +376,29 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
           objectFit="cover"
           style={{ width: "100%", height: "100%" }}
         />
-      )}
-      <AbsoluteFill style={{ backgroundColor: "rgba(8,6,4,0.42)" }} />
+      ) : null}
+      {showGoogle ? (
+        <AbsoluteFill style={{ opacity: googleOpacity }}>
+          <Video
+            src={v3Assets.proofGoogle}
+            muted
+            objectFit="cover"
+            style={{
+              width: "100%",
+              height: "100%",
+              scale: interpolate(frame, [0, PROOF_GOOGLE_FRAMES], [1, 1.06], {
+                extrapolateLeft: "clamp",
+                extrapolateRight: "clamp",
+                output: "perceptual-scale",
+              }),
+            }}
+          />
+        </AbsoluteFill>
+      ) : null}
+      <AbsoluteFill
+        style={{ backgroundColor: `rgba(8,6,4,${dimAlpha})` }}
+      />
+      {/* Claim copy only after Maps UI has room — no double text fight */}
       <Interactive.Div
         name="Proof copy"
         style={{
@@ -347,10 +407,20 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
           right: 40,
           top: 180,
           textAlign: "center",
-          opacity: interpolate(frame, [6, 18], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }),
+          opacity: interpolate(
+            frame,
+            [
+              PROOF_GOOGLE_FRAMES - 8,
+              PROOF_GOOGLE_FRAMES + 8,
+              PROOF_GOOGLE_FRAMES + 200,
+              PROOF_GOOGLE_FRAMES + 220,
+            ],
+            [0, 1, 1, 0.9],
+            {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            },
+          ),
         }}
       >
         <div
@@ -374,11 +444,10 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             lineHeight: 1.35,
           }}
         >
-          葡萄牙大型 Buffet Livre
-          <br />
-          亚洲餐 + 葡餐 · 真实门店在用
+          葡萄牙大型自助餐厅
         </div>
       </Interactive.Div>
+      {/* Thumb strip only once we own the frame — skip during Google */}
       <div
         style={{
           position: "absolute",
@@ -387,10 +456,15 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
           bottom: 360,
           display: "flex",
           gap: 10,
-          opacity: interpolate(frame, [18, 30], [0, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          }),
+          opacity: interpolate(
+            frame,
+            [PROOF_GOOGLE_FRAMES + 36, PROOF_GOOGLE_FRAMES + 48],
+            [0, 1],
+            {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            },
+          ),
         }}
       >
         {[v3Assets.proofP1, v3Assets.proofP2, v3Assets.proofP3].map((src) => (
@@ -455,14 +529,25 @@ export const V3S08Proof: React.FC<{ clientVenue?: ClientVenueInfo }> = ({
             }}
           >
             {clientVenue.address}
-            <br />
-            {clientVenue.hours}
-            <br />
-            {clientVenue.note}
+            {clientVenue.hours ? (
+              <>
+                <br />
+                {clientVenue.hours}
+              </>
+            ) : null}
+            {clientVenue.note ? (
+              <>
+                <br />
+                {clientVenue.note}
+              </>
+            ) : null}
           </div>
         </Interactive.Div>
       ) : null}
-      <BottomCaption lines={["少投入 · 不断网 · 流程可追溯"]} delay={24} />
+      <BottomCaption
+        lines={["少投入 · 不断网 · 流程可追溯"]}
+        delay={PROOF_GOOGLE_FRAMES + 20}
+      />
     </AbsoluteFill>
   );
 };

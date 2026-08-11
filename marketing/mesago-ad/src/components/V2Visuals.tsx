@@ -10,6 +10,12 @@ import {
 } from "remotion";
 import { Video } from "@remotion/media";
 import { colors, fonts } from "../theme";
+import {
+  phoneFillRatioForSrc,
+  phoneTopFillStyle,
+  UiPrivacyFog,
+  uiPrivacyFilter,
+} from "./V3Visuals";
 
 export const assets = {
   hallA: staticFile("video/pirata-hall-a.mp4"),
@@ -91,6 +97,8 @@ export const ClickFlowUi: React.FC<{
     marginTop: imgTop,
     objectFit: "cover",
     objectPosition: "top center",
+    filter: uiPrivacyFilter(),
+    transform: "scale(1.08)",
   };
 
   return (
@@ -133,6 +141,7 @@ export const ClickFlowUi: React.FC<{
           }}
         />
       ) : null}
+      <UiPrivacyFog />
       {step.tap && tapping ? (
         <div
           style={{
@@ -195,6 +204,8 @@ export const FullUi: React.FC<{
     marginTop: imgTop,
     objectFit: "cover",
     objectPosition: "top center",
+    filter: uiPrivacyFilter(),
+    transform: "scale(1.08)",
   };
   return (
     <Interactive.Div
@@ -223,6 +234,7 @@ export const FullUi: React.FC<{
       }}
     >
       <Img src={src} style={imgStyle} />
+      <UiPrivacyFog />
     </Interactive.Div>
   );
 };
@@ -231,8 +243,12 @@ export const DualDevice: React.FC<{
   phoneSrc: string;
   desktopSrc: string;
   delay?: number;
-}> = ({ phoneSrc, desktopSrc, delay = 4 }) => {
+  phoneFillRatio?: number;
+}> = ({ phoneSrc, desktopSrc, delay = 4, phoneFillRatio }) => {
   const frame = useCurrentFrame();
+  const phoneImgStyle = phoneTopFillStyle(
+    phoneFillRatio ?? phoneFillRatioForSrc(phoneSrc),
+  );
   const op = interpolate(frame, [delay, delay + 10], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
@@ -261,13 +277,17 @@ export const DualDevice: React.FC<{
             marginTop: "-8%",
             objectFit: "cover",
             objectPosition: "top",
+            filter: uiPrivacyFilter(),
+            transform: "scale(1.06)",
           }}
         />
+        <UiPrivacyFog intensity={0.9} />
         <div
           style={{
             position: "absolute",
             left: 14,
             top: 14,
+            zIndex: 2,
             padding: "8px 14px",
             borderRadius: 999,
             backgroundColor: "rgba(15,14,12,0.88)",
@@ -298,18 +318,18 @@ export const DualDevice: React.FC<{
         <Img
           src={phoneSrc}
           style={{
-            width: "100%",
-            height: "112%",
-            marginTop: "-4%",
-            objectFit: "cover",
-            objectPosition: "top",
+            ...phoneImgStyle,
+            filter: uiPrivacyFilter(),
+            transform: "scale(1.08)",
           }}
         />
+        <UiPrivacyFog />
         <div
           style={{
             position: "absolute",
             left: 12,
             top: 12,
+            zIndex: 2,
             padding: "8px 12px",
             borderRadius: 999,
             backgroundColor: "rgba(15,14,12,0.88)",

@@ -18,7 +18,7 @@ import { AdProps, FPS, defaultAdProps } from "./theme";
  * 25–30 Logo + CTA
  */
 export const MesaGoAd: React.FC<AdProps> = (props) => {
-  const { contactLine, ctaLine, whatsapps, wechats } = {
+  const { contactLine, ctaLine, whatsapps, wechats, agentLine, agentSubline } = {
     ...defaultAdProps,
     ...props,
   };
@@ -43,6 +43,8 @@ export const MesaGoAd: React.FC<AdProps> = (props) => {
           ctaLine={ctaLine}
           whatsapps={whatsapps}
           wechats={wechats}
+          agentLine={agentLine}
+          agentSubline={agentSubline}
         />
       </Sequence>
 

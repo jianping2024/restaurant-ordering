@@ -53,7 +53,7 @@ const D = {
 } as const;
 
 export const MesaGoAdV2: React.FC<AdProps> = (props) => {
-  const { contactLine, ctaLine, whatsapps, wechats } = {
+  const { contactLine, ctaLine, whatsapps, wechats, agentLine, agentSubline } = {
     ...defaultAdProps,
     ...props,
   };
@@ -91,6 +91,8 @@ export const MesaGoAdV2: React.FC<AdProps> = (props) => {
           ctaLine={ctaLine}
           whatsapps={whatsapps}
           wechats={wechats}
+          agentLine={agentLine}
+          agentSubline={agentSubline}
         />
       </Sequence>
 

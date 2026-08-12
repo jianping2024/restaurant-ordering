@@ -19,7 +19,7 @@ import {
 } from '@/components/staff/PersonalSettingsPanel';
 import { StaffChangePasswordDialog } from '@/components/auth/StaffChangePasswordDialog';
 import {
-  resolveRestaurantPrintNotifyMode,
+  resolvePrimaryOnlineDeviceNotifyMode,
   type PrintAgentDeviceHeartbeatRow,
 } from '@/lib/print-agent-heartbeat';
 import type { DashboardLicenseMenuRow } from '@/components/dashboard/DashboardLicenseRenewalHost';
@@ -63,6 +63,7 @@ export function PersonalSettingsMenu({
   const signOut = useSignOutConfirmState(onSignOut);
 
   useEffect(() => {
+    if (!open) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -80,7 +81,7 @@ export function PersonalSettingsMenu({
         if (!cancelled) {
           setNotifyMode({
             status: 'ready',
-            mode: resolveRestaurantPrintNotifyMode(json.devices || []),
+            mode: resolvePrimaryOnlineDeviceNotifyMode(json.devices || []),
           });
         }
       } catch {
@@ -90,7 +91,7 @@ export function PersonalSettingsMenu({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [open]);
 
   const handleLogout = () => {
     setOpen(false);

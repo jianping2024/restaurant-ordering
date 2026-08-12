@@ -26,18 +26,16 @@ export function parsePrintAgentNotificationMode(
 }
 
 /**
- * Restaurant-level mode for staff surfaces: any online polling wins (warning-first);
- * else realtime if any online device reports it; else null (offline / unknown).
+ * Primary online device mode — same source as PrintAgentDevicesPanel per-device row.
+ * Devices are ordered by last_seen desc from the API; first online wins.
  */
-export function resolveRestaurantPrintNotifyMode(
+export function resolvePrimaryOnlineDeviceNotifyMode(
   devices: readonly PrintAgentDeviceHeartbeatRow[],
   now = Date.now(),
 ): PrintAgentNotificationMode | null {
-  const online = devices.filter((d) => isPrintAgentDeviceOnline(d.last_seen, now));
-  if (online.length === 0) return null;
-  if (online.some((d) => d.notification_mode === 'polling')) return 'polling';
-  if (online.some((d) => d.notification_mode === 'realtime')) return 'realtime';
-  return null;
+  const primary = devices.find((d) => isPrintAgentDeviceOnline(d.last_seen, now));
+  if (!primary) return null;
+  return parsePrintAgentNotificationMode(primary.notification_mode);
 }
 
 /** Shared tone for realtime (neutral) vs polling (strong warning). */

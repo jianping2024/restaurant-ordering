@@ -104,6 +104,11 @@ export type MenuOrderingRestaurant = {
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: BuffetServiceMode | string | null;
   guest_ordering_notice?: GuestOrderingNotice | null;
+  sushi_round_ordering_enabled?: boolean | null;
+  sushi_per_person_per_round_cap?: number | null;
+  sushi_round_confirm_timeout_seconds?: number | null;
+  sushi_round_cooldown_seconds?: number | null;
+  sushi_round_defer_cooldown_seconds?: number | null;
 };
 
 export type MenuOrderingPresentationMode = 'page' | 'embedded';
@@ -507,6 +512,7 @@ export function MenuOrderingController({
       return {
         per_person_qty_limit: item.per_person_qty_limit,
         over_limit_unit_price: item.over_limit_unit_price,
+        price: item.price,
       };
     },
     [menuItems],

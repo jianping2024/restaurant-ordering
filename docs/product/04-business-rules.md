@@ -133,23 +133,49 @@
 - 加菜价格与可点性以 **append 时服务端查询** 为准
 - 下架不影响已在订单中的行（除非 void）
 
-### 寿司自助限量（`buffet_service_mode = sushi`）
+### 寿司自助（`buffet_service_mode = sushi`）
+
+**完整契约**：[`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md)
+
+#### 业态与页面
 
 - 餐厅业态：`restaurants.buffet_service_mode` = `classic` | `sushi`（**仅 Ops** 开店必选 / 餐厅详情可改；店内 Dashboard **不展示、不可改**；默认 classic）
 - On-prem：认领快照与 check-in 同步该字段到本机营业库
-- 菜品可选：`per_person_qty_limit`（每人份）+ `over_limit_unit_price`（须成对；空=无限量）
-- 免费额度 = 每人限量 ×（成人+儿童，多套餐求和）；人数为 0 时限量菜不可成功下单（客人列表不灰，下单前对齐会话后校验；服务端仍权威）
-- 客人：不可超过免费额度；菜单展示超额价提示；加菜可进车，门禁在下单
-- 员工代点（waiter/cashier/frontdesk/owner）：可超过免费额度；下单**不拆价**（一律菜单价落库）；加车/提交须提示将在结账收取的超额份数与单价
-- 员工交互：第一次跨过免费额度时确认；已在超额区内再加份仅提示；提交时若车内仍有超额再汇总确认
+- 顾客 URL **不变**（`/{slug}/menu`）；`sushi` 渲染 **SushiMenuPage**（轮次 UI），`classic` 渲染 **ClassicMenuPage**
+
+#### 免费菜 vs 收费菜
+
+- **免费菜**：`menu_items.price = 0` — 参与同桌轮次合单 + 送厨确认（功能设置可关轮次则退化为立即 append）
+- **收费菜**：`price > 0` — **不进轮次**、不计轮次份数上限、不受整餐免费菜 per-dish 限量；即时 `orders/append`
+
+#### 整餐免费菜限量（仅 `price = 0`）
+
+- 菜品须同时配置 `per_person_qty_limit` + `over_limit_unit_price`（成对；缺一则该菜无整餐限量）
+- 免费额度 = 每人限量 ×（成人+儿童，多套餐求和）；人数为 0 时不可成功下单免费限量菜
+- 客人：不可超过免费额度；员工代点可超额（交互见下）
 - 计数：本餐该菜未作废总份数；void/减份释放额度
-- **计费投影（读）**：台面合计 / 客人账单 / 预结单 / 分账均从「订单原始行 + 行上限量快照 + 当前人数」派生免费/收费份；下单时把限量规则快照写入订单行；**读路径不改库**
-- **关台结账落账**：同一投影写入 `table_sessions.settled_payable_amount`（营业额/历史认此字段）；**不**改 `orders.items`；`classic` / sushi 同一关台路径
-- `classic` 或未配限量：投影与行价一致，流程仍相同
+
+#### 同桌轮次（`sushi` + 功能设置开启）
+
+- 免费菜写入 `table_order_round_lines`；任意客人可 **发起送厨** → **全员确认**（票数 = 发起时冻结的开台人数）
+- 超时未投票（默认 25s）→ 视为同意；**暂缓送厨**须二次确认、每轮 1 次、顾客 UI 不展示否决者身份
+- `pending_confirm` **锁篮**；送厨成功 → session 级冷却（默认 120s）；仍走唯一 `orders/append`
+- 员工代点：**绕过**轮次与确认，即时 append
+- **转台 / 并台**：须在既有 `transfer_table_session` / `merge_table_sessions` **同一事务**内处理 round（转台改 `table_id`；并台来源 round `closed`、未送厨篮子作废不合并）。详见 [`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md) §11.1
+
+#### 员工代点超额（整餐限量）
+
+- 可超过免费额度；下单**不拆价**（一律菜单价落库）；加车/提交须提示超额份数与单价
+- 第一次跨过免费额度时确认；已在超额区内再加份仅提示；提交时若车内仍有超额再汇总确认
+
+#### 计费与关台
+
+- **计费投影（读）**：从「订单原始行 + 行上限量快照 + 当前人数」派生免费/收费份；下单时快照写入订单行
+- **关台结账落账**：写入 `table_sessions.settled_payable_amount`；**不**改 `orders.items`
 
 ### 相关代码
 
-`components/dashboard/MenuManager.tsx`、`lib/resolve-append-cart-items.ts`
+`components/dashboard/MenuManager.tsx`、`lib/resolve-append-cart-items.ts`、`lib/sushi-buffet-limits.ts`（实现须对齐 `price=0` 门槛）；轮次见 `docs/product/sushi-round-ordering.zh.md` §16
 
 ---
 

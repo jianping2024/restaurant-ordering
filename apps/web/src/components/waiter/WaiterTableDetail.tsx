@@ -42,6 +42,7 @@ import { waiterUi } from '@/components/waiter/waiter-ui';
 import { Button } from '@/components/ui/Button';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { applyOrderUpdateToWaiterDetail } from '@/lib/waiter-table-detail-apply-order';
+import { sessionHasUnsentRoundBasket } from '@/lib/table-order-round/unsent-basket';
 import {
   fetchWaiterTableActionTargetsClient,
   fetchWaiterTablePageModelClient,
@@ -210,6 +211,7 @@ function WaiterTableDetailInner({
   const [targetTable, setTargetTable] = useState<string | null>(null);
   const [actionTargets, setActionTargets] = useState<RestaurantTableRow[]>([]);
   const [actionTargetsLoading, setActionTargetsLoading] = useState(false);
+  const [mergeHasActiveRoundBasket, setMergeHasActiveRoundBasket] = useState(false);
   const [operating, setOperating] = useState(false);
   const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
@@ -540,7 +542,20 @@ function WaiterTableDetailInner({
     setSourceTable(sourceId);
     setTargetTable(null);
     setActionTargets([]);
+    setMergeHasActiveRoundBasket(false);
     if (isDemo) return;
+
+    if (type === 'merge') {
+      const sourceSessionId =
+        waiterBoard?.sessionMetaByTableId?.[sourceId]?.sessionId ??
+        (tableIdsEqual(sourceId, tableId) ? sessionMeta?.sessionId : null) ??
+        null;
+      if (sourceSessionId) {
+        void sessionHasUnsentRoundBasket(supabase, sourceSessionId)
+          .then(setMergeHasActiveRoundBasket)
+          .catch(() => setMergeHasActiveRoundBasket(false));
+      }
+    }
 
     const localTargets = resolveActionTargetsFromBoard(type, sourceId);
     if (localTargets) {
@@ -566,6 +581,7 @@ function WaiterTableDetailInner({
     setActionTargets([]);
     setActionTargetsLoading(false);
     setOperating(false);
+    setMergeHasActiveRoundBasket(false);
   };
 
   const goToTableDetail = useCallback(
@@ -1158,6 +1174,11 @@ function WaiterTableDetailInner({
             <p className="text-[13px] text-brand-text-muted mb-4">
               {operationType === 'transfer' ? t.transferHint : t.mergeHint}
             </p>
+            {operationType === 'merge' && mergeHasActiveRoundBasket ? (
+              <p className="mb-4 rounded-lg border border-status-danger/40 bg-status-danger/10 px-3 py-2 text-[13px] text-brand-text">
+                {t.mergeRoundBasketWarning}
+              </p>
+            ) : null}
             <div className="space-y-3">
               <div>
                 <label className="text-[13px] text-brand-text-muted block mb-1.5">{t.sourceTable}</label>

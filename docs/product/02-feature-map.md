@@ -101,20 +101,29 @@
 - 新单默认进入 `pending`，订单级状态由 items 推导
 - 加菜成功后自动触发出品联入队（`station-ticket-enqueue`）
 
+### 寿司同桌轮次（`buffet_service_mode = sushi`，**待实现**）
+
+- 契约：[`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md)
+- 免费菜（`price=0`）：同桌 round 合单 → 全员确认送厨 → 一次 append；功能设置可配轮次上限、确认超时、桌级冷却
+- 收费菜：不进 round，即时 append
+- 同 URL；`SushiMenuPage` vs `ClassicMenuPage` 服务端分支
+- Realtime：`table_order_round_*` postgres_changes；**禁止**顾客端 interval 轮询
+
 ### 当前不做
 
 - 顾客账号登录 / 历史订单
 - 套餐组合定价（除自助餐人头外）
 - 桌边支付
 - 无开台时跳过自助餐规则的纯点餐模式（当前代码强制 buffet_base）
+- 寿司轮次：否决原因、顾客可见否决者、共享收费菜轮次、新 QR（见契约 §15）
 
 ### 相关代码位置
 
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/[slug]/menu/page.tsx`、`demo/menu/page.tsx` |
-| UI | `apps/web/src/components/menu/MenuPage.tsx`、`CartDrawer.tsx` |
-| API | `apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts` |
+| UI | `apps/web/src/components/menu/MenuPage.tsx`、`CartDrawer.tsx`；轮次 `components/menu/sushi/*`（待建） |
+| API | `apps/web/src/app/api/restaurants/[slug]/orders/append/route.ts`；轮次 `.../table-order-round/**`（待建） |
 | Lib | `apps/web/src/lib/resolve-append-cart-items.ts`、`customer-menu-order-gate.ts`、`customer-geo-order.ts` |
 | 顾客会话 | `apps/web/src/app/api/restaurants/[slug]/customer/session/route.ts` |
 

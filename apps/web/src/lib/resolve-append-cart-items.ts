@@ -292,6 +292,7 @@ export async function resolveAppendCartItems(params: {
       per_person_qty_limit: menu.per_person_qty_limit,
       over_limit_unit_price:
         menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
+      price: coerceCartPrice(menu.price),
     };
     const checked = checkSushiLimitForCartLine({
       serviceMode,

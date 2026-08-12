@@ -100,6 +100,48 @@
 
 ---
 
+## 2b. 寿司自助轮次点餐（`buffet_service_mode = sushi`）
+
+> 完整契约：[`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md)
+
+### 使用角色
+
+顾客（多设备同桌）；服务员代点 **不走**本流程
+
+### 正常流程 — 免费菜
+
+1. 扫码进入同一 `/{slug}/menu`（渲染 SushiMenuPage）
+2. 免费菜（`price=0`）点 `+` → 写入同桌 **本轮篮子**（Realtime 同步）
+3. 任意客人点 **送厨** → 全员确认弹窗（票数 = 开台人数；展示 `已确认 x/N`）
+4. 全员 confirm 或超时（默认 25s，未点视为同意）→ 合并 **一次** append → 厨房
+5. 桌级冷却（默认 120s）→ 可开始下一轮
+
+### 正常流程 — 收费菜
+
+- 本地 cart → 即时 append；不进轮次、不等确认
+
+### 异常流程
+
+| 情况 | 行为 |
+|------|------|
+| 暂缓送厨 | 二次确认后生效；本轮送厨取消；30s 内不可再发起；UI 不显示谁暂缓 |
+| 每轮已暂缓过 | `round_defer_already_used` |
+| pending_confirm | 锁篮，不可再加免费菜 |
+| 超轮次上限 | `round_cap_exceeded`（默认 8×人数，仅免费菜） |
+| 超整餐免费菜上限 | `per_person_limit_exceeded`（仅 `price=0` 且配了限量） |
+| session `billing` / 关台 | round `closed`；禁止操作 |
+| 并台 | 来源 round 在 merge RPC **同事务** `closed`，未送厨篮子作废不合并；目标 round 不动 |
+| 转台 | session 不变；round.table_id 在 transfer RPC **同事务**更新 |
+
+### 验收标准
+
+- Classic 店无轮次 UI
+- 2 机 3 人桌：第 3 票靠超时默认同意
+- 收费菜与免费轮次可并行
+- 转台/并台后无「桌已变、round 仍挂旧桌/旧 session」半截状态（见契约 §11.1）
+
+---
+
 ## 3. 加菜流程
 
 ### 使用角色
@@ -273,8 +315,8 @@
 
 | 操作 | 会话 | 订单 |
 |------|------|------|
-| 转台 | 同 session_id，换 `table_id` + `display_name` | 更新 table 快照 |
-| 并台 | 来源 closed；目标保留 | 订单改挂目标 session |
+| 转台 | 同 session_id，换 `table_id` + `display_name` | 更新 table 快照；寿司 round 同事务改 `table_id`（§2b / 契约 §11.1） |
+| 并台 | 来源 closed；目标保留 | 订单改挂目标 session；寿司来源 round 同事务 `closed`、未送厨篮子作废 |
 
 ### 验收标准
 

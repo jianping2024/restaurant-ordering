@@ -23,6 +23,16 @@ import {
   OPERATION_LOG_RETENTION_DAYS_MAX,
   OPERATION_LOG_RETENTION_DAYS_MIN,
 } from '@/lib/operation-logs/retention-days';
+import {
+  SUSHI_PER_PERSON_PER_ROUND_CAP_MAX,
+  SUSHI_PER_PERSON_PER_ROUND_CAP_MIN,
+  SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MAX,
+  SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MIN,
+  SUSHI_ROUND_COOLDOWN_SECONDS_MAX,
+  SUSHI_ROUND_COOLDOWN_SECONDS_MIN,
+  SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX,
+  SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN,
+} from '@/lib/table-order-round/settings';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
 const FEATURES_CONTROL_SURFACE =
@@ -42,6 +52,11 @@ type Props = {
   initialOperationLogRetentionDays: number;
   initialPrintLocale: PrintLocale;
   initialKitchenReadyAfterMinutes: number;
+  initialSushiRoundOrderingEnabled: boolean;
+  initialSushiPerPersonPerRoundCap: number;
+  initialSushiRoundConfirmTimeoutSeconds: number;
+  initialSushiRoundCooldownSeconds: number;
+  initialSushiRoundDeferCooldownSeconds: number;
 };
 
 export function FeatureFlagsManager({
@@ -54,6 +69,11 @@ export function FeatureFlagsManager({
   initialOperationLogRetentionDays,
   initialPrintLocale,
   initialKitchenReadyAfterMinutes,
+  initialSushiRoundOrderingEnabled,
+  initialSushiPerPersonPerRoundCap,
+  initialSushiRoundConfirmTimeoutSeconds,
+  initialSushiRoundCooldownSeconds,
+  initialSushiRoundDeferCooldownSeconds,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -71,6 +91,21 @@ export function FeatureFlagsManager({
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
   const [kitchenReadyAfterMinutes, setKitchenReadyAfterMinutes] = useState(
     initialKitchenReadyAfterMinutes,
+  );
+  const [sushiRoundOrderingEnabled, setSushiRoundOrderingEnabled] = useState(
+    initialSushiRoundOrderingEnabled,
+  );
+  const [sushiPerPersonPerRoundCap, setSushiPerPersonPerRoundCap] = useState(
+    initialSushiPerPersonPerRoundCap,
+  );
+  const [sushiRoundConfirmTimeoutSeconds, setSushiRoundConfirmTimeoutSeconds] = useState(
+    initialSushiRoundConfirmTimeoutSeconds,
+  );
+  const [sushiRoundCooldownSeconds, setSushiRoundCooldownSeconds] = useState(
+    initialSushiRoundCooldownSeconds,
+  );
+  const [sushiRoundDeferCooldownSeconds, setSushiRoundDeferCooldownSeconds] = useState(
+    initialSushiRoundDeferCooldownSeconds,
   );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -94,6 +129,11 @@ export function FeatureFlagsManager({
           operationLogRetentionDays,
           printLocale,
           kitchenReadyAfterMinutes,
+          sushiRoundOrderingEnabled,
+          sushiPerPersonPerRoundCap,
+          sushiRoundConfirmTimeoutSeconds,
+          sushiRoundCooldownSeconds,
+          sushiRoundDeferCooldownSeconds,
         }),
       });
 
@@ -107,6 +147,11 @@ export function FeatureFlagsManager({
         operationLogRetentionDays?: number;
         printLocale?: PrintLocale;
         kitchenReadyAfterMinutes?: number;
+        sushiRoundOrderingEnabled?: boolean;
+        sushiPerPersonPerRoundCap?: number;
+        sushiRoundConfirmTimeoutSeconds?: number;
+        sushiRoundCooldownSeconds?: number;
+        sushiRoundDeferCooldownSeconds?: number;
       };
 
       if (!res.ok) {
@@ -119,6 +164,7 @@ export function FeatureFlagsManager({
         else if (json.error === 'invalid_operation_log_retention_days') {
           setError(t.operationLogRetentionDaysInvalid);
         }
+        else if (json.error?.startsWith('invalid_sushi_')) setError(t.sushiRoundInvalid);
         else setError(t.saveFail);
         return;
       }
@@ -136,6 +182,21 @@ export function FeatureFlagsManager({
       if (json.printLocale) setPrintLocale(json.printLocale);
       if (json.kitchenReadyAfterMinutes != null) {
         setKitchenReadyAfterMinutes(json.kitchenReadyAfterMinutes);
+      }
+      if (json.sushiRoundOrderingEnabled != null) {
+        setSushiRoundOrderingEnabled(json.sushiRoundOrderingEnabled);
+      }
+      if (json.sushiPerPersonPerRoundCap != null) {
+        setSushiPerPersonPerRoundCap(json.sushiPerPersonPerRoundCap);
+      }
+      if (json.sushiRoundConfirmTimeoutSeconds != null) {
+        setSushiRoundConfirmTimeoutSeconds(json.sushiRoundConfirmTimeoutSeconds);
+      }
+      if (json.sushiRoundCooldownSeconds != null) {
+        setSushiRoundCooldownSeconds(json.sushiRoundCooldownSeconds);
+      }
+      if (json.sushiRoundDeferCooldownSeconds != null) {
+        setSushiRoundDeferCooldownSeconds(json.sushiRoundDeferCooldownSeconds);
       }
 
       router.refresh();
@@ -320,6 +381,112 @@ export function FeatureFlagsManager({
                   aria-label={t.orderCooldownSeconds}
                 />
                 <span className="text-[13px] text-brand-text-muted">{t.orderCooldownSecondsUnit}</span>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-sm font-medium text-brand-text mb-2">{t.moduleSushiRound}</h2>
+          <div className="bg-brand-card border border-brand-border rounded-xl divide-y divide-brand-border">
+            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sushiRoundOrderingEnabled}
+                onChange={(e) => setSushiRoundOrderingEnabled(e.target.checked)}
+                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              <span className="min-w-0">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiRoundOrderingEnabled}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                  {t.sushiRoundOrderingEnabledDesc}
+                </span>
+              </span>
+            </label>
+            <label className="block px-4 py-4">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.sushiPerPersonPerRoundCap}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.sushiPerPersonPerRoundCapDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={sushiPerPersonPerRoundCap}
+                  min={SUSHI_PER_PERSON_PER_ROUND_CAP_MIN}
+                  max={SUSHI_PER_PERSON_PER_ROUND_CAP_MAX}
+                  onChange={setSushiPerPersonPerRoundCap}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.sushiPerPersonPerRoundCap}
+                />
+                <span className="text-[13px] text-brand-text-muted">
+                  {t.sushiPerPersonPerRoundCapUnit}
+                </span>
+              </div>
+            </label>
+            <label className="block px-4 py-4">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.sushiRoundConfirmTimeoutSeconds}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.sushiRoundConfirmTimeoutSecondsDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={sushiRoundConfirmTimeoutSeconds}
+                  min={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MIN}
+                  max={SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MAX}
+                  onChange={setSushiRoundConfirmTimeoutSeconds}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.sushiRoundConfirmTimeoutSeconds}
+                />
+                <span className="text-[13px] text-brand-text-muted">
+                  {t.sushiRoundConfirmTimeoutSecondsUnit}
+                </span>
+              </div>
+            </label>
+            <label className="block px-4 py-4">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.sushiRoundCooldownSeconds}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.sushiRoundCooldownSecondsDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={sushiRoundCooldownSeconds}
+                  min={SUSHI_ROUND_COOLDOWN_SECONDS_MIN}
+                  max={SUSHI_ROUND_COOLDOWN_SECONDS_MAX}
+                  onChange={setSushiRoundCooldownSeconds}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.sushiRoundCooldownSeconds}
+                />
+                <span className="text-[13px] text-brand-text-muted">
+                  {t.sushiRoundCooldownSecondsUnit}
+                </span>
+              </div>
+            </label>
+            <label className="block px-4 py-4">
+              <span className="block text-[15px] font-medium text-brand-text">
+                {t.sushiRoundDeferCooldownSeconds}
+              </span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                {t.sushiRoundDeferCooldownSecondsDesc}
+              </span>
+              <div className="flex items-center gap-2">
+                <IntegerInput
+                  value={sushiRoundDeferCooldownSeconds}
+                  min={SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN}
+                  max={SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX}
+                  onChange={setSushiRoundDeferCooldownSeconds}
+                  className={FEATURES_INTEGER_INPUT}
+                  aria-label={t.sushiRoundDeferCooldownSeconds}
+                />
+                <span className="text-[13px] text-brand-text-muted">
+                  {t.sushiRoundDeferCooldownSecondsUnit}
+                </span>
               </div>
             </label>
           </div>

@@ -107,6 +107,7 @@ describe('sushi buffet limits', () => {
       isLimitedSushiMenuItem('classic', {
         per_person_qty_limit: 2,
         over_limit_unit_price: 3,
+        price: 0,
       }),
       false,
     );
@@ -114,13 +115,40 @@ describe('sushi buffet limits', () => {
       sushiLimitHintParts('classic', {
         per_person_qty_limit: 2,
         over_limit_unit_price: 3,
+        price: 0,
       }),
       null,
     );
   });
 
+  it('price > 0 is never limited even with limit fields', () => {
+    assert.equal(
+      isLimitedSushiMenuItem('sushi', {
+        per_person_qty_limit: 2,
+        over_limit_unit_price: 3,
+        price: 4.5,
+      }),
+      false,
+    );
+    assert.equal(
+      isLimitedSushiMenuItem('sushi', {
+        per_person_qty_limit: 2,
+        over_limit_unit_price: 3,
+        price: 0,
+      }),
+      true,
+    );
+    assert.equal(
+      isLimitedSushiMenuItem('sushi', {
+        per_person_qty_limit: 2,
+        over_limit_unit_price: 3,
+      }),
+      false,
+    );
+  });
+
   it('guest cannot exceed free remaining; staff may exceed', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
     const guest = checkSushiLimitForCartLine({
       serviceMode: 'sushi',
       staffAssisted: false,
@@ -144,7 +172,7 @@ describe('sushi buffet limits', () => {
   });
 
   it('blocks limited items when headcount is 0 for guest and staff', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4 };
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4, price: 0 };
     for (const staffAssisted of [false, true]) {
       const result = checkSushiLimitForCartLine({
         serviceMode: 'sushi',
@@ -179,7 +207,7 @@ describe('sushi buffet limits', () => {
   });
 
   it('previewGuestCartSushiGate blocks headcount and overage', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
     const emptyOrders: Order[] = [];
     assert.deepEqual(
       previewGuestCartSushiGate({
@@ -214,8 +242,8 @@ describe('sushi buffet limits', () => {
   });
 
   it('guestCartHasLimitedSushiItems detects limited lines only', () => {
-    const limited = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
-    const plain = { per_person_qty_limit: null, over_limit_unit_price: null };
+    const limited = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
+    const plain = { per_person_qty_limit: null, over_limit_unit_price: null, price: 0 };
     assert.equal(
       guestCartHasLimitedSushiItems({
         serviceMode: 'sushi',
@@ -269,7 +297,7 @@ describe('sushi buffet limits', () => {
   });
 
   it('classifyStaffQtyIncrease confirms only on first cross', () => {
-    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5 };
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
     const base = {
       serviceMode: 'sushi' as const,
       item,

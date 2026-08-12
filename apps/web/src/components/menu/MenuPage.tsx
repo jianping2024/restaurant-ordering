@@ -16,7 +16,12 @@ import {
   MenuOrderingController,
   type MenuOrderingRestaurant,
 } from '@/components/menu/MenuOrderingController';
+import { SushiMenuPage } from '@/components/menu/sushi/SushiMenuPage';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
+import {
+  parseSushiRoundSettingsFromRestaurantRow,
+  shouldRenderSushiRoundMenuPage,
+} from '@/lib/table-order-round/settings';
 
 interface Props {
   restaurant: MenuOrderingRestaurant;
@@ -100,10 +105,34 @@ export function MenuPage({
 
   const menuItems = catalog?.menuItems ?? [];
   const menuCategories = catalog?.menuCategories ?? [];
+  const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
+
+  if (
+    shouldRenderSushiRoundMenuPage({
+      buffetServiceMode: restaurant.buffet_service_mode,
+      sushiRoundOrderingEnabled: restaurant.sushi_round_ordering_enabled,
+      staffAssisted: Boolean(staffAssisted),
+    })
+  ) {
+    return (
+      <SushiMenuPage
+        restaurant={restaurantWithNotice}
+        sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
+        menuItems={menuItems}
+        menuCategories={menuCategories}
+        catalogReady={catalogReady}
+        tableId={tableId}
+        displayName={displayName}
+        orderCooldownSeconds={orderCooldownSeconds}
+        initialSessionContext={initialSessionContext}
+        isDemo={isDemo}
+      />
+    );
+  }
 
   return (
     <MenuOrderingController
-      restaurant={{ ...restaurant, guest_ordering_notice: guestOrderingNotice }}
+      restaurant={restaurantWithNotice}
       menuItems={menuItems}
       menuCategories={menuCategories}
       catalogReady={catalogReady}

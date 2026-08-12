@@ -181,6 +181,8 @@ func (p *JobProcessor) Start(ctx context.Context) error {
 				p.session.hb.recordPrint(true)
 			}
 			p.queue.Forget(job.ID)
+			p.status.notePollingFallbackPrintOK()
+			tryPromoteRestartAfterPollingBatch(p.status, p.queue.Len())
 		}
 
 		if p.session.pc != nil {

@@ -4,6 +4,13 @@ Each release section starts with `## X.Y.Z`. The release workflow reads the matc
 
 Layout truth: [`docs/technical/print-agent-station-slip-han-canvas.zh.md`](../../docs/technical/print-agent-station-slip-han-canvas.zh.md)
 
+## 0.3.83
+
+**Realtime 断网回落：本批打完后整进程重启再试推送；控制台/状态字色统一**
+
+- Realtime→polling fallback 后，本批至少一单打印成功且本地队列打空 → **唯一**自动恢复路径：托盘 `requestTrayRestart`（与菜单「重启」同逻辑，不弹确认）；5 分钟冷却防重启死循环。
+- 托盘状态首行不再 `Disable`（避免发灰）；调试控制台统一亮白字；设置页 `.status` 与正文同色。
+
 ## 0.3.82
 
 **出品联固定壳跟打印语言（与预结同一规则）**

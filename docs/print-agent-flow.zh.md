@@ -412,7 +412,7 @@ flowchart TD
 | `agent_run.go` | `runNotificationLoop`、营业闸门、心跳 |
 | `processor.go` | 单任务流水线、Requeue/Forget |
 | `job_queue.go` | 本地队列与去重 |
-| `polling.go` / `realtime.go` | 任务发现（互斥；Realtime 失败回退 Polling） |
+| `polling.go` / `realtime.go` / `promote_restart.go` | 任务发现（互斥；Realtime 失败回退 Polling；fallback 下本批打印成功且队列打空后走托盘 Restart 同路径整进程重启以再试 Realtime） |
 | `printer_readiness.go` | `preparePrint` / 就绪探测 |
 | `job_route.go` | 日志用档口 ID |
 | `config.go` | 路由解析、`mappedPrinterTargets` |

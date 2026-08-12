@@ -17,6 +17,7 @@ export type AppendOrderFailureCode =
   | 'invalid_client_request_id'
   | 'per_person_limit_exceeded'
   | 'limited_item_requires_headcount'
+  | 'sushi_round_required'
   | 'submit_failed';
 
 export type MenuOrderSubmitSuccess = {
@@ -127,6 +128,8 @@ export function mapAppendErrorCode(error: string | undefined): AppendOrderFailur
       return 'append_in_progress';
     case 'invalid_client_request_id':
       return 'invalid_client_request_id';
+    case 'sushi_round_required':
+      return 'sushi_round_required';
     default:
       return 'submit_failed';
   }

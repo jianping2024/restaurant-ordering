@@ -17,12 +17,20 @@ type Props = {
   lang: UILanguage;
   copy: CustomerOrderingIntroCopy;
   onDismiss: () => void;
+  /** Classic guest intro shows split preview on step index 2; sushi round intro does not. */
+  showSplitPreview?: boolean;
 };
 
 const overlayClassName =
   'fixed inset-0 z-[60] flex min-h-0 items-center justify-center overflow-y-auto px-4 pt-[max(0.5rem,env(safe-area-inset-top,0px))] pb-[max(0.5rem,env(safe-area-inset-bottom,0px))]';
 
-export function CustomerOrderingIntroModal({ open, lang, copy, onDismiss }: Props) {
+export function CustomerOrderingIntroModal({
+  open,
+  lang,
+  copy,
+  onDismiss,
+  showSplitPreview = true,
+}: Props) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -66,7 +74,7 @@ export function CustomerOrderingIntroModal({ open, lang, copy, onDismiss }: Prop
                     {index + 1}. {step.title}
                   </p>
                   <p className="mt-0.5 text-[13px] leading-snug text-brand-text-muted">{step.body}</p>
-                  {index === CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX ? (
+                  {showSplitPreview && index === CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX ? (
                     <div className="mt-2">
                       <CustomerOrderingIntroSplitPreview lang={lang} />
                     </div>

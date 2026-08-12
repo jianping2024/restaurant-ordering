@@ -22,6 +22,12 @@ import {
   resolveKitchenReadyAfterMinutes,
 } from '@/lib/print-agent-config';
 import { mergeStoredPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
+import {
+  parseSushiRoundSettingsFromRestaurantRow,
+  parseSushiRoundSettingsPatch,
+  sushiRoundSettingsToApiJson,
+  type SushiRoundSettings,
+} from '@/lib/table-order-round/settings';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
@@ -33,12 +39,16 @@ export const runtime = 'nodejs';
 const ORDER_COOLDOWN_SECONDS_MIN = 5;
 const ORDER_COOLDOWN_SECONDS_MAX = 60;
 
+const SUSHI_ROUND_SELECT =
+  'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds';
+
 function featureSettingsResponse(input: {
   featureFlags: unknown;
   printAgentConfig: unknown;
   orderCooldownSeconds: unknown;
   operationLogRetentionDays: unknown;
   printLocale: string | null | undefined;
+  sushiRoundSettings: SushiRoundSettings;
 }) {
   return {
     flags: normalizeRestaurantFeatureFlags(input.featureFlags),
@@ -55,6 +65,7 @@ function featureSettingsResponse(input: {
     ),
     operationLogRetentionDays: resolveOperationLogRetentionDays(input.operationLogRetentionDays),
     printLocale: normalizePrintLocale(input.printLocale),
+    ...sushiRoundSettingsToApiJson(input.sushiRoundSettings),
   };
 }
 
@@ -119,7 +130,9 @@ export async function GET() {
 
   const { data, error } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale')
+    .select(
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, ${SUSHI_ROUND_SELECT}`,
+    )
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -137,6 +150,7 @@ export async function GET() {
       orderCooldownSeconds: data?.order_cooldown_seconds,
       operationLogRetentionDays: data?.operation_log_retention_days,
       printLocale: data?.print_locale,
+      sushiRoundSettings: parseSushiRoundSettingsFromRestaurantRow(data ?? undefined),
     }),
   );
 }
@@ -161,6 +175,11 @@ export async function PATCH(req: Request) {
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
   const operationLogRetentionDays = parseOperationLogRetentionDaysPatch(body);
   const printLocale = parsePrintLocalePatch(body);
+  const sushiRoundParsed = parseSushiRoundSettingsPatch(body);
+  if (!sushiRoundParsed.ok) {
+    return NextResponse.json({ error: sushiRoundParsed.error }, { status: 400 });
+  }
+  const sushiRoundPatch = sushiRoundParsed.patch;
   if (
     !patch &&
     credentialTtlDays === undefined &&
@@ -169,7 +188,8 @@ export async function PATCH(req: Request) {
     orderCooldownSeconds === undefined &&
     operationLogRetentionDays === undefined &&
     printLocale === undefined &&
-    kitchenReadyAfterMinutes === undefined
+    kitchenReadyAfterMinutes === undefined &&
+    !sushiRoundPatch
   ) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
@@ -204,7 +224,9 @@ export async function PATCH(req: Request) {
 
   const { data: row, error: readError } = await admin
     .from('restaurants')
-    .select('feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, suspended_at')
+    .select(
+      `feature_flags, print_agent_config, order_cooldown_seconds, operation_log_retention_days, print_locale, suspended_at, ${SUSHI_ROUND_SELECT}`,
+    )
     .eq('id', auth.principal.restaurantId)
     .maybeSingle();
 
@@ -251,6 +273,11 @@ export async function PATCH(req: Request) {
     order_cooldown_seconds?: number;
     operation_log_retention_days?: number;
     print_locale?: 'pt' | 'en' | 'zh';
+    sushi_round_ordering_enabled?: boolean;
+    sushi_per_person_per_round_cap?: number;
+    sushi_round_confirm_timeout_seconds?: number;
+    sushi_round_cooldown_seconds?: number;
+    sushi_round_defer_cooldown_seconds?: number;
   } = {};
   if (patch) {
     updatePayload.feature_flags = mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch);
@@ -264,6 +291,25 @@ export async function PATCH(req: Request) {
   }
   if (printLocale !== undefined && printLocale !== null) {
     updatePayload.print_locale = printLocale;
+  }
+  if (sushiRoundPatch) {
+    if (sushiRoundPatch.sushi_round_ordering_enabled !== undefined) {
+      updatePayload.sushi_round_ordering_enabled = sushiRoundPatch.sushi_round_ordering_enabled;
+    }
+    if (sushiRoundPatch.sushi_per_person_per_round_cap !== undefined) {
+      updatePayload.sushi_per_person_per_round_cap = sushiRoundPatch.sushi_per_person_per_round_cap;
+    }
+    if (sushiRoundPatch.sushi_round_confirm_timeout_seconds !== undefined) {
+      updatePayload.sushi_round_confirm_timeout_seconds =
+        sushiRoundPatch.sushi_round_confirm_timeout_seconds;
+    }
+    if (sushiRoundPatch.sushi_round_cooldown_seconds !== undefined) {
+      updatePayload.sushi_round_cooldown_seconds = sushiRoundPatch.sushi_round_cooldown_seconds;
+    }
+    if (sushiRoundPatch.sushi_round_defer_cooldown_seconds !== undefined) {
+      updatePayload.sushi_round_defer_cooldown_seconds =
+        sushiRoundPatch.sushi_round_defer_cooldown_seconds;
+    }
   }
 
   const { error } = await admin
@@ -284,6 +330,10 @@ export async function PATCH(req: Request) {
   const nextOperationLogRetentionDays = resolveOperationLogRetentionDays(
     operationLogRetentionDays ?? row?.operation_log_retention_days,
   );
+  const nextSushiRound: SushiRoundSettings = {
+    ...parseSushiRoundSettingsFromRestaurantRow(row ?? undefined),
+    ...(sushiRoundPatch ?? {}),
+  };
 
   return NextResponse.json({
     ok: true,
@@ -293,6 +343,7 @@ export async function PATCH(req: Request) {
       orderCooldownSeconds: nextOrderCooldownSeconds,
       operationLogRetentionDays: nextOperationLogRetentionDays,
       printLocale: printLocale ?? row?.print_locale,
+      sushiRoundSettings: nextSushiRound,
     }),
   });
 }

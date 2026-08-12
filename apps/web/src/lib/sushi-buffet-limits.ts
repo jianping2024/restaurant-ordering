@@ -7,6 +7,8 @@ import { normalizeOrderItemStatus } from '@/lib/order-status';
 export type SushiLimitMenuFields = {
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;
+  /** Catalog price; limited only when Number(price) === 0. Missing/non-zero → not limited. */
+  price?: number | null;
 };
 
 /** Adults + children across all active buffet packages (0 if none / all zero). */
@@ -80,6 +82,8 @@ export function isLimitedSushiMenuItem(
   item: SushiLimitMenuFields,
 ): boolean {
   if (!isSushiBuffetMode(serviceMode)) return false;
+  // Paid dishes (price > 0) and unknown price are never limited by free allowance.
+  if (Number(item.price) !== 0) return false;
   return perPersonLimitOf(item) !== null;
 }
 
@@ -202,6 +206,7 @@ export function allocateSessionSushiLimitedLines(
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx];
       if (!item || !isActiveSessionMenuLine(item, order.status)) continue;
+      if (Number(item.price) !== 0) continue;
       const perPersonLimit = perPersonLimitOf(item);
       const chargeableUnitPrice = overLimitUnitPriceOf(item);
       if (perPersonLimit === null || chargeableUnitPrice === null) continue;

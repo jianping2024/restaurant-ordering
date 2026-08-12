@@ -30,6 +30,12 @@ export type CustomerRestaurantRow = {
   order_cooldown_seconds?: number | null;
   buffet_service_mode?: string | null;
   guest_ordering_notice?: GuestOrderingNotice | null;
+  /** Sushi round columns — SSR gate only; classic ignores. */
+  sushi_round_ordering_enabled?: boolean | null;
+  sushi_per_person_per_round_cap?: number | null;
+  sushi_round_confirm_timeout_seconds?: number | null;
+  sushi_round_cooldown_seconds?: number | null;
+  sushi_round_defer_cooldown_seconds?: number | null;
 };
 
 export type CustomerResolvedTableContext = {

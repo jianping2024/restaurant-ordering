@@ -839,6 +839,23 @@ export const MESSAGES = {
       orderCooldownSeconds: '下单冷却',
       orderCooldownSecondsDesc: '本机菜单每次提交成功后的等待秒数（5-60 秒），仅影响当前设备的提交按钮，同桌其他设备互不影响。',
       orderCooldownSecondsUnit: '秒',
+      moduleSushiRound: '寿司同桌轮次',
+      sushiRoundOrderingEnabled: '启用同桌轮次合单',
+      sushiRoundOrderingEnabledDesc:
+        '仅寿司业态生效：免费菜走同桌轮次确认后送厨；关闭则与经典模式一样即时下单（仍保留整餐免费菜限量）。',
+      sushiPerPersonPerRoundCap: '每人每轮份数上限',
+      sushiPerPersonPerRoundCapDesc: '本轮免费菜总份数上限 = 该值 × 开台人数（1–20，默认 8）。',
+      sushiPerPersonPerRoundCapUnit: '份/人',
+      sushiRoundConfirmTimeoutSeconds: '送厨确认超时',
+      sushiRoundConfirmTimeoutSecondsDesc: '发起送厨后等待同桌确认的秒数；超时未投票视为同意（15–45，默认 25）。',
+      sushiRoundConfirmTimeoutSecondsUnit: '秒',
+      sushiRoundCooldownSeconds: '桌级送厨冷却',
+      sushiRoundCooldownSecondsDesc: '送厨成功后整桌等待秒数，期间不可再开新轮（30–600，默认 120）。',
+      sushiRoundCooldownSecondsUnit: '秒',
+      sushiRoundDeferCooldownSeconds: '暂缓后再发起冷却',
+      sushiRoundDeferCooldownSecondsDesc: '有人暂缓送厨后，禁止再次发起送厨的秒数（15–120，默认 30）。',
+      sushiRoundDeferCooldownSecondsUnit: '秒',
+      sushiRoundInvalid: '寿司轮次设置数值无效，请检查范围后重试',
       moduleOperationLogs: '操作记录',
       operationLogRetentionDays: '日志保留天数',
       operationLogRetentionDaysDesc:
@@ -2175,6 +2192,27 @@ export const MESSAGES = {
       orderCooldownSecondsDesc:
         'Seconds to wait on this device after each successful menu submit (5-60). Applies only to the submit button on this phone; other guests at the table are unaffected.',
       orderCooldownSecondsUnit: 'seconds',
+      moduleSushiRound: 'Sushi table rounds',
+      sushiRoundOrderingEnabled: 'Enable table order rounds',
+      sushiRoundOrderingEnabledDesc:
+        'Sushi mode only: free dishes go through a shared table round and confirm-to-kitchen. When off, guests append immediately like classic (meal free-dish limits still apply).',
+      sushiPerPersonPerRoundCap: 'Per-person per-round cap',
+      sushiPerPersonPerRoundCapDesc:
+        'Max free dishes this round = this value × open-table guest count (1–20, default 8).',
+      sushiPerPersonPerRoundCapUnit: 'per person',
+      sushiRoundConfirmTimeoutSeconds: 'Confirm timeout',
+      sushiRoundConfirmTimeoutSecondsDesc:
+        'Seconds to wait for table confirms after requesting kitchen; unvoted guests count as confirm (15–45, default 25).',
+      sushiRoundConfirmTimeoutSecondsUnit: 'seconds',
+      sushiRoundCooldownSeconds: 'Table kitchen cooldown',
+      sushiRoundCooldownSecondsDesc:
+        'Seconds the whole table must wait after a successful kitchen send before a new round (30–600, default 120).',
+      sushiRoundCooldownSecondsUnit: 'seconds',
+      sushiRoundDeferCooldownSeconds: 'Defer re-request cooldown',
+      sushiRoundDeferCooldownSecondsDesc:
+        'Seconds after a defer before anyone can request kitchen again (15–120, default 30).',
+      sushiRoundDeferCooldownSecondsUnit: 'seconds',
+      sushiRoundInvalid: 'Invalid sushi round setting; check the allowed ranges and retry',
       moduleOperationLogs: 'Operation logs',
       operationLogRetentionDays: 'Log retention days',
       operationLogRetentionDaysDesc:
@@ -3275,6 +3313,27 @@ export const MESSAGES = {
       orderCooldownSecondsDesc:
         'Segundos de espera neste dispositivo apos cada envio com sucesso (5-60). Afeta apenas o botao de envio neste telemovel; outros na mesa nao sao afetados.',
       orderCooldownSecondsUnit: 'segundos',
+      moduleSushiRound: 'Rodadas sushi na mesa',
+      sushiRoundOrderingEnabled: 'Ativar rodadas na mesa',
+      sushiRoundOrderingEnabledDesc:
+        'So no modo sushi: pratos gratis passam por rodada partilhada e confirmacao antes da cozinha. Desativado: envio imediato como no classico (limites de refeicao mantêm-se).',
+      sushiPerPersonPerRoundCap: 'Limite por pessoa e rodada',
+      sushiPerPersonPerRoundCapDesc:
+        'Maximo de pratos gratis nesta rodada = este valor × numero de convidados (1–20, padrao 8).',
+      sushiPerPersonPerRoundCapUnit: 'por pessoa',
+      sushiRoundConfirmTimeoutSeconds: 'Tempo limite de confirmacao',
+      sushiRoundConfirmTimeoutSecondsDesc:
+        'Segundos a esperar confirmacoes apos pedir cozinha; quem nao vota conta como confirmar (15–45, padrao 25).',
+      sushiRoundConfirmTimeoutSecondsUnit: 'segundos',
+      sushiRoundCooldownSeconds: 'Refracao da mesa apos cozinha',
+      sushiRoundCooldownSecondsDesc:
+        'Segundos que a mesa espera apos envio com sucesso antes de nova rodada (30–600, padrao 120).',
+      sushiRoundCooldownSecondsUnit: 'segundos',
+      sushiRoundDeferCooldownSeconds: 'Refracao apos adiar',
+      sushiRoundDeferCooldownSecondsDesc:
+        'Segundos apos adiar antes de poder pedir cozinha outra vez (15–120, padrao 30).',
+      sushiRoundDeferCooldownSecondsUnit: 'segundos',
+      sushiRoundInvalid: 'Definicao de rodada sushi invalida; verifique os intervalos e tente novamente',
       moduleOperationLogs: 'Registos de operacao',
       operationLogRetentionDays: 'Dias de retencao de registos',
       operationLogRetentionDaysDesc:

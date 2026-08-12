@@ -18,6 +18,10 @@ import {
 } from '@/lib/append-idempotency';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { orderItemAuditLabel } from '@/lib/audit/order-item-audit-label';
+import {
+  assertSushiGuestFreeItemsRequireRound,
+  loadRestaurantSushiRoundSettings,
+} from '@/lib/table-order-round/service';
 
 export const runtime = 'nodejs';
 
@@ -190,6 +194,18 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
   if (!resolved.ok) {
     await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
     return NextResponse.json({ error: resolved.error }, { status: 400 });
+  }
+
+  const sushiRoundSettings = await loadRestaurantSushiRoundSettings(admin, rid);
+  const freeRoundGate = assertSushiGuestFreeItemsRequireRound({
+    waiterFlow,
+    buffetServiceMode: restaurant.buffetServiceMode,
+    sushiRoundOrderingEnabled: sushiRoundSettings.sushi_round_ordering_enabled,
+    resolvedItems: resolved.items,
+  });
+  if (!freeRoundGate.ok) {
+    await releaseAppendIdempotencyClaim({ admin, sessionId, clientRequestId });
+    return NextResponse.json({ error: freeRoundGate.error }, { status: 400 });
   }
 
   const writeResult = await writeAppendBatch({

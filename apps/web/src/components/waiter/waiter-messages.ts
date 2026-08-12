@@ -24,6 +24,7 @@ export const WAITER_TEXT = {
     targetTable: '目标桌号',
     transferHint: '把来源桌的当前餐次整体迁移到目标桌。',
     mergeHint: '把来源桌并入目标桌，来源桌会话会关闭。',
+    mergeRoundBasketWarning: '来源桌有未送厨的本轮菜，并台后将作废，无法送厨。',
     confirmTransfer: '确认转台',
     confirmMerge: '确认并台',
     operatingTransfer: '转台中...',
@@ -161,6 +162,8 @@ export const WAITER_TEXT = {
     targetTable: 'Target table',
     transferHint: 'Move the active session from source table to target table.',
     mergeHint: 'Merge source table into target table and close source session.',
+    mergeRoundBasketWarning:
+      'Source table has an unsent round basket; merge will discard it and it cannot be sent to kitchen.',
     confirmTransfer: 'Confirm transfer',
     confirmMerge: 'Confirm merge',
     operatingTransfer: 'Transferring...',
@@ -299,6 +302,8 @@ export const WAITER_TEXT = {
     targetTable: 'Mesa de destino',
     transferHint: 'Move a sessao ativa da mesa de origem para a mesa destino.',
     mergeHint: 'Une a mesa de origem na mesa destino e fecha a origem.',
+    mergeRoundBasketWarning:
+      'A mesa de origem tem uma ronda por enviar; a uniao descarta o cesto e nao pode ir a cozinha.',
     confirmTransfer: 'Confirmar troca',
     confirmMerge: 'Confirmar uniao',
     operatingTransfer: 'Transferindo...',
@@ -437,6 +442,8 @@ export const WAITER_TEXT = {
     targetTable: 'Mesa de destino',
     transferHint: 'Mueve el servicio activo de la mesa de origen a la mesa de destino.',
     mergeHint: 'Une la mesa de origen a la de destino y cierra el servicio de origen.',
+    mergeRoundBasketWarning:
+      'La mesa de origen tiene platos de la ronda sin enviar; al unir se descartan y no se pueden enviar a cocina',
     confirmTransfer: 'Confirmar cambio',
     confirmMerge: 'Confirmar unión',
     operatingTransfer: 'Cambiando de mesa...',
@@ -584,6 +591,8 @@ export const WAITER_TEXT = {
       'Déplace le service en cours de la table d’origine vers la table de destination.',
     mergeHint:
       'Réunit la table d’origine sur la table de destination et clôt le service d’origine.',
+    mergeRoundBasketWarning:
+      'La table d’origine a des plats de tour non envoyés ; la réunion les annule et ils ne pourront pas partir en cuisine',
     confirmTransfer: 'Confirmer le changement',
     confirmMerge: 'Confirmer la réunion',
     operatingTransfer: 'Changement en cours...',
@@ -732,6 +741,8 @@ export const WAITER_TEXT = {
     transferHint: 'Verschiebt die laufende Sitzung vom Ausgangstisch auf den Zieltisch.',
     mergeHint:
       'Legt den Ausgangstisch auf den Zieltisch und schließt die Sitzung des Ausgangstischs.',
+    mergeRoundBasketWarning:
+      'Am Ausgangstisch gibt es ungesendete Rundengerichte; Zusammenlegen verwirft sie, sie können nicht in die Küche',
     confirmTransfer: 'Wechsel bestätigen',
     confirmMerge: 'Zusammenlegen bestätigen',
     operatingTransfer: 'Tisch wird gewechselt...',

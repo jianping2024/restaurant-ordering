@@ -68,6 +68,16 @@ restaurant_installations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id,
 
 table_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [open|billing|closed], opened_at: timestamptz, closed_at: timestamptz nullable, merge_into_session_id: uuid FK -> table_sessions.id nullable, closed_reason: text nullable, closed_by_user_id: uuid FK -> auth.users.id nullable, opened_by_user_id: uuid FK -> auth.users.id nullable, table_id: uuid FK -> restaurant_tables.id, settled_payable_amount: numeric nullable)
 
+table_order_rounds (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, table_id: uuid FK -> restaurant_tables.id, status: text [collecting|pending_confirm|cooldown|closed|finalize_failed], guest_count_snapshot: integer not null, per_person_cap: integer not null, submit_request_id: uuid nullable, submit_requested_at: timestamptz nullable, submit_deadline_at: timestamptz nullable, defer_used_at: timestamptz nullable, defer_cooldown_until: timestamptz nullable, cooldown_until: timestamptz nullable, append_client_request_id: uuid nullable, created_at: timestamptz, updated_at: timestamptz; partial unique active round per session — see migration; contract: docs/product/sushi-round-ordering.zh.md; trigger closes non-closed rounds when table_sessions.status → billing|closed)
+
+table_order_round_lines (id: uuid PK, round_id: uuid FK -> table_order_rounds.id, menu_item_id: uuid FK -> menu_items.id, qty: integer not null, guest_client_id: uuid not null, added_at: timestamptz, UNIQUE(round_id, menu_item_id, guest_client_id))
+
+table_order_round_votes (id: uuid PK, round_id: uuid FK -> table_order_rounds.id, submit_request_id: uuid not null, guest_client_id: uuid not null, vote: text [pending|confirm|defer] not null default pending, voted_at: timestamptz nullable, UNIQUE(round_id, submit_request_id, guest_client_id))
+
+table_order_round_clients (session_id: uuid FK -> table_sessions.id, guest_client_id: uuid, restaurant_id: uuid FK -> restaurants.id, registered_at: timestamptz; PK(session_id, guest_client_id))
+
+-- restaurants sushi round settings: sushi_round_ordering_enabled boolean default true, sushi_per_person_per_round_cap integer default 8 range 1..20, sushi_round_confirm_timeout_seconds integer default 25 range 15..45, sushi_round_cooldown_seconds integer default 120 range 30..600, sushi_round_defer_cooldown_seconds integer default 30 range 15..120, sushi_round_rules_notice jsonb nullable
+
 table_session_events (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, event_type: text [transfer], occurred_at: timestamptz, operator_user_id: uuid FK -> auth.users.id nullable, from_table_id: uuid FK -> restaurant_tables.id, to_table_id: uuid FK -> restaurant_tables.id, from_display_name: text, to_display_name: text)
 analytics_daily_restaurant_stats (restaurant_id: uuid FK -> restaurants.id, business_date: date, revenue: numeric, adult_count: int, child_count: int, customer_count: int, qualifying_session_count: int, sealed_at: timestamptz, computed_at: timestamptz; PK (restaurant_id, business_date))
 analytics_daily_menu_item_stats (restaurant_id: uuid FK -> restaurants.id, business_date: date, rank: smallint 1..10, item_id: text, name_pt: text, name_en: text nullable, name_zh: text nullable, consumed_quantity: numeric, amount: numeric, sealed_at: timestamptz; PK (restaurant_id, business_date, rank))
@@ -88,6 +98,13 @@ restaurants.owner_id -> auth.users.id
 restaurant_tables.restaurant_id -> restaurants.id  
 table_sessions.restaurant_id -> restaurants.id  
 table_sessions.table_id -> restaurant_tables.id  
+table_order_rounds.session_id -> table_sessions.id  
+table_order_rounds.table_id -> restaurant_tables.id  
+table_order_round_lines.round_id -> table_order_rounds.id  
+table_order_round_lines.menu_item_id -> menu_items.id  
+table_order_round_votes.round_id -> table_order_rounds.id  
+table_order_round_clients.session_id -> table_sessions.id  
+table_order_round_clients.restaurant_id -> restaurants.id  
 table_sessions.merge_into_session_id -> table_sessions.id  
 table_sessions.closed_by_user_id -> auth.users.id
 table_sessions.opened_by_user_id -> auth.users.id

@@ -17,6 +17,11 @@ export default async function SettingsFeaturesPage() {
       initialOperationLogRetentionDays={data.operationLogRetentionDays}
       initialPrintLocale={data.printLocale}
       initialKitchenReadyAfterMinutes={data.kitchenReadyAfterMinutes}
+      initialSushiRoundOrderingEnabled={data.sushiRoundOrderingEnabled}
+      initialSushiPerPersonPerRoundCap={data.sushiPerPersonPerRoundCap}
+      initialSushiRoundConfirmTimeoutSeconds={data.sushiRoundConfirmTimeoutSeconds}
+      initialSushiRoundCooldownSeconds={data.sushiRoundCooldownSeconds}
+      initialSushiRoundDeferCooldownSeconds={data.sushiRoundDeferCooldownSeconds}
     />
   );
 }

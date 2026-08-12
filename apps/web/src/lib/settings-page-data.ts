@@ -23,6 +23,10 @@ import { requirePermission } from '@/lib/permissions/require';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { isRestaurantSuspended } from '@mesa/shared';
 import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
+import {
+  parseSushiRoundSettingsFromRestaurantRow,
+  sushiRoundSettingsToApiJson,
+} from '@/lib/table-order-round/settings';
 
 async function loadRestaurantByIdForSettings(restaurantId: string): Promise<Restaurant> {
   let admin;
@@ -104,6 +108,11 @@ export type FeatureSettingsPageData = {
   operationLogRetentionDays: number;
   printLocale: PrintLocale;
   kitchenReadyAfterMinutes: number;
+  sushiRoundOrderingEnabled: boolean;
+  sushiPerPersonPerRoundCap: number;
+  sushiRoundConfirmTimeoutSeconds: number;
+  sushiRoundCooldownSeconds: number;
+  sushiRoundDeferCooldownSeconds: number;
 };
 
 /** Loads print-agent config only; feature_flags come from cached dashboard access. */
@@ -115,7 +124,9 @@ export async function loadFeatureSettingsPageData(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('restaurants')
-    .select('print_agent_config, order_cooldown_seconds, operation_log_retention_days')
+    .select(
+      'print_agent_config, order_cooldown_seconds, operation_log_retention_days, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds',
+    )
     .eq('id', restaurantId)
     .single();
 
@@ -126,6 +137,10 @@ export async function loadFeatureSettingsPageData(
   const operationLogRetentionDays = !isMigrationRequired
     ? resolveOperationLogRetentionDays(data?.operation_log_retention_days)
     : resolveOperationLogRetentionDays(undefined);
+  const sushiRound = parseSushiRoundSettingsFromRestaurantRow(
+    isMigrationRequired ? undefined : (data ?? undefined),
+  );
+  const sushiApi = sushiRoundSettingsToApiJson(sushiRound);
 
   return {
     flags: normalizeRestaurantFeatureFlags(featureFlags),
@@ -136,6 +151,11 @@ export async function loadFeatureSettingsPageData(
     operationLogRetentionDays,
     printLocale: normalizePrintLocale(printLocale),
     kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(data?.print_agent_config),
+    sushiRoundOrderingEnabled: sushiApi.sushiRoundOrderingEnabled,
+    sushiPerPersonPerRoundCap: sushiApi.sushiPerPersonPerRoundCap,
+    sushiRoundConfirmTimeoutSeconds: sushiApi.sushiRoundConfirmTimeoutSeconds,
+    sushiRoundCooldownSeconds: sushiApi.sushiRoundCooldownSeconds,
+    sushiRoundDeferCooldownSeconds: sushiApi.sushiRoundDeferCooldownSeconds,
   };
 }
 

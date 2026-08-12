@@ -119,6 +119,10 @@ func runAgentTrayFirst(args []string) {
 		status: &agentStatus{},
 		cancel: cancel,
 	}
+	// Sole auto Realtime restore: same path as tray menu Restart (no confirm dialog).
+	rt.status.setPromoteRestartHandler(func() {
+		requestTrayRestart(rt)
+	})
 	onConfigureWizardReady = rt.rememberConfigureWizardURL
 	defer func() { onConfigureWizardReady = nil }()
 	rt.status.set("Starting", printAgentName)
@@ -185,8 +189,9 @@ func onTrayReady(rt *trayRuntime) {
 		maybeNotifyCredentialRenewal()
 	}()
 
+	// Keep status enabled so the first tray line uses the same menu text color as peers
+	// (Disable greys it out on Windows). Clicks are ignored — no ClickedCh handler.
 	mStatus := systray.AddMenuItem(rt.status.menuStatusLine(loc), "")
-	mStatus.Disable()
 	systray.AddSeparator()
 	mSettings := systray.AddMenuItem(uiT(loc, "menu_settings"), uiT(loc, "menu_settings_tip"))
 	mOpenLog := systray.AddMenuItem(uiT(loc, "menu_open_log"), uiT(loc, "menu_open_log_tip"))

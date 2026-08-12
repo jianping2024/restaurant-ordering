@@ -46,6 +46,7 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 			log.Printf("Realtime mode unavailable: %v, falling back to polling", err)
 			mode = NotificationModePolling
 			setNotifyMode(status, mode)
+			status.markRealtimePollingFallback()
 			notifier = NewPollingNotifier(cfg, queue, sess.pc)
 		} else {
 			notifier = rt
@@ -67,6 +68,7 @@ func runNotificationLoop(ctx context.Context, sess *agentSession, status *agentS
 			log.Println("Realtime failed, falling back to polling mode")
 			mode = NotificationModePolling
 			setNotifyMode(status, mode)
+			status.markRealtimePollingFallback()
 			notifier = NewPollingNotifier(cfg, queue, sess.pc)
 			if err := notifier.Start(ctx); err != nil && err != context.Canceled {
 				log.Printf("Polling also failed: %v", err)

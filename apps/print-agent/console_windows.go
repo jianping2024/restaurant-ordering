@@ -50,6 +50,7 @@ func attachConsoleWindow() {
 		os.Stdout = out
 		os.Stderr = out
 		log.SetOutput(out)
+		setConsoleOutputBright(out)
 	}
 	if in, err := os.OpenFile("CONIN$", os.O_RDONLY, 0); err == nil {
 		os.Stdin = in
@@ -111,6 +112,18 @@ func disableConsoleCloseButton(hwnd uintptr) {
 	}
 	_, _, _ = deleteMenu.Call(menu, scClose, mfByCommand)
 	_, _, _ = drawMenuBar.Call(hwnd)
+}
+
+// setConsoleOutputBright forces the same bright white text for all console lines
+// (Windows defaults can leave the first attribute band looking washed out).
+func setConsoleOutputBright(f *os.File) {
+	if f == nil {
+		return
+	}
+	kernel32 := syscall.NewLazyDLL("kernel32.dll")
+	setAttr := kernel32.NewProc("SetConsoleTextAttribute")
+	const brightWhite = 0x0007 // FOREGROUND_RED|GREEN|BLUE
+	_, _, _ = setAttr.Call(f.Fd(), brightWhite)
 }
 
 const (

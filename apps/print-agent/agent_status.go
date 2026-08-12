@@ -23,6 +23,12 @@ type agentStatus struct {
 	detail         string
 	mode           NotificationMode // actual running notifier mode
 	scheduleClosed bool             // when true, operational statuses cannot overwrite yellow
+
+	// realtimeFallback: preferred realtime but active notifier is polling (startup fallback).
+	realtimeFallback bool
+	fallbackPrintOK  bool
+	// promoteRestart: sole auto restore path — tray process restart (menu Restart, no confirm).
+	promoteRestart func()
 }
 
 func (s *agentStatus) set(summary, detail string) {
@@ -63,6 +69,39 @@ func (s *agentStatus) setMode(mode NotificationMode) {
 	}
 	s.mu.Lock()
 	s.mode = mode
+	s.mu.Unlock()
+}
+
+// setPromoteRestartHandler wires the sole auto-restart callback (Windows tray → requestTrayRestart).
+func (s *agentStatus) setPromoteRestartHandler(fn func()) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.promoteRestart = fn
+	s.mu.Unlock()
+}
+
+// markRealtimePollingFallback arms promote-after-batch when Realtime gave way to polling.
+func (s *agentStatus) markRealtimePollingFallback() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.realtimeFallback = true
+	s.fallbackPrintOK = false
+	s.mu.Unlock()
+}
+
+// notePollingFallbackPrintOK records a successful print while in realtime→polling fallback.
+func (s *agentStatus) notePollingFallbackPrintOK() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	if s.realtimeFallback {
+		s.fallbackPrintOK = true
+	}
 	s.mu.Unlock()
 }
 

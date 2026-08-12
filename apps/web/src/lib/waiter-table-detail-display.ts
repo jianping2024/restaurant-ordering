@@ -10,20 +10,28 @@ export function formatWaiterTableDetailHeading(
   return `${detailsTitle} · ${displayName}`;
 }
 
+/** Ordered-items sticky money chrome — sole amount shape (never a joined string). */
+export type WaiterOrderedItemsSessionAmount = {
+  mealsLine: string | null;
+  totalLine: string;
+};
+
 /**
- * Ordered-items sticky money chrome — sole display string for this bar.
- * Shape: optional `饮食: €{meals}` then `合计: €{total}` (never a head-fee segment).
+ * Ordered-items sticky money chrome amounts.
+ * `mealsLine` when non-buffet billable total > 0; `totalLine` always when session total > 0.
  * Null when session total is not positive.
  */
 export function formatWaiterOrderedItemsSessionTotal(
   lang: UILanguage,
   sessionTotal: number,
   mealsTotal = 0,
-): string | null {
+): WaiterOrderedItemsSessionAmount | null {
   if (!(sessionTotal > 0)) return null;
   const copy = WAITER_TEXT[lang];
-  const totalText = copy.sessionAmount.replace('{amount}', sessionTotal.toFixed(2));
-  if (!(mealsTotal > 0)) return totalText;
-  const mealsText = copy.sessionMealsAmount.replace('{amount}', mealsTotal.toFixed(2));
-  return `${mealsText} ${totalText}`;
+  const totalLine = copy.sessionAmount.replace('{amount}', sessionTotal.toFixed(2));
+  const mealsLine =
+    mealsTotal > 0
+      ? copy.sessionMealsAmount.replace('{amount}', mealsTotal.toFixed(2))
+      : null;
+  return { mealsLine, totalLine };
 }

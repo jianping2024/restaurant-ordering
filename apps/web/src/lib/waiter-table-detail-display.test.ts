@@ -28,31 +28,43 @@ describe('formatWaiterTableDetailHeading', () => {
 });
 
 describe('formatWaiterOrderedItemsSessionTotal', () => {
-  it('formats zh total with 合计 prefix', () => {
-    assert.equal(formatWaiterOrderedItemsSessionTotal('zh', 105.3), '合计: €105.30');
+  it('formats zh total line', () => {
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('zh', 105.3), {
+      mealsLine: null,
+      totalLine: '合计: €105.30',
+    });
   });
 
-  it('formats en/pt with Total prefix', () => {
-    assert.equal(formatWaiterOrderedItemsSessionTotal('en', 27.95), 'Total: €27.95');
-    assert.equal(formatWaiterOrderedItemsSessionTotal('pt', 27.95), 'Total: €27.95');
+  it('formats en/pt total line', () => {
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('en', 27.95), {
+      mealsLine: null,
+      totalLine: 'Total: €27.95',
+    });
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('pt', 27.95), {
+      mealsLine: null,
+      totalLine: 'Total: €27.95',
+    });
   });
 
-  it('prefixes meals amount before total when meals > 0 (zh)', () => {
-    assert.equal(
-      formatWaiterOrderedItemsSessionTotal('zh', 595.35, 300),
-      '饮食: €300.00 合计: €595.35',
-    );
+  it('includes meals line when meals > 0 (zh)', () => {
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('zh', 595.35, 300), {
+      mealsLine: '饮食: €300.00',
+      totalLine: '合计: €595.35',
+    });
   });
 
-  it('prefixes meals amount before total when meals > 0 (en)', () => {
-    assert.equal(
-      formatWaiterOrderedItemsSessionTotal('en', 595.35, 300),
-      'Food & drink: €300.00 Total: €595.35',
-    );
+  it('includes meals line when meals > 0 (en)', () => {
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('en', 595.35, 300), {
+      mealsLine: 'Food & drink: €300.00',
+      totalLine: 'Total: €595.35',
+    });
   });
 
-  it('omits meals segment when meals is zero', () => {
-    assert.equal(formatWaiterOrderedItemsSessionTotal('zh', 105.3, 0), '合计: €105.30');
+  it('omits meals line when meals is zero', () => {
+    assert.deepEqual(formatWaiterOrderedItemsSessionTotal('zh', 105.3, 0), {
+      mealsLine: null,
+      totalLine: '合计: €105.30',
+    });
   });
 
   it('hides zero or negative totals', () => {

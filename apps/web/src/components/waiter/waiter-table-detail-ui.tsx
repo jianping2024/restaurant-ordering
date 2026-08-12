@@ -75,13 +75,16 @@ export const waiterDetailLayout = {
   pageHeadingMeta:
     'inline-flex shrink-0 items-center gap-1.5 text-[13px] text-brand-text-muted tabular-nums',
   /**
-   * Session money chrome — sticky under page identity; total + pre_bill only (not the list title).
+   * Session money chrome — sticky under page identity; meals/total/pre_bill only (not the list title).
+   * Mobile: three centered rows; sm+: inline amounts + pre_bill on one row.
    * Opaque card bg so list rows never show through while scrolling.
    */
-  orderedItemsMoneyChrome: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex items-center justify-end gap-2 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3`,
+  orderedItemsMoneyChrome: `sticky ${waiterStaffStickyChrome.belowPageHeading} z-20 flex flex-col items-center gap-1.5 border-b border-brand-border/40 bg-brand-card ${WAITER_DETAIL_GUTTER_PX} py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2`,
   orderedItemsTitleRow: 'flex shrink-0 items-center gap-2',
   orderedItemsTitle: `${waiterFloorType.listBody} whitespace-nowrap`,
-  orderedItemsTotal: 'text-lg font-semibold text-brand-gold-dark tabular-nums shrink-0',
+  orderedItemsMoneyLine:
+    'w-full text-center text-lg font-semibold text-brand-gold-dark tabular-nums sm:w-auto sm:text-right',
+  orderedItemsPreBillAction: 'shrink-0 whitespace-nowrap',
   /**
    * One dish = one horizontal left-cluster row (unique shape):
    * [code · name · status] —gap-8— [qty · serve/minus].

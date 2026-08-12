@@ -724,7 +724,7 @@ function WaiterTableDetailInner({
     [t],
   );
 
-  const orderedItemsSessionTotalText = formatWaiterOrderedItemsSessionTotal(
+  const orderedItemsSessionAmount = formatWaiterOrderedItemsSessionTotal(
     lang,
     selectedCard.sessionTotal,
     selectedCard.mealsTotal,
@@ -735,7 +735,7 @@ function WaiterTableDetailInner({
       isDemo ||
       !floorCaps.canPrintSessionPreBill ||
       !sessionId ||
-      !orderedItemsSessionTotalText
+      !orderedItemsSessionAmount
     ) {
       return null;
     }
@@ -750,7 +750,7 @@ function WaiterTableDetailInner({
     floorCaps.canPrintSessionPreBill,
     isDemo,
     isPrintPreBillBusy,
-    orderedItemsSessionTotalText,
+    orderedItemsSessionAmount,
     printSessionPreBill,
     selectedCard.tableId,
     sessionMeta?.sessionId,
@@ -1102,7 +1102,7 @@ function WaiterTableDetailInner({
             {paintPhase === 'ready' ? (
               <WaiterTableOrderedItemsPanel
                 title={t.orderedItems}
-                sessionTotalText={orderedItemsSessionTotalText}
+                sessionAmount={orderedItemsSessionAmount}
                 preBillPrint={orderedItemsPreBillPrint}
                 lines={selectedCard.orderLines}
                 formatChargeableHint={(qty, unitPrice) =>

@@ -472,4 +472,63 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines[0]?.statusLabel, null);
     assert.equal(card.orderLines[0]?.canServe, false);
   });
+
+  it('keeps ordered-item line order when updated_at resort would reverse orders', () => {
+    const card = buildWaiterTableCard(
+      't1',
+      '001',
+      [
+        {
+          id: 'o2',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd2',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 3,
+              price: 2,
+              emoji: '🥤',
+              item_code: '006',
+            },
+          ],
+          total_amount: 6,
+          created_at: '2026-01-02T00:00:00.000Z',
+          updated_at: '2026-01-03T00:00:00.000Z',
+        },
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '001',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Tomato soup',
+              name_pt: 'Tomato soup',
+              qty: 5,
+              price: 3,
+              emoji: '🍅',
+              item_code: '112',
+            },
+          ],
+          total_amount: 15,
+          created_at: '2026-01-01T00:00:00.000Z',
+          updated_at: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      {},
+      capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
+    );
+
+    assert.equal(card.orderLines.length, 2);
+    assert.equal(card.orderLines[0]?.itemCode, '112');
+    assert.equal(card.orderLines[1]?.itemCode, '006');
+    assert.equal(card.orderLines[0]?.catalogKey, 'd1::3');
+    assert.equal(card.orderLines[1]?.catalogKey, 'd2::2');
+  });
 });

@@ -35,6 +35,7 @@ import {
 import { WaiterOrderQtyMinus } from '@/components/waiter/WaiterOrderQtyMinus';
 import { chargeableShareOf } from '@/lib/billable-session-lines';
 import type { WaiterOrderLine } from '@/components/waiter/waiter-table-card';
+import type { WaiterOrderedItemsSessionAmount } from '@/lib/waiter-table-detail-display';
 import type { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import {
   buttonIcon,
@@ -456,8 +457,8 @@ export function WaiterTableOccupiedToolbar({
 
 type OrderedItemsProps = {
   title: string;
-  /** Preformatted session total for sticky chrome; null hides the amount. */
-  sessionTotalText: string | null;
+  /** Session amount lines for sticky chrome; null hides the amount block. */
+  sessionAmount: WaiterOrderedItemsSessionAmount | null;
   /** Frontdesk manual pre_bill — presentational only; null hides the control. */
   preBillPrint: {
     label: string;
@@ -478,7 +479,7 @@ type OrderedItemsProps = {
 
 export function WaiterTableOrderedItemsPanel({
   title,
-  sessionTotalText,
+  sessionAmount,
   preBillPrint,
   lines,
   formatChargeableHint,
@@ -494,16 +495,20 @@ export function WaiterTableOrderedItemsPanel({
 
   return (
     <WaiterDetailCard>
-      {sessionTotalText || preBillPrint ? (
+      {sessionAmount || preBillPrint ? (
         <div className={waiterDetailLayout.orderedItemsMoneyChrome}>
-          {sessionTotalText ? (
-            <p className={waiterDetailLayout.orderedItemsTotal}>{sessionTotalText}</p>
+          {sessionAmount?.mealsLine ? (
+            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{sessionAmount.mealsLine}</p>
+          ) : null}
+          {sessionAmount?.totalLine ? (
+            <p className={waiterDetailLayout.orderedItemsMoneyLine}>{sessionAmount.totalLine}</p>
           ) : null}
           {preBillPrint ? (
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className={waiterDetailLayout.orderedItemsPreBillAction}
               loading={preBillPrint.busy}
               onClick={preBillPrint.onPrint}
             >
@@ -531,10 +536,7 @@ export function WaiterTableOrderedItemsPanel({
               ? orderLineKey(line.serveOrderId, line.serveItemIdx)
               : null;
           return (
-            <div
-              key={`${line.orderId}-${line.itemIdx}-${line.label}`}
-              className="min-w-0"
-            >
+            <div key={line.catalogKey} className="min-w-0">
               <div className={waiterDetailLayout.orderedItemRow}>
                 <div className={waiterDetailLayout.orderedItemIdentity}>
                   {line.itemCode ? (

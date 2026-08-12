@@ -4,6 +4,7 @@ import {
   buildBillableSessionItems,
   chargeableFieldsFromBillableRow,
   menuItemIdFromLimitedBillableKey,
+  sortOrdersForBillableCatalog,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
@@ -30,6 +31,8 @@ import {
 } from '@/lib/kitchen-progress-display';
 
 export type WaiterOrderLine = {
+  /** Stable billable catalog key (`buffet:*`, `limited:*`, or `menuId::price`). */
+  catalogKey: string;
   orderId: string;
   itemIdx: number;
   /** Menu item code prefix (`018`); null for buffet / missing code. */
@@ -208,7 +211,8 @@ export function buildWaiterTableCard(
   } = {},
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
-  const catalog = buildBillableSessionItems(orders);
+  const catalogOrders = sortOrdersForBillableCatalog(orders);
+  const catalog = buildBillableSessionItems(catalogOrders);
   const serveEnabled = options.serveEnabled === true;
   const readyAfterMinutes =
     options.readyAfterMinutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;
@@ -220,6 +224,7 @@ export function buildWaiterTableCard(
     const { key, item } = row;
     if (isBuffetBaseItem(item)) {
       return {
+        catalogKey: row.key,
         orderId: '',
         itemIdx: -1,
         itemCode: null,
@@ -236,7 +241,7 @@ export function buildWaiterTableCard(
     }
 
     const action = resolveMenuLineActionTarget(
-      orders,
+      catalogOrders,
       key,
       capabilities,
       serveEnabled,
@@ -262,6 +267,7 @@ export function buildWaiterTableCard(
     });
 
     return {
+      catalogKey: row.key,
       ...action,
       itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
       label: formatOrderItemPlainName(item),

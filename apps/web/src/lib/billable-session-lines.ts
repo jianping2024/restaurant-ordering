@@ -27,6 +27,59 @@ export function billableMenuItemMergeKey(item: OrderItem): string {
   return `${item.id}::${item.price}`;
 }
 
+/**
+ * Stable session order for billable catalog rows — first ordered first.
+ * Ignores `updated_at` resorting after mutations (waiter decrement, Realtime refresh).
+ */
+export function compareOrdersForBillableCatalog(a: Order, b: Order): number {
+  const createdA = a.created_at ?? '';
+  const createdB = b.created_at ?? '';
+  if (createdA !== createdB) return createdA < createdB ? -1 : 1;
+  return String(a.id).localeCompare(String(b.id));
+}
+
+export function sortOrdersForBillableCatalog(orders: Order[]): Order[] {
+  return [...orders].sort(compareOrdersForBillableCatalog);
+}
+
+/**
+ * Stable list position for a billable catalog row — earliest physical line for the merge key
+ * (including voided lines so decrement/void does not reshuffle the waiter list).
+ */
+export function billableCatalogLineAnchorAt(
+  order: Pick<Order, 'created_at'>,
+  itemIdx: number,
+  item: Pick<OrderItem, 'added_at'>,
+): string {
+  const added = item.added_at;
+  if (typeof added === 'string' && added.length > 0) return added;
+  const created = order.created_at ?? '';
+  return `${created}#${String(itemIdx).padStart(5, '0')}`;
+}
+
+function mergeBillableCatalogAnchor(
+  anchors: Map<string, string>,
+  key: string,
+  candidate: string,
+): void {
+  const prev = anchors.get(key);
+  if (prev == null || candidate < prev) anchors.set(key, candidate);
+}
+
+function billableMenuMergeKeyForLine(
+  order: Order,
+  itemIdx: number,
+  item: OrderItem,
+  limitAllocations: ReturnType<typeof allocateSessionSushiLimitedLines>,
+  buffetSummaries: ReturnType<typeof listActiveBuffetLineSummaries>,
+): string | null {
+  if (isKitchenRemakeItem(item)) return null;
+  if (isBuffetBaseItem(item) && buffetSummaries.length > 0) return null;
+  const allocation = limitAllocations.get(sushiLimitedLineKey(order.id, itemIdx));
+  if (!allocation) return billableMenuItemMergeKey(item);
+  return limitedBillableMergeKey(item.id);
+}
+
 /** Prefix for merged sushi limited catalog rows (see {@link addLimitedMenuGroup}). */
 export const LIMITED_BILLABLE_MERGE_PREFIX = 'limited:';
 
@@ -185,6 +238,7 @@ function addLimitedMenuGroup(
  */
 export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[] {
   const lines: BillableSessionItem[] = [];
+  const catalogOrders = sortOrdersForBillableCatalog(orders);
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const buffetLineById = activeBuffetLineByBuffetId(orders);
   const limitAllocations = allocateSessionSushiLimitedLines(orders);
@@ -205,7 +259,28 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
   }
 
   const mergedMenu = new Map<string, MergedMenuGroup>();
-  for (const order of orders) {
+  const catalogAnchors = new Map<string, string>();
+  for (const order of catalogOrders) {
+    const items = order.items || [];
+    for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+      const item = items[itemIdx];
+      const mergeKey = billableMenuMergeKeyForLine(
+        order,
+        itemIdx,
+        item,
+        limitAllocations,
+        buffetSummaries,
+      );
+      if (!mergeKey) continue;
+      mergeBillableCatalogAnchor(
+        catalogAnchors,
+        mergeKey,
+        billableCatalogLineAnchorAt(order, itemIdx, item),
+      );
+    }
+  }
+
+  for (const order of catalogOrders) {
     const items = order.items || [];
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       const item = items[itemIdx];
@@ -231,7 +306,16 @@ export function buildBillableSessionItems(orders: Order[]): BillableSessionItem[
     }
   }
 
-  for (const [mergeKey, group] of Array.from(mergedMenu.entries())) {
+  const menuMergeKeys = Array.from(mergedMenu.keys()).sort((a, b) => {
+    const anchorA = catalogAnchors.get(a) ?? a;
+    const anchorB = catalogAnchors.get(b) ?? b;
+    if (anchorA !== anchorB) return anchorA < anchorB ? -1 : 1;
+    return a.localeCompare(b);
+  });
+
+  for (const mergeKey of menuMergeKeys) {
+    const group = mergedMenu.get(mergeKey);
+    if (!group) continue;
     lines.push({
       key: mergeKey,
       item: { ...group.item, qty: group.qty },

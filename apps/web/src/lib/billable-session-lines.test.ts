@@ -8,6 +8,7 @@ import {
   isLimitedBillableRow,
   limitedBillableMergeKey,
   menuItemIdFromLimitedBillableKey,
+  sortOrdersForBillableCatalog,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
 } from '@/lib/billable-session-lines';
@@ -325,5 +326,107 @@ describe('sumBillableSessionTotal', () => {
     ] as Order[];
 
     assert.equal(sumBillableSessionTotal(orders), 35.9 + 4.5);
+  });
+
+  it('keeps catalog row order by created_at even when orders are updated_at-sorted', () => {
+    const orders = [
+      {
+        id: 'o-new',
+        status: 'pending',
+        created_at: '2026-01-02T00:00:00.000Z',
+        updated_at: '2026-01-03T00:00:00.000Z',
+        items: [
+          { id: 'd2', name: 'Cola', name_pt: 'Cola', qty: 1, price: 2, emoji: '🥤' },
+        ],
+      },
+      {
+        id: 'o-old',
+        status: 'pending',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        items: [
+          { id: 'd1', name: 'Água', name_pt: 'Água', qty: 1, price: 1.5, emoji: '💧' },
+        ],
+      },
+    ] as Order[];
+
+    const lines = buildBillableSessionItems(orders);
+    assert.deepEqual(
+      lines.map((row) => row.item.id),
+      ['d1', 'd2'],
+    );
+    assert.deepEqual(
+      buildBillableSessionItems(sortOrdersForBillableCatalog(orders)).map((row) => row.item.id),
+      ['d1', 'd2'],
+    );
+  });
+
+  it('keeps catalog row order when decrement voids the earliest physical line', () => {
+    const ordersBefore = [
+      {
+        id: 'o1',
+        status: 'pending',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+        items: [
+          {
+            id: 'd1',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+            added_at: '2026-01-01T00:00:01.000Z',
+            item_status: 'pending',
+          },
+          {
+            id: 'd2',
+            name: 'Água',
+            name_pt: 'Água',
+            qty: 1,
+            price: 1.5,
+            emoji: '💧',
+            added_at: '2026-01-01T00:00:02.000Z',
+            item_status: 'pending',
+          },
+          {
+            id: 'd1',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 4,
+            price: 2,
+            emoji: '🥤',
+            added_at: '2026-01-01T00:00:03.000Z',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const before = buildBillableSessionItems(ordersBefore).map((row) => row.item.id);
+    assert.deepEqual(before, ['d1', 'd2']);
+
+    const ordersAfter = [
+      {
+        ...ordersBefore[0],
+        updated_at: '2026-01-03T00:00:00.000Z',
+        items: [
+          {
+            ...ordersBefore[0].items[0],
+            item_status: 'voided',
+            voided_at: '2026-01-03T00:00:00.000Z',
+          },
+          ordersBefore[0].items[1],
+          {
+            ...ordersBefore[0].items[2],
+            qty: 3,
+          },
+        ],
+      },
+    ] as Order[];
+
+    const after = buildBillableSessionItems(ordersAfter).map((row) => row.item.id);
+    assert.deepEqual(after, before);
+    assert.equal(buildBillableSessionItems(ordersAfter)[0]?.item.qty, 3);
   });
 });

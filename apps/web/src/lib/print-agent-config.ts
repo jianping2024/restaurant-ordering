@@ -306,9 +306,9 @@ export function parseHanBitmapFontPxPatch(body: unknown): number | undefined | n
   return rounded;
 }
 
-export const KITCHEN_READY_AFTER_MINUTES_DEFAULT = 15;
-export const KITCHEN_READY_AFTER_MINUTES_MIN = 1;
-export const KITCHEN_READY_AFTER_MINUTES_MAX = 240;
+export const KITCHEN_READY_AFTER_MINUTES_DEFAULT = 10;
+export const KITCHEN_READY_AFTER_MINUTES_MIN = 3;
+export const KITCHEN_READY_AFTER_MINUTES_MAX = 30;
 
 export function resolveKitchenReadyAfterMinutes(raw: unknown): number {
   const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
@@ -324,6 +324,25 @@ export function kitchenReadyAfterMinutesFromConfig(raw: unknown): number {
     normalizePrintAgentCloudConfig(raw).kitchen_ready_after_minutes ??
     KITCHEN_READY_AFTER_MINUTES_DEFAULT
   );
+}
+
+export function parseKitchenReadyAfterMinutesPatch(body: unknown): number | undefined | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return undefined;
+  const raw =
+    (body as Record<string, unknown>).kitchenReadyAfterMinutes ??
+    (body as Record<string, unknown>).kitchen_ready_after_minutes;
+  if (raw === undefined) return undefined;
+  const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : NaN;
+  if (!Number.isFinite(n)) return null;
+  const rounded = Math.round(n);
+  if (
+    rounded < KITCHEN_READY_AFTER_MINUTES_MIN ||
+    rounded > KITCHEN_READY_AFTER_MINUTES_MAX ||
+    !Number.isInteger(rounded)
+  ) {
+    return null;
+  }
+  return rounded;
 }
 
 export function parseStationSlipShowCategoryGroupPatch(

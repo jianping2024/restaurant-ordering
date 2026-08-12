@@ -8,7 +8,11 @@ import {
   resolvePrintAgentCredentialTtlDays,
   type ResolvedRestaurantFeatureFlags,
 } from '@/lib/restaurant-features';
-import { isStationSlipShowCategoryGroupEnabled, hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
+import {
+  isStationSlipShowCategoryGroupEnabled,
+  hanBitmapFontPxFromConfig,
+  kitchenReadyAfterMinutesFromConfig,
+} from '@/lib/print-agent-config';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
 import { listHumanStaffAccountsForRestaurant } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -99,6 +103,7 @@ export type FeatureSettingsPageData = {
   orderCooldownSeconds: number;
   operationLogRetentionDays: number;
   printLocale: PrintLocale;
+  kitchenReadyAfterMinutes: number;
 };
 
 /** Loads print-agent config only; feature_flags come from cached dashboard access. */
@@ -130,6 +135,7 @@ export async function loadFeatureSettingsPageData(
     orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
     operationLogRetentionDays,
     printLocale: normalizePrintLocale(printLocale),
+    kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(data?.print_agent_config),
   };
 }
 

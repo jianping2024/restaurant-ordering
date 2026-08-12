@@ -17,6 +17,9 @@ import {
   parseStationSlipShowCategoryGroupPatch,
   hanBitmapFontPxFromConfig,
   parseHanBitmapFontPxPatch,
+  kitchenReadyAfterMinutesFromConfig,
+  parseKitchenReadyAfterMinutesPatch,
+  resolveKitchenReadyAfterMinutes,
 } from '@/lib/print-agent-config';
 import { mergeStoredPrintAgentConfig } from '@/lib/print-agent-config-patch-server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -42,6 +45,7 @@ function featureSettingsResponse(input: {
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(input.printAgentConfig),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(input.printAgentConfig),
     hanBitmapFontPx: hanBitmapFontPxFromConfig(input.printAgentConfig),
+    kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(input.printAgentConfig),
     orderCooldownSeconds: Math.max(
       ORDER_COOLDOWN_SECONDS_MIN,
       Math.min(
@@ -153,6 +157,7 @@ export async function PATCH(req: Request) {
   const credentialTtlDays = parsePrintAgentCredentialTtlDaysPatch(body);
   const stationSlipShowCategoryGroup = parseStationSlipShowCategoryGroupPatch(body);
   const hanBitmapFontPx = parseHanBitmapFontPxPatch(body);
+  const kitchenReadyAfterMinutes = parseKitchenReadyAfterMinutesPatch(body);
   const orderCooldownSeconds = parseOrderCooldownSecondsPatch(body);
   const operationLogRetentionDays = parseOperationLogRetentionDaysPatch(body);
   const printLocale = parsePrintLocalePatch(body);
@@ -163,7 +168,8 @@ export async function PATCH(req: Request) {
     hanBitmapFontPx === undefined &&
     orderCooldownSeconds === undefined &&
     operationLogRetentionDays === undefined &&
-    printLocale === undefined
+    printLocale === undefined &&
+    kitchenReadyAfterMinutes === undefined
   ) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 });
   }
@@ -184,6 +190,9 @@ export async function PATCH(req: Request) {
   }
   if (printLocale === null) {
     return NextResponse.json({ error: 'invalid_print_locale' }, { status: 400 });
+  }
+  if (kitchenReadyAfterMinutes === null) {
+    return NextResponse.json({ error: 'invalid_kitchen_ready_after_minutes' }, { status: 400 });
   }
 
   let admin;
@@ -218,13 +227,21 @@ export async function PATCH(req: Request) {
   const nextConfig =
     credentialTtlDays !== undefined ||
     stationSlipShowCategoryGroup !== undefined ||
-    hanBitmapFontPx !== undefined
+    hanBitmapFontPx !== undefined ||
+    kitchenReadyAfterMinutes !== undefined
       ? mergeStoredPrintAgentConfig(row?.print_agent_config, {
           ...(credentialTtlDays !== undefined ? { credential_ttl_days: credentialTtlDays } : {}),
           ...(stationSlipShowCategoryGroup !== undefined
             ? { station_slip_show_category_group: stationSlipShowCategoryGroup }
             : {}),
           ...(hanBitmapFontPx !== undefined ? { han_bitmap_font_px: hanBitmapFontPx } : {}),
+          ...(kitchenReadyAfterMinutes !== undefined
+            ? {
+                kitchen_ready_after_minutes: resolveKitchenReadyAfterMinutes(
+                  kitchenReadyAfterMinutes,
+                ),
+              }
+            : {}),
         })
       : undefined;
 

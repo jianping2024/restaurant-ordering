@@ -16,12 +16,12 @@ export const KITCHEN_ITEM_STATUS_LABEL: Record<
   UILanguage,
   Record<'pending' | 'cooking' | 'ready' | 'done', string>
 > = {
-  zh: { pending: '已下单', cooking: '备餐中', ready: '已出餐', done: '已上桌' },
-  en: { pending: 'Ordered', cooking: 'Prepping', ready: 'Ready', done: 'Served' },
-  pt: { pending: 'Pedido', cooking: 'Em preparo', ready: 'Pronto', done: 'Servido' },
-  es: { pending: 'Pedido', cooking: 'En preparacion', ready: 'Listo', done: 'Servido' },
-  fr: { pending: 'Commande', cooking: 'En prep.', ready: 'Pret', done: 'Servi' },
-  de: { pending: 'Bestellt', cooking: 'In Arbeit', ready: 'Fertig', done: 'Serviert' },
+  zh: { pending: '已下单', cooking: '已备餐', ready: '已出餐', done: '已上桌' },
+  en: { pending: 'Ordered', cooking: 'Prepped', ready: 'Ready', done: 'Served' },
+  pt: { pending: 'Pedido', cooking: 'Preparado', ready: 'Pronto', done: 'Servido' },
+  es: { pending: 'Pedido', cooking: 'Preparado', ready: 'Listo', done: 'Servido' },
+  fr: { pending: 'Commande', cooking: 'Prepare', ready: 'Pret', done: 'Servi' },
+  de: { pending: 'Bestellt', cooking: 'Vorbereitet', ready: 'Fertig', done: 'Serviert' },
 };
 
 export type CustomerKitchenProgress = {

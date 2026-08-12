@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   aggregateLinesByDish,
   lineWaitMinutes,
+  partitionStationLines,
   type KitchenBoardLine,
 } from '@/components/kitchen/kitchen-board-lines';
 import type { Order, OrderItem } from '@/types';
@@ -39,7 +40,8 @@ function stubLine(partial: {
     itemCode: null,
     displayName: partial.name || 'Dish',
     effectiveStatus: 'pending',
-    selectable: true,
+    prepEligible: true,
+    printEligible: false,
     orderedAtMs: Date.parse('2026-08-10T12:00:00.000Z'),
   };
 }
@@ -77,5 +79,35 @@ describe('lineWaitMinutes', () => {
     const ordered = Date.parse('2026-08-10T12:00:00.000Z');
     assert.equal(lineWaitMinutes(ordered, ordered + 90_000), 1);
     assert.equal(lineWaitMinutes(ordered, ordered + 59_000), 0);
+  });
+});
+
+describe('partitionStationLines', () => {
+  it('keeps pending on workbench and cooking/ready on bottom rail', () => {
+    const pending = stubLine({
+      key: 'p',
+      tableId: 't1',
+      tableDisplay: 'A-01',
+      menuItemId: 'm1',
+      qty: 1,
+    });
+    const cooking: KitchenBoardLine = {
+      ...pending,
+      key: 'c',
+      effectiveStatus: 'cooking',
+      prepEligible: false,
+      printEligible: true,
+    };
+    const ready: KitchenBoardLine = {
+      ...pending,
+      key: 'r',
+      effectiveStatus: 'ready',
+      prepEligible: false,
+      printEligible: true,
+    };
+    const { workbench, bottomRail } = partitionStationLines([pending, cooking, ready]);
+    assert.equal(workbench.length, 1);
+    assert.equal(workbench[0]?.effectiveStatus, 'pending');
+    assert.equal(bottomRail.length, 2);
   });
 });

@@ -151,6 +151,7 @@ function KitchenScreenBoardInner({
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [maximizedStationId, setMaximizedStationId] = useState<string | null>(null);
   const [prepBusyStationId, setPrepBusyStationId] = useState<string | null>(null);
+  const [printBusyStationId, setPrintBusyStationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient();
@@ -214,7 +215,6 @@ function KitchenScreenBoardInner({
         },
       );
       if (!res.ok) {
-        // Same auth-exit as board refresh — never paint prepFailed for session 401.
         if (classifyStaffBoardFetchFailure(res.status) === 'unauthorized') {
           void handleSignOut();
           return false;
@@ -230,6 +230,43 @@ function KitchenScreenBoardInner({
       return false;
     } finally {
       setPrepBusyStationId(null);
+    }
+  };
+
+  const postPrint = async (
+    printStationId: string,
+    selections: Array<{ order_id: string; item_index: number }>,
+  ): Promise<boolean> => {
+    setError(null);
+    setPrintBusyStationId(printStationId);
+    try {
+      if (isDemo) {
+        return true;
+      }
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/staff/kitchen/print`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ print_station_id: printStationId, selections }),
+        },
+      );
+      if (!res.ok) {
+        if (classifyStaffBoardFetchFailure(res.status) === 'unauthorized') {
+          void handleSignOut();
+          return false;
+        }
+        setError(t.printFailed);
+        if (res.status === 409) await refreshKitchenBoard();
+        return false;
+      }
+      return true;
+    } catch {
+      setError(t.printFailed);
+      return false;
+    } finally {
+      setPrintBusyStationId(null);
     }
   };
 
@@ -325,6 +362,8 @@ function KitchenScreenBoardInner({
                   }
                   onPrep={(selections) => postPrep(stationId, selections)}
                   prepBusy={prepBusyStationId === stationId}
+                  onPrint={(selections) => postPrint(stationId, selections)}
+                  printBusy={printBusyStationId === stationId}
                 />
               );
             })}

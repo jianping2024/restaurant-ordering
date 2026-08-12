@@ -16,6 +16,8 @@ import {
 import {
   HAN_BITMAP_FONT_PX_MAX,
   HAN_BITMAP_FONT_PX_MIN,
+  KITCHEN_READY_AFTER_MINUTES_MAX,
+  KITCHEN_READY_AFTER_MINUTES_MIN,
 } from '@/lib/print-agent-config';
 import {
   OPERATION_LOG_RETENTION_DAYS_MAX,
@@ -39,6 +41,7 @@ type Props = {
   initialOrderCooldownSeconds: number;
   initialOperationLogRetentionDays: number;
   initialPrintLocale: PrintLocale;
+  initialKitchenReadyAfterMinutes: number;
 };
 
 export function FeatureFlagsManager({
@@ -50,6 +53,7 @@ export function FeatureFlagsManager({
   initialOrderCooldownSeconds,
   initialOperationLogRetentionDays,
   initialPrintLocale,
+  initialKitchenReadyAfterMinutes,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -65,6 +69,9 @@ export function FeatureFlagsManager({
     initialOperationLogRetentionDays,
   );
   const [printLocale, setPrintLocale] = useState<PrintLocale>(initialPrintLocale);
+  const [kitchenReadyAfterMinutes, setKitchenReadyAfterMinutes] = useState(
+    initialKitchenReadyAfterMinutes,
+  );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -86,6 +93,7 @@ export function FeatureFlagsManager({
           orderCooldownSeconds,
           operationLogRetentionDays,
           printLocale,
+          kitchenReadyAfterMinutes,
         }),
       });
 
@@ -98,12 +106,16 @@ export function FeatureFlagsManager({
         orderCooldownSeconds?: number;
         operationLogRetentionDays?: number;
         printLocale?: PrintLocale;
+        kitchenReadyAfterMinutes?: number;
       };
 
       if (!res.ok) {
         if (json.error === 'migration_required') setError(t.migrationRequired);
         else if (json.error === 'invalid_credential_ttl_days') setError(t.credentialTtlDaysInvalid);
         else if (json.error === 'invalid_han_bitmap_font_px') setError(t.hanBitmapFontPxInvalid);
+        else if (json.error === 'invalid_kitchen_ready_after_minutes') {
+          setError(t.kitchenReadyAfterMinutesInvalid);
+        }
         else if (json.error === 'invalid_operation_log_retention_days') {
           setError(t.operationLogRetentionDaysInvalid);
         }
@@ -122,6 +134,9 @@ export function FeatureFlagsManager({
         setOperationLogRetentionDays(json.operationLogRetentionDays);
       }
       if (json.printLocale) setPrintLocale(json.printLocale);
+      if (json.kitchenReadyAfterMinutes != null) {
+        setKitchenReadyAfterMinutes(json.kitchenReadyAfterMinutes);
+      }
 
       router.refresh();
       setSuccess(true);
@@ -170,6 +185,29 @@ export function FeatureFlagsManager({
                   </span>
                 </label>
               ))}
+              {module.id === 'kitchen' ? (
+                <label className="block px-4 py-4">
+                  <span className="block text-[15px] font-medium text-brand-text">
+                    {t.kitchenReadyAfterMinutes}
+                  </span>
+                  <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
+                    {t.kitchenReadyAfterMinutesDesc}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <IntegerInput
+                      value={kitchenReadyAfterMinutes}
+                      min={KITCHEN_READY_AFTER_MINUTES_MIN}
+                      max={KITCHEN_READY_AFTER_MINUTES_MAX}
+                      onChange={setKitchenReadyAfterMinutes}
+                      className={FEATURES_INTEGER_INPUT}
+                      aria-label={t.kitchenReadyAfterMinutes}
+                    />
+                    <span className="text-[13px] text-brand-text-muted">
+                      {t.kitchenReadyAfterMinutesUnit}
+                    </span>
+                  </div>
+                </label>
+              ) : null}
             </div>
           </section>
         ))}

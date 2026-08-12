@@ -43,6 +43,9 @@ type Props = {
   /** Returns true when prep API/demo succeeded. */
   onPrep: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
   prepBusy: boolean;
+  /** Returns true when print API/demo succeeded. */
+  onPrint: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
+  printBusy: boolean;
 };
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
@@ -94,6 +97,7 @@ function KitchenBoardLineRow({
   nowMs,
   t,
   prepBusy,
+  printBusy,
   onToggle,
   onSwipePrep,
 }: {
@@ -103,6 +107,7 @@ function KitchenBoardLineRow({
   nowMs: number;
   t: Labels;
   prepBusy: boolean;
+  printBusy: boolean;
   onToggle: () => void;
   onSwipePrep: () => void;
 }) {
@@ -113,14 +118,18 @@ function KitchenBoardLineRow({
   const gestureRef = useRef<RowGesture | null>(null);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const detachWindowEndRef = useRef<(() => void) | null>(null);
-  const lineSelectableRef = useRef(line.selectable);
+  const linePrepEligibleRef = useRef(line.prepEligible);
   const prepBusyRef = useRef(prepBusy);
+  const printBusyRef = useRef(printBusy);
   const onSwipePrepRef = useRef(onSwipePrep);
   const onToggleRef = useRef(onToggle);
-  lineSelectableRef.current = line.selectable;
+  linePrepEligibleRef.current = line.prepEligible;
   prepBusyRef.current = prepBusy;
+  printBusyRef.current = printBusy;
   onSwipePrepRef.current = onSwipePrep;
   onToggleRef.current = onToggle;
+
+  const rowInteractive = line.prepEligible || line.printEligible;
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -195,16 +204,16 @@ function KitchenBoardLineRow({
 
       if (mode === 'swipe') {
         const commit =
-          kind === 'swipe-commit' && armed && lineSelectableRef.current && !prepBusyRef.current;
+          kind === 'swipe-commit' && armed && linePrepEligibleRef.current && !prepBusyRef.current;
         snapBack(commit ? () => onSwipePrepRef.current() : undefined);
         return;
       }
       setDragX(0);
-      if (kind === 'tap' && lineSelectableRef.current && !prepBusyRef.current) {
+      if (kind === 'tap' && rowInteractive && !prepBusyRef.current && !printBusyRef.current) {
         onToggleRef.current();
       }
     },
-    [detachWindowEnd, releaseIfCaptured, snapBack],
+    [detachWindowEnd, releaseIfCaptured, snapBack, rowInteractive],
   );
 
   const attachWindowEndIfUncaptured = useCallback(
@@ -229,7 +238,7 @@ function KitchenBoardLineRow({
   );
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!line.selectable || prepBusy || snapping) return;
+    if (!rowInteractive || prepBusy || printBusy || snapping) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const target = e.target as HTMLElement | null;
     if (target?.closest('input')) return;
@@ -309,7 +318,7 @@ function KitchenBoardLineRow({
       role="presentation"
       className={`flex min-w-0 w-full max-w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
         checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
-      } ${line.selectable ? '' : 'opacity-55'} ${
+      } ${rowInteractive ? '' : 'opacity-55'} ${
         snapping || dragX === 0 ? 'transition-transform duration-150 ease-out' : ''
       }`}
       style={{ transform: `translateX(${dragX}px)`, touchAction: 'pan-y' }}
@@ -323,7 +332,7 @@ function KitchenBoardLineRow({
         type="checkbox"
         className="h-6 w-6 shrink-0"
         checked={checked}
-        disabled={!line.selectable}
+        disabled={!rowInteractive || prepBusy || printBusy}
         onChange={onToggle}
         onClick={(e) => e.stopPropagation()}
         aria-label={line.displayName}
@@ -359,13 +368,15 @@ export function KitchenStationPane({
   onToggleMaximize,
   onPrep,
   prepBusy,
+  onPrint,
+  printBusy,
 }: Props) {
   const t = KITCHEN_SCREEN_TEXT[lang];
   const [view, setView] = useState<PaneView>('table');
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
-  const [readyRailOpen, setReadyRailOpen] = useState(false);
+  const [bottomRailOpen, setBottomRailOpen] = useState(false);
 
   const allLines = useMemo(
     () =>
@@ -378,16 +389,26 @@ export function KitchenStationPane({
     [orders, stationId, nowMs, readyAfterMinutes],
   );
 
-  const { workbench, ready } = useMemo(() => partitionStationLines(allLines), [allLines]);
+  const { workbench, bottomRail } = useMemo(() => partitionStationLines(allLines), [allLines]);
   const byTable = useMemo(() => groupLinesByTable(workbench), [workbench]);
   const byDish = useMemo(() => aggregateLinesByDish(workbench), [workbench]);
-  const readyQty = useMemo(() => sumLineQty(ready), [ready]);
+  const bottomRailQty = useMemo(() => sumLineQty(bottomRail), [bottomRail]);
 
-  const toggleLine = (key: string) => {
+  const selectedPrepCount = useMemo(
+    () => allLines.filter((l) => selected.has(l.key) && l.prepEligible).length,
+    [allLines, selected],
+  );
+  const selectedPrintCount = useMemo(
+    () => allLines.filter((l) => selected.has(l.key) && l.printEligible).length,
+    [allLines, selected],
+  );
+
+  const toggleLine = (line: KitchenBoardLine) => {
+    if (!line.prepEligible && !line.printEligible) return;
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (next.has(line.key)) next.delete(line.key);
+      else next.add(line.key);
       return next;
     });
   };
@@ -395,7 +416,7 @@ export function KitchenStationPane({
   const selectAllForTable = (lines: KitchenBoardLine[]) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      const selectable = lines.filter((l) => l.selectable);
+      const selectable = lines.filter((l) => l.prepEligible);
       const allOn = selectable.length > 0 && selectable.every((l) => next.has(l.key));
       for (const l of selectable) {
         if (allOn) next.delete(l.key);
@@ -406,7 +427,7 @@ export function KitchenStationPane({
   };
 
   const tableAllSelected = (lines: KitchenBoardLine[]) => {
-    const selectable = lines.filter((l) => l.selectable);
+    const selectable = lines.filter((l) => l.prepEligible);
     return selectable.length > 0 && selectable.every((l) => selected.has(l.key));
   };
 
@@ -421,18 +442,43 @@ export function KitchenStationPane({
 
   const handlePrep = async () => {
     const selections = allLines
-      .filter((l) => selected.has(l.key))
+      .filter((l) => selected.has(l.key) && l.prepEligible)
       .map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
     if (selections.length === 0) return;
     const ok = await onPrep(selections);
     if (ok) {
       showToast(t.prepSuccess, 'success');
-      setSelected(new Set());
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const l of allLines) {
+          if (l.prepEligible && next.has(l.key)) next.delete(l.key);
+        }
+        return next;
+      });
+      setBottomRailOpen(true);
+    }
+  };
+
+  const handlePrint = async () => {
+    const selections = allLines
+      .filter((l) => selected.has(l.key) && l.printEligible)
+      .map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
+    if (selections.length === 0) return;
+    const ok = await onPrint(selections);
+    if (ok) {
+      showToast(t.printSuccess, 'success');
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const l of allLines) {
+          if (l.printEligible && next.has(l.key)) next.delete(l.key);
+        }
+        return next;
+      });
     }
   };
 
   const handleSwipePrep = async (line: KitchenBoardLine) => {
-    if (!line.selectable || prepBusy) return;
+    if (!line.prepEligible || prepBusy || printBusy) return;
     const ok = await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
     if (ok) {
       showToast(t.prepSuccess, 'success');
@@ -441,6 +487,7 @@ export function KitchenStationPane({
         next.delete(line.key);
         return next;
       });
+      setBottomRailOpen(true);
     }
   };
 
@@ -453,7 +500,8 @@ export function KitchenStationPane({
       nowMs={nowMs}
       t={t}
       prepBusy={prepBusy}
-      onToggle={() => toggleLine(line.key)}
+      printBusy={printBusy}
+      onToggle={() => toggleLine(line)}
       onSwipePrep={() => void handleSwipePrep(line)}
     />
   );
@@ -515,7 +563,7 @@ export function KitchenStationPane({
                   <button
                     type="button"
                     className="shrink-0 rounded-md border border-brand-border px-2.5 py-1 text-base font-medium text-brand-text hover:bg-brand-bg"
-                    disabled={group.lines.every((l) => !l.selectable)}
+                    disabled={group.lines.every((l) => !l.prepEligible)}
                     onClick={() => selectAllForTable(group.lines)}
                   >
                     {allOn ? t.deselectAll : t.selectAll}
@@ -568,38 +616,52 @@ export function KitchenStationPane({
       </div>
 
       <footer className="flex shrink-0 flex-col border-t border-brand-border/70">
-        {readyRailOpen ? (
+        {bottomRailOpen ? (
           <div className={`max-h-64 border-b border-brand-border/60 bg-brand-bg/40 ${VERTICAL_ONLY_SCROLL}`}>
-            {ready.length === 0 ? (
+            {bottomRail.length === 0 ? (
               <p className="px-3 py-4 text-center text-xl text-brand-text-muted">{t.readyRailEmpty}</p>
             ) : (
-              ready.map((line) => renderLine(line, 'ready'))
+              bottomRail.map((line) => renderLine(line, 'ready'))
             )}
           </div>
         ) : null}
-        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
           <Button
             type="button"
             variant="outline"
             className="min-h-12 px-5 text-xl"
-            disabled={readyQty === 0 && !readyRailOpen}
-            onClick={() => setReadyRailOpen((v) => !v)}
+            disabled={bottomRailQty === 0 && !bottomRailOpen}
+            onClick={() => setBottomRailOpen((v) => !v)}
           >
-            {readyRailOpen
+            {bottomRailOpen
               ? t.readyRailHide
-              : t.readyRailShow.replace('{n}', String(readyQty))}
+              : t.readyRailShow.replace('{n}', String(bottomRailQty))}
           </Button>
-          <Button
-            type="button"
-            className="min-h-12 px-6 text-xl"
-            disabled={selected.size === 0 || prepBusy}
-            loading={prepBusy}
-            title={t.selectLines}
-            onClick={() => void handlePrep()}
-          >
-            {prepBusy ? t.prepBusy : t.prep}
-            {selected.size > 0 ? ` (${selected.size})` : ''}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-12 px-5 text-xl"
+              disabled={selectedPrintCount === 0 || printBusy || prepBusy}
+              loading={printBusy}
+              title={t.selectPrintLines}
+              onClick={() => void handlePrint()}
+            >
+              {printBusy ? t.printBusy : t.print}
+              {selectedPrintCount > 0 ? ` (${selectedPrintCount})` : ''}
+            </Button>
+            <Button
+              type="button"
+              className="min-h-12 px-6 text-xl"
+              disabled={selectedPrepCount === 0 || prepBusy || printBusy}
+              loading={prepBusy}
+              title={t.selectLines}
+              onClick={() => void handlePrep()}
+            >
+              {prepBusy ? t.prepBusy : t.prep}
+              {selectedPrepCount > 0 ? ` (${selectedPrepCount})` : ''}
+            </Button>
+          </div>
         </div>
       </footer>
     </section>

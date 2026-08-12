@@ -130,7 +130,6 @@ export async function applyKitchenPrep(params: {
   const nowIso = new Date().toISOString();
   const nextByOrder = new Map<string, { row: OrderRow; items: OrderItem[] }>();
   const prepItems: KitchenLineAuditItem[] = [];
-  const reprintItems: KitchenLineAuditItem[] = [];
   const firstOrderId = selections[0]?.orderId ?? '';
 
   for (const sel of selections) {
@@ -153,20 +152,19 @@ export async function applyKitchenPrep(params: {
     if (stored === 'done') {
       return { ok: false, status: 400, error: 'item_already_done' };
     }
+    if (stored !== 'pending') {
+      return { ok: false, status: 409, error: 'item_not_pending' };
+    }
 
-    const line: KitchenLineAuditItem = {
+    prepItems.push({
       itemName: orderItemAuditLabel(item),
       qty: Math.max(1, Number(item.qty) || 1),
-    };
-    // pending → first prep; already cooking/ready → 补打
-    if (stored === 'pending') prepItems.push(line);
-    else reprintItems.push(line);
+    });
 
-    // pending → cooking; already cooking/ready → keep cooking for 补打 (no started_at reset).
     working.items[sel.itemIndex] = {
       ...item,
       item_status: 'cooking',
-      started_at: item.started_at || nowIso,
+      started_at: nowIso,
     };
     nextByOrder.set(sel.orderId, working);
   }
@@ -215,6 +213,121 @@ export async function applyKitchenPrep(params: {
       tableName,
       items: prepItems,
     });
+  }
+
+  if (!printed.ok) {
+    return {
+      ok: true,
+      printed_tables: [],
+      errors: [printed.code],
+    };
+  }
+
+  return { ok: true, printed_tables: printedTables };
+}
+
+export async function applyKitchenPrint(params: {
+  admin: SupabaseClient;
+  restaurant: RestaurantEnqueueRow;
+  printStationId: string;
+  printAgentConfig: unknown;
+  selections: KitchenLineSelection[];
+  actor?: AuditActor;
+}): Promise<
+  | { ok: true; printed_tables: string[]; errors?: string[] }
+  | { ok: false; status: number; error: string; message?: string }
+> {
+  const { admin, restaurant, selections, actor, printAgentConfig } = params;
+  const restaurantId = restaurant.id;
+  const printStationId = parseTableIdParam(params.printStationId);
+  if (!printStationId) {
+    return { ok: false, status: 400, error: 'invalid_print_station_id' };
+  }
+  if (selections.length === 0) {
+    return { ok: false, status: 400, error: 'selections_required' };
+  }
+
+  const readyAfterMinutes = kitchenReadyAfterMinutesFromConfig(printAgentConfig);
+  const nowMs = Date.now();
+
+  const orderIds = Array.from(new Set(selections.map((s) => s.orderId)));
+  const { data: orderRows, error: oErr } = await admin
+    .from('orders')
+    .select('id, restaurant_id, table_id, display_name, status, items, updated_at')
+    .eq('restaurant_id', restaurantId)
+    .in('id', orderIds);
+
+  if (oErr) {
+    return { ok: false, status: 500, error: 'order_lookup_failed', message: oErr.message };
+  }
+
+  const orderById = new Map((orderRows || []).map((row) => [row.id as string, row as OrderRow]));
+  if (orderById.size !== orderIds.length) {
+    return { ok: false, status: 404, error: 'order_not_found' };
+  }
+
+  const reprintItems: KitchenLineAuditItem[] = [];
+  const firstOrderId = selections[0]?.orderId ?? '';
+
+  for (const sel of selections) {
+    const row = orderById.get(sel.orderId)!;
+    const items = (row.items || []) as OrderItem[];
+    const item = items[sel.itemIndex];
+    if (!item) {
+      return { ok: false, status: 400, error: 'item_index_out_of_range' };
+    }
+    if (isBuffetBaseItem(item)) {
+      return { ok: false, status: 400, error: 'buffet_base_not_printable' };
+    }
+    const stored = normalizeOrderItemStatus(item, row.status);
+    if (stored === 'voided') {
+      return { ok: false, status: 400, error: 'item_voided' };
+    }
+    if (stored === 'done') {
+      return { ok: false, status: 400, error: 'item_already_done' };
+    }
+    if (stored === 'pending') {
+      return { ok: false, status: 409, error: 'item_not_prepped' };
+    }
+
+    const effective = effectiveItemStatus({
+      item,
+      orderStatus: row.status,
+      nowMs,
+      readyAfterMinutes,
+    });
+    if (effective !== 'cooking' && effective !== 'ready') {
+      return { ok: false, status: 409, error: 'item_not_printable' };
+    }
+
+    reprintItems.push({
+      itemName: orderItemAuditLabel(item),
+      qty: Math.max(1, Number(item.qty) || 1),
+    });
+  }
+
+  const prepSelections: PrepSelection[] = selections.map((s) => ({
+    orderId: s.orderId,
+    itemIndex: s.itemIndex,
+  }));
+
+  const printed = await enqueueStationTicketsForPrepSelection({
+    admin,
+    restaurant,
+    printStationId,
+    selections: prepSelections,
+  });
+
+  const printedTables = Array.from(
+    new Set(
+      selections
+        .map((s) => orderById.get(s.orderId)?.display_name?.trim() || '')
+        .filter(Boolean),
+    ),
+  );
+
+  if (actor && firstOrderId && reprintItems.length > 0) {
+    const tableName = printedTables.join(' · ') || '—';
     scheduleKitchenLineAudit({
       admin,
       restaurantId,

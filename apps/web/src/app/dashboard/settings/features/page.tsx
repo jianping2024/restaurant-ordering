@@ -16,6 +16,7 @@ export default async function SettingsFeaturesPage() {
       initialOrderCooldownSeconds={data.orderCooldownSeconds}
       initialOperationLogRetentionDays={data.operationLogRetentionDays}
       initialPrintLocale={data.printLocale}
+      initialKitchenReadyAfterMinutes={data.kitchenReadyAfterMinutes}
     />
   );
 }

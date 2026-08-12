@@ -21,19 +21,22 @@ export type KitchenBoardLine = {
   /** Display name with optional code prefix — sole kitchen row title for the dish. */
   displayName: string;
   effectiveStatus: OrderItemStatus;
-  selectable: boolean;
+  /** Workbench: first prep only (pending). */
+  prepEligible: boolean;
+  /** Bottom rail: reprint only (cooking or display-ready). */
+  printEligible: boolean;
   /** Ordered-at epoch ms (item.added_at || order.created_at). */
   orderedAtMs: number;
 };
 
-/** Workbench only: pending + still-cooking (not yet display-ready). */
+/** Workbench only: pending (not yet prepped). */
 export function isKitchenWorkbenchStatus(status: OrderItemStatus): boolean {
-  return status === 'pending' || status === 'cooking';
+  return status === 'pending';
 }
 
-/** Ready rail only: effective ready (auto 已出餐 display). */
-export function isKitchenReadyRailStatus(status: OrderItemStatus): boolean {
-  return status === 'ready';
+/** Bottom rail: prepped (cooking) + display-ready. */
+export function isKitchenBottomRailStatus(status: OrderItemStatus): boolean {
+  return status === 'cooking' || status === 'ready';
 }
 
 export function lineSelectionKey(orderId: string, itemIndex: number): string {
@@ -77,10 +80,9 @@ export function collectStationBoardLines(input: {
         readyAfterMinutes: input.readyAfterMinutes,
       });
       if (!isKitchenBoardOpenStatus(effectiveStatus)) continue;
-      const selectable =
-        effectiveStatus === 'pending' ||
-        effectiveStatus === 'cooking' ||
-        effectiveStatus === 'ready';
+      const prepEligible = effectiveStatus === 'pending';
+      const printEligible =
+        effectiveStatus === 'cooking' || effectiveStatus === 'ready';
       const name = item.name || item.name_pt || item.id;
       const itemCode = resolveMenuItemCode(item);
       lines.push({
@@ -95,7 +97,8 @@ export function collectStationBoardLines(input: {
         itemCode,
         displayName: formatOnScreenMenuItemLabel(name, itemCode),
         effectiveStatus,
-        selectable,
+        prepEligible,
+        printEligible,
         orderedAtMs: lineOrderedAtMs(order, item),
       });
     }
@@ -104,18 +107,18 @@ export function collectStationBoardLines(input: {
   return lines;
 }
 
-/** Split board lines into workbench vs 已出餐 rail — one line belongs to exactly one. */
+/** Split board lines into workbench vs bottom rail — one line belongs to exactly one. */
 export function partitionStationLines(lines: KitchenBoardLine[]): {
   workbench: KitchenBoardLine[];
-  ready: KitchenBoardLine[];
+  bottomRail: KitchenBoardLine[];
 } {
   const workbench: KitchenBoardLine[] = [];
-  const ready: KitchenBoardLine[] = [];
+  const bottomRail: KitchenBoardLine[] = [];
   for (const line of lines) {
-    if (isKitchenReadyRailStatus(line.effectiveStatus)) ready.push(line);
+    if (isKitchenBottomRailStatus(line.effectiveStatus)) bottomRail.push(line);
     else if (isKitchenWorkbenchStatus(line.effectiveStatus)) workbench.push(line);
   }
-  return { workbench, ready };
+  return { workbench, bottomRail };
 }
 
 export function sumLineQty(lines: KitchenBoardLine[]): number {

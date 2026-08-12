@@ -14,6 +14,8 @@ export const waiterFloorType = {
   /** Ordered dish name, buffet package name, section entity titles. */
   listBody: 'text-lg font-semibold text-brand-text leading-snug',
   listBodyTruncate: 'min-w-0 truncate text-lg font-semibold text-brand-text',
+  /** Ordered dish item code — same tier as listBody, gold for scanability. */
+  listCode: 'text-lg font-semibold text-brand-gold tabular-nums leading-snug',
   listQty: 'shrink-0 text-lg font-semibold text-brand-text tabular-nums',
   /** Adult/child rate lines under a buffet package. */
   priceLine: 'mt-1 text-[15px] font-medium leading-snug text-brand-text tabular-nums',
@@ -90,8 +92,7 @@ export const waiterDetailLayout = {
    */
   orderedItemRow: 'flex max-w-full min-w-0 items-center gap-8',
   orderedItemIdentity: 'flex min-w-0 items-center gap-2.5',
-  orderedItemCode:
-    'shrink-0 min-w-[2rem] text-left text-lg font-semibold tabular-nums text-brand-gold',
+  orderedItemCode: `shrink-0 min-w-[2rem] text-left ${waiterFloorType.listCode}`,
   orderedItemLabel: waiterFloorType.listBodyTruncate,
   orderedItemStatus:
     'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',

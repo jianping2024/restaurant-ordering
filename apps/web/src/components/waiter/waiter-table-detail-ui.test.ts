@@ -46,7 +46,7 @@ test('floor list body is one tier for ordered dishes and buffet package names', 
   assert.equal(waiterDetailLayout.orderedItemsTitle.includes(waiterFloorType.listBody), true);
   assert.equal(waiterDetailLayout.orderedItemLabel, waiterFloorType.listBodyTruncate);
   assert.equal(waiterDetailLayout.orderedItemQty, waiterFloorType.listQty);
-  assert.match(waiterDetailLayout.orderedItemCode, /text-lg/);
+  assert.equal(waiterDetailLayout.orderedItemCode.includes(waiterFloorType.listCode), true);
   assert.match(waiterFloorType.priceLine, /text-\[15px\]/);
   assert.match(waiterFloorType.priceLine, /text-brand-text/);
   assert.doesNotMatch(waiterFloorType.priceLine, /muted/);

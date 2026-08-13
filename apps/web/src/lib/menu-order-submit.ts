@@ -4,6 +4,7 @@ import type { CustomerGeoOrderFailure, CustomerGeoOrderResult } from '@/lib/cust
 import type { GuestOrderGateResult } from '@/lib/customer-menu-order-gate';
 import type { SessionStatus } from '@/types';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
+import { mintBrowserUuid } from '@/lib/browser-uuid';
 
 export type MenuOrderSubmitFlow = 'guest' | 'staff_assisted';
 
@@ -53,27 +54,6 @@ export function appendCartFingerprint(cart: CartItem[]): string {
 }
 
 /**
- * Mint append idempotency UUID.
- * Prefer randomUUID; fall back to getRandomValues RFC4122 v4 for non-secure
- * contexts (LAN HTTP) where randomUUID is unavailable.
- */
-export function createAppendClientRequestId(): string {
-  const c = globalThis.crypto;
-  if (c && typeof c.randomUUID === 'function') {
-    return c.randomUUID();
-  }
-  if (!c || typeof c.getRandomValues !== 'function') {
-    throw new Error('crypto_uuid_unavailable');
-  }
-  const bytes = new Uint8Array(16);
-  c.getRandomValues(bytes);
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-}
-
-/**
  * Reuse the prior request id when the cart is unchanged (timeout retry);
  * otherwise mint a new intent id.
  */
@@ -91,7 +71,7 @@ export function resolveAppendClientRequestId(params: {
     };
   }
   return {
-    clientRequestId: (params.createId ?? createAppendClientRequestId)(),
+    clientRequestId: (params.createId ?? mintBrowserUuid)(),
     fingerprint,
     reused: false,
   };

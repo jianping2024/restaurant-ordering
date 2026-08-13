@@ -5,7 +5,6 @@ import {
   appendCartFingerprint,
   appendCartLinesFromCart,
   appendFailureNeedsSessionRefresh,
-  createAppendClientRequestId,
   executeMenuOrderSubmit,
   mapAppendErrorCode,
   postMenuOrderAppend,
@@ -16,67 +15,6 @@ import { parseAppendClientRequestId } from './append-idempotency';
 const REQUEST_ID = '11111111-1111-4111-8111-111111111111';
 
 describe('menu-order-submit', () => {
-  it('createAppendClientRequestId mints RFC4122 v4 via getRandomValues when randomUUID is missing', () => {
-    const original = globalThis.crypto;
-    const seed = Uint8Array.from({ length: 16 }, (_, i) => i);
-    Object.defineProperty(globalThis, 'crypto', {
-      configurable: true,
-      value: {
-        getRandomValues(target: Uint8Array) {
-          target.set(seed);
-          return target;
-        },
-      },
-    });
-    try {
-      const id = createAppendClientRequestId();
-      assert.equal(id, '00010203-0405-4607-8809-0a0b0c0d0e0f');
-      assert.equal(parseAppendClientRequestId(id), id);
-    } finally {
-      Object.defineProperty(globalThis, 'crypto', {
-        configurable: true,
-        value: original,
-      });
-    }
-  });
-
-  it('createAppendClientRequestId prefers randomUUID when available', () => {
-    const original = globalThis.crypto;
-    Object.defineProperty(globalThis, 'crypto', {
-      configurable: true,
-      value: {
-        randomUUID: () => REQUEST_ID,
-        getRandomValues() {
-          throw new Error('getRandomValues should not run');
-        },
-      },
-    });
-    try {
-      assert.equal(createAppendClientRequestId(), REQUEST_ID);
-    } finally {
-      Object.defineProperty(globalThis, 'crypto', {
-        configurable: true,
-        value: original,
-      });
-    }
-  });
-
-  it('createAppendClientRequestId throws when crypto uuid APIs are unavailable', () => {
-    const original = globalThis.crypto;
-    Object.defineProperty(globalThis, 'crypto', {
-      configurable: true,
-      value: {},
-    });
-    try {
-      assert.throws(() => createAppendClientRequestId(), /crypto_uuid_unavailable/);
-    } finally {
-      Object.defineProperty(globalThis, 'crypto', {
-        configurable: true,
-        value: original,
-      });
-    }
-  });
-
   it('appendCartLinesFromCart maps trusted cart fields only', () => {
     const cart: CartItem[] = [
       {

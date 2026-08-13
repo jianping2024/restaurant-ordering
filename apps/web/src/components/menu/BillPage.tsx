@@ -9,6 +9,7 @@ import {
   initialPersistedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
@@ -132,8 +133,8 @@ export function BillPage({
   });
 
   const detailLines = useMemo(
-    () => checkoutLinesFromOrders(orders, itemCodeByMenuId),
-    [orders, itemCodeByMenuId],
+    () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
+    [orders, lang, itemCodeByMenuId],
   );
 
   const splitDraft = useBillSplitDraft({
@@ -145,6 +146,7 @@ export function BillPage({
     total,
     orderLines: splitOrderLines,
     lineSpecs,
+    lang,
     guestName,
     submitted,
     persistedResult,
@@ -289,13 +291,13 @@ export function BillPage({
         dedup.set(item.id, {
           menu_item_id: item.id,
           order_id: item.order_id ?? fallbackOrderId,
-          name: item.name || item.name_pt,
+          name: resolveMenuItemLocalizedName(item, lang),
           emoji: item.emoji,
           qty: item.qty,
         });
       });
     return Array.from(dedup.values());
-  }, [orderLines, orders]);
+  }, [orderLines, orders, lang]);
 
   const feedbackReasonLabels: Record<FeedbackReasonKey, string> = {
     taste: t.reasonTaste,

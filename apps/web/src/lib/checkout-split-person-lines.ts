@@ -13,7 +13,7 @@ import {
   type BillSplitOrderLine,
 } from '@/lib/bill-split-by-item-lines';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
-import type { PrintLocale } from '@/lib/i18n';
+import type { PrintLocale, UILanguage } from '@/lib/i18n';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import type { BillSplit, Order } from '@/types';
 
@@ -102,10 +102,11 @@ export function buildCheckoutPersonShareLines(
   split: BillSplit,
   personIndex: number,
   orders: Order[],
+  lang: UILanguage,
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutPersonShareLine[] {
   const staffLabelByKey = new Map(
-    checkoutLinesFromOrders(orders, itemCodeByMenuId).map((line) => [line.key, line.label]),
+    checkoutLinesFromOrders(orders, lang, itemCodeByMenuId).map((line) => [line.key, line.label]),
   );
 
   // Screen labels prefer checkoutLinesFromOrders; receiptLabel is rare fallback (pt).

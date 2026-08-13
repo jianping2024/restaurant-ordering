@@ -8,7 +8,7 @@ import {
   type BillSplitOrderLine,
   type ByItemLineSpec,
 } from '@/lib/bill-split-by-item-lines';
-import { formatStaffMenuLineLabel } from '@/lib/order-list-display';
+import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import type { UILanguage } from '@/lib/i18n';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -29,6 +29,7 @@ interface Props {
 }
 
 export function ByItemSplitSection({
+  lang,
   lineSpecs,
   orderLines,
   byItemAllocations,
@@ -78,7 +79,7 @@ export function ByItemSplitSection({
         const item = orderLineByKey[spec.key];
         if (!item) return null;
         const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
-        const lineLabel = formatStaffMenuLineLabel(item, itemCode);
+        const lineLabel = formatLocalizedMenuItemLabel(item, lang, itemCode);
         return (
           <ByItemDishAllocator
             key={spec.key}

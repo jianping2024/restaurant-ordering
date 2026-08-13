@@ -171,7 +171,7 @@ export type OrderItemKind = 'menu' | 'buffet_base';
 
 export interface OrderItem {
   id: string;         // menu_item.id, or synthetic e.g. buffet:<uuid>
-  name: string;       // 显示名称（根据语言）
+  name: string;       // 下单快照：写入时等于 name_pt；屏上显示走 resolveMenuItemLocalizedName
   name_pt: string;
   name_en?: string;
   name_zh?: string;

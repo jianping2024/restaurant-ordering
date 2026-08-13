@@ -63,6 +63,7 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
+      lang: 'pt',
     });
     const sum = rows.reduce((s, r) => s + r.amount, 0);
     assert.equal(sum, 10);
@@ -80,6 +81,7 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
+      lang: 'pt',
     });
     const high = computeSplitResults({
       splitMode: 'even',
@@ -90,6 +92,7 @@ describe('computeSplitResults', () => {
       splitPeople: people,
       customAmounts: [],
       parsedByItemAllocations: {},
+      lang: 'pt',
     });
     assert.equal(low[0]?.amount, 10);
     assert.equal(high[0]?.amount, 15);
@@ -112,6 +115,7 @@ describe('validateSplitDraft', () => {
       parsedByItemAllocations: {
         'o1-0': [{ name: 'Guest 1', qty: { num: 1, den: 1 } }],
       },
+      lang: 'pt',
     });
     assert.equal(outcome.validation.ok, false);
     if (!outcome.validation.ok) {
@@ -132,6 +136,7 @@ describe('validateSplitDraft', () => {
         { name: 'Guest 2', amount: 0 },
       ],
       parsedByItemAllocations: {},
+      lang: 'pt',
     });
     assert.equal(outcome.validation.ok, false);
     if (!outcome.validation.ok) {
@@ -155,6 +160,7 @@ describe('resolvePersistedSplitModeForDraft', () => {
       splitPeople: [],
       customAmounts: [],
       parsedByItemAllocations: {},
+      lang: 'pt',
     });
     assert.equal(rows.length, 1);
     assert.equal(rows[0]?.name, '__whole_table__');

@@ -1,5 +1,5 @@
 import type { Order, OrderItem } from '@/types';
-import { formatOnScreenMenuItemLabel } from '@/lib/menu-item-display';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import {
   listActiveBuffetLineSummaries,
   formatBuffetGuestCountsOptional,
@@ -67,45 +67,32 @@ export function formatOrderItemQuantityLabel(
   return guestLabel ? `· ${guestLabel}` : '';
 }
 
-/** Plain dish name — no emoji, no item code (staff billing surfaces). */
-export function formatOrderItemPlainName(
-  item: Pick<OrderItem, 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
-): string {
-  return (item.name_pt || item.name || item.name_en || item.name_zh || '').trim();
-}
-
-/** Staff menu line: `001 Água 500ml`; omits code segment when missing. */
-export function formatStaffMenuLineLabel(
-  item: Pick<OrderItem, 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
-  itemCode: string | null | undefined,
-): string {
-  return formatOnScreenMenuItemLabel(formatOrderItemPlainName(item), itemCode);
-}
-
 /** Staff buffet line: `Buffet livre · A1-C2` — headcount stays in label when embedded. */
 export function formatStaffBuffetLineLabel(
   item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  lang: UILanguage,
   options: OrderItemListLabelOptions = {},
 ): string {
-  const name = formatOrderItemPlainName(item);
+  const name = resolveMenuItemLocalizedName(item, lang);
   const quantityLabel = formatOrderItemQuantityLabel(item, options);
   return quantityLabel ? `${name} ${quantityLabel}` : name;
 }
 
 /** Name column only (`🥤 Cola`) — quantity shown separately when needed. */
 export function formatOrderItemNameLabel(
-  item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt'>,
+  item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  lang: UILanguage,
 ): string {
-  const name = item.name || item.name_pt;
-  return `${item.emoji} ${name}`;
+  return `${item.emoji} ${resolveMenuItemLocalizedName(item, lang)}`;
 }
 
 /** Single order line label shared by waiter, guest menu, and dashboard lists. */
 export function formatOrderItemListLabel(
-  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'emoji' | 'name' | 'name_pt'>,
+  item: Pick<OrderItem, 'kind' | 'qty' | 'adult_count' | 'child_count' | 'emoji' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  lang: UILanguage,
   options: OrderItemListLabelOptions = {},
 ): string {
-  const name = item.name || item.name_pt;
+  const name = resolveMenuItemLocalizedName(item, lang);
   const quantityLabel = formatOrderItemQuantityLabel(item, options);
   return `${item.emoji} ${name} ${quantityLabel}`;
 }
@@ -134,6 +121,7 @@ export function countOrderListItems(orders: Order[]): number {
 
 export function buildOrderListDisplayChips(
   orders: Order[],
+  lang: UILanguage,
 ): OrderListDisplayChip[] {
   const chips: OrderListDisplayChip[] = [];
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
@@ -162,7 +150,7 @@ export function buildOrderListDisplayChips(
         chips.push({
           key: `buffet:${item.id}:${order.id}`,
           emoji: item.emoji || '🍽️',
-          name: item.name_pt || item.name,
+          name: resolveMenuItemLocalizedName(item, lang),
           quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
         });
       }
@@ -180,7 +168,7 @@ export function buildOrderListDisplayChips(
       } else {
         menuLines.set(mergeKey, {
           emoji: item.emoji,
-          name: item.name_pt || item.name,
+          name: resolveMenuItemLocalizedName(item, lang),
           qty: item.qty,
           note: item.note,
         });

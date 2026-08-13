@@ -78,6 +78,7 @@ function buildPersonLedgerRows(
   billSplitForLines: BillSplit | null,
   canExpandPersonDishes: boolean,
   itemCodeByMenuId: Record<string, string>,
+  lang: UILanguage,
 ): OrderHistoryPersonLedgerRow[] {
   const { outcome, collectedPayments } = entry.settlement;
   const hasCollections = collectedPayments.length > 0;
@@ -95,6 +96,7 @@ function buildPersonLedgerRows(
               billSplitForLines,
               row.index,
               entry.orders,
+              lang,
               itemCodeByMenuId,
             )
           : [],
@@ -117,6 +119,7 @@ export function buildOrderHistoryBillDetailView(
     entry.orders,
     entry.closedAt,
     isFullyPaid,
+    lang,
     itemCodeByMenuId,
   );
 
@@ -148,6 +151,7 @@ export function buildOrderHistoryBillDetailView(
     billSplitForLines,
     canExpandPersonDishes,
     itemCodeByMenuId,
+    lang,
   );
 
   // Person ledger only when checkout ledger exists (paid split or collections).

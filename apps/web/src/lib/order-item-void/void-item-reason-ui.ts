@@ -18,8 +18,11 @@ export type VoidItemReasonDialogCopy = {
   reasons: ReturnType<typeof abnormalReasonOptions>;
 };
 
-export function voidItemDisplayName(item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt'>): string {
-  return formatOrderItemNameLabel(item);
+export function voidItemDisplayName(
+  item: Pick<OrderItem, 'emoji' | 'name' | 'name_pt' | 'name_en' | 'name_zh'>,
+  lang: UILanguage,
+): string {
+  return formatOrderItemNameLabel(item, lang);
 }
 
 export function voidItemWasServed(item: Pick<OrderItem, 'item_status'>): boolean {
@@ -28,13 +31,13 @@ export function voidItemWasServed(item: Pick<OrderItem, 'item_status'>): boolean
 
 export function voidItemReasonDialogTitle(
   lang: UILanguage,
-  item?: Pick<OrderItem, 'emoji' | 'name' | 'name_pt'> | null,
+  item?: Pick<OrderItem, 'emoji' | 'name' | 'name_pt' | 'name_en' | 'name_zh'> | null,
 ): string {
   const orderHistory = getMessages(lang).orderHistory;
   if (item) {
     return orderHistory.voidItemReasonTitleWithItem.replace(
       '{item}',
-      voidItemDisplayName(item),
+      voidItemDisplayName(item, lang),
     );
   }
   return orderHistory.voidItemReasonTitle;

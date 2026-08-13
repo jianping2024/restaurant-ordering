@@ -38,6 +38,7 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         );
         if (qApplied.trim()) url.searchParams.set('q', qApplied.trim());
         url.searchParams.set('page_size', String(pageSize));
+        url.searchParams.set('lang', lang);
         if (opts.cursor) url.searchParams.set('cursor', opts.cursor);
         const res = await fetch(url.toString(), { credentials: 'include' });
         const data = (await res.json().catch(() => ({}))) as {
@@ -54,7 +55,7 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         setLoading(false);
       }
     },
-    [restaurantSlug, qApplied, pageSize, t.loadFail],
+    [restaurantSlug, qApplied, pageSize, lang, t.loadFail],
   );
 
   useEffect(() => {

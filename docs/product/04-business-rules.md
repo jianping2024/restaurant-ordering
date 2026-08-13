@@ -315,9 +315,10 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 1. 打印成功/失败 **不**改变订单/会话/分单状态
 2. 纸面语言：`restaurants.print_locale`（默认 `pt`）。出品联 / 小票 / 预结单的固定文案与**菜名、分类标题**均按该字段从三语菜单字段选取（缺省时按 zh→en→pt 等 fallback）；代理配对试打可选 zh/en/pt，与托盘 `ui_locale` 无关。
-3. 租户隔离：代理 JWT 仅访问本店 `print_jobs`
-4. 幂等：checkout 类 receipt 有 idempotency key（bill_split + person_index）
-5. 无代理时允许 HTML 打印兜底，不替代主路径设计
+3. **屏上菜名**跟界面语言：已点列表、账单、楼面、厨房看板、结账明细从订单行快照 `name_zh`/`name_en`/`name_pt` 选取（`resolveMenuItemLocalizedName`）；禁止再写 `item.name || item.name_pt` 作为屏上显示。
+4. 租户隔离：代理 JWT 仅访问本店 `print_jobs`
+5. 幂等：checkout 类 receipt 有 idempotency key（bill_split + person_index）
+6. 无代理时允许 HTML 打印兜底，不替代主路径设计
 
 ### 相关代码
 

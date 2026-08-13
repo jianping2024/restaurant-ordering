@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   aggregateLinesByDish,
+  collectStationBoardLines,
   lineWaitMinutes,
   partitionStationLines,
   type KitchenBoardLine,
@@ -109,5 +110,46 @@ describe('partitionStationLines', () => {
     assert.equal(workbench.length, 1);
     assert.equal(workbench[0]?.effectiveStatus, 'pending');
     assert.equal(bottomRail.length, 2);
+  });
+});
+
+describe('collectStationBoardLines', () => {
+  it('uses UI language for on-screen dish names', () => {
+    const orders: Order[] = [
+      {
+        id: 'o1',
+        restaurant_id: 'r1',
+        table_id: 't1',
+        display_name: 'A-01',
+        session_id: 's1',
+        status: 'pending',
+        items: [
+          {
+            id: 'm1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            name_en: 'Water 500ml',
+            name_zh: '矿泉水',
+            qty: 1,
+            price: 1.5,
+            emoji: '💧',
+            item_status: 'pending',
+            print_station_id: 'st1',
+            item_code: '001',
+          },
+        ],
+        total_amount: 1.5,
+        created_at: '2026-08-10T12:00:00.000Z',
+      },
+    ];
+    const lines = collectStationBoardLines({
+      orders,
+      printStationId: 'st1',
+      nowMs: Date.parse('2026-08-10T12:05:00.000Z'),
+      readyAfterMinutes: 8,
+      lang: 'zh',
+    });
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]?.displayName, '001 矿泉水');
   });
 });

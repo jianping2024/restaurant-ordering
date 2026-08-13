@@ -101,7 +101,7 @@ describe('checkoutLinesFromOrders', () => {
       },
     ] as Order[];
 
-    const lines = checkoutLinesFromOrders(orders);
+    const lines = checkoutLinesFromOrders(orders, 'pt');
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.label, 'Buffet livre');
     assert.equal(lines[0]?.quantityLabel, '· A1-C2');
@@ -126,10 +126,34 @@ describe('checkoutLinesFromOrders', () => {
       },
     ] as Order[];
 
-    const lines = checkoutLinesFromOrders(orders);
+    const lines = checkoutLinesFromOrders(orders, 'pt');
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.label, '001 Água 500ml');
     assert.equal(lines[0]?.quantityLabel, '× 1');
+  });
+
+  it('picks zh dish name for zh UI lang', () => {
+    const orders = [
+      {
+        id: 'o1',
+        items: [
+          {
+            id: 'd1',
+            name: 'Água 500ml',
+            name_pt: 'Água 500ml',
+            name_en: 'Water 500ml',
+            name_zh: '矿泉水',
+            qty: 1,
+            price: 1.85,
+            emoji: '💧',
+            item_code: '001',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = checkoutLinesFromOrders(orders, 'zh');
+    assert.equal(lines[0]?.label, '001 矿泉水');
   });
 
   it('merges repeated menu items with the same unit price', () => {
@@ -170,7 +194,7 @@ describe('checkoutLinesFromOrders', () => {
       },
     ] as Order[];
 
-    const lines = checkoutLinesFromOrders(orders);
+    const lines = checkoutLinesFromOrders(orders, 'pt');
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.quantityLabel, '× 3');
     assert.ok(Math.abs((lines[0]?.lineTotal ?? 0) - 5.55) < 0.001);

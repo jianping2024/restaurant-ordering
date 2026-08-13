@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { listDishHistory } from '@/lib/dish-history-server';
 import { staffAuthFromRequest } from '@/lib/staff-api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { DEFAULT_UI_LANG, isUILanguage } from '@/lib/i18n';
 
 export const runtime = 'nodejs';
 
@@ -24,12 +25,14 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   }
 
   const url = new URL(req.url);
+  const langRaw = url.searchParams.get('lang');
   const result = await listDishHistory({
     admin,
     restaurantId: ctx.restaurant_id,
     q: url.searchParams.get('q'),
     pageSizeRaw: url.searchParams.get('page_size'),
     cursorRaw: url.searchParams.get('cursor'),
+    lang: isUILanguage(langRaw) ? langRaw : DEFAULT_UI_LANG,
   });
 
   if (!result.ok) {

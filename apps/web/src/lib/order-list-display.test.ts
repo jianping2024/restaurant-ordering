@@ -6,9 +6,9 @@ import {
   formatOrderItemQuantityLabel,
   formatOrderListItemPrintQty,
   formatStaffBuffetLineLabel,
-  formatStaffMenuLineLabel,
   orderListGuestLabelsFromLang,
 } from '@/lib/order-list-display';
+import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import type { Order } from '@/types';
 
 const guestLabels = { adults: '{n}大人', children: '{n}小孩' };
@@ -68,24 +68,37 @@ describe('formatOrderItemQuantityLabel', () => {
   });
 });
 
-describe('formatStaffMenuLineLabel', () => {
-  it('joins item code and plain name with a space', () => {
+describe('formatLocalizedMenuItemLabel', () => {
+  it('joins item code and localized name with a space', () => {
     assert.equal(
-      formatStaffMenuLineLabel(
+      formatLocalizedMenuItemLabel(
         { name: 'Água 500ml', name_pt: 'Água 500ml' },
+        'pt',
         '001',
       ),
       '001 Água 500ml',
     );
   });
 
-  it('returns plain name when code is missing', () => {
+  it('returns localized name when code is missing', () => {
     assert.equal(
-      formatStaffMenuLineLabel(
+      formatLocalizedMenuItemLabel(
         { name: 'Água 500ml', name_pt: 'Água 500ml' },
+        'pt',
         null,
       ),
       'Água 500ml',
+    );
+  });
+
+  it('picks zh name for zh UI lang', () => {
+    assert.equal(
+      formatLocalizedMenuItemLabel(
+        { name_pt: 'Água 500ml', name_en: 'Water 500ml', name_zh: '矿泉水' },
+        'zh',
+        '001',
+      ),
+      '001 矿泉水',
     );
   });
 });
@@ -102,6 +115,7 @@ describe('formatStaffBuffetLineLabel', () => {
           adult_count: 7,
           child_count: 3,
         },
+        'pt',
         { headcountStyle: 'receipt' },
       ),
       'Buffet almoço · A7-C3',
@@ -122,6 +136,7 @@ describe('formatOrderItemListLabel', () => {
           adult_count: 7,
           child_count: 3,
         },
+        'pt',
         { headcountStyle: 'receipt' },
       ),
       '🍽️ Buffet almoço · A7-C3',
@@ -186,7 +201,7 @@ describe('buildOrderListDisplayChips', () => {
       },
     ] as Order[];
 
-    const chips = buildOrderListDisplayChips(orders);
+    const chips = buildOrderListDisplayChips(orders, 'pt');
     assert.equal(chips.length, 2);
     assert.equal(chips[0].name, 'Buffet almoço');
     assert.equal(chips[0].quantityLabel, '· A7-C3');

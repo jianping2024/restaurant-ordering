@@ -1,17 +1,27 @@
 import { normalizeMenuItemCode } from '@/lib/menu-print-label';
 import type { Language, MenuItem } from '@/types';
 
-export type MenuItemNameFields = Pick<MenuItem, 'name_pt' | 'name_en' | 'name_zh'>;
+/** Catalog row or order-line snapshot. Print titles use `menuLocalizedName` instead. */
+export type MenuItemNameFields = {
+  name_pt?: string | null;
+  name_en?: string | null;
+  name_zh?: string | null;
+  /** Legacy order-line snapshot; treated as Portuguese when `name_pt` is empty. */
+  name?: string | null;
+};
 export type MenuItemDescriptionFields = Pick<
   MenuItem,
   'description_pt' | 'description_en' | 'description_zh'
 >;
 
-/** Locale-aware dish name for customer ordering surfaces (menu list, cart). */
+/** Sole on-screen dish name picker (catalog, cart, ordered list, bill, floor, kitchen). */
 export function resolveMenuItemLocalizedName(item: MenuItemNameFields, lang: Language): string {
-  if (lang === 'zh') return (item.name_zh || item.name_pt || '').trim();
-  if (lang === 'en') return (item.name_en || item.name_pt || '').trim();
-  return (item.name_pt || '').trim();
+  const pt = (item.name_pt || item.name || '').trim();
+  const en = (item.name_en || '').trim();
+  const zh = (item.name_zh || '').trim();
+  if (lang === 'zh') return zh || pt;
+  if (lang === 'en') return en || pt;
+  return pt;
 }
 
 /** Locale-aware dish description for customer menu cards. */

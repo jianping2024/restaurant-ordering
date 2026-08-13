@@ -267,6 +267,9 @@ export async function upsertRoundLine(params: {
   if (!priceIsFree) {
     return { ok: false, status: 400, error: 'menu_item_not_free' };
   }
+  if (liveGuestCount < 1) {
+    return { ok: false, status: 400, error: 'guest_count_required' };
+  }
   if (!Number.isInteger(qty) || qty < 1) {
     return { ok: false, status: 400, error: 'invalid_qty' };
   }

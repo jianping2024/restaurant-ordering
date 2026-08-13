@@ -127,7 +127,7 @@
 | 暂缓送厨 | 二次确认后生效；本轮送厨取消；30s 内不可再发起；UI 不显示谁暂缓 |
 | 每轮已暂缓过 | `round_defer_already_used` |
 | pending_confirm | 锁篮，不可再加免费菜 |
-| 超轮次上限 | `round_cap_exceeded`（默认 8×人数，仅免费菜） |
+| 超轮次上限 | `round_cap_exceeded`（默认 8×人数，仅免费菜；人数为 0 时为 `guest_count_required`） |
 | 超整餐免费菜上限 | `per_person_limit_exceeded`（仅 `price=0` 且配了限量） |
 | session `billing` / 关台 | round `closed`；禁止操作 |
 | 并台 | 来源 round 在 merge RPC **同事务** `closed`，未送厨篮子作废不合并；目标 round 不动 |

@@ -64,6 +64,7 @@ export type TableOrderRoundErrorCode =
   | 'round_not_collecting'
   | 'round_basket_locked'
   | 'round_cap_exceeded'
+  | 'guest_count_required'
   | 'round_empty'
   | 'round_defer_cooldown'
   | 'round_defer_already_used'

@@ -463,7 +463,13 @@ export function SushiMenuPage({
           })),
         );
         if (!result.ok) {
-          showToast(messageForSushiRoundError(result.error, roundT), 'info');
+          showToast(
+            messageForSushiRoundError(result.error, roundT, {
+              used: round.snapshot.lines_qty_total,
+              cap: round.snapshot.round_cap_total,
+            }),
+            'info',
+          );
           return;
         }
         setCart(paidCart);

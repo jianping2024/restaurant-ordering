@@ -58,6 +58,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 - Scope to requested behavior; `@/*` imports; no service keys on the client; restaurant-scoped queries/APIs.
 - UI: `src/components/ui` + brand tokens.
 - Tables: `table_id` = UUID; `display_name` = label; print payloads need both; no legacy `table_number`; receipts never show table UUIDs.
+- **On-screen dish name:** sole picker `resolveMenuItemLocalizedName` (UI lang + snapshot trilingual); print stays `menuLocalizedName` + `print_locale`. Do not add `item.name || item.name_pt` beside it.
 - Go: Docker commands above; `gofmt`; focused table-driven tests for parser/routing.
 
 ## Database

@@ -13,9 +13,9 @@ import {
   listActiveBuffetLineSummaries,
   type BuffetGuestHeadcount,
 } from '@/lib/buffet-order';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import {
   formatStaffBuffetLineLabel,
-  formatOrderItemPlainName,
   formatOrderItemQuantityLabel,
 } from '@/lib/order-list-display';
 import { canDecrementOrderLine } from '@/lib/order-item-decrement/decrement-policy';
@@ -24,7 +24,7 @@ import { normalizeOrderItemStatus, effectiveItemStatus } from '@/lib/order-statu
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
-import type { UILanguage } from '@/lib/i18n';
+import { DEFAULT_UI_LANG, type UILanguage } from '@/lib/i18n';
 import {
   resolveKitchenItemProgressLabel,
   shouldShowKitchenItemProgress,
@@ -217,7 +217,7 @@ export function buildWaiterTableCard(
   const readyAfterMinutes =
     options.readyAfterMinutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;
   const nowMs = options.nowMs ?? Date.now();
-  const lang = options.lang ?? 'zh';
+  const lang = options.lang ?? DEFAULT_UI_LANG;
   const kitchenEnabledStationIds = options.kitchenEnabledStationIds ?? [];
 
   const orderLines: WaiterOrderLine[] = catalog.map((row) => {
@@ -228,7 +228,7 @@ export function buildWaiterTableCard(
         orderId: '',
         itemIdx: -1,
         itemCode: null,
-        label: formatStaffBuffetLineLabel(item, { headcountStyle: 'receipt' }),
+        label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
         statusLabel: null,
         quantityLabel: null,
         canDecrement: false,
@@ -270,7 +270,7 @@ export function buildWaiterTableCard(
       catalogKey: row.key,
       ...action,
       itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
-      label: formatOrderItemPlainName(item),
+      label: resolveMenuItemLocalizedName(item, lang),
       statusLabel,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       chargeableQty: share.chargeableQty ?? null,

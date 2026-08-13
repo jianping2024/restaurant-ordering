@@ -183,7 +183,7 @@ export function CheckoutRequestDetail({
       if (map.has(personIndex)) return;
       map.set(
         personIndex,
-        buildCheckoutPersonShareLines(request, personIndex, sessionOrders, itemCodeByMenuId),
+        buildCheckoutPersonShareLines(request, personIndex, sessionOrders, lang, itemCodeByMenuId),
       );
     };
     for (const row of pendingSettlementRows) add(row.index);
@@ -198,6 +198,7 @@ export function CheckoutRequestDetail({
     request,
     sessionOrders,
     itemCodeByMenuId,
+    lang,
   ]);
   const personShareLabels = {
     expand: t.personShareItemsExpand,

@@ -39,6 +39,24 @@ describe('resolveMenuItemLocalizedName', () => {
   it('falls back to pt for pt lang', () => {
     assert.equal(resolveMenuItemLocalizedName(baseItem, 'pt'), 'Água 500ml');
   });
+
+  it('uses legacy name when name_pt is empty', () => {
+    assert.equal(
+      resolveMenuItemLocalizedName({ name: 'Água 500ml', name_pt: '', name_en: 'Water' }, 'pt'),
+      'Água 500ml',
+    );
+  });
+
+  it('picks order-line snapshot names by UI lang', () => {
+    const line = {
+      name: 'Água 500ml',
+      name_pt: 'Água 500ml',
+      name_en: 'Water 500ml',
+      name_zh: '矿泉水',
+    };
+    assert.equal(resolveMenuItemLocalizedName(line, 'zh'), '矿泉水');
+    assert.equal(resolveMenuItemLocalizedName(line, 'en'), 'Water 500ml');
+  });
 });
 
 describe('resolveMenuItemLocalizedDescription', () => {

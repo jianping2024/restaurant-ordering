@@ -11,6 +11,7 @@ import {
   byItemSplitLineFromOrderLine,
 } from '@/lib/bill-split-by-item-lines';
 import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { Order } from '@/types';
 
 function sushiChargeableOrders(adultCount: number, sushiQty: number): Order[] {
@@ -79,7 +80,7 @@ describe('validateSubmittedCheckoutSplit', () => {
     const splitOrderLines = buildByItemSplitOrderLines(orders);
     const lineSpecs = buildByItemLineSpecs(splitOrderLines);
     const splitLines = splitOrderLines.map((line) =>
-      byItemSplitLineFromOrderLine(line, (line.name || line.name_pt || '').trim()),
+      byItemSplitLineFromOrderLine(line, resolveMenuItemLocalizedName(line, 'pt')),
     );
     const allocations = buildByItemAllocationsFromPersons(persons, lineSpecs);
     const result = calcByItemSplitResults({ lines: splitLines, allocations });

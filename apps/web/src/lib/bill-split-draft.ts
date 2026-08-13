@@ -7,6 +7,8 @@ import {
 import { validateBillSplit } from '@/lib/bill-split-validate';
 import { wholeTableSplitResult } from '@/lib/checkout-split-intent';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
+import type { UILanguage } from '@/lib/i18n';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -18,6 +20,7 @@ export type BillSplitDraftInput = {
   splitPeople: Array<{ name: string }>;
   customAmounts: Array<{ name: string; amount: number }>;
   parsedByItemAllocations: ByItemLineAllocation;
+  lang: UILanguage;
 };
 
 export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
@@ -29,6 +32,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     splitPeople,
     customAmounts,
     parsedByItemAllocations,
+    lang,
   } = input;
 
   if (!splitMode) {
@@ -47,7 +51,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
   if (splitMode === 'by_item') {
     return calcByItemSplitResults({
       lines: orderLines.map((item) =>
-        byItemSplitLineFromOrderLine(item, (item.name || item.name_pt || '').trim()),
+        byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
       ),
       allocations: parsedByItemAllocations,
     });

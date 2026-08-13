@@ -4,8 +4,9 @@ import {
   effectiveItemStatus,
   isKitchenBoardOpenStatus,
 } from '@/lib/order-status';
-import { formatOnScreenMenuItemLabel } from '@/lib/menu-item-display';
+import { formatOnScreenMenuItemLabel, resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
+import type { UILanguage } from '@/lib/i18n';
 
 export type KitchenBoardLine = {
   key: string;
@@ -65,6 +66,7 @@ export function collectStationBoardLines(input: {
   printStationId: string;
   nowMs: number;
   readyAfterMinutes: number;
+  lang: UILanguage;
 }): KitchenBoardLine[] {
   const lines: KitchenBoardLine[] = [];
   for (const order of input.orders) {
@@ -83,7 +85,7 @@ export function collectStationBoardLines(input: {
       const prepEligible = effectiveStatus === 'pending';
       const printEligible =
         effectiveStatus === 'cooking' || effectiveStatus === 'ready';
-      const name = item.name || item.name_pt || item.id;
+      const name = resolveMenuItemLocalizedName(item, input.lang) || item.id;
       const itemCode = resolveMenuItemCode(item);
       lines.push({
         key: lineSelectionKey(order.id, itemIndex),

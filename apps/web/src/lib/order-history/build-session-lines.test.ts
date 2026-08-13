@@ -85,13 +85,13 @@ describe('buildOrderHistorySessionLines', () => {
       },
     ] as Order[];
 
-    const lines = buildOrderHistorySessionLines(paidOrders, closedAt, true);
+    const lines = buildOrderHistorySessionLines(paidOrders, closedAt, true, 'pt');
     assert.equal(lines.length, 1);
     assert.equal(lines[0].label.includes('Cola'), true);
   });
 
   it('omits mid-meal voids for operational close snapshot', () => {
-    const lines = buildOrderHistorySessionLines(orders, closedAt, false);
+    const lines = buildOrderHistorySessionLines(orders, closedAt, false, 'pt');
     assert.equal(lines.length, 1);
     assert.match(lines[0].label, /Cola/);
   });

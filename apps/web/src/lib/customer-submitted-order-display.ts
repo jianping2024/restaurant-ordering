@@ -81,7 +81,7 @@ export function buildCustomerSubmittedDisplayOrders(
 
       bucket.lines.push({
         key: `${order.id}-${idx}`,
-        label: formatOrderItemListLabel(item, { headcountStyle: 'receipt' }),
+        label: formatOrderItemListLabel(item, lang, { headcountStyle: 'receipt' }),
         statusLabel,
       });
     }

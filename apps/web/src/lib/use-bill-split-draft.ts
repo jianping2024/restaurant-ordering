@@ -30,6 +30,7 @@ import { billSplitDisplayResults, buildCustomerSplitDisplayRows } from '@/lib/cu
 import { useByItemSplitState } from '@/lib/use-by-item-split-state';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { BillSplit, SplitMode, SplitResult } from '@/types';
+import type { UILanguage } from '@/lib/i18n';
 
 export type SplitPersonSlot = {
   id: string;
@@ -91,6 +92,7 @@ export function useBillSplitDraft(params: {
   submitted: boolean;
   persistedResult: SplitResult[] | null;
   submitting: boolean;
+  lang: UILanguage;
 }) {
   const {
     restaurantId,
@@ -105,6 +107,7 @@ export function useBillSplitDraft(params: {
     submitted,
     persistedResult,
     submitting,
+    lang,
   } = params;
 
   const splitSeed = continuationSplit ?? existingSplit;
@@ -259,6 +262,7 @@ export function useBillSplitDraft(params: {
       splitPeople,
       customAmounts,
       parsedByItemAllocations,
+      lang,
     }),
     [
       splitMode,
@@ -269,6 +273,7 @@ export function useBillSplitDraft(params: {
       splitPeople,
       customAmounts,
       parsedByItemAllocations,
+      lang,
     ],
   );
 

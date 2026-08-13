@@ -385,8 +385,9 @@ export function KitchenStationPane({
         printStationId: stationId,
         nowMs,
         readyAfterMinutes,
+        lang,
       }),
-    [orders, stationId, nowMs, readyAfterMinutes],
+    [orders, stationId, nowMs, readyAfterMinutes, lang],
   );
 
   const { workbench, bottomRail } = useMemo(() => partitionStationLines(allLines), [allLines]);

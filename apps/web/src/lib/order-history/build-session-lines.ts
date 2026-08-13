@@ -1,4 +1,5 @@
 import { checkoutLinesFromOrders, type CheckoutDisplayLine } from '@/lib/checkout-session-lines';
+import type { UILanguage } from '@/lib/i18n';
 import type { Order, OrderItem } from '@/types';
 
 /** Items voided within this window of session close count as final bill lines. */
@@ -45,10 +46,11 @@ export function buildOrderHistorySessionLines(
   orders: Order[],
   closedAt: string,
   isFullyPaid: boolean,
+  lang: UILanguage,
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
   if (isFullyPaid) {
-    return checkoutLinesFromOrders(orders, itemCodeByMenuId);
+    return checkoutLinesFromOrders(orders, lang, itemCodeByMenuId);
   }
 
   const snapshotOrders = ordersForCloseSnapshot(orders, closedAt);
@@ -56,6 +58,7 @@ export function buildOrderHistorySessionLines(
 
   return checkoutLinesFromOrders(
     ordersAsBillableDisplay(snapshotOrders),
+    lang,
     itemCodeByMenuId,
   );
 }

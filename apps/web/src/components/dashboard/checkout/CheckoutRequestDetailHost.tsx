@@ -164,14 +164,14 @@ export function CheckoutRequestDetailHost({
 
       setSessionOrders(orders);
       setItemCodeByMenuId(codes);
-      setSelectedLines(checkoutLinesFromOrders(orders, codes));
+      setSelectedLines(checkoutLinesFromOrders(orders, lang, codes));
     };
 
     void loadLines();
     return () => {
       cancelled = true;
     };
-  }, [supabase, restaurantId, request.session_id]);
+  }, [supabase, restaurantId, request.session_id, lang]);
 
   const collectedPayments = getCollectedForSession(request.session_id);
 

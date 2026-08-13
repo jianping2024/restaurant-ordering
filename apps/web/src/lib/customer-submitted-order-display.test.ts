@@ -135,6 +135,27 @@ describe('buildCustomerSubmittedDisplayOrders', () => {
     assert.match(groups[0]?.lines[0]?.label ?? '', /Guest/);
   });
 
+  it('picks dish names from the UI language snapshot fields', () => {
+    const groups = buildCustomerSubmittedDisplayOrders([
+      orderWithItems([
+        {
+          id: 'i1',
+          name: 'Água 500ml',
+          name_pt: 'Água 500ml',
+          name_en: 'Water 500ml',
+          name_zh: '矿泉水',
+          qty: 1,
+          price: 1.5,
+          emoji: '💧',
+          batch_id: 'batch-a',
+          added_at: '2026-07-15T12:30:00.000Z',
+        },
+      ]),
+    ], 'zh');
+    assert.match(groups[0]?.lines[0]?.label ?? '', /矿泉水/);
+    assert.doesNotMatch(groups[0]?.lines[0]?.label ?? '', /Água/);
+  });
+
   it('handles missing items array', () => {
     const groups = buildCustomerSubmittedDisplayOrders([
       { ...orderWithItems([]), items: undefined as unknown as Order['items'] },

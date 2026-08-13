@@ -396,11 +396,12 @@ function WaiterTableDetailInner({
           serveEnabled,
           readyAfterMinutes:
             restaurant.kitchen_ready_after_minutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT,
+          lang,
         });
         return isWaiterTableCardOccupied(c);
       })
       .map((row) => row.id);
-  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities, serveEnabled]);
+  }, [activeSessionByTableId, demoTables, initialOrders, isDemo, itemCodeByMenuId, capabilities, serveEnabled, lang]);
 
   const demoTargetCandidates = useMemo(() => {
     if (!isDemo || !operationType || !sourceTable) return [] as RestaurantTableRow[];

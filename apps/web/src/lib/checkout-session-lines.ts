@@ -3,13 +3,11 @@ import {
   buildBillableSessionItems,
   chargeableFieldsFromBillableRow,
 } from '@/lib/billable-session-lines';
-import {
-  formatOrderItemPlainName,
-  formatOrderItemQuantityLabel,
-  formatStaffMenuLineLabel,
-} from '@/lib/order-list-display';
+import { formatLocalizedMenuItemLabel, resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
+import { formatOrderItemQuantityLabel } from '@/lib/order-list-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { isBuffetBaseItem } from '@/lib/order-items';
+import type { UILanguage } from '@/lib/i18n';
 import type { Order } from '@/types';
 
 export type CheckoutDisplayLine = {
@@ -26,14 +24,15 @@ export type CheckoutDisplayLine = {
 /** Billable lines for checkout detail (matches receipt enqueue aggregation). */
 export function checkoutLinesFromOrders(
   orders: Order[],
+  lang: UILanguage,
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
   return buildBillableSessionItems(orders).map((row) => {
     const { key, item } = row;
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = isBuffetBaseItem(item)
-      ? formatOrderItemPlainName(item)
-      : formatStaffMenuLineLabel(item, itemCode);
+      ? resolveMenuItemLocalizedName(item, lang)
+      : formatLocalizedMenuItemLabel(item, lang, itemCode);
 
     return {
       key,

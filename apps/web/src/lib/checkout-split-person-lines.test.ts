@@ -98,7 +98,7 @@ describe('buildSplitPersonShareLines', () => {
 
 describe('buildCheckoutPersonShareLines', () => {
   it('uses staff menu-code label from order snapshot', () => {
-    const lines = buildCheckoutPersonShareLines(byItemSplit(), 0, orders);
+    const lines = buildCheckoutPersonShareLines(byItemSplit(), 0, orders, 'pt');
     assert.equal(lines.length, 1);
     assert.match(lines[0]?.label ?? '', /028/);
     assert.equal(lines[0]?.quantityLabel, '1/3');

@@ -14,6 +14,19 @@ describe('voidItemReasonDialogTitle', () => {
     );
   });
 
+  it('picks snapshot zh name for zh UI lang', () => {
+    assert.equal(
+      voidItemReasonDialogTitle('zh', {
+        emoji: '💧',
+        name: 'Água 500ml',
+        name_pt: 'Água 500ml',
+        name_en: 'Water 500ml',
+        name_zh: '矿泉水',
+      }),
+      '取消「💧 矿泉水」',
+    );
+  });
+
   it('falls back to generic title without item', () => {
     assert.equal(voidItemReasonDialogTitle('zh', null), '取消菜品');
   });

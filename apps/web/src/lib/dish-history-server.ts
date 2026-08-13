@@ -13,6 +13,8 @@ import {
   type RestaurantEnqueueRow,
 } from '@/lib/station-ticket-enqueue';
 import { findActiveTableSession } from '@/lib/table-session-open';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
+import type { UILanguage } from '@/lib/i18n';
 import type { Order, OrderItem } from '@/types';
 
 export type DishHistoryRow = {
@@ -92,6 +94,7 @@ export async function listDishHistory(params: {
   q: string | null;
   pageSizeRaw: string | null;
   cursorRaw: string | null;
+  lang: UILanguage;
 }): Promise<
   | { ok: true; rows: DishHistoryRow[]; next_cursor: string | null; page_size: number }
   | { ok: false; status: number; error: string; message?: string }
@@ -167,7 +170,7 @@ export async function listDishHistory(params: {
         item_index: itemIndex,
         table_display: ((order.display_name as string | null) || '').trim() || '—',
         menu_item_id: item.id,
-        name: (item.name || item.name_pt || '').trim() || '—',
+        name: resolveMenuItemLocalizedName(item, params.lang) || '—',
         item_code: item.item_code?.trim() || null,
         qty: Number(item.qty) || 0,
         added_at: addedAt,

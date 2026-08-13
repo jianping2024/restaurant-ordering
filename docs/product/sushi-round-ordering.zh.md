@@ -70,7 +70,7 @@
 - **仅计免费菜**（§2.1）本轮 `table_order_round_lines` 的 `qty` 之和
 - 上限 = `sushi_per_person_per_round_cap × guest_count_snapshot`
 - `guest_count_snapshot`：当前 session 开台人数（`buffet_base` 成人+儿童合计）；**发起送厨时冻结**到 round 行（§6.2），确认期不随改人数变化
-- 加菜 API 与 finalize 前 **服务端权威校验**；超额 → `round_cap_exceeded`
+- 加菜 API 与 finalize 前 **服务端权威校验**；人数 `< 1` → `guest_count_required`；超额 → `round_cap_exceeded`
 
 ---
 
@@ -297,7 +297,8 @@ Classic **不得**出现轮次 UI 组件。
 |------|------|
 | `round_not_collecting` | 非 collecting 却加菜 |
 | `round_basket_locked` | pending_confirm 改 lines |
-| `round_cap_exceeded` | 超轮次上限 |
+| `round_cap_exceeded` | 超轮次上限（人数 ≥ 1） |
+| `guest_count_required` | 用餐人数为 0（未登记自助人数） |
 | `round_empty` | 空篮送厨 |
 | `round_defer_cooldown` | 暂缓冷却中 |
 | `round_defer_already_used` | 本轮已暂缓过 |

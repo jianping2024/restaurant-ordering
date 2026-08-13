@@ -25,6 +25,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: string;
     deferredToast: string;
     sentToast: string;
+    guestCountRequired: string;
     roundCapExceeded: string;
     basketLocked: string;
     cooldownActive: string;
@@ -64,7 +65,8 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: '返回',
     deferredToast: '有人暂缓了本次送厨',
     sentToast: '本轮已送厨',
-    roundCapExceeded: '已达本轮免费菜上限',
+    guestCountRequired: '请先让服务员登记用餐人数',
+    roundCapExceeded: '本轮免费菜已满（{used}/{cap}），请先从「本轮核单」送厨后再点',
     basketLocked: '确认中，暂不可改免费菜',
     cooldownActive: '送厨冷却中，请稍候',
     deferCooldown: '暂缓冷却中，请稍候再发起',
@@ -102,7 +104,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: 'Back',
     deferredToast: 'Someone deferred this send',
     sentToast: 'Round sent to kitchen',
-    roundCapExceeded: 'Round free-dish cap reached',
+    guestCountRequired: 'Ask staff to set the guest count first',
+    roundCapExceeded:
+      'This round is full ({used}/{cap}). Open “This round” and send to kitchen before adding more.',
     basketLocked: 'Confirming — free dishes are locked',
     cooldownActive: 'Table cooldown — please wait',
     deferCooldown: 'Defer cooldown — try again shortly',
@@ -140,7 +144,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: 'Voltar',
     deferredToast: 'Alguem adiou este envio',
     sentToast: 'Ronda enviada a cozinha',
-    roundCapExceeded: 'Limite de pratos gratis da ronda atingido',
+    guestCountRequired: 'Peca ao funcionario para registar o numero de pessoas',
+    roundCapExceeded:
+      'Ronda cheia ({used}/{cap}). Abra “Esta ronda” e envie a cozinha antes de pedir mais.',
     basketLocked: 'Em confirmacao — pratos gratis bloqueados',
     cooldownActive: 'Arrefecimento da mesa — aguarde',
     deferCooldown: 'Arrefecimento apos adiar — tente em breve',
@@ -178,7 +184,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: 'Back',
     deferredToast: 'Someone deferred this send',
     sentToast: 'Round sent to kitchen',
-    roundCapExceeded: 'Round free-dish cap reached',
+    guestCountRequired: 'Ask staff to set the guest count first',
+    roundCapExceeded:
+      'This round is full ({used}/{cap}). Open “This round” and send to kitchen before adding more.',
     basketLocked: 'Confirming — free dishes are locked',
     cooldownActive: 'Table cooldown — please wait',
     deferCooldown: 'Defer cooldown — try again shortly',
@@ -216,7 +224,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: 'Back',
     deferredToast: 'Someone deferred this send',
     sentToast: 'Round sent to kitchen',
-    roundCapExceeded: 'Round free-dish cap reached',
+    guestCountRequired: 'Ask staff to set the guest count first',
+    roundCapExceeded:
+      'This round is full ({used}/{cap}). Open “This round” and send to kitchen before adding more.',
     basketLocked: 'Confirming — free dishes are locked',
     cooldownActive: 'Table cooldown — please wait',
     deferCooldown: 'Defer cooldown — try again shortly',
@@ -254,7 +264,9 @@ export const SUSHI_ROUND_MESSAGES: Record<
     deferConfirmNo: 'Back',
     deferredToast: 'Someone deferred this send',
     sentToast: 'Round sent to kitchen',
-    roundCapExceeded: 'Round free-dish cap reached',
+    guestCountRequired: 'Ask staff to set the guest count first',
+    roundCapExceeded:
+      'This round is full ({used}/{cap}). Open “This round” and send to kitchen before adding more.',
     basketLocked: 'Confirming — free dishes are locked',
     cooldownActive: 'Table cooldown — please wait',
     deferCooldown: 'Defer cooldown — try again shortly',
@@ -275,10 +287,15 @@ export const SUSHI_ROUND_MESSAGES: Record<
 export function messageForSushiRoundError(
   code: string | undefined,
   t: (typeof SUSHI_ROUND_MESSAGES)[Language],
+  progress?: { used: number; cap: number },
 ): string {
   switch (code) {
+    case 'guest_count_required':
+      return t.guestCountRequired;
     case 'round_cap_exceeded':
-      return t.roundCapExceeded;
+      return t.roundCapExceeded
+        .replace('{used}', String(progress?.used ?? 0))
+        .replace('{cap}', String(progress?.cap ?? 0));
     case 'round_basket_locked':
       return t.basketLocked;
     case 'round_cooldown_active':

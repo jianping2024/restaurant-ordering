@@ -441,6 +441,22 @@ export function KitchenStationPane({
     });
   };
 
+  /** Collapse clears print-only selection so workbench reopen does not keep a stale print set. */
+  const toggleBottomRail = () => {
+    setBottomRailOpen((open) => {
+      if (open) {
+        setSelected((prev) => {
+          const next = new Set(prev);
+          for (const l of allLines) {
+            if (l.printEligible && next.has(l.key)) next.delete(l.key);
+          }
+          return next;
+        });
+      }
+      return !open;
+    });
+  };
+
   const handlePrep = async () => {
     const selections = allLines
       .filter((l) => selected.has(l.key) && l.prepEligible)
@@ -632,36 +648,38 @@ export function KitchenStationPane({
             variant="outline"
             className="min-h-12 px-5 text-xl"
             disabled={bottomRailQty === 0 && !bottomRailOpen}
-            onClick={() => setBottomRailOpen((v) => !v)}
+            onClick={toggleBottomRail}
           >
             {bottomRailOpen
               ? t.readyRailHide
               : t.readyRailShow.replace('{n}', String(bottomRailQty))}
           </Button>
+          {/* Unique footer action: rail open → print only; closed → prep only. No count badges. */}
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-12 px-5 text-xl"
-              disabled={selectedPrintCount === 0 || printBusy || prepBusy}
-              loading={printBusy}
-              title={t.selectPrintLines}
-              onClick={() => void handlePrint()}
-            >
-              {printBusy ? t.printBusy : t.print}
-              {selectedPrintCount > 0 ? ` (${selectedPrintCount})` : ''}
-            </Button>
-            <Button
-              type="button"
-              className="min-h-12 px-6 text-xl"
-              disabled={selectedPrepCount === 0 || prepBusy || printBusy}
-              loading={prepBusy}
-              title={t.selectLines}
-              onClick={() => void handlePrep()}
-            >
-              {prepBusy ? t.prepBusy : t.prep}
-              {selectedPrepCount > 0 ? ` (${selectedPrepCount})` : ''}
-            </Button>
+            {bottomRailOpen ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-12 px-5 text-xl"
+                disabled={selectedPrintCount === 0 || printBusy || prepBusy}
+                loading={printBusy}
+                title={t.selectPrintLines}
+                onClick={() => void handlePrint()}
+              >
+                {printBusy ? t.printBusy : t.print}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="min-h-12 px-6 text-xl"
+                disabled={selectedPrepCount === 0 || prepBusy || printBusy}
+                loading={prepBusy}
+                title={t.selectLines}
+                onClick={() => void handlePrep()}
+              >
+                {prepBusy ? t.prepBusy : t.prep}
+              </Button>
+            )}
           </div>
         </div>
       </footer>

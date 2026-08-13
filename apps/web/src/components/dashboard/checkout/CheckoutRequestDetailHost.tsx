@@ -21,6 +21,7 @@ import {
 import {
   buildSplitSettlementRows,
   isMultiPersonSplitBill,
+  isSplitSettlementPending,
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
@@ -284,16 +285,12 @@ export function CheckoutRequestDetailHost({
 
   const submitConfirmPersonPaid = async (row: BillSplit, rowIndex: number) => {
     const settlementRow = settlementRows.find((entry) => entry.index === rowIndex);
-    if (!settlementRow || settlementRow.settlementStatus === 'settled') {
+    if (!settlementRow || !isSplitSettlementPending(settlementRow)) {
       showToast(t.paid, 'error');
       return;
     }
 
     const collectedAmount = settlementRow.outstandingAmount;
-    if (collectedAmount <= 0) {
-      showToast(t.paid, 'error');
-      return;
-    }
     if (!restaurantSlug) {
       showToast('操作失败，请重试', 'error');
       return;

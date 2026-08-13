@@ -4,9 +4,7 @@ import {
   billSplitDisplayResults,
   buildCustomerSplitDisplayRows,
   customerBillCallAmount,
-  deriveCustomerSplitSettlementStatus,
   initialPersistedSplitResult,
-  splitRowDisplayAmount,
   sumSplitDisplayOutstanding,
 } from './customer-bill-split-display';
 
@@ -71,20 +69,6 @@ describe('initialPersistedSplitResult', () => {
   });
 });
 
-describe('deriveCustomerSplitSettlementStatus', () => {
-  it('returns partial when ledger covers part of obligation', () => {
-    assert.equal(deriveCustomerSplitSettlementStatus(27.45, 19.95), 'partial');
-  });
-
-  it('returns settled when ledger covers obligation', () => {
-    assert.equal(deriveCustomerSplitSettlementStatus(27.45, 27.45), 'settled');
-  });
-
-  it('returns due when nothing collected', () => {
-    assert.equal(deriveCustomerSplitSettlementStatus(27.45, 0), 'due');
-  });
-});
-
 describe('buildCustomerSplitDisplayRows', () => {
   it('shows partial continuation balance despite stale paid flag', () => {
     const rows = buildCustomerSplitDisplayRows(
@@ -111,15 +95,28 @@ describe('buildCustomerSplitDisplayRows', () => {
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
   });
+
+  it('keeps zero-obligation custom row due when ledger is empty', () => {
+    const rows = buildCustomerSplitDisplayRows(
+      [
+        { name: '客人 1', amount: 0 },
+        { name: '客人 2', amount: 28.15 },
+      ],
+      [],
+    );
+    assert.equal(rows[0]?.settlementStatus, 'due');
+    assert.equal(rows[1]?.settlementStatus, 'due');
+  });
 });
 
-describe('splitRowDisplayAmount', () => {
-  it('shows outstanding for partial rows', () => {
+describe('partial split display rows', () => {
+  it('exposes outstanding when ledger covers part of the obligation', () => {
     const row = buildCustomerSplitDisplayRows(
       [{ name: 'Ana', amount: 27.45 }],
       [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' }],
     )[0]!;
-    assert.equal(splitRowDisplayAmount(row), 7.5);
+    assert.equal(row.outstandingAmount, 7.5);
+    assert.equal(row.settlementStatus, 'partial');
   });
 });
 

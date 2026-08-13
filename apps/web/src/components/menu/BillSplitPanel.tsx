@@ -9,7 +9,7 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
-import { splitRowDisplayAmount } from '@/lib/customer-bill-split-display';
+import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
 import type { UILanguage } from '@/lib/i18n';
 import {
   GUEST_SPLIT_MODE_ORDER,
@@ -205,7 +205,7 @@ export function BillSplitPanel({
             const rowPaid = splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
             const showSettlement = settlementRow != null && splitRowShowsSettlement(settlementRow);
             const settledAmount = showSettlement && settlementRow
-              ? splitRowDisplayAmount(settlementRow)
+              ? splitSettlementCollectAmount(settlementRow)
               : null;
             return (
               <div

@@ -18,12 +18,13 @@ export type SplitSettlementRow = {
   settlementStatus: SplitSettlementStatus;
 };
 
+/** Settled only when the ledger actually collected money that covers the obligation. */
 export function deriveSplitSettlementStatus(
   obligationAmount: number,
   collectedAmount: number,
 ): SplitSettlementStatus {
   const outstanding = outstandingAmount(obligationAmount, collectedAmount);
-  if (outstanding <= 0) return 'settled';
+  if (collectedAmount > 0 && outstanding <= 0) return 'settled';
   if (collectedAmount > 0) return 'partial';
   return 'due';
 }
@@ -55,12 +56,21 @@ export function sumSplitSettlementOutstanding(rows: SplitSettlementRow[]): numbe
 }
 
 /** Amount shown for one row (outstanding when partially collected). */
-export function splitSettlementCollectAmount(row: SplitSettlementRow): number {
+export function splitSettlementCollectAmount(
+  row: Pick<SplitSettlementRow, 'settlementStatus' | 'outstandingAmount' | 'obligationAmount'>,
+): number {
   return row.settlementStatus === 'partial' ? row.outstandingAmount : row.obligationAmount;
 }
 
+/** Still has money to collect. Zero-obligation unpaid rows are not pending. */
+export function isSplitSettlementPending(
+  row: Pick<SplitSettlementRow, 'outstandingAmount'>,
+): boolean {
+  return row.outstandingAmount > 0;
+}
+
 export function pendingSplitSettlementRows(rows: SplitSettlementRow[]): SplitSettlementRow[] {
-  return rows.filter((row) => row.settlementStatus !== 'settled');
+  return rows.filter(isSplitSettlementPending);
 }
 
 /** Matches RPC should_print_split: only multi-person splits get per-person receipts. */

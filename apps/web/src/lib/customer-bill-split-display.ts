@@ -5,7 +5,6 @@ import {
 } from '@/lib/checkout-session-payments';
 import {
   buildSplitSettlementRows,
-  deriveSplitSettlementStatus,
   sumSplitSettlementOutstanding,
   type SplitSettlementStatus,
 } from '@/lib/checkout-split-settlement';
@@ -33,17 +32,13 @@ export function initialPersistedSplitResult(
   return existingResult?.length ? existingResult : null;
 }
 
-export type CustomerSplitSettlementStatus = SplitSettlementStatus;
-
 export type CustomerSplitRowDisplay = {
   name: string;
   obligationAmount: number;
   collectedAmount: number;
   outstandingAmount: number;
-  settlementStatus: CustomerSplitSettlementStatus;
+  settlementStatus: SplitSettlementStatus;
 };
-
-export const deriveCustomerSplitSettlementStatus = deriveSplitSettlementStatus;
 
 /** Customer bill: obligation from split result, collection state from session ledger. */
 export function buildCustomerSplitDisplayRows(
@@ -57,11 +52,6 @@ export function buildCustomerSplitDisplayRows(
     outstandingAmount,
     settlementStatus,
   }));
-}
-
-/** Amount shown for one split row (outstanding when partially collected). */
-export function splitRowDisplayAmount(row: CustomerSplitRowDisplay): number {
-  return row.settlementStatus === 'partial' ? row.outstandingAmount : row.obligationAmount;
 }
 
 export function sumSplitDisplayOutstanding(rows: CustomerSplitRowDisplay[]): number {

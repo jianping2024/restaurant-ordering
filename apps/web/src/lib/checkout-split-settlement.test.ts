@@ -2,11 +2,31 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildSplitSettlementRows,
+  deriveSplitSettlementStatus,
   isMultiPersonSplitBill,
+  isSplitSettlementPending,
   pendingSplitSettlementRows,
   splitSettlementCollectAmount,
   sumSplitSettlementOutstanding,
 } from './checkout-split-settlement';
+
+describe('deriveSplitSettlementStatus', () => {
+  it('returns due when nothing is collected', () => {
+    assert.equal(deriveSplitSettlementStatus(28.15, 0), 'due');
+  });
+
+  it('returns due for zero obligation with empty ledger', () => {
+    assert.equal(deriveSplitSettlementStatus(0, 0), 'due');
+  });
+
+  it('returns settled only when ledger money covers the obligation', () => {
+    assert.equal(deriveSplitSettlementStatus(28.15, 28.15), 'settled');
+  });
+
+  it('returns partial when ledger covers part of the obligation', () => {
+    assert.equal(deriveSplitSettlementStatus(27.45, 19.95), 'partial');
+  });
+});
 
 describe('buildSplitSettlementRows', () => {
   it('marks settled when ledger covers obligation', () => {
@@ -41,6 +61,24 @@ describe('buildSplitSettlementRows', () => {
     assert.deepEqual(
       pendingSplitSettlementRows(rows).map((row) => row.index),
       [1, 2],
+    );
+  });
+
+  it('does not treat zero-obligation unpaid custom row as settled or pending', () => {
+    const rows = buildSplitSettlementRows(
+      [
+        { name: '客人 1', amount: 0 },
+        { name: '客人 2', amount: 28.15 },
+      ],
+      [],
+    );
+    assert.equal(rows[0]?.settlementStatus, 'due');
+    assert.equal(rows[0]?.outstandingAmount, 0);
+    assert.equal(isSplitSettlementPending(rows[0]!), false);
+    assert.equal(rows[1]?.settlementStatus, 'due');
+    assert.deepEqual(
+      pendingSplitSettlementRows(rows).map((row) => row.index),
+      [1],
     );
   });
 });

@@ -2,6 +2,7 @@ import { applyDiscountToRows, checkoutPayableAmount, normalizeSplitRows } from '
 import {
   outstandingAmount,
   totalCollectedAmount,
+  hasConfirmedPerson,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import {
@@ -53,7 +54,7 @@ export function checkoutPaymentProgress(
   totalCount: number;
 } {
   const rows = normalizeSplitRows(request);
-  if (rows.length > 1 && collectedPayments.length > 0) {
+  if (rows.length > 1) {
     const settlement = buildSplitSettlementRows(
       applyDiscountToRows(rows, discountRate),
       collectedPayments,
@@ -74,7 +75,7 @@ export function hasCheckoutCollections(
   collectedPayments: SessionCollectedPayment[],
 ): boolean {
   if (collectedPayments.length > 0) return true;
-  return (request.result ?? []).some((row) => row.paid);
+  return hasConfirmedPerson(request);
 }
 
 export function checkoutSplitModeLabel(

@@ -177,7 +177,9 @@ export function uniqueCollectedPersonNames(
 }
 
 export function hasConfirmedPerson(split: BillSplit): boolean {
-  return (split.result || []).some((row) => !!row.paid);
+  return (split.result || []).some(
+    (row) => !!row.paid && eurosToCents(Number(row.amount) || 0) > 0,
+  );
 }
 
 export type ResumeCheckoutBlockReason = 'whole_table_paid';

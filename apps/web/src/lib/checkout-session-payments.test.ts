@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   collectibleSplitRowsWithIndex,
+  hasConfirmedPerson,
   isSplitRowCollectible,
   parseSessionCollectedPayments,
   reconcileSplitResultPaid,
@@ -138,6 +139,31 @@ describe('reconcileSplitResultPaid', () => {
     );
     assert.equal(rows[0]?.paid, false);
     assert.equal(rows[1]?.paid, false);
+  });
+});
+
+describe('hasConfirmedPerson', () => {
+  it('ignores vacuous paid flags on zero obligation', () => {
+    assert.equal(
+      hasConfirmedPerson(
+        billSplit({
+          result: [
+            { name: 'Pessoa 1', amount: 0, paid: true },
+            { name: 'Pessoa 2', amount: 14.95, paid: false },
+          ],
+        }),
+      ),
+      false,
+    );
+  });
+
+  it('is true when a positive obligation is marked paid', () => {
+    assert.equal(
+      hasConfirmedPerson(
+        billSplit({ result: [{ name: 'John', amount: 30, paid: true }] }),
+      ),
+      true,
+    );
   });
 });
 

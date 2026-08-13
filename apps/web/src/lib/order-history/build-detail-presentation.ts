@@ -99,18 +99,8 @@ export function resolvePersonLedgerDisplayMode(
   if (!hasCollections || outcome === 'unpaid_closed') {
     return 'obligation_only';
   }
-  if (row.settlementStatus === 'partial') {
-    return 'partial';
-  }
-  if (row.settlementStatus === 'settled') {
-    return 'settled';
-  }
-  if (row.collectedAmount > 0 && row.outstandingAmount <= 0) {
-    return 'settled';
-  }
-  if (row.collectedAmount > 0) {
-    return 'partial';
-  }
+  if (row.settlementStatus === 'partial') return 'partial';
+  if (row.settlementStatus === 'settled') return 'settled';
   return 'obligation_only';
 }
 

@@ -1,5 +1,5 @@
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
-import { splitRowDisplayAmount } from '@/lib/customer-bill-split-display';
+import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
 
 export type SplitSettlementCopy = {
   splitPaid: string;
@@ -43,7 +43,7 @@ export function SplitSettlementPartialBreakdown({ row, copy }: RowProps) {
 export function SplitSettlementAmount({ row }: { row: CustomerSplitRowDisplay }) {
   return (
     <span className="mesa-money text-brand-gold font-medium shrink-0">
-      €{splitRowDisplayAmount(row).toFixed(2)}
+      €{splitSettlementCollectAmount(row).toFixed(2)}
     </span>
   );
 }

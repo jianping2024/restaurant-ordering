@@ -64,11 +64,39 @@ describe('checkoutPaymentProgress', () => {
     assert.equal(progress.paidCount, 1);
     assert.equal(progress.totalCount, 2);
   });
+
+  it('does not count zero-obligation unpaid custom rows as paid', () => {
+    const progress = checkoutPaymentProgress(
+      billSplit({
+        split_mode: 'custom',
+        result: [
+          { name: 'Pessoa 1', amount: 0, paid: true },
+          { name: 'Pessoa 2', amount: 14.95, paid: false },
+        ],
+        total_amount: 14.95,
+      }),
+      [],
+    );
+    assert.equal(progress.paidCount, 0);
+    assert.equal(progress.totalCount, 2);
+  });
 });
 
 describe('hasCheckoutCollections', () => {
-  it('is true when ledger or paid rows exist', () => {
+  it('is true when ledger or a positive paid obligation exists', () => {
     assert.equal(hasCheckoutCollections(billSplit(), []), false);
+    assert.equal(
+      hasCheckoutCollections(
+        billSplit({
+          result: [
+            { name: 'Pessoa 1', amount: 0, paid: true },
+            { name: 'Pessoa 2', amount: 14.95, paid: false },
+          ],
+        }),
+        [],
+      ),
+      false,
+    );
     assert.equal(
       hasCheckoutCollections(
         billSplit({ result: [{ name: 'John', amount: 30, paid: true }] }),

@@ -51,6 +51,8 @@ export function useTableOrderRound(params: {
   const [guestClientId, setGuestClientId] = useState('');
   const [snapshot, setSnapshot] = useState<RoundSnapshot>(() => emptySnapshot(initialSettings));
   const [settings, setSettings] = useState(initialSettings);
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
   const pendingQtyRef = useRef<Map<string, number>>(new Map());
   const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const seenSubmitRequestIdsRef = useRef<Set<string>>(new Set());
@@ -73,7 +75,20 @@ export function useTableOrderRound(params: {
       round_cap_total: next.round_cap_total,
       lines_qty_total: next.lines_qty_total,
     });
-    setSettings(next.settings);
+    // Avoid new-object churn: settings in refresh deps previously caused GET → setSettings → refresh → GET loop (429).
+    setSettings((prev) => {
+      const n = next.settings;
+      if (
+        prev.sushi_round_ordering_enabled === n.sushi_round_ordering_enabled &&
+        prev.sushi_per_person_per_round_cap === n.sushi_per_person_per_round_cap &&
+        prev.sushi_round_confirm_timeout_seconds === n.sushi_round_confirm_timeout_seconds &&
+        prev.sushi_round_cooldown_seconds === n.sushi_round_cooldown_seconds &&
+        prev.sushi_round_defer_cooldown_seconds === n.sushi_round_defer_cooldown_seconds
+      ) {
+        return prev;
+      }
+      return n;
+    });
     const submitId = next.round?.submit_request_id;
     if (next.round?.status === 'pending_confirm' && submitId) {
       if (!seenSubmitRequestIdsRef.current.has(submitId)) {
@@ -93,11 +108,11 @@ export function useTableOrderRound(params: {
       slug,
       tableId,
       guestClientId,
-      settings,
+      settings: settingsRef.current,
     });
     if (!result.ok) return null;
     return applySnapshot(result.snapshot);
-  }, [applySnapshot, enabled, guestClientId, settings, slug, tableId]);
+  }, [applySnapshot, enabled, guestClientId, slug, tableId]);
 
   useEffect(() => {
     if (!enabled || !guestClientId) return;
@@ -131,6 +146,17 @@ export function useTableOrderRound(params: {
     },
     REALTIME_DEBOUNCE_MS,
   );
+
+  // When round id first appears, line/vote bindings remount; catch up once so we do not
+  // miss INSERTs that landed before the round_id filter was subscribed.
+  const prevRoundIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const prev = prevRoundIdRef.current;
+    prevRoundIdRef.current = roundId;
+    if (!realtimeEnabled || !roundId || prev === roundId) return;
+    if (prev != null) return;
+    void refresh();
+  }, [realtimeEnabled, refresh, roundId]);
 
   const flushLineQty = useCallback(
     async (menuItemId: string, qty: number) => {

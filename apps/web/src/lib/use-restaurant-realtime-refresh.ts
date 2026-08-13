@@ -1,11 +1,20 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import {
-  REALTIME_SUBSCRIBE_STATES,
-  type RealtimeChannel,
-  type SupabaseClient,
-} from '@supabase/supabase-js';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
+
+/**
+ * Supabase subscribe status strings (same values as `REALTIME_SUBSCRIBE_STATES`).
+ * Value-importing `@supabase/supabase-js` here makes webpack treat this client
+ * module as async (`serverComponentsExternalPackages`), which marks `MenuPage`
+ * async and RSC SSR throws `Element type is invalid` / got undefined.
+ */
+const REALTIME_SUBSCRIBE_STATUS = {
+  SUBSCRIBED: 'SUBSCRIBED',
+  TIMED_OUT: 'TIMED_OUT',
+  CLOSED: 'CLOSED',
+  CHANNEL_ERROR: 'CHANNEL_ERROR',
+} as const;
 
 /**
  * Staff surface freshness contract (production):
@@ -57,8 +66,8 @@ export const REALTIME_RECONNECT_MAX_MS = 15_000;
  */
 export function isRealtimeSubscribeHardFailure(status: string): boolean {
   return (
-    status === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR ||
-    status === REALTIME_SUBSCRIBE_STATES.TIMED_OUT
+    status === REALTIME_SUBSCRIBE_STATUS.CHANNEL_ERROR ||
+    status === REALTIME_SUBSCRIBE_STATUS.TIMED_OUT
   );
 }
 
@@ -180,7 +189,7 @@ export function useDebouncedPostgresRealtimeRefresh(
       channel = next.subscribe((status) => {
         // Ignore late callbacks from a channel we already dropped/replaced.
         if (disposed || channel !== next) return;
-        if (status === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED) {
+        if (status === REALTIME_SUBSCRIBE_STATUS.SUBSCRIBED) {
           reconnectAttempt = 0;
           if (catchUpOnNextSubscribed) {
             catchUpOnNextSubscribed = false;
@@ -194,7 +203,7 @@ export function useDebouncedPostgresRealtimeRefresh(
         }
         // Unexpected CLOSED while we still want the surface live (socket/channel drop).
         if (
-          status === REALTIME_SUBSCRIBE_STATES.CLOSED &&
+          status === REALTIME_SUBSCRIBE_STATUS.CLOSED &&
           !intentionalTeardown &&
           document.visibilityState === 'visible'
         ) {

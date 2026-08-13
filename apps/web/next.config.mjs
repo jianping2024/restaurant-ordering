@@ -12,6 +12,10 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Isolate parallel local `next dev` (e.g. UAT on :3003 while :3000 keeps `.next`).
+  ...(process.env.MESA_NEXT_DIST_DIR
+    ? { distDir: process.env.MESA_NEXT_DIST_DIR }
+    : {}),
   // Standalone only for Docker image builds (`DOCKER_BUILD=1`). Local `next start` stays normal.
   ...(process.env.DOCKER_BUILD === '1' ? { output: 'standalone' } : {}),
   transpilePackages: ['@mesa/shared', '@mesa/ui'],

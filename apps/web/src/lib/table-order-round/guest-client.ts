@@ -1,3 +1,4 @@
+import { mintBrowserUuid } from '@/lib/browser-uuid';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 /** localStorage key prefix: `${GUEST_CLIENT_STORAGE_PREFIX}_{restaurantId}_{tableId}` */
@@ -23,10 +24,7 @@ export function ensureGuestClientId(restaurantId: string, tableId: string): stri
   } catch {
     // ignore storage errors
   }
-  const id =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now().toString(16)}-0000-4000-8000-${Math.random().toString(16).slice(2, 14).padEnd(12, '0')}`;
+  const id = mintBrowserUuid();
   try {
     window.localStorage.setItem(key, id);
   } catch {

@@ -14,6 +14,7 @@ node_modules/
 /out/
 apps/*/.next/
 apps/*/.next-uat/
+apps/*/.next-typecheck/
 apps/*/out/
 
 # production

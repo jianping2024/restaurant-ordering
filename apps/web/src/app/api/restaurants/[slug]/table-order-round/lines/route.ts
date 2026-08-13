@@ -19,6 +19,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     guest_client_id?: unknown;
     menu_item_id?: unknown;
     qty?: unknown;
+    note?: unknown;
   };
   try {
     body = await req.json();
@@ -69,6 +70,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     guestClientId,
     menuItemId,
     qty,
+    note: typeof body.note === 'string' ? body.note : '',
     priceIsFree: true,
     settings: ctx.settings,
     liveGuestCount: ctx.liveGuestCount,

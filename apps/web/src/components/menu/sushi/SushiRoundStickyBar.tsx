@@ -16,15 +16,9 @@ function secondsUntil(iso: string | null | undefined): number {
 export function SushiRoundStickyBar({
   snapshot,
   labels,
-  showSendAction,
-  sendBusy,
-  onSend,
 }: {
   snapshot: RoundSnapshot;
   labels: Copy;
-  showSendAction?: boolean;
-  sendBusy?: boolean;
-  onSend?: () => void;
 }) {
   const [, setTick] = useState(0);
   const round = snapshot.round;
@@ -69,28 +63,14 @@ export function SushiRoundStickyBar({
 
   return (
     <div className="sticky top-0 z-20 border-b border-brand-border bg-brand-card/95 px-4 py-2 backdrop-blur-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[13px] text-brand-text">
-            {labels.stickyGuestsCap
-              .replace('{guests}', String(guests))
-              .replace('{cap}', String(cap || guests * (round?.per_person_cap ?? 8)))}
-          </p>
-          {statusLine ? (
-            <p className="mt-0.5 text-[12px] tabular-nums text-brand-text-muted">{statusLine}</p>
-          ) : null}
-        </div>
-        {showSendAction && onSend ? (
-          <button
-            type="button"
-            disabled={sendBusy}
-            onClick={onSend}
-            className="shrink-0 rounded-full bg-brand-gold px-3 py-1.5 text-[12px] font-semibold text-brand-on-gold disabled:opacity-60"
-          >
-            {labels.sendRound}
-          </button>
-        ) : null}
-      </div>
+      <p className="text-[13px] text-brand-text">
+        {labels.stickyGuestsCap
+          .replace('{guests}', String(guests))
+          .replace('{cap}', String(cap || guests * (round?.per_person_cap ?? 8)))}
+      </p>
+      {statusLine ? (
+        <p className="mt-0.5 text-[12px] tabular-nums text-brand-text-muted">{statusLine}</p>
+      ) : null}
     </div>
   );
 }

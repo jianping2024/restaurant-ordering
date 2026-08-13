@@ -68,6 +68,28 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.submittedCount, 1);
   });
 
+  it('uses roundReview phase when cart is empty and own round lines exist', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      roundOwnQty: 3,
+      recentOrders: [orderWithItems([{ id: 'i1', name: 'x', name_pt: 'x', qty: 1, price: 3, emoji: '🍽' }])],
+    });
+    assert.equal(view.phase, 'roundReview');
+    assert.equal(view.primaryAction, 'openRoundReview');
+    assert.equal(view.roundOwnQty, 3);
+    assert.equal(view.showOrderedCta, true);
+  });
+
+  it('prefers draft over roundReview when cart has items', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      cart: [cartLine],
+      roundOwnQty: 4,
+    });
+    assert.equal(view.phase, 'draft');
+    assert.equal(view.primaryAction, 'openCart');
+  });
+
   it('uses ordered phase when cart is empty and submitted exist', () => {
     const view = deriveMenuPageFooter({
       ...base,
@@ -76,7 +98,7 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.phase, 'ordered');
     assert.equal(view.primaryAction, 'viewOrdered');
     assert.equal(view.submittedCount, 1);
-    assert.equal(view.submittedTotal, 10);
+    assert.equal(view.submittedTotal, 3);
     assert.equal(view.showOrderedCta, true);
   });
 
@@ -88,7 +110,7 @@ describe('deriveMenuPageFooter', () => {
         { ...orderWithItems([{ id: 'i2', name: 'y', name_pt: 'y', qty: 2, price: 4, emoji: '🍽' }]), id: 'o2', total_amount: 8 },
       ],
     });
-    assert.equal(view.submittedTotal, 20.5);
+    assert.equal(view.submittedTotal, 11);
   });
 
   it('enables bill CTA when session has submitted items', () => {

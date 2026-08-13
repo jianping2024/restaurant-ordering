@@ -20,7 +20,12 @@ function parseSnapshot(json: unknown, fallbackSettings: SushiRoundSettings): Rou
   const raw = json as Record<string, unknown>;
   return {
     round: (raw.round as RoundSnapshot['round']) ?? null,
-    lines: Array.isArray(raw.lines) ? (raw.lines as TableOrderRoundLineRow[]) : [],
+    lines: Array.isArray(raw.lines)
+      ? (raw.lines as TableOrderRoundLineRow[]).map((line) => ({
+          ...line,
+          note: typeof line.note === 'string' ? line.note : '',
+        }))
+      : [],
     votes: Array.isArray(raw.votes) ? (raw.votes as RoundSnapshot['votes']) : [],
     settings:
       raw.settings && typeof raw.settings === 'object'
@@ -74,6 +79,7 @@ export async function upsertRoundLineClient(params: {
   guestClientId: string;
   menuItemId: string;
   qty: number;
+  note?: string | null;
   settings: SushiRoundSettings;
 }): Promise<{ ok: true; snapshot: RoundApiSnapshot } | { ok: false; error: string; status: number }> {
   const res = await fetch(`/api/restaurants/${params.slug}/table-order-round/lines`, {
@@ -85,6 +91,7 @@ export async function upsertRoundLineClient(params: {
       guest_client_id: params.guestClientId,
       menu_item_id: params.menuItemId,
       qty: params.qty,
+      note: params.note ?? '',
     }),
   });
   const json = await readJson(res);
@@ -233,6 +240,26 @@ export function ownLineQty(
     (l) => l.menu_item_id === menuItemId && l.guest_client_id === guestClientId,
   );
   return line?.qty ?? 0;
+}
+
+export function ownLineNote(
+  lines: TableOrderRoundLineRow[],
+  menuItemId: string,
+  guestClientId: string,
+): string {
+  return (
+    lines.find((l) => l.menu_item_id === menuItemId && l.guest_client_id === guestClientId)?.note ??
+    ''
+  );
+}
+
+export function ownLinesQtyTotal(
+  lines: TableOrderRoundLineRow[],
+  guestClientId: string,
+): number {
+  return lines
+    .filter((l) => l.guest_client_id === guestClientId)
+    .reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
 }
 
 export function ownLineId(

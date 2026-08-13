@@ -18,6 +18,8 @@ type Labels = {
   viewCart: string;
   viewBill: string;
   viewOrdered: string;
+  viewRoundReview?: string;
+  roundReviewCount?: (count: number) => string;
   placeOrder: string;
   footerTotal: string;
   orderedCount: (count: number) => string;
@@ -27,6 +29,7 @@ type Props = MenuPageFooterView & {
   labels: Labels;
   onOpenCart: () => void;
   onOpenOrdered: () => void;
+  onOpenRoundReview?: () => void;
 };
 
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
@@ -112,6 +115,50 @@ function OrderedSummary({
   );
 }
 
+function RoundReviewSummary({
+  roundOwnQty,
+  roundReviewCountLabel,
+  viewRoundReviewLabel,
+  submittedCount,
+  orderedCountLabel,
+  onOpenRoundReview,
+  onOpenOrdered,
+}: {
+  roundOwnQty: number;
+  roundReviewCountLabel: string;
+  viewRoundReviewLabel: string;
+  submittedCount: number;
+  orderedCountLabel: string;
+  onOpenRoundReview: () => void;
+  onOpenOrdered: () => void;
+}) {
+  return (
+    <div className={`flex min-w-0 flex-1 items-center ${customerMenuBottomBarIconGapClass}`}>
+      <button
+        type="button"
+        onClick={onOpenRoundReview}
+        className={`flex min-w-0 items-center ${customerMenuBottomBarIconGapClass} text-left transition-colors hover:bg-brand-gold/5 active:bg-brand-gold/10`}
+        aria-label={viewRoundReviewLabel}
+      >
+        <span className={CUSTOMER_MENU_TYPE.footerSummary}>{roundReviewCountLabel}</span>
+      </button>
+      {submittedCount > 0 ? (
+        <button
+          type="button"
+          onClick={onOpenOrdered}
+          className={`ml-2 flex shrink-0 items-center ${customerMenuBottomBarIconGapClass} text-left text-brand-text-muted transition-colors hover:bg-brand-gold/5`}
+          aria-label={orderedCountLabel}
+        >
+          <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
+          <span className={CUSTOMER_MENU_TYPE.footerHint}>{orderedCountLabel}</span>
+        </button>
+      ) : (
+        <span className="sr-only">{roundOwnQty}</span>
+      )}
+    </div>
+  );
+}
+
 function IdleSummary({
   viewCartLabel,
   onOpenCart,
@@ -139,13 +186,15 @@ function FooterPrimaryAction({
   billEnabled,
   onOpenCart,
   onOpenOrdered,
+  onOpenRoundReview,
 }: {
   primaryAction: MenuPageFooterPrimaryAction;
-  labels: Pick<Labels, 'placeOrder' | 'viewOrdered' | 'viewBill'>;
+  labels: Pick<Labels, 'placeOrder' | 'viewOrdered' | 'viewBill' | 'viewRoundReview'>;
   billHref: string;
   billEnabled: boolean;
   onOpenCart: () => void;
   onOpenOrdered: () => void;
+  onOpenRoundReview?: () => void;
 }) {
   switch (primaryAction) {
     case 'openCart':
@@ -154,6 +203,16 @@ function FooterPrimaryAction({
           {labels.placeOrder}
         </button>
       );
+    case 'openRoundReview':
+      return onOpenRoundReview ? (
+        <button
+          type="button"
+          onClick={onOpenRoundReview}
+          className={customerMenuBottomBarPrimaryActionClass}
+        >
+          {labels.viewRoundReview ?? labels.viewOrdered}
+        </button>
+      ) : null;
     case 'viewOrdered':
       return (
         <button type="button" onClick={onOpenOrdered} className={customerMenuBottomBarPrimaryActionClass}>
@@ -190,6 +249,22 @@ function footerSummaryForPhase(
           onOpenCart={props.onOpenCart}
         />
       );
+    case 'roundReview':
+      return props.onOpenRoundReview ? (
+        <RoundReviewSummary
+          roundOwnQty={props.roundOwnQty}
+          roundReviewCountLabel={(props.labels.roundReviewCount ?? props.labels.orderedCount)(
+            props.roundOwnQty,
+          )}
+          viewRoundReviewLabel={props.labels.viewRoundReview ?? props.labels.viewOrdered}
+          submittedCount={props.submittedCount}
+          orderedCountLabel={props.labels.orderedCount(props.submittedCount)}
+          onOpenRoundReview={props.onOpenRoundReview}
+          onOpenOrdered={props.onOpenOrdered}
+        />
+      ) : (
+        <IdleSummary viewCartLabel={props.labels.viewCart} onOpenCart={props.onOpenCart} />
+      );
     case 'ordered':
       return (
         <OrderedSummary
@@ -204,8 +279,17 @@ function footerSummaryForPhase(
 }
 
 export function CustomerMenuFooter(props: Props) {
-  const { visible, phase, primaryAction, billHref, billEnabled, labels, onOpenCart, onOpenOrdered } =
-    props;
+  const {
+    visible,
+    phase,
+    primaryAction,
+    billHref,
+    billEnabled,
+    labels,
+    onOpenCart,
+    onOpenOrdered,
+    onOpenRoundReview,
+  } = props;
 
   if (!visible) return null;
 
@@ -220,6 +304,7 @@ export function CustomerMenuFooter(props: Props) {
           billEnabled={billEnabled}
           onOpenCart={onOpenCart}
           onOpenOrdered={onOpenOrdered}
+          onOpenRoundReview={onOpenRoundReview}
         />
       }
     />

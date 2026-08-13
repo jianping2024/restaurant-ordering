@@ -67,16 +67,27 @@ describe('parseAppendCartRawItems', () => {
     );
   });
 
-  it('merges duplicate menu_item_id qty and notes', () => {
+  it('sums qty only when menu_item_id and note match', () => {
+    const r = parseAppendCartRawItems([
+      { menu_item_id: MENU_A, qty: 1, note: 'a' },
+      { menu_item_id: MENU_A, qty: 2, note: 'a' },
+    ]);
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.deepEqual(r.lines, [{ menuItemId: MENU_A, qty: 3, note: 'a' }]);
+  });
+
+  it('keeps the same item as two lines when notes differ', () => {
     const r = parseAppendCartRawItems([
       { menu_item_id: MENU_A, qty: 1, note: 'a' },
       { menu_item_id: MENU_A, qty: 2, note: 'b' },
     ]);
     assert.equal(r.ok, true);
     if (!r.ok) return;
-    assert.equal(r.lines.length, 1);
-    assert.equal(r.lines[0].qty, 3);
-    assert.equal(r.lines[0].note, 'a; b');
+    assert.deepEqual(r.lines, [
+      { menuItemId: MENU_A, qty: 1, note: 'a' },
+      { menuItemId: MENU_A, qty: 2, note: 'b' },
+    ]);
   });
 
   it('clamps note to APPEND_CART_NOTE_MAX_LEN', () => {

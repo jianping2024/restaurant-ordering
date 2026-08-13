@@ -33,14 +33,15 @@ import type {
   TableOrderRoundVoteRow,
   TableOrderRoundVoteValue,
 } from '@/lib/table-order-round/types';
+import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import { sessionGuestCountForLimits } from '@/lib/sushi-buffet-limits';
+import { clampAppendCartNote, type OrderItem } from '@/types';
 import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
-import type { OrderItem } from '@/types';
 
 const ROUND_SELECT =
   'id, restaurant_id, session_id, table_id, status, guest_count_snapshot, per_person_cap, submit_request_id, submit_requested_at, submit_deadline_at, defer_used_at, defer_cooldown_until, cooldown_until, append_client_request_id, created_at, updated_at';
 
-const LINE_SELECT = 'id, round_id, menu_item_id, qty, guest_client_id, added_at';
+const LINE_SELECT = 'id, round_id, menu_item_id, qty, guest_client_id, note, added_at';
 const VOTE_SELECT = 'id, round_id, submit_request_id, guest_client_id, vote, voted_at';
 
 export type ServiceResult<T> =
@@ -239,6 +240,7 @@ export async function upsertRoundLine(params: {
   guestClientId: string;
   menuItemId: string;
   qty: number;
+  note?: string | null;
   /** Caller must verify price === 0 from menu row. */
   priceIsFree: boolean;
   settings: SushiRoundSettings;
@@ -252,10 +254,12 @@ export async function upsertRoundLine(params: {
     guestClientId,
     menuItemId,
     qty,
+    note: noteRaw,
     priceIsFree,
     settings,
     liveGuestCount,
   } = params;
+  const note = clampAppendCartNote((noteRaw ?? '').trim());
 
   if (!settings.sushi_round_ordering_enabled) {
     return { ok: false, status: 400, error: 'sushi_round_disabled' };
@@ -341,7 +345,7 @@ export async function upsertRoundLine(params: {
   if (existing) {
     const { data: updated, error } = await admin
       .from('table_order_round_lines')
-      .update({ qty })
+      .update({ qty, note })
       .eq('id', existing.id)
       .select(LINE_SELECT)
       .single();
@@ -357,6 +361,7 @@ export async function upsertRoundLine(params: {
         menu_item_id: menuItemId,
         qty,
         guest_client_id: guestClientId,
+        note,
       })
       .select(LINE_SELECT)
       .single();
@@ -785,15 +790,7 @@ export async function finalizeRound(params: {
       .eq('id', round.id);
   }
 
-  // Aggregate by menu_item_id
-  const qtyByItem = new Map<string, number>();
-  for (const line of lines) {
-    qtyByItem.set(line.menu_item_id, (qtyByItem.get(line.menu_item_id) || 0) + line.qty);
-  }
-  const rawItems = Array.from(qtyByItem.entries()).map(([menu_item_id, qty]) => ({
-    menu_item_id,
-    qty,
-  }));
+  const rawItems = aggregateRoundLinesForAppend(lines);
 
   const writeContext = await loadAppendWriteContext(admin, restaurantId, tableId);
   if (!writeContext.ok) {

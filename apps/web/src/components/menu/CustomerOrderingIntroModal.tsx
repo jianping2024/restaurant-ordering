@@ -67,7 +67,7 @@ export function CustomerOrderingIntroModal({
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold/15 text-base"
                   aria-hidden
                 >
-                  {STEP_ICONS[index]}
+                  {STEP_ICONS[index] ?? String(index + 1)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-brand-text">

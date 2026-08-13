@@ -6,25 +6,20 @@ import { useDebouncedPostgresRealtimeRefresh } from '@/lib/use-restaurant-realti
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
 import {
-  deleteRoundLineClient,
   fetchRoundSnapshot,
   finalizeRoundClient,
-  ownLineId,
+  ownLineNote,
   ownLineQty,
+  ownLinesQtyTotal,
   submitRoundRequestClient,
   type RoundApiSnapshot,
   upsertRoundLineClient,
   voteRoundClient,
 } from '@/lib/table-order-round/client-api';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
+import { mergeAppendCartNotes } from '@/types';
 
-const LINE_DEBOUNCE_MS = 400;
 const REALTIME_DEBOUNCE_MS = 2000;
-
-export type SushiRoundView = RoundSnapshot & {
-  guestClientId: string;
-  settings: SushiRoundSettings;
-};
 
 function emptySnapshot(settings: SushiRoundSettings): RoundSnapshot {
   return {
@@ -38,7 +33,13 @@ function emptySnapshot(settings: SushiRoundSettings): RoundSnapshot {
   };
 }
 
-/** Sole customer hook: Realtime → debounced GET + line debounce / vote / finalize. */
+export type RoundCartCommitItem = {
+  menuItemId: string;
+  qty: number;
+  note: string;
+};
+
+/** Sole customer hook: Realtime → GET; cart 下单 upserts own lines; vote / finalize. */
 export function useTableOrderRound(params: {
   slug: string;
   restaurantId: string;
@@ -53,11 +54,14 @@ export function useTableOrderRound(params: {
   const [settings, setSettings] = useState(initialSettings);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const pendingQtyRef = useRef<Map<string, number>>(new Map());
-  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const seenSubmitRequestIdsRef = useRef<Set<string>>(new Set());
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [deferModalOpen, setDeferModalOpen] = useState(false);
+  const [lastKitchenSend, setLastKitchenSend] = useState<{
+    order_id: string;
+    batch_id?: string;
+    enqueue_token: string;
+  } | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -75,7 +79,6 @@ export function useTableOrderRound(params: {
       round_cap_total: next.round_cap_total,
       lines_qty_total: next.lines_qty_total,
     });
-    // Avoid new-object churn: settings in refresh deps previously caused GET → setSettings → refresh → GET loop (429).
     setSettings((prev) => {
       const n = next.settings;
       if (
@@ -98,6 +101,13 @@ export function useTableOrderRound(params: {
     } else if (next.round?.status !== 'pending_confirm') {
       setConfirmModalOpen(false);
       setDeferModalOpen(false);
+    }
+    if (next.finalized && next.order_id && next.enqueue_token) {
+      setLastKitchenSend({
+        order_id: next.order_id,
+        batch_id: next.batch_id,
+        enqueue_token: next.enqueue_token,
+      });
     }
     return next;
   }, []);
@@ -124,9 +134,7 @@ export function useTableOrderRound(params: {
   const channelKey = `sushi-round:${sessionId ?? 'none'}:${roundId ?? 'none'}`;
   const bindings = useMemo(() => {
     if (!sessionId) return [];
-    const list = [
-      { table: 'table_order_rounds', filter: `session_id=eq.${sessionId}` },
-    ];
+    const list = [{ table: 'table_order_rounds', filter: `session_id=eq.${sessionId}` }];
     if (roundId) {
       list.push(
         { table: 'table_order_round_lines', filter: `round_id=eq.${roundId}` },
@@ -147,8 +155,6 @@ export function useTableOrderRound(params: {
     REALTIME_DEBOUNCE_MS,
   );
 
-  // When round id first appears, line/vote bindings remount; catch up once so we do not
-  // miss INSERTs that landed before the round_id filter was subscribed.
   const prevRoundIdRef = useRef<string | null>(null);
   useEffect(() => {
     const prev = prevRoundIdRef.current;
@@ -158,88 +164,34 @@ export function useTableOrderRound(params: {
     void refresh();
   }, [realtimeEnabled, refresh, roundId]);
 
-  const flushLineQty = useCallback(
-    async (menuItemId: string, qty: number) => {
+  const commitCartLines = useCallback(
+    async (items: RoundCartCommitItem[]) => {
       if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
-      if (qty < 1) {
-        const lineId = ownLineId(snapshot.lines, menuItemId, guestClientId);
-        if (!lineId) {
-          pendingQtyRef.current.delete(menuItemId);
-          return { ok: true as const, snapshot };
-        }
-        const result = await deleteRoundLineClient({
+      let lines = snapshot.lines;
+      for (const item of items) {
+        const addQty = Math.max(0, Math.floor(item.qty));
+        if (addQty < 1) continue;
+        const nextQty = ownLineQty(lines, item.menuItemId, guestClientId) + addQty;
+        const note = mergeAppendCartNotes(
+          ownLineNote(lines, item.menuItemId, guestClientId),
+          item.note,
+        );
+        const result = await upsertRoundLineClient({
           slug,
           tableId,
           guestClientId,
-          lineId,
-          settings,
+          menuItemId: item.menuItemId,
+          qty: nextQty,
+          note,
+          settings: settingsRef.current,
         });
         if (!result.ok) return result;
-        pendingQtyRef.current.delete(menuItemId);
         applySnapshot(result.snapshot);
-        return result;
+        lines = result.snapshot.lines;
       }
-      const result = await upsertRoundLineClient({
-        slug,
-        tableId,
-        guestClientId,
-        menuItemId,
-        qty,
-        settings,
-      });
-      if (!result.ok) return result;
-      pendingQtyRef.current.delete(menuItemId);
-      applySnapshot(result.snapshot);
-      return result;
+      return { ok: true as const };
     },
-    [applySnapshot, guestClientId, settings, slug, snapshot, tableId],
-  );
-
-  const scheduleLineQty = useCallback(
-    (menuItemId: string, qty: number) => {
-      pendingQtyRef.current.set(menuItemId, qty);
-      const existing = debounceTimersRef.current.get(menuItemId);
-      if (existing) clearTimeout(existing);
-      const timer = setTimeout(() => {
-        debounceTimersRef.current.delete(menuItemId);
-        const pending = pendingQtyRef.current.get(menuItemId);
-        if (pending === undefined) return;
-        void flushLineQty(menuItemId, pending);
-      }, LINE_DEBOUNCE_MS);
-      debounceTimersRef.current.set(menuItemId, timer);
-    },
-    [flushLineQty],
-  );
-
-  useEffect(() => {
-    const timers = debounceTimersRef.current;
-    return () => {
-      for (const timer of Array.from(timers.values())) clearTimeout(timer);
-      timers.clear();
-    };
-  }, []);
-
-  const displayQtyForItem = useCallback(
-    (menuItemId: string) => {
-      if (!guestClientId) return 0;
-      if (pendingQtyRef.current.has(menuItemId)) {
-        return pendingQtyRef.current.get(menuItemId) ?? 0;
-      }
-      return ownLineQty(snapshot.lines, menuItemId, guestClientId);
-    },
-    [guestClientId, snapshot.lines],
-  );
-
-  /** Optimistic local qty for steppers (forces re-render via bump). */
-  const [qtyEpoch, setQtyEpoch] = useState(0);
-  const setFreeItemQty = useCallback(
-    (menuItemId: string, nextQty: number) => {
-      const qty = Math.max(0, Math.floor(nextQty));
-      pendingQtyRef.current.set(menuItemId, qty);
-      setQtyEpoch((n) => n + 1);
-      scheduleLineQty(menuItemId, qty);
-    },
-    [scheduleLineQty],
+    [applySnapshot, guestClientId, slug, snapshot.lines, tableId],
   );
 
   const submitRequest = useCallback(
@@ -249,7 +201,7 @@ export function useTableOrderRound(params: {
         slug,
         tableId,
         guestClientId,
-        settings,
+        settings: settingsRef.current,
         latitude: geo?.latitude,
         longitude: geo?.longitude,
       });
@@ -257,7 +209,7 @@ export function useTableOrderRound(params: {
       applySnapshot(result.snapshot);
       return result;
     },
-    [applySnapshot, guestClientId, settings, slug, tableId],
+    [applySnapshot, guestClientId, slug, tableId],
   );
 
   const vote = useCallback(
@@ -268,7 +220,7 @@ export function useTableOrderRound(params: {
         tableId,
         guestClientId,
         vote: value,
-        settings,
+        settings: settingsRef.current,
       });
       if (!result.ok) return result;
       applySnapshot(result.snapshot);
@@ -278,7 +230,7 @@ export function useTableOrderRound(params: {
       }
       return result;
     },
-    [applySnapshot, guestClientId, settings, slug, tableId],
+    [applySnapshot, guestClientId, slug, tableId],
   );
 
   const finalize = useCallback(
@@ -288,7 +240,7 @@ export function useTableOrderRound(params: {
         slug,
         tableId,
         guestClientId,
-        settings,
+        settings: settingsRef.current,
         latitude: geo?.latitude,
         longitude: geo?.longitude,
       });
@@ -297,10 +249,9 @@ export function useTableOrderRound(params: {
       setConfirmModalOpen(false);
       return result;
     },
-    [applySnapshot, guestClientId, settings, slug, tableId],
+    [applySnapshot, guestClientId, slug, tableId],
   );
 
-  // Deadline timer → single finalize attempt
   useEffect(() => {
     if (!enabled || snapshot.round?.status !== 'pending_confirm') return;
     const deadline = snapshot.round.submit_deadline_at;
@@ -316,17 +267,25 @@ export function useTableOrderRound(params: {
     return () => clearTimeout(timer);
   }, [enabled, finalize, snapshot.round?.status, snapshot.round?.submit_deadline_at]);
 
+  const roundStatus = snapshot.round?.status;
+  const roundReviewActive =
+    roundStatus === 'collecting' ||
+    roundStatus === 'pending_confirm' ||
+    roundStatus === 'finalize_failed' ||
+    (roundStatus == null && snapshot.lines.length > 0);
+  const ownReviewQty = roundReviewActive ? ownLinesQtyTotal(snapshot.lines, guestClientId) : 0;
+
   return {
     guestClientId,
     snapshot,
     settings,
-    qtyEpoch,
-    displayQtyForItem,
-    setFreeItemQty,
+    ownReviewQty,
+    commitCartLines,
     refresh,
     submitRequest,
     vote,
     finalize,
+    lastKitchenSend,
     confirmModalOpen,
     setConfirmModalOpen,
     deferModalOpen,

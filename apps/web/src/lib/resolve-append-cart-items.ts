@@ -15,6 +15,7 @@ import {
 import type { BuffetServiceMode } from '@mesa/shared';
 import { normalizeBuffetServiceMode } from '@mesa/shared';
 import type { Order, OrderItem } from '@/types';
+import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import {
   APPEND_CART_MAX_LINES,
   APPEND_CART_QTY_MAX,
@@ -66,12 +67,6 @@ export function generateAppendBatchId(nowMs = Date.now()): string {
   return `${nowMs}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function mergeNotes(a: string, b: string): string {
-  if (!a) return b;
-  if (!b || a === b) return a;
-  return clampAppendCartNote(`${a}; ${b}`);
-}
-
 const FORBIDDEN_APPEND_LINE_KEYS = [
   'id',
   'name',
@@ -113,7 +108,7 @@ function rowLooksLikeBuffet(row: Record<string, unknown>): boolean {
   return typeof v === 'string' && v.trim().toLowerCase().startsWith('buffet:');
 }
 
-/** Validate and merge raw append `items` (`AppendCartLineInput` only). */
+/** Validate raw append `items`; collapse only identical (menu_item_id, note). */
 export function parseAppendCartRawItems(
   raw: unknown,
 ): { ok: true; lines: ParsedAppendCartLine[] } | ResolveAppendCartFailure {
@@ -121,8 +116,7 @@ export function parseAppendCartRawItems(
     return { ok: false, error: 'invalid_items' };
   }
 
-  const merged = new Map<string, ParsedAppendCartLine>();
-  const order: string[] = [];
+  const pending: Array<{ menu_item_id: string; qty: number; note: string }> = [];
 
   for (const row of raw) {
     if (!row || typeof row !== 'object') {
@@ -145,23 +139,27 @@ export function parseAppendCartRawItems(
 
     const note =
       typeof r.note === 'string' ? clampAppendCartNote(r.note.trim()) : '';
+    pending.push({ menu_item_id: menuItemId, qty, note });
+  }
 
-    const existing = merged.get(menuItemId);
-    if (existing) {
-      const nextQty = existing.qty + qty;
-      if (nextQty > APPEND_CART_QTY_MAX) {
-        return { ok: false, error: 'invalid_items' };
-      }
-      existing.qty = nextQty;
-      existing.note = mergeNotes(existing.note, note);
-    } else {
-      merged.set(menuItemId, { menuItemId, qty, note });
-      order.push(menuItemId);
+  const aggregated = aggregateRoundLinesForAppend(pending);
+  if (aggregated.length < 1) {
+    return { ok: false, error: 'invalid_items' };
+  }
+  for (const line of aggregated) {
+    if (line.qty > APPEND_CART_QTY_MAX) {
+      return { ok: false, error: 'invalid_items' };
     }
   }
 
-  const lines = order.map((id) => merged.get(id)!);
-  return { ok: true, lines };
+  return {
+    ok: true,
+    lines: aggregated.map((line) => ({
+      menuItemId: line.menu_item_id,
+      qty: line.qty,
+      note: line.note,
+    })),
+  };
 }
 
 /** Walk parent chain from cart item categories only — not the full menu tree. */
@@ -278,6 +276,7 @@ export async function resolveAppendCartItems(params: {
   const guestCount = sessionGuestCountForLimits(sessionOrders);
   const staffAssisted = params.staffAssisted === true;
   const items: OrderItem[] = [];
+  const batchQtyByItem = new Map<string, number>();
 
   for (const line of lines) {
     const menu = byId.get(line.menuItemId);
@@ -294,11 +293,13 @@ export async function resolveAppendCartItems(params: {
         menu.over_limit_unit_price == null ? null : coerceCartPrice(menu.over_limit_unit_price),
       price: coerceCartPrice(menu.price),
     };
+    const alreadyInBatch = batchQtyByItem.get(line.menuItemId) ?? 0;
     const checked = checkSushiLimitForCartLine({
       serviceMode,
       staffAssisted,
       guestCount,
-      alreadyOrdered: sessionOrderedQtyForMenuItem(sessionOrders, line.menuItemId),
+      alreadyOrdered:
+        sessionOrderedQtyForMenuItem(sessionOrders, line.menuItemId) + alreadyInBatch,
       requestQty: line.qty,
       item: limitFields,
     });
@@ -316,6 +317,7 @@ export async function resolveAppendCartItems(params: {
     items.push(
       menuRowToOrderItem(menu, line.qty, line.note, batchId, addedAt, categories, limitRule),
     );
+    batchQtyByItem.set(line.menuItemId, alreadyInBatch + line.qty);
   }
 
   return { ok: true, items, batchId };

@@ -9,13 +9,8 @@ export type CustomerOrderingIntroStepCopy = {
 export type CustomerOrderingIntroCopy = {
   title: string;
   subtitle: string;
-  /** Order → view bill → split → call checkout */
-  steps: [
-    CustomerOrderingIntroStepCopy,
-    CustomerOrderingIntroStepCopy,
-    CustomerOrderingIntroStepCopy,
-    CustomerOrderingIntroStepCopy,
-  ];
+  /** Classic: 4 steps (order → bill → split → checkout). Sushi: 3 steps (cart → 核单 → send). */
+  steps: CustomerOrderingIntroStepCopy[];
   cta: string;
   footnote: string;
 };

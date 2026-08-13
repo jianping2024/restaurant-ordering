@@ -34,6 +34,7 @@ export type TableOrderRoundLineRow = {
   menu_item_id: string;
   qty: number;
   guest_client_id: string;
+  note: string;
   added_at: string;
 };
 

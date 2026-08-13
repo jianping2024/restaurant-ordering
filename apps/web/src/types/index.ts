@@ -254,6 +254,15 @@ export function clampAppendCartNote(note: string): string {
   return note.slice(0, APPEND_CART_NOTE_MAX_LEN);
 }
 
+/** Sole same-row note merge (cart presets / second 下单 onto the same guest+item). */
+export function mergeAppendCartNotes(a: string, b: string): string {
+  const left = clampAppendCartNote(a.trim());
+  const right = clampAppendCartNote(b.trim());
+  if (!left) return right;
+  if (!right || left.includes(right)) return left;
+  return clampAppendCartNote(`${left}; ${right}`);
+}
+
 export interface Buffet {
   id: string;
   restaurant_id: string;

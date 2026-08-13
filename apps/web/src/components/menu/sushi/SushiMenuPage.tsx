@@ -71,12 +71,9 @@ import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { isCooldownActive, isDeferCooldownActive } from '@/lib/table-order-round/status';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
+import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
-import {
-  customerMenuBottomBarDockClass,
-  customerMenuBottomBarPrimaryActionClass,
-  customerMenuBottomBarRowClass,
-} from '@/lib/customer-menu-bottom-bar-layout';
+import { buildOwnRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
 
 type Props = {
   restaurant: MenuOrderingRestaurant;
@@ -111,6 +108,7 @@ export function SushiMenuPage({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
+  const [roundReviewOpen, setRoundReviewOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [roundBusy, setRoundBusy] = useState(false);
   const submittingRef = useRef(false);
@@ -163,7 +161,6 @@ export function SushiMenuPage({
         { title: roundT.introStep1Title, body: roundT.introStep1Body },
         { title: roundT.introStep2Title, body: roundT.introStep2Body },
         { title: roundT.introStep3Title, body: roundT.introStep3Body },
-        base.steps[3],
       ],
     };
   }, [lang, roundT]);
@@ -249,7 +246,7 @@ export function SushiMenuPage({
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
   const basketLocked = round.snapshot.round?.status === 'pending_confirm';
 
-  const commitPaidCartQty = useCallback((item: MenuItem, nextQty: number) => {
+  const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
     if (!Number.isFinite(nextQty) || nextQty <= 0) {
       setCart((prev) => prev.filter((c) => c.menuItemId !== item.id));
       return;
@@ -292,10 +289,6 @@ export function SushiMenuPage({
       if (!Number.isFinite(nextQty) || nextQty <= 0) nextQty = 0;
 
       if (isSushiRoundFreeMenuPrice(item.price)) {
-        if (basketLocked) {
-          showToast(roundT.basketLocked, 'info');
-          return;
-        }
         const status = round.snapshot.round?.status;
         if (
           status === 'cooldown' &&
@@ -304,29 +297,25 @@ export function SushiMenuPage({
           showToast(roundT.cooldownActive, 'info');
           return;
         }
-        round.setFreeItemQty(menuItemId, nextQty);
-        return;
       }
 
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
-      commitPaidCartQty(item, nextQty);
+      commitCartQty(item, nextQty);
     },
     [
-      basketLocked,
       catalogReady,
-      commitPaidCartQty,
+      commitCartQty,
       ensureGuestCanPlaceOrder,
       lang,
       menuItems,
-      round,
+      round.snapshot.round?.cooldown_until,
+      round.snapshot.round?.status,
       roundT,
     ],
   );
 
   const bumpItem = (item: MenuItem, delta: number) => {
-    const current = isSushiRoundFreeMenuPrice(item.price)
-      ? round.displayQtyForItem(item.id)
-      : coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+    const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
     void requestQtyChange(item.id, current + delta);
   };
 
@@ -346,8 +335,9 @@ export function SushiMenuPage({
         staffAssisted: null,
         restaurantSlug: restaurant.slug,
         tableId,
+        roundOwnQty: round.ownReviewQty,
       }),
-    [activeSession, cart, recentOrders, restaurant.slug, sessionResolved, tableId],
+    [activeSession, cart, recentOrders, restaurant.slug, round.ownReviewQty, sessionResolved, tableId],
   );
 
   const roundStatus = round.snapshot.round?.status;
@@ -355,19 +345,27 @@ export function SushiMenuPage({
     roundStatus === 'cooldown' &&
     isCooldownActive(roundStatus, round.snapshot.round?.cooldown_until ?? null);
   const canSendRound =
-    round.snapshot.lines_qty_total > 0 &&
+    round.ownReviewQty > 0 &&
     (roundStatus === 'collecting' || roundStatus == null) &&
     !inTableCooldown &&
     !isDeferCooldownActive(round.snapshot.round?.defer_cooldown_until ?? null);
-  const showSendRoundFooter = canSendRound && cart.length === 0;
-  const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(
-    footer.visible || showSendRoundFooter,
-  );
+  const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(footer.visible);
   const guestNotice = useMemo(
     () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
     [lang, restaurant.guest_ordering_notice],
   );
-  const hideGuestNoticeChrome = isDemo || cartOpen || orderedOpen || introVisible;
+  const hideGuestNoticeChrome = isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible;
+
+  const roundReviewGroups = useMemo(
+    () =>
+      buildOwnRoundReviewGroups({
+        lines: round.snapshot.lines,
+        guestClientId: round.guestClientId,
+        menuItems,
+        lang,
+      }),
+    [lang, menuItems, round.guestClientId, round.snapshot.lines],
+  );
 
   const formatCountLabel = useCallback(
     (template: string, count: number) => template.replace('{count}', String(count)),
@@ -438,7 +436,7 @@ export function SushiMenuPage({
     [lang, refreshSessionContext, roundT.basketLocked, t],
   );
 
-  const submitPaidCart = async () => {
+  const submitCart = async () => {
     if (!catalogReady || cart.length === 0 || isSubmitCooldownActive) return;
     if (submittingRef.current) return;
 
@@ -450,10 +448,39 @@ export function SushiMenuPage({
       return;
     }
 
+    const freeCart = cart.filter((c) => isSushiRoundFreeMenuPrice(c.price));
+    const paidCart = cart.filter((c) => !isSushiRoundFreeMenuPrice(c.price));
+
     submittingRef.current = true;
     setSubmitting(true);
     try {
-      const cartQtyRows = cart.map((c) => ({
+      if (freeCart.length > 0) {
+        const result = await round.commitCartLines(
+          freeCart.map((c) => ({
+            menuItemId: c.menuItemId,
+            qty: coerceCartQty(c.qty),
+            note: c.note || '',
+          })),
+        );
+        if (!result.ok) {
+          showToast(messageForSushiRoundError(result.error, roundT), 'info');
+          return;
+        }
+        setCart(paidCart);
+        if (paidCart.length > 0) {
+          showToast(roundT.placedInRound, 'success');
+        }
+      }
+
+      if (paidCart.length === 0) {
+        restartSubmitCooldown();
+        clearSubmitCart();
+        setRoundReviewOpen(true);
+        showToast(roundT.placedInRound, 'success');
+        return;
+      }
+
+      const cartQtyRows = paidCart.map((c) => ({
         menuItemId: c.menuItemId,
         qty: coerceCartQty(c.qty),
       }));
@@ -480,7 +507,7 @@ export function SushiMenuPage({
       }
 
       const intent = resolveAppendClientRequestId({
-        cart,
+        cart: paidCart,
         previous: pendingAppendIntentRef.current,
       });
       pendingAppendIntentRef.current = {
@@ -490,7 +517,7 @@ export function SushiMenuPage({
 
       const result = await executeMenuOrderSubmit({
         flow: 'guest',
-        cart,
+        cart: paidCart,
         slug: restaurant.slug,
         tableId,
         waiterFlow: false,
@@ -578,7 +605,9 @@ export function SushiMenuPage({
       });
       if (!result.ok) {
         showToast(messageForSushiRoundError(result.error, roundT), 'info');
+        return;
       }
+      setRoundReviewOpen(false);
     } finally {
       setRoundBusy(false);
     }
@@ -592,10 +621,7 @@ export function SushiMenuPage({
         showToast(messageForSushiRoundError(result.error, roundT), 'info');
         return;
       }
-      if (result.snapshot.finalized) {
-        handleFinalizeSuccess(result.snapshot);
-        round.setConfirmModalOpen(false);
-      }
+      round.setConfirmModalOpen(false);
     } finally {
       setRoundBusy(false);
     }
@@ -617,23 +643,14 @@ export function SushiMenuPage({
     }
   };
 
-  const pendingDeadline = round.snapshot.round?.submit_deadline_at;
-  const pendingStatus = round.snapshot.round?.status;
+  const seenKitchenSendRef = useRef<string | null>(null);
   useEffect(() => {
-    if (pendingStatus !== 'pending_confirm' || !pendingDeadline) return;
-    if (Date.now() < Date.parse(pendingDeadline)) return;
-    let cancelled = false;
-    void (async () => {
-      const result = await round.finalize();
-      if (cancelled || !result.ok) return;
-      if (result.snapshot.order_id) handleFinalizeSuccess(result.snapshot);
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // finalize identity is stable enough via guestClientId/settings; avoid round object churn
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deadline/status gate
-  }, [handleFinalizeSuccess, pendingDeadline, pendingStatus]);
+    const sent = round.lastKitchenSend;
+    if (!sent || seenKitchenSendRef.current === sent.order_id) return;
+    seenKitchenSendRef.current = sent.order_id;
+    handleFinalizeSuccess(sent);
+    setRoundReviewOpen(false);
+  }, [handleFinalizeSuccess, round.lastKitchenSend]);
 
   const rootClassName = `min-h-screen bg-brand-bg relative ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
 
@@ -696,15 +713,7 @@ export function SushiMenuPage({
         ) : null}
       </CustomerOrderingHeader>
 
-      {!isDemo ? (
-        <SushiRoundStickyBar
-          snapshot={round.snapshot}
-          labels={roundT}
-          showSendAction={canSendRound && cart.length > 0}
-          sendBusy={roundBusy}
-          onSend={() => void handleSendRound()}
-        />
-      ) : null}
+      {!isDemo ? <SushiRoundStickyBar snapshot={round.snapshot} labels={roundT} /> : null}
 
       {!isDemo && sessionResolved && !guestCanOrder ? (
         <div className="mx-4 mt-3 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3 text-[13px] text-brand-text">
@@ -720,11 +729,7 @@ export function SushiMenuPage({
         ) : (
           <div className="space-y-3">
             {currentItems.map((item) => {
-              // qtyEpoch forces re-render while free-line debounce is pending
-              void round.qtyEpoch;
-              const cartQty = isSushiRoundFreeMenuPrice(item.price)
-                ? round.displayQtyForItem(item.id)
-                : coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+              const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);
               const limitHint = hintParts
                 ? t.sushiLimitHint
@@ -747,46 +752,35 @@ export function SushiMenuPage({
         )}
       </div>
 
-      {showSendRoundFooter ? (
-        <div className={customerMenuBottomBarDockClass}>
-          <div className={customerMenuBottomBarRowClass}>
-            <div className="min-w-0 flex-1 text-[13px] text-brand-text-muted tabular-nums">
-              {roundT.stickyRoundProgress
-                .replace('{qty}', String(round.snapshot.lines_qty_total))
-                .replace('{cap}', String(round.snapshot.round_cap_total))}
-            </div>
-            <button
-              type="button"
-              className={customerMenuBottomBarPrimaryActionClass}
-              disabled={roundBusy}
-              onClick={() => void handleSendRound()}
-            >
-              {roundT.sendRound}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <CustomerMenuFooter
-          {...footer}
-          labels={{
-            viewCart: t.viewCart,
-            viewBill: t.viewBillLink,
-            viewOrdered: t.viewOrdered,
-            placeOrder: t.placeOrder,
-            orderedCount: (count) => formatCountLabel(t.orderedCount, count),
-            footerTotal: t.footerTotal,
-          }}
-          onOpenCart={() => {
-            setOrderedOpen(false);
-            setCartOpen(true);
-          }}
-          onOpenOrdered={() => {
-            setCartOpen(false);
-            setOrderedOpen(true);
-            if (!isDemo) void refreshSessionContext('full');
-          }}
-        />
-      )}
+      <CustomerMenuFooter
+        {...footer}
+        labels={{
+          viewCart: t.viewCart,
+          viewBill: t.viewBillLink,
+          viewOrdered: t.viewOrdered,
+          viewRoundReview: roundT.viewRoundReview,
+          roundReviewCount: (count) => formatCountLabel(roundT.roundReviewCount, count),
+          placeOrder: t.placeOrder,
+          orderedCount: (count) => formatCountLabel(t.orderedCount, count),
+          footerTotal: t.footerTotal,
+        }}
+        onOpenCart={() => {
+          setOrderedOpen(false);
+          setRoundReviewOpen(false);
+          setCartOpen(true);
+        }}
+        onOpenOrdered={() => {
+          setCartOpen(false);
+          setRoundReviewOpen(false);
+          setOrderedOpen(true);
+          if (!isDemo) void refreshSessionContext('full');
+        }}
+        onOpenRoundReview={() => {
+          setCartOpen(false);
+          setOrderedOpen(false);
+          setRoundReviewOpen(true);
+        }}
+      />
 
       <CartDrawer
         open={cartOpen}
@@ -798,9 +792,26 @@ export function SushiMenuPage({
           void requestQtyChange(id, qty);
         }}
         onUpdateNote={updateNote}
-        onSubmit={submitPaidCart}
+        onSubmit={submitCart}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}
+      />
+
+      <SushiRoundReviewDrawer
+        open={roundReviewOpen}
+        groups={roundReviewGroups}
+        labels={{
+          title: roundT.reviewTitle,
+          empty: roundT.reviewEmpty,
+          continueOrdering: t.continueOrdering,
+          sendRound: roundT.sendRound,
+          lockedHint: roundT.basketLocked,
+        }}
+        canSend={canSendRound}
+        sendBusy={roundBusy}
+        locked={basketLocked}
+        onClose={() => setRoundReviewOpen(false)}
+        onSend={() => void handleSendRound()}
       />
 
       <OrderedDrawer

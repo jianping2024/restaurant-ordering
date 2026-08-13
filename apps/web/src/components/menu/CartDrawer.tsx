@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
-import { APPEND_CART_NOTE_MAX_LEN, clampAppendCartNote, type CartItem, type Language } from '@/types';
+import {
+  APPEND_CART_NOTE_MAX_LEN,
+  mergeAppendCartNotes,
+  type CartItem,
+  type Language,
+} from '@/types';
 import { Button } from '@/components/ui/Button';
+import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import {
   NOTE_PRESET_GROUP_LABELS,
   NOTE_PRESET_BY_KEY,
@@ -30,24 +35,18 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({
-  open, cart, menuItemCodeById, lang, onClose, onUpdateQty, onUpdateNote, onSubmit, submitting, submitCooldownRemaining = 0,
+  open,
+  cart,
+  menuItemCodeById,
+  lang,
+  onClose,
+  onUpdateQty,
+  onUpdateNote,
+  onSubmit,
+  submitting,
+  submitCooldownRemaining = 0,
 }: CartDrawerProps) {
-  // 防止背景滚动
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
-
   const t = MENU_PAGE_MESSAGES[lang];
-
-  const appendNote = (current: string | undefined, next: string) => {
-    const value = (current || '').trim();
-    if (!value) return clampAppendCartNote(next);
-    if (value.includes(next)) return clampAppendCartNote(value);
-    return clampAppendCartNote(`${value}; ${next}`);
-  };
-
   const cartTotal = sumLineTotals(cart);
   const cooldownActive = submitCooldownRemaining > 0;
   const submitLabel = cooldownActive
@@ -55,115 +54,14 @@ export function CartDrawer({
     : t.placeOrder;
 
   return (
-    <>
-      {/* 遮罩 */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
-          onClick={onClose}
-        />
-      )}
-
-      {/* 抽屉 */}
-      <div className={`
-        fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-mobile z-40
-        bg-brand-card rounded-t-3xl border-t border-brand-border
-        transition-transform duration-300 ease-out
-        ${open ? 'translate-y-0' : 'translate-y-full'}
-      `}>
-        {/* 拖拽手柄 */}
-        <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-brand-border rounded-full" />
-        </div>
-
-        <div className="px-5 py-3 border-b border-brand-border flex items-center justify-between">
-          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{t.cartTitle}</h2>
-          <button onClick={onClose} className="text-brand-text-muted hover:text-brand-text">✕</button>
-        </div>
-
-        {/* 购物车内容 */}
-        <div className="modal-scroll overflow-y-auto max-h-[60vh] px-5 py-4 space-y-4">
-          {cart.map(item => (
-            <div key={item.menuItemId} className="border border-brand-border rounded-xl p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <span className="text-2xl">{item.emoji}</span>
-                  <div className="min-w-0">
-                    <p className={`text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName} truncate`}>
-                      {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}
-                    </p>
-                    <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
-                  </div>
-                </div>
-                <CartQtyStepper
-                  qty={item.qty}
-                  onDecrement={() => {
-                    const q = Number(item.qty);
-                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
-                  }}
-                  onIncrement={() => {
-                    const q = Number(item.qty);
-                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
-                  }}
-                />
-              </div>
-
-              {/* 备注输入 */}
-              <div className="mt-3">
-                <input
-                  type="text"
-                  placeholder={t.cartNotePlaceholder}
-                  value={item.note || ''}
-                  maxLength={APPEND_CART_NOTE_MAX_LEN}
-                  onChange={e => onUpdateNote(item.menuItemId, e.target.value)}
-                  className={customerTextInputClass}
-                />
-                {/* 快捷备注（按分类） */}
-                <div className="mt-2 space-y-2">
-                  {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
-                    const presetKeys = (item.notePresetKeys || [])
-                      .filter((key) => NOTE_PRESET_BY_KEY.get(key)?.group === group);
-                    if (presetKeys.length === 0) return null;
-
-                    return (
-                      <div key={`${item.menuItemId}-${group}`}>
-                        <p className="text-[13px] text-brand-text-muted mb-1">
-                          {NOTE_PRESET_GROUP_LABELS[group][lang]}
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {presetKeys.map((key) => {
-                            const preset = NOTE_PRESET_BY_KEY.get(key);
-                            if (!preset) return null;
-                            const note = preset.labels[lang];
-                            return (
-                              <button
-                                key={key}
-                                onClick={() => onUpdateNote(item.menuItemId, appendNote(item.note, note))}
-                                className="text-[13px] px-2 py-0.5 bg-brand-border rounded-full text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors"
-                              >
-                                {note}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {(!item.notePresetKeys || item.notePresetKeys.length === 0) && (
-                    <p className="text-[13px] text-brand-text-muted">
-                      {t.noQuickNotes}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* 底部结算 */}
-        <div className="px-5 py-4 border-t border-brand-border">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-brand-text text-sm font-medium">{t.cartTotalLabel}</span>
+    <CustomerMenuBottomSheet
+      open={open}
+      onClose={onClose}
+      title={t.cartTitle}
+      footer={
+        <>
+          <div className="mb-4 flex items-center justify-between">
+            <span className="text-sm font-medium text-brand-text">{t.cartTotalLabel}</span>
             <span className={CUSTOMER_MENU_TYPE.cartDrawerTotal}>€{cartTotal.toFixed(2)}</span>
           </div>
           <Button
@@ -175,8 +73,86 @@ export function CartDrawer({
           >
             {submitLabel}
           </Button>
-        </div>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {cart.map((item) => (
+          <div key={item.menuItemId} className="rounded-xl border border-brand-border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="text-2xl">{item.emoji}</span>
+                <div className="min-w-0">
+                  <p className={`truncate text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName}`}>
+                    {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}
+                  </p>
+                  <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
+                </div>
+              </div>
+              <CartQtyStepper
+                qty={item.qty}
+                onDecrement={() => {
+                  const q = Number(item.qty);
+                  onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
+                }}
+                onIncrement={() => {
+                  const q = Number(item.qty);
+                  onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
+                }}
+              />
+            </div>
+
+            <div className="mt-3">
+              <input
+                type="text"
+                placeholder={t.cartNotePlaceholder}
+                value={item.note || ''}
+                maxLength={APPEND_CART_NOTE_MAX_LEN}
+                onChange={(e) => onUpdateNote(item.menuItemId, e.target.value)}
+                className={customerTextInputClass}
+              />
+              <div className="mt-2 space-y-2">
+                {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
+                  const presetKeys = (item.notePresetKeys || []).filter(
+                    (key) => NOTE_PRESET_BY_KEY.get(key)?.group === group,
+                  );
+                  if (presetKeys.length === 0) return null;
+
+                  return (
+                    <div key={`${item.menuItemId}-${group}`}>
+                      <p className="mb-1 text-[13px] text-brand-text-muted">
+                        {NOTE_PRESET_GROUP_LABELS[group][lang]}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {presetKeys.map((key) => {
+                          const preset = NOTE_PRESET_BY_KEY.get(key);
+                          if (!preset) return null;
+                          const note = preset.labels[lang];
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() =>
+                                onUpdateNote(item.menuItemId, mergeAppendCartNotes(item.note || '', note))
+                              }
+                              className="rounded-full bg-brand-border px-2 py-0.5 text-[13px] text-brand-text-muted transition-colors hover:bg-brand-gold/10 hover:text-brand-gold"
+                            >
+                              {note}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+                {(!item.notePresetKeys || item.notePresetKeys.length === 0) && (
+                  <p className="text-[13px] text-brand-text-muted">{t.noQuickNotes}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-    </>
+    </CustomerMenuBottomSheet>
   );
 }

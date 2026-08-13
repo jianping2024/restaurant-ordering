@@ -128,6 +128,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | `menu_item_id` | FK |
 | `qty` | ≥1 |
 | `guest_client_id` | 见 §8 |
+| `note` | 顾客购物车备注；空串表示无；`char_length ≤ 120` |
 | `added_at` | |
 | UNIQUE | `(round_id, menu_item_id, guest_client_id)` — upsert 合并 qty |
 
@@ -207,7 +208,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | `/` | 当前 session 活跃 round + lines + votes（mount / Realtime 后 reconcile） |
-| POST | `/lines` | upsert 免费菜行；debounce 由客户端 300–500ms 负责 |
+| POST | `/lines` | upsert 免费菜行（含 note）；由购物车「下单」写入，禁止卡片 debounce 直写 |
 | DELETE | `/lines/:id` | 仅 `collecting`；仅允许删除 **本 client** 添加的行 |
 | POST | `/submit-request` | → pending_confirm |
 | POST | `/vote` | confirm / defer |
@@ -269,12 +270,13 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 | 元素 | 行为 |
 |------|------|
-| 顶栏 | `本桌 N 人 · 每轮免费菜最多 M 份`；collecting 显示 `本轮 x/M · [送厨]` |
+| 顶栏 | `本桌 N 人 · 每轮免费菜最多 M 份`；collecting 显示整桌 `本轮 x/M`（**无**送厨按钮） |
 | pending_confirm | 全员确认 modal + `已确认 a/N · 约 Ts`；**不显示**否决者 |
-| 底栏 | `送厨本轮` 替代 classic `提交订单`（仅免费菜轮次） |
-| 免费菜 `+` | 写入 round lines |
-| 收费菜 | 本地 cart + 即时下单 |
-| Intro | 一次；含轮次 + 确认 + 暂缓说明 |
+| 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
+| 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才 upsert 本 `guest_client_id` 的 round lines |
+| 本轮核单 | 只列出**本机**未送厨免费菜 + **送厨本轮**（唯一送厨入口） |
+| 收费菜 | 同一购物车 + 即时 append |
+| Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |
 
 Classic **不得**出现轮次 UI 组件。
 
@@ -282,9 +284,9 @@ Classic **不得**出现轮次 UI 组件。
 
 ## 13. 性能（实现必做）
 
-- lines **upsert**（同 round + item + client 合并 qty）
-- 客户端加菜 **debounce 300–500ms**
-- finalize **条件更新**防双 append
+- lines **upsert**（同 round + item + client 合并 qty + note）
+- 购物车「下单」一次提交；**禁止**卡片 debounce 直写 round
+- finalize **按 (menu_item_id, note) 聚合**（唯一函数 `aggregateRoundLinesForAppend`，append parse 共用）后条件更新防双 append；**禁止**再按 item 把不同备注拼成一行
 - session 级限流（§9）
 
 ---
@@ -335,7 +337,7 @@ Classic **不得**出现轮次 UI 组件。
 
 - [ ] 3 人桌 2 手机：第 3 票超时默认同意，~25s 送厨
 - [ ] 暂缓二次确认；每轮 1 次；30s 内不可再发起
-- [ ] pending_confirm 不可加免费菜
+- [ ] pending_confirm 不可写入 round lines（购物车可加免费菜，下单被拒）
 - [ ] 收费菜即时 append，不占轮次额度
 - [ ] 整餐免费菜限量仅 `price=0`
 - [ ] finalize 幂等；append 失败可重试不双送

@@ -43,7 +43,7 @@ export function CustomerOrderedItemsList({
       <div className="space-y-4">
         {groups.map((group) => (
           <section key={group.groupKey}>
-            <BatchTimeDivider label={group.submittedTimeLabel} />
+            {group.submittedTimeLabel ? <BatchTimeDivider label={group.submittedTimeLabel} /> : null}
             <div className="space-y-1">
               {group.lines.map((line) => (
                 <div

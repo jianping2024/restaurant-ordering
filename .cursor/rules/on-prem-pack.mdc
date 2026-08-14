@@ -19,6 +19,10 @@ When packing, upgrading packs, or touching on-prem web build:
 4. **Same-origin flag:** never `menuImageSameOriginEnabled(process.env)` — Next will not inline nested `NEXT_PUBLIC_*`; call `menuImageSameOriginEnabled()` / `isSupabaseBrowserSameOrigin()` so HTTPS Tunnel uses `wss://` page origin.
 5. Ops truth: `docs/technical/on-prem-pack-install-upgrade.zh.md`
 
+## Pack size / Next caches (hard)
+
+`pack-release` zips **sources only**. Excluding literal `.next` is **not** enough — also exclude `.next-*` (`.next-uat`, `.next-typecheck`, …). After every pack: zip should be ~few MB; if stage still has `apps/web/.next*`, fail (script gate). **Never** scp/hand a hundreds-of-MB zip as an on-prem “source” pack.
+
 ## Local `next build` before pack (hard)
 
 `pack-release.sh` only zips sources — **web typecheck/compile runs on the store** during `upgrade.sh --build web`. Lint / `next dev` / Chrome UAT **do not** prove Docker `npm run build -w @mesa/web` will pass.

@@ -14,9 +14,12 @@ export const waiterBoardType = {
   kpiLabel: 'text-center text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
-  /** Sole floor-card table number — body face, ≥2× former text-lg → text-4xl. */
+  /**
+   * Sole floor-card table number — body face, ≥2× former text-lg → text-4xl.
+   * `flex-1` claims title-row space after the shrink-0 badge (truncate needs a flex grow).
+   */
   cardTitle:
-    'min-w-0 truncate text-left text-4xl font-bold leading-none',
+    'min-w-0 flex-1 truncate text-left text-4xl font-bold leading-none',
   /** Sole opener face — below card rule only (not title-row, not a meta chip). */
   cardOpener:
     'mt-1.5 truncate text-sm font-medium text-brand-text opacity-85',

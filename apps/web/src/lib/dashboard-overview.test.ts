@@ -31,12 +31,17 @@ const emptyDining = { diningTableCount: 0, diningGuests: { adults: 0, children: 
 describe('computeTodayKpis', () => {
   it('keeps today table count aligned with closed-session revenue set', () => {
     const kpis = computeTodayKpis(
-      { todayRevenue: 29.95, revenueSessionCount: 2 },
+      {
+        todayRevenue: 29.95,
+        revenueSessionCount: 2,
+        todayGuests: { adults: 5, children: 1 },
+      },
       emptyDining,
     );
     assert.equal(kpis.todayTableCount, 2);
     assert.equal(kpis.todayRevenue, 29.95);
     assert.equal(kpis.revenueAvailable, true);
+    assert.deepEqual(kpis.todayGuests, { adults: 5, children: 1 });
     assert.equal(kpis.diningTableCount, 0);
     assert.deepEqual(kpis.diningGuests, { adults: 0, children: 0 });
   });
@@ -49,6 +54,7 @@ describe('computeTodayKpis', () => {
     assert.equal(kpis.todayTableCount, 0);
     assert.equal(kpis.todayRevenue, 0);
     assert.equal(kpis.revenueAvailable, false);
+    assert.deepEqual(kpis.todayGuests, { adults: 0, children: 0 });
     assert.equal(kpis.diningTableCount, 2);
     assert.deepEqual(kpis.diningGuests, { adults: 4, children: 1 });
   });

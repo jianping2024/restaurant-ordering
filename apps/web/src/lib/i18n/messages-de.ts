@@ -999,6 +999,7 @@ export const MESSAGES_DE = {
   "dashboard": {
     "title": "Übersicht",
     "todayTables": "Tische heute",
+    "todayGuests": "Gäste heute",
     "todayRevenue": "Umsatz heute",
     "todayRevenueUnavailable": "Nicht verfügbar",
     "diningTables": "Besetzte Tische",
@@ -1013,10 +1014,6 @@ export const MESSAGES_DE = {
     "topSellingColDish": "Gericht",
     "topSellingColQty": "Menge (Portionen)",
     "topSellingColShare": "Anteil",
-    "recent": "Letzte Bestellungen",
-    "noOrders": "Noch keine Bestellungen",
-    "table": "Tisch",
-    "serving": "",
     "pendingActions": "Zu erledigen",
     "pendingActionsEmpty": "Aktuell nichts offen",
     "pendingInProgress": "In Bearbeitung",

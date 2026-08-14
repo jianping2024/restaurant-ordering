@@ -31,10 +31,7 @@ function SecondarySkeleton() {
   return (
     <div className="animate-pulse space-y-6" aria-hidden>
       <div className="h-40 rounded-2xl border border-brand-border bg-brand-card" />
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="h-64 rounded-2xl border border-brand-border bg-brand-card" />
-        <div className="h-64 rounded-2xl border border-brand-border bg-brand-card" />
-      </div>
+      <div className="h-64 rounded-2xl border border-brand-border bg-brand-card" />
     </div>
   );
 }
@@ -63,7 +60,7 @@ async function OverviewSecondary({
   return <DashboardOverviewSecondaryClient secondary={secondary} />;
 }
 
-// 数据概览：首屏 KPI/待办与次屏反馈/热销/近单分路加载；鉴权与 layout 共用请求缓存
+// 数据概览：首屏 KPI/待办与次屏反馈/热销分路加载；鉴权与 layout 共用请求缓存
 export default async function DashboardPage() {
   const ctx = await getDashboardOperationalContext('dashboard.overview.view');
   if ('error' in ctx) notFound();

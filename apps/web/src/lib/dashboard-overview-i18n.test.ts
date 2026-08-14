@@ -8,7 +8,7 @@ import {
   localizeTopSellingItems,
 } from '@/lib/dashboard-overview';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
-import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
+import { formatOverviewDate } from '@/lib/format-dashboard-date';
 
 function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
   return {
@@ -25,11 +25,7 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
 }
 
 /** Mirrors DashboardPageClient: server view + client lang pick — one lang switch updates all labels. */
-function localizedOverviewLabels(
-  lang: UILanguage,
-  todayOrders: Order[],
-  recentOrders: Order[],
-) {
+function localizedOverviewLabels(lang: UILanguage, todayOrders: Order[]) {
   const feedbackSessions = [{ session_id: 's1', completed_at: '2026-06-27T12:00:00.000Z' }];
   const billedSplits = [{ session_id: 's1' }];
   const dishFeedbackRows = [
@@ -47,9 +43,6 @@ function localizedOverviewLabels(
   return {
     overviewDateLabel: formatOverviewDate(lang),
     topItemName: topItems[0]?.name ?? null,
-    recentOrderTime: recentOrders[0]
-      ? formatOrderDateTime(lang, recentOrders[0].created_at)
-      : null,
     feedbackDishName: feedback.topIssues[0]
       ? pickTrilingualName(feedback.topIssues[0], lang)
       : null,
@@ -74,11 +67,10 @@ describe('dashboard overview client localization', () => {
       ],
     }),
   ];
-  const recentOrders = [order({ id: 'r1' })];
 
   it('updates all overview display fields when lang changes (no mixed locale)', () => {
-    const zh = localizedOverviewLabels('zh', todayOrders, recentOrders);
-    const en = localizedOverviewLabels('en', todayOrders, recentOrders);
+    const zh = localizedOverviewLabels('zh', todayOrders);
+    const en = localizedOverviewLabels('en', todayOrders);
 
     assert.match(zh.overviewDateLabel, /年/);
     assert.notEqual(zh.overviewDateLabel, en.overviewDateLabel);
@@ -86,6 +78,5 @@ describe('dashboard overview client localization', () => {
     assert.equal(en.topItemName, 'Fish');
     assert.equal(zh.feedbackDishName, '鱼');
     assert.equal(en.feedbackDishName, 'Fish');
-    assert.notEqual(zh.recentOrderTime, en.recentOrderTime);
   });
 });

@@ -391,7 +391,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 营业额（`sessionRevenue`）
 
-**首页「今日营业额」与增值分析同口径**：Lisbon 自然日 + `table_sessions.closed_at` 归属；`sessionRevenue` 汇总 qualifying 已关台 session（排除 `UNPAID_TABLE_CLOSED`）。**今日桌数**与营业额**同集合**：同一 Lisbon 日 qualifying 已关台且营业额 > 0 的会话个数（`revenueSessionCount` / KPI `todayTableCount`）；不再用 `orders.created_at` 条数。**当前用餐桌数 / 人数**：`table_sessions.status ∈ {open,billing}` 会话数；人数按**每个活跃会话**各自 `aggregateBuffetHeadcountForOrders` 后再相加（与楼面桌卡同规则，禁止全场按 `buffet_id` 去重）；DTO 唯一为 `{ adults, children }`。
+**首页「今日营业额」与增值分析同口径**：Lisbon 自然日 + `table_sessions.closed_at` 归属；`sessionRevenue` 汇总 qualifying 已关台 session（排除 `UNPAID_TABLE_CLOSED`）。**今日桌数**与营业额**同集合**：同一 Lisbon 日 qualifying 已关台且营业额 > 0 的会话个数（`revenueSessionCount` / KPI `todayTableCount`）；不再用 `orders.created_at` 条数。**今日用餐人数**与今日桌数**同集合**：对上述会话各自 `sessionGuestCounts`（active `buffet_base`）后再相加；DTO 唯一为 `todayGuests: { adults, children }`（与楼面 `diningGuests` 同形，语义为今日关台 vs 当前 open|billing）。**当前用餐桌数 / 人数**：`table_sessions.status ∈ {open,billing}` 会话数；人数按**每个活跃会话**各自 `aggregateBuffetHeadcountForOrders` 后再相加（与楼面桌卡同规则，禁止全场按 `buffet_id` 去重）；DTO 唯一为 `{ adults, children }`。
 
 **统计口径（2026-07-21 更新）**：
 1. **已付清收款**：`paid` 的 split 中 `result[].paid=true` 的 amount 之和，**应用 `discount_rate` 折扣**
@@ -411,8 +411,9 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 客数
 
-- 来自会话订单中 active `buffet_base` 的成人/儿童数（`aggregateBuffetForOrders`）
+- 来自会话订单中 active `buffet_base` 的成人/儿童数（`sessionGuestCounts` / `aggregateBuffetHeadcountForOrders`）
 - 无 buffet 行 → 0
+- 首页「今日用餐人数」仅统计与「今日桌数」同集合的会话；「当前用餐人数」仅统计 open|billing
 
 ### 菜品聚合
 

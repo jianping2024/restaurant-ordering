@@ -200,7 +200,7 @@
 
 - Dashboard 订单历史：按日期范围、桌位筛选
 - 订单列表展示：菜品 chip、数量、客人标签、金额
-- 首页概览：今日营业额、今日桌数、当前用餐桌数、当前用餐人数（大人/小孩）、最近订单
+- 首页概览：今日营业额、今日桌数（同卡含今日用餐人数大人/小孩）、当前用餐桌数、当前用餐人数（大人/小孩）
 - 厨房/服务员看板：活跃订单实时刷新（Realtime）
 - 订单数据存于 `orders.items` JSONB，含行级 `item_status`
 - **转出台 / 并出台** 立刻出现在来源桌订单历史：并台复用 `closed_reason=merged` 关台会话；转台由 `table_session_events(transfer)` 投影为 `transferred_source` 行（不插假关台会话）；UI 统一为操作来源关台（`isOperationalSourceCloseKind`）

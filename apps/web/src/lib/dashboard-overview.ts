@@ -1,12 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { aggregateMenuItemsFromOrders, rankMenuItemAggs } from '@/lib/analytics/aggregate-items';
 import {
+  fetchItemOrdersBySessionIds,
+  groupOrdersBySession,
+} from '@/lib/analytics/analytics.repository';
+import {
   loadClosedSessionRevenueBundleRpc,
   todayRevenueFromBundle,
 } from '@/lib/analytics/closed-session-revenue';
 import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import {
-  aggregateBuffetForOrders,
   aggregateBuffetHeadcountForOrders,
   type BuffetGuestHeadcount,
 } from '@/lib/buffet-order';
@@ -21,11 +24,9 @@ import type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
 export type { TrilingualName };
 
 export const DASHBOARD_FEEDBACK_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
-export const DASHBOARD_RECENT_ORDERS_LIMIT = 5;
 export const DASHBOARD_TOP_SELLING_LIMIT = 5;
 
 const TODAY_ORDERS_SELECT = 'id, status, items, total_amount';
-const RECENT_ORDERS_SELECT = 'id, display_name, status, created_at, total_amount, items';
 
 export type DashboardTopItem = {
   name: string;
@@ -117,19 +118,15 @@ export type DashboardTodayKpis = {
   todayRevenue: number;
   /** false when closed-session revenue raw materials failed (do not show fake €0 / table count). */
   revenueAvailable: boolean;
+  /**
+   * Guest headcount for the same sessions as todayTableCount.
+   * Sole shape — UI total = adults + children via totalGuestsFromCounts.
+   */
+  todayGuests: BuffetGuestHeadcount;
   /** Active open|billing table sessions (floor dining tables). */
   diningTableCount: number;
-  /** Sole guest headcount shape — UI total = adults + children. */
+  /** Sole live-floor guest headcount shape — UI total = adults + children. */
   diningGuests: BuffetGuestHeadcount;
-};
-
-export type DashboardRecentOrderView = {
-  id: string;
-  display_name: string;
-  status: OrderStatus;
-  created_at: string;
-  total_amount: number;
-  buffetGuests: { adults: number; children: number } | null;
 };
 
 /** Single overview DTO: server aggregates; client only formats by language. */
@@ -137,7 +134,6 @@ export type DashboardOverviewView = {
   todayKpis: DashboardTodayKpis;
   pendingActions: DashboardPendingActions;
   topSelling: DashboardTopSellingItemView[];
-  recentOrders: DashboardRecentOrderView[];
   feedback: DashboardFeedbackInsights;
 };
 
@@ -150,7 +146,7 @@ export type DashboardOverviewPrimaryView = Pick<
 /** Below-the-fold panels streamed after primary. */
 export type DashboardOverviewSecondaryView = Pick<
   DashboardOverviewView,
-  'topSelling' | 'recentOrders' | 'feedback'
+  'topSelling' | 'feedback'
 >;
 
 type MenuNameRow = {
@@ -180,15 +176,6 @@ type TodayOrderAggRow = {
   status: OrderStatus;
   items: OrderItem[];
   total_amount: number;
-};
-
-type RecentOrderRow = {
-  id: string;
-  display_name: string;
-  status: OrderStatus;
-  created_at: string;
-  total_amount: number;
-  items: OrderItem[];
 };
 
 function feedbackLookbackIso(now = new Date()): string {
@@ -241,15 +228,20 @@ export function computeDiningFloorKpis(
   };
 }
 
-/** Today tables + revenue share Lisbon-day closed_at qualifying set (value analytics). */
+/** Today tables + guests + revenue share Lisbon-day closed_at qualifying set. */
 export function computeTodayKpis(
-  revenue: { todayRevenue: number; revenueSessionCount: number } | null,
+  revenue: {
+    todayRevenue: number;
+    revenueSessionCount: number;
+    todayGuests: BuffetGuestHeadcount;
+  } | null,
   dining: Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>,
 ): DashboardTodayKpis {
   return {
     todayTableCount: revenue?.revenueSessionCount ?? 0,
     todayRevenue: revenue?.todayRevenue ?? 0,
     revenueAvailable: revenue != null,
+    todayGuests: revenue?.todayGuests ?? { adults: 0, children: 0 },
     diningTableCount: dining.diningTableCount,
     diningGuests: dining.diningGuests,
   };
@@ -374,21 +366,39 @@ export function pendingActionsTotal(actions: DashboardPendingActions): number {
   );
 }
 
-function toRecentOrderView(row: RecentOrderRow): DashboardRecentOrderView {
-  const buffet = aggregateBuffetForOrders([
-    {
-      status: row.status,
-      items: row.items || [],
-    },
-  ]);
-  return {
-    id: row.id,
-    display_name: row.display_name,
-    status: row.status,
-    created_at: row.created_at,
-    total_amount: Number(row.total_amount) || 0,
-    buffetGuests: buffet ? { adults: buffet.adults, children: buffet.children } : null,
-  };
+async function loadTodayRevenueKpis(
+  admin: SupabaseClient,
+  restaurantId: string,
+  startUtc: string,
+  endExclusiveUtc: string,
+  todayDateKey: string,
+): Promise<{
+  todayRevenue: number;
+  revenueSessionCount: number;
+  todayGuests: BuffetGuestHeadcount;
+} | null> {
+  const revenueBundleResult = await loadClosedSessionRevenueBundleRpc(
+    admin,
+    restaurantId,
+    startUtc,
+    endExclusiveUtc,
+  );
+  if (!revenueBundleResult.ok) return null;
+
+  const { bundle } = revenueBundleResult;
+  const sessionIds = bundle.sessions.map((session) => session.id);
+  if (sessionIds.length === 0) {
+    return todayRevenueFromBundle(bundle, todayDateKey);
+  }
+
+  const itemOrdersResult = await fetchItemOrdersBySessionIds(admin, restaurantId, sessionIds);
+  if (!itemOrdersResult.ok) return null;
+
+  return todayRevenueFromBundle(
+    bundle,
+    todayDateKey,
+    groupOrdersBySession(itemOrdersResult.rows),
+  );
 }
 
 export async function loadDashboardOverviewPrimary(
@@ -403,7 +413,7 @@ export async function loadDashboardOverviewPrimary(
     pendingCheckoutCount,
     { count: pendingAbnormalCount },
     { count: pendingPrintCount },
-    revenueBundleResult,
+    todayRevenue,
     diningFloor,
   ] = await Promise.all([
     admin
@@ -423,18 +433,15 @@ export async function loadDashboardOverviewPrimary(
       .eq('restaurant_id', restaurantId)
       .eq('status', 'pending')
       .gte('created_at', printJobMaxAgeCutoffIso(now)),
-    loadClosedSessionRevenueBundleRpc(
+    loadTodayRevenueKpis(
       admin,
       restaurantId,
       todayWindow.startUtc,
       todayWindow.endExclusiveUtc,
+      todayWindow.today,
     ),
     loadDiningFloorKpis(admin, restaurantId),
   ]);
-
-  const todayRevenue = revenueBundleResult.ok
-    ? todayRevenueFromBundle(revenueBundleResult.bundle, todayWindow.today)
-    : null;
 
   return {
     todayKpis: computeTodayKpis(todayRevenue, diningFloor),
@@ -457,7 +464,6 @@ export async function loadDashboardOverviewSecondary(
 
   const [
     { data: todayOrders },
-    { data: recentOrders },
     { data: feedbackSessions },
     { data: billedSplits },
     { data: dishFeedbackRows },
@@ -468,12 +474,6 @@ export async function loadDashboardOverviewSecondary(
       .eq('restaurant_id', restaurantId)
       .gte('created_at', todayWindow.startUtc)
       .lt('created_at', todayWindow.endExclusiveUtc),
-    admin
-      .from('orders')
-      .select(RECENT_ORDERS_SELECT)
-      .eq('restaurant_id', restaurantId)
-      .order('created_at', { ascending: false })
-      .limit(DASHBOARD_RECENT_ORDERS_LIMIT),
     admin
       .from('feedback_sessions')
       .select('session_id, completed_at')
@@ -496,7 +496,6 @@ export async function loadDashboardOverviewSecondary(
 
   return {
     topSelling: buildTodayTopSellingItems(orders),
-    recentOrders: ((recentOrders || []) as RecentOrderRow[]).map(toRecentOrderView),
     feedback: buildFeedbackInsights(
       (feedbackSessions || []) as FeedbackSessionRow[],
       (billedSplits || []) as BilledSplitRow[],

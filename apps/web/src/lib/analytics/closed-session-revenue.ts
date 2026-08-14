@@ -4,6 +4,7 @@ import {
   type ClosedSessionRow,
 } from '@/lib/analytics/analytics.types';
 import type {
+  AnalyticsItemOrder,
   AnalyticsQueryError,
   AnalyticsRevenueOrder,
 } from '@/lib/analytics/analytics.repository';
@@ -16,7 +17,8 @@ import {
   groupSplitsBySession,
 } from '@/lib/analytics/analytics.repository';
 import { buildRevenueTrend } from '@/lib/analytics/build-overview';
-import { isQualifyingSession, sessionRevenue } from '@/lib/analytics/qualifying';
+import { isQualifyingSession, sessionGuestCounts, sessionRevenue } from '@/lib/analytics/qualifying';
+import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { sessionDateKeyFromIso } from '@/lib/lisbon-calendar';
 import { isOperationalCloseReason } from '@/lib/table-session/operational-close-reasons';
 import type { BillSplit } from '@/types';
@@ -177,6 +179,32 @@ export async function loadClosedSessionRevenueBundle(
   };
 }
 
+/**
+ * Sole filter for “today tables / today guests”: qualifying · not forced · Lisbon dateKey ·
+ * sessionRevenue > 0. Count and guest sum must both iterate this list.
+ */
+export function todayRevenueSessionIds(
+  bundle: ClosedSessionRevenueBundle,
+  dateKey: string,
+  qualifying: ClosedSessionRow[] = filterQualifyingClosedSessions(
+    bundle.sessions,
+    bundle.ordersBySession,
+    bundle.splitsBySession,
+  ),
+): string[] {
+  const ids: string[] = [];
+  for (const session of qualifying) {
+    if (bundle.forcedClosedSessionIds.has(session.id)) continue;
+    if (!session.closed_at || sessionDateKeyFromIso(session.closed_at) !== dateKey) continue;
+
+    const orders = bundle.ordersBySession.get(session.id) || [];
+    const splits = bundle.splitsBySession.get(session.id) || [];
+    if (sessionRevenue(orders, splits, true, session.settled_payable_amount) <= 0) continue;
+    ids.push(session.id);
+  }
+  return ids;
+}
+
 export function revenueSessionCountForDateKey(
   bundle: ClosedSessionRevenueBundle,
   dateKey: string,
@@ -186,17 +214,22 @@ export function revenueSessionCountForDateKey(
     bundle.splitsBySession,
   ),
 ): number {
-  let count = 0;
-  for (const session of qualifying) {
-    if (bundle.forcedClosedSessionIds.has(session.id)) continue;
-    if (!session.closed_at || sessionDateKeyFromIso(session.closed_at) !== dateKey) continue;
+  return todayRevenueSessionIds(bundle, dateKey, qualifying).length;
+}
 
-    const orders = bundle.ordersBySession.get(session.id) || [];
-    const splits = bundle.splitsBySession.get(session.id) || [];
-    if (sessionRevenue(orders, splits, true, session.settled_payable_amount) <= 0) continue;
-    count += 1;
+/** Guest headcount for the same session ids as today table count (needs item-bearing orders). */
+export function todayGuestsForRevenueSessions(
+  sessionIds: string[],
+  itemOrdersBySession: Map<string, AnalyticsItemOrder[]>,
+): BuffetGuestHeadcount {
+  let adults = 0;
+  let children = 0;
+  for (const sessionId of sessionIds) {
+    const headcount = sessionGuestCounts(itemOrdersBySession.get(sessionId) || []);
+    adults += headcount.adults;
+    children += headcount.children;
   }
-  return count;
+  return { adults, children };
 }
 
 /** Qualifying closed sessions → daily revenue series for the given Lisbon date keys. */
@@ -217,15 +250,22 @@ export function revenueTrendFromQualifying(
 export function todayRevenueFromBundle(
   bundle: ClosedSessionRevenueBundle,
   todayDateKey: string,
-): { todayRevenue: number; revenueSessionCount: number } {
+  itemOrdersBySession: Map<string, AnalyticsItemOrder[]> = new Map(),
+): {
+  todayRevenue: number;
+  revenueSessionCount: number;
+  todayGuests: BuffetGuestHeadcount;
+} {
   const qualifying = filterQualifyingClosedSessions(
     bundle.sessions,
     bundle.ordersBySession,
     bundle.splitsBySession,
   );
   const trend = revenueTrendFromQualifying([todayDateKey], bundle, qualifying);
+  const sessionIds = todayRevenueSessionIds(bundle, todayDateKey, qualifying);
   return {
     todayRevenue: trend[0]?.revenue ?? 0,
-    revenueSessionCount: revenueSessionCountForDateKey(bundle, todayDateKey, qualifying),
+    revenueSessionCount: sessionIds.length,
+    todayGuests: todayGuestsForRevenueSessions(sessionIds, itemOrdersBySession),
   };
 }

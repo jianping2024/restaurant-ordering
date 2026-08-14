@@ -39,7 +39,10 @@ rsync -a --delete \
 
 # Minimal monorepo context for web image build
 mkdir -p "$STAGE/apps" "$STAGE/packages" "$STAGE/supabase"
-rsync -a --delete --exclude node_modules --exclude .next "$ROOT/apps/web/" "$STAGE/apps/web/"
+# Exclude every Next build dir (.next, .next-uat, .next-typecheck, …) — only excluding
+# literal `.next` left local webpack caches in the zip (~hundreds of MB).
+rsync -a --delete --exclude node_modules --exclude '.next' --exclude '.next-*' \
+  "$ROOT/apps/web/" "$STAGE/apps/web/"
 rsync -a --delete --exclude node_modules "$ROOT/packages/shared/" "$STAGE/packages/shared/"
 rsync -a --delete --exclude node_modules "$ROOT/packages/ui/" "$STAGE/packages/ui/"
 rsync -a --delete "$ROOT/supabase/migrations/" "$STAGE/supabase/migrations/"
@@ -53,6 +56,7 @@ cat >"$STAGE/.dockerignore" <<'EOF'
 node_modules
 **/node_modules
 **/.next
+**/.next-*
 .git
 .env
 .env.*
@@ -80,6 +84,13 @@ chmod +x "$STAGE/install-ubuntu.sh" \
   "$STAGE/deploy/on-prem/linux/install-mesa.sh" \
   "$STAGE/deploy/on-prem/linux/uninstall-mesa.sh" \
   "$STAGE/deploy/on-prem/scripts/"*.sh
+
+# Gate: never ship local Next build caches (only excluding `.next` is not enough).
+if find "$STAGE/apps/web" -maxdepth 1 \( -type d -o -type l \) -name '.next*' -print -quit | grep -q .; then
+  echo "ERROR: staged apps/web still contains a .next* dir (exclude .next and .next-* in rsync)" >&2
+  find "$STAGE/apps/web" -maxdepth 1 \( -type d -o -type l \) -name '.next*' -print >&2
+  exit 1
+fi
 
 # Gate: Mode B Realtime publication ensure (baseline omits membership)
 ENSURE_SQL="$STAGE/deploy/on-prem/schema/ensure_realtime_publication.sql"

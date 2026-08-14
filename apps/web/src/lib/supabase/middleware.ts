@@ -1,23 +1,20 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-paths';
-import {
-  dashboardStaffMiddlewareRedirectPath,
-  middlewareAllowsOwnerPath,
-} from '@/lib/dashboard-feature-registry';
+import { dashboardCapabilityMiddlewareRedirectPath } from '@/lib/dashboard-feature-registry';
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
-  loadOwnedRestaurantIdForUser,
+  loadOwnedRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadStaffCapabilitiesForGateAccount } from '@/lib/permissions/staff-landing';
+import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import {
   isInvalidRefreshTokenError,
   shouldBypassMiddlewareSession,
 } from '@/lib/supabase/middleware-session-policy';
 import { getSupabaseAuthCookieOptions, getSupabaseUrl } from '@/lib/supabase/url';
+import { createServerClient } from '@supabase/ssr';
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -77,11 +74,16 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse;
     }
 
-    const ownedRestaurantId = await loadOwnedRestaurantIdForUser(admin, sessionUser.id);
-    if (ownedRestaurantId) {
-      if (!middlewareAllowsOwnerPath(pathname)) {
+    const ownedRestaurant = await loadOwnedRestaurantForUser(admin, sessionUser.id);
+    if (ownedRestaurant) {
+      const redirectPath = dashboardCapabilityMiddlewareRedirectPath(
+        resolveCapabilitiesForOwner(),
+        pathname,
+        ownedRestaurant.slug,
+      );
+      if (redirectPath) {
         const url = request.nextUrl.clone();
-        url.pathname = dashboardMiddlewareRedirectPath('owner', pathname) ?? '/dashboard/settings';
+        url.pathname = redirectPath;
         return NextResponse.redirect(url);
       }
     } else {
@@ -94,7 +96,7 @@ export async function updateSession(request: NextRequest) {
           staff.restaurant?.slug ?? meta?.restaurant_slug ?? '';
         if (slug) {
           const capabilities = await loadStaffCapabilitiesForGateAccount(admin, staff);
-          const redirectPath = dashboardStaffMiddlewareRedirectPath(
+          const redirectPath = dashboardCapabilityMiddlewareRedirectPath(
             capabilities,
             pathname,
             slug,

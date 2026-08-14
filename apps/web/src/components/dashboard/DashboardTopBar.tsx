@@ -37,7 +37,6 @@ export function DashboardTopBar({
   const navT = getMessages(lang).nav;
   const pendingCount = useCheckoutRequestsPendingCount();
   const navItems = buildDashboardTopNavItems({
-    shellMode,
     capabilities,
     restaurantSlug: restaurant.slug,
     premiumLockedNavIds,

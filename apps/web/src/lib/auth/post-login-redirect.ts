@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 import {
-  loadOwnedRestaurantIdForUser,
+  loadOwnedRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
@@ -33,12 +33,12 @@ export async function resolvePostLoginRedirect(
     throw new Error('server_misconfigured');
   }
 
-  const [ownedRestaurantId, staff] = await Promise.all([
-    loadOwnedRestaurantIdForUser(admin, userId),
+  const [ownedRestaurant, staff] = await Promise.all([
+    loadOwnedRestaurantForUser(admin, userId),
     loadStaffGateAccountForUser(admin, userId),
   ]);
 
-  if (ownedRestaurantId) {
+  if (ownedRestaurant) {
     return { kind: 'owner', path: '/dashboard/settings' };
   }
 

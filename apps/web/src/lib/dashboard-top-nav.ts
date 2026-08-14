@@ -1,9 +1,5 @@
-import type { DashboardShellMode } from '@/lib/dashboard-access';
 import { STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS } from '@/lib/waiter-staff-sticky-chrome';
-import {
-  DASHBOARD_NAV_ITEMS,
-  OWNER_NAV_ITEM_IDS,
-} from '@/lib/dashboard-feature-registry';
+import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import type { getMessages } from '@/lib/i18n/messages';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 import { STAFF_TOP_BAR_TOTAL_HEIGHT } from '@/lib/waiter-staff-sticky-chrome';
@@ -15,8 +11,6 @@ import {
 import { staffLandingPathFromCapabilities } from '@/lib/permissions/resolve';
 import { NAV_PERMISSION } from '@/lib/permissions/registry';
 import { NAV_PREMIUM_KEY } from '@/lib/premium/catalog';
-
-const OWNER_CHROME_NAV_IDS = new Set<string>(OWNER_NAV_ITEM_IDS);
 
 export type ProductTopNavItem = {
   id: string;
@@ -164,22 +158,17 @@ export function topNavItemLabel(
   return typeof navT[key] === 'string' ? (navT[key] as string) : item.labelKey;
 }
 
+/** Sole top-nav gate: capabilities (+ optional Pro lock href). Owner `*` and staff Sets share this path. */
 export function buildDashboardTopNavItems(input: {
-  shellMode: DashboardShellMode;
   capabilities: CapabilitiesPayload;
   restaurantSlug: string;
   premiumLockedNavIds?: ReadonlySet<string>;
 }): ProductTopNavItem[] {
-  const { shellMode, capabilities: capsPayload, restaurantSlug, premiumLockedNavIds } = input;
+  const { capabilities: capsPayload, restaurantSlug, premiumLockedNavIds } = input;
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
-  const navDefs =
-    shellMode === 'owner'
-      ? OWNER_NAV_ITEM_IDS.map((id) => DASHBOARD_NAV_ITEMS[id]).filter(Boolean)
-      : Object.values(DASHBOARD_NAV_ITEMS);
-  for (const item of navDefs) {
-    if (shellMode === 'owner' && !OWNER_CHROME_NAV_IDS.has(item.id)) continue;
+  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
     const premiumKey = NAV_PREMIUM_KEY[item.id as keyof typeof NAV_PREMIUM_KEY];
@@ -198,11 +187,7 @@ export function buildDashboardTopNavItems(input: {
     });
   }
 
-  // Staff chrome only — owner shell stays OWNER_CHROME_NAV_IDS. Same gate as kitchen pages.
-  if (
-    shellMode !== 'owner' &&
-    can(capabilities, 'floor.kitchen_board.view')
-  ) {
+  if (can(capabilities, 'floor.kitchen_board.view')) {
     items.push({
       id: 'kitchenBoard',
       href: `/${restaurantSlug}/kitchen`,

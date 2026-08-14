@@ -1,4 +1,3 @@
-import { dashboardMiddlewareRedirectPath } from '@/lib/dashboard-paths';
 import { can, type Capabilities } from '@/lib/permissions/can';
 import {
   dashboardRoutePermission,
@@ -139,22 +138,9 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
 };
 
 /**
- * Backend-admin (`mode=owner` / restaurants.owner_id) chrome only.
- * Staff nav comes from capabilities + NAV_PERMISSION via buildDashboardTopNavItems.
- * Order here is the owner top-bar order (buildDashboardTopNavItems iterates this list).
- */
-export const OWNER_NAV_ITEM_IDS = [
-  'overview',
-  'valueAnalytics',
-  'abnormalOps',
-  'operationLogs',
-  'menu',
-  'settings',
-] as const;
-
-/**
  * Canonical dashboard feature access map (paths / loaders).
- * Live UI nav: buildDashboardTopNavItems from capabilities only.
+ * Live UI nav + middleware: capabilities only (`buildDashboardTopNavItems` /
+ * `middlewareAllowsPathForCapabilities`). Backend admin is `resolveCapabilitiesForOwner() → '*'`.
  */
 export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {
@@ -267,7 +253,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/menu/print-stations',
       '/dashboard/settings/print-stations',
     ],
-    riskNote: 'Page gated by dashboard.menu.view; owner chrome includes menu via OWNER_NAV_ITEM_IDS.',
+    riskNote: 'Page gated by dashboard.menu.view; nav/middleware via capabilities only (owner `*`).',
   },
   {
     id: 'guest-notice',
@@ -312,13 +298,8 @@ export function pathnameMatchesNavItem(
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-/** Owner restaurants.owner_id path policy. */
-export function middlewareAllowsOwnerPath(pathname: string): boolean {
-  return dashboardMiddlewareRedirectPath('owner', pathname) === null;
-}
-
-/** Redirect staff away from dashboard routes their capabilities do not cover. */
-export function dashboardStaffMiddlewareRedirectPath(
+/** Redirect when capabilities do not cover the dashboard route (owner `*` and staff share this). */
+export function dashboardCapabilityMiddlewareRedirectPath(
   capabilities: Capabilities,
   pathname: string,
   slug: string,

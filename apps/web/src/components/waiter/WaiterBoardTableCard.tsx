@@ -41,7 +41,7 @@ type Props = {
 /** Layout only — shell `mesa-scroll-frame` + status comes solely from `waiterBoardCardShellClass`. */
 const CARD_BASE_CLASS = 'flex w-full text-left';
 const CARD_INNER_CLASS =
-  'mesa-scroll-frame__inner flex min-h-[9.25rem] w-full gap-2 p-3';
+  'mesa-scroll-frame__inner flex min-h-[9.25rem] w-full gap-0 p-3 pr-2';
 const CARD_INTERACTIVE_CLASS =
   'group transition-shadow duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 

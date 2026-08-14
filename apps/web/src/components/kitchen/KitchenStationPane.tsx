@@ -59,6 +59,9 @@ const GESTURE_LOCK_SLOP_PX = 12;
 const VERTICAL_ONLY_SCROLL =
   'min-h-0 overflow-y-auto overflow-x-hidden overscroll-x-none';
 
+/** Sole chrome size for station footer actions (ready-rail toggle + prep/print). */
+const STATION_FOOTER_BTN = 'min-h-9 px-4 text-lg';
+
 type RowGesture = {
   pointerId: number;
   x: number;
@@ -642,11 +645,12 @@ export function KitchenStationPane({
             )}
           </div>
         ) : null}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
           <Button
             type="button"
             variant="outline"
-            className="min-h-12 px-5 text-xl"
+            size="sm"
+            className={STATION_FOOTER_BTN}
             disabled={bottomRailQty === 0 && !bottomRailOpen}
             onClick={toggleBottomRail}
           >
@@ -660,7 +664,8 @@ export function KitchenStationPane({
               <Button
                 type="button"
                 variant="outline"
-                className="min-h-12 px-5 text-xl"
+                size="sm"
+                className={STATION_FOOTER_BTN}
                 disabled={selectedPrintCount === 0 || printBusy || prepBusy}
                 loading={printBusy}
                 title={t.selectPrintLines}
@@ -671,7 +676,8 @@ export function KitchenStationPane({
             ) : (
               <Button
                 type="button"
-                className="min-h-12 px-6 text-xl"
+                size="sm"
+                className={STATION_FOOTER_BTN}
                 disabled={selectedPrepCount === 0 || prepBusy || printBusy}
                 loading={prepBusy}
                 title={t.selectLines}

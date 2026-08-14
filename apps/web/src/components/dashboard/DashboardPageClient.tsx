@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -16,6 +17,9 @@ import {
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 
+/** Sole overview entry into the abnormal-ops list (same path as nav / route permission). */
+const ABNORMAL_OPERATIONS_HREF = '/dashboard/abnormal-operations';
+
 function formatBuffetGuestDetail(
   template: string,
   guests: BuffetGuestHeadcount,
@@ -23,6 +27,14 @@ function formatBuffetGuestDetail(
   return template
     .replace('{adults}', String(guests.adults))
     .replace('{children}', String(guests.children));
+}
+
+function pendingChipClassName(alert: boolean): string {
+  return `inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] ${
+    alert
+      ? 'mesa-badge-danger border-red-500/30'
+      : 'border-brand-border text-brand-text'
+  }`;
 }
 
 export function DashboardOverviewPrimaryClient({
@@ -38,10 +50,25 @@ export function DashboardOverviewPrimaryClient({
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
   const pendingTotal = pendingActionsTotal(pendingActions);
 
-  const pendingRows = [
-    { key: 'inProgress', label: i18n.pendingInProgress, count: pendingActions.inProgressOrders },
+  const pendingRows: Array<{
+    key: string;
+    label: string;
+    count: number;
+    alert?: boolean;
+    href?: string;
+  }> = [
     { key: 'checkout', label: i18n.pendingCheckout, count: pendingActions.pendingCheckout },
-    { key: 'abnormal', label: i18n.pendingAbnormal, count: pendingActions.pendingAbnormal, alert: true },
+    ...(pendingActions.pendingAbnormal != null
+      ? [
+          {
+            key: 'abnormal',
+            label: i18n.pendingAbnormal,
+            count: pendingActions.pendingAbnormal,
+            alert: true,
+            href: ABNORMAL_OPERATIONS_HREF,
+          },
+        ]
+      : []),
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
@@ -158,19 +185,31 @@ export function DashboardOverviewPrimaryClient({
           <div className="flex flex-wrap gap-2">
             {pendingRows
               .filter((row) => row.count > 0)
-              .map((row) => (
-                <span
-                  key={row.key}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] ${
-                    row.alert
-                      ? 'mesa-badge-danger border-red-500/30'
-                      : 'border-brand-border text-brand-text'
-                  }`}
-                >
-                  <span className="text-brand-text-muted">{row.label}</span>
-                  <span className="font-semibold tabular-nums">{row.count}</span>
-                </span>
-              ))}
+              .map((row) => {
+                const className = pendingChipClassName(Boolean(row.alert));
+                const body = (
+                  <>
+                    <span className="text-brand-text-muted">{row.label}</span>
+                    <span className="font-semibold tabular-nums">{row.count}</span>
+                  </>
+                );
+                if (row.href) {
+                  return (
+                    <Link
+                      key={row.key}
+                      href={row.href}
+                      className={`${className} hover:opacity-90`}
+                    >
+                      {body}
+                    </Link>
+                  );
+                }
+                return (
+                  <span key={row.key} className={className}>
+                    {body}
+                  </span>
+                );
+              })}
           </div>
         )}
       </div>

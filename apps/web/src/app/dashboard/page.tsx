@@ -9,6 +9,8 @@ import {
   loadDashboardOverviewPrimary,
   loadDashboardOverviewSecondary,
 } from '@/lib/dashboard-overview';
+import { can } from '@/lib/permissions/can';
+import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
@@ -39,12 +41,16 @@ function SecondarySkeleton() {
 async function OverviewPrimary({
   restaurantId,
   nowIso,
+  includePendingAbnormal,
 }: {
   restaurantId: string;
   nowIso: string;
+  includePendingAbnormal: boolean;
 }) {
   const admin = createAdminClient();
-  const primary = await loadDashboardOverviewPrimary(admin, restaurantId, new Date(nowIso));
+  const primary = await loadDashboardOverviewPrimary(admin, restaurantId, new Date(nowIso), {
+    includePendingAbnormal,
+  });
   return <DashboardOverviewPrimaryClient primary={primary} />;
 }
 
@@ -65,12 +71,21 @@ export default async function DashboardPage() {
   const ctx = await getDashboardOperationalContext('dashboard.overview.view');
   if ('error' in ctx) notFound();
 
+  const principalCaps = await loadPrincipalWithCapabilities();
+  const includePendingAbnormal = Boolean(
+    principalCaps && can(principalCaps.capabilities, 'dashboard.abnormal_ops.view'),
+  );
+
   const nowIso = new Date().toISOString();
 
   return (
     <div>
       <Suspense fallback={<PrimarySkeleton />}>
-        <OverviewPrimary restaurantId={ctx.restaurantId} nowIso={nowIso} />
+        <OverviewPrimary
+          restaurantId={ctx.restaurantId}
+          nowIso={nowIso}
+          includePendingAbnormal={includePendingAbnormal}
+        />
       </Suspense>
       <Suspense fallback={<SecondarySkeleton />}>
         <OverviewSecondary restaurantId={ctx.restaurantId} nowIso={nowIso} />

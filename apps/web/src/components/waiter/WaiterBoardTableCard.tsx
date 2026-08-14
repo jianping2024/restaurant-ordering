@@ -41,7 +41,8 @@ type Props = {
 /** Layout only — shell `mesa-scroll-frame` + status comes solely from `waiterBoardCardShellClass`. */
 const CARD_BASE_CLASS = 'flex w-full text-left';
 const CARD_INNER_CLASS =
-  'mesa-scroll-frame__inner flex min-h-[9.25rem] w-full gap-0 p-3 pr-2';
+  // Sole box pad: L/T/B 12px; R 6px so status rail sits nearer the card edge (no negative margin).
+  'mesa-scroll-frame__inner flex min-h-[9.25rem] w-full gap-0 py-3 pl-3 pr-1.5';
 const CARD_INTERACTIVE_CLASS =
   'group transition-shadow duration-150 hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bg';
 
@@ -108,8 +109,13 @@ export function WaiterBoardTableCard({
   const body = (
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[1.25rem] items-center justify-between gap-1.5">
-          <p className={`${waiterBoardType.cardTitle} ${theme.title}`}>{view.tableTitle}</p>
+        <div className="flex min-h-[1.25rem] items-center gap-1.5">
+          <p
+            className={`${waiterBoardType.cardTitle} ${theme.title}`}
+            title={view.tableTitle}
+          >
+            {view.tableTitle}
+          </p>
           {view.titleBadge ? (
             <span className={waiterBoardType.cardBadge}>
               {view.titleBadge.relation ? <span>{view.titleBadge.relation}</span> : null}

@@ -61,6 +61,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     // Floor title + amount: body face only (no font-heading / .mesa-money).
     assert.doesNotMatch(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardTitle, /\btext-4xl\b/);
+    assert.match(waiterBoardType.cardTitle, /\bflex-1\b/);
     assert.doesNotMatch(waiterBoardType.cardTitle, /\btext-(?:lg|xl|2xl|3xl)\b/);
     assert.doesNotMatch(waiterBoardType.kpiCount, /font-heading|mesa-money/);
     assert.match(waiterBoardType.kpiCount, /tabular-nums/);

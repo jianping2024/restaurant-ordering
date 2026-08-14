@@ -16,16 +16,22 @@ export const waiterBoardType = {
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',
   /**
    * Sole floor-card table number — body face, ≥2× former text-lg → text-4xl.
-   * `flex-1` claims title-row space after the shrink-0 badge (truncate needs a flex grow).
+   * Full title-row width (status-rail badge no longer shares this row).
    */
   cardTitle:
-    'min-w-0 flex-1 truncate text-left text-4xl font-bold leading-none',
+    'min-w-0 truncate text-left text-4xl font-bold leading-none',
   /** Sole opener face — below card rule only (not title-row, not a meta chip). */
   cardOpener:
     'mt-1.5 truncate text-sm font-medium text-brand-text opacity-85',
-  /** Sole gold title-row pill (拼桌 / 转桌 · vertical A/C) — one circle, stacked lines. */
+  /**
+   * Sole status-rail headcount chip (A/C) — soft rounded tag, content-sized.
+   * Not circle / not extreme ellipse; fits A13 without squash.
+   */
   cardBadge:
-    'inline-flex shrink-0 flex-col items-center justify-center gap-0 rounded-full px-1.5 py-0.5 text-center text-[0.65rem] font-medium leading-tight text-brand-gold border border-brand-gold/50',
+    'inline-flex min-h-[1.25rem] min-w-[1.35rem] shrink-0 items-center justify-center rounded-md px-1 text-center text-[0.6rem] font-semibold leading-none tracking-tight text-brand-gold border border-brand-gold/55',
+  cardBadgeRelation:
+    'text-center text-[0.6rem] font-medium leading-none text-brand-gold',
+  cardBadgeStack: 'mt-0.5 flex flex-col items-center gap-1',
   cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
   /**
    * Sole floor-card amount face — body stack + brand ink (not .mesa-money).
@@ -42,6 +48,8 @@ export const waiterBoardType = {
    */
   cardAmountSlot: 'inline-flex h-7 min-w-0 items-center',
   cardCta: 'shrink-0 text-[0.8125rem] font-semibold',
+  /** Status rail chrome — paint/border via globals `.mesa-status-rail`. */
+  cardStatusRail: 'mesa-status-rail',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',
 } as const;

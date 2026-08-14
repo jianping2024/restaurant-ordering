@@ -34,29 +34,30 @@ export type WaiterBoardCardMetaChip = {
 };
 
 /**
- * Sole floor-card title badge — one gold pill.
- * `tokens` = adult-first A/C lines stacked inside the pill; `relation` optional above.
+ * Sole floor-card headcount / relation badge — rendered on the status rail.
+ * `tokens` = adult-first A/C lines as separate soft tags; `relation` optional above.
  */
-export type WaiterBoardTitleBadge = {
+export type WaiterBoardStatusBadge = {
   relation: string | null;
   tokens: string[];
 };
 
 /**
  * Sole floor-card display shape (6-col dense).
- * Title row = tableTitle + titleBadge; meta = seats/time;
+ * Title = tableTitle only; meta = seats/time;
+ * status rail = statusLabel + statusBadge (headcount, not seat capacity);
  * below rule = openerName (optional) then amountText XOR idleHint.
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;
   tableTitle: string;
-  /** Vertical colophon status. */
+  /** Vertical status glyph on the status rail. */
   statusLabel: string;
   /**
-   * Sole title-row gold pill: relation + vertical A/C tokens, or null.
+   * Sole headcount/relation badge on the status rail, or null.
    * Not a hyphenated string and not a second badge slot.
    */
-  titleBadge: WaiterBoardTitleBadge | null;
+  statusBadge: WaiterBoardStatusBadge | null;
   /** Opener below card rule (dining/checkout only). */
   openerName: string | null;
   metaChips: WaiterBoardCardMetaChip[];
@@ -83,8 +84,8 @@ export function formatWaiterBoardCardAmount(sessionTotal: number): string {
   return `€${sessionTotal.toFixed(2)}`;
 }
 
-/** Aria / speech join for the sole title badge — not a second display shape. */
-export function waiterBoardTitleBadgeAriaText(badge: WaiterBoardTitleBadge): string {
+/** Aria / speech join for the sole status-rail badge — not a second display shape. */
+export function waiterBoardStatusBadgeAriaText(badge: WaiterBoardStatusBadge): string {
   return [badge.relation, ...badge.tokens].filter(Boolean).join(' ');
 }
 
@@ -97,13 +98,13 @@ function statusLabelForState(
   return statusLabels.idle;
 }
 
-/** Sole title-badge composer — relation + adult-first token list for one pill. */
-export function formatWaiterBoardTitleBadge(input: {
+/** Sole status-rail badge composer — relation + adult-first token list. */
+export function formatWaiterBoardStatusBadge(input: {
   boardState: WaiterTableBoardState;
   headcount: WaiterBoardTableSummary['buffetHeadcount'];
   boardRelation: WaiterBoardSessionRelation | null | undefined;
   labels: Pick<WaiterBoardCardDisplayLabels, 'cardMergedBadge' | 'cardTransferredBadge'>;
-}): WaiterBoardTitleBadge | null {
+}): WaiterBoardStatusBadge | null {
   const tokens =
     input.boardState === 'idle' || !input.headcount
       ? []
@@ -185,7 +186,7 @@ function buildAriaLabel(view: Omit<WaiterBoardCardViewModel, 'ariaLabel'>): stri
     view.tableTitle,
     view.openerName,
     view.statusLabel,
-    view.titleBadge ? waiterBoardTitleBadgeAriaText(view.titleBadge) : null,
+    view.statusBadge ? waiterBoardStatusBadgeAriaText(view.statusBadge) : null,
     ...view.metaChips.map((chip) => chip.text),
     view.idleHint,
     view.amountText,
@@ -221,7 +222,7 @@ export function buildWaiterBoardCardViewModel(input: {
     boardState: input.boardState,
     tableTitle: input.card.displayName,
     statusLabel: statusLabelForState(input.boardState, input.statusLabels),
-    titleBadge: formatWaiterBoardTitleBadge({
+    statusBadge: formatWaiterBoardStatusBadge({
       boardState: input.boardState,
       headcount: input.card.buffetHeadcount,
       boardRelation: input.session?.boardRelation,

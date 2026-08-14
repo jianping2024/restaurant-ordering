@@ -530,7 +530,7 @@ export function KitchenStationPane({
       }`}
     >
       <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-brand-border/70 px-3 py-2">
-        <h2 className="min-w-0 flex-1 truncate font-heading text-3xl text-brand-gold">
+        <h2 className="min-w-0 flex-1 truncate font-heading text-xl leading-tight text-brand-gold">
           {stationName}
         </h2>
         <div className="flex overflow-hidden rounded-lg border border-brand-border text-lg">

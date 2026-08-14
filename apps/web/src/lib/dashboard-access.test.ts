@@ -1,14 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
   isCashierOperationalPath,
   isDashboardSettingsPath,
   isDashboardWaiterBoardPath,
   isFrontdeskOperationalPath,
-  isOwnerDashboardPath,
-  isOwnerOperationalPath,
   isWaiterOperationalPath,
   shouldPrefetchDashboardNav,
 } from './dashboard-paths';
@@ -17,7 +14,7 @@ import { capabilitiesFromKeys } from './permissions/can';
 import { resolveCapabilitiesForOwner } from './permissions/resolve';
 import { isStaffRole } from './staff-account';
 import {
-  middlewareAllowsOwnerPath,
+  dashboardCapabilityMiddlewareRedirectPath,
   middlewareAllowsPathForCapabilities,
 } from './dashboard-feature-registry';
 import { ROLE_TEMPLATES } from './permissions/role-templates';
@@ -27,24 +24,6 @@ describe('isDashboardSettingsPath', () => {
     assert.equal(isDashboardSettingsPath('/dashboard/settings'), true);
     assert.equal(isDashboardSettingsPath('/dashboard/settings/staff'), true);
     assert.equal(isDashboardSettingsPath('/dashboard/checkout'), false);
-  });
-});
-
-describe('isOwnerDashboardPath', () => {
-  it('allows settings and abnormal operations for owner', () => {
-    assert.equal(isOwnerDashboardPath('/dashboard/settings'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/settings/staff'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/abnormal-operations'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/operation-logs'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/value-analytics'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/menu'), true);
-    assert.equal(isOwnerOperationalPath('/dashboard/abnormal-operations'), true);
-    assert.equal(isOwnerOperationalPath('/dashboard/operation-logs'), true);
-    assert.equal(isOwnerOperationalPath('/dashboard/menu'), true);
-    assert.equal(isOwnerOperationalPath('/dashboard/guest-notice'), false);
-    assert.equal(isOwnerDashboardPath('/dashboard/guest-notice'), false);
-    assert.equal(isOwnerDashboardPath('/dashboard'), true);
-    assert.equal(isOwnerDashboardPath('/dashboard/checkout'), false);
   });
 });
 
@@ -180,22 +159,6 @@ describe('resolveDashboardOperationalContext', () => {
   });
 });
 
-describe('dashboardMiddlewareRedirectPath (owner only)', () => {
-  it('redirects owner away from cashier checkout', () => {
-    assert.equal(
-      dashboardMiddlewareRedirectPath('owner', '/dashboard/checkout'),
-      '/dashboard/settings',
-    );
-  });
-
-  it('allows owner on settings and owner tools', () => {
-    assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/value-analytics'), null);
-    assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/operation-logs'), null);
-    assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/settings'), null);
-    assert.equal(dashboardMiddlewareRedirectPath('owner', '/dashboard/settings/staff'), null);
-  });
-});
-
 describe('middlewareAllowsPathForCapabilities', () => {
   it('uses dashboard route permissions from capability set', () => {
     const frontdeskCaps = capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]);
@@ -208,8 +171,14 @@ describe('middlewareAllowsPathForCapabilities', () => {
     assert.equal(middlewareAllowsPathForCapabilities(cashierCaps, '/dashboard/menu'), false);
   });
 
-  it('owner path policy unchanged', () => {
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/settings'), true);
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/checkout'), false);
+  it('owner star shares the same middleware path gate', () => {
+    const ownerCaps = resolveCapabilitiesForOwner();
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/settings'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/checkout'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/tables'), true);
+    assert.equal(
+      dashboardCapabilityMiddlewareRedirectPath(ownerCaps, '/dashboard/tables', 'demo'),
+      null,
+    );
   });
 });

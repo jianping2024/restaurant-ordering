@@ -7,21 +7,15 @@ import type { Restaurant } from '@/types';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
 
 import {
-  dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
-  isOwnerDashboardPath,
-  isOwnerOperationalPath,
 } from '@/lib/dashboard-paths';
 
 export {
-  dashboardMiddlewareRedirectPath,
   isCashierCheckoutPath,
   isDashboardSettingsPath,
   isFrontdeskOperationalPath,
-  isOwnerDashboardPath,
-  isOwnerOperationalPath,
 };
 
 export type DashboardNavRestaurant = Pick<

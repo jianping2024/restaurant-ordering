@@ -25,7 +25,6 @@ import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 describe('buildDashboardTopNavItems', () => {
   it('lists frontdesk nav from capability template', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
     });
@@ -48,7 +47,6 @@ describe('buildDashboardTopNavItems', () => {
 
   it('appends kitchen top-nav entry when board capability is present', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
     });
@@ -57,7 +55,6 @@ describe('buildDashboardTopNavItems', () => {
 
   it('omits kitchen top-nav entry without board capability', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
     });
@@ -66,32 +63,27 @@ describe('buildDashboardTopNavItems', () => {
 
   it('keeps cashier on waiter board + checkout only', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
     });
     assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
   });
 
-  it('lists owner chrome items including menu in OWNER_NAV order', () => {
+  it('lists all nav items for owner star including tables', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'owner',
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
-    assert.deepEqual(items.map((item) => item.id), [
-      'overview',
-      'valueAnalytics',
-      'abnormalOps',
-      'operationLogs',
-      'menu',
-      'settings',
-    ]);
+    const ids = items.map((item) => item.id);
+    assert.ok(ids.includes('tables'));
+    assert.ok(ids.includes('waiterBoard'));
+    assert.ok(ids.includes('checkout'));
+    assert.ok(ids.includes('settings'));
+    assert.ok(ids.includes('kitchenBoard'));
   });
 
   it('lists owner-preset staff from capability template', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'staff',
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
     });

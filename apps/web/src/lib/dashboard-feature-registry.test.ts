@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
-  middlewareAllowsOwnerPath,
+  DASHBOARD_NAV_ITEMS,
+  dashboardCapabilityMiddlewareRedirectPath,
   middlewareAllowsPathForCapabilities,
-  OWNER_NAV_ITEM_IDS,
 } from './dashboard-feature-registry';
 import { capabilitiesFromKeys, toCapabilitiesPayload } from './permissions/can';
 import { ROLE_TEMPLATES } from './permissions/role-templates';
@@ -20,27 +20,31 @@ describe('middlewareAllowsPathForCapabilities', () => {
     assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/dashboard/waiter'), true);
     assert.equal(middlewareAllowsPathForCapabilities(waiterCaps, '/dashboard/checkout'), false);
   });
-});
 
-describe('middlewareAllowsOwnerPath', () => {
-  it('allows owner chrome paths only', () => {
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/settings'), true);
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/value-analytics'), true);
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/menu'), true);
-    assert.equal(middlewareAllowsOwnerPath('/dashboard/checkout'), false);
+  it('owner star allows operational dashboard paths including tables', () => {
+    const ownerCaps = resolveCapabilitiesForOwner();
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/settings'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/tables'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/checkout'), true);
+    assert.equal(middlewareAllowsPathForCapabilities(ownerCaps, '/dashboard/waiter'), true);
+    assert.equal(
+      dashboardCapabilityMiddlewareRedirectPath(ownerCaps, '/dashboard/tables', 'demo'),
+      null,
+    );
   });
 });
 
-describe('buildDashboardTopNavItems owner chrome', () => {
-  it('limits backend owner nav to owner chrome ids in OWNER_NAV order', () => {
+describe('buildDashboardTopNavItems owner star', () => {
+  it('lists every capability-gated nav item plus kitchen for owner star', () => {
     const items = buildDashboardTopNavItems({
-      shellMode: 'owner',
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
-    assert.deepEqual(
-      items.map((i) => i.id),
-      [...OWNER_NAV_ITEM_IDS],
-    );
+    const ids = items.map((i) => i.id);
+    for (const id of Object.keys(DASHBOARD_NAV_ITEMS)) {
+      assert.ok(ids.includes(id), `missing nav id ${id}`);
+    }
+    assert.ok(ids.includes('tables'));
+    assert.ok(ids.includes('kitchenBoard'));
   });
 });

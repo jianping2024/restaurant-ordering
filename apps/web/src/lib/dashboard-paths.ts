@@ -2,26 +2,6 @@ export function isDashboardSettingsPath(pathname: string): boolean {
   return pathname === '/dashboard/settings' || pathname.startsWith('/dashboard/settings/');
 }
 
-/** Owner dashboard routes outside /dashboard/settings (ops + menu). */
-export function isOwnerOperationalPath(pathname: string): boolean {
-  return (
-    pathname === '/dashboard/upgrade' ||
-    pathname.startsWith('/dashboard/upgrade/') ||
-    pathname === '/dashboard/abnormal-operations' ||
-    pathname.startsWith('/dashboard/abnormal-operations/') ||
-    pathname === '/dashboard/operation-logs' ||
-    pathname.startsWith('/dashboard/operation-logs/') ||
-    pathname === '/dashboard/value-analytics' ||
-    pathname.startsWith('/dashboard/value-analytics/') ||
-    pathname === '/dashboard/menu' ||
-    pathname.startsWith('/dashboard/menu/')
-  );
-}
-
-export function isOwnerOverviewPath(pathname: string): boolean {
-  return pathname === '/dashboard' || pathname === '/dashboard/';
-}
-
 const SETTINGS_HEAVY_TAB_PREFIXES = [
   '/dashboard/settings/buffet',
   '/dashboard/settings/print-assistant',
@@ -36,14 +16,6 @@ export function shouldPrefetchDashboardNav(href: string): boolean {
     return false;
   }
   return true;
-}
-
-export function isOwnerDashboardPath(pathname: string): boolean {
-  return (
-    isOwnerOverviewPath(pathname) ||
-    isDashboardSettingsPath(pathname) ||
-    isOwnerOperationalPath(pathname)
-  );
 }
 
 export function isCashierCheckoutPath(pathname: string): boolean {
@@ -68,17 +40,4 @@ export function isFrontdeskOperationalPath(pathname: string): boolean {
   if (!pathname.startsWith('/dashboard')) return false;
   if (isDashboardSettingsPath(pathname)) return false;
   return true;
-}
-
-/** Backend admin (`restaurants.owner_id`) middleware actor only. */
-export type DashboardActor = 'owner';
-
-/** Redirect restaurants.owner_id away from staff operational dashboard routes. */
-export function dashboardMiddlewareRedirectPath(
-  actor: DashboardActor,
-  pathname: string,
-): string | null {
-  if (actor !== 'owner') return null;
-  if (!isOwnerDashboardPath(pathname)) return '/dashboard/settings';
-  return null;
 }

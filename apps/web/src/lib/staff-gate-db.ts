@@ -26,19 +26,20 @@ export async function loadStaffGateAccountForUser(
   return normalizeStaffGateRow(data);
 }
 
-export async function loadOwnedRestaurantIdForUser(
+export async function loadOwnedRestaurantForUser(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
-): Promise<string | null> {
+): Promise<{ id: string; slug: string } | null> {
   const { data, error } = await admin
     .from('restaurants')
-    .select('id')
+    .select('id, slug')
     .eq('owner_id', userId)
     .maybeSingle();
   if (error) {
     throw new Error(error.message);
   }
-  return (data?.id as string | undefined) ?? null;
+  if (!data?.id || typeof data.slug !== 'string') return null;
+  return { id: data.id as string, slug: data.slug };
 }
 
 export async function loadOwnerForSlug(

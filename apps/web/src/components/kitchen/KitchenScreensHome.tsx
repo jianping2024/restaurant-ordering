@@ -55,7 +55,6 @@ function KitchenScreensHomeInner({
   const roleLabel = topBarRoleLabel(lang, asOwner ? 'backend_admin' : 'kitchen');
 
   const navItems = buildDashboardTopNavItems({
-    shellMode: 'staff',
     capabilities,
     restaurantSlug: restaurant.slug,
   });

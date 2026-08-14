@@ -9,7 +9,7 @@ import {
   type StaffLoginPreflightResult,
 } from '@/lib/staff-identity-gate';
 import {
-  loadOwnedRestaurantIdForUser,
+  loadOwnedRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
@@ -66,11 +66,11 @@ export const loadAuthOwnershipGate = cache(async (): Promise<{
 } | null> => {
   const auth = await loadAuthUserWithAdmin();
   if (!auth) return null;
-  const [ownedRestaurantId, staff] = await Promise.all([
-    loadOwnedRestaurantIdForUser(auth.admin, auth.user.id),
+  const [ownedRestaurant, staff] = await Promise.all([
+    loadOwnedRestaurantForUser(auth.admin, auth.user.id),
     loadStaffGateAccountForUser(auth.admin, auth.user.id),
   ]);
-  return { auth, ownedRestaurantId, staff };
+  return { auth, ownedRestaurantId: ownedRestaurant?.id ?? null, staff };
 });
 
 /** Check staff account exists, is enabled, and restaurant is not suspended — before Supabase sign-in. */

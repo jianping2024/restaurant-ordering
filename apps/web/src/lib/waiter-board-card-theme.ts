@@ -31,7 +31,11 @@ export const waiterBoardType = {
     'inline-flex min-h-[1.25rem] min-w-[1.35rem] shrink-0 items-center justify-center rounded-md px-1 text-center text-[0.6rem] font-semibold leading-none tracking-tight text-brand-gold border border-brand-gold/55',
   cardBadgeRelation:
     'text-center text-[0.6rem] font-medium leading-none text-brand-gold',
-  cardBadgeStack: 'mt-0.5 flex flex-col items-center gap-1',
+  /**
+   * Sole status-rail headcount stack — no mt (vertical place = cardRailBelow*).
+   * Top of stack aligns with opener; extra tokens may paint into amount zone.
+   */
+  cardBadgeStack: 'flex flex-col items-center gap-1',
   cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
   /**
    * Sole floor-card amount face — body stack + brand ink (not .mesa-money).
@@ -52,6 +56,15 @@ export const waiterBoardType = {
   cardStatusRail: 'mesa-status-rail',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',
+  /**
+   * Sole badge↔opener vertical align — mirrors left below-grow (opener + amount),
+   * without rewriting card body grid / min-h. `pt-1.5` = opener `mt-1.5`.
+   * Fixed body height = text-sm line + amount `mt-1.5` + `cardAmountSlot` h-7;
+   * stack sits at top; taller A+C may overflow into amount zone (overflow visible).
+   */
+  cardRailBelow: 'mt-auto flex w-full shrink-0 flex-col items-center pt-1.5',
+  cardRailBelowBody:
+    'relative flex h-[calc(1.25rem+0.375rem+1.75rem)] w-full flex-col items-center overflow-visible',
 } as const;
 
 /**

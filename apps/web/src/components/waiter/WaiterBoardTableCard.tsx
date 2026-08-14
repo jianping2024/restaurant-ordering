@@ -157,15 +157,19 @@ export function WaiterBoardTableCard({
       <div className={waiterBoardType.cardStatusRail} aria-hidden>
         <div className={waiterBoardType.cardStatus}>{view.statusLabel}</div>
         {view.statusBadge ? (
-          <div className={waiterBoardType.cardBadgeStack}>
-            {view.statusBadge.relation ? (
-              <span className={waiterBoardType.cardBadgeRelation}>{view.statusBadge.relation}</span>
-            ) : null}
-            {view.statusBadge.tokens.map((token) => (
-              <span key={token} className={waiterBoardType.cardBadge}>
-                {token}
-              </span>
-            ))}
+          <div className={waiterBoardType.cardRailBelow}>
+            <div className={waiterBoardType.cardRailBelowBody}>
+              <div className={waiterBoardType.cardBadgeStack}>
+                {view.statusBadge.relation ? (
+                  <span className={waiterBoardType.cardBadgeRelation}>{view.statusBadge.relation}</span>
+                ) : null}
+                {view.statusBadge.tokens.map((token) => (
+                  <span key={token} className={waiterBoardType.cardBadge}>
+                    {token}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ) : null}
       </div>

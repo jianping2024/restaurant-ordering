@@ -88,6 +88,11 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.doesNotMatch(waiterBoardType.cardBadge, /flex-col/);
     assert.doesNotMatch(waiterBoardType.cardBadge, /\bh-6\b/);
     assert.match(waiterBoardType.cardBadgeStack, /flex-col/);
+    assert.doesNotMatch(waiterBoardType.cardBadgeStack, /\bmt-/);
+    assert.match(waiterBoardType.cardRailBelow, /\bmt-auto\b/);
+    assert.match(waiterBoardType.cardRailBelow, /\bpt-1\.5\b/);
+    assert.match(waiterBoardType.cardRailBelowBody, /h-\[calc\(1\.25rem\+0\.375rem\+1\.75rem\)\]/);
+    assert.match(waiterBoardType.cardRailBelowBody, /overflow-visible/);
     assert.equal('cardStatusSeat' in waiterBoardType, false);
     assert.match(waiterBoardType.cardMeta, /text-xs/);
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
@@ -124,6 +129,8 @@ describe('waiter-board-card-theme theme tokens', () => {
       'cardBadge',
       'cardBadgeRelation',
       'cardBadgeStack',
+      'cardRailBelow',
+      'cardRailBelowBody',
       'cardMeta',
       'cardAmount',
       'cardIdleHint',

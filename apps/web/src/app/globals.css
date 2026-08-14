@@ -266,6 +266,32 @@ body {
     background: rgb(var(--color-brand-card));
   }
 
+  /* Status rail — vertical status + seats + oval headcount chips */
+  .mesa-status-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    align-self: stretch;
+    min-width: 2.15rem;
+    padding-left: 0.35rem;
+    border-left: 0.5px solid transparent;
+  }
+  .mesa-scroll-frame.is-dining .mesa-status-rail {
+    color: rgb(var(--color-status-danger-fg));
+    border-left-color: rgb(var(--color-status-danger-border) / 0.75);
+  }
+  .mesa-scroll-frame.is-pending .mesa-status-rail {
+    color: rgb(var(--color-status-warning-fg));
+    border-left-color: rgb(var(--color-status-warning-border) / 0.8);
+  }
+  .mesa-scroll-frame.is-free .mesa-status-rail {
+    color: rgb(var(--color-status-success-fg));
+    border-left-color: rgb(var(--color-status-success-border) / 0.7);
+  }
+
   /* 竖排状态 — same body face as the rest of the product UI */
   .mesa-status-vertical {
     writing-mode: vertical-rl;
@@ -273,23 +299,10 @@ body {
     font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.2em;
-    /* Border is the rail edge; no extra left pad / no negative margin. */
+    color: inherit;
     padding-left: 0;
-    border-left: 0.5px solid transparent;
+    border-left: none;
     flex-shrink: 0;
-    align-self: stretch;
-  }
-  .mesa-scroll-frame.is-dining .mesa-status-vertical {
-    color: rgb(var(--color-status-danger-fg));
-    border-left-color: rgb(var(--color-status-danger-border) / 0.75);
-  }
-  .mesa-scroll-frame.is-pending .mesa-status-vertical {
-    color: rgb(var(--color-status-warning-fg));
-    border-left-color: rgb(var(--color-status-warning-border) / 0.8);
-  }
-  .mesa-scroll-frame.is-free .mesa-status-vertical {
-    color: rgb(var(--color-status-success-fg));
-    border-left-color: rgb(var(--color-status-success-border) / 0.7);
   }
 
   .mesa-card-rule {

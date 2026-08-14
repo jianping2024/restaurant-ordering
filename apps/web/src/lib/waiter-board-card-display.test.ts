@@ -3,8 +3,8 @@ import { describe, it } from 'node:test';
 import {
   buildWaiterBoardCardViewModel,
   formatWaiterBoardCardAmount,
-  formatWaiterBoardTitleBadge,
-  waiterBoardTitleBadgeAriaText,
+  formatWaiterBoardStatusBadge,
+  waiterBoardStatusBadgeAriaText,
 } from '@/lib/waiter-board-card-display';
 import { WAITER_BOARD_CARD_MAX_AMOUNT_LABEL } from '@/lib/waiter-board-card-layout';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
@@ -46,7 +46,7 @@ function chipText(view: ReturnType<typeof buildWaiterBoardCardViewModel>, kind: 
 describe('buildWaiterBoardCardViewModel', () => {
   const nowMs = Date.parse('2026-07-05T20:00:00.000Z');
 
-  it('idle card: seats meta only, idleHint below rule, no amount or title badge', () => {
+  it('idle card: seats meta only, idleHint below rule, no amount or status badge', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary(),
       boardState: 'idle',
@@ -60,7 +60,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     });
     assert.equal(view.statusLabel, '空闲');
     assert.equal(view.tableTitle, '002');
-    assert.equal(view.titleBadge, null);
+    assert.equal(view.statusBadge, null);
     assert.equal(view.openerName, null);
     assert.deepEqual(
       view.metaChips.map((c) => c.kind),
@@ -73,7 +73,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.ctaDisabled, false);
   });
 
-  it('dining card: opener below rule; seats/time meta; headcount as title badge only', () => {
+  it('dining card: opener below rule; seats/time meta; headcount on status rail only', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 0 }, sessionTotal: 89.9 }),
       boardState: 'dining',
@@ -91,7 +91,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.statusLabel, '用餐中');
-    assert.deepEqual(view.titleBadge, { relation: null, tokens: ['A3'] });
+    assert.deepEqual(view.statusBadge, { relation: null, tokens: ['A3'] });
     assert.equal(view.openerName, '张三');
     assert.equal(view.idleHint, null);
     assert.equal(chipText(view, 'seats'), '2–4 座');
@@ -105,7 +105,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.metaChips.some((c) => c.text.includes('A3')), false);
   });
 
-  it('dining card title badge stacks adult-first tokens (not hyphen string)', () => {
+  it('dining card status badge stacks adult-first tokens (not hyphen string)', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 3, children: 2 }, sessionTotal: 58.4 }),
       boardState: 'dining',
@@ -121,13 +121,13 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.deepEqual(view.titleBadge, { relation: null, tokens: ['A3', 'C2'] });
-    assert.equal(waiterBoardTitleBadgeAriaText(view.titleBadge!), 'A3 C2');
+    assert.deepEqual(view.statusBadge, { relation: null, tokens: ['A3', 'C2'] });
+    assert.equal(waiterBoardStatusBadgeAriaText(view.statusBadge!), 'A3 C2');
   });
 
-  it('title badge prefixes 拼桌 / 转桌; merge wins over transfer', () => {
+  it('status badge prefixes 拼桌 / 转桌; merge wins over transfer', () => {
     assert.deepEqual(
-      formatWaiterBoardTitleBadge({
+      formatWaiterBoardStatusBadge({
         boardState: 'dining',
         headcount: { adults: 2, children: 3 },
         boardRelation: 'merged',
@@ -136,7 +136,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       { relation: '拼桌', tokens: ['A2', 'C3'] },
     );
     assert.deepEqual(
-      formatWaiterBoardTitleBadge({
+      formatWaiterBoardStatusBadge({
         boardState: 'dining',
         headcount: { adults: 1, children: 0 },
         boardRelation: 'transferred',
@@ -160,8 +160,8 @@ describe('buildWaiterBoardCardViewModel', () => {
       labels: LABELS,
       statusLabels: STATUS,
     });
-    assert.deepEqual(merged.titleBadge, { relation: '拼桌', tokens: ['A2'] });
-    assert.equal(waiterBoardTitleBadgeAriaText(merged.titleBadge!), '拼桌 A2');
+    assert.deepEqual(merged.statusBadge, { relation: '拼桌', tokens: ['A2'] });
+    assert.equal(waiterBoardStatusBadgeAriaText(merged.statusBadge!), '拼桌 A2');
   });
 
   it('formats six-digit amounts incl. decimals for board cards', () => {
@@ -185,7 +185,7 @@ describe('buildWaiterBoardCardViewModel', () => {
       statusLabels: STATUS,
     });
     assert.equal(view.statusLabel, '待结账');
-    assert.deepEqual(view.titleBadge, { relation: null, tokens: ['A2'] });
+    assert.deepEqual(view.statusBadge, { relation: null, tokens: ['A2'] });
     assert.equal(chipText(view, 'time'), '1时00分');
     assert.equal(view.amountText, '€40.00');
     assert.equal(view.ctaLabel, '待收银收款');
@@ -286,7 +286,7 @@ describe('buildWaiterBoardCardViewModel', () => {
     assert.equal(view.openerName, null);
   });
 
-  it('checkout card shows opener below rule, not as meta chip', () => {
+  it('checkout card shows opener below rule, seats stay in meta', () => {
     const view = buildWaiterBoardCardViewModel({
       card: summary({ buffetHeadcount: { adults: 2, children: 0 }, sessionTotal: 40 }),
       boardState: 'checkout',

@@ -61,7 +61,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     // Floor title + amount: body face only (no font-heading / .mesa-money).
     assert.doesNotMatch(waiterBoardType.cardTitle, /font-heading/);
     assert.match(waiterBoardType.cardTitle, /\btext-4xl\b/);
-    assert.match(waiterBoardType.cardTitle, /\bflex-1\b/);
+    assert.doesNotMatch(waiterBoardType.cardTitle, /\bflex-1\b/);
     assert.doesNotMatch(waiterBoardType.cardTitle, /\btext-(?:lg|xl|2xl|3xl)\b/);
     assert.doesNotMatch(waiterBoardType.kpiCount, /font-heading|mesa-money/);
     assert.match(waiterBoardType.kpiCount, /tabular-nums/);
@@ -79,8 +79,16 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.doesNotMatch(waiterBoardType.cardAmount, /\b(?:min-h-|h-7|h-10|h-\[)/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
+    assert.match(waiterBoardType.cardStatusRail, /^mesa-status-rail$/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
     assert.match(waiterBoardType.cardBadge, /text-brand-gold/);
+    assert.match(waiterBoardType.cardBadge, /rounded-md/);
+    assert.match(waiterBoardType.cardBadge, /min-h-\[1\.25rem\]/);
+    assert.doesNotMatch(waiterBoardType.cardBadge, /rounded-full/);
+    assert.doesNotMatch(waiterBoardType.cardBadge, /flex-col/);
+    assert.doesNotMatch(waiterBoardType.cardBadge, /\bh-6\b/);
+    assert.match(waiterBoardType.cardBadgeStack, /flex-col/);
+    assert.equal('cardStatusSeat' in waiterBoardType, false);
     assert.match(waiterBoardType.cardMeta, /text-xs/);
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
     assert.match(waiterBoardType.cardOpener, /truncate/);
@@ -114,15 +122,19 @@ describe('waiter-board-card-theme theme tokens', () => {
       'cardTitle',
       'cardOpener',
       'cardBadge',
+      'cardBadgeRelation',
+      'cardBadgeStack',
       'cardMeta',
       'cardAmount',
       'cardIdleHint',
       'cardAmountSlot',
       'cardCta',
+      'cardStatusRail',
       'cardStatus',
     ]) {
       assert.equal(keys.includes(key), true, `missing waiterBoardType.${key}`);
     }
+    assert.equal(keys.includes('cardStatusSeat'), false);
   });
 
   it('lane sticky shell reuses staff top-bar offset with opaque page bg', () => {

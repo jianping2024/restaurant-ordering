@@ -109,21 +109,13 @@ export function WaiterBoardTableCard({
   const body = (
     <div className={CARD_INNER_CLASS}>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex min-h-[1.25rem] items-center gap-1.5">
+        <div className="flex min-h-[1.25rem] items-center">
           <p
             className={`${waiterBoardType.cardTitle} ${theme.title}`}
             title={view.tableTitle}
           >
             {view.tableTitle}
           </p>
-          {view.titleBadge ? (
-            <span className={waiterBoardType.cardBadge}>
-              {view.titleBadge.relation ? <span>{view.titleBadge.relation}</span> : null}
-              {view.titleBadge.tokens.map((token) => (
-                <span key={token}>{token}</span>
-              ))}
-            </span>
-          ) : null}
         </div>
 
         <div className={waiterBoardType.cardMeta}>
@@ -162,8 +154,20 @@ export function WaiterBoardTableCard({
         </div>
       </div>
 
-      <div className={waiterBoardType.cardStatus} aria-hidden>
-        {view.statusLabel}
+      <div className={waiterBoardType.cardStatusRail} aria-hidden>
+        <div className={waiterBoardType.cardStatus}>{view.statusLabel}</div>
+        {view.statusBadge ? (
+          <div className={waiterBoardType.cardBadgeStack}>
+            {view.statusBadge.relation ? (
+              <span className={waiterBoardType.cardBadgeRelation}>{view.statusBadge.relation}</span>
+            ) : null}
+            {view.statusBadge.tokens.map((token) => (
+              <span key={token} className={waiterBoardType.cardBadge}>
+                {token}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,13 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { OrderStatus } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
-import { formatBuffetReceiptQtyLabel, totalGuestsFromCounts } from '@/lib/buffet-order';
-import { formatOrderDateTime, formatOverviewDate } from '@/lib/format-dashboard-date';
+import { totalGuestsFromCounts, type BuffetGuestHeadcount } from '@/lib/buffet-order';
+import { formatOverviewDate } from '@/lib/format-dashboard-date';
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
@@ -17,9 +16,13 @@ import {
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
 
-function orderStatusBadgeClass(status: OrderStatus): string {
-  if (status === 'done') return 'mesa-badge-success';
-  return 'mesa-badge-warning';
+function formatBuffetGuestDetail(
+  template: string,
+  guests: BuffetGuestHeadcount,
+): string {
+  return template
+    .replace('{adults}', String(guests.adults))
+    .replace('{children}', String(guests.children));
 }
 
 export function DashboardOverviewPrimaryClient({
@@ -42,43 +45,28 @@ export function DashboardOverviewPrimaryClient({
     { key: 'print', label: i18n.pendingPrint, count: pendingActions.pendingPrint },
   ];
 
-  const { todayTableCount, todayRevenue, revenueAvailable, diningTableCount, diningGuests } =
-    todayKpis;
+  const {
+    todayTableCount,
+    todayRevenue,
+    revenueAvailable,
+    todayGuests,
+    diningTableCount,
+    diningGuests,
+  } = todayKpis;
   const diningGuestCount = totalGuestsFromCounts(diningGuests);
-  const diningGuestDetail = messages.bill.buffetGuestCounts
-    .replace('{adults}', String(diningGuests.adults))
-    .replace('{children}', String(diningGuests.children));
+  const diningGuestDetail = formatBuffetGuestDetail(messages.bill.buffetGuestCounts, diningGuests);
+  const todayGuestCount = totalGuestsFromCounts(todayGuests);
+  const todayGuestDetail = formatBuffetGuestDetail(messages.bill.buffetGuestCounts, todayGuests);
+  const figureClass = DASHBOARD_METRIC_TYPE.figure;
+  const moneyClass = DASHBOARD_METRIC_TYPE.money;
 
-  const stats = [
-    {
-      key: 'revenue',
-      label: i18n.todayRevenue,
-      value: revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable,
-      unit: '',
-      detail: null as string | null,
-      color: revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted',
-      prominent: true,
-      face: 'money' as const,
-    },
-    {
-      key: 'tables',
-      label: i18n.todayTables,
-      value: revenueAvailable ? todayTableCount : i18n.todayRevenueUnavailable,
-      unit: revenueAvailable ? i18n.unitTable : '',
-      detail: null as string | null,
-      color: revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted',
-      prominent: false,
-      face: 'figure' as const,
-    },
+  const floorStats = [
     {
       key: 'diningTables',
       label: i18n.diningTables,
       value: diningTableCount,
       unit: i18n.unitTable,
       detail: null as string | null,
-      color: 'text-brand-text',
-      prominent: false,
-      face: 'figure' as const,
     },
     {
       key: 'diningGuests',
@@ -86,9 +74,6 @@ export function DashboardOverviewPrimaryClient({
       value: diningGuestCount,
       unit: i18n.unitGuest,
       detail: diningGuestDetail,
-      color: 'text-brand-text',
-      prominent: false,
-      face: 'figure' as const,
     },
   ];
 
@@ -99,21 +84,64 @@ export function DashboardOverviewPrimaryClient({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat) => (
-          <div
-            key={stat.key}
-            className={`bg-brand-card border border-brand-border rounded-2xl p-6 ${
-              stat.prominent ? 'lg:col-span-1 ring-1 ring-brand-gold/25' : ''
+        <div className="bg-brand-card border border-brand-border rounded-2xl p-6 ring-1 ring-brand-gold/25">
+          <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayRevenue}</p>
+          <p
+            className={`${moneyClass} text-3xl sm:text-4xl ${
+              revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
             }`}
           >
+            {revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable}
+          </p>
+        </div>
+
+        <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
+          <div className="flex flex-row gap-5">
+            <div className="min-w-0 flex-1">
+              <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayTables}</p>
+              <p
+                className={`${figureClass} text-2xl sm:text-3xl ${
+                  revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted'
+                }`}
+              >
+                {revenueAvailable ? todayTableCount : i18n.todayRevenueUnavailable}
+                {revenueAvailable ? (
+                  <span className="text-base ml-1 text-brand-text-muted">{i18n.unitTable}</span>
+                ) : null}
+              </p>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayGuests}</p>
+              <p
+                className={`${figureClass} text-2xl sm:text-3xl ${
+                  revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted'
+                }`}
+              >
+                {revenueAvailable ? todayGuestCount : i18n.todayRevenueUnavailable}
+                {revenueAvailable ? (
+                  <span className="text-base ml-1 text-brand-text-muted">{i18n.unitGuest}</span>
+                ) : null}
+              </p>
+              {revenueAvailable ? (
+                <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">
+                  {todayGuestDetail}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {floorStats.map((stat) => (
+          <div
+            key={stat.key}
+            className="bg-brand-card border border-brand-border rounded-2xl p-6"
+          >
             <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
-            <p
-              className={`${DASHBOARD_METRIC_TYPE[stat.face]} ${stat.prominent ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl'} ${stat.color}`}
-            >
+            <p className={`${figureClass} text-2xl sm:text-3xl text-brand-text`}>
               {stat.value}
-              {stat.unit && (
+              {stat.unit ? (
                 <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>
-              )}
+              ) : null}
             </p>
             {stat.detail ? (
               <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">{stat.detail}</p>
@@ -158,7 +186,7 @@ export function DashboardOverviewSecondaryClient({
   const { lang } = useLanguage();
   const i18n = getMessages(lang).dashboard;
   const orderI18n = getMessages(lang).orderHistory;
-  const { topSelling, recentOrders, feedback } = secondary;
+  const { topSelling, feedback } = secondary;
 
   const topItems = useMemo(() => localizeTopSellingItems(topSelling, lang), [topSelling, lang]);
 
@@ -181,12 +209,6 @@ export function DashboardOverviewSecondaryClient({
       })),
     [feedback.topPraise, lang],
   );
-
-  const orderStatusLabel = (status: OrderStatus): string => {
-    if (status === 'done') return orderI18n.done;
-    if (status === 'cooking') return orderI18n.cooking;
-    return orderI18n.pending;
-  };
 
   return (
     <>
@@ -212,61 +234,18 @@ export function DashboardOverviewSecondaryClient({
         topPraise={localizedPraise}
       />
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <DashboardTopSellingPanel
-          items={topItems}
-          i18n={{
-            topSellingTitle: i18n.topSellingTitle,
-            topSellingEmpty: i18n.topSellingEmpty,
-            topSellingListedSummary: i18n.topSellingListedSummary,
-            colRank: i18n.topSellingColRank,
-            colDish: i18n.topSellingColDish,
-            colQty: i18n.topSellingColQty,
-            colShare: i18n.topSellingColShare,
-          }}
-        />
-
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
-          <h2 className="font-heading text-xl text-brand-gold mb-4">{i18n.recent}</h2>
-          {recentOrders.length === 0 ? (
-            <p className="text-brand-text-muted text-sm">{i18n.noOrders}</p>
-          ) : (
-            <div className="space-y-3">
-              {recentOrders.map((order) => {
-                const guests = order.buffetGuests
-                  ? formatBuffetReceiptQtyLabel(order.buffetGuests.adults, order.buffetGuests.children)
-                  : null;
-                return (
-                  <div
-                    key={order.id}
-                    className="flex items-start justify-between gap-3 py-2 border-b border-brand-border last:border-0"
-                  >
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm text-brand-text">
-                          {i18n.table} {order.display_name}
-                        </p>
-                        <span
-                          className={`text-[11px] px-2 py-0.5 rounded-full border ${orderStatusBadgeClass(order.status)}`}
-                        >
-                          {orderStatusLabel(order.status)}
-                        </span>
-                      </div>
-                      <p className="text-[13px] text-brand-text-muted mt-0.5">
-                        {formatOrderDateTime(lang, order.created_at)}
-                        {guests ? <span className="ml-2">{guests}</span> : null}
-                      </p>
-                    </div>
-                    <p className="mesa-money text-sm text-brand-gold shrink-0">
-                      €{order.total_amount.toFixed(2)}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+      <DashboardTopSellingPanel
+        items={topItems}
+        i18n={{
+          topSellingTitle: i18n.topSellingTitle,
+          topSellingEmpty: i18n.topSellingEmpty,
+          topSellingListedSummary: i18n.topSellingListedSummary,
+          colRank: i18n.topSellingColRank,
+          colDish: i18n.topSellingColDish,
+          colQty: i18n.topSellingColQty,
+          colShare: i18n.topSellingColShare,
+        }}
+      />
     </>
   );
 }

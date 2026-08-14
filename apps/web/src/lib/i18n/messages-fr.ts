@@ -999,6 +999,7 @@ export const MESSAGES_FR = {
   "dashboard": {
     "title": "Vue d’ensemble",
     "todayTables": "Tables du jour",
+    "todayGuests": "Convives du jour",
     "todayRevenue": "Chiffre d’affaires du jour",
     "todayRevenueUnavailable": "Indisponible",
     "diningTables": "Tables en cours",
@@ -1013,10 +1014,6 @@ export const MESSAGES_FR = {
     "topSellingColDish": "Plat",
     "topSellingColQty": "Qté (portions)",
     "topSellingColShare": "Part",
-    "recent": "Commandes récentes",
-    "noOrders": "Aucune commande pour le moment",
-    "table": "Table",
-    "serving": "",
     "pendingActions": "À traiter",
     "pendingActionsEmpty": "Rien à traiter pour le moment",
     "pendingInProgress": "En cours",

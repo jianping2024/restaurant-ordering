@@ -4,7 +4,9 @@ import type { BillSplit, Order } from '@/types';
 import {
   filterQualifyingClosedSessions,
   mergeForcedCloseSessionIds,
+  todayGuestsForRevenueSessions,
   todayRevenueFromBundle,
+  todayRevenueSessionIds,
   type ClosedSessionRevenueBundle,
 } from '@/lib/analytics/closed-session-revenue';
 
@@ -65,6 +67,7 @@ describe('todayRevenueFromBundle', () => {
 
     assert.equal(revenue.todayRevenue, 29.95);
     assert.equal(revenue.revenueSessionCount, 1);
+    assert.deepEqual(revenue.todayGuests, { adults: 0, children: 0 });
   });
 
   it('excludes forced unpaid close sessions', () => {
@@ -94,6 +97,184 @@ describe('todayRevenueFromBundle', () => {
 
     assert.equal(revenue.todayRevenue, 0);
     assert.equal(revenue.revenueSessionCount, 0);
+    assert.deepEqual(revenue.todayGuests, { adults: 0, children: 0 });
+  });
+
+  it('sums todayGuests only for the same sessions as today table count', () => {
+    const paidSplit = (sessionId: string, amount: number): BillSplit =>
+      ({
+        id: `sp-${sessionId}`,
+        restaurant_id: 'r1',
+        table_id: 't1',
+        display_name: '1',
+        session_id: sessionId,
+        order_ids: [`o-${sessionId}`],
+        split_mode: 'even',
+        persons: [],
+        result: [{ name: 'A', amount, paid: true }],
+        total_amount: amount,
+        status: 'paid',
+        created_at: '2026-07-21T12:00:00.000Z',
+        discount_rate: 0,
+      }) as BillSplit;
+
+    const lightOrders = new Map<string, Order[]>([
+      [
+        's1',
+        [
+          {
+            id: 'o-s1',
+            restaurant_id: 'r1',
+            table_id: 't1',
+            display_name: '1',
+            session_id: 's1',
+            status: 'done',
+            items: [],
+            total_amount: 40,
+            created_at: '2026-07-21T10:00:00.000Z',
+            updated_at: '2026-07-21T10:00:00.000Z',
+          },
+        ],
+      ],
+      [
+        's2',
+        [
+          {
+            id: 'o-s2',
+            restaurant_id: 'r1',
+            table_id: 't2',
+            display_name: '2',
+            session_id: 's2',
+            status: 'done',
+            items: [],
+            total_amount: 30,
+            created_at: '2026-07-21T10:00:00.000Z',
+            updated_at: '2026-07-21T10:00:00.000Z',
+          },
+        ],
+      ],
+      [
+        's3',
+        [
+          {
+            id: 'o-s3',
+            restaurant_id: 'r1',
+            table_id: 't3',
+            display_name: '3',
+            session_id: 's3',
+            status: 'done',
+            items: [],
+            total_amount: 20,
+            created_at: '2026-07-21T10:00:00.000Z',
+            updated_at: '2026-07-21T10:00:00.000Z',
+          },
+        ],
+      ],
+    ]);
+
+    const revenueBundle = bundle({
+      sessions: [
+        { id: 's1', closed_at: '2026-07-21T12:00:00.000Z' },
+        { id: 's2', closed_at: '2026-07-21T12:00:00.000Z' },
+        { id: 's3', closed_at: '2026-07-21T12:00:00.000Z' },
+      ],
+      ordersBySession: lightOrders,
+      splitsBySession: new Map([
+        ['s1', [paidSplit('s1', 40)]],
+        ['s2', [paidSplit('s2', 30)]],
+        ['s3', [paidSplit('s3', 20)]],
+      ]),
+      forcedClosedSessionIds: new Set(['s3']),
+    });
+
+    const itemOrders = new Map([
+      [
+        's1',
+        [
+          {
+            id: 'o-s1',
+            session_id: 's1',
+            status: 'done' as const,
+            total_amount: 40,
+            items: [
+              {
+                id: 'buffet:1',
+                kind: 'buffet_base' as const,
+                buffet_id: 'pkg',
+                name: 'Buffet',
+                name_pt: 'Buffet',
+                qty: 1,
+                price: 20,
+                emoji: '🍽️',
+                adult_count: 2,
+                child_count: 1,
+              },
+            ],
+          },
+        ],
+      ],
+      [
+        's2',
+        [
+          {
+            id: 'o-s2',
+            session_id: 's2',
+            status: 'done' as const,
+            total_amount: 30,
+            items: [
+              {
+                id: 'buffet:2',
+                kind: 'buffet_base' as const,
+                buffet_id: 'pkg',
+                name: 'Buffet',
+                name_pt: 'Buffet',
+                qty: 1,
+                price: 20,
+                emoji: '🍽️',
+                adult_count: 3,
+                child_count: 0,
+              },
+            ],
+          },
+        ],
+      ],
+      [
+        's3',
+        [
+          {
+            id: 'o-s3',
+            session_id: 's3',
+            status: 'done' as const,
+            total_amount: 20,
+            items: [
+              {
+                id: 'buffet:3',
+                kind: 'buffet_base' as const,
+                buffet_id: 'pkg',
+                name: 'Buffet',
+                name_pt: 'Buffet',
+                qty: 1,
+                price: 20,
+                emoji: '🍽️',
+                adult_count: 9,
+                child_count: 9,
+              },
+            ],
+          },
+        ],
+      ],
+    ]);
+
+    const sessionIds = todayRevenueSessionIds(revenueBundle, '2026-07-21');
+    assert.deepEqual(sessionIds, ['s1', 's2']);
+    assert.deepEqual(todayGuestsForRevenueSessions(sessionIds, itemOrders), {
+      adults: 5,
+      children: 1,
+    });
+
+    const revenue = todayRevenueFromBundle(revenueBundle, '2026-07-21', itemOrders);
+    assert.equal(revenue.revenueSessionCount, 2);
+    assert.deepEqual(revenue.todayGuests, { adults: 5, children: 1 });
   });
 
   it('excludes operational closed_reason via mergeForcedCloseSessionIds', () => {

@@ -193,15 +193,25 @@ describe('buildFeedbackInsights', () => {
 });
 
 describe('pendingActionsTotal', () => {
-  it('sums all pending buckets', () => {
+  it('sums checkout, print, and entitled abnormal buckets', () => {
     assert.equal(
       pendingActionsTotal({
-        inProgressOrders: 2,
         pendingCheckout: 1,
-        pendingAbnormal: 0,
+        pendingAbnormal: 2,
         pendingPrint: 3,
       }),
       6,
+    );
+  });
+
+  it('treats null abnormal as not entitled (excluded from total)', () => {
+    assert.equal(
+      pendingActionsTotal({
+        pendingCheckout: 1,
+        pendingAbnormal: null,
+        pendingPrint: 3,
+      }),
+      4,
     );
   });
 });

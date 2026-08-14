@@ -1016,7 +1016,6 @@ export const MESSAGES_DE = {
     "topSellingColShare": "Anteil",
     "pendingActions": "Zu erledigen",
     "pendingActionsEmpty": "Aktuell nichts offen",
-    "pendingInProgress": "In Bearbeitung",
     "pendingCheckout": "Wartet auf Bezahlung",
     "pendingAbnormal": "Auffällige Vorgänge",
     "pendingPrint": "Druck ausstehend",

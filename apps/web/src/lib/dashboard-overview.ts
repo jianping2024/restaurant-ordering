@@ -76,9 +76,12 @@ export function buildTopSellingRows(items: DashboardTopItem[]): DashboardTopSell
 }
 
 export type DashboardPendingActions = {
-  inProgressOrders: number;
   pendingCheckout: number;
-  pendingAbnormal: number;
+  /**
+   * PENDING abnormal_operations count when caller has `dashboard.abnormal_ops.view`;
+   * `null` when not entitled (do not query / do not show the chip).
+   */
+  pendingAbnormal: number | null;
   pendingPrint: number;
 };
 
@@ -359,9 +362,8 @@ export function buildFeedbackInsights(
 
 export function pendingActionsTotal(actions: DashboardPendingActions): number {
   return (
-    actions.inProgressOrders +
     actions.pendingCheckout +
-    actions.pendingAbnormal +
+    (actions.pendingAbnormal ?? 0) +
     actions.pendingPrint
   );
 }
@@ -405,28 +407,27 @@ export async function loadDashboardOverviewPrimary(
   admin: SupabaseClient,
   restaurantId: string,
   now = new Date(),
+  options?: { includePendingAbnormal?: boolean },
 ): Promise<DashboardOverviewPrimaryView> {
   const todayWindow = resolveTodayLisbonWindow(now);
+  const includePendingAbnormal = options?.includePendingAbnormal === true;
 
   const [
-    { count: inProgressOrderCount },
     pendingCheckoutCount,
-    { count: pendingAbnormalCount },
+    pendingAbnormalCount,
     { count: pendingPrintCount },
     todayRevenue,
     diningFloor,
   ] = await Promise.all([
-    admin
-      .from('orders')
-      .select('id', { count: 'exact', head: true })
-      .eq('restaurant_id', restaurantId)
-      .neq('status', 'done'),
     countPendingCheckoutRequests(admin, restaurantId),
-    admin
-      .from('abnormal_operations')
-      .select('id', { count: 'exact', head: true })
-      .eq('restaurant_id', restaurantId)
-      .eq('status', 'PENDING'),
+    includePendingAbnormal
+      ? admin
+          .from('abnormal_operations')
+          .select('id', { count: 'exact', head: true })
+          .eq('restaurant_id', restaurantId)
+          .eq('status', 'PENDING')
+          .then((result) => result.count ?? 0)
+      : Promise.resolve(null as number | null),
     admin
       .from('print_jobs')
       .select('id', { count: 'exact', head: true })
@@ -446,9 +447,8 @@ export async function loadDashboardOverviewPrimary(
   return {
     todayKpis: computeTodayKpis(todayRevenue, diningFloor),
     pendingActions: {
-      inProgressOrders: inProgressOrderCount ?? 0,
       pendingCheckout: pendingCheckoutCount,
-      pendingAbnormal: pendingAbnormalCount ?? 0,
+      pendingAbnormal: pendingAbnormalCount,
       pendingPrint: pendingPrintCount ?? 0,
     },
   };

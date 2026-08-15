@@ -6069,24 +6069,10 @@ CREATE POLICY buffets_public_read ON public.buffets FOR SELECT USING (true);
 ALTER TABLE public.dish_feedback ENABLE ROW LEVEL SECURITY;
 
 --
--- Name: dish_feedback dish_feedback_public_all; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY dish_feedback_public_all ON public.dish_feedback USING (true) WITH CHECK (true);
-
-
---
 -- Name: feedback_sessions; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.feedback_sessions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: feedback_sessions feedback_sessions_public_all; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY feedback_sessions_public_all ON public.feedback_sessions USING (true) WITH CHECK (true);
-
 
 --
 -- Name: menu_categories; Type: ROW SECURITY; Schema: public; Owner: -

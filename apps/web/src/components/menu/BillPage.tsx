@@ -21,7 +21,11 @@ import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useBillOrders } from '@/lib/use-bill-orders';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
-import { createClient } from '@/lib/supabase/client';
+import {
+  DISH_FEEDBACK_REASON_KEYS,
+  parseDishFeedbackReasons,
+  type DishFeedbackReasonKey,
+} from '@/lib/dish-feedback-reasons';
 import { Button } from '@/components/ui/Button';
 import type { BillSplit, DishFeedbackVote, Order, SessionStatus, SplitResult } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -68,9 +72,6 @@ interface Props {
   initialPartyMemberCount?: number;
 }
 
-const FEEDBACK_REASON_KEYS = ['taste', 'temp', 'slow', 'mismatch', 'other'] as const;
-type FeedbackReasonKey = (typeof FEEDBACK_REASON_KEYS)[number];
-
 export function BillPage({
   restaurant,
   tableId,
@@ -105,7 +106,7 @@ export function BillPage({
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
     initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
   );
-  const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>>({});
+  const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
   const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
@@ -299,7 +300,7 @@ export function BillPage({
     return Array.from(dedup.values());
   }, [orderLines, orders, lang]);
 
-  const feedbackReasonLabels: Record<FeedbackReasonKey, string> = {
+  const feedbackReasonLabels: Record<DishFeedbackReasonKey, string> = {
     taste: t.reasonTaste,
     temp: t.reasonTemp,
     slow: t.reasonSlow,
@@ -310,40 +311,49 @@ export function BillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !sessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) return;
+    if (!submitted || !sessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) {
+      return;
+    }
     setFeedbackHydrating(true);
-    const supabase = createClient();
     const syncFeedbackState = async () => {
-      await supabase
-        .from('feedback_sessions')
-        .upsert({
-          restaurant_id: restaurant.id,
-          session_id: sessionId,
-          source: 'bill_success',
-          shown_at: new Date().toISOString(),
-        }, { onConflict: 'session_id' });
-
-      const { data } = await supabase
-        .from('dish_feedback')
-        .select('menu_item_id, vote, reasons')
-        .eq('session_id', sessionId);
-
-      if (!data?.length) return;
-      const nextDraft: Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }> = {};
-      data.forEach((row) => {
-        const reasons = Array.isArray(row.reasons)
-          ? row.reasons.filter((reason): reason is FeedbackReasonKey => FEEDBACK_REASON_KEYS.includes(reason as FeedbackReasonKey))
-          : [];
-        nextDraft[row.menu_item_id] = {
-          vote: row.vote as DishFeedbackVote,
-          reasons,
-        };
-      });
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/customer/dish-feedback?table_id=${encodeURIComponent(tableId)}`,
+      );
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        submitted?: boolean;
+        skipped?: boolean;
+        votes?: Array<{ menu_item_id?: string; vote?: string; reasons?: unknown }>;
+      };
+      if (data.skipped) {
+        setFeedbackSkipped(true);
+        return;
+      }
+      const votes = Array.isArray(data.votes) ? data.votes : [];
+      if (!votes.length && !data.submitted) return;
+      const nextDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }> = {};
+      for (const row of votes) {
+        const menuItemId =
+          typeof row.menu_item_id === 'string' ? row.menu_item_id.trim() : '';
+        if (!menuItemId) continue;
+        const vote = row.vote === 'up' || row.vote === 'down' ? row.vote : undefined;
+        const reasons =
+          vote === 'down' ? parseDishFeedbackReasons(row.reasons) : [];
+        nextDraft[menuItemId] = { vote, reasons };
+      }
       setFeedbackDraft(nextDraft);
-      setFeedbackSubmitted(true);
+      if (data.submitted || votes.length > 0) setFeedbackSubmitted(true);
     };
     void syncFeedbackState().finally(() => setFeedbackHydrating(false));
-  }, [submitted, sessionId, restaurant.id, staffAssisted, initialFeedbackSubmitted, initialFeedbackSkipped]);
+  }, [
+    submitted,
+    sessionId,
+    restaurant.slug,
+    tableId,
+    staffAssisted,
+    initialFeedbackSubmitted,
+    initialFeedbackSkipped,
+  ]);
 
   const setVote = (menuItemId: string, vote: DishFeedbackVote) => {
     setFeedbackDraft((prev) => ({
@@ -355,9 +365,12 @@ export function BillPage({
     }));
   };
 
-  const toggleReason = (menuItemId: string, reason: FeedbackReasonKey) => {
+  const toggleReason = (menuItemId: string, reason: DishFeedbackReasonKey) => {
     setFeedbackDraft((prev) => {
-      const existing = prev[menuItemId] || { vote: 'down' as DishFeedbackVote, reasons: [] as FeedbackReasonKey[] };
+      const existing = prev[menuItemId] || {
+        vote: 'down' as DishFeedbackVote,
+        reasons: [] as DishFeedbackReasonKey[],
+      };
       const reasons = existing.reasons.includes(reason)
         ? existing.reasons.filter((item) => item !== reason)
         : [...existing.reasons, reason];
@@ -375,20 +388,15 @@ export function BillPage({
     if (!sessionId || feedbackSkipped || feedbackSubmitting) return;
     setFeedbackSubmitting(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('feedback_sessions')
-        .upsert(
-          {
-            restaurant_id: restaurant.id,
-            session_id: sessionId,
-            source: 'bill_success',
-            shown_at: new Date().toISOString(),
-            skipped_at: new Date().toISOString(),
-          },
-          { onConflict: 'session_id' },
-        );
-      if (error) {
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/customer/dish-feedback`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ table_id: tableId, action: 'skip' }),
+        },
+      );
+      if (!res.ok) {
         showToast(t.actionFailed);
         return;
       }
@@ -402,16 +410,13 @@ export function BillPage({
     if (!sessionId || selectedFeedbackCount === 0) return;
     setFeedbackSubmitting(true);
     try {
-      const supabase = createClient();
       const payload = reviewableItems
         .map((item) => {
           const draft = feedbackDraft[item.menu_item_id];
           if (!draft?.vote) return null;
           return {
-            restaurant_id: restaurant.id,
-            session_id: sessionId,
-            order_id: item.order_id,
             menu_item_id: item.menu_item_id,
+            order_id: item.order_id,
             vote: draft.vote,
             reasons: draft.vote === 'down' ? draft.reasons : [],
           };
@@ -420,20 +425,22 @@ export function BillPage({
 
       if (payload.length === 0) return;
 
-      await supabase
-        .from('dish_feedback')
-        .upsert(payload, { onConflict: 'session_id,menu_item_id' });
-
-      await supabase
-        .from('feedback_sessions')
-        .upsert({
-          restaurant_id: restaurant.id,
-          session_id: sessionId,
-          source: 'bill_success',
-          shown_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-          skipped_at: null,
-        }, { onConflict: 'session_id' });
+      const res = await fetch(
+        `/api/restaurants/${encodeURIComponent(restaurant.slug)}/customer/dish-feedback`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            table_id: tableId,
+            action: 'submit',
+            items: payload,
+          }),
+        },
+      );
+      if (!res.ok) {
+        showToast(t.actionFailed);
+        return;
+      }
 
       setFeedbackSubmitted(true);
       setFeedbackSkipped(false);
@@ -476,7 +483,7 @@ export function BillPage({
         reviewableItems={reviewableItems}
         feedbackDraft={feedbackDraft}
         feedbackReasonLabels={feedbackReasonLabels}
-        feedbackReasonKeys={FEEDBACK_REASON_KEYS}
+        feedbackReasonKeys={DISH_FEEDBACK_REASON_KEYS}
         feedbackHydrating={feedbackHydrating}
         feedbackSubmitted={feedbackSubmitted}
         feedbackSubmitting={feedbackSubmitting}

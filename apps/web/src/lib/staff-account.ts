@@ -129,10 +129,6 @@ export function buildStaffEmail(loginName: string): string {
   return `${ln}@${STAFF_EMAIL_DOMAIN}`;
 }
 
-export function staffPasswordValid(password: string): boolean {
-  return typeof password === 'string' && password.length >= 6;
-}
-
 export type StaffUserMetadata = {
   account_type: 'staff';
   must_change_password?: boolean;

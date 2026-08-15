@@ -5,7 +5,7 @@ import {
   mapStaffRow,
   staffMetadataPayload,
 } from '@/lib/staff-dashboard-api';
-import { staffPasswordValid } from '@/lib/staff-account';
+import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { StaffRole } from '@/lib/staff-account';
 
 export const runtime = 'nodejs';
@@ -24,9 +24,6 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   const password = typeof body.password === 'string' ? body.password : '';
-  if (!staffPasswordValid(password)) {
-    return NextResponse.json({ error: 'password_too_short' }, { status: 400 });
-  }
 
   const { data: account, error: loadError } = await loaded.admin
     .from('restaurant_staff_accounts')
@@ -40,6 +37,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
   if (isPrintAgentStaffRole(String(account.role ?? ''))) {
     return NextResponse.json({ error: 'system_account_locked' }, { status: 403 });
+  }
+
+  const loginName =
+    typeof account.login_name === 'string' ? account.login_name : null;
+  const passwordError = accountPasswordPolicyError(password, { loginName });
+  if (passwordError) {
+    return NextResponse.json({ error: passwordError }, { status: 400 });
   }
 
   const role = account.role as StaffRole;

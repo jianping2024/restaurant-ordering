@@ -15,6 +15,8 @@ import { isDependencyFailure } from '@/lib/dependency-unavailable';
 import { dependencyUnavailableJsonResponse } from '@/lib/dependency-unavailable-response';
 import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { createRouteHandlerSupabaseAuth } from '@/lib/supabase/route-handler-auth';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { staffLoginRequiresPasswordChange } from '@/lib/auth/account-password-policy';
 import { cookies } from 'next/headers';
 
 export const runtime = 'nodejs';
@@ -115,11 +117,31 @@ export async function POST(req: Request) {
     authLoginRecordSuccess(email, ip);
 
     if (redirect.kind === 'staff') {
+      const loginName =
+        resolved.loginName ?? staffLoginNameFromAuthEmail(email);
+      const mustChangePassword = staffLoginRequiresPasswordChange({
+        mustChangePasswordFlag: redirect.mustChangePassword,
+        password,
+        loginName,
+      });
+      if (mustChangePassword && !redirect.mustChangePassword) {
+        try {
+          const admin = createAdminClient();
+          await admin.auth.admin.updateUserById(data.user.id, {
+            user_metadata: {
+              ...(data.user.user_metadata as Record<string, unknown>),
+              must_change_password: true,
+            },
+          });
+        } catch {
+          // Still send them to change-password; gate may need metadata refresh.
+        }
+      }
       const response = NextResponse.json({
         ok: true,
         kind: 'staff',
-        path: redirect.mustChangePassword ? '/auth/staff/change-password' : redirect.path,
-        must_change_password: redirect.mustChangePassword,
+        path: mustChangePassword ? '/auth/staff/change-password' : redirect.path,
+        must_change_password: mustChangePassword,
         slug: redirect.slug,
         roleLabel: redirect.roleLabel,
       });

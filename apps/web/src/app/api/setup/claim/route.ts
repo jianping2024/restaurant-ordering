@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { applyOnPremClaim, type PlatformClaimSnapshot } from '@/lib/license-materialize';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 
 /**
  * On-prem /setup: platform claim (code) + local apply-claim (owner password).
@@ -25,8 +26,9 @@ export async function POST(req: Request) {
   ).replace(/\/$/, '');
 
   if (!code) return NextResponse.json({ error: 'code_required' }, { status: 400 });
-  if (ownerPassword.length < 6) {
-    return NextResponse.json({ error: 'password_too_short' }, { status: 400 });
+  const passwordError = accountPasswordPolicyError(ownerPassword);
+  if (passwordError) {
+    return NextResponse.json({ error: passwordError }, { status: 400 });
   }
   if (!platformUrl) {
     return NextResponse.json({ error: 'platform_url_required' }, { status: 400 });

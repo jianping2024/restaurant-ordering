@@ -6,6 +6,7 @@ import {
   type StaffChangePasswordValidationError,
 } from '@/lib/auth/staff-change-password-validation';
 import { resolveStaffPasswordChangeSuccess } from '@/lib/auth/staff-change-password-outcome';
+import { staffLoginNameFromAuthEmail } from '@/lib/auth/resolve-auth-identifier';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { loadStaffGateAccountForUser } from '@/lib/staff-gate-db';
 import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
@@ -30,15 +31,6 @@ export async function changeStaffPasswordWithSession(
 ): Promise<StaffChangePasswordResult> {
   const { currentPassword, newPassword, confirmPassword } = input;
 
-  const validationError = validateStaffPasswordChangeInput({
-    currentPassword,
-    newPassword,
-    confirmPassword,
-  });
-  if (validationError) {
-    return { ok: false, error: validationError };
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -47,6 +39,17 @@ export async function changeStaffPasswordWithSession(
   }
 
   const meta = parseStaffUserMetadata(user.user_metadata as Record<string, unknown> | undefined);
+  const loginName = staffLoginNameFromAuthEmail(user.email ?? '');
+
+  const validationError = validateStaffPasswordChangeInput({
+    currentPassword,
+    newPassword,
+    confirmPassword,
+    loginName,
+  });
+  if (validationError) {
+    return { ok: false, error: validationError };
+  }
 
   const verify = await verifyStaffPassword(currentPassword);
   if (!verify.ok) {

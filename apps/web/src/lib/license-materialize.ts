@@ -13,6 +13,7 @@ import {
   persistPlatformLicenseConfig,
   type PlatformLicenseConfig,
 } from '@/lib/license-platform-config';
+import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 
 type LicenseRestaurantRow = {
   id: string;
@@ -233,8 +234,9 @@ export async function applyOnPremClaim(
   },
 ): Promise<ApplyOnPremClaimResult> {
   const password = input.ownerPassword || '';
-  if (password.length < 6) {
-    return { ok: false, error: 'password_too_short', status: 400 };
+  const passwordError = accountPasswordPolicyError(password);
+  if (passwordError) {
+    return { ok: false, error: passwordError, status: 400 };
   }
 
   const snap = input.snapshot;

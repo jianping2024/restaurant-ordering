@@ -29,7 +29,7 @@ const JAR_DIR = process.env.MESA_UAT_JAR_DIR || '/tmp/mesa-uat';
 const ACCOUNTS = {
   staff: {
     account: process.env.MESA_UAT_STAFF_ACCOUNT || 'qiantai1',
-    password: process.env.MESA_UAT_STAFF_PASSWORD || '123456',
+    password: process.env.MESA_UAT_STAFF_PASSWORD || 'MesaUat1',
   },
   owner: {
     account: process.env.MESA_UAT_OWNER_ACCOUNT || 'baiyun@gmail.com',

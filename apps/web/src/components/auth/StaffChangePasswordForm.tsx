@@ -23,6 +23,9 @@ function staffChangePasswordErrorMessage(
   t: ReturnType<typeof getMessages>['staffAuth'],
 ): string {
   if (code === 'password_short') return t.passwordShort;
+  if (code === 'password_need_letter_digit') return t.passwordNeedLetterDigit;
+  if (code === 'password_weak') return t.passwordWeak;
+  if (code === 'password_matches_login') return t.passwordMatchesLogin;
   if (code === 'password_mismatch') return t.passwordMismatch;
   if (code === 'password_same_as_old') return t.passwordSameAsOld;
   if (code === 'invalid_password') return t.invalid;

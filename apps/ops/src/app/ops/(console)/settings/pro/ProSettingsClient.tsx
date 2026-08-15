@@ -36,10 +36,6 @@ export function ProSettingsClient({ initial }: Props) {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (premiumKeys.size === 0) {
-      setError('至少保留一项 Pro 功能');
-      return;
-    }
     setLoading(true);
     setError('');
     setSuccess('');

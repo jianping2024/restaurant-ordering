@@ -23,6 +23,29 @@ export type ProductTopNavItem = {
   external?: boolean;
 };
 
+/**
+ * Sole top-nav master order (floor → ops → config → analytics).
+ * `buildDashboardTopNavItems` filters by capability; relative order never re-sorts.
+ * Kitchen is in this list — not appended after Object.values.
+ */
+export const DASHBOARD_TOP_NAV_ORDER = [
+  'waiterBoard',
+  'kitchenBoard',
+  'checkout',
+  'orders',
+  'dishHistory',
+  'guestNotice',
+  'tables',
+  'menu',
+  'settings',
+  'overview',
+  'valueAnalytics',
+  'abnormalOps',
+  'operationLogs',
+] as const;
+
+export type DashboardTopNavOrderId = (typeof DASHBOARD_TOP_NAV_ORDER)[number];
+
 /** Matches Tailwind `lg` — collapse nav into hamburger menu below this width. */
 export const STAFF_TOP_BAR_COLLAPSED_NAV_MQ = '(max-width: 1023px)';
 
@@ -168,7 +191,24 @@ export function buildDashboardTopNavItems(input: {
   const capabilities = fromCapabilitiesPayload(capsPayload);
 
   const items: ProductTopNavItem[] = [];
-  for (const item of Object.values(DASHBOARD_NAV_ITEMS)) {
+  for (const id of DASHBOARD_TOP_NAV_ORDER) {
+    if (id === 'kitchenBoard') {
+      if (can(capabilities, 'floor.kitchen_board.view')) {
+        items.push({
+          id: 'kitchenBoard',
+          href: `/${restaurantSlug}/kitchen`,
+          labelKey: 'viewKitchen',
+          icon: '🍳',
+          external: true,
+        });
+      }
+      continue;
+    }
+
+    const item = DASHBOARD_NAV_ITEMS[id];
+    if (!item) {
+      throw new Error(`DASHBOARD_TOP_NAV_ORDER id missing from DASHBOARD_NAV_ITEMS: ${id}`);
+    }
     const permission = NAV_PERMISSION[item.id];
     if (!permission || !can(capabilities, permission)) continue;
     const premiumKey = NAV_PREMIUM_KEY[item.id as keyof typeof NAV_PREMIUM_KEY];
@@ -184,16 +224,6 @@ export function buildDashboardTopNavItems(input: {
       exact: item.exact,
       matchPrefix: item.matchPrefix,
       checkoutBadge: item.checkoutBadge,
-    });
-  }
-
-  if (can(capabilities, 'floor.kitchen_board.view')) {
-    items.push({
-      id: 'kitchenBoard',
-      href: `/${restaurantSlug}/kitchen`,
-      labelKey: 'viewKitchen',
-      icon: '🍳',
-      external: true,
     });
   }
 

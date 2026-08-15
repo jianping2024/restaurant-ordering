@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { DASHBOARD_NAV_ITEMS } from '@/lib/dashboard-feature-registry';
 import {
+  DASHBOARD_TOP_NAV_ORDER,
   STAFF_TOP_BAR_COLLAPSED_NAV_MQ,
   buildDashboardTopNavItems,
   dashboardLogoHref,
@@ -22,35 +24,49 @@ import { capabilitiesFromKeys } from '@/lib/permissions/can';
 import { resolveCapabilitiesForOwner } from '@/lib/permissions/resolve';
 import { ROLE_TEMPLATES } from '@/lib/permissions/role-templates';
 
-describe('buildDashboardTopNavItems', () => {
-  it('lists frontdesk nav from capability template', () => {
-    const items = buildDashboardTopNavItems({
-      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
-      restaurantSlug: 'demo',
-    });
+describe('DASHBOARD_TOP_NAV_ORDER', () => {
+  it('is the sole master list: every registry nav id + kitchenBoard once', () => {
+    const orderIds = [...DASHBOARD_TOP_NAV_ORDER];
+    assert.equal(new Set(orderIds).size, orderIds.length);
     assert.deepEqual(
-      items.map((item) => item.id).sort(),
-      [
-        'checkout',
-        'dishHistory',
-        'guestNotice',
-        'kitchenBoard',
-        'menu',
-        'operationLogs',
-        'orders',
-        'overview',
-        'tables',
-        'waiterBoard',
-      ].sort(),
+      orderIds.filter((id) => id === 'kitchenBoard'),
+      ['kitchenBoard'],
+    );
+    const registryIds = Object.keys(DASHBOARD_NAV_ITEMS).sort();
+    assert.deepEqual(
+      orderIds.filter((id) => id !== 'kitchenBoard').sort(),
+      registryIds,
     );
   });
+});
 
-  it('appends kitchen top-nav entry when board capability is present', () => {
+describe('buildDashboardTopNavItems', () => {
+  it('lists frontdesk nav in master order (capability filter)', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
       restaurantSlug: 'demo',
     });
-    assert.equal(items.some((item) => item.id === 'kitchenBoard'), true);
+    assert.deepEqual(items.map((item) => item.id), [
+      'waiterBoard',
+      'kitchenBoard',
+      'checkout',
+      'orders',
+      'dishHistory',
+      'guestNotice',
+      'tables',
+      'menu',
+      'overview',
+      'operationLogs',
+    ]);
+  });
+
+  it('places kitchen in master order when board capability is present', () => {
+    const items = buildDashboardTopNavItems({
+      capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk])),
+      restaurantSlug: 'demo',
+    });
+    assert.equal(items[0]?.id, 'waiterBoard');
+    assert.equal(items[1]?.id, 'kitchenBoard');
   });
 
   it('omits kitchen top-nav entry without board capability', () => {
@@ -61,40 +77,42 @@ describe('buildDashboardTopNavItems', () => {
     assert.equal(items.some((item) => item.id === 'kitchenBoard'), false);
   });
 
-  it('keeps cashier on waiter board + checkout only', () => {
+  it('keeps cashier relative order: waiter board then checkout', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier])),
       restaurantSlug: 'demo',
     });
-    assert.deepEqual(items.map((item) => item.id).sort(), ['checkout', 'waiterBoard'].sort());
+    assert.deepEqual(items.map((item) => item.id), ['waiterBoard', 'checkout']);
   });
 
-  it('lists all nav items for owner star including tables', () => {
+  it('lists owner star nav in full master order', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
-    const ids = items.map((item) => item.id);
-    assert.ok(ids.includes('tables'));
-    assert.ok(ids.includes('waiterBoard'));
-    assert.ok(ids.includes('checkout'));
-    assert.ok(ids.includes('settings'));
-    assert.ok(ids.includes('kitchenBoard'));
+    assert.deepEqual(items.map((item) => item.id), [...DASHBOARD_TOP_NAV_ORDER]);
   });
 
-  it('lists owner-preset staff from capability template', () => {
+  it('lists owner-preset staff from capability template in master order', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(capabilitiesFromKeys([...ROLE_TEMPLATES.owner])),
       restaurantSlug: 'demo',
     });
-    const ids = items.map((item) => item.id).sort();
+    const ids = items.map((item) => item.id);
+    assert.equal(ids.includes('guestNotice'), false);
     assert.ok(ids.includes('settings'));
     assert.ok(ids.includes('valueAnalytics'));
     assert.ok(ids.includes('abnormalOps'));
     assert.ok(ids.includes('waiterBoard'));
     assert.ok(ids.includes('checkout'));
     assert.ok(ids.includes('kitchenBoard'));
-    assert.equal(ids.includes('guestNotice'), false);
+    // Filtered list stays a subsequence of the master order.
+    let cursor = 0;
+    for (const id of ids) {
+      const at = DASHBOARD_TOP_NAV_ORDER.indexOf(id as (typeof DASHBOARD_TOP_NAV_ORDER)[number], cursor);
+      assert.ok(at >= 0, `out of master order: ${id}`);
+      cursor = at + 1;
+    }
   });
 });
 

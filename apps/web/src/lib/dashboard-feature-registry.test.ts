@@ -7,7 +7,7 @@ import {
 } from './dashboard-feature-registry';
 import { capabilitiesFromKeys, toCapabilitiesPayload } from './permissions/can';
 import { ROLE_TEMPLATES } from './permissions/role-templates';
-import { buildDashboardTopNavItems } from './dashboard-top-nav';
+import { buildDashboardTopNavItems, DASHBOARD_TOP_NAV_ORDER } from './dashboard-top-nav';
 import { resolveCapabilitiesForOwner } from './permissions/resolve';
 
 describe('middlewareAllowsPathForCapabilities', () => {
@@ -35,16 +35,14 @@ describe('middlewareAllowsPathForCapabilities', () => {
 });
 
 describe('buildDashboardTopNavItems owner star', () => {
-  it('lists every capability-gated nav item plus kitchen for owner star', () => {
+  it('lists every capability-gated nav item plus kitchen for owner star in master order', () => {
     const items = buildDashboardTopNavItems({
       capabilities: toCapabilitiesPayload(resolveCapabilitiesForOwner()),
       restaurantSlug: 'demo',
     });
-    const ids = items.map((i) => i.id);
+    assert.deepEqual(items.map((i) => i.id), [...DASHBOARD_TOP_NAV_ORDER]);
     for (const id of Object.keys(DASHBOARD_NAV_ITEMS)) {
-      assert.ok(ids.includes(id), `missing nav id ${id}`);
+      assert.ok(items.some((i) => i.id === id), `missing nav id ${id}`);
     }
-    assert.ok(ids.includes('tables'));
-    assert.ok(ids.includes('kitchenBoard'));
   });
 });

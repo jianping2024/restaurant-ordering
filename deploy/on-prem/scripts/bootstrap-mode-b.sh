@@ -123,7 +123,7 @@ chmod 600 "$OUT" || true
 echo "Wrote ${OUT} (secrets not echoed)."
 echo "  Edge: ${PUBLIC_ORIGIN}  (primary; Cloudflare Tunnel → this host:port)"
 echo "  Web debug port: ${MESA_WEB_PORT}"
-echo "  Kong debug port: ${KONG_HTTP_PORT}"
+echo "  Kong debug port: 127.0.0.1:${KONG_HTTP_PORT} (loopback only; use edge :80 for LAN/Tunnel)"
 echo "  DB host port: ${POSTGRES_PORT}"
 if [[ -n "${MESA_TUNNEL_ORIGIN:-}" ]]; then
   echo "  Tunnel origin allowlisted: ${MESA_TUNNEL_ORIGIN}"

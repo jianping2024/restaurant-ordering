@@ -62,8 +62,8 @@ chmod +x scripts/*.sh
 
 | 变量 | 含义 |
 |------|------|
-| `SUPABASE_PUBLIC_URL` | 浏览器/Tunnel 同域入口（edge，默认 `http://127.0.0.1`，**不是** `:8000`） |
-| `SUPABASE_URL`（compose 注入） | 容器内 `http://kong:8000`（仅服务端） |
+| `SUPABASE_PUBLIC_URL` | 浏览器/Tunnel 同域入口（edge，默认 `http://127.0.0.1`，**不是** 宿主机 `:8000`） |
+| `SUPABASE_URL`（compose 注入） | 容器内 `http://kong:8000`（仅服务端；宿主机 Kong 口仅 `127.0.0.1`，见 vendor `docker-compose.yml`） |
 | `NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN` | `1` 时浏览器用 `window.location.origin` |
 | `SITE_URL` | Auth 站点 URL = 局域网 edge origin（无尾斜杠） |
 | `ADDITIONAL_REDIRECT_URLS` | Auth 回调白名单：`origin/**` 逗号分隔；须含店内 IP，有 Tunnel/局域网名则一并写入（见 §2.1） |

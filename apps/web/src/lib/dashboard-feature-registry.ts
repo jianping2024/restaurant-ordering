@@ -139,8 +139,10 @@ export const DASHBOARD_NAV_ITEMS: Record<string, DashboardNavItemDef> = {
 
 /**
  * Canonical dashboard feature access map (paths / loaders).
- * Live UI nav + middleware: capabilities only (`buildDashboardTopNavItems` /
- * `middlewareAllowsPathForCapabilities`). Backend admin is `resolveCapabilitiesForOwner() → '*'`.
+ * Top-nav **order** is sole `DASHBOARD_TOP_NAV_ORDER` in `dashboard-top-nav.ts`
+ * (not `Object.values` of this map). Live UI nav + middleware: capabilities only
+ * (`buildDashboardTopNavItems` / `middlewareAllowsPathForCapabilities`).
+ * Backend admin is `resolveCapabilitiesForOwner() → '*'`.
  */
 export const DASHBOARD_FEATURES: DashboardFeature[] = [
   {

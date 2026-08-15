@@ -1,6 +1,5 @@
 import {
   defaultOrderHistoryClosedRange,
-  parseOrderHistoryClosedRange,
   type OrderHistoryClosedRange,
 } from '@/lib/order-history/date-range';
 import type { OrderHistoryFilters } from '@/lib/order-history/types';
@@ -10,14 +9,11 @@ import {
   type ListPageSize,
 } from '@/lib/paginate-list';
 
-export type ParsedOrderHistorySearchParams =
-  | {
-      ok: true;
-      offset: number;
-      limit: number;
-      filters: OrderHistoryFilters;
-    }
-  | { ok: false; code: 'invalid_date_range' };
+export type ParsedOrderHistorySearchParams = {
+  offset: number;
+  limit: number;
+  filters: OrderHistoryFilters;
+};
 
 export function parseOrderHistorySearchParams(
   searchParams: URLSearchParams,
@@ -36,7 +32,6 @@ export function parseOrderHistorySearchParams(
 
   if (sessionId) {
     return {
-      ok: true,
       offset,
       limit: Math.max(1, Math.min(20, Number.isFinite(limitRaw) ? limitRaw : 1)),
       filters: {
@@ -49,24 +44,16 @@ export function parseOrderHistorySearchParams(
   }
 
   const limit: ListPageSize = isListPageSize(limitRaw) ? limitRaw : LIST_DEFAULT_PAGE_SIZE;
-
-  const parsedRange = parseOrderHistoryClosedRange({
-    closedFrom: closedFromRaw,
-    closedTo: closedToRaw,
-    applyDefaultWhenMissing: true,
-  });
-  if (!parsedRange.ok) {
-    return { ok: false, code: 'invalid_date_range' };
-  }
+  // List browse ignores client dates — sole window is today.
+  const range = defaultOrderHistoryClosedRange();
 
   return {
-    ok: true,
     offset,
     limit,
     filters: {
       tableIds,
-      closedFrom: parsedRange.range.closedFrom,
-      closedTo: parsedRange.range.closedTo,
+      closedFrom: range.closedFrom,
+      closedTo: range.closedTo,
     },
   };
 }
@@ -89,17 +76,13 @@ export function orderHistoryFiltersToSearchParams(
   return params;
 }
 
+/** List filters always pin closed range to today (client dates ignored). */
 export function resolveListFiltersOrDefault(
   filters: Pick<OrderHistoryFilters, 'tableIds' | 'closedFrom' | 'closedTo'> = {
     tableIds: [],
   },
 ): OrderHistoryFilters & OrderHistoryClosedRange {
-  const parsed = parseOrderHistoryClosedRange({
-    closedFrom: filters.closedFrom,
-    closedTo: filters.closedTo,
-    applyDefaultWhenMissing: true,
-  });
-  const range = parsed.ok ? parsed.range : defaultOrderHistoryClosedRange();
+  const range = defaultOrderHistoryClosedRange();
   return {
     tableIds: filters.tableIds,
     closedFrom: range.closedFrom,

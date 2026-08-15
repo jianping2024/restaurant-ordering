@@ -24,12 +24,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'restaurant_not_found' }, { status: 404 });
   }
 
-  const parsed = parseOrderHistorySearchParams(new URL(req.url).searchParams);
-  if (!parsed.ok) {
-    return NextResponse.json({ error: parsed.code }, { status: 400 });
-  }
-
-  const { offset, limit, filters } = parsed;
+  const { offset, limit, filters } = parseOrderHistorySearchParams(
+    new URL(req.url).searchParams,
+  );
   try {
     const result = await loadOrderHistoryEntries(ctx.admin, {
       restaurantId: restaurant.id as string,

@@ -141,7 +141,8 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://192.168.0.141/dashboard/setting
 | `http://pirata.lan` | 可选 | 仅当路由器 DNS/hosts 已解析且 §2.1 白名单已含该 origin |
 | `https://pirata.farvoo.com` | 不推荐作店内主配置 | 依赖 Tunnel/外网；断网或 Tunnel 挂则打印断 |
 | `http://localhost` / `127.0.0.1` | **禁止** | Agent 在别的电脑上时指不到店机 |
-| `http://…:3000` | **禁止作正式配置** | `:3000` 仅本机调试；正式入口无端口（`:80`） |
+| `http://…:3000` | **禁止作正式配置** | `:3000` 仅本机/局域网调试；正式入口无端口（`:80`） |
+| 宿主机 `:8000` / `:8443` | **仅 127.0.0.1** | Kong 调试口；LAN/Tailscale 勿直连。容器内仍为 `kong:8000`；公网走 Tunnel→edge |
 
 注意：
 

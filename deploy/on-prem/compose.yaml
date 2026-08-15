@@ -8,7 +8,8 @@
 # Prefer: ./scripts/stack.sh up|down|ps|pull|migrate
 #
 # Primary browser entry is the edge gateway (default :80) — same-origin Web + Kong.
-# Direct :3000 / :8000 remain for debug only.
+# Direct :3000 remains for debug (LAN/Tailscale). Kong host ports are loopback-only in
+# vendor/supabase-docker/docker-compose.yml (containers still use kong:8000 on the Docker network).
 #
 # Mode A (dev only): compose.mode-a.yaml
 

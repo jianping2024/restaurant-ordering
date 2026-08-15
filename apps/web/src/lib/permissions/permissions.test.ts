@@ -63,6 +63,12 @@ describe('can / resolve', () => {
     assert.equal(keys.includes('dashboard.settings.view'), true);
   });
 
+  it('print stations manage requires menu.view', () => {
+    const keys = enforcePermissionRequires(['dashboard.menu.print_stations.manage']);
+    assert.equal(keys.includes('dashboard.menu.view'), true);
+    assert.equal(keys.includes('dashboard.menu.print_stations.manage'), true);
+  });
+
   it('floor caps derive from permissions only', () => {
     const waiter = floorBoardCapabilitiesFromCaps(
       capabilitiesFromKeys(['dashboard.waiter_board.view']),

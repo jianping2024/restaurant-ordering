@@ -41,6 +41,12 @@ export const PERMISSIONS = {
   'dashboard.orders.view': { group: 'dashboard_nav', labelKey: 'dashboardOrders' },
   'dashboard.tables.view': { group: 'dashboard_nav', labelKey: 'dashboardTables' },
   'dashboard.menu.view': { group: 'dashboard_nav', labelKey: 'dashboardMenu' },
+  /** 出品档口 Tab + print_stations CRUD; category/item binding stays on dashboard.menu.view. */
+  'dashboard.menu.print_stations.manage': {
+    group: 'dashboard_nav',
+    labelKey: 'dashboardMenuPrintStations',
+    requires: ['dashboard.menu.view'],
+  },
   'dashboard.waiter_board.view': { group: 'dashboard_nav', labelKey: 'dashboardWaiterBoard' },
   'dashboard.guest_notice.view': { group: 'dashboard_nav', labelKey: 'dashboardGuestNotice' },
 

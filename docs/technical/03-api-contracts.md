@@ -66,7 +66,7 @@
 | GET/POST/PATCH/DELETE | `/api/dashboard/menu/items` | Owner / frontdesk | 菜品 CRUD |
 | POST | `/api/dashboard/menu/items/[id]/image` | Owner / frontdesk | 图片上传 Storage |
 | GET/POST/PATCH/DELETE | `/api/dashboard/menu/categories` | Owner / frontdesk | 分类 |
-| GET/POST/PATCH/DELETE | `/api/dashboard/menu/print-stations` | Owner | 打印档口 |
+| GET/POST/PATCH/DELETE | `/api/dashboard/menu/print-stations` | `dashboard.menu.print_stations.manage` | 打印档口 CRUD |
 
 页面数据多数由 RSC `loadDashboardMenu()` 服务端加载，非独立 REST。
 

@@ -7,7 +7,8 @@
 
 ## 打包 / 初装 / 升级
 
-**完整正确流程（唯一说明）：** [`docs/technical/on-prem-pack-install-upgrade.zh.md`](../../docs/technical/on-prem-pack-install-upgrade.zh.md)
+**完整正确流程（唯一说明）：** [`docs/technical/on-prem-pack-install-upgrade.zh.md`](../../docs/technical/on-prem-pack-install-upgrade.zh.md)  
+**安全基线（端口 / RLS / 密码 / 限流 · 新机勾选）：** [`docs/technical/on-prem-security-baseline.zh.md`](../../docs/technical/on-prem-security-baseline.zh.md)
 
 摘要：
 

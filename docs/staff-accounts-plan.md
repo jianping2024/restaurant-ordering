@@ -13,7 +13,7 @@
 | 后台入口 | **`/dashboard/settings/staff`**，与现有设置 **Hub Tab** 并列；**CRUD 交互**与出品档口 / 自助餐等保持一致 |
 | 租户绑定 | **一人一店**：店长创建时绑定 `restaurant_id`；**不支持**一人多店 / 登录后选店 |
 | 角色 | **创建后不可改**；需换角色则 **删除账号后重建** |
-| 密码 | 与店主一致：`account-password-policy`（≥8、字母+数字、禁常见弱口令、不可等于登录名）；**首次登录 / 弱密码登录强制改密** |
+| 密码 | 与店主一致：`account-password-policy`（≥8、字母+数字、禁常见弱口令、不可等于登录名）；**首次登录 / 弱密码登录强制改密**。On-prem 安装勾选见 `docs/technical/on-prem-security-baseline.zh.md` §3 |
 | 合成邮箱 | **`{login_name}@mesa.in`**（**全局唯一**：与 `auth.users.email` 一致，全平台不可与其它餐厅重复） |
 
 ---

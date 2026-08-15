@@ -5,7 +5,8 @@
 > 打印 = 另机 Windows `MesaPrintAgent`（不在本包）。  
 > 打包脚本：`deploy/on-prem/scripts/pack-release.sh`；升级：`deploy/on-prem/scripts/upgrade.sh`。  
 > 初装细节补充见包内 `README-UBUNTU.zh.txt`（源：`deploy/on-prem/linux/README-INSTALL.zh.txt`）。  
-> **技术工具清单：** [`local-perm-install-tools.zh.md`](./local-perm-install-tools.zh.md)。
+> **技术工具清单：** [`local-perm-install-tools.zh.md`](./local-perm-install-tools.zh.md)。  
+> **安全基线（端口 / RLS / 密码 / 限流 IP · 新机勾选）：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) — **唯一**安全终态说明，勿在他处平行改写。
 
 ## 1. 开发机：打发行包（初装与升级用同一 zip）
 
@@ -67,6 +68,7 @@ sudo ./install-ubuntu.sh
 3. 局域网正式入口：`http://<店内IP>/`（如 `http://192.168.0.141/`）
 4. Print Agent「服务器地址」：按 **§2.2**（局域网 edge origin，勿 `localhost` / `:3000`）
 5. 若启用公网 Tunnel / HTTPS：按 **§2.1**（Auth 白名单）+ **§2.4**（http→https 清单）
+6. **安全基线验收：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) §5（Kong 仅 loopback、正式入口无 `:3000`/`:8000`、密码策略、勿对公网暴露库口）
 
 健康探针（装机/升级脚本与 compose 使用）：
 
@@ -141,8 +143,8 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://192.168.0.141/dashboard/setting
 | `http://pirata.lan` | 可选 | 仅当路由器 DNS/hosts 已解析且 §2.1 白名单已含该 origin |
 | `https://pirata.farvoo.com` | 不推荐作店内主配置 | 依赖 Tunnel/外网；断网或 Tunnel 挂则打印断 |
 | `http://localhost` / `127.0.0.1` | **禁止** | Agent 在别的电脑上时指不到店机 |
-| `http://…:3000` | **禁止作正式配置** | `:3000` 仅本机/局域网调试；正式入口无端口（`:80`） |
-| 宿主机 `:8000` / `:8443` | **仅 127.0.0.1** | Kong 调试口；LAN/Tailscale 勿直连。容器内仍为 `kong:8000`；公网走 Tunnel→edge |
+| `http://…:3000` | **禁止作正式配置** | 见安全基线 §1；`:3000` 仅调试 |
+| 宿主机 `:8000` / `:8443` | **禁止作正式配置** | 见安全基线 §1；仅 `127.0.0.1` 调试，LAN/Tailscale 勿直连 |
 
 注意：
 

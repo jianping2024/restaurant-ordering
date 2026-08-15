@@ -419,7 +419,7 @@ buffets:
 
 dish_feedback:
 
-- INSERT/UPDATE/SELECT: service role only (Next.js `/customer/dish-feedback` and dashboard admin reads). No anon/authenticated ALL policy — do not reintroduce `dish_feedback_public_all`.
+- INSERT/UPDATE/SELECT: service role only (Next.js `/customer/dish-feedback` and dashboard admin reads). No anon/authenticated ALL policy — do not reintroduce `dish_feedback_public_all`. On-prem install checklist: `docs/technical/on-prem-security-baseline.zh.md` §2.
 
 feedback_sessions:
 
@@ -439,7 +439,7 @@ menu_items:
 
 orders:
 
-- INSERT: service role only (Next.js `/orders/append` and other admin writers). No anon/authenticated INSERT policy — do not reintroduce `orders_public_insert`.
+- INSERT: service role only (Next.js `/orders/append` and other admin writers). No anon/authenticated INSERT policy — do not reintroduce `orders_public_insert`. On-prem install checklist: `docs/technical/on-prem-security-baseline.zh.md` §2.
 - SELECT: authenticated owner by restaurant ownership.
 - SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
 - SELECT: authenticated cashier via `is_active_restaurant_staff(restaurant_id, ['cashier'])`.

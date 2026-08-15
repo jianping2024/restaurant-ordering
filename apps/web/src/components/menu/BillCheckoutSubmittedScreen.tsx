@@ -2,14 +2,13 @@
 
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import type { UILanguage } from '@/lib/i18n';
+import type { DishFeedbackReasonKey } from '@/lib/dish-feedback-reasons';
 import type { DishFeedbackVote } from '@/types';
 import { CheckoutSubmittedHeroIllustration } from '@/components/menu/CheckoutSubmittedHeroIllustration';
 import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultList';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { Button, ButtonLink } from '@/components/ui/Button';
-
-type FeedbackReasonKey = 'taste' | 'temp' | 'slow' | 'mismatch' | 'other';
 
 type ReviewableItem = {
   menu_item_id: string;
@@ -50,15 +49,15 @@ interface Props {
   onRefreshPage: () => void;
   showFeedback: boolean;
   reviewableItems: ReviewableItem[];
-  feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: FeedbackReasonKey[] }>;
-  feedbackReasonLabels: Record<FeedbackReasonKey, string>;
-  feedbackReasonKeys: readonly FeedbackReasonKey[];
+  feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>;
+  feedbackReasonLabels: Record<DishFeedbackReasonKey, string>;
+  feedbackReasonKeys: readonly DishFeedbackReasonKey[];
   feedbackHydrating: boolean;
   feedbackSubmitted: boolean;
   feedbackSubmitting: boolean;
   selectedFeedbackCount: number;
   onVote: (menuItemId: string, vote: DishFeedbackVote) => void;
-  onToggleReason: (menuItemId: string, reason: FeedbackReasonKey) => void;
+  onToggleReason: (menuItemId: string, reason: DishFeedbackReasonKey) => void;
   onSkipFeedback: () => void;
   onSubmitFeedback: () => void;
 }

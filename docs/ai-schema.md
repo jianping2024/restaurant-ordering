@@ -419,11 +419,11 @@ buffets:
 
 dish_feedback:
 
-- ALL: public read/write (`USING true`, `WITH CHECK true`). Review carefully if feedback should be restricted.
+- INSERT/UPDATE/SELECT: service role only (Next.js `/customer/dish-feedback` and dashboard admin reads). No anon/authenticated ALL policy — do not reintroduce `dish_feedback_public_all`.
 
 feedback_sessions:
 
-- ALL: public read/write (`USING true`, `WITH CHECK true`). Review carefully if feedback session writes should be restricted.
+- INSERT/UPDATE/SELECT: service role only (same API + bill SSR). No anon/authenticated ALL policy — do not reintroduce `feedback_sessions_public_all`.
 
 menu_categories:
 

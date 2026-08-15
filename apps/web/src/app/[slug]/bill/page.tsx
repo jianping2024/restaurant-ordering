@@ -11,6 +11,7 @@ import {
   resolveStaffAssistedFlow,
   waiterBoardHref,
 } from '@/lib/staff-routes';
+import { loadDishFeedbackState } from '@/lib/customer-dish-feedback';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -88,14 +89,9 @@ export default async function BillRoute({ params, searchParams }: Props) {
   let initialFeedbackSubmitted = false;
   let initialFeedbackSkipped = false;
   if (bill.active_session.id) {
-    const sessionId = bill.active_session.id;
-    const { data: feedbackSession } = await admin
-      .from('feedback_sessions')
-      .select('completed_at, skipped_at')
-      .eq('session_id', sessionId)
-      .maybeSingle();
-    initialFeedbackSubmitted = !!feedbackSession?.completed_at;
-    initialFeedbackSkipped = !!feedbackSession?.skipped_at;
+    const feedbackState = await loadDishFeedbackState(admin, bill.active_session.id);
+    initialFeedbackSubmitted = feedbackState.submitted;
+    initialFeedbackSkipped = feedbackState.skipped;
   }
 
   return (

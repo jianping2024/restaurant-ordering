@@ -12,6 +12,7 @@ import { OpsCalendarValidUntilEditor } from '@/components/OpsCalendarValidUntilE
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   BUSINESS_STATUS_LABEL,
+  formatDeploymentModeLabel,
   installationStatusLabel,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
@@ -203,7 +204,7 @@ export function LicenseDetailClient({ restaurantId }: { restaurantId: string }) 
         </Link>
         <h1 className="mt-4 text-2xl font-semibold">{restaurant.name}</h1>
         <p className="mt-1 font-mono text-sm text-zinc-500">
-          {restaurant.slug} · {onPrem ? '本地安装' : '云'} ·{' '}
+          {restaurant.slug} · {formatDeploymentModeLabel(restaurant.deploymentMode)} ·{' '}
           <Link href={`/ops/restaurants/${restaurant.id}`} className="text-amber-400 hover:underline">
             餐厅详情
           </Link>

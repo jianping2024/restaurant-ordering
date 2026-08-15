@@ -32,6 +32,19 @@ export const BUSINESS_STATUS_LABEL = {
   suspended: '已暂停',
 } as const;
 
+/** Sole user-visible nouns for restaurants.deployment_mode (cloud | on_prem). */
+export const DEPLOYMENT_MODE_LABEL = {
+  cloud: '云',
+  on_prem: '本地',
+} as const;
+
+/** Sole display label for deployment mode — lists, detail headers, create radios. */
+export function formatDeploymentModeLabel(mode: DeploymentMode | string): string {
+  if (mode === 'on_prem') return DEPLOYMENT_MODE_LABEL.on_prem;
+  if (mode === 'cloud') return DEPLOYMENT_MODE_LABEL.cloud;
+  return String(mode);
+}
+
 const SUSPENSION_REASON_LABEL: Record<string, string> = {
   [SUSPENSION_REASON_LICENSE_EXPIRED]: '授权到期',
   [SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED]: '离线超时',

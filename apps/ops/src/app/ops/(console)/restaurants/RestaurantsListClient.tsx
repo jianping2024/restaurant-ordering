@@ -6,6 +6,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { OpsListPagination } from '@/components/OpsListPagination';
 import {
   BUSINESS_STATUS_LABEL,
+  formatDeploymentModeLabel,
   formatOpsPrimaryLabel,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
@@ -201,6 +202,9 @@ export default function RestaurantsListClient() {
                 return (
                   <tr key={r.id} className="border-t border-zinc-800 hover:bg-zinc-900/50">
                     <td className="px-3 py-2">
+                      <span className="mr-1.5 rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">
+                        {formatDeploymentModeLabel(r.deploymentMode)}
+                      </span>
                       <Link href={`/ops/restaurants/${r.id}`} className="text-amber-400 hover:underline">
                         {r.name}
                       </Link>

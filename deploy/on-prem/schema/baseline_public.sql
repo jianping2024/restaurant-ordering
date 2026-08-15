@@ -6201,13 +6201,6 @@ CREATE POLICY orders_owner_update ON public.orders FOR UPDATE USING ((restaurant
 
 
 --
--- Name: orders orders_public_insert; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY orders_public_insert ON public.orders FOR INSERT WITH CHECK (true);
-
-
---
 -- Name: orders orders_staff_select; Type: POLICY; Schema: public; Owner: -
 --
 

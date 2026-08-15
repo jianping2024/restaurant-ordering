@@ -439,7 +439,7 @@ menu_items:
 
 orders:
 
-- INSERT: public insert (`WITH CHECK true`). This is intended for customer ordering but should be protected by app-level validation/rate limits.
+- INSERT: service role only (Next.js `/orders/append` and other admin writers). No anon/authenticated INSERT policy — do not reintroduce `orders_public_insert`.
 - SELECT: authenticated owner by restaurant ownership.
 - SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
 - SELECT: authenticated cashier via `is_active_restaurant_staff(restaurant_id, ['cashier'])`.

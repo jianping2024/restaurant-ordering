@@ -273,21 +273,6 @@ function WaiterBoardInner({
         refreshBoardAfterStaffMutation: undefined,
       };
 
-  const handleOpenTableSuccess = useCallback(
-    (model: WaiterTablePageModel) => {
-      if (applyOpenTableToBoard) {
-        applyOpenTableToBoard(model);
-        return;
-      }
-      applyBoardFromPublished();
-    },
-    [applyBoardFromPublished, applyOpenTableToBoard],
-  );
-
-  const handleOpenTableStaleBoard = useCallback(() => {
-    void refresh();
-  }, [refresh]);
-
   const effectiveSessionMetaByTableId = useMemo(
     () => (isDemo ? demoSessionMetaFromOrders(initialOrders) : sessionMetaByTableId),
     [isDemo, initialOrders, sessionMetaByTableId],
@@ -305,6 +290,24 @@ function WaiterBoardInner({
     displayName: string;
   } | null>(null);
   const [checkoutTarget, setCheckoutTarget] = useState<{ tableId: string } | null>(null);
+
+  /** Open-table sheet left the board surface — drop ephemeral find-table query (pref save effect syncs). */
+  const handleOpenTableSuccess = useCallback(
+    (model: WaiterTablePageModel) => {
+      setTableSearch('');
+      if (applyOpenTableToBoard) {
+        applyOpenTableToBoard(model);
+        return;
+      }
+      applyBoardFromPublished();
+    },
+    [applyBoardFromPublished, applyOpenTableToBoard],
+  );
+
+  const handleOpenTableStaleBoard = useCallback(() => {
+    setTableSearch('');
+    void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     setViewPrefsHydrated(false);

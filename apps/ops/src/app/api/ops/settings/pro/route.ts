@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { normalizePremiumKeys, PREMIUM_KEYS, type PremiumKey } from '@mesa/shared';
+import { normalizePremiumKeys, PREMIUM_KEYS } from '@mesa/shared';
 import { requirePlatformAdminRole } from '@/lib/platform-auth';
 import { writePlatformAudit } from '@/lib/platform-audit';
 
@@ -44,9 +44,6 @@ export async function PATCH(req: Request) {
 
   if (body.premiumKeys !== undefined) {
     const keys = normalizePremiumKeys(body.premiumKeys);
-    if (keys.length === 0) {
-      return NextResponse.json({ error: 'premium_keys_required' }, { status: 400 });
-    }
     updates.premium_keys = keys;
     metadata.premiumKeys = keys;
   }

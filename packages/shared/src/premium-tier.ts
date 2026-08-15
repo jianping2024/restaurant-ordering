@@ -22,8 +22,13 @@ export function isPremiumKey(value: string): value is PremiumKey {
   return (PREMIUM_KEYS as readonly string[]).includes(value);
 }
 
+/**
+ * Normalize platform Pro catalog. Explicit `[]` means nothing requires Pro.
+ * Non-array / missing → product defaults. All-invalid entries → defaults (not empty wipe).
+ */
 export function normalizePremiumKeys(raw: unknown): PremiumKey[] {
   if (!Array.isArray(raw)) return [...DEFAULT_PREMIUM_KEYS];
+  if (raw.length === 0) return [];
   const out: PremiumKey[] = [];
   for (const item of raw) {
     if (typeof item === 'string' && isPremiumKey(item) && !out.includes(item)) {

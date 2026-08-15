@@ -74,12 +74,18 @@ describe('premium-tier', () => {
     );
   });
 
-  it('normalizePremiumKeys falls back to defaults', () => {
+  it('normalizePremiumKeys allows empty catalog; falls back when missing/invalid', () => {
     assert.deepEqual(normalizePremiumKeys(null), [
       'value_analytics',
       'abnormal_ops',
       'operation_logs',
     ]);
+    assert.deepEqual(normalizePremiumKeys([]), []);
     assert.deepEqual(normalizePremiumKeys(['value_analytics']), ['value_analytics']);
+    assert.deepEqual(normalizePremiumKeys(['not_a_key']), [
+      'value_analytics',
+      'abnormal_ops',
+      'operation_logs',
+    ]);
   });
 });

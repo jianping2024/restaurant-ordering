@@ -19,7 +19,7 @@ description: >-
 - **UI login (canonical — always use this for browser UAT):** `{MESA_UAT_BASE or http://localhost:3000}/auth/login`
   - One page for owner email **or** staff `login_name`; API `POST /api/auth/login` resolves kind and redirect
   - Do **not** open `/login`, `/auth/staff/login`, or `/{slug}/staff/login` for routine UAT (legacy/alias only)
-- **Staff (default UAT):** `qiantai1` / `123456` — frontdesk on 白云 `restaurant-mohnrib5`
+- **Staff (default UAT):** `qiantai1` / `MesaUat1` — frontdesk on 白云 `restaurant-mohnrib5`
 - **Owner (setup / buffet / menu):** `baiyun@gmail.com` / `123456` — owner of 白云 `restaurant-mohnrib5`
 - **Forbidden account:** `qiantai@mesa.in` — do not use for local product testing
 - **Allowed:** authenticated product APIs and UI for the test restaurant
@@ -72,7 +72,7 @@ For **localhost** product testing of the shared UAT restaurant (`restaurant-mohn
 
 **Pre-authorized** (use freely; cleanup throwaway writes afterward):
 
-- Typing / filling documented UAT passwords (`qiantai1`, `baiyun@gmail.com`) into `http://localhost:3000/auth/login` or `/api/auth/login`
+- Typing / filling documented UAT passwords (`qiantai1`/`MesaUat1`, `baiyun@gmail.com`/`123456`) into `http://localhost:3000/auth/login` or `/api/auth/login`
 - **`user-chrome-devtools` and `cursor-ide-browser` MCP** on localhost: navigate, snapshot, screenshot, click, fill, type, scroll, evaluate, dual tabs
 - **`mesa-local-uat` / `mesa-print-smoke` scripts** and **supabase-local** read-only SQL asserts on the UAT restaurant
 - Product API mutations on the test restaurant: open/close table, buffet/menu seed create/update/delete, orders, checkout, board refresh checks

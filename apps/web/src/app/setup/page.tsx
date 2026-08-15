@@ -80,7 +80,7 @@ export default function SetupClaimPage() {
               type="password"
               value={ownerPassword}
               onChange={(e) => setOwnerPassword(e.target.value)}
-              minLength={6}
+              minLength={8}
               autoComplete="new-password"
               className="mt-1"
             />

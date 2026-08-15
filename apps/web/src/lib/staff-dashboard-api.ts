@@ -3,10 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireSettingsRestaurantAuth } from '@/lib/settings-restaurant-auth';
 import { isPrintAgentStaffRole } from '@mesa/shared';
 import {
-  staffPasswordValid,
   validateLoginName,
   type StaffUserMetadata,
 } from '@/lib/staff-account';
+import { accountPasswordPolicyError } from '@/lib/auth/account-password-policy';
 import type { RestaurantStaffAccount } from '@/types';
 import type { StaffRole } from '@/lib/staff-account';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -124,7 +124,10 @@ export function validateStaffCreateBody(body: Record<string, unknown>) {
   const login = validateLoginName(loginRaw);
   if (!login.ok) return { error: `login_name_${login.code}` as const };
   if (!role_id) return { error: 'invalid_role' as const };
-  if (!staffPasswordValid(password)) return { error: 'password_too_short' as const };
+  const passwordError = accountPasswordPolicyError(password, {
+    loginName: login.normalized,
+  });
+  if (passwordError) return { error: passwordError };
 
   return {
     display_name,

@@ -22,6 +22,8 @@ export type PermissionTreeLabel =
   | { source: 'nav'; key: DashboardNavItemKey }
   | { source: 'navExtra'; key: 'viewKitchen' }
   | { source: 'settingsTab'; labelKey: SettingsHubLabelKey }
+  /** Menu manager chrome tabs — copy from messages.menuManager. */
+  | { source: 'menuTab'; key: 'tabStations' }
   | { source: 'action'; labelKey: string };
 
 export type PermissionTreeNode = {
@@ -115,7 +117,12 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
       label: { source: 'action', labelKey: 'tablesManage' },
     },
   ]),
-  navPage('menu'),
+  navPage('menu', [
+    {
+      permission: 'dashboard.menu.print_stations.manage',
+      label: { source: 'menuTab', key: 'tabStations' },
+    },
+  ]),
   navPage('guestNotice'),
   navPage('waiterBoard', [
     {
@@ -223,6 +230,10 @@ export function resolvePermissionTreeLabel(
   if (label.source === 'settingsTab') {
     const v = messages.settingsHub[label.labelKey];
     return typeof v === 'string' ? v : label.labelKey;
+  }
+  if (label.source === 'menuTab') {
+    const v = messages.menuManager[label.key];
+    return typeof v === 'string' ? v : label.key;
   }
   const t = rolePermissionsMessages(lang);
   return t.perm[label.labelKey as keyof typeof t.perm] || label.labelKey;

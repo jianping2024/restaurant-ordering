@@ -255,7 +255,8 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/menu/print-stations',
       '/dashboard/settings/print-stations',
     ],
-    riskNote: 'Page gated by dashboard.menu.view; nav/middleware via capabilities only (owner `*`).',
+    riskNote:
+      'Page gated by dashboard.menu.view; 出品档口 Tab/CRUD by dashboard.menu.print_stations.manage (requires menu.view). Nav/middleware via capabilities only (owner `*`).',
   },
   {
     id: 'guest-notice',

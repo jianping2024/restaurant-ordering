@@ -56,10 +56,10 @@ import { PrintStationsManager } from '@/components/dashboard/PrintStationsManage
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
-  isMenuManagerTab,
   loadSavedMenuManagerTab,
   MENU_MANAGER_DEFAULT_TAB,
   menuManagerPath,
+  resolveAllowedMenuManagerTab,
   saveMenuManagerTab,
   type MenuManagerTab,
 } from '@/lib/menu-manager-tab-preference';
@@ -90,6 +90,8 @@ interface MenuManagerProps {
   initialCategories: MenuCategory[];
   initialPrintStations: PrintStation[];
   initialTab?: MenuManagerTab;
+  /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
+  canManagePrintStations?: boolean;
 }
 
 type ItemForm = {
@@ -184,6 +186,7 @@ export function MenuManager({
   initialCategories,
   initialPrintStations,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
+  canManagePrintStations = false,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
@@ -191,29 +194,28 @@ export function MenuManager({
   const ps = getMessages(lang).printStations;
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<MenuManagerTab>(initialTab);
+  const [activeTab, setActiveTab] = useState<MenuManagerTab>(() =>
+    resolveAllowedMenuManagerTab(initialTab, canManagePrintStations),
+  );
 
   useEffect(() => {
     const urlTab = new URLSearchParams(window.location.search).get('tab');
-    if (isMenuManagerTab(urlTab)) {
-      setActiveTab(urlTab);
-      saveMenuManagerTab(restaurantId, urlTab);
-      return;
-    }
-    const saved = loadSavedMenuManagerTab(restaurantId) ?? MENU_MANAGER_DEFAULT_TAB;
-    setActiveTab(saved);
-    saveMenuManagerTab(restaurantId, saved);
-    const path = menuManagerPath(saved);
+    const preferred = urlTab ?? loadSavedMenuManagerTab(restaurantId) ?? MENU_MANAGER_DEFAULT_TAB;
+    const allowed = resolveAllowedMenuManagerTab(preferred, canManagePrintStations);
+    setActiveTab(allowed);
+    saveMenuManagerTab(restaurantId, allowed);
+    const path = menuManagerPath(allowed);
     const current = `${window.location.pathname}${window.location.search}`;
     if (current !== path) {
       router.replace(path, { scroll: false });
     }
-  }, [restaurantId, router]);
+  }, [restaurantId, router, canManagePrintStations]);
 
   const switchTab = (tab: MenuManagerTab) => {
-    setActiveTab(tab);
-    saveMenuManagerTab(restaurantId, tab);
-    router.replace(menuManagerPath(tab), { scroll: false });
+    const allowed = resolveAllowedMenuManagerTab(tab, canManagePrintStations);
+    setActiveTab(allowed);
+    saveMenuManagerTab(restaurantId, allowed);
+    router.replace(menuManagerPath(allowed), { scroll: false });
   };
   const [dishSearch, setDishSearch] = useState('');
   const [dishListError, setDishListError] = useState('');
@@ -1082,17 +1084,19 @@ export function MenuManager({
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        <button
-          type="button"
-          onClick={() => switchTab('stations')}
-          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
-            activeTab === 'stations'
-              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
-              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-          }`}
-        >
-          {t.tabStations}
-        </button>
+        {canManagePrintStations ? (
+          <button
+            type="button"
+            onClick={() => switchTab('stations')}
+            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+              activeTab === 'stations'
+                ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+            }`}
+          >
+            {t.tabStations}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => switchTab('categories')}
@@ -1117,7 +1121,7 @@ export function MenuManager({
         </button>
       </div>
 
-      {activeTab === 'stations' ? (
+      {canManagePrintStations && activeTab === 'stations' ? (
         <div>
           <div className="mb-4">
             <p className="text-[13px] text-brand-text-muted">{ps.hintShort}</p>
@@ -1181,9 +1185,11 @@ export function MenuManager({
                   >
                     {t.panelEmptyAddRoot}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => switchTab('stations')}>
-                    {t.linkPrintStations}
-                  </Button>
+                  {canManagePrintStations ? (
+                    <Button type="button" variant="outline" onClick={() => switchTab('stations')}>
+                      {t.linkPrintStations}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             ) : (

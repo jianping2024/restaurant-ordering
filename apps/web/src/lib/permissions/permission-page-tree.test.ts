@@ -44,6 +44,17 @@ describe('ROLE_PERMISSION_PAGE_TREE', () => {
     assert.equal(settingsNav, '餐厅设置');
   });
 
+  it('nests 出品档口 under 菜单管理 with product tab copy', () => {
+    const menu = ROLE_PERMISSION_PAGE_TREE.find((n) => n.permission === 'dashboard.menu.view');
+    assert.ok(menu?.children?.some((c) => c.permission === 'dashboard.menu.print_stations.manage'));
+    const zh = resolvePermissionTreeLabel({ source: 'menuTab', key: 'tabStations' }, 'zh');
+    assert.equal(zh, '出品档口');
+    assert.equal(
+      flattenPermissionTreeKeys().filter((k) => k === 'dashboard.menu.print_stations.manage').length,
+      1,
+    );
+  });
+
   it('places open/save under 楼面看板 only', () => {
     const waiter = ROLE_PERMISSION_PAGE_TREE.find(
       (n) => n.permission === 'dashboard.waiter_board.view',

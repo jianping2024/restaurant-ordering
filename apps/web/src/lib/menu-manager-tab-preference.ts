@@ -4,12 +4,26 @@ const KEY_PREFIX = 'mesa-menu-manager-tab:';
 
 export const MENU_MANAGER_DEFAULT_TAB: MenuManagerTab = 'stations';
 
+/** When stations tab is not permitted, land on categories. */
+export const MENU_MANAGER_FALLBACK_TAB: MenuManagerTab = 'categories';
+
 export function menuManagerTabStorageKey(restaurantId: string): string {
   return `${KEY_PREFIX}${restaurantId}`;
 }
 
 export function isMenuManagerTab(value: string | null | undefined): value is MenuManagerTab {
   return value === 'stations' || value === 'categories' || value === 'items';
+}
+
+export function resolveAllowedMenuManagerTab(
+  tab: string | null | undefined,
+  canManagePrintStations: boolean,
+): MenuManagerTab {
+  const raw = isMenuManagerTab(tab) ? tab : MENU_MANAGER_DEFAULT_TAB;
+  if (raw === 'stations' && !canManagePrintStations) {
+    return MENU_MANAGER_FALLBACK_TAB;
+  }
+  return raw;
 }
 
 export function loadSavedMenuManagerTab(restaurantId: string): MenuManagerTab | null {

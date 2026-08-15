@@ -15,7 +15,7 @@ import {
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const ctx = await loadWritableOperationalContext('dashboard.menu.view');
+  const ctx = await loadWritableOperationalContext('dashboard.menu.print_stations.manage');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const ctx = await loadWritableOperationalContext('dashboard.menu.view');
+  const ctx = await loadWritableOperationalContext('dashboard.menu.print_stations.manage');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);
@@ -59,7 +59,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const ctx = await loadWritableOperationalContext('dashboard.menu.view');
+  const ctx = await loadWritableOperationalContext('dashboard.menu.print_stations.manage');
   if (ctx instanceof NextResponse) return ctx;
 
   const body = await readJsonBody(req);

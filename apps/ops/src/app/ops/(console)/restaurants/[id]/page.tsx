@@ -12,6 +12,7 @@ import { getPlatformAdmin } from '@/lib/platform-auth';
 import { getTenantAppUrl } from '@/lib/tenant-app-url';
 import { loadRestaurantInstallContexts } from '@/lib/ops-restaurant-install-context';
 import {
+  formatDeploymentModeLabel,
   formatOpsPrimaryLabel,
   isOpsRestaurantDeletable,
   resolveOpsLicenseHealth,
@@ -75,7 +76,7 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </span>
         <span className="text-zinc-600">·</span>
         <span className="text-zinc-400">
-          {row.deployment_mode === 'on_prem' ? '本地安装' : '云'}
+          {formatDeploymentModeLabel(row.deployment_mode)}
         </span>
         <span className="text-zinc-600">·</span>
         <span className="text-zinc-500">

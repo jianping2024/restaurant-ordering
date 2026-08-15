@@ -13,6 +13,7 @@ import {
   type RestaurantCountryCode,
 } from '@mesa/shared';
 import { DatePicker, PasswordInput } from '@mesa/ui';
+import { formatDeploymentModeLabel } from '@/lib/ops-license-status';
 
 export default function NewRestaurantPage() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export default function NewRestaurantPage() {
               checked={deploymentMode === 'cloud'}
               onChange={() => setDeploymentMode('cloud')}
             />
-            云（SaaS）
+            {formatDeploymentModeLabel('cloud')}（SaaS）
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -107,7 +108,7 @@ export default function NewRestaurantPage() {
               checked={deploymentMode === 'on_prem'}
               onChange={() => setDeploymentMode('on_prem')}
             />
-            本地安装（on-prem）
+            {formatDeploymentModeLabel('on_prem')}（on-prem）
           </label>
         </fieldset>
         <fieldset className="space-y-2">

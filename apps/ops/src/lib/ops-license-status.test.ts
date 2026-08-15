@@ -6,7 +6,9 @@ import {
 } from '@mesa/shared';
 import {
   BUSINESS_STATUS_LABEL,
+  DEPLOYMENT_MODE_LABEL,
   INSTALLATION_STATUS_LABEL,
+  formatDeploymentModeLabel,
   formatOpsPrimaryLabel,
   isOpsPrimarySuspended,
   isOpsRestaurantDeletable,
@@ -30,6 +32,10 @@ describe('ops-license-status', () => {
     assert.equal(INSTALLATION_STATUS_LABEL.claimed, '已认领');
     assert.equal(BUSINESS_STATUS_LABEL.open, '营业中');
     assert.equal(BUSINESS_STATUS_LABEL.suspended, '已暂停');
+    assert.equal(DEPLOYMENT_MODE_LABEL.cloud, '云');
+    assert.equal(DEPLOYMENT_MODE_LABEL.on_prem, '本地');
+    assert.equal(formatDeploymentModeLabel('cloud'), '云');
+    assert.equal(formatDeploymentModeLabel('on_prem'), '本地');
     assert.equal(suspensionReasonLabel(SUSPENSION_REASON_LICENSE_EXPIRED), '授权到期');
     assert.equal(
       suspensionReasonLabel(SUSPENSION_REASON_LICENSE_OFFLINE_GRACE_EXCEEDED),

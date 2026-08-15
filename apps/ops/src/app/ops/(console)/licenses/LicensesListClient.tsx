@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { OpsListPagination } from '@/components/OpsListPagination';
 import {
+  formatDeploymentModeLabel,
   formatOpsPrimaryLabel,
   resolveInstallPhase,
   resolveOpsLicenseHealth,
@@ -133,8 +134,8 @@ export function LicensesListClient() {
             className="mt-1 block rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm"
           >
             <option value="">全部</option>
-            <option value="cloud">云</option>
-            <option value="on_prem">本地</option>
+            <option value="cloud">{formatDeploymentModeLabel('cloud')}</option>
+            <option value="on_prem">{formatDeploymentModeLabel('on_prem')}</option>
           </select>
         </label>
         <button
@@ -176,7 +177,7 @@ export function LicensesListClient() {
                   {item.name}
                 </Link>
                 <p className="mt-1 font-mono text-xs text-zinc-500">
-                  {item.slug} · {item.deploymentMode === 'on_prem' ? '本地' : '云'}
+                  {item.slug} · {formatDeploymentModeLabel(item.deploymentMode)}
                   {item.ownerEmail ? ` · ${item.ownerEmail}` : ''}
                 </p>
               </div>

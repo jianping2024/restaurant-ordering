@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { defaultOrderHistoryClosedRange } from './date-range';
 import {
   orderHistoryFiltersToSearchParams,
   parseOrderHistorySearchParams,
@@ -10,8 +11,6 @@ describe('parseOrderHistorySearchParams sessionId', () => {
     const parsed = parseOrderHistorySearchParams(
       new URLSearchParams({ sessionId: 'sess-9', limit: '1' }),
     );
-    assert.equal(parsed.ok, true);
-    if (!parsed.ok) return;
     assert.equal(parsed.filters.sessionId, 'sess-9');
     assert.equal(parsed.limit, 1);
     const serialized = orderHistoryFiltersToSearchParams(0, 1, {
@@ -23,22 +22,27 @@ describe('parseOrderHistorySearchParams sessionId', () => {
 });
 
 describe('parseOrderHistorySearchParams date window', () => {
-  it('defaults to last-7 when dates omitted', () => {
+  it('forces today when dates omitted', () => {
+    const expected = defaultOrderHistoryClosedRange();
     const parsed = parseOrderHistorySearchParams(new URLSearchParams());
-    assert.equal(parsed.ok, true);
-    if (!parsed.ok) return;
-    assert.ok(parsed.filters.closedFrom);
-    assert.ok(parsed.filters.closedTo);
+    assert.deepEqual(
+      { closedFrom: parsed.filters.closedFrom, closedTo: parsed.filters.closedTo },
+      expected,
+    );
   });
 
-  it('rejects ranges longer than 31 days', () => {
+  it('forces today even when client sends a multi-day range', () => {
+    const expected = defaultOrderHistoryClosedRange();
     const parsed = parseOrderHistorySearchParams(
       new URLSearchParams({
         closedFrom: '2026-07-01',
         closedTo: '2026-08-01',
       }),
     );
-    assert.deepEqual(parsed, { ok: false, code: 'invalid_date_range' });
+    assert.deepEqual(
+      { closedFrom: parsed.filters.closedFrom, closedTo: parsed.filters.closedTo },
+      expected,
+    );
   });
 
   it('accepts page size 20', () => {
@@ -49,8 +53,6 @@ describe('parseOrderHistorySearchParams date window', () => {
         limit: '20',
       }),
     );
-    assert.equal(parsed.ok, true);
-    if (!parsed.ok) return;
     assert.equal(parsed.limit, 20);
   });
 });

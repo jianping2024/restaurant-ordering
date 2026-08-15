@@ -8,7 +8,7 @@ import {
 import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 
 describe('defaultOrderHistoryQuery', () => {
-  it('returns first page with default last-7 closed range', () => {
+  it('returns first page with default today-only closed range', () => {
     const query = defaultOrderHistoryQuery({
       id: 'rest-1',
       owner_id: 'owner-1',
@@ -23,7 +23,7 @@ describe('defaultOrderHistoryQuery', () => {
     assert.deepEqual(query.tableIds, []);
     assert.ok(query.closedFrom);
     assert.ok(query.closedTo);
-    assert.ok(query.closedFrom <= query.closedTo);
+    assert.equal(query.closedFrom, query.closedTo);
   });
 });
 

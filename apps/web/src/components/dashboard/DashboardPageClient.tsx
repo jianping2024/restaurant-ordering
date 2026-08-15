@@ -37,6 +37,54 @@ function pendingChipClassName(alert: boolean): string {
   }`;
 }
 
+/** Sole dashboard dual-metric KPI card (today tables|guests and dining tables|guests). */
+function DashboardDualMetricCard({
+  figureClass,
+  left,
+  right,
+  available = true,
+  unavailableLabel,
+}: {
+  figureClass: string;
+  left: { label: string; value: number; unit: string; detail?: string | null };
+  right: { label: string; value: number; unit: string; detail?: string | null };
+  available?: boolean;
+  unavailableLabel?: string;
+}) {
+  const valueTone = available ? 'text-brand-text' : 'text-brand-text-muted';
+
+  function column(metric: {
+    label: string;
+    value: number;
+    unit: string;
+    detail?: string | null;
+  }) {
+    return (
+      <div className="min-w-0 flex-1">
+        <p className="text-brand-text-muted text-[13px] mb-2">{metric.label}</p>
+        <p className={`${figureClass} text-2xl sm:text-3xl ${valueTone}`}>
+          {available ? metric.value : unavailableLabel}
+          {available ? (
+            <span className="text-base ml-1 text-brand-text-muted">{metric.unit}</span>
+          ) : null}
+        </p>
+        {available && metric.detail ? (
+          <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">{metric.detail}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
+      <div className="flex flex-row gap-5">
+        {column(left)}
+        {column(right)}
+      </div>
+    </div>
+  );
+}
+
 export function DashboardOverviewPrimaryClient({
   primary,
 }: {
@@ -87,30 +135,13 @@ export function DashboardOverviewPrimaryClient({
   const figureClass = DASHBOARD_METRIC_TYPE.figure;
   const moneyClass = DASHBOARD_METRIC_TYPE.money;
 
-  const floorStats = [
-    {
-      key: 'diningTables',
-      label: i18n.diningTables,
-      value: diningTableCount,
-      unit: i18n.unitTable,
-      detail: null as string | null,
-    },
-    {
-      key: 'diningGuests',
-      label: i18n.diningGuests,
-      value: diningGuestCount,
-      unit: i18n.unitGuest,
-      detail: diningGuestDetail,
-    },
-  ];
-
   return (
     <>
       <div className="mb-6">
         <p className="text-brand-text-muted text-sm">{overviewDateLabel}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 ring-1 ring-brand-gold/25">
           <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayRevenue}</p>
           <p
@@ -122,59 +153,37 @@ export function DashboardOverviewPrimaryClient({
           </p>
         </div>
 
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
-          <div className="flex flex-row gap-5">
-            <div className="min-w-0 flex-1">
-              <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayTables}</p>
-              <p
-                className={`${figureClass} text-2xl sm:text-3xl ${
-                  revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted'
-                }`}
-              >
-                {revenueAvailable ? todayTableCount : i18n.todayRevenueUnavailable}
-                {revenueAvailable ? (
-                  <span className="text-base ml-1 text-brand-text-muted">{i18n.unitTable}</span>
-                ) : null}
-              </p>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayGuests}</p>
-              <p
-                className={`${figureClass} text-2xl sm:text-3xl ${
-                  revenueAvailable ? 'text-brand-text' : 'text-brand-text-muted'
-                }`}
-              >
-                {revenueAvailable ? todayGuestCount : i18n.todayRevenueUnavailable}
-                {revenueAvailable ? (
-                  <span className="text-base ml-1 text-brand-text-muted">{i18n.unitGuest}</span>
-                ) : null}
-              </p>
-              {revenueAvailable ? (
-                <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">
-                  {todayGuestDetail}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        </div>
+        <DashboardDualMetricCard
+          figureClass={figureClass}
+          available={revenueAvailable}
+          unavailableLabel={i18n.todayRevenueUnavailable}
+          left={{
+            label: i18n.todayTables,
+            value: todayTableCount,
+            unit: i18n.unitTable,
+          }}
+          right={{
+            label: i18n.todayGuests,
+            value: todayGuestCount,
+            unit: i18n.unitGuest,
+            detail: todayGuestDetail,
+          }}
+        />
 
-        {floorStats.map((stat) => (
-          <div
-            key={stat.key}
-            className="bg-brand-card border border-brand-border rounded-2xl p-6"
-          >
-            <p className="text-brand-text-muted text-[13px] mb-2">{stat.label}</p>
-            <p className={`${figureClass} text-2xl sm:text-3xl text-brand-text`}>
-              {stat.value}
-              {stat.unit ? (
-                <span className="text-base ml-1 text-brand-text-muted">{stat.unit}</span>
-              ) : null}
-            </p>
-            {stat.detail ? (
-              <p className="mt-1.5 text-[13px] text-brand-text-muted tabular-nums">{stat.detail}</p>
-            ) : null}
-          </div>
-        ))}
+        <DashboardDualMetricCard
+          figureClass={figureClass}
+          left={{
+            label: i18n.diningTables,
+            value: diningTableCount,
+            unit: i18n.unitTable,
+          }}
+          right={{
+            label: i18n.diningGuests,
+            value: diningGuestCount,
+            unit: i18n.unitGuest,
+            detail: diningGuestDetail,
+          }}
+        />
       </div>
 
       <div className="bg-brand-card border border-brand-border rounded-2xl p-4 mb-6">

@@ -67,6 +67,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemBadgePaid: string;
   itemAllergensTitle: string;
   itemAllergensUnmarked: string;
+  itemDetailDescriptionTitle: string;
+  itemDetailDescriptionEmpty: string;
   itemDetailAddToRound: string;
   itemDetailAddToCart: string;
   itemDetailDone: string;
@@ -137,6 +139,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Pedido imediato',
     itemAllergensTitle: 'Alérgenos',
     itemAllergensUnmarked: 'Não marcado (não significa sem alérgenos)',
+    itemDetailDescriptionTitle: 'Descrição',
+    itemDetailDescriptionEmpty: 'Sem descrição para este prato.',
     itemDetailAddToRound: 'Adicionar à ronda',
     itemDetailAddToCart: 'Adicionar ao carrinho',
     itemDetailDone: 'Concluído',
@@ -207,6 +211,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Order now',
     itemAllergensTitle: 'Allergens',
     itemAllergensUnmarked: 'Unmarked (not allergen-free)',
+    itemDetailDescriptionTitle: 'Description',
+    itemDetailDescriptionEmpty: 'No description for this dish yet.',
     itemDetailAddToRound: 'Add to round',
     itemDetailAddToCart: 'Add to cart',
     itemDetailDone: 'Done',
@@ -277,6 +283,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: '即时下单',
     itemAllergensTitle: '过敏原',
     itemAllergensUnmarked: '未标注（不等于无过敏原）',
+    itemDetailDescriptionTitle: '菜品描述',
+    itemDetailDescriptionEmpty: '暂无描述',
     itemDetailAddToRound: '加入本轮',
     itemDetailAddToCart: '加入购物车',
     itemDetailDone: '完成',
@@ -354,6 +362,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Pedido inmediato',
     itemAllergensTitle: 'Alérgenos',
     itemAllergensUnmarked: 'Sin marcar (no significa sin alérgenos)',
+    itemDetailDescriptionTitle: 'Descripción',
+    itemDetailDescriptionEmpty: 'Sin descripción para este plato.',
     itemDetailAddToRound: 'Añadir a la ronda',
     itemDetailAddToCart: 'Añadir al carrito',
     itemDetailDone: 'Listo',
@@ -435,6 +445,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Commande immédiate',
     itemAllergensTitle: 'Allergènes',
     itemAllergensUnmarked: 'Non renseigné (pas « sans allergène »)',
+    itemDetailDescriptionTitle: 'Description',
+    itemDetailDescriptionEmpty: 'Pas encore de description pour ce plat.',
     itemDetailAddToRound: 'Ajouter au tour',
     itemDetailAddToCart: 'Ajouter au panier',
     itemDetailDone: 'Terminé',
@@ -515,6 +527,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Sofort bestellen',
     itemAllergensTitle: 'Allergene',
     itemAllergensUnmarked: 'Nicht gekennzeichnet (nicht allergenfrei)',
+    itemDetailDescriptionTitle: 'Beschreibung',
+    itemDetailDescriptionEmpty: 'Noch keine Beschreibung für dieses Gericht.',
     itemDetailAddToRound: 'Zur Runde hinzufügen',
     itemDetailAddToCart: 'In den Warenkorb',
     itemDetailDone: 'Fertig',

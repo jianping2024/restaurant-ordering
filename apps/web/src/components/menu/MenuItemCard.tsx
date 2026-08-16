@@ -8,6 +8,7 @@ import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
 } from '@/lib/menu-item-display';
+import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
@@ -21,6 +22,9 @@ interface Props {
   cartQty: number;
   limitHint?: string | null;
   incrementDisabled?: boolean;
+  /** When true, price 0 shows freeLabel (sushi round catalog). */
+  treatZeroAsFree?: boolean;
+  onOpenDetail: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
 }
@@ -52,8 +56,12 @@ function MenuItemCardAction({
     return (
       <CartQtyStepper
         qty={cartQty}
-        onDecrement={onDecrement}
-        onIncrement={onIncrement}
+        onDecrement={() => {
+          onDecrement();
+        }}
+        onIncrement={() => {
+          onIncrement();
+        }}
         incrementDisabled={incrementDisabled}
       />
     );
@@ -62,7 +70,10 @@ function MenuItemCardAction({
   return (
     <button
       type="button"
-      onClick={onIncrement}
+      onClick={(e) => {
+        e.stopPropagation();
+        onIncrement();
+      }}
       disabled={incrementDisabled}
       aria-label={labels.add}
       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
@@ -79,6 +90,8 @@ export function MenuItemCard({
   cartQty,
   limitHint,
   incrementDisabled,
+  treatZeroAsFree = false,
+  onOpenDetail,
   onIncrement,
   onDecrement,
 }: Props) {
@@ -87,6 +100,11 @@ export function MenuItemCard({
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
   const t = MENU_PAGE_MESSAGES[lang];
   const actionLabels: ActionLabels = { add: t.itemAdd, soldOut: t.itemSoldOut };
+  const priceText = formatCustomerMenuItemPrice(item.price, {
+    freeLabel: t.itemFree,
+    treatZeroAsFree,
+  });
+  const openDetailAria = t.itemOpenDetailAria.replace('{name}', label);
 
   return (
     <div
@@ -94,11 +112,16 @@ export function MenuItemCard({
         item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
       }`}
     >
-      <div className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl">
+      <button
+        type="button"
+        onClick={onOpenDetail}
+        aria-label={openDetailAria}
+        className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
+      >
         {imageSrc ? (
           <Image
             src={imageSrc}
-            alt={label}
+            alt=""
             fill
             className="object-cover"
             sizes="72px"
@@ -107,10 +130,15 @@ export function MenuItemCard({
         ) : (
           item.emoji
         )}
-      </div>
+      </button>
 
       <div className="flex min-h-[4.5rem] min-w-0 flex-1 flex-col justify-between gap-2">
-        <div className="min-w-0">
+        <button
+          type="button"
+          onClick={onOpenDetail}
+          aria-label={openDetailAria}
+          className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
+        >
           <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
           {desc ? (
             <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-0.5 line-clamp-2`}>
@@ -120,13 +148,15 @@ export function MenuItemCard({
           {limitHint ? (
             <p className="text-[11px] text-brand-text-muted mt-1 leading-snug">{limitHint}</p>
           ) : null}
-        </div>
+        </button>
 
         <div className={MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS}>
-          <span className={`shrink-0 ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
-            €{item.price.toFixed(2)}
-          </span>
-          <div className={MENU_ITEM_CARD_ACTION_SLOT_CLASS}>
+          <span className={`shrink-0 ${CUSTOMER_MENU_TYPE.moneyAmount}`}>{priceText}</span>
+          <div
+            className={MENU_ITEM_CARD_ACTION_SLOT_CLASS}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
             <MenuItemCardAction
               available={item.available}
               cartQty={cartQty}

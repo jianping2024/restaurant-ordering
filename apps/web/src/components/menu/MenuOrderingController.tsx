@@ -7,6 +7,7 @@ import { APPEND_CART_QTY_MAX, clampAppendCartNote, type MenuItem, type CartItem,
 import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { OrderedDrawer } from './OrderedDrawer';
+import { CustomerMenuItemDetailSheet } from './CustomerMenuItemDetailSheet';
 import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import {
   formatStaffOverageMessage,
@@ -170,6 +171,7 @@ export function MenuOrderingController({
   );
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
+  const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [staffOverageDialog, setStaffOverageDialog] = useState<StaffOverageDialog | null>(null);
   const submittingRef = useRef(false);
@@ -419,6 +421,15 @@ export function MenuOrderingController({
     void requestCartQtyChange(item.id, current + delta);
   };
 
+  const treatZeroAsFree = buffetServiceMode === 'sushi';
+  const detailItem = useMemo(
+    () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
+    [detailMenuItemId, menuItems],
+  );
+  const detailCartQty = coerceCartQty(
+    detailItem ? cart.find((c) => c.menuItemId === detailItem.id)?.qty : 0,
+  );
+
   // 更新备注
   const updateNote = (menuItemId: string, note: string) => {
     setCartTracked((prev) =>
@@ -427,6 +438,14 @@ export function MenuOrderingController({
   };
 
   const t = MENU_PAGE_MESSAGES[lang];
+  const detailLimitHint = useMemo(() => {
+    if (!detailItem) return null;
+    const hintParts = sushiLimitHintParts(buffetServiceMode, detailItem);
+    if (!hintParts) return null;
+    return t.sushiLimitHint
+      .replace('{perPerson}', String(hintParts.perPerson))
+      .replace('{price}', hintParts.overLimitPrice.toFixed(2));
+  }, [buffetServiceMode, detailItem, t.sushiLimitHint]);
   const isLocalDevHost =
     typeof window !== 'undefined' &&
     ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
@@ -892,6 +911,12 @@ export function MenuOrderingController({
                   lang={lang}
                   cartQty={cartQty}
                   limitHint={limitHint}
+                  treatZeroAsFree={treatZeroAsFree}
+                  onOpenDetail={() => {
+                    setCartOpen(false);
+                    setOrderedOpen(false);
+                    setDetailMenuItemId(item.id);
+                  }}
                   onIncrement={() => bumpCartItem(item, 1)}
                   onDecrement={() => bumpCartItem(item, -1)}
                 />
@@ -913,6 +938,22 @@ export function MenuOrderingController({
         }}
         onOpenCart={openCartDrawer}
         onOpenOrdered={openOrderedDrawer}
+      />
+
+      <CustomerMenuItemDetailSheet
+        open={!!detailItem}
+        item={detailItem}
+        lang={lang}
+        cartQty={detailCartQty}
+        treatZeroAsFree={treatZeroAsFree}
+        limitHint={detailLimitHint}
+        onClose={() => setDetailMenuItemId(null)}
+        onIncrement={() => {
+          if (detailItem) bumpCartItem(detailItem, 1);
+        }}
+        onDecrement={() => {
+          if (detailItem) bumpCartItem(detailItem, -1);
+        }}
       />
 
       <CartDrawer

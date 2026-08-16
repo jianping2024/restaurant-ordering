@@ -42,13 +42,13 @@
 
 ## 2. 点餐页面（`/{slug}/menu`）
 
-**组件**：`MenuPage`、`MenuItemCard`、`CartDrawer`
+**组件**：`MenuPage`、`MenuItemCard`、`CustomerMenuItemDetailSheet`、`CartDrawer`
 
 | 区域 | 布局 |
 |------|------|
 | 顶栏 | 餐厅名 + 桌号 badge（顾客/员工同源）、语言优先再主题（`appearanceChromeIconButtonClass` ≥44）、可选返回 |
 | 分类 | 唯一 `CustomerMenuCategoryStrip`（一级 + 可选二级） |
-| 菜品 | 响应式网格 `MenuItemCard` |
+| 菜品 | `MenuItemCard` 列表；点图/菜名打开唯一全屏详情 `CustomerMenuItemDetailSheet`（同路由；`+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |
 | 服务员协助 | 带 `returnToWaiterHref` 时提交后自动回桌台 |
@@ -56,7 +56,7 @@
 **要点**
 
 - 未开台/结账中：门禁提示替代菜单网格
-- 购物车为 **drawer** 非独立路由；已提交订单通过 **OrderedDrawer** 查看，不在主内容区嵌列表
+- 购物车 / 菜品详情为 **同页层** 非独立路由；详情展示大图、完整描述、过敏原（空=未标注）、限量 hint、下单
 - 加菜成功 Toast；服务员流 1.2s 后 redirect
 
 ---

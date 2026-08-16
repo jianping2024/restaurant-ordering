@@ -194,3 +194,29 @@ export function normalizeAllergenCodes(raw: unknown): AllergenCode[] | null {
   }
   return out;
 }
+
+/** Sole EU allergen code → UI label for the active language. */
+export function allergenLabel(code: AllergenCode, lang: Language): string {
+  const row = ALLERGENS.find((entry) => entry.code === code);
+  return row?.labels[lang] ?? code;
+}
+
+export type MenuItemAllergenPresentation =
+  | { status: 'unmarked' }
+  | { status: 'marked'; items: Array<{ code: AllergenCode; label: string }> };
+
+/**
+ * Sole customer/dashboard-facing presentation of a dish's allergen_codes.
+ * Empty or invalid → unmarked (not allergen-free).
+ */
+export function resolveMenuItemAllergenPresentation(
+  allergenCodes: unknown,
+  lang: Language,
+): MenuItemAllergenPresentation {
+  const codes = normalizeAllergenCodes(allergenCodes ?? []);
+  if (!codes || codes.length === 0) return { status: 'unmarked' };
+  return {
+    status: 'marked',
+    items: codes.map((code) => ({ code, label: allergenLabel(code, lang) })),
+  };
+}

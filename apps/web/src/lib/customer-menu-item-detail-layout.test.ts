@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
+  CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS,
   customerMenuItemDetailHostClass,
   customerMenuItemDetailPanelClass,
 } from './customer-menu-item-detail-layout';
@@ -15,7 +16,12 @@ describe('customerMenuItemDetailLayout', () => {
     assert.doesNotMatch(customerMenuItemDetailPanelClass, /68rem/);
   });
 
-  it('hero uses fixed 4:3 aspect', () => {
+  it('hero uses fixed 4:3 aspect and contain (not cover crop)', () => {
     assert.match(CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS, /aspect-\[4\/3\]/);
+    assert.equal(
+      CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS,
+      'object-contain object-center',
+    );
+    assert.doesNotMatch(CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS, /object-cover/);
   });
 });

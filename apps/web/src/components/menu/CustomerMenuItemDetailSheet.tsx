@@ -8,6 +8,7 @@ import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
+  CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS,
   customerMenuItemDetailBackdropClass,
   customerMenuItemDetailBodyClass,
   customerMenuItemDetailCloseButtonClass,
@@ -145,7 +146,7 @@ export function CustomerMenuItemDetailSheet({
               src={imageSrc}
               alt={label}
               fill
-              className="object-cover object-center"
+              className={CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS}
               sizes="(max-width: 1023px) 100vw, 32rem"
               priority
               unoptimized={MENU_IMAGE_UNOPTIMIZED}

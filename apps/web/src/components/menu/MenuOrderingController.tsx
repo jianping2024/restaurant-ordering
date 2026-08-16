@@ -49,6 +49,7 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { CustomerMenuCategoryStrip } from '@/components/menu/CustomerMenuCategoryStrip';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
@@ -60,7 +61,6 @@ import { customerOrderingAudience } from '@/lib/customer-ordering-audience';
 import { getCustomerOrderingIntroCopy } from '@/lib/i18n/customer-ordering-intro-messages';
 import { useCustomerOrderingIntro } from '@/lib/use-customer-ordering-intro';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
-import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   classifyStaffQtyIncrease,
   guestCartHasLimitedSushiItems,
@@ -837,52 +837,24 @@ export function MenuOrderingController({
             : null
         }
       >
-        <div className="mesa-chip-scroll flex gap-0 px-4 pb-3">
-          {topCategories.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                setActiveTopCategory(cat.id);
-                setActiveSubpath('');
-              }}
-              className={`flex-shrink-0 px-4 py-2.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-all border-b-2 ${
-                currentTop === cat.id
-                  ? `border-brand-gold text-brand-gold ${CUSTOMER_MENU_TYPE.categoryTopActive}`
-                  : 'border-transparent text-brand-text-muted'
-              }`}
-            >
-              {localizedCategoryLabel(cat)}
-            </button>
-          ))}
-        </div>
-
-        {subCategories.length > 0 && (
-          <div className="mesa-chip-scroll flex gap-2 px-4 pb-3">
-            <button
-              onClick={() => setActiveSubpath('')}
-              className={`flex-shrink-0 px-3 py-2 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
-                currentSubpath === ''
-                  ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                  : 'border-brand-border text-brand-text-muted'
-              }`}
-            >
-              {t.subcategoryAll}
-            </button>
-            {subCategories.map((subpath) => (
-              <button
-                key={subpath.id}
-                onClick={() => setActiveSubpath(subpath.id)}
-                className={`flex-shrink-0 px-3 py-2 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
-                  currentSubpath === subpath.id
-                    ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                    : 'border-brand-border text-brand-text-muted'
-                }`}
-              >
-                {localizedCategoryLabel(subpath)}
-              </button>
-            ))}
-          </div>
-        )}
+        <CustomerMenuCategoryStrip
+          topCategories={topCategories.map((cat) => ({
+            id: cat.id,
+            label: localizedCategoryLabel(cat),
+          }))}
+          activeTopId={currentTop}
+          onSelectTop={(id) => {
+            setActiveTopCategory(id);
+            setActiveSubpath('');
+          }}
+          subCategories={subCategories.map((sub) => ({
+            id: sub.id,
+            label: localizedCategoryLabel(sub),
+          }))}
+          activeSubpath={currentSubpath}
+          onSelectSubpath={setActiveSubpath}
+          subcategoryAllLabel={t.subcategoryAll}
+        />
       </CustomerOrderingHeader>
 
       {!isDemo && sessionResolved && !guestCanOrder && (

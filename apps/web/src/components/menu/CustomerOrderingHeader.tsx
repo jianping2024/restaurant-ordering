@@ -17,7 +17,7 @@ interface Props {
   displayName: string;
   tableLabel: string;
   staffAssisted?: StaffAssistedFlow | null;
-  /** Secondary line, e.g. bill settlement label. */
+  /** Secondary line, e.g. bill settlement label — never a second table-number form. */
   subtitle?: string | null;
   /**
    * Sole header back control (guest or page-mode staff-assisted).
@@ -28,6 +28,21 @@ interface Props {
   /** Bill page uses a larger restaurant title. */
   headingSize?: 'menu' | 'bill';
   children?: ReactNode;
+}
+
+/** Sole table-identity chip for guest and staff-assisted customer chrome. */
+function CustomerTableIdentityBadge({
+  tableLabel,
+  displayName,
+}: {
+  tableLabel: string;
+  displayName: string;
+}) {
+  return (
+    <span className="shrink-0 rounded-full border border-brand-ink/40 bg-brand-ink/10 px-2.5 py-1 text-[13px] font-medium text-brand-ink tabular-nums">
+      {tableLabel} {displayName}
+    </span>
+  );
 }
 
 export function CustomerOrderingHeader({
@@ -49,14 +64,8 @@ export function CustomerOrderingHeader({
       : 'font-heading text-xl text-brand-ink truncate';
 
   const tableBadge = (
-    <span className="shrink-0 rounded-full border border-brand-ink/40 bg-brand-ink/10 px-2.5 py-1 text-[13px] font-medium text-brand-ink tabular-nums">
-      {tableLabel} {displayName}
-    </span>
+    <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
   );
-
-  const guestTableLine = subtitle
-    ? `${tableLabel} ${displayName} — ${subtitle}`
-    : `${tableLabel} ${displayName}`;
 
   return (
     <header
@@ -73,21 +82,22 @@ export function CustomerOrderingHeader({
           </div>
         ) : null}
 
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className={headingClass}>{restaurantName}</h1>
-            {!isStaffAssisted ? (
-              <p className="text-brand-text-muted text-[13px] mt-0.5">{guestTableLine}</p>
-            ) : subtitle ? (
-              <p className="text-brand-text-muted text-sm mt-1">{subtitle}</p>
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className={headingClass}>{restaurantName}</h1>
+              {!isStaffAssisted ? tableBadge : null}
+            </div>
+            {subtitle ? (
+              <p className="mt-1 text-sm text-brand-text-muted">{subtitle}</p>
             ) : null}
           </div>
           {isStaffAssisted ? (
             tableBadge
           ) : (
             <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-2`}>
-              <ThemeToggle />
               <LanguageSwitcherIconChrome />
+              <ThemeToggle />
             </div>
           )}
         </div>

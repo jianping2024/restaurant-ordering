@@ -25,4 +25,9 @@ describe('customerMenuChromeLayout', () => {
   it('keeps header trailing controls from shrinking', () => {
     assert.equal(customerMenuHeaderTrailingSlotClass, 'shrink-0');
   });
+
+  it('keeps notice tab below sticky header height token', () => {
+    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /8rem/);
+    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /7\.5rem/);
+  });
 });

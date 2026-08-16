@@ -46,8 +46,8 @@
 
 | 区域 | 布局 |
 |------|------|
-| 顶栏 | 餐厅名、桌号、语言切换（PT/EN/中） |
-| 分类 | 顶部分类 Tab（一级 + 可选二级） |
+| 顶栏 | 餐厅名 + 桌号 badge（顾客/员工同源）、语言优先再主题（`appearanceChromeIconButtonClass` ≥44）、可选返回 |
+| 分类 | 唯一 `CustomerMenuCategoryStrip`（一级 + 可选二级） |
 | 菜品 | 响应式网格 `MenuItemCard` |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |

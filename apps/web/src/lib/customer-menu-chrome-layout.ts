@@ -21,10 +21,11 @@ export const customerMenuHeaderTrailingSlotClass = 'shrink-0';
 
 /**
  * Guest notice tab vertical offset — below sticky header + safe area.
- * Static string for Tailwind JIT.
+ * Calibrated to sticky brand row (h-11 tools / table badge) + top category strip.
+ * Static string for Tailwind JIT — keep in sync when header chrome height changes.
  */
 export const CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS =
-  'top-[calc(env(safe-area-inset-top,0px)+7.5rem)]';
+  'top-[calc(env(safe-area-inset-top,0px)+8rem)]';
 
 /** Full-width shell track for the notice tab; children use pointer-events-auto. */
 export const customerMenuNoticeTabShellClass = [

@@ -56,8 +56,8 @@ function AuthBrandMark() {
 function AppearanceChrome({ className }: { className?: string }) {
   return (
     <div className={className ?? 'mb-4 flex items-center justify-end gap-2'}>
-      <ThemeToggle />
       <LanguageSwitcherIconChrome />
+      <ThemeToggle />
     </div>
   );
 }

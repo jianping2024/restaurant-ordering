@@ -35,8 +35,8 @@ export const customerMenuItemDetailPanelExitedClass =
   'max-lg:translate-y-full lg:scale-95 lg:opacity-0';
 
 /**
- * Hero — dominant top plane. Fixed 4:3 frame; image uses contain (full photo,
- * letterbox on brand-border) — never cover-crop “zoom”.
+ * Hero — dominant top plane. Fixed 4:3 frame (matches upload
+ * `MENU_IMAGE_ASPECT_RATIO`); image `object-contain` so full photo shows.
  */
 export const CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS =
   'relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-brand-border max-lg:max-h-[min(52vh,24rem)]';

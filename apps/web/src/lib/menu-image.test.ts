@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  MENU_IMAGE_ASPECT_RATIO,
   clientHostnameFromRequest,
   clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
+  menuImageCenterCropRect,
   resolveMenuImageDisplayUrl,
   toMenuImagePublicRef,
 } from './menu-image';
@@ -141,5 +143,32 @@ describe('clientPageOriginFromRequest', () => {
       headers: { host: 'pirata.farvoo.com', 'x-forwarded-proto': 'https' },
     });
     assert.equal(clientPageOriginFromRequest(req), 'https://pirata.farvoo.com');
+  });
+});
+
+describe('menuImageCenterCropRect', () => {
+  it('uses sole 4:3 menu aspect', () => {
+    assert.equal(MENU_IMAGE_ASPECT_RATIO, 4 / 3);
+  });
+
+  it('crops left/right on wider sources', () => {
+    const r = menuImageCenterCropRect(1600, 900);
+    assert.equal(r.sy, 0);
+    assert.equal(r.sh, 900);
+    assert.ok(Math.abs(r.sw / r.sh - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
+    assert.ok(Math.abs(r.sx - (1600 - r.sw) / 2) < 1e-9);
+  });
+
+  it('crops top/bottom on taller sources', () => {
+    const r = menuImageCenterCropRect(900, 1600);
+    assert.equal(r.sx, 0);
+    assert.equal(r.sw, 900);
+    assert.ok(Math.abs(r.sw / r.sh - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
+    assert.ok(Math.abs(r.sy - (1600 - r.sh) / 2) < 1e-9);
+  });
+
+  it('keeps full frame when already 4:3', () => {
+    const r = menuImageCenterCropRect(1200, 900);
+    assert.deepEqual(r, { sx: 0, sy: 0, sw: 1200, sh: 900 });
   });
 });

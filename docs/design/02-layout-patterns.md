@@ -56,6 +56,7 @@
 **要点**
 
 - 壳宽唯一：`CUSTOMER_MENU_SHELL_WIDTH_CLASS`（`max-w-mobile` + `lg:max-w-[68rem]`）— 页面根、底栏、notice、cart/已点 sheet 同宽；详情 Dialog 面板用独立 `max-w-lg`，不跟宽壳
+- 菜品图画幅合同：上传 sole `compressMenuImageForUpload` 将静态图中心裁成 `MENU_IMAGE_ASPECT_RATIO`（4:3）；详情 hero `aspect-[4/3]` + contain。GIF 不裁。老图需重传
 - 未开台/结账中：门禁提示替代菜单网格
 - 购物车 / 菜品详情为 **同页层** 非独立路由；详情展示大图、完整描述、过敏原（空=未标注）、限量 hint；底栏唯一「步进 + 主 CTA」（无孤零 `+`）
 - 加菜成功 Toast；服务员流 1.2s 后 redirect

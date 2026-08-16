@@ -372,7 +372,7 @@ export const MESSAGES_ES = {
     "deleteCategoryNoDishes": "¿Eliminar la categoría “{name}”?",
     "hasChildrenBlock": "Esta categoría todavía tiene subcategorías. Elimínalas o muévelas primero.",
     "dishPhoto": "Foto del plato",
-    "dishPhotoHint": "Opcional. JPG / PNG / WebP / GIF, máx. 1 MB",
+    "dishPhotoHint": "Opcional. JPG / PNG / WebP / GIF, máx. 1 MB; estáticas se recortan a 4:3",
     "pickImage": "Elegir imagen",
     "removeImage": "Quitar imagen",
     "imageTooLarge": "La imagen debe ocupar 1 MB o menos",

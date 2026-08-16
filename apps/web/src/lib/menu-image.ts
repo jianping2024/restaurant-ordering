@@ -8,6 +8,12 @@ export const MENU_IMAGE_MAX_BYTES = 1048576;
 
 export const MENU_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 
+/**
+ * Sole menu photo aspect ratio (upload center-crop contract).
+ * Detail hero uses matching Tailwind `aspect-[4/3]` — keep in sync.
+ */
+export const MENU_IMAGE_ASPECT_RATIO = 4 / 3;
+
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',
@@ -39,6 +45,83 @@ export function menuImageObjectPath(restaurantId: string, menuItemId: string, mi
 }
 
 /**
+ * Sole center-crop window for menu photos → {@link MENU_IMAGE_ASPECT_RATIO}.
+ * Wider sources lose left/right; taller sources lose top/bottom.
+ */
+export function menuImageCenterCropRect(
+  sourceWidth: number,
+  sourceHeight: number,
+  aspect: number = MENU_IMAGE_ASPECT_RATIO,
+): { sx: number; sy: number; sw: number; sh: number } {
+  if (!(sourceWidth > 0 && sourceHeight > 0 && aspect > 0)) {
+    return { sx: 0, sy: 0, sw: Math.max(0, sourceWidth), sh: Math.max(0, sourceHeight) };
+  }
+  const srcAspect = sourceWidth / sourceHeight;
+  if (srcAspect > aspect) {
+    const sw = sourceHeight * aspect;
+    return { sx: (sourceWidth - sw) / 2, sy: 0, sw, sh: sourceHeight };
+  }
+  if (srcAspect < aspect) {
+    const sh = sourceWidth / aspect;
+    return { sx: 0, sy: (sourceHeight - sh) / 2, sw: sourceWidth, sh };
+  }
+  return { sx: 0, sy: 0, sw: sourceWidth, sh: sourceHeight };
+}
+
+function outputMimeForCroppedMenuImage(sourceMime: string): string {
+  if (sourceMime === 'image/png' || sourceMime === 'image/webp') return sourceMime;
+  return 'image/jpeg';
+}
+
+/**
+ * Center-crop to {@link MENU_IMAGE_ASPECT_RATIO}, optionally downscale longest edge.
+ * Browser-only (canvas). Used only by {@link compressMenuImageForUpload}.
+ */
+async function cropMenuImageFileToAspect(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const { sx, sy, sw, sh } = menuImageCenterCropRect(
+      bitmap.width,
+      bitmap.height,
+      MENU_IMAGE_ASPECT_RATIO,
+    );
+    let outW = Math.max(1, Math.round(sw));
+    let outH = Math.max(1, Math.round(sh));
+    const longest = Math.max(outW, outH);
+    if (longest > MENU_IMAGE_MAX_DIMENSION) {
+      const scale = MENU_IMAGE_MAX_DIMENSION / longest;
+      outW = Math.max(1, Math.round(outW * scale));
+      outH = Math.max(1, Math.round(outH * scale));
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('menu image canvas unavailable');
+    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, outW, outH);
+
+    const mime = outputMimeForCroppedMenuImage(file.type);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (next) => (next ? resolve(next) : reject(new Error('menu image toBlob failed'))),
+        mime,
+        0.92,
+      );
+    });
+
+    const ext = extensionForImageMime(mime);
+    const base = file.name.replace(/\.[^.]+$/, '') || 'menu-image';
+    return new File([blob], `${base}.${ext}`, {
+      type: mime,
+      lastModified: Date.now(),
+    });
+  } finally {
+    bitmap.close();
+  }
+}
+
+/**
  * Sole app writer for `menu_items.image_url` after a Storage upload.
  * Algorithm: `@mesa/shared` `toMenuImagePublicRef` — do not call `getPublicUrl` for persist.
  */
@@ -60,25 +143,27 @@ export function validateMenuImageFile(
 }
 
 /**
- * 在客户端自动压缩/缩放菜品图，降低上传体积与带宽成本。
- * - GIF 默认跳过（避免动图丢失动画）
- * - 若压缩失败，回退原图，由后续校验兜底
+ * Sole client preprocess before menu photo upload:
+ * center-crop to {@link MENU_IMAGE_ASPECT_RATIO}, then compress/scale.
+ * - GIF skipped (keep animation; not aspect-guaranteed)
+ * - On failure, return original for validateMenuImageFile to gate
  */
 export async function compressMenuImageForUpload(file: File): Promise<File> {
   if (!ALLOWED_MIME.has(file.type)) return file;
   if (file.type === 'image/gif') return file;
 
   try {
-    const compressed = await imageCompression(file, {
+    const cropped = await cropMenuImageFileToAspect(file);
+    const compressed = await imageCompression(cropped, {
       maxSizeMB: MENU_IMAGE_TARGET_MB,
       maxWidthOrHeight: MENU_IMAGE_MAX_DIMENSION,
       useWebWorker: true,
       initialQuality: 0.82,
-      fileType: file.type,
+      fileType: cropped.type,
     });
 
-    return new File([compressed], file.name, {
-      type: compressed.type || file.type,
+    return new File([compressed], cropped.name, {
+      type: compressed.type || cropped.type,
       lastModified: Date.now(),
     });
   } catch {

@@ -59,6 +59,17 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemAdd: string;
   itemSoldOut: string;
   noQuickNotes: string;
+  /** Fullscreen item detail (CustomerMenuItemDetailSheet). */
+  itemDetailBack: string;
+  itemOpenDetailAria: string;
+  itemFree: string;
+  itemBadgeRound: string;
+  itemBadgePaid: string;
+  itemAllergensTitle: string;
+  itemAllergensUnmarked: string;
+  itemDetailAddToRound: string;
+  itemDetailAddToCart: string;
+  itemDetailDone: string;
 }> = {
   pt: {
     table: 'Mesa',
@@ -119,6 +130,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Adicionar',
     itemSoldOut: 'Esgotado',
     noQuickNotes: 'Sem observacoes rapidas configuradas para este prato.',
+    itemDetailBack: 'Voltar',
+    itemOpenDetailAria: 'Ver detalhes de {name}',
+    itemFree: 'Grátis',
+    itemBadgeRound: 'Ronda da mesa',
+    itemBadgePaid: 'Pedido imediato',
+    itemAllergensTitle: 'Alérgenos',
+    itemAllergensUnmarked: 'Não marcado (não significa sem alérgenos)',
+    itemDetailAddToRound: 'Adicionar à ronda',
+    itemDetailAddToCart: 'Adicionar ao carrinho',
+    itemDetailDone: 'Concluído',
   },
   en: {
     table: 'Table',
@@ -179,6 +200,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Add',
     itemSoldOut: 'Sold out',
     noQuickNotes: 'No quick notes configured for this dish.',
+    itemDetailBack: 'Back',
+    itemOpenDetailAria: 'View details for {name}',
+    itemFree: 'Free',
+    itemBadgeRound: 'Table round',
+    itemBadgePaid: 'Order now',
+    itemAllergensTitle: 'Allergens',
+    itemAllergensUnmarked: 'Unmarked (not allergen-free)',
+    itemDetailAddToRound: 'Add to round',
+    itemDetailAddToCart: 'Add to cart',
+    itemDetailDone: 'Done',
   },
   zh: {
     table: '桌号',
@@ -239,6 +270,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ 加入',
     itemSoldOut: '已售完',
     noQuickNotes: '该菜品暂无快捷备注，请直接输入。',
+    itemDetailBack: '返回',
+    itemOpenDetailAria: '查看{name}详情',
+    itemFree: '免费',
+    itemBadgeRound: '同桌轮次',
+    itemBadgePaid: '即时下单',
+    itemAllergensTitle: '过敏原',
+    itemAllergensUnmarked: '未标注（不等于无过敏原）',
+    itemDetailAddToRound: '加入本轮',
+    itemDetailAddToCart: '加入购物车',
+    itemDetailDone: '完成',
   },
   es: {
     table: 'Mesa',
@@ -306,6 +347,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Añadir',
     itemSoldOut: 'Agotado',
     noQuickNotes: 'Este plato no tiene notas rápidas; escríbelas aquí.',
+    itemDetailBack: 'Volver',
+    itemOpenDetailAria: 'Ver detalles de {name}',
+    itemFree: 'Gratis',
+    itemBadgeRound: 'Ronda de la mesa',
+    itemBadgePaid: 'Pedido inmediato',
+    itemAllergensTitle: 'Alérgenos',
+    itemAllergensUnmarked: 'Sin marcar (no significa sin alérgenos)',
+    itemDetailAddToRound: 'Añadir a la ronda',
+    itemDetailAddToCart: 'Añadir al carrito',
+    itemDetailDone: 'Listo',
   },
   fr: {
     table: 'Table',
@@ -377,6 +428,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Ajouter',
     itemSoldOut: 'Épuisé',
     noQuickNotes: 'Pas de notes rapides pour ce plat ; saisissez-les ici.',
+    itemDetailBack: 'Retour',
+    itemOpenDetailAria: 'Voir les détails de {name}',
+    itemFree: 'Gratuit',
+    itemBadgeRound: 'Tour de table',
+    itemBadgePaid: 'Commande immédiate',
+    itemAllergensTitle: 'Allergènes',
+    itemAllergensUnmarked: 'Non renseigné (pas « sans allergène »)',
+    itemDetailAddToRound: 'Ajouter au tour',
+    itemDetailAddToCart: 'Ajouter au panier',
+    itemDetailDone: 'Terminé',
   },
   de: {
     table: 'Tisch',
@@ -447,6 +508,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Hinzufügen',
     itemSoldOut: 'Ausverkauft',
     noQuickNotes: 'Keine Schnellnotizen für dieses Gericht; bitte direkt eingeben.',
+    itemDetailBack: 'Zurück',
+    itemOpenDetailAria: 'Details zu {name} anzeigen',
+    itemFree: 'Gratis',
+    itemBadgeRound: 'Tischrunde',
+    itemBadgePaid: 'Sofort bestellen',
+    itemAllergensTitle: 'Allergene',
+    itemAllergensUnmarked: 'Nicht gekennzeichnet (nicht allergenfrei)',
+    itemDetailAddToRound: 'Zur Runde hinzufügen',
+    itemDetailAddToCart: 'In den Warenkorb',
+    itemDetailDone: 'Fertig',
   },
 };
 

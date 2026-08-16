@@ -72,6 +72,7 @@ import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { isCooldownActive, isDeferCooldownActive } from '@/lib/table-order-round/status';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
 import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
+import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemDetailSheet';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
 import { buildOwnRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
 
@@ -109,6 +110,7 @@ export function SushiMenuPage({
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [roundReviewOpen, setRoundReviewOpen] = useState(false);
+  const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [roundBusy, setRoundBusy] = useState(false);
   const submittingRef = useRef(false);
@@ -319,6 +321,22 @@ export function SushiMenuPage({
     void requestQtyChange(item.id, current + delta);
   };
 
+  const detailItem = useMemo(
+    () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
+    [detailMenuItemId, menuItems],
+  );
+  const detailCartQty = coerceCartQty(
+    detailItem ? cart.find((c) => c.menuItemId === detailItem.id)?.qty : 0,
+  );
+  const detailLimitHint = useMemo(() => {
+    if (!detailItem) return null;
+    const hintParts = sushiLimitHintParts(buffetServiceMode, detailItem);
+    if (!hintParts) return null;
+    return t.sushiLimitHint
+      .replace('{perPerson}', String(hintParts.perPerson))
+      .replace('{price}', hintParts.overLimitPrice.toFixed(2));
+  }, [buffetServiceMode, detailItem, t.sushiLimitHint]);
+
   const updateNote = (menuItemId: string, note: string) => {
     setCart((prev) =>
       prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note } : c)),
@@ -354,7 +372,8 @@ export function SushiMenuPage({
     () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
     [lang, restaurant.guest_ordering_notice],
   );
-  const hideGuestNoticeChrome = isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible;
+  const hideGuestNoticeChrome =
+    isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible || !!detailMenuItemId;
 
   const roundReviewGroups = useMemo(
     () =>
@@ -719,6 +738,13 @@ export function SushiMenuPage({
                   lang={lang}
                   cartQty={cartQty}
                   limitHint={limitHint}
+                  treatZeroAsFree
+                  onOpenDetail={() => {
+                    setCartOpen(false);
+                    setOrderedOpen(false);
+                    setRoundReviewOpen(false);
+                    setDetailMenuItemId(item.id);
+                  }}
                   onIncrement={() => bumpItem(item, 1)}
                   onDecrement={() => bumpItem(item, -1)}
                 />
@@ -755,6 +781,22 @@ export function SushiMenuPage({
           setCartOpen(false);
           setOrderedOpen(false);
           setRoundReviewOpen(true);
+        }}
+      />
+
+      <CustomerMenuItemDetailSheet
+        open={!!detailItem}
+        item={detailItem}
+        lang={lang}
+        cartQty={detailCartQty}
+        treatZeroAsFree
+        limitHint={detailLimitHint}
+        onClose={() => setDetailMenuItemId(null)}
+        onIncrement={() => {
+          if (detailItem) bumpItem(detailItem, 1);
+        }}
+        onDecrement={() => {
+          if (detailItem) bumpItem(detailItem, -1);
         }}
       />
 

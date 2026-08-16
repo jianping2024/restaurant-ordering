@@ -34,6 +34,32 @@ describe('resolveAuthIdentifier', () => {
     assert.equal(resolveAuthIdentifier('ab'), null);
     assert.equal(resolveAuthIdentifier(''), null);
   });
+
+  it('rejects reserved admin when not on prem', () => {
+    const prev = process.env.MESA_ON_PREM;
+    delete process.env.MESA_ON_PREM;
+    try {
+      assert.equal(resolveAuthIdentifier('admin'), null);
+    } finally {
+      if (prev === undefined) delete process.env.MESA_ON_PREM;
+      else process.env.MESA_ON_PREM = prev;
+    }
+  });
+
+  it('maps admin to prem built-in email when on prem', () => {
+    const prev = process.env.MESA_ON_PREM;
+    process.env.MESA_ON_PREM = '1';
+    try {
+      const result = resolveAuthIdentifier('admin');
+      assert.ok(result);
+      assert.equal(result.kind, 'prem_builtin_admin');
+      assert.equal(result.email, 'admin@mesa.prem');
+      assert.equal(result.loginName, null);
+    } finally {
+      if (prev === undefined) delete process.env.MESA_ON_PREM;
+      else process.env.MESA_ON_PREM = prev;
+    }
+  });
 });
 
 describe('staffLoginNameFromAuthEmail', () => {

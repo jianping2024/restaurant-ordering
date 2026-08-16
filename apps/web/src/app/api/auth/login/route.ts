@@ -17,6 +17,10 @@ import { clientIpFromRequest } from '@/lib/request-client-ip';
 import { createRouteHandlerSupabaseAuth } from '@/lib/supabase/route-handler-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { staffLoginRequiresPasswordChange } from '@/lib/auth/account-password-policy';
+import {
+  ensurePremBuiltinAdminUser,
+  loadClaimedOnPremRestaurant,
+} from '@/lib/auth/prem-builtin-admin';
 import { cookies } from 'next/headers';
 
 export const runtime = 'nodejs';
@@ -54,6 +58,27 @@ export async function POST(req: Request) {
       { error: 'rate_limited', retry_after_sec: rl.retryAfterSec },
       { status: 429, headers: { 'Retry-After': String(rl.retryAfterSec) } },
     );
+  }
+
+  if (resolved.kind === 'prem_builtin_admin') {
+    try {
+      const admin = createAdminClient();
+      const ensured = await ensurePremBuiltinAdminUser(admin);
+      if (!ensured.ok) {
+        return NextResponse.json({ error: ensured.error }, { status: 500 });
+      }
+      const claimed = await loadClaimedOnPremRestaurant(admin);
+      if (!claimed) {
+        authLoginRecordFailure(email, ip);
+        return NextResponse.json({ error: 'prem_admin_inactive' }, { status: 403 });
+      }
+    } catch (e) {
+      if (isDependencyFailure(e)) {
+        return dependencyUnavailableJsonResponse();
+      }
+      const message = e instanceof Error ? e.message : 'prem_admin_ensure_failed';
+      return NextResponse.json({ error: 'prem_admin_ensure_failed', message }, { status: 500 });
+    }
   }
 
   if (isStaffAuthEmail(email)) {
@@ -103,7 +128,10 @@ export async function POST(req: Request) {
       supabase,
       data.user.id,
       data.user.user_metadata as Record<string, unknown>,
-      { staffPreflightPassed: isStaffAuthEmail(email) && !!resolved.loginName },
+      {
+        staffPreflightPassed: isStaffAuthEmail(email) && !!resolved.loginName,
+        email: data.user.email ?? email,
+      },
     );
 
     if (redirect.kind === 'staff_error') {

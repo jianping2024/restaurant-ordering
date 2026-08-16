@@ -70,6 +70,8 @@ sudo ./install-ubuntu.sh
 5. 若启用公网 Tunnel / HTTPS：按 **§2.1**（Auth 白名单）+ **§2.4**（http→https 清单）
 6. **安全基线验收：** [`on-prem-security-baseline.zh.md`](./on-prem-security-baseline.zh.md) §5（Kong 仅 loopback、正式入口无 `:3000`/`:8000`、密码策略、勿对公网暴露库口）
 
+**内置超管（prem only）：** 安装脚本会 `POST /api/setup/ensure-prem-builtin-admin`。登录名 `admin`，默认密码 `centos(123)`。与认领店主账号并行，不改 `owner_id`；认领前不可登录，认领后可用。员工列表不可见。
+
 健康探针（装机/升级脚本与 compose 使用）：
 
 ```bash

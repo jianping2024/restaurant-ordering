@@ -1,6 +1,8 @@
 import 'server-only';
 
 import { createAdminClient } from '@/lib/supabase/admin';
+import { loadClaimedOnPremRestaurant } from '@/lib/auth/prem-builtin-admin';
+import { isPremBuiltinAdminActor } from '@/lib/auth/prem-builtin-admin-identity';
 import {
   normalizeStaffGateRow,
   type OwnerGateRestaurant,
@@ -40,6 +42,34 @@ export async function loadOwnedRestaurantForUser(
   }
   if (!data?.id || typeof data.slug !== 'string') return null;
   return { id: data.id as string, slug: data.slug };
+}
+
+/**
+ * Sole backend-admin restaurant access for a session user:
+ * true restaurants.owner_id match, else prem built-in admin after claim.
+ * Never assigns or changes owner_id.
+ */
+export async function loadBackendAdminRestaurantForUser(
+  admin: ReturnType<typeof createAdminClient>,
+  params: {
+    userId: string;
+    email?: string | null;
+    userMetadata?: Record<string, unknown> | null;
+  },
+): Promise<{ id: string; slug: string } | null> {
+  const owned = await loadOwnedRestaurantForUser(admin, params.userId);
+  if (owned) return owned;
+
+  if (
+    !isPremBuiltinAdminActor({
+      email: params.email,
+      userMetadata: params.userMetadata,
+    })
+  ) {
+    return null;
+  }
+
+  return loadClaimedOnPremRestaurant(admin);
 }
 
 export async function loadOwnerForSlug(

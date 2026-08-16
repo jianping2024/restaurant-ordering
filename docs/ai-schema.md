@@ -31,7 +31,7 @@ feedback_sessions (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, sessio
 
 menu_categories (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, parent_id: uuid FK -> menu_categories.id nullable, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, active: boolean, created_at: timestamptz, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable)
 
-menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_keys: text[], category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
+menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_keys: text[], allergen_codes: text[] NOT NULL DEFAULT '{}', category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
 
 orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pending|cooking|done], items: jsonb, total_amount: numeric, created_at: timestamptz, updated_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
 
@@ -291,6 +291,7 @@ menu_items:
 - idx_menu_items_uncategorized_sort_order: unique btree(restaurant_id, sort_order) WHERE category_id IS NULL
 - idx_menu_items_code_per_restaurant: unique btree(restaurant_id, lower(btrim((item_code)::text))) WHERE (item_code IS NOT NULL) AND (btrim((item_code)::text) <> ''::text)
 - idx_menu_items_note_preset_keys: gin(note_preset_keys)
+- idx_menu_items_allergen_codes: gin(allergen_codes)
 - idx_menu_items_print_station: btree(restaurant_id, print_station_id) WHERE print_station_id IS NOT NULL
 - idx_menu_items_restaurant: btree(restaurant_id)
 - menu_items_pkey: PK btree(id)

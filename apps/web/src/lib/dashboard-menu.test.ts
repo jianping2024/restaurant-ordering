@@ -109,6 +109,7 @@ describe('parseMenuItemBody', () => {
       vat_rate: '6',
       emoji: '🐟',
       note_preset_keys: ['no_onion'],
+      allergen_codes: ['fish', 'egg'],
       available: true,
     });
     assert.ok(!('error' in parsed));
@@ -116,6 +117,7 @@ describe('parseMenuItemBody', () => {
     assert.equal(parsed.price, 12.5);
     assert.equal(parsed.vat_rate, 6);
     assert.deepEqual(parsed.note_preset_keys, ['no_onion']);
+    assert.deepEqual(parsed.allergen_codes, ['fish', 'egg']);
     assert.equal(parsed.per_person_qty_limit, null);
     assert.equal(parsed.over_limit_unit_price, null);
   });
@@ -129,6 +131,7 @@ describe('parseMenuItemBody', () => {
       vat_rate: '6',
       emoji: '🍣',
       note_preset_keys: [],
+      allergen_codes: [],
       available: true,
       per_person_qty_limit: 2,
       over_limit_unit_price: 3.5,
@@ -148,11 +151,28 @@ describe('parseMenuItemBody', () => {
       vat_rate: '6',
       emoji: '🍣',
       note_preset_keys: [],
+      allergen_codes: [],
       per_person_qty_limit: 2,
     });
     assert.equal('error' in parsed, true);
     if (!('error' in parsed)) return;
     assert.equal(parsed.error, 'limit_requires_overage_price');
+  });
+
+  it('rejects invalid allergen codes', () => {
+    const parsed = parseMenuItemBody({
+      name_pt: 'Bacalhau',
+      category_id: 'cat-1',
+      item_code: 'D01',
+      price: 12.5,
+      vat_rate: '6',
+      emoji: '🐟',
+      note_preset_keys: [],
+      allergen_codes: ['shellfish'],
+    });
+    assert.equal('error' in parsed, true);
+    if (!('error' in parsed)) return;
+    assert.equal(parsed.error, 'invalid_allergen_codes');
   });
 
   it('rejects invalid vat rate', () => {
@@ -164,6 +184,7 @@ describe('parseMenuItemBody', () => {
       vat_rate: 'bad',
       emoji: '🐟',
       note_preset_keys: [],
+      allergen_codes: [],
     });
     assert.equal('error' in parsed, true);
     if (!('error' in parsed)) return;

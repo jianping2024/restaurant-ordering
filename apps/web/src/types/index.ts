@@ -147,6 +147,8 @@ export interface MenuItem {
   emoji: string;
   image_url?: string | null;
   note_preset_keys?: string[];
+  /** EU allergen codes this dish contains; empty = unmarked (not allergen-free). */
+  allergen_codes?: string[];
   available: boolean;
   sort_order: number;
   created_at: string;

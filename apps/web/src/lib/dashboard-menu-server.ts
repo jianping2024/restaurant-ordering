@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { normalizeAllergenCodes } from '@/lib/allergens';
 import { normalizeMenuItemLimitFields } from '@/lib/sushi-buffet-limits';
 import {
   collectCategorySubtreeIds,
@@ -355,6 +356,7 @@ type MenuItemInput = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  allergen_codes: string[];
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
 };
@@ -418,6 +420,7 @@ function buildMenuItemPayload(
     emoji: input.emoji,
     available: input.available,
     note_preset_keys: input.note_preset_keys,
+    allergen_codes: input.allergen_codes,
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
     per_person_qty_limit: input.per_person_qty_limit,
@@ -934,6 +937,10 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
   if (!Array.isArray(raw.note_preset_keys) || raw.note_preset_keys.some((key) => typeof key !== 'string')) {
     return { error: 'invalid_item_body', status: 400 };
   }
+  const allergenCodes = normalizeAllergenCodes(raw.allergen_codes);
+  if (allergenCodes === null) {
+    return { error: 'invalid_allergen_codes', status: 400 };
+  }
 
   const limits = normalizeMenuItemLimitFields({
     per_person_qty_limit: raw.per_person_qty_limit,
@@ -957,6 +964,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     emoji: raw.emoji,
     available: raw.available !== false,
     note_preset_keys: raw.note_preset_keys,
+    allergen_codes: allergenCodes,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,
   };

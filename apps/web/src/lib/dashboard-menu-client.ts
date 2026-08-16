@@ -142,6 +142,7 @@ export type MenuItemMutationInput = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  allergen_codes: string[];
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;
 };

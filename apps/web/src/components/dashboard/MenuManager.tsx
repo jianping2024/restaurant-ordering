@@ -26,6 +26,7 @@ import {
   NOTE_PRESET_GROUP_LABELS,
   type NotePresetGroup,
 } from '@/lib/note-presets';
+import { ALLERGENS, ALLERGEN_SECTION_UI } from '@/lib/allergens';
 import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
@@ -108,6 +109,7 @@ type ItemForm = {
   emoji: string;
   available: boolean;
   note_preset_keys: string[];
+  allergen_codes: string[];
   per_person_qty_limit: string;
   over_limit_unit_price: string;
 };
@@ -126,6 +128,7 @@ const defaultItemForm: ItemForm = {
   emoji: '🍽️',
   available: true,
   note_preset_keys: [],
+  allergen_codes: [],
   per_person_qty_limit: '',
   over_limit_unit_price: '',
 };
@@ -255,6 +258,7 @@ export function MenuManager({
   const MAX_CATEGORY_DEPTH = MAX_MENU_CATEGORY_DEPTH;
 
   const noteUi = NOTE_UI_TEXT[lang];
+  const allergenUi = ALLERGEN_SECTION_UI[lang];
 
   const topCategories = useMemo(
     () => categories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order),
@@ -536,6 +540,7 @@ export function MenuManager({
       emoji: item.emoji,
       available: item.available,
       note_preset_keys: item.note_preset_keys || [],
+      allergen_codes: item.allergen_codes || [],
       per_person_qty_limit:
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
       over_limit_unit_price:
@@ -600,6 +605,7 @@ export function MenuManager({
       emoji: itemForm.emoji,
       available: itemForm.available,
       note_preset_keys: itemForm.note_preset_keys,
+      allergen_codes: itemForm.allergen_codes,
       print_station_id: itemForm.print_station_id || null,
       item_code: normalizedItemCode,
       per_person_qty_limit: itemForm.per_person_qty_limit.trim()
@@ -1738,6 +1744,37 @@ export function MenuManager({
               ))}
             </select>
             <p className="text-[12px] text-brand-text-muted mt-1">{t.itemPrintStationHint}</p>
+          </div>
+
+          <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
+            <p className="text-sm font-medium text-brand-text">{allergenUi.title}</p>
+            <p className="text-[13px] text-brand-text-muted mt-1 mb-3">{allergenUi.hint}</p>
+            <div className="flex flex-wrap gap-2">
+              {ALLERGENS.map((allergen) => {
+                const checked = itemForm.allergen_codes.includes(allergen.code);
+                return (
+                  <button
+                    key={allergen.code}
+                    type="button"
+                    onClick={() =>
+                      setItemForm((prev) => ({
+                        ...prev,
+                        allergen_codes: checked
+                          ? prev.allergen_codes.filter((c) => c !== allergen.code)
+                          : [...prev.allergen_codes, allergen.code],
+                      }))
+                    }
+                    className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                      checked
+                        ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                        : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
+                    }`}
+                  >
+                    {allergen.labels[lang]}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">

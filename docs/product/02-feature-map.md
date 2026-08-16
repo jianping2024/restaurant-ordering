@@ -138,6 +138,7 @@
 - 打印档口管理：kitchen / beverage / standard 布局；档口列表拖拽手柄调整顺序，松手一次提交 `ordered_ids`
 - 菜品排序：同一分类内拖拽手柄（@hello-pangea/dnd，桌面+触控）调整顺序，松手一次提交 `ordered_ids`
 - 备注预设键（`note_preset_keys`）
+- 菜品含有过敏原（`allergen_codes`，EU 14 类；空=未标注，≠无过敏原）；顾客菜单过滤尚未做
 
 ### 业务边界
 
@@ -152,6 +153,7 @@
 - 多规格 SKU（大小杯、辣度加价等）
 - 配方 / BOM
 - 批量 Excel 导入
+- 顾客菜单按过敏原过滤（`allergen_codes` 已存库，过滤 UI 未做）
 
 ### 相关代码位置
 

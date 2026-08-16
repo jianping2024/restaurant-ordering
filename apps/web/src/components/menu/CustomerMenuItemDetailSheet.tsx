@@ -34,6 +34,8 @@ type DetailLabels = Pick<
   | 'itemBadgePaid'
   | 'itemAllergensTitle'
   | 'itemAllergensUnmarked'
+  | 'itemDetailDescriptionTitle'
+  | 'itemDetailDescriptionEmpty'
   | 'itemDetailAddToRound'
   | 'itemDetailAddToCart'
   | 'itemDetailDone'
@@ -163,9 +165,14 @@ export function CustomerMenuItemDetailSheet({
           ) : null}
         </div>
 
-        {desc ? (
-          <p className={`mt-4 text-brand-text ${CUSTOMER_MENU_TYPE.itemDesc}`}>{desc}</p>
-        ) : null}
+        <div className="mt-5">
+          <h2 className="text-sm font-semibold text-brand-text">{t.itemDetailDescriptionTitle}</h2>
+          {desc ? (
+            <p className={`mt-2 text-brand-text ${CUSTOMER_MENU_TYPE.itemDesc}`}>{desc}</p>
+          ) : (
+            <p className="mt-2 text-sm text-brand-text-muted">{t.itemDetailDescriptionEmpty}</p>
+          )}
+        </div>
 
         <div className="mt-5">
           <h2 className="text-sm font-semibold text-brand-text">{t.itemAllergensTitle}</h2>

@@ -48,15 +48,16 @@
 |------|------|
 | 顶栏 | 餐厅名 + 桌号 badge（顾客/员工同源）、语言优先再主题（`appearanceChromeIconButtonClass` ≥44）、可选返回 |
 | 分类 | 唯一 `CustomerMenuCategoryStrip`（一级 + 可选二级） |
-| 菜品 | `MenuItemCard` 列表；点图/菜名打开唯一全屏详情 `CustomerMenuItemDetailSheet`（同路由；`+` 仍快加） |
+| 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_CLASS`（手机 1 列 / `lg` 2 / `xl` 3）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |
 | 服务员协助 | 带 `returnToWaiterHref` 时提交后自动回桌台 |
 
 **要点**
 
+- 壳宽唯一：`CUSTOMER_MENU_SHELL_WIDTH_CLASS`（`max-w-mobile` + `lg:max-w-[68rem]`）— 页面根、底栏、notice、cart/已点 sheet 同宽；详情 Dialog 面板用独立 `max-w-lg`，不跟宽壳
 - 未开台/结账中：门禁提示替代菜单网格
-- 购物车 / 菜品详情为 **同页层** 非独立路由；详情展示大图、完整描述、过敏原（空=未标注）、限量 hint、下单
+- 购物车 / 菜品详情为 **同页层** 非独立路由；详情展示大图、完整描述、过敏原（空=未标注）、限量 hint；底栏唯一「步进 + 主 CTA」（无孤零 `+`）
 - 加菜成功 Toast；服务员流 1.2s 后 redirect
 
 ---

@@ -1,7 +1,11 @@
 /**
- * Sole menu catalog card price/action row (MenuItemCard — guest and staff-assisted).
+ * Sole menu catalog card + list grid (MenuItemCard — guest and staff-assisted).
  * Single grid contract: price column + 6.75rem action column (compact stepper).
  */
+
+/** Catalog list: 1 col phone, 2 col lg, 3 col xl — sole list container class. */
+export const CUSTOMER_MENU_ITEM_LIST_CLASS =
+  'grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3';
 
 /** Tailwind JIT: keep grid template as one static string. */
 export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =

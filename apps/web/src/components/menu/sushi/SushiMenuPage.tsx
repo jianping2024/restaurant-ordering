@@ -16,6 +16,7 @@ import {
 } from '@/lib/i18n/sushi-round-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
+import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
@@ -722,7 +723,7 @@ export function SushiMenuPage({
         ) : currentItems.length === 0 ? (
           <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
         ) : (
-          <div className="space-y-3">
+          <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
             {currentItems.map((item) => {
               const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
               const hintParts = sushiLimitHintParts(buffetServiceMode, item);

@@ -10,15 +10,20 @@ import {
 } from './customer-menu-chrome-layout';
 
 describe('customerMenuChromeLayout', () => {
-  it('uses the same max-w-mobile shell as the bottom bar', () => {
-    assert.match(customerMenuShellRootClass, /max-w-mobile/);
-    assert.equal(CUSTOMER_MENU_SHELL_WIDTH_CLASS, 'w-full max-w-mobile');
+  it('uses sole shell width: phone max-w-mobile + lg widen', () => {
+    assert.match(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /max-w-mobile/);
+    assert.match(CUSTOMER_MENU_SHELL_WIDTH_CLASS, /lg:max-w-\[68rem\]/);
+    assert.equal(
+      CUSTOMER_MENU_SHELL_WIDTH_CLASS,
+      'w-full max-w-mobile lg:max-w-[68rem]',
+    );
+    assert.ok(customerMenuShellRootClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
   });
 
   it('docks fixed overlays to the centered shell', () => {
     assert.match(customerMenuFixedShellDockClass, /left-1\/2/);
     assert.match(customerMenuFixedShellDockClass, /-translate-x-1\/2/);
-    assert.match(customerMenuNoticeTabShellClass, /max-w-mobile/);
+    assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
     assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS));
   });
 

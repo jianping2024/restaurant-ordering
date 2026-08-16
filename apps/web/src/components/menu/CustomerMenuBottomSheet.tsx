@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
+import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 /** Sole customer menu bottom sheet chrome (cart / 已点 / 本轮核单). */
@@ -33,7 +34,7 @@ export function CustomerMenuBottomSheet({
 
       <div
         className={`
-        fixed bottom-0 left-1/2 z-40 w-full max-w-mobile -translate-x-1/2
+        fixed bottom-0 left-1/2 z-40 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} -translate-x-1/2
         rounded-t-3xl border-t border-brand-border bg-brand-card
         transition-transform duration-300 ease-out
         ${open ? 'translate-y-0' : 'translate-y-full'}

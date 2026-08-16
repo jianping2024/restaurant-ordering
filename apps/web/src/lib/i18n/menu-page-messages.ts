@@ -59,8 +59,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemAdd: string;
   itemSoldOut: string;
   noQuickNotes: string;
-  /** Fullscreen item detail (CustomerMenuItemDetailSheet). */
-  itemDetailBack: string;
+  /** Item detail close (CustomerMenuItemDetailSheet — phone fullscreen / lg dialog). */
+  itemDetailClose: string;
   itemOpenDetailAria: string;
   itemFree: string;
   itemBadgeRound: string;
@@ -132,7 +132,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Adicionar',
     itemSoldOut: 'Esgotado',
     noQuickNotes: 'Sem observacoes rapidas configuradas para este prato.',
-    itemDetailBack: 'Voltar',
+    itemDetailClose: 'Fechar',
     itemOpenDetailAria: 'Ver detalhes de {name}',
     itemFree: 'Grátis',
     itemBadgeRound: 'Ronda da mesa',
@@ -204,7 +204,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Add',
     itemSoldOut: 'Sold out',
     noQuickNotes: 'No quick notes configured for this dish.',
-    itemDetailBack: 'Back',
+    itemDetailClose: 'Close',
     itemOpenDetailAria: 'View details for {name}',
     itemFree: 'Free',
     itemBadgeRound: 'Table round',
@@ -276,7 +276,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ 加入',
     itemSoldOut: '已售完',
     noQuickNotes: '该菜品暂无快捷备注，请直接输入。',
-    itemDetailBack: '返回',
+    itemDetailClose: '关闭',
     itemOpenDetailAria: '查看{name}详情',
     itemFree: '免费',
     itemBadgeRound: '同桌轮次',
@@ -355,7 +355,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Añadir',
     itemSoldOut: 'Agotado',
     noQuickNotes: 'Este plato no tiene notas rápidas; escríbelas aquí.',
-    itemDetailBack: 'Volver',
+    itemDetailClose: 'Cerrar',
     itemOpenDetailAria: 'Ver detalles de {name}',
     itemFree: 'Gratis',
     itemBadgeRound: 'Ronda de la mesa',
@@ -438,7 +438,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Ajouter',
     itemSoldOut: 'Épuisé',
     noQuickNotes: 'Pas de notes rapides pour ce plat ; saisissez-les ici.',
-    itemDetailBack: 'Retour',
+    itemDetailClose: 'Fermer',
     itemOpenDetailAria: 'Voir les détails de {name}',
     itemFree: 'Gratuit',
     itemBadgeRound: 'Tour de table',
@@ -520,7 +520,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemAdd: '+ Hinzufügen',
     itemSoldOut: 'Ausverkauft',
     noQuickNotes: 'Keine Schnellnotizen für dieses Gericht; bitte direkt eingeben.',
-    itemDetailBack: 'Zurück',
+    itemDetailClose: 'Schließen',
     itemOpenDetailAria: 'Details zu {name} anzeigen',
     itemFree: 'Gratis',
     itemBadgeRound: 'Tischrunde',

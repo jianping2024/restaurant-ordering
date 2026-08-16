@@ -2,9 +2,13 @@
  * Customer menu shell — shared width budget and fixed overlay coordinates.
  * Bottom bar tokens live in customer-menu-bottom-bar-layout.ts; this module
  * covers header trailing slots and edge affordances (guest notice tab).
+ *
+ * Sole width: phone `max-w-mobile`, `lg+` ~1088px — page root, footer dock,
+ * notice tab, and cart/ordered sheets all import this class (no parallel max-w-*).
  */
 
-export const CUSTOMER_MENU_SHELL_WIDTH_CLASS = 'w-full max-w-mobile';
+export const CUSTOMER_MENU_SHELL_WIDTH_CLASS =
+  'w-full max-w-mobile lg:max-w-[68rem]';
 
 /** Centered mobile shell used by menu page root and fixed overlays. */
 export const customerMenuShellRootClass = `${CUSTOMER_MENU_SHELL_WIDTH_CLASS} mx-auto`;

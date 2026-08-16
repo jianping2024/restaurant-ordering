@@ -84,6 +84,8 @@
 | 7 | `/auth/login` | 认领成功后的落地页；**禁止**自动建 session；员工登录 preflight 走 `reconcileRestaurantLicense` |
 | 8 | `/dashboard` | 登录后营业；lifecycle `reconcileRestaurantLicense` → on_prem check-in → `applyLicenseMaterialize` |
 
+**Prem 内置超管（与认领店主并行）：** 装机 `ensure-prem-builtin-admin` 创建 Auth 用户 `admin` / 默认密见安装说明；**不**写 `restaurants.owner_id`、**不**进员工列表。认领前登录返回 `prem_admin_inactive`；认领后（本机存在 `deployment_mode=on_prem` 且 `owner_id` 非空）可登录，权限与后台管理员相同（`loadBackendAdminRestaurantForUser` 唯一路径）。
+
 失败：停在 `/setup`，提示码无效/过期/已用等，**不**写本地店。
 
 **对线上已有云店：** 存量 `deployment_mode=cloud` 不走 `/setup` / claim；云开户仍 `createRestaurantWithOwner`。装机桥不得改坏该路径。

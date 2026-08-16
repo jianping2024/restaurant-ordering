@@ -307,10 +307,18 @@ for _ in $(seq 1 60); do
   sleep 3
 done
 
+# Ensure prem built-in admin Auth user (inactive until /setup claim).
+if curl -fsS -X POST "$WEB_URL/api/setup/ensure-prem-builtin-admin" >/dev/null 2>&1; then
+  log "内置管理员账号已就绪（认领前不可登录）"
+else
+  log "WARN: 内置管理员 ensure 失败（可稍后 POST $WEB_URL/api/setup/ensure-prem-builtin-admin）"
+fi
+
 log ""
 log "安装完成。"
 log "  开户:  ${WEB_URL}/setup"
 log "  主页:  $WEB_URL"
+log "  内置超管: admin（认领餐厅后可登录；与店主账号并行）"
 log "  栈目录: $DEST_ONPREM"
 log "  启停:  $MESA_HOME/bin/mesa-stack up|down|ps|logs"
 log "  认领后必跑: cd $DEST_ONPREM && sudo ./scripts/verify-on-prem-ready.sh post-claim"

@@ -9,7 +9,7 @@ import {
   type StaffLoginPreflightResult,
 } from '@/lib/staff-identity-gate';
 import {
-  loadOwnedRestaurantForUser,
+  loadBackendAdminRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { reconcileRestaurantLicense } from '@/lib/license-materialize';
@@ -26,7 +26,11 @@ export {
 } from '@/lib/staff-identity-gate';
 
 export type AuthUserWithAdmin = {
-  user: { id: string; user_metadata: Record<string, unknown> };
+  user: {
+    id: string;
+    email: string | null;
+    user_metadata: Record<string, unknown>;
+  };
   admin: ReturnType<typeof createAdminClient>;
 };
 
@@ -46,6 +50,7 @@ export const loadAuthUserWithAdmin = cache(async (): Promise<AuthUserWithAdmin |
     return {
       user: {
         id: user.id,
+        email: user.email ?? null,
         user_metadata: (user.user_metadata as Record<string, unknown>) ?? {},
       },
       admin: createAdminClient(),
@@ -58,6 +63,7 @@ export const loadAuthUserWithAdmin = cache(async (): Promise<AuthUserWithAdmin |
 /**
  * Request-scoped owner id + staff gate for the current auth user.
  * Dedupes the parallel lookups shared by dashboard access + principal.
+ * ownedRestaurantId = sole backend-admin access (true owner_id or prem built-in after claim).
  */
 export const loadAuthOwnershipGate = cache(async (): Promise<{
   auth: AuthUserWithAdmin;
@@ -67,7 +73,11 @@ export const loadAuthOwnershipGate = cache(async (): Promise<{
   const auth = await loadAuthUserWithAdmin();
   if (!auth) return null;
   const [ownedRestaurant, staff] = await Promise.all([
-    loadOwnedRestaurantForUser(auth.admin, auth.user.id),
+    loadBackendAdminRestaurantForUser(auth.admin, {
+      userId: auth.user.id,
+      email: auth.user.email,
+      userMetadata: auth.user.user_metadata,
+    }),
     loadStaffGateAccountForUser(auth.admin, auth.user.id),
   ]);
   return { auth, ownedRestaurantId: ownedRestaurant?.id ?? null, staff };

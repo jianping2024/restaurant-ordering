@@ -4,8 +4,13 @@ import {
   validateLoginName,
 } from '@/lib/staff-account';
 import { resolveStaffCredentials } from '@/lib/staff-credentials';
+import { isOnPremInstallHost } from '@/lib/license-on-prem-host';
+import {
+  PREM_BUILTIN_ADMIN_EMAIL,
+  isPremBuiltinAdminLoginName,
+} from '@/lib/auth/prem-builtin-admin-identity';
 
-export type AuthIdentifierKind = 'owner_email' | 'staff';
+export type AuthIdentifierKind = 'owner_email' | 'staff' | 'prem_builtin_admin';
 
 export type ResolvedAuthIdentifier = {
   email: string;
@@ -29,12 +34,21 @@ export function staffLoginNameFromAuthEmail(email: string): string | null {
 
 /**
  * Map user-facing account input to Supabase Auth email.
+ * - Prem host + bare `admin` → built-in prem admin (not staff).
  * - Contains `@` → treat as full email (owner or legacy staff paste).
  * - Otherwise → staff login_name.
  */
 export function resolveAuthIdentifier(raw: string): ResolvedAuthIdentifier | null {
   const trimmed = raw.trim().toLowerCase();
   if (!trimmed) return null;
+
+  if (isOnPremInstallHost() && isPremBuiltinAdminLoginName(trimmed)) {
+    return {
+      email: PREM_BUILTIN_ADMIN_EMAIL,
+      kind: 'prem_builtin_admin',
+      loginName: null,
+    };
+  }
 
   if (trimmed.includes('@')) {
     const loginName = staffLoginNameFromAuthEmail(trimmed);

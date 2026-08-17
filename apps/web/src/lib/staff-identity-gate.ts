@@ -30,6 +30,30 @@ export type OwnerGateRestaurant = {
   suspended_at: string | null;
 };
 
+/**
+ * Sole owner-restaurant merge: `owner_id` row wins; otherwise the on-prem
+ * shadow login (`admin`) uses the claimed store. Never writes `owner_id`.
+ */
+export function resolveOwnerRestaurantFromLoads(input: {
+  ownedByOwnerId: OwnerGateRestaurant | null;
+  isOwnerShadow: boolean;
+  claimedRestaurant: OwnerGateRestaurant | null;
+}): OwnerGateRestaurant | null {
+  if (input.ownedByOwnerId) return input.ownedByOwnerId;
+  if (input.isOwnerShadow) return input.claimedRestaurant;
+  return null;
+}
+
+/** Owner/shadow may only act on the restaurant they resolved — not another slug/id. */
+export function ownerRestaurantMatchesTarget(
+  owned: OwnerGateRestaurant | null,
+  target: { slug: string; restaurantId?: string },
+): owned is OwnerGateRestaurant {
+  if (!owned || owned.slug !== target.slug) return false;
+  if (target.restaurantId != null && owned.id !== target.restaurantId) return false;
+  return true;
+}
+
 export type StaffLoginContext = {
   /** RLS / display label (preset key or `custom`) — not used for authorization. */
   roleLabel: string;

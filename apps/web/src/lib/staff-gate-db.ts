@@ -5,6 +5,7 @@ import { loadClaimedOnPremRestaurant } from '@/lib/auth/prem-builtin-admin';
 import { isPremBuiltinAdminActor } from '@/lib/auth/prem-builtin-admin-identity';
 import {
   normalizeStaffGateRow,
+  resolveOwnerRestaurantFromLoads,
   type OwnerGateRestaurant,
   type StaffGateAccount,
 } from '@/lib/staff-identity-gate';
@@ -28,76 +29,55 @@ export async function loadStaffGateAccountForUser(
   return normalizeStaffGateRow(data);
 }
 
-export async function loadOwnedRestaurantForUser(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-): Promise<{ id: string; slug: string } | null> {
-  const { data, error } = await admin
-    .from('restaurants')
-    .select('id, slug')
-    .eq('owner_id', userId)
-    .maybeSingle();
-  if (error) {
-    throw new Error(error.message);
-  }
-  if (!data?.id || typeof data.slug !== 'string') return null;
-  return { id: data.id as string, slug: data.slug };
+function asOwnerGateRestaurant(row: {
+  id: unknown;
+  slug: unknown;
+  suspended_at?: unknown;
+}): OwnerGateRestaurant | null {
+  if (typeof row.id !== 'string' || typeof row.slug !== 'string') return null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    suspended_at: (row.suspended_at as string | null | undefined) ?? null,
+  };
 }
 
 /**
- * Sole backend-admin restaurant access for a session user:
- * true restaurants.owner_id match, else prem built-in admin after claim.
- * Never assigns or changes owner_id.
+ * Sole owner restaurant for a session user: `restaurants.owner_id`, else the
+ * on-prem shadow login (`admin`) after claim. Never assigns or changes owner_id.
  */
-export async function loadBackendAdminRestaurantForUser(
+export async function loadOwnerRestaurantForUser(
   admin: ReturnType<typeof createAdminClient>,
   params: {
     userId: string;
     email?: string | null;
     userMetadata?: Record<string, unknown> | null;
   },
-): Promise<{ id: string; slug: string } | null> {
-  const owned = await loadOwnedRestaurantForUser(admin, params.userId);
-  if (owned) return owned;
-
-  if (
-    !isPremBuiltinAdminActor({
-      email: params.email,
-      userMetadata: params.userMetadata,
-    })
-  ) {
-    return null;
-  }
-
-  return loadClaimedOnPremRestaurant(admin);
-}
-
-export async function loadOwnerForSlug(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-  slug: string,
 ): Promise<OwnerGateRestaurant | null> {
-  const { data } = await admin
+  const { data, error } = await admin
     .from('restaurants')
     .select('id, slug, suspended_at')
-    .eq('slug', slug)
-    .eq('owner_id', userId)
+    .eq('owner_id', params.userId)
     .maybeSingle();
-  return (data as OwnerGateRestaurant | null) ?? null;
-}
+  if (error) {
+    throw new Error(error.message);
+  }
 
-export async function loadOwnerForRestaurantId(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-  restaurantId: string,
-): Promise<Pick<OwnerGateRestaurant, 'id' | 'slug'> | null> {
-  const { data } = await admin
-    .from('restaurants')
-    .select('id, slug')
-    .eq('id', restaurantId)
-    .eq('owner_id', userId)
-    .maybeSingle();
-  return (data as Pick<OwnerGateRestaurant, 'id' | 'slug'> | null) ?? null;
+  const ownedByOwnerId = data ? asOwnerGateRestaurant(data) : null;
+  const isOwnerShadow = isPremBuiltinAdminActor({
+    email: params.email,
+    userMetadata: params.userMetadata,
+  });
+  const claimedRestaurant =
+    !ownedByOwnerId && isOwnerShadow
+      ? await loadClaimedOnPremRestaurant(admin)
+      : null;
+
+  return resolveOwnerRestaurantFromLoads({
+    ownedByOwnerId,
+    isOwnerShadow,
+    claimedRestaurant,
+  });
 }
 
 export async function loadStaffGateByUserId(

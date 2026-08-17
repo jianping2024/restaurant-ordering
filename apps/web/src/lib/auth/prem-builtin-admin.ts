@@ -21,7 +21,11 @@ export {
 /** Default password for the prem built-in admin — install/ensure only; not forced to change. */
 export const PREM_BUILTIN_ADMIN_PASSWORD = 'centos(123)';
 
-export type ClaimedOnPremRestaurant = { id: string; slug: string };
+export type ClaimedOnPremRestaurant = {
+  id: string;
+  slug: string;
+  suspended_at: string | null;
+};
 
 /**
  * Sole activation gate: prem host has a claimed restaurant
@@ -34,7 +38,7 @@ export async function loadClaimedOnPremRestaurant(
 
   const { data, error } = await admin
     .from('restaurants')
-    .select('id, slug')
+    .select('id, slug, suspended_at')
     .eq('deployment_mode', 'on_prem')
     .not('owner_id', 'is', null)
     .order('created_at', { ascending: true })
@@ -45,7 +49,11 @@ export async function loadClaimedOnPremRestaurant(
     throw new Error(error.message);
   }
   if (!data?.id || typeof data.slug !== 'string') return null;
-  return { id: data.id as string, slug: data.slug };
+  return {
+    id: data.id as string,
+    slug: data.slug,
+    suspended_at: (data.suspended_at as string | null | undefined) ?? null,
+  };
 }
 
 /**

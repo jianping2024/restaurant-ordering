@@ -1,6 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
 import { loadAuthOwnershipGate } from '@/lib/staff-access';
 import type { Restaurant } from '@/types';
@@ -157,16 +156,4 @@ export async function loadDashboardAccess(): Promise<DashboardAccessResult> {
   }
 
   return { mode: 'onboarding' };
-}
-
-export async function isOwnerDashboardUser(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  userId: string,
-): Promise<boolean> {
-  const { data: restaurant } = await supabase
-    .from('restaurants')
-    .select('id')
-    .eq('owner_id', userId)
-    .maybeSingle();
-  return !!restaurant;
 }

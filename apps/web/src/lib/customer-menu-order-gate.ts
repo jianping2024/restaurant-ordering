@@ -27,6 +27,16 @@ export function guestOrderingActionHint(
   return messages.buffetRequired;
 }
 
+/** Sole list-page banner copy for the guest order gate (not the toast action hint). */
+export function guestOrderingBannerHint(
+  lang: Language,
+  sessionStatus: SessionStatus | null,
+): string {
+  const messages = MENU_PAGE_MESSAGES[lang];
+  if (sessionStatus === 'billing') return messages.billDisabledHint;
+  return messages.waitingForBuffet;
+}
+
 /**
  * Menu ordering gate: use cached state when already allowed; otherwise caller
  * should refresh session context and re-run guestOrderGateFromSessionContext.

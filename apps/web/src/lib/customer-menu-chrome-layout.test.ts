@@ -32,7 +32,7 @@ describe('customerMenuChromeLayout', () => {
   });
 
   it('keeps notice tab below sticky header height token', () => {
-    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /8rem/);
-    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /7\.5rem/);
+    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /6\.5rem/);
+    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /8rem/);
   });
 });

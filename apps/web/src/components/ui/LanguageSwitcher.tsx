@@ -8,7 +8,7 @@ import {
   uiLanguageOption,
   type UILanguage,
 } from '@/lib/i18n';
-import { appearanceChromeIconButtonClass } from '@/lib/appearance-chrome';
+import { appearanceChromeButtonClass } from '@/lib/appearance-chrome';
 
 function OptionRows({
   lang,
@@ -59,12 +59,20 @@ function OptionRows({
 type Props = {
   /** Personal settings row: show current language name beside the globe button. */
   showCurrentLanguage?: boolean;
+  /**
+   * Ordering header: `icon` at rest, `label` after scroll (shortLabel + ▾).
+   * Same control — not a second language switcher.
+   */
+  layout?: 'icon' | 'label';
 };
 
 /**
  * Sole UI language control: landing, auth, customer ordering header, personal settings.
  */
-export function LanguageSwitcherIconChrome({ showCurrentLanguage = false }: Props) {
+export function LanguageSwitcherIconChrome({
+  showCurrentLanguage = false,
+  layout = 'icon',
+}: Props) {
   const { lang, setLang } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -104,13 +112,20 @@ export function LanguageSwitcherIconChrome({ showCurrentLanguage = false }: Prop
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={appearanceChromeIconButtonClass()}
+        className={appearanceChromeButtonClass(layout)}
         title={current.nativeName}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={current.nativeName}
       >
-        🌐
+        {layout === 'label' ? (
+          <>
+            {current.shortLabel}
+            <span aria-hidden>▾</span>
+          </>
+        ) : (
+          '🌐'
+        )}
       </button>
       {open ? (
         <div

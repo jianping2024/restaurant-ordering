@@ -46,12 +46,14 @@ import {
   guestOrderGateFromCachedState,
   guestOrderGateFromSessionContext,
   guestOrderingActionHint,
+  guestOrderingBannerHint,
 } from '@/lib/customer-menu-order-gate';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { CustomerMenuCategoryStrip } from '@/components/menu/CustomerMenuCategoryStrip';
+import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
@@ -285,13 +287,6 @@ export function MenuOrderingController({
     () => sessionResolved && guestOrderingEnabled(activeSession),
     [activeSession, sessionResolved],
   );
-  const guestOrderingHints = useMemo(() => {
-    const messages = MENU_PAGE_MESSAGES[lang];
-    if (activeSession?.status === 'billing') {
-      return { banner: messages.billDisabledHint, action: messages.billDisabledHint };
-    }
-    return { banner: messages.waitingForBuffet, action: messages.buffetRequired };
-  }, [activeSession?.status, lang]);
 
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
   const limitGuestCount = sessionGuestCountForLimits(recentOrders);
@@ -874,14 +869,15 @@ export function MenuOrderingController({
           activeSubpath={currentSubpath}
           onSelectSubpath={setActiveSubpath}
           subcategoryAllLabel={t.subcategoryAll}
+          categoryMoreLabel={t.categoryMore}
         />
       </CustomerOrderingHeader>
 
-      {!isDemo && sessionResolved && !guestCanOrder && (
-        <div className="mx-4 mt-3 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3 text-[13px] text-brand-text">
-          {guestOrderingHints.banner}
-        </div>
-      )}
+      {!isDemo && sessionResolved && !guestCanOrder ? (
+        <CustomerMenuOrderGateBanner
+          message={guestOrderingBannerHint(lang, activeSession?.status ?? null)}
+        />
+      ) : null}
 
       {/* 菜品列表 */}
       <div

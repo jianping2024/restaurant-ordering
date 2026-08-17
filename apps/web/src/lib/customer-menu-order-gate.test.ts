@@ -4,6 +4,7 @@ import {
   guestOrderGateFromCachedState,
   guestOrderGateFromSessionContext,
   guestOrderingActionHint,
+  guestOrderingBannerHint,
 } from '@/lib/customer-menu-order-gate';
 
 describe('guestOrderGateFromSessionContext', () => {
@@ -53,5 +54,11 @@ describe('guestOrderGateFromCachedState', () => {
 describe('guestOrderingActionHint', () => {
   it('maps billing to bill disabled copy', () => {
     assert.match(guestOrderingActionHint('zh', 'billing'), /结账/);
+  });
+});
+
+describe('guestOrderingBannerHint', () => {
+  it('maps closed buffet to waiting copy', () => {
+    assert.match(guestOrderingBannerHint('zh', 'open'), /登记自助餐/);
   });
 });

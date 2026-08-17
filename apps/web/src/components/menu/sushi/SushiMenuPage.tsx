@@ -38,11 +38,13 @@ import {
   guestOrderGateFromCachedState,
   guestOrderGateFromSessionContext,
   guestOrderingActionHint,
+  guestOrderingBannerHint,
 } from '@/lib/customer-menu-order-gate';
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { CustomerMenuCategoryStrip } from '@/components/menu/CustomerMenuCategoryStrip';
+import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
@@ -239,12 +241,6 @@ export function SushiMenuPage({
     () => sessionResolved && guestOrderingEnabled(activeSession),
     [activeSession, sessionResolved],
   );
-  const guestOrderingHints = useMemo(() => {
-    if (activeSession?.status === 'billing') {
-      return { banner: t.billDisabledHint, action: t.billDisabledHint };
-    }
-    return { banner: t.waitingForBuffet, action: t.buffetRequired };
-  }, [activeSession?.status, t]);
 
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
   const basketLocked = round.snapshot.round?.status === 'pending_confirm';
@@ -706,15 +702,16 @@ export function SushiMenuPage({
           activeSubpath={currentSubpath}
           onSelectSubpath={setActiveSubpath}
           subcategoryAllLabel={t.subcategoryAll}
+          categoryMoreLabel={t.categoryMore}
         />
       </CustomerOrderingHeader>
 
       {!isDemo ? <SushiRoundStickyBar snapshot={round.snapshot} labels={roundT} /> : null}
 
       {!isDemo && sessionResolved && !guestCanOrder ? (
-        <div className="mx-4 mt-3 rounded-xl border border-brand-ink/35 bg-brand-ink/10 px-4 py-3 text-[13px] text-brand-text">
-          {guestOrderingHints.banner}
-        </div>
+        <CustomerMenuOrderGateBanner
+          message={guestOrderingBannerHint(lang, activeSession?.status ?? null)}
+        />
       ) : null}
 
       <div className="px-4 py-4">

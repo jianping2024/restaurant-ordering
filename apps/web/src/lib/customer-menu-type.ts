@@ -1,8 +1,8 @@
 /** Typography tokens for the customer menu ordering surface (list, cart, footer, drawers). */
 export const CUSTOMER_MENU_TYPE = {
-  categoryTop: 'text-lg',
+  categoryTop: 'text-base',
   categoryTopActive: 'font-medium',
-  categorySub: 'text-base',
+  categorySub: 'text-sm',
   itemName: 'text-lg font-semibold leading-tight',
   itemDesc: 'text-sm leading-relaxed',
   /** Dish price, cart line total, footer session total — body face via `.mesa-money`. */

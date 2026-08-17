@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
@@ -39,7 +39,7 @@ function CustomerTableIdentityBadge({
   displayName: string;
 }) {
   return (
-    <span className="shrink-0 rounded-full border border-brand-ink/40 bg-brand-ink/10 px-2.5 py-1 text-[13px] font-medium text-brand-ink tabular-nums">
+    <span className="shrink-0 rounded-full border border-brand-ink/25 px-2 py-0.5 text-xs font-medium text-brand-ink tabular-nums">
       {tableLabel} {displayName}
     </span>
   );
@@ -57,11 +57,23 @@ export function CustomerOrderingHeader({
   children,
 }: Props) {
   const isStaffAssisted = staffAssisted !== null;
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!sticky || isStaffAssisted) {
+      setScrolled(false);
+      return;
+    }
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [sticky, isStaffAssisted]);
 
   const headingClass =
     headingSize === 'bill'
-      ? 'font-heading text-2xl text-brand-ink truncate'
-      : 'font-heading text-xl text-brand-ink truncate';
+      ? 'font-heading text-xl text-brand-ink truncate'
+      : 'font-heading text-lg text-brand-ink truncate';
 
   const tableBadge = (
     <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
@@ -75,7 +87,7 @@ export function CustomerOrderingHeader({
           : 'border-b border-brand-border'
       }
     >
-      <div className={`px-4 ${sticky ? 'py-3' : 'py-5'}`}>
+      <div className={`px-4 ${sticky ? 'py-1.5' : 'py-3'}`}>
         {backLink ? (
           <div className="mb-2">
             <StaffAssistedBackLink href={backLink.href} label={backLink.label} />
@@ -95,9 +107,9 @@ export function CustomerOrderingHeader({
           {isStaffAssisted ? (
             tableBadge
           ) : (
-            <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-2`}>
-              <LanguageSwitcherIconChrome />
-              <ThemeToggle />
+            <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-1.5`}>
+              <LanguageSwitcherIconChrome layout={scrolled ? 'label' : 'icon'} />
+              {scrolled ? null : <ThemeToggle />}
             </div>
           )}
         </div>

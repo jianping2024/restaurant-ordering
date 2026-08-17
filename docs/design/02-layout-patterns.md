@@ -46,8 +46,8 @@
 
 | 区域 | 布局 |
 |------|------|
-| 顶栏 | 餐厅名 + 桌号 badge（顾客/员工同源）、语言优先再主题（`appearanceChromeIconButtonClass` ≥44）、可选返回 |
-| 分类 | 唯一 `CustomerMenuCategoryStrip`（一级 + 可选二级） |
+| 顶栏 | 紧凑身份行：店名 + 瘦桌号 badge；语言优先（上滑收成 `shortLabel` ▾），未滑时主题 ghost 圆钮（`appearanceChromeButtonClass` ≥44）；可选返回 |
+| 分类 | 唯一 `CustomerMenuCategoryStrip`：一行 pill，放不下才「更多」；展开后同一槽换成全宽 wrap（盖住原横滑行，左右贴 header）；可选二级 chip |
 | 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_CLASS`（手机 1 列 / `lg` 2 / `xl` 3）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |

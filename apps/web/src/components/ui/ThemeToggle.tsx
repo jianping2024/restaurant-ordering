@@ -2,7 +2,7 @@
 
 import { useThemeMode } from '@/components/providers/ThemeProvider';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { appearanceChromeIconButtonClass } from '@/lib/appearance-chrome';
+import { appearanceChromeButtonClass } from '@/lib/appearance-chrome';
 import { getMessages } from '@/lib/i18n/messages';
 
 export function ThemeToggle() {
@@ -19,7 +19,7 @@ export function ThemeToggle() {
       aria-label={t.darkMode}
       title={t.darkMode}
       onClick={toggleTheme}
-      className={appearanceChromeIconButtonClass()}
+      className={appearanceChromeButtonClass('icon')}
     >
       {isDark ? '☀️' : '🌙'}
     </button>

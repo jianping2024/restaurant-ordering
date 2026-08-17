@@ -17,7 +17,7 @@ describe('CUSTOMER_MENU_TYPE', () => {
   });
 
   it('avoids repeating category size on active state modifier', () => {
-    assert.doesNotMatch(CUSTOMER_MENU_TYPE.categoryTopActive, /text-lg/);
-    assert.match(CUSTOMER_MENU_TYPE.categoryTop, /text-lg/);
+    assert.doesNotMatch(CUSTOMER_MENU_TYPE.categoryTopActive, /text-base/);
+    assert.match(CUSTOMER_MENU_TYPE.categoryTop, /text-base/);
   });
 });

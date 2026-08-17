@@ -20,9 +20,11 @@ type Props = {
 };
 
 const topIdleClass = 'border-brand-border bg-brand-bg text-brand-text';
-const topActiveClass = `border-brand-gold bg-brand-gold text-brand-ink ${CUSTOMER_MENU_TYPE.categoryTopActive}`;
+const topActiveClass = `border-brand-gold bg-brand-gold text-brand-on-gold ${CUSTOMER_MENU_TYPE.categoryTopActive}`;
 const subIdleClass = 'border-brand-border text-brand-text';
 const subActiveClass = 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold';
+const moreControlClass =
+  'inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 text-xs font-medium';
 
 function topPillClass(active: boolean): string {
   return `max-w-[9.5rem] flex-shrink-0 truncate rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
@@ -104,7 +106,7 @@ export function CustomerMenuCategoryStrip({
           aria-expanded={moreOpen}
           aria-haspopup="dialog"
           onClick={() => setMoreOpen((open) => !open)}
-          className={`mr-3 shrink-0 ${topPillClass(moreOpen)}`}
+          className={`${moreControlClass} ${moreOpen ? 'text-brand-gold' : 'text-brand-text-muted'}`}
         >
           {categoryMoreLabel} {moreOpen ? '▴' : '▾'}
         </button>

@@ -27,8 +27,11 @@ const moreControlClass =
   'inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 text-xs font-medium';
 
 function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
-  const width = layout === 'grid' ? 'w-full min-w-0' : 'max-w-[9.5rem] flex-shrink-0';
-  return `${width} truncate rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
+  const width =
+    layout === 'grid'
+      ? 'w-full min-w-0 whitespace-normal text-center leading-snug'
+      : 'flex-shrink-0 whitespace-nowrap';
+  return `${width} rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
     active ? topActiveClass : topIdleClass
   }`;
 }
@@ -161,7 +164,7 @@ export function CustomerMenuCategoryStrip({
               type="button"
               title={sub.label}
               onClick={() => onSelectSubpath(sub.id)}
-              className={`max-w-[9.5rem] flex-shrink-0 truncate px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
+              className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
                 activeSubpath === sub.id ? subActiveClass : subIdleClass
               }`}
             >

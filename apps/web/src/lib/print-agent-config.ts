@@ -33,7 +33,7 @@ export type PrintAgentCloudConfig = {
   station_slip_show_category_group?: boolean;
   /** Chinese bitmap TrueType size (px) for agent Han raster. Default 24. */
   han_bitmap_font_px?: number;
-  /** Minutes after prep (`started_at`) before cooking displays as ready. Default 15. */
+  /** Minutes after prep (`started_at`) before cooking displays as ready. Default 10. */
   kitchen_ready_after_minutes?: number;
 };
 

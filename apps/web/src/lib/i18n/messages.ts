@@ -832,7 +832,7 @@ export const MESSAGES = {
       kitchenServeToTableDesc: '开启后，楼面可在已出餐菜品上点击「上桌」，将状态写为已上桌。',
       kitchenReadyAfterMinutes: '已备餐 → 已出餐等待时间',
       kitchenReadyAfterMinutesDesc:
-        '备餐后在下方栏显示「已备餐」，到期后全店展示为「已出餐」（3–30 分钟，默认 10）。后厨大屏 Hub 也可修改同一设置。',
+        '备餐后在下方栏显示「已备餐」，到期后全店展示为「已出餐」（3–30 分钟，默认 10）。',
       kitchenReadyAfterMinutesUnit: '分钟',
       kitchenReadyAfterMinutesInvalid: '请输入 3 至 30 之间的整数',
       billReceiptPrint: '打印账单',
@@ -2204,7 +2204,7 @@ export const MESSAGES = {
       kitchenServeToTableDesc: 'When enabled, floor staff can mark ready dishes as served to the table.',
       kitchenReadyAfterMinutes: 'Prepped → ready wait',
       kitchenReadyAfterMinutesDesc:
-        'After prep, rows show Prepped in the bottom rail; after this time the whole store shows Ready (3–30 min, default 10). Same setting on kitchen screen hub.',
+        'After prep, rows show Prepped in the bottom rail; after this time the whole store shows Ready (3–30 min, default 10).',
       kitchenReadyAfterMinutesUnit: 'min',
       kitchenReadyAfterMinutesInvalid: 'Enter an integer from 3 to 30',
       billReceiptPrint: 'Print bills',
@@ -3346,7 +3346,7 @@ export const MESSAGES = {
       kitchenServeToTableDesc: 'Ativo: a equipa de sala pode marcar pratos prontos como servidos a mesa.',
       kitchenReadyAfterMinutes: 'Preparado → pronto (espera)',
       kitchenReadyAfterMinutesDesc:
-        'Apos preparar, linhas mostram Preparado; apos este tempo toda a loja mostra Pronto (3–30 min, predefinido 10). Mesma definicao no hub de cozinha.',
+        'Apos preparar, linhas mostram Preparado; apos este tempo toda a loja mostra Pronto (3–30 min, predefinido 10).',
       kitchenReadyAfterMinutesUnit: 'min',
       kitchenReadyAfterMinutesInvalid: 'Introduza um inteiro entre 3 e 30',
       billReceiptPrint: 'Imprimir contas',

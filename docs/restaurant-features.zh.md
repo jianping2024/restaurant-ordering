@@ -125,4 +125,4 @@ supabase db push
 
 ## 档口后厨
 
-店级「上桌」开关为 `kitchen_serve_to_table`；档口「后厨流程」在 `print_stations` 上配置。权威产品方案：[`docs/product/station-kitchen-screens.zh.md`](./product/station-kitchen-screens.zh.md)。
+店级「上桌」开关为 `kitchen_serve_to_table`；档口「后厨流程」在 `print_stations` 上配置。自动已出餐等待分钟 `kitchen_ready_after_minutes` 存在 `print_agent_config`（非布尔 flag），**唯一编辑**与上桌同一页：功能管理「后厨流程」+ `PATCH /api/restaurant/features`。权威产品方案：[`docs/product/station-kitchen-screens.zh.md`](./product/station-kitchen-screens.zh.md)。

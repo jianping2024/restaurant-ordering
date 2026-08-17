@@ -5,7 +5,6 @@ import { requireStaffSlugPagePermission } from '@/lib/staff-page-gate';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 import { listKitchenScreens } from '@/lib/kitchen-screens-server';
 import type { KitchenScreen } from '@/types';
 
@@ -29,19 +28,17 @@ export default async function KitchenPage({ params }: Props) {
 
   let feature_flags: Record<string, unknown> | null = null;
   let screens: KitchenScreen[] = [];
-  let kitchenReadyAfterMinutes = kitchenReadyAfterMinutesFromConfig(null);
   try {
     const admin = createAdminClient();
     const [{ data: flagsRow }, listed] = await Promise.all([
       admin
         .from('restaurants')
-        .select('feature_flags, print_agent_config')
+        .select('feature_flags')
         .eq('id', access.restaurant_id)
         .maybeSingle(),
       listKitchenScreens(admin, access.restaurant_id),
     ]);
     feature_flags = (flagsRow?.feature_flags as Record<string, unknown> | null) ?? null;
-    kitchenReadyAfterMinutes = kitchenReadyAfterMinutesFromConfig(flagsRow?.print_agent_config);
     if (Array.isArray(listed)) {
       screens = listed.map((s) => ({
         id: s.id,
@@ -67,7 +64,6 @@ export default async function KitchenPage({ params }: Props) {
       capabilities={capabilities}
       asOwner={access.as_owner}
       screens={screens}
-      initialReadyAfterMinutes={kitchenReadyAfterMinutes}
     />
   );
 }

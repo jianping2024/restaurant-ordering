@@ -13,7 +13,6 @@ import {
 import type { CapabilitiesPayload } from '@/lib/permissions/can';
 import { topBarRoleLabel } from '@/lib/top-bar-role-label';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
-import { KitchenHubReadyAfterSetting } from '@/components/kitchen/KitchenHubReadyAfterSetting';
 
 type Props = {
   restaurant: {
@@ -25,7 +24,6 @@ type Props = {
   capabilities: CapabilitiesPayload;
   asOwner?: boolean;
   screens: KitchenScreen[];
-  initialReadyAfterMinutes: number;
 };
 
 export function KitchenScreensHome(props: Props) {
@@ -45,7 +43,6 @@ function KitchenScreensHomeInner({
   capabilities,
   asOwner = false,
   screens,
-  initialReadyAfterMinutes,
   handleSignOut,
   exitLabel,
   confirmBeforeSignOut,
@@ -79,11 +76,6 @@ function KitchenScreensHomeInner({
       />
       <div className="min-h-0 flex-1 p-4">
         <h1 className="font-heading text-3xl text-brand-ink mb-6">{t.screensTitle}</h1>
-        <KitchenHubReadyAfterSetting
-          restaurantSlug={restaurant.slug}
-          lang={lang}
-          initialMinutes={initialReadyAfterMinutes}
-        />
         {screens.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-brand-border bg-brand-card px-6 py-16 text-center">
             <p className="text-lg text-brand-text">{t.screensEmpty}</p>

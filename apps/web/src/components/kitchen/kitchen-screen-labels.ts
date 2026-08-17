@@ -43,12 +43,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: string;
     printFailed: string;
     conflict: string;
-    readyAfterMinutesLabel: string;
-    readyAfterMinutesHint: string;
-    readyAfterMinutesUnit: string;
-    readyAfterMinutesSave: string;
-    readyAfterMinutesSaved: string;
-    readyAfterMinutesSaveFail: string;
   }
 > = {
   zh: {
@@ -88,12 +82,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: '已打印',
     printFailed: '打印失败，请重试',
     conflict: '数据已更新，请重试',
-    readyAfterMinutesLabel: '已备餐 → 已出餐等待时间',
-    readyAfterMinutesHint: '到期后下方栏显示「已出餐」，全店统一。',
-    readyAfterMinutesUnit: '分钟',
-    readyAfterMinutesSave: '保存',
-    readyAfterMinutesSaved: '已保存',
-    readyAfterMinutesSaveFail: '保存失败，请重试',
   },
   en: {
     screensTitle: 'Kitchen screens',
@@ -132,12 +120,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Printed',
     printFailed: 'Print failed — try again',
     conflict: 'Board updated — please retry',
-    readyAfterMinutesLabel: 'Prepped → ready wait',
-    readyAfterMinutesHint: 'After this time, rows show Ready for the whole store.',
-    readyAfterMinutesUnit: 'min',
-    readyAfterMinutesSave: 'Save',
-    readyAfterMinutesSaved: 'Saved',
-    readyAfterMinutesSaveFail: 'Save failed — try again',
   },
   pt: {
     screensTitle: 'Ecras de cozinha',
@@ -176,12 +158,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Impresso',
     printFailed: 'Falha ao imprimir',
     conflict: 'Quadro atualizado — tente de novo',
-    readyAfterMinutesLabel: 'Preparado → pronto (espera)',
-    readyAfterMinutesHint: 'Apos este tempo, linhas mostram Pronto em toda a loja.',
-    readyAfterMinutesUnit: 'min',
-    readyAfterMinutesSave: 'Guardar',
-    readyAfterMinutesSaved: 'Guardado',
-    readyAfterMinutesSaveFail: 'Falha ao guardar',
   },
   es: {
     screensTitle: 'Pantallas de cocina',
@@ -220,12 +196,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Impreso',
     printFailed: 'Error al imprimir',
     conflict: 'Tablero actualizado — reintente',
-    readyAfterMinutesLabel: 'Preparado → listo (espera)',
-    readyAfterMinutesHint: 'Tras este tiempo, las filas muestran Listo en toda la tienda.',
-    readyAfterMinutesUnit: 'min',
-    readyAfterMinutesSave: 'Guardar',
-    readyAfterMinutesSaved: 'Guardado',
-    readyAfterMinutesSaveFail: 'Error al guardar',
   },
   fr: {
     screensTitle: 'Ecrans cuisine',
@@ -264,12 +234,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Imprime',
     printFailed: 'Echec impression',
     conflict: 'Tableau mis a jour — reessayez',
-    readyAfterMinutesLabel: 'Prepare → pret (attente)',
-    readyAfterMinutesHint: 'Apres ce delai, les lignes affichent Pret pour tout le restaurant.',
-    readyAfterMinutesUnit: 'min',
-    readyAfterMinutesSave: 'Enregistrer',
-    readyAfterMinutesSaved: 'Enregistre',
-    readyAfterMinutesSaveFail: 'Echec enregistrement',
   },
   de: {
     screensTitle: 'Kuchenschirme',
@@ -308,11 +272,5 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Gedruckt',
     printFailed: 'Druck fehlgeschlagen',
     conflict: 'Board aktualisiert — erneut versuchen',
-    readyAfterMinutesLabel: 'Vorbereitet → fertig (Wartezeit)',
-    readyAfterMinutesHint: 'Danach zeigen Zeilen Fertig im ganzen Restaurant.',
-    readyAfterMinutesUnit: 'Min',
-    readyAfterMinutesSave: 'Speichern',
-    readyAfterMinutesSaved: 'Gespeichert',
-    readyAfterMinutesSaveFail: 'Speichern fehlgeschlagen',
   },
 };

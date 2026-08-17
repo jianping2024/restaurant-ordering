@@ -46,7 +46,7 @@
 
 ## 4. 自动已出餐（展示计算，不写库）
 
-店级配置：`kitchen_ready_after_minutes`（默认 15，可改）。
+店级配置：`kitchen_ready_after_minutes`（默认 10，3–30；**唯一编辑入口**为功能管理 `FeatureFlagsManager` / `PATCH /api/restaurant/features`）。后厨大屏 Hub 只选屏，不改此值。
 
 ### 展示（唯一自动路径）
 
@@ -186,7 +186,7 @@
 | # | 开关 | 说明 |
 |---|------|------|
 | 1 | 档口「后厨流程」 | 每档口 |
-| 2 | `kitchen_ready_after_minutes` | 整店；自动已出餐展示阈值 |
+| 2 | `kitchen_ready_after_minutes` | 整店；自动已出餐展示阈值；仅功能管理可改 |
 | 3 | 「上桌」功能开关 | 整店；是否显示上桌按钮 |
 | — | `bill_receipt_print` | 原有，不动 |
 

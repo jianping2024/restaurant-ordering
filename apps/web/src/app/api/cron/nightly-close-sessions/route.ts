@@ -20,7 +20,7 @@ function parsePolicy(req: Request): NightlyAutoClosePolicy | null {
 }
 
 /**
- * Vercel Cron (04:00 + 05:00 UTC): default policy=due (Lisbon hour === 5, DST-safe).
+ * Vercel Cron (04:00 UTC once daily; Hobby limit). Default policy=due (Lisbon hour === 5).
  * On-prem daily-cutover: policy=always (systemd / manual start already owns the schedule).
  * Auth: CRON_SECRET for both.
  */

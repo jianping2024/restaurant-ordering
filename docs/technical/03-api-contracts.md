@@ -169,7 +169,7 @@ UI 入口：**`/auth/login`**（店内扫码别名 `/[slug]/staff/login` 共用�
 
 | 方法 | 路径 | 调度 | 职责 |
 |------|------|------|------|
-| GET/POST | `/api/cron/nightly-close-sessions` | Vercel Cron `0 4,5 * * *` UTC（默认 `policy=due` 里斯本 05:00 门闸）；on-prem 日切 `?policy=always` | 批量关台（`auto_nightly`；仍需 `CRON_SECRET`） |
+| GET/POST | `/api/cron/nightly-close-sessions` | Vercel Cron `0 4 * * *` UTC（默认 `policy=due` 里斯本 05:00 门闸）；on-prem 日切 `?policy=always` | 批量关台（`auto_nightly`；仍需 `CRON_SECRET`） |
 
 ---
 

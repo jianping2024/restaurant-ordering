@@ -26,8 +26,9 @@ const subActiveClass = 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold';
 const moreControlClass =
   'inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 text-xs font-medium';
 
-function topPillClass(active: boolean): string {
-  return `max-w-[9.5rem] flex-shrink-0 truncate rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
+function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
+  const width = layout === 'grid' ? 'w-full min-w-0' : 'max-w-[9.5rem] flex-shrink-0';
+  return `${width} truncate rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
     active ? topActiveClass : topIdleClass
   }`;
 }
@@ -35,10 +36,12 @@ function topPillClass(active: boolean): string {
 function TopCategoryPill({
   cat,
   active,
+  layout,
   onSelect,
 }: {
   cat: CustomerMenuCategoryOption;
   active: boolean;
+  layout: 'scroll' | 'grid';
   onSelect: (id: string) => void;
 }) {
   return (
@@ -46,7 +49,7 @@ function TopCategoryPill({
       type="button"
       title={cat.label}
       onClick={() => onSelect(cat.id)}
-      className={topPillClass(active)}
+      className={topPillClass(active, layout)}
     >
       {cat.label}
     </button>
@@ -80,27 +83,26 @@ export function CustomerMenuCategoryStrip({
     setMoreOpen(false);
   };
 
+  const categoryPills = topCategories.map((cat) => (
+    <TopCategoryPill
+      key={cat.id}
+      cat={cat}
+      active={activeTopId === cat.id}
+      layout={moreOpen ? 'grid' : 'scroll'}
+      onSelect={selectTop}
+    />
+  ));
+
   return (
     <div className="relative">
-      <div className={`flex items-start ${moreOpen ? 'pb-3' : 'pb-1.5'}`}>
-        <div
-          className={
-            moreOpen
-              ? 'flex min-w-0 flex-1 flex-wrap gap-2 px-4'
-              : 'mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4'
-          }
-          role={moreOpen ? 'dialog' : undefined}
-          aria-label={moreOpen ? categoryMoreLabel : undefined}
-        >
-          {topCategories.map((cat) => (
-            <TopCategoryPill
-              key={cat.id}
-              cat={cat}
-              active={activeTopId === cat.id}
-              onSelect={selectTop}
-            />
-          ))}
-        </div>
+      <div className="flex items-center pb-1.5">
+        {moreOpen ? (
+          <div className="min-h-8 min-w-0 flex-1" aria-hidden />
+        ) : (
+          <div className="mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4">
+            {categoryPills}
+          </div>
+        )}
         <button
           type="button"
           aria-expanded={moreOpen}
@@ -113,12 +115,21 @@ export function CustomerMenuCategoryStrip({
       </div>
 
       {moreOpen ? (
-        <button
-          type="button"
-          className="absolute inset-x-0 top-full z-20 h-screen bg-black/40"
-          aria-label={categoryMoreLabel}
-          onClick={() => setMoreOpen(false)}
-        />
+        <>
+          <button
+            type="button"
+            className="absolute inset-x-0 top-full z-20 h-screen bg-black/40"
+            aria-label={categoryMoreLabel}
+            onClick={() => setMoreOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-label={categoryMoreLabel}
+            className="absolute inset-x-0 top-full z-30 max-h-[min(50vh,24rem)] overflow-y-auto border-b border-brand-border bg-brand-card px-4 py-3"
+          >
+            <div className="grid grid-cols-2 gap-2">{categoryPills}</div>
+          </div>
+        </>
       ) : null}
 
       {!moreOpen && subCategories.length > 0 ? (

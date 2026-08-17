@@ -60,8 +60,7 @@ type Props = {
   /** Personal settings row: show current language name beside the globe button. */
   showCurrentLanguage?: boolean;
   /**
-   * Ordering header: `icon` at rest, `label` after scroll (shortLabel + ▾).
-   * Same control — not a second language switcher.
+   * Default `icon` (globe) is the sole customer/landing/auth face.
    */
   layout?: 'icon' | 'label';
 };

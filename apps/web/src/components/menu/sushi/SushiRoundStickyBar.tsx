@@ -62,7 +62,7 @@ export function SushiRoundStickyBar({
   }
 
   return (
-    <div className="sticky top-0 z-20 border-b border-brand-border bg-brand-card/95 px-4 py-2 backdrop-blur-sm">
+    <div className="border-b border-brand-border bg-brand-card/95 px-4 py-2">
       <p className="text-[13px] text-brand-text">
         {labels.stickyGuestsCap
           .replace('{guests}', String(guests))

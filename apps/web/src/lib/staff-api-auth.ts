@@ -14,7 +14,8 @@ import {
 } from '@/lib/permissions/resolve';
 import type { PermissionKey } from '@/lib/permissions/registry';
 import { loadAuthUserWithAdmin } from '@/lib/staff-access';
-import { loadOwnerForRestaurantId, loadOwnerForSlug } from '@/lib/staff-gate-db';
+import { loadOwnerRestaurantForUser } from '@/lib/staff-gate-db';
+import { ownerRestaurantMatchesTarget } from '@/lib/staff-identity-gate';
 import { isRestaurantSuspended } from '@mesa/shared';
 
 export type StaffAuthContext = {
@@ -100,17 +101,38 @@ async function loadStaffCapabilities(
   };
 }
 
+function ownerStaffAuthContext(
+  userId: string,
+  slug: string,
+  restaurantId: string,
+): StaffAuthContext {
+  return {
+    restaurant_id: restaurantId,
+    slug,
+    user_id: userId,
+    as_owner: true,
+    role_id: null,
+    role_name: 'owner',
+    role: 'owner',
+    capabilities: resolveCapabilitiesForOwner(),
+  };
+}
+
 /**
- * Owner or active staff for slug. Disabled restaurant_roles → null.
- * Callers must check `can(ctx.capabilities, permission)`.
+ * Owner (including on-prem shadow) or active staff for slug.
+ * Disabled restaurant_roles → null. Callers must check `can(ctx.capabilities, permission)`.
  */
 export async function staffSessionForSlug(slug: string): Promise<StaffAuthContext | null> {
   const auth = await loadAuthUserWithAdmin();
   if (!auth) return null;
   const { user, admin } = auth;
 
-  const [owner, staffRes] = await Promise.all([
-    loadOwnerForSlug(admin, user.id, slug),
+  const [owned, staffRes] = await Promise.all([
+    loadOwnerRestaurantForUser(admin, {
+      userId: user.id,
+      email: user.email,
+      userMetadata: user.user_metadata,
+    }),
     admin
       .from('restaurant_staff_accounts')
       .select('id, restaurant_id, role, role_id, disabled_at, restaurants(id, slug, suspended_at)')
@@ -119,18 +141,9 @@ export async function staffSessionForSlug(slug: string): Promise<StaffAuthContex
   ]);
   const staffRaw = staffRes.data;
 
-  if (owner) {
-    if (isRestaurantSuspended(owner.suspended_at)) return null;
-    return {
-      restaurant_id: owner.id,
-      slug,
-      user_id: user.id,
-      as_owner: true,
-      role_id: null,
-      role_name: 'owner',
-      role: 'owner',
-      capabilities: resolveCapabilitiesForOwner(),
-    };
+  if (ownerRestaurantMatchesTarget(owned, { slug })) {
+    if (isRestaurantSuspended(owned.suspended_at)) return null;
+    return ownerStaffAuthContext(user.id, slug, owned.id);
   }
 
   if (!staffRaw || staffRaw.disabled_at || staffRaw.role === 'print_agent') return null;
@@ -165,54 +178,9 @@ export async function staffSessionForRestaurant(target: {
   slug: string;
   restaurantId: string;
 }): Promise<StaffAuthContext | null> {
-  const auth = await loadAuthUserWithAdmin();
-  if (!auth) return null;
-  const { user, admin } = auth;
-
-  const staffRaw = await admin
-    .from('restaurant_staff_accounts')
-    .select('id, restaurant_id, role, role_id, disabled_at')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (
-    staffRaw.data &&
-    !staffRaw.data.disabled_at &&
-    staffRaw.data.role !== 'print_agent' &&
-    staffRaw.data.restaurant_id === target.restaurantId
-  ) {
-    const caps = await loadStaffCapabilities(
-      admin,
-      target.restaurantId,
-      (staffRaw.data.role_id as string | null) ?? null,
-    );
-    if (caps) {
-      return {
-        restaurant_id: target.restaurantId,
-        slug: target.slug,
-        user_id: user.id,
-        as_owner: false,
-        role_id: caps.role_id,
-        role_name: caps.role_name,
-        role: caps.staff_role_label,
-        capabilities: caps.capabilities,
-      };
-    }
-  }
-
-  const owner = await loadOwnerForRestaurantId(admin, user.id, target.restaurantId);
-  if (!owner || owner.slug !== target.slug) return null;
-
-  return {
-    restaurant_id: target.restaurantId,
-    slug: target.slug,
-    user_id: user.id,
-    as_owner: true,
-    role_id: null,
-    role_name: 'owner',
-    role: 'owner',
-    capabilities: resolveCapabilitiesForOwner(),
-  };
+  const ctx = await staffSessionForSlug(target.slug);
+  if (!ctx || ctx.restaurant_id !== target.restaurantId) return null;
+  return ctx;
 }
 
 export async function requireStaffPermission(

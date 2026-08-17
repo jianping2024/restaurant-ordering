@@ -3,6 +3,9 @@ import { describe, it } from 'node:test';
 import {
   deriveStaffLoginContext,
   deriveStaffLoginPreflight,
+  ownerRestaurantMatchesTarget,
+  resolveOwnerRestaurantFromLoads,
+  type OwnerGateRestaurant,
   type StaffGateAccount,
 } from './staff-identity-gate';
 
@@ -167,5 +170,83 @@ describe('deriveStaffLoginContext', () => {
       options: { skipSuspendCheck: true },
     });
     assert.equal(skipped.kind, 'staff');
+  });
+});
+
+const OWNED: OwnerGateRestaurant = {
+  id: 'rest-owned',
+  slug: 'slug-owned',
+  suspended_at: null,
+};
+const CLAIMED: OwnerGateRestaurant = {
+  id: 'rest-claimed',
+  slug: 'slug-claimed',
+  suspended_at: null,
+};
+
+describe('resolveOwnerRestaurantFromLoads', () => {
+  it('owner_id row wins over shadow claimed store', () => {
+    assert.deepEqual(
+      resolveOwnerRestaurantFromLoads({
+        ownedByOwnerId: OWNED,
+        isOwnerShadow: true,
+        claimedRestaurant: CLAIMED,
+      }),
+      OWNED,
+    );
+  });
+
+  it('shadow uses claimed store when not owner_id', () => {
+    assert.deepEqual(
+      resolveOwnerRestaurantFromLoads({
+        ownedByOwnerId: null,
+        isOwnerShadow: true,
+        claimedRestaurant: CLAIMED,
+      }),
+      CLAIMED,
+    );
+  });
+
+  it('shadow without claimed store is not an owner', () => {
+    assert.equal(
+      resolveOwnerRestaurantFromLoads({
+        ownedByOwnerId: null,
+        isOwnerShadow: true,
+        claimedRestaurant: null,
+      }),
+      null,
+    );
+  });
+
+  it('non-owner non-shadow is not an owner', () => {
+    assert.equal(
+      resolveOwnerRestaurantFromLoads({
+        ownedByOwnerId: null,
+        isOwnerShadow: false,
+        claimedRestaurant: CLAIMED,
+      }),
+      null,
+    );
+  });
+});
+
+describe('ownerRestaurantMatchesTarget', () => {
+  it('matches slug', () => {
+    assert.equal(ownerRestaurantMatchesTarget(OWNED, { slug: 'slug-owned' }), true);
+  });
+
+  it('rejects other slug', () => {
+    assert.equal(ownerRestaurantMatchesTarget(OWNED, { slug: 'other' }), false);
+  });
+
+  it('rejects restaurantId mismatch', () => {
+    assert.equal(
+      ownerRestaurantMatchesTarget(OWNED, { slug: 'slug-owned', restaurantId: 'other-id' }),
+      false,
+    );
+  });
+
+  it('rejects null owned', () => {
+    assert.equal(ownerRestaurantMatchesTarget(null, { slug: 'slug-owned' }), false);
   });
 });

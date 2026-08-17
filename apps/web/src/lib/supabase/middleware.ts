@@ -3,7 +3,7 @@ import { dashboardCapabilityMiddlewareRedirectPath } from '@/lib/dashboard-featu
 import { resolvePostLoginRedirect } from '@/lib/auth/post-login-redirect';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
-  loadBackendAdminRestaurantForUser,
+  loadOwnerRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { parseStaffUserMetadata } from '@/lib/staff-account';
@@ -74,7 +74,7 @@ export async function updateSession(request: NextRequest) {
       return supabaseResponse;
     }
 
-    const ownedRestaurant = await loadBackendAdminRestaurantForUser(admin, {
+    const ownedRestaurant = await loadOwnerRestaurantForUser(admin, {
       userId: sessionUser.id,
       email: sessionUser.email,
       userMetadata: sessionUser.user_metadata as Record<string, unknown>,

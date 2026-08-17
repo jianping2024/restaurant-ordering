@@ -17,7 +17,7 @@
 3. 顾客扫码：域名指向本机；断公网扫不了可接受。  
 4. 打印：现有 Windows print-agent 留在 **另机/收银 Windows**（= 桥），对接本机 API；不进 Docker。  
 5. 不做 IndexedDB 双写订单、不做双库智能合并。  
-6. 不作 Windows/WSL 跑 Mesa Web+库全栈（已废）。
+6. 不作 Windows/WSL 跑 Farvoo Web+库全栈（已废）。
 
 ## 后果
 

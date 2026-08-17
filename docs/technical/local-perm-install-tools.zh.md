@@ -22,7 +22,7 @@
 | 工具 | 用途 |
 |------|------|
 | **Ubuntu 22.04 或 24.04 LTS** | 店机 OS |
-| **Docker Engine** | 跑 Mesa + 自托管 Supabase 容器 |
+| **Docker Engine** | 跑 Farvoo + 自托管 Supabase 容器 |
 | **Docker Compose v2**（`docker compose`） | `stack.sh` / systemd 启停 |
 | **curl** | 健康检查 `/api/health/*` |
 | **openssl** | bootstrap 生成密钥 |
@@ -45,7 +45,7 @@
 | **ca-certificates** | 见下 |
 
 **ufw（或 nftables/iptables 等等价防火墙）**  
-Ubuntu 自带的简单主机防火墙：决定「谁可以连进这台机的哪些端口」。店机默认只该对局域网开 **:80**（业务）；SSH（22）尽量只允许来自 Tailscale 网卡 `tailscale0`，避免公网扫端口撞上 sshd。不装防火墙也能跑 Mesa，但远程交付时等于少一层「别误开端口」的保险。
+Ubuntu 自带的简单主机防火墙：决定「谁可以连进这台机的哪些端口」。店机默认只该对局域网开 **:80**（业务）；SSH（22）尽量只允许来自 Tailscale 网卡 `tailscale0`，避免公网扫端口撞上 sshd。不装防火墙也能跑 Farvoo，但远程交付时等于少一层「别误开端口」的保险。
 
 **rsync**  
 按文件增量同步目录的工具。`install-mesa.sh` / `upgrade.sh` / `rollback.sh` 用它把发行包内容高效拷进 `/opt/mesa`（只传有变化的文件）。没有 rsync 时脚本会退回普通拷贝，能装，但大包升级更慢、更笨。`apt install rsync` 即可。

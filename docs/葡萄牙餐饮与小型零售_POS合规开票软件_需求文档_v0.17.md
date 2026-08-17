@@ -6,9 +6,9 @@
 | 日期 | 2026-07-23（口径统一 2026-07-24；B1/B2/B3 需求口径同日） |
 | 状态 | 路线 A · FT/FS/FR/NC/ND 均须完整实现 · 同一开票入口 · 日常默认 FT/NC |
 
-> **P0 / 产品口径（2026-07-24 统一）：** 认证完整支持 FT、FS、FR、NC、ND。**Mesa 桌台 API 只开 FT**；**NC 及其他类型须登录 Agent 本地 UI**。不设高级税务入口。日常销售默认 FT。已签发类型均须进入 SAF-T。详见对接说明 [`technical/mesa-fiscal-agent-integration.zh.md`](./technical/mesa-fiscal-agent-integration.zh.md) §4。
+> **P0 / 产品口径（2026-07-24 统一）：** 认证完整支持 FT、FS、FR、NC、ND。**Farvoo 桌台 API 只开 FT**；**NC 及其他类型须登录 Agent 本地 UI**。不设高级税务入口。日常销售默认 FT。已签发类型均须进入 SAF-T。详见对接说明 [`technical/farvoo-fiscal-agent-integration.zh.md`](./technical/farvoo-fiscal-agent-integration.zh.md) §4。
 
-> 本需求以本 Markdown 为唯一正文。下文若与文首 / 对接说明定稿冲突，**以文首与对接说明为准**（含：正式票本地队列、五类型认证、Mesa 三角色、PIN 与查票 ACL）。
+> 本需求以本 Markdown 为唯一正文。下文若与文首 / 对接说明定稿冲突，**以文首与对接说明为准**（含：正式票本地队列、五类型认证、Farvoo 三角色、PIN 与查票 ACL）。
 
 ---
 
@@ -50,10 +50,10 @@
 
 ### v0.16 本次修订
 
-- 架构统一为每个门店仅部署一个 Mesa Local Fiscal Agent；该 Agent 是门店唯一税务签发、SQLite、系列编号、Hash 链和正式打印队列权威节点。
+- 架构统一为每个门店仅部署一个 Farvoo Local Fiscal Agent；该 Agent 是门店唯一税务签发、SQLite、系列编号、Hash 链和正式打印队列权威节点。
 - P0 正式签发限于：Agent 主机，以及门店局域网模式下已登记的 Windows 开票终端；手机和平板不直连 Agent 做签发 / NC/ND / 重打 / 正式打印。
 - 废除 PWA 与 Agent 的直接通信方案，删除手机端 mDNS、本地域名发现、本地 CA 安装、移动端设备配对和局域网 HTTPS 依赖。
-- 收银台电脑上的 Mesa 收银端始终调用 Agent Local API；在线与离线使用同一条签发链路。
+- 收银台电脑上的 Farvoo 收银端始终调用 Agent Local API；在线与离线使用同一条签发链路。
 - Agent Local API 默认只监听 127.0.0.1；需要多台 Windows 收银终端访问时，管理员可启用门店局域网模式。公网暴露始终禁止。
 - 首次签发必须由 Agent 在同一 SQLite 事务中完成税务文档、系列 last_number/last_hash 与 ORIGINAL 本地打印任务的写入。
 - 云端及 Supabase 不参与 InvoiceNo、Hash、ATCUD、QR、系列分配或正式打印队列，只保存业务数据和同步副本。
@@ -74,10 +74,10 @@
 
 > **沿革说明（2026-07-24）：** 下列条目中凡与「双进程发票服务 + 云端正式票队列」「FS/ND/FR Deferred」「仅 FT+NC 认证」冲突者，**已废止**；以文首 P0 与对接说明为准。
 
-- ~~固化发票打印职责：Mesa→发票端→云端 print_jobs→Go Agent~~ → **废止**。现口径：Mesa 收银端调 **同一** Fiscal Agent Local API；正式票在 Agent SQLite 事务内入 **本地** 打印队列；业务热敏仍走云端 `print_jobs`。
+- ~~固化发票打印职责：Farvoo→发票端→云端 print_jobs→Go Agent~~ → **废止**。现口径：Farvoo 收银端调 **同一** Fiscal Agent Local API；正式票在 Agent SQLite 事务内入 **本地** 打印队列；业务热敏仍走云端 `print_jobs`。
 - ~~发票端与 Go Agent 可分机、发票端不直连 Agent~~ → **废止**。现口径：print-agent **演进为** Fiscal Agent，单进程。
 - ~~新增云端 `print_jobs.type=fiscal_document` 作正式票权威~~ → **废止**。正式税务任务权威在 Agent 本地队列；云端仅同步副本。
-- 查票 / 重打可见范围（定稿）：店长看本店全部；前台/收银只看自己开的；有网 Mesa 同步副本与离线 Agent 本地同一规则（详见对接说明 §7.1）。
+- 查票 / 重打可见范围（定稿）：店长看本店全部；前台/收银只看自己开的；有网 Farvoo 同步副本与离线 Agent 本地同一规则（详见对接说明 §7.1）。
 - 明确发票签发仅由员工点击“打印发票”触发，确认收款、整桌付清、预结单和普通小票均不自动触发 FT。
 - 明确同一分单账单的整桌 FT 与按人 FT 互斥；按人支持部分已开后对其余补票；**关台不影响开票**。
 - 打印机发现、测试和绑定：复用主机 Agent configure（现有 Go print-agent 能力）。
@@ -87,7 +87,7 @@
 - NC 按 SAF-T(PT) 1.04_01 实现：SalesInvoices/Invoice、InvoiceType=NC、行使用 DebitAmount，并通过 References 引用原 FT。
 - Hash、ATCUD、QR、独立系列、SAF-T 汇总、并发编号和打印链路不存在概念性技术阻塞，进入实现与测试。
 - ~~Print Agent 订阅云端开票任务再调独立合规软件 API~~ → **废止**。现口径：收银端直接调本店 Fiscal Agent；Agent 不把云端当作正式票队列权威。
-- 开票角色对齐 Mesa：owner / frontdesk / cashier（非仅「店主+收银」两分法）。
+- 开票角色对齐 Farvoo：owner / frontdesk / cashier（非仅「店主+收银」两分法）。
 
 ## 0. 术语、对象命名与字段命名规范
 
@@ -97,7 +97,7 @@
 
 | 中文术语 | 英文/代码命名 | 定义 | 禁止混用 |
 | --- | --- | --- | --- |
-| 系统用户 | User / Operator | 登录本软件或 Mesa 开票的人（owner / frontdesk / cashier） | 不得叫客户 |
+| 系统用户 | User / Operator | 登录本软件或 Farvoo 开票的人（owner / frontdesk / cashier） | 不得叫客户 |
 | 店长 | Owner / Admin | 管理门店配置、员工 PIN、系列、SAF-T、AT 凭证；查票全店 | 不得和餐馆客户混用 |
 | 前台 / 收银 | Frontdesk / Cashier | 日常开票操作员；查票仅本人 | 不得叫客户 |
 | 客户 | Customer | 发票购买方，包括散客、个人、企业 | 不得叫用户 |
@@ -126,8 +126,8 @@
 | 客户主档 | CustomerMaster / customers | 本地保存的客户资料 | 不等于发票客户快照 |
 | 发票客户快照 | InvoiceCustomerSnapshot | 开票当时冻结的客户资料 | 签名后不得修改 |
 | 菜品显示名 | display_name / name_zh 等 | 前端或中文小票显示用 | 不进入 SAF-T |
-| SAF-T 菜品名 | compliance_name（快照可称 saft_name） | **解析**：优先 `name_pt`，否则 `name_en`；来源可为 Mesa 菜单或 Agent 本地自建 | 不得用中文；远端副本不在 Agent 改 |
-| 菜品编号 | item_code | Mesa 编号或本地自编号；进入 ProductCode | 与显示名分离 |
+| SAF-T 菜品名 | compliance_name（快照可称 saft_name） | **解析**：优先 `name_pt`，否则 `name_en`；来源可为 Farvoo 菜单或 Agent 本地自建 | 不得用中文；远端副本不在 Agent 改 |
+| 菜品编号 | item_code | Farvoo 编号或本地自编号；进入 ProductCode | 与显示名分离 |
 | 月度 SAF-T 导出 | SAFTExport | 每月生成的 XML 文件 | 不等于自动提交 AT |
 | 外部账单 ID | external_bill_id | 点餐系统传来的唯一账单号 | 用于幂等防重复开票 |
 | 简易发票适用限额 | fs_amount_threshold | 门店可配置的含税总额门槛：开 FS 时超过则阻断/改 FT | 见 2.7.1；默认 100.00；禁止写死不可改 |
@@ -195,7 +195,7 @@ HashControl 固定表示签名私钥版本号，不得用于表示 QR Hash 字�
 
 ### 1.4 目标用户
 
-- 种子用户：自有 Buffet 连锁餐馆（与 Mesa 点餐系统深度集成）
+- 种子用户：自有 Buffet 连锁餐馆（与 Farvoo 点餐系统深度集成）
 - 扩展用户：葡萄牙华人餐馆、小型零售店、杂货店、三百店及其他线下商户
 
 ### 1.5 商业模式
@@ -245,9 +245,9 @@ HashControl 固定表示签名私钥版本号，不得用于表示 QR Hash 字�
 **Portaria 363/2010 第3条明确要求软件必须具备用户身份认证机制：**
 
 - 软件必须强制每个用户登录后才能开票，不可匿名操作
-- **有网：** Mesa 已登录且角色 ∈ owner / frontdesk / cashier，经 `operator_token` 鉴权即可开票（不必再输 PIN）
+- **有网：** Farvoo 已登录且角色 ∈ owner / frontdesk / cashier，经 `operator_token` 鉴权即可开票（不必再输 PIN）
 - **离线 / Agent 本地：** 须先本地操作员 + PIN 登录；首次启用须设 PIN（不得为空）；PIN 规则见下文定稿
-- 店长不能查看或获取他人 PIN/密码明文；PIN 与 Mesa 密码均单向哈希存储，且互不复用
+- 店长不能查看或获取他人 PIN/密码明文；PIN 与 Farvoo 密码均单向哈希存储，且互不复用
 - 每张发票必须记录操作员 ID（`SourceID`），写入 SAF-T 审计日志
 - 角色区分：店长（配置与全店查票）/ 前台与收银（日常开票，查票仅本人）
 - 收银员支持 PIN 码快速登录，方便换班切换
@@ -256,9 +256,9 @@ HashControl 固定表示签名私钥版本号，不得用于表示 QR Hash 字�
   - 设置时拒绝弱 PIN（如 `000000`、`123456`）
   - 连续错误 **5** 次 → 锁定该操作员 **15** 分钟，或由店长解锁；锁定仅影响该人
   - 仅店长可重置他人 PIN；本人改 PIN 须验旧 PIN
-  - 仅存单向哈希；与 Mesa 登录密码无关、不得复用
-  - 有网已登录 Mesa 开票不要求再输 PIN；PIN 仅用于 Agent 本地/离线登录  
-  - **设/改/重置 PIN 仅在 Agent 本地 UI**（A13）；Mesa 打印助手不采集 PIN，可只读状态并链到 Agent 页
+  - 仅存单向哈希；与 Farvoo 登录密码无关、不得复用
+  - 有网已登录 Farvoo 开票不要求再输 PIN；PIN 仅用于 Agent 本地/离线登录  
+  - **设/改/重置 PIN 仅在 Agent 本地 UI**（A13）；Farvoo 打印助手不采集 PIN，可只读状态并链到 Agent 页
 
 ### 2.3 发票系列（Series）
 
@@ -267,8 +267,8 @@ HashControl 固定表示签名私钥版本号，不得用于表示 QR Hash 字�
 
 **各类型规则：**
 
-- **FT**：默认用于正常销售（含餐饮）；**Mesa 桌台 API 开票只开 FT**。  
-- **NC**：贷记单冲销；**须登录 Agent 本地 UI 开具**（Mesa 不开 NC）。  
+- **FT**：默认用于正常销售（含餐饮）；**Farvoo 桌台 API 开票只开 FT**。  
+- **NC**：贷记单冲销；**须登录 Agent 本地 UI 开具**（Farvoo 不开 NC）。  
 - **FS / FR / ND**：认证须可注册激活并进 SAF-T；**仅 Agent 本地 UI**；餐厅结账不映射。
 
 **系列通用规则：**
@@ -517,8 +517,8 @@ openssl dgst -sha1 -verify ChavePublica.pem -signature Registo1.sha1 Registo1.tx
 **开票入口（统一口径）：**
 
 - 店长 / 前台 / 收银：**同一开票 UI**，可开 FT / FS / FR / NC / ND；不设高级入口。  
-- **FT**：默认用于正常销售；**Mesa 桌台 / API「打印发票」只开 FT**。  
-- **NC**：退款/冲销等；**须登录 Agent 本地 UI 开具**，Mesa 不提供开 NC 入口。  
+- **FT**：默认用于正常销售；**Farvoo 桌台 / API「打印发票」只开 FT**。  
+- **NC**：退款/冲销等；**须登录 Agent 本地 UI 开具**，Farvoo 不提供开 NC 入口。  
 - **FS / FR / ND**：认证须可演示并进 SAF-T；**同样只在 Agent 本地 UI**（二次确认等）；不为餐厅结账映射。
 
 **FS 金额门槛（可配置）：**
@@ -620,7 +620,7 @@ SAF-T 正式文件不得包含中文注释、调试注释、测试说明。
 
 餐品名称、客户名称、地址等字段如包含中文或 Windows-1252 无法表示的字符，系统必须阻止导出并提示改用葡语/英文合规名称。
 
-菜品合规名 **复用** Mesa 菜单已有 `name_pt` / `name_en` 与 `item_code`，**不另增** saft_name 列。SAF-T / 正式票描述 = `name_pt`（非空）否则 `name_en`；禁止使用 `name_zh`。二者皆空或未过 Windows-1252 → 开票前阻断。
+菜品合规名 **复用** Farvoo 菜单已有 `name_pt` / `name_en` 与 `item_code`，**不另增** saft_name 列。SAF-T / 正式票描述 = `name_pt`（非空）否则 `name_en`；禁止使用 `name_zh`。二者皆空或未过 Windows-1252 → 开票前阻断。
 
 【工程建议，见 12.3】此编码校验不应只在月度导出阶段执行，而应前移到开票事务内（生成 Hash 之前）。 若菜品/客户名称含 Windows-1252 无法编码的字符，应在开票草稿阶段即阻断并提示，而非等到月底导出时才发现——此时相关发票已签名、不可撤销，只能被迫开 NC 重做。
 
@@ -1304,14 +1304,14 @@ Hash 必须等于开票时保存的 Hash。
 
 ### 3.1 部署模式
 
-每个门店只部署一个 Mesa Local Fiscal Agent。该 Agent 安装在指定 Windows 收银台电脑上，并作为该门店唯一税务权威节点。
+每个门店只部署一个 Farvoo Local Fiscal Agent。该 Agent 安装在指定 Windows 收银台电脑上，并作为该门店唯一税务权威节点。
 
 **门店本地结构：**
 
 ```text
 指定 Windows 收银台电脑
-├── Mesa 收银端
-├── Mesa Local Fiscal Agent
+├── Farvoo 收银端
+├── Farvoo Local Fiscal Agent
 │   ├── Agent Local API
 │   ├── Fiscal Core
 │   ├── SQLite 税务权威数据库
@@ -1335,7 +1335,7 @@ Hash 必须等于开票时保存的 Hash。
 
 集成采用“所有签发统一走 Agent Local API、云端只负责同步”的架构。
 
-- Mesa 收银端无论在线或离线，均通过本机 Agent Local API 发起正式税务文件签发。
+- Farvoo 收银端无论在线或离线，均通过本机 Agent Local API 发起正式税务文件签发。
 - 收银端提交冻结销售快照、客户资料、付款信息、request_id 和业务幂等范围。
 - Agent 完成校验、系列锁、编号分配、Hash、ATCUD、QR、不可变税务记录和 ORIGINAL 打印任务创建。
 - 云端和 Supabase 不参与 InvoiceNo、Hash、ATCUD、QR、系列编号或正式打印任务创建。
@@ -1372,12 +1372,12 @@ GET    /local/v1/print-jobs/{printJobId}
 
 **两种来源：**
 
-1. **API 开票（Mesa 桌台）**：点「打印发票」调 Agent Local API，推入冻结销售快照 → **仅签发 FT** → 本地打印 → 状态回传 / outbox。  
+1. **API 开票（Farvoo 桌台）**：点「打印发票」调 Agent Local API，推入冻结销售快照 → **仅签发 FT** → 本地打印 → 状态回传 / outbox。  
 2. **Agent 本地 UI（须登录）**：**NC / FS / FR / ND**、本地手动 FT、查票重打等在此办理；与 API 共用同一 Fiscal Core。
 
 **口径：**
 
-- **不存在**「断网前缓存的 Mesa 账单」作为开票数据源；未点「打印发票」则该笔业务销售快照不进 Agent。  
+- **不存在**「断网前缓存的 Farvoo 账单」作为开票数据源；未点「打印发票」则该笔业务销售快照不进 Agent。  
 - 数据一旦进入 Agent，签发与正式打印 **不依赖** 云端；断网只影响状态副本同步。  
 - 网络恢复时补传 `sync_outbox`（启动连通 / 恢复事件 / 显式重试）；**禁止**定时轮询耗费流量与性能。  
 - 在线与相对云端离线必须调用同一个 Agent 应用服务，不允许两套签发逻辑。
@@ -1392,14 +1392,14 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 
 **业务幂等键：**
 
-- store_id + source_system + source_sale_id + scope_type + scope_id + fiscal_purpose
+- store_id + source_system + source_sale_id + scope_type + scope_id + fiscal_purpose（`source_system` 固定 `"farvoo"`）
 相同 request_id 与相同 payload 返回原结果。
 
 相同 request_id 但 payload 不同返回冲突。
 
 不同 request_id 但业务幂等范围相同，返回原税务文件，不得再次签发。
 
-餐饮分单：**结账继续用 `person_index`**；**开票业务幂等禁止用 `person_index`**，须用稳定键——已收款用 `session_collected_payments.id`（`payment_allocation_id`），对分单行开票用行内稳定 `party_id`（uuid，创建行时生成）。**关台不影响开票**；Mesa 选整桌开票与选分单开票 **互斥**；按人支持部分已开后对其余补票。分单各 FT **税务相互独立**（各自编号/Hash），仅业务上同属一 `bill_split`；冲销时一 NC 只引一张原 FT。历史关台数据不迁移；详见对接说明 §3.1。
+餐饮分单：**结账继续用 `person_index`**；**开票业务幂等禁止用 `person_index`**，须用稳定键——已收款用 `session_collected_payments.id`（`payment_allocation_id`），对分单行开票用行内稳定 `party_id`（uuid，创建行时生成）。**关台不影响开票**；Farvoo 选整桌开票与选分单开票 **互斥**；按人支持部分已开后对其余补票。分单各 FT **税务相互独立**（各自编号/Hash），仅业务上同属一 `bill_split`；冲销时一 NC 只引一张原 FT。历史关台数据不迁移；详见对接说明 §3.1。
 
 #### 3.2.4 Agent 网络模式与可配置项
 
@@ -1473,7 +1473,7 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 #### 3.3.1 fiscal_document 打印流程
 
 - 收银员点击“签发并打印发票”。
-- Mesa 收银端调用本机 Agent Local API。
+- Farvoo 收银端调用本机 Agent Local API。
 - Agent 在 SQLite BEGIN IMMEDIATE 事务中完成：幂等检查、系列锁、编号、Hash、ATCUD、QR、税务文件写入、series.last_number/last_hash 更新、ORIGINAL local_print_job 插入。
 - 事务提交后 Print Worker 领取本地任务。
 - Print Worker 执行 claim → processing → ESC/POS/WinSpool/TCP 出纸 → printed | failed_before_write | unknown_after_write。
@@ -1490,24 +1490,24 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 - 明细：冻结描述、数量、**折后**含税单价、VAT 税率、净额、税额、含税金额（MVP 无独立折扣字段）。
 - 汇总：按税率汇总、NetTotal、TaxPayable、GrossTotal、付款方式。
 - 合规：ATCUD、QR 原始字符串、NC 原 FT 引用及更正原因。
-- payload_hash 用于检测 Mesa 或 Agent 侧的内容篡改；发现不一致时禁止打印并记录错误。
+- payload_hash 用于检测 Farvoo 或 Agent 侧的内容篡改；发现不一致时禁止打印并记录错误。
 
 #### 3.3.3 二维码职责
 
 - QR 法定内容字符串由 Agent Fiscal Core 生成并保存在税务文档及 print_payload.qr.content。
-- Mesa 必须原样存储和传输 qr.content，不得重新拼接、删减或转换字段。
+- Farvoo 必须原样存储和传输 qr.content，不得重新拼接、删减或转换字段。
 - Go Agent 仅将 qr.content 编码为二维码图形并打印，不参与 QR 业务字段计算。
 - 纸宽、模块大小和纠错等级属于打印表现参数；不得改变 qr.content。
 - 重打必须使用原税务文档保存的 qr.content，不得重新计算 ATCUD 或 QR 字段。
 
 #### 3.3.4 打印机发现与绑定
 
-打印机发现、测试和绑定继续由主机上的 Mesa Fiscal Agent（由 Go print-agent 演进）负责，不另建第二套打印驱动。
+打印机发现、测试和绑定继续由主机上的 Farvoo Fiscal Agent（由 Go print-agent 演进）负责，不另建第二套打印驱动。
 
 - Agent 枚举 Windows 已安装打印队列、已配置 TCP 热敏打印机及管理员手工添加的目标。
 - TCP 设备只允许扫描管理员指定网段或手工输入 IP/端口，禁止无边界扫描。
 - 管理员选择设备并测试打印成功后，绑定 logical_role=fiscal_receipt_printer。
-- 绑定记录由 Mesa/Agent 维护，至少包含 device_id、connection_type、queue_name 或 host/port、纸宽、code page、切纸配置和状态。
+- 绑定记录由 Farvoo/Agent 维护，至少包含 device_id、connection_type、queue_name 或 host/port、纸宽、code page、切纸配置和状态。
 - fiscal_document 任务只声明 logical_role，不包含打印机 IP、端口或 Windows 队列名。
 
 #### 3.3.5 打印状态与重打
@@ -1520,7 +1520,7 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 
 #### 3.3.6 安全与租户隔离
 
-- Mesa 调用发票 API 的凭证仅保存在 Mesa 服务端，不进入浏览器和 Go Agent。
+- Farvoo 调用发票 API 的凭证仅保存在 Farvoo 服务端，不进入浏览器和 Go Agent。
 - Agent 设备凭证（`agentjwt`）、开票终端凭证、业务 `print_jobs` 与税务同步副本必须绑定 restaurant_id。
 - fiscal_document / 本地正式打印 payload 对打印路径只读；打印模块无权修改税务字段或回写新内容。
 - Agent 只回写任务状态、打印设备、错误码和打印时间。
@@ -1528,15 +1528,15 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 
 角色范围
 
-- 开票角色对齐 Mesa：店长（owner）、前台（frontdesk）、收银（cashier）；waiter/kitchen 不开正式票。
+- 开票角色对齐 Farvoo：店长（owner）、前台（frontdesk）、收银（cashier）；waiter/kitchen 不开正式票。
 - 店主/管理员：门店与税务主体配置、系列管理、税率与商品配置、打印机绑定、SAF-T、备份恢复、用户管理和审计查询；**查票 / 重打本店全部**。
 - 前台 / 收银：日常签发（默认 FT；NC 及 FS/FR/ND 同入口可选）；**查票 / 重打仅限本人签发的票**（`SourceID` = 本人）；不放宽到「今天本店」。
-- 有网在 Mesa 查同步副本、离线在 Agent 查本地库，过滤规则相同；后端必须强制过滤。
+- 有网在 Farvoo 查同步副本、离线在 Agent 查本地库，过滤规则相同；后端必须强制过滤。
 - 不设计会计、主管、技术支持或其他独立账号类型。需要外部人员协助时，由店主现场操作或临时共享店主权限，系统不为此增加新角色。
 模块优先级
 
 - 用户与权限模块优先级为最后。
-- P0 先完成：FT、NC、编号与 Hash、ATCUD、QR、打印、系列、SAF-T、SQLite 事务、备份恢复和 Mesa 接口。
+- P0 先完成：FT、NC、编号与 Hash、ATCUD、QR、打印、系列、SAF-T、SQLite 事务、备份恢复和 Farvoo 接口。
 - 用户模块首版只实现最小登录、角色识别和权限校验，不优先建设复杂用户管理界面。
 - 完整的账号新增、停用、密码重置、权限配置和操作审计界面在核心开票链稳定后实施。
 - 角色
@@ -1545,7 +1545,7 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 - 管理本店配置、员工 PIN、AT 凭证、系列、报表、SAF-T；查票/重打本店全部
 - 前台 / 收银（frontdesk / cashier）
 - 日常开票；查票/重打仅本人
-- Mesa 收银端（主机或已登记开票终端）
+- Farvoo 收银端（主机或已登记开票终端）
 - 通过 Agent Local API 触发开票
 ## 5. AT 凭证管理
 
@@ -1609,10 +1609,10 @@ Agent SQLite 是税务状态最终裁决者；云端只保存同步副本。
 
 **选品录入（定稿）：**
 
-- 以 **按名称联想 / 自动补全** 为主：输入关键字，从 Agent 本地商品库匹配并点选；库内含 **（1）Mesa 同步只读副本（2）本地自建可维护项**。选中后自动带入合规名（`name_pt`→`name_en`）、`item_code`、含税单价、VAT 税率。  
+- 以 **按名称联想 / 自动补全** 为主：输入关键字，从 Agent 本地商品库匹配并点选；库内含 **（1）Farvoo 同步只读副本（2）本地自建可维护项**。选中后自动带入合规名（`name_pt`→`name_en`）、`item_code`、含税单价、VAT 税率。  
 - 匹配字段至少含 `name_pt`、`name_en`；可选同时匹配 `item_code`。展示优先葡语名，无则英语；中文仅可作辅助展示（远端副本），写入快照的仍是葡/英合规名。  
 - 仅查本地库，**不**为联想去轮询云端。  
-- **远端同步项在 Agent 上只读**（改菜单回 Mesa）；**本地自建项**可在 Agent 增删改，**不**同步到 Mesa。  
+- **远端同步项在 Agent 上只读**（改菜单回 Farvoo）；**本地自建项**可在 Agent 增删改，**不**同步到 Farvoo。  
 - 仍允许少量「自由行」：无匹配商品时手工填葡语/英文合规名、数量、含税单价、VAT（须过 Windows-1252）；不能用中文作合规名。
 
 VAT 税率：6% / 13% / 23% / 免税。
@@ -1670,7 +1670,7 @@ MVP 不支持直接取消/作废已签名发票；所有更正、退款、冲销
 
 ### 6.2 Agent Local API 开票
 
-Mesa 收银端统一通过本机 Agent Local API签发税务文件。
+Farvoo 收银端统一通过本机 Agent Local API签发税务文件。
 
 首版认证范围：FT、FS、FR、NC、ND。
 
@@ -1684,7 +1684,7 @@ Mesa 收银端统一通过本机 Agent Local API签发税务文件。
 **接口规则：**
 
 - Agent API 默认监听 127.0.0.1；局域网模式下监听地址和端口由管理员配置。
-- 鉴权凭证仅授予本机 Mesa 收银端。
+- 鉴权凭证仅授予本机 Farvoo 收银端。
 - API 价格字段使用 decimal 字符串，例如 "12.50"；不得使用 JavaScript 浮点数作为税务金额权威。
 - Agent重新校验金额、税率、商品和客户资料。
 - 前端不能提交 InvoiceNo、Hash、ATCUD、QR 或顺序号。
@@ -1746,22 +1746,22 @@ NC 自己拥有独立 InvoiceNo、ATCUD、Hash、HashControl 和 NC 系列。
 
 | 来源 | 权威 | Agent 上 | 同步方向 |
 |------|------|----------|----------|
-| Mesa 菜单 | Mesa | 同步为 **只读副本**；不可在 Agent 修改 | Mesa → Agent；**不**回写 |
-| Agent 本地自建开票菜单 | Agent | **可**手工维护（增删改名称/编号/价税等） | **不**同步到 Mesa |
+| Farvoo 菜单 | Farvoo | 同步为 **只读副本**；不可在 Agent 修改 | Farvoo → Agent；**不**回写 |
+| Agent 本地自建开票菜单 | Agent | **可**手工维护（增删改名称/编号/价税等） | **不**同步到 Farvoo |
 
-**目录结构：** Agent **复用 Mesa 现有菜单目录结构**（分类、编号、三语名、价税等），不另设计平行目录模型；本地自建项尽量同一字段形状。以此减少本地菜单开发量。
+**目录结构：** Agent **复用 Farvoo 现有菜单目录结构**（分类、编号、三语名、价税等），不另设计平行目录模型；本地自建项尽量同一字段形状。以此减少本地菜单开发量。
 
 合规名称规则（两源相同）：
 
 - SAF-T / 正式票描述 = `name_pt`（非空）否则 `name_en`；禁止中文作合规名。  
 - 葡英皆空或未过 Windows-1252 → 阻断开票。  
-- `item_code` 作 ProductCode（本地自建可自编；远端沿用 Mesa 编号）。  
+- `item_code` 作 ProductCode（本地自建可自编；远端沿用 Farvoo 编号）。  
 
 手动开票联想补全同时覆盖两源（见 6.1）。历史已签发票不受后续改价/改名影响。
 
 **折扣规则（定稿，与对接说明 §6.4 一致）：**
 
-- MVP **不**生成 SettlementAmount；**不**要求把 Mesa `discount_rate` 传入正式票。  
+- MVP **不**生成 SettlementAmount；**不**要求把 Farvoo `discount_rate` 传入正式票。  
 - 开票快照只含 **折后成交价**（与结账实付一致）；发票不保存原价/折扣率/折扣原因。  
 - 这是餐饮常见合规做法：优惠在开票前消化进成交价，保证 GrossTotal = 实付 = Hash/QR/打印一致。
 
@@ -1888,7 +1888,7 @@ MVP 不强依赖外部企业信息查询服务。外部查询仅作为辅助自�
 - 输入 NIF 时必须支持 **本地自动检索**，按相关度/最近使用等排序列出候选供挑选。  
 - 选中后自动带出主档中的名称、地址等字段填入开票表单。  
 - 检索只查 Agent 本地主档，不为选客户轮询云端。  
-- Mesa 桌台 API 开 FT 可只传本次 NIF/散客；Agent 可用本地主档补全。  
+- Farvoo 桌台 API 开 FT 可只传本次 NIF/散客；Agent 可用本地主档补全。  
 - **新客 / 主档尚无的 NIF：开票确认后必须将 NIF（及已填抬头）保存到本地主档**，不得只出票不落档。散客 `999999990` 用系统默认，不必当「新客」重复建档。
 
 **规则：**
@@ -2157,7 +2157,7 @@ Go Windows Service / 可执行程序
 - 管理界面静态前端 i18n
 - MVP 使用中文，英文/葡语框架预留
 - 订单系统集成
-- 指定 Windows 收银台电脑上的 Mesa 收银端始终调用本机 Agent Local API。
+- 指定 Windows 收银台电脑上的 Farvoo 收银端始终调用本机 Agent Local API。
 - Agent签发后自动写入本地打印队列并打印。
 - 云端只同步订单基础数据和税务结果，不创建正式税务打印任务。
 - Agent API 默认不向局域网开放；管理员可显式启用受控局域网模式。公网开放始终禁止。
@@ -2165,7 +2165,7 @@ Go Windows Service / 可执行程序
 
 - 手机和平板直接调用 Agent Fiscal API（P0）；已配对的 Windows 收银终端可在门店局域网模式下访问
 - 使用浏览器打印对话框完成正式税务发票打印
-- 在 Fiscal Core 外（Mesa 云端 / 收银前端）自行计算 ATCUD、Hash、QR，或改写已冻结税务打印 payload
+- 在 Fiscal Core 外（Farvoo 云端 / 收银前端）自行计算 ATCUD、Hash、QR，或改写已冻结税务打印 payload
 - Supabase 或云端创建正式税务打印任务、分配编号、生成 Hash/ATCUD/QR
 - QES 电子签名（不提供 PDF 发票，无需此功能）
 - B2G 政府采购发票（FE-AP 平台）
@@ -2188,7 +2188,7 @@ Go Windows Service / 可执行程序
 - 本地打印队列是正式税务打印权威队列。
 - 云端仅负责业务数据和同步副本。
 - 首版认证范围包含 FT、FS、FR、NC、ND。
-- 默认业务流程使用 FT 和 NC；Mesa API 只开 FT，NC 等在 Agent 本地 UI。  
+- 默认业务流程使用 FT 和 NC；Farvoo API 只开 FT，NC 等在 Agent 本地 UI。  
 - **软件认证号：** 认证通过前占位；通过后再写入真号（对接说明 §6.1b）。
 - 产品签名私钥采用运营方控制、设备密钥封装、换机重新授权方案。
 - Agent 本地后端使用 Go（由现有 print-agent 演进）；不运行完整 Next.js 服务端；**不用 Electron 打包 Agent**。
@@ -2307,7 +2307,7 @@ SAF-T 自动提交 Webservice。
 8. 跨月 NC 的引用和 SAF-T 汇总。
 9. 备份恢复后最后序号与最后 Hash 一致性。
 10. 私钥加密存储、访问权限和版本迁移。
-11. 离线 PIN：6 位数字默认、弱 PIN 拒绝、5 次失败锁 15 分钟（或店长解锁）、仅店长在 Agent 本地重置他人 PIN；与 Mesa 密码分离；**PIN 不在 Mesa 设置**。
+11. 离线 PIN：6 位数字默认、弱 PIN 拒绝、5 次失败锁 15 分钟（或店长解锁）、仅店长在 Agent 本地重置他人 PIN；与 Farvoo 密码分离；**PIN 不在 Farvoo 设置**。
 
 ### 12.3 当前明确不存在的阻塞
 

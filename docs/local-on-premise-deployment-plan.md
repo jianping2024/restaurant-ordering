@@ -1,4 +1,4 @@
-# Mesa 客户本地私有化部署方案
+# Farvoo 客户本地私有化部署方案
 
 > **状态（2026-08-01）：** Windows **单机跑 Web/库全栈** 方案已作废。  
 > **现行交付：** 店机 **Ubuntu + Docker Engine**（Mode B）；打印仍为 **另机 Windows print-agent**。  
@@ -9,7 +9,7 @@
 
 - 每家餐厅一台 **Ubuntu** 店机，Docker Engine + Compose 跑 Web + 自托管 Supabase + edge。
 - 固定版本、固定镜像摘要的 stamped zip 交付（`pack-release.sh`）。
-- **打印：** 现有 Windows `MesaPrintAgent` 装在收银/打印机，指向店内 Ubuntu 的 Mesa origin（edge `:80`）；**不**进 Compose。
+- **打印：** 现有 Windows `MesaPrintAgent` 装在收银/打印机，指向店内 Ubuntu 的 Farvoo origin（edge `:80`）；**不**进 Compose。
 - 客户端只需浏览器；断公网时局域网营业与打印仍可用。
 
 不建议把 `npm run dev` / `stage` / `cloud` 直接交付客户。
@@ -73,7 +73,7 @@ README 和现有脚本已经明确支持此流程。因此本地化方案不需�
 
 后续工作的重点是把当前基于 Supabase CLI 的本地开发栈产品化为 Windows 客户生产发行栈：
 
-- 将 Supabase 服务纳入 Mesa 自己的固定版本 Compose 文件；
+- 将 Supabase 服务纳入 Farvoo 自己的固定版本 Compose 文件；
 - 固定并验证全部镜像版本和 digest，不在客户机使用浮动最新版；
 - 把 schema、RLS、Realtime publication、Storage bucket 和 seed/初始化流程纳入安装器；
 - 生成每个客户实例独立的数据库密码、JWT 和服务端密钥；
@@ -119,7 +119,7 @@ RPO/RTO 必须写入客户合同或服务说明，不能只作为内部技术假
              Caddy 反向代理 :443
               ┌─────┴─────┐
               │           │
-         Mesa Web     Supabase Gateway
+         Farvoo Web     Supabase Gateway
          Next.js       Auth / REST /
                        Realtime / Storage
               │           │
@@ -144,7 +144,7 @@ RPO/RTO 必须写入客户合同或服务说明，不能只作为内部技术假
 - 推荐第二块 SSD 或外接加密存储保存本地备份；
 - 有条件时配置 UPS，并启用断电后自动开机。
 
-Supabase 官方给出的完整自托管栈建议资源为 4 核、8 GB 以上内存和 80 GB 以上 SSD。Mesa 还需要 Next.js、备份、日志和升级组件，因此生产基线建议提高到 16 GB。
+Supabase 官方给出的完整自托管栈建议资源为 4 核、8 GB 以上内存和 80 GB 以上 SSD。Farvoo 还需要 Next.js、备份、日志和升级组件，因此生产基线建议提高到 16 GB。
 
 采用 Docker Desktop 是当前 Windows 优先目标下的现实选择，但必须把以下事项纳入产品设计：
 
@@ -152,7 +152,7 @@ Supabase 官方给出的完整自托管栈建议资源为 4 核、8 GB 以上内
 - 使用 WSL2/Linux containers，不切换到 Windows containers；
 - 配置 Docker Desktop 随 Windows 启动；
 - 使用专用 Windows 运维账号，避免依赖普通员工登录状态；
-- 禁止 Docker Desktop 自动升级，版本随 Mesa 兼容矩阵统一发布；
+- 禁止 Docker Desktop 自动升级，版本随 Farvoo 兼容矩阵统一发布；
 - 将 WSL2 虚拟磁盘放在空间充足的固定磁盘，并监控其增长；
 - 明确测试 Windows 更新、Docker Desktop 更新和异常重启后的自动恢复。
 
@@ -176,7 +176,7 @@ Supabase Studio 默认不对客户开放。需要现场维护时，可临时只�
 
 客户不需要理解或操作 Agent。新架构中它只是 Docker 内部的 `print-worker`，职责只有一个：可靠发现新的打印任务并自动打印。
 
-旧设计中的下载、安装、托盘、Cloud URL、配对码、独立配置向导、凭证续期和单独升级全部取消。打印配置、状态和故障处理统一放入 Mesa 网页。
+旧设计中的下载、安装、托盘、Cloud URL、配对码、独立配置向导、凭证续期和单独升级全部取消。打印配置、状态和故障处理统一放入 Farvoo 网页。
 
 #### 4.3.1 已有可复用基础
 
@@ -408,7 +408,7 @@ Windows Docker Desktop 下，容器看到的通常是 Docker/WSL2 虚拟网段�
 | 6 位配对码 | 删除 |
 | 设备凭证续期 | 改为安装时内部生成和自动轮换 |
 | 本地 configure 页面 | 合并到网页打印中心 |
-| Agent 下载和独立升级 | 随整个 Mesa Compose 升级 |
+| Agent 下载和独立升级 | 随整个 Farvoo Compose 升级 |
 | Winspool/USB | 第一版不支持 |
 | TCP 9100 | 保留 |
 | ESC/POS、路由、重试 | 保留核心逻辑 |
@@ -434,7 +434,7 @@ Windows Docker Desktop 下，容器看到的通常是 Docker/WSL2 虚拟网段�
 持久数据必须使用明确、可备份的受管位置，不依赖匿名 Docker volume：
 
 ```text
-C:\ProgramData\Mesa\
+C:\ProgramData\Farvoo\
   releases\<version>\       # 发行包
   current\                  # 当前版本元数据
   config\                   # ACL 仅 Administrators/SYSTEM
@@ -456,7 +456,7 @@ Storage、print-worker 缓存、备份和日志可使用明确的 Windows bind m
 推荐方案：
 
 1. 每个实例分配稳定域名，例如 `r-<instance-id>.local.mesa.example`。
-2. 餐厅路由器或本地 DNS 把该域名解析到 Mesa 主机固定局域网 IP。
+2. 餐厅路由器或本地 DNS 把该域名解析到 Farvoo 主机固定局域网 IP。
 3. 使用 DNS-01 方式申请公网信任的 TLS 证书，证书和私钥只保存在本地主机。
 4. 二维码永久使用该域名和稳定 `table_id`，不使用 IP。
 5. 网络离线时，本地 DNS 继续工作，已签发证书继续有效；恢复联网后自动续期。
@@ -466,7 +466,7 @@ Storage、print-worker 缓存、备份和日志可使用明确的 Windows bind m
 防火墙规则：
 
 - 局域网入站仅开放 `443`，必要时开放 `80` 跳转；
-- 打印机端口只允许 Mesa 主机访问；
+- 打印机端口只允许 Farvoo 主机访问；
 - PostgreSQL、Supabase 内部端口、Docker socket 不对局域网和公网开放；
 - 出站只允许 DNS、NTP、证书、备份、日志和升级所需目标。
 
@@ -507,7 +507,7 @@ mesa-<version>/
 
 1. 检查 Windows 版本、虚拟化、WSL2、CPU、内存、磁盘、时间同步、端口和 Docker Desktop。
 2. 必要时安装/启用 WSL2 与经过验证的 Docker Desktop 版本；需要重启时保存安装状态并在重启后续跑。
-3. 创建专用 Windows 运维账号、计划任务和 `C:\ProgramData\Mesa`，设置最小 ACL。
+3. 创建专用 Windows 运维账号、计划任务和 `C:\ProgramData\Farvoo`，设置最小 ACL。
 4. 生成数据库密码、JWT 密钥、服务端密钥、备份密钥和实例 ID。
 5. 要求操作员填写餐厅名称、域名、固定 IP、备份授权和支持级别。
 6. 导入或拉取固定版本 Linux 镜像并校验签名/摘要。
@@ -620,7 +620,7 @@ mesa-<version>/
 
 恢复工具必须要求明确选择实例、时间点和目标目录，默认恢复到隔离环境：
 
-1. 安装与备份记录匹配的 Mesa/Supabase/PostgreSQL 版本。
+1. 安装与备份记录匹配的 Farvoo/Supabase/PostgreSQL 版本。
 2. 拉取并解密备份。
 3. 恢复数据库角色、schema 和数据。
 4. 恢复 Storage 文件和实例配置。
@@ -632,7 +632,7 @@ mesa-<version>/
 
 ### 9.1 版本策略
 
-Mesa 发行版本使用语义化版本，例如 `2.3.1`，每个版本绑定：
+Farvoo 发行版本使用语义化版本，例如 `2.3.1`，每个版本绑定：
 
 - Web 镜像 digest；
 - 打印代理镜像 digest；
@@ -642,7 +642,7 @@ Mesa 发行版本使用语义化版本，例如 `2.3.1`，每个版本绑定：
 - 配置 schema 版本；
 - 发布说明和已知风险。
 
-Supabase 官方说明其自托管 Compose 版本是作为组合测试的，单独混用各组件版本不保证兼容。因此 Mesa 应维护自己的兼容性矩阵，在 Stage 和升级测试环境验证后再发布。
+Supabase 官方说明其自托管 Compose 版本是作为组合测试的，单独混用各组件版本不保证兼容。因此 Farvoo 应维护自己的兼容性矩阵，在 Stage 和升级测试环境验证后再发布。
 
 ### 9.2 发布通道
 
@@ -676,18 +676,18 @@ Supabase 官方说明其自托管 Compose 版本是作为组合测试的，单�
 
 ### 9.5 不使用 Watchtower 类无条件自动升级
 
-无条件拉取新镜像会绕过版本兼容性、迁移、备份和验收，尤其不适合涉及结账、订单、Auth 和 Realtime 的系统。升级必须由 Mesa 自己的签名发布流程控制。
+无条件拉取新镜像会绕过版本兼容性、迁移、备份和验收，尤其不适合涉及结账、订单、Auth 和 Realtime 的系统。升级必须由 Farvoo 自己的签名发布流程控制。
 
 ## 10. 安全设计
 
 - 每个餐厅生成独立密钥，不复制模板环境文件中的默认密钥。
 - Windows 安装器、升级器和 PowerShell 脚本必须进行代码签名，并验证发行 manifest。
-- `C:\ProgramData\Mesa` 使用 NTFS ACL 限制普通餐厅员工读取配置、备份和日志。
+- `C:\ProgramData\Farvoo` 使用 NTFS ACL 限制普通餐厅员工读取配置、备份和日志。
 - 不把 Docker named pipe、Docker Desktop 管理权限或 WSL 管理权限授予普通员工。
 - 服务端密钥不进入浏览器镜像、日志、安装报告或远程诊断包。
 - 配置目录仅 root/专用服务用户可读。
 - 管理接口和恢复操作要求本地管理员二次认证。
-- 系统开启自动安全补丁，但 Docker/Supabase/Mesa 应用版本由发行流程控制。
+- 系统开启自动安全补丁，但 Docker/Supabase/Farvoo 应用版本由发行流程控制。
 - 远程支持优先使用短期、客户授权的反向隧道；不配置长期公网 SSH。
 - 备份在客户端加密后上传；云端管理员不能仅凭对象存储权限读取数据。
 - 遥测、日志、备份区域和保留期需满足客户所在地的数据保护要求。

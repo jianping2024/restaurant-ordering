@@ -23,7 +23,7 @@
 
 ### 门店纯本地（客户交付定稿）
 
-- Web 写**本机**库 `print_jobs`；**同一套** Windows print-agent 作桥，服务器地址改为本机 Mesa。  
+- Web 写**本机**库 `print_jobs`；**同一套** Windows print-agent 作桥，服务器地址改为本机 Farvoo。  
 - agent **不进 Docker**；USB 与网口能力与现在相同。  
 - 不做容器内 `print-worker` 替代（远期备选，见落地文档）。
 

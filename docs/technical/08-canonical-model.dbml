@@ -1,4 +1,4 @@
-// Mesa 目标 schema（canonical model）
+// Farvoo 目标 schema（canonical model）
 // 使用：https://dbdiagram.io — 粘贴本文件内容即可出图
 // 说明：关系仅在文件末尾 Ref 块定义一次，避免重复 endpoint 报错
 
@@ -336,7 +336,7 @@ Table restaurant_staff_accounts [note: '餐厅员工账号（Auth）'] {
   updated_at timestamp [not null, note: '更新时间']
 }
 
-Table platform_admin_accounts [note: 'Mesa 平台运营账号'] {
+Table platform_admin_accounts [note: 'Farvoo 平台运营账号'] {
   id uuid [pk, note: '平台账号 ID']
   user_id uuid [unique, not null, note: 'Auth 用户 ID → auth.users']
   role varchar [not null, note: '角色：support | admin']

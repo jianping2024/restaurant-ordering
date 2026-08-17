@@ -20,6 +20,6 @@
 
 ## 与本产品定稿的关系
 
-- Mesa API 开票默认 FT、散客 NIF、桌号用 `display_name`：与本样一致方向。
+- Farvoo API 开票默认 FT、散客 NIF、桌号用 `display_name`：与本样一致方向。
 - 我方 MVP 折后价进票、可不单独列折扣行；本样有折扣列，属他牌版式，**不强制抄列结构**。
 - Hash/RSA 金样仍以 Despacho 8632/2014 附录为准，不用本图反推签名。

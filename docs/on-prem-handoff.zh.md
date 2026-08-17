@@ -15,7 +15,7 @@
 2. **Mode B 门店发行包**（本机 Docker 栈 + 迁移 baseline + **Ubuntu** 安装器）——`deploy/on-prem` 源码应在 Git；产物 zip 仍可不入库。
 
 商业形态：**Ubuntu 店机（Docker Engine）+ 另机 Windows Print Agent**。  
-**已作废：** Windows/WSL/Docker Desktop 跑 Mesa Web+库全栈；`deploy/on-prem/windows/**`、`Install-Mesa.ps1`、`START-WSL-TEST.cmd`、`MesaOnPremBackup` / `MesaOnPremStack` 已删除。
+**已作废：** Windows/WSL/Docker Desktop 跑 Farvoo Web+库全栈；`deploy/on-prem/windows/**`、`Install-Farvoo.ps1`、`START-WSL-TEST.cmd`、`MesaOnPremBackup` / `MesaOnPremStack` 已删除。
 
 ---
 
@@ -29,7 +29,7 @@
 | 打印 | Windows `MesaPrintAgent`；服务器地址推荐 `http://<店内IP>`（edge，见 `on-prem-pack-install-upgrade.zh.md` §2.2）；不进 Docker |
 | 运行时 | **Ubuntu + Docker Engine**（唯一店机路径）；Windows 只跑 Print Agent |
 | 升级 | **离线升级包 only**；无在线升级 API |
-| 发票 | 不做；停运只挡 Mesa 运营 |
+| 发票 | 不做；停运只挡 Farvoo 运营 |
 
 ### 1.2 授权控制面（ADR-004）
 
@@ -186,7 +186,7 @@
 
 ### P2 — 已知弯路（不要再走）
 
-- Windows 主机直接 `docker compose` 跑 Mesa 全栈（路径/WSL 坑）——**路径已废，勿复活**。  
+- Windows 主机直接 `docker compose` 跑 Farvoo 全栈（路径/WSL 坑）——**路径已废，勿复活**。  
 - PowerShell 5.1 + Unicode 破折号导致脚本解析失败（旧 Windows 安装器）。  
 - 嵌套混淆包名（`mesa-on-prem-onprem-*`）。  
 - **结论：** 全栈只走原生 Ubuntu；Windows 只跑 Print Agent。

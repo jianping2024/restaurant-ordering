@@ -1,20 +1,20 @@
-# Mesa ↔ Local Fiscal Agent 对接说明（基于需求 v0.17）
+# Farvoo ↔ Local Fiscal Agent 对接说明（基于需求 v0.17）
 
-> **读者**：Mesa 后端 / 收银台 / Agent 改造方  
+> **读者**：Farvoo 后端 / 收银台 / Agent 改造方  
 > **日期**：2026-07-23  
 > **依据**：[葡萄牙餐饮与小型零售 POS 合规开票软件 需求文档 v0.17](../葡萄牙餐饮与小型零售_POS合规开票软件_需求文档_v0.17.md)  
-> **范围**：说明 Mesa **如何对接**门店唯一税务权威节点；不替代完整合规需求正文。  
+> **范围**：说明 Farvoo **如何对接**门店唯一税务权威节点；不替代完整合规需求正文。  
 > **固化决策**：现有 `apps/print-agent` **改造为** Fiscal Agent；打印是已具备能力之一，不是并列第二套代理。
 
 ---
 
 ## 0. 一句话结论
 
-每个门店只部署一个 **Mesa Local Fiscal Agent**，由现有 **`apps/print-agent` 演进而来**（同一 Go 进程）。打印（配对、认领云端 `print_jobs`、ESC/POS、打印机绑定）**已经具备**；改造重点是在其上增加 **Fiscal Core + 本地 SQLite 税务权威**（系列编号、Hash 链、ATCUD、QR、签发事务与正式税务本地打印队列）。
+每个门店只部署一个 **Farvoo Local Fiscal Agent**，由现有 **`apps/print-agent` 演进而来**（同一 Go 进程）。打印（配对、认领云端 `print_jobs`、ESC/POS、打印机绑定）**已经具备**；改造重点是在其上增加 **Fiscal Core + 本地 SQLite 税务权威**（系列编号、Hash 链、ATCUD、QR、签发事务与正式税务本地打印队列）。
 
 云端 / Supabase **只**保存业务数据与同步副本，**不**分配 `InvoiceNo`、不生成 Hash/ATCUD/QR、不创建正式税务打印权威任务。
 
-Mesa 收银端经 **Agent Local API** 开票时：**桌台「打印发票」只开 FT**。NC、FS、FR、ND 等须 **登录 Agent 本地 UI** 办理。另支持 Agent 本地 UI 手动开 FT。确认收款 / 整桌付清 / 预结单 / 普通小票 **均不自动开票**。数据进 Agent 后签发不依赖云；云只收状态副本（恢复时补传，禁止轮询）。
+Farvoo 收银端经 **Agent Local API** 开票时：**桌台「打印发票」只开 FT**。NC、FS、FR、ND 等须 **登录 Agent 本地 UI** 办理。另支持 Agent 本地 UI 手动开 FT。确认收款 / 整桌付清 / 预结单 / 普通小票 **均不自动开票**。数据进 Agent 后签发不依赖云；云只收状态副本（恢复时补传，禁止轮询）。
 
 ---
 
@@ -43,8 +43,8 @@ Mesa 收银端经 **Agent Local API** 开票时：**桌台「打印发票」只�
 ```text
 门店
 └── 指定 Windows 收银台电脑
-    ├── Mesa 收银端（在线/离线同一签发链路）
-    └── Mesa Local Fiscal Agent  ← 由 apps/print-agent 改造
+    ├── Farvoo 收银端（在线/离线同一签发链路）
+    └── Farvoo Local Fiscal Agent  ← 由 apps/print-agent 改造
         ├── 既有：配对 / JWT / 认领云端 print_jobs / ESC/POS / 打印机绑定
         ├── 新增：Agent Local API（fiscal-documents…）
         ├── 新增：Fiscal Core（FT/FS/FR/NC/ND）
@@ -65,7 +65,7 @@ Mesa 收银端经 **Agent Local API** 开票时：**桌台「打印发票」只�
 
 ---
 
-## 3. Agent Local API（Mesa 收银端调用）
+## 3. Agent Local API（Farvoo 收银端调用）
 
 统一签发入口（前端 **不得**上传 `InvoiceNo` / Hash / ATCUD / QR / 系列序号）：
 
@@ -85,7 +85,7 @@ GET    /local/v1/print-jobs/{printJobId}
 | 类型 | 键 |
 |------|----|
 | 请求幂等 | `store_id + request_id` |
-| 业务幂等 | `store_id + source_system + source_sale_id + scope_type + scope_id + fiscal_purpose` |
+| 业务幂等 | `store_id + source_system + source_sale_id + scope_type + scope_id + fiscal_purpose`；`source_system` 固定 `"farvoo"` |
 
 - 相同 `request_id` + 相同 payload → 返回原结果  
 - 相同 `request_id` + 不同 payload → 冲突  
@@ -93,7 +93,7 @@ GET    /local/v1/print-jobs/{printJobId}
 
 #### 餐饮分单与开票 `scope_id`（定稿）
 
-**Mesa 结账继续用 `person_index`**（`bill_splits.result` 下标、`session_collected_payments.person_index`、确认收款 RPC、业务小票幂等等）。**不**为开票去全量废除下标。
+**Farvoo 结账继续用 `person_index`**（`bill_splits.result` 下标、`session_collected_payments.person_index`、确认收款 RPC、业务小票幂等等）。**不**为开票去全量废除下标。
 
 **开票业务幂等的 `scope_id` 必须用稳定 ID，禁止用 `person_index`：**
 
@@ -111,7 +111,7 @@ GET    /local/v1/print-jobs/{printJobId}
 | 规则 | 定法 |
 |------|------|
 | **关台** | **不影响**开票权。桌台/会话已关闭后，仍可对已落 Agent 的销售快照或仍可推入的账单范围补开正式票（鉴权与幂等照旧）。业务关台 ≠ 税务关闭。 |
-| **整桌 vs 按人（Mesa 选型锁定）** | **互斥**：同一 `bill_split` 一旦开过 **整桌** FT → 禁止再开任何按人 FT；一旦开过 **任意一张按人** FT → 禁止再开整桌 FT。与「Mesa 选了分单发票就不能再开整桌、反之亦然」一致。 |
+| **整桌 vs 按人（Farvoo 选型锁定）** | **互斥**：同一 `bill_split` 一旦开过 **整桌** FT → 禁止再开任何按人 FT；一旦开过 **任意一张按人** FT → 禁止再开整桌 FT。与「Farvoo 选了分单发票就不能再开整桌、反之亦然」一致。 |
 | **按人部分已开** | **允许补票**：张三已开、李四未开 → 可继续给李四（及其余未开 scope）开按人 FT；已开 scope 幂等返回原票，不得重签。 |
 | **改范围** | 已走按人后 **不能** 改回整桌；已走整桌后 **不能** 改按人。纠错用 NC（及必要时按正确范围重开），不靠换范围覆盖。 |
 | **已付款** | 付清/关台不替代 Agent「该 scope 是否已有正式票」；未开 scope 仍可补开。 |
@@ -124,7 +124,7 @@ UI：已开的人显示已开/可重打；未开的人显示可开票；整桌�
 
 | 层面 | 关系 |
 |------|------|
-| **业务（Mesa / 快照元数据）** | 同属一桌/`bill_split`（同一 `source_sale_id` + 各人不同 `scope_id`）。Mesa 列表可按账单聚合展示「这些人的票」。 |
+| **业务（Farvoo / 快照元数据）** | 同属一桌/`bill_split`（同一 `source_sale_id` + 各人不同 `scope_id`）。Farvoo 列表可按账单聚合展示「这些人的票」。 |
 | **税务（AT / Agent）** | **彼此独立**：各自 `InvoiceNo`、ATCUD、Hash、打印。Hash 链挂在 **FT 系列顺序**上，不是「张三票链到李四票」。一张按人 FT **不** References 另一张按人 FT。 |
 | **冲销** | 某人要退/改 → 对该人那张 FT 开 **NC**（NC 只引用 **那一张** 原 FT）。不能一张 NC 冲多张按人 FT；也不存在「冲整桌来带动所有分单票」。 |
 | **金额** | 各按人 FT 金额之和应对齐该账单按人义务（业务校验）；税务上仍是多张独立发票，不是一张票的拆行副本。 |
@@ -137,16 +137,16 @@ UI：已开的人显示已开/可重打；未开的人显示可开票；整桌�
 
 | 入口 | 怎么进 Agent | 可开类型 |
 |------|--------------|----------|
-| **API 开票（Mesa 桌台）** | Mesa 调 Local API，推入销售快照 | **仅 FT**（整桌或按人 scope） |
+| **API 开票（Farvoo 桌台）** | Farvoo 调 Local API，推入销售快照 | **仅 FT**（整桌或按人 scope） |
 | **Agent 本地 UI** | 登录 Agent 开票页后操作 | **FT**（手动）以及 **NC / FS / FR / ND**（及查票重打等） |
 
-**定稿：** 对冲 **NC** 以及其他非 FT 类型（FS/FR/ND）→ **必须登录 Agent 本地办理**；Mesa 结账/桌台 **不**提供开 NC/FR/ND 的入口，也 **不**调对应 API。
+**定稿：** 对冲 **NC** 以及其他非 FT 类型（FS/FR/ND）→ **必须登录 Agent 本地办理**；Farvoo 结账/桌台 **不**提供开 NC/FR/ND 的入口，也 **不**调对应 API。
 
-**不要用「断网前缓存的 Mesa 账单」这种说法。**  
-业务侧点开票时数据才进入 Agent；**一旦进了 Agent SQLite，后续签发/打印/查本地状态都不依赖外网**。外网只影响：**开票结果状态能否及时回写 Mesa/云端**。
+**不要用「断网前缓存的 Farvoo 账单」这种说法。**  
+业务侧点开票时数据才进入 Agent；**一旦进了 Agent SQLite，后续签发/打印/查本地状态都不依赖外网**。外网只影响：**开票结果状态能否及时回写 Farvoo/云端**。
 
 ```text
-Mesa 点「打印发票」
+Farvoo 点「打印发票」
   → POST Agent：销售快照落地（本地）
   → Fiscal Core 签发 + ORIGINAL 打印（本地，不依赖云）
   → 更新 Agent 本地单据/打印状态
@@ -156,7 +156,7 @@ Mesa 点「打印发票」
 
 **状态同步（定稿）：**
 
-- 权威状态在 Agent；Mesa/云端是副本。  
+- 权威状态在 Agent；Farvoo/云端是副本。  
 - **禁止**为「等状态 / 等补传」做定时轮询云端或轮询 Agent 读模型。  
 - 允许：签发响应里同步返回状态；`sync_outbox` 在 **网络恢复、Agent 启动成功连上云、或显式重试** 时 **一次或按事件** 冲刷；Realtime/事件驱动若已有则复用——**不是** interval 刷状态。  
 - 断网期间：本地仍可对手动开票、以及对 **已推入 Agent 的销售快照** 完成签发与打印；仅副本滞后，恢复后补齐。
@@ -192,7 +192,7 @@ agent.tls_enabled            # 默认 false；见下
 
 | 类型 | 认证范围 | 餐厅日常 |
 |------|----------|----------|
-| **FT** | 必须完整实现 | **默认且几乎唯一的销售票**（含 Mesa 桌台 API 开票） |
+| **FT** | 必须完整实现 | **默认且几乎唯一的销售票**（含 Farvoo 桌台 API 开票） |
 | **NC** | 必须完整实现 | **默认**退款/冲销（从已有 FT 发起） |
 | **FS** | 须完整实现与可演示 | 非餐厅主路径；同入口可选 + 门槛校验 |
 | **FR / ND** | 须完整实现与可演示 | **餐厅基本无业务场景**；不为桌台结账映射 FR/ND 动作 |
@@ -204,7 +204,7 @@ agent.tls_enabled            # 默认 false；见下
 
 ### 4.2 餐厅 vs 认证：谁在哪开（定稿）
 
-**Mesa 桌台 / API：**
+**Farvoo 桌台 / API：**
 
 - 「打印发票」→ **只开 FT**（整桌或按人）。  
 - **不开** NC、FS、FR、ND；结账流程不映射这些类型。
@@ -212,10 +212,10 @@ agent.tls_enabled            # 默认 false；见下
 **Agent 本地 UI（须登录）：**
 
 - **NC（对冲）**、FS、FR、ND，以及本地手动 FT、查票/重打等 → 在此办理。  
-- 有网已登 Mesa 时，进 Agent 本地页仍按 §13（终端凭证；离线要 PIN）。  
+- 有网已登 Farvoo 时，进 Agent 本地页仍按 §13（终端凭证；离线要 PIN）。  
 - 选 FR/ND：二次确认；ND 须引用原票。已签发均须进 SAF-T。
 
-**餐厅认知：** 日常销售几乎全是 Mesa 开 FT；要冲销或其他类型 → 登录 Agent。
+**餐厅认知：** 日常销售几乎全是 Farvoo 开 FT；要冲销或其他类型 → 登录 Agent。
 
 系列：各类型独立系列；未注册/未激活的类型开具时阻断并提示，不静默改类型。
 
@@ -249,11 +249,11 @@ agent.tls_enabled            # 默认 false；见下
 
 ---
 
-## 6. Mesa 侧可为签发准备的业务数据
+## 6. Farvoo 侧可为签发准备的业务数据
 
 在收银员点击「打印发票」时，收银端应向 Agent 提交 **冻结销售快照**（金额用 decimal 字符串，禁止 JS float 作权威）：
 
-| 类别 | Mesa 来源（现状） | 注意 |
+| 类别 | Farvoo 来源（现状） | 注意 |
 |------|-------------------|------|
 | 外部账单 | `bill_splits.id` 等 | 映射为 `external_bill_id` / 业务幂等范围，防重复 FT |
 | 顾客 NIF | `bill_splits.customer_nif` 等 | 空则散客；有则 Agent 可用 **本地客户主档** 按 NIF 补全抬头（见 §6.1a） |
@@ -261,10 +261,45 @@ agent.tls_enabled            # 默认 false；见下
 | 行项目 | orders + 折后金额、`vat_rate`、`item_code`、名称 | **传折后成交价**（见 §6.4 折扣）；合规名见 §6.2 |
 | 付款 | 收款台账 | 本地可记付款方式；MVP **不**导出 SAF-T Payments；总额须与票面 GrossTotal 一致 |
 | 桌台 | `display_name` | 票面禁止印 table UUID |
+| 来源系统 | 固定 `"farvoo"` | 请求里 `source_system` 不得写其它值 |
+
+请求体模板（金额用 decimal 字符串；`customer.nif` 空则散客）：
+
+```json
+{
+  "request_id": "8f3c1a2e-6b14-4d90-9c2a-1b7e0d4a9f21",
+  "document_type": "FS",
+  "source_system": "farvoo",
+  "source_sale_id": "<bill_splits.id>",
+  "scope_type": "whole_table",
+  "scope_id": "<bill_splits.id>",
+  "table_display_name": "018",
+  "customer": {
+    "nif": null,
+    "name": null,
+    "address": null
+  },
+  "lines": [
+    {
+      "item_code": "BF-LUNCH-ADULT",
+      "name": "BUFFET ADULTO ALMOCO",
+      "qty": "3",
+      "unit_price_gross": "14.95",
+      "line_gross": "44.85",
+      "vat_rate": "13.00"
+    }
+  ],
+  "gross_total": "44.85"
+}
+```
+
+- `document_type`：桌台「打印发票」传 `FT` 或 `FS`（白天散客常用 FS；有 NIF / 要正式发票用 FT）。NC / FR / ND 不走 Farvoo 桌台。
+- `customer.nif`：有则 9 位税号；`null` / `""` → 宏翔按散客 `999999990` / Consumidor Final。
+- 按人开票：`scope_type` 为 `"person"`，`scope_id` 为 `session_collected_payments.id` 或分单行 `party_id`。
 
 ### 6.1a 客户资料（定稿：以 Agent 本地为主）
 
-**权威在 Agent 本地客户主档**（CustomerMaster），不是 Mesa 云端通讯录。
+**权威在 Agent 本地客户主档**（CustomerMaster），不是 Farvoo 云端通讯录。
 
 | 规则 | 定法 |
 |------|------|
@@ -272,7 +307,7 @@ agent.tls_enabled            # 默认 false；见下
 | 散客 | 无 NIF → `999999990` / Consumidor final，不必建主档 |
 | **录入 UX** | 输入 NIF 时须 **自动检索、排序列出候选**，选中后 **自动带出** 名称/地址等已存字段并填入表单 |
 | 新客 | 无匹配则手填；**确认开票时必须把该 NIF（及已填抬头）写入本地主档**，供下次检索；不得只开票不落主档 |
-| Mesa 桌台 API 开 FT | 可带本次 `customer_nif`（或空=散客）；Agent 若主档有该 NIF 则补全；**新 NIF 开票成功后同样写入本地主档** |
+| Farvoo 桌台 API 开 FT | 可带本次 `customer_nif`（或空=散客）；Agent 若主档有该 NIF 则补全；**新 NIF 开票成功后同样写入本地主档** |
 | NC 等 | 在 Agent 本地 UI 办理时同样用 NIF 联想选客户 / 沿用原 FT 客户快照 |
 
 检索只查 **本地** 主档，不为选客户去轮询云端。  
@@ -280,12 +315,12 @@ agent.tls_enabled            # 默认 false；见下
 
 ### 6.1 商家信息（定稿：Agent 本地维护）
 
-开票主体（TaxpayerCompany）**只在 Agent 本地配置与权威使用**，不由 Mesa 云端表当税务主数据：
+开票主体（TaxpayerCompany）**只在 Agent 本地配置与权威使用**，不由 Farvoo 云端表当税务主数据：
 
 - 商家 NIF、法律名称、商业名称、地址、AT 系列/凭证相关配置、软件认证号展示用字段等  
 - 店长在 Agent 本地管理界面维护；签发/打印/SAF-T 均读 Agent 本地  
 
-Mesa 云端若展示发票结果，只存同步副本（`invoice_no`、ATCUD、`document_id`、print_status 等），**不**回写覆盖商家税务主档。
+Farvoo 云端若展示发票结果，只存同步副本（`invoice_no`、ATCUD、`document_id`、print_status 等），**不**回写覆盖商家税务主档。
 
 ### 6.1b 软件认证号 / Modelo 24（定稿 · A12）
 
@@ -313,17 +348,17 @@ compliance_name = trim(name_pt) 非空 ? name_pt : trim(name_en)
 
 **Agent 本地商品库 = 两类来源（定稿）：**
 
-| 来源 | 谁维护 | 可否在 Agent 改 | 是否同步回 Mesa |
+| 来源 | 谁维护 | 可否在 Agent 改 | 是否同步回 Farvoo |
 |------|--------|-----------------|-----------------|
-| **远端同步**（Mesa 菜单副本） | Mesa 菜单权威 | **只读**；Agent 禁止改名/改价/删改 | 否（本就来自远端） |
+| **远端同步**（Farvoo 菜单副本） | Farvoo 菜单权威 | **只读**；Agent 禁止改名/改价/删改 | 否（本就来自远端） |
 | **本地自建**（Agent 手工维护的开票菜单） | 店长在 Agent 本地 | **可**增删改（葡/英名、编号、价税等） | **否**；仅服务本地手动开票 |
 
 **目录结构复用（定稿，省开发量）：**
 
-- Agent **不另起**一套分类/菜品信息架构。远端副本 **直接复用 Mesa 现有菜单目录结构**（如分类层级、`item_code`、`name_pt`/`name_en`/`name_zh`、含税价、`vat_rate`、启用状态等字段语义）。  
+- Agent **不另起**一套分类/菜品信息架构。远端副本 **直接复用 Farvoo 现有菜单目录结构**（如分类层级、`item_code`、`name_pt`/`name_en`/`name_zh`、含税价、`vat_rate`、启用状态等字段语义）。  
 - 同步 = 把该结构镜像到本地 SQLite（只读）；本地手动开票的浏览/联想按同一套目录理解。  
 - 本地自建项尽量用 **同一字段形状** 存放（可挂在本地分类下），避免第三套模型。  
-- Mesa「打印发票」快照行仍来自当次账单映射；本地手动开票联想覆盖「远端只读副本 + 本地自建」。  
+- Farvoo「打印发票」快照行仍来自当次账单映射；本地手动开票联想覆盖「远端只读副本 + 本地自建」。  
 - 店 NIF/店名仍只在 Agent 本地商家配置，与菜单目录无关。
 
 ---
@@ -333,7 +368,7 @@ compliance_name = trim(name_pt) 非空 ? name_pt : trim(name_en)
 | 数据 | 权威 |
 |------|------|
 | 是否已开正式发票、InvoiceNo/Hash/ATCUD、可否再签 | **Agent 本地税务库** |
-| 桌台订单、分单、收款（业务） | Mesa / 云端（业务权威） |
+| 桌台订单、分单、收款（业务） | Farvoo / 云端（业务权威） |
 | 云端发票字段 | **同步副本**；与 Agent 冲突时以 Agent 为准并回写/补传 |
 
 **开票按钮逻辑（直白）：**
@@ -345,12 +380,12 @@ compliance_name = trim(name_pt) 非空 ? name_pt : trim(name_en)
 ```
 
 有网、断网都一样：**能不能打、打过没有，只问 Agent。**  
-Mesa 订单状态、云端副本不单独充当「已开票」权威。  
-**不做**「断网前预先缓存 Mesa 账单再开票」；Mesa 路径以点击「打印发票」推入 Agent 为准。
+Farvoo 订单状态、云端副本不单独充当「已开票」权威。  
+**不做**「断网前预先缓存 Farvoo 账单再开票」；Farvoo 路径以点击「打印发票」推入 Agent 为准。
 
 ### 6.4 折扣进票（定稿）
 
-**结论：Mesa 结账已是折后价、开票不传折扣 —— 合规上没问题，且是推荐做法。**
+**结论：Farvoo 结账已是折后价、开票不传折扣 —— 合规上没问题，且是推荐做法。**
 
 | 项 | 定法 |
 |----|------|
@@ -359,7 +394,7 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 | SettlementAmount | **MVP 不生成** |
 | Hash / QR / 打印 | 一律用同一套折后 GrossTotal，三者一致即可 |
 
-**实际中常见做法：** 餐饮 POS 多数把优惠消化在「最终单价/最终应付」里再开 FT，票面不单独列折扣行；税务看的是票面与 Hash 的总额是否自洽，不是必须复述 Mesa 的折扣率。
+**实际中常见做法：** 餐饮 POS 多数把优惠消化在「最终单价/最终应付」里再开 FT，票面不单独列折扣行；税务看的是票面与 Hash 的总额是否自洽，不是必须复述 Farvoo 的折扣率。
 
 **注意：** 按人开票时每人快照也必须是该人 **折后义务**；不要传未打折原价再在 Agent 里猜折扣。
 
@@ -378,7 +413,7 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 
 ### 7.1 查票 / 重打可见范围（定稿）
 
-**口径：店长看全店；前台/收银只看自己开的。** 有网在 Mesa 查同步副本、离线在 Agent 本地查 SQLite，**同一套规则**。重打权限与「看得见」一致（看得见才能重打）。
+**口径：店长看全店；前台/收银只看自己开的。** 有网在 Farvoo 查同步副本、离线在 Agent 本地查 SQLite，**同一套规则**。重打权限与「看得见」一致（看得见才能重打）。
 
 | 角色 | 查票 / 重打 |
 |------|-------------|
@@ -390,12 +425,12 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 
 - 「自己开的」= 签发时写入的操作员（`SourceID` / 对应 `mesa_user_id`），不是「本终端打过的」。  
 - 不做「今天本店」放宽（避免前台误看他人票；店长已覆盖全店需求）。  
-- Mesa 列表 API / Agent `GET …/fiscal-documents` 都必须按上表过滤；禁止前端只藏按钮、后端放全量。  
+- Farvoo 列表 API / Agent `GET …/fiscal-documents` 都必须按上表过滤；禁止前端只藏按钮、后端放全量。  
 - 重打仍只能用冻结 payload；不重签、不改号。  
 
 ---
 
-## 8. 明确不要做的事（Mesa / Agent 边界）
+## 8. 明确不要做的事（Farvoo / Agent 边界）
 
 - 再部署第二个「纯 Fiscal」或「纯打印」店内代理（必须单进程演进）  
 - 云端或 Supabase 创建正式税务打印权威任务、分配编号、生成 Hash/ATCUD/QR  
@@ -404,9 +439,9 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 - 公网暴露 Agent Local API  
 - 用浏览器打印对话框出正式税务票  
 - 确认收款自动开 FT  
-- Mesa 桌台 / API 开 NC 或 FS/FR/ND（这些须登录 Agent 本地 UI）  
+- Farvoo 桌台 / API 开 NC 或 FS/FR/ND（这些须登录 Agent 本地 UI）  
 - 打印失败后「重新开一张」覆盖原票（必须重打或 NC）  
-- 为开票预拉/常驻缓存「断网前 Mesa 账单」  
+- 为开票预拉/常驻缓存「断网前 Farvoo 账单」  
 - 用定时轮询同步开票状态或冲刷 outbox（仅允许恢复网络 / 启动连通 / 事件 / 显式重试）  
 
 ---
@@ -416,8 +451,10 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 | 文档 | 用途 |
 |------|------|
 | [需求 v0.17（Markdown）](../葡萄牙餐饮与小型零售_POS合规开票软件_需求文档_v0.17.md) | 合规与 Agent 完整需求（唯一正文） |
+| [`hongxiang-partner-invoice-api.zh.md`](./hongxiang-partner-invoice-api.zh.md) | 给宏翔的对外对接说明（签发 / 重打） |
+| [`farvoo-hongxiang-invoice-contract.zh.md`](./farvoo-hongxiang-invoice-contract.zh.md) | Farvoo 内部：表、签发/重打字段 |
 | [`samples/pt-fiscal-receipt-pirata-wok-ft-example.md`](./samples/pt-fiscal-receipt-pirata-wok-ft-example.md) | 真实 FT 小票版式参考（非本产品输出） |
-| [`04-printing.md`](./04-printing.md) | Mesa 现有业务热敏打印（云端入队侧） |
+| [`04-printing.md`](./04-printing.md) | Farvoo 现有业务热敏打印（云端入队侧） |
 | [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md) | 现有 print-agent 流程（改造基线） |
 
 ---
@@ -430,8 +467,8 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 4. 系列已激活时，已落本地的销售快照与本地手动开票均可断网签发；未注册系列则阻断。状态回传可滞后，恢复后补传 outbox（禁止状态轮询）。  
 5. 云端不可用时签发与打印不受影响；恢复后 outbox 补传。  
 6. Windows-1252 校验发生在 **签名前**；中文菜名不得进入 SAF-T。  
-7. 查票 / 重打：owner 可见本店全部；frontdesk/cashier 仅本人 `SourceID`；Mesa 与 Agent 过滤一致。  
-8. 离线 PIN：纯数字默认 6 位；5 次失败锁 15 分钟；仅店长在 **Agent 本地**重置他人；**PIN 不进 Mesa**（§13 / A13）。  
+7. 查票 / 重打：owner 可见本店全部；frontdesk/cashier 仅本人 `SourceID`；Farvoo 与 Agent 过滤一致。  
+8. 离线 PIN：纯数字默认 6 位；5 次失败锁 15 分钟；仅店长在 **Agent 本地**重置他人；**PIN 不进 Farvoo**（§13 / A13）。  
 9. 换机 / 主机故障：禁双主机；运营批 `wrapped_fiscal_key`；校验通过续系列，否则终结新建（§12）。  
 10. 备份：全量加密快照；开票后异步 + 每日日备；**仅本机第二目录**；**备份失败阻断新开票**；活库十年 ≠ 备份文件轮转（§12.7）。
 
@@ -450,12 +487,12 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 | 局域网开票 API | 无（或仅本机） | Agent `STORE_LAN` + 端口 |
 | 开票终端 | 无 | 打印助手「开票终端」+ Agent `/pair-terminal` |
 | 终端→打印机 | 无 | 每终端选一个已映射档口 |
-| 打印发票按钮 | 无 | Mesa 调 Local Fiscal API |
+| 打印发票按钮 | 无 | Farvoo 调 Local Fiscal API |
 
 ### 11.2 运行逻辑（直白）
 
 ```text
-任意已登记收银机 Mesa「打印发票」
+任意已登记收银机 Farvoo「打印发票」
   → 带终端凭证 → 唯一 Agent（本机 127.0.0.1 或局域网 advertised_host:port）
   → 验终端 → 签发写入 SQLite + ORIGINAL 任务
   → 查「该终端绑定的档口」→ 查 configure 里该档口的物理打印机 → 出纸
@@ -499,8 +536,8 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 - 存储示意：`terminal_printers[terminal_id] = station_uuid`。
 
 **⑥ 日常**  
-- 该机 Mesa →「打印发票」→ Agent 按 ④⑤ 鉴权并出纸。  
-- 换班/合规：见 **§13**（Mesa 已登录可直接开票；离线用本地操作员）。
+- 该机 Farvoo →「打印发票」→ Agent 按 ④⑤ 鉴权并出纸。  
+- 换班/合规：见 **§13**（Farvoo 已登录可直接开票；离线用本地操作员）。
 
 ### 11.4 明确不作
 
@@ -529,7 +566,7 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 
 ### 12.3 主机当场挂了
 
-1. 全店停止经该 Agent 的正式开票（Mesa 提示开票主机不可用）。  
+1. 全店停止经该 Agent 的正式开票（Farvoo 提示开票主机不可用）。  
 2. **禁止** 其他电脑 claim 成第二套 Fiscal Agent。  
 3. 店长启动换机（12.4）。
 
@@ -615,40 +652,40 @@ Mesa 订单状态、云端副本不单独充当「已开票」权威。
 
 ## 13. 在线 / 离线登录与操作员（定稿实践）
 
-### 13.1 谁可以开票（对齐 Mesa 角色）
+### 13.1 谁可以开票（对齐 Farvoo 角色）
 
-| Mesa 角色 | 可否开正式发票（FT 等） | 查票 / 重打 | 说明 |
+| Farvoo 角色 | 可否开正式发票（FT 等） | 查票 / 重打 | 说明 |
 |-----------|-------------------------|-------------|------|
 | **owner（店长/店主）** | 可以 | **本店全部** | 系列/SAF-T/终端；**PIN 在 Agent 本地**设管 |
-| **frontdesk（前台）** | 可以 | **仅本人签发** | Mesa API 开 FT；**NC 等在 Agent 本地 UI** |
-| **cashier（收银员）** | 可以 | **仅本人签发** | Mesa API 开 FT；**NC 等在 Agent 本地 UI** |
+| **frontdesk（前台）** | 可以 | **仅本人签发** | Farvoo API 开 FT；**NC 等在 Agent 本地 UI** |
+| **cashier（收银员）** | 可以 | **仅本人签发** | Farvoo API 开 FT；**NC 等在 Agent 本地 UI** |
 | waiter / kitchen 等 | **不可以** | 无 | 无开票权 |
 
-**NC（定稿）：** owner / frontdesk / cashier **都能开 NC**，但入口是 **登录 Agent 本地 UI**，不是 Mesa 桌台按钮。
+**NC（定稿）：** owner / frontdesk / cashier **都能开 NC**，但入口是 **登录 Agent 本地 UI**，不是 Farvoo 桌台按钮。
 
-**查票 / 重打（定稿）：** 见 **§7.1**——店长全店；前台/收银只看自己；有网 Mesa 副本与离线 Agent 同一规则。
+**查票 / 重打（定稿）：** 见 **§7.1**——店长全店；前台/收银只看自己；有网 Farvoo 副本与离线 Agent 同一规则。
 
-发票 `SourceID` = Agent 本地操作员 ID（稳定对应某个 Mesa 员工），不是终端 ID。终端只证明「哪台电脑」；操作员证明「哪个人」。
+发票 `SourceID` = Agent 本地操作员 ID（稳定对应某个 Farvoo 员工），不是终端 ID。终端只证明「哪台电脑」；操作员证明「哪个人」。
 
-### 13.2 原则：复用 Mesa 人，不复用「必须在线的会话当唯一权威」
+### 13.2 原则：复用 Farvoo 人，不复用「必须在线的会话当唯一权威」
 
-- **人**：与 Mesa 员工一一对应（见 13.3）。  
-- **有网且已登录 Mesa**：用 Mesa 会话换开票操作员凭证，**不必再输一遍账号密码/PIN** 即可鉴权开票。  
-- **没网 / Mesa 网页不可用**：用 Agent **本地操作员 + PIN** 开票。  
+- **人**：与 Farvoo 员工一一对应（见 13.3）。  
+- **有网且已登录 Farvoo**：用 Farvoo 会话换开票操作员凭证，**不必再输一遍账号密码/PIN** 即可鉴权开票。  
+- **没网 / Farvoo 网页不可用**：用 Agent **本地操作员 + PIN** 开票。  
 - Agent 必须能在本地完成「强制登录后开票」（AT）；不能离线时变成匿名开票。
 
-### 13.3 Fiscal Agent 用户怎么来、怎么和 Mesa 对应
+### 13.3 Fiscal Agent 用户怎么来、怎么和 Farvoo 对应
 
-**对应键：** `operators.mesa_user_id` = Mesa `auth.users` / 员工账号的 user id（UUID）。
+**对应键：** `operators.mesa_user_id` = Farvoo `auth.users` / 员工账号的 user id（UUID）。
 
 **本地表（示意）：**
 
 ```text
 operators
   id                  # Agent 内 SourceID 用
-  mesa_user_id        # 与 Mesa 对应；唯一
+  mesa_user_id        # 与 Farvoo 对应；唯一
   restaurant_id
-  role                # owner | frontdesk | cashier（从 Mesa 同步）
+  role                # owner | frontdesk | cashier（从 Farvoo 同步）
   display_name
   active
   pin_hash            # 离线/锁屏用；单向哈希
@@ -658,42 +695,42 @@ operators
 
 **初始化（最佳实践）：**
 
-1. 主机 Agent **首次配对成功并激活本店** 后，向 Mesa 拉一次「可开票角色」员工列表（owner / frontdesk / cashier，且未禁用）。  
+1. 主机 Agent **首次配对成功并激活本店** 后，向 Farvoo 拉一次「可开票角色」员工列表（owner / frontdesk / cashier，且未禁用）。  
 2. 按 `mesa_user_id` upsert 成本地 `operators`（姓名、角色、active、开票权限）。  
-3. **同一次初始化流程内必须为每人设置 PIN**：名册从 Mesa 同步到 Agent 后，店长在 **Agent 本地「开票员工」页** 逐人/批量设 PIN（PIN **只**在 Agent 录入与存哈希）。未设齐 PIN 则离线开票未就绪。  
-4. **不要**把 Mesa 登录密码写入 Agent；PIN 与 Mesa 密码无关。  
-5. **PIN UI 权威（定稿 · A13）：** 设/改/重置 PIN **仅 Agent 本地**；Mesa 打印助手 **不**嵌 PIN 表单、PIN **不上云**。打印助手可只读展示「已同步 / 未设 PIN」，并提供打开 Agent 管理页的链接（`http://advertised_host:port/…`）。
+3. **同一次初始化流程内必须为每人设置 PIN**：名册从 Farvoo 同步到 Agent 后，店长在 **Agent 本地「开票员工」页** 逐人/批量设 PIN（PIN **只**在 Agent 录入与存哈希）。未设齐 PIN 则离线开票未就绪。  
+4. **不要**把 Farvoo 登录密码写入 Agent；PIN 与 Farvoo 密码无关。  
+5. **PIN UI 权威（定稿 · A13）：** 设/改/重置 PIN **仅 Agent 本地**；Farvoo 打印助手 **不**嵌 PIN 表单、PIN **不上云**。打印助手可只读展示「已同步 / 未设 PIN」，并提供打开 Agent 管理页的链接（`http://advertised_host:port/…`）。
 5. 之后 **新建员工** 见下方「日常同步」。
 
 **账号从哪来（最佳实践）：**
 
-1. **主路径：只在 Mesa 创建员工**（含远程建号）→ Agent **重启联网时拉取对账**写入 `operators` → 店内设 PIN。  
-2. **Agent 禁止自建开票账号**（含断网临时号）。开票人必须来自 Mesa 同步名册 + 已设 PIN；有网未同步到的新人可先靠 Mesa 登录开票（`operator_token` 懒建本地行），离线则须等下次 Agent 重启同步并设 PIN。  
-3. 不做 Agent 与 Mesa 两套花名册并行。
+1. **主路径：只在 Farvoo 创建员工**（含远程建号）→ Agent **重启联网时拉取对账**写入 `operators` → 店内设 PIN。  
+2. **Agent 禁止自建开票账号**（含断网临时号）。开票人必须来自 Farvoo 同步名册 + 已设 PIN；有网未同步到的新人可先靠 Farvoo 登录开票（`operator_token` 懒建本地行），离线则须等下次 Agent 重启同步并设 PIN。  
+3. 不做 Agent 与 Farvoo 两套花名册并行。
 
 **日常同步（有网时）——新建 / 变更员工：**
 
-Mesa 是名册权威；**不依赖保存员工时推送到 Agent**。
+Farvoo 是名册权威；**不依赖保存员工时推送到 Agent**。
 
-**同步时机（定稿）：Agent 每次启动（重启）且能连上 Mesa 时，拉取一次可开票员工并对账 upsert。**  
+**同步时机（定稿）：Agent 每次启动（重启）且能连上 Farvoo 时，拉取一次可开票员工并对账 upsert。**  
 不做名册高频轮询；不把「一存就推」当主路径。
 
-**用哪个账号连 Mesa（定稿）：**  
-用 **当前这台已配对 Agent 的设备凭证**，即 claim 下发、本地已存的 **`agentjwt`**（与拉 `pending-jobs` / heartbeat 同一套），**不是**店长/前台/收银的个人 Mesa 登录，也不是让人在 Agent 里再登一次员工号。  
-Mesa 新增只读接口（例如 `GET /api/print-agent/fiscal-operators`）：校验 `Authorization: Bearer <agentjwt>` → 解析本店 `restaurant_id` → 返回该店 active 的 owner / frontdesk / cashier 列表（`mesa_user_id`、显示名、角色等）。系统角色 `print_agent` 仅作设备身份，**不会**出现在开票操作员名册里。
+**用哪个账号连 Farvoo（定稿）：**  
+用 **当前这台已配对 Agent 的设备凭证**，即 claim 下发、本地已存的 **`agentjwt`**（与拉 `pending-jobs` / heartbeat 同一套），**不是**店长/前台/收银的个人 Farvoo 登录，也不是让人在 Agent 里再登一次员工号。  
+Farvoo 新增只读接口（例如 `GET /api/print-agent/fiscal-operators`）：校验 `Authorization: Bearer <agentjwt>` → 解析本店 `restaurant_id` → 返回该店 active 的 owner / frontdesk / cashier 列表（`mesa_user_id`、显示名、角色等）。系统角色 `print_agent` 仅作设备身份，**不会**出现在开票操作员名册里。
 
-1. 店主在 Mesa **设置 → 员工** 新建/改角色/禁用（任意能上网的电脑即可）。  
+1. 店主在 Farvoo **设置 → 员工** 新建/改角色/禁用（任意能上网的电脑即可）。  
 2. 店内 Agent **重启并联网** → 持 `agentjwt` 调上述接口 → 按 `mesa_user_id` upsert；禁用者 `active=false`。  
-3. **设 PIN：** 新人出现在对账结果后，店长在 **Agent 本地**设 PIN；未设 PIN → 不能离线登录。有网且已用 Mesa 登录开票：允许 `operator_token` 懒建本地 operator 行，但仍应尽快在 Agent 设 PIN。  
-4. 重启前已在 Mesa 新建、Agent 尚未重启：有网可先靠 Mesa API 开 FT；离线登录要等本次启动同步并在 Agent 设好 PIN。  
+3. **设 PIN：** 新人出现在对账结果后，店长在 **Agent 本地**设 PIN；未设 PIN → 不能离线登录。有网且已用 Farvoo 登录开票：允许 `operator_token` 懒建本地 operator 行，但仍应尽快在 Agent 设 PIN。  
+4. 重启前已在 Farvoo 新建、Agent 尚未重启：有网可先靠 Farvoo API 开 FT；离线登录要等本次启动同步并在 Agent 设好 PIN。  
 5. 已有 PIN 不因对账清空（除非店长在 **Agent 本地**「重置 PIN」）。
 
-### 13.4 有网：已登录 Mesa → 直接开票鉴权
+### 13.4 有网：已登录 Farvoo → 直接开票鉴权
 
 ```text
-员工已登录 Mesa（owner/frontdesk/cashier）
+员工已登录 Farvoo（owner/frontdesk/cashier）
   → 点「打印发票」
-  → Mesa 服务端校验会话 + 角色 ∈ 开票白名单 + 当前开票终端
+  → Farvoo 服务端校验会话 + 角色 ∈ 开票白名单 + 当前开票终端
   → 签发短时 operator_token（claims 含强制 `terminal_id`）
   → 浏览器带：终端凭证 + operator_token → Agent Local API
   → Agent：验终端 + 验 token（含 terminal_id 一致）+ 本地 operators.active
@@ -705,7 +742,7 @@ Mesa 新增只读接口（例如 `GET /api/print-agent/fiscal-operators`）：�
 
 | 项 | 定法 |
 |----|------|
-| **谁签发** | **仅 Mesa 服务端**（员工已登录且角色允许之后）。浏览器不能自己造；Agent 不签发。 |
+| **谁签发** | **仅 Farvoo 服务端**（员工已登录且角色允许之后）。浏览器不能自己造；Agent 不签发。 |
 | **算法** | **非对称 JWT**（推荐 Ed25519 或 RS256）。云端持 **私钥**（环境变量 / 密钥管理）；Agent 只持 **公钥** 验签。 |
 | **密钥怎么给 Agent** | 配对 claim 响应下发公钥（或公钥指纹+URL）；Agent **启动时**可用 `agentjwt` 再拉一次最新公钥。Agent **不存**私钥。 |
 | **有效期** | **15 分钟**。点开票时可现领；15 分钟内连打多张可复用同一 token，过期再领。不按班次长期存放。 |
@@ -713,16 +750,16 @@ Mesa 新增只读接口（例如 `GET /api/print-agent/fiscal-operators`）：�
 | **校验** | Agent：签名有效、未过期、`restaurant_id` 与本店一致、角色可开票、本地 operator active（无行则懒建）、**`terminal_id` 与终端凭证一致**。 |
 | **与终端凭证** | 两者都要：终端=哪台电脑；token=哪个人。缺一不可；token 内 `terminal_id` 必须匹配。 |
 
-**不做：** 共享 HMAC 长期对称密钥；把员工 Mesa access_token 原样转给 Agent；token 有效期按天计；签发不绑 `terminal_id` 的 token。
+**不做：** 共享 HMAC 长期对称密钥；把员工 Farvoo access_token 原样转给 Agent；token 有效期按天计；签发不绑 `terminal_id` 的 token。
 
 要点：
 
-- **Mesa 已登录且角色允许 = 开票操作员鉴权通过**。  
-- waiter 等角色：Mesa 侧拒绝发 token / 不显示开票按钮。
+- **Farvoo 已登录且角色允许 = 开票操作员鉴权通过**。  
+- waiter 等角色：Farvoo 侧拒绝发 token / 不显示开票按钮。
 
 ### 13.5 没网：先登录本地开票系统，再开票
 
-断网时 Mesa 网页不可用，必须进 **Agent 本地开票系统**。流程是 **先登录，再干活**，不是开票当下才临时选人+PIN。
+断网时 Farvoo 网页不可用，必须进 **Agent 本地开票系统**。流程是 **先登录，再干活**，不是开票当下才临时选人+PIN。
 
 **谁能打开本地开票页（定稿）：主机与 2/3 号等已登记开票终端都须能打开**——通过 Agent 局域网地址（如 `http://<advertised_host>:<port>/…`），不只主机上的 `127.0.0.1`。未登记终端不得进入。
 
@@ -745,36 +782,36 @@ Mesa 新增只读接口（例如 `GET /api/print-agent/fiscal-operators`）：�
 
 | 项 | 定法 | 理由 |
 |----|------|------|
-| **形式** | **纯数字** | 收银换班要快；与 Mesa 登录密码区分开 |
+| **形式** | **纯数字** | 收银换班要快；与 Farvoo 登录密码区分开 |
 | **位数** | **6 位**（允许配置 4–8，默认 6） | 4 位太弱；6 位仍好记好输；长于 8 位换班体验差 |
 | **禁止** | 连续/重复弱 PIN（如 `000000`、`123456`）在设置时拒绝 | 降低猜中率 |
 | **失败锁定** | 连续错误 **5 次** → 锁定该操作员 **15 分钟**；或由店长解锁 | 满足认证侧防爆破；餐厅场景不必永久锁死 |
 | **锁定期间** | 仅该操作员不可用；其他人仍可登录开票 | 避免一台机全店停摆 |
-| **谁能设/重置 PIN** | **仅店长（owner）** 在 **Agent 本地 UI** 重置他人；前台/收银在 Agent 改自己的 PIN（须验旧 PIN） | 防同事互改；PIN 不进 Mesa |
-| **重置后** | 须设新 PIN 才能再离线登录；有网 Mesa API 开 FT 不受影响 | 与双路径一致 |
-| **存储** | 仅存 Agent 侧单向哈希；日志禁止打印 PIN；**禁止**经 Mesa 云端下发 PIN | 安全底线 |
-| **Mesa 打印助手** | 可展示同步状态 / 是否已设 PIN；链到 Agent 本地页；**不**采集 PIN | A13：UI 权威唯一在 Agent |
+| **谁能设/重置 PIN** | **仅店长（owner）** 在 **Agent 本地 UI** 重置他人；前台/收银在 Agent 改自己的 PIN（须验旧 PIN） | 防同事互改；PIN 不进 Farvoo |
+| **重置后** | 须设新 PIN 才能再离线登录；有网 Farvoo API 开 FT 不受影响 | 与双路径一致 |
+| **存储** | 仅存 Agent 侧单向哈希；日志禁止打印 PIN；**禁止**经 Farvoo 云端下发 PIN | 安全底线 |
+| **Farvoo 打印助手** | 可展示同步状态 / 是否已设 PIN；链到 Agent 本地页；**不**采集 PIN | A13：UI 权威唯一在 Agent |
 
-**不做：** 字母数字混口令当日常 PIN；失败不锁定；任意前台可重置他人 PIN；把 Mesa 密码当离线 PIN；在 Mesa 网页设 PIN 再推到 Agent。
+**不做：** 字母数字混口令当日常 PIN；失败不锁定；任意前台可重置他人 PIN；把 Farvoo 密码当离线 PIN；在 Farvoo 网页设 PIN 再推到 Agent。
 
 ### 13.6 体验对照（大白话）
 
 | 场景 | 员工感觉 |
 |------|----------|
-| 白天已登 Mesa | 点「打印发票」→ 快照进 Agent → 开票；不用再输 PIN |
-| 换班仍登着 Mesa | 当前 Mesa 账号是谁，票就记谁 |
+| 白天已登 Farvoo | 点「打印发票」→ 快照进 Agent → 开票；不用再输 PIN |
+| 换班仍登着 Farvoo | 当前 Farvoo 账号是谁，票就记谁 |
 | 云断 / 云不可达 | 对 **已推入 Agent** 的单与本地手动开票仍可签；状态进 outbox，恢复后补传（不轮询） |
-| Mesa 网页不可用且须本地操作 | **主机与 2/3 号机**打开 Agent 本地页（局域网）；先 PIN 登录；可手动开票或处理已在本地的单 |
+| Farvoo 网页不可用且须本地操作 | **主机与 2/3 号机**打开 Agent 本地页（局域网）；先 PIN 登录；可手动开票或处理已在本地的单 |
 
 ### 13.7 查票 / 重打与开票角色的关系
 
-开票白名单仍是 owner / frontdesk / cashier；**列表可见范围见 §7.1**（店长全店，前台/收银仅本人）。换班后 Mesa 会话或本地登录换成谁，查票范围就跟谁走。
+开票白名单仍是 owner / frontdesk / cashier；**列表可见范围见 §7.1**（店长全店，前台/收银仅本人）。换班后 Farvoo 会话或本地登录换成谁，查票范围就跟谁走。
 
 ### 13.8 不做
 
 - 离线匿名开票。  
-- Agent 自建开票账号 / 断网临时建号（名册只来自 Mesa 同步）。  
+- Agent 自建开票账号 / 断网临时建号（名册只来自 Farvoo 同步）。  
 - 用云端 JWT 当 Agent 离线唯一凭证且本地无用户镜像。  
-- 把 Mesa 密码存进 Agent。  
+- 把 Farvoo 密码存进 Agent。  
 - waiter/kitchen 开正式票。  
 - 前台/收银查询或重打他人开的正式票。  

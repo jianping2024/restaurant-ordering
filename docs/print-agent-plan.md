@@ -1,6 +1,6 @@
 # 店内打印代理：实施计划（应用端 vs 安装包端）
 
-目标：浏览器/Mesa **只负责入队**；收银机 **常驻代理** 拉取任务并发送到热敏（优先 **网口 RAW 9100**）。店员侧以 **配对码** 为主，避免手写 `.env`。**订单小票、各档口出品联（`station_ticket`）、预结单** 三类 **`print_jobs.type` 一律经自建代理出纸**（同一队列、同一消费协议；**加单每批**、**每档口** 可各对应 **`station_ticket` 任务**，见 **已确认 · 出品与加单批次**；**谁看哪张票** 见 **票据受众**）；**有代理且已配对** 时 **不**把 **`window.print()` HTML** 作为上述票据的 **目标态主路径**。**无代理 / 未配对**（或代理不可用）时 **保留 `window.print()` 兜底**（见 **已确认 · 无代理时打印**）。现有 `OrdersHistoryManager` 等 HTML 打印在代理落地后 **与入队并存**：**优先队列**，**无代理则降级浏览器打印**。
+目标：浏览器/Farvoo **只负责入队**；收银机 **常驻代理** 拉取任务并发送到热敏（优先 **网口 RAW 9100**）。店员侧以 **配对码** 为主，避免手写 `.env`。**订单小票、各档口出品联（`station_ticket`）、预结单** 三类 **`print_jobs.type` 一律经自建代理出纸**（同一队列、同一消费协议；**加单每批**、**每档口** 可各对应 **`station_ticket` 任务**，见 **已确认 · 出品与加单批次**；**谁看哪张票** 见 **票据受众**）；**有代理且已配对** 时 **不**把 **`window.print()` HTML** 作为上述票据的 **目标态主路径**。**无代理 / 未配对**（或代理不可用）时 **保留 `window.print()` 兜底**（见 **已确认 · 无代理时打印**）。现有 `OrdersHistoryManager` 等 HTML 打印在代理落地后 **与入队并存**：**优先队列**，**无代理则降级浏览器打印**。
 
 **角色边界**：平台管理员（`ADMIN_BOOTSTRAP_SECRET` / 开新店）与店主/店内入口 **勿混为一谈**，见 `research.md` §1.1。
 
@@ -15,13 +15,13 @@
 | **实施顺序（当前迭代）** | **优先**：**`print_stations` 模型与 migration**（**已落地**：`supabase/migrations/20260512160000_print_stations_and_menu_bindings.sql` + **新建店种子** `20260513110000_restaurants_seed_print_stations.sql`，见 **六（附）·实施进度**）、**Dashboard 档口配置**（**已落地**：`/dashboard/settings/print-stations` + 菜单页绑定）、**类目/品 `print_station_id` 绑定**（**已落地**：菜单设置 UI）、**`station_ticket` 入队分组与 `payload`（`batch_id`、`ticket_layout`、行快照）** — **直接决定后续打单**。**暂缓**：**吊销后 JWT 立即失效的 RLS 全路径验收**、**店主按设备吊销 UI**（技术方案见 **吊销后 JWT…**，**不**删；**不**阻塞 `print_stations`）。**`print_agent_devices`** migration **可预留** `revoked_at` / `valid_until` / `device_id`。**硬底线**：**代理持 `agentjwt` 拉生产 `print_jobs` 对外上线前**须完成吊销闭环与 **REST + Realtime 验收**。 |
 | **出品联入队（已落地 · 仅自动）** | **已确认**：**不**在厨房/服务员页提供「手动打印出品」按钮。**主路径**：顾客或服务员 **提交订单/加单** 后 → **`POST .../orders/append`** 返回 **`enqueue_token`** → **`POST .../station-tickets/auto`**（校验 token + **`batch_id`**）→ 服务端按 **`effective_station_id`** 分组，**每个有行档口各 `insert` 一条** **`station_ticket`**。**「仅重打某一档口/批次」**：列 **P2**（无首期 UI）。 |
 | **出品与加单批次** | **受众**：**分批、按档口的 `station_ticket` 给店内出品人员看**（见 **票据受众**）。顾客 **多次下单 / 加单** 时，订单行按 **`batch_id`** 分批（见 `research.md`）。**已确认**：**每新提交一批**，**各相关 `print_station`** 自动打出品联（**一条任务 = 一个 `print_station` + 一个 `batch_id` 内的行**）。**`payload` 须含 `batch_id`**，**`lines` 仅该批、且归属本档口**。**防重复**：若已有同 **`order_id` + `batch_id` + `print_station_id`** 且 **`status in ('pending','processing')`** 则 **跳过**（`station-tickets/auto` 限流 + 客户端不重试）。**全单重打**：列 **P2**（`reprint_scope: full_order` 等）。 |
-| **票据受众（顾客 vs 店内）** | **已确认**：**`station_ticket`**（档口出品联）为 **店内出品岗** 的 **内部按批出菜单**（**按 `print_station` / 展示名** 区分窗口，**不**依赖「厨房 / 吧台」等固定页面名）。**`order_receipt`** 为 **顾客向最终订单小票**（汇总整单或结账快照，**离桌 / 结账时** 打印即可；**不必**随每次加单给顾客一张热敏出品联）。**`pre_bill`** 为 **预结 / 核对**（服务员与顾客对账），**非**「每批必给顾客」的出品联。**Mesa 顾客端**：**不**用分批出品联替代「最终小票」心智；顾客屏若展示加单过程，可走 **电子 UI**，与 **给顾客的纸本 `order_receipt`** 分离。 |
+| **票据受众（顾客 vs 店内）** | **已确认**：**`station_ticket`**（档口出品联）为 **店内出品岗** 的 **内部按批出菜单**（**按 `print_station` / 展示名** 区分窗口，**不**依赖「厨房 / 吧台」等固定页面名）。**`order_receipt`** 为 **顾客向最终订单小票**（汇总整单或结账快照，**离桌 / 结账时** 打印即可；**不必**随每次加单给顾客一张热敏出品联）。**`pre_bill`** 为 **预结 / 核对**（服务员与顾客对账），**非**「每批必给顾客」的出品联。**Farvoo 顾客端**：**不**用分批出品联替代「最终小票」心智；顾客屏若展示加单过程，可走 **电子 UI**，与 **给顾客的纸本 `order_receipt`** 分离。 |
 | **门店国家 `country_code`** | **`restaurants.country_code`**（**ISO 3166-1 alpha-2**）在 **注册 / 开建新门店时必填**（店主 onboarding / 公开注册、平台管理员代建）；**dashboard 餐厅设置** 可改。用途：**门店所在地 / 合规与分区等**；**不**用于推导票面语言（见 **`print_locale`**）。第一期 migration；**既有门店** 回填默认（如 `PT`）再 `NOT NULL`，或分步迁移。 |
-| **默认打印语言 `print_locale`** | **`restaurants.print_locale`**，取值 **`zh` | `en` | `pt`**（`check` + **`not null`**，默认 **`pt`**）。**语义**：**`pt` = 欧洲葡萄牙语**（与 BCP 47 **`pt-PT`** 对齐，**非** 巴西葡语 **`pt-BR`**）；票面文案、热敏模板用词均按 **欧洲葡** 维护，与 Mesa **`pt` → `pt-PT`**（如 `src/lib/i18n/messages.ts`）一致。**唯一**决定小票 / **档口出品联** / 预结的 **`payload.locale`**：`payload.locale = print_locale`（入队时复制进快照）。**不与** `country_code` 做映射表。注册 / onboarding **三选一**，未选时默认 **`pt`（欧洲葡）**；**dashboard 餐厅设置** 随时修改，无需改国家。 |
-| **票面语言（多语言小票）** | **第一期：整张票单一语言**（`payload` 须含 **`locale`（或 `lang`）** 一种，与 `print_locale` 一致）。**同一票面中英葡并列 / 双语对照** **不做**（列 **P2**）。**不**用操作员 Mesa 界面语言、**不**用浏览器语言、**不**用 GPS/IP。 |
+| **默认打印语言 `print_locale`** | **`restaurants.print_locale`**，取值 **`zh` | `en` | `pt`**（`check` + **`not null`**，默认 **`pt`**）。**语义**：**`pt` = 欧洲葡萄牙语**（与 BCP 47 **`pt-PT`** 对齐，**非** 巴西葡语 **`pt-BR`**）；票面文案、热敏模板用词均按 **欧洲葡** 维护，与 Farvoo **`pt` → `pt-PT`**（如 `src/lib/i18n/messages.ts`）一致。**唯一**决定小票 / **档口出品联** / 预结的 **`payload.locale`**：`payload.locale = print_locale`（入队时复制进快照）。**不与** `country_code` 做映射表。注册 / onboarding **三选一**，未选时默认 **`pt`（欧洲葡）**；**dashboard 餐厅设置** 随时修改，无需改国家。 |
+| **票面语言（多语言小票）** | **第一期：整张票单一语言**（`payload` 须含 **`locale`（或 `lang`）** 一种，与 `print_locale` 一致）。**同一票面中英葡并列 / 双语对照** **不做**（列 **P2**）。**不**用操作员 Farvoo 界面语言、**不**用浏览器语言、**不**用 GPS/IP。 |
 | **桌位字段（`table_id` + `display_name`）** | **已定**（见 [`restaurant-tables-design.zh.md`](./restaurant-tables-design.zh.md) §8）：凡 payload 涉及桌位（**`station_ticket` / `order_receipt` / `pre_bill`**），入队时 **须成对写入** **`table_id`（UUID）** 与 **`display_name`（入队瞬间快照）**。**热敏纸只印 `display_name`**；**`table_id`** 用于 agent 日志、后台 `print_jobs` 筛选、历史重打关联。**禁止**纸面印 UUID。**不**兼容旧字段 **`payload.table_number`**（与桌位 migration 同步发版）。**`print_jobs` 展示列** 取自 **`display_name`**；可选持久化 **`table_id`** 列便于排障。 |
 | **入队幂等（`print_jobs`）** | **第一期**：**`order_receipt` / `pre_bill`**：**每次点击「打印」新建一条** `print_jobs`。**`station_ticket`**：**下单/加单自动入队**时 **同一 `batch_id` 请求内 `insert` 多条**（每档口一条）；**pending/processing** 重复则跳过。**「仅重打单一 `print_station`」**：列 **P2**。**不**要求 `client_request_id`；**`station-tickets/auto`** 有 **按 IP/单批** 限流。**若日后**需更强去重，再引入 **`Idempotency-Key`**（**P2**）。 |
-| **无代理时打印（兜底）** | **已确认**：本店 **尚未配对打印助手 / 无可用代理**（或代理离线、队列失败等，具体触发条件产品可收窄）时 **保留现有 `window.print()` HTML 出纸**，**避免**完全无法打印；**有代理且链路可用** 时 **仍以 `print_jobs` → 代理热敏为主路径**。**Mesa** 可提示：「未连接打印助手，已使用浏览器打印」。**不**把「无兜底」列为第一期选项。 |
+| **无代理时打印（兜底）** | **已确认**：本店 **尚未配对打印助手 / 无可用代理**（或代理离线、队列失败等，具体触发条件产品可收窄）时 **保留现有 `window.print()` HTML 出纸**，**避免**完全无法打印；**有代理且链路可用** 时 **仍以 `print_jobs` → 代理热敏为主路径**。**Farvoo** 可提示：「未连接打印助手，已使用浏览器打印」。**不**把「无兜底」列为第一期选项。 |
 
 ### 已确认技术选型
 
@@ -29,8 +29,8 @@
 |----|------|
 | **代理实现语言** | **Go**（单文件 exe、易交叉编译；Realtime 可用官方/社区 **Supabase Go 客户端** 或 **REST + Realtime WebSocket** 自接，见实现时选型）。 |
 | **任务投递** | **第一期即上 Supabase Realtime**（`postgres_changes` on `print_jobs`）；**轮询仅作断线补偿 / 低频兜底**，不作为主路径 MVP。 |
-| **仓库位置** | **与 Mesa 同一 Git 仓库**，路径 **`apps/print-agent`**；CI 用 `paths` 过滤；将来若拆库再迁。 |
-| **P0 打印相关 API 落点** | **Next.js `app/api`（Route Handlers）为主**：`pairing`（`POST`）/**`pairings`（`GET` 只读列表，已定）** /**`print-jobs/recent`（`GET` 最近条数，已定）** / `claim` / `print-jobs` 入队、设备吊销等 **业务、限流、审计** 与 Mesa **同仓同部署**；密钥与观测走 **现有 Next 托管栈**（如 **`SUPABASE_SERVICE_ROLE_KEY` 仅服务端 env**，不进浏览器）。**刻意避免与 Supabase 过多耦合**：**不**把第一期主路径放在 **Supabase Edge Functions**（免增 Deno **另一套发布、日志、排障**）；Supabase 承担 **Postgres + RLS + Realtime（及 Auth）** 的 **数据与订阅** 即可。Edge Functions **仅在未来个案**（强隔离、重计算）再评估。 |
+| **仓库位置** | **与 Farvoo 同一 Git 仓库**，路径 **`apps/print-agent`**；CI 用 `paths` 过滤；将来若拆库再迁。 |
+| **P0 打印相关 API 落点** | **Next.js `app/api`（Route Handlers）为主**：`pairing`（`POST`）/**`pairings`（`GET` 只读列表，已定）** /**`print-jobs/recent`（`GET` 最近条数，已定）** / `claim` / `print-jobs` 入队、设备吊销等 **业务、限流、审计** 与 Farvoo **同仓同部署**；密钥与观测走 **现有 Next 托管栈**（如 **`SUPABASE_SERVICE_ROLE_KEY` 仅服务端 env**，不进浏览器）。**刻意避免与 Supabase 过多耦合**：**不**把第一期主路径放在 **Supabase Edge Functions**（免增 Deno **另一套发布、日志、排障**）；Supabase 承担 **Postgres + RLS + Realtime（及 Auth）** 的 **数据与订阅** 即可。Edge Functions **仅在未来个案**（强隔离、重计算）再评估。 |
 
 ### 已确认网络与打印机
 
@@ -39,7 +39,7 @@
 | **第一期主路径** | **网口热敏**，代理 **`TCP` → `主机:9100`（RAW / JetDirect）**，与 Go `net.Dial` 方案一致。 |
 | **「固定 IP」含义** | 店内 **RFC1918 私网地址**（常见 **`192.168.*.*`**，亦可能 `10.*` / `172.16–31.*`），**每店、每台打印机不同**，不是全球写死常数。 |
 | **如何固定** | **优先路由器 DHCP 保留**（按打印机 MAC 总是分配同一地址）；次选打印机面板设静态 IP。 |
-| **配置落点** | `printer_host`（及端口，默认 9100）写在 **代理本机配置**（配对向导或 `config.json`），**不进 Mesa 仓库**；换路由或改网段时 **改一次配置**即可。 |
+| **配置落点** | `printer_host`（及端口，默认 9100）写在 **代理本机配置**（配对向导或 `config.json`），**不进 Farvoo 仓库**；换路由或改网段时 **改一次配置**即可。 |
 | **纯 USB** | **不作为第一期**；多收银、SaaS 与自建代理解耦成本高，列入 **P2 或兼容项**（若做，再走系统打印队列等单独路径）。 |
 | **热敏纸宽（ESC/POS 模板）** | **第一期锁定 80mm**（标称 80mm，实际纸宽约 **79.5±0.5mm**；葡/EU 餐饮收银最常见）。代理与模板 **仅按 80mm 行宽/字号实现**，**不**做 58mm 分支。**58mm 便携机** 若出现，列 **P2**（再增加 `paper_width_mm` 与第二套模板）。 |
 | **第一期参考样机（验收基准）** | **UNYKA UK56009**（铭牌型号 **UK56009**）：**80mm** 热敏收据机、**ESC/POS**、**USB+LAN**（**第一期代理主路径**：**LAN → TCP RAW `IP:9100`**；**USB** 直连列 **P2**，与文首「纯 USB」一致）。铭牌标称 **约 230mm/s**、**钱箱 24V** 等 **不**改变首期队列协议；**字符编码 / 中欧葡重音** 以 **本机打样** 为 **首期定稿依据**。仓库内参考图：**[`docs/assets/reference-printer-unyka-uk56009.png`](./assets/reference-printer-unyka-uk56009.png)**。**官方技术页 PDF**（Unykach，文件名 *Ficha-Impresora-Termica-POS5-UK56009*）：[`https://unykach.com/wp-content/uploads/2024/09/Ficha-Impresora-Termica-POS5-UK56009.pdf`](https://unykach.com/wp-content/uploads/2024/09/Ficha-Impresora-Termica-POS5-UK56009.pdf) — 在 **「CARACTERES」** 段列出 **PC347 / PC850 / PC860(Portuguese) / … / WPC1252 / PC852 / Pc858 / …** 等 **Code Page 类**字符集；**该 PDF 全文未出现 UTF-8**（是否仍可通过 ESC/POS 指令切 UTF-8 须 **编程手册或实机打样** 核实）。若日后换主力型号，在本表 **追加行** 或维护 **`docs/` 样机对照表**，**不**删本行历史基准。 |
@@ -49,17 +49,17 @@
 
 | 项 | 决策 |
 |----|------|
-| **收银机出网** | 可稳定访问 **公网 HTTPS**（**Supabase REST/Realtime/WSS**、Mesa **claim / 业务 API**）；按此假设做 **第一期**（默认直连，无 `HTTP_PROXY`）。 |
+| **收银机出网** | 可稳定访问 **公网 HTTPS**（**Supabase REST/Realtime/WSS**、Farvoo **claim / 业务 API**）；按此假设做 **第一期**（默认直连，无 `HTTP_PROXY`）。 |
 | **企业代理 / 封闭网络** | **第一期不兼容**（不实现 PAC、MITM 企业根证书、CONNECT 隧道等）；若某店仅有代理出网，列为 **例外支持 / P2**：放行域名 + 可选 `HTTPS_PROXY` 或现场网络整改。 |
 
 ### 已确认安装包分发
 
 | 项 | 决策 |
 |----|------|
-| **渠道** | **仅 GitHub Releases**（`action-gh-release` 上传 **Inno Setup 安装包**、**便携 zip**、`SHA256SUMS`）；Mesa 后台下载链指向 **`https://github.com/<org>/<repo>/releases/...`**（**主链见「安装形态」**）。 |
-| **代理语言（Windows 端）** | **已定 Go**（见 **已确认技术选型 · 代理实现语言**）；与 Mesa **TypeScript** 分栈，**不**改为 Node/Electron 作为第一期 Windows 代理实现。 |
+| **渠道** | **仅 GitHub Releases**（`action-gh-release` 上传 **Inno Setup 安装包**、**便携 zip**、`SHA256SUMS`）；Farvoo 后台下载链指向 **`https://github.com/<org>/<repo>/releases/...`**（**主链见「安装形态」**）。 |
+| **代理语言（Windows 端）** | **已定 Go**（见 **已确认技术选型 · 代理实现语言**）；与 Farvoo **TypeScript** 分栈，**不**改为 Node/Electron 作为第一期 Windows 代理实现。 |
 | **Windows 代码签名（Authenticode）** | **已定不买签名（第一期）**（**不购买**证书、CI 不跑签名）；店长安装时可能出现 **SmartScreen /「未知发布者」**，靠 **固定 GitHub URL** + **`SHA256SUMS` 人工核对** + **打印助手内简短说明**（如「仍要运行」、属性中解除锁定）缓解；**后续再评估** 购买 OV 等证书并接入发布流水线，以改善 SmartScreen 与防冒名。 |
-| **安装形态（第一期）** | **双产物（已定）**：① **Inno Setup 向导安装包**（每架构一枚 **`MesaPrintAgent-Setup-<ver>-<arch>.exe`**，或单盘内 **显式选 x64 / ARM64** — 实现期定）：开始菜单快捷方式、**控制面板卸载**、**「用户登录 Windows 时自动启动代理」（开机自启）安装步骤内默认勾选**（店主可取消；实现以 **`HKCU`…`Run` 或「当前用户」任务计划** 为宜，**避免**无必要写 **`HKLM`**）。② **便携 zip**（`MesaPrintAgent-windows-<arch>.zip`，内含 `exe` + 说明）：**免安装**双击，供排障与不愿写注册表场景。**Mesa「打印助手」主下载按钮**：**默认指向 amd64 的 Inno 安装包**；zip 为 **次要链接**（「免安装 / 高级」）。**P0 联调**可先用 zip；**P1 对外交付**须含 **Inno + 自启**（见 **§二 · P1-4**）。 |
+| **安装形态（第一期）** | **双产物（已定）**：① **Inno Setup 向导安装包**（每架构一枚 **`MesaPrintAgent-Setup-<ver>-<arch>.exe`**，或单盘内 **显式选 x64 / ARM64** — 实现期定）：开始菜单快捷方式、**控制面板卸载**、**「用户登录 Windows 时自动启动代理」（开机自启）安装步骤内默认勾选**（店主可取消；实现以 **`HKCU`…`Run` 或「当前用户」任务计划** 为宜，**避免**无必要写 **`HKLM`**）。② **便携 zip**（`MesaPrintAgent-windows-<arch>.zip`，内含 `exe` + 说明）：**免安装**双击，供排障与不愿写注册表场景。**Farvoo「打印助手」主下载按钮**：**默认指向 amd64 的 Inno 安装包**；zip 为 **次要链接**（「免安装 / 高级」）。**P0 联调**可先用 zip；**P1 对外交付**须含 **Inno + 自启**（见 **§二 · P1-4**）。 |
 | **Windows 架构** | **必达、必测**：**amd64（x64）**。**尽力兼容 ARM64**：与 **zip** 相同，**Inno Setup** 须 **分架构各一 Setup** 或 **安装向导内选择/检测架构**，**禁止**在 ARM64 Windows 上静默装错 x64 二进制。CI：**`GOOS=windows` + `GOARCH` 矩阵** 双编 `exe`，再各打 **zip** 与 **Setup**。 |
 | **自有域名 / OSS / CDN / 备案** | **第一期不做**；若国内访问 GitHub 不稳或合规要求自建分发，再列 **P2** 同步到 R2/OSS 并配置 `NEXT_PUBLIC_PRINT_AGENT_DOWNLOAD_URL`。 |
 
@@ -81,7 +81,7 @@
 | **最长使用期** | **180 天（半年）** 自 **claim 成功** 起算；期满 **必须重新配对**（旧凭证作废，API 返回明确错误码） | 与 **第一期凭证形态**（单条 JWT）一致：即 **`exp` = claim_time + 180d**（`src/lib/print-agent-credential.ts`）。 |
 | **第一期凭证形态** | **单条 scoped JWT**（**不**在第一期实现 **access + refresh** 双票轮换）：**`exp` = claim_time + 180d**；**`POST .../claim` 成功响应 JSON** 中 JWT 字段 **唯一写死为 `agentjwt`**（**禁止**同响应再出现 `token` / `agent_jwt` 等别名，代理与 OpenAPI/实现 **一律读 `agentjwt`**）+ `supabase_url` + **`valid_until`**（与 `exp` 对齐供 UI）；代理 **本地持久化 `agentjwt`**，**无** refresh HTTP 流程 | **省事**：代理无定时换票、无 refresh 失败重试分支。**隐患**：① **泄露窗口长**（最长至过期或 **`revoked_at`**），靠 **RLS 最小权限**、**`device_id` claim**、**按设备吊销** 补；② **90 天内无法静默轮换**同一 JWT（除非服务端发新 JWT 并推送——本期不做），**签名密钥轮换** 将导致全体重配；③ **设备时钟** 偏差过大时 `exp` 判定异常，代理应 **NTP 或** 对 `exp` 留 **±几分钟 skew**。**演进（P2）**：可改为 **短 access + refresh**，且 **refresh 链总寿命仍 ≤ 90d**。 |
 | **强制重新配对** | 满 **180 天** **仅能通过新配对码** 换新凭证；代理检测到 401/过期后弹 **「请重新配对」** | 降低设备丢失后长期有效风险。 |
-| **提前提醒** | **双通道（均建议保留）**：① **Mesa 功能端（Next.js / Node：`app/dashboard`、Route Handlers、`createClient` 等）— 必做（P0-D）**：**到期前 30 天**起（`PRINT_AGENT_CREDENTIAL_REMINDER_BEFORE_DAYS`），须 **两处 UI**（**缺一不算达标**）：**（a）`/dashboard` layout 顶栏全局 Alert/条（已定）**，**任意 dashboard 子页**可见，文案含 **日期** 与 **重新配对** 指引（可链至 **「打印助手」**）；**（b）「打印助手」** 区块内 **Alert / 横幅 + 具体日期**（如「将于 yyyy-mm-dd 需重新配对」）。数据来自本店 **`print_agent_devices`** 中 **`valid_until` 将至** 的设备。**店主开浏览器即可看到**，不依赖 Windows 代理是否运行。② **代理托盘（已定 P1，§二 · P1-3）**：**关于/状态行**展示 **到期日或剩余天数**（常驻、低打扰）；**进入 30 天窗口**后可 **每日至多一次** 轻提示；**不用**全年倒计时弹窗。**托盘不替代** ①；两路 **互补**，覆盖「只开浏览器 / 只开收银代理」两类习惯。 | 避免到期当日才发现停打。 |
+| **提前提醒** | **双通道（均建议保留）**：① **Farvoo 功能端（Next.js / Node：`app/dashboard`、Route Handlers、`createClient` 等）— 必做（P0-D）**：**到期前 30 天**起（`PRINT_AGENT_CREDENTIAL_REMINDER_BEFORE_DAYS`），须 **两处 UI**（**缺一不算达标**）：**（a）`/dashboard` layout 顶栏全局 Alert/条（已定）**，**任意 dashboard 子页**可见，文案含 **日期** 与 **重新配对** 指引（可链至 **「打印助手」**）；**（b）「打印助手」** 区块内 **Alert / 横幅 + 具体日期**（如「将于 yyyy-mm-dd 需重新配对」）。数据来自本店 **`print_agent_devices`** 中 **`valid_until` 将至** 的设备。**店主开浏览器即可看到**，不依赖 Windows 代理是否运行。② **代理托盘（已定 P1，§二 · P1-3）**：**关于/状态行**展示 **到期日或剩余天数**（常驻、低打扰）；**进入 30 天窗口**后可 **每日至多一次** 轻提示；**不用**全年倒计时弹窗。**托盘不替代** ①；两路 **互补**，覆盖「只开浏览器 / 只开收银代理」两类习惯。 | 避免到期当日才发现停打。 |
 | **多设备 / 不互踢** | **新 `device_id` 成功 claim** 时：**仅**为该设备签发/登记 token 与 `print_agent_devices` 行；**不** `update` 同店其它设备的 `revoked_at`、**不**使旧机 token 失效 | 与「多收银机」一致；**离职/丢机** 必须依赖 **显式吊销**（`revoked_at`）或 **90 天满期**，不得依赖「新配对自动踢旧机」。 |
 | **吊销后 JWT 立即失效（方案已定、实现顺延）** | **【当前迭代】**：与 **实施顺序** 一致 — **先** 完成 **`print_stations` 与出品入队主线**，**吊销 RLS + dashboard 吊销操作流** **顺延**，**不**挡表结构与打单逻辑定稿。**方案不变**（**不**删）：代理经 `agentjwt` 访问的 **`print_jobs`（及 Realtime）** 须 **RLS** 子查询 **`print_agent_devices`**：**`revoked_at is null`** 且 **`valid_until > now()`** 且 **`device_id` / `restaurant_id` 与 JWT 对齐**（伪码同前表版本）。**不**以 **`jti` 黑名单表** 为默认首期实现。**`print_agent_devices`**：**migration 预留列**即可。**硬底线**：**代理拉生产 `print_jobs` 对外上线前**须完成 **写 `revoked_at` 后立即失 DB 访问** 与 **REST + Realtime 验收**。**运营代客吊销** 仍为 **P2 UI**。 |
 
@@ -89,7 +89,7 @@
 
 ## 阶段划分总览
 
-| 阶段 | 应用端（Mesa + Supabase） | 安装包端（打印代理） |
+| 阶段 | 应用端（Farvoo + Supabase） | 安装包端（打印代理） |
 |------|---------------------------|----------------------|
 | **P0** | **`print_stations` + 类目/品绑定**、`print_jobs` 入队（`station_ticket` 分组）、**Realtime**；配对码与下载入口；**`print_agent_devices` 可建表预留吊销列**（**吊销 RLS 验收顺延**，见 **实施顺序**）；**凭证 `valid_until` 到期前 15 天：`/dashboard` 顶栏 +「打印助手」双处提醒（必做，见 P0-D）**；**「打印助手」最近 5 条 `print_jobs` 排障列表（必做，见 P0-D + `GET .../print-jobs/recent`）** | **`apps/print-agent`（Go）**：配对 + **Realtime 为主** + 补偿 `select` + TCP 打印 + 日志 |
 | **P1** | 订单历史「打印」写入队列；任务状态/失败原因展示 | **Inno Setup 安装包 + 用户登录时自动启动（开机自启，默认勾选，已定，见 P1-4）** + **便携 zip** 同 Release；**托盘到期提醒**（`valid_until` 前 15 天，**已定**，见 **P1-3**） |
@@ -169,14 +169,14 @@
 2. **`PATCH /api/print-agent/jobs/:id`**（或 Supabase `update`）  
    - 代理：`pending` → `processing`（乐观锁 `id + status`）；完成后 `done`；失败写 `failed` + `error_message`。
 
-### P0-D：后台 UI（Mesa）
+### P0-D：后台 UI（Farvoo）
 
 1. **餐厅设置**（或桌位旁）新增 **「打印助手」** 区块：  
    - 按钮：**生成配对码**；**成功创建后** 以 **`POST` 响应中的 `code`** 做 **显著弹层/可复制**；**进入区块时** 调用 **`GET /api/print-agent/pairings`**，行内 **`code`**（待使用完整显示）+ **待使用/已使用**；**待使用行** 提供 **复制** 与 **作废**（`POST .../revoke`）。**不**因待使用条数禁用「生成」。  
    - 链接：**下载 Windows 打印助手** — **主：Inno 安装包（amd64）**；**次：便携 zip**（见 **已确认安装包分发**）。  
    - 短文：**安装 → 打开助手 → 输入码 → 填打印机局域网 IP（建议路由器 DHCP 保留）→ 点试打**。  
    - **默认打印语言**：由 **`print_locale`**（`zh` / `en` / **`pt` = 欧洲葡 `pt-PT`**）决定（见 **已确认产品与场景**）；在 **餐厅设置** 中展示并允许修改。  
-   - **凭证将到期（必做）**：**到期前 15 天**起，凡本店存在已配对设备且 **`valid_until` 进入提醒窗口**（与文首 **已确认代理 token 生命周期** 一致），须在 **Mesa 功能端（Next.js / Node）** 展示 **不可忽视的提醒**，**且须包含**：**（1）`/dashboard` layout 顶栏全局条（已定）** — **任意子页**可见，含 **日期** 与 **重新配对** 指引（可附「打开打印助手」链）；**（2）「打印助手」** 区块内 **Alert / 横幅 + 具体日期**。**数据**来自 **`print_agent_devices`**（经 **RLS + owner** 的 `select`，或 **`app/api` 聚合** 后由客户端展示）。**与 Windows 代理托盘（P1-3）为双通道**，**功能端提醒不因「未装代理」而省略**。  
+   - **凭证将到期（必做）**：**到期前 15 天**起，凡本店存在已配对设备且 **`valid_until` 进入提醒窗口**（与文首 **已确认代理 token 生命周期** 一致），须在 **Farvoo 功能端（Next.js / Node）** 展示 **不可忽视的提醒**，**且须包含**：**（1）`/dashboard` layout 顶栏全局条（已定）** — **任意子页**可见，含 **日期** 与 **重新配对** 指引（可附「打开打印助手」链）；**（2）「打印助手」** 区块内 **Alert / 横幅 + 具体日期**。**数据**来自 **`print_agent_devices`**（经 **RLS + owner** 的 `select`，或 **`app/api` 聚合** 后由客户端展示）。**与 Windows 代理托盘（P1-3）为双通道**，**功能端提醒不因「未装代理」而省略**。  
 
 2. **最近 `print_jobs` 排障（已定，必做）**：在 **「打印助手」** 内展示本店 **按 `created_at` 倒序最近 5 条**（**条数 5** 为文档约定，实现可配置 **≤20** 不改变语义）；**进入区块或定时刷新** 时调用 **`GET /api/print-agent/print-jobs/recent`**（见 **P0-B**）。列 **至少**：**`type`、`status`、`created_at`**；**`failed` 时 `error_message`**；**`id`**（与代理日志对照）。**不**在列表中展开完整 **`payload`**（见 **P0-B** 该 Route 说明）。
 
@@ -199,7 +199,7 @@
 
 ### P0-1：运行时与仓库结构
 
-1. **选型（已锁定）**：**Go**，目录 **`apps/print-agent`**（与 Mesa **同一仓库**）；`go.mod` 模块名建议 `github.com/<org>/restaurant-ordering/apps/print-agent` 或独立 module 路径按你们 Git 托管定。  
+1. **选型（已锁定）**：**Go**，目录 **`apps/print-agent`**（与 Farvoo **同一仓库**）；`go.mod` 模块名建议 `github.com/<org>/restaurant-ordering/apps/print-agent` 或独立 module 路径按你们 Git 托管定。  
 2. **版本**：与 Git tag `print-agent-v*` 对齐（见 §四 CI）。
 
 ### P0-2：核心流程
@@ -233,9 +233,9 @@
 ### P1-3：代理托盘到期提醒（已定）
 
 1. **触发条件**：已配对且本地可读 **`valid_until`**；当 **`now` ≥ `valid_until` − 15d`** 且凭证仍有效时进入提醒窗口（与文首 **已确认代理 token 生命周期 · 提前提醒** 对齐）。  
-2. **形态**：**系统托盘**图标存在时，使用 **气泡或 Windows 10+ Toast**（实现选型以 Go 生态为准）；文案含 **失效日期** 与 **「请到 Mesa 打印助手生成配对码并重新连接」** 指引。  
+2. **形态**：**系统托盘**图标存在时，使用 **气泡或 Windows 10+ Toast**（实现选型以 Go 生态为准）；文案含 **失效日期** 与 **「请到 Farvoo 打印助手生成配对码并重新连接」** 指引。  
 3. **频率**：**每次代理进程启动**若处于窗口内则提示 **一次**；常驻运行则 **每自然日至多一次**（避免连弹）。  
-4. **与 Mesa（功能端）关系**：**Mesa / Next（Node）侧** 须 **顶栏 +「打印助手」** 双处 **15 天到期提醒（必做，P0-D）**；本 **托盘** 为 **补充（P1）**，覆盖「收银机常开、浏览器不常开 Mesa」场景；**两路并行**，文案对齐。  
+4. **与 Farvoo（功能端）关系**：**Farvoo / Next（Node）侧** 须 **顶栏 +「打印助手」** 双处 **15 天到期提醒（必做，P0-D）**；本 **托盘** 为 **补充（P1）**，覆盖「收银机常开、浏览器不常开 Farvoo」场景；**两路并行**，文案对齐。  
 5. **托盘主壳（体验扩展）**：托盘不应 **仅** 做到期提醒；应以托盘为 **主交互**（状态、打开设置、试打、退出），默认 **隐藏控制台**。完整条目见 **[`print-agent-ux-packaging.zh.md`](./print-agent-ux-packaging.zh.md)**。
 
 ### P1-4：Windows 安装包（Inno Setup + 开机自启，已定）
@@ -248,7 +248,7 @@
 ### P1-5：分发（已确认：GitHub Releases）
 
 1. **GitHub Releases** 挂 **每架构 zip + Inno Setup** + `SHA256SUMS`（见 §4.2）。  
-2. Mesa 后台下载链接指向 **同一 GitHub 仓库 Releases**（`latest` 或固定 tag）。  
+2. Farvoo 后台下载链接指向 **同一 GitHub 仓库 Releases**（`latest` 或固定 tag）。  
 3. **（可选）** 安装包内嵌 **当前 Supabase 项目 URL**，减少 claim 返回字段（仍建议 claim 动态返回 **`agentjwt`**）。
 
 ### P2-6：扩展（后续）
@@ -257,7 +257,7 @@
 2. macOS：`.pkg` 或 notarized `.app`（签名与公证成本更高）。  
 3. 多打印机：`config.json` 里 `printers[]` + `print_jobs` 带来 `printer_slot` 字段。  
 4. **纯 USB 打印机**：系统队列 / 驱动路径（与网口 RAW 分离实现）。**实施计划见 [`docs/print-agent-usb-plan.md`](./print-agent-usb-plan.md)**（Windows WinSpool RAW、配置 `winspool:` 前缀、配对向导选机）。  
-5. **平台运营后台**（与 **店主 Mesa `/dashboard`** **分系统、分鉴权**，见 `research.md` §1.1）：跨店设备列表、代客吊销、只读 `print_jobs` 排障等 — **完整范围与分期见 [`platform-admin-plan.zh.md`](./platform-admin-plan.zh.md) §4.2**；吊销后 JWT 强制校验见 [`print-agent-device-revocation-auth.zh.md`](./print-agent-device-revocation-auth.zh.md)。  
+5. **平台运营后台**（与 **店主 Farvoo `/dashboard`** **分系统、分鉴权**，见 `research.md` §1.1）：跨店设备列表、代客吊销、只读 `print_jobs` 排障等 — **完整范围与分期见 [`platform-admin-plan.zh.md`](./platform-admin-plan.zh.md) §4.2**；吊销后 JWT 强制校验见 [`print-agent-device-revocation-auth.zh.md`](./print-agent-device-revocation-auth.zh.md)。  
 6. **短 access + refresh**（refresh 总寿命仍 **≤90d**）：见文首 **第一期凭证形态** 演进说明。  
 7. **58mm 热敏**：代理 **`paper_width_mm`** + **第二套 ESC/POS 行宽**（第一期仅 **80mm**，见 **已确认网络与打印机**）。
 
@@ -268,7 +268,7 @@
 1. 应用端：表 + RLS + **claim 假数据**（硬编码返回测试 **`agentjwt`**）验证代理能连 Supabase。  
 2. 代理：`apps/print-agent` 下 `go run` / `go build` CLI，如 `agent -code=123456` 打通 Realtime（或补偿 `select`）+ 打 `nc -l 9100` 假打印机。  
 3. 接上真机或网口热敏。  
-4. Mesa 订单历史写入 `print_jobs` 端到端。  
+4. Farvoo 订单历史写入 `print_jobs` 端到端。  
 5. 打包安装程序 + 给一家店试点。
 
 ---
@@ -279,7 +279,7 @@
 
 | 方案 | 状态 |
 |------|------|
-| **`apps/print-agent` 与 Mesa 同库** | **已采用**：单 PR 可改 API + 代理；CI `paths` 过滤仅代理变更时构建。 |
+| **`apps/print-agent` 与 Farvoo 同库** | **已采用**：单 PR 可改 API + 代理；CI `paths` 过滤仅代理变更时构建。 |
 | **独立 Git 仓库** | **不采用**（第一期）；若日后拆库，Release 与 claim URL 策略可迁移。 |
 
 ### 4.2 「一键打包 + 可下载」推荐做法（GitHub Actions + Releases）
@@ -288,12 +288,12 @@
    - 触发：`push` tags 匹配 `print-agent-v*` **或** `workflow_dispatch`（手动一键）。  
    - Job：在 `apps/print-agent` 下 **`GOOS=windows`** **`go build`**，**矩阵**：**`GOARCH=amd64`（必达）** + **`GOARCH=arm64`（尽力）**；每架构产出 **`MesaPrintAgent.exe`** → 打 **`zip`** → 用 **Inno Setup（`iscc`）** 打 **`MesaPrintAgent-Setup-<ver>-<arch>.exe`**（脚本在仓库内，如 `apps/print-agent/installer/*.iss`）；汇总 **`SHA256SUMS`**（**含 zip 与 Setup**）。与 **已确认安装包分发 · 安装形态** 一致。  
    - **上传**：`softprops/action-gh-release` 或 `actions/upload-artifact` + Release，附件挂 **各架构 zip + 各架构 Setup** + `SHA256SUMS`。  
-2. **Mesa 后台下载链接**：**主按钮** → **amd64 Inno 安装包**（如 `.../latest/download/MesaPrintAgent-Setup-*-amd64.exe`）；**次链** → 同版 **amd64 zip**；ARM PC → Release 页选 **arm64 Setup** 或 **arm64 zip**（日后可加 Mesa **架构检测 + 双链**，见 **P1** 其它项）。与 **已确认安装包分发** 一致。  
+2. **Farvoo 后台下载链接**：**主按钮** → **amd64 Inno 安装包**（如 `.../latest/download/MesaPrintAgent-Setup-*-amd64.exe`）；**次链** → 同版 **amd64 zip**；ARM PC → Release 页选 **arm64 Setup** 或 **arm64 zip**（日后可加 Farvoo **架构检测 + 双链**，见 **P1** 其它项）。与 **已确认安装包分发** 一致。  
 3. **代码签名**：**第一期跳过**；与 **已确认安装包分发** 一致。**后续** 若采购证书，再在 workflow 中增加 **Authenticode** 签名 Step（减少 SmartScreen 拦截）。
 
-> **P2**：若需自有 OSS/CDN（备案、国内加速），在 workflow 中增加同步上传步骤，并改 Mesa 环境变量下载基址（见 **已确认安装包分发**）。
+> **P2**：若需自有 OSS/CDN（备案、国内加速），在 workflow 中增加同步上传步骤，并改 Farvoo 环境变量下载基址（见 **已确认安装包分发**）。
 
-### 4.3 与 Mesa 主站 CI 的关系
+### 4.3 与 Farvoo 主站 CI 的关系
 
 - **路径过滤**：`paths: ['apps/print-agent/**', '.github/workflows/print-agent-*']`，避免改菜单也触发代理构建。  
 - **版本号**：`apps/print-agent` 内 **`VERSION` 文件或 `-ldflags -X main.version=`** 与 **git tag** 对齐，便于排障。
@@ -375,7 +375,7 @@
 
 ### 5.8 与「业务身份」的关系
 
-- **Mesa 登录**：谁有权 **创建** 打印任务。  
+- **Farvoo 登录**：谁有权 **创建** 打印任务。  
 - **配对 + 代理 token**：谁有权 **消费** 队列、连打印机。  
 两层都要硬，**不能互相替代**。
 
@@ -408,8 +408,8 @@
 - [x] **`print_agent_pairings`**（含 `revoked_at`：`20260531140000_...`）及 **配对 / 列表 / 作废 / claim** API  
 - [x] **`app/api`（Next）**：`POST .../pairing`、`GET .../pairings`、**`POST .../pairings/[id]/revoke`**、`GET .../print-jobs/recent`、`POST .../claim`；**无**待使用槽位上限 / create 生成限流；列表待使用 **明文 `code`**、已核销掩码；凭证 **180 天**、**提前 30 天** 提醒见「已确认代理 token 生命周期」  
 - [ ] `print_agent_devices`（或等价）：`paired_at`、`valid_until`（**+90d**）、`revoked_at`、`device_id`（**列可先预留**）；**claim 仅影响本行、不踢同店其它设备**（见 **已确认代理 token 生命周期 · 多设备**）；**`print_jobs` 代理 RLS + `revoked_at` 即时失效** — **在 `print_stations` 与出品入队主线之后**闭环（见 **实施顺序**、**吊销后 JWT…**）
-- [ ] **到期前 15 天（必做，Next/Mesa 功能端）**：**`print_agent_devices`** 驱动 — **`/dashboard` layout 顶栏全局条（已定）** + **「打印助手」** 区块强提示 + 日期（见 **P0-D**，**两处缺一不可**）；**已配对设备列表**；**按设备吊销（`revoked_at`）** — **UI 与 RLS 验收** 与上条 **同期或略晚**（不挡 `print_stations`）；**claim** 在 `valid_until` 后拒绝并提示重新配对。**与代理托盘（P1-3）双通道**，功能端 **不因未装代理而省略**
-- [ ] **无代理 / 未配对**：Mesa **保留 `window.print()` HTML 兜底**；**有代理** 以 **`print_jobs`** 为主路径（见 **无代理时打印**）
+- [ ] **到期前 15 天（必做，Next/Farvoo 功能端）**：**`print_agent_devices`** 驱动 — **`/dashboard` layout 顶栏全局条（已定）** + **「打印助手」** 区块强提示 + 日期（见 **P0-D**，**两处缺一不可**）；**已配对设备列表**；**按设备吊销（`revoked_at`）** — **UI 与 RLS 验收** 与上条 **同期或略晚**（不挡 `print_stations`）；**claim** 在 `valid_until` 后拒绝并提示重新配对。**与代理托盘（P1-3）双通道**，功能端 **不因未装代理而省略**
+- [ ] **无代理 / 未配对**：Farvoo **保留 `window.print()` HTML 兜底**；**有代理** 以 **`print_jobs`** 为主路径（见 **无代理时打印**）
 - [ ] **§五 安全**：配对限流、HTTPS、claim 只信服务端 `restaurant_id`、scoped JWT、payload 大小限制、创建任务限流  
 - [x] 后台「打印助手」UI + **下载链接（主：Inno amd64 Setup；次：zip）** + SmartScreen 说明（`PrintAgentDownloadPanel` + `NEXT_PUBLIC_PRINT_AGENT_GITHUB_REPO`）；**最近 5 条 `print_jobs` 排障表（已定，见 P0-D）**  
 - [ ] **`restaurants.country_code`**（ISO 3166-1 alpha-2，`NOT NULL`）迁移 + **注册/代建开店表单必填** + dashboard **餐厅设置** 可编辑（与 **票面语言解耦**，见 **已确认产品与场景**）  

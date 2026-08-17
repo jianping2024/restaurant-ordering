@@ -1,4 +1,4 @@
-# Mesa 打印全链路说明
+# Farvoo 打印全链路说明
 
 本文描述当前仓库中 **云端 `print_jobs` 队列** 与 **本地 print-agent（Go）** 的协作方式，对应 agent 版本 **0.3.19+** 行为。
 
@@ -64,8 +64,8 @@ USB 热敏（如 POS-80）在 Windows 上同时存在 **两种相反误报**，�
 
 | 误把什么当成什么 | 实际代码行为（0.3.12） | 现场表现 |
 |------------------|------------------------|----------|
-| 「第一次从 Mesa 拉到 pending」→「打印机刚上线」 | `OpenPrinter` 成功时 `printAfter = 拉队列时刻` | 仅 **created_at 早于该时刻** 的单 → `failed:offline_backlog`；**之后的单** 当「上线后新单」→ 进 spooler 并标 **done**（纸可能仍未出） |
-| `OpenPrinter` 成功 →「打印机真的可达」 | 未区分 Mesa 可达与 USB 物理在线 | 用户日志：14:32:41 已能拉队列；14:32:30 单 failed（积压跳过）；14:33 后多单「已打印」——**不是 Mesa 断连**（断连时 agent 通常 PATCH 不了任务，也不会用 offline_backlog 文案） |
+| 「第一次从 Farvoo 拉到 pending」→「打印机刚上线」 | `OpenPrinter` 成功时 `printAfter = 拉队列时刻` | 仅 **created_at 早于该时刻** 的单 → `failed:offline_backlog`；**之后的单** 当「上线后新单」→ 进 spooler 并标 **done**（纸可能仍未出） |
+| `OpenPrinter` 成功 →「打印机真的可达」 | 未区分 Farvoo 可达与 USB 物理在线 | 用户日志：14:32:41 已能拉队列；14:32:30 单 failed（积压跳过）；14:33 后多单「已打印」——**不是 Farvoo 断连**（断连时 agent 通常 PATCH 不了任务，也不会用 offline_backlog 文案） |
 
 **根因一句话**：在无法可靠知道 USB 是否插着时，用 **「首次拉队列 + OpenPrinter」** 作为 **「打印机上线时刻」**——代理指标与业务事件绑错。
 
@@ -88,13 +88,13 @@ USB 热敏（如 POS-80）在 Windows 上同时存在 **两种相反误报**，�
 | 仅凭 `OpenPrinter` 成功即 `online_confirmed = true`（WinSpool） | 未插 USB 仍标 done |
 | 恢复读 `PRINTER_STATUS_*` 解决「未插也 Open 成功」 | 回到 0xC0 整批不打 |
 
-#### 日志：区分 Mesa 断连 vs 打印机策略（排障清单）
+#### 日志：区分 Farvoo 断连 vs 打印机策略（排障清单）
 
 | 日志 / PATCH | 含义 | 是否打印机物理离线 |
 |--------------|------|-------------------|
-| `无法连接 Mesa 拉取…` / `心跳上报失败` | 云端/API 网络 | 否；任务多为 **pending**，agent 改不了状态 |
+| `无法连接 Farvoo 拉取…` / `心跳上报失败` | 云端/API 网络 | 否；任务多为 **pending**，agent 改不了状态 |
 | `拉取到待打印队列，跳过此前积压（打印机 …）` | `armPrintAfterOnPendingFetch` | 不一定；只表示 **积压分界已 arm** |
-| `已跳过打印机恢复前的积压（单号 …）` + `failed:offline_backlog` | `errPrintJobSkippedBacklog` | **是策略跳过**，不是 Mesa 断连 |
+| `已跳过打印机恢复前的积压（单号 …）` + `failed:offline_backlog` | `errPrintJobSkippedBacklog` | **是策略跳过**，不是 Farvoo 断连 |
 | `打印机不可达 […]` + 任务仍 **pending** | `errPrinterNotReady` | 探测/准备阶段认为不可打 |
 | `已打印：…` + `done` | 物理路径认为成功 | 若纸无输出，查是否 0.3.12 类误标或 spooler 假成功 |
 
@@ -142,7 +142,7 @@ USB 热敏（如 POS-80）在 Windows 上同时存在 **两种相反误报**，�
 
 #### 修改离线/就绪逻辑时的 Code review 追加项
 
-- [ ] 是否把 **Mesa 拉到队列** 与 **打印机物理上线** 混为一谈？
+- [ ] 是否把 **Farvoo 拉到队列** 与 **打印机物理上线** 混为一谈？
 - [ ] WinSpool 是否在 **未** `was_offline→在线` 且 **未** 打印成功时标 `done`？
 - [ ] 是否用 `PRINTER_STATUS_*` / `JOB_STATUS_OFFLINE` 做 **claim 前** 拦截？（禁止）
 - [ ] 失败单文案是 `offline_backlog` 还是网络错误？是否与用户描述的「没插打印机」一致？
@@ -233,7 +233,7 @@ Agent 在**确认可以打印之后**才 PATCH `processing`，避免长时间占
 
 | 字段 | 含义 |
 |------|------|
-| `api_base` | Mesa 站点 URL |
+| `api_base` | Farvoo 站点 URL |
 | `agentjwt` | 配对令牌 |
 | `restaurant_id` | 当前绑定餐厅（换店后 Agent 清空 `station_printers` 并重配） |
 | `device_id` | 设备 UUID |
@@ -393,7 +393,7 @@ flowchart TD
 | 拔线但 `OpenPrinter`/TCP 仍成功 | WinSpool 可能 spooler 假成功并标 `done`；网线以 TCP 失败为准 |
 | 预检失败 | 任务保持 `pending`，本地 `Requeue`，日志「打印机不可达」 |
 | 试打 / 设置页测试 | 不经 `preparePrint` |
-| Mesa API 超时 | 拉单/心跳失败，与打印机预检无关 |
+| Farvoo API 超时 | 拉单/心跳失败，与打印机预检无关 |
 
 ---
 

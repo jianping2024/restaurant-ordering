@@ -1,7 +1,7 @@
-# Mesa Print Agent：客户体验与包装路线图
+# Farvoo Print Agent：客户体验与包装路线图
 
 **状态**：产品/实施备忘（2026-05，进度见下表）  
-**范围**：Windows 收银机侧 **安装、常驻、配置、排障、与 Mesa Web 闭环**；**不含** Authenticode 代码签名（见 [`print-agent-plan.md`](./print-agent-plan.md) · P1-4）。  
+**范围**：Windows 收银机侧 **安装、常驻、配置、排障、与 Farvoo Web 闭环**；**不含** Authenticode 代码签名（见 [`print-agent-plan.md`](./print-agent-plan.md) · P1-4）。  
 **关联**：[实施计划](./print-agent-plan.md)、[USB 方案](./print-agent-usb-plan.md)、[`apps/print-agent/README.md`](../apps/print-agent/README.md)、[`installer/WINDOWS-README.txt`](../apps/print-agent/installer/WINDOWS-README.txt)。
 
 ### 进度总览（Windows 代理 · 本地代码，发布 tag 由维护者自行打）
@@ -40,8 +40,8 @@
 
 ## 已落地（与体验相关）
 
-- **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 打开日志 / 调试控制台 / 关于 / 退出；试打在设置页）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
-- **界面语言（v0.2.43+）**：`config.json` 的 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；**托盘**菜单/tooltip/弹窗、`agent.log` 人话行随此设置。**S0 configure** 不再提供顶栏改语言（文案随磁盘 `ui_locale`）；**`pair_ui`** 仍可用 `?lang=` + `/api/ui-locale`。**`configure` / `pair_ui` / `setup_ui`** 主体走 **`ui_i18n.go`**。**订单/厨房纸面语言**仍用 Mesa `print_locale` → `payload.locale`，与 `ui_locale` 无关。
+- **托盘与常驻（P0-1，v0.2.35–0.2.41）**：`windowsgui` 无默认黑窗；托盘先于配对/初始化；`Global\MesaPrintAgent-SingleInstance` 单实例；`ShellExecute` 打开浏览器 + 首装/配对 URL 弹窗；日志 `%LOCALAPPDATA%\Mesa Print Agent\agent.log`（Windows 现用安装目录名，产品品牌为 Farvoo）；**v0.2.40+** 绿/黄/红图标、中文菜单（打印机设置 / 打开日志 / 调试控制台 / 关于 / 退出；试打在设置页）、只读状态行、退出确认；**v0.2.41+** 退出时取消向导 HTTP 并 `os.Exit` 结束进程；**v0.2.48+** **每次启动**弹窗确认已启动（已配对/未配对文案不同），不再「终身只弹一次」。
+- **界面语言（v0.2.43+）**：`config.json` 的 `ui_locale`（默认 `zh`，可选 `en`/`pt`）；**托盘**菜单/tooltip/弹窗、`agent.log` 人话行随此设置。**S0 configure** 不再提供顶栏改语言（文案随磁盘 `ui_locale`）；**`pair_ui`** 仍可用 `?lang=` + `/api/ui-locale`。**`configure` / `pair_ui` / `setup_ui`** 主体走 **`ui_i18n.go`**。**订单/厨房纸面语言**仍用 Farvoo `print_locale` → `payload.locale`，与 `ui_locale` 无关。
 - **S0 configure 精简（2026-05）**：`configure_ui.html` 仅 **状态 →（未配对 gate）→ 手动扫描 → 档口映射 → 保存 → 可选试打 → 完成关页**；配对在 **`/pair`**（与 `/configure` 同端口 **17892**）。**不**进页自动 LAN 扫描；**不**强制试打确认关页。
 - **托盘本地 HTTP（v0.3.54+）**：`startTrayLocalHTTP` 在托盘启动时即监听 **17892**（含未配对）；Dashboard / 托盘「打印机设置」与首启配对 **只认这一套**。CLI `pair` 在无托盘时仍可用临时 **17890**；托盘路径不再并行起 17890。
 - **心跳与在线（v0.2.56+）**：`POST /api/print-agent/heartbeat`；Dashboard **已配对收银机** 列表（`last_seen`、版本、映射数等）。
@@ -57,7 +57,7 @@
 
 ## 目标体验（一句话）
 
-店主只需理解：**装一次 → 托盘绿灯 → 试打有一张纸 → 营业日不用管**；异常在 **Mesa 打印助手** 或托盘里能看到 **人话原因 + 下一步**，而不是读黑窗口日志。
+店主只需理解：**装一次 → 托盘绿灯 → 试打有一张纸 → 营业日不用管**；异常在 **Farvoo 打印助手** 或托盘里能看到 **人话原因 + 下一步**，而不是读黑窗口日志。
 
 ---
 
@@ -79,11 +79,11 @@ flowchart LR
 
 ### 1. 系统托盘为主壳（扩展 P1-3）
 
-**现状（2026-05）**：**P0-1 已落地**（v0.2.40–0.2.47+）：托盘为主、无默认黑窗、三色图标、中文菜单、日志目录、退出杀进程；**`configure` HTTP 已在托盘进程内**（`tray_local_http`，非独立子 exe）；凭证 **到期前 30 天** 双通道提醒（Dashboard + 托盘，v0.2.51–0.2.52）。**未做**：托盘根据 **打印机硬件离线** 变黄（仅 Mesa 连接态，见 backlog 讨论）。
+**现状（2026-05）**：**P0-1 已落地**（v0.2.40–0.2.47+）：托盘为主、无默认黑窗、三色图标、中文菜单、日志目录、退出杀进程；**`configure` HTTP 已在托盘进程内**（`tray_local_http`，非独立子 exe）；凭证 **到期前 30 天** 双通道提醒（Dashboard + 托盘，v0.2.51–0.2.52）。**未做**：托盘根据 **打印机硬件离线** 变黄（仅 Farvoo 连接态，见 backlog 讨论）。
 
 **建议（剩余，非阻塞）**：
 
-- 细化托盘 tooltip（如打印机队列脱机 vs Mesa 断连）。
+- 细化托盘 tooltip（如打印机队列脱机 vs Farvoo 断连）。
 
 **与 P1-3 关系**：托盘是 **主交互**，到期提醒是托盘能力之一，**不**单独做「只有气泡的托盘」。
 
@@ -93,7 +93,7 @@ flowchart LR
 
 **建议（剩余）**：
 
-1. 配对成功（6 位码 + Mesa URL）。
+1. 配对成功（6 位码 + Farvoo URL）。
 2. 为每个已映射 **出品档口** 提供 **「打印测试条」**（至少默认/第一个档口必选）。
 3. UI：**「纸上是否已打印测试内容？」** → **是** / **否**。
 4. **否** → 分步排障卡片：
@@ -112,14 +112,14 @@ flowchart LR
 
 | 内部/日志 | 用户文案方向 |
 |-----------|----------------|
-| `skipped expired job` | 超过 20 分钟的旧单已自动跳过，无需补打除非在 Mesa 点「重试」 |
+| `skipped expired job` | 超过 20 分钟的旧单已自动跳过，无需补打除非在 Farvoo 点「重试」 |
 | `outside schedule` | 非营业时间，暂停拉单（显示下一营业窗口） |
 | `receipt job waiting for printer mapping` | 结账打印机未配置，请打开「打印设置」映射档口 |
 | `print failed (winspool:…)` | 打印失败：请在 Windows 打开「{打印机名}」队列，检查暂停/脱机/缺纸 |
 
 ---
 
-## P1 — 高价值（与 Mesa Web 一体）
+## P1 — 高价值（与 Farvoo Web 一体）
 
 ### 4. Agent 心跳 + Dashboard「在线」展示
 
@@ -154,9 +154,9 @@ flowchart LR
 - **多档口同机**：黄条说明可共用同一队列、会排队。
 - **保存前校验**：**已有**「须至少映射一个档口才能试打/保存」；可加强未映射档口 **列表警告**（与 §5 合并做）。
 
-### 7. Mesa 打印助手闭环按钮
+### 7. Farvoo 打印助手闭环按钮
 
-- **「在本机打开设置」**：探测 `127.0.0.1:17892`；不可达则提示先启动 Mesa Print Agent。
+- **「在本机打开设置」**：探测 `127.0.0.1:17892`；不可达则提示先启动 Farvoo Print Agent。
 - 生成配对码：**大号 6 位 + 过期倒计时 + 复制**；列表待使用行同样完整显示并可复制；生成后可带 `code` 打开 configure（Dashboard `PrintAgentPairingPanel`）。
 - **列表规则**：待使用明文；已核销掩码；**作废**未使用码使其不可 claim（见「已落地」）。
 - 任务 `failed`：展示 `print-job-error-hints` + **在本机打开打印机设置**（深链 configure）。
@@ -169,11 +169,11 @@ flowchart LR
 
 **现状（已落地，v0.2.66+）**：
 
-- **Mesa**：`GET /api/print-agent/runtime-config` 返回 `recommended_agent_version`（与仓库 `apps/print-agent/VERSION` / `NEXT_PUBLIC_PRINT_AGENT_VERSION` 一致）。
+- **Farvoo**：`GET /api/print-agent/runtime-config` 返回 `recommended_agent_version`（与仓库 `apps/print-agent/VERSION` / `NEXT_PUBLIC_PRINT_AGENT_VERSION` 一致）。
 - **代理**：启动拉 runtime-config 后，若本机版本 **低于** 推荐版，**每日最多一次** 托盘弹窗（`notify_version_windows.go`）；文案含退出托盘 → 安装新版本。
 - **Dashboard**：**已配对收银机** 对比 `agent_version` 与推荐版（`PrintAgentDevicesPanel`）；下载区 **`downloadUpgradeSteps`** 说明升级步骤。
 
-**可增强**：代理直连 GitHub 查最新 tag（不依赖 Mesa 部署版本）；heartbeat 响应带回推荐版以便长跑进程复检。
+**可增强**：代理直连 GitHub 查最新 tag（不依赖 Farvoo 部署版本）；heartbeat 响应带回推荐版以便长跑进程复检。
 
 ### 9. 安装包交付（非签名层面）
 
@@ -249,11 +249,11 @@ flowchart LR
 
 ## 现场排障速查（可摘入帮助页）
 
-1. **代理是否在运行**：任务管理器是否有 `MesaPrintAgent`；Mesa **打印助手 → 已配对收银机** 看 `last_seen`（需心跳，v0.2.56+）；托盘 **^** 内是否有 **Mesa Print** 图标。
+1. **代理是否在运行**：任务管理器是否有 `MesaPrintAgent`；Farvoo **打印助手 → 已配对收银机** 看 `last_seen`（需心跳，v0.2.56+）；托盘 **^** 内是否有 **Farvoo Print** 图标。
 2. **USB 是否接在收银 PC 上**，Windows 是否识别打印机。
 3. **`configure` 中档口映射的 Windows 名** 是否与 **设置 → 打印机** 中一致。
 4. **Windows 打印队列** 是否暂停、脱机、积压历史任务（可全部取消）。
-5. **Mesa 打印助手** 最近任务是否 `failed`，看 hint；超过 20 分钟需 **重试** 才会再入队。
+5. **Farvoo 打印助手** 最近任务是否 `failed`，看 hint；超过 20 分钟需 **重试** 才会再入队。
 6. **营业 schedule**：非时段内代理不拉单，属正常。
 
 ---

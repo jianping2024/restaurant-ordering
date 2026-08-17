@@ -137,7 +137,7 @@ curl -sS -o /dev/null -w "%{http_code}\n" http://192.168.0.141/dashboard/setting
 
 ### 2.2 Print Agent「服务器地址」
 
-打印跑在**另一台 Windows**（`MesaPrintAgent`），不进 Docker。配置里的服务器地址 = 店内 Mesa **正式入口 origin**（与浏览器打开后台一致），走 edge `:80`。
+打印跑在**另一台 Windows**（`MesaPrintAgent`），不进 Docker。配置里的服务器地址 = 店内 Farvoo **正式入口 origin**（与浏览器打开后台一致），走 edge `:80`。
 
 | 填法 | 是否推荐 | 说明 |
 |------|----------|------|
@@ -250,7 +250,7 @@ sudo MESA_HOME=/opt/mesa /opt/mesa/current/deploy/on-prem/scripts/tunnel-health.
 systemctl list-timers mesa-tunnel-health.timer
 ```
 
-#### Mesa 侧清单
+#### Farvoo 侧清单
 
 | 步骤 | 做什么 |
 |------|--------|
@@ -303,7 +303,7 @@ sudo /opt/mesa/bin/mesa-stack ps
 | 位置 | 是什么 |
 |------|--------|
 | `/home/remoteadmin/mesa-on-prem-…` | 仅解压的升级包源码 |
-| `/opt/mesa/current/` | 运行中的 Mesa 树 |
+| `/opt/mesa/current/` | 运行中的 Farvoo 树 |
 | `/var/lib/docker/` | **镜像层与 BuildKit 缓存**（清 home **不会**清这里） |
 
 `apps/web/Dockerfile` 的 `deps` 阶段：仅当根/`apps/web`/`packages/*` 的 `package.json` 与 `package-lock.json` **未变**，且**上一次 `npm ci` 成功写完层**时，才会显示 `CACHED` 并跳过安装。若上次 `npm ci` **`ETIMEDOUT` 失败**，该层不会留下 → 重试必须再全量装一遍（与是否动过 home 无关）。

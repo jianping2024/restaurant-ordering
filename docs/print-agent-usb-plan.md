@@ -10,13 +10,13 @@
 
 | 层级 | 今天 | USB 场景下的问题 |
 |------|------|------------------|
-| Mesa 云端 | `print_jobs` 入队、`claim`、配对 | **无需改协议**（仍下发 ESC/POS 字节） |
+| Farvoo 云端 | `print_jobs` 入队、`claim`、配对 | **无需改协议**（仍下发 ESC/POS 字节） |
 | `apps/print-agent` | `tcpPrint(hostPort)` → `net.Dial` :9100 | USB 线 **没有** `IP:9100`；`discover` 扫不到 |
 | 配置 | `default_printer` / `station_printers` 值为 `host:port` 字符串 | 无法表达「Windows 打印机队列名」 |
-| 配对向导 | 浏览器页只完成 Mesa `api_base` + 配对码 | **未**引导选打印机 |
+| 配对向导 | 浏览器页只完成 Farvoo `api_base` + 配对码 | **未**引导选打印机 |
 | 安装包 | Inno + zip，无驱动 | USB 通常需 **先装厂商驱动** 并出现系统「打印机」 |
 
-结论：**USB 支持是代理端「输出通道」扩展**，不是 Mesa Next.js 大改；Dashboard 以 **文案 + 向导步骤** 为主。
+结论：**USB 支持是代理端「输出通道」扩展**，不是 Farvoo Next.js 大改；Dashboard 以 **文案 + 向导步骤** 为主。
 
 ---
 
@@ -102,7 +102,7 @@ print_jobs → ESC/POS bytes → PrinterSink.Write(raw) → 设备
 
 | 步骤 | 内容 |
 |------|------|
-| 1 | Mesa 网址 + 配对码（**已有**） |
+| 1 | Farvoo 网址 + 配对码（**已有**） |
 | 2 | **选择打印机**：下拉「本机 Windows 打印机」+ 可选「扫描网口 9100」；支持「厨房 / 吧台」映射到 `station_printers`（读 Dashboard 档口 UUID 说明） |
 | 3 | **测试打印**（调用现有 connection test job 或本地 test pattern） |
 | 4 | 完成，写入 `config.json`，进入轮询 |
@@ -114,7 +114,7 @@ Dashboard **打印助手** 增补：
 
 ---
 
-## 4. Mesa 应用端改动（少）
+## 4. Farvoo 应用端改动（少）
 
 | 项 | 是否必做 | 说明 |
 |----|----------|------|

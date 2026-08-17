@@ -9,7 +9,7 @@
 restaurant-ordering/
 ├── apps/
 │   ├── web/           @mesa/web   — 租户产品（顾客 / 店主 / 员工）
-│   ├── ops/           @mesa/ops   — Mesa 运营后台
+│   ├── ops/           @mesa/ops   — Farvoo 运营后台
 │   └── print-agent/   Go 打印代理（GitHub Release，不上 Vercel）
 ├── packages/
 │   └── shared/        @mesa/shared — web 与 ops 共用代码

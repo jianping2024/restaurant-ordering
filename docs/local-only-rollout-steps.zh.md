@@ -8,7 +8,7 @@
 
 ## 0. 一句话说清楚
 
-**店里只有一套 Mesa，跑在店内主机上。** 域名指到这台机。没有平台 SaaS，没有「平时云、断网切本地」，没有双库同步。
+**店里只有一套 Farvoo，跑在店内主机上。** 域名指到这台机。没有平台 SaaS，没有「平时云、断网切本地」，没有双库同步。
 
 ```text
 顾客 / 店员 / 厨房  ──域名或局域网──►  本机 Docker（Web + 本地 Supabase）
@@ -22,7 +22,7 @@
 
 - 店员：开台 / 点单 / 收款 / 打票 / 关台 → **永远打本机**（断公网只要局域网还在，就能干）。
 - 顾客扫码：域名进本机；断公网扫不了 → **可接受**。
-- 打印：**现有 Windows print-agent = Windows 侧桥**（不进 Docker）；USB + 网口照旧。桥的另一头从「平台云」改成「本机 Mesa」。
+- 打印：**现有 Windows print-agent = Windows 侧桥**（不进 Docker）；USB + 网口照旧。桥的另一头从「平台云」改成「本机 Farvoo」。
 - **DNS 和业务代码不相干**：解析在路由器/公网 DNS/隧道侧做。
 
 ---
@@ -46,7 +46,7 @@
 - 把 print-agent 收进 Docker / 取消托盘（第一版）  
 - 用 `npm run dev` 当客户生产  
 - 第一版强依赖「无 Docker 授权的任意破电脑」  
-- **Windows / WSL / Docker Desktop 跑 Mesa Web+库全栈**（已作废；店机仅 Ubuntu）
+- **Windows / WSL / Docker Desktop 跑 Farvoo Web+库全栈**（已作废；店机仅 Ubuntu）
 
 ### 1.2 还剩什么（多数不挡 POC）
 
@@ -91,7 +91,7 @@ Docker 里的 Linux 栈碰不到本机 USB 队列；所以要有一个 **Windows
 ```text
 Ubuntu 22.04 / 24.04 LTS（店机）
   └─ Docker Engine + Compose 插件（apt / 官方脚本，开源免费）
-        └─ Mesa Compose（Web + 自托管 Supabase + edge）
+        └─ Farvoo Compose（Web + 自托管 Supabase + edge）
 另机 Windows
   └─ MesaPrintAgent（桥 → USB / 网口）
 ```
@@ -168,7 +168,7 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 - Compose 拉起自托管 Supabase（Auth / DB / Realtime / Storage）+ Web。  
 - Web：**生产镜像**（standalone），env 指向本机 Supabase。  
 - 按现有 migrations 顺序执行；每店独立密钥。  
-- 数据目录固定（如 `C:\ProgramData\Mesa\`），升级不得误删。  
+- 数据目录固定（如 `C:\ProgramData\Farvoo\`），升级不得误删。  
 - 单机默认一家店（一个 restaurant / slug）；RLS 仍保留。
 
 **怎样算完**
@@ -184,7 +184,7 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 **干什么**
 
 - 保持托盘、配对、USB、TCP 9100、出纸逻辑。  
-- 服务器地址 = **本机 Mesa**（域名或 `127.0.0.1`）。  
+- 服务器地址 = **本机 Farvoo**（域名或 `127.0.0.1`）。  
 - 本机 Web 照旧写 `print_jobs`；agent claim / 回报走本机 API；Realtime 也指向本机。  
 - 本机 HTTPS 若自签：agent 信任策略要可安装（或安装器写入）。  
 - 开机：栈起来后 agent 起来。  
@@ -208,7 +208,7 @@ Ubuntu 22.04 / 24.04 LTS（店机）
 
 **怎样算完**
 
-- [ ] 用域名打开本机 Mesa  
+- [ ] 用域名打开本机 Farvoo  
 - [ ] 换 DNS 实现不需发业务代码版本  
 
 ---

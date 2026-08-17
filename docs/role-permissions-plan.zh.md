@@ -18,7 +18,7 @@
 | **`cashier`** | **收银员** | 仅收银 | 同上 | ❌ 不是店主 |
 | **`frontdesk`** | **前台** | Dashboard 运营（结账、桌位、订单等） | 同上 | ❌ 不是店主；❌ 不是「老板配置员」 |
 | （无店内角色） | **顾客** | 扫码点餐 | 匿名 / 会话 | 不参与 RBAC |
-| **`platform_admin`** | **平台运营** | Mesa 内部 `/ops/*` | `platform_admin_accounts` | ❌ 与店内 owner/staff 完全分离 |
+| **`platform_admin`** | **平台运营** | Farvoo 内部 `/ops/*` | `platform_admin_accounts` | ❌ 与店内 owner/staff 完全分离 |
 
 **关于文档里的 `owner`（英文）**：一律指 **店主账号**（`owner_id` 绑定），**不是**员工角色枚举里的一项。口语「老板」= 店主；**没有**名为「老板配置员」的 `StaffRole`。
 
@@ -101,7 +101,7 @@ Principal   = owner | staff(StaffRole)                        // 权限解析用
 
 - 不替代 Supabase **RLS**（表级租户隔离仍由 RLS 负责）。
 - 不覆盖**顾客端**（`/[slug]/menu` 等匿名/会话下单流程）。
-- 不与 **Mesa 平台运营**（`/ops/*`、`platform_admin_accounts`）混用。
+- 不与 **Farvoo 平台运营**（`/ops/*`、`platform_admin_accounts`）混用。
 - 第一期不做：自定义角色名、权限继承树、菜单拖拽排序、CASL 等第三方库。
 
 ---

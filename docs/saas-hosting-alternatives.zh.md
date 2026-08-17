@@ -22,7 +22,7 @@
 
 ## 2. 候选平台总览
 
-| 平台 | 类型 | 月费形状 | 与 Mesa 匹配度 | 一句话 |
+| 平台 | 类型 | 月费形状 | 与 Farvoo 匹配度 | 一句话 |
 |------|------|----------|----------------|--------|
 | **Vercel + Neon** | Serverless + 外置 DB | $20 席位 + 按量 | ⭐⭐⭐⭐ 已落地 | DX 最好；轮询会把钱打在 Function 上 |
 | **Cloudflare Workers + Neon** | 边缘计算 + Hyperdrive | $5 起 + 按请求 | ⭐⭐⭐ 需 OpenNext | **按请求极便宜、流量免费**；适配与调试成本高 |
@@ -74,7 +74,7 @@ Serverless 里最省钱   → Cloudflare Workers + Neon（若 OpenNext 验收通
 
 ---
 
-## 4. 分平台说明（与 Mesa 相关细节）
+## 4. 分平台说明（与 Farvoo 相关细节）
 
 ### 4.1 Vercel + Neon（现状增强）
 
@@ -183,7 +183,7 @@ Serverless 里最省钱   → Cloudflare Workers + Neon（若 OpenNext 验收通
 
 ---
 
-## 6. 推荐决策树（Mesa 2026）
+## 6. 推荐决策树（Farvoo 2026）
 
 ```text
                     开始
@@ -233,7 +233,7 @@ Serverless 里最省钱   → Cloudflare Workers + Neon（若 OpenNext 验收通
 
 ---
 
-## 8. 综合推荐（给 Mesa 的结论）
+## 8. 综合推荐（给 Farvoo 的结论）
 
 1. **短期（迁移 Postgres）**：**不要同时换云**；继续 **Vercel Pro + Neon**，用 §4.4 的 **B 轻量轮询**，控制 30 店内月费约 **$45～60**。
 2. **中期性价比（30～100 店、少自运维）**：**Render（法兰克福）** — 固定 **~$55～130/月**，并可把实时改成 **SSE**，从根上避免轮询税；与产品「私有化也用长驻 Next」一致。

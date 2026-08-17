@@ -1,4 +1,4 @@
-# Mesa 待开发工作总览
+# Farvoo 待开发工作总览
 
 > **状态**：整合稿（2026-06-24）  
 > **用途**：汇总各专项计划文档中**尚未完成**或**仅差验收/上线**的工作，便于排期。  
@@ -64,7 +64,7 @@ flowchart LR
 |---|--------|------|--------|
 | 5 | **订单小票 + 预结单完整链路** | Web 侧已有 `order-receipt-enqueue.ts` 与 `bill_receipt_print` 功能开关；需对齐代理端 `order_receipt` / `pre_bill` 模板与生产拉取/确认路径 | `print-agent-plan.md` §七 |
 | 6 | **试打链路（服务端 P0-3）** | `claim` 成功后插入 `type=order_receipt` + `payload.connection_test: true` 的 `print_jobs`，代理走与生产相同路径（与向导本地试打互补） | `print-agent-plan.md`、`print-agent-ux-packaging.zh.md` |
-| 7 | **无代理兜底策略验收** | 未配对/无代理时 Mesa 保留 `window.print()` HTML；有代理时以 `print_jobs` 为主路径 | `print-agent-plan.md` |
+| 7 | **无代理兜底策略验收** | 未配对/无代理时 Farvoo 保留 `window.print()` HTML；有代理时以 `print_jobs` 为主路径 | `print-agent-plan.md` |
 | 8 | **`restaurants.print_locale` Dashboard UI** | DB 与入队已读库；餐厅设置页三选一 UI 待接（若尚未完成） | `print-agent-plan.md` §七 |
 | 9 | **`restaurants.country_code` 全链路** | 代建/注册必填 + Dashboard 可编辑（与票面语言解耦）；schema 部分已有 | `print-agent-plan.md`、`platform-admin-plan.zh.md` |
 
@@ -93,7 +93,7 @@ flowchart LR
 | 23 | **Windows 服务模式** | 多用户 / 无登录自启；优先级低于托盘 |
 | 24 | **configure 页 QR** | 将 `configure?api=&code=` 发给另一台设备 |
 | 25 | **每档口各打一条试打** | 当前为单档口试打 |
-| 26 | **托盘打印机硬件离线态** | 仅 Mesa 连接态绿/黄/红；未区分 Spooler 脱机 |
+| 26 | **托盘打印机硬件离线态** | 仅 Farvoo 连接态绿/黄/红；未区分 Spooler 脱机 |
 | 27 | **版本提示增强** | 代理直连 GitHub 查 tag；heartbeat 带回推荐版 |
 
 ### 1.5 USB（[`print-agent-usb-plan.md`](./print-agent-usb-plan.md)）

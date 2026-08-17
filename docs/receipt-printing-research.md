@@ -19,11 +19,11 @@
 
 ## 自建代理（简单场景）步骤与成本
 
-**步骤**：**网口热敏** + 路由器 **DHCP 保留**（或静态私网 IP）→ Supabase `print_jobs` + Realtime → Mesa 入队 → **`apps/print-agent`（Go）** 订阅/补偿拉取 → `TCP` 写 **`IP:9100`** → 更新状态；Windows 计划任务保活。  
+**步骤**：**网口热敏** + 路由器 **DHCP 保留**（或静态私网 IP）→ Supabase `print_jobs` + Realtime → Farvoo 入队 → **`apps/print-agent`（Go）** 订阅/补偿拉取 → `TCP` 写 **`IP:9100`** → 更新状态；Windows 计划任务保活。  
 **成本**：一般无额外服务器；开发量见 `print-agent-plan.md`；维护主要为 **换网段时改代理里的打印机地址**。
 
 ---
 
 *许可与第三方产品以各官方为准。*
 
-详细分端实施步骤见 **[docs/print-agent-plan.md](./print-agent-plan.md)**（应用端 Mesa/Supabase vs 安装包/代理端）。
+详细分端实施步骤见 **[docs/print-agent-plan.md](./print-agent-plan.md)**（应用端 Farvoo/Supabase vs 安装包/代理端）。

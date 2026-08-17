@@ -6,7 +6,7 @@
 
 ## 1. 结论与目标
 
-**可以**把 Mesa 从「Supabase 平台（Auth + PostgREST + Realtime + Storage + RLS 集成）」迁到「**纯 PostgreSQL + 自研应用层**」，但这不是「换连接串」级别的工作，而是**平台替换**。
+**可以**把 Farvoo 从「Supabase 平台（Auth + PostgREST + Realtime + Storage + RLS 集成）」迁到「**纯 PostgreSQL + 自研应用层**」，但这不是「换连接串」级别的工作，而是**平台替换**。
 
 ### 1.0 已确认决策（2026-06-25）
 
@@ -14,7 +14,7 @@
 
 | 环境 | 迁移后 |
 |------|--------|
-| **生产 / 预发 SaaS**（Vercel） | 托管 PostgreSQL（Neon / RDS 等）+ Mesa API；**停用** Supabase Auth / Realtime / Storage |
+| **生产 / 预发 SaaS**（Vercel） | 托管 PostgreSQL（Neon / RDS 等）+ Farvoo API；**停用** Supabase Auth / Realtime / Storage |
 | **本地开发** | `docker compose` Postgres；不再 `supabase start` |
 | **Windows 客户机** | 本机 Postgres + Next.js 生产构建；见 §1.4 |
 
@@ -54,7 +54,7 @@ Caddy → Next.js (生产构建)
           ↓
       PostgreSQL
           ↓
-   打印代理（仍走 Mesa HTTP API，不直连库）
+   打印代理（仍走 Farvoo HTTP API，不直连库）
 ```
 
 不再需要 Supabase Gateway、GoTrue、Realtime 服务、Storage API 容器。
@@ -101,7 +101,7 @@ Caddy → Next.js (生产构建)
 - 顾客下单：匿名可下单（现有 `orders` INSERT 为 public）；仍需速率限制与校验。
 - 结账/分账/关台：RPC 原子性与 advisory lock 行为不变。
 - 厨房/服务员/收银实时刷新：延迟可略增，但功能等价。
-- 打印代理：配对、拉单、心跳、吊销逻辑不变（本就经 Mesa API）。
+- 打印代理：配对、拉单、心跳、吊销逻辑不变（本就经 Farvoo API）。
 - 平台 ops：跨租户审计、suspend/resume 不变。
 
 ---
@@ -268,7 +268,7 @@ lib/db/
 | 菜单管理 | 新增 `/api/dashboard/menu/*` |
 | 顾客菜单只读 | 新增 `/api/public/[slug]/menu` |
 
-**原则**：浏览器 **不再** 持有数据库凭证；只调 Mesa API。
+**原则**：浏览器 **不再** 持有数据库凭证；只调 Farvoo API。
 
 #### 2.4 删除 `createClient()` 的业务用法
 
@@ -527,7 +527,7 @@ N_poll = T × (3600 / I) × H × D
 
 ### 阶段 6：打印代理与清理（约 2–3 天）
 
-1. 配对 API 响应移除 `supabase_url`（或保留字段但固定为 Mesa API base，兼容旧 agent 一版）。
+1. 配对 API 响应移除 `supabase_url`（或保留字段但固定为 Farvoo API base，兼容旧 agent 一版）。
 2. 确认 agent **仅**调 `APIBase`（`main.go` 已如此）；更新文档 [`print-agent-flow.zh.md`](./print-agent-flow.zh.md)。
 3. `isPrintAgentDeviceActiveInDb` 改为走 `lib/db`，不再传 Supabase client。
 
@@ -789,7 +789,7 @@ packages/shared/*                                # 去掉 SupabaseClient 类型�
 - **维护公告**：切流前通知客户重新登录厨房屏/收银 iPad。
 - **密码**：bcrypt hash 可直接迁；失败则店主重置 + 员工强制改密流程。
 - **菜单图 CDN**：`menu_items.image_url` 批量替换；旧 `*.supabase.co` URL 短期 302（可选）。
-- **打印代理**：已配对设备 JWT 不变；仅确认 `APIBase` 仍指向 Mesa 域名。
+- **打印代理**：已配对设备 JWT 不变；仅确认 `APIBase` 仍指向 Farvoo 域名。
 
 ### 10.7 工期修正（含遗漏项）
 

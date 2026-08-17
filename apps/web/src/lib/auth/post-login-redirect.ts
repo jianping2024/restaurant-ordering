@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isPremBuiltinAdminActor } from '@/lib/auth/prem-builtin-admin-identity';
 import { deriveStaffLoginContext } from '@/lib/staff-identity-gate';
 import {
-  loadBackendAdminRestaurantForUser,
+  loadOwnerRestaurantForUser,
   loadStaffGateAccountForUser,
 } from '@/lib/staff-gate-db';
 import { resolveStaffLandingPath } from '@/lib/permissions/staff-landing';
@@ -35,7 +35,7 @@ export async function resolvePostLoginRedirect(
   }
 
   const [ownedRestaurant, staff] = await Promise.all([
-    loadBackendAdminRestaurantForUser(admin, {
+    loadOwnerRestaurantForUser(admin, {
       userId,
       email: options?.email,
       userMetadata,

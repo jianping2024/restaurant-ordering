@@ -3,8 +3,13 @@ import { resolveTodayLisbonWindow } from '@/lib/analytics/date-window';
 import { writeAppendBatch } from '@/lib/append-write-batch';
 import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import { normalizeOrderItemStatus } from '@/lib/order-status';
-import { addCalendarDays, lisbonDayStartUtcIso } from '@/lib/lisbon-calendar';
 import { loadMenuCategoriesForEnqueue } from '@/lib/menu-categories-server';
+import {
+  isListPageSize,
+  LIST_DEFAULT_PAGE_SIZE,
+  paginateList,
+  type ListPageSize,
+} from '@/lib/paginate-list';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { generateAppendBatchId } from '@/lib/resolve-append-cart-items';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
@@ -30,42 +35,35 @@ export type DishHistoryRow = {
   kitchen_remake?: boolean;
 };
 
+export type DishHistoryListResult = {
+  items: DishHistoryRow[];
+  page: number;
+  pageSize: ListPageSize;
+  total: number;
+};
+
 type FlatLine = DishHistoryRow & { sortKey: string };
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'cooking', 'done'] as const;
+const ORDERS_FETCH_PAGE = 1000;
 
-function parsePageSize(raw: string | null): number {
-  const n = raw ? Number(raw) : 20;
-  if (n === 20 || n === 50 || n === 100) return n;
-  return 20;
+type DishHistoryOrderRow = {
+  id: string;
+  display_name: string | null;
+  items: OrderItem[] | null;
+  session_id: string | null;
+  created_at: string;
+  status: Order['status'];
+};
+
+function parseListPage(raw: string | null): number {
+  const n = raw ? Number.parseInt(raw, 10) : 1;
+  return Number.isFinite(n) && n >= 1 ? n : 1;
 }
 
-function encodeCursor(row: FlatLine): string {
-  return Buffer.from(
-    JSON.stringify({
-      a: row.added_at,
-      o: row.order_id,
-      i: row.item_index,
-    }),
-    'utf8',
-  ).toString('base64url');
-}
-
-function decodeCursor(raw: string): { added_at: string; order_id: string; item_index: number } | null {
-  try {
-    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8')) as {
-      a?: unknown;
-      o?: unknown;
-      i?: unknown;
-    };
-    if (typeof parsed.a !== 'string' || typeof parsed.o !== 'string' || typeof parsed.i !== 'number') {
-      return null;
-    }
-    if (!Number.isInteger(parsed.i) || parsed.i < 0) return null;
-    return { added_at: parsed.a, order_id: parsed.o, item_index: parsed.i };
-  } catch {
-    return null;
-  }
+function parseListPageSizeParam(raw: string | null): ListPageSize {
+  const n = raw ? Number.parseInt(raw, 10) : LIST_DEFAULT_PAGE_SIZE;
+  return isListPageSize(n) ? n : LIST_DEFAULT_PAGE_SIZE;
 }
 
 function lineSortKey(addedAt: string, orderId: string, itemIndex: number): string {
@@ -92,51 +90,41 @@ export async function listDishHistory(params: {
   admin: SupabaseClient;
   restaurantId: string;
   q: string | null;
+  pageRaw: string | null;
   pageSizeRaw: string | null;
-  cursorRaw: string | null;
   lang: UILanguage;
 }): Promise<
-  | { ok: true; rows: DishHistoryRow[]; next_cursor: string | null; page_size: number }
+  | { ok: true } & DishHistoryListResult
   | { ok: false; status: number; error: string; message?: string }
 > {
-  const pageSize = parsePageSize(params.pageSizeRaw);
-  const cursor = params.cursorRaw ? decodeCursor(params.cursorRaw) : null;
-  if (params.cursorRaw && !cursor) {
-    return { ok: false, status: 400, error: 'invalid_cursor' };
+  const page = parseListPage(params.pageRaw);
+  const pageSize = parseListPageSizeParam(params.pageSizeRaw);
+  const { startUtc, endExclusiveUtc } = resolveTodayLisbonWindow();
+
+  const orderRows: DishHistoryOrderRow[] = [];
+  for (let from = 0; ; from += ORDERS_FETCH_PAGE) {
+    const { data, error: oErr } = await params.admin
+      .from('orders')
+      .select('id, display_name, items, session_id, created_at, status')
+      .eq('restaurant_id', params.restaurantId)
+      .gte('created_at', startUtc)
+      .lt('created_at', endExclusiveUtc)
+      .order('created_at', { ascending: false })
+      .range(from, from + ORDERS_FETCH_PAGE - 1);
+    if (oErr) {
+      return { ok: false, status: 500, error: 'order_lookup_failed', message: oErr.message };
+    }
+    const batch = (data || []) as DishHistoryOrderRow[];
+    orderRows.push(...batch);
+    if (batch.length < ORDERS_FETCH_PAGE) break;
   }
-
-  const { today, startUtc, endExclusiveUtc } = resolveTodayLisbonWindow();
-  // Look back one calendar day so overnight sessions still contribute today's added_at lines.
-  const orderLookbackUtc = lisbonDayStartUtcIso(addCalendarDays(today, -1));
-
-  const { data: orderRows, error: oErr } = await params.admin
-    .from('orders')
-    .select('id, table_id, display_name, items, session_id, created_at, status')
-    .eq('restaurant_id', params.restaurantId)
-    .gte('created_at', orderLookbackUtc)
-    .lt('created_at', endExclusiveUtc)
-    .order('created_at', { ascending: false })
-    .limit(800);
-
-  if (oErr) {
-    return { ok: false, status: 500, error: 'order_lookup_failed', message: oErr.message };
-  }
-
-  const sessionIds = Array.from(
-    new Set(
-      (orderRows || [])
-        .map((r) => r.session_id as string | null)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0),
-    ),
-  );
 
   const openSessionIds = new Set<string>();
-  if (sessionIds.length > 0) {
+  if (orderRows.length > 0) {
     const { data: sessions, error: sErr } = await params.admin
       .from('table_sessions')
-      .select('id, status')
+      .select('id')
       .eq('restaurant_id', params.restaurantId)
-      .in('id', sessionIds)
       .in('status', ['open', 'billing']);
     if (sErr) {
       return { ok: false, status: 500, error: 'session_lookup_failed', message: sErr.message };
@@ -149,26 +137,23 @@ export async function listDishHistory(params: {
   const q = params.q?.trim() || '';
   const flat: FlatLine[] = [];
 
-  for (const order of orderRows || []) {
-    const items = (order.items || []) as OrderItem[];
-    const sessionId = order.session_id as string | null;
-    const sessionOpen = Boolean(sessionId && openSessionIds.has(sessionId));
+  for (const order of orderRows) {
+    const items = order.items || [];
+    const sessionOpen = Boolean(order.session_id && openSessionIds.has(order.session_id));
     for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
       const item = items[itemIndex];
       if (isBuffetBaseItem(item)) continue;
-      if (normalizeOrderItemStatus(item, order.status as Order['status']) === 'voided') continue;
+      if (normalizeOrderItemStatus(item, order.status) === 'voided') continue;
       if (!itemMatchesQuery(item, q)) continue;
 
       const addedAt =
-        (typeof item.added_at === 'string' && item.added_at) ||
-        (order.created_at as string) ||
-        '';
+        (typeof item.added_at === 'string' && item.added_at) || order.created_at || '';
       if (!addedAt || addedAt < startUtc || addedAt >= endExclusiveUtc) continue;
 
-      const row: FlatLine = {
-        order_id: order.id as string,
+      flat.push({
+        order_id: order.id,
         item_index: itemIndex,
-        table_display: ((order.display_name as string | null) || '').trim() || '—',
+        table_display: (order.display_name || '').trim() || '—',
         menu_item_id: item.id,
         name: resolveMenuItemLocalizedName(item, params.lang) || '—',
         item_code: item.item_code?.trim() || null,
@@ -176,33 +161,24 @@ export async function listDishHistory(params: {
         added_at: addedAt,
         session_open: sessionOpen,
         ...(isKitchenRemakeItem(item) ? { kitchen_remake: true } : {}),
-        sortKey: lineSortKey(addedAt, order.id as string, itemIndex),
-      };
-      flat.push(row);
+        sortKey: lineSortKey(addedAt, order.id, itemIndex),
+      });
     }
   }
 
   flat.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-
-  let startIdx = 0;
-  if (cursor) {
-    const cursorKey = lineSortKey(cursor.added_at, cursor.order_id, cursor.item_index);
-    startIdx = flat.findIndex((row) => row.sortKey < cursorKey);
-    if (startIdx < 0) startIdx = flat.length;
-  }
-
-  const page = flat.slice(startIdx, startIdx + pageSize);
-  const next = flat[startIdx + pageSize];
-  const rows: DishHistoryRow[] = page.map(({ sortKey, ...row }) => {
+  const allRows: DishHistoryRow[] = flat.map(({ sortKey, ...row }) => {
     void sortKey;
     return row;
   });
+  const paged = paginateList(allRows, page, pageSize);
 
   return {
     ok: true,
-    rows,
-    next_cursor: next ? encodeCursor(next) : null,
-    page_size: pageSize,
+    items: paged.rows,
+    page: paged.page,
+    pageSize,
+    total: paged.total,
   };
 }
 

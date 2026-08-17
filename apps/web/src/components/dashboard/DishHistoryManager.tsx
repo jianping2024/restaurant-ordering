@@ -1,69 +1,87 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { Modal } from '@/components/ui/Modal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
-import type { DishHistoryRow } from '@/lib/dish-history-server';
+import type { DishHistoryListResult, DishHistoryRow } from '@/lib/dish-history-server';
+import { type ListPageSize } from '@/lib/paginate-list';
+import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 type Props = {
   restaurantSlug: string;
 };
 
+type Filters = { q: string };
+
 export function DishHistoryManager({ restaurantSlug }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).dishHistory;
   const locale = UI_LOCALE_BY_LANG[lang];
-  const [q, setQ] = useState('');
-  const [qApplied, setQApplied] = useState('');
-  const [pageSize, setPageSize] = useState<20 | 50 | 100>(20);
-  const [rows, setRows] = useState<DishHistoryRow[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [qDraft, setQDraft] = useState('');
   const [error, setError] = useState('');
   const [remakeTarget, setRemakeTarget] = useState<DishHistoryRow | null>(null);
   const [remakeQty, setRemakeQty] = useState(1);
   const [remaking, setRemaking] = useState(false);
 
-  const load = useCallback(
-    async (opts: { cursor?: string | null; append?: boolean } = {}) => {
-      setLoading(true);
-      setError('');
+  const fetchList = useCallback(
+    async ({
+      filters,
+      page,
+      pageSize,
+      signal,
+    }: {
+      filters: Filters;
+      page: number;
+      pageSize: ListPageSize;
+      signal: AbortSignal;
+    }) => {
+      const url = new URL(
+        `/api/restaurants/${encodeURIComponent(restaurantSlug)}/staff/dish-history`,
+        window.location.origin,
+      );
+      if (filters.q.trim()) url.searchParams.set('q', filters.q.trim());
+      url.searchParams.set('page', String(page));
+      url.searchParams.set('page_size', String(pageSize));
+      url.searchParams.set('lang', lang);
       try {
-        const url = new URL(
-          `/api/restaurants/${encodeURIComponent(restaurantSlug)}/staff/dish-history`,
-          window.location.origin,
-        );
-        if (qApplied.trim()) url.searchParams.set('q', qApplied.trim());
-        url.searchParams.set('page_size', String(pageSize));
-        url.searchParams.set('lang', lang);
-        if (opts.cursor) url.searchParams.set('cursor', opts.cursor);
-        const res = await fetch(url.toString(), { credentials: 'include' });
-        const data = (await res.json().catch(() => ({}))) as {
-          rows?: DishHistoryRow[];
-          next_cursor?: string | null;
+        const res = await fetch(url.toString(), { credentials: 'include', signal });
+        const data = (await res.json().catch(() => ({}))) as DishHistoryListResult & {
           error?: string;
         };
-        if (!res.ok) throw new Error(data.error || 'load_failed');
-        setRows((prev) => (opts.append ? [...prev, ...(data.rows || [])] : data.rows || []));
-        setNextCursor(data.next_cursor ?? null);
-      } catch {
-        setError(t.loadFail);
-      } finally {
-        setLoading(false);
+        if (!res.ok) return { ok: false as const, error: data.error || 'load_failed' };
+        return { ok: true as const, data };
+      } catch (err) {
+        if (signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+          return { ok: false as const, error: 'aborted' };
+        }
+        return { ok: false as const, error: 'network_error' };
       }
     },
-    [restaurantSlug, qApplied, pageSize, lang, t.loadFail],
+    [restaurantSlug, lang],
   );
 
-  useEffect(() => {
-    void load({});
-  }, [load]);
+  const {
+    replaceDraftFilters,
+    query,
+    data,
+    loading,
+    setPage,
+    setPageSize,
+    refresh,
+  } = useDashboardListQuery<Filters, DishHistoryListResult>({
+    initialFilters: { q: '' },
+    debounceMs: 0,
+    fetchList,
+    onFetchError: () => setError(t.loadFail),
+    onSuccess: () => setError(''),
+  });
 
   const search = () => {
-    setQApplied(q.trim());
+    replaceDraftFilters({ q: qDraft.trim() });
   };
   const openRemake = (row: DishHistoryRow) => {
     setRemakeTarget(row);
@@ -88,9 +106,9 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
           }),
         },
       );
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        if (data.error === 'no_active_session') {
+        if (body.error === 'no_active_session') {
           setError(t.noActiveSession);
         } else {
           setError(t.remakeFail);
@@ -98,7 +116,7 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         return;
       }
       setRemakeTarget(null);
-      await load({});
+      refresh();
     } catch {
       setError(t.remakeFail);
     } finally {
@@ -106,14 +124,20 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
     }
   };
 
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
+  const showInitialLoading = loading && !data;
+  const listBusy = loading && !!data;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 min-w-0">
           <Input
             label={t.searchLabel}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
+            value={qDraft}
+            onChange={(e) => setQDraft(e.target.value)}
             placeholder={t.searchPlaceholder}
             onKeyDown={(e) => {
               if (e.key === 'Enter') search();
@@ -123,27 +147,17 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         <Button type="button" onClick={search} loading={loading} className="sm:mb-0.5">
           {t.search}
         </Button>
-        <label className="text-sm text-brand-text-muted sm:mb-0.5">
-          {t.pageSize}
-          <select
-            className="ml-2 rounded-lg border border-brand-border bg-brand-card px-2 py-2 text-brand-text"
-            value={pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value) as 20 | 50 | 100)}
-          >
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </label>
       </div>
 
       {error ? <p className="mesa-alert-danger text-sm px-4 py-2">{error}</p> : null}
 
-      {rows.length === 0 && !loading ? (
+      {showInitialLoading ? (
+        <p className="text-sm text-brand-text-muted text-center py-12">{t.loading}</p>
+      ) : items.length === 0 ? (
         <p className="text-sm text-brand-text-muted text-center py-12">{t.empty}</p>
       ) : (
-        <ul className="space-y-2">
-          {rows.map((row) => {
+        <ul className={`space-y-2 ${listBusy ? 'opacity-60' : ''}`}>
+          {items.map((row) => {
             const time = new Date(row.added_at).toLocaleString(locale, {
               month: '2-digit',
               day: '2-digit',
@@ -184,18 +198,21 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         </ul>
       )}
 
-      {nextCursor ? (
-        <div className="flex justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            loading={loading}
-            onClick={() => void load({ cursor: nextCursor, append: true })}
-          >
-            {t.loadMore}
-          </Button>
-        </div>
-      ) : null}
+      <ListPaginationBar
+        page={query.page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={query.pageSize}
+        labels={{
+          pageInfo: t.pageInfo,
+          pageSizeLabel: t.pageSizeLabel,
+          pagePrev: t.pagePrev,
+          pageNext: t.pageNext,
+        }}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        disabled={loading}
+      />
 
       <Modal
         open={!!remakeTarget}

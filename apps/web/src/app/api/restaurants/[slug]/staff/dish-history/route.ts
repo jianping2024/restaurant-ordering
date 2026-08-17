@@ -30,8 +30,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     admin,
     restaurantId: ctx.restaurant_id,
     q: url.searchParams.get('q'),
+    pageRaw: url.searchParams.get('page'),
     pageSizeRaw: url.searchParams.get('page_size'),
-    cursorRaw: url.searchParams.get('cursor'),
     lang: isUILanguage(langRaw) ? langRaw : DEFAULT_UI_LANG,
   });
 
@@ -43,8 +43,9 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   }
 
   return NextResponse.json({
-    rows: result.rows,
-    next_cursor: result.next_cursor,
-    page_size: result.page_size,
+    items: result.items,
+    page: result.page,
+    pageSize: result.pageSize,
+    total: result.total,
   });
 }

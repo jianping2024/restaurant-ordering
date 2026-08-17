@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { APPEND_CART_QTY_MAX, type MenuItem, type CartItem, type MenuCategory } from '@/types';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
+import { CustomerRecommendedRail } from '@/components/menu/CustomerRecommendedRail';
 import { CartDrawer } from '@/components/menu/CartDrawer';
 import { OrderedDrawer } from '@/components/menu/OrderedDrawer';
 import {
@@ -653,10 +654,8 @@ export function SushiMenuPage({
         backLink={null}
       >
         <CustomerMenuCategoryStrip
-          topCategories={customerMenuStripTopCategories(
-            catalogView,
-            t.recommended,
-            (cat) => getMenuCategoryLabel(cat, lang),
+          topCategories={customerMenuStripTopCategories(catalogView, (cat) =>
+            getMenuCategoryLabel(cat, lang),
           )}
           activeTopId={currentTop}
           onSelectTop={(id) => {
@@ -685,38 +684,54 @@ export function SushiMenuPage({
       <div className="px-4 py-4">
         {!catalogReady ? (
           <CustomerMenuCatalogSkeleton />
-        ) : currentItems.length === 0 ? (
-          <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
         ) : (
-          <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
-            {currentItems.map((item) => {
-              const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
-              const hintParts = sushiLimitHintParts(buffetServiceMode, item);
-              const limitHint = hintParts
-                ? t.sushiLimitHint
-                    .replace('{perPerson}', String(hintParts.perPerson))
-                    .replace('{price}', hintParts.overLimitPrice.toFixed(2))
-                : null;
-              return (
-                <MenuItemCard
-                  key={item.id}
-                  item={item}
-                  lang={lang}
-                  cartQty={cartQty}
-                  limitHint={limitHint}
-                  treatZeroAsFree
-                  onOpenDetail={() => {
-                    setCartOpen(false);
-                    setOrderedOpen(false);
-                    setRoundReviewOpen(false);
-                    setDetailMenuItemId(item.id);
-                  }}
-                  onIncrement={() => bumpItem(item, 1)}
-                  onDecrement={() => bumpItem(item, -1)}
-                />
-              );
-            })}
-          </div>
+          <>
+            <CustomerRecommendedRail
+              items={catalogView.recommendedItems}
+              lang={lang}
+              title={t.recommended}
+              onOpenDetail={(menuItemId) => {
+                setCartOpen(false);
+                setOrderedOpen(false);
+                setRoundReviewOpen(false);
+                setDetailMenuItemId(menuItemId);
+              }}
+              onIncrement={(item) => bumpItem(item, 1)}
+            />
+            {currentItems.length === 0 ? (
+              <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
+            ) : (
+              <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
+                {currentItems.map((item) => {
+                  const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+                  const hintParts = sushiLimitHintParts(buffetServiceMode, item);
+                  const limitHint = hintParts
+                    ? t.sushiLimitHint
+                        .replace('{perPerson}', String(hintParts.perPerson))
+                        .replace('{price}', hintParts.overLimitPrice.toFixed(2))
+                    : null;
+                  return (
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      lang={lang}
+                      cartQty={cartQty}
+                      limitHint={limitHint}
+                      treatZeroAsFree
+                      onOpenDetail={() => {
+                        setCartOpen(false);
+                        setOrderedOpen(false);
+                        setRoundReviewOpen(false);
+                        setDetailMenuItemId(item.id);
+                      }}
+                      onIncrement={() => bumpItem(item, 1)}
+                      onDecrement={() => bumpItem(item, -1)}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 

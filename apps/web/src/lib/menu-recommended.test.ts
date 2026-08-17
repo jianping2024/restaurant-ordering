@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { MenuCategory, MenuItem } from '@/types';
 import {
-  CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID,
   customerMenuStripTopCategories,
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
@@ -70,7 +69,7 @@ describe('resolveCustomerMenuCatalogView', () => {
     assert.deepEqual(view.currentItems.map((row) => row.id).sort(), ['i-bacalhau', 'i-frango']);
   });
 
-  it('defaults to recommended sentinel when any curated dish is available', () => {
+  it('defaults to first real category even when curated dishes are available', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks],
       menuItems: [frango, vinho, soldOut],
@@ -78,17 +77,18 @@ describe('resolveCustomerMenuCatalogView', () => {
       activeTopId: 'Pratos',
       activeSubpath: '',
     });
-    assert.equal(view.currentTopId, CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID);
-    assert.deepEqual(view.currentItems.map((row) => row.id), ['i-vinho']);
-    assert.deepEqual(view.subCategories, []);
+    assert.equal(view.currentTopId, 'c-mains');
+    assert.deepEqual(view.recommendedItems.map((row) => row.id), ['i-vinho']);
+    assert.ok(view.currentItems.some((row) => row.id === 'i-frango'));
+    assert.ok(!view.currentItems.some((row) => row.id === 'i-vinho'));
   });
 
-  it('hides recommended when every curated dish is unavailable', () => {
+  it('ignores a stale recommended sentinel as the active top', () => {
     const view = resolveCustomerMenuCatalogView({
       menuCategories: [mains],
       menuItems: [soldOut, frango],
       recommendedItemIds: ['i-sold'],
-      activeTopId: CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID,
+      activeTopId: 'recommended',
       activeSubpath: '',
     });
     assert.equal(view.currentTopId, 'c-mains');
@@ -110,7 +110,7 @@ describe('resolveCustomerMenuCatalogView', () => {
 });
 
 describe('customerMenuStripTopCategories', () => {
-  it('prepends recommended only when visible items exist', () => {
+  it('lists only real top categories even when recommended dishes exist', () => {
     const withRec = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks],
       menuItems: [vinho],
@@ -119,9 +119,10 @@ describe('customerMenuStripTopCategories', () => {
       activeSubpath: '',
     });
     assert.deepEqual(
-      customerMenuStripTopCategories(withRec, '推荐', (c) => c.name_pt).map((c) => c.id),
-      [CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID, 'c-mains', 'c-drinks'],
+      customerMenuStripTopCategories(withRec, (c) => c.name_pt).map((c) => c.id),
+      ['c-mains', 'c-drinks'],
     );
+    assert.deepEqual(withRec.recommendedItems.map((row) => row.id), ['i-vinho']);
 
     const without = resolveCustomerMenuCatalogView({
       menuCategories: [mains],
@@ -131,7 +132,7 @@ describe('customerMenuStripTopCategories', () => {
       activeSubpath: '',
     });
     assert.deepEqual(
-      customerMenuStripTopCategories(without, '推荐', (c) => c.name_pt).map((c) => c.id),
+      customerMenuStripTopCategories(without, (c) => c.name_pt).map((c) => c.id),
       ['c-mains'],
     );
   });

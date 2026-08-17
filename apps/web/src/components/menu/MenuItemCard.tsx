@@ -31,6 +31,31 @@ interface Props {
 
 type ActionLabels = { add: string; soldOut: string };
 
+export function MenuItemAddButton({
+  ariaLabel,
+  disabled,
+  onClick,
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
+    >
+      +
+    </button>
+  );
+}
+
 function MenuItemCardAction({
   available,
   cartQty,
@@ -68,18 +93,7 @@ function MenuItemCardAction({
   }
 
   return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onIncrement();
-      }}
-      disabled={incrementDisabled}
-      aria-label={labels.add}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
-    >
-      +
-    </button>
+    <MenuItemAddButton ariaLabel={labels.add} disabled={incrementDisabled} onClick={onIncrement} />
   );
 }
 

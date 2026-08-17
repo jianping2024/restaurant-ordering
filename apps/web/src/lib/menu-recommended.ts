@@ -22,12 +22,6 @@ export function parseRecommendedMenuItemIds(raw: unknown): string[] | null {
   return ids.length > 0 ? ids : null;
 }
 
-/**
- * Customer category-strip sentinel. Not a `menu_categories.id`.
- * Sole customer merchandising entry for recommended dishes.
- */
-export const CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID = 'recommended';
-
 export type CustomerMenuCatalogView = {
   realTopCategories: MenuCategory[];
   recommendedItems: MenuItem[];
@@ -89,7 +83,7 @@ function itemsForCategoryScope(params: {
 
 /**
  * Sole customer menu category + item selection (classic + sushi).
- * Recommended is a virtual first top category when any curated dish is available.
+ * Recommended dishes are a content rail, not a category.
  */
 export function resolveCustomerMenuCatalogView(params: {
   menuCategories: readonly MenuCategory[];
@@ -105,12 +99,8 @@ export function resolveCustomerMenuCatalogView(params: {
     params.menuItems,
     params.recommendedItemIds,
   );
-  const defaultTop =
-    recommendedItems.length > 0 ? CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID : (realTopCategories[0]?.id || '');
-  const knownTops = new Set<string>([
-    ...(recommendedItems.length > 0 ? [CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID] : []),
-    ...realTopCategories.map((c) => c.id),
-  ]);
+  const defaultTop = realTopCategories[0]?.id || '';
+  const knownTops = new Set<string>(realTopCategories.map((c) => c.id));
   const currentTopId = knownTops.has(params.activeTopId) ? params.activeTopId : defaultTop;
 
   const childrenByParent = new Map<string, string[]>();
@@ -122,17 +112,6 @@ export function resolveCustomerMenuCatalogView(params: {
       list.push(category.id);
       childrenByParent.set(parentId, list);
     });
-
-  if (currentTopId === CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID) {
-    return {
-      realTopCategories,
-      recommendedItems,
-      currentTopId,
-      subCategories: [],
-      currentSubpath: '',
-      currentItems: recommendedItems,
-    };
-  }
 
   const subCategories = params.menuCategories
     .filter((c) => c.parent_id === currentTopId && c.active)
@@ -158,13 +137,10 @@ export function resolveCustomerMenuCatalogView(params: {
 
 export function customerMenuStripTopCategories(
   view: CustomerMenuCatalogView,
-  recommendedLabel: string,
   labelForCategory: (category: MenuCategory) => string,
 ): { id: string; label: string }[] {
-  const real = view.realTopCategories.map((cat) => ({
+  return view.realTopCategories.map((cat) => ({
     id: cat.id,
     label: labelForCategory(cat),
   }));
-  if (view.recommendedItems.length === 0) return real;
-  return [{ id: CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID, label: recommendedLabel }, ...real];
 }

@@ -147,7 +147,7 @@
 - 角色权限勾选为产品页面树（`ROLE_PERMISSION_PAGE_TREE`）：设置子页（含后厨大屏）挂在「餐厅设置」下，与设置 Tab 同文案同源；**出品档口**为菜单管理子集 key `dashboard.menu.print_stations.manage`（文案读 `menuManager.tabStations`），分类/菜品绑定档口仍只需 `dashboard.menu.view`
 - `/dashboard/settings/menu` 已重定向到 settings 主页；**菜单管理主入口是 `/dashboard/menu`**
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
-- 推荐不是真实分类、也不是 `menu_items` 布尔；顾客目录只带有序 `recommendedItemIds`，分类条最前虚拟「推荐」仍用 `MenuItemCard` + 「+」快加；下架推荐菜不出现在该节
+- 推荐不是真实分类、也不是 `menu_items` 布尔；顾客目录只带有序 `recommendedItemIds`；有上架推荐时分类条**下面**一条横滑方图轨（`CustomerRecommendedRail`，不吸顶、无「换一批」），分类条不再插入虚拟「推荐」；下架推荐菜不出现在该轨
 - 后台挑推荐 / 已选排序行与菜品 Tab 列表共用 `MenuItemListThumb`；不要再画一套 40×40 图或顾客点餐卡
 - 推荐弹窗是勾选 + 分类 chip + 一次 `POST menu_item_ids`；已推荐行可见且勾选禁用；不要点一行即关窗，也不要并行 `menu_item_id` 单条写入
 
@@ -164,7 +164,7 @@
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/dashboard/menu/page.tsx` |
-| UI | `apps/web/src/components/dashboard/MenuManager.tsx`、`RecommendedMenuItemsManager.tsx`、`MenuItemListThumb.tsx` |
+| UI | `apps/web/src/components/dashboard/MenuManager.tsx`、`RecommendedMenuItemsManager.tsx`、`MenuItemListThumb.tsx`、`CustomerRecommendedRail.tsx` |
 | Lib | `apps/web/src/lib/dashboard-menu-server.ts`、`dashboard-menu-client.ts`、`menu-admin.ts`、`print-station-admin.ts`、`menu-recommended.ts` |
 | API | `apps/web/src/app/api/dashboard/menu/items/route.ts`、`categories/route.ts`、`print-stations/route.ts`、`recommended/route.ts` |
 

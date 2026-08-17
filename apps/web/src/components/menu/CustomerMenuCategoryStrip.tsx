@@ -1,11 +1,7 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
-import {
-  countVisibleCategoryPills,
-  CUSTOMER_MENU_CATEGORY_ROW_GAP_PX,
-} from '@/lib/customer-menu-category-overflow';
 
 export type CustomerMenuCategoryOption = {
   id: string;
@@ -66,36 +62,7 @@ export function CustomerMenuCategoryStrip({
   subcategoryAllLabel,
   categoryMoreLabel,
 }: Props) {
-  const rowRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const [visibleCount, setVisibleCount] = useState(topCategories.length);
   const [moreOpen, setMoreOpen] = useState(false);
-
-  const topKey = topCategories.map((cat) => `${cat.id}:${cat.label}`).join('|');
-
-  useLayoutEffect(() => {
-    const row = rowRef.current;
-    const measure = measureRef.current;
-    if (!row || !measure) return;
-
-    const recompute = () => {
-      const chips = Array.from(measure.querySelectorAll<HTMLElement>('[data-cat-chip]'));
-      const moreEl = measure.querySelector<HTMLElement>('[data-cat-more]');
-      const next = countVisibleCategoryPills({
-        containerWidth: row.clientWidth,
-        chipWidths: chips.map((el) => el.getBoundingClientRect().width),
-        moreWidth: moreEl?.getBoundingClientRect().width ?? 0,
-        gap: CUSTOMER_MENU_CATEGORY_ROW_GAP_PX,
-      });
-      setVisibleCount(next);
-      if (next >= topCategories.length) setMoreOpen(false);
-    };
-
-    recompute();
-    const observer = new ResizeObserver(recompute);
-    observer.observe(row);
-    return () => observer.disconnect();
-  }, [topKey, categoryMoreLabel, topCategories.length]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -106,13 +73,6 @@ export function CustomerMenuCategoryStrip({
     return () => document.removeEventListener('keydown', onKey);
   }, [moreOpen]);
 
-  const needsMore = visibleCount < topCategories.length;
-  const visibleCategories = moreOpen
-    ? topCategories
-    : needsMore
-      ? topCategories.slice(0, visibleCount)
-      : topCategories;
-
   const selectTop = (id: string) => {
     onSelectTop(id);
     setMoreOpen(false);
@@ -120,29 +80,17 @@ export function CustomerMenuCategoryStrip({
 
   return (
     <div className="relative">
-      <div
-        ref={measureRef}
-        className="pointer-events-none absolute left-0 top-0 -z-10 flex h-0 gap-2 overflow-hidden opacity-0"
-        aria-hidden
-      >
-        {topCategories.map((cat) => (
-          <span key={cat.id} data-cat-chip className={topPillClass(false)}>
-            {cat.label}
-          </span>
-        ))}
-        <span data-cat-more className={topPillClass(false)}>
-          {categoryMoreLabel} ▾
-        </span>
-      </div>
-
-      <div className={`px-4 ${moreOpen ? 'pb-3' : 'pb-1.5'}`}>
+      <div className={`flex items-start ${moreOpen ? 'pb-3' : 'pb-1.5'}`}>
         <div
-          ref={rowRef}
-          className={moreOpen ? 'flex flex-wrap gap-2' : 'flex items-center gap-2'}
+          className={
+            moreOpen
+              ? 'flex min-w-0 flex-1 flex-wrap gap-2 px-4'
+              : 'mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4'
+          }
           role={moreOpen ? 'dialog' : undefined}
           aria-label={moreOpen ? categoryMoreLabel : undefined}
         >
-          {visibleCategories.map((cat) => (
+          {topCategories.map((cat) => (
             <TopCategoryPill
               key={cat.id}
               cat={cat}
@@ -150,18 +98,16 @@ export function CustomerMenuCategoryStrip({
               onSelect={selectTop}
             />
           ))}
-          {needsMore && !moreOpen ? (
-            <button
-              type="button"
-              aria-expanded={false}
-              aria-haspopup="dialog"
-              onClick={() => setMoreOpen(true)}
-              className={topPillClass(false)}
-            >
-              {categoryMoreLabel} ▾
-            </button>
-          ) : null}
         </div>
+        <button
+          type="button"
+          aria-expanded={moreOpen}
+          aria-haspopup="dialog"
+          onClick={() => setMoreOpen((open) => !open)}
+          className={`mr-3 shrink-0 ${topPillClass(moreOpen)}`}
+        >
+          {categoryMoreLabel} {moreOpen ? '▴' : '▾'}
+        </button>
       </div>
 
       {moreOpen ? (

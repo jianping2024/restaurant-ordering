@@ -20,10 +20,14 @@ type Props = {
   onOpenDetail: (menuItemId: string) => void;
 };
 
+/** Sole poster width (8.5rem). Media height is width / MENU_IMAGE_ASPECT_RATIO. */
+const POSTER_WIDTH_PX = 136;
+const POSTER_MEDIA_HEIGHT_PX = POSTER_WIDTH_PX / MENU_IMAGE_ASPECT_RATIO;
+
 /**
- * Sole customer recommended merchandising: gold-wash band of poster cards
- * (4:3 photo + catalog label + price). Tap opens detail. Not MenuItemCard,
- * not sticky, not a virtual category, no overlay +.
+ * Sole customer recommended merchandising: gold-wash band of equal-height
+ * poster cards (locked 4:3 well + two-line name slot + price on one baseline).
+ * Tap opens detail. Not MenuItemCard, not sticky, not a virtual category, no overlay +.
  */
 export function CustomerRecommendedRail({
   items,
@@ -37,11 +41,11 @@ export function CustomerRecommendedRail({
 
   return (
     <section
-      className="mb-5 overflow-hidden rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 pb-3 pt-2.5"
+      className="mb-5 rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 pb-3 pt-2.5"
       aria-label={title}
     >
       <h2 className="px-0.5 text-sm font-semibold text-brand-gold">{title}</h2>
-      <div className="mesa-chip-scroll -mx-3 mt-2 flex gap-2.5 px-3">
+      <div className="mesa-chip-scroll -mx-3 mt-2 flex items-start gap-2.5 px-3">
         {items.map((item) => {
           const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
           const label = formatMenuCatalogItemLabel(item, lang);
@@ -56,13 +60,14 @@ export function CustomerRecommendedRail({
               type="button"
               onClick={() => onOpenDetail(item.id)}
               aria-label={openDetailAria}
-              className={`w-[8.5rem] shrink-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 ${
+              className={`flex shrink-0 flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 ${
                 item.available ? '' : 'opacity-50'
               }`}
+              style={{ width: POSTER_WIDTH_PX }}
             >
               <span
-                className="relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl"
-                style={{ aspectRatio: String(MENU_IMAGE_ASPECT_RATIO) }}
+                className="relative block shrink-0 overflow-hidden rounded-xl bg-brand-border text-3xl"
+                style={{ width: POSTER_WIDTH_PX, height: POSTER_MEDIA_HEIGHT_PX }}
               >
                 {imageSrc ? (
                   <Image
@@ -70,18 +75,18 @@ export function CustomerRecommendedRail({
                     alt=""
                     fill
                     className="object-cover"
-                    sizes="136px"
+                    sizes={`${POSTER_WIDTH_PX}px`}
                     unoptimized={MENU_IMAGE_UNOPTIMIZED}
                   />
                 ) : (
-                  item.emoji
+                  <span className="flex h-full w-full items-center justify-center">{item.emoji}</span>
                 )}
               </span>
-              <span className={`mt-1.5 line-clamp-2 ${CUSTOMER_MENU_TYPE.recommendedName}`}>{label}</span>
+              <span className={CUSTOMER_MENU_TYPE.recommendedName}>{label}</span>
               <span className={`mt-0.5 block ${CUSTOMER_MENU_TYPE.moneyAmount}`}>{priceText}</span>
-              {item.available ? null : (
-                <span className={`mt-0.5 block ${CUSTOMER_MENU_TYPE.itemSoldOut}`}>{t.itemSoldOut}</span>
-              )}
+              <span className={`mt-0.5 block min-h-[1rem] ${CUSTOMER_MENU_TYPE.itemSoldOut}`}>
+                {item.available ? null : t.itemSoldOut}
+              </span>
             </button>
           );
         })}

@@ -10,6 +10,7 @@ import type { DataNode } from 'rc-tree/lib/interface';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -1465,20 +1466,7 @@ export function MenuManager({
                                   dragHandleProps={draggableProvided.dragHandleProps}
                                 />
                               ) : null}
-                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-border flex-shrink-0 flex items-center justify-center text-xl">
-                                {item.image_url ? (
-                                  <Image
-                                    src={resolveMenuImageDisplayUrl(item.image_url) || item.image_url}
-                                    alt=""
-                                    width={40}
-                                    height={40}
-                                    className="object-cover w-10 h-10"
-                                    unoptimized={MENU_IMAGE_UNOPTIMIZED}
-                                  />
-                                ) : (
-                                  item.emoji
-                                )}
-                              </div>
+                              <MenuItemListThumb item={item} />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-2 min-w-0">
                                   <p className="flex-1 min-w-0 text-sm truncate" title={primaryTitle}>

@@ -148,6 +148,7 @@
 - `/dashboard/settings/menu` 已重定向到 settings 主页；**菜单管理主入口是 `/dashboard/menu`**
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
 - 推荐不是真实分类、也不是 `menu_items` 布尔；顾客目录只带有序 `recommendedItemIds`，分类条最前虚拟「推荐」仍用 `MenuItemCard` + 「+」快加；下架推荐菜不出现在该节
+- 后台挑推荐 / 已选排序行与菜品 Tab 列表共用 `MenuItemListThumb`；不要再画一套 40×40 图或顾客点餐卡
 
 ### 当前不做
 
@@ -162,7 +163,7 @@
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/dashboard/menu/page.tsx` |
-| UI | `apps/web/src/components/dashboard/MenuManager.tsx`、`RecommendedMenuItemsManager.tsx` |
+| UI | `apps/web/src/components/dashboard/MenuManager.tsx`、`RecommendedMenuItemsManager.tsx`、`MenuItemListThumb.tsx` |
 | Lib | `apps/web/src/lib/dashboard-menu-server.ts`、`dashboard-menu-client.ts`、`menu-admin.ts`、`print-station-admin.ts`、`menu-recommended.ts` |
 | API | `apps/web/src/app/api/dashboard/menu/items/route.ts`、`categories/route.ts`、`print-stations/route.ts`、`recommended/route.ts` |
 

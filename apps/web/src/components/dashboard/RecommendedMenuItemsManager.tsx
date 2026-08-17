@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import type { MenuItem } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -185,6 +186,7 @@ export function RecommendedMenuItemsManager({
                                 dragHandleProps={draggableProvided.dragHandleProps}
                               />
                             ) : null}
+                            <MenuItemListThumb item={row} />
                             <div className="min-w-0 flex-1">
                               <p className="text-brand-text font-medium truncate">
                                 {formatMenuCatalogItemLabel(row, lang)}
@@ -246,16 +248,19 @@ export function RecommendedMenuItemsManager({
                     type="button"
                     disabled={savingId === row.id || atLimit}
                     onClick={() => void addItem(row.id)}
-                    className="w-full text-left px-3 py-2.5 hover:bg-brand-gold/10 transition-colors disabled:opacity-50"
+                    className="w-full text-left px-3 py-2.5 hover:bg-brand-gold/10 transition-colors disabled:opacity-50 flex items-center gap-3"
                   >
-                    <span className="block text-sm text-brand-text truncate">
-                      {formatMenuCatalogItemLabel(row, lang)}
-                    </span>
-                    {!row.available ? (
-                      <span className="block text-[12px] text-brand-text-muted mt-0.5">
-                        {t.unavailableBadge}
+                    <MenuItemListThumb item={row} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm text-brand-text truncate">
+                        {formatMenuCatalogItemLabel(row, lang)}
                       </span>
-                    ) : null}
+                      {!row.available ? (
+                        <span className="block text-[12px] text-brand-text-muted mt-0.5">
+                          {t.unavailableBadge}
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 </li>
               ))}

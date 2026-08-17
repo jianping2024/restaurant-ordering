@@ -90,12 +90,14 @@
 | 菜品 | 分类树 + 菜品列表（内联编辑、上下架、图片） |
 | 分类 | 分类 CRUD |
 | 打印档口 | 嵌入 `PrintStationsManager` 或跳转 settings |
+| 推荐 | 已选有序列表 + 弹窗挑菜；列表行与弹窗行同一套 `MenuItemListThumb`（40×40 图或 emoji），不是顾客 `MenuItemCard`、不是照片网格 |
 
 **要点**
 
 - 默认 Tab 可由 URL `?tab=` 控制
 - 长表单在卡片内分段；**不在手机端塞宽表**
 - 下架 = `available` badge + 切换，见业务规则「今日菜单」
+- 后台目录行缩略图唯一 `MenuItemListThumb`（菜品 Tab 列表、推荐已选、推荐弹窗共用）
 
 ---
 

@@ -59,6 +59,7 @@ docker run --rm -v "$PWD:/repo" -w /repo/apps/print-agent -e GOOS=windows -e GOA
 - UI: `src/components/ui` + brand tokens.
 - Tables: `table_id` = UUID; `display_name` = label; print payloads need both; no legacy `table_number`; receipts never show table UUIDs.
 - **On-screen dish name:** sole picker `resolveMenuItemLocalizedName` (UI lang + snapshot trilingual); print stays `menuLocalizedName` + `print_locale`. Do not add `item.name || item.name_pt` beside it.
+- **Recommended dishes:** sole list `menu_recommended_items` + catalog `recommendedItemIds`; customer strip sentinel `recommended` only — do not add `is_recommended` on `menu_items` or a real `menu_categories` row.
 - **Browser UUID:** sole mint `mintBrowserUuid` (randomUUID or getRandomValues v4); guest `client_id` and append `client_request_id` both call it. Do not add a `Date.now().toString(16)` fallback beside it.
 - Go: Docker commands above; `gofmt`; focused table-driven tests for parser/routing.
 

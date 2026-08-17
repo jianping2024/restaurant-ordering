@@ -5,7 +5,6 @@ import { APPEND_CART_QTY_MAX, type MenuItem, type CartItem, type MenuCategory } 
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { CartDrawer } from '@/components/menu/CartDrawer';
 import { OrderedDrawer } from '@/components/menu/OrderedDrawer';
-import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import {
   messageForSushiLimitError,
   MENU_PAGE_MESSAGES,
@@ -17,6 +16,11 @@ import {
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import { getMenuCategoryLabel } from '@/lib/menu-admin';
+import {
+  customerMenuStripTopCategories,
+  resolveCustomerMenuCatalogView,
+} from '@/lib/menu-recommended';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
@@ -84,6 +88,7 @@ type Props = {
   sushiRoundSettings: SushiRoundSettings;
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
+  recommendedItemIds?: string[];
   catalogReady?: boolean;
   tableId: string;
   displayName: string;
@@ -97,6 +102,7 @@ export function SushiMenuPage({
   sushiRoundSettings,
   menuItems,
   menuCategories,
+  recommendedItemIds = [],
   catalogReady = true,
   tableId,
   displayName,
@@ -181,60 +187,21 @@ export function SushiMenuPage({
     return guestOrderGateFromSessionContext(data);
   }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
 
-  const topCategories = menuCategories
-    .filter((c) => !c.parent_id && c.active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const currentTop = topCategories.some((c) => c.id === activeTopCategory)
-    ? activeTopCategory
-    : topCategories[0]?.id || '';
-  const subCategories = menuCategories
-    .filter((c) => c.parent_id === currentTop && c.active)
-    .sort((a, b) => a.sort_order - b.sort_order);
-  const currentSubpath = subCategories.some((c) => c.id === activeSubpath) ? activeSubpath : '';
-  const labelMap = CATEGORY_LABELS[lang] as Record<string, string>;
-  const localizedCategoryLabel = (c: MenuCategory) => {
-    if (lang === 'en') return c.name_en || c.name_pt;
-    if (lang === 'zh') return c.name_zh || c.name_pt;
-    return c.name_pt || labelMap[c.name_pt] || c.name_pt;
-  };
-
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string, string[]>();
-    menuCategories
-      .filter((c) => c.active && c.parent_id)
-      .forEach((category) => {
-        const parentId = category.parent_id as string;
-        const list = map.get(parentId) || [];
-        list.push(category.id);
-        map.set(parentId, list);
-      });
-    return map;
-  }, [menuCategories]);
-
-  const collectDescendantIds = (rootId: string) => {
-    const ids = new Set<string>();
-    const walk = (id: string) => {
-      const children = childrenByParent.get(id) || [];
-      children.forEach((childId) => {
-        if (ids.has(childId)) return;
-        ids.add(childId);
-        walk(childId);
-      });
-    };
-    walk(rootId);
-    return ids;
-  };
-
-  const currentItems = menuItems.filter((item) => {
-    if (!currentTop) return true;
-    if (!item.category_id) return false;
-    if (currentSubpath) {
-      if (item.category_id === currentSubpath) return true;
-      return collectDescendantIds(currentSubpath).has(item.category_id);
-    }
-    if (item.category_id === currentTop) return true;
-    return collectDescendantIds(currentTop).has(item.category_id);
-  });
+  const catalogView = useMemo(
+    () =>
+      resolveCustomerMenuCatalogView({
+        menuCategories,
+        menuItems,
+        recommendedItemIds,
+        activeTopId: activeTopCategory,
+        activeSubpath,
+      }),
+    [menuCategories, menuItems, recommendedItemIds, activeTopCategory, activeSubpath],
+  );
+  const currentTop = catalogView.currentTopId;
+  const subCategories = catalogView.subCategories;
+  const currentSubpath = catalogView.currentSubpath;
+  const currentItems = catalogView.currentItems;
 
   const menuItemCodeById = useMemo(() => menuItemCodeLookupFromRows(menuItems), [menuItems]);
   const guestCanOrder = useMemo(
@@ -686,10 +653,11 @@ export function SushiMenuPage({
         backLink={null}
       >
         <CustomerMenuCategoryStrip
-          topCategories={topCategories.map((cat) => ({
-            id: cat.id,
-            label: localizedCategoryLabel(cat),
-          }))}
+          topCategories={customerMenuStripTopCategories(
+            catalogView,
+            t.recommended,
+            (cat) => getMenuCategoryLabel(cat, lang),
+          )}
           activeTopId={currentTop}
           onSelectTop={(id) => {
             setActiveTopCategory(id);
@@ -697,7 +665,7 @@ export function SushiMenuPage({
           }}
           subCategories={subCategories.map((sub) => ({
             id: sub.id,
-            label: localizedCategoryLabel(sub),
+            label: getMenuCategoryLabel(sub, lang),
           }))}
           activeSubpath={currentSubpath}
           onSelectSubpath={setActiveSubpath}

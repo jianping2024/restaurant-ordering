@@ -43,11 +43,17 @@ export async function invalidateCustomerMenuCatalog(restaurantId: string): Promi
   revalidateTag(customerMenuCatalogTag(restaurantId));
 }
 
+export type CustomerMenuCatalogRows = {
+  menuItems: MenuItem[];
+  menuCategories: MenuCategory[];
+  recommendedItemIds: string[];
+};
+
 async function loadCustomerMenuCatalogUncached(
   restaurantId: string,
-): Promise<{ menuItems: MenuItem[]; menuCategories: MenuCategory[] }> {
+): Promise<CustomerMenuCatalogRows> {
   const admin = createAdminClient();
-  const [{ data: menuItems }, { data: menuCategories }] = await Promise.all([
+  const [{ data: menuItems }, { data: menuCategories }, { data: recommended }] = await Promise.all([
     admin
       .from('menu_items')
       .select('*')
@@ -60,11 +66,17 @@ async function loadCustomerMenuCatalogUncached(
       .eq('restaurant_id', restaurantId)
       .eq('active', true)
       .order('sort_order'),
+    admin
+      .from('menu_recommended_items')
+      .select('menu_item_id')
+      .eq('restaurant_id', restaurantId)
+      .order('sort_order'),
   ]);
 
   return {
     menuItems: (menuItems || []) as MenuItem[],
     menuCategories: (menuCategories || []) as MenuCategory[],
+    recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
   };
 }
 
@@ -88,7 +100,7 @@ export function loadCustomerMenuCatalog(restaurantId: string) {
 export async function loadCustomerMenuCatalogForDisplay(
   restaurantId: string,
   imageOpts: ResolveMenuImageDisplayOptions,
-): Promise<{ menuItems: MenuItem[]; menuCategories: MenuCategory[] }> {
+): Promise<CustomerMenuCatalogRows> {
   const catalog = await loadCustomerMenuCatalog(restaurantId);
   return mapCustomerMenuCatalogImageUrls(catalog, imageOpts);
 }

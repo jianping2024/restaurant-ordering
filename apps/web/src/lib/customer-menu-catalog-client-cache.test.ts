@@ -17,15 +17,29 @@ describe('parseCustomerMenuCatalogApiBody', () => {
       version: 4,
       menuItems: [],
       menuCategories: [],
+      recommendedItemIds: ['a'],
     });
     assert.equal(isCustomerMenuCatalogUnchanged(body), false);
     if (isCustomerMenuCatalogUnchanged(body)) throw new Error('expected full');
     assert.equal(body.version, 4);
     assert.deepEqual(body.menuItems, []);
     assert.deepEqual(body.menuCategories, []);
+    assert.deepEqual(body.recommendedItemIds, ['a']);
   });
 
   it('rejects missing version', () => {
-    assert.throws(() => parseCustomerMenuCatalogApiBody({ menuItems: [], menuCategories: [] }));
+    assert.throws(() =>
+      parseCustomerMenuCatalogApiBody({
+        menuItems: [],
+        menuCategories: [],
+        recommendedItemIds: [],
+      }),
+    );
+  });
+
+  it('rejects catalog without recommendedItemIds', () => {
+    assert.throws(() =>
+      parseCustomerMenuCatalogApiBody({ version: 1, menuItems: [], menuCategories: [] }),
+    );
   });
 });

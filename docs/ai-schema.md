@@ -33,6 +33,8 @@ menu_categories (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, parent_i
 
 menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_keys: text[], allergen_codes: text[] NOT NULL DEFAULT '{}', category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar nullable, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
 
+menu_recommended_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, menu_item_id: uuid FK -> menu_items.id ON DELETE CASCADE, sort_order: integer, created_at: timestamptz; UNIQUE(restaurant_id, menu_item_id); UNIQUE(restaurant_id, sort_order); same-restaurant trigger)
+
 orders (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, status: text [pending|cooking|done], items: jsonb, total_amount: numeric, created_at: timestamptz, updated_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text)
 
 print_agent_devices (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, pairing_id: uuid FK -> print_agent_pairings.id nullable, label: text nullable, paired_at: timestamptz, valid_until: timestamptz, revoked_at: timestamptz nullable, last_seen: timestamptz nullable, routing_snapshot: jsonb nullable, agent_version: text nullable, mapped_station_count: integer nullable, last_print_at: timestamptz nullable, last_print_status: text nullable, schedule_open: boolean nullable, notification_mode: text nullable check in realtime|polling)
@@ -124,6 +126,9 @@ menu_categories.print_station_id -> print_stations.id
 menu_items.restaurant_id -> restaurants.id  
 menu_items.category_id -> menu_categories.id  
 menu_items.print_station_id -> print_stations.id
+
+menu_recommended_items.restaurant_id -> restaurants.id  
+menu_recommended_items.menu_item_id -> menu_items.id
 
 dish_feedback.restaurant_id -> restaurants.id  
 dish_feedback.session_id -> table_sessions.id  
@@ -296,6 +301,13 @@ menu_items:
 - idx_menu_items_restaurant: btree(restaurant_id)
 - menu_items_pkey: PK btree(id)
 
+menu_recommended_items:
+
+- menu_recommended_items_pkey: PK btree(id)
+- menu_recommended_items_restaurant_item_unique: unique btree(restaurant_id, menu_item_id)
+- menu_recommended_items_restaurant_sort_unique: unique btree(restaurant_id, sort_order)
+- idx_menu_recommended_items_restaurant_sort: btree(restaurant_id, sort_order, created_at)
+
 orders:
 
 - idx_orders_restaurant: btree(restaurant_id)
@@ -438,6 +450,12 @@ menu_items:
 - ALL: owner by restaurant ownership.
 - ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
 
+menu_recommended_items:
+
+- SELECT: public read (`true`).
+- ALL: owner by restaurant ownership.
+- ALL: authenticated frontdesk via `is_active_restaurant_staff(restaurant_id, ['frontdesk'])`.
+
 orders:
 
 - INSERT: service role only (Next.js `/orders/append` and other admin writers). No anon/authenticated INSERT policy — do not reintroduce `orders_public_insert`. On-prem install checklist: `docs/technical/on-prem-security-baseline.zh.md` §2.
@@ -510,6 +528,7 @@ table_sessions:
 - Operational close: `close_table_session_operational(...)` — advisory lock; cancels unpaid splits; preserves orders (no void); closes session. Force `closed_reason`: waiter_closed / owner_forced / frontdesk_forced / cashier_forced / auto_nightly.
 - Settled close: `close_table_session_settled(...)` — advisory lock; open/billing; cancels unpaid splits; preserves orders; writes `settled_payable_amount`; does not invent paid split/ledger; closes session.
 - Menu routing: `menu_categories` and `menu_items` can each map to `print_stations`.
+- Recommended dishes: `menu_recommended_items` is a merchandising list (not a category, not `menu_items.is_recommended`). Customer catalog exposes ordered `recommendedItemIds`.
 - Print agent flow: `print_agent_pairings` issues six-digit pairing codes; `print_agent_devices` stores paired agent state; `print_jobs` stores queued print work. Each restaurant has one system `print_agent` staff account (created on ops restaurant create / claim ensure / backfill); claim may return Supabase Auth `access_token`/`refresh_token`/`anon_key` for Realtime; agentjwt remains for claim/status APIs. Owner staff UI/API hide and lock that account.
 - `restaurants.print_agent_config` JSON: `{ schedule?, poll?, credential_ttl_days?, default_receipt_station_id?, station_slip_show_category_group? }` — writers merge owned slices onto the existing document (schedule/poll vs TTL+category vs receipt station). `credential_ttl_days` integer **1–365** (default **365**) sets JWT `exp` and `print_agent_devices.valid_until` on the next successful `claim` (功能管理).
 - Platform ops (`@mesa/ops`): `platform_admin_accounts` links Mesa staff to `auth.users`; `platform_admin_audit_log` records cross-tenant actions. **No RLS policies** — accessed via service role only after session check in ops API. Restaurant suspend/resume sets `restaurants.suspended_at` + `suspension_reason` (null on resume). On-prem entitlement: `deployment_mode`, `license_valid_until`, `restaurant_installations`, lease fields; ops UI `/ops/licenses`; claim/check-in under `/api/platform/license/*` (install credential). Runtime gate remains `suspended_at` only (ADR-004).

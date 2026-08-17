@@ -18,7 +18,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   const defaultTable = demoTableByDisplayName('5') ?? DEMO_TABLES[4]!;
   const tableId = parseTableIdParam(tableIdParam) ?? defaultTable.id;
   const table = DEMO_TABLES.find((t) => t.id === tableId) ?? defaultTable;
-  const { menuItems, menuCategories } = getDemoMenuCatalog();
+  const catalog = getDemoMenuCatalog();
   const staffAssisted = resolveStaffAssistedFlow(
     from,
     returnPath,
@@ -30,7 +30,7 @@ export default async function DemoMenuPage({ searchParams }: Props) {
   return (
     <MenuPage
       restaurant={DEMO_RESTAURANT}
-      initialMenuCatalog={{ menuItems, menuCategories }}
+      initialMenuCatalog={catalog}
       tableId={table.id}
       displayName={table.display_name}
       orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}

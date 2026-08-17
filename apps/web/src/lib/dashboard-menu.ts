@@ -9,6 +9,7 @@ export type DashboardMenu =
       menuItems: MenuItem[];
       menuCategories: MenuCategory[];
       printStations: PrintStation[];
+      recommendedItemIds: string[];
       canManagePrintStations: boolean;
     }
   | { error: string; status: number };
@@ -25,7 +26,12 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     'dashboard.menu.print_stations.manage',
   );
 
-  const [{ data: menuItems, error: itemsError }, { data: menuCategories, error: categoriesError }, { data: printStations, error: stationsError }] =
+  const [
+    { data: menuItems, error: itemsError },
+    { data: menuCategories, error: categoriesError },
+    { data: printStations, error: stationsError },
+    { data: recommended, error: recommendedError },
+  ] =
     await Promise.all([
       ctx.admin
         .from('menu_items')
@@ -45,6 +51,11 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
         .eq('restaurant_id', ctx.restaurantId)
         .order('sort_order', { ascending: true })
         .order('created_at', { ascending: true }),
+      ctx.admin
+        .from('menu_recommended_items')
+        .select('menu_item_id')
+        .eq('restaurant_id', ctx.restaurantId)
+        .order('sort_order'),
     ]);
 
   if (itemsError) {
@@ -56,12 +67,16 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
   if (stationsError) {
     return { error: 'print_stations_query_failed', status: 500 };
   }
+  if (recommendedError) {
+    return { error: 'recommended_query_failed', status: 500 };
+  }
 
   return {
     restaurantId: ctx.restaurantId,
     menuItems: (menuItems || []) as MenuItem[],
     menuCategories: (menuCategories || []) as MenuCategory[],
     printStations: (printStations ?? []) as PrintStation[],
+    recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
     canManagePrintStations,
   };
 }

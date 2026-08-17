@@ -8,7 +8,6 @@ import { MenuItemCard } from './MenuItemCard';
 import { CartDrawer } from './CartDrawer';
 import { OrderedDrawer } from './OrderedDrawer';
 import { CustomerMenuItemDetailSheet } from './CustomerMenuItemDetailSheet';
-import { CATEGORY_LABELS } from '@/lib/i18n/messages';
 import {
   formatStaffOverageMessage,
   formatStaffSubmitOverageMessage,
@@ -19,7 +18,12 @@ import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import {
+  customerMenuStripTopCategories,
+  resolveCustomerMenuCatalogView,
+} from '@/lib/menu-recommended';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
+import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
 import { showToast } from '@/components/ui/Toast';
@@ -122,6 +126,7 @@ interface Props {
   restaurant: MenuOrderingRestaurant;
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
+  recommendedItemIds?: string[];
   /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
   catalogReady?: boolean;
   tableId: string;
@@ -142,6 +147,7 @@ export function MenuOrderingController({
   restaurant,
   menuItems,
   menuCategories,
+  recommendedItemIds = [],
   catalogReady = true,
   tableId,
   displayName,
@@ -224,59 +230,22 @@ export function MenuOrderingController({
     return guestOrderGateFromSessionContext(data);
   }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
 
-  // 当前分类菜品
-  const topCategories = menuCategories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order);
-  const currentTop = topCategories.some((c) => c.id === activeTopCategory) ? activeTopCategory : (topCategories[0]?.id || '');
-  const subCategories = menuCategories.filter((c) => c.parent_id === currentTop && c.active).sort((a, b) => a.sort_order - b.sort_order);
-  const currentSubpath = subCategories.some((c) => c.id === activeSubpath) ? activeSubpath : '';
-  const labelMap = CATEGORY_LABELS[lang] as Record<string, string>;
-  const localizedCategoryLabel = (c: MenuCategory) => {
-    if (lang === 'en') return c.name_en || c.name_pt;
-    if (lang === 'zh') return c.name_zh || c.name_pt;
-    return c.name_pt || labelMap[c.name_pt] || c.name_pt;
-  };
-
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string, string[]>();
-    menuCategories
-      .filter((c) => c.active && c.parent_id)
-      .forEach((category) => {
-        const parentId = category.parent_id as string;
-        const list = map.get(parentId) || [];
-        list.push(category.id);
-        map.set(parentId, list);
-      });
-    return map;
-  }, [menuCategories]);
-
-  const collectDescendantIds = (rootId: string) => {
-    const ids = new Set<string>();
-    const walk = (id: string) => {
-      const children = childrenByParent.get(id) || [];
-      children.forEach((childId) => {
-        if (ids.has(childId)) return;
-        ids.add(childId);
-        walk(childId);
-      });
-    };
-    walk(rootId);
-    return ids;
-  };
-
-  const currentItems = menuItems.filter((item) => {
-    if (!currentTop) return true;
-    if (!item.category_id) return false;
-
-    if (currentSubpath) {
-      if (item.category_id === currentSubpath) return true;
-      const descendants = collectDescendantIds(currentSubpath);
-      return descendants.has(item.category_id);
-    }
-
-    if (item.category_id === currentTop) return true;
-    const descendants = collectDescendantIds(currentTop);
-    return descendants.has(item.category_id);
-  });
+  // 当前分类菜品（含虚拟「推荐」）
+  const catalogView = useMemo(
+    () =>
+      resolveCustomerMenuCatalogView({
+        menuCategories,
+        menuItems,
+        recommendedItemIds,
+        activeTopId: activeTopCategory,
+        activeSubpath,
+      }),
+    [menuCategories, menuItems, recommendedItemIds, activeTopCategory, activeSubpath],
+  );
+  const currentTop = catalogView.currentTopId;
+  const subCategories = catalogView.subCategories;
+  const currentSubpath = catalogView.currentSubpath;
+  const currentItems = catalogView.currentItems;
 
   const menuItemCodeById = useMemo(
     () => menuItemCodeLookupFromRows(menuItems),
@@ -853,10 +822,11 @@ export function MenuOrderingController({
         }
       >
         <CustomerMenuCategoryStrip
-          topCategories={topCategories.map((cat) => ({
-            id: cat.id,
-            label: localizedCategoryLabel(cat),
-          }))}
+          topCategories={customerMenuStripTopCategories(
+            catalogView,
+            t.recommended,
+            (cat) => getMenuCategoryLabel(cat, lang),
+          )}
           activeTopId={currentTop}
           onSelectTop={(id) => {
             setActiveTopCategory(id);
@@ -864,7 +834,7 @@ export function MenuOrderingController({
           }}
           subCategories={subCategories.map((sub) => ({
             id: sub.id,
-            label: localizedCategoryLabel(sub),
+            label: getMenuCategoryLabel(sub, lang),
           }))}
           activeSubpath={currentSubpath}
           onSelectSubpath={setActiveSubpath}

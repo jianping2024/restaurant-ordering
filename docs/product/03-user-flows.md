@@ -70,7 +70,7 @@
 
 1. 打开 `/{slug}/menu?table_id=...`（服务员带 `from` / `return` 参数）
 2. RSC 调用 `loadCustomerSessionContext` 注入首屏 session + 近期订单；客户端 `useCustomerSessionContext` 挂载后静默 reconcile
-3. 条件满足（`open` 会话 + active `buffet_base`）→ 展示菜单、购物车
+3. 条件满足（`open` 会话 + active `buffet_base`）→ 展示菜单、购物车。若店里配置了上架推荐菜，分类条最前为「推荐」，列表「+」快加（与分类内同一套卡片）
 4. 顾客选菜、提交 → 进入「加菜流程」
 5. 提交成功后底栏进入**已点态**；点「查看已点」→ `OrderedDrawer` 浏览已提交明细；「查看账单」→ 现有 `BillPage`
 

@@ -3,6 +3,8 @@ import type { MenuCategory, MenuItem } from '@/types';
 export type CustomerMenuCatalog = {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
+  /** Curated order of existing menu_item ids (may include unavailable). */
+  recommendedItemIds: string[];
 };
 
 /** Full catalog payload from GET menu-catalog (version + body). */
@@ -18,7 +20,7 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-const CACHE_SCHEMA_VERSION = 2;
+const CACHE_SCHEMA_VERSION = 3;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -46,6 +48,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (parsed.restaurantId !== restaurantId) return null;
     if (!Number.isFinite(parsed.catalogVersion)) return null;
     if (!parsed.catalog?.menuItems || !parsed.catalog?.menuCategories) return null;
+    if (!Array.isArray(parsed.catalog.recommendedItemIds)) return null;
     return parsed;
   } catch {
     return null;
@@ -144,13 +147,21 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
   const version = Number(row.version);
   if (!Number.isFinite(version)) throw new Error('menu_catalog_invalid_version');
   if (row.unchanged === true) return { version, unchanged: true };
-  if (!Array.isArray(row.menuItems) || !Array.isArray(row.menuCategories)) {
+  if (
+    !Array.isArray(row.menuItems) ||
+    !Array.isArray(row.menuCategories) ||
+    !Array.isArray(row.recommendedItemIds)
+  ) {
+    throw new Error('menu_catalog_invalid_body');
+  }
+  if (row.recommendedItemIds.some((id) => typeof id !== 'string')) {
     throw new Error('menu_catalog_invalid_body');
   }
   return {
     version,
     menuItems: row.menuItems as MenuItem[],
     menuCategories: row.menuCategories as MenuCategory[],
+    recommendedItemIds: row.recommendedItemIds as string[],
   };
 }
 
@@ -208,6 +219,7 @@ export function ensureCustomerMenuCatalog(params: {
       return commitEntry(params.restaurantId, body.version, {
         menuItems: body.menuItems,
         menuCategories: body.menuCategories,
+        recommendedItemIds: body.recommendedItemIds,
       });
     })
     .finally(() => {

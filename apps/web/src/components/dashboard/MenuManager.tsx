@@ -54,6 +54,7 @@ import {
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
+import { RecommendedMenuItemsManager } from '@/components/dashboard/RecommendedMenuItemsManager';
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { SettingsPageHelp } from '@/components/dashboard/settings/SettingsPageHelp';
 import {
@@ -90,6 +91,7 @@ interface MenuManagerProps {
   initialItems: MenuItem[];
   initialCategories: MenuCategory[];
   initialPrintStations: PrintStation[];
+  initialRecommendedItemIds: string[];
   initialTab?: MenuManagerTab;
   /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
   canManagePrintStations?: boolean;
@@ -188,6 +190,7 @@ export function MenuManager({
   initialItems,
   initialCategories,
   initialPrintStations,
+  initialRecommendedItemIds,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
 }: MenuManagerProps) {
@@ -227,6 +230,7 @@ export function MenuManager({
   const [items, setItems] = useState<MenuItem[]>(initialItems);
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
   const [printStations, setPrintStations] = useState<PrintStation[]>(initialPrintStations);
+  const [recommendedItemIds, setRecommendedItemIds] = useState<string[]>(initialRecommendedItemIds);
 
   useEffect(() => {
     setPrintStations(initialPrintStations);
@@ -654,7 +658,10 @@ export function MenuManager({
 
   const deleteItem = async (item: MenuItem) => {
     const result = await deleteMenuItemClient(item.id);
-    if (result.ok) setItems((prev) => prev.filter((i) => i.id !== item.id));
+    if (result.ok) {
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      setRecommendedItemIds((prev) => prev.filter((id) => id !== item.id));
+    }
   };
 
   const setItemsAvailable = async (ids: string[], available: boolean) => {
@@ -1084,6 +1091,7 @@ export function MenuManager({
               <li>{t.guideStep1}</li>
               <li>{t.guideStep2}</li>
               <li>{t.guideStep3}</li>
+              <li>{t.guideStep4}</li>
             </ol>
           </SettingsPageHelp>
         </div>
@@ -1124,6 +1132,17 @@ export function MenuManager({
           }`}
         >
           {t.tabItems}
+        </button>
+        <button
+          type="button"
+          onClick={() => switchTab('recommended')}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'recommended'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
+        >
+          {t.tabRecommended}
         </button>
       </div>
 
@@ -1289,6 +1308,12 @@ export function MenuManager({
             )}
           </div>
         </div>
+      ) : activeTab === 'recommended' ? (
+        <RecommendedMenuItemsManager
+          items={items}
+          recommendedItemIds={recommendedItemIds}
+          onRecommendedItemIdsChange={setRecommendedItemIds}
+        />
       ) : (
         <>
           <div className="mb-4 flex flex-col gap-2.5">

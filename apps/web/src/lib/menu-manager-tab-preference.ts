@@ -1,4 +1,4 @@
-export type MenuManagerTab = 'stations' | 'categories' | 'items';
+export type MenuManagerTab = 'stations' | 'categories' | 'items' | 'recommended';
 
 const KEY_PREFIX = 'mesa-menu-manager-tab:';
 
@@ -12,7 +12,12 @@ export function menuManagerTabStorageKey(restaurantId: string): string {
 }
 
 export function isMenuManagerTab(value: string | null | undefined): value is MenuManagerTab {
-  return value === 'stations' || value === 'categories' || value === 'items';
+  return (
+    value === 'stations' ||
+    value === 'categories' ||
+    value === 'items' ||
+    value === 'recommended'
+  );
 }
 
 export function resolveAllowedMenuManagerTab(

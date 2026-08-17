@@ -105,6 +105,7 @@ export function MenuPage({
 
   const menuItems = catalog?.menuItems ?? [];
   const menuCategories = catalog?.menuCategories ?? [];
+  const recommendedItemIds = catalog?.recommendedItemIds ?? [];
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
   if (
@@ -120,6 +121,7 @@ export function MenuPage({
         sushiRoundSettings={parseSushiRoundSettingsFromRestaurantRow(restaurant)}
         menuItems={menuItems}
         menuCategories={menuCategories}
+        recommendedItemIds={recommendedItemIds}
         catalogReady={catalogReady}
         tableId={tableId}
         displayName={displayName}
@@ -135,6 +137,7 @@ export function MenuPage({
       restaurant={restaurantWithNotice}
       menuItems={menuItems}
       menuCategories={menuCategories}
+      recommendedItemIds={recommendedItemIds}
       catalogReady={catalogReady}
       tableId={tableId}
       displayName={displayName}

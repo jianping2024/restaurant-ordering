@@ -262,3 +262,55 @@ export async function deletePrintStationClient(stationId: string) {
     body: JSON.stringify({ station_id: stationId }),
   });
 }
+
+export type RecommendedMenuErrorLabels = {
+  saveFail: string;
+  recommendedAlready: string;
+  recommendedMax: string;
+  recommendedMissing: string;
+  dishReorderScopeMismatch: string;
+};
+
+export function mapRecommendedMenuApiError(
+  code: string,
+  message: string | undefined,
+  labels: RecommendedMenuErrorLabels,
+): string {
+  switch (code) {
+    case 'already_recommended':
+      return labels.recommendedAlready;
+    case 'recommended_limit':
+      return labels.recommendedMax;
+    case 'item_not_found':
+    case 'recommended_not_found':
+      return labels.recommendedMissing;
+    case 'reorder_scope_mismatch':
+      return labels.dishReorderScopeMismatch;
+    default:
+      return message || labels.saveFail;
+  }
+}
+
+export async function addRecommendedMenuItemClient(menuItemId: string) {
+  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ menu_item_id: menuItemId }),
+  });
+}
+
+export async function removeRecommendedMenuItemClient(menuItemId: string) {
+  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ menu_item_id: menuItemId }),
+  });
+}
+
+export async function reorderRecommendedMenuItemsClient(orderedIds: string[]) {
+  return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
+  });
+}

@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-type RestaurantScopedTable = 'menu_items' | 'print_stations' | 'restaurant_table_groups';
+type RestaurantScopedTable =
+  | 'menu_items'
+  | 'print_stations'
+  | 'restaurant_table_groups'
+  | 'menu_recommended_items';
 
 /**
  * Persist a full scope order under restaurant_id with two-phase writes

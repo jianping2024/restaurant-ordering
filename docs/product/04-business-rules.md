@@ -80,6 +80,7 @@
 |------|------|
 | `available` | `true` 可加菜；`false` 顾客不可见/不可点 |
 | `active`（分类） | 分类层级控制 |
+| 推荐 | 仅 `menu_recommended_items` 有序 id；顾客可见 = 策展 ∩ `available`；空则隐藏「推荐」节 |
 
 ### 订单行侧（`orders.items[]`）
 

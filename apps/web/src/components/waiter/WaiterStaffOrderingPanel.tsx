@@ -193,6 +193,7 @@ export function WaiterStaffOrderingPanel({
           restaurant={restaurant}
           menuItems={catalog.menuItems}
           menuCategories={catalog.menuCategories}
+          recommendedItemIds={catalog.recommendedItemIds}
           tableId={tableId}
           displayName={displayName}
           orderCooldownSeconds={clampOrderCooldownSeconds(undefined)}

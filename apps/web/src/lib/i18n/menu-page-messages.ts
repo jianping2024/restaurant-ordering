@@ -49,6 +49,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   staffOverageConfirm: string;
   staffOverageCancel: string;
   subcategoryAll: string;
+  recommended: string;
   categoryMore: string;
   catalogLoading: string;
   /** Cart drawer title. */
@@ -126,6 +127,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: 'Confirmar',
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Tudo',
+    recommended: 'Recomendados',
     categoryMore: 'Mais',
     catalogLoading: 'A carregar menu…',
     cartTitle: 'Carrinho',
@@ -199,6 +201,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: 'Confirm',
     staffOverageCancel: 'Cancel',
     subcategoryAll: 'All',
+    recommended: 'Recommended',
     categoryMore: 'More',
     catalogLoading: 'Loading menu…',
     cartTitle: 'Cart',
@@ -272,6 +275,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: '确认',
     staffOverageCancel: '取消',
     subcategoryAll: '全部',
+    recommended: '推荐',
     categoryMore: '更多',
     catalogLoading: '正在加载菜单…',
     cartTitle: '购物车',
@@ -352,6 +356,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: 'Confirmar',
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Todo',
+    recommended: 'Recomendados',
     categoryMore: 'Más',
     catalogLoading: 'Cargando la carta…',
     cartTitle: 'Carrito',
@@ -436,6 +441,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: 'Confirmer',
     staffOverageCancel: 'Annuler',
     subcategoryAll: 'Tout',
+    recommended: 'Recommandés',
     categoryMore: 'Plus',
     catalogLoading: 'Chargement de la carte…',
     cartTitle: 'Panier',
@@ -519,6 +525,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageConfirm: 'Bestätigen',
     staffOverageCancel: 'Abbrechen',
     subcategoryAll: 'Alle',
+    recommended: 'Empfohlen',
     categoryMore: 'Mehr',
     catalogLoading: 'Karte wird geladen…',
     cartTitle: 'Warenkorb',

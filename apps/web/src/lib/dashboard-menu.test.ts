@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   mapMenuCategoryApiError,
   mapMenuItemApiError,
+  mapRecommendedMenuApiError,
 } from './dashboard-menu-client';
 import {
   parseCategoryBody,
@@ -221,5 +222,20 @@ describe('mapMenuItemApiError', () => {
       mapMenuItemApiError('reorder_scope_mismatch', undefined, itemLabels),
       'scope mismatch',
     );
+  });
+});
+
+describe('mapRecommendedMenuApiError', () => {
+  it('maps curated-list codes', () => {
+    const labels = {
+      saveFail: 'save fail',
+      recommendedAlready: 'already',
+      recommendedMax: 'max',
+      recommendedMissing: 'missing',
+      dishReorderScopeMismatch: 'scope',
+    };
+    assert.equal(mapRecommendedMenuApiError('already_recommended', undefined, labels), 'already');
+    assert.equal(mapRecommendedMenuApiError('recommended_limit', undefined, labels), 'max');
+    assert.equal(mapRecommendedMenuApiError('recommended_not_found', undefined, labels), 'missing');
   });
 });

@@ -41,5 +41,6 @@ export function getDemoMenuCatalog(): CustomerMenuCatalog {
   return {
     menuItems: DEMO_ITEMS,
     menuCategories: DEMO_CATEGORIES,
+    recommendedItemIds: ['d5', 'd6', 'd1'],
   };
 }

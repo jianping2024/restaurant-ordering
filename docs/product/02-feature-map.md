@@ -135,6 +135,7 @@
 
 - 分类树：多语言名称、排序、打印档口绑定、`item_code`
 - 菜品 CRUD：中葡英名称与描述、价格、VAT、emoji、图片上传
+- **推荐菜**：`menu_recommended_items` 策展列表（最多 12 道、可排序）；权限与添加菜品相同（`dashboard.menu.view`）；空列表则顾客菜单不出现「推荐」
 - 打印档口管理：kitchen / beverage / standard 布局；档口列表拖拽手柄调整顺序，松手一次提交 `ordered_ids`
 - 菜品排序：同一分类内拖拽手柄（@hello-pangea/dnd，桌面+触控）调整顺序，松手一次提交 `ordered_ids`
 - 备注预设键（`note_preset_keys`）
@@ -146,6 +147,7 @@
 - 角色权限勾选为产品页面树（`ROLE_PERMISSION_PAGE_TREE`）：设置子页（含后厨大屏）挂在「餐厅设置」下，与设置 Tab 同文案同源；**出品档口**为菜单管理子集 key `dashboard.menu.print_stations.manage`（文案读 `menuManager.tabStations`），分类/菜品绑定档口仍只需 `dashboard.menu.view`
 - `/dashboard/settings/menu` 已重定向到 settings 主页；**菜单管理主入口是 `/dashboard/menu`**
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
+- 推荐不是真实分类、也不是 `menu_items` 布尔；顾客目录只带有序 `recommendedItemIds`，分类条最前虚拟「推荐」仍用 `MenuItemCard` + 「+」快加；下架推荐菜不出现在该节
 
 ### 当前不做
 
@@ -160,9 +162,9 @@
 | 类型 | 路径 |
 |------|------|
 | 页面 | `apps/web/src/app/dashboard/menu/page.tsx` |
-| UI | `apps/web/src/components/dashboard/MenuManager.tsx` |
-| Lib | `apps/web/src/lib/dashboard-menu-server.ts`、`dashboard-menu-client.ts`、`menu-admin.ts`、`print-station-admin.ts` |
-| API | `apps/web/src/app/api/dashboard/menu/items/route.ts`、`categories/route.ts`、`print-stations/route.ts` |
+| UI | `apps/web/src/components/dashboard/MenuManager.tsx`、`RecommendedMenuItemsManager.tsx` |
+| Lib | `apps/web/src/lib/dashboard-menu-server.ts`、`dashboard-menu-client.ts`、`menu-admin.ts`、`print-station-admin.ts`、`menu-recommended.ts` |
+| API | `apps/web/src/app/api/dashboard/menu/items/route.ts`、`categories/route.ts`、`print-stations/route.ts`、`recommended/route.ts` |
 
 ---
 

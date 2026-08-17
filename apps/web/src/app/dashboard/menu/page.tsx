@@ -32,6 +32,7 @@ export default async function MenuPage({ searchParams }: Props) {
         initialItems={loaded.menuItems}
         initialCategories={loaded.menuCategories}
         initialPrintStations={loaded.printStations}
+        initialRecommendedItemIds={loaded.recommendedItemIds}
       />
     </Suspense>
   );

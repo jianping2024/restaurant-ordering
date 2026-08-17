@@ -26,6 +26,7 @@ import {
 import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
+import { MENU_RECOMMENDED_ITEMS_MAX } from '@/lib/menu-recommended';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -968,4 +969,165 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,
   };
+}
+
+export async function listRecommendedMenuItemIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+): Promise<string[] | MenuMutationError> {
+  const { data, error } = await admin
+    .from('menu_recommended_items')
+    .select('menu_item_id')
+    .eq('restaurant_id', restaurantId)
+    .order('sort_order');
+  if (error) {
+    return { error: 'recommended_query_failed', message: error.message, status: 500 };
+  }
+  return (data || []).map((row) => String(row.menu_item_id));
+}
+
+function parseRecommendedMenuItemId(raw: unknown): string | MenuMutationError {
+  const id = parseTableIdParam(raw);
+  if (!id) return { error: 'invalid_menu_item_id', status: 400 };
+  return id;
+}
+
+export async function addRecommendedMenuItem(
+  admin: SupabaseClient,
+  restaurantId: string,
+  menuItemIdRaw: unknown,
+): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
+  const menuItemId = parseRecommendedMenuItemId(menuItemIdRaw);
+  if (typeof menuItemId !== 'string') return menuItemId;
+
+  const { data: item, error: itemError } = await admin
+    .from('menu_items')
+    .select('id')
+    .eq('id', menuItemId)
+    .eq('restaurant_id', restaurantId)
+    .maybeSingle();
+  if (itemError) {
+    return { error: 'menu_items_query_failed', message: itemError.message, status: 500 };
+  }
+  if (!item) {
+    return { error: 'item_not_found', status: 404 };
+  }
+
+  const existing = await listRecommendedMenuItemIds(admin, restaurantId);
+  if (!Array.isArray(existing)) return existing;
+  if (existing.includes(menuItemId)) {
+    return { error: 'already_recommended', status: 409 };
+  }
+  if (existing.length >= MENU_RECOMMENDED_ITEMS_MAX) {
+    return { error: 'recommended_limit', status: 400 };
+  }
+
+  const { data: sortRows, error: sortError } = await admin
+    .from('menu_recommended_items')
+    .select('sort_order')
+    .eq('restaurant_id', restaurantId);
+  if (sortError) {
+    return { error: 'recommended_query_failed', message: sortError.message, status: 500 };
+  }
+
+  const { error } = await admin.from('menu_recommended_items').insert({
+    restaurant_id: restaurantId,
+    menu_item_id: menuItemId,
+    sort_order: nextSortOrder(sortRows || []),
+  });
+  if (error) {
+    return {
+      error: uniqueViolation(error) ? 'already_recommended' : 'recommended_insert_failed',
+      message: error.message,
+      status: uniqueViolation(error) ? 409 : 500,
+    };
+  }
+
+  await invalidateCustomerMenuCatalog(restaurantId);
+  const next = await listRecommendedMenuItemIds(admin, restaurantId);
+  if (!Array.isArray(next)) return next;
+  return { recommended_item_ids: next };
+}
+
+export async function removeRecommendedMenuItem(
+  admin: SupabaseClient,
+  restaurantId: string,
+  menuItemIdRaw: unknown,
+): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
+  const menuItemId = parseRecommendedMenuItemId(menuItemIdRaw);
+  if (typeof menuItemId !== 'string') return menuItemId;
+
+  const { data, error } = await admin
+    .from('menu_recommended_items')
+    .delete()
+    .eq('restaurant_id', restaurantId)
+    .eq('menu_item_id', menuItemId)
+    .select('id');
+  if (error) {
+    return { error: 'recommended_delete_failed', message: error.message, status: 500 };
+  }
+  if (!data?.length) {
+    return { error: 'recommended_not_found', status: 404 };
+  }
+
+  await invalidateCustomerMenuCatalog(restaurantId);
+  const next = await listRecommendedMenuItemIds(admin, restaurantId);
+  if (!Array.isArray(next)) return next;
+  return { recommended_item_ids: next };
+}
+
+export async function reorderRecommendedMenuItems(
+  admin: SupabaseClient,
+  restaurantId: string,
+  orderedIdsRaw: unknown,
+): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw) {
+    const id = parseTableIdParam(raw);
+    if (!id) return { error: 'invalid_ordered_ids', status: 400 };
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const { data: rows, error } = await admin
+    .from('menu_recommended_items')
+    .select('id, menu_item_id, sort_order')
+    .eq('restaurant_id', restaurantId);
+  if (error) {
+    return { error: 'recommended_query_failed', message: error.message, status: 500 };
+  }
+  const siblingRows = rows ?? [];
+  const byMenuItemId = new Map(siblingRows.map((row) => [String(row.menu_item_id), row]));
+  if (
+    siblingRows.length !== orderedIds.length ||
+    orderedIds.some((id) => !byMenuItemId.has(id))
+  ) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
+  }
+
+  const joinOrderedIds = orderedIds.map((id) => byMenuItemId.get(id)!.id);
+  if (!orderedIdsMatchSiblingSet(siblingRows, joinOrderedIds)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
+  }
+
+  const scopeMax =
+    siblingRows.length === 0 ? -1 : Math.max(...siblingRows.map((row) => row.sort_order));
+  const persisted = await persistZeroBasedSortOrders(
+    admin,
+    'menu_recommended_items',
+    restaurantId,
+    joinOrderedIds,
+    scopeMax,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
+  }
+
+  await invalidateCustomerMenuCatalog(restaurantId);
+  return { recommended_item_ids: orderedIds };
 }

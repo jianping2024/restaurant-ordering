@@ -253,6 +253,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
       '/api/dashboard/menu/categories',
       '/api/dashboard/menu/items',
       '/api/dashboard/menu/print-stations',
+      '/api/dashboard/menu/recommended',
       '/dashboard/settings/print-stations',
     ],
     riskNote:

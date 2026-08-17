@@ -29,7 +29,7 @@ const moreControlClass =
 function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
   const width =
     layout === 'grid'
-      ? 'w-full min-w-0 whitespace-normal text-center leading-snug'
+      ? 'w-full min-w-0 overflow-hidden whitespace-normal text-center leading-snug [overflow-wrap:anywhere]'
       : 'flex-shrink-0 whitespace-nowrap';
   return `${width} rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
     active ? topActiveClass : topIdleClass

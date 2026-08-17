@@ -47,7 +47,7 @@
 | 区域 | 布局 |
 |------|------|
 | 顶栏 | 紧凑身份行：店名 + 瘦桌号 badge；语言优先（上滑收成 `shortLabel` ▾），未滑时主题 ghost 圆钮（`appearanceChromeButtonClass` ≥44）；可选返回 |
-| 分类 | 唯一 `CustomerMenuCategoryStrip`：全部一级横滑 + 右侧钉死「更多」（文本控件，不是 pill）；选中金底字用 `text-brand-on-gold`；展开同一份 `topCategories` 铺 wrap |
+| 分类 | 唯一 `CustomerMenuCategoryStrip`：全部一级横滑 + 右侧钉死「更多」（文本控件）；选中金底字用 `text-brand-on-gold`；展开同一份 `topCategories` 两列面板盖住菜，不撑高顶栏 |
 | 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_CLASS`（手机 1 列 / `lg` 2 / `xl` 3）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |

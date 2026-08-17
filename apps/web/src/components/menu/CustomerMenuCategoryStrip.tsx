@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 export type CustomerMenuCategoryOption = {
@@ -47,6 +47,7 @@ function TopCategoryPill({
   return (
     <button
       type="button"
+      data-category-id={cat.id}
       title={cat.label}
       onClick={() => onSelect(cat.id)}
       className={topPillClass(active, layout)}
@@ -68,6 +69,7 @@ export function CustomerMenuCategoryStrip({
   categoryMoreLabel,
 }: Props) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -77,6 +79,14 @@ export function CustomerMenuCategoryStrip({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [moreOpen]);
+
+  useLayoutEffect(() => {
+    if (moreOpen) return;
+    const selected = scrollRef.current?.querySelector(
+      `[data-category-id="${CSS.escape(activeTopId)}"]`,
+    );
+    selected?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [activeTopId, moreOpen]);
 
   const selectTop = (id: string) => {
     onSelectTop(id);
@@ -99,33 +109,35 @@ export function CustomerMenuCategoryStrip({
         {moreOpen ? (
           <div className="min-h-8 min-w-0 flex-1" aria-hidden />
         ) : (
-          <div className="mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4">
+          <div ref={scrollRef} className="mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4">
             {categoryPills}
           </div>
         )}
-        <button
-          type="button"
-          aria-expanded={moreOpen}
-          aria-haspopup="dialog"
-          onClick={() => setMoreOpen((open) => !open)}
-          className={`${moreControlClass} ${moreOpen ? 'text-brand-gold' : 'text-brand-text-muted'}`}
-        >
-          {categoryMoreLabel} {moreOpen ? '▴' : '▾'}
-        </button>
+        {moreOpen ? null : (
+          <button
+            type="button"
+            aria-expanded={false}
+            aria-haspopup="dialog"
+            onClick={() => setMoreOpen(true)}
+            className={`${moreControlClass} text-brand-text-muted`}
+          >
+            {categoryMoreLabel} ▾
+          </button>
+        )}
       </div>
 
       {moreOpen ? (
         <>
           <button
             type="button"
-            className="absolute inset-x-0 top-full z-20 h-screen bg-black/40"
+            className="absolute inset-x-0 top-0 z-20 h-screen bg-black/40"
             aria-label={categoryMoreLabel}
             onClick={() => setMoreOpen(false)}
           />
           <div
             role="dialog"
             aria-label={categoryMoreLabel}
-            className="absolute inset-x-0 top-full z-30 max-h-[min(50vh,24rem)] overflow-y-auto border-b border-brand-border bg-brand-card px-4 py-3"
+            className="absolute inset-x-0 top-0 z-30 max-h-[min(50vh,24rem)] overflow-y-auto border-b border-brand-border bg-brand-card px-4 py-3"
           >
             <div className="grid grid-cols-2 gap-2">{categoryPills}</div>
           </div>

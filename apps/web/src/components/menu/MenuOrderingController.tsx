@@ -863,12 +863,12 @@ export function MenuOrderingController({
               items={catalogView.recommendedItems}
               lang={lang}
               title={t.recommended}
+              treatZeroAsFree={treatZeroAsFree}
               onOpenDetail={(menuItemId) => {
                 setCartOpen(false);
                 setOrderedOpen(false);
                 setDetailMenuItemId(menuItemId);
               }}
-              onIncrement={(item) => bumpCartItem(item, 1)}
             />
             {currentItems.length === 0 ? (
               <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>

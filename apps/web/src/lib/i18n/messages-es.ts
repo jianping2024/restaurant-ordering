@@ -337,7 +337,7 @@ export const MESSAGES_ES = {
     "dishSortOrderHint": "Arrastre el asa para definir el orden de los platos de esta categoría en la carta del cliente.",
     "dishReorderScopeMismatch": "Los platos solo se pueden reordenar dentro de la misma categoría",
     "addRecommended": "Añadir recomendado",
-    "recommendedHint": "Elige platos existentes, hasta {max}. Los clientes ven Recomendados primero en la franja de categorías, con el mismo + para añadir. Una lista vacía oculta la sección.",
+    "recommendedHint": "Elige platos existentes, hasta {max}. Los clientes ven una franja Recomendados bajo las categorías (foto, nombre y precio; tocar abre el detalle). Una lista vacía oculta la franja.",
     "recommendedEmpty": "Aún no hay platos recomendados",
     "recommendedEmptyCta": "Añadir un recomendado",
     "recommendedPickerTitle": "Elegir platos para recomendar",

@@ -690,13 +690,13 @@ export function SushiMenuPage({
               items={catalogView.recommendedItems}
               lang={lang}
               title={t.recommended}
+              treatZeroAsFree
               onOpenDetail={(menuItemId) => {
                 setCartOpen(false);
                 setOrderedOpen(false);
                 setRoundReviewOpen(false);
                 setDetailMenuItemId(menuItemId);
               }}
-              onIncrement={(item) => bumpItem(item, 1)}
             />
             {currentItems.length === 0 ? (
               <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>

@@ -337,7 +337,7 @@ export const MESSAGES_DE = {
     "dishSortOrderHint": "Ziehen Sie den Griff, um die Reihenfolge der Gerichte dieser Kategorie auf der Gästekarte festzulegen.",
     "dishReorderScopeMismatch": "Gerichte können nur innerhalb derselben Kategorie umsortiert werden",
     "addRecommended": "Empfohlenes Gericht hinzufügen",
-    "recommendedHint": "Wählen Sie vorhandene Gerichte, maximal {max}. Gäste sehen Empfohlen zuerst in der Kategoriesleiste, mit demselben + zum Hinzufügen. Eine leere Liste blendet den Bereich aus.",
+    "recommendedHint": "Wählen Sie vorhandene Gerichte, maximal {max}. Gäste sehen eine Empfohlen-Leiste unter den Kategorien (Foto, Name und Preis; Tippen öffnet Details). Eine leere Liste blendet die Leiste aus.",
     "recommendedEmpty": "Noch keine empfohlenen Gerichte",
     "recommendedEmptyCta": "Empfohlenes Gericht hinzufügen",
     "recommendedPickerTitle": "Gerichte zum Empfehlen wählen",

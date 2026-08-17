@@ -48,7 +48,7 @@
 |------|------|
 | 顶栏 | 紧凑身份行：店名 + 瘦桌号 badge；语言+主题永远地球+月亮（`appearanceChromeButtonClass('icon')` ≥44）；上滑只钉分类条，身份行滚走；可选返回 |
 | 分类 | 唯一 `CustomerMenuCategoryStrip`：全部一级横滑 + 右侧钉死「更多」（文本控件）；分类名完整显示（横滑消化长度，不单颗 truncate）；选中金底字用 `text-brand-on-gold`；展开时同一份 `topCategories` 两列 overlay 从条顶盖住横滑和「更多」（不留空行）；格子内 pill 唯一约束 `overflow-hidden` + `[overflow-wrap:anywhere]`，长名在圆角内换行、不画出框；点分类后回到横滑并把选中 chip `scrollIntoView`。无虚拟「推荐」分类 |
-| 推荐 | 唯一 `CustomerRecommendedRail`：分类条下、菜品网格上；横滑方图 + 角上 `MenuItemAddButton`；不进 sticky header；空列表不渲染 |
+| 推荐 | 唯一 `CustomerRecommendedRail`：分类条下、菜品网格上；**独立浅金底 + 金色描边条**（勿复用 `MenuItemCard`）；横滑海报卡（4:3 图 + 目录名 + `formatCustomerMenuItemPrice`），点卡进详情（无角上 `+`）；不进 sticky header；空列表不渲染 |
 | 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_CLASS`（手机 1 列 / `lg` 2 / `xl` 3）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |

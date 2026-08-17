@@ -337,7 +337,7 @@ export const MESSAGES_FR = {
     "dishSortOrderHint": "Faites glisser la poignée pour définir l'ordre des plats de cette catégorie sur la carte client.",
     "dishReorderScopeMismatch": "Les plats ne peuvent être réorganisés qu'au sein d'une même catégorie",
     "addRecommended": "Ajouter un recommandé",
-    "recommendedHint": "Choisissez des plats existants, jusqu'à {max}. Les clients voient Recommandés en premier dans la bande de catégories, avec le même + pour ajouter. Une liste vide masque la section.",
+    "recommendedHint": "Choisissez des plats existants, jusqu'à {max}. Les clients voient une bande Recommandés sous les catégories (photo, nom et prix ; toucher ouvre le détail). Une liste vide masque la bande.",
     "recommendedEmpty": "Pas encore de plats recommandés",
     "recommendedEmptyCta": "Ajouter un recommandé",
     "recommendedPickerTitle": "Choisir les plats à recommander",

@@ -4,6 +4,8 @@ export const CUSTOMER_MENU_TYPE = {
   categoryTopActive: 'font-medium',
   categorySub: 'text-sm',
   itemName: 'text-lg font-semibold leading-tight',
+  /** Recommended poster caption — same catalog label, smaller than list `itemName`. */
+  recommendedName: 'text-sm font-semibold leading-tight text-brand-text',
   itemDesc: 'text-sm leading-relaxed',
   /** Dish price, cart line total, footer session total — body face via `.mesa-money`. */
   moneyAmount: 'mesa-money text-[15px] text-brand-gold',

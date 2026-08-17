@@ -149,6 +149,7 @@
 - 分类与菜品变更即时影响顾客菜单（无草稿发布流）
 - 推荐不是真实分类、也不是 `menu_items` 布尔；顾客目录只带有序 `recommendedItemIds`，分类条最前虚拟「推荐」仍用 `MenuItemCard` + 「+」快加；下架推荐菜不出现在该节
 - 后台挑推荐 / 已选排序行与菜品 Tab 列表共用 `MenuItemListThumb`；不要再画一套 40×40 图或顾客点餐卡
+- 推荐弹窗是勾选 + 分类 chip + 一次 `POST menu_item_ids`；已推荐行可见且勾选禁用；不要点一行即关窗，也不要并行 `menu_item_id` 单条写入
 
 ### 当前不做
 

@@ -1312,6 +1312,7 @@ export function MenuManager({
       ) : activeTab === 'recommended' ? (
         <RecommendedMenuItemsManager
           items={items}
+          categories={categories}
           recommendedItemIds={recommendedItemIds}
           onRecommendedItemIdsChange={setRecommendedItemIds}
         />

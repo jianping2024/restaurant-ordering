@@ -1,7 +1,26 @@
 import type { MenuCategory, MenuItem } from '@/types';
+import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 /** Product cap for the curated recommended list (dashboard write + picker). */
 export const MENU_RECOMMENDED_ITEMS_MAX = 12;
+
+/**
+ * Sole POST body for adding recommended dishes: unique UUID array, first-seen order.
+ * Returns null when the payload is missing, empty, or not all UUIDs.
+ */
+export function parseRecommendedMenuItemIds(raw: unknown): string[] | null {
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const value of raw) {
+    const id = parseTableIdParam(value);
+    if (!id) return null;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids.length > 0 ? ids : null;
+}
 
 /**
  * Customer category-strip sentinel. Not a `menu_categories.id`.

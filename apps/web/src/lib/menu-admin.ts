@@ -84,3 +84,31 @@ export function itemMatchesSearch(item: MenuItem, query: string): boolean {
     .toLowerCase();
   return hay.includes(q);
 }
+
+/** True when the dish sits on `rootId` or any descendant category. */
+export function menuItemInCategorySubtree(
+  item: Pick<MenuItem, 'category_id'>,
+  rootId: string,
+  categories: MenuCategory[],
+): boolean {
+  if (!item.category_id) return false;
+  return collectCategorySubtreeIds(rootId, categories).includes(item.category_id);
+}
+
+/**
+ * Staff recommended picker list: optional top-category chip (`null` = all)
+ * plus the same name/code search as the dishes tab.
+ */
+export function filterRecommendedPickerItems(
+  items: readonly MenuItem[],
+  categories: MenuCategory[],
+  topCategoryId: string | null,
+  search: string,
+): MenuItem[] {
+  return items.filter((item) => {
+    if (topCategoryId && !menuItemInCategorySubtree(item, topCategoryId, categories)) {
+      return false;
+    }
+    return itemMatchesSearch(item, search);
+  });
+}

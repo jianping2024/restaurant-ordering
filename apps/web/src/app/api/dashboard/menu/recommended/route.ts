@@ -5,7 +5,7 @@ import {
   readJsonBody,
 } from '@/lib/dashboard-menu-api';
 import {
-  addRecommendedMenuItem,
+  addRecommendedMenuItems,
   removeRecommendedMenuItem,
   reorderRecommendedMenuItems,
 } from '@/lib/dashboard-menu-server';
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const body = await readJsonBody(req);
   if (body instanceof NextResponse) return body;
 
-  const result = await addRecommendedMenuItem(ctx.admin, ctx.restaurantId, body.menu_item_id);
+  const result = await addRecommendedMenuItems(ctx.admin, ctx.restaurantId, body.menu_item_ids);
   if ('error' in result) return menuApiError(result);
   return NextResponse.json(result, { status: 201 });
 }

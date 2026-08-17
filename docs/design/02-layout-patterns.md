@@ -90,7 +90,7 @@
 | 菜品 | 分类树 + 菜品列表（内联编辑、上下架、图片） |
 | 分类 | 分类 CRUD |
 | 打印档口 | 嵌入 `PrintStationsManager` 或跳转 settings |
-| 推荐 | 已选有序列表 + 弹窗挑菜；列表行与弹窗行同一套 `MenuItemListThumb`（40×40 图或 emoji），不是顾客 `MenuItemCard`、不是照片网格 |
+| 推荐 | 已选有序列表 + 弹窗多选挑菜：勾选框（已推荐勾上禁用）+ `MenuItemListThumb` + 一级分类 chip + 确认一次提交；不是点一行即加、不是顾客 `MenuItemCard`、不是照片网格 |
 
 **要点**
 

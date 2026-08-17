@@ -281,6 +281,8 @@ export function mapRecommendedMenuApiError(
       return labels.recommendedAlready;
     case 'recommended_limit':
       return labels.recommendedMax;
+    case 'invalid_menu_item_ids':
+      return labels.saveFail;
     case 'item_not_found':
     case 'recommended_not_found':
       return labels.recommendedMissing;
@@ -291,11 +293,11 @@ export function mapRecommendedMenuApiError(
   }
 }
 
-export async function addRecommendedMenuItemClient(menuItemId: string) {
+export async function addRecommendedMenuItemsClient(menuItemIds: string[]) {
   return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ menu_item_id: menuItemId }),
+    body: JSON.stringify({ menu_item_ids: menuItemIds }),
   });
 }
 

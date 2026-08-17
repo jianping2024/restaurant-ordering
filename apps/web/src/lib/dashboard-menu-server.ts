@@ -26,7 +26,10 @@ import {
 import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
-import { MENU_RECOMMENDED_ITEMS_MAX } from '@/lib/menu-recommended';
+import {
+  MENU_RECOMMENDED_ITEMS_MAX,
+  parseRecommendedMenuItemIds,
+} from '@/lib/menu-recommended';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 
 const ALLOWED_IMAGE_MIME = new Set([
@@ -992,34 +995,36 @@ function parseRecommendedMenuItemId(raw: unknown): string | MenuMutationError {
   return id;
 }
 
-export async function addRecommendedMenuItem(
+export async function addRecommendedMenuItems(
   admin: SupabaseClient,
   restaurantId: string,
-  menuItemIdRaw: unknown,
+  menuItemIdsRaw: unknown,
 ): Promise<{ recommended_item_ids: string[] } | MenuMutationError> {
-  const menuItemId = parseRecommendedMenuItemId(menuItemIdRaw);
-  if (typeof menuItemId !== 'string') return menuItemId;
-
-  const { data: item, error: itemError } = await admin
-    .from('menu_items')
-    .select('id')
-    .eq('id', menuItemId)
-    .eq('restaurant_id', restaurantId)
-    .maybeSingle();
-  if (itemError) {
-    return { error: 'menu_items_query_failed', message: itemError.message, status: 500 };
-  }
-  if (!item) {
-    return { error: 'item_not_found', status: 404 };
+  const menuItemIds = parseRecommendedMenuItemIds(menuItemIdsRaw);
+  if (!menuItemIds) {
+    return { error: 'invalid_menu_item_ids', status: 400 };
   }
 
   const existing = await listRecommendedMenuItemIds(admin, restaurantId);
   if (!Array.isArray(existing)) return existing;
-  if (existing.includes(menuItemId)) {
+  if (menuItemIds.some((id) => existing.includes(id))) {
     return { error: 'already_recommended', status: 409 };
   }
-  if (existing.length >= MENU_RECOMMENDED_ITEMS_MAX) {
+  if (existing.length + menuItemIds.length > MENU_RECOMMENDED_ITEMS_MAX) {
     return { error: 'recommended_limit', status: 400 };
+  }
+
+  const { data: found, error: itemError } = await admin
+    .from('menu_items')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .in('id', menuItemIds);
+  if (itemError) {
+    return { error: 'menu_items_query_failed', message: itemError.message, status: 500 };
+  }
+  const foundIds = new Set((found || []).map((row) => String(row.id)));
+  if (menuItemIds.some((id) => !foundIds.has(id))) {
+    return { error: 'item_not_found', status: 404 };
   }
 
   const { data: sortRows, error: sortError } = await admin
@@ -1030,11 +1035,14 @@ export async function addRecommendedMenuItem(
     return { error: 'recommended_query_failed', message: sortError.message, status: 500 };
   }
 
-  const { error } = await admin.from('menu_recommended_items').insert({
-    restaurant_id: restaurantId,
-    menu_item_id: menuItemId,
-    sort_order: nextSortOrder(sortRows || []),
-  });
+  const baseSort = nextSortOrder(sortRows || []);
+  const { error } = await admin.from('menu_recommended_items').insert(
+    menuItemIds.map((menuItemId, index) => ({
+      restaurant_id: restaurantId,
+      menu_item_id: menuItemId,
+      sort_order: baseSort + index,
+    })),
+  );
   if (error) {
     return {
       error: uniqueViolation(error) ? 'already_recommended' : 'recommended_insert_failed',

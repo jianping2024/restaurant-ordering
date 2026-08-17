@@ -5,9 +5,11 @@ import {
   CUSTOMER_MENU_RECOMMENDED_CATEGORY_ID,
   customerMenuStripTopCategories,
   MENU_RECOMMENDED_ITEMS_MAX,
+  parseRecommendedMenuItemIds,
   resolveCustomerMenuCatalogView,
   visibleRecommendedMenuItems,
 } from './menu-recommended.ts';
+import { filterRecommendedPickerItems } from './menu-admin.ts';
 
 const cat = (row: Partial<MenuCategory> & Pick<MenuCategory, 'id'>): MenuCategory => ({
   restaurant_id: 'r1',
@@ -136,5 +138,50 @@ describe('customerMenuStripTopCategories', () => {
 
   it('caps the dashboard list at 12', () => {
     assert.equal(MENU_RECOMMENDED_ITEMS_MAX, 12);
+  });
+});
+
+const ID_A = '11111111-1111-4111-8111-111111111111';
+const ID_B = '22222222-2222-4222-8222-222222222222';
+
+describe('parseRecommendedMenuItemIds', () => {
+  it('keeps first-seen order and drops duplicates', () => {
+    assert.deepEqual(parseRecommendedMenuItemIds([ID_A, ID_B, ID_A]), [ID_A, ID_B]);
+  });
+
+  it('rejects a missing array, empty list, or non-uuid', () => {
+    assert.equal(parseRecommendedMenuItemIds(undefined), null);
+    assert.equal(parseRecommendedMenuItemIds([]), null);
+    assert.equal(parseRecommendedMenuItemIds([ID_A, 'not-a-uuid']), null);
+    assert.equal(parseRecommendedMenuItemIds(ID_A), null);
+  });
+});
+
+describe('filterRecommendedPickerItems', () => {
+  it('limits to a top category including descendants', () => {
+    const rows = filterRecommendedPickerItems(
+      [bacalhau, frango, vinho],
+      [mains, drinks, fish],
+      'c-mains',
+      '',
+    );
+    assert.deepEqual(rows.map((row) => row.id).sort(), ['i-bacalhau', 'i-frango']);
+  });
+
+  it('searches within the selected category', () => {
+    const rows = filterRecommendedPickerItems(
+      [bacalhau, frango, vinho],
+      [mains, drinks, fish],
+      'c-mains',
+      'vinho',
+    );
+    assert.deepEqual(rows.map((row) => row.id), []);
+    const hit = filterRecommendedPickerItems(
+      [bacalhau, frango, vinho],
+      [mains, drinks, fish],
+      null,
+      'vinho',
+    );
+    assert.deepEqual(hit.map((row) => row.id), ['i-vinho']);
   });
 });

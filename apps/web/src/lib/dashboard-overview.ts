@@ -144,7 +144,13 @@ export type DashboardOverviewView = {
 export type DashboardOverviewPrimaryView = Pick<
   DashboardOverviewView,
   'todayKpis' | 'pendingActions'
->;
+> & {
+  /**
+   * Lisbon calendar day (YYYY-MM-DD) used as default end date for revenue interval picker.
+   * Keep UI defaults aligned with server side “today” window.
+   */
+  todayDateKey: string;
+};
 
 /** Below-the-fold panels streamed after primary. */
 export type DashboardOverviewSecondaryView = Pick<
@@ -451,6 +457,7 @@ export async function loadDashboardOverviewPrimary(
       pendingAbnormal: pendingAbnormalCount,
       pendingPrint: pendingPrintCount ?? 0,
     },
+    todayDateKey: todayWindow.today,
   };
 }
 

@@ -1,13 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DatePicker } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPanel';
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
 import { totalGuestsFromCounts, type BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { formatOverviewDate } from '@/lib/format-dashboard-date';
+import { addCalendarDays } from '@/lib/lisbon-calendar';
+import { DASHBOARD_REVENUE_INTERVAL_MAX_DAYS } from '@/lib/analytics/revenue-interval';
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
@@ -16,6 +19,7 @@ import {
 } from '@/lib/dashboard-overview';
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
 import { pickTrilingualName } from '@/lib/i18n/pick-trilingual-name';
+import { Button } from '@/components/ui/Button';
 
 /** Sole overview entry into the abnormal-ops list (same path as nav / route permission). */
 const ABNORMAL_OPERATIONS_HREF = '/dashboard/abnormal-operations';
@@ -93,7 +97,8 @@ export function DashboardOverviewPrimaryClient({
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const i18n = messages.dashboard;
-  const { todayKpis, pendingActions } = primary;
+  const { todayKpis, pendingActions, todayDateKey } = primary;
+  const pickDate = messages.buffetAdmin.pickDate;
 
   const overviewDateLabel = useMemo(() => formatOverviewDate(lang), [lang]);
   const pendingTotal = pendingActionsTotal(pendingActions);
@@ -135,6 +140,63 @@ export function DashboardOverviewPrimaryClient({
   const figureClass = DASHBOARD_METRIC_TYPE.figure;
   const moneyClass = DASHBOARD_METRIC_TYPE.money;
 
+  const [draftStartDate, setDraftStartDate] = useState(todayDateKey);
+  const [draftEndDate, setDraftEndDate] = useState(todayDateKey);
+  const [appliedStartDate, setAppliedStartDate] = useState(todayDateKey);
+  const [appliedEndDate, setAppliedEndDate] = useState(todayDateKey);
+
+  const [intervalRevenue, setIntervalRevenue] = useState(revenueAvailable ? todayRevenue : 0);
+  const [intervalAvailable, setIntervalAvailable] = useState(revenueAvailable);
+  const [intervalLoading, setIntervalLoading] = useState(false);
+  const [intervalError, setIntervalError] = useState<string | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+
+  const startMin = addCalendarDays(todayDateKey, -(DASHBOARD_REVENUE_INTERVAL_MAX_DAYS - 1));
+  const startMax = draftEndDate;
+  const endMin = draftStartDate;
+  const endMax = todayDateKey;
+
+  useEffect(() => {
+    if (draftStartDate > draftEndDate) {
+      setDraftStartDate(draftEndDate);
+    }
+  }, [draftStartDate, draftEndDate]);
+
+  const applyRevenueInterval = useCallback(async () => {
+    // No-op when nothing changed.
+    if (draftStartDate === appliedStartDate && draftEndDate === appliedEndDate) return;
+
+    abortRef.current?.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
+    setIntervalLoading(true);
+    setIntervalError(null);
+
+    try {
+      const qs = new URLSearchParams({ startDate: draftStartDate, endDate: draftEndDate });
+      const res = await fetch(`/api/dashboard/revenue-interval?${qs}`, { signal: ac.signal });
+      if (!res.ok) {
+        if (res.status === 400) {
+          throw new Error(i18n.revenueIntervalRangeHint);
+        }
+        throw new Error(i18n.revenueIntervalError);
+      }
+      const json = (await res.json()) as { startDate: string; endDate: string; revenueTotal: number };
+      setIntervalRevenue(json.revenueTotal);
+      setIntervalAvailable(true);
+      setAppliedStartDate(json.startDate);
+      setAppliedEndDate(json.endDate);
+    } catch (err) {
+      if (ac.signal.aborted) return;
+      const message = err instanceof Error ? err.message : i18n.revenueIntervalError;
+      setIntervalError(message);
+    } finally {
+      if (!ac.signal.aborted) setIntervalLoading(false);
+    }
+  }, [appliedEndDate, appliedStartDate, draftEndDate, draftStartDate, i18n]);
+
   return (
     <>
       <div className="mb-6">
@@ -143,14 +205,67 @@ export function DashboardOverviewPrimaryClient({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 ring-1 ring-brand-gold/25">
-          <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayRevenue}</p>
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <p className="text-brand-text-muted text-[13px] mb-1">{i18n.revenueIntervalRevenue}</p>
+              <p className="text-[12px] text-brand-text-muted">
+                {appliedStartDate === appliedEndDate ? appliedStartDate : `${appliedStartDate} — ${appliedEndDate}`}
+              </p>
+            </div>
+            {intervalLoading ? (
+              <span className="text-[12px] text-brand-text-muted whitespace-nowrap">{i18n.revenueIntervalLoading}</span>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <DatePicker
+              className="w-[10.5rem]"
+              triggerClassName="w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35"
+              value={draftStartDate}
+              onChange={(iso) => setDraftStartDate(iso || todayDateKey)}
+              lang={lang}
+              min={startMin}
+              max={startMax}
+              placeholder={pickDate}
+            />
+            <span className="text-brand-text-muted">—</span>
+            <DatePicker
+              className="w-[10.5rem]"
+              triggerClassName="w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35"
+              value={draftEndDate}
+              onChange={(iso) => setDraftEndDate(iso || todayDateKey)}
+              lang={lang}
+              min={endMin}
+              max={endMax}
+              placeholder={pickDate}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void applyRevenueInterval()}
+              disabled={
+                intervalLoading ||
+                (draftStartDate === appliedStartDate && draftEndDate === appliedEndDate)
+              }
+            >
+              {intervalLoading ? i18n.revenueIntervalLoading : i18n.revenueIntervalApply}
+            </Button>
+          </div>
+
           <p
-            className={`${moneyClass} text-3xl sm:text-4xl ${
-              revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
+            className={`${moneyClass} text-3xl sm:text-4xl mt-4 ${
+              intervalAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
             }`}
           >
-            {revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable}
+            {intervalAvailable ? `€${intervalRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable}
           </p>
+
+          {intervalError ? (
+            <p className="mt-2 text-[12px] text-brand-text-muted">{intervalError}</p>
+          ) : (
+            <p className="mt-2 text-[12px] text-brand-text-muted">{i18n.revenueIntervalRangeHint}</p>
+          )}
         </div>
 
         <DashboardDualMetricCard

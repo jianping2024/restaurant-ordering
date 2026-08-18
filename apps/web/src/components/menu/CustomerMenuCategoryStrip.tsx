@@ -24,7 +24,7 @@ const topActiveClass = `border-brand-gold bg-brand-gold text-brand-on-gold ${CUS
 const subIdleClass = 'border-brand-border text-brand-text';
 const subActiveClass = 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold';
 const moreControlClass =
-  'inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 text-xs font-medium';
+  `inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 font-medium ${CUSTOMER_MENU_TYPE.categoryTop}`;
 
 function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
   const width =

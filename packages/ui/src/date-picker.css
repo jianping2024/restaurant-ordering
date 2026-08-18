@@ -66,6 +66,12 @@
   border: 1px solid rgba(212, 168, 67, 0.6);
 }
 
+.mesa-rdp--brand .rdp-disabled .rdp-day_button {
+  color: #5e584f;
+  background: #14110d;
+  opacity: 0.55;
+}
+
 .mesa-rdp--brand .rdp-button_previous,
 .mesa-rdp--brand .rdp-button_next {
   border: 1px solid #2a2520;
@@ -122,6 +128,12 @@
 
 [data-theme='light'] .mesa-rdp--brand .rdp-today .rdp-day_button {
   border: 1px solid rgba(172, 126, 22, 0.45);
+}
+
+[data-theme='light'] .mesa-rdp--brand .rdp-disabled .rdp-day_button {
+  color: #b9ae9c;
+  background: #faf7f0;
+  opacity: 0.55;
 }
 
 [data-theme='light'] .mesa-rdp--brand .rdp-button_previous,

@@ -8,6 +8,7 @@ import { de, enUS, es, fr, pt, zhCN } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 import 'react-day-picker/dist/style.css';
 import './date-picker.css';
+import { datePickerNavMonths } from './date-picker-nav';
 
 export type DatePickerLang = 'zh' | 'en' | 'pt' | 'es' | 'fr' | 'de';
 export type DatePickerVariant = 'brand' | 'zinc';
@@ -24,6 +25,10 @@ const LOCALES: Record<DatePickerLang, Locale> = {
 const POPUP_GAP = 6;
 const POPUP_MIN_WIDTH = 280;
 const VIEWPORT_PAD = 8;
+
+/** Compact filter-bar trigger (overview interval, operation logs). */
+export const DATE_PICKER_COMPACT_TRIGGER_CLASS =
+  'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
 
 const VARIANT_UI: Record<
   DatePickerVariant,
@@ -102,6 +107,7 @@ export function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState<Date>(() => new Date());
   const anchorRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
   const locale = LOCALES[lang];
@@ -116,10 +122,12 @@ export function DatePicker({
     return format(selected, 'PP', { locale });
   }, [selected, placeholder, locale]);
 
-  const { startMonth, endMonth } = useMemo(() => {
-    const y = new Date().getFullYear();
-    return { startMonth: new Date(y - 3, 0, 1), endMonth: new Date(y + 8, 11, 31) };
-  }, []);
+  const { startMonth, endMonth } = useMemo(
+    () => datePickerNavMonths(minDate, maxDate),
+    [minDate, maxDate],
+  );
+
+  const openMonth = selected ?? defaultMonth ?? minDate ?? new Date();
 
   const disabledMatchers = useMemo(() => {
     const matchers: Matcher[] = [];
@@ -165,7 +173,15 @@ export function DatePicker({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => {
+          if (disabled) return;
+          if (open) {
+            setOpen(false);
+            return;
+          }
+          setVisibleMonth(openMonth);
+          setOpen(true);
+        }}
         className={triggerClassName ?? ui.trigger}
       >
         <span
@@ -198,7 +214,8 @@ export function DatePicker({
               mode="single"
               selected={selected}
               locale={locale}
-              defaultMonth={selected ?? defaultMonth ?? minDate ?? new Date()}
+              month={visibleMonth}
+              onMonthChange={setVisibleMonth}
               captionLayout="dropdown"
               startMonth={startMonth}
               endMonth={endMonth}

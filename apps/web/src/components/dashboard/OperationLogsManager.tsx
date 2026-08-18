@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DatePicker } from '@mesa/ui';
+import { DatePicker, DATE_PICKER_COMPACT_TRIGGER_CLASS } from '@mesa/ui';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
@@ -50,8 +50,6 @@ function detectDatePreset(
 
 const COMPACT_SELECT_CLASS =
   'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
-const DATE_PICKER_TRIGGER_CLASS =
-  'w-full rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-left text-base text-brand-text transition-colors hover:border-brand-gold/40 focus:outline-none focus:ring-2 focus:ring-brand-gold/35';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
@@ -178,7 +176,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
         </button>
         <DatePicker
           className="w-[10.5rem]"
-          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+          triggerClassName={DATE_PICKER_COMPACT_TRIGGER_CLASS}
           value={draftFilters.startDate}
           onChange={(iso) => patchDraftFilters({ startDate: iso || today })}
           lang={lang}
@@ -189,7 +187,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
         <span className="text-brand-text-muted">—</span>
         <DatePicker
           className="w-[10.5rem]"
-          triggerClassName={DATE_PICKER_TRIGGER_CLASS}
+          triggerClassName={DATE_PICKER_COMPACT_TRIGGER_CLASS}
           value={draftFilters.endDate}
           onChange={(iso) => patchDraftFilters({ endDate: iso || today })}
           lang={lang}

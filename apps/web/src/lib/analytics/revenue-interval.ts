@@ -3,7 +3,6 @@ import {
   addCalendarDays,
   buildDateKeySeries,
   calendarDateInTimezone,
-  daysBetweenInclusive,
   lisbonDayStartUtcIso,
 } from '@/lib/lisbon-calendar';
 import {
@@ -13,7 +12,7 @@ import {
 } from '@/lib/analytics/closed-session-revenue';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-export const DASHBOARD_REVENUE_INTERVAL_MAX_DAYS = 31;
+export const DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS = 12;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -32,9 +31,9 @@ export function parseDashboardRevenueIntervalDates(input: {
   startDate: string | null | undefined;
   endDate: string | null | undefined;
   now?: Date;
-  maxDays?: number;
+  maxMonths?: number;
 }): DashboardRevenueIntervalParseResult {
-  const maxDays = input.maxDays ?? DASHBOARD_REVENUE_INTERVAL_MAX_DAYS;
+  const maxMonths = input.maxMonths ?? DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS;
   const now = input.now ?? new Date();
   const today = calendarDateInTimezone(now);
 
@@ -45,11 +44,18 @@ export function parseDashboardRevenueIntervalDates(input: {
   if (startDate > endDate) return { ok: false, code: 'invalid_date_range' };
   if (endDate > today) return { ok: false, code: 'invalid_date_range' };
 
-  // Inclusive span, so maxDays=31 means 31 natural days in [start,end]
-  if (daysBetweenInclusive(startDate, endDate) > maxDays) return { ok: false, code: 'invalid_date_range' };
-
-  const earliestAllowed = addCalendarDays(today, -(maxDays - 1));
-  if (startDate < earliestAllowed) return { ok: false, code: 'invalid_date_range' };
+  // Natural-month span check.
+  // If maxMonths=12, then allowed month difference is at most 11 (inclusive).
+  const monthIndex = (dateStr: string): number => {
+    const [yearStr, monthStr] = dateStr.split('-');
+    const year = Number(yearStr);
+    const monthZeroBased = Number(monthStr) - 1;
+    return year * 12 + monthZeroBased;
+  };
+  const startMonthIdx = monthIndex(startDate);
+  const endMonthIdx = monthIndex(endDate);
+  const monthsSpan = endMonthIdx - startMonthIdx;
+  if (monthsSpan > maxMonths - 1) return { ok: false, code: 'invalid_date_range' };
 
   const startUtc = lisbonDayStartUtcIso(startDate);
   const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(endDate, 1));

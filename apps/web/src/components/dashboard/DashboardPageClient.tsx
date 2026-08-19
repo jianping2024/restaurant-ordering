@@ -9,8 +9,7 @@ import { FeedbackInsightsPanel } from '@/components/dashboard/FeedbackInsightsPa
 import { DashboardTopSellingPanel } from '@/components/dashboard/DashboardTopSellingPanel';
 import { totalGuestsFromCounts, type BuffetGuestHeadcount } from '@/lib/buffet-order';
 import { formatOverviewDate } from '@/lib/format-dashboard-date';
-import { addCalendarDays } from '@/lib/lisbon-calendar';
-import { DASHBOARD_REVENUE_INTERVAL_MAX_DAYS } from '@/lib/analytics/revenue-interval';
+import { DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS } from '@/lib/analytics/revenue-interval';
 import {
   localizeTopSellingItems,
   pendingActionsTotal,
@@ -23,6 +22,21 @@ import { Button } from '@/components/ui/Button';
 
 /** Sole overview entry into the abnormal-ops list (same path as nav / route permission). */
 const ABNORMAL_OPERATIONS_HREF = '/dashboard/abnormal-operations';
+
+function startMinFromEndDate(endDate: string, maxMonths: number): string {
+  const [yearStr, monthStr] = endDate.split('-');
+  const endYear = Number(yearStr);
+  const endMonthZero = Number(monthStr) - 1;
+
+  const endMonthIdx = endYear * 12 + endMonthZero;
+  const startMonthIdx = endMonthIdx - (maxMonths - 1);
+
+  const startYear = Math.floor(startMonthIdx / 12);
+  const startMonthZero = ((startMonthIdx % 12) + 12) % 12;
+  const startMonth = startMonthZero + 1;
+
+  return `${startYear}-${String(startMonth).padStart(2, '0')}-01`;
+}
 
 function formatBuffetGuestDetail(
   template: string,
@@ -152,7 +166,7 @@ export function DashboardOverviewPrimaryClient({
 
   const abortRef = useRef<AbortController | null>(null);
 
-  const startMin = addCalendarDays(todayDateKey, -(DASHBOARD_REVENUE_INTERVAL_MAX_DAYS - 1));
+  const startMin = startMinFromEndDate(draftEndDate, DASHBOARD_REVENUE_INTERVAL_MAX_MONTHS);
   const startMax = draftEndDate;
   const endMin = draftStartDate;
   const endMax = todayDateKey;
@@ -162,6 +176,12 @@ export function DashboardOverviewPrimaryClient({
       setDraftStartDate(draftEndDate);
     }
   }, [draftStartDate, draftEndDate]);
+
+  useEffect(() => {
+    if (draftStartDate < startMin) {
+      setDraftStartDate(startMin);
+    }
+  }, [draftStartDate, startMin]);
 
   const applyRevenueInterval = useCallback(async () => {
     // No-op when nothing changed.

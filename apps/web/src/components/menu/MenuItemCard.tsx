@@ -3,7 +3,12 @@
 import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
-import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import {
+  MENU_IMAGE_OBJECT_FIT_CLASS,
+  MENU_IMAGE_UNOPTIMIZED,
+  MENU_IMAGE_WELL_BG_CLASS,
+  resolveMenuImageDisplayUrl,
+} from '@/lib/menu-image';
 import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
@@ -130,7 +135,7 @@ export function MenuItemCard({
         type="button"
         onClick={onOpenDetail}
         aria-label={openDetailAria}
-        className="relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-border text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40"
+        className={`relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl ${MENU_IMAGE_WELL_BG_CLASS} text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40`}
       >
         {imageSrc ? (
           <Image

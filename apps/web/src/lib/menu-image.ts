@@ -20,6 +20,9 @@ export const MENU_IMAGE_ASPECT_CLASS = 'aspect-[4/3]';
 /** Sole Next/Image fit for menu photos — full frame in 4:3 well, no crop. */
 export const MENU_IMAGE_OBJECT_FIT_CLASS = 'object-contain object-center';
 
+/** Sole well fill — matches upload letterbox canvas `#ffffff`; contain gaps must not show grey. */
+export const MENU_IMAGE_WELL_BG_CLASS = 'bg-white';
+
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',

@@ -8,6 +8,7 @@ import {
   MENU_IMAGE_ASPECT_RATIO,
   MENU_IMAGE_OBJECT_FIT_CLASS,
   MENU_IMAGE_UNOPTIMIZED,
+  MENU_IMAGE_WELL_BG_CLASS,
   resolveMenuImageDisplayUrl,
 } from '@/lib/menu-image';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
@@ -66,7 +67,7 @@ export function CustomerRecommendedRail({
               style={{ width: POSTER_WIDTH_PX }}
             >
               <span
-                className="relative block shrink-0 overflow-hidden rounded-xl bg-brand-border text-3xl"
+                className={`relative block shrink-0 overflow-hidden rounded-xl ${MENU_IMAGE_WELL_BG_CLASS} text-3xl`}
                 style={{ width: POSTER_WIDTH_PX, height: POSTER_MEDIA_HEIGHT_PX }}
               >
                 {imageSrc ? (

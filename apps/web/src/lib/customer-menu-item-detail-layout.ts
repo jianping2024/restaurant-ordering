@@ -3,6 +3,8 @@
  * Phone: fullscreen slide-up within the shell. lg+: centered dialog over dimmed backdrop.
  */
 
+import { MENU_IMAGE_ASPECT_CLASS, MENU_IMAGE_WELL_BG_CLASS } from '@/lib/menu-image';
+
 /** Above cart/round drawers (z-40) and footer dock (z-30). */
 export const CUSTOMER_MENU_ITEM_DETAIL_Z_CLASS = 'z-50';
 
@@ -34,14 +36,12 @@ export const customerMenuItemDetailPanelEnteredClass =
 export const customerMenuItemDetailPanelExitedClass =
   'max-lg:translate-y-full lg:scale-95 lg:opacity-0';
 
-import { MENU_IMAGE_ASPECT_CLASS } from '@/lib/menu-image';
-
 /**
  * Hero — dominant top plane. Fixed 4:3 frame (matches upload
  * `MENU_IMAGE_ASPECT_RATIO`); image fit uses sole {@link MENU_IMAGE_OBJECT_FIT_CLASS}.
  */
 export const CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS =
-  `relative ${MENU_IMAGE_ASPECT_CLASS} w-full shrink-0 overflow-hidden bg-brand-border max-lg:max-h-[min(52vh,24rem)]`;
+  `relative ${MENU_IMAGE_ASPECT_CLASS} w-full shrink-0 overflow-hidden ${MENU_IMAGE_WELL_BG_CLASS} max-lg:max-h-[min(52vh,24rem)]`;
 
 export const customerMenuItemDetailCloseButtonClass =
   'absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 flex h-10 w-10 items-center justify-center rounded-full border border-brand-border bg-brand-card/90 text-brand-text shadow-sm backdrop-blur-sm';

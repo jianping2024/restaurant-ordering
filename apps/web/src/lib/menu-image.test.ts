@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   MENU_IMAGE_ASPECT_RATIO,
   MENU_IMAGE_OBJECT_FIT_CLASS,
+  MENU_IMAGE_WELL_BG_CLASS,
   clientHostnameFromRequest,
   clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
@@ -155,6 +156,11 @@ describe('menuImageLetterboxLayout', () => {
   it('uses sole contain fit class for display', () => {
     assert.equal(MENU_IMAGE_OBJECT_FIT_CLASS, 'object-contain object-center');
     assert.doesNotMatch(MENU_IMAGE_OBJECT_FIT_CLASS, /object-cover/);
+  });
+
+  it('uses sole white well fill matching letterbox canvas', () => {
+    assert.equal(MENU_IMAGE_WELL_BG_CLASS, 'bg-white');
+    assert.doesNotMatch(MENU_IMAGE_WELL_BG_CLASS, /brand-border/);
   });
 
   it('pads top/bottom on wider sources (no crop)', () => {

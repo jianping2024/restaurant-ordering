@@ -1,14 +1,40 @@
 /** Bump when sealed daily metrics shape, seal rules, top-items contract, or grain change. */
-export const ANALYTICS_DAILY_SCHEMA_VERSION = 3;
+export const ANALYTICS_DAILY_SCHEMA_VERSION = 4;
 
-export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter';
+export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
 export const ANALYTICS_RANGES: readonly AnalyticsRange[] = [
   'day',
   'week',
   'month',
   'quarter',
+  'year',
 ] as const;
+
+/** Dish ranking payload for value-analytics (same date window as value-overview). */
+export type MenuItemConsumptionRankRow = {
+  rank: number;
+  menuItemId: string;
+  itemCode: string | null;
+  namePt: string;
+  nameEn: string | null;
+  nameZh: string | null;
+  consumedQuantity: number;
+  amount: number;
+};
+
+export type MenuItemConsumptionResponse = {
+  range: AnalyticsRange;
+  schemaVersion: number;
+  startDate: string;
+  endDate: string;
+  /** Top slice of the full ranking (for bar chart); same sort as `items`. */
+  topItems: MenuItemConsumptionRankRow[];
+  items: MenuItemConsumptionRankRow[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
 
 export type RevenueTrendPoint = {
   /** Period key: YYYY-MM-DD | YYYY-Www | YYYY-MM | YYYY-Qn */

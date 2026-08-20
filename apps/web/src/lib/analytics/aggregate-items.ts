@@ -5,6 +5,8 @@ import type { Order, OrderItem } from '@/types';
 
 export type MenuItemAgg = {
   itemId: string;
+  /** Snapshot from order line when present. */
+  itemCode?: string | null;
   namePt: string;
   nameEn?: string | null;
   nameZh?: string | null;
@@ -33,9 +35,11 @@ export function aggregateMenuItemsFromOrders(
       const lineAmount = auditMoney((Number(item.price) || 0) * qty);
       const existing = map.get(itemId);
 
+      const itemCode = item.item_code?.trim() || null;
       if (!existing) {
         map.set(itemId, {
           itemId,
+          itemCode,
           namePt: item.name_pt || item.name || itemId,
           nameEn: item.name_en ?? null,
           nameZh: item.name_zh ?? null,
@@ -47,6 +51,7 @@ export function aggregateMenuItemsFromOrders(
 
       existing.consumedQuantity += qty;
       existing.amount = auditMoney(existing.amount + lineAmount);
+      if (!existing.itemCode && itemCode) existing.itemCode = itemCode;
     }
   }
 

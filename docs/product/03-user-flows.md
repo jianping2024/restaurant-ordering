@@ -529,9 +529,10 @@
 ### 正常流程
 
 1. 打开 `/dashboard/value-analytics`
-2. 选择 按日 / 按周 / 按月 / 按季
-3. `GET /api/analytics/value-overview?range=day|week|month|quarter`（日表历史 + 当日现算；懒轧账仅近 7 天有关台日）
-4. 展示：区间 KPI、营业额趋势、客流趋势
+2. 选择 按日 / 按周 / 按月 / 按季 / 按年（同一日期窗口）
+3. `GET /api/analytics/value-overview?range=…`（日表历史 + 当日现算；懒轧账仅近 7 天有关台日）
+4. `GET /api/analytics/menu-item-consumption?range=…&page=&page_size=`（同窗口菜品销量排行；唯一来源 `analytics_daily_menu_item_consumption` + 当日现算）
+5. 展示：区间 KPI、营业额/客流趋势、销量 Top10、全量销量排行（分页）
 
 ### 异常流程
 
@@ -549,7 +550,8 @@
 
 - 仅统计 qualifying closed session；归属日 = Lisbon `closed_at`
 - 历史读 `analytics_daily_restaurant_stats`（无营业不写行）；当天现算；懒轧账仅近 7 天有关台日
-- 客户端按粒度缓存；周/月/季从首个有数周期起展示
+- 菜品销量唯一读 `analytics_daily_menu_item_consumption`（全天全菜；与日经营表同次轧账）+ 当日现算；按销量降序分页
+- 客户端按粒度缓存 overview；周/月/季/年从首个有数周期起展示
 
 ### 相关代码位置
 

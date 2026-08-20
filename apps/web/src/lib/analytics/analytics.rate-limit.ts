@@ -13,3 +13,11 @@ export function analyticsValueOverviewRateLimitCheck(ownerId: string, restaurant
     WINDOW_MS,
   );
 }
+
+/** Same budget as value-overview; shared bucket so grain switch + ranking share one limit. */
+export function analyticsMenuItemConsumptionRateLimitCheck(
+  ownerId: string,
+  restaurantId: string,
+) {
+  return analyticsValueOverviewRateLimitCheck(ownerId, restaurantId);
+}

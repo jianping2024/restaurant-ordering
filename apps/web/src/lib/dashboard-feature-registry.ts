@@ -156,7 +156,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     path: '/dashboard/value-analytics',
     pageLoader: 'getOwnerAnalyticsContext (dashboard.value_analytics.view)',
     writePattern: 'read-only',
-    aliases: ['/api/analytics/value-overview'],
+    aliases: ['/api/analytics/value-overview', '/api/analytics/menu-item-consumption'],
   },
   {
     id: 'abnormal-operations',

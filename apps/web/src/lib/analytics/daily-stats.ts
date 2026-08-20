@@ -26,6 +26,10 @@ import {
   replaceDailyMenuItemStats,
 } from '@/lib/analytics/daily-menu-item-stats';
 import {
+  replaceDailyMenuItemConsumption,
+  fetchSealedConsumptionBusinessDates,
+} from '@/lib/analytics/daily-menu-item-consumption';
+import {
   aggregateDailyPointsByGrain,
   hasBusinessActivity,
   toTrendSeries,
@@ -69,7 +73,8 @@ export async function computeRestaurantBusinessDayMetrics(
   restaurantId: string,
   businessDate: string,
 ): Promise<
-  { ok: true; metrics: DailyStatMetrics; topItems: MenuItemAgg[] } | AnalyticsQueryError
+  | { ok: true; metrics: DailyStatMetrics; topItems: MenuItemAgg[]; allItems: MenuItemAgg[] }
+  | AnalyticsQueryError
 > {
   const startUtc = lisbonDayStartUtcIso(businessDate);
   const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(businessDate, 1));
@@ -98,6 +103,7 @@ export async function computeRestaurantBusinessDayMetrics(
       ok: true,
       metrics: metricsFromTrends(businessDate, revenueTrend, [], 0),
       topItems: [],
+      allItems: [],
     };
   }
 
@@ -112,20 +118,20 @@ export async function computeRestaurantBusinessDayMetrics(
 
   const ordersBySession = groupOrdersBySession(itemOrdersResult.rows);
   const customerTrend = buildCustomerTrend(dateKeys, qualifying, ordersBySession);
-  const topItems = rankMenuItemAggs(
-    aggregateMenuItemsFromOrders(
-      itemOrdersResult.rows.map((order) => ({
-        status: order.status,
-        items: order.items || [],
-      })),
-    ),
-    DAILY_TOP_MENU_ITEM_LIMIT,
+  const allMap = aggregateMenuItemsFromOrders(
+    itemOrdersResult.rows.map((order) => ({
+      status: order.status,
+      items: order.items || [],
+    })),
   );
+  const allItems = Array.from(allMap.values());
+  const topItems = rankMenuItemAggs(allMap, DAILY_TOP_MENU_ITEM_LIMIT);
 
   return {
     ok: true,
     metrics: metricsFromTrends(businessDate, revenueTrend, customerTrend, qualifying.length),
     topItems,
+    allItems,
   };
 }
 
@@ -170,6 +176,7 @@ export async function sealRestaurantBusinessDay(
       ok: true;
       metrics: DailyStatMetrics;
       topItems: MenuItemAgg[];
+      allItems: MenuItemAgg[];
       written: boolean;
     }
   | AnalyticsQueryError
@@ -184,7 +191,7 @@ export async function sealRestaurantBusinessDay(
       customerCount: computed.metrics.customerCount,
     })
   ) {
-    return { ok: true, metrics: computed.metrics, topItems: [], written: false };
+    return { ok: true, metrics: computed.metrics, topItems: [], allItems: [], written: false };
   }
   const written = await upsertDailyRestaurantStat(admin, restaurantId, computed.metrics);
   if (!written.ok) {
@@ -199,10 +206,20 @@ export async function sealRestaurantBusinessDay(
   if (!topWritten.ok) {
     return topWritten;
   }
+  const consumptionWritten = await replaceDailyMenuItemConsumption(
+    admin,
+    restaurantId,
+    businessDate,
+    computed.allItems,
+  );
+  if (!consumptionWritten.ok) {
+    return consumptionWritten;
+  }
   return {
     ok: true,
     metrics: computed.metrics,
     topItems: computed.topItems,
+    allItems: computed.allItems,
     written: true,
   };
 }
@@ -267,6 +284,61 @@ export async function ensureSealedClosedBusinessDays(
   const toSeal = closedDates.dates.filter(
     (day) => day >= startDate && day <= sealEnd && day < today && !have.has(day),
   );
+
+  const concurrency = 4;
+  for (let i = 0; i < toSeal.length; i += concurrency) {
+    const batch = toSeal.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map((day) => sealRestaurantBusinessDay(admin, restaurantId, day)),
+    );
+    for (const result of results) {
+      if (!result.ok) {
+        return result;
+      }
+    }
+  }
+
+  return { ok: true };
+}
+
+/**
+ * Backfill full-day consumption for days that already have restaurant stats
+ * but predate analytics_daily_menu_item_consumption (schema v4).
+ */
+export async function ensureMenuItemConsumptionSealed(
+  admin: SupabaseClient,
+  restaurantId: string,
+  startDate: string,
+  endDateInclusive: string,
+  today: string,
+): Promise<{ ok: true } | AnalyticsQueryError> {
+  const sealEnd = endDateInclusive < today ? endDateInclusive : addCalendarDays(today, -1);
+  if (startDate > sealEnd) {
+    return { ok: true };
+  }
+
+  const existing = await fetchDailyRestaurantStats(admin, restaurantId, startDate, sealEnd);
+  if (!existing.ok) {
+    return existing;
+  }
+  if (existing.rows.length === 0) {
+    return { ok: true };
+  }
+
+  const consumptionDates = await fetchSealedConsumptionBusinessDates(
+    admin,
+    restaurantId,
+    startDate,
+    sealEnd,
+  );
+  if (!consumptionDates.ok) {
+    return consumptionDates;
+  }
+  const have = new Set(consumptionDates.dates);
+
+  const toSeal = existing.rows
+    .map((row) => row.business_date)
+    .filter((day) => day >= startDate && day <= sealEnd && day < today && !have.has(day));
 
   const concurrency = 4;
   for (let i = 0; i < toSeal.length; i += concurrency) {

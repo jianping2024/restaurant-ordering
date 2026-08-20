@@ -30,6 +30,9 @@ export function periodKeyForDay(dateStr: string, grain: AnalyticsRange): string 
   if (grain === 'month') {
     return dateStr.slice(0, 7);
   }
+  if (grain === 'year') {
+    return dateStr.slice(0, 4);
+  }
   const month = Number(dateStr.slice(5, 7));
   const quarter = Math.ceil(month / 3);
   return `${dateStr.slice(0, 4)}-Q${quarter}`;
@@ -38,7 +41,7 @@ export function periodKeyForDay(dateStr: string, grain: AnalyticsRange): string 
 /**
  * Sole user-visible period string for charts (axis + tooltip).
  * day: MM/dd (short within the rolling day window).
- * week/month/quarter: period key itself (yyyy-Www / yyyy-MM / yyyy-Qn) — never MM/YY.
+ * week/month/quarter/year: period key itself (yyyy-Www / yyyy-MM / yyyy-Qn / yyyy) — never MM/YY.
  */
 export function formatPeriodLabel(periodKey: string, grain: AnalyticsRange): string {
   if (grain === 'day') {

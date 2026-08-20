@@ -68,7 +68,7 @@ describe('parseAnalyticsRange', () => {
     assert.equal(parseAnalyticsRange('quarter'), 'quarter');
     assert.equal(parseAnalyticsRange('7d'), 'day');
     assert.equal(parseAnalyticsRange('30d'), 'day');
-    assert.equal(parseAnalyticsRange('year'), null);
+    assert.equal(parseAnalyticsRange('year'), 'year');
   });
 });
 

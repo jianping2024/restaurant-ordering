@@ -83,6 +83,7 @@ table_order_round_clients (session_id: uuid FK -> table_sessions.id, guest_clien
 table_session_events (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, event_type: text [transfer], occurred_at: timestamptz, operator_user_id: uuid FK -> auth.users.id nullable, from_table_id: uuid FK -> restaurant_tables.id, to_table_id: uuid FK -> restaurant_tables.id, from_display_name: text, to_display_name: text)
 analytics_daily_restaurant_stats (restaurant_id: uuid FK -> restaurants.id, business_date: date, revenue: numeric, adult_count: int, child_count: int, customer_count: int, qualifying_session_count: int, sealed_at: timestamptz, computed_at: timestamptz; PK (restaurant_id, business_date))
 analytics_daily_menu_item_stats (restaurant_id: uuid FK -> restaurants.id, business_date: date, rank: smallint 1..10, item_id: text, name_pt: text, name_en: text nullable, name_zh: text nullable, consumed_quantity: numeric, amount: numeric, sealed_at: timestamptz; PK (restaurant_id, business_date, rank))
+analytics_daily_menu_item_consumption (restaurant_id: uuid FK -> restaurants.id, business_date: date, menu_item_id: text, item_code: text nullable, name_pt: text, name_en: text nullable, name_zh: text nullable, consumed_quantity: numeric, amount: numeric, sealed_at: timestamptz; PK (restaurant_id, business_date, menu_item_id); full-day dish qty for value-analytics ranking; `__mesa_empty_day__` marker when sealed with zero countable dishes)
 -- closed_by_user_id: checkout/settled/operational close operator, or merge operator when closed_reason=merged; null for auto_nightly / legacy
 -- settled_payable_amount: billable payable written at settled checkout close; null for operational closes and legacy rows
 
@@ -385,6 +386,11 @@ analytics_daily_restaurant_stats:
 
 - analytics_daily_restaurant_stats_pkey: PK btree(restaurant_id, business_date)
 - idx_analytics_daily_restaurant_stats_restaurant_date: btree(restaurant_id, business_date DESC)
+
+analytics_daily_menu_item_consumption:
+
+- analytics_daily_menu_item_consumption_pkey: PK btree(restaurant_id, business_date, menu_item_id)
+- idx_analytics_daily_menu_item_consumption_restaurant_date: btree(restaurant_id, business_date DESC)
 
 ## RLS / Policies
 

@@ -2,7 +2,11 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { AnalyticsRange, ValueOverviewResponse } from '@/lib/analytics/analytics.types';
+import type {
+  AnalyticsRange,
+  MenuItemConsumptionResponse,
+  ValueOverviewResponse,
+} from '@/lib/analytics/analytics.types';
 import {
   ANALYTICS_DAILY_SCHEMA_VERSION,
   ANALYTICS_RANGES,
@@ -10,9 +14,13 @@ import {
 import { isValueOverviewEmpty } from '@/lib/analytics/period-aggregate';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
+import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
+import { ValueAnalyticsConsumptionPanel } from '@/components/dashboard/ValueAnalyticsConsumptionPanel';
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
 import { getMessages } from '@/lib/i18n/messages';
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
+import { type ListPageSize } from '@/lib/paginate-list';
+import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
 const ValueAnalyticsTrendChart = dynamic(
   () =>
@@ -28,6 +36,8 @@ type Props = {
   initialOverview: ValueOverviewResponse | null;
   initialLoadFailed?: boolean;
 };
+
+type ConsumptionFilters = { range: AnalyticsRange };
 
 function resolveViewState(
   overview: ValueOverviewResponse | null,
@@ -122,17 +132,86 @@ export function ValueAnalyticsPageClient({
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
+  const [consumptionError, setConsumptionError] = useState(false);
   const skipInitialFetch = useRef(isUsableCache(initialOverview, 'day') && !initialLoadFailed);
   const byRangeRef = useRef(byRange);
   byRangeRef.current = byRange;
 
   const data = byRange[range] ?? null;
 
+  const fetchConsumption = useCallback(
+    async ({
+      filters,
+      page,
+      pageSize,
+      signal,
+    }: {
+      filters: ConsumptionFilters;
+      page: number;
+      pageSize: ListPageSize;
+      signal: AbortSignal;
+    }) => {
+      const url = new URL('/api/analytics/menu-item-consumption', window.location.origin);
+      url.searchParams.set('range', filters.range);
+      url.searchParams.set('page', String(page));
+      url.searchParams.set('page_size', String(pageSize));
+      try {
+        const res = await fetch(url.toString(), { credentials: 'include', signal });
+        const json = (await res.json().catch(() => ({}))) as MenuItemConsumptionResponse & {
+          error?: string;
+        };
+        if (res.status === 403) {
+          return { ok: false as const, error: 'forbidden' };
+        }
+        if (!res.ok) {
+          return { ok: false as const, error: json.error || 'load_failed' };
+        }
+        if (json.schemaVersion !== ANALYTICS_DAILY_SCHEMA_VERSION) {
+          return { ok: false as const, error: 'schema_mismatch' };
+        }
+        return { ok: true as const, data: json };
+      } catch (err) {
+        if (signal.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+          return { ok: false as const, error: 'aborted' };
+        }
+        return { ok: false as const, error: 'network_error' };
+      }
+    },
+    [],
+  );
+
+  const {
+    replaceDraftFilters,
+    query: consumptionQuery,
+    data: consumption,
+    loading: consumptionLoading,
+    setPage: setConsumptionPage,
+    setPageSize: setConsumptionPageSize,
+    refresh: refreshConsumption,
+  } = useDashboardListQuery<ConsumptionFilters, MenuItemConsumptionResponse>({
+    initialFilters: { range: 'day' },
+    debounceMs: 0,
+    fetchList: fetchConsumption,
+    onFetchError: (error) => {
+      if (error === 'forbidden') {
+        setViewState('forbidden');
+        return;
+      }
+      setConsumptionError(true);
+    },
+    onSuccess: () => setConsumptionError(false),
+  });
+
+  useEffect(() => {
+    replaceDraftFilters({ range });
+  }, [range, replaceDraftFilters]);
+
   const grainLabel = useCallback(
     (grain: AnalyticsRange) => {
       if (grain === 'day') return t.rangeDay;
       if (grain === 'week') return t.rangeWeek;
       if (grain === 'month') return t.rangeMonth;
+      if (grain === 'year') return t.rangeYear;
       return t.rangeQuarter;
     },
     [t],
@@ -195,13 +274,15 @@ export function ValueAnalyticsPageClient({
 
   const retry = useCallback(() => {
     setRefreshError(false);
+    setConsumptionError(false);
     setByRange((prev) => {
       const next = { ...prev };
       delete next[range];
       return next;
     });
     void fetchRange(range, { bypassCache: true });
-  }, [fetchRange, range]);
+    refreshConsumption();
+  }, [fetchRange, range, refreshConsumption]);
 
   const revenuePoints = useMemo(
     () =>
@@ -261,6 +342,25 @@ export function ValueAnalyticsPageClient({
     [t],
   );
 
+  const consumptionI18n = useMemo(
+    () => ({
+      topTitle: t.consumptionTopTitle,
+      rankingTitle: t.consumptionRankingTitle,
+      rankingEmpty: t.consumptionRankingEmpty,
+      colRank: t.colRank,
+      colCode: t.colCode,
+      colDish: t.colDish,
+      colQty: t.colQty,
+      colAmount: t.colAmount,
+    }),
+    [t],
+  );
+
+  const consumptionTotalPages = Math.max(
+    1,
+    Math.ceil((consumption?.total ?? 0) / consumptionQuery.pageSize),
+  );
+
   if (viewState === 'forbidden') {
     return (
       <StateCard>
@@ -281,7 +381,7 @@ export function ValueAnalyticsPageClient({
         <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-medium text-brand-text">{t.filterTitle}</h2>
-            {isRefreshing ? (
+            {isRefreshing || consumptionLoading ? (
               <span className="text-[12px] text-brand-text-muted">{t.refreshing}</span>
             ) : null}
           </div>
@@ -299,7 +399,7 @@ export function ValueAnalyticsPageClient({
             ))}
           </div>
         </div>
-        {refreshError ? (
+        {refreshError || consumptionError ? (
           <div className="px-4 pb-3 flex flex-wrap items-center justify-between gap-3 border-t border-brand-border/60">
             <p className="text-[13px] text-brand-text-muted">{t.error}</p>
             <Button type="button" size="sm" onClick={() => retry()}>
@@ -347,6 +447,33 @@ export function ValueAnalyticsPageClient({
               tooltipLabels={tooltipLabels}
             />
           </div>
+
+          {consumption ? (
+            <div className={consumptionLoading ? 'opacity-80' : ''}>
+              <ValueAnalyticsConsumptionPanel
+                topItems={consumption.topItems}
+                items={consumption.items}
+                lang={lang}
+                i18n={consumptionI18n}
+              />
+              <div className="mt-3">
+                <ListPaginationBar
+                  page={consumptionQuery.page}
+                  totalPages={consumptionTotalPages}
+                  total={consumption.total}
+                  pageSize={consumptionQuery.pageSize}
+                  onPageChange={setConsumptionPage}
+                  onPageSizeChange={setConsumptionPageSize}
+                  labels={{
+                    pageInfo: t.pageInfo,
+                    pageSizeLabel: t.pageSizeLabel,
+                    pagePrev: t.prevPage,
+                    pageNext: t.nextPage,
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

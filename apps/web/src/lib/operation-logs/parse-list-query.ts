@@ -20,8 +20,7 @@ export function parseOperationLogsListQuery(
 
   return {
     restaurantId,
-    startDate: searchParams.get('start_date')?.trim() || undefined,
-    endDate: searchParams.get('end_date')?.trim() || undefined,
+    date: searchParams.get('date')?.trim() || undefined,
     actionType:
       actionRaw && isOperationLogActionType(actionRaw)
         ? (actionRaw as OperationLogActionType)

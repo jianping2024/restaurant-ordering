@@ -15,7 +15,7 @@ import type { OperationLogRow } from '@/lib/operation-logs/types';
 describe('operation logs filters', () => {
   it('parses action_type only when in OPERATION_LOG_ACTION_TYPES', () => {
     const ok = parseOperationLogsListQuery(
-      new URLSearchParams('action_type=SESSION_OPENED&start_date=2026-08-01'),
+      new URLSearchParams('action_type=SESSION_OPENED&date=2026-08-01'),
       'rest-1',
     );
     assert.equal(ok.actionType, AUDIT_EVENT.SESSION_OPENED);
@@ -26,6 +26,11 @@ describe('operation logs filters', () => {
     );
     assert.equal(bad.actionType, undefined);
     assert.equal(isOperationLogActionType('ITEM_DELETED'), false);
+  });
+
+  it('parses date query param', () => {
+    const withDate = parseOperationLogsListQuery(new URLSearchParams('date=2026-08-17'), 'rest-1');
+    assert.equal(withDate.date, '2026-08-17');
   });
 
   it('parses and normalizes sole search q', () => {

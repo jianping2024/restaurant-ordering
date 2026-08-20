@@ -3,7 +3,7 @@ import {
   OPERATION_LOG_ACTION_TYPES,
   type OperationLogActionType,
 } from '@/lib/audit/types';
-import { parseOperationLogsDateRange } from '@/lib/operation-logs/date-range';
+import { parseOperationLogsDay } from '@/lib/operation-logs/date-range';
 import {
   normalizeOperationLogsSearchQ,
   operationLogsSearchOrFilter,
@@ -14,8 +14,8 @@ import type { OperationLogRow } from '@/lib/operation-logs/types';
 export type OperationLogsListFilters = {
   restaurantId: string;
   retentionDays: number;
-  startDate?: string;
-  endDate?: string;
+  /** Lisbon calendar day (YYYY-MM-DD); default today. */
+  date?: string;
   actionType?: OperationLogActionType;
   /** Shared operator-or-table search; empty/undefined = no text filter. */
   q?: string;
@@ -40,9 +40,8 @@ export async function listOperationLogs(
   | { ok: true; result: OperationLogsListResult }
   | { ok: false; code: 'invalid_date_range' | 'query_failed'; message?: string }
 > {
-  const parsed = parseOperationLogsDateRange({
-    startDate: filters.startDate,
-    endDate: filters.endDate,
+  const parsed = parseOperationLogsDay({
+    date: filters.date,
     now: filters.now,
     retentionDays: filters.retentionDays,
   });

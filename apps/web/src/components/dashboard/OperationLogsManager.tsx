@@ -26,30 +26,16 @@ import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 const REFRESH_COOLDOWN_MS = 60_000;
 
 type Filters = {
-  startDate: string;
-  endDate: string;
+  date: string;
   actionType: OperationLogActionType | '';
   q: string;
 };
 
-type DatePreset = 'today' | 'last7';
-
-const DEFAULT_FILTERS = (today: string, retentionDays: number): Filters => ({
-  startDate: addCalendarDays(today, -(retentionDays - 1)),
-  endDate: today,
+const DEFAULT_FILTERS = (today: string): Filters => ({
+  date: today,
   actionType: '',
   q: '',
 });
-
-function detectDatePreset(
-  startDate: string,
-  endDate: string,
-  today: string,
-): DatePreset | null {
-  if (startDate === today && endDate === today) return 'today';
-  if (startDate === addCalendarDays(today, -6) && endDate === today) return 'last7';
-  return null;
-}
 
 const COMPACT_SELECT_CLASS =
   'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
@@ -67,7 +53,6 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
   const { lang } = useLanguage();
   const messages = getMessages(lang);
   const t = messages.operationLogs;
-  const pickDate = messages.buffetAdmin.pickDate;
   const locale = UI_LOCALE_BY_LANG[lang];
   const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
@@ -85,8 +70,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
     }) => {
       const result = await fetchOperationLogs(
         {
-          startDate: filters.startDate,
-          endDate: filters.endDate,
+          date: filters.date,
           actionType: filters.actionType || undefined,
           q: normalizeOperationLogsSearchQ(filters.q),
           page,
@@ -110,13 +94,13 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
     setPageSize,
     refresh,
   } = useDashboardListQuery<Filters, OperationLogsListResult>({
-    initialFilters: DEFAULT_FILTERS(today, retentionDays),
+    initialFilters: DEFAULT_FILTERS(today),
     fetchList,
     cache: {
       scope: 'operation-logs',
       restaurantId,
       today,
-      rangeEndDate: (filters) => filters.endDate,
+      rangeEndDate: (filters) => filters.date,
     },
     onFetchError: () => showToast(t.actionFailed, 'error'),
   });
@@ -144,15 +128,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
     refresh();
   };
 
-  const activeDatePreset = detectDatePreset(draftFilters.startDate, draftFilters.endDate, today);
-
-  const applyDatePreset = (preset: DatePreset) => {
-    const next =
-      preset === 'today'
-        ? { startDate: today, endDate: today }
-        : { startDate: addCalendarDays(today, -6), endDate: today };
-    patchDraftFilters(next);
-  };
+  const isTodaySelected = draftFilters.date === today;
 
   const presetBtnClass = (active: boolean) =>
     `${PRESET_BTN_BASE} ${
@@ -162,44 +138,30 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
     }`;
 
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / query.pageSize));
-  const lookbackMin = addCalendarDays(today, -(retentionDays - 1));
-  const startMinByEnd = addCalendarDays(draftFilters.endDate, -(retentionDays - 1));
-  const startMin = startMinByEnd > lookbackMin ? startMinByEnd : lookbackMin;
-  const startMax = draftFilters.endDate < today ? draftFilters.endDate : today;
-  const endMaxByStart = addCalendarDays(draftFilters.startDate, retentionDays - 1);
-  const endMax = endMaxByStart < today ? endMaxByStart : today;
+  const dateMin = addCalendarDays(today, -(retentionDays - 1));
   const showInitialLoading = loading && !data;
   const tableBusy = loading && !!data;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className={presetBtnClass(activeDatePreset === 'today')} onClick={() => applyDatePreset('today')}>
+        <button
+          type="button"
+          className={presetBtnClass(isTodaySelected)}
+          onClick={() => patchDraftFilters({ date: today })}
+        >
           {t.dateToday}
         </button>
-        <button type="button" className={presetBtnClass(activeDatePreset === 'last7')} onClick={() => applyDatePreset('last7')}>
-          {t.dateLast7}
-        </button>
         <DatePicker
           className="w-[10.5rem]"
           triggerClassName={DATE_PICKER_COMPACT_TRIGGER_CLASS}
-          value={draftFilters.startDate}
-          onChange={(iso) => patchDraftFilters({ startDate: iso || today })}
+          value={draftFilters.date}
+          onChange={(iso) => patchDraftFilters({ date: iso || today })}
           lang={lang}
-          min={startMin}
-          max={startMax}
-          placeholder={pickDate}
-        />
-        <span className="text-brand-text-muted">—</span>
-        <DatePicker
-          className="w-[10.5rem]"
-          triggerClassName={DATE_PICKER_COMPACT_TRIGGER_CLASS}
-          value={draftFilters.endDate}
-          onChange={(iso) => patchDraftFilters({ endDate: iso || today })}
-          lang={lang}
-          min={draftFilters.startDate}
-          max={endMax}
-          placeholder={pickDate}
+          min={dateMin}
+          max={today}
+          placeholder={t.filterDate}
+          aria-label={t.filterDate}
         />
         <select
           className={COMPACT_SELECT_CLASS}

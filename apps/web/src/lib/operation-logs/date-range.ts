@@ -1,38 +1,24 @@
 import {
   addCalendarDays,
   calendarDateInTimezone,
-  daysBetweenInclusive,
   lisbonDayStartUtcIso,
 } from '@/lib/lisbon-calendar';
 import { resolveOperationLogRetentionDays } from '@/lib/operation-logs/retention-days';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export type OperationLogsDateRange = {
-  startDate: string;
-  endDate: string;
-};
-
-export type ParsedOperationLogsDateRange =
+export type ParsedOperationLogsDay =
   | {
       ok: true;
-      startDate: string;
-      endDate: string;
+      date: string;
       startUtc: string;
       endExclusiveUtc: string;
     }
   | { ok: false; code: 'invalid_date_range' };
 
-export function defaultOperationLogsDateRange(
-  now: Date = new Date(),
-  retentionDaysInput?: unknown,
-): OperationLogsDateRange {
-  const retentionDays = resolveOperationLogRetentionDays(retentionDaysInput);
-  const today = calendarDateInTimezone(now);
-  return {
-    startDate: addCalendarDays(today, -(retentionDays - 1)),
-    endDate: today,
-  };
+/** Default list day: Lisbon today. */
+export function defaultOperationLogsDay(now: Date = new Date()): string {
+  return calendarDateInTimezone(now);
 }
 
 /** UTC cutoff for rows older than the retained window (exclusive). */
@@ -46,35 +32,30 @@ export function operationLogRetentionCutoffUtcIso(
   return lisbonDayStartUtcIso(earliestKept);
 }
 
-export function parseOperationLogsDateRange(input: {
-  startDate?: string;
-  endDate?: string;
+/** Sole operation-logs list day parser: one Lisbon calendar day → UTC half-open window. */
+export function parseOperationLogsDay(input: {
+  date?: string;
   now?: Date;
   retentionDays?: unknown;
-}): ParsedOperationLogsDateRange {
+}): ParsedOperationLogsDay {
   const retentionDays = resolveOperationLogRetentionDays(input.retentionDays);
   const now = input.now ?? new Date();
   const today = calendarDateInTimezone(now);
-  const defaults = defaultOperationLogsDateRange(now, retentionDays);
-  const startDate = input.startDate?.trim() || defaults.startDate;
-  const endDate = input.endDate?.trim() || defaults.endDate;
+  const date = input.date?.trim() || today;
 
-  if (!DATE_RE.test(startDate) || !DATE_RE.test(endDate)) {
+  if (!DATE_RE.test(date)) {
     return { ok: false, code: 'invalid_date_range' };
   }
-  if (endDate > today || startDate > endDate) {
-    return { ok: false, code: 'invalid_date_range' };
-  }
-  if (daysBetweenInclusive(startDate, endDate) > retentionDays) {
+  if (date > today) {
     return { ok: false, code: 'invalid_date_range' };
   }
 
   const earliestAllowed = addCalendarDays(today, -(retentionDays - 1));
-  if (startDate < earliestAllowed) {
+  if (date < earliestAllowed) {
     return { ok: false, code: 'invalid_date_range' };
   }
 
-  const startUtc = lisbonDayStartUtcIso(startDate);
-  const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(endDate, 1));
-  return { ok: true, startDate, endDate, startUtc, endExclusiveUtc };
+  const startUtc = lisbonDayStartUtcIso(date);
+  const endExclusiveUtc = lisbonDayStartUtcIso(addCalendarDays(date, 1));
+  return { ok: true, date, startUtc, endExclusiveUtc };
 }

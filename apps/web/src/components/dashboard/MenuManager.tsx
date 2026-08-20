@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import { MenuItemListRowOverflowMenu } from '@/components/dashboard/MenuItemListRowOverflowMenu';
+import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -90,7 +92,7 @@ const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', 
 const MENU_TOOLBAR_CONTROL =
   'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
 
-/** Sole compact row-action chrome for category tree and dish list (✎ / × / +). */
+/** Sole compact row-action chrome for category tree nodes (+ / ✎ / ×). */
 const MENU_ROW_ICON_BTN =
   'h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed shrink-0';
 
@@ -272,6 +274,7 @@ export function MenuManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false });
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [overflowItemId, setOverflowItemId] = useState<string | null>(null);
   const MAX_CATEGORY_DEPTH = MAX_MENU_CATEGORY_DEPTH;
 
   const noteUi = NOTE_UI_TEXT[lang];
@@ -1430,19 +1433,17 @@ export function MenuManager({
                     className="space-y-1.5"
                   >
                     {visibleItems.map((item, index) => {
-                      const code = item.item_code?.trim();
+                      const catalogLabel = formatMenuCatalogItemLabel(item, lang);
                       const nameEn = item.name_en?.trim() || t.listNameEmpty;
                       const nameZh = item.name_zh?.trim() || t.listNameEmpty;
                       const categoryLine = getItemCategoryLine(item);
                       const stationName = getEffectiveStationName(item);
-                      const primaryTitle = [
-                        code ? `[${code}]` : null,
+                      const hoverTitle = [
+                        catalogLabel,
                         `${t.listNamePt}: ${item.name_pt}`,
                         `${t.listNameEn}: ${nameEn}`,
                         `${t.listNameZh}: ${nameZh}`,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ');
+                      ].join(' · ');
                       const metaTitle = stationName
                         ? `${t.itemType}: ${categoryLine} · ${t.effectiveStationPrefix}: ${stationName}`
                         : `${t.itemType}: ${categoryLine}`;
@@ -1459,7 +1460,7 @@ export function MenuManager({
                             <div
                               ref={draggableProvided.innerRef}
                               {...draggableProvided.draggableProps}
-                              className={`bg-brand-card border rounded-lg px-3 py-2 sm:px-4 flex items-center gap-3 sm:gap-4 transition-shadow ${
+                              className={`bg-brand-card border rounded-lg px-3 py-2.5 sm:px-4 flex items-center gap-3 sm:gap-4 transition-shadow ${
                                 item.available
                                   ? 'border-brand-border'
                                   : 'border-brand-border/70 bg-brand-bg/40'
@@ -1480,20 +1481,11 @@ export function MenuManager({
                               <MenuItemListThumb item={item} />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-2 min-w-0">
-                                  <p className="flex-1 min-w-0 text-sm truncate" title={primaryTitle}>
-                                    {code ? (
-                                      <span className="font-mono text-[11px] text-brand-gold tabular-nums mr-1.5">
-                                        [{code}]
-                                      </span>
-                                    ) : null}
-                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNamePt}:</span>{' '}
-                                    <span className="font-medium text-brand-text">{item.name_pt}</span>
-                                    <span className="mx-1 text-brand-border">·</span>
-                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNameEn}:</span>{' '}
-                                    {nameEn}
-                                    <span className="mx-1 text-brand-border">·</span>
-                                    <span className="text-brand-text-muted/70 text-[11px]">{t.listNameZh}:</span>{' '}
-                                    {nameZh}
+                                  <p
+                                    className="flex-1 min-w-0 text-sm font-medium text-brand-text truncate"
+                                    title={hoverTitle}
+                                  >
+                                    {catalogLabel}
                                   </p>
                                   {!item.available ? (
                                     <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
@@ -1518,7 +1510,7 @@ export function MenuManager({
                                   ) : null}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
                                 <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                                   €{item.price.toFixed(2)}
                                 </span>
@@ -1531,7 +1523,7 @@ export function MenuManager({
                                 <button
                                   type="button"
                                   onClick={() => toggleItemAvailable(item)}
-                                  className={`relative w-9 h-[18px] rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
                                   title={
                                     item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle
                                   }
@@ -1540,39 +1532,30 @@ export function MenuManager({
                                   }
                                 >
                                   <span
-                                    className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
-                                      item.available ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                                      item.available ? 'translate-x-[22px]' : 'translate-x-0.5'
                                     }`}
                                   />
                                 </button>
-                                <div className={MENU_ROW_ICON_CLUSTER}>
-                                  <button
-                                    type="button"
-                                    title={t.edit}
-                                    aria-label={t.editAction}
-                                    onClick={() => openItemEditModal(item)}
-                                    className={MENU_ROW_ICON_BTN}
-                                  >
-                                    ✎
-                                  </button>
-                                  <button
-                                    type="button"
-                                    title={t.remove}
-                                    aria-label={t.deleteAction}
-                                    onClick={() =>
-                                      setConfirmDialog({
-                                        open: true,
-                                        intent: 'delete_item',
-                                        title: t.deleteConfirm,
-                                        message: `${t.deleteConfirm} "${item.name_pt}"?`,
-                                        itemId: item.id,
-                                      })
-                                    }
-                                    className={MENU_ROW_ICON_BTN_DANGER}
-                                  >
-                                    ×
-                                  </button>
-                                </div>
+                                <MenuItemListRowOverflowMenu
+                                  open={overflowItemId === item.id}
+                                  onOpenChange={(next) =>
+                                    setOverflowItemId(next ? item.id : null)
+                                  }
+                                  menuLabel={t.itemRowMoreActions}
+                                  editLabel={t.editAction}
+                                  deleteLabel={t.deleteAction}
+                                  onEdit={() => openItemEditModal(item)}
+                                  onDelete={() =>
+                                    setConfirmDialog({
+                                      open: true,
+                                      intent: 'delete_item',
+                                      title: t.deleteConfirm,
+                                      message: `${t.deleteConfirm} "${item.name_pt}"?`,
+                                      itemId: item.id,
+                                    })
+                                  }
+                                />
                               </div>
                             </div>
                           )}

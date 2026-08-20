@@ -90,6 +90,15 @@ const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', 
 const MENU_TOOLBAR_CONTROL =
   'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
 
+/** Sole compact row-action chrome for category tree and dish list (✎ / × / +). */
+const MENU_ROW_ICON_BTN =
+  'h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed shrink-0';
+
+const MENU_ROW_ICON_BTN_DANGER = `${MENU_ROW_ICON_BTN} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`;
+
+const MENU_ROW_ICON_CLUSTER =
+  'flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1';
+
 interface MenuManagerProps {
   restaurantId: string;
   initialItems: MenuItem[];
@@ -979,8 +988,6 @@ export function MenuManager({
     const depth = categoryDepthMap.get(category.id) || 1;
     const canAddChild = depth < MAX_CATEGORY_DEPTH;
     const maxDepthTitle = t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH));
-    const iconBtn =
-      'h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed shrink-0';
     return (
       <div className="group flex w-full items-center gap-2 min-h-7 pr-1 min-w-0">
         <span
@@ -994,7 +1001,7 @@ export function MenuManager({
           ) : null}
         </span>
         <div
-          className={`ml-auto flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1 transition-opacity ${
+          className={`ml-auto ${MENU_ROW_ICON_CLUSTER} transition-opacity ${
             selectedCategoryId === category.id ? 'opacity-100' : 'opacity-75 group-hover:opacity-100'
           }`}
         >
@@ -1010,7 +1017,7 @@ export function MenuManager({
               setCategoryDraft(defaultCategoryDraft);
               setCategoryPanelMode('create-child');
             }}
-            className={iconBtn}
+            className={MENU_ROW_ICON_BTN}
           >
             +
           </button>
@@ -1022,7 +1029,7 @@ export function MenuManager({
               e.stopPropagation();
               openCategoryEdit(category);
             }}
-            className={iconBtn}
+            className={MENU_ROW_ICON_BTN}
           >
             ✎
           </button>
@@ -1035,7 +1042,7 @@ export function MenuManager({
               setSelectedCategoryId(category.id);
               void deleteCategoryById(category.id);
             }}
-            className={`${iconBtn} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`}
+            className={MENU_ROW_ICON_BTN_DANGER}
           >
             ×
           </button>
@@ -1511,9 +1518,9 @@ export function MenuManager({
                                   ) : null}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                                <span className="text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
-                                  EUR{item.price.toFixed(2)}
+                              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                                  €{item.price.toFixed(2)}
                                 </span>
                                 <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
                                   {t.vatRateShort.replace(
@@ -1538,17 +1545,20 @@ export function MenuManager({
                                     }`}
                                   />
                                 </button>
-                                <div className="hidden sm:block w-px h-3.5 bg-brand-border/80" />
-                                <div className="flex items-center gap-2 sm:gap-3">
+                                <div className={MENU_ROW_ICON_CLUSTER}>
                                   <button
                                     type="button"
+                                    title={t.edit}
+                                    aria-label={t.editAction}
                                     onClick={() => openItemEditModal(item)}
-                                    className="text-brand-text-muted hover:text-brand-gold transition-colors text-xs sm:text-sm whitespace-nowrap"
+                                    className={MENU_ROW_ICON_BTN}
                                   >
-                                    {t.edit}
+                                    ✎
                                   </button>
                                   <button
                                     type="button"
+                                    title={t.remove}
+                                    aria-label={t.deleteAction}
                                     onClick={() =>
                                       setConfirmDialog({
                                         open: true,
@@ -1558,9 +1568,9 @@ export function MenuManager({
                                         itemId: item.id,
                                       })
                                     }
-                                    className="text-brand-text-muted hover:text-status-danger transition-colors text-xs sm:text-sm whitespace-nowrap"
+                                    className={MENU_ROW_ICON_BTN_DANGER}
                                   >
-                                    {t.remove}
+                                    ×
                                   </button>
                                 </div>
                               </div>

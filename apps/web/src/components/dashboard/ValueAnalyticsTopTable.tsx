@@ -5,6 +5,9 @@ type Column<T> = {
   header: string;
   align?: 'left' | 'right';
   render?: (row: T) => ReactNode;
+  /** When set, header is a button (e.g. rank sort toggle). */
+  onHeaderClick?: () => void;
+  headerSuffix?: string;
 };
 
 type Props<T extends { rank: number }> = {
@@ -12,6 +15,7 @@ type Props<T extends { rank: number }> = {
   rows: T[];
   columns: Column<T>[];
   footer?: ReactNode;
+  headerExtra?: ReactNode;
   dense?: boolean;
 };
 
@@ -20,6 +24,7 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
   rows,
   columns,
   footer,
+  headerExtra,
   dense = false,
 }: Props<T>) {
   const cellPad = dense ? 'py-1.5' : 'py-2.5';
@@ -27,8 +32,9 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
   const tableText = dense ? 'text-[13px]' : 'text-sm';
   return (
     <section className="bg-brand-card border border-brand-border rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
-      <div className="px-5 sm:px-6 py-4 border-b border-brand-border">
+      <div className="px-5 sm:px-6 py-4 border-b border-brand-border flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-heading text-lg text-brand-gold">{title}</h2>
+        {headerExtra ? <div className="flex flex-wrap items-center gap-2">{headerExtra}</div> : null}
       </div>
       <div className="overflow-x-auto">
         <table className={`w-full ${tableText}`}>
@@ -39,7 +45,22 @@ export function ValueAnalyticsTopTable<T extends { rank: number }>({
                   key={String(col.key)}
                   className={`px-4 ${headPad} font-medium ${col.align === 'right' ? 'text-right' : 'text-left'}`}
                 >
-                  {col.header}
+                  {col.onHeaderClick ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 hover:text-brand-text transition-colors"
+                      onClick={col.onHeaderClick}
+                    >
+                      <span>{col.header}</span>
+                      {col.headerSuffix ? (
+                        <span className="text-brand-gold tabular-nums" aria-hidden>
+                          {col.headerSuffix}
+                        </span>
+                      ) : null}
+                    </button>
+                  ) : (
+                    col.header
+                  )}
                 </th>
               ))}
             </tr>

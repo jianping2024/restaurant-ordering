@@ -11,6 +11,11 @@ import {
   ANALYTICS_DAILY_SCHEMA_VERSION,
   ANALYTICS_RANGES,
 } from '@/lib/analytics/analytics.types';
+import {
+  defaultConsumptionPeriod,
+  type MenuItemConsumptionGrain,
+  type MenuItemConsumptionSort,
+} from '@/lib/analytics/menu-item-consumption-period';
 import { isValueOverviewEmpty } from '@/lib/analytics/period-aggregate';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +24,7 @@ import { ValueAnalyticsConsumptionPanel } from '@/components/dashboard/ValueAnal
 import { buildTrendChartPoints } from '@/components/dashboard/ValueAnalyticsTrendChart';
 import { getMessages } from '@/lib/i18n/messages';
 import { DASHBOARD_METRIC_TYPE } from '@/lib/dashboard-metric-type';
+import { calendarDateInTimezone } from '@/lib/lisbon-calendar';
 import { type ListPageSize } from '@/lib/paginate-list';
 import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
 
@@ -37,7 +43,11 @@ type Props = {
   initialLoadFailed?: boolean;
 };
 
-type ConsumptionFilters = { range: AnalyticsRange };
+type ConsumptionFilters = {
+  grain: MenuItemConsumptionGrain;
+  period: string;
+  sort: MenuItemConsumptionSort;
+};
 
 function resolveViewState(
   overview: ValueOverviewResponse | null,
@@ -115,9 +125,10 @@ export function ValueAnalyticsPageClient({
 }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).valueAnalytics;
+  const today = useMemo(() => calendarDateInTimezone(new Date()), []);
 
   const [range, setRange] = useState<AnalyticsRange>('day');
-  /** One representation: successful DTO per grain for this session. */
+  /** One representation: successful DTO per overview grain for this session. */
   const [byRange, setByRange] = useState<Partial<Record<AnalyticsRange, ValueOverviewResponse>>>(
     () =>
       isUsableCache(initialOverview, 'day') && !initialLoadFailed && initialOverview
@@ -133,11 +144,21 @@ export function ValueAnalyticsPageClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
   const [consumptionError, setConsumptionError] = useState(false);
+  const [earliestBusinessDate, setEarliestBusinessDate] = useState<string | null>(null);
   const skipInitialFetch = useRef(isUsableCache(initialOverview, 'day') && !initialLoadFailed);
   const byRangeRef = useRef(byRange);
   byRangeRef.current = byRange;
 
   const data = byRange[range] ?? null;
+
+  const initialConsumptionFilters = useMemo(
+    (): ConsumptionFilters => ({
+      grain: 'month',
+      period: defaultConsumptionPeriod('month', today),
+      sort: 'desc',
+    }),
+    [today],
+  );
 
   const fetchConsumption = useCallback(
     async ({
@@ -152,7 +173,9 @@ export function ValueAnalyticsPageClient({
       signal: AbortSignal;
     }) => {
       const url = new URL('/api/analytics/menu-item-consumption', window.location.origin);
-      url.searchParams.set('range', filters.range);
+      url.searchParams.set('grain', filters.grain);
+      url.searchParams.set('period', filters.period);
+      url.searchParams.set('sort', filters.sort);
       url.searchParams.set('page', String(page));
       url.searchParams.set('page_size', String(pageSize));
       try {
@@ -189,7 +212,7 @@ export function ValueAnalyticsPageClient({
     setPageSize: setConsumptionPageSize,
     refresh: refreshConsumption,
   } = useDashboardListQuery<ConsumptionFilters, MenuItemConsumptionResponse>({
-    initialFilters: { range: 'day' },
+    initialFilters: initialConsumptionFilters,
     debounceMs: 0,
     fetchList: fetchConsumption,
     onFetchError: (error) => {
@@ -199,12 +222,11 @@ export function ValueAnalyticsPageClient({
       }
       setConsumptionError(true);
     },
-    onSuccess: () => setConsumptionError(false),
+    onSuccess: (payload) => {
+      setConsumptionError(false);
+      setEarliestBusinessDate(payload.earliestBusinessDate);
+    },
   });
-
-  useEffect(() => {
-    replaceDraftFilters({ range });
-  }, [range, replaceDraftFilters]);
 
   const grainLabel = useCallback(
     (grain: AnalyticsRange) => {
@@ -284,6 +306,36 @@ export function ValueAnalyticsPageClient({
     refreshConsumption();
   }, [fetchRange, range, refreshConsumption]);
 
+  const setConsumptionGrain = useCallback(
+    (grain: MenuItemConsumptionGrain) => {
+      replaceDraftFilters({
+        grain,
+        period: defaultConsumptionPeriod(grain, today),
+        sort: consumptionQuery.filters.sort,
+      });
+    },
+    [consumptionQuery.filters.sort, replaceDraftFilters, today],
+  );
+
+  const setConsumptionPeriod = useCallback(
+    (period: string) => {
+      replaceDraftFilters({
+        ...consumptionQuery.filters,
+        period,
+      });
+    },
+    [consumptionQuery.filters, replaceDraftFilters],
+  );
+
+  const toggleConsumptionSort = useCallback(() => {
+    const next: MenuItemConsumptionSort =
+      consumptionQuery.filters.sort === 'desc' ? 'asc' : 'desc';
+    replaceDraftFilters({
+      ...consumptionQuery.filters,
+      sort: next,
+    });
+  }, [consumptionQuery.filters, replaceDraftFilters]);
+
   const revenuePoints = useMemo(
     () =>
       data ? buildTrendChartPoints(data.revenueTrend, range, (row) => row.revenue) : [],
@@ -344,7 +396,6 @@ export function ValueAnalyticsPageClient({
 
   const consumptionI18n = useMemo(
     () => ({
-      topTitle: t.consumptionTopTitle,
       rankingTitle: t.consumptionRankingTitle,
       rankingEmpty: t.consumptionRankingEmpty,
       colRank: t.colRank,
@@ -352,6 +403,10 @@ export function ValueAnalyticsPageClient({
       colDish: t.colDish,
       colQty: t.colQty,
       colAmount: t.colAmount,
+      grainMonth: t.consumptionGrainMonth,
+      grainQuarter: t.consumptionGrainQuarter,
+      grainYear: t.consumptionGrainYear,
+      quarterOption: t.consumptionQuarterOption,
     }),
     [t],
   );
@@ -370,6 +425,7 @@ export function ValueAnalyticsPageClient({
   }
 
   const showContent = viewState === 'ready' && data;
+  const showRanking = viewState === 'ready' || viewState === 'empty';
 
   return (
     <div>
@@ -424,58 +480,67 @@ export function ValueAnalyticsPageClient({
         </StateCard>
       ) : null}
 
-      {showContent ? (
-        <div className={`space-y-5 ${isRefreshing ? 'opacity-80' : ''}`}>
-          <ValueAnalyticsKpiGrid items={kpiItems} dimmed={isRefreshing} />
+      <div className={`space-y-5 ${isRefreshing ? 'opacity-80' : ''}`}>
+        {showContent ? (
+          <>
+            <ValueAnalyticsKpiGrid items={kpiItems} dimmed={isRefreshing} />
 
-          <div className="grid lg:grid-cols-2 gap-4">
-            <ValueAnalyticsTrendChart
-              title={t.revenueTrend}
-              data={revenuePoints}
-              yAxisLabel={t.revenueAxis}
-              valueFormatter={formatMoney}
-              variant="revenue"
-              tooltipLabels={tooltipLabels}
-            />
-
-            <ValueAnalyticsTrendChart
-              title={t.customerTrend}
-              data={customerPoints}
-              yAxisLabel={t.customerAxis}
-              valueFormatter={(value) => String(value)}
-              variant="customer"
-              tooltipLabels={tooltipLabels}
-            />
-          </div>
-
-          {consumption ? (
-            <div className={consumptionLoading ? 'opacity-80' : ''}>
-              <ValueAnalyticsConsumptionPanel
-                topItems={consumption.topItems}
-                items={consumption.items}
-                lang={lang}
-                i18n={consumptionI18n}
+            <div className="grid lg:grid-cols-2 gap-4">
+              <ValueAnalyticsTrendChart
+                title={t.revenueTrend}
+                data={revenuePoints}
+                yAxisLabel={t.revenueAxis}
+                valueFormatter={formatMoney}
+                variant="revenue"
+                tooltipLabels={tooltipLabels}
               />
-              <div className="mt-3">
-                <ListPaginationBar
-                  page={consumptionQuery.page}
-                  totalPages={consumptionTotalPages}
-                  total={consumption.total}
-                  pageSize={consumptionQuery.pageSize}
-                  onPageChange={setConsumptionPage}
-                  onPageSizeChange={setConsumptionPageSize}
-                  labels={{
-                    pageInfo: t.pageInfo,
-                    pageSizeLabel: t.pageSizeLabel,
-                    pagePrev: t.prevPage,
-                    pageNext: t.nextPage,
-                  }}
-                />
-              </div>
+
+              <ValueAnalyticsTrendChart
+                title={t.customerTrend}
+                data={customerPoints}
+                yAxisLabel={t.customerAxis}
+                valueFormatter={(value) => String(value)}
+                variant="customer"
+                tooltipLabels={tooltipLabels}
+              />
             </div>
-          ) : null}
-        </div>
-      ) : null}
+          </>
+        ) : null}
+
+        {showRanking && consumption ? (
+          <div className={consumptionLoading ? 'opacity-80' : ''}>
+            <ValueAnalyticsConsumptionPanel
+              items={consumption.items}
+              lang={lang}
+              i18n={consumptionI18n}
+              grain={consumptionQuery.filters.grain}
+              period={consumptionQuery.filters.period}
+              sort={consumptionQuery.filters.sort}
+              earliestBusinessDate={earliestBusinessDate ?? consumption.earliestBusinessDate}
+              today={today}
+              onGrainChange={setConsumptionGrain}
+              onPeriodChange={setConsumptionPeriod}
+              onToggleSort={toggleConsumptionSort}
+            />
+            <div className="mt-3">
+              <ListPaginationBar
+                page={consumptionQuery.page}
+                totalPages={consumptionTotalPages}
+                total={consumption.total}
+                pageSize={consumptionQuery.pageSize}
+                onPageChange={setConsumptionPage}
+                onPageSizeChange={setConsumptionPageSize}
+                labels={{
+                  pageInfo: t.pageInfo,
+                  pageSizeLabel: t.pageSizeLabel,
+                  pagePrev: t.prevPage,
+                  pageNext: t.nextPage,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

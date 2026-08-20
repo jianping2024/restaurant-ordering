@@ -1460,7 +1460,7 @@ export function MenuManager({
                             <div
                               ref={draggableProvided.innerRef}
                               {...draggableProvided.draggableProps}
-                              className={`bg-brand-card border rounded-lg px-3 py-2.5 sm:px-4 flex items-center gap-3 sm:gap-4 transition-shadow ${
+                              className={`bg-brand-card border rounded-lg px-2.5 py-2 sm:px-4 flex items-center gap-1.5 sm:gap-2 transition-shadow ${
                                 item.available
                                   ? 'border-brand-border'
                                   : 'border-brand-border/70 bg-brand-bg/40'
@@ -1471,15 +1471,17 @@ export function MenuManager({
                               }`}
                               style={draggableProvided.draggableProps.style}
                             >
-                              {canReorderDishes ? (
-                                <SortOrderDragHandle
-                                  label={t.dishSortOrderHint}
-                                  disabled={dishReorderBusy}
-                                  dragHandleProps={draggableProvided.dragHandleProps}
-                                />
-                              ) : null}
-                              <MenuItemListThumb item={item} />
-                              <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-0.5 shrink-0">
+                                {canReorderDishes ? (
+                                  <SortOrderDragHandle
+                                    label={t.dishSortOrderHint}
+                                    disabled={dishReorderBusy}
+                                    dragHandleProps={draggableProvided.dragHandleProps}
+                                  />
+                                ) : null}
+                                <MenuItemListThumb item={item} />
+                              </div>
+                              <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                                 <div className="flex items-baseline gap-2 min-w-0">
                                   <p
                                     className="flex-1 min-w-0 text-sm font-medium text-brand-text truncate"
@@ -1494,7 +1496,7 @@ export function MenuManager({
                                   ) : null}
                                 </div>
                                 <p
-                                  className="text-[11px] text-brand-text-muted truncate mt-0.5"
+                                  className="text-[11px] text-brand-text-muted truncate"
                                   title={metaTitle}
                                 >
                                   <span className="text-brand-text-muted/70">{t.itemType}:</span>{' '}
@@ -1509,53 +1511,59 @@ export function MenuManager({
                                     </>
                                   ) : null}
                                 </p>
-                              </div>
-                              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                                <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
-                                  €{item.price.toFixed(2)}
-                                </span>
-                                <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
-                                  {t.vatRateShort.replace(
-                                    '{rate}',
-                                    String(normalizeMenuVatRate(item.vat_rate)),
-                                  )}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => toggleItemAvailable(item)}
-                                  className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
-                                  title={
-                                    item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle
-                                  }
-                                  aria-label={
-                                    item.available ? t.toggleAvailableTitle : t.toggleUnavailableTitle
-                                  }
-                                >
-                                  <span
-                                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
-                                      item.available ? 'translate-x-[22px]' : 'translate-x-0.5'
-                                    }`}
+                                <div className="flex items-center gap-2.5 sm:gap-3 pt-0.5">
+                                  <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                                    €{item.price.toFixed(2)}
+                                  </span>
+                                  <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
+                                    {t.vatRateShort.replace(
+                                      '{rate}',
+                                      String(normalizeMenuVatRate(item.vat_rate)),
+                                    )}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleItemAvailable(item)}
+                                    className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                    title={
+                                      item.available
+                                        ? t.toggleAvailableTitle
+                                        : t.toggleUnavailableTitle
+                                    }
+                                    aria-label={
+                                      item.available
+                                        ? t.toggleAvailableTitle
+                                        : t.toggleUnavailableTitle
+                                    }
+                                  >
+                                    <span
+                                      className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                                        item.available
+                                          ? 'translate-x-[14px]'
+                                          : 'translate-x-0.5'
+                                      }`}
+                                    />
+                                  </button>
+                                  <MenuItemListRowOverflowMenu
+                                    open={overflowItemId === item.id}
+                                    onOpenChange={(next) =>
+                                      setOverflowItemId(next ? item.id : null)
+                                    }
+                                    menuLabel={t.itemRowMoreActions}
+                                    editLabel={t.editAction}
+                                    deleteLabel={t.deleteAction}
+                                    onEdit={() => openItemEditModal(item)}
+                                    onDelete={() =>
+                                      setConfirmDialog({
+                                        open: true,
+                                        intent: 'delete_item',
+                                        title: t.deleteConfirm,
+                                        message: `${t.deleteConfirm} "${item.name_pt}"?`,
+                                        itemId: item.id,
+                                      })
+                                    }
                                   />
-                                </button>
-                                <MenuItemListRowOverflowMenu
-                                  open={overflowItemId === item.id}
-                                  onOpenChange={(next) =>
-                                    setOverflowItemId(next ? item.id : null)
-                                  }
-                                  menuLabel={t.itemRowMoreActions}
-                                  editLabel={t.editAction}
-                                  deleteLabel={t.deleteAction}
-                                  onEdit={() => openItemEditModal(item)}
-                                  onDelete={() =>
-                                    setConfirmDialog({
-                                      open: true,
-                                      intent: 'delete_item',
-                                      title: t.deleteConfirm,
-                                      message: `${t.deleteConfirm} "${item.name_pt}"?`,
-                                      itemId: item.id,
-                                    })
-                                  }
-                                />
+                                </div>
                               </div>
                             </div>
                           )}

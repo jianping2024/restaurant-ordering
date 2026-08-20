@@ -103,11 +103,11 @@ export function MenuItemListRowOverflowMenu({
         aria-label={menuLabel}
         title={menuLabel}
         onClick={() => onOpenChange(!open)}
-        className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-brand-border/70 bg-brand-card text-brand-text leading-none hover:border-brand-gold/35 hover:bg-brand-gold/15 hover:text-brand-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 transition-colors ${
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-md border border-brand-border/70 bg-brand-card text-brand-text leading-none hover:border-brand-gold/35 hover:bg-brand-gold/15 hover:text-brand-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 transition-colors ${
           open ? 'border-brand-gold/45 bg-brand-gold/15 text-brand-gold' : ''
         }`}
       >
-        <span aria-hidden className="text-base font-semibold tracking-widest">
+        <span aria-hidden className="text-sm font-semibold tracking-widest">
           ⋯
         </span>
       </button>

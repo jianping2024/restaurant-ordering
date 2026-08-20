@@ -169,6 +169,7 @@ export function ValueAnalyticsConsumptionPanel({
       rows={listRows}
       headerExtra={
         <>
+          {periodControl}
           <div className="flex flex-wrap items-center gap-1">
             {(
               [
@@ -187,7 +188,6 @@ export function ValueAnalyticsConsumptionPanel({
               </button>
             ))}
           </div>
-          {periodControl}
         </>
       }
       columns={[

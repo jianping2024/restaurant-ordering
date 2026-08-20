@@ -1,5 +1,10 @@
-/** Bump when sealed daily metrics shape, seal rules, top-items contract, or grain change. */
-export const ANALYTICS_DAILY_SCHEMA_VERSION = 4;
+import type {
+  MenuItemConsumptionGrain,
+  MenuItemConsumptionSort,
+} from '@/lib/analytics/menu-item-consumption-period';
+
+/** Bump when sealed daily metrics shape, seal rules, consumption ranking DTO, or grain change. */
+export const ANALYTICS_DAILY_SCHEMA_VERSION = 6;
 
 export type AnalyticsRange = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -11,7 +16,9 @@ export const ANALYTICS_RANGES: readonly AnalyticsRange[] = [
   'year',
 ] as const;
 
-/** Dish ranking payload for value-analytics (same date window as value-overview). */
+export type { MenuItemConsumptionGrain, MenuItemConsumptionSort };
+
+/** Dish ranking row for value-analytics (absolute rank by qty desc). */
 export type MenuItemConsumptionRankRow = {
   rank: number;
   menuItemId: string;
@@ -23,13 +30,17 @@ export type MenuItemConsumptionRankRow = {
   amount: number;
 };
 
+/** Sole dish-ranking DTO: one grain + one period + one page of the ranked list. */
 export type MenuItemConsumptionResponse = {
-  range: AnalyticsRange;
+  grain: MenuItemConsumptionGrain;
+  /** YYYY-MM | YYYY-Qn | YYYY */
+  period: string;
+  sort: MenuItemConsumptionSort;
   schemaVersion: number;
   startDate: string;
   endDate: string;
-  /** Top slice of the full ranking (for bar chart); same sort as `items`. */
-  topItems: MenuItemConsumptionRankRow[];
+  /** Earliest restaurant sealed business day; null when no stats yet. */
+  earliestBusinessDate: string | null;
   items: MenuItemConsumptionRankRow[];
   page: number;
   pageSize: number;

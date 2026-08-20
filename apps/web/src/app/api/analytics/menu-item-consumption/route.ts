@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { analyticsMenuItemConsumptionRateLimitCheck } from '@/lib/analytics/analytics.rate-limit';
 import { loadOwnerAnalyticsContext } from '@/lib/analytics/load-owner-analytics-context';
-import { parseAnalyticsRange } from '@/lib/analytics/date-window';
 import {
-  getMenuItemConsumptionForRange,
+  getMenuItemConsumptionForPeriod,
+  parseMenuItemConsumptionGrain,
   parseMenuItemConsumptionPageParams,
+  parseMenuItemConsumptionSort,
 } from '@/lib/analytics/menu-item-consumption';
 import { jsonForLoaderError } from '@/lib/premium/page-gate';
 
@@ -25,23 +26,29 @@ export async function GET(req: Request) {
   }
 
   const url = new URL(req.url);
-  const range = parseAnalyticsRange(url.searchParams.get('range'));
-  if (!range) {
-    return NextResponse.json({ error: 'invalid_range' }, { status: 400 });
+  const grain = parseMenuItemConsumptionGrain(url.searchParams.get('grain'));
+  if (!grain) {
+    return NextResponse.json({ error: 'invalid_grain' }, { status: 400 });
   }
 
+  const sort = parseMenuItemConsumptionSort(url.searchParams.get('sort'));
   const pageParams = parseMenuItemConsumptionPageParams({
     page: url.searchParams.get('page'),
     pageSize: url.searchParams.get('page_size'),
   });
 
-  const result = await getMenuItemConsumptionForRange(
+  const result = await getMenuItemConsumptionForPeriod(
     ctx.admin,
     ctx.restaurantId,
-    range,
+    grain,
+    url.searchParams.get('period'),
+    sort,
     pageParams,
   );
   if (!result.ok) {
+    if (result.code === 'invalid_period') {
+      return NextResponse.json({ error: 'invalid_period' }, { status: 400 });
+    }
     const status = result.code === 'query_limit_exceeded' ? 503 : 500;
     return NextResponse.json(
       {

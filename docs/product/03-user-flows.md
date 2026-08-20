@@ -531,8 +531,8 @@
 1. 打开 `/dashboard/value-analytics`
 2. 选择 按日 / 按周 / 按月 / 按季 / 按年（同一日期窗口）
 3. `GET /api/analytics/value-overview?range=…`（日表历史 + 当日现算；懒轧账仅近 7 天有关台日）
-4. `GET /api/analytics/menu-item-consumption?range=…&page=&page_size=`（同窗口菜品销量排行；唯一来源 `analytics_daily_menu_item_consumption` + 当日现算）
-5. 展示：区间 KPI、营业额/客流趋势、销量 Top10、全量销量排行（分页）
+4. `GET /api/analytics/menu-item-consumption?grain=month|quarter|year&period=…&sort=desc|asc&page=&page_size=`（该自然月/季/年窗口；唯一来源 `analytics_daily_menu_item_consumption` + 当日现算；选项从最早有日统计起）
+5. 展示：区间 KPI、营业额/客流趋势；菜品销量排行（月/季/年选择器 + 点名次正反序 + 分页；不做 Top10，今日热销只在数据概览）
 
 ### 异常流程
 
@@ -550,8 +550,9 @@
 
 - 仅统计 qualifying closed session；归属日 = Lisbon `closed_at`
 - 历史读 `analytics_daily_restaurant_stats`（无营业不写行）；当天现算；懒轧账仅近 7 天有关台日
-- 菜品销量唯一读 `analytics_daily_menu_item_consumption`（全天全菜；与日经营表同次轧账）+ 当日现算；按销量降序分页
+- 菜品销量唯一读 `analytics_daily_menu_item_consumption`（全天全菜；与日经营表同次轧账）+ 当日现算；grain 仅 month|quarter|year（真自然周期窗，从最早日统计起可选）；`sort` 正反序绝对名次列表分页
 - 客户端按粒度缓存 overview；周/月/季/年从首个有数周期起展示
+- 增值页不做 Top10/`topItems`（今日热销只在数据概览）
 
 ### 相关代码位置
 

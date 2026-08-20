@@ -1511,7 +1511,7 @@ export function MenuManager({
                                     ) : null}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-2.5 sm:justify-end shrink-0 pt-0.5 sm:pt-0">
+                                <div className="flex items-center gap-3 sm:justify-end shrink-0 pt-0.5 sm:pt-0">
                                   <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
                                     €{item.price.toFixed(2)}
                                   </span>
@@ -1524,7 +1524,7 @@ export function MenuManager({
                                   <button
                                     type="button"
                                     onClick={() => toggleItemAvailable(item)}
-                                    className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                    className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 mr-1.5 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
                                     title={
                                       item.available
                                         ? t.toggleAvailableTitle

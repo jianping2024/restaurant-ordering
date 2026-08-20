@@ -129,11 +129,13 @@ export function WaiterBoardTableCard({
 
         <div className="mesa-card-rule mb-auto" />
 
-        {view.openerName ? (
-          <p className={waiterBoardType.cardOpener} title={view.openerName}>
-            {view.openerName}
-          </p>
-        ) : null}
+        <div className={waiterBoardType.cardOpenerSlot}>
+          {view.openerName ? (
+            <p className={waiterBoardType.cardOpener} title={view.openerName}>
+              {view.openerName}
+            </p>
+          ) : null}
+        </div>
 
         <div className="mt-1.5 flex items-center justify-between gap-1">
           <span className={waiterBoardType.cardAmountSlot}>
@@ -155,10 +157,12 @@ export function WaiterBoardTableCard({
       </div>
 
       <div className={waiterBoardType.cardStatusRail} aria-hidden>
-        <div className={waiterBoardType.cardStatus}>{view.statusLabel}</div>
-        {view.statusBadge ? (
-          <div className={waiterBoardType.cardRailBelow}>
-            <div className={waiterBoardType.cardRailBelowBody}>
+        <div className={waiterBoardType.cardStatusSlot}>
+          <div className={waiterBoardType.cardStatus}>{view.statusLabel}</div>
+        </div>
+        <div className={waiterBoardType.cardRailBelow}>
+          <div className={waiterBoardType.cardRailBelowBody}>
+            {view.statusBadge ? (
               <div className={waiterBoardType.cardBadgeStack}>
                 {view.statusBadge.relation ? (
                   <span className={waiterBoardType.cardBadgeRelation}>{view.statusBadge.relation}</span>
@@ -169,9 +173,9 @@ export function WaiterBoardTableCard({
                   </span>
                 ))}
               </div>
-            </div>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
     </div>
   );

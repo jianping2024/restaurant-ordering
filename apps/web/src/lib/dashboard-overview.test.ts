@@ -26,7 +26,11 @@ function order(partial: Partial<Order> & Pick<Order, 'id'>): Order {
   };
 }
 
-const emptyDining = { diningTableCount: 0, diningGuests: { adults: 0, children: 0 } };
+const emptyDining = {
+  diningTableCount: 0,
+  diningGuests: { adults: 0, children: 0 },
+  diningUncollectedAmount: 0,
+};
 
 describe('computeTodayKpis', () => {
   it('keeps today table count aligned with closed-session revenue set', () => {
@@ -44,12 +48,14 @@ describe('computeTodayKpis', () => {
     assert.deepEqual(kpis.todayGuests, { adults: 5, children: 1 });
     assert.equal(kpis.diningTableCount, 0);
     assert.deepEqual(kpis.diningGuests, { adults: 0, children: 0 });
+    assert.equal(kpis.diningUncollectedAmount, 0);
   });
 
   it('marks revenue unavailable when bundle load failed', () => {
     const kpis = computeTodayKpis(null, {
       diningTableCount: 2,
       diningGuests: { adults: 4, children: 1 },
+      diningUncollectedAmount: 40,
     });
     assert.equal(kpis.todayTableCount, 0);
     assert.equal(kpis.todayRevenue, 0);
@@ -57,63 +63,128 @@ describe('computeTodayKpis', () => {
     assert.deepEqual(kpis.todayGuests, { adults: 0, children: 0 });
     assert.equal(kpis.diningTableCount, 2);
     assert.deepEqual(kpis.diningGuests, { adults: 4, children: 1 });
+    assert.equal(kpis.diningUncollectedAmount, 40);
   });
 });
 
 describe('computeDiningFloorKpis', () => {
   it('sums per-session headcount even when buffet_id is shared', () => {
-    const dining = computeDiningFloorKpis(2, [
-      order({
-        id: 'o1',
-        session_id: 's1',
-        table_id: 't1',
-        status: 'pending',
-        items: [
-          {
-            id: 'buffet:1',
-            kind: 'buffet_base',
-            buffet_id: 'pkg',
-            name: 'Buffet',
-            name_pt: 'Buffet',
-            qty: 1,
-            price: 20,
-            emoji: '🍽️',
-            adult_count: 3,
-            child_count: 1,
-          },
-        ],
-      }),
-      order({
-        id: 'o2',
-        session_id: 's2',
-        table_id: 't2',
-        status: 'cooking',
-        items: [
-          {
-            id: 'buffet:2',
-            kind: 'buffet_base',
-            buffet_id: 'pkg',
-            name: 'Buffet',
-            name_pt: 'Buffet',
-            qty: 1,
-            price: 20,
-            emoji: '🍽️',
-            adult_count: 2,
-            child_count: 0,
-          },
-        ],
-      }),
-    ]);
+    const dining = computeDiningFloorKpis(
+      [
+        { id: 's1', table_id: 't1' },
+        { id: 's2', table_id: 't2' },
+      ],
+      [
+        order({
+          id: 'o1',
+          session_id: 's1',
+          table_id: 't1',
+          status: 'pending',
+          items: [
+            {
+              id: 'buffet:1',
+              kind: 'buffet_base',
+              buffet_id: 'pkg',
+              name: 'Buffet',
+              name_pt: 'Buffet',
+              qty: 1,
+              price: 20,
+              emoji: '🍽️',
+              adult_count: 3,
+              child_count: 1,
+            },
+          ],
+        }),
+        order({
+          id: 'o2',
+          session_id: 's2',
+          table_id: 't2',
+          status: 'cooking',
+          items: [
+            {
+              id: 'buffet:2',
+              kind: 'buffet_base',
+              buffet_id: 'pkg',
+              name: 'Buffet',
+              name_pt: 'Buffet',
+              qty: 1,
+              price: 20,
+              emoji: '🍽️',
+              adult_count: 2,
+              child_count: 0,
+            },
+          ],
+        }),
+      ],
+    );
     assert.equal(dining.diningTableCount, 2);
     assert.deepEqual(dining.diningGuests, { adults: 5, children: 1 });
+    assert.equal(dining.diningUncollectedAmount, 40);
   });
 
   it('returns zero guests when no buffet_base lines', () => {
-    const dining = computeDiningFloorKpis(1, [
-      order({ id: 'o1', session_id: 's1', status: 'pending', items: [] }),
-    ]);
+    const dining = computeDiningFloorKpis(
+      [{ id: 's1', table_id: 't1' }],
+      [order({ id: 'o1', session_id: 's1', status: 'pending', items: [] })],
+    );
     assert.equal(dining.diningTableCount, 1);
     assert.deepEqual(dining.diningGuests, { adults: 0, children: 0 });
+    assert.equal(dining.diningUncollectedAmount, 0);
+  });
+
+  it('sums uncollected via liveSessionUncollectedAmount (requested split pending)', () => {
+    const dining = computeDiningFloorKpis(
+      [{ id: 's1', table_id: 't1' }],
+      [
+        order({
+          id: 'o1',
+          session_id: 's1',
+          table_id: 't1',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 1,
+              price: 100,
+              emoji: '🥤',
+            },
+          ],
+          total_amount: 100,
+        }),
+      ],
+      {
+        billSplitBySessionId: new Map([
+          [
+            's1',
+            {
+              id: 'bs1',
+              restaurant_id: 'r1',
+              order_ids: [],
+              split_mode: 'whole_table',
+              persons: [],
+              result: [{ name: 'Table', amount: 100 }],
+              total_amount: 100,
+              status: 'requested',
+              created_at: '2026-05-29T00:00:00.000Z',
+              session_id: 's1',
+              table_id: 't1',
+              display_name: '1',
+              discount_rate: 10,
+            },
+          ],
+        ]),
+        collectedBySessionId: new Map([
+          [
+            's1',
+            [{ id: 'p1', person_index: 0, person_name: 'Table', amount: 40, created_at: '' }],
+          ],
+        ]),
+      },
+    );
+    // payable 90 after 10%; collected 40 → uncollected 50
+    assert.equal(dining.diningUncollectedAmount, 50);
   });
 });
 

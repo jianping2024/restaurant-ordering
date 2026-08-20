@@ -7,6 +7,7 @@ import {
   checkoutSplitModeLabel,
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
+  liveSessionUncollectedAmount,
 } from './checkout-settlement';
 
 function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -47,6 +48,52 @@ describe('buildCheckoutSettlementSummary', () => {
     assert.equal(summary.payable, 60);
     assert.equal(summary.collected, 30);
     assert.equal(summary.pending, 30);
+  });
+});
+
+describe('liveSessionUncollectedAmount', () => {
+  it('uses checkout pending when requested split exists', () => {
+    const amount = liveSessionUncollectedAmount({
+      orders: [],
+      billSplit: billSplit({ discount_rate: 10 }),
+      collectedPayments: [
+        { id: '1', person_index: 0, person_name: 'John', amount: 27, created_at: '' },
+      ],
+    });
+    // payable 54 after 10% off; John paid 27 → Mary still 27
+    assert.equal(amount, 27);
+  });
+
+  it('falls back to billable minus collected without requested split', () => {
+    const amount = liveSessionUncollectedAmount({
+      orders: [
+        {
+          id: 'o1',
+          restaurant_id: 'r1',
+          table_id: 't1',
+          display_name: '1',
+          status: 'pending',
+          items: [
+            {
+              id: 'd1',
+              name: 'Cola',
+              name_pt: 'Cola',
+              qty: 2,
+              price: 5,
+              emoji: '🥤',
+            },
+          ],
+          total_amount: 99,
+          created_at: '',
+          updated_at: '',
+        },
+      ],
+      billSplit: null,
+      collectedPayments: [
+        { id: '1', person_index: null, person_name: '', amount: 3, created_at: '' },
+      ],
+    });
+    assert.equal(amount, 7);
   });
 });
 

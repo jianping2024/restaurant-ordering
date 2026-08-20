@@ -146,6 +146,7 @@ export function DashboardOverviewPrimaryClient({
     todayGuests,
     diningTableCount,
     diningGuests,
+    diningUncollectedAmount,
   } = todayKpis;
   const diningGuestCount = totalGuestsFromCounts(diningGuests);
   const diningGuestDetail = formatBuffetGuestDetail(messages.bill.buffetGuestCounts, diningGuests);
@@ -231,7 +232,9 @@ export function DashboardOverviewPrimaryClient({
               revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
             }`}
           >
-            {revenueAvailable ? `€${todayRevenue.toFixed(2)}` : i18n.todayRevenueUnavailable}
+            {revenueAvailable
+              ? `€${todayRevenue.toFixed(2)} + €${diningUncollectedAmount.toFixed(2)}`
+              : i18n.todayRevenueUnavailable}
           </p>
         </div>
 

@@ -1511,65 +1511,61 @@ export function MenuManager({
                                     ) : null}
                                   </p>
                                 </div>
-                                <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-3 shrink-0 pt-0.5 sm:pt-0">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
-                                      €{item.price.toFixed(2)}
-                                    </span>
-                                    <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
-                                      {t.vatRateShort.replace(
-                                        '{rate}',
-                                        String(normalizeMenuVatRate(item.vat_rate)),
-                                      )}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-3 shrink-0">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleItemAvailable(item)}
-                                      className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
-                                      title={
+                                <div className="flex items-center gap-2.5 sm:justify-end shrink-0 pt-0.5 sm:pt-0">
+                                  <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                                    €{item.price.toFixed(2)}
+                                  </span>
+                                  <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
+                                    {t.vatRateShort.replace(
+                                      '{rate}',
+                                      String(normalizeMenuVatRate(item.vat_rate)),
+                                    )}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleItemAvailable(item)}
+                                    className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                    title={
+                                      item.available
+                                        ? t.toggleAvailableTitle
+                                        : t.toggleUnavailableTitle
+                                    }
+                                    aria-label={
+                                      item.available
+                                        ? t.toggleAvailableTitle
+                                        : t.toggleUnavailableTitle
+                                    }
+                                  >
+                                    <span
+                                      className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
                                         item.available
-                                          ? t.toggleAvailableTitle
-                                          : t.toggleUnavailableTitle
-                                      }
-                                      aria-label={
-                                        item.available
-                                          ? t.toggleAvailableTitle
-                                          : t.toggleUnavailableTitle
-                                      }
-                                    >
-                                      <span
-                                        className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
-                                          item.available
-                                            ? 'translate-x-[14px]'
-                                            : 'translate-x-0.5'
-                                        }`}
-                                      />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => openItemEditModal(item)}
-                                      className="text-xs sm:text-sm text-brand-text-muted hover:text-brand-gold transition-colors whitespace-nowrap min-h-8"
-                                    >
-                                      {t.editAction}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setConfirmDialog({
-                                          open: true,
-                                          intent: 'delete_item',
-                                          title: t.deleteConfirm,
-                                          message: `${t.deleteConfirm} "${item.name_pt}"?`,
-                                          itemId: item.id,
-                                        })
-                                      }
-                                      className="text-xs sm:text-sm text-brand-text-muted hover:text-status-danger transition-colors whitespace-nowrap min-h-8"
-                                    >
-                                      {t.deleteAction}
-                                    </button>
-                                  </div>
+                                          ? 'translate-x-[14px]'
+                                          : 'translate-x-0.5'
+                                      }`}
+                                    />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => openItemEditModal(item)}
+                                    className="text-xs sm:text-sm text-brand-text-muted hover:text-brand-gold transition-colors whitespace-nowrap p-0 leading-none"
+                                  >
+                                    {t.editAction}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setConfirmDialog({
+                                        open: true,
+                                        intent: 'delete_item',
+                                        title: t.deleteConfirm,
+                                        message: `${t.deleteConfirm} "${item.name_pt}"?`,
+                                        itemId: item.id,
+                                      })
+                                    }
+                                    className="text-xs sm:text-sm text-brand-text-muted hover:text-status-danger transition-colors whitespace-nowrap p-0 leading-none"
+                                  >
+                                    {t.deleteAction}
+                                  </button>
                                 </div>
                               </div>
                             </div>

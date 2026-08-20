@@ -383,7 +383,7 @@ export const MESSAGES_DE = {
     "deleteCategoryNoDishes": "Kategorie „{name}“ löschen?",
     "hasChildrenBlock": "Diese Kategorie hat noch Unterkategorien. Entfernen oder verschieben Sie diese zuerst.",
     "dishPhoto": "Foto des Gerichts",
-    "dishPhotoHint": "Optional. JPG / PNG / WebP / GIF, max. 1 MB; Standbilder automatisch auf 4:3",
+    "dishPhotoHint": "Optional. JPG / PNG / WebP / GIF, max. 1 MB; Standbilder werden auf 4:3 angepasst (vollständig, ohne Beschnitt)",
     "pickImage": "Bild auswählen",
     "removeImage": "Bild entfernen",
     "imageTooLarge": "Das Bild darf höchstens 1 MB groß sein",

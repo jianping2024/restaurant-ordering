@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   MENU_IMAGE_ASPECT_RATIO,
+  MENU_IMAGE_OBJECT_FIT_CLASS,
   clientHostnameFromRequest,
   clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
-  menuImageCenterCropRect,
+  menuImageLetterboxLayout,
   resolveMenuImageDisplayUrl,
   toMenuImagePublicRef,
 } from './menu-image';
@@ -146,29 +147,43 @@ describe('clientPageOriginFromRequest', () => {
   });
 });
 
-describe('menuImageCenterCropRect', () => {
+describe('menuImageLetterboxLayout', () => {
   it('uses sole 4:3 menu aspect', () => {
     assert.equal(MENU_IMAGE_ASPECT_RATIO, 4 / 3);
   });
 
-  it('crops left/right on wider sources', () => {
-    const r = menuImageCenterCropRect(1600, 900);
-    assert.equal(r.sy, 0);
-    assert.equal(r.sh, 900);
-    assert.ok(Math.abs(r.sw / r.sh - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
-    assert.ok(Math.abs(r.sx - (1600 - r.sw) / 2) < 1e-9);
+  it('uses sole contain fit class for display', () => {
+    assert.equal(MENU_IMAGE_OBJECT_FIT_CLASS, 'object-contain object-center');
+    assert.doesNotMatch(MENU_IMAGE_OBJECT_FIT_CLASS, /object-cover/);
   });
 
-  it('crops top/bottom on taller sources', () => {
-    const r = menuImageCenterCropRect(900, 1600);
-    assert.equal(r.sx, 0);
-    assert.equal(r.sw, 900);
-    assert.ok(Math.abs(r.sw / r.sh - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
-    assert.ok(Math.abs(r.sy - (1600 - r.sh) / 2) < 1e-9);
+  it('pads top/bottom on wider sources (no crop)', () => {
+    const r = menuImageLetterboxLayout(1600, 900);
+    assert.equal(r.drawW, 1600);
+    assert.equal(r.drawH, 900);
+    assert.ok(Math.abs(r.outW / r.outH - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
+    assert.ok(r.offsetY > 0);
+    assert.equal(r.offsetX, 0);
+  });
+
+  it('pads left/right on taller sources (no crop)', () => {
+    const r = menuImageLetterboxLayout(900, 1600);
+    assert.equal(r.drawW, 900);
+    assert.equal(r.drawH, 1600);
+    assert.ok(Math.abs(r.outW / r.outH - MENU_IMAGE_ASPECT_RATIO) < 1e-9);
+    assert.ok(r.offsetX > 0);
+    assert.equal(r.offsetY, 0);
   });
 
   it('keeps full frame when already 4:3', () => {
-    const r = menuImageCenterCropRect(1200, 900);
-    assert.deepEqual(r, { sx: 0, sy: 0, sw: 1200, sh: 900 });
+    const r = menuImageLetterboxLayout(1200, 900);
+    assert.deepEqual(r, {
+      outW: 1200,
+      outH: 900,
+      drawW: 1200,
+      drawH: 900,
+      offsetX: 0,
+      offsetY: 0,
+    });
   });
 });

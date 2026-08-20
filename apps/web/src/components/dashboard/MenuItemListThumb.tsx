@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import type { MenuItem } from '@/types';
 
 type CatalogThumbItem = Pick<MenuItem, 'image_url' | 'emoji'>;
@@ -18,7 +18,7 @@ export function MenuItemListThumb({ item }: { item: CatalogThumbItem }) {
           alt=""
           width={40}
           height={40}
-          className="object-cover w-10 h-10"
+          className={`${MENU_IMAGE_OBJECT_FIT_CLASS} w-10 h-10`}
           unoptimized={MENU_IMAGE_UNOPTIMIZED}
         />
       ) : (

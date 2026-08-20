@@ -8,7 +8,6 @@ import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
-  CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS,
   customerMenuItemDetailBackdropClass,
   customerMenuItemDetailBodyClass,
   customerMenuItemDetailCloseButtonClass,
@@ -19,7 +18,7 @@ import {
   customerMenuItemDetailPanelEnteredClass,
   customerMenuItemDetailPanelExitedClass,
 } from '@/lib/customer-menu-item-detail-layout';
-import { MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
@@ -146,7 +145,7 @@ export function CustomerMenuItemDetailSheet({
               src={imageSrc}
               alt={label}
               fill
-              className={CUSTOMER_MENU_ITEM_DETAIL_HERO_IMAGE_CLASS}
+              className={MENU_IMAGE_OBJECT_FIT_CLASS}
               sizes="(max-width: 1023px) 100vw, 32rem"
               priority
               unoptimized={MENU_IMAGE_UNOPTIMIZED}

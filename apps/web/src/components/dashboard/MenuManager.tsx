@@ -18,6 +18,8 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   compressMenuImageForUpload,
   MENU_IMAGE_ACCEPT,
+  MENU_IMAGE_ASPECT_CLASS,
+  MENU_IMAGE_OBJECT_FIT_CLASS,
   MENU_IMAGE_UNOPTIMIZED,
   resolveMenuImageDisplayUrl,
   validateMenuImageFile,
@@ -1587,16 +1589,16 @@ export function MenuManager({
             <input ref={fileInputRef} type="file" accept={MENU_IMAGE_ACCEPT} className="hidden" onChange={(e) => onPickImage(e.target.files)} />
             <div className="flex flex-wrap items-center gap-3 min-h-[5.5rem]">
               {itemModalPreviewSrc ? (
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-brand-border border border-brand-border shrink-0">
+                <div className={`relative w-24 ${MENU_IMAGE_ASPECT_CLASS} rounded-xl overflow-hidden bg-brand-border border border-brand-border shrink-0`}>
                   {itemModalPreviewSrc.startsWith('blob:') ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={itemModalPreviewSrc} alt="" className="w-full h-full object-cover" />
+                    <img src={itemModalPreviewSrc} alt="" className={`w-full h-full ${MENU_IMAGE_OBJECT_FIT_CLASS}`} />
                   ) : (
                     <Image
                       src={itemModalPreviewSrc}
                       alt=""
                       fill
-                      className="object-cover"
+                      className={MENU_IMAGE_OBJECT_FIT_CLASS}
                       sizes="96px"
                       unoptimized={MENU_IMAGE_UNOPTIMIZED}
                     />

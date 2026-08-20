@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import type { MenuItem, Language } from '@/types';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
-import { MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
+import { MENU_IMAGE_OBJECT_FIT_CLASS, MENU_IMAGE_UNOPTIMIZED, resolveMenuImageDisplayUrl } from '@/lib/menu-image';
 import {
   formatMenuCatalogItemLabel,
   resolveMenuItemLocalizedDescription,
@@ -137,7 +137,7 @@ export function MenuItemCard({
             src={imageSrc}
             alt=""
             fill
-            className="object-cover"
+            className={MENU_IMAGE_OBJECT_FIT_CLASS}
             sizes="72px"
             unoptimized={MENU_IMAGE_UNOPTIMIZED}
           />

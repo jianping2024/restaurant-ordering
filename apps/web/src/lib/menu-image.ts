@@ -9,10 +9,16 @@ export const MENU_IMAGE_MAX_BYTES = 1048576;
 export const MENU_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 
 /**
- * Sole menu photo aspect ratio (upload center-crop contract).
- * Detail hero uses matching Tailwind `aspect-[4/3]` — keep in sync.
+ * Sole menu photo aspect ratio (upload letterbox contract).
+ * Detail hero and preview wells use matching Tailwind `aspect-[4/3]` — keep in sync.
  */
 export const MENU_IMAGE_ASPECT_RATIO = 4 / 3;
+
+/** Sole Tailwind aspect for menu photo wells (4:3). */
+export const MENU_IMAGE_ASPECT_CLASS = 'aspect-[4/3]';
+
+/** Sole Next/Image fit for menu photos — full frame in 4:3 well, no crop. */
+export const MENU_IMAGE_OBJECT_FIT_CLASS = 'object-contain object-center';
 
 const ALLOWED_MIME = new Set([
   'image/jpeg',
@@ -44,64 +50,88 @@ export function menuImageObjectPath(restaurantId: string, menuItemId: string, mi
   return `${restaurantId}/${menuItemId}.${extensionForImageMime(mime)}`;
 }
 
+export type MenuImageLetterboxLayout = {
+  outW: number;
+  outH: number;
+  drawW: number;
+  drawH: number;
+  offsetX: number;
+  offsetY: number;
+};
+
 /**
- * Sole center-crop window for menu photos → {@link MENU_IMAGE_ASPECT_RATIO}.
- * Wider sources lose left/right; taller sources lose top/bottom.
+ * Sole letterbox layout for menu photos → {@link MENU_IMAGE_ASPECT_RATIO}.
+ * Full source fits inside the 4:3 canvas; excess is padding (not cropped).
  */
-export function menuImageCenterCropRect(
+export function menuImageLetterboxLayout(
   sourceWidth: number,
   sourceHeight: number,
   aspect: number = MENU_IMAGE_ASPECT_RATIO,
-): { sx: number; sy: number; sw: number; sh: number } {
+): MenuImageLetterboxLayout {
   if (!(sourceWidth > 0 && sourceHeight > 0 && aspect > 0)) {
-    return { sx: 0, sy: 0, sw: Math.max(0, sourceWidth), sh: Math.max(0, sourceHeight) };
+    const w = Math.max(0, sourceWidth);
+    const h = Math.max(0, sourceHeight);
+    return { outW: w, outH: h, drawW: w, drawH: h, offsetX: 0, offsetY: 0 };
   }
   const srcAspect = sourceWidth / sourceHeight;
+  let outW: number;
+  let outH: number;
   if (srcAspect > aspect) {
-    const sw = sourceHeight * aspect;
-    return { sx: (sourceWidth - sw) / 2, sy: 0, sw, sh: sourceHeight };
+    outW = sourceWidth;
+    outH = sourceWidth / aspect;
+  } else {
+    outH = sourceHeight;
+    outW = sourceHeight * aspect;
   }
-  if (srcAspect < aspect) {
-    const sh = sourceWidth / aspect;
-    return { sx: 0, sy: (sourceHeight - sh) / 2, sw: sourceWidth, sh };
-  }
-  return { sx: 0, sy: 0, sw: sourceWidth, sh: sourceHeight };
+  const drawW = sourceWidth;
+  const drawH = sourceHeight;
+  return {
+    outW,
+    outH,
+    drawW,
+    drawH,
+    offsetX: (outW - drawW) / 2,
+    offsetY: (outH - drawH) / 2,
+  };
 }
 
-function outputMimeForCroppedMenuImage(sourceMime: string): string {
+function outputMimeForLetterboxedMenuImage(sourceMime: string): string {
   if (sourceMime === 'image/png' || sourceMime === 'image/webp') return sourceMime;
   return 'image/jpeg';
 }
 
 /**
- * Center-crop to {@link MENU_IMAGE_ASPECT_RATIO}, optionally downscale longest edge.
+ * Letterbox to {@link MENU_IMAGE_ASPECT_RATIO}, optionally downscale longest edge.
  * Browser-only (canvas). Used only by {@link compressMenuImageForUpload}.
  */
-async function cropMenuImageFileToAspect(file: File): Promise<File> {
+async function letterboxMenuImageFileToAspect(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file);
   try {
-    const { sx, sy, sw, sh } = menuImageCenterCropRect(
-      bitmap.width,
-      bitmap.height,
-      MENU_IMAGE_ASPECT_RATIO,
-    );
-    let outW = Math.max(1, Math.round(sw));
-    let outH = Math.max(1, Math.round(sh));
+    const layout = menuImageLetterboxLayout(bitmap.width, bitmap.height, MENU_IMAGE_ASPECT_RATIO);
+    let outW = Math.max(1, Math.round(layout.outW));
+    let outH = Math.max(1, Math.round(layout.outH));
+    let scale = 1;
     const longest = Math.max(outW, outH);
     if (longest > MENU_IMAGE_MAX_DIMENSION) {
-      const scale = MENU_IMAGE_MAX_DIMENSION / longest;
+      scale = MENU_IMAGE_MAX_DIMENSION / longest;
       outW = Math.max(1, Math.round(outW * scale));
       outH = Math.max(1, Math.round(outH * scale));
     }
+    const drawW = Math.max(1, Math.round(layout.drawW * scale));
+    const drawH = Math.max(1, Math.round(layout.drawH * scale));
+    const offsetX = Math.round(layout.offsetX * scale);
+    const offsetY = Math.round(layout.offsetY * scale);
 
     const canvas = document.createElement('canvas');
     canvas.width = outW;
     canvas.height = outH;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('menu image canvas unavailable');
-    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, outW, outH);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height, offsetX, offsetY, drawW, drawH);
 
-    const mime = outputMimeForCroppedMenuImage(file.type);
+    const mime = outputMimeForLetterboxedMenuImage(file.type);
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (next) => (next ? resolve(next) : reject(new Error('menu image toBlob failed'))),
@@ -144,7 +174,7 @@ export function validateMenuImageFile(
 
 /**
  * Sole client preprocess before menu photo upload:
- * center-crop to {@link MENU_IMAGE_ASPECT_RATIO}, then compress/scale.
+ * letterbox to {@link MENU_IMAGE_ASPECT_RATIO}, then compress/scale.
  * - GIF skipped (keep animation; not aspect-guaranteed)
  * - On failure, return original for validateMenuImageFile to gate
  */
@@ -153,17 +183,17 @@ export async function compressMenuImageForUpload(file: File): Promise<File> {
   if (file.type === 'image/gif') return file;
 
   try {
-    const cropped = await cropMenuImageFileToAspect(file);
-    const compressed = await imageCompression(cropped, {
+    const letterboxed = await letterboxMenuImageFileToAspect(file);
+    const compressed = await imageCompression(letterboxed, {
       maxSizeMB: MENU_IMAGE_TARGET_MB,
       maxWidthOrHeight: MENU_IMAGE_MAX_DIMENSION,
       useWebWorker: true,
       initialQuality: 0.82,
-      fileType: cropped.type,
+      fileType: letterboxed.type,
     });
 
-    return new File([compressed], cropped.name, {
-      type: compressed.type || cropped.type,
+    return new File([compressed], letterboxed.name, {
+      type: compressed.type || letterboxed.type,
       lastModified: Date.now(),
     });
   } catch {

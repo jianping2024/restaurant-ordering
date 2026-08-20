@@ -6,6 +6,7 @@ import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import {
   MENU_IMAGE_ASPECT_RATIO,
+  MENU_IMAGE_OBJECT_FIT_CLASS,
   MENU_IMAGE_UNOPTIMIZED,
   resolveMenuImageDisplayUrl,
 } from '@/lib/menu-image';
@@ -73,7 +74,7 @@ export function CustomerRecommendedRail({
                     src={imageSrc}
                     alt=""
                     fill
-                    className="object-cover"
+                    className={MENU_IMAGE_OBJECT_FIT_CLASS}
                     sizes={`${POSTER_WIDTH_PX}px`}
                     unoptimized={MENU_IMAGE_UNOPTIMIZED}
                   />

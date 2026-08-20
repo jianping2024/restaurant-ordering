@@ -46,7 +46,7 @@ export type WaiterBoardStatusBadge = {
  * Sole floor-card display shape (6-col dense).
  * Title = tableTitle only; meta = seats/time;
  * status rail = statusLabel + statusBadge (headcount, not seat capacity);
- * below rule = openerName (optional) then amountText XOR idleHint.
+ * below rule = opener slot (name or empty) then amountText XOR idleHint.
  */
 export type WaiterBoardCardViewModel = {
   boardState: WaiterTableBoardState;

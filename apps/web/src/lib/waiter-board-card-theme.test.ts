@@ -80,6 +80,8 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.doesNotMatch(waiterBoardType.cardAmount, /text-brand-gold/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-text-(danger|warning)/);
     assert.match(waiterBoardType.cardStatusRail, /^mesa-status-rail$/);
+    assert.match(waiterBoardType.cardStatusSlot, /h-\[4\.5rem\]/);
+    assert.match(waiterBoardType.cardStatusSlot, /\boverflow-hidden\b/);
     assert.match(waiterBoardType.cardStatus, /^mesa-status-vertical$/);
     assert.match(waiterBoardType.cardBadge, /text-brand-gold/);
     assert.match(waiterBoardType.cardBadge, /rounded-md/);
@@ -96,9 +98,14 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.equal('cardStatusSeat' in waiterBoardType, false);
     assert.match(waiterBoardType.cardMeta, /text-xs/);
     assert.match(waiterBoardType.cardMeta, /text-brand-text/);
+    assert.match(waiterBoardType.cardMeta, /\bh-4\b/);
+    assert.match(waiterBoardType.cardMeta, /\bflex-nowrap\b/);
+    assert.doesNotMatch(waiterBoardType.cardMeta, /\bflex-wrap\b/);
+    assert.match(waiterBoardType.cardOpenerSlot, /\bh-5\b/);
+    assert.match(waiterBoardType.cardOpenerSlot, /\bmt-1\.5\b/);
     assert.match(waiterBoardType.cardOpener, /truncate/);
-    assert.match(waiterBoardType.cardOpener, /\bmt-1\.5\b/);
     assert.match(waiterBoardType.cardOpener, /\btext-sm\b/);
+    assert.doesNotMatch(waiterBoardType.cardOpener, /\bmt-/);
     assert.doesNotMatch(waiterBoardType.cardOpener, /\btext-xs\b/);
     assert.doesNotMatch(waiterBoardType.cardOpener, /max-w-/);
     assert.match(waiterBoardType.cardIdleHint, /truncate/);
@@ -126,6 +133,7 @@ describe('waiter-board-card-theme theme tokens', () => {
     for (const key of [
       'cardTitle',
       'cardOpener',
+      'cardOpenerSlot',
       'cardBadge',
       'cardBadgeRelation',
       'cardBadgeStack',
@@ -137,6 +145,7 @@ describe('waiter-board-card-theme theme tokens', () => {
       'cardAmountSlot',
       'cardCta',
       'cardStatusRail',
+      'cardStatusSlot',
       'cardStatus',
     ]) {
       assert.equal(keys.includes(key), true, `missing waiterBoardType.${key}`);

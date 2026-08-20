@@ -20,9 +20,16 @@ export const waiterBoardType = {
    */
   cardTitle:
     'min-w-0 truncate text-left text-4xl font-bold leading-none',
-  /** Sole opener face — below card rule only (not title-row, not a meta chip). */
-  cardOpener:
-    'mt-1.5 truncate text-sm font-medium text-brand-text opacity-85',
+  /**
+   * Sole opener face — below card rule only (not title-row, not a meta chip).
+   * Vertical place = `cardOpenerSlot` (no mt here — empty/filled same height).
+   */
+  cardOpener: 'truncate text-sm font-medium leading-none text-brand-text opacity-85',
+  /**
+   * Sole opener-row height (name or empty). Fixed `h-5` = text-sm line box;
+   * `mt-1.5` lives on the slot so idle never omits the band (hall switch 伸缩).
+   */
+  cardOpenerSlot: 'mt-1.5 flex h-5 min-w-0 items-center',
   /**
    * Sole status-rail headcount chip (A/C) — soft rounded tag, content-sized.
    * Not circle / not extreme ellipse; fits A13 without squash.
@@ -36,7 +43,12 @@ export const waiterBoardType = {
    * Top of stack aligns with opener; extra tokens may paint into amount zone.
    */
   cardBadgeStack: 'flex flex-col items-center gap-1',
-  cardMeta: 'mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-brand-text',
+  /**
+   * Sole meta row — seats ± time, always one line. No wrap: second chip must not
+   * grow card height when dining halls replace idle-only halls.
+   */
+  cardMeta:
+    'mt-1.5 flex h-4 min-w-0 flex-nowrap items-center gap-x-2.5 overflow-hidden text-xs leading-none text-brand-text',
   /**
    * Sole floor-card amount face — body stack + brand ink (not .mesa-money).
    * Dense 6-col: ~22px so amount fits without overlapping CTA.
@@ -54,12 +66,18 @@ export const waiterBoardType = {
   cardCta: 'shrink-0 text-[0.8125rem] font-semibold',
   /** Status rail chrome — paint/border via globals `.mesa-status-rail`. */
   cardStatusRail: 'mesa-status-rail',
+  /**
+   * Sole status-glyph slot — fixed height so locale labels (Livre / A fechar / 空闲)
+   * never change card height when switching halls. Longer labels clip inside the slot.
+   */
+  cardStatusSlot: 'flex h-[4.5rem] w-full shrink-0 items-start justify-center overflow-hidden',
   /** Glyph stack lives in globals `.mesa-status-vertical` (sole statusVertical face). */
   cardStatus: 'mesa-status-vertical',
   /**
-   * Sole badge↔opener vertical align — mirrors left below-grow (opener + amount),
-   * without rewriting card body grid / min-h. `pt-1.5` = opener `mt-1.5`.
-   * Fixed body height = text-sm line + amount `mt-1.5` + `cardAmountSlot` h-7;
+   * Sole badge↔opener vertical align — always painted (empty when no badge).
+   * Mirrors left below-grow (`cardOpenerSlot` + amount row) so idle/dining share
+   * one intrinsic height. `pt-1.5` = opener slot `mt-1.5`.
+   * Fixed body height = opener `h-5` + amount `mt-1.5` + `cardAmountSlot` h-7;
    * stack sits at top; taller A+C may overflow into amount zone (overflow visible).
    */
   cardRailBelow: 'mt-auto flex w-full shrink-0 flex-col items-center pt-1.5',

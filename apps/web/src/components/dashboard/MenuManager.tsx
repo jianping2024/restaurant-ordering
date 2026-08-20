@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
-import { MenuItemListRowOverflowMenu } from '@/components/dashboard/MenuItemListRowOverflowMenu';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
@@ -274,7 +273,6 @@ export function MenuManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({ open: false });
   const [confirmLoading, setConfirmLoading] = useState(false);
-  const [overflowItemId, setOverflowItemId] = useState<string | null>(null);
   const MAX_CATEGORY_DEPTH = MAX_MENU_CATEGORY_DEPTH;
 
   const noteUi = NOTE_UI_TEXT[lang];
@@ -1481,88 +1479,97 @@ export function MenuManager({
                                 ) : null}
                                 <MenuItemListThumb item={item} />
                               </div>
-                              <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-                                <div className="flex items-baseline gap-2 min-w-0">
+                              <div className="flex-1 min-w-0 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-4">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-baseline gap-2 min-w-0">
+                                    <p
+                                      className="flex-1 min-w-0 text-sm font-medium text-brand-text truncate"
+                                      title={hoverTitle}
+                                    >
+                                      {catalogLabel}
+                                    </p>
+                                    {!item.available ? (
+                                      <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
+                                        {t.unavailableBadge}
+                                      </span>
+                                    ) : null}
+                                  </div>
                                   <p
-                                    className="flex-1 min-w-0 text-sm font-medium text-brand-text truncate"
-                                    title={hoverTitle}
+                                    className="text-[11px] text-brand-text-muted truncate mt-0.5"
+                                    title={metaTitle}
                                   >
-                                    {catalogLabel}
+                                    <span className="text-brand-text-muted/70">{t.itemType}:</span>{' '}
+                                    {categoryLine}
+                                    {stationName ? (
+                                      <>
+                                        <span className="mx-1 text-brand-border">·</span>
+                                        <span className="text-brand-text-muted/70">
+                                          {t.effectiveStationPrefix}:
+                                        </span>{' '}
+                                        {stationName}
+                                      </>
+                                    ) : null}
                                   </p>
-                                  {!item.available ? (
-                                    <span className="mesa-badge-danger text-[10px] px-1 py-px rounded shrink-0 leading-tight">
-                                      {t.unavailableBadge}
-                                    </span>
-                                  ) : null}
                                 </div>
-                                <p
-                                  className="text-[11px] text-brand-text-muted truncate"
-                                  title={metaTitle}
-                                >
-                                  <span className="text-brand-text-muted/70">{t.itemType}:</span>{' '}
-                                  {categoryLine}
-                                  {stationName ? (
-                                    <>
-                                      <span className="mx-1 text-brand-border">·</span>
-                                      <span className="text-brand-text-muted/70">
-                                        {t.effectiveStationPrefix}:
-                                      </span>{' '}
-                                      {stationName}
-                                    </>
-                                  ) : null}
-                                </p>
-                                <div className="flex items-center gap-2.5 sm:gap-3 pt-0.5">
-                                  <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
-                                    €{item.price.toFixed(2)}
-                                  </span>
-                                  <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
-                                    {t.vatRateShort.replace(
-                                      '{rate}',
-                                      String(normalizeMenuVatRate(item.vat_rate)),
-                                    )}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleItemAvailable(item)}
-                                    className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
-                                    title={
-                                      item.available
-                                        ? t.toggleAvailableTitle
-                                        : t.toggleUnavailableTitle
-                                    }
-                                    aria-label={
-                                      item.available
-                                        ? t.toggleAvailableTitle
-                                        : t.toggleUnavailableTitle
-                                    }
-                                  >
-                                    <span
-                                      className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                                <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-3 shrink-0 pt-0.5 sm:pt-0">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="mesa-money text-brand-gold font-medium text-sm tabular-nums whitespace-nowrap">
+                                      €{item.price.toFixed(2)}
+                                    </span>
+                                    <span className="text-brand-text-muted text-xs tabular-nums whitespace-nowrap hidden sm:inline">
+                                      {t.vatRateShort.replace(
+                                        '{rate}',
+                                        String(normalizeMenuVatRate(item.vat_rate)),
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3 shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleItemAvailable(item)}
+                                      className={`relative w-7 h-3.5 rounded-full transition-colors shrink-0 ${item.available ? 'bg-green-500' : 'bg-brand-border'}`}
+                                      title={
                                         item.available
-                                          ? 'translate-x-[14px]'
-                                          : 'translate-x-0.5'
-                                      }`}
-                                    />
-                                  </button>
-                                  <MenuItemListRowOverflowMenu
-                                    open={overflowItemId === item.id}
-                                    onOpenChange={(next) =>
-                                      setOverflowItemId(next ? item.id : null)
-                                    }
-                                    menuLabel={t.itemRowMoreActions}
-                                    editLabel={t.editAction}
-                                    deleteLabel={t.deleteAction}
-                                    onEdit={() => openItemEditModal(item)}
-                                    onDelete={() =>
-                                      setConfirmDialog({
-                                        open: true,
-                                        intent: 'delete_item',
-                                        title: t.deleteConfirm,
-                                        message: `${t.deleteConfirm} "${item.name_pt}"?`,
-                                        itemId: item.id,
-                                      })
-                                    }
-                                  />
+                                          ? t.toggleAvailableTitle
+                                          : t.toggleUnavailableTitle
+                                      }
+                                      aria-label={
+                                        item.available
+                                          ? t.toggleAvailableTitle
+                                          : t.toggleUnavailableTitle
+                                      }
+                                    >
+                                      <span
+                                        className={`absolute top-0.5 w-2.5 h-2.5 rounded-full bg-brand-card border border-brand-border shadow-sm transition-transform ${
+                                          item.available
+                                            ? 'translate-x-[14px]'
+                                            : 'translate-x-0.5'
+                                        }`}
+                                      />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => openItemEditModal(item)}
+                                      className="text-xs sm:text-sm text-brand-text-muted hover:text-brand-gold transition-colors whitespace-nowrap min-h-8"
+                                    >
+                                      {t.editAction}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setConfirmDialog({
+                                          open: true,
+                                          intent: 'delete_item',
+                                          title: t.deleteConfirm,
+                                          message: `${t.deleteConfirm} "${item.name_pt}"?`,
+                                          itemId: item.id,
+                                        })
+                                      }
+                                      className="text-xs sm:text-sm text-brand-text-muted hover:text-status-danger transition-colors whitespace-nowrap min-h-8"
+                                    >
+                                      {t.deleteAction}
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>

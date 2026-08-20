@@ -308,7 +308,6 @@ export const MESSAGES_FR = {
     "addChildAction": "Sous",
     "editAction": "Modifier",
     "deleteAction": "Supprimer",
-    "itemRowMoreActions": "Plus d’actions",
     "modalAdd": "Ajouter un article",
     "modalEdit": "Modifier l'article",
     "icon": "Icône",

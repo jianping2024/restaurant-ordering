@@ -3,6 +3,13 @@ import { describe, it } from 'node:test';
 import { AUDIT_EVENT, isOperationLogActionType } from '@/lib/audit/types';
 import { parseOperationLogsListQuery } from '@/lib/operation-logs/parse-list-query';
 import { formatOperationLogDetail, operationLogTableLabel } from '@/lib/operation-logs/detail-text';
+import {
+  OPERATION_LOGS_Q_MAX_LEN,
+  OPERATION_LOG_Q_TABLE_JSON_PATH,
+  escapeIlikePatternForOr,
+  normalizeOperationLogsSearchQ,
+  operationLogsSearchOrFilter,
+} from '@/lib/operation-logs/search';
 import type { OperationLogRow } from '@/lib/operation-logs/types';
 
 describe('operation logs filters', () => {
@@ -19,6 +26,30 @@ describe('operation logs filters', () => {
     );
     assert.equal(bad.actionType, undefined);
     assert.equal(isOperationLogActionType('ITEM_DELETED'), false);
+  });
+
+  it('parses and normalizes sole search q', () => {
+    const withQ = parseOperationLogsListQuery(new URLSearchParams('q=%20A1%20'), 'rest-1');
+    assert.equal(withQ.q, 'A1');
+
+    const blank = parseOperationLogsListQuery(new URLSearchParams('q=%20%20'), 'rest-1');
+    assert.equal(blank.q, undefined);
+
+    assert.equal(normalizeOperationLogsSearchQ(null), undefined);
+    assert.equal(normalizeOperationLogsSearchQ('  x  '), 'x');
+    assert.equal(
+      normalizeOperationLogsSearchQ('a'.repeat(OPERATION_LOGS_Q_MAX_LEN + 10))?.length,
+      OPERATION_LOGS_Q_MAX_LEN,
+    );
+  });
+
+  it('builds one or-filter for operator_name and after_data.tableName only', () => {
+    const filter = operationLogsSearchOrFilter('A1');
+    assert.equal(
+      filter,
+      `operator_name.ilike.%A1%,${OPERATION_LOG_Q_TABLE_JSON_PATH}.ilike.%A1%`,
+    );
+    assert.equal(escapeIlikePatternForOr('a%b_c,d"e'), 'a\\%b\\_cde');
   });
 });
 

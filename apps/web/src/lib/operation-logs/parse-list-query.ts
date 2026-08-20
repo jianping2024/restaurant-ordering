@@ -3,6 +3,7 @@ import {
   type OperationLogActionType,
 } from '@/lib/audit/types';
 import type { OperationLogsListQueryParams } from '@/lib/operation-logs/query';
+import { normalizeOperationLogsSearchQ } from '@/lib/operation-logs/search';
 import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 
 export function parseOperationLogsListQuery(
@@ -25,6 +26,7 @@ export function parseOperationLogsListQuery(
       actionRaw && isOperationLogActionType(actionRaw)
         ? (actionRaw as OperationLogActionType)
         : undefined,
+    q: normalizeOperationLogsSearchQ(searchParams.get('q')),
     page: Number.isFinite(page) ? page : 1,
     pageSize: Number.isFinite(pageSize) ? pageSize : LIST_DEFAULT_PAGE_SIZE,
   };

@@ -5,6 +5,7 @@ export type OperationLogsListParams = {
   startDate?: string;
   endDate?: string;
   actionType?: OperationLogActionType;
+  q?: string;
   page?: number;
   pageSize?: number;
 };
@@ -14,6 +15,7 @@ function toQuery(params: OperationLogsListParams): string {
   if (params.startDate) search.set('start_date', params.startDate);
   if (params.endDate) search.set('end_date', params.endDate);
   if (params.actionType) search.set('action_type', params.actionType);
+  if (params.q) search.set('q', params.q);
   if (params.page) search.set('page', String(params.page));
   if (params.pageSize) search.set('page_size', String(params.pageSize));
   const qs = search.toString();

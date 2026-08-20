@@ -138,6 +138,11 @@ export function formatOperationLogDetail(lang: UILanguage, row: OperationLogRow)
   }
 }
 
+/**
+ * Sole human-readable 桌位 cell.
+ * List search `q` only matches `after_data.tableName` (see `OPERATION_LOG_Q_TABLE_JSON_PATH`);
+ * transfer/merge/party labels below are display-only and not covered by `q`.
+ */
 export function operationLogTableLabel(row: OperationLogRow): string {
   const after = row.after_data || {};
   const before = row.before_data || {};

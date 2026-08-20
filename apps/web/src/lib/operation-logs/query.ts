@@ -4,6 +4,10 @@ import {
   type OperationLogActionType,
 } from '@/lib/audit/types';
 import { parseOperationLogsDateRange } from '@/lib/operation-logs/date-range';
+import {
+  normalizeOperationLogsSearchQ,
+  operationLogsSearchOrFilter,
+} from '@/lib/operation-logs/search';
 import { LIST_DEFAULT_PAGE_SIZE } from '@/lib/paginate-list';
 import type { OperationLogRow } from '@/lib/operation-logs/types';
 
@@ -13,6 +17,8 @@ export type OperationLogsListFilters = {
   startDate?: string;
   endDate?: string;
   actionType?: OperationLogActionType;
+  /** Shared operator-or-table search; empty/undefined = no text filter. */
+  q?: string;
   page?: number;
   pageSize?: number;
   now?: Date;
@@ -64,6 +70,11 @@ export async function listOperationLogs(
 
   if (filters.actionType) {
     query = query.eq('action_type', filters.actionType);
+  }
+
+  const q = normalizeOperationLogsSearchQ(filters.q);
+  if (q) {
+    query = query.or(operationLogsSearchOrFilter(q));
   }
 
   const { data, error, count } = await query;

@@ -18,6 +18,7 @@ import {
   operationLogTableLabel,
 } from '@/lib/operation-logs/detail-text';
 import type { OperationLogsListResult } from '@/lib/operation-logs/query';
+import { normalizeOperationLogsSearchQ } from '@/lib/operation-logs/search';
 import { getMessages, UI_LOCALE_BY_LANG } from '@/lib/i18n/messages';
 import { type ListPageSize } from '@/lib/paginate-list';
 import { useDashboardListQuery } from '@/lib/use-dashboard-list-query';
@@ -28,6 +29,7 @@ type Filters = {
   startDate: string;
   endDate: string;
   actionType: OperationLogActionType | '';
+  q: string;
 };
 
 type DatePreset = 'today' | 'last7';
@@ -36,6 +38,7 @@ const DEFAULT_FILTERS = (today: string, retentionDays: number): Filters => ({
   startDate: addCalendarDays(today, -(retentionDays - 1)),
   endDate: today,
   actionType: '',
+  q: '',
 });
 
 function detectDatePreset(
@@ -50,6 +53,8 @@ function detectDatePreset(
 
 const COMPACT_SELECT_CLASS =
   'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
+const COMPACT_SEARCH_CLASS =
+  'w-[11rem] rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text placeholder:text-brand-text-muted';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
 
@@ -83,6 +88,7 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
           startDate: filters.startDate,
           endDate: filters.endDate,
           actionType: filters.actionType || undefined,
+          q: normalizeOperationLogsSearchQ(filters.q),
           page,
           pageSize,
         },
@@ -211,6 +217,15 @@ export function OperationLogsManager({ restaurantId, retentionDays }: Props) {
             </option>
           ))}
         </select>
+        <input
+          type="search"
+          className={COMPACT_SEARCH_CLASS}
+          value={draftFilters.q}
+          onChange={(e) => patchDraftFilters({ q: e.target.value })}
+          placeholder={t.searchPlaceholder}
+          aria-label={t.searchPlaceholder}
+          autoComplete="off"
+        />
         <Button
           type="button"
           variant="outline"

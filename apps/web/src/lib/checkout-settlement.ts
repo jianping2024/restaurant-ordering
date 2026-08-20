@@ -1,3 +1,4 @@
+import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { applyDiscountToRows, checkoutPayableAmount, normalizeSplitRows } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
@@ -9,7 +10,7 @@ import {
   buildSplitSettlementRows,
   sumSplitSettlementOutstanding,
 } from '@/lib/checkout-split-settlement';
-import type { BillSplit, SplitMode } from '@/types';
+import type { BillSplit, Order, SplitMode } from '@/types';
 
 export type CheckoutSettlementSummary = {
   consumption: number;
@@ -43,6 +44,30 @@ export function buildCheckoutSettlementSummary(
     collected,
     pending,
   };
+}
+
+/**
+ * Uncollected (尚欠) for one live open|billing session — sole dashboard「未收」basis.
+ * Active `requested` bill_split → same pending as checkout queue
+ * (`buildCheckoutSettlementSummary.pending`); else billable − ledger collected.
+ */
+export function liveSessionUncollectedAmount(params: {
+  orders: Order[];
+  billSplit: BillSplit | null | undefined;
+  collectedPayments: SessionCollectedPayment[];
+}): number {
+  const { orders, billSplit, collectedPayments } = params;
+  if (billSplit?.status === 'requested') {
+    return buildCheckoutSettlementSummary(
+      billSplit,
+      billSplit.discount_rate ?? 0,
+      collectedPayments,
+    ).pending;
+  }
+  return outstandingAmount(
+    sumBillableSessionTotal(orders),
+    totalCollectedAmount(collectedPayments),
+  );
 }
 
 export function checkoutPaymentProgress(

@@ -206,7 +206,7 @@
 
 - Dashboard 订单历史：按日期范围、桌位筛选
 - 订单列表展示：菜品 chip、数量、客人标签、金额
-- 首页概览：今日营业额、今日桌数（同卡含今日用餐人数大人/小孩）、当前用餐桌数（同卡含当前用餐人数大人/小孩）；区间营业额为额外一块（Lisbon 起止日、含首尾最多 31 天），不替代今日营业额
+- 首页概览：今日营业额展示为「已收 + 未收」——已收 = Lisbon 日 qualifying 关台营业额；未收 = 当前 open|billing 尚欠合计（`diningUncollectedAmount` / `liveSessionUncollectedAmount`）；同卡旁为今日桌数（含今日用餐人数大人/小孩）、当前用餐桌数（含当前用餐人数大人/小孩）；区间营业额为额外一块（Lisbon 起止日、含首尾最多 31 天），不替代今日营业额
 - 厨房/服务员看板：活跃订单实时刷新（Realtime）
 - 订单数据存于 `orders.items` JSONB，含行级 `item_status`
 - **转出台 / 并出台** 立刻出现在来源桌订单历史：并台复用 `closed_reason=merged` 关台会话；转台由 `table_session_events(transfer)` 投影为 `transferred_source` 行（不插假关台会话）；UI 统一为操作来源关台（`isOperationalSourceCloseKind`）

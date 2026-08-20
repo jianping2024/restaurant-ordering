@@ -16,7 +16,17 @@ import {
 import { printJobMaxAgeCutoffIso } from '@/lib/print-job-max-age';
 import type { UILanguage } from '@/lib/i18n';
 import { pickTrilingualName, type TrilingualName } from '@/lib/i18n/pick-trilingual-name';
-import type { Order, OrderItem, OrderStatus } from '@/types';
+import { auditMoney } from '@/lib/audit/money';
+import {
+  groupCollectedPaymentsBySession,
+  liveSessionUncollectedAmount,
+} from '@/lib/checkout-settlement';
+import {
+  parseSessionCollectedPaymentsWithSession,
+  SESSION_COLLECTED_PAYMENT_SELECT,
+  type SessionCollectedPayment,
+} from '@/lib/checkout-session-payments';
+import type { BillSplit, Order, OrderItem, OrderStatus } from '@/types';
 import { countPendingCheckoutRequests } from '@/lib/table-checkout-pending';
 import { loadOrdersForActiveWaiterBoardSessions } from '@/lib/waiter-board-active-orders';
 import type { WaiterTableSessionRow } from '@/lib/waiter-table-session-meta';
@@ -130,6 +140,11 @@ export type DashboardTodayKpis = {
   diningTableCount: number;
   /** Sole live-floor guest headcount shape — UI total = adults + children. */
   diningGuests: BuffetGuestHeadcount;
+  /**
+   * Uncollected (尚欠) across open|billing sessions — sole dashboard「未收」.
+   * Per session: {@link liveSessionUncollectedAmount}.
+   */
+  diningUncollectedAmount: number;
 };
 
 /** Single overview DTO: server aggregates; client only formats by language. */
@@ -200,40 +215,72 @@ function dishNamesFromRow(row: DishFeedbackRow): TrilingualName {
   };
 }
 
+type DiningFloorOrder = Pick<Order, 'items' | 'status' | 'session_id' | 'table_id'>;
+
+function diningFloorGroupKey(order: DiningFloorOrder): string | null {
+  if (order.session_id) return `session:${order.session_id}`;
+  if (order.table_id) return `table:${order.table_id}`;
+  return null;
+}
+
 /**
- * Floor dining KPIs: session count + headcount summed per session/table group.
+ * Floor dining KPIs: session count + headcount + uncollected, per open|billing session.
  * Do not call aggregateBuffetHeadcountForOrders on the whole floor — it dedupes by
  * buffet_id and would undercount when many tables share one package id.
+ * Uncollected per session: sole {@link liveSessionUncollectedAmount}.
  */
 export function computeDiningFloorKpis(
-  diningTableCount: number,
-  orders: Array<Pick<Order, 'items' | 'status' | 'session_id' | 'table_id'>>,
-): Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'> {
-  const byGroup = new Map<string, Array<Pick<Order, 'items' | 'status'>>>();
+  sessionRows: readonly Pick<WaiterTableSessionRow, 'id' | 'table_id'>[],
+  orders: DiningFloorOrder[],
+  options?: {
+    billSplitBySessionId?: Map<string, BillSplit>;
+    collectedBySessionId?: Map<string, SessionCollectedPayment[]>;
+  },
+): Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'> {
+  const billSplitBySessionId = options?.billSplitBySessionId ?? new Map();
+  const collectedBySessionId = options?.collectedBySessionId ?? new Map();
+
+  const bySession = new Map<string, DiningFloorOrder[]>();
+  const orphanByTable = new Map<string, DiningFloorOrder[]>();
   for (const order of orders) {
-    const key = order.session_id
-      ? `session:${order.session_id}`
-      : order.table_id
-        ? `table:${order.table_id}`
-        : null;
-    if (!key) continue;
-    const list = byGroup.get(key);
+    if (order.session_id) {
+      const list = bySession.get(order.session_id);
+      if (list) list.push(order);
+      else bySession.set(order.session_id, [order]);
+      continue;
+    }
+    const key = diningFloorGroupKey(order);
+    if (!key || !order.table_id) continue;
+    const list = orphanByTable.get(order.table_id);
     if (list) list.push(order);
-    else byGroup.set(key, [order]);
+    else orphanByTable.set(order.table_id, [order]);
   }
 
   let adults = 0;
   let children = 0;
-  for (const group of Array.from(byGroup.values())) {
-    const headcount = aggregateBuffetHeadcountForOrders(group);
-    if (!headcount) continue;
-    adults += headcount.adults;
-    children += headcount.children;
+  let uncollected = 0;
+
+  for (const session of sessionRows) {
+    const sessionOrders = [
+      ...(bySession.get(session.id) ?? []),
+      ...(orphanByTable.get(session.table_id) ?? []),
+    ];
+    const headcount = aggregateBuffetHeadcountForOrders(sessionOrders);
+    if (headcount) {
+      adults += headcount.adults;
+      children += headcount.children;
+    }
+    uncollected += liveSessionUncollectedAmount({
+      orders: sessionOrders as Order[],
+      billSplit: billSplitBySessionId.get(session.id),
+      collectedPayments: collectedBySessionId.get(session.id) ?? [],
+    });
   }
 
   return {
-    diningTableCount,
+    diningTableCount: sessionRows.length,
     diningGuests: { adults, children },
+    diningUncollectedAmount: auditMoney(uncollected),
   };
 }
 
@@ -244,7 +291,10 @@ export function computeTodayKpis(
     revenueSessionCount: number;
     todayGuests: BuffetGuestHeadcount;
   } | null,
-  dining: Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>,
+  dining: Pick<
+    DashboardTodayKpis,
+    'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'
+  >,
 ): DashboardTodayKpis {
   return {
     todayTableCount: revenue?.revenueSessionCount ?? 0,
@@ -253,21 +303,68 @@ export function computeTodayKpis(
     todayGuests: revenue?.todayGuests ?? { adults: 0, children: 0 },
     diningTableCount: dining.diningTableCount,
     diningGuests: dining.diningGuests,
+    diningUncollectedAmount: dining.diningUncollectedAmount,
   };
 }
+
+const DINING_REQUESTED_SPLIT_SELECT =
+  'id, restaurant_id, order_ids, split_mode, persons, result, total_amount, status, created_at, session_id, table_id, display_name, discount_rate';
 
 async function loadDiningFloorKpis(
   admin: SupabaseClient,
   restaurantId: string,
-): Promise<Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests'>> {
+): Promise<
+  Pick<DashboardTodayKpis, 'diningTableCount' | 'diningGuests' | 'diningUncollectedAmount'>
+> {
   const { data } = await admin
     .from('table_sessions')
     .select('id, table_id, opened_at, status')
     .eq('restaurant_id', restaurantId)
     .in('status', ['open', 'billing']);
   const sessionRows = (data || []) as WaiterTableSessionRow[];
-  const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
-  return computeDiningFloorKpis(sessionRows.length, orders);
+  if (sessionRows.length === 0) {
+    return {
+      diningTableCount: 0,
+      diningGuests: { adults: 0, children: 0 },
+      diningUncollectedAmount: 0,
+    };
+  }
+
+  const sessionIds = sessionRows.map((row) => row.id);
+  const [orders, splitsResult, paymentsResult] = await Promise.all([
+    loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows),
+    admin
+      .from('bill_splits')
+      .select(DINING_REQUESTED_SPLIT_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .eq('status', 'requested')
+      .in('session_id', sessionIds),
+    admin
+      .from('session_collected_payments')
+      .select(SESSION_COLLECTED_PAYMENT_SELECT)
+      .eq('restaurant_id', restaurantId)
+      .in('session_id', sessionIds)
+      .order('created_at', { ascending: true }),
+  ]);
+
+  const billSplitBySessionId = new Map<string, BillSplit>();
+  for (const row of (splitsResult.data || []) as BillSplit[]) {
+    if (!row.session_id) continue;
+    // One requested split per session in practice; keep latest if duplicates.
+    const prev = billSplitBySessionId.get(row.session_id);
+    if (!prev || row.created_at > prev.created_at) {
+      billSplitBySessionId.set(row.session_id, row);
+    }
+  }
+
+  const collectedBySessionId = groupCollectedPaymentsBySession(
+    parseSessionCollectedPaymentsWithSession(paymentsResult.data),
+  );
+
+  return computeDiningFloorKpis(sessionRows, orders, {
+    billSplitBySessionId,
+    collectedBySessionId,
+  });
 }
 
 export function buildTodayTopSellingItems(

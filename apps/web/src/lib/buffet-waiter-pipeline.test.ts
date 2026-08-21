@@ -37,6 +37,7 @@ describe('buffet waiter session helpers', () => {
       id: 'sess-1',
       status: 'open',
       opened_at: '2026-01-01T10:00:00.000Z',
+      opened_by_name: null,
     });
   });
 
@@ -45,13 +46,15 @@ describe('buffet waiter session helpers', () => {
       id: 'sess-1',
       table_id: 'table-1',
       opened_at: '2026-01-01T10:00:00.000Z',
-      status: 'open',
+      status: 'open' as const,
+      opened_by_name: 'qiantai1',
     };
     const meta = sessionMetaFromEnsuredSession(row, tableSessionRefFromRow(row));
     assert.deepEqual(meta, {
       sessionId: 'sess-1',
       openedAt: '2026-01-01T10:00:00.000Z',
       status: 'open',
+      openedByName: 'qiantai1',
     });
   });
 
@@ -60,11 +63,13 @@ describe('buffet waiter session helpers', () => {
       id: 'sess-new',
       status: 'open',
       opened_at: '2026-01-01T11:00:00.000Z',
+      opened_by_name: 'qiantai1',
     });
     assert.deepEqual(meta, {
       sessionId: 'sess-new',
       openedAt: '2026-01-01T11:00:00.000Z',
       status: 'open',
+      openedByName: 'qiantai1',
     });
   });
 });

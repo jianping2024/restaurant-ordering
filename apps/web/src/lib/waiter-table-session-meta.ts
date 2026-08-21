@@ -1,10 +1,5 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
-import {
-  resolveStaffOperatorName,
-  resolveStaffOperatorNames,
-} from '@/lib/order-history/resolve-staff-operator';
 import type { TableSessionRef } from '@/lib/table-session-open';
 import type { SessionStatus } from '@/types';
 
@@ -14,6 +9,8 @@ export type WaiterTableSessionRow = {
   opened_at: string;
   status: string;
   opened_by_user_id?: string | null;
+  /** Sole board opener label — stamped at open. */
+  opened_by_name?: string | null;
 };
 
 function withOpenedByName(
@@ -24,9 +21,9 @@ function withOpenedByName(
   return name ? { ...meta, openedByName: name } : meta;
 }
 
+/** Board meta from a session row — opener is only `opened_by_name` (no id resolve). */
 export function sessionMetaFromRow(
   sessionRow: WaiterTableSessionRow | null,
-  openedByName?: string | null,
 ): WaiterTableSessionMeta | null {
   if (
     !sessionRow?.id ||
@@ -41,7 +38,7 @@ export function sessionMetaFromRow(
       openedAt: sessionRow.opened_at,
       status: sessionRow.status as 'open' | 'billing',
     },
-    openedByName,
+    sessionRow.opened_by_name,
   );
 }
 
@@ -50,6 +47,7 @@ export function tableSessionRefFromRow(sessionRow: WaiterTableSessionRow): Table
     id: sessionRow.id,
     status: sessionRow.status as SessionStatus,
     opened_at: sessionRow.opened_at,
+    opened_by_name: sessionRow.opened_by_name ?? null,
   };
 }
 
@@ -57,9 +55,8 @@ export function tableSessionRefFromRow(sessionRow: WaiterTableSessionRow): Table
 export function sessionMetaFromEnsuredSession(
   sessionRow: WaiterTableSessionRow | null,
   ensured: TableSessionRef,
-  openedByName?: string | null,
 ): WaiterTableSessionMeta {
-  const fromRow = sessionMetaFromRow(sessionRow, openedByName);
+  const fromRow = sessionMetaFromRow(sessionRow);
   if (fromRow) return fromRow;
   return withOpenedByName(
     {
@@ -67,74 +64,13 @@ export function sessionMetaFromEnsuredSession(
       openedAt: ensured.opened_at,
       status: ensured.status as 'open' | 'billing',
     },
-    openedByName,
+    ensured.opened_by_name,
   );
 }
 
-type RestaurantOpenerContext = {
-  restaurantId: string;
-  /** Empty when unset — staff/login resolution still runs; owner label only if set. */
-  ownerId: string;
-  restaurantName: string;
-};
-
-async function loadRestaurantOpenerContext(
-  admin: SupabaseClient,
-  restaurantId: string,
-): Promise<RestaurantOpenerContext | null> {
-  const { data: restaurant } = await admin
-    .from('restaurants')
-    .select('owner_id, name')
-    .eq('id', restaurantId)
-    .maybeSingle();
-  if (!restaurant?.name?.trim()) return null;
-  return {
-    restaurantId,
-    ownerId: typeof restaurant.owner_id === 'string' ? restaurant.owner_id : '',
-    restaurantName: restaurant.name as string,
-  };
-}
-
-/** Active board sessions → meta map with resolved opener display names. */
-export async function buildActiveSessionMetaByTableId(
-  admin: SupabaseClient,
-  restaurantId: string,
+/** Active board sessions → meta map; opener from stamped `opened_by_name` only. */
+export function buildActiveSessionMetaByTableId(
   sessions: WaiterTableSessionRow[],
-): Promise<Record<string, WaiterTableSessionMeta>> {
-  const openerIds = sessions
-    .map((session) => session.opened_by_user_id)
-    .filter((userId): userId is string => Boolean(userId));
-  if (openerIds.length === 0) {
-    return sessionMetaByTableIdFromSessions(sessions);
-  }
-
-  const restaurant = await loadRestaurantOpenerContext(admin, restaurantId);
-  if (!restaurant) {
-    return sessionMetaByTableIdFromSessions(sessions);
-  }
-
-  const openedByNameByUserId = await resolveStaffOperatorNames(admin, {
-    restaurantId: restaurant.restaurantId,
-    ownerId: restaurant.ownerId,
-    restaurantName: restaurant.restaurantName,
-    userIds: openerIds,
-  });
-  return sessionMetaByTableIdFromSessions(sessions, openedByNameByUserId);
-}
-
-/** Resolve opener display name for a single active session (e.g. after open-table mutation). */
-export async function resolveActiveSessionOpenedByName(
-  admin: SupabaseClient,
-  restaurantId: string,
-  openedByUserId: string | null | undefined,
-): Promise<string | null> {
-  if (!openedByUserId) return null;
-  const restaurant = await loadRestaurantOpenerContext(admin, restaurantId);
-  if (!restaurant) return null;
-  return resolveStaffOperatorName(admin, {
-    restaurantId: restaurant.restaurantId,
-    ownerId: restaurant.ownerId,
-    restaurantName: restaurant.restaurantName,
-    userId: openedByUserId,
-  });
+): Record<string, WaiterTableSessionMeta> {
+  return sessionMetaByTableIdFromSessions(sessions);
 }

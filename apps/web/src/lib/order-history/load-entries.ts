@@ -60,6 +60,7 @@ type ClosedSessionRow = {
   closed_reason: string | null;
   settled_payable_amount: number | null;
   opened_by_user_id: string | null;
+  opened_by_name: string | null;
   closed_by_user_id: string | null;
   merge_into_session_id: string | null;
 };
@@ -68,6 +69,7 @@ type TransferSourceSessionMetaRow = {
   id: string;
   opened_at: string | null;
   opened_by_user_id: string | null;
+  opened_by_name: string | null;
 };
 
 type OrderHistoryFeedRpcItem = {
@@ -187,7 +189,7 @@ async function loadTransferSourceSessionMetaById(
 
   const { data, error } = await admin
     .from('table_sessions')
-    .select('id, opened_at, opened_by_user_id')
+    .select('id, opened_at, opened_by_user_id, opened_by_name')
     .eq('restaurant_id', restaurantId)
     .in('id', uniqueSessionIds);
 
@@ -232,6 +234,8 @@ function parseClosedSessionPayload(payload: Record<string, unknown>): ClosedSess
     settled_payable_amount:
       payload.settled_payable_amount == null ? null : Number(payload.settled_payable_amount),
     opened_by_user_id: (payload.opened_by_user_id as string | null) ?? null,
+    opened_by_name:
+      typeof payload.opened_by_name === 'string' ? payload.opened_by_name : null,
     closed_by_user_id: (payload.closed_by_user_id as string | null) ?? null,
     merge_into_session_id: (payload.merge_into_session_id as string | null) ?? null,
   };
@@ -389,8 +393,6 @@ export async function loadOrderHistoryEntries(
   );
   for (const event of pageTransferEvents) {
     if (event.operator_user_id) operatorIds.push(event.operator_user_id);
-    const meta = transferMetaBySessionId.get(event.session_id);
-    if (meta?.opened_by_user_id) operatorIds.push(meta.opened_by_user_id);
   }
 
   const operatorNames = await resolveStaffOperatorNames(admin, {
@@ -426,9 +428,7 @@ export async function loadOrderHistoryEntries(
     const sessionOrders = ordersBySession.get(session.id) || [];
     const billSplit = billSplitBySessionId[session.id];
     const collectedPayments = collectedPaymentsBySession.get(session.id) ?? [];
-    const openedByName = session.opened_by_user_id
-      ? operatorNames.get(session.opened_by_user_id) ?? null
-      : null;
+    const openedByName = session.opened_by_name?.trim() || null;
     const closedByName = session.closed_by_user_id
       ? operatorNames.get(session.closed_by_user_id) ?? null
       : null;

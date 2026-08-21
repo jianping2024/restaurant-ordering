@@ -8,7 +8,7 @@ export type WaiterTableSessionMeta = {
   sessionId: string;
   openedAt: string;
   status: 'open' | 'billing';
-  /** Resolved staff display name for table_sessions.opened_by_user_id (board display). */
+  /** From table_sessions.opened_by_name (stamped at open) — sole board opener label. */
   openedByName?: string | null;
   /**
    * Title-badge relation for this active session (merge target / transferred-in).

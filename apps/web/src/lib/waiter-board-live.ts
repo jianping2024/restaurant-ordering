@@ -2,10 +2,7 @@ import type { WaiterBoardData } from '@/lib/staff-board';
 import type { TablePartyGroup, TablePartyGroupMember } from '@/lib/table-party-groups';
 import type { WaiterTableSessionMeta } from '@/lib/waiter-board-session';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
-import {
-  mergeLiveSessionMetaPreservingOpenerNames,
-  mergeLiveTableSummariesOntoFloor,
-} from '@/lib/waiter-board-live-merge';
+import { mergeLiveTableSummariesOntoFloor } from '@/lib/waiter-board-live-merge';
 
 /** Board refresh transport: full = static+live; live = doorbell slice only. */
 export type WaiterBoardFetchScope = 'full' | 'live';
@@ -14,6 +11,7 @@ export type WaiterBoardFetchScope = 'full' | 'live';
  * Live slice only — sessions, orders-derived summaries, checkout, parties.
  * Floor static (tables/groups/members/openTableDefaults) stays on the client board.
  * tableSummaries may only include active tables; client merges onto floor tables.
+ * Opener labels come from stamped table_sessions.opened_by_name on the live payload.
  */
 export type WaiterBoardLivePatch = {
   sessionMetaByTableId: Record<string, WaiterTableSessionMeta>;
@@ -31,10 +29,7 @@ export function applyWaiterBoardLivePatch(
 ): WaiterBoardData {
   return {
     ...board,
-    sessionMetaByTableId: mergeLiveSessionMetaPreservingOpenerNames(
-      board.sessionMetaByTableId,
-      live.sessionMetaByTableId,
-    ),
+    sessionMetaByTableId: live.sessionMetaByTableId,
     checkoutRequestedTableIds: live.checkoutRequestedTableIds,
     checkoutRequestedAtByTableId: live.checkoutRequestedAtByTableId,
     parties: live.parties,

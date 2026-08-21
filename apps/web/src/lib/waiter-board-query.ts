@@ -9,9 +9,8 @@ export function sessionMetaByTableIdFromSessions(
     table_id?: string | null;
     opened_at?: string | null;
     status?: string | null;
-    opened_by_user_id?: string | null;
+    opened_by_name?: string | null;
   }>,
-  openedByNameByUserId: ReadonlyMap<string, string> = new Map(),
 ): Record<string, WaiterTableSessionMeta> {
   const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
   for (const s of sessions) {
@@ -25,10 +24,7 @@ export function sessionMetaByTableIdFromSessions(
       openedAt &&
       (status === 'open' || status === 'billing')
     ) {
-      const openedByUserId = s.opened_by_user_id as string | undefined;
-      const openedByName = openedByUserId
-        ? openedByNameByUserId.get(openedByUserId) ?? null
-        : null;
+      const openedByName = s.opened_by_name?.trim() || null;
       sessionMetaByTableId[tid] = {
         sessionId: sid,
         openedAt,

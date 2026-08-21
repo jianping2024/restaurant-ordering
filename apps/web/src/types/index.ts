@@ -402,6 +402,8 @@ export interface TableSession {
   closed_reason?: string | null;
   closed_by_user_id?: string | null;
   opened_by_user_id?: string | null;
+  /** Opener label stamped at open — sole board/history display source. */
+  opened_by_name?: string | null;
 }
 
 // 购物车条目

@@ -8,6 +8,7 @@ import type { OrderHistoryEntry } from '@/lib/order-history/types';
 export type TransferSourceSessionMeta = {
   opened_at: string | null;
   opened_by_user_id: string | null;
+  opened_by_name: string | null;
 };
 
 /** Project one transfer-out event as a source-table operational history row. */
@@ -21,9 +22,7 @@ export function buildTransferredSourceEntry(
   const closedByName = event.operator_user_id
     ? operatorNames.get(event.operator_user_id) ?? null
     : null;
-  const openedByName = sessionMeta?.opened_by_user_id
-    ? operatorNames.get(sessionMeta.opened_by_user_id) ?? null
-    : null;
+  const openedByName = sessionMeta?.opened_by_name?.trim() || null;
 
   const entryFacts = {
     historyRecordId: `transfer:${event.id}`,

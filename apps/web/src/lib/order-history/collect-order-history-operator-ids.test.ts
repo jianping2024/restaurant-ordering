@@ -5,10 +5,10 @@ import type { OrderHistoryTransferEvent } from '@/lib/order-history/types';
 import type { MergeSourceSessionRow } from '@/lib/order-history/load-merge-context';
 
 describe('collectOrderHistoryOperatorIds', () => {
-  it('collects open/close, merge, and transfer operator ids', () => {
+  it('collects close, merge, and transfer operator ids (not opener)', () => {
     const sessions = [
-      { opened_by_user_id: 'u1', closed_by_user_id: 'u2' },
-      { opened_by_user_id: null, closed_by_user_id: 'u3' },
+      { closed_by_user_id: 'u2' },
+      { closed_by_user_id: 'u3' },
     ];
     const mergeSourcesByTargetId = new Map<string, MergeSourceSessionRow[]>([
       [
@@ -47,6 +47,6 @@ describe('collectOrderHistoryOperatorIds', () => {
       mergeSourcesByTargetId,
       transferEventsBySession,
     );
-    assert.deepEqual(new Set(ids), new Set(['u1', 'u2', 'u3', 'u4', 'u5']));
+    assert.deepEqual(new Set(ids), new Set(['u2', 'u3', 'u4', 'u5']));
   });
 });

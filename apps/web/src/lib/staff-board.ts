@@ -35,7 +35,6 @@ import {
   type TablePartyGroupMember,
 } from '@/lib/table-party-groups';
 import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
-import { sessionMetaByTableIdFromSessions } from '@/lib/waiter-board-query';
 import { attachBoardSessionRelations } from '@/lib/waiter-board-session-relation';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
@@ -77,12 +76,11 @@ type WaiterBoardOccupancyCore = {
 async function loadWaiterBoardOccupancyCore(
   admin: SupabaseClient,
   restaurantId: string,
-  resolveOpenerNames: boolean,
 ): Promise<WaiterBoardOccupancyCore> {
   const [{ data: sessions }, checkoutRequested, partyLoaded] = await Promise.all([
     admin
       .from('table_sessions')
-      .select('id, table_id, opened_at, status, opened_by_user_id')
+      .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
       .eq('restaurant_id', restaurantId)
       .in('status', ['open', 'billing']),
     fetchCheckoutRequestedBoard(admin, restaurantId),
@@ -91,9 +89,7 @@ async function loadWaiterBoardOccupancyCore(
 
   const sessionRows = (sessions || []) as WaiterTableSessionRow[];
   const orders = await loadOrdersForActiveWaiterBoardSessions(admin, restaurantId, sessionRows);
-  let sessionMetaByTableId = resolveOpenerNames
-    ? await buildActiveSessionMetaByTableId(admin, restaurantId, sessionRows)
-    : sessionMetaByTableIdFromSessions(sessionRows);
+  let sessionMetaByTableId = buildActiveSessionMetaByTableId(sessionRows);
   sessionMetaByTableId = await attachBoardSessionRelations(
     admin,
     restaurantId,
@@ -111,12 +107,12 @@ async function loadWaiterBoardOccupancyCore(
   };
 }
 
-/** Doorbell / live — no floor tables query, no opener-name resolution. */
+/** Doorbell / live — no floor tables query; opener from stamped opened_by_name. */
 export async function fetchWaiterBoardLive(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<WaiterBoardLivePatch> {
-  const occupancy = await loadWaiterBoardOccupancyCore(admin, restaurantId, false);
+  const occupancy = await loadWaiterBoardOccupancyCore(admin, restaurantId);
   const stubTables = stubFloorTablesForLiveOccupancy(
     occupancy.sessionMetaByTableId,
     occupancy.orders,
@@ -215,7 +211,7 @@ export async function fetchKitchenBoard(
 export async function fetchWaiterBoard(admin: SupabaseClient, restaurantId: string) {
   const [occupancy, { data: tableRows }, { data: groupRows }, { data: memberRows }, { data: buffetRows }] =
     await Promise.all([
-      loadWaiterBoardOccupancyCore(admin, restaurantId, true),
+      loadWaiterBoardOccupancyCore(admin, restaurantId),
       admin
         .from('restaurant_tables')
         .select('id, display_name, sort_order, seat_min, seat_max')
@@ -282,7 +278,7 @@ export async function fetchWaiterTableActionTargets(
     await Promise.all([
       admin
         .from('table_sessions')
-        .select('id, table_id, opened_at, status, opened_by_user_id')
+        .select('id, table_id, opened_at, status, opened_by_user_id, opened_by_name')
         .eq('restaurant_id', restaurantId)
         .in('status', ['open', 'billing']),
       admin
@@ -295,10 +291,8 @@ export async function fetchWaiterTableActionTargets(
     ]);
 
   const tables = sortRestaurantTables((tableRows || []) as RestaurantTableRow[]);
-  const sessionMetaByTableId = await buildActiveSessionMetaByTableId(
-    admin,
-    restaurantId,
-    sessions || [],
+  const sessionMetaByTableId = buildActiveSessionMetaByTableId(
+    (sessions || []) as WaiterTableSessionRow[],
   );
   return filterWaiterTableActionTargets(
     tables,

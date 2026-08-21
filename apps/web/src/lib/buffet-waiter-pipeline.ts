@@ -37,7 +37,6 @@ import {
   resolveOpenTableBuffetPrices,
 } from '@/lib/waiter-table-detail-load';
 import {
-  resolveActiveSessionOpenedByName,
   sessionMetaFromEnsuredSession,
   tableSessionRefFromRow,
 } from '@/lib/waiter-table-session-meta';
@@ -187,25 +186,18 @@ export async function runBuffetWaiterOpenPipeline(
   }
 
   const sessionId = ensured.session.id;
-  const openedByUserId = sessionRow?.opened_by_user_id ?? userId;
 
   let orders: Order[];
-  let openedByName: string | null;
   try {
-    const [name, loadedOrders] = await Promise.all([
-      resolveActiveSessionOpenedByName(admin, restaurantId, openedByUserId),
-      isColdOpen
-        ? Promise.resolve([] as Order[])
-        : loadTableOrdersForSession(admin, restaurantId, sessionId),
-    ]);
-    openedByName = name;
-    orders = loadedOrders;
+    orders = isColdOpen
+      ? ([] as Order[])
+      : await loadTableOrdersForSession(admin, restaurantId, sessionId);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'orders_lookup_failed';
     return pipelineFailure(500, 'orders_lookup_failed', { message });
   }
 
-  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session, openedByName);
+  const sessionMeta = sessionMetaFromEnsuredSession(sessionRow, ensured.session);
   const sessionOrders = mapToBuffetSessionOrders(orders);
   const previousHeadcount = aggregateBuffetHeadcountForOrders(orders) ?? {
     adults: 0,

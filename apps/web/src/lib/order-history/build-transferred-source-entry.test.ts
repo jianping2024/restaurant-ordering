@@ -18,6 +18,7 @@ describe('buildTransferredSourceEntry', () => {
       {
         opened_at: '2026-07-27T12:00:00.000Z',
         opened_by_user_id: 'user-a',
+        opened_by_name: 'Waiter A',
       },
       new Map([['table-b', 'B-02']]),
       new Map([
@@ -26,10 +27,7 @@ describe('buildTransferredSourceEntry', () => {
           { id: 'sess-live', table_id: 'table-b', status: 'open' },
         ],
       ]),
-      new Map([
-        ['user-a', 'Waiter A'],
-        ['user-b', 'Waiter B'],
-      ]),
+      new Map([['user-b', 'Waiter B']]),
     );
 
     assert.equal(entry.historyRecordId, 'transfer:evt-1');

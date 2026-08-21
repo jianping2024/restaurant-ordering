@@ -81,6 +81,7 @@ describe('waiter-board-live', () => {
           sessionId: 's1',
           openedAt: '2026-01-01T00:00:00Z',
           status: 'open',
+          openedByName: 'Ana',
         },
       },
       checkoutRequestedTableIds: ['t1'],

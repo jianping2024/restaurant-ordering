@@ -93,7 +93,5 @@ func (p *PollingNotifier) fetch(ctx context.Context) error {
 	if admitted > 0 {
 		logCompensationSummary("Polling", fetched, admitted)
 	}
-	// Same fallback loop — also drain bill-sync hang-queue (one pipe, two job types).
-	processPendingBillSyncs(ctx, p.config)
 	return nil
 }

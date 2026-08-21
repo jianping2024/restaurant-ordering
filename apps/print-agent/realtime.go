@@ -198,7 +198,6 @@ func (r *RealtimeNotifier) buildWebSocketURL() (string, error) {
 }
 
 func (r *RealtimeNotifier) subscribe() error {
-	// One Realtime join, two tables (print_jobs + bill_sync_jobs) — do not open a second client.
 	msg := map[string]interface{}{
 		"topic": fmt.Sprintf("realtime:print_jobs:restaurant_id=eq.%s", r.restaurantID),
 		"event": "phx_join",
@@ -209,12 +208,6 @@ func (r *RealtimeNotifier) subscribe() error {
 						"event":  "*",
 						"schema": "public",
 						"table":  "print_jobs",
-						"filter": fmt.Sprintf("restaurant_id=eq.%s", r.restaurantID),
-					},
-					{
-						"event":  "*",
-						"schema": "public",
-						"table":  "bill_sync_jobs",
 						"filter": fmt.Sprintf("restaurant_id=eq.%s", r.restaurantID),
 					},
 				},
@@ -338,19 +331,12 @@ func (r *RealtimeNotifier) handleMessage(msg []byte) {
 		var payload struct {
 			Data struct {
 				Type   string          `json:"type"`
-				Table  string          `json:"table"`
 				Record json.RawMessage `json:"record"`
 			} `json:"data"`
 		}
 
 		if err := json.Unmarshal(envelope.Payload, &payload); err != nil {
 			log.Printf("Realtime: failed to parse postgres_changes: %v", err)
-			return
-		}
-
-		if payload.Data.Table == "bill_sync_jobs" {
-			// Same pipe doorbell → claim pull (not a second Notifier).
-			go processPendingBillSyncs(context.Background(), r.config)
 			return
 		}
 
@@ -387,7 +373,6 @@ func (r *RealtimeNotifier) compensationFetch(ctx context.Context) error {
 	if admitted > 0 {
 		logCompensationSummary("Realtime", fetched, admitted)
 	}
-	processPendingBillSyncs(ctx, r.config)
 	return nil
 }
 

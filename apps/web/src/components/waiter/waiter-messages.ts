@@ -415,7 +415,7 @@ export const WAITER_TEXT = {
     cardTransferredBadge: 'Mudar',
     cardActionOpenTable: 'Abrir',
     cardActionViewOrder: 'Detalhes',
-    cardActionCheckout: 'Fechar conta',
+    cardActionCheckout: 'Fechar',
   },
   es: {
     step: 'Paso 3/3: el camarero revisa las mesas listas y las prioridades de servicio.',

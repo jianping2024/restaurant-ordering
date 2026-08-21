@@ -453,7 +453,7 @@ Farvoo 订单状态、云端副本不单独充当「已开票」权威。
 | 文档 | 用途 |
 |------|------|
 | [需求 v0.17（Markdown）](../葡萄牙餐饮与小型零售_POS合规开票软件_需求文档_v0.17.md) | 合规与 Agent 完整需求（唯一正文） |
-| [`farvoo-fiscal-bill-sync-api.zh.md`](./farvoo-fiscal-bill-sync-api.zh.md) | 账单同步：挂单 + 复用 Agent Realtime/拉取；临时表 JSON；`bill_sync_to_fiscal` 默认关 |
+| [`farvoo-fiscal-bill-sync-api.zh.md`](./farvoo-fiscal-bill-sync-api.zh.md) | 账单同步契约基线 **`bill-sync-contract-v1.0`**：挂单 + 复用 Agent Realtime/拉取；临时表 JSON；`bill_sync_to_fiscal` 默认关 |
 | [`samples/pt-fiscal-receipt-pirata-wok-ft-example.md`](./samples/pt-fiscal-receipt-pirata-wok-ft-example.md) | 真实 FT 小票版式参考（非本产品输出） |
 | [`04-printing.md`](./04-printing.md) | Farvoo 现有业务热敏打印（云端入队侧） |
 | [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md) | 现有 print-agent 流程（改造基线） |

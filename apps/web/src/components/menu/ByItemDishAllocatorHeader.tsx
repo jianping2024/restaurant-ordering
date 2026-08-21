@@ -52,7 +52,15 @@ export function ByItemDishAllocatorHeader({
   const isComplete = statusSummary.tone === 'success';
 
   return (
-    <div className={`flex gap-3 ${expanded ? 'items-start mb-3' : 'items-center'}`}>
+    <button
+      type="button"
+      onClick={onToggleExpand}
+      aria-label={expanded ? labels.collapseDetails : labels.expandDetails}
+      aria-expanded={expanded}
+      className={`flex w-full gap-3 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-brand-gold/5 ${
+        expanded ? 'items-start mb-2' : 'items-center'
+      }`}
+    >
       <div className="min-w-0 flex-1">
         {expanded ? (
           <>
@@ -78,16 +86,10 @@ export function ByItemDishAllocatorHeader({
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <span className="text-brand-gold text-[13px] tabular-nums">€{lineTotal.toFixed(2)}</span>
-        <button
-          type="button"
-          onClick={onToggleExpand}
-          aria-label={expanded ? labels.collapseDetails : labels.expandDetails}
-          aria-expanded={expanded}
-          className="w-8 h-8 rounded-lg text-brand-text-muted hover:text-brand-gold hover:bg-brand-gold/10 transition-colors flex items-center justify-center"
-        >
+        <span className="w-8 h-8 rounded-lg text-brand-text-muted flex items-center justify-center">
           <ChevronIcon expanded={expanded} />
-        </button>
+        </span>
       </div>
-    </div>
+    </button>
   );
 }

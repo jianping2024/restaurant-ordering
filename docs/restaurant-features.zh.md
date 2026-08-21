@@ -12,6 +12,7 @@
 |--------|------|------|
 | `kitchen_serve_to_table` | **关闭** | 勾选后楼面可在已出餐菜品上点「上桌」 |
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单、分单小票与结账小票；未勾选时跳过自动打印（厨房单不受影响）；后台「打印账单」手动补打不受影响 |
+| `bill_sync_to_fiscal` | **关闭** | 勾选后结账页出现「同步账单」（云端挂单，Agent 拉取）；未勾选时入口隐藏且入队 API 拒绝。分单/打票在 Agent 本机。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 
@@ -24,7 +25,7 @@
 示例：
 
 ```json
-{ "kitchen_serve_to_table": true, "bill_receipt_print": true }
+{ "kitchen_serve_to_table": true, "bill_receipt_print": true, "bill_sync_to_fiscal": true }
 ```
 
 - 键缺失 → 使用代码中的默认值（见 `packages/shared` → `restaurant-features.ts`）

@@ -140,6 +140,8 @@ UI：已开的人显示已开/可重打；未开的人显示可开票；整桌�
 | **API 开票（Farvoo 桌台）** | Farvoo 调 Local API，推入销售快照 | **仅 FT**（整桌或按人 scope） |
 | **Agent 本地 UI** | 登录 Agent 开票页后操作 | **FT**（手动）以及 **NC / FS / FR / ND**（及查票重打等） |
 
+**账单同步（非开票）：** 结账挂 `bill_sync_jobs`；Agent **复用打印同款** Realtime + `agentjwt` 拉取（另表另 pending），写入本地临时表后本机分单/打票。成功提示「同步完成」。契约见 [`farvoo-fiscal-bill-sync-api.zh.md`](./farvoo-fiscal-bill-sync-api.zh.md)。
+
 **定稿：** 对冲 **NC** 以及其他非 FT 类型（FS/FR/ND）→ **必须登录 Agent 本地办理**；Farvoo 结账/桌台 **不**提供开 NC/FR/ND 的入口，也 **不**调对应 API。
 
 **不要用「断网前缓存的 Farvoo 账单」这种说法。**  
@@ -294,7 +296,7 @@ agent.tls_enabled            # 默认 false；见下
 ```
 
 - `document_type`：桌台「打印发票」传 `FT` 或 `FS`（白天散客常用 FS；有 NIF / 要正式发票用 FT）。NC / FR / ND 不走 Farvoo 桌台。
-- `customer.nif`：有则 9 位税号；`null` / `""` → 宏翔按散客 `999999990` / Consumidor Final。
+- `customer.nif`：有则 9 位税号；`null` / `""` → 打票系统按散客 `999999990` / Consumidor Final。
 - 按人开票：`scope_type` 为 `"person"`，`scope_id` 为 `session_collected_payments.id` 或分单行 `party_id`。
 
 ### 6.1a 客户资料（定稿：以 Agent 本地为主）
@@ -451,7 +453,7 @@ Farvoo 订单状态、云端副本不单独充当「已开票」权威。
 | 文档 | 用途 |
 |------|------|
 | [需求 v0.17（Markdown）](../葡萄牙餐饮与小型零售_POS合规开票软件_需求文档_v0.17.md) | 合规与 Agent 完整需求（唯一正文） |
-| [`hongxiang-partner-bill-sync-api.zh.md`](./hongxiang-partner-bill-sync-api.zh.md) | 给宏翔的账单同步对接说明 |
+| [`farvoo-fiscal-bill-sync-api.zh.md`](./farvoo-fiscal-bill-sync-api.zh.md) | 账单同步：挂单 + 复用 Agent Realtime/拉取；临时表 JSON；`bill_sync_to_fiscal` 默认关 |
 | [`samples/pt-fiscal-receipt-pirata-wok-ft-example.md`](./samples/pt-fiscal-receipt-pirata-wok-ft-example.md) | 真实 FT 小票版式参考（非本产品输出） |
 | [`04-printing.md`](./04-printing.md) | Farvoo 现有业务热敏打印（云端入队侧） |
 | [`../print-agent-flow.zh.md`](../print-agent-flow.zh.md) | 现有 print-agent 流程（改造基线） |

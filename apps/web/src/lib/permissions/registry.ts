@@ -96,6 +96,8 @@ export const PERMISSIONS = {
   'checkout.assist_bill': { group: 'checkout', labelKey: 'checkoutAssistBill' },
   'checkout.print_pre_bill': { group: 'checkout', labelKey: 'checkoutPrintPreBill' },
   'checkout.open_pending_tables': { group: 'checkout', labelKey: 'checkoutOpenPendingTables' },
+  /** 结账详情「同步账单」— sole gate (feature flag still required to enqueue). */
+  'checkout.sync_bill': { group: 'checkout', labelKey: 'checkoutSyncBill' },
 
   // Tables / sessions (楼面 · 桌台详情 actions)
   'tables.manage': { group: 'tables', labelKey: 'tablesManage', dangerous: true },

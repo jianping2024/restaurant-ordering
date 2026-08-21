@@ -30,6 +30,8 @@ import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
+import { billSyncUiContentRevision } from '@/lib/bill-sync-ui-revision';
+import { maySyncBillToFiscal } from '@/lib/bill-sync-permission';
 import { useStaffBillSync } from '@/lib/use-staff-bill-sync';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
@@ -75,6 +77,7 @@ export function CheckoutRequestDetailHost({
   onCloseTableComplete,
 }: Props) {
   const canForceCloseTable = mayForceCloseTable(capabilities);
+  const canSyncBill = maySyncBillToFiscal(capabilities);
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
   const waiterBoard = useWaiterBoardOptional();
@@ -118,6 +121,7 @@ export function CheckoutRequestDetailHost({
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
+  const [billContentReady, setBillContentReady] = useState(false);
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printCheckoutBill,
@@ -133,10 +137,12 @@ export function CheckoutRequestDetailHost({
       setSelectedLines([]);
       setSessionOrders([]);
       setItemCodeByMenuId({});
+      setBillContentReady(true);
       return;
     }
 
     let cancelled = false;
+    setBillContentReady(false);
     const loadLines = async () => {
       const { data: orderRows, error } = await supabase
         .from('orders')
@@ -149,6 +155,7 @@ export function CheckoutRequestDetailHost({
         setSelectedLines([]);
         setSessionOrders([]);
         setItemCodeByMenuId({});
+        setBillContentReady(true);
         return;
       }
 
@@ -167,6 +174,7 @@ export function CheckoutRequestDetailHost({
       setSessionOrders(orders);
       setItemCodeByMenuId(codes);
       setSelectedLines(checkoutLinesFromOrders(orders, lang, codes));
+      setBillContentReady(true);
     };
 
     void loadLines();
@@ -347,19 +355,32 @@ export function CheckoutRequestDetailHost({
   const discountApplying = billDiscount.applyingRequestId === request.id;
   const billCooldownKey = staffBillPrintCooldownKey(request.id);
   const printBillBusy = isPrintBillBusy(request.id);
+  const billSyncContentRevision = useMemo(
+    () =>
+      billSyncUiContentRevision({
+        totalAmount: request.total_amount,
+        discountRate: request.discount_rate ?? 0,
+        orders: sessionOrders,
+      }),
+    [request.discount_rate, request.total_amount, sessionOrders],
+  );
   const {
     billSyncAvailable,
     billSyncBusy,
+    billSyncBlocked,
     billSyncJob,
     syncBill,
   } = useStaffBillSync({
     restaurantSlug,
     billSplitId: request.id,
-    enabled: true,
+    enabled: canSyncBill,
+    contentRevision: billSyncContentRevision,
+    contentReady: billContentReady,
     labels: {
       syncBillComplete: t.syncBillComplete,
       syncBillFailed: t.syncBillFailed,
       syncBillDisabled: t.syncBillDisabled,
+      syncBillUnchanged: t.syncBillUnchanged,
     },
   });
   const billSyncStatusLabel =
@@ -403,6 +424,7 @@ export function CheckoutRequestDetailHost({
         printOnCooldown={isOnCooldown(billCooldownKey)}
         billSyncAvailable={billSyncAvailable}
         billSyncBusy={billSyncBusy}
+        billSyncBlocked={billSyncBlocked}
         billSyncStatusLabel={billSyncStatusLabel}
         onSyncBill={() => void syncBill()}
         showSplitReceiptActions={showSplitReceiptActions}

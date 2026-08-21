@@ -31,7 +31,7 @@
        · Realtime 挂了才 fallback 轮询
   → Agent 持 agentjwt：GET pending-bill-syncs
   → 写入/覆盖本地临时表 → upsert 商品 → ack
-  → 结账页「同步完成」（或失败/超时可再同步）
+  → 结账页「同步完成」（失败/超时可再同步；**succeeded 且内容指纹未变 → 禁止再入队**）
   → 店员在 Agent 本机：读临时表 → 分单 / 打票
 ```
 
@@ -155,8 +155,9 @@
 | Fallback | 仅 Realtime 不可用时，在**原有** polling 回路中兼拉 `pending-bill-syncs` |
 | 表侧必做 | `bill_sync_jobs` **单独**加入 `supabase_realtime` publication + 本店可读 RLS（session 能订到行；与 `print_jobs` 配置同类、表不同） |
 | 同 `request_id` | 重放不双写 |
-| 同 `source_sale_id` 新单 | 新 `request_id`；`open` 则覆盖；`invoiced` 则 failed |
-| 文案 | ack 成功后结账页才示 **「同步完成」**（以云端 job=`succeeded` 为准，不以「仅入队」为准） |
+| 同 `source_sale_id` 新单 | 新 `request_id`；内容指纹与最近 **succeeded** 相同 → 入队拒绝 `already_synced`；不同则新挂单；Agent 侧 `open` 覆盖、`invoiced` 则 failed |
+| pending/processing | 同 `source_sale_id` 不插第二单，返回在途 job |
+| 文案 | ack 成功后结账页才示 **「同步完成」**（以云端 job=`succeeded` 为准，不以「仅入队」为准）；未变再点禁用 |
 | 实现锁 | 改 `realtime.go` / Notifier 时注释+测试锁死「单连接多表」；禁止拆成第二套独立轮询 |
 | 禁止 | 主路径 interval；同步进 `print_jobs`；多 Agent |
 
@@ -164,7 +165,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账页「同步账单」；job=`succeeded` →「同步完成」；`failed`（含 `already_invoiced`、校验失败）展示回传原因并可再试（已开票场景再试仍应失败直至产品另定）。未配对/超时 pending → 提示未送达。不做打票工作台。
+**Restaurant：** 结账详情「同步账单」（功能开关 + 权限 `checkout.sync_bill`，与关台类按钮同为 capability 显隐）；job=`succeeded` →「同步完成」且内容未变时按钮禁用；`failed`（含 `already_invoiced`、校验失败）展示回传原因并可再试；未变再入队 → `already_synced`。未配对/超时 pending → 提示未送达。不做打票工作台。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 

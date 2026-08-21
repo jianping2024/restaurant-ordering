@@ -21,7 +21,8 @@ export function resolveStaffOperatorDisplayName(account: {
   return '';
 }
 
-async function resolveOperatorUsernameFromAuthUser(
+/** Auth email local-part — last resort when staff row has no display/login name. */
+export async function resolveOperatorUsernameFromAuthUser(
   admin: SupabaseClient,
   userId: string,
 ): Promise<string> {

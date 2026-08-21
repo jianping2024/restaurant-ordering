@@ -73,6 +73,7 @@ export function sessionMetaFromEnsuredSession(
 
 type RestaurantOpenerContext = {
   restaurantId: string;
+  /** Empty when unset — staff/login resolution still runs; owner label only if set. */
   ownerId: string;
   restaurantName: string;
 };
@@ -86,10 +87,10 @@ async function loadRestaurantOpenerContext(
     .select('owner_id, name')
     .eq('id', restaurantId)
     .maybeSingle();
-  if (!restaurant?.owner_id || !restaurant.name) return null;
+  if (!restaurant?.name?.trim()) return null;
   return {
     restaurantId,
-    ownerId: restaurant.owner_id as string,
+    ownerId: typeof restaurant.owner_id === 'string' ? restaurant.owner_id : '',
     restaurantName: restaurant.name as string,
   };
 }

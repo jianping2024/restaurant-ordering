@@ -1,7 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { resolveOwnerOperatorName } from '@/lib/audit/resolve-actor';
+import {
+  resolveOperatorUsernameFromAuthUser,
+  resolveOwnerOperatorName,
+  resolveStaffOperatorDisplayName,
+} from '@/lib/audit/resolve-actor';
 
-/** Resolve staff/owner display names for session open/close operators. */
+/**
+ * Resolve staff/owner labels for board opener + order-history operators.
+ * Same ladder as audit actors: staff row via {@link resolveStaffOperatorDisplayName},
+ * then Auth username, then owner restaurant name.
+ */
 export async function resolveStaffOperatorNames(
   admin: SupabaseClient,
   params: {
@@ -17,19 +25,27 @@ export async function resolveStaffOperatorNames(
 
   const { data: staffRows } = await admin
     .from('restaurant_staff_accounts')
-    .select('user_id, display_name')
+    .select('user_id, display_name, login_name')
     .eq('restaurant_id', params.restaurantId)
     .in('user_id', uniqueIds);
 
   for (const row of staffRows || []) {
     const userId = row.user_id as string;
-    const displayName = (row.display_name as string | undefined)?.trim();
-    if (displayName) names.set(userId, displayName);
+    const label = resolveStaffOperatorDisplayName({
+      display_name: row.display_name as string | null | undefined,
+      login_name: row.login_name as string | null | undefined,
+    });
+    if (label) names.set(userId, label);
   }
 
   for (const userId of uniqueIds) {
     if (names.has(userId)) continue;
-    if (userId === params.ownerId) {
+    const fromAuth = await resolveOperatorUsernameFromAuthUser(admin, userId);
+    if (fromAuth) {
+      names.set(userId, fromAuth);
+      continue;
+    }
+    if (params.ownerId && userId === params.ownerId) {
       names.set(userId, resolveOwnerOperatorName(params.restaurantName, undefined));
     }
   }

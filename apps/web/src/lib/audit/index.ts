@@ -22,6 +22,7 @@ export {
   frontdeskAuditActor,
   loadStaffAuditActor,
   ownerAuditActor,
+  resolveOperatorUsernameFromAuthUser,
   resolveOwnerOperatorName,
   resolveStaffOperatorDisplayName,
   staffAuditActor,

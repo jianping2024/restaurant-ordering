@@ -2,6 +2,7 @@
 
 **读者：** Restaurant（点餐/结账）/ Farvoo 打票 Agent 实现方  
 **日期：** 2026-08-21  
+**契约基线版本：** `bill-sync-contract-v1.0`（2026-08-21；挂单拉取 + 复用 print-agent Realtime 管道定稿）  
 **状态：** 宏翔合作已结束。投递主路径：**云端挂单 + Agent 复用打印同款 Realtime/拉取**（不用浏览器直 POST Agent）。
 
 ## 职责拆分（定稿）

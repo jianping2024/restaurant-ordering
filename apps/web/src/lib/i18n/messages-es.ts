@@ -757,6 +757,8 @@ export const MESSAGES_ES = {
     "kitchenServeToTableDesc": "Si está activado, el personal de sala puede marcar platos listos como servidos a la mesa.",
     "billReceiptPrint": "Imprimir cuentas",
     "billReceiptPrintDesc": "Si está activado, al pedir la cuenta se imprime automáticamente una precuenta; las cuentas divididas y el cobro total imprimen automáticamente los recibos de cada parte y la cuenta final. Si está desactivado, se omiten esos trabajos automáticos (los tiques de cocina no se ven afectados); la impresión manual de la cuenta durante el cobro sigue funcionando.",
+    "billSyncToFiscal": "Sincronizar cuenta al agente fiscal",
+    "billSyncToFiscalDesc": "Activado: el cobro muestra Sincronizar cuenta (cola para el agente de impresión). Desactivado: control oculto y la API rechaza. División y factura quedan en el agente fiscal.",
     "stationSlipShowCategoryGroup": "Grupos de categoría en los tiques de cocina",
     "stationSlipShowCategoryGroupDesc": "Si está activado, las comandas de los clientes imprimen una línea centrada entre paréntesis cuando cambia el grupo principal de la carta (p. ej. (Bebidas/ Drinks2)). Si está desactivado, solo se imprimen las líneas de código y nombre del plato.",
     "modulePrintAgent": "Asistente de impresión",

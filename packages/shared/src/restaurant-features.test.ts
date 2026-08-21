@@ -64,6 +64,7 @@ describe('mergeRestaurantFeatureFlagsJsonb', () => {
     assert.equal(merged.geo_order_restriction, true);
     assert.equal(merged.kitchen_serve_to_table, true);
     assert.equal(merged.bill_receipt_print, false);
+    assert.equal(merged.bill_sync_to_fiscal, false);
   });
 });
 
@@ -72,6 +73,7 @@ describe('normalizeRestaurantFeatureFlags', () => {
     const flags = normalizeRestaurantFeatureFlags({});
     assert.equal(flags.bill_receipt_print, false);
     assert.equal(flags.kitchen_serve_to_table, false);
+    assert.equal(flags.bill_sync_to_fiscal, false);
     assert.equal('kitchen_board' in flags, false);
   });
 });

@@ -757,6 +757,8 @@ export const MESSAGES_FR = {
     "kitchenServeToTableDesc": "Lorsque cette option est activée, le personnel de salle peut marquer les plats prêts comme servis à table.",
     "billReceiptPrint": "Imprimer les notes",
     "billReceiptPrintDesc": "Lorsque cette option est activée, une demande de note imprime automatiquement une pré-note ; les paiements partagés et l'encaissement complet impriment automatiquement les reçus partagés et la note finale. Lorsqu'elle est désactivée, ces impressions automatiques sont ignorées (les bons de cuisine ne sont pas concernés) ; l'impression manuelle de la note lors de l'encaissement reste disponible.",
+    "billSyncToFiscal": "Synchroniser la note vers l'agent fiscal",
+    "billSyncToFiscalDesc": "Active : le checkout affiche Synchroniser la note (file d'attente pour l'agent d'impression). Désactivé : contrôle masqué et API refusée. Division et facture restent sur l'agent fiscal.",
     "stationSlipShowCategoryGroup": "Groupes de catégories sur les bons de cuisine",
     "stationSlipShowCategoryGroupDesc": "Lorsque cette option est activée, les bons de commande client impriment une ligne de catégorie centrée entre parenthèses à chaque changement de groupe principal de la carte (par ex. (Bebidas/ Drinks2)). Lorsqu'elle est désactivée, seules les lignes de code et de nom d'article sont imprimées.",
     "hanBitmapFontPx": "Taille de police bitmap chinoise",

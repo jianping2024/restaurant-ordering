@@ -8,8 +8,8 @@ BEGIN
     RAISE NOTICE 'supabase_realtime publication missing — skip ensure';
     RETURN;
   END IF;
-  -- print_jobs: print-agent Realtime CDC (station tickets / receipts)
-  FOREACH t IN ARRAY ARRAY['orders', 'table_sessions', 'bill_splits', 'print_jobs']
+  -- print_jobs / bill_sync_jobs: print-agent Realtime CDC (tickets + bill-sync drafts)
+  FOREACH t IN ARRAY ARRAY['orders', 'table_sessions', 'bill_splits', 'print_jobs', 'bill_sync_jobs']
   LOOP
     IF NOT EXISTS (
       SELECT 1

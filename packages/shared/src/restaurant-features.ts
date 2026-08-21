@@ -1,5 +1,8 @@
 /** Known restaurant feature keys — extend this union when adding toggles. */
-export type RestaurantFeatureKey = 'bill_receipt_print' | 'kitchen_serve_to_table';
+export type RestaurantFeatureKey =
+  | 'bill_receipt_print'
+  | 'bill_sync_to_fiscal'
+  | 'kitchen_serve_to_table';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
 export type RestaurantFeatureModuleId = 'billing' | 'kitchen';
@@ -18,8 +21,8 @@ export type RestaurantFeatureDefinition = {
   key: RestaurantFeatureKey;
   moduleId: RestaurantFeatureModuleId;
   defaultEnabled: boolean;
-  labelKey: 'billReceiptPrint' | 'kitchenServeToTable';
-  descKey: 'billReceiptPrintDesc' | 'kitchenServeToTableDesc';
+  labelKey: 'billReceiptPrint' | 'billSyncToFiscal' | 'kitchenServeToTable';
+  descKey: 'billReceiptPrintDesc' | 'billSyncToFiscalDesc' | 'kitchenServeToTableDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -49,6 +52,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'billReceiptPrint',
     descKey: 'billReceiptPrintDesc',
+  },
+  {
+    key: 'bill_sync_to_fiscal',
+    moduleId: 'billing',
+    defaultEnabled: false,
+    labelKey: 'billSyncToFiscal',
+    descKey: 'billSyncToFiscalDesc',
   },
 ] as const;
 

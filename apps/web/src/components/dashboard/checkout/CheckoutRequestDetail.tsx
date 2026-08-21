@@ -48,6 +48,10 @@ interface Props {
   printBillBusy: boolean;
   printCooldownSeconds: number;
   printOnCooldown: boolean;
+  billSyncAvailable: boolean;
+  billSyncBusy: boolean;
+  billSyncStatusLabel: string | null;
+  onSyncBill: () => void;
   showSplitReceiptActions: boolean;
   onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
   isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
@@ -158,6 +162,10 @@ export function CheckoutRequestDetail({
   printBillBusy,
   printCooldownSeconds,
   printOnCooldown,
+  billSyncAvailable,
+  billSyncBusy,
+  billSyncStatusLabel,
+  onSyncBill,
   showSplitReceiptActions,
   onPrintSplitReceipt,
   isPrintReceiptBusy,
@@ -345,18 +353,33 @@ export function CheckoutRequestDetail({
       />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
-        <button
-          type="button"
-          onClick={onPrintBill}
-          disabled={detailLocked || printBillBusy || printOnCooldown}
-          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-        >
-          {printBillBusy
-            ? t.printBillOperating
-            : printOnCooldown
-              ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))
-              : t.printBill}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={onPrintBill}
+            disabled={detailLocked || printBillBusy || printOnCooldown}
+            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+          >
+            {printBillBusy
+              ? t.printBillOperating
+              : printOnCooldown
+                ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))
+                : t.printBill}
+          </button>
+          {billSyncAvailable ? (
+            <button
+              type="button"
+              onClick={onSyncBill}
+              disabled={detailLocked || billSyncBusy}
+              className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+            >
+              {billSyncBusy ? t.syncBillOperating : t.syncBill}
+            </button>
+          ) : null}
+          {billSyncStatusLabel ? (
+            <span className="text-xs text-brand-text-muted">{billSyncStatusLabel}</span>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-col items-end gap-1">
             <button

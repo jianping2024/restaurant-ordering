@@ -30,6 +30,7 @@ import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
+import { useStaffBillSync } from '@/lib/use-staff-bill-sync';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -346,12 +347,36 @@ export function CheckoutRequestDetailHost({
   const discountApplying = billDiscount.applyingRequestId === request.id;
   const billCooldownKey = staffBillPrintCooldownKey(request.id);
   const printBillBusy = isPrintBillBusy(request.id);
+  const {
+    billSyncAvailable,
+    billSyncBusy,
+    billSyncJob,
+    syncBill,
+  } = useStaffBillSync({
+    restaurantSlug,
+    billSplitId: request.id,
+    enabled: true,
+    labels: {
+      syncBillComplete: t.syncBillComplete,
+      syncBillFailed: t.syncBillFailed,
+      syncBillDisabled: t.syncBillDisabled,
+    },
+  });
+  const billSyncStatusLabel =
+    billSyncJob?.status === 'succeeded'
+      ? t.syncBillComplete
+      : billSyncJob?.status === 'failed'
+        ? t.syncBillFailed
+        : billSyncJob?.status === 'pending' || billSyncJob?.status === 'processing'
+          ? t.syncBillOperating
+          : null;
   const showSplitReceiptActions = isMultiPersonSplitBill(request);
   const detailLocked =
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
     discountApplying ||
-    printBillBusy;
+    printBillBusy ||
+    billSyncBusy;
 
   return (
     <>
@@ -376,6 +401,10 @@ export function CheckoutRequestDetailHost({
         printBillBusy={printBillBusy}
         printCooldownSeconds={cooldownSecondsLeft(billCooldownKey)}
         printOnCooldown={isOnCooldown(billCooldownKey)}
+        billSyncAvailable={billSyncAvailable}
+        billSyncBusy={billSyncBusy}
+        billSyncStatusLabel={billSyncStatusLabel}
+        onSyncBill={() => void syncBill()}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
         isPrintReceiptBusy={(payment) =>

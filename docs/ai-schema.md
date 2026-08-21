@@ -44,6 +44,7 @@ print_agent_support_tokens (id: uuid PK, device_id: uuid FK -> print_agent_devic
 print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, code: text check six_digits, expires_at: timestamptz, consumed_at: timestamptz nullable, created_by: uuid FK -> auth.users.id nullable, created_at: timestamptz, revoked_at: timestamptz nullable)
 
 print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
+bill_sync_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, request_id: uuid, source_system: text [farvoo], source_sale_id: uuid, table_display_name: text, scope_type: text [whole_table|split], payload: jsonb, status: text [pending|processing|succeeded|failed], error_code: text nullable, error_message: text nullable, created_by: uuid nullable, created_at: timestamptz, updated_at: timestamptz; UNIQUE(restaurant_id, request_id); Realtime + print_agent SELECT RLS)
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz, kitchen_enabled: boolean NOT NULL default false)
 
@@ -202,9 +203,9 @@ Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies o
 
 ## Realtime (`supabase_realtime` publication)
 
-Filtered subscriptions need `REPLICA IDENTITY FULL` on: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, buffet tables.
+Filtered subscriptions need `REPLICA IDENTITY FULL` on: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`, buffet tables.
 
-**Mode B:** baseline omits publication membership → `apply-migrations.sh` always runs `deploy/on-prem/schema/ensure_realtime_publication.sql` (`orders`, `table_sessions`, `bill_splits`, `print_jobs`). See on-prem pack doc §2.3.
+**Mode B:** baseline omits publication membership → `apply-migrations.sh` always runs `deploy/on-prem/schema/ensure_realtime_publication.sql` (`orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`). See on-prem pack doc §2.3.
 
 ## Domain Values / Check Constraints
 

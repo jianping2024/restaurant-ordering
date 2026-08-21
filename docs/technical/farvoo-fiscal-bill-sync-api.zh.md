@@ -230,7 +230,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账详情「同步账单」（功能开关 + 权限 `checkout.sync_bill`，与关台类按钮同为 capability 显隐）；job=`succeeded` →「同步完成」且内容未变时按钮禁用；`failed`（含 `already_invoiced`、校验失败）展示回传原因并可再试；未变再入队 → `already_synced`。未配对/超时 pending → 提示未送达。不做打票工作台。
+**Restaurant：** 结账详情「同步账单」（功能开关 + 权限 `checkout.sync_bill`，与关台类按钮同为 capability 显隐）；`GET …/bill-syncs` 返回 `content_unchanged`（当前账单指纹 vs 最近 **succeeded** job）；仅当 `content_unchanged` 时禁用按钮并示「同步完成」；`failed`（含 `already_invoiced`、校验失败）展示回传原因并可再试；未变再入队 → `already_synced`。未配对/超时 pending → 提示未送达。不做打票工作台。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 

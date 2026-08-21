@@ -30,7 +30,6 @@ import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
-import { billSyncUiContentRevision } from '@/lib/bill-sync-ui-revision';
 import { maySyncBillToFiscal } from '@/lib/bill-sync-permission';
 import { useStaffBillSync } from '@/lib/use-staff-bill-sync';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -181,7 +180,15 @@ export function CheckoutRequestDetailHost({
     return () => {
       cancelled = true;
     };
-  }, [supabase, restaurantId, request.session_id, lang]);
+    // Reload when checkout bill may have changed (resume → reorder → new request).
+  }, [
+    supabase,
+    restaurantId,
+    request.session_id,
+    request.id,
+    request.total_amount,
+    lang,
+  ]);
 
   const collectedPayments = getCollectedForSession(request.session_id);
 
@@ -355,27 +362,30 @@ export function CheckoutRequestDetailHost({
   const discountApplying = billDiscount.applyingRequestId === request.id;
   const billCooldownKey = staffBillPrintCooldownKey(request.id);
   const printBillBusy = isPrintBillBusy(request.id);
-  const billSyncContentRevision = useMemo(
-    () =>
-      billSyncUiContentRevision({
-        totalAmount: request.total_amount,
-        discountRate: request.discount_rate ?? 0,
-        orders: sessionOrders,
-      }),
-    [request.discount_rate, request.total_amount, sessionOrders],
-  );
+  const billSyncRefreshKey = useMemo(() => {
+    const orderStamp = sessionOrders
+      .map((o) => `${o.id}:${o.updated_at ?? ''}:${(o.items ?? []).length}`)
+      .join('|');
+    return `${request.id}:${request.total_amount}:${request.discount_rate ?? 0}:${orderStamp}:${billContentReady ? '1' : '0'}`;
+  }, [
+    billContentReady,
+    request.discount_rate,
+    request.id,
+    request.total_amount,
+    sessionOrders,
+  ]);
   const {
     billSyncAvailable,
     billSyncBusy,
     billSyncBlocked,
+    billSyncContentUnchanged,
     billSyncJob,
     syncBill,
   } = useStaffBillSync({
     restaurantSlug,
     billSplitId: request.id,
     enabled: canSyncBill,
-    contentRevision: billSyncContentRevision,
-    contentReady: billContentReady,
+    refreshKey: billSyncRefreshKey,
     labels: {
       syncBillComplete: t.syncBillComplete,
       syncBillFailed: t.syncBillFailed,
@@ -383,14 +393,13 @@ export function CheckoutRequestDetailHost({
       syncBillUnchanged: t.syncBillUnchanged,
     },
   });
-  const billSyncStatusLabel =
-    billSyncJob?.status === 'succeeded'
-      ? t.syncBillComplete
-      : billSyncJob?.status === 'failed'
-        ? t.syncBillFailed
-        : billSyncJob?.status === 'pending' || billSyncJob?.status === 'processing'
-          ? t.syncBillOperating
-          : null;
+  const billSyncStatusLabel = billSyncContentUnchanged
+    ? t.syncBillComplete
+    : billSyncJob?.status === 'failed'
+      ? t.syncBillFailed
+      : billSyncJob?.status === 'pending' || billSyncJob?.status === 'processing'
+        ? t.syncBillOperating
+        : null;
   const showSplitReceiptActions = isMultiPersonSplitBill(request);
   const detailLocked =
     isResumeBusy ||

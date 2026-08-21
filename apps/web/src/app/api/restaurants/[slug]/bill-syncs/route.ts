@@ -1,10 +1,12 @@
 import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
+import { billSyncContentUnchanged } from '@/lib/bill-sync-content-unchanged';
+import {
+  liveBillSyncContentFingerprint,
+  loadBillSyncLiveContext,
+} from '@/lib/bill-sync-live-context';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { enqueueBillSyncJob } from '@/lib/bill-sync-enqueue';
-import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
-import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
-import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
 import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { NextResponse } from 'next/server';
 
@@ -51,68 +53,30 @@ export async function POST(
     return NextResponse.json({ error: 'bill_sync_disabled' }, { status: 403 });
   }
 
-  const { data: split, error: splitErr } = await auth.admin
-    .from('bill_splits')
-    .select('id, restaurant_id, table_id, session_id, status, total_amount, split_mode, persons')
-    .eq('id', billSplitId)
-    .eq('restaurant_id', auth.restaurantId)
-    .maybeSingle();
-
-  if (splitErr || !split) {
-    return NextResponse.json({ error: 'bill_split_not_found' }, { status: 404 });
-  }
-
-  const sessionId = typeof split.session_id === 'string' ? split.session_id : '';
-  if (!sessionId) {
-    return NextResponse.json({ error: 'missing_session' }, { status: 409 });
-  }
-
-  const { data: tableRow } = await auth.admin
-    .from('restaurant_tables')
-    .select('display_name')
-    .eq('id', split.table_id)
-    .maybeSingle();
-
-  let orders;
-  try {
-    orders = await loadTableOrdersForSession(auth.admin, auth.restaurantId, sessionId);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'orders_lookup_failed';
-    return NextResponse.json({ error: 'orders_lookup_failed', message }, { status: 500 });
-  }
-
-  const menuIds = distinctMenuItemIdsFromOrders(orders);
-  const itemCodeByMenuId: Record<string, string> = {};
-  const vatRateByMenuId: Record<string, number> = {};
-  if (menuIds.length > 0) {
-    const { data: menuRows } = await auth.admin
-      .from('menu_items')
-      .select('id, item_code, vat_rate')
-      .eq('restaurant_id', auth.restaurantId)
-      .in('id', menuIds);
-    for (const row of menuRows ?? []) {
-      const id = String(row.id);
-      if (typeof row.item_code === 'string' && row.item_code.trim()) {
-        itemCodeByMenuId[id] = row.item_code.trim();
-      }
-      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
-        vatRateByMenuId[id] = row.vat_rate;
-      }
-    }
-  }
-
-  const result = await enqueueBillSyncJob({
+  const loaded = await loadBillSyncLiveContext({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
     billSplitId,
-    tableDisplayName:
-      typeof tableRow?.display_name === 'string' ? tableRow.display_name : '—',
-    splitMode: typeof split.split_mode === 'string' ? split.split_mode : null,
-    persons: Array.isArray(split.persons) ? split.persons : [],
-    orders,
-    itemCodeByMenuId,
-    vatRateByMenuId,
-    defaultVatRatePercent: DEFAULT_MENU_VAT_RATE,
+  });
+  if (!loaded.ok) {
+    return NextResponse.json(
+      { error: loaded.error, message: loaded.message },
+      { status: loaded.status },
+    );
+  }
+
+  const { ctx } = loaded;
+  const result = await enqueueBillSyncJob({
+    admin: auth.admin,
+    restaurantId: auth.restaurantId,
+    billSplitId: ctx.billSplitId,
+    tableDisplayName: ctx.tableDisplayName,
+    splitMode: ctx.splitMode,
+    persons: ctx.persons,
+    orders: ctx.orders,
+    itemCodeByMenuId: ctx.itemCodeByMenuId,
+    vatRateByMenuId: ctx.vatRateByMenuId,
+    defaultVatRatePercent: ctx.defaultVatRatePercent,
     createdBy: auth.actor.userId,
     requestId,
   });
@@ -131,7 +95,7 @@ export async function POST(
   });
 }
 
-/** Latest job for a bill_split (checkout status). */
+/** Latest job + whether live bill still matches last succeeded sync. */
 export async function GET(
   req: Request,
   { params }: { params: { slug: string } },
@@ -168,12 +132,29 @@ export async function GET(
   }
 
   if (!data) {
-    return NextResponse.json({ job: null });
+    return NextResponse.json({ job: null, content_unchanged: false });
   }
 
   const payload = data.payload as BillSyncPayload | null;
   const content_fingerprint =
     payload && typeof payload === 'object' ? billSyncContentFingerprint(payload) : null;
+
+  let content_unchanged = false;
+  if (data.status === 'succeeded') {
+    const loaded = await loadBillSyncLiveContext({
+      admin: auth.admin,
+      restaurantId: auth.restaurantId,
+      billSplitId: sourceSaleId,
+    });
+    if (loaded.ok) {
+      const liveFp = liveBillSyncContentFingerprint(loaded.ctx);
+      content_unchanged = billSyncContentUnchanged({
+        jobStatus: data.status,
+        jobPayload: payload,
+        liveFingerprint: liveFp,
+      });
+    }
+  }
 
   return NextResponse.json({
     job: {
@@ -186,5 +167,6 @@ export async function GET(
       updated_at: data.updated_at,
       content_fingerprint,
     },
+    content_unchanged,
   });
 }

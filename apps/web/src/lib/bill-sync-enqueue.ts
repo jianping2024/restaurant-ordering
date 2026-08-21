@@ -1,25 +1,19 @@
 import { randomUUID } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
-import {
-  buildBillSyncLine,
-  type BillSyncPayload,
-  validateBillSyncPayload,
-} from '@/lib/bill-sync-payload';
-import {
-  billableLineAmount,
-  buildBillableSessionItems,
-} from '@/lib/billable-session-lines';
-import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
-import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import { isBuffetBaseItem } from '@/lib/order-items';
-import type { Order, OrderItem } from '@/types';
+import { buildBillSyncJobPayload } from '@/lib/bill-sync-build-payload';
+import type { BillSyncPayload } from '@/lib/bill-sync-payload';
+import { parseSplitMode } from '@/lib/checkout-split-intent';
+import type { Order, SplitPerson } from '@/types';
 
 export type EnqueueBillSyncInput = {
   admin: SupabaseClient;
   restaurantId: string;
   billSplitId: string;
   tableDisplayName: string;
+  /** Persisted bill_splits.split_mode; drives whole_table vs split payload. */
+  splitMode: string | null | undefined;
+  persons: SplitPerson[] | null | undefined;
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
@@ -53,22 +47,6 @@ type JobRow = {
   payload: BillSyncPayload | null;
 };
 
-/**
- * Sole fiscal item_code for a billable line (menu snapshot or buffet_base).
- * Buffet has no catalog item_code — stable `BF` + first 8 hex of buffet uuid.
- */
-export function resolveBillSyncItemCode(
-  item: OrderItem,
-  itemCodeByMenuId: Record<string, string>,
-): string {
-  const fromMenu = (resolveMenuItemCode(item, itemCodeByMenuId) ?? '').trim();
-  if (fromMenu) return fromMenu;
-  if (!isBuffetBaseItem(item)) return '';
-  const buffetId = (item.buffet_id || item.id.replace(/^buffet:/, '')).replace(/-/g, '');
-  if (buffetId.length < 8) return '';
-  return `BF${buffetId.slice(0, 8).toUpperCase()}`;
-}
-
 function jobRef(row: JobRow, fingerprint?: string): BillSyncJobRef {
   const content_fingerprint =
     fingerprint ??
@@ -83,69 +61,28 @@ function jobRef(row: JobRow, fingerprint?: string): BillSyncJobRef {
 
 /**
  * Sole server enqueue for fiscal bill-sync jobs.
- * Builds whole_table snapshot from current billable orders (draft for Agent).
+ * Payload shape from {@link buildBillSyncJobPayload} only.
  */
 export async function enqueueBillSyncJob(
   input: EnqueueBillSyncInput,
 ): Promise<EnqueueBillSyncResult> {
   const requestId = input.requestId?.trim() || randomUUID();
-  const rows = buildBillableSessionItems(input.orders);
-  const lines = [];
-  for (const row of rows) {
-    const { item } = row;
-    const itemCode = resolveBillSyncItemCode(item, input.itemCodeByMenuId);
-    if (!itemCode) {
-      return { ok: false, error: 'empty_item_code', status: 400 };
-    }
-    const name = resolveMenuItemLocalizedName(item, 'pt');
-    const lineGross = billableLineAmount(row);
-    const qty =
-      typeof row.chargeableQty === 'number' && row.chargeableQty > 0
-        ? row.chargeableQty
-        : item.qty;
-    const unit =
-      typeof row.chargeableUnitPrice === 'number'
-        ? row.chargeableUnitPrice
-        : qty > 0
-          ? lineGross / qty
-          : item.price;
-    const vatPercent =
-      (item.id && !isBuffetBaseItem(item) ? input.vatRateByMenuId[item.id] : undefined) ??
-      input.defaultVatRatePercent;
-    const built = buildBillSyncLine({
-      item_code: itemCode,
-      name,
-      qty,
-      unit_price_gross: unit,
-      line_gross: lineGross,
-      vat_rate_percent: vatPercent,
-    });
-    if ('error' in built) {
-      return { ok: false, error: built.error, status: 400 };
-    }
-    lines.push(built);
+  const splitMode = parseSplitMode(input.splitMode) ?? 'whole_table';
+  const built = buildBillSyncJobPayload({
+    requestId,
+    billSplitId: input.billSplitId,
+    tableDisplayName: input.tableDisplayName,
+    splitMode,
+    persons: Array.isArray(input.persons) ? input.persons : [],
+    orders: input.orders,
+    itemCodeByMenuId: input.itemCodeByMenuId,
+    vatRateByMenuId: input.vatRateByMenuId,
+    defaultVatRatePercent: input.defaultVatRatePercent,
+  });
+  if (!built.ok) {
+    return { ok: false, error: built.error, status: 400 };
   }
-
-  if (lines.length === 0) {
-    return { ok: false, error: 'empty_lines', status: 400 };
-  }
-
-  const gross = lines.reduce((sum, line) => sum + Number(line.line_gross), 0);
-  const payload: BillSyncPayload = {
-    request_id: requestId,
-    source_system: 'farvoo',
-    source_sale_id: input.billSplitId,
-    table_display_name: input.tableDisplayName.trim() || '—',
-    scope_type: 'whole_table',
-    lines,
-    gross_total: (Math.round(gross * 100) / 100).toFixed(2),
-  };
-
-  const invalid = validateBillSyncPayload(payload);
-  if (invalid) {
-    return { ok: false, error: invalid, status: 400 };
-  }
-
+  const payload = built.payload;
   const contentFp = billSyncContentFingerprint(payload);
 
   const { data: existingByRequest } = await input.admin
@@ -216,7 +153,7 @@ export async function enqueueBillSyncJob(
       source_system: 'farvoo',
       source_sale_id: input.billSplitId,
       table_display_name: payload.table_display_name,
-      scope_type: 'whole_table',
+      scope_type: payload.scope_type,
       payload,
       status: 'pending',
       created_by: input.createdBy,

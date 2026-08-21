@@ -15,6 +15,7 @@ node_modules/
 apps/*/.next/
 apps/*/.next-uat/
 apps/*/.next-typecheck/
+apps/*/.next-bill-sync/
 apps/*/out/
 
 # production

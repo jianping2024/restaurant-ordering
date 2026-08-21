@@ -53,7 +53,7 @@ export async function POST(
 
   const { data: split, error: splitErr } = await auth.admin
     .from('bill_splits')
-    .select('id, restaurant_id, table_id, session_id, status, total_amount')
+    .select('id, restaurant_id, table_id, session_id, status, total_amount, split_mode, persons')
     .eq('id', billSplitId)
     .eq('restaurant_id', auth.restaurantId)
     .maybeSingle();
@@ -107,6 +107,8 @@ export async function POST(
     billSplitId,
     tableDisplayName:
       typeof tableRow?.display_name === 'string' ? tableRow.display_name : '—',
+    splitMode: typeof split.split_mode === 'string' ? split.split_mode : null,
+    persons: Array.isArray(split.persons) ? split.persons : [],
     orders,
     itemCodeByMenuId,
     vatRateByMenuId,

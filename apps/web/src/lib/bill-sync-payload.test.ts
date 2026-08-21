@@ -70,6 +70,49 @@ describe('validateBillSyncPayload', () => {
     };
     assert.equal(validateBillSyncPayload(payload), null);
   });
+
+  it('accepts split payload and rejects top-level lines/gross', () => {
+    const line = buildBillSyncLine({
+      item_code: '006',
+      name: 'Beer',
+      qty: 1,
+      unit_price_gross: 2.25,
+      line_gross: 2.25,
+      vat_rate_percent: 23,
+    });
+    assert.ok(!('error' in line));
+    const ok: BillSyncPayload = {
+      request_id: '11111111-1111-1111-1111-111111111111',
+      source_system: 'farvoo',
+      source_sale_id: '22222222-2222-2222-2222-222222222222',
+      table_display_name: '018',
+      scope_type: 'split',
+      splits: [
+        {
+          scope_id: '33333333-3333-4333-8333-333333333333',
+          name: 'Ana',
+          lines: [line],
+          gross_total: '2.25',
+        },
+      ],
+    };
+    assert.equal(validateBillSyncPayload(ok), null);
+    assert.equal(
+      validateBillSyncPayload({ ...ok, lines: [line] }),
+      'scope_payload_mismatch',
+    );
+    assert.equal(
+      validateBillSyncPayload({ ...ok, gross_total: '2.25' }),
+      'scope_payload_mismatch',
+    );
+    assert.equal(
+      validateBillSyncPayload({
+        ...ok,
+        splits: [{ ...ok.splits![0]!, scope_id: 'p0' }],
+      }),
+      'invalid_scope_id',
+    );
+  });
 });
 
 describe('billSyncContentFingerprint', () => {

@@ -123,6 +123,13 @@ export function collectBillSyncLines(payload: BillSyncPayload): BillSyncLine[] {
   return (payload.splits ?? []).flatMap((s) => s.lines);
 }
 
+const SCOPE_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isValidBillSyncScopeId(value: string | undefined | null): boolean {
+  return typeof value === 'string' && SCOPE_ID_RE.test(value.trim());
+}
+
 export function validateBillSyncPayload(payload: BillSyncPayload): string | null {
   if (payload.source_system !== 'farvoo') return 'invalid_source_system';
   if (!payload.request_id?.trim()) return 'missing_request_id';
@@ -147,9 +154,22 @@ export function validateBillSyncPayload(payload: BillSyncPayload): string | null
       return 'invalid_gross_total';
     }
     if (payload.splits?.length) return 'scope_payload_mismatch';
-  } else {
+  } else if (payload.scope_type === 'split') {
     if (!payload.splits?.length) return 'missing_splits';
     if (payload.lines?.length) return 'scope_payload_mismatch';
+    if (payload.gross_total != null && String(payload.gross_total).trim() !== '') {
+      return 'scope_payload_mismatch';
+    }
+    for (const split of payload.splits) {
+      if (!isValidBillSyncScopeId(split.scope_id)) return 'invalid_scope_id';
+      if (!split.name?.trim()) return 'empty_person_name';
+      if (!split.lines?.length) return 'empty_lines';
+      if (!split.gross_total || !isValidBillSyncMoneyString(split.gross_total)) {
+        return 'invalid_gross_total';
+      }
+    }
+  } else {
+    return 'invalid_scope_type';
   }
   return null;
 }

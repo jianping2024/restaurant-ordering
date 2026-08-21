@@ -86,26 +86,80 @@
 
 ## 5. 挂单载荷（`bill_sync_jobs` 快照）
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `request_id` | string (uuid) | 本次点击；网络重试同一次沿用 |
-| `source_system` | `"farvoo"` | 固定 |
-| `source_sale_id` | string (uuid) | 账单 ID（覆盖键） |
-| `table_display_name` | string | 如 `"018"` |
-| `scope_type` | `"whole_table"` \| `"split"` | |
-| `lines` / `gross_total` | | 仅 `whole_table` |
-| `splits` | array | 仅 `split`（业务分单初稿，仅参考） |
+金额 / 数量均为**十进制字符串**（建议两位，如 `"14.95"`、`"3.00"`）。  
+`vat_rate` 为**百分数点两位**（`"13.00"` / `"23.00"`）；**禁止** `"0.13"` / `"0.23"`。
 
-### `lines[]`
+**两种 `scope_type` 互斥（定稿）：**
 
-| 字段 | 类型 | 说明 |
+| `scope_type` | 必有 | 禁止 |
 | --- | --- | --- |
-| `item_code` | string | **必填非空** |
-| `name` | string | |
-| `qty` | string | 不入主档 |
-| `unit_price_gross` | string | |
-| `line_gross` | string | 不入主档 |
-| `vat_rate` | string | **百分数点两位**，如 `"13.00"`、`"23.00"`（表示 13% / 23%）。**禁止** `"0.13"` / `"0.23"` 小数率。入队与 Agent 均校验；不符 → 整单失败 |
+| `"whole_table"` | 顶层 `lines` + `gross_total` | `splits` |
+| `"split"`（仅按菜分单） | `splits[]` | 顶层 `lines`、顶层 `gross_total` |
+
+**产品分单 → 同步载荷（定稿，只这两种形状）：**
+
+| `bill_splits.split_mode` | 同步 `scope_type` | 说明 |
+| --- | --- | --- |
+| `whole_table` | `whole_table` | 整桌一张草稿 |
+| `even`（平分） | **`whole_table`** | 不同步每人份额；Agent 侧当整桌 |
+| `custom`（自定义） | **`whole_table`** | 同上 |
+| `by_item`（按菜） | `split` | 每人一块 `splits[]`；`scope_id` 为稳定 UUID |
+
+**禁止**为平分 / 自定义另造第三种 payload，或把 `person_index` 当 `scope_id`。
+
+**实现：** Restaurant 入队唯一入口 `enqueueBillSyncJob` → `buildBillSyncJobPayload`：按上表发 `whole_table` 或 `split`；按菜每人 `scope_id` 为稳定 UUID（`billSyncByItemScopeId`，禁止 `person_index`）。
+
+### 5.1 公共顶层字段
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `request_id` | string (uuid) | ✓ | 本次点击；网络重试同一次沿用 |
+| `source_system` | `"farvoo"` | ✓ | 固定 |
+| `source_sale_id` | string (uuid) | ✓ | `bill_splits.id`（整单覆盖键） |
+| `table_display_name` | string | ✓ | 如 `"018"` |
+| `scope_type` | `"whole_table"` \| `"split"` | ✓ | |
+
+### 5.2 全桌 `whole_table`
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `lines` | `Line[]` | ✓ | 整桌可计费行 |
+| `gross_total` | money string | ✓ | 整桌合计，如 `"47.10"` |
+| `splits` | — | ✗ | 有则校验失败 `scope_payload_mismatch` |
+
+**开 FT 幂等键中的 `scope_id`：** = `source_sale_id`（整桌一张）。
+
+### 5.3 按菜分单 `split`（仅 `split_mode=by_item`）
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `splits` | `Split[]` | ✓ | 每人 / 每份额一块；至少一项 |
+| `lines`（顶层） | — | ✗ | 有则校验失败 |
+| `gross_total`（顶层） | — | ✗ | 有则校验失败 |
+
+#### `splits[]` 每一项
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `scope_id` | string (**uuid**) | ✓ | 该份额稳定 UUID；开 FT 幂等键用此值。**禁止** `person_index` 或其它非 UUID 序号 |
+| `name` | string | ✓ | 展示名（如 `"Ana"`） |
+| `lines` | `Line[]` | ✓ | 该人分到的菜 |
+| `gross_total` | money string | ✓ | 该人小计 |
+
+**开 FT 幂等键中的 `scope_id`：** = 对应 `splits[i].scope_id`（每人一张键）。
+
+### 5.4 共用 `lines[]` / `Line`
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `item_code` | string | ✓ | **非空**；入主档键 |
+| `name` | string | ✓ | 展示名（入队常用葡语） |
+| `qty` | string | ✓ | 不入主档 |
+| `unit_price_gross` | money string | ✓ | 含税单价 |
+| `line_gross` | money string | ✓ | 行合计；不入主档 |
+| `vat_rate` | string | ✓ | 百分数点两位；不符 → 整单失败 |
+
+**同 code 冲突：** 同一请求内（`whole_table` 的全部 `lines`，或 `split` 展平后的全部行）同 `item_code` 若 `name` / `unit_price_gross` / `vat_rate` 不一致 → 整单失败，不部分写入。
 
 ---
 
@@ -137,7 +191,7 @@
 | 规则 | 定法 |
 | --- | --- |
 | 入口 | 本机 Admin / `POST /local/v1/bill-drafts/{id}/issue` |
-| 范围 | 仅 `scope_type=whole_table`；`split` → 拒绝 |
+| 范围 | **P0 MVP：** 仅 `scope_type=whole_table`；收到 `split` → 拒绝开票（不是契约永远不开 split；按人/按菜开票见工作台后续，入队形状见 §5.3） |
 | 默认 | 散客 `999999990`；全额 `CASH`；`fiscal_purpose=sale`；`scope_id=source_sale_id` |
 | 映射唯一 | `billsync.DraftToSaleSnapshot` → 再 `IssueDocument`/`IssueFT` |
 | 开票成功后 | **硬删**该 `source_sale_id` 下**全部** `bill_sync_drafts`（`DeleteBillDraftsBySale`）；**不**保留 `invoiced` 行 |
@@ -204,6 +258,8 @@ POST /api/.../bill-syncs    # 写 bill_sync_jobs + 操作记录；开关关闭 �
 
 ## 10. 载荷示例
 
+### 10.1 全桌 `whole_table`
+
 ```json
 {
   "request_id": "8f3c1a2e-6b14-4d90-9c2a-1b7e0d4a9f21",
@@ -215,7 +271,7 @@ POST /api/.../bill-syncs    # 写 bill_sync_jobs + 操作记录；开关关闭 �
     {
       "item_code": "BF-LUNCH-ADULT",
       "name": "BUFFET ADULTO ALMOCO",
-      "qty": "3",
+      "qty": "3.00",
       "unit_price_gross": "14.95",
       "line_gross": "44.85",
       "vat_rate": "13.00"
@@ -223,13 +279,57 @@ POST /api/.../bill-syncs    # 写 bill_sync_jobs + 操作记录；开关关闭 �
     {
       "item_code": "006",
       "name": "CERVEJA SUPERBOCK",
-      "qty": "1",
+      "qty": "1.00",
       "unit_price_gross": "2.25",
       "line_gross": "2.25",
       "vat_rate": "23.00"
     }
   ],
   "gross_total": "47.10"
+}
+```
+
+### 10.2 按菜分单 `split`（仅 `by_item`；平分/自定义不用此形）
+
+```json
+{
+  "request_id": "9a1b2c3d-4e5f-6789-abcd-ef0123456789",
+  "source_system": "farvoo",
+  "source_sale_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "table_display_name": "018",
+  "scope_type": "split",
+  "splits": [
+    {
+      "scope_id": "11111111-1111-1111-1111-111111111111",
+      "name": "Ana",
+      "lines": [
+        {
+          "item_code": "006",
+          "name": "CERVEJA SUPERBOCK",
+          "qty": "1.00",
+          "unit_price_gross": "2.25",
+          "line_gross": "2.25",
+          "vat_rate": "23.00"
+        }
+      ],
+      "gross_total": "2.25"
+    },
+    {
+      "scope_id": "22222222-2222-2222-2222-222222222222",
+      "name": "Bruno",
+      "lines": [
+        {
+          "item_code": "BF-LUNCH-ADULT",
+          "name": "BUFFET ADULTO ALMOCO",
+          "qty": "1.00",
+          "unit_price_gross": "14.95",
+          "line_gross": "14.95",
+          "vat_rate": "13.00"
+        }
+      ],
+      "gross_total": "14.95"
+    }
+  ]
 }
 ```
 

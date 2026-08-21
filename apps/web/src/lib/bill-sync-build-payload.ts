@@ -2,7 +2,11 @@
  * Sole Farvoo bill-sync job payload builder (bill-sync-contract-v1.0).
  * whole_table | even | custom → whole_table; by_item → split. No parallel builders.
  */
-import { consumersForLineFromPersons } from '@/lib/bill-split-by-item';
+import {
+  buffetShareUnitPrice,
+  consumersForLineFromPersons,
+  type BuffetGuestType,
+} from '@/lib/bill-split-by-item';
 import {
   buildByItemLineSpec,
   buildByItemSplitOrderLines,
@@ -28,18 +32,22 @@ import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson } from '@/type
 
 /**
  * Sole fiscal item_code for a billable line (menu snapshot or buffet_base).
- * Buffet has no catalog item_code — stable `BF` + first 8 hex of buffet uuid.
+ * Buffet: stable `BF` + first 8 hex of buffet uuid + `A`|`C` (adult|child).
+ * Never mint a bare BF######## — adult/child must not share one code.
  */
 export function resolveBillSyncItemCode(
   item: OrderItem,
   itemCodeByMenuId: Record<string, string>,
+  buffetGuest?: BuffetGuestType | null,
 ): string {
   const fromMenu = (resolveMenuItemCode(item, itemCodeByMenuId) ?? '').trim();
   if (fromMenu) return fromMenu;
   if (!isBuffetBaseItem(item)) return '';
+  if (buffetGuest !== 'adult' && buffetGuest !== 'child') return '';
   const buffetId = (item.buffet_id || item.id.replace(/^buffet:/, '')).replace(/-/g, '');
   if (buffetId.length < 8) return '';
-  return `BF${buffetId.slice(0, 8).toUpperCase()}`;
+  const suffix = buffetGuest === 'child' ? 'C' : 'A';
+  return `BF${buffetId.slice(0, 8).toUpperCase()}${suffix}`;
 }
 
 export type BuildBillSyncPayloadInput = {
@@ -69,10 +77,79 @@ function vatPercentForItem(
   return defaultVatRatePercent;
 }
 
+function pushBuiltLine(
+  lines: BillSyncLine[],
+  input: {
+    item: OrderItem;
+    itemCode: string;
+    qty: number;
+    unitPrice: number;
+    lineGross: number;
+    vatRateByMenuId: Record<string, number>;
+    defaultVatRatePercent: number;
+  },
+): { error: string } | null {
+  const built = buildBillSyncLine({
+    item_code: input.itemCode,
+    name: resolveMenuItemLocalizedName(input.item, 'pt'),
+    qty: input.qty,
+    unit_price_gross: input.unitPrice,
+    line_gross: input.lineGross,
+    vat_rate_percent: vatPercentForItem(
+      input.item,
+      input.vatRateByMenuId,
+      input.defaultVatRatePercent,
+    ),
+  });
+  if ('error' in built) return { error: built.error };
+  lines.push(built);
+  return null;
+}
+
+/** Whole-table buffet: one fiscal line per guest band (adult / child). */
+function appendWholeTableBuffetLines(
+  lines: BillSyncLine[],
+  item: OrderItem,
+  input: BuildBillSyncPayloadInput,
+): { error: string } | null {
+  const adults = Math.max(0, Math.floor(Number(item.adult_count) || 0));
+  const children = Math.max(0, Math.floor(Number(item.child_count) || 0));
+  if (adults <= 0 && children <= 0) return { error: 'empty_lines' };
+
+  const bands: Array<{ guest: BuffetGuestType; qty: number }> = [];
+  if (adults > 0) bands.push({ guest: 'adult', qty: adults });
+  if (children > 0) bands.push({ guest: 'child', qty: children });
+
+  for (const band of bands) {
+    const itemCode = resolveBillSyncItemCode(item, input.itemCodeByMenuId, band.guest);
+    if (!itemCode) return { error: 'empty_item_code' };
+    const unit = buffetShareUnitPrice(item, band.guest);
+    if (!(unit > 0)) return { error: 'invalid_money' };
+    const lineGross = Math.round(unit * band.qty * 100) / 100;
+    const err = pushBuiltLine(lines, {
+      item,
+      itemCode,
+      qty: band.qty,
+      unitPrice: unit,
+      lineGross,
+      vatRateByMenuId: input.vatRateByMenuId,
+      defaultVatRatePercent: input.defaultVatRatePercent,
+    });
+    if (err) return err;
+  }
+  return null;
+}
+
 function buildWholeTableLines(input: BuildBillSyncPayloadInput): BillSyncLine[] | { error: string } {
   const lines: BillSyncLine[] = [];
   for (const row of buildBillableSessionItems(input.orders)) {
     const { item } = row;
+    if (isBuffetBaseItem(item)) {
+      const err = appendWholeTableBuffetLines(lines, item, input);
+      if (err) return err;
+      continue;
+    }
+
     const itemCode = resolveBillSyncItemCode(item, input.itemCodeByMenuId);
     if (!itemCode) return { error: 'empty_item_code' };
     const lineGross = billableLineAmount(row);
@@ -86,16 +163,16 @@ function buildWholeTableLines(input: BuildBillSyncPayloadInput): BillSyncLine[] 
         : qty > 0
           ? lineGross / qty
           : item.price;
-    const built = buildBillSyncLine({
-      item_code: itemCode,
-      name: resolveMenuItemLocalizedName(item, 'pt'),
+    const err = pushBuiltLine(lines, {
+      item,
+      itemCode,
       qty,
-      unit_price_gross: unit,
-      line_gross: lineGross,
-      vat_rate_percent: vatPercentForItem(item, input.vatRateByMenuId, input.defaultVatRatePercent),
+      unitPrice: unit,
+      lineGross,
+      vatRateByMenuId: input.vatRateByMenuId,
+      defaultVatRatePercent: input.defaultVatRatePercent,
     });
-    if ('error' in built) return { error: built.error };
-    lines.push(built);
+    if (err) return err;
   }
   if (lines.length === 0) return { error: 'empty_lines' };
   return lines;
@@ -150,23 +227,32 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
       const qty = personShare ? personShare.qty.num / personShare.qty.den : 0;
       if (!(qty > 0)) continue;
 
-      const itemCode = resolveBillSyncItemCode(catalogLine, input.itemCodeByMenuId);
+      const buffetGuest =
+        personShare?.guestType === 'adult' || personShare?.guestType === 'child'
+          ? personShare.guestType
+          : null;
+      const itemCode = resolveBillSyncItemCode(
+        catalogLine,
+        input.itemCodeByMenuId,
+        buffetGuest,
+      );
       if (!itemCode) return { error: 'empty_item_code' };
 
-      const built = buildBillSyncLine({
-        item_code: itemCode,
-        name: resolveMenuItemLocalizedName(catalogLine, 'pt'),
+      const unitPrice =
+        isBuffetBaseItem(catalogLine) && buffetGuest
+          ? buffetShareUnitPrice(catalogLine, buffetGuest)
+          : share.shareAmount / qty;
+
+      const err = pushBuiltLine(lines, {
+        item: catalogLine,
+        itemCode,
         qty,
-        unit_price_gross: share.shareAmount / qty,
-        line_gross: share.shareAmount,
-        vat_rate_percent: vatPercentForItem(
-          catalogLine,
-          input.vatRateByMenuId,
-          input.defaultVatRatePercent,
-        ),
+        unitPrice,
+        lineGross: share.shareAmount,
+        vatRateByMenuId: input.vatRateByMenuId,
+        defaultVatRatePercent: input.defaultVatRatePercent,
       });
-      if ('error' in built) return { error: built.error };
-      lines.push(built);
+      if (err) return err;
     }
 
     if (lines.length === 0) continue;

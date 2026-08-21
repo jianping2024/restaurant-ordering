@@ -152,7 +152,7 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| `item_code` | string | ✓ | **非空**；入主档键 |
+| `item_code` | string | ✓ | **非空**；入主档键。普通菜读 `menu_items.item_code`；自助无目录码时由 Restaurant **唯一**生成：`BF` + buffet uuid 去横线前 8 位大写 + `A`（成人）/`C`（儿童）。禁止成人儿童共用无后缀码。 |
 | `name` | string | ✓ | 展示名（入队常用葡语） |
 | `qty` | string | ✓ | 不入主档 |
 | `unit_price_gross` | money string | ✓ | 含税单价 |

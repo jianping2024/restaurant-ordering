@@ -112,14 +112,14 @@
 ## 6. Agent：临时表 + 覆盖 + 商品
 
 **临时表（Agent SQLite）：**  
-`id` / `request_id` / `source_sale_id` / `payload_json` / `status`(`open`\|`invoiced`\|`discarded`) / 时间戳。
+`id` / `request_id` / `source_sale_id` / `payload_json` / `status`（仅 **`open`** \| **`discarded`**） / 时间戳。
 
 **同 `source_sale_id` 再同步：**
 
-| 本地状态 | 定法 |
+| 本地条件 | 定法 |
 | --- | --- |
-| 无行 / `open` / `discarded` | **覆盖**为最新快照（丢弃上一份 `open`） |
-| 已 `invoiced` | **整单失败**，ack `failed`，原因码建议 `already_invoiced`；**不覆盖**、不改税票。结账页展示失败原因（可再引导去 Agent 重打/NC）。不「静默忽略当成功」 |
+| 税务库**已有**同 `source_system`+`source_sale_id` 已签 FT | **整单失败**，ack `failed` / `already_invoiced`；不覆盖、不改税票。结账页展示原因（可引导 Agent 重打/NC）。不「静默当成功」 |
+| 无 FT，且无行 / `open` / `discarded` | **覆盖**为最新快照（旧 `open`→`discarded` 后 INSERT 新 `open`） |
 
 **关台：** 与 Agent 无关。
 
@@ -132,15 +132,26 @@
 
 不自动开 FT。
 
+### 从草稿开 FT（P0：整桌 MVP）
+
+| 规则 | 定法 |
+| --- | --- |
+| 入口 | 本机 Admin / `POST /local/v1/bill-drafts/{id}/issue` |
+| 范围 | 仅 `scope_type=whole_table`；`split` → 拒绝 |
+| 默认 | 散客 `999999990`；全额 `CASH`；`fiscal_purpose=sale`；`scope_id=source_sale_id` |
+| 映射唯一 | `billsync.DraftToSaleSnapshot` → 再 `IssueDocument`/`IssueFT` |
+| 开票成功后 | **硬删**该 `source_sale_id` 下**全部** `bill_sync_drafts`（`DeleteBillDraftsBySale`）；**不**保留 `invoiced` 行 |
+| 商品主档 | `fiscal_products` **不删** |
+
 ### 与「直连开 FT」双路径防重（定稿）
 
-账单同步 **只**产临时表草稿；正式 FT 仍走 Agent 开票（本机工作台或既有 Local API `fiscal-documents`）。
+账单同步 **只**产临时表草稿；正式 FT 仍走 Agent 开票（本机 Admin / Local API）。
 
 | 规则 | 定法 |
 | --- | --- |
 | 同步本身 | 不创建税务文件，不占 InvoiceNo |
 | 开 FT 幂等 | 与 [`farvoo-fiscal-agent-integration.zh.md`](./farvoo-fiscal-agent-integration.zh.md) §3.1 一致：业务键含 `source_system` + `source_sale_id` + `scope_type` + `scope_id` + `fiscal_purpose`；**无论**草稿来自同步临时表还是桌台直推销售快照，同一业务键不得签出第二张 FT |
-| 已有 FT 后再同步 | 见上：临时表已 `invoiced` → 同步 ack `failed` / `already_invoiced`；未标 invoiced 但税务库已有同业务键 FT → 开票路径幂等返回原票，同步覆盖 `open` 草稿不自动再开 |
+| 已有 FT 后再同步 | **查税务库**（非草稿状态）→ ack `failed` / `already_invoiced`；开票路径幂等返回原票 |
 
 ---
 
@@ -155,7 +166,7 @@
 | Fallback | 仅 Realtime 不可用时，在**原有** polling 回路中兼拉 `pending-bill-syncs` |
 | 表侧必做 | `bill_sync_jobs` **单独**加入 `supabase_realtime` publication + 本店可读 RLS（session 能订到行；与 `print_jobs` 配置同类、表不同） |
 | 同 `request_id` | 重放不双写 |
-| 同 `source_sale_id` 新单 | 新 `request_id`；内容指纹与最近 **succeeded** 相同 → 入队拒绝 `already_synced`；不同则新挂单；Agent 侧 `open` 覆盖、`invoiced` 则 failed |
+| 同 `source_sale_id` 新单 | 新 `request_id`；内容指纹与最近 **succeeded** 相同 → 入队拒绝 `already_synced`；不同则新挂单；Agent 侧：已有 FT → `already_invoiced`，否则 `open` 覆盖 |
 | pending/processing | 同 `source_sale_id` 不插第二单，返回在途 job |
 | 文案 | ack 成功后结账页才示 **「同步完成」**（以云端 job=`succeeded` 为准，不以「仅入队」为准）；未变再点禁用 |
 | 实现锁 | 改 `realtime.go` / Notifier 时注释+测试锁死「单连接多表」；禁止拆成第二套独立轮询 |

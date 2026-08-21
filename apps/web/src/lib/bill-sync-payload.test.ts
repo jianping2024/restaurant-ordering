@@ -71,3 +71,90 @@ describe('validateBillSyncPayload', () => {
     assert.equal(validateBillSyncPayload(payload), null);
   });
 });
+
+describe('billSyncContentFingerprint', () => {
+  // Relative import — no @/ path in this test file.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { billSyncContentFingerprint } = require('./bill-sync-content-fingerprint') as typeof import('./bill-sync-content-fingerprint');
+
+  it('ignores request_id and is stable for same content', () => {
+    const line = buildBillSyncLine({
+      item_code: '006',
+      name: 'Beer',
+      qty: 1,
+      unit_price_gross: 2.25,
+      line_gross: 2.25,
+      vat_rate_percent: 23,
+    });
+    assert.ok(!('error' in line));
+    const a: BillSyncPayload = {
+      request_id: '11111111-1111-1111-1111-111111111111',
+      source_system: 'farvoo',
+      source_sale_id: '22222222-2222-2222-2222-222222222222',
+      table_display_name: '018',
+      scope_type: 'whole_table',
+      lines: [line],
+      gross_total: '2.25',
+    };
+    const b: BillSyncPayload = { ...a, request_id: '33333333-3333-3333-3333-333333333333' };
+    assert.equal(billSyncContentFingerprint(a), billSyncContentFingerprint(b));
+  });
+
+  it('changes when gross_total changes', () => {
+    const line = buildBillSyncLine({
+      item_code: '006',
+      name: 'Beer',
+      qty: 1,
+      unit_price_gross: 2.25,
+      line_gross: 2.25,
+      vat_rate_percent: 23,
+    });
+    assert.ok(!('error' in line));
+    const a: BillSyncPayload = {
+      request_id: '11111111-1111-1111-1111-111111111111',
+      source_system: 'farvoo',
+      source_sale_id: '22222222-2222-2222-2222-222222222222',
+      table_display_name: '018',
+      scope_type: 'whole_table',
+      lines: [line],
+      gross_total: '2.25',
+    };
+    const b: BillSyncPayload = { ...a, gross_total: '3.00' };
+    assert.notEqual(billSyncContentFingerprint(a), billSyncContentFingerprint(b));
+  });
+
+  it('matches jsonb-reordered line keys', () => {
+    const line = buildBillSyncLine({
+      item_code: '006',
+      name: 'Beer',
+      qty: 1,
+      unit_price_gross: 2.25,
+      line_gross: 2.25,
+      vat_rate_percent: 23,
+    });
+    assert.ok(!('error' in line));
+    const a: BillSyncPayload = {
+      request_id: '11111111-1111-1111-1111-111111111111',
+      source_system: 'farvoo',
+      source_sale_id: '22222222-2222-2222-2222-222222222222',
+      table_display_name: '018',
+      scope_type: 'whole_table',
+      lines: [line],
+      gross_total: '2.25',
+    };
+    const reordered: BillSyncPayload = {
+      ...a,
+      lines: [
+        {
+          vat_rate: line.vat_rate,
+          line_gross: line.line_gross,
+          unit_price_gross: line.unit_price_gross,
+          qty: line.qty,
+          name: line.name,
+          item_code: line.item_code,
+        },
+      ],
+    };
+    assert.equal(billSyncContentFingerprint(a), billSyncContentFingerprint(reordered));
+  });
+});

@@ -108,6 +108,10 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
       permission: 'checkout.open_pending_tables',
       label: { source: 'action', labelKey: 'checkoutOpenPendingTables' },
     },
+    {
+      permission: 'checkout.sync_bill',
+      label: { source: 'action', labelKey: 'checkoutSyncBill' },
+    },
   ]),
   navPage('orders'),
   navPage('dishHistory'),

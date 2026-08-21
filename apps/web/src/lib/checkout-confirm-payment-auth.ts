@@ -7,9 +7,10 @@ import {
 import { loadStaffAuditActor } from '@/lib/audit';
 import { loadOwnerDashboardAuditActor } from '@/lib/audit/load-owner-dashboard-actor';
 import type { AuditActor } from '@/lib/audit/types';
+import type { PermissionKey } from '@/lib/permissions/registry';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
-import { checkoutStaffAuthFromRequest } from '@/lib/staff-api-auth';
+import { requireStaffPermission } from '@/lib/staff-api-auth';
 
 export type CheckoutConfirmAuthContext =
   | {
@@ -22,9 +23,14 @@ export type CheckoutConfirmAuthContext =
     }
   | { error: string; status: number };
 
+/**
+ * Sole checkout-surface staff/owner auth (feature flags + actor).
+ * Callers pass the capability key for the action (confirm payment, sync bill, …).
+ */
 export async function authorizeCheckoutConfirmPayment(
   slug: string,
   req: Request,
+  staffPermission: PermissionKey = 'checkout.confirm_payment',
 ): Promise<CheckoutConfirmAuthContext> {
   let admin;
   try {
@@ -33,7 +39,7 @@ export async function authorizeCheckoutConfirmPayment(
     return { error: 'server_misconfigured', status: 503 };
   }
 
-  const staffCtx = await checkoutStaffAuthFromRequest(req, slug);
+  const staffCtx = await requireStaffPermission(slug, staffPermission);
   if (staffCtx) {
     const { data: rest } = await admin
       .from('restaurants')

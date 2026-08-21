@@ -252,11 +252,3 @@ export async function verifyOpenTableStaffAuth(
   if (!keys.some((p) => can(ctx.capabilities, p))) return null;
   return ctx;
 }
-
-export async function checkoutStaffAuthFromRequest(
-  _req: Request,
-  slug: string,
-): Promise<StaffAuthContext | null> {
-  void _req;
-  return requireStaffPermission(slug, 'checkout.confirm_payment');
-}

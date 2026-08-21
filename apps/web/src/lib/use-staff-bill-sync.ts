@@ -10,27 +10,40 @@ type BillSyncJob = {
   request_id?: string;
   error_code?: string | null;
   error_message?: string | null;
+  content_fingerprint?: string | null;
 };
 
 type Labels = {
   syncBillComplete: string;
   syncBillFailed: string;
   syncBillDisabled: string;
+  syncBillUnchanged: string;
 };
 
 /**
  * Sole checkout client for fiscal bill-sync enqueue + status wait (no interval polling).
  * Retries status with short backoff only after an explicit Sync click.
+ * After succeeded, blocks until contentRevision changes (server still enforces fingerprint).
  */
 export function useStaffBillSync(input: {
   restaurantSlug: string;
   billSplitId: string;
+  /** Feature + checkout.sync_bill — when false, hide entry. */
   enabled: boolean;
+  /** Host bill revision; when it changes after a success lock, re-enable Sync. */
+  contentRevision: string;
+  /**
+   * True after the host has finished the first orders load for this bill.
+   * Prevents locking to an empty pre-load revision then unlocking when lines arrive.
+   */
+  contentReady: boolean;
   labels: Labels;
 }) {
   const [busy, setBusy] = useState(false);
   const [job, setJob] = useState<BillSyncJob | null>(null);
   const [available, setAvailable] = useState(input.enabled);
+  /** Revision captured when we treat the bill as already synced (succeeded). */
+  const [lockedRevision, setLockedRevision] = useState<string | null>(null);
 
   const refreshLatest = useCallback(async () => {
     if (!input.enabled) {
@@ -57,6 +70,17 @@ export function useStaffBillSync(input: {
     void refreshLatest();
   }, [refreshLatest]);
 
+  useEffect(() => {
+    setLockedRevision(null);
+    setJob(null);
+  }, [input.billSplitId]);
+
+  useEffect(() => {
+    if (!input.contentReady) return;
+    if (job?.status !== 'succeeded') return;
+    setLockedRevision((prev) => (prev == null ? input.contentRevision : prev));
+  }, [input.contentReady, input.contentRevision, job?.status]);
+
   const waitUntilSettled = useCallback(
     async (requestId: string) => {
       for (let i = 0; i < 12; i++) {
@@ -71,8 +95,15 @@ export function useStaffBillSync(input: {
     [refreshLatest],
   );
 
+  const inFlight = job?.status === 'pending' || job?.status === 'processing';
+  const unchangedLock =
+    job?.status === 'succeeded' &&
+    lockedRevision != null &&
+    lockedRevision === input.contentRevision;
+  const syncBillBlocked = Boolean(busy || inFlight || unchangedLock);
+
   const syncBill = useCallback(async () => {
-    if (!available || busy) return;
+    if (!available || syncBillBlocked) return;
     setBusy(true);
     const requestId = mintBrowserUuid();
     try {
@@ -98,6 +129,12 @@ export function useStaffBillSync(input: {
         message?: string;
         job?: BillSyncJob;
       };
+      if (res.status === 409 && data.error === 'already_synced') {
+        if (data.job) setJob(data.job);
+        setLockedRevision(input.contentRevision);
+        showToast(input.labels.syncBillUnchanged, 'info');
+        return;
+      }
       if (!res.ok) {
         showToast(data.message || data.error || input.labels.syncBillFailed, 'error');
         return;
@@ -105,6 +142,7 @@ export function useStaffBillSync(input: {
       if (data.job) setJob(data.job);
       const settled = await waitUntilSettled(requestId);
       if (settled?.status === 'succeeded') {
+        setLockedRevision(input.contentRevision);
         showToast(input.labels.syncBillComplete, 'success');
       } else if (settled?.status === 'failed') {
         showToast(
@@ -119,11 +157,12 @@ export function useStaffBillSync(input: {
     } finally {
       setBusy(false);
     }
-  }, [available, busy, input, waitUntilSettled]);
+  }, [available, input, syncBillBlocked, waitUntilSettled]);
 
   return {
     billSyncAvailable: available,
     billSyncBusy: busy,
+    billSyncBlocked: syncBillBlocked,
     billSyncJob: job,
     syncBill,
   };

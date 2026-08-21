@@ -1,10 +1,12 @@
-import { NextResponse } from 'next/server';
-import { isRestaurantFeatureEnabled } from '@mesa/shared';
-import { enqueueBillSyncJob } from '@/lib/bill-sync-enqueue';
+import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
+import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
+import { enqueueBillSyncJob } from '@/lib/bill-sync-enqueue';
 import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
 import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
 import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
+import { isRestaurantFeatureEnabled } from '@mesa/shared';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -40,7 +42,7 @@ export async function POST(
       ? body.request_id.trim()
       : undefined;
 
-  const auth = await authorizeCheckoutConfirmPayment(slug, req);
+  const auth = await authorizeCheckoutConfirmPayment(slug, req, 'checkout.sync_bill');
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -115,7 +117,7 @@ export async function POST(
 
   if (!result.ok) {
     return NextResponse.json(
-      { error: result.error, message: result.message },
+      { error: result.error, message: result.message, job: result.job ?? null },
       { status: result.status },
     );
   }
@@ -123,6 +125,7 @@ export async function POST(
   return NextResponse.json({
     ok: true,
     job: result.job,
+    reused: result.reused ?? null,
   });
 }
 
@@ -140,7 +143,7 @@ export async function GET(
     return NextResponse.json({ error: 'missing_source_sale_id' }, { status: 400 });
   }
 
-  const auth = await authorizeCheckoutConfirmPayment(slug, req);
+  const auth = await authorizeCheckoutConfirmPayment(slug, req, 'checkout.sync_bill');
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -151,7 +154,7 @@ export async function GET(
 
   const { data, error } = await auth.admin
     .from('bill_sync_jobs')
-    .select('id, status, request_id, error_code, error_message, created_at, updated_at')
+    .select('id, status, request_id, error_code, error_message, payload, created_at, updated_at')
     .eq('restaurant_id', auth.restaurantId)
     .eq('source_sale_id', sourceSaleId)
     .order('created_at', { ascending: false })
@@ -162,5 +165,24 @@ export async function GET(
     return NextResponse.json({ error: 'query_failed', message: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ job: data ?? null });
+  if (!data) {
+    return NextResponse.json({ job: null });
+  }
+
+  const payload = data.payload as BillSyncPayload | null;
+  const content_fingerprint =
+    payload && typeof payload === 'object' ? billSyncContentFingerprint(payload) : null;
+
+  return NextResponse.json({
+    job: {
+      id: data.id,
+      status: data.status,
+      request_id: data.request_id,
+      error_code: data.error_code,
+      error_message: data.error_message,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      content_fingerprint,
+    },
+  });
 }

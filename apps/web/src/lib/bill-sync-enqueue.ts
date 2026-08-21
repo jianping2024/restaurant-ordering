@@ -1,5 +1,6 @@
-import { createHash, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
 import {
   buildBillSyncLine,
   type BillSyncPayload,
@@ -28,9 +29,29 @@ export type EnqueueBillSyncInput = {
   requestId?: string;
 };
 
+export type BillSyncJobRef = {
+  id: string;
+  status: string;
+  request_id: string;
+  content_fingerprint: string;
+};
+
 export type EnqueueBillSyncResult =
-  | { ok: true; job: { id: string; status: string; request_id: string } }
-  | { ok: false; error: string; status: number; message?: string };
+  | { ok: true; job: BillSyncJobRef; reused?: 'request_id' | 'in_flight' }
+  | {
+      ok: false;
+      error: string;
+      status: number;
+      message?: string;
+      job?: BillSyncJobRef;
+    };
+
+type JobRow = {
+  id: string;
+  status: string;
+  request_id: string;
+  payload: BillSyncPayload | null;
+};
 
 /**
  * Sole fiscal item_code for a billable line (menu snapshot or buffet_base).
@@ -46,6 +67,18 @@ export function resolveBillSyncItemCode(
   const buffetId = (item.buffet_id || item.id.replace(/^buffet:/, '')).replace(/-/g, '');
   if (buffetId.length < 8) return '';
   return `BF${buffetId.slice(0, 8).toUpperCase()}`;
+}
+
+function jobRef(row: JobRow, fingerprint?: string): BillSyncJobRef {
+  const content_fingerprint =
+    fingerprint ??
+    (row.payload ? billSyncContentFingerprint(row.payload) : '');
+  return {
+    id: row.id,
+    status: row.status,
+    request_id: row.request_id,
+    content_fingerprint,
+  };
 }
 
 /**
@@ -113,22 +146,66 @@ export async function enqueueBillSyncJob(
     return { ok: false, error: invalid, status: 400 };
   }
 
-  const { data: existing } = await input.admin
+  const contentFp = billSyncContentFingerprint(payload);
+
+  const { data: existingByRequest } = await input.admin
     .from('bill_sync_jobs')
-    .select('id, status, request_id')
+    .select('id, status, request_id, payload')
     .eq('restaurant_id', input.restaurantId)
     .eq('request_id', requestId)
     .maybeSingle();
 
-  if (existing) {
+  if (existingByRequest) {
     return {
       ok: true,
-      job: {
-        id: existing.id as string,
-        status: existing.status as string,
-        request_id: existing.request_id as string,
-      },
+      reused: 'request_id',
+      job: jobRef(existingByRequest as JobRow, contentFp),
     };
+  }
+
+  const { data: recentRows, error: recentErr } = await input.admin
+    .from('bill_sync_jobs')
+    .select('id, status, request_id, payload')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('source_sale_id', input.billSplitId)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (recentErr) {
+    return {
+      ok: false,
+      error: 'lookup_failed',
+      status: 500,
+      message: recentErr.message,
+    };
+  }
+
+  const recent = (recentRows ?? []) as JobRow[];
+  const inFlight = recent.find((row) => row.status === 'pending' || row.status === 'processing');
+  if (inFlight) {
+    return {
+      ok: true,
+      reused: 'in_flight',
+      job: jobRef(inFlight),
+    };
+  }
+
+  const lastSucceeded = recent.find((row) => row.status === 'succeeded');
+  if (lastSucceeded?.payload) {
+    const priorFp = billSyncContentFingerprint(lastSucceeded.payload);
+    if (priorFp === contentFp) {
+      return {
+        ok: false,
+        error: 'already_synced',
+        status: 409,
+        job: {
+          id: lastSucceeded.id,
+          status: lastSucceeded.status,
+          request_id: lastSucceeded.request_id,
+          content_fingerprint: priorFp,
+        },
+      };
+    }
   }
 
   const { data: inserted, error } = await input.admin
@@ -162,15 +239,7 @@ export async function enqueueBillSyncJob(
       id: inserted.id as string,
       status: inserted.status as string,
       request_id: inserted.request_id as string,
+      content_fingerprint: contentFp,
     },
   };
-}
-
-/** Stable client idempotency helper when UI retries the same click. */
-export function mintBillSyncRequestId(): string {
-  return randomUUID();
-}
-
-export function billSyncPayloadFingerprint(payload: BillSyncPayload): string {
-  return createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 16);
 }

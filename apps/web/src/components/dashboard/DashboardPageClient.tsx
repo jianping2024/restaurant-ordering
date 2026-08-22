@@ -227,15 +227,36 @@ export function DashboardOverviewPrimaryClient({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-brand-card border border-brand-border rounded-2xl p-6 ring-1 ring-brand-gold/25">
           <p className="text-brand-text-muted text-[13px] mb-2">{i18n.todayRevenue}</p>
-          <p
-            className={`${moneyClass} text-3xl sm:text-4xl ${
-              revenueAvailable ? 'text-brand-gold' : 'text-brand-text-muted'
-            }`}
-          >
-            {revenueAvailable
-              ? `€${todayRevenue.toFixed(2)} + €${diningUncollectedAmount.toFixed(2)}`
-              : i18n.todayRevenueUnavailable}
-          </p>
+          {revenueAvailable ? (
+            <div className="flex flex-row flex-wrap items-end gap-x-2.5 gap-y-2">
+              <div className="min-w-0">
+                <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold`}>
+                  €{todayRevenue.toFixed(2)}
+                </p>
+                <p className="mt-1.5 text-[12px] text-brand-text-muted">
+                  {i18n.todayRevenueCollected}
+                </p>
+              </div>
+              <span
+                className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/35 leading-none pb-[1.375rem]`}
+                aria-hidden
+              >
+                +
+              </span>
+              <div className="min-w-0">
+                <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/40`}>
+                  €{diningUncollectedAmount.toFixed(2)}
+                </p>
+                <p className="mt-1.5 text-[12px] text-brand-text-muted">
+                  {i18n.todayRevenueUncollected}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-text-muted`}>
+              {i18n.todayRevenueUnavailable}
+            </p>
+          )}
         </div>
 
         <DashboardDualMetricCard

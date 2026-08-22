@@ -1013,6 +1013,8 @@ export const MESSAGES_DE = {
     "todayGuests": "Gäste heute",
     "todayRevenue": "Umsatz heute",
     "todayRevenueUnavailable": "Nicht verfügbar",
+    "todayRevenueCollected": "Eingenommen",
+    "todayRevenueUncollected": "Offen",
     "diningTables": "Besetzte Tische",
     "diningGuests": "Gäste im Saal",
     "unitTable": "",

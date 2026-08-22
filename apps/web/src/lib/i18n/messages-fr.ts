@@ -1015,6 +1015,8 @@ export const MESSAGES_FR = {
     "todayGuests": "Convives du jour",
     "todayRevenue": "Chiffre d’affaires du jour",
     "todayRevenueUnavailable": "Indisponible",
+    "todayRevenueCollected": "Encaissé",
+    "todayRevenueUncollected": "À encaisser",
     "diningTables": "Tables en cours",
     "diningGuests": "Convives en salle",
     "unitTable": "",

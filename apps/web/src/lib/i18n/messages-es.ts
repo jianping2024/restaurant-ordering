@@ -1011,6 +1011,8 @@ export const MESSAGES_ES = {
     "todayGuests": "Comensales de hoy",
     "todayRevenue": "Ingresos de hoy",
     "todayRevenueUnavailable": "No disponible",
+    "todayRevenueCollected": "Cobrado",
+    "todayRevenueUncollected": "Pendiente",
     "diningTables": "Mesas comiendo",
     "diningGuests": "Comensales actuales",
     "unitTable": "",

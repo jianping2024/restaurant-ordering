@@ -223,8 +223,12 @@ export function useDebouncedPostgresRealtimeRefresh(
     };
 
     const onVisible = () => {
-      if (document.visibilityState === 'visible') subscribe();
-      else unsubscribe();
+      if (document.visibilityState === 'visible') {
+        catchUpOnNextSubscribed = true;
+        subscribe();
+      } else {
+        unsubscribe();
+      }
     };
 
     /** Recover zombie sockets that never emit CLOSED while the tab stayed visible. */

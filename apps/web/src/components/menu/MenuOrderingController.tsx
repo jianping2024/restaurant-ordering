@@ -85,6 +85,8 @@ import {
   resolveGuestOrderingNoticeForDisplay,
   type GuestOrderingNotice,
 } from '@/lib/guest-ordering-notice';
+import { customerSessionOrdersRealtimeEnabled } from '@/lib/customer-session-orders-realtime-enabled';
+import { CustomerSessionOrdersRealtimeLazy } from '@/components/menu/CustomerSessionOrdersRealtimeLazy';
 
 type StaffOverageDialog =
   | {
@@ -207,6 +209,18 @@ export function MenuOrderingController({
     tableId,
     isDemo,
     resumeScope: orderedOpen ? 'full' : 'gate',
+  });
+
+  const refreshOrderedFromRealtime = useCallback(() => {
+    void refreshSessionContext('full');
+  }, [refreshSessionContext]);
+
+  const sessionOrdersRealtimeEnabled = customerSessionOrdersRealtimeEnabled({
+    isDemo,
+    staffAssisted,
+    sessionResolved,
+    sessionStatus: activeSession?.status,
+    sessionId: activeSession?.id,
   });
 
   const orderingAudience = useMemo(
@@ -996,6 +1010,12 @@ export function MenuOrderingController({
           hidden={hideGuestNoticeChrome}
         />
       ) : null}
+
+      <CustomerSessionOrdersRealtimeLazy
+        sessionId={activeSession?.id ?? null}
+        enabled={sessionOrdersRealtimeEnabled}
+        onRefresh={refreshOrderedFromRealtime}
+      />
     </div>
   );
 }

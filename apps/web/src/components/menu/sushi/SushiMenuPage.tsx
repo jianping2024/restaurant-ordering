@@ -83,6 +83,8 @@ import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReview
 import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemDetailSheet';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
 import { buildOwnRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
+import { customerSessionOrdersRealtimeEnabled } from '@/lib/customer-session-orders-realtime-enabled';
+import { CustomerSessionOrdersRealtimeLazy } from '@/components/menu/CustomerSessionOrdersRealtimeLazy';
 
 type Props = {
   restaurant: MenuOrderingRestaurant;
@@ -145,6 +147,18 @@ export function SushiMenuPage({
     tableId,
     isDemo,
     resumeScope: orderedOpen ? 'full' : 'gate',
+  });
+
+  const refreshOrderedFromRealtime = useCallback(() => {
+    void refreshSessionContext('full');
+  }, [refreshSessionContext]);
+
+  const sessionOrdersRealtimeEnabled = customerSessionOrdersRealtimeEnabled({
+    isDemo,
+    staffAssisted: null,
+    sessionResolved,
+    sessionStatus: activeSession?.status,
+    sessionId: activeSession?.id,
   });
 
   const round = useTableOrderRound({
@@ -873,6 +887,12 @@ export function SushiMenuPage({
           hidden={hideGuestNoticeChrome}
         />
       ) : null}
+
+      <CustomerSessionOrdersRealtimeLazy
+        sessionId={activeSession?.id ?? null}
+        enabled={sessionOrdersRealtimeEnabled}
+        onRefresh={refreshOrderedFromRealtime}
+      />
     </div>
   );
 }

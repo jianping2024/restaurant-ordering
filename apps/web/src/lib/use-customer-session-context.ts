@@ -174,6 +174,18 @@ export function useCustomerSessionContext(
     !hasAuthoritativeSeed,
   );
 
+  // Hidden tabs miss Realtime doorbells; invalidate resume TTL so visibility reconcile pulls.
+  useEffect(() => {
+    if (isDemo) return;
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        lastFreshAtRef.current = 0;
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [isDemo]);
+
   return {
     activeSession,
     recentOrders,

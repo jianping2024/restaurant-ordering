@@ -466,6 +466,8 @@ menu_recommended_items:
 orders:
 
 - INSERT: service role only (Next.js `/orders/append` and other admin writers). No anon/authenticated INSERT policy — do not reintroduce `orders_public_insert`. On-prem install checklist: `docs/technical/on-prem-security-baseline.zh.md` §2.
+- SELECT (anon): `orders_anon_select_open_session` — `table_session_is_open_or_billing(session_id)` only (customer menu Realtime + session reads).
+- SELECT (authenticated kitchen): `orders_kitchen_staff_select` — `is_active_restaurant_staff(restaurant_id, ['kitchen'])`.
 - SELECT: authenticated owner by restaurant ownership.
 - SELECT: authenticated staff via `is_active_restaurant_staff(restaurant_id)`.
 - SELECT: authenticated cashier via `is_active_restaurant_staff(restaurant_id, ['cashier'])`.

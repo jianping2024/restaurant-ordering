@@ -19,13 +19,13 @@ export const PWA_LAUNCH_SHELL_ID = 'mesa-pwa-launch';
 export const PWA_LAUNCH_MARK_PX = 180;
 
 /** Fade-in and fade-out duration (ms) — same value both ways. */
-export const PWA_LAUNCH_FADE_MS = 350;
+export const PWA_LAUNCH_FADE_MS = 200;
 
 /**
  * Fully-opaque hold after fade-in (ms), before fade-out.
- * Total branded time ≈ FADE + HOLD + FADE (~1.6s).
+ * Total branded time ≈ FADE + HOLD + FADE (~0.4s) — brief handoff, not a forced ritual.
  */
-export const PWA_LAUNCH_HOLD_MS = 900;
+export const PWA_LAUNCH_HOLD_MS = 0;
 
 export type PwaLaunchPhase = 'in' | 'hold' | 'out';
 

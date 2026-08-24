@@ -6,7 +6,11 @@ export type WebAppBuildInfo = {
   version: string;
 };
 
-/** Only getter for web build version — health + settings footer both call this. */
+/**
+ * Only getter for web build version — health, settings footer, and PWA shell SW
+ * (`buildPwaShellServiceWorkerScript` / register `?v=`) all call this. Do not mint
+ * a parallel MESA_PWA_* / shell-only version env.
+ */
 export function getWebAppBuildInfo(): WebAppBuildInfo {
   const fromEnv = process.env.MESA_WEB_VERSION?.trim();
   if (fromEnv) return { version: fromEnv };

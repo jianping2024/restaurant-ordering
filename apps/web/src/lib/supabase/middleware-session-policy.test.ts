@@ -6,13 +6,15 @@ import {
   pathnameBypassSourceToMatcherAlt,
   shouldBypassMiddlewareSession,
 } from '@/lib/supabase/middleware-session-policy';
+import { PWA_SHELL_SW_PATH } from '@/lib/pwa/shell-sw';
 
 describe('shouldBypassMiddlewareSession', () => {
-  it('bypasses print-agent, cron, health, downloads', () => {
+  it('bypasses print-agent, cron, health, downloads, and PWA shell SW', () => {
     assert.equal(shouldBypassMiddlewareSession('/api/print-agent/pending-jobs'), true);
     assert.equal(shouldBypassMiddlewareSession('/api/cron/nightly-close-sessions'), true);
     assert.equal(shouldBypassMiddlewareSession('/api/health'), true);
     assert.equal(shouldBypassMiddlewareSession('/api/downloads/print-agent/foo'), true);
+    assert.equal(shouldBypassMiddlewareSession(PWA_SHELL_SW_PATH), true);
   });
 
   it('bypasses restaurant customer and staff APIs that auth in-route', () => {
@@ -52,6 +54,7 @@ describe('buildMiddlewareMatcher', () => {
     assert.match(matcher, /api\/cron/);
     assert.match(matcher, /api\/health/);
     assert.match(matcher, /api\/downloads/);
+    assert.match(matcher, /mesa-pwa-shell-sw\\.js/);
     assert.match(
       matcher,
       /api\/restaurants\/\[\^\/\]\+\/\(\?:customer\|staff\)/,

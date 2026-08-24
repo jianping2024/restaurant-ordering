@@ -25,8 +25,8 @@ describe('pwa launch shell', () => {
     const boot = buildPwaLaunchShellBootScript();
 
     assert.equal(PWA_LAUNCH_MARK_PX, 180);
-    assert.equal(PWA_LAUNCH_FADE_MS, 350);
-    assert.equal(PWA_LAUNCH_HOLD_MS, 900);
+    assert.equal(PWA_LAUNCH_FADE_MS, 200);
+    assert.equal(PWA_LAUNCH_HOLD_MS, 0);
     assert.equal(layoutSource.includes('PWA_LAUNCH_SHELL_MIN_MS'), false);
     assert.equal(boot.includes('PWA_LAUNCH_SHELL_MIN_MS'), false);
 

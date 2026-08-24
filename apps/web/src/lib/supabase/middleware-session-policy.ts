@@ -8,11 +8,15 @@
  * cookie refresh still runs on /dashboard and other non-bypassed navigations.
  */
 
+import { PWA_SHELL_SW_PATH } from '@/lib/pwa/shell-sw';
+
 const SESSION_BYPASS_PREFIXES = [
   '/api/print-agent',
   '/api/cron',
   '/api/health',
   '/api/downloads',
+  /** PWA shell SW script — path sole source: PWA_SHELL_SW_PATH. */
+  PWA_SHELL_SW_PATH,
 ] as const;
 
 /**

@@ -237,20 +237,24 @@ export function DashboardOverviewPrimaryClient({
                   {i18n.todayRevenueCollected}
                 </p>
               </div>
-              <span
-                className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/35 leading-none pb-[1.375rem]`}
-                aria-hidden
-              >
-                +
-              </span>
-              <div className="min-w-0">
-                <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/40`}>
-                  €{diningUncollectedAmount.toFixed(2)}
-                </p>
-                <p className="mt-1.5 text-[12px] text-brand-text-muted">
-                  {i18n.todayRevenueUncollected}
-                </p>
-              </div>
+              {diningUncollectedAmount > 0 ? (
+                <>
+                  <span
+                    className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/35 leading-none pb-[1.375rem]`}
+                    aria-hidden
+                  >
+                    +
+                  </span>
+                  <div className="min-w-0">
+                    <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-gold/40`}>
+                      €{diningUncollectedAmount.toFixed(2)}
+                    </p>
+                    <p className="mt-1.5 text-[12px] text-brand-text-muted">
+                      {i18n.todayRevenueUncollected}
+                    </p>
+                  </div>
+                </>
+              ) : null}
             </div>
           ) : (
             <p className={`${moneyClass} text-3xl sm:text-4xl text-brand-text-muted`}>

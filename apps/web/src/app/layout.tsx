@@ -1,13 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Jost } from "next/font/google";
 import { PRODUCT_NAME, PRODUCT_SITE_DESCRIPTION_ZH, PRODUCT_SITE_TITLE } from '@mesa/shared';
-import { PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
+import { PWA_BACKGROUND_COLOR, PWA_ICON_PATHS, PWA_THEME_COLOR } from '@/lib/pwa/site-manifest';
 import {
   PWA_LAUNCH_SHELL_ID,
   PWA_LAUNCH_MARK_PX,
   buildPwaLaunchShellBootScript,
   buildPwaLaunchShellStyle,
 } from '@/lib/pwa/launch-shell';
+import { PwaShellSwRegister } from '@/components/pwa/PwaShellSwRegister';
+import { getWebAppBuildInfo } from '@/lib/web-app-build';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
@@ -57,11 +59,13 @@ export default function RootLayout({
 }) {
   const initialLang = getServerLanguage();
   const htmlLang = HTML_LANG_BY_UI[initialLang];
+  const { version: webAppVersion } = getWebAppBuildInfo();
 
   return (
     <html
       lang={htmlLang}
       className={jost.variable}
+      style={{ backgroundColor: PWA_BACKGROUND_COLOR }}
       suppressHydrationWarning
     >
       <body className="antialiased bg-brand-bg text-brand-text font-body">
@@ -80,6 +84,7 @@ export default function RootLayout({
             decoding="async"
           />
         </div>
+        <PwaShellSwRegister version={webAppVersion} />
         <ThemeProvider>
           <LanguageProvider initialLang={initialLang}>
             {children}

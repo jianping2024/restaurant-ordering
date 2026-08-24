@@ -95,6 +95,9 @@ const COMPACT_SELECT_CLASS =
   'rounded-md border border-brand-border bg-brand-bg px-2 py-1 text-base text-brand-text';
 const PRESET_BTN_BASE =
   'text-[13px] px-2.5 py-1 rounded-md border transition-colors whitespace-nowrap';
+/** Sole list-row risk/status chip shell — single-line, never wrap under narrow table columns. */
+const TABLE_BADGE_CHIP_CLASS =
+  'inline-flex items-center whitespace-nowrap text-[11px] px-2 py-0.5 rounded-full';
 
 function riskBadgeClass(risk: AbnormalRiskLevel) {
   if (risk === 'HIGH') return 'mesa-badge-danger';
@@ -465,15 +468,15 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
           <p className="px-4 py-10 text-center text-brand-text-muted text-sm">{t.empty}</p>
         ) : (
           <div className={`overflow-x-auto ${tableBusy ? 'opacity-60' : ''}`} aria-busy={loading || undefined}>
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b border-brand-border text-brand-text-muted text-left text-[13px]">
                   <th className="px-4 py-2 font-medium">{t.colTime}</th>
                   <th className="px-4 py-2 font-medium">{t.colType}</th>
                   <th className="px-4 py-2 font-medium">{t.colTable}</th>
-                  <th className="px-4 py-2 font-medium">{t.colRisk}</th>
-                  <th className="px-4 py-2 font-medium">{t.colStatus}</th>
-                  <th className="px-4 py-2 font-medium">{t.colAmount}</th>
+                  <th className="px-4 py-2 font-medium whitespace-nowrap">{t.colRisk}</th>
+                  <th className="px-4 py-2 font-medium whitespace-nowrap">{t.colStatus}</th>
+                  <th className="px-4 py-2 font-medium whitespace-nowrap">{t.colAmount}</th>
                   <th className="px-4 py-2 font-medium">{t.colReason}</th>
                   <th className="px-4 py-2 font-medium">{t.colOperator}</th>
                   <th className="px-4 py-2 font-medium">{t.colAction}</th>
@@ -493,8 +496,8 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
                     <td className="px-4 py-2 whitespace-nowrap text-brand-text-muted text-[13px]">
                       {new Date(row.created_at).toLocaleString(locale)}
                     </td>
-                    <td className="px-4 py-2 text-[13px]">{typeLabel(t, row.type)}</td>
-                    <td className="px-4 py-2 text-[13px]">
+                    <td className="px-4 py-2 whitespace-nowrap text-[13px]">{typeLabel(t, row.type)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-[13px]">
                       {canOpenHistory ? (
                         <button
                           type="button"
@@ -508,21 +511,21 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
                         row.table_name ?? '—'
                       )}
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 whitespace-nowrap">
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full ${riskBadgeClass(row.risk_level)}`}
+                        className={`${TABLE_BADGE_CHIP_CLASS} ${riskBadgeClass(row.risk_level)}`}
                       >
                         {riskLabel(t, row.risk_level)}
                       </span>
                     </td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 whitespace-nowrap">
                       <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full ${statusBadgeClass(row.status)}`}
+                        className={`${TABLE_BADGE_CHIP_CLASS} ${statusBadgeClass(row.status)}`}
                       >
                         {statusLabel(t, row.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-brand-gold font-medium text-[13px]">
+                    <td className="px-4 py-2 whitespace-nowrap text-brand-gold font-medium text-[13px]">
                       €{Number(row.amount_impact).toFixed(2)}
                     </td>
                     <td className="px-4 py-2 max-w-[10rem]">

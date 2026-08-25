@@ -50,10 +50,10 @@ interface Props {
   printOnCooldown: boolean;
   billSyncAvailable: boolean;
   billSyncBusy: boolean;
-  /** True when in-flight or succeeded with unchanged content. */
+  /** True when in-flight (content_unchanged still allows sync-and-close). */
   billSyncBlocked: boolean;
   billSyncStatusLabel: string | null;
-  onSyncBill: () => void;
+  onSyncAndCheckoutClose: () => void;
   showSplitReceiptActions: boolean;
   onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
   isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
@@ -168,7 +168,7 @@ export function CheckoutRequestDetail({
   billSyncBusy,
   billSyncBlocked,
   billSyncStatusLabel,
-  onSyncBill,
+  onSyncAndCheckoutClose,
   showSplitReceiptActions,
   onPrintSplitReceipt,
   isPrintReceiptBusy,
@@ -372,7 +372,7 @@ export function CheckoutRequestDetail({
           {billSyncAvailable ? (
             <button
               type="button"
-              onClick={onSyncBill}
+              onClick={onSyncAndCheckoutClose}
               disabled={detailLocked || billSyncBlocked}
               className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
             >

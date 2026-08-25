@@ -5,6 +5,7 @@ import {
   loadBillSyncLiveContext,
 } from '@/lib/bill-sync-live-context';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
+import { resolveBillSyncSourceSale } from '@/lib/bill-sync-resolve-source-sale';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { enqueueBillSyncJob } from '@/lib/bill-sync-enqueue';
 import { isRestaurantFeatureEnabled } from '@mesa/shared';
@@ -15,6 +16,7 @@ export const runtime = 'nodejs';
 /**
  * POST /api/restaurants/[slug]/bill-syncs
  * Sole staff enqueue for fiscal bill-sync hang-queue (bill-sync-contract-v1.0).
+ * Body: exactly one of `bill_split_id` | `table_id` (+ optional request_id).
  */
 export async function POST(
   req: Request,
@@ -27,6 +29,7 @@ export async function POST(
 
   let body: {
     bill_split_id?: unknown;
+    table_id?: unknown;
     request_id?: unknown;
   };
   try {
@@ -35,10 +38,9 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const billSplitId = typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
-  if (!billSplitId) {
-    return NextResponse.json({ error: 'missing_bill_split_id' }, { status: 400 });
-  }
+  const billSplitIdRaw =
+    typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : '';
+  const tableIdRaw = typeof body.table_id === 'string' ? body.table_id.trim() : '';
   const requestId =
     typeof body.request_id === 'string' && body.request_id.trim()
       ? body.request_id.trim()
@@ -53,10 +55,23 @@ export async function POST(
     return NextResponse.json({ error: 'bill_sync_disabled' }, { status: 403 });
   }
 
+  const resolved = await resolveBillSyncSourceSale({
+    admin: auth.admin,
+    restaurantId: auth.restaurantId,
+    billSplitId: billSplitIdRaw || undefined,
+    tableId: tableIdRaw || undefined,
+  });
+  if (!resolved.ok) {
+    return NextResponse.json(
+      { error: resolved.error, message: resolved.message },
+      { status: resolved.status },
+    );
+  }
+
   const loaded = await loadBillSyncLiveContext({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
-    billSplitId,
+    billSplitId: resolved.billSplitId,
   });
   if (!loaded.ok) {
     return NextResponse.json(
@@ -83,7 +98,14 @@ export async function POST(
 
   if (!result.ok) {
     return NextResponse.json(
-      { error: result.error, message: result.message, job: result.job ?? null },
+      {
+        error: result.error,
+        message: result.message,
+        job: result.job ?? null,
+        bill_split_id: resolved.billSplitId,
+        table_id: resolved.tableId,
+        ensured: resolved.ensured,
+      },
       { status: result.status },
     );
   }
@@ -92,6 +114,9 @@ export async function POST(
     ok: true,
     job: result.job,
     reused: result.reused ?? null,
+    bill_split_id: resolved.billSplitId,
+    table_id: resolved.tableId,
+    ensured: resolved.ensured,
   });
 }
 

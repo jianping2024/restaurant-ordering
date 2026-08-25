@@ -9,10 +9,10 @@
 
 | 侧 | 管什么 | 不管什么 |
 | --- | --- | --- |
-| **Restaurant（结账）** | 功能开关；点「同步账单」写入云端 `bill_sync_jobs`；记操作；成功提示「同步完成」 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
+| **Restaurant（结账 / 桌台）** | 功能开关；点「同步关台」写入云端 `bill_sync_jobs`，成功后再 settled 关台；记操作 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
 | **Farvoo 打票（Agent）** | Realtime/补偿/fallback 拉取；本地临时表（JSON）；本机分单/打票/重打；按 `item_code` upsert 商品；ack | 替代 Restaurant 结账；跟关台绑死 |
 
-**产品口径：** Restaurant 只提供**账单初稿**。同步后改动在打票本机做；照理同步后应关台。关台不影响 Agent 草稿与开票/重打。
+**产品口径：** Restaurant 提供**账单初稿**并以「同步关台」在成功同步后关台。关台不影响 Agent 草稿与开票/重打。
 
 发票开票人 = **打票本地登录账号**（≠ 点同步的人）。  
 **全店仅一台 Agent。**  
@@ -23,16 +23,12 @@
 ## 1. 总流程
 
 ```text
-结账页点「同步账单」（开关已开 + 已登录）
+结账页或桌台详情点「同步关台」（开关已开 + sync_bill + checkout_close）
+  → 若无活跃 bill_split：ensure whole_table（不自动打 pre_bill）
   → 云端写入 bill_sync_jobs（pending）+ 操作记录
-  → Agent：复用打印同款机制
-       · Realtime 订 bill_sync_jobs（门铃）
-       · 或启动/重连 compensation
-       · Realtime 挂了才 fallback 轮询
-  → Agent 持 agentjwt：GET pending-bill-syncs
-  → 写入/覆盖本地临时表 → upsert 商品 → ack
-  → 结账页「同步完成」（失败/超时可再同步；**succeeded 且内容指纹未变 → 禁止再入队**）
-  → 店员在 Agent 本机：读临时表 → 分单 / 打票
+  → Agent：复用打印同款机制拉取 → ack
+  → 关台前再核 content_unchanged；不一致则重同步或中止
+  → succeeded 且指纹未变 → settled 关台结账（打印策略同「关台结账」）
 ```
 
 **鉴权：** 完全复用打印配对 claim 的 **`agentjwt`**（Agent → Farvoo）。不为同步再配对、不做浏览器→Agent 密钥、不依赖收银机知道 Agent 局域网地址。
@@ -45,7 +41,7 @@
 | --- | --- |
 | 键 | `bill_sync_to_fiscal`（见 [`restaurant-features.zh.md`](../restaurant-features.zh.md)） |
 | 默认 | **关闭** |
-| 开启后 | 结账页出现「同步账单」 |
+| 开启后 | 结账页与桌台详情出现「同步关台」 |
 | 关闭时 | 入口隐藏；入队 API **拒绝** |
 | 独立于 | `bill_receipt_print` |
 
@@ -230,7 +226,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账详情「同步账单」（功能开关 + 权限 `checkout.sync_bill`，与关台类按钮同为 capability 显隐）；`GET …/bill-syncs` 返回 `content_unchanged`（当前账单指纹 vs 最近 **succeeded** job）；仅当 `content_unchanged` 时禁用按钮并示「同步完成」；`failed`（含 `already_invoiced`、校验失败）展示回传原因并可再试；未变再入队 → `already_synced`。未配对/超时 pending → 提示未送达。不做打票工作台。
+**Restaurant：** 结账详情与桌台详情「同步关台」（功能开关 + `checkout.sync_bill` + `tables.checkout_close`）；唯一编排 `runStaffSyncAndCheckoutClose`；`GET …/bill-syncs` 返回 `content_unchanged`；关台前再核指纹，脏账禁止关台；失败/超时不关台。不做打票工作台。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 

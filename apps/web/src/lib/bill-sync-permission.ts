@@ -2,9 +2,9 @@ import type { Capabilities } from '@/lib/permissions/can';
 import { can } from '@/lib/permissions/can';
 
 /**
- * Checkout detail「同步账单」button + POST/GET bill-syncs.
- * Single policy: capability only (feature flag is a separate product switch).
+ * Sole UI gate for「同步关台」(sync + settled checkout close).
+ * Feature flag `bill_sync_to_fiscal` is a separate product switch.
  */
-export function maySyncBillToFiscal(capabilities: Capabilities): boolean {
-  return can(capabilities, 'checkout.sync_bill');
+export function maySyncAndCheckoutClose(capabilities: Capabilities): boolean {
+  return can(capabilities, 'checkout.sync_bill') && can(capabilities, 'tables.checkout_close');
 }

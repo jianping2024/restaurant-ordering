@@ -30,7 +30,7 @@ import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
-import { maySyncBillToFiscal } from '@/lib/bill-sync-permission';
+import { maySyncAndCheckoutClose } from '@/lib/bill-sync-permission';
 import { useStaffBillSync } from '@/lib/use-staff-bill-sync';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
@@ -51,6 +51,7 @@ import {
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import type { Capabilities } from '@/lib/permissions/can';
+import { can } from '@/lib/permissions/can';
 import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 
 type Props = {
@@ -76,7 +77,9 @@ export function CheckoutRequestDetailHost({
   onCloseTableComplete,
 }: Props) {
   const canForceCloseTable = mayForceCloseTable(capabilities);
-  const canSyncBill = maySyncBillToFiscal(capabilities);
+  const canSyncAndCheckoutClose = maySyncAndCheckoutClose(capabilities);
+  const printBillOnSyncClose = can(capabilities, 'checkout.print_pre_bill');
+  const [syncCloseConfirmOpen, setSyncCloseConfirmOpen] = useState(false);
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
   const waiterBoard = useWaiterBoardOptional();
@@ -380,17 +383,27 @@ export function CheckoutRequestDetailHost({
     billSyncBlocked,
     billSyncContentUnchanged,
     billSyncJob,
-    syncBill,
+    syncAndCheckoutClose,
   } = useStaffBillSync({
     restaurantSlug,
     billSplitId: request.id,
-    enabled: canSyncBill,
+    tableId: request.table_id,
+    enabled: canSyncAndCheckoutClose,
+    printBillOnClose: printBillOnSyncClose,
     refreshKey: billSyncRefreshKey,
     labels: {
       syncBillComplete: t.syncBillComplete,
       syncBillFailed: t.syncBillFailed,
       syncBillDisabled: t.syncBillDisabled,
-      syncBillUnchanged: t.syncBillUnchanged,
+      syncBillDirty: t.syncBillDirty,
+      syncBillCloseFailed: t.syncBillCloseFailed,
+      syncBillClosePrintFailed: t.syncBillClosePrintFailed,
+      syncBillCloseSuccess: t.syncBillCloseSuccess,
+    },
+    onClosed: () => {
+      syncBoardAfterMutation(request.table_id);
+      onCloseTableComplete?.();
+      void reload();
     },
   });
   const billSyncStatusLabel = billSyncContentUnchanged
@@ -435,7 +448,7 @@ export function CheckoutRequestDetailHost({
         billSyncBusy={billSyncBusy}
         billSyncBlocked={billSyncBlocked}
         billSyncStatusLabel={billSyncStatusLabel}
-        onSyncBill={() => void syncBill()}
+        onSyncAndCheckoutClose={() => setSyncCloseConfirmOpen(true)}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
         isPrintReceiptBusy={(payment) =>
@@ -504,6 +517,21 @@ export function CheckoutRequestDetailHost({
         confirming={isResumeMutating}
         onConfirm={() => {
           void resumeOrdering().finally(() => setResumeConfirmOpen(false));
+        }}
+      />
+      <ConfirmModal
+        open={syncCloseConfirmOpen}
+        onClose={() => {
+          if (billSyncBusy) return;
+          setSyncCloseConfirmOpen(false);
+        }}
+        title={t.syncBillConfirmTitle}
+        message=""
+        confirmLabel={t.syncBill}
+        cancelLabel={t.syncBillCancel}
+        confirming={billSyncBusy}
+        onConfirm={() => {
+          void syncAndCheckoutClose().finally(() => setSyncCloseConfirmOpen(false));
         }}
       />
     </>

@@ -63,6 +63,10 @@ export async function submitCheckoutRequestForTable(
   restaurantId: string,
   tableId: string,
   payload: CheckoutRequestPayload,
+  options?: {
+    /** Fiscal sync-and-close ensure must not enqueue automatic pre_bill. */
+    skipAutomaticPreBill?: boolean;
+  },
 ): Promise<CheckoutRequestResult> {
   const normalizedPayload = normalizeCheckoutRequestPayload(payload);
 
@@ -217,14 +221,16 @@ export async function submitCheckoutRequestForTable(
   }
 
   const billSplitId = rpcPayload.bill_split_id as string;
-  scheduleCallBillPreBillPrint({
-    admin,
-    restaurantId,
-    sessionId,
-    tableId,
-    tableDisplayName: tableRow.display_name as string,
-    billSplitId,
-  });
+  if (!options?.skipAutomaticPreBill) {
+    scheduleCallBillPreBillPrint({
+      admin,
+      restaurantId,
+      sessionId,
+      tableId,
+      tableDisplayName: tableRow.display_name as string,
+      billSplitId,
+    });
+  }
 
   return {
     ok: true,

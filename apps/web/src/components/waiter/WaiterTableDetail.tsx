@@ -36,6 +36,7 @@ import {
   type CapabilitiesPayload,
 } from '@/lib/permissions/can';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
+import { maySyncAndCheckoutClose } from '@/lib/bill-sync-permission';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
@@ -1080,6 +1081,7 @@ function WaiterTableDetailInner({
               <WaiterTableOccupiedToolbar
                 t={t}
                 lang={lang}
+                restaurantSlug={restaurant.slug}
                 tableId={selectedCard.tableId}
                 sessionId={sessionMeta?.sessionId ?? null}
                 onContinueOrdering={() => {
@@ -1097,6 +1099,11 @@ function WaiterTableDetailInner({
                 showTransfer={detailActions.showTransfer}
                 showMerge={detailActions.showMerge}
                 showCheckoutClose={detailActions.showCheckoutClose}
+                showSyncCheckoutClose={
+                  detailActions.showCheckoutClose &&
+                  maySyncAndCheckoutClose(capabilities) &&
+                  isRestaurantFeatureEnabled(restaurant.feature_flags, 'bill_sync_to_fiscal')
+                }
                 showForceClose={detailActions.showForceClose}
                 floorCapabilities={floorCaps}
                 isDemo={isDemo}

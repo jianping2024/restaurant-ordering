@@ -1,45 +1,45 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { mintBrowserUuid } from '@/lib/browser-uuid';
 import { showToast } from '@/components/ui/Toast';
-
-type BillSyncJob = {
-  id: string;
-  status: string;
-  request_id?: string;
-  error_code?: string | null;
-  error_message?: string | null;
-  content_fingerprint?: string | null;
-};
+import { runStaffSyncAndCheckoutClose } from '@/lib/run-staff-sync-and-checkout-close';
+import {
+  fetchStaffBillSyncStatus,
+  type StaffBillSyncJob,
+} from '@/lib/staff-bill-sync-client';
 
 type Labels = {
   syncBillComplete: string;
   syncBillFailed: string;
   syncBillDisabled: string;
-  syncBillUnchanged: string;
+  syncBillDirty: string;
+  syncBillCloseFailed: string;
+  syncBillClosePrintFailed: string;
+  syncBillCloseSuccess: string;
 };
 
 /**
- * Sole checkout client for fiscal bill-sync enqueue + status wait (no interval polling).
- * Block Sync only when server says content_unchanged (or busy / in-flight).
+ * Checkout detail status + sole compound action runner (sync → fingerprint → close).
+ * Block while busy / in-flight only — content_unchanged still allows close.
  */
 export function useStaffBillSync(input: {
   restaurantSlug: string;
   billSplitId: string;
-  /** Feature + checkout.sync_bill — when false, hide entry. */
+  tableId: string;
+  /** Feature + maySyncAndCheckoutClose — when false, hide entry. */
   enabled: boolean;
+  printBillOnClose: boolean;
   /**
    * Host bumps when the checkout bill may have changed (total / request / orders).
    * Triggers a one-shot GET for content_unchanged — not polling.
    */
   refreshKey: string;
   labels: Labels;
+  onClosed?: () => void;
 }) {
   const [busy, setBusy] = useState(false);
-  const [job, setJob] = useState<BillSyncJob | null>(null);
+  const [job, setJob] = useState<StaffBillSyncJob | null>(null);
   const [available, setAvailable] = useState(input.enabled);
-  /** Sole unlock gate from GET/POST — true only when live matches last succeeded sync. */
   const [contentUnchanged, setContentUnchanged] = useState(false);
 
   const refreshLatest = useCallback(async () => {
@@ -48,25 +48,19 @@ export function useStaffBillSync(input: {
       setContentUnchanged(false);
       return null;
     }
-    const res = await fetch(
-      `/api/restaurants/${encodeURIComponent(input.restaurantSlug)}/bill-syncs?source_sale_id=${encodeURIComponent(input.billSplitId)}`,
-      { credentials: 'include' },
-    );
-    if (res.status === 403) {
+    const status = await fetchStaffBillSyncStatus({
+      restaurantSlug: input.restaurantSlug,
+      billSplitId: input.billSplitId,
+    });
+    if (!status.available) {
       setAvailable(false);
       setContentUnchanged(false);
       return null;
     }
     setAvailable(true);
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      job?: BillSyncJob | null;
-      content_unchanged?: boolean;
-    };
-    const next = data.job ?? null;
-    setJob(next);
-    setContentUnchanged(data.content_unchanged === true);
-    return next;
+    setJob(status.job);
+    setContentUnchanged(status.content_unchanged);
+    return status.job;
   }, [input.billSplitId, input.enabled, input.restaurantSlug]);
 
   useEffect(() => {
@@ -78,78 +72,52 @@ export function useStaffBillSync(input: {
     void refreshLatest();
   }, [refreshLatest, input.refreshKey]);
 
-  const waitUntilSettled = useCallback(
-    async (requestId: string) => {
-      for (let i = 0; i < 12; i++) {
-        await new Promise((r) => setTimeout(r, 400 + i * 150));
-        const latest = await refreshLatest();
-        if (!latest) continue;
-        if (latest.request_id && latest.request_id !== requestId) continue;
-        if (latest.status === 'succeeded' || latest.status === 'failed') return latest;
-      }
-      return refreshLatest();
-    },
-    [refreshLatest],
-  );
-
   const inFlight = job?.status === 'pending' || job?.status === 'processing';
-  const syncBillBlocked = Boolean(busy || inFlight || contentUnchanged);
+  const syncBillBlocked = Boolean(busy || inFlight);
 
-  const syncBill = useCallback(async () => {
+  const syncAndCheckoutClose = useCallback(async () => {
     if (!available || syncBillBlocked) return;
     setBusy(true);
-    const requestId = mintBrowserUuid();
     try {
-      const res = await fetch(
-        `/api/restaurants/${encodeURIComponent(input.restaurantSlug)}/bill-syncs`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bill_split_id: input.billSplitId,
-            request_id: requestId,
-          }),
-        },
-      );
-      if (res.status === 403) {
-        setAvailable(false);
-        showToast(input.labels.syncBillDisabled, 'error');
-        return;
-      }
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        message?: string;
-        job?: BillSyncJob;
-      };
-      if (res.status === 409 && data.error === 'already_synced') {
-        if (data.job) setJob(data.job);
-        setContentUnchanged(true);
-        showToast(input.labels.syncBillUnchanged, 'info');
-        return;
-      }
-      if (!res.ok) {
-        showToast(data.message || data.error || input.labels.syncBillFailed, 'error');
-        return;
-      }
-      if (data.job) setJob(data.job);
-      const settled = await waitUntilSettled(requestId);
-      if (settled?.status === 'succeeded') {
-        showToast(input.labels.syncBillComplete, 'success');
-      } else if (settled?.status === 'failed') {
+      const outcome = await runStaffSyncAndCheckoutClose({
+        restaurantSlug: input.restaurantSlug,
+        billSplitId: input.billSplitId,
+        tableId: input.tableId,
+        printBill: input.printBillOnClose,
+      });
+      if (!outcome.ok) {
+        if (outcome.code === 'bill_sync_disabled' || outcome.code === 'forbidden') {
+          setAvailable(false);
+          showToast(input.labels.syncBillDisabled, 'error');
+          return;
+        }
+        if (outcome.stage === 'dirty') {
+          showToast(input.labels.syncBillDirty, 'error');
+          await refreshLatest();
+          return;
+        }
+        if (outcome.stage === 'close') {
+          showToast(input.labels.syncBillCloseFailed, 'error');
+          return;
+        }
         showToast(
-          settled.error_message || settled.error_code || input.labels.syncBillFailed,
+          outcome.message || outcome.job?.error_message || input.labels.syncBillFailed,
           'error',
         );
-      } else {
-        showToast(input.labels.syncBillFailed, 'error');
+        await refreshLatest();
+        return;
       }
+      showToast(input.labels.syncBillCloseSuccess, 'success');
+      if (outcome.printFailed) {
+        showToast(input.labels.syncBillClosePrintFailed, 'error');
+      }
+      input.onClosed?.();
     } catch {
       showToast(input.labels.syncBillFailed, 'error');
     } finally {
       setBusy(false);
     }
-  }, [available, input, syncBillBlocked, waitUntilSettled]);
+  }, [available, input, refreshLatest, syncBillBlocked]);
 
   return {
     billSyncAvailable: available,
@@ -157,6 +125,6 @@ export function useStaffBillSync(input: {
     billSyncBlocked: syncBillBlocked,
     billSyncContentUnchanged: contentUnchanged,
     billSyncJob: job,
-    syncBill,
+    syncAndCheckoutClose,
   };
 }

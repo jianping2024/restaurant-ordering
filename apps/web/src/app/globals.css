@@ -205,6 +205,17 @@ body {
   }
 
   /**
+   * Sole floor interactive chrome — cards (`.mesa-scroll-frame`) + KPI (`.mesa-stat`).
+   * Blocks iOS long-press text selection on tap targets; search/inputs stay selectable.
+   */
+  .mesa-scroll-frame,
+  .mesa-stat {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /**
    * Hand-scroll double frame — sole floor-card shell (mockup truth).
    * Outer 1px status/ink; pad 3px; inner 0.5px gold hairline.
    */

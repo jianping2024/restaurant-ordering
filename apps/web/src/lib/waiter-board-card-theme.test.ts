@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { waiterStaffStickyChrome } from './waiter-staff-sticky-chrome';
 import {
   WAITER_BOARD_CARD_THEME,
@@ -32,6 +35,18 @@ function assertNoSkyPalette(className: string) {
 }
 
 describe('waiter-board-card-theme theme tokens', () => {
+  it('floor interactive chrome disables long-press text selection in globals only', () => {
+    const globals = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../app/globals.css'),
+      'utf8',
+    );
+    assert.match(
+      globals,
+      /\.mesa-scroll-frame,\s*\n\s*\.mesa-stat\s*\{[\s\S]*?user-select:\s*none/,
+    );
+    assert.doesNotMatch(globals, /WaiterBoardTableCard|select-none/);
+  });
+
   it('board shells use scroll-frame status modifiers, not Tailwind media dark:', () => {
     const states = ['dining', 'checkout', 'idle'] as const;
     const expected: Record<(typeof states)[number], RegExp> = {

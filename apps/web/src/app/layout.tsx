@@ -9,6 +9,7 @@ import {
   buildPwaLaunchShellStyle,
 } from '@/lib/pwa/launch-shell';
 import { PwaShellSwRegister } from '@/components/pwa/PwaShellSwRegister';
+import { PwaScrollRecovery } from '@/components/pwa/PwaScrollRecovery';
 import { getWebAppBuildInfo } from '@/lib/web-app-build';
 import "./globals.css";
 import { LanguageProvider } from '@/components/providers/LanguageProvider';
@@ -85,6 +86,7 @@ export default function RootLayout({
           />
         </div>
         <PwaShellSwRegister version={webAppVersion} />
+        <PwaScrollRecovery />
         <ThemeProvider>
           <LanguageProvider initialLang={initialLang}>
             {children}

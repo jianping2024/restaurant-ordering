@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 
 type Props = {
   open: boolean;
@@ -17,14 +18,7 @@ export function StaffOrderingShell({
   closeDisabled = false,
   children,
 }: Props) {
-  useEffect(() => {
-    if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;

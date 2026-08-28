@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 
 interface ModalProps {
   open: boolean;
@@ -46,13 +47,7 @@ export function Modal({
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   if (!open || !mounted) return null;
 

@@ -6,6 +6,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { CheckoutRequestDetailHost } from '@/components/dashboard/checkout/CheckoutRequestDetailHost';
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { getMessages } from '@/lib/i18n/messages';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
 import type { Capabilities } from '@/lib/permissions/can';
 
@@ -44,13 +45,7 @@ export function WaiterBoardCheckoutSheet({
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   const request = useMemo(
     () => requests.find((row) => tableIdsEqual(row.table_id, tableId)),

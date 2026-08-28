@@ -26,6 +26,7 @@ import {
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { resolveMenuItemAllergenPresentation } from '@/lib/allergens';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 type DetailLabels = Pick<
@@ -74,16 +75,16 @@ export function CustomerMenuItemDetailSheet({
   const t = MENU_PAGE_MESSAGES[lang] as DetailLabels;
   const [entered, setEntered] = useState(false);
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) {
       setEntered(false);
       return;
     }
-    document.body.style.overflow = 'hidden';
     const id = requestAnimationFrame(() => setEntered(true));
     return () => {
       cancelAnimationFrame(id);
-      document.body.style.overflow = '';
     };
   }, [open]);
 

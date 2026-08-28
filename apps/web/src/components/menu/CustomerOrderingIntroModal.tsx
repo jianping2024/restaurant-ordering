@@ -9,6 +9,7 @@ import {
   CUSTOMER_ORDERING_INTRO_SPLIT_STEP_INDEX,
   type CustomerOrderingIntroCopy,
 } from '@/lib/i18n/customer-ordering-intro-messages';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 
 const STEP_ICONS = ['🛒', '📄', '🧾', '🔔'] as const;
 
@@ -37,13 +38,7 @@ export function CustomerOrderingIntroModal({
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   if (!open || !mounted) return null;
 

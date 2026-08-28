@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { WaiterBoardTableSummary } from '@/lib/waiter-board-snapshot';
 import {
   buildWaiterBoardCardViewModel,
@@ -67,6 +67,7 @@ export function WaiterBoardTableCard({
   onOpenCheckout,
   onDisabledClick,
 }: Props) {
+  const router = useRouter();
   const t = WAITER_TEXT[lang];
   const view = buildWaiterBoardCardViewModel({
     card,
@@ -222,9 +223,19 @@ export function WaiterBoardTableCard({
     );
   }
 
-  return (
-    <Link href={action.href} className={cardClassName} aria-label={view.ariaLabel}>
-      {body}
-    </Link>
-  );
+  if (action.kind === 'navigate') {
+    return (
+      <button
+        type="button"
+        className={cardClassName}
+        aria-label={view.ariaLabel}
+        onClick={() => router.push(action.href)}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  const _exhaustive: never = action;
+  return _exhaustive;
 }

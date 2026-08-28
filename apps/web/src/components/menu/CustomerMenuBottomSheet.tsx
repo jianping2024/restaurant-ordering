@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
@@ -18,13 +19,7 @@ export function CustomerMenuBottomSheet({
   children: ReactNode;
   footer?: ReactNode;
 }) {
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   return (
     <>

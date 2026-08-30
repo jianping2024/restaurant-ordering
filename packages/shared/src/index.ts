@@ -131,6 +131,22 @@ export {
 } from './print-agent-support-snapshot';
 export { insertPlatformAdminAudit, type PlatformAdminAuditInsert } from './platform-admin-audit';
 export {
+  fiscalProductPublicKeyPem,
+  loadFiscalProductPrivateKeyPem,
+  wrapFiscalProductPem,
+  type FiscalWrapBlob,
+} from './fiscal-product-wrap';
+export {
+  activateFiscalSigning,
+  getFiscalSigningRestaurantStatus,
+  pullFiscalSigningProvision,
+  registerFiscalSigningDevice,
+  revokeFiscalSigning,
+  type FiscalSigningInstallationRow,
+  type FiscalSigningRestaurantStatus,
+  type FiscalSigningStatus,
+} from './fiscal-signing';
+export {
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,

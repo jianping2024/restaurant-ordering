@@ -135,7 +135,7 @@ export function RestaurantFiscalSigningPanel({ restaurantId, readOnly = false }:
       <div className="mt-4 flex flex-wrap gap-3">
         <button
           type="button"
-          disabled={readOnly || busy || status?.status === 'active' || status?.status === 'none'}
+          disabled={readOnly || busy || status?.status !== 'registered'}
           onClick={() => void activate()}
           className="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
         >

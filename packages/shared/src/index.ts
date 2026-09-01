@@ -157,6 +157,7 @@ export {
   type FiscalProfile,
   type RestaurantFiscalPolicy,
 } from './fiscal-store-policy';
+export { pairingListCode, randomPairingCode } from './print-agent-pairing-code';
 export {
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,

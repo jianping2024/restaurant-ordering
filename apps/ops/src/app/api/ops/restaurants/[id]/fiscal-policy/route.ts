@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getRestaurantFiscalPolicy, updateRestaurantFiscalPolicy } from '@mesa/shared';
-import { requirePlatformAdminRole } from '@/lib/platform-auth';
+import { requirePlatformAdmin, requirePlatformAdminRole } from '@/lib/platform-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, context: RouteContext) {
-  const { error, admin } = await requirePlatformAdminRole('viewer');
+  const { error, admin } = await requirePlatformAdmin();
   if (error || !admin) return error!;
 
   const { id: restaurantId } = await context.params;

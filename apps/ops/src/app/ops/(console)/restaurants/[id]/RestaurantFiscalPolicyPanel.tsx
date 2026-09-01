@@ -21,6 +21,9 @@ type Props = {
   signingStatus?: 'none' | 'registered' | 'active' | 'revoked';
 };
 
+const fieldClass =
+  'mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 disabled:cursor-not-allowed disabled:opacity-70';
+
 export function RestaurantFiscalPolicyPanel({
   restaurantId,
   readOnly = false,
@@ -143,22 +146,22 @@ export function RestaurantFiscalPolicyPanel({
   const activateBlocked = signingStatus === 'registered' && !profileOk;
 
   return (
-    <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-      <h2 className="text-lg font-semibold text-zinc-900">开票门店策略（Ops）</h2>
-      <p className="mt-1 text-sm text-zinc-600">
+    <section className="mt-8 rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+      <h2 className="text-lg font-medium">开票门店策略（Ops）</h2>
+      <p className="mt-1 text-sm text-zinc-500">
         业态与终端上限由 Ops 配置；店内登录页不再选择业态。激活签名前必须保存业态。
       </p>
 
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
       {activateBlocked ? (
-        <p className="mt-3 text-sm text-amber-700">设备已注册，但尚未配置业态 — 下方保存后再点「激活」。</p>
+        <p className="mt-3 text-sm text-amber-400">设备已注册，但尚未配置业态 — 下方保存后再点「激活」。</p>
       ) : null}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-800">开票业态</span>
+        <label className="block text-sm text-zinc-400">
+          <span className="font-medium">开票业态</span>
           <select
-            className="mt-1 w-full rounded border border-zinc-300 px-2 py-1.5"
+            className={fieldClass}
             value={profileDraft}
             disabled={readOnly || busy}
             onChange={(e) => setProfileDraft(e.target.value as 'restaurant' | 'retail' | '')}
@@ -168,12 +171,12 @@ export function RestaurantFiscalPolicyPanel({
             <option value="retail">商超</option>
           </select>
         </label>
-        <label className="block text-sm">
-          <span className="font-medium text-zinc-800">最大开票终端数</span>
+        <label className="block text-sm text-zinc-400">
+          <span className="font-medium">最大开票终端数</span>
           <input
             type="number"
             min={1}
-            className="mt-1 w-full rounded border border-zinc-300 px-2 py-1.5"
+            className={fieldClass}
             value={maxDraft}
             disabled={readOnly || busy}
             onChange={(e) => setMaxDraft(e.target.value)}
@@ -184,7 +187,7 @@ export function RestaurantFiscalPolicyPanel({
       {!readOnly ? (
         <button
           type="button"
-          className="mt-3 rounded bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="mt-4 rounded border border-zinc-600 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={busy}
           onClick={() => void savePolicy()}
         >
@@ -192,12 +195,12 @@ export function RestaurantFiscalPolicyPanel({
         </button>
       ) : null}
 
-      <div className="mt-6 border-t border-zinc-100 pt-4">
-        <h3 className="text-sm font-semibold text-zinc-900">LAN 开票终端</h3>
+      <div className="mt-6 border-t border-zinc-800 pt-4">
+        <h3 className="text-sm font-medium text-zinc-200">LAN 开票终端</h3>
         <p className="mt-1 text-xs text-zinc-500">
           已用 {policy?.terminals_used ?? 0} / {policy?.max_fiscal_terminals ?? 1}（本机 127.0.0.1 不计入）
         </p>
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="mt-2 space-y-1 text-sm text-zinc-300">
           {terminals.length === 0 ? (
             <li className="text-zinc-500">暂无已注册终端</li>
           ) : (
@@ -210,7 +213,7 @@ export function RestaurantFiscalPolicyPanel({
                 {!readOnly && t.active ? (
                   <button
                     type="button"
-                    className="text-xs text-red-600"
+                    className="text-xs text-red-400 hover:text-red-300"
                     disabled={busy}
                     onClick={() => void revokeTerminal(t.id)}
                   >
@@ -224,7 +227,7 @@ export function RestaurantFiscalPolicyPanel({
         {!readOnly ? (
           <button
             type="button"
-            className="mt-3 rounded border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-50"
+            className="mt-3 rounded border border-zinc-600 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40"
             disabled={busy || !profileOk}
             onClick={() => void createPairing()}
           >
@@ -232,7 +235,7 @@ export function RestaurantFiscalPolicyPanel({
           </button>
         ) : null}
         {pairingCode ? (
-          <p className="mt-2 font-mono text-lg tracking-widest text-emerald-700">{pairingCode}</p>
+          <p className="mt-2 font-mono text-lg tracking-widest text-emerald-400">{pairingCode}</p>
         ) : null}
       </div>
     </section>

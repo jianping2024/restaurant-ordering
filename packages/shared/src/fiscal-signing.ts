@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { assertFiscalProfileForSigningActivate } from './fiscal-store-policy';
 import {
   fiscalProductPublicKeyPem,
   loadFiscalProductPrivateKeyPem,
@@ -191,6 +192,11 @@ export async function activateFiscalSigning(
   | { ok: true; installation: FiscalSigningInstallationRow }
   | { ok: false; error: string; status: number; detail?: string }
 > {
+  const profileGate = await assertFiscalProfileForSigningActivate(admin, input.restaurantId);
+  if (!profileGate.ok) {
+    return profileGate;
+  }
+
   const productPem = loadFiscalProductPrivateKeyPem();
   if (!productPem) {
     return { ok: false, error: 'product_key_not_configured', status: 503 };

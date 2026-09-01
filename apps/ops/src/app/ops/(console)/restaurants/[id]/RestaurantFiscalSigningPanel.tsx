@@ -63,7 +63,9 @@ export function RestaurantFiscalSigningPanel({ restaurantId, readOnly = false }:
             ? '店内 Agent 尚未上报设备公钥，请先配对并打开开票页同步'
             : json.error === 'product_key_not_configured'
               ? '服务端未配置 FISCAL_PRODUCT_PRIVATE_KEY_PEM'
-              : json.detail || json.error || '激活失败',
+              : json.error === 'fiscal_profile_missing'
+                ? '请先在上方「开票门店策略」保存业态后再激活'
+                : json.detail || json.error || '激活失败',
         );
         return;
       }

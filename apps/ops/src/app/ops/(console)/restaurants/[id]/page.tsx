@@ -20,6 +20,7 @@ import {
 import { RestaurantDeletePanel } from './RestaurantDeletePanel';
 import { RestaurantDetailActions } from './RestaurantDetailActions';
 import { RestaurantEditPanel } from './RestaurantEditPanel';
+import { RestaurantFiscalPolicyPanel } from './RestaurantFiscalPolicyPanel';
 import { RestaurantFiscalSigningPanel } from './RestaurantFiscalSigningPanel';
 import { RestaurantProPanel } from './RestaurantProPanel';
 
@@ -138,6 +139,8 @@ export default async function RestaurantDetailPage({ params }: PageProps) {
         </dl>
         <RestaurantDetailActions restaurantId={row.id} embedded />
       </section>
+
+      <RestaurantFiscalPolicyPanel restaurantId={row.id} readOnly={!isAdmin} />
 
       <RestaurantFiscalSigningPanel restaurantId={row.id} readOnly={!isAdmin} />
 

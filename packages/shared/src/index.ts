@@ -147,6 +147,17 @@ export {
   type FiscalSigningStatus,
 } from './fiscal-signing';
 export {
+  assertFiscalProfileForSigningActivate,
+  createFiscalTerminalPairingCode,
+  getRestaurantFiscalPolicy,
+  listFiscalTerminalsForAgent,
+  pairFiscalTerminalWithCode,
+  revokeFiscalTerminal,
+  updateRestaurantFiscalPolicy,
+  type FiscalProfile,
+  type RestaurantFiscalPolicy,
+} from './fiscal-store-policy';
+export {
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_DEFAULT,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MAX,
   PRINT_AGENT_CREDENTIAL_TTL_DAYS_MIN,

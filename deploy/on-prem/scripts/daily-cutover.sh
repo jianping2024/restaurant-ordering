@@ -2,6 +2,8 @@
 # Mesa on-prem daily cutover (sole store-side daily job):
 #   1) nightly_close  → GET /api/cron/nightly-close-sessions?policy=always
 #   2) local_backup   → scripts/backup-local.sh
+#   3) host_load_peak → scripts/record-host-load-peak.sh compare (non-fatal;
+#                       sole high-water mark: $MESA_HOME/logs/host-load-peak-record.json)
 # Scheduled by mesa-daily-cutover.timer (Europe/Lisbon ~05:05).
 # policy=always: caller owns schedule (timer + manual systemctl start); skip Lisbon due gate.
 set -euo pipefail
@@ -116,6 +118,20 @@ if [[ -x "${ONPREM_DIR}/scripts/backup-local.sh" ]]; then
 else
   BACKUP_STATUS="skipped"
   DETAIL="${DETAIL};backup_script_missing"
+fi
+
+echo "Phase 3: host_load_peak (non-fatal)"
+PEAK_SCRIPT="${ONPREM_DIR}/scripts/record-host-load-peak.sh"
+if [[ -x "$PEAK_SCRIPT" ]]; then
+  if PEAK_OUT="$("$PEAK_SCRIPT" compare 2>&1)"; then
+    echo "Phase 3 result: ${PEAK_OUT}"
+  else
+    echo "Phase 3 WARN: host_load_peak failed (cutover continues): ${PEAK_OUT}" >&2
+    DETAIL="${DETAIL};host_load_peak_failed"
+  fi
+else
+  echo "Phase 3 skipped: record-host-load-peak.sh missing"
+  DETAIL="${DETAIL};host_load_peak_script_missing"
 fi
 
 write_result "$CLOSE_STATUS" "$BACKUP_STATUS" "$DETAIL"

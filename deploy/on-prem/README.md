@@ -43,7 +43,8 @@ sudo -E ./scripts/upgrade.sh /home/remoteadmin/mesa-on-prem-<ver>
 - Ubuntu 说明副本：`linux/README-INSTALL.zh.txt`（打进包根 `README-UBUNTU.zh.txt`）
 - 卸载：`linux/uninstall-mesa.sh`（默认保留数据）
 - 开机拉栈：`mesa-on-prem.service`（`install-mesa.sh` 安装）
-- 日切：`mesa-daily-cutover.timer`（Lisbon 05:05 → `scripts/daily-cutover.sh`：`nightly-close-sessions?policy=always` → 本机 backup；`systemctl start` 可立刻关台）
+- 日切：`mesa-daily-cutover.timer`（Lisbon 05:05 → `scripts/daily-cutover.sh`：`nightly-close-sessions?policy=always` → 本机 backup → `record-host-load-peak.sh compare`（非致命；唯一高峰纪录 `$MESA_HOME/logs/host-load-peak-record.json`，破纪录才覆盖）；`systemctl start` 可立刻关台）
+- 主机 load 高峰纪录（唯一）：`scripts/record-host-load-peak.sh`（`show` / `compare` / `seed-retained`；指标仅 `ldavg-1`）
 - Tunnel 监测：`mesa-tunnel-health.timer`（每 5 分钟 → `scripts/tunnel-health.sh watch`；日志 `$MESA_HOME/logs/tunnel/`；异常排查见 [`docs/technical/tunnel-health-troubleshooting.zh.md`](../../docs/technical/tunnel-health-troubleshooting.zh.md)）
 
 ## Mode B（开发机 / 已有 Docker）

@@ -1,8 +1,12 @@
 'use client';
 
 import { PreferBrowserHttpLink } from '@/components/pwa/PreferBrowserHttpLink';
-import { Button } from '@/components/ui/Button';
+import {
+  ListPaginationBar,
+  type ListPaginationBarLabels,
+} from '@/components/ui/ListPaginationBar';
 import { buildTableMenuQrUrl } from '@/lib/table-menu-qr';
+import type { ListPageSize } from '@/lib/paginate-list';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
 type Props = {
@@ -18,6 +22,8 @@ type Props = {
   page: number;
   totalPages: number;
   total: number;
+  pageSize: ListPageSize;
+  paginationLabels: ListPaginationBarLabels;
   labels: {
     colTable: string;
     tableNumberLabel: string;
@@ -32,9 +38,6 @@ type Props = {
     delete: string;
     ungrouped: string;
     emptyFiltered: string;
-    pageInfo: string;
-    pagePrev: string;
-    pageNext: string;
     cannotRemoveWithSession: string;
   };
   onToggleRow: (tableId: string) => void;
@@ -46,8 +49,10 @@ type Props = {
   onPrintRow: (table: RestaurantTableRow) => void;
   onDeleteRow: (table: RestaurantTableRow) => void;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: ListPageSize) => void;
 };
 
+/** Table QR list — pagination is sole `ListPaginationBar` (no parallel prev/next). */
 export function TablesQrTable({
   restaurantSlug,
   webOrigin,
@@ -61,6 +66,8 @@ export function TablesQrTable({
   page,
   totalPages,
   total,
+  pageSize,
+  paginationLabels,
   labels: t,
   onToggleRow,
   onLabelDraftFocus,
@@ -71,10 +78,11 @@ export function TablesQrTable({
   onPrintRow,
   onDeleteRow,
   onPageChange,
+  onPageSizeChange,
 }: Props) {
   return (
-    <div className="mt-5">
-      <div className="overflow-x-auto rounded-xl border border-brand-border">
+    <div className="mt-5 overflow-hidden rounded-xl border border-brand-border">
+      <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-brand-border bg-brand-bg/80 text-left text-[12px] text-brand-text-muted">
@@ -207,36 +215,15 @@ export function TablesQrTable({
         </table>
       </div>
 
-      {totalPages > 1 ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[13px] text-brand-text-muted">
-            {t.pageInfo
-              .replace('{page}', String(page))
-              .replace('{totalPages}', String(totalPages))
-              .replace('{total}', String(total))}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => onPageChange(page - 1)}
-            >
-              {t.pagePrev}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => onPageChange(page + 1)}
-            >
-              {t.pageNext}
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      <ListPaginationBar
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={pageSize}
+        labels={paginationLabels}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </div>
   );
 }

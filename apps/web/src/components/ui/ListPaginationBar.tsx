@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/Button';
+import { Button, buttonIcon } from '@/components/ui/Button';
 import {
   isListPageSize,
   LIST_PAGE_SIZES,
@@ -10,8 +10,10 @@ import {
 export type ListPaginationBarLabels = {
   pageInfo: string;
   pageSizeLabel: string;
+  pageFirst: string;
   pagePrev: string;
   pageNext: string;
+  pageLast: string;
 };
 
 type Props = {
@@ -25,9 +27,82 @@ type Props = {
   disabled?: boolean;
 };
 
+function ChevronLeftIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M15 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronsLeftIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M11 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M18 18l-6-6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M9 18l6-6-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronsRightIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M6 18l6-6-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13 18l6-6-6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const iconBtnClass = 'min-w-[2.25rem] px-2';
+
 /**
- * Shared dashboard list footer: page info + page-size select + prev/next.
+ * Sole dashboard list footer: page info + page-size select + first/prev/next/last icons.
  * Presentational only — parent owns fetch vs in-memory slicing.
+ * Visible controls are icon-only; labels are aria-label only.
  */
 export function ListPaginationBar({
   page,
@@ -39,6 +114,9 @@ export function ListPaginationBar({
   onPageSizeChange,
   disabled = false,
 }: Props) {
+  const atFirst = page <= 1;
+  const atLast = page >= totalPages;
+
   return (
     <div className="px-4 py-3 border-t border-brand-border/70 flex flex-wrap items-center justify-end gap-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -74,19 +152,49 @@ export function ListPaginationBar({
             type="button"
             variant="outline"
             size="sm"
-            disabled={disabled || page <= 1}
-            onClick={() => onPageChange(page - 1)}
+            className={iconBtnClass}
+            disabled={disabled || atFirst}
+            aria-label={labels.pageFirst}
+            title={labels.pageFirst}
+            onClick={() => onPageChange(1)}
           >
-            {labels.pagePrev}
+            <ChevronsLeftIcon className={buttonIcon.sm} />
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            disabled={disabled || page >= totalPages}
+            className={iconBtnClass}
+            disabled={disabled || atFirst}
+            aria-label={labels.pagePrev}
+            title={labels.pagePrev}
+            onClick={() => onPageChange(page - 1)}
+          >
+            <ChevronLeftIcon className={buttonIcon.sm} />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={iconBtnClass}
+            disabled={disabled || atLast}
+            aria-label={labels.pageNext}
+            title={labels.pageNext}
             onClick={() => onPageChange(page + 1)}
           >
-            {labels.pageNext}
+            <ChevronRightIcon className={buttonIcon.sm} />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={iconBtnClass}
+            disabled={disabled || atLast}
+            aria-label={labels.pageLast}
+            title={labels.pageLast}
+            onClick={() => onPageChange(totalPages)}
+          >
+            <ChevronsRightIcon className={buttonIcon.sm} />
           </Button>
         </div>
       ) : null}

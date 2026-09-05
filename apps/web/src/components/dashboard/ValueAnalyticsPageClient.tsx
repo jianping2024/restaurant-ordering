@@ -533,8 +533,10 @@ export function ValueAnalyticsPageClient({
                 labels={{
                   pageInfo: t.pageInfo,
                   pageSizeLabel: t.pageSizeLabel,
-                  pagePrev: t.prevPage,
-                  pageNext: t.nextPage,
+                  pageFirst: t.pageFirst,
+                  pagePrev: t.pagePrev,
+                  pageNext: t.pageNext,
+                  pageLast: t.pageLast,
                 }}
               />
             </div>

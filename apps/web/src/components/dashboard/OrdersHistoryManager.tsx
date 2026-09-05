@@ -320,8 +320,10 @@ export function OrdersHistoryManager({
             labels={{
               pageInfo: i18n.pageInfo,
               pageSizeLabel: i18n.pageSizeLabel,
+              pageFirst: i18n.pageFirst,
               pagePrev: i18n.pagePrev,
               pageNext: i18n.pageNext,
+              pageLast: i18n.pageLast,
             }}
             onPageChange={goToPage}
             onPageSizeChange={(next: ListPageSize) => changePageSize(next)}

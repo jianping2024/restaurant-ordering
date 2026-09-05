@@ -206,8 +206,10 @@ export function DishHistoryManager({ restaurantSlug }: Props) {
         labels={{
           pageInfo: t.pageInfo,
           pageSizeLabel: t.pageSizeLabel,
+          pageFirst: t.pageFirst,
           pagePrev: t.pagePrev,
           pageNext: t.pageNext,
+          pageLast: t.pageLast,
         }}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}

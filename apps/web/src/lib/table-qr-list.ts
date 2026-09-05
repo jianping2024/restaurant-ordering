@@ -1,6 +1,5 @@
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
 
-export const TABLE_QR_PAGE_SIZE = 20;
 export const TABLE_QR_ALL_GROUPS = '__all__';
 export const TABLE_QR_UNGROUPED = '__ungrouped__';
 

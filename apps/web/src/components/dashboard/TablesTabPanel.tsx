@@ -19,14 +19,16 @@ import {
   type RestaurantTableGroupMember,
 } from '@/lib/restaurant-table-groups';
 import type { RestaurantTableRow } from '@/lib/restaurant-tables';
-import { paginateList } from '@/lib/paginate-list';
+import {
+  paginateList,
+  type ListPageSize,
+} from '@/lib/paginate-list';
 import {
   applyTableQrListFilters,
   isPageFullySelected,
   resolveSelectedTables,
   selectableTableIds,
   TABLE_QR_ALL_GROUPS,
-  TABLE_QR_PAGE_SIZE,
 } from '@/lib/table-qr-list';
 import { useTableBatchSelection } from '@/lib/use-table-batch-selection';
 import { useTableQrCodes } from '@/lib/use-table-qr-codes';
@@ -90,6 +92,7 @@ export function TablesTabPanel({
   const [search, setSearch] = useState('');
   const [groupFilter, setGroupFilter] = useState(TABLE_QR_ALL_GROUPS);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<ListPageSize>(20);
   const [previewTable, setPreviewTable] = useState<RestaurantTableRow | null>(null);
   const [previewQrSrc, setPreviewQrSrc] = useState('');
   const [batchBusy, setBatchBusy] = useState(false);
@@ -112,8 +115,8 @@ export function TablesTabPanel({
   );
 
   const pagination = useMemo(
-    () => paginateList(filteredTables, page, TABLE_QR_PAGE_SIZE),
-    [filteredTables, page],
+    () => paginateList(filteredTables, page, pageSize),
+    [filteredTables, page, pageSize],
   );
 
   const visibleTableIds = useMemo(
@@ -133,7 +136,7 @@ export function TablesTabPanel({
 
   useEffect(() => {
     setPage(1);
-  }, [search, groupFilter, tables.length]);
+  }, [search, groupFilter, tables.length, pageSize]);
 
   const buildStickers = useCallback(
     async (rows: RestaurantTableRow[]) =>
@@ -337,6 +340,15 @@ export function TablesTabPanel({
           page={pagination.page}
           totalPages={pagination.totalPages}
           total={pagination.total}
+          pageSize={pageSize}
+          paginationLabels={{
+            pageInfo: t.pageInfo,
+            pageSizeLabel: t.pageSizeLabel,
+            pageFirst: t.pageFirst,
+            pagePrev: t.pagePrev,
+            pageNext: t.pageNext,
+            pageLast: t.pageLast,
+          }}
           labels={{
             colTable: t.colTable,
             tableNumberLabel: t.tableNumberLabel,
@@ -351,9 +363,6 @@ export function TablesTabPanel({
             delete: tPrint.delete,
             ungrouped: tg.ungrouped,
             emptyFiltered: t.emptyFiltered,
-            pageInfo: t.pageInfo,
-            pagePrev: t.pagePrev,
-            pageNext: t.pageNext,
             cannotRemoveWithSession: t.cannotRemoveWithSession,
           }}
           onToggleRow={batch.toggleRow}
@@ -365,6 +374,7 @@ export function TablesTabPanel({
           onPrintRow={(table) => void printRows([table])}
           onDeleteRow={(table) => onDeleteRequest([table])}
           onPageChange={setPage}
+          onPageSizeChange={setPageSize}
         />
       </div>
 

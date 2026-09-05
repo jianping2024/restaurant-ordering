@@ -575,8 +575,10 @@ export function AbnormalOperationsManager({ restaurantId, restaurantSlug }: Prop
             labels={{
               pageInfo: t.pageInfo,
               pageSizeLabel: t.pageSizeLabel,
+              pageFirst: t.pageFirst,
               pagePrev: t.pagePrev,
               pageNext: t.pageNext,
+              pageLast: t.pageLast,
             }}
             onPageChange={setPage}
             onPageSizeChange={handlePageSizeChange}

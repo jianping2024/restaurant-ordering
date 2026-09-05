@@ -82,6 +82,9 @@ describe('waiter-board-card-theme theme tokens', () => {
     assert.match(waiterBoardType.kpiCount, /tabular-nums/);
     assert.match(waiterBoardType.kpiCount, /text-4xl/);
     assert.match(waiterBoardType.kpiCount, /text-center/);
+    assert.match(waiterBoardType.kpiHeadcountWing, /text-\[0\.7rem\]/);
+    assert.match(waiterBoardType.kpiHeadcountWing, /text-brand-gold/);
+    assert.match(waiterBoardType.kpiCountRowWithWings, /grid-cols-3/);
     assert.match(waiterBoardType.kpiLabel, /text-center/);
     assert.doesNotMatch(waiterBoardType.cardAmount, /mesa-money/);
     assert.match(waiterBoardType.cardAmount, /text-\[22px\]/);

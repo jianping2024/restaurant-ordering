@@ -1,3 +1,4 @@
+import type { BuffetGuestHeadcount } from '@/lib/buffet-order';
 import type { UILanguage } from '@/lib/i18n';
 import { isTableCheckoutRequested } from '@/lib/table-checkout-pending';
 import type { Order } from '@/types';
@@ -262,4 +263,25 @@ export function computeWaiterBoardStats(
     open,
     checkoutPending,
   };
+}
+
+/**
+ * Sole floor-board dining KPI headcount — same table set as {@link WaiterBoardStats.open}.
+ * Sums per-table `buffetHeadcount` (do not re-aggregate whole-floor orders by buffet_id).
+ */
+export function sumWaiterBoardDiningHeadcount(
+  tableIds: readonly string[],
+  ctx: WaiterBoardStateContext,
+  headcountByTableId: ReadonlyMap<string, BuffetGuestHeadcount | null | undefined>,
+): BuffetGuestHeadcount {
+  let adults = 0;
+  let children = 0;
+  for (const tableId of tableIds) {
+    if (classifyWaiterTableBoardState(tableId, ctx) !== 'dining') continue;
+    const headcount = headcountByTableId.get(tableId);
+    if (!headcount) continue;
+    adults += headcount.adults;
+    children += headcount.children;
+  }
+  return { adults, children };
 }

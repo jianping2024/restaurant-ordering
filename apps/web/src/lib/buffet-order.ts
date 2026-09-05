@@ -344,15 +344,24 @@ export function applyBuffetLinesToOrderItems(
 }
 
 /**
- * Sole adult-first A/C token list for staff / board / receipt joins.
- * Board vertical pill uses this array as-is; other surfaces only choose a join.
+ * Sole A/C string mint for staff / board / receipt (`A{n}` / `C{n}`).
+ * KPI wings use adult/child fields; lists/pills join via {@link buffetHeadcountTokenParts}.
  */
-export function buffetHeadcountTokenParts(adults: number, children: number): string[] {
+export function buffetHeadcountTokens(
+  adults: number,
+  children: number,
+): { adult: string | null; child: string | null } {
   const { adults: a, children: c } = normalizeBuffetGuestCounts(adults, children);
-  const parts: string[] = [];
-  if (a > 0) parts.push(`A${a}`);
-  if (c > 0) parts.push(`C${c}`);
-  return parts;
+  return {
+    adult: a > 0 ? `A${a}` : null,
+    child: c > 0 ? `C${c}` : null,
+  };
+}
+
+/** Adult-first token list — derived from {@link buffetHeadcountTokens}, never a second mint. */
+export function buffetHeadcountTokenParts(adults: number, children: number): string[] {
+  const { adult, child } = buffetHeadcountTokens(adults, children);
+  return [adult, child].filter((part): part is string => part != null);
 }
 
 /** Staff order lists: spaced tokens (`A7 C3`, `A2`). */

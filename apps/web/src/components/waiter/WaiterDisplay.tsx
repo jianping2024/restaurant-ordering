@@ -137,7 +137,7 @@ function BoardKpiCard({
   label: string;
   filter: WaiterBoardFilter;
   onClick: () => void;
-  /** Dining KPI only — A/C from {@link buffetHeadcountTokens}; empty side still occupies a column. */
+  /** Dining KPI only — A/C from {@link buffetHeadcountTokens}; empty side is zero-width (gap still applies). */
   headcountWings?: { adult: string | null; child: string | null } | null;
 }) {
   const countTone =

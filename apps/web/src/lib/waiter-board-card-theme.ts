@@ -12,13 +12,18 @@ export const waiterBoardType = {
   /** Sole KPI count face — centered + large for glanceable floor filters. */
   kpiCount: 'text-center text-4xl font-bold tabular-nums leading-none',
   /**
-   * Sole dining-KPI A/C wing face — equal flex slots flank the table count.
-   * Empty wing keeps the slot so the table count stays centered.
+   * Sole dining-KPI A/C wing face — same readable 人数 face as design
+   * (`text-[15px]` + `brand-text`). Width follows content (not a fixed
+   * track) so the flex gap to the table count stays the true equal air.
    */
   kpiHeadcountWing:
-    'min-w-0 text-center text-[0.7rem] font-semibold tabular-nums leading-none tracking-tight text-brand-gold/80',
-  /** Dining KPI count row: A | tableCount | C (empty sides still occupy a column). */
-  kpiCountRowWithWings: 'mt-2 grid grid-cols-3 items-center gap-x-1',
+    'shrink-0 tabular-nums text-[15px] font-medium leading-none text-brand-text',
+  /**
+   * Dining KPI count row — sole spacing rule: one `gap-x-1.5` between
+   * content-sized A | count | C (empty wing is zero-width). Do not use
+   * equal-width wing columns — short `C4` would look farther than `A999`.
+   */
+  kpiCountRowWithWings: 'mt-2 flex items-center justify-center gap-x-1.5',
   kpiLabel: 'text-center text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',

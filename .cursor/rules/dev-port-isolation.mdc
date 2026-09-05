@@ -15,16 +15,18 @@ alwaysApply: true
 - Stopping unrelated Docker containers (e.g. `mesa-on-prem-web-1`) just to free `:3000`
 - Forcing `npm run dev` / `next dev` onto a busy port, or editing shared scripts to auto-kill listeners
 - Assuming UAT must be `:3000` when the healthy stack is already elsewhere
+- Starting a **second** Next for the **same** `apps/web` checkout that still writes the default `apps/web/.next` (shared pack cache → chunk 404 → login后黑屏). Unrelated apps (ops, 开票, other repos) are not this rule — only same web tree.
 
 ## Required when the default port is busy
 
 1. **Leave the occupant alone.**
-2. **Start on the next free port** (web: try `3002+` if `3000` busy; ops: try `3011+` if `3001` busy — or any free high port). Prefer `PORT=<n> npx next dev --hostname 0.0.0.0 --port <n>` from the workspace, or rely on `scripts/dev-env.sh` which must **pick** a free port, never free-by-kill.
-3. **Point all checks at that base:**
+2. **Prefer the already-healthy** stack on that checkout for UAT — do not start a second web “just in case.”
+3. If you **must** start another web for **this same checkout**: free port **and** `MESA_NEXT_DIST_DIR=.next-uat` (or another non-default dir via `apps/web/next.config.mjs`). Never a second `npm run dev` / `next dev` on the default `.next`.
+4. **Point all checks at that base:**
    - Browser / MCP → `http://localhost:<n>/…`
    - `MESA_UAT_BASE=http://localhost:<n>` for `mesa-local-uat` / print smoke
    - Report the chosen base in the UAT summary
-4. Prefer an **already-healthy** stack on `:3000` for UAT when it serves this checkout — do not start a second server then fight for the port.
+5. Port pick: web `3002+` if `3000` busy; ops `3011+` if `3001` busy — or any free high port. Prefer `MESA_NEXT_DIST_DIR=.next-uat npx next dev --hostname 0.0.0.0 --port <n>` from `apps/web` with env loaded; `scripts/dev-env.sh` picks a free port but does **not** set an isolated `distDir` — do not use it for a second concurrent web on the same checkout.
 
 ## Defaults (when free)
 

@@ -24,6 +24,7 @@ import {
   type CapabilitiesPayload,
 } from '@/lib/permissions/can';
 import { floorBoardCapabilitiesFromCaps } from '@/lib/permissions/resolve';
+import { buffetHeadcountTokens } from '@/lib/buffet-order';
 import {
   buildWaiterBoardStateContext,
   classifyWaiterTableBoardState,
@@ -32,6 +33,7 @@ import {
   filterWaiterBoardTableIds,
   filterWaiterBoardTableIdsBySearch,
   isWaiterTableInCheckout,
+  sumWaiterBoardDiningHeadcount,
   tableMatchesWaiterBoardSearch,
   type WaiterBoardFilter,
   type WaiterTableSessionMeta,
@@ -128,17 +130,33 @@ function BoardKpiCard({
   label,
   filter,
   onClick,
+  headcountWings = null,
 }: {
   active: boolean;
   count: number;
   label: string;
   filter: WaiterBoardFilter;
   onClick: () => void;
+  /** Dining KPI only — A/C from {@link buffetHeadcountTokens}; empty side still occupies a column. */
+  headcountWings?: { adult: string | null; child: string | null } | null;
 }) {
+  const countTone =
+    active && filter === 'all'
+      ? 'text-brand-text'
+      : WAITER_BOARD_KPI_COUNT_CLASS[filter];
+  const countFace = `${waiterBoardType.kpiCount} ${countTone}`;
+  const ariaLabel =
+    headcountWings != null
+      ? [label, headcountWings.adult, String(count), headcountWings.child]
+          .filter(Boolean)
+          .join(' ')
+      : undefined;
+
   return (
     <button
       type="button"
       aria-pressed={active}
+      aria-label={ariaLabel}
       onClick={onClick}
       className={`mesa-stat min-w-0 w-full text-center ${WAITER_BOARD_KPI_SURFACE_CLASS[filter]}`}
       data-active={active ? 'true' : 'false'}
@@ -150,15 +168,19 @@ function BoardKpiCard({
       >
         {label}
       </div>
-      <div
-        className={`${waiterBoardType.kpiCount} mt-2 ${
-          active && filter === 'all'
-            ? 'text-brand-text'
-            : WAITER_BOARD_KPI_COUNT_CLASS[filter]
-        }`}
-      >
-        {count}
-      </div>
+      {headcountWings != null ? (
+        <div className={waiterBoardType.kpiCountRowWithWings}>
+          <span className={waiterBoardType.kpiHeadcountWing} aria-hidden={!headcountWings.adult}>
+            {headcountWings.adult ?? ''}
+          </span>
+          <span className={countFace}>{count}</span>
+          <span className={waiterBoardType.kpiHeadcountWing} aria-hidden={!headcountWings.child}>
+            {headcountWings.child ?? ''}
+          </span>
+        </div>
+      ) : (
+        <div className={`${countFace} mt-2`}>{count}</div>
+      )}
       <div
         className={`mesa-stat__rule mt-2.5 ${
           active ? WAITER_BOARD_KPI_RULE_ACTIVE_CLASS : WAITER_BOARD_KPI_RULE_CLASS[filter]
@@ -432,6 +454,18 @@ function WaiterBoardInner({
     [tables, boardStateContext],
   );
 
+  const diningKpiHeadcountWings = useMemo(() => {
+    const headcountByTableId = new Map(
+      tableSummaries.map((card) => [card.tableId, card.buffetHeadcount] as const),
+    );
+    const sum = sumWaiterBoardDiningHeadcount(
+      tables.map((table) => table.id),
+      boardStateContext,
+      headcountByTableId,
+    );
+    return buffetHeadcountTokens(sum.adults, sum.children);
+  }, [tables, boardStateContext, tableSummaries]);
+
   const renderTableCard = (card: WaiterBoardTableSummary, pinned = false) => {
     const boardState = classifyWaiterTableBoardState(card.tableId, boardStateContext);
     const detailHref = waiterTableHref(restaurant.slug, card.tableId, {
@@ -698,6 +732,7 @@ function WaiterBoardInner({
               count={boardStats[item.countKey]}
               label={t[item.labelKey]}
               filter={item.filter}
+              headcountWings={item.filter === 'dining' ? diningKpiHeadcountWings : null}
               onClick={() => {
                 setBoardFilter(item.filter);
                 void refresh();

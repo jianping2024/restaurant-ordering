@@ -15,6 +15,7 @@ description: >-
 
 - **Host (default):** `http://localhost:3000` — if busy, **do not kill** the occupant; start/use another free port and set `MESA_UAT_BASE` (see always-on `.cursor/rules/dev-port-isolation.mdc`)
   - `npm run dev` → local Docker Supabase (Studio `:54323`, MCP `http://127.0.0.1:54321/mcp`); script picks a free web port when `:3000` is taken
+  - **Same checkout, second web:** must set `MESA_NEXT_DIST_DIR=.next-uat` (never a second process on default `apps/web/.next`)
   - `npm run cloud` → cloud project (use existing `user-supabase` / cloud MCP, read-only)
 - **UI login (canonical — always use this for browser UAT):** `{MESA_UAT_BASE or http://localhost:3000}/auth/login`
   - One page for owner email **or** staff `login_name`; API `POST /api/auth/login` resolves kind and redirect

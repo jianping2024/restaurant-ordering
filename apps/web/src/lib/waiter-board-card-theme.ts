@@ -11,6 +11,14 @@ export const waiterBoardType = {
   pageTitle: 'font-heading text-2xl text-brand-ink mb-4',
   /** Sole KPI count face — centered + large for glanceable floor filters. */
   kpiCount: 'text-center text-4xl font-bold tabular-nums leading-none',
+  /**
+   * Sole dining-KPI A/C wing face — equal flex slots flank the table count.
+   * Empty wing keeps the slot so the table count stays centered.
+   */
+  kpiHeadcountWing:
+    'min-w-0 text-center text-[0.7rem] font-semibold tabular-nums leading-none tracking-tight text-brand-gold/80',
+  /** Dining KPI count row: A | tableCount | C (empty sides still occupy a column). */
+  kpiCountRowWithWings: 'mt-2 grid grid-cols-3 items-center gap-x-1',
   kpiLabel: 'text-center text-sm font-medium',
   laneLabel: 'max-w-[12rem] truncate text-sm',
   laneMeta: 'shrink-0 text-sm tabular-nums opacity-80',

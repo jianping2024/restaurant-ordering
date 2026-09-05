@@ -16,6 +16,7 @@ import {
   formatBuffetPriceTemplate,
   formatBuffetReceiptQtyLabel,
   buffetHeadcountTokenParts,
+  buffetHeadcountTokens,
   isBuffetSnapshotUnchanged,
   listActiveBuffetLineSummaries,
   resolveBuffetFormAlignState,
@@ -224,6 +225,15 @@ describe('formatBuffetHeadcountLabel', () => {
     assert.equal(formatBuffetHeadcountLabel(2, 0), 'A2');
     assert.equal(formatBuffetHeadcountLabel(0, 1), 'C1');
     assert.equal(formatBuffetHeadcountLabel(0, 0), '');
+  });
+});
+
+describe('buffetHeadcountTokens', () => {
+  it('mints sole A/C strings; zero side is null', () => {
+    assert.deepEqual(buffetHeadcountTokens(3, 2), { adult: 'A3', child: 'C2' });
+    assert.deepEqual(buffetHeadcountTokens(2, 0), { adult: 'A2', child: null });
+    assert.deepEqual(buffetHeadcountTokens(0, 1), { adult: null, child: 'C1' });
+    assert.deepEqual(buffetHeadcountTokens(0, 0), { adult: null, child: null });
   });
 });
 

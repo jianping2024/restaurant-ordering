@@ -9,6 +9,7 @@ import {
   filterWaiterBoardTableIdsBySearch,
   formatSessionDurationForBoardCard,
   formatSessionDurationHm,
+  sumWaiterBoardDiningHeadcount,
   tableMatchesWaiterBoardSearch,
   type WaiterBoardStateContext,
   type WaiterTableSessionMeta,
@@ -97,6 +98,50 @@ describe('computeWaiterBoardStats', () => {
       idle: 1,
       open: 2,
       checkoutPending: 2,
+    });
+  });
+});
+
+describe('sumWaiterBoardDiningHeadcount', () => {
+  const t1 = '550e8400-e29b-41d4-a716-446655440001';
+  const t2 = '550e8400-e29b-41d4-a716-446655440002';
+  const t3 = '550e8400-e29b-41d4-a716-446655440003';
+  const t4 = '550e8400-e29b-41d4-a716-446655440004';
+  const t5 = '550e8400-e29b-41d4-a716-446655440005';
+
+  it('sums only dining tables; excludes idle and checkout', () => {
+    const ctx = boardCtx(
+      {
+        [t2]: { sessionId: 's2', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' },
+        [t3]: { sessionId: 's3', openedAt: '2026-01-01T10:00:00.000Z', status: 'billing' },
+        [t5]: { sessionId: 's5', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' },
+      },
+      [t4],
+      { [t2]: true, [t5]: false },
+    );
+    const headcountByTableId = new Map([
+      [t2, { adults: 3, children: 1 }],
+      [t3, { adults: 9, children: 9 }],
+      [t4, { adults: 8, children: 8 }],
+      [t5, { adults: 2, children: 0 }],
+    ]);
+    assert.deepEqual(
+      sumWaiterBoardDiningHeadcount([t1, t2, t3, t4, t5], ctx, headcountByTableId),
+      { adults: 5, children: 1 },
+    );
+  });
+
+  it('treats missing headcount as zero', () => {
+    const ctx = boardCtx(
+      {
+        [t2]: { sessionId: 's2', openedAt: '2026-01-01T10:00:00.000Z', status: 'open' },
+      },
+      [],
+      { [t2]: true },
+    );
+    assert.deepEqual(sumWaiterBoardDiningHeadcount([t2], ctx, new Map()), {
+      adults: 0,
+      children: 0,
     });
   });
 });

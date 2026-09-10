@@ -26,7 +26,9 @@ import {
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
+import { coerceCartQty } from '@/lib/cart-totals';
+import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
+import { upsertCartItemQty } from '@/lib/customer-cart-lines';
 import { showToast } from '@/components/ui/Toast';
 import {
   completeGuestOrderSubmit,
@@ -171,6 +173,9 @@ export function MenuOrderingController({
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCartState] = useState<CartItem[]>(initialCart ?? []);
+  const [cartAddFeedbackKey, setCartAddFeedbackKey] = useState(0);
+  const cartRef = useRef(cart);
+  cartRef.current = cart;
   const setCartTracked = useCallback(
     (value: CartItem[] | ((prev: CartItem[]) => CartItem[])) => {
       setCartState((prev) => {
@@ -278,30 +283,11 @@ export function MenuOrderingController({
   /** Write cart qty after gates (list + drawer share this). */
   const commitCartQty = useCallback(
     (item: MenuItem, nextQty: number) => {
-      if (!Number.isFinite(nextQty) || nextQty <= 0) {
-        setCartTracked((prev) => prev.filter((c) => c.menuItemId !== item.id));
-        return;
-      }
-      setCartTracked((prev) => {
-        const existing = prev.find((c) => c.menuItemId === item.id);
-        if (!existing) {
-          return [
-            ...prev,
-            {
-              menuItemId: item.id,
-              name_pt: item.name_pt,
-              name_en: item.name_en,
-              name_zh: item.name_zh,
-              price: coerceCartPrice(item.price),
-              emoji: item.emoji,
-              qty: nextQty,
-              note: '',
-              notePresetKeys: item.note_preset_keys || [],
-            },
-          ];
-        }
-        return prev.map((c) => (c.menuItemId === item.id ? { ...c, qty: nextQty } : c));
-      });
+      const prev = cartRef.current;
+      const next = upsertCartItemQty(prev, item, nextQty);
+      cartRef.current = next;
+      setCartTracked(next);
+      bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
     },
     [setCartTracked],
   );
@@ -922,6 +908,7 @@ export function MenuOrderingController({
 
       <CustomerMenuFooter
         {...footer}
+        cartAddFeedbackKey={cartAddFeedbackKey}
         labels={{
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,

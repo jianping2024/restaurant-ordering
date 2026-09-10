@@ -11,6 +11,7 @@ import {
   customerMenuBottomBarRowClass,
   customerMenuBottomBarSummarySlotClass,
 } from '@/lib/customer-menu-bottom-bar-layout';
+import { CUSTOMER_CART_ADD_FEEDBACK_CLASS } from '@/lib/customer-cart-add-feedback';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import type { MenuPageFooterPhase, MenuPageFooterPrimaryAction, MenuPageFooterView } from '@/lib/menu-page-footer';
 
@@ -30,6 +31,8 @@ type Props = MenuPageFooterView & {
   onOpenCart: () => void;
   onOpenOrdered: () => void;
   onOpenRoundReview?: () => void;
+  /** Sole add-to-cart feedback token; bump only when total cart qty rises. */
+  cartAddFeedbackKey?: number;
 };
 
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
@@ -63,12 +66,14 @@ function DraftSummary({
   cartTotal,
   totalLabel,
   viewCartLabel,
+  cartAddFeedbackKey,
   onOpenCart,
 }: {
   cartQty: number;
   cartTotal: number;
   totalLabel: string;
   viewCartLabel: string;
+  cartAddFeedbackKey: number;
   onOpenCart: () => void;
 }) {
   return (
@@ -78,7 +83,13 @@ function DraftSummary({
       className={`flex min-w-0 flex-1 items-center ${customerMenuBottomBarIconGapClass} text-left transition-colors hover:bg-brand-gold/5 active:bg-brand-gold/10`}
       aria-label={viewCartLabel}
     >
-      <span className="relative shrink-0 text-brand-gold">
+      <span
+        key={cartAddFeedbackKey}
+        data-cart-add-feedback={cartAddFeedbackKey > 0 ? cartAddFeedbackKey : undefined}
+        className={`relative shrink-0 text-brand-gold ${
+          cartAddFeedbackKey > 0 ? CUSTOMER_CART_ADD_FEEDBACK_CLASS : ''
+        }`}
+      >
         <CustomerCartIcon className={customerMenuBottomBarIconClass} />
         {cartQty > 0 ? (
           <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
@@ -246,6 +257,7 @@ function footerSummaryForPhase(
           cartTotal={props.cartTotal}
           totalLabel={props.labels.footerTotal}
           viewCartLabel={props.labels.viewCart}
+          cartAddFeedbackKey={props.cartAddFeedbackKey ?? 0}
           onOpenCart={props.onOpenCart}
         />
       );

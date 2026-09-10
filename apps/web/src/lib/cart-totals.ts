@@ -62,3 +62,8 @@ export function coerceCartQty(value: unknown): number {
   const n = parseQty(value);
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
+
+/** Sole sum of cart / draft line quantities (footer badge, add-feedback gate). */
+export function sumCartQty(items: ReadonlyArray<{ qty?: unknown }>): number {
+  return items.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
+}

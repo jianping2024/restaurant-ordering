@@ -152,7 +152,31 @@ body {
   border: 1px solid transparent;
 }
 
+/* Sole guest cart-add feedback: short badge/icon pop (footer DraftSummary). */
+@keyframes mesa-cart-badge-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 @layer components {
+  .mesa-cart-badge-pop {
+    transform-origin: center center;
+    animation: mesa-cart-badge-pop 260ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mesa-cart-badge-pop {
+      animation: none;
+    }
+  }
+
   .mesa-alert-warning {
     color: rgb(var(--color-status-warning-fg));
     background-color: rgb(var(--color-status-warning-bg) / 0.92);

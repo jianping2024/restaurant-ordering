@@ -1,5 +1,5 @@
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
-import { coerceCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { sumCartQty, sumLineTotals } from '@/lib/cart-totals';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import type { CartItem, Order, TableSession } from '@/types';
@@ -71,7 +71,7 @@ function derivePrimaryAction(
 
 /** Derives fixed footer state from existing menu-page data — no extra client state. */
 export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooterView {
-  const cartQty = input.cart.reduce((sum, item) => sum + coerceCartQty(item.qty), 0);
+  const cartQty = sumCartQty(input.cart);
   const cartTotal = sumLineTotals(input.cart);
   const submittedCount = countSubmittedItems(input.recentOrders);
   const submittedTotal = sumBillableSessionTotal(input.recentOrders);

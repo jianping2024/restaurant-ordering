@@ -24,7 +24,9 @@ import {
 } from '@/lib/menu-recommended';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
-import { coerceCartPrice, coerceCartQty } from '@/lib/cart-totals';
+import { coerceCartQty } from '@/lib/cart-totals';
+import { bumpCartAddFeedbackKeyIfIncreased } from '@/lib/customer-cart-add-feedback';
+import { upsertCartItemQty } from '@/lib/customer-cart-lines';
 import { showToast } from '@/components/ui/Toast';
 import { completeGuestOrderSubmit } from '@/lib/menu-order-submit-outcome';
 import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
@@ -119,6 +121,9 @@ export function SushiMenuPage({
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartAddFeedbackKey, setCartAddFeedbackKey] = useState(0);
+  const cartRef = useRef(cart);
+  cartRef.current = cart;
   const [cartOpen, setCartOpen] = useState(false);
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [roundReviewOpen, setRoundReviewOpen] = useState(false);
@@ -228,30 +233,11 @@ export function SushiMenuPage({
   const basketLocked = round.snapshot.round?.status === 'pending_confirm';
 
   const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
-    if (!Number.isFinite(nextQty) || nextQty <= 0) {
-      setCart((prev) => prev.filter((c) => c.menuItemId !== item.id));
-      return;
-    }
-    setCart((prev) => {
-      const existing = prev.find((c) => c.menuItemId === item.id);
-      if (!existing) {
-        return [
-          ...prev,
-          {
-            menuItemId: item.id,
-            name_pt: item.name_pt,
-            name_en: item.name_en,
-            name_zh: item.name_zh,
-            price: coerceCartPrice(item.price),
-            emoji: item.emoji,
-            qty: nextQty,
-            note: '',
-            notePresetKeys: item.note_preset_keys || [],
-          },
-        ];
-      }
-      return prev.map((c) => (c.menuItemId === item.id ? { ...c, qty: nextQty } : c));
-    });
+    const prev = cartRef.current;
+    const next = upsertCartItemQty(prev, item, nextQty);
+    cartRef.current = next;
+    setCart(next);
+    bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
   }, []);
 
   const requestQtyChange = useCallback(
@@ -751,6 +737,7 @@ export function SushiMenuPage({
 
       <CustomerMenuFooter
         {...footer}
+        cartAddFeedbackKey={cartAddFeedbackKey}
         labels={{
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,

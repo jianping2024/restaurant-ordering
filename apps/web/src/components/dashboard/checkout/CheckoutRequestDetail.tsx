@@ -6,6 +6,7 @@ import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/Check
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
+import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import {
   formatCheckoutWaitDuration,
@@ -234,15 +235,6 @@ export function CheckoutRequestDetail({
           ← {t.backToList}
         </button>
       ) : null}
-      {onReturnToPathChooser ? (
-        <button
-          type="button"
-          onClick={onReturnToPathChooser}
-          className="text-sm font-semibold text-brand-text-muted hover:text-brand-text mb-4 block"
-        >
-          ← {t.pathChooserBack}
-        </button>
-      ) : null}
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -284,6 +276,16 @@ export function CheckoutRequestDetail({
           onDiscountRateBlur={onDiscountRateBlur}
         />
       </div>
+
+      {onReturnToPathChooser ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <CheckoutPathChooserBackButton
+            label={t.pathChooserBack}
+            onClick={onReturnToPathChooser}
+            disabled={detailLocked}
+          />
+        </div>
+      ) : null}
 
       {pendingSettlementRows.length > 0 ? (
         <div className="mt-4 rounded-lg border-2 border-brand-gold/35 bg-brand-gold/5 p-3">

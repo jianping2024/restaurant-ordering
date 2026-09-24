@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
+import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
 import {
@@ -237,14 +238,11 @@ export function StaffCheckoutSplitEditor({
         onAddCustomPerson={splitDraft.addCustomPerson}
       />
       <div className="flex flex-wrap gap-2 px-2">
-        <button
-          type="button"
+        <CheckoutPathChooserBackButton
+          label={checkoutT.pathChooserBack}
           onClick={onCancel}
           disabled={submitting}
-          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text disabled:opacity-50"
-        >
-          {checkoutT.pathChooserBack}
-        </button>
+        />
         <button
           type="button"
           disabled={confirmDisabled}

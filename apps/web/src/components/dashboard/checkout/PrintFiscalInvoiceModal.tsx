@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import {
   BILL_SYNC_PAYMENT_METHODS,
   billSyncDocumentTypeForPayment,
@@ -56,21 +58,17 @@ export function PrintFiscalInvoiceModal({
     setName('');
   }, [open, initialPaymentMethod]);
 
-  if (!open) return null;
-
   const docType = billSyncDocumentTypeForPayment(payment);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="print-fiscal-invoice-title"
-        className="w-full max-w-md rounded-xl bg-brand-surface border border-brand-border shadow-lg p-4 space-y-3"
-      >
-        <h2 id="print-fiscal-invoice-title" className="text-base font-semibold text-brand-text">
-          {labels.title}
-        </h2>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={labels.title}
+      size="sm"
+      dismissOnBackdrop={!busy}
+    >
+      <div className="space-y-4">
         <label className="block text-sm">
           <span className="text-brand-text-muted">
             {labels.nif}{' '}
@@ -116,17 +114,15 @@ export function PrintFiscalInvoiceModal({
         <p className="text-xs text-brand-text-muted">
           {labels.documentTypeHint.replace('{type}', docType)}
         </p>
-        <div className="flex justify-end gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text disabled:opacity-50"
-          >
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
             {labels.cancel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="gold"
+            size="sm"
+            loading={busy}
             disabled={busy}
             onClick={() =>
               onConfirm({
@@ -135,12 +131,11 @@ export function PrintFiscalInvoiceModal({
                 customerName: name.trim(),
               })
             }
-            className="text-sm font-semibold px-4 py-2 rounded-lg bg-brand-gold text-white disabled:opacity-50"
           >
             {busy ? labels.operating : labels.confirm}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

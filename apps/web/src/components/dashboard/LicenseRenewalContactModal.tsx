@@ -58,7 +58,7 @@ export function LicenseRenewalContactModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2.5 text-sm font-medium text-brand-text hover:bg-brand-bg"
+            className="w-full rounded-lg border border-brand-border bg-brand-card px-3 py-2.5 text-sm font-medium text-brand-text hover:bg-brand-bg"
           >
             {t.snoozeToday}
           </button>

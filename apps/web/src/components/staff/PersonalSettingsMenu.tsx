@@ -138,7 +138,7 @@ export function PersonalSettingsMenu({
                 setOpen(false);
                 licenseMenu.onClick();
               }}
-              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-surface/80`}
+              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-border/50`}
             >
               <span className="min-w-0 truncate">{licenseMenu.label}</span>
             </button>
@@ -149,7 +149,7 @@ export function PersonalSettingsMenu({
               type="button"
               role="menuitem"
               onClick={handleOpenChangePassword}
-              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-surface/80`}
+              className={`${personalSettingsDropdownActionRowClass()} text-brand-text hover:bg-brand-border/50`}
             >
               <span aria-hidden>🔑</span>
               <span>{t.changePassword}</span>

@@ -9,7 +9,7 @@ BEGIN
     RETURN;
   END IF;
   -- print_jobs / bill_sync_jobs: print-agent Realtime CDC (tickets + bill-sync drafts)
-  FOREACH t IN ARRAY ARRAY['orders', 'table_sessions', 'bill_splits', 'print_jobs', 'bill_sync_jobs']
+  FOREACH t IN ARRAY ARRAY['orders', 'table_sessions', 'bill_splits', 'print_jobs', 'bill_sync_jobs', 'cash_drawer_jobs']
   LOOP
     IF NOT EXISTS (
       SELECT 1

@@ -4,6 +4,7 @@ import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/C
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { totalCollectedAmount, type SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { CheckoutPersonShareLine } from '@/lib/checkout-split-person-lines';
+import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import type { UILanguage } from '@/lib/i18n';
 
 type Labels = {
@@ -23,6 +24,7 @@ type Props = {
   payments: SessionCollectedPayment[];
   lang: UILanguage;
   t: Labels;
+  paymentLabels?: Record<BillSyncPaymentMethod, string>;
   /** When false, omits card border (checkout detail embed). Default true. */
   bordered?: boolean;
   className?: string;
@@ -43,6 +45,7 @@ export function CollectedPaymentsLedger({
   payments,
   lang,
   t,
+  paymentLabels,
   bordered = true,
   className = '',
   showPrintReceiptActions = false,
@@ -101,8 +104,15 @@ export function CollectedPaymentsLedger({
               shareLines={shareLines}
               labels={shareLabels}
               identity={
-                <span className="text-brand-text font-medium min-w-0 truncate block">
-                  {localizeSplitPersonName(payment.person_name, lang)}
+                <span className="text-brand-text font-medium min-w-0 block">
+                  <span className="truncate block">
+                    {localizeSplitPersonName(payment.person_name, lang)}
+                  </span>
+                  {payment.payment_method && paymentLabels ? (
+                    <span className="block text-[11px] text-brand-text-muted font-normal">
+                      {paymentLabels[payment.payment_method]}
+                    </span>
+                  ) : null}
                 </span>
               }
               trailing={

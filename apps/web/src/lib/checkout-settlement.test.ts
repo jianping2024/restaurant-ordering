@@ -43,7 +43,7 @@ describe('buildCheckoutSettlementSummary', () => {
     const summary = buildCheckoutSettlementSummary(
       billSplit(),
       0,
-      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null }],
     );
     assert.equal(summary.payable, 60);
     assert.equal(summary.collected, 30);
@@ -57,7 +57,7 @@ describe('liveSessionUncollectedAmount', () => {
       orders: [],
       billSplit: billSplit({ discount_rate: 10 }),
       collectedPayments: [
-        { id: '1', person_index: 0, person_name: 'John', amount: 27, created_at: '' },
+        { id: '1', person_index: 0, person_name: 'John', amount: 27, created_at: '', payment_method: null },
       ],
     });
     // payable 54 after 10% off; John paid 27 → Mary still 27
@@ -90,7 +90,7 @@ describe('liveSessionUncollectedAmount', () => {
       ],
       billSplit: null,
       collectedPayments: [
-        { id: '1', person_index: null, person_name: '', amount: 3, created_at: '' },
+        { id: '1', person_index: null, person_name: '', amount: 3, created_at: '', payment_method: null },
       ],
     });
     assert.equal(amount, 7);
@@ -106,7 +106,7 @@ describe('checkoutPaymentProgress', () => {
           { name: 'Mary', amount: 30 },
         ],
       }),
-      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null }],
     );
     assert.equal(progress.paidCount, 1);
     assert.equal(progress.totalCount, 2);
@@ -163,24 +163,30 @@ describe('checkoutSplitModeLabel', () => {
 });
 
 describe('groupCollectedPaymentsBySession', () => {
-  it('groups rows by session_id', () => {
+  it('groups rows by session_id and keeps payment_method', () => {
     const map = groupCollectedPaymentsBySession([
       {
         id: '1',
         session_id: 's1',
+        person_index: 0,
         person_name: 'John',
         amount: 10,
         created_at: '',
+        payment_method: 'CASH',
       },
       {
         id: '2',
         session_id: 's2',
+        person_index: 1,
         person_name: 'Mary',
         amount: 5,
         created_at: '',
+        payment_method: 'CARD',
       },
     ]);
     assert.equal(map.get('s1')?.length, 1);
     assert.equal(map.get('s2')?.[0]?.amount, 5);
+    assert.equal(map.get('s1')?.[0]?.payment_method, 'CASH');
+    assert.equal(map.get('s2')?.[0]?.payment_method, 'CARD');
   });
 });

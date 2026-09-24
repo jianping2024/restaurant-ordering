@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
+import { parseBillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 
 export const runtime = 'nodejs';
@@ -18,6 +19,7 @@ export async function POST(
     bill_split_id?: unknown;
     person_index?: unknown;
     collected_amount?: unknown;
+    payment_method?: unknown;
     receipt_printer_id?: unknown;
   };
   try {
@@ -40,6 +42,13 @@ export async function POST(
     typeof body.collected_amount === 'number' && Number.isFinite(body.collected_amount)
       ? body.collected_amount
       : undefined;
+
+  const paymentMethod = parseBillSyncPaymentMethod(
+    typeof body.payment_method === 'string' ? body.payment_method : null,
+  );
+  if (!paymentMethod) {
+    return NextResponse.json({ error: 'missing_payment_method' }, { status: 400 });
+  }
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
@@ -69,6 +78,7 @@ export async function POST(
     printLocale: auth.printLocale,
     billSplitId,
     personIndex,
+    paymentMethod,
     collectedAmount,
     createdByUserId: auth.actor.userId,
     actor: auth.actor,

@@ -5,6 +5,7 @@ import {
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
+import { parseBillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type SplitRowWithIndex = {
@@ -39,6 +40,7 @@ export function collectibleSplitRowsWithIndex(
       person_name: rows[index]?.name ?? '',
       amount,
       created_at: '',
+      payment_method: null,
     });
   });
   return pendingSplitSettlementRows(buildSplitSettlementRows(rows, payments)).map((row) => ({
@@ -53,10 +55,12 @@ export type SessionCollectedPayment = {
   person_name: string;
   amount: number;
   created_at: string;
+  /** Tender at confirm; null on legacy rows. */
+  payment_method: import('@/lib/bill-sync-payload').BillSyncPaymentMethod | null;
 };
 
 export const SESSION_COLLECTED_PAYMENT_SELECT =
-  'id, session_id, person_index, person_name, amount, created_at' as const;
+  'id, session_id, person_index, person_name, amount, created_at, payment_method' as const;
 
 export function parseSessionCollectedPayments(
   data: Array<{
@@ -66,6 +70,7 @@ export function parseSessionCollectedPayments(
     person_name: unknown;
     amount: unknown;
     created_at: unknown;
+    payment_method?: unknown;
   }> | null,
 ): SessionCollectedPayment[] {
   return (data ?? []).map((row) => ({
@@ -77,6 +82,9 @@ export function parseSessionCollectedPayments(
     person_name: row.person_name as string,
     amount: Number(row.amount),
     created_at: row.created_at as string,
+    payment_method: parseBillSyncPaymentMethod(
+      typeof row.payment_method === 'string' ? row.payment_method : null,
+    ),
   }));
 }
 
@@ -88,6 +96,7 @@ export function parseSessionCollectedPaymentsWithSession(
     person_name: unknown;
     amount: unknown;
     created_at: unknown;
+    payment_method?: unknown;
   }> | null,
 ): Array<SessionCollectedPayment & { session_id: string }> {
   return (data ?? []).map((row) => ({
@@ -100,6 +109,9 @@ export function parseSessionCollectedPaymentsWithSession(
     person_name: row.person_name as string,
     amount: Number(row.amount),
     created_at: row.created_at as string,
+    payment_method: parseBillSyncPaymentMethod(
+      typeof row.payment_method === 'string' ? row.payment_method : null,
+    ),
   }));
 }
 

@@ -1196,6 +1196,8 @@ export const MESSAGES_FR = {
     "orderItemsEmpty": "Aucun détail de plat",
     "orderItemsTotal": "Total",
     "confirmOnePaid": "Confirmer le paiement",
+    "collectPaymentTitle": "Confirmer le paiement",
+    "collectPaymentAmount": "Montant",
     "confirmPaid": "Confirmer le paiement et libérer la table",
     "processing": "Traitement...",
     "requested": "En attente de paiement",

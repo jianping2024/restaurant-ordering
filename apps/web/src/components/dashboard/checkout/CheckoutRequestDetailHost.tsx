@@ -33,7 +33,9 @@ import {
 } from '@/lib/use-staff-checkout-bill-print';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
+import { CollectPaymentModal } from '@/components/dashboard/checkout/CollectPaymentModal';
 import { PrintFiscalInvoiceModal } from '@/components/dashboard/checkout/PrintFiscalInvoiceModal';
+import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { billSyncByItemScopeId } from '@/lib/bill-sync-scope-id';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
@@ -91,6 +93,12 @@ export function CheckoutRequestDetailHost({
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [invoiceScopeId, setInvoiceScopeId] = useState<string | undefined>(undefined);
+  const [invoiceInitialPayment, setInvoiceInitialPayment] =
+    useState<BillSyncPaymentMethod | null>(null);
+  const [collectPending, setCollectPending] = useState<{
+    rowIndex: number;
+    amount: number;
+  } | null>(null);
   const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
@@ -309,7 +317,11 @@ export function CheckoutRequestDetailHost({
     [settlementRows],
   );
 
-  const submitConfirmPersonPaid = async (row: BillSplit, rowIndex: number) => {
+  const submitConfirmPersonPaid = async (
+    row: BillSplit,
+    rowIndex: number,
+    paymentMethod: BillSyncPaymentMethod,
+  ) => {
     const settlementRow = settlementRows.find((entry) => entry.index === rowIndex);
     if (!settlementRow || !isSplitSettlementPending(settlementRow)) {
       showToast(t.paid, 'error');
@@ -329,6 +341,7 @@ export function CheckoutRequestDetailHost({
         slug: restaurantSlug,
         billSplitId: row.id,
         personIndex: rowIndex,
+        paymentMethod,
         collectedAmount,
       });
       if (!outcome.ok) {
@@ -387,16 +400,33 @@ export function CheckoutRequestDetailHost({
     },
   });
 
-  const openInvoiceModal = useCallback((scopeId?: string) => {
-    setInvoiceScopeId(scopeId);
-    setInvoiceModalOpen(true);
-  }, []);
+  const paymentMethodLabels = useMemo(
+    () =>
+      ({
+        CASH: t.paymentMethodCash,
+        CARD: t.paymentMethodCard,
+        MBWAY: t.paymentMethodMbway,
+        MULTIBANCO: t.paymentMethodMultibanco,
+        MIXED: t.paymentMethodMixed,
+        OTHER: t.paymentMethodOther,
+      }) satisfies Record<BillSyncPaymentMethod, string>,
+    [t],
+  );
+
+  const openInvoiceModal = useCallback(
+    (scopeId?: string, initialPayment: BillSyncPaymentMethod | null = null) => {
+      setInvoiceScopeId(scopeId);
+      setInvoiceInitialPayment(initialPayment);
+      setInvoiceModalOpen(true);
+    },
+    [],
+  );
 
   const openSplitInvoice = useCallback(
     (payment: SessionCollectedPayment) => {
       const name = payment.person_name?.trim();
       if (!name) return;
-      openInvoiceModal(billSyncByItemScopeId(request.id, name));
+      openInvoiceModal(billSyncByItemScopeId(request.id, name), payment.payment_method);
     },
     [openInvoiceModal, request.id],
   );
@@ -483,7 +513,11 @@ export function CheckoutRequestDetailHost({
         printOnCooldown={isOnCooldown(billCooldownKey)}
         printInvoiceAvailable={printFiscalInvoiceAvailable}
         printInvoiceBusy={printFiscalInvoiceBusy}
-        onPrintInvoice={() => openInvoiceModal(undefined)}
+        onPrintInvoice={() => {
+          const tender =
+            collectedPayments.find((p) => p.payment_method)?.payment_method ?? null;
+          openInvoiceModal(undefined, tender);
+        }}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
         onPrintSplitInvoice={openSplitInvoice}
@@ -515,7 +549,17 @@ export function CheckoutRequestDetailHost({
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
         }
         onDiscountRateBlur={() => handleDiscountRateBlur(request)}
-        onConfirmPersonPaid={(index) => void submitConfirmPersonPaid(request, index)}
+        onConfirmPersonPaid={(index) => {
+          const settlementRow = settlementRows.find((entry) => entry.index === index);
+          if (!settlementRow || !isSplitSettlementPending(settlementRow)) {
+            showToast(t.paid, 'error');
+            return;
+          }
+          setCollectPending({
+            rowIndex: index,
+            amount: settlementRow.outstandingAmount,
+          });
+        }}
         onPrintBill={() => printCheckoutBill(request, getDiscountRate(request))}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         onCloseTable={() => {
@@ -523,6 +567,7 @@ export function CheckoutRequestDetailHost({
           onCloseTableComplete?.();
           void reload();
         }}
+        paymentLabels={paymentMethodLabels}
       />
       ) : null}      <ReasonConfirmDialog
         open={billDiscount.pendingSetup != null}
@@ -560,9 +605,42 @@ export function CheckoutRequestDetailHost({
           void resumeOrdering().finally(() => setResumeConfirmOpen(false));
         }}
       />
+      <CollectPaymentModal
+        open={collectPending != null}
+        busy={
+          collectPending != null &&
+          processingKeys.has(checkoutPersonKey(request.id, collectPending.rowIndex))
+        }
+        amount={collectPending?.amount ?? 0}
+        labels={{
+          title: t.collectPaymentTitle,
+          amount: t.collectPaymentAmount,
+          paymentMethod: t.printInvoicePaymentMethod,
+          confirm: t.confirmOnePaid,
+          cancel: t.printInvoiceCancel,
+          processing: t.processing,
+        }}
+        paymentLabels={paymentMethodLabels}
+        onClose={() => {
+          if (
+            collectPending != null &&
+            processingKeys.has(checkoutPersonKey(request.id, collectPending.rowIndex))
+          ) {
+            return;
+          }
+          setCollectPending(null);
+        }}
+        onConfirm={(paymentMethod) => {
+          if (!collectPending) return;
+          const { rowIndex } = collectPending;
+          setCollectPending(null);
+          void submitConfirmPersonPaid(request, rowIndex, paymentMethod);
+        }}
+      />
       <PrintFiscalInvoiceModal
         open={invoiceModalOpen}
         busy={printFiscalInvoiceBusy}
+        initialPaymentMethod={invoiceInitialPayment}
         labels={{
           title: t.printInvoiceModalTitle,
           nif: t.printInvoiceNif,
@@ -575,14 +653,7 @@ export function CheckoutRequestDetailHost({
           cancel: t.printInvoiceCancel,
           operating: t.printInvoiceOperating,
         }}
-        paymentLabels={{
-          CASH: t.paymentMethodCash,
-          CARD: t.paymentMethodCard,
-          MBWAY: t.paymentMethodMbway,
-          MULTIBANCO: t.paymentMethodMultibanco,
-          MIXED: t.paymentMethodMixed,
-          OTHER: t.paymentMethodOther,
-        }}
+        paymentLabels={paymentMethodLabels}
         onClose={() => {
           if (printFiscalInvoiceBusy) return;
           setInvoiceModalOpen(false);

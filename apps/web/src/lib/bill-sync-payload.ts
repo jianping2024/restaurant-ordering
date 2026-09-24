@@ -21,7 +21,7 @@ export type BillSyncSplit = {
   gross_total: string;
 };
 
-/** Fiscal payment methods accepted on Farvoo→Agent auto_issue. */
+/** Fiscal payment methods accepted on Farvoo→Agent auto_issue + checkout collect. */
 export type BillSyncPaymentMethod =
   | 'CASH'
   | 'CARD'
@@ -29,6 +29,46 @@ export type BillSyncPaymentMethod =
   | 'MULTIBANCO'
   | 'MIXED'
   | 'OTHER';
+
+/** Sole ordered list for collect + invoice payment pickers. */
+export const BILL_SYNC_PAYMENT_METHODS: readonly BillSyncPaymentMethod[] = [
+  'CASH',
+  'CARD',
+  'MBWAY',
+  'MULTIBANCO',
+  'MIXED',
+  'OTHER',
+] as const;
+
+/** Sole parse/normalize for collect + invoice + ledger. */
+export function parseBillSyncPaymentMethod(
+  raw: string | null | undefined,
+): BillSyncPaymentMethod | null {
+  const m = (raw ?? '').trim().toUpperCase();
+  return (BILL_SYNC_PAYMENT_METHODS as readonly string[]).includes(m)
+    ? (m as BillSyncPaymentMethod)
+    : null;
+}
+
+/** Sole thermal-receipt tender label from ledger method (never hardcode Cash elsewhere). */
+export function receiptPaymentMethodLabel(
+  method: string | null | undefined,
+): string {
+  switch (parseBillSyncPaymentMethod(method) ?? 'CASH') {
+    case 'CASH':
+      return 'Cash';
+    case 'CARD':
+      return 'Card';
+    case 'MBWAY':
+      return 'MB Way';
+    case 'MULTIBANCO':
+      return 'Multibanco';
+    case 'MIXED':
+      return 'Mixed';
+    case 'OTHER':
+      return 'Other';
+  }
+}
 
 export type BillSyncDocumentType = 'FT' | 'FS';
 

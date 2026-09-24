@@ -36,6 +36,24 @@ describe('checkout-split-intent', () => {
     assert.equal(normalized.result[0]?.name, WHOLE_TABLE_PAYER_KEY);
   });
 
+  it('stamps whole_table amount from authoritative total, not client placeholder', () => {
+    const stamped = normalizeCheckoutRequestPayload(
+      {
+        splitMode: 'whole_table',
+        persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
+        result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 0 }],
+        customerNif: '123456789',
+      },
+      { authoritativeWholeTableTotal: 56.45 },
+    );
+    assert.deepEqual(stamped, {
+      splitMode: 'whole_table',
+      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
+      result: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 56.45 }],
+      customerNif: '123456789',
+    });
+  });
+
   it('treats persisted whole_table as no draft split mode', () => {
     assert.equal(
       resolvePersistedSplitModeForDraft({

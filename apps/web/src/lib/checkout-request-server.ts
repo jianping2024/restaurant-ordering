@@ -113,6 +113,13 @@ export async function submitCheckoutRequestForTable(
     orders,
     normalizedPayload,
   );
+  // Sole whole-table amount: billable session total (ignore client amount:0 placeholders).
+  const payloadForPersist =
+    normalizedPayload.splitMode === 'whole_table'
+      ? normalizeCheckoutRequestPayload(normalizedPayload, {
+          authoritativeWholeTableTotal: total,
+        })
+      : normalizedPayload;
   if (orderLines.length === 0) {
     return { ok: false, error: 'empty_session', status: 400 };
   }
@@ -168,7 +175,7 @@ export async function submitCheckoutRequestForTable(
   if (existingSplitRow) {
     const continuation = validateCheckoutContinuation({
       existing: existingSplitRow as BillSplit,
-      payload: normalizedPayload,
+      payload: payloadForPersist,
       lineSpecs,
       hasCollectedLedger: collectedPayments.length > 0,
       collectedPayments,
@@ -185,11 +192,11 @@ export async function submitCheckoutRequestForTable(
     p_table_id: tableId,
     p_display_name: tableRow.display_name as string,
     p_order_ids: orderIds,
-    p_split_mode: normalizedPayload.splitMode,
-    p_persons: normalizedPayload.persons,
-    p_result: normalizedPayload.result,
+    p_split_mode: payloadForPersist.splitMode,
+    p_persons: payloadForPersist.persons,
+    p_result: payloadForPersist.result,
     p_total_amount: total,
-    p_customer_nif: normalizedPayload.customerNif ?? null,
+    p_customer_nif: payloadForPersist.customerNif ?? null,
   });
 
   if (rpcErr) {
@@ -235,10 +242,10 @@ export async function submitCheckoutRequestForTable(
   return {
     ok: true,
     bill_split_id: billSplitId,
-    result: (rpcPayload.result || normalizedPayload.result) as SplitResult[],
+    result: (rpcPayload.result || payloadForPersist.result) as SplitResult[],
     total_amount: rpcPayload.total_amount ?? total,
     session_id: sessionId,
     table_name: tableRow.display_name as string,
-    split_mode: normalizedPayload.splitMode,
+    split_mode: payloadForPersist.splitMode,
   };
 }

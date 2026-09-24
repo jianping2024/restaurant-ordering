@@ -19,10 +19,11 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
-import { runStaffSyncAndCheckoutClose } from '@/lib/run-staff-sync-and-checkout-close';
 import {
   runWaiterTableCheckoutClose,
 } from '@/lib/waiter-table-checkout-close';
+import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { useRouter } from 'next/navigation';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import {
   WaiterBillIcon,
@@ -253,12 +254,10 @@ function ToolbarCloseTableControl({
   );
 }
 
-/** Floor settled-close chrome: `checkout_close` or compound `sync_and_close` (one ConfirmModal). */
+/** Floor settled-close chrome (when bill_sync_to_fiscal is OFF). */
 function WaiterTableSettledCloseControl({
   lang,
   t,
-  mode,
-  restaurantSlug,
   tableId,
   sessionId,
   label,
@@ -269,8 +268,6 @@ function WaiterTableSettledCloseControl({
 }: {
   lang: UILanguage;
   t: WaiterCopy;
-  mode: 'checkout_close' | 'sync_and_close';
-  restaurantSlug: string;
   tableId: string;
   sessionId: string | null;
   label: string;
@@ -281,17 +278,13 @@ function WaiterTableSettledCloseControl({
 }) {
   const messages = getMessages(lang);
   const orderHistory = messages.orderHistory;
-  const checkout = messages.checkout;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
-  const confirmTitle =
-    mode === 'sync_and_close'
-      ? checkout.syncBillConfirmTitle
-      : printBillOnClose
-        ? t.checkoutCloseConfirmTitle
-        : t.checkoutCloseConfirmTitleCashier;
+  const confirmTitle = printBillOnClose
+    ? t.checkoutCloseConfirmTitle
+    : t.checkoutCloseConfirmTitleCashier;
 
   const handleClick = () => {
     if (checkoutLocked) {
@@ -309,44 +302,6 @@ function WaiterTableSettledCloseControl({
     if (busy || !sessionId) return;
     setBusy(true);
     try {
-      if (mode === 'sync_and_close') {
-        const outcome = await runStaffSyncAndCheckoutClose({
-          restaurantSlug,
-          tableId,
-          printBill: printBillOnClose,
-        });
-        if (!outcome.ok) {
-          if (outcome.code === 'bill_sync_disabled' || outcome.code === 'forbidden') {
-            showToast(checkout.syncBillDisabled, 'error');
-            return;
-          }
-          if (outcome.stage === 'dirty') {
-            showToast(checkout.syncBillDirty, 'error');
-            return;
-          }
-          if (outcome.stage === 'close') {
-            if (outcome.code === 'no_session') {
-              showToast(t.checkoutCloseNoSession, 'error');
-              return;
-            }
-            showToast(checkout.syncBillCloseFailed, 'error');
-            return;
-          }
-          showToast(
-            outcome.message || outcome.job?.error_message || checkout.syncBillFailed,
-            'error',
-          );
-          return;
-        }
-        setConfirmOpen(false);
-        showToast(checkout.syncBillCloseSuccess, 'success');
-        if (outcome.printFailed) {
-          showToast(checkout.syncBillClosePrintFailed, 'error');
-        }
-        onClosed();
-        return;
-      }
-
       const outcome = await runWaiterTableCheckoutClose({
         tableId,
         printBill: printBillOnClose,
@@ -366,10 +321,7 @@ function WaiterTableSettledCloseControl({
       }
       onClosed();
     } catch {
-      showToast(
-        mode === 'sync_and_close' ? checkout.syncBillFailed : t.checkoutCloseFailed,
-        'error',
-      );
+      showToast(t.checkoutCloseFailed, 'error');
     } finally {
       setBusy(false);
     }
@@ -394,16 +346,80 @@ function WaiterTableSettledCloseControl({
         }}
         title={confirmTitle}
         message=""
-        confirmLabel={
-          mode === 'sync_and_close' ? checkout.syncBill : orderHistory.closeTableConfirmButton
-        }
-        cancelLabel={
-          mode === 'sync_and_close' ? checkout.syncBillCancel : orderHistory.closeTableCancel
-        }
+        confirmLabel={orderHistory.closeTableConfirmButton}
+        cancelLabel={orderHistory.closeTableCancel}
         confirming={busy}
         onConfirm={handleConfirm}
       />
     </>
+  );
+}
+
+/** When bill_sync_to_fiscal ON: ensure whole-table checkout request → dashboard checkout. */
+function WaiterTableCallCheckoutControl({
+  lang,
+  t,
+  restaurantSlug,
+  tableId,
+  sessionId,
+  checkoutLocked,
+  onCheckoutLocked,
+}: {
+  lang: UILanguage;
+  t: WaiterCopy;
+  restaurantSlug: string;
+  tableId: string;
+  sessionId: string | null;
+  checkoutLocked: boolean;
+  onCheckoutLocked: () => void;
+}) {
+  const router = useRouter();
+  const checkout = getMessages(lang).checkout;
+  const [busy, setBusy] = useState(false);
+
+  const handleClick = async () => {
+    if (checkoutLocked) {
+      onCheckoutLocked();
+      return;
+    }
+    if (!sessionId) {
+      showToast(t.checkoutCloseNoSession, 'error');
+      return;
+    }
+    if (busy) return;
+    setBusy(true);
+    try {
+      const outcome = await requestCheckoutRequest({
+        slug: restaurantSlug,
+        tableId,
+        splitMode: 'whole_table',
+        persons: [{ name: '__whole_table__' }],
+        result: [{ name: '__whole_table__', amount: 0 }],
+      });
+      if (!outcome.ok) {
+        showToast(checkout.callCheckoutFailed, 'error');
+        return;
+      }
+      router.push(
+        `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}&request_id=${encodeURIComponent(outcome.bill_split_id)}`,
+      );
+    } catch {
+      showToast(checkout.callCheckoutFailed, 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <WaiterTableSecondaryButton
+      type="button"
+      onClick={() => void handleClick()}
+      loading={busy}
+      aria-label={checkout.callCheckout}
+      icon={<WaiterBillIcon className={buttonIcon.sm} />}
+    >
+      {busy ? checkout.callCheckoutOperating : checkout.callCheckout}
+    </WaiterTableSecondaryButton>
   );
 }
 
@@ -423,8 +439,8 @@ type OccupiedToolbarProps = {
   showTransfer: boolean;
   showMerge: boolean;
   showCheckoutClose: boolean;
-  /** Feature + sync_bill + checkout_close; beside 关台结账. */
-  showSyncCheckoutClose: boolean;
+  /** When bill_sync_to_fiscal ON — call checkout instead of settled close. */
+  showCallCheckout: boolean;
   showForceClose: boolean;
   floorCapabilities: FloorBoardCapabilities;
   isDemo: boolean;
@@ -448,7 +464,7 @@ export function WaiterTableOccupiedToolbar({
   showTransfer,
   showMerge,
   showCheckoutClose,
-  showSyncCheckoutClose,
+  showCallCheckout,
   showForceClose,
   floorCapabilities,
   isDemo,
@@ -457,7 +473,6 @@ export function WaiterTableOccupiedToolbar({
   onTableClosed,
 }: OccupiedToolbarProps) {
   const transferMergeDisabled = isCheckoutPending || inTableParty;
-  const syncCloseLabel = getMessages(lang).checkout.syncBill;
   return (
     <WaiterDetailCard>
       <div className={waiterDetailLayout.cardBody}>
@@ -488,30 +503,24 @@ export function WaiterTableOccupiedToolbar({
               {t.merge}
             </WaiterTableSecondaryButton>
           ) : null}
+          {showCallCheckout ? (
+            <WaiterTableCallCheckoutControl
+              lang={lang}
+              t={t}
+              restaurantSlug={restaurantSlug}
+              tableId={tableId}
+              sessionId={sessionId}
+              checkoutLocked={isCheckoutPending}
+              onCheckoutLocked={onCheckoutLocked}
+            />
+          ) : null}
           {showCheckoutClose ? (
             <WaiterTableSettledCloseControl
               lang={lang}
               t={t}
-              mode="checkout_close"
-              restaurantSlug={restaurantSlug}
               tableId={tableId}
               sessionId={sessionId}
               label={t.goToBill}
-              printBillOnClose={floorCapabilities.canPrintOnCheckoutClose}
-              checkoutLocked={isCheckoutPending}
-              onCheckoutLocked={onCheckoutLocked}
-              onClosed={onTableClosed}
-            />
-          ) : null}
-          {showSyncCheckoutClose ? (
-            <WaiterTableSettledCloseControl
-              lang={lang}
-              t={t}
-              mode="sync_and_close"
-              restaurantSlug={restaurantSlug}
-              tableId={tableId}
-              sessionId={sessionId}
-              label={syncCloseLabel}
               printBillOnClose={floorCapabilities.canPrintOnCheckoutClose}
               checkoutLocked={isCheckoutPending}
               onCheckoutLocked={onCheckoutLocked}

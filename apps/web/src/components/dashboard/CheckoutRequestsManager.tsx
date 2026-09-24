@@ -44,6 +44,7 @@ interface Props {
   restaurantId: string;
   restaurantSlug: string;
   capabilities: CapabilitiesPayload;
+  billSyncToFiscal?: boolean;
   /** URL intent: auto-open this checkout request after queue is fresh. */
   initialFocus?: CheckoutQueueFocus;
 }
@@ -52,6 +53,7 @@ export function CheckoutRequestsManager({
   restaurantId,
   restaurantSlug,
   capabilities: capabilitiesPayload,
+  billSyncToFiscal = false,
   initialFocus,
 }: Props) {
   const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
@@ -238,6 +240,7 @@ export function CheckoutRequestsManager({
                 restaurantId={restaurantId}
                 restaurantSlug={restaurantSlug}
                 capabilities={capabilities}
+                billSyncToFiscal={billSyncToFiscal}
                 showBackButton={!!selectedRequestId}
                 onBack={showList}
                 onAllPaid={clearSelectionAfterComplete}

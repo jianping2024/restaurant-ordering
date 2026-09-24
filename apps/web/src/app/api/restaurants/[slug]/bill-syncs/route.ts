@@ -31,6 +31,13 @@ export async function POST(
     bill_split_id?: unknown;
     table_id?: unknown;
     request_id?: unknown;
+    auto_issue?: unknown;
+    customer_nif?: unknown;
+    customer_name?: unknown;
+    payment_method?: unknown;
+    document_type?: unknown;
+    issue_mode?: unknown;
+    issue_scope_id?: unknown;
   };
   try {
     body = await req.json();
@@ -45,6 +52,39 @@ export async function POST(
     typeof body.request_id === 'string' && body.request_id.trim()
       ? body.request_id.trim()
       : undefined;
+
+  const wantsAutoIssue = body.auto_issue === true;
+  let autoIssue: import('@/lib/bill-sync-build-payload').BillSyncAutoIssueFields | null = null;
+  if (wantsAutoIssue) {
+    const payment_method =
+      typeof body.payment_method === 'string' ? body.payment_method.trim() : '';
+    if (!payment_method) {
+      return NextResponse.json({ error: 'missing_payment_method' }, { status: 400 });
+    }
+    const document_type =
+      body.document_type === 'FT' || body.document_type === 'FS'
+        ? body.document_type
+        : undefined;
+    const issue_scope_id =
+      typeof body.issue_scope_id === 'string' && body.issue_scope_id.trim()
+        ? body.issue_scope_id.trim()
+        : undefined;
+    autoIssue = {
+      auto_issue: true,
+      payment_method,
+      ...(document_type ? { document_type } : {}),
+      ...(typeof body.customer_nif === 'string' && body.customer_nif.trim()
+        ? { customer_nif: body.customer_nif.trim() }
+        : {}),
+      ...(typeof body.customer_name === 'string' && body.customer_name.trim()
+        ? { customer_name: body.customer_name.trim() }
+        : {}),
+      ...(body.issue_mode === 'whole_table' || body.issue_mode === 'person'
+        ? { issue_mode: body.issue_mode }
+        : {}),
+      ...(issue_scope_id ? { issue_scope_id } : {}),
+    };
+  }
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req, 'checkout.sync_bill');
   if ('error' in auth) {
@@ -81,6 +121,25 @@ export async function POST(
   }
 
   const { ctx } = loaded;
+
+  // Print invoice requires at least one collection for this session (UI gate is not enough).
+  if (autoIssue) {
+    const { count, error: collectErr } = await auth.admin
+      .from('session_collected_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('restaurant_id', auth.restaurantId)
+      .eq('session_id', ctx.sessionId);
+    if (collectErr) {
+      return NextResponse.json(
+        { error: 'collection_lookup_failed', message: collectErr.message },
+        { status: 500 },
+      );
+    }
+    if (!count || count < 1) {
+      return NextResponse.json({ error: 'collection_required' }, { status: 409 });
+    }
+  }
+
   const result = await enqueueBillSyncJob({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
@@ -88,12 +147,14 @@ export async function POST(
     tableDisplayName: ctx.tableDisplayName,
     splitMode: ctx.splitMode,
     persons: ctx.persons,
+    result: ctx.result,
     orders: ctx.orders,
     itemCodeByMenuId: ctx.itemCodeByMenuId,
     vatRateByMenuId: ctx.vatRateByMenuId,
     defaultVatRatePercent: ctx.defaultVatRatePercent,
     createdBy: auth.actor.userId,
     requestId,
+    autoIssue,
   });
 
   if (!result.ok) {

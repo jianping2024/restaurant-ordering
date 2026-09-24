@@ -48,14 +48,12 @@ interface Props {
   printBillBusy: boolean;
   printCooldownSeconds: number;
   printOnCooldown: boolean;
-  billSyncAvailable: boolean;
-  billSyncBusy: boolean;
-  /** True when in-flight (content_unchanged still allows sync-and-close). */
-  billSyncBlocked: boolean;
-  billSyncStatusLabel: string | null;
-  onSyncAndCheckoutClose: () => void;
+  printInvoiceAvailable: boolean;
+  printInvoiceBusy: boolean;
+  onPrintInvoice: () => void;
   showSplitReceiptActions: boolean;
   onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
+  onPrintSplitInvoice?: (payment: SessionCollectedPayment) => void;
   isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
   printReceiptCooldownSeconds: (payment: SessionCollectedPayment) => number;
   isPrintReceiptOnCooldown: (payment: SessionCollectedPayment) => boolean;
@@ -164,13 +162,12 @@ export function CheckoutRequestDetail({
   printBillBusy,
   printCooldownSeconds,
   printOnCooldown,
-  billSyncAvailable,
-  billSyncBusy,
-  billSyncBlocked,
-  billSyncStatusLabel,
-  onSyncAndCheckoutClose,
+  printInvoiceAvailable,
+  printInvoiceBusy,
+  onPrintInvoice,
   showSplitReceiptActions,
   onPrintSplitReceipt,
+  onPrintSplitInvoice,
   isPrintReceiptBusy,
   printReceiptCooldownSeconds,
   isPrintReceiptOnCooldown,
@@ -335,7 +332,9 @@ export function CheckoutRequestDetail({
           bordered={false}
           className="mt-3 px-1"
           showPrintReceiptActions={showSplitReceiptActions}
+          showPrintInvoiceActions={printInvoiceAvailable}
           onPrintReceipt={onPrintSplitReceipt}
+          onPrintInvoice={onPrintSplitInvoice}
           isPrintReceiptBusy={isPrintReceiptBusy}
           printReceiptCooldownSeconds={printReceiptCooldownSeconds}
           isPrintReceiptOnCooldown={isPrintReceiptOnCooldown}
@@ -369,18 +368,15 @@ export function CheckoutRequestDetail({
                 ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))
                 : t.printBill}
           </button>
-          {billSyncAvailable ? (
+          {printInvoiceAvailable && request.split_mode === 'whole_table' ? (
             <button
               type="button"
-              onClick={onSyncAndCheckoutClose}
-              disabled={detailLocked || billSyncBlocked}
+              onClick={onPrintInvoice}
+              disabled={detailLocked || printInvoiceBusy || summary.collected <= 0}
               className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
             >
-              {billSyncBusy ? t.syncBillOperating : t.syncBill}
+              {printInvoiceBusy ? t.printInvoiceOperating : t.printInvoice}
             </button>
-          ) : null}
-          {billSyncStatusLabel ? (
-            <span className="text-xs text-brand-text-muted">{billSyncStatusLabel}</span>
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">

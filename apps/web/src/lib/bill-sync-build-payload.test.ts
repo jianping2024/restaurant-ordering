@@ -51,26 +51,99 @@ describe('billSyncByItemScopeId', () => {
 });
 
 describe('buildBillSyncJobPayload', () => {
-  it('builds whole_table for even/custom/whole_table', () => {
-    for (const splitMode of ['whole_table', 'even', 'custom'] as const) {
-      const built = buildBillSyncJobPayload({
-        requestId: '22222222-2222-4222-8222-222222222222',
-        billSplitId: BILL_SPLIT_ID,
-        tableDisplayName: 'A-02',
-        splitMode,
-        persons: [{ name: 'Jacky' }, { name: 'Tom' }],
-        orders,
-        itemCodeByMenuId: { [MENU_ID]: '006' },
-        vatRateByMenuId: { [MENU_ID]: 23 },
-        defaultVatRatePercent: 23,
-      });
-      assert.equal(built.ok, true);
-      if (!built.ok) return;
-      assert.equal(built.payload.scope_type, 'whole_table');
-      assert.equal(built.payload.gross_total, '4.50');
-      assert.equal(built.payload.lines?.length, 1);
-      assert.equal(built.payload.splits, undefined);
-    }
+  it('builds whole_table for whole_table mode', () => {
+    const built = buildBillSyncJobPayload({
+      requestId: '22222222-2222-4222-8222-222222222222',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'whole_table',
+      persons: [{ name: '__whole_table__' }],
+      orders,
+      itemCodeByMenuId: { [MENU_ID]: '006' },
+      vatRateByMenuId: { [MENU_ID]: 23 },
+      defaultVatRatePercent: 23,
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.scope_type, 'whole_table');
+    assert.equal(built.payload.gross_total, '4.50');
+    assert.equal(built.payload.lines?.length, 1);
+    assert.equal(built.payload.splits, undefined);
+  });
+
+  it('builds split for even with 2+ people (equal line shares)', () => {
+    const built = buildBillSyncJobPayload({
+      requestId: '22222222-2222-4222-8222-222222222222',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'even',
+      persons: [{ name: 'Jacky' }, { name: 'Tom' }],
+      orders,
+      itemCodeByMenuId: { [MENU_ID]: '006' },
+      vatRateByMenuId: { [MENU_ID]: 23 },
+      defaultVatRatePercent: 23,
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.scope_type, 'split');
+    assert.equal(built.payload.splits?.length, 2);
+    assert.equal(built.payload.splits?.[0]?.gross_total, '2.25');
+    assert.equal(built.payload.splits?.[1]?.gross_total, '2.25');
+    assert.equal(
+      built.payload.splits?.[0]?.scope_id,
+      billSyncByItemScopeId(BILL_SPLIT_ID, 'Jacky'),
+    );
+  });
+
+  it('builds split for custom by result amounts', () => {
+    const built = buildBillSyncJobPayload({
+      requestId: '22222222-2222-4222-8222-222222222223',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'custom',
+      persons: [{ name: 'Jacky' }, { name: 'Tom' }],
+      result: [
+        { name: 'Jacky', amount: 3 },
+        { name: 'Tom', amount: 1.5 },
+      ],
+      orders,
+      itemCodeByMenuId: { [MENU_ID]: '006' },
+      vatRateByMenuId: { [MENU_ID]: 23 },
+      defaultVatRatePercent: 23,
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.scope_type, 'split');
+    assert.equal(built.payload.splits?.length, 2);
+    const jacky = built.payload.splits?.find((s) => s.name === 'Jacky');
+    const tom = built.payload.splits?.find((s) => s.name === 'Tom');
+    assert.equal(jacky?.gross_total, '3.00');
+    assert.equal(tom?.gross_total, '1.50');
+  });
+
+  it('attaches auto_issue fields and CASH→FS document_type', () => {
+    const built = buildBillSyncJobPayload({
+      requestId: '22222222-2222-4222-8222-222222222224',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'whole_table',
+      persons: [{ name: '__whole_table__' }],
+      orders,
+      itemCodeByMenuId: { [MENU_ID]: '006' },
+      vatRateByMenuId: { [MENU_ID]: 23 },
+      defaultVatRatePercent: 23,
+      autoIssue: {
+        auto_issue: true,
+        payment_method: 'CASH',
+        customer_nif: '',
+      },
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.auto_issue, true);
+    assert.equal(built.payload.document_type, 'FS');
+    assert.equal(built.payload.payment_method, 'CASH');
+    assert.equal(built.payload.issue_mode, 'whole_table');
   });
 
   it('builds split payload for by_item with stable scope_id per person', () => {

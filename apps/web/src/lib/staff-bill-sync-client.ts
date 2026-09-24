@@ -7,6 +7,7 @@ export type StaffBillSyncJob = {
   error_code?: string | null;
   error_message?: string | null;
   content_fingerprint?: string | null;
+  invoice_no?: string | null;
 };
 
 export type StaffBillSyncStatus = {
@@ -76,11 +77,29 @@ export async function enqueueStaffBillSync(input: {
   billSplitId?: string;
   tableId?: string;
   requestId?: string;
+  autoIssue?: {
+    auto_issue: true;
+    customer_nif?: string;
+    customer_name?: string;
+    payment_method: string;
+    document_type?: 'FT' | 'FS';
+    issue_mode?: 'whole_table' | 'person';
+    issue_scope_id?: string;
+  } | null;
 }): Promise<EnqueueStaffBillSyncResult> {
   const requestId = input.requestId?.trim() || mintBrowserUuid();
-  const body: Record<string, string> = { request_id: requestId };
+  const body: Record<string, unknown> = { request_id: requestId };
   if (input.billSplitId?.trim()) body.bill_split_id = input.billSplitId.trim();
   if (input.tableId?.trim()) body.table_id = input.tableId.trim();
+  if (input.autoIssue?.auto_issue) {
+    body.auto_issue = true;
+    body.payment_method = input.autoIssue.payment_method;
+    if (input.autoIssue.document_type) body.document_type = input.autoIssue.document_type;
+    if (input.autoIssue.customer_nif) body.customer_nif = input.autoIssue.customer_nif;
+    if (input.autoIssue.customer_name) body.customer_name = input.autoIssue.customer_name;
+    if (input.autoIssue.issue_mode) body.issue_mode = input.autoIssue.issue_mode;
+    if (input.autoIssue.issue_scope_id) body.issue_scope_id = input.autoIssue.issue_scope_id;
+  }
 
   const res = await fetch(
     `/api/restaurants/${encodeURIComponent(input.restaurantSlug)}/bill-syncs`,

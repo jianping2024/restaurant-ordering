@@ -1,10 +1,13 @@
 import { randomUUID } from 'crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
-import { buildBillSyncJobPayload } from '@/lib/bill-sync-build-payload';
+import {
+  buildBillSyncJobPayload,
+  type BillSyncAutoIssueFields,
+} from '@/lib/bill-sync-build-payload';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
-import type { Order, SplitPerson } from '@/types';
+import type { Order, SplitPerson, SplitResult } from '@/types';
 
 export type EnqueueBillSyncInput = {
   admin: SupabaseClient;
@@ -14,6 +17,7 @@ export type EnqueueBillSyncInput = {
   /** Persisted bill_splits.split_mode; drives whole_table vs split payload. */
   splitMode: string | null | undefined;
   persons: SplitPerson[] | null | undefined;
+  result?: SplitResult[] | null | undefined;
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
@@ -21,6 +25,8 @@ export type EnqueueBillSyncInput = {
   defaultVatRatePercent: number;
   createdBy: string | null;
   requestId?: string;
+  /** When set, Agent auto-issues; skips content fingerprint already_synced short-circuit. */
+  autoIssue?: BillSyncAutoIssueFields | null;
 };
 
 export type BillSyncJobRef = {
@@ -74,16 +80,19 @@ export async function enqueueBillSyncJob(
     tableDisplayName: input.tableDisplayName,
     splitMode,
     persons: Array.isArray(input.persons) ? input.persons : [],
+    result: Array.isArray(input.result) ? input.result : [],
     orders: input.orders,
     itemCodeByMenuId: input.itemCodeByMenuId,
     vatRateByMenuId: input.vatRateByMenuId,
     defaultVatRatePercent: input.defaultVatRatePercent,
+    autoIssue: input.autoIssue ?? null,
   });
   if (!built.ok) {
     return { ok: false, error: built.error, status: 400 };
   }
   const payload = built.payload;
   const contentFp = billSyncContentFingerprint(payload);
+  const isAutoIssue = payload.auto_issue === true;
 
   const { data: existingByRequest } = await input.admin
     .from('bill_sync_jobs')
@@ -128,7 +137,7 @@ export async function enqueueBillSyncJob(
   }
 
   const lastSucceeded = recent.find((row) => row.status === 'succeeded');
-  if (lastSucceeded?.payload) {
+  if (!isAutoIssue && lastSucceeded?.payload) {
     const priorFp = billSyncContentFingerprint(lastSucceeded.payload);
     if (priorFp === contentFp) {
       return {

@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>结账详情 · 静态原型（分单重组）</title>
+  <style>
+    :root {
+      --bg: rgb(237, 234, 226);
+      --card: #fff;
+      --ink: rgb(32, 30, 26);
+      --muted: rgb(110, 104, 94);
+      --border: rgb(210, 204, 192);
+      --gold: rgb(139, 101, 48);
+      --gold-soft: rgba(139, 101, 48, 0.12);
+      --gold-line: rgba(139, 101, 48, 0.35);
+      --ok: #1f6b45;
+      --ok-bg: #e6f4ec;
+      --warn-bg: #f5ead0;
+      --danger: #8b3a2f;
+      --shadow: 0 1px 2px rgba(40, 30, 10, 0.06), 0 8px 24px rgba(40, 30, 10, 0.06);
+      --radius: 14px;
+      --font: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+      --sans: "Avenir Next", "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(240px, 300px) 1fr;
+    }
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .queue { display: none; }
+    }
+    .proto-bar {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .proto-bar h1 {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .proto-bar p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tab {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] {
+      border-color: var(--gold);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+    .queue, .detail {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .queue { padding: 14px; }
+    .queue h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .q-card {
+      border: 1px solid rgba(217, 119, 6, 0.35);
+      background: rgba(245, 158, 11, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .q-card .t { font-family: var(--font); font-size: 1.6rem; margin: 0; }
+    .q-card .meta { color: var(--muted); font-size: 11px; margin-top: 6px; }
+    .q-card .amt { text-align: right; color: var(--gold); font-weight: 700; font-size: 1.1rem; }
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .badge.warn { background: var(--warn-bg); color: var(--gold); }
+    .detail { padding: 20px 20px 16px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .head .table {
+      font-family: var(--font);
+      font-size: 2rem;
+      margin: 0;
+      line-height: 1;
+    }
+    .head .sub { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    .head .badges { margin-top: 10px; }
+    .settle-bar {
+      margin-top: 16px;
+      border: 1px solid var(--gold-line);
+      background: var(--gold-soft);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .settle-bar span { color: var(--muted); font-size: 13px; }
+    .settle-bar strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .settle-bar .pending strong { color: var(--gold); font-size: 1.05rem; }
+    .path {
+      margin-top: 16px;
+      border: 2px solid var(--gold-line);
+      background: #fffdf8;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .path h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .path .hint { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+    .path-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1.1fr 1fr;
+    }
+    @media (max-width: 720px) {
+      .path-grid { grid-template-columns: 1fr; }
+    }
+    .path-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .path-card:hover { border-color: var(--gold); box-shadow: var(--shadow); }
+    .path-card.primary {
+      border-color: var(--gold);
+      background: linear-gradient(180deg, #fff 0%, var(--gold-soft) 100%);
+    }
+    .path-card h4 { margin: 0 0 4px; font-size: 15px; }
+    .path-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .modes {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .mode {
+      flex: 1;
+      min-width: 96px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .mode:hover, .mode.on {
+      border-color: var(--gold);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+    .mode small {
+      display: block;
+      margin-top: 4px;
+      font-weight: 500;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .pending-box {
+      margin-top: 16px;
+      border: 2px solid var(--gold-line);
+      background: var(--gold-soft);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .pending-box > .title {
+      font-size: 13px;
+      font-weight: 650;
+      margin: 0 0 10px;
+    }
+    .person-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .person-row:last-child { margin-bottom: 0; }
+    .person-row .name { font-weight: 600; }
+    .person-row .euro {
+      color: var(--gold);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn:hover { background: rgba(0,0,0,0.03); }
+    .btn.pay {
+      border: 0;
+      background: var(--ok-bg);
+      color: var(--ok);
+    }
+    .btn.gold {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #fff;
+    }
+    .btn.ghost { background: transparent; }
+    .ledger {
+      margin-top: 14px;
+      padding: 4px 2px;
+    }
+    .ledger .lt {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .ledger-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 13px;
+    }
+    .ledger-row .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .items {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer .left, .footer .right { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    /* Fatura-like by-item split */
+    .split-top {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .chip.on {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #fff;
+    }
+    .chip.done { opacity: 0.75; }
+    .split-board {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 12px;
+      min-height: 320px;
+    }
+    @media (max-width: 720px) {
+      .split-board { grid-template-columns: 1fr; }
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .panel .body { padding: 10px; flex: 1; }
+    .dish {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .dish:last-child { margin-bottom: 0; }
+    .dish .n { font-weight: 600; font-size: 14px; }
+    .dish .q { color: var(--muted); font-size: 12px; }
+    .dish .ops { display: flex; gap: 4px; }
+    .mini {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .mini.add {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-soft);
+    }
+    .person-box {
+      border: 1px dashed var(--gold-line);
+      border-radius: 10px;
+      padding: 10px;
+      background: var(--gold-soft);
+      margin-bottom: 10px;
+    }
+    .person-box label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .person-box input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .share-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 13px;
+    }
+    .est {
+      margin-top: 10px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+    .split-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 16, 10, 0.4);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 40;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: min(420px, 100%);
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .modal h3 { margin: 0 0 4px; font-family: var(--font); font-size: 1.25rem; }
+    .modal .mh { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+    .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .note {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="proto-bar">
+      <div>
+        <h1>结账详情 · 静态原型</h1>
+        <p>切换下方状态查看版面 · 非真实数据 · Farvoo 结账台风格 + 按菜参考 Fatura</p>
+      </div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab" data-view="path" aria-selected="true">① 未分单 · 选路径</button>
+        <button type="button" class="tab" data-view="byitem" aria-selected="false">② 按菜分单</button>
+        <button type="button" class="tab" data-view="settle" aria-selected="false">③ 分单后结算</button>
+        <button type="button" class="tab" data-view="whole" aria-selected="false">④ 整单结算</button>
+      </div>
+    </div>
+
+    <aside class="queue">
+      <h2>待结账 · 3</h2>
+      <div class="q-card">
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <div>
+            <p class="t">桌 18</p>
+            <p class="meta">12:04 呼叫 · 刚到</p>
+            <div style="margin-top:8px">
+              <span class="badge">整桌 · 未分单</span>
+              <span class="badge warn">待结账</span>
+            </div>
+          </div>
+          <div class="amt">
+            <div style="font-size:11px;color:var(--muted);font-weight:500">待收</div>
+            €47.10
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="detail">
+      <!-- shared head -->
+      <div class="head">
+        <p class="table">桌 18</p>
+        <p class="sub">12:04 呼叫结账 · 刚到</p>
+        <div class="badges">
+          <span class="badge" id="modeBadge">整桌</span>
+          <span class="badge warn">待结账</span>
+        </div>
+      </div>
+
+      <div class="settle-bar">
+        <div style="display:flex;flex-wrap:wrap;gap:14px">
+          <span>消费 <strong>€47.10</strong></span>
+          <span>应收 <strong>€47.10</strong></span>
+          <span class="pending">待收 <strong>€47.10</strong></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px">
+          折扣
+          <span style="border:1px solid var(--border);border-radius:8px;padding:4px 10px;background:#fff;color:var(--ink)">0</span>
+          %
+        </div>
+      </div>
+
+      <!-- VIEW: path -->
+      <section class="view active" id="view-path">
+        <div class="path">
+          <h3>本桌如何结？</h3>
+          <p class="hint">客人未在手机上分单。可整单收款，或由前台选择分单方式。</p>
+          <div class="path-grid">
+            <button type="button" class="path-card primary" data-goto="whole">
+              <h4>整单收款</h4>
+              <p>一笔收齐 · 可打总账单 / 整单发票</p>
+            </button>
+            <div class="path-card" style="cursor:default">
+              <h4>分单</h4>
+              <p>先选方式，确认后再按人收款</p>
+              <div class="modes">
+                <button type="button" class="mode" data-goto="byitem">按菜<small>参考 Fatura</small></button>
+                <button type="button" class="mode">均摊<small>按人数平分</small></button>
+                <button type="button" class="mode">手填<small>自定义金额</small></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="items">本桌菜品 · 6 道 ▾</div>
+        <div class="footer">
+          <div class="left">
+            <button type="button" class="btn">打印账单</button>
+          </div>
+          <div class="right">
+            <button type="button" class="btn">恢复点单</button>
+            <button type="button" class="btn" style="color:var(--danger);border-color:#e2c4be">强制关台</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: by-item (Fatura-like) -->
+      <section class="view" id="view-byitem">
+        <div class="split-top">
+          <div class="chips">
+            <button type="button" class="chip on">Ana</button>
+            <button type="button" class="chip">João</button>
+            <button type="button" class="chip" style="border-style:dashed;color:var(--muted)">+ 新人</button>
+          </div>
+          <span style="font-size:12px;color:var(--muted)">按菜分单 · 剩余池守恒</span>
+        </div>
+        <div class="split-board">
+          <div class="panel">
+            <header>剩余菜品</header>
+            <div class="body">
+              <div class="dish">
+                <div>
+                  <div class="n">Vitalis</div>
+                  <div class="q">可分 2</div>
+                </div>
+                <div class="ops">
+                  <button type="button" class="mini">½</button>
+                  <button type="button" class="mini add">+</button>
+                </div>
+              </div>
+              <div class="dish">
+                <div>
+                  <div class="n">Arroz</div>
+                  <div class="q">可分 1</div>
+                </div>
+                <div class="ops">
+                  <button type="button" class="mini">½</button>
+                  <button type="button" class="mini add">+</button>
+                </div>
+              </div>
+              <div class="dish">
+                <div>
+                  <div class="n">Buffet adulto</div>
+                  <div class="q">可分 1</div>
+                </div>
+                <div class="ops">
+                  <button type="button" class="mini add">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <header>当前人份额</header>
+            <div class="body">
+              <div class="person-box">
+                <label>分单标记名（非票面购方）</label>
+                <input value="Ana" readonly />
+              </div>
+              <div class="share-line"><span>Vitalis × 1</span><span>€2.50</span></div>
+              <div class="share-line"><span>Buffet adulto × 1</span><span>€14.95</span></div>
+              <div class="est">本票预估 · 2 行 · €17.45</div>
+            </div>
+          </div>
+        </div>
+        <div class="split-actions">
+          <button type="button" class="btn" data-goto="path">取消</button>
+          <button type="button" class="btn gold" data-goto="settle">确认分单</button>
+        </div>
+      </section>
+
+      <!-- VIEW: settle after split -->
+      <section class="view" id="view-settle">
+        <div class="pending-box">
+          <p class="title">待收款</p>
+          <div class="person-row">
+            <div>
+              <div class="name">Ana</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">2 道菜</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="euro">€17.45</span>
+              <button type="button" class="btn pay">收款 €17.45</button>
+            </div>
+          </div>
+          <div class="person-row">
+            <div>
+              <div class="name">João</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">4 道菜</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="euro">€29.65</span>
+              <button type="button" class="btn pay">收款 €29.65</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ledger">
+          <div class="lt">已收款项（示意 · Ana 已收）</div>
+          <div class="ledger-row">
+            <span><strong>Ana</strong> · 12:08 — €17.45</span>
+            <span class="actions">
+              <button type="button" class="btn" style="padding:6px 10px;font-size:12px">打印收据</button>
+              <button type="button" class="btn" style="padding:6px 10px;font-size:12px" data-invoice>打印发票</button>
+            </span>
+          </div>
+        </div>
+
+        <div class="items">本桌菜品 · 6 道 ▾</div>
+        <div class="footer">
+          <div class="left">
+            <button type="button" class="btn">打印账单</button>
+          </div>
+          <div class="right">
+            <button type="button" class="btn">恢复点单</button>
+            <button type="button" class="btn" style="color:var(--danger);border-color:#e2c4be">强制关台</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: whole table settle -->
+      <section class="view" id="view-whole">
+        <div class="pending-box">
+          <p class="title">待收款</p>
+          <div class="person-row">
+            <div class="name">整桌</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="euro">€47.10</span>
+              <button type="button" class="btn pay">收款 €47.10</button>
+            </div>
+          </div>
+        </div>
+        <div class="items">本桌菜品 · 6 道 ▾</div>
+        <div class="footer">
+          <div class="left">
+            <button type="button" class="btn">打印账单</button>
+            <button type="button" class="btn" data-invoice>打印发票</button>
+          </div>
+          <div class="right">
+            <button type="button" class="btn">恢复点单</button>
+            <button type="button" class="btn" style="color:var(--danger);border-color:#e2c4be">强制关台</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="note">
+      静态原型仅示意版面与动线：路径选择 → 三种分单方式（按菜为 Fatura 式左右栏）→ 结算与打印。
+      无「同步关台」。开票弹层：NIF/姓名可空，付款方式必选感。正式实现会接真实数据与权限。
+    </p>
+  </div>
+
+  <div class="modal-backdrop" id="invoiceModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-labelledby="invTitle">
+      <h3 id="invTitle">打印发票</h3>
+      <p class="mh">入队开票 · NIF 可空（散客）· 类型由付款方式决定（现金 FS / 其它 FT）</p>
+      <div class="field">
+        <label>购方 NIF（可选）</label>
+        <input placeholder="空 = 散客 999999990" />
+      </div>
+      <div class="field">
+        <label>购方名称（可选）</label>
+        <input placeholder="Consumidor Final" />
+      </div>
+      <div class="field">
+        <label>付款方式</label>
+        <select>
+          <option>现金 CASH</option>
+          <option>卡 CARD</option>
+          <option>MB WAY</option>
+          <option>Multibanco</option>
+          <option>混合 MIXED</option>
+          <option>其它 OTHER</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" id="invCancel">取消</button>
+        <button type="button" class="btn gold">确认开票</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const badges = { path: '整桌', byitem: '按菜 · 编辑中', settle: '按菜', whole: '整桌' };
+    const tabs = document.querySelectorAll('.tab');
+    const views = {
+      path: document.getElementById('view-path'),
+      byitem: document.getElementById('view-byitem'),
+      settle: document.getElementById('view-settle'),
+      whole: document.getElementById('view-whole'),
+    };
+    const modeBadge = document.getElementById('modeBadge');
+    const modal = document.getElementById('invoiceModal');
+
+    function show(id) {
+      Object.entries(views).forEach(([k, el]) => el.classList.toggle('active', k === id));
+      tabs.forEach((t) => t.setAttribute('aria-selected', t.dataset.view === id ? 'true' : 'false'));
+      modeBadge.textContent = badges[id] || '整桌';
+    }
+
+    tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.view)));
+    document.querySelectorAll('[data-goto]').forEach((el) => {
+      el.addEventListener('click', () => show(el.dataset.goto));
+    });
+    document.querySelectorAll('[data-invoice]').forEach((el) => {
+      el.addEventListener('click', () => {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+      });
+    });
+    document.getElementById('invCancel').addEventListener('click', () => {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    });
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    });
+  </script>
+</body>
+</html>

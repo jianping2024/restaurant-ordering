@@ -22,6 +22,8 @@ import {
   allocationLockedPersonNames,
   buildLockedPersonLineMins,
   commitAllByItemAllocations,
+  defaultSplitPersonNames,
+  ensureSplitPersonNames,
   isCheckoutSplitLocked,
   resolveContinuationSplitShape,
 } from '@/lib/checkout-split-continuation';
@@ -42,6 +44,25 @@ export type PersonAmount = {
   amount: number;
 };
 
+/** Sole mapper: continuation/default names → draft person slots (stable ids). */
+function slotsFromNames(names: readonly string[], prev?: readonly SplitPersonSlot[]): SplitPersonSlot[] {
+  return names.map((name, idx) => ({
+    id: prev?.[idx]?.id ?? `p${idx + 1}`,
+    name,
+  }));
+}
+
+/** Sole mapper: names → custom amount rows (keep prior amounts when name index matches). */
+function customAmountsFromNames(
+  names: readonly string[],
+  prev?: readonly PersonAmount[],
+): PersonAmount[] {
+  return names.map((name, idx) => ({
+    name,
+    amount: prev?.[idx]?.amount ?? 0,
+  }));
+}
+
 function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
   if (shape) return shape.personCount;
@@ -53,13 +74,8 @@ function initialSplitPeople(
   guestName: (n: number) => string,
 ): SplitPersonSlot[] {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  if (shape) {
-    return shape.personNames.map((name, idx) => ({ id: `p${idx + 1}`, name }));
-  }
-  return [
-    { id: 'p1', name: guestName(1) },
-    { id: 'p2', name: guestName(2) },
-  ];
+  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
+  return slotsFromNames(names);
 }
 
 function initialCustomAmounts(
@@ -67,16 +83,19 @@ function initialCustomAmounts(
   guestName: (n: number) => string,
 ): PersonAmount[] {
   if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
-    return existingSplit.result.map((row) => ({ name: row.name, amount: row.amount }));
+    const names = ensureSplitPersonNames(
+      existingSplit.result.map((row) => row.name),
+      existingSplit.result.length,
+      guestName,
+    );
+    return names.map((name, idx) => ({
+      name,
+      amount: existingSplit.result[idx]?.amount ?? 0,
+    }));
   }
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  if (shape) {
-    return shape.personNames.map((name) => ({ name, amount: 0 }));
-  }
-  return [
-    { name: guestName(1), amount: 0 },
-    { name: guestName(2), amount: 0 },
-  ];
+  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
+  return customAmountsFromNames(names);
 }
 
 export function useBillSplitDraft(params: {
@@ -164,12 +183,43 @@ export function useBillSplitDraft(params: {
     loadedLocalDraftRef.current = draft;
     if (draft) {
       setSplitMode(draft.splitMode);
-      setPersonCount(draft.personCount);
-      if (draft.splitPeople.length > 0) setSplitPeople(draft.splitPeople);
-      if (draft.customAmounts.length > 0) setCustomAmounts(draft.customAmounts);
+      if (draft.splitMode === 'even') {
+        const count = Math.max(2, draft.personCount);
+        const names = ensureSplitPersonNames(
+          draft.splitPeople.map((person) => person.name),
+          count,
+          guestName,
+        );
+        setPersonCount(count);
+        setSplitPeople(slotsFromNames(names, draft.splitPeople));
+        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
+      } else if (draft.splitMode === 'custom') {
+        const count = Math.max(2, draft.customAmounts.length, draft.splitPeople.length);
+        const source =
+          draft.customAmounts.length > 0 ? draft.customAmounts : draft.splitPeople;
+        const names = ensureSplitPersonNames(
+          source.map((row) => row.name),
+          count,
+          guestName,
+        );
+        setPersonCount(Math.max(2, count));
+        setSplitPeople(slotsFromNames(names, draft.splitPeople));
+        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
+      } else {
+        setPersonCount(Math.max(2, draft.personCount));
+        if (draft.splitPeople.length > 0) {
+          const names = ensureSplitPersonNames(
+            draft.splitPeople.map((person) => person.name),
+            Math.max(2, draft.splitPeople.length),
+            guestName,
+          );
+          setSplitPeople(slotsFromNames(names, draft.splitPeople));
+        }
+        if (draft.customAmounts.length > 0) setCustomAmounts(draft.customAmounts);
+      }
     }
     setStorageReady(true);
-  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length]);
+  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length, guestName]);
 
   const {
     byItemAllocations,
@@ -192,6 +242,22 @@ export function useBillSplitDraft(params: {
     byItemLocalAppliedRef.current = true;
     setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
   }, [lineSpecs, setByItemAllocations]);
+
+  /** Keep even roster length === personCount (sole even people source for compute/submit). */
+  useLayoutEffect(() => {
+    if (splitMode !== 'even') return;
+    const names = ensureSplitPersonNames(
+      splitPeople.map((person) => person.name),
+      personCount,
+      guestName,
+    );
+    const sameLength = splitPeople.length === names.length;
+    const sameNames =
+      sameLength && splitPeople.every((person, idx) => person.name === names[idx]);
+    if (sameNames) return;
+    setSplitPeople((prev) => slotsFromNames(names, prev));
+    setCustomAmounts((prev) => customAmountsFromNames(names, prev));
+  }, [splitMode, personCount, splitPeople, guestName]);
 
   useEffect(() => {
     if (!sessionId || !submitted) return;
@@ -306,8 +372,29 @@ export function useBillSplitDraft(params: {
         return;
       }
       setSplitMode(mode);
+      if (mode === 'even') {
+        // personCount is the even size; layout effect then aligns roster via ensureSplitPersonNames.
+        setPersonCount(Math.max(2, personCount, splitPeople.length));
+      } else if (mode === 'custom') {
+        const count = Math.max(2, customAmounts.length, splitPeople.length);
+        const names = ensureSplitPersonNames(
+          (customAmounts.length > 0 ? customAmounts : splitPeople).map((row) => row.name),
+          count,
+          guestName,
+        );
+        setSplitPeople((prev) => slotsFromNames(names, prev));
+        setCustomAmounts((prev) => customAmountsFromNames(names, prev));
+      }
     },
-    [submitting, splitLocked, splitMode],
+    [
+      submitting,
+      splitLocked,
+      splitMode,
+      personCount,
+      splitPeople,
+      customAmounts,
+      guestName,
+    ],
   );
 
   const startInlineRename = useCallback(
@@ -387,49 +474,48 @@ export function useBillSplitDraft(params: {
     const n = Math.max(2, personCount - 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
-      const next = prev.slice(0, n);
-      setCustomAmounts((customPrev) => {
-        const cut = customPrev.slice(0, n);
-        return cut.map((row, idx) => ({ ...row, name: next[idx]?.name || row.name }));
-      });
+      const names = ensureSplitPersonNames(
+        prev.map((person) => person.name),
+        n,
+        guestName,
+      );
+      const next = slotsFromNames(names, prev);
+      setCustomAmounts((customPrev) => customAmountsFromNames(names, customPrev));
       return next;
     });
-  }, [personCount]);
+  }, [personCount, guestName]);
 
   const incrementPersonCount = useCallback(() => {
     const n = Math.min(20, personCount + 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
-      if (prev.length >= n) return prev.slice(0, n);
-      const next = [...prev];
-      for (let i = prev.length; i < n; i += 1) {
-        next.push({ id: `p${i + 1}`, name: guestName(i + 1) });
-      }
-      setCustomAmounts((customPrev) => {
-        const merged = [...customPrev];
-        while (merged.length < n) {
-          const idx = merged.length;
-          merged.push({ name: next[idx].name, amount: 0 });
-        }
-        return merged.slice(0, n).map((row, idx) => ({ ...row, name: next[idx].name }));
-      });
+      const names = ensureSplitPersonNames(
+        prev.map((person) => person.name),
+        n,
+        guestName,
+      );
+      const next = slotsFromNames(names, prev);
+      setCustomAmounts((customPrev) => customAmountsFromNames(names, customPrev));
       return next;
     });
   }, [personCount, guestName]);
 
   const addCustomPerson = useCallback(() => {
     setCustomAmounts((prev) => {
-      const nextIndex = prev.length;
-      const fallback = guestName(nextIndex + 1);
-      const name = splitPeople[nextIndex]?.name || fallback;
-      return [...prev, { name, amount: 0 }];
+      const nextCount = prev.length + 1;
+      const names = ensureSplitPersonNames(
+        [
+          ...prev.map((row) => row.name),
+          splitPeople[prev.length]?.name ?? '',
+        ],
+        nextCount,
+        guestName,
+      );
+      setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
+      setPersonCount((count) => Math.max(count, nextCount));
+      return customAmountsFromNames(names, prev);
     });
-    setSplitPeople((prev) => {
-      if (prev.length > customAmounts.length) return prev;
-      const nextIndex = prev.length;
-      return [...prev, { id: `p${nextIndex + 1}`, name: guestName(nextIndex + 1) }];
-    });
-  }, [guestName, splitPeople, customAmounts.length]);
+  }, [guestName, splitPeople]);
 
   const commitByItemDraft = useCallback(() => {
     const committed = commitAllByItemAllocations({

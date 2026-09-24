@@ -209,7 +209,7 @@ describe('addBuffetSeatToPerson', () => {
   });
 
   it('clears seed qtyWhole=1 on empty menu row before adding one whole', () => {
-    let allocations: Record<string, ByItemConsumerRow[]> = {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
       'line-a': [{
         id: 'row-seed',
         name: '',

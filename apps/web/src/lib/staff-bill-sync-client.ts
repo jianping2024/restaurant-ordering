@@ -8,6 +8,12 @@ export type StaffBillSyncJob = {
   error_message?: string | null;
   content_fingerprint?: string | null;
   invoice_no?: string | null;
+  document_id?: string | null;
+};
+
+export type StaffBillSyncIssued = {
+  document_id: string;
+  invoice_no: string | null;
 };
 
 export type StaffBillSyncStatus = {
@@ -17,19 +23,26 @@ export type StaffBillSyncStatus = {
   status: number;
   error?: string;
   message?: string;
+  /** Sole cloud copy of issued fiscal doc for sale + optional person scope. */
+  issued?: StaffBillSyncIssued | null;
 };
 
-/** Sole GET for bill-sync latest job + content_unchanged. */
+/** Sole GET for bill-sync latest job + content_unchanged + issued document. */
 export async function fetchStaffBillSyncStatus(input: {
   restaurantSlug: string;
   billSplitId: string;
+  issueScopeId?: string;
 }): Promise<StaffBillSyncStatus> {
+  const qs = new URLSearchParams({
+    source_sale_id: input.billSplitId,
+  });
+  if (input.issueScopeId?.trim()) qs.set('issue_scope_id', input.issueScopeId.trim());
   const res = await fetch(
-    `/api/restaurants/${encodeURIComponent(input.restaurantSlug)}/bill-syncs?source_sale_id=${encodeURIComponent(input.billSplitId)}`,
+    `/api/restaurants/${encodeURIComponent(input.restaurantSlug)}/bill-syncs?${qs}`,
     { credentials: 'include' },
   );
   if (res.status === 403) {
-    return { job: null, content_unchanged: false, available: false, status: 403 };
+    return { job: null, content_unchanged: false, available: false, status: 403, issued: null };
   }
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
@@ -40,17 +53,20 @@ export async function fetchStaffBillSyncStatus(input: {
       status: res.status,
       error: data.error,
       message: data.message,
+      issued: null,
     };
   }
   const data = (await res.json()) as {
     job?: StaffBillSyncJob | null;
     content_unchanged?: boolean;
+    issued?: StaffBillSyncIssued | null;
   };
   return {
     job: data.job ?? null,
     content_unchanged: data.content_unchanged === true,
     available: true,
     status: res.status,
+    issued: data.issued ?? null,
   };
 }
 
@@ -71,7 +87,7 @@ export type EnqueueStaffBillSyncResult =
       available?: boolean;
     };
 
-/** Sole POST for fiscal bill-sync enqueue (bill_split_id or table_id). */
+/** Sole POST for fiscal bill-sync enqueue (issue or reprint on same pipe). */
 export async function enqueueStaffBillSync(input: {
   restaurantSlug: string;
   billSplitId?: string;
@@ -86,12 +102,18 @@ export async function enqueueStaffBillSync(input: {
     issue_mode?: 'whole_table' | 'person';
     issue_scope_id?: string;
   } | null;
+  /** When set, Agent only reprints (existing ReprintDocument). */
+  reprintDocumentId?: string;
+  issueScopeId?: string;
 }): Promise<EnqueueStaffBillSyncResult> {
   const requestId = input.requestId?.trim() || mintBrowserUuid();
   const body: Record<string, unknown> = { request_id: requestId };
   if (input.billSplitId?.trim()) body.bill_split_id = input.billSplitId.trim();
   if (input.tableId?.trim()) body.table_id = input.tableId.trim();
-  if (input.autoIssue?.auto_issue) {
+  if (input.reprintDocumentId?.trim()) {
+    body.reprint_document_id = input.reprintDocumentId.trim();
+    if (input.issueScopeId?.trim()) body.issue_scope_id = input.issueScopeId.trim();
+  } else if (input.autoIssue?.auto_issue) {
     body.auto_issue = true;
     body.payment_method = input.autoIssue.payment_method;
     if (input.autoIssue.document_type) body.document_type = input.autoIssue.document_type;
@@ -182,6 +204,5 @@ export async function waitUntilStaffBillSyncSettled(input: {
     if (job.request_id && job.request_id !== input.requestId) continue;
     if (job.status === 'succeeded' || job.status === 'failed') return job;
   }
-  const final = await refresh();
-  return final.job;
+  return null;
 }

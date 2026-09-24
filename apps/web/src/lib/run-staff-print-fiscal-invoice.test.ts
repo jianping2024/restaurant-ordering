@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { runStaffPrintFiscalInvoice } from './run-staff-print-fiscal-invoice';
+import {
+  runStaffPrintFiscalInvoice,
+  runStaffReprintFiscalInvoice,
+} from './run-staff-print-fiscal-invoice';
 
 describe('runStaffPrintFiscalInvoice', () => {
   it('maps CASH → FS and waits for succeeded job', async () => {
@@ -34,6 +37,7 @@ describe('runStaffPrintFiscalInvoice', () => {
     if (out.ok) {
       assert.equal(out.invoiceNo, 'FS 1/1');
       assert.equal(out.tableId, 't1');
+      assert.equal(out.mode, 'issue');
     }
   });
 
@@ -69,6 +73,7 @@ describe('runStaffPrintFiscalInvoice', () => {
       },
     );
     assert.equal(out.ok, true);
+    if (out.ok) assert.equal(out.mode, 'issue');
   });
 
   it('does not close table on failure', async () => {
@@ -90,5 +95,46 @@ describe('runStaffPrintFiscalInvoice', () => {
     );
     assert.equal(out.ok, false);
     if (!out.ok) assert.equal(out.code, 'collection_required');
+  });
+});
+
+describe('runStaffReprintFiscalInvoice', () => {
+  it('enqueues reprint_document_id only (no auto_issue)', async () => {
+    const out = await runStaffReprintFiscalInvoice(
+      {
+        restaurantSlug: 'r1',
+        billSplitId: 'split-1',
+        documentId: 'doc-abc',
+        issueScopeId: 'scope-a',
+      },
+      {
+        mintRequestId: () => 'req-rp',
+        enqueue: async (input) => {
+          assert.equal(input.reprintDocumentId, 'doc-abc');
+          assert.equal(input.issueScopeId, 'scope-a');
+          assert.equal(input.autoIssue, undefined);
+          return {
+            ok: true,
+            job: {
+              id: 'j-rp',
+              status: 'succeeded',
+              request_id: 'req-rp',
+              invoice_no: 'FS 1/1',
+              document_id: 'doc-abc',
+            },
+            billSplitId: 'split-1',
+            tableId: 't1',
+          };
+        },
+        waitSettled: async () => {
+          throw new Error('should not wait when already succeeded');
+        },
+      },
+    );
+    assert.equal(out.ok, true);
+    if (out.ok) {
+      assert.equal(out.mode, 'reprint');
+      assert.equal(out.invoiceNo, 'FS 1/1');
+    }
   });
 });

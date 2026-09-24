@@ -67,6 +67,7 @@ export function OrderHistoryDetailModal({
     printFiscalInvoiceAvailable,
     printFiscalInvoiceBusy,
     printFiscalInvoice,
+    requestPrintFiscalInvoice,
   } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: entry?.billSplit?.id ?? '',
@@ -170,8 +171,12 @@ export function OrderHistoryDetailModal({
       if (!billSplitId) return;
       const name = payment.person_name?.trim();
       if (!name) return;
-      setInvoiceScopeId(billSyncByItemScopeId(billSplitId, name));
-      setInvoiceOpen(true);
+      const scopeId = billSyncByItemScopeId(billSplitId, name);
+      void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
+        if (result !== 'need_issue') return;
+        setInvoiceScopeId(scopeId);
+        setInvoiceOpen(true);
+      });
     },
     isPrintReceiptBusy: (payment: SessionCollectedPayment) =>
       billSplitId && payment.person_index != null
@@ -237,8 +242,11 @@ export function OrderHistoryDetailModal({
               <button
                 type="button"
                 onClick={() => {
-                  setInvoiceScopeId(undefined);
-                  setInvoiceOpen(true);
+                  void requestPrintFiscalInvoice().then((result) => {
+                    if (result !== 'need_issue') return;
+                    setInvoiceScopeId(undefined);
+                    setInvoiceOpen(true);
+                  });
                 }}
                 disabled={printFiscalInvoiceBusy}
                 className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"

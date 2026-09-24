@@ -7,6 +7,7 @@ export const runtime = 'nodejs';
 /**
  * Agent ack after local temp-table + catalog upsert (bill-sync-contract-v1.0).
  * Must only be called after durable local persist succeeded.
+ * On success, optional document_id / invoice_no are the sole cloud copy of the fiscal issue.
  */
 export async function POST(
   req: Request,
@@ -21,6 +22,8 @@ export async function POST(
     status?: unknown;
     error_code?: unknown;
     error_message?: unknown;
+    invoice_no?: unknown;
+    document_id?: unknown;
   };
   try {
     body = await req.json();
@@ -40,6 +43,14 @@ export async function POST(
   const errorMessage =
     typeof body.error_message === 'string' && body.error_message.trim()
       ? body.error_message.trim().slice(0, 500)
+      : null;
+  const invoiceNo =
+    typeof body.invoice_no === 'string' && body.invoice_no.trim()
+      ? body.invoice_no.trim().slice(0, 128)
+      : null;
+  const documentId =
+    typeof body.document_id === 'string' && body.document_id.trim()
+      ? body.document_id.trim().slice(0, 64)
       : null;
 
   let admin;
@@ -69,18 +80,24 @@ export async function POST(
     return NextResponse.json({ ok: true, job: row, idempotent: true });
   }
 
+  const patch: Record<string, unknown> = {
+    status,
+    error_code: status === 'failed' ? errorCode : null,
+    error_message: status === 'failed' ? errorMessage : null,
+    updated_at: new Date().toISOString(),
+  };
+  if (status === 'succeeded') {
+    if (documentId) patch.document_id = documentId;
+    if (invoiceNo) patch.invoice_no = invoiceNo;
+  }
+
   const { data: updated, error: updErr } = await admin
     .from('bill_sync_jobs')
-    .update({
-      status,
-      error_code: status === 'failed' ? errorCode : null,
-      error_message: status === 'failed' ? errorMessage : null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(patch)
     .eq('id', id)
     .eq('restaurant_id', ctx.restaurant_id)
     .in('status', ['pending', 'processing'])
-    .select('id, status, error_code, error_message')
+    .select('id, status, error_code, error_message, document_id, invoice_no')
     .maybeSingle();
 
   if (updErr) {

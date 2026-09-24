@@ -9,8 +9,8 @@
 
 | 侧 | 管什么 | 不管什么 |
 | --- | --- | --- |
-| **Restaurant（结账 / 桌台）** | 功能开关；点「打印发票」写入云端 `bill_sync_jobs`（`auto_issue`），成功即开票；关台仍由最后一笔收款负责；记操作 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
-| **Farvoo 打票（Agent）** | Realtime/补偿/fallback 拉取；本地临时表（JSON）；本机分单/打票/重打；按 `item_code` upsert 商品；ack | 替代 Restaurant 结账；跟关台绑死 |
+| **Restaurant（结账 / 桌台）** | 功能开关；点「打印发票」写入云端 `bill_sync_jobs`（首次 `auto_issue` / 已开过则 `reprint_document_id`），成功即开票或重打；关台仍由最后一笔收款负责；记操作 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
+| **Farvoo 打票（Agent）** | Realtime/补偿/fallback 拉取；本地临时表（JSON）；本机分单/打票；`auto_issue`→`IssueFromBillDraft`；`reprint_document_id`→已有 `ReprintDocument`；按 `item_code` upsert 商品；ack（含 `document_id`/`invoice_no`） | 替代 Restaurant 结账；跟关台绑死 |
 
 **产品口径：** Restaurant 提供账单初稿；「打印发票」仅入队并等待 Agent 开票成功，不关台。关台不影响 Agent 草稿与开票/重打。
 
@@ -226,11 +226,11 @@
 
 ## 8. UI
 
-**Restaurant：** 结账详情「打印发票」（功能开关 + `mayFiscalBillQueue`）；唯一编排 `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 仍返回 `content_unchanged`（内容指纹）；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台。
+**Restaurant：** 结账/历史详情同一「打印发票」按钮（功能开关 + `mayFiscalBillQueue`）；唯一编排 `requestPrintFiscalInvoice` → 已有云端 `document_id` 则 `runStaffReprintFiscalInvoice`，否则开 modal → `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 返回 `content_unchanged` + `issued`；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台、不另起重打 hang-queue。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 
-**Agent：** 临时表草稿 → 分单 + 打票 + 重打。开票人依赖打票本机登录（§13）；临时表有草稿 ≠ 已能合规开票（名册/PIN/登录未齐时体验会卡，属打票侧依赖，不在同步管道内假装闭环）。
+**Agent：** 临时表草稿 → 分单 + 打票；重打**仅**复用已有 `ReprintDocument`（见载荷 `reprint_document_id`）。开票人依赖打票本机登录（§13）；临时表有草稿 ≠ 已能合规开票（名册/PIN/登录未齐时签发会卡，属打票侧依赖，不在同步管道内假装闭环）。
 
 ---
 
@@ -241,13 +241,19 @@
 ```http
 GET  /api/print-agent/pending-bill-syncs
 POST /api/print-agent/bill-syncs/{id}/ack
-# ack body: { "status": "succeeded"|"failed", "error_code"?: "...", "error_message"?: "..." }
+# ack body: { "status": "succeeded"|"failed", "error_code"?: "...", "error_message"?: "...",
+#             "document_id"?: "...", "invoice_no"?: "..." }
+# succeeded 时 document_id/invoice_no 为云端开票副本（重打键 / toast）
 ```
 
 员工会话入队：
 
 ```http
-POST /api/.../bill-syncs    # 写 bill_sync_jobs + 操作记录；开关关闭 → 拒绝
+POST /api/.../bill-syncs
+# 首次开票: auto_issue + payment_method (+ optional NIF/name/scope)
+# 重打: reprint_document_id（同一表；Agent 调 ReprintDocument）
+GET  /api/.../bill-syncs?source_sale_id=…&issue_scope_id=…
+# → { job, content_unchanged, issued?: { document_id, invoice_no } }
 ```
 
 ---

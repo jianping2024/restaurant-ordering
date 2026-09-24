@@ -7,7 +7,8 @@ import {
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { resolveBillSyncSourceSale } from '@/lib/bill-sync-resolve-source-sale';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
-import { enqueueBillSyncJob } from '@/lib/bill-sync-enqueue';
+import { enqueueBillSyncJob, enqueueBillSyncReprintJob } from '@/lib/bill-sync-enqueue';
+import { loadIssuedFiscalDocument } from '@/lib/bill-sync-issued-document';
 import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { NextResponse } from 'next/server';
 
@@ -38,6 +39,7 @@ export async function POST(
     document_type?: unknown;
     issue_mode?: unknown;
     issue_scope_id?: unknown;
+    reprint_document_id?: unknown;
   };
   try {
     body = await req.json();
@@ -52,10 +54,16 @@ export async function POST(
     typeof body.request_id === 'string' && body.request_id.trim()
       ? body.request_id.trim()
       : undefined;
+  const reprintDocumentId =
+    typeof body.reprint_document_id === 'string' ? body.reprint_document_id.trim() : '';
+  const issueScopeIdRaw =
+    typeof body.issue_scope_id === 'string' && body.issue_scope_id.trim()
+      ? body.issue_scope_id.trim()
+      : undefined;
 
   const wantsAutoIssue = body.auto_issue === true;
   let autoIssue: import('@/lib/bill-sync-build-payload').BillSyncAutoIssueFields | null = null;
-  if (wantsAutoIssue) {
+  if (wantsAutoIssue && !reprintDocumentId) {
     const payment_method =
       typeof body.payment_method === 'string' ? body.payment_method.trim() : '';
     if (!payment_method) {
@@ -65,10 +73,7 @@ export async function POST(
       body.document_type === 'FT' || body.document_type === 'FS'
         ? body.document_type
         : undefined;
-    const issue_scope_id =
-      typeof body.issue_scope_id === 'string' && body.issue_scope_id.trim()
-        ? body.issue_scope_id.trim()
-        : undefined;
+    const issue_scope_id = issueScopeIdRaw;
     autoIssue = {
       auto_issue: true,
       payment_method,
@@ -121,6 +126,39 @@ export async function POST(
   }
 
   const { ctx } = loaded;
+
+  if (reprintDocumentId) {
+    const result = await enqueueBillSyncReprintJob({
+      admin: auth.admin,
+      restaurantId: auth.restaurantId,
+      billSplitId: ctx.billSplitId,
+      tableDisplayName: ctx.tableDisplayName,
+      documentId: reprintDocumentId,
+      issueScopeId: issueScopeIdRaw,
+      createdBy: auth.actor.userId,
+      requestId,
+    });
+    if (!result.ok) {
+      return NextResponse.json(
+        {
+          error: result.error,
+          message: result.message,
+          job: result.job ?? null,
+          bill_split_id: resolved.billSplitId,
+          table_id: resolved.tableId,
+        },
+        { status: result.status },
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      job: result.job,
+      reused: result.reused ?? null,
+      bill_split_id: resolved.billSplitId,
+      table_id: resolved.tableId,
+      ensured: resolved.ensured,
+    });
+  }
 
   // Print invoice requires at least one collection for this session (UI gate is not enough).
   if (autoIssue) {
@@ -190,10 +228,12 @@ export async function GET(
   if (!slug) {
     return NextResponse.json({ error: 'missing_slug' }, { status: 400 });
   }
-  const sourceSaleId = new URL(req.url).searchParams.get('source_sale_id')?.trim() ?? '';
+  const url = new URL(req.url);
+  const sourceSaleId = url.searchParams.get('source_sale_id')?.trim() ?? '';
   if (!sourceSaleId) {
     return NextResponse.json({ error: 'missing_source_sale_id' }, { status: 400 });
   }
+  const issueScopeId = url.searchParams.get('issue_scope_id')?.trim() || undefined;
 
   const auth = await authorizeCheckoutConfirmPayment(slug, req, 'checkout.sync_bill');
   if ('error' in auth) {
@@ -204,9 +244,18 @@ export async function GET(
     return NextResponse.json({ error: 'bill_sync_disabled' }, { status: 403 });
   }
 
+  const issued = await loadIssuedFiscalDocument({
+    admin: auth.admin,
+    restaurantId: auth.restaurantId,
+    sourceSaleId,
+    issueScopeId,
+  });
+
   const { data, error } = await auth.admin
     .from('bill_sync_jobs')
-    .select('id, status, request_id, error_code, error_message, payload, created_at, updated_at')
+    .select(
+      'id, status, request_id, error_code, error_message, payload, document_id, invoice_no, created_at, updated_at',
+    )
     .eq('restaurant_id', auth.restaurantId)
     .eq('source_sale_id', sourceSaleId)
     .order('created_at', { ascending: false })
@@ -218,7 +267,13 @@ export async function GET(
   }
 
   if (!data) {
-    return NextResponse.json({ job: null, content_unchanged: false });
+    return NextResponse.json({
+      job: null,
+      content_unchanged: false,
+      issued: issued
+        ? { document_id: issued.documentId, invoice_no: issued.invoiceNo }
+        : null,
+    });
   }
 
   const payload = data.payload as BillSyncPayload | null;
@@ -249,10 +304,15 @@ export async function GET(
       request_id: data.request_id,
       error_code: data.error_code,
       error_message: data.error_message,
+      document_id: data.document_id,
+      invoice_no: data.invoice_no,
       created_at: data.created_at,
       updated_at: data.updated_at,
       content_fingerprint,
     },
     content_unchanged,
+    issued: issued
+      ? { document_id: issued.documentId, invoice_no: issued.invoiceNo }
+      : null,
   });
 }

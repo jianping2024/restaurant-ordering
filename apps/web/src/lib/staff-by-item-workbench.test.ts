@@ -9,6 +9,7 @@ import {
   isStaffMenuShareOverAllocated,
   setPersonMenuShareQtyFields,
   staffByItemPeopleFromAllocations,
+  staffByItemPersonEstimate,
   staffByItemPersonShares,
   staffByItemPoolLines,
 } from './staff-by-item-workbench';
@@ -359,5 +360,56 @@ describe('setPersonMenuShareQtyFields', () => {
       lineKey: 'line-a',
       rowId: 'row-ana',
     }), false);
+  });
+});
+
+describe('staffByItemPersonShares visibility', () => {
+  it('keeps named menu row while qty num/den incomplete', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [{
+        id: 'row-ana',
+        name: 'Ana',
+        qtyWhole: '1',
+        qtyNum: '1',
+        qtyDen: '',
+      }],
+    };
+    const shares = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations,
+      lang: 'zh',
+    });
+    assert.equal(shares.length, 1);
+    assert.equal(shares[0]!.rowId, 'row-ana');
+    assert.equal(shares[0]!.qtyLabel, '—');
+    assert.equal(shares[0]!.amount, 0);
+    assert.equal(shares[0]!.qtyNum, '1');
+    assert.equal(shares[0]!.qtyDen, '');
+  });
+
+  it('keeps named menu row for improper fraction while editing', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [{
+        id: 'row-ana',
+        name: 'Ana',
+        qtyWhole: '',
+        qtyNum: '1',
+        qtyDen: '1',
+      }],
+    };
+    const shares = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations,
+      lang: 'zh',
+    });
+    assert.equal(shares.length, 1);
+    assert.equal(shares[0]!.amountLabel, '—');
+    const estimate = staffByItemPersonEstimate(shares);
+    assert.equal(estimate.rows, 1);
+    assert.equal(estimate.amount, 0);
   });
 });

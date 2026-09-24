@@ -207,15 +207,18 @@ export function staffByItemPersonShares(params: {
         continue;
       }
 
+      // Keep named rows while qty is incomplete/invalid so ByItemQtyInput stays mounted
+      // (parseConsumerRowQty is for amount only — never a visibility gate).
       const qty = parseConsumerRowQty(row);
-      if (!qty) continue;
-      const amount = Math.round(spec.unitPrice * (qty.num / qty.den) * 100) / 100;
+      const amount = qty
+        ? Math.round(spec.unitPrice * (qty.num / qty.den) * 100) / 100
+        : 0;
       out.push({
         lineKey: spec.key,
         rowId: row.id,
         label,
-        qtyLabel: formatRational(qty),
-        amountLabel: `€${amount.toFixed(2)}`,
+        qtyLabel: qty ? formatRational(qty) : '—',
+        amountLabel: qty ? `€${amount.toFixed(2)}` : '—',
         amount,
         mode: 'menu',
         qtyWhole: row.qtyWhole,
@@ -230,6 +233,7 @@ export function staffByItemPersonShares(params: {
   return out;
 }
 
+/** Estimate uses only parseable share amounts (incomplete qty contributes 0). */
 export function staffByItemPersonEstimate(shares: StaffByItemPersonShare[]): {
   rows: number;
   amount: number;

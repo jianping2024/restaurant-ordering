@@ -389,6 +389,7 @@ export function CheckoutRequestDetailHost({
     printFiscalInvoiceAvailable,
     printFiscalInvoiceBusy,
     printFiscalInvoice,
+    requestPrintFiscalInvoice,
   } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
@@ -426,9 +427,14 @@ export function CheckoutRequestDetailHost({
     (payment: SessionCollectedPayment) => {
       const name = payment.person_name?.trim();
       if (!name) return;
-      openInvoiceModal(billSyncByItemScopeId(request.id, name), payment.payment_method);
+      const scopeId = billSyncByItemScopeId(request.id, name);
+      void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
+        if (result === 'need_issue') {
+          openInvoiceModal(scopeId, payment.payment_method);
+        }
+      });
     },
-    [openInvoiceModal, request.id],
+    [openInvoiceModal, request.id, requestPrintFiscalInvoice],
   );
 
   const showSplitReceiptActions = isMultiPersonSplitBill(request);
@@ -514,9 +520,12 @@ export function CheckoutRequestDetailHost({
         printInvoiceAvailable={printFiscalInvoiceAvailable}
         printInvoiceBusy={printFiscalInvoiceBusy}
         onPrintInvoice={() => {
-          const tender =
-            collectedPayments.find((p) => p.payment_method)?.payment_method ?? null;
-          openInvoiceModal(undefined, tender);
+          void requestPrintFiscalInvoice().then((result) => {
+            if (result !== 'need_issue') return;
+            const tender =
+              collectedPayments.find((p) => p.payment_method)?.payment_method ?? null;
+            openInvoiceModal(undefined, tender);
+          });
         }}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}

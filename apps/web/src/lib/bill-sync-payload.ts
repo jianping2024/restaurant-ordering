@@ -90,6 +90,11 @@ export type BillSyncPayload = {
   issue_mode?: 'whole_table' | 'person';
   issue_scope_id?: string;
   scope_id?: string;
+  /**
+   * When set, Agent skips ingest/auto_issue and only calls existing ReprintDocument.
+   * Sole Farvoo→Agent reprint hang-queue shape (same bill_sync_jobs pipe).
+   */
+  reprint_document_id?: string;
 };
 
 /** Sole document_type from payment (CASH→FS, else FT). */

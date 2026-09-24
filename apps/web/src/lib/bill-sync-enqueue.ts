@@ -189,3 +189,97 @@ export async function enqueueBillSyncJob(
     },
   };
 }
+
+/**
+ * Sole server enqueue for fiscal reprint (reuses bill_sync_jobs + Agent ReprintDocument).
+ * Payload carries reprint_document_id only — no second hang-queue table.
+ */
+export async function enqueueBillSyncReprintJob(input: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  billSplitId: string;
+  tableDisplayName: string;
+  documentId: string;
+  /** Echo scope so loadIssuedFiscalDocument keeps matching after reprint jobs. */
+  issueScopeId?: string | null;
+  createdBy: string | null;
+  requestId?: string;
+}): Promise<EnqueueBillSyncResult> {
+  const documentId = input.documentId.trim();
+  if (!documentId) {
+    return { ok: false, error: 'missing_document_id', status: 400 };
+  }
+  const requestId = input.requestId?.trim() || randomUUID();
+  const issueScopeId = input.issueScopeId?.trim() || undefined;
+  const payload: BillSyncPayload = {
+    request_id: requestId,
+    source_system: 'farvoo',
+    source_sale_id: input.billSplitId,
+    table_display_name: input.tableDisplayName.trim() || '—',
+    scope_type: issueScopeId ? 'split' : 'whole_table',
+    reprint_document_id: documentId,
+    ...(issueScopeId
+      ? { issue_mode: 'person' as const, issue_scope_id: issueScopeId }
+      : { issue_mode: 'whole_table' as const }),
+  };
+
+  const { data: existingByRequest } = await input.admin
+    .from('bill_sync_jobs')
+    .select('id, status, request_id, payload')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('request_id', requestId)
+    .maybeSingle();
+  if (existingByRequest) {
+    return { ok: true, reused: 'request_id', job: jobRef(existingByRequest as JobRow) };
+  }
+
+  const { data: inFlight } = await input.admin
+    .from('bill_sync_jobs')
+    .select('id, status, request_id, payload')
+    .eq('restaurant_id', input.restaurantId)
+    .eq('source_sale_id', input.billSplitId)
+    .in('status', ['pending', 'processing'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (inFlight) {
+    return { ok: true, reused: 'in_flight', job: jobRef(inFlight as JobRow) };
+  }
+
+  const { data: inserted, error } = await input.admin
+    .from('bill_sync_jobs')
+    .insert({
+      restaurant_id: input.restaurantId,
+      request_id: requestId,
+      source_system: 'farvoo',
+      source_sale_id: input.billSplitId,
+      table_display_name: payload.table_display_name,
+      scope_type: payload.scope_type,
+      payload,
+      status: 'pending',
+      created_by: input.createdBy,
+      // Carry forward so UI still sees issued copy even before ack.
+      document_id: documentId,
+    })
+    .select('id, status, request_id')
+    .single();
+
+  if (error || !inserted) {
+    return {
+      ok: false,
+      error: 'insert_failed',
+      status: 500,
+      message: error?.message,
+    };
+  }
+
+  return {
+    ok: true,
+    job: {
+      id: inserted.id as string,
+      status: inserted.status as string,
+      request_id: inserted.request_id as string,
+      content_fingerprint: '',
+    },
+  };
+}

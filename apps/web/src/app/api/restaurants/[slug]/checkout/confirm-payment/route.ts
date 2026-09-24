@@ -43,11 +43,14 @@ export async function POST(
       ? body.collected_amount
       : undefined;
 
-  const paymentMethod = parseBillSyncPaymentMethod(
-    typeof body.payment_method === 'string' ? body.payment_method : null,
-  );
-  if (!paymentMethod) {
+  const paymentMethodRaw =
+    typeof body.payment_method === 'string' ? body.payment_method.trim() : '';
+  if (!paymentMethodRaw) {
     return NextResponse.json({ error: 'missing_payment_method' }, { status: 400 });
+  }
+  const paymentMethod = parseBillSyncPaymentMethod(paymentMethodRaw);
+  if (!paymentMethod) {
+    return NextResponse.json({ error: 'invalid_payment_method' }, { status: 400 });
   }
 
   const receiptPrinterIdRaw =

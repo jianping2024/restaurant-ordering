@@ -32,7 +32,7 @@ describe('buildSplitSettlementRows', () => {
   it('marks settled when ledger covers obligation', () => {
     const rows = buildSplitSettlementRows(
       [{ name: '客人 1', amount: 201.27 }],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
     assert.equal(rows[0]?.outstandingAmount, 0);
@@ -41,7 +41,7 @@ describe('buildSplitSettlementRows', () => {
   it('shows partial when obligation was inflated after resume merge bug', () => {
     const rows = buildSplitSettlementRows(
       [{ name: '客人 1', amount: 301.9 }],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'partial');
     assert.equal(rows[0]?.outstandingAmount, 100.63);
@@ -54,7 +54,7 @@ describe('buildSplitSettlementRows', () => {
         { name: '客人 2', amount: 201.27 },
         { name: '客人 3', amount: 201.26 },
       ],
-      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: '客人 1', amount: 201.27, created_at: '', payment_method: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
     assert.equal(sumSplitSettlementOutstanding(rows), 402.53);
@@ -87,7 +87,7 @@ describe('splitSettlementCollectAmount', () => {
   it('returns outstanding for partial rows', () => {
     const row = buildSplitSettlementRows(
       [{ name: 'Ana', amount: 27.45 }],
-      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '' }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null }],
     )[0]!;
     assert.equal(splitSettlementCollectAmount(row), 7.5);
   });

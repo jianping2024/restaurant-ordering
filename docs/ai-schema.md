@@ -13,7 +13,7 @@ operation_logs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, action_ty
 
 bill_splits (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, order_ids: uuid[], split_mode: text [whole_table|even|by_item|custom], persons: jsonb, result: jsonb, total_amount: numeric, status: text [pending|confirmed|requested|paid|cancelled], created_at: timestamptz, session_id: uuid FK -> table_sessions.id nullable, table_id: uuid FK -> restaurant_tables.id, display_name: text, customer_nif: text nullable, discount_rate: numeric default 0, discount_reason: text nullable, discount_reason_detail: text nullable)
 
-session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_index: int nullable, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz)
+session_collected_payments (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, person_index: int nullable, person_name: text, amount: numeric, bill_split_id: uuid FK -> bill_splits.id nullable, created_by_user_id: uuid FK -> auth.users.id nullable, created_at: timestamptz, payment_method: text nullable [CASH|CARD|MBWAY|MULTIBANCO|MIXED|OTHER])
 
 order_append_idempotency (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK -> table_sessions.id, client_request_id: uuid, status: text [pending|completed], order_id: uuid FK -> orders.id nullable, batch_id: text nullable, had_done_before: boolean nullable, is_first_order: boolean nullable, line_count: integer nullable, created_at: timestamptz, updated_at: timestamptz, UNIQUE(session_id, client_request_id); RLS on, no anon/auth policies — service_role/admin only)
 
@@ -45,6 +45,8 @@ print_agent_pairings (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, cod
 
 print_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, type: text [order_receipt|station_ticket|pre_bill], payload: jsonb, status: text [pending|processing|done|failed], claimed_by: text nullable, attempts: integer, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, table_display: text generated_from_payload nullable, table_id: uuid generated_from_payload nullable)
 bill_sync_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, request_id: uuid, source_system: text [farvoo], source_sale_id: uuid, table_display_name: text, scope_type: text [whole_table|split], payload: jsonb, status: text [pending|processing|succeeded|failed], error_code: text nullable, error_message: text nullable, created_by: uuid nullable, created_at: timestamptz, updated_at: timestamptz; UNIQUE(restaurant_id, request_id); Realtime + print_agent SELECT RLS)
+
+cash_drawer_jobs (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, session_id: uuid FK nullable, collected_payment_id: uuid FK nullable, status: text [pending|processing|succeeded|failed|expired], error_code: text nullable, error_message: text nullable, created_at: timestamptz, updated_at: timestamptz, expires_at: timestamptz; Realtime + print_agent SELECT RLS; short-TTL CASH collect → Agent kick)
 fiscal_signing_installations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, device_id: uuid, device_public_key: text, signing_key_version: int, product_public_key_pem: text nullable, wrapped_private_key: text nullable, status: text [registered|active|revoked], activated_at: timestamptz nullable, revoked_at: timestamptz nullable, activated_by: uuid nullable, revoked_by: uuid nullable, created_at: timestamptz, updated_at: timestamptz; unique one active per restaurant; unique one registered|active per (restaurant_id, device_id); service_role/ops only)
 
 print_stations (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, sort_order: integer, created_at: timestamptz, kitchen_enabled: boolean NOT NULL default false)
@@ -177,7 +179,7 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `dashboard_overview_revenue_bundle(restaurant_id, start_utc, end_exclusive_utc, max_sessions?)` | service_role | Overview today-revenue raw materials in one round-trip; app applies qualifying rules |
 | `abnormal_operations_owner_list(restaurant_id, start_utc, end_exclusive_utc, type?, risk_level?, operator_id?, table_id?, status?, page?, page_size?)` | service_role | Owner abnormal list: filtered stats + risk/created_at page in one round-trip |
 | `order_history_feed_page(restaurant_id, closed_from?, closed_to?, table_ids?, session_id?, include_transfers?, offset?, limit?)` | service_role | Dashboard order-history merged feed (closed ∪ transfer-out) sorted by time with DB offset/limit; app hydrates orders only for page closed ids |
-| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?)` | authenticated, service_role | SECURITY DEFINER checkout; reads `bill_splits.discount_rate`; appends `session_collected_payments` with `person_index`; rejects overpay and when ledger already covers per-row discounted obligation; reconciles `result.paid` from ledger by index; closes session when every index settled; returns `collected_payment_id`; advisory lock per session; not anon |
+| `confirm_bill_split_payment(restaurant_id, bill_split_id, person_index, collected_amount?, created_by_user_id?, payment_method)` | authenticated, service_role | SECURITY DEFINER checkout; requires `payment_method` (CASH|CARD|MBWAY|MULTIBANCO|MIXED|OTHER); appends `session_collected_payments` with tender; rejects overpay; reconciles `result.paid`; closes session when settled; returns `collected_payment_id` + `payment_method`; advisory lock per session; not anon |
 | `resume_table_session_ordering(restaurant_id, table_id)` | authenticated, service_role | Set session `billing` → `open`; blocks whole-table when paid or ledger non-empty; `by_item` split always `confirmed`; even/custom `confirmed` when partial pay else `cancelled` |
 | `upsert_bill_split_request(restaurant_id, session_id, table_id, display_name, order_ids, split_mode, persons, result, total_amount, customer_nif)` | authenticated, service_role | Atomic checkout request; merges amounts then `reconcile_split_result_paid_from_ledger`; not anon |
 | `reconcile_split_result_paid_from_ledger(result, restaurant_id, session_id, discount_rate?)` | authenticated, service_role | Sets each `result.paid` when session ledger covers discounted row amount |
@@ -204,9 +206,9 @@ Bucket `menu-images` (public read). Owner- and frontdesk-scoped write policies o
 
 ## Realtime (`supabase_realtime` publication)
 
-Filtered subscriptions need `REPLICA IDENTITY FULL` on: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`, buffet tables.
+Filtered subscriptions need `REPLICA IDENTITY FULL` on: `orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`, `cash_drawer_jobs`, buffet tables.
 
-**Mode B:** baseline omits publication membership → `apply-migrations.sh` always runs `deploy/on-prem/schema/ensure_realtime_publication.sql` (`orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`). See on-prem pack doc §2.3.
+**Mode B:** baseline omits publication membership → `apply-migrations.sh` always runs `deploy/on-prem/schema/ensure_realtime_publication.sql` (`orders`, `table_sessions`, `bill_splits`, `print_jobs`, `bill_sync_jobs`, `cash_drawer_jobs`). See on-prem pack doc §2.3.
 
 ## Domain Values / Check Constraints
 

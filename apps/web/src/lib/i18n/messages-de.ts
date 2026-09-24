@@ -1194,6 +1194,8 @@ export const MESSAGES_DE = {
     "orderItemsEmpty": "Keine Positionsdetails",
     "orderItemsTotal": "Summe",
     "confirmOnePaid": "Als bezahlt bestätigen",
+    "collectPaymentTitle": "Zahlung bestätigen",
+    "collectPaymentAmount": "Betrag",
     "confirmPaid": "Zahlung bestätigen und Tisch schließen",
     "processing": "Wird verarbeitet…",
     "requested": "Zahlung ausstehend",

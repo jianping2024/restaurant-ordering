@@ -178,7 +178,7 @@ describe('computeDiningFloorKpis', () => {
         collectedBySessionId: new Map([
           [
             's1',
-            [{ id: 'p1', person_index: 0, person_name: 'Table', amount: 40, created_at: '' }],
+            [{ id: 'p1', person_index: 0, person_name: 'Table', amount: 40, created_at: '', payment_method: null }],
           ],
         ]),
       },

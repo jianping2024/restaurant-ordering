@@ -71,6 +71,7 @@ interface Props {
   onPrintBill: () => void;
   onResumeOrderingClick: () => void;
   onCloseTable: () => void;
+  paymentLabels?: Record<import('@/lib/bill-sync-payload').BillSyncPaymentMethod, string>;
 }
 
 function SettlementBar({
@@ -186,6 +187,7 @@ export function CheckoutRequestDetail({
   onPrintBill,
   onResumeOrderingClick,
   onCloseTable,
+  paymentLabels,
 }: Props) {
   const canExpandPersonDishes = request.split_mode === 'by_item';
   const personShareLinesByIndex = useMemo(() => {
@@ -333,6 +335,7 @@ export function CheckoutRequestDetail({
           payments={collectedPayments}
           lang={lang}
           t={t}
+          paymentLabels={paymentLabels}
           bordered={false}
           className="mt-3 px-1"
           showPrintReceiptActions={showSplitReceiptActions}

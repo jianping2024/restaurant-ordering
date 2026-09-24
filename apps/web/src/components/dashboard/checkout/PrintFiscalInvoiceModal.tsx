@@ -1,17 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
-import { billSyncDocumentTypeForPayment } from '@/lib/bill-sync-payload';
-
-const PAYMENT_OPTIONS: BillSyncPaymentMethod[] = [
-  'CASH',
-  'CARD',
-  'MBWAY',
-  'MULTIBANCO',
-  'MIXED',
-  'OTHER',
-];
+import { useEffect, useState } from 'react';
+import {
+  BILL_SYNC_PAYMENT_METHODS,
+  billSyncDocumentTypeForPayment,
+  type BillSyncPaymentMethod,
+} from '@/lib/bill-sync-payload';
 
 export type PrintFiscalInvoiceModalLabels = {
   title: string;
@@ -31,6 +25,8 @@ type Props = {
   busy: boolean;
   labels: PrintFiscalInvoiceModalLabels;
   paymentLabels: Record<BillSyncPaymentMethod, string>;
+  /** Prefill from ledger tender when printing after collect. */
+  initialPaymentMethod?: BillSyncPaymentMethod | null;
   onClose: () => void;
   onConfirm: (input: {
     paymentMethod: BillSyncPaymentMethod;
@@ -45,12 +41,20 @@ export function PrintFiscalInvoiceModal({
   busy,
   labels,
   paymentLabels,
+  initialPaymentMethod = null,
   onClose,
   onConfirm,
 }: Props) {
   const [nif, setNif] = useState('');
   const [name, setName] = useState('');
   const [payment, setPayment] = useState<BillSyncPaymentMethod>('CASH');
+
+  useEffect(() => {
+    if (!open) return;
+    setPayment(initialPaymentMethod ?? 'CASH');
+    setNif('');
+    setName('');
+  }, [open, initialPaymentMethod]);
 
   if (!open) return null;
 
@@ -102,7 +106,7 @@ export function PrintFiscalInvoiceModal({
             disabled={busy}
             className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text"
           >
-            {PAYMENT_OPTIONS.map((opt) => (
+            {BILL_SYNC_PAYMENT_METHODS.map((opt) => (
               <option key={opt} value={opt}>
                 {paymentLabels[opt] ?? opt}
               </option>

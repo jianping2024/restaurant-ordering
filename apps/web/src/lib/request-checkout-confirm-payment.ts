@@ -1,10 +1,12 @@
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import type { SplitResult } from '@/types';
 
 export async function requestCheckoutConfirmPayment(params: {
   slug: string;
   billSplitId: string;
   personIndex: number;
+  paymentMethod: BillSyncPaymentMethod;
   collectedAmount?: number;
   receiptPrinterId?: string;
 }): Promise<
@@ -17,7 +19,8 @@ export async function requestCheckoutConfirmPayment(params: {
     }
   | { ok: false; error: string }
 > {
-  const { slug, billSplitId, personIndex, collectedAmount, receiptPrinterId } = params;
+  const { slug, billSplitId, personIndex, paymentMethod, collectedAmount, receiptPrinterId } =
+    params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/confirm-payment`,
@@ -28,6 +31,7 @@ export async function requestCheckoutConfirmPayment(params: {
         body: JSON.stringify({
           bill_split_id: billSplitId,
           person_index: personIndex,
+          payment_method: paymentMethod,
           ...(collectedAmount != null ? { collected_amount: collectedAmount } : {}),
           ...(receiptPrinterId ? { receipt_printer_id: receiptPrinterId } : {}),
         }),

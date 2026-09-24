@@ -5,6 +5,12 @@ import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
+import { enqueueCashDrawerOpen } from '@/lib/cash-drawer-enqueue';
+import {
+  parseBillSyncPaymentMethod,
+  receiptPaymentMethodLabel,
+  type BillSyncPaymentMethod,
+} from '@/lib/bill-sync-payload';
 
 export {
   applyDiscountToRows,
@@ -47,6 +53,7 @@ type ConfirmBillSplitPaymentRpc = {
   row_amount?: number;
   collected_payment_id?: string | null;
   confirmed_person_index?: number;
+  payment_method?: string | null;
   newly_paid?: boolean;
   should_print_split?: boolean;
   should_print_final?: boolean;
@@ -59,6 +66,8 @@ const RPC_ERROR_STATUS: Record<string, number> = {
   empty_split: 400,
   invalid_person_index: 400,
   invalid_collected_amount: 400,
+  missing_payment_method: 400,
+  invalid_payment_method: 400,
   already_paid: 409,
   bill_update_failed: 500,
   session_close_failed: 500,
@@ -91,6 +100,7 @@ function parseCollectionRecord(
     person_name: payload.row_name ?? '',
     amount: Number(payload.row_amount) || 0,
     created_at: new Date().toISOString(),
+    payment_method: parseBillSyncPaymentMethod(payload.payment_method),
   };
 }
 
@@ -105,6 +115,7 @@ type ScheduleConfirmPaymentPrintParams = {
   rowAmount: number;
   finalAmount: number;
   collectedPaymentId: string | null;
+  paymentMethod: BillSyncPaymentMethod;
 };
 
 function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintParams): void {
@@ -119,12 +130,14 @@ function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintP
     rowAmount,
     finalAmount,
     collectedPaymentId,
+    paymentMethod,
   } = params;
 
   const sessionId = payload.session_id ?? null;
   const tableId = payload.table_id;
   const tableDisplayName = payload.display_name;
   const printTarget = receiptPrinterId?.trim() || undefined;
+  const tenderLabel = receiptPaymentMethodLabel(paymentMethod);
 
   if (
     !payload.newly_paid ||
@@ -148,7 +161,7 @@ function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintP
       payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex, printLocale),
       personAmount: rowAmount,
       amountPaid: rowAmount,
-      paymentMethod: 'Cash',
+      paymentMethod: tenderLabel,
       billSplitId,
       personIndex,
       receiptPrinterId: printTarget,
@@ -167,7 +180,7 @@ function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintP
       printSource: 'automatic',
       variant: 'final',
       amountPaid: finalAmount,
-      paymentMethod: 'Cash',
+      paymentMethod: tenderLabel,
       receiptPrinterId: printTarget,
       billSplitId,
       orderIds: parseRpcOrderIds(payload.order_ids),
@@ -181,6 +194,7 @@ export async function confirmBillSplitPayment(params: {
   printLocale: string | null;
   billSplitId: string;
   personIndex: number;
+  paymentMethod: BillSyncPaymentMethod;
   collectedAmount?: number;
   createdByUserId?: string;
   actor?: AuditActor;
@@ -193,6 +207,7 @@ export async function confirmBillSplitPayment(params: {
     printLocale,
     billSplitId,
     personIndex,
+    paymentMethod,
     collectedAmount,
     createdByUserId,
     actor,
@@ -206,6 +221,7 @@ export async function confirmBillSplitPayment(params: {
     p_person_index: personIndex,
     p_collected_amount: collectedAmount ?? null,
     p_created_by_user_id: createdByUserId ?? null,
+    p_payment_method: paymentMethod,
   });
 
   if (rpcErr) {
@@ -285,6 +301,19 @@ export async function confirmBillSplitPayment(params: {
       payload,
       rowAmount,
       finalAmount,
+      collectedPaymentId,
+      paymentMethod,
+    });
+  }
+
+  if (paymentMethod === 'CASH' && payload.newly_paid) {
+    void enqueueCashDrawerOpen({
+      admin,
+      restaurantId,
+      sessionId:
+        typeof payload.session_id === 'string' && payload.session_id
+          ? payload.session_id
+          : null,
       collectedPaymentId,
     });
   }

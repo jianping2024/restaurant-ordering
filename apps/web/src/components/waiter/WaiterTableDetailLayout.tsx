@@ -24,6 +24,7 @@ import {
 } from '@/lib/waiter-table-checkout-close';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { buildWholeTableCheckoutPayload } from '@/lib/checkout-split-intent';
+import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { useRouter } from 'next/navigation';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import {
@@ -375,7 +376,9 @@ function WaiterTableCallCheckoutControl({
   onCheckoutLocked: () => void;
 }) {
   const router = useRouter();
-  const checkout = getMessages(lang).checkout;
+  const messages = getMessages(lang);
+  const checkout = messages.checkout;
+  const bill = messages.bill;
   const [busy, setBusy] = useState(false);
 
   const handleClick = async () => {
@@ -400,7 +403,19 @@ function WaiterTableCallCheckoutControl({
         result: wholeTable.result,
       });
       if (!outcome.ok) {
-        showToast(checkout.callCheckoutFailed, 'error');
+        showToast(
+          messageForCheckoutRequestError(outcome.error, {
+            guestCountRequired: checkout.callCheckoutGuestCountRequired,
+            partyMergeRequired: checkout.callCheckoutPartyMergeRequired,
+            emptySession: checkout.callCheckoutEmptySession,
+            noActiveSession: checkout.callCheckoutNoActiveSession,
+            tableNotAvailable: checkout.callCheckoutTableNotAvailable,
+            invalidNif: bill.nifInvalid,
+            splitPlanLocked: bill.splitPlanLocked,
+            fallback: checkout.callCheckoutFailed,
+          }),
+          'error',
+        );
         return;
       }
       router.push(

@@ -22,6 +22,19 @@ export function resolveCheckoutDetailPhase(input: {
   return 'settle';
 }
 
+/**
+ * Sole gate for「重新选择结账方式」: still whole_table, zero collected,
+ * and staff has already left path_chooser (whole_table settle or split_edit).
+ */
+export function canReturnToCheckoutPathChooser(input: {
+  splitMode: SplitMode | string;
+  collected: number;
+  pathChoice: StaffCheckoutPathChoice;
+}): boolean {
+  if (input.splitMode !== 'whole_table' || input.collected > 0) return false;
+  return input.pathChoice === 'whole_table' || input.pathChoice === 'split';
+}
+
 type PathChooserProps = {
   title: string;
   wholeTableLabel: string;

@@ -243,7 +243,7 @@ export function StaffCheckoutSplitEditor({
           disabled={submitting}
           className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text disabled:opacity-50"
         >
-          {checkoutT.printInvoiceCancel}
+          {checkoutT.pathChooserBack}
         </button>
         <button
           type="button"

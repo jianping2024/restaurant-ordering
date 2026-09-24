@@ -56,6 +56,7 @@ import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvid
 import type { Capabilities } from '@/lib/permissions/can';
 import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 import {
+  canReturnToCheckoutPathChooser,
   CheckoutPathChooser,
   resolveCheckoutDetailPhase,
   type StaffCheckoutPathChoice,
@@ -406,6 +407,12 @@ export function CheckoutRequestDetailHost({
     collected: summary.collected,
     pathChoice,
   });
+  const returnToPathChooser = () => setPathChoice('undecided');
+  const showReturnToPathChooser = canReturnToCheckoutPathChooser({
+    splitMode: request.split_mode,
+    collected: summary.collected,
+    pathChoice,
+  });
 
   const detailLocked =
     isResumeBusy ||
@@ -444,9 +451,9 @@ export function CheckoutRequestDetailHost({
           sessionOrders={sessionOrders}
           itemCodeByMenuId={itemCodeByMenuId}
           collectedPayments={collectedPayments}
-          onCancel={() => setPathChoice('undecided')}
+          onCancel={returnToPathChooser}
           onConfirmed={() => {
-            setPathChoice('undecided');
+            returnToPathChooser();
             void reload();
             syncBoardAfterMutation(request.table_id);
           }}
@@ -498,6 +505,11 @@ export function CheckoutRequestDetailHost({
         lang={lang}
         t={t}
         onBack={onBack}
+        onReturnToPathChooser={
+          detailPhase === 'settle' && showReturnToPathChooser
+            ? returnToPathChooser
+            : undefined
+        }
         onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
         onDiscountRateFocus={() =>
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)

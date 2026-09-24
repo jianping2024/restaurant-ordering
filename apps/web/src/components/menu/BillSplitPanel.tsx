@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 import type { PersonAmount, SplitPersonSlot } from '@/lib/use-bill-split-draft';
@@ -76,6 +77,11 @@ interface Props {
   onEditingCustomAmountValueChange: (value: string) => void;
   onCancelInlineAmountEdit: () => void;
   onAddCustomPerson: () => void;
+  /**
+   * Staff checkout injects Fatura-like by-item workbench here.
+   * Guest BillPage omits this → sole guest UI remains ByItemSplitSection.
+   */
+  byItemContent?: ReactNode;
 }
 
 export function BillSplitPanel({
@@ -118,6 +124,7 @@ export function BillSplitPanel({
   onEditingCustomAmountValueChange,
   onCancelInlineAmountEdit,
   onAddCustomPerson,
+  byItemContent,
 }: Props) {
   const selectedWhen =
     splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom'
@@ -181,19 +188,21 @@ export function BillSplitPanel({
         ) : null}
 
         {splitMode === 'by_item' ? (
-          <ByItemSplitSection
-            lang={lang}
-            lineSpecs={lineSpecs}
-            orderLines={orderLines}
-            byItemAllocations={byItemAllocations}
-            consumerRoster={consumerRoster}
-            labels={byItemAllocatorLabels}
-            itemCodeByMenuId={itemCodeByMenuId}
-            progress={byItemProgress}
-            lockedPersonLineMins={lockedPersonLineMins}
-            onAllocationChange={onAllocationChange}
-            onRememberConsumerName={onRememberConsumerName}
-          />
+          byItemContent ?? (
+            <ByItemSplitSection
+              lang={lang}
+              lineSpecs={lineSpecs}
+              orderLines={orderLines}
+              byItemAllocations={byItemAllocations}
+              consumerRoster={consumerRoster}
+              labels={byItemAllocatorLabels}
+              itemCodeByMenuId={itemCodeByMenuId}
+              progress={byItemProgress}
+              lockedPersonLineMins={lockedPersonLineMins}
+              onAllocationChange={onAllocationChange}
+              onRememberConsumerName={onRememberConsumerName}
+            />
+          )
         ) : null}
       </div>
 

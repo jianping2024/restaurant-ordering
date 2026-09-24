@@ -127,7 +127,9 @@
 
 ---
 
-## 6. 分单页面（`/{slug}/bill`）
+## 6. 分单页面
+
+### 客人手机（`/{slug}/bill`）
 
 **组件**：`BillPage`、`ByItemSplitSection`、`BuffetDishAllocator`
 
@@ -143,6 +145,19 @@
 - 按菜分单：**逐菜卡片纵向滚动**，不按宽表一行多列
 - 锁定行只读样式须与可编辑行区分（`lockedLineKeys`）
 - 分单模式切换在锁定后 disabled + 说明
+
+### 员工结账台按菜（`/dashboard/checkout` · `split_edit`）
+
+**唯一组件**：`StaffByItemSplitWorkbench`（经 `StaffCheckoutSplitEditor` → `BillSplitPanel.byItemContent`）
+
+| 区域 | 布局 |
+|------|------|
+| 人条 | 顶上 chip 切人；「+ 新人」；切人**保留**各人已分份额 |
+| 左 · 剩余池 | 可分数量；`+` / `½`（自助餐：大人/小孩）分给当前人 |
+| 右 · 当前人 | 分单标记名 + 份额列表 + 本票预估 |
+| 底 | 「取消」回路径选择 · 「确认分单」 |
+
+**禁止**：在员工 `split_edit` 再挂客人 `ByItemSplitSection` 菜卡。算法仍唯一走 `bill-split-by-item*` / `useBillSplitDraft`。
 
 ---
 

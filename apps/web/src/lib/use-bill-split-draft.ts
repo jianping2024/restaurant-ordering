@@ -467,6 +467,7 @@ export function useBillSplitDraft(params: {
     setByItemAllocations,
     consumerRoster,
     rememberConsumerName,
+    renameByItemConsumer,
     byItemProgress,
     buildPersonsForSubmit: buildPersonsForSubmitCommitted,
     resolveSplitDraftInputForSubmit,

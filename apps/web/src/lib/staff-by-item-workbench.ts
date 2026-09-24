@@ -1,0 +1,410 @@
+/**
+ * Sole helpers for staff checkout by-item workbench (Fatura-like pool + current person).
+ * Guest dish-card UI stays in ByItemSplitSection; do not duplicate this layout there.
+ */
+import {
+  createByItemConsumerRow,
+  parseBuffetConsumerRows,
+  parseBuffetHeadcountInput,
+  parseConsumerRowQty,
+  rationalToRowQtyFields,
+  resolveBuffetRowCounts,
+  type ByItemConsumerRow,
+} from '@/lib/bill-split-by-item';
+import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import {
+  addRationals,
+  compareRationals,
+  formatRational,
+  normalizeRational,
+  rationalFromInt,
+  rationalFromNumber,
+  type Rational,
+} from '@/lib/rational-qty';
+import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
+import { resolveMenuItemCode } from '@/lib/menu-item-code';
+import { splitPersonKey } from '@/lib/split-person-identity';
+import type { UILanguage } from '@/lib/i18n';
+
+function personMatches(rowName: string, personName: string): boolean {
+  return splitPersonKey(rowName) === splitPersonKey(personName);
+}
+
+function qtyDiff(target: Rational, allocated: Rational): Rational {
+  return normalizeRational({
+    num: target.num * allocated.den - allocated.num * target.den,
+    den: target.den * allocated.den,
+  });
+}
+
+function minRational(a: Rational, b: Rational): Rational {
+  return compareRationals(a, b) <= 0 ? normalizeRational(a) : normalizeRational(b);
+}
+
+function allocatedMenuQty(rows: ByItemConsumerRow[]): Rational {
+  let sum = rationalFromInt(0);
+  for (const row of rows) {
+    const qty = parseConsumerRowQty(row);
+    if (!qty) continue;
+    sum = addRationals(sum, qty);
+  }
+  return sum;
+}
+
+export type StaffByItemPoolLine = {
+  key: string;
+  label: string;
+  mode: 'menu' | 'buffet';
+  remainingLabel: string;
+  remainingPositive: boolean;
+  adultsRemaining: number;
+  childrenRemaining: number;
+  canAddWhole: boolean;
+  canAddHalf: boolean;
+  canAddAdult: boolean;
+  canAddChild: boolean;
+};
+
+export type StaffByItemPersonShare = {
+  lineKey: string;
+  rowId: string;
+  label: string;
+  qtyLabel: string;
+  amountLabel: string;
+  amount: number;
+  mode: 'menu' | 'buffet';
+  qtyWhole: string;
+  qtyNum: string;
+  qtyDen: string;
+  adultQty: string;
+  childQty: string;
+};
+
+/** Remaining pool = source line qty − sum of all named allocations (all people). */
+export function staffByItemPoolLines(params: {
+  lineSpecs: ByItemLineSpec[];
+  orderLines: BillSplitOrderLine[];
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lang: UILanguage;
+  itemCodeByMenuId?: Record<string, string>;
+}): StaffByItemPoolLine[] {
+  const { lineSpecs, orderLines, allocations, lang, itemCodeByMenuId = {} } = params;
+  const orderByKey = Object.fromEntries(orderLines.map((line) => [line.key, line]));
+  const out: StaffByItemPoolLine[] = [];
+
+  for (const spec of lineSpecs) {
+    const item = orderByKey[spec.key];
+    if (!item) continue;
+    const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
+    const label = formatLocalizedMenuItemLabel(item, lang, itemCode);
+    const rows = allocations[spec.key] ?? [];
+
+    if (spec.mode === 'buffet') {
+      const assigned = parseBuffetConsumerRows(rows);
+      const adultsAssigned = assigned.reduce((sum, row) => sum + row.adults, 0);
+      const childrenAssigned = assigned.reduce((sum, row) => sum + row.children, 0);
+      const adultsRemaining = Math.max(0, spec.adults - adultsAssigned);
+      const childrenRemaining = Math.max(0, spec.children - childrenAssigned);
+      const remainingPositive = adultsRemaining > 0 || childrenRemaining > 0;
+      const parts: string[] = [];
+      if (adultsRemaining > 0) parts.push(`${adultsRemaining}A`);
+      if (childrenRemaining > 0) parts.push(`${childrenRemaining}C`);
+      out.push({
+        key: spec.key,
+        label,
+        mode: 'buffet',
+        remainingLabel: remainingPositive ? parts.join(' · ') : '0',
+        remainingPositive,
+        adultsRemaining,
+        childrenRemaining,
+        canAddWhole: false,
+        canAddHalf: false,
+        canAddAdult: adultsRemaining > 0,
+        canAddChild: childrenRemaining > 0,
+      });
+      continue;
+    }
+
+    const target = rationalFromNumber(spec.lineQty);
+    const remaining = qtyDiff(target, allocatedMenuQty(rows));
+    const remainingPositive = remaining.num > 0;
+    const half = { num: 1, den: 2 };
+    out.push({
+      key: spec.key,
+      label,
+      mode: 'menu',
+      remainingLabel: formatRational(remaining),
+      remainingPositive,
+      adultsRemaining: 0,
+      childrenRemaining: 0,
+      canAddWhole: remainingPositive,
+      canAddHalf: remainingPositive && compareRationals(remaining, half) >= 0,
+      canAddAdult: false,
+      canAddChild: false,
+    });
+  }
+
+  return out;
+}
+
+/** Shares belonging to one marker name across all lines. */
+export function staffByItemPersonShares(params: {
+  personName: string;
+  lineSpecs: ByItemLineSpec[];
+  orderLines: BillSplitOrderLine[];
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lang: UILanguage;
+  itemCodeByMenuId?: Record<string, string>;
+}): StaffByItemPersonShare[] {
+  const {
+    personName,
+    lineSpecs,
+    orderLines,
+    allocations,
+    lang,
+    itemCodeByMenuId = {},
+  } = params;
+  if (!personName.trim()) return [];
+
+  const orderByKey = Object.fromEntries(orderLines.map((line) => [line.key, line]));
+  const out: StaffByItemPersonShare[] = [];
+
+  for (const spec of lineSpecs) {
+    const item = orderByKey[spec.key];
+    if (!item) continue;
+    const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
+    const label = formatLocalizedMenuItemLabel(item, lang, itemCode);
+    const rows = allocations[spec.key] ?? [];
+
+    for (const row of rows) {
+      if (!personMatches(row.name, personName)) continue;
+
+      if (spec.mode === 'buffet') {
+        const { adults, children } = resolveBuffetRowCounts(row);
+        if (adults <= 0 && children <= 0) continue;
+        const amount =
+          Math.round((adults * spec.adultUnitPrice + children * spec.childUnitPrice) * 100) / 100;
+        const qtyParts: string[] = [];
+        if (adults > 0) qtyParts.push(`${adults}A`);
+        if (children > 0) qtyParts.push(`${children}C`);
+        out.push({
+          lineKey: spec.key,
+          rowId: row.id,
+          label,
+          qtyLabel: qtyParts.join(' · '),
+          amountLabel: `€${amount.toFixed(2)}`,
+          amount,
+          mode: 'buffet',
+          qtyWhole: '',
+          qtyNum: '',
+          qtyDen: '',
+          adultQty: row.adultQty ?? '',
+          childQty: row.childQty ?? '',
+        });
+        continue;
+      }
+
+      const qty = parseConsumerRowQty(row);
+      if (!qty) continue;
+      const amount = Math.round(spec.unitPrice * (qty.num / qty.den) * 100) / 100;
+      out.push({
+        lineKey: spec.key,
+        rowId: row.id,
+        label,
+        qtyLabel: formatRational(qty),
+        amountLabel: `€${amount.toFixed(2)}`,
+        amount,
+        mode: 'menu',
+        qtyWhole: row.qtyWhole,
+        qtyNum: row.qtyNum,
+        qtyDen: row.qtyDen,
+        adultQty: '',
+        childQty: '',
+      });
+    }
+  }
+
+  return out;
+}
+
+export function staffByItemPersonEstimate(shares: StaffByItemPersonShare[]): {
+  rows: number;
+  amount: number;
+} {
+  const amount = Math.round(shares.reduce((sum, row) => sum + row.amount, 0) * 100) / 100;
+  return { rows: shares.length, amount };
+}
+
+function upsertNamedRow(
+  rows: ByItemConsumerRow[],
+  personName: string,
+  buffet: boolean,
+): { rows: ByItemConsumerRow[]; row: ByItemConsumerRow } {
+  const existing = rows.find((row) => personMatches(row.name, personName));
+  if (existing) return { rows, row: existing };
+
+  const empty = rows.find((row) => !row.name.trim());
+  if (empty) {
+    // Seed rows may prefill qtyWhole/adultQty; pool-add must start from zero then apply delta.
+    const named = {
+      ...empty,
+      name: personName,
+      qtyWhole: '',
+      qtyNum: '',
+      qtyDen: '',
+      ...(buffet ? { adultQty: '', childQty: '' } : {}),
+    };
+    return {
+      rows: rows.map((row) => (row.id === empty.id ? named : row)),
+      row: named,
+    };
+  }
+
+  const created = {
+    ...createByItemConsumerRow({ buffet }),
+    name: personName,
+    qtyWhole: '',
+    adultQty: buffet ? '' : undefined,
+    childQty: buffet ? '' : undefined,
+  };
+  return { rows: [...rows, created], row: created };
+}
+
+/** Add whole unit (or remaining if &lt; 1) from pool to person — fatura pool "+" semantics. */
+export function addWholeShareToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  personName: string;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, personName } = params;
+  const name = personName.trim();
+  if (!name) return null;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return null;
+
+  const rows = allocations[lineKey] ?? [];
+  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  if (remaining.num <= 0) return null;
+
+  const take = minRational(remaining, rationalFromInt(1));
+  const { rows: nextRows, row } = upsertNamedRow(rows, name, false);
+  const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
+  const nextQty = addRationals(current, take);
+  const patched = nextRows.map((candidate) =>
+    candidate.id === row.id
+      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty) }
+      : candidate,
+  );
+  return { ...allocations, [lineKey]: patched };
+}
+
+/** Add ½ when pool has ≥ ½. */
+export function addHalfShareToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  personName: string;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, personName } = params;
+  const name = personName.trim();
+  if (!name) return null;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return null;
+
+  const rows = allocations[lineKey] ?? [];
+  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  const half = { num: 1, den: 2 };
+  if (compareRationals(remaining, half) < 0) return null;
+
+  const { rows: nextRows, row } = upsertNamedRow(rows, name, false);
+  const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
+  const nextQty = addRationals(current, half);
+  const patched = nextRows.map((candidate) =>
+    candidate.id === row.id
+      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty) }
+      : candidate,
+  );
+  return { ...allocations, [lineKey]: patched };
+}
+
+export function addBuffetSeatToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  personName: string;
+  guestType: 'adult' | 'child';
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, personName, guestType } = params;
+  const name = personName.trim();
+  if (!name) return null;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'buffet') return null;
+
+  const rows = allocations[lineKey] ?? [];
+  const assigned = parseBuffetConsumerRows(rows);
+  const adultsAssigned = assigned.reduce((sum, row) => sum + row.adults, 0);
+  const childrenAssigned = assigned.reduce((sum, row) => sum + row.children, 0);
+  if (guestType === 'adult' && adultsAssigned >= spec.adults) return null;
+  if (guestType === 'child' && childrenAssigned >= spec.children) return null;
+
+  const { rows: nextRows, row } = upsertNamedRow(rows, name, true);
+  // Do not use resolveBuffetRowCounts here — empty named rows default to 1 adult,
+  // which would double-count when we then +1 for this pool action.
+  const adults = parseBuffetHeadcountInput(row.adultQty);
+  const children = parseBuffetHeadcountInput(row.childQty);
+  const nextAdults = guestType === 'adult' ? adults + 1 : adults;
+  const nextChildren = guestType === 'child' ? children + 1 : children;
+  const patched = nextRows.map((candidate) =>
+    candidate.id === row.id
+      ? {
+          ...candidate,
+          name,
+          adultQty: nextAdults > 0 ? String(nextAdults) : '',
+          childQty: nextChildren > 0 ? String(nextChildren) : '',
+          qtyWhole: '',
+          qtyNum: '',
+          qtyDen: '',
+        }
+      : candidate,
+  );
+  return { ...allocations, [lineKey]: patched };
+}
+
+/** Remove one person's share row on a line (keeps at least one empty seed row). */
+export function removePersonShareOnLine(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineKey: string;
+  rowId: string;
+  buffet: boolean;
+}): Record<string, ByItemConsumerRow[]> {
+  const { allocations, lineKey, rowId, buffet } = params;
+  const rows = allocations[lineKey] ?? [];
+  const next = rows.filter((row) => row.id !== rowId);
+  return {
+    ...allocations,
+    [lineKey]:
+      next.length > 0
+        ? next
+        : [createByItemConsumerRow({ buffet, seed: true })],
+  };
+}
+
+/** Ordered unique marker names currently present in allocations (non-empty). */
+export function staffByItemPeopleFromAllocations(
+  allocations: Record<string, ByItemConsumerRow[]>,
+): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const rows of Object.values(allocations)) {
+    for (const row of rows) {
+      const name = row.name.trim();
+      if (!name) continue;
+      const key = splitPersonKey(name);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      names.push(name);
+    }
+  }
+  return names;
+}

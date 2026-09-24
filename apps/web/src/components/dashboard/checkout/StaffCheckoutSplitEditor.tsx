@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
+import { StaffByItemSplitWorkbench } from '@/components/dashboard/checkout/StaffByItemSplitWorkbench';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
 import {
@@ -29,8 +30,9 @@ type Props = {
 };
 
 /**
- * Sole staff checkout split editor — same draft + BillSplitPanel as guest BillPage.
- * Confirm writes bill_splits via staff checkout/request (even | by_item | custom).
+ * Sole staff checkout split editor.
+ * Draft + even/custom chrome shared with guest BillSplitPanel;
+ * by_item layout is sole StaffByItemSplitWorkbench (not guest dish cards).
  */
 export function StaffCheckoutSplitEditor({
   restaurantId,
@@ -102,6 +104,30 @@ export function StaffCheckoutSplitEditor({
       byItemProgress: billT.byItemProgress,
     }),
     [billT],
+  );
+
+  const staffByItemLabels = useMemo(
+    () => ({
+      poolTitle: checkoutT.staffByItemPool,
+      currentShareTitle: checkoutT.staffByItemCurrentShare,
+      markerName: checkoutT.staffByItemMarkerName,
+      markerHint: checkoutT.staffByItemMarkerHint,
+      markerPlaceholder: billT.consumerNamePlaceholder,
+      addPerson: billT.addPerson,
+      remainingPrefix: checkoutT.staffByItemRemaining,
+      estimate: (n: number, amount: string) =>
+        checkoutT.staffByItemEstimate
+          .replace('{n}', String(n))
+          .replace('{amount}', amount),
+      needName: checkoutT.staffByItemNeedName,
+      poolEmpty: checkoutT.staffByItemPoolEmpty,
+      progress: billT.byItemProgress,
+      addAdult: billT.byItemGuestTypeAdult,
+      addChild: billT.byItemGuestTypeChild,
+      remove: billT.removeConsumer,
+      paidLocked: billT.splitPlanLocked,
+    }),
+    [billT, checkoutT],
   );
 
   const splitValidationMessage = useMemo(() => {
@@ -236,6 +262,23 @@ export function StaffCheckoutSplitEditor({
           splitDraft.setEditingCustomAmountValue('');
         }}
         onAddCustomPerson={splitDraft.addCustomPerson}
+        byItemContent={(
+          <StaffByItemSplitWorkbench
+            lang={lang}
+            lineSpecs={lineSpecs}
+            orderLines={splitOrderLines}
+            byItemAllocations={splitDraft.byItemAllocations}
+            lockedPersonNames={splitDraft.lockedPersonNames}
+            lockedPersonLineMins={splitDraft.lockedPersonLineMins}
+            itemCodeByMenuId={itemCodeByMenuId}
+            guestName={guestName}
+            labels={staffByItemLabels}
+            progress={splitDraft.byItemProgress}
+            disabled={submitting}
+            onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
+            onRenamePerson={splitDraft.renameByItemConsumer}
+          />
+        )}
       />
       <div className="flex flex-wrap gap-2 px-2">
         <CheckoutPathChooserBackButton

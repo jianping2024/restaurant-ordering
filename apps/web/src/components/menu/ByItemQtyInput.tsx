@@ -18,6 +18,7 @@ interface Props {
   labels: QtyPartsLabels;
   /** Line-level over-allocation; field-part issues are owned inside this control. */
   overAllocated?: boolean;
+  disabled?: boolean;
   onChange: (patch: Pick<ByItemConsumerRow, QtyField>) => void;
   onCommit?: () => void;
 }
@@ -41,6 +42,7 @@ export function ByItemQtyInput({
   row,
   labels,
   overAllocated = false,
+  disabled = false,
   onChange,
   onCommit,
 }: Props) {
@@ -48,6 +50,7 @@ export function ByItemQtyInput({
   const fieldClass = overAllocated || hint ? customerQtyInputAlertClass : customerQtyInputClass;
 
   const patchQty = (field: QtyField, raw: string) => {
+    if (disabled) return;
     const digits = sanitizeQtyDigits(raw);
     onChange({
       qtyWhole: field === 'qtyWhole' ? digits : row.qtyWhole,
@@ -64,6 +67,7 @@ export function ByItemQtyInput({
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyWhole}
+          disabled={disabled}
           onChange={(e) => patchQty('qtyWhole', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.wholeLabel}
@@ -75,6 +79,7 @@ export function ByItemQtyInput({
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyNum}
+          disabled={disabled}
           onChange={(e) => patchQty('qtyNum', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.numLabel}
@@ -86,6 +91,7 @@ export function ByItemQtyInput({
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyDen}
+          disabled={disabled}
           onChange={(e) => patchQty('qtyDen', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.denLabel}

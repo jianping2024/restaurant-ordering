@@ -6,6 +6,8 @@ import {
   addBuffetSeatToPerson,
   addHalfShareToPerson,
   addWholeShareToPerson,
+  isStaffMenuShareOverAllocated,
+  setPersonMenuShareQtyFields,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
@@ -303,5 +305,59 @@ describe('addBuffetSeatToPerson', () => {
       lang: 'zh',
     });
     assert.equal(ana[0]!.qtyLabel, '1');
+  });
+});
+
+describe('setPersonMenuShareQtyFields', () => {
+  it('keeps pool remaining aligned with parseConsumerRows', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [
+        {
+          id: 'row-ana',
+          name: 'Ana',
+          qtyWhole: '1',
+          qtyNum: '',
+          qtyDen: '',
+        },
+        {
+          id: 'row-seed',
+          name: '',
+          qtyWhole: '1',
+          qtyNum: '',
+          qtyDen: '',
+        },
+      ],
+    };
+    const half = setPersonMenuShareQtyFields({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-ana',
+      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '2' },
+    });
+    assert.ok(half);
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: half!,
+      lang: 'zh',
+    });
+    // lineQty=2, named share 1/2 → remaining 3/2
+    assert.equal(pool[0]!.remainingLabel, '1 1/2');
+    assert.equal(pool[0]!.remainingPositive, true);
+    const ana = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: half!,
+      lang: 'zh',
+    });
+    assert.equal(ana[0]!.qtyLabel, '1/2');
+    assert.equal(isStaffMenuShareOverAllocated({
+      allocations: half!,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-ana',
+    }), false);
   });
 });

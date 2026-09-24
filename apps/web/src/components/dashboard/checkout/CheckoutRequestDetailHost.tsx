@@ -503,6 +503,7 @@ export function CheckoutRequestDetailHost({
         splitModeLabel={splitModeLabel}
         partialPaid={partialPaid}
         collectedPayments={collectedPayments}
+        settlementRows={settlementRows}
         pendingSettlementRows={pendingSettlementRows}
         selectedLines={selectedLines}
         sessionOrders={sessionOrders}

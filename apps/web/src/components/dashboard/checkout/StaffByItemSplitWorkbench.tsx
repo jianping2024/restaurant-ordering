@@ -7,10 +7,18 @@ import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { UILanguage } from '@/lib/i18n';
 import { splitPersonKey } from '@/lib/split-person-identity';
 import {
+  ByItemQtyColumnHeader,
+  ByItemQtyInput,
+} from '@/components/menu/ByItemQtyInput';
+import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
+import {
   addBuffetSeatToPerson,
   addHalfShareToPerson,
   addWholeShareToPerson,
+  isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
+  setPersonBuffetShareCounts,
+  setPersonMenuShareQtyFields,
   staffByItemPeopleFromAllocations,
   staffByItemPersonEstimate,
   staffByItemPersonShares,
@@ -33,6 +41,7 @@ export type StaffByItemWorkbenchLabels = {
   addChild: string;
   remove: string;
   paidLocked: string;
+  qtyParts: QtyPartsLabels;
 };
 
 type Props = {
@@ -53,6 +62,7 @@ type Props = {
 
 /**
  * Sole staff checkout by-item layout (Fatura-like): person chips + remaining pool + current share.
+ * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
  * Guest phone keeps ByItemSplitSection; do not render dish cards here.
  */
 export function StaffByItemSplitWorkbench({
@@ -182,6 +192,11 @@ export function StaffByItemSplitWorkbench({
     setCurrentIndex(people.length);
     setNameDraft(nextName);
     setNeedNameHint(false);
+  };
+
+  const rowForShare = (share: (typeof shares)[number]): ByItemConsumerRow | null => {
+    const rows = byItemAllocations[share.lineKey] ?? [];
+    return rows.find((row) => row.id === share.rowId) ?? null;
   };
 
   return (
@@ -371,41 +386,123 @@ export function StaffByItemSplitWorkbench({
             {shares.length === 0 ? (
               <p className="px-1 py-2 text-[13px] text-brand-text-muted">—</p>
             ) : (
-              shares.map((share) => (
-                <div
-                  key={`${share.lineKey}-${share.rowId}`}
-                  className="flex items-center justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm text-brand-text">
-                      {share.label}
-                      <span className="text-brand-text-muted"> × {share.qtyLabel}</span>
-                    </div>
+              <>
+                {shares.some((share) => share.mode === 'menu') ? (
+                  <div className="flex justify-end px-0.5">
+                    <ByItemQtyColumnHeader labels={labels.qtyParts} />
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className="text-sm font-medium tabular-nums text-brand-gold">
-                      {share.amountLabel}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={editDisabled}
-                      className="text-[11px] text-brand-text-muted hover:text-red-600 disabled:opacity-40"
-                      onClick={() => {
-                        applyAlloc(
-                          removePersonShareOnLine({
-                            allocations: byItemAllocations,
-                            lineKey: share.lineKey,
-                            rowId: share.rowId,
-                            buffet: share.mode === 'buffet',
-                          }),
-                        );
-                      }}
+                ) : null}
+                {shares.map((share) => {
+                  const row = rowForShare(share);
+                  if (!row) return null;
+                  const over =
+                    share.mode === 'menu' &&
+                    isStaffMenuShareOverAllocated({
+                      allocations: byItemAllocations,
+                      lineSpecs,
+                      lineKey: share.lineKey,
+                      rowId: share.rowId,
+                    });
+                  return (
+                    <div
+                      key={`${share.lineKey}-${share.rowId}`}
+                      className="flex items-start justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0"
                     >
-                      {labels.remove}
-                    </button>
-                  </div>
-                </div>
-              ))
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm text-brand-text">{share.label}</div>
+                        <div className="mt-1 text-[12px] tabular-nums text-brand-gold">
+                          {share.amountLabel}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {share.mode === 'menu' ? (
+                          <ByItemQtyInput
+                            row={row}
+                            labels={labels.qtyParts}
+                            overAllocated={over}
+                            disabled={editDisabled}
+                            onChange={(patch) => {
+                              applyAlloc(
+                                setPersonMenuShareQtyFields({
+                                  allocations: byItemAllocations,
+                                  lineSpecs,
+                                  lineKey: share.lineKey,
+                                  rowId: share.rowId,
+                                  patch,
+                                }),
+                              );
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1 text-[12px]">
+                            <label className="flex items-center gap-0.5">
+                              <span className="text-brand-text-muted">{labels.addAdult}</span>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                disabled={editDisabled}
+                                value={row.adultQty ?? ''}
+                                onChange={(e) => {
+                                  applyAlloc(
+                                    setPersonBuffetShareCounts({
+                                      allocations: byItemAllocations,
+                                      lineSpecs,
+                                      lineKey: share.lineKey,
+                                      rowId: share.rowId,
+                                      adultQty: e.target.value.replace(/\D/g, '').slice(0, 3),
+                                      childQty: row.childQty ?? '',
+                                    }),
+                                  );
+                                }}
+                                className="w-8 rounded border border-brand-border px-1 py-0.5 text-center"
+                              />
+                            </label>
+                            <label className="flex items-center gap-0.5">
+                              <span className="text-brand-text-muted">{labels.addChild}</span>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                disabled={editDisabled}
+                                value={row.childQty ?? ''}
+                                onChange={(e) => {
+                                  applyAlloc(
+                                    setPersonBuffetShareCounts({
+                                      allocations: byItemAllocations,
+                                      lineSpecs,
+                                      lineKey: share.lineKey,
+                                      rowId: share.rowId,
+                                      adultQty: row.adultQty ?? '',
+                                      childQty: e.target.value.replace(/\D/g, '').slice(0, 3),
+                                    }),
+                                  );
+                                }}
+                                className="w-8 rounded border border-brand-border px-1 py-0.5 text-center"
+                              />
+                            </label>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          disabled={editDisabled}
+                          className="text-[11px] text-brand-text-muted hover:text-red-600 disabled:opacity-40"
+                          onClick={() => {
+                            applyAlloc(
+                              removePersonShareOnLine({
+                                allocations: byItemAllocations,
+                                lineKey: share.lineKey,
+                                rowId: share.rowId,
+                                buffet: share.mode === 'buffet',
+                              }),
+                            );
+                          }}
+                        >
+                          {labels.remove}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
             )}
 
             <p className="pt-1 text-[12px] font-medium text-brand-text">

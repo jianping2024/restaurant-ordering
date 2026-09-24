@@ -127,6 +127,14 @@ export function StaffCheckoutSplitEditor({
       addChild: billT.byItemGuestTypeChild,
       remove: billT.removeConsumer,
       paidLocked: billT.splitPlanLocked,
+      qtyParts: {
+        wholeLabel: billT.qtyWholePlaceholder,
+        numLabel: billT.qtyNumPlaceholder,
+        denLabel: billT.qtyDenPlaceholder,
+        missingDen: billT.qtyMissingDen,
+        zeroDen: billT.qtyZeroDen,
+        improperFraction: billT.qtyImproperFraction,
+      },
     }),
     [billT, checkoutT],
   );

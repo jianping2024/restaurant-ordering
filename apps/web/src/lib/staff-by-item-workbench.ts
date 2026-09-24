@@ -4,6 +4,7 @@
  */
 import {
   createByItemConsumerRow,
+  isRowQtyOverAllocated,
   parseBuffetConsumerRows,
   parseBuffetHeadcountInput,
   parseConsumerRowQty,
@@ -369,6 +370,75 @@ export function addBuffetSeatToPerson(params: {
           qtyDen: '',
         }
       : candidate,
+  );
+  return { ...allocations, [lineKey]: patched };
+}
+
+/**
+ * Patch menu qty fields on one named share row (whole + num/den).
+ * Same remaining truth as the pool: {@link parseConsumerRows} / {@link allocatedMenuQty}.
+ */
+export function setPersonMenuShareQtyFields(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  rowId: string;
+  patch: Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, rowId, patch } = params;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return null;
+  const rows = allocations[lineKey] ?? [];
+  const target = rows.find((row) => row.id === rowId);
+  if (!target || !target.name.trim()) return null;
+
+  const nextRow = { ...target, ...patch };
+  const patched = rows.map((row) => (row.id === rowId ? nextRow : row));
+  return { ...allocations, [lineKey]: patched };
+}
+
+export function isStaffMenuShareOverAllocated(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  rowId: string;
+}): boolean {
+  const { allocations, lineSpecs, lineKey, rowId } = params;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return false;
+  const rows = allocations[lineKey] ?? [];
+  const row = rows.find((candidate) => candidate.id === rowId);
+  if (!row) return false;
+  return isRowQtyOverAllocated(row, rows, spec.lineQty);
+}
+
+/** Patch buffet adult/child headcounts on one named share row. */
+export function setPersonBuffetShareCounts(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  rowId: string;
+  adultQty: string;
+  childQty: string;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, rowId, adultQty, childQty } = params;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'buffet') return null;
+  const rows = allocations[lineKey] ?? [];
+  const target = rows.find((row) => row.id === rowId);
+  if (!target || !target.name.trim()) return null;
+
+  const patched = rows.map((row) =>
+    row.id === rowId
+      ? {
+          ...row,
+          adultQty,
+          childQty,
+          qtyWhole: '',
+          qtyNum: '',
+          qtyDen: '',
+        }
+      : row,
   );
   return { ...allocations, [lineKey]: patched };
 }

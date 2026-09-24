@@ -4,6 +4,10 @@ import { useMemo } from 'react';
 import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
 import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
+import {
+  CheckoutSettlePersonRail,
+  settlePersonCardDomId,
+} from '@/components/dashboard/checkout/CheckoutSettlePersonRail';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
@@ -34,6 +38,8 @@ interface Props {
   splitModeLabel: string;
   partialPaid: boolean;
   collectedPayments: SessionCollectedPayment[];
+  /** Full per-person settlement (including settled) for the person rail. */
+  settlementRows: SplitSettlementRow[];
   pendingSettlementRows: SplitSettlementRow[];
   selectedLines: CheckoutDisplayLine[];
   sessionOrders: Order[];
@@ -151,6 +157,7 @@ export function CheckoutRequestDetail({
   splitModeLabel,
   partialPaid,
   collectedPayments,
+  settlementRows,
   pendingSettlementRows,
   selectedLines,
   sessionOrders,
@@ -279,6 +286,19 @@ export function CheckoutRequestDetail({
         />
       </div>
 
+      {settlementRows.length > 1 ? (
+        <div className="mt-3">
+          <CheckoutSettlePersonRail
+            rows={settlementRows}
+            lang={lang}
+            onSelectPerson={(index) => {
+              const el = document.getElementById(settlePersonCardDomId(index));
+              el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }}
+          />
+        </div>
+      ) : null}
+
       {pendingSettlementRows.length > 0 ? (
         <div className="mt-4 rounded-lg border-2 border-brand-gold/35 bg-brand-gold/5 p-3">
           <p className="text-[13px] font-medium text-brand-text mb-2">{t.pendingCollectionsTitle}</p>
@@ -287,43 +307,44 @@ export function CheckoutRequestDetail({
               const collectNow = splitSettlementCollectAmount(row);
               const showOwedTotal = row.settlementStatus === 'partial';
               return (
-                <CheckoutPersonShareExpandable
-                  key={`${request.id}-${row.index}`}
-                  canExpand={canExpandPersonDishes}
-                  shareLines={personShareLinesByIndex.get(row.index) ?? []}
-                  labels={personShareLabels}
-                  identity={
-                    <>
-                      <span className="text-brand-text font-medium">
-                        {localizeSplitPersonName(row.name, lang)}
-                      </span>
-                      {showOwedTotal ? (
-                        <p className="text-[11px] text-brand-text tabular-nums mt-0.5">
-                          {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
-                          {' · '}
-                          {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
-                        </p>
-                      ) : null}
-                    </>
-                  }
-                  trailing={
-                    <>
-                      <span className="text-brand-gold font-semibold text-base tabular-nums">
-                        €{collectNow.toFixed(2)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => onConfirmPersonPaid(row.index)}
-                        disabled={detailLocked}
-                        className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
-                      >
-                        {processingKeys.has(checkoutPersonKey(request.id, row.index))
-                          ? t.processing
-                          : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
-                      </button>
-                    </>
-                  }
-                />
+                <div key={`${request.id}-${row.index}`} id={settlePersonCardDomId(row.index)}>
+                  <CheckoutPersonShareExpandable
+                    canExpand={canExpandPersonDishes}
+                    shareLines={personShareLinesByIndex.get(row.index) ?? []}
+                    labels={personShareLabels}
+                    identity={
+                      <>
+                        <span className="text-brand-text font-medium">
+                          {localizeSplitPersonName(row.name, lang)}
+                        </span>
+                        {showOwedTotal ? (
+                          <p className="text-[11px] text-brand-text tabular-nums mt-0.5">
+                            {t.personOwedTotal.replace('{amount}', row.obligationAmount.toFixed(2))}
+                            {' · '}
+                            {t.collectedSoFar} €{row.collectedAmount.toFixed(2)}
+                          </p>
+                        ) : null}
+                      </>
+                    }
+                    trailing={
+                      <>
+                        <span className="text-brand-gold font-semibold text-base tabular-nums">
+                          €{collectNow.toFixed(2)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onConfirmPersonPaid(row.index)}
+                          disabled={detailLocked}
+                          className="text-sm font-semibold px-3 py-2 rounded-lg mesa-badge-success hover:opacity-90 disabled:opacity-50 transition-opacity whitespace-nowrap"
+                        >
+                          {processingKeys.has(checkoutPersonKey(request.id, row.index))
+                            ? t.processing
+                            : t.confirmOnePaidAmount.replace('{amount}', collectNow.toFixed(2))}
+                        </button>
+                      </>
+                    }
+                  />
+                </div>
               );
             })}
           </div>

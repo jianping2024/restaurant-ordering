@@ -37,12 +37,13 @@
 ## 4. 详情区信息顺序
 
 1. **页头** — 桌号；**有顾客税号时紧随桌号强调展示**（标签清晰 + 数字 `text-lg font-semibold` + `font-mono tabular-nums` / `formatPortugueseNif`）；再是呼叫/meta、分单模式、状态。无税号不占位。  
-2. **路径 / 分单编辑**（`path_chooser` | `split_edit`，仅整桌且已收=0）— 选整桌或分单（均摊 / 按菜 / 自定义）；**按菜唯一壳** `StaffByItemSplitWorkbench`（人条 + 剩余池 + 当前人份额，对齐 Fatura；切人保留已分）；均摊/自定义暂仍用 `BillSplitPanel` 原控件   
+2. **路径 / 分单编辑**（`path_chooser` | `split_edit`，仅整桌且已收=0）— 选整桌或分单（均摊 / 按菜 / 自定义）；**按菜唯一壳** `StaffByItemSplitWorkbench`（人条 + 剩余池 + 当前人；右侧唯一 `ByItemQtyInput` 整+分子/分母；池 `+`/`½` 快捷；切人保留已分）；均摊/自定义暂仍用 `BillSplitPanel` 原控件   
 3. **结算摘要条** — 左侧：消费 · 应收 · 已收 · **待收**（待收高亮）；右侧：**折扣 % 输入**（默认 0，改值后应收/待收即时更新；有收款后禁用；失焦仍走原因弹窗）  
-4. **待收款区（主操作）** — 强调边框；每人**本次应收**为大号数字；按钮文案 `收款 €{amount}`；有历史已收时副行显示应付总额与已收  
-5. **已收款项（台账）** — 弱化样式；单行 `姓名 · 时间 — 金额`；分单时每行旁「打印收据」+（财政开）「打印发票」  
-6. **本桌菜品** — 默认折叠，标题含道数  
-7. **底部操作** — 打印账单；整桌已收款后「打印发票」；恢复点单；强制关台  
+4. **分单人条（settle）** — 多人分单时顶上 `CheckoutSettlePersonRail`：chip + **收款完成 ✓**（`settlementStatus === 'settled'`）；点 chip 定位待收款行；**不**表示开票  
+5. **待收款区（主操作）** — 强调边框；每人**本次应收**为大号数字；按钮文案 `收款 €{amount}`；有历史已收时副行显示应付总额与已收  
+6. **已收款项（台账）** — 弱化样式；单行 `姓名 · 时间 — 金额`；分单时每行旁「打印收据」+（财政开）「打印发票」  
+7. **本桌菜品** — 默认折叠，标题含道数  
+8. **底部操作** — 打印账单；整桌已收款后「打印发票」；恢复点单；强制关台  
 
 ## 5. 金额规则
 
@@ -64,7 +65,9 @@
 - `apps/web/src/components/dashboard/checkout/CheckoutRequestDetail.tsx` — 详情面板  
 - `apps/web/src/components/dashboard/checkout/StaffCheckoutSplitEditor.tsx` — 员工分单编辑
 - `apps/web/src/components/dashboard/checkout/StaffByItemSplitWorkbench.tsx` — 按菜唯一工作台（Fatura 式）
-- `apps/web/src/lib/staff-by-item-workbench.ts` — 剩余池 / 加人份额 helpers
+- `apps/web/src/components/dashboard/checkout/CheckoutSettlePersonRail.tsx` — settle 人条 + 收款完成 ✓
+- `apps/web/src/lib/staff-by-item-workbench.ts` — 剩余池 / 有理数份额 / 加人份额 helpers（具名-only）
+- `apps/web/src/components/menu/ByItemQtyInput.tsx` — 整+分子/分母唯一录入（客人菜卡与员工当前人共用）
 - `apps/web/src/components/dashboard/checkout/PrintFiscalInvoiceModal.tsx` — 发票弹窗  
 - `apps/web/src/lib/checkout-settlement.ts` — 结算摘要与列表 meta  
 - `apps/web/src/lib/format-dashboard-date.ts` — `formatCollectedPaymentTime`  

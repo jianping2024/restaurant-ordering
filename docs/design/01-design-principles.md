@@ -135,7 +135,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 |------|------|------|
 | 页面标题 | `font-heading` + `text-2xl`/`3xl` | 桌台详情标题 |
 | 列表/区块正文 | `text-lg font-semibold text-brand-text` | **已点菜名**、**Buffet 套餐名**（同级） |
-| 控件 | `Button size="action"`（`text-[15px]`） | 保存人数、继续点餐、转台等 |
+| 控件 | `Button size="action"`（`text-[15px]`） | 确认开台、继续点餐、转台等 |
 | 价格/人数 | `text-[15px] font-medium text-brand-text` | 成人/儿童价、人数标签（非灰） |
 | 次要说明 | `text-sm` + muted | 仅加载中等非关键文案 |
 

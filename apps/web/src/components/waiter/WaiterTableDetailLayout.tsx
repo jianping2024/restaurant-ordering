@@ -72,9 +72,14 @@ type BuffetPanelProps = {
   onSetGuestCount: (buffetId: string, which: 'adults' | 'children', value: number) => void;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
-  buffetActionLabel: string;
-  buffetSubmitting: boolean;
-  onSave: () => void;
+  /**
+   * Cold open only (`intent=open`). Occupied tables autosave headcount — no confirm row.
+   */
+  confirmOpen: {
+    label: string;
+    submitting: boolean;
+    onConfirm: () => void;
+  } | null;
 };
 
 export function BuffetGuestCounter({
@@ -143,12 +148,11 @@ export function WaiterTableBuffetPanel({
   onSetGuestCount,
   resolvedByBuffetId,
   buffetPriceLoading,
-  buffetActionLabel,
-  buffetSubmitting,
-  onSave,
+  confirmOpen,
 }: BuffetPanelProps) {
-  const saveDisabled =
-    buffetSubmitting
+  const confirmDisabled =
+    !confirmOpen
+    || confirmOpen.submitting
     || !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading);
 
   return (
@@ -163,14 +167,20 @@ export function WaiterTableBuffetPanel({
           priceLoading={buffetPriceLoading}
           layout="detail"
         />
-        <div className={waiterDetailLayout.buffetDetailSummaryRow}>
-          <div aria-hidden className="hidden sm:block" />
-          <div className={waiterDetailLayout.buffetDetailSummaryActions}>
-            <WaiterTablePrimaryButton onClick={onSave} disabled={saveDisabled} icon={<WaiterTableIcon className={buttonIcon.sm} />}>
-              {buffetSubmitting ? '…' : buffetActionLabel}
-            </WaiterTablePrimaryButton>
+        {confirmOpen ? (
+          <div className={waiterDetailLayout.buffetDetailSummaryRow}>
+            <div aria-hidden className="hidden sm:block" />
+            <div className={waiterDetailLayout.buffetDetailSummaryActions}>
+              <WaiterTablePrimaryButton
+                onClick={confirmOpen.onConfirm}
+                disabled={confirmDisabled}
+                icon={<WaiterTableIcon className={buttonIcon.sm} />}
+              >
+                {confirmOpen.submitting ? '…' : confirmOpen.label}
+              </WaiterTablePrimaryButton>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </WaiterDetailCard>
   );

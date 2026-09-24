@@ -1343,7 +1343,7 @@ export const MESSAGES = {
       callCheckoutOperating: '正在打开结账…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
       callCheckoutFailed: '呼叫结账失败，请重试',
-      callCheckoutGuestCountRequired: '请先点击「保存人数」确认用餐人数后再结账',
+      callCheckoutGuestCountRequired: '请先登记用餐人数后再结账',
       callCheckoutPartyMergeRequired: '同行组还有其他桌，请先并台后再结账',
       callCheckoutEmptySession: '本桌暂无消费，无法结账',
       callCheckoutNoActiveSession: '该桌未开台，无法结账',
@@ -2645,7 +2645,7 @@ export const MESSAGES = {
       callCheckoutOperating: 'Opening checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
       callCheckoutFailed: 'Call checkout failed — please retry',
-      callCheckoutGuestCountRequired: 'Save guest count first, then call checkout',
+      callCheckoutGuestCountRequired: 'Set guest count first, then call checkout',
       callCheckoutPartyMergeRequired: 'Other tables are in this party — merge them before checkout',
       callCheckoutEmptySession: 'No billable items on this table',
       callCheckoutNoActiveSession: 'Table is not open — cannot checkout',
@@ -3864,7 +3864,7 @@ export const MESSAGES = {
       callCheckoutOperating: 'A abrir checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
       callCheckoutFailed: 'Falha ao chamar conta — tente novamente',
-      callCheckoutGuestCountRequired: 'Guarde primeiro o numero de pessoas e depois chame a conta',
+      callCheckoutGuestCountRequired: 'Registe primeiro o numero de pessoas e depois chame a conta',
       callCheckoutPartyMergeRequired: 'Ha outras mesas no grupo — una-as antes de fechar',
       callCheckoutEmptySession: 'Esta mesa nao tem consumos para fechar',
       callCheckoutNoActiveSession: 'Mesa nao esta aberta — nao e possivel fechar',

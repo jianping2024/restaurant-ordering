@@ -1,4 +1,4 @@
-/** Sole open vs save-headcount discriminant for POST …/staff/waiter/buffet. */
+/** Sole open vs save-headcount discriminant for POST …/staff/waiter/buffet (cold open vs occupied autosave). */
 export type BuffetWaiterOpenIntent = 'open' | 'save';
 
 /** Stale idle open: table already has an active session — do not mutate headcount. */

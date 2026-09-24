@@ -56,8 +56,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: '成人 €{adultPrice}/人 · 儿童 €{childPrice}/人',
     buffetEstimatedTotal: '预计合计：€{total}',
     buffetConfirm: '确认开台',
-    buffetSaveGuestCounts: '保存人数',
-    buffetGuestCountsUnchanged: '成人/儿童人数与当前开台一致，无需重复提交。',
     buffetHeadcountBelowPaidFloor:
       '已有收款锁定，不能把自助餐人数降到低于已付客人已分配的人数。',
     buffetNoRule: '当前时段无匹配价格，请在后台配置规则。',
@@ -195,8 +193,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adult €{adultPrice}/person · Child €{childPrice}/person',
     buffetEstimatedTotal: 'Estimated total: €{total}',
     buffetConfirm: 'Confirm open table',
-    buffetSaveGuestCounts: 'Save guest counts',
-    buffetGuestCountsUnchanged: 'Adult/child counts match the open table; no change needed.',
     buffetHeadcountBelowPaidFloor:
       'Collections started — buffet headcount cannot drop below paid guests’ allocated seats.',
     buffetNoRule: 'No matching price for this time slot. Configure rules in dashboard.',
@@ -335,8 +331,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/pessoa · Crianca €{childPrice}/pessoa',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar abertura',
-    buffetSaveGuestCounts: 'Guardar pessoas',
-    buffetGuestCountsUnchanged: 'Adultos/criancas ja coincidem com a mesa aberta.',
     buffetHeadcountBelowPaidFloor:
       'Ja houve cobranca — nao pode baixar o buffet abaixo dos lugares ja atribuidos aos pagos.',
     buffetNoRule: 'Sem preco para este horario. Configure no painel.',
@@ -476,9 +470,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulto €{adultPrice}/persona · Niño €{childPrice}/persona',
     buffetEstimatedTotal: 'Total estimado: €{total}',
     buffetConfirm: 'Confirmar apertura',
-    buffetSaveGuestCounts: 'Guardar comensales',
-    buffetGuestCountsUnchanged:
-      'Los adultos y niños ya coinciden con la mesa abierta; no hace falta guardar.',
     buffetHeadcountBelowPaidFloor:
       'Ya hay cobros registrados: no puedes bajar los comensales del bufé por debajo de las plazas ya pagadas.',
     buffetNoRule: 'No hay precio para esta franja horaria. Configura las reglas en el panel.',
@@ -625,9 +616,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Adulte €{adultPrice}/pers. · Enfant €{childPrice}/pers.',
     buffetEstimatedTotal: 'Total estimé : €{total}',
     buffetConfirm: 'Confirmer l’ouverture',
-    buffetSaveGuestCounts: 'Enregistrer les couverts',
-    buffetGuestCountsUnchanged:
-      'Le nombre d’adultes et d’enfants correspond déjà à la table ouverte.',
     buffetHeadcountBelowPaidFloor:
       'Des encaissements ont eu lieu — le nombre de couverts buffet ne peut pas descendre sous les places déjà payées.',
     buffetNoRule: 'Aucun tarif pour ce créneau. Configurez les règles dans le tableau de bord.',
@@ -775,9 +763,6 @@ export const WAITER_TEXT = {
     buffetPriceRatesLine: 'Erwachsene €{adultPrice}/Person · Kinder €{childPrice}/Person',
     buffetEstimatedTotal: 'Voraussichtliche Summe: €{total}',
     buffetConfirm: 'Öffnen bestätigen',
-    buffetSaveGuestCounts: 'Personenzahl speichern',
-    buffetGuestCountsUnchanged:
-      'Erwachsene und Kinder stimmen bereits mit dem geöffneten Tisch überein.',
     buffetHeadcountBelowPaidFloor:
       'Es wurde bereits kassiert — die Buffet-Personenzahl darf nicht unter die bereits bezahlten Plätze fallen.',
     buffetNoRule: 'Für diesen Zeitraum gibt es keinen Preis. Regeln im Dashboard einrichten.',

@@ -10,6 +10,7 @@ import {
   clampMenuRowToMinQty,
   commitAllByItemAllocations,
   commitByItemConsumerRowEdit,
+  ensureSplitPersonNames,
   isCheckoutSplitLocked,
   isPausedCheckoutSplit,
   lockedPersonLineKey,
@@ -375,8 +376,48 @@ describe('resolveContinuationSplitShape', () => {
     assert.deepEqual(shape?.personNames, ['客人 1', '客人 2', '客人 3']);
   });
 
+  it('returns null for whole_table so drafts seed the default roster', () => {
+    assert.equal(
+      resolveContinuationSplitShape(
+        split({
+          split_mode: 'whole_table',
+          persons: [{ name: '__whole_table__' }],
+          result: [{ name: '__whole_table__', amount: 40 }],
+        }),
+        (n) => `Guest ${n}`,
+      ),
+      null,
+    );
+  });
+
+  it('pads even shape with one real guest to at least 2 people', () => {
+    const shape = resolveContinuationSplitShape(
+      split({
+        split_mode: 'even',
+        persons: [{ name: 'Ana' }],
+        result: [{ name: 'Ana', amount: 40 }],
+      }),
+      (n) => `Guest ${n}`,
+    );
+    assert.equal(shape?.personCount, 2);
+    assert.deepEqual(shape?.personNames, ['Ana', 'Guest 2']);
+  });
+
   it('returns null when split is missing', () => {
     assert.equal(resolveContinuationSplitShape(null, (n) => `Guest ${n}`), null);
+  });
+});
+
+describe('ensureSplitPersonNames', () => {
+  it('pads truncates and replaces blank or whole-table names', () => {
+    assert.deepEqual(
+      ensureSplitPersonNames(['Ana', '__whole_table__'], 3, (n) => `Guest ${n}`),
+      ['Ana', 'Guest 2', 'Guest 3'],
+    );
+    assert.deepEqual(
+      ensureSplitPersonNames(['A', 'B', 'C'], 2, (n) => `Guest ${n}`),
+      ['A', 'B'],
+    );
   });
 });
 

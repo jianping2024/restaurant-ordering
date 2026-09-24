@@ -17,10 +17,12 @@ import type { BillSplit, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import {
   isShapeLockSplitMode,
+  isWholeTableSplit,
   parseSplitMode,
 } from '@/lib/checkout-split-intent';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectedPersonNames } from '@/lib/checkout-session-payments';
+import { isWholeTablePayerName } from '@/lib/split-person-label';
 
 export type CheckoutContinuationIssue =
   | 'split_mode_locked'
@@ -58,25 +60,53 @@ export type ContinuationSplitShape = {
   personNames: string[];
 };
 
-/** Hydrate even/custom draft shape from a paused continuation split. */
+/**
+ * Sole even/custom draft roster builder: pad/truncate to `count`, replace blank or
+ * whole-table sentinel names with `guestName(i+1)`.
+ */
+export function ensureSplitPersonNames(
+  names: readonly string[],
+  count: number,
+  guestName: (n: number) => string,
+): string[] {
+  const n = Math.min(20, Math.max(1, Math.round(count)));
+  const next: string[] = [];
+  for (let i = 0; i < n; i += 1) {
+    const raw = names[i]?.trim() ?? '';
+    next.push(raw && !isWholeTablePayerName(raw) ? raw : guestName(i + 1));
+  }
+  return next;
+}
+
+/** Default even/custom draft roster (2 guests) when there is no continuation shape. */
+export function defaultSplitPersonNames(guestName: (n: number) => string, count = 2): string[] {
+  return ensureSplitPersonNames([], count, guestName);
+}
+
+/**
+ * Hydrate even/custom draft shape from a paused continuation split.
+ * Whole-table is not a multi-person draft — returns null so callers seed the default roster.
+ */
 export function resolveContinuationSplitShape(
   split: BillSplit | null | undefined,
   guestName: (n: number) => string,
 ): ContinuationSplitShape | null {
   if (!split) return null;
-  const count = lockedSplitRowCount(split);
-  if (count < 1) return null;
+  if (isWholeTableSplit(split)) return null;
+  const locked = lockedSplitRowCount(split);
+  if (locked < 1) return null;
 
-  const personNames: string[] = [];
-  for (let i = 0; i < count; i += 1) {
+  const personCount = split.split_mode === 'even' ? Math.max(2, locked) : locked;
+  const rawNames: string[] = [];
+  for (let i = 0; i < locked; i += 1) {
     const fromResult = split.result?.[i]?.name?.trim();
     const fromPerson = split.persons?.[i]?.name?.trim();
-    personNames.push(fromResult || fromPerson || guestName(i + 1));
+    rawNames.push(fromResult || fromPerson || '');
   }
 
   return {
-    personCount: split.split_mode === 'even' ? Math.max(2, count) : count,
-    personNames,
+    personCount,
+    personNames: ensureSplitPersonNames(rawNames, personCount, guestName),
   };
 }
 

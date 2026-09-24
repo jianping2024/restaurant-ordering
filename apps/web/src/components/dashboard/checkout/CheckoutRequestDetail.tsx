@@ -277,16 +277,6 @@ export function CheckoutRequestDetail({
         />
       </div>
 
-      {onReturnToPathChooser ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          <CheckoutPathChooserBackButton
-            label={t.pathChooserBack}
-            onClick={onReturnToPathChooser}
-            disabled={detailLocked}
-          />
-        </div>
-      ) : null}
-
       {pendingSettlementRows.length > 0 ? (
         <div className="mt-4 rounded-lg border-2 border-brand-gold/35 bg-brand-gold/5 p-3">
           <p className="text-[13px] font-medium text-brand-text mb-2">{t.pendingCollectionsTitle}</p>
@@ -370,6 +360,13 @@ export function CheckoutRequestDetail({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
         <div className="flex flex-wrap items-center gap-2">
+          {onReturnToPathChooser ? (
+            <CheckoutPathChooserBackButton
+              label={t.pathChooserBack}
+              onClick={onReturnToPathChooser}
+              disabled={detailLocked}
+            />
+          ) : null}
           <button
             type="button"
             onClick={onPrintBill}

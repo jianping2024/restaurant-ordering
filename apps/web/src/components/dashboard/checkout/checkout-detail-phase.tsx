@@ -23,7 +23,7 @@ export function resolveCheckoutDetailPhase(input: {
 }
 
 /**
- * Sole gate for「重新选择结账方式」: still whole_table, zero collected,
+ * Sole gate for path-back「取消」: still whole_table, zero collected,
  * and staff has already left path_chooser (whole_table settle or split_edit).
  */
 export function canReturnToCheckoutPathChooser(input: {
@@ -74,8 +74,8 @@ export function CheckoutPathChooser({
 }
 
 /**
- * Sole「重新选择结账方式」control for whole_table settle + split_edit.
- * Fixed bordered secondary button — same slot style in both phases.
+ * Sole path-back「取消」control for whole_table settle footer + split_edit.
+ * Same bordered secondary button; settle slots it before 打印账单.
  */
 export function CheckoutPathChooserBackButton(props: {
   label: string;

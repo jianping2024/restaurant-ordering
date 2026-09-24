@@ -7,6 +7,7 @@ import {
   parseBuffetConsumerRows,
   parseBuffetHeadcountInput,
   parseConsumerRowQty,
+  parseConsumerRows,
   rationalToRowQtyFields,
   resolveBuffetRowCounts,
   type ByItemConsumerRow,
@@ -19,6 +20,7 @@ import {
   normalizeRational,
   rationalFromInt,
   rationalFromNumber,
+  sumRationals,
   type Rational,
 } from '@/lib/rational-qty';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
@@ -41,14 +43,14 @@ function minRational(a: Rational, b: Rational): Rational {
   return compareRationals(a, b) <= 0 ? normalizeRational(a) : normalizeRational(b);
 }
 
+/**
+ * Qty already taken from the staff pool — sole source is {@link parseConsumerRows}
+ * (named shares only). Anonymous seed qtyWhole=1 must not occupy the pool.
+ */
 function allocatedMenuQty(rows: ByItemConsumerRow[]): Rational {
-  let sum = rationalFromInt(0);
-  for (const row of rows) {
-    const qty = parseConsumerRowQty(row);
-    if (!qty) continue;
-    sum = addRationals(sum, qty);
-  }
-  return sum;
+  const shares = parseConsumerRows(rows);
+  if (shares.length === 0) return rationalFromInt(0);
+  return sumRationals(shares.map((share) => share.qty));
 }
 
 export type StaffByItemPoolLine = {

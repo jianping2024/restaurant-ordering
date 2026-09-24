@@ -53,6 +53,35 @@ describe('staffByItemPoolLines', () => {
     assert.equal(pool[0]!.canAddWhole, true);
     assert.equal(pool[0]!.canAddHalf, true);
   });
+
+  it('ignores unnamed seed qtyWhole when computing remaining', () => {
+    const unitSpec: ByItemLineSpec = {
+      mode: 'menu',
+      key: 'line-unit',
+      lineQty: 1,
+      lineTotal: 3,
+      unitPrice: 3,
+    };
+    const unitLine = { ...orderLine, key: 'line-unit', quantity: 1, price: 3 };
+    const pool = staffByItemPoolLines({
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
+      allocations: {
+        'line-unit': [{
+          id: 'row-seed',
+          name: '',
+          qtyWhole: '1',
+          qtyNum: '',
+          qtyDen: '',
+        }],
+      },
+      lang: 'zh',
+    });
+    assert.equal(pool.length, 1);
+    assert.equal(pool[0]!.remainingLabel, '1');
+    assert.equal(pool[0]!.remainingPositive, true);
+    assert.equal(pool[0]!.canAddWhole, true);
+  });
 });
 
 describe('addWholeShareToPerson / addHalfShareToPerson', () => {
@@ -229,6 +258,47 @@ describe('addBuffetSeatToPerson', () => {
       personName: 'Ana',
       lineSpecs: [menuSpec],
       orderLines: [orderLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(ana[0]!.qtyLabel, '1');
+  });
+
+  it('can add whole on lineQty=1 despite unnamed seed qtyWhole=1', () => {
+    const unitSpec: ByItemLineSpec = {
+      mode: 'menu',
+      key: 'line-unit',
+      lineQty: 1,
+      lineTotal: 3,
+      unitPrice: 3,
+    };
+    const unitLine = { ...orderLine, key: 'line-unit', quantity: 1, price: 3 };
+    const next = addWholeShareToPerson({
+      allocations: {
+        'line-unit': [{
+          id: 'row-seed',
+          name: '',
+          qtyWhole: '1',
+          qtyNum: '',
+          qtyDen: '',
+        }],
+      },
+      lineSpecs: [unitSpec],
+      lineKey: 'line-unit',
+      personName: 'Ana',
+    });
+    assert.ok(next);
+    const pool = staffByItemPoolLines({
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.remainingPositive, false);
+    const ana = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
       allocations: next!,
       lang: 'zh',
     });

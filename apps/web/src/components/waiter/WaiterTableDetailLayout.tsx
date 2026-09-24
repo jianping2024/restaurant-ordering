@@ -23,6 +23,7 @@ import {
   runWaiterTableCheckoutClose,
 } from '@/lib/waiter-table-checkout-close';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { buildWholeTableCheckoutPayload } from '@/lib/checkout-split-intent';
 import { useRouter } from 'next/navigation';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import {
@@ -389,12 +390,14 @@ function WaiterTableCallCheckoutControl({
     if (busy) return;
     setBusy(true);
     try {
+      // Amount is provisional; submitCheckoutRequestForTable stamps billable total.
+      const wholeTable = buildWholeTableCheckoutPayload(0);
       const outcome = await requestCheckoutRequest({
         slug: restaurantSlug,
         tableId,
-        splitMode: 'whole_table',
-        persons: [{ name: '__whole_table__' }],
-        result: [{ name: '__whole_table__', amount: 0 }],
+        splitMode: wholeTable.splitMode,
+        persons: wholeTable.persons,
+        result: wholeTable.result,
       });
       if (!outcome.ok) {
         showToast(checkout.callCheckoutFailed, 'error');

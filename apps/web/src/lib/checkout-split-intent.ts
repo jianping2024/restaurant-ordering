@@ -54,22 +54,33 @@ export function checkoutIntentFromDraftSplitMode(splitMode: SplitMode | null): S
   return splitMode ?? 'whole_table';
 }
 
-/** Normalize legacy whole-table rows before RPC persistence. */
-export function normalizeCheckoutRequestPayload(payload: CheckoutRequestPayload): CheckoutRequestPayload {
+/**
+ * Normalize checkout intent shape before RPC.
+ * Whole-table obligation amount: pass `authoritativeWholeTableTotal` (server billable)
+ * — never trust a client placeholder (e.g. call-checkout `amount: 0`).
+ */
+export function normalizeCheckoutRequestPayload(
+  payload: CheckoutRequestPayload,
+  options?: { authoritativeWholeTableTotal?: number },
+): CheckoutRequestPayload {
   if (payload.splitMode === 'whole_table') {
-    const amount = payload.result[0]?.amount ?? 0;
+    const amount =
+      options?.authoritativeWholeTableTotal !== undefined
+        ? options.authoritativeWholeTableTotal
+        : (payload.result[0]?.amount ?? 0);
     return {
-      ...payload,
-      splitMode: 'whole_table',
-      persons: [{ name: WHOLE_TABLE_PAYER_KEY }],
-      result: wholeTableSplitResult(amount),
+      ...buildWholeTableCheckoutPayload(amount),
+      customerNif: payload.customerNif ?? null,
     };
   }
 
   if (payload.splitMode === 'custom' && payload.result.length === 1) {
     const row = payload.result[0];
     if (row && isWholeTablePayerName(row.name)) {
-      return buildWholeTableCheckoutPayload(row.amount);
+      return {
+        ...buildWholeTableCheckoutPayload(row.amount),
+        customerNif: payload.customerNif ?? null,
+      };
     }
   }
 

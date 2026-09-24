@@ -72,3 +72,24 @@ export function CheckoutPathChooser({
     </div>
   );
 }
+
+/**
+ * Sole「重新选择结账方式」control for whole_table settle + split_edit.
+ * Fixed bordered secondary button — same slot style in both phases.
+ */
+export function CheckoutPathChooserBackButton(props: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      disabled={props.disabled}
+      className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+    >
+      {props.label}
+    </button>
+  );
+}

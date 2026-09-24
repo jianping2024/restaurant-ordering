@@ -58,6 +58,7 @@ export function OrderHistoryDetailModal({
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
   const checkoutT = getMessages(lang).checkout;
+  const billT = getMessages(lang).bill;
   const capabilities = fromCapabilitiesPayload(capabilitiesPayload ?? ([] as CapabilitiesPayload));
   const canPrintInvoice =
     billSyncToFiscal && mayFiscalBillQueue(capabilities) && Boolean(entry?.billSplit?.id);
@@ -265,6 +266,7 @@ export function OrderHistoryDetailModal({
             title: checkoutT.printInvoiceModalTitle,
             nif: checkoutT.printInvoiceNif,
             nifOptional: checkoutT.printInvoiceOptional,
+            nifInvalid: billT.nifInvalid,
             name: checkoutT.printInvoiceName,
             nameOptional: checkoutT.printInvoiceOptional,
             paymentMethod: checkoutT.printInvoicePaymentMethod,

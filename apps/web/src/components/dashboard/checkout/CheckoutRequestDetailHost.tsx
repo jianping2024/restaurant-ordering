@@ -120,6 +120,7 @@ export function CheckoutRequestDetailHost({
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
+  const billT = getMessages(lang).bill;
   const {
     isResumeBusy,
     isResumeMutating,
@@ -654,6 +655,7 @@ export function CheckoutRequestDetailHost({
           title: t.printInvoiceModalTitle,
           nif: t.printInvoiceNif,
           nifOptional: t.printInvoiceOptional,
+          nifInvalid: billT.nifInvalid,
           name: t.printInvoiceName,
           nameOptional: t.printInvoiceOptional,
           paymentMethod: t.printInvoicePaymentMethod,

@@ -5,6 +5,7 @@
 import { mintBrowserUuid } from '@/lib/browser-uuid';
 import type { BillSyncAutoIssueFields } from '@/lib/bill-sync-build-payload';
 import { billSyncDocumentTypeForPayment } from '@/lib/bill-sync-payload';
+import { normalizePortugueseNif } from '@/lib/pt-nif';
 import {
   enqueueStaffBillSync,
   fetchStaffBillSyncStatus,
@@ -94,11 +95,14 @@ export async function runStaffPrintFiscalInvoice(
   }
 
   const document_type = billSyncDocumentTypeForPayment(paymentMethod);
+  const customerNif = input.customerNif?.trim()
+    ? normalizePortugueseNif(input.customerNif)
+    : '';
   const autoIssue: BillSyncAutoIssueFields = {
     auto_issue: true,
     payment_method: paymentMethod,
     document_type,
-    ...(input.customerNif?.trim() ? { customer_nif: input.customerNif.trim() } : {}),
+    ...(customerNif ? { customer_nif: customerNif } : {}),
     ...(input.customerName?.trim() ? { customer_name: input.customerName.trim() } : {}),
     ...(input.issueScopeId?.trim()
       ? { issue_mode: 'person' as const, issue_scope_id: input.issueScopeId.trim() }

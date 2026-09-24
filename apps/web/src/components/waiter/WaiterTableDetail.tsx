@@ -6,12 +6,6 @@ import { useRouter } from 'next/navigation';
 import type { Order, CartItem } from '@/types';
 import { resolveBuffetFormAlignState, type ResolvedBuffetPriceRow } from '@/lib/buffet-order';
 import { isTableSessionOpen } from '@/lib/guest-table-ordering';
-import {
-  buffetOpenSubmitBlockReason,
-  buffetWaiterOpenIntentFromSession,
-  postWaiterBuffetOpenAndCommit,
-} from '@/lib/waiter-buffet-open-submit';
-import { toastWaiterBuffetOpenFailure } from '@/lib/waiter-buffet-open-failure-toast';
 import { isBuffetPackagesEditorReady } from '@/components/waiter/WaiterBuffetPackagesEditor';
 import { ordersForWaiterTableView } from '@/lib/waiter-table-orders';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -26,6 +20,7 @@ import { useWaiterTableDetail } from '@/components/waiter/useWaiterTableDetail';
 import { useStaffAssistedMenuEntryPrefetch } from '@/components/waiter/useStaffAssistedMenuEntryPrefetch';
 import { WaiterStaffOrderingPanel } from '@/components/waiter/WaiterStaffOrderingPanel';
 import { useWaiterTableBuffetForm } from '@/components/waiter/useWaiterTableBuffetForm';
+import { useWaiterBuffetOpenMutation } from '@/components/waiter/useWaiterBuffetOpenMutation';
 import { WAITER_TEXT } from '@/components/waiter/waiter-messages';
 import { formatWaiterTableDetailHeading, formatWaiterOrderedItemsSessionTotal } from '@/lib/waiter-table-detail-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
@@ -271,7 +266,11 @@ function WaiterTableDetailInner({
     isDemo,
     supabase,
   });
-  const [buffetSubmitting, setBuffetSubmitting] = useState(false);
+  const buffetEditorReady = isBuffetPackagesEditorReady(
+    guestSnapshot,
+    resolvedByBuffetId,
+    buffetPriceLoading,
+  );
 
   useEffect(() => {
     setOperationType(null);
@@ -384,8 +383,6 @@ function WaiterTableDetailInner({
     }),
     [checkoutRequestedAt, isCheckoutPending, orders, selectedTable, sessionMeta],
   );
-
-  const buffetActionLabel = hasOpenSession ? t.buffetSaveGuestCounts : t.buffetConfirm;
 
   const demoActiveTableIds = useMemo(() => {
     if (!isDemo) return [] as string[];
@@ -822,55 +819,21 @@ function WaiterTableDetailInner({
     hasActiveBuffets: activeBuffets.length > 0,
   });
 
-  const applyBuffetToTable = async () => {
-    if (isCheckoutPending) {
-      notifyCheckoutLocked();
-      return;
-    }
-
-    const editorReady = isBuffetPackagesEditorReady(
-      guestSnapshot,
-      resolvedByBuffetId,
-      buffetPriceLoading,
-    );
-    const blockReason = buffetOpenSubmitBlockReason(
-      orders,
-      guestSnapshot,
-      activeBuffetIds,
-      editorReady,
-      hasOpenSession,
-    );
-    if (blockReason === 'editor_not_ready') {
-      showToast(t.buffetNoRule, 'error');
-      return;
-    }
-    if (blockReason === 'unchanged') {
-      showToast(t.buffetGuestCountsUnchanged, 'info');
-      return;
-    }
-
-    setBuffetSubmitting(true);
-    try {
-      const result = await postWaiterBuffetOpenAndCommit({
-        restaurantSlug: restaurant.slug,
-        tableId,
-        guestSnapshot,
-        activeBuffetIds,
-        intent: buffetWaiterOpenIntentFromSession(hasOpenSession),
-      });
-      if (!result.ok) {
-        if (result.status === 409) {
-          await refresh();
-        }
-        toastWaiterBuffetOpenFailure(t, result);
-        return;
-      }
-      applyModel(result.model);
-      showToast(t.actionSuccess, 'success');
-    } finally {
-      setBuffetSubmitting(false);
-    }
-  };
+  const { submitting: buffetSubmitting, submit: submitBuffetOpen } = useWaiterBuffetOpenMutation({
+    lang,
+    restaurantSlug: restaurant.slug,
+    tableId,
+    orders,
+    guestSnapshot,
+    activeBuffetIds,
+    hasOpenSession,
+    editorReady: buffetEditorReady,
+    autosave: detailActions.showBuffetPanel && hasOpenSession,
+    onSuccess: applyModel,
+    onStaleConflict: () => {
+      void refresh();
+    },
+  });
 
   const orderLineKey = (orderId: string, itemIdx: number) => `${orderId}:${itemIdx}`;
 
@@ -1070,9 +1033,18 @@ function WaiterTableDetailInner({
                 }}
                 resolvedByBuffetId={resolvedByBuffetId}
                 buffetPriceLoading={buffetPriceLoading}
-                buffetActionLabel={buffetActionLabel}
-                buffetSubmitting={buffetSubmitting}
-                onSave={() => whenDetailActionsArmed(() => void applyBuffetToTable())}
+                confirmOpen={
+                  hasOpenSession
+                    ? null
+                    : {
+                        label: t.buffetConfirm,
+                        submitting: buffetSubmitting,
+                        onConfirm: () =>
+                          whenDetailActionsArmed(() => {
+                            void submitBuffetOpen();
+                          }),
+                      }
+                }
               />
             ) : null}
 

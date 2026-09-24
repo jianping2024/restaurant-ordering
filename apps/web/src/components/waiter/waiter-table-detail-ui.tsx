@@ -43,13 +43,13 @@ export const waiterDetailLayout = {
   cardBody: `${WAITER_DETAIL_GUTTER_PX} py-4`,
   /** Ordered dish rows — list title sits at top of this block, flush above first row. */
   sectionBody: `space-y-2 ${WAITER_DETAIL_GUTTER_PX} pt-2 pb-3`,
-  /** Save guests, continue ordering, close table — same action footprint. */
+  /** Confirm open / continue ordering / close table — same action footprint. */
   primaryAction: 'w-full justify-center sm:w-auto whitespace-nowrap sm:max-w-none xl:w-auto',
   /** Transfer, merge, call bill. */
   secondaryAction: 'w-full justify-center sm:w-auto',
   buffetStrip:
     'grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5 xl:items-stretch xl:gap-0',
-  /** Save guests — aligns under guest stepper columns on the package grid. */
+  /** Cold-open confirm — aligns under guest stepper columns on the package grid. */
   buffetDetailSummaryRow: `mt-4 ${buffetDetailPackageGrid}`,
   buffetDetailSummaryActions: 'flex flex-wrap items-center justify-end gap-3 sm:col-span-2',
   /** Occupied-table actions — one centered row; buttons wrap on narrow viewports. */

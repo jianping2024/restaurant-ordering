@@ -67,13 +67,13 @@
 
 | 元素 | 判定 | 未开台 | 已开台 |
 |------|------|--------|--------|
-| 主按钮文案 | `aggregateBuffetForOrders(sessionOrders)` 是否为 null | `buffetConfirm`（**确认开台**） | `buffetSaveGuestCounts`（**保存人数**） |
+| 主按钮 | `hasOpenSession` | `buffetConfirm`（**确认开台**）显式提交 | **无按钮**；加减人数 debounce 后 `intent=save` 自动落库 |
 | 预计合计 | `resolveBuffetOpenPricePreview(resolved, adults, children)` | 有有效单价时显示 `buffetEstimatedTotal` | 同上（随计数实时重算） |
 
-**已开台** = session 内存在 active `buffet_base`（与 `aggregateBuffetForOrders` 一致）。布局重构（如 `WaiterTableBuffetPanel`）须通过 **`buffetActionLabel` prop** 传入文案，**不得**在 `WaiterTableDetailLayout` 内写死「确认开台」或「保存人数」。
+**已开台** = 存在 active session（详情 `isTableSessionOpen`）。冷开台主按钮通过 `confirmOpen`（`label`=`buffetConfirm`）传入 `WaiterTableBuffetPanel`，**不得**在 layout 内写死「确认开台」；已开台 **不得**再挂「保存人数」第二步。
 
-1. 点击主按钮前：`isBuffetSubmitSnapshotUnchanged` / `buffetOpenSubmitBlockReason` → 未变或编辑器未就绪则 toast，**不发请求**。
-2. 有变化：一次 `POST …/staff/waiter/buffet`，body 带 **`intent`**：`open`（看板确认开台 / 详情无 session）或 `save`（已开台保存人数）。由 `buffetWaiterOpenIntentFromSession(hasOpenSession)` 派生，**禁止**确认前再 GET 桌模型做占桌预检。
+1. **冷开台**：点「确认开台」前 `buffetOpenSubmitBlockReason` → 编辑器未就绪则 toast，**不发请求**；有变化：一次 `POST …/staff/waiter/buffet`，`intent=open`（`buffetWaiterOpenIntentFromSession(false)`）。**禁止**确认前再 GET 桌模型做占桌预检。
+2. **已开台改人数**：stepper 改 `guestSnapshot` → `useWaiterBuffetOpenMutation` debounce（`BUFFET_GUEST_AUTOSAVE_DEBOUNCE_MS`）→ 同一 `postWaiterBuffetOpenAndCommit`，`intent=save`；无变化静默 no-op；失败 toast + 409 时 `refresh`。唯一客户端提交口：`useWaiterBuffetOpenMutation`（看板 sheet 与详情共用）。
 3. 成功：`commitAuthoritativeWaiterTablePageModel` + 看板 `applyOpenTableToBoard`（用响应 `model`）；详情 `applyModel`。
 4. 失败：`toastWaiterBuffetOpenFailure`。`intent=open` 且桌已有 active session → `409` / `already_open`（服务端唯一陈旧守卫，不写人头）；看板 sheet 关 sheet + `onStaleBoard`；详情 409 时 `refresh()`。
 
@@ -93,8 +93,8 @@
 | 乐观 UI | `applyBuffetOpenOptimisticToOrders` |
 | 写后内存投影 | `applyBuffetOpenWritePlanToOrders` |
 | 响应组装 | `buildActiveWaiterTablePageModel` |
-| 服务端单管道（开台 + 保存人数） | `runBuffetWaiterOpenPipeline`（`intent` + `already_open`） |
-| 客户端提交 | `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession` |
+| 服务端单管道（开台 + 改人数） | `runBuffetWaiterOpenPipeline`（`intent` + `already_open`） |
+| 客户端提交（开台确认 + 已开台 autosave） | `useWaiterBuffetOpenMutation` → `postWaiterBuffetOpenAndCommit` / `buffetWaiterOpenIntentFromSession` |
 | 跨页新鲜度 | `commitAuthoritativeWaiterTablePageModel` / `reconcileWaiterBoardWithPublished` |
 | API 路由 | `staff/waiter/buffet/route.ts`（`buffets[]` + `intent`） |
 | 失败日志 | 唯一出口 `respondWaiterBuffetFailure` → `[waiter_buffet] {"event":"open_failed",status,error,code?,table_id?,intent?,parse_*?}`（与 `logJsonConsoleEvent` / `order_append` 同形） |

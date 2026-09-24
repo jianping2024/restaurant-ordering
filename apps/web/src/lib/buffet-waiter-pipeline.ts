@@ -130,7 +130,7 @@ function pipelineFailure(
 }
 
 /**
- * Single server pipeline for 确认开台 and 保存人数 — one read/write/assemble path.
+ * Single server pipeline for 确认开台 and occupied guest-count autosave — one read/write/assemble path.
  * See docs/buffet-open-table.zh.md.
  */
 export async function runBuffetWaiterOpenPipeline(

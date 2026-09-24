@@ -74,7 +74,7 @@ export type FloorBoardCapabilities = {
   canMerge: boolean;
   /** Unpaid / force close (关台); not settled 关台结账. */
   canForceClose: boolean;
-  /** 开台 / 保存人数 on table detail — sole tables.open_session. */
+  /** 开台 / 用餐人数 on table detail — sole tables.open_session. */
   canOpenTableSession: boolean;
 };
 

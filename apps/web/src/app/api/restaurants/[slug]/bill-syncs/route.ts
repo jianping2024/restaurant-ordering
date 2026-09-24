@@ -9,6 +9,7 @@ import { resolveBillSyncSourceSale } from '@/lib/bill-sync-resolve-source-sale';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { enqueueBillSyncJob, enqueueBillSyncReprintJob } from '@/lib/bill-sync-enqueue';
 import { loadIssuedFiscalDocument } from '@/lib/bill-sync-issued-document';
+import { parsePortugueseNif } from '@/lib/pt-nif';
 import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { NextResponse } from 'next/server';
 
@@ -74,13 +75,17 @@ export async function POST(
         ? body.document_type
         : undefined;
     const issue_scope_id = issueScopeIdRaw;
+    const customerNifRaw =
+      typeof body.customer_nif === 'string' ? body.customer_nif.trim() : '';
+    const customerNif = customerNifRaw ? parsePortugueseNif(customerNifRaw) : null;
+    if (customerNifRaw && !customerNif) {
+      return NextResponse.json({ error: 'invalid_nif' }, { status: 400 });
+    }
     autoIssue = {
       auto_issue: true,
       payment_method,
       ...(document_type ? { document_type } : {}),
-      ...(typeof body.customer_nif === 'string' && body.customer_nif.trim()
-        ? { customer_nif: body.customer_nif.trim() }
-        : {}),
+      ...(customerNif ? { customer_nif: customerNif } : {}),
       ...(typeof body.customer_name === 'string' && body.customer_name.trim()
         ? { customer_name: body.customer_name.trim() }
         : {}),

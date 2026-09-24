@@ -8,11 +8,18 @@ import {
   billSyncDocumentTypeForPayment,
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
+import {
+  formatPortugueseNif,
+  normalizePortugueseNif,
+  validatePortugueseNif,
+} from '@/lib/pt-nif';
 
 export type PrintFiscalInvoiceModalLabels = {
   title: string;
   nif: string;
   nifOptional: string;
+  /** Same copy as bill.nifInvalid — Portuguese NIF mod-11 failure. */
+  nifInvalid: string;
   name: string;
   nameOptional: string;
   paymentMethod: string;
@@ -59,6 +66,7 @@ export function PrintFiscalInvoiceModal({
   }, [open, initialPaymentMethod]);
 
   const docType = billSyncDocumentTypeForPayment(payment);
+  const nifInvalid = nif.trim().length > 0 && !validatePortugueseNif(nif);
 
   return (
     <Modal
@@ -76,12 +84,20 @@ export function PrintFiscalInvoiceModal({
           </span>
           <input
             value={nif}
-            onChange={(e) => setNif(e.target.value)}
+            onChange={(e) => setNif(formatPortugueseNif(e.target.value))}
             disabled={busy}
-            className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text font-mono tabular-nums"
+            className={`mt-1 w-full rounded-lg border bg-brand-bg px-3 py-2 text-brand-text font-mono tabular-nums ${
+              nifInvalid
+                ? 'border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/40'
+                : 'border-brand-border'
+            }`}
             inputMode="numeric"
             autoComplete="off"
+            aria-invalid={nifInvalid}
           />
+          {nifInvalid ? (
+            <p className="mt-1.5 text-[12px] text-red-500">{labels.nifInvalid}</p>
+          ) : null}
         </label>
         <label className="block text-sm">
           <span className="text-brand-text-muted">
@@ -123,14 +139,15 @@ export function PrintFiscalInvoiceModal({
             variant="gold"
             size="sm"
             loading={busy}
-            disabled={busy}
-            onClick={() =>
+            disabled={busy || nifInvalid}
+            onClick={() => {
+              if (nifInvalid) return;
               onConfirm({
                 paymentMethod: payment,
-                customerNif: nif.trim(),
+                customerNif: normalizePortugueseNif(nif),
                 customerName: name.trim(),
-              })
-            }
+              });
+            }}
           >
             {busy ? labels.operating : labels.confirm}
           </Button>

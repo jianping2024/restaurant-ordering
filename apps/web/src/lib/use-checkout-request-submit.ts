@@ -16,6 +16,7 @@ import {
   validateSubmitSplitDraft,
 } from '@/lib/checkout-request-submit';
 import { stageCheckoutRequestForQueue } from '@/lib/checkout-request-staging';
+import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -187,19 +188,19 @@ export function useCheckoutRequestSubmit(params: Params) {
       });
 
       if (!requestResult.ok) {
-        const message =
-          requestResult.error === 'invalid_nif'
-            ? messages.nifInvalid
-            : requestResult.error === 'guest_count_required'
-              ? messages.guestCountRequired
-              : requestResult.error === 'party_merge_required'
-                ? messages.partyMergeRequired
-                : requestResult.error === 'split_mode_locked'
-                  || requestResult.error === 'locked_allocation_changed'
-                  || requestResult.error === 'split_shape_locked'
-                  ? messages.splitPlanLocked
-                  : messages.actionFailed;
-        showToast(message, 'error');
+        showToast(
+          messageForCheckoutRequestError(requestResult.error, {
+            guestCountRequired: messages.guestCountRequired,
+            partyMergeRequired: messages.partyMergeRequired,
+            emptySession: messages.actionFailed,
+            noActiveSession: messages.actionFailed,
+            tableNotAvailable: messages.actionFailed,
+            invalidNif: messages.nifInvalid,
+            splitPlanLocked: messages.splitPlanLocked,
+            fallback: messages.actionFailed,
+          }),
+          'error',
+        );
         return;
       }
 

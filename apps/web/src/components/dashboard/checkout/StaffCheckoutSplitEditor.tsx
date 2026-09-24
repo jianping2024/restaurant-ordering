@@ -14,6 +14,7 @@ import { deriveBillView } from '@/lib/customer-bill-sync';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { getMessages } from '@/lib/i18n/messages';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
+import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import type { BillSplit, Order } from '@/types';
@@ -174,9 +175,16 @@ export function StaffCheckoutSplitEditor({
       });
       if (!outcome.ok) {
         showToast(
-          outcome.error === 'split_mode_locked' || outcome.error === 'locked_allocation_changed'
-            ? billT.splitPlanLocked
-            : checkoutT.callCheckoutFailed,
+          messageForCheckoutRequestError(outcome.error, {
+            guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
+            partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
+            emptySession: checkoutT.callCheckoutEmptySession,
+            noActiveSession: checkoutT.callCheckoutNoActiveSession,
+            tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
+            invalidNif: billT.nifInvalid,
+            splitPlanLocked: billT.splitPlanLocked,
+            fallback: checkoutT.callCheckoutFailed,
+          }),
           'error',
         );
         return;
@@ -187,7 +195,7 @@ export function StaffCheckoutSplitEditor({
     }
   }, [
     billT,
-    checkoutT.callCheckoutFailed,
+    checkoutT,
     onConfirmed,
     request.table_id,
     restaurantSlug,

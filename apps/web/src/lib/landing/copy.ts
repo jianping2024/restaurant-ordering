@@ -12,7 +12,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     hero: {
       tag: '葡萄牙大型中餐自助 · 本地运营系统',
-      titleA: '少投入 · 不断网',
+      titleA: '少投入 · 断网不停业',
       titleB: '流程可追溯',
       desc: '不必每桌平板；系统装在店里，外网断了也能营业。权限清晰、价目自动切换、订单历史可查 — 专为大型自助打造。',
       whatsappCta: 'WhatsApp 咨询',

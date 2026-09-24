@@ -61,6 +61,8 @@ interface Props {
   lang: UILanguage;
   t: CheckoutT;
   onBack: () => void;
+  /** Whole-table zero-collect path rechoose; omit when locked. */
+  onReturnToPathChooser?: () => void;
   onDiscountRateChange: (rate: number) => void;
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
@@ -175,6 +177,7 @@ export function CheckoutRequestDetail({
   lang,
   t,
   onBack,
+  onReturnToPathChooser,
   onDiscountRateChange,
   onDiscountRateFocus,
   onDiscountRateBlur,
@@ -229,6 +232,15 @@ export function CheckoutRequestDetail({
           className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors mb-4 lg:hidden"
         >
           ← {t.backToList}
+        </button>
+      ) : null}
+      {onReturnToPathChooser ? (
+        <button
+          type="button"
+          onClick={onReturnToPathChooser}
+          className="text-sm font-semibold text-brand-text-muted hover:text-brand-text mb-4 block"
+        >
+          ← {t.pathChooserBack}
         </button>
       ) : null}
 

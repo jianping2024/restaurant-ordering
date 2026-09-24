@@ -28,6 +28,7 @@ import { ListPaginationBar } from '@/components/ui/ListPaginationBar';
 import { isOperationalSourceCloseKind } from '@/lib/order-history/close-kind';
 import { defaultOrderHistoryClosedRange } from '@/lib/order-history/date-range';
 import { LIST_DEFAULT_PAGE_SIZE, type ListPageSize } from '@/lib/paginate-list';
+import type { CapabilitiesPayload } from '@/lib/permissions/can';
 
 interface Props {
   initialItems: OrderHistoryEntry[];
@@ -38,6 +39,8 @@ interface Props {
   initialClosedTo: string;
   tables?: RestaurantTableRow[];
   restaurantSlug: string;
+  billSyncToFiscal?: boolean;
+  capabilities?: CapabilitiesPayload;
 }
 
 interface TableOption {
@@ -55,6 +58,8 @@ export function OrdersHistoryManager({
   initialClosedTo,
   tables = [],
   restaurantSlug,
+  billSyncToFiscal = false,
+  capabilities,
 }: Props) {
   const { lang } = useLanguage();
   const i18n = getMessages(lang).orderHistory;
@@ -337,6 +342,8 @@ export function OrdersHistoryManager({
         entries={entries}
         itemCodeByMenuId={itemCodeByMenuId}
         restaurantSlug={restaurantSlug}
+        billSyncToFiscal={billSyncToFiscal}
+        capabilities={capabilities}
         onClose={() => setSelectedEntry(null)}
         onSelectEntry={setSelectedEntry}
       />

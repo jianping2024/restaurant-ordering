@@ -9,14 +9,16 @@ import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
 import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
 import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Order, SplitPerson } from '@/types';
+import type { Order, SplitPerson, SplitResult } from '@/types';
 import { randomUUID } from 'crypto';
 
 export type BillSyncLiveContext = {
   billSplitId: string;
+  sessionId: string;
   tableDisplayName: string;
   splitMode: string | null;
   persons: SplitPerson[];
+  result: SplitResult[];
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
@@ -34,7 +36,7 @@ export async function loadBillSyncLiveContext(input: {
 }): Promise<LoadBillSyncLiveContextResult> {
   const { data: split, error: splitErr } = await input.admin
     .from('bill_splits')
-    .select('id, restaurant_id, table_id, session_id, status, total_amount, split_mode, persons')
+    .select('id, restaurant_id, table_id, session_id, status, total_amount, split_mode, persons, result')
     .eq('id', input.billSplitId)
     .eq('restaurant_id', input.restaurantId)
     .maybeSingle();
@@ -90,10 +92,12 @@ export async function loadBillSyncLiveContext(input: {
     ok: true,
     ctx: {
       billSplitId: input.billSplitId,
+      sessionId,
       tableDisplayName:
         typeof tableRow?.display_name === 'string' ? tableRow.display_name : '—',
       splitMode: typeof split.split_mode === 'string' ? split.split_mode : null,
       persons: Array.isArray(split.persons) ? (split.persons as SplitPerson[]) : [],
+      result: Array.isArray(split.result) ? (split.result as SplitResult[]) : [],
       orders,
       itemCodeByMenuId,
       vatRateByMenuId,
@@ -111,6 +115,7 @@ export function liveBillSyncContentFingerprint(ctx: BillSyncLiveContext): string
     tableDisplayName: ctx.tableDisplayName,
     splitMode,
     persons: ctx.persons,
+    result: ctx.result,
     orders: ctx.orders,
     itemCodeByMenuId: ctx.itemCodeByMenuId,
     vatRateByMenuId: ctx.vatRateByMenuId,

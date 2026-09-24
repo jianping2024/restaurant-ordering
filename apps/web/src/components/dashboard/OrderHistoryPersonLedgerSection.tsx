@@ -20,10 +20,13 @@ type ShareLabels = {
 
 type PrintHandlers = {
   showSplitReceiptActions: boolean;
+  showPrintInvoiceActions?: boolean;
   onPrintReceipt?: (payment: SessionCollectedPayment) => void;
+  onPrintInvoice?: (payment: SessionCollectedPayment) => void;
   isPrintReceiptBusy?: (payment: SessionCollectedPayment) => boolean;
   printReceiptCooldownSeconds?: (payment: SessionCollectedPayment) => number;
   isPrintReceiptOnCooldown?: (payment: SessionCollectedPayment) => boolean;
+  printInvoiceLabel?: string;
 };
 
 type Props = {
@@ -134,6 +137,18 @@ export function OrderHistoryPersonLedgerSection({
                       className="text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors whitespace-nowrap"
                     >
                       {printLabel}
+                    </button>
+                  ) : null}
+                  {printHandlers?.showPrintInvoiceActions &&
+                  printHandlers.onPrintInvoice &&
+                  printPayment &&
+                  printPayment.person_index != null ? (
+                    <button
+                      type="button"
+                      onClick={() => printHandlers.onPrintInvoice?.(printPayment)}
+                      className="text-[12px] font-semibold px-2.5 py-1 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors whitespace-nowrap"
+                    >
+                      {printHandlers.printInvoiceLabel ?? checkoutT.printInvoice}
                     </button>
                   ) : null}
                 </>

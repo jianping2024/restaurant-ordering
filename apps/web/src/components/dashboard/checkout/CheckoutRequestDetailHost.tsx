@@ -17,6 +17,7 @@ import {
   hasConfirmedPerson,
   resumeCheckoutBlockReason,
   resumeOrderingConfirmVariant,
+  type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import {
   buildSplitSettlementRows,
@@ -30,8 +31,10 @@ import {
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
-import { maySyncAndCheckoutClose } from '@/lib/bill-sync-permission';
-import { useStaffBillSync } from '@/lib/use-staff-bill-sync';
+import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
+import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
+import { PrintFiscalInvoiceModal } from '@/components/dashboard/checkout/PrintFiscalInvoiceModal';
+import { billSyncByItemScopeId } from '@/lib/bill-sync-scope-id';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
@@ -51,14 +54,19 @@ import {
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import type { Capabilities } from '@/lib/permissions/can';
-import { can } from '@/lib/permissions/can';
 import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
-
+import {
+  CheckoutPathChooser,
+  resolveCheckoutDetailPhase,
+  type StaffCheckoutPathChoice,
+} from '@/components/dashboard/checkout/checkout-detail-phase';
+import { StaffCheckoutSplitEditor } from '@/components/dashboard/checkout/StaffCheckoutSplitEditor';
 type Props = {
   request: BillSplit;
   restaurantId: string;
   restaurantSlug: string;
   capabilities: Capabilities;
+  billSyncToFiscal?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
   /** Called after the queue row is removed because everyone paid. */
@@ -71,15 +79,18 @@ export function CheckoutRequestDetailHost({
   restaurantId,
   restaurantSlug,
   capabilities,
+  billSyncToFiscal = false,
   showBackButton = true,
   onBack,
   onAllPaid,
   onCloseTableComplete,
 }: Props) {
   const canForceCloseTable = mayForceCloseTable(capabilities);
-  const canSyncAndCheckoutClose = maySyncAndCheckoutClose(capabilities);
-  const printBillOnSyncClose = can(capabilities, 'checkout.print_pre_bill');
-  const [syncCloseConfirmOpen, setSyncCloseConfirmOpen] = useState(false);
+  const canPrintFiscalInvoice =
+    billSyncToFiscal && mayFiscalBillQueue(capabilities);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [invoiceScopeId, setInvoiceScopeId] = useState<string | undefined>(undefined);
+  const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
   const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
     useCheckoutRequests();
   const waiterBoard = useWaiterBoardOptional();
@@ -123,7 +134,6 @@ export function CheckoutRequestDetailHost({
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
-  const [billContentReady, setBillContentReady] = useState(false);
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printCheckoutBill,
@@ -139,12 +149,10 @@ export function CheckoutRequestDetailHost({
       setSelectedLines([]);
       setSessionOrders([]);
       setItemCodeByMenuId({});
-      setBillContentReady(true);
       return;
     }
 
     let cancelled = false;
-    setBillContentReady(false);
     const loadLines = async () => {
       const { data: orderRows, error } = await supabase
         .from('orders')
@@ -157,8 +165,7 @@ export function CheckoutRequestDetailHost({
         setSelectedLines([]);
         setSessionOrders([]);
         setItemCodeByMenuId({});
-        setBillContentReady(true);
-        return;
+          return;
       }
 
       const orders = (orderRows || []) as Order[];
@@ -176,7 +183,6 @@ export function CheckoutRequestDetailHost({
       setSessionOrders(orders);
       setItemCodeByMenuId(codes);
       setSelectedLines(checkoutLinesFromOrders(orders, lang, codes));
-      setBillContentReady(true);
     };
 
     void loadLines();
@@ -365,64 +371,88 @@ export function CheckoutRequestDetailHost({
   const discountApplying = billDiscount.applyingRequestId === request.id;
   const billCooldownKey = staffBillPrintCooldownKey(request.id);
   const printBillBusy = isPrintBillBusy(request.id);
-  const billSyncRefreshKey = useMemo(() => {
-    const orderStamp = sessionOrders
-      .map((o) => `${o.id}:${o.updated_at ?? ''}:${(o.items ?? []).length}`)
-      .join('|');
-    return `${request.id}:${request.total_amount}:${request.discount_rate ?? 0}:${orderStamp}:${billContentReady ? '1' : '0'}`;
-  }, [
-    billContentReady,
-    request.discount_rate,
-    request.id,
-    request.total_amount,
-    sessionOrders,
-  ]);
   const {
-    billSyncAvailable,
-    billSyncBusy,
-    billSyncBlocked,
-    billSyncContentUnchanged,
-    billSyncJob,
-    syncAndCheckoutClose,
-  } = useStaffBillSync({
+    printFiscalInvoiceAvailable,
+    printFiscalInvoiceBusy,
+    printFiscalInvoice,
+  } = useStaffPrintFiscalInvoice({
     restaurantSlug,
     billSplitId: request.id,
-    tableId: request.table_id,
-    enabled: canSyncAndCheckoutClose,
-    printBillOnClose: printBillOnSyncClose,
-    refreshKey: billSyncRefreshKey,
+    enabled: canPrintFiscalInvoice,
     labels: {
-      syncBillComplete: t.syncBillComplete,
-      syncBillFailed: t.syncBillFailed,
-      syncBillDisabled: t.syncBillDisabled,
-      syncBillDirty: t.syncBillDirty,
-      syncBillCloseFailed: t.syncBillCloseFailed,
-      syncBillClosePrintFailed: t.syncBillClosePrintFailed,
-      syncBillCloseSuccess: t.syncBillCloseSuccess,
-    },
-    onClosed: () => {
-      syncBoardAfterMutation(request.table_id);
-      onCloseTableComplete?.();
-      void reload();
+      printInvoiceSuccess: t.printInvoiceSuccess,
+      printInvoiceFailed: t.printInvoiceFailed,
+      printInvoiceDisabled: t.printInvoiceDisabled,
     },
   });
-  const billSyncStatusLabel = billSyncContentUnchanged
-    ? t.syncBillComplete
-    : billSyncJob?.status === 'failed'
-      ? t.syncBillFailed
-      : billSyncJob?.status === 'pending' || billSyncJob?.status === 'processing'
-        ? t.syncBillOperating
-        : null;
+
+  const openInvoiceModal = useCallback((scopeId?: string) => {
+    setInvoiceScopeId(scopeId);
+    setInvoiceModalOpen(true);
+  }, []);
+
+  const openSplitInvoice = useCallback(
+    (payment: SessionCollectedPayment) => {
+      const name = payment.person_name?.trim();
+      if (!name) return;
+      openInvoiceModal(billSyncByItemScopeId(request.id, name));
+    },
+    [openInvoiceModal, request.id],
+  );
+
   const showSplitReceiptActions = isMultiPersonSplitBill(request);
+  const detailPhase = resolveCheckoutDetailPhase({
+    splitMode: request.split_mode,
+    collected: summary.collected,
+    pathChoice,
+  });
+
   const detailLocked =
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
     discountApplying ||
     printBillBusy ||
-    billSyncBusy;
+    printFiscalInvoiceBusy;
 
   return (
     <>
+      {detailPhase === 'path_chooser' ? (
+        <div className="mb-3 space-y-3">
+          {showBackButton ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-sm font-semibold text-brand-text-muted hover:text-brand-text"
+            >
+              ← {t.backToList}
+            </button>
+          ) : null}
+          <CheckoutPathChooser
+            title={t.pathChooserTitle}
+            wholeTableLabel={t.pathChooserWholeTable}
+            splitLabel={t.pathChooserSplit}
+            onWholeTable={() => setPathChoice('whole_table')}
+            onSplit={() => setPathChoice('split')}
+          />
+        </div>
+      ) : null}
+      {detailPhase === 'split_edit' ? (
+        <StaffCheckoutSplitEditor
+          restaurantId={restaurantId}
+          restaurantSlug={restaurantSlug}
+          request={request}
+          sessionOrders={sessionOrders}
+          itemCodeByMenuId={itemCodeByMenuId}
+          collectedPayments={collectedPayments}
+          onCancel={() => setPathChoice('undecided')}
+          onConfirmed={() => {
+            setPathChoice('undecided');
+            void reload();
+            syncBoardAfterMutation(request.table_id);
+          }}
+        />
+      ) : null}
+      {detailPhase === 'settle' ? (
       <CheckoutRequestDetail
         request={request}
         summary={summary}
@@ -444,13 +474,12 @@ export function CheckoutRequestDetailHost({
         printBillBusy={printBillBusy}
         printCooldownSeconds={cooldownSecondsLeft(billCooldownKey)}
         printOnCooldown={isOnCooldown(billCooldownKey)}
-        billSyncAvailable={billSyncAvailable}
-        billSyncBusy={billSyncBusy}
-        billSyncBlocked={billSyncBlocked}
-        billSyncStatusLabel={billSyncStatusLabel}
-        onSyncAndCheckoutClose={() => setSyncCloseConfirmOpen(true)}
+        printInvoiceAvailable={printFiscalInvoiceAvailable}
+        printInvoiceBusy={printFiscalInvoiceBusy}
+        onPrintInvoice={() => openInvoiceModal(undefined)}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
+        onPrintSplitInvoice={openSplitInvoice}
         isPrintReceiptBusy={(payment) =>
           payment.person_index != null && isPrintReceiptBusy(request.id, payment.person_index)
         }
@@ -483,7 +512,7 @@ export function CheckoutRequestDetailHost({
           void reload();
         }}
       />
-      <ReasonConfirmDialog
+      ) : null}      <ReasonConfirmDialog
         open={billDiscount.pendingSetup != null}
         onClose={billDiscount.cancelSetup}
         title={t.discountReasonTitle}
@@ -519,19 +548,40 @@ export function CheckoutRequestDetailHost({
           void resumeOrdering().finally(() => setResumeConfirmOpen(false));
         }}
       />
-      <ConfirmModal
-        open={syncCloseConfirmOpen}
-        onClose={() => {
-          if (billSyncBusy) return;
-          setSyncCloseConfirmOpen(false);
+      <PrintFiscalInvoiceModal
+        open={invoiceModalOpen}
+        busy={printFiscalInvoiceBusy}
+        labels={{
+          title: t.printInvoiceModalTitle,
+          nif: t.printInvoiceNif,
+          nifOptional: t.printInvoiceOptional,
+          name: t.printInvoiceName,
+          nameOptional: t.printInvoiceOptional,
+          paymentMethod: t.printInvoicePaymentMethod,
+          documentTypeHint: t.printInvoiceDocumentTypeHint,
+          confirm: t.printInvoice,
+          cancel: t.printInvoiceCancel,
+          operating: t.printInvoiceOperating,
         }}
-        title={t.syncBillConfirmTitle}
-        message=""
-        confirmLabel={t.syncBill}
-        cancelLabel={t.syncBillCancel}
-        confirming={billSyncBusy}
-        onConfirm={() => {
-          void syncAndCheckoutClose().finally(() => setSyncCloseConfirmOpen(false));
+        paymentLabels={{
+          CASH: t.paymentMethodCash,
+          CARD: t.paymentMethodCard,
+          MBWAY: t.paymentMethodMbway,
+          MULTIBANCO: t.paymentMethodMultibanco,
+          MIXED: t.paymentMethodMixed,
+          OTHER: t.paymentMethodOther,
+        }}
+        onClose={() => {
+          if (printFiscalInvoiceBusy) return;
+          setInvoiceModalOpen(false);
+        }}
+        onConfirm={(input) => {
+          void printFiscalInvoice({
+            paymentMethod: input.paymentMethod,
+            customerNif: input.customerNif,
+            customerName: input.customerName,
+            issueScopeId: invoiceScopeId,
+          }).finally(() => setInvoiceModalOpen(false));
         }}
       />
     </>

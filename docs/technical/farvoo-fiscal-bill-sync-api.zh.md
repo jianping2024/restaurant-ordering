@@ -9,10 +9,10 @@
 
 | 侧 | 管什么 | 不管什么 |
 | --- | --- | --- |
-| **Restaurant（结账 / 桌台）** | 功能开关；点「同步关台」写入云端 `bill_sync_jobs`，成功后再 settled 关台；记操作 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
+| **Restaurant（结账 / 桌台）** | 功能开关；点「打印发票」写入云端 `bill_sync_jobs`（`auto_issue`），成功即开票；关台仍由最后一笔收款负责；记操作 | 分单开票、出税票、打票工作台；同步后在 Farvoo 改票 |
 | **Farvoo 打票（Agent）** | Realtime/补偿/fallback 拉取；本地临时表（JSON）；本机分单/打票/重打；按 `item_code` upsert 商品；ack | 替代 Restaurant 结账；跟关台绑死 |
 
-**产品口径：** Restaurant 提供**账单初稿**并以「同步关台」在成功同步后关台。关台不影响 Agent 草稿与开票/重打。
+**产品口径：** Restaurant 提供账单初稿；「打印发票」仅入队并等待 Agent 开票成功，不关台。关台不影响 Agent 草稿与开票/重打。
 
 发票开票人 = **打票本地登录账号**（≠ 点同步的人）。  
 **全店仅一台 Agent。**  
@@ -23,7 +23,7 @@
 ## 1. 总流程
 
 ```text
-结账页或桌台详情点「同步关台」（开关已开 + sync_bill + checkout_close）
+结账页收款后点「打印发票」（开关已开 + mayFiscalBillQueue）；桌台详情在开关开时「呼叫结账」进结账页
   → 若无活跃 bill_split：ensure whole_table（不自动打 pre_bill）
   → 云端写入 bill_sync_jobs（pending）+ 操作记录
   → Agent：复用打印同款机制拉取 → ack
@@ -41,7 +41,7 @@
 | --- | --- |
 | 键 | `bill_sync_to_fiscal`（见 [`restaurant-features.zh.md`](../restaurant-features.zh.md)） |
 | 默认 | **关闭** |
-| 开启后 | 结账页与桌台详情出现「同步关台」 |
+| 开启后 | 结账页出现「打印发票」；桌台详情改为「呼叫结账」并隐藏关台结账 |
 | 关闭时 | 入口隐藏；入队 API **拒绝** |
 | 独立于 | `bill_receipt_print` |
 
@@ -226,7 +226,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账详情与桌台详情「同步关台」（功能开关 + `checkout.sync_bill` + `tables.checkout_close`）；唯一编排 `runStaffSyncAndCheckoutClose`；`GET …/bill-syncs` 返回 `content_unchanged`；关台前再核指纹，脏账禁止关台；失败/超时不关台。不做打票工作台。
+**Restaurant：** 结账详情「打印发票」（功能开关 + `mayFiscalBillQueue`）；唯一编排 `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 仍返回 `content_unchanged`（内容指纹）；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 

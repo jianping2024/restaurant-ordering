@@ -19,10 +19,13 @@ import { getMessages } from '@/lib/i18n/messages';
 
 type PrintHandlers = {
   showSplitReceiptActions: boolean;
+  showPrintInvoiceActions?: boolean;
   onPrintReceipt: (payment: SessionCollectedPayment) => void;
+  onPrintInvoice?: (payment: SessionCollectedPayment) => void;
   isPrintReceiptBusy: (payment: SessionCollectedPayment) => boolean;
   printReceiptCooldownSeconds: (payment: SessionCollectedPayment) => number;
   isPrintReceiptOnCooldown: (payment: SessionCollectedPayment) => boolean;
+  printInvoiceLabel?: string;
 };
 
 type Props = {

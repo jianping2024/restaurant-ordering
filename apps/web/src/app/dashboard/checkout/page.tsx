@@ -5,6 +5,7 @@ import { loadDashboardAccess } from '@/lib/dashboard-access';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
 import { can } from '@/lib/permissions/can';
 import { toCapabilitiesPayload } from '@/lib/permissions/can';
+import { isRestaurantFeatureEnabled } from '@mesa/shared';
 
 export default async function CheckoutRequestsPage({
   searchParams,
@@ -28,6 +29,7 @@ export default async function CheckoutRequestsPage({
       restaurantId={restaurant.id}
       restaurantSlug={restaurant.slug}
       capabilities={toCapabilitiesPayload(loaded.capabilities)}
+      billSyncToFiscal={isRestaurantFeatureEnabled(restaurant.feature_flags, 'bill_sync_to_fiscal')}
       initialFocus={initialFocus}
     />
   );

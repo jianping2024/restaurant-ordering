@@ -21,6 +21,17 @@ export type BillSyncSplit = {
   gross_total: string;
 };
 
+/** Fiscal payment methods accepted on Farvoo→Agent auto_issue. */
+export type BillSyncPaymentMethod =
+  | 'CASH'
+  | 'CARD'
+  | 'MBWAY'
+  | 'MULTIBANCO'
+  | 'MIXED'
+  | 'OTHER';
+
+export type BillSyncDocumentType = 'FT' | 'FS';
+
 export type BillSyncPayload = {
   request_id: string;
   source_system: 'farvoo';
@@ -30,7 +41,24 @@ export type BillSyncPayload = {
   lines?: BillSyncLine[];
   gross_total?: string;
   splits?: BillSyncSplit[];
+  /** Agent auto_issue (print invoice). Omitted for draft-only sync. */
+  auto_issue?: boolean;
+  customer_nif?: string;
+  customer_name?: string;
+  payment_method?: BillSyncPaymentMethod | string;
+  document_type?: BillSyncDocumentType;
+  issue_mode?: 'whole_table' | 'person';
+  issue_scope_id?: string;
+  scope_id?: string;
 };
+
+/** Sole document_type from payment (CASH→FS, else FT). */
+export function billSyncDocumentTypeForPayment(
+  paymentMethod: string | null | undefined,
+): BillSyncDocumentType {
+  const m = (paymentMethod ?? '').trim().toUpperCase();
+  return m === 'CASH' || m === '' ? 'FS' : 'FT';
+}
 
 const VAT_RATE_RE = /^\d+\.\d{2}$/;
 const MONEY_RE = /^\d+\.\d{2}$/;

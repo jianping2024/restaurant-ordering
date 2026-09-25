@@ -47,6 +47,7 @@ import {
   type CheckoutDisplayLine,
 } from '@/lib/checkout-session-lines';
 import { distinctMenuItemIdsFromOrders, menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
+import { menuItemImageUrlLookupFromRows } from '@/lib/menu-image';
 import { CheckoutRequestDetail } from '@/components/dashboard/checkout/CheckoutRequestDetail';
 import {
   buildCheckoutSettlementSummary,
@@ -150,6 +151,7 @@ export function CheckoutRequestDetailHost({
   const [selectedLines, setSelectedLines] = useState<CheckoutDisplayLine[]>([]);
   const [sessionOrders, setSessionOrders] = useState<Order[]>([]);
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
+  const [imageUrlByMenuId, setImageUrlByMenuId] = useState<Record<string, string>>({});
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
     printSplitReceipt,
@@ -178,6 +180,7 @@ export function CheckoutRequestDetailHost({
       setSelectedLines([]);
       setSessionOrders([]);
       setItemCodeByMenuId({});
+      setImageUrlByMenuId({});
       return;
     }
 
@@ -194,23 +197,27 @@ export function CheckoutRequestDetailHost({
         setSelectedLines([]);
         setSessionOrders([]);
         setItemCodeByMenuId({});
-          return;
+        setImageUrlByMenuId({});
+        return;
       }
 
       const orders = (orderRows || []) as Order[];
       const menuItemIds = distinctMenuItemIdsFromOrders(orders);
       let codes: Record<string, string> = {};
+      let images: Record<string, string> = {};
       if (menuItemIds.length > 0) {
         const { data: menuRows } = await supabase
           .from('menu_items')
-          .select('id, item_code')
+          .select('id, item_code, image_url')
           .eq('restaurant_id', restaurantId)
           .in('id', menuItemIds);
         codes = menuItemCodeLookupFromRows(menuRows ?? []);
+        images = menuItemImageUrlLookupFromRows(menuRows ?? []);
       }
 
       setSessionOrders(orders);
       setItemCodeByMenuId(codes);
+      setImageUrlByMenuId(images);
       setSelectedLines(checkoutLinesFromOrders(orders, lang, codes));
     };
 
@@ -502,6 +509,7 @@ export function CheckoutRequestDetailHost({
           request={request}
           sessionOrders={sessionOrders}
           itemCodeByMenuId={itemCodeByMenuId}
+          imageUrlByMenuId={imageUrlByMenuId}
           collectedPayments={collectedPayments}
           summary={summary}
           discountRate={discountRate}

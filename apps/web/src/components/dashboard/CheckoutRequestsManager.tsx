@@ -156,10 +156,6 @@ export function CheckoutRequestsManager({
     setSelection({ mode: 'list' });
   }, []);
 
-  const clearSelectionAfterComplete = useCallback(() => {
-    setSelection({ mode: 'follow_focus' });
-  }, []);
-
   return (
     <div className="mb-8">
       <header className="mb-6">
@@ -244,7 +240,6 @@ export function CheckoutRequestsManager({
                 billSyncToFiscal={billSyncToFiscal}
                 showBackButton={!!selectedRequestId}
                 onBack={showList}
-                onCloseTableComplete={clearSelectionAfterComplete}
               />
             ) : awaitingFocusResolve ? (
               <div className="flex bg-brand-card border border-brand-border rounded-xl px-6 py-16 text-center items-center justify-center min-h-[240px]">

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import {
   CheckoutPathChooserBackButton,
-  checkoutSplitCloseAllowed,
 } from '@/components/dashboard/checkout/checkout-detail-phase';
 import {
   CheckoutSessionActions,
@@ -24,11 +23,8 @@ import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
-import {
-  sumCollectedByPersonIndex,
-  type SessionCollectedPayment,
-} from '@/lib/checkout-session-payments';
-import { splitPersonKey } from '@/lib/split-person-identity';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { locateByItemSplitResult } from '@/lib/bill-split-by-item';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import type { BillSplit, Order, SplitResult } from '@/types';
 
@@ -48,14 +44,12 @@ type Props = {
   detailLocked: boolean;
   resumeOperating: boolean;
   resumeBlockReason: string | null;
-  canForceCloseTable: boolean;
   showPathBack: boolean;
   onCancel: () => void;
   onDiscountRateChange: (rate: number) => void;
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
   onResumeOrderingClick: () => void;
-  onCloseTable: () => void;
   onCollectPerson: (index: number, amount: number) => void;
   onSplitPersisted: (row: BillSplit) => void;
   onRegisterPersist: (persist: (() => Promise<boolean>) | null) => void;
@@ -81,14 +75,12 @@ export function StaffCheckoutSplitEditor({
   detailLocked,
   resumeOperating,
   resumeBlockReason,
-  canForceCloseTable,
   showPathBack,
   onCancel,
   onDiscountRateChange,
   onDiscountRateFocus,
   onDiscountRateBlur,
   onResumeOrderingClick,
-  onCloseTable,
   onCollectPerson,
   onSplitPersisted,
   onRegisterPersist,
@@ -120,28 +112,6 @@ export function StaffCheckoutSplitEditor({
     persistedResult: null,
     submitting,
   });
-
-  const closeAllowed = useMemo(() => {
-    if (summary.remaining > 0.001) return false;
-    const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
-    return checkoutSplitCloseAllowed({
-      splitMode: splitDraft.splitMode,
-      byItemComplete:
-        splitDraft.byItemProgress.total === 0
-        || splitDraft.byItemProgress.complete === splitDraft.byItemProgress.total,
-      rows: splitDraft.results.map((row, index) => ({
-        amount: discountedObligationAmount(row.amount, discountRate),
-        paid: (collectedByIndex.get(index) ?? 0) > 0,
-      })),
-    });
-  }, [
-    collectedPayments,
-    discountRate,
-    splitDraft.byItemProgress,
-    splitDraft.results,
-    splitDraft.splitMode,
-    summary.remaining,
-  ]);
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -422,15 +392,17 @@ export function StaffCheckoutSplitEditor({
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
             onRenamePerson={splitDraft.renameByItemConsumer}
             onCollectCurrent={(personName) => {
-              const index = splitDraft.results.findIndex(
-                (row) => splitPersonKey(row.name) === splitPersonKey(personName),
-              );
-              const row = index >= 0 ? splitDraft.results[index] : undefined;
-              if (!row || index < 0) {
+              const trimmed = personName.trim();
+              if (!trimmed) {
                 showToast(checkoutT.staffByItemNeedName, 'error');
                 return;
               }
-              void collectSavedPerson(index, row.amount);
+              const located = locateByItemSplitResult(splitDraft.results, trimmed);
+              if (!located || located.row.amount <= 0) {
+                showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+                return;
+              }
+              void collectSavedPerson(located.index, located.row.amount);
             }}
           />
         )}
@@ -440,11 +412,7 @@ export function StaffCheckoutSplitEditor({
         detailLocked={detailLocked || submitting}
         resumeOperating={resumeOperating}
         resumeBlockReason={resumeBlockReason}
-        canForceCloseTable={canForceCloseTable}
-        closeDisabled={!closeAllowed}
-        tableId={request.table_id}
         onResumeOrderingClick={onResumeOrderingClick}
-        onCloseTable={onCloseTable}
         leading={
           showPathBack ? (
             <CheckoutPathChooserBackButton

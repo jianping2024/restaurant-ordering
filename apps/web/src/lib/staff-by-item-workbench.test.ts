@@ -10,7 +10,6 @@ import {
   setPersonMenuShareQtyFields,
   staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
-  staffByItemPersonEstimate,
   staffByItemPersonShares,
   staffByItemPoolLines,
 } from './staff-by-item-workbench';
@@ -487,8 +486,5 @@ describe('staffByItemPersonShares visibility', () => {
     assert.equal(shares.length, 1);
     assert.equal(shares[0]!.amount, 0);
     assert.equal(shares[0]!.unitPriceLabel, '€2.50');
-    const estimate = staffByItemPersonEstimate(shares);
-    assert.equal(estimate.rows, 1);
-    assert.equal(estimate.amount, 0);
   });
 });

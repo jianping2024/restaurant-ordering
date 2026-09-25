@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   canReturnToCheckoutPathChooser,
-  checkoutSplitCloseAllowed,
   resolveCheckoutDetailPhase,
 } from './checkout-detail-phase';
 
@@ -109,50 +108,6 @@ describe('checkout-detail-phase', () => {
         pathChoice: 'whole_table',
       }),
       false,
-    );
-  });
-
-  it('blocks by-item close while pool remains; allows when pool empty and payable paid', () => {
-    assert.equal(
-      checkoutSplitCloseAllowed({
-        splitMode: 'by_item',
-        byItemComplete: false,
-        rows: [{ amount: 3.5, paid: true }],
-      }),
-      false,
-    );
-    assert.equal(
-      checkoutSplitCloseAllowed({
-        splitMode: 'by_item',
-        byItemComplete: true,
-        rows: [
-          { amount: 3.5, paid: true },
-          { amount: 0, paid: false },
-        ],
-      }),
-      true,
-    );
-    assert.equal(
-      checkoutSplitCloseAllowed({
-        splitMode: 'even',
-        byItemComplete: false,
-        rows: [
-          { amount: 23, paid: true },
-          { amount: 23, paid: false },
-        ],
-      }),
-      false,
-    );
-    assert.equal(
-      checkoutSplitCloseAllowed({
-        splitMode: 'custom',
-        byItemComplete: false,
-        rows: [
-          { amount: 10, paid: true },
-          { amount: 0, paid: false },
-        ],
-      }),
-      true,
     );
   });
 });

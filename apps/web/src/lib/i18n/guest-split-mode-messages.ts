@@ -6,7 +6,7 @@ export type GuestSplitModeId = (typeof GUEST_SPLIT_MODE_ORDER)[number];
 
 export type GuestSplitModeCopy = {
   label: string;
-  /** One-line “when to use” — shown after the mode is selected on the bill. */
+  /** One-line “when to use” after mode select — empty string hides the tip. */
   when: string;
 };
 
@@ -32,7 +32,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
   zh: {
     modes: {
       even: { label: '均摊', when: '几个人平分总金额。' },
-      by_item: { label: '按菜', when: '谁点的谁付。把每道菜分给对应的人。' },
+      by_item: { label: '按菜', when: '' },
       custom: { label: '手填金额', when: '已经谈好各付多少，直接填数字，加起来要等于合计。' },
     },
     optionalHint: '想分单？选一种方式。整桌一起付也可以不选，直接呼叫结账。',
@@ -52,7 +52,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
   en: {
     modes: {
       even: { label: 'Even split', when: 'Split the total equally among N people.' },
-      by_item: { label: 'By dish', when: 'Each pays for what they ordered. Assign dishes to people.' },
+      by_item: { label: 'By dish', when: '' },
       custom: {
         label: 'Enter amounts',
         when: 'You already agreed on amounts — enter each share until they match the total.',
@@ -78,7 +78,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Partes iguais', when: 'Dividir o total por N pessoas.' },
       by_item: {
         label: 'Por prato',
-        when: 'Cada um paga o que pediu. Atribua os pratos às pessoas.',
+        when: '',
       },
       custom: {
         label: 'Valores',
@@ -105,7 +105,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'A partes iguales', when: 'Dividir el total entre los comensales.' },
       by_item: {
         label: 'Por plato',
-        when: 'Cada uno paga lo que ha pedido. Asigna los platos a cada persona.',
+        when: '',
       },
       custom: {
         label: 'Importes',
@@ -132,7 +132,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Parts égales', when: 'Partager le total entre les convives.' },
       by_item: {
         label: 'Par plat',
-        when: 'Chacun paie ce qu’il a commandé. Attribuez les plats aux convives.',
+        when: '',
       },
       custom: {
         label: 'Montants',
@@ -159,7 +159,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       even: { label: 'Gleich aufteilen', when: 'Die Summe gleichmäßig auf alle Gäste aufteilen.' },
       by_item: {
         label: 'Nach Gericht',
-        when: 'Jeder zahlt, was er bestellt hat. Gerichte den Gästen zuordnen.',
+        when: '',
       },
       custom: {
         label: 'Beträge',

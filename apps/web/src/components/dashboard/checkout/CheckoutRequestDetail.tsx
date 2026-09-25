@@ -9,7 +9,6 @@ import {
   settlePersonCardDomId,
 } from '@/components/dashboard/checkout/CheckoutSettlePersonRail';
 import { IntegerInput } from '@/components/ui/IntegerInput';
-import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
 import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import {
@@ -51,7 +50,6 @@ interface Props {
   discountApplying: boolean;
   discountLocked: boolean;
   resumeBlockReason: string | null;
-  canForceCloseTable: boolean;
   printInvoiceAvailable: boolean;
   showSplitReceiptActions: boolean;
   onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
@@ -70,7 +68,6 @@ interface Props {
   onDiscountRateBlur: () => void;
   onConfirmPersonPaid: (rowIndex: number) => void;
   onResumeOrderingClick: () => void;
-  onCloseTable: () => void;
   paymentLabels?: Record<import('@/lib/bill-sync-payload').BillSyncPaymentMethod, string>;
 }
 
@@ -145,16 +142,13 @@ export function SettlementBar({
   );
 }
 
+/** Checkout detail/split footer: path back + resume only — no 关台 (floor/table detail owns close). */
 export function CheckoutSessionActions(props: {
   t: CheckoutT;
   detailLocked: boolean;
   resumeOperating: boolean;
   resumeBlockReason: string | null;
-  canForceCloseTable: boolean;
-  closeDisabled?: boolean;
-  tableId: string;
   onResumeOrderingClick: () => void;
-  onCloseTable: () => void;
   leading?: ReactNode;
 }) {
   const {
@@ -162,11 +156,7 @@ export function CheckoutSessionActions(props: {
     detailLocked,
     resumeOperating,
     resumeBlockReason,
-    canForceCloseTable,
-    closeDisabled = false,
-    tableId,
     onResumeOrderingClick,
-    onCloseTable,
     leading,
   } = props;
   return (
@@ -189,14 +179,6 @@ export function CheckoutSessionActions(props: {
             </p>
           ) : null}
         </div>
-        {canForceCloseTable ? (
-          <CloseTableSessionAction
-            tableId={tableId}
-            isCheckoutPending
-            disabled={detailLocked || closeDisabled}
-            onClosed={onCloseTable}
-          />
-        ) : null}
       </div>
     </div>
   );
@@ -220,7 +202,6 @@ export function CheckoutRequestDetail({
   discountApplying,
   discountLocked,
   resumeBlockReason,
-  canForceCloseTable,
   printInvoiceAvailable,
   showSplitReceiptActions,
   onPrintSplitReceipt,
@@ -238,7 +219,6 @@ export function CheckoutRequestDetail({
   onDiscountRateBlur,
   onConfirmPersonPaid,
   onResumeOrderingClick,
-  onCloseTable,
   paymentLabels,
 }: Props) {
   const canExpandPersonDishes = request.split_mode === 'by_item';
@@ -432,10 +412,7 @@ export function CheckoutRequestDetail({
         detailLocked={detailLocked}
         resumeOperating={resumeOperating}
         resumeBlockReason={resumeBlockReason}
-        canForceCloseTable={canForceCloseTable}
-        tableId={request.table_id}
         onResumeOrderingClick={onResumeOrderingClick}
-        onCloseTable={onCloseTable}
         leading={
           onReturnToPathChooser ? (
             <CheckoutPathChooserBackButton

@@ -29,6 +29,71 @@ export type PrintFiscalInvoiceModalLabels = {
   operating: string;
 };
 
+export type FiscalBuyerFieldLabels = {
+  nif: string;
+  nifOptional: string;
+  nifInvalid: string;
+  name: string;
+  nameOptional: string;
+  documentTypeHint: string;
+};
+
+/** Sole NIF + customer name + document-type hint. Payment control stays with the caller. */
+export function FiscalBuyerFields(props: {
+  nif: string;
+  name: string;
+  disabled: boolean;
+  labels: FiscalBuyerFieldLabels;
+  documentType: string;
+  onNifChange: (value: string) => void;
+  onNameChange: (value: string) => void;
+}) {
+  const { nif, name, disabled, labels, documentType, onNifChange, onNameChange } = props;
+  const nifInvalid = nif.trim().length > 0 && !validatePortugueseNif(nif);
+  return (
+    <>
+      <label className="block text-sm">
+        <span className="text-brand-text-muted">
+          {labels.nif}{' '}
+          <span className="text-xs">({labels.nifOptional})</span>
+        </span>
+        <input
+          value={nif}
+          onChange={(e) => onNifChange(formatPortugueseNif(e.target.value))}
+          disabled={disabled}
+          className={`mt-1 w-full rounded-lg border bg-brand-bg px-3 py-2 text-brand-text font-mono tabular-nums ${
+            nifInvalid
+              ? 'border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/40'
+              : 'border-brand-border'
+          }`}
+          inputMode="numeric"
+          autoComplete="off"
+          aria-invalid={nifInvalid}
+        />
+        {nifInvalid ? (
+          <p className="mt-1.5 text-[12px] text-red-500">{labels.nifInvalid}</p>
+        ) : null}
+      </label>
+      <label className="block text-sm">
+        <span className="text-brand-text-muted">
+          {labels.name}{' '}
+          <span className="text-xs">({labels.nameOptional})</span>
+        </span>
+        <input
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+          disabled={disabled}
+          className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text"
+          autoComplete="organization"
+        />
+      </label>
+      <p className="text-xs text-brand-text-muted">
+        {labels.documentTypeHint.replace('{type}', documentType)}
+      </p>
+    </>
+  );
+}
+
 type Props = {
   open: boolean;
   busy: boolean;
@@ -77,41 +142,15 @@ export function PrintFiscalInvoiceModal({
       dismissOnBackdrop={!busy}
     >
       <div className="space-y-4">
-        <label className="block text-sm">
-          <span className="text-brand-text-muted">
-            {labels.nif}{' '}
-            <span className="text-xs">({labels.nifOptional})</span>
-          </span>
-          <input
-            value={nif}
-            onChange={(e) => setNif(formatPortugueseNif(e.target.value))}
-            disabled={busy}
-            className={`mt-1 w-full rounded-lg border bg-brand-bg px-3 py-2 text-brand-text font-mono tabular-nums ${
-              nifInvalid
-                ? 'border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/40'
-                : 'border-brand-border'
-            }`}
-            inputMode="numeric"
-            autoComplete="off"
-            aria-invalid={nifInvalid}
-          />
-          {nifInvalid ? (
-            <p className="mt-1.5 text-[12px] text-red-500">{labels.nifInvalid}</p>
-          ) : null}
-        </label>
-        <label className="block text-sm">
-          <span className="text-brand-text-muted">
-            {labels.name}{' '}
-            <span className="text-xs">({labels.nameOptional})</span>
-          </span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={busy}
-            className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text"
-            autoComplete="organization"
-          />
-        </label>
+        <FiscalBuyerFields
+          nif={nif}
+          name={name}
+          disabled={busy}
+          labels={labels}
+          documentType={docType}
+          onNifChange={setNif}
+          onNameChange={setName}
+        />
         <label className="block text-sm">
           <span className="text-brand-text-muted">{labels.paymentMethod}</span>
           <select

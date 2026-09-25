@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
-import { confirmBillSplitPayment } from '@/lib/checkout-confirm-payment';
+import {
+  confirmBillSplitPayment,
+  shouldHoldCheckoutSessionOpen,
+} from '@/lib/checkout-confirm-payment';
 import { parseBillSyncPaymentMethod } from '@/lib/bill-sync-payload';
-import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 
 export const runtime = 'nodejs';
 
@@ -20,7 +22,6 @@ export async function POST(
     person_index?: unknown;
     collected_amount?: unknown;
     payment_method?: unknown;
-    receipt_printer_id?: unknown;
   };
   try {
     body = await req.json();
@@ -53,40 +54,27 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_payment_method' }, { status: 400 });
   }
 
-  const receiptPrinterIdRaw =
-    typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
-
   const auth = await authorizeCheckoutConfirmPayment(slug, req);
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  let receiptPrinterId: string | undefined;
-  if (auth.billReceiptPrintEnabled) {
-    const resolved = await resolveReceiptPrinterId(
-      auth.admin,
-      auth.restaurantId,
-      receiptPrinterIdRaw || undefined,
-      auth.printLocale,
-    );
-    if (receiptPrinterIdRaw && !resolved) {
-      return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
-    }
-    receiptPrinterId = resolved;
-  }
+  const holdSessionOpen = await shouldHoldCheckoutSessionOpen({
+    admin: auth.admin,
+    restaurantId: auth.restaurantId,
+    billSplitId,
+  });
 
   const result = await confirmBillSplitPayment({
     admin: auth.admin,
     restaurantId: auth.restaurantId,
-    printLocale: auth.printLocale,
     billSplitId,
     personIndex,
     paymentMethod,
     collectedAmount,
     createdByUserId: auth.actor.userId,
     actor: auth.actor,
-    receiptPrinterId,
-    billReceiptPrintEnabled: auth.billReceiptPrintEnabled,
+    holdSessionOpen,
   });
 
   if (!result.ok) {

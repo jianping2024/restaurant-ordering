@@ -500,6 +500,22 @@ export function useBillSplitDraft(params: {
     });
   }, [personCount, guestName]);
 
+  const removeCustomPerson = useCallback((index: number) => {
+    setCustomAmounts((prev) => {
+      if (prev.length <= 1 || index < 0 || index >= prev.length) return prev;
+      const nextAmounts = prev.filter((_, rowIndex) => rowIndex !== index);
+      const names = nextAmounts.map((row) => row.name);
+      setSplitPeople((peoplePrev) =>
+        slotsFromNames(
+          names,
+          peoplePrev.filter((_, rowIndex) => rowIndex !== index),
+        ),
+      );
+      setPersonCount(Math.max(1, names.length));
+      return nextAmounts;
+    });
+  }, []);
+
   const addCustomPerson = useCallback(() => {
     setCustomAmounts((prev) => {
       const nextCount = prev.length + 1;
@@ -571,6 +587,7 @@ export function useBillSplitDraft(params: {
     decrementPersonCount,
     incrementPersonCount,
     addCustomPerson,
+    removeCustomPerson,
     setEditingSplitNameIndex,
     setEditingCustomAmountIndex,
   };

@@ -11,6 +11,8 @@ import {
 import {
   CheckoutRequestsContext,
 } from '@/components/dashboard/checkout-requests-context';
+import { CheckoutPrintAskController } from '@/components/dashboard/checkout/CheckoutPrintAskController';
+import type { CheckoutPrintAsk } from '@/components/dashboard/checkout/CheckoutPrintChoiceDialog';
 import { createClient } from '@/lib/supabase/client';
 import {
   applyConfirmPaymentToRequests,
@@ -28,6 +30,10 @@ import {
 } from '@/lib/checkout-session-payments';
 import { groupCollectedPaymentsBySession } from '@/lib/checkout-settlement';
 import { requestCheckoutRequestsQueue } from '@/lib/request-checkout-requests-queue';
+import {
+  readPendingCheckoutPrintAsk,
+  writePendingCheckoutPrintAsk,
+} from '@/lib/checkout-print-ask-store';
 import dynamic from 'next/dynamic';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import type { BillSplit } from '@/types';
@@ -68,6 +74,16 @@ export function CheckoutRequestsProvider({
   const [collectedPaymentsBySession, setCollectedPaymentsBySession] = useState<
     Map<string, SessionCollectedPayment[]>
   >(() => new Map());
+  const [printAsk, setPrintAskState] = useState<CheckoutPrintAsk | null>(
+    () => readPendingCheckoutPrintAsk(),
+  );
+  const printAskRef = useRef<CheckoutPrintAsk | null>(readPendingCheckoutPrintAsk());
+  const setPrintAsk = useCallback((ask: CheckoutPrintAsk | null) => {
+    writePendingCheckoutPrintAsk(ask);
+    printAskRef.current = ask;
+    setPrintAskState(ask);
+  }, []);
+  printAskRef.current = printAsk;
   const reloadSeqRef = useRef(0);
   const supabase = useMemo(() => createClient(), []);
 
@@ -77,7 +93,15 @@ export function CheckoutRequestsProvider({
     try {
       const incoming = await requestCheckoutRequestsQueue(restaurantSlug);
       if (seq !== reloadSeqRef.current) return;
-      setRequests((prev) => mergeBillSplitsFromRefresh(prev, incoming));
+      setRequests((prev) => {
+        const merged = mergeBillSplitsFromRefresh(prev, incoming);
+        const ask = printAskRef.current;
+        // Keep the paid row on screen until staff answers the print question.
+        if (!ask) return merged;
+        if (merged.some((row) => row.id === ask.billSplitId)) return merged;
+        const held = prev.find((row) => row.id === ask.billSplitId);
+        return held ? [...merged, held] : merged;
+      });
     } catch {
       if (seq !== reloadSeqRef.current) return;
     }
@@ -158,16 +182,52 @@ export function CheckoutRequestsProvider({
       billSplitId: string;
       sessionId: string | null | undefined;
       outcome: ConfirmPaymentClientOutcome;
+      printAsk?: CheckoutPrintAsk | null;
+      heldRow?: BillSplit;
     }) => {
       const { billSplitId, sessionId, outcome } = params;
-      setRequests((prev) => applyConfirmPaymentToRequests(prev, billSplitId, outcome));
+      if (params.printAsk) {
+        printAskRef.current = params.printAsk;
+        setPrintAsk(params.printAsk);
+      }
+      // Keep the queue row until staff answers the print question after the last payment.
+      const queueOutcome =
+        params.printAsk?.allPaid
+          ? { ...outcome, all_paid: false }
+          : outcome;
+      setRequests((prev) => {
+        let next = applyConfirmPaymentToRequests(prev, billSplitId, queueOutcome);
+        if (
+          params.printAsk?.allPaid &&
+          params.heldRow &&
+          !next.some((row) => row.id === billSplitId)
+        ) {
+          next = [
+            ...next,
+            {
+              ...params.heldRow,
+              result: outcome.result,
+            },
+          ];
+        }
+        return next;
+      });
       if (sessionId && outcome.collection) {
         setCollectedPaymentsBySession((prev) =>
           appendCollectedPaymentToSessionMap(prev, sessionId, outcome.collection!),
         );
       }
     },
-    [],
+    [setPrintAsk],
+  );
+
+  const finishPrintAsk = useCallback(
+    (ask: CheckoutPrintAsk) => {
+      setPrintAsk(null);
+      if (!ask.allPaid) return;
+      setRequests((prev) => prev.filter((row) => row.id !== ask.billSplitId));
+    },
+    [setPrintAsk],
   );
 
   useRestaurantStaffEntryReconcile(enabled, reload);
@@ -182,8 +242,19 @@ export function CheckoutRequestsProvider({
       upsertRequestFromSubmit,
       getCollectedForSession,
       applyConfirmPaymentOutcome,
+      printAsk,
+      setPrintAsk,
     }),
-    [requests, reload, updateRequests, upsertRequestFromSubmit, getCollectedForSession, applyConfirmPaymentOutcome],
+    [
+      requests,
+      reload,
+      updateRequests,
+      upsertRequestFromSubmit,
+      getCollectedForSession,
+      applyConfirmPaymentOutcome,
+      printAsk,
+      setPrintAsk,
+    ],
   );
 
   return (
@@ -197,6 +268,13 @@ export function CheckoutRequestsProvider({
         }}
       />
       {children}
+      {enabled ? (
+        <CheckoutPrintAskController
+          ask={printAsk}
+          restaurantSlug={restaurantSlug}
+          onDone={finishPrintAsk}
+        />
+      ) : null}
     </CheckoutRequestsContext.Provider>
   );
 }

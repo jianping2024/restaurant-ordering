@@ -131,9 +131,9 @@ describe('checkoutReceiptIdempotencyKey', () => {
 describe('confirmBillSplitPayment', () => {
   const baseParams = {
     restaurantId: RESTAURANT_ID,
-    printLocale: 'pt' as const,
     billSplitId: BILL_SPLIT_ID,
     personIndex: 0,
+    paymentMethod: 'CASH' as const,
   };
 
   it('maps RPC already_paid to 409', async () => {

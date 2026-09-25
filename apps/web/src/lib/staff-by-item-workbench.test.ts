@@ -4,7 +4,7 @@ import type { ByItemConsumerRow } from './bill-split-by-item';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
 import {
   addBuffetSeatToPerson,
-  addHalfShareToPerson,
+  addMenuFractionShareToPerson,
   addWholeShareToPerson,
   isStaffMenuShareOverAllocated,
   setPersonMenuShareQtyFields,
@@ -87,7 +87,7 @@ describe('staffByItemPoolLines', () => {
   });
 });
 
-describe('addWholeShareToPerson / addHalfShareToPerson', () => {
+describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
   it('keeps prior person shares when adding for another person', () => {
     let allocations: Record<string, ByItemConsumerRow[]> = {
       'line-a': emptyRows(),
@@ -145,7 +145,7 @@ describe('addWholeShareToPerson / addHalfShareToPerson', () => {
     let allocations: Record<string, ByItemConsumerRow[]> = {
       'line-a': emptyRows(),
     };
-    const afterHalf = addHalfShareToPerson({
+    const afterHalf = addMenuFractionShareToPerson({
       allocations,
       lineSpecs: [menuSpec],
       lineKey: 'line-a',

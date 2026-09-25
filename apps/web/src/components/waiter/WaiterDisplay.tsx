@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
+import { isRestaurantFeatureEnabled } from '@mesa/shared';
 import { resolveWaiterBoardCardAction } from '@/lib/waiter-board-card-action';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import {
@@ -894,6 +895,10 @@ function WaiterBoardInner({
           restaurantSlug={restaurant.slug}
           tableId={checkoutTarget?.tableId ?? ''}
           capabilities={capabilities}
+          billSyncToFiscal={isRestaurantFeatureEnabled(
+            restaurant.feature_flags,
+            'bill_sync_to_fiscal',
+          )}
         />
       ) : null}
     </div>

@@ -14,6 +14,7 @@ export function resolveCheckoutDetailPhase(input: {
   pathChoice: StaffCheckoutPathChoice;
 }): CheckoutDetailPhase {
   const mode = input.splitMode;
+  if (mode === 'even' || mode === 'by_item' || mode === 'custom') return 'split_edit';
   if (mode === 'whole_table' && input.collected <= 0) {
     if (input.pathChoice === 'split') return 'split_edit';
     if (input.pathChoice === 'whole_table') return 'settle';
@@ -35,24 +36,42 @@ export function canReturnToCheckoutPathChooser(input: {
   return input.pathChoice === 'whole_table' || input.pathChoice === 'split';
 }
 
+/**
+ * Sole close gate for a split checkout.
+ * By-item: leftover pool empty and every payable person paid.
+ * Even/custom: every person with amount &gt; 0 paid. Whole table is unchanged.
+ */
+export function checkoutSplitCloseAllowed(input: {
+  splitMode: SplitMode | string | null;
+  byItemComplete: boolean;
+  rows: Array<{ amount: number; paid: boolean }>;
+}): boolean {
+  const mode = input.splitMode;
+  if (mode !== 'even' && mode !== 'custom' && mode !== 'by_item') return true;
+  const payableSettled = input.rows.every((row) => row.amount <= 0.001 || row.paid);
+  if (mode === 'by_item') return input.byItemComplete && payableSettled;
+  return payableSettled;
+}
+
 type PathChooserProps = {
-  title: string;
   wholeTableLabel: string;
   splitLabel: string;
+  resumeLabel: string;
   onWholeTable: () => void;
   onSplit: () => void;
+  onResume: () => void;
 };
 
 export function CheckoutPathChooser({
-  title,
   wholeTableLabel,
   splitLabel,
+  resumeLabel,
   onWholeTable,
   onSplit,
+  onResume,
 }: PathChooserProps) {
   return (
-    <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-3 space-y-2">
-      <p className="text-sm font-semibold text-brand-text">{title}</p>
+    <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-3">
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -68,6 +87,13 @@ export function CheckoutPathChooser({
         >
           {splitLabel}
         </button>
+        <button
+          type="button"
+          onClick={onResume}
+          className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30"
+        >
+          {resumeLabel}
+        </button>
       </div>
     </div>
   );
@@ -75,7 +101,6 @@ export function CheckoutPathChooser({
 
 /**
  * Sole path-back「取消」control for whole_table settle footer + split_edit.
- * Same bordered secondary button; settle slots it before 打印账单.
  */
 export function CheckoutPathChooserBackButton(props: {
   label: string;

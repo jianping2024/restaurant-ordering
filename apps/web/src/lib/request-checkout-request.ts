@@ -8,8 +8,9 @@ export async function requestCheckoutRequest(params: {
   persons: SplitPerson[];
   result: SplitResult[];
   customerNif?: string | null;
+  allowPartialByItem?: boolean;
 }): Promise<{ ok: true; bill_split_id: string; result: SplitResult[] } | { ok: false; error: string }> {
-  const { slug, tableId, splitMode, persons, result, customerNif } = params;
+  const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem } = params;
   try {
     const res = await fetch(
       `/api/restaurants/${encodeURIComponent(slug)}/checkout/request`,
@@ -23,6 +24,7 @@ export async function requestCheckoutRequest(params: {
           persons,
           result,
           ...(customerNif ? { customer_nif: customerNif } : {}),
+          ...(allowPartialByItem ? { allow_partial_by_item: true } : {}),
         }),
       },
     );

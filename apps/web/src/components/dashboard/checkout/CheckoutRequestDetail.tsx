@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { CheckoutPersonShareExpandable } from '@/components/dashboard/checkout/CheckoutPersonShareExpandable';
 import { CheckoutTableItemsSection } from '@/components/dashboard/checkout/CheckoutTableItemsSection';
 import { CollectedPaymentsLedger } from '@/components/dashboard/checkout/CollectedPaymentsLedger';
@@ -30,7 +30,7 @@ import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import type { BillSplit, Order } from '@/types';
 
-type CheckoutT = ReturnType<typeof getMessages>['checkout'];
+export type CheckoutT = ReturnType<typeof getMessages>['checkout'];
 
 interface Props {
   request: BillSplit;
@@ -52,12 +52,7 @@ interface Props {
   discountLocked: boolean;
   resumeBlockReason: string | null;
   canForceCloseTable: boolean;
-  printBillBusy: boolean;
-  printCooldownSeconds: number;
-  printOnCooldown: boolean;
   printInvoiceAvailable: boolean;
-  printInvoiceBusy: boolean;
-  onPrintInvoice: () => void;
   showSplitReceiptActions: boolean;
   onPrintSplitReceipt: (payment: SessionCollectedPayment) => void;
   onPrintSplitInvoice?: (payment: SessionCollectedPayment) => void;
@@ -74,13 +69,12 @@ interface Props {
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
   onConfirmPersonPaid: (rowIndex: number) => void;
-  onPrintBill: () => void;
   onResumeOrderingClick: () => void;
   onCloseTable: () => void;
   paymentLabels?: Record<import('@/lib/bill-sync-payload').BillSyncPaymentMethod, string>;
 }
 
-function SettlementBar({
+export function SettlementBar({
   summary,
   discountRate,
   discountApplying,
@@ -151,6 +145,63 @@ function SettlementBar({
   );
 }
 
+export function CheckoutSessionActions(props: {
+  t: CheckoutT;
+  detailLocked: boolean;
+  resumeOperating: boolean;
+  resumeBlockReason: string | null;
+  canForceCloseTable: boolean;
+  closeDisabled?: boolean;
+  tableId: string;
+  onResumeOrderingClick: () => void;
+  onCloseTable: () => void;
+  leading?: ReactNode;
+}) {
+  const {
+    t,
+    detailLocked,
+    resumeOperating,
+    resumeBlockReason,
+    canForceCloseTable,
+    closeDisabled = false,
+    tableId,
+    onResumeOrderingClick,
+    onCloseTable,
+    leading,
+  } = props;
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
+      <div className="flex flex-wrap items-center gap-2">{leading}</div>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col items-end gap-1">
+          <button
+            type="button"
+            onClick={onResumeOrderingClick}
+            disabled={detailLocked || !!resumeBlockReason}
+            title={resumeBlockReason === 'whole_table_paid' ? t.resumeOrderingBlockedWholeTable : undefined}
+            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
+          >
+            {resumeOperating ? t.resumeOrderingOperating : t.resumeOrdering}
+          </button>
+          {resumeBlockReason === 'whole_table_paid' ? (
+            <p className="text-[11px] text-brand-text-muted max-w-[14rem] text-right">
+              {t.resumeOrderingBlockedWholeTable}
+            </p>
+          ) : null}
+        </div>
+        {canForceCloseTable ? (
+          <CloseTableSessionAction
+            tableId={tableId}
+            isCheckoutPending
+            disabled={detailLocked || closeDisabled}
+            onClosed={onCloseTable}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function CheckoutRequestDetail({
   request,
   summary,
@@ -170,12 +221,7 @@ export function CheckoutRequestDetail({
   discountLocked,
   resumeBlockReason,
   canForceCloseTable,
-  printBillBusy,
-  printCooldownSeconds,
-  printOnCooldown,
   printInvoiceAvailable,
-  printInvoiceBusy,
-  onPrintInvoice,
   showSplitReceiptActions,
   onPrintSplitReceipt,
   onPrintSplitInvoice,
@@ -191,7 +237,6 @@ export function CheckoutRequestDetail({
   onDiscountRateFocus,
   onDiscountRateBlur,
   onConfirmPersonPaid,
-  onPrintBill,
   onResumeOrderingClick,
   onCloseTable,
   paymentLabels,
@@ -382,65 +427,25 @@ export function CheckoutRequestDetail({
         }}
       />
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-brand-border/50 pt-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {onReturnToPathChooser ? (
+      <CheckoutSessionActions
+        t={t}
+        detailLocked={detailLocked}
+        resumeOperating={resumeOperating}
+        resumeBlockReason={resumeBlockReason}
+        canForceCloseTable={canForceCloseTable}
+        tableId={request.table_id}
+        onResumeOrderingClick={onResumeOrderingClick}
+        onCloseTable={onCloseTable}
+        leading={
+          onReturnToPathChooser ? (
             <CheckoutPathChooserBackButton
               label={t.pathChooserBack}
               onClick={onReturnToPathChooser}
               disabled={detailLocked}
             />
-          ) : null}
-          <button
-            type="button"
-            onClick={onPrintBill}
-            disabled={detailLocked || printBillBusy || printOnCooldown}
-            className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-          >
-            {printBillBusy
-              ? t.printBillOperating
-              : printOnCooldown
-                ? t.printBillCooldown.replace('{n}', String(printCooldownSeconds))
-                : t.printBill}
-          </button>
-          {printInvoiceAvailable && request.split_mode === 'whole_table' ? (
-            <button
-              type="button"
-              onClick={onPrintInvoice}
-              disabled={detailLocked || printInvoiceBusy || summary.collected <= 0}
-              className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-            >
-              {printInvoiceBusy ? t.printInvoiceOperating : t.printInvoice}
-            </button>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-col items-end gap-1">
-            <button
-              type="button"
-              onClick={onResumeOrderingClick}
-              disabled={detailLocked || !!resumeBlockReason}
-              title={resumeBlockReason === 'whole_table_paid' ? t.resumeOrderingBlockedWholeTable : undefined}
-              className="text-sm font-semibold px-4 py-2 rounded-lg border border-brand-border text-brand-text hover:bg-brand-border/30 disabled:opacity-50 transition-colors"
-            >
-              {resumeOperating ? t.resumeOrderingOperating : t.resumeOrdering}
-            </button>
-            {resumeBlockReason === 'whole_table_paid' ? (
-              <p className="text-[11px] text-brand-text-muted max-w-[14rem] text-right">
-                {t.resumeOrderingBlockedWholeTable}
-              </p>
-            ) : null}
-          </div>
-          {canForceCloseTable ? (
-            <CloseTableSessionAction
-              tableId={request.table_id}
-              isCheckoutPending
-              disabled={detailLocked}
-              onClosed={onCloseTable}
-            />
-          ) : null}
-        </div>
-      </div>
+          ) : null
+        }
+      />
     </div>
   );
 }

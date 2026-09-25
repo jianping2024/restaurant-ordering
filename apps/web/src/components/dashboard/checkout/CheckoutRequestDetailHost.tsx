@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
@@ -27,13 +27,12 @@ import {
 } from '@/lib/checkout-split-settlement';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import {
-  staffBillPrintCooldownKey,
   staffSplitReceiptCooldownKey,
   useStaffCheckoutBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
 import { mayFiscalBillQueue } from '@/lib/bill-sync-permission';
 import { useStaffPrintFiscalInvoice } from '@/lib/use-staff-print-fiscal-invoice';
-import { CollectPaymentModal } from '@/components/dashboard/checkout/CollectPaymentModal';
+import { CollectPaymentModal, type CollectPaymentConfirmInput } from '@/components/dashboard/checkout/CollectPaymentModal';
 import { PrintFiscalInvoiceModal } from '@/components/dashboard/checkout/PrintFiscalInvoiceModal';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import { billSyncByItemScopeId } from '@/lib/bill-sync-scope-id';
@@ -42,6 +41,7 @@ import { abnormalReasonOptions } from '@/lib/audit/reason-labels';
 import { useCheckoutBillDiscount } from '@/lib/checkout-discount/use-checkout-bill-discount';
 import { requestCheckoutApplyDiscount } from '@/lib/request-checkout-apply-discount';
 import { requestCheckoutConfirmPayment } from '@/lib/request-checkout-confirm-payment';
+import { writePendingCheckoutPrintAsk } from '@/lib/checkout-print-ask-store';
 import {
   checkoutLinesFromOrders,
   type CheckoutDisplayLine,
@@ -72,8 +72,6 @@ type Props = {
   billSyncToFiscal?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
-  /** Called after the queue row is removed because everyone paid. */
-  onAllPaid?: () => void;
   onCloseTableComplete?: () => void;
 };
 
@@ -85,7 +83,6 @@ export function CheckoutRequestDetailHost({
   billSyncToFiscal = false,
   showBackButton = true,
   onBack,
-  onAllPaid,
   onCloseTableComplete,
 }: Props) {
   const canForceCloseTable = mayForceCloseTable(capabilities);
@@ -98,10 +95,19 @@ export function CheckoutRequestDetailHost({
   const [collectPending, setCollectPending] = useState<{
     rowIndex: number;
     amount: number;
+    wholeTable: boolean;
   } | null>(null);
   const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
-  const { reload, getCollectedForSession, applyConfirmPaymentOutcome, updateRequests } =
-    useCheckoutRequests();
+  const {
+    reload,
+    getCollectedForSession,
+    applyConfirmPaymentOutcome,
+    updateRequests,
+    upsertRequestFromSubmit,
+    setPrintAsk,
+  } = useCheckoutRequests();
+  const persistBeforePay = useRef<(() => Promise<boolean>) | null>(null);
+  const persistedBillSplitId = useRef<string | null>(null);
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
     (tableId: string) => {
@@ -146,13 +152,26 @@ export function CheckoutRequestDetailHost({
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
   const [resumeConfirmOpen, setResumeConfirmOpen] = useState(false);
   const {
-    printCheckoutBill,
     printSplitReceipt,
-    isPrintBillBusy,
     isPrintReceiptBusy,
     cooldownSecondsLeft,
     isOnCooldown,
   } = useStaffCheckoutBillPrint(restaurantSlug);
+  const {
+    printFiscalInvoiceAvailable,
+    printFiscalInvoiceBusy,
+    printFiscalInvoice,
+    requestPrintFiscalInvoice,
+  } = useStaffPrintFiscalInvoice({
+    restaurantSlug,
+    billSplitId: request.id,
+    enabled: canPrintFiscalInvoice,
+    labels: {
+      printInvoiceSuccess: t.printInvoiceSuccess,
+      printInvoiceFailed: t.printInvoiceFailed,
+      printInvoiceDisabled: t.printInvoiceDisabled,
+    },
+  });
 
   useEffect(() => {
     if (!restaurantId || !request.session_id) {
@@ -318,40 +337,55 @@ export function CheckoutRequestDetailHost({
     [settlementRows],
   );
 
-  const submitConfirmPersonPaid = async (
+  const confirmCollectedPerson = async (
     row: BillSplit,
-    rowIndex: number,
-    paymentMethod: BillSyncPaymentMethod,
+    pending: { rowIndex: number; amount: number; wholeTable: boolean },
+    input: CollectPaymentConfirmInput,
   ) => {
-    const settlementRow = settlementRows.find((entry) => entry.index === rowIndex);
-    if (!settlementRow || !isSplitSettlementPending(settlementRow)) {
-      showToast(t.paid, 'error');
-      return;
-    }
-
-    const collectedAmount = settlementRow.outstandingAmount;
     if (!restaurantSlug) {
       showToast('操作失败，请重试', 'error');
       return;
     }
-
-    const personKey = checkoutPersonKey(row.id, rowIndex);
+    const personKey = checkoutPersonKey(row.id, pending.rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
+      if (persistBeforePay.current) {
+        const saved = await persistBeforePay.current();
+        if (!saved) return;
+      }
+      const billSplitId = persistedBillSplitId.current ?? row.id;
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
-        billSplitId: row.id,
-        personIndex: rowIndex,
-        paymentMethod,
-        collectedAmount,
+        billSplitId,
+        personIndex: pending.rowIndex,
+        paymentMethod: input.paymentMethod,
+        collectedAmount: pending.amount,
       });
-      if (!outcome.ok) {
-        showToast(outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
+      if (!outcome.ok || !outcome.collection) {
+        showToast(outcome.ok ? '操作失败，请重试' : outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
         return;
       }
-
+      const printAsk = {
+        billSplitId,
+        sessionId: row.session_id ?? '',
+        tableId: row.table_id,
+        discountRate: row.discount_rate ?? 0,
+        fiscal: printFiscalInvoiceAvailable,
+        wholeTable: pending.wholeTable,
+        allPaid: outcome.all_paid,
+        personName: outcome.collection.person_name,
+        obligation: pending.amount,
+        paymentMethod: input.paymentMethod,
+        customerNif: input.customerNif,
+        customerName: input.customerName,
+        cashTendered: input.cashTendered,
+        collection: outcome.collection,
+      };
+      // Persist before React state so RSC remount / Fast Refresh cannot drop the ask.
+      writePendingCheckoutPrintAsk(printAsk);
+      setPrintAsk(printAsk);
       applyConfirmPaymentOutcome({
-        billSplitId: row.id,
+        billSplitId,
         sessionId: row.session_id,
         outcome: {
           all_paid: outcome.all_paid,
@@ -359,11 +393,10 @@ export function CheckoutRequestDetailHost({
           final_amount: outcome.final_amount,
           collection: outcome.collection,
         },
+        printAsk,
+        heldRow: row,
       });
       syncBoardAfterMutation(row.table_id);
-      if (outcome.all_paid) {
-        onAllPaid?.();
-      }
     } catch {
       showToast('操作失败，请重试', 'error');
     } finally {
@@ -384,24 +417,6 @@ export function CheckoutRequestDetailHost({
     return t.resumeOrderingConfirmCancel;
   }, [request, collectedPayments, t]);
   const discountApplying = billDiscount.applyingRequestId === request.id;
-  const billCooldownKey = staffBillPrintCooldownKey(request.id);
-  const printBillBusy = isPrintBillBusy(request.id);
-  const {
-    printFiscalInvoiceAvailable,
-    printFiscalInvoiceBusy,
-    printFiscalInvoice,
-    requestPrintFiscalInvoice,
-  } = useStaffPrintFiscalInvoice({
-    restaurantSlug,
-    billSplitId: request.id,
-    enabled: canPrintFiscalInvoice,
-    labels: {
-      printInvoiceSuccess: t.printInvoiceSuccess,
-      printInvoiceFailed: t.printInvoiceFailed,
-      printInvoiceDisabled: t.printInvoiceDisabled,
-    },
-  });
-
   const paymentMethodLabels = useMemo(
     () =>
       ({
@@ -455,7 +470,6 @@ export function CheckoutRequestDetailHost({
     isResumeBusy ||
     isCheckoutDetailLocked(processingKeys, request.id) ||
     discountApplying ||
-    printBillBusy ||
     printFiscalInvoiceBusy;
 
   return (
@@ -466,17 +480,18 @@ export function CheckoutRequestDetailHost({
             <button
               type="button"
               onClick={onBack}
-              className="text-sm font-semibold text-brand-text-muted hover:text-brand-text"
+              className="text-sm font-semibold text-brand-text-muted hover:text-brand-text lg:hidden"
             >
               ← {t.backToList}
             </button>
           ) : null}
           <CheckoutPathChooser
-            title={t.pathChooserTitle}
             wholeTableLabel={t.pathChooserWholeTable}
             splitLabel={t.pathChooserSplit}
+            resumeLabel={t.resumeOrdering}
             onWholeTable={() => setPathChoice('whole_table')}
             onSplit={() => setPathChoice('split')}
+            onResume={() => setResumeConfirmOpen(true)}
           />
         </div>
       ) : null}
@@ -488,11 +503,36 @@ export function CheckoutRequestDetailHost({
           sessionOrders={sessionOrders}
           itemCodeByMenuId={itemCodeByMenuId}
           collectedPayments={collectedPayments}
+          summary={summary}
+          discountRate={discountRate}
+          discountApplying={discountApplying}
+          discountLocked={hasConfirmedPerson(request)}
+          detailLocked={detailLocked}
+          resumeOperating={isResumeMutating}
+          resumeBlockReason={resumeBlockReason}
+          canForceCloseTable={canForceCloseTable}
+          showPathBack={showReturnToPathChooser}
           onCancel={returnToPathChooser}
-          onConfirmed={() => {
-            returnToPathChooser();
-            void reload();
+          onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
+          onDiscountRateFocus={() =>
+            billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
+          }
+          onDiscountRateBlur={() => handleDiscountRateBlur(request)}
+          onResumeOrderingClick={() => setResumeConfirmOpen(true)}
+          onCloseTable={() => {
             syncBoardAfterMutation(request.table_id);
+            onCloseTableComplete?.();
+            void reload();
+          }}
+          onCollectPerson={(index, amount) => {
+            setCollectPending({ rowIndex: index, amount, wholeTable: false });
+          }}
+          onSplitPersisted={(row) => {
+            persistedBillSplitId.current = row.id;
+            upsertRequestFromSubmit(row);
+          }}
+          onRegisterPersist={(persist) => {
+            persistBeforePay.current = persist;
           }}
         />
       ) : null}
@@ -516,19 +556,7 @@ export function CheckoutRequestDetailHost({
         discountLocked={hasConfirmedPerson(request)}
         resumeBlockReason={resumeBlockReason}
         canForceCloseTable={canForceCloseTable}
-        printBillBusy={printBillBusy}
-        printCooldownSeconds={cooldownSecondsLeft(billCooldownKey)}
-        printOnCooldown={isOnCooldown(billCooldownKey)}
         printInvoiceAvailable={printFiscalInvoiceAvailable}
-        printInvoiceBusy={printFiscalInvoiceBusy}
-        onPrintInvoice={() => {
-          void requestPrintFiscalInvoice().then((result) => {
-            if (result !== 'need_issue') return;
-            const tender =
-              collectedPayments.find((p) => p.payment_method)?.payment_method ?? null;
-            openInvoiceModal(undefined, tender);
-          });
-        }}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
         onPrintSplitInvoice={openSplitInvoice}
@@ -569,9 +597,9 @@ export function CheckoutRequestDetailHost({
           setCollectPending({
             rowIndex: index,
             amount: settlementRow.outstandingAmount,
+            wholeTable: true,
           });
         }}
-        onPrintBill={() => printCheckoutBill(request, getDiscountRate(request))}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
         onCloseTable={() => {
           syncBoardAfterMutation(request.table_id);
@@ -630,7 +658,22 @@ export function CheckoutRequestDetailHost({
           confirm: t.confirmOnePaid,
           cancel: t.printInvoiceCancel,
           processing: t.processing,
+          cashReceived: t.cashReceived,
+          changeDue: t.changeDue,
+          cashShort: t.cashShort,
         }}
+        fiscalLabels={
+          printFiscalInvoiceAvailable
+            ? {
+                nif: t.printInvoiceNif,
+                nifOptional: t.printInvoiceOptional,
+                nifInvalid: billT.nifInvalid,
+                name: t.printInvoiceName,
+                nameOptional: t.printInvoiceOptional,
+                documentTypeHint: t.printInvoiceDocumentTypeHint,
+              }
+            : null
+        }
         paymentLabels={paymentMethodLabels}
         onClose={() => {
           if (
@@ -641,11 +684,11 @@ export function CheckoutRequestDetailHost({
           }
           setCollectPending(null);
         }}
-        onConfirm={(paymentMethod) => {
+        onConfirm={(input) => {
           if (!collectPending) return;
-          const { rowIndex } = collectPending;
+          const pending = collectPending;
           setCollectPending(null);
-          void submitConfirmPersonPaid(request, rowIndex, paymentMethod);
+          void confirmCollectedPerson(request, pending, input);
         }}
       />
       <PrintFiscalInvoiceModal

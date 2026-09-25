@@ -53,6 +53,7 @@ type ticketLabels struct {
 	printedByVal   string
 	orderedBy      string
 	amountPaid     string
+	changeDue      string
 	station        string
 	itemNote       string // underlined guest note label, e.g. "备注: " / "Note: " / "Observação: "
 }
@@ -80,6 +81,7 @@ func labelsFor(locale string) ticketLabels {
 			printedByVal:   "系统",
 			orderedBy:      "下单方",
 			amountPaid:     "实付",
+			changeDue:      "找零",
 			station:        "档口",
 			itemNote:       "备注: ",
 		}
@@ -104,6 +106,7 @@ func labelsFor(locale string) ticketLabels {
 			printedByVal:   "Customer/Merchant",
 			orderedBy:      "Ordered By",
 			amountPaid:     "Amount Paid",
+			changeDue:      "Change",
 			station:        "Station",
 			itemNote:       "Note: ",
 		}
@@ -128,6 +131,7 @@ func labelsFor(locale string) ticketLabels {
 			printedByVal:   "Cliente/Estabelecimento",
 			orderedBy:      "Pedido por",
 			amountPaid:     "Valor pago",
+			changeDue:      "Troco",
 			station:        "Estação",
 			itemNote:       "Observação: ",
 		}
@@ -981,6 +985,9 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 				paid = p.AmountPaid
 			}
 			w.rightLine(lab.amountPaid+":"+formatMoney(paid), true)
+			if paid > due+0.001 {
+				w.rightLine(lab.changeDue+":"+formatMoney(paid-due), true)
+			}
 			method := strings.TrimSpace(p.PaymentMethod)
 			if method == "" {
 				method = "Cash"

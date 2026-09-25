@@ -27,12 +27,23 @@ export function validateBillSplit(params: {
   lineSpecs?: ByItemLineSpec[];
   byItemAllocations?: ByItemLineAllocation;
   customAmounts?: Array<{ amount: number }>;
+  /** Staff per-person collect: allow an unfinished by-item pool. Guest stays strict. */
+  allowPartialByItem?: boolean;
 }): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
-  const { splitMode, total, results, itemLines, lineSpecs, byItemAllocations, customAmounts } = params;
+  const {
+    splitMode,
+    total,
+    results,
+    itemLines,
+    lineSpecs,
+    byItemAllocations,
+    customAmounts,
+    allowPartialByItem = false,
+  } = params;
 
   if (!splitMode || splitMode === 'whole_table') return { ok: true };
 
-  if (splitMode === 'custom' && results.length < 2) {
+  if (splitMode === 'custom' && results.length < 1) {
     return { ok: false, issue: 'amount_mismatch' };
   }
 
@@ -48,11 +59,16 @@ export function validateBillSplit(params: {
     for (const spec of specs) {
       const shares = byItemAllocations?.[spec.key] || [];
       const status = getByItemLineStatusFromShares(spec, shares);
-      if (status.kind === 'empty' || status.kind === 'buffet_empty') {
-        return { ok: false, issue: 'unassigned_items' };
-      }
-      if (!isByItemLineComplete(status)) {
+      if (status.kind === 'over' || status.kind === 'buffet_over') {
         return { ok: false, issue: 'incomplete_qty' };
+      }
+      if (!allowPartialByItem) {
+        if (status.kind === 'empty' || status.kind === 'buffet_empty') {
+          return { ok: false, issue: 'unassigned_items' };
+        }
+        if (!isByItemLineComplete(status)) {
+          return { ok: false, issue: 'incomplete_qty' };
+        }
       }
     }
   }
@@ -76,7 +92,8 @@ export function validateBillSplit(params: {
     (sum, row) => sum + eurosToCents(Number(row.amount || 0)),
     0,
   );
-  if (!amountsMatch(splitSumCents, eurosToCents(total))) {
+  const skipTotalMatch = allowPartialByItem && splitMode === 'by_item';
+  if (!skipTotalMatch && !amountsMatch(splitSumCents, eurosToCents(total))) {
     return { ok: false, issue: 'amount_mismatch' };
   }
 

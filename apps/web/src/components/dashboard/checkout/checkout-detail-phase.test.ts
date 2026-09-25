@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   canReturnToCheckoutPathChooser,
+  checkoutSplitCloseAllowed,
   resolveCheckoutDetailPhase,
 } from './checkout-detail-phase';
 
@@ -33,7 +34,7 @@ describe('checkout-detail-phase', () => {
     );
   });
 
-  it('locks settle when collected or not whole_table', () => {
+  it('keeps even, by_item, and custom on split_edit and settles a paid whole table', () => {
     assert.equal(
       resolveCheckoutDetailPhase({
         splitMode: 'whole_table',
@@ -48,7 +49,23 @@ describe('checkout-detail-phase', () => {
         collected: 0,
         pathChoice: 'undecided',
       }),
-      'settle',
+      'split_edit',
+    );
+    assert.equal(
+      resolveCheckoutDetailPhase({
+        splitMode: 'by_item',
+        collected: 4,
+        pathChoice: 'undecided',
+      }),
+      'split_edit',
+    );
+    assert.equal(
+      resolveCheckoutDetailPhase({
+        splitMode: 'custom',
+        collected: 0,
+        pathChoice: 'undecided',
+      }),
+      'split_edit',
     );
   });
 
@@ -92,6 +109,50 @@ describe('checkout-detail-phase', () => {
         pathChoice: 'whole_table',
       }),
       false,
+    );
+  });
+
+  it('blocks by-item close while pool remains; allows when pool empty and payable paid', () => {
+    assert.equal(
+      checkoutSplitCloseAllowed({
+        splitMode: 'by_item',
+        byItemComplete: false,
+        rows: [{ amount: 3.5, paid: true }],
+      }),
+      false,
+    );
+    assert.equal(
+      checkoutSplitCloseAllowed({
+        splitMode: 'by_item',
+        byItemComplete: true,
+        rows: [
+          { amount: 3.5, paid: true },
+          { amount: 0, paid: false },
+        ],
+      }),
+      true,
+    );
+    assert.equal(
+      checkoutSplitCloseAllowed({
+        splitMode: 'even',
+        byItemComplete: false,
+        rows: [
+          { amount: 23, paid: true },
+          { amount: 23, paid: false },
+        ],
+      }),
+      false,
+    );
+    assert.equal(
+      checkoutSplitCloseAllowed({
+        splitMode: 'custom',
+        byItemComplete: false,
+        rows: [
+          { amount: 10, paid: true },
+          { amount: 0, paid: false },
+        ],
+      }),
+      true,
     );
   });
 });

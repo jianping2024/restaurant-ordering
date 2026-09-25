@@ -17,6 +17,7 @@ type Props = {
   restaurantSlug: string;
   tableId: string;
   capabilities: Capabilities;
+  billSyncToFiscal?: boolean;
 };
 
 export function WaiterBoardCheckoutSheet({
@@ -26,8 +27,9 @@ export function WaiterBoardCheckoutSheet({
   restaurantSlug,
   tableId,
   capabilities,
+  billSyncToFiscal = false,
 }: Props) {
-  const { requests } = useCheckoutRequests();
+  const { requests, printAsk } = useCheckoutRequests();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const navT = getMessages(lang).nav;
@@ -44,6 +46,14 @@ export function WaiterBoardCheckoutSheet({
     if (open) document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
+
+  // Close the sheet after the provider-level print question finishes for this table.
+  useEffect(() => {
+    if (!open) return;
+    if (printAsk) return;
+    if (requests.some((row) => tableIdsEqual(row.table_id, tableId))) return;
+    onClose();
+  }, [open, printAsk, requests, tableId, onClose]);
 
   useBodyScrollLock(open);
 
@@ -74,9 +84,9 @@ export function WaiterBoardCheckoutSheet({
             restaurantId={restaurantId}
             restaurantSlug={restaurantSlug}
             capabilities={capabilities}
+            billSyncToFiscal={billSyncToFiscal}
             showBackButton={false}
             onBack={onClose}
-            onAllPaid={onClose}
             onCloseTableComplete={onClose}
           />
         ) : (

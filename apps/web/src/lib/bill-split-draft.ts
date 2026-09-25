@@ -65,7 +65,10 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
   }));
 }
 
-export function validateSplitDraft(input: BillSplitDraftInput) {
+export function validateSplitDraft(
+  input: BillSplitDraftInput,
+  options?: { allowPartialByItem?: boolean },
+) {
   const results = computeSplitResults(input);
   const validation = validateBillSplit({
     splitMode: input.splitMode,
@@ -74,6 +77,7 @@ export function validateSplitDraft(input: BillSplitDraftInput) {
     lineSpecs: input.splitMode === 'by_item' ? input.lineSpecs : undefined,
     byItemAllocations: input.splitMode === 'by_item' ? input.parsedByItemAllocations : undefined,
     customAmounts: input.customAmounts,
+    allowPartialByItem: options?.allowPartialByItem,
   });
   return { results, validation };
 }

@@ -57,7 +57,7 @@ export function CheckoutRequestsManager({
   initialFocus,
 }: Props) {
   const capabilities = fromCapabilitiesPayload(capabilitiesPayload);
-  const { requests, reload, getCollectedForSession } = useCheckoutRequests();
+  const { requests, reload, getCollectedForSession, printAsk } = useCheckoutRequests();
   const billDiscount = useCheckoutBillDiscount();
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
@@ -107,10 +107,11 @@ export function CheckoutRequestsManager({
 
   useEffect(() => {
     if (!selectedRequestId) return;
+    if (printAsk?.billSplitId === selectedRequestId) return;
     if (!requests.some((row) => row.id === selectedRequestId)) {
       setSelection({ mode: 'follow_focus' });
     }
-  }, [requests, selectedRequestId]);
+  }, [requests, selectedRequestId, printAsk?.billSplitId]);
 
   const pendingLabel = t.pendingBadge.replace('{n}', String(requests.length));
   const selectedRequest = selectedRequestId
@@ -243,7 +244,6 @@ export function CheckoutRequestsManager({
                 billSyncToFiscal={billSyncToFiscal}
                 showBackButton={!!selectedRequestId}
                 onBack={showList}
-                onAllPaid={clearSelectionAfterComplete}
                 onCloseTableComplete={clearSelectionAfterComplete}
               />
             ) : awaitingFocusResolve ? (

@@ -1,8 +1,15 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
-import { CheckoutPathChooserBackButton } from '@/components/dashboard/checkout/checkout-detail-phase';
+import {
+  CheckoutPathChooserBackButton,
+  checkoutSplitCloseAllowed,
+} from '@/components/dashboard/checkout/checkout-detail-phase';
+import {
+  CheckoutSessionActions,
+  SettlementBar,
+} from '@/components/dashboard/checkout/CheckoutRequestDetail';
 import { StaffByItemSplitWorkbench } from '@/components/dashboard/checkout/StaffByItemSplitWorkbench';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
@@ -15,9 +22,15 @@ import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { getMessages } from '@/lib/i18n/messages';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
-import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import { discountedObligationAmount } from '@/lib/checkout-split-math';
+import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
+import {
+  sumCollectedByPersonIndex,
+  type SessionCollectedPayment,
+} from '@/lib/checkout-session-payments';
+import { splitPersonKey } from '@/lib/split-person-identity';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit, Order, SplitResult } from '@/types';
 
 type Props = {
   restaurantId: string;
@@ -26,8 +39,24 @@ type Props = {
   sessionOrders: Order[];
   itemCodeByMenuId: Record<string, string>;
   collectedPayments: SessionCollectedPayment[];
+  summary: CheckoutSettlementSummary;
+  discountRate: number;
+  discountApplying: boolean;
+  discountLocked: boolean;
+  detailLocked: boolean;
+  resumeOperating: boolean;
+  resumeBlockReason: string | null;
+  canForceCloseTable: boolean;
+  showPathBack: boolean;
   onCancel: () => void;
-  onConfirmed: () => void;
+  onDiscountRateChange: (rate: number) => void;
+  onDiscountRateFocus: () => void;
+  onDiscountRateBlur: () => void;
+  onResumeOrderingClick: () => void;
+  onCloseTable: () => void;
+  onCollectPerson: (index: number, amount: number) => void;
+  onSplitPersisted: (row: BillSplit) => void;
+  onRegisterPersist: (persist: (() => Promise<boolean>) | null) => void;
 };
 
 /**
@@ -42,8 +71,24 @@ export function StaffCheckoutSplitEditor({
   sessionOrders,
   itemCodeByMenuId,
   collectedPayments,
+  summary,
+  discountRate,
+  discountApplying,
+  discountLocked,
+  detailLocked,
+  resumeOperating,
+  resumeBlockReason,
+  canForceCloseTable,
+  showPathBack,
   onCancel,
-  onConfirmed,
+  onDiscountRateChange,
+  onDiscountRateFocus,
+  onDiscountRateBlur,
+  onResumeOrderingClick,
+  onCloseTable,
+  onCollectPerson,
+  onSplitPersisted,
+  onRegisterPersist,
 }: Props) {
   const { lang } = useLanguage();
   const billT = getMessages(lang).bill;
@@ -72,6 +117,28 @@ export function StaffCheckoutSplitEditor({
     persistedResult: null,
     submitting,
   });
+
+  const closeAllowed = useMemo(() => {
+    if (summary.remaining > 0.001) return false;
+    const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
+    return checkoutSplitCloseAllowed({
+      splitMode: splitDraft.splitMode,
+      byItemComplete:
+        splitDraft.byItemProgress.total === 0
+        || splitDraft.byItemProgress.complete === splitDraft.byItemProgress.total,
+      rows: splitDraft.results.map((row, index) => ({
+        amount: discountedObligationAmount(row.amount, discountRate),
+        paid: (collectedByIndex.get(index) ?? 0) > 0,
+      })),
+    });
+  }, [
+    collectedPayments,
+    discountRate,
+    splitDraft.byItemProgress,
+    splitDraft.results,
+    splitDraft.splitMode,
+    summary.remaining,
+  ]);
 
   const byItemAllocatorLabels = useMemo(
     () => ({
@@ -125,7 +192,8 @@ export function StaffCheckoutSplitEditor({
       progress: billT.byItemProgress,
       addAdult: billT.byItemGuestTypeAdult,
       addChild: billT.byItemGuestTypeChild,
-      remove: billT.removeConsumer,
+      remove: checkoutT.returnShareToPool,
+      collect: checkoutT.collectPerson,
       paidLocked: billT.splitPlanLocked,
       qtyParts: {
         wholeLabel: billT.qtyWholePlaceholder,
@@ -142,84 +210,123 @@ export function StaffCheckoutSplitEditor({
   const splitValidationMessage = useMemo(() => {
     if (!splitDraft.splitMode || splitDraft.splitValidation.ok) return null;
     const issue = splitDraft.splitValidation.issue;
+    if (
+      splitDraft.splitMode === 'by_item' &&
+      (issue === 'unassigned_items' || issue === 'incomplete_qty')
+    ) {
+      return null;
+    }
     if (issue === 'unassigned_items') return billT.splitUnassignedItems;
     if (issue === 'incomplete_qty') return billT.splitIncompleteQty;
     return billT.splitAmountMismatch;
   }, [billT, splitDraft.splitMode, splitDraft.splitValidation]);
 
-  const handleConfirm = useCallback(async () => {
-    if (submitting) return;
+  const persistSplit = useCallback(async (): Promise<SplitResult[] | null> => {
     if (!splitDraft.splitMode) {
       showToast(billT.splitUnassignedItems, 'error');
-      return;
+      return null;
     }
-    setSubmitting(true);
-    try {
-      const draftInput =
-        splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput;
-      const validated = validateSubmitSplitDraft(draftInput, sessionOrders);
-      if (!validated.ok) {
-        const msg =
-          validated.issue === 'unassigned_items'
-            ? billT.splitUnassignedItems
-            : validated.issue === 'incomplete_qty'
-              ? billT.splitIncompleteQty
-              : billT.splitAmountMismatch;
-        showToast(msg, 'error');
-        return;
-      }
-      const persons = buildSubmitPersons({
-        splitMode: splitDraft.splitMode,
-        submitResults: validated.submitResults,
-        splitPeople: splitDraft.splitPeople,
-        buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
-      });
-      const outcome = await requestCheckoutRequest({
-        slug: restaurantSlug,
-        tableId: request.table_id,
-        splitMode: splitDraft.splitMode,
-        persons,
-        result: validated.submitResults,
-      });
-      if (!outcome.ok) {
-        showToast(
-          messageForCheckoutRequestError(outcome.error, {
-            guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
-            partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
-            emptySession: checkoutT.callCheckoutEmptySession,
-            noActiveSession: checkoutT.callCheckoutNoActiveSession,
-            tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
-            invalidNif: billT.nifInvalid,
-            splitPlanLocked: billT.splitPlanLocked,
-            fallback: checkoutT.callCheckoutFailed,
-          }),
-          'error',
-        );
-        return;
-      }
-      onConfirmed();
-    } finally {
-      setSubmitting(false);
+    const draftInput =
+      splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput;
+    const allowPartialByItem = splitDraft.splitMode === 'by_item';
+    const validated = validateSubmitSplitDraft(draftInput, sessionOrders, { allowPartialByItem });
+    if (!validated.ok) {
+      const msg =
+        validated.issue === 'unassigned_items'
+          ? billT.splitUnassignedItems
+          : validated.issue === 'incomplete_qty'
+            ? billT.splitIncompleteQty
+            : billT.splitAmountMismatch;
+      showToast(msg, 'error');
+      return null;
     }
+    const persons = buildSubmitPersons({
+      splitMode: splitDraft.splitMode,
+      submitResults: validated.submitResults,
+      splitPeople: splitDraft.splitPeople,
+      buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
+    });
+    const outcome = await requestCheckoutRequest({
+      slug: restaurantSlug,
+      tableId: request.table_id,
+      splitMode: splitDraft.splitMode,
+      persons,
+      result: validated.submitResults,
+      allowPartialByItem,
+    });
+    if (!outcome.ok) {
+      showToast(
+        messageForCheckoutRequestError(outcome.error, {
+          guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
+          partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
+          emptySession: checkoutT.callCheckoutEmptySession,
+          noActiveSession: checkoutT.callCheckoutNoActiveSession,
+          tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
+          invalidNif: billT.nifInvalid,
+          splitPlanLocked: billT.splitPlanLocked,
+          fallback: checkoutT.callCheckoutFailed,
+        }),
+        'error',
+      );
+      return null;
+    }
+    onSplitPersisted({
+      ...request,
+      id: outcome.bill_split_id,
+      split_mode: splitDraft.splitMode,
+      persons,
+      result: outcome.result,
+      status: 'requested',
+    });
+    return outcome.result;
   }, [
     billT,
     checkoutT,
-    onConfirmed,
-    request.table_id,
+    onSplitPersisted,
+    request,
     restaurantSlug,
     sessionOrders,
     splitDraft,
-    submitting,
   ]);
 
-  const confirmDisabled =
-    submitting ||
-    !splitDraft.splitMode ||
-    !splitDraft.splitValidation.ok ||
-    sessionOrders.length === 0;
+  useEffect(() => {
+    onRegisterPersist(async () => {
+      setSubmitting(true);
+      try {
+        const saved = await persistSplit();
+        return saved != null;
+      } finally {
+        setSubmitting(false);
+      }
+    });
+    return () => onRegisterPersist(null);
+  }, [onRegisterPersist, persistSplit]);
+
+  const collectSavedPerson = useCallback(
+    async (index: number, preDiscountAmount: number) => {
+      const amount = discountedObligationAmount(preDiscountAmount, discountRate);
+      if (amount <= 0) {
+        showToast(checkoutT.cashShort, 'error');
+        return;
+      }
+      onCollectPerson(index, amount);
+    },
+    [checkoutT.cashShort, discountRate, onCollectPerson],
+  );
 
   return (
     <div className="mb-3 rounded-lg border border-brand-border bg-brand-card px-2 py-3 space-y-3">
+      <SettlementBar
+        summary={summary}
+        discountRate={discountRate}
+        discountApplying={discountApplying}
+        discountLocked={discountLocked}
+        detailLocked={detailLocked || submitting}
+        t={checkoutT}
+        onDiscountRateChange={onDiscountRateChange}
+        onDiscountRateFocus={onDiscountRateFocus}
+        onDiscountRateBlur={onDiscountRateBlur}
+      />
       <BillSplitPanel
         lang={lang}
         copy={{
@@ -278,6 +385,21 @@ export function StaffCheckoutSplitEditor({
           splitDraft.setEditingCustomAmountValue('');
         }}
         onAddCustomPerson={splitDraft.addCustomPerson}
+        staffRowActions={
+          splitDraft.splitMode === 'even' || splitDraft.splitMode === 'custom'
+            ? {
+                collectLabel: checkoutT.collectPerson,
+                removeLabel: checkoutT.returnShareToPool,
+                busy: submitting || detailLocked,
+                onCollect: (index) => {
+                  const row = splitDraft.results[index];
+                  if (!row) return;
+                  void collectSavedPerson(index, row.amount);
+                },
+                onRemoveCustom: splitDraft.removeCustomPerson,
+              }
+            : undefined
+        }
         byItemContent={(
           <StaffByItemSplitWorkbench
             lang={lang}
@@ -290,27 +412,43 @@ export function StaffCheckoutSplitEditor({
             guestName={guestName}
             labels={staffByItemLabels}
             progress={splitDraft.byItemProgress}
-            disabled={submitting}
+            disabled={submitting || detailLocked}
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
             onRenamePerson={splitDraft.renameByItemConsumer}
+            onCollectCurrent={(personName) => {
+              const index = splitDraft.results.findIndex(
+                (row) => splitPersonKey(row.name) === splitPersonKey(personName),
+              );
+              const row = index >= 0 ? splitDraft.results[index] : undefined;
+              if (!row || index < 0) {
+                showToast(checkoutT.staffByItemNeedName, 'error');
+                return;
+              }
+              void collectSavedPerson(index, row.amount);
+            }}
           />
         )}
       />
-      <div className="flex flex-wrap gap-2 px-2">
-        <CheckoutPathChooserBackButton
-          label={checkoutT.pathChooserBack}
-          onClick={onCancel}
-          disabled={submitting}
-        />
-        <button
-          type="button"
-          disabled={confirmDisabled}
-          onClick={() => void handleConfirm()}
-          className="text-sm font-semibold px-4 py-2 rounded-lg bg-brand-gold text-white disabled:opacity-50"
-        >
-          {submitting ? checkoutT.callCheckoutOperating : checkoutT.splitEditConfirm}
-        </button>
-      </div>
+      <CheckoutSessionActions
+        t={checkoutT}
+        detailLocked={detailLocked || submitting}
+        resumeOperating={resumeOperating}
+        resumeBlockReason={resumeBlockReason}
+        canForceCloseTable={canForceCloseTable}
+        closeDisabled={!closeAllowed}
+        tableId={request.table_id}
+        onResumeOrderingClick={onResumeOrderingClick}
+        onCloseTable={onCloseTable}
+        leading={
+          showPathBack ? (
+            <CheckoutPathChooserBackButton
+              label={checkoutT.pathChooserBack}
+              onClick={onCancel}
+              disabled={submitting || detailLocked}
+            />
+          ) : null
+        }
+      />
     </div>
   );
 }

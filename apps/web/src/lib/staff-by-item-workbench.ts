@@ -306,27 +306,57 @@ export function addWholeShareToPerson(params: {
   return { ...allocations, [lineKey]: patched };
 }
 
-/** Add ½ when pool has ≥ ½. */
-export function addHalfShareToPerson(params: {
+/** Denominator for the pool fraction button. Empty, below 2, or 0 stays 1/2. */
+export function menuFractionDenominatorForPerson(
+  rows: ByItemConsumerRow[],
+  personName: string,
+): number {
+  const row = rows.find((candidate) => personMatches(candidate.name, personName) && candidate.name.trim());
+  const den = Number(row?.qtyDen);
+  if (!Number.isInteger(den) || den < 2) return 2;
+  return den;
+}
+
+function menuFractionTake(denominator: number): Rational {
+  const den = Number.isInteger(denominator) && denominator >= 2 ? denominator : 2;
+  return { num: 1, den };
+}
+
+/** True when the pool still has at least 1/denominator of this menu line. */
+export function canAddMenuFractionShare(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  denominator: number;
+}): boolean {
+  const { allocations, lineSpecs, lineKey, denominator } = params;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return false;
+  const rows = allocations[lineKey] ?? [];
+  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  return compareRationals(remaining, menuFractionTake(denominator)) >= 0;
+}
+
+/** Add 1/denominator (default 1/2) when the pool can cover it. */
+export function addMenuFractionShareToPerson(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   personName: string;
+  denominator?: number;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName } = params;
+  const { allocations, lineSpecs, lineKey, personName, denominator = 2 } = params;
   const name = personName.trim();
   if (!name) return null;
+  if (!canAddMenuFractionShare({ allocations, lineSpecs, lineKey, denominator })) return null;
   const spec = lineSpecs.find((line) => line.key === lineKey);
   if (!spec || spec.mode !== 'menu') return null;
 
   const rows = allocations[lineKey] ?? [];
-  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
-  const half = { num: 1, den: 2 };
-  if (compareRationals(remaining, half) < 0) return null;
-
+  const take = menuFractionTake(denominator);
   const { rows: nextRows, row } = upsertNamedRow(rows, name, false);
   const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
-  const nextQty = addRationals(current, half);
+  const nextQty = addRationals(current, take);
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
       ? { ...candidate, name, ...rationalToRowQtyFields(nextQty) }

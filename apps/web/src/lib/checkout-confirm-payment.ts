@@ -1,16 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { SplitResult } from '@/types';
+import type { SplitPerson, SplitResult } from '@/types';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
-import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
-import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { enqueueCashDrawerOpen } from '@/lib/cash-drawer-enqueue';
 import {
   parseBillSyncPaymentMethod,
-  receiptPaymentMethodLabel,
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
+import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
+import { deriveBillView } from '@/lib/customer-bill-sync';
+import {
+  buildByItemAllocationsFromPersons,
+  getByItemLineStatusFromShares,
+  isByItemLineComplete,
+} from '@/lib/bill-split-by-item';
 
 export {
   applyDiscountToRows,
@@ -78,12 +82,6 @@ export function httpStatusForConfirmPaymentRpcCode(code: string): number {
   return RPC_ERROR_STATUS[code] ?? 500;
 }
 
-function parseRpcOrderIds(raw: unknown): string[] | undefined {
-  if (!Array.isArray(raw)) return undefined;
-  const ids = raw.filter((id): id is string => typeof id === 'string' && id.length > 0);
-  return ids.length > 0 ? ids : undefined;
-}
-
 function parseCollectionRecord(
   payload: ConfirmBillSplitPaymentRpc,
 ): ConfirmPaymentCollectionRecord | null {
@@ -104,115 +102,66 @@ function parseCollectionRecord(
   };
 }
 
-type ScheduleConfirmPaymentPrintParams = {
+/**
+ * Partial by-item pool must not close the table. Fail closed when the split
+ * cannot be read. Even/custom and a complete by-item pool return false.
+ */
+export async function shouldHoldCheckoutSessionOpen(params: {
   admin: SupabaseClient;
   restaurantId: string;
-  printLocale: string | null;
   billSplitId: string;
-  personIndex: number;
-  receiptPrinterId?: string;
-  payload: ConfirmBillSplitPaymentRpc;
-  rowAmount: number;
-  finalAmount: number;
-  collectedPaymentId: string | null;
-  paymentMethod: BillSyncPaymentMethod;
-};
-
-function scheduleConfirmPaymentReceiptPrint(params: ScheduleConfirmPaymentPrintParams): void {
-  const {
-    admin,
-    restaurantId,
-    printLocale,
-    billSplitId,
-    personIndex,
-    receiptPrinterId,
-    payload,
-    rowAmount,
-    finalAmount,
-    collectedPaymentId,
-    paymentMethod,
-  } = params;
-
-  const sessionId = payload.session_id ?? null;
-  const tableId = payload.table_id;
-  const tableDisplayName = payload.display_name;
-  const printTarget = receiptPrinterId?.trim() || undefined;
-  const tenderLabel = receiptPaymentMethodLabel(paymentMethod);
-
-  if (
-    !payload.newly_paid ||
-    !sessionId ||
-    !tableId ||
-    !tableDisplayName
-  ) {
-    return;
-  }
-
-  if (payload.should_print_split) {
-    void enqueueReceiptPrint({
+}): Promise<boolean> {
+  const { admin, restaurantId, billSplitId } = params;
+  try {
+    const { data, error } = await admin
+      .from('bill_splits')
+      .select('split_mode, persons, session_id')
+      .eq('id', billSplitId)
+      .eq('restaurant_id', restaurantId)
+      .maybeSingle();
+    if (error || !data) return true;
+    if (data.split_mode !== 'by_item' || !data.session_id) return false;
+    const orders = await loadCustomerSessionOrders({
       admin,
       restaurantId,
-      printLocale,
-      sessionId,
-      tableId,
-      tableDisplayName,
-      printSource: 'automatic',
-      variant: 'split_payment',
-      payerName: receiptPayerNameForPrint(payload.row_name ?? '', personIndex, printLocale),
-      personAmount: rowAmount,
-      amountPaid: rowAmount,
-      paymentMethod: tenderLabel,
-      billSplitId,
-      personIndex,
-      receiptPrinterId: printTarget,
-      collectedPaymentId,
-    }).catch(() => {});
-  }
-
-  if (payload.should_print_final) {
-    void enqueueReceiptPrint({
-      admin,
-      restaurantId,
-      printLocale,
-      sessionId,
-      tableId,
-      tableDisplayName,
-      printSource: 'automatic',
-      variant: 'final',
-      amountPaid: finalAmount,
-      paymentMethod: tenderLabel,
-      receiptPrinterId: printTarget,
-      billSplitId,
-      orderIds: parseRpcOrderIds(payload.order_ids),
-    }).catch(() => {});
+      sessionId: data.session_id as string,
+      ascending: true,
+    });
+    const { lineSpecs } = deriveBillView(orders);
+    const persons = Array.isArray(data.persons) ? (data.persons as SplitPerson[]) : [];
+    const allocations = buildByItemAllocationsFromPersons(persons, lineSpecs);
+    for (const spec of lineSpecs) {
+      const status = getByItemLineStatusFromShares(spec, allocations[spec.key] ?? []);
+      if (!isByItemLineComplete(status)) return true;
+    }
+    return false;
+  } catch {
+    return true;
   }
 }
 
 export async function confirmBillSplitPayment(params: {
   admin: SupabaseClient;
   restaurantId: string;
-  printLocale: string | null;
   billSplitId: string;
   personIndex: number;
   paymentMethod: BillSyncPaymentMethod;
   collectedAmount?: number;
   createdByUserId?: string;
   actor?: AuditActor;
-  receiptPrinterId?: string;
-  billReceiptPrintEnabled?: boolean;
+  /** Server-computed. Partial by-item must not close the session. */
+  holdSessionOpen?: boolean;
 }): Promise<ConfirmPaymentResult> {
   const {
     admin,
     restaurantId,
-    printLocale,
     billSplitId,
     personIndex,
     paymentMethod,
     collectedAmount,
     createdByUserId,
     actor,
-    receiptPrinterId,
-    billReceiptPrintEnabled = false,
+    holdSessionOpen = false,
   } = params;
 
   const { data: rpcData, error: rpcErr } = await admin.rpc('confirm_bill_split_payment', {
@@ -222,6 +171,7 @@ export async function confirmBillSplitPayment(params: {
     p_collected_amount: collectedAmount ?? null,
     p_created_by_user_id: createdByUserId ?? null,
     p_payment_method: paymentMethod,
+    p_hold_open: holdSessionOpen,
   });
 
   if (rpcErr) {
@@ -288,22 +238,6 @@ export async function confirmBillSplitPayment(params: {
 
   if (payload.should_close_session && typeof payload.table_id === 'string' && payload.table_id) {
     await purgeTablePartyMembership(admin, restaurantId, payload.table_id);
-  }
-
-  if (billReceiptPrintEnabled) {
-    scheduleConfirmPaymentReceiptPrint({
-      admin,
-      restaurantId,
-      printLocale,
-      billSplitId,
-      personIndex,
-      receiptPrinterId,
-      payload,
-      rowAmount,
-      finalAmount,
-      collectedPaymentId,
-      paymentMethod,
-    });
   }
 
   if (paymentMethod === 'CASH' && payload.newly_paid) {

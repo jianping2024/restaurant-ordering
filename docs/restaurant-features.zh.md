@@ -11,12 +11,12 @@
 | 功能键 | 默认 | 作用 |
 |--------|------|------|
 | `kitchen_serve_to_table` | **关闭** | 勾选后楼面可在已出餐菜品上点「上桌」 |
-| `bill_receipt_print` | **关闭** | 勾选后自动入队预账单、分单小票与结账小票；未勾选时跳过自动打印（厨房单不受影响）；后台「打印账单」手动补打不受影响 |
-| `bill_sync_to_fiscal` | **关闭** | 勾选后：结账详情在收款后出现「打印发票」（入队 `auto_issue`，成功即开票，不关台）；桌台详情隐藏「关台结账」、显示「呼叫结账」进入结账页。未勾选时：桌台保留「关台结账」、隐藏「呼叫结账」；入队 API 拒绝。分单与开票在 Agent。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
+| `bill_receipt_print` | **关闭** | 勾选后自动入队预账单；未勾选时跳过自动预账单（厨房单不受影响）。确认收款后的账单/发票由结账页询问决定，走手动入队，不受此开关限制 |
+| `bill_sync_to_fiscal` | **关闭** | 勾选后：确认收款界面填写税号/客户名，收款后问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则打这一人账单）。未勾选时不问发票，改为问「是否打印账单」。桌台详情仍按开关切换「关台结账」/「呼叫结账」。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 
-未勾选打印账单时，呼叫结账与确认收款流程照常，仅跳过自动触发的 `pre_bill` / `split_payment` / `final` 类 `print_jobs` 入队；员工在结账详情手动点「打印账单」（`checkout_bill`）仍会入队。
+未勾选打印账单时，呼叫结账与确认收款流程照常，仅跳过自动 `pre_bill`。确认收款后的 `split_payment` / `final` 只在员工回答打印询问时手动入队。
 
 ## 数据模型
 

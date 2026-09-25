@@ -66,6 +66,8 @@ export async function submitCheckoutRequestForTable(
   options?: {
     /** Fiscal sync-and-close ensure must not enqueue automatic pre_bill. */
     skipAutomaticPreBill?: boolean;
+    /** Staff per-person by-item collect. Guest callers must not set this. */
+    allowPartialByItem?: boolean;
   },
 ): Promise<CheckoutRequestResult> {
   const normalizedPayload = normalizeCheckoutRequestPayload(payload);
@@ -112,6 +114,7 @@ export async function submitCheckoutRequestForTable(
   const { orderLines, lineSpecs, total, validation } = validateSubmittedCheckoutSplit(
     orders,
     normalizedPayload,
+    { allowPartialByItem: options?.allowPartialByItem },
   );
   // Sole whole-table amount: billable session total (ignore client amount:0 placeholders).
   const payloadForPersist =

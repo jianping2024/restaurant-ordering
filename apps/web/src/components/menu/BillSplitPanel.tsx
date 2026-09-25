@@ -77,6 +77,14 @@ interface Props {
   onEditingCustomAmountValueChange: (value: string) => void;
   onCancelInlineAmountEdit: () => void;
   onAddCustomPerson: () => void;
+  /** Staff even/custom row collect. Guest omits this. Custom trash only. */
+  staffRowActions?: {
+    collectLabel: string;
+    removeLabel: string;
+    busy: boolean;
+    onCollect: (index: number) => void;
+    onRemoveCustom: (index: number) => void;
+  };
   /**
    * Staff checkout injects Fatura-like by-item workbench here.
    * Guest BillPage omits this → sole guest UI remains ByItemSplitSection.
@@ -124,6 +132,7 @@ export function BillSplitPanel({
   onEditingCustomAmountValueChange,
   onCancelInlineAmountEdit,
   onAddCustomPerson,
+  staffRowActions,
   byItemContent,
 }: Props) {
   const selectedWhen =
@@ -297,7 +306,7 @@ export function BillSplitPanel({
                         placeholder="0.00"
                       />
                     </div>
-                  ) : rowPaid ? (
+                  ) : rowPaid || splitLocked ? (
                     <span className="text-brand-gold font-medium shrink-0">
                       €{(settledAmount ?? customAmounts[i]?.amount ?? 0).toFixed(2)}
                     </span>
@@ -315,6 +324,36 @@ export function BillSplitPanel({
                     €{(settledAmount ?? r.amount).toFixed(2)}
                   </span>
                 )}
+                {staffRowActions && (splitMode === 'even' || splitMode === 'custom') ? (
+                  <div className="flex shrink-0 items-center gap-1">
+                    {splitMode === 'custom' &&
+                    !splitLocked &&
+                    customAmounts.length > 1 &&
+                    !rowPaid ? (
+                      <button
+                        type="button"
+                        aria-label={staffRowActions.removeLabel}
+                        disabled={staffRowActions.busy}
+                        onClick={() => staffRowActions.onRemoveCustom(i)}
+                        className="rounded p-1 text-brand-text-muted hover:text-red-600 disabled:opacity-40"
+                      >
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <path d="M4 7h16M9 7V5h6v2M8 7l1 13h6l1-13" />
+                        </svg>
+                      </button>
+                    ) : null}
+                    {!rowPaid && (settledAmount ?? r.amount) > 0 ? (
+                      <button
+                        type="button"
+                        disabled={staffRowActions.busy}
+                        onClick={() => staffRowActions.onCollect(i)}
+                        className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                      >
+                        {staffRowActions.collectLabel}
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             );
           })}

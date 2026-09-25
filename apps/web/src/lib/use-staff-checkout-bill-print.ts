@@ -136,14 +136,24 @@ export function useStaffCheckoutBillPrint(restaurantSlug: string) {
   );
 
   const printSplitReceipt = useCallback(
-    async (billSplit: StaffCheckoutBillPrintTarget, payment: SessionCollectedPayment) => {
+    async (
+      billSplit: StaffCheckoutBillPrintTarget,
+      payment: SessionCollectedPayment,
+      options?: { amountPaid?: number; receiptVariant?: 'split_payment' | 'final' },
+    ) => {
       if (payment.person_index == null || payment.person_index < 0) {
         showToast(t.printBillFailed, 'error');
         return false;
       }
       const cooldownKey = staffSplitReceiptCooldownKey(billSplit.id, payment.person_index);
       return runStaffPrint(cooldownKey, () =>
-        requestStaffSplitReceiptPrint({ slug: restaurantSlug, billSplit, payment }),
+        requestStaffSplitReceiptPrint({
+          slug: restaurantSlug,
+          billSplit,
+          payment,
+          amountPaid: options?.amountPaid,
+          receiptVariant: options?.receiptVariant,
+        }),
       );
     },
     [restaurantSlug, runStaffPrint, t],

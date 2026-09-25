@@ -367,3 +367,22 @@ func TestZhPreBillMenuOneRasterPerLine(t *testing.T) {
 		t.Fatal("price ink should sit in right price band")
 	}
 }
+
+func TestBuildOrderReceiptPrintsChangeWhenTenderExceedsDue(t *testing.T) {
+	payload, _ := json.Marshal(map[string]any{
+		"locale":          "en",
+		"display_name":    "A-05",
+		"receipt_variant": "split_payment",
+		"payer_name":      "Ana",
+		"amount_due":      10.0,
+		"amount_paid":     20.0,
+		"payment_method":  "Cash",
+		"lines": []map[string]any{
+			{"item_index": 1, "display_name": "Water", "qty": 1, "unit_price": 10.0},
+		},
+	})
+	s := string(escposFromJob(printJob{Type: "order_receipt", Payload: payload}))
+	if !strings.Contains(s, "Change:10.00") {
+		t.Fatalf("expected change line, got %q", s)
+	}
+}

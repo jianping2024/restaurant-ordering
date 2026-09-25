@@ -109,6 +109,7 @@ export async function POST(
     persons?: unknown;
     result?: unknown;
     customer_nif?: unknown;
+    allow_partial_by_item?: unknown;
   };
   try {
     body = await req.json();
@@ -146,11 +147,16 @@ export async function POST(
     return NextResponse.json({ error: loaded.error }, { status: loaded.status });
   }
 
+  const caller = await resolveCheckoutRequestCaller(slug);
+  const allowPartialByItem =
+    body.allow_partial_by_item === true && caller.kind === 'authorized_staff';
+
   const submitResult = await submitCheckoutRequestForTable(
     admin,
     loaded.restaurant.id,
     tableId,
     { splitMode, persons, result, customerNif },
+    { allowPartialByItem },
   );
 
   if (!submitResult.ok) {
@@ -160,7 +166,6 @@ export async function POST(
     );
   }
 
-  const caller = await resolveCheckoutRequestCaller(slug);
   if (caller.kind === 'authorized_staff') {
     const { staffSessionForSlug } = await import('@/lib/staff-api-auth');
     const staffCtx = await staffSessionForSlug(slug);

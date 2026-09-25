@@ -34,6 +34,7 @@ export function buildSubmitPersons(params: {
 export function validateSubmitSplitDraft(
   splitDraftInput: BillSplitDraftInput,
   orders: Order[],
+  options?: { allowPartialByItem?: boolean },
 ): {
   ok: true;
   submitResults: SplitResult[];
@@ -42,12 +43,15 @@ export function validateSubmitSplitDraft(
   issue: 'unassigned_items' | 'incomplete_qty' | 'amount_mismatch';
 } {
   const freshView = deriveBillView(orders);
-  const { results: submitResults, validation } = validateSplitDraft({
-    ...splitDraftInput,
-    total: freshView.total,
-    orderLines: freshView.splitOrderLines,
-    lineSpecs: freshView.lineSpecs,
-  });
+  const { results: submitResults, validation } = validateSplitDraft(
+    {
+      ...splitDraftInput,
+      total: freshView.total,
+      orderLines: freshView.splitOrderLines,
+      lineSpecs: freshView.lineSpecs,
+    },
+    { allowPartialByItem: options?.allowPartialByItem },
+  );
   if (!validation.ok) {
     return { ok: false, issue: validation.issue };
   }
@@ -62,6 +66,7 @@ export function validateSubmittedCheckoutSplit(
     persons: SplitPerson[];
     result: SplitResult[];
   },
+  options?: { allowPartialByItem?: boolean },
 ): {
   orderLines: BillSplitOrderLine[];
   lineSpecs: ByItemLineSpec[];
@@ -78,6 +83,7 @@ export function validateSubmittedCheckoutSplit(
       payload.splitMode === 'by_item'
         ? buildByItemAllocationsFromPersons(payload.persons, lineSpecs)
         : undefined,
+    allowPartialByItem: options?.allowPartialByItem,
   });
   return { orderLines, lineSpecs, total, validation };
 }

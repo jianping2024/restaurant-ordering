@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -13,8 +13,10 @@ import {
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import {
   addBuffetSeatToPerson,
-  addHalfShareToPerson,
+  addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  canAddMenuFractionShare,
+  menuFractionDenominatorForPerson,
   isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
@@ -40,6 +42,7 @@ export type StaffByItemWorkbenchLabels = {
   addAdult: string;
   addChild: string;
   remove: string;
+  collect: string;
   paidLocked: string;
   qtyParts: QtyPartsLabels;
 };
@@ -58,6 +61,7 @@ type Props = {
   disabled?: boolean;
   onAllocationChange: (next: Record<string, ByItemConsumerRow[]>) => void;
   onRenamePerson: (oldName: string, newName: string) => void;
+  onCollectCurrent?: (personName: string) => void;
 };
 
 /**
@@ -78,6 +82,7 @@ export function StaffByItemSplitWorkbench({
   disabled = false,
   onAllocationChange,
   onRenamePerson,
+  onCollectCurrent,
 }: Props) {
   const peopleFromAlloc = useMemo(
     () => staffByItemPeopleFromAllocations(byItemAllocations),
@@ -118,6 +123,7 @@ export function StaffByItemSplitWorkbench({
 
   const currentLocked = lockedPersonNames.has(currentName.trim().toLowerCase());
   const editDisabled = disabled || currentLocked;
+  const lockedSnapshot = useRef(lockedPersonNames);
 
   const poolLines = useMemo(
     () =>
@@ -132,6 +138,34 @@ export function StaffByItemSplitWorkbench({
   );
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
+
+  useEffect(() => {
+    const prev = lockedSnapshot.current;
+    lockedSnapshot.current = lockedPersonNames;
+    const key = currentName.trim().toLowerCase();
+    if (!key || !lockedPersonNames.has(key) || prev.has(key)) return;
+    const nextUnpaid = people.findIndex(
+      (person, idx) => idx > safeIndex && !lockedPersonNames.has(person.trim().toLowerCase()),
+    );
+    if (nextUnpaid >= 0) {
+      setCurrentIndex(nextUnpaid);
+      return;
+    }
+    const otherUnpaid = people.findIndex(
+      (person, idx) => idx !== safeIndex && !lockedPersonNames.has(person.trim().toLowerCase()),
+    );
+    if (otherUnpaid >= 0) {
+      setCurrentIndex(otherUnpaid);
+      return;
+    }
+    if (visiblePool.length > 0) {
+      const nextName = guestName(people.length + 1);
+      setPeople((prevPeople) => [...prevPeople, nextName]);
+      setCurrentIndex(people.length);
+      setNameDraft(nextName);
+      setNeedNameHint(false);
+    }
+  }, [currentName, guestName, lockedPersonNames, people, safeIndex, visiblePool.length]);
 
   const shares = useMemo(
     () =>
@@ -262,22 +296,41 @@ export function StaffByItemSplitWorkbench({
                       <>
                         <button
                           type="button"
-                          disabled={editDisabled || !line.canAddHalf}
-                          className="h-7 w-7 rounded-lg border border-brand-border text-xs font-bold disabled:opacity-40"
+                          disabled={
+                            editDisabled ||
+                            !canAddMenuFractionShare({
+                              allocations: byItemAllocations,
+                              lineSpecs,
+                              lineKey: line.key,
+                              denominator: menuFractionDenominatorForPerson(
+                                byItemAllocations[line.key] ?? [],
+                                currentName,
+                              ),
+                            })
+                          }
+                          className="h-7 min-w-7 rounded-lg border border-brand-border px-1 text-xs font-bold disabled:opacity-40"
                           onClick={() => {
                             const name = ensureNamed();
                             if (!name) return;
+                            const denominator = menuFractionDenominatorForPerson(
+                              byItemAllocations[line.key] ?? [],
+                              name,
+                            );
                             applyAlloc(
-                              addHalfShareToPerson({
+                              addMenuFractionShareToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
                                 personName: name,
+                                denominator,
                               }),
                             );
                           }}
                         >
-                          ½
+                          {`1/${menuFractionDenominatorForPerson(
+                            byItemAllocations[line.key] ?? [],
+                            currentName,
+                          )}`}
                         </button>
                         <button
                           type="button"
@@ -484,7 +537,8 @@ export function StaffByItemSplitWorkbench({
                         <button
                           type="button"
                           disabled={editDisabled}
-                          className="text-[11px] text-brand-text-muted hover:text-red-600 disabled:opacity-40"
+                          aria-label={labels.remove}
+                          className="rounded p-1 text-brand-text-muted hover:text-red-600 disabled:opacity-40"
                           onClick={() => {
                             applyAlloc(
                               removePersonShareOnLine({
@@ -496,7 +550,9 @@ export function StaffByItemSplitWorkbench({
                             );
                           }}
                         >
-                          {labels.remove}
+                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                            <path d="M4 7h16M9 7V5h6v2M8 7l1 13h6l1-13" />
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -505,9 +561,21 @@ export function StaffByItemSplitWorkbench({
               </>
             )}
 
-            <p className="pt-1 text-[12px] font-medium text-brand-text">
-              {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
-            </p>
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <p className="text-[12px] font-medium text-brand-text">
+                {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
+              </p>
+              {onCollectCurrent && !currentLocked ? (
+                <button
+                  type="button"
+                  disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
+                  onClick={() => onCollectCurrent(currentName)}
+                  className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                >
+                  {labels.collect}
+                </button>
+              ) : null}
+            </div>
           </div>
         </section>
       </div>

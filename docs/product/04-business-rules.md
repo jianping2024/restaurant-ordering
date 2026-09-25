@@ -284,9 +284,9 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | 产品说法 | `receipt_variant` | 自动/手动 |
 |----------|-------------------|-----------|
 | 预结算 | `pre_bill` | **自动**（呼叫结账成功后入队）或 **前台手动**（桌台详情「打印预结单」；`staff_manual`，不受开关限制） |
-| 分单 | `split_payment` | 自动（确认某人收款） |
+| 分单 | `split_payment` | **手动**（确认收款后询问；选「是」才打这一人。整桌最后一人也不另打全桌付清） |
 | 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账顺带入队 / 历史重打；收银员关台结账不触发）。关台结账：**先关台再尽力入队**，入队失败不挡关台 |
-| 总账单（收讫后） | `final` | 自动（全员付清） |
+| 总账单（收讫后） | `final` | **手动**（仅整桌结账确认收款后，询问打印时打一张） |
 
 「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。
 
@@ -306,7 +306,8 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 | variant | `bill_receipt_print` 门控 |
 |---------|---------------------------|
-| `pre_bill`、`split_payment`、`final` | 受开关限制（`printSource=automatic`） |
+| `pre_bill` | 受开关限制（`printSource=automatic`） |
+| 确认收款后的 `split_payment`、整桌 `final` | **不受**限制（员工询问后 `staff_manual`） |
 | `pre_bill`（前台详情手动） | **不受**限制（`printSource=staff_manual`） |
 | `checkout_bill`（手动打印账单） | **不受**限制 |
 | 手动 `split_payment`（已收款项补打收据） | **不受**限制 |

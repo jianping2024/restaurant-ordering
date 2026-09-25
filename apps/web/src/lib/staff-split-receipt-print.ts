@@ -11,8 +11,12 @@ export async function requestStaffSplitReceiptPrint(params: {
   slug: string;
   billSplit: StaffCheckoutBillPrintTarget;
   payment: SessionCollectedPayment;
+  /** Live cash tender. Omit on ledger reprint so the sheet shows the obligation. */
+  amountPaid?: number;
+  /** Whole-table collect prints one final sheet. Split modes stay split_payment. */
+  receiptVariant?: 'split_payment' | 'final';
 }): Promise<OrderReceiptPrintResult> {
-  const { slug, billSplit, payment } = params;
+  const { slug, billSplit, payment, amountPaid, receiptVariant = 'split_payment' } = params;
   if (payment.person_index == null || payment.person_index < 0) {
     return { ok: false, error: 'invalid_person_index' };
   }
@@ -21,11 +25,11 @@ export async function requestStaffSplitReceiptPrint(params: {
     tableId: billSplit.table_id,
     sessionId: billSplit.session_id ?? undefined,
     billSplitId: billSplit.id,
-    receiptVariant: 'split_payment',
+    receiptVariant,
     personIndex: payment.person_index,
     payerName: payment.person_name,
     personAmount: payment.amount,
-    amountPaid: payment.amount,
+    amountPaid: amountPaid ?? payment.amount,
     paymentMethod: receiptPaymentMethodLabel(payment.payment_method),
     collectedPaymentId: payment.id,
   });

@@ -239,9 +239,30 @@ export function useBillSplitDraft(params: {
   useLayoutEffect(() => {
     const draft = loadedLocalDraftRef.current;
     if (!draft || draft.splitMode !== 'by_item' || byItemLocalAppliedRef.current) return;
+    // Paid/continuation persons are authoritative — never let a stale local draft wipe them.
+    if (
+      !shouldRestoreBillSplitLocalDraft({
+        existingSplit,
+        submitted,
+        collectedPaymentCount: collectedPayments.length,
+      })
+    ) {
+      byItemLocalAppliedRef.current = true;
+      return;
+    }
+    if (existingSplit?.persons?.some((person) => (person.item_shares?.length ?? 0) > 0)) {
+      byItemLocalAppliedRef.current = true;
+      return;
+    }
     byItemLocalAppliedRef.current = true;
     setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
-  }, [lineSpecs, setByItemAllocations]);
+  }, [
+    lineSpecs,
+    setByItemAllocations,
+    existingSplit,
+    submitted,
+    collectedPayments.length,
+  ]);
 
   /** Keep even roster length === personCount (sole even people source for compute/submit). */
   useLayoutEffect(() => {

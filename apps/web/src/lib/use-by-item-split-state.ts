@@ -22,7 +22,7 @@ export function useByItemSplitState(params: {
   const { splitMode, lineSpecs, existingSplit } = params;
 
   const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
-  const hydratedSplitIdRef = useRef<string | null>(null);
+  const hydratedSplitKeyRef = useRef<string | null>(null);
 
   useLayoutEffect(() => {
     if (splitMode !== 'by_item') return;
@@ -34,8 +34,11 @@ export function useByItemSplitState(params: {
 
   useLayoutEffect(() => {
     if (splitMode !== 'by_item' || !existingSplit?.persons?.length) return;
-    if (hydratedSplitIdRef.current === existingSplit.id) return;
-    hydratedSplitIdRef.current = existingSplit.id;
+    // Wait for lineSpecs — hydrating with [] stamps the split id and skips the real restore.
+    if (lineSpecs.length === 0) return;
+    const hydrateKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}`;
+    if (hydratedSplitKeyRef.current === hydrateKey) return;
+    hydratedSplitKeyRef.current = hydrateKey;
     const hydrated = buildByItemConsumerRowsFromPersons(existingSplit.persons, lineSpecs);
     setByItemAllocations(withDefaultByItemLineRows(hydrated, lineSpecs));
   }, [splitMode, lineSpecs, existingSplit]);

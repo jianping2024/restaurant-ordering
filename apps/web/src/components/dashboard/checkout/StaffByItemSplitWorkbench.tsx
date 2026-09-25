@@ -158,7 +158,6 @@ export function StaffByItemSplitWorkbench({
 
   const currentLocked = lockedPersonNames.has(currentName.trim().toLowerCase());
   const editDisabled = disabled || currentLocked;
-  const lockedSnapshot = useRef(lockedPersonNames);
 
   const poolLines = useMemo(
     () =>
@@ -188,32 +187,33 @@ export function StaffByItemSplitWorkbench({
     return calcByItemSplitResults({ lines, allocations });
   }, [byItemAllocations, lang, lineSpecs, orderLines]);
 
+  /**
+   * Serial collect handoff: if current is paid/locked, focus an unpaid chip or mint the next
+   * guest while pool remains — including remount when the paid person is already locked.
+   */
   useEffect(() => {
-    const prev = lockedSnapshot.current;
-    lockedSnapshot.current = lockedPersonNames;
     const key = currentName.trim().toLowerCase();
-    if (!key || !lockedPersonNames.has(key) || prev.has(key)) return;
-    const nextUnpaid = people.findIndex(
-      (person, idx) => idx > safeIndex && !lockedPersonNames.has(person.trim().toLowerCase()),
+    if (!key || !lockedPersonNames.has(key)) return;
+
+    const unpaidIdx = people.findIndex(
+      (person) => !lockedPersonNames.has(person.trim().toLowerCase()),
     );
-    if (nextUnpaid >= 0) {
-      setCurrentIndex(nextUnpaid);
+    if (unpaidIdx >= 0) {
+      if (unpaidIdx !== safeIndex) setCurrentIndex(unpaidIdx);
       return;
     }
-    const otherUnpaid = people.findIndex(
-      (person, idx) => idx !== safeIndex && !lockedPersonNames.has(person.trim().toLowerCase()),
-    );
-    if (otherUnpaid >= 0) {
-      setCurrentIndex(otherUnpaid);
-      return;
-    }
-    if (visiblePool.length > 0) {
-      const nextName = guestName(people.length + 1);
-      setPeople((prevPeople) => [...prevPeople, nextName]);
-      setCurrentIndex(people.length);
-      setNameDraft(nextName);
-      setNeedNameHint(false);
-    }
+    if (visiblePool.length === 0) return;
+
+    const nextName = guestName(people.length + 1);
+    setPeople((prevPeople) => {
+      const exists = prevPeople.some(
+        (name) => splitPersonKey(name) === splitPersonKey(nextName),
+      );
+      return exists ? prevPeople : [...prevPeople, nextName];
+    });
+    setCurrentIndex(people.length);
+    setNameDraft(nextName);
+    setNeedNameHint(false);
   }, [currentName, guestName, lockedPersonNames, people, safeIndex, visiblePool.length]);
 
   const shares = useMemo(

@@ -64,6 +64,10 @@ export type LandingCopy = {
     desc: string;
     whatsappCta: string;
     wechatCta: string;
+    /** Exactly three capability chips under the primary CTAs. */
+    proofs: readonly [string, string, string];
+    /** Quiet channel lead before agentCta (below proofs, not between CTAs). */
+    agentLead: string;
     agentCta: string;
   };
   pillars: {

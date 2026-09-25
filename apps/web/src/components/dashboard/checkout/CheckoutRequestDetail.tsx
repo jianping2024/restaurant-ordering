@@ -93,49 +93,51 @@ export function SettlementBar({
   onDiscountRateBlur: () => void;
 }) {
   return (
-    <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-2.5">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm min-w-0 flex-1">
-          <span className="text-brand-text-muted">
-            {t.settlementConsumption}{' '}
-            <span className="text-brand-text tabular-nums font-medium">
-              €{summary.consumption.toFixed(2)}
-            </span>
-          </span>
-          <span className="text-brand-text-muted">
-            {t.finalAmount}{' '}
-            <span className="text-brand-text tabular-nums font-medium">
-              €{summary.payable.toFixed(2)}
-            </span>
-          </span>
-          {summary.collected > 0 ? (
+    <div className="sticky top-0 z-20 -mx-2 px-2 py-1 bg-brand-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-brand-card/90">
+      <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm min-w-0 flex-1">
             <span className="text-brand-text-muted">
-              {t.settlementCollected}{' '}
-              <span className="tabular-nums">€{summary.collected.toFixed(2)}</span>
+              {t.settlementConsumption}{' '}
+              <span className="text-brand-text tabular-nums font-medium">
+                €{summary.consumption.toFixed(2)}
+              </span>
             </span>
-          ) : null}
-          <span className="text-brand-text-muted">
-            {t.settlementPending}{' '}
-            <span className="text-brand-gold font-semibold tabular-nums">
-              €{summary.pending.toFixed(2)}
+            <span className="text-brand-text-muted">
+              {t.finalAmount}{' '}
+              <span className="text-brand-text tabular-nums font-medium">
+                €{summary.payable.toFixed(2)}
+              </span>
             </span>
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-          <span className="text-[13px] text-brand-text-muted">{t.discountRate}</span>
-          <IntegerInput
-            min={0}
-            max={100}
-            value={discountRate}
-            onChange={onDiscountRateChange}
-            onFocus={onDiscountRateFocus}
-            onBlur={onDiscountRateBlur}
-            className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
-            placeholder="0"
-            disabled={discountLocked || discountApplying || detailLocked}
-            title={discountLocked ? t.discountLockedAfterPayment : undefined}
-          />
-          <span className="text-brand-text-muted text-sm">%</span>
+            {summary.collected > 0 ? (
+              <span className="text-brand-text-muted">
+                {t.settlementCollected}{' '}
+                <span className="tabular-nums">€{summary.collected.toFixed(2)}</span>
+              </span>
+            ) : null}
+            <span className="text-brand-text-muted">
+              {t.settlementPending}{' '}
+              <span className="text-brand-gold font-semibold tabular-nums">
+                €{summary.pending.toFixed(2)}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            <span className="text-[13px] text-brand-text-muted">{t.discountRate}</span>
+            <IntegerInput
+              min={0}
+              max={100}
+              value={discountRate}
+              onChange={onDiscountRateChange}
+              onFocus={onDiscountRateFocus}
+              onBlur={onDiscountRateBlur}
+              className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+              placeholder="0"
+              disabled={discountLocked || discountApplying || detailLocked}
+              title={discountLocked ? t.discountLockedAfterPayment : undefined}
+            />
+            <span className="text-brand-text-muted text-sm">%</span>
+          </div>
         </div>
       </div>
     </div>

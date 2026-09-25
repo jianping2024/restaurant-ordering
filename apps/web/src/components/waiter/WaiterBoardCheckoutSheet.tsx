@@ -8,6 +8,7 @@ import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProv
 import { getMessages } from '@/lib/i18n/messages';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { tableIdsEqual } from '@/lib/restaurant-tables';
+import { checkoutSettlementBarSheetStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import type { Capabilities } from '@/lib/permissions/can';
 
 type Props = {
@@ -76,7 +77,7 @@ export function WaiterBoardCheckoutSheet({
         </button>
         <p className="text-xs text-brand-text-muted">{t.title}</p>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 pt-0 sm:px-6 sm:pb-6">
         {request ? (
           <CheckoutRequestDetailHost
             key={request.id}
@@ -86,6 +87,7 @@ export function WaiterBoardCheckoutSheet({
             capabilities={capabilities}
             billSyncToFiscal={billSyncToFiscal}
             showBackButton={false}
+            stickyShellClass={checkoutSettlementBarSheetStickyShellClass}
             onBack={onClose}
           />
         ) : (

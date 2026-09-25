@@ -72,6 +72,8 @@ type Props = {
   billSyncToFiscal?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
+  /** Sticky shell for SettlementBar — default under staff top bar; board sheet overrides. */
+  stickyShellClass?: string;
 };
 
 export function CheckoutRequestDetailHost({
@@ -82,6 +84,7 @@ export function CheckoutRequestDetailHost({
   billSyncToFiscal = false,
   showBackButton = true,
   onBack,
+  stickyShellClass,
 }: Props) {
   const canPrintFiscalInvoice =
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
@@ -515,6 +518,9 @@ export function CheckoutRequestDetailHost({
           resumeOperating={isResumeMutating}
           resumeBlockReason={resumeBlockReason}
           showPathBack={showReturnToPathChooser}
+          showBackButton={showBackButton}
+          stickyShellClass={stickyShellClass}
+          onBack={onBack}
           onCancel={returnToPathChooser}
           onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
           onDiscountRateFocus={() =>
@@ -572,6 +578,7 @@ export function CheckoutRequestDetailHost({
           isOnCooldown(staffSplitReceiptCooldownKey(request.id, payment.person_index))
         }
         showBackButton={showBackButton}
+        stickyShellClass={stickyShellClass}
         lang={lang}
         t={t}
         onBack={onBack}

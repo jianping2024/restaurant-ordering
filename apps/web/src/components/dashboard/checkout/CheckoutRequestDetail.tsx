@@ -27,6 +27,7 @@ import {
 } from '@/lib/format-dashboard-date';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
+import { checkoutSettlementBarStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import type { BillSplit, Order } from '@/types';
 
 export type CheckoutT = ReturnType<typeof getMessages>['checkout'];
@@ -58,6 +59,8 @@ interface Props {
   printReceiptCooldownSeconds: (payment: SessionCollectedPayment) => number;
   isPrintReceiptOnCooldown: (payment: SessionCollectedPayment) => boolean;
   showBackButton: boolean;
+  /** Sticky shell for SettlementBar — default under staff top bar; board sheet overrides. */
+  stickyShellClass?: string;
   lang: UILanguage;
   t: CheckoutT;
   onBack: () => void;
@@ -81,6 +84,8 @@ export function SettlementBar({
   onDiscountRateChange,
   onDiscountRateFocus,
   onDiscountRateBlur,
+  leading,
+  stickyShellClass = checkoutSettlementBarStickyShellClass,
 }: {
   summary: CheckoutSettlementSummary;
   discountRate: number;
@@ -91,9 +96,14 @@ export function SettlementBar({
   onDiscountRateChange: (rate: number) => void;
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
+  /** Optional chrome above amounts (e.g. mobile back) — stays in the sticky strip. */
+  leading?: ReactNode;
+  /** Sole sticky shell — default under staff top bar; board sheet passes sheet variant. */
+  stickyShellClass?: string;
 }) {
   return (
-    <div className="sticky top-0 z-20 -mx-2 px-2 py-1 bg-brand-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-brand-card/90">
+    <div className={stickyShellClass}>
+      {leading ? <div className="mb-1 lg:hidden">{leading}</div> : null}
       <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-3 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm min-w-0 flex-1">
@@ -212,6 +222,7 @@ export function CheckoutRequestDetail({
   printReceiptCooldownSeconds,
   isPrintReceiptOnCooldown,
   showBackButton,
+  stickyShellClass,
   lang,
   t,
   onBack,
@@ -261,17 +272,32 @@ export function CheckoutRequestDetail({
   const showCollectedLedger = collectedPayments.length > 0;
 
   return (
-    <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm lg:sticky lg:top-4">
-      {showBackButton ? (
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors mb-4 lg:hidden"
-        >
-          ← {t.backToList}
-        </button>
-      ) : null}
+    <div className="space-y-3">
+      <SettlementBar
+        summary={summary}
+        discountRate={discountRate}
+        discountApplying={discountApplying}
+        discountLocked={discountLocked}
+        detailLocked={detailLocked}
+        t={t}
+        stickyShellClass={stickyShellClass}
+        onDiscountRateChange={onDiscountRateChange}
+        onDiscountRateFocus={onDiscountRateFocus}
+        onDiscountRateBlur={onDiscountRateBlur}
+        leading={
+          showBackButton ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+            >
+              ← {t.backToList}
+            </button>
+          ) : null
+        }
+      />
 
+      <div className="bg-brand-card border border-brand-border rounded-xl px-5 py-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="font-heading text-3xl text-brand-text leading-none">
@@ -297,20 +323,6 @@ export function CheckoutRequestDetail({
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="mt-4">
-        <SettlementBar
-          summary={summary}
-          discountRate={discountRate}
-          discountApplying={discountApplying}
-          discountLocked={discountLocked}
-          detailLocked={detailLocked}
-          t={t}
-          onDiscountRateChange={onDiscountRateChange}
-          onDiscountRateFocus={onDiscountRateFocus}
-          onDiscountRateBlur={onDiscountRateBlur}
-        />
       </div>
 
       {settlementRows.length > 1 ? (
@@ -425,6 +437,7 @@ export function CheckoutRequestDetail({
           ) : null
         }
       />
+      </div>
     </div>
   );
 }

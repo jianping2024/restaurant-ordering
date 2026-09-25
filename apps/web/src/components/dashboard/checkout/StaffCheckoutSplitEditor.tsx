@@ -46,6 +46,11 @@ type Props = {
   resumeBlockReason: string | null;
   showPathBack: boolean;
   onCancel: () => void;
+  /** Mobile back to queue — rendered inside sticky SettlementBar chrome. */
+  showBackButton?: boolean;
+  onBack?: () => void;
+  /** Sticky shell for SettlementBar — default under staff top bar; board sheet overrides. */
+  stickyShellClass?: string;
   onDiscountRateChange: (rate: number) => void;
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
@@ -77,6 +82,9 @@ export function StaffCheckoutSplitEditor({
   resumeBlockReason,
   showPathBack,
   onCancel,
+  showBackButton = false,
+  onBack,
+  stickyShellClass,
   onDiscountRateChange,
   onDiscountRateFocus,
   onDiscountRateBlur,
@@ -287,7 +295,7 @@ export function StaffCheckoutSplitEditor({
   );
 
   return (
-    <div className="mb-3 rounded-lg border border-brand-border bg-brand-card px-2 py-3 space-y-3">
+    <div className="mb-3 space-y-3">
       <SettlementBar
         summary={summary}
         discountRate={discountRate}
@@ -295,10 +303,23 @@ export function StaffCheckoutSplitEditor({
         discountLocked={discountLocked}
         detailLocked={detailLocked || submitting}
         t={checkoutT}
+        stickyShellClass={stickyShellClass}
         onDiscountRateChange={onDiscountRateChange}
         onDiscountRateFocus={onDiscountRateFocus}
         onDiscountRateBlur={onDiscountRateBlur}
+        leading={
+          showBackButton && onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+            >
+              ← {checkoutT.backToList}
+            </button>
+          ) : null
+        }
       />
+      <div className="rounded-lg border border-brand-border bg-brand-card px-2 py-3 space-y-3">
       <BillSplitPanel
         lang={lang}
         copy={{
@@ -419,6 +440,7 @@ export function StaffCheckoutSplitEditor({
           ) : null
         }
       />
+      </div>
     </div>
   );
 }

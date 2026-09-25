@@ -5,6 +5,8 @@ import {
   STAFF_TOP_BAR_CONTENT_HEIGHT,
   STAFF_TOP_BAR_TOTAL_HEIGHT,
   STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS,
+  checkoutSettlementBarSheetStickyShellClass,
+  checkoutSettlementBarStickyShellClass,
   staffTopBarChrome,
   waiterStaffStickyChrome,
 } from '@/lib/waiter-staff-sticky-chrome';
@@ -46,6 +48,31 @@ describe('staffTopBarChrome', () => {
     assert.equal(
       waiterStaffStickyChrome.belowStaffTopBar,
       'top-[calc(3.5rem+env(safe-area-inset-top,0px))]',
+    );
+  });
+});
+
+describe('checkoutSettlementBarStickyShellClass', () => {
+  it('sticks under staff top bar — never bare top-0', () => {
+    assert.match(checkoutSettlementBarStickyShellClass, /sticky/);
+    assert.match(
+      checkoutSettlementBarStickyShellClass,
+      /top-\[calc\(3\.5rem\+env\(safe-area-inset-top/,
+    );
+    assert.doesNotMatch(checkoutSettlementBarStickyShellClass, /\btop-0\b/);
+    assert.ok(
+      checkoutSettlementBarStickyShellClass.includes(waiterStaffStickyChrome.belowStaffTopBar),
+    );
+  });
+});
+
+describe('checkoutSettlementBarSheetStickyShellClass', () => {
+  it('sticks at scrollport top under board sheet header — bare top-0 only here', () => {
+    assert.match(checkoutSettlementBarSheetStickyShellClass, /sticky/);
+    assert.match(checkoutSettlementBarSheetStickyShellClass, /\btop-0\b/);
+    assert.doesNotMatch(
+      checkoutSettlementBarSheetStickyShellClass,
+      /top-\[calc\(3\.5rem/,
     );
   });
 });

@@ -79,3 +79,28 @@ export const waiterStaffStickyChrome = {
   belowStaffTopBar: 'top-[calc(3.5rem+env(safe-area-inset-top,0px))]',
   belowPageHeading: 'top-[calc(3.5rem+3.5rem+env(safe-area-inset-top,0px))]',
 } as const;
+
+/** Shared SettlementBar sticky chrome (blur / z) — pair with one offset below. */
+const checkoutSettlementBarStickyChrome =
+  'z-20 -mx-2 px-2 py-1 bg-brand-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-brand-card/90';
+
+/**
+ * Default sticky shell for checkout `SettlementBar` on `/dashboard/checkout`.
+ * Sticks under the staff top bar — never bare `top-0` (staff bar is also `top-0` / z-30).
+ */
+export const checkoutSettlementBarStickyShellClass = [
+  'sticky',
+  waiterStaffStickyChrome.belowStaffTopBar,
+  checkoutSettlementBarStickyChrome,
+].join(' ');
+
+/**
+ * Board checkout sheet (`WaiterBoardCheckoutSheet`) — full-screen portal covers the
+ * staff top bar; scrollport is under the sheet header. Stick with `top-0` so the
+ *摘要条 flushes under「← Sala」 (do not reuse `belowStaffTopBar` here — that leaves
+ * a ~3.5rem dead gap inside the nested scroll).
+ */
+export const checkoutSettlementBarSheetStickyShellClass = [
+  'sticky top-0',
+  checkoutSettlementBarStickyChrome,
+].join(' ');

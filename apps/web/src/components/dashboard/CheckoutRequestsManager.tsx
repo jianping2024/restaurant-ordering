@@ -158,7 +158,7 @@ export function CheckoutRequestsManager({
 
   return (
     <div className="mb-8">
-      <header className="mb-6">
+      <header className={`mb-6 ${selectedRequestId ? 'hidden lg:block' : ''}`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <p className="text-brand-text-muted text-sm flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="inline-flex items-center gap-1.5">

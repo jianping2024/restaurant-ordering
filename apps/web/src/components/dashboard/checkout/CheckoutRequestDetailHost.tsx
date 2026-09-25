@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
-import type { BillSplit, Order } from '@/types';
+import type { BillSplit, Order, SplitResult } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
@@ -13,6 +13,8 @@ import {
   isCheckoutDetailLocked,
 } from '@/lib/checkout-request-state';
 import { discountedSplitRows } from '@/lib/checkout-split-math';
+import { resolveByItemCollectTarget } from '@/lib/checkout-by-item-collect';
+import { splitPersonKey } from '@/lib/split-person-identity';
 import {
   hasConfirmedPerson,
   resumeCheckoutBlockReason,
@@ -96,6 +98,7 @@ export function CheckoutRequestDetailHost({
     rowIndex: number;
     amount: number;
     wholeTable: boolean;
+    personName?: string;
   } | null>(null);
   const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
   const {
@@ -106,7 +109,7 @@ export function CheckoutRequestDetailHost({
     upsertRequestFromSubmit,
     setPrintAsk,
   } = useCheckoutRequests();
-  const persistBeforePay = useRef<(() => Promise<boolean>) | null>(null);
+  const persistBeforePay = useRef<(() => Promise<SplitResult[] | null>) | null>(null);
   const persistedBillSplitId = useRef<string | null>(null);
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
@@ -345,27 +348,57 @@ export function CheckoutRequestDetailHost({
 
   const confirmCollectedPerson = async (
     row: BillSplit,
-    pending: { rowIndex: number; amount: number; wholeTable: boolean },
+    pending: { rowIndex: number; amount: number; wholeTable: boolean; personName?: string },
     input: CollectPaymentConfirmInput,
   ) => {
     if (!restaurantSlug) {
       showToast('操作失败，请重试', 'error');
       return;
     }
-    const personKey = checkoutPersonKey(row.id, pending.rowIndex);
+    let rowIndex = pending.rowIndex;
+    let amount = pending.amount;
+    const personKey = checkoutPersonKey(row.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
+      let persistedResult: SplitResult[] | null = null;
       if (persistBeforePay.current) {
-        const saved = await persistBeforePay.current();
-        if (!saved) return;
+        persistedResult = await persistBeforePay.current();
+        if (!persistedResult) return;
+      }
+      if (pending.personName && persistedResult) {
+        const billSplitId = persistedBillSplitId.current ?? row.id;
+        const payments = getCollectedForSession(row.session_id);
+        const pendingSummary = buildCheckoutSettlementSummary(
+          { ...row, id: billSplitId, result: persistedResult },
+          discountRate,
+          payments,
+        );
+        const target = resolveByItemCollectTarget({
+          personName: pending.personName,
+          roster: persistedResult,
+          liveResults: persistedResult,
+          collectedPayments: payments,
+          billPending: pendingSummary.pending,
+        });
+        if (!target) {
+          showToast(t.paid, 'error');
+          return;
+        }
+        rowIndex = target.index;
+        amount = target.amount;
+      } else if (pending.personName && !persistedResult) {
+        const idx = (row.result ?? []).findIndex(
+          (entry) => splitPersonKey(entry.name) === splitPersonKey(pending.personName ?? ''),
+        );
+        if (idx >= 0) rowIndex = idx;
       }
       const billSplitId = persistedBillSplitId.current ?? row.id;
       const outcome = await requestCheckoutConfirmPayment({
         slug: restaurantSlug,
         billSplitId,
-        personIndex: pending.rowIndex,
+        personIndex: rowIndex,
         paymentMethod: input.paymentMethod,
-        collectedAmount: pending.amount,
+        collectedAmount: amount,
       });
       if (!outcome.ok || !outcome.collection) {
         showToast(outcome.ok ? '操作失败，请重试' : outcome.error === 'already_paid' ? t.paid : '操作失败，请重试', 'error');
@@ -380,7 +413,7 @@ export function CheckoutRequestDetailHost({
         wholeTable: pending.wholeTable,
         allPaid: outcome.all_paid,
         personName: outcome.collection.person_name,
-        obligation: pending.amount,
+        obligation: amount,
         paymentMethod: input.paymentMethod,
         customerNif: input.customerNif,
         customerName: input.customerName,
@@ -528,8 +561,8 @@ export function CheckoutRequestDetailHost({
           }
           onDiscountRateBlur={() => handleDiscountRateBlur(request)}
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-          onCollectPerson={(index, amount) => {
-            setCollectPending({ rowIndex: index, amount, wholeTable: false });
+          onCollectPerson={(index, amount, personName) => {
+            setCollectPending({ rowIndex: index, amount, wholeTable: false, personName });
           }}
           onSplitPersisted={(row) => {
             persistedBillSplitId.current = row.id;

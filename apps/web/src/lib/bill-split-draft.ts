@@ -21,6 +21,8 @@ export type BillSplitDraftInput = {
   customAmounts: Array<{ name: string; amount: number }>;
   parsedByItemAllocations: ByItemLineAllocation;
   lang: UILanguage;
+  /** Ledger roster order for by-item result rows / person_index. */
+  byItemPersonOrder?: readonly string[];
 };
 
 export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
@@ -33,6 +35,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     customAmounts,
     parsedByItemAllocations,
     lang,
+    byItemPersonOrder,
   } = input;
 
   if (!splitMode) {
@@ -54,6 +57,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
         byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
       ),
       allocations: parsedByItemAllocations,
+      personOrder: byItemPersonOrder,
     });
   }
 

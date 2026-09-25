@@ -339,6 +339,14 @@ export function useBillSplitDraft(params: {
     [lockAnchorSplit, collectedPayments],
   );
 
+  const byItemPersonOrder = useMemo(
+    () =>
+      (continuationSplit?.result ?? existingSplit?.result ?? [])
+        .map((row) => row.name)
+        .filter((name) => !!name.trim()),
+    [continuationSplit?.result, existingSplit?.result],
+  );
+
   const splitDraftInput = useMemo<BillSplitDraftInput>(
     () => ({
       splitMode,
@@ -350,6 +358,7 @@ export function useBillSplitDraft(params: {
       customAmounts,
       parsedByItemAllocations,
       lang,
+      byItemPersonOrder,
     }),
     [
       splitMode,
@@ -361,6 +370,7 @@ export function useBillSplitDraft(params: {
       customAmounts,
       parsedByItemAllocations,
       lang,
+      byItemPersonOrder,
     ],
   );
 

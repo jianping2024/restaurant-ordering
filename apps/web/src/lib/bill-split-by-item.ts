@@ -842,13 +842,18 @@ export function buildByItemAllocationsFromPersons(
  * Sole by-item person obligation from allocations.
  * Complete lines: cent-remainder split across shares.
  * Incomplete lines: unit × qty (staff partial collect / mid-split draft).
+ * Output order: `personOrder` when provided (ledger roster); else first-seen
+ * allocation order — never localeCompare-sort (that breaks person_index).
  */
 export function calcByItemSplitResults(params: {
   lines: ByItemSplitLine[];
   allocations: ByItemLineAllocation;
+  /** Stable roster names (`bill_splits.result` order). */
+  personOrder?: readonly string[];
 }): ByItemSplitRow[] {
-  const { lines, allocations } = params;
+  const { lines, allocations, personOrder } = params;
   const people = new Map<string, ByItemSplitRow>();
+  const seenOrder: string[] = [];
 
   const addShare = (shareName: string, item: ByItemSplitRow['items'][number], price: number) => {
     const key = splitPersonKey(shareName);
@@ -858,6 +863,7 @@ export function calcByItemSplitResults(params: {
       amount: 0,
       items: [],
     };
+    if (!people.has(key)) seenOrder.push(key);
     existing.items.push(item);
     existing.amount = Math.round((existing.amount + price) * 100) / 100;
     people.set(key, existing);
@@ -922,7 +928,28 @@ export function calcByItemSplitResults(params: {
     }
   }
 
-  return Array.from(people.values()).sort((a, b) => a.name.localeCompare(b.name));
+  if (personOrder && personOrder.length > 0) {
+    const used = new Set<string>();
+    const ordered: ByItemSplitRow[] = [];
+    for (const name of personOrder) {
+      const key = splitPersonKey(name);
+      if (!key || used.has(key)) continue;
+      const row = people.get(key);
+      if (!row) continue;
+      used.add(key);
+      ordered.push(row);
+    }
+    for (const key of seenOrder) {
+      if (used.has(key)) continue;
+      const row = people.get(key);
+      if (!row) continue;
+      used.add(key);
+      ordered.push(row);
+    }
+    return ordered;
+  }
+
+  return seenOrder.map((key) => people.get(key)!).filter(Boolean);
 }
 
 /** Locate person row in {@link calcByItemSplitResults} output (sole collect index/amount source). */
@@ -961,9 +988,7 @@ export function buildSplitPersonsFromAllocations(
     }
   }
 
-  return Array.from(byKey.values())
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map(({ name, item_shares }) => ({ name, item_shares }));
+  return Array.from(byKey.values()).map(({ name, item_shares }) => ({ name, item_shares }));
 }
 
 export function consumersForLineFromPersons(

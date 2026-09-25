@@ -9,7 +9,6 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
-import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { splitPersonKey } from '@/lib/split-person-identity';
@@ -107,8 +106,10 @@ type Props = {
   lineSpecs: ByItemLineSpec[];
   orderLines: BillSplitOrderLine[];
   byItemAllocations: Record<string, ByItemConsumerRow[]>;
-  lockedPersonNames: ReadonlySet<string>;
-  lockedPersonLineMins?: LockedPersonLineMins;
+  /** Ledger roster order (`bill_splits.result` names) — chip order + calc personOrder. */
+  rosterPersonNames?: readonly string[];
+  /** Settled only (ledger covers obligation) — chip ✓ and hide 收款. */
+  settledPersonNames: ReadonlySet<string>;
   itemCodeByMenuId?: Record<string, string>;
   /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
   imageUrlByMenuId?: Record<string, string>;
@@ -123,7 +124,7 @@ type Props = {
 /**
  * Sole staff checkout by-item layout: horizontal person rail (name + amount + ✓ settled)
  * + remaining pool + current share. Bill totals live only on sticky SettlementBar.
- * People: seed guestName(1); next unpaid minted only after collect locks current (serial collect).
+ * People: roster order first; next unpaid minted only after current is settled (serial collect).
  * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
  * Guest phone keeps ByItemSplitSection; do not render dish cards here.
  */
@@ -132,7 +133,8 @@ export function StaffByItemSplitWorkbench({
   lineSpecs,
   orderLines,
   byItemAllocations,
-  lockedPersonNames,
+  rosterPersonNames = [],
+  settledPersonNames,
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
@@ -147,21 +149,36 @@ export function StaffByItemSplitWorkbench({
     [byItemAllocations],
   );
 
-  const [people, setPeople] = useState<string[]>(() =>
-    peopleFromAlloc.length > 0 ? peopleFromAlloc : [guestName(1)],
-  );
+  const seedPeople = useMemo(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const name of rosterPersonNames) {
+      const key = splitPersonKey(name);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      names.push(name);
+    }
+    for (const name of peopleFromAlloc) {
+      const key = splitPersonKey(name);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      names.push(name);
+    }
+    return names.length > 0 ? names : [guestName(1)];
+  }, [guestName, peopleFromAlloc, rosterPersonNames]);
+
+  const [people, setPeople] = useState<string[]>(seedPeople);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nameDraft, setNameDraft] = useState(() => people[0] ?? guestName(1));
+  const [nameDraft, setNameDraft] = useState(() => seedPeople[0] ?? guestName(1));
   const [needNameHint, setNeedNameHint] = useState(false);
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    if (peopleFromAlloc.length === 0) return;
     setPeople((prev) => {
       const keys = new Set(prev.map((name) => splitPersonKey(name)).filter(Boolean));
       let changed = false;
       const next = [...prev];
-      for (const name of peopleFromAlloc) {
+      for (const name of seedPeople) {
         const key = splitPersonKey(name);
         if (!key || keys.has(key)) continue;
         keys.add(key);
@@ -170,7 +187,7 @@ export function StaffByItemSplitWorkbench({
       }
       return changed ? next : prev;
     });
-  }, [peopleFromAlloc]);
+  }, [seedPeople]);
 
   const safeIndex = Math.min(currentIndex, Math.max(0, people.length - 1));
   const currentName = people[safeIndex] ?? '';
@@ -188,8 +205,8 @@ export function StaffByItemSplitWorkbench({
     });
   }, [safeIndex, people.length]);
 
-  const currentLocked = lockedPersonNames.has(currentName.trim().toLowerCase());
-  const editDisabled = disabled || currentLocked;
+  const currentSettled = settledPersonNames.has(currentName.trim().toLowerCase());
+  const editDisabled = disabled || currentSettled;
 
   const poolLines = useMemo(
     () =>
@@ -216,19 +233,23 @@ export function StaffByItemSplitWorkbench({
     const lines = orderLines.map((item) =>
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
-    return calcByItemSplitResults({ lines, allocations });
-  }, [byItemAllocations, lang, lineSpecs, orderLines]);
+    return calcByItemSplitResults({
+      lines,
+      allocations,
+      personOrder: people,
+    });
+  }, [byItemAllocations, lang, lineSpecs, orderLines, people]);
 
   /**
-   * Serial collect handoff: if current is paid/locked, focus an unpaid chip or mint the next
-   * guest while pool remains — including remount when the paid person is already locked.
+   * Serial collect handoff: if current is settled, focus an unsettled chip or mint the next
+   * guest while pool remains.
    */
   useEffect(() => {
     const key = currentName.trim().toLowerCase();
-    if (!key || !lockedPersonNames.has(key)) return;
+    if (!key || !settledPersonNames.has(key)) return;
 
     const unpaidIdx = people.findIndex(
-      (person) => !lockedPersonNames.has(person.trim().toLowerCase()),
+      (person) => !settledPersonNames.has(person.trim().toLowerCase()),
     );
     if (unpaidIdx >= 0) {
       if (unpaidIdx !== safeIndex) setCurrentIndex(unpaidIdx);
@@ -246,7 +267,7 @@ export function StaffByItemSplitWorkbench({
     setCurrentIndex(people.length);
     setNameDraft(nextName);
     setNeedNameHint(false);
-  }, [currentName, guestName, lockedPersonNames, people, safeIndex, visiblePool.length]);
+  }, [currentName, guestName, settledPersonNames, people, safeIndex, visiblePool.length]);
 
   const shares = useMemo(
     () =>
@@ -320,7 +341,7 @@ export function StaffByItemSplitWorkbench({
         aria-label={labels.currentShareTitle}
       >
         {people.map((name, idx) => {
-          const locked = lockedPersonNames.has(name.trim().toLowerCase());
+          const settled = settledPersonNames.has(name.trim().toLowerCase());
           const active = idx === safeIndex;
           const amount = personAmount(name);
           const label = name || guestName(idx + 1);
@@ -336,13 +357,13 @@ export function StaffByItemSplitWorkbench({
                 active
                   ? 'border-brand-gold bg-brand-gold text-white'
                   : 'border-brand-border bg-brand-card text-brand-text hover:border-brand-gold/50'
-              } ${locked ? 'opacity-80' : ''}`}
+              } ${settled ? 'opacity-80' : ''}`}
             >
               <span>{label}</span>
               <span className={`ml-1.5 tabular-nums ${active ? 'text-white/90' : 'text-brand-text-muted'}`}>
                 €{amount.toFixed(2)}
               </span>
-              {locked ? ' ✓' : ''}
+              {settled ? ' ✓' : ''}
             </button>
           );
         })}
@@ -520,7 +541,7 @@ export function StaffByItemSplitWorkbench({
                 }}
                 className="w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm text-brand-text outline-none focus:border-brand-gold"
               />
-              {currentLocked ? (
+              {currentSettled ? (
                 <p className="mt-1 text-[11px] text-brand-text-muted">{labels.paidLocked}</p>
               ) : null}
               {needNameHint ? (
@@ -650,7 +671,7 @@ export function StaffByItemSplitWorkbench({
                   <p className="text-sm font-medium tabular-nums text-brand-text">
                     {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
                   </p>
-                  {onCollectCurrent && !currentLocked ? (
+                  {onCollectCurrent && !currentSettled ? (
                     <button
                       type="button"
                       disabled={disabled || estimate.amount <= 0 || !currentName.trim()}

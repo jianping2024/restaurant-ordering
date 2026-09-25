@@ -13,18 +13,30 @@ import { StaffByItemSplitWorkbench } from '@/components/dashboard/checkout/Staff
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
 import {
+  buildByItemAllocationsFromRows,
+  calcByItemSplitResults,
+} from '@/lib/bill-split-by-item';
+import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
+import {
+  applyCollectedObligationFloors,
+  byItemPoolFullyAllocated,
+  reconcileByItemResultsToBillTotal,
+  resolveByItemCollectTarget,
+  settledByItemPersonKeys,
+} from '@/lib/checkout-by-item-collect';
+import {
   buildSubmitPersons,
   validateSubmitSplitDraft,
 } from '@/lib/checkout-request-submit';
 import { deriveBillView } from '@/lib/customer-bill-sync';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import { getMessages } from '@/lib/i18n/messages';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
-import { locateByItemSplitResult } from '@/lib/bill-split-by-item';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import type { BillSplit, Order, SplitResult } from '@/types';
 
@@ -55,9 +67,9 @@ type Props = {
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
   onResumeOrderingClick: () => void;
-  onCollectPerson: (index: number, amount: number) => void;
+  onCollectPerson: (index: number, amount: number, personName?: string) => void;
   onSplitPersisted: (row: BillSplit) => void;
-  onRegisterPersist: (persist: (() => Promise<boolean>) | null) => void;
+  onRegisterPersist: (persist: (() => Promise<SplitResult[] | null>) | null) => void;
 };
 
 /**
@@ -187,6 +199,42 @@ export function StaffCheckoutSplitEditor({
     [billT, checkoutT],
   );
 
+  const rosterPersonNames = useMemo(
+    () => (request.result ?? []).map((row) => row.name).filter((name) => name.trim()),
+    [request.result],
+  );
+
+  const liveByItemResults = useMemo(() => {
+    if (splitDraft.splitMode !== 'by_item') return [] as SplitResult[];
+    const allocations = buildByItemAllocationsFromRows(
+      lineSpecs,
+      splitDraft.byItemAllocations,
+    );
+    const lines = splitOrderLines.map((item) =>
+      byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
+    );
+    return calcByItemSplitResults({
+      lines,
+      allocations,
+      personOrder: rosterPersonNames,
+    });
+  }, [
+    lang,
+    lineSpecs,
+    rosterPersonNames,
+    splitDraft.byItemAllocations,
+    splitDraft.splitMode,
+    splitOrderLines,
+  ]);
+
+  const settledPersonNames = useMemo(() => {
+    const roster =
+      (request.result?.length ?? 0) > 0
+        ? (request.result as SplitResult[])
+        : liveByItemResults;
+    return settledByItemPersonKeys(roster, collectedPayments);
+  }, [collectedPayments, liveByItemResults, request.result]);
+
   const splitValidationMessage = useMemo(() => {
     if (!splitDraft.splitMode || splitDraft.splitValidation.ok) return null;
     const issue = splitDraft.splitValidation.issue;
@@ -208,8 +256,18 @@ export function StaffCheckoutSplitEditor({
     }
     const draftInput =
       splitDraft.resolveSplitDraftInputForSubmit?.() ?? splitDraft.splitDraftInput;
-    const allowPartialByItem = splitDraft.splitMode === 'by_item';
-    const validated = validateSubmitSplitDraft(draftInput, sessionOrders, { allowPartialByItem });
+    const allocations =
+      splitDraft.splitMode === 'by_item'
+        ? buildByItemAllocationsFromRows(lineSpecs, splitDraft.byItemAllocations)
+        : undefined;
+    const poolComplete =
+      splitDraft.splitMode === 'by_item' &&
+      allocations != null &&
+      byItemPoolFullyAllocated(lineSpecs, allocations);
+    const allowPartialByItem = splitDraft.splitMode === 'by_item' && !poolComplete;
+    const validated = validateSubmitSplitDraft(draftInput, sessionOrders, {
+      allowPartialByItem,
+    });
     if (!validated.ok) {
       const msg =
         validated.issue === 'unassigned_items'
@@ -220,9 +278,23 @@ export function StaffCheckoutSplitEditor({
       showToast(msg, 'error');
       return null;
     }
+    const billTotal = Number(request.total_amount) || total;
+    const resultPayload =
+      splitDraft.splitMode === 'by_item'
+        ? poolComplete
+          ? reconcileByItemResultsToBillTotal(
+              validated.submitResults,
+              billTotal,
+              collectedPayments,
+            )
+          : applyCollectedObligationFloors(
+              validated.submitResults,
+              collectedPayments,
+            )
+        : validated.submitResults;
     const persons = buildSubmitPersons({
       splitMode: splitDraft.splitMode,
-      submitResults: validated.submitResults,
+      submitResults: resultPayload,
       splitPeople: splitDraft.splitPeople,
       buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
     });
@@ -231,7 +303,7 @@ export function StaffCheckoutSplitEditor({
       tableId: request.table_id,
       splitMode: splitDraft.splitMode,
       persons,
-      result: validated.submitResults,
+      result: resultPayload,
       allowPartialByItem,
     });
     if (!outcome.ok) {
@@ -262,6 +334,8 @@ export function StaffCheckoutSplitEditor({
   }, [
     billT,
     checkoutT,
+    collectedPayments,
+    lineSpecs,
     onSplitPersisted,
     request,
     restaurantSlug,
@@ -273,8 +347,7 @@ export function StaffCheckoutSplitEditor({
     onRegisterPersist(async () => {
       setSubmitting(true);
       try {
-        const saved = await persistSplit();
-        return saved != null;
+        return await persistSplit();
       } finally {
         setSubmitting(false);
       }
@@ -283,13 +356,13 @@ export function StaffCheckoutSplitEditor({
   }, [onRegisterPersist, persistSplit]);
 
   const collectSavedPerson = useCallback(
-    async (index: number, preDiscountAmount: number) => {
+    async (index: number, preDiscountAmount: number, personName?: string) => {
       const amount = discountedObligationAmount(preDiscountAmount, discountRate);
       if (amount <= 0) {
         showToast(checkoutT.cashShort, 'error');
         return;
       }
-      onCollectPerson(index, amount);
+      onCollectPerson(index, amount, personName);
     },
     [checkoutT.cashShort, discountRate, onCollectPerson],
   );
@@ -399,8 +472,8 @@ export function StaffCheckoutSplitEditor({
             lineSpecs={lineSpecs}
             orderLines={splitOrderLines}
             byItemAllocations={splitDraft.byItemAllocations}
-            lockedPersonNames={splitDraft.lockedPersonNames}
-            lockedPersonLineMins={splitDraft.lockedPersonLineMins}
+            rosterPersonNames={rosterPersonNames}
+            settledPersonNames={settledPersonNames}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
@@ -414,12 +487,22 @@ export function StaffCheckoutSplitEditor({
                 showToast(checkoutT.staffByItemNeedName, 'error');
                 return;
               }
-              const located = locateByItemSplitResult(splitDraft.results, trimmed);
-              if (!located || located.row.amount <= 0) {
+              const roster =
+                (request.result?.length ?? 0) > 0
+                  ? (request.result as SplitResult[])
+                  : liveByItemResults;
+              const target = resolveByItemCollectTarget({
+                personName: trimmed,
+                roster,
+                liveResults: liveByItemResults,
+                collectedPayments,
+                billPending: summary.pending,
+              });
+              if (!target) {
                 showToast(checkoutT.staffByItemNoCollectableShare, 'error');
                 return;
               }
-              void collectSavedPerson(located.index, located.row.amount);
+              void collectSavedPerson(target.index, target.amount, target.personName);
             }}
           />
         )}

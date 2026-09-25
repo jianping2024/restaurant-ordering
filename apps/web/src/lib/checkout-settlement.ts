@@ -6,10 +6,7 @@ import {
   hasConfirmedPerson,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
-import {
-  buildSplitSettlementRows,
-  sumSplitSettlementOutstanding,
-} from '@/lib/checkout-split-settlement';
+import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import type { BillSplit, Order, SplitMode } from '@/types';
 
 export type CheckoutSettlementSummary = {
@@ -20,6 +17,7 @@ export type CheckoutSettlementSummary = {
   pending: number;
 };
 
+/** Sole summary「待收」:折后应收 − 已收台账（含按菜未分配池）；人级本次应收仍用 buildSplitSettlementRows. */
 export function buildCheckoutSettlementSummary(
   request: BillSplit,
   discountRate: number,
@@ -27,22 +25,12 @@ export function buildCheckoutSettlementSummary(
 ): CheckoutSettlementSummary {
   const payable = checkoutPayableAmount(request, discountRate);
   const collected = totalCollectedAmount(collectedPayments);
-  const splitRows = normalizeSplitRows(request);
-  const pending =
-    splitRows.length > 1
-      ? sumSplitSettlementOutstanding(
-          buildSplitSettlementRows(
-            applyDiscountToRows(splitRows, discountRate),
-            collectedPayments,
-          ),
-        )
-      : outstandingAmount(payable, collected);
   return {
     consumption: Number(request.total_amount),
     payable,
     discountRate,
     collected,
-    pending,
+    pending: outstandingAmount(payable, collected),
   };
 }
 

@@ -5,10 +5,9 @@ import {
 } from '@/lib/checkout-session-payments';
 import {
   buildSplitSettlementRows,
-  sumSplitSettlementOutstanding,
   type SplitSettlementStatus,
 } from '@/lib/checkout-split-settlement';
-import type { SplitMode, SplitResult } from '@/types';
+import type { SplitResult } from '@/types';
 
 /** Bill page split rows: draft while editing, persisted snapshot after checkout submit. */
 export function billSplitDisplayResults(params: {
@@ -45,36 +44,24 @@ export function buildCustomerSplitDisplayRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
 ): CustomerSplitRowDisplay[] {
-  return buildSplitSettlementRows(resultRows, collectedPayments).map(({ name, obligationAmount, collectedAmount, outstandingAmount, settlementStatus }) => ({
-    name,
-    obligationAmount,
-    collectedAmount,
-    outstandingAmount,
-    settlementStatus,
-  }));
-}
-
-export function sumSplitDisplayOutstanding(rows: CustomerSplitRowDisplay[]): number {
-  return sumSplitSettlementOutstanding(
-    rows.map((row, index) => ({ ...row, index })),
+  return buildSplitSettlementRows(resultRows, collectedPayments).map(
+    ({ name, obligationAmount, collectedAmount, outstandingAmount, settlementStatus }) => ({
+      name,
+      obligationAmount,
+      collectedAmount,
+      outstandingAmount,
+      settlementStatus,
+    }),
   );
 }
 
-/** Customer「呼叫结账」button: full total on first checkout, pending balance after collections. */
+/**
+ * Customer「呼叫结账」button amount — sole bill-level pending: total − ledger collected
+ * (same semantic as checkout summary「待收」; not Σ person outstanding).
+ */
 export function customerBillCallAmount(params: {
   total: number;
-  splitMode: SplitMode | null;
-  resultRows: SplitResult[];
   collectedPayments: SessionCollectedPayment[];
 }): number {
-  const { total, splitMode, resultRows, collectedPayments } = params;
-  if (collectedPayments.length === 0) return total;
-
-  if (splitMode && resultRows.length > 0) {
-    return sumSplitSettlementOutstanding(
-      buildSplitSettlementRows(resultRows, collectedPayments),
-    );
-  }
-
-  return outstandingAmount(total, totalCollectedAmount(collectedPayments));
+  return outstandingAmount(params.total, totalCollectedAmount(params.collectedPayments));
 }

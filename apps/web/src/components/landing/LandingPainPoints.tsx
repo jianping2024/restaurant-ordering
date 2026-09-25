@@ -13,17 +13,17 @@ export function LandingPainPoints() {
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <LandingSectionHeader title={copy.title} />
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 md:gap-x-4 md:gap-y-2">
           {copy.items.map((item) => (
             <article
               key={item.title}
-              className="flex h-full flex-col rounded-2xl border border-brand-border bg-brand-bg p-5 sm:p-6"
+              className="flex h-full flex-col rounded-2xl border border-brand-border bg-brand-bg p-5 sm:p-6 md:row-span-3 md:grid md:h-auto md:grid-rows-subgrid"
             >
               <h3 className="font-heading text-lg text-brand-gold sm:text-xl">{item.title}</h3>
-              <p className="mt-2 text-[13px] leading-relaxed text-brand-text-muted sm:text-[14px]">
+              <p className="mt-2 text-[13px] leading-relaxed text-brand-text-muted sm:text-[14px] md:mt-0">
                 {item.problem}
               </p>
-              <p className="mt-auto border-l-2 border-brand-gold/60 bg-brand-gold/5 py-2.5 pl-3 pt-3 text-[14px] font-medium leading-relaxed text-brand-text sm:text-[15px]">
+              <p className="mt-auto border-l-2 border-brand-gold/60 bg-brand-gold/5 py-2.5 pl-3 pt-3 text-[14px] font-medium leading-relaxed text-brand-text sm:text-[15px] md:mt-0 md:h-full">
                 {item.solution}
               </p>
             </article>

@@ -195,13 +195,8 @@ export function BillPage({
   }, [checkoutRedirectHref, submitted, router]);
 
   const callBillAmount = useMemo(
-    () => customerBillCallAmount({
-      total,
-      splitMode: splitDraft.splitMode,
-      resultRows: splitDraft.results,
-      collectedPayments,
-    }),
-    [total, splitDraft.splitMode, splitDraft.results, collectedPayments],
+    () => customerBillCallAmount({ total, collectedPayments }),
+    [total, collectedPayments],
   );
 
   const byItemAllocatorLabels = useMemo(

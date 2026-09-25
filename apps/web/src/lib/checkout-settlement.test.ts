@@ -39,7 +39,7 @@ const modeLabels = {
 };
 
 describe('buildCheckoutSettlementSummary', () => {
-  it('sums row outstanding for multi-person splits', () => {
+  it('pending is payable minus collected for multi-person splits', () => {
     const summary = buildCheckoutSettlementSummary(
       billSplit(),
       0,
@@ -48,6 +48,40 @@ describe('buildCheckoutSettlementSummary', () => {
     assert.equal(summary.payable, 60);
     assert.equal(summary.collected, 30);
     assert.equal(summary.pending, 30);
+  });
+
+  it('includes unallocated by-item pool in pending (not only person outstanding)', () => {
+    // Assigned rows sum to ~70; table total 83.20; collected 69.17 → pending 14.03
+    // (person-outstanding-only would under-count the unassigned pool)
+    const summary = buildCheckoutSettlementSummary(
+      billSplit({
+        split_mode: 'by_item',
+        total_amount: 83.2,
+        result: [
+          { name: '客人 1', amount: 28.12, paid: true },
+          { name: '客人 2', amount: 34.87, paid: true },
+          { name: '客人 3', amount: 2.38, paid: true },
+          { name: '客人 4', amount: 1.47, paid: true },
+          { name: '客人 5', amount: 1.46, paid: true },
+          { name: '客人 6', amount: 1.25, paid: true },
+          { name: '客人 7', amount: 0 },
+        ],
+      }),
+      0,
+      [
+        {
+          id: '1',
+          person_index: 0,
+          person_name: '客人 1',
+          amount: 69.17,
+          created_at: '',
+          payment_method: 'CASH',
+        },
+      ],
+    );
+    assert.equal(summary.payable, 83.2);
+    assert.equal(summary.collected, 69.17);
+    assert.equal(summary.pending, 14.03);
   });
 });
 

@@ -5,7 +5,6 @@ import {
   buildCustomerSplitDisplayRows,
   customerBillCallAmount,
   initialPersistedSplitResult,
-  sumSplitDisplayOutstanding,
 } from './customer-bill-split-display';
 
 describe('billSplitDisplayResults', () => {
@@ -121,62 +120,37 @@ describe('partial split display rows', () => {
 });
 
 describe('customerBillCallAmount', () => {
-  const splitRows = [
-    { name: '客人 1', amount: 659.7 },
-    { name: '客人 2', amount: 659.7 },
-  ];
   const collected = [
     { id: '1', person_index: 0, person_name: '客人 1', amount: 659.7, created_at: '', payment_method: null },
   ];
 
   it('returns full total when no collections', () => {
-    assert.equal(
-      customerBillCallAmount({
-        total: 1319.4,
-        splitMode: 'even',
-        resultRows: splitRows,
-        collectedPayments: [],
-      }),
-      1319.4,
-    );
+    assert.equal(customerBillCallAmount({ total: 1319.4, collectedPayments: [] }), 1319.4);
   });
 
-  it('returns pending split balance after partial collection', () => {
+  it('returns total minus ledger after partial collection', () => {
     assert.equal(
-      customerBillCallAmount({
-        total: 1319.4,
-        splitMode: 'even',
-        resultRows: splitRows,
-        collectedPayments: collected,
-      }),
+      customerBillCallAmount({ total: 1319.4, collectedPayments: collected }),
       659.7,
     );
   });
 
-  it('sums outstanding across partial and due rows', () => {
-    const rows = buildCustomerSplitDisplayRows(
-      [
-        { name: 'Ana', amount: 27.45 },
-        { name: 'Tom', amount: 71.9 },
-      ],
-      [
-        { id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null },
-      ],
-    );
-    assert.equal(sumSplitDisplayOutstanding(rows), 7.5 + 71.9);
+  it('uses bill total minus collected even when person rows leave a pool gap', () => {
     assert.equal(
       customerBillCallAmount({
-        total: 99.35,
-        splitMode: 'even',
-        resultRows: [
-          { name: 'Ana', amount: 27.45 },
-          { name: 'Tom', amount: 71.9 },
-        ],
+        total: 83.2,
         collectedPayments: [
-          { id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null },
+          {
+            id: '1',
+            person_index: 0,
+            person_name: '客人 1',
+            amount: 69.17,
+            created_at: '',
+            payment_method: 'CASH',
+          },
         ],
       }),
-      79.4,
+      14.03,
     );
   });
 });

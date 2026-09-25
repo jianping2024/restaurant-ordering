@@ -54,11 +54,28 @@ function allocatedMenuQty(rows: ByItemConsumerRow[]): Rational {
   return sumRationals(shares.map((share) => share.qty));
 }
 
+function formatEuroAmount(n: number): string {
+  return `€${n.toFixed(2)}`;
+}
+
+function buffetUnitPriceLabel(spec: {
+  adultUnitPrice: number;
+  childUnitPrice: number;
+  children: number;
+}): string {
+  const parts = [`${formatEuroAmount(spec.adultUnitPrice)}/A`];
+  if (spec.children > 0) {
+    parts.push(`${formatEuroAmount(spec.childUnitPrice)}/C`);
+  }
+  return parts.join(' · ');
+}
+
 export type StaffByItemPoolLine = {
   key: string;
   label: string;
   mode: 'menu' | 'buffet';
   remainingLabel: string;
+  unitPriceLabel: string;
   remainingPositive: boolean;
   adultsRemaining: number;
   childrenRemaining: number;
@@ -73,7 +90,8 @@ export type StaffByItemPersonShare = {
   rowId: string;
   label: string;
   qtyLabel: string;
-  amountLabel: string;
+  unitPriceLabel: string;
+  /** Share euro amount for estimate; UI shows qty · unitPriceLabel only. */
   amount: number;
   mode: 'menu' | 'buffet';
   qtyWhole: string;
@@ -82,6 +100,11 @@ export type StaffByItemPersonShare = {
   adultQty: string;
   childQty: string;
 };
+
+/** Sum of by-item line totals — whole-table receivable for the workbench header. */
+export function staffByItemBillDueTotal(lineSpecs: ByItemLineSpec[]): number {
+  return Math.round(lineSpecs.reduce((sum, spec) => sum + spec.lineTotal, 0) * 100) / 100;
+}
 
 /** Remaining pool = source line qty − sum of all named allocations (all people). */
 export function staffByItemPoolLines(params: {
@@ -117,6 +140,7 @@ export function staffByItemPoolLines(params: {
         label,
         mode: 'buffet',
         remainingLabel: remainingPositive ? parts.join(' · ') : '0',
+        unitPriceLabel: buffetUnitPriceLabel(spec),
         remainingPositive,
         adultsRemaining,
         childrenRemaining,
@@ -137,6 +161,7 @@ export function staffByItemPoolLines(params: {
       label,
       mode: 'menu',
       remainingLabel: formatRational(remaining),
+      unitPriceLabel: formatEuroAmount(spec.unitPrice),
       remainingPositive,
       adultsRemaining: 0,
       childrenRemaining: 0,
@@ -195,7 +220,7 @@ export function staffByItemPersonShares(params: {
           rowId: row.id,
           label,
           qtyLabel: qtyParts.join(' · '),
-          amountLabel: `€${amount.toFixed(2)}`,
+          unitPriceLabel: buffetUnitPriceLabel(spec),
           amount,
           mode: 'buffet',
           qtyWhole: '',
@@ -218,7 +243,7 @@ export function staffByItemPersonShares(params: {
         rowId: row.id,
         label,
         qtyLabel: qty ? formatRational(qty) : '—',
-        amountLabel: qty ? `€${amount.toFixed(2)}` : '—',
+        unitPriceLabel: formatEuroAmount(spec.unitPrice),
         amount,
         mode: 'menu',
         qtyWhole: row.qtyWhole,

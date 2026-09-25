@@ -10,6 +10,7 @@ import {
   ByItemQtyColumnHeader,
   ByItemQtyInput,
 } from '@/components/menu/ByItemQtyInput';
+import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import {
   addBuffetSeatToPerson,
@@ -21,6 +22,7 @@ import {
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
   setPersonMenuShareQtyFields,
+  staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
   staffByItemPersonEstimate,
   staffByItemPersonShares,
@@ -35,6 +37,7 @@ export type StaffByItemWorkbenchLabels = {
   markerPlaceholder: string;
   addPerson: string;
   remainingPrefix: string;
+  dueTotal: (amount: string) => string;
   estimate: (n: number, amount: string) => string;
   needName: string;
   poolEmpty: string;
@@ -46,6 +49,25 @@ export type StaffByItemWorkbenchLabels = {
   paidLocked: string;
   qtyParts: QtyPartsLabels;
 };
+
+/** Sole qty · unit-price meta for pool + current-share rows (text-sm ≈ checkout dish list). */
+function StaffByItemQtyUnitMeta({
+  qtyText,
+  unitPriceLabel,
+  className = 'mt-0.5',
+}: {
+  qtyText: string;
+  unitPriceLabel: string;
+  className?: string;
+}) {
+  return (
+    <div className={`${className} text-sm text-brand-text-muted`}>
+      <span className="tabular-nums">{qtyText}</span>
+      <span className="mx-1 text-brand-border">·</span>
+      <span className="font-medium tabular-nums text-brand-gold">{unitPriceLabel}</span>
+    </div>
+  );
+}
 
 type Props = {
   lang: UILanguage;
@@ -138,6 +160,7 @@ export function StaffByItemSplitWorkbench({
   );
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
+  const dueTotal = staffByItemBillDueTotal(lineSpecs);
 
   useEffect(() => {
     const prev = lockedSnapshot.current;
@@ -266,9 +289,14 @@ export function StaffByItemSplitWorkbench({
             + {labels.addPerson}
           </button>
         </div>
-        <span className="text-[12px] text-brand-text-muted tabular-nums">
-          {labels.progress}: {progress.complete}/{progress.total}
-        </span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="text-base font-semibold tabular-nums text-brand-gold">
+            {labels.dueTotal(dueTotal.toFixed(2))}
+          </span>
+          <span className="text-[12px] text-brand-text-muted tabular-nums">
+            {labels.progress}: {progress.complete}/{progress.total}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -285,11 +313,17 @@ export function StaffByItemSplitWorkbench({
                   key={line.key}
                   className="flex items-center justify-between gap-2 rounded-lg border border-brand-border px-2.5 py-2"
                 >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-brand-text">{line.label}</div>
-                    <div className="text-[12px] text-brand-text-muted">
-                      {labels.remainingPrefix} {line.remainingLabel}
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className="truncate text-sm font-semibold text-brand-text"
+                      title={line.label}
+                    >
+                      {line.label}
                     </div>
+                    <StaffByItemQtyUnitMeta
+                      qtyText={`${labels.remainingPrefix} ${line.remainingLabel}`}
+                      unitPriceLabel={line.unitPriceLabel}
+                    />
                   </div>
                   <div className="flex shrink-0 gap-1">
                     {line.mode === 'menu' ? (
@@ -459,15 +493,22 @@ export function StaffByItemSplitWorkbench({
                   return (
                     <div
                       key={`${share.lineKey}-${share.rowId}`}
-                      className="flex items-start justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0"
+                      className="flex items-center justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm text-brand-text">{share.label}</div>
-                        <div className="mt-1 text-[12px] tabular-nums text-brand-gold">
-                          {share.amountLabel}
+                        <div
+                          className="truncate text-sm text-brand-text"
+                          title={share.label}
+                        >
+                          {share.label}
                         </div>
+                        <StaffByItemQtyUnitMeta
+                          className="mt-1"
+                          qtyText={share.qtyLabel}
+                          unitPriceLabel={share.unitPriceLabel}
+                        />
                       </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
+                      <div className="flex shrink-0 items-center gap-1">
                         {share.mode === 'menu' ? (
                           <ByItemQtyInput
                             row={row}
@@ -534,12 +575,10 @@ export function StaffByItemSplitWorkbench({
                             </label>
                           </div>
                         )}
-                        <button
-                          type="button"
-                          disabled={editDisabled}
-                          aria-label={labels.remove}
-                          className="rounded p-1 text-brand-text-muted hover:text-red-600 disabled:opacity-40"
-                          onClick={() => {
+                        <ByItemConsumerRowRemoveButton
+                          removable={!editDisabled}
+                          ariaLabel={labels.remove}
+                          onRemove={() => {
                             applyAlloc(
                               removePersonShareOnLine({
                                 allocations: byItemAllocations,
@@ -549,11 +588,7 @@ export function StaffByItemSplitWorkbench({
                               }),
                             );
                           }}
-                        >
-                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                            <path d="M4 7h16M9 7V5h6v2M8 7l1 13h6l1-13" />
-                          </svg>
-                        </button>
+                        />
                       </div>
                     </div>
                   );
@@ -562,7 +597,7 @@ export function StaffByItemSplitWorkbench({
             )}
 
             <div className="flex items-center justify-between gap-2 pt-1">
-              <p className="text-[12px] font-medium text-brand-text">
+              <p className="text-sm font-medium tabular-nums text-brand-text">
                 {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
               </p>
               {onCollectCurrent && !currentLocked ? (

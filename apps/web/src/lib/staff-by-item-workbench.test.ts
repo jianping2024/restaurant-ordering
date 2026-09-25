@@ -8,6 +8,7 @@ import {
   addWholeShareToPerson,
   isStaffMenuShareOverAllocated,
   setPersonMenuShareQtyFields,
+  staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
   staffByItemPersonEstimate,
   staffByItemPersonShares,
@@ -53,6 +54,7 @@ describe('staffByItemPoolLines', () => {
     });
     assert.equal(pool.length, 1);
     assert.equal(pool[0]!.remainingLabel, '2');
+    assert.equal(pool[0]!.unitPriceLabel, '€2.50');
     assert.equal(pool[0]!.canAddWhole, true);
     assert.equal(pool[0]!.canAddHalf, true);
   });
@@ -84,6 +86,80 @@ describe('staffByItemPoolLines', () => {
     assert.equal(pool[0]!.remainingLabel, '1');
     assert.equal(pool[0]!.remainingPositive, true);
     assert.equal(pool[0]!.canAddWhole, true);
+  });
+
+  it('labels buffet unit price with /C only when the line has child seats', () => {
+    const adultOnly: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'bf-a',
+      lineTotal: 14.95,
+      adults: 1,
+      children: 0,
+      adultUnitPrice: 14.95,
+      childUnitPrice: 9.5,
+    };
+    const withChild: ByItemLineSpec = {
+      ...adultOnly,
+      key: 'bf-ac',
+      lineTotal: 24.45,
+      children: 1,
+    };
+    const adultLine = {
+      ...orderLine,
+      key: 'bf-a',
+      name: 'Buffet',
+      adult_count: 1,
+      child_count: 0,
+      adult_unit_price: 14.95,
+      child_unit_price: 9.5,
+    };
+    const childLine = { ...adultLine, key: 'bf-ac', adult_count: 1, child_count: 1 };
+    const emptyBuffet = (): ByItemConsumerRow[] => [{
+      id: 'row-1',
+      name: '',
+      qtyWhole: '',
+      qtyNum: '',
+      qtyDen: '',
+      adultQty: '',
+      childQty: '',
+    }];
+
+    const alone = staffByItemPoolLines({
+      lineSpecs: [adultOnly],
+      orderLines: [adultLine],
+      allocations: { 'bf-a': emptyBuffet() },
+      lang: 'zh',
+    });
+    assert.equal(alone[0]!.unitPriceLabel, '€14.95/A');
+
+    const both = staffByItemPoolLines({
+      lineSpecs: [withChild],
+      orderLines: [childLine],
+      allocations: { 'bf-ac': emptyBuffet() },
+      lang: 'zh',
+    });
+    assert.equal(both[0]!.unitPriceLabel, '€14.95/A · €9.50/C');
+  });
+});
+
+describe('staffByItemBillDueTotal', () => {
+  it('sums line totals', () => {
+    assert.equal(staffByItemBillDueTotal([menuSpec]), 5);
+    assert.equal(
+      staffByItemBillDueTotal([
+        menuSpec,
+        {
+          mode: 'buffet',
+          key: 'bf',
+          lineTotal: 14.95,
+          adults: 1,
+          children: 0,
+          adultUnitPrice: 14.95,
+          childUnitPrice: 0,
+        },
+      ]),
+      19.95,
+    );
   });
 });
 
@@ -130,7 +206,9 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
     assert.equal(ana.length, 1);
     assert.equal(joao.length, 1);
     assert.equal(ana[0]!.qtyLabel, '1');
+    assert.equal(ana[0]!.unitPriceLabel, '€2.50');
     assert.equal(joao[0]!.qtyLabel, '1');
+    assert.equal(joao[0]!.unitPriceLabel, '€2.50');
 
     const pool = staffByItemPoolLines({
       lineSpecs: [menuSpec],
@@ -407,7 +485,8 @@ describe('staffByItemPersonShares visibility', () => {
       lang: 'zh',
     });
     assert.equal(shares.length, 1);
-    assert.equal(shares[0]!.amountLabel, '—');
+    assert.equal(shares[0]!.amount, 0);
+    assert.equal(shares[0]!.unitPriceLabel, '€2.50');
     const estimate = staffByItemPersonEstimate(shares);
     assert.equal(estimate.rows, 1);
     assert.equal(estimate.amount, 0);

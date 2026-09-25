@@ -183,6 +183,8 @@ export function StaffCheckoutSplitEditor({
       markerPlaceholder: billT.consumerNamePlaceholder,
       addPerson: billT.addPerson,
       remainingPrefix: checkoutT.staffByItemRemaining,
+      dueTotal: (amount: string) =>
+        checkoutT.staffByItemDueTotal.replace('{amount}', amount),
       estimate: (n: number, amount: string) =>
         checkoutT.staffByItemEstimate
           .replace('{n}', String(n))

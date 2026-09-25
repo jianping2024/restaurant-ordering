@@ -50,6 +50,11 @@ function parseTender(raw: string): number | null {
   return Math.round(value * 100) / 100;
 }
 
+/** Sole cash-tender default: due amount as editable decimal string. */
+function cashTenderDefaultRaw(dueAmount: number): string {
+  return (Math.round(dueAmount * 100) / 100).toFixed(2);
+}
+
 /** Sole checkout modal for tender, cash change, and optional fiscal buyer fields. */
 export function CollectPaymentModal({
   open,
@@ -66,15 +71,18 @@ export function CollectPaymentModal({
   const [nif, setNif] = useState('');
   const [name, setName] = useState('');
 
+  const due = Math.round(amount * 100) / 100;
+
   useEffect(() => {
     if (!open) return;
     setPayment('CASH');
-    setTenderRaw('');
+    setTenderRaw(cashTenderDefaultRaw(amount));
     setNif('');
     setName('');
+    // Reset only when the modal opens; keep edits if `amount` re-renders while open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional open-edge reset
   }, [open]);
 
-  const due = Math.round(amount * 100) / 100;
   const tender = parseTender(tenderRaw);
   const cashShort = payment === 'CASH' && (tender == null || tender < due);
   const change = payment === 'CASH' && tender != null ? Math.round((tender - due) * 100) / 100 : 0;
@@ -106,7 +114,14 @@ export function CollectPaymentModal({
                   key={opt}
                   type="button"
                   disabled={busy}
-                  onClick={() => setPayment(opt)}
+                  onClick={() => {
+                    setPayment(opt);
+                    if (opt === 'CASH') {
+                      setTenderRaw((prev) =>
+                        prev.trim() === '' ? cashTenderDefaultRaw(amount) : prev,
+                      );
+                    }
+                  }}
                   className={[
                     'text-sm font-semibold px-3 py-2.5 rounded-lg border transition-colors disabled:opacity-50',
                     selected
@@ -130,7 +145,6 @@ export function CollectPaymentModal({
                 disabled={busy}
                 inputMode="decimal"
                 className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text tabular-nums"
-                placeholder={due.toFixed(2)}
               />
             </label>
             {cashShort ? (

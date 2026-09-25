@@ -63,16 +63,20 @@ describe('checkoutSettlementBarStickyShellClass', () => {
     assert.ok(
       checkoutSettlementBarStickyShellClass.includes(waiterStaffStickyChrome.belowStaffTopBar),
     );
+    assert.match(checkoutSettlementBarStickyShellClass, /bg-brand-card/);
+    assert.doesNotMatch(checkoutSettlementBarStickyShellClass, /bg-brand-bg/);
   });
 });
 
 describe('checkoutSettlementBarSheetStickyShellClass', () => {
-  it('sticks at scrollport top under board sheet header — bare top-0 only here', () => {
+  it('sticks at scrollport top under board sheet header — bare top-0 + brand-bg fill', () => {
     assert.match(checkoutSettlementBarSheetStickyShellClass, /sticky/);
     assert.match(checkoutSettlementBarSheetStickyShellClass, /\btop-0\b/);
     assert.doesNotMatch(
       checkoutSettlementBarSheetStickyShellClass,
       /top-\[calc\(3\.5rem/,
     );
+    assert.match(checkoutSettlementBarSheetStickyShellClass, /bg-brand-bg/);
+    assert.doesNotMatch(checkoutSettlementBarSheetStickyShellClass, /bg-brand-card/);
   });
 });

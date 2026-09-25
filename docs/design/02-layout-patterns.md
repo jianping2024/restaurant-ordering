@@ -115,7 +115,7 @@
 
 **详情区内顺序**（不可打乱）
 
-1. **`SettlementBar`**（消费/折扣/应收/已收/待收）— `/dashboard/checkout` sticky 用 `checkoutSettlementBarStickyShellClass`（`belowStaffTopBar`，禁止裸 `top-0`）；楼面 sheet 用 `checkoutSettlementBarSheetStickyShellClass`（`top-0` 贴 sheet 头）；窄屏「返回列表」挂在条内 leading
+1. **`SettlementBar`**（消费/折扣/应收/已收/待收）— `/dashboard/checkout` sticky 用 `checkoutSettlementBarStickyShellClass`（`belowStaffTopBar` + card 底，禁止裸 `top-0`）；楼面 sheet 用 `checkoutSettlementBarSheetStickyShellClass`（`top-0` + `brand-bg` 底）；窄屏「返回列表」挂在条内 leading
 2. 桌号大标题 + 等待时长 + 分单模式 badge
 3. **待收款区**（`border-2 border-brand-gold/35`）— 主操作
 4. 已收台账（弱化 `text-[12px]`）

@@ -80,9 +80,23 @@ export const waiterStaffStickyChrome = {
   belowPageHeading: 'top-[calc(3.5rem+3.5rem+env(safe-area-inset-top,0px))]',
 } as const;
 
-/** Shared SettlementBar sticky chrome (blur / z) — pair with one offset below. */
-const checkoutSettlementBarStickyChrome =
-  'z-20 -mx-2 px-2 py-1 bg-brand-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-brand-card/90';
+/**
+ * Shared SettlementBar sticky layout (z / inset / blur) — pair with one fill below.
+ * Do not bake a single bg into this fragment; dashboard vs board sheet need different fills.
+ */
+const checkoutSettlementBarStickyLayout =
+  'z-20 -mx-2 px-2 py-1 backdrop-blur-sm';
+
+/** Dashboard `/checkout` sticky fill — sits over card/list chrome. */
+const checkoutSettlementBarDashboardFill =
+  'bg-brand-card/95 supports-[backdrop-filter]:bg-brand-card/90';
+
+/**
+ * Board sheet sticky fill — match sheet `bg-brand-bg` so rounded gold inset does not
+ * show a light card “white” ring at the corners.
+ */
+const checkoutSettlementBarSheetFill =
+  'bg-brand-bg/95 supports-[backdrop-filter]:bg-brand-bg/90';
 
 /**
  * Default sticky shell for checkout `SettlementBar` on `/dashboard/checkout`.
@@ -91,16 +105,18 @@ const checkoutSettlementBarStickyChrome =
 export const checkoutSettlementBarStickyShellClass = [
   'sticky',
   waiterStaffStickyChrome.belowStaffTopBar,
-  checkoutSettlementBarStickyChrome,
+  checkoutSettlementBarStickyLayout,
+  checkoutSettlementBarDashboardFill,
 ].join(' ');
 
 /**
  * Board checkout sheet (`WaiterBoardCheckoutSheet`) — full-screen portal covers the
  * staff top bar; scrollport is under the sheet header. Stick with `top-0` so the
- *摘要条 flushes under「← Sala」 (do not reuse `belowStaffTopBar` here — that leaves
- * a ~3.5rem dead gap inside the nested scroll).
+ * bar flushes under sheet chrome (do not reuse `belowStaffTopBar` here — that leaves
+ * a ~3.5rem dead gap inside the nested scroll). Fill is brand-bg (not card).
  */
 export const checkoutSettlementBarSheetStickyShellClass = [
   'sticky top-0',
-  checkoutSettlementBarStickyChrome,
+  checkoutSettlementBarStickyLayout,
+  checkoutSettlementBarSheetFill,
 ].join(' ');

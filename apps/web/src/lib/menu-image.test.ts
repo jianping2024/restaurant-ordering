@@ -8,10 +8,28 @@ import {
   clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
   menuImageLetterboxLayout,
+  menuItemImageUrlLookupFromRows,
   resolveMenuImageDisplayUrl,
   toMenuImagePublicRef,
 } from './menu-image';
 import { toMenuImagePublicRef as sharedToMenuImagePublicRef } from '@mesa/shared';
+
+describe('menuItemImageUrlLookupFromRows', () => {
+  it('maps non-empty image_url by menu item id', () => {
+    assert.deepEqual(
+      menuItemImageUrlLookupFromRows([
+        { id: 'a', image_url: ' /storage/v1/object/public/menu-images/a.jpg ' },
+        { id: 'b', image_url: null },
+        { id: 'c', image_url: '   ' },
+        { id: 'd', image_url: 'http://127.0.0.1:54321/storage/v1/object/public/menu-images/d.jpg' },
+      ]),
+      {
+        a: '/storage/v1/object/public/menu-images/a.jpg',
+        d: 'http://127.0.0.1:54321/storage/v1/object/public/menu-images/d.jpg',
+      },
+    );
+  });
+});
 
 describe('toMenuImagePublicRef (app binder)', () => {
   it('delegates to shared formatter under cloud env', () => {

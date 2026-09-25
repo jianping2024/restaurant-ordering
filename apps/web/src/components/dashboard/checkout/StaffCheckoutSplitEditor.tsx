@@ -38,6 +38,8 @@ type Props = {
   request: BillSplit;
   sessionOrders: Order[];
   itemCodeByMenuId: Record<string, string>;
+  /** Catalog photo urls for by-item pool thumbs (menu_item.id → image_url). */
+  imageUrlByMenuId?: Record<string, string>;
   collectedPayments: SessionCollectedPayment[];
   summary: CheckoutSettlementSummary;
   discountRate: number;
@@ -70,6 +72,7 @@ export function StaffCheckoutSplitEditor({
   request,
   sessionOrders,
   itemCodeByMenuId,
+  imageUrlByMenuId = {},
   collectedPayments,
   summary,
   discountRate,
@@ -411,6 +414,7 @@ export function StaffCheckoutSplitEditor({
             lockedPersonNames={splitDraft.lockedPersonNames}
             lockedPersonLineMins={splitDraft.lockedPersonLineMins}
             itemCodeByMenuId={itemCodeByMenuId}
+            imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
             labels={staffByItemLabels}
             progress={splitDraft.byItemProgress}

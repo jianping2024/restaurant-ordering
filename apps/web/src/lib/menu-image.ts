@@ -227,6 +227,18 @@ export type ResolveMenuImageDisplayOptions = {
   pageOrigin?: string | null;
 };
 
+/** Sole catalog image_url map for staff checkout pool thumbs (menu_items rows → id → url). */
+export function menuItemImageUrlLookupFromRows(
+  rows: Array<{ id: string; image_url?: string | null }>,
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const row of rows) {
+    const url = row.image_url?.trim();
+    if (url) map[row.id] = url;
+  }
+  return map;
+}
+
 /**
  * Sole display resolver for menu Storage URLs.
  * - Root-relative `/storage/v1/...` → unchanged (browser uses page origin).

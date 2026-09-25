@@ -11,6 +11,7 @@ import {
   ByItemQtyInput,
 } from '@/components/menu/ByItemQtyInput';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
+import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import {
   addBuffetSeatToPerson,
@@ -77,6 +78,8 @@ type Props = {
   lockedPersonNames: ReadonlySet<string>;
   lockedPersonLineMins?: LockedPersonLineMins;
   itemCodeByMenuId?: Record<string, string>;
+  /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
+  imageUrlByMenuId?: Record<string, string>;
   guestName: (n: number) => string;
   labels: StaffByItemWorkbenchLabels;
   progress: { complete: number; total: number };
@@ -98,6 +101,7 @@ export function StaffByItemSplitWorkbench({
   byItemAllocations,
   lockedPersonNames,
   itemCodeByMenuId = {},
+  imageUrlByMenuId = {},
   guestName,
   labels,
   progress,
@@ -157,6 +161,11 @@ export function StaffByItemSplitWorkbench({
         itemCodeByMenuId,
       }),
     [byItemAllocations, itemCodeByMenuId, lang, lineSpecs, orderLines],
+  );
+
+  const orderLineByKey = useMemo(
+    () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
+    [orderLines],
   );
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
@@ -308,11 +317,19 @@ export function StaffByItemSplitWorkbench({
             {visiblePool.length === 0 ? (
               <p className="px-1 py-3 text-[13px] text-brand-text-muted">{labels.poolEmpty}</p>
             ) : (
-              visiblePool.map((line) => (
+              visiblePool.map((line) => {
+                const catalog = orderLineByKey[line.key];
+                return (
                 <div
                   key={line.key}
                   className="flex items-center justify-between gap-2 rounded-lg border border-brand-border px-2.5 py-2"
                 >
+                  <MenuItemListThumb
+                    item={{
+                      image_url: catalog ? imageUrlByMenuId[catalog.id] ?? null : null,
+                      emoji: catalog?.emoji ?? '',
+                    }}
+                  />
                   <div className="min-w-0 flex-1">
                     <div
                       className="truncate text-sm font-semibold text-brand-text"
@@ -432,7 +449,8 @@ export function StaffByItemSplitWorkbench({
                     )}
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </section>

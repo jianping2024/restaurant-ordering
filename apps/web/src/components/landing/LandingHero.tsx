@@ -1,8 +1,6 @@
 'use client';
 
-import { PreviewBarContent } from '@/components/landing/preview/PreviewBarScreen';
 import { PreviewMenuContent } from '@/components/landing/preview/PreviewMenuScreen';
-import { PreviewWaiterOpenContent } from '@/components/landing/preview/PreviewWaiterOpenScreen';
 import {
   LandingButton,
   LandingSection,
@@ -10,27 +8,34 @@ import {
 } from '@/components/landing/LandingPrimitives';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
-function HeroPreviewStack() {
+/** Keep each ` · `-separated clause intact so CJK/Latin never orphan mid-phrase. */
+function HeroTitleLine({
+  text,
+  className = '',
+}: {
+  text: string;
+  className?: string;
+}) {
+  const parts = text.split(' · ');
+  if (parts.length < 2) {
+    return <span className={`block whitespace-nowrap ${className}`.trim()}>{text}</span>;
+  }
   return (
-    <div className="relative mx-auto w-full max-w-md md:max-w-none">
-      <div
-        aria-hidden
-        className="pointer-events-none relative h-[420px] sm:h-[460px]"
-      >
-        <div className="absolute right-0 top-6 w-[88%] opacity-40 md:w-[78%]">
-          <div className="origin-top-right scale-[0.34] sm:scale-[0.38]">
-            <PreviewBarContent showLabel={false} />
-          </div>
-        </div>
-        <div className="absolute left-0 top-10 w-[76%] opacity-55 md:w-[68%]">
-          <div className="origin-top-left scale-[0.32] sm:scale-[0.36]">
-            <PreviewWaiterOpenContent showLabel={false} />
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-1/2 z-10 w-[92%] max-w-[320px] -translate-x-1/2">
-          <PreviewMenuContent showLabel={false} />
-        </div>
-      </div>
+    <span className={`block ${className}`.trim()}>
+      {parts.map((part, i) => (
+        <span key={`${i}-${part}`}>
+          {i > 0 ? ' · ' : null}
+          <span className="whitespace-nowrap">{part}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function HeroPhonePreview() {
+  return (
+    <div className="mx-auto w-full max-w-[300px] md:mx-0 md:justify-self-end lg:max-w-[320px]">
+      <PreviewMenuContent showLabel={false} />
     </div>
   );
 }
@@ -39,34 +44,37 @@ export function LandingHero() {
   const copy = useLandingCopy().hero;
 
   return (
-    <LandingSection className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-      <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+    <LandingSection className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+      <div className="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_300px] md:gap-12 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="text-center md:text-left">
-          <p className="mb-4 text-[13px] font-medium uppercase tracking-widest text-brand-gold sm:mb-6 sm:text-sm">
+          <p className="mb-4 text-[13px] font-medium uppercase tracking-widest text-brand-gold sm:text-sm">
             {copy.tag}
           </p>
-          <h1 className="font-heading text-4xl leading-tight text-brand-text sm:text-5xl lg:text-6xl">
-            {copy.titleA}
-            <br />
-            <span className="text-gold-gradient">{copy.titleB}</span>
+          <h1 className="font-heading text-[clamp(1.75rem,4.2vw,2.75rem)] leading-snug text-brand-text">
+            <HeroTitleLine text={copy.titleA} />
+            <HeroTitleLine className="mt-[0.12em] text-gold-gradient" text={copy.titleB} />
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-brand-text-muted sm:text-lg md:mx-0">
             {copy.desc}
           </p>
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap md:items-start">
+          <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap md:items-start">
             <LandingWhatsAppButton className="w-full sm:w-auto">
               {copy.whatsappCta}
             </LandingWhatsAppButton>
             <LandingButton href="#contact" variant="secondary" className="w-full sm:w-auto">
               {copy.wechatCta}
             </LandingButton>
-            <LandingButton href="#agents" variant="ghost" className="w-full sm:w-auto">
-              {copy.agentCta}
-            </LandingButton>
           </div>
-          <p className="mt-4 text-[13px] text-brand-text-muted">{copy.previewHint}</p>
+          <p className="mt-3.5 text-[14px] text-brand-text-muted">
+            <a
+              href="#agents"
+              className="text-brand-gold underline decoration-brand-gold/35 underline-offset-4 transition-colors hover:decoration-brand-gold"
+            >
+              {copy.agentCta}
+            </a>
+          </p>
         </div>
-        <HeroPreviewStack />
+        <HeroPhonePreview />
       </div>
     </LandingSection>
   );

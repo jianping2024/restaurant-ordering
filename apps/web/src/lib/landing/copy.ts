@@ -21,31 +21,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: '渠道合作？',
       agentCta: '诚招代理',
     },
-    pillars: {
-      title: '经济 · 安全 · 稳定 · 便捷',
-      items: [
-        {
-          id: 'economy',
-          title: '经济',
-          body: '顾客手机扫码即可，不必每桌专用平板。',
-        },
-        {
-          id: 'security',
-          title: '安全',
-          body: '角色权限清晰，开台到结账全程可追溯。',
-        },
-        {
-          id: 'stability',
-          title: '稳定',
-          body: '云端 + 门店部署，外网中断仍可下单、结账、出票。',
-        },
-        {
-          id: 'convenience',
-          title: '便捷',
-          body: '顾客自用网络；手机电脑协同；价目到点自动切换。',
-        },
-      ],
-    },
     pain: {
       title: '堂食扫码常遇到的问题',
       items: [
@@ -77,10 +52,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: '手机电脑协同',
           desc: '服务员与收银按权限在手机或电脑处理，不用反复跑前台。',
-        },
-        {
-          title: '订单历史可追溯',
-          desc: '开台、点单、转台、结账随时可查，责任清楚。',
         },
         {
           title: '开台后扫码点餐',
@@ -185,31 +156,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: 'Channel partner?',
       agentCta: 'Become a partner',
     },
-    pillars: {
-      title: 'Economy · Security · Stability · Convenience',
-      items: [
-        {
-          id: 'economy',
-          title: 'Economy',
-          body: 'Guests order on their phones — no dedicated tablet per table.',
-        },
-        {
-          id: 'security',
-          title: 'Security',
-          body: 'Role-based access with a clear trail from open to pay.',
-        },
-        {
-          id: 'stability',
-          title: 'Stability',
-          body: 'Cloud + in-store deployment — order, pay, and print when the internet fails.',
-        },
-        {
-          id: 'convenience',
-          title: 'Convenience',
-          body: 'Guest mobile data; phone + desktop ops; prices switch on schedule.',
-        },
-      ],
-    },
     pain: {
       title: 'What dine-in operators struggle with',
       items: [
@@ -241,10 +187,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Phone + desktop',
           desc: 'Waiters and cashiers work on phone or PC by permission.',
-        },
-        {
-          title: 'Order history',
-          desc: 'Open, order, transfer, and pay — always reviewable.',
         },
         {
           title: 'Open table, then QR order',
@@ -349,31 +291,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: 'Parceiro de canal?',
       agentCta: 'Torne-se parceiro',
     },
-    pillars: {
-      title: 'Economia · Segurança · Estabilidade · Conveniência',
-      items: [
-        {
-          id: 'economy',
-          title: 'Economia',
-          body: 'O cliente pede no telemóvel — sem tablet dedicado por mesa.',
-        },
-        {
-          id: 'security',
-          title: 'Segurança',
-          body: 'Permissões por papel e rasto claro da abertura ao pagamento.',
-        },
-        {
-          id: 'stability',
-          title: 'Estabilidade',
-          body: 'Cloud + instalação na loja — pedir, pagar e imprimir sem internet.',
-        },
-        {
-          id: 'convenience',
-          title: 'Conveniência',
-          body: 'Dados móveis do cliente; telemóvel e PC; preços mudam sozinhos.',
-        },
-      ],
-    },
     pain: {
       title: 'Desafios do salão com QR',
       items: [
@@ -405,10 +322,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Telemóvel e computador',
           desc: 'Empregados e caixa trabalham no telemóvel ou PC conforme a permissão.',
-        },
-        {
-          title: 'Histórico de pedidos',
-          desc: 'Abertura, pedido, transferência e pagamento — sempre consultável.',
         },
         {
           title: 'Abrir mesa, depois pedido por QR',
@@ -513,31 +426,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: '¿Canal partner?',
       agentCta: 'Sé partner',
     },
-    pillars: {
-      title: 'Economía · Seguridad · Estabilidad · Comodidad',
-      items: [
-        {
-          id: 'economy',
-          title: 'Economía',
-          body: 'El cliente pide en el móvil — sin tablet dedicado por mesa.',
-        },
-        {
-          id: 'security',
-          title: 'Seguridad',
-          body: 'Permisos por rol y rastro claro de apertura a cobro.',
-        },
-        {
-          id: 'stability',
-          title: 'Estabilidad',
-          body: 'Nube + instalación en el local — pedir, cobrar e imprimir sin internet.',
-        },
-        {
-          id: 'convenience',
-          title: 'Comodidad',
-          body: 'Datos móviles del cliente; móvil y PC; precios que cambian solos.',
-        },
-      ],
-    },
     pain: {
       title: 'Retos del salón con QR',
       items: [
@@ -569,10 +457,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Móvil y escritorio',
           desc: 'Camareros y caja en móvil o PC según permiso.',
-        },
-        {
-          title: 'Historial de pedidos',
-          desc: 'Apertura, pedido, traslado y cobro — siempre consultable.',
         },
         {
           title: 'Abrir mesa, luego pedido por QR',
@@ -677,31 +561,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: 'Partenaire canal ?',
       agentCta: 'Devenir partenaire',
     },
-    pillars: {
-      title: 'Économie · Sécurité · Stabilité · Commodité',
-      items: [
-        {
-          id: 'economy',
-          title: 'Économie',
-          body: 'Le client commande sur son téléphone — pas de tablette dédiée par table.',
-        },
-        {
-          id: 'security',
-          title: 'Sécurité',
-          body: 'Droits par rôle et piste claire de l’ouverture au paiement.',
-        },
-        {
-          id: 'stability',
-          title: 'Stabilité',
-          body: 'Cloud + installation en magasin — commander, payer et imprimer sans internet.',
-        },
-        {
-          id: 'convenience',
-          title: 'Commodité',
-          body: 'Données mobiles du client ; téléphone et PC ; prix qui changent seuls.',
-        },
-      ],
-    },
     pain: {
       title: 'Défis de la salle en QR',
       items: [
@@ -733,10 +592,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Téléphone et bureau',
           desc: 'Serveurs et caisse sur téléphone ou PC selon les droits.',
-        },
-        {
-          title: 'Historique des commandes',
-          desc: 'Ouverture, commande, transfert et paiement — toujours consultable.',
         },
         {
           title: 'Ouvrir la table, puis commande QR',
@@ -841,31 +696,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       agentLead: 'Channel-Partner?',
       agentCta: 'Partner werden',
     },
-    pillars: {
-      title: 'Wirtschaftlichkeit · Sicherheit · Stabilität · Komfort',
-      items: [
-        {
-          id: 'economy',
-          title: 'Wirtschaftlichkeit',
-          body: 'Gäste bestellen am Handy — kein dediziertes Tablet pro Tisch.',
-        },
-        {
-          id: 'security',
-          title: 'Sicherheit',
-          body: 'Rollenrechte und klarer Verlauf von Öffnen bis Zahlen.',
-        },
-        {
-          id: 'stability',
-          title: 'Stabilität',
-          body: 'Cloud + Installation vor Ort — Bestellen, Zahlen, Drucken ohne Internet.',
-        },
-        {
-          id: 'convenience',
-          title: 'Komfort',
-          body: 'Gast-Mobilfunk; Handy + Desktop; Preise wechseln automatisch.',
-        },
-      ],
-    },
     pain: {
       title: 'Herausforderungen im QR-Saal',
       items: [
@@ -897,10 +727,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Handy und Desktop',
           desc: 'Service und Kasse am Handy oder PC gemäß Recht.',
-        },
-        {
-          title: 'Bestellhistorie',
-          desc: 'Öffnen, Bestellen, Transfer, Zahlen — jederzeit einsehbar.',
         },
         {
           title: 'Tisch öffnen, dann QR-Bestellung',

@@ -34,15 +34,6 @@ export type LandingPreviewScreen = {
   caption: string;
 };
 
-/** Brand pillars — exactly these four ids; one row in copy.pillars.items. */
-export type LandingPillarId = 'economy' | 'security' | 'stability' | 'convenience';
-
-export type LandingPillar = {
-  id: LandingPillarId;
-  title: string;
-  body: string;
-};
-
 export type LandingAgentRecruit = {
   title: string;
   subtitle: string;
@@ -70,10 +61,7 @@ export type LandingCopy = {
     agentLead: string;
     agentCta: string;
   };
-  pillars: {
-    title: string;
-    items: LandingPillar[];
-  };
+  /** Sole problem→solution block after hero (no parallel pillars cards). */
   pain: {
     title: string;
     items: LandingPainPoint[];

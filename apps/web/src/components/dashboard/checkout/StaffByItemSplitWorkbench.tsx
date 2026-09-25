@@ -13,10 +13,7 @@ import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { splitPersonKey } from '@/lib/split-person-identity';
-import {
-  ByItemQtyColumnHeader,
-  ByItemQtyInput,
-} from '@/components/menu/ByItemQtyInput';
+import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
@@ -30,7 +27,6 @@ import {
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
   setPersonMenuShareQtyFields,
-  staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
@@ -43,11 +39,10 @@ export type StaffByItemWorkbenchLabels = {
   markerHint: string;
   markerPlaceholder: string;
   remainingPrefix: string;
-  dueTotal: (amount: string) => string;
+  shareEmpty: string;
   estimate: (n: number, amount: string) => string;
   needName: string;
   poolEmpty: string;
-  progress: string;
   addAdult: string;
   addChild: string;
   remove: string;
@@ -87,7 +82,6 @@ type Props = {
   imageUrlByMenuId?: Record<string, string>;
   guestName: (n: number) => string;
   labels: StaffByItemWorkbenchLabels;
-  progress: { complete: number; total: number };
   disabled?: boolean;
   onAllocationChange: (next: Record<string, ByItemConsumerRow[]>) => void;
   onRenamePerson: (oldName: string, newName: string) => void;
@@ -95,7 +89,8 @@ type Props = {
 };
 
 /**
- * Sole staff checkout by-item layout (Fatura-like): person chips + remaining pool + current share.
+ * Sole staff checkout by-item layout: horizontal person rail (name + amount + ✓ settled)
+ * + remaining pool + current share. Bill totals live only on sticky SettlementBar.
  * People: seed guestName(1); next unpaid minted only after collect locks current (serial collect).
  * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
  * Guest phone keeps ByItemSplitSection; do not render dish cards here.
@@ -110,7 +105,6 @@ export function StaffByItemSplitWorkbench({
   imageUrlByMenuId = {},
   guestName,
   labels,
-  progress,
   disabled = false,
   onAllocationChange,
   onRenamePerson,
@@ -127,6 +121,7 @@ export function StaffByItemSplitWorkbench({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nameDraft, setNameDraft] = useState(() => people[0] ?? guestName(1));
   const [needNameHint, setNeedNameHint] = useState(false);
+  const activeChipRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (peopleFromAlloc.length === 0) return;
@@ -153,6 +148,14 @@ export function StaffByItemSplitWorkbench({
     setNeedNameHint(false);
   }, [currentName, safeIndex]);
 
+  useEffect(() => {
+    activeChipRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'nearest',
+      block: 'nearest',
+    });
+  }, [safeIndex, people.length]);
+
   const currentLocked = lockedPersonNames.has(currentName.trim().toLowerCase());
   const editDisabled = disabled || currentLocked;
   const lockedSnapshot = useRef(lockedPersonNames);
@@ -175,7 +178,15 @@ export function StaffByItemSplitWorkbench({
   );
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
-  const dueTotal = staffByItemBillDueTotal(lineSpecs);
+
+  /** Sole obligation source for chip amounts + current estimate / collect. */
+  const splitResults = useMemo(() => {
+    const allocations = buildByItemAllocationsFromRows(lineSpecs, byItemAllocations);
+    const lines = orderLines.map((item) =>
+      byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
+    );
+    return calcByItemSplitResults({ lines, allocations });
+  }, [byItemAllocations, lang, lineSpecs, orderLines]);
 
   useEffect(() => {
     const prev = lockedSnapshot.current;
@@ -218,16 +229,10 @@ export function StaffByItemSplitWorkbench({
     [byItemAllocations, currentName, itemCodeByMenuId, lang, lineSpecs, orderLines],
   );
 
-  /** Same obligation as draft results / collect — {@link calcByItemSplitResults}. */
   const estimate = useMemo(() => {
-    const allocations = buildByItemAllocationsFromRows(lineSpecs, byItemAllocations);
-    const lines = orderLines.map((item) =>
-      byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
-    );
-    const results = calcByItemSplitResults({ lines, allocations });
-    const located = locateByItemSplitResult(results, currentName);
+    const located = locateByItemSplitResult(splitResults, currentName);
     return { rows: shares.length, amount: located?.row.amount ?? 0 };
-  }, [byItemAllocations, currentName, lang, lineSpecs, orderLines, shares.length]);
+  }, [currentName, shares.length, splitResults]);
 
   const commitName = (raw: string) => {
     const trimmed = raw.trim();
@@ -272,39 +277,43 @@ export function StaffByItemSplitWorkbench({
     return rows.find((row) => row.id === share.rowId) ?? null;
   };
 
+  const personAmount = (name: string) =>
+    locateByItemSplitResult(splitResults, name)?.row.amount ?? 0;
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1.5">
-          {people.map((name, idx) => {
-            const locked = lockedPersonNames.has(name.trim().toLowerCase());
-            const active = idx === safeIndex;
-            return (
-              <button
-                key={`${splitPersonKey(name) || name}-${idx}`}
-                type="button"
-                disabled={disabled}
-                onClick={() => setCurrentIndex(idx)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  active
-                    ? 'border-brand-gold bg-brand-gold text-white'
-                    : 'border-brand-border bg-brand-card text-brand-text hover:border-brand-gold/50'
-                } ${locked ? 'opacity-80' : ''}`}
-              >
-                {name || guestName(idx + 1)}
-                {locked ? ' ✓' : ''}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="text-base font-semibold tabular-nums text-brand-gold">
-            {labels.dueTotal(dueTotal.toFixed(2))}
-          </span>
-          <span className="text-[12px] text-brand-text-muted tabular-nums">
-            {labels.progress}: {progress.complete}/{progress.total}
-          </span>
-        </div>
+      <div
+        className="flex flex-nowrap gap-1.5 overflow-x-auto pb-0.5"
+        role="list"
+        aria-label={labels.currentShareTitle}
+      >
+        {people.map((name, idx) => {
+          const locked = lockedPersonNames.has(name.trim().toLowerCase());
+          const active = idx === safeIndex;
+          const amount = personAmount(name);
+          const label = name || guestName(idx + 1);
+          return (
+            <button
+              key={`${splitPersonKey(name) || name}-${idx}`}
+              ref={active ? activeChipRef : undefined}
+              type="button"
+              role="listitem"
+              disabled={disabled}
+              onClick={() => setCurrentIndex(idx)}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                active
+                  ? 'border-brand-gold bg-brand-gold text-white'
+                  : 'border-brand-border bg-brand-card text-brand-text hover:border-brand-gold/50'
+              } ${locked ? 'opacity-80' : ''}`}
+            >
+              <span>{label}</span>
+              <span className={`ml-1.5 tabular-nums ${active ? 'text-white/90' : 'text-brand-text-muted'}`}>
+                €{amount.toFixed(2)}
+              </span>
+              {locked ? ' ✓' : ''}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -360,18 +369,18 @@ export function StaffByItemSplitWorkbench({
                           }
                           className="h-7 min-w-7 rounded-lg border border-brand-border px-1 text-xs font-bold disabled:opacity-40"
                           onClick={() => {
-                            const name = ensureNamed();
-                            if (!name) return;
+                            const person = ensureNamed();
+                            if (!person) return;
                             const denominator = menuFractionDenominatorForPerson(
                               byItemAllocations[line.key] ?? [],
-                              name,
+                              person,
                             );
                             applyAlloc(
                               addMenuFractionShareToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: name,
+                                personName: person,
                                 denominator,
                               }),
                             );
@@ -387,14 +396,14 @@ export function StaffByItemSplitWorkbench({
                           disabled={editDisabled || !line.canAddWhole}
                           className="h-7 w-7 rounded-lg border border-brand-gold/40 bg-brand-gold/10 text-sm font-bold text-brand-gold disabled:opacity-40"
                           onClick={() => {
-                            const name = ensureNamed();
-                            if (!name) return;
+                            const person = ensureNamed();
+                            if (!person) return;
                             applyAlloc(
                               addWholeShareToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: name,
+                                personName: person,
                               }),
                             );
                           }}
@@ -409,14 +418,14 @@ export function StaffByItemSplitWorkbench({
                           disabled={editDisabled || !line.canAddAdult}
                           className="rounded-lg border border-brand-gold/40 bg-brand-gold/10 px-2 py-1 text-[11px] font-semibold text-brand-gold disabled:opacity-40"
                           onClick={() => {
-                            const name = ensureNamed();
-                            if (!name) return;
+                            const person = ensureNamed();
+                            if (!person) return;
                             applyAlloc(
                               addBuffetSeatToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: name,
+                                personName: person,
                                 guestType: 'adult',
                               }),
                             );
@@ -429,14 +438,14 @@ export function StaffByItemSplitWorkbench({
                           disabled={editDisabled || !line.canAddChild}
                           className="rounded-lg border border-brand-border px-2 py-1 text-[11px] font-semibold disabled:opacity-40"
                           onClick={() => {
-                            const name = ensureNamed();
-                            if (!name) return;
+                            const person = ensureNamed();
+                            if (!person) return;
                             applyAlloc(
                               addBuffetSeatToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: name,
+                                personName: person,
                                 guestType: 'child',
                               }),
                             );
@@ -488,14 +497,9 @@ export function StaffByItemSplitWorkbench({
             </div>
 
             {shares.length === 0 ? (
-              <p className="px-1 py-2 text-[13px] text-brand-text-muted">—</p>
+              <p className="px-1 py-3 text-[13px] text-brand-text-muted">{labels.shareEmpty}</p>
             ) : (
               <>
-                {shares.some((share) => share.mode === 'menu') ? (
-                  <div className="flex justify-end px-0.5">
-                    <ByItemQtyColumnHeader labels={labels.qtyParts} />
-                  </div>
-                ) : null}
                 {shares.map((share) => {
                   const row = rowForShare(share);
                   if (!row) return null;
@@ -610,24 +614,23 @@ export function StaffByItemSplitWorkbench({
                     </div>
                   );
                 })}
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <p className="text-sm font-medium tabular-nums text-brand-text">
+                    {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
+                  </p>
+                  {onCollectCurrent && !currentLocked ? (
+                    <button
+                      type="button"
+                      disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
+                      onClick={() => onCollectCurrent(currentName)}
+                      className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                    >
+                      {labels.collect}
+                    </button>
+                  ) : null}
+                </div>
               </>
             )}
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <p className="text-sm font-medium tabular-nums text-brand-text">
-                {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
-              </p>
-              {onCollectCurrent && !currentLocked ? (
-                <button
-                  type="button"
-                  disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
-                  onClick={() => onCollectCurrent(currentName)}
-                  className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
-                >
-                  {labels.collect}
-                </button>
-              ) : null}
-            </div>
           </div>
         </section>
       </div>

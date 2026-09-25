@@ -155,15 +155,13 @@ export function StaffCheckoutSplitEditor({
       markerHint: checkoutT.staffByItemMarkerHint,
       markerPlaceholder: billT.consumerNamePlaceholder,
       remainingPrefix: checkoutT.staffByItemRemaining,
-      dueTotal: (amount: string) =>
-        checkoutT.staffByItemDueTotal.replace('{amount}', amount),
+      shareEmpty: checkoutT.staffByItemShareEmpty,
       estimate: (n: number, amount: string) =>
         checkoutT.staffByItemEstimate
           .replace('{n}', String(n))
           .replace('{amount}', amount),
       needName: checkoutT.staffByItemNeedName,
       poolEmpty: checkoutT.staffByItemPoolEmpty,
-      progress: billT.byItemProgress,
       addAdult: billT.byItemGuestTypeAdult,
       addChild: billT.byItemGuestTypeChild,
       remove: checkoutT.returnShareToPool,
@@ -386,7 +384,6 @@ export function StaffCheckoutSplitEditor({
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
             labels={staffByItemLabels}
-            progress={splitDraft.byItemProgress}
             disabled={submitting || detailLocked}
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
             onRenamePerson={splitDraft.renameByItemConsumer}

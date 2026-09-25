@@ -101,11 +101,6 @@ export type StaffByItemPersonShare = {
   childQty: string;
 };
 
-/** Sum of by-item line totals — whole-table receivable for the workbench header. */
-export function staffByItemBillDueTotal(lineSpecs: ByItemLineSpec[]): number {
-  return Math.round(lineSpecs.reduce((sum, spec) => sum + spec.lineTotal, 0) * 100) / 100;
-}
-
 /** Remaining pool = source line qty − sum of all named allocations (all people). */
 export function staffByItemPoolLines(params: {
   lineSpecs: ByItemLineSpec[];

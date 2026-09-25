@@ -8,11 +8,17 @@ import {
   addWholeShareToPerson,
   isStaffMenuShareOverAllocated,
   setPersonMenuShareQtyFields,
-  staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
 } from './staff-by-item-workbench';
+import {
+  buildByItemAllocationsFromRows,
+  calcByItemSplitResults,
+  locateByItemSplitResult,
+} from './bill-split-by-item';
+import { byItemSplitLineFromOrderLine } from './bill-split-by-item-lines';
+import { resolveMenuItemLocalizedName } from './menu-item-display';
 
 const menuSpec: ByItemLineSpec = {
   mode: 'menu',
@@ -141,27 +147,6 @@ describe('staffByItemPoolLines', () => {
   });
 });
 
-describe('staffByItemBillDueTotal', () => {
-  it('sums line totals', () => {
-    assert.equal(staffByItemBillDueTotal([menuSpec]), 5);
-    assert.equal(
-      staffByItemBillDueTotal([
-        menuSpec,
-        {
-          mode: 'buffet',
-          key: 'bf',
-          lineTotal: 14.95,
-          adults: 1,
-          children: 0,
-          adultUnitPrice: 14.95,
-          childUnitPrice: 0,
-        },
-      ]),
-      19.95,
-    );
-  });
-});
-
 describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
   it('keeps prior person shares when adding for another person', () => {
     let allocations: Record<string, ByItemConsumerRow[]> = {
@@ -209,6 +194,25 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
     assert.equal(joao[0]!.qtyLabel, '1');
     assert.equal(joao[0]!.unitPriceLabel, '€2.50');
 
+    // Same obligation source as person-rail chip amounts + collect.
+    const built = buildByItemAllocationsFromRows([menuSpec], allocations);
+    const results = calcByItemSplitResults({
+      lines: [
+        byItemSplitLineFromOrderLine(
+          orderLine,
+          resolveMenuItemLocalizedName(orderLine, 'zh'),
+        ),
+      ],
+      allocations: built,
+    });
+    assert.equal(results.length, 2);
+    assert.equal(locateByItemSplitResult(results, 'Ana')?.row.amount, 2.5);
+    assert.equal(locateByItemSplitResult(results, 'João')?.row.amount, 2.5);
+    assert.equal(
+      results.reduce((sum, row) => sum + row.amount, 0),
+      5,
+    );
+
     const pool = staffByItemPoolLines({
       lineSpecs: [menuSpec],
       orderLines: [orderLine],
@@ -216,6 +220,42 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
       lang: 'zh',
     });
     assert.equal(pool[0]!.remainingPositive, false);
+  });
+
+  it('splits unequal multi-person amounts (whole + half) for chip rail', () => {
+    let allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': emptyRows(),
+    };
+    const afterAna = addWholeShareToPerson({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      personName: 'Ana',
+    });
+    assert.ok(afterAna);
+    allocations = afterAna;
+    const afterJoaoHalf = addMenuFractionShareToPerson({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      personName: 'João',
+      denominator: 2,
+    });
+    assert.ok(afterJoaoHalf);
+    allocations = afterJoaoHalf;
+
+    const built = buildByItemAllocationsFromRows([menuSpec], allocations);
+    const results = calcByItemSplitResults({
+      lines: [
+        byItemSplitLineFromOrderLine(
+          orderLine,
+          resolveMenuItemLocalizedName(orderLine, 'zh'),
+        ),
+      ],
+      allocations: built,
+    });
+    assert.equal(locateByItemSplitResult(results, 'Ana')?.row.amount, 2.5);
+    assert.equal(locateByItemSplitResult(results, 'João')?.row.amount, 1.25);
   });
 
   it('adds half then whole without dropping other people', () => {

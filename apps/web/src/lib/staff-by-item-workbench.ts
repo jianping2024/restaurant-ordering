@@ -58,6 +58,27 @@ function formatEuroAmount(n: number): string {
   return `€${n.toFixed(2)}`;
 }
 
+/**
+ * Sole share-row money meta for staff by-item「当前人份额」:
+ * muted `qty × unit` + optional gold line total (`amount` already on the share).
+ * Incomplete qty (`qtyLabel === '—'`) omits `= €0.00`. Pool rows do not use this.
+ */
+export type StaffByItemShareLineMetaParts = {
+  factorText: string;
+  amountText: string | null;
+};
+
+export function staffByItemShareLineMetaParts(share: {
+  qtyLabel: string;
+  unitPriceLabel: string;
+  amount: number;
+}): StaffByItemShareLineMetaParts {
+  return {
+    factorText: `${share.qtyLabel} × ${share.unitPriceLabel}`,
+    amountText: share.qtyLabel === '—' ? null : formatEuroAmount(share.amount),
+  };
+}
+
 function buffetUnitPriceLabel(spec: {
   adultUnitPrice: number;
   childUnitPrice: number;
@@ -91,7 +112,7 @@ export type StaffByItemPersonShare = {
   label: string;
   qtyLabel: string;
   unitPriceLabel: string;
-  /** Share euro amount for estimate; UI shows qty · unitPriceLabel only. */
+  /** Share euro amount — estimate footer + sole share-row total via {@link staffByItemShareLineMetaParts}. */
   amount: number;
   mode: 'menu' | 'buffet';
   qtyWhole: string;

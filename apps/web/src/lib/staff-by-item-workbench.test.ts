@@ -11,6 +11,7 @@ import {
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
+  staffByItemShareLineMetaParts,
 } from './staff-by-item-workbench';
 import {
   buildByItemAllocationsFromRows,
@@ -526,5 +527,29 @@ describe('staffByItemPersonShares visibility', () => {
     assert.equal(shares.length, 1);
     assert.equal(shares[0]!.amount, 0);
     assert.equal(shares[0]!.unitPriceLabel, '€2.50');
+  });
+});
+
+describe('staffByItemShareLineMetaParts', () => {
+  it('mutes qty × unit and golds line total when qty is known', () => {
+    assert.deepEqual(
+      staffByItemShareLineMetaParts({
+        qtyLabel: '1 1/2',
+        unitPriceLabel: '€2.20',
+        amount: 3.3,
+      }),
+      { factorText: '1 1/2 × €2.20', amountText: '€3.30' },
+    );
+  });
+
+  it('omits fake €0.00 when qty is incomplete', () => {
+    assert.deepEqual(
+      staffByItemShareLineMetaParts({
+        qtyLabel: '—',
+        unitPriceLabel: '€2.50',
+        amount: 0,
+      }),
+      { factorText: '— × €2.50', amountText: null },
+    );
   });
 });

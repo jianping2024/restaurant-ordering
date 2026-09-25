@@ -30,6 +30,7 @@ import {
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
+  staffByItemShareLineMetaParts,
 } from '@/lib/staff-by-item-workbench';
 
 export type StaffByItemWorkbenchLabels = {
@@ -51,21 +52,52 @@ export type StaffByItemWorkbenchLabels = {
   qtyParts: QtyPartsLabels;
 };
 
-/** Sole qty · unit-price meta for pool + current-share rows (text-sm ≈ checkout dish list). */
-function StaffByItemQtyUnitMeta({
-  qtyText,
+/** Sole pool-row meta: remaining qty · unit price (not a payable equation). */
+function StaffByItemPoolLineMeta({
+  remainingText,
   unitPriceLabel,
-  className = 'mt-0.5',
 }: {
-  qtyText: string;
+  remainingText: string;
   unitPriceLabel: string;
-  className?: string;
 }) {
   return (
-    <div className={`${className} text-sm text-brand-text-muted`}>
-      <span className="tabular-nums">{qtyText}</span>
+    <div className="mt-0.5 text-sm text-brand-text-muted">
+      <span className="tabular-nums">{remainingText}</span>
       <span className="mx-1 text-brand-border">·</span>
       <span className="font-medium tabular-nums text-brand-gold">{unitPriceLabel}</span>
+    </div>
+  );
+}
+
+/**
+ * Sole share-row meta: muted qty × unit + gold line total (`staffByItemShareLineMetaParts`).
+ * Do not reuse pool `·` here; do not invent a second amount beside share.amount.
+ */
+function StaffByItemShareLineMeta({
+  qtyLabel,
+  unitPriceLabel,
+  amount,
+}: {
+  qtyLabel: string;
+  unitPriceLabel: string;
+  amount: number;
+}) {
+  const { factorText, amountText } = staffByItemShareLineMetaParts({
+    qtyLabel,
+    unitPriceLabel,
+    amount,
+  });
+  return (
+    <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-sm">
+      <span className="tabular-nums text-brand-text-muted">{factorText}</span>
+      {amountText ? (
+        <>
+          <span className="text-brand-border" aria-hidden>
+            =
+          </span>
+          <span className="font-semibold tabular-nums text-brand-gold">{amountText}</span>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -345,8 +377,8 @@ export function StaffByItemSplitWorkbench({
                     >
                       {line.label}
                     </div>
-                    <StaffByItemQtyUnitMeta
-                      qtyText={`${labels.remainingPrefix} ${line.remainingLabel}`}
+                    <StaffByItemPoolLineMeta
+                      remainingText={`${labels.remainingPrefix} ${line.remainingLabel}`}
                       unitPriceLabel={line.unitPriceLabel}
                     />
                   </div>
@@ -523,10 +555,10 @@ export function StaffByItemSplitWorkbench({
                         >
                           {share.label}
                         </div>
-                        <StaffByItemQtyUnitMeta
-                          className="mt-1"
-                          qtyText={share.qtyLabel}
+                        <StaffByItemShareLineMeta
+                          qtyLabel={share.qtyLabel}
                           unitPriceLabel={share.unitPriceLabel}
+                          amount={share.amount}
                         />
                       </div>
                       <div className="flex shrink-0 items-center gap-1">

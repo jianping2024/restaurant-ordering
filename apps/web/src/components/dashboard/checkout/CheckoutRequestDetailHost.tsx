@@ -57,7 +57,6 @@ import {
 import { useCheckoutRequests } from '@/components/dashboard/CheckoutRequestsProvider';
 import { useWaiterBoardOptional } from '@/components/dashboard/WaiterBoardProvider';
 import type { Capabilities } from '@/lib/permissions/can';
-import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 import {
   canReturnToCheckoutPathChooser,
   CheckoutPathChooser,
@@ -73,7 +72,6 @@ type Props = {
   billSyncToFiscal?: boolean;
   showBackButton?: boolean;
   onBack: () => void;
-  onCloseTableComplete?: () => void;
 };
 
 export function CheckoutRequestDetailHost({
@@ -84,9 +82,7 @@ export function CheckoutRequestDetailHost({
   billSyncToFiscal = false,
   showBackButton = true,
   onBack,
-  onCloseTableComplete,
 }: Props) {
-  const canForceCloseTable = mayForceCloseTable(capabilities);
   const canPrintFiscalInvoice =
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
@@ -518,7 +514,6 @@ export function CheckoutRequestDetailHost({
           detailLocked={detailLocked}
           resumeOperating={isResumeMutating}
           resumeBlockReason={resumeBlockReason}
-          canForceCloseTable={canForceCloseTable}
           showPathBack={showReturnToPathChooser}
           onCancel={returnToPathChooser}
           onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
@@ -527,11 +522,6 @@ export function CheckoutRequestDetailHost({
           }
           onDiscountRateBlur={() => handleDiscountRateBlur(request)}
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-          onCloseTable={() => {
-            syncBoardAfterMutation(request.table_id);
-            onCloseTableComplete?.();
-            void reload();
-          }}
           onCollectPerson={(index, amount) => {
             setCollectPending({ rowIndex: index, amount, wholeTable: false });
           }}
@@ -563,7 +553,6 @@ export function CheckoutRequestDetailHost({
         discountApplying={discountApplying}
         discountLocked={hasConfirmedPerson(request)}
         resumeBlockReason={resumeBlockReason}
-        canForceCloseTable={canForceCloseTable}
         printInvoiceAvailable={printFiscalInvoiceAvailable}
         showSplitReceiptActions={showSplitReceiptActions}
         onPrintSplitReceipt={(payment) => void printSplitReceipt(request, payment)}
@@ -609,11 +598,6 @@ export function CheckoutRequestDetailHost({
           });
         }}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-        onCloseTable={() => {
-          syncBoardAfterMutation(request.table_id);
-          onCloseTableComplete?.();
-          void reload();
-        }}
         paymentLabels={paymentMethodLabels}
       />
       ) : null}      <ReasonConfirmDialog

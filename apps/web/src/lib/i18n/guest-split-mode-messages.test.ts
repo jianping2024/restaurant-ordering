@@ -13,7 +13,11 @@ describe('guest split mode guidance', () => {
       const g = getGuestSplitGuidance(lang);
       for (const mode of GUEST_SPLIT_MODE_ORDER) {
         assert.ok(g.modes[mode].label.trim());
-        assert.ok(g.modes[mode].when.trim());
+        if (mode === 'by_item') {
+          assert.equal(g.modes[mode].when.trim(), '');
+        } else {
+          assert.ok(g.modes[mode].when.trim());
+        }
       }
       assert.ok(g.optionalHint.trim());
       assert.ok(g.introStep.title.trim());

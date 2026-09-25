@@ -2,9 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import {
+  buildByItemAllocationsFromRows,
+  calcByItemSplitResults,
+  locateByItemSplitResult,
+} from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
+import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { UILanguage } from '@/lib/i18n';
+import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { splitPersonKey } from '@/lib/split-person-identity';
 import {
   ByItemQtyColumnHeader,
@@ -25,7 +32,6 @@ import {
   setPersonMenuShareQtyFields,
   staffByItemBillDueTotal,
   staffByItemPeopleFromAllocations,
-  staffByItemPersonEstimate,
   staffByItemPersonShares,
   staffByItemPoolLines,
 } from '@/lib/staff-by-item-workbench';
@@ -212,7 +218,16 @@ export function StaffByItemSplitWorkbench({
     [byItemAllocations, currentName, itemCodeByMenuId, lang, lineSpecs, orderLines],
   );
 
-  const estimate = staffByItemPersonEstimate(shares);
+  /** Same obligation as draft results / collect — {@link calcByItemSplitResults}. */
+  const estimate = useMemo(() => {
+    const allocations = buildByItemAllocationsFromRows(lineSpecs, byItemAllocations);
+    const lines = orderLines.map((item) =>
+      byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
+    );
+    const results = calcByItemSplitResults({ lines, allocations });
+    const located = locateByItemSplitResult(results, currentName);
+    return { rows: shares.length, amount: located?.row.amount ?? 0 };
+  }, [byItemAllocations, currentName, lang, lineSpecs, orderLines, shares.length]);
 
   const commitName = (raw: string) => {
     const trimmed = raw.trim();

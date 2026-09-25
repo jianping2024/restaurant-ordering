@@ -36,23 +36,6 @@ export function canReturnToCheckoutPathChooser(input: {
   return input.pathChoice === 'whole_table' || input.pathChoice === 'split';
 }
 
-/**
- * Sole close gate for a split checkout.
- * By-item: leftover pool empty and every payable person paid.
- * Even/custom: every person with amount &gt; 0 paid. Whole table is unchanged.
- */
-export function checkoutSplitCloseAllowed(input: {
-  splitMode: SplitMode | string | null;
-  byItemComplete: boolean;
-  rows: Array<{ amount: number; paid: boolean }>;
-}): boolean {
-  const mode = input.splitMode;
-  if (mode !== 'even' && mode !== 'custom' && mode !== 'by_item') return true;
-  const payableSettled = input.rows.every((row) => row.amount <= 0.001 || row.paid);
-  if (mode === 'by_item') return input.byItemComplete && payableSettled;
-  return payableSettled;
-}
-
 type PathChooserProps = {
   wholeTableLabel: string;
   splitLabel: string;

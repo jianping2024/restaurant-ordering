@@ -838,6 +838,11 @@ export function buildByItemAllocationsFromPersons(
   return allocations;
 }
 
+/**
+ * Sole by-item person obligation from allocations.
+ * Complete lines: cent-remainder split across shares.
+ * Incomplete lines: unit × qty (staff partial collect / mid-split draft).
+ */
 export function calcByItemSplitResults(params: {
   lines: ByItemSplitLine[];
   allocations: ByItemLineAllocation;
@@ -861,14 +866,28 @@ export function calcByItemSplitResults(params: {
   for (const line of lines) {
     const shares = allocations[line.key] || [];
     if (line.mode === 'buffet') {
-      if (!buffetLineAllocationComplete(line, shares)) continue;
-      const lineAmounts = allocateBuffetLineByShares(line, shares);
-      for (let si = 0; si < shares.length; si += 1) {
-        const share = shares[si]!;
+      if (buffetLineAllocationComplete(line, shares)) {
+        const lineAmounts = allocateBuffetLineByShares(line, shares);
+        for (let si = 0; si < shares.length; si += 1) {
+          const share = shares[si]!;
+          const qty = share.qty.num / share.qty.den;
+          const unitPrice =
+            share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
+          const price = lineAmounts[si] ?? 0;
+          addShare(share.name, {
+            name: line.name.trim(),
+            qty,
+            price: unitPrice,
+          }, price);
+        }
+        continue;
+      }
+      for (const share of shares) {
         const qty = share.qty.num / share.qty.den;
+        if (qty <= 0) continue;
         const unitPrice =
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
-        const price = lineAmounts[si] ?? 0;
+        const price = Math.round(unitPrice * qty * 100) / 100;
         addShare(share.name, {
           name: line.name.trim(),
           qty,
@@ -878,20 +897,44 @@ export function calcByItemSplitResults(params: {
       continue;
     }
 
-    if (!lineAllocationComplete(line.qty, shares)) continue;
+    if (lineAllocationComplete(line.qty, shares)) {
+      const lineTotal = line.unitPrice * line.qty;
+      for (const share of shares) {
+        const price = byItemLinePriceShare(lineTotal, shares, share.name);
+        addShare(share.name, {
+          name: line.name.trim(),
+          qty: share.qty.num / share.qty.den,
+          price,
+        }, price);
+      }
+      continue;
+    }
 
-    const lineTotal = line.unitPrice * line.qty;
     for (const share of shares) {
-      const price = byItemLinePriceShare(lineTotal, shares, share.name);
+      const qty = share.qty.num / share.qty.den;
+      if (qty <= 0) continue;
+      const price = Math.round(line.unitPrice * qty * 100) / 100;
       addShare(share.name, {
         name: line.name.trim(),
-        qty: share.qty.num / share.qty.den,
+        qty,
         price,
       }, price);
     }
   }
 
   return Array.from(people.values()).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Locate person row in {@link calcByItemSplitResults} output (sole collect index/amount source). */
+export function locateByItemSplitResult(
+  results: ReadonlyArray<{ name: string; amount: number }>,
+  personName: string,
+): { index: number; row: { name: string; amount: number } } | null {
+  const key = splitPersonKey(personName);
+  if (!key) return null;
+  const index = results.findIndex((row) => splitPersonKey(row.name) === key);
+  if (index < 0) return null;
+  return { index, row: results[index]! };
 }
 
 export function buildSplitPersonsFromAllocations(

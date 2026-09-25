@@ -258,15 +258,6 @@ export function staffByItemPersonShares(params: {
   return out;
 }
 
-/** Estimate uses only parseable share amounts (incomplete qty contributes 0). */
-export function staffByItemPersonEstimate(shares: StaffByItemPersonShare[]): {
-  rows: number;
-  amount: number;
-} {
-  const amount = Math.round(shares.reduce((sum, row) => sum + row.amount, 0) * 100) / 100;
-  return { rows: shares.length, amount };
-}
-
 function upsertNamedRow(
   rows: ByItemConsumerRow[],
   personName: string,

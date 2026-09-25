@@ -87,7 +87,6 @@ export function WaiterBoardCheckoutSheet({
             billSyncToFiscal={billSyncToFiscal}
             showBackButton={false}
             onBack={onClose}
-            onCloseTableComplete={onClose}
           />
         ) : (
           <div className="rounded-xl border border-brand-border bg-brand-card px-6 py-16 text-center">

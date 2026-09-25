@@ -11,6 +11,7 @@ import {
   countByItemAllocationProgress,
   getBuffetLineStatusFromRows,
   getByItemLineStatusFromRows,
+  locateByItemSplitResult,
   parseConsumerRows,
   rationalToRowQtyFields,
   removeByItemConsumerRow,
@@ -222,6 +223,36 @@ describe('buffet by-item', () => {
     assert.equal(results.length, 1);
     assert.equal(results[0]?.name, 'John');
     assert.equal(results[0]?.amount, 38);
+  });
+
+  it('includes incomplete line shares priced unit×qty for mid-split collect', () => {
+    const menu = menuSpec('oj', 2);
+    const buffet = buffetSpec('buffet-0', 2, 0);
+    const allocations = buildByItemAllocationsFromRows([menu, buffet], {
+      oj: [row('1', 'John', { whole: '1' })],
+      'buffet-0': [buffetRow('2', 'John', '1', '')],
+    });
+    const results = calcByItemSplitResults({
+      lines: [
+        { key: 'oj', name: 'OJ', mode: 'menu', qty: 2, unitPrice: 3.5 },
+        {
+          key: 'buffet-0',
+          name: 'Buffet',
+          mode: 'buffet',
+          adults: 2,
+          children: 0,
+          adultUnitPrice: 28.15,
+          childUnitPrice: 0,
+        },
+      ],
+      allocations,
+    });
+    assert.equal(results.length, 1);
+    assert.equal(results[0]?.name, 'John');
+    assert.equal(results[0]?.amount, 3.5 + 28.15);
+    const located = locateByItemSplitResult(results, 'John');
+    assert.equal(located?.index, 0);
+    assert.equal(located?.row.amount, 31.65);
   });
 
   it('shows short status with progress counts', () => {

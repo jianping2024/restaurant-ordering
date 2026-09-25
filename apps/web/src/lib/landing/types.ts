@@ -65,7 +65,6 @@ export type LandingCopy = {
     whatsappCta: string;
     wechatCta: string;
     agentCta: string;
-    previewHint: string;
   };
   pillars: {
     title: string;

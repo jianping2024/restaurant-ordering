@@ -18,7 +18,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'WhatsApp 咨询',
       wechatCta: '微信咨询',
       agentCta: '诚招代理',
-      previewHint: '向下查看产品界面',
     },
     pillars: {
       title: '经济 · 安全 · 稳定 · 便捷',
@@ -181,7 +180,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'Chat on WhatsApp',
       wechatCta: 'WeChat',
       agentCta: 'Become a partner',
-      previewHint: 'See product screens below',
     },
     pillars: {
       title: 'Economy · Security · Stability · Convenience',
@@ -344,7 +342,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       agentCta: 'Torne-se parceiro',
-      previewHint: 'Veja as interfaces abaixo',
     },
     pillars: {
       title: 'Economia · Segurança · Estabilidade · Conveniência',
@@ -507,7 +504,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       agentCta: 'Sé partner',
-      previewHint: 'Ver pantallas abajo',
     },
     pillars: {
       title: 'Economía · Seguridad · Estabilidad · Comodidad',
@@ -670,7 +666,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       agentCta: 'Devenir partenaire',
-      previewHint: 'Voir les écrans ci-dessous',
     },
     pillars: {
       title: 'Économie · Sécurité · Stabilité · Commodité',
@@ -833,7 +828,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       agentCta: 'Partner werden',
-      previewHint: 'Produktbildschirme unten',
     },
     pillars: {
       title: 'Wirtschaftlichkeit · Sicherheit · Stabilität · Komfort',

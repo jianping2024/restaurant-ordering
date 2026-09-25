@@ -17,20 +17,22 @@ export function LandingNav() {
 
   return (
     <nav className="sticky top-0 z-40 border-b border-brand-border bg-brand-bg/95 backdrop-blur-sm">
-      <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
-        <ProductLogo size="sm" href="/" />
-        <div className="hidden items-center gap-5 md:flex">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.key}
-              href={item.href}
-              className="text-[14px] text-brand-text-muted transition-colors hover:text-brand-gold"
-            >
-              {copy.nav[item.key]}
-            </a>
-          ))}
+      <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
+        <div className="flex min-w-0 items-center gap-6 sm:gap-8">
+          <ProductLogo size="sm" href="/" />
+          <div className="hidden items-center gap-5 md:flex">
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.key}
+                href={item.href}
+                className="text-[14px] text-brand-text-muted transition-colors hover:text-brand-gold"
+              >
+                {copy.nav[item.key]}
+              </a>
+            ))}
+          </div>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <LanguageSwitcherIconChrome />
           <Link
             href="/auth/login"

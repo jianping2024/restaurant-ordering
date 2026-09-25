@@ -1,11 +1,9 @@
-import { PRODUCT_NAME } from '@mesa/shared';
 import type { LandingCopy, LandingLanguage } from '@/lib/landing/types';
 
 const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   zh: {
     nav: {
       solutions: '解决方案',
-      preview: '产品界面',
       caseStudy: '客户案例',
       contact: '联系开通',
       login: '登录',
@@ -76,27 +74,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: '产品界面预览',
-      subtitle: `${PRODUCT_NAME} 实际系统界面（演示数据）。`,
-      remoteDemo: '想亲自操作？通过 WhatsApp 预约远程演示',
-      screens: [
-        { id: 'waiter-open' as const, label: '开台', caption: '服务员确认成人 / 儿童人数' },
-        { id: 'menu' as const, label: '点酒水', caption: '饮料与水果酒分类菜单，订单直达吧台' },
-        { id: 'bar' as const, label: '吧台', caption: '酒水订单直达吧台，出单状态清晰' },
-        { id: 'dashboard' as const, label: '看板', caption: '营业额与热销统计' },
-      ],
-    },
     caseStudy: {
       title: '客户案例',
-      name: '葡萄牙堂食扫码门店',
-      location: '已落地 · 稳定使用中',
-      quote: `${PRODUCT_NAME} 帮助堂食扫码少投入上线：云端 + 门店部署、权限清晰、价目自动执行。`,
-      tags: [
-        '云端 + 门店部署',
-        '中餐 / 寿司自助',
-        '已落地',
-      ],
+      hours: '午餐 12:00–15:00 · 晚餐 19:00–23:00',
     },
     contact: {
       title: '了解方案 · 预约演示',
@@ -140,7 +120,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   en: {
     nav: {
       solutions: 'Solutions',
-      preview: 'Product UI',
       caseStudy: 'Customers',
       contact: 'Contact',
       login: 'Sign in',
@@ -211,27 +190,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: 'Product screens',
-      subtitle: `Actual ${PRODUCT_NAME} UI with demo data.`,
-      remoteDemo: 'Want a live walkthrough? Book a remote demo via WhatsApp',
-      screens: [
-        { id: 'waiter-open' as const, label: 'Open table', caption: 'Staff confirm adult / child count' },
-        { id: 'menu' as const, label: 'Drinks', caption: 'Beverages and fruit wine — orders to the bar' },
-        { id: 'bar' as const, label: 'Bar', caption: 'Drink orders with clear status' },
-        { id: 'dashboard' as const, label: 'Dashboard', caption: 'Revenue and top sellers' },
-      ],
-    },
     caseStudy: {
       title: 'Customer story',
-      name: 'Dine-in QR restaurant (Portugal)',
-      location: 'Live · in stable use',
-      quote: `${PRODUCT_NAME} helps dine-in QR go live with lower hardware spend, Cloud + in-store deployment, and clear operations.`,
-      tags: [
-        'Cloud + in-store',
-        'Chinese / sushi buffet',
-        'Live',
-      ],
+      hours: 'Lunch 12:00–15:00 · Dinner 19:00–23:00',
     },
     contact: {
       title: 'Book a demo',
@@ -275,7 +236,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   pt: {
     nav: {
       solutions: 'Soluções',
-      preview: 'Interface',
       caseStudy: 'Clientes',
       contact: 'Contacto',
       login: 'Entrar',
@@ -346,27 +306,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: 'Interfaces do produto',
-      subtitle: `UI real ${PRODUCT_NAME} com dados de demonstração.`,
-      remoteDemo: 'Quer ver ao vivo? Marque demo remota por WhatsApp',
-      screens: [
-        { id: 'waiter-open' as const, label: 'Abertura', caption: 'Confirmar adultos e crianças' },
-        { id: 'menu' as const, label: 'Bebidas', caption: 'Menu de bebidas — pedidos ao balcão' },
-        { id: 'bar' as const, label: 'Balcão', caption: 'Pedidos com estado claro' },
-        { id: 'dashboard' as const, label: 'Painel', caption: 'Faturação e tops' },
-      ],
-    },
     caseStudy: {
       title: 'Cliente',
-      name: 'Restaurante QR no salão (Portugal)',
-      location: 'Em uso estável',
-      quote: `${PRODUCT_NAME} ajuda pedidos por QR no salão com menos hardware, Cloud + instalação na loja e operação clara.`,
-      tags: [
-        'Cloud + loja',
-        'Buffet chinês / sushi',
-        'Em uso',
-      ],
+      hours: 'Almoço 12:00–15:00 · Jantar 19:00–23:00',
     },
     contact: {
       title: 'Marcar demonstração',
@@ -410,7 +352,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   es: {
     nav: {
       solutions: 'Soluciones',
-      preview: 'Interfaz',
       caseStudy: 'Clientes',
       contact: 'Contacto',
       login: 'Iniciar sesión',
@@ -481,27 +422,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: 'Pantallas del producto',
-      subtitle: `Interfaz real de ${PRODUCT_NAME} con datos de demostración.`,
-      remoteDemo: '¿Quieres una demo en vivo? Reserva por WhatsApp',
-      screens: [
-        { id: 'waiter-open' as const, label: 'Abrir mesa', caption: 'Confirmar adultos / niños' },
-        { id: 'menu' as const, label: 'Bebidas', caption: 'Menú de bebidas — pedidos al bar' },
-        { id: 'bar' as const, label: 'Bar', caption: 'Pedidos con estado claro' },
-        { id: 'dashboard' as const, label: 'Panel', caption: 'Ingresos y más vendidos' },
-      ],
-    },
     caseStudy: {
       title: 'Historia de cliente',
-      name: 'Restaurante QR en sala (Portugal)',
-      location: 'En uso estable',
-      quote: `${PRODUCT_NAME} ayuda al pedido QR en sala con menos hardware, Nube + instalación en el local y operación clara.`,
-      tags: [
-        'Nube + local',
-        'Buffet chino / sushi',
-        'En uso',
-      ],
+      hours: 'Comida 12:00–15:00 · Cena 19:00–23:00',
     },
     contact: {
       title: 'Reservar una demo',
@@ -545,7 +468,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   fr: {
     nav: {
       solutions: 'Solutions',
-      preview: 'Interface',
       caseStudy: 'Clients',
       contact: 'Contact',
       login: 'Connexion',
@@ -616,27 +538,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: 'Écrans produit',
-      subtitle: `UI réelle ${PRODUCT_NAME} avec données de démo.`,
-      remoteDemo: 'Démo en direct ? Réservez via WhatsApp',
-      screens: [
-        { id: 'waiter-open' as const, label: 'Ouverture', caption: 'Confirmer adultes / enfants' },
-        { id: 'menu' as const, label: 'Boissons', caption: 'Menu boissons — commandes au bar' },
-        { id: 'bar' as const, label: 'Bar', caption: 'Commandes avec statut clair' },
-        { id: 'dashboard' as const, label: 'Tableau', caption: 'CA et best-sellers' },
-      ],
-    },
     caseStudy: {
       title: 'Témoignage',
-      name: 'Restaurant QR en salle (Portugal)',
-      location: 'En production stable',
-      quote: `${PRODUCT_NAME} aide la commande QR en salle avec moins de matériel, Cloud + installation en magasin et une exploitation claire.`,
-      tags: [
-        'Cloud + magasin',
-        'Buffet chinois / sushi',
-        'En production',
-      ],
+      hours: 'Déjeuner 12:00–15:00 · Dîner 19:00–23:00',
     },
     contact: {
       title: 'Réserver une démo',
@@ -680,7 +584,6 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
   de: {
     nav: {
       solutions: 'Lösungen',
-      preview: 'Oberfläche',
       caseStudy: 'Kunden',
       contact: 'Kontakt',
       login: 'Anmelden',
@@ -751,27 +654,9 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         },
       ],
     },
-    preview: {
-      title: 'Produktbildschirme',
-      subtitle: `Echte ${PRODUCT_NAME}-Oberfläche mit Demo-Daten.`,
-      remoteDemo: 'Live-Demo? Per WhatsApp buchen',
-      screens: [
-        { id: 'waiter-open' as const, label: 'Tisch öffnen', caption: 'Erwachsene / Kinder bestätigen' },
-        { id: 'menu' as const, label: 'Getränke', caption: 'Getränkekarte — an die Bar' },
-        { id: 'bar' as const, label: 'Bar', caption: 'Bestellungen mit klarem Status' },
-        { id: 'dashboard' as const, label: 'Dashboard', caption: 'Umsatz und Topseller' },
-      ],
-    },
     caseStudy: {
       title: 'Kundengeschichte',
-      name: 'QR-Restaurant im Saal (Portugal)',
-      location: 'Stabil im Einsatz',
-      quote: `${PRODUCT_NAME} hilft der QR-Bestellung im Saal mit weniger Hardware, Cloud + Installation vor Ort und klarer Operation.`,
-      tags: [
-        'Cloud + vor Ort',
-        'China- / Sushi-Buffet',
-        'Live',
-      ],
+      hours: 'Mittag 12:00–15:00 · Abendessen 19:00–23:00',
     },
     contact: {
       title: 'Demo buchen',

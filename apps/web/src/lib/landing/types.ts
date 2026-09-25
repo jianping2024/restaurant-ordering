@@ -1,5 +1,4 @@
 import type { UILanguage } from '@/lib/i18n';
-import type { LandingPreviewScreenId } from '@/lib/landing/preview-screens';
 
 export type LandingNavItem = {
   id: string;
@@ -28,12 +27,6 @@ export type LandingOnboardingStep = {
   desc: string;
 };
 
-export type LandingPreviewScreen = {
-  id: LandingPreviewScreenId;
-  label: string;
-  caption: string;
-};
-
 export type LandingAgentRecruit = {
   title: string;
   subtitle: string;
@@ -43,7 +36,6 @@ export type LandingAgentRecruit = {
 export type LandingCopy = {
   nav: {
     solutions: string;
-    preview: string;
     caseStudy: string;
     contact: string;
     login: string;
@@ -75,18 +67,10 @@ export type LandingCopy = {
     title: string;
     items: LandingSupportFeature[];
   };
-  preview: {
-    title: string;
-    subtitle: string;
-    remoteDemo: string;
-    screens: LandingPreviewScreen[];
-  };
+  /** Section chrome only; venue name/address/phone live in `LANDING_CASE_VENUE`. */
   caseStudy: {
     title: string;
-    name: string;
-    location: string;
-    quote: string;
-    tags: string[];
+    hours: string;
   };
   contact: {
     title: string;

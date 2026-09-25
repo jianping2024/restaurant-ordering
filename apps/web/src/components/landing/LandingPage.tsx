@@ -7,7 +7,6 @@ import { LandingFooter } from '@/components/landing/LandingFooter';
 import { LandingHero } from '@/components/landing/LandingHero';
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingPainPoints } from '@/components/landing/LandingPainPoints';
-import { LandingProductPreview } from '@/components/landing/LandingProductPreview';
 
 export function LandingPage() {
   return (
@@ -17,7 +16,6 @@ export function LandingPage() {
         <LandingHero />
         <LandingPainPoints />
         <LandingBuffetFeatures />
-        <LandingProductPreview />
         <LandingCaseStudy />
         <LandingContact />
       </main>

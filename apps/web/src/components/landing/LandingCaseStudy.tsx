@@ -1,9 +1,18 @@
 'use client';
 
 import Image from 'next/image';
-import { LandingSection, LandingSectionHeader } from '@/components/landing/LandingPrimitives';
+import { LandingExternalLink, LandingSection, LandingSectionHeader } from '@/components/landing/LandingPrimitives';
+import {
+  LANDING_CASE_VENUE,
+  LANDING_CASE_VENUE_MAPS_URL,
+  LANDING_CASE_VENUE_TEL_HREF,
+} from '@/lib/landing/case-venue';
 import { LANDING_PROOF_IMAGES } from '@/lib/landing/proof-assets';
 import { useLandingCopy } from '@/lib/landing/use-landing-copy';
+
+const VENUE_ROW_CLASS = 'text-[15px] leading-relaxed text-brand-text-muted';
+const VENUE_LINK_CLASS =
+  'text-brand-text-muted underline-offset-2 transition-colors hover:text-brand-gold hover:underline';
 
 export function LandingCaseStudy() {
   const copy = useLandingCopy().caseStudy;
@@ -30,18 +39,22 @@ export function LandingCaseStudy() {
             ))}
           </div>
           <div className="border-t border-brand-border p-6 sm:p-8">
-            <h3 className="font-heading text-2xl text-brand-text sm:text-3xl">{copy.name}</h3>
-            <p className="mt-1 text-[14px] text-brand-gold">{copy.location}</p>
-            <p className="mt-4 text-[15px] leading-relaxed text-brand-text-muted">{copy.quote}</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {copy.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-brand-border bg-brand-bg px-3 py-1 text-[12px] text-brand-text-muted"
+            <h3 className="font-heading text-2xl text-brand-text sm:text-3xl">{LANDING_CASE_VENUE.name}</h3>
+            <div className="mt-4 flex flex-col gap-2">
+              <p className={VENUE_ROW_CLASS}>
+                <LandingExternalLink
+                  href={LANDING_CASE_VENUE_MAPS_URL}
+                  className={VENUE_LINK_CLASS}
                 >
-                  {tag}
-                </span>
-              ))}
+                  {LANDING_CASE_VENUE.address}
+                </LandingExternalLink>
+              </p>
+              <p className={VENUE_ROW_CLASS}>
+                <a href={LANDING_CASE_VENUE_TEL_HREF} className={VENUE_LINK_CLASS}>
+                  {LANDING_CASE_VENUE.phoneDisplay}
+                </a>
+              </p>
+              <p className={VENUE_ROW_CLASS}>{copy.hours}</p>
             </div>
           </div>
         </article>

@@ -18,6 +18,8 @@ describe('landing copy promo alignment', () => {
         [...PILLAR_IDS],
       );
       assert.ok(copy.hero.agentCta.length > 0);
+      assert.ok(copy.hero.agentLead.length > 0);
+      assert.equal(copy.hero.proofs.length, 3);
       assert.ok(copy.contact.agent.title.length > 0);
       assert.equal(copy.pain.items.length, 3);
       assert.equal(copy.buffet.items.length, 4);

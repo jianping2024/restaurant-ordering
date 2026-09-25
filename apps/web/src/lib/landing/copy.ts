@@ -11,12 +11,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: '登录',
     },
     hero: {
-      tag: '葡萄牙大型中餐自助 · 本地运营系统',
+      tag: '葡萄牙堂食扫码点餐 · 中餐与寿司自助',
       titleA: '少投入 · 断网不停业',
-      titleB: '流程可追溯',
-      desc: '不必每桌平板；系统装在店里，外网断了也能营业。权限清晰、价目自动切换、订单历史可查 — 专为大型自助打造。',
+      titleB: '权限清晰 · 全程可追溯',
+      desc: '顾客手机扫码点餐，不必每桌平板。云端管理 + 门店本地部署：外网中断仍可下单、结账、出票。开台到结账全程留痕。堂食按菜点餐与自助人头计费，同一套流程 — 覆盖中餐、寿司自助等业态。',
       whatsappCta: 'WhatsApp 咨询',
       wechatCta: '微信咨询',
+      proofs: ['扫码自助点餐', '云端 + 门店部署', '少平板 · 省投入'],
+      agentLead: '渠道合作？',
       agentCta: '诚招代理',
     },
     pillars: {
@@ -35,7 +37,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: '稳定',
-          body: '本地部署，外网中断仍可下单、结账、出票。',
+          body: '云端管理 + 门店本地部署，外网中断仍可下单、结账、出票。',
         },
         {
           id: 'convenience',
@@ -45,7 +47,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: '大型自助常遇到的问题',
+      title: '堂食扫码常遇到的问题',
       items: [
         {
           title: '平板墙成本高',
@@ -55,7 +57,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: '依赖外网怕停业',
           problem: '纯云端系统一旦断网，下单结账一起停。',
-          solution: '系统装在店里，外网挂了店照常营业。',
+          solution: '云端管理 + 门店本地部署，外网挂了店照常营业。',
         },
         {
           title: '权限与追溯不清',
@@ -65,7 +67,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: '为大型自助而生',
+      title: '为堂食与自助而生',
       subtitle: '从开台到结账，核心场景完整覆盖。',
       items: [
         {
@@ -116,12 +118,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: '客户案例',
-      name: '葡萄牙大型中餐自助',
+      name: '葡萄牙中餐自助',
       location: '已落地 · 稳定使用中',
-      quote: `${PRODUCT_NAME} 帮助大型自助少投入上线：本地运行、权限清晰、价目自动执行。`,
+      quote: `${PRODUCT_NAME} 帮助堂食扫码少投入上线：云端与门店部署、权限清晰、价目自动执行。`,
       tags: [
-        '本地部署',
-        '大型自助',
+        '云端 + 门店',
+        '中餐自助',
         '已落地',
       ],
     },
@@ -155,13 +157,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: '诚招代理',
-        subtitle: '区域合作 · 本地部署支持',
+        subtitle: '区域合作 · 云端与门店部署支持',
         note: '与预约演示使用同一套 WhatsApp / 微信联系方式。',
       },
     },
     footer: {
       login: '已有账号？登录后台',
-      copyright: '葡萄牙中餐自助餐厅运营系统',
+      copyright: '葡萄牙堂食扫码点餐与自助运营系统',
     },
   },
   en: {
@@ -173,12 +175,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: 'Sign in',
     },
     hero: {
-      tag: 'Large Chinese buffet in Portugal · On-prem operations',
+      tag: 'Dine-in QR ordering in Portugal · Chinese & sushi buffet',
       titleA: 'Lower spend · Offline-ready',
-      titleB: 'Full audit trail',
-      desc: 'No tablet per table. Run in-store so service continues when the WAN drops. Clear roles, auto price rules, and order history — built for large buffets.',
+      titleB: 'Clear roles · Full audit trail',
+      desc: 'Guests order on their phones — no tablet per table. Cloud management + in-store deployment: ordering, checkout, and printing continue if the WAN drops. One flow for à la carte dine-in and buffet headcount — Chinese and sushi buffets included.',
       whatsappCta: 'Chat on WhatsApp',
       wechatCta: 'WeChat',
+      proofs: ['QR self-order', 'Cloud + in-store', 'Fewer tablets · Lower cost'],
+      agentLead: 'Channel partner?',
       agentCta: 'Become a partner',
     },
     pillars: {
@@ -197,7 +201,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Stability',
-          body: 'On-prem install — order, pay, and print when the internet fails.',
+          body: 'Cloud management + in-store deployment — order, pay, and print when the internet fails.',
         },
         {
           id: 'convenience',
@@ -207,7 +211,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: 'What large buffet owners struggle with',
+      title: 'What dine-in operators struggle with',
       items: [
         {
           title: 'Tablet fleet cost',
@@ -217,7 +221,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Cloud outages stop service',
           problem: 'Cloud-only stacks freeze ordering and checkout when the WAN drops.',
-          solution: 'Local install keeps the floor running offline.',
+          solution: 'Cloud + in-store deployment keeps the floor running when the WAN drops.',
         },
         {
           title: 'Unclear accountability',
@@ -227,7 +231,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: 'Built for large buffets',
+      title: 'Built for dine-in and buffet',
       subtitle: 'End-to-end coverage from open table to checkout.',
       items: [
         {
@@ -278,12 +282,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Customer story',
-      name: 'Large Chinese buffet (Portugal)',
+      name: 'Chinese buffet (Portugal)',
       location: 'Live · in stable use',
-      quote: `${PRODUCT_NAME} helps large buffets go live with lower hardware spend, on-prem stability, and clear operations.`,
+      quote: `${PRODUCT_NAME} helps dine-in QR go live with lower hardware spend, cloud + in-store deployment, and clear operations.`,
       tags: [
-        'On-prem',
-        'Large buffet',
+        'Cloud + in-store',
+        'Chinese buffet',
         'Live',
       ],
     },
@@ -317,13 +321,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Partners wanted',
-        subtitle: 'Regional partnership · on-prem support',
+        subtitle: 'Regional partnership · cloud + in-store support',
         note: 'Same WhatsApp / WeChat channels as demo requests.',
       },
     },
     footer: {
       login: 'Already have an account? Sign in',
-      copyright: 'Operations platform for Chinese buffet restaurants in Portugal',
+      copyright: 'Dine-in QR ordering and buffet operations for Portugal',
     },
   },
   pt: {
@@ -335,12 +339,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: 'Entrar',
     },
     hero: {
-      tag: 'Grande buffet chinês em Portugal · Operação local',
+      tag: 'Pedidos por QR no salão · Buffet chinês e sushi',
       titleA: 'Menos investimento · Sem depender da net',
-      titleB: 'Rasto completo',
-      desc: 'Sem tablet por mesa. Sistema na loja: com a WAN em baixo a operação continua. Papéis claros, preços automáticos e histórico — feito para buffet de grande escala.',
+      titleB: 'Papéis claros · Rasto completo',
+      desc: 'O cliente pede no telemóvel — sem tablet por mesa. Gestão na cloud + instalação na loja: pedir, pagar e imprimir mesmo sem WAN. Um fluxo para à la carte e buffet por pessoa — chinês e sushi incluídos.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
+      proofs: ['Pedido por QR', 'Cloud + loja', 'Menos tablets · Menos custo'],
+      agentLead: 'Parceiro de canal?',
       agentCta: 'Torne-se parceiro',
     },
     pillars: {
@@ -359,7 +365,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Estabilidade',
-          body: 'Instalação local — pedir, pagar e imprimir sem internet.',
+          body: 'Cloud + instalação na loja — pedir, pagar e imprimir sem internet.',
         },
         {
           id: 'convenience',
@@ -369,7 +375,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: 'Desafios de buffets grandes',
+      title: 'Desafios do salão com QR',
       items: [
         {
           title: 'Custo da frota de tablets',
@@ -379,7 +385,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Queda de rede para o serviço',
           problem: 'Só na cloud, a WAN cai e o pedido/pagamento param.',
-          solution: 'Instalação local mantém a sala a funcionar.',
+          solution: 'Cloud + instalação na loja mantém a sala a funcionar.',
         },
         {
           title: 'Responsabilidade pouco clara',
@@ -389,7 +395,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: 'Feito para buffet de grande escala',
+      title: 'Feito para salão e buffet',
       subtitle: 'Da abertura de mesa ao pagamento.',
       items: [
         {
@@ -440,12 +446,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Cliente',
-      name: 'Buffet chinês de grande porte',
+      name: 'Buffet chinês (Portugal)',
       location: 'Em uso estável',
-      quote: `${PRODUCT_NAME} ajuda buffets grandes a entrar em produção com menos hardware, estabilidade local e operação clara.`,
+      quote: `${PRODUCT_NAME} ajuda pedidos por QR no salão com menos hardware, cloud + loja e operação clara.`,
       tags: [
-        'Local',
-        'Buffet grande',
+        'Cloud + loja',
+        'Buffet chinês',
         'Em uso',
       ],
     },
@@ -479,13 +485,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Recrutamos parceiros',
-        subtitle: 'Parceria regional · suporte a instalação local',
+        subtitle: 'Parceria regional · suporte cloud + loja',
         note: 'Os mesmos canais WhatsApp / WeChat da demonstração.',
       },
     },
     footer: {
       login: 'Já tem conta? Entrar',
-      copyright: 'Plataforma para buffet chinês em Portugal',
+      copyright: 'Pedidos por QR no salão e buffet em Portugal',
     },
   },
   es: {
@@ -497,12 +503,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: 'Iniciar sesión',
     },
     hero: {
-      tag: 'Gran buffet chino en Portugal · Operación local',
+      tag: 'Pedidos QR en sala · Buffet chino y sushi',
       titleA: 'Menos gasto · Sin depender de la red',
-      titleB: 'Rastro completo',
-      desc: 'Sin tablet por mesa. Sistema en el local: si cae la WAN, el servicio sigue. Roles claros, precios automáticos e historial — para buffets grandes.',
+      titleB: 'Roles claros · Rastro completo',
+      desc: 'El cliente pide en el móvil — sin tablet por mesa. Gestión en la nube + instalación en el local: pedir, cobrar e imprimir si cae la WAN. Un flujo para carta y buffet por persona — chino y sushi incluidos.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
+      proofs: ['Pedido por QR', 'Nube + local', 'Menos tablets · Menos coste'],
+      agentLead: '¿Canal partner?',
       agentCta: 'Sé partner',
     },
     pillars: {
@@ -521,7 +529,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Estabilidad',
-          body: 'Instalación local — pedir, cobrar e imprimir sin internet.',
+          body: 'Nube + instalación en el local — pedir, cobrar e imprimir sin internet.',
         },
         {
           id: 'convenience',
@@ -531,7 +539,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: 'Retos de buffets grandes',
+      title: 'Retos del salón con QR',
       items: [
         {
           title: 'Coste de la flota de tablets',
@@ -541,7 +549,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Caídas de red paran el servicio',
           problem: 'Solo en la nube, sin WAN se detienen pedidos y cobro.',
-          solution: 'Instalación local mantiene la sala operativa.',
+          solution: 'Nube + instalación en el local mantiene la sala operativa.',
         },
         {
           title: 'Responsabilidad poco clara',
@@ -551,7 +559,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: 'Hecho para buffets grandes',
+      title: 'Hecho para sala y buffet',
       subtitle: 'De abrir mesa al cobro.',
       items: [
         {
@@ -602,12 +610,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Historia de cliente',
-      name: 'Gran buffet chino (Portugal)',
+      name: 'Buffet chino (Portugal)',
       location: 'En uso estable',
-      quote: `${PRODUCT_NAME} ayuda a buffets grandes a arrancar con menos hardware, estabilidad local y operación clara.`,
+      quote: `${PRODUCT_NAME} ayuda al pedido QR en sala con menos hardware, nube + local y operación clara.`,
       tags: [
-        'Local',
-        'Buffet grande',
+        'Nube + local',
+        'Buffet chino',
         'En uso',
       ],
     },
@@ -641,13 +649,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Buscamos partners',
-        subtitle: 'Colaboración regional · soporte de instalación local',
+        subtitle: 'Colaboración regional · soporte nube + local',
         note: 'Los mismos canales WhatsApp / WeChat que para la demo.',
       },
     },
     footer: {
       login: '¿Ya tienes cuenta? Iniciar sesión',
-      copyright: 'Plataforma para restaurantes buffet chinos en Portugal',
+      copyright: 'Pedidos QR en sala y buffet en Portugal',
     },
   },
   fr: {
@@ -659,12 +667,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: 'Connexion',
     },
     hero: {
-      tag: 'Grand buffet chinois au Portugal · Exploitation locale',
+      tag: 'Commande QR en salle · Buffet chinois et sushi',
       titleA: 'Moins de dépenses · Hors ligne',
-      titleB: 'Traçabilité complète',
-      desc: 'Pas de tablette par table. Système en magasin : si le WAN tombe, le service continue. Rôles clairs, prix auto et historique — pour les grands buffets.',
+      titleB: 'Rôles clairs · Traçabilité complète',
+      desc: 'Le client commande sur son téléphone — pas de tablette par table. Gestion cloud + installation en magasin : commander, payer et imprimer si le WAN tombe. Un flux pour la carte et le buffet par tête — chinois et sushi inclus.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
+      proofs: ['Commande QR', 'Cloud + magasin', 'Moins de tablettes · Moins de coût'],
+      agentLead: 'Partenaire canal ?',
       agentCta: 'Devenir partenaire',
     },
     pillars: {
@@ -683,7 +693,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Stabilité',
-          body: 'Installation locale — commander, payer et imprimer sans internet.',
+          body: 'Cloud + installation en magasin — commander, payer et imprimer sans internet.',
         },
         {
           id: 'convenience',
@@ -693,7 +703,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: 'Défis des grands buffets',
+      title: 'Défis de la salle en QR',
       items: [
         {
           title: 'Coût de la flotte de tablettes',
@@ -703,7 +713,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Panne réseau = service arrêté',
           problem: '100 % cloud : sans WAN, commandes et caisse s’arrêtent.',
-          solution: 'L’install locale maintient la salle.',
+          solution: 'Cloud + install magasin maintient la salle.',
         },
         {
           title: 'Responsabilité floue',
@@ -713,7 +723,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: 'Conçu pour les grands buffets',
+      title: 'Conçu pour la salle et le buffet',
       subtitle: 'De l’ouverture de table au paiement.',
       items: [
         {
@@ -764,12 +774,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Témoignage',
-      name: 'Grand buffet chinois (Portugal)',
+      name: 'Buffet chinois (Portugal)',
       location: 'En production stable',
-      quote: `${PRODUCT_NAME} aide les grands buffets à démarrer avec moins de matériel, une stabilité locale et une exploitation claire.`,
+      quote: `${PRODUCT_NAME} aide la commande QR en salle avec moins de matériel, cloud + magasin et une exploitation claire.`,
       tags: [
-        'Local',
-        'Grand buffet',
+        'Cloud + magasin',
+        'Buffet chinois',
         'En production',
       ],
     },
@@ -803,13 +813,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Partenaires recherchés',
-        subtitle: 'Partenariat régional · support d’installation locale',
+        subtitle: 'Partenariat régional · support cloud + magasin',
         note: 'Mêmes canaux WhatsApp / WeChat que pour la démo.',
       },
     },
     footer: {
       login: 'Déjà un compte ? Connexion',
-      copyright: 'Plateforme pour buffets chinois au Portugal',
+      copyright: 'Commande QR en salle et buffet au Portugal',
     },
   },
   de: {
@@ -821,12 +831,14 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       login: 'Anmelden',
     },
     hero: {
-      tag: 'Großes China-Buffet in Portugal · Lokaler Betrieb',
+      tag: 'QR-Bestellung im Saal · China- & Sushi-Buffet',
       titleA: 'Weniger Kosten · Offline-fähig',
-      titleB: 'Volle Nachverfolgung',
-      desc: 'Kein Tablet pro Tisch. System vor Ort: Bei WAN-Ausfall läuft der Betrieb weiter. Klare Rollen, Auto-Preise und Historie — für große Buffets.',
+      titleB: 'Klare Rollen · Volle Nachverfolgung',
+      desc: 'Gäste bestellen am Handy — kein Tablet pro Tisch. Cloud-Verwaltung + Installation vor Ort: Bestellen, Zahlen und Drucken bei WAN-Ausfall. Ein Ablauf für à la carte und Buffet pro Kopf — China und Sushi inklusive.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
+      proofs: ['QR-Selbstbestellung', 'Cloud + vor Ort', 'Weniger Tablets · Weniger Kosten'],
+      agentLead: 'Channel-Partner?',
       agentCta: 'Partner werden',
     },
     pillars: {
@@ -845,7 +857,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Stabilität',
-          body: 'Lokale Installation — Bestellen, Zahlen, Drucken ohne Internet.',
+          body: 'Cloud + Installation vor Ort — Bestellen, Zahlen, Drucken ohne Internet.',
         },
         {
           id: 'convenience',
@@ -855,7 +867,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     pain: {
-      title: 'Herausforderungen großer Buffets',
+      title: 'Herausforderungen im QR-Saal',
       items: [
         {
           title: 'Kosten der Tablet-Flotte',
@@ -865,7 +877,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Netzausfall stoppt den Service',
           problem: 'Nur Cloud: ohne WAN stehen Bestellung und Kasse.',
-          solution: 'Lokale Installation hält den Saal am Laufen.',
+          solution: 'Cloud + Installation vor Ort hält den Saal am Laufen.',
         },
         {
           title: 'Unklare Verantwortung',
@@ -875,7 +887,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
     },
     buffet: {
-      title: 'Für große Buffets gebaut',
+      title: 'Für Saal und Buffet gebaut',
       subtitle: 'Vom Tischöffnen bis zur Kasse.',
       items: [
         {
@@ -926,12 +938,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Kundengeschichte',
-      name: 'Großes China-Buffet (Portugal)',
+      name: 'China-Buffet (Portugal)',
       location: 'Stabil im Einsatz',
-      quote: `${PRODUCT_NAME} hilft großen Buffets mit weniger Hardware, lokaler Stabilität und klarer Operation.`,
+      quote: `${PRODUCT_NAME} hilft der QR-Bestellung im Saal mit weniger Hardware, Cloud + vor Ort und klarer Operation.`,
       tags: [
-        'Lokal',
-        'Großes Buffet',
+        'Cloud + vor Ort',
+        'China-Buffet',
         'Live',
       ],
     },
@@ -965,13 +977,13 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Partner gesucht',
-        subtitle: 'Regionale Partnerschaft · lokaler Installations-Support',
+        subtitle: 'Regionale Partnerschaft · Cloud + vor Ort',
         note: 'Dieselben WhatsApp-/WeChat-Kanäle wie für die Demo.',
       },
     },
     footer: {
       login: 'Bereits ein Konto? Anmelden',
-      copyright: 'Betriebsplattform für China-Buffets in Portugal',
+      copyright: 'QR-Bestellung im Saal und Buffet-Betrieb in Portugal',
     },
   },
 };

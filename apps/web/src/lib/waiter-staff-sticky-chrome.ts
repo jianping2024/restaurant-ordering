@@ -81,22 +81,12 @@ export const waiterStaffStickyChrome = {
 } as const;
 
 /**
- * Shared SettlementBar sticky layout (z / inset / blur) — pair with one fill below.
- * Do not bake a single bg into this fragment; dashboard vs board sheet need different fills.
+ * Shared SettlementBar sticky chrome (layout + sole paper fill).
+ * One fill for both paths — brand-bg matches staff page / sheet paper so the rounded
+ * gold inset never rings with lighter card white. Path shells differ only by sticky offset.
  */
-const checkoutSettlementBarStickyLayout =
-  'z-20 -mx-2 px-2 py-1 backdrop-blur-sm';
-
-/** Dashboard `/checkout` sticky fill — sits over card/list chrome. */
-const checkoutSettlementBarDashboardFill =
-  'bg-brand-card/95 supports-[backdrop-filter]:bg-brand-card/90';
-
-/**
- * Board sheet sticky fill — match sheet `bg-brand-bg` so rounded gold inset does not
- * show a light card “white” ring at the corners.
- */
-const checkoutSettlementBarSheetFill =
-  'bg-brand-bg/95 supports-[backdrop-filter]:bg-brand-bg/90';
+const checkoutSettlementBarStickyChrome =
+  'z-20 -mx-2 px-2 py-1 backdrop-blur-sm bg-brand-bg/95 supports-[backdrop-filter]:bg-brand-bg/90';
 
 /**
  * Default sticky shell for checkout `SettlementBar` on `/dashboard/checkout`.
@@ -105,18 +95,16 @@ const checkoutSettlementBarSheetFill =
 export const checkoutSettlementBarStickyShellClass = [
   'sticky',
   waiterStaffStickyChrome.belowStaffTopBar,
-  checkoutSettlementBarStickyLayout,
-  checkoutSettlementBarDashboardFill,
+  checkoutSettlementBarStickyChrome,
 ].join(' ');
 
 /**
  * Board checkout sheet (`WaiterBoardCheckoutSheet`) — full-screen portal covers the
  * staff top bar; scrollport is under the sheet header. Stick with `top-0` so the
  * bar flushes under sheet chrome (do not reuse `belowStaffTopBar` here — that leaves
- * a ~3.5rem dead gap inside the nested scroll). Fill is brand-bg (not card).
+ * a ~3.5rem dead gap inside the nested scroll). Same brand-bg fill as dashboard.
  */
 export const checkoutSettlementBarSheetStickyShellClass = [
   'sticky top-0',
-  checkoutSettlementBarStickyLayout,
-  checkoutSettlementBarSheetFill,
+  checkoutSettlementBarStickyChrome,
 ].join(' ');

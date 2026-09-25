@@ -53,7 +53,7 @@ describe('staffTopBarChrome', () => {
 });
 
 describe('checkoutSettlementBarStickyShellClass', () => {
-  it('sticks under staff top bar — never bare top-0', () => {
+  it('sticks under staff top bar with sole brand-bg fill — never bare top-0 or card fill', () => {
     assert.match(checkoutSettlementBarStickyShellClass, /sticky/);
     assert.match(
       checkoutSettlementBarStickyShellClass,
@@ -63,13 +63,13 @@ describe('checkoutSettlementBarStickyShellClass', () => {
     assert.ok(
       checkoutSettlementBarStickyShellClass.includes(waiterStaffStickyChrome.belowStaffTopBar),
     );
-    assert.match(checkoutSettlementBarStickyShellClass, /bg-brand-card/);
-    assert.doesNotMatch(checkoutSettlementBarStickyShellClass, /bg-brand-bg/);
+    assert.match(checkoutSettlementBarStickyShellClass, /bg-brand-bg/);
+    assert.doesNotMatch(checkoutSettlementBarStickyShellClass, /bg-brand-card/);
   });
 });
 
 describe('checkoutSettlementBarSheetStickyShellClass', () => {
-  it('sticks at scrollport top under board sheet header — bare top-0 + brand-bg fill', () => {
+  it('sticks at scrollport top under board sheet header — bare top-0 + same brand-bg fill', () => {
     assert.match(checkoutSettlementBarSheetStickyShellClass, /sticky/);
     assert.match(checkoutSettlementBarSheetStickyShellClass, /\btop-0\b/);
     assert.doesNotMatch(

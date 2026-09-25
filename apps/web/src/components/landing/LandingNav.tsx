@@ -7,7 +7,6 @@ import { useLandingCopy } from '@/lib/landing/use-landing-copy';
 
 const NAV_ITEMS = [
   { key: 'solutions' as const, href: '#solutions' },
-  { key: 'preview' as const, href: '#preview' },
   { key: 'caseStudy' as const, href: '#case-study' },
   { key: 'contact' as const, href: '#contact' },
 ];

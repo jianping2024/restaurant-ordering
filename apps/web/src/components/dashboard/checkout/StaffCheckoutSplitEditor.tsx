@@ -154,7 +154,6 @@ export function StaffCheckoutSplitEditor({
       markerName: checkoutT.staffByItemMarkerName,
       markerHint: checkoutT.staffByItemMarkerHint,
       markerPlaceholder: billT.consumerNamePlaceholder,
-      addPerson: billT.addPerson,
       remainingPrefix: checkoutT.staffByItemRemaining,
       dueTotal: (amount: string) =>
         checkoutT.staffByItemDueTotal.replace('{amount}', amount),

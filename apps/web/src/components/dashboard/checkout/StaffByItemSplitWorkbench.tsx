@@ -42,7 +42,6 @@ export type StaffByItemWorkbenchLabels = {
   markerName: string;
   markerHint: string;
   markerPlaceholder: string;
-  addPerson: string;
   remainingPrefix: string;
   dueTotal: (amount: string) => string;
   estimate: (n: number, amount: string) => string;
@@ -97,6 +96,7 @@ type Props = {
 
 /**
  * Sole staff checkout by-item layout (Fatura-like): person chips + remaining pool + current share.
+ * People: seed guestName(1); next unpaid minted only after collect locks current (serial collect).
  * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
  * Guest phone keeps ByItemSplitSection; do not render dish cards here.
  */
@@ -267,14 +267,6 @@ export function StaffByItemSplitWorkbench({
     onAllocationChange(next);
   };
 
-  const handleAddPerson = () => {
-    const nextName = guestName(people.length + 1);
-    setPeople((prev) => [...prev, nextName]);
-    setCurrentIndex(people.length);
-    setNameDraft(nextName);
-    setNeedNameHint(false);
-  };
-
   const rowForShare = (share: (typeof shares)[number]): ByItemConsumerRow | null => {
     const rows = byItemAllocations[share.lineKey] ?? [];
     return rows.find((row) => row.id === share.rowId) ?? null;
@@ -304,14 +296,6 @@ export function StaffByItemSplitWorkbench({
               </button>
             );
           })}
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={handleAddPerson}
-            className="rounded-full border border-dashed border-brand-border px-3 py-1.5 text-xs font-semibold text-brand-text-muted hover:border-brand-gold/50"
-          >
-            + {labels.addPerson}
-          </button>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-base font-semibold tabular-nums text-brand-gold">

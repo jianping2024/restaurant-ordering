@@ -14,10 +14,10 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: '葡萄牙堂食扫码点餐 · 中餐与寿司自助',
       titleA: '少投入 · 断网不停业',
       titleB: '权限清晰 · 全程可追溯',
-      desc: '顾客手机扫码点餐，不必每桌平板。云端管理 + 门店本地部署：外网中断仍可下单、结账、出票。开台到结账全程留痕。堂食按菜点餐与自助人头计费，同一套流程 — 覆盖中餐、寿司自助等业态。',
+      desc: '顾客手机扫码点餐，不必每桌平板。云端 + 门店部署：外网中断仍可下单、结账、出票。开台到结账全程留痕。堂食按菜点餐与自助人头计费，同一套流程 — 覆盖中餐、寿司自助等业态。',
       whatsappCta: 'WhatsApp 咨询',
       wechatCta: '微信咨询',
-      proofs: ['扫码自助点餐', '云端 + 门店部署', '少平板 · 省投入'],
+      proofs: ['扫码点餐', '云端 + 门店部署', '少平板 · 省投入'],
       agentLead: '渠道合作？',
       agentCta: '诚招代理',
     },
@@ -27,7 +27,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: '经济',
-          body: '百桌不必四万欧平板墙，顾客手机扫码即可。',
+          body: '顾客手机扫码即可，不必每桌专用平板。',
         },
         {
           id: 'security',
@@ -37,7 +37,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: '稳定',
-          body: '云端管理 + 门店本地部署，外网中断仍可下单、结账、出票。',
+          body: '云端 + 门店部署，外网中断仍可下单、结账、出票。',
         },
         {
           id: 'convenience',
@@ -52,12 +52,12 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: '平板墙成本高',
           problem: '每桌一台专用平板，采购、充电、损坏与更换持续烧钱。',
-          solution: '顾客扫码点单，无需每桌专用平板，大幅降低设备投入。',
+          solution: '顾客扫码点餐，无需每桌专用平板，大幅降低设备投入。',
         },
         {
           title: '依赖外网怕停业',
           problem: '纯云端系统一旦断网，下单结账一起停。',
-          solution: '云端管理 + 门店本地部署，外网挂了店照常营业。',
+          solution: '云端 + 门店部署，外网挂了店照常营业。',
         },
         {
           title: '权限与追溯不清',
@@ -83,8 +83,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: '开台、点单、转台、结账随时可查，责任清楚。',
         },
         {
-          title: '开台与人头计费',
-          desc: '确认人数后开台，成人儿童与日类型规则自动计价；未开台不可点单。',
+          title: '开台后扫码点餐',
+          desc: '服务员开台后顾客扫码点餐；堂食按菜计价，自助可加人头规则。',
         },
       ],
     },
@@ -118,18 +118,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: '客户案例',
-      name: '葡萄牙中餐自助',
+      name: '葡萄牙堂食扫码门店',
       location: '已落地 · 稳定使用中',
-      quote: `${PRODUCT_NAME} 帮助堂食扫码少投入上线：云端与门店部署、权限清晰、价目自动执行。`,
+      quote: `${PRODUCT_NAME} 帮助堂食扫码少投入上线：云端 + 门店部署、权限清晰、价目自动执行。`,
       tags: [
-        '云端 + 门店',
-        '中餐自助',
+        '云端 + 门店部署',
+        '中餐 / 寿司自助',
         '已落地',
       ],
     },
     contact: {
       title: '了解方案 · 预约演示',
-      subtitle: '价格与配置请直接联系我们。正式开通由专人一对一配置，无需自助注册。',
+      subtitle: '价格与配置请直接联系我们。正式开通由专人一对一配置，无需自行注册。',
       pricingNote: '联系获取定制方案',
       whatsappLabel: 'WhatsApp',
       wechatLabel: '微信',
@@ -157,7 +157,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: '诚招代理',
-        subtitle: '区域合作 · 云端与门店部署支持',
+        subtitle: '区域合作 · 云端 + 门店部署支持',
         note: '与预约演示使用同一套 WhatsApp / 微信联系方式。',
       },
     },
@@ -178,10 +178,10 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Dine-in QR ordering in Portugal · Chinese & sushi buffet',
       titleA: 'Lower spend · Offline-ready',
       titleB: 'Clear roles · Full audit trail',
-      desc: 'Guests order on their phones — no tablet per table. Cloud management + in-store deployment: ordering, checkout, and printing continue if the WAN drops. One flow for à la carte dine-in and buffet headcount — Chinese and sushi buffets included.',
+      desc: 'Guests order on their phones — no tablet per table. Cloud + in-store deployment: ordering, checkout, and printing continue if the WAN drops. One flow for à la carte dine-in and buffet headcount — Chinese and sushi buffets included.',
       whatsappCta: 'Chat on WhatsApp',
       wechatCta: 'WeChat',
-      proofs: ['QR self-order', 'Cloud + in-store', 'Fewer tablets · Lower cost'],
+      proofs: ['QR order', 'Cloud + in-store', 'Fewer tablets · Lower cost'],
       agentLead: 'Channel partner?',
       agentCta: 'Become a partner',
     },
@@ -191,7 +191,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: 'Economy',
-          body: 'Skip a €40k tablet wall — guests order on their phones.',
+          body: 'Guests order on their phones — no dedicated tablet per table.',
         },
         {
           id: 'security',
@@ -201,7 +201,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'stability',
           title: 'Stability',
-          body: 'Cloud management + in-store deployment — order, pay, and print when the internet fails.',
+          body: 'Cloud + in-store deployment — order, pay, and print when the internet fails.',
         },
         {
           id: 'convenience',
@@ -247,8 +247,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: 'Open, order, transfer, and pay — always reviewable.',
         },
         {
-          title: 'Open table & per-guest billing',
-          desc: 'Confirm headcount before guests order; adult/child rules apply automatically.',
+          title: 'Open table, then QR order',
+          desc: 'Staff open the table; guests scan to order. À la carte by dish; buffet can add headcount rules.',
         },
       ],
     },
@@ -282,18 +282,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Customer story',
-      name: 'Chinese buffet (Portugal)',
+      name: 'Dine-in QR restaurant (Portugal)',
       location: 'Live · in stable use',
-      quote: `${PRODUCT_NAME} helps dine-in QR go live with lower hardware spend, cloud + in-store deployment, and clear operations.`,
+      quote: `${PRODUCT_NAME} helps dine-in QR go live with lower hardware spend, Cloud + in-store deployment, and clear operations.`,
       tags: [
         'Cloud + in-store',
-        'Chinese buffet',
+        'Chinese / sushi buffet',
         'Live',
       ],
     },
     contact: {
       title: 'Book a demo',
-      subtitle: 'Pricing and setup are tailored. Onboarding is personal — no self-signup.',
+      subtitle: 'Pricing and setup are tailored. Onboarding is personal — no self-registration.',
       pricingNote: 'Contact us for a tailored quote',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
@@ -321,7 +321,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Partners wanted',
-        subtitle: 'Regional partnership · cloud + in-store support',
+        subtitle: 'Regional partnership · Cloud + in-store support',
         note: 'Same WhatsApp / WeChat channels as demo requests.',
       },
     },
@@ -342,7 +342,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Pedidos por QR no salão · Buffet chinês e sushi',
       titleA: 'Menos investimento · Sem depender da net',
       titleB: 'Papéis claros · Rasto completo',
-      desc: 'O cliente pede no telemóvel — sem tablet por mesa. Gestão na cloud + instalação na loja: pedir, pagar e imprimir mesmo sem WAN. Um fluxo para à la carte e buffet por pessoa — chinês e sushi incluídos.',
+      desc: 'O cliente pede no telemóvel — sem tablet por mesa. Cloud + instalação na loja: pedir, pagar e imprimir mesmo sem WAN. Um fluxo para à la carte e buffet por pessoa — chinês e sushi incluídos.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       proofs: ['Pedido por QR', 'Cloud + loja', 'Menos tablets · Menos custo'],
@@ -355,7 +355,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: 'Economia',
-          body: 'Evite uma parede de tablets a ~€40k — o cliente pede no telemóvel.',
+          body: 'O cliente pede no telemóvel — sem tablet dedicado por mesa.',
         },
         {
           id: 'security',
@@ -411,8 +411,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: 'Abertura, pedido, transferência e pagamento — sempre consultável.',
         },
         {
-          title: 'Abertura e preço por pessoa',
-          desc: 'Confirme pessoas antes de pedir; regras adulto/criança automáticas.',
+          title: 'Abrir mesa, depois pedido por QR',
+          desc: 'A equipa abre a mesa; o cliente faz scan para pedir. À la carte por prato; buffet pode acrescentar regras por pessoa.',
         },
       ],
     },
@@ -446,18 +446,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Cliente',
-      name: 'Buffet chinês (Portugal)',
+      name: 'Restaurante QR no salão (Portugal)',
       location: 'Em uso estável',
-      quote: `${PRODUCT_NAME} ajuda pedidos por QR no salão com menos hardware, cloud + loja e operação clara.`,
+      quote: `${PRODUCT_NAME} ajuda pedidos por QR no salão com menos hardware, Cloud + instalação na loja e operação clara.`,
       tags: [
         'Cloud + loja',
-        'Buffet chinês',
+        'Buffet chinês / sushi',
         'Em uso',
       ],
     },
     contact: {
       title: 'Marcar demonstração',
-      subtitle: 'Preço e configuração à medida. Onboarding pessoal — sem auto-registo.',
+      subtitle: 'Preço e configuração à medida. Onboarding pessoal — sem registo por conta própria.',
       pricingNote: 'Contacte-nos para proposta',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
@@ -485,7 +485,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Recrutamos parceiros',
-        subtitle: 'Parceria regional · suporte cloud + loja',
+        subtitle: 'Parceria regional · suporte Cloud + loja',
         note: 'Os mesmos canais WhatsApp / WeChat da demonstração.',
       },
     },
@@ -506,7 +506,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Pedidos QR en sala · Buffet chino y sushi',
       titleA: 'Menos gasto · Sin depender de la red',
       titleB: 'Roles claros · Rastro completo',
-      desc: 'El cliente pide en el móvil — sin tablet por mesa. Gestión en la nube + instalación en el local: pedir, cobrar e imprimir si cae la WAN. Un flujo para carta y buffet por persona — chino y sushi incluidos.',
+      desc: 'El cliente pide en el móvil — sin tablet por mesa. Nube + instalación en el local: pedir, cobrar e imprimir si cae la WAN. Un flujo para carta y buffet por persona — chino y sushi incluidos.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       proofs: ['Pedido por QR', 'Nube + local', 'Menos tablets · Menos coste'],
@@ -519,7 +519,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: 'Economía',
-          body: 'Evita un muro de tablets de ~€40k — el cliente pide en el móvil.',
+          body: 'El cliente pide en el móvil — sin tablet dedicado por mesa.',
         },
         {
           id: 'security',
@@ -575,8 +575,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: 'Apertura, pedido, traslado y cobro — siempre consultable.',
         },
         {
-          title: 'Apertura y precio por persona',
-          desc: 'Confirma comensales antes de pedir; reglas adulto/niño automáticas.',
+          title: 'Abrir mesa, luego pedido por QR',
+          desc: 'El personal abre la mesa; el cliente escanea para pedir. Carta por plato; el buffet puede añadir reglas por persona.',
         },
       ],
     },
@@ -610,18 +610,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Historia de cliente',
-      name: 'Buffet chino (Portugal)',
+      name: 'Restaurante QR en sala (Portugal)',
       location: 'En uso estable',
-      quote: `${PRODUCT_NAME} ayuda al pedido QR en sala con menos hardware, nube + local y operación clara.`,
+      quote: `${PRODUCT_NAME} ayuda al pedido QR en sala con menos hardware, Nube + instalación en el local y operación clara.`,
       tags: [
         'Nube + local',
-        'Buffet chino',
+        'Buffet chino / sushi',
         'En uso',
       ],
     },
     contact: {
       title: 'Reservar una demo',
-      subtitle: 'Precio y configuración a medida. Onboarding personal — sin auto-registro.',
+      subtitle: 'Precio y configuración a medida. Onboarding personal — sin registro por su cuenta.',
       pricingNote: 'Contáctanos para un presupuesto',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
@@ -649,7 +649,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Buscamos partners',
-        subtitle: 'Colaboración regional · soporte nube + local',
+        subtitle: 'Colaboración regional · soporte Nube + local',
         note: 'Los mismos canales WhatsApp / WeChat que para la demo.',
       },
     },
@@ -670,7 +670,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'Commande QR en salle · Buffet chinois et sushi',
       titleA: 'Moins de dépenses · Hors ligne',
       titleB: 'Rôles clairs · Traçabilité complète',
-      desc: 'Le client commande sur son téléphone — pas de tablette par table. Gestion cloud + installation en magasin : commander, payer et imprimer si le WAN tombe. Un flux pour la carte et le buffet par tête — chinois et sushi inclus.',
+      desc: 'Le client commande sur son téléphone — pas de tablette par table. Cloud + installation en magasin : commander, payer et imprimer si le WAN tombe. Un flux pour la carte et le buffet par tête — chinois et sushi inclus.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
       proofs: ['Commande QR', 'Cloud + magasin', 'Moins de tablettes · Moins de coût'],
@@ -683,7 +683,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: 'Économie',
-          body: 'Évitez un mur de tablettes à ~€40k — le client commande sur son téléphone.',
+          body: 'Le client commande sur son téléphone — pas de tablette dédiée par table.',
         },
         {
           id: 'security',
@@ -713,7 +713,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           title: 'Panne réseau = service arrêté',
           problem: '100 % cloud : sans WAN, commandes et caisse s’arrêtent.',
-          solution: 'Cloud + install magasin maintient la salle.',
+          solution: 'Cloud + installation en magasin maintient la salle.',
         },
         {
           title: 'Responsabilité floue',
@@ -739,8 +739,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: 'Ouverture, commande, transfert et paiement — toujours consultable.',
         },
         {
-          title: 'Ouverture et prix par personne',
-          desc: 'Confirmez les convives avant commande ; règles adulte/enfant auto.',
+          title: 'Ouvrir la table, puis commande QR',
+          desc: 'Le personnel ouvre la table ; le client scanne pour commander. Carte par plat ; le buffet peut ajouter des règles par tête.',
         },
       ],
     },
@@ -774,18 +774,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Témoignage',
-      name: 'Buffet chinois (Portugal)',
+      name: 'Restaurant QR en salle (Portugal)',
       location: 'En production stable',
-      quote: `${PRODUCT_NAME} aide la commande QR en salle avec moins de matériel, cloud + magasin et une exploitation claire.`,
+      quote: `${PRODUCT_NAME} aide la commande QR en salle avec moins de matériel, Cloud + installation en magasin et une exploitation claire.`,
       tags: [
         'Cloud + magasin',
-        'Buffet chinois',
+        'Buffet chinois / sushi',
         'En production',
       ],
     },
     contact: {
       title: 'Réserver une démo',
-      subtitle: 'Tarifs et configuration sur mesure. Onboarding personnel — pas d’auto-inscription.',
+      subtitle: 'Tarifs et configuration sur mesure. Onboarding personnel — pas d’inscription par vous-même.',
       pricingNote: 'Contactez-nous pour un devis',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',
@@ -813,7 +813,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       ],
       agent: {
         title: 'Partenaires recherchés',
-        subtitle: 'Partenariat régional · support cloud + magasin',
+        subtitle: 'Partenariat régional · support Cloud + magasin',
         note: 'Mêmes canaux WhatsApp / WeChat que pour la démo.',
       },
     },
@@ -834,10 +834,10 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
       tag: 'QR-Bestellung im Saal · China- & Sushi-Buffet',
       titleA: 'Weniger Kosten · Offline-fähig',
       titleB: 'Klare Rollen · Volle Nachverfolgung',
-      desc: 'Gäste bestellen am Handy — kein Tablet pro Tisch. Cloud-Verwaltung + Installation vor Ort: Bestellen, Zahlen und Drucken bei WAN-Ausfall. Ein Ablauf für à la carte und Buffet pro Kopf — China und Sushi inklusive.',
+      desc: 'Gäste bestellen am Handy — kein Tablet pro Tisch. Cloud + Installation vor Ort: Bestellen, Zahlen und Drucken bei WAN-Ausfall. Ein Ablauf für à la carte und Buffet pro Kopf — China und Sushi inklusive.',
       whatsappCta: 'WhatsApp',
       wechatCta: 'WeChat',
-      proofs: ['QR-Selbstbestellung', 'Cloud + vor Ort', 'Weniger Tablets · Weniger Kosten'],
+      proofs: ['QR-Bestellung', 'Cloud + vor Ort', 'Weniger Tablets · Weniger Kosten'],
       agentLead: 'Channel-Partner?',
       agentCta: 'Partner werden',
     },
@@ -847,7 +847,7 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
         {
           id: 'economy',
           title: 'Wirtschaftlichkeit',
-          body: 'Keine €40k-Tablet-Wand — Gäste bestellen am eigenen Handy.',
+          body: 'Gäste bestellen am Handy — kein dediziertes Tablet pro Tisch.',
         },
         {
           id: 'security',
@@ -903,8 +903,8 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
           desc: 'Öffnen, Bestellen, Transfer, Zahlen — jederzeit einsehbar.',
         },
         {
-          title: 'Öffnen und Preis pro Gast',
-          desc: 'Kopfzahl bestätigen vor Bestellung; Erwachsene/Kinder automatisch.',
+          title: 'Tisch öffnen, dann QR-Bestellung',
+          desc: 'Personal öffnet den Tisch; Gäste scannen zum Bestellen. À la carte nach Gericht; Buffet kann Kopfzahl-Regeln ergänzen.',
         },
       ],
     },
@@ -938,18 +938,18 @@ const LANDING_COPY: Record<LandingLanguage, LandingCopy> = {
     },
     caseStudy: {
       title: 'Kundengeschichte',
-      name: 'China-Buffet (Portugal)',
+      name: 'QR-Restaurant im Saal (Portugal)',
       location: 'Stabil im Einsatz',
-      quote: `${PRODUCT_NAME} hilft der QR-Bestellung im Saal mit weniger Hardware, Cloud + vor Ort und klarer Operation.`,
+      quote: `${PRODUCT_NAME} hilft der QR-Bestellung im Saal mit weniger Hardware, Cloud + Installation vor Ort und klarer Operation.`,
       tags: [
         'Cloud + vor Ort',
-        'China-Buffet',
+        'China- / Sushi-Buffet',
         'Live',
       ],
     },
     contact: {
       title: 'Demo buchen',
-      subtitle: 'Preis und Setup maßgeschneidert. Persönliches Onboarding — keine Selbstregistrierung.',
+      subtitle: 'Preis und Setup maßgeschneidert. Persönliches Onboarding — keine eigenständige Registrierung.',
       pricingNote: 'Kontakt für ein Angebot',
       whatsappLabel: 'WhatsApp',
       wechatLabel: 'WeChat',

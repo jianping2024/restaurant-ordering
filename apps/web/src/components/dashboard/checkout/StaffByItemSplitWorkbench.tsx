@@ -585,8 +585,8 @@ export function StaffByItemSplitWorkbench({
                   return (
                     <div
                       key={`${share.lineKey}-${share.rowId}`}
-                      className={`flex items-center justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0 ${
-                        shareLocked ? 'rounded-lg bg-brand-bg/80 px-1.5 opacity-80' : ''
+                      className={`flex items-center justify-between gap-2 rounded-lg border-b border-brand-border/70 px-1.5 py-2 last:border-0 ${
+                        shareLocked ? 'bg-brand-bg/80 opacity-80' : ''
                       }`}
                     >
                       <div className="min-w-0 flex-1">

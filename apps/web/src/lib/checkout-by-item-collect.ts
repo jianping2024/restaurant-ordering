@@ -14,7 +14,7 @@ import {
 } from '@/lib/checkout-session-payments';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
-import { splitPartyKey } from '@/lib/split-party-id';
+import { splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
 import {
   staffByItemLedgerPeople,
   type StaffByItemRailPerson,
@@ -54,15 +54,7 @@ export function resolveStaffByItemEditRoster(params: {
     })),
   );
   if (ledgerPeople.length === 0) {
-    return params.liveResults.map((row) => ({
-      name: row.name,
-      amount: row.amount,
-      ...(row.party_id?.trim()
-        ? { party_id: row.party_id.trim() }
-        : row.partyId?.trim()
-          ? { party_id: row.partyId.trim() }
-          : {}),
-    }));
+    return params.liveResults.map((row) => toWireSplitResult(row));
   }
   return orderByItemResultsToRoster(params.liveResults, ledgerPeople);
 }
@@ -79,15 +71,7 @@ export function orderByItemResultsToRoster(
   for (const row of liveResults) {
     const key = ticketKey(row);
     if (!key) continue;
-    byKey.set(key, {
-      name: row.name,
-      amount: row.amount,
-      ...(row.party_id?.trim()
-        ? { party_id: row.party_id.trim() }
-        : row.partyId?.trim()
-          ? { party_id: row.partyId.trim() }
-          : {}),
-    });
+    byKey.set(key, toWireSplitResult(row));
   }
   const used = new Set<string>();
   const ordered: SplitResult[] = [];
@@ -95,30 +79,20 @@ export function orderByItemResultsToRoster(
     const key = splitPartyKey(person.partyId, person.name);
     if (!key || used.has(key)) continue;
     const live = byKey.get(key);
-    ordered.push({
-      name: live?.name ?? person.name,
-      amount: live?.amount ?? 0,
-      ...(person.partyId
-        ? { party_id: person.partyId }
-        : live?.party_id
-          ? { party_id: live.party_id }
-          : {}),
-    });
+    ordered.push(
+      toWireSplitResult({
+        name: live?.name ?? person.name,
+        amount: live?.amount ?? 0,
+        partyId: person.partyId ?? live?.party_id,
+      }),
+    );
     used.add(key);
   }
   for (const row of liveResults) {
     const key = ticketKey(row);
     if (!key || used.has(key)) continue;
     used.add(key);
-    ordered.push({
-      name: row.name,
-      amount: row.amount,
-      ...(row.party_id?.trim()
-        ? { party_id: row.party_id.trim() }
-        : row.partyId?.trim()
-          ? { party_id: row.partyId.trim() }
-          : {}),
-    });
+    ordered.push(toWireSplitResult(row));
   }
   return ordered;
 }

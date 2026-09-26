@@ -75,7 +75,8 @@ function StaffByItemPoolLineMeta({
 }
 
 /**
- * Sole share-row meta: muted qty × unit + gold line total (`staffByItemShareLineMetaParts`).
+ * Sole share-row meta: always `qty × unit = amount` (`staffByItemShareLineMetaParts`).
+ * Ready → gold euro; incomplete → muted `—` in the same slot (no mount jitter).
  * Do not reuse pool `·` here; do not invent a second amount beside share.amount.
  */
 function StaffByItemShareLineMeta({
@@ -87,22 +88,24 @@ function StaffByItemShareLineMeta({
   unitPriceLabel: string;
   amount: number;
 }) {
-  const { factorText, amountText } = staffByItemShareLineMetaParts({
+  const { factorText, amountText, amountReady } = staffByItemShareLineMetaParts({
     qtyLabel,
     unitPriceLabel,
     amount,
   });
   return (
-    <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-sm">
+    <div className="mt-1 flex flex-nowrap items-baseline gap-x-1.5 text-sm">
       <span className="tabular-nums text-brand-text-muted">{factorText}</span>
-      {amountText ? (
-        <>
-          <span className="text-brand-border" aria-hidden>
-            =
-          </span>
-          <span className="font-semibold tabular-nums text-brand-gold">{amountText}</span>
-        </>
-      ) : null}
+      <span className="text-brand-border" aria-hidden>
+        =
+      </span>
+      <span
+        className={`inline-block min-w-[4.5ch] tabular-nums ${
+          amountReady ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+        }`}
+      >
+        {amountText}
+      </span>
     </div>
   );
 }

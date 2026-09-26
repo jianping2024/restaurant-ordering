@@ -71,12 +71,15 @@ function formatEuroAmount(n: number): string {
 
 /**
  * Sole share-row money meta for staff by-item「当前人份额」:
- * muted `qty × unit` + optional gold line total (`amount` already on the share).
- * Incomplete qty (`qtyLabel === '—'`) omits `= €0.00`. Pool rows do not use this.
+ * always three slots `qty × unit` + `=` + amount; incomplete qty uses muted `—`
+ * (never fake `€0.00`); ready qty uses gold euro from share.amount.
+ * Pool rows do not use this.
  */
 export type StaffByItemShareLineMetaParts = {
   factorText: string;
-  amountText: string | null;
+  /** Always present — euro when ready, `—` placeholder when qty incomplete. */
+  amountText: string;
+  amountReady: boolean;
 };
 
 export function staffByItemShareLineMetaParts(share: {
@@ -84,9 +87,11 @@ export function staffByItemShareLineMetaParts(share: {
   unitPriceLabel: string;
   amount: number;
 }): StaffByItemShareLineMetaParts {
+  const amountReady = share.qtyLabel !== '—';
   return {
     factorText: `${share.qtyLabel} × ${share.unitPriceLabel}`,
-    amountText: share.qtyLabel === '—' ? null : formatEuroAmount(share.amount),
+    amountText: amountReady ? formatEuroAmount(share.amount) : '—',
+    amountReady,
   };
 }
 

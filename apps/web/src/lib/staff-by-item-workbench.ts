@@ -103,7 +103,13 @@ export type StaffByItemPoolLine = {
   adultsRemaining: number;
   childrenRemaining: number;
   canAddWhole: boolean;
-  canAddHalf: boolean;
+  /**
+   * Sole menu pool `1/N` denominator: remaining's den when ≥2, else 2.
+   * Buffet lines keep 2 (button unused).
+   */
+  fractionDenominator: number;
+  /** Remaining covers at least {@link menuFractionTake} of {@link fractionDenominator}. */
+  canAddFraction: boolean;
   canAddAdult: boolean;
   canAddChild: boolean;
 };
@@ -163,7 +169,8 @@ export function staffByItemPoolLines(params: {
         adultsRemaining,
         childrenRemaining,
         canAddWhole: false,
-        canAddHalf: false,
+        fractionDenominator: 2,
+        canAddFraction: false,
         canAddAdult: adultsRemaining > 0,
         canAddChild: childrenRemaining > 0,
       });
@@ -173,7 +180,7 @@ export function staffByItemPoolLines(params: {
     const target = rationalFromNumber(spec.lineQty);
     const remaining = qtyDiff(target, allocatedMenuQty(rows));
     const remainingPositive = remaining.num > 0;
-    const half = { num: 1, den: 2 };
+    const fractionDenominator = menuFractionDenominatorFromRemaining(remaining);
     out.push({
       key: spec.key,
       label,
@@ -184,7 +191,10 @@ export function staffByItemPoolLines(params: {
       adultsRemaining: 0,
       childrenRemaining: 0,
       canAddWhole: remainingPositive,
-      canAddHalf: remainingPositive && compareRationals(remaining, half) >= 0,
+      fractionDenominator,
+      canAddFraction:
+        remainingPositive &&
+        compareRationals(remaining, menuFractionTake(fractionDenominator)) >= 0,
       canAddAdult: false,
       canAddChild: false,
     });
@@ -409,15 +419,11 @@ export function addWholeShareToPerson(params: {
   return { ...allocations, [lineKey]: patched };
 }
 
-/** Denominator for the pool fraction button. Empty, below 2, or 0 stays 1/2. */
-export function menuFractionDenominatorForPerson(
-  rows: ByItemConsumerRow[],
-  personName: string,
-): number {
-  const row = rows.find((candidate) => personMatches(candidate.name, personName) && candidate.name.trim());
-  const den = Number(row?.qtyDen);
-  if (!Number.isInteger(den) || den < 2) return 2;
-  return den;
+/** Sole pool `1/N` denominator: remaining's den when ≥2, else 2 (whole cups). */
+export function menuFractionDenominatorFromRemaining(remaining: Rational): number {
+  const { den } = normalizeRational(remaining);
+  if (den >= 2) return den;
+  return 2;
 }
 
 function menuFractionTake(denominator: number): Rational {

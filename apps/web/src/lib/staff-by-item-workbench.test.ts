@@ -7,6 +7,7 @@ import {
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
   isStaffMenuShareOverAllocated,
+  menuFractionDenominatorFromRemaining,
   setPersonMenuShareQtyFields,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
@@ -50,6 +51,18 @@ function emptyRows(): ByItemConsumerRow[] {
   }];
 }
 
+describe('menuFractionDenominatorFromRemaining', () => {
+  it('uses remaining den when leftover is a proper fraction', () => {
+    assert.equal(menuFractionDenominatorFromRemaining({ num: 2, den: 3 }), 3);
+    assert.equal(menuFractionDenominatorFromRemaining({ num: 1, den: 2 }), 2);
+  });
+
+  it('defaults to 2 when remaining is a whole number of cups', () => {
+    assert.equal(menuFractionDenominatorFromRemaining({ num: 1, den: 1 }), 2);
+    assert.equal(menuFractionDenominatorFromRemaining({ num: 4, den: 1 }), 2);
+  });
+});
+
 describe('staffByItemPoolLines', () => {
   it('shows full remaining before any allocation', () => {
     const pool = staffByItemPoolLines({
@@ -62,7 +75,36 @@ describe('staffByItemPoolLines', () => {
     assert.equal(pool[0]!.remainingLabel, '2');
     assert.equal(pool[0]!.unitPriceLabel, '€2.50');
     assert.equal(pool[0]!.canAddWhole, true);
-    assert.equal(pool[0]!.canAddHalf, true);
+    assert.equal(pool[0]!.fractionDenominator, 2);
+    assert.equal(pool[0]!.canAddFraction, true);
+  });
+
+  it('uses remaining den for 1/N when leftover is a proper fraction', () => {
+    const unitSpec: ByItemLineSpec = {
+      mode: 'menu',
+      key: 'line-unit',
+      lineQty: 1,
+      lineTotal: 1.85,
+      unitPrice: 1.85,
+    };
+    const unitLine = { ...orderLine, key: 'line-unit', quantity: 1, price: 1.85 };
+    const pool = staffByItemPoolLines({
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
+      allocations: {
+        'line-unit': [{
+          id: 'row-a',
+          name: '客人 1',
+          qtyWhole: '',
+          qtyNum: '1',
+          qtyDen: '3',
+        }],
+      },
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.remainingLabel, '2/3');
+    assert.equal(pool[0]!.fractionDenominator, 3);
+    assert.equal(pool[0]!.canAddFraction, true);
   });
 
   it('ignores unnamed seed qtyWhole when computing remaining', () => {

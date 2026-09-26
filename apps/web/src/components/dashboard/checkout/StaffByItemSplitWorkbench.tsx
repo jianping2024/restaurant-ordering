@@ -20,8 +20,6 @@ import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
-  canAddMenuFractionShare,
-  menuFractionDenominatorForPerson,
   isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
@@ -415,41 +413,23 @@ export function StaffByItemSplitWorkbench({
                       <>
                         <button
                           type="button"
-                          disabled={
-                            poolAddDisabled ||
-                            !canAddMenuFractionShare({
-                              allocations: byItemAllocations,
-                              lineSpecs,
-                              lineKey: line.key,
-                              denominator: menuFractionDenominatorForPerson(
-                                byItemAllocations[line.key] ?? [],
-                                currentName,
-                              ),
-                            })
-                          }
+                          disabled={poolAddDisabled || !line.canAddFraction}
                           className="h-7 min-w-7 rounded-lg border border-brand-border px-1 text-xs font-bold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
-                            const denominator = menuFractionDenominatorForPerson(
-                              byItemAllocations[line.key] ?? [],
-                              person,
-                            );
                             applyAlloc(
                               addMenuFractionShareToPerson({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
                                 personName: person,
-                                denominator,
+                                denominator: line.fractionDenominator,
                               }),
                             );
                           }}
                         >
-                          {`1/${menuFractionDenominatorForPerson(
-                            byItemAllocations[line.key] ?? [],
-                            currentName,
-                          )}`}
+                          {`1/${line.fractionDenominator}`}
                         </button>
                         <button
                           type="button"

@@ -384,6 +384,37 @@ describe('allocationLockedTicketKeys', () => {
     assert.equal(keys.has(`p:${paidId}`), true);
     assert.equal(keys.has(`p:${unpaidId}`), false);
   });
+
+  it('locks ticket with locked_amount before collection / result.paid', () => {
+    const stampedId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+    const openId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+    const keys = allocationLockedTicketKeys(
+      split({
+        split_mode: 'by_item',
+        persons: [
+          {
+            name: '客人1',
+            party_id: stampedId,
+            item_shares: [
+              { key: 'cola', qty_num: 1, qty_den: 1, locked_amount: 2.2 },
+            ],
+          },
+          {
+            name: '客人1',
+            party_id: openId,
+            item_shares: [{ key: 'tea', qty_num: 1, qty_den: 1 }],
+          },
+        ],
+        result: [
+          { name: '客人1', amount: 2.2, party_id: stampedId },
+          { name: '客人1', amount: 1.5, party_id: openId },
+        ],
+      }),
+      [],
+    );
+    assert.equal(keys.has(`p:${stampedId}`), true);
+    assert.equal(keys.has(`p:${openId}`), false);
+  });
 });
 
 describe('resolveContinuationSplitShape', () => {

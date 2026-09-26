@@ -141,9 +141,13 @@ export function isCheckoutSplitLocked(
 }
 
 /**
- * Sole by-item lock set: ticket keys ({@link splitPartyKey}) that already have
- * collection history. Prefer party_id; name-only keys only for legacy rows /
- * payments without an indexable ticket.
+ * Sole by-item lock set: ticket keys ({@link splitPartyKey}) that are frozen
+ * for UI layering (committed vs draft). Includes:
+ * - `result.paid` / collection history
+ * - persons with any `item_shares.locked_amount` (collect stamp — must lock
+ *   before ledger lands, or merge flashes committed+draft duplicates)
+ * Prefer party_id; name-only keys only for legacy rows / payments without an
+ * indexable ticket.
  */
 export function allocationLockedTicketKeys(
   split: BillSplit | null | undefined,
@@ -169,6 +173,19 @@ export function allocationLockedTicketKeys(
     }
     const legacy = splitPartyKey(undefined, payment.person_name);
     if (legacy) keys.add(legacy);
+  }
+
+  // Collect upsert stamps locked_amount before confirm-payment writes the ledger.
+  // Those tickets must lock the same render as persons hydrate — sole set, no
+  // parallel merge-time paidLocked heuristic.
+  for (const person of split?.persons ?? []) {
+    const stamped = (person.item_shares ?? []).some(
+      (share) =>
+        share.locked_amount != null && Number.isFinite(share.locked_amount),
+    );
+    if (!stamped) continue;
+    const key = splitPartyKey(person.party_id, person.name);
+    if (key) keys.add(key);
   }
 
   return keys;

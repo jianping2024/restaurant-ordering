@@ -67,6 +67,20 @@ export type ContinuationSplitShape = {
 };
 
 /**
+ * Sole even/custom roster size gate: even min/default 2; custom min/default 1; cap 20.
+ * Pass `requested` to clamp an existing length; omit to get the mode default.
+ */
+export function splitDraftPersonCount(
+  mode: 'even' | 'custom',
+  requested?: number,
+): number {
+  const min = mode === 'even' ? 2 : 1;
+  const raw =
+    requested == null || !Number.isFinite(requested) ? min : requested;
+  return Math.min(20, Math.max(min, Math.round(raw)));
+}
+
+/**
  * Sole even/custom draft roster builder: pad/truncate to `count`, replace blank or
  * whole-table sentinel names with `guestName(i+1)`.
  */
@@ -84,9 +98,12 @@ export function ensureSplitPersonNames(
   return next;
 }
 
-/** Default even/custom draft roster (2 guests) when there is no continuation shape. */
-export function defaultSplitPersonNames(guestName: (n: number) => string, count = 2): string[] {
-  return ensureSplitPersonNames([], count, guestName);
+/** Default even/custom draft roster when there is no continuation shape. */
+export function defaultSplitPersonNames(
+  guestName: (n: number) => string,
+  mode: 'even' | 'custom',
+): string[] {
+  return ensureSplitPersonNames([], splitDraftPersonCount(mode), guestName);
 }
 
 /**
@@ -102,7 +119,12 @@ export function resolveContinuationSplitShape(
   const locked = lockedSplitRowCount(split);
   if (locked < 1) return null;
 
-  const personCount = split.split_mode === 'even' ? Math.max(2, locked) : locked;
+  const personCount =
+    split.split_mode === 'even'
+      ? splitDraftPersonCount('even', locked)
+      : split.split_mode === 'custom'
+        ? splitDraftPersonCount('custom', locked)
+        : locked;
   const rawNames: string[] = [];
   for (let i = 0; i < locked; i += 1) {
     const fromResult = split.result?.[i]?.name?.trim();

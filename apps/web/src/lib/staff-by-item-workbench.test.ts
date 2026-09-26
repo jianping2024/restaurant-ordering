@@ -654,25 +654,25 @@ describe('staffByItemPersonShares visibility', () => {
 });
 
 describe('staffByItemShareLineMetaParts', () => {
-  it('mutes qty × unit and golds line total when qty is known', () => {
+  it('marks amount ready with euro text when qty is known', () => {
     assert.deepEqual(
       staffByItemShareLineMetaParts({
         qtyLabel: '1 1/2',
         unitPriceLabel: '€2.20',
         amount: 3.3,
       }),
-      { factorText: '1 1/2 × €2.20', amountText: '€3.30' },
+      { factorText: '1 1/2 × €2.20', amountText: '€3.30', amountReady: true },
     );
   });
 
-  it('omits fake €0.00 when qty is incomplete', () => {
+  it('keeps amount slot with muted — placeholder when qty is incomplete (never €0.00)', () => {
     assert.deepEqual(
       staffByItemShareLineMetaParts({
         qtyLabel: '—',
         unitPriceLabel: '€2.50',
         amount: 0,
       }),
-      { factorText: '— × €2.50', amountText: null },
+      { factorText: '— × €2.50', amountText: '—', amountReady: false },
     );
   });
 });

@@ -1,6 +1,13 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SetStateAction,
+} from 'react';
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
@@ -11,6 +18,13 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  extractByItemDraftAllocations,
+  mergeByItemCommittedAndDraft,
+  pruneByItemDraftAgainstLocks,
+  type ByItemAllocationRows,
+} from '@/lib/by-item-committed-draft';
+import {
+  allocationLockedTicketKeys,
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
@@ -18,6 +32,10 @@ import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
+/**
+ * Sole by-item UI state: committed (server persons) + unpaid draft (local only).
+ * Display map is the merge; setByItemAllocations writes draft only.
+ */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
   lineSpecs: ByItemLineSpec[];
@@ -26,8 +44,7 @@ export function useByItemSplitState(params: {
 }) {
   const { splitMode, lineSpecs, existingSplit, collectedPayments = [] } = params;
 
-  const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
-  const hydratedSplitKeyRef = useRef<string | null>(null);
+  const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
 
   const paidLocks = useMemo(
     () =>
@@ -39,30 +56,71 @@ export function useByItemSplitState(params: {
     [existingSplit, collectedPayments],
   );
 
+  const lockedTicketKeys = useMemo(
+    () => allocationLockedTicketKeys(existingSplit, collectedPayments),
+    [existingSplit, collectedPayments],
+  );
+
+  /** Server persons → committed only. Realtime may rebuild this; never touches draft. */
+  const committedAllocations = useMemo(() => {
+    if (splitMode !== 'by_item') return {};
+    if (!existingSplit?.persons?.length || lineSpecs.length === 0) return {};
+    return withDefaultByItemLineRows(
+      buildByItemConsumerRowsFromPersons(existingSplit.persons, lineSpecs, paidLocks),
+      lineSpecs,
+    );
+  }, [splitMode, existingSplit, lineSpecs, paidLocks]);
+
+  const committedRef = useRef(committedAllocations);
+  committedRef.current = committedAllocations;
+  const lockedKeysRef = useRef(lockedTicketKeys);
+  lockedKeysRef.current = lockedTicketKeys;
+
+  /** Drop draft rows absorbed into committed locks — never pad draft with seed lines. */
   useLayoutEffect(() => {
     if (splitMode !== 'by_item') return;
-    setByItemAllocations((prev) => {
-      const next = withDefaultByItemLineRows(prev, lineSpecs);
-      return next === prev ? prev : next;
+    setDraftAllocations((prev) => {
+      const pruned = pruneByItemDraftAgainstLocks(prev, lockedTicketKeys);
+      return pruned === prev ? prev : pruned;
     });
-  }, [splitMode, lineSpecs]);
+  }, [splitMode, lockedTicketKeys]);
 
-  useLayoutEffect(() => {
-    if (splitMode !== 'by_item' || !existingSplit?.persons?.length) return;
-    // Wait for lineSpecs — hydrating with [] stamps the split id and skips the real restore.
-    if (lineSpecs.length === 0) return;
-    const personsSig = JSON.stringify(existingSplit.persons);
-    const lockSig = `${paidLocks.menu.size}:${paidLocks.buffet.size}`;
-    const hydrateKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}:${personsSig}:${lockSig}`;
-    if (hydratedSplitKeyRef.current === hydrateKey) return;
-    hydratedSplitKeyRef.current = hydrateKey;
-    const hydrated = buildByItemConsumerRowsFromPersons(
-      existingSplit.persons,
+  const byItemAllocations = useMemo(() => {
+    if (splitMode !== 'by_item') return {};
+    return withDefaultByItemLineRows(
+      mergeByItemCommittedAndDraft(
+        committedAllocations,
+        draftAllocations,
+        lockedTicketKeys,
+      ),
       lineSpecs,
-      paidLocks,
     );
-    setByItemAllocations(withDefaultByItemLineRows(hydrated, lineSpecs));
-  }, [splitMode, lineSpecs, existingSplit, paidLocks]);
+  }, [
+    splitMode,
+    committedAllocations,
+    draftAllocations,
+    lockedTicketKeys,
+    lineSpecs,
+  ]);
+
+  const setByItemAllocations = useCallback(
+    (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
+      setDraftAllocations((prevDraft) => {
+        const prevMerged = withDefaultByItemLineRows(
+          mergeByItemCommittedAndDraft(
+            committedRef.current,
+            prevDraft,
+            lockedKeysRef.current,
+          ),
+          lineSpecs,
+        );
+        const nextMerged =
+          typeof update === 'function' ? update(prevMerged) : update;
+        return extractByItemDraftAllocations(nextMerged, lockedKeysRef.current);
+      });
+    },
+    [lineSpecs],
+  );
 
   const consumerRoster = useMemo(
     () => collectActiveConsumerNames(byItemAllocations),
@@ -79,30 +137,30 @@ export function useByItemSplitState(params: {
     [lineSpecs, byItemAllocations],
   );
 
-  const rememberConsumerName: (name: string, fromList: boolean) => void = useCallback(() => {}, []);
+  const rememberConsumerName: (name: string, fromList: boolean) => void =
+    useCallback(() => {}, []);
 
-  const renameByItemConsumer = useCallback((
-    oldName: string,
-    newName: string,
-    partyId?: string,
-  ) => {
-    const trimmed = newName.trim();
-    if (!trimmed || trimmed === oldName) return;
-    setByItemAllocations((prev) => {
-      const next: Record<string, ByItemConsumerRow[]> = {};
-      for (const [key, rows] of Object.entries(prev)) {
-        next[key] = rows.map((row) => {
-          if (partyId?.trim()) {
-            if (row.partyId?.trim() !== partyId.trim()) return row;
+  const renameByItemConsumer = useCallback(
+    (oldName: string, newName: string, partyId?: string) => {
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === oldName) return;
+      setByItemAllocations((prev) => {
+        const next: Record<string, ByItemConsumerRow[]> = {};
+        for (const [key, rows] of Object.entries(prev)) {
+          next[key] = rows.map((row) => {
+            if (partyId?.trim()) {
+              if (row.partyId?.trim() !== partyId.trim()) return row;
+              return { ...row, name: trimmed };
+            }
+            if (row.name.trim().toLowerCase() !== oldName.toLowerCase()) return row;
             return { ...row, name: trimmed };
-          }
-          if (row.name.trim().toLowerCase() !== oldName.toLowerCase()) return row;
-          return { ...row, name: trimmed };
-        });
-      }
-      return next;
-    });
-  }, []);
+          });
+        }
+        return next;
+      });
+    },
+    [setByItemAllocations],
+  );
 
   const buildPersonsForSubmit = useCallback(
     () => buildSplitPersonsFromAllocations(parsedByItemAllocations),

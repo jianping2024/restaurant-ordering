@@ -41,6 +41,12 @@
 - 线级：`item_shares.locked_amount`；结果行：`result.paid` 后 merge **保留原 amount**（TS + SQL 同口径）。
 - 已付份额只读（`paidLocked`）；同菜再分 → 新行/新票，不 merge 进已付行。
 
+## 已落库 vs 未付草稿（UI 唯一）
+
+- **已落库 / 已收款**：只来自服务器 `bill_splits.persons`（+ 台账锁）→ committed。Realtime 刷新只重建这一层。
+- **未付进行中草稿**：只活在本机 draft，直到该票点收款落库；远端刷新 **不得** 重置 draft。
+- 界面唯一写法：`mergeByItemCommittedAndDraft`（`by-item-committed-draft.ts`）+ `useByItemSplitState`；禁止再整表 `setByItemAllocations(hydratedFromPersons)`。
+
 ## 摘要待收（整桌）
 
 - **待收** = 折后应收合计 − 台账已收合计。  
@@ -61,5 +67,6 @@
 | 已付结果金额不被 merge 改写 | `mergeByItemSplitResultWithLedger`（TS）+ SQL `merge_by_item_split_result_with_ledger` |
 | 确认写台账 | `confirm_bill_split_payment` / `requestCheckoutConfirmPayment`（金额 = 弹窗） |
 | 收款 upsert 允许部分/冻结差额 | `allow_partial_by_item: true`（仅职员 by-item 确认收款） |
+| 已落库 + 未付草稿 UI | `mergeByItemCommittedAndDraft` + `useByItemSplitState`（Realtime 只重建 committed） |
 
 已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）。均摊/手填仍用 `persistBeforePay`。

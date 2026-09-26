@@ -283,7 +283,7 @@ export function StaffCheckoutSplitEditor({
 
   const lockedTicketKeys = useMemo(() => {
     const keys = new Set(allocationLockedTicketKeys(request, collectedPayments));
-    for (const key of settledTicketKeys) keys.add(key);
+    for (const key of Array.from(settledTicketKeys)) keys.add(key);
     return keys;
   }, [collectedPayments, request, settledTicketKeys]);
 

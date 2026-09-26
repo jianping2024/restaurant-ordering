@@ -10,9 +10,53 @@ import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { parsePortugueseNif } from '@/lib/pt-nif';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { parseOptionalPartyIdFromRow } from '@/lib/split-party-id';
 import type { SplitPerson, SplitPersonItemShare, SplitResult } from '@/types';
 
 export const runtime = 'nodejs';
+
+function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
+  if (!entry || typeof entry !== 'object') return null;
+  const share = entry as Record<string, unknown>;
+  const key = typeof share.key === 'string' ? share.key.trim() : '';
+  const party_id = parseOptionalPartyIdFromRow(share);
+  const guest_type =
+    share.guest_type === 'adult' || share.guest_type === 'child'
+      ? share.guest_type
+      : undefined;
+  if (guest_type) {
+    if (!key) return null;
+    const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
+      ? Math.trunc(share.qty_num)
+      : 1;
+    const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
+      ? Math.trunc(share.qty_den)
+      : 1;
+    if (qty_den <= 0 || qty_num <= 0) return null;
+    return {
+      key,
+      qty_num,
+      qty_den,
+      guest_type,
+      ...(party_id ? { party_id } : {}),
+    };
+  }
+  const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
+    ? Math.trunc(share.qty_num)
+    : NaN;
+  const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
+    ? Math.trunc(share.qty_den)
+    : NaN;
+  if (!key || !Number.isFinite(qty_num) || !Number.isFinite(qty_den) || qty_den <= 0 || qty_num <= 0) {
+    return null;
+  }
+  return {
+    key,
+    qty_num,
+    qty_den,
+    ...(party_id ? { party_id } : {}),
+  };
+}
 
 function parsePersons(raw: unknown): SplitPerson[] | null {
   if (!Array.isArray(raw) || raw.length === 0 || raw.length > 50) return null;
@@ -22,6 +66,7 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
     const r = row as Record<string, unknown>;
     const name = typeof r.name === 'string' ? r.name.trim().slice(0, 80) : '';
     if (!name) return null;
+    const party_id = parseOptionalPartyIdFromRow(r);
     const items = Array.isArray(r.items)
       ? r.items
           .filter((v): v is string => typeof v === 'string')
@@ -31,42 +76,14 @@ function parsePersons(raw: unknown): SplitPerson[] | null {
       : undefined;
     const item_shares = Array.isArray(r.item_shares)
       ? r.item_shares
-          .map((entry): SplitPersonItemShare | null => {
-            if (!entry || typeof entry !== 'object') return null;
-            const share = entry as Record<string, unknown>;
-            const key = typeof share.key === 'string' ? share.key.trim() : '';
-            const guest_type =
-              share.guest_type === 'adult' || share.guest_type === 'child'
-                ? share.guest_type
-                : undefined;
-            if (guest_type) {
-              if (!key) return null;
-              const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
-                ? Math.trunc(share.qty_num)
-                : 1;
-              const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
-                ? Math.trunc(share.qty_den)
-                : 1;
-              if (qty_den <= 0 || qty_num <= 0) return null;
-              return { key, qty_num, qty_den, guest_type };
-            }
-            const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
-              ? Math.trunc(share.qty_num)
-              : NaN;
-            const qty_den = typeof share.qty_den === 'number' && Number.isFinite(share.qty_den)
-              ? Math.trunc(share.qty_den)
-              : NaN;
-            if (!key || !Number.isFinite(qty_num) || !Number.isFinite(qty_den) || qty_den <= 0 || qty_num <= 0) {
-              return null;
-            }
-            return { key, qty_num, qty_den };
-          })
+          .map(parsePersonItemShare)
           .filter((entry): entry is SplitPersonItemShare => entry != null)
           .slice(0, 500)
       : undefined;
     const amount = typeof r.amount === 'number' && Number.isFinite(r.amount) ? r.amount : undefined;
     persons.push({
       name,
+      ...(party_id ? { party_id } : {}),
       ...(items?.length ? { items } : {}),
       ...(item_shares?.length ? { item_shares } : {}),
       ...(amount != null ? { amount } : {}),
@@ -84,7 +101,8 @@ function parseResult(raw: unknown): SplitResult[] | null {
     const name = typeof r.name === 'string' ? r.name.trim().slice(0, 80) : '';
     const amount = typeof r.amount === 'number' && Number.isFinite(r.amount) ? r.amount : NaN;
     if (!name || !Number.isFinite(amount) || amount < 0) return null;
-    rows.push({ name, amount });
+    const party_id = parseOptionalPartyIdFromRow(r);
+    rows.push({ name, amount, ...(party_id ? { party_id } : {}) });
   }
   return rows;
 }

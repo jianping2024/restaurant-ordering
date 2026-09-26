@@ -29,7 +29,7 @@ import {
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
-import { splitPartyKey } from '@/lib/split-party-id';
+import { splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
 import {
   buildSubmitPersons,
   validateSubmitSplitDraft,
@@ -239,11 +239,7 @@ export function StaffCheckoutSplitEditor({
       personOrder: orderPeople.map((p) => p.name),
       personPartyIds: orderPeople.map((p) => p.partyId),
     });
-    return calc.map((row) => ({
-      name: row.name,
-      amount: row.amount,
-      ...(row.partyId?.trim() ? { party_id: row.partyId.trim() } : {}),
-    }));
+    return calc.map((row) => toWireSplitResult(row));
   }, [
     lang,
     ledgerPeople,

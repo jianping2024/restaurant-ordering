@@ -9,6 +9,7 @@ import { wholeTableSplitResult } from '@/lib/checkout-split-intent';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
+import { toWireSplitResult } from '@/lib/split-party-id';
 import type { SplitMode, SplitResult } from '@/types';
 
 export type BillSplitDraftInput = {
@@ -58,7 +59,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
       ),
       allocations: parsedByItemAllocations,
       personOrder: byItemPersonOrder,
-    });
+    }).map((row) => toWireSplitResult(row));
   }
 
   const manualTotal = customAmounts.slice(0, -1).reduce((sum, row) => sum + row.amount, 0);

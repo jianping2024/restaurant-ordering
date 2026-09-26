@@ -18,7 +18,7 @@ import {
   displaySplitPersonName,
   splitPersonKey,
 } from '@/lib/split-person-identity';
-import { splitPartyKey, mintSplitPartyId } from '@/lib/split-party-id';
+import { splitPartyKey, mintSplitPartyId, parseOptionalPartyId } from '@/lib/split-party-id';
 import type { OrderItem, SplitPerson, SplitPersonItemShare } from '@/types';
 
 export type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
@@ -1128,9 +1128,10 @@ export function buildSplitPersonsFromAllocations(
       const partyKey = splitPartyKey(share.partyId, share.name);
       if (!partyKey) continue;
       const normalized = normalizeRational(share.qty);
+      const party_id = parseOptionalPartyId(share.partyId);
       const entry = byKey.get(partyKey) ?? {
         name: displaySplitPersonName(share.name),
-        ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
+        ...(party_id ? { partyId: party_id } : {}),
         item_shares: [],
       };
       entry.item_shares.push({
@@ -1138,7 +1139,7 @@ export function buildSplitPersonsFromAllocations(
         qty_num: normalized.num,
         qty_den: normalized.den,
         ...(share.guestType ? { guest_type: share.guestType } : {}),
-        ...(share.partyId?.trim() ? { party_id: share.partyId.trim() } : {}),
+        ...(party_id ? { party_id } : {}),
         ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
           ? { locked_amount: share.frozenAmount }
           : {}),
@@ -1147,11 +1148,14 @@ export function buildSplitPersonsFromAllocations(
     }
   }
 
-  return Array.from(byKey.values()).map(({ name, partyId, item_shares }) => ({
-    name,
-    item_shares,
-    ...(partyId ? { party_id: partyId } : {}),
-  }));
+  return Array.from(byKey.values()).map(({ name, partyId, item_shares }) => {
+    const party_id = parseOptionalPartyId(partyId);
+    return {
+      name,
+      item_shares,
+      ...(party_id ? { party_id } : {}),
+    };
+  });
 }
 
 export function consumersForLineFromPersons(

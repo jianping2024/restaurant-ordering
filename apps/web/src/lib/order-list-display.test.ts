@@ -11,7 +11,7 @@ import {
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import type { Order } from '@/types';
 
-const guestLabels = { adults: '{n}大人', children: '{n}小孩' };
+const guestLabels = { adults: '{n}成人', children: '{n}儿童' };
 
 describe('formatOrderItemQuantityLabel', () => {
   it('formats menu qty', () => {
@@ -63,7 +63,7 @@ describe('formatOrderItemQuantityLabel', () => {
         { kind: 'buffet_base', qty: 1, adult_count: 7, child_count: 3 },
         { headcountStyle: 'localized', guestLabels },
       ),
-      '· 7大人 · 3小孩',
+      '· 7成人 · 3儿童',
     );
   });
 });
@@ -147,8 +147,8 @@ describe('formatOrderItemListLabel', () => {
 describe('orderListGuestLabelsFromLang', () => {
   it('reads orderHistory guest count templates', () => {
     const labels = orderListGuestLabelsFromLang('zh');
-    assert.equal(labels.adults, '{n}大人');
-    assert.equal(labels.children, '{n}小孩');
+    assert.equal(labels.adults, '{n}成人');
+    assert.equal(labels.children, '{n}儿童');
   });
 });
 

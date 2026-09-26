@@ -28,7 +28,7 @@ import {
   totalGuestsInBuffetSnapshot,
 } from '@/lib/buffet-order';
 
-const labels = { adults: '{n}大人', children: '{n}小孩' };
+const labels = { adults: '{n}成人', children: '{n}儿童' };
 const buffetA = { id: 'buffet-a', name: 'Simple Buffet' };
 const buffetB = { id: 'buffet-b', name: 'Premium Buffet' };
 const resolved = {
@@ -215,7 +215,7 @@ describe('upsertBuffetLineOntoOrderItems', () => {
 
 describe('formatBuffetGuestCountsOptional', () => {
   it('shows both segments when counts are positive', () => {
-    assert.equal(formatBuffetGuestCountsOptional(2, 1, labels), '2大人 · 1小孩');
+    assert.equal(formatBuffetGuestCountsOptional(2, 1, labels), '2成人 · 1儿童');
   });
 });
 

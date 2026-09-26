@@ -83,12 +83,12 @@ const statusLabels = {
   unassigned: '还差 {qty}',
   invalidQty: '数量有误',
   buffetComplete: '已分完',
-  buffetShortAdult: '还差 {n}大人',
-  buffetShortChild: '还差 {n}小孩',
-  buffetOverAdult: '超出 {n}大人',
-  buffetOverChild: '超出 {n}小孩',
-  buffetAdultProgress: '大人 {allocated}/{total}',
-  buffetChildProgress: '小孩 {allocated}/{total}',
+  buffetShortAdult: '还差 {n}成人',
+  buffetShortChild: '还差 {n}儿童',
+  buffetOverAdult: '超出 {n}成人',
+  buffetOverChild: '超出 {n}儿童',
+  buffetAdultProgress: '成人 {allocated}/{total}',
+  buffetChildProgress: '儿童 {allocated}/{total}',
 };
 
 describe('validateQtyParts', () => {
@@ -198,7 +198,7 @@ describe('buffet by-item', () => {
     if (status.kind === 'complete') {
       assert.equal(
         byItemLineStatusSummary(status, statusLabels, undefined, { buffet: true }).text,
-        '已分完 · 大人 2/2 · 小孩 1/1',
+        '已分完 · 成人 2/2 · 儿童 1/1',
       );
     }
   });
@@ -260,7 +260,7 @@ describe('buffet by-item', () => {
     assert.equal(partial.kind, 'buffet_short');
     assert.equal(
       byItemLineStatusSummary(partial, statusLabels, undefined, { buffet: true }).text,
-      '还差 1大人 · 大人 1/2',
+      '还差 1成人 · 成人 1/2',
     );
   });
 });

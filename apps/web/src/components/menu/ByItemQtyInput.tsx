@@ -18,7 +18,13 @@ interface Props {
   labels: QtyPartsLabels;
   /** Line-level over-allocation; field-part issues are owned inside this control. */
   overAllocated?: boolean;
+  /** Locks whole + num + den (paid share). */
   disabled?: boolean;
+  /**
+   * Locks denominator only (staff: line already has a paid share).
+   * Ignored when `disabled` is true. Pass `byItemMenuQtyDenReadOnly(lineRows)`.
+   */
+  denDisabled?: boolean;
   onChange: (patch: Pick<ByItemConsumerRow, QtyField>) => void;
   onCommit?: () => void;
 }
@@ -43,14 +49,17 @@ export function ByItemQtyInput({
   labels,
   overAllocated = false,
   disabled = false,
+  denDisabled = false,
   onChange,
   onCommit,
 }: Props) {
   const hint = getQtyPartsRowHint(row, labels);
   const fieldClass = overAllocated || hint ? customerQtyInputAlertClass : customerQtyInputClass;
+  const denLocked = disabled || denDisabled;
 
   const patchQty = (field: QtyField, raw: string) => {
     if (disabled) return;
+    if (field === 'qtyDen' && denLocked) return;
     const digits = sanitizeQtyDigits(raw);
     onChange({
       qtyWhole: field === 'qtyWhole' ? digits : row.qtyWhole,
@@ -91,7 +100,7 @@ export function ByItemQtyInput({
           inputMode="numeric"
           pattern="[0-9]*"
           value={row.qtyDen}
-          disabled={disabled}
+          disabled={denLocked}
           onChange={(e) => patchQty('qtyDen', e.target.value)}
           onBlur={() => onCommit?.()}
           aria-label={labels.denLabel}

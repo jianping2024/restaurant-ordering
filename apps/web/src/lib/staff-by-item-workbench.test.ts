@@ -6,6 +6,7 @@ import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  byItemMenuQtyDenReadOnly,
   isStaffMenuShareOverAllocated,
   menuFractionDenominatorFromRemaining,
   setPersonMenuShareQtyFields,
@@ -520,6 +521,86 @@ describe('setPersonMenuShareQtyFields', () => {
       lineKey: 'line-a',
       rowId: 'row-ana',
     }), false);
+  });
+
+  it('rejects qty edits on paidLocked rows', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [
+        {
+          id: 'row-paid',
+          name: 'Ana',
+          qtyWhole: '',
+          qtyNum: '1',
+          qtyDen: '2',
+          paidLocked: true,
+        },
+      ],
+    };
+    const next = setPersonMenuShareQtyFields({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-paid',
+      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
+    });
+    assert.equal(next, null);
+  });
+
+  it('freezes qtyDen for unpaid peers when the line has a paid share', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [
+        {
+          id: 'row-paid',
+          name: 'Ana',
+          qtyWhole: '',
+          qtyNum: '1',
+          qtyDen: '3',
+          paidLocked: true,
+        },
+        {
+          id: 'row-open',
+          name: 'Bob',
+          qtyWhole: '',
+          qtyNum: '1',
+          qtyDen: '2',
+        },
+      ],
+    };
+    assert.equal(byItemMenuQtyDenReadOnly(allocations['line-a']!), true);
+    const next = setPersonMenuShareQtyFields({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-open',
+      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
+    });
+    assert.ok(next);
+    const bob = next!['line-a']!.find((row) => row.id === 'row-open');
+    assert.equal(bob?.qtyDen, '2');
+    assert.equal(bob?.qtyNum, '1');
+  });
+
+  it('allows qtyDen edits when no share on the line is paid', () => {
+    assert.equal(byItemMenuQtyDenReadOnly([{ paidLocked: undefined }]), false);
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [
+        {
+          id: 'row-open',
+          name: 'Bob',
+          qtyWhole: '',
+          qtyNum: '1',
+          qtyDen: '2',
+        },
+      ],
+    };
+    const next = setPersonMenuShareQtyFields({
+      allocations,
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-open',
+      patch: { qtyWhole: '', qtyNum: '1', qtyDen: '5' },
+    });
+    assert.equal(next!['line-a']![0]!.qtyDen, '5');
   });
 });
 

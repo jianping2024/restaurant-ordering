@@ -20,6 +20,7 @@ import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  byItemMenuQtyDenReadOnly,
   isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
@@ -585,6 +586,9 @@ export function StaffByItemSplitWorkbench({
                             labels={labels.qtyParts}
                             overAllocated={over}
                             disabled={shareDisabled}
+                            denDisabled={byItemMenuQtyDenReadOnly(
+                              byItemAllocations[share.lineKey] ?? [],
+                            )}
                             onChange={(patch) => {
                               applyAlloc(
                                 setPersonMenuShareQtyFields({

@@ -519,8 +519,20 @@ export function addBuffetSeatToPerson(params: {
 }
 
 /**
+ * Sole menu-share denominator lock for staff by-item:
+ * once any row on the line is `paidLocked`, every share on that line has
+ * `qtyDen` read-only (stops unpaid peers from reshuffling cent remainder).
+ */
+export function byItemMenuQtyDenReadOnly(
+  lineRows: ReadonlyArray<Pick<ByItemConsumerRow, 'paidLocked'>>,
+): boolean {
+  return lineRows.some((row) => Boolean(row.paidLocked));
+}
+
+/**
  * Patch menu qty fields on one named share row (whole + num/den).
  * Same remaining truth as the pool: {@link parseConsumerRows} / {@link allocatedMenuQty}.
+ * Paid rows reject all qty edits; when the line has any paid share, `qtyDen` is frozen.
  */
 export function setPersonMenuShareQtyFields(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
@@ -535,8 +547,15 @@ export function setPersonMenuShareQtyFields(params: {
   const rows = allocations[lineKey] ?? [];
   const target = rows.find((row) => row.id === rowId);
   if (!target || !target.name.trim()) return null;
+  if (target.paidLocked) return null;
 
-  const nextRow = { ...target, ...patch };
+  const denFrozen = byItemMenuQtyDenReadOnly(rows);
+  const nextRow = {
+    ...target,
+    qtyWhole: patch.qtyWhole,
+    qtyNum: patch.qtyNum,
+    qtyDen: denFrozen ? target.qtyDen : patch.qtyDen,
+  };
   const patched = rows.map((row) => (row.id === rowId ? nextRow : row));
   return { ...allocations, [lineKey]: patched };
 }

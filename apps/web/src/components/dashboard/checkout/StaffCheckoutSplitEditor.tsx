@@ -22,8 +22,11 @@ import {
   byItemPoolFullyAllocated,
   reconcileByItemResultsToBillTotal,
   resolveByItemCollectTarget,
+  resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
+import { staffByItemLedgerPersonNames } from '@/lib/staff-by-item-people';
+import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
 import {
   buildSubmitPersons,
   validateSubmitSplitDraft,
@@ -199,8 +202,8 @@ export function StaffCheckoutSplitEditor({
     [billT, checkoutT],
   );
 
-  const rosterPersonNames = useMemo(
-    () => (request.result ?? []).map((row) => row.name).filter((name) => name.trim()),
+  const ledgerPersonNames = useMemo(
+    () => staffByItemLedgerPersonNames((request.result ?? []).map((row) => row.name)),
     [request.result],
   );
 
@@ -213,27 +216,37 @@ export function StaffCheckoutSplitEditor({
     const lines = splitOrderLines.map((item) =>
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
+    const personOrder =
+      ledgerPersonNames.length > 0
+        ? ledgerPersonNames
+        : staffByItemPeopleFromAllocations(splitDraft.byItemAllocations);
     return calcByItemSplitResults({
       lines,
       allocations,
-      personOrder: rosterPersonNames,
+      personOrder,
     });
   }, [
     lang,
+    ledgerPersonNames,
     lineSpecs,
-    rosterPersonNames,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
     splitOrderLines,
   ]);
 
-  const settledPersonNames = useMemo(() => {
-    const roster =
-      (request.result?.length ?? 0) > 0
-        ? (request.result as SplitResult[])
-        : liveByItemResults;
-    return settledByItemPersonKeys(roster, collectedPayments);
-  }, [collectedPayments, liveByItemResults, request.result]);
+  const editRoster = useMemo(
+    () =>
+      resolveStaffByItemEditRoster({
+        ledgerResults: (request.result ?? []) as SplitResult[],
+        liveResults: liveByItemResults,
+      }),
+    [liveByItemResults, request.result],
+  );
+
+  const settledPersonNames = useMemo(
+    () => settledByItemPersonKeys(editRoster, collectedPayments),
+    [collectedPayments, editRoster],
+  );
 
   const splitValidationMessage = useMemo(() => {
     if (!splitDraft.splitMode || splitDraft.splitValidation.ok) return null;
@@ -472,8 +485,9 @@ export function StaffCheckoutSplitEditor({
             lineSpecs={lineSpecs}
             orderLines={splitOrderLines}
             byItemAllocations={splitDraft.byItemAllocations}
-            rosterPersonNames={rosterPersonNames}
+            ledgerPersonNames={ledgerPersonNames}
             settledPersonNames={settledPersonNames}
+            lockedPersonNames={splitDraft.lockedPersonNames}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
@@ -487,13 +501,9 @@ export function StaffCheckoutSplitEditor({
                 showToast(checkoutT.staffByItemNeedName, 'error');
                 return;
               }
-              const roster =
-                (request.result?.length ?? 0) > 0
-                  ? (request.result as SplitResult[])
-                  : liveByItemResults;
               const target = resolveByItemCollectTarget({
                 personName: trimmed,
-                roster,
+                roster: editRoster,
                 liveResults: liveByItemResults,
                 collectedPayments,
                 billPending: summary.pending,

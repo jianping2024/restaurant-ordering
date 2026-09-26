@@ -15,6 +15,7 @@ import {
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
 import { splitPersonKey } from '@/lib/split-person-identity';
+import { staffByItemLedgerPersonNames } from '@/lib/staff-by-item-people';
 import type { SplitResult } from '@/types';
 
 /** True when every by-item catalog line is fully allocated (pool empty). */
@@ -28,6 +29,27 @@ export function byItemPoolFullyAllocated(
     if (!isByItemLineComplete(status)) return false;
   }
   return true;
+}
+
+/**
+ * Sole staff by-item edit/collect roster while drafting:
+ * - whole-table / empty ledger → live draft results only
+ * - confirmed by-item ledger names → live amounts ordered to ledger (then new guests)
+ */
+export function resolveStaffByItemEditRoster(params: {
+  ledgerResults: ReadonlyArray<{ name: string; amount: number }>;
+  liveResults: ReadonlyArray<{ name: string; amount: number }>;
+}): SplitResult[] {
+  const ledgerNames = staffByItemLedgerPersonNames(
+    params.ledgerResults.map((row) => row.name),
+  );
+  if (ledgerNames.length === 0) {
+    return params.liveResults.map((row) => ({
+      name: row.name,
+      amount: row.amount,
+    }));
+  }
+  return orderByItemResultsToRoster(params.liveResults, ledgerNames);
 }
 
 /**

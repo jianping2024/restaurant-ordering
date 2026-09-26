@@ -31,6 +31,11 @@ import {
   staffByItemPoolLines,
   staffByItemShareLineMetaParts,
 } from '@/lib/staff-by-item-workbench';
+import {
+  appendStaffByItemRailPeople,
+  staffByItemLockedLedgerNames,
+  staffByItemRailSeedNames,
+} from '@/lib/staff-by-item-people';
 
 export type StaffByItemWorkbenchLabels = {
   poolTitle: string;
@@ -106,10 +111,15 @@ type Props = {
   lineSpecs: ByItemLineSpec[];
   orderLines: BillSplitOrderLine[];
   byItemAllocations: Record<string, ByItemConsumerRow[]>;
-  /** Ledger roster order (`bill_splits.result` names) — chip order + calc personOrder. */
-  rosterPersonNames?: readonly string[];
+  /**
+   * Confirmed by-item ledger names only (already filtered — never whole-table).
+   * Initial seed + locked merge; unlocked names are not continuously re-injected.
+   */
+  ledgerPersonNames?: readonly string[];
   /** Settled only (ledger covers obligation) — chip ✓ and hide 收款. */
   settledPersonNames: ReadonlySet<string>;
+  /** Has collection history — rename/edit locked even if obligation rose again. */
+  lockedPersonNames?: ReadonlySet<string>;
   itemCodeByMenuId?: Record<string, string>;
   /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
   imageUrlByMenuId?: Record<string, string>;
@@ -124,7 +134,7 @@ type Props = {
 /**
  * Sole staff checkout by-item layout: horizontal person rail (name + amount + ✓ settled)
  * + remaining pool + current share. Bill totals live only on sticky SettlementBar.
- * People: roster order first; next unpaid minted only after current is settled (serial collect).
+ * People: draft rail owns unpaid rename; next unpaid minted only after current is settled.
  * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
  * Guest phone keeps ByItemSplitSection; do not render dish cards here.
  */
@@ -133,8 +143,9 @@ export function StaffByItemSplitWorkbench({
   lineSpecs,
   orderLines,
   byItemAllocations,
-  rosterPersonNames = [],
+  ledgerPersonNames = [],
   settledPersonNames,
+  lockedPersonNames = new Set(),
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
@@ -150,22 +161,20 @@ export function StaffByItemSplitWorkbench({
   );
 
   const seedPeople = useMemo(() => {
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const name of rosterPersonNames) {
-      const key = splitPersonKey(name);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      names.push(name);
-    }
-    for (const name of peopleFromAlloc) {
-      const key = splitPersonKey(name);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      names.push(name);
-    }
-    return names.length > 0 ? names : [guestName(1)];
-  }, [guestName, peopleFromAlloc, rosterPersonNames]);
+    const seeded = staffByItemRailSeedNames({
+      ledgerNames: ledgerPersonNames,
+      allocationNames: peopleFromAlloc,
+    });
+    return seeded.length > 0 ? seeded : [guestName(1)];
+  }, [guestName, ledgerPersonNames, peopleFromAlloc]);
+
+  const mergeIncoming = useMemo(() => {
+    const lockedLedger = staffByItemLockedLedgerNames(
+      ledgerPersonNames,
+      lockedPersonNames,
+    );
+    return [...lockedLedger, ...peopleFromAlloc];
+  }, [ledgerPersonNames, lockedPersonNames, peopleFromAlloc]);
 
   const [people, setPeople] = useState<string[]>(seedPeople);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -174,23 +183,15 @@ export function StaffByItemSplitWorkbench({
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    setPeople((prev) => {
-      const keys = new Set(prev.map((name) => splitPersonKey(name)).filter(Boolean));
-      let changed = false;
-      const next = [...prev];
-      for (const name of seedPeople) {
-        const key = splitPersonKey(name);
-        if (!key || keys.has(key)) continue;
-        keys.add(key);
-        next.push(name);
-        changed = true;
-      }
-      return changed ? next : prev;
-    });
-  }, [seedPeople]);
+    setPeople((prev) => appendStaffByItemRailPeople(prev, mergeIncoming));
+  }, [mergeIncoming]);
 
   const safeIndex = Math.min(currentIndex, Math.max(0, people.length - 1));
   const currentName = people[safeIndex] ?? '';
+  const currentKey = splitPersonKey(currentName);
+  const currentSettled = Boolean(currentKey && settledPersonNames.has(currentKey));
+  const currentLocked = Boolean(currentKey && lockedPersonNames.has(currentKey));
+  const editDisabled = disabled || currentSettled || currentLocked;
 
   useEffect(() => {
     setNameDraft(currentName);
@@ -204,9 +205,6 @@ export function StaffByItemSplitWorkbench({
       block: 'nearest',
     });
   }, [safeIndex, people.length]);
-
-  const currentSettled = settledPersonNames.has(currentName.trim().toLowerCase());
-  const editDisabled = disabled || currentSettled;
 
   const poolLines = useMemo(
     () =>
@@ -245,12 +243,12 @@ export function StaffByItemSplitWorkbench({
    * guest while pool remains.
    */
   useEffect(() => {
-    const key = currentName.trim().toLowerCase();
-    if (!key || !settledPersonNames.has(key)) return;
+    if (!currentKey || !settledPersonNames.has(currentKey)) return;
 
-    const unpaidIdx = people.findIndex(
-      (person) => !settledPersonNames.has(person.trim().toLowerCase()),
-    );
+    const unpaidIdx = people.findIndex((person) => {
+      const key = splitPersonKey(person);
+      return key && !settledPersonNames.has(key);
+    });
     if (unpaidIdx >= 0) {
       if (unpaidIdx !== safeIndex) setCurrentIndex(unpaidIdx);
       return;
@@ -267,7 +265,7 @@ export function StaffByItemSplitWorkbench({
     setCurrentIndex(people.length);
     setNameDraft(nextName);
     setNeedNameHint(false);
-  }, [currentName, guestName, settledPersonNames, people, safeIndex, visiblePool.length]);
+  }, [currentKey, guestName, settledPersonNames, people, safeIndex, visiblePool.length]);
 
   const shares = useMemo(
     () =>
@@ -341,7 +339,7 @@ export function StaffByItemSplitWorkbench({
         aria-label={labels.currentShareTitle}
       >
         {people.map((name, idx) => {
-          const settled = settledPersonNames.has(name.trim().toLowerCase());
+          const settled = settledPersonNames.has(splitPersonKey(name));
           const active = idx === safeIndex;
           const amount = personAmount(name);
           const label = name || guestName(idx + 1);

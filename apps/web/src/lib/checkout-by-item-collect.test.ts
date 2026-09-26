@@ -6,8 +6,10 @@ import {
   orderByItemResultsToRoster,
   reconcileByItemResultsToBillTotal,
   resolveByItemCollectTarget,
+  resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from './checkout-by-item-collect';
+import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
 
 describe('orderByItemResultsToRoster', () => {
   it('keeps ledger order so 客人10 does not jump before 客人2', () => {
@@ -24,6 +26,38 @@ describe('orderByItemResultsToRoster', () => {
       ['客人 1', '客人 2', '客人 10'],
     );
     assert.equal(ordered[2]?.amount, 6.6);
+  });
+});
+
+describe('resolveStaffByItemEditRoster', () => {
+  it('uses live draft only while ledger is whole-table', () => {
+    const roster = resolveStaffByItemEditRoster({
+      ledgerResults: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 40 }],
+      liveResults: [{ name: 'Ana', amount: 12.5 }],
+    });
+    assert.deepEqual(roster, [{ name: 'Ana', amount: 12.5 }]);
+  });
+
+  it('orders live amounts to confirmed by-item ledger then appends new guests', () => {
+    const roster = resolveStaffByItemEditRoster({
+      ledgerResults: [
+        { name: 'Ana', amount: 10 },
+        { name: 'Bob', amount: 10 },
+      ],
+      liveResults: [
+        { name: 'Bob', amount: 11 },
+        { name: 'Carla', amount: 5 },
+        { name: 'Ana', amount: 9 },
+      ],
+    });
+    assert.deepEqual(
+      roster.map((row) => [row.name, row.amount]),
+      [
+        ['Ana', 9],
+        ['Bob', 11],
+        ['Carla', 5],
+      ],
+    );
   });
 });
 

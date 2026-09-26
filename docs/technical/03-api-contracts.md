@@ -76,7 +76,8 @@
 
 | 方法 | 路径 | 鉴权 | 职责 |
 |------|------|------|------|
-| POST | `/api/restaurants/[slug]/checkout/request` | 顾客 | `upsert_bill_split_request` |
+| POST | `/api/restaurants/[slug]/checkout/request` | 顾客 / Staff 协助 | `upsert_bill_split_request` |
+| POST | `/api/restaurants/[slug]/checkout/ensure-entry` | Staff | `ensureStaffCheckoutEntryForTable`（有活跃 split 则 reopen；无则 mint whole_table） |
 | POST | `/api/restaurants/[slug]/checkout/confirm-payment` | Staff 结账角色 | `confirm_bill_split_payment` + 打印入队 |
 | POST | `/api/restaurants/[slug]/checkout/resume-ordering` | Staff | `resume_table_session_ordering` |
 | POST | `/api/restaurants/[slug]/checkout/apply-discount` | Staff | 折扣写 split + 审计 |

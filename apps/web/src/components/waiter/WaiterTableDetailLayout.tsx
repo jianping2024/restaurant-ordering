@@ -22,8 +22,7 @@ import { getMessages } from '@/lib/i18n/messages';
 import {
   runWaiterTableCheckoutClose,
 } from '@/lib/waiter-table-checkout-close';
-import { requestCheckoutRequest } from '@/lib/request-checkout-request';
-import { buildWholeTableCheckoutPayload } from '@/lib/checkout-split-intent';
+import { requestEnsureStaffCheckoutEntry } from '@/lib/request-ensure-staff-checkout-entry';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { useRouter } from 'next/navigation';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
@@ -367,7 +366,7 @@ function WaiterTableSettledCloseControl({
   );
 }
 
-/** When bill_sync_to_fiscal ON: ensure whole-table checkout request → dashboard checkout. */
+/** When bill_sync_to_fiscal ON: ensure checkout entry → dashboard checkout. */
 function WaiterTableCallCheckoutControl({
   lang,
   t,
@@ -403,14 +402,9 @@ function WaiterTableCallCheckoutControl({
     if (busy) return;
     setBusy(true);
     try {
-      // Amount is provisional; submitCheckoutRequestForTable stamps billable total.
-      const wholeTable = buildWholeTableCheckoutPayload(0);
-      const outcome = await requestCheckoutRequest({
+      const outcome = await requestEnsureStaffCheckoutEntry({
         slug: restaurantSlug,
         tableId,
-        splitMode: wholeTable.splitMode,
-        persons: wholeTable.persons,
-        result: wholeTable.result,
       });
       if (!outcome.ok) {
         showToast(

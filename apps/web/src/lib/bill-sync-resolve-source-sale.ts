@@ -2,21 +2,18 @@
  * Sole resolver for bill-sync source_sale_id: reuse active bill_split or ensure whole_table.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { submitCheckoutRequestForTable } from '@/lib/checkout-request-server';
-import { buildWholeTableCheckoutPayload } from '@/lib/checkout-split-intent';
-import { deriveBillView } from '@/lib/customer-bill-sync';
-import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
+import { loadActiveBillSplitForSession } from '@/lib/checkout-active-bill-split';
+import { ensureStaffCheckoutEntryForTable } from '@/lib/checkout-request-server';
 
 export type ResolveBillSyncSourceSaleResult =
   | { ok: true; billSplitId: string; tableId: string; ensured: boolean }
   | { ok: false; error: string; status: number; message?: string };
 
-const ACTIVE_SPLIT_STATUSES = ['pending', 'confirmed', 'requested'] as const;
-
 /**
  * Resolve `bill_splits.id` for fiscal sync.
  * - `billSplitId`: verify tenant + return its table.
- * - `tableId`: reuse active session split; only when none, ensure whole_table (no auto pre_bill).
+ * - `tableId`: reuse active session split via loadActiveBillSplitForSession;
+ *   only when none, ensureStaffCheckoutEntryForTable (whole_table, no auto pre_bill).
  */
 export async function resolveBillSyncSourceSale(input: {
   admin: SupabaseClient;
@@ -71,40 +68,24 @@ export async function resolveBillSyncSourceSale(input: {
     return { ok: false, error: 'no_active_session', status: 404 };
   }
 
-  const sessionId = session.id as string;
-  const { data: existing, error: existingErr } = await input.admin
-    .from('bill_splits')
-    .select('id')
-    .eq('restaurant_id', input.restaurantId)
-    .eq('session_id', sessionId)
-    .in('status', [...ACTIVE_SPLIT_STATUSES])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (existingErr) {
-    return { ok: false, error: 'lookup_failed', status: 500, message: existingErr.message };
-  }
+  const existing = await loadActiveBillSplitForSession({
+    admin: input.admin,
+    restaurantId: input.restaurantId,
+    sessionId: session.id as string,
+  });
   if (existing?.id) {
     return {
       ok: true,
-      billSplitId: existing.id as string,
+      billSplitId: existing.id,
       tableId,
       ensured: false,
     };
   }
 
-  const orders = await loadCustomerSessionOrders({
-    admin: input.admin,
-    restaurantId: input.restaurantId,
-    sessionId,
-    ascending: true,
-  });
-  const { total } = deriveBillView(orders);
-  const ensured = await submitCheckoutRequestForTable(
+  const ensured = await ensureStaffCheckoutEntryForTable(
     input.admin,
     input.restaurantId,
     tableId,
-    buildWholeTableCheckoutPayload(total),
     { skipAutomaticPreBill: true },
   );
   if (!ensured.ok) {

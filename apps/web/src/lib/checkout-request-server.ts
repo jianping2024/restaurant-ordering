@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  checkoutPayloadFromBillSplit,
+  loadActiveBillSplitForSession,
+} from '@/lib/checkout-active-bill-split';
 import { validateCheckoutContinuation } from '@/lib/checkout-split-continuation';
 import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
@@ -6,7 +10,10 @@ import {
   parseSessionCollectedPayments,
   SESSION_COLLECTED_PAYMENT_SELECT,
 } from '@/lib/checkout-session-payments';
-import { normalizeCheckoutRequestPayload } from '@/lib/checkout-split-intent';
+import {
+  buildWholeTableCheckoutPayload,
+  normalizeCheckoutRequestPayload,
+} from '@/lib/checkout-split-intent';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import { enqueueReceiptPrint } from '@/lib/order-receipt-enqueue';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
@@ -68,6 +75,8 @@ export async function submitCheckoutRequestForTable(
     skipAutomaticPreBill?: boolean;
     /** Staff per-person by-item collect. Guest callers must not set this. */
     allowPartialByItem?: boolean;
+    /** Staff floor reopen of preserved active plan. Guest must not set this. */
+    staffReopenActivePlan?: boolean;
   },
 ): Promise<CheckoutRequestResult> {
   const normalizedPayload = normalizeCheckoutRequestPayload(payload);
@@ -114,7 +123,10 @@ export async function submitCheckoutRequestForTable(
   const { orderLines, lineSpecs, total, validation } = validateSubmittedCheckoutSplit(
     orders,
     normalizedPayload,
-    { allowPartialByItem: options?.allowPartialByItem },
+    {
+      allowPartialByItem: options?.allowPartialByItem,
+      staffReopenActivePlan: options?.staffReopenActivePlan,
+    },
   );
   // Sole whole-table amount: billable session total (ignore client amount:0 placeholders).
   const payloadForPersist =
@@ -149,15 +161,11 @@ export async function submitCheckoutRequestForTable(
     return { ok: false, error: validation.issue, status: 400 };
   }
 
-  const { data: existingSplitRow } = await admin
-    .from('bill_splits')
-    .select('*')
-    .eq('restaurant_id', restaurantId)
-    .eq('session_id', sessionId)
-    .in('status', ['pending', 'confirmed', 'requested'])
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const existingSplitRow = await loadActiveBillSplitForSession({
+    admin,
+    restaurantId,
+    sessionId,
+  });
 
   const { count: collectedCount } = await admin
     .from('session_collected_payments')
@@ -251,4 +259,63 @@ export async function submitCheckoutRequestForTable(
     table_name: tableRow.display_name as string,
     split_mode: payloadForPersist.splitMode,
   };
+}
+
+/**
+ * Staff floor「呼叫结账」sole entry:
+ * active preserved split → reopen same plan; none → mint whole_table.
+ * Do not POST whole_table beside a live by_item/even/custom plan.
+ */
+export async function ensureStaffCheckoutEntryForTable(
+  admin: SupabaseClient,
+  restaurantId: string,
+  tableId: string,
+  options?: { skipAutomaticPreBill?: boolean },
+): Promise<CheckoutRequestResult> {
+  const { data: session, error: sessionErr } = await admin
+    .from('table_sessions')
+    .select('id')
+    .eq('restaurant_id', restaurantId)
+    .eq('table_id', tableId)
+    .in('status', ['open', 'billing'])
+    .order('opened_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (sessionErr) {
+    return {
+      ok: false,
+      error: 'session_lookup_failed',
+      status: 500,
+      message: sessionErr.message,
+    };
+  }
+  if (!session?.id) {
+    return { ok: false, error: 'no_active_session', status: 404 };
+  }
+
+  const existing = await loadActiveBillSplitForSession({
+    admin,
+    restaurantId,
+    sessionId: session.id as string,
+  });
+
+  if (existing) {
+    const payload = checkoutPayloadFromBillSplit(existing);
+    if (!payload) {
+      return { ok: false, error: 'invalid_existing_split', status: 500 };
+    }
+    const alreadyRequested = existing.status === 'requested';
+    return submitCheckoutRequestForTable(admin, restaurantId, tableId, payload, {
+      skipAutomaticPreBill: options?.skipAutomaticPreBill === true || alreadyRequested,
+      staffReopenActivePlan: true,
+    });
+  }
+
+  return submitCheckoutRequestForTable(
+    admin,
+    restaurantId,
+    tableId,
+    buildWholeTableCheckoutPayload(0),
+    { skipAutomaticPreBill: options?.skipAutomaticPreBill },
+  );
 }

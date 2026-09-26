@@ -29,6 +29,12 @@ export function validateBillSplit(params: {
   customAmounts?: Array<{ amount: number }>;
   /** Staff per-person collect: allow an unfinished by-item pool. Guest stays strict. */
   allowPartialByItem?: boolean;
+  /**
+   * Staff floor reopen of a preserved active plan after resume-ordering.
+   * Allows unfinished by-item pool + skips amount==total (new dishes after resume).
+   * Guest must never set this.
+   */
+  staffReopenActivePlan?: boolean;
 }): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
   const {
     splitMode,
@@ -39,7 +45,10 @@ export function validateBillSplit(params: {
     byItemAllocations,
     customAmounts,
     allowPartialByItem = false,
+    staffReopenActivePlan = false,
   } = params;
+
+  const relaxByItemPool = allowPartialByItem || staffReopenActivePlan;
 
   if (!splitMode || splitMode === 'whole_table') return { ok: true };
 
@@ -62,7 +71,7 @@ export function validateBillSplit(params: {
       if (status.kind === 'over' || status.kind === 'buffet_over') {
         return { ok: false, issue: 'incomplete_qty' };
       }
-      if (!allowPartialByItem) {
+      if (!relaxByItemPool) {
         if (status.kind === 'empty' || status.kind === 'buffet_empty') {
           return { ok: false, issue: 'unassigned_items' };
         }
@@ -92,7 +101,8 @@ export function validateBillSplit(params: {
     (sum, row) => sum + eurosToCents(Number(row.amount || 0)),
     0,
   );
-  const skipTotalMatch = allowPartialByItem && splitMode === 'by_item';
+  const skipTotalMatch =
+    staffReopenActivePlan || (allowPartialByItem && splitMode === 'by_item');
   if (!skipTotalMatch && !amountsMatch(splitSumCents, eurosToCents(total))) {
     return { ok: false, issue: 'amount_mismatch' };
   }

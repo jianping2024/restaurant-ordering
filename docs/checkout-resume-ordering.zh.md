@@ -60,7 +60,8 @@
 - **零收款**：新菜与旧菜一样可自由分配。
 - **已有收款**：新菜可分配；**不得**改动已锁定行的归属。
 - 新菜金额并入对应客人的应付；服务员确认收款时，「建议本次收」须扣除该客人历史已收（`session_collected_payments` + `suggestedCollectionAmount` 语义）。
-- **再次呼叫结账**：按菜分单的 `result` 以客户端重算为准（`merge_by_item_split_result_with_ledger`）；保留已有 `person_index` 顺序，丢弃 incoming 中已不存在的旧行（避免 realloc 后幽灵金额）。客人姓名匹配**不区分大小写**；展示默认首字母大写（Latin）。
+- **再次呼叫结账（顾客）**：按菜分单的 `result` 以客户端重算为准（`merge_by_item_split_result_with_ledger`）；保留已有 `person_index` 顺序，丢弃 incoming 中已不存在的旧行（避免 realloc 后幽灵金额）。客人姓名匹配**不区分大小写**；展示默认首字母大写（Latin）。按菜须分完才能提交。
+- **再次呼叫结账（楼面 Staff）**：唯一入口 `ensureStaffCheckoutEntryForTable` / `POST …/checkout/ensure-entry`——有活跃 `bill_splits`（`pending|confirmed|requested`）则 **reopen 原方案**；无活跃 split 才 mint `whole_table`。禁止在有保留分单时再 POST `whole_table`。
 
 ### 4.4 顾客账单页（`BillPage`）
 
@@ -126,10 +127,15 @@
 | 均摊/自定义零收款恢复 | 撤销分单 | `cancelled` |
 | 均摊/自定义部分收款恢复 | 保留分单 | `confirmed` |
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |
+| 楼面再次呼叫结账 | reopen 保留分单 / 无则 whole_table | `ensureStaffCheckoutEntryForTable` + `loadActiveBillSplitForSession` |
 | 恢复点单确认弹窗文案 | 与 RPC 分支一致 | `resumeOrderingConfirmVariant` + i18n |
 
 ## 9. 相关文件
 
+- `apps/web/src/lib/checkout-active-bill-split.ts` — 活跃 split 唯一查找 + reopen payload
+- `apps/web/src/lib/checkout-request-server.ts` — `ensureStaffCheckoutEntryForTable` / `submitCheckoutRequestForTable`
+- `apps/web/src/app/api/restaurants/[slug]/checkout/ensure-entry/route.ts` — 楼面呼叫结账
+- `apps/web/src/components/waiter/WaiterTableDetailLayout.tsx` — 楼面按钮 → ensure-entry
 - `apps/web/src/components/dashboard/CheckoutRequestsManager.tsx` — 结账详情、恢复点单入口
 - `apps/web/src/components/menu/MenuPage.tsx` — 加菜前 session 刷新
 - `apps/web/src/components/menu/BillPage.tsx` — 顾客分单、成功页手动刷新

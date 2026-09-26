@@ -66,7 +66,7 @@ export function validateSubmittedCheckoutSplit(
     persons: SplitPerson[];
     result: SplitResult[];
   },
-  options?: { allowPartialByItem?: boolean },
+  options?: { allowPartialByItem?: boolean; staffReopenActivePlan?: boolean },
 ): {
   orderLines: BillSplitOrderLine[];
   lineSpecs: ByItemLineSpec[];
@@ -84,6 +84,7 @@ export function validateSubmittedCheckoutSplit(
         ? buildByItemAllocationsFromPersons(payload.persons, lineSpecs)
         : undefined,
     allowPartialByItem: options?.allowPartialByItem,
+    staffReopenActivePlan: options?.staffReopenActivePlan,
   });
   return { orderLines, lineSpecs, total, validation };
 }

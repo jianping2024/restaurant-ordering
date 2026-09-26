@@ -5,6 +5,7 @@ import {
   applyDiscountToRows,
   checkoutPayableAmount,
   clampCheckoutDiscountRate,
+  discountedObligationAmount,
   normalizeSplitRows,
 } from './checkout-split-math';
 
@@ -50,5 +51,13 @@ describe('checkout-split-math', () => {
     const out = applyDiscountToRows([{ name: 'X', amount: 40, paid: true }], 25);
     assert.equal(out[0]?.paid, true);
     assert.equal(out[0]?.amount, 30);
+  });
+
+  it('discount rounding matches SQL checkout_round_discount_amount (cents-first)', () => {
+    // PG: round(19.95 * 0.9, 2) = 17.96; float-first JS previously yielded 17.95.
+    assert.equal(discountedObligationAmount(19.95, 10), 17.96);
+    assert.equal(discountedObligationAmount(1.85, 10), 1.67);
+    assert.equal(discountedObligationAmount(10.9, 10), 9.81);
+    assert.equal(checkoutPayableAmount(billSplit({ total_amount: 21.8 }), 10), 19.62);
   });
 });

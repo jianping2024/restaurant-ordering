@@ -40,6 +40,7 @@
 - 份额锁 + 金额锁：收款确认盖章后，后续分菜/余数重算 **只动未付票**。
 - 线级：`item_shares.locked_amount`；结果行：`result.paid` 后 merge **保留原 amount**（TS + SQL 同口径）。
 - 已付份额只读（`paidLocked`）；同菜再分 → 新行/新票，不 merge 进已付行。
+- **UI 锁票时机：** `allocationLockedTicketKeys` 在 persons 出现任一 `locked_amount` 时即锁该票（不等台账），避免确认收款瞬间 committed+draft 同票叠行闪烁。
 
 ## 已落库 vs 未付草稿（UI 唯一）
 
@@ -67,6 +68,7 @@
 | 已付结果金额不被 merge 改写 | `mergeByItemSplitResultWithLedger`（TS）+ SQL `merge_by_item_split_result_with_ledger` |
 | 确认写台账 | `confirm_bill_split_payment` / `requestCheckoutConfirmPayment`（金额 = 弹窗） |
 | 收款 upsert 允许部分/冻结差额 | `allow_partial_by_item: true`（仅职员 by-item 确认收款） |
+| 锁票集合（含盖章即锁） | `allocationLockedTicketKeys`（`result.paid` ∪ 台账 ∪ persons.`locked_amount`） |
 | 锁票 committed + 未付 draft UI | `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `useByItemSplitState`（Realtime 只重建锁票；未付一次 seed） |
 
 已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）。均摊/手填仍用 `persistBeforePay`。

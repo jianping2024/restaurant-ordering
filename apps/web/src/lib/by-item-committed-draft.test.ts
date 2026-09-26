@@ -65,6 +65,25 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     assert.ok(merged['line-a']?.some((r) => r.partyId === 'party-paid'));
   });
 
+  it('stamp-before-ledger: locked set drops draft twin (no flash doubles)', () => {
+    // After collect upsert, committed hydrates paidLocked from locked_amount while
+    // draft still holds the pre-stamp rows. Sole lock set must already include the
+    // ticket so merge does not paint committed+draft duplicates.
+    const partyId = 'party-stamped';
+    const locked = new Set([`p:${partyId}`]);
+    const committed = {
+      'line-a': [row('客人 1', { partyId, paidLocked: true, qty: '1' })],
+    };
+    const draft = {
+      'line-a': [row('客人 1', { partyId, qty: '1' })],
+    };
+    const merged = mergeByItemCommittedAndDraft(committed, draft, locked);
+    assert.equal(merged['line-a']?.length, 1);
+    assert.equal(merged['line-a']?.[0]?.paidLocked, true);
+    const pruned = pruneByItemDraftAgainstLocks(draft, locked);
+    assert.equal(Object.keys(pruned).length, 0);
+  });
+
   it('merge does not resurrect unlocked committed twin after draft delete', () => {
     const partyId = 'party-open';
     const locked = new Set<string>();

@@ -23,6 +23,11 @@ export type CheckoutPrintAsk = {
   customerName: string;
   cashTendered: number | null;
   collection: SessionCollectedPayment;
+  /**
+   * Stamped once when the ask is built via {@link shouldAutoIssueFiscalAfterCollect}.
+   * Controller skips the choice dialog and issues fiscal when true.
+   */
+  autoIssueFiscal: boolean;
 };
 
 type Props = {

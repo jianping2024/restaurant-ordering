@@ -316,7 +316,7 @@
 - 账单类：`order_receipt`、`pre_bill` 入队（受 `bill_receipt_print` 门控）
 - 打印代理：配对码、claim JWT、轮询 `pending-jobs`、TCP/WinSpool 打印
 - Dashboard：打印助手、设备列表、吊销、档口映射、重试失败任务
-- 手动打印账单：确认收款后的询问（财政关时问是否打印账单；财政开时问是否打印发票，否才打账单）
+- 手动打印账单：确认收款后的询问（财政关时问是否打印账单；财政开时：有效 NIF 或 Multibanco/混合则直接打发票，否则问是否打印发票）
 - 无代理时：`TablesManager` HTML 打印兜底
 
 ### 业务边界

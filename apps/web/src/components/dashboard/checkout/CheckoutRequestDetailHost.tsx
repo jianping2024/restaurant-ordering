@@ -14,7 +14,12 @@ import {
 } from '@/lib/checkout-request-state';
 import { discountedSplitRows } from '@/lib/checkout-split-math';
 import { resolveByItemCollectTarget } from '@/lib/checkout-by-item-collect';
+import {
+  collectPaymentInitialCustomerName,
+  shouldAutoIssueFiscalAfterCollect,
+} from '@/lib/checkout-print-ask';
 import { splitPersonKey } from '@/lib/split-person-identity';
+import { isWholeTablePayerName } from '@/lib/split-person-label';
 import {
   hasConfirmedPerson,
   resumeCheckoutBlockReason,
@@ -422,6 +427,11 @@ export function CheckoutRequestDetailHost({
         customerName: input.customerName,
         cashTendered: input.cashTendered,
         collection: outcome.collection,
+        autoIssueFiscal: shouldAutoIssueFiscalAfterCollect({
+          fiscal: printFiscalInvoiceAvailable,
+          paymentMethod: input.paymentMethod,
+          customerNif: input.customerNif,
+        }),
       };
       // Persist before React state so RSC remount / Fast Refresh cannot drop the ask.
       writePendingCheckoutPrintAsk(printAsk);
@@ -636,10 +646,13 @@ export function CheckoutRequestDetailHost({
             showToast(t.paid, 'error');
             return;
           }
+          const rawName = request.result?.[index]?.name;
           setCollectPending({
             rowIndex: index,
             amount: settlementRow.outstandingAmount,
             wholeTable: true,
+            personName:
+              rawName && !isWholeTablePayerName(rawName) ? rawName.trim() : undefined,
           });
         }}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
@@ -688,6 +701,7 @@ export function CheckoutRequestDetailHost({
           processingKeys.has(checkoutPersonKey(request.id, collectPending.rowIndex))
         }
         amount={collectPending?.amount ?? 0}
+        initialCustomerName={collectPaymentInitialCustomerName(collectPending?.personName)}
         labels={{
           title: t.collectPaymentTitle,
           amount: t.collectPaymentAmount,

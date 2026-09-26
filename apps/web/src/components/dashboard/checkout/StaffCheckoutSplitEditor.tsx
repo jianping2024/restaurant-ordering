@@ -473,7 +473,7 @@ export function StaffCheckoutSplitEditor({
                 onCollect: (index) => {
                   const row = splitDraft.results[index];
                   if (!row) return;
-                  void collectSavedPerson(index, row.amount);
+                  void collectSavedPerson(index, row.amount, row.name);
                 },
                 onRemoveCustom: splitDraft.removeCustomPerson,
               }

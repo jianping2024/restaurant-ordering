@@ -39,6 +39,8 @@ type Props = {
   open: boolean;
   busy: boolean;
   amount: number;
+  /** Seed for optional fiscal buyer name (person being collected). */
+  initialCustomerName?: string;
   labels: CollectPaymentModalLabels;
   paymentLabels: Record<BillSyncPaymentMethod, string>;
   fiscalLabels?: FiscalBuyerFieldLabels | null;
@@ -51,6 +53,7 @@ export function CollectPaymentModal({
   open,
   busy,
   amount,
+  initialCustomerName = '',
   labels,
   paymentLabels,
   fiscalLabels = null,
@@ -71,7 +74,7 @@ export function CollectPaymentModal({
     setTenderRaw(cashTenderDefaultRaw(amount));
     setMultibancoRaw(cashTenderDefaultRaw(amount));
     setNif('');
-    setName('');
+    setName(initialCustomerName.trim());
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional open-edge reset
   }, [open]);
 

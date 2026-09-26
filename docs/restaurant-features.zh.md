@@ -12,7 +12,7 @@
 |--------|------|------|
 | `kitchen_serve_to_table` | **关闭** | 勾选后楼面可在已出餐菜品上点「上桌」 |
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单；未勾选时跳过自动预账单（厨房单不受影响）。确认收款后的账单/发票由结账页询问决定，走手动入队，不受此开关限制 |
-| `bill_sync_to_fiscal` | **关闭** | 勾选后：确认收款界面填写税号/客户名，收款后问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则打这一人账单）。未勾选时不问发票，改为问「是否打印账单」。桌台详情仍按开关切换「关台结账」/「呼叫结账」。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
+| `bill_sync_to_fiscal` | **关闭** | 勾选后：确认收款界面填写税号/客户名。收款后：有效 NIF 或付款方式为 Multibanco/混合时**直接**入队 `auto_issue` 打发票（不弹「是否打印发票」）；其余（现金且无有效 NIF）仍问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则不打）。未勾选时不问发票，改为问「是否打印账单」。桌台详情仍按开关切换「关台结账」/「呼叫结账」。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 

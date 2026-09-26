@@ -89,3 +89,4 @@ scripts/rbac-kitchen-perm-uat.mjs
 .mesa-license.local.json
 **/.mesa-license.local.json
 apps/*/.next-uat-iva/
+apps/*/.next-uat-collect-name/

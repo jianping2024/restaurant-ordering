@@ -92,6 +92,7 @@ export function CheckoutRequestDetailHost({
     billSyncToFiscal && mayFiscalBillQueue(capabilities);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [invoiceScopeId, setInvoiceScopeId] = useState<string | undefined>(undefined);
+  const [invoiceAmount, setInvoiceAmount] = useState(0);
   const [invoiceInitialPayment, setInvoiceInitialPayment] =
     useState<BillSyncPaymentMethod | null>(null);
   const [collectPending, setCollectPending] = useState<{
@@ -398,6 +399,7 @@ export function CheckoutRequestDetailHost({
         billSplitId,
         personIndex: rowIndex,
         paymentMethod: input.paymentMethod,
+        paymentLines: input.payment_lines,
         collectedAmount: amount,
       });
       if (!outcome.ok || !outcome.collection) {
@@ -415,6 +417,7 @@ export function CheckoutRequestDetailHost({
         personName: outcome.collection.person_name,
         obligation: amount,
         paymentMethod: input.paymentMethod,
+        payment_lines: input.payment_lines,
         customerNif: input.customerNif,
         customerName: input.customerName,
         cashTendered: input.cashTendered,
@@ -460,19 +463,21 @@ export function CheckoutRequestDetailHost({
     () =>
       ({
         CASH: t.paymentMethodCash,
-        CARD: t.paymentMethodCard,
-        MBWAY: t.paymentMethodMbway,
         MULTIBANCO: t.paymentMethodMultibanco,
         MIXED: t.paymentMethodMixed,
-        OTHER: t.paymentMethodOther,
       }) satisfies Record<BillSyncPaymentMethod, string>,
     [t],
   );
 
   const openInvoiceModal = useCallback(
-    (scopeId?: string, initialPayment: BillSyncPaymentMethod | null = null) => {
+    (
+      scopeId?: string,
+      initialPayment: BillSyncPaymentMethod | null = null,
+      amount = 0,
+    ) => {
       setInvoiceScopeId(scopeId);
       setInvoiceInitialPayment(initialPayment);
+      setInvoiceAmount(amount);
       setInvoiceModalOpen(true);
     },
     [],
@@ -485,7 +490,7 @@ export function CheckoutRequestDetailHost({
       const scopeId = billSyncByItemScopeId(request.id, name);
       void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
         if (result === 'need_issue') {
-          openInvoiceModal(scopeId, payment.payment_method);
+          openInvoiceModal(scopeId, payment.payment_method, payment.amount);
         }
       });
     },
@@ -693,6 +698,9 @@ export function CheckoutRequestDetailHost({
           cashReceived: t.cashReceived,
           changeDue: t.changeDue,
           cashShort: t.cashShort,
+          multibancoAmount: t.multibancoAmount,
+          cashRemainder: t.cashRemainder,
+          mixedNeedBothSides: t.mixedNeedBothSides,
         }}
         fiscalLabels={
           printFiscalInvoiceAvailable
@@ -726,6 +734,7 @@ export function CheckoutRequestDetailHost({
       <PrintFiscalInvoiceModal
         open={invoiceModalOpen}
         busy={printFiscalInvoiceBusy}
+        amount={invoiceAmount}
         initialPaymentMethod={invoiceInitialPayment}
         labels={{
           title: t.printInvoiceModalTitle,
@@ -739,6 +748,12 @@ export function CheckoutRequestDetailHost({
           confirm: t.printInvoice,
           cancel: t.printInvoiceCancel,
           operating: t.printInvoiceOperating,
+          cashReceived: t.cashReceived,
+          changeDue: t.changeDue,
+          cashShort: t.cashShort,
+          multibancoAmount: t.multibancoAmount,
+          cashRemainder: t.cashRemainder,
+          mixedNeedBothSides: t.mixedNeedBothSides,
         }}
         paymentLabels={paymentMethodLabels}
         onClose={() => {
@@ -748,6 +763,8 @@ export function CheckoutRequestDetailHost({
         onConfirm={(input) => {
           void printFiscalInvoice({
             paymentMethod: input.paymentMethod,
+            paymentLines: input.payment_lines,
+            amount: invoiceAmount,
             customerNif: input.customerNif,
             customerName: input.customerName,
             issueScopeId: invoiceScopeId,

@@ -2,7 +2,6 @@ import {
   requestOrderReceiptPrint,
   type OrderReceiptPrintResult,
 } from '@/lib/request-order-receipt-print';
-import { receiptPaymentMethodLabel } from '@/lib/bill-sync-payload';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import type { StaffCheckoutBillPrintTarget } from '@/lib/staff-checkout-bill-print';
 
@@ -30,7 +29,8 @@ export async function requestStaffSplitReceiptPrint(params: {
     payerName: payment.person_name,
     personAmount: payment.amount,
     amountPaid: amountPaid ?? payment.amount,
-    paymentMethod: receiptPaymentMethodLabel(payment.payment_method),
+    paymentMethod: payment.payment_method ?? 'CASH',
+    paymentLines: payment.payment_lines,
     collectedPaymentId: payment.id,
   });
 }

@@ -61,7 +61,7 @@ describe('buildBillSyncJobPayload', () => {
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
       vatRateByMenuId: { [MENU_ID]: 23 },
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: {},
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -81,7 +81,7 @@ describe('buildBillSyncJobPayload', () => {
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
       vatRateByMenuId: { [MENU_ID]: 23 },
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: {},
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -109,7 +109,7 @@ describe('buildBillSyncJobPayload', () => {
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
       vatRateByMenuId: { [MENU_ID]: 23 },
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: {},
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -131,7 +131,7 @@ describe('buildBillSyncJobPayload', () => {
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
       vatRateByMenuId: { [MENU_ID]: 23 },
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: {},
       autoIssue: {
         auto_issue: true,
         payment_method: 'CASH',
@@ -161,7 +161,7 @@ describe('buildBillSyncJobPayload', () => {
       orders,
       itemCodeByMenuId: { [MENU_ID]: '006' },
       vatRateByMenuId: { [MENU_ID]: 23 },
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: {},
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -254,8 +254,8 @@ describe('buildBillSyncJobPayload', () => {
       persons,
       orders: buffetOrders,
       itemCodeByMenuId: { [aguaId]: 'AGUA', [vitalId]: 'VITA' },
-      vatRateByMenuId: {},
-      defaultVatRatePercent: 23,
+      vatRateByMenuId: { [aguaId]: 23, [vitalId]: 23 },
+      vatRateByBuffetId: { [buffetId]: 13 },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;
@@ -309,7 +309,7 @@ describe('buildBillSyncJobPayload', () => {
       orders: buffetOrders,
       itemCodeByMenuId: {},
       vatRateByMenuId: {},
-      defaultVatRatePercent: 23,
+      vatRateByBuffetId: { [buffetId]: 13 },
     });
     assert.equal(built.ok, true);
     if (!built.ok) return;

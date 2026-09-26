@@ -271,6 +271,8 @@ export interface Buffet {
   name: string;
   is_active: boolean;
   description: string | null;
+  /** IVA percent points for headcount lines (0/6/13/23); default 13. */
+  vat_rate: number;
   created_at: string;
   updated_at: string;
 }

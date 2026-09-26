@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { showToast } from '@/components/ui/Toast';
+import type { BillSyncPaymentLine } from '@/lib/bill-sync-payload';
 import {
   fetchIssuedFiscalDocumentForPrint,
   runStaffPrintFiscalInvoice,
@@ -86,6 +87,8 @@ export function useStaffPrintFiscalInvoice(input: {
   const printFiscalInvoice = useCallback(
     async (opts: {
       paymentMethod: string;
+      paymentLines?: BillSyncPaymentLine[] | null;
+      amount?: number | null;
       customerNif?: string;
       customerName?: string;
       issueScopeId?: string;
@@ -97,6 +100,8 @@ export function useStaffPrintFiscalInvoice(input: {
           restaurantSlug: input.restaurantSlug,
           billSplitId: input.billSplitId,
           paymentMethod: opts.paymentMethod,
+          paymentLines: opts.paymentLines,
+          amount: opts.amount,
           customerNif: opts.customerNif,
           customerName: opts.customerName,
           issueScopeId: opts.issueScopeId,

@@ -3,11 +3,18 @@ import type { BillSplit, Order, OrderItem, PrintJobType } from '@/types';
 import {
   formatBuffetReceiptQtyLabel,
 } from '@/lib/buffet-order';
+import { buffetIdFromOrderItem } from '@/lib/bill-sync-build-payload';
+import {
+  formatBillSyncVatRate,
+  type BillSyncPaymentLine,
+} from '@/lib/bill-sync-payload';
+import { buildByItemSplitOrderLines } from '@/lib/bill-split-by-item-lines';
 import { billableLineAmount, buildBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
+import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
 import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
@@ -45,6 +52,8 @@ export type OrderReceiptJobPayload = {
   amount_due: number;
   amount_paid?: number;
   payment_method?: string;
+  /** Sole multi-tender rows (never one-line MIXED on ticket). */
+  payment_lines?: BillSyncPaymentLine[];
   ordered_by?: string;
   /** Checkout confirm dedup; ignored by print agent */
   idempotency_key?: string;
@@ -56,6 +65,8 @@ export type OrderReceiptJobPayload = {
     qty: number;
     unit_price: number;
     note?: string;
+    /** Snapshot IVA percent string e.g. "13.00" (fail-closed when missing at enqueue). */
+    vat_rate?: string;
     /** by_item split receipts: person's share of dish qty (e.g. 1/3) for thermal Qty column */
     share_qty_label?: string;
   }>;
@@ -71,6 +82,7 @@ function receiptLineFromOrderItem(
   item: OrderItem,
   itemIndex: number,
   locale: PrintLocale,
+  vatRate?: string,
 ): OrderReceiptJobPayload['lines'][number] {
   const share_qty_label = buffetReceiptShareQtyLabel(item);
   return {
@@ -78,8 +90,76 @@ function receiptLineFromOrderItem(
     display_name: orderItemReceiptLineLabel(item, locale),
     qty: item.qty,
     unit_price: item.price,
+    ...(vatRate ? { vat_rate: vatRate } : {}),
     ...(share_qty_label ? { share_qty_label } : {}),
   };
+}
+
+function vatRateStringForItem(
+  item: OrderItem,
+  vatRateByMenuId: Record<string, number>,
+  vatRateByBuffetId: Record<string, number>,
+): string | null {
+  try {
+    if (isBuffetBaseItem(item)) {
+      const buffetId = buffetIdFromOrderItem(item);
+      if (!buffetId) return null;
+      const rate = vatRateByBuffetId[buffetId];
+      if (typeof rate !== 'number' || !Number.isFinite(rate)) return null;
+      return formatBillSyncVatRate(rate);
+    }
+    if (item.id && typeof vatRateByMenuId[item.id] === 'number') {
+      return formatBillSyncVatRate(vatRateByMenuId[item.id]!);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+async function loadReceiptVatMaps(
+  admin: SupabaseClient,
+  restaurantId: string,
+  orders: Order[],
+): Promise<{
+  vatRateByMenuId: Record<string, number>;
+  vatRateByBuffetId: Record<string, number>;
+}> {
+  const vatRateByMenuId: Record<string, number> = {};
+  const vatRateByBuffetId: Record<string, number> = {};
+  const menuIds = distinctMenuItemIdsFromOrders(orders);
+  if (menuIds.length > 0) {
+    const { data: menuRows } = await admin
+      .from('menu_items')
+      .select('id, vat_rate')
+      .eq('restaurant_id', restaurantId)
+      .in('id', menuIds);
+    for (const row of menuRows ?? []) {
+      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
+        vatRateByMenuId[String(row.id)] = row.vat_rate;
+      }
+    }
+  }
+  const buffetIds = new Set<string>();
+  for (const order of orders) {
+    for (const item of order.items ?? []) {
+      const id = buffetIdFromOrderItem(item);
+      if (id) buffetIds.add(id);
+    }
+  }
+  if (buffetIds.size > 0) {
+    const { data: buffetRows } = await admin
+      .from('buffets')
+      .select('id, vat_rate')
+      .eq('restaurant_id', restaurantId)
+      .in('id', Array.from(buffetIds));
+    for (const row of buffetRows ?? []) {
+      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
+        vatRateByBuffetId[String(row.id)] = row.vat_rate;
+      }
+    }
+  }
+  return { vatRateByMenuId, vatRateByBuffetId };
 }
 
 /** Merge key for billable menu lines (notes ignored). */
@@ -88,7 +168,9 @@ export { billableMenuItemMergeKey as receiptMenuItemMergeKey } from '@/lib/billa
 export function buildReceiptLinesFromOrders(
   orders: Order[],
   locale: PrintLocale = 'pt',
-): OrderReceiptJobPayload['lines'] {
+  vatRateByMenuId: Record<string, number> = {},
+  vatRateByBuffetId: Record<string, number> = {},
+): OrderReceiptJobPayload['lines'] | { error: string } {
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
 
@@ -98,13 +180,11 @@ export function buildReceiptLinesFromOrders(
     const qty = Math.max(0, Number(row.item.qty) || 0);
     // One receipt row per dish (no free/overage split); unit carries the billable average.
     const unitPrice = qty > 0 ? amount / qty : 0;
-    lines.push(
-      receiptLineFromOrderItem(
-        unitPrice === row.item.price ? row.item : { ...row.item, price: unitPrice },
-        itemIndex,
-        locale,
-      ),
-    );
+    const item =
+      unitPrice === row.item.price ? row.item : { ...row.item, price: unitPrice };
+    const vat_rate = vatRateStringForItem(item, vatRateByMenuId, vatRateByBuffetId);
+    if (!vat_rate) return { error: 'missing_vat_rate' };
+    lines.push(receiptLineFromOrderItem(item, itemIndex, locale, vat_rate));
   }
 
   return lines;
@@ -116,14 +196,31 @@ export function buildSplitPersonReceiptLines(
   personIndex: number,
   orders: Order[],
   locale: PrintLocale = 'pt',
-): OrderReceiptJobPayload['lines'] {
-  return buildSplitPersonShareLines(split, personIndex, orders, locale).map((row, index) => ({
-    item_index: index + 1,
-    display_name: row.receiptLabel,
-    qty: 1,
-    unit_price: row.shareAmount,
-    share_qty_label: row.quantityLabel,
-  }));
+  vatRateByMenuId: Record<string, number> = {},
+  vatRateByBuffetId: Record<string, number> = {},
+): OrderReceiptJobPayload['lines'] | { error: string } {
+  const byKey = new Map(
+    buildByItemSplitOrderLines(orders).map((line) => [line.key, line]),
+  );
+  const shares = buildSplitPersonShareLines(split, personIndex, orders, locale);
+  const lines: OrderReceiptJobPayload['lines'] = [];
+  for (let index = 0; index < shares.length; index++) {
+    const row = shares[index]!;
+    const catalog = byKey.get(row.key);
+    const vat_rate = catalog
+      ? vatRateStringForItem(catalog, vatRateByMenuId, vatRateByBuffetId)
+      : null;
+    if (!vat_rate) return { error: 'missing_vat_rate' };
+    lines.push({
+      item_index: index + 1,
+      display_name: row.receiptLabel,
+      qty: 1,
+      unit_price: row.shareAmount,
+      vat_rate,
+      share_qty_label: row.quantityLabel,
+    });
+  }
+  return lines;
 }
 
 /** Stable key for checkout automatic receipt jobs (call-bill / split / final dedup). */
@@ -183,6 +280,7 @@ type EnqueueParams = {
   personIndex?: number;
   amountPaid?: number;
   paymentMethod?: string;
+  paymentLines?: BillSyncPaymentLine[] | null;
   /** From checkout picker: `cashier` or `station:{print_station_id}` */
   receiptPrinterId?: string;
   /** Bill snapshot order ids; falls back to bill_splits.order_ids when billSplitId is set */
@@ -240,6 +338,7 @@ export async function enqueueReceiptPrint(
     personIndex,
     amountPaid,
     paymentMethod,
+    paymentLines,
     receiptPrinterId,
     orderIds: orderIdsParam,
     discountRate = 0,
@@ -321,8 +420,22 @@ export async function enqueueReceiptPrint(
   }
 
   const orderRows = orders as Order[];
+  const { vatRateByMenuId, vatRateByBuffetId } = await loadReceiptVatMaps(
+    admin,
+    restaurantId,
+    orderRows,
+  );
 
-  let lines = buildReceiptLinesFromOrders(orderRows, locale);
+  const linesResult = buildReceiptLinesFromOrders(
+    orderRows,
+    locale,
+    vatRateByMenuId,
+    vatRateByBuffetId,
+  );
+  if ('error' in linesResult) {
+    return { ok: false, status: 400, code: linesResult.error };
+  }
+  let lines = linesResult;
   let amountDue = lines.reduce((sum, ln) => sum + ln.unit_price * ln.qty, 0);
 
   if (variant === 'split_payment') {
@@ -332,7 +445,18 @@ export async function enqueueReceiptPrint(
     if (!billSplit) {
       return { ok: false, status: 404, code: 'bill_split_not_found' };
     }
-    lines = buildSplitPersonReceiptLines(billSplit, personIndex, orderRows, locale);
+    const shareLines = buildSplitPersonReceiptLines(
+      billSplit,
+      personIndex,
+      orderRows,
+      locale,
+      vatRateByMenuId,
+      vatRateByBuffetId,
+    );
+    if ('error' in shareLines) {
+      return { ok: false, status: 400, code: shareLines.error };
+    }
+    lines = shareLines;
     const rowAmount = Number(billSplit.result?.[personIndex]?.amount ?? personAmount ?? 0);
     amountDue = rowAmount;
   }
@@ -387,7 +511,11 @@ export async function enqueueReceiptPrint(
     variant !== 'checkout_bill' &&
     amountPaid != null &&
     amountPaid > 0
-      ? { amount_paid: amountPaid, payment_method: paymentMethod?.trim() || 'Cash' }
+      ? {
+          amount_paid: amountPaid,
+          payment_method: paymentMethod?.trim() || 'CASH',
+          ...(paymentLines?.length ? { payment_lines: paymentLines } : {}),
+        }
       : {}),
   };
 

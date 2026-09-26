@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -151,8 +152,15 @@ type jobLine struct {
 	ShareQtyLabel       string  `json:"share_qty_label"`
 	Note                string  `json:"note"`
 	UnitPrice           float64 `json:"unit_price"`
+	// VATRate is percent points string e.g. "13.00" (snapshot at enqueue).
+	VATRate             string  `json:"vat_rate"`
 	CategoryGroupSort   int     `json:"category_group_sort"`
 	CategoryGroupHeader string  `json:"category_group_header"`
+}
+
+type paymentLine struct {
+	Method string `json:"method"`
+	Amount string `json:"amount"`
 }
 
 type jobPayload struct {
@@ -172,12 +180,91 @@ type jobPayload struct {
 	AmountDue            float64             `json:"amount_due"`
 	AmountPaid           float64             `json:"amount_paid"`
 	PaymentMethod        string              `json:"payment_method"`
+	PaymentLines         []paymentLine       `json:"payment_lines"`
 	OrderedBy            string              `json:"ordered_by"`
 	OrderTime            string              `json:"order_time"`
 	PrintTime            string              `json:"print_time"`
 	// pre_bill | checkout_bill | split_payment | final (empty → final on order_receipt)
 	ReceiptVariant string `json:"receipt_variant"`
 	PayerName      string `json:"payer_name"`
+}
+
+// Fixed Portuguese disclaimer (Despacho n.º 8632/2014) — never localized.
+const preBillNotInvoiceDisclaimer = "Este documento não serve de fatura"
+
+func receiptPaymentMethodLabel(method string) string {
+	switch strings.ToUpper(strings.TrimSpace(method)) {
+	case "MULTIBANCO":
+		return "Multibanco"
+	case "CASH", "DINHEIRO", "":
+		return "Dinheiro"
+	default:
+		return strings.TrimSpace(method)
+	}
+}
+
+func parseVatPercent(raw string) (float64, bool) {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return 0, false
+	}
+	n, err := strconv.ParseFloat(s, 64)
+	if err != nil || n < 0 || n > 100 {
+		return 0, false
+	}
+	// Reject fraction form 0.13 — percent points only.
+	if n > 0 && n < 1 {
+		return 0, false
+	}
+	return n, true
+}
+
+type vatBucket struct {
+	rate    float64
+	net     float64
+	vat     float64
+	gross   float64
+}
+
+func accumulateReceiptVAT(lines []jobLine) []vatBucket {
+	byRate := map[float64]*vatBucket{}
+	var order []float64
+	for _, ln := range lines {
+		rate, ok := parseVatPercent(ln.VATRate)
+		if !ok {
+			continue
+		}
+		fields := receiptLineFieldsFrom(ln)
+		if !fields.hasPrice || !(fields.lineTotal > 0) {
+			continue
+		}
+		gross := fields.lineTotal
+		net := gross
+		vat := 0.0
+		if rate > 0 {
+			net = math.Round(gross/(1+rate/100)*100) / 100
+			vat = math.Round((gross-net)*100) / 100
+		}
+		b := byRate[rate]
+		if b == nil {
+			b = &vatBucket{rate: rate}
+			byRate[rate] = b
+			order = append(order, rate)
+		}
+		b.net += net
+		b.vat += vat
+		b.gross += gross
+	}
+	sort.Float64s(order)
+	out := make([]vatBucket, 0, len(order))
+	for _, rate := range order {
+		b := byRate[rate]
+		b.net = math.Round(b.net*100) / 100
+		b.vat = math.Round(b.vat*100) / 100
+		b.gross = math.Round(b.gross*100) / 100
+		out = append(out, *b)
+	}
+	return out
 }
 
 func parseJobPayload(job printJob) jobPayload {
@@ -940,6 +1027,10 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 	payer := formatSplitPayerForReceipt(p.PayerName)
 
 	w.writeTicketMasthead(receiptHeaderTitle(variant, lab))
+	if variant == "pre_bill" || variant == "checkout_bill" {
+		w.text(preBillNotInvoiceDisclaimer)
+		w.lf()
+	}
 	var meta []string
 	if isSplit && payer != "" {
 		meta = append(meta, fmt.Sprintf("%s:%s", lab.guest, payer))
@@ -968,15 +1059,32 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 		w.separator('-')
 	}
 	if hasPrice {
-		if !isSplit {
-			w.text(lab.feeDetails)
-			w.lf()
-			w.writeReceiptPadLine(lab.originalTotal, formatMoney(sum))
-			w.writeReceiptPadLine(lab.subtotal, formatMoney(sum))
-		}
 		due := sum
 		if p.AmountDue > 0 {
 			due = p.AmountDue
+		}
+		discounted := p.AmountDue > 0 && p.Subtotal > 0 && math.Abs(p.AmountDue-p.Subtotal) > 0.009
+		if !isSplit {
+			w.text(lab.feeDetails)
+			w.lf()
+			if discounted {
+				w.writeReceiptPadLine(lab.originalTotal, formatMoney(p.Subtotal))
+			}
+		}
+		// IVA summary from line vat_rate snapshots (net + tax by rate).
+		buckets := accumulateReceiptVAT(p.Lines)
+		if len(buckets) > 0 {
+			var netSum, vatSum float64
+			for _, b := range buckets {
+				netSum += b.net
+				vatSum += b.vat
+				w.writeReceiptPadLine(
+					fmt.Sprintf("IVA %s%%", formatMoney(b.rate)),
+					formatMoney(b.vat),
+				)
+			}
+			w.writeReceiptPadLine("Sem IVA", formatMoney(math.Round(netSum*100)/100))
+			_ = vatSum
 		}
 		w.writeReceiptAmountDueLine(lab.amountDue + ":" + formatMoney(due))
 		if withPayment {
@@ -988,11 +1096,19 @@ func buildOrderReceipt(p jobPayload, lab ticketLabels, withPayment bool, variant
 			if paid > due+0.001 {
 				w.rightLine(lab.changeDue+":"+formatMoney(paid-due), true)
 			}
-			method := strings.TrimSpace(p.PaymentMethod)
-			if method == "" {
-				method = "Cash"
+			if len(p.PaymentLines) > 0 {
+				for _, pl := range p.PaymentLines {
+					label := receiptPaymentMethodLabel(pl.Method)
+					amt := strings.TrimSpace(pl.Amount)
+					if amt == "" {
+						amt = formatMoney(paid)
+					}
+					w.rightLine("-"+label+" Payment:"+amt, false)
+				}
+			} else {
+				method := receiptPaymentMethodLabel(p.PaymentMethod)
+				w.rightLine("-"+method+" Payment:"+formatMoney(paid), false)
 			}
-			w.rightLine("-"+method+" Payment:"+formatMoney(paid), false)
 		}
 		if isSplit {
 			w.separator('-')

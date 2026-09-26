@@ -39,20 +39,23 @@ describe('parseSessionCollectedPayments', () => {
         person_name: 'John',
         amount: 26.4,
         created_at: '2026-06-27T14:30:00.000Z',
-        payment_method: 'CARD',
+        payment_method: 'MULTIBANCO',
       },
     ]);
     assert.equal(rows[0]?.person_index, 1);
-    assert.equal(rows[0]?.payment_method, 'CARD');
+    assert.equal(rows[0]?.payment_method, 'MULTIBANCO');
   });
 });
 
 describe('sumCollectedByPersonIndex', () => {
   it('aggregates by index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null },
-      { id: '2', person_index: 0, person_name: 'A', amount: 5, created_at: '', payment_method: null },
-      { id: '3', person_index: 1, person_name: 'B', amount: 20, created_at: '', payment_method: null },
+      { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
+      payment_lines: null },
+      { id: '2', person_index: 0, person_name: 'A', amount: 5, created_at: '', payment_method: null,
+      payment_lines: null },
+      { id: '3', person_index: 1, person_name: 'B', amount: 20, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     assert.equal(map.get(0), 15);
     assert.equal(map.get(1), 20);
@@ -60,7 +63,8 @@ describe('sumCollectedByPersonIndex', () => {
 
   it('ignores rows without index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: null, person_name: 'Legacy', amount: 10, created_at: '', payment_method: null },
+      { id: '1', person_index: null, person_name: 'Legacy', amount: 10, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     assert.equal(map.size, 0);
   });
@@ -69,7 +73,8 @@ describe('sumCollectedByPersonIndex', () => {
 describe('suggestedCollectionAmount', () => {
   it('subtracts prior collections for index', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'John', amount: 24.45, created_at: '', payment_method: null },
+      { id: '1', person_index: 0, person_name: 'John', amount: 24.45, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     assert.equal(suggestedCollectionAmount(0, 30, map), 5.55);
   });
@@ -78,7 +83,8 @@ describe('suggestedCollectionAmount', () => {
 describe('isSplitRowCollectible', () => {
   it('uses index not name', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 1, person_name: '张三', amount: 20, created_at: '', payment_method: null },
+      { id: '1', person_index: 1, person_name: '张三', amount: 20, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     assert.equal(isSplitRowCollectible(30, map, 0), true);
     assert.equal(isSplitRowCollectible(30, map, 1), true);
@@ -87,7 +93,8 @@ describe('isSplitRowCollectible', () => {
 
   it('two same names different indices stay independent', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: '张三', amount: 30, created_at: '', payment_method: null },
+      { id: '1', person_index: 0, person_name: '张三', amount: 30, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     assert.equal(isSplitRowCollectible(30, map, 0), false);
     assert.equal(isSplitRowCollectible(25, map, 1), true);
@@ -97,7 +104,8 @@ describe('isSplitRowCollectible', () => {
 describe('collectibleSplitRowsWithIndex', () => {
   it('includes only indices with balance', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null },
+      { id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     const pending = collectibleSplitRowsWithIndex(
       [
@@ -130,7 +138,8 @@ describe('collectibleSplitRowsWithIndex', () => {
 describe('reconcileSplitResultPaid', () => {
   it('marks paid when index ledger covers obligation', () => {
     const map = sumCollectedByPersonIndex([
-      { id: '1', person_index: 0, person_name: 'Ana', amount: 20, created_at: '', payment_method: null },
+      { id: '1', person_index: 0, person_name: 'Ana', amount: 20, created_at: '', payment_method: null,
+      payment_lines: null },
     ]);
     const rows = reconcileSplitResultPaid(
       [
@@ -173,8 +182,10 @@ describe('totalCollectedAmount', () => {
   it('sums all ledger rows', () => {
     assert.equal(
       totalCollectedAmount([
-        { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null },
-        { id: '2', person_index: 1, person_name: 'B', amount: 5.5, created_at: '', payment_method: null },
+        { id: '1', person_index: 0, person_name: 'A', amount: 10, created_at: '', payment_method: null,
+      payment_lines: null },
+        { id: '2', person_index: 1, person_name: 'B', amount: 5.5, created_at: '', payment_method: null,
+      payment_lines: null },
       ]),
       15.5,
     );

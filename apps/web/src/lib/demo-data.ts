@@ -196,6 +196,7 @@ export const DEMO_OPEN_TABLE_DEFAULTS = {
       name: 'Buffet livre',
       is_active: true,
       description: null,
+      vat_rate: 13,
       created_at: '2026-01-01T00:00:00.000Z',
       updated_at: '2026-01-01T00:00:00.000Z',
     },

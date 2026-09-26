@@ -62,10 +62,10 @@ Web 入队（service role）
 
 | 业务说法 | `receipt_variant` | 触发 | 纸面 |
 |----------|-------------------|------|------|
-| 预结算 / 预结单 | `pre_bill` | 呼叫结账成功后由 `checkout-request-server` **自动**入队；或前台桌台详情「打印预结单」**手动**入队（`staff_manual`） | 标题 Pre-Bill；整桌合并行；**无**收款确认行 |
-| 分单 | `split_payment` | 前台确认某人收款后，询问打印并选择打账单 → **手动** `staff_manual`（现金实收写入 `amount_paid`，大于应付时纸面打找零；台账补打仍用应付） | 该人菜品与金额；**有**收款确认行 |
-| 总账单（收款前） | `checkout_bill` | 前台「打印账单」/ 前台「关台结账」顺带入队（失败不挡关台）/ 历史重打 → **手动**（收银员「关台结账」不打印） | 标题 Receipt；整桌合并行；含结账台折扣后应收；**无**收款确认行 |
-| 总账单（收讫后） | `final` | 整桌结账确认收款后选择打印 → **手动**一张（分单模式不打这张） | 整桌合并行；**有**收款确认行 |
+| 预结算 / 预结单 | `pre_bill` | 呼叫结账成功后由 `checkout-request-server` **自动**入队；或前台桌台详情「打印预结单」**手动**入队（`staff_manual`） | 标题 Pre-Bill；整桌合并行；**无**收款确认行；标题下法定免责句（见下） |
+| 分单 | `split_payment` | 前台确认某人收款后，询问打印并选择打账单 → **手动** `staff_manual`（现金实收写入 `amount_paid`，大于应付时纸面打找零；台账补打仍用应付） | 该人菜品与金额 + **此人份额**税汇总；付款按 `payment_lines` 分行（禁只打 MIXED）；**有**收款确认行 |
+| 总账单（收款前） | `checkout_bill` | 前台「打印账单」/ 前台「关台结账」顺带入队（失败不挡关台）/ 历史重打 → **手动**（收银员「关台结账」不打印） | 标题 Receipt；整桌合并行；含结账台折扣后应收；标题下法定免责句；**无**收款确认行 |
+| 总账单（收讫后） | `final` | 整桌结账确认收款后选择打印 → **手动**一张（分单模式不打这张） | 整桌合并行；税汇总；付款按 `payment_lines` 分行；**有**收款确认行 |
 
 - `pre_bill` 与 `checkout_bill` 都是「未付完」的整桌账单；自动 `pre_bill` 与手动 `pre_bill` 纸面相同，差别仅在触发与 `printSource`；`checkout_bill` 另可带结账台 `discount_rate`。
 - `checkout_bill` 与 `final` 都是整桌合并行，区别在 **是否已收款** 及纸面是否印 `amount_paid` / 支付方式。
@@ -76,6 +76,7 @@ Web 入队（service role）
 
 - 菜品行标签与出品联一致：`{item_code}-{菜名}`（**不含** `category_code_path`）；同类菜合并后数量累加，**不印备注**。
 - 纸面菜单区（列头、菜品行、Amount Due / 应付）统一 **Font A 1×2 加粗**；英文价格列头为 `Pri`；费用明细与时间戳保持 1×1 普通。
+- **税与付款（定稿）：** 入队 payload 快照每行 `vat_rate`；票面「不含税合计 + 分税率税额」；混合付款分行；`pre_bill` / `checkout_bill` 标题下印 `Este documento não serve de fatura`（固定葡语）。权威见 [`../product/collect-payment-receipt-iva.zh.md`](../product/collect-payment-receipt-iva.zh.md)。
 
 ### 3.2 功能开关
 

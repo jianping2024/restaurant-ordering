@@ -5,6 +5,9 @@ export type MenuVatRateOption = (typeof MENU_VAT_RATE_OPTIONS)[number];
 
 export const DEFAULT_MENU_VAT_RATE: MenuVatRateOption = 23;
 
+/** Buffet headcount lines — sole default (settings may change; see collect-payment-receipt-iva). */
+export const DEFAULT_BUFFET_VAT_RATE: MenuVatRateOption = 13;
+
 export function parseMenuVatRate(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === '') return null;
   const rate = typeof value === 'number' ? value : Number(value);

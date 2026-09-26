@@ -1,3 +1,4 @@
+import type { BillSyncPaymentLine } from '@/lib/bill-sync-payload';
 import type { ReceiptVariant } from '@/lib/order-receipt-enqueue';
 
 export type OrderReceiptPrintResult =
@@ -12,6 +13,7 @@ export type OrderReceiptPrintParams = {
   jobType?: 'order_receipt' | 'pre_bill';
   amountPaid?: number;
   paymentMethod?: string;
+  paymentLines?: BillSyncPaymentLine[] | null;
   payerName?: string;
   personAmount?: number;
   billSplitId?: string | null;
@@ -40,6 +42,7 @@ export async function requestOrderReceiptPrint(
     sessionId,
     amountPaid,
     paymentMethod,
+    paymentLines,
     payerName,
     personAmount,
     billSplitId,
@@ -62,6 +65,7 @@ export async function requestOrderReceiptPrint(
         receipt_variant: variant,
         ...(amountPaid != null ? { amount_paid: amountPaid } : {}),
         ...(paymentMethod ? { payment_method: paymentMethod } : {}),
+        ...(paymentLines?.length ? { payment_lines: paymentLines } : {}),
         ...(payerName ? { payer_name: payerName } : {}),
         ...(personAmount != null ? { person_amount: personAmount } : {}),
         ...(billSplitId ? { bill_split_id: billSplitId } : {}),

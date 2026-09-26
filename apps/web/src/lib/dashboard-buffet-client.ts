@@ -66,7 +66,7 @@ export async function upsertBuffetCalendarClient(
 
 export async function updateBuffetClient(
   id: string,
-  patch: Partial<Pick<import('@/types').Buffet, 'name' | 'is_active'>>,
+  patch: Partial<Pick<import('@/types').Buffet, 'name' | 'is_active' | 'vat_rate'>>,
 ) {
   return requestPatch('/api/dashboard/buffet', {
     method: 'PATCH',

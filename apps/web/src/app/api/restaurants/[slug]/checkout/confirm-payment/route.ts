@@ -4,7 +4,11 @@ import {
   confirmBillSplitPayment,
   shouldHoldCheckoutSessionOpen,
 } from '@/lib/checkout-confirm-payment';
-import { parseBillSyncPaymentMethod } from '@/lib/bill-sync-payload';
+import {
+  parseBillSyncPaymentLines,
+  parseBillSyncPaymentMethod,
+  validatePaymentLinesForMethod,
+} from '@/lib/bill-sync-payload';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +26,7 @@ export async function POST(
     person_index?: unknown;
     collected_amount?: unknown;
     payment_method?: unknown;
+    payment_lines?: unknown;
   };
   try {
     body = await req.json();
@@ -54,6 +59,22 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_payment_method' }, { status: 400 });
   }
 
+  const paymentLines =
+    body.payment_lines === undefined || body.payment_lines === null
+      ? null
+      : parseBillSyncPaymentLines(body.payment_lines);
+  if (body.payment_lines != null && paymentLines === null) {
+    return NextResponse.json({ error: 'invalid_payment_lines' }, { status: 400 });
+  }
+  const linesErr = validatePaymentLinesForMethod(
+    paymentMethod,
+    paymentLines,
+    collectedAmount ?? 0,
+  );
+  if (linesErr) {
+    return NextResponse.json({ error: linesErr }, { status: 400 });
+  }
+
   const auth = await authorizeCheckoutConfirmPayment(slug, req);
   if ('error' in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -71,6 +92,7 @@ export async function POST(
     billSplitId,
     personIndex,
     paymentMethod,
+    paymentLines,
     collectedAmount,
     createdByUserId: auth.actor.userId,
     actor: auth.actor,

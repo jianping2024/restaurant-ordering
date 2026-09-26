@@ -21,8 +21,8 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 		PaymentMethod:    "Cash",
 		ReceiptVariant:   "final",
 		Lines: []jobLine{
-			{ItemIndex: 1, DisplayName: "Agua 500ml", Qty: 1, UnitPrice: 1.85},
-			{ItemIndex: 9, DisplayName: "Ice Tea Limão", Qty: 1, UnitPrice: 2.2},
+			{ItemIndex: 1, DisplayName: "Agua 500ml", Qty: 1, UnitPrice: 1.85, VATRate: "13.00"},
+			{ItemIndex: 9, DisplayName: "Ice Tea Limão", Qty: 1, UnitPrice: 2.2, VATRate: "23.00"},
 		},
 	}
 	rawBytes, _ := json.Marshal(payloadMap)
@@ -36,10 +36,12 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 		"Pri",
 		"Agua 500ml",
 		"Fee Details",
-		"Original price",
+		"Sem IVA",
+		"IVA 13.00%",
+		"IVA 23.00%",
 		"Amount Due:13.75",
 		"Amount Paid:13.75",
-		"-Cash Payment:13.75",
+		"-Dinheiro Payment:13.75",
 		"Ordered By:Customer/Merchant",
 		"Order Time:2026-05-14 20:05",
 		"Printed By:restaurant",
@@ -48,6 +50,9 @@ func TestBuildOrderReceiptEnglishLayout(t *testing.T) {
 		if !strings.Contains(s, want) {
 			t.Fatalf("missing %q in receipt output", want)
 		}
+	}
+	if strings.Contains(s, "Original price") {
+		t.Fatal("no-discount receipt must not print Original price")
 	}
 	if strings.Contains(s, "Original Price") {
 		t.Fatal("price column header must use Pri, not Original Price")
@@ -211,8 +216,36 @@ func TestPreBillOmitsPaymentLines(t *testing.T) {
 	if !strings.Contains(s, "Pre-Bill") {
 		t.Fatalf("pre_bill title must be English Pre-Bill (header/footer labels), got: %q", s)
 	}
+	// Encoder may emit Windows-1252 for ã; assert ASCII stem.
+	if !strings.Contains(s, "Este documento") {
+		t.Fatal("pre_bill must print fixed Portuguese not-invoice disclaimer under title")
+	}
 	if strings.Contains(s, "Amount Paid:") || strings.Contains(s, "Payment:") {
 		t.Fatal("pre_bill must not include payment confirmation lines")
+	}
+}
+
+func TestMixedPaymentLinesIterateSeparately(t *testing.T) {
+	payload, _ := json.Marshal(jobPayload{
+		Locale:         "en",
+		Subtotal:       20,
+		AmountDue:      20,
+		AmountPaid:     20,
+		PaymentMethod:  "MIXED",
+		ReceiptVariant: "final",
+		PaymentLines: []paymentLine{
+			{Method: "MULTIBANCO", Amount: "15.00"},
+			{Method: "CASH", Amount: "5.00"},
+		},
+		Lines: []jobLine{{ItemIndex: 1, DisplayName: "Tea", Qty: 1, UnitPrice: 20, VATRate: "23.00"}},
+	})
+	raw := escposFromJob(printJob{Type: "order_receipt", Payload: payload})
+	s := string(raw)
+	if !strings.Contains(s, "-Multibanco Payment:15.00") || !strings.Contains(s, "-Dinheiro Payment:5.00") {
+		t.Fatalf("want separate Multibanco/Dinheiro lines, got: %q", s)
+	}
+	if strings.Contains(s, "MIXED") || strings.Contains(s, "Misto") {
+		t.Fatal("must not print one-line MIXED")
 	}
 }
 

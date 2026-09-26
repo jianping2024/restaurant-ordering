@@ -134,7 +134,7 @@ export async function PATCH(req: Request) {
   if (body.resource === 'buffet') {
     const patch =
       body.patch && typeof body.patch === 'object'
-        ? (body.patch as Partial<{ name: string; is_active: boolean }>)
+        ? (body.patch as Partial<{ name: string; is_active: boolean; vat_rate: number }>)
         : {};
     const result = await updateBuffet(ctx.admin, ctx.restaurantId, body.id, patch);
     if ('error' in result) return dashboardApiError(result);

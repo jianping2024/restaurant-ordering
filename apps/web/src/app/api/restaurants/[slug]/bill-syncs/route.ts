@@ -5,6 +5,10 @@ import {
   loadBillSyncLiveContext,
 } from '@/lib/bill-sync-live-context';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
+import {
+  parseBillSyncPaymentLines,
+  parseBillSyncPaymentMethod,
+} from '@/lib/bill-sync-payload';
 import { resolveBillSyncSourceSale } from '@/lib/bill-sync-resolve-source-sale';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { enqueueBillSyncJob, enqueueBillSyncReprintJob } from '@/lib/bill-sync-enqueue';
@@ -37,6 +41,7 @@ export async function POST(
     customer_nif?: unknown;
     customer_name?: unknown;
     payment_method?: unknown;
+    payment_lines?: unknown;
     document_type?: unknown;
     issue_mode?: unknown;
     issue_scope_id?: unknown;
@@ -65,10 +70,21 @@ export async function POST(
   const wantsAutoIssue = body.auto_issue === true;
   let autoIssue: import('@/lib/bill-sync-build-payload').BillSyncAutoIssueFields | null = null;
   if (wantsAutoIssue && !reprintDocumentId) {
-    const payment_method =
+    const payment_method_raw =
       typeof body.payment_method === 'string' ? body.payment_method.trim() : '';
+    const payment_method = parseBillSyncPaymentMethod(payment_method_raw);
     if (!payment_method) {
-      return NextResponse.json({ error: 'missing_payment_method' }, { status: 400 });
+      return NextResponse.json(
+        { error: payment_method_raw ? 'invalid_payment_method' : 'missing_payment_method' },
+        { status: 400 },
+      );
+    }
+    const payment_lines =
+      body.payment_lines === undefined || body.payment_lines === null
+        ? undefined
+        : parseBillSyncPaymentLines(body.payment_lines) ?? undefined;
+    if (body.payment_lines != null && payment_lines === undefined) {
+      return NextResponse.json({ error: 'invalid_payment_lines' }, { status: 400 });
     }
     const document_type =
       body.document_type === 'FT' || body.document_type === 'FS'
@@ -84,6 +100,7 @@ export async function POST(
     autoIssue = {
       auto_issue: true,
       payment_method,
+      ...(payment_lines?.length ? { payment_lines } : {}),
       ...(document_type ? { document_type } : {}),
       ...(customerNif ? { customer_nif: customerNif } : {}),
       ...(typeof body.customer_name === 'string' && body.customer_name.trim()
@@ -194,7 +211,7 @@ export async function POST(
     orders: ctx.orders,
     itemCodeByMenuId: ctx.itemCodeByMenuId,
     vatRateByMenuId: ctx.vatRateByMenuId,
-    defaultVatRatePercent: ctx.defaultVatRatePercent,
+    vatRateByBuffetId: ctx.vatRateByBuffetId,
     createdBy: auth.actor.userId,
     requestId,
     autoIssue,

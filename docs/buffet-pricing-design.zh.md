@@ -80,6 +80,7 @@
 
 - **名称**（如：午市自助、海鲜自助）
 - **启用 / 停用**
+- **IVA（必填）**：`buffets.vat_rate`，百分数点，档位与菜品同（`0 / 6 / 13 / 23`）；**新建/存量默认 13**；人头费行入队开票/热敏快照此税率（菜品走 `menu_items.vat_rate`；见 [`product/collect-payment-receipt-iva.zh.md`](./product/collect-payment-receipt-iva.zh.md)）
 - **顾客可见策略**：可选「顾客可见需员工确认」或「仅员工可选」
 - **展示说明**（可选）：用餐时长、浪费规则等（顾客端展示用）
 

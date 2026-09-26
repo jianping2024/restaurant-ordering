@@ -75,7 +75,7 @@ describe('buildCustomerSplitDisplayRows', () => {
         { name: 'Ana', amount: 27.45, paid: true },
         { name: 'Tom', amount: 71.9 },
       ],
-      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.deepEqual(rows[0], {
       name: 'Ana',
@@ -90,7 +90,7 @@ describe('buildCustomerSplitDisplayRows', () => {
   it('marks settled only when ledger covers obligation', () => {
     const rows = buildCustomerSplitDisplayRows(
       [{ name: 'Ana', amount: 31.7, paid: false }],
-      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 31.7, created_at: '', payment_method: null }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 31.7, created_at: '', payment_method: null, payment_lines: null }],
     );
     assert.equal(rows[0]?.settlementStatus, 'settled');
   });
@@ -112,7 +112,7 @@ describe('partial split display rows', () => {
   it('exposes outstanding when ledger covers part of the obligation', () => {
     const row = buildCustomerSplitDisplayRows(
       [{ name: 'Ana', amount: 27.45 }],
-      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null }],
+      [{ id: '1', person_index: 0, person_name: 'Ana', amount: 19.95, created_at: '', payment_method: null, payment_lines: null }],
     )[0]!;
     assert.equal(row.outstandingAmount, 7.5);
     assert.equal(row.settlementStatus, 'partial');
@@ -121,7 +121,7 @@ describe('partial split display rows', () => {
 
 describe('customerBillCallAmount', () => {
   const collected = [
-    { id: '1', person_index: 0, person_name: '客人 1', amount: 659.7, created_at: '', payment_method: null },
+    { id: '1', person_index: 0, person_name: '客人 1', amount: 659.7, created_at: '', payment_method: null, payment_lines: null },
   ];
 
   it('returns full total when no collections', () => {

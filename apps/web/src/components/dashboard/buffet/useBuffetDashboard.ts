@@ -106,7 +106,7 @@ export function useBuffetDashboard(initialData: BuffetDashboardData) {
   );
 
   const updateBuffet = useCallback(
-    async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active'>>) => {
+    async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>) => {
       const result = await updateBuffetClient(id, patch);
       if (result.ok) applyPatch(result.patch);
       return result;

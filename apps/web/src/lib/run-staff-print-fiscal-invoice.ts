@@ -4,7 +4,10 @@
  */
 import { mintBrowserUuid } from '@/lib/browser-uuid';
 import type { BillSyncAutoIssueFields } from '@/lib/bill-sync-build-payload';
-import { billSyncDocumentTypeForPayment } from '@/lib/bill-sync-payload';
+import {
+  billSyncDocumentTypeForPayment,
+  type BillSyncPaymentLine,
+} from '@/lib/bill-sync-payload';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
 import {
   enqueueStaffBillSync,
@@ -40,6 +43,9 @@ export type PrintFiscalInvoiceInput = {
   restaurantSlug: string;
   billSplitId: string;
   paymentMethod: string;
+  paymentLines?: BillSyncPaymentLine[] | null;
+  /** Discounted gross for FS/FT threshold (CIVA art.40). */
+  amount?: number | null;
   customerNif?: string;
   customerName?: string;
   /** Person scope for split invoices; omit for whole_table. */
@@ -94,14 +100,21 @@ export async function runStaffPrintFiscalInvoice(
     return { ok: false, code: 'missing_payment_method' };
   }
 
-  const document_type = billSyncDocumentTypeForPayment(paymentMethod);
+  const document_type = billSyncDocumentTypeForPayment(
+    paymentMethod,
+    input.amount,
+  );
   const customerNif = input.customerNif?.trim()
     ? normalizePortugueseNif(input.customerNif)
     : '';
+  const payment_lines = Array.isArray(input.paymentLines)
+    ? input.paymentLines
+    : undefined;
   const autoIssue: BillSyncAutoIssueFields = {
     auto_issue: true,
     payment_method: paymentMethod,
     document_type,
+    ...(payment_lines?.length ? { payment_lines } : {}),
     ...(customerNif ? { customer_nif: customerNif } : {}),
     ...(input.customerName?.trim() ? { customer_name: input.customerName.trim() } : {}),
     ...(input.issueScopeId?.trim()

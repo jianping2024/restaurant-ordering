@@ -2,11 +2,14 @@
  * Shared Restaurant load for bill-sync POST enqueue + GET content_unchanged.
  * Sole place that gathers split + session orders + catalog codes/VAT for a bill_split.
  */
-import { buildBillSyncJobPayload } from '@/lib/bill-sync-build-payload';
+import {
+  buffetIdFromOrderItem,
+  buildBillSyncJobPayload,
+} from '@/lib/bill-sync-build-payload';
 import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
 import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
-import { DEFAULT_MENU_VAT_RATE } from '@/lib/menu-vat-rate';
+import { isBuffetBaseItem } from '@/lib/order-items';
 import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, SplitPerson, SplitResult } from '@/types';
@@ -22,12 +25,24 @@ export type BillSyncLiveContext = {
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
-  defaultVatRatePercent: number;
+  vatRateByBuffetId: Record<string, number>;
 };
 
 export type LoadBillSyncLiveContextResult =
   | { ok: true; ctx: BillSyncLiveContext }
   | { ok: false; error: string; status: number; message?: string };
+
+function distinctBuffetIdsFromOrders(orders: Order[]): string[] {
+  const ids = new Set<string>();
+  for (const order of orders) {
+    for (const item of order.items ?? []) {
+      if (!isBuffetBaseItem(item)) continue;
+      const id = buffetIdFromOrderItem(item);
+      if (id) ids.add(id);
+    }
+  }
+  return Array.from(ids);
+}
 
 export async function loadBillSyncLiveContext(input: {
   admin: SupabaseClient;
@@ -88,6 +103,22 @@ export async function loadBillSyncLiveContext(input: {
     }
   }
 
+  const buffetIds = distinctBuffetIdsFromOrders(orders);
+  const vatRateByBuffetId: Record<string, number> = {};
+  if (buffetIds.length > 0) {
+    const { data: buffetRows } = await input.admin
+      .from('buffets')
+      .select('id, vat_rate')
+      .eq('restaurant_id', input.restaurantId)
+      .in('id', buffetIds);
+    for (const row of buffetRows ?? []) {
+      const id = String(row.id);
+      if (typeof row.vat_rate === 'number' && Number.isFinite(row.vat_rate)) {
+        vatRateByBuffetId[id] = row.vat_rate;
+      }
+    }
+  }
+
   return {
     ok: true,
     ctx: {
@@ -101,7 +132,7 @@ export async function loadBillSyncLiveContext(input: {
       orders,
       itemCodeByMenuId,
       vatRateByMenuId,
-      defaultVatRatePercent: DEFAULT_MENU_VAT_RATE,
+      vatRateByBuffetId,
     },
   };
 }
@@ -119,7 +150,7 @@ export function liveBillSyncContentFingerprint(ctx: BillSyncLiveContext): string
     orders: ctx.orders,
     itemCodeByMenuId: ctx.itemCodeByMenuId,
     vatRateByMenuId: ctx.vatRateByMenuId,
-    defaultVatRatePercent: ctx.defaultVatRatePercent,
+    vatRateByBuffetId: ctx.vatRateByBuffetId,
   });
   if (!built.ok) return null;
   return billSyncContentFingerprint(built.payload);

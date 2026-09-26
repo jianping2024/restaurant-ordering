@@ -35,6 +35,8 @@ export function CheckoutPrintAskController({ ask, restaurantSlug, onDone }: Prop
           restaurantSlug,
           billSplitId: ask.billSplitId,
           paymentMethod: ask.paymentMethod,
+          paymentLines: ask.payment_lines,
+          amount: ask.obligation,
           customerNif: ask.customerNif,
           customerName: ask.customerName,
           issueScopeId: ask.wholeTable

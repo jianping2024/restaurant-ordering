@@ -56,7 +56,7 @@
 
 - 门禁：功能开关 + `mayFiscalBillQueue`（`checkout.sync_bill` ∧ `tables.checkout_close`）  
 - 唯一编排：`runStaffPrintFiscalInvoice`（`auto_issue` 入队 → 等成功；**不关台**）  
-- 文档类型：付款方式 `CASH` → `FS`，否则 `FT`  
+- 付款三选 / `payment_lines` / 证件类型（现金≤€100→FS，现金>€100 或 Multibanco/混合→FT）见定稿 [`product/collect-payment-receipt-iva.zh.md`](./product/collect-payment-receipt-iva.zh.md)  
 - 桌台详情：开关开 → 隐藏关台结账、显示呼叫结账；关 → 相反。强制关台始终可有  
 
 ## 7. 相关文件

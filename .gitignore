@@ -88,3 +88,4 @@ scripts/rbac-kitchen-perm-uat.mjs
 # On-prem license runtime config (written by /setup apply-claim)
 .mesa-license.local.json
 **/.mesa-license.local.json
+apps/*/.next-uat-iva/

@@ -44,7 +44,11 @@ export function CheckoutPrintAskController({ ask, restaurantSlug, onDone }: Prop
           customerName: forAsk.customerName,
           issueScopeId: forAsk.wholeTable
             ? undefined
-            : billSyncByItemScopeId(forAsk.billSplitId, forAsk.personName),
+            : billSyncByItemScopeId(
+                forAsk.billSplitId,
+                forAsk.personName,
+                forAsk.partyId,
+              ),
         });
         if (!outcome.ok) {
           showToast(outcome.message || t.printInvoiceFailed, 'error');

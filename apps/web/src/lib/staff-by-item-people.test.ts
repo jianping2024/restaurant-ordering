@@ -1,61 +1,86 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
+import { splitPartyKey } from './split-party-id';
 import {
   appendStaffByItemRailPeople,
-  staffByItemLedgerPersonNames,
-  staffByItemLockedLedgerNames,
-  staffByItemRailSeedNames,
+  staffByItemLedgerPeople,
+  staffByItemLockedLedgerPeople,
+  staffByItemRailSeedPeople,
 } from './staff-by-item-people';
 
-describe('staffByItemLedgerPersonNames', () => {
-  it('drops whole-table sentinel and dedupes', () => {
+describe('staffByItemLedgerPeople', () => {
+  it('drops whole-table sentinel and dedupes by ticket key', () => {
     assert.deepEqual(
-      staffByItemLedgerPersonNames([WHOLE_TABLE_PAYER_KEY, 'Ana', ' ana ', '整桌', 'Bob']),
-      ['Ana', 'Bob'],
+      staffByItemLedgerPeople([
+        { name: WHOLE_TABLE_PAYER_KEY },
+        { name: 'Ana' },
+        { name: ' ana ' },
+        { name: '整桌' },
+        { name: 'Bob' },
+      ]),
+      [{ name: 'Ana' }, { name: 'Bob' }],
     );
+  });
+
+  it('keeps same display name when party_id differs', () => {
+    const people = staffByItemLedgerPeople([
+      { name: '客人 3', partyId: 'aaa' },
+      { name: '客人 3', partyId: 'bbb' },
+    ]);
+    assert.equal(people.length, 2);
+    assert.equal(people[0]?.partyId, 'aaa');
+    assert.equal(people[1]?.partyId, 'bbb');
   });
 });
 
-describe('staffByItemRailSeedNames', () => {
+describe('staffByItemRailSeedPeople', () => {
   it('seeds guest when ledger is only whole-table', () => {
     assert.deepEqual(
-      staffByItemRailSeedNames({
-        ledgerNames: [WHOLE_TABLE_PAYER_KEY],
-        allocationNames: [],
+      staffByItemRailSeedPeople({
+        ledgerPeople: [{ name: WHOLE_TABLE_PAYER_KEY }],
+        allocationPeople: [],
       }),
       [],
     );
     assert.deepEqual(
-      staffByItemRailSeedNames({
-        ledgerNames: [WHOLE_TABLE_PAYER_KEY],
-        allocationNames: ['Ana'],
+      staffByItemRailSeedPeople({
+        ledgerPeople: [{ name: WHOLE_TABLE_PAYER_KEY }],
+        allocationPeople: [{ name: 'Ana' }],
       }),
-      ['Ana'],
+      [{ name: 'Ana' }],
     );
   });
 });
 
 describe('appendStaffByItemRailPeople', () => {
   it('does not re-inject unlocked renamed-away ledger names', () => {
-    const afterRename = ['Bob'];
-    // Stale unlocked ledger still has Ana — must not come back via merge.
+    const afterRename = [{ name: 'Bob' }];
     const next = appendStaffByItemRailPeople(afterRename, []);
     assert.equal(next, afterRename);
     assert.deepEqual(
-      appendStaffByItemRailPeople(afterRename, staffByItemLockedLedgerNames(['Ana'], new Set())),
-      ['Bob'],
+      appendStaffByItemRailPeople(
+        afterRename,
+        staffByItemLockedLedgerPeople([{ name: 'Ana' }], new Set()),
+      ),
+      [{ name: 'Bob' }],
     );
     assert.deepEqual(
       appendStaffByItemRailPeople(
         afterRename,
-        staffByItemLockedLedgerNames(['Ana'], new Set(['ana'])),
+        staffByItemLockedLedgerPeople(
+          [{ name: 'Ana' }],
+          new Set([splitPartyKey(undefined, 'Ana')]),
+        ),
       ),
-      ['Bob', 'Ana'],
+      [{ name: 'Bob' }, { name: 'Ana' }],
     );
   });
 
-  it('appends allocation names after rename', () => {
-    assert.deepEqual(appendStaffByItemRailPeople(['Bob'], ['Bob', 'Carla']), ['Bob', 'Carla']);
+  it('appends allocation tickets after rename', () => {
+    assert.deepEqual(
+      appendStaffByItemRailPeople([{ name: 'Bob' }], [{ name: 'Bob' }, { name: 'Carla' }]),
+      [{ name: 'Bob' }, { name: 'Carla' }],
+    );
   });
 });

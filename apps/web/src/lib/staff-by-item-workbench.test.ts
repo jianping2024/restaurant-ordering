@@ -214,8 +214,8 @@ describe('addWholeShareToPerson / addMenuFractionShareToPerson', () => {
     allocations = afterJoao;
 
     const people = staffByItemPeopleFromAllocations(allocations);
-    assert.ok(people.includes('Ana'));
-    assert.ok(people.includes('João'));
+    assert.ok(people.some((p) => p.name === 'Ana'));
+    assert.ok(people.some((p) => p.name === 'João'));
 
     const ana = staffByItemPersonShares({
       personName: 'Ana',

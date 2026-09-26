@@ -1,5 +1,6 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { splitPersonKey } from '@/lib/split-person-identity';
+import { splitPartyKey } from '@/lib/split-party-id';
 
 /** Names shorter than this are ignored for combobox suggestions. */
 export const MIN_ACTIVE_CONSUMER_NAME_LENGTH = 2;
@@ -32,6 +33,10 @@ export function collectActiveConsumerNames(
   return roster;
 }
 
+/**
+ * Ticket keys used on other rows of the same dish.
+ * Same display name may repeat across party_id; same ticket cannot.
+ */
 export function namesUsedOnOtherDishRows(
   rows: ByItemConsumerRow[],
   rowId: string,
@@ -40,7 +45,9 @@ export function namesUsedOnOtherDishRows(
   for (const row of rows) {
     if (row.id === rowId) continue;
     const name = normalizeConsumerName(row.name);
-    if (name) used.add(splitPersonKey(name));
+    if (!name) continue;
+    const key = splitPartyKey(row.partyId, name);
+    if (key) used.add(key);
   }
   return used;
 }
@@ -60,7 +67,16 @@ export function availableConsumerNamesForRow(params: {
   rowId: string;
 }): string[] {
   const blocked = namesUsedOnOtherDishRows(params.dishRows, params.rowId);
-  return params.roster.filter((name) => !blocked.has(splitPersonKey(name)));
+  const self = params.dishRows.find((row) => row.id === params.rowId);
+  const selfKey = self ? splitPartyKey(self.partyId, self.name) : '';
+  return params.roster.filter((name) => {
+    const candidateKey = splitPartyKey(self?.partyId, name);
+    if (blocked.has(candidateKey) && candidateKey !== selfKey) return false;
+    // Legacy name-only collision on this dish
+    const legacyKey = splitPartyKey(undefined, name);
+    if (!self?.partyId && blocked.has(legacyKey) && legacyKey !== selfKey) return false;
+    return true;
+  });
 }
 
 export function suggestConsumerNamesForRow(params: {

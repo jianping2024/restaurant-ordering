@@ -172,7 +172,11 @@ export function OrderHistoryDetailModal({
       if (!billSplitId) return;
       const name = payment.person_name?.trim();
       if (!name) return;
-      const scopeId = billSyncByItemScopeId(billSplitId, name);
+      const rosterRow =
+        payment.person_index != null && payment.person_index >= 0
+          ? billSplit?.result?.[payment.person_index]
+          : undefined;
+      const scopeId = billSyncByItemScopeId(billSplitId, name, rosterRow?.party_id);
       void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
         if (result !== 'need_issue') return;
         setInvoiceScopeId(scopeId);

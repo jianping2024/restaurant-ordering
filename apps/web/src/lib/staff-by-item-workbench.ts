@@ -28,11 +28,20 @@ import {
 } from '@/lib/rational-qty';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
-import { splitPersonKey } from '@/lib/split-person-identity';
+import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
+import type { StaffByItemRailPerson } from '@/lib/staff-by-item-people';
 import type { UILanguage } from '@/lib/i18n';
 
-function personMatches(rowName: string, personName: string): boolean {
-  return splitPersonKey(rowName) === splitPersonKey(personName);
+function ticketMatches(
+  row: Pick<ByItemConsumerRow, 'name' | 'partyId'>,
+  personName: string,
+  partyId?: string,
+): boolean {
+  if (partyId?.trim()) {
+    return splitPartyKey(row.partyId, row.name) === splitPartyKey(partyId, personName);
+  }
+  // Lookup without party_id: match display name (compat / tests).
+  return splitPartyKey(undefined, row.name) === splitPartyKey(undefined, personName);
 }
 
 function qtyDiff(target: Rational, allocated: Rational): Rational {
@@ -255,7 +264,17 @@ function shareAmountsByRowId(
     if (!row.name.trim()) continue;
     const qty = parseConsumerRowQty(row);
     if (!qty) continue;
-    priced.push({ rowId: row.id, share: { name: row.name, qty } });
+    priced.push({
+      rowId: row.id,
+      share: {
+        name: row.name,
+        qty,
+        ...(row.partyId?.trim() ? { partyId: row.partyId.trim() } : {}),
+        ...(row.paidLocked && row.lockedAmount != null && Number.isFinite(row.lockedAmount)
+          ? { frozenAmount: row.lockedAmount }
+          : {}),
+      },
+    });
   }
   if (priced.length === 0) return out;
   const amounts = allocateByItemShareAmounts(
@@ -274,9 +293,10 @@ function shareAmountsByRowId(
   return out;
 }
 
-/** Shares belonging to one marker name across all lines. */
+/** Shares belonging to one ticket across all lines. */
 export function staffByItemPersonShares(params: {
   personName: string;
+  partyId?: string;
   lineSpecs: ByItemLineSpec[];
   orderLines: BillSplitOrderLine[];
   allocations: Record<string, ByItemConsumerRow[]>;
@@ -285,6 +305,7 @@ export function staffByItemPersonShares(params: {
 }): StaffByItemPersonShare[] {
   const {
     personName,
+    partyId,
     lineSpecs,
     orderLines,
     allocations,
@@ -305,7 +326,7 @@ export function staffByItemPersonShares(params: {
     const amountsByRowId = shareAmountsByRowId(spec, rows);
 
     for (const row of rows) {
-      if (!personMatches(row.name, personName)) continue;
+      if (!ticketMatches(row, personName, partyId)) continue;
 
       if (spec.mode === 'buffet') {
         const { adults, children } = resolveBuffetRowCounts(row);
@@ -353,22 +374,29 @@ export function staffByItemPersonShares(params: {
   return out;
 }
 
-function upsertEditableNamedRow(
+function upsertEditableTicketRow(
   rows: ByItemConsumerRow[],
   personName: string,
   buffet: boolean,
+  partyId?: string,
 ): { rows: ByItemConsumerRow[]; row: ByItemConsumerRow } {
+  const wantedParty = partyId?.trim() || undefined;
   // Never merge into a paid-frozen row — new same dish gets a new editable row.
-  const existing = rows.find(
-    (row) => personMatches(row.name, personName) && !row.paidLocked,
-  );
+  const existing = rows.find((row) => {
+    if (row.paidLocked) return false;
+    if (wantedParty) return ticketMatches(row, personName, wantedParty);
+    // Compat: no party on the add → merge unpaid same display name.
+    return splitPartyKey(undefined, row.name) === splitPartyKey(undefined, personName);
+  });
   if (existing) return { rows, row: existing };
 
+  const ticketId = wantedParty || mintSplitPartyId();
   const empty = rows.find((row) => !row.name.trim() && !row.paidLocked);
   if (empty) {
     const named = {
       ...empty,
       name: personName,
+      partyId: ticketId,
       qtyWhole: '',
       qtyNum: '',
       qtyDen: '',
@@ -383,6 +411,7 @@ function upsertEditableNamedRow(
   const created = {
     ...createByItemConsumerRow({ buffet }),
     name: personName,
+    partyId: ticketId,
     qtyWhole: '',
     adultQty: buffet ? '' : undefined,
     childQty: buffet ? '' : undefined,
@@ -396,8 +425,9 @@ export function addWholeShareToPerson(params: {
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   personName: string;
+  partyId?: string;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName } = params;
+  const { allocations, lineSpecs, lineKey, personName, partyId } = params;
   const name = personName.trim();
   if (!name) return null;
   const spec = lineSpecs.find((line) => line.key === lineKey);
@@ -408,12 +438,18 @@ export function addWholeShareToPerson(params: {
   if (remaining.num <= 0) return null;
 
   const take = minRational(remaining, rationalFromInt(1));
-  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, false);
+  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, false, partyId);
   const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
   const nextQty = addRationals(current, take);
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
-      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty), paidLocked: undefined }
+      ? {
+          ...candidate,
+          name,
+          partyId: row.partyId,
+          ...rationalToRowQtyFields(nextQty),
+          paidLocked: undefined,
+        }
       : candidate,
   );
   return { ...allocations, [lineKey]: patched };
@@ -452,9 +488,10 @@ export function addMenuFractionShareToPerson(params: {
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   personName: string;
+  partyId?: string;
   denominator?: number;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, denominator = 2 } = params;
+  const { allocations, lineSpecs, lineKey, personName, partyId, denominator = 2 } = params;
   const name = personName.trim();
   if (!name) return null;
   if (!canAddMenuFractionShare({ allocations, lineSpecs, lineKey, denominator })) return null;
@@ -463,12 +500,18 @@ export function addMenuFractionShareToPerson(params: {
 
   const rows = allocations[lineKey] ?? [];
   const take = menuFractionTake(denominator);
-  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, false);
+  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, false, partyId);
   const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
   const nextQty = addRationals(current, take);
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
-      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty), paidLocked: undefined }
+      ? {
+          ...candidate,
+          name,
+          partyId: row.partyId,
+          ...rationalToRowQtyFields(nextQty),
+          paidLocked: undefined,
+        }
       : candidate,
   );
   return { ...allocations, [lineKey]: patched };
@@ -479,9 +522,10 @@ export function addBuffetSeatToPerson(params: {
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   personName: string;
+  partyId?: string;
   guestType: 'adult' | 'child';
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, guestType } = params;
+  const { allocations, lineSpecs, lineKey, personName, partyId, guestType } = params;
   const name = personName.trim();
   if (!name) return null;
   const spec = lineSpecs.find((line) => line.key === lineKey);
@@ -494,7 +538,7 @@ export function addBuffetSeatToPerson(params: {
   if (guestType === 'adult' && adultsAssigned >= spec.adults) return null;
   if (guestType === 'child' && childrenAssigned >= spec.children) return null;
 
-  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, true);
+  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, true, partyId);
   // Do not use resolveBuffetRowCounts here — empty named rows default to 1 adult,
   // which would double-count when we then +1 for this pool action.
   const adults = parseBuffetHeadcountInput(row.adultQty);
@@ -506,6 +550,7 @@ export function addBuffetSeatToPerson(params: {
       ? {
           ...candidate,
           name,
+          partyId: row.partyId,
           adultQty: nextAdults > 0 ? String(nextAdults) : '',
           childQty: nextChildren > 0 ? String(nextChildren) : '',
           qtyWhole: '',
@@ -625,21 +670,22 @@ export function removePersonShareOnLine(params: {
   };
 }
 
-/** Ordered unique marker names currently present in allocations (non-empty). */
+/** Ordered unique tickets currently present in allocations (non-empty). */
 export function staffByItemPeopleFromAllocations(
   allocations: Record<string, ByItemConsumerRow[]>,
-): string[] {
+): StaffByItemRailPerson[] {
   const seen = new Set<string>();
-  const names: string[] = [];
+  const people: StaffByItemRailPerson[] = [];
   for (const rows of Object.values(allocations)) {
     for (const row of rows) {
       const name = row.name.trim();
       if (!name) continue;
-      const key = splitPersonKey(name);
+      const partyId = row.partyId?.trim() || undefined;
+      const key = splitPartyKey(partyId, name);
       if (!key || seen.has(key)) continue;
       seen.add(key);
-      names.push(name);
+      people.push(partyId ? { name, partyId } : { name });
     }
   }
-  return names;
+  return people;
 }

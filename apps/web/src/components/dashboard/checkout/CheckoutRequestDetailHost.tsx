@@ -18,7 +18,7 @@ import {
   collectPaymentInitialCustomerName,
   shouldAutoIssueFiscalAfterCollect,
 } from '@/lib/checkout-print-ask';
-import { splitPersonKey } from '@/lib/split-person-identity';
+import { splitPartyKey } from '@/lib/split-party-id';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 import {
   hasConfirmedPerson,
@@ -105,6 +105,7 @@ export function CheckoutRequestDetailHost({
     amount: number;
     wholeTable: boolean;
     personName?: string;
+    partyId?: string;
   } | null>(null);
   const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
   const {
@@ -354,7 +355,13 @@ export function CheckoutRequestDetailHost({
 
   const confirmCollectedPerson = async (
     row: BillSplit,
-    pending: { rowIndex: number; amount: number; wholeTable: boolean; personName?: string },
+    pending: {
+      rowIndex: number;
+      amount: number;
+      wholeTable: boolean;
+      personName?: string;
+      partyId?: string;
+    },
     input: CollectPaymentConfirmInput,
   ) => {
     if (!restaurantSlug) {
@@ -381,6 +388,7 @@ export function CheckoutRequestDetailHost({
         );
         const target = resolveByItemCollectTarget({
           personName: pending.personName,
+          partyId: pending.partyId,
           roster: persistedResult,
           liveResults: persistedResult,
           collectedPayments: payments,
@@ -394,7 +402,9 @@ export function CheckoutRequestDetailHost({
         amount = target.amount;
       } else if (pending.personName && !persistedResult) {
         const idx = (row.result ?? []).findIndex(
-          (entry) => splitPersonKey(entry.name) === splitPersonKey(pending.personName ?? ''),
+          (entry) =>
+            splitPartyKey(entry.party_id, entry.name) ===
+            splitPartyKey(pending.partyId, pending.personName ?? ''),
         );
         if (idx >= 0) rowIndex = idx;
       }
@@ -420,6 +430,10 @@ export function CheckoutRequestDetailHost({
         wholeTable: pending.wholeTable,
         allPaid: outcome.all_paid,
         personName: outcome.collection.person_name,
+        partyId:
+          pending.partyId ??
+          (row.result ?? [])[rowIndex]?.party_id ??
+          undefined,
         obligation: amount,
         paymentMethod: input.paymentMethod,
         payment_lines: input.payment_lines,
@@ -497,14 +511,22 @@ export function CheckoutRequestDetailHost({
     (payment: SessionCollectedPayment) => {
       const name = payment.person_name?.trim();
       if (!name) return;
-      const scopeId = billSyncByItemScopeId(request.id, name);
+      const rosterRow =
+        payment.person_index != null && payment.person_index >= 0
+          ? request.result?.[payment.person_index]
+          : undefined;
+      const scopeId = billSyncByItemScopeId(
+        request.id,
+        name,
+        rosterRow?.party_id,
+      );
       void requestPrintFiscalInvoice({ issueScopeId: scopeId }).then((result) => {
         if (result === 'need_issue') {
           openInvoiceModal(scopeId, payment.payment_method, payment.amount);
         }
       });
     },
-    [openInvoiceModal, request.id, requestPrintFiscalInvoice],
+    [openInvoiceModal, request.id, request.result, requestPrintFiscalInvoice],
   );
 
   const showSplitReceiptActions = isMultiPersonSplitBill(request);
@@ -576,8 +598,14 @@ export function CheckoutRequestDetailHost({
           }
           onDiscountRateBlur={() => handleDiscountRateBlur(request)}
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-          onCollectPerson={(index, amount, personName) => {
-            setCollectPending({ rowIndex: index, amount, wholeTable: false, personName });
+          onCollectPerson={(index, amount, personName, partyId) => {
+            setCollectPending({
+              rowIndex: index,
+              amount,
+              wholeTable: false,
+              personName,
+              partyId,
+            });
           }}
           onSplitPersisted={(row) => {
             persistedBillSplitId.current = row.id;

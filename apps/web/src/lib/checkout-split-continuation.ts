@@ -14,7 +14,9 @@ import {
   compareRationals,
   type Rational,
 } from '@/lib/rational-qty';
-import { displaySplitPersonName, splitPersonKey } from '@/lib/split-person-identity';
+import { displaySplitPersonName } from '@/lib/split-person-identity';
+import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
+import { stampMissingPaidLockedAmounts } from '@/lib/stamp-paid-locked-amounts';
 import type { BillSplit, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
 import {
@@ -170,8 +172,12 @@ export function shouldShowCheckoutSubmitted(
   return split.status === 'pending';
 }
 
-export function lockedPersonLineKey(lineKey: string, personName: string): string {
-  return `${lineKey}::${personName.trim().toLowerCase()}`;
+export function lockedPersonLineKey(
+  lineKey: string,
+  personName: string,
+  partyId?: string,
+): string {
+  return `${lineKey}::${splitPartyKey(partyId, personName)}`;
 }
 
 /**
@@ -199,7 +205,11 @@ export function buildLockedPersonLineMins(
 
     for (const share of person.item_shares ?? []) {
       if (!share.key) continue;
-      const mapKey = lockedPersonLineKey(share.key, person.name);
+      const mapKey = lockedPersonLineKey(
+        share.key,
+        person.name,
+        person.party_id ?? share.party_id,
+      );
       const qty = normalizeRational({ num: share.qty_num, den: share.qty_den });
       if (share.guest_type === 'adult' || share.guest_type === 'child') {
         const entry = buffet.get(mapKey) ?? { adults: 0, children: 0 };
@@ -213,7 +223,7 @@ export function buildLockedPersonLineMins(
     }
 
     for (const key of person.items ?? []) {
-      const mapKey = lockedPersonLineKey(key, person.name);
+      const mapKey = lockedPersonLineKey(key, person.name, person.party_id);
       if (!menu.has(mapKey)) {
         menu.set(mapKey, { num: 1, den: 1 });
       }
@@ -256,7 +266,7 @@ export function byItemRowEditLock(params: {
     };
   }
 
-  const mapKey = lockedPersonLineKey(lineKey, name);
+  const mapKey = lockedPersonLineKey(lineKey, name, row.partyId);
   if (spec.mode === 'buffet') {
     const mins = locks.buffet.get(mapKey) ?? { adults: 0, children: 0 };
     const hasLock = mins.adults > 0 || mins.children > 0;
@@ -285,14 +295,23 @@ export function byItemRowEditLock(params: {
 }
 
 function buffetRowsFromShares(
-  shares: Array<{ name: string; qty: Rational; guestType?: 'adult' | 'child' }>,
+  shares: Array<{
+    name: string;
+    qty: Rational;
+    guestType?: 'adult' | 'child';
+    partyId?: string;
+  }>,
 ): ByItemConsumerRow[] {
-  const byKey = new Map<string, { name: string; adults: number; children: number }>();
+  const byKey = new Map<
+    string,
+    { name: string; partyId?: string; adults: number; children: number }
+  >();
   for (const share of shares) {
-    const key = splitPersonKey(share.name);
+    const key = splitPartyKey(share.partyId, share.name);
     if (!key) continue;
     const entry = byKey.get(key) ?? {
       name: displaySplitPersonName(share.name),
+      ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
       adults: 0,
       children: 0,
     };
@@ -301,9 +320,10 @@ function buffetRowsFromShares(
     else entry.adults += count;
     byKey.set(key, entry);
   }
-  return Array.from(byKey.values()).map(({ name, adults, children }) => ({
+  return Array.from(byKey.values()).map(({ name, partyId, adults, children }) => ({
     ...createByItemConsumerRow({ buffet: true }),
     name,
+    ...(partyId ? { partyId } : {}),
     adultQty: adults > 0 ? String(adults) : '',
     childQty: children > 0 ? String(children) : '',
     qtyWhole: '',
@@ -329,7 +349,7 @@ export function buildByItemConsumerRowsFromPersons(
     if (spec.mode === 'buffet') {
       const expanded: ByItemConsumerRow[] = [];
       for (const row of buffetRowsFromShares(shares)) {
-        const mapKey = lockedPersonLineKey(spec.key, row.name);
+        const mapKey = lockedPersonLineKey(spec.key, row.name, row.partyId);
         const mins = locks.buffet.get(mapKey);
         const adults = parseBuffetHeadcountInput(row.adultQty);
         const children = parseBuffetHeadcountInput(row.childQty);
@@ -363,24 +383,27 @@ export function buildByItemConsumerRowsFromPersons(
       continue;
     }
 
-    const byPerson = new Map<string, typeof shares>();
+    const byTicket = new Map<string, typeof shares>();
     for (const share of shares) {
-      const key = share.name.trim().toLowerCase();
-      const list = byPerson.get(key) ?? [];
+      const key = splitPartyKey(share.partyId, share.name);
+      if (!key) continue;
+      const list = byTicket.get(key) ?? [];
       list.push(share);
-      byPerson.set(key, list);
+      byTicket.set(key, list);
     }
 
     const lineRows: ByItemConsumerRow[] = [];
-    for (const personShares of Array.from(byPerson.values())) {
+    for (const personShares of Array.from(byTicket.values())) {
       const name = personShares[0]!.name;
-      const mapKey = lockedPersonLineKey(spec.key, name);
+      const partyId = personShares[0]!.partyId?.trim() || undefined;
+      const mapKey = lockedPersonLineKey(spec.key, name, partyId);
       const minQty = locks.menu.get(mapKey);
       let lockLeft =
         minQty && minQty.num > 0 ? normalizeRational(minQty) : null;
 
       for (const share of personShares) {
         let qty = normalizeRational(share.qty);
+        let splitPaidRemainder = false;
         if (lockLeft && lockLeft.num > 0) {
           const cmp = compareRationals(qty, lockLeft);
           if (cmp <= 0) {
@@ -389,6 +412,10 @@ export function buildByItemConsumerRowsFromPersons(
               name,
               ...rationalToRowQtyFields(qty),
               paidLocked: true,
+              ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
+              ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
+                ? { lockedAmount: share.frozenAmount }
+                : {}),
             });
             lockLeft = normalizeRational({
               num: lockLeft.num * qty.den - qty.num * lockLeft.den,
@@ -401,25 +428,39 @@ export function buildByItemConsumerRowsFromPersons(
             name,
             ...rationalToRowQtyFields(lockLeft),
             paidLocked: true,
+            ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
+            ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
+              ? { lockedAmount: share.frozenAmount }
+              : {}),
           });
           qty = normalizeRational({
             num: qty.num * lockLeft.den - lockLeft.num * qty.den,
             den: qty.den * lockLeft.den,
           });
           lockLeft = { num: 0, den: 1 };
+          splitPaidRemainder = true;
         }
         if (qty.num > 0) {
+          const surplusPartyId = splitPaidRemainder
+            ? mintSplitPartyId()
+            : share.partyId?.trim() || undefined;
           lineRows.push({
             ...createByItemConsumerRow(),
             name,
             ...rationalToRowQtyFields(qty),
+            ...(surplusPartyId ? { partyId: surplusPartyId } : {}),
+            ...(share.frozenAmount != null &&
+            Number.isFinite(share.frozenAmount) &&
+            !splitPaidRemainder
+              ? { lockedAmount: share.frozenAmount, paidLocked: true }
+              : {}),
           });
         }
       }
     }
     rows[spec.key] = lineRows;
   }
-  return rows;
+  return stampMissingPaidLockedAmounts(lineSpecs, rows);
 }
 
 function lockedSharesPreserved(params: {
@@ -436,9 +477,9 @@ function lockedSharesPreserved(params: {
     const sep = mapKey.lastIndexOf('::');
     if (sep < 0) return false;
     const lineKey = mapKey.slice(0, sep);
-    const personLower = mapKey.slice(sep + 2);
+    const ticketKey = mapKey.slice(sep + 2);
     const share = (incomingAlloc[lineKey] ?? []).find(
-      (row) => row.name.trim().toLowerCase() === personLower,
+      (row) => splitPartyKey(row.partyId, row.name) === ticketKey,
     );
     if (!share || !rationalGte(share.qty, minQty)) return false;
   }
@@ -447,12 +488,12 @@ function lockedSharesPreserved(params: {
     const sep = mapKey.lastIndexOf('::');
     if (sep < 0) return false;
     const lineKey = mapKey.slice(0, sep);
-    const personLower = mapKey.slice(sep + 2);
+    const ticketKey = mapKey.slice(sep + 2);
     const shares = incomingAlloc[lineKey] ?? [];
     let adults = 0;
     let children = 0;
     for (const share of shares) {
-      if (share.name.trim().toLowerCase() !== personLower) continue;
+      if (splitPartyKey(share.partyId, share.name) !== ticketKey) continue;
       const count = Math.max(0, Math.round(share.qty.num / share.qty.den));
       if (share.guestType === 'child') children += count;
       else adults += count;

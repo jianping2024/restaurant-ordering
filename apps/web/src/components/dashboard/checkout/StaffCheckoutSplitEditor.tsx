@@ -24,8 +24,12 @@ import {
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
-import { staffByItemLedgerPersonNames } from '@/lib/staff-by-item-people';
+import {
+  staffByItemLedgerPeople,
+  type StaffByItemRailPerson,
+} from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
+import { splitPartyKey } from '@/lib/split-party-id';
 import {
   buildSubmitPersons,
   validateSubmitSplitDraft,
@@ -69,7 +73,12 @@ type Props = {
   onDiscountRateFocus: () => void;
   onDiscountRateBlur: () => void;
   onResumeOrderingClick: () => void;
-  onCollectPerson: (index: number, amount: number, personName?: string) => void;
+  onCollectPerson: (
+    index: number,
+    amount: number,
+    personName?: string,
+    partyId?: string,
+  ) => void;
   onSplitPersisted: (row: BillSplit) => void;
   onRegisterPersist: (persist: (() => Promise<SplitResult[] | null>) | null) => void;
 };
@@ -202,10 +211,14 @@ export function StaffCheckoutSplitEditor({
     [billT, checkoutT],
   );
 
-  const ledgerPersonNames = useMemo(
-    () => staffByItemLedgerPersonNames((request.result ?? []).map((row) => row.name)),
-    [request.result],
-  );
+  const ledgerPeople = useMemo((): StaffByItemRailPerson[] => {
+    return staffByItemLedgerPeople(
+      (request.result ?? []).map((row) => ({
+        name: row.name,
+        ...(row.party_id?.trim() ? { partyId: row.party_id.trim() } : {}),
+      })),
+    );
+  }, [request.result]);
 
   const liveByItemResults = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as SplitResult[];
@@ -216,18 +229,24 @@ export function StaffCheckoutSplitEditor({
     const lines = splitOrderLines.map((item) =>
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
-    const personOrder =
-      ledgerPersonNames.length > 0
-        ? ledgerPersonNames
+    const orderPeople =
+      ledgerPeople.length > 0
+        ? ledgerPeople
         : staffByItemPeopleFromAllocations(splitDraft.byItemAllocations);
-    return calcByItemSplitResults({
+    const calc = calcByItemSplitResults({
       lines,
       allocations,
-      personOrder,
+      personOrder: orderPeople.map((p) => p.name),
+      personPartyIds: orderPeople.map((p) => p.partyId),
     });
+    return calc.map((row) => ({
+      name: row.name,
+      amount: row.amount,
+      ...(row.partyId?.trim() ? { party_id: row.partyId.trim() } : {}),
+    }));
   }, [
     lang,
-    ledgerPersonNames,
+    ledgerPeople,
     lineSpecs,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
@@ -243,10 +262,34 @@ export function StaffCheckoutSplitEditor({
     [liveByItemResults, request.result],
   );
 
-  const settledPersonNames = useMemo(
+  const settledTicketKeys = useMemo(
     () => settledByItemPersonKeys(editRoster, collectedPayments),
     [collectedPayments, editRoster],
   );
+
+  const lockedTicketKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const name of splitDraft.lockedPersonNames) {
+      // Legacy set may be lowercase names or already party keys.
+      if (name.startsWith('p:') || name.startsWith('n:')) {
+        keys.add(name);
+        continue;
+      }
+      keys.add(splitPartyKey(undefined, name));
+    }
+    for (const row of request.result ?? []) {
+      if (!row.party_id?.trim()) continue;
+      const key = splitPartyKey(row.party_id, row.name);
+      if (!key) continue;
+      if (
+        settledTicketKeys.has(key) ||
+        splitDraft.lockedPersonNames.has(row.name.trim().toLowerCase())
+      ) {
+        keys.add(key);
+      }
+    }
+    return keys;
+  }, [request.result, settledTicketKeys, splitDraft.lockedPersonNames]);
 
   const splitValidationMessage = useMemo(() => {
     if (!splitDraft.splitMode || splitDraft.splitValidation.ok) return null;
@@ -359,13 +402,18 @@ export function StaffCheckoutSplitEditor({
   }, [onRegisterPersist, persistSplit]);
 
   const collectSavedPerson = useCallback(
-    async (index: number, preDiscountAmount: number, personName?: string) => {
+    async (
+      index: number,
+      preDiscountAmount: number,
+      personName?: string,
+      partyId?: string,
+    ) => {
       const amount = discountedObligationAmount(preDiscountAmount, discountRate);
       if (amount <= 0) {
         showToast(checkoutT.cashShort, 'error');
         return;
       }
-      onCollectPerson(index, amount, personName);
+      onCollectPerson(index, amount, personName, partyId);
     },
     [checkoutT.cashShort, discountRate, onCollectPerson],
   );
@@ -475,17 +523,19 @@ export function StaffCheckoutSplitEditor({
             lineSpecs={lineSpecs}
             orderLines={splitOrderLines}
             byItemAllocations={splitDraft.byItemAllocations}
-            ledgerPersonNames={ledgerPersonNames}
-            settledPersonNames={settledPersonNames}
-            lockedPersonNames={splitDraft.lockedPersonNames}
+            ledgerPeople={ledgerPeople}
+            settledTicketKeys={settledTicketKeys}
+            lockedTicketKeys={lockedTicketKeys}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
             labels={staffByItemLabels}
             disabled={submitting || detailLocked}
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
-            onRenamePerson={splitDraft.renameByItemConsumer}
-            onCollectCurrent={(personName) => {
+            onRenamePerson={({ oldName, newName, partyId }) => {
+              splitDraft.renameByItemConsumer(oldName, newName, partyId);
+            }}
+            onCollectCurrent={({ personName, partyId }) => {
               const trimmed = personName.trim();
               if (!trimmed) {
                 showToast(checkoutT.staffByItemNeedName, 'error');
@@ -493,6 +543,7 @@ export function StaffCheckoutSplitEditor({
               }
               const target = resolveByItemCollectTarget({
                 personName: trimmed,
+                partyId,
                 roster: editRoster,
                 liveResults: liveByItemResults,
                 collectedPayments,
@@ -502,7 +553,12 @@ export function StaffCheckoutSplitEditor({
                 showToast(checkoutT.staffByItemNoCollectableShare, 'error');
                 return;
               }
-              void collectSavedPerson(target.index, target.amount, target.personName);
+              void collectSavedPerson(
+                target.index,
+                target.amount,
+                target.personName,
+                target.partyId,
+              );
             }}
           />
         )}

@@ -424,6 +424,48 @@ function upsertEditableTicketRow(
   return { rows: [...rows, created], row: created };
 }
 
+/**
+ * Sole menu pool→person qty write: upsert unpaid ticket row and add `take`
+ * (clamped to pool remaining). Row "+" / 1/N and「全部分给」all go through here.
+ */
+function addMenuShareQtyToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  personName: string;
+  partyId?: string;
+  take: Rational;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, personName, partyId, take } = params;
+  const name = personName.trim();
+  if (!name || take.num <= 0) return null;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return null;
+
+  const rows = allocations[lineKey] ?? [];
+  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  if (remaining.num <= 0) return null;
+
+  const clamped = minRational(remaining, take);
+  if (clamped.num <= 0) return null;
+
+  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, false, partyId);
+  const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
+  const nextQty = addRationals(current, clamped);
+  const patched = nextRows.map((candidate) =>
+    candidate.id === row.id
+      ? {
+          ...candidate,
+          name,
+          partyId: row.partyId,
+          ...rationalToRowQtyFields(nextQty),
+          paidLocked: undefined,
+        }
+      : candidate,
+  );
+  return { ...allocations, [lineKey]: patched };
+}
+
 /** Add whole unit (or remaining if &lt; 1) from pool to person — fatura pool "+" semantics. */
 export function addWholeShareToPerson(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
@@ -442,22 +484,14 @@ export function addWholeShareToPerson(params: {
   const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
   if (remaining.num <= 0) return null;
 
-  const take = minRational(remaining, rationalFromInt(1));
-  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, false, partyId);
-  const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
-  const nextQty = addRationals(current, take);
-  const patched = nextRows.map((candidate) =>
-    candidate.id === row.id
-      ? {
-          ...candidate,
-          name,
-          partyId: row.partyId,
-          ...rationalToRowQtyFields(nextQty),
-          paidLocked: undefined,
-        }
-      : candidate,
-  );
-  return { ...allocations, [lineKey]: patched };
+  return addMenuShareQtyToPerson({
+    allocations,
+    lineSpecs,
+    lineKey,
+    personName: name,
+    partyId,
+    take: minRational(remaining, rationalFromInt(1)),
+  });
 }
 
 /** Sole pool `1/N` denominator: remaining's den when ≥2, else 2 (whole cups). */
@@ -500,39 +534,37 @@ export function addMenuFractionShareToPerson(params: {
   const name = personName.trim();
   if (!name) return null;
   if (!canAddMenuFractionShare({ allocations, lineSpecs, lineKey, denominator })) return null;
-  const spec = lineSpecs.find((line) => line.key === lineKey);
-  if (!spec || spec.mode !== 'menu') return null;
 
-  const rows = allocations[lineKey] ?? [];
-  const take = menuFractionTake(denominator);
-  const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, false, partyId);
-  const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
-  const nextQty = addRationals(current, take);
-  const patched = nextRows.map((candidate) =>
-    candidate.id === row.id
-      ? {
-          ...candidate,
-          name,
-          partyId: row.partyId,
-          ...rationalToRowQtyFields(nextQty),
-          paidLocked: undefined,
-        }
-      : candidate,
-  );
-  return { ...allocations, [lineKey]: patched };
+  return addMenuShareQtyToPerson({
+    allocations,
+    lineSpecs,
+    lineKey,
+    personName: name,
+    partyId,
+    take: menuFractionTake(denominator),
+  });
 }
 
-export function addBuffetSeatToPerson(params: {
+/**
+ * Sole buffet pool→person seat write: add adult/child deltas clamped to remaining.
+ * Row「成人/儿童」uses delta 1;「全部分给」uses all remaining seats in one write.
+ */
+function addBuffetSeatDeltaToPerson(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   personName: string;
   partyId?: string;
-  guestType: 'adult' | 'child';
+  adultDelta: number;
+  childDelta: number;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, partyId, guestType } = params;
+  const { allocations, lineSpecs, lineKey, personName, partyId } = params;
   const name = personName.trim();
   if (!name) return null;
+  const adultDelta = Math.max(0, Math.floor(params.adultDelta));
+  const childDelta = Math.max(0, Math.floor(params.childDelta));
+  if (adultDelta <= 0 && childDelta <= 0) return null;
+
   const spec = lineSpecs.find((line) => line.key === lineKey);
   if (!spec || spec.mode !== 'buffet') return null;
 
@@ -540,16 +572,17 @@ export function addBuffetSeatToPerson(params: {
   const assigned = parseBuffetConsumerRows(rows);
   const adultsAssigned = assigned.reduce((sum, row) => sum + row.adults, 0);
   const childrenAssigned = assigned.reduce((sum, row) => sum + row.children, 0);
-  if (guestType === 'adult' && adultsAssigned >= spec.adults) return null;
-  if (guestType === 'child' && childrenAssigned >= spec.children) return null;
+  const takeAdults = Math.min(adultDelta, Math.max(0, spec.adults - adultsAssigned));
+  const takeChildren = Math.min(childDelta, Math.max(0, spec.children - childrenAssigned));
+  if (takeAdults <= 0 && takeChildren <= 0) return null;
 
   const { rows: nextRows, row } = upsertEditableTicketRow(rows, name, true, partyId);
   // Do not use resolveBuffetRowCounts here — empty named rows default to 1 adult,
-  // which would double-count when we then +1 for this pool action.
+  // which would double-count when we then apply the pool delta.
   const adults = parseBuffetHeadcountInput(row.adultQty);
   const children = parseBuffetHeadcountInput(row.childQty);
-  const nextAdults = guestType === 'adult' ? adults + 1 : adults;
-  const nextChildren = guestType === 'child' ? children + 1 : children;
+  const nextAdults = adults + takeAdults;
+  const nextChildren = children + takeChildren;
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
       ? {
@@ -566,6 +599,85 @@ export function addBuffetSeatToPerson(params: {
       : candidate,
   );
   return { ...allocations, [lineKey]: patched };
+}
+
+export function addBuffetSeatToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  personName: string;
+  partyId?: string;
+  guestType: 'adult' | 'child';
+}): Record<string, ByItemConsumerRow[]> | null {
+  const { allocations, lineSpecs, lineKey, personName, partyId, guestType } = params;
+  return addBuffetSeatDeltaToPerson({
+    allocations,
+    lineSpecs,
+    lineKey,
+    personName,
+    partyId,
+    adultDelta: guestType === 'adult' ? 1 : 0,
+    childDelta: guestType === 'child' ? 1 : 0,
+  });
+}
+
+/**
+ * Sole pool-level「全部分给」: one write per line — menu take=all remaining,
+ * buffet take=all remaining adult+child seats — via the same qty/seat writers
+ * as row "+" /「成人」「儿童」. Returns null when nothing changed.
+ */
+export function assignAllRemainingPoolToPerson(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  personName: string;
+  partyId?: string;
+}): Record<string, ByItemConsumerRow[]> | null {
+  const name = params.personName.trim();
+  if (!name) return null;
+
+  let next = params.allocations;
+  let changed = false;
+
+  for (const spec of params.lineSpecs) {
+    if (spec.mode === 'menu') {
+      const rows = next[spec.key] ?? [];
+      const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+      if (remaining.num <= 0) continue;
+      const step = addMenuShareQtyToPerson({
+        allocations: next,
+        lineSpecs: params.lineSpecs,
+        lineKey: spec.key,
+        personName: name,
+        partyId: params.partyId,
+        take: remaining,
+      });
+      if (step) {
+        next = step;
+        changed = true;
+      }
+      continue;
+    }
+
+    const rows = next[spec.key] ?? [];
+    const assigned = parseBuffetConsumerRows(rows);
+    const adultsAssigned = assigned.reduce((sum, row) => sum + row.adults, 0);
+    const childrenAssigned = assigned.reduce((sum, row) => sum + row.children, 0);
+    const step = addBuffetSeatDeltaToPerson({
+      allocations: next,
+      lineSpecs: params.lineSpecs,
+      lineKey: spec.key,
+      personName: name,
+      partyId: params.partyId,
+      adultDelta: Math.max(0, spec.adults - adultsAssigned),
+      childDelta: Math.max(0, spec.children - childrenAssigned),
+    });
+    if (step) {
+      next = step;
+      changed = true;
+    }
+  }
+
+  return changed ? next : null;
 }
 
 /**

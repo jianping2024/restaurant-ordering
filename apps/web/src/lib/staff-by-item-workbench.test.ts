@@ -6,6 +6,7 @@ import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
   isStaffMenuShareOverAllocated,
   menuFractionDenominatorFromRemaining,
@@ -467,6 +468,230 @@ describe('addBuffetSeatToPerson', () => {
       lang: 'zh',
     });
     assert.equal(ana[0]!.qtyLabel, '1');
+  });
+});
+
+describe('assignAllRemainingPoolToPerson', () => {
+  it('drains multi-unit menu remaining in one write (not one-at-a-time)', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': emptyRows(),
+    };
+    const next = assignAllRemainingPoolToPerson({
+      allocations,
+      lineSpecs: [menuSpec],
+      personName: 'Ana',
+    });
+    assert.ok(next);
+    const ana = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(ana.length, 1);
+    assert.equal(ana[0]!.qtyLabel, '2');
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.remainingPositive, false);
+  });
+
+  it('drains fractional menu leftover in one write', () => {
+    const unitSpec: ByItemLineSpec = {
+      mode: 'menu',
+      key: 'line-unit',
+      lineQty: 1,
+      lineTotal: 3,
+      unitPrice: 3,
+    };
+    const unitLine = { ...orderLine, key: 'line-unit', quantity: 1, price: 3 };
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-unit': [{
+        id: 'row-a',
+        name: 'João',
+        qtyWhole: '',
+        qtyNum: '1',
+        qtyDen: '2',
+      }],
+    };
+    const next = assignAllRemainingPoolToPerson({
+      allocations,
+      lineSpecs: [unitSpec],
+      personName: 'Ana',
+    });
+    assert.ok(next);
+    const ana = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(ana[0]!.qtyLabel, '1/2');
+    const pool = staffByItemPoolLines({
+      lineSpecs: [unitSpec],
+      orderLines: [unitLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.remainingPositive, false);
+  });
+
+  it('drains buffet adult + child remaining in one write', () => {
+    const buffetSpec: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'bf-1',
+      lineTotal: 39.4,
+      adults: 2,
+      children: 1,
+      adultUnitPrice: 14.95,
+      childUnitPrice: 9.5,
+    };
+    const buffetLine = {
+      ...orderLine,
+      key: 'bf-1',
+      name: 'Buffet',
+      adult_count: 2,
+      child_count: 1,
+      adult_unit_price: 14.95,
+      child_unit_price: 9.5,
+    };
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'bf-1': [{
+        id: 'row-1',
+        name: '',
+        qtyWhole: '',
+        qtyNum: '',
+        qtyDen: '',
+        adultQty: '',
+        childQty: '',
+      }],
+    };
+    const next = assignAllRemainingPoolToPerson({
+      allocations,
+      lineSpecs: [buffetSpec],
+      personName: 'Ana',
+    });
+    assert.ok(next);
+    const row = next!['bf-1']!.find((r) => r.name === 'Ana');
+    assert.ok(row);
+    assert.equal(row!.adultQty, '2');
+    assert.equal(row!.childQty, '1');
+    const pool = staffByItemPoolLines({
+      lineSpecs: [buffetSpec],
+      orderLines: [buffetLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(pool[0]!.remainingPositive, false);
+  });
+
+  it('assigns menu + buffet together and leaves prior person shares', () => {
+    const buffetSpec: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'bf-1',
+      lineTotal: 14.95,
+      adults: 1,
+      children: 0,
+      adultUnitPrice: 14.95,
+      childUnitPrice: 0,
+    };
+    let allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': emptyRows(),
+      'bf-1': [{
+        id: 'row-bf',
+        name: '',
+        qtyWhole: '',
+        qtyNum: '',
+        qtyDen: '',
+        adultQty: '',
+        childQty: '',
+      }],
+    };
+    const afterJoao = addWholeShareToPerson({
+      allocations,
+      lineSpecs: [menuSpec, buffetSpec],
+      lineKey: 'line-a',
+      personName: 'João',
+    });
+    assert.ok(afterJoao);
+    allocations = afterJoao;
+
+    const next = assignAllRemainingPoolToPerson({
+      allocations,
+      lineSpecs: [menuSpec, buffetSpec],
+      personName: 'Ana',
+    });
+    assert.ok(next);
+
+    const joao = staffByItemPersonShares({
+      personName: 'João',
+      lineSpecs: [menuSpec, buffetSpec],
+      orderLines: [orderLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(joao.length, 1);
+    assert.equal(joao[0]!.qtyLabel, '1');
+
+    const anaMenu = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.equal(anaMenu[0]!.qtyLabel, '1');
+
+    const bfRow = next!['bf-1']!.find((r) => r.name === 'Ana');
+    assert.equal(bfRow?.adultQty, '1');
+
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec, buffetSpec],
+      orderLines: [
+        orderLine,
+        {
+          ...orderLine,
+          key: 'bf-1',
+          adult_count: 1,
+          child_count: 0,
+          adult_unit_price: 14.95,
+          child_unit_price: 0,
+        },
+      ],
+      allocations: next!,
+      lang: 'zh',
+    });
+    assert.ok(pool.every((line) => !line.remainingPositive));
+  });
+
+  it('returns null when name empty or pool already empty', () => {
+    assert.equal(
+      assignAllRemainingPoolToPerson({
+        allocations: { 'line-a': emptyRows() },
+        lineSpecs: [menuSpec],
+        personName: '  ',
+      }),
+      null,
+    );
+    const full = assignAllRemainingPoolToPerson({
+      allocations: { 'line-a': emptyRows() },
+      lineSpecs: [menuSpec],
+      personName: 'Ana',
+    });
+    assert.ok(full);
+    assert.equal(
+      assignAllRemainingPoolToPerson({
+        allocations: full!,
+        lineSpecs: [menuSpec],
+        personName: 'Ana',
+      }),
+      null,
+    );
   });
 });
 

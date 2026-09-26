@@ -211,6 +211,7 @@ export function StaffCheckoutSplitEditor({
           .replace('{amount}', amount),
       needName: checkoutT.staffByItemNeedName,
       poolEmpty: checkoutT.staffByItemPoolEmpty,
+      assignAll: checkoutT.staffByItemAssignAll,
       addAdult: billT.byItemGuestTypeAdult,
       addChild: billT.byItemGuestTypeChild,
       remove: checkoutT.returnShareToPool,

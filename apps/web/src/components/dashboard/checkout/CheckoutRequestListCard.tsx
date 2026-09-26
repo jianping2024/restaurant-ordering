@@ -16,7 +16,7 @@ interface Props {
   selected: boolean;
   summary: CheckoutSettlementSummary;
   splitModeLabel: string;
-  paymentProgressLabel: string | null;
+  billCollectionProgressLabel: string | null;
   partialPaid: boolean;
   lang: UILanguage;
   t: CheckoutT;
@@ -28,7 +28,7 @@ export function CheckoutRequestListCard({
   selected,
   summary,
   splitModeLabel,
-  paymentProgressLabel,
+  billCollectionProgressLabel,
   partialPaid,
   lang,
   t,
@@ -62,9 +62,9 @@ export function CheckoutRequestListCard({
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-border/50 text-brand-text-muted">
               {splitModeLabel}
             </span>
-            {paymentProgressLabel ? (
+            {billCollectionProgressLabel ? (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-border/50 text-brand-text-muted tabular-nums">
-                {paymentProgressLabel}
+                {billCollectionProgressLabel}
               </span>
             ) : null}
             {partialPaid ? (

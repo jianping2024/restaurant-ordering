@@ -14,7 +14,7 @@ import { CheckoutRequestDetailHost } from '@/components/dashboard/checkout/Check
 import { CheckoutRequestListCard } from '@/components/dashboard/checkout/CheckoutRequestListCard';
 import {
   buildCheckoutSettlementSummary,
-  checkoutPaymentProgress,
+  formatCheckoutBillCollectionProgressLabel,
   checkoutSplitModeLabel,
   hasCheckoutCollections,
 } from '@/lib/checkout-settlement';
@@ -130,18 +130,15 @@ export function CheckoutRequestsManager({
       const collected = getCollectedForSession(request.session_id);
       const discountRate = billDiscount.getDisplayRate(request.id, request.discount_rate ?? 0);
       const summary = buildCheckoutSettlementSummary(request, discountRate, collected);
-      const progress = checkoutPaymentProgress(request, collected, discountRate);
-      const paymentProgressLabel =
-        progress.totalCount > 1
-          ? t.paymentProgress
-              .replace('{paid}', String(progress.paidCount))
-              .replace('{total}', String(progress.totalCount))
-          : null;
+      const billCollectionProgressLabel = formatCheckoutBillCollectionProgressLabel(
+        summary,
+        t.billCollectionProgress,
+      );
       return {
         collected,
         summary,
         splitModeLabel: checkoutSplitModeLabel(request.split_mode, splitModeLabels),
-        paymentProgressLabel,
+        billCollectionProgressLabel,
         partialPaid: hasCheckoutCollections(request, collected),
       };
     },
@@ -219,7 +216,7 @@ export function CheckoutRequestsManager({
                   selected={request.id === selectedRequestId}
                   summary={meta.summary}
                   splitModeLabel={meta.splitModeLabel}
-                  paymentProgressLabel={meta.paymentProgressLabel}
+                  billCollectionProgressLabel={meta.billCollectionProgressLabel}
                   partialPaid={meta.partialPaid}
                   lang={lang}
                   t={t}

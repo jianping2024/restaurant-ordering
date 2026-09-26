@@ -1241,7 +1241,7 @@ export const MESSAGES_DE = {
     "settlementCollected": "Eingezogen",
     "settlementDiscount": "Rabatt {n}%",
     "partialPaidBadge": "Teilweise bezahlt",
-    "paymentProgress": "{paid}/{total} bezahlt",
+    "billCollectionProgress": "Eingenommen €{collected} / €{payable}",
     "splitModeWhole": "Ganzer Tisch",
     "confirmOnePaidAmount": "€{amount} einziehen",
     "personOwedTotal": "Offen €{amount}",

@@ -1,12 +1,11 @@
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
-import { applyDiscountToRows, checkoutPayableAmount, normalizeSplitRows } from '@/lib/checkout-split-math';
+import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
   totalCollectedAmount,
   hasConfirmedPerson,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
-import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import type { BillSplit, Order, SplitMode } from '@/types';
 
 export type CheckoutSettlementSummary = {
@@ -58,29 +57,19 @@ export function liveSessionUncollectedAmount(params: {
   );
 }
 
-export function checkoutPaymentProgress(
-  request: BillSplit,
-  collectedPayments: SessionCollectedPayment[] = [],
-  discountRate = 0,
-): {
-  paidCount: number;
-  totalCount: number;
-} {
-  const rows = normalizeSplitRows(request);
-  if (rows.length > 1) {
-    const settlement = buildSplitSettlementRows(
-      applyDiscountToRows(rows, discountRate),
-      collectedPayments,
-    );
-    return {
-      paidCount: settlement.filter((row) => row.settlementStatus === 'settled').length,
-      totalCount: settlement.length,
-    };
-  }
-  return {
-    paidCount: rows.filter((row) => row.paid).length,
-    totalCount: rows.length,
-  };
+/**
+ * Sole checkout-queue collection progress label: bill「已收 / 应收」from the same
+ * summary as SettlementBar. Never person-count N/N (that lied when the by-item pool
+ * was still open). Null until something is collected.
+ */
+export function formatCheckoutBillCollectionProgressLabel(
+  summary: Pick<CheckoutSettlementSummary, 'collected' | 'payable'>,
+  template: string,
+): string | null {
+  if (summary.collected <= 0) return null;
+  return template
+    .replace('{collected}', summary.collected.toFixed(2))
+    .replace('{payable}', summary.payable.toFixed(2));
 }
 
 export function hasCheckoutCollections(

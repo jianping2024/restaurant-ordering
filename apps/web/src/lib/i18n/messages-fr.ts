@@ -1243,7 +1243,7 @@ export const MESSAGES_FR = {
     "settlementCollected": "Encaissé",
     "settlementDiscount": "Remise {n} %",
     "partialPaidBadge": "Partiellement payé",
-    "paymentProgress": "{paid}/{total} payés",
+    "billCollectionProgress": "Encaisse €{collected} / €{payable}",
     "splitModeWhole": "Table entière",
     "confirmOnePaidAmount": "Encaisser {amount} €",
     "personOwedTotal": "Dû {amount} €",

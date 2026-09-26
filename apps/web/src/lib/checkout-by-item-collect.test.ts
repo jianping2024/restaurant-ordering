@@ -30,20 +30,22 @@ describe('orderByItemResultsToRoster', () => {
   });
 
   it('keeps same-name tickets distinct by party_id', () => {
+    const a = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const b = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
     const ordered = orderByItemResultsToRoster(
       [
-        { name: '客人 3', amount: 5, party_id: 'b' },
-        { name: '客人 3', amount: 10, party_id: 'a' },
+        { name: '客人 3', amount: 5, party_id: b },
+        { name: '客人 3', amount: 10, party_id: a },
       ],
       [
-        { name: '客人 3', partyId: 'a' },
-        { name: '客人 3', partyId: 'b' },
+        { name: '客人 3', partyId: a },
+        { name: '客人 3', partyId: b },
       ],
     );
     assert.equal(ordered.length, 2);
-    assert.equal(ordered[0]?.party_id, 'a');
+    assert.equal(ordered[0]?.party_id, a);
     assert.equal(ordered[0]?.amount, 10);
-    assert.equal(ordered[1]?.party_id, 'b');
+    assert.equal(ordered[1]?.party_id, b);
     assert.equal(ordered[1]?.amount, 5);
   });
 });

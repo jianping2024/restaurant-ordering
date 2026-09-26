@@ -140,7 +140,44 @@ export function isCheckoutSplitLocked(
   return false;
 }
 
-/** Guests with collection history on this session (case-insensitive). */
+/**
+ * Sole by-item lock set: ticket keys ({@link splitPartyKey}) that already have
+ * collection history. Prefer party_id; name-only keys only for legacy rows /
+ * payments without an indexable ticket.
+ */
+export function allocationLockedTicketKeys(
+  split: BillSplit | null | undefined,
+  collectedPayments: SessionCollectedPayment[] = [],
+): ReadonlySet<string> {
+  const keys = new Set<string>();
+  const result = split?.result ?? [];
+
+  for (const row of result) {
+    if (!row.paid) continue;
+    const key = splitPartyKey(row.party_id, row.name);
+    if (key) keys.add(key);
+  }
+
+  for (const payment of collectedPayments) {
+    if (payment.person_index != null && payment.person_index >= 0) {
+      const row = result[payment.person_index];
+      if (row) {
+        const key = splitPartyKey(row.party_id, row.name);
+        if (key) keys.add(key);
+        continue;
+      }
+    }
+    const legacy = splitPartyKey(undefined, payment.person_name);
+    if (legacy) keys.add(legacy);
+  }
+
+  return keys;
+}
+
+/**
+ * Even/custom name lock set (case-insensitive). By-item staff UI must use
+ * {@link allocationLockedTicketKeys} — do not use this to lock party tickets.
+ */
 export function allocationLockedPersonNames(
   split: BillSplit | null | undefined,
   collectedPayments: SessionCollectedPayment[] = [],
@@ -195,12 +232,12 @@ export function buildLockedPersonLineMins(
     return { menu, buffet };
   }
 
-  const lockedNames = allocationLockedPersonNames(split, collectedPayments);
-  const lockAllAssignedShares = hasCollectedLedger && lockedNames.size === 0;
+  const lockedKeys = allocationLockedTicketKeys(split, collectedPayments);
+  const lockAllAssignedShares = hasCollectedLedger && lockedKeys.size === 0;
 
   for (const person of split.persons ?? []) {
-    const personLower = person.name.trim().toLowerCase();
-    const isLockedPerson = lockedNames.has(personLower);
+    const ticketKey = splitPartyKey(person.party_id, person.name);
+    const isLockedPerson = !!ticketKey && lockedKeys.has(ticketKey);
     if (!lockAllAssignedShares && !isLockedPerson) continue;
 
     for (const share of person.item_shares ?? []) {

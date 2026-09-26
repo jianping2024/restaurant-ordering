@@ -14,16 +14,12 @@ import {
 } from '@/lib/checkout-session-payments';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
-import { splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
+import { splitPartyKey, splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
 import {
   staffByItemLedgerPeople,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import type { SplitResult } from '@/types';
-
-function ticketKey(row: { name: string; party_id?: string; partyId?: string }): string {
-  return splitPartyKey(row.party_id ?? row.partyId, row.name);
-}
 
 /** True when every by-item catalog line is fully allocated (pool empty). */
 export function byItemPoolFullyAllocated(
@@ -69,7 +65,7 @@ export function orderByItemResultsToRoster(
 ): SplitResult[] {
   const byKey = new Map<string, SplitResult>();
   for (const row of liveResults) {
-    const key = ticketKey(row);
+    const key = splitResultTicketKey(row);
     if (!key) continue;
     byKey.set(key, toWireSplitResult(row));
   }
@@ -89,7 +85,7 @@ export function orderByItemResultsToRoster(
     used.add(key);
   }
   for (const row of liveResults) {
-    const key = ticketKey(row);
+    const key = splitResultTicketKey(row);
     if (!key || used.has(key)) continue;
     used.add(key);
     ordered.push(toWireSplitResult(row));
@@ -106,7 +102,7 @@ export function collectedTotalsByPersonKey(
   for (const payment of payments) {
     const fromIndex =
       payment.person_index != null && payment.person_index >= 0
-        ? ticketKey(roster[payment.person_index] ?? { name: '' })
+        ? splitResultTicketKey(roster[payment.person_index] ?? { name: '' })
         : '';
     const fromName = splitPartyKey(undefined, payment.person_name);
     const key = fromIndex || fromName;
@@ -127,7 +123,7 @@ export function applyCollectedObligationFloors(
   if (payments.length === 0) return results;
   const collected = collectedTotalsByPersonKey(payments, results);
   return results.map((row) => {
-    const key = ticketKey(row);
+    const key = splitResultTicketKey(row);
     const floor = key ? collected.get(key) ?? 0 : 0;
     if (floor <= 0) return row;
     if (eurosToCents(row.amount) >= eurosToCents(floor)) return row;
@@ -161,10 +157,10 @@ export function resolveByItemCollectTarget(params: {
   const key = splitPartyKey(params.partyId, params.personName);
   if (!key) return null;
 
-  const index = params.roster.findIndex((row) => ticketKey(row) === key);
+  const index = params.roster.findIndex((row) => splitResultTicketKey(row) === key);
   if (index < 0) return null;
 
-  const live = params.liveResults.find((row) => ticketKey(row) === key);
+  const live = params.liveResults.find((row) => splitResultTicketKey(row) === key);
   const obligation = live?.amount ?? params.roster[index]?.amount ?? 0;
   const prior = params.collectedPayments
     .filter(
@@ -207,7 +203,7 @@ export function settledByItemPersonKeys(
   for (const row of rows) {
     if (row.settlementStatus !== 'settled') continue;
     const person = roster[row.index];
-    const key = ticketKey(person ?? { name: row.name });
+    const key = splitResultTicketKey(person ?? { name: row.name });
     if (key) keys.add(key);
   }
   return keys;
@@ -232,7 +228,7 @@ export function reconcileByItemResultsToBillTotal(
   if (sum > target) {
     let excess = sum - target;
     for (let i = next.length - 1; i >= 0 && excess > 0; i -= 1) {
-      const key = ticketKey(next[i]!);
+      const key = splitResultTicketKey(next[i]!);
       const floor = key ? eurosToCents(collected.get(key) ?? 0) : 0;
       const amt = eurosToCents(next[i]!.amount);
       const reducible = amt - floor;
@@ -246,7 +242,7 @@ export function reconcileByItemResultsToBillTotal(
 
   let missing = target - sum;
   for (let i = next.length - 1; i >= 0 && missing > 0; i -= 1) {
-    const key = ticketKey(next[i]!);
+    const key = splitResultTicketKey(next[i]!);
     const floor = key ? collected.get(key) ?? 0 : 0;
     const amt = eurosToCents(next[i]!.amount);
     if (floor > 0 && amt <= eurosToCents(floor)) continue;

@@ -29,7 +29,8 @@ import {
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
-import { splitPartyKey, toWireSplitResult } from '@/lib/split-party-id';
+import { toWireSplitResult } from '@/lib/split-party-id';
+import { allocationLockedTicketKeys } from '@/lib/checkout-split-continuation';
 import {
   buildSubmitPersons,
   validateSubmitSplitDraft,
@@ -264,28 +265,10 @@ export function StaffCheckoutSplitEditor({
   );
 
   const lockedTicketKeys = useMemo(() => {
-    const keys = new Set<string>();
-    for (const name of splitDraft.lockedPersonNames) {
-      // Legacy set may be lowercase names or already party keys.
-      if (name.startsWith('p:') || name.startsWith('n:')) {
-        keys.add(name);
-        continue;
-      }
-      keys.add(splitPartyKey(undefined, name));
-    }
-    for (const row of request.result ?? []) {
-      if (!row.party_id?.trim()) continue;
-      const key = splitPartyKey(row.party_id, row.name);
-      if (!key) continue;
-      if (
-        settledTicketKeys.has(key) ||
-        splitDraft.lockedPersonNames.has(row.name.trim().toLowerCase())
-      ) {
-        keys.add(key);
-      }
-    }
+    const keys = new Set(allocationLockedTicketKeys(request, collectedPayments));
+    for (const key of settledTicketKeys) keys.add(key);
     return keys;
-  }, [request.result, settledTicketKeys, splitDraft.lockedPersonNames]);
+  }, [collectedPayments, request, settledTicketKeys]);
 
   const splitValidationMessage = useMemo(() => {
     if (!splitDraft.splitMode || splitDraft.splitValidation.ok) return null;

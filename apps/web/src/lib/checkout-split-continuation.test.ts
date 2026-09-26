@@ -4,6 +4,7 @@ import type { BillSplit } from '@/types';
 import {
   applyByItemConsumerRowEdit,
   applyByItemConsumerRowRemove,
+  allocationLockedTicketKeys,
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
   byItemRowEditLock,
@@ -363,6 +364,25 @@ describe('paidSplitPersonNames', () => {
       split({ result: [{ name: ' John ', amount: 5, paid: true }] }),
     );
     assert.equal(names.has('john'), true);
+  });
+});
+
+describe('allocationLockedTicketKeys', () => {
+  it('locks paid party_id without locking same-name unpaid ticket', () => {
+    const paidId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const unpaidId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const keys = allocationLockedTicketKeys(
+      split({
+        split_mode: 'by_item',
+        result: [
+          { name: '客人1', amount: 19.95, paid: true, party_id: paidId },
+          { name: '客人1', amount: 2.2, party_id: unpaidId },
+        ],
+      }),
+      [],
+    );
+    assert.equal(keys.has(`p:${paidId}`), true);
+    assert.equal(keys.has(`p:${unpaidId}`), false);
   });
 });
 

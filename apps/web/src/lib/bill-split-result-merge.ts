@@ -26,9 +26,9 @@ function incomingByTicketKey(rows: SplitResult[]): Map<string, SplitResult> {
 }
 
 /**
- * By-item continuation: incoming obligations are authoritative (recomputed from
- * allocations). Match by {@link splitResultTicketKey} (party_id first, else name).
- * Preserve existing row order/index for ledger; drop stale tickets; append new.
+ * By-item continuation: match by {@link splitResultTicketKey} (party_id first).
+ * Preserve ledger order; append new tickets.
+ * Paid tickets keep existing amount (never rewritten by a later recalculate).
  */
 export function mergeByItemSplitResultWithLedger(
   existing: SplitResult[],
@@ -47,11 +47,12 @@ export function mergeByItemSplitResultWithLedger(
     const match = byKey.get(key);
     if (!match) continue;
     usedKeys.add(key);
+    const paid = !!exRow.paid || !!match.paid;
     merged.push(
       toWireSplitResult({
         name: resolveSplitPersonDisplayName(exRow.name, match.name),
-        amount: match.amount,
-        paid: !!exRow.paid || !!match.paid,
+        amount: paid ? exRow.amount : match.amount,
+        paid,
         party_id: match.party_id ?? exRow.party_id,
         partyId: match.party_id ?? exRow.party_id,
       }),

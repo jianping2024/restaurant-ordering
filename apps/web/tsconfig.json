@@ -37,7 +37,8 @@
     ".next-bill-sync/types/**/*.ts",
     ".next-uat-iva/types/**/*.ts",
     ".next-uat-rename/types/**/*.ts",
-    ".next-uat-collect-name/types/**/*.ts"
+    ".next-uat-collect-name/types/**/*.ts",
+    ".next-uat-collect/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

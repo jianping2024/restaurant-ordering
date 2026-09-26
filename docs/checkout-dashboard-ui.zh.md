@@ -47,11 +47,11 @@
 
 ## 5. 金额规则
 
-- **本次应收** = 该客人折后应付 − 本餐次已确认收款（`checkoutRowCollectAmount`）；按菜再与摘要待收取较小  
-- **待收（摘要）** = 折后应收合计 − `session_collected_payments` 合计  
-- **按菜 person_index** = `result[]` 创建序（禁止名字排序下标）；芯片 ✓ = settled，未收齐可续收  
-- 界面最大字号必须对应当前要收的钱，避免与分单应付总额混淆  
-
+- **本次应收（按菜）** = 该票折后应付 − 本餐次该票已确认收款；**不要**与摘要待收取较小（定稿 [`product/by-item-collect-payment.zh.md`](./product/by-item-collect-payment.zh.md)）
+- **待收（摘要）** = 折后应收合计 − `session_collected_payments` 合计
+- **按菜确认**认弹窗金额；只写当前票；禁止确认时整桌重算
+- **按菜 person_index** = `result[]` 创建序（禁止名字排序下标）；票身份优先 `party_id`；芯片 ✓ = settled
+- 界面最大字号必须对应当前要收的钱，避免与分单应付总额混淆
 ## 6. 财政发票（`bill_sync_to_fiscal`）
 
 - 门禁：功能开关 + `mayFiscalBillQueue`（`checkout.sync_bill` ∧ `tables.checkout_close`）  

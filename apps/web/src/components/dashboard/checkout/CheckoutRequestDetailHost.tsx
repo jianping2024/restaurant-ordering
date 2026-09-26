@@ -13,7 +13,6 @@ import {
   isCheckoutDetailLocked,
 } from '@/lib/checkout-request-state';
 import { discountedSplitRows } from '@/lib/checkout-split-math';
-import { resolveByItemCollectTarget } from '@/lib/checkout-by-item-collect';
 import {
   collectPaymentInitialCustomerName,
   shouldAutoIssueFiscalAfterCollect,
@@ -117,6 +116,14 @@ export function CheckoutRequestDetailHost({
     setPrintAsk,
   } = useCheckoutRequests();
   const persistBeforePay = useRef<(() => Promise<SplitResult[] | null>) | null>(null);
+  const persistCollectTicket = useRef<
+    | ((args: {
+        personName: string;
+        partyId?: string;
+        modalAmount: number;
+      }) => Promise<{ personIndex: number } | null>)
+    | null
+  >(null);
   const persistedBillSplitId = useRef<string | null>(null);
   const waiterBoard = useWaiterBoardOptional();
   const syncBoardAfterMutation = useCallback(
@@ -373,34 +380,29 @@ export function CheckoutRequestDetailHost({
     const personKey = checkoutPersonKey(row.id, rowIndex);
     setProcessingKeys((prev) => new Set(prev).add(personKey));
     try {
-      let persistedResult: SplitResult[] | null = null;
-      if (persistBeforePay.current) {
-        persistedResult = await persistBeforePay.current();
-        if (!persistedResult) return;
-      }
-      if (pending.personName && persistedResult) {
-        const billSplitId = persistedBillSplitId.current ?? row.id;
-        const payments = getCollectedForSession(row.session_id);
-        const pendingSummary = buildCheckoutSettlementSummary(
-          { ...row, id: billSplitId, result: persistedResult },
-          discountRate,
-          payments,
-        );
-        const target = resolveByItemCollectTarget({
+      // By-item: upsert current ticket only; modal amount is authoritative (no whole-table recalc).
+      if (pending.personName && persistCollectTicket.current) {
+        const ticket = await persistCollectTicket.current({
           personName: pending.personName,
           partyId: pending.partyId,
-          roster: persistedResult,
-          liveResults: persistedResult,
-          collectedPayments: payments,
-          billPending: pendingSummary.pending,
+          modalAmount: pending.amount,
         });
-        if (!target) {
-          showToast(t.paid, 'error');
-          return;
+        if (!ticket) return;
+        rowIndex = ticket.personIndex;
+        amount = pending.amount;
+      } else if (persistBeforePay.current) {
+        // Even/custom: persist full split plan before collect (unchanged).
+        const persistedResult = await persistBeforePay.current();
+        if (!persistedResult) return;
+        if (pending.personName) {
+          const idx = persistedResult.findIndex(
+            (entry) =>
+              splitPartyKey(entry.party_id, entry.name) ===
+              splitPartyKey(pending.partyId, pending.personName ?? ''),
+          );
+          if (idx >= 0) rowIndex = idx;
         }
-        rowIndex = target.index;
-        amount = target.amount;
-      } else if (pending.personName && !persistedResult) {
+      } else if (pending.personName) {
         const idx = (row.result ?? []).findIndex(
           (entry) =>
             splitPartyKey(entry.party_id, entry.name) ===
@@ -613,6 +615,9 @@ export function CheckoutRequestDetailHost({
           }}
           onRegisterPersist={(persist) => {
             persistBeforePay.current = persist;
+          }}
+          onRegisterCollectTicket={(persist) => {
+            persistCollectTicket.current = persist;
           }}
         />
       ) : null}

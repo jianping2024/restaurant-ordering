@@ -14,12 +14,16 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { showToast } from '@/components/ui/Toast';
 import {
   buildByItemAllocationsFromRows,
+  buildSplitPersonsFromAllocations,
   calcByItemSplitResults,
+  stampCollectTicketFrozenAmounts,
 } from '@/lib/bill-split-by-item';
 import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import {
   applyCollectedObligationFloors,
   byItemPoolFullyAllocated,
+  collectModalAmountStillValid,
+  mergeCurrentByItemTicketForCollect,
   resolveByItemCollectTarget,
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
@@ -29,7 +33,7 @@ import {
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
-import { toWireSplitResult } from '@/lib/split-party-id';
+import { splitPartyKey, splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
 import { allocationLockedTicketKeys } from '@/lib/checkout-split-continuation';
 import {
   buildSubmitPersons,
@@ -81,7 +85,19 @@ type Props = {
     partyId?: string,
   ) => void;
   onSplitPersisted: (row: BillSplit) => void;
+  /**
+   * Even/custom only: full split persist before collect.
+   * By-item must use {@link onRegisterCollectTicket} (never whole-table recalc).
+   */
   onRegisterPersist: (persist: (() => Promise<SplitResult[] | null>) | null) => void;
+  /** Sole by-item collect confirm: upsert current ticket only; modal amount stays authoritative. */
+  onRegisterCollectTicket: (
+    persist: ((args: {
+      personName: string;
+      partyId?: string;
+      modalAmount: number;
+    }) => Promise<{ personIndex: number } | null>) | null,
+  ) => void;
 };
 
 /**
@@ -116,6 +132,7 @@ export function StaffCheckoutSplitEditor({
   onCollectPerson,
   onSplitPersisted,
   onRegisterPersist,
+  onRegisterCollectTicket,
 }: Props) {
   const { lang } = useLanguage();
   const billT = getMessages(lang).bill;
@@ -369,6 +386,120 @@ export function StaffCheckoutSplitEditor({
   ]);
 
   useEffect(() => {
+    if (splitDraft.splitMode === 'by_item') {
+      onRegisterPersist(null);
+      onRegisterCollectTicket(async ({ personName, partyId, modalAmount }) => {
+        setSubmitting(true);
+        try {
+          const trimmed = personName.trim();
+          if (!trimmed) {
+            showToast(checkoutT.staffByItemNeedName, 'error');
+            return null;
+          }
+          const ticketKey = splitPartyKey(partyId, trimmed);
+          if (!ticketKey) {
+            showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+            return null;
+          }
+
+          const liveTarget = resolveByItemCollectTarget({
+            personName: trimmed,
+            partyId,
+            roster: editRoster,
+            liveResults: liveByItemResults,
+            collectedPayments,
+          });
+          if (!liveTarget || !collectModalAmountStillValid(liveTarget.amount, modalAmount)) {
+            showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+            return null;
+          }
+
+          const liveRow = liveByItemResults.find(
+            (row) => splitResultTicketKey(row) === ticketKey,
+          );
+          const obligation = liveRow?.amount ?? liveTarget.amount;
+          if (!(obligation > 0)) {
+            showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+            return null;
+          }
+
+          const rowAllocations = buildByItemAllocationsFromRows(
+            lineSpecs,
+            splitDraft.byItemAllocations,
+          );
+          const stamped = stampCollectTicketFrozenAmounts(
+            lineSpecs,
+            rowAllocations,
+            ticketKey,
+          );
+          const allPersons = buildSplitPersonsFromAllocations(stamped);
+          const ticketPerson = allPersons.find(
+            (row) => splitPartyKey(row.party_id, row.name) === ticketKey,
+          );
+          if (!ticketPerson?.item_shares?.length) {
+            showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+            return null;
+          }
+
+          const merged = mergeCurrentByItemTicketForCollect({
+            existingPersons: request.persons ?? [],
+            existingResult: (request.result ?? []) as SplitResult[],
+            ticketPerson,
+            ticketAmount: obligation,
+          });
+
+          const outcome = await requestCheckoutRequest({
+            slug: restaurantSlug,
+            tableId: request.table_id,
+            splitMode: 'by_item',
+            persons: merged.persons,
+            result: merged.result,
+            // Collect upserts one ticket only — never require Σ(result)=bill here
+            // (paid freezes can leave a 1¢ gap until remaining tickets are collected).
+            allowPartialByItem: true,
+          });
+          if (!outcome.ok) {
+            showToast(
+              messageForCheckoutRequestError(outcome.error, {
+                guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
+                partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
+                emptySession: checkoutT.callCheckoutEmptySession,
+                noActiveSession: checkoutT.callCheckoutNoActiveSession,
+                tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
+                invalidNif: billT.nifInvalid,
+                splitPlanLocked: billT.splitPlanLocked,
+                fallback: checkoutT.callCheckoutFailed,
+              }),
+              'error',
+            );
+            return null;
+          }
+          onSplitPersisted({
+            ...request,
+            id: outcome.bill_split_id,
+            split_mode: 'by_item',
+            persons: merged.persons,
+            result: outcome.result,
+            status: 'requested',
+          });
+          const personIndex = outcome.result.findIndex(
+            (row) => splitResultTicketKey(row) === ticketKey,
+          );
+          if (personIndex < 0) {
+            showToast(checkoutT.staffByItemNoCollectableShare, 'error');
+            return null;
+          }
+          return { personIndex };
+        } finally {
+          setSubmitting(false);
+        }
+      });
+      return () => {
+        onRegisterCollectTicket(null);
+      };
+    }
+
+    onRegisterCollectTicket(null);
     onRegisterPersist(async () => {
       setSubmitting(true);
       try {
@@ -378,7 +509,22 @@ export function StaffCheckoutSplitEditor({
       }
     });
     return () => onRegisterPersist(null);
-  }, [onRegisterPersist, persistSplit]);
+  }, [
+    billT,
+    checkoutT,
+    collectedPayments,
+    editRoster,
+    lineSpecs,
+    liveByItemResults,
+    onRegisterCollectTicket,
+    onRegisterPersist,
+    onSplitPersisted,
+    persistSplit,
+    request,
+    restaurantSlug,
+    splitDraft.byItemAllocations,
+    splitDraft.splitMode,
+  ]);
 
   const collectSavedPerson = useCallback(
     async (

@@ -24,6 +24,11 @@ function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
     share.guest_type === 'adult' || share.guest_type === 'child'
       ? share.guest_type
       : undefined;
+  const lockedRaw = share.locked_amount;
+  const locked_amount =
+    typeof lockedRaw === 'number' && Number.isFinite(lockedRaw) && lockedRaw >= 0
+      ? Math.round(lockedRaw * 100) / 100
+      : undefined;
   if (guest_type) {
     if (!key) return null;
     const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
@@ -39,6 +44,7 @@ function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
       qty_den,
       guest_type,
       ...(party_id ? { party_id } : {}),
+      ...(locked_amount != null ? { locked_amount } : {}),
     };
   }
   const qty_num = typeof share.qty_num === 'number' && Number.isFinite(share.qty_num)
@@ -55,6 +61,7 @@ function parsePersonItemShare(entry: unknown): SplitPersonItemShare | null {
     qty_num,
     qty_den,
     ...(party_id ? { party_id } : {}),
+    ...(locked_amount != null ? { locked_amount } : {}),
   };
 }
 

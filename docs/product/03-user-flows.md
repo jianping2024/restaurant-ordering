@@ -501,8 +501,12 @@
 |------|------|
 | 未分配菜品 | `unassigned_items` |
 | 份额不足/超额 | `incomplete_qty` |
-| 恢复点单后 | 零收款可改分配；有收款则已付 **份额 qty 不可减少**（可调高、新菜可继续分给已付的人） |
-| 新加菜 / 同款加量 | 纳入 catalog；不得减少已锁定份额 |
+| 恢复点单后 | 零收款可改分配；有收款则已付票 **只读**（不可叠菜、不可改 qty/金额）；同人续消费 → **新开一票**（可同名） |
+| 新加菜 / 同款加量 | 纳入 catalog；分给未付票；不得改写已付票 |
+
+### 职员台确认收款（按菜）
+
+定稿见 [`by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md)：认弹窗金额；只核/只写当前票；禁止确认时整桌重算。
 
 ### 状态变化
 
@@ -511,12 +515,13 @@
 ### 验收标准
 
 - 每个 menu 行分配份额之和等于行数量
-- 各人金额之和 = 消费总额
+- 池分完时各人金额之和 = 消费总额；池未分完可挨个收款（`allow_partial_by_item`）
+- 已付票金额不被后一次确认改写（含 1¢）
 - 续结规则与 `checkout-split-continuation.ts` 一致
 
 ### 相关代码位置
 
-`lib/bill-split-by-item.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/ByItemSplitSection.tsx`、`lib/checkout-split-continuation.ts`
+`lib/bill-split-by-item.ts`、`lib/checkout-by-item-collect.ts`、`lib/bill-split-by-item-lines.ts`、`lib/bill-split-local-draft.ts`、`components/menu/ByItemSplitSection.tsx`、`components/dashboard/checkout/StaffByItemSplitWorkbench.tsx`、`lib/checkout-split-continuation.ts`
 
 ---
 

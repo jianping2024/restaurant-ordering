@@ -215,7 +215,6 @@ export function StaffCheckoutSplitEditor({
       addChild: billT.byItemGuestTypeChild,
       remove: checkoutT.returnShareToPool,
       collect: checkoutT.collectPerson,
-      paidLocked: billT.splitPlanLocked,
       paidShareBadge: checkoutT.staffByItemPaidShare,
       qtyParts: {
         wholeLabel: billT.qtyWholePlaceholder,

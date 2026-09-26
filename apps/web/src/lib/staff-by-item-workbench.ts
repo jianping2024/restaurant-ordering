@@ -426,7 +426,7 @@ function upsertEditableTicketRow(
 
 /**
  * Sole menu pool→person qty write: upsert unpaid ticket row and add `take`
- * (clamped to pool remaining). Row "+" / 1/N and「全部分给」all go through here.
+ * (clamped to pool remaining). Row "+" / 1/N and「全部分给当前人」all go through here.
  */
 function addMenuShareQtyToPerson(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
@@ -547,7 +547,7 @@ export function addMenuFractionShareToPerson(params: {
 
 /**
  * Sole buffet pool→person seat write: add adult/child deltas clamped to remaining.
- * Row「成人/儿童」uses delta 1;「全部分给」uses all remaining seats in one write.
+ * Row「成人/儿童」uses delta 1;「全部分给当前人」uses all remaining seats in one write.
  */
 function addBuffetSeatDeltaToPerson(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
@@ -622,7 +622,7 @@ export function addBuffetSeatToPerson(params: {
 }
 
 /**
- * Sole pool-level「全部分给」: one write per line — menu take=all remaining,
+ * Sole pool-level assign-all (「全部分给当前人」): one write per line — menu take=all remaining,
  * buffet take=all remaining adult+child seats — via the same qty/seat writers
  * as row "+" /「成人」「儿童」. Returns null when nothing changed.
  */

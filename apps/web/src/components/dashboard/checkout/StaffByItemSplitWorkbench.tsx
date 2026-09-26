@@ -415,19 +415,19 @@ export function StaffByItemSplitWorkbench({
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <section className="overflow-hidden rounded-xl border border-brand-border bg-brand-card">
-          <header className="flex items-center justify-between gap-2 border-b border-brand-border px-3 py-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:items-stretch">
+        <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-brand-border bg-brand-card">
+          <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-brand-border px-3">
             <span className="text-[12px] font-semibold tracking-wide text-brand-text-muted">
               {labels.poolTitle}
             </span>
             {visiblePool.length > 0 ? (
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 disabled={poolAddDisabled}
-                className="shrink-0 px-2 py-0.5 text-[12px]"
+                className="h-8 shrink-0 gap-1.5 border-brand-ink/45 bg-brand-bg px-2.5 py-0 text-[12px] text-brand-ink hover:bg-brand-ink/5"
                 onClick={() => {
                   const person = ensureNamed();
                   if (!person) return;
@@ -441,11 +441,14 @@ export function StaffByItemSplitWorkbench({
                   );
                 }}
               >
+                <span aria-hidden className="font-semibold tracking-tight">
+                  {'>>'}
+                </span>
                 {labels.assignAll}
               </Button>
             ) : null}
           </header>
-          <div className="space-y-2 p-2.5">
+          <div className="flex-1 space-y-2 p-2.5">
             {visiblePool.length === 0 ? (
               <p className="px-1 py-3 text-[13px] text-brand-text-muted">{labels.poolEmpty}</p>
             ) : (
@@ -566,32 +569,32 @@ export function StaffByItemSplitWorkbench({
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-xl border border-brand-border bg-brand-card">
-          <header className="border-b border-brand-border px-3 py-2 text-[12px] font-semibold tracking-wide text-brand-text-muted">
-            {labels.currentShareTitle}
+        <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-brand-border bg-brand-card">
+          <header className="flex h-12 shrink-0 items-center border-b border-brand-border px-3">
+            <span className="text-[12px] font-semibold tracking-wide text-brand-text-muted">
+              {labels.currentShareTitle}
+            </span>
           </header>
-          <div className="space-y-2 p-2.5">
-            <div className="rounded-lg border border-dashed border-brand-gold/35 bg-brand-gold/10 p-2.5">
-              <input
-                type="text"
-                value={nameDraft}
-                disabled={nameEditDisabled}
-                aria-label={labels.markerPlaceholder}
-                placeholder={labels.markerPlaceholder}
-                onChange={(e) => setNameDraft(e.target.value)}
-                onBlur={() => commitName(nameDraft)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    commitName(nameDraft);
-                  }
-                }}
-                className="w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm text-brand-text outline-none focus:border-brand-gold"
-              />
-              {needNameHint ? (
-                <p className="mt-1 text-[11px] text-red-500">{labels.needName}</p>
-              ) : null}
-            </div>
+          <div className="flex-1 space-y-2 p-2.5">
+            <input
+              type="text"
+              value={nameDraft}
+              disabled={nameEditDisabled}
+              aria-label={labels.markerPlaceholder}
+              placeholder={labels.markerPlaceholder}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={() => commitName(nameDraft)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  commitName(nameDraft);
+                }
+              }}
+              className="w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm text-brand-text outline-none focus:border-brand-gold"
+            />
+            {needNameHint ? (
+              <p className="text-[11px] text-red-500">{labels.needName}</p>
+            ) : null}
 
             {shares.length === 0 ? (
               <p className="px-1 py-3 text-[13px] text-brand-text-muted">{labels.shareEmpty}</p>

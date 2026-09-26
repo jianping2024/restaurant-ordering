@@ -2,6 +2,7 @@ import {
   resolveSplitPersonDisplayName,
   splitPersonKey,
 } from '@/lib/split-person-identity';
+import { splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
 import type { SplitResult } from '@/types';
 
 function incomingByPersonKey(rows: SplitResult[]): Map<string, SplitResult> {
@@ -14,43 +15,62 @@ function incomingByPersonKey(rows: SplitResult[]): Map<string, SplitResult> {
   return map;
 }
 
+function incomingByTicketKey(rows: SplitResult[]): Map<string, SplitResult> {
+  const map = new Map<string, SplitResult>();
+  for (const row of rows) {
+    const key = splitResultTicketKey(row);
+    if (!key) continue;
+    map.set(key, row);
+  }
+  return map;
+}
+
 /**
  * By-item continuation: incoming obligations are authoritative (recomputed from
- * allocations). Preserve existing row order/index for ledger; drop stale rows.
+ * allocations). Match by {@link splitResultTicketKey} (party_id first, else name).
+ * Preserve existing row order/index for ledger; drop stale tickets; append new.
  */
 export function mergeByItemSplitResultWithLedger(
   existing: SplitResult[],
   incoming: SplitResult[],
 ): SplitResult[] {
   if (incoming.length === 0) return existing;
-  if (existing.length === 0) return incoming;
+  if (existing.length === 0) return incoming.map((row) => toWireSplitResult(row));
 
-  const byKey = incomingByPersonKey(incoming);
+  const byKey = incomingByTicketKey(incoming);
   const usedKeys = new Set<string>();
   const merged: SplitResult[] = [];
 
   for (const exRow of existing) {
-    const key = splitPersonKey(exRow.name);
+    const key = splitResultTicketKey(exRow);
     if (!key) continue;
     const match = byKey.get(key);
     if (!match) continue;
     usedKeys.add(key);
-    merged.push({
-      name: resolveSplitPersonDisplayName(exRow.name, match.name),
-      amount: match.amount,
-      paid: !!exRow.paid || !!match.paid,
-    });
+    merged.push(
+      toWireSplitResult({
+        name: resolveSplitPersonDisplayName(exRow.name, match.name),
+        amount: match.amount,
+        paid: !!exRow.paid || !!match.paid,
+        party_id: match.party_id ?? exRow.party_id,
+        partyId: match.party_id ?? exRow.party_id,
+      }),
+    );
   }
 
   for (const row of incoming) {
-    const key = splitPersonKey(row.name);
+    const key = splitResultTicketKey(row);
     if (!key || usedKeys.has(key)) continue;
     usedKeys.add(key);
-    merged.push({
-      name: resolveSplitPersonDisplayName(undefined, row.name),
-      amount: row.amount,
-      paid: !!row.paid,
-    });
+    merged.push(
+      toWireSplitResult({
+        name: resolveSplitPersonDisplayName(undefined, row.name),
+        amount: row.amount,
+        paid: !!row.paid,
+        party_id: row.party_id,
+        partyId: row.party_id,
+      }),
+    );
   }
 
   return merged;

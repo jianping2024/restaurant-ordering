@@ -86,4 +86,22 @@ describe('mergeByItemSplitResultWithLedger', () => {
     assert.equal(merged[0]?.name, 'John');
     assert.equal(merged[1]?.name, 'Jack');
   });
+
+  it('keeps two same-name tickets when party_id differs', () => {
+    const paidId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const unpaidId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const merged = mergeByItemSplitResultWithLedger(
+      [{ name: '客人1', amount: 19.95, paid: true, party_id: paidId }],
+      [
+        { name: '客人1', amount: 19.95, party_id: paidId },
+        { name: '客人1', amount: 2.2, party_id: unpaidId },
+      ],
+    );
+    assert.equal(merged.length, 2);
+    assert.equal(merged[0]?.party_id, paidId);
+    assert.equal(merged[0]?.paid, true);
+    assert.equal(merged[0]?.amount, 19.95);
+    assert.equal(merged[1]?.party_id, unpaidId);
+    assert.equal(merged[1]?.amount, 2.2);
+  });
 });

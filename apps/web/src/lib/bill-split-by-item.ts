@@ -159,6 +159,7 @@ export function createByItemConsumerRow(opts?: { buffet?: boolean; seed?: boolea
   return {
     id: `row-${Math.random().toString(36).slice(2, 10)}`,
     name: '',
+    partyId: mintSplitPartyId(),
     qtyWhole: !buffet && seed ? '1' : '',
     qtyNum: '',
     qtyDen: '',
@@ -199,7 +200,6 @@ export function appendByItemConsumerRow(
 ): ByItemConsumerRow[] {
   const base = {
     ...createByItemConsumerRow({ buffet: spec.mode === 'buffet' }),
-    partyId: mintSplitPartyId(),
   };
 
   if (spec.mode === 'buffet') {

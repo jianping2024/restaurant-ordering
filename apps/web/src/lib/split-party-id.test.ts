@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { allocateByItemShareAmounts } from './bill-split-by-item';
-import { mintSplitPartyId, parseOptionalPartyId, parseOptionalPartyIdFromRow, splitPartyKey, toWireSplitResult } from './split-party-id';
+import { mintSplitPartyId, parseOptionalPartyId, parseOptionalPartyIdFromRow, splitPartyKey, splitResultTicketKey, toWireSplitResult } from './split-party-id';
 
 describe('splitPartyKey', () => {
   it('prefers party_id over name', () => {
@@ -11,6 +11,16 @@ describe('splitPartyKey', () => {
 
   it('mints unique ticket ids', () => {
     assert.notEqual(mintSplitPartyId(), mintSplitPartyId());
+  });
+});
+
+describe('splitResultTicketKey', () => {
+  it('reads party_id from wire row', () => {
+    assert.equal(
+      splitResultTicketKey({ name: '客人1', party_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' }),
+      'p:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    );
+    assert.equal(splitResultTicketKey({ name: '客人1' }), 'n:客人1');
   });
 });
 

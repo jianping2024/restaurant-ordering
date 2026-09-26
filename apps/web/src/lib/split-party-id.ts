@@ -74,3 +74,12 @@ export function splitPartyKey(
   const nameKey = splitPersonKey(name);
   return nameKey ? `n:${nameKey}` : '';
 }
+
+/** Sole ticket key from a wire/result row (`party_id` preferred). */
+export function splitResultTicketKey(row: {
+  name?: string | null;
+  party_id?: string | null;
+  partyId?: string | null;
+}): string {
+  return splitPartyKey(row.party_id ?? row.partyId, row.name ?? '');
+}

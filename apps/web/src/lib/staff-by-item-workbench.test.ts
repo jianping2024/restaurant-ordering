@@ -11,6 +11,7 @@ import {
   isStaffMenuShareOverAllocated,
   menuFractionDenominatorFromRemaining,
   setPersonMenuShareQtyFields,
+  staffByItemBuffetShareLineMetaParts,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
@@ -899,5 +900,74 @@ describe('staffByItemShareLineMetaParts', () => {
       }),
       { factorText: '— × €2.50', amountText: '—', amountReady: false },
     );
+  });
+});
+
+describe('staffByItemBuffetShareLineMetaParts', () => {
+  it('shows gold amount when ready and — when not', () => {
+    assert.deepEqual(
+      staffByItemBuffetShareLineMetaParts({
+        amount: 89.8,
+        amountReady: true,
+      }),
+      { amountText: '€89.80', amountReady: true },
+    );
+    assert.deepEqual(
+      staffByItemBuffetShareLineMetaParts({
+        amount: 0,
+        amountReady: false,
+      }),
+      { amountText: '—', amountReady: false },
+    );
+  });
+
+  it('person shares use pool unitPriceLabel on buffet, never qty× algebra', () => {
+    const buffetSpec: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'bf-1',
+      lineTotal: 29.95,
+      adults: 1,
+      children: 1,
+      adultUnitPrice: 19.95,
+      childUnitPrice: 10,
+    };
+    const buffetLine = {
+      key: 'bf-1',
+      name: 'Buffet livre',
+      name_zh: 'Buffet livre',
+      name_en: 'Buffet livre',
+      name_pt: 'Buffet livre',
+      quantity: 1,
+      unit_price: 29.95,
+      adult_count: 1,
+      child_count: 1,
+      adult_unit_price: 19.95,
+      child_unit_price: 10,
+    };
+    const allocations = {
+      'bf-1': [
+        {
+          id: 'r1',
+          name: 'Ana',
+          qtyWhole: '',
+          qtyNum: '',
+          qtyDen: '',
+          adultQty: '1',
+          childQty: '1',
+        },
+      ] satisfies ByItemConsumerRow[],
+    };
+    const shares = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [buffetSpec],
+      orderLines: [buffetLine],
+      allocations,
+      lang: 'zh',
+    });
+    assert.equal(shares.length, 1);
+    assert.equal(shares[0]!.mode, 'buffet');
+    assert.equal(shares[0]!.unitPriceLabel, '€19.95/A · €10.00/C');
+    assert.equal(shares[0]!.qtyLabel, '');
+    assert.equal(shares[0]!.amount, 29.95);
   });
 });

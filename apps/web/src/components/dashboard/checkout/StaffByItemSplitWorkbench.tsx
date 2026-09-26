@@ -26,6 +26,7 @@ import {
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
   setPersonMenuShareQtyFields,
+  staffByItemBuffetShareLineMetaParts,
   staffByItemPeopleFromAllocations,
   staffByItemPersonShares,
   staffByItemPoolLines,
@@ -60,8 +61,36 @@ export type StaffByItemWorkbenchLabels = {
 };
 
 /**
- * Sole pool identity block: name row = label then unit price (adjacent, not right-pinned);
- * meta = remaining only. Share rows keep `qty × unit = amount`.
+ * Sole name+unit adjacent row (pool + buffet share). Unit is gold tabular; not right-pinned.
+ */
+function StaffByItemNameUnitRow({
+  label,
+  unitPriceLabel,
+  lockedBadge,
+}: {
+  label: string;
+  unitPriceLabel: string;
+  lockedBadge?: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-baseline gap-1.5">
+      <span className="min-w-0 truncate text-sm font-semibold text-brand-text" title={label}>
+        {label}
+        {lockedBadge ? (
+          <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
+            · {lockedBadge}
+          </span>
+        ) : null}
+      </span>
+      <span className="shrink-0 text-sm font-medium tabular-nums text-brand-gold">
+        {unitPriceLabel}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Sole pool identity: {@link StaffByItemNameUnitRow} + remaining meta.
  */
 function StaffByItemPoolLineIdentity({
   label,
@@ -74,34 +103,48 @@ function StaffByItemPoolLineIdentity({
 }) {
   return (
     <div className="min-w-0 flex-1">
-      <div className="flex min-w-0 items-baseline gap-1.5">
-        <span className="min-w-0 truncate text-sm font-semibold text-brand-text" title={label}>
-          {label}
-        </span>
-        <span className="shrink-0 text-sm font-medium tabular-nums text-brand-gold">
-          {unitPriceLabel}
-        </span>
-      </div>
+      <StaffByItemNameUnitRow label={label} unitPriceLabel={unitPriceLabel} />
       <div className="mt-0.5 text-sm tabular-nums text-brand-text-muted">{remainingText}</div>
     </div>
   );
 }
 
 /**
- * Sole share-row meta: always `qty × unit = amount` (`staffByItemShareLineMetaParts`).
- * Ready → gold euro; incomplete → muted `—` in the same slot (no mount jitter).
- * Pool identity is `StaffByItemPoolLineIdentity` (name+unit / remaining) — not this equation.
+ * Share-row meta — one path per mode:
+ * - menu: `qty × unit = amount` via {@link staffByItemShareLineMetaParts}
+ * - buffet: amount only (unit already on {@link StaffByItemNameUnitRow}, same as pool)
  */
 function StaffByItemShareLineMeta({
+  mode,
   qtyLabel,
   unitPriceLabel,
   amount,
+  amountReady,
 }: {
+  mode: 'menu' | 'buffet';
   qtyLabel: string;
   unitPriceLabel: string;
   amount: number;
+  /** Buffet: headcount assigned. Menu: ignored (derived from qtyLabel). */
+  amountReady: boolean;
 }) {
-  const { factorText, amountText, amountReady } = staffByItemShareLineMetaParts({
+  if (mode === 'buffet') {
+    const { amountText, amountReady: ready } = staffByItemBuffetShareLineMetaParts({
+      amount,
+      amountReady,
+    });
+    return (
+      <div
+        className={`mt-0.5 inline-block min-w-[4.5ch] text-sm tabular-nums ${
+          ready ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+        }`}
+      >
+        {amountText}
+      </div>
+    );
+  }
+
+  const { factorText, amountText, amountReady: ready } = staffByItemShareLineMetaParts({
     qtyLabel,
     unitPriceLabel,
     amount,
@@ -114,7 +157,7 @@ function StaffByItemShareLineMeta({
       </span>
       <span
         className={`inline-block min-w-[4.5ch] tabular-nums ${
-          amountReady ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+          ready ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
         }`}
       >
         {amountText}
@@ -621,24 +664,40 @@ export function StaffByItemSplitWorkbench({
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div
-                          className="truncate text-sm text-brand-text"
-                          title={share.label}
-                        >
-                          {share.label}
-                          {shareLocked ? (
-                            <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
-                              · {labels.paidShareBadge}
-                            </span>
-                          ) : null}
-                        </div>
+                        {share.mode === 'buffet' ? (
+                          <StaffByItemNameUnitRow
+                            label={share.label}
+                            unitPriceLabel={share.unitPriceLabel}
+                            lockedBadge={shareLocked ? labels.paidShareBadge : undefined}
+                          />
+                        ) : (
+                          <div
+                            className="truncate text-sm text-brand-text"
+                            title={share.label}
+                          >
+                            {share.label}
+                            {shareLocked ? (
+                              <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
+                                · {labels.paidShareBadge}
+                              </span>
+                            ) : null}
+                          </div>
+                        )}
                         <StaffByItemShareLineMeta
+                          mode={share.mode}
                           qtyLabel={share.qtyLabel}
                           unitPriceLabel={share.unitPriceLabel}
                           amount={share.amount}
+                          amountReady={
+                            share.mode === 'buffet'
+                              ? Boolean(
+                                  (row.adultQty ?? '').trim() || (row.childQty ?? '').trim(),
+                                )
+                              : share.qtyLabel !== '—'
+                          }
                         />
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex shrink-0 flex-nowrap items-center gap-1">
                         {share.mode === 'menu' ? (
                           <ByItemQtyInput
                             row={row}
@@ -661,9 +720,11 @@ export function StaffByItemSplitWorkbench({
                             }}
                           />
                         ) : (
-                          <div className="flex items-center gap-1 text-[12px]">
-                            <label className="flex items-center gap-0.5">
-                              <span className="text-brand-text-muted">{labels.addAdult}</span>
+                          <div className="flex flex-nowrap items-center gap-1 text-[12px]">
+                            <label className="flex flex-nowrap items-center gap-0.5">
+                              <span className="shrink-0 text-brand-text-muted">
+                                {labels.addAdult}
+                              </span>
                               <input
                                 type="text"
                                 inputMode="numeric"
@@ -684,8 +745,10 @@ export function StaffByItemSplitWorkbench({
                                 className="w-8 rounded border border-brand-border px-1 py-0.5 text-center"
                               />
                             </label>
-                            <label className="flex items-center gap-0.5">
-                              <span className="text-brand-text-muted">{labels.addChild}</span>
+                            <label className="flex flex-nowrap items-center gap-0.5">
+                              <span className="shrink-0 text-brand-text-muted">
+                                {labels.addChild}
+                              </span>
                               <input
                                 type="text"
                                 inputMode="numeric"

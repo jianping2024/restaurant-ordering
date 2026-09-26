@@ -82,6 +82,7 @@ export type StaffByItemShareLineMetaParts = {
   amountReady: boolean;
 };
 
+/** Menu share rows only — never buffet (buffet uses {@link staffByItemBuffetShareLineMetaParts}). */
 export function staffByItemShareLineMetaParts(share: {
   qtyLabel: string;
   unitPriceLabel: string;
@@ -95,6 +96,26 @@ export function staffByItemShareLineMetaParts(share: {
   };
 }
 
+export type StaffByItemBuffetShareLineMetaParts = {
+  amountText: string;
+  amountReady: boolean;
+};
+
+/**
+ * Sole buffet share amount slot. Unit text is the same {@link buffetUnitPriceLabel} as the
+ * pool, painted adjacent to the dish name — never a second rate string, never `qty × unit`.
+ */
+export function staffByItemBuffetShareLineMetaParts(share: {
+  amount: number;
+  amountReady: boolean;
+}): StaffByItemBuffetShareLineMetaParts {
+  return {
+    amountText: share.amountReady ? formatEuroAmount(share.amount) : '—',
+    amountReady: share.amountReady,
+  };
+}
+
+/** Sole buffet unit string for pool + share name row (`€x/A · €y/C`). */
 function buffetUnitPriceLabel(spec: {
   adultUnitPrice: number;
   childUnitPrice: number;
@@ -132,9 +153,20 @@ export type StaffByItemPersonShare = {
   lineKey: string;
   rowId: string;
   label: string;
+  /**
+   * Menu: qty factor for {@link staffByItemShareLineMetaParts}.
+   * Buffet: unused (`''`) — headcount is the editors, not a qty algebra string.
+   */
   qtyLabel: string;
+  /**
+   * Menu: unit euro for `qty × unit`.
+   * Buffet: same {@link buffetUnitPriceLabel} as the pool — sole unit string, name-adjacent in UI.
+   */
   unitPriceLabel: string;
-  /** Share euro amount — estimate footer + sole share-row total via {@link staffByItemShareLineMetaParts}. */
+  /**
+   * Share euro — menu via {@link staffByItemShareLineMetaParts};
+   * buffet amount-only via {@link staffByItemBuffetShareLineMetaParts}.
+   */
   amount: number;
   mode: 'menu' | 'buffet';
   qtyWhole: string;
@@ -336,14 +368,11 @@ export function staffByItemPersonShares(params: {
       if (spec.mode === 'buffet') {
         const { adults, children } = resolveBuffetRowCounts(row);
         if (adults <= 0 && children <= 0) continue;
-        const qtyParts: string[] = [];
-        if (adults > 0) qtyParts.push(`${adults}A`);
-        if (children > 0) qtyParts.push(`${children}C`);
         out.push({
           lineKey: spec.key,
           rowId: row.id,
           label,
-          qtyLabel: qtyParts.join(' · '),
+          qtyLabel: '',
           unitPriceLabel: buffetUnitPriceLabel(spec),
           amount: amountsByRowId.get(row.id) ?? 0,
           mode: 'buffet',

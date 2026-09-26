@@ -1239,7 +1239,7 @@ export const MESSAGES_ES = {
     "settlementCollected": "Cobrado",
     "settlementDiscount": "Descuento {n} %",
     "partialPaidBadge": "Pagado parcialmente",
-    "paymentProgress": "{paid}/{total} pagados",
+    "billCollectionProgress": "Cobrado €{collected} / €{payable}",
     "splitModeWhole": "Mesa completa",
     "confirmOnePaidAmount": "Cobrar {amount} €",
     "personOwedTotal": "Debe {amount} €",

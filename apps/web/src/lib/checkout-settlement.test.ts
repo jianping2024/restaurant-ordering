@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   buildCheckoutSettlementSummary,
-  checkoutPaymentProgress,
+  formatCheckoutBillCollectionProgressLabel,
   checkoutSplitModeLabel,
   groupCollectedPaymentsBySession,
   hasCheckoutCollections,
@@ -134,36 +134,24 @@ describe('liveSessionUncollectedAmount', () => {
   });
 });
 
-describe('checkoutPaymentProgress', () => {
-  it('counts paid rows from ledger when available', () => {
-    const progress = checkoutPaymentProgress(
-      billSplit({
-        result: [
-          { name: 'John', amount: 30, paid: false },
-          { name: 'Mary', amount: 30 },
-        ],
-      }),
-      [{ id: '1', person_index: 0, person_name: 'John', amount: 30, created_at: '', payment_method: null,
-      payment_lines: null }],
+describe('formatCheckoutBillCollectionProgressLabel', () => {
+  it('is null until something is collected', () => {
+    assert.equal(
+      formatCheckoutBillCollectionProgressLabel(
+        { collected: 0, payable: 93.65 },
+        '已收 €{collected} / €{payable}',
+      ),
+      null,
     );
-    assert.equal(progress.paidCount, 1);
-    assert.equal(progress.totalCount, 2);
   });
 
-  it('does not count zero-obligation unpaid custom rows as paid', () => {
-    const progress = checkoutPaymentProgress(
-      billSplit({
-        split_mode: 'custom',
-        result: [
-          { name: 'Pessoa 1', amount: 0, paid: true },
-          { name: 'Pessoa 2', amount: 14.95, paid: false },
-        ],
-        total_amount: 14.95,
-      }),
-      [],
+  it('uses bill collected/payable (not person-count) when pool still open', () => {
+    // A-01 shape: all result rows settled, €15 unallocated → money badge, never 16/16
+    const label = formatCheckoutBillCollectionProgressLabel(
+      { collected: 78.65, payable: 93.65 },
+      '已收 €{collected} / €{payable}',
     );
-    assert.equal(progress.paidCount, 0);
-    assert.equal(progress.totalCount, 2);
+    assert.equal(label, '已收 €78.65 / €93.65');
   });
 });
 

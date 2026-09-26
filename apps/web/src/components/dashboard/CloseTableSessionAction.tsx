@@ -28,6 +28,9 @@ interface Props {
   size?: ButtonSize;
   disabled?: boolean;
   leadingIcon?: ReactNode;
+  /** Parent session-write mutex: begin before close API; end in finally unless kept. */
+  onBeginSessionBusy?: () => boolean;
+  onEndSessionBusy?: () => void;
 }
 
 export function CloseTableSessionAction({
@@ -41,6 +44,8 @@ export function CloseTableSessionAction({
   size = 'action',
   disabled = false,
   leadingIcon,
+  onBeginSessionBusy,
+  onEndSessionBusy,
 }: Props) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -83,8 +88,10 @@ export function CloseTableSessionAction({
     closeReasonDetail?: string,
   ) => {
     if (closingTable) return;
+    if (onBeginSessionBusy && !onBeginSessionBusy()) return;
     setClosingTable(closeTableId);
     setUnpaidCloseReasonError(null);
+    let keepSessionBusy = false;
     try {
       const { status, body: data } = await postCloseTableSessionClient({
         table_id: closeTableId,
@@ -132,6 +139,7 @@ export function CloseTableSessionAction({
       if (showSuccessToast) {
         showToast(i18n.closeTableSuccess, 'success');
       }
+      keepSessionBusy = true;
       onClosed?.();
       if (showSuccessToast) {
         router.refresh();
@@ -140,6 +148,7 @@ export function CloseTableSessionAction({
       showToast(i18n.closeTableFailed, 'error');
     } finally {
       setClosingTable(null);
+      if (!keepSessionBusy) onEndSessionBusy?.();
     }
   };
 

@@ -29,6 +29,8 @@ type Props = {
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   priceLoading: boolean;
   layout?: 'sheet' | 'detail';
+  /** Freeze headcount steppers (detail session-write mutex). */
+  disabled?: boolean;
 };
 
 /** Estimated-total line for open-table sheet footer. */
@@ -67,6 +69,7 @@ export function WaiterBuffetPackagesEditor({
   resolvedByBuffetId,
   priceLoading,
   layout = 'sheet',
+  disabled = false,
 }: Props) {
   const t = WAITER_TEXT[lang];
 
@@ -88,6 +91,7 @@ export function WaiterBuffetPackagesEditor({
                 layout="sheet"
                 label={t.buffetAdults}
                 qty={counts.adults}
+                disabled={disabled}
                 onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
                 onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
                 onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
@@ -96,6 +100,7 @@ export function WaiterBuffetPackagesEditor({
                 layout="sheet"
                 label={t.buffetChildren}
                 qty={counts.children}
+                disabled={disabled}
                 onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
                 onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
                 onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}
@@ -135,6 +140,7 @@ export function WaiterBuffetPackagesEditor({
             <BuffetGuestCounter
               label={t.buffetAdults}
               qty={counts.adults}
+              disabled={disabled}
               onQtyChange={(value) => onSetGuestCount(buffet.id, 'adults', value)}
               onDecrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults - 1)}
               onIncrement={() => onSetGuestCount(buffet.id, 'adults', counts.adults + 1)}
@@ -142,6 +148,7 @@ export function WaiterBuffetPackagesEditor({
             <BuffetGuestCounter
               label={t.buffetChildren}
               qty={counts.children}
+              disabled={disabled}
               onQtyChange={(value) => onSetGuestCount(buffet.id, 'children', value)}
               onDecrement={() => onSetGuestCount(buffet.id, 'children', counts.children - 1)}
               onIncrement={() => onSetGuestCount(buffet.id, 'children', counts.children + 1)}

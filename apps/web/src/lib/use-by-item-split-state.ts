@@ -18,7 +18,9 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  byItemDraftHasNamedRows,
   extractByItemDraftAllocations,
+  extractByItemLockedAllocations,
   mergeByItemCommittedAndDraft,
   pruneByItemDraftAgainstLocks,
   type ByItemAllocationRows,
@@ -33,8 +35,9 @@ import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
 /**
- * Sole by-item UI state: committed (server persons) + unpaid draft (local only).
+ * Sole by-item UI state: locked committed (persons) + unpaid draft (local only).
  * Display map is the merge; setByItemAllocations writes draft only.
+ * Unlocked persons seed draft once per split id — never live in committed.
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
@@ -45,6 +48,7 @@ export function useByItemSplitState(params: {
   const { splitMode, lineSpecs, existingSplit, collectedPayments = [] } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
+  const seededSplitIdRef = useRef<string | null>(null);
 
   const paidLocks = useMemo(
     () =>
@@ -61,29 +65,56 @@ export function useByItemSplitState(params: {
     [existingSplit, collectedPayments],
   );
 
-  /** Server persons → committed only. Realtime may rebuild this; never touches draft. */
+  /** Persons hydrate → locked rows only. Realtime may rebuild; never touches draft. */
   const committedAllocations = useMemo(() => {
     if (splitMode !== 'by_item') return {};
     if (!existingSplit?.persons?.length || lineSpecs.length === 0) return {};
-    return withDefaultByItemLineRows(
-      buildByItemConsumerRowsFromPersons(existingSplit.persons, lineSpecs, paidLocks),
+    const fromPersons = buildByItemConsumerRowsFromPersons(
+      existingSplit.persons,
       lineSpecs,
+      paidLocks,
     );
-  }, [splitMode, existingSplit, lineSpecs, paidLocks]);
+    return extractByItemLockedAllocations(fromPersons, lockedTicketKeys);
+  }, [splitMode, existingSplit, lineSpecs, paidLocks, lockedTicketKeys]);
 
   const committedRef = useRef(committedAllocations);
   committedRef.current = committedAllocations;
   const lockedKeysRef = useRef(lockedTicketKeys);
   lockedKeysRef.current = lockedTicketKeys;
 
-  /** Drop draft rows absorbed into committed locks — never pad draft with seed lines. */
+  /**
+   * Prune draft rows absorbed into locks; one-shot seed unlocked persons → draft
+   * when this split has no named draft yet (continuation / remount).
+   */
   useLayoutEffect(() => {
-    if (splitMode !== 'by_item') return;
+    if (splitMode !== 'by_item') {
+      seededSplitIdRef.current = null;
+      return;
+    }
+    if (lineSpecs.length === 0) return;
+
+    const splitId = existingSplit?.id ?? null;
+    const persons = existingSplit?.persons;
+
     setDraftAllocations((prev) => {
       const pruned = pruneByItemDraftAgainstLocks(prev, lockedTicketKeys);
+
+      if (splitId && seededSplitIdRef.current !== splitId) {
+        seededSplitIdRef.current = splitId;
+        if (!byItemDraftHasNamedRows(pruned) && persons?.length) {
+          const fromPersons = buildByItemConsumerRowsFromPersons(
+            persons,
+            lineSpecs,
+            paidLocks,
+          );
+          const seed = extractByItemDraftAllocations(fromPersons, lockedTicketKeys);
+          if (Object.keys(seed).length > 0) return seed;
+        }
+      }
+
       return pruned === prev ? prev : pruned;
     });
-  }, [splitMode, lockedTicketKeys]);
+  }, [splitMode, lockedTicketKeys, lineSpecs, existingSplit, paidLocks]);
 
   const byItemAllocations = useMemo(() => {
     if (splitMode !== 'by_item') return {};

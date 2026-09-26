@@ -53,7 +53,6 @@ export type StaffByItemWorkbenchLabels = {
   addChild: string;
   remove: string;
   collect: string;
-  paidLocked: string;
   paidShareBadge: string;
   qtyParts: QtyPartsLabels;
 };
@@ -558,9 +557,6 @@ export function StaffByItemSplitWorkbench({
                 }}
                 className="w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm text-brand-text outline-none focus:border-brand-gold"
               />
-              {currentSettled || currentLocked ? (
-                <p className="mt-1 text-[11px] text-brand-text-muted">{labels.paidLocked}</p>
-              ) : null}
               {needNameHint ? (
                 <p className="mt-1 text-[11px] text-red-500">{labels.needName}</p>
               ) : null}

@@ -71,6 +71,7 @@ import {
 import type { WaiterTableDetailData } from '@/lib/staff-board';
 import type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
 import { normalizeWaiterTablePageModel } from '@/lib/waiter-table-detail-normalize';
+import { useWaiterDetailSessionBusy } from '@/lib/use-waiter-detail-session-busy';
 import {
   WaiterCheckoutPendingBanner,
   WaiterTableBuffetPanel,
@@ -207,8 +208,12 @@ function WaiterTableDetailInner({
   const [actionTargets, setActionTargets] = useState<RestaurantTableRow[]>([]);
   const [actionTargetsLoading, setActionTargetsLoading] = useState(false);
   const [mergeHasActiveRoundBasket, setMergeHasActiveRoundBasket] = useState(false);
-  const [operating, setOperating] = useState(false);
-  const [closingDemoTable, setClosingDemoTable] = useState<string | null>(null);
+  const {
+    busy: detailSessionBusy,
+    kind: detailSessionBusyKind,
+    tryBegin: tryBeginDetailSessionBusy,
+    end: endDetailSessionBusy,
+  } = useWaiterDetailSessionBusy();
   const [demoCloseConfirmTableId, setDemoCloseConfirmTableId] = useState<string | null>(null);
   const [decrementingKey, setDecrementingKey] = useState<string | null>(null);
   const [servingKey, setServingKey] = useState<string | null>(null);
@@ -278,12 +283,12 @@ function WaiterTableDetailInner({
     setTargetTable(null);
     setActionTargets([]);
     setActionTargetsLoading(false);
-    setOperating(false);
+    endDetailSessionBusy();
     setDecrementingKey(null);
     setItemCodeByMenuId({});
     setOrderingOpen(false);
     setCartDraft([]);
-  }, [tableId]);
+  }, [tableId, endDetailSessionBusy]);
 
   useEffect(() => {
     if (!orderingOpen) return;
@@ -528,6 +533,7 @@ function WaiterTableDetailInner({
   );
 
   const openAction = (type: 'transfer' | 'merge', sourceId: string) => {
+    if (detailSessionBusy) return;
     if (tableIdsEqual(sourceId, tableId) && isCheckoutPending) {
       notifyCheckoutLocked();
       return;
@@ -578,7 +584,6 @@ function WaiterTableDetailInner({
     setTargetTable(null);
     setActionTargets([]);
     setActionTargetsLoading(false);
-    setOperating(false);
     setMergeHasActiveRoundBasket(false);
   };
 
@@ -652,7 +657,8 @@ function WaiterTableDetailInner({
     const currentOperation = operationType;
     const fromTable = sourceTable;
     const toTable = targetTable;
-    setOperating(true);
+    if (!tryBeginDetailSessionBusy('transfer_merge')) return;
+    let keepBusy = false;
     try {
       if (!isDemo) {
         const targetLabel =
@@ -664,6 +670,7 @@ function WaiterTableDetailInner({
             to_table_id: toTable,
           });
           await finishTransferOrMerge(fromTable, toTable, currentOperation, targetLabel, model);
+          keepBusy = true;
         } catch (err) {
           const apiErr = err as Error & { code?: string };
           if (apiErr.code === 'session_billing') {
@@ -723,10 +730,11 @@ function WaiterTableDetailInner({
         demoTargetLabel,
         demoTargetModel,
       );
+      keepBusy = true;
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
-      setOperating(false);
+      if (!keepBusy) endDetailSessionBusy();
     }
   };
 
@@ -755,12 +763,19 @@ function WaiterTableDetailInner({
     }
     return {
       label: t.printPreBill,
-      busy: isPrintPreBillBusy(sessionId),
+      busy: isPrintPreBillBusy(sessionId) || detailSessionBusyKind === 'pre_bill',
+      disabled: detailSessionBusy && detailSessionBusyKind !== 'pre_bill',
       onPrint: () => {
-        void printSessionPreBill(selectedCard.tableId, sessionId);
+        if (!tryBeginDetailSessionBusy('pre_bill')) return;
+        void printSessionPreBill(selectedCard.tableId, sessionId).finally(() => {
+          endDetailSessionBusy();
+        });
       },
     };
   }, [
+    detailSessionBusy,
+    detailSessionBusyKind,
+    endDetailSessionBusy,
     floorCaps.canPrintSessionPreBill,
     isDemo,
     isPrintPreBillBusy,
@@ -769,10 +784,12 @@ function WaiterTableDetailInner({
     selectedCard.tableId,
     sessionMeta?.sessionId,
     t.printPreBill,
+    tryBeginDetailSessionBusy,
   ]);
 
   const closeDemoTable = async (closeTableId: string) => {
-    setClosingDemoTable(closeTableId);
+    if (!tryBeginDetailSessionBusy('demo_close')) return;
+    let keepBusy = false;
     try {
       const { data: session, error: findError } = await supabase
         .from('table_sessions')
@@ -803,11 +820,12 @@ function WaiterTableDetailInner({
         return;
       }
 
+      keepBusy = true;
       finishTableClose(closeTableId);
     } catch {
       showToast(t.actionFailed, 'error');
     } finally {
-      setClosingDemoTable(null);
+      if (!keepBusy) endDetailSessionBusy();
     }
   };
 
@@ -828,7 +846,7 @@ function WaiterTableDetailInner({
     activeBuffetIds,
     hasOpenSession,
     editorReady: buffetEditorReady,
-    autosave: detailActions.showBuffetPanel && hasOpenSession,
+    autosave: detailActions.showBuffetPanel && hasOpenSession && !detailSessionBusy,
     onSuccess: applyModel,
     onStaleConflict: () => {
       void refresh();
@@ -842,6 +860,7 @@ function WaiterTableDetailInner({
     itemIdx: number,
     order: Order,
   ) => {
+    if (!tryBeginDetailSessionBusy('order_line')) return;
     const key = orderLineKey(orderId, itemIdx);
     setDecrementingKey(key);
     try {
@@ -905,6 +924,7 @@ function WaiterTableDetailInner({
       showToast(t.actionFailed, 'error');
     } finally {
       setDecrementingKey(null);
+      endDetailSessionBusy();
     }
   };
 
@@ -913,6 +933,7 @@ function WaiterTableDetailInner({
       notifyCheckoutLocked();
       return;
     }
+    if (detailSessionBusy) return;
     const order = orders.find((row) => row.id === orderId);
     if (!order) return;
     if (!order.items[itemIdx]) return;
@@ -929,6 +950,7 @@ function WaiterTableDetailInner({
       showToast(t.actionFailed, 'error');
       return;
     }
+    if (!tryBeginDetailSessionBusy('order_line')) return;
     const key = orderLineKey(orderId, itemIdx);
     setServingKey(key);
     try {
@@ -958,6 +980,7 @@ function WaiterTableDetailInner({
       showToast(t.actionFailed, 'error');
     } finally {
       setServingKey(null);
+      endDetailSessionBusy();
     }
   };
 
@@ -1029,19 +1052,27 @@ function WaiterTableDetailInner({
                 activeBuffets={activeBuffets}
                 guestSnapshot={guestSnapshot}
                 onSetGuestCount={(buffetId, which, value) => {
-                  whenDetailActionsArmed(() => setBuffetGuestCount(buffetId, which, value));
+                  whenDetailActionsArmed(() => {
+                    if (detailSessionBusy) return;
+                    setBuffetGuestCount(buffetId, which, value);
+                  });
                 }}
                 resolvedByBuffetId={resolvedByBuffetId}
                 buffetPriceLoading={buffetPriceLoading}
+                sessionBusy={detailSessionBusy}
                 confirmOpen={
                   hasOpenSession
                     ? null
                     : {
                         label: t.buffetConfirm,
-                        submitting: buffetSubmitting,
+                        submitting:
+                          buffetSubmitting || detailSessionBusyKind === 'buffet_open',
                         onConfirm: () =>
                           whenDetailActionsArmed(() => {
-                            void submitBuffetOpen();
+                            if (!tryBeginDetailSessionBusy('buffet_open')) return;
+                            void submitBuffetOpen().finally(() => {
+                              endDetailSessionBusy();
+                            });
                           }),
                       }
                 }
@@ -1057,6 +1088,7 @@ function WaiterTableDetailInner({
                 sessionId={sessionMeta?.sessionId ?? null}
                 onContinueOrdering={() => {
                   whenDetailActionsArmed(() => {
+                    if (detailSessionBusy) return;
                     // Do not router.refresh() here — RSC remount races the catalog panel and
                     // can leave Continuar pedido stuck on "…" despite a warm client cache.
                     setOrderingOpen(true);
@@ -1080,9 +1112,13 @@ function WaiterTableDetailInner({
                 showForceClose={detailActions.showForceClose}
                 floorCapabilities={floorCaps}
                 isDemo={isDemo}
-                closingDemoTable={closingDemoTable === selectedCard.tableId}
+                sessionBusy={detailSessionBusy}
+                sessionBusyKind={detailSessionBusyKind}
+                tryBeginSessionBusy={tryBeginDetailSessionBusy}
+                endSessionBusy={endDetailSessionBusy}
                 onDemoCloseClick={() => {
                   whenDetailActionsArmed(() => {
+                    if (detailSessionBusy) return;
                     if (isCheckoutPending) {
                       void closeDemoTable(selectedCard.tableId);
                       return;
@@ -1106,6 +1142,7 @@ function WaiterTableDetailInner({
                   formatChargeableShareHint(lang, qty, unitPrice)
                 }
                 isCheckoutPending={isCheckoutPending}
+                sessionBusy={detailSessionBusy}
                 decrementingKey={decrementingKey}
                 servingKey={servingKey}
                 orderLineKey={orderLineKey}
@@ -1197,24 +1234,36 @@ function WaiterTableDetailInner({
                 variant="gold"
                 size="sm"
                 onClick={handleActionSubmit}
-                disabled={!sourceTable || !targetTable || operating}
+                disabled={
+                  !sourceTable
+                  || !targetTable
+                  || detailSessionBusy
+                }
+                loading={detailSessionBusyKind === 'transfer_merge'}
               >
                 {operationType === 'transfer'
-                  ? (operating ? t.operatingTransfer : t.confirmTransfer)
-                  : (operating ? t.operatingMerge : t.confirmMerge)}
+                  ? (detailSessionBusyKind === 'transfer_merge'
+                    ? t.operatingTransfer
+                    : t.confirmTransfer)
+                  : (detailSessionBusyKind === 'transfer_merge'
+                    ? t.operatingMerge
+                    : t.confirmMerge)}
               </Button>
             </div>
           </Modal>
           {isDemo ? (
             <ConfirmModal
               open={demoCloseConfirmTableId != null}
-              onClose={() => setDemoCloseConfirmTableId(null)}
+              onClose={() => {
+                if (detailSessionBusyKind === 'demo_close') return;
+                setDemoCloseConfirmTableId(null);
+              }}
               title={demoCloseConfirmCopy.title}
               message={demoCloseConfirmCopy.message}
               confirmLabel={t.closeTableConfirmButton}
               cancelLabel={t.closeTableCancel}
               variant="danger"
-              confirming={closingDemoTable === demoCloseConfirmTableId}
+              confirming={detailSessionBusyKind === 'demo_close'}
               onConfirm={async () => {
                 if (!demoCloseConfirmTableId) return;
                 const closeTableId = demoCloseConfirmTableId;

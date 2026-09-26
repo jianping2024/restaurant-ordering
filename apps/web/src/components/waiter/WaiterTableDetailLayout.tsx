@@ -26,6 +26,7 @@ import { requestEnsureStaffCheckoutEntry } from '@/lib/request-ensure-staff-chec
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { useRouter } from 'next/navigation';
 import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
+import type { WaiterDetailSessionBusyKind } from '@/lib/use-waiter-detail-session-busy';
 import {
   WaiterBillIcon,
   WaiterClocheIcon,
@@ -71,6 +72,8 @@ type BuffetPanelProps = {
   onSetGuestCount: (buffetId: string, which: 'adults' | 'children', value: number) => void;
   resolvedByBuffetId: Record<string, ResolvedBuffetPriceRow | null>;
   buffetPriceLoading: boolean;
+  /** Session-write mutex — freeze headcount while another write is in flight. */
+  sessionBusy?: boolean;
   /**
    * Cold open only (`intent=open`). Occupied tables autosave headcount — no confirm row.
    */
@@ -88,6 +91,7 @@ export function BuffetGuestCounter({
   onDecrement,
   onIncrement,
   layout = 'detail',
+  disabled = false,
 }: {
   label: string;
   qty: number;
@@ -95,6 +99,7 @@ export function BuffetGuestCounter({
   onDecrement: () => void;
   onIncrement: () => void;
   layout?: 'detail' | 'sheet';
+  disabled?: boolean;
 }) {
   const rowClass =
     layout === 'sheet'
@@ -110,6 +115,7 @@ export function BuffetGuestCounter({
         qtyInputAriaLabel={label}
         onDecrement={onDecrement}
         onIncrement={onIncrement}
+        disabled={disabled}
       />
     </div>
   );
@@ -147,11 +153,13 @@ export function WaiterTableBuffetPanel({
   onSetGuestCount,
   resolvedByBuffetId,
   buffetPriceLoading,
+  sessionBusy = false,
   confirmOpen,
 }: BuffetPanelProps) {
   const confirmDisabled =
     !confirmOpen
     || confirmOpen.submitting
+    || sessionBusy
     || !isBuffetPackagesEditorReady(guestSnapshot, resolvedByBuffetId, buffetPriceLoading);
 
   return (
@@ -165,6 +173,7 @@ export function WaiterTableBuffetPanel({
           resolvedByBuffetId={resolvedByBuffetId}
           priceLoading={buffetPriceLoading}
           layout="detail"
+          disabled={sessionBusy}
         />
         {confirmOpen ? (
           <div className={waiterDetailLayout.buffetDetailSummaryRow}>
@@ -188,11 +197,13 @@ export function WaiterTableBuffetPanel({
 function ContinueOrderingControl({
   label,
   checkoutLocked,
+  sessionBusy,
   onCheckoutLocked,
   onContinueOrdering,
 }: {
   label: string;
   checkoutLocked: boolean;
+  sessionBusy: boolean;
   onCheckoutLocked: () => void;
   onContinueOrdering: () => void;
 }) {
@@ -200,14 +211,24 @@ function ContinueOrderingControl({
 
   if (checkoutLocked) {
     return (
-      <WaiterTablePrimaryButton type="button" onClick={onCheckoutLocked} icon={icon}>
+      <WaiterTablePrimaryButton
+        type="button"
+        onClick={onCheckoutLocked}
+        disabled={sessionBusy}
+        icon={icon}
+      >
         {label}
       </WaiterTablePrimaryButton>
     );
   }
 
   return (
-    <WaiterTablePrimaryButton type="button" onClick={onContinueOrdering} icon={icon}>
+    <WaiterTablePrimaryButton
+      type="button"
+      onClick={onContinueOrdering}
+      disabled={sessionBusy}
+      icon={icon}
+    >
       {label}
     </WaiterTablePrimaryButton>
   );
@@ -218,19 +239,25 @@ function ToolbarCloseTableControl({
   isCheckoutPending,
   showForceClose,
   isDemo,
-  closingDemoTable,
+  sessionBusy,
+  closeBusy,
   closeLabel,
   onDemoCloseClick,
   onTableClosed,
+  onBeginForceCloseBusy,
+  onEndSessionBusy,
 }: {
   tableId: string;
   isCheckoutPending: boolean;
   showForceClose: boolean;
   isDemo: boolean;
-  closingDemoTable: boolean;
+  sessionBusy: boolean;
+  closeBusy: boolean;
   closeLabel: string;
   onDemoCloseClick: () => void;
   onTableClosed: () => void;
+  onBeginForceCloseBusy: () => boolean;
+  onEndSessionBusy: () => void;
 }) {
   if (!showForceClose) return null;
 
@@ -242,7 +269,8 @@ function ToolbarCloseTableControl({
         type="button"
         variant="close"
         onClick={onDemoCloseClick}
-        loading={closingDemoTable}
+        disabled={sessionBusy && !closeBusy}
+        loading={closeBusy}
         aria-label={closeLabel}
         icon={closeIcon}
       >
@@ -261,6 +289,9 @@ function ToolbarCloseTableControl({
       size="action"
       className={waiterDetailLayout.primaryAction}
       leadingIcon={closeIcon}
+      disabled={sessionBusy && !closeBusy}
+      onBeginSessionBusy={onBeginForceCloseBusy}
+      onEndSessionBusy={onEndSessionBusy}
     />
   );
 }
@@ -274,8 +305,12 @@ function WaiterTableSettledCloseControl({
   label,
   printBillOnClose,
   checkoutLocked,
+  sessionBusy,
+  settledCloseBusy,
   onCheckoutLocked,
   onClosed,
+  tryBeginSessionBusy,
+  endSessionBusy,
 }: {
   lang: UILanguage;
   t: WaiterCopy;
@@ -284,13 +319,16 @@ function WaiterTableSettledCloseControl({
   label: string;
   printBillOnClose: boolean;
   checkoutLocked: boolean;
+  sessionBusy: boolean;
+  settledCloseBusy: boolean;
   onCheckoutLocked: () => void;
   onClosed: () => void;
+  tryBeginSessionBusy: (kind: WaiterDetailSessionBusyKind) => boolean;
+  endSessionBusy: () => void;
 }) {
   const messages = getMessages(lang);
   const orderHistory = messages.orderHistory;
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
 
   const icon = <WaiterBillIcon className={buttonIcon.sm} />;
   const confirmTitle = printBillOnClose
@@ -298,6 +336,7 @@ function WaiterTableSettledCloseControl({
     : t.checkoutCloseConfirmTitleCashier;
 
   const handleClick = () => {
+    if (sessionBusy) return;
     if (checkoutLocked) {
       onCheckoutLocked();
       return;
@@ -310,8 +349,9 @@ function WaiterTableSettledCloseControl({
   };
 
   const handleConfirm = async () => {
-    if (busy || !sessionId) return;
-    setBusy(true);
+    if (!sessionId) return;
+    if (!tryBeginSessionBusy('settled_close')) return;
+    let keepBusy = false;
     try {
       const outcome = await runWaiterTableCheckoutClose({
         tableId,
@@ -330,11 +370,12 @@ function WaiterTableSettledCloseControl({
       if (outcome.printFailed) {
         showToast(t.checkoutClosePrintFailed, 'error');
       }
+      keepBusy = true;
       onClosed();
     } catch {
       showToast(t.checkoutCloseFailed, 'error');
     } finally {
-      setBusy(false);
+      if (!keepBusy) endSessionBusy();
     }
   };
 
@@ -343,7 +384,8 @@ function WaiterTableSettledCloseControl({
       <WaiterTableSecondaryButton
         type="button"
         onClick={handleClick}
-        loading={busy}
+        disabled={sessionBusy && !settledCloseBusy}
+        loading={settledCloseBusy}
         aria-label={label}
         icon={icon}
       >
@@ -352,14 +394,14 @@ function WaiterTableSettledCloseControl({
       <ConfirmModal
         open={confirmOpen}
         onClose={() => {
-          if (busy) return;
+          if (settledCloseBusy) return;
           setConfirmOpen(false);
         }}
         title={confirmTitle}
         message=""
         confirmLabel={orderHistory.closeTableConfirmButton}
         cancelLabel={orderHistory.closeTableCancel}
-        confirming={busy}
+        confirming={settledCloseBusy}
         onConfirm={handleConfirm}
       />
     </>
@@ -374,7 +416,11 @@ function WaiterTableCallCheckoutControl({
   tableId,
   sessionId,
   checkoutLocked,
+  sessionBusy,
+  callCheckoutBusy,
   onCheckoutLocked,
+  tryBeginSessionBusy,
+  endSessionBusy,
 }: {
   lang: UILanguage;
   t: WaiterCopy;
@@ -382,13 +428,16 @@ function WaiterTableCallCheckoutControl({
   tableId: string;
   sessionId: string | null;
   checkoutLocked: boolean;
+  sessionBusy: boolean;
+  callCheckoutBusy: boolean;
   onCheckoutLocked: () => void;
+  tryBeginSessionBusy: (kind: WaiterDetailSessionBusyKind) => boolean;
+  endSessionBusy: () => void;
 }) {
   const router = useRouter();
   const messages = getMessages(lang);
   const checkout = messages.checkout;
   const bill = messages.bill;
-  const [busy, setBusy] = useState(false);
 
   const handleClick = async () => {
     if (checkoutLocked) {
@@ -399,8 +448,8 @@ function WaiterTableCallCheckoutControl({
       showToast(t.checkoutCloseNoSession, 'error');
       return;
     }
-    if (busy) return;
-    setBusy(true);
+    if (!tryBeginSessionBusy('call_checkout')) return;
+    let keepBusy = false;
     try {
       const outcome = await requestEnsureStaffCheckoutEntry({
         slug: restaurantSlug,
@@ -422,13 +471,14 @@ function WaiterTableCallCheckoutControl({
         );
         return;
       }
+      keepBusy = true;
       router.push(
         `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}&request_id=${encodeURIComponent(outcome.bill_split_id)}`,
       );
     } catch {
       showToast(checkout.callCheckoutFailed, 'error');
     } finally {
-      setBusy(false);
+      if (!keepBusy) endSessionBusy();
     }
   };
 
@@ -436,11 +486,12 @@ function WaiterTableCallCheckoutControl({
     <WaiterTableSecondaryButton
       type="button"
       onClick={() => void handleClick()}
-      loading={busy}
+      disabled={sessionBusy && !callCheckoutBusy}
+      loading={callCheckoutBusy}
       aria-label={checkout.callCheckout}
       icon={<WaiterBillIcon className={buttonIcon.sm} />}
     >
-      {busy ? checkout.callCheckoutOperating : checkout.callCheckout}
+      {callCheckoutBusy ? checkout.callCheckoutOperating : checkout.callCheckout}
     </WaiterTableSecondaryButton>
   );
 }
@@ -466,7 +517,10 @@ type OccupiedToolbarProps = {
   showForceClose: boolean;
   floorCapabilities: FloorBoardCapabilities;
   isDemo: boolean;
-  closingDemoTable: boolean;
+  sessionBusy: boolean;
+  sessionBusyKind: WaiterDetailSessionBusyKind | null;
+  tryBeginSessionBusy: (kind: WaiterDetailSessionBusyKind) => boolean;
+  endSessionBusy: () => void;
   onDemoCloseClick: () => void;
   onTableClosed: () => void;
 };
@@ -490,11 +544,18 @@ export function WaiterTableOccupiedToolbar({
   showForceClose,
   floorCapabilities,
   isDemo,
-  closingDemoTable,
+  sessionBusy,
+  sessionBusyKind,
+  tryBeginSessionBusy,
+  endSessionBusy,
   onDemoCloseClick,
   onTableClosed,
 }: OccupiedToolbarProps) {
-  const transferMergeDisabled = isCheckoutPending || inTableParty;
+  const transferMergeDisabled = isCheckoutPending || inTableParty || sessionBusy;
+  const callCheckoutBusy = sessionBusyKind === 'call_checkout';
+  const settledCloseBusy = sessionBusyKind === 'settled_close';
+  const closeBusy =
+    sessionBusyKind === 'force_close' || sessionBusyKind === 'demo_close';
   return (
     <WaiterDetailCard>
       <div className={waiterDetailLayout.cardBody}>
@@ -502,6 +563,7 @@ export function WaiterTableOccupiedToolbar({
           <ContinueOrderingControl
             label={t.continueOrdering}
             checkoutLocked={isCheckoutPending}
+            sessionBusy={sessionBusy}
             onCheckoutLocked={onCheckoutLocked}
             onContinueOrdering={onContinueOrdering}
           />
@@ -533,7 +595,11 @@ export function WaiterTableOccupiedToolbar({
               tableId={tableId}
               sessionId={sessionId}
               checkoutLocked={isCheckoutPending}
+              sessionBusy={sessionBusy}
+              callCheckoutBusy={callCheckoutBusy}
               onCheckoutLocked={onCheckoutLocked}
+              tryBeginSessionBusy={tryBeginSessionBusy}
+              endSessionBusy={endSessionBusy}
             />
           ) : null}
           {showCheckoutClose ? (
@@ -545,8 +611,12 @@ export function WaiterTableOccupiedToolbar({
               label={t.goToBill}
               printBillOnClose={floorCapabilities.canPrintOnCheckoutClose}
               checkoutLocked={isCheckoutPending}
+              sessionBusy={sessionBusy}
+              settledCloseBusy={settledCloseBusy}
               onCheckoutLocked={onCheckoutLocked}
               onClosed={onTableClosed}
+              tryBeginSessionBusy={tryBeginSessionBusy}
+              endSessionBusy={endSessionBusy}
             />
           ) : null}
           <ToolbarCloseTableControl
@@ -554,10 +624,13 @@ export function WaiterTableOccupiedToolbar({
             isCheckoutPending={isCheckoutPending}
             showForceClose={showForceClose}
             isDemo={isDemo}
-            closingDemoTable={closingDemoTable}
+            sessionBusy={sessionBusy}
+            closeBusy={closeBusy}
             closeLabel={t.closeTable}
             onDemoCloseClick={onDemoCloseClick}
             onTableClosed={onTableClosed}
+            onBeginForceCloseBusy={() => tryBeginSessionBusy('force_close')}
+            onEndSessionBusy={endSessionBusy}
           />
         </div>
       </div>
@@ -573,12 +646,14 @@ type OrderedItemsProps = {
   preBillPrint: {
     label: string;
     busy: boolean;
+    disabled?: boolean;
     onPrint: () => void;
   } | null;
   lines: WaiterOrderLine[];
   /** Optional: format chargeable qty hint; null/omit hides the hint. */
   formatChargeableHint?: (qty: number, unitPrice: number) => string;
   isCheckoutPending: boolean;
+  sessionBusy: boolean;
   decrementingKey: string | null;
   servingKey: string | null;
   orderLineKey: (orderId: string, itemIdx: number) => string;
@@ -594,6 +669,7 @@ export function WaiterTableOrderedItemsPanel({
   lines,
   formatChargeableHint,
   isCheckoutPending,
+  sessionBusy,
   decrementingKey,
   servingKey,
   orderLineKey,
@@ -602,6 +678,8 @@ export function WaiterTableOrderedItemsPanel({
   serveLabel,
 }: OrderedItemsProps) {
   if (lines.length === 0) return null;
+
+  const lineActionsLocked = isCheckoutPending || sessionBusy;
 
   return (
     <WaiterDetailCard>
@@ -620,6 +698,7 @@ export function WaiterTableOrderedItemsPanel({
               size="sm"
               className={waiterDetailLayout.orderedItemsPreBillAction}
               loading={preBillPrint.busy}
+              disabled={preBillPrint.disabled || (sessionBusy && !preBillPrint.busy)}
               onClick={preBillPrint.onPrint}
             >
               {preBillPrint.label}
@@ -645,6 +724,9 @@ export function WaiterTableOrderedItemsPanel({
             line.canServe && line.serveOrderId != null && line.serveItemIdx != null
               ? orderLineKey(line.serveOrderId, line.serveItemIdx)
               : null;
+          const thisDecrementBusy =
+            decrementingKey === orderLineKey(line.orderId, line.itemIdx);
+          const thisServeBusy = serveKey != null && servingKey === serveKey;
           return (
             <div key={line.catalogKey} className="min-w-0">
               <div className={waiterDetailLayout.orderedItemRow}>
@@ -667,8 +749,8 @@ export function WaiterTableOrderedItemsPanel({
                         type="button"
                         variant="outline"
                         size="sm"
-                        disabled={isCheckoutPending}
-                        loading={servingKey === serveKey}
+                        disabled={lineActionsLocked && !thisServeBusy}
+                        loading={thisServeBusy}
                         onClick={() => onServe(line.serveOrderId!, line.serveItemIdx!)}
                       >
                         {serveLabel}
@@ -677,8 +759,8 @@ export function WaiterTableOrderedItemsPanel({
                     {line.canDecrement ? (
                       <WaiterOrderQtyMinus
                         onDecrement={() => onDecrement(line.orderId, line.itemIdx)}
-                        disabled={isCheckoutPending}
-                        busy={decrementingKey === orderLineKey(line.orderId, line.itemIdx)}
+                        disabled={lineActionsLocked && !thisDecrementBusy}
+                        busy={thisDecrementBusy}
                       />
                     ) : null}
                   </div>

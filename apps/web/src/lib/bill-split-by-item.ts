@@ -18,6 +18,7 @@ import {
   displaySplitPersonName,
   splitPersonKey,
 } from '@/lib/split-person-identity';
+import { splitPartyKey, mintSplitPartyId } from '@/lib/split-party-id';
 import type { OrderItem, SplitPerson, SplitPersonItemShare } from '@/types';
 
 export type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
@@ -28,6 +29,13 @@ export type ByItemConsumerShare = {
   name: string;
   qty: Rational;
   guestType?: BuffetGuestType;
+  /** Atomic ticket id when present. */
+  partyId?: string;
+  /**
+   * When set, this share keeps this euro amount; open shares split the remainder
+   * of the line's allocated total (paid-ticket amount freeze).
+   */
+  frozenAmount?: number;
 };
 
 export type ByItemLineAllocation = Record<string, ByItemConsumerShare[]>;
@@ -36,6 +44,7 @@ export type ByItemSplitRow = {
   name: string;
   amount: number;
   items: Array<{ name: string; qty: number; price: number }>;
+  partyId?: string;
 };
 
 export type ByItemConsumerRow = {
@@ -52,6 +61,10 @@ export type ByItemConsumerRow = {
    * (never merge into this one).
    */
   paidLocked?: boolean;
+  /** Atomic ticket id when present (optional for legacy rows). */
+  partyId?: string;
+  /** Stamped euro amount when paidLocked — sole per-share freeze. */
+  lockedAmount?: number;
 };
 
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
@@ -184,7 +197,10 @@ export function appendByItemConsumerRow(
   rows: ByItemConsumerRow[],
   spec: ByItemLineSpec,
 ): ByItemConsumerRow[] {
-  const base = createByItemConsumerRow({ buffet: spec.mode === 'buffet' });
+  const base = {
+    ...createByItemConsumerRow({ buffet: spec.mode === 'buffet' }),
+    partyId: mintSplitPartyId(),
+  };
 
   if (spec.mode === 'buffet') {
     const assigned = parseBuffetConsumerRows(rows);
@@ -227,6 +243,7 @@ export type BuffetConsumerAllocation = {
   name: string;
   adults: number;
   children: number;
+  partyId?: string;
 };
 
 export function parseBuffetHeadcountInput(raw: string | undefined): number {
@@ -255,7 +272,12 @@ export function parseBuffetConsumerRows(rows: ByItemConsumerRow[]): BuffetConsum
     if (!name) continue;
     const { adults, children } = resolveBuffetRowCounts(row);
     if (adults <= 0 && children <= 0) continue;
-    parsed.push({ name, adults, children });
+    parsed.push({
+      name,
+      adults,
+      children,
+      ...(row.partyId?.trim() ? { partyId: row.partyId.trim() } : {}),
+    });
   }
   return parsed;
 }
@@ -270,6 +292,7 @@ function buffetSharesFromAllocations(
         name: row.name,
         qty: rationalFromInt(row.adults),
         guestType: 'adult',
+        ...(row.partyId ? { partyId: row.partyId } : {}),
       });
     }
     if (row.children > 0) {
@@ -277,6 +300,7 @@ function buffetSharesFromAllocations(
         name: row.name,
         qty: rationalFromInt(row.children),
         guestType: 'child',
+        ...(row.partyId ? { partyId: row.partyId } : {}),
       });
     }
   }
@@ -312,7 +336,14 @@ export function parseConsumerRows(
     const name = row.name.trim();
     const qty = parseConsumerRowQty(row);
     if (!name || !qty) continue;
-    parsed.push({ name, qty });
+    parsed.push({
+      name,
+      qty,
+      ...(row.partyId?.trim() ? { partyId: row.partyId.trim() } : {}),
+      ...(row.paidLocked && row.lockedAmount != null && Number.isFinite(row.lockedAmount)
+        ? { frozenAmount: row.lockedAmount }
+        : {}),
+    });
   }
   return parsed;
 }
@@ -365,7 +396,8 @@ function evaluateBuffetLineShares(
   if (names.some((name) => !name)) {
     return { kind: 'missing_names', allocated: rationalFromInt(allocations.length) };
   }
-  if (new Set(names).size !== names.length) {
+  const partyKeys = allocations.map((row) => splitPartyKey(row.partyId, row.name));
+  if (new Set(partyKeys).size !== partyKeys.length) {
     return { kind: 'duplicate_names', allocated: rationalFromInt(allocations.length) };
   }
 
@@ -423,8 +455,8 @@ export function getBuffetLineStatusFromRows(
   }
 
   const namedRows = rows.filter((row) => row.name.trim());
-  const lower = namedRows.map((row) => row.name.trim().toLowerCase());
-  if (lower.length > 0 && new Set(lower).size !== lower.length) {
+  const partyKeys = namedRows.map((row) => splitPartyKey(row.partyId, row.name));
+  if (partyKeys.length > 0 && new Set(partyKeys).size !== partyKeys.length) {
     const partial = parseBuffetConsumerRows(rows);
     const heads = partial.reduce((sum, row) => sum + row.adults + row.children, 0);
     return { kind: 'duplicate_names', allocated: rationalFromInt(heads) };
@@ -476,19 +508,19 @@ function qtyDiff(target: Rational, allocated: Rational): Rational {
 
 function evaluateByItemLineShares(
   lineQty: number,
-  shares: Array<{ name: string; qty: Rational }>,
+  shares: Array<{ name: string; qty: Rational; partyId?: string }>,
 ): ByItemLineStatus {
   const target = lineQtyRational(lineQty);
   if (shares.length === 0) {
     return { kind: 'empty', target };
   }
 
-  const names = shares.map((share) => share.name.trim().toLowerCase());
+  const partyKeys = shares.map((share) => splitPartyKey(share.partyId, share.name));
   const allocated = allocatedSum(shares);
-  if (names.some((name) => !name)) {
+  if (partyKeys.some((key) => !key)) {
     return { kind: 'missing_names', allocated };
   }
-  if (new Set(names).size !== names.length) {
+  if (new Set(partyKeys).size !== partyKeys.length) {
     return { kind: 'duplicate_names', allocated };
   }
 
@@ -530,9 +562,9 @@ export function getByItemLineStatusFromRows(
     }
   }
 
-  const names = rows.map((row) => row.name.trim()).filter(Boolean);
-  const lower = names.map((name) => name.toLowerCase());
-  if (lower.length > 0 && new Set(lower).size !== lower.length) {
+  const namedRows = rows.filter((row) => row.name.trim());
+  const partyKeys = namedRows.map((row) => splitPartyKey(row.partyId, row.name));
+  if (partyKeys.length > 0 && new Set(partyKeys).size !== partyKeys.length) {
     const partial = parseConsumerRows(rows);
     return { kind: 'duplicate_names', allocated: allocatedSum(partial) };
   }
@@ -783,6 +815,7 @@ export function allocateLineTotalByShares(
  * Basis = qty × unit; money = integer-cent largest-remainder so Σ(shares) equals the
  * allocated total (never per-share `round(unit×qty)` — that can overshoot the line by 1¢).
  * Incomplete lines use only allocated qty/heads (not the full catalog line).
+ * Paid shares with `frozenAmount` keep that stamp; open shares split the remainder.
  */
 export function allocateByItemShareAmounts(
   line: ByItemSplitLine,
@@ -790,10 +823,19 @@ export function allocateByItemShareAmounts(
 ): number[] {
   if (shares.length === 0) return [];
 
+  const frozenFlags = shares.map(
+    (share) =>
+      share.frozenAmount != null &&
+      Number.isFinite(share.frozenAmount) &&
+      share.frozenAmount >= 0,
+  );
+  const anyFrozen = frozenFlags.some(Boolean);
+
   if (line.mode === 'buffet') {
     let adultHeads = 0;
     let childHeads = 0;
-    const weightInts = shares.map((share) => {
+    const weightInts = shares.map((share, index) => {
+      if (frozenFlags[index]) return 0;
       const qty = share.qty.den > 0 ? share.qty.num / share.qty.den : 0;
       if (qty <= 0) return 0;
       if (share.guestType === 'child') {
@@ -803,21 +845,69 @@ export function allocateByItemShareAmounts(
       adultHeads += qty;
       return eurosToCents(line.adultUnitPrice * qty);
     });
+    // Heads on frozen shares still count toward line total basis.
+    for (let i = 0; i < shares.length; i++) {
+      if (!frozenFlags[i]) continue;
+      const share = shares[i]!;
+      const qty = share.qty.den > 0 ? share.qty.num / share.qty.den : 0;
+      if (qty <= 0) continue;
+      if (share.guestType === 'child') childHeads += qty;
+      else adultHeads += qty;
+    }
     const totalCents = eurosToCents(
       adultHeads * line.adultUnitPrice + childHeads * line.childUnitPrice,
     );
     if (totalCents <= 0) return shares.map(() => 0);
-    const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
-    return cents.map(centsToEuros);
+    return allocateLineCentsWithFrozen(totalCents, shares, frozenFlags, weightInts);
   }
 
   const allocatedQty = sumRationals(shares.map((share) => share.qty));
   if (allocatedQty.num <= 0) return shares.map(() => 0);
   const totalCents = eurosToCents(line.unitPrice * (allocatedQty.num / allocatedQty.den));
   if (totalCents <= 0) return shares.map(() => 0);
-  const weightInts = menuShareQtyWeightInts(shares);
-  const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
-  return cents.map(centsToEuros);
+  const weightInts = anyFrozen
+    ? shares.map((share, index) =>
+        frozenFlags[index] ? 0 : menuShareQtyWeightInts([share])[0] ?? 0,
+      )
+    : menuShareQtyWeightInts(shares);
+  return allocateLineCentsWithFrozen(totalCents, shares, frozenFlags, weightInts);
+}
+
+function allocateLineCentsWithFrozen(
+  totalCents: number,
+  shares: readonly ByItemConsumerShare[],
+  frozenFlags: readonly boolean[],
+  openWeightInts: readonly number[],
+): number[] {
+  const out = new Array<number>(shares.length).fill(0);
+  let frozenCents = 0;
+  for (let i = 0; i < shares.length; i++) {
+    if (!frozenFlags[i]) continue;
+    const cents = eurosToCents(shares[i]!.frozenAmount ?? 0);
+    out[i] = cents;
+    frozenCents += cents;
+  }
+  const openCents = Math.max(0, totalCents - frozenCents);
+  const openIndexes: number[] = [];
+  const openWeights: number[] = [];
+  for (let i = 0; i < shares.length; i++) {
+    if (frozenFlags[i]) continue;
+    openIndexes.push(i);
+    openWeights.push(openWeightInts[i] ?? 0);
+  }
+  if (openIndexes.length === 0) {
+    // All frozen — keep stamps even if they disagree with totalCents.
+    return out.map(centsToEuros);
+  }
+  const allocated = allocateProportionalCents(
+    openCents,
+    openWeights,
+    (j) => shares[openIndexes[j]!]?.name ?? '',
+  );
+  for (let j = 0; j < openIndexes.length; j++) {
+    out[openIndexes[j]!] = allocated[j] ?? 0;
+  }
+  return out.map(centsToEuros);
 }
 
 export function buffetLineAllocationComplete(
@@ -869,6 +959,14 @@ export function buildByItemAllocationsFromPersons(
           name: person.name,
           qty: normalizeRational({ num: share.qty_num, den: share.qty_den }),
           ...(guestType ? { guestType } : {}),
+          ...(person.party_id?.trim()
+            ? { partyId: person.party_id.trim() }
+            : share.party_id?.trim()
+              ? { partyId: share.party_id.trim() }
+              : {}),
+          ...(share.locked_amount != null && Number.isFinite(share.locked_amount)
+            ? { frozenAmount: share.locked_amount }
+            : {}),
         });
         allocations[share.key] = rows;
       }
@@ -877,7 +975,11 @@ export function buildByItemAllocationsFromPersons(
 
     for (const key of person.items || []) {
       const rows = allocations[key] ?? [];
-      rows.push({ name: person.name, qty: { num: 0, den: 1 } });
+      rows.push({
+        name: person.name,
+        qty: { num: 0, den: 1 },
+        ...(person.party_id?.trim() ? { partyId: person.party_id.trim() } : {}),
+      });
       allocations[key] = rows;
     }
   }
@@ -900,24 +1002,33 @@ export function buildByItemAllocationsFromPersons(
  * Share money sole path: {@link allocateByItemShareAmounts} (qty×unit weights + cent remainder).
  * Output order: `personOrder` when provided (ledger roster); else first-seen
  * allocation order — never localeCompare-sort (that breaks person_index).
+ * Identity: {@link splitPartyKey} (party_id when present, else name).
  */
 export function calcByItemSplitResults(params: {
   lines: ByItemSplitLine[];
   allocations: ByItemLineAllocation;
   /** Stable roster names (`bill_splits.result` order). */
   personOrder?: readonly string[];
+  /** Optional parallel party ids aligned with personOrder (same length). */
+  personPartyIds?: readonly (string | undefined)[];
 }): ByItemSplitRow[] {
-  const { lines, allocations, personOrder } = params;
+  const { lines, allocations, personOrder, personPartyIds } = params;
   const people = new Map<string, ByItemSplitRow>();
   const seenOrder: string[] = [];
 
-  const addShare = (shareName: string, item: ByItemSplitRow['items'][number], price: number) => {
-    const key = splitPersonKey(shareName);
+  const addShare = (
+    shareName: string,
+    partyId: string | undefined,
+    item: ByItemSplitRow['items'][number],
+    price: number,
+  ) => {
+    const key = splitPartyKey(partyId, shareName);
     if (!key) return;
     const existing = people.get(key) ?? {
       name: displaySplitPersonName(shareName),
       amount: 0,
       items: [],
+      ...(partyId?.trim() ? { partyId: partyId.trim() } : {}),
     };
     if (!people.has(key)) seenOrder.push(key);
     existing.items.push(item);
@@ -938,6 +1049,7 @@ export function calcByItemSplitResults(params: {
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
         addShare(
           share.name,
+          share.partyId,
           { name: line.name.trim(), qty, price: unitPrice },
           amounts[i] ?? 0,
         );
@@ -950,6 +1062,7 @@ export function calcByItemSplitResults(params: {
       const qty = share.qty.num / share.qty.den;
       addShare(
         share.name,
+        share.partyId,
         { name: line.name.trim(), qty, price: line.unitPrice },
         amounts[i] ?? 0,
       );
@@ -959,8 +1072,10 @@ export function calcByItemSplitResults(params: {
   if (personOrder && personOrder.length > 0) {
     const used = new Set<string>();
     const ordered: ByItemSplitRow[] = [];
-    for (const name of personOrder) {
-      const key = splitPersonKey(name);
+    for (let i = 0; i < personOrder.length; i++) {
+      const name = personOrder[i]!;
+      const partyId = personPartyIds?.[i];
+      const key = splitPartyKey(partyId, name);
       if (!key || used.has(key)) continue;
       const row = people.get(key);
       if (!row) continue;
@@ -982,12 +1097,20 @@ export function calcByItemSplitResults(params: {
 
 /** Locate person row in {@link calcByItemSplitResults} output (sole collect index/amount source). */
 export function locateByItemSplitResult(
-  results: ReadonlyArray<{ name: string; amount: number }>,
+  results: ReadonlyArray<{ name: string; amount: number; partyId?: string }>,
   personName: string,
-): { index: number; row: { name: string; amount: number } } | null {
-  const key = splitPersonKey(personName);
+  partyId?: string,
+): { index: number; row: { name: string; amount: number; partyId?: string } } | null {
+  const key = splitPartyKey(partyId, personName);
   if (!key) return null;
-  const index = results.findIndex((row) => splitPersonKey(row.name) === key);
+  let index = results.findIndex((row) => splitPartyKey(row.partyId, row.name) === key);
+  if (index < 0 && !partyId?.trim()) {
+    // Compat: name-only lookup when caller omits party_id.
+    const nameKey = splitPartyKey(undefined, personName);
+    index = results.findIndex(
+      (row) => splitPartyKey(undefined, row.name) === nameKey,
+    );
+  }
   if (index < 0) return null;
   return { index, row: results[index]! };
 }
@@ -995,15 +1118,19 @@ export function locateByItemSplitResult(
 export function buildSplitPersonsFromAllocations(
   allocations: ByItemLineAllocation,
 ): SplitPerson[] {
-  const byKey = new Map<string, { name: string; item_shares: SplitPersonItemShare[] }>();
+  const byKey = new Map<
+    string,
+    { name: string; partyId?: string; item_shares: SplitPersonItemShare[] }
+  >();
 
   for (const [key, shares] of Object.entries(allocations)) {
     for (const share of shares) {
-      const personKey = splitPersonKey(share.name);
-      if (!personKey) continue;
+      const partyKey = splitPartyKey(share.partyId, share.name);
+      if (!partyKey) continue;
       const normalized = normalizeRational(share.qty);
-      const entry = byKey.get(personKey) ?? {
+      const entry = byKey.get(partyKey) ?? {
         name: displaySplitPersonName(share.name),
+        ...(share.partyId?.trim() ? { partyId: share.partyId.trim() } : {}),
         item_shares: [],
       };
       entry.item_shares.push({
@@ -1011,12 +1138,20 @@ export function buildSplitPersonsFromAllocations(
         qty_num: normalized.num,
         qty_den: normalized.den,
         ...(share.guestType ? { guest_type: share.guestType } : {}),
+        ...(share.partyId?.trim() ? { party_id: share.partyId.trim() } : {}),
+        ...(share.frozenAmount != null && Number.isFinite(share.frozenAmount)
+          ? { locked_amount: share.frozenAmount }
+          : {}),
       });
-      byKey.set(personKey, entry);
+      byKey.set(partyKey, entry);
     }
   }
 
-  return Array.from(byKey.values()).map(({ name, item_shares }) => ({ name, item_shares }));
+  return Array.from(byKey.values()).map(({ name, partyId, item_shares }) => ({
+    name,
+    item_shares,
+    ...(partyId ? { party_id: partyId } : {}),
+  }));
 }
 
 export function consumersForLineFromPersons(

@@ -11,7 +11,6 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
-import { splitPersonKey } from '@/lib/split-person-identity';
 import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
@@ -32,8 +31,11 @@ import {
 } from '@/lib/staff-by-item-workbench';
 import {
   appendStaffByItemRailPeople,
-  staffByItemLockedLedgerNames,
-  staffByItemRailSeedNames,
+  mintStaffByItemRailPerson,
+  staffByItemLockedLedgerPeople,
+  staffByItemRailPersonKey,
+  staffByItemRailSeedPeople,
+  type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 
 export type StaffByItemWorkbenchLabels = {
@@ -112,14 +114,14 @@ type Props = {
   orderLines: BillSplitOrderLine[];
   byItemAllocations: Record<string, ByItemConsumerRow[]>;
   /**
-   * Confirmed by-item ledger names only (already filtered — never whole-table).
+   * Confirmed by-item ledger tickets only (already filtered — never whole-table).
    * Initial seed + locked merge; unlocked names are not continuously re-injected.
    */
-  ledgerPersonNames?: readonly string[];
-  /** Settled only (ledger covers obligation) — chip ✓ and hide 收款. */
-  settledPersonNames: ReadonlySet<string>;
+  ledgerPeople?: readonly StaffByItemRailPerson[];
+  /** Settled ticket keys (`splitPartyKey`) — chip ✓ and hide 收款. */
+  settledTicketKeys: ReadonlySet<string>;
   /** Has collection history — rename/edit locked even if obligation rose again. */
-  lockedPersonNames?: ReadonlySet<string>;
+  lockedTicketKeys?: ReadonlySet<string>;
   itemCodeByMenuId?: Record<string, string>;
   /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
   imageUrlByMenuId?: Record<string, string>;
@@ -127,8 +129,12 @@ type Props = {
   labels: StaffByItemWorkbenchLabels;
   disabled?: boolean;
   onAllocationChange: (next: Record<string, ByItemConsumerRow[]>) => void;
-  onRenamePerson: (oldName: string, newName: string) => void;
-  onCollectCurrent?: (personName: string) => void;
+  onRenamePerson: (args: {
+    oldName: string;
+    newName: string;
+    partyId?: string;
+  }) => void;
+  onCollectCurrent?: (args: { personName: string; partyId?: string }) => void;
 };
 
 /**
@@ -143,9 +149,9 @@ export function StaffByItemSplitWorkbench({
   lineSpecs,
   orderLines,
   byItemAllocations,
-  ledgerPersonNames = [],
-  settledPersonNames,
-  lockedPersonNames = new Set(),
+  ledgerPeople = [],
+  settledTicketKeys,
+  lockedTicketKeys = new Set(),
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
@@ -161,24 +167,21 @@ export function StaffByItemSplitWorkbench({
   );
 
   const seedPeople = useMemo(() => {
-    const seeded = staffByItemRailSeedNames({
-      ledgerNames: ledgerPersonNames,
-      allocationNames: peopleFromAlloc,
+    const seeded = staffByItemRailSeedPeople({
+      ledgerPeople,
+      allocationPeople: peopleFromAlloc,
     });
-    return seeded.length > 0 ? seeded : [guestName(1)];
-  }, [guestName, ledgerPersonNames, peopleFromAlloc]);
+    return seeded.length > 0 ? seeded : [mintStaffByItemRailPerson(guestName(1))];
+  }, [guestName, ledgerPeople, peopleFromAlloc]);
 
   const mergeIncoming = useMemo(() => {
-    const lockedLedger = staffByItemLockedLedgerNames(
-      ledgerPersonNames,
-      lockedPersonNames,
-    );
+    const lockedLedger = staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys);
     return [...lockedLedger, ...peopleFromAlloc];
-  }, [ledgerPersonNames, lockedPersonNames, peopleFromAlloc]);
+  }, [ledgerPeople, lockedTicketKeys, peopleFromAlloc]);
 
-  const [people, setPeople] = useState<string[]>(seedPeople);
+  const [people, setPeople] = useState<StaffByItemRailPerson[]>(seedPeople);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nameDraft, setNameDraft] = useState(() => seedPeople[0] ?? guestName(1));
+  const [nameDraft, setNameDraft] = useState(() => seedPeople[0]?.name ?? guestName(1));
   const [needNameHint, setNeedNameHint] = useState(false);
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
   /** When true, stay on the chip the cashier clicked (incl. settled) — do not steal focus. */
@@ -189,13 +192,15 @@ export function StaffByItemSplitWorkbench({
   }, [mergeIncoming]);
 
   const safeIndex = Math.min(currentIndex, Math.max(0, people.length - 1));
-  const currentName = people[safeIndex] ?? '';
-  const currentKey = splitPersonKey(currentName);
-  const currentSettled = Boolean(currentKey && settledPersonNames.has(currentKey));
-  const currentLocked = Boolean(currentKey && lockedPersonNames.has(currentKey));
+  const currentPerson = people[safeIndex] ?? { name: '' };
+  const currentName = currentPerson.name;
+  const currentPartyId = currentPerson.partyId;
+  const currentKey = staffByItemRailPersonKey(currentPerson);
+  const currentSettled = Boolean(currentKey && settledTicketKeys.has(currentKey));
+  const currentLocked = Boolean(currentKey && lockedTicketKeys.has(currentKey));
   /** Rename locked when settled or has collection history; shares lock per paidLocked row. */
   const nameEditDisabled = disabled || currentSettled || currentLocked;
-  const poolAddDisabled = disabled;
+  const poolAddDisabled = disabled || currentSettled || currentLocked;
 
   useEffect(() => {
     setNameDraft(currentName);
@@ -238,7 +243,8 @@ export function StaffByItemSplitWorkbench({
     return calcByItemSplitResults({
       lines,
       allocations,
-      personOrder: people,
+      personOrder: people.map((p) => p.name),
+      personPartyIds: people.map((p) => p.partyId),
     });
   }, [byItemAllocations, lang, lineSpecs, orderLines, people]);
 
@@ -248,11 +254,11 @@ export function StaffByItemSplitWorkbench({
    */
   useEffect(() => {
     if (userPickedChipRef.current) return;
-    if (!currentKey || !settledPersonNames.has(currentKey)) return;
+    if (!currentKey || !settledTicketKeys.has(currentKey)) return;
 
     const unpaidIdx = people.findIndex((person) => {
-      const key = splitPersonKey(person);
-      return key && !settledPersonNames.has(key);
+      const key = staffByItemRailPersonKey(person);
+      return key && !settledTicketKeys.has(key);
     });
     if (unpaidIdx >= 0) {
       if (unpaidIdx !== safeIndex) setCurrentIndex(unpaidIdx);
@@ -260,35 +266,44 @@ export function StaffByItemSplitWorkbench({
     }
     if (visiblePool.length === 0) return;
 
-    const nextName = guestName(people.length + 1);
+    const next = mintStaffByItemRailPerson(guestName(people.length + 1));
     setPeople((prevPeople) => {
       const exists = prevPeople.some(
-        (name) => splitPersonKey(name) === splitPersonKey(nextName),
+        (person) => staffByItemRailPersonKey(person) === staffByItemRailPersonKey(next),
       );
-      return exists ? prevPeople : [...prevPeople, nextName];
+      return exists ? prevPeople : [...prevPeople, next];
     });
     setCurrentIndex(people.length);
-    setNameDraft(nextName);
+    setNameDraft(next.name);
     setNeedNameHint(false);
-  }, [currentKey, guestName, settledPersonNames, people, safeIndex, visiblePool.length]);
+  }, [currentKey, guestName, settledTicketKeys, people, safeIndex, visiblePool.length]);
 
   const shares = useMemo(
     () =>
       staffByItemPersonShares({
         personName: currentName,
+        partyId: currentPartyId,
         lineSpecs,
         orderLines,
         allocations: byItemAllocations,
         lang,
         itemCodeByMenuId,
       }),
-    [byItemAllocations, currentName, itemCodeByMenuId, lang, lineSpecs, orderLines],
+    [
+      byItemAllocations,
+      currentName,
+      currentPartyId,
+      itemCodeByMenuId,
+      lang,
+      lineSpecs,
+      orderLines,
+    ],
   );
 
   const estimate = useMemo(() => {
-    const located = locateByItemSplitResult(splitResults, currentName);
+    const located = locateByItemSplitResult(splitResults, currentName, currentPartyId);
     return { rows: shares.length, amount: located?.row.amount ?? 0 };
-  }, [currentName, shares.length, splitResults]);
+  }, [currentName, currentPartyId, shares.length, splitResults]);
 
   const commitName = (raw: string) => {
     const trimmed = raw.trim();
@@ -296,21 +311,25 @@ export function StaffByItemSplitWorkbench({
       setNameDraft(currentName);
       return;
     }
-    const dup = people.some(
-      (name, idx) => idx !== safeIndex && splitPersonKey(name) === splitPersonKey(trimmed),
-    );
-    if (dup) {
-      setNameDraft(currentName);
-      return;
-    }
+    // Duplicate display names are allowed across tickets; only block empty.
     if (currentName.trim()) {
-      onRenamePerson(currentName, trimmed);
+      onRenamePerson({
+        oldName: currentName,
+        newName: trimmed,
+        partyId: currentPartyId,
+      });
     }
-    setPeople((prev) => prev.map((name, idx) => (idx === safeIndex ? trimmed : name)));
+    setPeople((prev) =>
+      prev.map((person, idx) => {
+        if (idx !== safeIndex) return person;
+        if (person.partyId) return { name: trimmed, partyId: person.partyId };
+        return mintStaffByItemRailPerson(trimmed);
+      }),
+    );
     setNameDraft(trimmed);
   };
 
-  const ensureNamed = (): string | null => {
+  const ensureNamed = (): StaffByItemRailPerson | null => {
     const trimmed = nameDraft.trim() || currentName.trim();
     if (!trimmed) {
       setNeedNameHint(true);
@@ -320,7 +339,12 @@ export function StaffByItemSplitWorkbench({
       commitName(trimmed);
     }
     setNeedNameHint(false);
-    return trimmed;
+    if (currentPartyId) return { name: trimmed, partyId: currentPartyId };
+    const minted = mintStaffByItemRailPerson(trimmed);
+    setPeople((prev) =>
+      prev.map((person, idx) => (idx === safeIndex ? minted : person)),
+    );
+    return minted;
   };
 
   const applyAlloc = (next: Record<string, ByItemConsumerRow[]> | null) => {
@@ -333,8 +357,8 @@ export function StaffByItemSplitWorkbench({
     return rows.find((row) => row.id === share.rowId) ?? null;
   };
 
-  const personAmount = (name: string) =>
-    locateByItemSplitResult(splitResults, name)?.row.amount ?? 0;
+  const personAmount = (person: StaffByItemRailPerson) =>
+    locateByItemSplitResult(splitResults, person.name, person.partyId)?.row.amount ?? 0;
 
   return (
     <div className="space-y-3">
@@ -343,14 +367,15 @@ export function StaffByItemSplitWorkbench({
         role="list"
         aria-label={labels.currentShareTitle}
       >
-        {people.map((name, idx) => {
-          const settled = settledPersonNames.has(splitPersonKey(name));
+        {people.map((person, idx) => {
+          const key = staffByItemRailPersonKey(person);
+          const settled = Boolean(key && settledTicketKeys.has(key));
           const active = idx === safeIndex;
-          const amount = personAmount(name);
-          const label = name || guestName(idx + 1);
+          const amount = personAmount(person);
+          const label = person.name || guestName(idx + 1);
           return (
             <button
-              key={`${splitPersonKey(name) || name}-${idx}`}
+              key={key || `${label}-${idx}`}
               ref={active ? activeChipRef : undefined}
               type="button"
               role="listitem"
@@ -424,7 +449,8 @@ export function StaffByItemSplitWorkbench({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: person,
+                                personName: person.name,
+                                partyId: person.partyId,
                                 denominator: line.fractionDenominator,
                               }),
                             );
@@ -444,7 +470,8 @@ export function StaffByItemSplitWorkbench({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: person,
+                                personName: person.name,
+                                partyId: person.partyId,
                               }),
                             );
                           }}
@@ -466,7 +493,8 @@ export function StaffByItemSplitWorkbench({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: person,
+                                personName: person.name,
+                                partyId: person.partyId,
                                 guestType: 'adult',
                               }),
                             );
@@ -486,7 +514,8 @@ export function StaffByItemSplitWorkbench({
                                 allocations: byItemAllocations,
                                 lineSpecs,
                                 lineKey: line.key,
-                                personName: person,
+                                personName: person.name,
+                                partyId: person.partyId,
                                 guestType: 'child',
                               }),
                             );
@@ -677,7 +706,10 @@ export function StaffByItemSplitWorkbench({
                       disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
                       onClick={() => {
                         userPickedChipRef.current = false;
-                        onCollectCurrent(currentName);
+                        onCollectCurrent({
+                          personName: currentName,
+                          partyId: currentPartyId,
+                        });
                       }}
                       className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
                     >

@@ -16,6 +16,8 @@ export type CheckoutPrintAsk = {
   /** When true, queue should drop the row after the staff answers. */
   allPaid: boolean;
   personName: string;
+  /** Atomic by-item ticket id when present — prefer for fiscal scope_id. */
+  partyId?: string;
   obligation: number;
   paymentMethod: BillSyncPaymentMethod;
   payment_lines?: import('@/lib/bill-sync-payload').BillSyncPaymentLine[];

@@ -17,11 +17,18 @@ function uuidV5FromName(name: string): string {
 }
 
 /**
- * Stable UUID for one by_item person on a bill_split (FT idempotency scope_id).
- * Not person_index. Same bill + same person key → same id across re-sync.
+ * Stable UUID for one by_item ticket on a bill_split (FT idempotency scope_id).
+ * Prefer optional `partyId` (atomic ticket); else legacy name key.
+ * Not person_index. Old clients omit partyId — name path unchanged.
  */
-export function billSyncByItemScopeId(billSplitId: string, personName: string): string {
+export function billSyncByItemScopeId(
+  billSplitId: string,
+  personName: string,
+  partyId?: string | null,
+): string {
   const sale = billSplitId.trim().toLowerCase();
+  const party = typeof partyId === 'string' ? partyId.trim() : '';
+  if (party) return uuidV5FromName(`${sale}\0party\0${party}`);
   const person = splitPersonKey(personName);
   return uuidV5FromName(`${sale}\0${person}`);
 }

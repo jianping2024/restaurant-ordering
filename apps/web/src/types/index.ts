@@ -331,10 +331,22 @@ export interface SplitPersonItemShare {
   qty_den: number;
   /** Buffet by-item: adult vs child head pricing. */
   guest_type?: 'adult' | 'child';
+  /**
+   * Optional atomic ticket id (by-item). Old clients omit — name identity remains.
+   * Same `party_id` groups shares onto one collect/print ticket.
+   */
+  party_id?: string;
+  /**
+   * Euro amount frozen when this share was collected (paid ticket).
+   * Optional — old payloads omit; new path stamps on collect/hydrate.
+   */
+  locked_amount?: number;
 }
 
 export interface SplitPerson {
   name: string;
+  /** Atomic ticket id when present (by-item). Optional for old clients. */
+  party_id?: string;
   /** @deprecated Legacy by_item: line keys only (equal split). Prefer item_shares. */
   items?: string[];
   item_shares?: SplitPersonItemShare[];
@@ -345,6 +357,8 @@ export interface SplitResult {
   name: string;
   amount: number;
   paid?: boolean;
+  /** Atomic ticket id when present (by-item). Optional for old clients. */
+  party_id?: string;
   items?: { name: string; qty: number; price: number }[];
 }
 

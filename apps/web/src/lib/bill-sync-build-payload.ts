@@ -38,7 +38,7 @@ import {
   centsToEuros,
 } from '@/lib/money-allocation';
 import { isBuffetBaseItem } from '@/lib/order-items';
-import { splitPersonKey } from '@/lib/split-person-identity';
+import { splitPartyKey } from '@/lib/split-party-id';
 import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson, SplitResult } from '@/types';
 
 /** Buffet uuid from a buffet_base order line (fail-closed when missing). */
@@ -267,7 +267,9 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
       const spec = buildByItemLineSpec(catalogLine);
       const consumers = consumersForLineFromPersons(persons, share.key, spec);
       const personShare = consumers.find(
-        (c) => splitPersonKey(c.name) === splitPersonKey(name),
+        (c) =>
+          splitPartyKey(c.partyId, c.name) ===
+          splitPartyKey(person.party_id, name),
       );
       const qty = personShare ? personShare.qty.num / personShare.qty.den : 0;
       if (!(qty > 0)) continue;
@@ -304,7 +306,7 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
 
     const gross = lines.reduce((sum, line) => sum + Number(line.line_gross), 0);
     splits.push({
-      scope_id: billSyncByItemScopeId(input.billSplitId, name),
+      scope_id: billSyncByItemScopeId(input.billSplitId, name, person.party_id),
       name,
       lines,
       gross_total: (Math.round(gross * 100) / 100).toFixed(2),

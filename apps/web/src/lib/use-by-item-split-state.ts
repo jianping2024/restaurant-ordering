@@ -81,17 +81,24 @@ export function useByItemSplitState(params: {
 
   const rememberConsumerName: (name: string, fromList: boolean) => void = useCallback(() => {}, []);
 
-  const renameByItemConsumer = useCallback((oldName: string, newName: string) => {
+  const renameByItemConsumer = useCallback((
+    oldName: string,
+    newName: string,
+    partyId?: string,
+  ) => {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) return;
     setByItemAllocations((prev) => {
       const next: Record<string, ByItemConsumerRow[]> = {};
       for (const [key, rows] of Object.entries(prev)) {
-        next[key] = rows.map((row) => (
-          row.name.trim().toLowerCase() === oldName.toLowerCase()
-            ? { ...row, name: trimmed }
-            : row
-        ));
+        next[key] = rows.map((row) => {
+          if (partyId?.trim()) {
+            if (row.partyId?.trim() !== partyId.trim()) return row;
+            return { ...row, name: trimmed };
+          }
+          if (row.name.trim().toLowerCase() !== oldName.toLowerCase()) return row;
+          return { ...row, name: trimmed };
+        });
       }
       return next;
     });

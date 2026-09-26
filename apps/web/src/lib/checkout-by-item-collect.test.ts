@@ -10,6 +10,7 @@ import {
   settledByItemPersonKeys,
 } from './checkout-by-item-collect';
 import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
+import { splitPartyKey } from './split-party-id';
 
 describe('orderByItemResultsToRoster', () => {
   it('keeps ledger order so 客人10 does not jump before 客人2', () => {
@@ -19,13 +20,31 @@ describe('orderByItemResultsToRoster', () => {
         { name: '客人 1', amount: 10 },
         { name: '客人 2', amount: 20 },
       ],
-      ['客人 1', '客人 2', '客人 10'],
+      [{ name: '客人 1' }, { name: '客人 2' }, { name: '客人 10' }],
     );
     assert.deepEqual(
       ordered.map((row) => row.name),
       ['客人 1', '客人 2', '客人 10'],
     );
     assert.equal(ordered[2]?.amount, 6.6);
+  });
+
+  it('keeps same-name tickets distinct by party_id', () => {
+    const ordered = orderByItemResultsToRoster(
+      [
+        { name: '客人 3', amount: 5, party_id: 'b' },
+        { name: '客人 3', amount: 10, party_id: 'a' },
+      ],
+      [
+        { name: '客人 3', partyId: 'a' },
+        { name: '客人 3', partyId: 'b' },
+      ],
+    );
+    assert.equal(ordered.length, 2);
+    assert.equal(ordered[0]?.party_id, 'a');
+    assert.equal(ordered[0]?.amount, 10);
+    assert.equal(ordered[1]?.party_id, 'b');
+    assert.equal(ordered[1]?.amount, 5);
   });
 });
 
@@ -167,8 +186,8 @@ describe('settledByItemPersonKeys', () => {
         },
       ],
     );
-    assert.equal(keys.has('客人 1'), false);
-    assert.equal(keys.has('客人 3'), true);
+    assert.equal(keys.has(splitPartyKey(undefined, '客人 1')), false);
+    assert.equal(keys.has(splitPartyKey(undefined, '客人 3')), true);
   });
 });
 

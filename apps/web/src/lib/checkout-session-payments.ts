@@ -5,7 +5,11 @@ import {
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
-import { parseBillSyncPaymentMethod } from '@/lib/bill-sync-payload';
+import {
+  parseBillSyncPaymentLines,
+  parseBillSyncPaymentMethod,
+  type BillSyncPaymentLine,
+} from '@/lib/bill-sync-payload';
 import type { BillSplit, SplitResult } from '@/types';
 
 export type SplitRowWithIndex = {
@@ -41,6 +45,7 @@ export function collectibleSplitRowsWithIndex(
       amount,
       created_at: '',
       payment_method: null,
+      payment_lines: null,
     });
   });
   return pendingSplitSettlementRows(buildSplitSettlementRows(rows, payments)).map((row) => ({
@@ -57,10 +62,12 @@ export type SessionCollectedPayment = {
   created_at: string;
   /** Tender at confirm; null on legacy rows. */
   payment_method: import('@/lib/bill-sync-payload').BillSyncPaymentMethod | null;
+  /** Sole multi-tender split; required for MIXED when present. */
+  payment_lines?: BillSyncPaymentLine[] | null;
 };
 
 export const SESSION_COLLECTED_PAYMENT_SELECT =
-  'id, session_id, person_index, person_name, amount, created_at, payment_method' as const;
+  'id, session_id, person_index, person_name, amount, created_at, payment_method, payment_lines' as const;
 
 export function parseSessionCollectedPayments(
   data: Array<{
@@ -71,6 +78,7 @@ export function parseSessionCollectedPayments(
     amount: unknown;
     created_at: unknown;
     payment_method?: unknown;
+    payment_lines?: unknown;
   }> | null,
 ): SessionCollectedPayment[] {
   return (data ?? []).map((row) => ({
@@ -85,6 +93,7 @@ export function parseSessionCollectedPayments(
     payment_method: parseBillSyncPaymentMethod(
       typeof row.payment_method === 'string' ? row.payment_method : null,
     ),
+    payment_lines: parseBillSyncPaymentLines(row.payment_lines),
   }));
 }
 
@@ -97,6 +106,7 @@ export function parseSessionCollectedPaymentsWithSession(
     amount: unknown;
     created_at: unknown;
     payment_method?: unknown;
+    payment_lines?: unknown;
   }> | null,
 ): Array<SessionCollectedPayment & { session_id: string }> {
   return (data ?? []).map((row) => ({
@@ -112,6 +122,7 @@ export function parseSessionCollectedPaymentsWithSession(
     payment_method: parseBillSyncPaymentMethod(
       typeof row.payment_method === 'string' ? row.payment_method : null,
     ),
+    payment_lines: parseBillSyncPaymentLines(row.payment_lines),
   }));
 }
 

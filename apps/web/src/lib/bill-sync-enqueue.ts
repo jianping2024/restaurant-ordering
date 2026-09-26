@@ -21,8 +21,7 @@ export type EnqueueBillSyncInput = {
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
-  /** Default VAT when menu id missing (buffet synthetic). */
-  defaultVatRatePercent: number;
+  vatRateByBuffetId: Record<string, number>;
   createdBy: string | null;
   requestId?: string;
   /** When set, Agent auto-issues; skips content fingerprint already_synced short-circuit. */
@@ -84,7 +83,7 @@ export async function enqueueBillSyncJob(
     orders: input.orders,
     itemCodeByMenuId: input.itemCodeByMenuId,
     vatRateByMenuId: input.vatRateByMenuId,
-    defaultVatRatePercent: input.defaultVatRatePercent,
+    vatRateByBuffetId: input.vatRateByBuffetId,
     autoIssue: input.autoIssue ?? null,
   });
   if (!built.ok) {

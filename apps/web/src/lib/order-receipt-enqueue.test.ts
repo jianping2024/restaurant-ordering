@@ -8,6 +8,21 @@ import {
   enqueueReceiptPrint,
 } from './order-receipt-enqueue';
 
+type VatQueryChain = {
+  select: () => VatQueryChain;
+  eq: () => VatQueryChain;
+  in: () => Promise<{ data: Array<{ id: string; vat_rate: number }>; error: null }>;
+};
+
+function vatQueryChain(rows: Array<{ id: string; vat_rate: number }>): VatQueryChain {
+  const chain: VatQueryChain = {
+    select: () => chain,
+    eq: () => chain,
+    in: async () => ({ data: rows, error: null }),
+  };
+  return chain;
+}
+
 const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
 const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -96,10 +111,19 @@ describe('buildReceiptLinesFromOrders', () => {
         ],
       },
     ];
-    const lines = buildReceiptLinesFromOrders(mixed);
+    const buffetId = 'f5c81888-7b78-40da-ba60-519e185e48d6';
+    const lines = buildReceiptLinesFromOrders(
+      mixed,
+      'pt',
+      { '47cd765c-1443-454a-bd75-e73638c310f5': 23 },
+      { [buffetId]: 13 },
+    );
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
     assert.equal(lines.length, 2);
     assert.equal(lines[0]?.display_name, 'Buffet livre');
     assert.equal(lines[0]?.share_qty_label, 'A4-C2');
+    assert.equal(lines[0]?.vat_rate, '13.00');
     assert.equal(lines[1]?.display_name, '001-Água 500ml');
   });
 
@@ -126,7 +150,9 @@ describe('buildReceiptLinesFromOrders', () => {
         items: [{ ...cokeItem, qty: 1, note: 'com limao' }],
       },
     ];
-    const lines = buildReceiptLinesFromOrders(mergedOrders);
+    const lines = buildReceiptLinesFromOrders(mergedOrders, 'pt', { 'menu-coke': 23 }, {});
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.qty, 3);
     assert.equal(lines[0]?.unit_price, 2.5);
@@ -136,7 +162,16 @@ describe('buildReceiptLinesFromOrders', () => {
 
 describe('buildSplitPersonReceiptLines', () => {
   it('includes 1/3 share label and per-person price for shared dish', () => {
-    const lines = buildSplitPersonReceiptLines(byItemSplit(), 0, orders);
+    const lines = buildSplitPersonReceiptLines(
+      byItemSplit(),
+      0,
+      orders,
+      'pt',
+      { 'menu-coke': 23 },
+      {},
+    );
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.display_name, '028-Coca-Cola');
     assert.equal(lines[0]?.share_qty_label, '1/3');
@@ -149,7 +184,9 @@ describe('buildSplitPersonReceiptLines', () => {
       persons: [{ name: 'Guest 1', items: [MENU_KEY] }],
       result: [{ name: 'Guest 1', amount: 3 }],
     });
-    const lines = buildSplitPersonReceiptLines(split, 0, orders);
+    const lines = buildSplitPersonReceiptLines(split, 0, orders, 'pt', { 'menu-coke': 23 }, {});
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
     assert.equal(lines[0]?.share_qty_label, '1');
     assert.equal(lines[0]?.unit_price, 3);
   });
@@ -159,7 +196,12 @@ describe('buildSplitPersonReceiptLines', () => {
       byItemSplit({ split_mode: 'even', persons: [], result: [] }),
       0,
       orders,
+      'pt',
+      { 'menu-coke': 23 },
+      {},
     );
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
     assert.deepEqual(lines, []);
   });
 });
@@ -189,6 +231,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;
@@ -250,6 +300,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;
@@ -338,6 +396,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;
@@ -430,6 +496,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;
@@ -521,6 +595,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;
@@ -602,6 +684,14 @@ describe('enqueueReceiptPrint', () => {
             },
           };
         }
+        
+        if (table === 'menu_items') {
+          return vatQueryChain([{ id: 'menu-coke', vat_rate: 23 }, { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 }]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+
         throw new Error(`unexpected table: ${table}`);
       },
     } as unknown as SupabaseClient;

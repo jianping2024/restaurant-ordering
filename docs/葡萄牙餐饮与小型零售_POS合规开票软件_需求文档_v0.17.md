@@ -1937,18 +1937,19 @@ INVALID
 
 MVP 必须本地保存付款记录，但不导出 SAF-T SourceDocuments/Payments 节点，也不生成 Invoice/DocumentTotals/Payment。
 
-- 付款方式： CASH / CARD / MBWAY / MULTIBANCO / MIXED / OTHER
+- **Farvoo / Mesa 结账收款（定稿）：** 仅 `CASH` / `MULTIBANCO` / `MIXED`（Multibanco 取代原 CARD；不保留 MBWAY / OTHER / 并行 CARD）。产品细则见 restaurant-ordering [`docs/product/collect-payment-receipt-iva.zh.md`](./product/collect-payment-receipt-iva.zh.md)。
+- Agent 本地 Admin 手工开票可暂保留更广码表；**auto_issue / 点餐侧入队**只发上述三种。
 
 **规则：**
 
 - 每张发票必须保存付款方式、付款金额、付款时间、收银员。
-混合支付时必须保存多条 payment lines。
+- 混合支付时必须保存多条 **payment lines**（禁止票面/库内只落一行 MIXED）；形：`[{ "method", "amount" }, …]`。
 
 付款记录用于餐馆日结、对账和报表，不作为 MVP SAF-T Payments 导出依据。
 
 若未来支持独立收据、赊账后收款、IVA de Caixa 或 FR/RC/RG 文件，则必须重新评估 Payments 节点导出规则。
 
-建议日结至少包含：business_date, cashier_id, cash_total, card_total, mbway_total, multibanco_total, invoice_count, nc_count, gross_sales, refund_amount, difference_note, closed_by, closed_at
+建议日结至少包含：business_date, cashier_id, cash_total, multibanco_total, mixed 拆额可还原为现金+Multibanco 合计, invoice_count, nc_count, gross_sales, refund_amount, difference_note, closed_by, closed_at
 
 ### 6.11 系统时间规则
 

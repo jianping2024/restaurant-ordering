@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { authorizeCheckoutConfirmPayment } from '@/lib/checkout-confirm-payment-auth';
 import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
+import { parseBillSyncPaymentLines } from '@/lib/bill-sync-payload';
 import { enqueueReceiptPrint, type ReceiptVariant } from '@/lib/order-receipt-enqueue';
 import { resolveReceiptPrintSource } from '@/lib/receipt-print-source';
 import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
@@ -79,6 +80,7 @@ export async function POST(
     receipt_variant?: unknown;
     amount_paid?: unknown;
     payment_method?: unknown;
+    payment_lines?: unknown;
     payer_name?: unknown;
     person_amount?: unknown;
     bill_split_id?: unknown;
@@ -164,6 +166,13 @@ export async function POST(
       : undefined;
   const paymentMethod =
     typeof body.payment_method === 'string' ? body.payment_method.trim() : undefined;
+  const paymentLines =
+    body.payment_lines === undefined || body.payment_lines === null
+      ? null
+      : parseBillSyncPaymentLines(body.payment_lines);
+  if (body.payment_lines != null && paymentLines === null) {
+    return NextResponse.json({ error: 'invalid_payment_lines' }, { status: 400 });
+  }
   const payerName = typeof body.payer_name === 'string' ? body.payer_name.trim() : undefined;
   const billSplitId =
     typeof body.bill_split_id === 'string' ? body.bill_split_id.trim() : undefined;
@@ -208,6 +217,7 @@ export async function POST(
     personIndex,
     amountPaid: amountPaid ?? personAmount,
     paymentMethod,
+    paymentLines,
     receiptPrinterId,
     discountRate,
     collectedPaymentId,

@@ -262,6 +262,12 @@ export function OrderHistoryDetailModal({
         <PrintFiscalInvoiceModal
           open={invoiceOpen}
           busy={printFiscalInvoiceBusy}
+          amount={
+            billSplit?.total_amount ??
+            entry.settlement.summary?.payable ??
+            entry.settlement.listAmount ??
+            0
+          }
           labels={{
             title: checkoutT.printInvoiceModalTitle,
             nif: checkoutT.printInvoiceNif,
@@ -274,14 +280,17 @@ export function OrderHistoryDetailModal({
             confirm: checkoutT.printInvoice,
             cancel: checkoutT.printInvoiceCancel,
             operating: checkoutT.printInvoiceOperating,
+            cashReceived: checkoutT.cashReceived,
+            changeDue: checkoutT.changeDue,
+            cashShort: checkoutT.cashShort,
+            multibancoAmount: checkoutT.multibancoAmount,
+            cashRemainder: checkoutT.cashRemainder,
+            mixedNeedBothSides: checkoutT.mixedNeedBothSides,
           }}
           paymentLabels={{
             CASH: checkoutT.paymentMethodCash,
-            CARD: checkoutT.paymentMethodCard,
-            MBWAY: checkoutT.paymentMethodMbway,
             MULTIBANCO: checkoutT.paymentMethodMultibanco,
             MIXED: checkoutT.paymentMethodMixed,
-            OTHER: checkoutT.paymentMethodOther,
           }}
           onClose={() => {
             if (printFiscalInvoiceBusy) return;
@@ -290,6 +299,12 @@ export function OrderHistoryDetailModal({
           onConfirm={(input) => {
             void printFiscalInvoice({
               paymentMethod: input.paymentMethod,
+              paymentLines: input.payment_lines,
+              amount:
+                billSplit?.total_amount ??
+                entry.settlement.summary?.payable ??
+                entry.settlement.listAmount ??
+                0,
               customerNif: input.customerNif,
               customerName: input.customerName,
               issueScopeId: invoiceScopeId,

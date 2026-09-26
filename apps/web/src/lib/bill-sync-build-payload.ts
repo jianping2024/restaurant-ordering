@@ -18,9 +18,11 @@ import {
 import {
   billSyncDocumentTypeForPayment,
   buildBillSyncLine,
+  parseBillSyncPaymentMethod,
   type BillSyncDocumentType,
   type BillSyncLine,
   type BillSyncPayload,
+  type BillSyncPaymentLine,
   type BillSyncPaymentMethod,
   type BillSyncSplit,
   validateBillSyncPayload,
@@ -38,6 +40,13 @@ import {
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { splitPersonKey } from '@/lib/split-person-identity';
 import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson, SplitResult } from '@/types';
+
+/** Buffet uuid from a buffet_base order line (fail-closed when missing). */
+export function buffetIdFromOrderItem(item: OrderItem): string | null {
+  if (!isBuffetBaseItem(item)) return null;
+  const raw = (item.buffet_id || item.id.replace(/^buffet:/, '')).trim();
+  return raw || null;
+}
 
 /**
  * Sole fiscal item_code for a billable line (menu snapshot or buffet_base).
@@ -65,6 +74,7 @@ export type BillSyncAutoIssueFields = {
   customer_nif?: string;
   customer_name?: string;
   payment_method: BillSyncPaymentMethod | string;
+  payment_lines?: BillSyncPaymentLine[];
   document_type?: BillSyncDocumentType;
   issue_mode?: 'whole_table' | 'person';
   issue_scope_id?: string;
@@ -81,7 +91,8 @@ export type BuildBillSyncPayloadInput = {
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
-  defaultVatRatePercent: number;
+  /** Buffet headcount VAT by buffet uuid — fail-closed when missing. */
+  vatRateByBuffetId: Record<string, number>;
   autoIssue?: BillSyncAutoIssueFields | null;
 };
 
@@ -92,12 +103,21 @@ export type BuildBillSyncPayloadResult =
 function vatPercentForItem(
   item: OrderItem,
   vatRateByMenuId: Record<string, number>,
-  defaultVatRatePercent: number,
-): number {
-  if (item.id && !isBuffetBaseItem(item) && typeof vatRateByMenuId[item.id] === 'number') {
+  vatRateByBuffetId: Record<string, number>,
+): number | { error: string } {
+  if (isBuffetBaseItem(item)) {
+    const buffetId = buffetIdFromOrderItem(item);
+    if (!buffetId) return { error: 'missing_vat_rate' };
+    const rate = vatRateByBuffetId[buffetId];
+    if (typeof rate !== 'number' || !Number.isFinite(rate)) {
+      return { error: 'missing_vat_rate' };
+    }
+    return rate;
+  }
+  if (item.id && typeof vatRateByMenuId[item.id] === 'number') {
     return vatRateByMenuId[item.id]!;
   }
-  return defaultVatRatePercent;
+  return { error: 'missing_vat_rate' };
 }
 
 function pushBuiltLine(
@@ -109,20 +129,22 @@ function pushBuiltLine(
     unitPrice: number;
     lineGross: number;
     vatRateByMenuId: Record<string, number>;
-    defaultVatRatePercent: number;
+    vatRateByBuffetId: Record<string, number>;
   },
 ): { error: string } | null {
+  const vat = vatPercentForItem(
+    input.item,
+    input.vatRateByMenuId,
+    input.vatRateByBuffetId,
+  );
+  if (typeof vat !== 'number') return vat;
   const built = buildBillSyncLine({
     item_code: input.itemCode,
     name: resolveMenuItemLocalizedName(input.item, 'pt'),
     qty: input.qty,
     unit_price_gross: input.unitPrice,
     line_gross: input.lineGross,
-    vat_rate_percent: vatPercentForItem(
-      input.item,
-      input.vatRateByMenuId,
-      input.defaultVatRatePercent,
-    ),
+    vat_rate_percent: vat,
   });
   if ('error' in built) return { error: built.error };
   lines.push(built);
@@ -156,7 +178,7 @@ function appendWholeTableBuffetLines(
       unitPrice: unit,
       lineGross,
       vatRateByMenuId: input.vatRateByMenuId,
-      defaultVatRatePercent: input.defaultVatRatePercent,
+      vatRateByBuffetId: input.vatRateByBuffetId,
     });
     if (err) return err;
   }
@@ -193,7 +215,7 @@ function buildWholeTableLines(input: BuildBillSyncPayloadInput): BillSyncLine[] 
       unitPrice: unit,
       lineGross,
       vatRateByMenuId: input.vatRateByMenuId,
-      defaultVatRatePercent: input.defaultVatRatePercent,
+      vatRateByBuffetId: input.vatRateByBuffetId,
     });
     if (err) return err;
   }
@@ -273,7 +295,7 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
         unitPrice,
         lineGross: share.shareAmount,
         vatRateByMenuId: input.vatRateByMenuId,
-        defaultVatRatePercent: input.defaultVatRatePercent,
+        vatRateByBuffetId: input.vatRateByBuffetId,
       });
       if (err) return err;
     }
@@ -395,10 +417,21 @@ function applyAutoIssueFields(
   auto: BillSyncAutoIssueFields | null | undefined,
 ): BillSyncPayload | { error: string } {
   if (!auto?.auto_issue) return payload;
-  const payment = String(auto.payment_method ?? '').trim().toUpperCase();
-  if (!payment) return { error: 'missing_payment_method' };
+  const payment = parseBillSyncPaymentMethod(
+    typeof auto.payment_method === 'string' ? auto.payment_method : null,
+  );
+  if (!payment) return { error: 'invalid_payment_method' };
+  const gross =
+    payload.scope_type === 'whole_table'
+      ? Number(payload.gross_total)
+      : Number(
+          payload.splits?.find((s) => s.scope_id === auto.issue_scope_id)?.gross_total ??
+            payload.splits?.[0]?.gross_total ??
+            NaN,
+        );
   const document_type =
-    auto.document_type ?? billSyncDocumentTypeForPayment(payment);
+    auto.document_type ??
+    billSyncDocumentTypeForPayment(payment, Number.isFinite(gross) ? gross : 0);
   if (document_type !== 'FT' && document_type !== 'FS') {
     return { error: 'invalid_document_type' };
   }
@@ -409,6 +442,9 @@ function applyAutoIssueFields(
     payment_method: payment,
     document_type,
   };
+  if (auto.payment_lines?.length) {
+    out.payment_lines = auto.payment_lines;
+  }
   const nif = auto.customer_nif?.trim();
   if (nif) out.customer_nif = nif;
   const name = auto.customer_name?.trim();

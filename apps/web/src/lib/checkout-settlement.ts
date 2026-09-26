@@ -125,6 +125,7 @@ export function groupCollectedPaymentsBySession(
       amount: row.amount,
       created_at: row.created_at,
       payment_method: row.payment_method,
+      payment_lines: row.payment_lines ?? null,
     });
     map.set(row.session_id, list);
   }

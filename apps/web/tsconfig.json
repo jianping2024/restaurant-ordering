@@ -34,7 +34,8 @@
     ".next/types/**/*.ts",
     ".next-uat/types/**/*.ts",
     ".next-typecheck/types/**/*.ts",
-    ".next-bill-sync/types/**/*.ts"
+    ".next-bill-sync/types/**/*.ts",
+    ".next-uat-iva/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

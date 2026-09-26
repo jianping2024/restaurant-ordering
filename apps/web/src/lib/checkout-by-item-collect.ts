@@ -10,7 +10,6 @@ import {
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   outstandingAmount,
-  totalCollectedAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
@@ -182,7 +181,7 @@ export function reconcileByItemResultsToBillTotal(
   const floored = applyCollectedObligationFloors(results, payments);
   const collected = collectedTotalsByPersonKey(payments, floored);
   const target = eurosToCents(billTotal);
-  let sum = floored.reduce((acc, row) => acc + eurosToCents(row.amount), 0);
+  const sum = floored.reduce((acc, row) => acc + eurosToCents(row.amount), 0);
   if (sum === target) return floored;
 
   const next = floored.map((row) => ({ ...row }));

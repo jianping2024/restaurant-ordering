@@ -4,8 +4,16 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import {
-  BILL_SYNC_PAYMENT_METHODS,
+  CheckoutPaymentTenderFields,
+  cashTenderDefaultRaw,
+  checkoutPaymentTenderBlocked,
+  parseCheckoutTenderMoney,
+  type CheckoutPaymentTenderLabels,
+} from '@/components/dashboard/checkout/CheckoutPaymentTenderFields';
+import {
   billSyncDocumentTypeForPayment,
+  resolveCollectPaymentTender,
+  type BillSyncPaymentLine,
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
 import {
@@ -22,12 +30,11 @@ export type PrintFiscalInvoiceModalLabels = {
   nifInvalid: string;
   name: string;
   nameOptional: string;
-  paymentMethod: string;
   documentTypeHint: string;
   confirm: string;
   cancel: string;
   operating: string;
-};
+} & CheckoutPaymentTenderLabels;
 
 export type FiscalBuyerFieldLabels = {
   nif: string;
@@ -94,25 +101,31 @@ export function FiscalBuyerFields(props: {
   );
 }
 
+export type PrintFiscalInvoiceConfirmInput = {
+  paymentMethod: BillSyncPaymentMethod;
+  payment_lines: BillSyncPaymentLine[];
+  customerNif: string;
+  customerName: string;
+};
+
 type Props = {
   open: boolean;
   busy: boolean;
+  /** Discounted gross for FS/FT threshold + mixed split. */
+  amount: number;
   labels: PrintFiscalInvoiceModalLabels;
   paymentLabels: Record<BillSyncPaymentMethod, string>;
   /** Prefill from ledger tender when printing after collect. */
   initialPaymentMethod?: BillSyncPaymentMethod | null;
   onClose: () => void;
-  onConfirm: (input: {
-    paymentMethod: BillSyncPaymentMethod;
-    customerNif: string;
-    customerName: string;
-  }) => void;
+  onConfirm: (input: PrintFiscalInvoiceConfirmInput) => void;
 };
 
-/** Sole checkout/history modal for fiscal invoice buyer + payment before enqueue. */
+/** Sole checkout/history modal for fiscal invoice buyer + same tender UI as collect. */
 export function PrintFiscalInvoiceModal({
   open,
   busy,
+  amount,
   labels,
   paymentLabels,
   initialPaymentMethod = null,
@@ -122,16 +135,41 @@ export function PrintFiscalInvoiceModal({
   const [nif, setNif] = useState('');
   const [name, setName] = useState('');
   const [payment, setPayment] = useState<BillSyncPaymentMethod>('CASH');
+  const [tenderRaw, setTenderRaw] = useState('');
+  const [multibancoRaw, setMultibancoRaw] = useState('');
+
+  const due = Math.round(amount * 100) / 100;
 
   useEffect(() => {
     if (!open) return;
     setPayment(initialPaymentMethod ?? 'CASH');
+    setTenderRaw(cashTenderDefaultRaw(amount));
+    setMultibancoRaw(cashTenderDefaultRaw(amount));
     setNif('');
     setName('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional open-edge reset
   }, [open, initialPaymentMethod]);
 
-  const docType = billSyncDocumentTypeForPayment(payment);
+  const tenderBlocked = checkoutPaymentTenderBlocked({
+    payment,
+    due,
+    tenderRaw,
+    multibancoRaw,
+  });
   const nifInvalid = nif.trim().length > 0 && !validatePortugueseNif(nif);
+
+  const mbPreview = parseCheckoutTenderMoney(multibancoRaw);
+  const resolvedPreview =
+    payment === 'MIXED'
+      ? resolveCollectPaymentTender({
+          uiMethod: 'MIXED',
+          dueAmount: due,
+          multibancoAmount: mbPreview,
+        })
+      : resolveCollectPaymentTender({ uiMethod: payment, dueAmount: due });
+  const previewMethod =
+    resolvedPreview.ok ? resolvedPreview.paymentMethod : payment;
+  const docType = billSyncDocumentTypeForPayment(previewMethod, due);
 
   return (
     <Modal
@@ -142,6 +180,18 @@ export function PrintFiscalInvoiceModal({
       dismissOnBackdrop={!busy}
     >
       <div className="space-y-4">
+        <CheckoutPaymentTenderFields
+          due={due}
+          payment={payment}
+          tenderRaw={tenderRaw}
+          multibancoRaw={multibancoRaw}
+          busy={busy}
+          paymentLabels={paymentLabels}
+          labels={labels}
+          onPaymentChange={setPayment}
+          onTenderRawChange={setTenderRaw}
+          onMultibancoRawChange={setMultibancoRaw}
+        />
         <FiscalBuyerFields
           nif={nif}
           name={name}
@@ -151,24 +201,6 @@ export function PrintFiscalInvoiceModal({
           onNifChange={setNif}
           onNameChange={setName}
         />
-        <label className="block text-sm">
-          <span className="text-brand-text-muted">{labels.paymentMethod}</span>
-          <select
-            value={payment}
-            onChange={(e) => setPayment(e.target.value as BillSyncPaymentMethod)}
-            disabled={busy}
-            className="mt-1 w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-brand-text"
-          >
-            {BILL_SYNC_PAYMENT_METHODS.map((opt) => (
-              <option key={opt} value={opt}>
-                {paymentLabels[opt] ?? opt}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p className="text-xs text-brand-text-muted">
-          {labels.documentTypeHint.replace('{type}', docType)}
-        </p>
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
           <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
             {labels.cancel}
@@ -178,11 +210,19 @@ export function PrintFiscalInvoiceModal({
             variant="gold"
             size="sm"
             loading={busy}
-            disabled={busy || nifInvalid}
+            disabled={busy || tenderBlocked || nifInvalid}
             onClick={() => {
-              if (nifInvalid) return;
+              if (tenderBlocked || nifInvalid) return;
+              const mb = parseCheckoutTenderMoney(multibancoRaw);
+              const resolved = resolveCollectPaymentTender({
+                uiMethod: payment,
+                dueAmount: due,
+                multibancoAmount: payment === 'MIXED' ? mb : null,
+              });
+              if (!resolved.ok) return;
               onConfirm({
-                paymentMethod: payment,
+                paymentMethod: resolved.paymentMethod,
+                payment_lines: resolved.payment_lines,
                 customerNif: normalizePortugueseNif(nif),
                 customerName: name.trim(),
               });

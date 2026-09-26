@@ -41,12 +41,12 @@ describe('runStaffPrintFiscalInvoice', () => {
     }
   });
 
-  it('maps CARD → FT and person issue_scope_id', async () => {
+  it('maps MULTIBANCO → FT and person issue_scope_id', async () => {
     const out = await runStaffPrintFiscalInvoice(
       {
         restaurantSlug: 'r1',
         billSplitId: 'split-1',
-        paymentMethod: 'CARD',
+        paymentMethod: 'MULTIBANCO',
         issueScopeId: 'scope-a',
       },
       {

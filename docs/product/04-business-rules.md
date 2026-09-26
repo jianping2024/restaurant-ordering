@@ -252,6 +252,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 6. 确认收款走 `confirm_bill_split_payment` RPC（原子、防并发）
 7. 有收款记录后：**禁止**丢失 `session_collected_payments`；折扣通常禁用
 8. 按菜池未分完可挨个收款；**池分完**时各人合计必须等于消费总额
+9. **付款方式**仅 `CASH` / `MULTIBANCO` / `MIXED`；混合拆额唯一落点 `payment_lines`；预结/账单税汇总与免责句、人头费 IVA、FS/FT 门槛见定稿 [`collect-payment-receipt-iva.zh.md`](./collect-payment-receipt-iva.zh.md)
 
 ### 折扣
 
@@ -292,7 +293,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 | 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账顺带入队 / 历史重打；收银员关台结账不触发）。关台结账：**先关台再尽力入队**，入队失败不挡关台 |
 | 总账单（收讫后） | `final` | **手动**（仅整桌结账确认收款后，询问打印时打一张） |
 
-「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。
+「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。收款三选、税汇总、预结/账单免责句、人头费 IVA 见 [`collect-payment-receipt-iva.zh.md`](./collect-payment-receipt-iva.zh.md)。
 
 ### 任务类型
 

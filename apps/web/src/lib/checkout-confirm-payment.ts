@@ -5,7 +5,10 @@ import { AUDIT_EVENT, scheduleRecordAudit, type AuditActor } from '@/lib/audit';
 import { purgeTablePartyMembership } from '@/lib/table-party-groups-server';
 import { enqueueCashDrawerOpen } from '@/lib/cash-drawer-enqueue';
 import {
+  parseBillSyncPaymentLines,
   parseBillSyncPaymentMethod,
+  shouldOpenCashDrawerForTender,
+  type BillSyncPaymentLine,
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
@@ -72,6 +75,9 @@ const RPC_ERROR_STATUS: Record<string, number> = {
   invalid_collected_amount: 400,
   missing_payment_method: 400,
   invalid_payment_method: 400,
+  missing_payment_lines: 400,
+  invalid_payment_lines: 400,
+  payment_lines_amount_mismatch: 400,
   already_paid: 409,
   bill_update_failed: 500,
   session_close_failed: 500,
@@ -99,6 +105,9 @@ function parseCollectionRecord(
     amount: Number(payload.row_amount) || 0,
     created_at: new Date().toISOString(),
     payment_method: parseBillSyncPaymentMethod(payload.payment_method),
+    payment_lines: parseBillSyncPaymentLines(
+      (payload as { payment_lines?: unknown }).payment_lines,
+    ),
   };
 }
 
@@ -146,6 +155,7 @@ export async function confirmBillSplitPayment(params: {
   billSplitId: string;
   personIndex: number;
   paymentMethod: BillSyncPaymentMethod;
+  paymentLines?: BillSyncPaymentLine[] | null;
   collectedAmount?: number;
   createdByUserId?: string;
   actor?: AuditActor;
@@ -158,6 +168,7 @@ export async function confirmBillSplitPayment(params: {
     billSplitId,
     personIndex,
     paymentMethod,
+    paymentLines = null,
     collectedAmount,
     createdByUserId,
     actor,
@@ -172,6 +183,7 @@ export async function confirmBillSplitPayment(params: {
     p_created_by_user_id: createdByUserId ?? null,
     p_payment_method: paymentMethod,
     p_hold_open: holdSessionOpen,
+    p_payment_lines: paymentLines ?? null,
   });
 
   if (rpcErr) {
@@ -240,7 +252,10 @@ export async function confirmBillSplitPayment(params: {
     await purgeTablePartyMembership(admin, restaurantId, payload.table_id);
   }
 
-  if (paymentMethod === 'CASH' && payload.newly_paid) {
+  if (
+    payload.newly_paid &&
+    shouldOpenCashDrawerForTender(paymentMethod, paymentLines)
+  ) {
     void enqueueCashDrawerOpen({
       admin,
       restaurantId,

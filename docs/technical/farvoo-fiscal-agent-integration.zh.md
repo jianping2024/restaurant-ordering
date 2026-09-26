@@ -14,7 +14,7 @@
 
 云端 / Supabase **只**保存业务数据与同步副本，**不**分配 `InvoiceNo`、不生成 Hash/ATCUD/QR、不创建正式税务打印权威任务。
 
-Farvoo 收银端经 **Agent Local API** 开票时：**桌台「打印发票」只开 FT**。NC、FS、FR、ND 等须 **登录 Agent 本地 UI** 办理。另支持 Agent 本地 UI 手动开 FT。确认收款 / 整桌付清 / 预结单 / 普通小票 **均不自动开票**。数据进 Agent 后签发不依赖云；云只收状态副本（恢复时补传，禁止轮询）。
+Farvoo 收银端经 **Agent Local API** / **bill_sync auto_issue** 开票时：结账「打印发票」按付款与金额传 **`FT` 或 `FS`**（定稿见 restaurant-ordering `docs/product/collect-payment-receipt-iva.zh.md`）。NC、FR、ND 等须 **登录 Agent 本地 UI** 办理。另支持 Agent 本地 UI 手动开票。确认收款 / 整桌付清 / 预结单 / 普通小票 **均不自动开票**。数据进 Agent 后签发不依赖云；云只收状态副本（恢复时补传，禁止轮询）。
 
 ---
 
@@ -295,7 +295,8 @@ agent.tls_enabled            # 默认 false；见下
 }
 ```
 
-- `document_type`：桌台「打印发票」传 `FT` 或 `FS`（白天散客常用 FS；有 NIF / 要正式发票用 FT）。NC / FR / ND 不走 Farvoo 桌台。
+- `document_type`：桌台「打印发票」由 Mesa **显式传入** `FT` 或 `FS`。定稿：`CASH` 且折后含税应付 ≤ €100 → `FS`；现金 > €100 或 `MULTIBANCO` / `MIXED` → `FT`（见 restaurant-ordering `docs/product/collect-payment-receipt-iva.zh.md`）。Agent 总额 > 门槛且入队 FS 时升 FT。NC / FR / ND 不走 Farvoo 桌台。
+- `payment_method` / `payment_lines`：结账侧仅 `CASH` / `MULTIBANCO` / `MIXED`；混合必带多行 `payment_lines`（禁止票面只打 MIXED）。
 - `customer.nif`：有则 9 位税号；`null` / `""` → 打票系统按散客 `999999990` / Consumidor Final。
 - 按人开票：`scope_type` 为 `"person"`，`scope_id` 为 `session_collected_payments.id` 或分单行 `party_id`。
 

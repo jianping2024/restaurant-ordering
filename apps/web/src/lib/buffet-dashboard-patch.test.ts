@@ -4,7 +4,7 @@ import { mergeBuffetDashboardPatch } from './buffet-dashboard-patch';
 import type { BuffetDashboardData } from './dashboard-buffet-server';
 
 const base: BuffetDashboardData = {
-  buffets: [{ id: 'b1', restaurant_id: 'r1', name: 'A', is_active: true, description: null, created_at: '', updated_at: '' }],
+  buffets: [{ id: 'b1', restaurant_id: 'r1', name: 'A', is_active: true, description: null, vat_rate: 13, created_at: '', updated_at: '' }],
   slots: [{ id: 's1', restaurant_id: 'r1', name: 'Lunch', start_time: '11:00', end_time: '15:00', weekdays: [0], sort_order: 0, created_at: '' }],
   rules: [],
   calendarRows: [{ on_date: '2026-01-01', kind: 'holiday' }],

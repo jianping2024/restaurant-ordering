@@ -18,6 +18,7 @@ export type CheckoutPrintAsk = {
   personName: string;
   obligation: number;
   paymentMethod: BillSyncPaymentMethod;
+  payment_lines?: import('@/lib/bill-sync-payload').BillSyncPaymentLine[];
   customerNif: string;
   customerName: string;
   cashTendered: number | null;

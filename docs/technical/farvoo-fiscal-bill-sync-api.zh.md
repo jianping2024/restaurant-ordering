@@ -85,6 +85,8 @@
 金额 / 数量均为**十进制字符串**（建议两位，如 `"14.95"`、`"3.00"`）。  
 `vat_rate` 为**百分数点两位**（`"13.00"` / `"23.00"`）；**禁止** `"0.13"` / `"0.23"`。
 
+**付款（auto_issue 定稿）：** 仅 `CASH` / `MULTIBANCO` / `MIXED`。混合必须带顶层 `payment_lines`（与台账同形）；禁止票面/落库只写一行 MIXED。证件类型与拆额细则见 [`../product/collect-payment-receipt-iva.zh.md`](../product/collect-payment-receipt-iva.zh.md)。
+
 **两种 `scope_type` 互斥（定稿）：**
 
 | `scope_type` | 必有 | 禁止 |
@@ -188,7 +190,7 @@
 | --- | --- |
 | 入口 | 本机 Admin / `POST /local/v1/bill-drafts/{id}/issue` |
 | 范围 | **P0 MVP：** 仅 `scope_type=whole_table`；收到 `split` → 拒绝开票（不是契约永远不开 split；按人/按菜开票见工作台后续，入队形状见 §5.3） |
-| 默认 | 散客 `999999990`；全额 `CASH`；`fiscal_purpose=sale`；`scope_id=source_sale_id` |
+| 默认 | 散客 `999999990`；无 `payment_method` 时 Agent 可默认 `CASH`（Mesa 入队应显式传）；`fiscal_purpose=sale`；`scope_id=source_sale_id` |
 | 映射唯一 | `billsync.DraftToSaleSnapshot` → 再 `IssueDocument`/`IssueFT` |
 | 开票成功后 | **硬删**该 `source_sale_id` 下**全部** `bill_sync_drafts`（`DeleteBillDraftsBySale`）；**不**保留 `invoiced` 行 |
 | 商品主档 | `fiscal_products` **不删** |
@@ -250,10 +252,23 @@ POST /api/print-agent/bill-syncs/{id}/ack
 
 ```http
 POST /api/.../bill-syncs
-# 首次开票: auto_issue + payment_method (+ optional NIF/name/scope)
+# 首次开票: auto_issue + document_type + payment_method
+#          + payment_lines?（MIXED 必填）(+ optional NIF/name/scope)
 # 重打: reprint_document_id（同一表；Agent 调 ReprintDocument）
 GET  /api/.../bill-syncs?source_sale_id=…&issue_scope_id=…
 # → { job, content_unchanged, issued?: { document_id, invoice_no } }
+```
+
+**`document_type`（Mesa 显式传入）：** `CASH` 且折后含税应付 ≤ €100 → `FS`；现金 > €100 或 `MULTIBANCO` / `MIXED` → `FT`。Agent 保留「入队 FS 但总额 > 门槛则升 FT」闸。
+
+**`payment_lines` 示例（MIXED）：**
+
+```json
+"payment_method": "MIXED",
+"payment_lines": [
+  { "method": "MULTIBANCO", "amount": "15.00" },
+  { "method": "CASH", "amount": "5.00" }
+]
 ```
 
 ---

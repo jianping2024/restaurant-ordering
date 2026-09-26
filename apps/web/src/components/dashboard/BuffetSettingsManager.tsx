@@ -35,6 +35,11 @@ import {
   type RuleStatusFilter,
 } from '@/lib/buffet-pricing-admin';
 import type { BuffetDashboardData } from '@/lib/dashboard-buffet-server';
+import {
+  DEFAULT_BUFFET_VAT_RATE,
+  MENU_VAT_RATE_OPTIONS,
+  normalizeMenuVatRate,
+} from '@/lib/menu-vat-rate';
 
 interface Props {
   restaurantId: string;
@@ -64,6 +69,7 @@ type RuleModalState =
 export function BuffetSettingsManager({ restaurantId, embedded, initialData }: Props) {
   const { lang } = useLanguage();
   const t = getMessages(lang).buffetAdmin;
+  const menuT = getMessages(lang).menuManager;
   const weekdayShort = t.weekdayShort;
   const today = todayIsoLocal();
 
@@ -193,7 +199,10 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
     if (!result.ok) showToast(t.saveError, 'error');
   };
 
-  const updateBuffetField = async (id: string, patch: Partial<Pick<Buffet, 'name' | 'is_active'>>) => {
+  const updateBuffetField = async (
+    id: string,
+    patch: Partial<Pick<Buffet, 'name' | 'is_active' | 'vat_rate'>>,
+  ) => {
     const result = await updateBuffet(id, patch);
     if (!result.ok) showToast(t.saveError, 'error');
   };
@@ -474,8 +483,9 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
             <p className="text-brand-text-muted text-sm py-2">{t.addBuffet}</p>
           ) : (
             <>
-              <div className="hidden sm:grid grid-cols-[minmax(0,16rem)_5rem_4.5rem] gap-x-3 px-3 text-[11px] font-medium text-brand-text-muted">
+              <div className="hidden sm:grid grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-x-3 px-3 text-[11px] font-medium text-brand-text-muted">
                 <span>{t.name}</span>
+                <span>{menuT.vatRate}</span>
                 <span>{t.active}</span>
                 <span className="sr-only">{t.delete}</span>
               </div>
@@ -483,7 +493,7 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                 {buffets.map((b) => (
                   <li
                     key={b.id}
-                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center border border-brand-border/60 rounded-lg px-3 py-2"
+                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,16rem)_6.5rem_5rem_4.5rem] gap-2 sm:gap-3 sm:items-center border border-brand-border/60 rounded-lg px-3 py-2"
                   >
                     <input
                       key={`${b.id}-${b.name}`}
@@ -500,6 +510,21 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                         if (v !== b.name) void updateBuffetField(b.id, { name: v });
                       }}
                     />
+                    <select
+                      className={buffetFieldClass}
+                      value={String(normalizeMenuVatRate(b.vat_rate ?? DEFAULT_BUFFET_VAT_RATE))}
+                      title={menuT.vatRate}
+                      onChange={(e) => {
+                        const rate = Number(e.target.value);
+                        if (rate !== b.vat_rate) void updateBuffetField(b.id, { vat_rate: rate });
+                      }}
+                    >
+                      {MENU_VAT_RATE_OPTIONS.map((rate) => (
+                        <option key={rate} value={String(rate)}>
+                          {menuT.vatRateOption.replace('{rate}', String(rate))}
+                        </option>
+                      ))}
+                    </select>
                     <label className="flex items-center gap-1.5 text-[13px] text-brand-text-muted sm:justify-center">
                       <input type="checkbox" checked={b.is_active} onChange={() => void toggleBuffetActive(b)} />
                       {t.active}

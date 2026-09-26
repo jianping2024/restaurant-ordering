@@ -98,6 +98,7 @@ export async function enqueueStaffBillSync(input: {
     customer_nif?: string;
     customer_name?: string;
     payment_method: string;
+    payment_lines?: Array<{ method: string; amount: string }>;
     document_type?: 'FT' | 'FS';
     issue_mode?: 'whole_table' | 'person';
     issue_scope_id?: string;
@@ -116,6 +117,9 @@ export async function enqueueStaffBillSync(input: {
   } else if (input.autoIssue?.auto_issue) {
     body.auto_issue = true;
     body.payment_method = input.autoIssue.payment_method;
+    if (input.autoIssue.payment_lines?.length) {
+      body.payment_lines = input.autoIssue.payment_lines;
+    }
     if (input.autoIssue.document_type) body.document_type = input.autoIssue.document_type;
     if (input.autoIssue.customer_nif) body.customer_nif = input.autoIssue.customer_nif;
     if (input.autoIssue.customer_name) body.customer_name = input.autoIssue.customer_name;

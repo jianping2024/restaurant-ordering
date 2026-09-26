@@ -873,6 +873,54 @@ export function allocateByItemShareAmounts(
   return allocateLineCentsWithFrozen(totalCents, shares, frozenFlags, weightInts);
 }
 
+function byItemSplitLineFromSpec(spec: ByItemLineSpec): ByItemSplitLine {
+  if (spec.mode === 'buffet') {
+    return {
+      key: spec.key,
+      name: '',
+      mode: 'buffet',
+      adults: spec.adults,
+      children: spec.children,
+      adultUnitPrice: spec.adultUnitPrice,
+      childUnitPrice: spec.childUnitPrice,
+    };
+  }
+  return {
+    key: spec.key,
+    name: '',
+    mode: 'menu',
+    qty: spec.lineQty,
+    unitPrice: spec.unitPrice,
+  };
+}
+
+/**
+ * Sole stamp: freeze this ticket's share euros at collect-confirm time.
+ * Other tickets' shares unchanged; paid peers already carrying frozenAmount stay frozen.
+ */
+export function stampCollectTicketFrozenAmounts(
+  lineSpecs: readonly ByItemLineSpec[],
+  allocations: ByItemLineAllocation,
+  ticketKey: string,
+): ByItemLineAllocation {
+  if (!ticketKey) return allocations;
+  const next: ByItemLineAllocation = { ...allocations };
+  for (const spec of lineSpecs) {
+    const shares = allocations[spec.key] ?? [];
+    if (shares.length === 0) continue;
+    const amounts = allocateByItemShareAmounts(byItemSplitLineFromSpec(spec), shares);
+    let changed = false;
+    const stamped = shares.map((share, index) => {
+      if (splitPartyKey(share.partyId, share.name) !== ticketKey) return share;
+      const amount = amounts[index] ?? 0;
+      changed = true;
+      return { ...share, frozenAmount: amount };
+    });
+    if (changed) next[spec.key] = stamped;
+  }
+  return next;
+}
+
 function allocateLineCentsWithFrozen(
   totalCents: number,
   shares: readonly ByItemConsumerShare[],

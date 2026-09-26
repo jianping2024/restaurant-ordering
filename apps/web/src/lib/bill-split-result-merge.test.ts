@@ -38,7 +38,7 @@ describe('mergeSplitResultWithLedger', () => {
 });
 
 describe('mergeByItemSplitResultWithLedger', () => {
-  it('updates Tom amount when incoming uses different casing', () => {
+  it('keeps paid ticket amount; updates unpaid only', () => {
     const merged = mergeByItemSplitResultWithLedger(
       [
         { name: 'John', amount: 50, paid: true },
@@ -51,7 +51,7 @@ describe('mergeByItemSplitResultWithLedger', () => {
     );
     assert.equal(merged.length, 2);
     assert.equal(merged[0]?.name, 'John');
-    assert.equal(merged[0]?.amount, 61.7);
+    assert.equal(merged[0]?.amount, 50);
     assert.equal(merged[0]?.paid, true);
     assert.equal(merged[1]?.name, 'Tom');
     assert.equal(merged[1]?.amount, 2.5);
@@ -84,6 +84,7 @@ describe('mergeByItemSplitResultWithLedger', () => {
     );
     assert.equal(merged.length, 2);
     assert.equal(merged[0]?.name, 'John');
+    assert.equal(merged[0]?.amount, 40);
     assert.equal(merged[1]?.name, 'Jack');
   });
 
@@ -93,7 +94,7 @@ describe('mergeByItemSplitResultWithLedger', () => {
     const merged = mergeByItemSplitResultWithLedger(
       [{ name: '客人1', amount: 19.95, paid: true, party_id: paidId }],
       [
-        { name: '客人1', amount: 19.95, party_id: paidId },
+        { name: '客人1', amount: 20.01, party_id: paidId },
         { name: '客人1', amount: 2.2, party_id: unpaidId },
       ],
     );

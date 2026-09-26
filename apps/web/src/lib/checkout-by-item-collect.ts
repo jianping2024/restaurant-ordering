@@ -14,12 +14,13 @@ import {
 } from '@/lib/checkout-session-payments';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
+import { isWholeTablePayerName } from '@/lib/split-person-label';
 import { splitPartyKey, splitResultTicketKey, toWireSplitResult } from '@/lib/split-party-id';
 import {
   staffByItemLedgerPeople,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
-import type { SplitResult } from '@/types';
+import type { SplitPerson, SplitResult } from '@/types';
 
 /** True when every by-item catalog line is fully allocated (pool empty). */
 export function byItemPoolFullyAllocated(
@@ -210,51 +211,70 @@ export function settledByItemPersonKeys(
 }
 
 /**
- * After obligation floors, force Σ(result)=bill total without lowering anyone
- * below their ledger collected (trim/add unsettled rows from the end).
+ * Sole by-item collect confirm merge: upsert **one** ticket into the ledger.
+ * Other tickets keep existing amounts/shares — never whole-table recalculate.
+ * Drops whole-table sentinel rows when the first real ticket is written.
  */
-export function reconcileByItemResultsToBillTotal(
-  results: SplitResult[],
-  billTotal: number,
-  payments: SessionCollectedPayment[],
-): SplitResult[] {
-  const floored = applyCollectedObligationFloors(results, payments);
-  const collected = collectedTotalsByPersonKey(payments, floored);
-  const target = eurosToCents(billTotal);
-  const sum = floored.reduce((acc, row) => acc + eurosToCents(row.amount), 0);
-  if (sum === target) return floored;
-
-  const next = floored.map((row) => ({ ...row }));
-  if (sum > target) {
-    let excess = sum - target;
-    for (let i = next.length - 1; i >= 0 && excess > 0; i -= 1) {
-      const key = splitResultTicketKey(next[i]!);
-      const floor = key ? eurosToCents(collected.get(key) ?? 0) : 0;
-      const amt = eurosToCents(next[i]!.amount);
-      const reducible = amt - floor;
-      if (reducible <= 0) continue;
-      const take = Math.min(reducible, excess);
-      next[i] = { ...next[i]!, amount: (amt - take) / 100 };
-      excess -= take;
-    }
-    return next;
-  }
-
-  let missing = target - sum;
-  for (let i = next.length - 1; i >= 0 && missing > 0; i -= 1) {
-    const key = splitResultTicketKey(next[i]!);
-    const floor = key ? collected.get(key) ?? 0 : 0;
-    const amt = eurosToCents(next[i]!.amount);
-    if (floor > 0 && amt <= eurosToCents(floor)) continue;
-    next[i] = { ...next[i]!, amount: (amt + missing) / 100 };
-    missing = 0;
-  }
-  if (missing > 0 && next.length > 0) {
-    const last = next[next.length - 1]!;
-    next[next.length - 1] = {
-      ...last,
-      amount: (eurosToCents(last.amount) + missing) / 100,
+export function mergeCurrentByItemTicketForCollect(params: {
+  existingPersons: ReadonlyArray<SplitPerson>;
+  existingResult: ReadonlyArray<SplitResult>;
+  ticketPerson: SplitPerson;
+  ticketAmount: number;
+}): { persons: SplitPerson[]; result: SplitResult[] } {
+  const ticketKey = splitPartyKey(params.ticketPerson.party_id, params.ticketPerson.name);
+  if (!ticketKey) {
+    return {
+      persons: [...params.existingPersons],
+      result: [...params.existingResult],
     };
   }
-  return next;
+
+  const ticketResult = toWireSplitResult({
+    name: params.ticketPerson.name,
+    amount: params.ticketAmount,
+    party_id: params.ticketPerson.party_id,
+    partyId: params.ticketPerson.party_id,
+  });
+
+  const basePersons = params.existingPersons.filter((row) => !isWholeTablePayerName(row.name));
+  const baseResult = params.existingResult.filter((row) => !isWholeTablePayerName(row.name));
+
+  let personHit = false;
+  const persons = basePersons.map((row) => {
+    if (splitPartyKey(row.party_id, row.name) !== ticketKey) return row;
+    personHit = true;
+    return {
+      ...params.ticketPerson,
+      // Keep prior amount on person row if present; result is authoritative.
+      amount: params.ticketAmount,
+    };
+  });
+  if (!personHit) {
+    persons.push({ ...params.ticketPerson, amount: params.ticketAmount });
+  }
+
+  let resultHit = false;
+  const result = baseResult.map((row) => {
+    if (splitResultTicketKey(row) !== ticketKey) return row;
+    resultHit = true;
+    // Never raise/rewrite an already-paid ticket via collect merge.
+    if (row.paid) return row;
+    return toWireSplitResult({
+      ...ticketResult,
+      paid: row.paid,
+    });
+  });
+  if (!resultHit) {
+    result.push(ticketResult);
+  }
+
+  return { persons, result };
+}
+
+/** True when live outstanding still matches the modal amount (cent-equal). */
+export function collectModalAmountStillValid(
+  liveOutstanding: number,
+  modalAmount: number,
+): boolean {
+  return eurosToCents(liveOutstanding) === eurosToCents(modalAmount);
 }

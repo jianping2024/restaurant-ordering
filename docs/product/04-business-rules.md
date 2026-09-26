@@ -244,11 +244,13 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 ### 收款规则
 
-1. **本次应收** = 该人折后应付 − `session_collected_payments` 中该人累计；按菜再与摘要待收取较小（不得整桌超收）
-2. **摘要待收** = 折后应收合计 − 已收台账合计
-3. **按菜 person_index** = `bill_splits.result` 创建顺序下标（禁止按名字排序后的下标收款）
-4. **已收义务下限** = 重算后应付不得低于该人已收台账
-5. **芯片 ✓** = 台账已覆盖义务（settled）；有收款但未收齐仍可续收
+按菜确认收款步骤与硬规矩以定稿 [`by-item-collect-payment.zh.md`](./by-item-collect-payment.zh.md) 为准。摘要：
+
+1. **本次应收（按菜）** = 该票折后应付 − 该票已收台账；**不要**与摘要待收取较小
+2. **摘要待收** = 折后应收合计 − 已收台账合计（整桌视角，不夹断单票）
+3. **按菜 person_index** = `bill_splits.result` 创建顺序下标（禁止按名字排序后的下标收款）；票身份优先 `party_id`
+4. **确认收款**认弹窗金额；只核/只写当前票；禁止整桌重算改写其它票（尤其已付票）；职员按菜 upsert 带 `allow_partial_by_item`
+5. **已付票**金额冻结（`locked_amount` / `result.paid` 后 merge 保留原 amount）；禁止往已付票叠菜（续消费新开票）
 6. 确认收款走 `confirm_bill_split_payment` RPC（原子、防并发）
 7. 有收款记录后：**禁止**丢失 `session_collected_payments`；折扣通常禁用
 8. 按菜池未分完可挨个收款；**池分完**时各人合计必须等于消费总额

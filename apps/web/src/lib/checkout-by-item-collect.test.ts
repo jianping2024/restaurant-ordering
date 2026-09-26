@@ -3,8 +3,9 @@ import { describe, it } from 'node:test';
 import {
   applyCollectedObligationFloors,
   byItemPoolFullyAllocated,
+  collectModalAmountStillValid,
+  mergeCurrentByItemTicketForCollect,
   orderByItemResultsToRoster,
-  reconcileByItemResultsToBillTotal,
   resolveByItemCollectTarget,
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
@@ -193,30 +194,67 @@ describe('settledByItemPersonKeys', () => {
   });
 });
 
-describe('reconcileByItemResultsToBillTotal', () => {
-  it('keeps obligation floors and trims unpaid so sum equals bill total', () => {
-    const reconciled = reconcileByItemResultsToBillTotal(
-      [
-        { name: '客人 4', amount: 1.47 },
-        { name: '客人 10', amount: 6.6 },
-      ],
-      8.07,
-      [
+describe('mergeCurrentByItemTicketForCollect', () => {
+  it('upserts one ticket and leaves other amounts untouched', () => {
+    const a = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const b = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const merged = mergeCurrentByItemTicketForCollect({
+      existingPersons: [
         {
-          id: '1',
-          person_index: 0,
-          person_name: '客人 4',
-          amount: 2.2,
-          created_at: '',
-          payment_method: 'CASH',
+          name: '客人 3',
+          party_id: a,
+          item_shares: [{ key: 'sumol', qty_num: 1, qty_den: 3, locked_amount: 0.73 }],
+          amount: 0.73,
+        },
+        {
+          name: '客人 4',
+          party_id: b,
+          item_shares: [{ key: 'sumol', qty_num: 1, qty_den: 3 }],
+          amount: 0.73,
         },
       ],
-    );
-    assert.equal(reconciled[0]?.amount, 2.2);
-    const sum =
-      Math.round(reconciled.reduce((acc, row) => acc + row.amount, 0) * 100) / 100;
-    assert.equal(sum, 8.07);
-    assert.equal(reconciled[1]?.amount, 5.87);
+      existingResult: [
+        { name: '客人 3', amount: 0.73, paid: true, party_id: a },
+        { name: '客人 4', amount: 0.73, party_id: b },
+      ],
+      ticketPerson: {
+        name: '客人 4',
+        party_id: b,
+        item_shares: [
+          { key: 'sumol', qty_num: 1, qty_den: 3, locked_amount: 0.74 },
+        ],
+      },
+      ticketAmount: 0.74,
+    });
+    assert.equal(merged.result[0]?.amount, 0.73);
+    assert.equal(merged.result[0]?.paid, true);
+    assert.equal(merged.result[1]?.amount, 0.74);
+    assert.equal(merged.persons[1]?.item_shares?.[0]?.locked_amount, 0.74);
+  });
+
+  it('replaces whole-table sentinel when first real ticket is written', () => {
+    const id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const merged = mergeCurrentByItemTicketForCollect({
+      existingPersons: [{ name: WHOLE_TABLE_PAYER_KEY }],
+      existingResult: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 10 }],
+      ticketPerson: {
+        name: 'Ana',
+        party_id: id,
+        item_shares: [{ key: 'cola', qty_num: 1, qty_den: 1, locked_amount: 2.2 }],
+      },
+      ticketAmount: 2.2,
+    });
+    assert.equal(merged.result.length, 1);
+    assert.equal(merged.result[0]?.name, 'Ana');
+    assert.equal(merged.result[0]?.amount, 2.2);
+    assert.equal(merged.persons.length, 1);
+  });
+});
+
+describe('collectModalAmountStillValid', () => {
+  it('compares cents', () => {
+    assert.equal(collectModalAmountStillValid(0.73, 0.73), true);
+    assert.equal(collectModalAmountStillValid(0.73, 0.74), false);
   });
 });
 

@@ -33,6 +33,7 @@ No third root “强制规则” markdown. Product truth under `docs/`.
 | Product overview | `docs/product/01-product-overview.md` |
 | Feature boundaries | `docs/product/02-feature-map.md` |
 | User flows & rules | `docs/product/03-user-flows.md`, `04-business-rules.md` |
+| 按菜确认收款（定稿） | `docs/product/by-item-collect-payment.zh.md` |
 | 收款 / 热敏 IVA / 预结免责 / 人头费 IVA（定稿） | `docs/product/collect-payment-receipt-iva.zh.md` |
 | Station kitchen screens (locked) | `docs/product/station-kitchen-screens.zh.md` |
 | UI conventions | `docs/design/` |

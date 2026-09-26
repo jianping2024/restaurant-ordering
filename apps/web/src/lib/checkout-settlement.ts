@@ -17,7 +17,7 @@ export type CheckoutSettlementSummary = {
   pending: number;
 };
 
-/** Sole summary「待收」:折后应收 − 已收台账. By-item collect clamps person amount to this pending so右边未收 and 待收 stay aligned. */
+/** Sole summary「待收」:折后应收 − 已收台账. Person collect uses obligation − prior only. */
 export function buildCheckoutSettlementSummary(
   request: BillSplit,
   discountRate: number,

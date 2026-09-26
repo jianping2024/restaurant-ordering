@@ -274,17 +274,19 @@ export function staffByItemPersonShares(params: {
   return out;
 }
 
-function upsertNamedRow(
+function upsertEditableNamedRow(
   rows: ByItemConsumerRow[],
   personName: string,
   buffet: boolean,
 ): { rows: ByItemConsumerRow[]; row: ByItemConsumerRow } {
-  const existing = rows.find((row) => personMatches(row.name, personName));
+  // Never merge into a paid-frozen row — new same dish gets a new editable row.
+  const existing = rows.find(
+    (row) => personMatches(row.name, personName) && !row.paidLocked,
+  );
   if (existing) return { rows, row: existing };
 
-  const empty = rows.find((row) => !row.name.trim());
+  const empty = rows.find((row) => !row.name.trim() && !row.paidLocked);
   if (empty) {
-    // Seed rows may prefill qtyWhole/adultQty; pool-add must start from zero then apply delta.
     const named = {
       ...empty,
       name: personName,
@@ -327,12 +329,12 @@ export function addWholeShareToPerson(params: {
   if (remaining.num <= 0) return null;
 
   const take = minRational(remaining, rationalFromInt(1));
-  const { rows: nextRows, row } = upsertNamedRow(rows, name, false);
+  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, false);
   const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
   const nextQty = addRationals(current, take);
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
-      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty) }
+      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty), paidLocked: undefined }
       : candidate,
   );
   return { ...allocations, [lineKey]: patched };
@@ -386,12 +388,12 @@ export function addMenuFractionShareToPerson(params: {
 
   const rows = allocations[lineKey] ?? [];
   const take = menuFractionTake(denominator);
-  const { rows: nextRows, row } = upsertNamedRow(rows, name, false);
+  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, false);
   const current = parseConsumerRowQty(row) ?? rationalFromInt(0);
   const nextQty = addRationals(current, take);
   const patched = nextRows.map((candidate) =>
     candidate.id === row.id
-      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty) }
+      ? { ...candidate, name, ...rationalToRowQtyFields(nextQty), paidLocked: undefined }
       : candidate,
   );
   return { ...allocations, [lineKey]: patched };
@@ -417,7 +419,7 @@ export function addBuffetSeatToPerson(params: {
   if (guestType === 'adult' && adultsAssigned >= spec.adults) return null;
   if (guestType === 'child' && childrenAssigned >= spec.children) return null;
 
-  const { rows: nextRows, row } = upsertNamedRow(rows, name, true);
+  const { rows: nextRows, row } = upsertEditableNamedRow(rows, name, true);
   // Do not use resolveBuffetRowCounts here — empty named rows default to 1 adult,
   // which would double-count when we then +1 for this pool action.
   const adults = parseBuffetHeadcountInput(row.adultQty);
@@ -434,6 +436,7 @@ export function addBuffetSeatToPerson(params: {
           qtyWhole: '',
           qtyNum: '',
           qtyDen: '',
+          paidLocked: undefined,
         }
       : candidate,
   );

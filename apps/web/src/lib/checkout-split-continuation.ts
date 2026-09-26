@@ -1,6 +1,7 @@
 import {
   buildByItemAllocationsFromPersons,
   createByItemConsumerRow,
+  parseBuffetHeadcountInput,
   parseConsumerRowQty,
   rationalToRowQtyFields,
   removeByItemConsumerRow,
@@ -10,6 +11,7 @@ import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   normalizeRational,
   rationalGte,
+  compareRationals,
   type Rational,
 } from '@/lib/rational-qty';
 import { displaySplitPersonName, splitPersonKey } from '@/lib/split-person-identity';
@@ -40,6 +42,8 @@ export type ByItemRowEditLock = {
   minBuffetAdults: number;
   minBuffetChildren: number;
   removable: boolean;
+  /** Paid-frozen row: qty fields are exact read-only (no bump-merge). */
+  qtyReadOnly: boolean;
 };
 
 /** Context for enforcing paid-allocation floors on one by-item catalog line. */
@@ -235,6 +239,20 @@ export function byItemRowEditLock(params: {
       minBuffetAdults: 0,
       minBuffetChildren: 0,
       removable: true,
+      qtyReadOnly: false,
+    };
+  }
+
+  // Paid-frozen row: exact lock — no qty edit, no remove, no merge.
+  if (row.paidLocked) {
+    const parsed = parseConsumerRowQty(row);
+    return {
+      nameReadOnly: true,
+      minMenuQty: spec.mode === 'menu' ? parsed : null,
+      minBuffetAdults: spec.mode === 'buffet' ? parseBuffetHeadcountInput(row.adultQty) : 0,
+      minBuffetChildren: spec.mode === 'buffet' ? parseBuffetHeadcountInput(row.childQty) : 0,
+      removable: false,
+      qtyReadOnly: true,
     };
   }
 
@@ -248,6 +266,7 @@ export function byItemRowEditLock(params: {
       minBuffetAdults: mins.adults,
       minBuffetChildren: mins.children,
       removable: !hasLock,
+      qtyReadOnly: false,
     };
   }
 
@@ -259,6 +278,9 @@ export function byItemRowEditLock(params: {
     minBuffetAdults: 0,
     minBuffetChildren: 0,
     removable: !hasLock,
+    // Floor-only legacy path: still allow new qty above floor on non-paidLocked rows
+    // only when row is not paidLocked (new dish row after resume).
+    qtyReadOnly: false,
   };
 }
 
@@ -294,21 +316,108 @@ function buffetRowsFromShares(
 export function buildByItemConsumerRowsFromPersons(
   persons: SplitPerson[],
   lineSpecs: ByItemLineSpec[],
+  /** Paid floors: qty up to these mins → paidLocked rows; surplus → separate editable rows. */
+  locks: LockedPersonLineMins = { menu: new Map(), buffet: new Map() },
 ): Record<string, ByItemConsumerRow[]> {
   const allocations = buildByItemAllocationsFromPersons(persons, lineSpecs);
   const rows: Record<string, ByItemConsumerRow[]> = {};
+
   for (const spec of lineSpecs) {
     const shares = allocations[spec.key];
     if (!shares?.length) continue;
+
     if (spec.mode === 'buffet') {
-      rows[spec.key] = buffetRowsFromShares(shares);
+      const expanded: ByItemConsumerRow[] = [];
+      for (const row of buffetRowsFromShares(shares)) {
+        const mapKey = lockedPersonLineKey(spec.key, row.name);
+        const mins = locks.buffet.get(mapKey);
+        const adults = parseBuffetHeadcountInput(row.adultQty);
+        const children = parseBuffetHeadcountInput(row.childQty);
+        if (!mins || (mins.adults <= 0 && mins.children <= 0)) {
+          expanded.push(row);
+          continue;
+        }
+        if (adults <= mins.adults && children <= mins.children) {
+          expanded.push({ ...row, paidLocked: true });
+          continue;
+        }
+        expanded.push({
+          ...createByItemConsumerRow({ buffet: true }),
+          name: row.name,
+          adultQty: mins.adults > 0 ? String(mins.adults) : '',
+          childQty: mins.children > 0 ? String(mins.children) : '',
+          paidLocked: true,
+        });
+        const extraA = adults - mins.adults;
+        const extraC = children - mins.children;
+        if (extraA > 0 || extraC > 0) {
+          expanded.push({
+            ...createByItemConsumerRow({ buffet: true }),
+            name: row.name,
+            adultQty: extraA > 0 ? String(extraA) : '',
+            childQty: extraC > 0 ? String(extraC) : '',
+          });
+        }
+      }
+      rows[spec.key] = expanded;
       continue;
     }
-    rows[spec.key] = shares.map((share) => ({
-      ...createByItemConsumerRow(),
-      name: share.name,
-      ...rationalToRowQtyFields(share.qty),
-    }));
+
+    const byPerson = new Map<string, typeof shares>();
+    for (const share of shares) {
+      const key = share.name.trim().toLowerCase();
+      const list = byPerson.get(key) ?? [];
+      list.push(share);
+      byPerson.set(key, list);
+    }
+
+    const lineRows: ByItemConsumerRow[] = [];
+    for (const personShares of Array.from(byPerson.values())) {
+      const name = personShares[0]!.name;
+      const mapKey = lockedPersonLineKey(spec.key, name);
+      const minQty = locks.menu.get(mapKey);
+      let lockLeft =
+        minQty && minQty.num > 0 ? normalizeRational(minQty) : null;
+
+      for (const share of personShares) {
+        let qty = normalizeRational(share.qty);
+        if (lockLeft && lockLeft.num > 0) {
+          const cmp = compareRationals(qty, lockLeft);
+          if (cmp <= 0) {
+            lineRows.push({
+              ...createByItemConsumerRow(),
+              name,
+              ...rationalToRowQtyFields(qty),
+              paidLocked: true,
+            });
+            lockLeft = normalizeRational({
+              num: lockLeft.num * qty.den - qty.num * lockLeft.den,
+              den: lockLeft.den * qty.den,
+            });
+            continue;
+          }
+          lineRows.push({
+            ...createByItemConsumerRow(),
+            name,
+            ...rationalToRowQtyFields(lockLeft),
+            paidLocked: true,
+          });
+          qty = normalizeRational({
+            num: qty.num * lockLeft.den - lockLeft.num * qty.den,
+            den: qty.den * lockLeft.den,
+          });
+          lockLeft = { num: 0, den: 1 };
+        }
+        if (qty.num > 0) {
+          lineRows.push({
+            ...createByItemConsumerRow(),
+            name,
+            ...rationalToRowQtyFields(qty),
+          });
+        }
+      }
+    }
+    rows[spec.key] = lineRows;
   }
   return rows;
 }

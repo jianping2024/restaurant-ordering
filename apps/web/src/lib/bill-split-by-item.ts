@@ -47,6 +47,11 @@ export type ByItemConsumerRow = {
   /** Buffet lines: integer headcounts per payer; menu lines ignore these. */
   adultQty?: string;
   childQty?: string;
+  /**
+   * Share frozen by prior collection — read-only; new same dish uses another row
+   * (never merge into this one).
+   */
+  paidLocked?: boolean;
 };
 
 export type QtyPartsIssue = 'missing_den' | 'zero_den' | 'improper_fraction';
@@ -731,7 +736,12 @@ export function byItemLinePriceShare(
   return allocated[index] ?? 0;
 }
 
-/** Menu line: split line total across shares with cent remainder by name sort. */
+/**
+ * Menu line: each share = qty × (lineTotal/lineQty) in cents, remainder by name.
+ * Weight must use num/den (never drop denominator — 1 and 1/2 are not equal).
+ * Prefer {@link calcByItemSplitResults} (qty × unit) for obligations; this remains for
+ * callers that only have a line total.
+ */
 export function allocateLineTotalByShares(
   lineTotal: number,
   shares: ByItemConsumerShare[],
@@ -740,7 +750,10 @@ export function allocateLineTotalByShares(
   if (totalCents <= 0 || shares.length === 0) return shares.map(() => 0);
 
   const lineQty = sumRationals(shares.map((share) => share.qty));
-  const weightInts = shares.map((share) => share.qty.num * lineQty.den);
+  const weightInts = shares.map((share) => {
+    if (share.qty.den <= 0) return 0;
+    return share.qty.num * lineQty.den / share.qty.den;
+  });
   const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
   return cents.map(centsToEuros);
 }
@@ -840,8 +853,7 @@ export function buildByItemAllocationsFromPersons(
 
 /**
  * Sole by-item person obligation from allocations.
- * Complete lines: cent-remainder split across shares.
- * Incomplete lines: unit × qty (staff partial collect / mid-split draft).
+ * Menu + buffet: each share is **qty × unit price** (never line-total weight split).
  * Output order: `personOrder` when provided (ledger roster); else first-seen
  * allocation order — never localeCompare-sort (that breaks person_index).
  */
@@ -872,22 +884,6 @@ export function calcByItemSplitResults(params: {
   for (const line of lines) {
     const shares = allocations[line.key] || [];
     if (line.mode === 'buffet') {
-      if (buffetLineAllocationComplete(line, shares)) {
-        const lineAmounts = allocateBuffetLineByShares(line, shares);
-        for (let si = 0; si < shares.length; si += 1) {
-          const share = shares[si]!;
-          const qty = share.qty.num / share.qty.den;
-          const unitPrice =
-            share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
-          const price = lineAmounts[si] ?? 0;
-          addShare(share.name, {
-            name: line.name.trim(),
-            qty,
-            price: unitPrice,
-          }, price);
-        }
-        continue;
-      }
       for (const share of shares) {
         const qty = share.qty.num / share.qty.den;
         if (qty <= 0) continue;
@@ -903,19 +899,6 @@ export function calcByItemSplitResults(params: {
       continue;
     }
 
-    if (lineAllocationComplete(line.qty, shares)) {
-      const lineTotal = line.unitPrice * line.qty;
-      for (const share of shares) {
-        const price = byItemLinePriceShare(lineTotal, shares, share.name);
-        addShare(share.name, {
-          name: line.name.trim(),
-          qty: share.qty.num / share.qty.den,
-          price,
-        }, price);
-      }
-      continue;
-    }
-
     for (const share of shares) {
       const qty = share.qty.num / share.qty.den;
       if (qty <= 0) continue;
@@ -923,7 +906,7 @@ export function calcByItemSplitResults(params: {
       addShare(share.name, {
         name: line.name.trim(),
         qty,
-        price,
+        price: line.unitPrice,
       }, price);
     }
   }

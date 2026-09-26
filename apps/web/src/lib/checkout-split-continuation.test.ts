@@ -158,7 +158,7 @@ describe('buildLockedPersonLineMins', () => {
 });
 
 describe('byItemRowEditLock', () => {
-  it('locks name and removal but allows qty increase for paid share', () => {
+  it('locks paidLocked row as exact read-only (no qty bump-merge)', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Ana', amount: 10, paid: true }],
@@ -172,12 +172,20 @@ describe('byItemRowEditLock', () => {
     );
     const lock = byItemRowEditLock({
       lineKey: LINE_KEY,
-      row: { id: 'r1', name: 'Ana', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      row: {
+        id: 'r1',
+        name: 'Ana',
+        qtyWhole: '1',
+        qtyNum: '',
+        qtyDen: '',
+        paidLocked: true,
+      },
       locks,
       spec: menuSpec(LINE_KEY, 3),
     });
     assert.equal(lock.nameReadOnly, true);
     assert.equal(lock.removable, false);
+    assert.equal(lock.qtyReadOnly, true);
     assert.ok(lock.minMenuQty);
     assert.equal(lock.minMenuQty?.num, 1);
   });

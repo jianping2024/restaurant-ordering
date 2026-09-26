@@ -10,7 +10,11 @@ import {
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
-import { buildByItemConsumerRowsFromPersons } from '@/lib/checkout-split-continuation';
+import {
+  buildByItemConsumerRowsFromPersons,
+  buildLockedPersonLineMins,
+} from '@/lib/checkout-split-continuation';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
@@ -18,11 +22,22 @@ export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
   lineSpecs: ByItemLineSpec[];
   existingSplit: BillSplit | null;
+  collectedPayments?: SessionCollectedPayment[];
 }) {
-  const { splitMode, lineSpecs, existingSplit } = params;
+  const { splitMode, lineSpecs, existingSplit, collectedPayments = [] } = params;
 
   const [byItemAllocations, setByItemAllocations] = useState<Record<string, ByItemConsumerRow[]>>({});
   const hydratedSplitKeyRef = useRef<string | null>(null);
+
+  const paidLocks = useMemo(
+    () =>
+      buildLockedPersonLineMins(
+        existingSplit,
+        collectedPayments.length > 0,
+        collectedPayments,
+      ),
+    [existingSplit, collectedPayments],
+  );
 
   useLayoutEffect(() => {
     if (splitMode !== 'by_item') return;
@@ -36,12 +51,18 @@ export function useByItemSplitState(params: {
     if (splitMode !== 'by_item' || !existingSplit?.persons?.length) return;
     // Wait for lineSpecs — hydrating with [] stamps the split id and skips the real restore.
     if (lineSpecs.length === 0) return;
-    const hydrateKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}`;
+    const personsSig = JSON.stringify(existingSplit.persons);
+    const lockSig = `${paidLocks.menu.size}:${paidLocks.buffet.size}`;
+    const hydrateKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}:${personsSig}:${lockSig}`;
     if (hydratedSplitKeyRef.current === hydrateKey) return;
     hydratedSplitKeyRef.current = hydrateKey;
-    const hydrated = buildByItemConsumerRowsFromPersons(existingSplit.persons, lineSpecs);
+    const hydrated = buildByItemConsumerRowsFromPersons(
+      existingSplit.persons,
+      lineSpecs,
+      paidLocks,
+    );
     setByItemAllocations(withDefaultByItemLineRows(hydrated, lineSpecs));
-  }, [splitMode, lineSpecs, existingSplit]);
+  }, [splitMode, lineSpecs, existingSplit, paidLocks]);
 
   const consumerRoster = useMemo(
     () => collectActiveConsumerNames(byItemAllocations),

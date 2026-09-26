@@ -105,7 +105,8 @@ describe('resolveByItemCollectTarget', () => {
       billPending: 6.21,
     });
     assert.equal(target?.index, 1);
-    assert.equal(target?.amount, 6.21);
+    // Person due is obligation − prior; no silent clamp to bill pending.
+    assert.equal(target?.amount, 6.6);
   });
 });
 

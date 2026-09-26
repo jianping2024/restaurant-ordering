@@ -1348,6 +1348,7 @@ export const MESSAGES = {
       staffByItemNeedName: '请先填写当前人姓名',
       staffByItemNoCollectableShare: '当前人暂无已分配份额',
       staffByItemPoolEmpty: '菜品已分完',
+      staffByItemPaidShare: '已收',
       callCheckout: '呼叫结账',
       callCheckoutOperating: '正在打开结账…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -2659,6 +2660,7 @@ export const MESSAGES = {
       staffByItemNeedName: 'Enter a name for the current person first',
       staffByItemNoCollectableShare: 'No allocated share for this person yet',
       staffByItemPoolEmpty: 'All dishes assigned',
+      staffByItemPaidShare: 'Paid',
       callCheckout: 'Call checkout',
       callCheckoutOperating: 'Opening checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */
@@ -3887,6 +3889,7 @@ export const MESSAGES = {
       staffByItemNeedName: 'Indique primeiro o nome da pessoa atual',
       staffByItemNoCollectableShare: 'Esta pessoa ainda nao tem quota atribuida',
       staffByItemPoolEmpty: 'Todos os pratos atribuidos',
+      staffByItemPaidShare: 'Pago',
       callCheckout: 'Chamar conta',
       callCheckoutOperating: 'A abrir checkout…',
       /** Fallback only — prefer messageForCheckoutRequestError for known codes. */

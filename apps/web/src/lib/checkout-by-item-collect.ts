@@ -134,7 +134,8 @@ export type ByItemCollectTarget = {
 /**
  * Sole staff by-item collect target:
  * - person_index = index in roster (`bill_splits.result` order)
- * - amount = live obligation outstanding for that person, capped by bill pending
+ * - amount = live obligation outstanding for that person (应付 − 已收)
+ * Does not clamp to bill pending — person math must already match the bill.
  */
 export function resolveByItemCollectTarget(params: {
   personName: string;
@@ -143,8 +144,8 @@ export function resolveByItemCollectTarget(params: {
   /** Live calc rows (any order); matched by name. */
   liveResults: ReadonlyArray<{ name: string; amount: number }>;
   collectedPayments: SessionCollectedPayment[];
-  /** Bill-level pending (payable − collected). */
-  billPending: number;
+  /** @deprecated Ignored — kept so call sites need not fork. */
+  billPending?: number;
 }): ByItemCollectTarget | null {
   const key = splitPersonKey(params.personName);
   if (!key) return null;
@@ -161,9 +162,7 @@ export function resolveByItemCollectTarget(params: {
         (payment.person_index === index && !splitPersonKey(payment.person_name)),
     )
     .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-  const personDue = outstandingAmount(obligation, prior);
-  const billDue = Math.max(0, params.billPending);
-  const amount = Math.min(personDue, billDue);
+  const amount = outstandingAmount(obligation, prior);
   if (amount <= 0) return null;
 
   return {

@@ -20,7 +20,6 @@ import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import {
   applyCollectedObligationFloors,
   byItemPoolFullyAllocated,
-  reconcileByItemResultsToBillTotal,
   resolveByItemCollectTarget,
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
@@ -190,6 +189,7 @@ export function StaffCheckoutSplitEditor({
       remove: checkoutT.returnShareToPool,
       collect: checkoutT.collectPerson,
       paidLocked: billT.splitPlanLocked,
+      paidShareBadge: checkoutT.staffByItemPaidShare,
       qtyParts: {
         wholeLabel: billT.qtyWholePlaceholder,
         numLabel: billT.qtyNumPlaceholder,
@@ -291,19 +291,9 @@ export function StaffCheckoutSplitEditor({
       showToast(msg, 'error');
       return null;
     }
-    const billTotal = Number(request.total_amount) || total;
     const resultPayload =
       splitDraft.splitMode === 'by_item'
-        ? poolComplete
-          ? reconcileByItemResultsToBillTotal(
-              validated.submitResults,
-              billTotal,
-              collectedPayments,
-            )
-          : applyCollectedObligationFloors(
-              validated.submitResults,
-              collectedPayments,
-            )
+        ? applyCollectedObligationFloors(validated.submitResults, collectedPayments)
         : validated.submitResults;
     const persons = buildSubmitPersons({
       splitMode: splitDraft.splitMode,

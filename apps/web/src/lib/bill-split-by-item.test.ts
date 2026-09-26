@@ -368,4 +368,39 @@ describe('byItemLinePriceShare', () => {
     );
     assert.equal(total, 10);
   });
+
+  it('weights whole vs half by real qty (not equal nums)', () => {
+    const shares = [
+      { name: '客人 10', qty: { num: 1, den: 1 } },
+      { name: '客人 11', qty: { num: 1, den: 2 } },
+      { name: '客人 12', qty: { num: 1, den: 2 } },
+    ];
+    assert.deepEqual(
+      shares.map((share) => byItemLinePriceShare(4.4, shares, share.name)),
+      [2.2, 1.1, 1.1],
+    );
+  });
+});
+
+describe('calcByItemSplitResults qty×unit', () => {
+  it('prices whole+half+half cola as 2.20+1.10+1.10', () => {
+    const results = calcByItemSplitResults({
+      lines: [{ key: 'cola', name: 'Cola', mode: 'menu', qty: 2, unitPrice: 2.2 }],
+      allocations: {
+        cola: [
+          { name: '客人 10', qty: { num: 1, den: 1 } },
+          { name: '客人 11', qty: { num: 1, den: 2 } },
+          { name: '客人 12', qty: { num: 1, den: 2 } },
+        ],
+      },
+    });
+    assert.deepEqual(
+      results.map((row) => ({ name: row.name, amount: row.amount })),
+      [
+        { name: '客人 10', amount: 2.2 },
+        { name: '客人 11', amount: 1.1 },
+        { name: '客人 12', amount: 1.1 },
+      ],
+    );
+  });
 });

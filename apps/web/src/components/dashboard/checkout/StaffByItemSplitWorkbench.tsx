@@ -53,6 +53,7 @@ export type StaffByItemWorkbenchLabels = {
   remove: string;
   collect: string;
   paidLocked: string;
+  paidShareBadge: string;
   qtyParts: QtyPartsLabels;
 };
 
@@ -181,6 +182,8 @@ export function StaffByItemSplitWorkbench({
   const [nameDraft, setNameDraft] = useState(() => seedPeople[0] ?? guestName(1));
   const [needNameHint, setNeedNameHint] = useState(false);
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
+  /** When true, stay on the chip the cashier clicked (incl. settled) — do not steal focus. */
+  const userPickedChipRef = useRef(false);
 
   useEffect(() => {
     setPeople((prev) => appendStaffByItemRailPeople(prev, mergeIncoming));
@@ -191,7 +194,9 @@ export function StaffByItemSplitWorkbench({
   const currentKey = splitPersonKey(currentName);
   const currentSettled = Boolean(currentKey && settledPersonNames.has(currentKey));
   const currentLocked = Boolean(currentKey && lockedPersonNames.has(currentKey));
-  const editDisabled = disabled || currentSettled || currentLocked;
+  /** Rename locked when settled or has collection history; shares lock per paidLocked row. */
+  const nameEditDisabled = disabled || currentSettled || currentLocked;
+  const poolAddDisabled = disabled;
 
   useEffect(() => {
     setNameDraft(currentName);
@@ -239,10 +244,11 @@ export function StaffByItemSplitWorkbench({
   }, [byItemAllocations, lang, lineSpecs, orderLines, people]);
 
   /**
-   * Serial collect handoff: if current is settled, focus an unsettled chip or mint the next
-   * guest while pool remains.
+   * Serial collect handoff only when cashier did not pick a chip to inspect.
+   * Clicking a settled guest must show that guest — not jump to the unpaid one.
    */
   useEffect(() => {
+    if (userPickedChipRef.current) return;
     if (!currentKey || !settledPersonNames.has(currentKey)) return;
 
     const unpaidIdx = people.findIndex((person) => {
@@ -350,7 +356,10 @@ export function StaffByItemSplitWorkbench({
               type="button"
               role="listitem"
               disabled={disabled}
-              onClick={() => setCurrentIndex(idx)}
+              onClick={() => {
+                userPickedChipRef.current = true;
+                setCurrentIndex(idx);
+              }}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                 active
                   ? 'border-brand-gold bg-brand-gold text-white'
@@ -407,7 +416,7 @@ export function StaffByItemSplitWorkbench({
                         <button
                           type="button"
                           disabled={
-                            editDisabled ||
+                            poolAddDisabled ||
                             !canAddMenuFractionShare({
                               allocations: byItemAllocations,
                               lineSpecs,
@@ -444,7 +453,7 @@ export function StaffByItemSplitWorkbench({
                         </button>
                         <button
                           type="button"
-                          disabled={editDisabled || !line.canAddWhole}
+                          disabled={poolAddDisabled || !line.canAddWhole}
                           className="h-7 w-7 rounded-lg border border-brand-gold/40 bg-brand-gold/10 text-sm font-bold text-brand-gold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
@@ -466,7 +475,7 @@ export function StaffByItemSplitWorkbench({
                       <>
                         <button
                           type="button"
-                          disabled={editDisabled || !line.canAddAdult}
+                          disabled={poolAddDisabled || !line.canAddAdult}
                           className="rounded-lg border border-brand-gold/40 bg-brand-gold/10 px-2 py-1 text-[11px] font-semibold text-brand-gold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
@@ -486,7 +495,7 @@ export function StaffByItemSplitWorkbench({
                         </button>
                         <button
                           type="button"
-                          disabled={editDisabled || !line.canAddChild}
+                          disabled={poolAddDisabled || !line.canAddChild}
                           className="rounded-lg border border-brand-border px-2 py-1 text-[11px] font-semibold disabled:opacity-40"
                           onClick={() => {
                             const person = ensureNamed();
@@ -527,7 +536,7 @@ export function StaffByItemSplitWorkbench({
               <input
                 type="text"
                 value={nameDraft}
-                disabled={editDisabled}
+                disabled={nameEditDisabled}
                 placeholder={labels.markerPlaceholder}
                 onChange={(e) => setNameDraft(e.target.value)}
                 onBlur={() => commitName(nameDraft)}
@@ -539,7 +548,7 @@ export function StaffByItemSplitWorkbench({
                 }}
                 className="w-full rounded-md border border-brand-border bg-white px-2.5 py-1.5 text-sm text-brand-text outline-none focus:border-brand-gold"
               />
-              {currentSettled ? (
+              {currentSettled || currentLocked ? (
                 <p className="mt-1 text-[11px] text-brand-text-muted">{labels.paidLocked}</p>
               ) : null}
               {needNameHint ? (
@@ -554,6 +563,8 @@ export function StaffByItemSplitWorkbench({
                 {shares.map((share) => {
                   const row = rowForShare(share);
                   if (!row) return null;
+                  const shareLocked = Boolean(row.paidLocked);
+                  const shareDisabled = disabled || shareLocked;
                   const over =
                     share.mode === 'menu' &&
                     isStaffMenuShareOverAllocated({
@@ -565,7 +576,9 @@ export function StaffByItemSplitWorkbench({
                   return (
                     <div
                       key={`${share.lineKey}-${share.rowId}`}
-                      className="flex items-center justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0"
+                      className={`flex items-center justify-between gap-2 border-b border-brand-border/70 py-2 last:border-0 ${
+                        shareLocked ? 'rounded-lg bg-brand-bg/80 px-1.5 opacity-80' : ''
+                      }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div
@@ -573,6 +586,11 @@ export function StaffByItemSplitWorkbench({
                           title={share.label}
                         >
                           {share.label}
+                          {shareLocked ? (
+                            <span className="ml-1.5 text-[11px] font-normal text-brand-text-muted">
+                              · {labels.paidShareBadge}
+                            </span>
+                          ) : null}
                         </div>
                         <StaffByItemShareLineMeta
                           qtyLabel={share.qtyLabel}
@@ -586,7 +604,7 @@ export function StaffByItemSplitWorkbench({
                             row={row}
                             labels={labels.qtyParts}
                             overAllocated={over}
-                            disabled={editDisabled}
+                            disabled={shareDisabled}
                             onChange={(patch) => {
                               applyAlloc(
                                 setPersonMenuShareQtyFields({
@@ -606,7 +624,7 @@ export function StaffByItemSplitWorkbench({
                               <input
                                 type="text"
                                 inputMode="numeric"
-                                disabled={editDisabled}
+                                disabled={shareDisabled}
                                 value={row.adultQty ?? ''}
                                 onChange={(e) => {
                                   applyAlloc(
@@ -628,7 +646,7 @@ export function StaffByItemSplitWorkbench({
                               <input
                                 type="text"
                                 inputMode="numeric"
-                                disabled={editDisabled}
+                                disabled={shareDisabled}
                                 value={row.childQty ?? ''}
                                 onChange={(e) => {
                                   applyAlloc(
@@ -648,7 +666,7 @@ export function StaffByItemSplitWorkbench({
                           </div>
                         )}
                         <ByItemConsumerRowRemoveButton
-                          removable={!editDisabled}
+                          removable={!shareDisabled}
                           ariaLabel={labels.remove}
                           onRemove={() => {
                             applyAlloc(
@@ -673,7 +691,10 @@ export function StaffByItemSplitWorkbench({
                     <button
                       type="button"
                       disabled={disabled || estimate.amount <= 0 || !currentName.trim()}
-                      onClick={() => onCollectCurrent(currentName)}
+                      onClick={() => {
+                        userPickedChipRef.current = false;
+                        onCollectCurrent(currentName);
+                      }}
                       className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
                     >
                       {labels.collect}

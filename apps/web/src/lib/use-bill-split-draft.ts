@@ -234,6 +234,7 @@ export function useBillSplitDraft(params: {
     splitMode,
     lineSpecs,
     existingSplit: continuationSplit,
+    collectedPayments,
   });
 
   useLayoutEffect(() => {

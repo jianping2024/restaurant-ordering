@@ -3,6 +3,7 @@
  * Guest dish-card UI stays in ByItemSplitSection; do not duplicate this layout there.
  */
 import {
+  allocateByItemShareAmounts,
   createByItemConsumerRow,
   isRowQtyOverAllocated,
   parseBuffetConsumerRows,
@@ -12,6 +13,7 @@ import {
   rationalToRowQtyFields,
   resolveBuffetRowCounts,
   type ByItemConsumerRow,
+  type ByItemConsumerShare,
 } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
@@ -191,6 +193,77 @@ export function staffByItemPoolLines(params: {
   return out;
 }
 
+/**
+ * Money for each consumer row on a line — sole path {@link allocateByItemShareAmounts}
+ * (same cents as {@link calcByItemSplitResults}). Incomplete qty → 0 for that row.
+ */
+function shareAmountsByRowId(
+  spec: ByItemLineSpec,
+  rows: ByItemConsumerRow[],
+): Map<string, number> {
+  const out = new Map<string, number>();
+  if (spec.mode === 'buffet') {
+    const priced: { rowId: string; share: ByItemConsumerShare }[] = [];
+    for (const row of rows) {
+      if (!row.name.trim()) continue;
+      const { adults, children } = resolveBuffetRowCounts(row);
+      if (adults > 0) {
+        priced.push({
+          rowId: row.id,
+          share: { name: row.name, qty: rationalFromInt(adults), guestType: 'adult' },
+        });
+      }
+      if (children > 0) {
+        priced.push({
+          rowId: row.id,
+          share: { name: row.name, qty: rationalFromInt(children), guestType: 'child' },
+        });
+      }
+    }
+    if (priced.length === 0) return out;
+    const amounts = allocateByItemShareAmounts(
+      {
+        key: spec.key,
+        name: '',
+        mode: 'buffet',
+        adults: spec.adults,
+        children: spec.children,
+        adultUnitPrice: spec.adultUnitPrice,
+        childUnitPrice: spec.childUnitPrice,
+      },
+      priced.map((entry) => entry.share),
+    );
+    for (let i = 0; i < priced.length; i++) {
+      const entry = priced[i]!;
+      out.set(entry.rowId, Math.round(((out.get(entry.rowId) ?? 0) + (amounts[i] ?? 0)) * 100) / 100);
+    }
+    return out;
+  }
+
+  const priced: { rowId: string; share: ByItemConsumerShare }[] = [];
+  for (const row of rows) {
+    if (!row.name.trim()) continue;
+    const qty = parseConsumerRowQty(row);
+    if (!qty) continue;
+    priced.push({ rowId: row.id, share: { name: row.name, qty } });
+  }
+  if (priced.length === 0) return out;
+  const amounts = allocateByItemShareAmounts(
+    {
+      key: spec.key,
+      name: '',
+      mode: 'menu',
+      qty: spec.lineQty,
+      unitPrice: spec.unitPrice,
+    },
+    priced.map((entry) => entry.share),
+  );
+  for (let i = 0; i < priced.length; i++) {
+    out.set(priced[i]!.rowId, amounts[i] ?? 0);
+  }
+  return out;
+}
+
 /** Shares belonging to one marker name across all lines. */
 export function staffByItemPersonShares(params: {
   personName: string;
@@ -219,6 +292,7 @@ export function staffByItemPersonShares(params: {
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = formatLocalizedMenuItemLabel(item, lang, itemCode);
     const rows = allocations[spec.key] ?? [];
+    const amountsByRowId = shareAmountsByRowId(spec, rows);
 
     for (const row of rows) {
       if (!personMatches(row.name, personName)) continue;
@@ -226,8 +300,6 @@ export function staffByItemPersonShares(params: {
       if (spec.mode === 'buffet') {
         const { adults, children } = resolveBuffetRowCounts(row);
         if (adults <= 0 && children <= 0) continue;
-        const amount =
-          Math.round((adults * spec.adultUnitPrice + children * spec.childUnitPrice) * 100) / 100;
         const qtyParts: string[] = [];
         if (adults > 0) qtyParts.push(`${adults}A`);
         if (children > 0) qtyParts.push(`${children}C`);
@@ -237,7 +309,7 @@ export function staffByItemPersonShares(params: {
           label,
           qtyLabel: qtyParts.join(' · '),
           unitPriceLabel: buffetUnitPriceLabel(spec),
-          amount,
+          amount: amountsByRowId.get(row.id) ?? 0,
           mode: 'buffet',
           qtyWhole: '',
           qtyNum: '',
@@ -251,16 +323,13 @@ export function staffByItemPersonShares(params: {
       // Keep named rows while qty is incomplete/invalid so ByItemQtyInput stays mounted
       // (parseConsumerRowQty is for amount only — never a visibility gate).
       const qty = parseConsumerRowQty(row);
-      const amount = qty
-        ? Math.round(spec.unitPrice * (qty.num / qty.den) * 100) / 100
-        : 0;
       out.push({
         lineKey: spec.key,
         rowId: row.id,
         label,
         qtyLabel: qty ? formatRational(qty) : '—',
         unitPriceLabel: formatEuroAmount(spec.unitPrice),
-        amount,
+        amount: amountsByRowId.get(row.id) ?? 0,
         mode: 'menu',
         qtyWhole: row.qtyWhole,
         qtyNum: row.qtyNum,

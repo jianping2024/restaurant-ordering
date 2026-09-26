@@ -737,10 +737,34 @@ export function byItemLinePriceShare(
 }
 
 /**
- * Menu line: each share = qty × (lineTotal/lineQty) in cents, remainder by name.
- * Weight must use num/den (never drop denominator — 1 and 1/2 are not equal).
- * Prefer {@link calcByItemSplitResults} (qty × unit) for obligations; this remains for
- * callers that only have a line total.
+ * Integer qty weights for menu cent allocation.
+ * LCM of denominators — never drop den (1 vs 1/2), never float 1.5 weights.
+ */
+function menuShareQtyWeightInts(shares: readonly ByItemConsumerShare[]): number[] {
+  let lcmDen = 1;
+  for (const share of shares) {
+    const den = share.qty.den > 0 ? Math.trunc(share.qty.den) : 1;
+    const g = (() => {
+      let x = Math.abs(lcmDen);
+      let y = Math.abs(den);
+      while (y !== 0) {
+        const t = y;
+        y = x % y;
+        x = t;
+      }
+      return x || 1;
+    })();
+    lcmDen = (lcmDen / g) * den;
+  }
+  return shares.map((share) => {
+    if (share.qty.den <= 0 || share.qty.num <= 0) return 0;
+    return share.qty.num * (lcmDen / share.qty.den);
+  });
+}
+
+/**
+ * Menu line from a known euro total: qty weights (num/den kept), remainder by name.
+ * Prefer {@link allocateByItemShareAmounts} when the line + shares are available.
  */
 export function allocateLineTotalByShares(
   lineTotal: number,
@@ -749,29 +773,49 @@ export function allocateLineTotalByShares(
   const totalCents = eurosToCents(lineTotal);
   if (totalCents <= 0 || shares.length === 0) return shares.map(() => 0);
 
-  const lineQty = sumRationals(shares.map((share) => share.qty));
-  const weightInts = shares.map((share) => {
-    if (share.qty.den <= 0) return 0;
-    return share.qty.num * lineQty.den / share.qty.den;
-  });
+  const weightInts = menuShareQtyWeightInts(shares);
   const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
   return cents.map(centsToEuros);
 }
 
-export function allocateBuffetLineByShares(
-  line: Extract<ByItemSplitLine, { mode: 'buffet' }>,
-  shares: ByItemConsumerShare[],
+/**
+ * Sole by-item share money for a split line.
+ * Basis = qty × unit; money = integer-cent largest-remainder so Σ(shares) equals the
+ * allocated total (never per-share `round(unit×qty)` — that can overshoot the line by 1¢).
+ * Incomplete lines use only allocated qty/heads (not the full catalog line).
+ */
+export function allocateByItemShareAmounts(
+  line: ByItemSplitLine,
+  shares: readonly ByItemConsumerShare[],
 ): number[] {
-  const lineTotal = line.adults * line.adultUnitPrice + line.children * line.childUnitPrice;
-  const totalCents = eurosToCents(lineTotal);
-  if (totalCents <= 0 || shares.length === 0) return shares.map(() => 0);
+  if (shares.length === 0) return [];
 
-  const weightInts = shares.map((share) => {
-    const qty = share.qty.num / share.qty.den;
-    const unit =
-      share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
-    return eurosToCents(unit * qty);
-  });
+  if (line.mode === 'buffet') {
+    let adultHeads = 0;
+    let childHeads = 0;
+    const weightInts = shares.map((share) => {
+      const qty = share.qty.den > 0 ? share.qty.num / share.qty.den : 0;
+      if (qty <= 0) return 0;
+      if (share.guestType === 'child') {
+        childHeads += qty;
+        return eurosToCents(line.childUnitPrice * qty);
+      }
+      adultHeads += qty;
+      return eurosToCents(line.adultUnitPrice * qty);
+    });
+    const totalCents = eurosToCents(
+      adultHeads * line.adultUnitPrice + childHeads * line.childUnitPrice,
+    );
+    if (totalCents <= 0) return shares.map(() => 0);
+    const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
+    return cents.map(centsToEuros);
+  }
+
+  const allocatedQty = sumRationals(shares.map((share) => share.qty));
+  if (allocatedQty.num <= 0) return shares.map(() => 0);
+  const totalCents = eurosToCents(line.unitPrice * (allocatedQty.num / allocatedQty.den));
+  if (totalCents <= 0) return shares.map(() => 0);
+  const weightInts = menuShareQtyWeightInts(shares);
   const cents = allocateProportionalCents(totalCents, weightInts, (i) => shares[i]?.name ?? '');
   return cents.map(centsToEuros);
 }
@@ -853,7 +897,7 @@ export function buildByItemAllocationsFromPersons(
 
 /**
  * Sole by-item person obligation from allocations.
- * Menu + buffet: each share is **qty × unit price** (never line-total weight split).
+ * Share money sole path: {@link allocateByItemShareAmounts} (qty×unit weights + cent remainder).
  * Output order: `personOrder` when provided (ledger roster); else first-seen
  * allocation order — never localeCompare-sort (that breaks person_index).
  */
@@ -882,32 +926,33 @@ export function calcByItemSplitResults(params: {
   };
 
   for (const line of lines) {
-    const shares = allocations[line.key] || [];
+    const shares = (allocations[line.key] || []).filter((share) => share.qty.num > 0);
+    if (shares.length === 0) continue;
+    const amounts = allocateByItemShareAmounts(line, shares);
+
     if (line.mode === 'buffet') {
-      for (const share of shares) {
+      for (let i = 0; i < shares.length; i++) {
+        const share = shares[i]!;
         const qty = share.qty.num / share.qty.den;
-        if (qty <= 0) continue;
         const unitPrice =
           share.guestType === 'child' ? line.childUnitPrice : line.adultUnitPrice;
-        const price = Math.round(unitPrice * qty * 100) / 100;
-        addShare(share.name, {
-          name: line.name.trim(),
-          qty,
-          price: unitPrice,
-        }, price);
+        addShare(
+          share.name,
+          { name: line.name.trim(), qty, price: unitPrice },
+          amounts[i] ?? 0,
+        );
       }
       continue;
     }
 
-    for (const share of shares) {
+    for (let i = 0; i < shares.length; i++) {
+      const share = shares[i]!;
       const qty = share.qty.num / share.qty.den;
-      if (qty <= 0) continue;
-      const price = Math.round(line.unitPrice * qty * 100) / 100;
-      addShare(share.name, {
-        name: line.name.trim(),
-        qty,
-        price: line.unitPrice,
-      }, price);
+      addShare(
+        share.name,
+        { name: line.name.trim(), qty, price: line.unitPrice },
+        amounts[i] ?? 0,
+      );
     }
   }
 

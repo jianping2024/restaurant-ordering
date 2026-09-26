@@ -382,7 +382,7 @@ describe('byItemLinePriceShare', () => {
   });
 });
 
-describe('calcByItemSplitResults qty×unit', () => {
+describe('calcByItemSplitResults cent remainder', () => {
   it('prices whole+half+half cola as 2.20+1.10+1.10', () => {
     const results = calcByItemSplitResults({
       lines: [{ key: 'cola', name: 'Cola', mode: 'menu', qty: 2, unitPrice: 2.2 }],
@@ -400,6 +400,27 @@ describe('calcByItemSplitResults qty×unit', () => {
         { name: '客人 10', amount: 2.2 },
         { name: '客人 11', amount: 1.1 },
         { name: '客人 12', amount: 1.1 },
+      ],
+    );
+  });
+
+  it('keeps 1.85×(1.5+1.5+1) water line at €7.40 not €7.41', () => {
+    const results = calcByItemSplitResults({
+      lines: [{ key: 'water', name: 'Water', mode: 'menu', qty: 4, unitPrice: 1.85 }],
+      allocations: {
+        water: [
+          { name: '客人 9', qty: { num: 3, den: 2 } },
+          { name: '客人 10', qty: { num: 3, den: 2 } },
+          { name: '客人 11', qty: { num: 1, den: 1 } },
+        ],
+      },
+    });
+    assert.deepEqual(
+      results.map((row) => ({ name: row.name, amount: row.amount })),
+      [
+        { name: '客人 9', amount: 2.77 },
+        { name: '客人 10', amount: 2.78 },
+        { name: '客人 11', amount: 1.85 },
       ],
     );
   });

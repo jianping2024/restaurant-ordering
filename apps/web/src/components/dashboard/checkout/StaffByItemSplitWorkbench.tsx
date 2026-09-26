@@ -15,10 +15,12 @@ import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
+import { Button } from '@/components/ui/Button';
 import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
   isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
@@ -49,6 +51,8 @@ export type StaffByItemWorkbenchLabels = {
   estimate: (n: number, amount: string) => string;
   needName: string;
   poolEmpty: string;
+  /** Sole pool-header bulk: drain remaining dishes + buffet seats to current person. */
+  assignAll: string;
   addAdult: string;
   addChild: string;
   remove: string;
@@ -404,8 +408,33 @@ export function StaffByItemSplitWorkbench({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <section className="overflow-hidden rounded-xl border border-brand-border bg-brand-card">
-          <header className="border-b border-brand-border px-3 py-2 text-[12px] font-semibold tracking-wide text-brand-text-muted">
-            {labels.poolTitle}
+          <header className="flex items-center justify-between gap-2 border-b border-brand-border px-3 py-2">
+            <span className="text-[12px] font-semibold tracking-wide text-brand-text-muted">
+              {labels.poolTitle}
+            </span>
+            {visiblePool.length > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={poolAddDisabled}
+                className="shrink-0 px-2 py-0.5 text-[12px]"
+                onClick={() => {
+                  const person = ensureNamed();
+                  if (!person) return;
+                  applyAlloc(
+                    assignAllRemainingPoolToPerson({
+                      allocations: byItemAllocations,
+                      lineSpecs,
+                      personName: person.name,
+                      partyId: person.partyId,
+                    }),
+                  );
+                }}
+              >
+                {labels.assignAll}
+              </Button>
+            ) : null}
           </header>
           <div className="space-y-2 p-2.5">
             {visiblePool.length === 0 ? (

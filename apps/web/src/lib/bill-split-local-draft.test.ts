@@ -26,6 +26,21 @@ describe('parseBillSplitLocalDraft', () => {
     assert.equal(draft.byItemAllocations['o1-0']?.[0]?.name, 'A');
   });
 
+  it('clamps custom personCount to min 1 without forcing 2', () => {
+    const raw = JSON.stringify({
+      v: 1,
+      splitMode: 'custom',
+      personCount: 1,
+      splitPeople: [{ id: 'p1', name: 'A' }],
+      customAmounts: [{ name: 'A', amount: 0 }],
+      byItemAllocations: {},
+      updatedAt: 1,
+    });
+    const draft = parseBillSplitLocalDraft(raw);
+    assert.ok(draft);
+    assert.equal(draft.personCount, 1);
+  });
+
   it('rejects unknown version or bad rows', () => {
     assert.equal(parseBillSplitLocalDraft(JSON.stringify({ v: 2, splitMode: null })), null);
     assert.equal(

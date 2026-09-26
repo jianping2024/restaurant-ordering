@@ -1,4 +1,5 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import { splitDraftPersonCount } from '@/lib/checkout-split-continuation';
 import type { BillSplit, SplitMode } from '@/types';
 
 const KEY_PREFIX = 'mesa:bill-split-draft:';
@@ -82,7 +83,12 @@ export function parseBillSplitLocalDraft(raw: string): BillSplitLocalDraft | nul
       byItemAllocations[key] = rows;
     }
 
-    const personCount = Math.min(20, Math.max(2, Math.round(draft.personCount)));
+    const personCount =
+      draft.splitMode === 'even'
+        ? splitDraftPersonCount('even', draft.personCount)
+        : draft.splitMode === 'custom'
+          ? splitDraftPersonCount('custom', draft.personCount)
+          : Math.min(20, Math.max(1, Math.round(draft.personCount)));
     return {
       v: DRAFT_VERSION,
       splitMode: draft.splitMode,

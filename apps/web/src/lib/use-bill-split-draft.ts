@@ -26,6 +26,7 @@ import {
   ensureSplitPersonNames,
   isCheckoutSplitLocked,
   resolveContinuationSplitShape,
+  splitDraftPersonCount,
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { billSplitDisplayResults, buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
@@ -65,8 +66,18 @@ function customAmountsFromNames(
 
 function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  if (shape) return shape.personCount;
-  return 2;
+  return splitDraftPersonCount('even', shape?.personCount);
+}
+
+function initialCustomPersonCount(
+  existingSplit: BillSplit | null,
+  guestName: (n: number) => string,
+): number {
+  if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
+    return splitDraftPersonCount('custom', existingSplit.result.length);
+  }
+  const shape = resolveContinuationSplitShape(existingSplit, guestName);
+  return splitDraftPersonCount('custom', shape?.personCount);
 }
 
 function initialSplitPeople(
@@ -74,7 +85,7 @@ function initialSplitPeople(
   guestName: (n: number) => string,
 ): SplitPersonSlot[] {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
+  const names = shape?.personNames ?? defaultSplitPersonNames(guestName, 'even');
   return slotsFromNames(names);
 }
 
@@ -85,7 +96,7 @@ function initialCustomAmounts(
   if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
     const names = ensureSplitPersonNames(
       existingSplit.result.map((row) => row.name),
-      existingSplit.result.length,
+      splitDraftPersonCount('custom', existingSplit.result.length),
       guestName,
     );
     return names.map((name, idx) => ({
@@ -94,7 +105,8 @@ function initialCustomAmounts(
     }));
   }
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
+  const names =
+    shape?.personNames ?? defaultSplitPersonNames(guestName, 'custom');
   return customAmountsFromNames(names);
 }
 
@@ -135,10 +147,13 @@ export function useBillSplitDraft(params: {
     resolvePersistedSplitModeForDraft(existingSplit),
   );
   const [personCount, setPersonCount] = useState(() => {
+    if (existingSplit?.split_mode === 'custom') {
+      return initialCustomPersonCount(splitSeed, guestName);
+    }
     if (existingSplit?.split_mode === 'even') {
       return initialEvenPersonCount(splitSeed, guestName);
     }
-    return 2;
+    return splitDraftPersonCount('even');
   });
   const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() =>
     initialSplitPeople(splitSeed, guestName),
@@ -184,7 +199,7 @@ export function useBillSplitDraft(params: {
     if (draft) {
       setSplitMode(draft.splitMode);
       if (draft.splitMode === 'even') {
-        const count = Math.max(2, draft.personCount);
+        const count = splitDraftPersonCount('even', draft.personCount);
         const names = ensureSplitPersonNames(
           draft.splitPeople.map((person) => person.name),
           count,
@@ -194,23 +209,26 @@ export function useBillSplitDraft(params: {
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
         setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
       } else if (draft.splitMode === 'custom') {
-        const count = Math.max(2, draft.customAmounts.length, draft.splitPeople.length);
         const source =
           draft.customAmounts.length > 0 ? draft.customAmounts : draft.splitPeople;
+        const count = splitDraftPersonCount(
+          'custom',
+          source.length > 0 ? source.length : draft.personCount,
+        );
         const names = ensureSplitPersonNames(
           source.map((row) => row.name),
           count,
           guestName,
         );
-        setPersonCount(Math.max(2, count));
+        setPersonCount(count);
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
         setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
       } else {
-        setPersonCount(Math.max(2, draft.personCount));
+        setPersonCount(splitDraftPersonCount('even', draft.personCount));
         if (draft.splitPeople.length > 0) {
           const names = ensureSplitPersonNames(
             draft.splitPeople.map((person) => person.name),
-            Math.max(2, draft.splitPeople.length),
+            Math.max(1, draft.splitPeople.length),
             guestName,
           );
           setSplitPeople(slotsFromNames(names, draft.splitPeople));
@@ -276,9 +294,20 @@ export function useBillSplitDraft(params: {
     const sameLength = splitPeople.length === names.length;
     const sameNames =
       sameLength && splitPeople.every((person, idx) => person.name === names[idx]);
-    if (sameNames) return;
-    setSplitPeople((prev) => slotsFromNames(names, prev));
-    setCustomAmounts((prev) => customAmountsFromNames(names, prev));
+    if (!sameNames) {
+      setSplitPeople((prev) => slotsFromNames(names, prev));
+    }
+    // Always align customAmounts to the even roster so mode switches do not shrink to the
+    // custom default seed (1) while even still shows N people.
+    setCustomAmounts((prev) => {
+      if (
+        prev.length === names.length &&
+        prev.every((row, idx) => row.name === names[idx])
+      ) {
+        return prev;
+      }
+      return customAmountsFromNames(names, prev);
+    });
   }, [splitMode, personCount, splitPeople, guestName]);
 
   useEffect(() => {
@@ -406,14 +435,28 @@ export function useBillSplitDraft(params: {
       setSplitMode(mode);
       if (mode === 'even') {
         // personCount is the even size; layout effect then aligns roster via ensureSplitPersonNames.
-        setPersonCount(Math.max(2, personCount, splitPeople.length));
+        setPersonCount(
+          splitDraftPersonCount('even', Math.max(personCount, splitPeople.length)),
+        );
       } else if (mode === 'custom') {
-        const count = Math.max(2, customAmounts.length, splitPeople.length);
+        // From even: keep the even roster. From null/other: prefer custom seed (default 1),
+        // do not inflate from the unused even default splitPeople (2).
+        const fromEven = splitMode === 'even';
+        const source = fromEven
+          ? splitPeople
+          : customAmounts.length > 0
+            ? customAmounts
+            : splitPeople;
+        const count = splitDraftPersonCount(
+          'custom',
+          fromEven ? Math.max(personCount, splitPeople.length) : source.length,
+        );
         const names = ensureSplitPersonNames(
-          (customAmounts.length > 0 ? customAmounts : splitPeople).map((row) => row.name),
+          source.map((row) => row.name),
           count,
           guestName,
         );
+        setPersonCount(count);
         setSplitPeople((prev) => slotsFromNames(names, prev));
         setCustomAmounts((prev) => customAmountsFromNames(names, prev));
       }
@@ -503,7 +546,7 @@ export function useBillSplitDraft(params: {
   );
 
   const decrementPersonCount = useCallback(() => {
-    const n = Math.max(2, personCount - 1);
+    const n = splitDraftPersonCount('even', personCount - 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
       const names = ensureSplitPersonNames(
@@ -518,7 +561,7 @@ export function useBillSplitDraft(params: {
   }, [personCount, guestName]);
 
   const incrementPersonCount = useCallback(() => {
-    const n = Math.min(20, personCount + 1);
+    const n = splitDraftPersonCount('even', personCount + 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
       const names = ensureSplitPersonNames(
@@ -543,14 +586,14 @@ export function useBillSplitDraft(params: {
           peoplePrev.filter((_, rowIndex) => rowIndex !== index),
         ),
       );
-      setPersonCount(Math.max(1, names.length));
+      setPersonCount(splitDraftPersonCount('custom', names.length));
       return nextAmounts;
     });
   }, []);
 
   const addCustomPerson = useCallback(() => {
     setCustomAmounts((prev) => {
-      const nextCount = prev.length + 1;
+      const nextCount = splitDraftPersonCount('custom', prev.length + 1);
       const names = ensureSplitPersonNames(
         [
           ...prev.map((row) => row.name),
@@ -560,7 +603,7 @@ export function useBillSplitDraft(params: {
         guestName,
       );
       setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
-      setPersonCount((count) => Math.max(count, nextCount));
+      setPersonCount(nextCount);
       return customAmountsFromNames(names, prev);
     });
   }, [guestName, splitPeople]);

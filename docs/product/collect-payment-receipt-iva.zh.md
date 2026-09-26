@@ -11,22 +11,22 @@
 
 ## 1. 付款方式（唯一三选）
 
-| 码 | UI / 票面 |
+| 码 | UI（跟 locale） / 票面（固定葡语） |
 |----|-----------|
-| `CASH` | 现金 / Dinheiro |
-| `MULTIBANCO` | Multibanco（取代原 `CARD`；不保留并行 CARD） |
-| `MIXED` | 混合（仅台账/枚举；**禁止**票面只打一行 Misto） |
+| `CASH` | 现金 · Cash · Dinheiro / 票面 Dinheiro |
+| `MULTIBANCO` | 刷卡（zh）· Multibanco（en/pt）；票面固定 Multibanco（取代原 `CARD`；不保留并行 CARD） |
+| `MIXED` | 混合 · Mixed · Misto（仅台账/枚举；**禁止**票面只打一行 Misto） |
 
 - **不写** MBWAY / OTHER / CARD 兼容（开发期只认上述三种）。
-- 收款弹窗与开票弹窗（`CollectPaymentModal` / `PrintFiscalInvoiceModal`）**同一套** UI 与校验。
+- 收款弹窗与开票弹窗（`CollectPaymentModal` / `PrintFiscalInvoiceModal`）**同一套** UI 与校验；员工可见文案走 `messages.checkout.paymentMethod*`，票面仍走 `receiptPaymentMethodLabel`（葡语）。
 
 ### 1.1 交互
 
 | 方式 | 行为 |
 |------|------|
 | 现金 | 实收 + 找零；不足不可确认；确认后开钱箱 |
-| Multibanco | 整笔按终端收，无拆额框 |
-| 混合 | Multibanco 可编辑、现金只读 = 应收 − 卡；默认卡=全额、现金=0（须改小后才能确认，**预期 UX**）；**两边都必须 >0** 才可确认为 `MIXED`；卡改成全额 → 提示「现金须 >0，或改为 Multibanco」；卡额 ∈ `(0, 应收]` |
+| 刷卡（`MULTIBANCO`） | 整笔按终端收，无拆额框 |
+| 混合 | 刷卡额可编辑、现金只读 = 应收 − 卡；默认卡=全额、现金=0（须改小后才能确认，**预期 UX**）；**两边都必须 >0** 才可确认为 `MIXED`；卡改成全额 → 提示「现金须 >0，或改为刷卡」（zh）；卡额 ∈ `(0, 应收]` |
 
 确认归一：卡=全额 → `MULTIBANCO`；两边 >0 → `MIXED`。  
 `MIXED` 且现金额 >0 → 也开钱箱。混合路径无「实收/找零」。

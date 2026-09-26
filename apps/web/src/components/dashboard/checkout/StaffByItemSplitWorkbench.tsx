@@ -43,8 +43,6 @@ import {
 export type StaffByItemWorkbenchLabels = {
   poolTitle: string;
   currentShareTitle: string;
-  markerName: string;
-  markerHint: string;
   markerPlaceholder: string;
   remainingPrefix: string;
   shareEmpty: string;
@@ -61,19 +59,30 @@ export type StaffByItemWorkbenchLabels = {
   qtyParts: QtyPartsLabels;
 };
 
-/** Sole pool-row meta: remaining qty · unit price (not a payable equation). */
-function StaffByItemPoolLineMeta({
-  remainingText,
+/**
+ * Sole pool identity block: name row = label then unit price (adjacent, not right-pinned);
+ * meta = remaining only. Share rows keep `qty × unit = amount`.
+ */
+function StaffByItemPoolLineIdentity({
+  label,
   unitPriceLabel,
+  remainingText,
 }: {
-  remainingText: string;
+  label: string;
   unitPriceLabel: string;
+  remainingText: string;
 }) {
   return (
-    <div className="mt-0.5 text-sm text-brand-text-muted">
-      <span className="tabular-nums">{remainingText}</span>
-      <span className="mx-1 text-brand-border">·</span>
-      <span className="font-medium tabular-nums text-brand-gold">{unitPriceLabel}</span>
+    <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 items-baseline gap-1.5">
+        <span className="min-w-0 truncate text-sm font-semibold text-brand-text" title={label}>
+          {label}
+        </span>
+        <span className="shrink-0 text-sm font-medium tabular-nums text-brand-gold">
+          {unitPriceLabel}
+        </span>
+      </div>
+      <div className="mt-0.5 text-sm tabular-nums text-brand-text-muted">{remainingText}</div>
     </div>
   );
 }
@@ -81,7 +90,7 @@ function StaffByItemPoolLineMeta({
 /**
  * Sole share-row meta: always `qty × unit = amount` (`staffByItemShareLineMetaParts`).
  * Ready → gold euro; incomplete → muted `—` in the same slot (no mount jitter).
- * Do not reuse pool `·` here; do not invent a second amount beside share.amount.
+ * Pool identity is `StaffByItemPoolLineIdentity` (name+unit / remaining) — not this equation.
  */
 function StaffByItemShareLineMeta({
   qtyLabel,
@@ -453,18 +462,11 @@ export function StaffByItemSplitWorkbench({
                       emoji: catalog?.emoji ?? '',
                     }}
                   />
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className="truncate text-sm font-semibold text-brand-text"
-                      title={line.label}
-                    >
-                      {line.label}
-                    </div>
-                    <StaffByItemPoolLineMeta
-                      remainingText={`${labels.remainingPrefix} ${line.remainingLabel}`}
-                      unitPriceLabel={line.unitPriceLabel}
-                    />
-                  </div>
+                  <StaffByItemPoolLineIdentity
+                    label={line.label}
+                    unitPriceLabel={line.unitPriceLabel}
+                    remainingText={`${labels.remainingPrefix} ${line.remainingLabel}`}
+                  />
                   <div className="flex shrink-0 gap-1">
                     {line.mode === 'menu' ? (
                       <>
@@ -570,14 +572,11 @@ export function StaffByItemSplitWorkbench({
           </header>
           <div className="space-y-2 p-2.5">
             <div className="rounded-lg border border-dashed border-brand-gold/35 bg-brand-gold/10 p-2.5">
-              <label className="mb-1 block text-[11px] text-brand-text-muted">
-                {labels.markerName}
-                <span className="ml-1 font-normal opacity-80">({labels.markerHint})</span>
-              </label>
               <input
                 type="text"
                 value={nameDraft}
                 disabled={nameEditDisabled}
+                aria-label={labels.markerPlaceholder}
                 placeholder={labels.markerPlaceholder}
                 onChange={(e) => setNameDraft(e.target.value)}
                 onBlur={() => commitName(nameDraft)}

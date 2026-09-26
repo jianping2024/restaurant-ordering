@@ -200,8 +200,6 @@ export function StaffCheckoutSplitEditor({
     () => ({
       poolTitle: checkoutT.staffByItemPool,
       currentShareTitle: checkoutT.staffByItemCurrentShare,
-      markerName: checkoutT.staffByItemMarkerName,
-      markerHint: checkoutT.staffByItemMarkerHint,
       markerPlaceholder: billT.consumerNamePlaceholder,
       remainingPrefix: checkoutT.staffByItemRemaining,
       shareEmpty: checkoutT.staffByItemShareEmpty,

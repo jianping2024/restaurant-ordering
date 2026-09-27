@@ -10,7 +10,10 @@ import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-ite
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
-import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
+import {
+  isSplitSettlementPending,
+  splitSettlementCollectAmount,
+} from '@/lib/checkout-split-settlement';
 import { resolveCheckoutDiscountedShareDisplay } from '@/lib/checkout-split-math';
 import type { UILanguage } from '@/lib/i18n';
 import {
@@ -225,7 +228,12 @@ export function BillSplitPanel({
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => {
             const settlementRow = splitDisplayRows[i];
-            const rowPaid = splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
+            /** Rename / custom amount / remove lock — collection history by name. Not collect gate. */
+            const nameLocked =
+              splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
+            /** Even/custom 收款: sole gate is per-index settlement outstanding (not name lock). */
+            const canCollectShare =
+              settlementRow != null && isSplitSettlementPending(settlementRow);
             const showSettlement = settlementRow != null && splitRowShowsSettlement(settlementRow);
             const settledAmount = showSettlement && settlementRow
               ? splitSettlementCollectAmount(settlementRow)
@@ -286,7 +294,7 @@ export function BillSplitPanel({
                     ) : (
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          {rowPaid ? (
+                          {nameLocked ? (
                             <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
                           ) : (
                             <button
@@ -336,7 +344,7 @@ export function BillSplitPanel({
                         placeholder="0.00"
                       />
                     </div>
-                  ) : rowPaid || splitLocked ? (
+                  ) : nameLocked || splitLocked ? (
                     amountBlock
                   ) : (
                     <button
@@ -355,7 +363,7 @@ export function BillSplitPanel({
                     {splitMode === 'custom' &&
                     !splitLocked &&
                     customAmounts.length > 1 &&
-                    !rowPaid ? (
+                    !nameLocked ? (
                       <button
                         type="button"
                         aria-label={staffRowActions.removeLabel}
@@ -368,7 +376,7 @@ export function BillSplitPanel({
                         </svg>
                       </button>
                     ) : null}
-                    {!rowPaid && shareDisplay.displayAmount > 0 ? (
+                    {canCollectShare ? (
                       <button
                         type="button"
                         disabled={staffRowActions.busy}

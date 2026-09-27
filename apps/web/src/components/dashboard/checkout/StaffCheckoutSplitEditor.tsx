@@ -28,7 +28,10 @@ import {
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
-import { allocateDiscountedSplitObligations } from '@/lib/checkout-split-math';
+import {
+  isSplitSettlementPending,
+  splitSettlementCollectAmount,
+} from '@/lib/checkout-split-settlement';
 import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
@@ -691,16 +694,13 @@ export function StaffCheckoutSplitEditor({
                 discountPreLabel: checkoutT.discountPreAmount,
                 onCollect: (index) => {
                   const row = splitDraft.results[index];
-                  if (!row) return;
-                  const preAmounts = splitDraft.results.map((r) => r.amount);
-                  const obligations = allocateDiscountedSplitObligations(
-                    preAmounts,
-                    discountRate,
-                    { billTotalAmount: total },
-                  );
+                  const settlementRow = splitDraft.splitDisplayRows[index];
+                  if (!row || !settlementRow || !isSplitSettlementPending(settlementRow)) {
+                    return;
+                  }
                   void collectSavedPerson(
                     index,
-                    obligations[index] ?? 0,
+                    splitSettlementCollectAmount(settlementRow),
                     row.name,
                     undefined,
                     row.amount,

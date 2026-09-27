@@ -534,17 +534,32 @@ export function getBuffetLineStatusFromShares(
   spec: { adults: number; children: number },
   shares: ByItemConsumerShare[],
 ): ByItemLineStatus {
-  const byName = new Map<string, BuffetConsumerAllocation>();
-  for (const share of shares) {
-    if (share.guestType !== 'adult' && share.guestType !== 'child') continue;
+  const validShares = shares.filter((share) => (
+    (share.guestType === 'adult' || share.guestType === 'child')
+    && share.qty.num / share.qty.den > 0
+  ));
+  const shareKeys = validShares.map((share) => (
+    `${splitPartyKey(share.partyId, share.name)}:${share.guestType}`
+  ));
+  if (new Set(shareKeys).size !== shareKeys.length) {
+    return { kind: 'duplicate_names', allocated: allocatedSum(validShares) };
+  }
+
+  const byParty = new Map<string, BuffetConsumerAllocation>();
+  for (const share of validShares) {
     const qty = share.qty.num / share.qty.den;
-    if (qty <= 0) continue;
-    const existing = byName.get(share.name) ?? { name: share.name, adults: 0, children: 0 };
+    const partyKey = splitPartyKey(share.partyId, share.name);
+    const existing = byParty.get(partyKey) ?? {
+      name: share.name,
+      adults: 0,
+      children: 0,
+      ...(share.partyId ? { partyId: share.partyId } : {}),
+    };
     if (share.guestType === 'child') existing.children += qty;
     else existing.adults += qty;
-    byName.set(share.name, existing);
+    byParty.set(partyKey, existing);
   }
-  return evaluateBuffetLineShares(spec.adults, spec.children, Array.from(byName.values()));
+  return evaluateBuffetLineShares(spec.adults, spec.children, Array.from(byParty.values()));
 }
 
 export type ByItemLineStatus =
@@ -646,7 +661,7 @@ export function getByItemLineStatusFromShares(
   }
   return evaluateByItemLineShares(
     spec.lineQty,
-    shares.map((share) => ({ name: share.name, qty: share.qty })),
+    shares.map((share) => ({ name: share.name, qty: share.qty, partyId: share.partyId })),
   );
 }
 

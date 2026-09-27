@@ -403,6 +403,7 @@ export function useBillSplitDraft(params: {
       personCount,
       splitPeople,
       customAmounts,
+      byItemDraftRows: byItemAllocations,
       parsedByItemAllocations,
       lang,
       byItemPersonOrder,
@@ -415,6 +416,7 @@ export function useBillSplitDraft(params: {
       personCount,
       splitPeople,
       customAmounts,
+      byItemAllocations,
       parsedByItemAllocations,
       lang,
       byItemPersonOrder,
@@ -642,7 +644,12 @@ export function useBillSplitDraft(params: {
 
   const resolveSplitDraftInputForSubmit = useCallback((): BillSplitDraftInput => {
     if (splitMode !== 'by_item') return splitDraftInput;
-    return { ...splitDraftInput, parsedByItemAllocations: commitByItemDraft().parsed };
+    const committed = commitByItemDraft();
+    return {
+      ...splitDraftInput,
+      byItemDraftRows: committed.committed,
+      parsedByItemAllocations: committed.parsed,
+    };
   }, [splitMode, splitDraftInput, commitByItemDraft]);
 
   return {

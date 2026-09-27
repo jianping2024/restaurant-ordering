@@ -1,10 +1,14 @@
-import { calcByItemSplitResults, type ByItemLineAllocation } from '@/lib/bill-split-by-item';
+import {
+  calcByItemSplitResults,
+  type ByItemConsumerRow,
+  type ByItemLineAllocation,
+} from '@/lib/bill-split-by-item';
 import {
   byItemSplitLineFromOrderLine,
   type BillSplitOrderLine,
   type ByItemLineSpec,
 } from '@/lib/bill-split-by-item-lines';
-import { validateBillSplit } from '@/lib/bill-split-validate';
+import { validateBillSplit, validateByItemDraftRows } from '@/lib/bill-split-validate';
 import { wholeTableSplitResult } from '@/lib/checkout-split-intent';
 import { allocateEvenAmounts } from '@/lib/money-allocation';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
@@ -20,6 +24,7 @@ export type BillSplitDraftInput = {
   personCount: number;
   splitPeople: Array<{ name: string }>;
   customAmounts: Array<{ name: string; amount: number }>;
+  byItemDraftRows: Record<string, ByItemConsumerRow[]>;
   parsedByItemAllocations: ByItemLineAllocation;
   lang: UILanguage;
   /** Ledger roster order for by-item result rows / person_index. */
@@ -75,6 +80,14 @@ export function validateSplitDraft(
   options?: { allowPartialByItem?: boolean },
 ) {
   const results = computeSplitResults(input);
+  if (input.splitMode === 'by_item') {
+    const draftValidation = validateByItemDraftRows({
+      lineSpecs: input.lineSpecs,
+      rowsByKey: input.byItemDraftRows,
+      allowPartialByItem: options?.allowPartialByItem,
+    });
+    if (!draftValidation.ok) return { results, validation: draftValidation };
+  }
   const validation = validateBillSplit({
     splitMode: input.splitMode,
     total: input.total,

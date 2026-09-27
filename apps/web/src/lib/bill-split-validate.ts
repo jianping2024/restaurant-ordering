@@ -1,8 +1,10 @@
 import { eurosToCents } from '@/lib/money-allocation';
 import type { SplitMode } from '@/types';
 import {
+  getByItemLineStatusFromRows,
   getByItemLineStatusFromShares,
   isByItemLineComplete,
+  type ByItemConsumerRow,
   type ByItemLineAllocation,
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
@@ -11,6 +13,39 @@ export type BillSplitValidationIssue =
   | 'unassigned_items'
   | 'incomplete_qty'
   | 'amount_mismatch';
+
+export type BillSplitValidation =
+  | { ok: true }
+  | { ok: false; issue: BillSplitValidationIssue };
+
+/**
+ * Sole whole-draft validation for editable by-item rows.
+ * It deliberately runs before rows are serialized into shares, because parsing
+ * drops incomplete rows and therefore cannot preserve editing errors.
+ */
+export function validateByItemDraftRows(params: {
+  lineSpecs: ByItemLineSpec[];
+  rowsByKey: Record<string, ByItemConsumerRow[]>;
+  allowPartialByItem?: boolean;
+}): BillSplitValidation {
+  for (const spec of params.lineSpecs) {
+    const status = getByItemLineStatusFromRows(params.rowsByKey[spec.key] ?? [], spec);
+    if (status.kind === 'complete') continue;
+    if (params.allowPartialByItem && (
+      status.kind === 'empty'
+      || status.kind === 'buffet_empty'
+      || status.kind === 'short'
+      || status.kind === 'buffet_short'
+    )) {
+      continue;
+    }
+    if (status.kind === 'empty' || status.kind === 'buffet_empty') {
+      return { ok: false, issue: 'unassigned_items' };
+    }
+    return { ok: false, issue: 'incomplete_qty' };
+  }
+  return { ok: true };
+}
 
 function amountsMatch(
   splitSumCents: number,
@@ -35,7 +70,7 @@ export function validateBillSplit(params: {
    * Guest must never set this.
    */
   staffReopenActivePlan?: boolean;
-}): { ok: true } | { ok: false; issue: BillSplitValidationIssue } {
+}): BillSplitValidation {
   const {
     splitMode,
     total,

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
+import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from '@/lib/customer-menu-bottom-bar-layout';
 import { CUSTOMER_MENU_SHELL_WIDTH_CLASS } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
@@ -31,6 +32,7 @@ export function CustomerMenuBottomSheet({
         className={`
         fixed bottom-0 left-1/2 z-40 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} -translate-x-1/2
         rounded-t-3xl border-t border-brand-border bg-brand-card
+        ${CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS}
         transition-transform duration-300 ease-out
         ${open ? 'translate-y-0' : 'translate-y-full'}
       `}

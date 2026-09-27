@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from './customer-menu-bottom-bar-layout';
 import {
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
+  customerMenuItemDetailFooterClass,
   customerMenuItemDetailHostClass,
   customerMenuItemDetailPanelClass,
 } from './customer-menu-item-detail-layout';
@@ -23,5 +25,13 @@ describe('customerMenuItemDetailLayout', () => {
     assert.doesNotMatch(CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS, /bg-brand-border/);
     assert.equal(MENU_IMAGE_OBJECT_FIT_CLASS, 'object-contain object-center');
     assert.doesNotMatch(MENU_IMAGE_OBJECT_FIT_CLASS, /object-cover/);
+  });
+
+  it('footer reuses sole customer menu bottom safe-area pad', () => {
+    assert.match(
+      customerMenuItemDetailFooterClass,
+      new RegExp(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    );
+    assert.doesNotMatch(customerMenuItemDetailFooterClass, /pb-\[max\(/);
   });
 });

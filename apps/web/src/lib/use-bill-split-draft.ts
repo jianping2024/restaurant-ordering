@@ -130,6 +130,8 @@ export function useBillSplitDraft(params: {
   lang: UILanguage;
   /** Guest phone vs staff checkout — two editors, one submit wire. */
   byItemEditor: BillSplitByItemEditor;
+  /** Bill-level discount % — settlement display obligation is fold-discounted. */
+  discountRate?: number;
 }) {
   const {
     restaurantId,
@@ -146,7 +148,12 @@ export function useBillSplitDraft(params: {
     submitting,
     lang,
     byItemEditor,
+    discountRate: discountRateParam,
   } = params;
+
+  const discountRate =
+    discountRateParam ??
+    (typeof existingSplit?.discount_rate === 'number' ? existingSplit.discount_rate : 0);
 
   const splitSeed = continuationSplit ?? existingSplit;
 
@@ -435,8 +442,8 @@ export function useBillSplitDraft(params: {
   });
 
   const splitDisplayRows = useMemo(
-    () => buildCustomerSplitDisplayRows(results, collectedPayments),
-    [results, collectedPayments],
+    () => buildCustomerSplitDisplayRows(results, collectedPayments, discountRate),
+    [results, collectedPayments, discountRate],
   );
 
   const syncNameAcrossModes = useCallback((index: number, name: string) => {

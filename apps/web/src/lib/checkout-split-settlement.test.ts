@@ -38,6 +38,27 @@ describe('buildSplitSettlementRows', () => {
     assert.equal(rows[0]?.outstandingAmount, 0);
   });
 
+  it('applies discountRate inside obligation — sole fold for settlement status', () => {
+    // Pre-discount 22.45 @ 10% → 20.21; collecting 20.21 must settle (not leave €2.24 partial).
+    const rows = buildSplitSettlementRows(
+      [{ name: 'J', amount: 22.45 }],
+      [{ id: '1', person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
+      10,
+    );
+    assert.equal(rows[0]?.obligationAmount, 20.21);
+    assert.equal(rows[0]?.settlementStatus, 'settled');
+    assert.equal(rows[0]?.outstandingAmount, 0);
+  });
+
+  it('without discountRate, same ledger against pre-discount looks partial', () => {
+    const rows = buildSplitSettlementRows(
+      [{ name: 'J', amount: 22.45 }],
+      [{ id: '1', person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
+    );
+    assert.equal(rows[0]?.settlementStatus, 'partial');
+    assert.equal(rows[0]?.outstandingAmount, 2.24);
+  });
+
   it('shows partial when obligation was inflated after resume merge bug', () => {
     const rows = buildSplitSettlementRows(
       [{ name: '客人 1', amount: 301.9 }],

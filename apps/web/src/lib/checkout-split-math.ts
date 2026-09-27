@@ -31,10 +31,6 @@ export function applyDiscountToRows(rows: SplitResult[], discountRate: number): 
   }));
 }
 
-export function discountedSplitRows(split: BillSplit, discountRate: number): SplitResult[] {
-  return applyDiscountToRows(normalizeSplitRows(split), discountRate);
-}
-
 export function sumSplitRowAmounts(rows: SplitResult[]): number {
   return rows.reduce((sum, row) => sum + Number(row.amount), 0);
 }

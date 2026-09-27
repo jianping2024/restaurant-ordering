@@ -95,6 +95,16 @@ describe('buildCustomerSplitDisplayRows', () => {
     assert.equal(rows[0]?.settlementStatus, 'settled');
   });
 
+  it('settles when ledger covers post-discount obligation', () => {
+    const rows = buildCustomerSplitDisplayRows(
+      [{ name: 'J', amount: 22.45 }],
+      [{ id: '1', person_index: 0, person_name: 'J', amount: 20.21, created_at: '', payment_method: null, payment_lines: null }],
+      10,
+    );
+    assert.equal(rows[0]?.obligationAmount, 20.21);
+    assert.equal(rows[0]?.settlementStatus, 'settled');
+  });
+
   it('keeps zero-obligation custom row due when ledger is empty', () => {
     const rows = buildCustomerSplitDisplayRows(
       [

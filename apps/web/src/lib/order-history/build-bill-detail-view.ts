@@ -140,7 +140,11 @@ export function buildOrderHistoryBillDetailView(
 
   const resultRows = split?.result ?? [];
   const settlementRows = split
-    ? buildSplitSettlementRows(resultRows, settlement.collectedPayments)
+    ? buildSplitSettlementRows(
+        resultRows,
+        settlement.collectedPayments,
+        typeof split.discount_rate === 'number' ? split.discount_rate : 0,
+      )
     : [];
 
   const canExpandPersonDishes = split?.split_mode === 'by_item';

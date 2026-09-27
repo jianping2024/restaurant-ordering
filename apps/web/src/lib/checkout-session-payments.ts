@@ -34,6 +34,7 @@ export function isSplitRowCollectible(
 export function collectibleSplitRowsWithIndex(
   rows: SplitResult[],
   collectedByIndex: Map<number, number>,
+  discountRate = 0,
 ): SplitRowWithIndex[] {
   const payments: SessionCollectedPayment[] = [];
   collectedByIndex.forEach((amount, index) => {
@@ -48,7 +49,7 @@ export function collectibleSplitRowsWithIndex(
       payment_lines: null,
     });
   });
-  return pendingSplitSettlementRows(buildSplitSettlementRows(rows, payments)).map((row) => ({
+  return pendingSplitSettlementRows(buildSplitSettlementRows(rows, payments, discountRate)).map((row) => ({
     row: rows[row.index] ?? { name: row.name, amount: row.obligationAmount },
     index: row.index,
   }));

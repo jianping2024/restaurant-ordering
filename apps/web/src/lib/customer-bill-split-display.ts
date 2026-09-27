@@ -43,8 +43,9 @@ export type CustomerSplitRowDisplay = {
 export function buildCustomerSplitDisplayRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
+  discountRate = 0,
 ): CustomerSplitRowDisplay[] {
-  return buildSplitSettlementRows(resultRows, collectedPayments).map(
+  return buildSplitSettlementRows(resultRows, collectedPayments, discountRate).map(
     ({ name, obligationAmount, collectedAmount, outstandingAmount, settlementStatus }) => ({
       name,
       obligationAmount,

@@ -1,5 +1,6 @@
 import { displaySplitPersonName } from '@/lib/split-person-identity';
 import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
+import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
   sumCollectedByPersonIndex,
@@ -29,15 +30,19 @@ export function deriveSplitSettlementStatus(
   return 'due';
 }
 
-/** Per-person settlement from split obligations and session ledger (ledger is authoritative). */
+/**
+ * Per-person settlement from split obligations and session ledger (ledger is authoritative).
+ * `resultRows[].amount` stays pre-discount; obligation for status/outstanding is fold-discounted here.
+ */
 export function buildSplitSettlementRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
+  discountRate = 0,
 ): SplitSettlementRow[] {
   const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
   return resultRows.map((row, index) => {
     const collectedAmount = collectedByIndex.get(index) ?? 0;
-    const obligationAmount = row.amount;
+    const obligationAmount = discountedObligationAmount(row.amount, discountRate);
     const outstanding = outstandingAmount(obligationAmount, collectedAmount);
     return {
       index,

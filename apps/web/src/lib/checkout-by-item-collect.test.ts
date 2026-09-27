@@ -226,6 +226,24 @@ describe('settledByItemPersonKeys', () => {
     assert.equal(keys.has(splitPartyKey(undefined, '客人 1')), false);
     assert.equal(keys.has(splitPartyKey(undefined, '客人 3')), true);
   });
+
+  it('uses discounted obligation for chip settle keys', () => {
+    const keys = settledByItemPersonKeys(
+      [{ name: 'J', amount: 22.45 }],
+      [
+        {
+          id: '1',
+          person_index: 0,
+          person_name: 'J',
+          amount: 20.21,
+          created_at: '',
+          payment_method: 'CASH',
+        },
+      ],
+      10,
+    );
+    assert.equal(keys.has(splitPartyKey(undefined, 'J')), true);
+  });
 });
 
 describe('mergeCurrentByItemTicketForCollect', () => {

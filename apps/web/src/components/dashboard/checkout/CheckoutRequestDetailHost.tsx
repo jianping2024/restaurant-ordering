@@ -12,7 +12,7 @@ import {
   checkoutPersonKey,
   isCheckoutDetailLocked,
 } from '@/lib/checkout-request-state';
-import { discountedSplitRows } from '@/lib/checkout-split-math';
+import { normalizeSplitRows } from '@/lib/checkout-split-math';
 import {
   collectPaymentInitialCustomerName,
   shouldAutoIssueFiscalAfterCollect,
@@ -348,13 +348,9 @@ export function CheckoutRequestDetailHost({
   );
 
   const discountRate = getDiscountRate(request);
-  const discountedRows = useMemo(
-    () => discountedSplitRows(request, discountRate),
-    [request, discountRate],
-  );
   const settlementRows = useMemo(
-    () => buildSplitSettlementRows(discountedRows, collectedPayments),
-    [discountedRows, collectedPayments],
+    () => buildSplitSettlementRows(normalizeSplitRows(request), collectedPayments, discountRate),
+    [request, collectedPayments, discountRate],
   );
   const summary = buildCheckoutSettlementSummary(request, discountRate, collectedPayments);
   const splitModeLabel = checkoutSplitModeLabel(request.split_mode, splitModeLabels);

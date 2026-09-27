@@ -164,6 +164,7 @@ export function StaffCheckoutSplitEditor({
     persistedResult: null,
     submitting,
     byItemEditor: 'staff',
+    discountRate,
   });
 
   const byItemAllocatorLabels = useMemo(
@@ -325,8 +326,8 @@ export function StaffCheckoutSplitEditor({
   );
 
   const settledTicketKeys = useMemo(
-    () => settledByItemPersonKeys(editRoster, collectedPayments),
-    [collectedPayments, editRoster],
+    () => settledByItemPersonKeys(editRoster, collectedPayments, discountRate),
+    [collectedPayments, discountRate, editRoster],
   );
 
   const lockedTicketKeys = useMemo(() => {

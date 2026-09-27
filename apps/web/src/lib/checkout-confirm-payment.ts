@@ -23,7 +23,6 @@ export {
   applyDiscountToRows,
   checkoutPayableAmount,
   clampCheckoutDiscountRate,
-  discountedSplitRows,
   normalizeSplitRows,
   sumSplitRowAmounts,
 } from '@/lib/checkout-split-math';

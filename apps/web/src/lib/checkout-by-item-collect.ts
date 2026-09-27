@@ -203,6 +203,7 @@ export function resolveByItemCollectTarget(params: {
 export function settledByItemPersonKeys(
   roster: ReadonlyArray<SplitResult>,
   collectedPayments: SessionCollectedPayment[],
+  discountRate = 0,
 ): ReadonlySet<string> {
   const rows = buildSplitSettlementRows(
     roster.map((row) => ({
@@ -211,6 +212,7 @@ export function settledByItemPersonKeys(
       ...(row.party_id?.trim() ? { party_id: row.party_id.trim() } : {}),
     })),
     collectedPayments,
+    discountRate,
   );
   const keys = new Set<string>();
   for (const row of rows) {

@@ -1,11 +1,12 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import type { ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
 import type { PersonAmount, SplitPersonSlot } from '@/lib/use-bill-split-draft';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
+import { scrollElementIntoVisualViewport } from '@/lib/soft-keyboard-viewport';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -147,6 +148,27 @@ export function BillSplitPanel({
   staffRowActions,
   byItemContent,
 }: Props) {
+  const customAmountInputRef = useRef<HTMLInputElement>(null);
+
+  /** Keep the amount field above the soft keyboard (sole scroll path). */
+  useEffect(() => {
+    if (editingCustomAmountIndex == null) return;
+    const el = customAmountInputRef.current;
+    if (!el) return;
+    const run = () => scrollElementIntoVisualViewport(el);
+    run();
+    // Keyboard animation finishes after focus — re-align on viewport resize/scroll.
+    const t = window.setTimeout(run, 280);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', run);
+    vv?.addEventListener('scroll', run);
+    return () => {
+      window.clearTimeout(t);
+      vv?.removeEventListener('resize', run);
+      vv?.removeEventListener('scroll', run);
+    };
+  }, [editingCustomAmountIndex]);
+
   const selectedWhen =
     splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom'
       ? splitGuidance.modes[splitMode].when
@@ -333,6 +355,7 @@ export function BillSplitPanel({
                     <div className="inline-flex items-baseline gap-0.5 text-brand-gold font-medium text-sm shrink-0">
                       <span aria-hidden>€</span>
                       <input
+                        ref={customAmountInputRef}
                         type="text"
                         inputMode="decimal"
                         enterKeyHint="done"

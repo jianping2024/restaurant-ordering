@@ -40,7 +40,8 @@
     ".next-uat-collect-name/types/**/*.ts",
     ".next-uat-collect/types/**/*.ts",
     ".next-uat-ensure/types/**/*.ts",
-    ".next-uat-amount-type/types/**/*.ts"
+    ".next-uat-amount-type/types/**/*.ts",
+    ".next-uat-kb-chrome/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

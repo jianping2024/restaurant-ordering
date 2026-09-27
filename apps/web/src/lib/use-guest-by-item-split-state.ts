@@ -5,11 +5,13 @@
  * Dish-row model: unnamed payer slots + add-consumer must persist in working map.
  * Does not use staff committed/draft dual-layer (that is staff-only).
  * Submit still goes through buildSplitPersonsFromAllocations → same bill wire as staff.
+ * Unpaid same-name tickets: sole heal {@link coalesceUnpaidSameNamePartyIds} on every write.
  */
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
+  coalesceUnpaidSameNamePartyIds,
   countByItemAllocationProgress,
   withDefaultByItemLineRows,
   type ByItemConsumerRow,
@@ -17,6 +19,7 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  allocationLockedTicketKeys,
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
 } from '@/lib/checkout-split-continuation';
@@ -43,14 +46,6 @@ export function useGuestByItemSplitState(params: {
   const [byItemAllocations, setByItemAllocationsState] = useState<Record<string, ByItemConsumerRow[]>>({});
   const hydratedSplitKeyRef = useRef<string | null>(null);
 
-  const setByItemAllocations = useCallback(
-    (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
-      if (!enabled) return;
-      setByItemAllocationsState(update);
-    },
-    [enabled],
-  );
-
   const paidLocks = useMemo(
     () =>
       buildLockedPersonLineMins(
@@ -61,13 +56,32 @@ export function useGuestByItemSplitState(params: {
     [existingSplit, collectedPayments],
   );
 
+  const lockedTicketKeys = useMemo(
+    () => allocationLockedTicketKeys(existingSplit, collectedPayments),
+    [existingSplit, collectedPayments],
+  );
+  const lockedTicketKeysRef = useRef(lockedTicketKeys);
+  lockedTicketKeysRef.current = lockedTicketKeys;
+
+  const setByItemAllocations = useCallback(
+    (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
+      if (!enabled) return;
+      setByItemAllocationsState((prev) => {
+        const raw = typeof update === 'function' ? update(prev) : update;
+        return coalesceUnpaidSameNamePartyIds(raw, lockedTicketKeysRef.current);
+      });
+    },
+    [enabled],
+  );
+
   useLayoutEffect(() => {
     if (!enabled || splitMode !== 'by_item') return;
     setByItemAllocationsState((prev) => {
-      const next = withDefaultByItemLineRows(prev, lineSpecs);
+      const withDefaults = withDefaultByItemLineRows(prev, lineSpecs);
+      const next = coalesceUnpaidSameNamePartyIds(withDefaults, lockedTicketKeys);
       return next === prev ? prev : next;
     });
-  }, [enabled, splitMode, lineSpecs]);
+  }, [enabled, splitMode, lineSpecs, lockedTicketKeys]);
 
   useLayoutEffect(() => {
     if (!enabled || splitMode !== 'by_item' || !existingSplit?.persons?.length) return;
@@ -83,8 +97,13 @@ export function useGuestByItemSplitState(params: {
       lineSpecs,
       paidLocks,
     );
-    setByItemAllocationsState(withDefaultByItemLineRows(hydrated, lineSpecs));
-  }, [enabled, splitMode, lineSpecs, existingSplit, paidLocks]);
+    setByItemAllocationsState(
+      coalesceUnpaidSameNamePartyIds(
+        withDefaultByItemLineRows(hydrated, lineSpecs),
+        lockedTicketKeys,
+      ),
+    );
+  }, [enabled, splitMode, lineSpecs, existingSplit, paidLocks, lockedTicketKeys]);
 
   const workingAllocations = useMemo(
     () => (enabled ? byItemAllocations : {}),
@@ -117,7 +136,7 @@ export function useGuestByItemSplitState(params: {
     if (!enabled) return;
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) return;
-    setByItemAllocationsState((prev) => {
+    setByItemAllocations((prev) => {
       const next: Record<string, ByItemConsumerRow[]> = {};
       for (const [key, rows] of Object.entries(prev)) {
         next[key] = rows.map((row) => {
@@ -131,7 +150,7 @@ export function useGuestByItemSplitState(params: {
       }
       return next;
     });
-  }, [enabled]);
+  }, [enabled, setByItemAllocations]);
 
   const buildPersonsForSubmit = useCallback(
     () => buildSplitPersonsFromAllocations(parsedByItemAllocations),

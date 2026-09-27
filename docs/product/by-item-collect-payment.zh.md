@@ -54,6 +54,8 @@
 
 - 客人进行中状态唯一写法：`useGuestByItemSplitState`（按菜行 + 允许空名槽 /「添加消费者」；不经职员 dual-layer）。
 - `useBillSplitDraft({ byItemEditor: 'guest' | 'staff' })` 只选编辑器；交卷仍 `buildSplitPersonsFromAllocations` → 与职员同一套账单线。
+- **未付同名合票唯一写法：** `coalesceUnpaidSameNamePartyIds`（跨菜复用未付 `party_id`；已付/锁票不吸收、不改写）。客人与职员编辑器每次 write/hydrate 都走这一处；禁止另开按名字汇总的第二条路径。
+- 职员人轨 seed：只注入**已锁** ledger 票 + allocations（已 coalesce）；禁止把 `result` 里未付碎票直接铺进芯片。
 - 禁止客人编辑再走 `useByItemSplitState` / extract「无名丢弃」。
 
 ## 摘要待收（整桌）
@@ -79,5 +81,6 @@
 | 锁票集合（含盖章即锁） | `allocationLockedTicketKeys`（`result.paid` ∪ 台账 ∪ persons.`locked_amount`） |
 | 锁票 committed + 未付 draft UI（职员） | `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `useByItemSplitState`（Realtime 只重建锁票；未付一次 seed） |
 | 客人手机按菜进行中编辑 | `useGuestByItemSplitState`（`byItemEditor: 'guest'`；空名槽可写） |
+| 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
 
 已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）。均摊/手填仍用 `persistBeforePay`。

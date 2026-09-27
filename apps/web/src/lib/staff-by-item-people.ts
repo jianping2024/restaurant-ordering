@@ -34,7 +34,7 @@ export function staffByItemLedgerPeople(
   return out;
 }
 
-/** Sole initial rail seed: filtered ledger then allocation tickets (deduped by party key). */
+/** Sole initial rail seed: locked ledger tickets then coalesced allocation tickets. */
 export function staffByItemRailSeedPeople(params: {
   ledgerPeople: ReadonlyArray<StaffByItemRailPerson>;
   allocationPeople: ReadonlyArray<StaffByItemRailPerson>;

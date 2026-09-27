@@ -4,6 +4,7 @@
  */
 import {
   allocateByItemShareAmounts,
+  byItemConsumerRowTicketLocked,
   createByItemConsumerRow,
   isRowQtyOverAllocated,
   parseBuffetConsumerRows,
@@ -417,7 +418,7 @@ function upsertEditableTicketRow(
   const wantedParty = partyId?.trim() || undefined;
   // Never merge into a paid-frozen row — new same dish gets a new editable row.
   const existing = rows.find((row) => {
-    if (row.paidLocked) return false;
+    if (byItemConsumerRowTicketLocked(row)) return false;
     if (wantedParty) return ticketMatches(row, personName, wantedParty);
     // Compat: no party on the add → merge unpaid same display name.
     return splitPartyKey(undefined, row.name) === splitPartyKey(undefined, personName);
@@ -425,7 +426,7 @@ function upsertEditableTicketRow(
   if (existing) return { rows, row: existing };
 
   const ticketId = wantedParty || mintSplitPartyId();
-  const empty = rows.find((row) => !row.name.trim() && !row.paidLocked);
+  const empty = rows.find((row) => !row.name.trim() && !byItemConsumerRowTicketLocked(row));
   if (empty) {
     const named = {
       ...empty,

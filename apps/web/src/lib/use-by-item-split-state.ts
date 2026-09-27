@@ -11,6 +11,7 @@ import {
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
+  coalesceUnpaidSameNamePartyIds,
   countByItemAllocationProgress,
   withDefaultByItemLineRows,
   type ByItemConsumerRow,
@@ -38,6 +39,7 @@ import type { BillSplit, SplitMode } from '@/types';
  * Sole *staff* checkout by-item editing state (person rail / pool).
  * Locked committed + unpaid named draft dual-layer — guest phone must not use this hook
  * (guest sole editor: useGuestByItemSplitState). Submit wire is still buildSplitPersonsFromAllocations.
+ * Unpaid same-name tickets: sole heal {@link coalesceUnpaidSameNamePartyIds} on draft write / seed.
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
@@ -115,7 +117,8 @@ export function useByItemSplitState(params: {
             lineSpecs,
             paidLocks,
           );
-          const seed = extractByItemDraftAllocations(fromPersons, lockedTicketKeys);
+          const coalesced = coalesceUnpaidSameNamePartyIds(fromPersons, lockedTicketKeys);
+          const seed = extractByItemDraftAllocations(coalesced, lockedTicketKeys);
           if (Object.keys(seed).length > 0) return seed;
         }
       }
@@ -126,13 +129,16 @@ export function useByItemSplitState(params: {
 
   const byItemAllocations = useMemo(() => {
     if (!enabled || splitMode !== 'by_item') return {};
-    return withDefaultByItemLineRows(
-      mergeByItemCommittedAndDraft(
-        committedAllocations,
-        draftAllocations,
-        lockedTicketKeys,
+    return coalesceUnpaidSameNamePartyIds(
+      withDefaultByItemLineRows(
+        mergeByItemCommittedAndDraft(
+          committedAllocations,
+          draftAllocations,
+          lockedTicketKeys,
+        ),
+        lineSpecs,
       ),
-      lineSpecs,
+      lockedTicketKeys,
     );
   }, [
     enabled,
@@ -157,7 +163,11 @@ export function useByItemSplitState(params: {
         );
         const nextMerged =
           typeof update === 'function' ? update(prevMerged) : update;
-        return extractByItemDraftAllocations(nextMerged, lockedKeysRef.current);
+        const coalesced = coalesceUnpaidSameNamePartyIds(
+          nextMerged,
+          lockedKeysRef.current,
+        );
+        return extractByItemDraftAllocations(coalesced, lockedKeysRef.current);
       });
     },
     [enabled, lineSpecs],

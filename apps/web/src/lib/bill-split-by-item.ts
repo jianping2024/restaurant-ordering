@@ -167,6 +167,71 @@ export function createByItemConsumerRow(opts?: { buffet?: boolean; seed?: boolea
   };
 }
 
+/** True when a consumer row must keep its ticket id (paid / stamped / lock set). */
+export function byItemConsumerRowTicketLocked(
+  row: Pick<ByItemConsumerRow, 'name' | 'partyId' | 'paidLocked' | 'lockedAmount'>,
+  lockedTicketKeys: ReadonlySet<string> = new Set(),
+): boolean {
+  if (row.paidLocked) return true;
+  if (row.lockedAmount != null && Number.isFinite(row.lockedAmount)) return true;
+  const key = splitPartyKey(row.partyId, row.name);
+  return Boolean(key && lockedTicketKeys.has(key));
+}
+
+/**
+ * Sole unpaid same-name ticket heal: across all lines, unlocked rows that share a
+ * display name reuse one `partyId` (first unlocked row that already has a party id).
+ * Locked / paid tickets are never rewritten and never absorb new unpaid shares.
+ * Does not mint ids — rows keep existing tickets when no sibling party id exists.
+ * Guest + staff by-item editors call this on every allocation write / hydrate.
+ */
+export function coalesceUnpaidSameNamePartyIds(
+  allocations: Record<string, ByItemConsumerRow[]>,
+  lockedTicketKeys: ReadonlySet<string> = new Set(),
+): Record<string, ByItemConsumerRow[]> {
+  const canonicalPartyIdByName = new Map<string, string>();
+  const canonicalNameByKey = new Map<string, string>();
+
+  for (const rows of Object.values(allocations)) {
+    for (const row of rows) {
+      const name = row.name.trim();
+      if (!name) continue;
+      if (byItemConsumerRowTicketLocked(row, lockedTicketKeys)) continue;
+      const partyId = row.partyId?.trim();
+      if (!partyId) continue;
+      const nameKey = splitPersonKey(name);
+      if (!nameKey || canonicalPartyIdByName.has(nameKey)) continue;
+      canonicalPartyIdByName.set(nameKey, partyId);
+      canonicalNameByKey.set(nameKey, name);
+    }
+  }
+
+  if (canonicalPartyIdByName.size === 0) return allocations;
+
+  let changed = false;
+  const next: Record<string, ByItemConsumerRow[]> = {};
+  for (const [lineKey, rows] of Object.entries(allocations)) {
+    next[lineKey] = rows.map((row) => {
+      const name = row.name.trim();
+      if (!name || byItemConsumerRowTicketLocked(row, lockedTicketKeys)) return row;
+      const nameKey = splitPersonKey(name);
+      const canonicalPartyId = canonicalPartyIdByName.get(nameKey);
+      if (!canonicalPartyId) return row;
+      const canonicalName = canonicalNameByKey.get(nameKey) ?? name;
+      const currentParty = row.partyId?.trim() || '';
+      if (currentParty === canonicalPartyId && row.name === canonicalName) return row;
+      changed = true;
+      return {
+        ...row,
+        name: canonicalName,
+        partyId: canonicalPartyId,
+      };
+    });
+  }
+
+  return changed ? next : allocations;
+}
+
 /** Map a rational share to the qty input fields used by ByItemConsumerRow. */
 export function rationalToRowQtyFields(
   qty: Rational,

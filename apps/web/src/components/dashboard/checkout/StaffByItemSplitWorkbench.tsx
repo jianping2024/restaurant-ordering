@@ -228,11 +228,11 @@ export function StaffByItemSplitWorkbench({
 
   const seedPeople = useMemo(() => {
     const seeded = staffByItemRailSeedPeople({
-      ledgerPeople,
+      ledgerPeople: staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys),
       allocationPeople: peopleFromAlloc,
     });
     return seeded.length > 0 ? seeded : [mintStaffByItemRailPerson(guestName(1))];
-  }, [guestName, ledgerPeople, peopleFromAlloc]);
+  }, [guestName, ledgerPeople, lockedTicketKeys, peopleFromAlloc]);
 
   const mergeIncoming = useMemo(() => {
     const lockedLedger = staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys);

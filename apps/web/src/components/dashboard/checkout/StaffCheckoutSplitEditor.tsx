@@ -30,6 +30,8 @@ import {
 } from '@/lib/checkout-by-item-collect';
 import {
   staffByItemLedgerPeople,
+  staffByItemLockedLedgerPeople,
+  staffByItemRailSeedPeople,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
@@ -235,6 +237,28 @@ export function StaffCheckoutSplitEditor({
     );
   }, [request.result]);
 
+  /** Lock set before live calc — unpaid chips come from coalesced allocations, not raw result. */
+  const lockedTicketKeysFromLedger = useMemo(
+    () => allocationLockedTicketKeys(request, collectedPayments),
+    [collectedPayments, request],
+  );
+
+  const byItemRailOrderPeople = useMemo(() => {
+    if (splitDraft.splitMode !== 'by_item') return [] as StaffByItemRailPerson[];
+    return staffByItemRailSeedPeople({
+      ledgerPeople: staffByItemLockedLedgerPeople(
+        ledgerPeople,
+        lockedTicketKeysFromLedger,
+      ),
+      allocationPeople: staffByItemPeopleFromAllocations(splitDraft.byItemAllocations),
+    });
+  }, [
+    ledgerPeople,
+    lockedTicketKeysFromLedger,
+    splitDraft.byItemAllocations,
+    splitDraft.splitMode,
+  ]);
+
   const liveByItemResults = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as SplitResult[];
     const allocations = buildByItemAllocationsFromRows(
@@ -245,8 +269,8 @@ export function StaffCheckoutSplitEditor({
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
     const orderPeople =
-      ledgerPeople.length > 0
-        ? ledgerPeople
+      byItemRailOrderPeople.length > 0
+        ? byItemRailOrderPeople
         : staffByItemPeopleFromAllocations(splitDraft.byItemAllocations);
     const calc = calcByItemSplitResults({
       lines,
@@ -256,8 +280,8 @@ export function StaffCheckoutSplitEditor({
     });
     return calc.map((row) => toWireSplitResult(row));
   }, [
+    byItemRailOrderPeople,
     lang,
-    ledgerPeople,
     lineSpecs,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,

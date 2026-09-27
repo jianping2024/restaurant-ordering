@@ -150,20 +150,20 @@ export function BillSplitPanel({
 }: Props) {
   const customAmountInputRef = useRef<HTMLInputElement>(null);
 
-  /** Keep the amount field above the soft keyboard (sole scroll path). */
+  /**
+   * Sole scroll path: only after the soft keyboard is open (helper no-ops otherwise).
+   * Do not scroll on mount / during open animation — that dismisses the iOS keyboard.
+   */
   useEffect(() => {
     if (editingCustomAmountIndex == null) return;
     const el = customAmountInputRef.current;
     if (!el) return;
-    const run = () => scrollElementIntoVisualViewport(el);
-    run();
-    // Keyboard animation finishes after focus — re-align on viewport resize/scroll.
-    const t = window.setTimeout(run, 280);
+    const run = () =>
+      scrollElementIntoVisualViewport(el, { behavior: 'instant' });
     const vv = window.visualViewport;
     vv?.addEventListener('resize', run);
     vv?.addEventListener('scroll', run);
     return () => {
-      window.clearTimeout(t);
       vv?.removeEventListener('resize', run);
       vv?.removeEventListener('scroll', run);
     };

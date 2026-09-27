@@ -6,7 +6,6 @@ import {
   customerMenuBottomBarCountBadgeClass,
   customerMenuBottomBarDisabledActionClass,
   customerMenuBottomBarDockClass,
-  customerMenuBottomBarDockInnerClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
   customerMenuBottomBarPrimaryActionClass,
@@ -63,11 +62,9 @@ function FooterBarShell({
 }) {
   return (
     <div className={customerMenuBottomBarDockClass}>
-      <div className={customerMenuBottomBarDockInnerClass}>
-        <div className={customerMenuBottomBarRowClass}>
-          <div className={customerMenuBottomBarSummarySlotClass}>{summary}</div>
-          {action ? <div className={customerMenuBottomBarActionSlotClass}>{action}</div> : null}
-        </div>
+      <div className={customerMenuBottomBarRowClass}>
+        <div className={customerMenuBottomBarSummarySlotClass}>{summary}</div>
+        {action ? <div className={customerMenuBottomBarActionSlotClass}>{action}</div> : null}
       </div>
     </div>
   );

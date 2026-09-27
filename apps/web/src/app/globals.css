@@ -35,8 +35,8 @@
   --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
   /*
-   * Sole customer-menu bottom inset (floating dock offset + sheet/detail pad + list pad).
-   * min 3rem clears typical mobile browser bottom chrome; env covers home indicator.
+   * Sole customer-menu bottom inset (flush dock inner pad + sheet/detail + list pad).
+   * Dock stays `bottom-0` (贴底); this pad lifts the interactive row above browser chrome.
    * Requires root viewportFit: cover so env(safe-area-inset-bottom) is live on iOS.
    */
   --mesa-customer-menu-bottom-safe: max(3rem, env(safe-area-inset-bottom, 0px));

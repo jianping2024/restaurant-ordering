@@ -7,7 +7,6 @@ import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
   customerMenuBottomBarCountBadgeClass,
   customerMenuBottomBarDockClass,
-  customerMenuBottomBarDockInnerClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
   customerMenuBottomBarPrimaryActionClass,
@@ -67,12 +66,13 @@ describe('customerMenuPageBottomPaddingClass', () => {
   });
 });
 
-describe('customerMenuBottomBar dock float', () => {
-  it('floats above the sole inset var (not flush bottom-0)', () => {
+describe('customerMenuBottomBar dock stick', () => {
+  it('sticks to viewport bottom with opaque shell + inner safe pad (not floated mid-gap)', () => {
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
-    assert.ok(customerMenuBottomBarDockClass.includes(`bottom-[var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})]`));
-    assert.ok(!customerMenuBottomBarDockClass.includes('bottom-0'));
-    assert.ok(customerMenuBottomBarDockInnerClass.includes('rounded-2xl'));
+    assert.ok(customerMenuBottomBarDockClass.includes('bottom-0'));
+    assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS));
+    assert.ok(customerMenuBottomBarDockClass.includes('bg-brand-card'));
+    assert.ok(!customerMenuBottomBarDockClass.includes(`bottom-[var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})]`));
   });
 
   it('pins summary and action to opposite edges with symmetric horizontal padding', () => {
@@ -95,7 +95,7 @@ describe('customer menu bottom bar visual tokens', () => {
 });
 
 describe('one representation — customer menu bottom inset + badge', () => {
-  it('globals defines the inset formula once; dock floats; consumers share pad token; footer uses sole badge formatter', () => {
+  it('globals defines the inset once; dock is bottom-0 + pad token; footer uses sole badge formatter', () => {
     const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
     const globals = readFileSync(join(webSrc, 'app/globals.css'), 'utf8');
     const formula =
@@ -104,16 +104,17 @@ describe('one representation — customer menu bottom inset + badge', () => {
     assert.equal((globals.match(/--mesa-customer-menu-bottom-safe:/g) ?? []).length, 1);
 
     const layout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-bar-layout.ts'), 'utf8');
-    assert.match(layout, /bottom-\[var\(--mesa-customer-menu-bottom-safe\)\]/);
+    assert.match(layout, /bottom-0/);
+    assert.doesNotMatch(layout, /bottom-\[var\(--mesa-customer-menu-bottom-safe\)\]/);
     assert.equal((layout.match(/function formatCustomerMenuFooterBadgeCount/g) ?? []).length, 1);
+    assert.doesNotMatch(layout, /customerMenuBottomBarDockInnerClass/);
 
     const footer = readFileSync(join(webSrc, 'components/menu/CustomerMenuFooter.tsx'), 'utf8');
     assert.match(footer, /formatCustomerMenuFooterBadgeCount/);
     assert.match(footer, /FooterIconCountBadge/);
     assert.doesNotMatch(footer, /CUSTOMER_MENU_TYPE\.footerSummary/);
-    // No parallel inline badge chip class on footer
+    assert.doesNotMatch(footer, /customerMenuBottomBarDockInnerClass/);
     assert.doesNotMatch(footer, /absolute -right-1 -top-1 flex h-\[18px\]/);
-    // Ordered body shows amount only — count lives on the badge (aria keeps full label)
     assert.match(
       footer,
       /function OrderedSummary[\s\S]*?<FooterIconCountBadge count=\{submittedCount\} \/>[\s\S]*?<FooterAmount/,
@@ -121,10 +122,8 @@ describe('one representation — customer menu bottom inset + badge', () => {
 
     const sheet = readFileSync(join(webSrc, 'components/menu/CustomerMenuBottomSheet.tsx'), 'utf8');
     assert.match(sheet, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
-    assert.doesNotMatch(sheet, /pb-\[max\([^)]*safe-area-inset-bottom/);
 
     const detail = readFileSync(join(webSrc, 'lib/customer-menu-item-detail-layout.ts'), 'utf8');
     assert.match(detail, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
-    assert.doesNotMatch(detail, /pb-\[max\([^)]*safe-area-inset-bottom/);
   });
 });

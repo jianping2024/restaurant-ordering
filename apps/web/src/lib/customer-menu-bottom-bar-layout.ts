@@ -8,7 +8,7 @@ export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 /**
  * Sole bottom inset pad inside the flush dock / sheets / detail footers.
  * Formula once in `globals.css` as `--mesa-customer-menu-bottom-safe`
- * (`max(3rem, env(safe-area-inset-bottom))` — lifts interactive row above browser chrome).
+ * (`max(0.75rem, env(safe-area-inset-bottom))` — home indicator / slight floor, not a fat chrome slab).
  * Requires root `viewport.viewportFit: 'cover'`.
  */
 export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =

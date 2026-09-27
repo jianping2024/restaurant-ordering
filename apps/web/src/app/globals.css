@@ -36,10 +36,11 @@
   --auth-pattern-opacity: 0.04;
   /*
    * Sole customer-menu bottom inset (flush dock inner pad + sheet/detail + list pad).
-   * Dock stays `bottom-0` (贴底); this pad lifts the interactive row above browser chrome.
+   * Dock stays `bottom-0`. Pad = home-indicator safe area, with a small 0.75rem floor —
+   * never a large fixed chrome reserve (that leaves an empty slab under the CTA).
    * Requires root viewportFit: cover so env(safe-area-inset-bottom) is live on iOS.
    */
-  --mesa-customer-menu-bottom-safe: max(3rem, env(safe-area-inset-bottom, 0px));
+  --mesa-customer-menu-bottom-safe: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
 [data-theme='light'] {

@@ -99,8 +99,9 @@ describe('one representation — customer menu bottom inset + badge', () => {
     const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
     const globals = readFileSync(join(webSrc, 'app/globals.css'), 'utf8');
     const formula =
-      /--mesa-customer-menu-bottom-safe:\s*max\(3rem,\s*env\(safe-area-inset-bottom,\s*0px\)\);/;
+      /--mesa-customer-menu-bottom-safe:\s*max\(0\.75rem,\s*env\(safe-area-inset-bottom,\s*0px\)\);/;
     assert.match(globals, formula);
+    assert.doesNotMatch(globals, /max\(3rem,/);
     assert.equal((globals.match(/--mesa-customer-menu-bottom-safe:/g) ?? []).length, 1);
 
     const layout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-bar-layout.ts'), 'utf8');

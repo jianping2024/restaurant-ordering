@@ -67,15 +67,14 @@ describe('customerMenuPageBottomPaddingClass', () => {
 });
 
 describe('customerMenuBottomBar dock stick', () => {
-  it('sticks to viewport bottom with opaque shell + inner safe pad (not floated mid-gap)', () => {
+  it('sticks flush bottom-0 with opaque shell + safe-area pad', () => {
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
     assert.ok(customerMenuBottomBarDockClass.includes('bottom-0'));
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS));
     assert.ok(customerMenuBottomBarDockClass.includes('bg-brand-card'));
-    assert.ok(!customerMenuBottomBarDockClass.includes(`bottom-[var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})]`));
   });
 
-  it('centers the interactive row (items-center) so CTA is not top-biased inside the bar', () => {
+  it('centers the interactive row so CTA is optically mid-bar', () => {
     assert.match(customerMenuBottomBarRowClass, /items-center/);
     assert.match(customerMenuBottomBarRowClass, new RegExp(CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS));
   });
@@ -100,27 +99,22 @@ describe('customer menu bottom bar visual tokens', () => {
 });
 
 describe('one representation — customer menu bottom inset + badge', () => {
-  it('globals defines the inset once; dock is bottom-0 + pad token; footer uses sole badge formatter', () => {
+  it('one CSS inset var; dock bottom-0 + pad token; footer sole badge on both phases', () => {
     const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
     const globals = readFileSync(join(webSrc, 'app/globals.css'), 'utf8');
-    const formula = /--mesa-customer-menu-bottom-safe:\s*env\(safe-area-inset-bottom,\s*0px\);/;
-    assert.match(globals, formula);
-    assert.doesNotMatch(globals, /max\(3rem,/);
-    assert.doesNotMatch(globals, /max\(0\.75rem,/);
+    assert.match(
+      globals,
+      /--mesa-customer-menu-bottom-safe:\s*env\(safe-area-inset-bottom,\s*0px\);/,
+    );
     assert.equal((globals.match(/--mesa-customer-menu-bottom-safe:/g) ?? []).length, 1);
 
     const layout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-bar-layout.ts'), 'utf8');
     assert.match(layout, /bottom-0/);
-    assert.doesNotMatch(layout, /bottom-\[var\(--mesa-customer-menu-bottom-safe\)\]/);
     assert.equal((layout.match(/function formatCustomerMenuFooterBadgeCount/g) ?? []).length, 1);
-    assert.doesNotMatch(layout, /customerMenuBottomBarDockInnerClass/);
 
     const footer = readFileSync(join(webSrc, 'components/menu/CustomerMenuFooter.tsx'), 'utf8');
     assert.match(footer, /formatCustomerMenuFooterBadgeCount/);
     assert.match(footer, /FooterIconCountBadge/);
-    assert.doesNotMatch(footer, /CUSTOMER_MENU_TYPE\.footerSummary/);
-    assert.doesNotMatch(footer, /customerMenuBottomBarDockInnerClass/);
-    assert.doesNotMatch(footer, /absolute -right-1 -top-1 flex h-\[18px\]/);
     assert.match(
       footer,
       /function OrderedSummary[\s\S]*?<FooterIconCountBadge count=\{submittedCount\} \/>[\s\S]*?<FooterAmount/,

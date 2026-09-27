@@ -119,11 +119,15 @@ function reconcileHistorySettlementSummary(
       : auditMoney(consumption);
 
   const pending = Math.max(0, Math.round((payable - summary.collected) * 100) / 100);
+  const discountSaved =
+    summary.discountSaved ??
+    Math.max(0, Math.round((consumption - payable) * 100) / 100);
 
   return {
     consumption,
     payable,
     discountRate,
+    discountSaved,
     collected: summary.collected,
     pending,
   };
@@ -139,6 +143,7 @@ function buildSettledPayableSummary(
     consumption: payable,
     payable,
     discountRate: 0,
+    discountSaved: 0,
     collected: 0,
     pending: 0,
   };
@@ -167,6 +172,7 @@ function buildLedgerSummary(
     consumption,
     payable,
     discountRate: 0,
+    discountSaved: 0,
     collected,
     pending: Math.max(0, Math.round((payable - collected) * 100) / 100),
   };

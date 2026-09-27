@@ -1,4 +1,5 @@
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
+import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
 import type { OrderHistorySettlementVariant } from '@/lib/order-history/build-detail-presentation';
 import type { getMessages } from '@/lib/i18n/messages';
 
@@ -63,7 +64,11 @@ export function OrderHistorySettlementDetails({
       )}
       {summary.discountRate > 0 ? (
         <p className="pt-1 text-[13px] text-brand-text-muted border-t border-brand-gold/20">
-          {checkoutT.settlementDiscount.replace('{n}', String(summary.discountRate))}
+          {formatCheckoutDiscountLabel(
+            checkoutT.settlementDiscount,
+            summary.discountRate,
+            summary.discountSaved,
+          )}
         </p>
       ) : null}
     </div>

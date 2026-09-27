@@ -160,6 +160,7 @@ describe('resolveByItemCollectTarget', () => {
       discountRate: 10,
     });
     assert.equal(target?.amount, 90);
+    assert.equal(target?.preDiscountObligation, 100);
     assert.equal(collectModalAmountStillValid(target!.amount, 90), true);
     assert.equal(collectModalAmountStillValid(100, 90), false);
   });

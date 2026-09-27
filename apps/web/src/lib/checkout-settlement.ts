@@ -1,5 +1,8 @@
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
-import { checkoutPayableAmount } from '@/lib/checkout-split-math';
+import {
+  checkoutPayableAmount,
+  resolveCheckoutDiscountMoneyView,
+} from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
   totalCollectedAmount,
@@ -12,6 +15,8 @@ export type CheckoutSettlementSummary = {
   consumption: number;
   payable: number;
   discountRate: number;
+  /** Euro amount removed by discount (0 when rate is 0). */
+  discountSaved: number;
   collected: number;
   pending: number;
 };
@@ -22,12 +27,15 @@ export function buildCheckoutSettlementSummary(
   discountRate: number,
   collectedPayments: SessionCollectedPayment[],
 ): CheckoutSettlementSummary {
+  const consumption = Number(request.total_amount);
+  const discount = resolveCheckoutDiscountMoneyView(consumption, discountRate);
   const payable = checkoutPayableAmount(request, discountRate);
   const collected = totalCollectedAmount(collectedPayments);
   return {
-    consumption: Number(request.total_amount),
+    consumption,
     payable,
-    discountRate,
+    discountRate: discount.rate,
+    discountSaved: discount.savedAmount,
     collected,
     pending: outstandingAmount(payable, collected),
   };

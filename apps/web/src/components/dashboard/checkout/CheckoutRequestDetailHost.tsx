@@ -105,6 +105,8 @@ export function CheckoutRequestDetailHost({
     wholeTable: boolean;
     personName?: string;
     partyId?: string;
+    /** Ticket pre-discount obligation for collect modal discount line. */
+    preDiscountAmount?: number;
   } | null>(null);
   const [pathChoice, setPathChoice] = useState<StaffCheckoutPathChoice>('undecided');
   const {
@@ -600,13 +602,14 @@ export function CheckoutRequestDetailHost({
             billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
           }
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
-          onCollectPerson={(index, amount, personName, partyId) => {
+          onCollectPerson={(index, amount, personName, partyId, preDiscountAmount) => {
             setCollectPending({
               rowIndex: index,
               amount,
               wholeTable: false,
               personName,
               partyId,
+              preDiscountAmount,
             });
           }}
           onSplitPersisted={(row) => {
@@ -685,6 +688,7 @@ export function CheckoutRequestDetailHost({
             wholeTable: true,
             personName:
               rawName && !isWholeTablePayerName(rawName) ? rawName.trim() : undefined,
+            preDiscountAmount: Number(request.result?.[index]?.amount ?? 0),
           });
         }}
         onResumeOrderingClick={() => setResumeConfirmOpen(true)}
@@ -733,10 +737,13 @@ export function CheckoutRequestDetailHost({
           processingKeys.has(checkoutPersonKey(request.id, collectPending.rowIndex))
         }
         amount={collectPending?.amount ?? 0}
+        preDiscountAmount={collectPending?.preDiscountAmount}
+        discountRate={discountRate}
         initialCustomerName={collectPaymentInitialCustomerName(collectPending?.personName)}
         labels={{
           title: t.collectPaymentTitle,
           amount: t.collectPaymentAmount,
+          discountDetail: t.collectDiscountDetail,
           paymentMethod: t.printInvoicePaymentMethod,
           confirm: t.confirmOnePaid,
           cancel: t.printInvoiceCancel,

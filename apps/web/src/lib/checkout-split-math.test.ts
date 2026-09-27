@@ -6,7 +6,11 @@ import {
   checkoutPayableAmount,
   clampCheckoutDiscountRate,
   discountedObligationAmount,
+  formatCheckoutCollectDiscountDetail,
+  formatCheckoutDiscountLabel,
   normalizeSplitRows,
+  resolveCheckoutDiscountMoneyView,
+  resolveCheckoutDiscountedShareDisplay,
 } from './checkout-split-math';
 
 const BILL_SPLIT_ID = '22222222-2222-4222-8222-222222222222';
@@ -59,5 +63,25 @@ describe('checkout-split-math', () => {
     assert.equal(discountedObligationAmount(1.85, 10), 1.67);
     assert.equal(discountedObligationAmount(10.9, 10), 9.81);
     assert.equal(checkoutPayableAmount(billSplit({ total_amount: 21.8 }), 10), 19.62);
+  });
+
+  it('resolveCheckoutDiscountMoneyView is sole bar/person/collect money view', () => {
+    const view = resolveCheckoutDiscountMoneyView(19.95, 10);
+    assert.equal(view.payableAmount, 17.96);
+    assert.equal(view.savedAmount, 1.99);
+    assert.equal(view.active, true);
+    assert.equal(resolveCheckoutDiscountMoneyView(19.95, 0).active, false);
+    assert.equal(
+      formatCheckoutDiscountLabel('折扣 {n}%  −€{amount}', view.rate, view.savedAmount),
+      '折扣 10%  −€1.99',
+    );
+    assert.equal(
+      formatCheckoutCollectDiscountDetail('折前 €{pre} · 折扣 {n}%', 19.95, 10),
+      '折前 €19.95 · 折扣 10%',
+    );
+    assert.equal(formatCheckoutCollectDiscountDetail('折前 €{pre} · 折扣 {n}%', 19.95, 0), null);
+    const share = resolveCheckoutDiscountedShareDisplay(18, 10);
+    assert.equal(share.displayAmount, 16.2);
+    assert.equal(share.showPreLine, true);
   });
 });

@@ -7,12 +7,24 @@ export function softKeyboardOpen(
   return innerHeight - visualViewportHeight > thresholdPx;
 }
 
-/** iOS collapse-keyboard often skips input blur; commit when open → closed. */
+/** Ignore open→closed jitter while the keyboard is still rising after focus. */
+export const SOFT_KEYBOARD_DISMISS_ARM_MS = 400;
+
+/**
+ * iOS collapse-keyboard often skips input blur; commit when open → closed
+ * after the post-focus arm window (so open-animation flicker does not exit edit).
+ */
 export function shouldCommitOnSoftKeyboardDismiss(
   wasOpen: boolean,
   nowOpen: boolean,
+  options?: { armedAtMs: number; nowMs: number; armMs?: number },
 ): boolean {
-  return wasOpen && !nowOpen;
+  if (!(wasOpen && !nowOpen)) return false;
+  if (options) {
+    const armMs = options.armMs ?? SOFT_KEYBOARD_DISMISS_ARM_MS;
+    if (options.nowMs - options.armedAtMs < armMs) return false;
+  }
+  return true;
 }
 
 /**
@@ -40,17 +52,20 @@ export function scrollDeltaIntoVisualViewport(params: {
   return elementTop - desiredTop;
 }
 
-/** Sole scroll path: keep a focused field inside the visual viewport. */
+/**
+ * Sole scroll path: keep a focused field inside the visual viewport.
+ * Only runs while the soft keyboard is open — scrolling during focus/open
+ * animation dismisses the iOS keyboard.
+ */
 export function scrollElementIntoVisualViewport(
   el: HTMLElement,
   options?: { behavior?: ScrollBehavior },
 ): void {
-  const behavior = options?.behavior ?? 'smooth';
   const vv = window.visualViewport;
-  if (!vv) {
-    el.scrollIntoView({ block: 'center', inline: 'nearest', behavior });
-    return;
-  }
+  if (!vv) return;
+  if (!softKeyboardOpen(window.innerHeight, vv.height)) return;
+
+  const behavior = options?.behavior ?? 'instant';
   const rect = el.getBoundingClientRect();
   const padding = 12;
   const viewTop = vv.offsetTop + padding;

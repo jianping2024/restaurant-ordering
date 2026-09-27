@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  SOFT_KEYBOARD_DISMISS_ARM_MS,
   scrollDeltaIntoVisualViewport,
   shouldCommitOnSoftKeyboardDismiss,
   softKeyboardOpen,
@@ -22,6 +23,24 @@ describe('shouldCommitOnSoftKeyboardDismiss', () => {
     assert.equal(shouldCommitOnSoftKeyboardDismiss(false, false), false);
     assert.equal(shouldCommitOnSoftKeyboardDismiss(true, true), false);
     assert.equal(shouldCommitOnSoftKeyboardDismiss(false, true), false);
+  });
+
+  it('ignores open → closed during the post-focus arm window', () => {
+    const armedAtMs = 1_000;
+    assert.equal(
+      shouldCommitOnSoftKeyboardDismiss(true, false, {
+        armedAtMs,
+        nowMs: armedAtMs + SOFT_KEYBOARD_DISMISS_ARM_MS - 1,
+      }),
+      false,
+    );
+    assert.equal(
+      shouldCommitOnSoftKeyboardDismiss(true, false, {
+        armedAtMs,
+        nowMs: armedAtMs + SOFT_KEYBOARD_DISMISS_ARM_MS,
+      }),
+      true,
+    );
   });
 });
 

@@ -622,18 +622,25 @@ export function useBillSplitDraft(params: {
 
   /**
    * iOS “collapse keyboard” often leaves focus on the input (no blur).
-   * Close the editor (amounts already write-through); finalize empty → 0.
+   * Close the editor after keyboard was stably open then closed (arm window
+   * skips open-animation jitter). Unmount clears focus — do not blur().
    */
   useEffect(() => {
     if (editingCustomAmountIndex == null) return;
     const vv = window.visualViewport;
     if (!vv) return;
 
+    const armedAtMs = Date.now();
     let wasOpen = softKeyboardOpen(window.innerHeight, vv.height);
 
     const onViewportResize = () => {
       const open = softKeyboardOpen(window.innerHeight, vv.height);
-      if (!shouldCommitOnSoftKeyboardDismiss(wasOpen, open)) {
+      if (
+        !shouldCommitOnSoftKeyboardDismiss(wasOpen, open, {
+          armedAtMs,
+          nowMs: Date.now(),
+        })
+      ) {
         wasOpen = open;
         return;
       }
@@ -643,9 +650,6 @@ export function useBillSplitDraft(params: {
       updateCustomAmount(index, value || '0');
       setEditingCustomAmountIndex(null);
       setEditingCustomAmountValue('');
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
     };
 
     vv.addEventListener('resize', onViewportResize);

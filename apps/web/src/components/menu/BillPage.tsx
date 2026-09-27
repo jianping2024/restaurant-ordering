@@ -514,8 +514,8 @@ export function BillPage({
     );
   }
 
-  const editingCustomAmount =
-    typeof splitDraft.editingCustomAmountIndex === 'number';
+  // Index 0 is a valid row — never truthiness-check the index.
+  const editingCustomAmount = splitDraft.editingCustomAmountIndex != null;
 
   return (
     <div

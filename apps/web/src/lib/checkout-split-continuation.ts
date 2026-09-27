@@ -11,11 +11,12 @@ import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   normalizeRational,
   rationalGte,
+  rationalsEqual,
   compareRationals,
   type Rational,
 } from '@/lib/rational-qty';
 import { displaySplitPersonName } from '@/lib/split-person-identity';
-import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
+import { mintSplitPartyId, splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import { stampMissingPaidLockedAmounts } from '@/lib/stamp-paid-locked-amounts';
 import type { BillSplit, SplitPerson } from '@/types';
 import type { CheckoutRequestPayload } from '@/lib/checkout-split-intent';
@@ -257,8 +258,8 @@ export function lockedPersonLineKey(
 }
 
 /**
- * Minimum assigned qty per (line, person) after collection starts.
- * New qty on the same line may exceed these floors; lowering below floor is forbidden.
+ * Minimum assigned qty per (line, person) after a ticket is allocation-locked.
+ * Continuation must keep these shares exactly equal — never raise, lower, or drop.
  */
 export function buildLockedPersonLineMins(
   split: BillSplit | null | undefined,
@@ -352,7 +353,8 @@ export function byItemRowEditLock(params: {
       minBuffetAdults: mins.adults,
       minBuffetChildren: mins.children,
       removable: !hasLock,
-      qtyReadOnly: false,
+      // Locked ticket shares are exact — same as paidLocked (no raise/lower).
+      qtyReadOnly: hasLock,
     };
   }
 
@@ -364,9 +366,7 @@ export function byItemRowEditLock(params: {
     minBuffetAdults: 0,
     minBuffetChildren: 0,
     removable: !hasLock,
-    // Floor-only legacy path: still allow new qty above floor on non-paidLocked rows
-    // only when row is not paidLocked (new dish row after resume).
-    qtyReadOnly: false,
+    qtyReadOnly: hasLock,
   };
 }
 
@@ -549,7 +549,7 @@ function lockedSharesPreserved(params: {
 
   const incomingAlloc = buildByItemAllocationsFromPersons(incomingPersons, lineSpecs);
 
-  for (const [mapKey, minQty] of Array.from(locked.menu.entries())) {
+  for (const [mapKey, exactQty] of Array.from(locked.menu.entries())) {
     const sep = mapKey.lastIndexOf('::');
     if (sep < 0) return false;
     const lineKey = mapKey.slice(0, sep);
@@ -557,10 +557,10 @@ function lockedSharesPreserved(params: {
     const share = (incomingAlloc[lineKey] ?? []).find(
       (row) => splitPartyKey(row.partyId, row.name) === ticketKey,
     );
-    if (!share || !rationalGte(share.qty, minQty)) return false;
+    if (!share || !rationalsEqual(share.qty, exactQty)) return false;
   }
 
-  for (const [mapKey, minCounts] of Array.from(locked.buffet.entries())) {
+  for (const [mapKey, exactCounts] of Array.from(locked.buffet.entries())) {
     const sep = mapKey.lastIndexOf('::');
     if (sep < 0) return false;
     const lineKey = mapKey.slice(0, sep);
@@ -574,9 +574,32 @@ function lockedSharesPreserved(params: {
       if (share.guestType === 'child') children += count;
       else adults += count;
     }
-    if (adults < minCounts.adults || children < minCounts.children) return false;
+    if (adults !== exactCounts.adults || children !== exactCounts.children) return false;
   }
 
+  return true;
+}
+
+function lockedTicketsPresentInPayload(params: {
+  lockedTicketKeys: ReadonlySet<string>;
+  persons: SplitPerson[];
+  result: CheckoutRequestPayload['result'];
+}): boolean {
+  const { lockedTicketKeys, persons, result } = params;
+  if (lockedTicketKeys.size === 0) return true;
+  const personKeys = new Set(
+    persons
+      .map((row) => splitPartyKey(row.party_id, row.name))
+      .filter((key): key is string => Boolean(key)),
+  );
+  const resultKeys = new Set(
+    result
+      .map((row) => splitResultTicketKey(row))
+      .filter((key): key is string => Boolean(key)),
+  );
+  for (const key of lockedTicketKeys) {
+    if (!personKeys.has(key) || !resultKeys.has(key)) return false;
+  }
   return true;
 }
 
@@ -604,6 +627,14 @@ export function validateCheckoutContinuation(params: {
       locked,
       incomingPersons: payload.persons,
       lineSpecs,
+    })) {
+      return { ok: false, issue: 'locked_allocation_changed' };
+    }
+    const lockedTicketKeys = allocationLockedTicketKeys(existing, collectedPayments);
+    if (!lockedTicketsPresentInPayload({
+      lockedTicketKeys,
+      persons: payload.persons,
+      result: payload.result,
     })) {
       return { ok: false, issue: 'locked_allocation_changed' };
     }

@@ -28,6 +28,7 @@ import {
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
+import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
@@ -48,7 +49,6 @@ import { getMessages } from '@/lib/i18n/messages';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
-import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
@@ -456,6 +456,7 @@ export function StaffCheckoutSplitEditor({
             roster: editRoster,
             liveResults: liveByItemResults,
             collectedPayments,
+            discountRate,
           });
           if (!liveTarget || !collectModalAmountStillValid(liveTarget.amount, modalAmount)) {
             showToast(checkoutT.staffByItemNoCollectableShare, 'error');
@@ -465,7 +466,8 @@ export function StaffCheckoutSplitEditor({
           const liveRow = liveByItemResults.find(
             (row) => splitResultTicketKey(row) === ticketKey,
           );
-          const obligation = liveRow?.amount ?? liveTarget.amount;
+          // Stamp pre-discount obligation on result; modal/payment use discounted liveTarget.
+          const obligation = liveRow?.amount ?? 0;
           if (!(obligation > 0)) {
             showToast(checkoutT.staffByItemNoCollectableShare, 'error');
             return null;
@@ -561,6 +563,7 @@ export function StaffCheckoutSplitEditor({
     billT,
     checkoutT,
     collectedPayments,
+    discountRate,
     editRoster,
     lineSpecs,
     liveByItemResults,
@@ -577,18 +580,17 @@ export function StaffCheckoutSplitEditor({
   const collectSavedPerson = useCallback(
     async (
       index: number,
-      preDiscountAmount: number,
+      collectAmount: number,
       personName?: string,
       partyId?: string,
     ) => {
-      const amount = discountedObligationAmount(preDiscountAmount, discountRate);
-      if (amount <= 0) {
+      if (collectAmount <= 0) {
         showToast(checkoutT.cashShort, 'error');
         return;
       }
-      onCollectPerson(index, amount, personName, partyId);
+      onCollectPerson(index, collectAmount, personName, partyId);
     },
-    [checkoutT.cashShort, discountRate, onCollectPerson],
+    [checkoutT.cashShort, onCollectPerson],
   );
 
   return (
@@ -684,7 +686,13 @@ export function StaffCheckoutSplitEditor({
                 onCollect: (index) => {
                   const row = splitDraft.results[index];
                   if (!row) return;
-                  void collectSavedPerson(index, row.amount, row.name);
+                  // Even/custom: results are pre-discount; discount once here.
+                  // By-item uses resolveByItemCollectTarget (already discounted).
+                  void collectSavedPerson(
+                    index,
+                    discountedObligationAmount(row.amount, discountRate),
+                    row.name,
+                  );
                 },
                 onRemoveCustom: splitDraft.removeCustomPerson,
               }
@@ -721,6 +729,7 @@ export function StaffCheckoutSplitEditor({
                 roster: editRoster,
                 liveResults: liveByItemResults,
                 collectedPayments,
+                discountRate,
                 billPending: summary.pending,
               });
               if (!target) {

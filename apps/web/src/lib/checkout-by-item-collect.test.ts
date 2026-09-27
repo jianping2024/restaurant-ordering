@@ -130,6 +130,39 @@ describe('resolveByItemCollectTarget', () => {
     // Person due is obligation − prior; no silent clamp to bill pending.
     assert.equal(target?.amount, 6.6);
   });
+  it('applies discount then subtracts prior collected', () => {
+    const target = resolveByItemCollectTarget({
+      personName: 'Ana',
+      roster: [{ name: 'Ana', amount: 100 }],
+      liveResults: [{ name: 'Ana', amount: 100 }],
+      collectedPayments: [
+        {
+          id: '1',
+          person_index: 0,
+          person_name: 'Ana',
+          amount: 10,
+          created_at: '',
+          payment_method: 'CASH',
+        },
+      ],
+      discountRate: 10,
+    });
+    // discounted 90 − prior 10 = 80 (never discount the outstanding again)
+    assert.equal(target?.amount, 80);
+  });
+
+  it('matches modal amount after discount without a second discount pass', () => {
+    const target = resolveByItemCollectTarget({
+      personName: 'Ana',
+      roster: [{ name: 'Ana', amount: 100 }],
+      liveResults: [{ name: 'Ana', amount: 100 }],
+      collectedPayments: [],
+      discountRate: 10,
+    });
+    assert.equal(target?.amount, 90);
+    assert.equal(collectModalAmountStillValid(target!.amount, 90), true);
+    assert.equal(collectModalAmountStillValid(100, 90), false);
+  });
 });
 
 describe('applyCollectedObligationFloors', () => {

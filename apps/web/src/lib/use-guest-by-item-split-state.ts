@@ -6,6 +6,8 @@
  * Does not use staff committed/draft dual-layer (that is staff-only).
  * Submit still goes through buildSplitPersonsFromAllocations → same bill wire as staff.
  * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on every write.
+ * Sync: sole {@link reconcileGuestByItemAllocations} — locked from server, unpaid local kept,
+ * new lines only append defaults (never wipe local edits when lineSpecs expand).
  */
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import {
@@ -25,6 +27,7 @@ import {
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
+import { reconcileGuestByItemAllocations } from '@/lib/guest-by-item-reconcile';
 import type { BillSplit, SplitMode } from '@/types';
 
 export function useGuestByItemSplitState(params: {
@@ -44,7 +47,7 @@ export function useGuestByItemSplitState(params: {
   } = params;
 
   const [byItemAllocations, setByItemAllocationsState] = useState<Record<string, ByItemConsumerRow[]>>({});
-  const hydratedSplitKeyRef = useRef<string | null>(null);
+  const reconciledKeyRef = useRef<string | null>(null);
 
   const paidLocks = useMemo(
     () =>
@@ -76,32 +79,41 @@ export function useGuestByItemSplitState(params: {
 
   useLayoutEffect(() => {
     if (!enabled || splitMode !== 'by_item') return;
-    setByItemAllocationsState((prev) => {
-      const withDefaults = withDefaultByItemLineRows(prev, lineSpecs);
-      const next = normalizeByItemDraftPartyIds(withDefaults, lockedTicketKeys);
-      return next === prev ? prev : next;
-    });
-  }, [enabled, splitMode, lineSpecs, lockedTicketKeys]);
 
-  useLayoutEffect(() => {
-    if (!enabled || splitMode !== 'by_item' || !existingSplit?.persons?.length) return;
-    // Wait for lineSpecs — hydrating with [] stamps the split id and skips the real restore.
+    if (!existingSplit?.persons?.length) {
+      const emptyKey = `empty:${lineSpecs.map((spec) => spec.key).join('|')}`;
+      if (reconciledKeyRef.current === emptyKey) return;
+      reconciledKeyRef.current = emptyKey;
+      setByItemAllocationsState((prev) => {
+        const next = normalizeByItemDraftPartyIds(
+          withDefaultByItemLineRows(prev, lineSpecs),
+          lockedTicketKeys,
+        );
+        return next === prev ? prev : next;
+      });
+      return;
+    }
+
     if (lineSpecs.length === 0) return;
+
     const personsSig = JSON.stringify(existingSplit.persons);
     const lockSig = `${paidLocks.menu.size}:${paidLocks.buffet.size}`;
-    const hydrateKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}:${personsSig}:${lockSig}`;
-    if (hydratedSplitKeyRef.current === hydrateKey) return;
-    hydratedSplitKeyRef.current = hydrateKey;
-    const hydrated = buildByItemConsumerRowsFromPersons(
+    const reconcileKey = `${existingSplit.id}:${lineSpecs.map((spec) => spec.key).join('|')}:${personsSig}:${lockSig}`;
+    if (reconciledKeyRef.current === reconcileKey) return;
+    reconciledKeyRef.current = reconcileKey;
+
+    const serverRows = buildByItemConsumerRowsFromPersons(
       existingSplit.persons,
       lineSpecs,
       paidLocks,
     );
-    setByItemAllocationsState(
-      normalizeByItemDraftPartyIds(
-        withDefaultByItemLineRows(hydrated, lineSpecs),
+    setByItemAllocationsState((prev) =>
+      reconcileGuestByItemAllocations({
+        prev,
+        serverRows,
+        lineSpecs,
         lockedTicketKeys,
-      ),
+      }),
     );
   }, [enabled, splitMode, lineSpecs, existingSplit, paidLocks, lockedTicketKeys]);
 

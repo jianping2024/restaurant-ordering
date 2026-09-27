@@ -5,14 +5,14 @@
  * Dish-row model: unnamed payer slots + add-consumer must persist in working map.
  * Does not use staff committed/draft dual-layer (that is staff-only).
  * Submit still goes through buildSplitPersonsFromAllocations → same bill wire as staff.
- * Unpaid same-name tickets: sole heal {@link coalesceUnpaidSameNamePartyIds} on every write.
+ * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on every write.
  */
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import {
   buildByItemAllocationsFromRows,
   buildSplitPersonsFromAllocations,
-  coalesceUnpaidSameNamePartyIds,
   countByItemAllocationProgress,
+  normalizeByItemDraftPartyIds,
   withDefaultByItemLineRows,
   type ByItemConsumerRow,
   type ByItemLineAllocation,
@@ -68,7 +68,7 @@ export function useGuestByItemSplitState(params: {
       if (!enabled) return;
       setByItemAllocationsState((prev) => {
         const raw = typeof update === 'function' ? update(prev) : update;
-        return coalesceUnpaidSameNamePartyIds(raw, lockedTicketKeysRef.current);
+        return normalizeByItemDraftPartyIds(raw, lockedTicketKeysRef.current);
       });
     },
     [enabled],
@@ -78,7 +78,7 @@ export function useGuestByItemSplitState(params: {
     if (!enabled || splitMode !== 'by_item') return;
     setByItemAllocationsState((prev) => {
       const withDefaults = withDefaultByItemLineRows(prev, lineSpecs);
-      const next = coalesceUnpaidSameNamePartyIds(withDefaults, lockedTicketKeys);
+      const next = normalizeByItemDraftPartyIds(withDefaults, lockedTicketKeys);
       return next === prev ? prev : next;
     });
   }, [enabled, splitMode, lineSpecs, lockedTicketKeys]);
@@ -98,7 +98,7 @@ export function useGuestByItemSplitState(params: {
       paidLocks,
     );
     setByItemAllocationsState(
-      coalesceUnpaidSameNamePartyIds(
+      normalizeByItemDraftPartyIds(
         withDefaultByItemLineRows(hydrated, lineSpecs),
         lockedTicketKeys,
       ),

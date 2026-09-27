@@ -5,6 +5,7 @@ import {
   applyCustomAmountEdit,
   customAmountRowsEqual,
   ensureCustomRemainderRoster,
+  mintNextCustomGuestName,
   seedCustomSoloFullAmount,
 } from '@/lib/bill-split-custom-amounts';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
@@ -251,7 +252,11 @@ export function useBillSplitDraft(params: {
         const restored = customAmountsFromNames(names, draft.customAmounts);
         // Heal solo under-total drafts (e.g. amount edited before remainder append landed).
         setCustomAmounts(
-          ensureCustomRemainderRoster(restored, total, guestName(restored.length + 1)),
+          ensureCustomRemainderRoster(
+            restored,
+            total,
+            mintNextCustomGuestName(restored, guestName),
+          ),
         );
       } else {
         setPersonCount(splitDraftPersonCount('even', draft.personCount));
@@ -360,7 +365,7 @@ export function useBillSplitDraft(params: {
       const healed = ensureCustomRemainderRoster(
         prev,
         total,
-        guestName(prev.length + 1),
+        mintNextCustomGuestName(prev, guestName),
       );
       if (customAmountRowsEqual(prev, healed)) return prev;
       const names = healed.map((row) => row.name);
@@ -592,7 +597,7 @@ export function useBillSplitDraft(params: {
           index,
           rawValue,
           total,
-          nextGuestName: guestName(prev.length + 1),
+          nextGuestName: mintNextCustomGuestName(prev, guestName),
         });
         if (next.length !== prev.length) {
           const names = next.map((row) => row.name);
@@ -655,8 +660,13 @@ export function useBillSplitDraft(params: {
   const removeCustomPerson = useCallback((index: number) => {
     setCustomAmounts((prev) => {
       if (prev.length <= 1 || index < 0 || index >= prev.length) return prev;
-      const nextAmounts = prev.filter((_, rowIndex) => rowIndex !== index);
-      const names = nextAmounts.map((row) => row.name);
+      const filtered = prev.filter((_, rowIndex) => rowIndex !== index);
+      const healed = ensureCustomRemainderRoster(
+        filtered,
+        total,
+        mintNextCustomGuestName(filtered, guestName),
+      );
+      const names = healed.map((row) => row.name);
       setSplitPeople((peoplePrev) =>
         slotsFromNames(
           names,
@@ -664,9 +674,9 @@ export function useBillSplitDraft(params: {
         ),
       );
       setPersonCount(splitDraftPersonCount('custom', names.length));
-      return nextAmounts;
+      return healed;
     });
-  }, []);
+  }, [total, guestName]);
 
   const addCustomPerson = useCallback(() => {
     setCustomAmounts((prev) => {

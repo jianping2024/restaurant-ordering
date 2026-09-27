@@ -548,6 +548,7 @@ export function BillPage({
           people: t.people,
           splitResult: t.splitResult,
           addPerson: t.addPerson,
+          removePerson: t.removePerson,
           splitPaid: t.splitPaid,
           splitPartialPaid: t.splitPartialPaid,
           splitAmountBreakdown: t.splitAmountBreakdown,
@@ -598,6 +599,7 @@ export function BillPage({
           splitDraft.setEditingCustomAmountValue('');
         }}
         onAddCustomPerson={splitDraft.addCustomPerson}
+        onRemoveCustomPerson={splitDraft.removeCustomPerson}
       />
 
       {!submitted ? (

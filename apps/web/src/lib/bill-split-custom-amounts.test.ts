@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   applyCustomAmountEdit,
   ensureCustomRemainderRoster,
+  mintNextCustomGuestName,
   seedCustomSoloFullAmount,
 } from './bill-split-custom-amounts';
 
@@ -37,6 +38,15 @@ describe('ensureCustomRemainderRoster', () => {
     assert.deepEqual(
       ensureCustomRemainderRoster([{ name: 'Guest 1', amount: 0 }], 39.9, 'Guest 2'),
       [{ name: 'Guest 1', amount: 39.9 }],
+    );
+  });
+});
+
+describe('mintNextCustomGuestName', () => {
+  it('skips labels already on the roster', () => {
+    assert.equal(
+      mintNextCustomGuestName([{ name: 'Guest 2' }], (n) => `Guest ${n}`),
+      'Guest 1',
     );
   });
 });

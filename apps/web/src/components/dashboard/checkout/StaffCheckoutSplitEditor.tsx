@@ -634,6 +634,7 @@ export function StaffCheckoutSplitEditor({
           people: billT.people,
           splitResult: billT.splitResult,
           addPerson: billT.addPerson,
+          removePerson: billT.removePerson,
           splitPaid: billT.splitPaid,
           splitPartialPaid: billT.splitPartialPaid,
           splitAmountBreakdown: billT.splitAmountBreakdown,
@@ -684,6 +685,7 @@ export function StaffCheckoutSplitEditor({
           splitDraft.setEditingCustomAmountValue('');
         }}
         onAddCustomPerson={splitDraft.addCustomPerson}
+        onRemoveCustomPerson={splitDraft.removeCustomPerson}
         staffRowActions={
           splitDraft.splitMode === 'even' || splitDraft.splitMode === 'custom'
             ? {
@@ -706,7 +708,6 @@ export function StaffCheckoutSplitEditor({
                     row.amount,
                   );
                 },
-                onRemoveCustom: splitDraft.removeCustomPerson,
               }
             : undefined
         }

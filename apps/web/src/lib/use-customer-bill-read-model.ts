@@ -27,6 +27,7 @@ export function useCustomerBillReadModel(
     partyMemberCount?: number;
     existingSplit: BillSplit | null;
     collectedPayments: SessionCollectedPayment[];
+    sessionId: string | null;
     sessionStatus: SessionStatus;
   },
   params: {
@@ -43,6 +44,7 @@ export function useCustomerBillReadModel(
   );
   const [existingSplit, setExistingSplit] = useState<BillSplit | null>(initial.existingSplit);
   const [collectedPayments, setCollectedPayments] = useState(initial.collectedPayments);
+  const [sessionId, setSessionId] = useState<string | null>(initial.sessionId);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>(initial.sessionStatus);
   const [submitted, setSubmitted] = useState(() =>
     shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
@@ -68,13 +70,19 @@ export function useCustomerBillReadModel(
   useEffect(() => {
     setExistingSplit(initial.existingSplit);
     setCollectedPayments(initial.collectedPayments);
+    setSessionId(initial.sessionId);
     setSessionStatus(initial.sessionStatus);
     if (!callBillBusyRef.current) {
       setSubmitted(
         shouldShowCheckoutSubmitted(initial.existingSplit, initial.sessionStatus),
       );
     }
-  }, [initial.existingSplit, initial.collectedPayments, initial.sessionStatus]);
+  }, [
+    initial.existingSplit,
+    initial.collectedPayments,
+    initial.sessionId,
+    initial.sessionStatus,
+  ]);
 
   const { orderLines, splitOrderLines, lineSpecs, total } = useMemo(
     () => deriveBillView(orders),
@@ -87,6 +95,7 @@ export function useCustomerBillReadModel(
       setPartyMemberCount(synced.partyMemberCount);
       setExistingSplit(synced.existingSplit);
       setCollectedPayments(synced.collectedPayments);
+      setSessionId(synced.sessionId);
       if (synced.sessionStatus) setSessionStatus(synced.sessionStatus);
       if (!callBillBusyRef.current) {
         setSubmitted(
@@ -151,6 +160,7 @@ export function useCustomerBillReadModel(
     partyMemberCount,
     existingSplit,
     collectedPayments,
+    sessionId,
     sessionStatus,
     submitted,
     orderLines,

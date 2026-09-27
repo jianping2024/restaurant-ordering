@@ -103,6 +103,7 @@ export function BillPage({
     partyMemberCount,
     existingSplit: liveSplit,
     collectedPayments,
+    sessionId: liveSessionId,
     submitted,
     orderLines,
     splitOrderLines,
@@ -119,6 +120,7 @@ export function BillPage({
       partyMemberCount: initialPartyMemberCount,
       existingSplit,
       collectedPayments: initialCollectedPayments,
+      sessionId,
       sessionStatus,
     },
     {
@@ -127,6 +129,9 @@ export function BillPage({
       enabled: true,
     },
   );
+
+  /** Live session from bill sync — never keep SSR session id after table reopen. */
+  const activeSessionId = liveSessionId ?? sessionId;
 
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
     initialPersistedSplitResult(
@@ -139,7 +144,12 @@ export function BillPage({
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(initialFeedbackSubmitted);
   const [feedbackSkipped, setFeedbackSkipped] = useState(initialFeedbackSkipped);
   const [feedbackHydrating, setFeedbackHydrating] = useState(
-    () => !!existingSplit && !!sessionId && !staffAssisted?.skipFeedback && !initialFeedbackSubmitted && !initialFeedbackSkipped,
+    () =>
+      !!existingSplit &&
+      !!activeSessionId &&
+      !staffAssisted?.skipFeedback &&
+      !initialFeedbackSubmitted &&
+      !initialFeedbackSkipped,
   );
   const [customerNifInput, setCustomerNifInput] = useState('');
   const [callBillBusy, setCallBillBusyState] = useState(false);
@@ -162,7 +172,7 @@ export function BillPage({
 
   const splitDraft = useBillSplitDraft({
     restaurantId: restaurant.id,
-    sessionId,
+    sessionId: activeSessionId,
     existingSplit: liveSplit,
     continuationSplit: liveSplit,
     collectedPayments,
@@ -181,7 +191,7 @@ export function BillPage({
     restaurant,
     tableId,
     displayName,
-    sessionId,
+    sessionId: activeSessionId,
     orders,
     partyMemberCount,
     lastSyncedAt,
@@ -329,7 +339,7 @@ export function BillPage({
   const selectedFeedbackCount = Object.values(feedbackDraft).filter((entry) => !!entry.vote).length;
 
   useEffect(() => {
-    if (!submitted || !sessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) {
+    if (!submitted || !activeSessionId || staffAssisted?.skipFeedback || initialFeedbackSubmitted || initialFeedbackSkipped) {
       return;
     }
     setFeedbackHydrating(true);
@@ -365,7 +375,7 @@ export function BillPage({
     void syncFeedbackState().finally(() => setFeedbackHydrating(false));
   }, [
     submitted,
-    sessionId,
+    activeSessionId,
     restaurant.slug,
     tableId,
     staffAssisted,
@@ -403,7 +413,7 @@ export function BillPage({
   };
 
   const handleSkipFeedback = async () => {
-    if (!sessionId || feedbackSkipped || feedbackSubmitting) return;
+    if (!activeSessionId || feedbackSkipped || feedbackSubmitting) return;
     setFeedbackSubmitting(true);
     try {
       const res = await fetch(
@@ -425,7 +435,7 @@ export function BillPage({
   };
 
   const handleSubmitFeedback = async () => {
-    if (!sessionId || selectedFeedbackCount === 0) return;
+    if (!activeSessionId || selectedFeedbackCount === 0) return;
     setFeedbackSubmitting(true);
     try {
       const payload = reviewableItems
@@ -652,7 +662,7 @@ export function BillPage({
             loading={isCallBillBusy}
             disabled={
               orderLines.length === 0
-              || !sessionId
+              || !activeSessionId
               || isCallBillBusy
               || !guestCountConfirmed
               || !partyCheckoutAllowed

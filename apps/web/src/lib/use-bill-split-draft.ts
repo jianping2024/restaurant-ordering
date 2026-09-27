@@ -20,8 +20,10 @@ import {
   withDefaultByItemLineRows,
 } from '@/lib/bill-split-by-item';
 import {
+  billSplitLocalDraftOwnerKey,
   clearBillSplitLocalDraft,
   loadBillSplitLocalDraft,
+  mayPersistBillSplitLocalDraft,
   saveBillSplitLocalDraft,
   shouldRestoreBillSplitLocalDraft,
   type BillSplitLocalDraft,
@@ -208,35 +210,32 @@ export function useBillSplitDraft(params: {
     value: editingCustomAmountValue,
   };
 
+  /** Which session's local draft was applied into memory — sole gate for persist. */
+  const hydratedOwnerKeyRef = useRef<string | null>(null);
   const loadedLocalDraftRef = useRef<BillSplitLocalDraft | null | undefined>(undefined);
   const byItemLocalAppliedRef = useRef(false);
 
-  useLayoutEffect(() => {
-    if (loadedLocalDraftRef.current !== undefined) {
-      setStorageReady(true);
-      return;
+  const applyServerSeedToMemory = useCallback(() => {
+    const seed = continuationSplit ?? existingSplit;
+    const mode = resolvePersistedSplitModeForDraft(existingSplit);
+    setSplitMode(mode);
+    if (existingSplit?.split_mode === 'custom') {
+      setPersonCount(initialCustomPersonCount(seed, guestName));
+    } else if (existingSplit?.split_mode === 'even') {
+      setPersonCount(initialEvenPersonCount(seed, guestName));
+    } else {
+      setPersonCount(splitDraftPersonCount('even'));
     }
-    if (!sessionId) {
-      loadedLocalDraftRef.current = null;
-      setStorageReady(true);
-      return;
-    }
+    setSplitPeople(initialSplitPeople(seed, guestName));
+    setCustomAmounts(initialCustomAmounts(seed, guestName, total));
+    setEditingSplitNameIndex(null);
+    setEditingSplitNameValue('');
+    setEditingCustomAmountIndex(null);
+    setEditingCustomAmountValue('');
+  }, [continuationSplit, existingSplit, guestName, total]);
 
-    const canRestore = shouldRestoreBillSplitLocalDraft({
-      existingSplit,
-      submitted,
-      collectedPaymentCount: collectedPayments.length,
-    });
-    if (!canRestore) {
-      clearBillSplitLocalDraft(restaurantId, sessionId);
-      loadedLocalDraftRef.current = null;
-      setStorageReady(true);
-      return;
-    }
-
-    const draft = loadBillSplitLocalDraft(restaurantId, sessionId);
-    loadedLocalDraftRef.current = draft;
-    if (draft) {
+  const applyLocalDraftToMemory = useCallback(
+    (draft: BillSplitLocalDraft) => {
       setSplitMode(draft.splitMode);
       if (draft.splitMode === 'even') {
         const count = splitDraftPersonCount('even', draft.personCount);
@@ -272,12 +271,84 @@ export function useBillSplitDraft(params: {
             guestName,
           );
           setSplitPeople(slotsFromNames(names, draft.splitPeople));
+        } else {
+          setSplitPeople(initialSplitPeople(null, guestName));
         }
-        if (draft.customAmounts.length > 0) setCustomAmounts(draft.customAmounts);
+        if (draft.customAmounts.length > 0) {
+          setCustomAmounts(draft.customAmounts);
+        } else {
+          setCustomAmounts(initialCustomAmounts(null, guestName, total));
+        }
       }
+      setEditingSplitNameIndex(null);
+      setEditingSplitNameValue('');
+      setEditingCustomAmountIndex(null);
+      setEditingCustomAmountValue('');
+    },
+    [guestName, total],
+  );
+
+  useLayoutEffect(() => {
+    if (!sessionId) {
+      hydratedOwnerKeyRef.current = null;
+      loadedLocalDraftRef.current = null;
+      byItemLocalAppliedRef.current = false;
+      setStorageReady(true);
+      return;
+    }
+
+    const ownerKey = billSplitLocalDraftOwnerKey(restaurantId, sessionId);
+    const alreadyHydratedThisSession =
+      hydratedOwnerKeyRef.current === ownerKey && loadedLocalDraftRef.current !== undefined;
+
+    const canRestore = shouldRestoreBillSplitLocalDraft({
+      existingSplit,
+      submitted,
+      collectedPaymentCount: collectedPayments.length,
+    });
+
+    if (alreadyHydratedThisSession) {
+      if (!canRestore) {
+        clearBillSplitLocalDraft(restaurantId, sessionId);
+      }
+      setStorageReady(true);
+      return;
+    }
+
+    // New open-session (or first mount): never keep the previous session's roster in memory.
+    setStorageReady(false);
+    byItemLocalAppliedRef.current = false;
+    hydratedOwnerKeyRef.current = ownerKey;
+
+    if (!canRestore) {
+      clearBillSplitLocalDraft(restaurantId, sessionId);
+      loadedLocalDraftRef.current = null;
+      applyServerSeedToMemory();
+      setStorageReady(true);
+      return;
+    }
+
+    const draft = loadBillSplitLocalDraft(restaurantId, sessionId);
+    loadedLocalDraftRef.current = draft;
+    if (draft) {
+      applyLocalDraftToMemory(draft);
+    } else {
+      applyServerSeedToMemory();
     }
     setStorageReady(true);
-  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length, guestName, total]);
+  }, [
+    restaurantId,
+    sessionId,
+    existingSplit,
+    submitted,
+    collectedPayments.length,
+    applyServerSeedToMemory,
+    applyLocalDraftToMemory,
+  ]);
+
+  const draftOwnerKey = sessionId
+    ? billSplitLocalDraftOwnerKey(restaurantId, sessionId)
+    : null;
 
   // Both hooks always called (Rules of Hooks); only the selected editor is active.
   const guestByItem = useGuestByItemSplitState({
@@ -286,6 +357,7 @@ export function useBillSplitDraft(params: {
     existingSplit: continuationSplit,
     collectedPayments,
     enabled: byItemEditor === 'guest',
+    draftOwnerKey,
   });
   const staffByItem = useByItemSplitState({
     splitMode,
@@ -293,6 +365,7 @@ export function useBillSplitDraft(params: {
     existingSplit: continuationSplit,
     collectedPayments,
     enabled: byItemEditor === 'staff',
+    draftOwnerKey,
   });
   const {
     byItemAllocations,
@@ -306,26 +379,37 @@ export function useBillSplitDraft(params: {
   } = byItemEditor === 'guest' ? guestByItem : staffByItem;
 
   useLayoutEffect(() => {
+    if (!sessionId || !storageReady || byItemLocalAppliedRef.current) return;
+
     const draft = loadedLocalDraftRef.current;
-    if (!draft || draft.splitMode !== 'by_item' || byItemLocalAppliedRef.current) return;
+    const canRestore = shouldRestoreBillSplitLocalDraft({
+      existingSplit,
+      submitted,
+      collectedPaymentCount: collectedPayments.length,
+    });
+
     // Paid/continuation persons are authoritative — never let a stale local draft wipe them.
     if (
-      !shouldRestoreBillSplitLocalDraft({
-        existingSplit,
-        submitted,
-        collectedPaymentCount: collectedPayments.length,
-      })
+      !canRestore ||
+      existingSplit?.persons?.some((person) => (person.item_shares?.length ?? 0) > 0)
     ) {
       byItemLocalAppliedRef.current = true;
+      setByItemAllocations({});
       return;
     }
-    if (existingSplit?.persons?.some((person) => (person.item_shares?.length ?? 0) > 0)) {
+
+    if (draft?.splitMode === 'by_item') {
       byItemLocalAppliedRef.current = true;
+      setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
       return;
     }
+
+    // No by_item draft for this session — drop any leftover rows before persist can save them.
     byItemLocalAppliedRef.current = true;
-    setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
+    setByItemAllocations({});
   }, [
+    sessionId,
+    storageReady,
     lineSpecs,
     setByItemAllocations,
     existingSplit,
@@ -368,6 +452,15 @@ export function useBillSplitDraft(params: {
   useEffect(() => {
     if (!storageReady || !sessionId || submitted) return;
     if (
+      !mayPersistBillSplitLocalDraft({
+        hydratedOwnerKey: hydratedOwnerKeyRef.current,
+        restaurantId,
+        sessionId,
+      })
+    ) {
+      return;
+    }
+    if (
       !shouldRestoreBillSplitLocalDraft({
         existingSplit,
         submitted,
@@ -376,7 +469,19 @@ export function useBillSplitDraft(params: {
     ) {
       return;
     }
+    const ownerKey = billSplitLocalDraftOwnerKey(restaurantId, sessionId);
     const timer = window.setTimeout(() => {
+      // Re-check after debounce — session may have changed while the timer was armed.
+      if (
+        !mayPersistBillSplitLocalDraft({
+          hydratedOwnerKey: hydratedOwnerKeyRef.current,
+          restaurantId,
+          sessionId,
+        })
+      ) {
+        return;
+      }
+      if (hydratedOwnerKeyRef.current !== ownerKey) return;
       saveBillSplitLocalDraft(restaurantId, sessionId, {
         splitMode,
         personCount,

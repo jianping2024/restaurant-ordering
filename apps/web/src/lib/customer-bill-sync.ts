@@ -45,6 +45,8 @@ export type CustomerBillSyncSnapshot = {
   partyMemberCount: number;
   existingSplit: BillSplit | null;
   collectedPayments: SessionCollectedPayment[];
+  /** Live open-session id — sole owner key for bill-split local draft hydrate/persist. */
+  sessionId: string | null;
   sessionStatus: SessionStatus | null;
   orderLines: ReturnType<typeof deriveBillView>['orderLines'];
   splitOrderLines: ReturnType<typeof deriveBillView>['splitOrderLines'];
@@ -68,11 +70,16 @@ export async function syncCustomerBill(
       ? Math.max(0, Math.trunc(data.party_member_count))
       : 0;
   const sessionStatus = (data.active_session?.status as SessionStatus | undefined) ?? null;
+  const sessionId =
+    typeof data.active_session?.id === 'string' && data.active_session.id.trim()
+      ? data.active_session.id
+      : null;
   return {
     orders,
     partyMemberCount,
     existingSplit: data.existing_split ?? null,
     collectedPayments: data.collected_payments ?? [],
+    sessionId,
     sessionStatus,
     ...deriveBillView(orders),
   };

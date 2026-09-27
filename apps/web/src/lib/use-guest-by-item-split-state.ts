@@ -37,6 +37,11 @@ export function useGuestByItemSplitState(params: {
   collectedPayments?: SessionCollectedPayment[];
   /** When false (staff draft page), skip all guest editor work. */
   enabled?: boolean;
+  /**
+   * Sole session-isolation key for this working map.
+   * When it changes, wipe rows + reconcile fingerprint — never keep prior session's Alice/Bob.
+   */
+  draftOwnerKey?: string | null;
 }) {
   const {
     splitMode,
@@ -44,10 +49,16 @@ export function useGuestByItemSplitState(params: {
     existingSplit,
     collectedPayments = [],
     enabled = true,
+    draftOwnerKey = null,
   } = params;
 
   const [byItemAllocations, setByItemAllocationsState] = useState<Record<string, ByItemConsumerRow[]>>({});
   const reconciledKeyRef = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    reconciledKeyRef.current = null;
+    setByItemAllocationsState({});
+  }, [draftOwnerKey]);
 
   const paidLocks = useMemo(
     () =>

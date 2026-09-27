@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  billSplitLocalDraftOwnerKey,
+  mayPersistBillSplitLocalDraft,
   parseBillSplitLocalDraft,
   shouldRestoreBillSplitLocalDraft,
 } from './bill-split-local-draft';
@@ -56,6 +58,36 @@ describe('parseBillSplitLocalDraft', () => {
         }),
       ),
       null,
+    );
+  });
+});
+
+describe('mayPersistBillSplitLocalDraft', () => {
+  it('allows save only for the hydrated session owner key', () => {
+    const owner = billSplitLocalDraftOwnerKey('r1', 's-new');
+    assert.equal(
+      mayPersistBillSplitLocalDraft({
+        hydratedOwnerKey: owner,
+        restaurantId: 'r1',
+        sessionId: 's-new',
+      }),
+      true,
+    );
+    assert.equal(
+      mayPersistBillSplitLocalDraft({
+        hydratedOwnerKey: billSplitLocalDraftOwnerKey('r1', 's-old'),
+        restaurantId: 'r1',
+        sessionId: 's-new',
+      }),
+      false,
+    );
+    assert.equal(
+      mayPersistBillSplitLocalDraft({
+        hydratedOwnerKey: null,
+        restaurantId: 'r1',
+        sessionId: 's-new',
+      }),
+      false,
     );
   });
 });

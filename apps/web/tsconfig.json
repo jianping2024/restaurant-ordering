@@ -42,7 +42,8 @@
     ".next-uat-ensure/types/**/*.ts",
     ".next-uat-amount-type/types/**/*.ts",
     ".next-uat-kb-chrome/types/**/*.ts",
-    ".next-uat-kb-stay/types/**/*.ts"
+    ".next-uat-kb-stay/types/**/*.ts",
+    ".next-uat-draft-iso/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

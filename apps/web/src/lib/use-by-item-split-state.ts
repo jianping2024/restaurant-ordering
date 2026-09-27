@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -51,6 +52,11 @@ export function useByItemSplitState(params: {
   collectedPayments?: SessionCollectedPayment[];
   /** When false (guest bill page), skip staff dual-layer work. Default true. */
   enabled?: boolean;
+  /**
+   * Sole session-isolation key for unpaid draft rows.
+   * When it changes, wipe draft — never keep prior session's shares in the new session key.
+   */
+  draftOwnerKey?: string | null;
 }) {
   const {
     splitMode,
@@ -58,9 +64,14 @@ export function useByItemSplitState(params: {
     existingSplit,
     collectedPayments = [],
     enabled = true,
+    draftOwnerKey = null,
   } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
+
+  useLayoutEffect(() => {
+    setDraftAllocations({});
+  }, [draftOwnerKey]);
 
   const paidLocks = useMemo(
     () =>

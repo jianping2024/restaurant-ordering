@@ -29,6 +29,28 @@ export function billSplitLocalDraftStorageKey(restaurantId: string, sessionId: s
   return `${KEY_PREFIX}${restaurantId}:${sessionId}`;
 }
 
+/** Sole in-memory owner id for hydrate/persist — one restaurant + one open session. */
+export function billSplitLocalDraftOwnerKey(restaurantId: string, sessionId: string): string {
+  return `${restaurantId}:${sessionId}`;
+}
+
+/**
+ * Persist only after this exact session was hydrated.
+ * Prevents writing the previous session's roster into a newly opened session key.
+ */
+export function mayPersistBillSplitLocalDraft(params: {
+  hydratedOwnerKey: string | null;
+  restaurantId: string;
+  sessionId: string | null;
+}): boolean {
+  if (!params.sessionId) return false;
+  if (!params.hydratedOwnerKey) return false;
+  return (
+    params.hydratedOwnerKey ===
+    billSplitLocalDraftOwnerKey(params.restaurantId, params.sessionId)
+  );
+}
+
 function isSplitMode(value: unknown): value is SplitMode | null {
   return value === null || value === 'even' || value === 'by_item' || value === 'custom';
 }

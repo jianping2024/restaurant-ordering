@@ -35,17 +35,25 @@ import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
 import type { BillSplit, SplitMode } from '@/types';
 
 /**
- * Sole by-item UI state: locked committed (persons) + unpaid draft (local only).
- * Display map is the merge; setByItemAllocations writes draft only.
- * Unlocked persons seed draft once per split id — never live in committed.
+ * Sole *staff* checkout by-item editing state (person rail / pool).
+ * Locked committed + unpaid named draft dual-layer — guest phone must not use this hook
+ * (guest sole editor: useGuestByItemSplitState). Submit wire is still buildSplitPersonsFromAllocations.
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
   lineSpecs: ByItemLineSpec[];
   existingSplit: BillSplit | null;
   collectedPayments?: SessionCollectedPayment[];
+  /** When false (guest bill page), skip staff dual-layer work. Default true. */
+  enabled?: boolean;
 }) {
-  const { splitMode, lineSpecs, existingSplit, collectedPayments = [] } = params;
+  const {
+    splitMode,
+    lineSpecs,
+    existingSplit,
+    collectedPayments = [],
+    enabled = true,
+  } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
   const seededSplitIdRef = useRef<string | null>(null);
@@ -67,7 +75,7 @@ export function useByItemSplitState(params: {
 
   /** Persons hydrate → locked rows only. Realtime may rebuild; never touches draft. */
   const committedAllocations = useMemo(() => {
-    if (splitMode !== 'by_item') return {};
+    if (!enabled || splitMode !== 'by_item') return {};
     if (!existingSplit?.persons?.length || lineSpecs.length === 0) return {};
     const fromPersons = buildByItemConsumerRowsFromPersons(
       existingSplit.persons,
@@ -75,7 +83,7 @@ export function useByItemSplitState(params: {
       paidLocks,
     );
     return extractByItemLockedAllocations(fromPersons, lockedTicketKeys);
-  }, [splitMode, existingSplit, lineSpecs, paidLocks, lockedTicketKeys]);
+  }, [enabled, splitMode, existingSplit, lineSpecs, paidLocks, lockedTicketKeys]);
 
   const committedRef = useRef(committedAllocations);
   committedRef.current = committedAllocations;
@@ -87,7 +95,7 @@ export function useByItemSplitState(params: {
    * when this split has no named draft yet (continuation / remount).
    */
   useLayoutEffect(() => {
-    if (splitMode !== 'by_item') {
+    if (!enabled || splitMode !== 'by_item') {
       seededSplitIdRef.current = null;
       return;
     }
@@ -114,10 +122,10 @@ export function useByItemSplitState(params: {
 
       return pruned === prev ? prev : pruned;
     });
-  }, [splitMode, lockedTicketKeys, lineSpecs, existingSplit, paidLocks]);
+  }, [enabled, splitMode, lockedTicketKeys, lineSpecs, existingSplit, paidLocks]);
 
   const byItemAllocations = useMemo(() => {
-    if (splitMode !== 'by_item') return {};
+    if (!enabled || splitMode !== 'by_item') return {};
     return withDefaultByItemLineRows(
       mergeByItemCommittedAndDraft(
         committedAllocations,
@@ -127,6 +135,7 @@ export function useByItemSplitState(params: {
       lineSpecs,
     );
   }, [
+    enabled,
     splitMode,
     committedAllocations,
     draftAllocations,
@@ -136,6 +145,7 @@ export function useByItemSplitState(params: {
 
   const setByItemAllocations = useCallback(
     (update: SetStateAction<Record<string, ByItemConsumerRow[]>>) => {
+      if (!enabled) return;
       setDraftAllocations((prevDraft) => {
         const prevMerged = withDefaultByItemLineRows(
           mergeByItemCommittedAndDraft(
@@ -150,7 +160,7 @@ export function useByItemSplitState(params: {
         return extractByItemDraftAllocations(nextMerged, lockedKeysRef.current);
       });
     },
-    [lineSpecs],
+    [enabled, lineSpecs],
   );
 
   const consumerRoster = useMemo(

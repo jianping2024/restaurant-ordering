@@ -160,6 +160,7 @@ export function StaffCheckoutSplitEditor({
     submitted: false,
     persistedResult: null,
     submitting,
+    byItemEditor: 'staff',
   });
 
   const byItemAllocatorLabels = useMemo(

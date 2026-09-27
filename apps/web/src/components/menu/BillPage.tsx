@@ -152,6 +152,7 @@ export function BillPage({
     submitted,
     persistedResult,
     submitting: callBillBusy,
+    byItemEditor: 'guest',
   });
 
   const { isCallBillBusy, submitCallBill } = useCheckoutRequestSubmit({

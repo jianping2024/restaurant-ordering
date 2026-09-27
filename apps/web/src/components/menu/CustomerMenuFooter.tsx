@@ -3,13 +3,16 @@ import Link from 'next/link';
 import { CustomerCartIcon, CustomerOrderedBagIcon } from '@/components/menu/customer-ordering-icons';
 import {
   customerMenuBottomBarActionSlotClass,
+  customerMenuBottomBarCountBadgeClass,
   customerMenuBottomBarDisabledActionClass,
   customerMenuBottomBarDockClass,
+  customerMenuBottomBarDockInnerClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
   customerMenuBottomBarPrimaryActionClass,
   customerMenuBottomBarRowClass,
   customerMenuBottomBarSummarySlotClass,
+  formatCustomerMenuFooterBadgeCount,
 } from '@/lib/customer-menu-bottom-bar-layout';
 import { CUSTOMER_CART_ADD_FEEDBACK_CLASS } from '@/lib/customer-cart-add-feedback';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
@@ -37,11 +40,18 @@ type Props = MenuPageFooterView & {
 
 function FooterAmount({ totalLabel, amount }: { totalLabel: string; amount: number }) {
   return (
-    <span className="flex shrink-0 items-baseline gap-1">
+    <span className="flex min-w-0 shrink items-baseline gap-1">
       <span className={CUSTOMER_MENU_TYPE.footerAmountLabel}>{totalLabel}</span>
-      <span className={CUSTOMER_MENU_TYPE.moneyAmount}>€{amount.toFixed(2)}</span>
+      <span className={`${CUSTOMER_MENU_TYPE.moneyAmount} truncate`}>€{amount.toFixed(2)}</span>
     </span>
   );
+}
+
+/** Sole qty badge on footer icons — count via {@link formatCustomerMenuFooterBadgeCount}. */
+function FooterIconCountBadge({ count }: { count: number }) {
+  const label = formatCustomerMenuFooterBadgeCount(count);
+  if (!label) return null;
+  return <span className={customerMenuBottomBarCountBadgeClass}>{label}</span>;
 }
 
 function FooterBarShell({
@@ -53,9 +63,11 @@ function FooterBarShell({
 }) {
   return (
     <div className={customerMenuBottomBarDockClass}>
-      <div className={customerMenuBottomBarRowClass}>
-        <div className={customerMenuBottomBarSummarySlotClass}>{summary}</div>
-        {action ? <div className={customerMenuBottomBarActionSlotClass}>{action}</div> : null}
+      <div className={customerMenuBottomBarDockInnerClass}>
+        <div className={customerMenuBottomBarRowClass}>
+          <div className={customerMenuBottomBarSummarySlotClass}>{summary}</div>
+          {action ? <div className={customerMenuBottomBarActionSlotClass}>{action}</div> : null}
+        </div>
       </div>
     </div>
   );
@@ -91,11 +103,7 @@ function DraftSummary({
         }`}
       >
         <CustomerCartIcon className={customerMenuBottomBarIconClass} />
-        {cartQty > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold">
-            {cartQty}
-          </span>
-        ) : null}
+        <FooterIconCountBadge count={cartQty} />
       </span>
       {cartQty > 0 ? (
         <FooterAmount totalLabel={totalLabel} amount={cartTotal} />
@@ -107,21 +115,26 @@ function DraftSummary({
 }
 
 function OrderedSummary({
+  submittedCount,
   submittedTotal,
   totalLabel,
   orderedCountLabel,
 }: {
+  submittedCount: number;
   submittedTotal: number;
   totalLabel: string;
   orderedCountLabel: string;
 }) {
   return (
-    <div className={`flex min-w-0 flex-1 items-center ${customerMenuBottomBarIconGapClass}`}>
-      <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <span className={CUSTOMER_MENU_TYPE.footerSummary}>{orderedCountLabel}</span>
-        <FooterAmount totalLabel={totalLabel} amount={submittedTotal} />
-      </div>
+    <div
+      className={`flex min-w-0 flex-1 items-center ${customerMenuBottomBarIconGapClass}`}
+      aria-label={orderedCountLabel}
+    >
+      <span className="relative shrink-0">
+        <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
+        <FooterIconCountBadge count={submittedCount} />
+      </span>
+      <FooterAmount totalLabel={totalLabel} amount={submittedTotal} />
     </div>
   );
 }
@@ -151,17 +164,23 @@ function RoundReviewSummary({
         className={`flex min-w-0 items-center ${customerMenuBottomBarIconGapClass} text-left transition-colors hover:bg-brand-gold/5 active:bg-brand-gold/10`}
         aria-label={viewRoundReviewLabel}
       >
-        <span className={CUSTOMER_MENU_TYPE.footerSummary}>{roundReviewCountLabel}</span>
+        <span className="relative shrink-0">
+          <CustomerCartIcon className={customerMenuBottomBarIconClass} />
+          <FooterIconCountBadge count={roundOwnQty} />
+        </span>
+        <span className="sr-only">{roundReviewCountLabel}</span>
       </button>
       {submittedCount > 0 ? (
         <button
           type="button"
           onClick={onOpenOrdered}
-          className={`ml-2 flex shrink-0 items-center ${customerMenuBottomBarIconGapClass} text-left text-brand-text-muted transition-colors hover:bg-brand-gold/5`}
+          className={`ml-2 flex shrink-0 items-center text-left text-brand-text-muted transition-colors hover:bg-brand-gold/5`}
           aria-label={orderedCountLabel}
         >
-          <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
-          <span className={CUSTOMER_MENU_TYPE.footerHint}>{orderedCountLabel}</span>
+          <span className="relative shrink-0">
+            <CustomerOrderedBagIcon className={customerMenuBottomBarIconClass} />
+            <FooterIconCountBadge count={submittedCount} />
+          </span>
         </button>
       ) : (
         <span className="sr-only">{roundOwnQty}</span>
@@ -280,6 +299,7 @@ function footerSummaryForPhase(
     case 'ordered':
       return (
         <OrderedSummary
+          submittedCount={props.submittedCount}
           submittedTotal={props.submittedTotal}
           totalLabel={props.labels.footerTotal}
           orderedCountLabel={props.labels.orderedCount(props.submittedCount)}

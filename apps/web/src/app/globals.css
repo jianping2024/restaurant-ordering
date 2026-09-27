@@ -35,10 +35,11 @@
   --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
   /*
-   * Sole customer-menu bottom safe-area inset (dock / sheet / detail footer + list pad).
+   * Sole customer-menu bottom inset (floating dock offset + sheet/detail pad + list pad).
+   * min 3rem clears typical mobile browser bottom chrome; env covers home indicator.
    * Requires root viewportFit: cover so env(safe-area-inset-bottom) is live on iOS.
    */
-  --mesa-customer-menu-bottom-safe: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  --mesa-customer-menu-bottom-safe: max(3rem, env(safe-area-inset-bottom, 0px));
 }
 
 [data-theme='light'] {

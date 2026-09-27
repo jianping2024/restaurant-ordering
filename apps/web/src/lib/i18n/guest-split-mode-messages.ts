@@ -35,7 +35,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       by_item: { label: '按菜', when: '' },
       custom: {
         label: '手填金额',
-        when: '先一人满额；改少了会自动出现下一人补剩余。也可再加点人，最后一人是剩余，合计要等于账单。',
+        when: '先一人满额可改。要分给别人时点「添加人员」，新人自动填剩余；每人金额都可改，合计须等于账单。',
       },
     },
     optionalHint: '想分单？选一种方式。整桌一起付也可以不选，直接呼叫结账。',
@@ -58,7 +58,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       by_item: { label: 'By dish', when: '' },
       custom: {
         label: 'Enter amounts',
-        when: 'Start with one person at the full total. Lower their amount and a second person appears with the remainder. You can add more; the last person is the remainder.',
+        when: 'Start with one person at the full total. Tap Add person to split — the new person gets the remainder. Every amount is editable; the shares must add up to the bill.',
       },
     },
     optionalHint:
@@ -85,7 +85,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Valores',
-        when: 'Começa com uma pessoa no total. Se baixar o valor, aparece outra com o resto. Pode acrescentar mais; a última fica com o restante.',
+        when: 'Começa com uma pessoa no total. Toque em Adicionar pessoa para dividir — a nova fica com o resto. Todos os valores são editáveis; a soma tem de igualar a conta.',
       },
     },
     optionalHint:
@@ -112,7 +112,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Importes',
-        when: 'Empieza con una persona por el total. Si bajas su importe, aparece otra con el resto. Puedes añadir más; la última lleva el restante.',
+        when: 'Empieza con una persona por el total. Pulsa Añadir persona para dividir: la nueva lleva el resto. Todos los importes se pueden editar; la suma debe igualar la cuenta.',
       },
     },
     optionalHint:
@@ -139,7 +139,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Montants',
-        when: 'Vous avez déjà convenu des montants : saisissez chaque part jusqu’au total.',
+        when: 'Une personne commence au total. Ajoutez une personne pour partager — la nouvelle reçoit le reste. Chaque montant est modifiable ; la somme doit égaler l’addition.',
       },
     },
     optionalHint:
@@ -166,7 +166,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Beträge',
-        when: 'Die Beträge sind schon abgesprochen: Anteile eintragen, bis die Summe stimmt.',
+        when: 'Eine Person startet mit dem Gesamtbetrag. Über Person hinzufügen teilen — die neue erhält den Rest. Jeder Betrag ist editierbar; die Summe muss der Rechnung entsprechen.',
       },
     },
     optionalHint:

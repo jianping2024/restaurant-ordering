@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  afterRemoveCustomPerson,
+  appendCustomPersonWithRemainder,
   applyCustomAmountEdit,
-  ensureCustomRemainderRoster,
   mintNextCustomGuestName,
+  rebalanceCustomRowsToBill,
   seedCustomSoloFullAmount,
 } from './bill-split-custom-amounts';
 
@@ -23,20 +25,28 @@ describe('seedCustomSoloFullAmount', () => {
   });
 });
 
-describe('ensureCustomRemainderRoster', () => {
-  it('heals a solo under-total row by appending the remainder person', () => {
+describe('rebalanceCustomRowsToBill', () => {
+  it('makes the last row absorb the remainder', () => {
     assert.deepEqual(
-      ensureCustomRemainderRoster([{ name: 'Guest 1', amount: 20 }], 39.9, 'Guest 2'),
+      rebalanceCustomRowsToBill(
+        [
+          { name: 'Guest 1', amount: 10 },
+          { name: 'Guest 2', amount: 5 },
+          { name: 'Guest 3', amount: 0 },
+        ],
+        19.95,
+      ),
       [
-        { name: 'Guest 1', amount: 20 },
-        { name: 'Guest 2', amount: 19.9 },
+        { name: 'Guest 1', amount: 10 },
+        { name: 'Guest 2', amount: 5 },
+        { name: 'Guest 3', amount: 4.95 },
       ],
     );
   });
 
-  it('seeds a sole zero row to the full bill', () => {
+  it('seeds a sole row to the full bill', () => {
     assert.deepEqual(
-      ensureCustomRemainderRoster([{ name: 'Guest 1', amount: 0 }], 39.9, 'Guest 2'),
+      rebalanceCustomRowsToBill([{ name: 'Guest 1', amount: 0 }], 39.9),
       [{ name: 'Guest 1', amount: 39.9 }],
     );
   });
@@ -52,18 +62,14 @@ describe('mintNextCustomGuestName', () => {
 });
 
 describe('applyCustomAmountEdit', () => {
-  it('auto-appends a remainder person when the sole share is below total', () => {
+  it('does not append a second person when the sole share is below total', () => {
     const next = applyCustomAmountEdit({
       rows: [{ name: 'Guest 1', amount: 19.95 }],
       index: 0,
       rawValue: '10',
       total: 19.95,
-      nextGuestName: 'Guest 2',
     });
-    assert.deepEqual(next, [
-      { name: 'Guest 1', amount: 10 },
-      { name: 'Guest 2', amount: 9.95 },
-    ]);
+    assert.deepEqual(next, [{ name: 'Guest 1', amount: 10 }]);
   });
 
   it('keeps a single row when the sole share equals total', () => {
@@ -72,12 +78,27 @@ describe('applyCustomAmountEdit', () => {
       index: 0,
       rawValue: '19.95',
       total: 19.95,
-      nextGuestName: 'Guest 2',
     });
     assert.deepEqual(next, [{ name: 'Guest 1', amount: 19.95 }]);
   });
 
-  it('does not collapse two rows when the first share returns to full', () => {
+  it('edits the second of two and absorbs into the first', () => {
+    const next = applyCustomAmountEdit({
+      rows: [
+        { name: 'Guest 1', amount: 10 },
+        { name: 'Guest 2', amount: 9.95 },
+      ],
+      index: 1,
+      rawValue: '5',
+      total: 19.95,
+    });
+    assert.deepEqual(next, [
+      { name: 'Guest 1', amount: 14.95 },
+      { name: 'Guest 2', amount: 5 },
+    ]);
+  });
+
+  it('edits the first of two and absorbs into the second', () => {
     const next = applyCustomAmountEdit({
       rows: [
         { name: 'Guest 1', amount: 10 },
@@ -86,7 +107,6 @@ describe('applyCustomAmountEdit', () => {
       index: 0,
       rawValue: '19.95',
       total: 19.95,
-      nextGuestName: 'Guest 3',
     });
     assert.deepEqual(next, [
       { name: 'Guest 1', amount: 19.95 },
@@ -94,7 +114,7 @@ describe('applyCustomAmountEdit', () => {
     ]);
   });
 
-  it('clamps a manual share so the bill cannot be exceeded', () => {
+  it('clamps a middle share so the bill cannot be exceeded', () => {
     const next = applyCustomAmountEdit({
       rows: [
         { name: 'Guest 1', amount: 5 },
@@ -104,25 +124,74 @@ describe('applyCustomAmountEdit', () => {
       index: 0,
       rawValue: '100',
       total: 19.95,
-      nextGuestName: 'Guest 4',
     });
     assert.equal(next[0]?.amount, 14.95);
     assert.equal(next[1]?.amount, 5);
     assert.equal(next[2]?.amount, 0);
   });
 
-  it('ignores edits on the remainder row', () => {
-    const rows = [
-      { name: 'Guest 1', amount: 10 },
-      { name: 'Guest 2', amount: 9.95 },
-    ];
+  it('edits the last of three and absorbs into the second-last', () => {
     const next = applyCustomAmountEdit({
-      rows,
-      index: 1,
-      rawValue: '1',
+      rows: [
+        { name: 'Guest 1', amount: 5 },
+        { name: 'Guest 2', amount: 5 },
+        { name: 'Guest 3', amount: 9.95 },
+      ],
+      index: 2,
+      rawValue: '2',
       total: 19.95,
-      nextGuestName: 'Guest 3',
     });
-    assert.deepEqual(next, rows);
+    assert.deepEqual(next, [
+      { name: 'Guest 1', amount: 5 },
+      { name: 'Guest 2', amount: 12.95 },
+      { name: 'Guest 3', amount: 2 },
+    ]);
+  });
+});
+
+describe('appendCustomPersonWithRemainder', () => {
+  it('appends a person with the unpaid remainder', () => {
+    assert.deepEqual(
+      appendCustomPersonWithRemainder([{ name: 'Guest 1', amount: 10 }], 19.95, 'Guest 2'),
+      [
+        { name: 'Guest 1', amount: 10 },
+        { name: 'Guest 2', amount: 9.95 },
+      ],
+    );
+  });
+
+  it('appends €0 when the roster already covers the bill', () => {
+    assert.deepEqual(
+      appendCustomPersonWithRemainder([{ name: 'Guest 1', amount: 19.95 }], 19.95, 'Guest 2'),
+      [
+        { name: 'Guest 1', amount: 19.95 },
+        { name: 'Guest 2', amount: 0 },
+      ],
+    );
+  });
+});
+
+describe('afterRemoveCustomPerson', () => {
+  it('seeds the sole remaining person to the full bill', () => {
+    assert.deepEqual(
+      afterRemoveCustomPerson([{ name: 'Guest 1', amount: 10 }], 19.95),
+      [{ name: 'Guest 1', amount: 19.95 }],
+    );
+  });
+
+  it('rebalances the last row when two or more remain', () => {
+    assert.deepEqual(
+      afterRemoveCustomPerson(
+        [
+          { name: 'Guest 1', amount: 10 },
+          { name: 'Guest 3', amount: 4.95 },
+        ],
+        19.95,
+      ),
+      [
+        { name: 'Guest 1', amount: 10 },
+        { name: 'Guest 3', amount: 9.95 },
+      ],
+    );
   });
 });

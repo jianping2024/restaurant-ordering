@@ -343,7 +343,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 |--------------|------|
 | `even` | 无续结时默认 **2** 人（`splitDraftPersonCount('even')`）；N 人均分（下限 2、上限 20）；**分币+余分**在此阶段完成（`allocateEvenAmounts`）；`sum(result)=total` 精确到分 |
 | `by_item` | 与账单明细/小票共用 **合并 catalog 行**（`buildBillableSessionItems`，key=`menuId::price` / `buffet:buffetId`）；同一消费者每行只占一行（`item_shares` qty）；部分收款后 **qty 下限锁定**（`buildLockedPersonLineMins`），可增不可减 |
-| `custom` | 无续结时默认 **1** 人（`splitDraftPersonCount('custom')`），「+添加人员」挨个加；手动录入各人 amount；末人吸收余额；`sum(result)=total` 精确到分；人数下限 1、上限 20 |
+| `custom` | 无续结时默认 **1** 人（`splitDraftPersonCount('custom')`）；「+添加人员」才加人并自动填剩余；各人 amount 均可改（改一人时另一人/末行吃余数）；删到 1 人收成全单；`sum(result)=total` 精确到分；人数下限 1、上限 20 |
 
 ### 折扣（`checkout-split-math`）
 

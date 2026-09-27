@@ -5,18 +5,6 @@ export type CustomAmountRow = {
   amount: number;
 };
 
-export function customAmountRowsEqual(
-  a: readonly CustomAmountRow[],
-  b: readonly CustomAmountRow[],
-): boolean {
-  if (a.length !== b.length) return false;
-  return a.every(
-    (row, idx) =>
-      row.name === b[idx]!.name
-      && eurosToCents(row.amount) === eurosToCents(b[idx]!.amount),
-  );
-}
-
 /** Next default guest label not already used on the custom roster. */
 export function mintNextCustomGuestName(
   rows: readonly { name: string }[],
@@ -48,39 +36,17 @@ export function seedCustomSoloFullAmount(
 }
 
 /**
- * Sole custom roster invariant:
- * - sole row at 0 → full bill
- * - sole row below bill → append one remainder person
- * - sole row at/above bill → clamp to bill
- * - 2+ rows → last row is the remainder (non-last left as stored, clamped so sum ≤ bill)
+ * Sole multi-row bill balance: non-last rows stay (clamped so sum ≤ bill);
+ * last row absorbs the remainder. Does not append people.
  */
-export function ensureCustomRemainderRoster(
+export function rebalanceCustomRowsToBill(
   rows: readonly CustomAmountRow[],
   total: number,
-  nextGuestName: string,
 ): CustomAmountRow[] {
   if (rows.length === 0) return [];
+  if (rows.length === 1) return seedCustomSoloFullAmount(rows, total);
 
   const totalCents = eurosToCents(total);
-
-  if (rows.length === 1) {
-    const sole = rows[0]!;
-    const soleCents = eurosToCents(sole.amount);
-    if (soleCents <= 0) {
-      return seedCustomSoloFullAmount(rows, total);
-    }
-    if (soleCents < totalCents) {
-      return [
-        { name: sole.name, amount: centsToEuros(soleCents) },
-        {
-          name: nextGuestName,
-          amount: centsToEuros(totalCents - soleCents),
-        },
-      ];
-    }
-    return [{ name: sole.name, amount: centsToEuros(totalCents) }];
-  }
-
   const next = rows.map((row) => ({ name: row.name, amount: row.amount }));
   let manualCents = 0;
   for (let i = 0; i < next.length - 1; i += 1) {
@@ -97,26 +63,19 @@ export function ensureCustomRemainderRoster(
 }
 
 /**
- * Sole custom amount commit path:
- * - clamps so manual (non-last) shares cannot exceed the bill
- * - then runs ensureCustomRemainderRoster (1→2 auto remainder; last = remainder)
- * Does not remove people when the first share returns to full (roster stays add/remove).
+ * Sole custom amount commit path (does not change roster size):
+ * - 1 person: clamp amount to [0, bill]
+ * - ≥2: every row editable; absorb into last unless editing last → absorb into second-last
  */
 export function applyCustomAmountEdit(params: {
   rows: readonly CustomAmountRow[];
   index: number;
   rawValue: string;
   total: number;
-  nextGuestName: string;
 }): CustomAmountRow[] {
-  const { rows, index, rawValue, total, nextGuestName } = params;
+  const { rows, index, rawValue, total } = params;
   if (rows.length === 0 || index < 0 || index >= rows.length) {
     return rows.map((row) => ({ name: row.name, amount: row.amount }));
-  }
-
-  // Last row is remainder when length ≥ 2 — not manually editable.
-  if (rows.length >= 2 && index === rows.length - 1) {
-    return ensureCustomRemainderRoster(rows, total, nextGuestName);
   }
 
   const totalCents = eurosToCents(total);
@@ -125,17 +84,56 @@ export function applyCustomAmountEdit(params: {
     ? Math.max(0, eurosToCents(parsed))
     : 0;
 
+  if (rows.length === 1) {
+    const nextCents = Math.min(safeCents, totalCents);
+    return [{ name: rows[0]!.name, amount: centsToEuros(nextCents) }];
+  }
+
   const lastIdx = rows.length - 1;
-  const manualOthersCents = rows.reduce((sum, row, idx) => {
-    if (idx === index || (rows.length >= 2 && idx === lastIdx)) return sum;
+  const absorbIdx = index === lastIdx ? lastIdx - 1 : lastIdx;
+  const fixedOthersCents = rows.reduce((sum, row, idx) => {
+    if (idx === index || idx === absorbIdx) return sum;
     return sum + eurosToCents(row.amount);
   }, 0);
-  const maxAllowedCents = Math.max(0, totalCents - manualOthersCents);
+  const maxAllowedCents = Math.max(0, totalCents - fixedOthersCents);
   const nextCents = Math.min(safeCents, maxAllowedCents);
-  const nextAmount = centsToEuros(nextCents);
+  const absorbCents = Math.max(0, totalCents - fixedOthersCents - nextCents);
 
-  const edited = rows.map((row, idx) =>
-    idx === index ? { ...row, amount: nextAmount } : { name: row.name, amount: row.amount },
-  );
-  return ensureCustomRemainderRoster(edited, total, nextGuestName);
+  return rows.map((row, idx) => {
+    if (idx === index) return { name: row.name, amount: centsToEuros(nextCents) };
+    if (idx === absorbIdx) return { name: row.name, amount: centsToEuros(absorbCents) };
+    return { name: row.name, amount: row.amount };
+  });
+}
+
+/**
+ * Sole “+ add person” path: append one row whose amount is bill − sum(existing).
+ * Does not change existing amounts.
+ */
+export function appendCustomPersonWithRemainder(
+  rows: readonly CustomAmountRow[],
+  total: number,
+  nextGuestName: string,
+): CustomAmountRow[] {
+  const totalCents = eurosToCents(total);
+  const usedCents = rows.reduce((sum, row) => sum + eurosToCents(row.amount), 0);
+  const remainderCents = Math.max(0, totalCents - usedCents);
+  return [
+    ...rows.map((row) => ({ name: row.name, amount: row.amount })),
+    { name: nextGuestName, amount: centsToEuros(remainderCents) },
+  ];
+}
+
+/**
+ * Sole post-remove roster path (rows already filtered):
+ * - 1 person → full bill
+ * - ≥2 → rebalanceCustomRowsToBill (last absorbs; no auto-append)
+ */
+export function afterRemoveCustomPerson(
+  rows: readonly CustomAmountRow[],
+  total: number,
+): CustomAmountRow[] {
+  if (rows.length === 0) return [];
+  if (rows.length === 1) return seedCustomSoloFullAmount(rows, total);
+  return rebalanceCustomRowsToBill(rows, total);
 }

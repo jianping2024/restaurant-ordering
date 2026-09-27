@@ -118,17 +118,8 @@ export function validateBillSplit(params: {
   }
 
   if (splitMode === 'custom' && customAmounts?.length) {
-    const totalCents = eurosToCents(total);
     if (customAmounts.some((row) => eurosToCents(row.amount) < 0)) {
       return { ok: false, issue: 'amount_mismatch' };
-    }
-    if (customAmounts.length > 1) {
-      const manualCents = customAmounts
-        .slice(0, -1)
-        .reduce((sum, row) => sum + eurosToCents(row.amount), 0);
-      if (manualCents > totalCents) {
-        return { ok: false, issue: 'amount_mismatch' };
-      }
     }
   }
 

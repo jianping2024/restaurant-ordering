@@ -79,7 +79,7 @@ interface Props {
   onCancelInlineRename: () => void;
   onStartInlineAmountEdit: (index: number) => void;
   onCommitInlineAmountEdit: (index: number) => void;
-  onEditingCustomAmountValueChange: (value: string) => void;
+  onEditingCustomAmountValueChange: (index: number, value: string) => void;
   onCancelInlineAmountEdit: () => void;
   onAddCustomPerson: () => void;
   /** Sole custom-roster remove (guest + staff). */
@@ -329,18 +329,18 @@ export function BillSplitPanel({
                   )}
                 </div>
                 {splitMode === 'custom' ? (
-                  // Sole remainder row (last when ≥2 people) is display-only; solo payer is editable.
-                  customAmounts.length > 1 && i === customAmounts.length - 1 ? (
-                    amountBlock
-                  ) : editingCustomAmountIndex === i ? (
+                  editingCustomAmountIndex === i ? (
                     <div className="inline-flex items-baseline gap-0.5 text-brand-gold font-medium text-sm shrink-0">
                       <span aria-hidden>€</span>
                       <input
                         type="text"
                         inputMode="decimal"
+                        enterKeyHint="done"
                         autoFocus
                         value={editingCustomAmountValue}
-                        onChange={(e) => onEditingCustomAmountValueChange(normalizeAmountInput(e.target.value))}
+                        onChange={(e) =>
+                          onEditingCustomAmountValueChange(i, normalizeAmountInput(e.target.value))
+                        }
                         onBlur={() => onCommitInlineAmountEdit(i)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {

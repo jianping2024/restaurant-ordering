@@ -593,7 +593,7 @@ export function BillPage({
         }}
         onStartInlineAmountEdit={splitDraft.startInlineAmountEdit}
         onCommitInlineAmountEdit={splitDraft.commitInlineAmountEdit}
-        onEditingCustomAmountValueChange={splitDraft.setEditingCustomAmountValue}
+        onEditingCustomAmountValueChange={splitDraft.editCustomAmountDraft}
         onCancelInlineAmountEdit={() => {
           splitDraft.setEditingCustomAmountIndex(null);
           splitDraft.setEditingCustomAmountValue('');

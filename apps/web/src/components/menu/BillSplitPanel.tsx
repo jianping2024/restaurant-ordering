@@ -323,8 +323,8 @@ export function BillSplitPanel({
                   customAmounts.length > 1 && i === customAmounts.length - 1 ? (
                     amountBlock
                   ) : editingCustomAmountIndex === i ? (
-                    <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px] shrink-0">
-                      <span className="mr-1">€</span>
+                    <div className="inline-flex items-baseline gap-0.5 text-brand-gold font-medium text-sm shrink-0">
+                      <span aria-hidden>€</span>
                       <input
                         type="text"
                         inputMode="decimal"

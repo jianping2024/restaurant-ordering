@@ -35,12 +35,11 @@
   --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
   /*
-   * Sole customer-menu bottom inset (flush dock inner pad + sheet/detail + list pad).
-   * Dock stays `bottom-0`. Pad = home-indicator safe area, with a small 0.75rem floor —
-   * never a large fixed chrome reserve (that leaves an empty slab under the CTA).
+   * Sole customer-menu bottom inset (flush dock / sheet / detail / list pad).
+   * Real safe-area only — no fake min pad (that top-aligns the CTA and leaves a fat empty slab).
    * Requires root viewportFit: cover so env(safe-area-inset-bottom) is live on iOS.
    */
-  --mesa-customer-menu-bottom-safe: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  --mesa-customer-menu-bottom-safe: env(safe-area-inset-bottom, 0px);
 }
 
 [data-theme='light'] {

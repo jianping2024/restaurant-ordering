@@ -17,7 +17,16 @@ import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
-import { resolveCheckoutDiscountedShareDisplay } from '@/lib/checkout-split-math';
+import {
+  allocateDiscountedSplitObligations,
+  frozenDiscountObligationsFromLedger,
+  resolveCheckoutDiscountedShareDisplay,
+} from '@/lib/checkout-split-math';
+import {
+  sumCollectedByPersonIndex,
+  type SessionCollectedPayment,
+} from '@/lib/checkout-session-payments';
+import { splitResultTicketKey } from '@/lib/split-party-id';
 import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
@@ -183,6 +192,8 @@ type Props = {
   settledTicketKeys: ReadonlySet<string>;
   /** Has collection history — rename/edit locked even if obligation rose again. */
   lockedTicketKeys?: ReadonlySet<string>;
+  /** Session ledger — freeze stamps for allocated 折后 display. */
+  collectedPayments?: SessionCollectedPayment[];
   /**
    * Guest-submitted persons exist but draft allocations not ready yet.
    * Suppresses blank「客人 1」mint until hydrate lands (sole gate with resolveStaffByItemRailPeople).
@@ -194,6 +205,8 @@ type Props = {
   guestName: (n: number) => string;
   /** Bill-level % — chip / estimate show 折后; optional 折前 line. */
   discountRate?: number;
+  /** Session bill total — payable basis for allocated 折后. */
+  billTotalAmount?: number;
   discountPreLabel?: string;
   labels: StaffByItemWorkbenchLabels;
   disabled?: boolean;
@@ -221,11 +234,13 @@ export function StaffByItemSplitWorkbench({
   ledgerPeople = [],
   settledTicketKeys,
   lockedTicketKeys = new Set(),
+  collectedPayments = [],
   awaitingRailHydrate = false,
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
   discountRate = 0,
+  billTotalAmount,
   discountPreLabel,
   labels,
   disabled = false,
@@ -398,12 +413,54 @@ export function StaffByItemSplitWorkbench({
     ],
   );
 
+  const allocatedByTicketKey = useMemo(() => {
+    const preAmounts = splitResults.map((row) => row.amount);
+    const frozen = frozenDiscountObligationsFromLedger(
+      preAmounts,
+      discountRate,
+      sumCollectedByPersonIndex(collectedPayments),
+      { billTotalAmount },
+    );
+    const amounts = allocateDiscountedSplitObligations(preAmounts, discountRate, {
+      billTotalAmount,
+      frozenObligationByIndex: frozen.size > 0 ? frozen : undefined,
+    });
+    const map = new Map<string, number>();
+    splitResults.forEach((row, index) => {
+      const key = splitResultTicketKey(row);
+      if (key) map.set(key, amounts[index] ?? 0);
+    });
+    return map;
+  }, [billTotalAmount, collectedPayments, discountRate, splitResults]);
+
   const estimate = useMemo(() => {
     const located = locateByItemSplitResult(splitResults, currentName, currentPartyId);
     const pre = located?.row.amount ?? 0;
-    const share = resolveCheckoutDiscountedShareDisplay(pre, discountRate);
+    const key = splitResultTicketKey({
+      name: currentName,
+      ...(currentPartyId ? { party_id: currentPartyId } : {}),
+    });
+    const allocated = key ? allocatedByTicketKey.get(key) : undefined;
+    const share = resolveCheckoutDiscountedShareDisplay(pre, discountRate, allocated);
     return { rows: shares.length, amount: share.displayAmount, preAmount: share.preAmount, showPre: share.showPreLine };
-  }, [currentName, currentPartyId, discountRate, shares.length, splitResults]);
+  }, [
+    allocatedByTicketKey,
+    currentName,
+    currentPartyId,
+    discountRate,
+    shares.length,
+    splitResults,
+  ]);
+
+  const personAmount = (person: StaffByItemRailPerson) =>
+    locateByItemSplitResult(splitResults, person.name, person.partyId)?.row.amount ?? 0;
+
+  const personShareDisplay = (person: StaffByItemRailPerson) => {
+    const pre = personAmount(person);
+    const key = staffByItemRailPersonKey(person);
+    const allocated = key ? allocatedByTicketKey.get(key) : undefined;
+    return resolveCheckoutDiscountedShareDisplay(pre, discountRate, allocated);
+  };
 
   const commitName = (raw: string) => {
     const trimmed = raw.trim();
@@ -456,12 +513,6 @@ export function StaffByItemSplitWorkbench({
     const rows = byItemAllocations[share.lineKey] ?? [];
     return rows.find((row) => row.id === share.rowId) ?? null;
   };
-
-  const personAmount = (person: StaffByItemRailPerson) =>
-    locateByItemSplitResult(splitResults, person.name, person.partyId)?.row.amount ?? 0;
-
-  const personShareDisplay = (person: StaffByItemRailPerson) =>
-    resolveCheckoutDiscountedShareDisplay(personAmount(person), discountRate);
 
   return (
     <div className="space-y-3">

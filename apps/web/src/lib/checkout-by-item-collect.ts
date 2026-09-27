@@ -10,9 +10,13 @@ import {
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   outstandingAmount,
+  sumCollectedByPersonIndex,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
-import { discountedObligationAmount } from '@/lib/checkout-split-math';
+import {
+  allocateDiscountedSplitObligations,
+  frozenDiscountObligationsFromLedger,
+} from '@/lib/checkout-split-math';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
@@ -159,6 +163,8 @@ export function resolveByItemCollectTarget(params: {
   collectedPayments: SessionCollectedPayment[];
   /** Bill-level discount %; default 0. */
   discountRate?: number;
+  /** Bill `total_amount` — payable basis when set. */
+  billTotalAmount?: number;
   /** @deprecated Ignored — kept so call sites need not fork. */
   billPending?: number;
 }): ByItemCollectTarget | null {
@@ -168,20 +174,25 @@ export function resolveByItemCollectTarget(params: {
   const index = params.roster.findIndex((row) => splitResultTicketKey(row) === key);
   if (index < 0) return null;
 
-  const live = params.liveResults.find((row) => splitResultTicketKey(row) === key);
-  const preDiscountObligation = live?.amount ?? params.roster[index]?.amount ?? 0;
-  const discountedObligation = discountedObligationAmount(
-    preDiscountObligation,
-    params.discountRate ?? 0,
+  const discountRate = params.discountRate ?? 0;
+  const preAmounts = params.roster.map((row) => {
+    const live = params.liveResults.find((r) => splitResultTicketKey(r) === splitResultTicketKey(row));
+    return live?.amount ?? row.amount ?? 0;
+  });
+  const preDiscountObligation = preAmounts[index] ?? 0;
+  const collectedByIndex = sumCollectedByPersonIndex(params.collectedPayments);
+  const frozen = frozenDiscountObligationsFromLedger(
+    preAmounts,
+    discountRate,
+    collectedByIndex,
+    { billTotalAmount: params.billTotalAmount },
   );
-  const prior = params.collectedPayments
-    .filter(
-      (payment) =>
-        payment.person_index === index ||
-        (splitPartyKey(undefined, payment.person_name) === key &&
-          (payment.person_index == null || payment.person_index < 0)),
-    )
-    .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const obligations = allocateDiscountedSplitObligations(preAmounts, discountRate, {
+    billTotalAmount: params.billTotalAmount,
+    frozenObligationByIndex: frozen,
+  });
+  const discountedObligation = obligations[index] ?? 0;
+  const prior = collectedByIndex.get(index) ?? 0;
   const amount = outstandingAmount(discountedObligation, prior);
   if (amount <= 0) return null;
 
@@ -204,6 +215,7 @@ export function settledByItemPersonKeys(
   roster: ReadonlyArray<SplitResult>,
   collectedPayments: SessionCollectedPayment[],
   discountRate = 0,
+  billTotalAmount?: number,
 ): ReadonlySet<string> {
   const rows = buildSplitSettlementRows(
     roster.map((row) => ({
@@ -213,6 +225,7 @@ export function settledByItemPersonKeys(
     })),
     collectedPayments,
     discountRate,
+    billTotalAmount,
   );
   const keys = new Set<string>();
   for (const row of rows) {

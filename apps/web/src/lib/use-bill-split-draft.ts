@@ -442,8 +442,8 @@ export function useBillSplitDraft(params: {
   });
 
   const splitDisplayRows = useMemo(
-    () => buildCustomerSplitDisplayRows(results, collectedPayments, discountRate),
-    [results, collectedPayments, discountRate],
+    () => buildCustomerSplitDisplayRows(results, collectedPayments, discountRate, total),
+    [results, collectedPayments, discountRate, total],
   );
 
   const syncNameAcrossModes = useCallback((index: number, name: string) => {

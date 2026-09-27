@@ -349,7 +349,13 @@ export function CheckoutRequestDetailHost({
 
   const discountRate = getDiscountRate(request);
   const settlementRows = useMemo(
-    () => buildSplitSettlementRows(normalizeSplitRows(request), collectedPayments, discountRate),
+    () =>
+      buildSplitSettlementRows(
+        normalizeSplitRows(request),
+        collectedPayments,
+        discountRate,
+        request.total_amount,
+      ),
     [request, collectedPayments, discountRate],
   );
   const summary = buildCheckoutSettlementSummary(request, discountRate, collectedPayments);

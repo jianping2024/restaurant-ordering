@@ -231,11 +231,16 @@ export function BillSplitPanel({
               ? splitSettlementCollectAmount(settlementRow)
               : null;
             const preAmount =
-              settledAmount ??
-              (splitMode === 'custom' ? customAmounts[i]?.amount ?? r.amount : r.amount);
+              splitMode === 'custom' ? customAmounts[i]?.amount ?? r.amount : r.amount;
+            const discountRate = staffRowActions?.discountRate ?? 0;
+            const allocated =
+              settledAmount != null
+                ? settledAmount
+                : settlementRow?.obligationAmount;
             const shareDisplay = resolveCheckoutDiscountedShareDisplay(
               preAmount,
-              settledAmount != null ? 0 : (staffRowActions?.discountRate ?? 0),
+              settledAmount != null ? 0 : discountRate,
+              settledAmount != null ? settledAmount : allocated,
             );
             const amountBlock = (
               <span className="shrink-0 text-right">

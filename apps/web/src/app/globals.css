@@ -34,11 +34,7 @@
   --color-status-danger-bg: 60 24 24;
   --color-status-danger-border: 239 68 68;
   --auth-pattern-opacity: 0.04;
-  /*
-   * Sole customer-menu bottom inset (flush dock / sheet / detail / list pad).
-   * Real safe-area only — no fake min pad (that top-aligns the CTA and leaves a fat empty slab).
-   * Requires root viewportFit: cover so env(safe-area-inset-bottom) is live on iOS.
-   */
+  /* Sole customer-menu bottom inset (dock / sheet / detail / list). Needs viewportFit: cover. */
   --mesa-customer-menu-bottom-safe: env(safe-area-inset-bottom, 0px);
 }
 

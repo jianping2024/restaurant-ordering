@@ -5,26 +5,15 @@ import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 
-/**
- * Sole bottom inset pad inside the flush dock / sheets / detail footers.
- * Formula once in `globals.css` as `--mesa-customer-menu-bottom-safe`
- * (`env(safe-area-inset-bottom)` only — home indicator; zero when absent so the CTA row stays optically centered).
- * Requires root `viewport.viewportFit: 'cover'`.
- */
+/** Sole bottom inset pad (`--mesa-customer-menu-bottom-safe` in globals.css). */
 export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =
   'pb-[var(--mesa-customer-menu-bottom-safe)]';
 
-/**
- * Scroll padding when the docked footer is visible.
- * Bar row + bottom inset + end cushion. Static string for Tailwind JIT.
- */
+/** Scroll pad when footer is visible (bar + inset + cushion). Static for Tailwind JIT. */
 export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
   'pb-[calc(3.5rem+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
 
-/**
- * Flush dock: `bottom-0` so the bar sticks to the screen bottom (opaque, no gap for menu to show through).
- * Interactive row sits above {@link CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS} (browser chrome clearance).
- */
+/** Flush dock: bottom-0 opaque shell; SAFE_AREA_PB pads the interactive row. */
 export const customerMenuBottomBarDockClass = [
   'fixed bottom-0 left-1/2 z-30 -translate-x-1/2',
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,

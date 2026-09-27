@@ -27,6 +27,7 @@ import {
 } from '@/lib/format-dashboard-date';
 import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
+import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import { checkoutSettlementBarStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import type { BillSplit, Order } from '@/types';
 
@@ -367,7 +368,7 @@ export function CheckoutRequestDetail({
                     }
                     trailing={
                       <>
-                        <span className="text-brand-gold font-semibold text-base tabular-nums">
+                        <span className={CHECKOUT_ACTION_AMOUNT_CLASS}>
                           €{collectNow.toFixed(2)}
                         </span>
                         <button

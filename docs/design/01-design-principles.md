@@ -56,7 +56,7 @@ Dashboard 在 `lg` 以下有**顶部汉堡栏 + 固定侧栏抽屉**；内容区
 | 确认开台 | 服务员桌台 gold 主按钮 |
 | 次要操作 | `outline` / `soft` / 文字链接 |
 
-**字号**：当前应收金额 ≥ 结账按钮旁金额（`text-base` + `font-semibold` + `text-brand-gold`）；摘要条中「待收」用 `font-semibold text-brand-gold`。
+**字号**：结账行动金额（队列待收 / 本票应收 / 待收人旁 / 收款弹窗）唯一 `CHECKOUT_ACTION_AMOUNT_CLASS`（`text-lg` + `font-semibold` + `text-brand-gold`）；摘要条中「待收」用 `font-semibold text-brand-gold`（随条字号）。
 
 ---
 

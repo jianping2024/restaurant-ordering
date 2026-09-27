@@ -17,6 +17,7 @@ import {
   type BillSyncPaymentLine,
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
+import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import { normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 
 export type CollectPaymentModalLabels = {
@@ -110,7 +111,7 @@ export function CollectPaymentModal({
       <div className="space-y-4">
         <p className="text-sm text-brand-text-muted">
           {labels.amount}{' '}
-          <span className="text-brand-gold font-semibold tabular-nums text-base">
+          <span className={CHECKOUT_ACTION_AMOUNT_CLASS}>
             €{due.toFixed(2)}
           </span>
         </p>

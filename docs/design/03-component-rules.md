@@ -197,15 +197,17 @@
 
 | 层级 | 样式 |
 |------|------|
-| 当前应收（最重要） | `text-brand-gold font-semibold text-base` 或更大 |
-| 摘要待收 | `SettlementBar` 内 `font-semibold text-brand-gold` |
+| 当前应收 / 行动金额（最重要） | 唯一 `CHECKOUT_ACTION_AMOUNT_CLASS`（`text-brand-gold font-semibold text-lg tabular-nums`）— 队列卡待收、按菜本票金额、待收人旁、收款弹窗应付 |
+| 摘要待收 | `SettlementBar` 内 `font-semibold text-brand-gold`（随条 `text-sm`） |
 | 已收/消费 | `text-brand-text` 或 `text-brand-text-muted` |
-| 弱化台账 | `text-[12px] text-brand-text-muted` |
+| 弱化台账 / 本票行数说明 | `text-sm text-brand-text-muted`（金额不嵌进同一句） |
 
 **规则**
 
 - **最大字号 = 当前要收的钱**，不是消费总额
+- 结账行动金额只走 `CHECKOUT_ACTION_AMOUNT_CLASS`；禁止平行 `text-base`/`text-lg` 手写 gold 金额
 - 多人分账时副行展示「应付总额 · 已收」避免误解
+- 楼面桌卡金额仍是 `waiterBoardType.cardAmount`（ink / 22px），不与结账行动金额混用
 
 ---
 

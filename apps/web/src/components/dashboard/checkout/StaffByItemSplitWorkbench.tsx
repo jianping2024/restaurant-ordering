@@ -16,6 +16,7 @@ import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerR
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
+import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
@@ -47,7 +48,8 @@ export type StaffByItemWorkbenchLabels = {
   markerPlaceholder: string;
   remainingPrefix: string;
   shareEmpty: string;
-  estimate: (n: number, amount: string) => string;
+  /** Meta only — amount rendered beside with {@link CHECKOUT_ACTION_AMOUNT_CLASS}. */
+  estimateMeta: (n: number) => string;
   needName: string;
   poolEmpty: string;
   /** Sole pool-header bulk: drain remaining dishes + buffet seats to current person. */
@@ -790,9 +792,14 @@ export function StaffByItemSplitWorkbench({
                   );
                 })}
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <p className="text-sm font-medium tabular-nums text-brand-text">
-                    {labels.estimate(estimate.rows, estimate.amount.toFixed(2))}
-                  </p>
+                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <p className="text-sm text-brand-text-muted">
+                      {labels.estimateMeta(estimate.rows)}
+                    </p>
+                    <p className={CHECKOUT_ACTION_AMOUNT_CLASS}>
+                      €{estimate.amount.toFixed(2)}
+                    </p>
+                  </div>
                   {onCollectCurrent && !currentSettled ? (
                     <button
                       type="button"

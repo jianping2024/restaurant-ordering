@@ -17,6 +17,21 @@ export function customAmountRowsEqual(
   );
 }
 
+/** Next default guest label not already used on the custom roster. */
+export function mintNextCustomGuestName(
+  rows: readonly { name: string }[],
+  guestName: (n: number) => string,
+): string {
+  const used = new Set(
+    rows.map((row) => row.name.trim().toLowerCase()).filter(Boolean),
+  );
+  for (let n = 1; n <= 20; n += 1) {
+    const candidate = guestName(n);
+    if (!used.has(candidate.trim().toLowerCase())) return candidate;
+  }
+  return guestName(rows.length + 1);
+}
+
 /**
  * Sole seed for a fresh single-payer custom draft: that row carries the full bill.
  * Multi-person rows are returned unchanged (caller keeps prior / continuation amounts).

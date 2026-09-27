@@ -1429,6 +1429,7 @@ export const MESSAGES_FR = {
     "splitMode": "Mode de partage",
     "people": "Convives",
     "addPerson": "Ajouter un convive",
+    "removePerson": "Retirer une personne",
     "splitResult": "Résultat du partage",
     "splitPaid": "Payé",
     "splitPartialPaid": "Partiellement payé",

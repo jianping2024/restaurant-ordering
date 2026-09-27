@@ -1425,6 +1425,7 @@ export const MESSAGES_ES = {
     "splitMode": "Modo de división",
     "people": "Personas",
     "addPerson": "Añadir persona",
+    "removePerson": "Eliminar persona",
     "splitResult": "Resultado de la división",
     "splitPaid": "Pagado",
     "splitPartialPaid": "Pagado parcialmente",

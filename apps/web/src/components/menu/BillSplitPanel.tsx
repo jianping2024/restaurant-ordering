@@ -38,6 +38,7 @@ type SplitModeCopy = SplitSettlementCopy & {
   people: string;
   splitResult: string;
   addPerson: string;
+  removePerson: string;
 };
 
 interface Props {
@@ -81,13 +82,15 @@ interface Props {
   onEditingCustomAmountValueChange: (value: string) => void;
   onCancelInlineAmountEdit: () => void;
   onAddCustomPerson: () => void;
-  /** Staff even/custom row collect. Guest omits this. Custom trash only. */
+  /** Sole custom-roster remove (guest + staff). */
+  onRemoveCustomPerson: (index: number) => void;
+  /** Staff even/custom row collect. Guest omits this. */
   staffRowActions?: {
     collectLabel: string;
-    removeLabel: string;
+    /** Optional aria override for custom trash (staff “return to pool”). */
+    removeLabel?: string;
     busy: boolean;
     onCollect: (index: number) => void;
-    onRemoveCustom: (index: number) => void;
     /** Bill-level % — row € shows 折后; optional 折前 line when > 0. */
     discountRate?: number;
     /** Template `折前 €{amount}` when discount active. */
@@ -140,6 +143,7 @@ export function BillSplitPanel({
   onEditingCustomAmountValueChange,
   onCancelInlineAmountEdit,
   onAddCustomPerson,
+  onRemoveCustomPerson,
   staffRowActions,
   byItemContent,
 }: Props) {
@@ -234,6 +238,12 @@ export function BillSplitPanel({
             /** Even/custom 收款: sole gate is per-index settlement outstanding (not name lock). */
             const canCollectShare =
               settlementRow != null && isSplitSettlementPending(settlementRow);
+            const canRemoveCustom =
+              splitMode === 'custom'
+              && !splitLocked
+              && customAmounts.length > 1
+              && !nameLocked;
+            const showStaffCollect = Boolean(staffRowActions && canCollectShare);
             const showSettlement = settlementRow != null && splitRowShowsSettlement(settlementRow);
             const settledAmount = showSettlement && settlementRow
               ? splitSettlementCollectAmount(settlementRow)
@@ -359,17 +369,14 @@ export function BillSplitPanel({
                 ) : (
                   amountBlock
                 )}
-                {staffRowActions && (splitMode === 'even' || splitMode === 'custom') ? (
+                {canRemoveCustom || showStaffCollect ? (
                   <div className="flex shrink-0 items-center gap-1">
-                    {splitMode === 'custom' &&
-                    !splitLocked &&
-                    customAmounts.length > 1 &&
-                    !nameLocked ? (
+                    {canRemoveCustom ? (
                       <button
                         type="button"
-                        aria-label={staffRowActions.removeLabel}
-                        disabled={staffRowActions.busy}
-                        onClick={() => staffRowActions.onRemoveCustom(i)}
+                        aria-label={staffRowActions?.removeLabel ?? copy.removePerson}
+                        disabled={staffRowActions?.busy}
+                        onClick={() => onRemoveCustomPerson(i)}
                         className="rounded p-1 text-brand-text-muted hover:text-red-600 disabled:opacity-40"
                       >
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -377,7 +384,7 @@ export function BillSplitPanel({
                         </svg>
                       </button>
                     ) : null}
-                    {canCollectShare ? (
+                    {showStaffCollect && staffRowActions ? (
                       <button
                         type="button"
                         disabled={staffRowActions.busy}

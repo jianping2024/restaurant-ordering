@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PasswordInput } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 
 export interface PasswordConfirmDialogProps {
   open: boolean;
@@ -73,20 +73,15 @@ export function PasswordConfirmDialog({
             {displayError}
           </p>
         ) : null}
-        <div className="flex flex-col-reverse gap-2 border-t border-brand-border/60 pt-4 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={confirming}>
-            {cancelLabel}
-          </Button>
-          <Button
-            type="button"
-            variant="danger"
-            size="sm"
-            loading={confirming}
-            onClick={handleConfirm}
-          >
-            {confirmLabel}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={cancelLabel}
+          confirmLabel={confirmLabel}
+          onCancel={onClose}
+          onConfirm={handleConfirm}
+          busy={confirming}
+          confirmVariant="danger"
+          divided
+        />
       </div>
     </Modal>
   );

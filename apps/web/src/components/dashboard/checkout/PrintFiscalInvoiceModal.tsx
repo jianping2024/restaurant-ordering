@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import {
   CheckoutPaymentTenderFields,
   cashTenderDefaultRaw,
@@ -33,7 +33,6 @@ export type PrintFiscalInvoiceModalLabels = {
   documentTypeHint: string;
   confirm: string;
   cancel: string;
-  operating: string;
 } & CheckoutPaymentTenderLabels;
 
 export type FiscalBuyerFieldLabels = {
@@ -201,36 +200,29 @@ export function PrintFiscalInvoiceModal({
           onNifChange={setNif}
           onNameChange={setName}
         />
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
-            {labels.cancel}
-          </Button>
-          <Button
-            type="button"
-            variant="gold"
-            size="sm"
-            loading={busy}
-            disabled={busy || tenderBlocked || nifInvalid}
-            onClick={() => {
-              if (tenderBlocked || nifInvalid) return;
-              const mb = parseCheckoutTenderMoney(multibancoRaw);
-              const resolved = resolveCollectPaymentTender({
-                uiMethod: payment,
-                dueAmount: due,
-                multibancoAmount: payment === 'MIXED' ? mb : null,
-              });
-              if (!resolved.ok) return;
-              onConfirm({
-                paymentMethod: resolved.paymentMethod,
-                payment_lines: resolved.payment_lines,
-                customerNif: normalizePortugueseNif(nif),
-                customerName: name.trim(),
-              });
-            }}
-          >
-            {busy ? labels.operating : labels.confirm}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={labels.cancel}
+          confirmLabel={labels.confirm}
+          onCancel={onClose}
+          onConfirm={() => {
+            if (tenderBlocked || nifInvalid) return;
+            const mb = parseCheckoutTenderMoney(multibancoRaw);
+            const resolved = resolveCollectPaymentTender({
+              uiMethod: payment,
+              dueAmount: due,
+              multibancoAmount: payment === 'MIXED' ? mb : null,
+            });
+            if (!resolved.ok) return;
+            onConfirm({
+              paymentMethod: resolved.paymentMethod,
+              payment_lines: resolved.payment_lines,
+              customerNif: normalizePortugueseNif(nif),
+              customerName: name.trim(),
+            });
+          }}
+          busy={busy}
+          confirmDisabled={tenderBlocked || nifInvalid}
+        />
       </div>
     </Modal>
   );

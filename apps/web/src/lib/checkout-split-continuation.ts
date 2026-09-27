@@ -597,7 +597,7 @@ function lockedTicketsPresentInPayload(params: {
       .map((row) => splitResultTicketKey(row))
       .filter((key): key is string => Boolean(key)),
   );
-  for (const key of lockedTicketKeys) {
+  for (const key of Array.from(lockedTicketKeys)) {
     if (!personKeys.has(key) || !resultKeys.has(key)) return false;
   }
   return true;

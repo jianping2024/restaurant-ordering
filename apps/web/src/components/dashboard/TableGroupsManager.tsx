@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { SortOrderDragHandle } from '@/components/dashboard/SortOrderDragHandle';
 import { TableGroupMemberOrderModal } from '@/components/dashboard/TableGroupMemberOrderModal';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -510,14 +511,13 @@ export function TableGroupsManager({
             </div>
           </div>
           {formError ? <p className="text-sm mesa-text-danger">{formError}</p> : null}
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-2">
-            <Button variant="outline" onClick={closeModal}>
-              {tm.cancel}
-            </Button>
-            <Button loading={saving} onClick={() => void saveGroup()}>
-              {editing ? tm.save : t.submitAdd}
-            </Button>
-          </div>
+          <ModalConfirmActions
+            cancelLabel={tm.cancel}
+            confirmLabel={editing ? tm.save : t.submitAdd}
+            onCancel={closeModal}
+            onConfirm={() => void saveGroup()}
+            busy={saving}
+          />
         </div>
       </Modal>
 
@@ -525,14 +525,15 @@ export function TableGroupsManager({
         <p className="text-[13px] text-brand-text-muted mb-4">
           {deleteTarget ? t.confirmDeleteBody.replace('{name}', deleteTarget.name) : ''}
         </p>
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-            {tm.cancel}
-          </Button>
-          <Button variant="danger" loading={deleteLoading} onClick={() => void runDelete()}>
-            {tm.remove}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          className="mt-5"
+          cancelLabel={tm.cancel}
+          confirmLabel={tm.remove}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => void runDelete()}
+          busy={deleteLoading}
+          confirmVariant="danger"
+        />
       </Modal>
     </div>
   );

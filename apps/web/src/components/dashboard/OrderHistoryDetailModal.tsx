@@ -283,7 +283,6 @@ export function OrderHistoryDetailModal({
             documentTypeHint: checkoutT.printInvoiceDocumentTypeHint,
             confirm: checkoutT.printInvoice,
             cancel: checkoutT.printInvoiceCancel,
-            operating: checkoutT.printInvoiceOperating,
             cashReceived: checkoutT.cashReceived,
             changeDue: checkoutT.changeDue,
             cashShort: checkoutT.cashShort,

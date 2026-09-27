@@ -29,9 +29,9 @@ import {
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
 import {
+  resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
   staffByItemLockedLedgerPeople,
-  staffByItemRailSeedPeople,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
@@ -245,12 +245,13 @@ export function StaffCheckoutSplitEditor({
 
   const byItemRailOrderPeople = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as StaffByItemRailPerson[];
-    return staffByItemRailSeedPeople({
-      ledgerPeople: staffByItemLockedLedgerPeople(
+    return resolveStaffByItemRailPeople({
+      lockedLedgerPeople: staffByItemLockedLedgerPeople(
         ledgerPeople,
         lockedTicketKeysFromLedger,
       ),
       allocationPeople: staffByItemPeopleFromAllocations(splitDraft.byItemAllocations),
+      awaitingHydrate: false,
     });
   }, [
     ledgerPeople,
@@ -258,6 +259,24 @@ export function StaffCheckoutSplitEditor({
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
   ]);
+
+  /**
+   * Guest persons landed but draft allocations not ready yet (lineSpecs / hydrate lag).
+   * Sole gate for workbench to suppress blank「客人 1」mint — pairs with resolveStaffByItemRailPeople.
+   */
+  const awaitingByItemRailHydrate = useMemo(() => {
+    if (splitDraft.splitMode !== 'by_item') return false;
+    const hasNamedPersons = staffByItemLedgerPeople(
+      (request.persons ?? []).map((row) => ({
+        name: row.name,
+        ...(row.party_id?.trim() ? { partyId: row.party_id.trim() } : {}),
+      })),
+    ).length > 0;
+    if (!hasNamedPersons) return false;
+    return (
+      staffByItemPeopleFromAllocations(splitDraft.byItemAllocations).length === 0
+    );
+  }, [request.persons, splitDraft.byItemAllocations, splitDraft.splitMode]);
 
   const liveByItemResults = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as SplitResult[];
@@ -672,6 +691,7 @@ export function StaffCheckoutSplitEditor({
             ledgerPeople={ledgerPeople}
             settledTicketKeys={settledTicketKeys}
             lockedTicketKeys={lockedTicketKeys}
+            awaitingRailHydrate={awaitingByItemRailHydrate}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}

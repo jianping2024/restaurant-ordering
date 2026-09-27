@@ -34,11 +34,11 @@ import {
   staffByItemShareLineMetaParts,
 } from '@/lib/staff-by-item-workbench';
 import {
-  appendStaffByItemRailPeople,
   mintStaffByItemRailPerson,
+  resolveStaffByItemRailPeople,
   staffByItemLockedLedgerPeople,
   staffByItemRailPersonKey,
-  staffByItemRailSeedPeople,
+  syncStaffByItemRailPeople,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 
@@ -182,6 +182,11 @@ type Props = {
   settledTicketKeys: ReadonlySet<string>;
   /** Has collection history — rename/edit locked even if obligation rose again. */
   lockedTicketKeys?: ReadonlySet<string>;
+  /**
+   * Guest-submitted persons exist but draft allocations not ready yet.
+   * Suppresses blank「客人 1」mint until hydrate lands (sole gate with resolveStaffByItemRailPeople).
+   */
+  awaitingRailHydrate?: boolean;
   itemCodeByMenuId?: Record<string, string>;
   /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
   imageUrlByMenuId?: Record<string, string>;
@@ -212,6 +217,7 @@ export function StaffByItemSplitWorkbench({
   ledgerPeople = [],
   settledTicketKeys,
   lockedTicketKeys = new Set(),
+  awaitingRailHydrate = false,
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
@@ -225,31 +231,48 @@ export function StaffByItemSplitWorkbench({
     () => staffByItemPeopleFromAllocations(byItemAllocations),
     [byItemAllocations],
   );
+  const lockedLedgerPeople = useMemo(
+    () => staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys),
+    [ledgerPeople, lockedTicketKeys],
+  );
+  /** Sole authoritative tickets — no blank mint while awaiting guest hydrate. */
+  const authoritativePeople = useMemo(
+    () =>
+      resolveStaffByItemRailPeople({
+        lockedLedgerPeople,
+        allocationPeople: peopleFromAlloc,
+        awaitingHydrate: awaitingRailHydrate,
+      }),
+    [awaitingRailHydrate, lockedLedgerPeople, peopleFromAlloc],
+  );
 
-  const seedPeople = useMemo(() => {
-    const seeded = staffByItemRailSeedPeople({
-      ledgerPeople: staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys),
-      allocationPeople: peopleFromAlloc,
-    });
-    return seeded.length > 0 ? seeded : [mintStaffByItemRailPerson(guestName(1))];
-  }, [guestName, ledgerPeople, lockedTicketKeys, peopleFromAlloc]);
-
-  const mergeIncoming = useMemo(() => {
-    const lockedLedger = staffByItemLockedLedgerPeople(ledgerPeople, lockedTicketKeys);
-    return [...lockedLedger, ...peopleFromAlloc];
-  }, [ledgerPeople, lockedTicketKeys, peopleFromAlloc]);
-
-  const [people, setPeople] = useState<StaffByItemRailPerson[]>(seedPeople);
+  /** True after a genuine blank staff mint; false until then / after hydrate replace. */
+  const blankMintRef = useRef(false);
+  const [people, setPeople] = useState<StaffByItemRailPerson[]>(() => {
+    if (authoritativePeople.length > 0) return authoritativePeople;
+    if (awaitingRailHydrate) return [];
+    blankMintRef.current = true;
+    return [mintStaffByItemRailPerson(guestName(1))];
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nameDraft, setNameDraft] = useState(() => seedPeople[0]?.name ?? guestName(1));
+  const [nameDraft, setNameDraft] = useState(() => people[0]?.name ?? '');
   const [needNameHint, setNeedNameHint] = useState(false);
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
   /** When true, stay on the chip the cashier clicked (incl. settled) — do not steal focus. */
   const userPickedChipRef = useRef(false);
 
   useEffect(() => {
-    setPeople((prev) => appendStaffByItemRailPeople(prev, mergeIncoming));
-  }, [mergeIncoming]);
+    setPeople((prev) => {
+      if (authoritativePeople.length > 0) {
+        blankMintRef.current = false;
+        return syncStaffByItemRailPeople(prev, authoritativePeople);
+      }
+      if (awaitingRailHydrate) return prev;
+      if (prev.length > 0 || blankMintRef.current) return prev;
+      blankMintRef.current = true;
+      return [mintStaffByItemRailPerson(guestName(1))];
+    });
+  }, [authoritativePeople, awaitingRailHydrate, guestName]);
 
   const safeIndex = Math.min(currentIndex, Math.max(0, people.length - 1));
   const currentPerson = people[safeIndex] ?? { name: '' };

@@ -4,9 +4,11 @@ import { WHOLE_TABLE_PAYER_KEY } from './split-person-label';
 import { splitPartyKey } from './split-party-id';
 import {
   appendStaffByItemRailPeople,
+  resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
   staffByItemLockedLedgerPeople,
   staffByItemRailSeedPeople,
+  syncStaffByItemRailPeople,
 } from './staff-by-item-people';
 
 describe('staffByItemLedgerPeople', () => {
@@ -50,6 +52,69 @@ describe('staffByItemRailSeedPeople', () => {
       }),
       [{ name: 'Ana' }],
     );
+  });
+});
+
+describe('resolveStaffByItemRailPeople', () => {
+  it('returns named tickets and never mints a blank guest', () => {
+    assert.deepEqual(
+      resolveStaffByItemRailPeople({
+        lockedLedgerPeople: [{ name: 'John', partyId: 'j1' }],
+        allocationPeople: [{ name: 'Marry', partyId: 'm1' }],
+        awaitingHydrate: false,
+      }),
+      [
+        { name: 'John', partyId: 'j1' },
+        { name: 'Marry', partyId: 'm1' },
+      ],
+    );
+  });
+
+  it('returns empty while awaiting hydrate (no ghost mint)', () => {
+    assert.deepEqual(
+      resolveStaffByItemRailPeople({
+        lockedLedgerPeople: [],
+        allocationPeople: [],
+        awaitingHydrate: true,
+      }),
+      [],
+    );
+  });
+
+  it('returns empty for blank staff start (caller may mint once)', () => {
+    assert.deepEqual(
+      resolveStaffByItemRailPeople({
+        lockedLedgerPeople: [],
+        allocationPeople: [],
+        awaitingHydrate: false,
+      }),
+      [],
+    );
+  });
+});
+
+describe('syncStaffByItemRailPeople', () => {
+  it('replaces early blank mint when authoritative has no overlap', () => {
+    const ghost = [{ name: '客人 1', partyId: 'ghost' }];
+    const auth = [
+      { name: 'John', partyId: 'j1' },
+      { name: 'Marry', partyId: 'm1' },
+    ];
+    assert.deepEqual(syncStaffByItemRailPeople(ghost, auth), auth);
+  });
+
+  it('appends when overlap (keeps serial-collect unpaid blank)', () => {
+    const prev = [
+      { name: 'John', partyId: 'j1' },
+      { name: '客人 2', partyId: 'blank' },
+    ];
+    const auth = [{ name: 'John', partyId: 'j1' }];
+    assert.deepEqual(syncStaffByItemRailPeople(prev, auth), prev);
+  });
+
+  it('keeps prev when authoritative empty', () => {
+    const prev = [{ name: '客人 1', partyId: 'g' }];
+    assert.equal(syncStaffByItemRailPeople(prev, []), prev);
   });
 });
 

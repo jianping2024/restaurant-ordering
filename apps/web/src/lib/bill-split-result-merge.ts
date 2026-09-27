@@ -50,7 +50,7 @@ export function mergeByItemSplitResultWithLedger(
       if (exRow.paid) {
         usedKeys.add(key);
         merged.push(toWireSplitResult({
-          name: resolveSplitPersonDisplayName(exRow.name, undefined),
+          name: resolveSplitPersonDisplayName(exRow.name, ''),
           amount: exRow.amount,
           paid: true,
           party_id: exRow.party_id,

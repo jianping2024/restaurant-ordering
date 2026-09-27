@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { FiscalBuyerFields, type FiscalBuyerFieldLabels } from '@/components/dashboard/checkout/PrintFiscalInvoiceModal';
 import {
   CheckoutPaymentTenderFields,
@@ -28,7 +28,6 @@ export type CollectPaymentModalLabels = {
   discountDetail?: string;
   confirm: string;
   cancel: string;
-  processing: string;
 } & CheckoutPaymentTenderLabels;
 
 export type CollectPaymentConfirmInput = {
@@ -157,39 +156,31 @@ export function CollectPaymentModal({
             onNameChange={setName}
           />
         ) : null}
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
-            {labels.cancel}
-          </Button>
-          <Button
-            type="button"
-            variant="gold"
-            size="sm"
-            loading={busy}
-            disabled={busy || tenderBlocked || nifInvalid}
-            onClick={() => {
-              if (tenderBlocked || nifInvalid) return;
-              const mb = parseCheckoutTenderMoney(multibancoRaw);
-              const resolved = resolveCollectPaymentTender({
-                uiMethod: payment,
-                dueAmount: due,
-                multibancoAmount: payment === 'MIXED' ? mb : null,
-              });
-              if (!resolved.ok) return;
-              const tender = parseCheckoutTenderMoney(tenderRaw);
-              onConfirm({
-                paymentMethod: resolved.paymentMethod,
-                payment_lines: resolved.payment_lines,
-                customerNif: normalizePortugueseNif(nif),
-                customerName: name.trim(),
-                cashTendered:
-                  resolved.paymentMethod === 'CASH' ? tender : null,
-              });
-            }}
-          >
-            {busy ? labels.processing : labels.confirm}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={labels.cancel}
+          confirmLabel={labels.confirm}
+          onCancel={onClose}
+          onConfirm={() => {
+            if (tenderBlocked || nifInvalid) return;
+            const mb = parseCheckoutTenderMoney(multibancoRaw);
+            const resolved = resolveCollectPaymentTender({
+              uiMethod: payment,
+              dueAmount: due,
+              multibancoAmount: payment === 'MIXED' ? mb : null,
+            });
+            if (!resolved.ok) return;
+            const tender = parseCheckoutTenderMoney(tenderRaw);
+            onConfirm({
+              paymentMethod: resolved.paymentMethod,
+              payment_lines: resolved.payment_lines,
+              customerNif: normalizePortugueseNif(nif),
+              customerName: name.trim(),
+              cashTendered: resolved.paymentMethod === 'CASH' ? tender : null,
+            });
+          }}
+          busy={busy}
+          confirmDisabled={tenderBlocked || nifInvalid}
+        />
       </div>
     </Modal>
   );

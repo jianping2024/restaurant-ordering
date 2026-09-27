@@ -26,13 +26,14 @@
 
 | size | 何时使用 |
 |------|----------|
-| `md` | 默认表单 |
-| `sm` | Modal 内、紧凑工具栏 |
+| `md` | 默认表单提交 |
+| `sm` | **仅**紧凑工具栏 / 表格批量条 / 下拉内小动作（非 Modal 确认脚钮） |
 | `lg` | 落地页 CTA |
-| `action` | **楼面/会话操作条**（确认开台、继续点餐、转台/并台等）；`text-[15px]`，与列表正文 `text-lg` 配套 |
+| `action` | **触控主档**：楼面/会话操作条（开台、继续点餐、转台）**与** Modal 取消/确认脚钮；带 `min-h-11`（≥44px） |
 
 **规则**
 
+- Modal 取消 + 确认脚钮：**唯一** `ModalConfirmActions`（内部固定两侧 `size="action"`）。禁止在业务页再手写一套 `flex-col-reverse` + 两颗 `Button` 的确认行
 - 加载中用 `loading` prop，禁止双点；loading 时仅显示居中旋转图标，label 不可见但保留占位宽度（勿在 call site 用条件文案重复表达进行中）
 - 链接形态用 `ButtonLink`，保持与 button 同形
 - 结账「收款」目前用自定义 `mesa-badge-success` 类 — **新收款类按钮应与此视觉一致**（绿底白字、旁显示金额）

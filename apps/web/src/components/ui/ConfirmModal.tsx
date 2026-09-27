@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -57,20 +57,14 @@ export function ConfirmModal({
     >
       <div className="space-y-4">
         <p className="text-sm text-brand-text leading-relaxed whitespace-pre-wrap">{message}</p>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={confirming}>
-            {cancelLabel}
-          </Button>
-          <Button
-            type="button"
-            variant={variant === 'danger' ? 'danger' : 'gold'}
-            size="sm"
-            loading={confirming}
-            onClick={handleConfirm}
-          >
-            {confirmLabel}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={cancelLabel}
+          confirmLabel={confirmLabel}
+          onCancel={onClose}
+          onConfirm={handleConfirm}
+          busy={confirming}
+          confirmVariant={variant === 'danger' ? 'danger' : 'gold'}
+        />
       </div>
     </Modal>
   );

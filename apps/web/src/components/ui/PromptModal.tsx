@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 
 export interface PromptModalProps {
   open: boolean;
@@ -70,14 +70,14 @@ export function PromptModal({
             autoComplete="off"
           />
         </label>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
-            {cancelLabel}
-          </Button>
-          <Button type="button" variant="gold" size="sm" loading={submitting} onClick={() => void handleSubmit()}>
-            {submitLabel}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={cancelLabel}
+          confirmLabel={submitLabel}
+          onCancel={onClose}
+          onConfirm={() => void handleSubmit()}
+          busy={submitting}
+          confirmDisabled={!value.trim()}
+        />
       </div>
     </Modal>
   );

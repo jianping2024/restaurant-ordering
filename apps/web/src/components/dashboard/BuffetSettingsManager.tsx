@@ -9,7 +9,7 @@ import { PromptModal } from '@/components/ui/PromptModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { DatePicker } from '@mesa/ui';
 import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { DecimalInput } from '@/components/ui/DecimalInput';
 import { IntegerInput } from '@/components/ui/IntegerInput';
 import { BuffetFridayWeekendPanel } from '@/components/dashboard/buffet/BuffetFridayWeekendPanel';
@@ -951,26 +951,15 @@ export function BuffetSettingsManager({ restaurantId, embedded, initialData }: P
                     />
                   </label>
                 </div>
-                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end border-t border-brand-border pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={closeRuleModal}
-                    disabled={ruleSaveSubmitting}
-                  >
-                    {t.dialogCancel}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="gold"
-                    size="sm"
-                    loading={ruleSaveSubmitting}
-                    onClick={() => void saveRuleModal()}
-                  >
-                    {pendingConflictSave ? t.ruleConflictSave : t.ruleSave}
-                  </Button>
-                </div>
+                <ModalConfirmActions
+                  className="mt-6"
+                  cancelLabel={t.dialogCancel}
+                  confirmLabel={pendingConflictSave ? t.ruleConflictSave : t.ruleSave}
+                  onCancel={closeRuleModal}
+                  onConfirm={() => void saveRuleModal()}
+                  busy={ruleSaveSubmitting}
+                  divided
+                />
               </>
               );
             })()}

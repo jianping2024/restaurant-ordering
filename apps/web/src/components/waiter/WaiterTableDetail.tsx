@@ -34,7 +34,7 @@ import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
 import { isWaiterTableCardOccupied } from '@/lib/waiter-table-occupancy';
 import { waiterUi } from '@/components/waiter/waiter-ui';
-import { Button } from '@/components/ui/Button';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import { postWaiterDecrementOrderItemClient } from '@/lib/waiter-decrement-order-item-client';
 import { applyOrderUpdateToWaiterDetail } from '@/lib/waiter-table-detail-apply-order';
 import { sessionHasUnsentRoundBasket } from '@/lib/table-order-round/unsent-basket';
@@ -1225,31 +1225,15 @@ function WaiterTableDetailInner({
                 </select>
               </div>
             </div>
-            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Button type="button" variant="ghost" size="sm" onClick={closeAction}>
-                {lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
-              </Button>
-              <Button
-                type="button"
-                variant="gold"
-                size="sm"
-                onClick={handleActionSubmit}
-                disabled={
-                  !sourceTable
-                  || !targetTable
-                  || detailSessionBusy
-                }
-                loading={detailSessionBusyKind === 'transfer_merge'}
-              >
-                {operationType === 'transfer'
-                  ? (detailSessionBusyKind === 'transfer_merge'
-                    ? t.operatingTransfer
-                    : t.confirmTransfer)
-                  : (detailSessionBusyKind === 'transfer_merge'
-                    ? t.operatingMerge
-                    : t.confirmMerge)}
-              </Button>
-            </div>
+            <ModalConfirmActions
+              className="mt-5"
+              cancelLabel={lang === 'zh' ? '取消' : lang === 'en' ? 'Cancel' : 'Cancelar'}
+              confirmLabel={operationType === 'transfer' ? t.confirmTransfer : t.confirmMerge}
+              onCancel={closeAction}
+              onConfirm={() => void handleActionSubmit()}
+              busy={detailSessionBusyKind === 'transfer_merge'}
+              confirmDisabled={!sourceTable || !targetTable || detailSessionBusy}
+            />
           </Modal>
           {isDemo ? (
             <ConfirmModal

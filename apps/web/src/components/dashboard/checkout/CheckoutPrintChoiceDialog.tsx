@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 import type { BillSyncPaymentMethod } from '@/lib/bill-sync-payload';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 
@@ -56,14 +56,13 @@ export function CheckoutPrintChoiceDialog({
     <Modal open={open} onClose={() => {}} title={undefined} size="sm" dismissOnBackdrop={false}>
       <div className="space-y-4">
         <p className="text-base font-semibold text-brand-text">{title}</p>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" size="sm" onClick={onNo} disabled={busy}>
-            {noLabel}
-          </Button>
-          <Button type="button" variant="gold" size="sm" onClick={onYes} loading={busy} disabled={busy}>
-            {yesLabel}
-          </Button>
-        </div>
+        <ModalConfirmActions
+          cancelLabel={noLabel}
+          confirmLabel={yesLabel}
+          onCancel={onNo}
+          onConfirm={onYes}
+          busy={busy}
+        />
       </div>
     </Modal>
   );

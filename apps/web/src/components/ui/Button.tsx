@@ -33,8 +33,8 @@ const sizes: Record<ButtonSize, string> = {
   sm: 'gap-2 px-3 py-1.5 text-[13px] rounded-lg',
   md: 'gap-2 px-5 py-2.5 text-[15px] rounded-lg',
   lg: 'gap-2 px-7 py-3.5 text-base rounded-lg',
-  /** Floor / session action bar — readable next to list-body text-lg content. */
-  action: 'gap-2 px-4 py-2.5 text-[15px] font-semibold rounded-xl',
+  /** Floor / session / modal confirm — ≥44px touch (`min-h-11`), next to list-body text-lg. */
+  action: 'min-h-11 gap-2 px-4 py-2.5 text-[15px] font-semibold rounded-xl',
 };
 
 export function buttonClasses({

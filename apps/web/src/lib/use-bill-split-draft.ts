@@ -2,12 +2,16 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
+  afterRemoveCustomPerson,
+  appendCustomPersonWithRemainder,
   applyCustomAmountEdit,
-  customAmountRowsEqual,
-  ensureCustomRemainderRoster,
   mintNextCustomGuestName,
   seedCustomSoloFullAmount,
 } from '@/lib/bill-split-custom-amounts';
+import {
+  shouldCommitOnSoftKeyboardDismiss,
+  softKeyboardOpen,
+} from '@/lib/soft-keyboard-viewport';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
@@ -194,6 +198,15 @@ export function useBillSplitDraft(params: {
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
   const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
   const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
+  /** Latest amount-edit draft for keyboard-dismiss commit (iOS often skips blur). */
+  const editingCustomAmountRef = useRef<{ index: number | null; value: string }>({
+    index: null,
+    value: '',
+  });
+  editingCustomAmountRef.current = {
+    index: editingCustomAmountIndex,
+    value: editingCustomAmountValue,
+  };
 
   const loadedLocalDraftRef = useRef<BillSplitLocalDraft | null | undefined>(undefined);
   const byItemLocalAppliedRef = useRef(false);
@@ -249,15 +262,7 @@ export function useBillSplitDraft(params: {
         );
         setPersonCount(count);
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
-        const restored = customAmountsFromNames(names, draft.customAmounts);
-        // Heal solo under-total drafts (e.g. amount edited before remainder append landed).
-        setCustomAmounts(
-          ensureCustomRemainderRoster(
-            restored,
-            total,
-            mintNextCustomGuestName(restored, guestName),
-          ),
-        );
+        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
       } else {
         setPersonCount(splitDraftPersonCount('even', draft.personCount));
         if (draft.splitPeople.length > 0) {
@@ -354,26 +359,6 @@ export function useBillSplitDraft(params: {
       return customAmountsFromNames(names, prev);
     });
   }, [splitMode, personCount, splitPeople, guestName]);
-
-  /**
-   * Custom-only: keep remainder roster consistent (solo under-total → append person 2).
-   * Heals localStorage drafts and any stale solo amount without a second row.
-   */
-  useLayoutEffect(() => {
-    if (splitMode !== 'custom') return;
-    setCustomAmounts((prev) => {
-      const healed = ensureCustomRemainderRoster(
-        prev,
-        total,
-        mintNextCustomGuestName(prev, guestName),
-      );
-      if (customAmountRowsEqual(prev, healed)) return prev;
-      const names = healed.map((row) => row.name);
-      setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
-      setPersonCount(splitDraftPersonCount('custom', names.length));
-      return healed;
-    });
-  }, [splitMode, total, guestName, customAmounts]);
 
   useEffect(() => {
     if (!sessionId || !submitted) return;
@@ -591,23 +576,16 @@ export function useBillSplitDraft(params: {
 
   const updateCustomAmount = useCallback(
     (index: number, rawValue: string) => {
-      setCustomAmounts((prev) => {
-        const next = applyCustomAmountEdit({
+      setCustomAmounts((prev) =>
+        applyCustomAmountEdit({
           rows: prev,
           index,
           rawValue,
           total,
-          nextGuestName: mintNextCustomGuestName(prev, guestName),
-        });
-        if (next.length !== prev.length) {
-          const names = next.map((row) => row.name);
-          setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
-          setPersonCount(splitDraftPersonCount('custom', names.length));
-        }
-        return next;
-      });
+        }),
+      );
     },
-    [total, guestName],
+    [total],
   );
 
   const startInlineAmountEdit = useCallback(
@@ -618,6 +596,21 @@ export function useBillSplitDraft(params: {
     [customAmounts],
   );
 
+  /**
+   * Sole draft+commit while typing: update the input string, and when the value is a
+   * complete number write through to customAmounts (so iOS keyboard-dismiss without
+   * blur still leaves the bill balanced). Trailing "." / empty wait for blur.
+   */
+  const editCustomAmountDraft = useCallback(
+    (index: number, rawValue: string) => {
+      setEditingCustomAmountValue(rawValue);
+      if (rawValue === '' || rawValue === '.' || rawValue.endsWith('.')) return;
+      if (!Number.isFinite(Number(rawValue))) return;
+      updateCustomAmount(index, rawValue);
+    },
+    [updateCustomAmount],
+  );
+
   const commitInlineAmountEdit = useCallback(
     (index: number) => {
       updateCustomAmount(index, editingCustomAmountValue || '0');
@@ -626,6 +619,38 @@ export function useBillSplitDraft(params: {
     },
     [updateCustomAmount, editingCustomAmountValue],
   );
+
+  /**
+   * iOS “collapse keyboard” often leaves focus on the input (no blur).
+   * Close the editor (amounts already write-through); finalize empty → 0.
+   */
+  useEffect(() => {
+    if (editingCustomAmountIndex == null) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    let wasOpen = softKeyboardOpen(window.innerHeight, vv.height);
+
+    const onViewportResize = () => {
+      const open = softKeyboardOpen(window.innerHeight, vv.height);
+      if (!shouldCommitOnSoftKeyboardDismiss(wasOpen, open)) {
+        wasOpen = open;
+        return;
+      }
+      wasOpen = open;
+      const { index, value } = editingCustomAmountRef.current;
+      if (index == null) return;
+      updateCustomAmount(index, value || '0');
+      setEditingCustomAmountIndex(null);
+      setEditingCustomAmountValue('');
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    };
+
+    vv.addEventListener('resize', onViewportResize);
+    return () => vv.removeEventListener('resize', onViewportResize);
+  }, [editingCustomAmountIndex, updateCustomAmount]);
 
   const decrementPersonCount = useCallback(() => {
     const n = splitDraftPersonCount('even', personCount - 1);
@@ -661,11 +686,7 @@ export function useBillSplitDraft(params: {
     setCustomAmounts((prev) => {
       if (prev.length <= 1 || index < 0 || index >= prev.length) return prev;
       const filtered = prev.filter((_, rowIndex) => rowIndex !== index);
-      const healed = ensureCustomRemainderRoster(
-        filtered,
-        total,
-        mintNextCustomGuestName(filtered, guestName),
-      );
+      const healed = afterRemoveCustomPerson(filtered, total);
       const names = healed.map((row) => row.name);
       setSplitPeople((peoplePrev) =>
         slotsFromNames(
@@ -676,24 +697,20 @@ export function useBillSplitDraft(params: {
       setPersonCount(splitDraftPersonCount('custom', names.length));
       return healed;
     });
-  }, [total, guestName]);
+  }, [total]);
 
   const addCustomPerson = useCallback(() => {
     setCustomAmounts((prev) => {
       const nextCount = splitDraftPersonCount('custom', prev.length + 1);
-      const names = ensureSplitPersonNames(
-        [
-          ...prev.map((row) => row.name),
-          splitPeople[prev.length]?.name ?? '',
-        ],
-        nextCount,
-        guestName,
-      );
+      if (nextCount <= prev.length) return prev;
+      const nextName = mintNextCustomGuestName(prev, guestName);
+      const next = appendCustomPersonWithRemainder(prev, total, nextName);
+      const names = next.map((row) => row.name);
       setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
       setPersonCount(nextCount);
-      return customAmountsFromNames(names, prev);
+      return next;
     });
-  }, [guestName, splitPeople]);
+  }, [guestName, total]);
 
   const commitByItemDraft = useCallback(() => {
     const committed = commitAllByItemAllocations({
@@ -747,6 +764,7 @@ export function useBillSplitDraft(params: {
     editingCustomAmountIndex,
     editingCustomAmountValue,
     setEditingCustomAmountValue,
+    editCustomAmountDraft,
     startInlineRename,
     commitInlineRename,
     startInlineAmountEdit,

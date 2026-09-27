@@ -351,7 +351,7 @@
 
 - 顾客账单页 `/{slug}/bill`：查看会话消费
 - 三种模式：`even`（均摊）、`by_item`（按菜）、`custom`（自定义金额）
-- 手填金额：开局一人满额可改；确认金额小于总额时自动出现第二人补剩余（`applyCustomAmountEdit` / `ensureCustomRemainderRoster`）；本机草稿若只剩一人且金额小于总额也会自动补人；仍可「+」加人与删人（手机/电脑同一 `onRemoveCustomPerson`），最后一人为剩余；人数增减不靠改回满额自动删人
+- 手填金额：开局一人满额可改；不因改少金额自动加人；仅「+」加人（`appendCustomPersonWithRemainder` 自动填剩余）；金额唯一入口 `applyCustomAmountEdit`（≥2 每人可改，余数落到互补行）；删人唯一 `afterRemoveCustomPerson`（剩 1 人收成全单，不自动加回）；合计须等于账单；不靠改回满额自动删人
 - 按菜分单：菜品分配到消费者姓名、数量拆分
 - 客人可见分单词表（短标签 + 何时用 + 进店第 3 步）以 `guest-split-mode-messages` 为唯一来源；进店预览与账单模式区共用，不另写一套
 - 消费者姓名 roster、自助餐菜品分配 UI

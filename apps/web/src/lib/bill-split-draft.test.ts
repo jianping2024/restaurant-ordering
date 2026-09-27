@@ -158,6 +158,22 @@ describe('validateSplitDraft', () => {
     }
   });
 
+  it('keeps solo custom amount as stored (does not force full bill)', () => {
+    const rows = computeSplitResults({
+      splitMode: 'custom',
+      total: 19.95,
+      orderLines: [menuLine('o1-0', 1, 19.95)],
+      lineSpecs: [menuSpec('o1-0', 1, 19.95)],
+      personCount: 1,
+      splitPeople: [{ name: 'Guest 1' }],
+      customAmounts: [{ name: 'Guest 1', amount: 10 }],
+      byItemDraftRows: {},
+      parsedByItemAllocations: {},
+      lang: 'pt',
+    });
+    assert.deepEqual(rows, [{ name: 'Guest 1', amount: 10 }]);
+  });
+
   it('flags custom amounts when manual share exceeds total', () => {
     const outcome = validateSplitDraft({
       splitMode: 'custom',

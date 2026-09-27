@@ -67,11 +67,11 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     }).map((row) => toWireSplitResult(row));
   }
 
-  const manualTotal = customAmounts.slice(0, -1).reduce((sum, row) => sum + row.amount, 0);
-  const lastAmount = Math.max(0, total - manualTotal);
-  return customAmounts.map((row, index) => ({
+  // Custom amounts are authoritative (applyCustomAmountEdit / append / afterRemove).
+  // Do not rewrite the last row here — that forced solo drafts back to full bill.
+  return customAmounts.map((row) => ({
     name: row.name,
-    amount: index === customAmounts.length - 1 ? lastAmount : row.amount,
+    amount: row.amount,
   }));
 }
 

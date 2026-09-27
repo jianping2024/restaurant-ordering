@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { billOrdersFingerprint, isBillOrdersComplete } from './customer-bill-sync';
 import { computeSplitResults, validateSplitDraft } from './bill-split-draft';
+import type { ByItemConsumerRow } from './bill-split-by-item';
 import { resolvePersistedSplitModeForDraft } from './checkout-split-intent';
 import type { BillSplitOrderLine, ByItemLineSpec } from './bill-split-by-item-lines';
 import type { Order } from '../types';
@@ -27,6 +28,36 @@ function menuSpec(key: string, qty: number, price: number): ByItemLineSpec {
     lineQty: qty,
     lineTotal: qty * price,
     unitPrice: price,
+  };
+}
+
+function buffetSpec(key: string, adults: number, children: number): ByItemLineSpec {
+  return {
+    mode: 'buffet',
+    key,
+    lineTotal: adults * 15 + children * 8,
+    adults,
+    children,
+    adultUnitPrice: 15,
+    childUnitPrice: 8,
+  };
+}
+
+function consumerRow(
+  id: string,
+  name: string,
+  qtyWhole: string,
+  partyId = 'party-a',
+): ByItemConsumerRow {
+  return {
+    id,
+    name,
+    partyId,
+    qtyWhole,
+    qtyNum: '',
+    qtyDen: '',
+    adultQty: '',
+    childQty: '',
   };
 }
 
@@ -62,6 +93,7 @@ describe('computeSplitResults', () => {
       personCount: 3,
       splitPeople: people,
       customAmounts: [],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
     });
@@ -80,6 +112,7 @@ describe('computeSplitResults', () => {
       personCount: 2,
       splitPeople: people,
       customAmounts: [],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
     });
@@ -91,6 +124,7 @@ describe('computeSplitResults', () => {
       personCount: 2,
       splitPeople: people,
       customAmounts: [],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
     });
@@ -112,6 +146,7 @@ describe('validateSplitDraft', () => {
       personCount: 2,
       splitPeople: [{ name: 'Guest 1' }, { name: 'Guest 2' }],
       customAmounts: [],
+      byItemDraftRows: {},
       parsedByItemAllocations: {
         'o1-0': [{ name: 'Guest 1', qty: { num: 1, den: 1 } }],
       },
@@ -135,6 +170,7 @@ describe('validateSplitDraft', () => {
         { name: 'Guest 1', amount: 35 },
         { name: 'Guest 2', amount: 0 },
       ],
+      byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
     });
@@ -142,6 +178,101 @@ describe('validateSplitDraft', () => {
     if (!outcome.validation.ok) {
       assert.equal(outcome.validation.issue, 'amount_mismatch');
     }
+  });
+
+  it('rejects a duplicate named draft row even when parsing drops its empty quantity', () => {
+    const key = 'o1-0';
+    const outcome = validateSplitDraft({
+      splitMode: 'by_item',
+      total: 10,
+      orderLines: [menuLine(key, 1, 10)],
+      lineSpecs: [menuSpec(key, 1, 10)],
+      personCount: 1,
+      splitPeople: [{ name: 'Guest 1' }],
+      customAmounts: [],
+      byItemDraftRows: {
+        [key]: [
+          consumerRow('row-1', 'Guest 1', '1'),
+          consumerRow('row-2', 'Guest 1', ''),
+        ],
+      },
+      parsedByItemAllocations: {
+        [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 1, den: 1 } }],
+      },
+      lang: 'pt',
+    });
+
+    assert.deepEqual(outcome.validation, { ok: false, issue: 'incomplete_qty' });
+  });
+
+  it('rejects duplicate buffet draft rows before serialization can merge them', () => {
+    const key = 'buffet-0';
+    const first = { ...consumerRow('row-1', 'Guest 1', ''), adultQty: '1' };
+    const second = { ...consumerRow('row-2', 'Guest 1', ''), adultQty: '1' };
+    const outcome = validateSplitDraft({
+      splitMode: 'by_item',
+      total: 30,
+      orderLines: [],
+      lineSpecs: [buffetSpec(key, 2, 0)],
+      personCount: 1,
+      splitPeople: [{ name: 'Guest 1' }],
+      customAmounts: [],
+      byItemDraftRows: { [key]: [first, second] },
+      parsedByItemAllocations: {
+        [key]: [
+          { name: 'Guest 1', partyId: 'party-a', guestType: 'adult', qty: { num: 1, den: 1 } },
+          { name: 'Guest 1', partyId: 'party-a', guestType: 'adult', qty: { num: 1, den: 1 } },
+        ],
+      },
+      lang: 'pt',
+    });
+
+    assert.deepEqual(outcome.validation, { ok: false, issue: 'incomplete_qty' });
+  });
+
+  it('allows an unfinished valid pool only for staff partial collection', () => {
+    const key = 'o1-0';
+    const input = {
+      splitMode: 'by_item' as const,
+      total: 20,
+      orderLines: [menuLine(key, 2, 10)],
+      lineSpecs: [menuSpec(key, 2, 10)],
+      personCount: 1,
+      splitPeople: [{ name: 'Guest 1' }],
+      customAmounts: [],
+      byItemDraftRows: { [key]: [consumerRow('row-1', 'Guest 1', '1')] },
+      parsedByItemAllocations: {
+        [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 1, den: 1 } }],
+      },
+      lang: 'pt' as const,
+    };
+
+    assert.equal(validateSplitDraft(input).validation.ok, false);
+    assert.equal(validateSplitDraft(input, { allowPartialByItem: true }).validation.ok, true);
+  });
+
+  it('does not relax duplicate rows during staff partial collection', () => {
+    const key = 'o1-0';
+    const duplicateRows = [
+      consumerRow('row-1', 'Guest 1', '1'),
+      consumerRow('row-2', 'Guest 1', ''),
+    ];
+    const outcome = validateSplitDraft({
+      splitMode: 'by_item',
+      total: 20,
+      orderLines: [menuLine(key, 2, 10)],
+      lineSpecs: [menuSpec(key, 2, 10)],
+      personCount: 1,
+      splitPeople: [{ name: 'Guest 1' }],
+      customAmounts: [],
+      byItemDraftRows: { [key]: duplicateRows },
+      parsedByItemAllocations: {
+        [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 1, den: 1 } }],
+      },
+      lang: 'pt',
+    }, { allowPartialByItem: true });
+
+    assert.deepEqual(outcome.validation, { ok: false, issue: 'incomplete_qty' });
   });
 });
 

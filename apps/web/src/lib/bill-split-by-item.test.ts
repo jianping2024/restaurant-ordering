@@ -10,7 +10,9 @@ import {
   consumersForLineFromPersons,
   countByItemAllocationProgress,
   getBuffetLineStatusFromRows,
+  getBuffetLineStatusFromShares,
   getByItemLineStatusFromRows,
+  getByItemLineStatusFromShares,
   locateByItemSplitResult,
   parseConsumerRows,
   rationalToRowQtyFields,
@@ -326,6 +328,39 @@ describe('validateBillSplit by_item', () => {
       byItemAllocations: allocations,
     });
     assert.equal(result.ok, true);
+  });
+
+  it('keeps same-name menu tickets distinct when party ids differ', () => {
+    const status = getByItemLineStatusFromShares(menuSpec('water', 2), [
+      { name: 'Alex', partyId: 'party-a', qty: { num: 1, den: 1 } },
+      { name: 'Alex', partyId: 'party-b', qty: { num: 1, den: 1 } },
+    ]);
+    assert.equal(status.kind, 'complete');
+  });
+
+  it('rejects duplicate menu shares for the same party', () => {
+    const status = getByItemLineStatusFromShares(menuSpec('water', 2), [
+      { name: 'Alex', partyId: 'party-a', qty: { num: 1, den: 1 } },
+      { name: 'Alex', partyId: 'party-a', qty: { num: 1, den: 1 } },
+    ]);
+    assert.equal(status.kind, 'duplicate_names');
+  });
+
+  it('rejects duplicate buffet shares for the same party and guest type', () => {
+    const status = getBuffetLineStatusFromShares(buffetSpec('buffet-0', 2, 0), [
+      { name: 'Alex', partyId: 'party-a', guestType: 'adult', qty: { num: 1, den: 1 } },
+      { name: 'Alex', partyId: 'party-a', guestType: 'adult', qty: { num: 1, den: 1 } },
+    ]);
+    assert.equal(status.kind, 'duplicate_names');
+  });
+
+  it('accepts adult and child buffet shares for one party and same-name distinct tickets', () => {
+    const status = getBuffetLineStatusFromShares(buffetSpec('buffet-0', 2, 1), [
+      { name: 'Alex', partyId: 'party-a', guestType: 'adult', qty: { num: 1, den: 1 } },
+      { name: 'Alex', partyId: 'party-a', guestType: 'child', qty: { num: 1, den: 1 } },
+      { name: 'Alex', partyId: 'party-b', guestType: 'adult', qty: { num: 1, den: 1 } },
+    ]);
+    assert.equal(status.kind, 'complete');
   });
 });
 

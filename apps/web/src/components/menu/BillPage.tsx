@@ -514,10 +514,18 @@ export function BillPage({
     );
   }
 
+  const editingCustomAmount =
+    typeof splitDraft.editingCustomAmountIndex === 'number';
+
   return (
     <div
+      data-editing-custom-amount={editingCustomAmount ? '1' : '0'}
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${
-        checkoutGateMessage ? 'pb-40' : 'pb-24'
+        checkoutGateMessage && !editingCustomAmount
+          ? 'pb-40'
+          : editingCustomAmount
+            ? 'pb-6'
+            : 'pb-24'
       }`}
     >
       <CustomerOrderingHeader
@@ -627,31 +635,35 @@ export function BillPage({
         </div>
       ) : null}
 
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
-        {checkoutGateMessage ? (
-          <BillCheckoutGateBanner
-            message={checkoutGateMessage}
-            className="shadow-md shadow-amber-900/15"
-          />
-        ) : null}
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={handleCallBill}
-          loading={isCallBillBusy}
-          disabled={
-            orderLines.length === 0
-            || !sessionId
-            || isCallBillBusy
-            || !guestCountConfirmed
-            || !partyCheckoutAllowed
-            || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
-            || customerNifInvalid
-          }
-        >
-          🔔 {t.callBill} — €{callBillAmount.toFixed(2)}
-        </Button>
-      </div>
+      {/* Sole guest bill CTA chrome — hidden while editing a custom amount so the
+          soft keyboard is not stacked under a fixed call-checkout bar. */}
+      {!editingCustomAmount ? (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
+          {checkoutGateMessage ? (
+            <BillCheckoutGateBanner
+              message={checkoutGateMessage}
+              className="shadow-md shadow-amber-900/15"
+            />
+          ) : null}
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleCallBill}
+            loading={isCallBillBusy}
+            disabled={
+              orderLines.length === 0
+              || !sessionId
+              || isCallBillBusy
+              || !guestCountConfirmed
+              || !partyCheckoutAllowed
+              || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
+              || customerNifInvalid
+            }
+          >
+            🔔 {t.callBill} — €{callBillAmount.toFixed(2)}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

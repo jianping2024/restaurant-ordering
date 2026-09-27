@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   applyCustomAmountEdit,
+  customAmountRowsEqual,
+  ensureCustomRemainderRoster,
   seedCustomSoloFullAmount,
 } from '@/lib/bill-split-custom-amounts';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
@@ -247,11 +249,9 @@ export function useBillSplitDraft(params: {
         setPersonCount(count);
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
         const restored = customAmountsFromNames(names, draft.customAmounts);
-        // Legacy solo drafts often stored 0 while the UI showed bill total via remainder.
+        // Heal solo under-total drafts (e.g. amount edited before remainder append landed).
         setCustomAmounts(
-          restored.length === 1 && restored[0]!.amount === 0
-            ? seedCustomSoloFullAmount(restored, total)
-            : restored,
+          ensureCustomRemainderRoster(restored, total, guestName(restored.length + 1)),
         );
       } else {
         setPersonCount(splitDraftPersonCount('even', draft.personCount));
@@ -349,6 +349,26 @@ export function useBillSplitDraft(params: {
       return customAmountsFromNames(names, prev);
     });
   }, [splitMode, personCount, splitPeople, guestName]);
+
+  /**
+   * Custom-only: keep remainder roster consistent (solo under-total → append person 2).
+   * Heals localStorage drafts and any stale solo amount without a second row.
+   */
+  useLayoutEffect(() => {
+    if (splitMode !== 'custom') return;
+    setCustomAmounts((prev) => {
+      const healed = ensureCustomRemainderRoster(
+        prev,
+        total,
+        guestName(prev.length + 1),
+      );
+      if (customAmountRowsEqual(prev, healed)) return prev;
+      const names = healed.map((row) => row.name);
+      setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
+      setPersonCount(splitDraftPersonCount('custom', names.length));
+      return healed;
+    });
+  }, [splitMode, total, guestName, customAmounts]);
 
   useEffect(() => {
     if (!sessionId || !submitted) return;

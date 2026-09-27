@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   applyCustomAmountEdit,
+  ensureCustomRemainderRoster,
   seedCustomSoloFullAmount,
 } from './bill-split-custom-amounts';
 
@@ -18,6 +19,25 @@ describe('seedCustomSoloFullAmount', () => {
       { name: 'B', amount: 9.95 },
     ];
     assert.deepEqual(seedCustomSoloFullAmount(rows, 19.95), rows);
+  });
+});
+
+describe('ensureCustomRemainderRoster', () => {
+  it('heals a solo under-total row by appending the remainder person', () => {
+    assert.deepEqual(
+      ensureCustomRemainderRoster([{ name: 'Guest 1', amount: 20 }], 39.9, 'Guest 2'),
+      [
+        { name: 'Guest 1', amount: 20 },
+        { name: 'Guest 2', amount: 19.9 },
+      ],
+    );
+  });
+
+  it('seeds a sole zero row to the full bill', () => {
+    assert.deepEqual(
+      ensureCustomRemainderRoster([{ name: 'Guest 1', amount: 0 }], 39.9, 'Guest 2'),
+      [{ name: 'Guest 1', amount: 39.9 }],
+    );
   });
 });
 

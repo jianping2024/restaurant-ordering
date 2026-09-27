@@ -29,6 +29,7 @@ import { formatPortugueseNif } from '@/lib/pt-nif';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import { checkoutSettlementBarStickyShellClass } from '@/lib/waiter-staff-sticky-chrome';
+import { formatCheckoutDiscountLabel } from '@/lib/checkout-split-math';
 import type { BillSplit, Order } from '@/types';
 
 export type CheckoutT = ReturnType<typeof getMessages>['checkout'];
@@ -113,6 +114,15 @@ export function SettlementBar({
                 €{summary.consumption.toFixed(2)}
               </span>
             </span>
+            {summary.discountRate > 0 ? (
+              <span className="text-brand-text-muted">
+                {formatCheckoutDiscountLabel(
+                  t.settlementDiscount,
+                  summary.discountRate,
+                  summary.discountSaved,
+                )}
+              </span>
+            ) : null}
             <span className="text-brand-text-muted">
               {t.finalAmount}{' '}
               <span className="text-brand-text tabular-nums font-medium">

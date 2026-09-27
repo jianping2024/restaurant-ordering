@@ -11,6 +11,7 @@ import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
 import type { CustomerSplitRowDisplay } from '@/lib/customer-bill-split-display';
 import { splitSettlementCollectAmount } from '@/lib/checkout-split-settlement';
+import { resolveCheckoutDiscountedShareDisplay } from '@/lib/checkout-split-math';
 import type { UILanguage } from '@/lib/i18n';
 import {
   GUEST_SPLIT_MODE_ORDER,
@@ -84,6 +85,10 @@ interface Props {
     busy: boolean;
     onCollect: (index: number) => void;
     onRemoveCustom: (index: number) => void;
+    /** Bill-level % — row € shows 折后; optional 折前 line when > 0. */
+    discountRate?: number;
+    /** Template `折前 €{amount}` when discount active. */
+    discountPreLabel?: string;
   };
   /**
    * Staff checkout injects Fatura-like by-item workbench here.
@@ -225,6 +230,28 @@ export function BillSplitPanel({
             const settledAmount = showSettlement && settlementRow
               ? splitSettlementCollectAmount(settlementRow)
               : null;
+            const preAmount =
+              settledAmount ??
+              (splitMode === 'custom' ? customAmounts[i]?.amount ?? r.amount : r.amount);
+            const shareDisplay = resolveCheckoutDiscountedShareDisplay(
+              preAmount,
+              settledAmount != null ? 0 : (staffRowActions?.discountRate ?? 0),
+            );
+            const amountBlock = (
+              <span className="shrink-0 text-right">
+                <span className="text-brand-gold font-medium tabular-nums">
+                  €{shareDisplay.displayAmount.toFixed(2)}
+                </span>
+                {shareDisplay.showPreLine && staffRowActions?.discountPreLabel ? (
+                  <span className="block text-[11px] font-normal text-brand-text-muted tabular-nums">
+                    {staffRowActions.discountPreLabel.replace(
+                      '{amount}',
+                      shareDisplay.preAmount.toFixed(2),
+                    )}
+                  </span>
+                ) : null}
+              </span>
+            );
             return (
               <div
                 key={i}
@@ -280,9 +307,7 @@ export function BillSplitPanel({
                 </div>
                 {splitMode === 'custom' ? (
                   i === customAmounts.length - 1 ? (
-                    <span className="text-brand-gold font-medium shrink-0">
-                      €{(settledAmount ?? r.amount).toFixed(2)}
-                    </span>
+                    amountBlock
                   ) : editingCustomAmountIndex === i ? (
                     <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px] shrink-0">
                       <span className="mr-1">€</span>
@@ -307,22 +332,18 @@ export function BillSplitPanel({
                       />
                     </div>
                   ) : rowPaid || splitLocked ? (
-                    <span className="text-brand-gold font-medium shrink-0">
-                      €{(settledAmount ?? customAmounts[i]?.amount ?? 0).toFixed(2)}
-                    </span>
+                    amountBlock
                   ) : (
                     <button
                       type="button"
                       onClick={() => onStartInlineAmountEdit(i)}
-                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors shrink-0"
+                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors shrink-0 text-right"
                     >
-                      €{customAmounts[i]?.amount.toFixed(2) || '0.00'}
+                      {amountBlock}
                     </button>
                   )
                 ) : (
-                  <span className="text-brand-gold font-medium shrink-0">
-                    €{(settledAmount ?? r.amount).toFixed(2)}
-                  </span>
+                  amountBlock
                 )}
                 {staffRowActions && (splitMode === 'even' || splitMode === 'custom') ? (
                   <div className="flex shrink-0 items-center gap-1">
@@ -342,7 +363,7 @@ export function BillSplitPanel({
                         </svg>
                       </button>
                     ) : null}
-                    {!rowPaid && (settledAmount ?? r.amount) > 0 ? (
+                    {!rowPaid && shareDisplay.displayAmount > 0 ? (
                       <button
                         type="button"
                         disabled={staffRowActions.busy}

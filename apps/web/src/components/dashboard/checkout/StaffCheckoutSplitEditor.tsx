@@ -86,6 +86,7 @@ type Props = {
     amount: number,
     personName?: string,
     partyId?: string,
+    preDiscountAmount?: number,
   ) => void;
   onSplitPersisted: (row: BillSplit) => void;
   /**
@@ -582,12 +583,13 @@ export function StaffCheckoutSplitEditor({
       collectAmount: number,
       personName?: string,
       partyId?: string,
+      preDiscountAmount?: number,
     ) => {
       if (collectAmount <= 0) {
         showToast(checkoutT.cashShort, 'error');
         return;
       }
-      onCollectPerson(index, collectAmount, personName, partyId);
+      onCollectPerson(index, collectAmount, personName, partyId, preDiscountAmount);
     },
     [checkoutT.cashShort, onCollectPerson],
   );
@@ -681,6 +683,8 @@ export function StaffCheckoutSplitEditor({
                 collectLabel: checkoutT.collectPerson,
                 removeLabel: checkoutT.returnShareToPool,
                 busy: submitting || detailLocked,
+                discountRate,
+                discountPreLabel: checkoutT.discountPreAmount,
                 onCollect: (index) => {
                   const row = splitDraft.results[index];
                   if (!row) return;
@@ -690,6 +694,8 @@ export function StaffCheckoutSplitEditor({
                     index,
                     discountedObligationAmount(row.amount, discountRate),
                     row.name,
+                    undefined,
+                    row.amount,
                   );
                 },
                 onRemoveCustom: splitDraft.removeCustomPerson,
@@ -709,6 +715,8 @@ export function StaffCheckoutSplitEditor({
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
+            discountRate={discountRate}
+            discountPreLabel={checkoutT.discountPreAmount}
             labels={staffByItemLabels}
             disabled={submitting || detailLocked}
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
@@ -739,6 +747,7 @@ export function StaffCheckoutSplitEditor({
                 target.amount,
                 target.personName,
                 target.partyId,
+                target.preDiscountObligation,
               );
             }}
           />

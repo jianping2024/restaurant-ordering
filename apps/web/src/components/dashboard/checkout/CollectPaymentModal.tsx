@@ -18,11 +18,14 @@ import {
   type BillSyncPaymentMethod,
 } from '@/lib/bill-sync-payload';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
+import { formatCheckoutCollectDiscountDetail } from '@/lib/checkout-split-math';
 import { normalizePortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 
 export type CollectPaymentModalLabels = {
   title: string;
   amount: string;
+  /** Template `折前 €{pre} · 折扣 {n}%` — omit line when no discount. */
+  discountDetail?: string;
   confirm: string;
   cancel: string;
   processing: string;
@@ -40,6 +43,9 @@ type Props = {
   open: boolean;
   busy: boolean;
   amount: number;
+  /** Ticket pre-discount obligation — drives optional discount detail line. */
+  preDiscountAmount?: number;
+  discountRate?: number;
   /** Seed for optional fiscal buyer name (person being collected). */
   initialCustomerName?: string;
   labels: CollectPaymentModalLabels;
@@ -54,6 +60,8 @@ export function CollectPaymentModal({
   open,
   busy,
   amount,
+  preDiscountAmount,
+  discountRate = 0,
   initialCustomerName = '',
   labels,
   paymentLabels,
@@ -68,6 +76,14 @@ export function CollectPaymentModal({
   const [name, setName] = useState('');
 
   const due = Math.round(amount * 100) / 100;
+  const discountDetail =
+    labels.discountDetail && preDiscountAmount != null
+      ? formatCheckoutCollectDiscountDetail(
+          labels.discountDetail,
+          preDiscountAmount,
+          discountRate,
+        )
+      : null;
 
   useEffect(() => {
     if (!open) return;
@@ -115,6 +131,9 @@ export function CollectPaymentModal({
             €{due.toFixed(2)}
           </span>
         </p>
+        {discountDetail ? (
+          <p className="-mt-2 text-[13px] text-brand-text-muted tabular-nums">{discountDetail}</p>
+        ) : null}
         <CheckoutPaymentTenderFields
           due={due}
           payment={payment}

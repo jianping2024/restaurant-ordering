@@ -17,6 +17,7 @@ import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
+import { resolveCheckoutDiscountedShareDisplay } from '@/lib/checkout-split-math';
 import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
@@ -191,6 +192,9 @@ type Props = {
   /** Catalog photo urls keyed by menu_item.id — pool rows use MenuItemListThumb. */
   imageUrlByMenuId?: Record<string, string>;
   guestName: (n: number) => string;
+  /** Bill-level % — chip / estimate show 折后; optional 折前 line. */
+  discountRate?: number;
+  discountPreLabel?: string;
   labels: StaffByItemWorkbenchLabels;
   disabled?: boolean;
   onAllocationChange: (next: Record<string, ByItemConsumerRow[]>) => void;
@@ -221,6 +225,8 @@ export function StaffByItemSplitWorkbench({
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
   guestName,
+  discountRate = 0,
+  discountPreLabel,
   labels,
   disabled = false,
   onAllocationChange,
@@ -394,8 +400,10 @@ export function StaffByItemSplitWorkbench({
 
   const estimate = useMemo(() => {
     const located = locateByItemSplitResult(splitResults, currentName, currentPartyId);
-    return { rows: shares.length, amount: located?.row.amount ?? 0 };
-  }, [currentName, currentPartyId, shares.length, splitResults]);
+    const pre = located?.row.amount ?? 0;
+    const share = resolveCheckoutDiscountedShareDisplay(pre, discountRate);
+    return { rows: shares.length, amount: share.displayAmount, preAmount: share.preAmount, showPre: share.showPreLine };
+  }, [currentName, currentPartyId, discountRate, shares.length, splitResults]);
 
   const commitName = (raw: string) => {
     const trimmed = raw.trim();
@@ -452,6 +460,9 @@ export function StaffByItemSplitWorkbench({
   const personAmount = (person: StaffByItemRailPerson) =>
     locateByItemSplitResult(splitResults, person.name, person.partyId)?.row.amount ?? 0;
 
+  const personShareDisplay = (person: StaffByItemRailPerson) =>
+    resolveCheckoutDiscountedShareDisplay(personAmount(person), discountRate);
+
   return (
     <div className="space-y-3">
       <div
@@ -463,7 +474,7 @@ export function StaffByItemSplitWorkbench({
           const key = staffByItemRailPersonKey(person);
           const settled = Boolean(key && settledTicketKeys.has(key));
           const active = idx === safeIndex;
-          const amount = personAmount(person);
+          const share = personShareDisplay(person);
           const label = person.name || guestName(idx + 1);
           return (
             <button
@@ -484,8 +495,17 @@ export function StaffByItemSplitWorkbench({
             >
               <span>{label}</span>
               <span className={`ml-1.5 tabular-nums ${active ? 'text-white/90' : 'text-brand-text-muted'}`}>
-                €{amount.toFixed(2)}
+                €{share.displayAmount.toFixed(2)}
               </span>
+              {share.showPreLine && discountPreLabel ? (
+                <span
+                  className={`ml-1 text-[10px] font-normal tabular-nums ${
+                    active ? 'text-white/70' : 'text-brand-text-muted'
+                  }`}
+                >
+                  ({discountPreLabel.replace('{amount}', share.preAmount.toFixed(2))})
+                </span>
+              ) : null}
               {settled ? ' ✓' : ''}
             </button>
           );
@@ -831,6 +851,11 @@ export function StaffByItemSplitWorkbench({
                     <p className={CHECKOUT_ACTION_AMOUNT_CLASS}>
                       €{estimate.amount.toFixed(2)}
                     </p>
+                    {estimate.showPre && discountPreLabel ? (
+                      <p className="text-[12px] text-brand-text-muted tabular-nums">
+                        {discountPreLabel.replace('{amount}', estimate.preAmount.toFixed(2))}
+                      </p>
+                    ) : null}
                   </div>
                   {onCollectCurrent && !currentSettled ? (
                     <button

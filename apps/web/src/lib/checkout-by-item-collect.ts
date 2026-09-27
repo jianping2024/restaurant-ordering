@@ -135,7 +135,10 @@ export function applyCollectedObligationFloors(
 
 export type ByItemCollectTarget = {
   index: number;
+  /** Outstanding to collect now (折后义务 − 已收). */
   amount: number;
+  /** Ticket pre-discount obligation (collect modal discount context). */
+  preDiscountObligation: number;
   personName: string;
   partyId?: string;
 };
@@ -186,6 +189,7 @@ export function resolveByItemCollectTarget(params: {
   return {
     index,
     amount,
+    preDiscountObligation,
     personName: rosterRow.name ?? params.personName,
     ...(rosterRow.party_id?.trim()
       ? { partyId: rosterRow.party_id.trim() }

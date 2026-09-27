@@ -5,6 +5,7 @@ import {
   extractByItemDraftAllocations,
   extractByItemLockedAllocations,
   mergeByItemCommittedAndDraft,
+  mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
 } from './by-item-committed-draft';
 import type { ByItemConsumerRow } from './bill-split-by-item';
@@ -133,6 +134,25 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     const pruned = pruneByItemDraftAgainstLocks(draft, new Set(['p:party-paid']));
     assert.equal(pruned['line-a']?.length, 1);
     assert.equal(pruned['line-a']?.[0]?.partyId, 'party-open');
+  });
+
+  it('mergeMissing appends unpaid tickets/lines without overwriting draft', () => {
+    const draft = {
+      'line-a': [row('John', { partyId: 'p-paid', qty: '1' })],
+    };
+    const incoming = {
+      'line-a': [
+        row('John', { partyId: 'p-paid', qty: '2' }),
+        row('Jim', { partyId: 'p-jim', qty: '1' }),
+      ],
+      'line-b': [row('Jim', { partyId: 'p-jim', qty: '1' })],
+    };
+    const merged = mergeMissingByItemDraftTickets(draft, incoming);
+    assert.equal(merged['line-a']?.length, 2);
+    assert.equal(merged['line-a']?.[0]?.qtyWhole, '1');
+    assert.ok(merged['line-a']?.some((r) => r.partyId === 'p-jim'));
+    assert.equal(merged['line-b']?.length, 1);
+    assert.equal(merged['line-b']?.[0]?.partyId, 'p-jim');
   });
 
   it('byItemDraftHasNamedRows ignores seeds', () => {

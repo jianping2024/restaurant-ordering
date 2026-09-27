@@ -32,6 +32,7 @@ import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
   staffByItemLockedLedgerPeople,
+  staffByItemRailPersonKey,
   type StaffByItemRailPerson,
 } from '@/lib/staff-by-item-people';
 import { staffByItemPeopleFromAllocations } from '@/lib/staff-by-item-workbench';
@@ -243,6 +244,30 @@ export function StaffCheckoutSplitEditor({
     [collectedPayments, request],
   );
 
+  /**
+   * Guest/staff persons landed but not all tickets are in allocations yet (hydrate lag).
+   * Sole gate for workbench to suppress blank「客人 1」mint — pairs with resolveStaffByItemRailPeople.
+   */
+  const awaitingByItemRailHydrate = useMemo(() => {
+    if (splitDraft.splitMode !== 'by_item') return false;
+    const fromPersons = staffByItemLedgerPeople(
+      (request.persons ?? []).map((row) => ({
+        name: row.name,
+        ...(row.party_id?.trim() ? { partyId: row.party_id.trim() } : {}),
+      })),
+    );
+    if (fromPersons.length === 0) return false;
+    const allocKeys = new Set(
+      staffByItemPeopleFromAllocations(splitDraft.byItemAllocations).map((person) =>
+        staffByItemRailPersonKey(person),
+      ),
+    );
+    return fromPersons.some((person) => {
+      const key = staffByItemRailPersonKey(person);
+      return Boolean(key && !allocKeys.has(key));
+    });
+  }, [request.persons, splitDraft.byItemAllocations, splitDraft.splitMode]);
+
   const byItemRailOrderPeople = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as StaffByItemRailPerson[];
     return resolveStaffByItemRailPeople({
@@ -251,32 +276,15 @@ export function StaffCheckoutSplitEditor({
         lockedTicketKeysFromLedger,
       ),
       allocationPeople: staffByItemPeopleFromAllocations(splitDraft.byItemAllocations),
-      awaitingHydrate: false,
+      awaitingHydrate: awaitingByItemRailHydrate,
     });
   }, [
+    awaitingByItemRailHydrate,
     ledgerPeople,
     lockedTicketKeysFromLedger,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
   ]);
-
-  /**
-   * Guest persons landed but draft allocations not ready yet (lineSpecs / hydrate lag).
-   * Sole gate for workbench to suppress blank「客人 1」mint — pairs with resolveStaffByItemRailPeople.
-   */
-  const awaitingByItemRailHydrate = useMemo(() => {
-    if (splitDraft.splitMode !== 'by_item') return false;
-    const hasNamedPersons = staffByItemLedgerPeople(
-      (request.persons ?? []).map((row) => ({
-        name: row.name,
-        ...(row.party_id?.trim() ? { partyId: row.party_id.trim() } : {}),
-      })),
-    ).length > 0;
-    if (!hasNamedPersons) return false;
-    return (
-      staffByItemPeopleFromAllocations(splitDraft.byItemAllocations).length === 0
-    );
-  }, [request.persons, splitDraft.byItemAllocations, splitDraft.splitMode]);
 
   const liveByItemResults = useMemo(() => {
     if (splitDraft.splitMode !== 'by_item') return [] as SplitResult[];

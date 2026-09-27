@@ -2,7 +2,6 @@
 
 import {
   useCallback,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -19,10 +18,10 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
-  byItemDraftHasNamedRows,
   extractByItemDraftAllocations,
   extractByItemLockedAllocations,
   mergeByItemCommittedAndDraft,
+  mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
   type ByItemAllocationRows,
 } from '@/lib/by-item-committed-draft';
@@ -40,6 +39,10 @@ import type { BillSplit, SplitMode } from '@/types';
  * Locked committed + unpaid named draft dual-layer — guest phone must not use this hook
  * (guest sole editor: useGuestByItemSplitState). Submit wire is still buildSplitPersonsFromAllocations.
  * Unpaid same-name tickets: sole heal {@link coalesceUnpaidSameNamePartyIds} on draft write / seed.
+ *
+ * Unpaid persons hydrate: sole path is {@link mergeMissingByItemDraftTickets} against
+ * unlocked persons seed inside the derived working map (not a layout-effect setState) —
+ * so Strict Mode / effect ordering cannot drop unpaid tickets while a locked chip is present.
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
@@ -58,7 +61,6 @@ export function useByItemSplitState(params: {
   } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
-  const seededSplitIdRef = useRef<string | null>(null);
 
   const paidLocks = useMemo(
     () =>
@@ -75,57 +77,53 @@ export function useByItemSplitState(params: {
     [existingSplit, collectedPayments],
   );
 
-  /** Persons hydrate → locked rows only. Realtime may rebuild; never touches draft. */
-  const committedAllocations = useMemo(() => {
+  /**
+   * Sole persons→rows hydrate for this split (locked + unlocked). Split into
+   * committed / seed via extract* — do not call buildByItemConsumerRowsFromPersons twice.
+   */
+  const personsHydrateRows = useMemo(() => {
     if (!enabled || splitMode !== 'by_item') return {};
     if (!existingSplit?.persons?.length || lineSpecs.length === 0) return {};
-    const fromPersons = buildByItemConsumerRowsFromPersons(
+    return buildByItemConsumerRowsFromPersons(
       existingSplit.persons,
       lineSpecs,
       paidLocks,
     );
-    return extractByItemLockedAllocations(fromPersons, lockedTicketKeys);
-  }, [enabled, splitMode, existingSplit, lineSpecs, paidLocks, lockedTicketKeys]);
+  }, [enabled, splitMode, existingSplit, lineSpecs, paidLocks]);
+
+  /** Persons hydrate → locked rows only. Realtime may rebuild; never touches draft. */
+  const committedAllocations = useMemo(
+    () => extractByItemLockedAllocations(personsHydrateRows, lockedTicketKeys),
+    [personsHydrateRows, lockedTicketKeys],
+  );
+
+  /**
+   * Unlocked persons → draft seed (idempotent). Merged into the working map every render
+   * so unpaid tickets never depend on a layout-effect setState winning a race.
+   */
+  const unlockedPersonsSeed = useMemo(() => {
+    const coalesced = coalesceUnpaidSameNamePartyIds(
+      personsHydrateRows,
+      lockedTicketKeys,
+    );
+    return extractByItemDraftAllocations(coalesced, lockedTicketKeys);
+  }, [personsHydrateRows, lockedTicketKeys]);
 
   const committedRef = useRef(committedAllocations);
   committedRef.current = committedAllocations;
   const lockedKeysRef = useRef(lockedTicketKeys);
   lockedKeysRef.current = lockedTicketKeys;
+  const personsSeedRef = useRef(unlockedPersonsSeed);
+  personsSeedRef.current = unlockedPersonsSeed;
 
-  /**
-   * Prune draft rows absorbed into locks; one-shot seed unlocked persons → draft
-   * when this split has no named draft yet (continuation / remount).
-   */
-  useLayoutEffect(() => {
-    if (!enabled || splitMode !== 'by_item') {
-      seededSplitIdRef.current = null;
-      return;
-    }
-    if (lineSpecs.length === 0) return;
-
-    const splitId = existingSplit?.id ?? null;
-    const persons = existingSplit?.persons;
-
-    setDraftAllocations((prev) => {
-      const pruned = pruneByItemDraftAgainstLocks(prev, lockedTicketKeys);
-
-      if (splitId && seededSplitIdRef.current !== splitId) {
-        seededSplitIdRef.current = splitId;
-        if (!byItemDraftHasNamedRows(pruned) && persons?.length) {
-          const fromPersons = buildByItemConsumerRowsFromPersons(
-            persons,
-            lineSpecs,
-            paidLocks,
-          );
-          const coalesced = coalesceUnpaidSameNamePartyIds(fromPersons, lockedTicketKeys);
-          const seed = extractByItemDraftAllocations(coalesced, lockedTicketKeys);
-          if (Object.keys(seed).length > 0) return seed;
-        }
-      }
-
-      return pruned === prev ? prev : pruned;
-    });
-  }, [enabled, splitMode, lockedTicketKeys, lineSpecs, existingSplit, paidLocks]);
+  const draftWithPersons = useMemo(
+    () =>
+      mergeMissingByItemDraftTickets(
+        pruneByItemDraftAgainstLocks(draftAllocations, lockedTicketKeys),
+        unlockedPersonsSeed,
+      ),
+    [draftAllocations, unlockedPersonsSeed, lockedTicketKeys],
+  );
 
   const byItemAllocations = useMemo(() => {
     if (!enabled || splitMode !== 'by_item') return {};
@@ -133,7 +131,7 @@ export function useByItemSplitState(params: {
       withDefaultByItemLineRows(
         mergeByItemCommittedAndDraft(
           committedAllocations,
-          draftAllocations,
+          draftWithPersons,
           lockedTicketKeys,
         ),
         lineSpecs,
@@ -144,7 +142,7 @@ export function useByItemSplitState(params: {
     enabled,
     splitMode,
     committedAllocations,
-    draftAllocations,
+    draftWithPersons,
     lockedTicketKeys,
     lineSpecs,
   ]);
@@ -156,7 +154,7 @@ export function useByItemSplitState(params: {
         const prevMerged = withDefaultByItemLineRows(
           mergeByItemCommittedAndDraft(
             committedRef.current,
-            prevDraft,
+            mergeMissingByItemDraftTickets(prevDraft, personsSeedRef.current),
             lockedKeysRef.current,
           ),
           lineSpecs,

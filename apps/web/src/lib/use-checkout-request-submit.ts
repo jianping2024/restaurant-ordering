@@ -21,7 +21,7 @@ import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { normalizePortugueseNif } from '@/lib/pt-nif';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
-import type { BillOrdersRefresh } from '@/lib/use-bill-orders';
+import type { BillOrdersRefresh } from '@/lib/use-customer-bill-read-model';
 import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 import type { Order } from '@/types';
 

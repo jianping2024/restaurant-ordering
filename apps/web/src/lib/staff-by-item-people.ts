@@ -6,6 +6,14 @@
 import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 
+/** Placeholder serial-mint labels (客人 N / Guest N / Pessoa N) — not guest-submitted names. */
+const DEFAULT_GUEST_RAIL_NAME_RE = /^(?:客人|Guest|Pessoa)\s*\d+$/i;
+
+/** True when the chip is still a default serial-collect blank (not a real ticket name). */
+export function isDefaultGuestRailName(name: string): boolean {
+  return DEFAULT_GUEST_RAIL_NAME_RE.test(name.trim());
+}
+
 /** One chip on the staff by-item rail (display name + optional atomic ticket id). */
 export type StaffByItemRailPerson = {
   name: string;
@@ -47,7 +55,8 @@ export function staffByItemRailSeedPeople(params: {
 
 /**
  * Sole authoritative rail tickets from locks + allocations (no blank mint).
- * When `awaitingHydrate`, returns [] so UI does not mint a ghost「客人 1」before persons land.
+ * While `awaitingHydrate`, only locked ledger chips — unpaid persons land via draft
+ * hydrate into allocationPeople; do not treat a partial alloc roster as complete.
  */
 export function resolveStaffByItemRailPeople(params: {
   lockedLedgerPeople: ReadonlyArray<StaffByItemRailPerson>;
@@ -55,19 +64,20 @@ export function resolveStaffByItemRailPeople(params: {
   /** Guest-submitted persons exist but draft allocations not ready yet. */
   awaitingHydrate: boolean;
 }): StaffByItemRailPerson[] {
-  const seeded = staffByItemRailSeedPeople({
+  if (params.awaitingHydrate) {
+    return staffByItemLedgerPeople(params.lockedLedgerPeople);
+  }
+  return staffByItemRailSeedPeople({
     ledgerPeople: params.lockedLedgerPeople,
     allocationPeople: params.allocationPeople,
   });
-  if (seeded.length > 0) return seeded;
-  if (params.awaitingHydrate) return [];
-  return [];
 }
 
 /**
  * Sole rail sync after hydrate / seed change.
- * Authoritative tickets replace a prior roster with no overlap (drops early blank mint).
- * When there is overlap, append only (keeps serial-collect unpaid blanks).
+ * - No overlap → replace (drops early blank mint).
+ * - Auth gains new tickets (persons hydrate) → auth wins; drop default guest blanks.
+ * - Overlap, no new auth tickets → append only (keeps in-progress serial-collect blank).
  */
 export function syncStaffByItemRailPeople(
   prev: StaffByItemRailPerson[],
@@ -82,6 +92,22 @@ export function syncStaffByItemRailPeople(
     return Boolean(key && authKeys.has(key));
   });
   if (!overlap) return staffByItemLedgerPeople(authoritative);
+
+  const prevKeys = new Set(
+    prev.map((person) => staffByItemRailPersonKey(person)).filter(Boolean),
+  );
+  const authHasNew = authoritative.some((person) => {
+    const key = staffByItemRailPersonKey(person);
+    return Boolean(key && !prevKeys.has(key));
+  });
+  if (authHasNew) {
+    const renamedExtras = prev.filter((person) => {
+      const key = staffByItemRailPersonKey(person);
+      if (!key || authKeys.has(key)) return false;
+      return !isDefaultGuestRailName(person.name);
+    });
+    return staffByItemLedgerPeople([...authoritative, ...renamedExtras]);
+  }
   return appendStaffByItemRailPeople(prev, authoritative);
 }
 

@@ -5,7 +5,8 @@ import {
 } from '@/lib/bill-split-by-item-lines';
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { requestCustomerBillContext } from '@/lib/request-customer-context';
-import type { Order } from '@/types';
+import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
+import type { BillSplit, Order, SessionStatus } from '@/types';
 
 /** Stable fingerprint for bill-page order completeness checks. */
 export function billOrdersFingerprint(orders: Order[]): string {
@@ -38,13 +39,41 @@ export function deriveBillView(orders: Order[]) {
   return { orderLines, splitOrderLines, lineSpecs, total };
 }
 
-export async function syncCustomerBill(slug: string, tableId: string) {
-  const data = await requestCustomerBillContext(slug, tableId, 'live');
+/** Sole client bill reconcile snapshot — same fields as SSR / customer/bill full. */
+export type CustomerBillSyncSnapshot = {
+  orders: Order[];
+  partyMemberCount: number;
+  existingSplit: BillSplit | null;
+  collectedPayments: SessionCollectedPayment[];
+  sessionStatus: SessionStatus | null;
+  orderLines: ReturnType<typeof deriveBillView>['orderLines'];
+  splitOrderLines: ReturnType<typeof deriveBillView>['splitOrderLines'];
+  lineSpecs: ReturnType<typeof deriveBillView>['lineSpecs'];
+  total: number;
+};
+
+/**
+ * Sole customer bill client refresh: always `full` scope (orders + split + ledger + session).
+ * Do not call with `live` — that half-model is removed; soft menu→bill must match hard refresh.
+ */
+export async function syncCustomerBill(
+  slug: string,
+  tableId: string,
+): Promise<CustomerBillSyncSnapshot | null> {
+  const data = await requestCustomerBillContext(slug, tableId, 'full');
   if (!data) return null;
   const orders = (data.orders || []) as Order[];
   const partyMemberCount =
     typeof data.party_member_count === 'number' && Number.isFinite(data.party_member_count)
       ? Math.max(0, Math.trunc(data.party_member_count))
       : 0;
-  return { orders, partyMemberCount, ...deriveBillView(orders) };
+  const sessionStatus = (data.active_session?.status as SessionStatus | undefined) ?? null;
+  return {
+    orders,
+    partyMemberCount,
+    existingSplit: data.existing_split ?? null,
+    collectedPayments: data.collected_payments ?? [],
+    sessionStatus,
+    ...deriveBillView(orders),
+  };
 }

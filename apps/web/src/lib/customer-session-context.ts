@@ -81,9 +81,9 @@ export function parseCustomerSessionScope(
 }
 
 /**
- * Bill read scope (one CustomerBillContext shape):
- * - live: active session + full bill orders + party size for client refresh / pre-submit checks
- * - full: live fields + existing split + collected payments for bill page boot
+ * Bill read scope (one CustomerBillContext shape).
+ * Historically `live` omitted split/ledger; that half-model is removed — both values
+ * load the same full fields (orders + existing_split + collected_payments).
  */
 export type CustomerBillScope = 'live' | 'full';
 

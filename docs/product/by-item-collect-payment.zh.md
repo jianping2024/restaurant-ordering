@@ -47,8 +47,8 @@
 职员结账按菜编辑（人轨 + 池）专用；**客人手机分单不用这套。**
 
 - **committed（锁票 only）**：只来自 `persons` 里已锁/已付份额（`paidLocked` / `allocationLockedTicketKeys`）。Realtime 刷新只重建这一层。**未付 persons 不得持续进 committed**（否则删 draft 会诈尸、同菜双行）。
-- **draft（未付 only）**：命名的未付可编辑行；无名 seed 不进 draft。续分/首进时若 draft 尚空，unlocked persons **一次性 seed** 进 draft，之后以 draft 为准。
-- 职员界面唯一写法：`extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `useByItemSplitState`；禁止再整表 `setByItemAllocations(hydratedFromPersons)`，禁止 unlocked 双轨并行。
+- **draft（未付 only）**：命名的未付可编辑行；无名 seed 不进 draft。persons 指纹变化时 sole `mergeMissingByItemDraftTickets` 把**缺的** unlocked 票/行并进 draft（同 split 客人再交未付票也进轨；已有行不覆盖职员本地改）。禁止只按 split id 一次性 seed、禁止「draft 已有任意命名行就不再 hydrate」。
+- 职员界面唯一写法：`extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `mergeMissingByItemDraftTickets` + `useByItemSplitState`；禁止再整表 `setByItemAllocations(hydratedFromPersons)`，禁止 unlocked 双轨并行。
 
 ## 客人手机按菜编辑（与职员隔离）
 
@@ -79,7 +79,7 @@
 | 确认写台账 | `confirm_bill_split_payment` / `requestCheckoutConfirmPayment`（金额 = 弹窗） |
 | 收款 upsert 允许部分/冻结差额 | `allow_partial_by_item: true`（仅职员 by-item 确认收款） |
 | 锁票集合（含盖章即锁） | `allocationLockedTicketKeys`（`result.paid` ∪ 台账 ∪ persons.`locked_amount`） |
-| 锁票 committed + 未付 draft UI（职员） | `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `useByItemSplitState`（Realtime 只重建锁票；未付一次 seed） |
+| 锁票 committed + 未付 draft UI（职员） | `extractByItemLockedAllocations` + `mergeByItemCommittedAndDraft` + `mergeMissingByItemDraftTickets` + `useByItemSplitState`（Realtime 只重建锁票；未付按 persons 指纹 merge-missing） |
 | 客人手机按菜进行中编辑 | `useGuestByItemSplitState`（`byItemEditor: 'guest'`；空名槽可写） |
 | 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
 

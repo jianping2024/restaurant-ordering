@@ -337,6 +337,7 @@ export function StaffByItemSplitWorkbench({
    */
   useEffect(() => {
     if (userPickedChipRef.current) return;
+    if (awaitingRailHydrate) return;
     if (!currentKey || !settledTicketKeys.has(currentKey)) return;
 
     const unpaidIdx = people.findIndex((person) => {
@@ -359,7 +360,15 @@ export function StaffByItemSplitWorkbench({
     setCurrentIndex(people.length);
     setNameDraft(next.name);
     setNeedNameHint(false);
-  }, [currentKey, guestName, settledTicketKeys, people, safeIndex, visiblePool.length]);
+  }, [
+    awaitingRailHydrate,
+    currentKey,
+    guestName,
+    settledTicketKeys,
+    people,
+    safeIndex,
+    visiblePool.length,
+  ]);
 
   const shares = useMemo(
     () =>

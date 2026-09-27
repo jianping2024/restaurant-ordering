@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { shouldShowCheckoutSubmitted } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
   customerBillCallAmount,
@@ -19,7 +18,7 @@ import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
-import { useBillOrders } from '@/lib/use-bill-orders';
+import { useCustomerBillReadModel } from '@/lib/use-customer-bill-read-model';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
 import {
   DISH_FEEDBACK_REASON_KEYS,
@@ -99,12 +98,41 @@ export function BillPage({
 
   const guestName = useCallback((n: number) => `${t.guest} ${n}`, [t.guest]);
 
-  const [continuationSplit] = useState<BillSplit | null>(existingSplit);
-  const collectedPayments = initialCollectedPayments;
-  const checkoutSubmittedInitially = shouldShowCheckoutSubmitted(existingSplit, sessionStatus);
-  const [submitted, setSubmitted] = useState(checkoutSubmittedInitially);
+  const {
+    orders,
+    partyMemberCount,
+    existingSplit: liveSplit,
+    collectedPayments,
+    submitted,
+    orderLines,
+    splitOrderLines,
+    lineSpecs,
+    total,
+    refreshOrders,
+    commitOrders,
+    lastSyncedAt,
+    setCallBillBusy,
+    markCheckoutSubmitted,
+  } = useCustomerBillReadModel(
+    {
+      orders: initialOrders,
+      partyMemberCount: initialPartyMemberCount,
+      existingSplit,
+      collectedPayments: initialCollectedPayments,
+      sessionStatus,
+    },
+    {
+      slug: restaurant.slug,
+      tableId,
+      enabled: true,
+    },
+  );
+
   const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
-    initialPersistedSplitResult(existingSplit?.result as SplitResult[] | null, checkoutSubmittedInitially),
+    initialPersistedSplitResult(
+      existingSplit?.result as SplitResult[] | null,
+      submitted,
+    ),
   );
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -114,24 +142,18 @@ export function BillPage({
     () => !!existingSplit && !!sessionId && !staffAssisted?.skipFeedback && !initialFeedbackSubmitted && !initialFeedbackSkipped,
   );
   const [customerNifInput, setCustomerNifInput] = useState('');
-  const [callBillBusy, setCallBillBusy] = useState(false);
+  const [callBillBusy, setCallBillBusyState] = useState(false);
 
-  const {
-    orders,
-    partyMemberCount,
-    orderLines,
-    splitOrderLines,
-    lineSpecs,
-    total,
-    refreshOrders,
-    commitOrders,
-    lastSyncedAt,
-  } = useBillOrders(initialOrders, {
-    slug: restaurant.slug,
-    tableId,
-    initialPartyMemberCount,
-    enabled: !submitted,
-  });
+  useEffect(() => {
+    setCallBillBusy(callBillBusy);
+  }, [callBillBusy, setCallBillBusy]);
+
+  useEffect(() => {
+    if (!submitted) return;
+    setPersistedResult(
+      initialPersistedSplitResult(liveSplit?.result as SplitResult[] | null, true),
+    );
+  }, [submitted, liveSplit?.result]);
 
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
@@ -141,8 +163,8 @@ export function BillPage({
   const splitDraft = useBillSplitDraft({
     restaurantId: restaurant.id,
     sessionId,
-    existingSplit,
-    continuationSplit,
+    existingSplit: liveSplit,
+    continuationSplit: liveSplit,
     collectedPayments,
     total,
     orderLines: splitOrderLines,
@@ -172,9 +194,9 @@ export function BillPage({
       setPersistedResult(result);
     },
     onCustomerSubmitSuccess: () => {
-      setSubmitted(true);
+      markCheckoutSubmitted();
     },
-    onBusyChange: setCallBillBusy,
+    onBusyChange: setCallBillBusyState,
     showToast,
     messages: {
       billSyncFailed: t.billSyncFailed,

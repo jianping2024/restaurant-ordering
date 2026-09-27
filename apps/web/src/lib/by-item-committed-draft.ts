@@ -4,7 +4,10 @@
  * Contract (one representation):
  * - committed = paidLocked / locked-ticket rows only (Realtime may rebuild)
  * - draft = named unpaid editable rows only (never unnamed seeds)
- * - Unlocked persons never live in committed; seed into draft once at hook level
+ * - Unlocked persons never live in committed; missing unlocked tickets/lines
+ *   merge into the working map via {@link mergeMissingByItemDraftTickets} against
+ *   the persons seed (derived every render in useByItemSplitState — not a
+ *   layout-effect setState).
  */
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { splitPartyKey } from '@/lib/split-party-id';
@@ -118,4 +121,35 @@ export function pruneByItemDraftAgainstLocks(
   lockedTicketKeys: ReadonlySet<string>,
 ): ByItemAllocationRows {
   return extractByItemDraftAllocations(draft, lockedTicketKeys);
+}
+
+/**
+ * Sole hydrate merge: append unlocked persons rows that are missing on each line.
+ * Does not overwrite tickets already present on that line (staff local edits win).
+ * Same-split guest re-submit adds new unpaid tickets / new dish lines without wiping draft.
+ */
+export function mergeMissingByItemDraftTickets(
+  draft: ByItemAllocationRows,
+  incomingUnlocked: ByItemAllocationRows,
+): ByItemAllocationRows {
+  let changed = false;
+  const next: ByItemAllocationRows = { ...draft };
+
+  for (const [lineKey, rows] of Object.entries(incomingUnlocked)) {
+    const lineKeys = new Set<string>();
+    for (const row of next[lineKey] ?? []) {
+      const key = rowTicketKey(row);
+      if (key) lineKeys.add(key);
+    }
+    for (const row of rows) {
+      if (!isNamedRow(row) || row.paidLocked) continue;
+      const key = rowTicketKey(row);
+      if (!key || lineKeys.has(key)) continue;
+      lineKeys.add(key);
+      next[lineKey] = [...(next[lineKey] ?? []), row];
+      changed = true;
+    }
+  }
+
+  return changed ? next : draft;
 }

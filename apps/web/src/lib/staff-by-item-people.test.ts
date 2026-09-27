@@ -70,7 +70,15 @@ describe('resolveStaffByItemRailPeople', () => {
     );
   });
 
-  it('returns empty while awaiting hydrate (no ghost mint)', () => {
+  it('while awaiting hydrate: locked ledger only (ignore partial alloc)', () => {
+    assert.deepEqual(
+      resolveStaffByItemRailPeople({
+        lockedLedgerPeople: [{ name: 'Ana', partyId: 'a1' }],
+        allocationPeople: [{ name: 'Ana', partyId: 'a1' }],
+        awaitingHydrate: true,
+      }),
+      [{ name: 'Ana', partyId: 'a1' }],
+    );
     assert.deepEqual(
       resolveStaffByItemRailPeople({
         lockedLedgerPeople: [],
@@ -110,6 +118,20 @@ describe('syncStaffByItemRailPeople', () => {
     ];
     const auth = [{ name: 'John', partyId: 'j1' }];
     assert.deepEqual(syncStaffByItemRailPeople(prev, auth), prev);
+  });
+
+  it('hydrate adds unpaid tickets: drops Pessoa blank, keeps auth roster', () => {
+    const prev = [
+      { name: 'Ana', partyId: 'a1' },
+      { name: 'Pessoa 2', partyId: 'ghost' },
+    ];
+    const auth = [
+      { name: 'Ana', partyId: 'a1' },
+      { name: 'Jim', partyId: 'j1' },
+      { name: 'Bob', partyId: 'b1' },
+      { name: 'Kate', partyId: 'k1' },
+    ];
+    assert.deepEqual(syncStaffByItemRailPeople(prev, auth), auth);
   });
 
   it('keeps prev when authoritative empty', () => {

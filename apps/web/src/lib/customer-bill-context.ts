@@ -6,7 +6,6 @@ import {
   loadCustomerExistingSplit,
   loadCustomerSessionOrders,
   resolveCustomerTableContext,
-  type CustomerBillCollectedPayment,
   type CustomerBillContext,
   type CustomerBillScope,
   type CustomerResolvedTableContext,
@@ -47,6 +46,9 @@ export async function loadCustomerBillContext(params: {
   }
 
   const sessionId = tableContext.activeSession.id;
+  // Always full bill truth (orders + split + ledger). `scope=live` is accepted for
+  // URL compat but must not drop split/payments — soft menu→bill equals hard refresh.
+  void scope;
   const [orders, partyMemberCount, existingSplit, collectedPayments] = await Promise.all([
     loadCustomerSessionOrders({
       admin: params.admin,
@@ -55,17 +57,13 @@ export async function loadCustomerBillContext(params: {
       ascending: true,
     }),
     countPartyMembersForTable(params.admin, params.restaurantId, tableContext.tableId).catch(() => 0),
-    scope === 'full'
-      ? loadCustomerExistingSplit({ admin: params.admin, sessionId })
-      : Promise.resolve(null),
-    scope === 'full'
-      ? params.admin
-          .from('session_collected_payments')
-          .select(SESSION_COLLECTED_PAYMENT_SELECT)
-          .eq('restaurant_id', params.restaurantId)
-          .eq('session_id', sessionId)
-          .then(({ data }) => parseSessionCollectedPayments(data))
-      : Promise.resolve([] as CustomerBillCollectedPayment[]),
+    loadCustomerExistingSplit({ admin: params.admin, sessionId }),
+    params.admin
+      .from('session_collected_payments')
+      .select(SESSION_COLLECTED_PAYMENT_SELECT)
+      .eq('restaurant_id', params.restaurantId)
+      .eq('session_id', sessionId)
+      .then(({ data }) => parseSessionCollectedPayments(data)),
   ]);
 
   return {

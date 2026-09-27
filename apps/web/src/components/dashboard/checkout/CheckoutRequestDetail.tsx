@@ -67,9 +67,9 @@ interface Props {
   onBack: () => void;
   /** Whole-table zero-collect path rechoose; omit when locked. */
   onReturnToPathChooser?: () => void;
-  onDiscountRateChange: (rate: number) => void;
+  /** Sole discount commit from IntegerInput onChange (blur parse). */
+  onDiscountRateCommit: (rate: number) => void;
   onDiscountRateFocus: () => void;
-  onDiscountRateBlur: () => void;
   onConfirmPersonPaid: (rowIndex: number) => void;
   onResumeOrderingClick: () => void;
   paymentLabels?: Record<import('@/lib/bill-sync-payload').BillSyncPaymentMethod, string>;
@@ -82,9 +82,8 @@ export function SettlementBar({
   discountLocked,
   detailLocked,
   t,
-  onDiscountRateChange,
+  onDiscountRateCommit,
   onDiscountRateFocus,
-  onDiscountRateBlur,
   leading,
   stickyShellClass = checkoutSettlementBarStickyShellClass,
 }: {
@@ -94,9 +93,9 @@ export function SettlementBar({
   discountLocked: boolean;
   detailLocked: boolean;
   t: CheckoutT;
-  onDiscountRateChange: (rate: number) => void;
+  /** Sole path: IntegerInput blur parse → commit (no business onBlur). */
+  onDiscountRateCommit: (rate: number) => void;
   onDiscountRateFocus: () => void;
-  onDiscountRateBlur: () => void;
   /** Optional chrome above amounts (e.g. mobile back) — stays in the sticky strip. */
   leading?: ReactNode;
   /** Sole sticky shell — default under staff top bar; board sheet passes sheet variant. */
@@ -139,9 +138,8 @@ export function SettlementBar({
               min={0}
               max={100}
               value={discountRate}
-              onChange={onDiscountRateChange}
+              onChange={onDiscountRateCommit}
               onFocus={onDiscountRateFocus}
-              onBlur={onDiscountRateBlur}
               className="w-16 bg-brand-bg border border-brand-border rounded-lg px-2 py-1 text-brand-text text-center tabular-nums focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
               placeholder="0"
               disabled={discountLocked || discountApplying || detailLocked}
@@ -228,9 +226,8 @@ export function CheckoutRequestDetail({
   t,
   onBack,
   onReturnToPathChooser,
-  onDiscountRateChange,
+  onDiscountRateCommit,
   onDiscountRateFocus,
-  onDiscountRateBlur,
   onConfirmPersonPaid,
   onResumeOrderingClick,
   paymentLabels,
@@ -282,9 +279,8 @@ export function CheckoutRequestDetail({
         detailLocked={detailLocked}
         t={t}
         stickyShellClass={stickyShellClass}
-        onDiscountRateChange={onDiscountRateChange}
+        onDiscountRateCommit={onDiscountRateCommit}
         onDiscountRateFocus={onDiscountRateFocus}
-        onDiscountRateBlur={onDiscountRateBlur}
         leading={
           showBackButton ? (
             <button

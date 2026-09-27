@@ -317,27 +317,28 @@ export function CheckoutRequestDetailHost({
     [billDiscount, patchRequestDiscount, restaurantSlug, t],
   );
 
-  const handleDiscountRateBlur = (row: BillSplit) => {
-    const rate = getDiscountRate(row);
-    const serverRate = row.discount_rate ?? 0;
-    const setup = billDiscount.beginSetupIfNeeded(
-      row.id,
-      rate,
-      serverRate,
-      row.discount_reason,
-    );
-    if (setup.needsReason) return;
-    if (rate === serverRate) {
-      billDiscount.finishSetup(row.id);
-      return;
-    }
-    void persistDiscount(
-      row,
-      rate,
-      row.discount_reason ?? undefined,
-      row.discount_reason_detail ?? undefined,
-    );
-  };
+  const commitDiscountRate = useCallback(
+    (row: BillSplit, rate: number) => {
+      const decision = billDiscount.commitRate(
+        row.id,
+        rate,
+        row.discount_rate ?? 0,
+        row.discount_reason,
+      );
+      if (decision.kind === 'needs_reason') return;
+      if (decision.kind === 'clear_draft') {
+        billDiscount.finishSetup(row.id);
+        return;
+      }
+      void persistDiscount(
+        row,
+        decision.rate,
+        row.discount_reason ?? undefined,
+        row.discount_reason_detail ?? undefined,
+      );
+    },
+    [billDiscount, persistDiscount],
+  );
 
   const splitModeLabels = useMemo(
     () => checkoutSplitModeUiLabels(lang, t.splitModeWhole),
@@ -594,11 +595,10 @@ export function CheckoutRequestDetailHost({
           stickyShellClass={stickyShellClass}
           onBack={onBack}
           onCancel={returnToPathChooser}
-          onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
+          onDiscountRateCommit={(next) => commitDiscountRate(request, next)}
           onDiscountRateFocus={() =>
             billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
           }
-          onDiscountRateBlur={() => handleDiscountRateBlur(request)}
           onResumeOrderingClick={() => setResumeConfirmOpen(true)}
           onCollectPerson={(index, amount, personName, partyId) => {
             setCollectPending({
@@ -668,11 +668,10 @@ export function CheckoutRequestDetailHost({
             ? returnToPathChooser
             : undefined
         }
-        onDiscountRateChange={(next) => billDiscount.handleRateChange(request.id, next)}
+        onDiscountRateCommit={(next) => commitDiscountRate(request, next)}
         onDiscountRateFocus={() =>
           billDiscount.handleRateFocus(request.id, request.discount_rate ?? 0)
         }
-        onDiscountRateBlur={() => handleDiscountRateBlur(request)}
         onConfirmPersonPaid={(index) => {
           const settlementRow = settlementRows.find((entry) => entry.index === index);
           if (!settlementRow || !isSplitSettlementPending(settlementRow)) {

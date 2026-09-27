@@ -77,9 +77,9 @@ type Props = {
   onBack?: () => void;
   /** Sticky shell for SettlementBar — default under staff top bar; board sheet overrides. */
   stickyShellClass?: string;
-  onDiscountRateChange: (rate: number) => void;
+  /** Sole discount commit from IntegerInput onChange (blur parse). */
+  onDiscountRateCommit: (rate: number) => void;
   onDiscountRateFocus: () => void;
-  onDiscountRateBlur: () => void;
   onResumeOrderingClick: () => void;
   onCollectPerson: (
     index: number,
@@ -128,9 +128,8 @@ export function StaffCheckoutSplitEditor({
   showBackButton = false,
   onBack,
   stickyShellClass,
-  onDiscountRateChange,
+  onDiscountRateCommit,
   onDiscountRateFocus,
-  onDiscountRateBlur,
   onResumeOrderingClick,
   onCollectPerson,
   onSplitPersisted,
@@ -603,9 +602,8 @@ export function StaffCheckoutSplitEditor({
         detailLocked={detailLocked || submitting}
         t={checkoutT}
         stickyShellClass={stickyShellClass}
-        onDiscountRateChange={onDiscountRateChange}
+        onDiscountRateCommit={onDiscountRateCommit}
         onDiscountRateFocus={onDiscountRateFocus}
-        onDiscountRateBlur={onDiscountRateBlur}
         leading={
           showBackButton && onBack ? (
             <button

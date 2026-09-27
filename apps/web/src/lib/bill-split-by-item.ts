@@ -179,11 +179,11 @@ export function byItemConsumerRowTicketLocked(
 }
 
 /**
- * Sole unpaid same-name ticket heal: across all lines, unlocked rows that share a
+ * Unpaid same-name ticket coalesce: across all lines, unlocked rows that share a
  * display name reuse one `partyId` (first unlocked row that already has a party id).
  * Locked / paid tickets are never rewritten and never absorb new unpaid shares.
  * Does not mint ids — rows keep existing tickets when no sibling party id exists.
- * Guest + staff by-item editors call this on every allocation write / hydrate.
+ * Editors must call {@link normalizeByItemDraftPartyIds} (not this alone) on write.
  */
 export function coalesceUnpaidSameNamePartyIds(
   allocations: Record<string, ByItemConsumerRow[]>,
@@ -230,6 +230,76 @@ export function coalesceUnpaidSameNamePartyIds(
   }
 
   return changed ? next : allocations;
+}
+
+/**
+ * On one dish: one `partyId` must not label two different display names.
+ * Same unpaid name on one dish keeps a shared id (duplicate_names stays visible).
+ * After rename away from a coalesced twin, mint a new ticket for the divergent row.
+ * Paid-locked rows keep their party id; unlocked divergent siblings are reminted
+ * even when they still carry a locked ticket's party id.
+ */
+export function splitDivergentNamesSharingPartyIdOnDish(
+  allocations: Record<string, ByItemConsumerRow[]>,
+): Record<string, ByItemConsumerRow[]> {
+  let changed = false;
+  const next: Record<string, ByItemConsumerRow[]> = {};
+
+  for (const [lineKey, rows] of Object.entries(allocations)) {
+    /** partyId → first nameKey that claimed it on this dish (paid rows first). */
+    const claimedNameByParty = new Map<string, string>();
+
+    const claim = (partyId: string, nameKey: string) => {
+      if (!claimedNameByParty.has(partyId)) claimedNameByParty.set(partyId, nameKey);
+    };
+
+    for (const row of rows) {
+      if (!(row.paidLocked || (row.lockedAmount != null && Number.isFinite(row.lockedAmount)))) {
+        continue;
+      }
+      const name = row.name.trim();
+      const partyId = row.partyId?.trim();
+      if (!name || !partyId) continue;
+      const nameKey = splitPersonKey(name);
+      if (nameKey) claim(partyId, nameKey);
+    }
+
+    next[lineKey] = rows.map((row) => {
+      const name = row.name.trim();
+      const partyId = row.partyId?.trim();
+      if (!name || !partyId) return row;
+      if (row.paidLocked || (row.lockedAmount != null && Number.isFinite(row.lockedAmount))) {
+        return row;
+      }
+      const nameKey = splitPersonKey(name);
+      if (!nameKey) return row;
+      const claimed = claimedNameByParty.get(partyId);
+      if (!claimed) {
+        claim(partyId, nameKey);
+        return row;
+      }
+      if (claimed === nameKey) return row;
+      changed = true;
+      const freshId = mintSplitPartyId();
+      claim(freshId, nameKey);
+      return { ...row, partyId: freshId };
+    });
+  }
+
+  return changed ? next : allocations;
+}
+
+/**
+ * Sole by-item draft party-id normalize on guest/staff write + hydrate:
+ * unpaid same-name coalesce, then split same-dish divergent names that still share an id.
+ */
+export function normalizeByItemDraftPartyIds(
+  allocations: Record<string, ByItemConsumerRow[]>,
+  lockedTicketKeys: ReadonlySet<string> = new Set(),
+): Record<string, ByItemConsumerRow[]> {
+  return splitDivergentNamesSharingPartyIdOnDish(
+    coalesceUnpaidSameNamePartyIds(allocations, lockedTicketKeys),
+  );
 }
 
 /** Map a rational share to the qty input fields used by ByItemConsumerRow. */

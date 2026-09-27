@@ -5,6 +5,8 @@ import {
   buildSplitPersonsFromAllocations,
   coalesceUnpaidSameNamePartyIds,
   createByItemConsumerRow,
+  getByItemLineStatusFromRows,
+  normalizeByItemDraftPartyIds,
   type ByItemConsumerRow,
 } from './bill-split-by-item';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
@@ -88,5 +90,61 @@ describe('coalesceUnpaidSameNamePartyIds', () => {
     assert.equal(persons[0]!.name, 'Tom');
     assert.equal(persons[0]!.party_id, tomA);
     assert.equal(persons[0]!.item_shares?.length, 2);
+  });
+});
+
+describe('normalizeByItemDraftPartyIds', () => {
+  it('keeps same-name duplicate rows on one dish sharing a party id', () => {
+    const tom = mintSplitPartyId();
+    const input = {
+      water: [namedRow('Tom', tom, '1'), namedRow('Tom', tom, '1')],
+    };
+    const out = normalizeByItemDraftPartyIds(input);
+    assert.equal(out.water![0]!.partyId, tom);
+    assert.equal(out.water![1]!.partyId, tom);
+    assert.equal(
+      getByItemLineStatusFromRows(out.water!, menuSpec('water', 2)).kind,
+      'duplicate_names',
+    );
+  });
+
+  it('mints a new party id when a coalesced twin is renamed on the same dish', () => {
+    const shared = mintSplitPartyId();
+    const input = {
+      water: [namedRow('Tom', shared, '3'), namedRow('Kate', shared, '2')],
+    };
+    const out = normalizeByItemDraftPartyIds(input);
+    assert.equal(out.water![0]!.partyId, shared);
+    assert.notEqual(out.water![1]!.partyId, shared);
+    assert.equal(out.water![1]!.name, 'Kate');
+    assert.equal(
+      getByItemLineStatusFromRows(out.water!, menuSpec('water', 5)).kind,
+      'complete',
+    );
+  });
+
+  it('still coalesces unpaid same name across dishes after normalize', () => {
+    const tomA = mintSplitPartyId();
+    const tomB = mintSplitPartyId();
+    const out = normalizeByItemDraftPartyIds({
+      'line-a': [namedRow('Tom', tomA)],
+      'line-b': [namedRow('Tom', tomB, '2')],
+    });
+    assert.equal(out['line-a']![0]!.partyId, tomA);
+    assert.equal(out['line-b']![0]!.partyId, tomA);
+  });
+
+  it('does not remint a locked ticket when an unlocked divergent name collides', () => {
+    const paid = mintSplitPartyId();
+    const locked = new Set([splitPartyKey(paid, 'Tom')]);
+    const input = {
+      water: [
+        namedRow('Tom', paid, '1', { paidLocked: true, lockedAmount: 2.5 }),
+        namedRow('Kate', paid, '1'),
+      ],
+    };
+    const out = normalizeByItemDraftPartyIds(input, locked);
+    assert.equal(out.water![0]!.partyId, paid);
+    assert.notEqual(out.water![1]!.partyId, paid);
   });
 });

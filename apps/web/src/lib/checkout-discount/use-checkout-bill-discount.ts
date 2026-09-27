@@ -2,6 +2,10 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
+import {
+  resolveCheckoutDiscountCommit,
+  type CheckoutDiscountCommitDecision,
+} from '@/lib/checkout-discount/resolve-checkout-discount-commit';
 
 export type PendingDiscountSetup = {
   requestId: string;
@@ -9,7 +13,7 @@ export type PendingDiscountSetup = {
   previousRate: number;
 };
 
-/** Draft + dialog state for bill-level checkout discount setup (persisted via apply-discount API). */
+/** Draft + dialog state for bill-level checkout discount (persisted via apply-discount API). */
 export function useCheckoutBillDiscount() {
   const [draftRateById, setDraftRateById] = useState<Record<string, number>>({});
   const [pendingSetup, setPendingSetup] = useState<PendingDiscountSetup | null>(null);
@@ -30,28 +34,40 @@ export function useCheckoutBillDiscount() {
     });
   }, []);
 
-  const handleRateChange = useCallback((requestId: string, next: number) => {
-    setDraftRateById((prev) => ({
-      ...prev,
-      [requestId]: clampCheckoutDiscountRate(next),
-    }));
-  }, []);
-
   const handleRateFocus = useCallback((requestId: string, serverRate: number) => {
     rateBeforeEditRef.current[requestId] = getDisplayRate(requestId, serverRate);
   }, [getDisplayRate]);
 
-  const beginSetupIfNeeded = useCallback(
-    (requestId: string, rate: number, serverRate: number, serverReason: string | null | undefined) => {
-      const previousRate = rateBeforeEditRef.current[requestId] ?? clampCheckoutDiscountRate(serverRate);
-      if (rate <= 0) {
-        return { needsReason: false as const, rate, previousRate };
+  /**
+   * Sole commit from discount IntegerInput (fires on blur parse).
+   * Writes local draft, then decides reason dialog / persist / clear — with the
+   * committed rate, not a stale getDisplayRate re-read.
+   */
+  const commitRate = useCallback(
+    (
+      requestId: string,
+      rate: number,
+      serverRate: number,
+      serverReason: string | null | undefined,
+    ): CheckoutDiscountCommitDecision => {
+      const clamped = clampCheckoutDiscountRate(rate);
+      setDraftRateById((prev) => ({ ...prev, [requestId]: clamped }));
+      const previousRate =
+        rateBeforeEditRef.current[requestId] ?? clampCheckoutDiscountRate(serverRate);
+      const decision = resolveCheckoutDiscountCommit({
+        rate: clamped,
+        serverRate,
+        serverReason,
+        previousRate,
+      });
+      if (decision.kind === 'needs_reason') {
+        setPendingSetup({
+          requestId,
+          rate: decision.rate,
+          previousRate: decision.previousRate,
+        });
       }
-      if (serverReason?.trim()) {
-        return { needsReason: false as const, rate, previousRate };
-      }
-      setPendingSetup({ requestId, rate, previousRate });
-      return { needsReason: true as const, rate, previousRate };
+      return decision;
     },
     [],
   );
@@ -77,9 +93,8 @@ export function useCheckoutBillDiscount() {
     getDisplayRate,
     pendingSetup,
     applyingRequestId,
-    handleRateChange,
     handleRateFocus,
-    beginSetupIfNeeded,
+    commitRate,
     cancelSetup,
     finishSetup,
     setApplying,

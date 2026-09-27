@@ -50,7 +50,7 @@ describe('buildSplitSettlementRows', () => {
     assert.equal(rows[0]?.outstandingAmount, 0);
   });
 
-  it('multi-person discount: unpaid last ticket matches bill pending after freezes', () => {
+  it('multi-person discount: last ticket matches one-cut allocate (no freeze reshuffle)', () => {
     const rows = buildSplitSettlementRows(
       [
         { name: 'John', amount: 22.45 },
@@ -69,6 +69,33 @@ describe('buildSplitSettlementRows', () => {
     assert.equal(rows[2]?.obligationAmount, 1.66);
     assert.equal(rows[2]?.outstandingAmount, 1.66);
     assert.equal(rows[2]?.settlementStatus, 'due');
+  });
+
+  it('five-way sequential: Marry obligation stays 3.50 while first four paid at one-cut', () => {
+    const pre = [
+      { name: 'John', amount: 19.95 },
+      { name: 'Tom', amount: 28.18 },
+      { name: 'Jim', amount: 8.4 },
+      { name: 'Jimmy', amount: 1.23 },
+      { name: 'Marry', amount: 3.89 },
+    ];
+    const rows = buildSplitSettlementRows(
+      pre,
+      [
+        { id: '1', person_index: 0, person_name: 'John', amount: 17.96, created_at: '', payment_method: null, payment_lines: null },
+        { id: '2', person_index: 1, person_name: 'Tom', amount: 25.37, created_at: '', payment_method: null, payment_lines: null },
+        { id: '3', person_index: 2, person_name: 'Jim', amount: 7.56, created_at: '', payment_method: null, payment_lines: null },
+        { id: '4', person_index: 3, person_name: 'Jimmy', amount: 1.1, created_at: '', payment_method: null, payment_lines: null },
+      ],
+      10,
+      61.65,
+    );
+    assert.equal(rows[3]?.obligationAmount, 1.1);
+    assert.equal(rows[3]?.settlementStatus, 'settled');
+    assert.equal(rows[4]?.obligationAmount, 3.5);
+    assert.equal(rows[4]?.outstandingAmount, 3.5);
+    const collected = 17.96 + 25.37 + 7.56 + 1.1;
+    assert.equal(Number((55.49 - collected).toFixed(2)), 3.5);
   });
 
   it('without discountRate, same ledger against pre-discount looks partial', () => {

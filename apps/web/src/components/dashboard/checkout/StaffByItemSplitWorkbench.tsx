@@ -19,13 +19,8 @@ import { Button } from '@/components/ui/Button';
 import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import {
   allocateDiscountedSplitObligations,
-  frozenDiscountObligationsFromLedger,
   resolveCheckoutDiscountedShareDisplay,
 } from '@/lib/checkout-split-math';
-import {
-  sumCollectedByPersonIndex,
-  type SessionCollectedPayment,
-} from '@/lib/checkout-session-payments';
 import { splitResultTicketKey } from '@/lib/split-party-id';
 import {
   addBuffetSeatToPerson,
@@ -192,8 +187,6 @@ type Props = {
   settledTicketKeys: ReadonlySet<string>;
   /** Has collection history — rename/edit locked even if obligation rose again. */
   lockedTicketKeys?: ReadonlySet<string>;
-  /** Session ledger — freeze stamps for allocated 折后 display. */
-  collectedPayments?: SessionCollectedPayment[];
   /**
    * Guest-submitted persons exist but draft allocations not ready yet.
    * Suppresses blank「客人 1」mint until hydrate lands (sole gate with resolveStaffByItemRailPeople).
@@ -234,7 +227,6 @@ export function StaffByItemSplitWorkbench({
   ledgerPeople = [],
   settledTicketKeys,
   lockedTicketKeys = new Set(),
-  collectedPayments = [],
   awaitingRailHydrate = false,
   itemCodeByMenuId = {},
   imageUrlByMenuId = {},
@@ -415,15 +407,8 @@ export function StaffByItemSplitWorkbench({
 
   const allocatedByTicketKey = useMemo(() => {
     const preAmounts = splitResults.map((row) => row.amount);
-    const frozen = frozenDiscountObligationsFromLedger(
-      preAmounts,
-      discountRate,
-      sumCollectedByPersonIndex(collectedPayments),
-      { billTotalAmount },
-    );
     const amounts = allocateDiscountedSplitObligations(preAmounts, discountRate, {
       billTotalAmount,
-      frozenObligationByIndex: frozen.size > 0 ? frozen : undefined,
     });
     const map = new Map<string, number>();
     splitResults.forEach((row, index) => {
@@ -431,7 +416,7 @@ export function StaffByItemSplitWorkbench({
       if (key) map.set(key, amounts[index] ?? 0);
     });
     return map;
-  }, [billTotalAmount, collectedPayments, discountRate, splitResults]);
+  }, [billTotalAmount, discountRate, splitResults]);
 
   const estimate = useMemo(() => {
     const located = locateByItemSplitResult(splitResults, currentName, currentPartyId);

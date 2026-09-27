@@ -15,7 +15,6 @@ import {
 } from '@/lib/checkout-session-payments';
 import {
   allocateDiscountedSplitObligations,
-  frozenDiscountObligationsFromLedger,
 } from '@/lib/checkout-split-math';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
@@ -181,15 +180,8 @@ export function resolveByItemCollectTarget(params: {
   });
   const preDiscountObligation = preAmounts[index] ?? 0;
   const collectedByIndex = sumCollectedByPersonIndex(params.collectedPayments);
-  const frozen = frozenDiscountObligationsFromLedger(
-    preAmounts,
-    discountRate,
-    collectedByIndex,
-    { billTotalAmount: params.billTotalAmount },
-  );
   const obligations = allocateDiscountedSplitObligations(preAmounts, discountRate, {
     billTotalAmount: params.billTotalAmount,
-    frozenObligationByIndex: frozen,
   });
   const discountedObligation = obligations[index] ?? 0;
   const prior = collectedByIndex.get(index) ?? 0;

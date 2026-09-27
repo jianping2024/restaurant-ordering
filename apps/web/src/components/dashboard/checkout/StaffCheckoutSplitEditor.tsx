@@ -28,11 +28,7 @@ import {
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
-import {
-  allocateDiscountedSplitObligations,
-  frozenDiscountObligationsFromLedger,
-} from '@/lib/checkout-split-math';
-import { sumCollectedByPersonIndex } from '@/lib/checkout-session-payments';
+import { allocateDiscountedSplitObligations } from '@/lib/checkout-split-math';
 import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
@@ -697,20 +693,10 @@ export function StaffCheckoutSplitEditor({
                   const row = splitDraft.results[index];
                   if (!row) return;
                   const preAmounts = splitDraft.results.map((r) => r.amount);
-                  const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
-                  const frozen = frozenDiscountObligationsFromLedger(
-                    preAmounts,
-                    discountRate,
-                    collectedByIndex,
-                    { billTotalAmount: total },
-                  );
                   const obligations = allocateDiscountedSplitObligations(
                     preAmounts,
                     discountRate,
-                    {
-                      billTotalAmount: total,
-                      frozenObligationByIndex: frozen,
-                    },
+                    { billTotalAmount: total },
                   );
                   void collectSavedPerson(
                     index,
@@ -733,7 +719,6 @@ export function StaffCheckoutSplitEditor({
             ledgerPeople={ledgerPeople}
             settledTicketKeys={settledTicketKeys}
             lockedTicketKeys={lockedTicketKeys}
-            collectedPayments={collectedPayments}
             awaitingRailHydrate={awaitingByItemRailHydrate}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}

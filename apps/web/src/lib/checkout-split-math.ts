@@ -30,8 +30,8 @@ export function discountedObligationAmount(
 
 /**
  * Sole multi-person post-discount obligations: one bill payable, then proportional cents.
- * `frozenObligationByIndex` keeps already-settled tickets (independent-round stamp) so only
- * unpaid rows share the remaining payable — Σ(all) = payable.
+ * One cut for a given (preAmounts, rate, billTotal) — do not freeze/re-split after collects.
+ * Recompute only when discount, roster pre-amounts, or bill total change.
  */
 export function allocateDiscountedSplitObligations(
   preAmounts: readonly number[],
@@ -39,7 +39,6 @@ export function allocateDiscountedSplitObligations(
   options?: {
     /** When set, payable = round(billTotal × factor); else round(Σ pre × factor). */
     billTotalAmount?: number;
-    frozenObligationByIndex?: ReadonlyMap<number, number>;
     /** Remainder sort key (default: index string). */
     sortKeyForIndex?: (index: number) => string;
   },
@@ -57,74 +56,10 @@ export function allocateDiscountedSplitObligations(
       ? Number(options.billTotalAmount)
       : preAmounts.reduce((sum, pre) => sum + Number(pre), 0);
   const payableCents = eurosToCents(discountedObligationAmount(billPre, rate));
-
-  const frozen = options?.frozenObligationByIndex;
-  const out = Array.from({ length: n }, () => 0);
-  let frozenCents = 0;
-  const openIndexes: number[] = [];
-  const openWeights: number[] = [];
-
-  for (let i = 0; i < n; i += 1) {
-    const frozenAmount = frozen?.get(i);
-    if (frozenAmount != null && Number.isFinite(frozenAmount)) {
-      const cents = eurosToCents(Number(frozenAmount));
-      out[i] = cents;
-      frozenCents += cents;
-      continue;
-    }
-    openIndexes.push(i);
-    openWeights.push(Math.max(0, eurosToCents(Number(preAmounts[i]))));
-  }
-
-  const remainingPayable = Math.max(0, payableCents - frozenCents);
-  if (openIndexes.length === 0) {
-    return out.map(centsToEuros);
-  }
-
+  const weights = preAmounts.map((pre) => Math.max(0, eurosToCents(Number(pre))));
   const sortKey = options?.sortKeyForIndex ?? ((index: number) => String(index));
-  const openCents = allocateProportionalCents(remainingPayable, openWeights, (openIdx) =>
-    sortKey(openIndexes[openIdx]!),
-  );
-  openIndexes.forEach((rowIndex, openIdx) => {
-    out[rowIndex] = openCents[openIdx] ?? 0;
-  });
-  return out.map(centsToEuros);
-}
-
-/**
- * Freeze stamps from ledger for allocate-with-remainder.
- * 1) Prefer open allocate obligation when collected already covers it (allocate-first pays).
- * 2) Else if collected covers independent per-row round, freeze at that independent stamp
- *    (continuation after partial collect under the old formula).
- */
-export function frozenDiscountObligationsFromLedger(
-  preAmounts: readonly number[],
-  discountRate: number,
-  collectedByIndex: ReadonlyMap<number, number>,
-  options?: { billTotalAmount?: number },
-): Map<number, number> {
-  const frozen = new Map<number, number>();
-  const rate = clampCheckoutDiscountRate(discountRate);
-  if (rate <= 0) return frozen;
-
-  const allocated = allocateDiscountedSplitObligations(preAmounts, rate, {
-    billTotalAmount: options?.billTotalAmount,
-  });
-
-  preAmounts.forEach((pre, index) => {
-    const collected = collectedByIndex.get(index) ?? 0;
-    if (collected <= 0) return;
-    const allocatedAmount = allocated[index] ?? 0;
-    if (eurosToCents(collected) >= eurosToCents(allocatedAmount)) {
-      frozen.set(index, allocatedAmount);
-      return;
-    }
-    const independent = discountedObligationAmount(pre, rate);
-    if (eurosToCents(collected) >= eurosToCents(independent)) {
-      frozen.set(index, independent);
-    }
-  });
-  return frozen;
+  const cents = allocateProportionalCents(payableCents, weights, sortKey);
+  return cents.map(centsToEuros);
 }
 
 export function applyDiscountToRows(rows: SplitResult[], discountRate: number): SplitResult[] {

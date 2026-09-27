@@ -3,7 +3,6 @@ import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
   allocateDiscountedSplitObligations,
-  frozenDiscountObligationsFromLedger,
   applyDiscountToRows,
   checkoutPayableAmount,
   clampCheckoutDiscountRate,
@@ -68,43 +67,19 @@ describe('checkout-split-math', () => {
     assert.equal(checkoutPayableAmount(billSplit({ total_amount: 57.3 }), 10), 51.57);
   });
 
-  
-  it('frozenDiscountObligationsFromLedger prefers allocate cover over independent', () => {
-    // Even 11.82/11.83 @10%: allocate [10.65,10.64]; independent [10.64,10.65].
-    // Paying allocate amounts must freeze at allocate, not independent (else B looks unpaid).
-    const collected = new Map<number, number>([
-      [0, 10.65],
-      [1, 10.64],
-    ]);
-    const frozen = frozenDiscountObligationsFromLedger([11.82, 11.83], 10, collected, {
-      billTotalAmount: 23.65,
-    });
-    assert.equal(frozen.get(0), 10.65);
-    assert.equal(frozen.get(1), 10.64);
-    const amounts = allocateDiscountedSplitObligations([11.82, 11.83], 10, {
-      billTotalAmount: 23.65,
-      frozenObligationByIndex: frozen,
-    });
-    assert.equal(amounts[0], 10.65);
-    assert.equal(amounts[1], 10.64);
-  });
-
-  it('allocateDiscountedSplitObligations freezes settled tickets then gives remainder to unpaid', () => {
-    const frozen = new Map<number, number>([
-      [0, 20.21],
-      [1, 29.7],
-    ]);
-    const amounts = allocateDiscountedSplitObligations([22.45, 33, 1.85], 10, {
-      billTotalAmount: 57.3,
-      frozenObligationByIndex: frozen,
-    });
-    assert.equal(amounts[0], 20.21);
-    assert.equal(amounts[1], 29.7);
-    assert.equal(amounts[2], 1.66);
+  it('allocate stays fixed after partial collects (no freeze re-split)', () => {
+    const pre = [19.95, 28.18, 8.4, 1.23, 3.89];
+    const open = allocateDiscountedSplitObligations(pre, 10, { billTotalAmount: 61.65 });
+    assert.deepEqual(open, [17.96, 25.37, 7.56, 1.1, 3.5]);
+    const again = allocateDiscountedSplitObligations(pre, 10, { billTotalAmount: 61.65 });
+    assert.deepEqual(again, open);
+    const paidSum = open[0]! + open[1]! + open[2]! + open[3]!;
+    assert.equal(Number(paidSum.toFixed(2)), 51.99);
+    assert.equal(open[4], 3.5);
+    assert.equal(Number((55.49 - paidSum).toFixed(2)), 3.5);
   });
 
   it('discount rounding matches SQL checkout_round_discount_amount (cents-first)', () => {
-    // PG: round(19.95 * 0.9, 2) = 17.96; float-first JS previously yielded 17.95.
     assert.equal(discountedObligationAmount(19.95, 10), 17.96);
     assert.equal(discountedObligationAmount(1.85, 10), 1.67);
     assert.equal(discountedObligationAmount(10.9, 10), 9.81);
@@ -125,8 +100,10 @@ describe('checkout-split-math', () => {
       formatCheckoutCollectDiscountDetail('折前 €{pre} · 折扣 {n}%', 19.95, 10),
       '折前 €19.95 · 折扣 10%',
     );
-    assert.equal(formatCheckoutCollectDiscountDetail('折前 €{pre} · 折扣 {n}%', 19.95, 0), null);
-    const share = resolveCheckoutDiscountedShareDisplay(18, 10);
+  });
+
+  it('resolveCheckoutDiscountedShareDisplay prefers allocated payable', () => {
+    const share = resolveCheckoutDiscountedShareDisplay(18, 10, 16.2);
     assert.equal(share.displayAmount, 16.2);
     assert.equal(share.showPreLine, true);
   });

@@ -1,9 +1,6 @@
 import { displaySplitPersonName } from '@/lib/split-person-identity';
 import { centsToEuros, eurosToCents } from '@/lib/money-allocation';
-import {
-  allocateDiscountedSplitObligations,
-  frozenDiscountObligationsFromLedger,
-} from '@/lib/checkout-split-math';
+import { allocateDiscountedSplitObligations } from '@/lib/checkout-split-math';
 import {
   outstandingAmount,
   sumCollectedByPersonIndex,
@@ -35,7 +32,7 @@ export function deriveSplitSettlementStatus(
 
 /**
  * Per-person settlement from split obligations and session ledger (ledger is authoritative).
- * `resultRows[].amount` stays pre-discount; obligation is sole allocate-from-bill-payable fold.
+ * `resultRows[].amount` stays pre-discount; obligation is one allocate cut (no freeze/re-split).
  */
 export function buildSplitSettlementRows(
   resultRows: SplitResult[],
@@ -45,15 +42,8 @@ export function buildSplitSettlementRows(
 ): SplitSettlementRow[] {
   const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
   const preAmounts = resultRows.map((row) => row.amount);
-  const frozen = frozenDiscountObligationsFromLedger(
-    preAmounts,
-    discountRate,
-    collectedByIndex,
-    { billTotalAmount },
-  );
   const obligations = allocateDiscountedSplitObligations(preAmounts, discountRate, {
     billTotalAmount,
-    frozenObligationByIndex: frozen,
   });
   return resultRows.map((row, index) => {
     const collectedAmount = collectedByIndex.get(index) ?? 0;

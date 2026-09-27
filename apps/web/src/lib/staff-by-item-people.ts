@@ -46,6 +46,46 @@ export function staffByItemRailSeedPeople(params: {
 }
 
 /**
+ * Sole authoritative rail tickets from locks + allocations (no blank mint).
+ * When `awaitingHydrate`, returns [] so UI does not mint a ghost「客人 1」before persons land.
+ */
+export function resolveStaffByItemRailPeople(params: {
+  lockedLedgerPeople: ReadonlyArray<StaffByItemRailPerson>;
+  allocationPeople: ReadonlyArray<StaffByItemRailPerson>;
+  /** Guest-submitted persons exist but draft allocations not ready yet. */
+  awaitingHydrate: boolean;
+}): StaffByItemRailPerson[] {
+  const seeded = staffByItemRailSeedPeople({
+    ledgerPeople: params.lockedLedgerPeople,
+    allocationPeople: params.allocationPeople,
+  });
+  if (seeded.length > 0) return seeded;
+  if (params.awaitingHydrate) return [];
+  return [];
+}
+
+/**
+ * Sole rail sync after hydrate / seed change.
+ * Authoritative tickets replace a prior roster with no overlap (drops early blank mint).
+ * When there is overlap, append only (keeps serial-collect unpaid blanks).
+ */
+export function syncStaffByItemRailPeople(
+  prev: StaffByItemRailPerson[],
+  authoritative: StaffByItemRailPerson[],
+): StaffByItemRailPerson[] {
+  if (authoritative.length === 0) return prev;
+  const authKeys = new Set(
+    authoritative.map((person) => staffByItemRailPersonKey(person)).filter(Boolean),
+  );
+  const overlap = prev.some((person) => {
+    const key = staffByItemRailPersonKey(person);
+    return Boolean(key && authKeys.has(key));
+  });
+  if (!overlap) return staffByItemLedgerPeople(authoritative);
+  return appendStaffByItemRailPeople(prev, authoritative);
+}
+
+/**
  * Sole continuous rail merge after mount: append only allocation tickets and
  * locked ledger tickets. Unlocked ledger names are omitted so in-place rename
  * cannot resurrect the old marker as a second chip.

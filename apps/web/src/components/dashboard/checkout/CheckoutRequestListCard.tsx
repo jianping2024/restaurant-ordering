@@ -3,6 +3,7 @@
 import {
   formatCollectedPaymentTime,
 } from '@/lib/format-dashboard-date';
+import { CHECKOUT_ACTION_AMOUNT_CLASS } from '@/lib/checkout-amount-type';
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import { formatCheckoutWaitDuration } from '@/lib/checkout-settlement';
 import type { UILanguage } from '@/lib/i18n';
@@ -80,7 +81,7 @@ export function CheckoutRequestListCard({
         </div>
         <div className="text-right shrink-0">
           <p className="text-[11px] text-brand-text-muted">{t.settlementPending}</p>
-          <p className="text-brand-gold font-semibold text-lg tabular-nums">
+          <p className={CHECKOUT_ACTION_AMOUNT_CLASS}>
             €{summary.pending.toFixed(2)}
           </p>
           {summary.collected > 0 ? (

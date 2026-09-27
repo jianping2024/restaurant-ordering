@@ -39,7 +39,8 @@
     ".next-uat-rename/types/**/*.ts",
     ".next-uat-collect-name/types/**/*.ts",
     ".next-uat-collect/types/**/*.ts",
-    ".next-uat-ensure/types/**/*.ts"
+    ".next-uat-ensure/types/**/*.ts",
+    ".next-uat-amount-type/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

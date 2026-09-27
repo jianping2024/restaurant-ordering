@@ -203,10 +203,8 @@ export function StaffCheckoutSplitEditor({
       markerPlaceholder: billT.consumerNamePlaceholder,
       remainingPrefix: checkoutT.staffByItemRemaining,
       shareEmpty: checkoutT.staffByItemShareEmpty,
-      estimate: (n: number, amount: string) =>
-        checkoutT.staffByItemEstimate
-          .replace('{n}', String(n))
-          .replace('{amount}', amount),
+      estimateMeta: (n: number) =>
+        checkoutT.staffByItemEstimateMeta.replace('{n}', String(n)),
       needName: checkoutT.staffByItemNeedName,
       poolEmpty: checkoutT.staffByItemPoolEmpty,
       assignAll: checkoutT.staffByItemAssignAll,

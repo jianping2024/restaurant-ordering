@@ -13,8 +13,8 @@ node_modules/
 /.next/
 /out/
 apps/*/.next/
-apps/*/.next-uat/
-apps/*/.next-uat-pain/
+# Isolated UAT / typecheck distDirs (MESA_NEXT_DIST_DIR=.next-uat-…)
+apps/*/.next-uat*/
 apps/*/.next-typecheck/
 apps/*/.next-bill-sync/
 apps/*/out/
@@ -88,5 +88,3 @@ scripts/rbac-kitchen-perm-uat.mjs
 # On-prem license runtime config (written by /setup apply-claim)
 .mesa-license.local.json
 **/.mesa-license.local.json
-apps/*/.next-uat-iva/
-apps/*/.next-uat-collect-name/

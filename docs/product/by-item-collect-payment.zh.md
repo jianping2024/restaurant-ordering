@@ -13,8 +13,9 @@
 ## 点「收款」（打开弹窗）
 
 1. 当前票要有名字。
-2. **本次应收** = 该票应付（分菜 × 单价）− 该票已收台账。  
-   **不要**再和整桌摘要「待收」取较小。
+2. **本次应收** = `discountedObligationAmount(折前票应付, discountRate) − 该票已收台账`。  
+   唯一写法：`resolveByItemCollectTarget({ …, discountRate })`。  
+   **不要**在外层对 outstanding 再打折；**不要**再和整桌摘要「待收」取较小。
 3. 金额 ≤ 0 → 不弹窗。
 4. 弹窗上人 + 金额定死。
 
@@ -40,6 +41,8 @@
 - 份额锁 + 金额锁：收款确认盖章后，后续分菜/余数重算 **只动未付票**。
 - 线级：`item_shares.locked_amount`；结果行：`result.paid` 后 merge **保留原 amount**（TS + SQL 同口径）。
 - 已付份额只读（`paidLocked`）；同菜再分 → 新行/新票，不 merge 进已付行。
+- 服务端续结：已锁份额必须**精确相等**（`rationalsEqual` / 自助餐人头精确），禁止往已付票加份；incoming `result`/`persons` 必须仍含全部锁票。
+- merge（TS + SQL）：incoming 缺票时，未付可删、已付必须原位保留。
 - **UI 锁票时机：** `allocationLockedTicketKeys` 在 persons 出现任一 `locked_amount` 时即锁该票（不等台账），避免确认收款瞬间 committed+draft 同票叠行闪烁。
 
 ## 已落库 vs 未付草稿（职员 UI 唯一）
@@ -53,6 +56,7 @@
 ## 客人手机按菜编辑（与职员隔离）
 
 - 客人进行中状态唯一写法：`useGuestByItemSplitState`（按菜行 + 允许空名槽 /「添加消费者」；不经职员 dual-layer）。
+- 客人同步唯一写法：`reconcileGuestByItemAllocations`（锁票覆盖服务端、未付本地编辑保留、新 line 只追加默认槽）；禁止因 `lineSpecs` 扩展整表替换本地未付。
 - `useBillSplitDraft({ byItemEditor: 'guest' | 'staff' })` 只选编辑器；交卷仍 `buildSplitPersonsFromAllocations` → 与职员同一套账单线。
 - **未付同名合票唯一写法：** `coalesceUnpaidSameNamePartyIds`（跨菜复用未付 `party_id`；已付/锁票不吸收、不改写）。客人与职员编辑器每次 write/hydrate 都走这一处；禁止另开按名字汇总的第二条路径。
 - 职员人轨票 sole：`resolveStaffByItemRailPeople` + `syncStaffByItemRailPeople`（只注入**已锁** ledger ∪ allocations；等 hydrate 时禁 mint「客人 N」；权威名单无重叠时整表替换丢掉空壳；串行收款空白票靠 overlap+append 保留）。禁止把 `result` 里未付碎票直接铺进芯片，禁止 hydrate 后仍 append-only 留幽灵芯片。
@@ -71,8 +75,8 @@
 
 | 职责 | 唯一写法 |
 |------|----------|
-| 打开弹窗目标金额 | `resolveByItemCollectTarget` |
-| 确认前校验弹窗金额 | `collectModalAmountStillValid` |
+| 打开弹窗 / 确认前校验本次应收 | `resolveByItemCollectTarget`（含 discountRate；弹窗与确认同调用） |
+| 确认前金额仍有效 | `collectModalAmountStillValid` |
 | 确认只合并当前票 | `mergeCurrentByItemTicketForCollect` + `onRegisterCollectTicket` |
 | 份额盖章 | `stampCollectTicketFrozenAmounts` → `locked_amount` |
 | 已付结果金额不被 merge 改写 | `mergeByItemSplitResultWithLedger`（TS）+ SQL `merge_by_item_split_result_with_ledger` |

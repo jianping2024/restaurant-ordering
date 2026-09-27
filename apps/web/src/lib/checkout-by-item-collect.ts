@@ -12,6 +12,7 @@ import {
   outstandingAmount,
   type SessionCollectedPayment,
 } from '@/lib/checkout-session-payments';
+import { discountedObligationAmount } from '@/lib/checkout-split-math';
 import { buildSplitSettlementRows } from '@/lib/checkout-split-settlement';
 import { eurosToCents } from '@/lib/money-allocation';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
@@ -142,16 +143,19 @@ export type ByItemCollectTarget = {
 /**
  * Sole staff by-item collect target:
  * - person_index = index in roster (`bill_splits.result` order)
- * - amount = live obligation outstanding for that ticket (应付 − 已收)
+ * - amount = discountedObligation(折前票应付) − 当前票历史已收
+ * Open-modal and confirm-before-pay must both call this (never discount again outside).
  */
 export function resolveByItemCollectTarget(params: {
   personName: string;
   partyId?: string;
   /** Stable ledger order — usually `bill_splits.result` (then new tickets). */
   roster: ReadonlyArray<SplitResult>;
-  /** Live calc rows (any order); matched by ticket key. */
+  /** Live calc rows (any order); matched by ticket key — pre-discount obligations. */
   liveResults: ReadonlyArray<SplitResult>;
   collectedPayments: SessionCollectedPayment[];
+  /** Bill-level discount %; default 0. */
+  discountRate?: number;
   /** @deprecated Ignored — kept so call sites need not fork. */
   billPending?: number;
 }): ByItemCollectTarget | null {
@@ -162,7 +166,11 @@ export function resolveByItemCollectTarget(params: {
   if (index < 0) return null;
 
   const live = params.liveResults.find((row) => splitResultTicketKey(row) === key);
-  const obligation = live?.amount ?? params.roster[index]?.amount ?? 0;
+  const preDiscountObligation = live?.amount ?? params.roster[index]?.amount ?? 0;
+  const discountedObligation = discountedObligationAmount(
+    preDiscountObligation,
+    params.discountRate ?? 0,
+  );
   const prior = params.collectedPayments
     .filter(
       (payment) =>
@@ -171,7 +179,7 @@ export function resolveByItemCollectTarget(params: {
           (payment.person_index == null || payment.person_index < 0)),
     )
     .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
-  const amount = outstandingAmount(obligation, prior);
+  const amount = outstandingAmount(discountedObligation, prior);
   if (amount <= 0) return null;
 
   const rosterRow = params.roster[index]!;

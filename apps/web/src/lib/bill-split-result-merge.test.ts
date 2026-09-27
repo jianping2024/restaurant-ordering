@@ -57,7 +57,7 @@ describe('mergeByItemSplitResultWithLedger', () => {
     assert.equal(merged[1]?.amount, 2.5);
   });
 
-  it('drops stale rows when person no longer appears in incoming', () => {
+  it('drops stale unpaid rows when person no longer appears in incoming', () => {
     const merged = mergeByItemSplitResultWithLedger(
       [
         { name: 'John', amount: 40 },
@@ -72,6 +72,23 @@ describe('mergeByItemSplitResultWithLedger', () => {
     assert.equal(merged[0]?.name, 'John');
     assert.equal(merged[1]?.name, 'Jack');
     assert.equal(merged[1]?.amount, 27.5);
+  });
+
+  it('keeps paid ticket when incoming omits it', () => {
+    const paidId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const unpaidId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const merged = mergeByItemSplitResultWithLedger(
+      [
+        { name: 'John', amount: 40, paid: true, party_id: paidId },
+        { name: 'Tom', amount: 30, party_id: unpaidId },
+      ],
+      [{ name: 'Jack', amount: 27.5, party_id: 'cccccccc-cccc-cccc-cccc-cccccccccccc' }],
+    );
+    assert.equal(merged.length, 2);
+    assert.equal(merged[0]?.party_id, paidId);
+    assert.equal(merged[0]?.paid, true);
+    assert.equal(merged[0]?.amount, 40);
+    assert.equal(merged[1]?.name, 'Jack');
   });
 
   it('appends new payers after existing rows to preserve person_index', () => {

@@ -45,7 +45,20 @@ export function mergeByItemSplitResultWithLedger(
     const key = splitResultTicketKey(exRow);
     if (!key) continue;
     const match = byKey.get(key);
-    if (!match) continue;
+    if (!match) {
+      // Unpaid missing tickets may drop; paid / ledger-locked tickets must stay in place.
+      if (exRow.paid) {
+        usedKeys.add(key);
+        merged.push(toWireSplitResult({
+          name: resolveSplitPersonDisplayName(exRow.name, undefined),
+          amount: exRow.amount,
+          paid: true,
+          party_id: exRow.party_id,
+          partyId: exRow.party_id,
+        }));
+      }
+      continue;
+    }
     usedKeys.add(key);
     const paid = !!exRow.paid || !!match.paid;
     merged.push(

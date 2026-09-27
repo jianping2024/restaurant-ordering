@@ -575,7 +575,7 @@ describe('validateCheckoutContinuation', () => {
     if (!out.ok) assert.equal(out.issue, 'locked_allocation_changed');
   });
 
-  it('allows increasing locked guest qty on same line', () => {
+  it('rejects increasing locked guest qty on same line', () => {
     const existing = split({
       result: [{ name: 'Ana', amount: 10, paid: true }],
       persons: [
@@ -600,7 +600,54 @@ describe('validateCheckoutContinuation', () => {
       lineSpecs: [menuSpec(LINE_KEY, 3)],
       hasCollectedLedger: false,
     });
-    assert.equal(out.ok, true);
+    assert.equal(out.ok, false);
+    if (!out.ok) assert.equal(out.issue, 'locked_allocation_changed');
+  });
+
+  it('rejects omitting a paid ticket from incoming result', () => {
+    const paidId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const unpaidId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const existing = split({
+      result: [
+        { name: 'Ana', amount: 10, paid: true, party_id: paidId },
+        { name: 'Bob', amount: 10, party_id: unpaidId },
+      ],
+      persons: [
+        {
+          name: 'Ana',
+          party_id: paidId,
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1, locked_amount: 10 }],
+        },
+        {
+          name: 'Bob',
+          party_id: unpaidId,
+          item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+        },
+      ],
+    });
+    const out = validateCheckoutContinuation({
+      existing,
+      payload: {
+        splitMode: 'by_item',
+        persons: [
+          {
+            name: 'Ana',
+            party_id: paidId,
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1, locked_amount: 10 }],
+          },
+          {
+            name: 'Bob',
+            party_id: unpaidId,
+            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
+          },
+        ],
+        result: [{ name: 'Bob', amount: 10, party_id: unpaidId }],
+      },
+      lineSpecs: [menuSpec(LINE_KEY, 2)],
+      hasCollectedLedger: false,
+    });
+    assert.equal(out.ok, false);
+    if (!out.ok) assert.equal(out.issue, 'locked_allocation_changed');
   });
 
   it('allows changed allocation after resume when nothing was collected', () => {

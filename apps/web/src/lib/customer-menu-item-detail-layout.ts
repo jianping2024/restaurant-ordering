@@ -3,6 +3,7 @@
  * Phone: fullscreen slide-up within the shell. lg+: centered dialog over dimmed backdrop.
  */
 
+import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from '@/lib/customer-menu-bottom-bar-layout';
 import { MENU_IMAGE_ASPECT_CLASS, MENU_IMAGE_WELL_BG_CLASS } from '@/lib/menu-image';
 
 /** Above cart/round drawers (z-40) and footer dock (z-30). */
@@ -50,6 +51,6 @@ export const customerMenuItemDetailBodyClass =
   'modal-scroll min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-5';
 
 export const customerMenuItemDetailFooterClass =
-  'shrink-0 border-t border-brand-border bg-brand-card px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3';
+  `shrink-0 border-t border-brand-border bg-brand-card px-4 ${CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS} pt-3`;
 
 export const customerMenuItemDetailFooterRowClass = 'flex items-center gap-3';

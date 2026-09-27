@@ -47,6 +47,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: PWA_THEME_COLOR,
+  /** Required for `env(safe-area-inset-*)` on iOS Chrome/Safari (customer dock / sheets). */
+  viewportFit: 'cover',
 };
 
 const themeInitScript = buildThemeInitScript();

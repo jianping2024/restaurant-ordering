@@ -6,16 +6,26 @@ import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 export const CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS = 'h-14';
 
 /**
+ * Sole bottom safe-area pad for customer menu fixed docks / bottom sheets / detail footers.
+ * Formula lives once as `--mesa-customer-menu-bottom-safe` in `globals.css` (needs
+ * root `viewport.viewportFit: 'cover'` so `env(safe-area-inset-bottom)` is non-zero on iOS).
+ * Must be a full static string so Tailwind JIT emits the class (no JS interpolation).
+ */
+export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =
+  'pb-[var(--mesa-customer-menu-bottom-safe)]';
+
+/**
  * Scroll padding when the docked footer is visible.
  * Must be a full static string so Tailwind JIT emits the class (no JS interpolation).
- * `3.5rem` matches `CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS` (`h-14`).
+ * `3.5rem` matches `CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS` (`h-14`);
+ * bottom pad uses the same `--mesa-customer-menu-bottom-safe` + end cushion.
  */
 export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
-  'pb-[calc(3.5rem+env(safe-area-inset-bottom,0px)+0.5rem)]';
+  'pb-[calc(3.5rem+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
 
 /** Fixed shell: flush to viewport bottom; safe area lives inside the bar. */
 export const customerMenuBottomBarDockClass =
-  `fixed bottom-0 left-1/2 z-30 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} -translate-x-1/2 border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)] pb-[max(0px,env(safe-area-inset-bottom))]`;
+  `fixed bottom-0 left-1/2 z-30 ${CUSTOMER_MENU_SHELL_WIDTH_CLASS} -translate-x-1/2 border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)] ${CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS}`;
 
 export const customerMenuBottomBarRowClass = `flex ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-3 px-4`;
 

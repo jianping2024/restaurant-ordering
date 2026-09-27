@@ -50,6 +50,27 @@ describe('buildSplitSettlementRows', () => {
     assert.equal(rows[0]?.outstandingAmount, 0);
   });
 
+  it('multi-person discount: unpaid last ticket matches bill pending after freezes', () => {
+    const rows = buildSplitSettlementRows(
+      [
+        { name: 'John', amount: 22.45 },
+        { name: 'Tom', amount: 33 },
+        { name: 'J', amount: 1.85 },
+      ],
+      [
+        { id: '1', person_index: 0, person_name: 'John', amount: 20.21, created_at: '', payment_method: null, payment_lines: null },
+        { id: '2', person_index: 1, person_name: 'Tom', amount: 29.7, created_at: '', payment_method: null, payment_lines: null },
+      ],
+      10,
+      57.3,
+    );
+    assert.equal(rows[0]?.settlementStatus, 'settled');
+    assert.equal(rows[1]?.settlementStatus, 'settled');
+    assert.equal(rows[2]?.obligationAmount, 1.66);
+    assert.equal(rows[2]?.outstandingAmount, 1.66);
+    assert.equal(rows[2]?.settlementStatus, 'due');
+  });
+
   it('without discountRate, same ledger against pre-discount looks partial', () => {
     const rows = buildSplitSettlementRows(
       [{ name: 'J', amount: 22.45 }],

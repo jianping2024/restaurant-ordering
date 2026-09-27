@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
+  allocateDiscountedSplitObligations,
+  frozenDiscountObligationsFromLedger,
   applyDiscountToRows,
   checkoutPayableAmount,
   clampCheckoutDiscountRate,
@@ -55,6 +57,50 @@ describe('checkout-split-math', () => {
     const out = applyDiscountToRows([{ name: 'X', amount: 40, paid: true }], 25);
     assert.equal(out[0]?.paid, true);
     assert.equal(out[0]?.amount, 30);
+  });
+
+  it('allocateDiscountedSplitObligations sums to bill payable (no independent round drift)', () => {
+    const amounts = allocateDiscountedSplitObligations([22.45, 33, 1.85], 10, {
+      billTotalAmount: 57.3,
+    });
+    const sumCents = amounts.reduce((sum, a) => sum + Math.round(a * 100), 0);
+    assert.equal(sumCents, 5157);
+    assert.equal(checkoutPayableAmount(billSplit({ total_amount: 57.3 }), 10), 51.57);
+  });
+
+  
+  it('frozenDiscountObligationsFromLedger prefers allocate cover over independent', () => {
+    // Even 11.82/11.83 @10%: allocate [10.65,10.64]; independent [10.64,10.65].
+    // Paying allocate amounts must freeze at allocate, not independent (else B looks unpaid).
+    const collected = new Map<number, number>([
+      [0, 10.65],
+      [1, 10.64],
+    ]);
+    const frozen = frozenDiscountObligationsFromLedger([11.82, 11.83], 10, collected, {
+      billTotalAmount: 23.65,
+    });
+    assert.equal(frozen.get(0), 10.65);
+    assert.equal(frozen.get(1), 10.64);
+    const amounts = allocateDiscountedSplitObligations([11.82, 11.83], 10, {
+      billTotalAmount: 23.65,
+      frozenObligationByIndex: frozen,
+    });
+    assert.equal(amounts[0], 10.65);
+    assert.equal(amounts[1], 10.64);
+  });
+
+  it('allocateDiscountedSplitObligations freezes settled tickets then gives remainder to unpaid', () => {
+    const frozen = new Map<number, number>([
+      [0, 20.21],
+      [1, 29.7],
+    ]);
+    const amounts = allocateDiscountedSplitObligations([22.45, 33, 1.85], 10, {
+      billTotalAmount: 57.3,
+      frozenObligationByIndex: frozen,
+    });
+    assert.equal(amounts[0], 20.21);
+    assert.equal(amounts[1], 29.7);
+    assert.equal(amounts[2], 1.66);
   });
 
   it('discount rounding matches SQL checkout_round_discount_amount (cents-first)', () => {

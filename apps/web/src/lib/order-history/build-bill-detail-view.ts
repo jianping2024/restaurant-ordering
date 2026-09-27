@@ -144,6 +144,7 @@ export function buildOrderHistoryBillDetailView(
         resultRows,
         settlement.collectedPayments,
         typeof split.discount_rate === 'number' ? split.discount_rate : 0,
+        split.total_amount,
       )
     : [];
 

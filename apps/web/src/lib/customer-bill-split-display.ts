@@ -44,8 +44,14 @@ export function buildCustomerSplitDisplayRows(
   resultRows: SplitResult[],
   collectedPayments: SessionCollectedPayment[],
   discountRate = 0,
+  billTotalAmount?: number,
 ): CustomerSplitRowDisplay[] {
-  return buildSplitSettlementRows(resultRows, collectedPayments, discountRate).map(
+  return buildSplitSettlementRows(
+    resultRows,
+    collectedPayments,
+    discountRate,
+    billTotalAmount,
+  ).map(
     ({ name, obligationAmount, collectedAmount, outstandingAmount, settlementStatus }) => ({
       name,
       obligationAmount,

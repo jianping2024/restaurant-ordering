@@ -28,7 +28,11 @@ import {
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
 } from '@/lib/checkout-by-item-collect';
-import { discountedObligationAmount } from '@/lib/checkout-split-math';
+import {
+  allocateDiscountedSplitObligations,
+  frozenDiscountObligationsFromLedger,
+} from '@/lib/checkout-split-math';
+import { sumCollectedByPersonIndex } from '@/lib/checkout-session-payments';
 import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
@@ -326,8 +330,9 @@ export function StaffCheckoutSplitEditor({
   );
 
   const settledTicketKeys = useMemo(
-    () => settledByItemPersonKeys(editRoster, collectedPayments, discountRate),
-    [collectedPayments, discountRate, editRoster],
+    () =>
+      settledByItemPersonKeys(editRoster, collectedPayments, discountRate, total),
+    [collectedPayments, discountRate, editRoster, total],
   );
 
   const lockedTicketKeys = useMemo(() => {
@@ -458,6 +463,7 @@ export function StaffCheckoutSplitEditor({
             liveResults: liveByItemResults,
             collectedPayments,
             discountRate,
+            billTotalAmount: total,
           });
           if (!liveTarget || !collectModalAmountStillValid(liveTarget.amount, modalAmount)) {
             showToast(checkoutT.staffByItemNoCollectableShare, 'error');
@@ -576,6 +582,7 @@ export function StaffCheckoutSplitEditor({
     restaurantSlug,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
+    total,
   ]);
 
   const collectSavedPerson = useCallback(
@@ -689,11 +696,25 @@ export function StaffCheckoutSplitEditor({
                 onCollect: (index) => {
                   const row = splitDraft.results[index];
                   if (!row) return;
-                  // Even/custom: results are pre-discount; discount once here.
-                  // By-item uses resolveByItemCollectTarget (already discounted).
+                  const preAmounts = splitDraft.results.map((r) => r.amount);
+                  const collectedByIndex = sumCollectedByPersonIndex(collectedPayments);
+                  const frozen = frozenDiscountObligationsFromLedger(
+                    preAmounts,
+                    discountRate,
+                    collectedByIndex,
+                    { billTotalAmount: total },
+                  );
+                  const obligations = allocateDiscountedSplitObligations(
+                    preAmounts,
+                    discountRate,
+                    {
+                      billTotalAmount: total,
+                      frozenObligationByIndex: frozen,
+                    },
+                  );
                   void collectSavedPerson(
                     index,
-                    discountedObligationAmount(row.amount, discountRate),
+                    obligations[index] ?? 0,
                     row.name,
                     undefined,
                     row.amount,
@@ -712,11 +733,13 @@ export function StaffCheckoutSplitEditor({
             ledgerPeople={ledgerPeople}
             settledTicketKeys={settledTicketKeys}
             lockedTicketKeys={lockedTicketKeys}
+            collectedPayments={collectedPayments}
             awaitingRailHydrate={awaitingByItemRailHydrate}
             itemCodeByMenuId={itemCodeByMenuId}
             imageUrlByMenuId={imageUrlByMenuId}
             guestName={guestName}
             discountRate={discountRate}
+            billTotalAmount={total}
             discountPreLabel={checkoutT.discountPreAmount}
             labels={staffByItemLabels}
             disabled={submitting || detailLocked}
@@ -737,6 +760,7 @@ export function StaffCheckoutSplitEditor({
                 liveResults: liveByItemResults,
                 collectedPayments,
                 discountRate,
+                billTotalAmount: total,
                 billPending: summary.pending,
               });
               if (!target) {

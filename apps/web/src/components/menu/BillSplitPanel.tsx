@@ -319,7 +319,8 @@ export function BillSplitPanel({
                   )}
                 </div>
                 {splitMode === 'custom' ? (
-                  i === customAmounts.length - 1 ? (
+                  // Sole remainder row (last when ≥2 people) is display-only; solo payer is editable.
+                  customAmounts.length > 1 && i === customAmounts.length - 1 ? (
                     amountBlock
                   ) : editingCustomAmountIndex === i ? (
                     <div className="flex items-center justify-end text-brand-gold font-medium text-sm min-w-[92px] shrink-0">

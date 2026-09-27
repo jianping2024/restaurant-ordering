@@ -1,6 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  applyCustomAmountEdit,
+  seedCustomSoloFullAmount,
+} from '@/lib/bill-split-custom-amounts';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
@@ -96,6 +100,7 @@ function initialSplitPeople(
 function initialCustomAmounts(
   existingSplit: BillSplit | null,
   guestName: (n: number) => string,
+  total: number,
 ): PersonAmount[] {
   if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
     const names = ensureSplitPersonNames(
@@ -111,7 +116,12 @@ function initialCustomAmounts(
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
   const names =
     shape?.personNames ?? defaultSplitPersonNames(guestName, 'custom');
-  return customAmountsFromNames(names);
+  const rows = customAmountsFromNames(names);
+  // Fresh custom (no continuation roster): sole payer starts at full bill.
+  if (!shape && rows.length === 1) {
+    return seedCustomSoloFullAmount(rows, total);
+  }
+  return rows;
 }
 
 export function useBillSplitDraft(params: {
@@ -173,7 +183,7 @@ export function useBillSplitDraft(params: {
     initialSplitPeople(splitSeed, guestName),
   );
   const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() =>
-    initialCustomAmounts(splitSeed, guestName),
+    initialCustomAmounts(splitSeed, guestName, total),
   );
   const [storageReady, setStorageReady] = useState(false);
 
@@ -236,7 +246,13 @@ export function useBillSplitDraft(params: {
         );
         setPersonCount(count);
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
-        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
+        const restored = customAmountsFromNames(names, draft.customAmounts);
+        // Legacy solo drafts often stored 0 while the UI showed bill total via remainder.
+        setCustomAmounts(
+          restored.length === 1 && restored[0]!.amount === 0
+            ? seedCustomSoloFullAmount(restored, total)
+            : restored,
+        );
       } else {
         setPersonCount(splitDraftPersonCount('even', draft.personCount));
         if (draft.splitPeople.length > 0) {
@@ -251,7 +267,7 @@ export function useBillSplitDraft(params: {
       }
     }
     setStorageReady(true);
-  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length, guestName]);
+  }, [restaurantId, sessionId, existingSplit, submitted, collectedPayments.length, guestName, total]);
 
   // Both hooks always called (Rules of Hooks); only the selected editor is active.
   const guestByItem = useGuestByItemSplitState({
@@ -484,7 +500,14 @@ export function useBillSplitDraft(params: {
         );
         setPersonCount(count);
         setSplitPeople((prev) => slotsFromNames(names, prev));
-        setCustomAmounts((prev) => customAmountsFromNames(names, prev));
+        setCustomAmounts((prev) => {
+          const rows = customAmountsFromNames(names, prev);
+          // Fresh custom (not carrying an even roster): sole payer starts at full bill.
+          if (!fromEven && rows.length === 1) {
+            return seedCustomSoloFullAmount(rows, total);
+          }
+          return rows;
+        });
       }
     },
     [
@@ -495,6 +518,7 @@ export function useBillSplitDraft(params: {
       splitPeople,
       customAmounts,
       guestName,
+      total,
     ],
   );
 
@@ -542,16 +566,23 @@ export function useBillSplitDraft(params: {
 
   const updateCustomAmount = useCallback(
     (index: number, rawValue: string) => {
-      const parsed = Number(rawValue);
-      const safeValue = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
       setCustomAmounts((prev) => {
-        const othersTotal = prev.reduce((sum, person, idx) => (idx === index ? sum : sum + person.amount), 0);
-        const maxAllowed = Math.max(0, total - othersTotal);
-        const nextValue = Math.min(safeValue, maxAllowed);
-        return prev.map((person, idx) => (idx === index ? { ...person, amount: nextValue } : person));
+        const next = applyCustomAmountEdit({
+          rows: prev,
+          index,
+          rawValue,
+          total,
+          nextGuestName: guestName(prev.length + 1),
+        });
+        if (next.length !== prev.length) {
+          const names = next.map((row) => row.name);
+          setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
+          setPersonCount(splitDraftPersonCount('custom', names.length));
+        }
+        return next;
       });
     },
-    [total],
+    [total, guestName],
   );
 
   const startInlineAmountEdit = useCallback(

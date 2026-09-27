@@ -33,7 +33,10 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
     modes: {
       even: { label: '均摊', when: '几个人平分总金额。' },
       by_item: { label: '按菜', when: '' },
-      custom: { label: '手填金额', when: '已经谈好各付多少，直接填数字，加起来要等于合计。' },
+      custom: {
+        label: '手填金额',
+        when: '先一人满额；改少了会自动出现下一人补剩余。也可再加点人，最后一人是剩余，合计要等于账单。',
+      },
     },
     optionalHint: '想分单？选一种方式。整桌一起付也可以不选，直接呼叫结账。',
     introStep: {
@@ -55,7 +58,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       by_item: { label: 'By dish', when: '' },
       custom: {
         label: 'Enter amounts',
-        when: 'You already agreed on amounts — enter each share until they match the total.',
+        when: 'Start with one person at the full total. Lower their amount and a second person appears with the remainder. You can add more; the last person is the remainder.',
       },
     },
     optionalHint:
@@ -82,7 +85,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Valores',
-        when: 'Já combinaram quantias — escrevam o valor de cada um até bater com o total.',
+        when: 'Começa com uma pessoa no total. Se baixar o valor, aparece outra com o resto. Pode acrescentar mais; a última fica com o restante.',
       },
     },
     optionalHint:
@@ -109,7 +112,7 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       },
       custom: {
         label: 'Importes',
-        when: 'Ya habéis acordado las cantidades: escribe cada importe hasta cuadrar con el total.',
+        when: 'Empieza con una persona por el total. Si bajas su importe, aparece otra con el resto. Puedes añadir más; la última lleva el restante.',
       },
     },
     optionalHint:

@@ -75,6 +75,11 @@ describe('customerMenuBottomBar dock stick', () => {
     assert.ok(!customerMenuBottomBarDockClass.includes(`bottom-[var(${CUSTOMER_MENU_BOTTOM_SAFE_VAR})]`));
   });
 
+  it('centers the interactive row (items-center) so CTA is not top-biased inside the bar', () => {
+    assert.match(customerMenuBottomBarRowClass, /items-center/);
+    assert.match(customerMenuBottomBarRowClass, new RegExp(CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS));
+  });
+
   it('pins summary and action to opposite edges with symmetric horizontal padding', () => {
     assert.match(customerMenuBottomBarRowClass, /justify-between/);
     assert.match(customerMenuBottomBarRowClass, /px-4/);
@@ -98,10 +103,10 @@ describe('one representation — customer menu bottom inset + badge', () => {
   it('globals defines the inset once; dock is bottom-0 + pad token; footer uses sole badge formatter', () => {
     const webSrc = join(dirname(fileURLToPath(import.meta.url)), '..');
     const globals = readFileSync(join(webSrc, 'app/globals.css'), 'utf8');
-    const formula =
-      /--mesa-customer-menu-bottom-safe:\s*max\(0\.75rem,\s*env\(safe-area-inset-bottom,\s*0px\)\);/;
+    const formula = /--mesa-customer-menu-bottom-safe:\s*env\(safe-area-inset-bottom,\s*0px\);/;
     assert.match(globals, formula);
     assert.doesNotMatch(globals, /max\(3rem,/);
+    assert.doesNotMatch(globals, /max\(0\.75rem,/);
     assert.equal((globals.match(/--mesa-customer-menu-bottom-safe:/g) ?? []).length, 1);
 
     const layout = readFileSync(join(webSrc, 'lib/customer-menu-bottom-bar-layout.ts'), 'utf8');

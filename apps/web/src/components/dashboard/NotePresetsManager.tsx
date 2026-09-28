@@ -278,7 +278,6 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
         <Button type="button" size="sm" variant="outline" onClick={openCreatePreset} disabled={busy}>
           {t.notePresetAddItem}
         </Button>
-        <p className="text-[13px] text-brand-text-muted">{t.notePresetDictHint}</p>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>

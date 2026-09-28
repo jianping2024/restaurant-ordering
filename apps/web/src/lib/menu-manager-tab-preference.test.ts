@@ -15,6 +15,7 @@ describe('isMenuManagerTab', () => {
     assert.equal(isMenuManagerTab('categories'), true);
     assert.equal(isMenuManagerTab('items'), true);
     assert.equal(isMenuManagerTab('recommended'), true);
+    assert.equal(isMenuManagerTab('note_presets'), true);
     assert.equal(isMenuManagerTab('tables'), false);
     assert.equal(isMenuManagerTab(null), false);
   });
@@ -38,6 +39,7 @@ describe('menuManagerPath', () => {
   it('uses dashboard menu route with optional tab query', () => {
     assert.equal(menuManagerPath(MENU_MANAGER_DEFAULT_TAB), '/dashboard/menu');
     assert.equal(menuManagerPath('items'), '/dashboard/menu?tab=items');
+    assert.equal(menuManagerPath('note_presets'), '/dashboard/menu?tab=note_presets');
     assert.equal(menuManagerPath('recommended'), '/dashboard/menu?tab=recommended');
     assert.equal(menuManagerTabQuery('categories'), '?tab=categories');
   });

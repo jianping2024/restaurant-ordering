@@ -138,7 +138,7 @@
 - **推荐菜**：`menu_recommended_items` 策展列表（最多 12 道、可排序）；权限与添加菜品相同（`dashboard.menu.view`）；空列表则顾客菜单不出现「推荐」
 - 打印档口管理：kitchen / beverage / standard 布局；档口列表拖拽手柄调整顺序，松手一次提交 `ordered_ids`
 - 菜品排序：同一分类内拖拽手柄（@hello-pangea/dnd，桌面+触控）调整顺序，松手一次提交 `ordered_ids`
-- 备注预设键（`note_preset_keys`）
+- 备注预设键（`note_preset_keys` → 本店 `menu_note_presets.id`；菜单管理「预选备注」Tab 维护分组/条目）
 - 菜品含有过敏原（`allergen_codes`，EU 14 类；空=未标注，≠无过敏原）；顾客菜单过滤尚未做
 
 ### 业务边界

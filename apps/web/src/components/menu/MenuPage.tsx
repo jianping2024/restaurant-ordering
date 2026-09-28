@@ -106,6 +106,7 @@ export function MenuPage({
   const menuItems = catalog?.menuItems ?? [];
   const menuCategories = catalog?.menuCategories ?? [];
   const recommendedItemIds = catalog?.recommendedItemIds ?? [];
+  const notePresetCatalog = catalog?.notePresetCatalog ?? { groups: [] };
   const restaurantWithNotice = { ...restaurant, guest_ordering_notice: guestOrderingNotice };
 
   if (
@@ -122,6 +123,7 @@ export function MenuPage({
         menuItems={menuItems}
         menuCategories={menuCategories}
         recommendedItemIds={recommendedItemIds}
+        notePresetCatalog={notePresetCatalog}
         catalogReady={catalogReady}
         tableId={tableId}
         displayName={displayName}
@@ -138,6 +140,7 @@ export function MenuPage({
       menuItems={menuItems}
       menuCategories={menuCategories}
       recommendedItemIds={recommendedItemIds}
+      notePresetCatalog={notePresetCatalog}
       catalogReady={catalogReady}
       tableId={tableId}
       displayName={displayName}

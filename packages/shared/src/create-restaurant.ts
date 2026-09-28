@@ -136,6 +136,20 @@ export async function createRestaurantWithOwner(
   }
 
   const restaurantId = restaurantRow.id as string;
+  const { error: seedNotesError } = await admin.rpc('seed_default_menu_note_presets', {
+    p_restaurant_id: restaurantId,
+  });
+  if (seedNotesError) {
+    await admin.from('restaurants').delete().eq('id', restaurantId);
+    await admin.auth.admin.deleteUser(ownerId);
+    return {
+      ok: false,
+      error: 'note_preset_seed_failed',
+      status: 500,
+      detail: seedNotesError.message,
+    };
+  }
+
   const ensure = await ensurePrintAgentStaff(admin, {
     restaurantId,
     restaurantSlug: slug,

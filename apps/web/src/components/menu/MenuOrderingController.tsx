@@ -23,6 +23,7 @@ import {
   customerMenuStripTopCategories,
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
+import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -132,6 +133,7 @@ interface Props {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
+  notePresetCatalog?: MenuNotePresetCatalog;
   /** When false, catalog is loading — block ordering until ready. Default true (embedded/demo). */
   catalogReady?: boolean;
   tableId: string;
@@ -153,6 +155,7 @@ export function MenuOrderingController({
   menuItems,
   menuCategories,
   recommendedItemIds = [],
+  notePresetCatalog = { groups: [] },
   catalogReady = true,
   tableId,
   displayName,
@@ -941,6 +944,7 @@ export function MenuOrderingController({
         open={cartOpen}
         cart={cart}
         menuItemCodeById={menuItemCodeById}
+        notePresetCatalog={notePresetCatalog}
         lang={lang}
         onClose={closeCartDrawer}
         onUpdateQty={(id, qty) => {

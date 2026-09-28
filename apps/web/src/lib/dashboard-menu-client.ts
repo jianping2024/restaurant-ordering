@@ -1,7 +1,8 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
+import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
 import { MAX_MENU_CATEGORY_DEPTH } from '@/lib/menu-admin';
 
-type ApiError = { error: string; message?: string };
+type ApiError = { error: string; message?: string; referenced_item_count?: number };
 
 async function parseJson<T>(res: Response): Promise<T & ApiError> {
   return (await res.json().catch(() => ({}))) as T & ApiError;
@@ -10,12 +11,20 @@ async function parseJson<T>(res: Response): Promise<T & ApiError> {
 async function request<T>(
   url: string,
   init?: RequestInit,
-): Promise<{ ok: true; data: T } | { ok: false; error: string; message?: string }> {
+): Promise<
+  | { ok: true; data: T }
+  | { ok: false; error: string; message?: string; referenced_item_count?: number }
+> {
   try {
     const res = await fetch(url, { credentials: 'include', ...init });
     const data = await parseJson<T>(res);
     if (!res.ok) {
-      return { ok: false, error: data.error || 'request_failed', message: data.message };
+      return {
+        ok: false,
+        error: data.error || 'request_failed',
+        message: data.message,
+        referenced_item_count: data.referenced_item_count,
+      };
     }
     return { ok: true, data };
   } catch {
@@ -293,6 +302,30 @@ export function mapRecommendedMenuApiError(
   }
 }
 
+export type NotePresetErrorLabels = {
+  saveFail: string;
+  notePresetGroupNotEmpty: string;
+  notePresetDictHint: string;
+};
+
+/** Sole user-facing mapper for note-preset dictionary API error codes. */
+export function mapNotePresetApiError(
+  code: string,
+  message: string | undefined,
+  labels: NotePresetErrorLabels,
+  count?: number,
+): string {
+  switch (code) {
+    case 'note_preset_group_not_empty':
+      return labels.notePresetGroupNotEmpty.replace('{count}', String(count ?? '?'));
+    case 'note_preset_en_pt_required':
+    case 'invalid_note_preset_names':
+      return labels.notePresetDictHint;
+    default:
+      return message || labels.saveFail;
+  }
+}
+
 export async function addRecommendedMenuItemsClient(menuItemIds: string[]) {
   return request<{ recommended_item_ids: string[] }>('/api/dashboard/menu/recommended', {
     method: 'POST',
@@ -316,3 +349,96 @@ export async function reorderRecommendedMenuItemsClient(orderedIds: string[]) {
     body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
   });
 }
+
+export type NotePresetNameInput = {
+  name_en: string;
+  name_pt: string;
+  name_zh?: string;
+};
+
+export async function createNotePresetGroupClient(input: NotePresetNameInput) {
+  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateNotePresetGroupClient(
+  groupId: string,
+  patch: NotePresetNameInput & { active?: boolean },
+) {
+  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group_id: groupId, ...patch }),
+  });
+}
+
+export async function setNotePresetGroupActiveClient(groupId: string, active: boolean) {
+  return request<{ group: MenuNotePresetGroup }>('/api/dashboard/menu/note-preset-groups', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group_id: groupId, active }),
+  });
+}
+
+export async function deleteNotePresetGroupClient(groupId: string) {
+  return request<{ ok: true }>('/api/dashboard/menu/note-preset-groups', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group_id: groupId }),
+  });
+}
+
+export async function reorderNotePresetGroupsClient(orderedIds: string[]) {
+  return request<{ ok: true }>('/api/dashboard/menu/note-preset-groups', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'reorder', ordered_ids: orderedIds }),
+  });
+}
+
+export async function createNotePresetClient(groupId: string, input: NotePresetNameInput) {
+  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ group_id: groupId, ...input }),
+  });
+}
+
+export async function updateNotePresetClient(
+  presetId: string,
+  patch: NotePresetNameInput & { active?: boolean; group_id?: string },
+) {
+  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preset_id: presetId, ...patch }),
+  });
+}
+
+export async function setNotePresetActiveClient(presetId: string, active: boolean) {
+  return request<{ preset: MenuNotePreset }>('/api/dashboard/menu/note-presets', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preset_id: presetId, active }),
+  });
+}
+
+export async function deleteNotePresetClient(presetId: string, confirmUnbind = false) {
+  return request<{ ok: true; referenced_item_count: number }>('/api/dashboard/menu/note-presets', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preset_id: presetId, confirm_unbind: confirmUnbind }),
+  });
+}
+
+export async function reorderNotePresetsClient(groupId: string, orderedIds: string[]) {
+  return request<{ ok: true }>('/api/dashboard/menu/note-presets', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'reorder', group_id: groupId, ordered_ids: orderedIds }),
+  });
+}
+

@@ -5,6 +5,11 @@ import {
   type ResolveMenuImageDisplayOptions,
 } from '@/lib/menu-image';
 import type { MenuCategory, MenuItem } from '@/types';
+import {
+  buildMenuNotePresetCatalog,
+  type MenuNotePresetCatalog,
+} from '@/lib/menu-note-presets';
+import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
 
 export function customerMenuCatalogTag(restaurantId: string): string {
   return `customer-menu-catalog:${restaurantId}`;
@@ -47,13 +52,19 @@ export type CustomerMenuCatalogRows = {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   recommendedItemIds: string[];
+  notePresetCatalog: MenuNotePresetCatalog;
 };
 
 async function loadCustomerMenuCatalogUncached(
   restaurantId: string,
 ): Promise<CustomerMenuCatalogRows> {
   const admin = createAdminClient();
-  const [{ data: menuItems }, { data: menuCategories }, { data: recommended }] = await Promise.all([
+  const [
+    { data: menuItems },
+    { data: menuCategories },
+    { data: recommended },
+    noteDictionary,
+  ] = await Promise.all([
     admin
       .from('menu_items')
       .select('*')
@@ -71,12 +82,21 @@ async function loadCustomerMenuCatalogUncached(
       .select('menu_item_id')
       .eq('restaurant_id', restaurantId)
       .order('sort_order'),
+    listMenuNotePresetDictionary(admin, restaurantId),
   ]);
+
+  if ('error' in noteDictionary) {
+    throw new Error(noteDictionary.message || noteDictionary.error);
+  }
 
   return {
     menuItems: (menuItems || []) as MenuItem[],
     menuCategories: (menuCategories || []) as MenuCategory[],
     recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
+    notePresetCatalog: buildMenuNotePresetCatalog(
+      noteDictionary.groups,
+      noteDictionary.presets,
+    ),
   };
 }
 

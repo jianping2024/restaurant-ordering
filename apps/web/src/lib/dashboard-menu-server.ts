@@ -26,6 +26,8 @@ import {
 import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
+import { normalizeMenuItemNotePresetKeys } from '@/lib/menu-note-presets';
+import { listRestaurantNotePresetIds } from '@/lib/menu-note-presets-query';
 import {
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
@@ -432,26 +434,45 @@ function buildMenuItemPayload(
   };
 }
 
+async function withValidatedNotePresetKeys(
+  admin: SupabaseClient,
+  restaurantId: string,
+  input: MenuItemInput,
+): Promise<MenuItemInput | MenuMutationError> {
+  const allowed = await listRestaurantNotePresetIds(admin, restaurantId);
+  if (!(allowed instanceof Set)) {
+    return { error: allowed.error, message: allowed.message, status: allowed.status };
+  }
+  const keys = normalizeMenuItemNotePresetKeys(input.note_preset_keys, allowed);
+  if (!Array.isArray(keys)) {
+    return { error: keys.error, status: keys.status };
+  }
+  return { ...input, note_preset_keys: keys };
+}
+
 export async function createMenuItem(
   admin: SupabaseClient,
   restaurantId: string,
   input: MenuItemInput,
 ): Promise<{ item: MenuItem } | MenuMutationError> {
+  const validated = await withValidatedNotePresetKeys(admin, restaurantId, input);
+  if ('error' in validated) return validated;
+
   const categories = await loadActiveCategories(admin, restaurantId);
   if ('error' in categories) return categories;
   const items = await loadMenuItems(admin, restaurantId);
   if ('error' in items) return items;
 
-  const categoryOrError = validateMenuItemInput(input, items, categories);
+  const categoryOrError = validateMenuItemInput(validated, items, categories);
   if ('error' in categoryOrError) return categoryOrError;
   const category = categoryOrError;
 
-  const normalizedCode = normalizeMenuItemCode(input.item_code)!;
+  const normalizedCode = normalizeMenuItemCode(validated.item_code)!;
   const categoryItems = menuItemSiblingsInScope(items, category.id);
   const { data, error } = await admin
     .from('menu_items')
     .insert({
-      ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),
+      ...buildMenuItemPayload(restaurantId, category, validated, normalizedCode),
       sort_order: nextSortOrder(categoryItems),
     })
     .select()
@@ -552,6 +573,9 @@ export async function updateMenuItem(
     return { error: 'invalid_item_id', status: 400 };
   }
 
+  const validated = await withValidatedNotePresetKeys(admin, restaurantId, input);
+  if ('error' in validated) return validated;
+
   const categories = await loadActiveCategories(admin, restaurantId);
   if ('error' in categories) return categories;
   const items = await loadMenuItems(admin, restaurantId);
@@ -562,14 +586,14 @@ export async function updateMenuItem(
     return { error: 'item_not_found', status: 404 };
   }
 
-  const categoryOrError = validateMenuItemInput(input, items, categories, id);
+  const categoryOrError = validateMenuItemInput(validated, items, categories, id);
   if ('error' in categoryOrError) return categoryOrError;
   const category = categoryOrError;
 
-  const normalizedCode = normalizeMenuItemCode(input.item_code)!;
+  const normalizedCode = normalizeMenuItemCode(validated.item_code)!;
   const categoryChanged = existing.category_id !== category.id;
   const updatePayload = {
-    ...buildMenuItemPayload(restaurantId, category, input, normalizedCode),
+    ...buildMenuItemPayload(restaurantId, category, validated, normalizedCode),
     ...(categoryChanged
       ? { sort_order: nextSortOrder(menuItemSiblingsInScope(items, category.id, id)) }
       : {}),

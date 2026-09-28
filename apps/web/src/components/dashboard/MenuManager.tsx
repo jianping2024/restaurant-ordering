@@ -27,11 +27,13 @@ import {
   validateMenuImageFile,
 } from '@/lib/menu-image';
 import {
-  NOTE_PRESETS,
-  NOTE_PRESET_GROUP_LABELS,
-  type NotePresetGroup,
-} from '@/lib/note-presets';
+  buildMenuNotePresetEditorGroups,
+  menuNotePresetLocalizedName,
+  type MenuNotePreset,
+  type MenuNotePresetGroup,
+} from '@/lib/menu-note-presets';
 import { ALLERGENS, ALLERGEN_SECTION_UI } from '@/lib/allergens';
+import { NotePresetsManager } from '@/components/dashboard/NotePresetsManager';
 import {
   menuItemHasDuplicateCode,
   siblingCategoryHasDuplicateCode,
@@ -106,6 +108,8 @@ interface MenuManagerProps {
   initialCategories: MenuCategory[];
   initialPrintStations: PrintStation[];
   initialRecommendedItemIds: string[];
+  initialNotePresetGroups: MenuNotePresetGroup[];
+  initialNotePresets: MenuNotePreset[];
   initialTab?: MenuManagerTab;
   /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
   canManagePrintStations?: boolean;
@@ -205,6 +209,8 @@ export function MenuManager({
   initialCategories,
   initialPrintStations,
   initialRecommendedItemIds,
+  initialNotePresetGroups,
+  initialNotePresets,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
 }: MenuManagerProps) {
@@ -245,6 +251,14 @@ export function MenuManager({
   const [categories, setCategories] = useState<MenuCategory[]>(initialCategories);
   const [printStations, setPrintStations] = useState<PrintStation[]>(initialPrintStations);
   const [recommendedItemIds, setRecommendedItemIds] = useState<string[]>(initialRecommendedItemIds);
+  const [notePresetGroups, setNotePresetGroups] =
+    useState<MenuNotePresetGroup[]>(initialNotePresetGroups);
+  const [notePresets, setNotePresets] = useState<MenuNotePreset[]>(initialNotePresets);
+
+  const notePresetEditorGroups = useMemo(
+    () => buildMenuNotePresetEditorGroups(notePresetGroups, notePresets),
+    [notePresetGroups, notePresets],
+  );
 
   useEffect(() => {
     setPrintStations(initialPrintStations);
@@ -1104,6 +1118,7 @@ export function MenuManager({
               <li>{t.guideStep2}</li>
               <li>{t.guideStep3}</li>
               <li>{t.guideStep4}</li>
+              <li>{t.guideStep5}</li>
             </ol>
           </SettingsPageHelp>
         </div>
@@ -1144,6 +1159,17 @@ export function MenuManager({
           }`}
         >
           {t.tabItems}
+        </button>
+        <button
+          type="button"
+          onClick={() => switchTab('note_presets')}
+          className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+            activeTab === 'note_presets'
+              ? 'bg-brand-gold/15 border-brand-gold/40 text-brand-gold font-medium'
+              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+          }`}
+        >
+          {t.tabNotePresets}
         </button>
         <button
           type="button"
@@ -1320,6 +1346,15 @@ export function MenuManager({
             )}
           </div>
         </div>
+      ) : activeTab === 'note_presets' ? (
+        <NotePresetsManager
+          groups={notePresetGroups}
+          presets={notePresets}
+          onChange={({ groups, presets }) => {
+            setNotePresetGroups(groups);
+            setNotePresets(presets);
+          }}
+        />
       ) : activeTab === 'recommended' ? (
         <RecommendedMenuItemsManager
           items={items}
@@ -1799,42 +1834,60 @@ export function MenuManager({
           </div>
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
-            <p className="text-sm font-medium text-brand-text">{noteUi.title}</p>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <p className="text-sm font-medium text-brand-text">{noteUi.title}</p>
+              <button
+                type="button"
+                className="text-xs sm:text-sm text-brand-gold hover:underline underline-offset-2"
+                onClick={() => {
+                  closeItemModal();
+                  switchTab('note_presets');
+                }}
+              >
+                {t.notePresetManageLink}
+              </button>
+            </div>
             <p className="text-[13px] text-brand-text-muted mt-1 mb-3">{noteUi.hint}</p>
-            <div className="space-y-3">
-              {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
-                const options = NOTE_PRESETS.filter((preset) => preset.group === group);
-                return (
-                  <div key={group}>
-                    <p className="text-[13px] text-brand-text-muted mb-2">{NOTE_PRESET_GROUP_LABELS[group][lang]}</p>
+            {notePresetEditorGroups.length === 0 ? (
+              <p className="text-[13px] text-brand-text-muted">{t.notePresetNoOptions}</p>
+            ) : (
+              <div className="space-y-3">
+                {notePresetEditorGroups.map((group) => (
+                  <div key={group.id}>
+                    <p className="text-[13px] text-brand-text-muted mb-2">
+                      {menuNotePresetLocalizedName(group, lang)}
+                      {!group.active ? ` (${t.unavailableBadge})` : ''}
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                      {options.map((preset) => {
-                        const checked = itemForm.note_preset_keys.includes(preset.key);
+                      {group.presets.map((preset) => {
+                        const checked = itemForm.note_preset_keys.includes(preset.id);
                         return (
                           <button
-                            key={preset.key}
+                            key={preset.id}
                             type="button"
-                            onClick={() => setItemForm((prev) => ({
-                              ...prev,
-                              note_preset_keys: checked
-                                ? prev.note_preset_keys.filter((k) => k !== preset.key)
-                                : [...prev.note_preset_keys, preset.key],
-                            }))}
+                            onClick={() =>
+                              setItemForm((prev) => ({
+                                ...prev,
+                                note_preset_keys: checked
+                                  ? prev.note_preset_keys.filter((k) => k !== preset.id)
+                                  : [...prev.note_preset_keys, preset.id],
+                              }))
+                            }
                             className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
                               checked
                                 ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
                                 : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
-                            }`}
+                            } ${!preset.active ? 'opacity-60' : ''}`}
                           >
-                            {preset.labels[lang]}
+                            {menuNotePresetLocalizedName(preset, lang)}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {itemError && !isImageError && <p className="mesa-alert-danger text-sm px-4 py-2">{itemError}</p>}

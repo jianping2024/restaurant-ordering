@@ -94,6 +94,7 @@ type Props = {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   recommendedItemIds?: string[];
+  notePresetCatalog?: import('@/lib/menu-note-presets').MenuNotePresetCatalog;
   catalogReady?: boolean;
   tableId: string;
   displayName: string;
@@ -108,6 +109,7 @@ export function SushiMenuPage({
   menuItems,
   menuCategories,
   recommendedItemIds = [],
+  notePresetCatalog = { groups: [] },
   catalogReady = true,
   tableId,
   displayName,
@@ -786,6 +788,7 @@ export function SushiMenuPage({
         open={cartOpen}
         cart={cart}
         menuItemCodeById={menuItemCodeById}
+        notePresetCatalog={notePresetCatalog}
         lang={lang}
         onClose={() => setCartOpen(false)}
         onUpdateQty={(id, qty) => {

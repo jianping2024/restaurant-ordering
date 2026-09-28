@@ -42,5 +42,23 @@ export function getDemoMenuCatalog(): CustomerMenuCatalog {
     menuItems: DEMO_ITEMS,
     menuCategories: DEMO_CATEGORIES,
     recommendedItemIds: ['d5', 'd6', 'd1'],
+    notePresetCatalog: {
+      groups: [
+        {
+          id: 'demo-taste',
+          name_en: 'Taste',
+          name_pt: 'Sabor',
+          name_zh: '口味',
+          presets: [
+            {
+              id: 'demo-less-salt',
+              name_en: 'Less salt',
+              name_pt: 'Pouco sal',
+              name_zh: '少盐',
+            },
+          ],
+        },
+      ],
+    },
   };
 }

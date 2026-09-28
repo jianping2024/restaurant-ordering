@@ -1,4 +1,4 @@
-export type MenuManagerTab = 'stations' | 'categories' | 'items' | 'recommended';
+export type MenuManagerTab = 'stations' | 'categories' | 'items' | 'note_presets' | 'recommended';
 
 const KEY_PREFIX = 'mesa-menu-manager-tab:';
 
@@ -16,6 +16,7 @@ export function isMenuManagerTab(value: string | null | undefined): value is Men
     value === 'stations' ||
     value === 'categories' ||
     value === 'items' ||
+    value === 'note_presets' ||
     value === 'recommended'
   );
 }

@@ -1,4 +1,6 @@
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
+import type { MenuNotePreset, MenuNotePresetGroup } from '@/lib/menu-note-presets';
+import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { can } from '@/lib/permissions/can';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
@@ -10,6 +12,8 @@ export type DashboardMenu =
       menuCategories: MenuCategory[];
       printStations: PrintStation[];
       recommendedItemIds: string[];
+      notePresetGroups: MenuNotePresetGroup[];
+      notePresets: MenuNotePreset[];
       canManagePrintStations: boolean;
     }
   | { error: string; status: number };
@@ -31,32 +35,33 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     { data: menuCategories, error: categoriesError },
     { data: printStations, error: stationsError },
     { data: recommended, error: recommendedError },
-  ] =
-    await Promise.all([
-      ctx.admin
-        .from('menu_items')
-        .select('*')
-        .eq('restaurant_id', ctx.restaurantId)
-        .order('category_id')
-        .order('sort_order'),
-      ctx.admin
-        .from('menu_categories')
-        .select('*')
-        .eq('restaurant_id', ctx.restaurantId)
-        .eq('active', true)
-        .order('sort_order'),
-      ctx.admin
-        .from('print_stations')
-        .select('*')
-        .eq('restaurant_id', ctx.restaurantId)
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true }),
-      ctx.admin
-        .from('menu_recommended_items')
-        .select('menu_item_id')
-        .eq('restaurant_id', ctx.restaurantId)
-        .order('sort_order'),
-    ]);
+    noteDictionary,
+  ] = await Promise.all([
+    ctx.admin
+      .from('menu_items')
+      .select('*')
+      .eq('restaurant_id', ctx.restaurantId)
+      .order('category_id')
+      .order('sort_order'),
+    ctx.admin
+      .from('menu_categories')
+      .select('*')
+      .eq('restaurant_id', ctx.restaurantId)
+      .eq('active', true)
+      .order('sort_order'),
+    ctx.admin
+      .from('print_stations')
+      .select('*')
+      .eq('restaurant_id', ctx.restaurantId)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true }),
+    ctx.admin
+      .from('menu_recommended_items')
+      .select('menu_item_id')
+      .eq('restaurant_id', ctx.restaurantId)
+      .order('sort_order'),
+    listMenuNotePresetDictionary(ctx.admin, ctx.restaurantId),
+  ]);
 
   if (itemsError) {
     return { error: 'menu_items_query_failed', status: 500 };
@@ -70,6 +75,9 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
   if (recommendedError) {
     return { error: 'recommended_query_failed', status: 500 };
   }
+  if ('error' in noteDictionary) {
+    return { error: noteDictionary.error, status: noteDictionary.status };
+  }
 
   return {
     restaurantId: ctx.restaurantId,
@@ -77,6 +85,8 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     menuCategories: (menuCategories || []) as MenuCategory[],
     printStations: (printStations ?? []) as PrintStation[],
     recommendedItemIds: (recommended || []).map((row) => String(row.menu_item_id)),
+    notePresetGroups: noteDictionary.groups,
+    notePresets: noteDictionary.presets,
     canManagePrintStations,
   };
 }

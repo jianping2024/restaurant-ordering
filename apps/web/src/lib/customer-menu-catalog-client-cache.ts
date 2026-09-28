@@ -1,10 +1,13 @@
 import type { MenuCategory, MenuItem } from '@/types';
+import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 
 export type CustomerMenuCatalog = {
   menuItems: MenuItem[];
   menuCategories: MenuCategory[];
   /** Curated order of existing menu_item ids (may include unavailable). */
   recommendedItemIds: string[];
+  /** Active note-preset groups/items for guest cart chips. */
+  notePresetCatalog: MenuNotePresetCatalog;
 };
 
 /** Full catalog payload from GET menu-catalog (version + body). */
@@ -20,7 +23,7 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-const CACHE_SCHEMA_VERSION = 3;
+const CACHE_SCHEMA_VERSION = 4;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {
@@ -38,6 +41,23 @@ function storageKey(restaurantId: string): string {
   return `${STORAGE_KEY_PREFIX}:v${CACHE_SCHEMA_VERSION}:${restaurantId}`;
 }
 
+function isMenuNotePresetCatalog(value: unknown): value is MenuNotePresetCatalog {
+  if (!value || typeof value !== 'object') return false;
+  const groups = (value as { groups?: unknown }).groups;
+  if (!Array.isArray(groups)) return false;
+  return groups.every((group) => {
+    if (!group || typeof group !== 'object') return false;
+    const row = group as Record<string, unknown>;
+    return (
+      typeof row.id === 'string' &&
+      typeof row.name_en === 'string' &&
+      typeof row.name_pt === 'string' &&
+      typeof row.name_zh === 'string' &&
+      Array.isArray(row.presets)
+    );
+  });
+}
+
 function readStorage(restaurantId: string): CacheEntry | null {
   if (typeof localStorage === 'undefined') return null;
   try {
@@ -49,6 +69,7 @@ function readStorage(restaurantId: string): CacheEntry | null {
     if (!Number.isFinite(parsed.catalogVersion)) return null;
     if (!parsed.catalog?.menuItems || !parsed.catalog?.menuCategories) return null;
     if (!Array.isArray(parsed.catalog.recommendedItemIds)) return null;
+    if (!isMenuNotePresetCatalog(parsed.catalog.notePresetCatalog)) return null;
     return parsed;
   } catch {
     return null;
@@ -150,7 +171,8 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
   if (
     !Array.isArray(row.menuItems) ||
     !Array.isArray(row.menuCategories) ||
-    !Array.isArray(row.recommendedItemIds)
+    !Array.isArray(row.recommendedItemIds) ||
+    !isMenuNotePresetCatalog(row.notePresetCatalog)
   ) {
     throw new Error('menu_catalog_invalid_body');
   }
@@ -162,6 +184,7 @@ export function parseCustomerMenuCatalogApiBody(data: unknown): CustomerMenuCata
     menuItems: row.menuItems as MenuItem[],
     menuCategories: row.menuCategories as MenuCategory[],
     recommendedItemIds: row.recommendedItemIds as string[],
+    notePresetCatalog: row.notePresetCatalog,
   };
 }
 
@@ -220,6 +243,7 @@ export function ensureCustomerMenuCatalog(params: {
         menuItems: body.menuItems,
         menuCategories: body.menuCategories,
         recommendedItemIds: body.recommendedItemIds,
+        notePresetCatalog: body.notePresetCatalog,
       });
     })
     .finally(() => {

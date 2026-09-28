@@ -9,10 +9,9 @@ import {
 import { Button } from '@/components/ui/Button';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import {
-  NOTE_PRESET_GROUP_LABELS,
-  NOTE_PRESET_BY_KEY,
-  type NotePresetGroup,
-} from '@/lib/note-presets';
+  menuNotePresetLocalizedName,
+  type MenuNotePresetCatalog,
+} from '@/lib/menu-note-presets';
 import { lineTotal, sumLineTotals } from '@/lib/cart-totals';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
@@ -25,6 +24,7 @@ interface CartDrawerProps {
   open: boolean;
   cart: CartItem[];
   menuItemCodeById: Record<string, string>;
+  notePresetCatalog: MenuNotePresetCatalog;
   lang: Language;
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
@@ -38,6 +38,7 @@ export function CartDrawer({
   open,
   cart,
   menuItemCodeById,
+  notePresetCatalog,
   lang,
   onClose,
   onUpdateQty,
@@ -52,6 +53,11 @@ export function CartDrawer({
   const submitLabel = cooldownActive
     ? formatSubmitCooldownWaitMessage(t.submitCooldownWait, submitCooldownRemaining)
     : t.placeOrder;
+  const presetById = new Map(
+    notePresetCatalog.groups.flatMap((group) =>
+      group.presets.map((preset) => [preset.id, preset] as const),
+    ),
+  );
 
   return (
     <CustomerMenuBottomSheet
@@ -112,22 +118,22 @@ export function CartDrawer({
                 className={customerTextInputClass}
               />
               <div className="mt-2 space-y-2">
-                {(Object.keys(NOTE_PRESET_GROUP_LABELS) as NotePresetGroup[]).map((group) => {
-                  const presetKeys = (item.notePresetKeys || []).filter(
-                    (key) => NOTE_PRESET_BY_KEY.get(key)?.group === group,
+                {notePresetCatalog.groups.map((group) => {
+                  const presetKeys = (item.notePresetKeys || []).filter((key) =>
+                    group.presets.some((preset) => preset.id === key),
                   );
                   if (presetKeys.length === 0) return null;
 
                   return (
-                    <div key={`${item.menuItemId}-${group}`}>
+                    <div key={`${item.menuItemId}-${group.id}`}>
                       <p className="mb-1 text-[13px] text-brand-text-muted">
-                        {NOTE_PRESET_GROUP_LABELS[group][lang]}
+                        {menuNotePresetLocalizedName(group, lang)}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {presetKeys.map((key) => {
-                          const preset = NOTE_PRESET_BY_KEY.get(key);
+                          const preset = presetById.get(key);
                           if (!preset) return null;
-                          const note = preset.labels[lang];
+                          const note = menuNotePresetLocalizedName(preset, lang);
                           return (
                             <button
                               key={key}

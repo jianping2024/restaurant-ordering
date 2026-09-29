@@ -1,5 +1,6 @@
 import { sumBillableSessionTotal } from '@/lib/billable-session-lines';
 import { sumCartQty, sumLineTotals } from '@/lib/cart-totals';
+import { countSubmittedDishPortions } from '@/lib/order-list-display';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { waiterBillHref } from '@/lib/staff-routes';
 import type { CartItem, Order, TableSession } from '@/types';
@@ -42,10 +43,6 @@ export type MenuPageFooterView = {
   showOrderedCta: boolean;
 };
 
-function countSubmittedItems(recentOrders: Order[]): number {
-  return recentOrders.reduce((sum, order) => sum + order.items.length, 0);
-}
-
 function deriveFooterPhase(
   cartQty: number,
   roundOwnQty: number,
@@ -73,7 +70,7 @@ function derivePrimaryAction(
 export function deriveMenuPageFooter(input: MenuPageFooterInput): MenuPageFooterView {
   const cartQty = sumCartQty(input.cart);
   const cartTotal = sumLineTotals(input.cart);
-  const submittedCount = countSubmittedItems(input.recentOrders);
+  const submittedCount = countSubmittedDishPortions(input.recentOrders);
   const submittedTotal = sumBillableSessionTotal(input.recentOrders);
   const roundOwnQty = Math.max(0, Math.floor(input.roundOwnQty ?? 0));
   const phase = deriveFooterPhase(cartQty, roundOwnQty, submittedCount);

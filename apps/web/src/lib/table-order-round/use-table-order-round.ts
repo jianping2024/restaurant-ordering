@@ -6,8 +6,10 @@ import { useDebouncedPostgresRealtimeRefresh } from '@/lib/use-restaurant-realti
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
 import {
+  deleteRoundLineClient,
   fetchRoundSnapshot,
   finalizeRoundClient,
+  ownLineId,
   ownLineNote,
   ownLineQty,
   ownLinesQtyTotal,
@@ -187,6 +189,25 @@ export function useTableOrderRound(params: {
     [applySnapshot, guestClientId, slug, tableId],
   );
 
+  const deleteOwnLineForMenuItem = useCallback(
+    async (menuItemId: string) => {
+      if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
+      const lineId = ownLineId(snapshot.lines, menuItemId, guestClientId);
+      if (!lineId) return { ok: true as const, snapshot };
+      const result = await deleteRoundLineClient({
+        slug,
+        tableId,
+        guestClientId,
+        lineId,
+        settings: settingsRef.current,
+      });
+      if (!result.ok) return result;
+      applySnapshot(result.snapshot);
+      return result;
+    },
+    [applySnapshot, guestClientId, slug, snapshot, tableId],
+  );
+
   const submitRequest = useCallback(
     async (geo?: { latitude?: number; longitude?: number }) => {
       if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
@@ -252,8 +273,10 @@ export function useTableOrderRound(params: {
     settings,
     ownReviewQty,
     tableReviewQty,
-    ownLineQty: (menuItemId: string) => ownLineQty(snapshot.lines, guestClientId, menuItemId),
-    ownLineNote: (menuItemId: string) => ownLineNote(snapshot.lines, guestClientId, menuItemId),
+    ownLineQty: (menuItemId: string) => ownLineQty(snapshot.lines, menuItemId, guestClientId),
+    ownLineNote: (menuItemId: string) => ownLineNote(snapshot.lines, menuItemId, guestClientId),
+    ownLineId: (menuItemId: string) => ownLineId(snapshot.lines, menuItemId, guestClientId),
+    deleteOwnLineForMenuItem,
     commitCartToRound,
     submitRequest,
     finalize,

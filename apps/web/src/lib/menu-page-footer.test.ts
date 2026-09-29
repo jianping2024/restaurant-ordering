@@ -90,6 +90,42 @@ describe('deriveMenuPageFooter', () => {
     assert.equal(view.primaryAction, 'openCart');
   });
 
+  it('counts submitted portions by qty not row count', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [
+        orderWithItems([
+          { id: 'i1', name: 'x', name_pt: 'x', qty: 5, price: 0, emoji: '🍽' },
+          { id: 'i2', name: 'y', name_pt: 'y', qty: 2, price: 3, emoji: '🍽' },
+        ]),
+      ],
+    });
+    assert.equal(view.submittedCount, 7);
+  });
+
+  it('excludes buffet_base from submitted portion count', () => {
+    const view = deriveMenuPageFooter({
+      ...base,
+      recentOrders: [
+        orderWithItems([
+          {
+            id: 'bf',
+            name: 'buffet',
+            name_pt: 'buffet',
+            qty: 1,
+            price: 20,
+            emoji: '🍽',
+            kind: 'buffet_base',
+            adult_count: 2,
+            child_count: 1,
+          },
+          { id: 'i1', name: 'x', name_pt: 'x', qty: 3, price: 0, emoji: '🍽' },
+        ]),
+      ],
+    });
+    assert.equal(view.submittedCount, 3);
+  });
+
   it('uses ordered phase when cart is empty and submitted exist', () => {
     const view = deriveMenuPageFooter({
       ...base,

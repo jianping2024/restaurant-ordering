@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { APPEND_CART_QTY_MAX, type MenuItem, type CartItem, type MenuCategory } from '@/types';
+import { APPEND_CART_QTY_MAX, clampAppendCartNote, type MenuItem, type CartItem, type MenuCategory } from '@/types';
 import { MenuItemCard } from '@/components/menu/MenuItemCard';
 import { CustomerRecommendedRail } from '@/components/menu/CustomerRecommendedRail';
 import { CartDrawer } from '@/components/menu/CartDrawer';
@@ -32,10 +32,12 @@ import { completeGuestOrderSubmit } from '@/lib/menu-order-submit-outcome';
 import { scheduleMenuOrderPostSubmitEffects } from '@/lib/menu-order-post-submit';
 import {
   appendFailureNeedsSessionRefresh,
+  cartItemWireNote,
   executeMenuOrderSubmit,
   resolveAppendClientRequestId,
   type MenuOrderSubmitFailure,
 } from '@/lib/menu-order-submit';
+import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
 import {
   resolveCustomerGeoForOrder,
   warmCustomerGeoForOrder,
@@ -341,7 +343,26 @@ export function SushiMenuPage({
 
   const updateNote = (menuItemId: string, note: string) => {
     setCart((prev) =>
-      prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note } : c)),
+      prev.map((c) =>
+        c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c,
+      ),
+    );
+  };
+
+  const toggleNotePreset = (menuItemId: string, presetId: string) => {
+    setCart((prev) =>
+      prev.map((c) =>
+        c.menuItemId === menuItemId
+          ? {
+              ...c,
+              selectedNotePresetIds: toggleCartNotePresetSelection(
+                c.selectedNotePresetIds || [],
+                notePresetCatalog,
+                presetId,
+              ),
+            }
+          : c,
+      ),
     );
   };
 
@@ -488,6 +509,8 @@ export function SushiMenuPage({
     const freeCart = cart.filter((c) => isSushiRoundFreeMenuPrice(c.price));
     const paidCart = cart.filter((c) => !isSushiRoundFreeMenuPrice(c.price));
 
+    const noteContext = { catalog: notePresetCatalog, lang };
+
     submittingRef.current = true;
     setSubmitting(true);
     try {
@@ -496,7 +519,7 @@ export function SushiMenuPage({
           freeCart.map((c) => ({
             menuItemId: c.menuItemId,
             qty: coerceCartQty(c.qty),
-            note: c.note || '',
+            note: cartItemWireNote(c, noteContext),
           })),
         );
         if (!result.ok) {
@@ -551,6 +574,7 @@ export function SushiMenuPage({
 
       const intent = resolveAppendClientRequestId({
         cart: paidCart,
+        noteContext,
         previous: pendingAppendIntentRef.current,
       });
       pendingAppendIntentRef.current = {
@@ -561,6 +585,7 @@ export function SushiMenuPage({
       const result = await executeMenuOrderSubmit({
         flow: 'guest',
         cart: paidCart,
+        noteContext,
         slug: restaurant.slug,
         tableId,
         waiterFlow: false,
@@ -844,6 +869,7 @@ export function SushiMenuPage({
           void requestQtyChange(id, qty);
         }}
         onUpdateNote={updateNote}
+        onToggleNotePreset={toggleNotePreset}
         onSubmit={submitCart}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}

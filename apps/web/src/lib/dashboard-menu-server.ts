@@ -26,8 +26,8 @@ import {
 import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
-import { normalizeMenuItemNotePresetKeys } from '@/lib/menu-note-presets';
-import { listRestaurantNotePresetIds } from '@/lib/menu-note-presets-query';
+import { normalizeMenuItemNotePresetGroupIds } from '@/lib/menu-note-presets';
+import { listRestaurantNotePresetGroupIds } from '@/lib/menu-note-presets-query';
 import {
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
@@ -361,7 +361,7 @@ type MenuItemInput = {
   print_station_id?: string | null;
   emoji: string;
   available: boolean;
-  note_preset_keys: string[];
+  note_preset_group_ids: string[];
   allergen_codes: string[];
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
@@ -425,7 +425,7 @@ function buildMenuItemPayload(
     category_zh: category.name_zh || category.name_pt,
     emoji: input.emoji,
     available: input.available,
-    note_preset_keys: input.note_preset_keys,
+    note_preset_group_ids: input.note_preset_group_ids,
     allergen_codes: input.allergen_codes,
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
@@ -434,20 +434,20 @@ function buildMenuItemPayload(
   };
 }
 
-async function withValidatedNotePresetKeys(
+async function withValidatedNotePresetGroupIds(
   admin: SupabaseClient,
   restaurantId: string,
   input: MenuItemInput,
 ): Promise<MenuItemInput | MenuMutationError> {
-  const allowed = await listRestaurantNotePresetIds(admin, restaurantId);
+  const allowed = await listRestaurantNotePresetGroupIds(admin, restaurantId);
   if (!(allowed instanceof Set)) {
     return { error: allowed.error, message: allowed.message, status: allowed.status };
   }
-  const keys = normalizeMenuItemNotePresetKeys(input.note_preset_keys, allowed);
+  const keys = normalizeMenuItemNotePresetGroupIds(input.note_preset_group_ids, allowed);
   if (!Array.isArray(keys)) {
     return { error: keys.error, status: keys.status };
   }
-  return { ...input, note_preset_keys: keys };
+  return { ...input, note_preset_group_ids: keys };
 }
 
 export async function createMenuItem(
@@ -455,7 +455,7 @@ export async function createMenuItem(
   restaurantId: string,
   input: MenuItemInput,
 ): Promise<{ item: MenuItem } | MenuMutationError> {
-  const validated = await withValidatedNotePresetKeys(admin, restaurantId, input);
+  const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
   if ('error' in validated) return validated;
 
   const categories = await loadActiveCategories(admin, restaurantId);
@@ -573,7 +573,7 @@ export async function updateMenuItem(
     return { error: 'invalid_item_id', status: 400 };
   }
 
-  const validated = await withValidatedNotePresetKeys(admin, restaurantId, input);
+  const validated = await withValidatedNotePresetGroupIds(admin, restaurantId, input);
   if ('error' in validated) return validated;
 
   const categories = await loadActiveCategories(admin, restaurantId);
@@ -962,7 +962,10 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
   if (typeof raw.emoji !== 'string') {
     return { error: 'invalid_item_body', status: 400 };
   }
-  if (!Array.isArray(raw.note_preset_keys) || raw.note_preset_keys.some((key) => typeof key !== 'string')) {
+  if (
+    !Array.isArray(raw.note_preset_group_ids) ||
+    raw.note_preset_group_ids.some((key) => typeof key !== 'string')
+  ) {
     return { error: 'invalid_item_body', status: 400 };
   }
   const allergenCodes = normalizeAllergenCodes(raw.allergen_codes);
@@ -991,7 +994,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     print_station_id: typeof raw.print_station_id === 'string' ? raw.print_station_id : null,
     emoji: raw.emoji,
     available: raw.available !== false,
-    note_preset_keys: raw.note_preset_keys,
+    note_preset_group_ids: raw.note_preset_group_ids,
     allergen_codes: allergenCodes,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,

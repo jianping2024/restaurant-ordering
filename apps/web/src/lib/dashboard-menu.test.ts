@@ -109,7 +109,7 @@ describe('parseMenuItemBody', () => {
       price: 12.5,
       vat_rate: '6',
       emoji: '🐟',
-      note_preset_keys: ['no_onion'],
+      note_preset_group_ids: ['no_onion'],
       allergen_codes: ['fish', 'egg'],
       available: true,
     });
@@ -117,7 +117,7 @@ describe('parseMenuItemBody', () => {
     if ('error' in parsed) return;
     assert.equal(parsed.price, 12.5);
     assert.equal(parsed.vat_rate, 6);
-    assert.deepEqual(parsed.note_preset_keys, ['no_onion']);
+    assert.deepEqual(parsed.note_preset_group_ids, ['no_onion']);
     assert.deepEqual(parsed.allergen_codes, ['fish', 'egg']);
     assert.equal(parsed.per_person_qty_limit, null);
     assert.equal(parsed.over_limit_unit_price, null);
@@ -131,7 +131,7 @@ describe('parseMenuItemBody', () => {
       price: 0,
       vat_rate: '6',
       emoji: '🍣',
-      note_preset_keys: [],
+      note_preset_group_ids: [],
       allergen_codes: [],
       available: true,
       per_person_qty_limit: 2,
@@ -151,7 +151,7 @@ describe('parseMenuItemBody', () => {
       price: 0,
       vat_rate: '6',
       emoji: '🍣',
-      note_preset_keys: [],
+      note_preset_group_ids: [],
       allergen_codes: [],
       per_person_qty_limit: 2,
     });
@@ -168,7 +168,7 @@ describe('parseMenuItemBody', () => {
       price: 12.5,
       vat_rate: '6',
       emoji: '🐟',
-      note_preset_keys: [],
+      note_preset_group_ids: [],
       allergen_codes: ['shellfish'],
     });
     assert.equal('error' in parsed, true);
@@ -184,7 +184,7 @@ describe('parseMenuItemBody', () => {
       price: 12.5,
       vat_rate: 'bad',
       emoji: '🐟',
-      note_preset_keys: [],
+      note_preset_group_ids: [],
       allergen_codes: [],
     });
     assert.equal('error' in parsed, true);

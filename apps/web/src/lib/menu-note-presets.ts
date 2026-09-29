@@ -1,4 +1,5 @@
 import type { Language } from '@/types';
+import { clampAppendCartNote, mergeAppendCartNotes } from '@/types';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 /** DB row: restaurant note-preset group. */
@@ -83,10 +84,10 @@ export function parseMenuNotePresetNameFields(
   return { name_en, name_pt, name_zh };
 }
 
-/** Validate dish note_preset_keys: unique UUIDs that exist in `allowedIds`. */
-export function normalizeMenuItemNotePresetKeys(
+/** Validate dish note_preset_group_ids: unique group UUIDs in `allowedGroupIds`. */
+export function normalizeMenuItemNotePresetGroupIds(
   raw: unknown,
-  allowedIds: ReadonlySet<string>,
+  allowedGroupIds: ReadonlySet<string>,
 ): string[] | { error: string; status: number } {
   if (!Array.isArray(raw) || raw.some((key) => typeof key !== 'string')) {
     return { error: 'invalid_item_body', status: 400 };
@@ -96,10 +97,10 @@ export function normalizeMenuItemNotePresetKeys(
   for (const value of raw) {
     const id = parseTableIdParam(value);
     if (!id) {
-      return { error: 'invalid_note_preset_keys', status: 400 };
+      return { error: 'invalid_note_preset_group_ids', status: 400 };
     }
-    if (!allowedIds.has(id)) {
-      return { error: 'invalid_note_preset_keys', status: 400 };
+    if (!allowedGroupIds.has(id)) {
+      return { error: 'invalid_note_preset_group_ids', status: 400 };
     }
     if (seen.has(id)) continue;
     seen.add(id);
@@ -146,7 +147,7 @@ export function buildMenuNotePresetCatalog(
   return { groups: catalogGroups };
 }
 
-/** Dish editor: all groups (incl. inactive) with all presets for association toggles. */
+/** Dish editor + dictionary manager: all groups (incl. inactive) with nested presets. */
 export function buildMenuNotePresetEditorGroups(
   groups: readonly MenuNotePresetGroup[],
   presets: readonly MenuNotePreset[],
@@ -165,6 +166,48 @@ export function buildMenuNotePresetEditorGroups(
         (a, b) => a.sort_order - b.sort_order || a.created_at?.localeCompare(b.created_at || '') || 0,
       ),
     }));
+}
+
+/**
+ * Sole guest chip toggle: at most one preset per catalog group.
+ * Re-click same id clears; pick another id in the same group replaces.
+ */
+export function toggleCartNotePresetSelection(
+  selectedIds: readonly string[],
+  catalog: MenuNotePresetCatalog,
+  presetId: string,
+): string[] {
+  const group = catalog.groups.find((g) => g.presets.some((p) => p.id === presetId));
+  if (!group) return [...selectedIds];
+  const siblingIds = new Set(group.presets.map((p) => p.id));
+  const withoutSiblings = selectedIds.filter((id) => !siblingIds.has(id));
+  if (selectedIds.includes(presetId)) return withoutSiblings;
+  return [...withoutSiblings, presetId];
+}
+
+/** Sole wire note: selected chip labels (catalog order) + free text, joined with `; `. */
+export function composeCartLineNote(params: {
+  freeText: string;
+  selectedNotePresetIds: readonly string[];
+  catalog: MenuNotePresetCatalog;
+  lang: Language;
+}): string {
+  const selected = new Set(params.selectedNotePresetIds);
+  const labels: string[] = [];
+  for (const group of params.catalog.groups) {
+    for (const preset of group.presets) {
+      if (!selected.has(preset.id)) continue;
+      const label = menuNotePresetLocalizedName(preset, params.lang).trim();
+      if (label) labels.push(label);
+    }
+  }
+  let note = '';
+  for (const label of labels) {
+    note = mergeAppendCartNotes(note, label);
+  }
+  const free = clampAppendCartNote(params.freeText.trim());
+  if (free) note = mergeAppendCartNotes(note, free);
+  return note;
 }
 
 export function parseOrderedIds(raw: unknown): string[] | null {

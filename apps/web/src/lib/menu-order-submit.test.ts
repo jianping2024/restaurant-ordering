@@ -13,6 +13,7 @@ import {
 import { parseAppendClientRequestId } from './append-idempotency';
 
 const REQUEST_ID = '11111111-1111-4111-8111-111111111111';
+const EMPTY_NOTE_CTX = { catalog: { groups: [] }, lang: 'zh' as const };
 
 describe('menu-order-submit', () => {
   it('appendCartLinesFromCart maps trusted cart fields only', () => {
@@ -21,12 +22,13 @@ describe('menu-order-submit', () => {
         menuItemId: 'dish-1',
         name_pt: 'Bacalhau',
         price: 12.5,
+        emoji: '🐟',
         qty: 2,
         note: '  sem cebola ',
-        notePresetKeys: [],
+        notePresetGroupIds: [],
       },
     ];
-    assert.deepEqual(appendCartLinesFromCart(cart), [
+    assert.deepEqual(appendCartLinesFromCart(cart, EMPTY_NOTE_CTX), [
       { menu_item_id: 'dish-1', qty: 2, note: 'sem cebola' },
     ]);
   });
@@ -50,14 +52,16 @@ describe('menu-order-submit', () => {
         menuItemId: 'dish-1',
         name_pt: 'Bacalhau',
         price: 10,
+        emoji: '🐟',
         qty: 1,
         note: '',
-        notePresetKeys: [],
+        notePresetGroupIds: [],
       },
     ];
-    const fingerprint = appendCartFingerprint(cart);
+    const fingerprint = appendCartFingerprint(cart, EMPTY_NOTE_CTX);
     const first = resolveAppendClientRequestId({
       cart,
+      noteContext: EMPTY_NOTE_CTX,
       previous: null,
       createId: () => REQUEST_ID,
     });
@@ -67,6 +71,7 @@ describe('menu-order-submit', () => {
 
     const second = resolveAppendClientRequestId({
       cart,
+      noteContext: EMPTY_NOTE_CTX,
       previous: { clientRequestId: REQUEST_ID, fingerprint },
       createId: () => '22222222-2222-4222-8222-222222222222',
     });
@@ -80,9 +85,10 @@ describe('menu-order-submit', () => {
         menuItemId: 'dish-1',
         name_pt: 'A',
         price: 1,
+        emoji: '🍽️',
         qty: 1,
         note: '',
-        notePresetKeys: [],
+        notePresetGroupIds: [],
       },
     ];
     const cartB: CartItem[] = [
@@ -90,16 +96,18 @@ describe('menu-order-submit', () => {
         menuItemId: 'dish-2',
         name_pt: 'B',
         price: 2,
+        emoji: '🍽️',
         qty: 1,
         note: '',
-        notePresetKeys: [],
+        notePresetGroupIds: [],
       },
     ];
     const next = resolveAppendClientRequestId({
       cart: cartB,
+      noteContext: EMPTY_NOTE_CTX,
       previous: {
         clientRequestId: REQUEST_ID,
-        fingerprint: appendCartFingerprint(cartA),
+        fingerprint: appendCartFingerprint(cartA, EMPTY_NOTE_CTX),
       },
       createId: () => '33333333-3333-4333-8333-333333333333',
     });
@@ -117,6 +125,7 @@ describe('menu-order-submit', () => {
     const result = await executeMenuOrderSubmit({
       flow: 'guest',
       cart: [],
+      noteContext: EMPTY_NOTE_CTX,
       slug: 'cafe',
       tableId: 'table-1',
       waiterFlow: false,
@@ -137,11 +146,13 @@ describe('menu-order-submit', () => {
           menuItemId: 'dish-1',
           name_pt: 'Bacalhau',
           price: 10,
+          emoji: '🐟',
           qty: 1,
           note: '',
-          notePresetKeys: [],
+          notePresetGroupIds: [],
         },
       ],
+      noteContext: EMPTY_NOTE_CTX,
       slug: 'cafe',
       tableId: 'table-1',
       waiterFlow: true,
@@ -214,7 +225,7 @@ describe('menu-order-submit', () => {
           price: 10,
           qty: 1,
           note: '',
-          notePresetKeys: [],
+          notePresetGroupIds: [],
         },
       ],
       slug: 'cafe',

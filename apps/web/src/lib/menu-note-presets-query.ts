@@ -42,17 +42,17 @@ export async function listMenuNotePresetDictionary(
   };
 }
 
-/** Sole allowed-id set for dish note_preset_keys validation. */
-export async function listRestaurantNotePresetIds(
+/** Sole allowed-id set for dish note_preset_group_ids validation. */
+export async function listRestaurantNotePresetGroupIds(
   admin: SupabaseClient,
   restaurantId: string,
 ): Promise<Set<string> | MenuNotePresetQueryError> {
   const { data, error } = await admin
-    .from('menu_note_presets')
+    .from('menu_note_preset_groups')
     .select('id')
     .eq('restaurant_id', restaurantId);
   if (error) {
-    return { error: 'note_presets_query_failed', message: error.message, status: 500 };
+    return { error: 'note_preset_groups_query_failed', message: error.message, status: 500 };
   }
   return new Set((data || []).map((row) => String(row.id)));
 }

@@ -26,7 +26,8 @@ export function upsertCartItemQty(
         emoji: item.emoji,
         qty: nextQty,
         note: '',
-        notePresetKeys: item.note_preset_keys || [],
+        notePresetGroupIds: item.note_preset_group_ids || [],
+        selectedNotePresetIds: [],
       },
     ];
   }

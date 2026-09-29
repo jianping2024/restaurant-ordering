@@ -1,10 +1,14 @@
-import type { AppendCartLineInput, CartItem } from '@/types';
+import type { AppendCartLineInput, CartItem, Language } from '@/types';
 import { coerceCartQty } from '@/lib/cart-totals';
 import type { CustomerGeoOrderFailure, CustomerGeoOrderResult } from '@/lib/customer-geo-order';
 import type { GuestOrderGateResult } from '@/lib/customer-menu-order-gate';
 import type { SessionStatus } from '@/types';
 import { logJsonConsoleEvent } from '@/lib/json-console-log';
 import { mintBrowserUuid } from '@/lib/browser-uuid';
+import {
+  composeCartLineNote,
+  type MenuNotePresetCatalog,
+} from '@/lib/menu-note-presets';
 
 export type MenuOrderSubmitFlow = 'guest' | 'staff_assisted';
 
@@ -46,9 +50,24 @@ type AppendApiResponse = {
   idempotent_replay?: boolean;
 };
 
+export type CartNoteComposeContext = {
+  catalog: MenuNotePresetCatalog;
+  lang: Language;
+};
+
+/** Sole cart→wire note (chips + free text). */
+export function cartItemWireNote(item: CartItem, ctx: CartNoteComposeContext): string {
+  return composeCartLineNote({
+    freeText: item.note || '',
+    selectedNotePresetIds: item.selectedNotePresetIds || [],
+    catalog: ctx.catalog,
+    lang: ctx.lang,
+  });
+}
+
 /** Stable fingerprint so network retries reuse the same client_request_id for one cart. */
-export function appendCartFingerprint(cart: CartItem[]): string {
-  return appendCartLinesFromCart(cart)
+export function appendCartFingerprint(cart: CartItem[], ctx: CartNoteComposeContext): string {
+  return appendCartLinesFromCart(cart, ctx)
     .map((line) => `${line.menu_item_id}:${line.qty}:${line.note ?? ''}`)
     .join('|');
 }
@@ -59,10 +78,11 @@ export function appendCartFingerprint(cart: CartItem[]): string {
  */
 export function resolveAppendClientRequestId(params: {
   cart: CartItem[];
+  noteContext: CartNoteComposeContext;
   previous: { clientRequestId: string; fingerprint: string } | null;
   createId?: () => string;
 }): { clientRequestId: string; fingerprint: string; reused: boolean } {
-  const fingerprint = appendCartFingerprint(params.cart);
+  const fingerprint = appendCartFingerprint(params.cart, params.noteContext);
   if (params.previous && params.previous.fingerprint === fingerprint) {
     return {
       clientRequestId: params.previous.clientRequestId,
@@ -78,12 +98,18 @@ export function resolveAppendClientRequestId(params: {
 }
 
 /** Trusted append lines from local cart state (menu_item_id + qty + note only). */
-export function appendCartLinesFromCart(cart: CartItem[]): AppendCartLineInput[] {
-  return cart.map((c) => ({
-    menu_item_id: c.menuItemId,
-    qty: coerceCartQty(c.qty),
-    ...(c.note?.trim() ? { note: c.note.trim() } : {}),
-  }));
+export function appendCartLinesFromCart(
+  cart: CartItem[],
+  ctx: CartNoteComposeContext,
+): AppendCartLineInput[] {
+  return cart.map((c) => {
+    const note = cartItemWireNote(c, ctx);
+    return {
+      menu_item_id: c.menuItemId,
+      qty: coerceCartQty(c.qty),
+      ...(note ? { note } : {}),
+    };
+  });
 }
 
 export function mapAppendErrorCode(error: string | undefined): AppendOrderFailureCode {
@@ -184,6 +210,7 @@ export async function postMenuOrderAppend(params: {
 export async function executeMenuOrderSubmit(params: {
   flow: MenuOrderSubmitFlow;
   cart: CartItem[];
+  noteContext: CartNoteComposeContext;
   slug: string;
   tableId: string;
   waiterFlow: boolean;
@@ -217,7 +244,7 @@ export async function executeMenuOrderSubmit(params: {
     const append = await postMenuOrderAppend({
       slug: params.slug,
       tableId: params.tableId,
-      items: appendCartLinesFromCart(params.cart),
+      items: appendCartLinesFromCart(params.cart, params.noteContext),
       clientRequestId,
       latitude: geo.latitude,
       longitude: geo.longitude,

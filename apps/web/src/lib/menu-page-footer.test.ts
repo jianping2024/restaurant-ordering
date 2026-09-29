@@ -10,7 +10,7 @@ const cartLine: CartItem = {
   emoji: '💧',
   qty: 2,
   note: '',
-  notePresetKeys: [],
+  notePresetGroupIds: [],
 };
 
 const orderWithItems = (items: Order['items']): Order => ({

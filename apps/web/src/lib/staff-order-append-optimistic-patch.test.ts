@@ -29,7 +29,7 @@ const cartLine: CartItem = {
   emoji: '💧',
   qty: 2,
   note: '',
-  notePresetKeys: [],
+  notePresetGroupIds: [],
 };
 
 describe('buildOptimisticOrderAfterStaffAppend', () => {

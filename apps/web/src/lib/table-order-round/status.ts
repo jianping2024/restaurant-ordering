@@ -12,12 +12,14 @@ export function isActiveRoundStatus(status: string): status is TableOrderRoundSt
   return (ACTIVE_ROUND_STATUSES as readonly string[]).includes(status);
 }
 
+/** Countdown pending_confirm stays open for adds; only failed finalize locks the basket. */
 export function isRoundBasketLocked(status: TableOrderRoundStatus): boolean {
-  return status === 'pending_confirm';
+  return status === 'finalize_failed';
 }
 
+/** Collecting + countdown: guests may still add/change free round lines. */
 export function canMutateRoundLines(status: TableOrderRoundStatus): boolean {
-  return status === 'collecting';
+  return status === 'collecting' || status === 'pending_confirm';
 }
 
 export function isCooldownActive(status: TableOrderRoundStatus, cooldownUntil: string | null, nowMs = Date.now()): boolean {

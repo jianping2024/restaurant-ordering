@@ -151,45 +151,34 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 ---
 
-## 7. 送厨确认（硬规则）
+## 7. 送厨倒计时（硬规则）
 
 ### 7.1 发起
 
-- 任意客人 `POST …/round/submit-request`
-- 前置：`status = collecting`、轮次免费菜 qty > 0、未在 `defer_cooldown_until` 内、session `open`、非 billing
+- 任意客人 `POST …/round/submit-request`（核单里先本机确认弹窗）
+- 前置：`status = collecting`、轮次免费菜 qty > 0、session `open`、非 billing
 - 写入 `pending_confirm`、生成 `submit_request_id`、`submit_deadline_at = now + confirm_timeout`
-- **锁篮**：pending_confirm 期间 **禁止**新增/修改/删除 round lines
+- **不锁篮**：pending_confirm 期间仍可新增/修改/删除 round lines
 
-### 7.2 票数
+### 7.2 票数 / 投票
 
-- Quorum = **`guest_count_snapshot`**（开台人数），**不是**在线设备数
-- 每 `guest_client_id` 最多一票；登记 client 数可 > 人数但 **仅前 N 个有效票**（N = snapshot）— 实现推荐：session 内 active client 登记上限 = 开台人数
+- **已取消**全员确认票与暂缓。到点即送厨。
 
-### 7.3 投票
+### 7.3 同桌提示
 
-| 操作 | API | 效果 |
-|------|-----|------|
-| 确认送厨 | `POST …/round/vote { vote: confirm }` | 记录 confirm |
-| 暂缓送厨 | `POST …/round/vote { vote: defer }` | **二次确认**后生效（§7.5） |
-
-- **不需要**填写原因
-- **顾客 UI 不展示**否决者身份；仅 toast：「有人暂缓了本次送厨」
-- 后台 `operation_logs` 或专用审计表保留 `guest_client_id` + 时间（员工可查，顾客不可见）
+- 其他已开菜单的手机：轻弹窗一次（`submit_request_id` 去重）；核单顶部 + sticky 显示倒计时
+- 他人本轮下单：侧边飘窗（菜名×数量）
 
 ### 7.4 超时与 finalize
 
-- `POST …/round/finalize`（客户端在 deadline 单次 timer；mount/reconcile 时补调）
-- 条件：`status = pending_confirm` 且（**已收齐 confirm 数 = guest_count_snapshot** 或 **now ≥ submit_deadline_at**）
-- 超时未投票 → **视为 confirm**
-- 若存在任一 `defer` → **不 finalize**；回 `collecting`（§5.1）
-- finalize 成功：合并 lines → **一次** `orders/append`（`client_request_id = append_client_request_id`）→ `cooldown`
+- 客户端到点 `POST …/round/finalize`；`GET` round 若已过 deadline 则同一套 finalize 收口
+- 条件：`status = pending_confirm`（或 `finalize_failed`）且 `now ≥ submit_deadline_at`
+- finalize 成功：合并 lines → **一次** `orders/append` → `cooldown`
 
-### 7.5 暂缓（defer）限制
+### 7.5 暂缓（defer）
 
-- 须 **二次确认** modal：`确定暂缓送厨？同桌需重新发起`
-- **每轮仅 1 次** defer（`defer_used_at`）
-- defer 后 **30s**（`sushi_round_defer_cooldown_seconds`）内禁止 `submit-request`
-- defer 后清空本轮 votes，**保留** round lines
+- **已取消**（设置项 UI 不再展示）
+
 
 ---
 
@@ -271,10 +260,10 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 元素 | 行为 |
 |------|------|
 | 顶栏 | `本桌 N 人 · 每轮免费菜最多 M 份`；collecting 显示整桌 `本轮 x/M`（**无**送厨按钮） |
-| pending_confirm | 全员确认 modal + `已确认 a/N · 约 Ts`；**不显示**否决者 |
+| pending_confirm | 倒计时提示（sticky/核单顶）；同桌轻弹窗一次；不锁篮 |
 | 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才 upsert 本 `guest_client_id` 的 round lines |
-| 本轮核单 | 只列出**本机**未送厨免费菜 + **送厨本轮**（唯一送厨入口） |
+| 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
 | 收费菜 | 同一购物车 + 即时 append |
 | Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |
 

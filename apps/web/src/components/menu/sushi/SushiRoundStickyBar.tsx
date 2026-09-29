@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
-import { isCooldownActive, isDeferCooldownActive } from '@/lib/table-order-round/status';
+import { isCooldownActive } from '@/lib/table-order-round/status';
 import type { SUSHI_ROUND_MESSAGES } from '@/lib/i18n/sushi-round-messages';
 import type { Language } from '@/types';
 
@@ -24,8 +24,7 @@ export function SushiRoundStickyBar({
   const round = snapshot.round;
   const needsTick =
     round?.status === 'pending_confirm' ||
-    (round?.status === 'cooldown' && isCooldownActive(round.status, round.cooldown_until)) ||
-    isDeferCooldownActive(round?.defer_cooldown_until ?? null);
+    (round?.status === 'cooldown' && isCooldownActive(round.status, round.cooldown_until));
 
   useEffect(() => {
     if (!needsTick) return;
@@ -36,24 +35,17 @@ export function SushiRoundStickyBar({
   const guests = snapshot.live_guest_count;
   const cap = snapshot.round_cap_total;
   const qty = snapshot.lines_qty_total;
-  const confirmed = snapshot.votes.filter((v) => v.vote === 'confirm').length;
-  const quorum = round?.guest_count_snapshot ?? guests;
 
   let statusLine: string | null = null;
   if (round?.status === 'pending_confirm') {
-    statusLine = labels.stickyPending
-      .replace('{confirmed}', String(confirmed))
-      .replace('{quorum}', String(quorum))
-      .replace('{seconds}', String(secondsUntil(round.submit_deadline_at)));
+    statusLine = labels.stickyPending.replace(
+      '{seconds}',
+      String(secondsUntil(round.submit_deadline_at)),
+    );
   } else if (round?.status === 'cooldown' && isCooldownActive(round.status, round.cooldown_until)) {
     statusLine = labels.stickyCooldown.replace(
       '{seconds}',
       String(secondsUntil(round.cooldown_until)),
-    );
-  } else if (isDeferCooldownActive(round?.defer_cooldown_until ?? null)) {
-    statusLine = labels.stickyDeferCooldown.replace(
-      '{seconds}',
-      String(secondsUntil(round?.defer_cooldown_until)),
     );
   } else if (qty > 0) {
     statusLine = labels.stickyRoundProgress
@@ -69,7 +61,13 @@ export function SushiRoundStickyBar({
           .replace('{cap}', String(cap || guests * (round?.per_person_cap ?? 8)))}
       </p>
       {statusLine ? (
-        <p className="mt-0.5 text-[12px] tabular-nums text-brand-text-muted">{statusLine}</p>
+        <p
+          className={`mt-0.5 text-[12px] tabular-nums ${
+            round?.status === 'pending_confirm' ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
+          }`}
+        >
+          {statusLine}
+        </p>
       ) : null}
     </div>
   );

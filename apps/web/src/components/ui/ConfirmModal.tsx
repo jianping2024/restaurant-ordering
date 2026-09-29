@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 import { ModalConfirmActions } from '@/components/ui/ModalConfirmActions';
 
 export interface ConfirmModalProps {
@@ -10,7 +11,8 @@ export interface ConfirmModalProps {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel: string;
+  /** When omitted, only the confirm action is shown (e.g. peer notify). */
+  cancelLabel?: string;
   onConfirm: () => void | Promise<void>;
   /** Use danger styling for destructive actions (e.g. delete). */
   variant?: 'default' | 'danger';
@@ -57,14 +59,29 @@ export function ConfirmModal({
     >
       <div className="space-y-4">
         <p className="text-sm text-brand-text leading-relaxed whitespace-pre-wrap">{message}</p>
-        <ModalConfirmActions
-          cancelLabel={cancelLabel}
-          confirmLabel={confirmLabel}
-          onCancel={onClose}
-          onConfirm={handleConfirm}
-          busy={confirming}
-          confirmVariant={variant === 'danger' ? 'danger' : 'gold'}
-        />
+        {cancelLabel ? (
+          <ModalConfirmActions
+            cancelLabel={cancelLabel}
+            confirmLabel={confirmLabel}
+            onCancel={onClose}
+            onConfirm={handleConfirm}
+            busy={confirming}
+            confirmVariant={variant === 'danger' ? 'danger' : 'gold'}
+          />
+        ) : (
+          <div className="pt-1">
+            <Button
+              type="button"
+              variant="gold"
+              size="action"
+              className="min-h-11 w-full"
+              loading={confirming}
+              onClick={handleConfirm}
+            >
+              {confirmLabel}
+            </Button>
+          </div>
+        )}
       </div>
     </Modal>
   );

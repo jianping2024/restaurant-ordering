@@ -168,36 +168,6 @@ export async function submitRoundRequestClient(params: {
   return { ok: true, snapshot };
 }
 
-export async function voteRoundClient(params: {
-  slug: string;
-  tableId: string;
-  guestClientId: string;
-  vote: 'confirm' | 'defer';
-  settings: SushiRoundSettings;
-}): Promise<{ ok: true; snapshot: RoundApiSnapshot } | { ok: false; error: string; status: number }> {
-  const res = await fetch(`/api/restaurants/${params.slug}/table-order-round/vote`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      table_id: params.tableId,
-      guest_client_id: params.guestClientId,
-      vote: params.vote,
-    }),
-  });
-  const json = await readJson(res);
-  if (!res.ok) {
-    return {
-      ok: false,
-      error: typeof json.error === 'string' ? json.error : 'vote_failed',
-      status: res.status,
-    };
-  }
-  const snapshot = parseSnapshot(json, params.settings);
-  if (!snapshot) return { ok: false, error: 'invalid_snapshot', status: 500 };
-  return { ok: true, snapshot };
-}
-
 export async function finalizeRoundClient(params: {
   slug: string;
   tableId: string;

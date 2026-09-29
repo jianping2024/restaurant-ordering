@@ -8,10 +8,14 @@ type Props = {
 };
 
 function BatchTimeDivider({ label }: { label: string }) {
+  if (!label) {
+    return <div className="mb-2 border-t border-dashed border-brand-border" aria-hidden="true" />;
+  }
   return (
-    <div className="flex items-center gap-3 mb-2">
+    <div className="mb-2 flex items-center gap-3">
       <div className="flex-1 border-t border-dashed border-brand-border" aria-hidden="true" />
-      <time className="text-[12px] text-brand-text-muted shrink-0 tabular-nums">{label}</time>
+      <span className="shrink-0 text-[12px] tabular-nums text-brand-text-muted">{label}</span>
+      <div className="flex-1 border-t border-dashed border-brand-border" aria-hidden="true" />
     </div>
   );
 }
@@ -41,9 +45,11 @@ export function CustomerOrderedItemsList({
         <p className="text-brand-text-muted text-[12px] mb-3">{submittedHint}</p>
       ) : null}
       <div className="space-y-4">
-        {groups.map((group) => (
+        {groups.map((group, index) => (
           <section key={group.groupKey}>
-            {group.submittedTimeLabel ? <BatchTimeDivider label={group.submittedTimeLabel} /> : null}
+            {index > 0 || group.submittedTimeLabel ? (
+              <BatchTimeDivider label={group.submittedTimeLabel} />
+            ) : null}
             <div className="space-y-1">
               {group.lines.map((line) => (
                 <div

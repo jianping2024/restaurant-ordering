@@ -891,8 +891,9 @@ export const MESSAGES = {
       sushiPerPersonPerRoundCap: '每人每轮份数上限',
       sushiPerPersonPerRoundCapDesc: '本轮免费菜总份数上限 = 该值 × 开台人数（1–20，默认 8）。',
       sushiPerPersonPerRoundCapUnit: '份/人',
-      sushiRoundConfirmTimeoutSeconds: '送厨确认超时',
-      sushiRoundConfirmTimeoutSecondsDesc: '发起送厨后等待同桌确认的秒数；超时未投票视为同意（15–45，默认 25）。',
+      sushiRoundConfirmTimeoutSeconds: '送厨倒计时',
+      sushiRoundConfirmTimeoutSecondsDesc:
+        '发起送厨后，整桌等待的秒数；到点自动送厨（15–45，默认 25）。',
       sushiRoundConfirmTimeoutSecondsUnit: '秒',
       sushiRoundCooldownSeconds: '桌级送厨冷却',
       sushiRoundCooldownSecondsDesc: '送厨成功后整桌等待秒数，期间不可再开新轮（30–600，默认 120）。',
@@ -2382,9 +2383,9 @@ export const MESSAGES = {
       sushiPerPersonPerRoundCapDesc:
         'Max free dishes this round = this value × open-table guest count (1–20, default 8).',
       sushiPerPersonPerRoundCapUnit: 'per person',
-      sushiRoundConfirmTimeoutSeconds: 'Confirm timeout',
+      sushiRoundConfirmTimeoutSeconds: 'Kitchen send countdown',
       sushiRoundConfirmTimeoutSecondsDesc:
-        'Seconds to wait for table confirms after requesting kitchen; unvoted guests count as confirm (15–45, default 25).',
+        'Seconds to wait after requesting kitchen send; auto-sends when the timer ends (15–45, default 25).',
       sushiRoundConfirmTimeoutSecondsUnit: 'seconds',
       sushiRoundCooldownSeconds: 'Table kitchen cooldown',
       sushiRoundCooldownSecondsDesc:
@@ -3637,9 +3638,9 @@ export const MESSAGES = {
       sushiPerPersonPerRoundCapDesc:
         'Maximo de pratos gratis nesta rodada = este valor × numero de convidados (1–20, padrao 8).',
       sushiPerPersonPerRoundCapUnit: 'por pessoa',
-      sushiRoundConfirmTimeoutSeconds: 'Tempo limite de confirmacao',
+      sushiRoundConfirmTimeoutSeconds: 'Contagem para a cozinha',
       sushiRoundConfirmTimeoutSecondsDesc:
-        'Segundos a esperar confirmacoes apos pedir cozinha; quem nao vota conta como confirmar (15–45, padrao 25).',
+        'Segundos apos pedir envio a cozinha; envia automaticamente no fim (15–45, padrao 25).',
       sushiRoundConfirmTimeoutSecondsUnit: 'segundos',
       sushiRoundCooldownSeconds: 'Refracao da mesa apos cozinha',
       sushiRoundCooldownSecondsDesc:

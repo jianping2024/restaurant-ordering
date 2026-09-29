@@ -83,5 +83,6 @@ export type TableOrderRoundErrorCode =
   | 'menu_item_not_free'
   | 'menu_item_unavailable'
   | 'finalize_not_ready'
+  | 'vote_disabled'
   | 'append_failed'
   | 'round_not_pending_confirm';

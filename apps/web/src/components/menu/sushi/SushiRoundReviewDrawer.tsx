@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import { CustomerOrderedItemsList } from '@/components/menu/CustomerOrderedItemsList';
@@ -10,7 +11,7 @@ type Labels = {
   empty: string;
   continueOrdering: string;
   sendRound: string;
-  lockedHint: string;
+  countdownBanner: string;
 };
 
 type Props = {
@@ -19,7 +20,9 @@ type Props = {
   labels: Labels;
   canSend: boolean;
   sendBusy: boolean;
-  locked: boolean;
+  /** Countdown active — show banner; send button disabled. */
+  countdownActive: boolean;
+  countdownSeconds: number;
   onClose: () => void;
   onSend: () => void;
 };
@@ -30,10 +33,22 @@ export function SushiRoundReviewDrawer({
   labels,
   canSend,
   sendBusy,
-  locked,
+  countdownActive,
+  countdownSeconds,
   onClose,
   onSend,
 }: Props) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!open || !countdownActive) return;
+    const id = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [open, countdownActive]);
+
+  const banner = countdownActive
+    ? labels.countdownBanner.replace('{seconds}', String(Math.max(0, countdownSeconds)))
+    : null;
+
   return (
     <CustomerMenuBottomSheet
       open={open}
@@ -55,7 +70,7 @@ export function SushiRoundReviewDrawer({
             variant="gold"
             size="action"
             className="min-w-0 flex-1 whitespace-nowrap"
-            disabled={!canSend || sendBusy || locked}
+            disabled={!canSend || sendBusy || countdownActive}
             loading={sendBusy}
             onClick={onSend}
           >
@@ -64,11 +79,12 @@ export function SushiRoundReviewDrawer({
         </div>
       }
     >
-      <CustomerOrderedItemsList
-        groups={groups}
-        emptyLabel={labels.empty}
-        submittedHint={locked ? labels.lockedHint : undefined}
-      />
+      {banner ? (
+        <div className="mb-3 rounded-xl border border-brand-gold/40 bg-brand-gold/10 px-3 py-2.5 text-[13px] font-semibold tabular-nums text-brand-gold">
+          {banner}
+        </div>
+      ) : null}
+      <CustomerOrderedItemsList groups={groups} emptyLabel={labels.empty} />
     </CustomerMenuBottomSheet>
   );
 }

@@ -20,7 +20,6 @@ import {
   canMutateRoundLines,
   isCooldownActive,
   isCooldownExpired,
-  isDeferCooldownActive,
   isRoundBasketLocked,
   isSubmitDeadlinePassed,
   roundCapTotal,
@@ -123,13 +122,51 @@ export async function getRoundSnapshot(params: {
   sessionId: string;
   sessionOrders: Array<{ items?: OrderItem[] | null; status: string }>;
   settings?: SushiRoundSettings;
+  /** Internal: finalizeRound already settled — do not re-enter expiry settle. */
+  skipExpirySettle?: boolean;
 }): Promise<RoundSnapshot> {
   const settings =
     params.settings ?? (await loadRestaurantSushiRoundSettings(params.admin, params.restaurantId));
   const liveGuestCount = sessionGuestCountForLimits(
     params.sessionOrders as Parameters<typeof sessionGuestCountForLimits>[0],
   );
-  const round = await loadActiveRound(params.admin, params.sessionId);
+  let round = await loadActiveRound(params.admin, params.sessionId);
+
+  if (
+    !params.skipExpirySettle &&
+    round &&
+    (round.status === 'pending_confirm' || round.status === 'finalize_failed') &&
+    isSubmitDeadlinePassed(round.submit_deadline_at)
+  ) {
+    const linesForGate = await loadRoundLines(params.admin, round.id);
+    if (sumLineQty(linesForGate) < 1) {
+      const nowIso = new Date().toISOString();
+      await params.admin
+        .from('table_order_rounds')
+        .update({
+          status: 'collecting',
+          submit_request_id: null,
+          submit_requested_at: null,
+          submit_deadline_at: null,
+          append_client_request_id: null,
+          updated_at: nowIso,
+        })
+        .eq('id', round.id)
+        .in('status', ['pending_confirm', 'finalize_failed']);
+    } else {
+      await finalizeRound({
+        admin: params.admin,
+        restaurantId: params.restaurantId,
+        sessionId: params.sessionId,
+        tableId: round.table_id,
+        settings,
+        sessionOrders: params.sessionOrders,
+        buffetServiceMode: 'sushi',
+      });
+    }
+    round = await loadActiveRound(params.admin, params.sessionId);
+  }
+
   if (!round) {
     return {
       round: null,
@@ -294,9 +331,6 @@ export async function upsertRoundLine(params: {
   if (round && isRoundBasketLocked(round.status)) {
     return { ok: false, status: 409, error: 'round_basket_locked' };
   }
-  if (round && round.status === 'finalize_failed') {
-    return { ok: false, status: 409, error: 'round_basket_locked' };
-  }
   if (round && !canMutateRoundLines(round.status)) {
     return { ok: false, status: 409, error: 'round_not_collecting' };
   }
@@ -405,7 +439,7 @@ export async function deleteOwnRoundLine(params: {
   if (!round) {
     return { ok: false, status: 404, error: 'round_not_found' };
   }
-  if (isRoundBasketLocked(round.status) || round.status === 'finalize_failed') {
+  if (isRoundBasketLocked(round.status)) {
     return { ok: false, status: 409, error: 'round_basket_locked' };
   }
   if (!canMutateRoundLines(round.status)) {
@@ -475,11 +509,8 @@ export async function submitRequest(params: {
   if (isCooldownActive(round.status, round.cooldown_until)) {
     return { ok: false, status: 409, error: 'round_cooldown_active' };
   }
-  if (!canMutateRoundLines(round.status)) {
+  if (round.status !== 'collecting') {
     return { ok: false, status: 409, error: 'round_not_collecting' };
-  }
-  if (isDeferCooldownActive(round.defer_cooldown_until)) {
-    return { ok: false, status: 409, error: 'round_defer_cooldown' };
   }
 
   const lines = await loadRoundLines(admin, round.id);
@@ -517,35 +548,6 @@ export async function submitRequest(params: {
     return { ok: false, status: 409, error: 'round_confirm_pending' };
   }
 
-  // Submitter is already requesting kitchen — count as confirm.
-  await admin.from('table_order_round_votes').upsert(
-    {
-      round_id: (updated as TableOrderRoundRow).id,
-      submit_request_id: submitRequestId,
-      guest_client_id: guestClientId,
-      vote: 'confirm',
-      voted_at: nowIso,
-    },
-    { onConflict: 'round_id,submit_request_id,guest_client_id' },
-  );
-
-  const quorum = Math.max(0, liveGuestCount);
-  if (quorum <= 1) {
-    const finalized = await finalizeRound({
-      admin,
-      restaurantId,
-      sessionId,
-      tableId: (updated as TableOrderRoundRow).table_id,
-      settings,
-      sessionOrders,
-      force: true,
-      buffetServiceMode: 'sushi',
-    });
-    if (finalized.ok) {
-      return { ok: true, data: { snapshot: finalized.data.snapshot } };
-    }
-  }
-
   const snapshot = await getRoundSnapshot({
     admin,
     restaurantId,
@@ -556,7 +558,8 @@ export async function submitRequest(params: {
   return { ok: true, data: { snapshot } };
 }
 
-export async function castVote(params: {
+/** Vote/defer path removed — countdown send only. Kept so old clients get a clear error. */
+export async function castVote(_: {
   admin: SupabaseClient;
   restaurantId: string;
   sessionId: string;
@@ -576,147 +579,8 @@ export async function castVote(params: {
     order_id?: string;
   }>
 > {
-  const {
-    admin,
-    restaurantId,
-    sessionId,
-    guestClientId,
-    vote,
-    settings,
-    liveGuestCount,
-    sessionOrders,
-  } = params;
-
-  const reg = await registerGuestClient(admin, {
-    sessionId,
-    restaurantId,
-    guestClientId,
-    guestCount: liveGuestCount,
-  });
-  if (!reg.ok) return reg;
-
-  const round = await loadActiveRound(admin, sessionId);
-  if (!round) {
-    return { ok: false, status: 404, error: 'round_not_found' };
-  }
-  if (round.status !== 'pending_confirm') {
-    return { ok: false, status: 409, error: 'round_not_pending_confirm' };
-  }
-  if (!round.submit_request_id) {
-    return { ok: false, status: 500, error: 'submit_request_missing' };
-  }
-
-  if (vote === 'defer') {
-    if (round.defer_used_at) {
-      return { ok: false, status: 409, error: 'round_defer_already_used' };
-    }
-    const now = Date.now();
-    const nowIso = new Date(now).toISOString();
-    const deferUntil = new Date(
-      now + settings.sushi_round_defer_cooldown_seconds * 1000,
-    ).toISOString();
-
-    const { data: deferred, error: deferErr } = await admin
-      .from('table_order_rounds')
-      .update({
-        status: 'collecting',
-        defer_used_at: nowIso,
-        defer_cooldown_until: deferUntil,
-        submit_request_id: null,
-        submit_requested_at: null,
-        submit_deadline_at: null,
-        append_client_request_id: null,
-        updated_at: nowIso,
-      })
-      .eq('id', round.id)
-      .eq('status', 'pending_confirm')
-      .select(ROUND_SELECT)
-      .maybeSingle();
-
-    if (deferErr) {
-      return { ok: false, status: 500, error: 'defer_failed' };
-    }
-    if (!deferred) {
-      return { ok: false, status: 409, error: 'round_not_pending_confirm' };
-    }
-
-    await admin
-      .from('table_order_round_votes')
-      .delete()
-      .eq('round_id', round.id)
-      .eq('submit_request_id', round.submit_request_id);
-
-    const snapshot = await getRoundSnapshot({
-      admin,
-      restaurantId,
-      sessionId,
-      sessionOrders,
-      settings,
-    });
-    return { ok: true, data: { snapshot, finalized: false, deferred: true } };
-  }
-
-  // confirm
-  const nowIso = new Date().toISOString();
-  const { error: upsertErr } = await admin.from('table_order_round_votes').upsert(
-    {
-      round_id: round.id,
-      submit_request_id: round.submit_request_id,
-      guest_client_id: guestClientId,
-      vote: 'confirm',
-      voted_at: nowIso,
-    },
-    { onConflict: 'round_id,submit_request_id,guest_client_id' },
-  );
-  if (upsertErr) {
-    return { ok: false, status: 500, error: 'vote_failed' };
-  }
-
-  const votes = await loadRoundVotes(admin, round.id, round.submit_request_id);
-  const confirmCount = votes.filter((v) => v.vote === 'confirm').length;
-  const quorum = Math.max(0, round.guest_count_snapshot);
-
-  if (quorum > 0 && confirmCount >= quorum) {
-    const finalized = await finalizeRound({
-      admin,
-      restaurantId,
-      sessionId,
-      tableId: round.table_id,
-      settings,
-      sessionOrders,
-      force: true,
-      buffetServiceMode: params.buffetServiceMode,
-      displayName: params.displayName,
-    });
-    if (!finalized.ok) {
-      const snapshot = await getRoundSnapshot({
-        admin,
-        restaurantId,
-        sessionId,
-        sessionOrders,
-        settings,
-      });
-      return { ok: true, data: { snapshot, finalized: false } };
-    }
-    return {
-      ok: true,
-      data: {
-        snapshot: finalized.data.snapshot,
-        finalized: true,
-        enqueue_token: finalized.data.enqueue_token,
-        order_id: finalized.data.order_id,
-      },
-    };
-  }
-
-  const snapshot = await getRoundSnapshot({
-    admin,
-    restaurantId,
-    sessionId,
-    sessionOrders,
-    settings,
-  });
-  return { ok: true, data: { snapshot, finalized: false } };
+  void _;
+  return { ok: false, status: 410, error: 'vote_disabled' };
 }
 
 export async function finalizeRound(params: {
@@ -726,7 +590,7 @@ export async function finalizeRound(params: {
   tableId: string;
   settings: SushiRoundSettings;
   sessionOrders: Array<{ items?: OrderItem[] | null; status: string }>;
-  /** When true, skip quorum/deadline gate (internal after full confirm). */
+  /** When true, skip deadline gate (internal only — prefer deadline path). */
   force?: boolean;
   buffetServiceMode?: BuffetServiceMode | string | null;
   displayName?: string;
@@ -758,6 +622,7 @@ export async function finalizeRound(params: {
       sessionId,
       sessionOrders: params.sessionOrders,
       settings,
+      skipExpirySettle: true,
     });
     return { ok: true, data: { snapshot, idempotent_replay: true } };
   }
@@ -767,15 +632,7 @@ export async function finalizeRound(params: {
   }
 
   if (!force && round.status === 'pending_confirm') {
-    const votes = await loadRoundVotes(admin, round.id, round.submit_request_id);
-    if (votes.some((v) => v.vote === 'defer')) {
-      return { ok: false, status: 409, error: 'round_not_pending_confirm' };
-    }
-    const confirmCount = votes.filter((v) => v.vote === 'confirm').length;
-    const quorum = Math.max(0, round.guest_count_snapshot);
-    const ready =
-      (quorum > 0 && confirmCount >= quorum) || isSubmitDeadlinePassed(round.submit_deadline_at);
-    if (!ready) {
+    if (!isSubmitDeadlinePassed(round.submit_deadline_at)) {
       return { ok: false, status: 409, error: 'finalize_not_ready' };
     }
   }
@@ -850,6 +707,7 @@ export async function finalizeRound(params: {
       sessionId,
       sessionOrders: params.sessionOrders,
       settings,
+      skipExpirySettle: true,
     });
     return {
       ok: true,
@@ -974,6 +832,7 @@ export async function finalizeRound(params: {
     sessionId,
     sessionOrders: writeContext.context.sessionOrders,
     settings,
+    skipExpirySettle: true,
   });
 
   return {

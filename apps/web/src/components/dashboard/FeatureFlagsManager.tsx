@@ -30,8 +30,6 @@ import {
   SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_MIN,
   SUSHI_ROUND_COOLDOWN_SECONDS_MAX,
   SUSHI_ROUND_COOLDOWN_SECONDS_MIN,
-  SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX,
-  SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN,
 } from '@/lib/table-order-round/settings';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
@@ -73,8 +71,9 @@ export function FeatureFlagsManager({
   initialSushiPerPersonPerRoundCap,
   initialSushiRoundConfirmTimeoutSeconds,
   initialSushiRoundCooldownSeconds,
-  initialSushiRoundDeferCooldownSeconds,
+  initialSushiRoundDeferCooldownSeconds: _unusedDeferCooldown,
 }: Props) {
+  void _unusedDeferCooldown;
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
@@ -104,9 +103,6 @@ export function FeatureFlagsManager({
   const [sushiRoundCooldownSeconds, setSushiRoundCooldownSeconds] = useState(
     initialSushiRoundCooldownSeconds,
   );
-  const [sushiRoundDeferCooldownSeconds, setSushiRoundDeferCooldownSeconds] = useState(
-    initialSushiRoundDeferCooldownSeconds,
-  );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -133,7 +129,6 @@ export function FeatureFlagsManager({
           sushiPerPersonPerRoundCap,
           sushiRoundConfirmTimeoutSeconds,
           sushiRoundCooldownSeconds,
-          sushiRoundDeferCooldownSeconds,
         }),
       });
 
@@ -194,9 +189,6 @@ export function FeatureFlagsManager({
       }
       if (json.sushiRoundCooldownSeconds != null) {
         setSushiRoundCooldownSeconds(json.sushiRoundCooldownSeconds);
-      }
-      if (json.sushiRoundDeferCooldownSeconds != null) {
-        setSushiRoundDeferCooldownSeconds(json.sushiRoundDeferCooldownSeconds);
       }
 
       router.refresh();
@@ -465,27 +457,6 @@ export function FeatureFlagsManager({
                 />
                 <span className="text-[13px] text-brand-text-muted">
                   {t.sushiRoundCooldownSecondsUnit}
-                </span>
-              </div>
-            </label>
-            <label className="block px-4 py-4">
-              <span className="block text-[15px] font-medium text-brand-text">
-                {t.sushiRoundDeferCooldownSeconds}
-              </span>
-              <span className="block text-[13px] text-brand-text-muted mt-0.5 mb-3">
-                {t.sushiRoundDeferCooldownSecondsDesc}
-              </span>
-              <div className="flex items-center gap-2">
-                <IntegerInput
-                  value={sushiRoundDeferCooldownSeconds}
-                  min={SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN}
-                  max={SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX}
-                  onChange={setSushiRoundDeferCooldownSeconds}
-                  className={FEATURES_INTEGER_INPUT}
-                  aria-label={t.sushiRoundDeferCooldownSeconds}
-                />
-                <span className="text-[13px] text-brand-text-muted">
-                  {t.sushiRoundDeferCooldownSecondsUnit}
                 </span>
               </div>
             </label>

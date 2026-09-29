@@ -79,12 +79,13 @@ import {
 import type { MenuOrderingRestaurant } from '@/components/menu/MenuOrderingController';
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
-import { isCooldownActive, isDeferCooldownActive } from '@/lib/table-order-round/status';
+import { isCooldownActive } from '@/lib/table-order-round/status';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
 import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
+import { SushiRoundPeerFloats } from '@/components/menu/sushi/SushiRoundPeerFloats';
 import { CustomerMenuItemDetailSheet } from '@/components/menu/CustomerMenuItemDetailSheet';
 import { useTableOrderRound } from '@/lib/table-order-round/use-table-order-round';
-import { buildOwnRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
+import { buildTableRoundReviewGroups } from '@/lib/table-order-round/own-review-lines';
 import { customerSessionOrdersRealtimeEnabled } from '@/lib/customer-session-orders-realtime-enabled';
 import { CustomerSessionOrdersRealtimeLazy } from '@/components/menu/CustomerSessionOrdersRealtimeLazy';
 
@@ -232,7 +233,8 @@ export function SushiMenuPage({
   );
 
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
-  const basketLocked = round.snapshot.round?.status === 'pending_confirm';
+  const [initiatorConfirmOpen, setInitiatorConfirmOpen] = useState(false);
+  const countdownActive = round.snapshot.round?.status === 'pending_confirm';
 
   const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
     const prev = cartRef.current;
@@ -320,9 +322,9 @@ export function SushiMenuPage({
         staffAssisted: null,
         restaurantSlug: restaurant.slug,
         tableId,
-        roundOwnQty: round.ownReviewQty,
+        roundOwnQty: round.tableReviewQty,
       }),
-    [activeSession, cart, recentOrders, restaurant.slug, round.ownReviewQty, sessionResolved, tableId],
+    [activeSession, cart, recentOrders, restaurant.slug, round.tableReviewQty, sessionResolved, tableId],
   );
 
   const roundStatus = round.snapshot.round?.status;
@@ -330,10 +332,10 @@ export function SushiMenuPage({
     roundStatus === 'cooldown' &&
     isCooldownActive(roundStatus, round.snapshot.round?.cooldown_until ?? null);
   const canSendRound =
-    round.ownReviewQty > 0 &&
+    round.tableReviewQty > 0 &&
     (roundStatus === 'collecting' || roundStatus == null) &&
     !inTableCooldown &&
-    !isDeferCooldownActive(round.snapshot.round?.defer_cooldown_until ?? null);
+    !countdownActive;
   const pageBottomPaddingClass = customerMenuPageBottomPaddingClass(footer.visible);
   const guestNotice = useMemo(
     () => resolveGuestOrderingNoticeForDisplay(restaurant.guest_ordering_notice, lang),
@@ -342,16 +344,32 @@ export function SushiMenuPage({
   const hideGuestNoticeChrome =
     isDemo || cartOpen || orderedOpen || roundReviewOpen || introVisible || !!detailMenuItemId;
 
+  const [countdownTick, setCountdownTick] = useState(0);
+  useEffect(() => {
+    if (!countdownActive && !round.peerNotifyOpen) return;
+    const id = setInterval(() => setCountdownTick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [countdownActive, round.peerNotifyOpen]);
+
   const roundReviewGroups = useMemo(
     () =>
-      buildOwnRoundReviewGroups({
+      buildTableRoundReviewGroups({
         lines: round.snapshot.lines,
         guestClientId: round.guestClientId,
         menuItems,
         lang,
+        ownBlockLabel: roundT.reviewOwnBlock,
       }),
-    [lang, menuItems, round.guestClientId, round.snapshot.lines],
+    [lang, menuItems, round.guestClientId, round.snapshot.lines, roundT.reviewOwnBlock],
   );
+
+  const countdownSeconds = useMemo(() => {
+    void countdownTick;
+    const deadline = round.snapshot.round?.submit_deadline_at;
+    if (!deadline) return 0;
+    return Math.max(0, Math.ceil((new Date(deadline).getTime() - Date.now()) / 1000));
+  }, [countdownTick, round.snapshot.round?.submit_deadline_at]);
+
 
   const formatCountLabel = useCallback(
     (template: string, count: number) => template.replace('{count}', String(count)),
@@ -441,7 +459,7 @@ export function SushiMenuPage({
     setSubmitting(true);
     try {
       if (freeCart.length > 0) {
-        const result = await round.commitCartLines(
+        const result = await round.commitCartToRound(
           freeCart.map((c) => ({
             menuItemId: c.menuItemId,
             qty: coerceCartQty(c.qty),
@@ -575,7 +593,12 @@ export function SushiMenuPage({
     [activeSession?.id, lang, refreshSessionContext, restaurant.slug, roundT.sentToast],
   );
 
-  const handleSendRound = async () => {
+  const handleSendRound = () => {
+    if (roundBusy || !canSendRound) return;
+    setInitiatorConfirmOpen(true);
+  };
+
+  const handleConfirmSendRound = async () => {
     if (roundBusy || !canSendRound) return;
     setRoundBusy(true);
     try {
@@ -599,37 +622,8 @@ export function SushiMenuPage({
         showToast(messageForSushiRoundError(result.error, roundT), 'info');
         return;
       }
+      setInitiatorConfirmOpen(false);
       setRoundReviewOpen(false);
-    } finally {
-      setRoundBusy(false);
-    }
-  };
-
-  const handleConfirmVote = async () => {
-    setRoundBusy(true);
-    try {
-      const result = await round.vote('confirm');
-      if (!result.ok) {
-        showToast(messageForSushiRoundError(result.error, roundT), 'info');
-        return;
-      }
-      round.setConfirmModalOpen(false);
-    } finally {
-      setRoundBusy(false);
-    }
-  };
-
-  const handleDeferVote = async () => {
-    setRoundBusy(true);
-    try {
-      const result = await round.vote('defer');
-      if (!result.ok) {
-        showToast(messageForSushiRoundError(result.error, roundT), 'info');
-        return;
-      }
-      showToast(roundT.deferredToast, 'info');
-      round.setDeferModalOpen(false);
-      round.setConfirmModalOpen(false);
     } finally {
       setRoundBusy(false);
     }
@@ -808,13 +802,14 @@ export function SushiMenuPage({
           empty: roundT.reviewEmpty,
           continueOrdering: t.continueOrdering,
           sendRound: roundT.sendRound,
-          lockedHint: roundT.basketLocked,
+          countdownBanner: roundT.reviewCountdownBanner,
         }}
         canSend={canSendRound}
         sendBusy={roundBusy}
-        locked={basketLocked}
+        countdownActive={countdownActive}
+        countdownSeconds={countdownSeconds}
         onClose={() => setRoundReviewOpen(false)}
-        onSend={() => void handleSendRound()}
+        onSend={() => handleSendRound()}
       />
 
       <OrderedDrawer
@@ -837,28 +832,36 @@ export function SushiMenuPage({
       />
 
       <ConfirmModal
-        open={round.confirmModalOpen && !round.deferModalOpen}
-        onClose={() => {
-          round.setConfirmModalOpen(false);
-          round.setDeferModalOpen(true);
-        }}
+        open={initiatorConfirmOpen}
+        onClose={() => setInitiatorConfirmOpen(false)}
         title={roundT.confirmTitle}
-        message={roundT.confirmMessage}
+        message={roundT.confirmMessage.replace(
+          '{n}',
+          String(round.settings.sushi_round_cooldown_seconds),
+        )}
         confirmLabel={roundT.confirmAction}
-        cancelLabel={roundT.deferAction}
-        onConfirm={() => void handleConfirmVote()}
+        cancelLabel={roundT.confirmCancel}
+        onConfirm={() => void handleConfirmSendRound()}
         confirming={roundBusy}
       />
 
       <ConfirmModal
-        open={round.deferModalOpen}
-        onClose={() => round.setDeferModalOpen(false)}
-        title={roundT.deferConfirmTitle}
-        message={roundT.deferConfirmMessage}
-        confirmLabel={roundT.deferConfirmYes}
-        cancelLabel={roundT.deferConfirmNo}
-        onConfirm={() => void handleDeferVote()}
-        confirming={roundBusy}
+        open={round.peerNotifyOpen}
+        onClose={() => round.setPeerNotifyOpen(false)}
+        title={roundT.peerNotifyTitle}
+        message={roundT.peerNotifyMessage.replace('{n}', String(countdownSeconds))}
+        confirmLabel={roundT.peerNotifyAction}
+        cancelLabel={undefined}
+        onConfirm={() => round.setPeerNotifyOpen(false)}
+        confirming={false}
+      />
+
+      <SushiRoundPeerFloats
+        lines={round.snapshot.lines}
+        guestClientId={round.guestClientId}
+        menuItems={menuItems}
+        lang={lang}
+        enabled={!isDemo && Boolean(round.guestClientId)}
       />
 
       <CustomerOrderingIntroModal

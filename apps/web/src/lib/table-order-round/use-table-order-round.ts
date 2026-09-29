@@ -14,7 +14,6 @@ import {
   submitRoundRequestClient,
   type RoundApiSnapshot,
   upsertRoundLineClient,
-  voteRoundClient,
 } from '@/lib/table-order-round/client-api';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
 import { mergeAppendCartNotes } from '@/types';
@@ -39,7 +38,7 @@ export type RoundCartCommitItem = {
   note: string;
 };
 
-/** Sole customer hook: Realtime → GET; cart 下单 upserts own lines; vote / finalize. */
+/** Sole customer hook: Realtime → GET; cart 下单 upserts own lines; countdown finalize. */
 export function useTableOrderRound(params: {
   slug: string;
   restaurantId: string;
@@ -54,9 +53,9 @@ export function useTableOrderRound(params: {
   const [settings, setSettings] = useState(initialSettings);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const seenSubmitRequestIdsRef = useRef<Set<string>>(new Set());
-  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [deferModalOpen, setDeferModalOpen] = useState(false);
+  const seenPeerSubmitIdsRef = useRef<Set<string>>(new Set());
+  const selfStartedSubmitIdsRef = useRef<Set<string>>(new Set());
+  const [peerNotifyOpen, setPeerNotifyOpen] = useState(false);
   const [lastKitchenSend, setLastKitchenSend] = useState<{
     order_id: string;
     batch_id?: string;
@@ -94,13 +93,15 @@ export function useTableOrderRound(params: {
     });
     const submitId = next.round?.submit_request_id;
     if (next.round?.status === 'pending_confirm' && submitId) {
-      if (!seenSubmitRequestIdsRef.current.has(submitId)) {
-        seenSubmitRequestIdsRef.current.add(submitId);
-        setConfirmModalOpen(true);
+      if (
+        !selfStartedSubmitIdsRef.current.has(submitId) &&
+        !seenPeerSubmitIdsRef.current.has(submitId)
+      ) {
+        seenPeerSubmitIdsRef.current.add(submitId);
+        setPeerNotifyOpen(true);
       }
     } else if (next.round?.status !== 'pending_confirm') {
-      setConfirmModalOpen(false);
-      setDeferModalOpen(false);
+      setPeerNotifyOpen(false);
     }
     if (next.finalized && next.order_id && next.enqueue_token) {
       setLastKitchenSend({
@@ -157,45 +158,37 @@ export function useTableOrderRound(params: {
 
   const prevRoundIdRef = useRef<string | null>(null);
   useEffect(() => {
-    const prev = prevRoundIdRef.current;
+    if (!realtimeEnabled) return;
+    if (prevRoundIdRef.current === roundId) return;
     prevRoundIdRef.current = roundId;
-    if (!realtimeEnabled || !roundId || prev === roundId) return;
-    if (prev != null) return;
     void refresh();
   }, [realtimeEnabled, refresh, roundId]);
 
-  const commitCartLines = useCallback(
+  const commitCartToRound = useCallback(
     async (items: RoundCartCommitItem[]) => {
       if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
-      let lines = snapshot.lines;
+      let last: RoundApiSnapshot | null = null;
       for (const item of items) {
-        const addQty = Math.max(0, Math.floor(item.qty));
-        if (addQty < 1) continue;
-        const nextQty = ownLineQty(lines, item.menuItemId, guestClientId) + addQty;
-        const note = mergeAppendCartNotes(
-          ownLineNote(lines, item.menuItemId, guestClientId),
-          item.note,
-        );
         const result = await upsertRoundLineClient({
           slug,
           tableId,
           guestClientId,
           menuItemId: item.menuItemId,
-          qty: nextQty,
-          note,
+          qty: item.qty,
+          note: item.note,
           settings: settingsRef.current,
         });
         if (!result.ok) return result;
+        last = result.snapshot;
         applySnapshot(result.snapshot);
-        lines = result.snapshot.lines;
       }
-      return { ok: true as const };
+      return { ok: true as const, snapshot: last! };
     },
-    [applySnapshot, guestClientId, slug, snapshot.lines, tableId],
+    [applySnapshot, guestClientId, slug, tableId],
   );
 
   const submitRequest = useCallback(
-    async (geo?: { latitude?: number | null; longitude?: number | null }) => {
+    async (geo?: { latitude?: number; longitude?: number }) => {
       if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
       const result = await submitRoundRequestClient({
         slug,
@@ -206,51 +199,28 @@ export function useTableOrderRound(params: {
         longitude: geo?.longitude,
       });
       if (!result.ok) return result;
+      const submitId = result.snapshot.round?.submit_request_id;
+      if (submitId) selfStartedSubmitIdsRef.current.add(submitId);
       applySnapshot(result.snapshot);
+      setPeerNotifyOpen(false);
       return result;
     },
     [applySnapshot, guestClientId, slug, tableId],
   );
 
-  const vote = useCallback(
-    async (value: 'confirm' | 'defer') => {
-      if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
-      const result = await voteRoundClient({
-        slug,
-        tableId,
-        guestClientId,
-        vote: value,
-        settings: settingsRef.current,
-      });
-      if (!result.ok) return result;
-      applySnapshot(result.snapshot);
-      if (value === 'defer' || result.snapshot.deferred) {
-        setConfirmModalOpen(false);
-        setDeferModalOpen(false);
-      }
-      return result;
-    },
-    [applySnapshot, guestClientId, slug, tableId],
-  );
-
-  const finalize = useCallback(
-    async (geo?: { latitude?: number | null; longitude?: number | null }) => {
-      if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
-      const result = await finalizeRoundClient({
-        slug,
-        tableId,
-        guestClientId,
-        settings: settingsRef.current,
-        latitude: geo?.latitude,
-        longitude: geo?.longitude,
-      });
-      if (!result.ok) return result;
-      applySnapshot(result.snapshot);
-      setConfirmModalOpen(false);
-      return result;
-    },
-    [applySnapshot, guestClientId, slug, tableId],
-  );
+  const finalize = useCallback(async () => {
+    if (!guestClientId) return;
+    const result = await finalizeRoundClient({
+      slug,
+      tableId,
+      guestClientId,
+      settings: settingsRef.current,
+    });
+    if (!result.ok) return result;
+    applySnapshot(result.snapshot);
+    setPeerNotifyOpen(false);
+    return result;
+  }, [applySnapshot, guestClientId, slug, tableId]);
 
   useEffect(() => {
     if (!enabled || snapshot.round?.status !== 'pending_confirm') return;
@@ -274,21 +244,23 @@ export function useTableOrderRound(params: {
     roundStatus === 'finalize_failed' ||
     (roundStatus == null && snapshot.lines.length > 0);
   const ownReviewQty = roundReviewActive ? ownLinesQtyTotal(snapshot.lines, guestClientId) : 0;
+  const tableReviewQty = roundReviewActive ? snapshot.lines_qty_total : 0;
 
   return {
     guestClientId,
     snapshot,
     settings,
     ownReviewQty,
-    commitCartLines,
-    refresh,
+    tableReviewQty,
+    ownLineQty: (menuItemId: string) => ownLineQty(snapshot.lines, guestClientId, menuItemId),
+    ownLineNote: (menuItemId: string) => ownLineNote(snapshot.lines, guestClientId, menuItemId),
+    commitCartToRound,
     submitRequest,
-    vote,
     finalize,
+    refresh,
+    peerNotifyOpen,
+    setPeerNotifyOpen,
     lastKitchenSend,
-    confirmModalOpen,
-    setConfirmModalOpen,
-    deferModalOpen,
-    setDeferModalOpen,
+    mergeAppendCartNotes,
   };
 }

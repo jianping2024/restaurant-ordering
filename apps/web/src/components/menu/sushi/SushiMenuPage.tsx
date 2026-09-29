@@ -355,9 +355,9 @@ export function SushiMenuPage({
         staffAssisted: null,
         restaurantSlug: restaurant.slug,
         tableId,
-        roundOwnQty: round.tableReviewQty,
+        roundOwnQty: round.ownReviewQty,
       }),
-    [activeSession, cart, recentOrders, restaurant.slug, round.tableReviewQty, sessionResolved, tableId],
+    [activeSession, cart, recentOrders, restaurant.slug, round.ownReviewQty, sessionResolved, tableId],
   );
 
   const roundStatus = round.snapshot.round?.status;

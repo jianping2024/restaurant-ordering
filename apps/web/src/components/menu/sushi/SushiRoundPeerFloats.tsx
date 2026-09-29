@@ -26,12 +26,14 @@ export const SUSHI_PEER_FLOAT_HOLD_MS = 10_000;
 export const SUSHI_PEER_FLOAT_FADE_MS = 300;
 
 /**
- * Sole peer-float rail shell: same centered menu shell + px-4 as the dish list
- * (phone and desktop), top under sticky header/category, chronological flex-col
- * (older above). Never viewport `left-*` alone — that drifts from the menu on lg+.
+ * Sole peer-float rail: centered menu shell, flush to the shell’s left edge
+ * (same side as the sticky「本桌」bar chrome — not the dish-list px-4 inset).
+ * Top under sticky header/category; chronological flex-col (older above).
+ * Same X dock as `customerMenuFixedShellDockClass` but z-40 (floats above chrome).
+ * Never viewport `left-*` alone — that drifts from the menu on lg+.
  */
 export const sushiPeerFloatRailClass = [
-  'pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 flex flex-col items-start gap-2 px-4',
+  'pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 flex flex-col items-start gap-2',
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
 ].join(' ');

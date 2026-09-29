@@ -18,6 +18,10 @@ import { formatSubmitCooldownWaitMessage } from '@/lib/order-submit-cooldown-cli
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipSoftClass,
+} from '@/lib/mesa-selection-chip';
 
 interface CartDrawerProps {
   open: boolean;
@@ -135,11 +139,7 @@ export function CartDrawer({
                               key={preset.id}
                               type="button"
                               onClick={() => onToggleNotePreset(item.menuItemId, preset.id)}
-                              className={`rounded-full px-2 py-0.5 text-[13px] transition-colors ${
-                                isOn
-                                  ? 'bg-brand-gold/20 text-brand-gold'
-                                  : 'bg-brand-border text-brand-text-muted hover:bg-brand-gold/10 hover:text-brand-gold'
-                              }`}
+                              className={`${mesaSelectionChipShellClass} px-2 py-0.5 text-[13px] ${mesaSelectionChipSoftClass(isOn)}`}
                             >
                               {note}
                             </button>

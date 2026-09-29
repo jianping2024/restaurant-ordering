@@ -16,6 +16,10 @@ import {
   PreviewShell,
   formatEuro,
 } from '@/components/landing/preview/PreviewChrome';
+import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipStrongClass,
+} from '@/lib/mesa-selection-chip';
 
 type FrameOptions = {
   showLabel?: boolean;
@@ -41,11 +45,7 @@ export function PreviewMenuContent({ showLabel = true }: FrameOptions) {
           {PREVIEW_MENU_CATEGORIES.map((cat, index) => (
             <span
               key={cat}
-              className={`rounded-full px-3 py-1 text-[13px] ${
-                index === 0
-                  ? 'bg-brand-gold text-brand-on-gold'
-                  : 'border border-brand-border text-brand-text-muted'
-              }`}
+              className={`${mesaSelectionChipShellClass} px-3 py-1 text-[13px] ${mesaSelectionChipStrongClass(index === 0)}`}
             >
               {copy.menu.categories[cat]}
             </span>

@@ -33,6 +33,10 @@ import {
   type MenuNotePresetGroup,
 } from '@/lib/menu-note-presets';
 import { ALLERGENS, ALLERGEN_SECTION_UI } from '@/lib/allergens';
+import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipSoftClass,
+} from '@/lib/mesa-selection-chip';
 import { NotePresetsManager } from '@/components/dashboard/NotePresetsManager';
 import {
   menuItemHasDuplicateCode,
@@ -1829,11 +1833,7 @@ export function MenuManager({
                           : [...prev.allergen_codes, allergen.code],
                       }))
                     }
-                    className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                      checked
-                        ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                        : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
-                    }`}
+                    className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
                   >
                     {allergen.labels[lang]}
                   </button>
@@ -1875,11 +1875,7 @@ export function MenuManager({
                             : [...prev.note_preset_group_ids, group.id],
                         }))
                       }
-                      className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                        checked
-                          ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                          : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
-                      } ${!group.active || group.presets.length === 0 ? 'opacity-60' : ''}`}
+                      className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)} ${!group.active || group.presets.length === 0 ? 'opacity-60' : ''}`}
                     >
                       {menuNotePresetLocalizedName(group, lang)}
                       {!group.active ? ` (${t.unavailableBadge})` : ''}

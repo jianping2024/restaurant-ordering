@@ -23,6 +23,9 @@ import {
 } from '@/lib/i18n/guest-split-mode-messages';
 import type { SplitMode, SplitResult } from '@/types';
 import {
+  mesaSelectionChipStrongClass,
+} from '@/lib/mesa-selection-chip';
+import {
   SplitSettlementPartialBreakdown,
   SplitSettlementStatusBadges,
   splitRowShowsSettlement,
@@ -185,10 +188,10 @@ export function BillSplitPanel({
               type="button"
               disabled={submitting || splitLocked}
               onClick={() => onSplitModeClick(mode)}
-              className={`py-2.5 rounded-xl text-sm transition-all ${
+              className={`py-2.5 rounded-xl text-sm border transition-all ${
                 splitMode === mode
-                  ? 'bg-brand-gold text-brand-on-gold font-semibold'
-                  : 'bg-brand-card border border-brand-border text-brand-text-muted'
+                  ? `${mesaSelectionChipStrongClass(true)} font-semibold`
+                  : mesaSelectionChipStrongClass(false)
               }`}
             >
               {splitGuidance.modes[mode].label}

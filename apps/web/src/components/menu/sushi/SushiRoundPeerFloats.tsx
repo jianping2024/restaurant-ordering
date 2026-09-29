@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {
+  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
+  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
+} from '@/lib/customer-menu-chrome-layout';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
 import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import type { TableOrderRoundLineRow } from '@/lib/table-order-round/types';
@@ -14,6 +18,17 @@ type FloatItem = {
 const MAX_VISIBLE = 4;
 /** Sole peer-float hold duration (free round + paid append). */
 export const SUSHI_PEER_FLOAT_HOLD_MS = 5500;
+
+/**
+ * Sole peer-float rail shell: same centered menu shell + px-4 as the dish list
+ * (phone and desktop), top under sticky header/category, chronological flex-col
+ * (older above). Never viewport `left-*` alone — that drifts from the menu on lg+.
+ */
+export const sushiPeerFloatRailClass = [
+  'pointer-events-none fixed left-1/2 z-40 -translate-x-1/2 flex flex-col items-start gap-2 px-4',
+  CUSTOMER_MENU_SHELL_WIDTH_CLASS,
+  CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
+].join(' ');
 
 /** Sole peer-order float rail: other guests' free round upserts + paid appends. */
 export function SushiRoundPeerFloats(params: {
@@ -77,7 +92,7 @@ export function SushiRoundPeerFloats(params: {
         if (isBuffetBaseItem(line) || isKitchenRemakeItem(line)) continue;
         if (line.item_status === 'voided') continue;
         if (!(Number(line.price) > 0)) continue;
-                    const key = `${order.id}:${line.batch_id || 'nobatch'}:${line.id}:${line.added_at || ''}`;
+        const key = `${order.id}:${line.batch_id || 'nobatch'}:${line.id}:${line.added_at || ''}`;
         nextOrderSeen.add(key);
         if (!primedRef.current) continue;
         if (seenOrderItemRef.current.has(key)) continue;
@@ -109,14 +124,11 @@ export function SushiRoundPeerFloats(params: {
   if (!enabled || items.length === 0) return null;
 
   return (
-    <div
-      className="pointer-events-none fixed bottom-[calc(5.5rem+var(--mesa-customer-menu-bottom-safe,0px))] left-3 z-40 flex w-[min(72%,15rem)] flex-col gap-2"
-      aria-live="polite"
-    >
+    <div className={sushiPeerFloatRailClass} aria-live="polite">
       {items.map((item) => (
         <div
           key={item.id}
-          className="rounded-2xl rounded-bl-sm bg-[rgb(26_22_18_/_0.88)] px-3 py-2 text-[12.5px] leading-snug text-[rgb(242_239_231)] shadow-lg"
+          className="max-w-[min(72%,15rem)] rounded-2xl rounded-tl-sm bg-[rgb(26_22_18_/_0.88)] px-3 py-2 text-[12.5px] leading-snug text-[rgb(242_239_231)] shadow-lg"
         >
           {item.text}
         </div>

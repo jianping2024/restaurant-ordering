@@ -10,6 +10,7 @@ import {
   PreviewShell,
   formatEuro,
 } from '@/components/landing/preview/PreviewChrome';
+import { mesaSelectionChipStrongClass } from '@/lib/mesa-selection-chip';
 
 type FrameOptions = {
   showLabel?: boolean;
@@ -53,11 +54,7 @@ export function PreviewBillContent({ showLabel = true }: FrameOptions) {
           {copy.bill.splitModes.map((mode, index) => (
             <span
               key={mode}
-              className={`rounded-lg px-2 py-2 text-center text-[12px] ${
-                index === 0
-                  ? 'bg-brand-gold text-brand-on-gold'
-                  : 'border border-brand-border text-brand-text-muted'
-              }`}
+              className={`rounded-lg px-2 py-2 text-center text-[12px] border ${mesaSelectionChipStrongClass(index === 0)}`}
             >
               {mode}
             </span>

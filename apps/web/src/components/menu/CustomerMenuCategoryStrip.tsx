@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipSoftClass,
+  mesaSelectionChipStrongClass,
+} from '@/lib/mesa-selection-chip';
 
 export type CustomerMenuCategoryOption = {
   id: string;
@@ -19,10 +23,6 @@ type Props = {
   categoryMoreLabel: string;
 };
 
-const topIdleClass = 'border-brand-border bg-brand-bg text-brand-text';
-const topActiveClass = `border-brand-gold bg-brand-gold text-brand-on-gold ${CUSTOMER_MENU_TYPE.categoryTopActive}`;
-const subIdleClass = 'border-brand-border text-brand-text';
-const subActiveClass = 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold';
 const moreControlClass =
   `inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 font-medium ${CUSTOMER_MENU_TYPE.categoryTop}`;
 
@@ -31,8 +31,8 @@ function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
     layout === 'grid'
       ? 'w-full min-w-0 overflow-hidden whitespace-normal text-center leading-snug [overflow-wrap:anywhere]'
       : 'flex-shrink-0 whitespace-nowrap';
-  return `${width} rounded-full border px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} transition-colors ${
-    active ? topActiveClass : topIdleClass
+  return `${width} ${mesaSelectionChipShellClass} px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categoryTop} ${
+    active ? `${mesaSelectionChipStrongClass(true)} ${CUSTOMER_MENU_TYPE.categoryTopActive}` : mesaSelectionChipStrongClass(false)
   }`;
 }
 
@@ -152,9 +152,7 @@ export function CustomerMenuCategoryStrip({
           <button
             type="button"
             onClick={() => onSelectSubpath('')}
-            className={`flex-shrink-0 px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
-              activeSubpath === '' ? subActiveClass : subIdleClass
-            }`}
+            className={`flex-shrink-0 px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(activeSubpath === '')}`}
           >
             {subcategoryAllLabel}
           </button>
@@ -164,9 +162,7 @@ export function CustomerMenuCategoryStrip({
               type="button"
               title={sub.label}
               onClick={() => onSelectSubpath(sub.id)}
-              className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} rounded-full border transition-colors ${
-                activeSubpath === sub.id ? subActiveClass : subIdleClass
-              }`}
+              className={`flex-shrink-0 whitespace-nowrap px-3 py-1.5 ${CUSTOMER_MENU_TYPE.categorySub} ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(activeSubpath === sub.id)}`}
             >
               {sub.label}
             </button>

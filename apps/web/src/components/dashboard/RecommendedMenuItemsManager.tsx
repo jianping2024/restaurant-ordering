@@ -22,6 +22,10 @@ import {
   reorderRecommendedMenuItemsClient,
 } from '@/lib/dashboard-menu-client';
 import { moveIdInOrderedList } from '@/lib/sort-order';
+import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipStrongClass,
+} from '@/lib/mesa-selection-chip';
 
 type Props = {
   items: MenuItem[];
@@ -160,11 +164,7 @@ export function RecommendedMenuItemsManager({
 
   const canReorder = recommendedItems.length > 1;
   const chipClass = (active: boolean) =>
-    `shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-      active
-        ? 'border-brand-gold bg-brand-gold text-brand-on-gold'
-        : 'border-brand-border bg-brand-card text-brand-text hover:bg-brand-gold/10'
-    }`;
+    `shrink-0 px-3 py-1.5 text-sm ${mesaSelectionChipShellClass} ${mesaSelectionChipStrongClass(active)}`;
 
   return (
     <div className="w-full max-w-full overflow-x-hidden">

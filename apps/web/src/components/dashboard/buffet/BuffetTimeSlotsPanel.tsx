@@ -9,6 +9,10 @@ import {
   buffetSlotHeaderGrid,
   buffetSlotRowGrid,
 } from '@/components/dashboard/buffet/buffet-field-styles';
+import {
+  mesaSelectionChipShellClass,
+  mesaSelectionChipSoftClass,
+} from '@/lib/mesa-selection-chip';
 
 type BuffetAdminMessages = ReturnType<typeof getMessages>['buffetAdmin'];
 
@@ -131,11 +135,7 @@ export function BuffetTimeSlotsPanel({
                           type="button"
                           title={label}
                           onClick={() => onToggleWeekday(slot, dow)}
-                          className={`h-8 min-w-[2rem] px-1.5 text-[11px] rounded-lg border transition-colors ${
-                            on
-                              ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold font-medium'
-                              : 'border-brand-border text-brand-text-muted hover:border-brand-gold/30'
-                          }`}
+                          className={`h-8 min-w-[2rem] px-1.5 text-[11px] font-medium ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(on)}`}
                         >
                           {label}
                         </button>

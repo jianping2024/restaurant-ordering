@@ -146,7 +146,8 @@ export interface MenuItem {
   category_zh?: Category | null;
   emoji: string;
   image_url?: string | null;
-  note_preset_keys?: string[];
+  /** Enabled note-preset group ids; guest sees all active presets in these groups. */
+  note_preset_group_ids?: string[];
   /** EU allergen codes this dish contains; empty = unmarked (not allergen-free). */
   allergen_codes?: string[];
   available: boolean;
@@ -431,6 +432,10 @@ export interface CartItem {
   price: number;
   emoji: string;
   qty: number;
+  /** Guest free-text note only (chips live in selectedNotePresetIds). */
   note?: string;
-  notePresetKeys?: string[];
+  /** Dish-enabled note-preset group ids. */
+  notePresetGroupIds?: string[];
+  /** Guest chip picks: at most one preset id per group. */
+  selectedNotePresetIds?: string[];
 }

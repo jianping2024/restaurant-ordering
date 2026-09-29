@@ -142,7 +142,7 @@ lines.push('');
 
 for (const mi of menu_items) {
   lines.push(
-    `INSERT INTO public.menu_items (id, restaurant_id, name_pt, name_en, name_zh, description_pt, description_en, price, category, emoji, available, sort_order, image_url, note_preset_keys, category_en, category_zh, category_id, print_station_id, item_code, created_at) VALUES (${lit(mi.id)}, ${lit(mi.restaurant_id)}, ${lit(mi.name_pt)}, ${lit(mi.name_en)}, ${lit(mi.name_zh)}, ${lit(mi.description_pt)}, ${lit(mi.description_en)}, ${lit(mi.price)}, ${lit(mi.category)}, ${lit(mi.emoji)}, ${lit(mi.available)}, ${lit(mi.sort_order)}, ${lit(mi.image_url)}, ${textArray(mi.note_preset_keys)}, ${lit(mi.category_en)}, ${lit(mi.category_zh)}, ${lit(mi.category_id)}, ${lit(mi.print_station_id)}, ${lit(mi.item_code)}, ${lit(mi.created_at)}) ON CONFLICT (id) DO NOTHING;`,
+    `INSERT INTO public.menu_items (id, restaurant_id, name_pt, name_en, name_zh, description_pt, description_en, price, category, emoji, available, sort_order, image_url, note_preset_group_ids, category_en, category_zh, category_id, print_station_id, item_code, created_at) VALUES (${lit(mi.id)}, ${lit(mi.restaurant_id)}, ${lit(mi.name_pt)}, ${lit(mi.name_en)}, ${lit(mi.name_zh)}, ${lit(mi.description_pt)}, ${lit(mi.description_en)}, ${lit(mi.price)}, ${lit(mi.category)}, ${lit(mi.emoji)}, ${lit(mi.available)}, ${lit(mi.sort_order)}, ${lit(mi.image_url)}, ${textArray(mi.note_preset_group_ids)}, ${lit(mi.category_en)}, ${lit(mi.category_zh)}, ${lit(mi.category_id)}, ${lit(mi.print_station_id)}, ${lit(mi.item_code)}, ${lit(mi.created_at)}) ON CONFLICT (id) DO NOTHING;`,
   );
 }
 

@@ -16,7 +16,7 @@ import { type MenuNotePresetQueryError } from '@/lib/menu-note-presets-query';
 
 export {
   listMenuNotePresetDictionary,
-  listRestaurantNotePresetIds,
+  listRestaurantNotePresetGroupIds,
 } from '@/lib/menu-note-presets-query';
 
 export type MenuNotePresetMutationError = MenuNotePresetQueryError & {
@@ -150,6 +150,9 @@ export async function deleteMenuNotePresetGroup(
       referenced_item_count: count ?? 0,
     };
   }
+
+  const unbound = await unbindGroupFromMenuItems(admin, restaurantId, id);
+  if ('error' in unbound) return unbound;
 
   const { error, count: deleted } = await admin
     .from('menu_note_preset_groups')
@@ -293,42 +296,26 @@ export async function updateMenuNotePreset(
   return { preset: data as MenuNotePreset };
 }
 
-async function countMenuItemsReferencingPreset(
+async function unbindGroupFromMenuItems(
   admin: SupabaseClient,
   restaurantId: string,
-  presetId: string,
-): Promise<number | MenuNotePresetMutationError> {
-  const { data, error } = await admin
-    .from('menu_items')
-    .select('id, note_preset_keys')
-    .eq('restaurant_id', restaurantId)
-    .contains('note_preset_keys', [presetId]);
-  if (error) {
-    return { error: 'menu_items_query_failed', message: error.message, status: 500 };
-  }
-  return (data || []).length;
-}
-
-async function unbindPresetFromMenuItems(
-  admin: SupabaseClient,
-  restaurantId: string,
-  presetId: string,
+  groupId: string,
 ): Promise<{ ok: true } | MenuNotePresetMutationError> {
   const { data, error } = await admin
     .from('menu_items')
-    .select('id, note_preset_keys')
+    .select('id, note_preset_group_ids')
     .eq('restaurant_id', restaurantId)
-    .contains('note_preset_keys', [presetId]);
+    .contains('note_preset_group_ids', [groupId]);
   if (error) {
     return { error: 'menu_items_query_failed', message: error.message, status: 500 };
   }
   for (const row of data || []) {
-    const keys = Array.isArray(row.note_preset_keys)
-      ? (row.note_preset_keys as string[]).filter((k) => k !== presetId)
+    const keys = Array.isArray(row.note_preset_group_ids)
+      ? (row.note_preset_group_ids as string[]).filter((k) => k !== groupId)
       : [];
     const { error: updError } = await admin
       .from('menu_items')
-      .update({ note_preset_keys: keys })
+      .update({ note_preset_group_ids: keys })
       .eq('restaurant_id', restaurantId)
       .eq('id', row.id);
     if (updError) {
@@ -342,26 +329,9 @@ export async function deleteMenuNotePreset(
   admin: SupabaseClient,
   restaurantId: string,
   presetId: string,
-  opts?: { confirmUnbind?: boolean },
 ): Promise<{ ok: true; referenced_item_count: number } | MenuNotePresetMutationError> {
   const id = parseTableIdParam(presetId);
   if (!id) return { error: 'invalid_note_preset_id', status: 400 };
-
-  const referenced = await countMenuItemsReferencingPreset(admin, restaurantId, id);
-  if (typeof referenced !== 'number') return referenced;
-
-  if (referenced > 0 && !opts?.confirmUnbind) {
-    return {
-      error: 'note_preset_in_use',
-      status: 409,
-      referenced_item_count: referenced,
-    };
-  }
-
-  if (referenced > 0) {
-    const unbound = await unbindPresetFromMenuItems(admin, restaurantId, id);
-    if ('error' in unbound) return unbound;
-  }
 
   const { error, count: deleted } = await admin
     .from('menu_note_presets')
@@ -373,7 +343,7 @@ export async function deleteMenuNotePreset(
   }
   if (!deleted) return { error: 'note_preset_not_found', status: 404 };
   await invalidateCustomerMenuCatalog(restaurantId);
-  return { ok: true, referenced_item_count: referenced };
+  return { ok: true, referenced_item_count: 0 };
 }
 
 export async function reorderMenuNotePresets(

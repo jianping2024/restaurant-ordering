@@ -24,6 +24,7 @@ import {
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
 import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
+import { toggleCartNotePresetSelection } from '@/lib/menu-note-presets';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -398,10 +399,27 @@ export function MenuOrderingController({
     detailItem ? cart.find((c) => c.menuItemId === detailItem.id)?.qty : 0,
   );
 
-  // 更新备注
+  // 更新备注（手写）
   const updateNote = (menuItemId: string, note: string) => {
     setCartTracked((prev) =>
       prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
+    );
+  };
+
+  const toggleNotePreset = (menuItemId: string, presetId: string) => {
+    setCartTracked((prev) =>
+      prev.map((c) =>
+        c.menuItemId === menuItemId
+          ? {
+              ...c,
+              selectedNotePresetIds: toggleCartNotePresetSelection(
+                c.selectedNotePresetIds || [],
+                notePresetCatalog,
+                presetId,
+              ),
+            }
+          : c,
+      ),
     );
   };
 
@@ -627,8 +645,10 @@ export function MenuOrderingController({
         }
       }
 
+      const noteContext = { catalog: notePresetCatalog, lang };
       const intent = resolveAppendClientRequestId({
         cart,
+        noteContext,
         previous: pendingAppendIntentRef.current,
       });
       pendingAppendIntentRef.current = {
@@ -640,6 +660,7 @@ export function MenuOrderingController({
       const result = await executeMenuOrderSubmit({
         flow: waiterFlow ? 'staff_assisted' : 'guest',
         cart,
+        noteContext,
         slug: restaurant.slug,
         tableId,
         waiterFlow,
@@ -718,7 +739,7 @@ export function MenuOrderingController({
       if (preview.status === 'overage') {
         setStaffOverageDialog({
           kind: 'submit',
-          cartFingerprint: appendCartFingerprint(cart),
+          cartFingerprint: appendCartFingerprint(cart, { catalog: notePresetCatalog, lang }),
           title: t.staffOverageSubmitTitle,
           message: formatStaffSubmitOverageMessage(
             preview.lines.map((line) => {
@@ -748,7 +769,7 @@ export function MenuOrderingController({
       if (item) commitCartQty(item, dialog.nextQty);
       return;
     }
-    const fingerprint = appendCartFingerprint(cart);
+    const fingerprint = appendCartFingerprint(cart, { catalog: notePresetCatalog, lang });
     setStaffOverageDialog(null);
     if (fingerprint !== dialog.cartFingerprint) {
       await submitOrder();
@@ -951,6 +972,7 @@ export function MenuOrderingController({
           void requestCartQtyChange(id, qty);
         }}
         onUpdateNote={updateNote}
+        onToggleNotePreset={toggleNotePreset}
         onSubmit={submitOrder}
         submitting={submitting}
         submitCooldownRemaining={submitCooldownRemaining}

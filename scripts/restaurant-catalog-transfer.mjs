@@ -524,7 +524,7 @@ async function importCatalog() {
       available: i.available,
       sort_order: i.sort_order,
       image_url: null,
-      note_preset_keys: i.note_preset_keys ?? [],
+      note_preset_group_ids: i.note_preset_group_ids ?? [],
       category_en: i.category_en,
       category_zh: i.category_zh,
       category_id: i.category_id ? catMap.get(i.category_id) ?? null : null,

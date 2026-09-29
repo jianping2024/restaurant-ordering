@@ -170,21 +170,13 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     if (busy) return;
     setBusy(true);
     try {
-      const res = await deleteNotePresetClient(preset.id, false);
+      const res = await deleteNotePresetClient(preset.id);
       if (res.ok) {
         onChange({
           groups,
           presets: presets.filter((p) => p.id !== preset.id),
         });
         showToast(t.notePresetSaved, 'success');
-        return;
-      }
-      if (res.error === 'note_preset_in_use') {
-        setPendingDeletePreset({
-          id: preset.id,
-          label: menuNotePresetLocalizedName(preset, lang),
-          referenced: res.referenced_item_count ?? 0,
-        });
         return;
       }
       showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
@@ -197,7 +189,7 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
     if (!pendingDeletePreset || busy) return;
     setBusy(true);
     try {
-      const res = await deleteNotePresetClient(pendingDeletePreset.id, true);
+      const res = await deleteNotePresetClient(pendingDeletePreset.id);
       if (!res.ok) {
         showToast(mapNotePresetApiError(res.error, res.message, t, res.referenced_item_count), 'error');
         return;

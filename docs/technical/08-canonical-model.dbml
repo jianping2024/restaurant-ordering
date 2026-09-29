@@ -124,7 +124,7 @@ Table menu_items [note: '菜品'] {
   available boolean [not null, note: '是否上架可点']
   sort_order int [not null, note: '分类内排序']
   item_code varchar [note: '菜品编码']
-  note_preset_keys varchar [note: '备注预设键列表 text[]']
+  note_preset_group_ids varchar [note: '启用的备注大类 id 列表 text[] → menu_note_preset_groups.id']
   image_url varchar [note: '图片 URL']
   print_station_id uuid [note: '覆盖分类的出品档口']
   created_at timestamp [not null, note: '创建时间']

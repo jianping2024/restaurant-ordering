@@ -150,7 +150,7 @@ export type MenuItemMutationInput = {
   print_station_id?: string | null;
   emoji: string;
   available: boolean;
-  note_preset_keys: string[];
+  note_preset_group_ids: string[];
   allergen_codes: string[];
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;

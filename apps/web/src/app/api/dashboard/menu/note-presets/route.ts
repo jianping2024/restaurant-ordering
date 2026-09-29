@@ -95,9 +95,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'invalid_note_preset_id' }, { status: 400 });
   }
 
-  const result = await deleteMenuNotePreset(ctx.admin, ctx.restaurantId, body.preset_id, {
-    confirmUnbind: body.confirm_unbind === true,
-  });
+  const result = await deleteMenuNotePreset(ctx.admin, ctx.restaurantId, body.preset_id);
   if ('error' in result) {
     return NextResponse.json(
       {

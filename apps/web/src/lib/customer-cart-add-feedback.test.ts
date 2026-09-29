@@ -12,7 +12,7 @@ const sampleItem = {
   name_zh: 'A',
   price: 1.5,
   emoji: '🍜',
-  note_preset_keys: [],
+  note_preset_group_ids: [],
 } as unknown as MenuItem;
 
 describe('customer cart add feedback', () => {

@@ -128,7 +128,7 @@ type ItemForm = {
   print_station_id: string;
   emoji: string;
   available: boolean;
-  note_preset_keys: string[];
+  note_preset_group_ids: string[];
   allergen_codes: string[];
   per_person_qty_limit: string;
   over_limit_unit_price: string;
@@ -147,7 +147,7 @@ const defaultItemForm: ItemForm = {
   print_station_id: '',
   emoji: '🍽️',
   available: true,
-  note_preset_keys: [],
+  note_preset_group_ids: [],
   allergen_codes: [],
   per_person_qty_limit: '',
   over_limit_unit_price: '',
@@ -186,20 +186,29 @@ const NOTE_UI_TEXT: Record<
   import('@/lib/i18n').UILanguage,
   { title: string; hint: string }
 > = {
-  zh: { title: '预选备注', hint: '可选。顾客下单时会显示这些快捷备注，建议按菜品类型勾选。' },
-  en: { title: 'Preset notes', hint: 'Optional. Selected notes are shown as quick options during ordering.' },
-  pt: { title: 'Observacoes predefinidas', hint: 'Opcional. Estas observacoes aparecem como atalhos no pedido.' },
+  zh: {
+    title: '预选备注',
+    hint: '可选。勾选备注大类后，顾客下单时可在该类里单选一条快捷备注。',
+  },
+  en: {
+    title: 'Preset notes',
+    hint: 'Optional. Enable note groups; guests pick at most one chip per group when ordering.',
+  },
+  pt: {
+    title: 'Observacoes predefinidas',
+    hint: 'Opcional. Ative grupos; o cliente escolhe no maximo uma opcao por grupo.',
+  },
   es: {
     title: 'Notas predefinidas',
-    hint: 'Opcional. Estas notas aparecen como atajos al pedir.',
+    hint: 'Opcional. Active grupos; el cliente elige como maximo una opcion por grupo.',
   },
   fr: {
     title: 'Notes prédéfinies',
-    hint: 'Facultatif. Ces notes apparaissent comme raccourcis à la commande.',
+    hint: 'Facultatif. Activez des groupes ; le client choisit au plus une option par groupe.',
   },
   de: {
     title: 'Vorgegebene Notizen',
-    hint: 'Optional. Diese Notizen erscheinen als Schnelloptionen beim Bestellen.',
+    hint: 'Optional. Gruppen aktivieren; Gäste wählen höchstens eine Option pro Gruppe.',
   },
 };
 
@@ -571,7 +580,7 @@ export function MenuManager({
       print_station_id: item.print_station_id ?? '',
       emoji: item.emoji,
       available: item.available,
-      note_preset_keys: item.note_preset_keys || [],
+      note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
       per_person_qty_limit:
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
@@ -636,7 +645,7 @@ export function MenuManager({
       category_id: selectedCategoryRow.id,
       emoji: itemForm.emoji,
       available: itemForm.available,
-      note_preset_keys: itemForm.note_preset_keys,
+      note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
       print_station_id: itemForm.print_station_id || null,
       item_code: normalizedItemCode,
@@ -1851,41 +1860,32 @@ export function MenuManager({
             {notePresetEditorGroups.length === 0 ? (
               <p className="text-[13px] text-brand-text-muted">{t.notePresetNoOptions}</p>
             ) : (
-              <div className="space-y-3">
-                {notePresetEditorGroups.map((group) => (
-                  <div key={group.id}>
-                    <p className="text-[13px] text-brand-text-muted mb-2">
+              <div className="flex flex-wrap gap-2">
+                {notePresetEditorGroups.map((group) => {
+                  const checked = itemForm.note_preset_group_ids.includes(group.id);
+                  return (
+                    <button
+                      key={group.id}
+                      type="button"
+                      onClick={() =>
+                        setItemForm((prev) => ({
+                          ...prev,
+                          note_preset_group_ids: checked
+                            ? prev.note_preset_group_ids.filter((k) => k !== group.id)
+                            : [...prev.note_preset_group_ids, group.id],
+                        }))
+                      }
+                      className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
+                        checked
+                          ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
+                          : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
+                      } ${!group.active || group.presets.length === 0 ? 'opacity-60' : ''}`}
+                    >
                       {menuNotePresetLocalizedName(group, lang)}
                       {!group.active ? ` (${t.unavailableBadge})` : ''}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {group.presets.map((preset) => {
-                        const checked = itemForm.note_preset_keys.includes(preset.id);
-                        return (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() =>
-                              setItemForm((prev) => ({
-                                ...prev,
-                                note_preset_keys: checked
-                                  ? prev.note_preset_keys.filter((k) => k !== preset.id)
-                                  : [...prev.note_preset_keys, preset.id],
-                              }))
-                            }
-                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                              checked
-                                ? 'bg-brand-gold/20 border-brand-gold/40 text-brand-gold'
-                                : 'bg-brand-card border-brand-border text-brand-text-muted hover:text-brand-text'
-                            } ${!preset.active ? 'opacity-60' : ''}`}
-                          >
-                            {menuNotePresetLocalizedName(preset, lang)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

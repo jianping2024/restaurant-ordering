@@ -2,7 +2,6 @@
 
 import {
   APPEND_CART_NOTE_MAX_LEN,
-  mergeAppendCartNotes,
   type CartItem,
   type Language,
 } from '@/types';
@@ -29,6 +28,7 @@ interface CartDrawerProps {
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
   onUpdateNote: (id: string, note: string) => void;
+  onToggleNotePreset: (menuItemId: string, presetId: string) => void;
   onSubmit: () => void;
   submitting: boolean;
   submitCooldownRemaining?: number;
@@ -43,6 +43,7 @@ export function CartDrawer({
   onClose,
   onUpdateQty,
   onUpdateNote,
+  onToggleNotePreset,
   onSubmit,
   submitting,
   submitCooldownRemaining = 0,
@@ -53,11 +54,6 @@ export function CartDrawer({
   const submitLabel = cooldownActive
     ? formatSubmitCooldownWaitMessage(t.submitCooldownWait, submitCooldownRemaining)
     : t.placeOrder;
-  const presetById = new Map(
-    notePresetCatalog.groups.flatMap((group) =>
-      group.presets.map((preset) => [preset.id, preset] as const),
-    ),
-  );
 
   return (
     <CustomerMenuBottomSheet
@@ -83,65 +79,67 @@ export function CartDrawer({
       }
     >
       <div className="space-y-4">
-        {cart.map((item) => (
-          <div key={item.menuItemId} className="rounded-xl border border-brand-border p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <span className="text-2xl">{item.emoji}</span>
-                <div className="min-w-0">
-                  <p className={`truncate text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName}`}>
-                    {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}
-                  </p>
-                  <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
+        {cart.map((item) => {
+          const enabledGroupIds = new Set(item.notePresetGroupIds || []);
+          const selected = new Set(item.selectedNotePresetIds || []);
+          const groupsForItem = notePresetCatalog.groups.filter((group) =>
+            enabledGroupIds.has(group.id),
+          );
+
+          return (
+            <div key={item.menuItemId} className="rounded-xl border border-brand-border p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="text-2xl">{item.emoji}</span>
+                  <div className="min-w-0">
+                    <p className={`truncate text-brand-text ${CUSTOMER_MENU_TYPE.cartLineName}`}>
+                      {formatLocalizedMenuItemLabel(item, lang, menuItemCodeById[item.menuItemId])}
+                    </p>
+                    <p className={CUSTOMER_MENU_TYPE.moneyAmount}>€{lineTotal(item).toFixed(2)}</p>
+                  </div>
                 </div>
+                <CartQtyStepper
+                  qty={item.qty}
+                  onDecrement={() => {
+                    const q = Number(item.qty);
+                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
+                  }}
+                  onIncrement={() => {
+                    const q = Number(item.qty);
+                    onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
+                  }}
+                />
               </div>
-              <CartQtyStepper
-                qty={item.qty}
-                onDecrement={() => {
-                  const q = Number(item.qty);
-                  onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) - 1);
-                }}
-                onIncrement={() => {
-                  const q = Number(item.qty);
-                  onUpdateQty(item.menuItemId, (Number.isFinite(q) ? q : 0) + 1);
-                }}
-              />
-            </div>
 
-            <div className="mt-3">
-              <input
-                type="text"
-                placeholder={t.cartNotePlaceholder}
-                value={item.note || ''}
-                maxLength={APPEND_CART_NOTE_MAX_LEN}
-                onChange={(e) => onUpdateNote(item.menuItemId, e.target.value)}
-                className={customerTextInputClass}
-              />
-              <div className="mt-2 space-y-2">
-                {notePresetCatalog.groups.map((group) => {
-                  const presetKeys = (item.notePresetKeys || []).filter((key) =>
-                    group.presets.some((preset) => preset.id === key),
-                  );
-                  if (presetKeys.length === 0) return null;
-
-                  return (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  placeholder={t.cartNotePlaceholder}
+                  value={item.note || ''}
+                  maxLength={APPEND_CART_NOTE_MAX_LEN}
+                  onChange={(e) => onUpdateNote(item.menuItemId, e.target.value)}
+                  className={customerTextInputClass}
+                />
+                <div className="mt-2 space-y-2">
+                  {groupsForItem.map((group) => (
                     <div key={`${item.menuItemId}-${group.id}`}>
                       <p className="mb-1 text-[13px] text-brand-text-muted">
                         {menuNotePresetLocalizedName(group, lang)}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
-                        {presetKeys.map((key) => {
-                          const preset = presetById.get(key);
-                          if (!preset) return null;
+                        {group.presets.map((preset) => {
                           const note = menuNotePresetLocalizedName(preset, lang);
+                          const isOn = selected.has(preset.id);
                           return (
                             <button
-                              key={key}
+                              key={preset.id}
                               type="button"
-                              onClick={() =>
-                                onUpdateNote(item.menuItemId, mergeAppendCartNotes(item.note || '', note))
-                              }
-                              className="rounded-full bg-brand-border px-2 py-0.5 text-[13px] text-brand-text-muted transition-colors hover:bg-brand-gold/10 hover:text-brand-gold"
+                              onClick={() => onToggleNotePreset(item.menuItemId, preset.id)}
+                              className={`rounded-full px-2 py-0.5 text-[13px] transition-colors ${
+                                isOn
+                                  ? 'bg-brand-gold/20 text-brand-gold'
+                                  : 'bg-brand-border text-brand-text-muted hover:bg-brand-gold/10 hover:text-brand-gold'
+                              }`}
                             >
                               {note}
                             </button>
@@ -149,15 +147,15 @@ export function CartDrawer({
                         })}
                       </div>
                     </div>
-                  );
-                })}
-                {(!item.notePresetKeys || item.notePresetKeys.length === 0) && (
-                  <p className="text-[13px] text-brand-text-muted">{t.noQuickNotes}</p>
-                )}
+                  ))}
+                  {groupsForItem.length === 0 && (
+                    <p className="text-[13px] text-brand-text-muted">{t.noQuickNotes}</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </CustomerMenuBottomSheet>
   );

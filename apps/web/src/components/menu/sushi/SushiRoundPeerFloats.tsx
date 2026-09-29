@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { formatOrderItemListLabel } from '@/lib/order-list-display';
+import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import type { TableOrderRoundLineRow } from '@/lib/table-order-round/types';
-import type { Language, MenuItem } from '@/types';
+import type { Language, MenuItem, Order } from '@/types';
 
 type FloatItem = {
   id: string;
@@ -11,33 +12,38 @@ type FloatItem = {
 };
 
 const MAX_VISIBLE = 4;
-const HOLD_MS = 2800;
+/** Sole peer-float hold duration (free round + paid append). */
+export const SUSHI_PEER_FLOAT_HOLD_MS = 5500;
 
-/** Sole peer-order float rail for other guests' round line upserts. */
+/** Sole peer-order float rail: other guests' free round upserts + paid appends. */
 export function SushiRoundPeerFloats(params: {
   lines: TableOrderRoundLineRow[];
   guestClientId: string;
   menuItems: MenuItem[];
   lang: Language;
   enabled: boolean;
+  recentOrders?: Order[];
+  /** Batch ids this device just appended — exclude from paid floats. */
+  selfBatchIds?: ReadonlySet<string>;
 }) {
-  const { lines, guestClientId, menuItems, lang, enabled } = params;
+  const { lines, guestClientId, menuItems, lang, enabled, recentOrders, selfBatchIds } = params;
   const [items, setItems] = useState<FloatItem[]>([]);
-  const seenRef = useRef<Map<string, number>>(new Map());
+  const seenRoundRef = useRef<Map<string, number>>(new Map());
+  const seenOrderItemRef = useRef<Set<string>>(new Set());
   const primedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled || !guestClientId) return;
     const byId = new Map(menuItems.map((m) => [m.id, m]));
-    const nextSeen = new Map<string, number>();
+    const nextRoundSeen = new Map<string, number>();
 
     for (const line of lines) {
       const qty = Number(line.qty) || 0;
       if (qty < 1) continue;
-      nextSeen.set(line.id, qty);
+      nextRoundSeen.set(line.id, qty);
       if (line.guest_client_id === guestClientId) continue;
 
-      const prevQty = seenRef.current.get(line.id);
+      const prevQty = seenRoundRef.current.get(line.id);
       const isNew = prevQty === undefined;
       const increased = prevQty !== undefined && qty > prevQty;
       if (!primedRef.current) continue;
@@ -55,16 +61,50 @@ export function SushiRoundPeerFloats(params: {
         },
         lang,
       );
-      const id = `${line.id}:${qty}:${Date.now()}`;
+      const id = `round:${line.id}:${qty}:${Date.now()}`;
       setItems((prev) => [...prev, { id, text }].slice(-MAX_VISIBLE));
       window.setTimeout(() => {
         setItems((prev) => prev.filter((f) => f.id !== id));
-      }, HOLD_MS);
+      }, SUSHI_PEER_FLOAT_HOLD_MS);
     }
 
-    seenRef.current = nextSeen;
+    seenRoundRef.current = nextRoundSeen;
+
+    const orderList = recentOrders ?? [];
+    const nextOrderSeen = new Set<string>();
+    for (const order of orderList) {
+      for (const line of order.items) {
+        if (isBuffetBaseItem(line) || isKitchenRemakeItem(line)) continue;
+        if (line.item_status === 'voided') continue;
+        if (!(Number(line.price) > 0)) continue;
+                    const key = `${order.id}:${line.batch_id || 'nobatch'}:${line.id}:${line.added_at || ''}`;
+        nextOrderSeen.add(key);
+        if (!primedRef.current) continue;
+        if (seenOrderItemRef.current.has(key)) continue;
+        const batchKey = line.batch_id || '';
+        if (batchKey && selfBatchIds?.has(batchKey)) continue;
+
+        const text = formatOrderItemListLabel(
+          {
+            emoji: line.emoji || '🍽️',
+            name: line.name || line.name_pt || '',
+            name_pt: line.name_pt || line.name || '',
+            name_en: line.name_en || '',
+            name_zh: line.name_zh || '',
+            qty: Number(line.qty) || 0,
+          },
+          lang,
+        );
+        const id = `paid:${key}:${Date.now()}`;
+        setItems((prev) => [...prev, { id, text }].slice(-MAX_VISIBLE));
+        window.setTimeout(() => {
+          setItems((prev) => prev.filter((f) => f.id !== id));
+        }, SUSHI_PEER_FLOAT_HOLD_MS);
+      }
+    }
+    seenOrderItemRef.current = nextOrderSeen;
     primedRef.current = true;
-  }, [enabled, guestClientId, lang, lines, menuItems]);
+  }, [enabled, guestClientId, lang, lines, menuItems, recentOrders, selfBatchIds]);
 
   if (!enabled || items.length === 0) return null;
 

@@ -43,7 +43,8 @@
     ".next-uat-amount-type/types/**/*.ts",
     ".next-uat-kb-chrome/types/**/*.ts",
     ".next-uat-kb-stay/types/**/*.ts",
-    ".next-uat-draft-iso/types/**/*.ts"
+    ".next-uat-draft-iso/types/**/*.ts",
+    ".next-uat-sushi-qty/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

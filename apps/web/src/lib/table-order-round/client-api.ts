@@ -200,6 +200,23 @@ export async function finalizeRoundClient(params: {
   return { ok: true, snapshot };
 }
 
+/**
+ * Free-item card/detail qty: cart draft when that dish is in the local cart,
+ * otherwise the own round-line qty already committed for this guest.
+ */
+export function sushiFreeItemDisplayQty(params: {
+  cartHasItem: boolean;
+  cartQty: unknown;
+  ownRoundQty: number;
+}): number {
+  if (params.cartHasItem) {
+    const q = Number(params.cartQty);
+    return Number.isFinite(q) && q > 0 ? Math.floor(q) : 0;
+  }
+  const own = Number(params.ownRoundQty);
+  return Number.isFinite(own) && own > 0 ? Math.floor(own) : 0;
+}
+
 /** Own-client qty for a menu item from round lines. */
 export function ownLineQty(
   lines: TableOrderRoundLineRow[],

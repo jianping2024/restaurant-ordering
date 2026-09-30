@@ -1153,9 +1153,6 @@ export function MenuManager({
       ) : activeTab === 'categories' ? (
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)] gap-4 min-w-0">
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0">
-            <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
-            <p className="text-[12px] text-brand-text-muted mb-1">{t.categorySameLevelSort}</p>
-            <p className="text-[12px] text-brand-text-muted mb-3">{t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}</p>
             {categoryError ? (
               <p className="mesa-alert-danger text-sm px-3 py-2 mb-3">{categoryError}</p>
             ) : null}

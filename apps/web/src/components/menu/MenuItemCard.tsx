@@ -158,7 +158,14 @@ export function MenuItemCard({
           aria-label={openDetailAria}
           className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
         >
-          <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>{label}</h3>
+          <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>
+            {label}
+            {item.is_vegetarian ? (
+              <span className="ml-1.5 align-middle rounded-full border border-emerald-600/35 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                {t.itemVegetarianBadge}
+              </span>
+            ) : null}
+          </h3>
           {desc ? (
             <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-0.5 line-clamp-2`}>
               {desc}

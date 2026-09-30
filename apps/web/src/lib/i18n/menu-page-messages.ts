@@ -69,6 +69,15 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   itemBadgePaid: string;
   itemAllergensTitle: string;
   itemAllergensUnmarked: string;
+  itemVegetarianBadge: string;
+  itemDetailNotesTitle: string;
+  dietaryFilterVegetarian: string;
+  dietaryFilterAllergen: string;
+  dietaryFilterAllergenCount: string;
+  dietaryFilterAllergenTitle: string;
+  dietaryFilterAllergenHint: string;
+  dietaryFilterAllergenClear: string;
+  dietaryFilterAllergenDone: string;
   itemDetailDescriptionTitle: string;
   itemDetailDescriptionEmpty: string;
   itemDetailAddToRound: string;
@@ -143,6 +152,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Pedido imediato',
     itemAllergensTitle: 'Alérgenos',
     itemAllergensUnmarked: 'Não marcado (não significa sem alérgenos)',
+    itemVegetarianBadge: 'Vegetariano',
+    itemDetailNotesTitle: 'Notas',
+    dietaryFilterVegetarian: 'Vegetariano',
+    dietaryFilterAllergen: 'Alérgenos',
+    dietaryFilterAllergenCount: 'Alérgenos · {n}',
+    dietaryFilterAllergenTitle: 'Evitar alérgenos',
+    dietaryFilterAllergenHint:
+      'Só esconde pratos que a loja marcou como contendo o alérgeno; não marcado continua visível (não marcado ≠ sem alérgeno).',
+    dietaryFilterAllergenClear: 'Limpar',
+    dietaryFilterAllergenDone: 'Concluir',
     itemDetailDescriptionTitle: 'Descrição',
     itemDetailDescriptionEmpty: 'Sem descrição para este prato.',
     itemDetailAddToRound: 'Adicionar à ronda',
@@ -217,6 +236,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Order now',
     itemAllergensTitle: 'Allergens',
     itemAllergensUnmarked: 'Unmarked (not allergen-free)',
+    itemVegetarianBadge: 'Vegetarian',
+    itemDetailNotesTitle: 'Notes',
+    dietaryFilterVegetarian: 'Vegetarian',
+    dietaryFilterAllergen: 'Allergens',
+    dietaryFilterAllergenCount: 'Allergens · {n}',
+    dietaryFilterAllergenTitle: 'Avoid allergens',
+    dietaryFilterAllergenHint:
+      'Hides only dishes the restaurant marked as containing the allergen; unmarked dishes stay visible (unmarked ≠ allergen-free).',
+    dietaryFilterAllergenClear: 'Clear',
+    dietaryFilterAllergenDone: 'Done',
     itemDetailDescriptionTitle: 'Description',
     itemDetailDescriptionEmpty: 'No description for this dish yet.',
     itemDetailAddToRound: 'Add to round',
@@ -291,6 +320,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: '即时下单',
     itemAllergensTitle: '过敏原',
     itemAllergensUnmarked: '未标注（不等于无过敏原）',
+    itemVegetarianBadge: '素食',
+    itemDetailNotesTitle: '备注',
+    dietaryFilterVegetarian: '素食',
+    dietaryFilterAllergen: '过敏原',
+    dietaryFilterAllergenCount: '过敏原 · {n}',
+    dietaryFilterAllergenTitle: '避开过敏原',
+    dietaryFilterAllergenHint:
+      '只隐藏店家已标注「含有」所选过敏原的菜；未标注的菜仍会显示（未标注 ≠ 无过敏原）。',
+    dietaryFilterAllergenClear: '清空',
+    dietaryFilterAllergenDone: '完成',
     itemDetailDescriptionTitle: '菜品描述',
     itemDetailDescriptionEmpty: '暂无描述',
     itemDetailAddToRound: '加入本轮',
@@ -372,6 +411,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Pedido inmediato',
     itemAllergensTitle: 'Alérgenos',
     itemAllergensUnmarked: 'Sin marcar (no significa sin alérgenos)',
+    itemVegetarianBadge: 'Vegetariano',
+    itemDetailNotesTitle: 'Notas',
+    dietaryFilterVegetarian: 'Vegetariano',
+    dietaryFilterAllergen: 'Alérgenos',
+    dietaryFilterAllergenCount: 'Alérgenos · {n}',
+    dietaryFilterAllergenTitle: 'Evitar alérgenos',
+    dietaryFilterAllergenHint:
+      'Solo oculta platos que el restaurante marcó como con el alérgeno; sin marcar siguen visibles (sin marcar ≠ sin alérgeno).',
+    dietaryFilterAllergenClear: 'Vaciar',
+    dietaryFilterAllergenDone: 'Listo',
     itemDetailDescriptionTitle: 'Descripción',
     itemDetailDescriptionEmpty: 'Sin descripción para este plato.',
     itemDetailAddToRound: 'Añadir a la ronda',
@@ -457,6 +506,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Commande immédiate',
     itemAllergensTitle: 'Allergènes',
     itemAllergensUnmarked: 'Non renseigné (pas « sans allergène »)',
+    itemVegetarianBadge: 'Végétarien',
+    itemDetailNotesTitle: 'Notes',
+    dietaryFilterVegetarian: 'Végétarien',
+    dietaryFilterAllergen: 'Allergènes',
+    dietaryFilterAllergenCount: 'Allergènes · {n}',
+    dietaryFilterAllergenTitle: 'Éviter les allergènes',
+    dietaryFilterAllergenHint:
+      'N’affiche que les plats marqués comme contenant l’allergène ; non renseignés restent visibles (non renseigné ≠ sans allergène).',
+    dietaryFilterAllergenClear: 'Effacer',
+    dietaryFilterAllergenDone: 'OK',
     itemDetailDescriptionTitle: 'Description',
     itemDetailDescriptionEmpty: 'Pas encore de description pour ce plat.',
     itemDetailAddToRound: 'Ajouter au tour',
@@ -541,6 +600,16 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     itemBadgePaid: 'Sofort bestellen',
     itemAllergensTitle: 'Allergene',
     itemAllergensUnmarked: 'Nicht gekennzeichnet (nicht allergenfrei)',
+    itemVegetarianBadge: 'Vegetarisch',
+    itemDetailNotesTitle: 'Notizen',
+    dietaryFilterVegetarian: 'Vegetarisch',
+    dietaryFilterAllergen: 'Allergene',
+    dietaryFilterAllergenCount: 'Allergene · {n}',
+    dietaryFilterAllergenTitle: 'Allergene meiden',
+    dietaryFilterAllergenHint:
+      'Blendet nur Gerichte aus, die der Laden als allergenhaltig markiert hat; unmarkierte bleiben sichtbar (unmarkiert ≠ allergenfrei).',
+    dietaryFilterAllergenClear: 'Leeren',
+    dietaryFilterAllergenDone: 'Fertig',
     itemDetailDescriptionTitle: 'Beschreibung',
     itemDetailDescriptionEmpty: 'Noch keine Beschreibung für dieses Gericht.',
     itemDetailAddToRound: 'Zur Runde hinzufügen',

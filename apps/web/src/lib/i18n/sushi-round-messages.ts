@@ -44,7 +44,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
   }
 > = {
   zh: {
-    stickyGuestsCap: '本桌 {guests} 人 · 每轮免费菜最多 {cap} 份',
+    stickyGuestsCap: '本桌 {guests} 人',
     stickyRoundProgress: '本轮 {qty}/{cap}',
     stickyCooldown: '桌级冷却 {seconds}s',
     stickyPending: '{seconds} 秒后送厨 · 请抓紧点餐',
@@ -82,7 +82,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: '开始点餐',
   },
   en: {
-    stickyGuestsCap: '{guests} guests · up to {cap} free dishes per round',
+    stickyGuestsCap: '{guests} guests',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',
@@ -121,7 +121,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   pt: {
-    stickyGuestsCap: '{guests} pessoas · até {cap} pratos grátis por ronda',
+    stickyGuestsCap: '{guests} pessoas',
     stickyRoundProgress: 'Esta ronda {qty}/{cap}',
     stickyCooldown: 'Espera da mesa {seconds}s',
     stickyPending: '{seconds}s até à cozinha · continue a pedir',
@@ -160,7 +160,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Começar a pedir',
   },
   es: {
-    stickyGuestsCap: '{guests} personas · hasta {cap} platos gratis por ronda',
+    stickyGuestsCap: '{guests} personas',
     stickyRoundProgress: 'Esta ronda {qty}/{cap}',
     stickyCooldown: 'Espera de mesa {seconds}s',
     stickyPending: '{seconds}s hasta cocina · sigue pidiendo',
@@ -199,7 +199,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Empezar a pedir',
   },
   fr: {
-    stickyGuestsCap: '{guests} guests · up to {cap} free dishes per round',
+    stickyGuestsCap: '{guests} guests',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',
@@ -239,7 +239,7 @@ export const SUSHI_ROUND_MESSAGES: Record<
     introCta: 'Start ordering',
   },
   de: {
-    stickyGuestsCap: '{guests} guests · up to {cap} free dishes per round',
+    stickyGuestsCap: '{guests} guests',
     stickyRoundProgress: 'This round {qty}/{cap}',
     stickyCooldown: 'Table cooldown {seconds}s',
     stickyPending: '{seconds}s until kitchen · keep ordering',

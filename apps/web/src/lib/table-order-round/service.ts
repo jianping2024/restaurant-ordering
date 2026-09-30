@@ -67,7 +67,7 @@ export async function loadRestaurantSushiRoundSettings(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds',
+      'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
     )
     .eq('id', restaurantId)
     .maybeSingle();

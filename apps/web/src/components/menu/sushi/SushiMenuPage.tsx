@@ -22,6 +22,12 @@ import {
   customerMenuStripTopCategories,
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
+import {
+  EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
+  filterMenuItemsByDietaryPrefs,
+  type CustomerMenuDietaryFilterPrefs,
+} from '@/lib/customer-menu-dietary-filter';
+import type { AllergenCode } from '@/lib/allergens';
 import { deriveMenuPageFooter } from '@/lib/menu-page-footer';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { coerceCartQty } from '@/lib/cart-totals';
@@ -140,6 +146,9 @@ export function SushiMenuPage({
   const [orderedOpen, setOrderedOpen] = useState(false);
   const [roundReviewOpen, setRoundReviewOpen] = useState(false);
   const [detailMenuItemId, setDetailMenuItemId] = useState<string | null>(null);
+  const [dietaryPrefs, setDietaryPrefs] = useState<CustomerMenuDietaryFilterPrefs>(
+    EMPTY_CUSTOMER_MENU_DIETARY_FILTER_PREFS,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [roundBusy, setRoundBusy] = useState(false);
   const submittingRef = useRef(false);
@@ -220,16 +229,41 @@ export function SushiMenuPage({
     return guestOrderGateFromSessionContext(data);
   }, [activeSession, isDemo, refreshSessionContext, sessionResolved]);
 
+  const vegFilterEnabled = sushiRoundSettings.sushi_menu_vegetarian_filter_enabled;
+  const allergenFilterEnabled = sushiRoundSettings.sushi_menu_allergen_filter_enabled;
+
+  useEffect(() => {
+    setDietaryPrefs((prev) => {
+      let next = prev;
+      if (!vegFilterEnabled && prev.vegetarianOnly) {
+        next = { ...next, vegetarianOnly: false };
+      }
+      if (!allergenFilterEnabled && prev.excludeAllergenCodes.length > 0) {
+        next = { ...next, excludeAllergenCodes: [] };
+      }
+      return next;
+    });
+  }, [vegFilterEnabled, allergenFilterEnabled]);
+
+  const filteredMenuItems = useMemo(
+    () =>
+      filterMenuItemsByDietaryPrefs(menuItems, {
+        vegetarianOnly: vegFilterEnabled ? dietaryPrefs.vegetarianOnly : false,
+        excludeAllergenCodes: allergenFilterEnabled ? dietaryPrefs.excludeAllergenCodes : [],
+      }),
+    [menuItems, dietaryPrefs, vegFilterEnabled, allergenFilterEnabled],
+  );
+
   const catalogView = useMemo(
     () =>
       resolveCustomerMenuCatalogView({
         menuCategories,
-        menuItems,
+        menuItems: filteredMenuItems,
         recommendedItemIds,
         activeTopId: activeTopCategory,
         activeSubpath,
       }),
-    [menuCategories, menuItems, recommendedItemIds, activeTopCategory, activeSubpath],
+    [menuCategories, filteredMenuItems, recommendedItemIds, activeTopCategory, activeSubpath],
   );
   const currentTop = catalogView.currentTopId;
   const subCategories = catalogView.subCategories;
@@ -312,6 +346,72 @@ export function SushiMenuPage({
   const detailItem = useMemo(
     () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
     [detailMenuItemId, menuItems],
+  );
+
+  useEffect(() => {
+    if (!detailMenuItemId) return;
+    if (!filteredMenuItems.some((m) => m.id === detailMenuItemId)) {
+      setDetailMenuItemId(null);
+    }
+  }, [detailMenuItemId, filteredMenuItems]);
+
+  const ensureDetailCartLine = useCallback(
+    (item: MenuItem) => {
+      const prev = cartRef.current;
+      if (prev.some((c) => c.menuItemId === item.id)) return;
+      const next = upsertCartItemQty(prev, item, 1);
+      cartRef.current = next;
+      setCart(next);
+      bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
+    },
+    [],
+  );
+
+  const updateDetailNote = useCallback(
+    (note: string) => {
+      if (!detailItem) return;
+      ensureDetailCartLine(detailItem);
+      const id = detailItem.id;
+      setCart((prev) => {
+        const base = prev.some((c) => c.menuItemId === id)
+          ? prev
+          : upsertCartItemQty(prev, detailItem, 1);
+        const next = base.map((c) =>
+          c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+        );
+        cartRef.current = next;
+        return next;
+      });
+    },
+    [detailItem, ensureDetailCartLine],
+  );
+
+  const toggleDetailNotePreset = useCallback(
+    (presetId: string) => {
+      if (!detailItem) return;
+      ensureDetailCartLine(detailItem);
+      const id = detailItem.id;
+      setCart((prev) => {
+        const base = prev.some((c) => c.menuItemId === id)
+          ? prev
+          : upsertCartItemQty(prev, detailItem, 1);
+        const next = base.map((c) =>
+          c.menuItemId === id
+            ? {
+                ...c,
+                selectedNotePresetIds: toggleCartNotePresetSelection(
+                  c.selectedNotePresetIds || [],
+                  notePresetCatalog,
+                  presetId,
+                ),
+              }
+            : c,
+        );
+        cartRef.current = next;
+        return next;
+      });
+    },
+    [detailItem, ensureDetailCartLine, notePresetCatalog],
   );
   const detailCartEntry = detailItem
     ? cart.find((c) => c.menuItemId === detailItem.id)
@@ -846,7 +946,29 @@ export function SushiMenuPage({
         />
       </CustomerOrderingHeader>
 
-      {!isDemo ? <SushiRoundStickyBar snapshot={round.snapshot} labels={roundT} /> : null}
+      {!isDemo ? (
+        <SushiRoundStickyBar
+          snapshot={round.snapshot}
+          labels={roundT}
+          lang={lang}
+          dietaryFilter={
+            vegFilterEnabled || allergenFilterEnabled
+              ? {
+                  vegetarianFilterEnabled: vegFilterEnabled,
+                  allergenFilterEnabled: allergenFilterEnabled,
+                  prefs: dietaryPrefs,
+                  onVegetarianOnlyChange: (next) =>
+                    setDietaryPrefs((p) => ({ ...p, vegetarianOnly: next })),
+                  onExcludeAllergenCodesChange: (codes) =>
+                    setDietaryPrefs((p) => ({
+                      ...p,
+                      excludeAllergenCodes: codes as AllergenCode[],
+                    })),
+                }
+              : null
+          }
+        />
+      ) : null}
 
       {!isDemo && sessionResolved && !guestCanOrder ? (
         <CustomerMenuOrderGateBanner
@@ -952,6 +1074,11 @@ export function SushiMenuPage({
         cartQty={detailCartQty}
         treatZeroAsFree
         limitHint={detailLimitHint}
+        notePresetCatalog={notePresetCatalog}
+        note={detailCartEntry?.note || ''}
+        selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}
+        onUpdateNote={updateDetailNote}
+        onToggleNotePreset={toggleDetailNotePreset}
         onClose={() => setDetailMenuItemId(null)}
         onIncrement={() => {
           if (detailItem) bumpItem(detailItem, 1);

@@ -5,6 +5,8 @@ import Image from 'next/image';
 import type { Language, MenuItem } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { CustomerCartItemNoteFields } from '@/components/menu/CustomerCartItemNoteFields';
+import type { MenuNotePresetCatalog } from '@/lib/menu-note-presets';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
@@ -37,6 +39,8 @@ type DetailLabels = Pick<
   | 'itemBadgePaid'
   | 'itemAllergensTitle'
   | 'itemAllergensUnmarked'
+  | 'itemVegetarianBadge'
+  | 'itemDetailNotesTitle'
   | 'itemDetailDescriptionTitle'
   | 'itemDetailDescriptionEmpty'
   | 'itemDetailAddToRound'
@@ -50,10 +54,14 @@ type Props = {
   item: MenuItem | null;
   lang: Language;
   cartQty: number;
-  /** Sushi guest/staff catalog: zero-price dishes use free + round/paid badges. */
   treatZeroAsFree: boolean;
   limitHint?: string | null;
   incrementDisabled?: boolean;
+  notePresetCatalog: MenuNotePresetCatalog;
+  note: string;
+  selectedNotePresetIds: readonly string[];
+  onUpdateNote: (note: string) => void;
+  onToggleNotePreset: (presetId: string) => void;
   onClose: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
@@ -68,6 +76,11 @@ export function CustomerMenuItemDetailSheet({
   treatZeroAsFree,
   limitHint,
   incrementDisabled,
+  notePresetCatalog,
+  note,
+  selectedNotePresetIds,
+  onUpdateNote,
+  onToggleNotePreset,
   onClose,
   onIncrement,
   onDecrement,
@@ -168,6 +181,11 @@ export function CustomerMenuItemDetailSheet({
           <h1 className={`text-brand-text ${CUSTOMER_MENU_TYPE.drawerTitle}`}>{label}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className={CUSTOMER_MENU_TYPE.moneyAmount}>{priceText}</span>
+            {item.is_vegetarian ? (
+              <span className="rounded-full border border-emerald-600/35 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+                {t.itemVegetarianBadge}
+              </span>
+            ) : null}
             {treatZeroAsFree ? (
               <span className="rounded-full border border-brand-border bg-brand-border/25 px-2.5 py-0.5 text-xs font-medium text-brand-text-muted">
                 {isRoundFree ? t.itemBadgeRound : t.itemBadgePaid}
@@ -200,6 +218,22 @@ export function CustomerMenuItemDetailSheet({
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="mt-5">
+            <h2 className="text-sm font-semibold text-brand-text">{t.itemDetailNotesTitle}</h2>
+            <div className="mt-2">
+              <CustomerCartItemNoteFields
+                lang={lang}
+                notePresetCatalog={notePresetCatalog}
+                notePresetGroupIds={item.note_preset_group_ids || []}
+                selectedNotePresetIds={selectedNotePresetIds}
+                note={note}
+                disabled={!item.available}
+                onUpdateNote={onUpdateNote}
+                onToggleNotePreset={onToggleNotePreset}
+              />
+            </div>
           </div>
 
           {limitHint ? (

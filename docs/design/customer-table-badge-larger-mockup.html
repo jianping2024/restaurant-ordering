@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FARVOO · 顾客顶栏桌号加大（单行）</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EDEAE2;
+    --paper-card: #F7F4EE;
+    --ink: #1F3E52;
+    --text: #1A1612;
+    --muted: #8A8377;
+    --gold: #8B6530;
+    --border: #BAB2A4;
+    --ink-line: rgba(31, 62, 82, 0.28);
+    --ink-line-strong: rgba(31, 62, 82, 0.45);
+  }
+  body {
+    background: #d8d2c6;
+    font-family: 'Jost', 'Noto Sans SC', sans-serif;
+    color: var(--text);
+  }
+  .font-heading { font-family: 'Cormorant Garamond', serif; }
+  .phone {
+    width: 320px;
+    background: var(--paper);
+    border-radius: 28px;
+    box-shadow: 0 18px 40px rgba(43, 38, 32, 0.18);
+    overflow: hidden;
+    border: 1px solid rgba(43, 38, 32, 0.08);
+  }
+  /* 现状：单行旁置小 chip（对齐本地 CustomerTableIdentityBadge） */
+  .badge-now {
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--ink-line);
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  /* 建议：仍单行，chip 加大加深 */
+  .badge-next {
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 1.5px solid var(--ink-line-strong);
+    padding: 4px 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
+  }
+  .chrome-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    background: var(--paper-card);
+    font-size: 14px;
+  }
+  .receipt {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto;
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    background: var(--paper-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body class="min-h-screen py-10 px-4">
+  <div class="max-w-5xl mx-auto mb-8 text-center space-y-2">
+    <p class="text-xs tracking-widest uppercase" style="color:var(--muted)">设计示意 · 不改产品代码</p>
+    <h1 class="text-2xl font-medium">顾客顶栏桌号加大（单行）</h1>
+    <p class="text-sm max-w-xl mx-auto" style="color:var(--muted)">
+      终态：店名与桌号同一行——店名旁唯一 chip。
+      建议把 chip 从 <code>text-xs</code> 加大到 <code>text-base</code> + semibold + 更深描边。
+    </p>
+  </div>
+
+  <div class="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">
+
+    <!-- Menu: before -->
+    <section class="space-y-3">
+      <div class="text-center">
+        <p class="text-sm font-medium">点餐顶栏 · 现状</p>
+        <p class="text-xs" style="color:var(--muted)">单行 · text-xs chip</p>
+      </div>
+      <div class="phone">
+        <header class="border-b px-4 py-3" style="border-color:var(--border)">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex min-w-0 items-center gap-2">
+                <h2 class="font-heading text-lg truncate" style="color:var(--ink)">Pirata</h2>
+                <span class="badge-now">Mesa 003</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="chrome-btn" aria-hidden="true">🌐</span>
+              <span class="chrome-btn" aria-hidden="true">☽</span>
+            </div>
+          </div>
+        </header>
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+          <div class="flex gap-4 text-sm overflow-hidden" style="color:var(--muted)">
+            <span class="font-medium shrink-0" style="color:var(--ink)">Entradas</span>
+            <span class="shrink-0">Peixe</span>
+            <span class="shrink-0">Carne</span>
+            <span class="shrink-0">Bebidas</span>
+          </div>
+        </div>
+        <div class="px-4 py-4 space-y-3 pb-8">
+          <div class="rounded-xl p-3 flex justify-between" style="background:var(--paper-card); border:1px solid var(--border)">
+            <span class="text-sm">Água · 001</span>
+            <span class="text-sm font-medium" style="color:var(--gold)">€1.85</span>
+          </div>
+          <div class="rounded-xl p-3 flex justify-between" style="background:var(--paper-card); border:1px solid var(--border)">
+            <span class="text-sm">Cerveja · 012</span>
+            <span class="text-sm font-medium" style="color:var(--gold)">€3.50</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Menu: after -->
+    <section class="space-y-3">
+      <div class="text-center">
+        <p class="text-sm font-medium">点餐顶栏 · 建议</p>
+        <p class="text-xs" style="color:var(--gold)">单行 · text-base · semibold</p>
+      </div>
+      <div class="phone" style="outline:2px solid var(--gold); outline-offset:4px;">
+        <header class="border-b px-4 py-3" style="border-color:var(--border)">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex min-w-0 items-center gap-2">
+                <h2 class="font-heading text-lg truncate" style="color:var(--ink)">Pirata</h2>
+                <span class="badge-next">Mesa 003</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="chrome-btn" aria-hidden="true">🌐</span>
+              <span class="chrome-btn" aria-hidden="true">☽</span>
+            </div>
+          </div>
+        </header>
+        <div class="px-4 py-3 border-b" style="border-color:var(--border)">
+          <div class="flex gap-4 text-sm overflow-hidden" style="color:var(--muted)">
+            <span class="font-medium shrink-0" style="color:var(--ink)">Entradas</span>
+            <span class="shrink-0">Peixe</span>
+            <span class="shrink-0">Carne</span>
+            <span class="shrink-0">Bebidas</span>
+          </div>
+        </div>
+        <div class="px-4 py-4 space-y-3 pb-8">
+          <div class="rounded-xl p-3 flex justify-between" style="background:var(--paper-card); border:1px solid var(--border)">
+            <span class="text-sm">Água · 001</span>
+            <span class="text-sm font-medium" style="color:var(--gold)">€1.85</span>
+          </div>
+          <div class="rounded-xl p-3 flex justify-between" style="background:var(--paper-card); border:1px solid var(--border)">
+            <span class="text-sm">Cerveja · 012</span>
+            <span class="text-sm font-medium" style="color:var(--gold)">€3.50</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bill: before -->
+    <section class="space-y-3">
+      <div class="text-center">
+        <p class="text-sm font-medium">结账已提交 · 现状</p>
+        <p class="text-xs" style="color:var(--muted)">单行 · text-xs chip</p>
+      </div>
+      <div class="phone">
+        <header class="border-b px-4 py-3" style="border-color:var(--border)">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex min-w-0 items-center gap-2">
+                <h2 class="font-heading text-xl truncate" style="color:var(--ink)">Pirata</h2>
+                <span class="badge-now">Mesa 003</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="chrome-btn" aria-hidden="true">🌐</span>
+              <span class="chrome-btn" aria-hidden="true">☽</span>
+            </div>
+          </div>
+        </header>
+        <main class="px-4 py-6 space-y-4 text-center">
+          <div class="receipt">€</div>
+          <p class="font-heading text-lg leading-snug px-1" style="color:var(--gold)">
+            Leve no telemóvel a informação da divisão da conta até ao balcão.
+          </p>
+          <div class="rounded-xl px-4 py-5" style="background:var(--paper-card); border:1px solid var(--border)">
+            <p class="text-[13px] font-medium">Total</p>
+            <p class="font-heading text-3xl mt-1" style="color:var(--gold)">€81.80</p>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- Bill: after -->
+    <section class="space-y-3">
+      <div class="text-center">
+        <p class="text-sm font-medium">结账已提交 · 建议</p>
+        <p class="text-xs" style="color:var(--gold)">单行 · text-base · semibold</p>
+      </div>
+      <div class="phone" style="outline:2px solid var(--gold); outline-offset:4px;">
+        <header class="border-b px-4 py-3" style="border-color:var(--border)">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex min-w-0 items-center gap-2">
+                <h2 class="font-heading text-xl truncate" style="color:var(--ink)">Pirata</h2>
+                <span class="badge-next">Mesa 003</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="chrome-btn" aria-hidden="true">🌐</span>
+              <span class="chrome-btn" aria-hidden="true">☽</span>
+            </div>
+          </div>
+        </header>
+        <main class="px-4 py-6 space-y-4 text-center">
+          <div class="receipt">€</div>
+          <p class="font-heading text-lg leading-snug px-1" style="color:var(--gold)">
+            Leve no telemóvel a informação da divisão da conta até ao balcão.
+          </p>
+          <div class="rounded-xl px-4 py-5" style="background:var(--paper-card); border:1px solid var(--border)">
+            <p class="text-[13px] font-medium">Total</p>
+            <p class="font-heading text-3xl mt-1" style="color:var(--gold)">€81.80</p>
+          </div>
+        </main>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="max-w-2xl mx-auto mt-10 text-center text-sm space-y-1" style="color:var(--muted)">
+    <p>终态：唯一 <code>CustomerTableIdentityBadge</code> 单行旁置；点餐与结账同一档加大。</p>
+    <p>文件：<code>docs/design/customer-table-badge-larger-mockup.html</code></p>
+  </div>
+</body>
+</html>

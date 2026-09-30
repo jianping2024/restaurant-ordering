@@ -73,6 +73,8 @@ export type TableOrderRoundErrorCode =
   | 'session_billing'
   | 'guest_client_limit'
   | 'per_person_limit_exceeded'
+  | 'over_limit_price_missing'
+  | 'limited_item_requires_headcount'
   | 'sushi_round_required'
   | 'sushi_round_disabled'
   | 'round_not_found'

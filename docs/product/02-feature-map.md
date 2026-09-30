@@ -134,6 +134,7 @@
 ### 已有功能
 
 - 分类树：多语言名称、排序、打印档口绑定、`item_code`
+- 分类同级排序：同一父分类下拖拽手柄（@hello-pangea/dnd，桌面+触控）调整顺序，松手一次提交 `parent_id` + `ordered_ids`；不能拖到其他分类下
 - 菜品 CRUD：中葡英名称与描述、价格、VAT、emoji、图片上传
 - **推荐菜**：`menu_recommended_items` 策展列表（最多 12 道、可排序）；权限与添加菜品相同（`dashboard.menu.view`）；空列表则顾客菜单不出现「推荐」
 - 打印档口管理：kitchen / beverage / standard 布局；档口列表拖拽手柄调整顺序，松手一次提交 `ordered_ids`

@@ -1,11 +1,17 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import {
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
 } from '@/lib/customer-menu-chrome-layout';
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
+import {
+  MENU_IMAGE_OBJECT_FIT_CLASS,
+  MENU_IMAGE_UNOPTIMIZED,
+  MENU_IMAGE_WELL_BG_CLASS,
+  resolveMenuImageDisplayUrl,
+} from '@/lib/menu-image';
 import { isBuffetBaseItem, isKitchenRemakeItem } from '@/lib/order-items';
 import {
   mintPaidPeerFloatBaselineAtMs,
@@ -13,12 +19,19 @@ import {
   peerFloatPaidItemKey,
   shouldEmitPaidPeerFloatAfterBaseline,
 } from '@/lib/table-order-round/sushi-peer-float-baseline';
+import {
+  formatPeerFloatLabel,
+  resolvePeerFloatThumb,
+  type PeerFloatThumb,
+} from '@/lib/table-order-round/sushi-peer-float-display';
 import type { TableOrderRoundLineRow } from '@/lib/table-order-round/types';
 import type { Language, MenuItem, Order } from '@/types';
 
 type FloatItem = {
   id: string;
-  text: string;
+  /** Localized name + qty only — never embeds emoji (thumb owns identity). */
+  label: string;
+  thumb: PeerFloatThumb;
   /** Monotonic ms — sole sort key (older above in flex-col). */
   shownAt: number;
   /** After hold: CSS opacity fade; removed after SUSHI_PEER_FLOAT_FADE_MS. */
@@ -47,11 +60,36 @@ export const sushiPeerFloatRailClass = [
 /** Sole bubble chrome: opacity fade (Toast-style); duration matches SUSHI_PEER_FLOAT_FADE_MS. */
 export const sushiPeerFloatBubbleClass = (fading: boolean) =>
   [
-    'max-w-[min(72%,15rem)] rounded-2xl rounded-tl-sm bg-[rgb(26_22_18_/_0.88)] px-3 py-2',
+    'flex max-w-[min(72%,15rem)] items-center gap-2 rounded-2xl rounded-tl-sm',
+    'bg-[rgb(26_22_18_/_0.88)] px-2.5 py-1.5',
     'text-[12.5px] leading-snug text-[rgb(242_239_231)] shadow-lg',
     'transition-opacity duration-300',
     fading ? 'opacity-0' : 'opacity-100',
   ].join(' ');
+
+/** Sole peer-float dish thumb UI: photo else emoji (28×28). */
+function PeerFloatDishThumb({ thumb }: { thumb: PeerFloatThumb }) {
+  const src = resolveMenuImageDisplayUrl(thumb.imageUrl);
+  return (
+    <span
+      className={`relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[15px] leading-none ${MENU_IMAGE_WELL_BG_CLASS}`}
+      data-peer-float-thumb={src ? 'photo' : 'emoji'}
+    >
+      {src ? (
+        <Image
+          src={src}
+          alt=""
+          fill
+          className={MENU_IMAGE_OBJECT_FIT_CLASS}
+          sizes="28px"
+          unoptimized={MENU_IMAGE_UNOPTIMIZED}
+        />
+      ) : (
+        thumb.emoji
+      )}
+    </span>
+  );
+}
 
 /** Sole batch merge + chronological sort before render cap. */
 export function appendPeerFloatItems(
@@ -161,19 +199,18 @@ export function SushiRoundPeerFloats(params: {
         if (!isNew && !increased) continue;
 
         const item = byId.get(line.menu_item_id);
-        const text = formatOrderItemListLabel(
+        const thumb = resolvePeerFloatThumb({ menu: item });
+        const label = formatPeerFloatLabel(
           {
-            emoji: item?.emoji || '🍽️',
-            name: item?.name_pt || '',
             name_pt: item?.name_pt || '',
             name_en: item?.name_en || '',
             name_zh: item?.name_zh || '',
-            qty,
           },
+          qty,
           lang,
         );
         const id = `round:${line.id}:${qty}:${Date.now()}`;
-        pending.push({ id, text, shownAt: mintShownAt() });
+        pending.push({ id, label, thumb, shownAt: mintShownAt() });
       }
       seenRoundRef.current = nextRoundSeen;
       if (!roundCatchupDoneRef.current) {
@@ -207,19 +244,24 @@ export function SushiRoundPeerFloats(params: {
             continue;
           }
 
-          const text = formatOrderItemListLabel(
+          // OrderItem.id is menu_item.id at append time.
+          const menu = byId.get(line.id);
+          const thumb = resolvePeerFloatThumb({
+            menu,
+            fallbackEmoji: line.emoji,
+          });
+          const label = formatPeerFloatLabel(
             {
-              emoji: line.emoji || '🍽️',
               name: line.name || line.name_pt || '',
               name_pt: line.name_pt || line.name || '',
               name_en: line.name_en || '',
               name_zh: line.name_zh || '',
-              qty: Number(line.qty) || 0,
             },
+            Number(line.qty) || 0,
             lang,
           );
           const id = `paid:${key}:${Date.now()}`;
-          pending.push({ id, text, shownAt: mintShownAt() });
+          pending.push({ id, label, thumb, shownAt: mintShownAt() });
         }
       }
       seenOrderItemRef.current = nextOrderSeen;
@@ -264,7 +306,8 @@ export function SushiRoundPeerFloats(params: {
           className={sushiPeerFloatBubbleClass(item.fading)}
           data-fading={item.fading ? '1' : '0'}
         >
-          {item.text}
+          <PeerFloatDishThumb thumb={item.thumb} />
+          <span className="min-w-0">{item.label}</span>
         </div>
       ))}
     </div>

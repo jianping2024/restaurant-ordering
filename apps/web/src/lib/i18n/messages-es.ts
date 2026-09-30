@@ -404,6 +404,8 @@ export const MESSAGES_ES = {
     "addRootShort": "Añadir raíz",
     "addChild": "Añadir subcategoría",
     "categoryTreeHint": "Usa + / editar / eliminar a la derecha de cada fila; pulsa el nombre para editarlo en el panel.",
+    "categorySameLevelSort": "Solo ordenar al mismo nivel",
+    "categoryReorderStale": "Las categorías cambiaron. Intenta ordenar de nuevo.",
     "linkPrintStations": "Puestos de impresión",
     "depthHint": "Se admiten hasta {max} niveles.",
     "editCategoryTitle": "Editar categoría",

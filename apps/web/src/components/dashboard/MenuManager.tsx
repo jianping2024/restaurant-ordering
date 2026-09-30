@@ -5,12 +5,11 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import Tree from 'rc-tree';
-import type { DataNode } from 'rc-tree/lib/interface';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import { MenuCategorySortTree } from '@/components/dashboard/MenuCategorySortTree';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
@@ -57,11 +56,11 @@ import {
 } from '@/lib/menu-admin';
 import { getPrintStationDisplayName } from '@/lib/print-station-admin';
 import {
-  applyOrderedSortOrders,
   canReorderVisibleMenuItems,
   compareMenuItemsForDisplay,
-  moveIdInOrderedList,
 } from '@/lib/menu-item-order';
+import { menuCategorySiblingsInScope } from '@/lib/menu-category-order';
+import { applyOrderedSortOrders, moveIdInOrderedList } from '@/lib/sort-order';
 import { categoryCodePathFromLeaf, normalizeMenuItemCode } from '@/lib/menu-print-label';
 import { resolveEffectivePrintStationId } from '@/lib/print-station-resolve';
 import { PrintStationsManager } from '@/components/dashboard/PrintStationsManager';
@@ -86,26 +85,17 @@ import {
   mapMenuCategoryApiError,
   mapMenuItemApiError,
   setMenuItemImageClient,
+  reorderMenuCategoriesClient,
   reorderMenuItemsClient,
   updateMenuCategoryClient,
   updateMenuItemClient,
 } from '@/lib/dashboard-menu-client';
-import 'rc-tree/assets/index.css';
 
 const FOOD_EMOJIS = ['🍽️', '🍞', '🥗', '🥣', '🐟', '🥚', '🍗', '🐙', '🥩', '🦆', '🫒', '🍷', '🍺', '💧', '☕', '🥧', '🍮', '🫕', '🥘', '🍲'];
 
 /** Shared height/padding for dish-list search + category filter (matches form selects). */
 const MENU_TOOLBAR_CONTROL =
   'w-full h-11 rounded-lg border border-brand-border bg-brand-card px-4 text-base text-brand-text placeholder:text-brand-text-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50';
-
-/** Sole compact row-action chrome for category tree nodes (+ / ✎ / ×). */
-const MENU_ROW_ICON_BTN =
-  'h-5 w-5 inline-flex items-center justify-center rounded-md border border-brand-border/70 bg-brand-card/80 text-brand-text leading-none hover:text-brand-gold hover:border-brand-gold/35 hover:bg-brand-gold/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/45 focus-visible:bg-brand-gold/15 transition-colors disabled:opacity-35 disabled:hover:bg-brand-card/80 disabled:hover:text-brand-text disabled:cursor-not-allowed shrink-0';
-
-const MENU_ROW_ICON_BTN_DANGER = `${MENU_ROW_ICON_BTN} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`;
-
-const MENU_ROW_ICON_CLUSTER =
-  'flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1';
 
 interface MenuManagerProps {
   restaurantId: string;
@@ -288,6 +278,7 @@ export function MenuManager({
   const [categoryDraft, setCategoryDraft] = useState<CategoryDraft>(defaultCategoryDraft);
   const [categorySaving, setCategorySaving] = useState(false);
   const [categoryError, setCategoryError] = useState('');
+  const [categoryReorderBusy, setCategoryReorderBusy] = useState(false);
   const [categoryPanelMode, setCategoryPanelMode] = useState<'none' | 'edit' | 'create-child' | 'create-root'>('none');
 
   const [itemModalOpen, setItemModalOpen] = useState(false);
@@ -764,6 +755,27 @@ export function MenuManager({
     void commitDishReorder(result.source.index, result.destination.index);
   };
 
+  const commitCategoryReorder = async (
+    parentId: string | null,
+    fromIndex: number,
+    toIndex: number,
+  ) => {
+    const siblingIds = menuCategorySiblingsInScope(categories, parentId).map((row) => row.id);
+    const orderedIds = moveIdInOrderedList(siblingIds, fromIndex, toIndex);
+    if (!orderedIds || categoryReorderBusy) return;
+
+    const previous = categories;
+    setCategoryError('');
+    setCategories((prev) => applyOrderedSortOrders(prev, orderedIds));
+    setCategoryReorderBusy(true);
+    const result = await reorderMenuCategoriesClient(parentId, orderedIds);
+    setCategoryReorderBusy(false);
+    if (!result.ok) {
+      setCategories(previous);
+      setCategoryError(mapMenuCategoryApiError(result.error, result.message, t));
+    }
+  };
+
   const createCategory = async (parentId: string | null) => {
     if (!categoryDraft.name_pt.trim()) {
       setCategoryError(t.ptNameRequired);
@@ -1013,73 +1025,6 @@ export function MenuManager({
     setCategoryPanelMode('edit');
   };
 
-  const renderCategoryNodeTitle = (category: MenuCategory) => {
-    const depth = categoryDepthMap.get(category.id) || 1;
-    const canAddChild = depth < MAX_CATEGORY_DEPTH;
-    const maxDepthTitle = t.maxDepthTitle.replace('{max}', String(MAX_CATEGORY_DEPTH));
-    return (
-      <div className="group flex w-full items-center gap-2 min-h-7 pr-1 min-w-0">
-        <span
-          className={`truncate text-sm leading-5 min-w-0 flex-1 ${
-            selectedCategoryId === category.id ? 'text-brand-gold font-medium' : 'text-brand-text'
-          }`}
-        >
-          {getCategoryLabel(category)}
-          {category.item_code?.trim() ? (
-            <span className="text-brand-text-muted font-normal"> [{category.item_code.trim()}]</span>
-          ) : null}
-        </span>
-        <div
-          className={`ml-auto ${MENU_ROW_ICON_CLUSTER} transition-opacity ${
-            selectedCategoryId === category.id ? 'opacity-100' : 'opacity-75 group-hover:opacity-100'
-          }`}
-        >
-          <button
-            type="button"
-            title={canAddChild ? t.addChild : maxDepthTitle}
-            aria-label={t.addChildAction}
-            disabled={!canAddChild}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!canAddChild) return;
-              setSelectedCategoryId(category.id);
-              setCategoryDraft(defaultCategoryDraft);
-              setCategoryPanelMode('create-child');
-            }}
-            className={MENU_ROW_ICON_BTN}
-          >
-            +
-          </button>
-          <button
-            type="button"
-            title={t.edit}
-            aria-label={t.editAction}
-            onClick={(e) => {
-              e.stopPropagation();
-              openCategoryEdit(category);
-            }}
-            className={MENU_ROW_ICON_BTN}
-          >
-            ✎
-          </button>
-          <button
-            type="button"
-            title={t.remove}
-            aria-label={t.deleteAction}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedCategoryId(category.id);
-              void deleteCategoryById(category.id);
-            }}
-            className={MENU_ROW_ICON_BTN_DANGER}
-          >
-            ×
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   const categoryPreviewId =
     categoryPanelMode === 'edit' && selectedCategory
       ? selectedCategory.id
@@ -1103,21 +1048,7 @@ export function MenuManager({
     return withDraft.join('-');
   }, [categoryPreviewId, categories, categoryDraft.item_code, categoryPanelMode, selectedCategory]);
 
-  const buildTreeNodes = (parentId: string | null): DataNode[] =>
-    categories
-      .filter((c) => (c.parent_id || null) === parentId && c.active)
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((category) => {
-        const children = buildTreeNodes(category.id);
-        return {
-          key: category.id,
-          title: renderCategoryNodeTitle(category),
-          children: children.length > 0 ? children : undefined,
-          isLeaf: children.length === 0,
-        } as DataNode;
-      });
-
-  const categoryTreeData: DataNode[] = buildTreeNodes(null);
+  const hasRootCategories = menuCategorySiblingsInScope(categories, null).length > 0;
 
   return (
     <div className="w-full min-w-0 max-w-full">
@@ -1215,24 +1146,48 @@ export function MenuManager({
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,360px)_minmax(0,1fr)] gap-4 min-w-0">
           <div className="bg-brand-card border border-brand-border rounded-2xl p-4 min-w-0">
             <p className="text-[12px] text-brand-text-muted mb-2">{t.categoryTreeHint}</p>
+            <p className="text-[12px] text-brand-text-muted mb-1">{t.categorySameLevelSort}</p>
             <p className="text-[12px] text-brand-text-muted mb-3">{t.depthHint.replace('{max}', String(MAX_CATEGORY_DEPTH))}</p>
-            {categoryTreeData.length === 0 ? (
+            {categoryError ? (
+              <p className="mesa-alert-danger text-sm px-3 py-2 mb-3">{categoryError}</p>
+            ) : null}
+            {!hasRootCategories ? (
               <p className="text-sm text-brand-text-muted">{t.pickNode}</p>
             ) : (
               <>
-                <Tree
-                  treeData={categoryTreeData}
-                  selectedKeys={selectedCategoryId ? [selectedCategoryId] : []}
+                <MenuCategorySortTree
+                  categories={categories}
+                  selectedCategoryId={selectedCategoryId}
                   expandedKeys={expandedCategoryKeys}
-                  onExpand={(keys) => setExpandedCategoryKeys(keys.map(String))}
-                  onSelect={(keys) => {
-                    const selected = keys[0];
-                    if (!selected) return;
-                    const cat = categories.find((c) => c.id === String(selected));
-                    if (cat) openCategoryEdit(cat);
+                  onExpandedKeysChange={setExpandedCategoryKeys}
+                  depthById={categoryDepthMap}
+                  maxDepth={MAX_CATEGORY_DEPTH}
+                  reorderBusy={categoryReorderBusy}
+                  getLabel={getCategoryLabel}
+                  labels={{
+                    sameLevelSort: t.categorySameLevelSort,
+                    addChild: t.addChild,
+                    edit: t.edit,
+                    remove: t.remove,
+                    addChildAction: t.addChildAction,
+                    editAction: t.editAction,
+                    deleteAction: t.deleteAction,
+                    maxDepthTitle: t.maxDepthTitle,
                   }}
-                  className="mesa-category-tree"
-                  switcherIcon={<span className="text-brand-text-muted">▸</span>}
+                  onSelect={openCategoryEdit}
+                  onAddChild={(category) => {
+                    setSelectedCategoryId(category.id);
+                    setCategoryDraft(defaultCategoryDraft);
+                    setCategoryPanelMode('create-child');
+                  }}
+                  onEdit={openCategoryEdit}
+                  onDelete={(categoryId) => {
+                    setSelectedCategoryId(categoryId);
+                    void deleteCategoryById(categoryId);
+                  }}
+                  onReorder={(parentId, fromIndex, toIndex) => {
+                    void commitCategoryReorder(parentId, fromIndex, toIndex);
+                  }}
                 />
                 <button
                   type="button"
@@ -1897,35 +1852,6 @@ export function MenuManager({
           </div>
         </div>
       </Modal>
-
-      <style jsx global>{`
-        .mesa-category-tree .rc-tree-treenode {
-          margin: 2px 0;
-        }
-        .mesa-category-tree .rc-tree-node-content-wrapper {
-          width: 100%;
-          border-radius: 8px;
-          min-height: 30px;
-          padding: 1px 4px;
-          display: flex;
-          align-items: center;
-          box-sizing: border-box;
-        }
-        .mesa-category-tree .rc-tree-node-selected,
-        .mesa-category-tree .rc-tree-node-content-wrapper:hover {
-          background: rgba(212, 175, 55, 0.08);
-        }
-        .mesa-category-tree .rc-tree-switcher {
-          width: 18px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .mesa-category-tree .rc-tree-title {
-          flex: 1;
-          min-width: 0;
-        }
-      `}</style>
 
       <Modal
         open={confirmDialog.open}

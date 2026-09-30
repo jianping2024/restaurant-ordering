@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 type RestaurantScopedTable =
   | 'menu_items'
+  | 'menu_categories'
   | 'print_stations'
   | 'restaurant_table_groups'
   | 'menu_recommended_items';

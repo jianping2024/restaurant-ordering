@@ -23,6 +23,7 @@ import {
   compareMenuItemsForDisplay,
   menuItemSiblingsInScope,
 } from '@/lib/menu-item-order';
+import { menuCategorySiblingsInScope } from '@/lib/menu-category-order';
 import { persistZeroBasedSortOrders } from '@/lib/sort-order-persist';
 import { nextSortOrder, orderedIdsMatchSiblingSet } from '@/lib/sort-order';
 import { invalidateCustomerMenuCatalog } from '@/lib/customer-menu-catalog';
@@ -162,7 +163,7 @@ export async function createMenuCategory(
     return { error: 'category_code_duplicate', status: 409 };
   }
 
-  const siblings = categories.filter((c) => (c.parent_id || null) === parentId);
+  const siblings = menuCategorySiblingsInScope(categories, parentId);
   const { data, error } = await admin
     .from('menu_categories')
     .insert({
@@ -252,6 +253,61 @@ export async function updateMenuCategory(
 
   await invalidateCustomerMenuCatalog(restaurantId);
   return { category: data as MenuCategory };
+}
+
+export async function reorderMenuCategories(
+  admin: SupabaseClient,
+  restaurantId: string,
+  parentId: string | null,
+  orderedIdsRaw: unknown,
+): Promise<{ ok: true } | MenuMutationError> {
+  if (!Array.isArray(orderedIdsRaw) || orderedIdsRaw.length === 0) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+  if (orderedIdsRaw.some((id) => typeof id !== 'string')) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  const orderedIds: string[] = [];
+  for (const raw of orderedIdsRaw as string[]) {
+    const id = parseTableIdParam(raw);
+    if (!id) {
+      return { error: 'invalid_ordered_ids', status: 400 };
+    }
+    orderedIds.push(id);
+  }
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: 'invalid_ordered_ids', status: 400 };
+  }
+
+  if (parentId) {
+    const parent = await getCategoryById(admin, restaurantId, parentId);
+    if ('error' in parent) return parent;
+  }
+
+  const categories = await loadActiveCategories(admin, restaurantId);
+  if ('error' in categories) return categories;
+
+  const siblingRows = menuCategorySiblingsInScope(categories, parentId);
+  if (!orderedIdsMatchSiblingSet(siblingRows, orderedIds)) {
+    return { error: 'reorder_scope_mismatch', status: 400 };
+  }
+
+  const scopeMax =
+    siblingRows.length === 0 ? -1 : Math.max(...siblingRows.map((row) => row.sort_order));
+  const persisted = await persistZeroBasedSortOrders(
+    admin,
+    'menu_categories',
+    restaurantId,
+    orderedIds,
+    scopeMax,
+  );
+  if ('error' in persisted) {
+    return { error: persisted.error, message: persisted.message, status: 500 };
+  }
+
+  await invalidateCustomerMenuCatalog(restaurantId);
+  return { ok: true };
 }
 
 export async function deleteMenuCategory(

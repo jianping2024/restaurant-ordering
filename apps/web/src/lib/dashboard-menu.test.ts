@@ -18,6 +18,7 @@ const categoryLabels = {
   ptNameRequired: 'pt required',
   depthExceeded: 'max {max} depth {depth}',
   errMigrateTargetInSubtree: 'migrate invalid',
+  categoryReorderStale: 'categories stale',
   saveFail: 'save fail',
 };
 
@@ -202,6 +203,10 @@ describe('mapMenuCategoryApiError', () => {
     assert.equal(
       mapMenuCategoryApiError('category_depth_exceeded', undefined, categoryLabels),
       'max 5 depth 5',
+    );
+    assert.equal(
+      mapMenuCategoryApiError('reorder_scope_mismatch', undefined, categoryLabels),
+      'categories stale',
     );
   });
 

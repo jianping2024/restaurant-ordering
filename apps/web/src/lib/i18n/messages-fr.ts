@@ -404,6 +404,8 @@ export const MESSAGES_FR = {
     "addRootShort": "Ajouter une racine",
     "addChild": "Ajouter une sous-catégorie",
     "categoryTreeHint": "Utilisez + / modifier / supprimer à droite de chaque ligne ; cliquez sur le nom pour le modifier dans le panneau.",
+    "categorySameLevelSort": "Tri au même niveau uniquement",
+    "categoryReorderStale": "Les catégories ont changé. Réessayez le tri.",
     "linkPrintStations": "Postes d'impression",
     "depthHint": "Jusqu'à {max} niveaux pris en charge.",
     "editCategoryTitle": "Modifier la catégorie",

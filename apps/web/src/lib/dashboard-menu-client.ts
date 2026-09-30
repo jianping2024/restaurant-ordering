@@ -38,6 +38,7 @@ export type MenuCategoryErrorLabels = {
   ptNameRequired: string;
   depthExceeded: string;
   errMigrateTargetInSubtree: string;
+  categoryReorderStale: string;
   saveFail: string;
 };
 
@@ -74,6 +75,8 @@ export function mapMenuCategoryApiError(
         .replace('{depth}', String(MAX_MENU_CATEGORY_DEPTH));
     case 'migrate_target_in_subtree':
       return labels.errMigrateTargetInSubtree;
+    case 'reorder_scope_mismatch':
+      return labels.categoryReorderStale;
     default:
       return message || labels.saveFail;
   }
@@ -184,6 +187,21 @@ export async function deleteMenuCategoryClient(input: DeleteCategoryInput) {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
+  });
+}
+
+export async function reorderMenuCategoriesClient(
+  parentId: string | null,
+  orderedIds: string[],
+) {
+  return request<{ ok: true }>('/api/dashboard/menu/categories', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'reorder',
+      parent_id: parentId,
+      ordered_ids: orderedIds,
+    }),
   });
 }
 

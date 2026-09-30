@@ -74,6 +74,10 @@ import {
   sessionGuestCountForLimits,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
+import {
+  previewGuestRoundCartMealGate,
+  previewGuestRoundLineMealGate,
+} from '@/lib/table-order-round/round-meal-limit';
 import { normalizeBuffetServiceMode } from '@mesa/shared';
 import {
   resolveGuestOrderingNoticeForDisplay,
@@ -414,16 +418,59 @@ export function SushiMenuPage({
     ],
   );
 
+  const resolveLimitItem = useCallback(
+    (id: string) => {
+      const item = menuItems.find((m) => m.id === id);
+      if (!item) return null;
+      return {
+        per_person_qty_limit: item.per_person_qty_limit,
+        over_limit_unit_price: item.over_limit_unit_price,
+        price: item.price,
+      };
+    },
+    [menuItems],
+  );
+
   const handleOwnRoundLineQtyChange = useCallback(
     async (lineId: string, rawNextQty: number) => {
       if (reviewBusyLineId) return;
       let nextQty = Math.floor(Number(rawNextQty));
       if (!Number.isFinite(nextQty)) return;
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
+      const line = round.snapshot.lines.find((l) => l.id === lineId);
+      if (line && nextQty > 0 && round.guestClientId) {
+        const limitItem = resolveLimitItem(line.menu_item_id);
+        if (limitItem) {
+          const mealGate = previewGuestRoundLineMealGate({
+            serviceMode: buffetServiceMode,
+            guestCount: sessionGuestCountForLimits(recentOrders),
+            sessionOrders: recentOrders,
+            roundLines: round.snapshot.lines,
+            guestClientId: round.guestClientId,
+            menuItemId: line.menu_item_id,
+            note: line.note ?? '',
+            qty: nextQty,
+            qtyMode: 'set',
+            item: limitItem,
+          });
+          if (!mealGate.ok) {
+            showToast(messageForSushiLimitError(mealGate.error, t), 'info');
+            return;
+          }
+        }
+      }
       setReviewBusyLineId(lineId);
       try {
         const result = await round.setOwnRoundLineQty(lineId, nextQty);
         if (!result.ok) {
+          if (
+            result.error === 'per_person_limit_exceeded' ||
+            result.error === 'limited_item_requires_headcount' ||
+            result.error === 'over_limit_price_missing'
+          ) {
+            showToast(messageForSushiLimitError(result.error, t), 'info');
+            return;
+          }
           showToast(
             messageForSushiRoundError(result.error, roundT, {
               used: round.snapshot.lines_qty_total,
@@ -436,7 +483,15 @@ export function SushiMenuPage({
         setReviewBusyLineId(null);
       }
     },
-    [reviewBusyLineId, round, roundT],
+    [
+      buffetServiceMode,
+      recentOrders,
+      resolveLimitItem,
+      reviewBusyLineId,
+      round,
+      roundT,
+      t,
+    ],
   );
 
   const countdownSeconds = useMemo(() => {
@@ -456,19 +511,6 @@ export function SushiMenuPage({
     setCart([]);
     setCartOpen(false);
   }, []);
-
-  const resolveLimitItem = useCallback(
-    (id: string) => {
-      const item = menuItems.find((m) => m.id === id);
-      if (!item) return null;
-      return {
-        per_person_qty_limit: item.per_person_qty_limit,
-        over_limit_unit_price: item.over_limit_unit_price,
-        price: item.price,
-      };
-    },
-    [menuItems],
-  );
 
   useEffect(() => {
     if (isDemo) return;
@@ -537,6 +579,48 @@ export function SushiMenuPage({
     setSubmitting(true);
     try {
       if (freeCart.length > 0) {
+        if (!round.guestClientId) {
+          showToast(t.submitFailed, 'error');
+          return;
+        }
+        let freeSessionOrders = recentOrders;
+        const freeQtyRows = freeCart.map((c) => ({
+          menuItemId: c.menuItemId,
+          qty: coerceCartQty(c.qty),
+        }));
+        const freeNeedsOrders = guestCartHasLimitedSushiItems({
+          serviceMode: buffetServiceMode,
+          cart: freeQtyRows,
+          resolveItem: resolveLimitItem,
+        });
+        if (freeNeedsOrders && !isSessionContextFresh()) {
+          const fresh = await refreshSessionContext('full');
+          freeSessionOrders = fresh?.recent_orders ?? recentOrders;
+        }
+        const freeMealGate = previewGuestRoundCartMealGate({
+          serviceMode: buffetServiceMode,
+          guestCount: sessionGuestCountForLimits(freeSessionOrders),
+          sessionOrders: freeSessionOrders,
+          roundLines: round.snapshot.lines,
+          guestClientId: round.guestClientId,
+          cart: freeCart.map((c) => {
+            const item = resolveLimitItem(c.menuItemId) ?? {
+              price: c.price,
+              per_person_qty_limit: null,
+              over_limit_unit_price: null,
+            };
+            return {
+              menuItemId: c.menuItemId,
+              qty: coerceCartQty(c.qty),
+              note: cartItemWireNote(c, noteContext),
+              item,
+            };
+          }),
+        });
+        if (!freeMealGate.ok) {
+          showToast(messageForSushiLimitError(freeMealGate.error, t), 'info');
+          return;
+        }
         const result = await round.commitCartToRound(
           freeCart.map((c) => ({
             menuItemId: c.menuItemId,
@@ -545,6 +629,14 @@ export function SushiMenuPage({
           })),
         );
         if (!result.ok) {
+          if (
+            result.error === 'per_person_limit_exceeded' ||
+            result.error === 'limited_item_requires_headcount' ||
+            result.error === 'over_limit_price_missing'
+          ) {
+            showToast(messageForSushiLimitError(result.error, t), 'info');
+            return;
+          }
           showToast(
             messageForSushiRoundError(result.error, roundT, {
               used: round.snapshot.lines_qty_total,

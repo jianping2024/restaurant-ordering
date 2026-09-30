@@ -43,7 +43,10 @@
 仅对 **`price = 0` 且配置了 `per_person_qty_limit` + `over_limit_unit_price`（成对）** 的菜品：
 
 - 免费额度 = `per_person_qty_limit ×` 开台人数（多套餐 `buffet_base` 成人+儿童求和）
-- 客人：**不可超过**免费额度（硬拦）
+- 客人：**不可超过**免费额度（硬拦）——**进本轮篮即拦**（购物车下单累加、核单改数量、`POST …/lines`），与送厨 `orders/append` **同一规则** `checkSushiLimitForCartLine(staffAssisted: false)`
+- 已占额度（写篮时）= **本餐已送厨该菜未作废份数** + **本轮篮内该菜全部行 qty**（全桌、含他人；写入时排除正被更新的那一行身份后再加 `nextQty`）
+- 多机并发：写篮在同一事务内对 `session_id` 做 `pg_advisory_xact_lock` 并 `FOR UPDATE` 当前活跃 round，串行读行→校验→写入；后到请求按最新合计拒绝（`per_person_limit_exceeded` / `round_cap_exceeded`）
+- 送厨 finalize → append **仍保留**同一限量检查（第二道闸；防与员工代点等交错）
 - 员工代点：可超额；交互见 [`04-business-rules.md`](./04-business-rules.md) §4 寿司限量
 
 未配限量的免费菜：仅受 **轮次份数上限**（§4），不受整餐 per-dish 上限。
@@ -281,12 +284,15 @@ Classic **不得**出现轮次 UI 组件。
 | 下单 | 草稿累加进本轮后清空 |
 | 行身份 | `(round_id, menu_item_id, guest_client_id, note)` |
 | 轮次上限校验 | 排除「正被写入的那一行」（同菜+同人+同备注）后加总；**禁止**按「同菜+同人」整坨排除（否则分行后 cap 算少） |
+| 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；客户端免费下单可预检，不可替代服务端 |
+| 删行串行 | `delete_table_order_round_line` 同一把 session advisory lock |
 
 ---
 
 ## 13. 性能（实现必做）
 
-- lines **upsert** 键为 `(round, item, client, note)`：同键合并绝对 qty；购物车下单侧先读现有再 **累加** 后写入
+- lines **upsert** 键为 `(round, item, client, note)`：同键合并绝对 qty；购物车下单 `qty_mode=add` 在 RPC 内累加
+- 写篮串行仅锁**本桌 session**（advisory）+ 当前活跃 round 行；持锁短；**禁止**全店锁、禁止 interval 刷限量
 - 购物车「下单」一次提交；**禁止**卡片 debounce 直写 round
 - finalize **按 (menu_item_id, note) 聚合**（唯一函数 `aggregateRoundLinesForAppend`，append parse 共用）后条件更新防双 append；**禁止**再按 item 把不同备注拼成一行
 - session 级限流（§9）
@@ -308,7 +314,9 @@ Classic **不得**出现轮次 UI 组件。
 | `round_cooldown_active` | 桌级冷却 |
 | `session_billing` | 结账中 |
 | `guest_client_limit` | 超额 client 登记 |
-| `per_person_limit_exceeded` | 整餐免费菜上限（append 前） |
+| `per_person_limit_exceeded` | 整餐免费菜上限（写篮 / append；客人） |
+| `over_limit_price_missing` | 限定菜缺超额单价配置 |
+| `limited_item_requires_headcount` | 限定菜但开台人数为 0 |
 
 ---
 

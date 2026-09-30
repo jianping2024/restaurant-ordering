@@ -30,7 +30,7 @@ interface Props {
   children?: ReactNode;
 }
 
-/** Sole table-identity chip for guest and staff-assisted customer chrome. */
+/** Sole table-identity chip for guest and staff-assisted customer chrome (menu + bill). */
 function CustomerTableIdentityBadge({
   tableLabel,
   displayName,
@@ -39,7 +39,7 @@ function CustomerTableIdentityBadge({
   displayName: string;
 }) {
   return (
-    <span className="shrink-0 rounded-full border border-brand-ink/25 px-2 py-0.5 text-xs font-medium text-brand-ink tabular-nums">
+    <span className="shrink-0 rounded-full border border-brand-ink/45 px-3 py-1 text-base font-semibold text-brand-ink tabular-nums leading-tight">
       {tableLabel} {displayName}
     </span>
   );

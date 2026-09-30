@@ -395,15 +395,29 @@ export function MenuOrderingController({
     () => (detailMenuItemId ? menuItems.find((m) => m.id === detailMenuItemId) ?? null : null),
     [detailMenuItemId, menuItems],
   );
-  const detailCartQty = coerceCartQty(
-    detailItem ? cart.find((c) => c.menuItemId === detailItem.id)?.qty : 0,
-  );
+  const detailCartEntry = detailItem
+    ? cart.find((c) => c.menuItemId === detailItem.id)
+    : undefined;
+  const detailCartQty = coerceCartQty(detailCartEntry?.qty);
 
   // 更新备注（手写）
   const updateNote = (menuItemId: string, note: string) => {
     setCartTracked((prev) =>
       prev.map((c) => (c.menuItemId === menuItemId ? { ...c, note: clampAppendCartNote(note) } : c)),
     );
+  };
+
+  const updateDetailNote = (note: string) => {
+    if (!detailItem) return;
+    const id = detailItem.id;
+    setCartTracked((prev) => {
+      const base = prev.some((c) => c.menuItemId === id)
+        ? prev
+        : upsertCartItemQty(prev, detailItem, 1);
+      return base.map((c) =>
+        c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+      );
+    });
   };
 
   const toggleNotePreset = (menuItemId: string, presetId: string) => {
@@ -421,6 +435,28 @@ export function MenuOrderingController({
           : c,
       ),
     );
+  };
+
+  const toggleDetailNotePreset = (presetId: string) => {
+    if (!detailItem) return;
+    const id = detailItem.id;
+    setCartTracked((prev) => {
+      const base = prev.some((c) => c.menuItemId === id)
+        ? prev
+        : upsertCartItemQty(prev, detailItem, 1);
+      return base.map((c) =>
+        c.menuItemId === id
+          ? {
+              ...c,
+              selectedNotePresetIds: toggleCartNotePresetSelection(
+                c.selectedNotePresetIds || [],
+                notePresetCatalog,
+                presetId,
+              ),
+            }
+          : c,
+      );
+    });
   };
 
   const t = MENU_PAGE_MESSAGES[lang];
@@ -952,6 +988,11 @@ export function MenuOrderingController({
         cartQty={detailCartQty}
         treatZeroAsFree={treatZeroAsFree}
         limitHint={detailLimitHint}
+        notePresetCatalog={notePresetCatalog}
+        note={detailCartEntry?.note || ''}
+        selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}
+        onUpdateNote={updateDetailNote}
+        onToggleNotePreset={toggleDetailNotePreset}
         onClose={() => setDetailMenuItemId(null)}
         onIncrement={() => {
           if (detailItem) bumpCartItem(detailItem, 1);

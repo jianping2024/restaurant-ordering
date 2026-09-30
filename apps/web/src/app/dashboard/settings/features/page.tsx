@@ -22,6 +22,8 @@ export default async function SettingsFeaturesPage() {
       initialSushiRoundConfirmTimeoutSeconds={data.sushiRoundConfirmTimeoutSeconds}
       initialSushiRoundCooldownSeconds={data.sushiRoundCooldownSeconds}
       initialSushiRoundDeferCooldownSeconds={data.sushiRoundDeferCooldownSeconds}
+      initialSushiMenuVegetarianFilterEnabled={data.sushiMenuVegetarianFilterEnabled}
+      initialSushiMenuAllergenFilterEnabled={data.sushiMenuAllergenFilterEnabled}
     />
   );
 }

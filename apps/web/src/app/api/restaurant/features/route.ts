@@ -40,7 +40,7 @@ const ORDER_COOLDOWN_SECONDS_MIN = 5;
 const ORDER_COOLDOWN_SECONDS_MAX = 60;
 
 const SUSHI_ROUND_SELECT =
-  'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds';
+  'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled';
 
 function featureSettingsResponse(input: {
   featureFlags: unknown;
@@ -278,6 +278,8 @@ export async function PATCH(req: Request) {
     sushi_round_confirm_timeout_seconds?: number;
     sushi_round_cooldown_seconds?: number;
     sushi_round_defer_cooldown_seconds?: number;
+    sushi_menu_vegetarian_filter_enabled?: boolean;
+    sushi_menu_allergen_filter_enabled?: boolean;
   } = {};
   if (patch) {
     updatePayload.feature_flags = mergeRestaurantFeatureFlagsJsonb(row?.feature_flags, patch);
@@ -309,6 +311,14 @@ export async function PATCH(req: Request) {
     if (sushiRoundPatch.sushi_round_defer_cooldown_seconds !== undefined) {
       updatePayload.sushi_round_defer_cooldown_seconds =
         sushiRoundPatch.sushi_round_defer_cooldown_seconds;
+    }
+    if (sushiRoundPatch.sushi_menu_vegetarian_filter_enabled !== undefined) {
+      updatePayload.sushi_menu_vegetarian_filter_enabled =
+        sushiRoundPatch.sushi_menu_vegetarian_filter_enabled;
+    }
+    if (sushiRoundPatch.sushi_menu_allergen_filter_enabled !== undefined) {
+      updatePayload.sushi_menu_allergen_filter_enabled =
+        sushiRoundPatch.sushi_menu_allergen_filter_enabled;
     }
   }
 

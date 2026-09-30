@@ -354,6 +354,7 @@ type MenuItemInput = {
   name_zh?: string | null;
   description_pt?: string | null;
   description_en?: string | null;
+  description_zh?: string | null;
   price: number;
   vat_rate: number;
   category_id: string;
@@ -363,6 +364,7 @@ type MenuItemInput = {
   available: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
+  is_vegetarian: boolean;
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
 };
@@ -417,6 +419,7 @@ function buildMenuItemPayload(
     name_zh: input.name_zh?.trim() || null,
     description_pt: input.description_pt?.trim() || null,
     description_en: input.description_en?.trim() || null,
+    description_zh: input.description_zh?.trim() || null,
     price: input.price,
     vat_rate: input.vat_rate,
     category_id: category.id,
@@ -427,6 +430,7 @@ function buildMenuItemPayload(
     available: input.available,
     note_preset_group_ids: input.note_preset_group_ids,
     allergen_codes: input.allergen_codes,
+    is_vegetarian: input.is_vegetarian,
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
     per_person_qty_limit: input.per_person_qty_limit,
@@ -987,6 +991,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     name_zh: typeof raw.name_zh === 'string' ? raw.name_zh : null,
     description_pt: typeof raw.description_pt === 'string' ? raw.description_pt : null,
     description_en: typeof raw.description_en === 'string' ? raw.description_en : null,
+    description_zh: typeof raw.description_zh === 'string' ? raw.description_zh : null,
     price,
     vat_rate: vatRate,
     category_id: raw.category_id,
@@ -996,6 +1001,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     available: raw.available !== false,
     note_preset_group_ids: raw.note_preset_group_ids,
     allergen_codes: allergenCodes,
+    is_vegetarian: raw.is_vegetarian === true,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,
   };

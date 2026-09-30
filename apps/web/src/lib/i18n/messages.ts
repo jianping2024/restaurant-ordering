@@ -383,6 +383,9 @@ export const MESSAGES = {
       zhName: '中文名称',
       ptDesc: '葡语描述',
       enDesc: '英语描述',
+      zhDesc: '中文描述',
+      vegetarianLabel: '素食',
+      vegetarianHint: '勾选后顾客可按素食筛选，菜卡可显示素食标',
       price: '价格 (€) *',
       category: '分类',
       categoryRequired: '请选择分类',
@@ -888,6 +891,12 @@ export const MESSAGES = {
       sushiRoundOrderingEnabled: '启用同桌轮次合单',
       sushiRoundOrderingEnabledDesc:
         '仅寿司业态生效：免费菜走同桌轮次确认后送厨；关闭则与经典模式一样即时下单（仍保留整餐免费菜限量）。',
+      sushiMenuVegetarianFilterEnabled: '素食筛选',
+      sushiMenuVegetarianFilterEnabledDesc:
+        '仅寿司点餐页：开启后顶栏显示素食亮灯，亮起只显示已标素食的菜。默认关闭。',
+      sushiMenuAllergenFilterEnabled: '过敏原筛选',
+      sushiMenuAllergenFilterEnabledDesc:
+        '仅寿司点餐页：开启后顶栏可避开已标注含某过敏原的菜；未标注的菜仍显示。默认关闭。',
       sushiPerPersonPerRoundCap: '每人每轮份数上限',
       sushiPerPersonPerRoundCapDesc: '本轮免费菜总份数上限 = 该值 × 开台人数（1–20，默认 8）。',
       sushiPerPersonPerRoundCapUnit: '份/人',
@@ -2032,6 +2041,9 @@ export const MESSAGES = {
       zhName: 'Chinese name',
       ptDesc: 'Portuguese description',
       enDesc: 'English description',
+      zhDesc: 'Chinese description',
+      vegetarianLabel: 'Vegetarian',
+      vegetarianHint: 'When marked, guests can filter vegetarian dishes and see a badge',
       price: 'Price (€) *',
       category: 'Category',
       categoryRequired: 'Please select a category',
@@ -2379,6 +2391,12 @@ export const MESSAGES = {
       sushiRoundOrderingEnabled: 'Enable table order rounds',
       sushiRoundOrderingEnabledDesc:
         'Sushi mode only: free dishes go through a shared table round and confirm-to-kitchen. When off, guests append immediately like classic (meal free-dish limits still apply).',
+      sushiMenuVegetarianFilterEnabled: 'Vegetarian filter',
+      sushiMenuVegetarianFilterEnabledDesc:
+        'Sushi menu only: show a vegetarian lamp on the sticky bar; when lit, only dishes marked vegetarian. Default off.',
+      sushiMenuAllergenFilterEnabled: 'Allergen filter',
+      sushiMenuAllergenFilterEnabledDesc:
+        'Sushi menu only: guests can avoid dishes marked as containing selected allergens; unmarked dishes stay visible. Default off.',
       sushiPerPersonPerRoundCap: 'Per-person per-round cap',
       sushiPerPersonPerRoundCapDesc:
         'Max free dishes this round = this value × open-table guest count (1–20, default 8).',
@@ -3287,6 +3305,9 @@ export const MESSAGES = {
       zhName: 'Nome em chines',
       ptDesc: 'Descricao em portugues',
       enDesc: 'Descricao em ingles',
+      zhDesc: 'Descricao em chines',
+      vegetarianLabel: 'Vegetariano',
+      vegetarianHint: 'Quando marcado, os clientes podem filtrar e ver o selo vegetariano',
       price: 'Preco (€) *',
       category: 'Categoria',
       categoryRequired: 'Selecione uma categoria',
@@ -3634,6 +3655,12 @@ export const MESSAGES = {
       sushiRoundOrderingEnabled: 'Ativar rodadas na mesa',
       sushiRoundOrderingEnabledDesc:
         'So no modo sushi: pratos gratis passam por rodada partilhada e confirmacao antes da cozinha. Desativado: envio imediato como no classico (limites de refeicao mantêm-se).',
+      sushiMenuVegetarianFilterEnabled: 'Filtro vegetariano',
+      sushiMenuVegetarianFilterEnabledDesc:
+        'So menu sushi: mostra lampada vegetariana na barra; acesa = so pratos marcados vegetarianos. Desligado por omissao.',
+      sushiMenuAllergenFilterEnabled: 'Filtro de alergenos',
+      sushiMenuAllergenFilterEnabledDesc:
+        'So menu sushi: evitar pratos marcados com alergenos escolhidos; nao marcados continuam visiveis. Desligado por omissao.',
       sushiPerPersonPerRoundCap: 'Limite por pessoa e rodada',
       sushiPerPersonPerRoundCapDesc:
         'Maximo de pratos gratis nesta rodada = este valor × numero de convidados (1–20, padrao 8).',

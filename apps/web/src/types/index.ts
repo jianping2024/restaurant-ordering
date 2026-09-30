@@ -150,6 +150,8 @@ export interface MenuItem {
   note_preset_group_ids?: string[];
   /** EU allergen codes this dish contains; empty = unmarked (not allergen-free). */
   allergen_codes?: string[];
+  /** Owner-marked vegetarian; false/missing = not vegetarian. */
+  is_vegetarian?: boolean;
   available: boolean;
   sort_order: number;
   created_at: string;

@@ -66,6 +66,11 @@ export function useCustomerSessionContext(
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
   const [kitchenProgress, setKitchenProgress] = useState(seeded.kitchenProgress);
   const [sessionResolved, setSessionResolved] = useState(isDemo || hasAuthoritativeSeed);
+  /**
+   * Full-scope orders list is authoritative (SSR menu seed is full, or a successful `full` fetch).
+   * Gate-only `recent_orders: []` must not count as ready — peer-float paid catchup waits on this.
+   */
+  const [ordersSnapshotReady, setOrdersSnapshotReady] = useState(hasAuthoritativeSeed);
 
   const contextRef = useRef<CustomerSessionContext | null>(bootContext);
   const refreshInFlightRef = useRef<InFlightRefresh | null>(null);
@@ -77,7 +82,9 @@ export function useCustomerSessionContext(
       if (!data) return null;
       if (data.table_id !== params.tableId) return contextRef.current;
 
-      const merged = applyCustomerSessionScopeMerge(contextRef.current, data, scope);
+      const previous = contextRef.current;
+      const prevSessionId = previous?.active_session?.id ?? null;
+      const merged = applyCustomerSessionScopeMerge(previous, data, scope);
       contextRef.current = merged;
       lastFreshAtRef.current = Date.now();
       const next = stateFromContext(merged);
@@ -85,6 +92,14 @@ export function useCustomerSessionContext(
       setRecentOrders(next.recentOrders);
       setKitchenProgress(next.kitchenProgress);
       setSessionResolved(true);
+      if (scope === 'full') {
+        setOrdersSnapshotReady(true);
+      } else {
+        const nextSessionId = merged.active_session?.id ?? null;
+        if (nextSessionId !== prevSessionId) {
+          setOrdersSnapshotReady(false);
+        }
+      }
       return merged;
     },
     [params.tableId],
@@ -138,6 +153,7 @@ export function useCustomerSessionContext(
     const seededForTable =
       !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
     setSessionResolved(isDemo || seededForTable);
+    setOrdersSnapshotReady(seededForTable);
     if (seededForTable) lastFreshAtRef.current = Date.now();
   }, [initialContext, isDemo, params.tableId]);
 
@@ -191,6 +207,7 @@ export function useCustomerSessionContext(
     recentOrders,
     kitchenProgress,
     sessionResolved,
+    ordersSnapshotReady,
     refresh,
     isSessionContextFresh,
   };

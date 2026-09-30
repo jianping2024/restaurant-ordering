@@ -153,6 +153,7 @@ export function SushiMenuPage({
     recentOrders,
     kitchenProgress,
     sessionResolved,
+    ordersSnapshotReady,
     refresh: refreshSessionContext,
     isSessionContextFresh,
   } = useCustomerSessionContext(initialSessionContext, {
@@ -957,6 +958,10 @@ export function SushiMenuPage({
         menuItems={menuItems}
         lang={lang}
         enabled={!isDemo && Boolean(round.guestClientId)}
+        tableId={tableId}
+        sessionId={activeSession?.id ?? null}
+        roundSnapshotReady={round.snapshotReady}
+        paidOrdersReady={ordersSnapshotReady}
         recentOrders={recentOrders}
         selfBatchIds={selfBatchIds}
       />

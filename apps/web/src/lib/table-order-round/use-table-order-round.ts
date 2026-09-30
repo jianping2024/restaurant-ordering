@@ -52,6 +52,14 @@ export function useTableOrderRound(params: {
   const { slug, restaurantId, tableId, sessionId, enabled, initialSettings } = params;
   const [guestClientId, setGuestClientId] = useState('');
   const [snapshot, setSnapshot] = useState<RoundSnapshot>(() => emptySnapshot(initialSettings));
+  /**
+   * Round GET ready token: ready only when it matches the current sessionId
+   * (avoids one stale-ready frame after 换台/并台 session swap).
+   */
+  const [snapshotReadyToken, setSnapshotReadyToken] = useState<{
+    sessionId: string | null;
+    ready: boolean;
+  }>({ sessionId: null, ready: false });
   const [settings, setSettings] = useState(initialSettings);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -69,6 +77,11 @@ export function useTableOrderRound(params: {
     if (!enabled) return;
     setGuestClientId(ensureGuestClientId(restaurantId, tableId));
   }, [enabled, restaurantId, tableId]);
+
+  useEffect(() => {
+    setSnapshotReadyToken({ sessionId, ready: false });
+    setSnapshot(emptySnapshot(settingsRef.current));
+  }, [enabled, restaurantId, tableId, sessionId]);
 
   const applySnapshot = useCallback((next: RoundApiSnapshot) => {
     setSnapshot({
@@ -124,8 +137,10 @@ export function useTableOrderRound(params: {
       settings: settingsRef.current,
     });
     if (!result.ok) return null;
-    return applySnapshot(result.snapshot);
-  }, [applySnapshot, enabled, guestClientId, slug, tableId]);
+    const applied = applySnapshot(result.snapshot);
+    setSnapshotReadyToken({ sessionId, ready: true });
+    return applied;
+  }, [applySnapshot, enabled, guestClientId, sessionId, slug, tableId]);
 
   useEffect(() => {
     if (!enabled || !guestClientId) return;
@@ -288,10 +303,13 @@ export function useTableOrderRound(params: {
   const tableReviewQty = roundReviewActive ? snapshot.lines_qty_total : 0;
   const ownLinesEditable =
     roundStatus != null ? canMutateRoundLines(roundStatus) : snapshot.lines.length > 0;
+  const snapshotReady =
+    snapshotReadyToken.ready && snapshotReadyToken.sessionId === sessionId;
 
   return {
     guestClientId,
     snapshot,
+    snapshotReady,
     settings,
     ownReviewQty,
     tableReviewQty,

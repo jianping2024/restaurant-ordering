@@ -20,12 +20,15 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     menu_item_id?: unknown;
     qty?: unknown;
     note?: unknown;
+    qty_mode?: unknown;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
+
+  const qtyMode = body.qty_mode === 'add' ? 'add' : 'set';
 
   const loaded = await loadTableOrderRoundContext({
     slug: params.slug,
@@ -71,6 +74,7 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     menuItemId,
     qty,
     note: typeof body.note === 'string' ? body.note : '',
+    qtyMode,
     priceIsFree: true,
     settings: ctx.settings,
     liveGuestCount: ctx.liveGuestCount,

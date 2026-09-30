@@ -296,20 +296,8 @@ export function SushiMenuPage({
       const current = sushiFreeItemDisplayQty({
         cartHasItem: !!cartEntry,
         cartQty: cartEntry?.qty,
-        ownRoundQty: round.ownLineQty(item.id),
       });
-      const next = current + delta;
-      if (next <= 0) {
-        commitCartQty(item, 0);
-        void (async () => {
-          const result = await round.deleteOwnLineForMenuItem(item.id);
-          if (!result.ok) {
-            showToast(messageForSushiRoundError(result.error, roundT), 'info');
-          }
-        })();
-        return;
-      }
-      void requestQtyChange(item.id, next);
+      void requestQtyChange(item.id, current + delta);
       return;
     }
     const current = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
@@ -328,7 +316,6 @@ export function SushiMenuPage({
       ? sushiFreeItemDisplayQty({
           cartHasItem: !!detailCartEntry,
           cartQty: detailCartEntry?.qty,
-          ownRoundQty: round.ownLineQty(detailItem.id),
         })
       : coerceCartQty(detailCartEntry?.qty)
     : 0;
@@ -405,6 +392,8 @@ export function SushiMenuPage({
     return () => clearInterval(id);
   }, [countdownActive, round.peerNotifyOpen]);
 
+  const [reviewBusyLineId, setReviewBusyLineId] = useState<string | null>(null);
+
   const roundReviewGroups = useMemo(
     () =>
       buildTableRoundReviewGroups({
@@ -413,8 +402,41 @@ export function SushiMenuPage({
         menuItems,
         lang,
         ownBlockLabel: roundT.reviewOwnBlock,
+        ownLinesEditable: round.ownLinesEditable,
       }),
-    [lang, menuItems, round.guestClientId, round.snapshot.lines, roundT.reviewOwnBlock],
+    [
+      lang,
+      menuItems,
+      round.guestClientId,
+      round.ownLinesEditable,
+      round.snapshot.lines,
+      roundT.reviewOwnBlock,
+    ],
+  );
+
+  const handleOwnRoundLineQtyChange = useCallback(
+    async (lineId: string, rawNextQty: number) => {
+      if (reviewBusyLineId) return;
+      let nextQty = Math.floor(Number(rawNextQty));
+      if (!Number.isFinite(nextQty)) return;
+      if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
+      setReviewBusyLineId(lineId);
+      try {
+        const result = await round.setOwnRoundLineQty(lineId, nextQty);
+        if (!result.ok) {
+          showToast(
+            messageForSushiRoundError(result.error, roundT, {
+              used: round.snapshot.lines_qty_total,
+              cap: round.snapshot.round_cap_total,
+            }),
+            'info',
+          );
+        }
+      } finally {
+        setReviewBusyLineId(null);
+      }
+    },
+    [reviewBusyLineId, round, roundT],
   );
 
   const countdownSeconds = useMemo(() => {
@@ -766,7 +788,6 @@ export function SushiMenuPage({
                     ? sushiFreeItemDisplayQty({
                         cartHasItem: !!cartEntry,
                         cartQty: cartEntry?.qty,
-                        ownRoundQty: round.ownLineQty(item.id),
                       })
                     : coerceCartQty(cartEntry?.qty);
                   const hintParts = sushiLimitHintParts(buffetServiceMode, item);
@@ -855,17 +876,6 @@ export function SushiMenuPage({
         lang={lang}
         onClose={() => setCartOpen(false)}
         onUpdateQty={(id, qty) => {
-          const item = menuItems.find((m) => m.id === id);
-          if (item && isSushiRoundFreeMenuPrice(item.price) && qty <= 0) {
-            commitCartQty(item, 0);
-            void (async () => {
-              const result = await round.deleteOwnLineForMenuItem(id);
-              if (!result.ok) {
-                showToast(messageForSushiRoundError(result.error, roundT), 'info');
-              }
-            })();
-            return;
-          }
           void requestQtyChange(id, qty);
         }}
         onUpdateNote={updateNote}
@@ -889,8 +899,12 @@ export function SushiMenuPage({
         sendBusy={roundBusy}
         countdownActive={countdownActive}
         countdownSeconds={countdownSeconds}
+        busyLineId={reviewBusyLineId}
         onClose={() => setRoundReviewOpen(false)}
         onSend={() => handleSendRound()}
+        onOwnLineQtyChange={(lineId, nextQty) => {
+          void handleOwnRoundLineQtyChange(lineId, nextQty);
+        }}
       />
 
       <OrderedDrawer

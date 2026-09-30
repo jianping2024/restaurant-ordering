@@ -130,7 +130,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | `guest_client_id` | 见 §8 |
 | `note` | 顾客购物车备注；空串表示无；`char_length ≤ 120` |
 | `added_at` | |
-| UNIQUE | `(round_id, menu_item_id, guest_client_id)` — upsert 合并 qty |
+| UNIQUE | `(round_id, menu_item_id, guest_client_id, note)` — **同菜同备注**合并 qty；**不同备注分行**（与送厨 `aggregateRoundLinesForAppend` 一致） |
 
 ### 6.3 `table_order_round_votes`
 
@@ -262,18 +262,31 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 顶栏 | `本桌 N 人 · 每轮免费菜最多 M 份`；collecting 显示整桌 `本轮 x/M`（**无**送厨按钮） |
 | pending_confirm | 倒计时提示（sticky/核单顶）；同桌轻弹窗一次；不锁篮 |
 | 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
-| 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才 upsert 本 `guest_client_id` 的 round lines |
+| 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
+| 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才写入 round lines |
+| 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
+| 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append |
 | Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |
 
 Classic **不得**出现轮次 UI 组件。
 
+### 12.1 数量与行身份（端态 · 硬规则）
+
+| 概念 | 唯一口径 |
+|------|----------|
+| 菜卡/详情免费菜数字 | 购物车草稿 |
+| 本轮未送厨 | 核单列表 + 底栏核单角标；本机行用 `CartQtyStepper` 改绝对 qty |
+| 下单 | 草稿累加进本轮后清空 |
+| 行身份 | `(round_id, menu_item_id, guest_client_id, note)` |
+| 轮次上限校验 | 排除「正被写入的那一行」（同菜+同人+同备注）后加总；**禁止**按「同菜+同人」整坨排除（否则分行后 cap 算少） |
+
 ---
 
 ## 13. 性能（实现必做）
 
-- lines **upsert**（同 round + item + client 合并 qty + note）
+- lines **upsert** 键为 `(round, item, client, note)`：同键合并绝对 qty；购物车下单侧先读现有再 **累加** 后写入
 - 购物车「下单」一次提交；**禁止**卡片 debounce 直写 round
 - finalize **按 (menu_item_id, note) 聚合**（唯一函数 `aggregateRoundLinesForAppend`，append parse 共用）后条件更新防双 append；**禁止**再按 item 把不同备注拼成一行
 - session 级限流（§9）

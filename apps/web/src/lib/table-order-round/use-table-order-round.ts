@@ -9,7 +9,6 @@ import {
   deleteRoundLineClient,
   fetchRoundSnapshot,
   finalizeRoundClient,
-  ownLineId,
   ownLineNote,
   ownLineQty,
   ownLinesQtyTotal,
@@ -17,6 +16,7 @@ import {
   type RoundApiSnapshot,
   upsertRoundLineClient,
 } from '@/lib/table-order-round/client-api';
+import { canMutateRoundLines } from '@/lib/table-order-round/status';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
 import { mergeAppendCartNotes } from '@/types';
 
@@ -178,6 +178,7 @@ export function useTableOrderRound(params: {
           menuItemId: item.menuItemId,
           qty: item.qty,
           note: item.note,
+          qtyMode: 'add',
           settings: settingsRef.current,
         });
         if (!result.ok) return result;
@@ -189,23 +190,42 @@ export function useTableOrderRound(params: {
     [applySnapshot, guestClientId, slug, tableId],
   );
 
-  const deleteOwnLineForMenuItem = useCallback(
-    async (menuItemId: string) => {
+  /** 核单: set absolute qty for own line (keeps note). qty <= 0 deletes. */
+  const setOwnRoundLineQty = useCallback(
+    async (lineId: string, nextQty: number) => {
       if (!guestClientId) return { ok: false as const, error: 'invalid_guest_client_id' };
-      const lineId = ownLineId(snapshot.lines, menuItemId, guestClientId);
-      if (!lineId) return { ok: true as const, snapshot };
-      const result = await deleteRoundLineClient({
+      const line = snapshot.lines.find((l) => l.id === lineId);
+      if (!line || line.guest_client_id !== guestClientId) {
+        return { ok: false as const, error: 'line_not_owned' };
+      }
+      const qty = Math.floor(Number(nextQty));
+      if (!Number.isFinite(qty) || qty <= 0) {
+        const result = await deleteRoundLineClient({
+          slug,
+          tableId,
+          guestClientId,
+          lineId,
+          settings: settingsRef.current,
+        });
+        if (!result.ok) return result;
+        applySnapshot(result.snapshot);
+        return result;
+      }
+      const result = await upsertRoundLineClient({
         slug,
         tableId,
         guestClientId,
-        lineId,
+        menuItemId: line.menu_item_id,
+        qty,
+        note: line.note ?? '',
+        qtyMode: 'set',
         settings: settingsRef.current,
       });
       if (!result.ok) return result;
       applySnapshot(result.snapshot);
       return result;
     },
-    [applySnapshot, guestClientId, slug, snapshot, tableId],
+    [applySnapshot, guestClientId, slug, snapshot.lines, tableId],
   );
 
   const submitRequest = useCallback(
@@ -266,6 +286,8 @@ export function useTableOrderRound(params: {
     (roundStatus == null && snapshot.lines.length > 0);
   const ownReviewQty = roundReviewActive ? ownLinesQtyTotal(snapshot.lines, guestClientId) : 0;
   const tableReviewQty = roundReviewActive ? snapshot.lines_qty_total : 0;
+  const ownLinesEditable =
+    roundStatus != null ? canMutateRoundLines(roundStatus) : snapshot.lines.length > 0;
 
   return {
     guestClientId,
@@ -273,10 +295,10 @@ export function useTableOrderRound(params: {
     settings,
     ownReviewQty,
     tableReviewQty,
+    ownLinesEditable,
     ownLineQty: (menuItemId: string) => ownLineQty(snapshot.lines, menuItemId, guestClientId),
     ownLineNote: (menuItemId: string) => ownLineNote(snapshot.lines, menuItemId, guestClientId),
-    ownLineId: (menuItemId: string) => ownLineId(snapshot.lines, menuItemId, guestClientId),
-    deleteOwnLineForMenuItem,
+    setOwnRoundLineQty,
     commitCartToRound,
     submitRequest,
     finalize,

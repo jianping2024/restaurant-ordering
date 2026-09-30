@@ -99,6 +99,17 @@ export const checkoutSettlementBarStickyShellClass = [
 ].join(' ');
 
 /**
+ * Sole sticky shell for dashboard primary action toolbars (e.g. menu 添加菜品 /
+ * 添加分组) under the staff top bar. Opaque paper fill so list rows never show
+ * through; never bare `top-0`. Call sites own outer spacing (`mb-*` / `space-y-*`).
+ */
+export const dashboardStickyToolbarShellClass = [
+  'sticky',
+  waiterStaffStickyChrome.belowStaffTopBar,
+  'z-20 -mx-2 px-2 py-2.5 bg-brand-bg border-b border-brand-border/40',
+].join(' ');
+
+/**
  * Board checkout sheet (`WaiterBoardCheckoutSheet`) — full-screen portal covers the
  * staff top bar; scrollport is under the sheet header. Stick with `top-0` so the
  * bar flushes under sheet chrome (do not reuse `belowStaffTopBar` here — that leaves

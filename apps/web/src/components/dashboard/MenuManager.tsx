@@ -76,6 +76,7 @@ import {
   saveMenuManagerTab,
   type MenuManagerTab,
 } from '@/lib/menu-manager-tab-preference';
+import { dashboardStickyToolbarShellClass } from '@/lib/waiter-staff-sticky-chrome';
 import {
   batchSetMenuItemsAvailableClient,
   createMenuCategoryClient,
@@ -1119,7 +1120,7 @@ export function MenuManager({
   const categoryTreeData: DataNode[] = buildTreeNodes(null);
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden">
+    <div className="w-full min-w-0 max-w-full">
       <div className="mb-6">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <p className="text-brand-text-muted text-sm">
@@ -1377,7 +1378,7 @@ export function MenuManager({
         />
       ) : (
         <>
-          <div className="mb-4 flex flex-col gap-2.5">
+          <div className={`${dashboardStickyToolbarShellClass} mb-3`}>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Button type="button" size="sm" onClick={openItemCreateModal}>
                 + {t.addItem}
@@ -1402,6 +1403,8 @@ export function MenuManager({
                 </>
               ) : null}
             </div>
+          </div>
+          <div className="mb-4 flex flex-col gap-2.5">
             <div
               className={`grid gap-3 min-w-0 ${
                 topCategories.length > 0 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'

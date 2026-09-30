@@ -7,6 +7,7 @@ import {
   STAFF_TOP_BAR_TRAILING_TEXT_MAX_CLASS,
   checkoutSettlementBarSheetStickyShellClass,
   checkoutSettlementBarStickyShellClass,
+  dashboardStickyToolbarShellClass,
   staffTopBarChrome,
   waiterStaffStickyChrome,
 } from '@/lib/waiter-staff-sticky-chrome';
@@ -78,5 +79,17 @@ describe('checkoutSettlementBarSheetStickyShellClass', () => {
     );
     assert.match(checkoutSettlementBarSheetStickyShellClass, /bg-brand-bg/);
     assert.doesNotMatch(checkoutSettlementBarSheetStickyShellClass, /bg-brand-card/);
+  });
+});
+
+describe('dashboardStickyToolbarShellClass', () => {
+  it('sticks under staff top bar with opaque paper fill — never bare top-0', () => {
+    assert.match(dashboardStickyToolbarShellClass, /sticky/);
+    assert.ok(
+      dashboardStickyToolbarShellClass.includes(waiterStaffStickyChrome.belowStaffTopBar),
+    );
+    assert.doesNotMatch(dashboardStickyToolbarShellClass, /\btop-0\b/);
+    assert.match(dashboardStickyToolbarShellClass, /bg-brand-bg/);
+    assert.doesNotMatch(dashboardStickyToolbarShellClass, /bg-brand-card/);
   });
 });

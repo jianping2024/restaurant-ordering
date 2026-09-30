@@ -30,6 +30,7 @@ import {
   updateNotePresetClient,
   updateNotePresetGroupClient,
 } from '@/lib/dashboard-menu-client';
+import { dashboardStickyToolbarShellClass } from '@/lib/waiter-staff-sticky-chrome';
 
 type EditorDraft = {
   mode: 'group' | 'preset';
@@ -263,13 +264,15 @@ export function NotePresetsManager({ groups, presets, onChange }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 items-center">
-        <Button type="button" size="sm" onClick={openCreateGroup} disabled={busy}>
-          {t.notePresetAddGroup}
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={openCreatePreset} disabled={busy}>
-          {t.notePresetAddItem}
-        </Button>
+      <div className={dashboardStickyToolbarShellClass}>
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button type="button" size="sm" onClick={openCreateGroup} disabled={busy}>
+            {t.notePresetAddGroup}
+          </Button>
+          <Button type="button" size="sm" variant="outline" onClick={openCreatePreset} disabled={busy}>
+            {t.notePresetAddItem}
+          </Button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>

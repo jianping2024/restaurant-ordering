@@ -80,6 +80,8 @@ export async function upsertRoundLineClient(params: {
   menuItemId: string;
   qty: number;
   note?: string | null;
+  /** set = 核单绝对数量; add = 购物车下单累加. Default set. */
+  qtyMode?: 'set' | 'add';
   settings: SushiRoundSettings;
 }): Promise<{ ok: true; snapshot: RoundApiSnapshot } | { ok: false; error: string; status: number }> {
   const res = await fetch(`/api/restaurants/${params.slug}/table-order-round/lines`, {
@@ -92,6 +94,7 @@ export async function upsertRoundLineClient(params: {
       menu_item_id: params.menuItemId,
       qty: params.qty,
       note: params.note ?? '',
+      qty_mode: params.qtyMode === 'add' ? 'add' : 'set',
     }),
   });
   const json = await readJson(res);
@@ -201,20 +204,16 @@ export async function finalizeRoundClient(params: {
 }
 
 /**
- * Free-item card/detail qty: cart draft when that dish is in the local cart,
- * otherwise the own round-line qty already committed for this guest.
+ * Free-item card/detail qty: sole cart-draft number (0 when not in cart).
+ * Round lines are edited only in 核单 — never fall back to ownRoundQty here.
  */
 export function sushiFreeItemDisplayQty(params: {
   cartHasItem: boolean;
   cartQty: unknown;
-  ownRoundQty: number;
 }): number {
-  if (params.cartHasItem) {
-    const q = Number(params.cartQty);
-    return Number.isFinite(q) && q > 0 ? Math.floor(q) : 0;
-  }
-  const own = Number(params.ownRoundQty);
-  return Number.isFinite(own) && own > 0 ? Math.floor(own) : 0;
+  if (!params.cartHasItem) return 0;
+  const q = Number(params.cartQty);
+  return Number.isFinite(q) && q > 0 ? Math.floor(q) : 0;
 }
 
 /** Own-client qty for a menu item from round lines. */

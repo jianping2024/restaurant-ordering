@@ -1,36 +1,27 @@
-import { formatOrderItemListLabel } from '@/lib/order-list-display';
-import type { CustomerSubmittedOrderGroup } from '@/lib/customer-submitted-order-display';
+import { formatOrderItemNameLabel } from '@/lib/order-list-display';
 import type { TableOrderRoundLineRow } from '@/lib/table-order-round/types';
 import type { Language, MenuItem } from '@/types';
 
-function lineToDisplay(
-  line: TableOrderRoundLineRow,
-  byId: Map<string, MenuItem>,
-  lang: Language,
-): CustomerSubmittedOrderGroup['lines'][number] {
-  const item = byId.get(line.menu_item_id);
-  const label = formatOrderItemListLabel(
-    {
-      emoji: item?.emoji || '🍽️',
-      name: item?.name_pt || '',
-      name_pt: item?.name_pt || '',
-      name_en: item?.name_en || '',
-      name_zh: item?.name_zh || '',
-      qty: line.qty,
-    },
-    lang,
-  );
-  const note = (line.note ?? '').trim();
-  return {
-    key: line.id,
-    label,
-    statusLabel: note || null,
-  };
-}
+export type RoundReviewLine = {
+  key: string;
+  lineId: string;
+  menuItemId: string;
+  label: string;
+  note: string;
+  qty: number;
+  editable: boolean;
+};
+
+export type RoundReviewGroup = {
+  groupKey: string;
+  /** Own block label (e.g. 我); peers use empty string (dashed divider only). */
+  submittedTimeLabel: string;
+  lines: RoundReviewLine[];
+};
 
 /**
  * Sole round-review list builder: whole-table lines, one block per guest_client_id.
- * Own block labeled (e.g. 我); other blocks use empty divider label (dashed only).
+ * Labels are name-only (qty lives in CartQtyStepper for own rows).
  */
 export function buildTableRoundReviewGroups(params: {
   lines: TableOrderRoundLineRow[];
@@ -38,8 +29,17 @@ export function buildTableRoundReviewGroups(params: {
   menuItems: MenuItem[];
   lang: Language;
   ownBlockLabel: string;
-}): CustomerSubmittedOrderGroup[] {
-  const { lines, guestClientId, menuItems, lang, ownBlockLabel } = params;
+  /** When false, own rows render qty read-only (cooldown / finalize_failed). */
+  ownLinesEditable?: boolean;
+}): RoundReviewGroup[] {
+  const {
+    lines,
+    guestClientId,
+    menuItems,
+    lang,
+    ownBlockLabel,
+    ownLinesEditable = true,
+  } = params;
   const byId = new Map(menuItems.map((item) => [item.id, item]));
   const active = lines.filter((l) => (Number(l.qty) || 0) > 0);
   if (active.length === 0) return [];
@@ -58,11 +58,35 @@ export function buildTableRoundReviewGroups(params: {
   });
 
   return clients.map((clientId) => {
+    const isOwn = clientId === guestClientId;
     const clientLines = active.filter((l) => l.guest_client_id === clientId);
     return {
       groupKey: `round-${clientId}`,
-      submittedTimeLabel: clientId === guestClientId ? ownBlockLabel : '',
-      lines: clientLines.map((line) => lineToDisplay(line, byId, lang)),
+      submittedTimeLabel: isOwn ? ownBlockLabel : '',
+      lines: clientLines.map((line) => {
+        const item = byId.get(line.menu_item_id);
+        const label = formatOrderItemNameLabel(
+          {
+            emoji: item?.emoji || '🍽️',
+            name: item?.name_pt || '',
+            name_pt: item?.name_pt || '',
+            name_en: item?.name_en || '',
+            name_zh: item?.name_zh || '',
+          },
+          lang,
+        );
+        const note = (line.note ?? '').trim();
+        const qty = Math.max(0, Math.floor(Number(line.qty) || 0));
+        return {
+          key: line.id,
+          lineId: line.id,
+          menuItemId: line.menu_item_id,
+          label,
+          note,
+          qty,
+          editable: isOwn && ownLinesEditable,
+        };
+      }),
     };
   });
 }

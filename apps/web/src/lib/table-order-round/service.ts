@@ -33,8 +33,13 @@ import type {
   TableOrderRoundVoteValue,
 } from '@/lib/table-order-round/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
+import {
+  resolveRoundLineUpsertPlan,
+  roundLinesMatchIdentity,
+  type RoundLineQtyMode,
+} from '@/lib/table-order-round/round-line-identity';
 import { sessionGuestCountForLimits } from '@/lib/sushi-buffet-limits';
-import { clampAppendCartNote, type OrderItem } from '@/types';
+import type { OrderItem } from '@/types';
 import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
 
 const ROUND_SELECT =
@@ -278,6 +283,8 @@ export async function upsertRoundLine(params: {
   menuItemId: string;
   qty: number;
   note?: string | null;
+  /** set = absolute qty (核单); add = accumulate onto matching note line (购物车下单). */
+  qtyMode?: RoundLineQtyMode;
   /** Caller must verify price === 0 from menu row. */
   priceIsFree: boolean;
   settings: SushiRoundSettings;
@@ -292,11 +299,11 @@ export async function upsertRoundLine(params: {
     menuItemId,
     qty,
     note: noteRaw,
+    qtyMode = 'set',
     priceIsFree,
     settings,
     liveGuestCount,
   } = params;
-  const note = clampAppendCartNote((noteRaw ?? '').trim());
 
   if (!settings.sushi_round_ordering_enabled) {
     return { ok: false, status: 400, error: 'sushi_round_disabled' };
@@ -363,26 +370,36 @@ export async function upsertRoundLine(params: {
   }
 
   const existingLines = await loadRoundLines(admin, round.id);
-  const otherQty = sumLineQty(
-    existingLines.filter(
-      (l) => !(l.menu_item_id === menuItemId && l.guest_client_id === guestClientId),
-    ),
-  );
-  const nextTotal = otherQty + qty;
+  const plan = resolveRoundLineUpsertPlan({
+    existingLines,
+    menuItemId,
+    guestClientId,
+    note: noteRaw,
+    qty,
+    qtyMode,
+  });
+  if (!Number.isInteger(plan.nextQty) || plan.nextQty < 1) {
+    return { ok: false, status: 400, error: 'invalid_qty' };
+  }
+  const nextTotal = plan.otherQty + plan.nextQty;
   const cap = roundCapTotal(settings.sushi_per_person_per_round_cap, liveGuestCount);
   if (nextTotal > cap) {
     return { ok: false, status: 400, error: 'round_cap_exceeded' };
   }
 
-  const existing = existingLines.find(
-    (l) => l.menu_item_id === menuItemId && l.guest_client_id === guestClientId,
+  const existing = existingLines.find((l) =>
+    roundLinesMatchIdentity(l, {
+      menuItemId,
+      guestClientId,
+      note: plan.note,
+    }),
   );
 
   let line: TableOrderRoundLineRow;
   if (existing) {
     const { data: updated, error } = await admin
       .from('table_order_round_lines')
-      .update({ qty, note })
+      .update({ qty: plan.nextQty, note: plan.note })
       .eq('id', existing.id)
       .select(LINE_SELECT)
       .single();
@@ -396,9 +413,9 @@ export async function upsertRoundLine(params: {
       .insert({
         round_id: round.id,
         menu_item_id: menuItemId,
-        qty,
+        qty: plan.nextQty,
         guest_client_id: guestClientId,
-        note,
+        note: plan.note,
       })
       .select(LINE_SELECT)
       .single();

@@ -158,9 +158,9 @@
 
 #### 同桌轮次（`sushi` + 功能设置开启）
 
-- 免费菜写入 `table_order_round_lines`；任意客人可 **发起送厨** → **全员确认**（票数 = 发起时冻结的开台人数）
-- 超时未投票（默认 25s）→ 视为同意；**暂缓送厨**须二次确认、每轮 1 次、顾客 UI 不展示否决者身份
-- `pending_confirm` **锁篮**；送厨成功 → session 级冷却（默认 120s）；仍走唯一 `orders/append`
+- 免费菜写入 `table_order_round_lines`；行身份 `(菜, guest_client_id, note)`——同备注合并、不同备注分行；菜卡数量只表示购物车草稿，本轮编辑在核单（`CartQtyStepper`）。细则见 [`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md) §12 / §12.1
+- 任意客人可 **发起送厨** → 倒计时到点 finalize（投票/暂缓已取消，见轮次契约）
+- 送厨成功 → session 级冷却（默认 120s）；仍走唯一 `orders/append`
 - 员工代点：**绕过**轮次与确认，即时 append
 - **转台 / 并台**：须在既有 `transfer_table_session` / `merge_table_sessions` **同一事务**内处理 round（转台改 `table_id`；并台来源 round `closed`、未送厨篮子作废不合并）。详见 [`sushi-round-ordering.zh.md`](./sushi-round-ordering.zh.md) §11.1
 

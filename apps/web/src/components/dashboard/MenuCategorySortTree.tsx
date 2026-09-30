@@ -100,32 +100,30 @@ function CategorySiblingList({
                       } ${snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 bg-brand-card' : ''}`}
                       style={{ paddingLeft: `${Math.max(0, depth - 1) * 12}px` }}
                     >
-                      <button
-                        type="button"
-                        aria-label={expanded ? 'collapse' : 'expand'}
-                        disabled={!hasChildren}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!hasChildren) return;
-                          if (expanded) {
-                            onExpandedKeysChange(expandedKeys.filter((k) => k !== category.id));
-                          } else {
-                            onExpandedKeysChange([...expandedKeys, category.id]);
-                          }
-                        }}
-                        className={`h-7 w-5 shrink-0 inline-flex items-center justify-center text-brand-text-muted ${
-                          hasChildren ? 'hover:text-brand-gold' : 'opacity-0 pointer-events-none'
-                        }`}
-                      >
-                        <span
-                          className={`text-[10px] leading-none transition-transform ${
-                            expanded ? 'rotate-90' : ''
-                          }`}
-                          aria-hidden
+                      {hasChildren ? (
+                        <button
+                          type="button"
+                          aria-label={expanded ? 'collapse' : 'expand'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (expanded) {
+                              onExpandedKeysChange(expandedKeys.filter((k) => k !== category.id));
+                            } else {
+                              onExpandedKeysChange([...expandedKeys, category.id]);
+                            }
+                          }}
+                          className="h-7 w-5 shrink-0 inline-flex items-center justify-center text-brand-text-muted hover:text-brand-gold"
                         >
-                          ▸
-                        </span>
-                      </button>
+                          <span
+                            className={`text-[10px] leading-none transition-transform ${
+                              expanded ? 'rotate-90' : ''
+                            }`}
+                            aria-hidden
+                          >
+                            ▸
+                          </span>
+                        </button>
+                      ) : null}
                       <SortOrderDragHandle
                         label={labels.sameLevelSort}
                         disabled={dragDisabled}

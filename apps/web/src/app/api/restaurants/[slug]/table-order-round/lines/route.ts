@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
+import { sessionOrderedQtyForMenuItem } from '@/lib/sushi-buffet-limits';
+import { resolveRoundLineMealLimitApply } from '@/lib/table-order-round/round-meal-limit';
 import {
   deleteOwnRoundLine,
   getRoundSnapshot,
@@ -65,6 +67,20 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     return NextResponse.json({ error: 'menu_item_not_free' }, { status: 400 });
   }
 
+  const meal = resolveRoundLineMealLimitApply({
+    price: menu.price,
+    per_person_qty_limit: menu.per_person_qty_limit,
+    over_limit_unit_price: menu.over_limit_unit_price,
+  });
+  if (!meal.ok) {
+    return NextResponse.json({ error: meal.error }, { status: 400 });
+  }
+
+  const sessionOrderedQty = sessionOrderedQtyForMenuItem(
+    ctx.writeContext.sessionOrders,
+    menuItemId,
+  );
+
   const result = await upsertRoundLine({
     admin: ctx.admin,
     restaurantId: ctx.restaurant.restaurantId,
@@ -78,6 +94,9 @@ export async function POST(req: Request, { params }: { params: { slug: string } 
     priceIsFree: true,
     settings: ctx.settings,
     liveGuestCount: ctx.liveGuestCount,
+    sessionOrderedQty,
+    applyMealLimit: meal.applyMealLimit,
+    perPersonMealLimit: meal.perPersonMealLimit,
   });
 
   if (!result.ok) {

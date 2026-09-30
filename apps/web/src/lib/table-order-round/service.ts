@@ -17,10 +17,8 @@ import {
   type SushiRoundSettings,
 } from '@/lib/table-order-round/settings';
 import {
-  canMutateRoundLines,
   isCooldownActive,
   isCooldownExpired,
-  isRoundBasketLocked,
   isSubmitDeadlinePassed,
   roundCapTotal,
 } from '@/lib/table-order-round/status';
@@ -33,11 +31,7 @@ import type {
   TableOrderRoundVoteValue,
 } from '@/lib/table-order-round/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
-import {
-  resolveRoundLineUpsertPlan,
-  roundLinesMatchIdentity,
-  type RoundLineQtyMode,
-} from '@/lib/table-order-round/round-line-identity';
+import type { RoundLineQtyMode } from '@/lib/table-order-round/round-line-identity';
 import { sessionGuestCountForLimits } from '@/lib/sushi-buffet-limits';
 import type { OrderItem } from '@/types';
 import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
@@ -262,18 +256,21 @@ export async function registerGuestClient(
   return { ok: true, data: { registered: true } };
 }
 
-async function closeExpiredCooldownRound(
-  admin: SupabaseClient,
-  round: TableOrderRoundRow,
-): Promise<void> {
-  if (!isCooldownExpired(round.status, round.cooldown_until)) return;
-  await admin
-    .from('table_order_rounds')
-    .update({ status: 'closed', updated_at: new Date().toISOString() })
-    .eq('id', round.id)
-    .eq('status', 'cooldown');
+function statusForRoundLineMutateError(error: string): number {
+  if (
+    error === 'round_cooldown_active' ||
+    error === 'round_basket_locked' ||
+    error === 'round_not_collecting' ||
+    error === 'round_confirm_pending'
+  ) {
+    return 409;
+  }
+  if (error === 'line_not_owned') return 403;
+  if (error === 'round_not_found' || error === 'line_not_found') return 404;
+  return 400;
 }
 
+/** Sole guest round-line upsert: RPC serializes session writes + meal/round caps. */
 export async function upsertRoundLine(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -289,6 +286,11 @@ export async function upsertRoundLine(params: {
   priceIsFree: boolean;
   settings: SushiRoundSettings;
   liveGuestCount: number;
+  /** Non-voided session qty for this menu item (already kitchen). */
+  sessionOrderedQty: number;
+  /** Guest meal free-cap gate (false for unlimited free dishes). */
+  applyMealLimit: boolean;
+  perPersonMealLimit: number | null;
 }): Promise<ServiceResult<{ line: TableOrderRoundLineRow; snapshot: RoundSnapshot }>> {
   const {
     admin,
@@ -303,6 +305,9 @@ export async function upsertRoundLine(params: {
     priceIsFree,
     settings,
     liveGuestCount,
+    sessionOrderedQty,
+    applyMealLimit,
+    perPersonMealLimit,
   } = params;
 
   if (!settings.sushi_round_ordering_enabled) {
@@ -317,6 +322,9 @@ export async function upsertRoundLine(params: {
   if (!Number.isInteger(qty) || qty < 1) {
     return { ok: false, status: 400, error: 'invalid_qty' };
   }
+  if (applyMealLimit && (perPersonMealLimit == null || perPersonMealLimit < 1)) {
+    return { ok: false, status: 400, error: 'over_limit_price_missing' };
+  }
 
   const reg = await registerGuestClient(admin, {
     sessionId,
@@ -326,103 +334,29 @@ export async function upsertRoundLine(params: {
   });
   if (!reg.ok) return reg;
 
-  let round = await loadActiveRound(admin, sessionId);
-  if (round && isCooldownActive(round.status, round.cooldown_until)) {
-    return { ok: false, status: 409, error: 'round_cooldown_active' };
-  }
-  if (round && isCooldownExpired(round.status, round.cooldown_until)) {
-    await closeExpiredCooldownRound(admin, round);
-    round = null;
-  }
-
-  if (round && isRoundBasketLocked(round.status)) {
-    return { ok: false, status: 409, error: 'round_basket_locked' };
-  }
-  if (round && !canMutateRoundLines(round.status)) {
-    return { ok: false, status: 409, error: 'round_not_collecting' };
-  }
-
-  if (!round) {
-    const nowIso = new Date().toISOString();
-    const { data: created, error: createErr } = await admin
-      .from('table_order_rounds')
-      .insert({
-        restaurant_id: restaurantId,
-        session_id: sessionId,
-        table_id: tableId,
-        status: 'collecting',
-        guest_count_snapshot: liveGuestCount,
-        per_person_cap: settings.sushi_per_person_per_round_cap,
-        created_at: nowIso,
-        updated_at: nowIso,
-      })
-      .select(ROUND_SELECT)
-      .single();
-    if (createErr || !created) {
-      // Concurrent create — reload
-      round = await loadActiveRound(admin, sessionId);
-      if (!round || !canMutateRoundLines(round.status)) {
-        return { ok: false, status: 500, error: 'round_create_failed' };
-      }
-    } else {
-      round = asRound(created)!;
-    }
-  }
-
-  const existingLines = await loadRoundLines(admin, round.id);
-  const plan = resolveRoundLineUpsertPlan({
-    existingLines,
-    menuItemId,
-    guestClientId,
-    note: noteRaw,
-    qty,
-    qtyMode,
+  const { data: rpcData, error: rpcErr } = await admin.rpc('upsert_table_order_round_line', {
+    p_restaurant_id: restaurantId,
+    p_session_id: sessionId,
+    p_table_id: tableId,
+    p_guest_client_id: guestClientId,
+    p_menu_item_id: menuItemId,
+    p_qty: qty,
+    p_note: typeof noteRaw === 'string' ? noteRaw : '',
+    p_qty_mode: qtyMode,
+    p_live_guest_count: liveGuestCount,
+    p_per_person_round_cap: settings.sushi_per_person_per_round_cap,
+    p_session_ordered_qty: Math.max(0, Math.floor(sessionOrderedQty)),
+    p_apply_meal_limit: applyMealLimit,
+    p_per_person_meal_limit: applyMealLimit ? perPersonMealLimit : null,
   });
-  if (!Number.isInteger(plan.nextQty) || plan.nextQty < 1) {
-    return { ok: false, status: 400, error: 'invalid_qty' };
-  }
-  const nextTotal = plan.otherQty + plan.nextQty;
-  const cap = roundCapTotal(settings.sushi_per_person_per_round_cap, liveGuestCount);
-  if (nextTotal > cap) {
-    return { ok: false, status: 400, error: 'round_cap_exceeded' };
-  }
 
-  const existing = existingLines.find((l) =>
-    roundLinesMatchIdentity(l, {
-      menuItemId,
-      guestClientId,
-      note: plan.note,
-    }),
-  );
-
-  let line: TableOrderRoundLineRow;
-  if (existing) {
-    const { data: updated, error } = await admin
-      .from('table_order_round_lines')
-      .update({ qty: plan.nextQty, note: plan.note })
-      .eq('id', existing.id)
-      .select(LINE_SELECT)
-      .single();
-    if (error || !updated) {
-      return { ok: false, status: 500, error: 'line_update_failed' };
-    }
-    line = updated as TableOrderRoundLineRow;
-  } else {
-    const { data: inserted, error } = await admin
-      .from('table_order_round_lines')
-      .insert({
-        round_id: round.id,
-        menu_item_id: menuItemId,
-        qty: plan.nextQty,
-        guest_client_id: guestClientId,
-        note: plan.note,
-      })
-      .select(LINE_SELECT)
-      .single();
-    if (error || !inserted) {
-      return { ok: false, status: 500, error: 'line_insert_failed' };
-    }
-    line = inserted as TableOrderRoundLineRow;
+  if (rpcErr) {
+    return { ok: false, status: 500, error: 'line_update_failed' };
+  }
+  const payload = rpcData as { ok?: boolean; error?: string; line?: TableOrderRoundLineRow } | null;
+  if (!payload || payload.ok !== true || !payload.line) {
+    const error = typeof payload?.error === 'string' ? payload.error : 'line_update_failed';
+    return { ok: false, status: statusForRoundLineMutateError(error), error };
   }
 
   const snapshot = await getRoundSnapshot({
@@ -432,13 +366,13 @@ export async function upsertRoundLine(params: {
     sessionOrders: [],
     settings,
   });
-  // Preserve live guest count passed in (caller has session orders).
   snapshot.live_guest_count = liveGuestCount;
   snapshot.round_cap_total = roundCapTotal(settings.sushi_per_person_per_round_cap, liveGuestCount);
 
-  return { ok: true, data: { line, snapshot } };
+  return { ok: true, data: { line: payload.line, snapshot } };
 }
 
+/** Sole guest round-line delete under the same session advisory lock as upsert. */
 export async function deleteOwnRoundLine(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -452,37 +386,18 @@ export async function deleteOwnRoundLine(params: {
   const { admin, restaurantId, sessionId, guestClientId, lineId, settings, liveGuestCount, sessionOrders } =
     params;
 
-  const round = await loadActiveRound(admin, sessionId);
-  if (!round) {
-    return { ok: false, status: 404, error: 'round_not_found' };
-  }
-  if (isRoundBasketLocked(round.status)) {
-    return { ok: false, status: 409, error: 'round_basket_locked' };
-  }
-  if (!canMutateRoundLines(round.status)) {
-    return { ok: false, status: 409, error: 'round_not_collecting' };
-  }
-
-  const { data: line, error } = await admin
-    .from('table_order_round_lines')
-    .select(LINE_SELECT)
-    .eq('id', lineId)
-    .eq('round_id', round.id)
-    .maybeSingle();
-
-  if (error) {
-    return { ok: false, status: 500, error: 'line_query_failed' };
-  }
-  if (!line) {
-    return { ok: false, status: 404, error: 'line_not_found' };
-  }
-  if ((line as TableOrderRoundLineRow).guest_client_id !== guestClientId) {
-    return { ok: false, status: 403, error: 'line_not_owned' };
-  }
-
-  const { error: delErr } = await admin.from('table_order_round_lines').delete().eq('id', lineId);
-  if (delErr) {
+  const { data: rpcData, error: rpcErr } = await admin.rpc('delete_table_order_round_line', {
+    p_session_id: sessionId,
+    p_guest_client_id: guestClientId,
+    p_line_id: lineId,
+  });
+  if (rpcErr) {
     return { ok: false, status: 500, error: 'line_delete_failed' };
+  }
+  const payload = rpcData as { ok?: boolean; error?: string } | null;
+  if (!payload || payload.ok !== true) {
+    const error = typeof payload?.error === 'string' ? payload.error : 'line_delete_failed';
+    return { ok: false, status: statusForRoundLineMutateError(error), error };
   }
 
   const snapshot = await getRoundSnapshot({
@@ -889,20 +804,34 @@ export async function loadMenuItemForRoundLine(
   restaurantId: string,
   menuItemId: string,
 ): Promise<
-  | { ok: true; price: number; available: boolean }
+  | {
+      ok: true;
+      price: number;
+      available: boolean;
+      per_person_qty_limit: number | null;
+      over_limit_unit_price: number | null;
+    }
   | { ok: false; error: 'menu_item_not_found' | 'menu_items_query_failed' }
 > {
   const { data, error } = await admin
     .from('menu_items')
-    .select('id, price, available')
+    .select('id, price, available, per_person_qty_limit, over_limit_unit_price')
     .eq('restaurant_id', restaurantId)
     .eq('id', menuItemId)
     .maybeSingle();
   if (error) return { ok: false, error: 'menu_items_query_failed' };
   if (!data) return { ok: false, error: 'menu_item_not_found' };
+  const rawLimit = data.per_person_qty_limit;
+  const perPersonQtyLimit =
+    typeof rawLimit === 'number' && Number.isInteger(rawLimit) && rawLimit >= 1 ? rawLimit : null;
+  const rawOver = data.over_limit_unit_price;
+  const overLimitUnitPrice =
+    typeof rawOver === 'number' && Number.isFinite(rawOver) && rawOver >= 0 ? rawOver : null;
   return {
     ok: true,
     price: coerceCartPrice(data.price),
     available: data.available === true,
+    per_person_qty_limit: perPersonQtyLimit,
+    over_limit_unit_price: overLimitUnitPrice,
   };
 }

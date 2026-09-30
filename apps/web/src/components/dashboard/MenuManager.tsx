@@ -116,6 +116,7 @@ type ItemForm = {
   name_zh: string;
   description_pt: string;
   description_en: string;
+  description_zh: string;
   price: string;
   vat_rate: string;
   category_id: string;
@@ -123,6 +124,7 @@ type ItemForm = {
   print_station_id: string;
   emoji: string;
   available: boolean;
+  is_vegetarian: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
   per_person_qty_limit: string;
@@ -135,6 +137,7 @@ const defaultItemForm: ItemForm = {
   name_zh: '',
   description_pt: '',
   description_en: '',
+  description_zh: '',
   price: '',
   vat_rate: String(DEFAULT_MENU_VAT_RATE),
   category_id: '',
@@ -142,6 +145,7 @@ const defaultItemForm: ItemForm = {
   print_station_id: '',
   emoji: '🍽️',
   available: true,
+  is_vegetarian: false,
   note_preset_group_ids: [],
   allergen_codes: [],
   per_person_qty_limit: '',
@@ -569,6 +573,7 @@ export function MenuManager({
       name_zh: item.name_zh || '',
       description_pt: item.description_pt || '',
       description_en: item.description_en || '',
+      description_zh: item.description_zh || '',
       price: String(item.price),
       vat_rate: String(normalizeMenuVatRate(item.vat_rate)),
       category_id: item.category_id || '',
@@ -576,6 +581,7 @@ export function MenuManager({
       print_station_id: item.print_station_id ?? '',
       emoji: item.emoji,
       available: item.available,
+      is_vegetarian: item.is_vegetarian === true,
       note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
       per_person_qty_limit:
@@ -636,11 +642,13 @@ export function MenuManager({
       name_zh: itemForm.name_zh.trim() || null,
       description_pt: itemForm.description_pt.trim() || null,
       description_en: itemForm.description_en.trim() || null,
+      description_zh: itemForm.description_zh.trim() || null,
       price: Number(itemForm.price),
       vat_rate: vatRate,
       category_id: selectedCategoryRow.id,
       emoji: itemForm.emoji,
       available: itemForm.available,
+      is_vegetarian: itemForm.is_vegetarian,
       note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
       print_station_id: itemForm.print_station_id || null,
@@ -1673,6 +1681,20 @@ export function MenuManager({
           <Input label={t.zhName} value={itemForm.name_zh} onChange={(e) => setItemForm((f) => ({ ...f, name_zh: e.target.value }))} placeholder="碎蛋鳕鱼" />
           <Input label={t.ptDesc} value={itemForm.description_pt} onChange={(e) => setItemForm((f) => ({ ...f, description_pt: e.target.value }))} placeholder="简短描述..." />
           <Input label={t.enDesc} value={itemForm.description_en} onChange={(e) => setItemForm((f) => ({ ...f, description_en: e.target.value }))} placeholder="Short description..." />
+          <Input label={t.zhDesc} value={itemForm.description_zh} onChange={(e) => setItemForm((f) => ({ ...f, description_zh: e.target.value }))} placeholder="中文描述..." />
+
+          <label className="flex items-start gap-3 rounded-xl border border-brand-border bg-brand-bg/40 px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={itemForm.is_vegetarian}
+              onChange={(e) => setItemForm((f) => ({ ...f, is_vegetarian: e.target.checked }))}
+              className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+            />
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-brand-text">{t.vegetarianLabel}</span>
+              <span className="block text-[13px] text-brand-text-muted mt-0.5">{t.vegetarianHint}</span>
+            </span>
+          </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input

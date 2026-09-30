@@ -36,6 +36,8 @@ export type CustomerRestaurantRow = {
   sushi_round_confirm_timeout_seconds?: number | null;
   sushi_round_cooldown_seconds?: number | null;
   sushi_round_defer_cooldown_seconds?: number | null;
+  sushi_menu_vegetarian_filter_enabled?: boolean | null;
+  sushi_menu_allergen_filter_enabled?: boolean | null;
 };
 
 export type CustomerResolvedTableContext = {

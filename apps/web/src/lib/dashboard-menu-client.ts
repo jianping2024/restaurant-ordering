@@ -146,6 +146,7 @@ export type MenuItemMutationInput = {
   name_zh?: string | null;
   description_pt?: string | null;
   description_en?: string | null;
+  description_zh?: string | null;
   price: number;
   vat_rate: number;
   category_id: string;
@@ -155,6 +156,7 @@ export type MenuItemMutationInput = {
   available: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
+  is_vegetarian?: boolean;
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;
 };

@@ -42,9 +42,13 @@ describe('sushi round settings', () => {
       sushi_round_confirm_timeout_seconds: 40,
       sushi_round_cooldown_seconds: 180,
       sushi_round_defer_cooldown_seconds: 45,
+      sushi_menu_vegetarian_filter_enabled: true,
+      sushi_menu_allergen_filter_enabled: true,
     });
     assert.equal(parsed.sushi_round_ordering_enabled, false);
     assert.equal(parsed.sushi_per_person_per_round_cap, 10);
+    assert.equal(parsed.sushi_menu_vegetarian_filter_enabled, true);
+    assert.equal(parsed.sushi_menu_allergen_filter_enabled, true);
     assert.equal(sushiRoundSettingsToApiJson(parsed).sushiPerPersonPerRoundCap, 10);
 
     const patchOk = parseSushiRoundSettingsPatch({

@@ -26,7 +26,14 @@ export type SushiRoundSettings = {
   sushi_round_confirm_timeout_seconds: number;
   sushi_round_cooldown_seconds: number;
   sushi_round_defer_cooldown_seconds: number;
+  /** Guest sushi menu: vegetarian lamp filter. Default off. */
+  sushi_menu_vegetarian_filter_enabled: boolean;
+  /** Guest sushi menu: allergen-avoid filter. Default off. */
+  sushi_menu_allergen_filter_enabled: boolean;
 };
+
+export const SUSHI_MENU_VEGETARIAN_FILTER_ENABLED_DEFAULT = false;
+export const SUSHI_MENU_ALLERGEN_FILTER_ENABLED_DEFAULT = false;
 
 export const DEFAULT_SUSHI_ROUND_SETTINGS: SushiRoundSettings = {
   sushi_round_ordering_enabled: SUSHI_ROUND_ORDERING_ENABLED_DEFAULT,
@@ -34,6 +41,8 @@ export const DEFAULT_SUSHI_ROUND_SETTINGS: SushiRoundSettings = {
   sushi_round_confirm_timeout_seconds: SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_DEFAULT,
   sushi_round_cooldown_seconds: SUSHI_ROUND_COOLDOWN_SECONDS_DEFAULT,
   sushi_round_defer_cooldown_seconds: SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_DEFAULT,
+  sushi_menu_vegetarian_filter_enabled: SUSHI_MENU_VEGETARIAN_FILTER_ENABLED_DEFAULT,
+  sushi_menu_allergen_filter_enabled: SUSHI_MENU_ALLERGEN_FILTER_ENABLED_DEFAULT,
 };
 
 function clampIntInRange(raw: unknown, min: number, max: number, fallback: number): number {
@@ -46,6 +55,16 @@ function clampIntInRange(raw: unknown, min: number, max: number, fallback: numbe
 export function clampSushiRoundOrderingEnabled(raw: unknown): boolean {
   if (typeof raw === 'boolean') return raw;
   return SUSHI_ROUND_ORDERING_ENABLED_DEFAULT;
+}
+
+export function clampSushiMenuVegetarianFilterEnabled(raw: unknown): boolean {
+  if (typeof raw === 'boolean') return raw;
+  return SUSHI_MENU_VEGETARIAN_FILTER_ENABLED_DEFAULT;
+}
+
+export function clampSushiMenuAllergenFilterEnabled(raw: unknown): boolean {
+  if (typeof raw === 'boolean') return raw;
+  return SUSHI_MENU_ALLERGEN_FILTER_ENABLED_DEFAULT;
 }
 
 /** Guest free dish for round basket: menu unit price exactly 0. */
@@ -95,6 +114,8 @@ export type SushiRoundRestaurantRow = {
   sushi_round_confirm_timeout_seconds?: unknown;
   sushi_round_cooldown_seconds?: unknown;
   sushi_round_defer_cooldown_seconds?: unknown;
+  sushi_menu_vegetarian_filter_enabled?: unknown;
+  sushi_menu_allergen_filter_enabled?: unknown;
 };
 
 export function parseSushiRoundSettingsFromRestaurantRow(
@@ -110,6 +131,12 @@ export function parseSushiRoundSettingsFromRestaurantRow(
     sushi_round_cooldown_seconds: clampSushiRoundCooldownSeconds(row.sushi_round_cooldown_seconds),
     sushi_round_defer_cooldown_seconds: clampSushiRoundDeferCooldownSeconds(
       row.sushi_round_defer_cooldown_seconds,
+    ),
+    sushi_menu_vegetarian_filter_enabled: clampSushiMenuVegetarianFilterEnabled(
+      row.sushi_menu_vegetarian_filter_enabled,
+    ),
+    sushi_menu_allergen_filter_enabled: clampSushiMenuAllergenFilterEnabled(
+      row.sushi_menu_allergen_filter_enabled,
     ),
   };
 }
@@ -154,6 +181,10 @@ export function parseSushiRoundSettingsPatch(
     'sushi_round_cooldown_seconds',
     'sushiRoundDeferCooldownSeconds',
     'sushi_round_defer_cooldown_seconds',
+    'sushiMenuVegetarianFilterEnabled',
+    'sushi_menu_vegetarian_filter_enabled',
+    'sushiMenuAllergenFilterEnabled',
+    'sushi_menu_allergen_filter_enabled',
   ] as const;
   if (!keys.some((k) => k in raw)) {
     return { ok: true, patch: null };
@@ -169,6 +200,29 @@ export function parseSushiRoundSettingsPatch(
     );
     if (v === null) return { ok: false, error: 'invalid_sushi_round_ordering_enabled' };
     if (v !== undefined) patch.sushi_round_ordering_enabled = v;
+  }
+
+  if (
+    'sushiMenuVegetarianFilterEnabled' in raw ||
+    'sushi_menu_vegetarian_filter_enabled' in raw
+  ) {
+    const v = parseOptionalBool(
+      raw.sushiMenuVegetarianFilterEnabled !== undefined
+        ? raw.sushiMenuVegetarianFilterEnabled
+        : raw.sushi_menu_vegetarian_filter_enabled,
+    );
+    if (v === null) return { ok: false, error: 'invalid_sushi_menu_vegetarian_filter_enabled' };
+    if (v !== undefined) patch.sushi_menu_vegetarian_filter_enabled = v;
+  }
+
+  if ('sushiMenuAllergenFilterEnabled' in raw || 'sushi_menu_allergen_filter_enabled' in raw) {
+    const v = parseOptionalBool(
+      raw.sushiMenuAllergenFilterEnabled !== undefined
+        ? raw.sushiMenuAllergenFilterEnabled
+        : raw.sushi_menu_allergen_filter_enabled,
+    );
+    if (v === null) return { ok: false, error: 'invalid_sushi_menu_allergen_filter_enabled' };
+    if (v !== undefined) patch.sushi_menu_allergen_filter_enabled = v;
   }
 
   if ('sushiPerPersonPerRoundCap' in raw || 'sushi_per_person_per_round_cap' in raw) {
@@ -229,6 +283,8 @@ export function sushiRoundSettingsToApiJson(settings: SushiRoundSettings) {
     sushiRoundConfirmTimeoutSeconds: settings.sushi_round_confirm_timeout_seconds,
     sushiRoundCooldownSeconds: settings.sushi_round_cooldown_seconds,
     sushiRoundDeferCooldownSeconds: settings.sushi_round_defer_cooldown_seconds,
+    sushiMenuVegetarianFilterEnabled: settings.sushi_menu_vegetarian_filter_enabled,
+    sushiMenuAllergenFilterEnabled: settings.sushi_menu_allergen_filter_enabled,
   };
 }
 

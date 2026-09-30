@@ -140,7 +140,10 @@
 - 打印档口管理：kitchen / beverage / standard 布局；档口列表拖拽手柄调整顺序，松手一次提交 `ordered_ids`
 - 菜品排序：同一分类内拖拽手柄（@hello-pangea/dnd，桌面+触控）调整顺序，松手一次提交 `ordered_ids`
 - 备注预设（`note_preset_group_ids` → 本店 `menu_note_preset_groups.id`；菜单管理「预选备注」Tab 维护分组/条目；菜品只勾大类；顾客每组最多选一条）
-- 菜品含有过敏原（`allergen_codes`，EU 14 类；空=未标注，≠无过敏原）；顾客菜单过滤尚未做
+- 菜品含有过敏原（`allergen_codes`，EU 14 类；空=未标注，≠无过敏原）
+- 菜品是否素食（`is_vegetarian`）与中文描述（`description_zh`）
+- 寿司点餐：功能设置可分别开启素食亮灯筛选 / 过敏原避开筛选（默认关；仅寿司页）
+- 顾客详情：备注预选 + 自由文本（与购物车同一 `CustomerCartItemNoteFields`）
 
 ### 业务边界
 
@@ -158,7 +161,8 @@
 - 多规格 SKU（大小杯、辣度加价等）
 - 配方 / BOM
 - 批量 Excel 导入
-- 顾客菜单按过敏原过滤（`allergen_codes` 已存库，过滤 UI 未做）
+- classic 点餐页饮食筛选（筛选暂绑寿司 + 功能开关）
+- 纯素（vegan）独立字段
 
 ### 相关代码位置
 

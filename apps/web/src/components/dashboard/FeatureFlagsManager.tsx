@@ -55,6 +55,8 @@ type Props = {
   initialSushiRoundConfirmTimeoutSeconds: number;
   initialSushiRoundCooldownSeconds: number;
   initialSushiRoundDeferCooldownSeconds: number;
+  initialSushiMenuVegetarianFilterEnabled: boolean;
+  initialSushiMenuAllergenFilterEnabled: boolean;
 };
 
 export function FeatureFlagsManager({
@@ -72,6 +74,8 @@ export function FeatureFlagsManager({
   initialSushiRoundConfirmTimeoutSeconds,
   initialSushiRoundCooldownSeconds,
   initialSushiRoundDeferCooldownSeconds: _unusedDeferCooldown,
+  initialSushiMenuVegetarianFilterEnabled,
+  initialSushiMenuAllergenFilterEnabled,
 }: Props) {
   void _unusedDeferCooldown;
   const router = useRouter();
@@ -103,6 +107,12 @@ export function FeatureFlagsManager({
   const [sushiRoundCooldownSeconds, setSushiRoundCooldownSeconds] = useState(
     initialSushiRoundCooldownSeconds,
   );
+  const [sushiMenuVegetarianFilterEnabled, setSushiMenuVegetarianFilterEnabled] = useState(
+    initialSushiMenuVegetarianFilterEnabled,
+  );
+  const [sushiMenuAllergenFilterEnabled, setSushiMenuAllergenFilterEnabled] = useState(
+    initialSushiMenuAllergenFilterEnabled,
+  );
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -129,6 +139,8 @@ export function FeatureFlagsManager({
           sushiPerPersonPerRoundCap,
           sushiRoundConfirmTimeoutSeconds,
           sushiRoundCooldownSeconds,
+          sushiMenuVegetarianFilterEnabled,
+          sushiMenuAllergenFilterEnabled,
         }),
       });
 
@@ -147,6 +159,8 @@ export function FeatureFlagsManager({
         sushiRoundConfirmTimeoutSeconds?: number;
         sushiRoundCooldownSeconds?: number;
         sushiRoundDeferCooldownSeconds?: number;
+        sushiMenuVegetarianFilterEnabled?: boolean;
+        sushiMenuAllergenFilterEnabled?: boolean;
       };
 
       if (!res.ok) {
@@ -189,6 +203,12 @@ export function FeatureFlagsManager({
       }
       if (json.sushiRoundCooldownSeconds != null) {
         setSushiRoundCooldownSeconds(json.sushiRoundCooldownSeconds);
+      }
+      if (json.sushiMenuVegetarianFilterEnabled != null) {
+        setSushiMenuVegetarianFilterEnabled(json.sushiMenuVegetarianFilterEnabled);
+      }
+      if (json.sushiMenuAllergenFilterEnabled != null) {
+        setSushiMenuAllergenFilterEnabled(json.sushiMenuAllergenFilterEnabled);
       }
 
       router.refresh();
@@ -394,6 +414,38 @@ export function FeatureFlagsManager({
                 </span>
                 <span className="block text-[13px] text-brand-text-muted mt-0.5">
                   {t.sushiRoundOrderingEnabledDesc}
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sushiMenuVegetarianFilterEnabled}
+                onChange={(e) => setSushiMenuVegetarianFilterEnabled(e.target.checked)}
+                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              <span className="min-w-0">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiMenuVegetarianFilterEnabled}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                  {t.sushiMenuVegetarianFilterEnabledDesc}
+                </span>
+              </span>
+            </label>
+            <label className="flex items-start gap-3 px-4 py-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={sushiMenuAllergenFilterEnabled}
+                onChange={(e) => setSushiMenuAllergenFilterEnabled(e.target.checked)}
+                className="mt-0.5 rounded border-brand-border text-brand-gold focus:ring-brand-gold/40"
+              />
+              <span className="min-w-0">
+                <span className="block text-[15px] font-medium text-brand-text">
+                  {t.sushiMenuAllergenFilterEnabled}
+                </span>
+                <span className="block text-[13px] text-brand-text-muted mt-0.5">
+                  {t.sushiMenuAllergenFilterEnabledDesc}
                 </span>
               </span>
             </label>

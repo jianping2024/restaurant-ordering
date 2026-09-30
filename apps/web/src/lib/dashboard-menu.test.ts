@@ -113,6 +113,8 @@ describe('parseMenuItemBody', () => {
       note_preset_group_ids: ['no_onion'],
       allergen_codes: ['fish', 'egg'],
       available: true,
+      is_vegetarian: true,
+      description_zh: '新鲜鳕鱼',
     });
     assert.ok(!('error' in parsed));
     if ('error' in parsed) return;
@@ -120,6 +122,8 @@ describe('parseMenuItemBody', () => {
     assert.equal(parsed.vat_rate, 6);
     assert.deepEqual(parsed.note_preset_group_ids, ['no_onion']);
     assert.deepEqual(parsed.allergen_codes, ['fish', 'egg']);
+    assert.equal(parsed.is_vegetarian, true);
+    assert.equal(parsed.description_zh, '新鲜鳕鱼');
     assert.equal(parsed.per_person_qty_limit, null);
     assert.equal(parsed.over_limit_unit_price, null);
   });

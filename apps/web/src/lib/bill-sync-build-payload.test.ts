@@ -51,6 +51,43 @@ describe('billSyncByItemScopeId', () => {
 });
 
 describe('buildBillSyncJobPayload', () => {
+  it('omits €0 free menu rows from whole_table fiscal lines', () => {
+    const withFree: Order[] = [
+      {
+        ...orders[0]!,
+        items: [
+          ...orders[0]!.items,
+          {
+            id: 'menu-free',
+            name: 'Free sushi',
+            name_pt: 'Free sushi',
+            qty: 3,
+            price: 0,
+            emoji: '🍣',
+            item_code: '200',
+            category_code_path: ['SU'],
+          },
+        ],
+      },
+    ];
+    const built = buildBillSyncJobPayload({
+      requestId: '22222222-2222-4222-8222-222222222222',
+      billSplitId: BILL_SPLIT_ID,
+      tableDisplayName: 'A-02',
+      splitMode: 'whole_table',
+      persons: [{ name: '__whole_table__' }],
+      orders: withFree,
+      itemCodeByMenuId: { [MENU_ID]: '006', 'menu-free': '200' },
+      vatRateByMenuId: { [MENU_ID]: 23, 'menu-free': 13 },
+      vatRateByBuffetId: {},
+    });
+    assert.equal(built.ok, true);
+    if (!built.ok) return;
+    assert.equal(built.payload.lines?.length, 1);
+    assert.equal(built.payload.lines?.[0]?.item_code, '006');
+    assert.equal(built.payload.gross_total, '4.50');
+  });
+
   it('builds whole_table for whole_table mode', () => {
     const built = buildBillSyncJobPayload({
       requestId: '22222222-2222-4222-8222-222222222222',

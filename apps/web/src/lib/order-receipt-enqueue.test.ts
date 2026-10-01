@@ -82,6 +82,47 @@ const orders: Order[] = [
 ];
 
 describe('buildReceiptLinesFromOrders', () => {
+  it('omits €0 free menu rows from receipt lines', () => {
+    const mixed: Order[] = [
+      {
+        ...orders[0]!,
+        items: [
+          {
+            id: 'menu-coke',
+            name: 'Coke',
+            name_pt: 'Coca-Cola',
+            qty: 1,
+            price: 3,
+            emoji: '🥤',
+            item_code: '028',
+            category_code_path: ['RE'],
+          },
+          {
+            id: 'menu-free',
+            name: 'Free sushi',
+            name_pt: 'Free sushi',
+            qty: 2,
+            price: 0,
+            emoji: '🍣',
+            item_code: '200',
+            category_code_path: ['SU'],
+          },
+        ],
+      },
+    ];
+    const lines = buildReceiptLinesFromOrders(
+      mixed,
+      'pt',
+      { 'menu-coke': 23, 'menu-free': 13 },
+      {},
+    );
+    assert.ok(!('error' in lines));
+    if ('error' in lines) return;
+    assert.equal(lines.length, 1);
+    assert.match(lines[0]!.display_name, /Coca-Cola|Coke|028/);
+    assert.equal(lines[0]!.unit_price, 3);
+  });
+
   it('uses order snapshot codes with buffet lines mixed in', () => {
     const mixed: Order[] = [
       {

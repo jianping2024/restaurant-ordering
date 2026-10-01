@@ -4,6 +4,7 @@ import {
   buildBillableSessionItems,
   chargeableFieldsFromBillableRow,
   menuItemIdFromLimitedBillableKey,
+  sortBillableSessionItemsForWaiterDetail,
   sortOrdersForBillableCatalog,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
@@ -212,7 +213,10 @@ export function buildWaiterTableCard(
 ): WaiterTableCardData {
   const buffetSummaries = listActiveBuffetLineSummaries(orders);
   const catalogOrders = sortOrdersForBillableCatalog(orders);
-  const catalog = buildBillableSessionItems(catalogOrders);
+  const catalog = sortBillableSessionItemsForWaiterDetail(
+    buildBillableSessionItems(catalogOrders),
+    catalogOrders,
+  );
   const serveEnabled = options.serveEnabled === true;
   const readyAfterMinutes =
     options.readyAfterMinutes ?? KITCHEN_READY_AFTER_MINUTES_DEFAULT;

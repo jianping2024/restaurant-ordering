@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   buildBillableSessionItems,
+  buildPaperBillableSessionItems,
   byItemSplitTargetQty,
   chargeableFieldsFromBillableRow,
+  isBillableSessionRowOnPaper,
   isByItemSplittableBillableRow,
   isLimitedBillableRow,
   limitedBillableMergeKey,
   menuItemIdFromLimitedBillableKey,
+  sortBillableSessionItemsForWaiterDetail,
   sortOrdersForBillableCatalog,
   sumBillableNonBuffetTotal,
   sumBillableSessionTotal,
@@ -428,5 +431,96 @@ describe('sumBillableSessionTotal', () => {
     const after = buildBillableSessionItems(ordersAfter).map((row) => row.item.id);
     assert.deepEqual(after, before);
     assert.equal(buildBillableSessionItems(ordersAfter)[0]?.item.qty, 3);
+  });
+});
+
+describe('paper billable rows + waiter detail sort', () => {
+  it('omits €0 menu rows from paper catalog and keeps them in full catalog', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        created_at: '2026-01-01T00:00:00.000Z',
+        items: [
+          {
+            id: 'paid',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+            added_at: '2026-01-01T00:00:01.000Z',
+          },
+          {
+            id: 'free',
+            name: 'Free roll',
+            name_pt: 'Free roll',
+            qty: 2,
+            price: 0,
+            emoji: '🍣',
+            added_at: '2026-01-01T00:00:02.000Z',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const full = buildBillableSessionItems(orders);
+    assert.equal(full.length, 2);
+    assert.equal(isBillableSessionRowOnPaper(full.find((r) => r.item.id === 'free')!), false);
+    assert.equal(isBillableSessionRowOnPaper(full.find((r) => r.item.id === 'paid')!), true);
+
+    const paper = buildPaperBillableSessionItems(orders);
+    assert.deepEqual(
+      paper.map((r) => r.item.id),
+      ['paid'],
+    );
+  });
+
+  it('sorts waiter detail: charged newest-first, then free', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        created_at: '2026-01-01T00:00:00.000Z',
+        items: [
+          {
+            id: 'old-paid',
+            name: 'Soup',
+            name_pt: 'Soup',
+            qty: 1,
+            price: 3,
+            emoji: '🍅',
+            added_at: '2026-01-01T00:00:01.000Z',
+          },
+          {
+            id: 'free',
+            name: 'Free',
+            name_pt: 'Free',
+            qty: 1,
+            price: 0,
+            emoji: '🍣',
+            added_at: '2026-01-01T00:00:99.000Z',
+          },
+          {
+            id: 'new-paid',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+            added_at: '2026-01-01T00:00:50.000Z',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const sorted = sortBillableSessionItemsForWaiterDetail(
+      buildBillableSessionItems(orders),
+      orders,
+    );
+    assert.deepEqual(
+      sorted.map((r) => r.item.id),
+      ['new-paid', 'old-paid', 'free'],
+    );
   });
 });

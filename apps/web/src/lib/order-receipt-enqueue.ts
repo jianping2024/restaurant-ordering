@@ -9,7 +9,7 @@ import {
   type BillSyncPaymentLine,
 } from '@/lib/bill-sync-payload';
 import { buildByItemSplitOrderLines } from '@/lib/bill-split-by-item-lines';
-import { billableLineAmount, buildBillableSessionItems } from '@/lib/billable-session-lines';
+import { billableLineAmount, buildPaperBillableSessionItems } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { buildSplitPersonShareLines } from '@/lib/checkout-split-person-lines';
@@ -174,7 +174,7 @@ export function buildReceiptLinesFromOrders(
   const lines: OrderReceiptJobPayload['lines'] = [];
   let itemIndex = 0;
 
-  for (const row of buildBillableSessionItems(orders)) {
+  for (const row of buildPaperBillableSessionItems(orders)) {
     itemIndex += 1;
     const amount = billableLineAmount(row);
     const qty = Math.max(0, Number(row.item.qty) || 0);
@@ -206,13 +206,14 @@ export function buildSplitPersonReceiptLines(
   const lines: OrderReceiptJobPayload['lines'] = [];
   for (let index = 0; index < shares.length; index++) {
     const row = shares[index]!;
+    if (!(row.shareAmount > 0)) continue;
     const catalog = byKey.get(row.key);
     const vat_rate = catalog
       ? vatRateStringForItem(catalog, vatRateByMenuId, vatRateByBuffetId)
       : null;
     if (!vat_rate) return { error: 'missing_vat_rate' };
     lines.push({
-      item_index: index + 1,
+      item_index: lines.length + 1,
       display_name: row.receiptLabel,
       qty: 1,
       unit_price: row.shareAmount,

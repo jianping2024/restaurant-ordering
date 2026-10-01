@@ -473,7 +473,7 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines[0]?.canServe, false);
   });
 
-  it('keeps ordered-item line order when updated_at resort would reverse orders', () => {
+  it('orders charged lines newest-first and free lines after charged', () => {
     const card = buildWaiterTableCard(
       't1',
       '001',
@@ -493,6 +493,7 @@ describe('buildWaiterTableCard', () => {
               price: 2,
               emoji: '🥤',
               item_code: '006',
+              added_at: '2026-01-02T00:00:00.000Z',
             },
           ],
           total_amount: 6,
@@ -514,6 +515,17 @@ describe('buildWaiterTableCard', () => {
               price: 3,
               emoji: '🍅',
               item_code: '112',
+              added_at: '2026-01-01T00:00:00.000Z',
+            },
+            {
+              id: 'd-free',
+              name: 'Free sushi',
+              name_pt: 'Free sushi',
+              qty: 2,
+              price: 0,
+              emoji: '🍣',
+              item_code: '200',
+              added_at: '2026-01-03T00:00:00.000Z',
             },
           ],
           total_amount: 15,
@@ -525,10 +537,12 @@ describe('buildWaiterTableCard', () => {
       capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]),
     );
 
-    assert.equal(card.orderLines.length, 2);
-    assert.equal(card.orderLines[0]?.itemCode, '112');
-    assert.equal(card.orderLines[1]?.itemCode, '006');
-    assert.equal(card.orderLines[0]?.catalogKey, 'd1::3');
-    assert.equal(card.orderLines[1]?.catalogKey, 'd2::2');
+    assert.equal(card.orderLines.length, 3);
+    assert.equal(card.orderLines[0]?.itemCode, '006');
+    assert.equal(card.orderLines[1]?.itemCode, '112');
+    assert.equal(card.orderLines[2]?.itemCode, '200');
+    assert.equal(card.orderLines[0]?.catalogKey, 'd2::2');
+    assert.equal(card.orderLines[1]?.catalogKey, 'd1::3');
+    assert.equal(card.orderLines[2]?.catalogKey, 'd-free::0');
   });
 });

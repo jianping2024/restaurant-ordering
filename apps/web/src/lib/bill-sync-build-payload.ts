@@ -13,7 +13,7 @@ import {
 } from '@/lib/bill-split-by-item-lines';
 import {
   billableLineAmount,
-  buildBillableSessionItems,
+  buildPaperBillableSessionItems,
 } from '@/lib/billable-session-lines';
 import {
   billSyncDocumentTypeForPayment,
@@ -187,7 +187,7 @@ function appendWholeTableBuffetLines(
 
 function buildWholeTableLines(input: BuildBillSyncPayloadInput): BillSyncLine[] | { error: string } {
   const lines: BillSyncLine[] = [];
-  for (const row of buildBillableSessionItems(input.orders)) {
+  for (const row of buildPaperBillableSessionItems(input.orders)) {
     const { item } = row;
     if (isBuffetBaseItem(item)) {
       const err = appendWholeTableBuffetLines(lines, item, input);

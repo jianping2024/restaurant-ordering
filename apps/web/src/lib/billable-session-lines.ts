@@ -347,3 +347,86 @@ export function sumBillableNonBuffetTotal(orders: Order[]): number {
     return sum + billableLineAmount(row);
   }, 0);
 }
+
+/**
+ * Sole gate: row has money to collect (incl. sushi limited overage).
+ * Used for waiter 收费/免费 banding and for guest/cashier paper lines.
+ */
+export function isBillableSessionRowOnPaper(row: BillableSessionItem): boolean {
+  return billableLineAmount(row) > 0;
+}
+
+/**
+ * Sole catalog for pre_bill / order_receipt / fiscal invoice lines.
+ * Omits €0 rows (free allowance / price-0 with no overage); kitchen tickets stay on
+ * {@link buildBillableSessionItems}.
+ */
+export function buildPaperBillableSessionItems(orders: Order[]): BillableSessionItem[] {
+  return buildBillableSessionItems(orders).filter(isBillableSessionRowOnPaper);
+}
+
+function bumpBillableCatalogLatest(
+  latest: Map<string, string>,
+  key: string,
+  candidate: string,
+): void {
+  const prev = latest.get(key);
+  if (prev == null || candidate > prev) latest.set(key, candidate);
+}
+
+/**
+ * Latest physical-line time per billable catalog key (menu merge + `buffet:*`).
+ * Waiter detail sorts charged rows by this descending.
+ */
+export function collectBillableCatalogLatestAtByKey(orders: Order[]): Map<string, string> {
+  const latest = new Map<string, string>();
+  const catalogOrders = sortOrdersForBillableCatalog(orders);
+  const buffetSummaries = listActiveBuffetLineSummaries(orders);
+  const limitAllocations = allocateSessionSushiLimitedLines(orders);
+
+  for (const order of catalogOrders) {
+    const items = order.items || [];
+    for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+      const item = items[itemIdx];
+      if (!item) continue;
+      const at = billableCatalogLineAnchorAt(order, itemIdx, item);
+
+      if (isBuffetBaseItem(item) && item.buffet_id) {
+        bumpBillableCatalogLatest(latest, `buffet:${item.buffet_id}`, at);
+        continue;
+      }
+
+      const mergeKey = billableMenuMergeKeyForLine(
+        order,
+        itemIdx,
+        item,
+        limitAllocations,
+        buffetSummaries,
+      );
+      if (!mergeKey) continue;
+      bumpBillableCatalogLatest(latest, mergeKey, at);
+    }
+  }
+
+  return latest;
+}
+
+/**
+ * Sole waiter-detail ordered-items sort: money rows first, then €0; within each
+ * band, latest catalog time descending.
+ */
+export function sortBillableSessionItemsForWaiterDetail(
+  rows: readonly BillableSessionItem[],
+  orders: Order[],
+): BillableSessionItem[] {
+  const latestByKey = collectBillableCatalogLatestAtByKey(orders);
+  return [...rows].sort((a, b) => {
+    const bandA = isBillableSessionRowOnPaper(a) ? 0 : 1;
+    const bandB = isBillableSessionRowOnPaper(b) ? 0 : 1;
+    if (bandA !== bandB) return bandA - bandB;
+    const tA = latestByKey.get(a.key) ?? '';
+    const tB = latestByKey.get(b.key) ?? '';
+    if (tA !== tB) return tA < tB ? 1 : -1;
+    return a.key.localeCompare(b.key);
+  });
+}

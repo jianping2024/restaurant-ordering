@@ -14,11 +14,23 @@ const MENU_ROW_ICON_BTN =
 const MENU_ROW_ICON_BTN_DANGER = `${MENU_ROW_ICON_BTN} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`;
 const MENU_ROW_ICON_CLUSTER =
   'flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1';
-/** Per-depth row indent; matches expand-slot width so parents never look deeper than children. */
-const CATEGORY_TREE_INDENT_PX = 20;
-/** Sole expand/collapse column — button when has children, empty spacer otherwise (one width). */
+/**
+ * Sole category-tree spacing source:
+ * triangle | GAP | handle | GAP | label  (GAP = former gap-1 4px → 1/3).
+ * Expand width = per-depth indent; ▸ flush-right so visual triangle↔handle equals GAP.
+ * LABEL_INSET aligns root category names with 「新增大类」 text.
+ */
+const CATEGORY_TREE_ROW_GAP_PX = Math.round(4 / 3);
+const CATEGORY_TREE_EXPAND_SLOT_PX = 12;
+/** Matches SortOrderDragHandle `w-6` — do not diverge. */
+const CATEGORY_TREE_HANDLE_WIDTH_PX = 24;
+export const CATEGORY_TREE_LABEL_INSET_PX =
+  CATEGORY_TREE_EXPAND_SLOT_PX +
+  CATEGORY_TREE_ROW_GAP_PX +
+  CATEGORY_TREE_HANDLE_WIDTH_PX +
+  CATEGORY_TREE_ROW_GAP_PX;
 const CATEGORY_TREE_EXPAND_SLOT =
-  'h-7 w-5 shrink-0 inline-flex items-center justify-center';
+  'h-7 shrink-0 inline-flex items-center justify-end text-brand-text-muted';
 
 export type MenuCategorySortTreeLabels = {
   sameLevelSort: string;
@@ -100,11 +112,12 @@ function CategorySiblingList({
                     style={draggableProvided.draggableProps.style}
                   >
                     <div
-                      className={`group flex w-full items-center gap-1 min-h-8 pr-1 min-w-0 rounded-md ${
+                      className={`group flex w-full items-center min-h-8 pr-1 min-w-0 rounded-md ${
                         selected ? 'ring-1 ring-brand-gold/50 bg-brand-gold/5' : ''
                       } ${snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 bg-brand-card' : ''}`}
                       style={{
-                        paddingLeft: `${Math.max(0, depth - 1) * CATEGORY_TREE_INDENT_PX}px`,
+                        paddingLeft: `${Math.max(0, depth - 1) * CATEGORY_TREE_EXPAND_SLOT_PX}px`,
+                        gap: CATEGORY_TREE_ROW_GAP_PX,
                       }}
                     >
                       {hasChildren ? (
@@ -119,7 +132,8 @@ function CategorySiblingList({
                               onExpandedKeysChange([...expandedKeys, category.id]);
                             }
                           }}
-                          className={`${CATEGORY_TREE_EXPAND_SLOT} text-brand-text-muted hover:text-brand-gold`}
+                          className={`${CATEGORY_TREE_EXPAND_SLOT} hover:text-brand-gold`}
+                          style={{ width: CATEGORY_TREE_EXPAND_SLOT_PX }}
                         >
                           <span
                             className={`text-[10px] leading-none transition-transform ${
@@ -131,7 +145,11 @@ function CategorySiblingList({
                           </span>
                         </button>
                       ) : (
-                        <span className={CATEGORY_TREE_EXPAND_SLOT} aria-hidden />
+                        <span
+                          className={CATEGORY_TREE_EXPAND_SLOT}
+                          style={{ width: CATEGORY_TREE_EXPAND_SLOT_PX }}
+                          aria-hidden
+                        />
                       )}
                       <SortOrderDragHandle
                         label={labels.sameLevelSort}

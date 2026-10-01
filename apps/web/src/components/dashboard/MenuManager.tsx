@@ -9,7 +9,10 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
-import { MenuCategorySortTree } from '@/components/dashboard/MenuCategorySortTree';
+import {
+  CATEGORY_TREE_LABEL_INSET_PX,
+  MenuCategorySortTree,
+} from '@/components/dashboard/MenuCategorySortTree';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { normalizeDecimalInput } from '@/lib/number-input';
 import type { MenuCategory, MenuItem, PrintStation } from '@/types';
@@ -1201,6 +1204,7 @@ export function MenuManager({
                     setCategoryPanelMode('create-root');
                   }}
                   className="mt-2 w-full text-left text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+                  style={{ paddingLeft: CATEGORY_TREE_LABEL_INSET_PX }}
                 >
                   + {t.addRootShort}
                 </button>

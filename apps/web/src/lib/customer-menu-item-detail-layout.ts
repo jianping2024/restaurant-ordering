@@ -1,6 +1,7 @@
 /**
  * Sole layout tokens for customer menu item detail (`CustomerMenuItemDetailSheet`).
  * Phone: fullscreen slide-up within the shell. lg+: centered dialog over dimmed backdrop.
+ * Scroll: one column (hero + copy); footer CTA stays pinned; host/body lock keeps menu behind still.
  */
 
 import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from '@/lib/customer-menu-bottom-bar-layout';
@@ -11,7 +12,7 @@ export const CUSTOMER_MENU_ITEM_DETAIL_Z_CLASS = 'z-50';
 
 /** Full-viewport host: stretch on phone, centered dialog on lg+. */
 export const customerMenuItemDetailHostClass = [
-  'fixed inset-0 flex',
+  'fixed inset-0 flex overflow-hidden overscroll-none',
   CUSTOMER_MENU_ITEM_DETAIL_Z_CLASS,
   'max-lg:items-stretch max-lg:justify-center',
   'lg:items-center lg:justify-center lg:p-4',
@@ -25,7 +26,7 @@ export const customerMenuItemDetailBackdropClass =
  * Static Tailwind strings only (JIT).
  */
 export const customerMenuItemDetailPanelClass = [
-  'relative flex w-full flex-col overflow-hidden bg-brand-bg',
+  'relative flex w-full flex-col overflow-hidden overscroll-none bg-brand-bg',
   'max-lg:h-full max-lg:max-w-mobile',
   'lg:max-h-[min(90vh,40rem)] lg:w-full lg:max-w-lg lg:rounded-2xl lg:border lg:border-brand-border lg:shadow-2xl',
   'transition duration-300 ease-out',
@@ -38,17 +39,21 @@ export const customerMenuItemDetailPanelExitedClass =
   'max-lg:translate-y-full lg:scale-95 lg:opacity-0';
 
 /**
- * Hero — dominant top plane. Fixed 4:3 frame (matches upload
- * `MENU_IMAGE_ASPECT_RATIO`); image fit uses sole {@link MENU_IMAGE_OBJECT_FIT_CLASS}.
+ * Hero — in the same scroll column as copy (not a pinned band).
+ * Keep upload 4:3 aspect; display height capped ~⅓ viewport so name/price/allergens fit first paint.
  */
 export const CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS =
-  `relative ${MENU_IMAGE_ASPECT_CLASS} w-full shrink-0 overflow-hidden ${MENU_IMAGE_WELL_BG_CLASS} max-lg:max-h-[min(52vh,24rem)]`;
+  `relative w-full shrink-0 overflow-hidden ${MENU_IMAGE_ASPECT_CLASS} ${MENU_IMAGE_WELL_BG_CLASS} max-h-[min(33vh,14rem)]`;
 
 export const customerMenuItemDetailCloseButtonClass =
   'absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 flex h-10 w-10 items-center justify-center rounded-full border border-brand-border bg-brand-card/90 text-brand-text shadow-sm backdrop-blur-sm';
 
+/** Sole vertical scroller for hero + copy. */
 export const customerMenuItemDetailBodyClass =
-  'modal-scroll min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-5';
+  'modal-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain';
+
+/** Padded copy below the full-bleed hero inside the scroller. */
+export const customerMenuItemDetailContentClass = 'px-5 pb-4 pt-5';
 
 export const customerMenuItemDetailFooterClass =
   `shrink-0 border-t border-brand-border bg-brand-card px-4 ${CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS} pt-3`;

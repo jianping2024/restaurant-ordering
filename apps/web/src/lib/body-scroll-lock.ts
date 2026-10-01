@@ -1,13 +1,16 @@
 let lockCount = 0;
-let savedOverflow = '';
+let savedBodyOverflow = '';
+let savedHtmlOverflow = '';
 
-/** Sole body scroll lock — refcounted; do not set document.body.style.overflow elsewhere. */
+/** Sole body scroll lock — refcounted; do not set overflow on body/html elsewhere. */
 export function lockBodyScroll(): () => void {
   if (typeof document === 'undefined') return () => {};
   lockCount += 1;
   if (lockCount === 1) {
-    savedOverflow = document.body.style.overflow;
+    savedBodyOverflow = document.body.style.overflow;
+    savedHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
   }
   return unlockBodyScroll;
 }
@@ -17,8 +20,10 @@ export function unlockBodyScroll(): void {
   if (lockCount <= 0) return;
   lockCount -= 1;
   if (lockCount === 0) {
-    document.body.style.overflow = savedOverflow;
-    savedOverflow = '';
+    document.body.style.overflow = savedBodyOverflow;
+    document.documentElement.style.overflow = savedHtmlOverflow;
+    savedBodyOverflow = '';
+    savedHtmlOverflow = '';
   }
 }
 
@@ -26,8 +31,10 @@ export function unlockBodyScroll(): void {
 export function resetBodyScrollLock(): void {
   if (typeof document === 'undefined') return;
   lockCount = 0;
-  savedOverflow = '';
+  savedBodyOverflow = '';
+  savedHtmlOverflow = '';
   document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 }
 
 export function bodyScrollLockCountForTest(): number {

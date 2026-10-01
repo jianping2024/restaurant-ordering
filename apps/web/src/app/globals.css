@@ -135,6 +135,7 @@ body {
 }
 
 .modal-scroll {
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--color-brand-border)) transparent;
 }

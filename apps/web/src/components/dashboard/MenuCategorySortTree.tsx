@@ -14,6 +14,11 @@ const MENU_ROW_ICON_BTN =
 const MENU_ROW_ICON_BTN_DANGER = `${MENU_ROW_ICON_BTN} border-status-danger/35 bg-[rgb(var(--color-status-danger-border)/0.12)] mesa-text-danger leading-none hover:bg-[rgb(var(--color-status-danger-border)/0.2)] focus-visible:ring-[rgb(var(--color-status-danger-border)/0.45)]`;
 const MENU_ROW_ICON_CLUSTER =
   'flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1';
+/** Per-depth row indent; matches expand-slot width so parents never look deeper than children. */
+const CATEGORY_TREE_INDENT_PX = 20;
+/** Sole expand/collapse column — button when has children, empty spacer otherwise (one width). */
+const CATEGORY_TREE_EXPAND_SLOT =
+  'h-7 w-5 shrink-0 inline-flex items-center justify-center';
 
 export type MenuCategorySortTreeLabels = {
   sameLevelSort: string;
@@ -98,7 +103,9 @@ function CategorySiblingList({
                       className={`group flex w-full items-center gap-1 min-h-8 pr-1 min-w-0 rounded-md ${
                         selected ? 'ring-1 ring-brand-gold/50 bg-brand-gold/5' : ''
                       } ${snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 bg-brand-card' : ''}`}
-                      style={{ paddingLeft: `${Math.max(0, depth - 1) * 12}px` }}
+                      style={{
+                        paddingLeft: `${Math.max(0, depth - 1) * CATEGORY_TREE_INDENT_PX}px`,
+                      }}
                     >
                       {hasChildren ? (
                         <button
@@ -112,7 +119,7 @@ function CategorySiblingList({
                               onExpandedKeysChange([...expandedKeys, category.id]);
                             }
                           }}
-                          className="h-7 w-5 shrink-0 inline-flex items-center justify-center text-brand-text-muted hover:text-brand-gold"
+                          className={`${CATEGORY_TREE_EXPAND_SLOT} text-brand-text-muted hover:text-brand-gold`}
                         >
                           <span
                             className={`text-[10px] leading-none transition-transform ${
@@ -123,7 +130,9 @@ function CategorySiblingList({
                             ▸
                           </span>
                         </button>
-                      ) : null}
+                      ) : (
+                        <span className={CATEGORY_TREE_EXPAND_SLOT} aria-hidden />
+                      )}
                       <SortOrderDragHandle
                         label={labels.sameLevelSort}
                         disabled={dragDisabled}

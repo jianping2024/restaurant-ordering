@@ -364,7 +364,6 @@ export const MESSAGES_FR = {
     "ptNameRequired": "Le nom en portugais est obligatoire",
     "validPrice": "Veuillez saisir un prix valide",
     "vatRate": "Taux de TVA *",
-    "vatRateHint": "Taux d'IVA portugais courants : 0 % (exonéré), 6 % (réduit), 13 % (intermédiaire), 23 % (normal).",
     "vatRateOption": "{rate} %",
     "vatRateRequired": "Veuillez sélectionner un taux de TVA",
     "vatRateShort": "TVA {rate} %",

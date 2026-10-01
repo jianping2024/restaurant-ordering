@@ -364,7 +364,6 @@ export const MESSAGES_DE = {
     "ptNameRequired": "Der portugiesische Name ist erforderlich",
     "validPrice": "Bitte einen gültigen Preis eingeben",
     "vatRate": "MwSt.-Satz *",
-    "vatRateHint": "Übliche portugiesische IVA-Sätze: 0 % (befreit), 6 % (reduziert), 13 % (mittlerer Satz), 23 % (Regelsatz).",
     "vatRateOption": "{rate} %",
     "vatRateRequired": "Bitte einen MwSt.-Satz auswählen",
     "vatRateShort": "MwSt. {rate} %",

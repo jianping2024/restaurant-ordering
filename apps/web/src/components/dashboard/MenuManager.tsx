@@ -1742,7 +1742,6 @@ export function MenuManager({
                   </option>
                 ))}
               </select>
-              <p className="text-[12px] text-brand-text-muted mt-1">{t.vatRateHint}</p>
             </div>
           </div>
 

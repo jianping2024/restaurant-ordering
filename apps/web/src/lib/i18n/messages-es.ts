@@ -364,7 +364,6 @@ export const MESSAGES_ES = {
     "ptNameRequired": "El nombre en portugués es obligatorio",
     "validPrice": "Introduce un precio válido",
     "vatRate": "Tipo de IVA *",
-    "vatRateHint": "Tipos de IVA habituales en Portugal: 0 % (exento), 6 % (reducido), 13 % (intermedio), 23 % (general).",
     "vatRateOption": "{rate} %",
     "vatRateRequired": "Selecciona un tipo de IVA",
     "vatRateShort": "IVA {rate} %",

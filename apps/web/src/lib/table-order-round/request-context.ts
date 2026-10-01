@@ -153,7 +153,6 @@ export async function loadTableOrderRoundContext(params: {
 export function roundSnapshotJson(snapshot: {
   round: unknown;
   lines: unknown;
-  votes: unknown;
   settings: SushiRoundSettings;
   live_guest_count: number;
   round_cap_total: number;
@@ -163,7 +162,6 @@ export function roundSnapshotJson(snapshot: {
     ok: true as const,
     round: snapshot.round,
     lines: snapshot.lines,
-    votes: snapshot.votes,
     settings: snapshot.settings,
     live_guest_count: snapshot.live_guest_count,
     round_cap_total: snapshot.round_cap_total,

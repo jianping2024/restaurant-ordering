@@ -7,8 +7,6 @@ export type TableOrderRoundStatus =
   | 'closed'
   | 'finalize_failed';
 
-export type TableOrderRoundVoteValue = 'pending' | 'confirm' | 'defer';
-
 export type TableOrderRoundRow = {
   id: string;
   restaurant_id: string;
@@ -20,8 +18,6 @@ export type TableOrderRoundRow = {
   submit_request_id: string | null;
   submit_requested_at: string | null;
   submit_deadline_at: string | null;
-  defer_used_at: string | null;
-  defer_cooldown_until: string | null;
   cooldown_until: string | null;
   append_client_request_id: string | null;
   created_at: string;
@@ -38,20 +34,10 @@ export type TableOrderRoundLineRow = {
   added_at: string;
 };
 
-export type TableOrderRoundVoteRow = {
-  id: string;
-  round_id: string;
-  submit_request_id: string;
-  guest_client_id: string;
-  vote: TableOrderRoundVoteValue;
-  voted_at: string | null;
-};
-
 /** API GET / snapshot response shape. */
 export type RoundSnapshot = {
   round: TableOrderRoundRow | null;
   lines: TableOrderRoundLineRow[];
-  votes: TableOrderRoundVoteRow[];
   settings: SushiRoundSettings;
   /** Live headcount used for collecting-phase cap (not frozen). */
   live_guest_count: number;
@@ -66,8 +52,6 @@ export type TableOrderRoundErrorCode =
   | 'round_cap_exceeded'
   | 'guest_count_required'
   | 'round_empty'
-  | 'round_defer_cooldown'
-  | 'round_defer_already_used'
   | 'round_confirm_pending'
   | 'round_cooldown_active'
   | 'session_billing'
@@ -85,6 +69,5 @@ export type TableOrderRoundErrorCode =
   | 'menu_item_not_free'
   | 'menu_item_unavailable'
   | 'finalize_not_ready'
-  | 'vote_disabled'
   | 'append_failed'
   | 'round_not_pending_confirm';

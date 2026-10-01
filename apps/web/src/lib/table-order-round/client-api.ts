@@ -7,11 +7,9 @@ import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 
 export type RoundApiSnapshot = RoundSnapshot & {
   ok?: boolean;
-  finalized?: boolean;
-  deferred?: boolean;
-  enqueue_token?: string;
   order_id?: string;
   batch_id?: string;
+  enqueue_token?: string;
   idempotent_replay?: boolean;
 };
 
@@ -26,7 +24,6 @@ function parseSnapshot(json: unknown, fallbackSettings: SushiRoundSettings): Rou
           note: typeof line.note === 'string' ? line.note : '',
         }))
       : [],
-    votes: Array.isArray(raw.votes) ? (raw.votes as RoundSnapshot['votes']) : [],
     settings:
       raw.settings && typeof raw.settings === 'object'
         ? (raw.settings as SushiRoundSettings)
@@ -35,8 +32,6 @@ function parseSnapshot(json: unknown, fallbackSettings: SushiRoundSettings): Rou
     round_cap_total: Number(raw.round_cap_total) || 0,
     lines_qty_total: Number(raw.lines_qty_total) || 0,
     ok: raw.ok === true,
-    finalized: raw.finalized === true,
-    deferred: raw.deferred === true,
     enqueue_token: typeof raw.enqueue_token === 'string' ? raw.enqueue_token : undefined,
     order_id: typeof raw.order_id === 'string' ? raw.order_id : undefined,
     batch_id: typeof raw.batch_id === 'string' ? raw.batch_id : undefined,
@@ -239,10 +234,7 @@ export function ownLineNote(
   );
 }
 
-export function ownLinesQtyTotal(
-  lines: TableOrderRoundLineRow[],
-  guestClientId: string,
-): number {
+export function ownLinesQtyTotal(lines: TableOrderRoundLineRow[], guestClientId: string): number {
   return lines
     .filter((l) => l.guest_client_id === guestClientId)
     .reduce((sum, l) => sum + (Number(l.qty) || 0), 0);
@@ -258,4 +250,3 @@ export function ownLineId(
     null
   );
 }
-

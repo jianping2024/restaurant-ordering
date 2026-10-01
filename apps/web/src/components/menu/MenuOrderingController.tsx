@@ -124,7 +124,6 @@ export type MenuOrderingRestaurant = {
   sushi_per_person_per_round_cap?: number | null;
   sushi_round_confirm_timeout_seconds?: number | null;
   sushi_round_cooldown_seconds?: number | null;
-  sushi_round_defer_cooldown_seconds?: number | null;
 };
 
 export type MenuOrderingPresentationMode = 'page' | 'embedded';

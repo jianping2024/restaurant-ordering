@@ -38,13 +38,6 @@ export function isCooldownExpired(status: TableOrderRoundStatus, cooldownUntil: 
   return nowMs >= until;
 }
 
-export function isDeferCooldownActive(deferCooldownUntil: string | null, nowMs = Date.now()): boolean {
-  if (!deferCooldownUntil) return false;
-  const until = Date.parse(deferCooldownUntil);
-  if (!Number.isFinite(until)) return false;
-  return nowMs < until;
-}
-
 export function isSubmitDeadlinePassed(submitDeadlineAt: string | null, nowMs = Date.now()): boolean {
   if (!submitDeadlineAt) return false;
   const at = Date.parse(submitDeadlineAt);

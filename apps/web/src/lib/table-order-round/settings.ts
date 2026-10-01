@@ -16,16 +16,11 @@ export const SUSHI_ROUND_COOLDOWN_SECONDS_DEFAULT = 120;
 export const SUSHI_ROUND_COOLDOWN_SECONDS_MIN = 30;
 export const SUSHI_ROUND_COOLDOWN_SECONDS_MAX = 600;
 
-export const SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_DEFAULT = 30;
-export const SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN = 15;
-export const SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX = 120;
-
 export type SushiRoundSettings = {
   sushi_round_ordering_enabled: boolean;
   sushi_per_person_per_round_cap: number;
   sushi_round_confirm_timeout_seconds: number;
   sushi_round_cooldown_seconds: number;
-  sushi_round_defer_cooldown_seconds: number;
   /** Guest sushi menu: vegetarian lamp filter. Default off. */
   sushi_menu_vegetarian_filter_enabled: boolean;
   /** Guest sushi menu: allergen-avoid filter. Default off. */
@@ -40,7 +35,6 @@ export const DEFAULT_SUSHI_ROUND_SETTINGS: SushiRoundSettings = {
   sushi_per_person_per_round_cap: SUSHI_PER_PERSON_PER_ROUND_CAP_DEFAULT,
   sushi_round_confirm_timeout_seconds: SUSHI_ROUND_CONFIRM_TIMEOUT_SECONDS_DEFAULT,
   sushi_round_cooldown_seconds: SUSHI_ROUND_COOLDOWN_SECONDS_DEFAULT,
-  sushi_round_defer_cooldown_seconds: SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_DEFAULT,
   sushi_menu_vegetarian_filter_enabled: SUSHI_MENU_VEGETARIAN_FILTER_ENABLED_DEFAULT,
   sushi_menu_allergen_filter_enabled: SUSHI_MENU_ALLERGEN_FILTER_ENABLED_DEFAULT,
 };
@@ -99,21 +93,11 @@ export function clampSushiRoundCooldownSeconds(raw: unknown): number {
   );
 }
 
-export function clampSushiRoundDeferCooldownSeconds(raw: unknown): number {
-  return clampIntInRange(
-    raw,
-    SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN,
-    SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX,
-    SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_DEFAULT,
-  );
-}
-
 export type SushiRoundRestaurantRow = {
   sushi_round_ordering_enabled?: unknown;
   sushi_per_person_per_round_cap?: unknown;
   sushi_round_confirm_timeout_seconds?: unknown;
   sushi_round_cooldown_seconds?: unknown;
-  sushi_round_defer_cooldown_seconds?: unknown;
   sushi_menu_vegetarian_filter_enabled?: unknown;
   sushi_menu_allergen_filter_enabled?: unknown;
 };
@@ -129,9 +113,6 @@ export function parseSushiRoundSettingsFromRestaurantRow(
       row.sushi_round_confirm_timeout_seconds,
     ),
     sushi_round_cooldown_seconds: clampSushiRoundCooldownSeconds(row.sushi_round_cooldown_seconds),
-    sushi_round_defer_cooldown_seconds: clampSushiRoundDeferCooldownSeconds(
-      row.sushi_round_defer_cooldown_seconds,
-    ),
     sushi_menu_vegetarian_filter_enabled: clampSushiMenuVegetarianFilterEnabled(
       row.sushi_menu_vegetarian_filter_enabled,
     ),
@@ -179,8 +160,6 @@ export function parseSushiRoundSettingsPatch(
     'sushi_round_confirm_timeout_seconds',
     'sushiRoundCooldownSeconds',
     'sushi_round_cooldown_seconds',
-    'sushiRoundDeferCooldownSeconds',
-    'sushi_round_defer_cooldown_seconds',
     'sushiMenuVegetarianFilterEnabled',
     'sushi_menu_vegetarian_filter_enabled',
     'sushiMenuAllergenFilterEnabled',
@@ -261,18 +240,6 @@ export function parseSushiRoundSettingsPatch(
     if (v !== undefined) patch.sushi_round_cooldown_seconds = v;
   }
 
-  if ('sushiRoundDeferCooldownSeconds' in raw || 'sushi_round_defer_cooldown_seconds' in raw) {
-    const v = parseOptionalIntInRange(
-      raw.sushiRoundDeferCooldownSeconds !== undefined
-        ? raw.sushiRoundDeferCooldownSeconds
-        : raw.sushi_round_defer_cooldown_seconds,
-      SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MIN,
-      SUSHI_ROUND_DEFER_COOLDOWN_SECONDS_MAX,
-    );
-    if (v === null) return { ok: false, error: 'invalid_sushi_round_defer_cooldown_seconds' };
-    if (v !== undefined) patch.sushi_round_defer_cooldown_seconds = v;
-  }
-
   return { ok: true, patch };
 }
 
@@ -282,7 +249,6 @@ export function sushiRoundSettingsToApiJson(settings: SushiRoundSettings) {
     sushiPerPersonPerRoundCap: settings.sushi_per_person_per_round_cap,
     sushiRoundConfirmTimeoutSeconds: settings.sushi_round_confirm_timeout_seconds,
     sushiRoundCooldownSeconds: settings.sushi_round_cooldown_seconds,
-    sushiRoundDeferCooldownSeconds: settings.sushi_round_defer_cooldown_seconds,
     sushiMenuVegetarianFilterEnabled: settings.sushi_menu_vegetarian_filter_enabled,
     sushiMenuAllergenFilterEnabled: settings.sushi_menu_allergen_filter_enabled,
   };

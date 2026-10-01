@@ -27,7 +27,7 @@ export async function loadCustomerRestaurantGate(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, guest_ordering_notice, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled, suspended_at, suspension_reason',
+      'id, name, slug, logo_url, geo_latitude, geo_longitude, order_radius_meters, feature_flags, order_cooldown_seconds, buffet_service_mode, guest_ordering_notice, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled, suspended_at, suspension_reason',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -75,10 +75,6 @@ export async function loadCustomerRestaurantGate(
         | null
         | undefined,
       sushi_round_cooldown_seconds: data.sushi_round_cooldown_seconds as number | null | undefined,
-      sushi_round_defer_cooldown_seconds: data.sushi_round_defer_cooldown_seconds as
-        | number
-        | null
-        | undefined,
       sushi_menu_vegetarian_filter_enabled: data.sushi_menu_vegetarian_filter_enabled as
         | boolean
         | null

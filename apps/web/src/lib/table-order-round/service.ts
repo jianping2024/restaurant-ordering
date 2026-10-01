@@ -12,6 +12,7 @@ import { writeAppendBatch } from '@/lib/append-write-batch';
 import { coerceCartPrice } from '@/lib/cart-totals';
 import { orderEnqueueSecret, signOrderEnqueueToken } from '@/lib/order-enqueue-token';
 import { resolveAppendCartItems } from '@/lib/resolve-append-cart-items';
+import { enqueueStationTicketsForOrder } from '@/lib/station-ticket-enqueue';
 import {
   parseSushiRoundSettingsFromRestaurantRow,
   type SushiRoundSettings,
@@ -27,8 +28,6 @@ import type {
   TableOrderRoundErrorCode,
   TableOrderRoundLineRow,
   TableOrderRoundRow,
-  TableOrderRoundVoteRow,
-  TableOrderRoundVoteValue,
 } from '@/lib/table-order-round/types';
 import { aggregateRoundLinesForAppend } from '@/lib/table-order-round/aggregate-lines';
 import type { RoundLineQtyMode } from '@/lib/table-order-round/round-line-identity';
@@ -37,10 +36,9 @@ import type { OrderItem } from '@/types';
 import { isSushiBuffetMode, type BuffetServiceMode } from '@mesa/shared';
 
 const ROUND_SELECT =
-  'id, restaurant_id, session_id, table_id, status, guest_count_snapshot, per_person_cap, submit_request_id, submit_requested_at, submit_deadline_at, defer_used_at, defer_cooldown_until, cooldown_until, append_client_request_id, created_at, updated_at';
+  'id, restaurant_id, session_id, table_id, status, guest_count_snapshot, per_person_cap, submit_request_id, submit_requested_at, submit_deadline_at, cooldown_until, append_client_request_id, created_at, updated_at';
 
 const LINE_SELECT = 'id, round_id, menu_item_id, qty, guest_client_id, note, added_at';
-const VOTE_SELECT = 'id, round_id, submit_request_id, guest_client_id, vote, voted_at';
 
 export type ServiceResult<T> =
   | { ok: true; data: T }
@@ -67,11 +65,42 @@ export async function loadRestaurantSushiRoundSettings(
   const { data } = await admin
     .from('restaurants')
     .select(
-      'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
+      'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
     )
     .eq('id', restaurantId)
     .maybeSingle();
   return parseSushiRoundSettingsFromRestaurantRow(data ?? undefined);
+}
+
+/** Sole print path after free-round append: reuse station-ticket enqueue (client does not). */
+async function enqueueStationTicketsAfterRoundFinalize(params: {
+  admin: SupabaseClient;
+  restaurantId: string;
+  orderId: string;
+  batchId: string;
+}): Promise<void> {
+  const { admin, restaurantId, orderId, batchId } = params;
+  try {
+    const { data: restaurant, error } = await admin
+      .from('restaurants')
+      .select('id, name, print_locale, print_agent_config')
+      .eq('id', restaurantId)
+      .maybeSingle();
+    if (error || !restaurant) return;
+    await enqueueStationTicketsForOrder({
+      admin,
+      restaurant: {
+        id: restaurantId,
+        name: (restaurant.name as string | null) ?? null,
+        print_locale: (restaurant.print_locale as string | null) ?? null,
+        print_agent_config: restaurant.print_agent_config,
+      },
+      orderId,
+      batchId,
+    });
+  } catch {
+    // Match guest paid-append: order write already succeeded; print enqueue is best-effort.
+  }
 }
 
 /** Active round for session (collecting / pending_confirm / cooldown / finalize_failed). */
@@ -99,20 +128,6 @@ async function loadRoundLines(
     .eq('round_id', roundId)
     .order('added_at', { ascending: true });
   return (data || []) as TableOrderRoundLineRow[];
-}
-
-async function loadRoundVotes(
-  admin: SupabaseClient,
-  roundId: string,
-  submitRequestId: string | null,
-): Promise<TableOrderRoundVoteRow[]> {
-  if (!submitRequestId) return [];
-  const { data } = await admin
-    .from('table_order_round_votes')
-    .select(VOTE_SELECT)
-    .eq('round_id', roundId)
-    .eq('submit_request_id', submitRequestId);
-  return (data || []) as TableOrderRoundVoteRow[];
 }
 
 export async function getRoundSnapshot(params: {
@@ -170,7 +185,6 @@ export async function getRoundSnapshot(params: {
     return {
       round: null,
       lines: [],
-      votes: [],
       settings,
       live_guest_count: liveGuestCount,
       round_cap_total: roundCapTotal(settings.sushi_per_person_per_round_cap, liveGuestCount),
@@ -179,7 +193,6 @@ export async function getRoundSnapshot(params: {
   }
 
   const lines = await loadRoundLines(params.admin, round.id);
-  const votes = await loadRoundVotes(params.admin, round.id, round.submit_request_id);
   const linesQty = sumLineQty(lines);
   const capGuests =
     round.status === 'pending_confirm' || round.status === 'finalize_failed'
@@ -193,7 +206,6 @@ export async function getRoundSnapshot(params: {
   return {
     round,
     lines,
-    votes,
     settings,
     live_guest_count: liveGuestCount,
     round_cap_total: roundCapTotal(perCap, capGuests),
@@ -490,31 +502,6 @@ export async function submitRequest(params: {
   return { ok: true, data: { snapshot } };
 }
 
-/** Vote/defer path removed — countdown send only. Kept so old clients get a clear error. */
-export async function castVote(_: {
-  admin: SupabaseClient;
-  restaurantId: string;
-  sessionId: string;
-  guestClientId: string;
-  vote: Extract<TableOrderRoundVoteValue, 'confirm' | 'defer'>;
-  settings: SushiRoundSettings;
-  liveGuestCount: number;
-  sessionOrders: Array<{ items?: OrderItem[] | null; status: string }>;
-  buffetServiceMode?: BuffetServiceMode | string | null;
-  displayName?: string;
-}): Promise<
-  ServiceResult<{
-    snapshot: RoundSnapshot;
-    finalized?: boolean;
-    deferred?: boolean;
-    enqueue_token?: string;
-    order_id?: string;
-  }>
-> {
-  void _;
-  return { ok: false, status: 410, error: 'vote_disabled' };
-}
-
 export async function finalizeRound(params: {
   admin: SupabaseClient;
   restaurantId: string;
@@ -632,6 +619,14 @@ export async function finalizeRound(params: {
       })
       .eq('id', round.id)
       .in('status', ['pending_confirm', 'finalize_failed', 'cooldown']);
+
+    // Replay may follow a prior write that never printed; pending/processing dedupe skips dupes.
+    await enqueueStationTicketsAfterRoundFinalize({
+      admin,
+      restaurantId,
+      orderId: claim.result.orderId,
+      batchId: claim.result.batchId,
+    });
 
     const snapshot = await getRoundSnapshot({
       admin,
@@ -757,6 +752,13 @@ export async function finalizeRound(params: {
     },
     secret,
   );
+
+  await enqueueStationTicketsAfterRoundFinalize({
+    admin,
+    restaurantId,
+    orderId: writeResult.orderId,
+    batchId: resolved.batchId,
+  });
 
   const snapshot = await getRoundSnapshot({
     admin,

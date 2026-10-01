@@ -26,7 +26,6 @@ function emptySnapshot(settings: SushiRoundSettings): RoundSnapshot {
   return {
     round: null,
     lines: [],
-    votes: [],
     settings,
     live_guest_count: 0,
     round_cap_total: 0,
@@ -66,10 +65,10 @@ export function useTableOrderRound(params: {
   const seenPeerSubmitIdsRef = useRef<Set<string>>(new Set());
   const selfStartedSubmitIdsRef = useRef<Set<string>>(new Set());
   const [peerNotifyOpen, setPeerNotifyOpen] = useState(false);
+  /** Toast/UI only — station tickets enqueue server-side in finalizeRound. */
   const [lastKitchenSend, setLastKitchenSend] = useState<{
     order_id: string;
     batch_id?: string;
-    enqueue_token: string;
   } | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
@@ -87,7 +86,6 @@ export function useTableOrderRound(params: {
     setSnapshot({
       round: next.round,
       lines: next.lines,
-      votes: next.votes,
       settings: next.settings,
       live_guest_count: next.live_guest_count,
       round_cap_total: next.round_cap_total,
@@ -100,7 +98,8 @@ export function useTableOrderRound(params: {
         prev.sushi_per_person_per_round_cap === n.sushi_per_person_per_round_cap &&
         prev.sushi_round_confirm_timeout_seconds === n.sushi_round_confirm_timeout_seconds &&
         prev.sushi_round_cooldown_seconds === n.sushi_round_cooldown_seconds &&
-        prev.sushi_round_defer_cooldown_seconds === n.sushi_round_defer_cooldown_seconds
+        prev.sushi_menu_vegetarian_filter_enabled === n.sushi_menu_vegetarian_filter_enabled &&
+        prev.sushi_menu_allergen_filter_enabled === n.sushi_menu_allergen_filter_enabled
       ) {
         return prev;
       }
@@ -118,11 +117,10 @@ export function useTableOrderRound(params: {
     } else if (next.round?.status !== 'pending_confirm') {
       setPeerNotifyOpen(false);
     }
-    if (next.finalized && next.order_id && next.enqueue_token) {
+    if (next.order_id) {
       setLastKitchenSend({
         order_id: next.order_id,
         batch_id: next.batch_id,
-        enqueue_token: next.enqueue_token,
       });
     }
     return next;
@@ -154,10 +152,7 @@ export function useTableOrderRound(params: {
     if (!sessionId) return [];
     const list = [{ table: 'table_order_rounds', filter: `session_id=eq.${sessionId}` }];
     if (roundId) {
-      list.push(
-        { table: 'table_order_round_lines', filter: `round_id=eq.${roundId}` },
-        { table: 'table_order_round_votes', filter: `round_id=eq.${roundId}` },
-      );
+      list.push({ table: 'table_order_round_lines', filter: `round_id=eq.${roundId}` });
     }
     return list;
   }, [roundId, sessionId]);

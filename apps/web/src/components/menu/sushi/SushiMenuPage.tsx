@@ -854,25 +854,15 @@ export function SushiMenuPage({
   };
 
   const handleFinalizeSuccess = useCallback(
-    (data: {
-      order_id?: string;
-      batch_id?: string;
-      enqueue_token?: string;
-    }) => {
-      if (!data.order_id || !data.enqueue_token) return;
-      scheduleMenuOrderPostSubmitEffects({
-        slug: restaurant.slug,
-        orderId: data.order_id,
-        batchId: data.batch_id || data.order_id,
-        enqueueToken: data.enqueue_token,
-        waiterFlow: false,
-        lang,
-        sessionId: activeSession?.id,
-        refreshSession: () => refreshSessionContext('full'),
-      });
+    (data: { order_id?: string; batch_id?: string }) => {
+      if (!data.order_id) return;
+      // Station tickets enqueue in finalizeRound (server). Client only toasts + refreshes.
+      if (activeSession?.id) {
+        void refreshSessionContext('full').catch(() => {});
+      }
       showToast(roundT.sentToast, 'success');
     },
-    [activeSession?.id, lang, refreshSessionContext, restaurant.slug, roundT.sentToast],
+    [activeSession?.id, refreshSessionContext, roundT.sentToast],
   );
 
   const handleSendRound = () => {

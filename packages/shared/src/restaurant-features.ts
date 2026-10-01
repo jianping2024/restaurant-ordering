@@ -2,10 +2,11 @@
 export type RestaurantFeatureKey =
   | 'bill_receipt_print'
   | 'bill_sync_to_fiscal'
-  | 'kitchen_serve_to_table';
+  | 'kitchen_serve_to_table'
+  | 'menu_flavor_hints_enabled';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
-export type RestaurantFeatureModuleId = 'billing' | 'kitchen';
+export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen';
 
 export type RestaurantFeatureFlags = Partial<Record<RestaurantFeatureKey, boolean>>;
 
@@ -13,7 +14,7 @@ export type ResolvedRestaurantFeatureFlags = Record<RestaurantFeatureKey, boolea
 
 export type RestaurantFeatureModuleDefinition = {
   id: RestaurantFeatureModuleId;
-  labelKey: 'moduleBilling' | 'moduleKitchen';
+  labelKey: 'moduleBilling' | 'moduleFlavor' | 'moduleKitchen';
   sortOrder: number;
 };
 
@@ -21,8 +22,16 @@ export type RestaurantFeatureDefinition = {
   key: RestaurantFeatureKey;
   moduleId: RestaurantFeatureModuleId;
   defaultEnabled: boolean;
-  labelKey: 'billReceiptPrint' | 'billSyncToFiscal' | 'kitchenServeToTable';
-  descKey: 'billReceiptPrintDesc' | 'billSyncToFiscalDesc' | 'kitchenServeToTableDesc';
+  labelKey:
+    | 'billReceiptPrint'
+    | 'billSyncToFiscal'
+    | 'kitchenServeToTable'
+    | 'menuFlavorHints';
+  descKey:
+    | 'billReceiptPrintDesc'
+    | 'billSyncToFiscalDesc'
+    | 'kitchenServeToTableDesc'
+    | 'menuFlavorHintsDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -36,6 +45,7 @@ const RETIRED_FEATURE_KEYS = ['kitchen_board'] as const;
 export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinition[] = [
   { id: 'kitchen', labelKey: 'moduleKitchen', sortOrder: 15 },
   { id: 'billing', labelKey: 'moduleBilling', sortOrder: 20 },
+  { id: 'flavor', labelKey: 'moduleFlavor', sortOrder: 25 },
 ] as const;
 
 export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinition[] = [
@@ -59,6 +69,13 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'billSyncToFiscal',
     descKey: 'billSyncToFiscalDesc',
+  },
+  {
+    key: 'menu_flavor_hints_enabled',
+    moduleId: 'flavor',
+    defaultEnabled: false,
+    labelKey: 'menuFlavorHints',
+    descKey: 'menuFlavorHintsDesc',
   },
 ] as const;
 

@@ -859,8 +859,12 @@ export const MESSAGES = {
       desc: '勾选可选产品功能；关闭则不执行对应行为。',
       moduleBilling: '结账与账单',
       moduleKitchen: '后厨流程',
+      moduleFlavor: '风味',
       kitchenServeToTable: '上桌',
       kitchenServeToTableDesc: '开启后，楼面可在已出餐菜品上点击「上桌」，将状态写为已上桌。',
+      menuFlavorHints: '菜品风味提示',
+      menuFlavorHintsDesc:
+        '开启后，菜单编辑可为菜品勾选风味（辣度/麻/清淡等），顾客菜单列表名下与详情图角显示文字提示。关闭则编辑无此区、顾客不显示；已保存的码保留。默认关闭。',
       kitchenReadyAfterMinutes: '已备餐 → 已出餐等待时间',
       kitchenReadyAfterMinutesDesc:
         '备餐后在下方栏显示「已备餐」，到期后全店展示为「已出餐」（3–30 分钟，默认 10）。',
@@ -2357,8 +2361,12 @@ export const MESSAGES = {
       desc: 'Enable optional product behaviors; when off, the related action is skipped.',
       moduleBilling: 'Checkout & bills',
       moduleKitchen: 'Kitchen workflow',
+      moduleFlavor: 'Flavor',
       kitchenServeToTable: 'Serve to table',
       kitchenServeToTableDesc: 'When enabled, floor staff can mark ready dishes as served to the table.',
+      menuFlavorHints: 'Dish flavor hints',
+      menuFlavorHintsDesc:
+        'When enabled, menu edit can tag dish flavors (spice, numb, light/bold, etc.) and the guest menu shows text chips under the name and on the detail photo. When off, the editor section and guest chips are hidden; saved codes are kept. Default off.',
       kitchenReadyAfterMinutes: 'Prepped → ready wait',
       kitchenReadyAfterMinutesDesc:
         'After prep, rows show Prepped in the bottom rail; after this time the whole store shows Ready (3–30 min, default 10).',
@@ -3621,8 +3629,12 @@ export const MESSAGES = {
       desc: 'Ative comportamentos opcionais do produto; desligado, a acao correspondente nao e executada.',
       moduleBilling: 'Checkout e contas',
       moduleKitchen: 'Fluxo de cozinha',
+      moduleFlavor: 'Sabor',
       kitchenServeToTable: 'Servir a mesa',
       kitchenServeToTableDesc: 'Ativo: a equipa de sala pode marcar pratos prontos como servidos a mesa.',
+      menuFlavorHints: 'Notas de sabor do prato',
+      menuFlavorHintsDesc:
+        'Ativo: a edicao do menu pode marcar sabores (picante, formigueiro, ligeiro/intenso, etc.) e o menu do cliente mostra chips de texto sob o nome e no canto da foto. Desativado: a secao e os chips ficam ocultos; codigos guardados mantêm-se. Desligado por omissao.',
       kitchenReadyAfterMinutes: 'Preparado → pronto (espera)',
       kitchenReadyAfterMinutesDesc:
         'Apos preparar, linhas mostram Preparado; apos este tempo toda a loja mostra Pronto (3–30 min, predefinido 10).',

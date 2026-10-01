@@ -13,6 +13,7 @@
 | `kitchen_serve_to_table` | **关闭** | 勾选后楼面可在已出餐菜品上点「上桌」 |
 | `bill_receipt_print` | **关闭** | 勾选后自动入队预账单；未勾选时跳过自动预账单（厨房单不受影响）。确认收款后的账单/发票由结账页询问决定，走手动入队，不受此开关限制 |
 | `bill_sync_to_fiscal` | **关闭** | 勾选后：确认收款界面填写税号/客户名。收款后：有效 NIF 或付款方式为 Multibanco/混合时**直接**入队 `auto_issue` 打发票（不弹「是否打印发票」）；其余（现金且无有效 NIF）仍问「是否打印发票」（入队 `auto_issue`，成功即开票，不关台；选否则不打）。未勾选时不问发票，改为问「是否打印账单」。桌台详情仍按开关切换「关台结账」/「呼叫结账」。契约见 [`technical/farvoo-fiscal-bill-sync-api.zh.md`](./technical/farvoo-fiscal-bill-sync-api.zh.md) |
+| `menu_flavor_hints_enabled` | **关闭** | 勾选后：菜单编辑可标菜品风味，顾客菜单显示风味 chip。未勾选：编辑无风味区、顾客不显示（已写入的 `flavor_codes` 保留）。产品定稿见 [`product/menu-flavor-hints.zh.md`](./product/menu-flavor-hints.zh.md) |
 
 **已退役：** `kitchen_board`（曾控制侧栏「厨房看板」）。合并写回 `feature_flags` 时会从 jsonb **剥离**该键。后台顶栏厨房入口与楼面厨房页共用权限 `floor.kitchen_board.view`（旧 `dashboard.kitchen_shortcut.view` 已并入；店主侧栏另受 `owner_nav_preferences`）。**不再**读店级 feature flag。
 
@@ -25,7 +26,7 @@
 示例：
 
 ```json
-{ "kitchen_serve_to_table": true, "bill_receipt_print": true, "bill_sync_to_fiscal": true }
+{ "kitchen_serve_to_table": true, "bill_receipt_print": true, "bill_sync_to_fiscal": true, "menu_flavor_hints_enabled": true }
 ```
 
 - 键缺失 → 使用代码中的默认值（见 `packages/shared` → `restaurant-features.ts`）
@@ -46,6 +47,7 @@
 |---------|--------------|------|
 | `kitchen` | 后厨流程 | 后厨相关可选行为 |
 | `billing` | 结账与账单 | 结账流程相关可选行为 |
+| `flavor` | 风味 | 菜品风味提示（顾客展示）；落地时新增，见 [`product/menu-flavor-hints.zh.md`](./product/menu-flavor-hints.zh.md) |
 
 功能定义示例：
 

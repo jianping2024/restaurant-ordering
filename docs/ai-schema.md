@@ -33,7 +33,7 @@ menu_categories (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, parent_i
 
 menu_note_preset_groups (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_en: text NOT NULL, name_pt: text NOT NULL, name_zh: text NOT NULL DEFAULT '', sort_order: integer, active: boolean, created_at: timestamptz)
 menu_note_presets (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, group_id: uuid FK -> menu_note_preset_groups.id, name_en: text NOT NULL, name_pt: text NOT NULL, name_zh: text NOT NULL DEFAULT '', sort_order: integer, active: boolean, created_at: timestamptz)
-menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, description_zh: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, is_vegetarian: boolean NOT NULL DEFAULT false, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_group_ids: text[] /* restaurant menu_note_preset_groups.id */, allergen_codes: text[] NOT NULL DEFAULT '{}', category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
+menu_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, name_pt: text, name_en: text nullable, name_zh: text nullable, description_pt: text nullable, description_en: text nullable, description_zh: text nullable, price: numeric, vat_rate: numeric NOT NULL, category: text, emoji: text, available: boolean, is_vegetarian: boolean NOT NULL DEFAULT false, sort_order: integer, created_at: timestamptz, image_url: text nullable, note_preset_group_ids: text[] /* restaurant menu_note_preset_groups.id */, allergen_codes: text[] NOT NULL DEFAULT '{}', flavor_codes: text[] NOT NULL DEFAULT '{}' /* display-only; gated by menu_flavor_hints_enabled */, category_en: text nullable, category_zh: text nullable, category_id: uuid FK -> menu_categories.id nullable, print_station_id: uuid FK -> print_stations.id nullable, item_code: varchar, per_person_qty_limit: integer nullable, over_limit_unit_price: numeric nullable)
 
 menu_recommended_items (id: uuid PK, restaurant_id: uuid FK -> restaurants.id, menu_item_id: uuid FK -> menu_items.id ON DELETE CASCADE, sort_order: integer, created_at: timestamptz; UNIQUE(restaurant_id, menu_item_id); UNIQUE(restaurant_id, sort_order); same-restaurant trigger)
 
@@ -306,6 +306,7 @@ menu_items:
 - idx_menu_items_code_per_restaurant: unique btree(restaurant_id, lower(btrim((item_code)::text))) WHERE (item_code IS NOT NULL) AND (btrim((item_code)::text) <> ''::text)
 - idx_menu_items_note_preset_group_ids: gin(note_preset_group_ids)
 - idx_menu_items_allergen_codes: gin(allergen_codes)
+- idx_menu_items_flavor_codes: gin(flavor_codes)
 - idx_menu_items_print_station: btree(restaurant_id, print_station_id) WHERE print_station_id IS NOT NULL
 - idx_menu_items_restaurant: btree(restaurant_id)
 - menu_items_pkey: PK btree(id)

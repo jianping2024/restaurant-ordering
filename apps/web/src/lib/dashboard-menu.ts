@@ -4,6 +4,7 @@ import { listMenuNotePresetDictionary } from '@/lib/menu-note-presets-query';
 import { getDashboardOperationalContext } from '@/lib/dashboard-access-cached';
 import { can } from '@/lib/permissions/can';
 import { loadPrincipalWithCapabilities } from '@/lib/permissions/principal';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 
 export type DashboardMenu =
   | {
@@ -15,6 +16,8 @@ export type DashboardMenu =
       notePresetGroups: MenuNotePresetGroup[];
       notePresets: MenuNotePreset[];
       canManagePrintStations: boolean;
+      /** Store flag menu_flavor_hints_enabled (default false). */
+      flavorHintsEnabled: boolean;
     }
   | { error: string; status: number };
 
@@ -36,6 +39,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     { data: printStations, error: stationsError },
     { data: recommended, error: recommendedError },
     noteDictionary,
+    { data: restaurantFlags },
   ] = await Promise.all([
     ctx.admin
       .from('menu_items')
@@ -61,6 +65,7 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
       .eq('restaurant_id', ctx.restaurantId)
       .order('sort_order'),
     listMenuNotePresetDictionary(ctx.admin, ctx.restaurantId),
+    ctx.admin.from('restaurants').select('feature_flags').eq('id', ctx.restaurantId).maybeSingle(),
   ]);
 
   if (itemsError) {
@@ -88,5 +93,9 @@ export async function loadDashboardMenu(): Promise<DashboardMenu> {
     notePresetGroups: noteDictionary.groups,
     notePresets: noteDictionary.presets,
     canManagePrintStations,
+    flavorHintsEnabled: isRestaurantFeatureEnabled(
+      restaurantFlags?.feature_flags,
+      'menu_flavor_hints_enabled',
+    ),
   };
 }

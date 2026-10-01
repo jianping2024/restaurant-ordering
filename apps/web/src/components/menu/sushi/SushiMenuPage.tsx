@@ -17,6 +17,7 @@ import {
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import {
   customerMenuStripTopCategories,
@@ -134,6 +135,10 @@ export function SushiMenuPage({
   const { lang } = useLanguage();
   const t = MENU_PAGE_MESSAGES[lang];
   const roundT = SUSHI_ROUND_MESSAGES[lang];
+  const flavorHintsEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'menu_flavor_hints_enabled',
+  );
   const [activeTopCategory, setActiveTopCategory] = useState<string>('Pratos');
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -1019,6 +1024,7 @@ export function SushiMenuPage({
                       cartQty={cartQty}
                       limitHint={limitHint}
                       treatZeroAsFree
+                      flavorHintsEnabled={flavorHintsEnabled}
                       onOpenDetail={() => {
                         setCartOpen(false);
                         setOrderedOpen(false);
@@ -1074,6 +1080,7 @@ export function SushiMenuPage({
         cartQty={detailCartQty}
         treatZeroAsFree
         limitHint={detailLimitHint}
+        flavorHintsEnabled={flavorHintsEnabled}
         notePresetCatalog={notePresetCatalog}
         note={detailCartEntry?.note || ''}
         selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}

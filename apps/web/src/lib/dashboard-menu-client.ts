@@ -158,6 +158,7 @@ export type MenuItemMutationInput = {
   available: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
+  flavor_codes: string[];
   is_vegetarian?: boolean;
   per_person_qty_limit?: number | null;
   over_limit_unit_price?: number | null;

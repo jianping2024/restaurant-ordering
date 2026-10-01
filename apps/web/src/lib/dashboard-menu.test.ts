@@ -112,6 +112,7 @@ describe('parseMenuItemBody', () => {
       emoji: '🐟',
       note_preset_group_ids: ['no_onion'],
       allergen_codes: ['fish', 'egg'],
+      flavor_codes: ['spice_mild', 'aroma_garlic'],
       available: true,
       is_vegetarian: true,
       description_zh: '新鲜鳕鱼',
@@ -122,6 +123,7 @@ describe('parseMenuItemBody', () => {
     assert.equal(parsed.vat_rate, 6);
     assert.deepEqual(parsed.note_preset_group_ids, ['no_onion']);
     assert.deepEqual(parsed.allergen_codes, ['fish', 'egg']);
+    assert.deepEqual(parsed.flavor_codes, ['spice_mild', 'aroma_garlic']);
     assert.equal(parsed.is_vegetarian, true);
     assert.equal(parsed.description_zh, '新鲜鳕鱼');
     assert.equal(parsed.per_person_qty_limit, null);
@@ -138,6 +140,7 @@ describe('parseMenuItemBody', () => {
       emoji: '🍣',
       note_preset_group_ids: [],
       allergen_codes: [],
+      flavor_codes: [],
       available: true,
       per_person_qty_limit: 2,
       over_limit_unit_price: 3.5,
@@ -158,6 +161,7 @@ describe('parseMenuItemBody', () => {
       emoji: '🍣',
       note_preset_group_ids: [],
       allergen_codes: [],
+      flavor_codes: [],
       per_person_qty_limit: 2,
     });
     assert.equal('error' in parsed, true);
@@ -175,10 +179,28 @@ describe('parseMenuItemBody', () => {
       emoji: '🐟',
       note_preset_group_ids: [],
       allergen_codes: ['shellfish'],
+      flavor_codes: [],
     });
     assert.equal('error' in parsed, true);
     if (!('error' in parsed)) return;
     assert.equal(parsed.error, 'invalid_allergen_codes');
+  });
+
+  it('rejects invalid flavor codes', () => {
+    const parsed = parseMenuItemBody({
+      name_pt: 'Bacalhau',
+      category_id: 'cat-1',
+      item_code: 'D01',
+      price: 12.5,
+      vat_rate: '6',
+      emoji: '🐟',
+      note_preset_group_ids: [],
+      allergen_codes: [],
+      flavor_codes: ['spicy'],
+    });
+    assert.equal('error' in parsed, true);
+    if (!('error' in parsed)) return;
+    assert.equal(parsed.error, 'invalid_flavor_codes');
   });
 
   it('rejects invalid vat rate', () => {
@@ -191,6 +213,7 @@ describe('parseMenuItemBody', () => {
       emoji: '🐟',
       note_preset_group_ids: [],
       allergen_codes: [],
+      flavor_codes: [],
     });
     assert.equal('error' in parsed, true);
     if (!('error' in parsed)) return;

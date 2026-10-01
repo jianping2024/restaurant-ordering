@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeAllergenCodes } from '@/lib/allergens';
+import { normalizeFlavorCodes } from '@/lib/flavors';
 import { normalizeMenuItemLimitFields } from '@/lib/sushi-buffet-limits';
 import {
   collectCategorySubtreeIds,
@@ -421,6 +422,7 @@ type MenuItemInput = {
   available: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
+  flavor_codes: string[];
   is_vegetarian: boolean;
   per_person_qty_limit: number | null;
   over_limit_unit_price: number | null;
@@ -487,6 +489,7 @@ function buildMenuItemPayload(
     available: input.available,
     note_preset_group_ids: input.note_preset_group_ids,
     allergen_codes: input.allergen_codes,
+    flavor_codes: input.flavor_codes,
     is_vegetarian: input.is_vegetarian,
     print_station_id: input.print_station_id || null,
     item_code: normalizedCode,
@@ -1068,6 +1071,10 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
   if (allergenCodes === null) {
     return { error: 'invalid_allergen_codes', status: 400 };
   }
+  const flavorCodes = normalizeFlavorCodes(raw.flavor_codes);
+  if (flavorCodes === null) {
+    return { error: 'invalid_flavor_codes', status: 400 };
+  }
 
   const limits = normalizeMenuItemLimitFields({
     per_person_qty_limit: raw.per_person_qty_limit,
@@ -1093,6 +1100,7 @@ export function parseMenuItemBody(raw: Record<string, unknown>): MenuItemInput |
     available: raw.available !== false,
     note_preset_group_ids: raw.note_preset_group_ids,
     allergen_codes: allergenCodes,
+    flavor_codes: flavorCodes,
     is_vegetarian: raw.is_vegetarian === true,
     per_person_qty_limit: limits.per_person_qty_limit,
     over_limit_unit_price: limits.over_limit_unit_price,

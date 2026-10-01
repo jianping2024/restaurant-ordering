@@ -35,6 +35,7 @@ import {
   type MenuNotePresetGroup,
 } from '@/lib/menu-note-presets';
 import { ALLERGENS, ALLERGEN_SECTION_UI } from '@/lib/allergens';
+import { FLAVORS, FLAVOR_SECTION_UI, toggleFlavorCodeInDraft } from '@/lib/flavors';
 import {
   mesaSelectionChipShellClass,
   mesaSelectionChipSoftClass,
@@ -111,6 +112,8 @@ interface MenuManagerProps {
   initialTab?: MenuManagerTab;
   /** 出品档口 Tab + station CRUD; binding dropdowns stay with menu.view. */
   canManagePrintStations?: boolean;
+  /** Store feature menu_flavor_hints_enabled (default false). */
+  flavorHintsEnabled?: boolean;
 }
 
 type ItemForm = {
@@ -130,6 +133,7 @@ type ItemForm = {
   is_vegetarian: boolean;
   note_preset_group_ids: string[];
   allergen_codes: string[];
+  flavor_codes: string[];
   per_person_qty_limit: string;
   over_limit_unit_price: string;
 };
@@ -151,6 +155,7 @@ const defaultItemForm: ItemForm = {
   is_vegetarian: false,
   note_preset_group_ids: [],
   allergen_codes: [],
+  flavor_codes: [],
   per_person_qty_limit: '',
   over_limit_unit_price: '',
 };
@@ -224,6 +229,7 @@ export function MenuManager({
   initialNotePresets,
   initialTab = MENU_MANAGER_DEFAULT_TAB,
   canManagePrintStations = false,
+  flavorHintsEnabled = false,
 }: MenuManagerProps) {
   const { lang } = useLanguage();
   const t = getMessages(lang).menuManager;
@@ -303,6 +309,7 @@ export function MenuManager({
 
   const noteUi = NOTE_UI_TEXT[lang];
   const allergenUi = ALLERGEN_SECTION_UI[lang];
+  const flavorUi = FLAVOR_SECTION_UI[lang];
 
   const topCategories = useMemo(
     () => categories.filter((c) => !c.parent_id && c.active).sort((a, b) => a.sort_order - b.sort_order),
@@ -587,6 +594,7 @@ export function MenuManager({
       is_vegetarian: item.is_vegetarian === true,
       note_preset_group_ids: item.note_preset_group_ids || [],
       allergen_codes: item.allergen_codes || [],
+      flavor_codes: item.flavor_codes || [],
       per_person_qty_limit:
         item.per_person_qty_limit != null ? String(item.per_person_qty_limit) : '',
       over_limit_unit_price:
@@ -654,6 +662,7 @@ export function MenuManager({
       is_vegetarian: itemForm.is_vegetarian,
       note_preset_group_ids: itemForm.note_preset_group_ids,
       allergen_codes: itemForm.allergen_codes,
+      flavor_codes: itemForm.flavor_codes,
       print_station_id: itemForm.print_station_id || null,
       item_code: normalizedItemCode,
       per_person_qty_limit: itemForm.per_person_qty_limit.trim()
@@ -1834,6 +1843,33 @@ export function MenuManager({
               })}
             </div>
           </div>
+
+          {flavorHintsEnabled ? (
+            <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
+              <p className="text-sm font-medium text-brand-text">{flavorUi.title}</p>
+              <p className="text-[13px] text-brand-text-muted mt-1 mb-3">{flavorUi.hint}</p>
+              <div className="flex flex-wrap gap-2">
+                {FLAVORS.map((flavor) => {
+                  const checked = itemForm.flavor_codes.includes(flavor.code);
+                  return (
+                    <button
+                      key={flavor.code}
+                      type="button"
+                      onClick={() =>
+                        setItemForm((prev) => ({
+                          ...prev,
+                          flavor_codes: toggleFlavorCodeInDraft(prev.flavor_codes, flavor.code),
+                        }))
+                      }
+                      className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
+                    >
+                      {flavor.labels[lang]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <div className="rounded-xl border border-brand-border bg-brand-bg/40 p-4">
             <div className="flex flex-wrap items-baseline gap-3">

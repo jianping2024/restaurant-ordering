@@ -20,6 +20,7 @@ import {
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
+import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
 
 interface Props {
   item: MenuItem;
@@ -29,6 +30,8 @@ interface Props {
   incrementDisabled?: boolean;
   /** When true, price 0 shows freeLabel (sushi round catalog). */
   treatZeroAsFree?: boolean;
+  /** Store feature menu_flavor_hints_enabled. */
+  flavorHintsEnabled?: boolean;
   onOpenDetail: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
@@ -110,6 +113,7 @@ export function MenuItemCard({
   limitHint,
   incrementDisabled,
   treatZeroAsFree = false,
+  flavorHintsEnabled = false,
   onOpenDetail,
   onIncrement,
   onDecrement,
@@ -166,6 +170,13 @@ export function MenuItemCard({
               </span>
             ) : null}
           </h3>
+          <MenuItemFlavorChips
+            flavorCodes={item.flavor_codes}
+            lang={lang}
+            enabled={flavorHintsEnabled}
+            variant="inline"
+            className="mt-1"
+          />
           {desc ? (
             <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-0.5 line-clamp-2`}>
               {desc}

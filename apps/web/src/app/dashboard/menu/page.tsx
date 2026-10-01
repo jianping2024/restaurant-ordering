@@ -28,6 +28,7 @@ export default async function MenuPage({ searchParams }: Props) {
       <MenuManager
         initialTab={initialTab}
         canManagePrintStations={loaded.canManagePrintStations}
+        flavorHintsEnabled={loaded.flavorHintsEnabled}
         restaurantId={loaded.restaurantId}
         initialItems={loaded.menuItems}
         initialCategories={loaded.menuCategories}

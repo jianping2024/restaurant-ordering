@@ -19,6 +19,7 @@ import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   customerMenuStripTopCategories,
   resolveCustomerMenuCatalogView,
@@ -281,6 +282,10 @@ export function MenuOrderingController({
   );
 
   const buffetServiceMode = normalizeBuffetServiceMode(restaurant.buffet_service_mode);
+  const flavorHintsEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'menu_flavor_hints_enabled',
+  );
   const limitGuestCount = sessionGuestCountForLimits(recentOrders);
   const staffAssistedOrdering = !!staffAssisted;
 
@@ -950,6 +955,7 @@ export function MenuOrderingController({
                       cartQty={cartQty}
                       limitHint={limitHint}
                       treatZeroAsFree={treatZeroAsFree}
+                      flavorHintsEnabled={flavorHintsEnabled}
                       onOpenDetail={() => {
                         setCartOpen(false);
                         setOrderedOpen(false);
@@ -988,6 +994,7 @@ export function MenuOrderingController({
         cartQty={detailCartQty}
         treatZeroAsFree={treatZeroAsFree}
         limitHint={detailLimitHint}
+        flavorHintsEnabled={flavorHintsEnabled}
         notePresetCatalog={notePresetCatalog}
         note={detailCartEntry?.note || ''}
         selectedNotePresetIds={detailCartEntry?.selectedNotePresetIds || []}

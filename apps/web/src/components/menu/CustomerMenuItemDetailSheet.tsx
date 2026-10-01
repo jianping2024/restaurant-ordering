@@ -28,6 +28,7 @@ import {
 } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { resolveMenuItemAllergenPresentation } from '@/lib/allergens';
+import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
@@ -58,6 +59,8 @@ type Props = {
   treatZeroAsFree: boolean;
   limitHint?: string | null;
   incrementDisabled?: boolean;
+  /** Store feature menu_flavor_hints_enabled. */
+  flavorHintsEnabled?: boolean;
   notePresetCatalog: MenuNotePresetCatalog;
   note: string;
   selectedNotePresetIds: readonly string[];
@@ -77,6 +80,7 @@ export function CustomerMenuItemDetailSheet({
   treatZeroAsFree,
   limitHint,
   incrementDisabled,
+  flavorHintsEnabled = false,
   notePresetCatalog,
   note,
   selectedNotePresetIds,
@@ -178,6 +182,13 @@ export function CustomerMenuItemDetailSheet({
             ) : (
               <div className="flex h-full w-full items-center justify-center text-7xl">{item.emoji}</div>
             )}
+            <MenuItemFlavorChips
+              flavorCodes={item.flavor_codes}
+              lang={lang}
+              enabled={flavorHintsEnabled}
+              variant="onImage"
+              className="absolute bottom-2.5 left-2.5 right-12 z-[1] max-w-[calc(100%-3.5rem)]"
+            />
           </div>
 
           <div className={customerMenuItemDetailContentClass}>

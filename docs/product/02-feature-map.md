@@ -142,6 +142,7 @@
 - 备注预设（`note_preset_group_ids` → 本店 `menu_note_preset_groups.id`；菜单管理「预选备注」Tab 维护分组/条目；菜品只勾大类；顾客每组最多选一条）
 - 菜品含有过敏原（`allergen_codes`，EU 14 类；空=未标注，≠无过敏原）
 - 菜品是否素食（`is_vegetarian`）与中文描述（`description_zh`）
+- 菜品风味提示（`flavor_codes` + 功能开关 `menu_flavor_hints_enabled` **默认关**；开后列表名下 / 详情图左下文字金软 chip；不辣不提示；不进打印）。权威：[`menu-flavor-hints.zh.md`](./menu-flavor-hints.zh.md)
 - 寿司点餐：功能设置可分别开启素食亮灯筛选 / 过敏原避开筛选（默认关；仅寿司页）
 - 顾客详情：备注预选 + 自由文本（与购物车同一 `CustomerCartItemNoteFields`）
 

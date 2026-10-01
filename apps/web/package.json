@@ -26,6 +26,7 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "^18",
     "react-select": "^5.10.2",
+    "react-swipeable-list": "^1.10.0",
     "recharts": "^3.9.0"
   },
   "devDependencies": {

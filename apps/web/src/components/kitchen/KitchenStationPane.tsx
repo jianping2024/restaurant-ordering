@@ -133,6 +133,8 @@ function statusTone(status: OrderItemStatus): string {
  * Gesture (sole): undecided → lock horizontal then capture; vertical → abandon (no capture).
  * End (sole): `finishRowGesture` — clears active gesture first so late moves cannot rewrite dragX;
  * pointerup / cancel / lostcapture / capture-fail window end all converge here.
+ * Transition (sole): only while `snapping` (never at rest / mid-drag). Commit prep fires with snap,
+ * not after the snap timeout.
  */
 function KitchenBoardLineRow({
   line,
@@ -225,12 +227,11 @@ function KitchenBoardLineRow({
   }, []);
 
   /** Animate dragX → 0; gesture must already be cleared by finishRowGesture. */
-  const snapBack = useCallback((then?: () => void) => {
+  const snapBack = useCallback(() => {
     setSnapping(true);
     setDragX(0);
     window.setTimeout(() => {
       setSnapping(false);
-      then?.();
     }, 160);
   }, []);
 
@@ -255,7 +256,8 @@ function KitchenBoardLineRow({
       if (mode === 'swipe') {
         const commit =
           kind === 'swipe-commit' && armed && linePrepEligibleRef.current && !prepBusyRef.current;
-        snapBack(commit ? () => onSwipePrepRef.current() : undefined);
+        if (commit) onSwipePrepRef.current();
+        snapBack();
         return;
       }
       setDragX(0);
@@ -370,7 +372,7 @@ function KitchenBoardLineRow({
       className={`flex min-w-0 w-full max-w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
         checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
       } ${rowInteractive ? '' : 'opacity-55'} ${
-        snapping || dragX === 0 ? 'transition-transform duration-150 ease-out' : ''
+        snapping ? 'transition-transform duration-150 ease-out' : ''
       }`}
       style={{ transform: `translateX(${dragX}px)`, touchAction: 'pan-y' }}
       onPointerDown={onPointerDown}

@@ -35,7 +35,12 @@ import {
   type MenuNotePresetGroup,
 } from '@/lib/menu-note-presets';
 import { ALLERGENS, ALLERGEN_SECTION_UI } from '@/lib/allergens';
-import { FLAVORS, FLAVOR_SECTION_UI, toggleFlavorCodeInDraft } from '@/lib/flavors';
+import {
+  FLAVORS,
+  FLAVOR_SECTION_UI,
+  flavorDraftPickBlocked,
+  toggleFlavorCodeInDraft,
+} from '@/lib/flavors';
 import {
   mesaSelectionChipShellClass,
   mesaSelectionChipSoftClass,
@@ -1850,17 +1855,21 @@ export function MenuManager({
               <div className="flex flex-wrap gap-2">
                 {FLAVORS.map((flavor) => {
                   const checked = itemForm.flavor_codes.includes(flavor.code);
+                  const blocked = flavorDraftPickBlocked(itemForm.flavor_codes, flavor.code);
                   return (
                     <button
                       key={flavor.code}
                       type="button"
+                      disabled={blocked}
                       onClick={() =>
                         setItemForm((prev) => ({
                           ...prev,
                           flavor_codes: toggleFlavorCodeInDraft(prev.flavor_codes, flavor.code),
                         }))
                       }
-                      className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)}`}
+                      className={`text-[13px] px-2.5 py-1 ${mesaSelectionChipShellClass} ${mesaSelectionChipSoftClass(checked)} ${
+                        blocked ? 'opacity-40 cursor-not-allowed' : ''
+                      }`}
                     >
                       {flavor.labels[lang]}
                     </button>

@@ -1,13 +1,13 @@
 'use client';
 
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-  type ReactNode,
-} from 'react';
+  LeadingActions,
+  SwipeAction,
+  SwipeableListItem,
+  Type,
+} from 'react-swipeable-list';
+import 'react-swipeable-list/dist/styles.css';
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
@@ -31,6 +31,16 @@ import {
   type KitchenBoardMenuCatalogEntry,
 } from '@/lib/kitchen-board-menu-catalog';
 import type { UILanguage } from '@/lib/i18n';
+
+/**
+ * Sole kitchen workbench row swipe: `react-swipeable-list` Type.ANDROID.
+ * Config lives only on `SwipeableListItem` (no DIY pointer machine; no parallel gesture helper).
+ * Threshold is a fraction of row width — keep low for wide kitchen panes (~old 88px feel).
+ */
+const KITCHEN_SWIPE_THRESHOLD = 0.12;
+const KITCHEN_SWIPE_MAX = 0.2;
+const KITCHEN_SWIPE_START_PX = 12;
+const KITCHEN_SCROLL_START_PX = 12;
 
 type PaneView = 'table' | 'dish';
 
@@ -91,28 +101,12 @@ function KitchenDishThumbButton({
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
 
-const SWIPE_PREP_THRESHOLD_PX = 88;
-const SWIPE_MAX_PX = 120;
-/** Movement before deciding tap vs scroll vs swipe. */
-const GESTURE_LOCK_SLOP_PX = 12;
-
-/** Workbench / ready rails: vertical scroll only — bare overflow-y-auto promotes X and steals row swipe. */
+/** Workbench / ready rails: sole vertical scroll ports (list owns Y; row swipe owns X via library). */
 const VERTICAL_ONLY_SCROLL =
   'min-h-0 overflow-y-auto overflow-x-hidden overscroll-x-none';
 
 /** Sole chrome size for station footer actions (ready-rail toggle + prep/print). */
 const STATION_FOOTER_BTN = 'min-h-9 px-4 text-lg';
-
-type RowGesture = {
-  pointerId: number;
-  x: number;
-  y: number;
-  /** Undecided until past slop; swipe only after horizontal lock. */
-  mode: 'undecided' | 'swipe';
-  captured: boolean;
-  /** Past prep threshold while mode === 'swipe'. */
-  armed: boolean;
-};
 
 function statusLabel(status: OrderItemStatus, t: Labels): string {
   if (status === 'ready') return t.statusReady;
@@ -129,12 +123,8 @@ function statusTone(status: OrderItemStatus): string {
 
 /**
  * Sole kitchen board row UI — one order line (`orderId:itemIndex`), never merged.
- * Whole-row tap toggles select; right-swipe past threshold preps (row stays; snap-back).
- * Gesture (sole): undecided → lock horizontal then capture; vertical → abandon (no capture).
- * End (sole): `finishRowGesture` — clears active gesture first so late moves cannot rewrite dragX;
- * pointerup / cancel / lostcapture / capture-fail window end all converge here.
- * Transition (sole): only while `snapping` (never at rest / mid-drag). Commit prep fires with snap,
- * not after the snap timeout.
+ * Whole-row tap toggles select; right-swipe past threshold preps via react-swipeable-list
+ * Type.ANDROID (row stays; library snap-back; brief gold「备餐」cue while dragging).
  */
 function KitchenBoardLineRow({
   line,
@@ -165,23 +155,8 @@ function KitchenBoardLineRow({
 }) {
   const note = lineNoteKey(line.item);
   const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
-  const [dragX, setDragX] = useState(0);
-  const [snapping, setSnapping] = useState(false);
-  const gestureRef = useRef<RowGesture | null>(null);
-  const rowRef = useRef<HTMLDivElement | null>(null);
-  const detachWindowEndRef = useRef<(() => void) | null>(null);
-  const linePrepEligibleRef = useRef(line.prepEligible);
-  const prepBusyRef = useRef(prepBusy);
-  const printBusyRef = useRef(printBusy);
-  const onSwipePrepRef = useRef(onSwipePrep);
-  const onToggleRef = useRef(onToggle);
-  linePrepEligibleRef.current = line.prepEligible;
-  prepBusyRef.current = prepBusy;
-  printBusyRef.current = printBusy;
-  onSwipePrepRef.current = onSwipePrep;
-  onToggleRef.current = onToggle;
-
   const rowInteractive = line.prepEligible || line.printEligible;
+  const canSwipePrep = line.prepEligible && !prepBusy && !printBusy;
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -212,206 +187,65 @@ function KitchenBoardLineRow({
     );
   }
 
-  const releaseIfCaptured = useCallback((el: HTMLElement, pointerId: number, captured: boolean) => {
-    if (!captured) return;
-    try {
-      el.releasePointerCapture(pointerId);
-    } catch {
-      /* already released */
-    }
-  }, []);
-
-  const detachWindowEnd = useCallback(() => {
-    detachWindowEndRef.current?.();
-    detachWindowEndRef.current = null;
-  }, []);
-
-  /** Animate dragX → 0; gesture must already be cleared by finishRowGesture. */
-  const snapBack = useCallback(() => {
-    setSnapping(true);
-    setDragX(0);
-    window.setTimeout(() => {
-      setSnapping(false);
-    }, 160);
-  }, []);
-
-  /**
-   * Sole gesture terminator. Clears `gestureRef` before release/snap so
-   * lostpointercapture and late pointermove cannot resurrect dragX.
-   */
-  const finishRowGesture = useCallback(
-    (kind: 'swipe-commit' | 'swipe-abort' | 'tap' | 'abort', el?: HTMLElement | null) => {
-      const g = gestureRef.current;
-      if (!g) return;
-      const pointerId = g.pointerId;
-      const captured = g.captured;
-      const mode = g.mode;
-      const armed = g.armed;
-      // Clear first — ended gate for all subsequent events.
-      gestureRef.current = null;
-      detachWindowEnd();
-      const target = el ?? rowRef.current;
-      if (target) releaseIfCaptured(target, pointerId, captured);
-
-      if (mode === 'swipe') {
-        const commit =
-          kind === 'swipe-commit' && armed && linePrepEligibleRef.current && !prepBusyRef.current;
-        if (commit) onSwipePrepRef.current();
-        snapBack();
-        return;
-      }
-      setDragX(0);
-      if (kind === 'tap' && rowInteractive && !prepBusyRef.current && !printBusyRef.current) {
-        onToggleRef.current();
-      }
-    },
-    [detachWindowEnd, releaseIfCaptured, snapBack, rowInteractive],
-  );
-
-  const attachWindowEndIfUncaptured = useCallback(
-    (pointerId: number) => {
-      detachWindowEnd();
-      const onEnd = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
-        const cur = gestureRef.current;
-        if (!cur || cur.pointerId !== pointerId) return;
-        const kind =
-          cur.mode === 'swipe' && cur.armed ? 'swipe-commit' : cur.mode === 'swipe' ? 'swipe-abort' : 'abort';
-        finishRowGesture(kind, rowRef.current);
-      };
-      window.addEventListener('pointerup', onEnd, true);
-      window.addEventListener('pointercancel', onEnd, true);
-      detachWindowEndRef.current = () => {
-        window.removeEventListener('pointerup', onEnd, true);
-        window.removeEventListener('pointercancel', onEnd, true);
-      };
-    },
-    [detachWindowEnd, finishRowGesture],
-  );
-
-  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!rowInteractive || prepBusy || printBusy || snapping) return;
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    const target = e.target as HTMLElement | null;
-    // Checkbox + dish thumb are exclusive hit targets (not row select / swipe).
-    if (target?.closest('input, [data-kitchen-dish-thumb]')) return;
-    // Orphan translate (no active gesture) — reset before a new gesture.
-    if (dragX !== 0 && !gestureRef.current) setDragX(0);
-    // Do not capture yet — leave the list free to scroll until horizontal lock.
-    gestureRef.current = {
-      pointerId: e.pointerId,
-      x: e.clientX,
-      y: e.clientY,
-      mode: 'undecided',
-      captured: false,
-      armed: false,
-    };
-  };
-
-  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const g = gestureRef.current;
-    if (!g || g.pointerId !== e.pointerId) return;
-    const dx = e.clientX - g.x;
-    const dy = e.clientY - g.y;
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-
-    if (g.mode === 'undecided') {
-      if (absX < GESTURE_LOCK_SLOP_PX && absY < GESTURE_LOCK_SLOP_PX) return;
-      // Vertical (or diagonal-up/down) → abandon; never captured, scroll stays native.
-      if (absY >= absX) {
-        gestureRef.current = null;
-        return;
-      }
-      // Horizontal lock: capture only now.
-      g.mode = 'swipe';
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        g.captured = true;
-      } catch {
-        g.captured = false;
-      }
-      // Capture failed → element may miss pointerup; window end shares finishRowGesture.
-      if (!g.captured) attachWindowEndIfUncaptured(e.pointerId);
-    }
-
-    if (g.mode !== 'swipe') return;
-    if (e.cancelable) e.preventDefault();
-    const next = Math.max(0, Math.min(dx, SWIPE_MAX_PX));
-    setDragX(next);
-    g.armed = next >= SWIPE_PREP_THRESHOLD_PX;
-  };
-
-  const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const g = gestureRef.current;
-    if (!g || g.pointerId !== e.pointerId) return;
-    if (g.mode === 'swipe') {
-      finishRowGesture(g.armed ? 'swipe-commit' : 'swipe-abort', e.currentTarget);
-      return;
-    }
-    finishRowGesture('tap', e.currentTarget);
-  };
-
-  const onPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const g = gestureRef.current;
-    if (!g || g.pointerId !== e.pointerId) return;
-    finishRowGesture(g.mode === 'swipe' ? 'swipe-abort' : 'abort', e.currentTarget);
-  };
-
-  /** Browser stole capture (or we released after clear) — only acts while gesture still live. */
-  const onLostPointerCapture = (e: ReactPointerEvent<HTMLDivElement>) => {
-    const g = gestureRef.current;
-    if (!g || g.pointerId !== e.pointerId) return;
-    finishRowGesture(g.mode === 'swipe' ? 'swipe-abort' : 'abort', e.currentTarget);
-  };
+  const leadingActions = canSwipePrep ? (
+    <LeadingActions>
+      <SwipeAction destructive={false} onClick={onSwipePrep}>
+        <span className="flex h-full min-w-[5.5rem] items-center justify-center bg-brand-gold px-4 text-xl font-semibold text-brand-ink">
+          {t.prep}
+        </span>
+      </SwipeAction>
+    </LeadingActions>
+  ) : undefined;
 
   return (
-    <div
-      ref={rowRef}
-      role="presentation"
-      className={`flex min-w-0 w-full max-w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 ${
-        checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
-      } ${rowInteractive ? '' : 'opacity-55'} ${
-        snapping ? 'transition-transform duration-150 ease-out' : ''
-      }`}
-      style={{ transform: `translateX(${dragX}px)`, touchAction: 'pan-y' }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onLostPointerCapture={onLostPointerCapture}
+    <SwipeableListItem
+      listType={Type.ANDROID}
+      blockSwipe={!canSwipePrep}
+      leadingActions={leadingActions}
+      threshold={KITCHEN_SWIPE_THRESHOLD}
+      maxSwipe={KITCHEN_SWIPE_MAX}
+      swipeStartThreshold={KITCHEN_SWIPE_START_PX}
+      scrollStartThreshold={KITCHEN_SCROLL_START_PX}
+      onClick={rowInteractive && !prepBusy && !printBusy ? onToggle : undefined}
+      className="border-b border-brand-border/50"
     >
-      <input
-        type="checkbox"
-        className="h-6 w-6 shrink-0"
-        checked={checked}
-        disabled={!rowInteractive || prepBusy || printBusy}
-        onChange={onToggle}
-        onClick={(e) => e.stopPropagation()}
-        aria-label={line.displayName}
-      />
-      <KitchenDishThumbButton
-        imageUrl={thumbImageUrl}
-        emoji={thumbEmoji}
-        ariaLabel={t.dishThumbOpenDetail}
-        onOpen={onOpenDetail}
-      />
-      {title}
-      <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-        × {Number(line.item.qty) || 0}
-      </span>
-      <span
-        className="shrink-0 text-lg tabular-nums text-brand-text-muted"
-        suppressHydrationWarning
+      <div
+        className={`flex min-w-0 w-full max-w-full items-center gap-3 px-2 py-2.5 ${
+          checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
+        } ${rowInteractive ? '' : 'opacity-55'}`}
       >
-        {t.waitMinutes.replace('{n}', String(waitMin))}
-      </span>
-      <span
-        className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
-      >
-        {statusLabel(line.effectiveStatus, t)}
-      </span>
-    </div>
+        <input
+          type="checkbox"
+          className="h-6 w-6 shrink-0"
+          checked={checked}
+          disabled={!rowInteractive || prepBusy || printBusy}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={line.displayName}
+        />
+        <KitchenDishThumbButton
+          imageUrl={thumbImageUrl}
+          emoji={thumbEmoji}
+          ariaLabel={t.dishThumbOpenDetail}
+          onOpen={onOpenDetail}
+        />
+        {title}
+        <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
+          × {Number(line.item.qty) || 0}
+        </span>
+        <span
+          className="shrink-0 text-lg tabular-nums text-brand-text-muted"
+          suppressHydrationWarning
+        >
+          {t.waitMinutes.replace('{n}', String(waitMin))}
+        </span>
+        <span
+          className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
+        >
+          {statusLabel(line.effectiveStatus, t)}
+        </span>
+      </div>
+    </SwipeableListItem>
   );
 }
 

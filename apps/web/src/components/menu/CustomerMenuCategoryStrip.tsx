@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';import {
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
+import {
   mesaSelectionChipShellClass,
   mesaSelectionChipSoftClass,
   mesaSelectionChipStrongClass,
@@ -20,11 +21,24 @@ type Props = {
   activeSubpath: string;
   onSelectSubpath: (id: string) => void;
   subcategoryAllLabel: string;
+  /** Accessible name for the more entry + overlay (visible label is icon-only). */
   categoryMoreLabel: string;
 };
 
-const moreControlClass =
-  `inline-flex h-8 w-[72px] shrink-0 items-center justify-center gap-0.5 whitespace-nowrap pr-3 pl-1 font-medium ${CUSTOMER_MENU_TYPE.categoryTop}`;
+/**
+ * Sole more entry chrome for the customer category strip (scheme B):
+ * fade + round icon control; hit size matches top-pill box
+ * (`py-1.5` + `categoryTop` text-base line-height 24 + 1px borders = 38)
+ * and idle chip border/bg family.
+ * Slot must fully cover scroll overflow so pill borders never peek past the icon.
+ */
+const MORE_SLOT_CLASS = 'w-14';
+const MORE_FADE_CLASS = 'w-6';
+const MORE_FADE_RIGHT_CLASS = 'right-14';
+/** more slot 56 + fade 24 + gap 8 */
+const SCROLL_END_PAD_CLASS = 'pr-[5.5rem]';
+/** Same box as top pills: 6+6 padding + 24 line + 1+1 border. */
+const MORE_HIT_CLASS = 'flex h-[38px] w-[38px] items-center justify-center';
 
 function topPillClass(active: boolean, layout: 'scroll' | 'grid'): string {
   const width =
@@ -57,6 +71,17 @@ function TopCategoryPill({
     >
       {cat.label}
     </button>
+  );
+}
+
+function CategoryMoreGridIcon() {
+  return (
+    <svg viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4" aria-hidden>
+      <rect x="1" y="1" width="6" height="6" rx="1.2" />
+      <rect x="9" y="1" width="6" height="6" rx="1.2" />
+      <rect x="1" y="9" width="6" height="6" rx="1.2" />
+      <rect x="9" y="9" width="6" height="6" rx="1.2" />
+    </svg>
   );
 }
 
@@ -108,24 +133,36 @@ export function CustomerMenuCategoryStrip({
 
   return (
     <div className="relative">
-      <div className="flex items-center pb-1.5">
+      <div className="relative overflow-hidden pb-1.5">
         {moreOpen ? (
-          <div className="min-h-8 min-w-0 flex-1" aria-hidden />
+          <div className="min-h-8" aria-hidden />
         ) : (
-          <div ref={scrollRef} className="mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4">
-            {categoryPills}
+          <div className="relative flex min-h-9 items-center">
+            <div
+              ref={scrollRef}
+              className={`mesa-chip-scroll flex min-w-0 flex-1 items-center gap-2 px-4 ${SCROLL_END_PAD_CLASS}`}
+            >
+              {categoryPills}
+            </div>
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute inset-y-0 z-[2] ${MORE_FADE_RIGHT_CLASS} ${MORE_FADE_CLASS} bg-gradient-to-r from-transparent to-brand-bg`}
+            />
+            <button
+              type="button"
+              aria-expanded={false}
+              aria-haspopup="dialog"
+              aria-label={categoryMoreLabel}
+              onClick={() => setMoreOpen(true)}
+              className={`absolute inset-y-0 right-0 z-[3] ${MORE_SLOT_CLASS} grid place-items-center bg-brand-bg`}
+            >
+              <span
+                className={`place-items-center text-brand-gold ${MORE_HIT_CLASS} ${mesaSelectionChipShellClass} ${mesaSelectionChipStrongClass(false)}`}
+              >
+                <CategoryMoreGridIcon />
+              </span>
+            </button>
           </div>
-        )}
-        {moreOpen ? null : (
-          <button
-            type="button"
-            aria-expanded={false}
-            aria-haspopup="dialog"
-            onClick={() => setMoreOpen(true)}
-            className={`${moreControlClass} text-brand-text-muted`}
-          >
-            {categoryMoreLabel} ▾
-          </button>
         )}
       </div>
 

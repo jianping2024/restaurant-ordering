@@ -4,6 +4,9 @@
  * JD-style list rhythm: square thumb is the height anchor; right column matches thumb height.
  * Slots: name ≤2 lines → flavor ≤1 row (only when flavor hints enabled; empty still reserved)
  * → foot price + action. List never shows description (detail only).
+ *
+ * Shell never uses overflow-hidden: clip only on thumb / name / flavor. Foot action
+ * (bare + or CartQtyStepper density=compact) must stay fully visible.
  */
 
 /** Catalog list: 1 col phone, 2 col lg, 3 col xl — sole list container class. */
@@ -12,6 +15,13 @@ export const CUSTOMER_MENU_ITEM_LIST_CLASS =
 
 /** List thumb edge — sole square size (112px). */
 export const MENU_ITEM_CARD_THUMB_PX = 112;
+
+/**
+ * Card chrome — no overflow-hidden (foot −/n/+ must not be clipped).
+ * Available vs sold-out border/opacity stay at the call site.
+ */
+export const MENU_ITEM_CARD_SHELL_CLASS =
+  'bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full';
 
 /** List thumb: 112×112, top-aligned. */
 export const MENU_ITEM_CARD_THUMB_CLASS =
@@ -33,7 +43,7 @@ export const MENU_ITEM_CARD_FLAVOR_SLOT_CLASS =
 
 /** Price + action: content-width action; pinned to bottom of thumb-matched body. */
 export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =
-  'mt-auto flex h-9 shrink-0 items-center justify-between gap-2';
+  'mt-auto flex h-9 min-w-0 shrink-0 items-center justify-between gap-2';
 
 export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center justify-end';
 

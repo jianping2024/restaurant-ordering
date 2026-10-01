@@ -18,6 +18,7 @@ import {
   MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
+  MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
 } from '@/lib/menu-item-card-layout';
@@ -90,6 +91,7 @@ function MenuItemCardAction({
   if (cartQty > 0) {
     return (
       <CartQtyStepper
+        density="compact"
         qty={cartQty}
         onDecrement={() => {
           onDecrement();
@@ -135,7 +137,7 @@ export function MenuItemCard({
 
   return (
     <div
-      className={`bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full overflow-hidden ${
+      className={`${MENU_ITEM_CARD_SHELL_CLASS} ${
         item.available ? 'border-brand-border' : 'border-brand-border opacity-50'
       }`}
     >

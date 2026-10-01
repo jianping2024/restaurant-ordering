@@ -203,6 +203,23 @@ describe('parseMenuItemBody', () => {
     assert.equal(parsed.error, 'invalid_flavor_codes');
   });
 
+  it('rejects more than FLAVOR_CODES_MAX_SELECTED flavor codes', () => {
+    const parsed = parseMenuItemBody({
+      name_pt: 'Bacalhau',
+      category_id: 'cat-1',
+      item_code: 'D01',
+      price: 12.5,
+      vat_rate: '6',
+      emoji: '🐟',
+      note_preset_group_ids: [],
+      allergen_codes: [],
+      flavor_codes: ['spice_mild', 'sour', 'umami', 'aroma_garlic'],
+    });
+    assert.equal('error' in parsed, true);
+    if (!('error' in parsed)) return;
+    assert.equal(parsed.error, 'invalid_flavor_codes');
+  });
+
   it('rejects invalid vat rate', () => {
     const parsed = parseMenuItemBody({
       name_pt: 'Bacalhau',

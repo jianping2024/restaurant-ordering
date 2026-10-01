@@ -24,6 +24,9 @@ export const FLAVOR_CODES = [
   'aroma_cumin',
 ] as const;
 
+/** Sole per-dish pick cap (normalize + editor toggle). Over limit = invalid. */
+export const FLAVOR_CODES_MAX_SELECTED = 3;
+
 export type FlavorCode = (typeof FLAVOR_CODES)[number];
 
 const FLAVOR_CODE_SET: ReadonlySet<string> = new Set(FLAVOR_CODES);
@@ -214,27 +217,27 @@ const EXCLUSIVE_GROUPS: ReadonlySet<FlavorGroup> = new Set<FlavorGroup>(['spice'
 export const FLAVOR_SECTION_UI: Record<Language, { title: string; hint: string }> = {
   zh: {
     title: '风味提示',
-    hint: '可选。标在菜卡上给客人看（菜本身什么味）。不是点菜备注，也不是过敏原。不辣不标。辣度/麻/清淡·重口每组最多选一个。',
+    hint: '可选。标在菜卡上给客人看（菜本身什么味）。不是点菜备注，也不是过敏原。不辣不标。总共最多 3 个；辣度/麻/清淡·重口每组最多选一个。',
   },
   en: {
     title: 'Flavor hints',
-    hint: 'Optional. Shown on the dish card. Not order notes or allergens. Leave spice unmarked when not spicy. At most one spice / numb / light-or-bold pick.',
+    hint: 'Optional. Shown on the dish card. Not order notes or allergens. Leave spice unmarked when not spicy. At most 3 total; at most one spice / numb / light-or-bold pick.',
   },
   pt: {
     title: 'Notas de sabor',
-    hint: 'Opcional. Aparece no cartão do prato. Não é nota de pedido nem alergénio. Sem picante = não marcar. No máximo um em picante / formigueiro / ligeiro-intenso.',
+    hint: 'Opcional. Aparece no cartão do prato. Não é nota de pedido nem alergénio. Sem picante = não marcar. No máximo 3 no total; no máximo um em picante / formigueiro / ligeiro-intenso.',
   },
   es: {
     title: 'Notas de sabor',
-    hint: 'Opcional. En la ficha del plato. No es nota de pedido ni alérgeno. Sin picante = no marcar. Como máximo uno en picante / hormigueo / ligero-intenso.',
+    hint: 'Opcional. En la ficha del plato. No es nota de pedido ni alérgeno. Sin picante = no marcar. Como máximo 3 en total; como máximo uno en picante / hormigueo / ligero-intenso.',
   },
   fr: {
     title: 'Notes de goût',
-    hint: 'Facultatif. Sur la fiche. Pas une note de commande ni un allergène. Pas piquant = ne pas cocher. Au plus un parmi piquant / engourdissant / léger-corsé.',
+    hint: 'Facultatif. Sur la fiche. Pas une note de commande ni un allergène. Pas piquant = ne pas cocher. Au plus 3 au total ; au plus un parmi piquant / engourdissant / léger-corsé.',
   },
   de: {
     title: 'Geschmackshinweise',
-    hint: 'Optional. Auf der Gerichtskarte. Keine Bestellnotiz und kein Allergen. Nicht scharf = nicht markieren. Höchstens eines bei Schärfe / Taubheit / Leicht-kräftig.',
+    hint: 'Optional. Auf der Gerichtskarte. Keine Bestellnotiz und kein Allergen. Nicht scharf = nicht markieren. Höchstens 3 insgesamt; höchstens eines bei Schärfe / Taubheit / Leicht-kräftig.',
   },
 };
 
@@ -267,6 +270,7 @@ export function normalizeFlavorCodes(raw: unknown): FlavorCode[] | null {
     }
     if (seenMulti.has(def.code)) out.push(def.code);
   }
+  if (out.length > FLAVOR_CODES_MAX_SELECTED) return null;
   return out;
 }
 
@@ -298,8 +302,23 @@ export function toggleFlavorCodeInDraft(
   if (EXCLUSIVE_GROUPS.has(def.group)) {
     const withoutGroup = normalized.filter((c) => FLAVOR_BY_CODE.get(c)?.group !== def.group);
     if (has) return withoutGroup;
+    if (withoutGroup.length >= FLAVOR_CODES_MAX_SELECTED) return normalized;
     return normalizeFlavorCodes([...withoutGroup, code]) ?? withoutGroup;
   }
   if (has) return normalized.filter((c) => c !== code);
+  if (normalized.length >= FLAVOR_CODES_MAX_SELECTED) return normalized;
   return normalizeFlavorCodes([...normalized, code]) ?? normalized;
+}
+
+/**
+ * Staff editor: true when an unchecked chip must stay off (at cap; exclusive replace still allowed).
+ * Derived from toggleFlavorCodeInDraft — do not parallel another length check in UI.
+ */
+export function flavorDraftPickBlocked(
+  current: readonly string[],
+  code: FlavorCode,
+): boolean {
+  const normalized = normalizeFlavorCodes(current) ?? [];
+  if (normalized.includes(code)) return false;
+  return !toggleFlavorCodeInDraft(normalized, code).includes(code);
 }

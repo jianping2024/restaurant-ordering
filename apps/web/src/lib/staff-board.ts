@@ -37,9 +37,16 @@ import {
 import type { WaiterBoardLivePatch } from '@/lib/waiter-board-live';
 import { attachBoardSessionRelations } from '@/lib/waiter-board-session-relation';
 import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
+import {
+  collectKitchenBoardMenuItemIds,
+  kitchenBoardMenuCatalogFromRows,
+  kitchenBoardMenuCatalogSelect,
+  type KitchenBoardMenuCatalogById,
+} from '@/lib/kitchen-board-menu-catalog';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 
 export { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enrich';
+export type { KitchenBoardMenuCatalogById } from '@/lib/kitchen-board-menu-catalog';
 
 export type { WaiterTableDetailData } from '@/lib/waiter-table-detail-types';
 export type { WaiterTablePageModel } from '@/lib/waiter-table-detail-types';
@@ -146,6 +153,8 @@ export type KitchenBoardData = {
   tableById: Map<string, RestaurantTableRow>;
   tables: RestaurantTableRow[];
   kitchen_ready_after_minutes: number;
+  /** Sole kitchen-board menu catalog for thumbs + read-only detail. */
+  menu_catalog_by_id: KitchenBoardMenuCatalogById;
 };
 
 export async function fetchKitchenBoard(
@@ -182,6 +191,16 @@ export async function fetchKitchenBoard(
     (o) => !o.session_id || activeIds.has(o.session_id as string),
   );
   const orders = await enrichKitchenOrdersWithStations(admin, restaurantId, rawOrders);
+  const menuItemIds = collectKitchenBoardMenuItemIds(orders);
+  let menu_catalog_by_id: KitchenBoardMenuCatalogById = {};
+  if (menuItemIds.length > 0) {
+    const { data: menuRows } = await admin
+      .from('menu_items')
+      .select(kitchenBoardMenuCatalogSelect())
+      .eq('restaurant_id', restaurantId)
+      .in('id', menuItemIds);
+    menu_catalog_by_id = kitchenBoardMenuCatalogFromRows(menuRows || []);
+  }
   const tableById = new Map((tableRows || []).map((t) => [t.id as string, t as RestaurantTableRow]));
   const activeTableIds = Array.from(
     new Set(
@@ -204,6 +223,7 @@ export async function fetchKitchenBoard(
     kitchen_ready_after_minutes: kitchenReadyAfterMinutesFromConfig(
       restaurant?.print_agent_config,
     ),
+    menu_catalog_by_id,
   };
 }
 

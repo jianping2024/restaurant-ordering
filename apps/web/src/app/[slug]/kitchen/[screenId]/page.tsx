@@ -77,6 +77,7 @@ export default async function KitchenScreenPage({ params }: Props) {
         stations={stations}
         initialOrders={board?.orders}
         initialReadyAfterMinutes={board?.kitchen_ready_after_minutes}
+        initialMenuCatalogById={board?.menu_catalog_by_id}
       />
     );
   } catch {

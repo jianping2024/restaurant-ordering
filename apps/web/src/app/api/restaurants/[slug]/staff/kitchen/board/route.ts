@@ -33,5 +33,6 @@ export async function GET(
     activeTableIds: board.activeTableIds,
     tables: board.tables,
     kitchen_ready_after_minutes: board.kitchen_ready_after_minutes,
+    menu_catalog_by_id: board.menu_catalog_by_id,
   });
 }

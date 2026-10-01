@@ -11,6 +11,8 @@ import {
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
+import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import { KitchenMenuItemDetailModal } from '@/components/kitchen/KitchenMenuItemDetailModal';
 import {
   aggregateLinesByDish,
   collectStationBoardLines,
@@ -23,6 +25,11 @@ import {
   type KitchenBoardLine,
 } from '@/components/kitchen/kitchen-board-lines';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
+import {
+  resolveKitchenBoardDishCatalogEntry,
+  type KitchenBoardMenuCatalogById,
+  type KitchenBoardMenuCatalogEntry,
+} from '@/lib/kitchen-board-menu-catalog';
 import type { UILanguage } from '@/lib/i18n';
 
 type PaneView = 'table' | 'dish';
@@ -37,6 +44,9 @@ type Props = {
   readyAfterMinutes: number;
   nowMs: number;
   lang: UILanguage;
+  /** Sole board catalog map for thumbs + detail (may be empty; order fallback then). */
+  menuCatalogById: KitchenBoardMenuCatalogById;
+  flavorHintsEnabled: boolean;
   maximized: boolean;
   canMaximize: boolean;
   onToggleMaximize: () => void;
@@ -47,6 +57,37 @@ type Props = {
   onPrint: (selections: Array<{ order_id: string; item_index: number }>) => Promise<boolean>;
   printBusy: boolean;
 };
+
+/** Sole kitchen-board dish thumb control — opens read-only detail; never toggles row select. */
+function KitchenDishThumbButton({
+  imageUrl,
+  emoji,
+  ariaLabel,
+  onOpen,
+}: {
+  imageUrl: string | null;
+  emoji: string;
+  ariaLabel: string;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-kitchen-dish-thumb=""
+      className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+      aria-label={ariaLabel}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onPointerUp={(e) => e.stopPropagation()}
+      onPointerCancel={(e) => e.stopPropagation()}
+    >
+      <MenuItemListThumb item={{ image_url: imageUrl, emoji }} size={56} />
+    </button>
+  );
+}
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
 
@@ -101,6 +142,9 @@ function KitchenBoardLineRow({
   t,
   prepBusy,
   printBusy,
+  thumbImageUrl,
+  thumbEmoji,
+  onOpenDetail,
   onToggle,
   onSwipePrep,
 }: {
@@ -111,6 +155,9 @@ function KitchenBoardLineRow({
   t: Labels;
   prepBusy: boolean;
   printBusy: boolean;
+  thumbImageUrl: string | null;
+  thumbEmoji: string;
+  onOpenDetail: () => void;
   onToggle: () => void;
   onSwipePrep: () => void;
 }) {
@@ -244,7 +291,8 @@ function KitchenBoardLineRow({
     if (!rowInteractive || prepBusy || printBusy || snapping) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const target = e.target as HTMLElement | null;
-    if (target?.closest('input')) return;
+    // Checkbox + dish thumb are exclusive hit targets (not row select / swipe).
+    if (target?.closest('input, [data-kitchen-dish-thumb]')) return;
     // Orphan translate (no active gesture) — reset before a new gesture.
     if (dragX !== 0 && !gestureRef.current) setDragX(0);
     // Do not capture yet — leave the list free to scroll until horizontal lock.
@@ -340,6 +388,12 @@ function KitchenBoardLineRow({
         onClick={(e) => e.stopPropagation()}
         aria-label={line.displayName}
       />
+      <KitchenDishThumbButton
+        imageUrl={thumbImageUrl}
+        emoji={thumbEmoji}
+        ariaLabel={t.dishThumbOpenDetail}
+        onOpen={onOpenDetail}
+      />
       {title}
       <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
         × {Number(line.item.qty) || 0}
@@ -366,6 +420,8 @@ export function KitchenStationPane({
   readyAfterMinutes,
   nowMs,
   lang,
+  menuCatalogById,
+  flavorHintsEnabled,
   maximized,
   canMaximize,
   onToggleMaximize,
@@ -380,6 +436,8 @@ export function KitchenStationPane({
   const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
   const [bottomRailOpen, setBottomRailOpen] = useState(false);
+  /** Frozen at open so Realtime board churn cannot empty the modal mid-view. */
+  const [detailEntry, setDetailEntry] = useState<KitchenBoardMenuCatalogEntry | null>(null);
 
   const allLines = useMemo(
     () =>
@@ -511,20 +569,51 @@ export function KitchenStationPane({
     }
   };
 
-  const renderLine = (line: KitchenBoardLine, layout: LineLayout) => (
-    <KitchenBoardLineRow
-      key={line.key}
-      line={line}
-      checked={selected.has(line.key)}
-      layout={layout}
-      nowMs={nowMs}
-      t={t}
-      prepBusy={prepBusy}
-      printBusy={printBusy}
-      onToggle={() => toggleLine(line)}
-      onSwipePrep={() => void handleSwipePrep(line)}
-    />
+  const openDishDetail = useCallback(
+    (menuItemId: string, orderItem: KitchenBoardLine['item']) => {
+      setDetailEntry(
+        resolveKitchenBoardDishCatalogEntry({
+          menuItemId,
+          catalogById: menuCatalogById,
+          orderItem,
+        }),
+      );
+    },
+    [menuCatalogById],
   );
+
+  const thumbForLine = useCallback(
+    (line: KitchenBoardLine) => {
+      const entry = resolveKitchenBoardDishCatalogEntry({
+        menuItemId: line.menuItemId,
+        catalogById: menuCatalogById,
+        orderItem: line.item,
+      });
+      return { imageUrl: entry.image_url, emoji: entry.emoji || line.item.emoji || '' };
+    },
+    [menuCatalogById],
+  );
+
+  const renderLine = (line: KitchenBoardLine, layout: LineLayout) => {
+    const thumb = thumbForLine(line);
+    return (
+      <KitchenBoardLineRow
+        key={line.key}
+        line={line}
+        checked={selected.has(line.key)}
+        layout={layout}
+        nowMs={nowMs}
+        t={t}
+        prepBusy={prepBusy}
+        printBusy={printBusy}
+        thumbImageUrl={thumb.imageUrl}
+        thumbEmoji={thumb.emoji}
+        onOpenDetail={() => openDishDetail(line.menuItemId, line.item)}
+        onToggle={() => toggleLine(line)}
+        onSwipePrep={() => void handleSwipePrep(line)}
+      />
+    );
+  };
 
   return (
     <section
@@ -603,31 +692,53 @@ export function KitchenStationPane({
         ) : (
           byDish.map((dish) => {
             const open = expandedDish === dish.menuItemId;
+            const seedLine = dish.lines[0];
+            const thumbEntry = seedLine
+              ? resolveKitchenBoardDishCatalogEntry({
+                  menuItemId: dish.menuItemId,
+                  catalogById: menuCatalogById,
+                  orderItem: seedLine.item,
+                })
+              : null;
             return (
               <div key={dish.menuItemId}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5 text-left hover:bg-brand-bg/70"
-                  onClick={() =>
-                    setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId))
-                  }
-                >
-                  <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-                    {dish.name}
-                  </span>
-                  <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
-                    {t.portionBadge.replace('{n}', String(dish.totalQty))}
-                  </span>
-                  <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-text">
-                    {t.tablesCountBadge.replace('{n}', String(dish.tableCount))}
-                  </span>
-                  <span className="min-w-0 max-w-[40%] truncate text-lg text-brand-text-muted">
-                    {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
-                  </span>
-                  <span className="shrink-0 text-base text-brand-text-muted">
-                    {open ? t.collapseGroup : t.expandGroup}
-                  </span>
-                </button>
+                <div className="flex w-full items-center gap-3 border-b border-brand-border/50 px-2 py-2.5">
+                  {thumbEntry ? (
+                    <KitchenDishThumbButton
+                      imageUrl={thumbEntry.image_url}
+                      emoji={thumbEntry.emoji || seedLine?.item.emoji || ''}
+                      ariaLabel={t.dishThumbOpenDetail}
+                      onOpen={() => {
+                        if (seedLine) openDishDetail(dish.menuItemId, seedLine.item);
+                      }}
+                    />
+                  ) : null}
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left hover:bg-brand-bg/70"
+                    onClick={() =>
+                      setExpandedDish((prev) =>
+                        prev === dish.menuItemId ? null : dish.menuItemId,
+                      )
+                    }
+                  >
+                    <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+                      {dish.name}
+                    </span>
+                    <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
+                      {t.portionBadge.replace('{n}', String(dish.totalQty))}
+                    </span>
+                    <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-text">
+                      {t.tablesCountBadge.replace('{n}', String(dish.tableCount))}
+                    </span>
+                    <span className="min-w-0 max-w-[40%] truncate text-lg text-brand-text-muted">
+                      {t.tablesLabel.replace('{tables}', dish.tableDisplays.join(', '))}
+                    </span>
+                    <span className="shrink-0 text-base text-brand-text-muted">
+                      {open ? t.collapseGroup : t.expandGroup}
+                    </span>
+                  </button>
+                </div>
                 {open ? dish.lines.map((line) => renderLine(line, 'workbench-dish-l2')) : null}
               </div>
             );
@@ -689,6 +800,21 @@ export function KitchenStationPane({
           </div>
         </div>
       </footer>
+
+      <KitchenMenuItemDetailModal
+        open={detailEntry != null}
+        entry={detailEntry}
+        lang={lang}
+        flavorHintsEnabled={flavorHintsEnabled}
+        labels={{
+          detailConfirm: t.detailConfirm,
+          detailDescriptionEmpty: t.detailDescriptionEmpty,
+          detailAllergensTitle: t.detailAllergensTitle,
+          detailAllergensUnmarked: t.detailAllergensUnmarked,
+          detailVegetarianBadge: t.detailVegetarianBadge,
+        }}
+        onClose={() => setDetailEntry(null)}
+      />
     </section>
   );
 }

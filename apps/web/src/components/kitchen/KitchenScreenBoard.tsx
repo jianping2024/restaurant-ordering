@@ -18,6 +18,13 @@ import { KitchenStationPane } from '@/components/kitchen/KitchenStationPane';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 import { KITCHEN_SCREEN_MAX_STATIONS } from '@/lib/kitchen-screen-limits';
 import { KITCHEN_READY_AFTER_MINUTES_DEFAULT } from '@/lib/print-agent-config';
+import {
+  collectKitchenBoardMenuItemIds,
+  kitchenBoardMenuCatalogFromMenuItems,
+  type KitchenBoardMenuCatalogById,
+} from '@/lib/kitchen-board-menu-catalog';
+import { getDemoMenuCatalog } from '@/lib/demo-menu-catalog';
+import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import type { UILanguage } from '@/lib/i18n';
 
 function kitchenPaneGridClass(paneCount: number): string {
@@ -88,6 +95,7 @@ type Props = {
   stations: PrintStation[];
   initialOrders?: Order[];
   initialReadyAfterMinutes?: number;
+  initialMenuCatalogById?: KitchenBoardMenuCatalogById;
 };
 
 export function KitchenScreenBoard(props: Props) {
@@ -138,6 +146,7 @@ function KitchenScreenBoardInner({
   stations,
   initialOrders = [],
   initialReadyAfterMinutes = KITCHEN_READY_AFTER_MINUTES_DEFAULT,
+  initialMenuCatalogById,
   handleSignOut,
   exitLabel,
   confirmBeforeSignOut,
@@ -147,6 +156,15 @@ function KitchenScreenBoardInner({
   const demoText = KITCHEN_DEMO_TEXT[lang];
   const roleLabel = topBarRoleLabel(lang, asOwner ? 'backend_admin' : 'kitchen');
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [menuCatalogById, setMenuCatalogById] = useState<KitchenBoardMenuCatalogById>(() => {
+    if (initialMenuCatalogById) return initialMenuCatalogById;
+    if (isDemo) {
+      const demoItems = getDemoMenuCatalog().menuItems;
+      const ids = collectKitchenBoardMenuItemIds(initialOrders);
+      return kitchenBoardMenuCatalogFromMenuItems(demoItems, ids);
+    }
+    return {};
+  });
   const [readyAfterMinutes, setReadyAfterMinutes] = useState(initialReadyAfterMinutes);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [maximizedStationId, setMaximizedStationId] = useState<string | null>(null);
@@ -155,6 +173,10 @@ function KitchenScreenBoardInner({
   const [error, setError] = useState<string | null>(null);
   const prevOrderIds = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
   const supabase = createClient();
+  const flavorHintsEnabled = isRestaurantFeatureEnabled(
+    restaurant.feature_flags,
+    'menu_flavor_hints_enabled',
+  );
 
   const stationById = new Map(stations.map((s) => [s.id, s]));
   const paneStationIds = screen.station_ids
@@ -172,6 +194,7 @@ function KitchenScreenBoardInner({
         }
       });
       setOrders(board.orders);
+      setMenuCatalogById(board.menu_catalog_by_id);
       setReadyAfterMinutes(board.kitchen_ready_after_minutes);
     } catch (err) {
       // Entry reconcile + Realtime call this via void — never throw (stale-while-revalidate).
@@ -355,6 +378,8 @@ function KitchenScreenBoardInner({
                   readyAfterMinutes={readyAfterMinutes}
                   nowMs={nowMs}
                   lang={lang}
+                  menuCatalogById={menuCatalogById}
+                  flavorHintsEnabled={flavorHintsEnabled}
                   maximized={maximizedStationId === stationId}
                   canMaximize={paneStationIds.length > 1}
                   onToggleMaximize={() =>

@@ -61,9 +61,8 @@
 | `sushi_menu_vegetarian_filter_enabled` | `false` | bool | 仅寿司点餐页：素食亮灯筛选 |
 | `sushi_menu_allergen_filter_enabled` | `false` | bool | 仅寿司点餐页：过敏原避开筛选 |
 | `sushi_per_person_per_round_cap` | `8` | 1–20 | 每人每轮免费菜份数上限 |
-| `sushi_round_confirm_timeout_seconds` | `25` | 15–45 | 送厨确认超时；未投票视为同意 |
+| `sushi_round_confirm_timeout_seconds` | `25` | 15–45 | 发起送厨后倒计时秒数；到点自动送厨 |
 | `sushi_round_cooldown_seconds` | `120` | 30–600 | 送厨成功后 **session 级**冷却 |
-| `sushi_round_defer_cooldown_seconds` | `30` | 15–120 | 本轮被「暂缓送厨」后，禁止再次发起送厨 |
 | `sushi_round_rules_notice` | 空 | 多语 JSON 可选 | 顾客 intro / 顶栏「?」 |
 
 保留现有 `order_cooldown_seconds`（5–60）：**本机**提交按钮冷却，与桌级冷却职责不同。
@@ -84,7 +83,7 @@
 ```text
 idle          — 无活跃轮次（或上一轮已 closed）
 collecting    — 有人加免费菜后自动进入；可继续加免费菜
-pending_confirm — 已发起送厨；锁篮（§7）；等待投票 / 超时
+pending_confirm — 已发起送厨；倒计时中（仍可改篮，见 §7）
 cooldown      — append 成功；至 cooldown_until
 closed        — session 结束 / 并桌作废 / 强制关台归档
 ```
@@ -95,8 +94,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 |----|------|-----|
 | — | 首条免费菜入 round | `collecting` |
 | `collecting` | `POST …/round/submit-request` | `pending_confirm` |
-| `pending_confirm` | 全员确认或超时 finalize 成功 | `cooldown` |
-| `pending_confirm` | 任一票 `defer`（暂缓） | `collecting`（清空 votes；记录 defer 时间） |
+| `pending_confirm` | 倒计时到点 finalize 成功 | `cooldown` |
 | `cooldown` | `now >= cooldown_until` | `idle`（可自动开新 collecting） |
 | 任意 | session `billing` / `closed` / 并桌来源 session | `closed` |
 | `collecting` | 行数清零且超时无活动（可选 housekeeping） | `idle` |
@@ -114,12 +112,10 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | `id` | uuid PK |
 | `restaurant_id`, `session_id`, `table_id` | FK；session 唯一活跃 round（partial unique: status not in closed） |
 | `status` | §5 |
-| `guest_count_snapshot` | 发起送厨时冻结；投票 quorum 用此值 |
+| `guest_count_snapshot` | 发起送厨时冻结；确认期轮次上限用此值 |
 | `per_person_cap` | 发起时快照设置项 |
-| `submit_request_id` | uuid；本轮送厨意图 id（弹窗去重用） |
+| `submit_request_id` | uuid；本轮送厨意图 id（同桌提示去重用） |
 | `submit_requested_at`, `submit_deadline_at` | 进入 pending_confirm 时写入 |
-| `defer_used_at` | 本轮是否已用过暂缓（每轮最多一次） |
-| `defer_cooldown_until` | 暂缓后禁止再次 submit-request |
 | `cooldown_until` | cooldown 结束时间 |
 | `append_client_request_id` | finalize 成功后写入；append 幂等 |
 | `created_at`, `updated_at` | |
@@ -137,20 +133,9 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | `added_at` | |
 | UNIQUE | `(round_id, menu_item_id, guest_client_id, note)` — **同菜同备注**合并 qty；**不同备注分行**（与送厨 `aggregateRoundLinesForAppend` 一致） |
 
-### 6.3 `table_order_round_votes`
+### 6.3 RLS
 
-| 列 | 说明 |
-|----|------|
-| `id` | uuid PK |
-| `round_id`, `submit_request_id` | FK / 关联 |
-| `guest_client_id` | |
-| `vote` | `pending` \| `confirm` \| `defer` |
-| `voted_at` | |
-| UNIQUE | `(round_id, submit_request_id, guest_client_id)` |
-
-### 6.4 RLS
-
-- 顾客（anon + table context）：**仅**读写本 `session_id` 且 `restaurant_id` 匹配 QR 的 round/lines/votes
+- 顾客（anon + table context）：**仅**读写本 `session_id` 且 `restaurant_id` 匹配 QR 的 round/lines
 - **禁止**跨桌、跨 session
 - staff/service_role：只读审计；写路径走 API service role
 
@@ -165,25 +150,17 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 - 写入 `pending_confirm`、生成 `submit_request_id`、`submit_deadline_at = now + confirm_timeout`
 - **不锁篮**：pending_confirm 期间仍可新增/修改/删除 round lines
 
-### 7.2 票数 / 投票
-
-- **已取消**全员确认票与暂缓。到点即送厨。
-
-### 7.3 同桌提示
+### 7.2 同桌提示
 
 - 其他已开菜单的手机：轻弹窗一次（`submit_request_id` 去重）；核单顶部 + sticky 显示倒计时
 - 他人本轮下单：菜单内容区左上角侧边飘窗（贴菜单壳左缘，与「本桌 N 人」那一行的左侧边齐，不跟菜卡 `px-4` 内容缩进；手机/桌面同一套；菜名×数量；按时间从上到下，先到的在上；显示约 10 秒后 CSS 渐隐消失）
 
-### 7.4 超时与 finalize
+### 7.3 超时与 finalize
 
 - 客户端到点 `POST …/round/finalize`；`GET` round 若已过 deadline 则同一套 finalize 收口
 - 条件：`status = pending_confirm`（或 `finalize_failed`）且 `now ≥ submit_deadline_at`
-- finalize 成功：合并 lines → **一次** `orders/append` → `cooldown`
-
-### 7.5 暂缓（defer）
-
-- **已取消**（设置项 UI 不再展示）
-
+- finalize 成功：合并 lines → **一次** append 写单 → **服务端**调用现有 `enqueueStationTicketsForOrder` 入队档口出品联 → `cooldown`
+- 顾客端**不**再调 `station-tickets/auto`（避免依赖已废投票标记或某一台手机仍在前台）
 
 ---
 
@@ -191,7 +168,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 - 首次进菜单：`localStorage` 生成 UUID，键名 `mesa_guest_client_id_{restaurant_id}_{table_id}`
 - 服务端 session 登记；**同一 session 有效 client 数 ≤ 开台人数**
-- 伪造多 id：**超额票无效**；defer **按 round 计次**不按 client
+- 伪造多 id：超出人数的 client **不可再登记**
 
 ---
 
@@ -201,25 +178,24 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/` | 当前 session 活跃 round + lines + votes（mount / Realtime 后 reconcile） |
+| GET | `/` | 当前 session 活跃 round + lines（mount / Realtime 后 reconcile） |
 | POST | `/lines` | upsert 免费菜行（含 note）；由购物车「下单」写入，禁止卡片 debounce 直写 |
 | DELETE | `/lines/:id` | 仅 `collecting`；仅允许删除 **本 client** 添加的行 |
 | POST | `/submit-request` | → pending_confirm |
-| POST | `/vote` | confirm / defer |
-| POST | `/finalize` | 幂等 finalize + append |
+| POST | `/finalize` | 幂等 finalize + append + 档口出品联入队 |
 
 **限流**：按 `session_id` 独立限流（**不可**与 append 共用 IP 桶）；建议 60 req/min/session。
 
-**append**：仍走唯一 `POST …/orders/append`；round finalize 内部调用，顾客不直调。
+**append**：仍走唯一写单管道；round finalize **内部**调用，顾客不直调。
 
 ---
 
 ## 10. Realtime 与刷新
 
-- 订阅 `table_order_rounds`、`table_order_round_lines`、`table_order_round_votes`，filter `session_id=eq.{id}`
+- 订阅 `table_order_rounds`、`table_order_round_lines`（filter `session_id` / `round_id`）
 - 模式：postgres_changes → debounce 2s → GET round（**禁止** interval 轮询）
 - 菜单页 **可见**时订阅；隐藏/离开 unsubscribe
-- 同一 `submit_request_id` 确认弹窗 **只展示一次**（客户端 dedupe）
+- 同一 `submit_request_id` 同桌提示 **只展示一次**（客户端 dedupe）
 
 ---
 
@@ -227,10 +203,10 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 1. **finalize 幂等**：`UPDATE … WHERE status='pending_confirm'` 仅一行成功；append 用固定 `append_client_request_id`
 2. **append 失败**：round 保持 `pending_confirm` 或转 `finalize_failed` 可重试态；**禁止**重复送厨成功
-3. **pending_confirm 锁篮**：服务端拒绝 lines 写
+3. **finalize_failed 锁篮**：仅失败态拒绝 lines 写；`pending_confirm` 倒计时中仍可改篮
 4. **改人数**：送厨确认进行中 **不更新** `guest_count_snapshot`；collecting 阶段上限随 live 人数变
 5. **转台 / 并台**：见 §11.1（须在既有 RPC **同一事务**内处理 round）
-6. **billing / 关台**：round → `closed`；拒绝 vote / submit / lines
+6. **billing / 关台**：round → `closed`；拒绝 submit / lines / finalize
 7. **整餐免费菜限量**：finalize → append 前仍跑 `checkSushiLimitForCartLine`（`price=0` 项）
 
 ### 11.1 转台 / 并台 / 「RPC 同事务」
@@ -306,12 +282,10 @@ Classic **不得**出现轮次 UI 组件。
 | code | 含义 |
 |------|------|
 | `round_not_collecting` | 非 collecting 却加菜 |
-| `round_basket_locked` | pending_confirm 改 lines |
+| `round_basket_locked` | finalize_failed 改 lines |
 | `round_cap_exceeded` | 超轮次上限（人数 ≥ 1） |
 | `guest_count_required` | 用餐人数为 0（未登记自助人数） |
 | `round_empty` | 空篮送厨 |
-| `round_defer_cooldown` | 暂缓冷却中 |
-| `round_defer_already_used` | 本轮已暂缓过 |
 | `round_confirm_pending` | 已在确认中重复发起 |
 | `round_cooldown_active` | 桌级冷却 |
 | `session_billing` | 结账中 |
@@ -324,23 +298,20 @@ Classic **不得**出现轮次 UI 组件。
 
 ## 15. 当前不做
 
-- 两阶段超时（先等在线设备再补默认票）— 二期
-- 顾客可见否决者编号
-- 暂缓原因
 - 共享收费菜轮次
 - 新 URL / 新 QR
 - 顾客端 orders Realtime（仍靠 session reconcile）
 
 ---
 
-## 16. 相关代码（待建）
+## 16. 相关代码
 
 | 类型 | 路径 |
 |------|------|
 | 页面分支 | `app/[slug]/menu/page.tsx` → `SushiMenuPage` / `ClassicMenuPage` |
 | UI | `components/menu/sushi/*` |
 | API | `app/api/restaurants/[slug]/table-order-round/**` |
-| Lib | `lib/table-order-round/*` |
+| Lib | `lib/table-order-round/*`（finalize 内服务端入队出品联） |
 | 设置 | `FeatureFlagsManager`、`api/restaurant/features` |
 | Schema | `supabase/migrations/*table_order_round*` |
 
@@ -348,12 +319,12 @@ Classic **不得**出现轮次 UI 组件。
 
 ## 17. 验收清单
 
-- [ ] 3 人桌 2 手机：第 3 票超时默认同意，~25s 送厨
-- [ ] 暂缓二次确认；每轮 1 次；30s 内不可再发起
-- [ ] pending_confirm 不可写入 round lines（购物车可加免费菜，下单被拒）
+- [ ] 发起送厨后倒计时到点自动 finalize 送厨
+- [ ] pending_confirm 期间仍可改本轮免费菜
 - [ ] 收费菜即时 append，不占轮次额度
 - [ ] 整餐免费菜限量仅 `price=0`
 - [ ] finalize 幂等；append 失败可重试不双送
+- [ ] finalize 成功后档口 `station_ticket` 已入队（未开后厨的档口自动打；开了后厨的走备餐出票）
 - [ ] billing / 关台：round 同路径 closed
 - [ ] 转台：session 不变，round.table_id 在 `transfer_table_session` 同事务更新
 - [ ] 并台：来源 round 同事务 closed、篮子作废；目标 round 不自动合并；有未送厨篮子时服务员确认文案

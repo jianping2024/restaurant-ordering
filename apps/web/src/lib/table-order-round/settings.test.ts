@@ -5,18 +5,13 @@ import {
   clampSushiPerPersonPerRoundCap,
   clampSushiRoundConfirmTimeoutSeconds,
   clampSushiRoundCooldownSeconds,
-  clampSushiRoundDeferCooldownSeconds,
   clampSushiRoundOrderingEnabled,
   parseSushiRoundSettingsFromRestaurantRow,
   parseSushiRoundSettingsPatch,
   sushiRoundSettingsToApiJson,
 } from '@/lib/table-order-round/settings';
 import { guestClientStorageKey, parseGuestClientId } from '@/lib/table-order-round/guest-client';
-import {
-  isCooldownActive,
-  isDeferCooldownActive,
-  roundCapTotal,
-} from '@/lib/table-order-round/status';
+import { isCooldownActive, roundCapTotal } from '@/lib/table-order-round/status';
 
 describe('sushi round settings', () => {
   it('clamps caps and timeouts to bounds', () => {
@@ -28,8 +23,6 @@ describe('sushi round settings', () => {
     assert.equal(clampSushiRoundConfirmTimeoutSeconds(40), 40);
     assert.equal(clampSushiRoundCooldownSeconds(10), 30);
     assert.equal(clampSushiRoundCooldownSeconds(120), 120);
-    assert.equal(clampSushiRoundDeferCooldownSeconds(5), 15);
-    assert.equal(clampSushiRoundDeferCooldownSeconds(30), 30);
     assert.equal(clampSushiRoundOrderingEnabled(true), true);
     assert.equal(clampSushiRoundOrderingEnabled(undefined), true);
   });
@@ -41,7 +34,6 @@ describe('sushi round settings', () => {
       sushi_per_person_per_round_cap: 10,
       sushi_round_confirm_timeout_seconds: 40,
       sushi_round_cooldown_seconds: 180,
-      sushi_round_defer_cooldown_seconds: 45,
       sushi_menu_vegetarian_filter_enabled: true,
       sushi_menu_allergen_filter_enabled: true,
     });
@@ -84,7 +76,5 @@ describe('round status helpers', () => {
     const past = new Date(Date.now() - 60_000).toISOString();
     assert.equal(isCooldownActive('cooldown', future), true);
     assert.equal(isCooldownActive('cooldown', past), false);
-    assert.equal(isDeferCooldownActive(future), true);
-    assert.equal(isDeferCooldownActive(past), false);
   });
 });

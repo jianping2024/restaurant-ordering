@@ -112,7 +112,6 @@ export type FeatureSettingsPageData = {
   sushiPerPersonPerRoundCap: number;
   sushiRoundConfirmTimeoutSeconds: number;
   sushiRoundCooldownSeconds: number;
-  sushiRoundDeferCooldownSeconds: number;
   sushiMenuVegetarianFilterEnabled: boolean;
   sushiMenuAllergenFilterEnabled: boolean;
 };
@@ -127,7 +126,7 @@ export async function loadFeatureSettingsPageData(
   const { data, error } = await supabase
     .from('restaurants')
     .select(
-      'print_agent_config, order_cooldown_seconds, operation_log_retention_days, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_round_defer_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
+      'print_agent_config, order_cooldown_seconds, operation_log_retention_days, sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled',
     )
     .eq('id', restaurantId)
     .single();
@@ -157,7 +156,6 @@ export async function loadFeatureSettingsPageData(
     sushiPerPersonPerRoundCap: sushiApi.sushiPerPersonPerRoundCap,
     sushiRoundConfirmTimeoutSeconds: sushiApi.sushiRoundConfirmTimeoutSeconds,
     sushiRoundCooldownSeconds: sushiApi.sushiRoundCooldownSeconds,
-    sushiRoundDeferCooldownSeconds: sushiApi.sushiRoundDeferCooldownSeconds,
     sushiMenuVegetarianFilterEnabled: sushiApi.sushiMenuVegetarianFilterEnabled,
     sushiMenuAllergenFilterEnabled: sushiApi.sushiMenuAllergenFilterEnabled,
   };

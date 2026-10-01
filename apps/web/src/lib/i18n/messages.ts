@@ -910,9 +910,6 @@ export const MESSAGES = {
       sushiRoundCooldownSeconds: '桌级送厨冷却',
       sushiRoundCooldownSecondsDesc: '送厨成功后整桌等待秒数，期间不可再开新轮（30–600，默认 120）。',
       sushiRoundCooldownSecondsUnit: '秒',
-      sushiRoundDeferCooldownSeconds: '暂缓后再发起冷却',
-      sushiRoundDeferCooldownSecondsDesc: '有人暂缓送厨后，禁止再次发起送厨的秒数（15–120，默认 30）。',
-      sushiRoundDeferCooldownSecondsUnit: '秒',
       sushiRoundInvalid: '寿司轮次设置数值无效，请检查范围后重试',
       moduleOperationLogs: '操作记录',
       operationLogRetentionDays: '日志保留天数',
@@ -2415,10 +2412,6 @@ export const MESSAGES = {
       sushiRoundCooldownSecondsDesc:
         'Seconds the whole table must wait after a successful kitchen send before a new round (30–600, default 120).',
       sushiRoundCooldownSecondsUnit: 'seconds',
-      sushiRoundDeferCooldownSeconds: 'Defer re-request cooldown',
-      sushiRoundDeferCooldownSecondsDesc:
-        'Seconds after a defer before anyone can request kitchen again (15–120, default 30).',
-      sushiRoundDeferCooldownSecondsUnit: 'seconds',
       sushiRoundInvalid: 'Invalid sushi round setting; check the allowed ranges and retry',
       moduleOperationLogs: 'Operation logs',
       operationLogRetentionDays: 'Log retention days',
@@ -3682,10 +3675,6 @@ export const MESSAGES = {
       sushiRoundCooldownSecondsDesc:
         'Segundos que a mesa espera apos envio com sucesso antes de nova rodada (30–600, padrao 120).',
       sushiRoundCooldownSecondsUnit: 'segundos',
-      sushiRoundDeferCooldownSeconds: 'Refracao apos adiar',
-      sushiRoundDeferCooldownSecondsDesc:
-        'Segundos apos adiar antes de poder pedir cozinha outra vez (15–120, padrao 30).',
-      sushiRoundDeferCooldownSecondsUnit: 'segundos',
       sushiRoundInvalid: 'Definicao de rodada sushi invalida; verifique os intervalos e tente novamente',
       moduleOperationLogs: 'Registos de operacao',
       operationLogRetentionDays: 'Dias de retencao de registos',

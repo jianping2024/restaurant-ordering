@@ -54,7 +54,6 @@ type Props = {
   initialSushiPerPersonPerRoundCap: number;
   initialSushiRoundConfirmTimeoutSeconds: number;
   initialSushiRoundCooldownSeconds: number;
-  initialSushiRoundDeferCooldownSeconds: number;
   initialSushiMenuVegetarianFilterEnabled: boolean;
   initialSushiMenuAllergenFilterEnabled: boolean;
 };
@@ -73,11 +72,9 @@ export function FeatureFlagsManager({
   initialSushiPerPersonPerRoundCap,
   initialSushiRoundConfirmTimeoutSeconds,
   initialSushiRoundCooldownSeconds,
-  initialSushiRoundDeferCooldownSeconds: _unusedDeferCooldown,
   initialSushiMenuVegetarianFilterEnabled,
   initialSushiMenuAllergenFilterEnabled,
 }: Props) {
-  void _unusedDeferCooldown;
   const router = useRouter();
   const { lang } = useLanguage();
   const t = getMessages(lang).featureSettings;
@@ -158,7 +155,6 @@ export function FeatureFlagsManager({
         sushiPerPersonPerRoundCap?: number;
         sushiRoundConfirmTimeoutSeconds?: number;
         sushiRoundCooldownSeconds?: number;
-        sushiRoundDeferCooldownSeconds?: number;
         sushiMenuVegetarianFilterEnabled?: boolean;
         sushiMenuAllergenFilterEnabled?: boolean;
       };

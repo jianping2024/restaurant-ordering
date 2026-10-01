@@ -21,7 +21,6 @@ export default async function SettingsFeaturesPage() {
       initialSushiPerPersonPerRoundCap={data.sushiPerPersonPerRoundCap}
       initialSushiRoundConfirmTimeoutSeconds={data.sushiRoundConfirmTimeoutSeconds}
       initialSushiRoundCooldownSeconds={data.sushiRoundCooldownSeconds}
-      initialSushiRoundDeferCooldownSeconds={data.sushiRoundDeferCooldownSeconds}
       initialSushiMenuVegetarianFilterEnabled={data.sushiMenuVegetarianFilterEnabled}
       initialSushiMenuAllergenFilterEnabled={data.sushiMenuAllergenFilterEnabled}
     />

@@ -15,22 +15,20 @@ const MENU_ROW_ICON_BTN_DANGER = `${MENU_ROW_ICON_BTN} border-status-danger/35 b
 const MENU_ROW_ICON_CLUSTER =
   'flex h-6 shrink-0 items-center gap-1 rounded-md bg-brand-border/35 px-1';
 /**
- * Sole category-tree spacing source:
- * triangle | GAP | handle | GAP | label  (GAP = former gap-1 4px → 1/3).
- * Expand width = per-depth indent; ▸ flush-right so visual triangle↔handle equals GAP.
- * LABEL_INSET aligns root category names with 「新增大类」 text.
+ * Sole category-tree leading metrics (glyph boxes, not padded hit-slop):
+ * ▸ | gap | ⠿ | gap | label — gap = former gap-1 (4px) → 1/3.
+ * Handle width overrides SortOrderDragHandle default w-6 so empty padding cannot fake a wide text gap.
+ * 「新增大类」 mirrors the same three leading columns (+ sits in the handle slot).
  */
-const CATEGORY_TREE_ROW_GAP_PX = Math.round(4 / 3);
-const CATEGORY_TREE_EXPAND_SLOT_PX = 12;
-/** Matches SortOrderDragHandle `w-6` — do not diverge. */
-const CATEGORY_TREE_HANDLE_WIDTH_PX = 24;
-export const CATEGORY_TREE_LABEL_INSET_PX =
-  CATEGORY_TREE_EXPAND_SLOT_PX +
-  CATEGORY_TREE_ROW_GAP_PX +
-  CATEGORY_TREE_HANDLE_WIDTH_PX +
-  CATEGORY_TREE_ROW_GAP_PX;
+export const CATEGORY_TREE_LEAD = {
+  gapPx: Math.round(4 / 3),
+  expandPx: 10,
+  handlePx: 14,
+} as const;
 const CATEGORY_TREE_EXPAND_SLOT =
-  'h-7 shrink-0 inline-flex items-center justify-end text-brand-text-muted';
+  'h-7 shrink-0 inline-flex items-center justify-center text-brand-text-muted';
+/** Drop default h-8; width comes only from CATEGORY_TREE_LEAD.handlePx (no !w-auto — it beats inline width). */
+const CATEGORY_TREE_HANDLE_CLASS = '!h-7';
 
 export type MenuCategorySortTreeLabels = {
   sameLevelSort: string;
@@ -116,8 +114,8 @@ function CategorySiblingList({
                         selected ? 'ring-1 ring-brand-gold/50 bg-brand-gold/5' : ''
                       } ${snapshot.isDragging ? 'shadow-lg ring-1 ring-brand-gold/40 bg-brand-card' : ''}`}
                       style={{
-                        paddingLeft: `${Math.max(0, depth - 1) * CATEGORY_TREE_EXPAND_SLOT_PX}px`,
-                        gap: CATEGORY_TREE_ROW_GAP_PX,
+                        paddingLeft: `${Math.max(0, depth - 1) * CATEGORY_TREE_LEAD.expandPx}px`,
+                        gap: CATEGORY_TREE_LEAD.gapPx,
                       }}
                     >
                       {hasChildren ? (
@@ -133,7 +131,7 @@ function CategorySiblingList({
                             }
                           }}
                           className={`${CATEGORY_TREE_EXPAND_SLOT} hover:text-brand-gold`}
-                          style={{ width: CATEGORY_TREE_EXPAND_SLOT_PX }}
+                          style={{ width: CATEGORY_TREE_LEAD.expandPx }}
                         >
                           <span
                             className={`text-[10px] leading-none transition-transform ${
@@ -147,7 +145,7 @@ function CategorySiblingList({
                       ) : (
                         <span
                           className={CATEGORY_TREE_EXPAND_SLOT}
-                          style={{ width: CATEGORY_TREE_EXPAND_SLOT_PX }}
+                          style={{ width: CATEGORY_TREE_LEAD.expandPx }}
                           aria-hidden
                         />
                       )}
@@ -155,6 +153,8 @@ function CategorySiblingList({
                         label={labels.sameLevelSort}
                         disabled={dragDisabled}
                         dragHandleProps={draggableProvided.dragHandleProps}
+                        className={CATEGORY_TREE_HANDLE_CLASS}
+                        style={{ width: CATEGORY_TREE_LEAD.handlePx }}
                       />
                       <button
                         type="button"

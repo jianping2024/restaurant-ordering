@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import {
-  CATEGORY_TREE_LABEL_INSET_PX,
+  CATEGORY_TREE_LEAD,
   MenuCategorySortTree,
 } from '@/components/dashboard/MenuCategorySortTree';
 import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
@@ -1203,10 +1203,22 @@ export function MenuManager({
                     setCategoryDraft(defaultCategoryDraft);
                     setCategoryPanelMode('create-root');
                   }}
-                  className="mt-2 w-full text-left text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
-                  style={{ paddingLeft: CATEGORY_TREE_LABEL_INSET_PX }}
+                  className="mt-2 flex w-full items-center text-left text-sm text-brand-text-muted hover:text-brand-gold transition-colors"
+                  style={{ gap: CATEGORY_TREE_LEAD.gapPx }}
                 >
-                  + {t.addRootShort}
+                  <span
+                    className="shrink-0"
+                    style={{ width: CATEGORY_TREE_LEAD.expandPx }}
+                    aria-hidden
+                  />
+                  <span
+                    className="inline-flex shrink-0 items-center justify-center"
+                    style={{ width: CATEGORY_TREE_LEAD.handlePx }}
+                    aria-hidden
+                  >
+                    +
+                  </span>
+                  <span>{t.addRootShort}</span>
                 </button>
               </>
             )}

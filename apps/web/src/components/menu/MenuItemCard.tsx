@@ -17,7 +17,11 @@ import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
+  MENU_ITEM_CARD_BODY_CLASS,
+  MENU_ITEM_CARD_DESC_CLASS,
+  MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
+  MENU_ITEM_CARD_THUMB_CLASS,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
@@ -57,7 +61,7 @@ export function MenuItemAddButton({
       }}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold shadow-[0_4px_10px_rgb(139_101_48_/_0.28)] transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
       +
     </button>
@@ -105,7 +109,10 @@ function MenuItemCardAction({
   );
 }
 
-/** Sole catalog card: thumb left, name/desc + price/action row (guest and staff-assisted). */
+/**
+ * Sole catalog card: thumb left; right column fixed slots
+ * (name → optional flavor band → desc → price/action).
+ */
 export function MenuItemCard({
   item,
   lang,
@@ -139,7 +146,7 @@ export function MenuItemCard({
         type="button"
         onClick={onOpenDetail}
         aria-label={openDetailAria}
-        className={`relative flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center overflow-hidden rounded-xl ${MENU_IMAGE_WELL_BG_CLASS} text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40`}
+        className={`${MENU_ITEM_CARD_THUMB_CLASS} ${MENU_IMAGE_WELL_BG_CLASS} text-3xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40`}
       >
         {imageSrc ? (
           <Image
@@ -147,7 +154,7 @@ export function MenuItemCard({
             alt=""
             fill
             className={MENU_IMAGE_OBJECT_FIT_CLASS}
-            sizes="72px"
+            sizes="88px"
             unoptimized={MENU_IMAGE_UNOPTIMIZED}
           />
         ) : (
@@ -155,14 +162,14 @@ export function MenuItemCard({
         )}
       </button>
 
-      <div className="flex min-h-[4.5rem] min-w-0 flex-1 flex-col justify-between gap-2">
+      <div className={MENU_ITEM_CARD_BODY_CLASS}>
         <button
           type="button"
           onClick={onOpenDetail}
           aria-label={openDetailAria}
-          className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
+          className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
         >
-          <h3 className={`text-brand-text ${CUSTOMER_MENU_TYPE.itemName}`}>
+          <h3 className={MENU_ITEM_CARD_NAME_CLASS}>
             {label}
             {item.is_vegetarian ? (
               <span className="ml-1.5 align-middle rounded-full border border-emerald-600/35 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
@@ -175,15 +182,11 @@ export function MenuItemCard({
             lang={lang}
             enabled={flavorHintsEnabled}
             variant="inline"
-            className="mt-1"
+            reserveSlot
           />
-          {desc ? (
-            <p className={`text-brand-text-muted ${CUSTOMER_MENU_TYPE.itemDesc} mt-0.5 line-clamp-2`}>
-              {desc}
-            </p>
-          ) : null}
+          <p className={MENU_ITEM_CARD_DESC_CLASS}>{desc || '\u00a0'}</p>
           {limitHint ? (
-            <p className="text-[11px] text-brand-text-muted mt-1 leading-snug">{limitHint}</p>
+            <p className="line-clamp-1 text-[11px] leading-snug text-brand-text-muted">{limitHint}</p>
           ) : null}
         </button>
 

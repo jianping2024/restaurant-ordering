@@ -209,7 +209,7 @@ const FLAVOR_BY_CODE: ReadonlyMap<FlavorCode, FlavorDefinition> = new Map(
   FLAVORS.map((row) => [row.code, row]),
 );
 
-const EXCLUSIVE_GROUPS: ReadonlySet<FlavorGroup> = new Set(['spice', 'numb', 'body']);
+const EXCLUSIVE_GROUPS: ReadonlySet<FlavorGroup> = new Set<FlavorGroup>(['spice', 'numb', 'body']);
 
 export const FLAVOR_SECTION_UI: Record<Language, { title: string; hint: string }> = {
   zh: {

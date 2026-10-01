@@ -12,9 +12,9 @@ export type KitchenBoardMenuCatalogEntry = {
   name_pt: string;
   name_en?: string | null;
   name_zh?: string | null;
-  description_pt?: string | null;
-  description_en?: string | null;
-  description_zh?: string | null;
+  description_pt?: string;
+  description_en?: string;
+  description_zh?: string;
   item_code?: string | null;
   allergen_codes?: string[];
   flavor_codes?: string[];
@@ -46,7 +46,15 @@ export function collectKitchenBoardMenuItemIds(orders: Order[]): string[] {
 
 /** Sole mapper: menu_items rows → kitchen board catalog map. */
 export function kitchenBoardMenuCatalogFromRows(
-  rows: Array<Partial<KitchenBoardMenuCatalogEntry> & { id?: string | null }>,
+  rows: Array<
+    Partial<Omit<KitchenBoardMenuCatalogEntry, 'description_pt' | 'description_en' | 'description_zh'>> & {
+      id?: string | null;
+      /** DB / MenuItem may send null; stored entry uses undefined. */
+      description_pt?: string | null;
+      description_en?: string | null;
+      description_zh?: string | null;
+    }
+  >,
 ): KitchenBoardMenuCatalogById {
   const map: KitchenBoardMenuCatalogById = {};
   for (const row of rows) {
@@ -62,9 +70,18 @@ export function kitchenBoardMenuCatalogFromRows(
       name_pt: typeof row.name_pt === 'string' ? row.name_pt : '',
       name_en: row.name_en ?? null,
       name_zh: row.name_zh ?? null,
-      description_pt: row.description_pt ?? null,
-      description_en: row.description_en ?? null,
-      description_zh: row.description_zh ?? null,
+      description_pt:
+        typeof row.description_pt === 'string' && row.description_pt.trim()
+          ? row.description_pt.trim()
+          : undefined,
+      description_en:
+        typeof row.description_en === 'string' && row.description_en.trim()
+          ? row.description_en.trim()
+          : undefined,
+      description_zh:
+        typeof row.description_zh === 'string' && row.description_zh.trim()
+          ? row.description_zh.trim()
+          : undefined,
       item_code:
         typeof row.item_code === 'string' && row.item_code.trim()
           ? row.item_code.trim()

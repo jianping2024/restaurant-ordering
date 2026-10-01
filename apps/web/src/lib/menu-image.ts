@@ -49,8 +49,22 @@ export function extensionForImageMime(mime: string): string {
   }
 }
 
-export function menuImageObjectPath(restaurantId: string, menuItemId: string, mime: string): string {
-  return `${restaurantId}/${menuItemId}.${extensionForImageMime(mime)}`;
+/**
+ * Storage object key for one menu photo upload.
+ * Path includes a unique `objectKey` so each replace gets a new public URL (cache-bust);
+ * callers must delete the previous object after the new `image_url` is committed.
+ */
+export function menuImageObjectPath(
+  restaurantId: string,
+  menuItemId: string,
+  mime: string,
+  objectKey: string,
+): string {
+  const key = objectKey.trim();
+  if (!key) {
+    throw new Error('menu_image_object_key_empty');
+  }
+  return `${restaurantId}/${menuItemId}/${key}.${extensionForImageMime(mime)}`;
 }
 
 export type MenuImageLetterboxLayout = {

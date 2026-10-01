@@ -103,6 +103,8 @@ export function mapMenuItemApiError(
       return labels.categoryRequired;
     case 'invalid_image':
       return labels.imageTypeInvalid;
+    case 'cleanup_failed':
+      return message || labels.saveFail;
     case 'reorder_scope_mismatch':
       return labels.dishReorderScopeMismatch;
     case 'invalid_per_person_qty_limit':

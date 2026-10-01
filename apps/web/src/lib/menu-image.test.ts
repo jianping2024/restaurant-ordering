@@ -8,11 +8,32 @@ import {
   clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
   menuImageLetterboxLayout,
+  menuImageObjectPath,
   menuItemImageUrlLookupFromRows,
+  pathFromMenuImagePublicUrl,
   resolveMenuImageDisplayUrl,
   toMenuImagePublicRef,
 } from './menu-image';
 import { toMenuImagePublicRef as sharedToMenuImagePublicRef } from '@mesa/shared';
+
+describe('menuImageObjectPath', () => {
+  it('nests a unique object key under restaurant and item', () => {
+    assert.equal(
+      menuImageObjectPath('rid', 'item', 'image/jpeg', 'obj-1'),
+      'rid/item/obj-1.jpg',
+    );
+    assert.equal(
+      menuImageObjectPath('rid', 'item', 'image/webp', 'obj-2'),
+      'rid/item/obj-2.webp',
+    );
+  });
+
+  it('round-trips through public URL path extraction', () => {
+    const path = menuImageObjectPath('rid', 'item', 'image/png', 'abc');
+    const url = `/storage/v1/object/public/menu-images/${path}`;
+    assert.equal(pathFromMenuImagePublicUrl(url), path);
+  });
+});
 
 describe('menuItemImageUrlLookupFromRows', () => {
   it('maps non-empty image_url by menu item id', () => {

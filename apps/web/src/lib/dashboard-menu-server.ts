@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeAllergenCodes } from '@/lib/allergens';
 import { normalizeMenuItemLimitFields } from '@/lib/sushi-buffet-limits';
@@ -736,11 +737,20 @@ export async function batchSetMenuItemsAvailable(
 async function removeMenuImage(
   admin: SupabaseClient,
   publicUrl: string | null | undefined,
-): Promise<void> {
-  if (!publicUrl) return;
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!publicUrl) return { ok: true };
   const path = pathFromMenuImagePublicUrl(publicUrl);
-  if (!path) return;
-  await admin.storage.from('menu-images').remove([path]);
+  if (!path) return { ok: true };
+  const { error } = await admin.storage.from('menu-images').remove([path]);
+  if (error) {
+    const msg = error.message.toLowerCase();
+    // Already gone (legacy URL / other env) — nothing left to delete.
+    if (msg.includes('not found') || msg.includes('does not exist') || msg.includes('404')) {
+      return { ok: true };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
 }
 
 export async function setMenuItemImage(
@@ -768,24 +778,31 @@ export async function setMenuItemImage(
     return { error: 'item_not_found', status: 404 };
   }
 
+  const previousUrl =
+    typeof existing.image_url === 'string' && existing.image_url.trim()
+      ? existing.image_url.trim()
+      : null;
+
   let imageUrl: string | null | undefined;
+  let uploadedPath: string | null = null;
+
   if (stripImage && !file) {
-    await removeMenuImage(admin, existing.image_url);
     imageUrl = null;
   } else if (file) {
     if (!ALLOWED_IMAGE_MIME.has(file.type) || file.size > MENU_IMAGE_MAX_BYTES) {
       return { error: 'invalid_image', status: 400 };
     }
-    await removeMenuImage(admin, existing.image_url);
-    const path = menuImageObjectPath(restaurantId, id, file.type);
+    const path = menuImageObjectPath(restaurantId, id, file.type, randomUUID());
     const buffer = Buffer.from(await file.arrayBuffer());
     const { error: uploadError } = await admin.storage.from('menu-images').upload(path, buffer, {
-      upsert: true,
+      upsert: false,
       contentType: file.type,
+      cacheControl: '3600',
     });
     if (uploadError) {
       return { error: 'upload_failed', message: uploadError.message, status: 500 };
     }
+    uploadedPath = path;
     imageUrl = toMenuImagePublicRef(path);
   }
 
@@ -801,8 +818,27 @@ export async function setMenuItemImage(
     .select()
     .single();
   if (error) {
+    if (uploadedPath) {
+      await admin.storage.from('menu-images').remove([uploadedPath]);
+    }
     return { error: 'update_failed', message: error.message, status: 500 };
   }
+
+  if (previousUrl && previousUrl !== imageUrl) {
+    const removed = await removeMenuImage(admin, previousUrl);
+    if (!removed.ok) {
+      await admin
+        .from('menu_items')
+        .update({ image_url: previousUrl })
+        .eq('id', id)
+        .eq('restaurant_id', restaurantId);
+      if (uploadedPath) {
+        await admin.storage.from('menu-images').remove([uploadedPath]);
+      }
+      return { error: 'cleanup_failed', message: removed.message, status: 500 };
+    }
+  }
+
   await invalidateCustomerMenuCatalog(restaurantId);
   return { item: data as MenuItem };
 }

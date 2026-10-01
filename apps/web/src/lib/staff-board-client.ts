@@ -10,6 +10,7 @@ import {
 } from '@/lib/waiter-board-live';
 import { fetchWithDependencyTimeout } from '@/lib/dependency-unavailable';
 import type { Order } from '@/types';
+import type { KitchenBoardMenuCatalogById } from '@/lib/kitchen-board-menu-catalog';
 
 export type WaiterBoardClientResult =
   | { status: 'ok'; scope: 'full'; board: WaiterBoardData }
@@ -220,6 +221,7 @@ type KitchenBoardResponse = {
   activeTableIds?: string[];
   tables?: RestaurantTableRow[];
   kitchen_ready_after_minutes?: number;
+  menu_catalog_by_id?: KitchenBoardMenuCatalogById;
 };
 
 /** Kitchen active board via authenticated staff API. */
@@ -243,5 +245,9 @@ export async function fetchKitchenBoardClient(slug: string) {
       typeof board.kitchen_ready_after_minutes === 'number'
         ? board.kitchen_ready_after_minutes
         : 15,
+    menu_catalog_by_id:
+      (board.menu_catalog_by_id && typeof board.menu_catalog_by_id === 'object'
+        ? board.menu_catalog_by_id
+        : {}) as KitchenBoardMenuCatalogById,
   };
 }

@@ -43,6 +43,14 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: string;
     printFailed: string;
     conflict: string;
+    /** Read-only dish detail modal confirm. */
+    detailConfirm: string;
+    detailDescriptionEmpty: string;
+    detailAllergensTitle: string;
+    detailAllergensUnmarked: string;
+    detailVegetarianBadge: string;
+    /** Aria for dish thumb that opens detail. */
+    dishThumbOpenDetail: string;
   }
 > = {
   zh: {
@@ -82,6 +90,12 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: '已打印',
     printFailed: '打印失败，请重试',
     conflict: '数据已更新，请重试',
+    detailConfirm: '确认',
+    detailDescriptionEmpty: '暂无菜品说明',
+    detailAllergensTitle: '过敏原',
+    detailAllergensUnmarked: '未标注',
+    detailVegetarianBadge: '素食',
+    dishThumbOpenDetail: '查看菜品详情',
   },
   en: {
     screensTitle: 'Kitchen screens',
@@ -120,6 +134,12 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Printed',
     printFailed: 'Print failed — try again',
     conflict: 'Board updated — please retry',
+    detailConfirm: 'OK',
+    detailDescriptionEmpty: 'No description',
+    detailAllergensTitle: 'Allergens',
+    detailAllergensUnmarked: 'Not marked',
+    detailVegetarianBadge: 'Vegetarian',
+    dishThumbOpenDetail: 'View dish details',
   },
   pt: {
     screensTitle: 'Ecras de cozinha',
@@ -158,6 +178,12 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Impresso',
     printFailed: 'Falha ao imprimir',
     conflict: 'Quadro atualizado — tente de novo',
+    detailConfirm: 'Confirmar',
+    detailDescriptionEmpty: 'Sem descricao',
+    detailAllergensTitle: 'Alergenios',
+    detailAllergensUnmarked: 'Nao marcado',
+    detailVegetarianBadge: 'Vegetariano',
+    dishThumbOpenDetail: 'Ver detalhes do prato',
   },
   es: {
     screensTitle: 'Pantallas de cocina',
@@ -196,6 +222,12 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Impreso',
     printFailed: 'Error al imprimir',
     conflict: 'Tablero actualizado — reintente',
+    detailConfirm: 'Confirmar',
+    detailDescriptionEmpty: 'Sin descripcion',
+    detailAllergensTitle: 'Alergenos',
+    detailAllergensUnmarked: 'Sin marcar',
+    detailVegetarianBadge: 'Vegetariano',
+    dishThumbOpenDetail: 'Ver detalle del plato',
   },
   fr: {
     screensTitle: 'Ecrans cuisine',
@@ -234,6 +266,12 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Imprime',
     printFailed: 'Echec impression',
     conflict: 'Tableau mis a jour — reessayez',
+    detailConfirm: 'Confirmer',
+    detailDescriptionEmpty: 'Pas de description',
+    detailAllergensTitle: 'Allergenes',
+    detailAllergensUnmarked: 'Non indique',
+    detailVegetarianBadge: 'Vegetarien',
+    dishThumbOpenDetail: 'Voir le detail du plat',
   },
   de: {
     screensTitle: 'Kuchenschirme',
@@ -272,5 +310,11 @@ export const KITCHEN_SCREEN_TEXT: Record<
     printSuccess: 'Gedruckt',
     printFailed: 'Druck fehlgeschlagen',
     conflict: 'Board aktualisiert — erneut versuchen',
+    detailConfirm: 'OK',
+    detailDescriptionEmpty: 'Keine Beschreibung',
+    detailAllergensTitle: 'Allergene',
+    detailAllergensUnmarked: 'Nicht markiert',
+    detailVegetarianBadge: 'Vegetarisch',
+    dishThumbOpenDetail: 'Gerichtdetails anzeigen',
   },
 };

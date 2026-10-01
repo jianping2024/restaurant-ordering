@@ -17,7 +17,7 @@ export function CustomerMenuCatalogSkeleton() {
         {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={index}
-            className="h-[9.5rem] animate-pulse rounded-2xl border border-brand-border/40 bg-brand-card/60"
+            className="h-[8.5rem] animate-pulse rounded-2xl border border-brand-border/40 bg-brand-card/60"
           />
         ))}
       </div>

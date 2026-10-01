@@ -9,19 +9,17 @@ import {
   MENU_IMAGE_WELL_BG_CLASS,
   resolveMenuImageDisplayUrl,
 } from '@/lib/menu-image';
-import {
-  formatMenuCatalogItemLabel,
-  resolveMenuItemLocalizedDescription,
-} from '@/lib/menu-item-display';
+import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_BODY_CLASS,
-  MENU_ITEM_CARD_DESC_CLASS,
+  MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
+  MENU_ITEM_CARD_THUMB_PX,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
@@ -110,8 +108,8 @@ function MenuItemCardAction({
 }
 
 /**
- * Sole catalog card: thumb left; right column fixed slots
- * (name → optional flavor band → desc → price/action).
+ * Sole catalog card: thumb left; right column height-locked to thumb
+ * (name → optional one-line flavor → price/action). List has no description.
  */
 export function MenuItemCard({
   item,
@@ -126,7 +124,6 @@ export function MenuItemCard({
   onDecrement,
 }: Props) {
   const label = formatMenuCatalogItemLabel(item, lang);
-  const desc = resolveMenuItemLocalizedDescription(item, lang);
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
   const t = MENU_PAGE_MESSAGES[lang];
   const actionLabels: ActionLabels = { add: t.itemAdd, soldOut: t.itemSoldOut };
@@ -154,7 +151,7 @@ export function MenuItemCard({
             alt=""
             fill
             className={MENU_IMAGE_OBJECT_FIT_CLASS}
-            sizes="88px"
+            sizes={`${MENU_ITEM_CARD_THUMB_PX}px`}
             unoptimized={MENU_IMAGE_UNOPTIMIZED}
           />
         ) : (
@@ -167,7 +164,7 @@ export function MenuItemCard({
           type="button"
           onClick={onOpenDetail}
           aria-label={openDetailAria}
-          className="flex min-w-0 flex-col gap-1.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
+          className="flex min-w-0 flex-col gap-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-ink/40 rounded-md"
         >
           <h3 className={MENU_ITEM_CARD_NAME_CLASS}>
             {label}
@@ -184,10 +181,7 @@ export function MenuItemCard({
             variant="inline"
             reserveSlot
           />
-          <p className={MENU_ITEM_CARD_DESC_CLASS}>{desc || '\u00a0'}</p>
-          {limitHint ? (
-            <p className="line-clamp-1 text-[11px] leading-snug text-brand-text-muted">{limitHint}</p>
-          ) : null}
+          {limitHint ? <p className={MENU_ITEM_CARD_LIMIT_HINT_CLASS}>{limitHint}</p> : null}
         </button>
 
         <div className={MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS}>

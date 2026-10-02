@@ -27,6 +27,54 @@ const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
 const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 
+const CASHIER_STATION_ID = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+
+/** Empty agent routing — resolveReceiptPrinterId returns undefined (sole enqueue path). */
+function emptyPrintAgentDevicesTable() {
+  return {
+    select: () => ({
+      eq: () => ({
+        is: () => ({
+          order: () => ({
+            limit: async () => ({ data: [], error: null }),
+          }),
+        }),
+      }),
+    }),
+  };
+}
+
+function mappedPrintAgentDevicesTable(stationId: string) {
+  return {
+    select: () => ({
+      eq: () => ({
+        is: () => ({
+          order: () => ({
+            limit: async () => ({
+              data: [
+                {
+                  routing_snapshot: {
+                    receipt_printers: [
+                      {
+                        id: `station:${stationId}`,
+                        label: 'Cashier',
+                        role: 'station',
+                      },
+                    ],
+                    updated_at: '2026-08-03T00:00:00.000Z',
+                  },
+                  paired_at: '2026-08-03T00:00:00.000Z',
+                },
+              ],
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    }),
+  };
+}
+
 const MENU_KEY = 'menu-coke::3';
 
 function byItemSplit(overrides: Partial<BillSplit> = {}): BillSplit {
@@ -279,6 +327,9 @@ describe('enqueueReceiptPrint', () => {
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
         }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
+        }
 
         throw new Error(`unexpected table: ${table}`);
       },
@@ -347,6 +398,9 @@ describe('enqueueReceiptPrint', () => {
         }
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
         }
 
         throw new Error(`unexpected table: ${table}`);
@@ -443,6 +497,9 @@ describe('enqueueReceiptPrint', () => {
         }
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
         }
 
         throw new Error(`unexpected table: ${table}`);
@@ -544,6 +601,9 @@ describe('enqueueReceiptPrint', () => {
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
         }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
+        }
 
         throw new Error(`unexpected table: ${table}`);
       },
@@ -643,6 +703,9 @@ describe('enqueueReceiptPrint', () => {
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
         }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
+        }
 
         throw new Error(`unexpected table: ${table}`);
       },
@@ -732,6 +795,9 @@ describe('enqueueReceiptPrint', () => {
         if (table === 'buffets') {
           return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
         }
+        if (table === 'print_agent_devices') {
+          return emptyPrintAgentDevicesTable();
+        }
 
         throw new Error(`unexpected table: ${table}`);
       },
@@ -752,5 +818,150 @@ describe('enqueueReceiptPrint', () => {
     const payloadLines = insertedPayload?.lines as Array<{ qty: number }>;
     assert.equal(payloadLines.length, 1);
     assert.equal(payloadLines[0]?.qty, 3);
+  });
+
+  it('stamps Dashboard default_receipt_station_id when caller omits printer', async () => {
+    let insertedPayload: Record<string, unknown> | null = null;
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: {
+                    feature_flags: { bill_receipt_print: true },
+                    print_agent_config: {
+                      default_receipt_station_id: `station:${CASHIER_STATION_ID}`,
+                    },
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          const ordersChain: {
+            select: () => typeof ordersChain;
+            eq: () => typeof ordersChain;
+            in: () => typeof ordersChain;
+            order: () => Promise<{ data: typeof orders; error: null }>;
+          } = {
+            select: () => ordersChain,
+            eq: () => ordersChain,
+            in: () => ordersChain,
+            order: async () => ({ data: orders, error: null }),
+          };
+          return ordersChain;
+        }
+        if (table === 'print_jobs') {
+          return {
+            insert: (row: { payload: Record<string, unknown> }) => {
+              insertedPayload = row.payload;
+              return {
+                select: () => ({
+                  single: async () => ({ data: { id: 'job-default-printer' }, error: null }),
+                }),
+              };
+            },
+          };
+        }
+        if (table === 'menu_items') {
+          return vatQueryChain([
+            { id: 'menu-coke', vat_rate: 23 },
+            { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 },
+          ]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+        if (table === 'print_agent_devices') {
+          return mappedPrintAgentDevicesTable(CASHIER_STATION_ID);
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'checkout_bill',
+      printSource: 'staff_manual',
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(insertedPayload?.receipt_printer_id, `station:${CASHIER_STATION_ID}`);
+  });
+
+  it('rejects invalid explicit receipt_printer_id', async () => {
+    const admin = {
+      from(table: string) {
+        if (table === 'restaurants') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({
+                  data: { feature_flags: { bill_receipt_print: true } },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          const ordersChain: {
+            select: () => typeof ordersChain;
+            eq: () => typeof ordersChain;
+            in: () => typeof ordersChain;
+            order: () => Promise<{ data: typeof orders; error: null }>;
+          } = {
+            select: () => ordersChain,
+            eq: () => ordersChain,
+            in: () => ordersChain,
+            order: async () => ({ data: orders, error: null }),
+          };
+          return ordersChain;
+        }
+        if (table === 'menu_items') {
+          return vatQueryChain([
+            { id: 'menu-coke', vat_rate: 23 },
+            { id: '47cd765c-1443-454a-bd75-e73638c310f5', vat_rate: 23 },
+          ]);
+        }
+        if (table === 'buffets') {
+          return vatQueryChain([{ id: 'f5c81888-7b78-40da-ba60-519e185e48d6', vat_rate: 13 }]);
+        }
+        if (table === 'print_agent_devices') {
+          return mappedPrintAgentDevicesTable(CASHIER_STATION_ID);
+        }
+        if (table === 'print_jobs') {
+          throw new Error('print_jobs must not insert on invalid printer');
+        }
+        throw new Error(`unexpected table: ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const result = await enqueueReceiptPrint({
+      admin,
+      restaurantId: RESTAURANT_ID,
+      printLocale: 'pt',
+      sessionId: 'sess-1',
+      tableId: 'table-1',
+      tableDisplayName: 'A-01',
+      variant: 'checkout_bill',
+      printSource: 'staff_manual',
+      receiptPrinterId: 'station:99999999-9999-4999-8999-999999999999',
+    });
+
+    assert.deepEqual(result, {
+      ok: false,
+      status: 400,
+      code: 'invalid_receipt_printer',
+    });
   });
 });

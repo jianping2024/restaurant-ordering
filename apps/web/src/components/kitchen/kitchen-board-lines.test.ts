@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import {
   aggregateLinesByDish,
   collectStationBoardLines,
+  groupBottomRailByStatus,
   lineWaitMinutes,
   partitionStationLines,
   type KitchenBoardLine,
@@ -110,6 +111,48 @@ describe('partitionStationLines', () => {
     assert.equal(workbench.length, 1);
     assert.equal(workbench[0]?.effectiveStatus, 'pending');
     assert.equal(bottomRail.length, 2);
+  });
+});
+
+describe('groupBottomRailByStatus', () => {
+  it('splits cooking then ready and keeps relative order', () => {
+    const base = stubLine({
+      key: 'p',
+      tableId: 't1',
+      tableDisplay: 'A-01',
+      menuItemId: 'm1',
+      qty: 1,
+    });
+    const c1: KitchenBoardLine = {
+      ...base,
+      key: 'c1',
+      effectiveStatus: 'cooking',
+      prepEligible: false,
+      printEligible: true,
+    };
+    const r1: KitchenBoardLine = {
+      ...base,
+      key: 'r1',
+      effectiveStatus: 'ready',
+      prepEligible: false,
+      printEligible: true,
+    };
+    const c2: KitchenBoardLine = {
+      ...base,
+      key: 'c2',
+      effectiveStatus: 'cooking',
+      prepEligible: false,
+      printEligible: true,
+    };
+    const { cooking, ready } = groupBottomRailByStatus([c1, r1, c2]);
+    assert.deepEqual(
+      cooking.map((l) => l.key),
+      ['c1', 'c2'],
+    );
+    assert.deepEqual(
+      ready.map((l) => l.key),
+      ['r1'],
+    );
   });
 });
 

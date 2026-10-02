@@ -16,6 +16,7 @@ import { KitchenMenuItemDetailModal } from '@/components/kitchen/KitchenMenuItem
 import {
   aggregateLinesByDish,
   collectStationBoardLines,
+  groupBottomRailByStatus,
   groupLinesByTable,
   lineNoteKey,
   lineSelectionKey,
@@ -108,6 +109,16 @@ const VERTICAL_ONLY_SCROLL =
 /** Sole chrome size for station footer actions (ready-rail toggle + prep/print). */
 const STATION_FOOTER_BTN = 'min-h-9 px-4 text-lg';
 
+/**
+ * Sole expanded bottom-rail panel chrome (recessive cool slate vs workbench paper).
+ * Do not reuse workbench `bg-brand-card` row fill here — that is what made zones look continuous.
+ */
+const KITCHEN_READY_RAIL_PANEL_CLASS = `max-h-64 border-t-[3px] border-slate-400 bg-slate-200/90 ${VERTICAL_ONLY_SCROLL}`;
+const KITCHEN_READY_RAIL_HEADER_CLASS =
+  'sticky top-0 z-[1] flex items-center gap-2 border-b border-slate-400/70 bg-slate-300/95 px-3 py-2 text-lg font-semibold text-slate-700 backdrop-blur-sm';
+const KITCHEN_READY_RAIL_SUBHEAD_CLASS =
+  'px-3 pb-1 pt-2 text-sm font-semibold tracking-wide text-slate-500';
+
 function statusLabel(status: OrderItemStatus, t: Labels): string {
   if (status === 'ready') return t.statusReady;
   if (status === 'cooking') return t.statusCooking;
@@ -119,6 +130,29 @@ function statusTone(status: OrderItemStatus): string {
   if (status === 'ready') return 'text-emerald-800 bg-emerald-100';
   if (status === 'cooking') return 'text-amber-900 bg-amber-100';
   return 'text-red-800 bg-red-100';
+}
+
+/** Sole bottom-rail row left accent (cooking amber / ready emerald) — pairs with status chip. */
+function readyRailAccentClass(status: OrderItemStatus): string {
+  if (status === 'ready') return 'shadow-[inset_3px_0_0_#059669]';
+  return 'shadow-[inset_3px_0_0_#d97706]';
+}
+
+/** Sole row surface fill: workbench paper vs recessive rail slate. */
+function kitchenRowSurfaceClass(input: {
+  layout: LineLayout;
+  checked: boolean;
+  status: OrderItemStatus;
+}): string {
+  if (input.layout === 'ready') {
+    const accent = readyRailAccentClass(input.status);
+    return input.checked
+      ? `bg-slate-100 ring-1 ring-inset ring-brand-gold/50 ${accent}`
+      : `bg-slate-100 ${accent}`;
+  }
+  return input.checked
+    ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50'
+    : 'bg-brand-card';
 }
 
 /**
@@ -172,10 +206,10 @@ function KitchenBoardLineRow({
     );
   } else if (layout === 'ready') {
     title = (
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
         {line.displayName}
         {noteEl}
-        <span className="ml-2 text-xl font-normal text-brand-text-muted"> {line.tableDisplay}</span>
+        <span className="ml-2 text-xl font-normal text-slate-500"> · {line.tableDisplay}</span>
       </span>
     );
   } else {
@@ -210,9 +244,9 @@ function KitchenBoardLineRow({
       className="border-b border-brand-border/50"
     >
       <div
-        className={`flex min-w-0 w-full max-w-full items-center gap-3 px-2 py-2.5 ${
-          checked ? 'bg-brand-bg ring-1 ring-inset ring-brand-gold/50' : 'bg-brand-card'
-        } ${rowInteractive ? '' : 'opacity-55'}`}
+        className={`flex min-w-0 w-full max-w-full items-center gap-3 px-2 py-2.5 ${kitchenRowSurfaceClass(
+          { layout, checked, status: line.effectiveStatus },
+        )} ${rowInteractive ? '' : 'opacity-55'}`}
       >
         <input
           type="checkbox"
@@ -230,11 +264,17 @@ function KitchenBoardLineRow({
           onOpen={onOpenDetail}
         />
         {title}
-        <span className="shrink-0 text-xl font-semibold tabular-nums text-brand-gold">
+        <span
+          className={`shrink-0 text-xl font-semibold tabular-nums ${
+            layout === 'ready' ? 'text-amber-900/70' : 'text-brand-gold'
+          }`}
+        >
           × {Number(line.item.qty) || 0}
         </span>
         <span
-          className="shrink-0 text-lg tabular-nums text-brand-text-muted"
+          className={`shrink-0 text-lg tabular-nums ${
+            layout === 'ready' ? 'text-slate-500' : 'text-brand-text-muted'
+          }`}
           suppressHydrationWarning
         >
           {t.waitMinutes.replace('{n}', String(waitMin))}
@@ -288,6 +328,10 @@ export function KitchenStationPane({
   );
 
   const { workbench, bottomRail } = useMemo(() => partitionStationLines(allLines), [allLines]);
+  const { cooking: railCooking, ready: railReady } = useMemo(
+    () => groupBottomRailByStatus(bottomRail),
+    [bottomRail],
+  );
   const byTable = useMemo(() => groupLinesByTable(workbench), [workbench]);
   const byDish = useMemo(() => aggregateLinesByDish(workbench), [workbench]);
   const bottomRailQty = useMemo(() => sumLineQty(bottomRail), [bottomRail]);
@@ -584,11 +628,34 @@ export function KitchenStationPane({
 
       <footer className="flex shrink-0 flex-col border-t border-brand-border/70">
         {bottomRailOpen ? (
-          <div className={`max-h-64 border-b border-brand-border/60 bg-brand-bg/40 ${VERTICAL_ONLY_SCROLL}`}>
+          <div
+            className={KITCHEN_READY_RAIL_PANEL_CLASS}
+            role="region"
+            aria-label={t.readyRailZoneTitle}
+          >
             {bottomRail.length === 0 ? (
-              <p className="px-3 py-4 text-center text-xl text-brand-text-muted">{t.readyRailEmpty}</p>
+              <p className="px-3 py-4 text-center text-xl text-slate-500">{t.readyRailEmpty}</p>
             ) : (
-              bottomRail.map((line) => renderLine(line, 'ready'))
+              <>
+                <div className={KITCHEN_READY_RAIL_HEADER_CLASS}>
+                  <span className="min-w-0 flex-1 truncate">{t.readyRailZoneTitle}</span>
+                  <span className="shrink-0 text-base font-medium tabular-nums text-slate-500">
+                    {t.portionBadge.replace('{n}', String(bottomRailQty))}
+                  </span>
+                </div>
+                {railCooking.length > 0 ? (
+                  <>
+                    <div className={KITCHEN_READY_RAIL_SUBHEAD_CLASS}>{t.statusCooking}</div>
+                    {railCooking.map((line) => renderLine(line, 'ready'))}
+                  </>
+                ) : null}
+                {railReady.length > 0 ? (
+                  <>
+                    <div className={KITCHEN_READY_RAIL_SUBHEAD_CLASS}>{t.statusReady}</div>
+                    {railReady.map((line) => renderLine(line, 'ready'))}
+                  </>
+                ) : null}
+              </>
             )}
           </div>
         ) : null}

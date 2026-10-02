@@ -4,7 +4,7 @@ import {
   buildBillableSessionItems,
   byItemSplitTargetQty,
   chargeableFieldsFromBillableRow,
-  isByItemSplittableBillableRow,
+  isBillableSessionRowOnPaper,
   type BillableSessionItem,
 } from '@/lib/billable-session-lines';
 import { isBuffetBaseItem } from '@/lib/order-items';
@@ -59,15 +59,20 @@ function billSplitOrderLineFromBillableRow(row: BillableSessionItem): BillSplitO
   };
 }
 
-/** Full bill catalog (physical qty; used for bill details and receipt aggregation). */
+/**
+ * Full session catalog (incl. €0 free rows) — occupancy / feedback / floor detail.
+ * Checkout money lines use {@link buildPaperBillableSessionItems} via checkoutLinesFromOrders.
+ */
 export function buildBillSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
   return buildBillableSessionItems(orders).map(billSplitOrderLineFromBillableRow);
 }
 
-/** Splittable subset for by-item allocation (limited rows use chargeable qty in specs). */
+/**
+ * Sole by-item pool: money lines only ({@link isBillableSessionRowOnPaper}).
+ */
 export function buildByItemSplitOrderLines(orders: Order[]): BillSplitOrderLine[] {
   return buildBillableSessionItems(orders)
-    .filter(isByItemSplittableBillableRow)
+    .filter(isBillableSessionRowOnPaper)
     .map(billSplitOrderLineFromBillableRow);
 }
 

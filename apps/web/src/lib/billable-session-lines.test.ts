@@ -6,7 +6,6 @@ import {
   byItemSplitTargetQty,
   chargeableFieldsFromBillableRow,
   isBillableSessionRowOnPaper,
-  isByItemSplittableBillableRow,
   isLimitedBillableRow,
   limitedBillableMergeKey,
   menuItemIdFromLimitedBillableKey,
@@ -54,12 +53,25 @@ describe('limited billable merge keys', () => {
       0,
     );
     assert.equal(
-      isByItemSplittableBillableRow({
+      isBillableSessionRowOnPaper({
         key: limitedKey,
         item: { id: 'm1', name: 's', name_pt: 's', qty: 4, price: 0, emoji: '' },
       }),
       false,
     );
+  });
+
+  it('paper gate omits unlimited free rows and keeps paid rows', () => {
+    const freeRow = {
+      key: 'free::0',
+      item: { id: 'free', name: 'Free', name_pt: 'Free', qty: 2, price: 0, emoji: '' },
+    };
+    const paidRow = {
+      key: 'paid::2',
+      item: { id: 'paid', name: 'Cola', name_pt: 'Cola', qty: 1, price: 2, emoji: '' },
+    };
+    assert.equal(isBillableSessionRowOnPaper(freeRow), false);
+    assert.equal(isBillableSessionRowOnPaper(paidRow), true);
   });
 });
 

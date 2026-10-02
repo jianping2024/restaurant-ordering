@@ -80,6 +80,40 @@ describe('buildBillableSessionItems', () => {
 });
 
 describe('checkoutLinesFromOrders', () => {
+  it('omits €0 free menu rows (same paper gate as receipt)', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'paid',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+          },
+          {
+            id: 'free',
+            name: 'Free roll',
+            name_pt: 'Free roll',
+            qty: 3,
+            price: 0,
+            emoji: '🍣',
+          },
+        ],
+      },
+    ] as Order[];
+
+    const lines = checkoutLinesFromOrders(orders, 'pt');
+    assert.deepEqual(
+      lines.map((line) => line.key),
+      ['paid::2'],
+    );
+    assert.equal(lines[0]?.lineTotal, 2);
+  });
+
   it('shows buffet headcount as A1-C2 receipt tokens instead of menu qty', () => {
     const orders = [
       {

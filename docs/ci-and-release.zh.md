@@ -5,7 +5,7 @@
 | 事件 | 工作流 / 工具 | 作用 |
 |------|----------------|------|
 | **PR → `main`（必过）** | **Vercel** Preview 部署 | ruleset 必过检查名：**`Vercel`** |
-| **`pnpm push`** | [scripts/push-to-main.sh](../scripts/push-to-main.sh) | 自动提交并推 `main`（Vercel Production 部署） |
+| **`git push origin main`** | 本地 commit/merge 后直推 | Vercel Production 部署 |
 | **push / PR → `main`（可选）** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | `lint` + `build`；不参与 merge 门禁 |
 | **改 `apps/print-agent/**` 推 main** | [`.github/workflows/print-agent-ci.yml`](../.github/workflows/print-agent-ci.yml) | **`go test` + vet + 交叉编译**（发 tag 前应先绿） |
 | **push tag `print-agent-v*`** | [`.github/workflows/print-agent-release.yml`](../.github/workflows/print-agent-release.yml) | 先 **test-linux**，再 Windows 安装包 + GitHub Release |
@@ -22,7 +22,7 @@
 4. **Required status checks**：只加 **`Vercel`**（与 PR Checks 里绿色项名称一致；不要加 `web`）
 5. Save
 
-**默认发版路径（2026-07-21 起）：** 本地开分支 → 本地 merge 进 `main` → `git push origin main`（或 `pnpm push`）→ Vercel Production。
+**默认发版路径（2026-07-21 起）：** 本地开分支 → 本地 merge 进 `main` → `git push origin main` → Vercel Production。
 
 已删除 `.github/workflows/open-pr.yml`（推功能分支不再自动开 PR）。已关闭 GitHub Actions 自动 enable auto-merge。Agent / Cloud Agent **不得**自行开 PR 或合入 `origin/main`（见 `.cursor/rules/git-local-merge-push.mdc`）。
 
@@ -30,29 +30,20 @@
 
 ---
 
-## 推送到 main（`pnpm push`）
+## 推送到 main
 
-推荐日常：本地分支做完 → merge 到本地 `main` → 再推。也可用：
+日常：本地分支做完 → merge 到本地 `main` → 再推：
 
 ```bash
-pnpm push
+git push origin main
 ```
-
-会自动：`git add -A` → **发版校验（push 前）** → 提交 → **`git push origin main`** → 符合条件时打 tag。
 
 若本次提交改动了 **`apps/print-agent/` 业务代码**（相对上一个 `print-agent-v*` tag），同一批提交须含：
 
 1. **`VERSION` 递增**
 2. **`RELEASE_NOTES.md`** 对应 `## X.Y.Z` 段落
 
-校验在 **push main 之前** 执行（`validate-print-agent-release.sh`）；失败则 **main 不会先推上去**。通过后 `apply-print-agent-tag.sh` 会：
-
-1. `go test` + `go vet`（同 CI）
-2. `git tag print-agent-v{VERSION}` && `git push origin` 该 tag → 触发 Windows 安装包构建
-
-仅改 `RELEASE_NOTES.md`（同步旧版说明）不算业务代码变更，不会要求 bump VERSION。
-
-跳过自动打 tag：`PUSH_SKIP_PRINT_AGENT_TAG=1 pnpm push`
+推 main 前可跑 `./scripts/validate-print-agent-release.sh`；打 tag 用 `./scripts/tag-print-agent.sh` / `./scripts/check-print-agent.sh`（会 `go test` + 推 `print-agent-v*`）。
 
 若 GitHub ruleset 禁止直推 `main`，需暂时关闭 ruleset，或改用手动 PR。
 
@@ -80,13 +71,13 @@ git push origin print-agent-v0.2.31
 | **已发版后只改了 `RELEASE_NOTES.md`** | push `main` 触发 [sync-print-agent-release-notes.yml](../.github/workflows/sync-print-agent-release-notes.yml)，自动补写/刷新对应 Release |
 | **手动刷新某一版** | GitHub → Actions → **Sync print agent release notes** → Run workflow，可选填版本号 |
 
-发版前在 **`apps/print-agent/RELEASE_NOTES.md`** 增加 `## X.Y.Z` 段落；`tag-print-agent.sh` / `pnpm push` 自动打 tag 时会校验该段落存在。
+发版前在 **`apps/print-agent/RELEASE_NOTES.md`** 增加 `## X.Y.Z` 段落；`tag-print-agent.sh` 打 tag 时会校验该段落存在。
 
 ### 发版步骤
 
 1. 改 **`apps/print-agent/VERSION`**（与将要打的 tag 一致）
 2. 在 **`apps/print-agent/RELEASE_NOTES.md`** 增加对应 `## X.Y.Z` 版本说明
-3. **`pnpm push`**（或 merge）— 确认 **Print agent CI** 在 main 上为绿；若 agent 有改动会自动打 tag
+3. **`git push origin main`** — 确认 **Print agent CI** 在 main 上为绿；再 `./scripts/tag-print-agent.sh` 打 tag
 4. 等 **Print agent release** 全绿（`test-linux` → Windows 打包 → `verify-release`）
 5. 在 [Releases](https://github.com/jianping2024/restaurant-ordering/releases) 确认有 **`MesaPrintAgent-Setup-amd64.exe`** 且 Release 正文含版本说明
 6. 可选：`./scripts/wait-for-github-release.sh print-agent-vX.Y.Z`

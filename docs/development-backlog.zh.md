@@ -134,7 +134,7 @@ flowchart LR
 | 37 | **回归矩阵 — 订单历史** | 关台后 void 订单仍可在历史审计 | 同上 |
 | 38 | **回归矩阵 — 鉴权** | 未登录 / 错 slug → 401 | 同上 |
 | 39 | **文档标记 Phase 5 完成** | 更新 guards 计划与关台语义文档 | 同上 |
-| 40 | **按需上线** | lint → build → `pnpm push` → 确认 Vercel Production Ready | 同上、AGENTS.md |
+| 40 | **按需上线** | lint → build → `git push origin main` → 确认 Vercel Production Ready | 同上、AGENTS.md |
 
 **性质**：**不是新功能**；发布前 QA + 文档收尾。
 

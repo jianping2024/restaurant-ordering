@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Decide whether a print-agent release is required and whether the tree is ready.
-# Call before push/commit when agent code changed; shared by pnpm push and tag-print-agent.sh.
+# Call before push/commit when agent code changed; shared by tag-print-agent.sh.
 #
 # Usage:
 #   ./scripts/validate-print-agent-release.sh          # validate HEAD

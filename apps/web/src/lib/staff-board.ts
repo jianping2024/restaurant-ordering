@@ -40,8 +40,9 @@ import { enrichKitchenOrdersWithStations } from '@/lib/kitchen-order-station-enr
 import {
   collectKitchenBoardMenuItemIds,
   kitchenBoardMenuCatalogFromRows,
-  kitchenBoardMenuCatalogSelect,
+  KITCHEN_BOARD_MENU_CATALOG_SELECT,
   type KitchenBoardMenuCatalogById,
+  type KitchenBoardMenuCatalogDbRow,
 } from '@/lib/kitchen-board-menu-catalog';
 import { kitchenReadyAfterMinutesFromConfig } from '@/lib/print-agent-config';
 
@@ -196,10 +197,12 @@ export async function fetchKitchenBoard(
   if (menuItemIds.length > 0) {
     const { data: menuRows } = await admin
       .from('menu_items')
-      .select(kitchenBoardMenuCatalogSelect())
+      .select(KITCHEN_BOARD_MENU_CATALOG_SELECT)
       .eq('restaurant_id', restaurantId)
       .in('id', menuItemIds);
-    menu_catalog_by_id = kitchenBoardMenuCatalogFromRows(menuRows || []);
+    menu_catalog_by_id = kitchenBoardMenuCatalogFromRows(
+      (menuRows || []) as KitchenBoardMenuCatalogDbRow[],
+    );
   }
   const tableById = new Map((tableRows || []).map((t) => [t.id as string, t as RestaurantTableRow]));
   const activeTableIds = Array.from(

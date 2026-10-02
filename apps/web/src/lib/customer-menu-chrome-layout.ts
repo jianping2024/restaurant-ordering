@@ -24,12 +24,26 @@ export const customerMenuFixedShellDockClass =
 export const customerMenuHeaderTrailingSlotClass = 'shrink-0';
 
 /**
- * Guest notice tab vertical offset — below sticky header + safe area.
- * Calibrated to compact sticky brand row (h-11 tools / table badge) + one pill category row.
- * Static string for Tailwind JIT — keep in sync when header chrome height changes.
+ * Sole left category rail width (guest + staff-assisted + sushi).
+ * Peer-float dodge padding must use the same token — never a parallel rem.
+ */
+export const CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS = 'w-[4.75rem]';
+export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[4.75rem]';
+
+/**
+ * Page-mode sticky left rail: under safe area, viewport-tall scroll pane.
+ * Embedded mode uses overflow on the flex child instead (no sticky).
+ */
+export const customerMenuCategoryRailStickyClass =
+  'sticky top-[env(safe-area-inset-top,0px)] z-20 max-h-[calc(100dvh-env(safe-area-inset-top,0px))] self-start';
+
+/**
+ * Guest notice tab vertical offset — below identity header + safe area.
+ * Left category rail is beside the catalog (not a sticky top strip); calibrate to
+ * compact identity row only. Static string for Tailwind JIT.
  */
 export const CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS =
-  'top-[calc(env(safe-area-inset-top,0px)+6.5rem)]';
+  'top-[calc(env(safe-area-inset-top,0px)+3.75rem)]';
 
 /** Full-width shell track for the notice tab; children use pointer-events-auto. */
 export const customerMenuNoticeTabShellClass = [

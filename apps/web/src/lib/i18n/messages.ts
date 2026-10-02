@@ -408,7 +408,7 @@ export const MESSAGES = {
       dishSortOrderHint: '拖动手柄可调整本分类在顾客菜单中的展示顺序。',
       dishReorderScopeMismatch: '只能在同一分类内的菜品之间调整顺序',
       addRecommended: '添加推荐菜品',
-      recommendedHint: '从已有菜品中挑选，最多 {max} 道。顾客点餐页分类条下方会出现推荐横滑条（图、菜名和价格，点进详情）。空列表则不展示。',
+      recommendedHint: '从已有菜品中挑选，最多 {max} 道。顾客点餐页左侧类目旁的菜品列顶部会出现推荐横滑条（图、菜名和价格，点进详情）。空列表则不展示。',
       recommendedEmpty: '还没有推荐菜品',
       recommendedEmptyCta: '添加推荐菜品',
       recommendedPickerTitle: '选择要推荐的菜品',
@@ -2067,7 +2067,7 @@ export const MESSAGES = {
       dishReorderScopeMismatch: 'Dishes can only be reordered within the same category',
       addRecommended: 'Add recommended dish',
       recommendedHint:
-        'Pick from existing dishes, up to {max}. Guests see a Recommended strip below the category chips (photo, name, and price; tap opens details). An empty list hides the strip.',
+        'Pick from existing dishes, up to {max}. Guests see a Recommended strip at the top of the dish column beside the left category rail (photo, name, and price; tap opens details). An empty list hides the strip.',
       recommendedEmpty: 'No recommended dishes yet',
       recommendedEmptyCta: 'Add a recommended dish',
       recommendedPickerTitle: 'Choose dishes to recommend',
@@ -3330,7 +3330,7 @@ export const MESSAGES = {
       dishReorderScopeMismatch: 'So pode reordenar pratos na mesma categoria',
       addRecommended: 'Adicionar recomendado',
       recommendedHint:
-        'Escolha pratos existentes, ate {max}. Os clientes veem uma faixa Recomendados abaixo das categorias (foto, nome e preco; toque abre os detalhes). Lista vazia oculta a faixa.',
+        'Escolha pratos existentes, ate {max}. Os clientes veem uma faixa Recomendados no topo da coluna de pratos ao lado do rail de categorias (foto, nome e preco; toque abre os detalhes). Lista vazia oculta a faixa.',
       recommendedEmpty: 'Ainda nao ha pratos recomendados',
       recommendedEmptyCta: 'Adicionar recomendado',
       recommendedPickerTitle: 'Escolher pratos para recomendar',

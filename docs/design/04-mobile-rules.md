@@ -149,7 +149,7 @@
 
 | 页面 | 必查项 |
 |------|--------|
-| `MenuPage` | 底栏购物车、分类 Tab 可横滑、语言切换可达 |
+| `MenuPage` | 底栏购物车、左侧类目栏可竖滑、语言切换可达 |
 | `BillPage` | 分单进度、主按钮固定、锁定态有说明 |
 | `WaiterDisplay` | 筛选 chip、桌卡可点区域够大、待结账色明显；lane tab 行上滑后吸在职员顶栏下（`waiterStaffStickyChrome.belowStaffTopBar`） |
 | `WaiterTableDetail` | 自助餐步进器、订单列表不截断主按钮 |

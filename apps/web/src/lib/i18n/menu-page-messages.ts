@@ -50,7 +50,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   staffOverageCancel: string;
   subcategoryAll: string;
   recommended: string;
-  categoryMore: string;
   catalogLoading: string;
   /** Cart drawer title. */
   cartTitle: string;
@@ -137,7 +136,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Tudo',
     recommended: 'Recomendados',
-    categoryMore: 'Mais',
     catalogLoading: 'A carregar menu…',
     cartTitle: 'Carrinho',
     cartTotalLabel: 'Total',
@@ -221,7 +219,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancel',
     subcategoryAll: 'All',
     recommended: 'Recommended',
-    categoryMore: 'More',
     catalogLoading: 'Loading menu…',
     cartTitle: 'Cart',
     cartTotalLabel: 'Total',
@@ -305,7 +302,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: '取消',
     subcategoryAll: '全部',
     recommended: '推荐',
-    categoryMore: '更多',
     catalogLoading: '正在加载菜单…',
     cartTitle: '购物车',
     cartTotalLabel: '合计',
@@ -396,7 +392,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Cancelar',
     subcategoryAll: 'Todo',
     recommended: 'Recomendados',
-    categoryMore: 'Más',
     catalogLoading: 'Cargando la carta…',
     cartTitle: 'Carrito',
     cartTotalLabel: 'Total',
@@ -491,7 +486,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Annuler',
     subcategoryAll: 'Tout',
     recommended: 'Recommandés',
-    categoryMore: 'Plus',
     catalogLoading: 'Chargement de la carte…',
     cartTitle: 'Panier',
     cartTotalLabel: 'Total',
@@ -585,7 +579,6 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     staffOverageCancel: 'Abbrechen',
     subcategoryAll: 'Alle',
     recommended: 'Empfohlen',
-    categoryMore: 'Mehr',
     catalogLoading: 'Karte wird geladen…',
     cartTitle: 'Warenkorb',
     cartTotalLabel: 'Summe',

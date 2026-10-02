@@ -18,12 +18,11 @@ import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-b
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
 import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
-  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
 } from '@/lib/menu-item-card-layout';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import {
-  customerMenuStripTopCategories,
+  customerMenuNavTopCategories,
   resolveCustomerMenuCatalogView,
 } from '@/lib/menu-recommended';
 import {
@@ -62,7 +61,7 @@ import {
 import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
-import { CustomerMenuCategoryStrip } from '@/components/menu/CustomerMenuCategoryStrip';
+import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
@@ -965,26 +964,7 @@ export function SushiMenuPage({
         tableLabel={t.table}
         sticky
         backLink={null}
-      >
-        <CustomerMenuCategoryStrip
-          topCategories={customerMenuStripTopCategories(catalogView, (cat) =>
-            getMenuCategoryLabel(cat, lang),
-          )}
-          activeTopId={currentTop}
-          onSelectTop={(id) => {
-            setActiveTopCategory(id);
-            setActiveSubpath('');
-          }}
-          subCategories={subCategories.map((sub) => ({
-            id: sub.id,
-            label: getMenuCategoryLabel(sub, lang),
-          }))}
-          activeSubpath={currentSubpath}
-          onSelectSubpath={setActiveSubpath}
-          subcategoryAllLabel={t.subcategoryAll}
-          categoryMoreLabel={t.categoryMore}
-        />
-      </CustomerOrderingHeader>
+      />
 
       {!isDemo ? (
         <SushiRoundStickyBar
@@ -1016,7 +996,24 @@ export function SushiMenuPage({
         />
       ) : null}
 
-      <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} px-4 py-4`}>
+      <CustomerMenuCategoryNav
+        variant="page"
+        topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
+          getMenuCategoryLabel(cat, lang),
+        )}
+        activeTopId={currentTop}
+        onSelectTop={(id) => {
+          setActiveTopCategory(id);
+          setActiveSubpath('');
+        }}
+        subCategories={subCategories.map((sub) => ({
+          id: sub.id,
+          label: getMenuCategoryLabel(sub, lang),
+        }))}
+        activeSubpath={currentSubpath}
+        onSelectSubpath={setActiveSubpath}
+        subcategoryAllLabel={t.subcategoryAll}
+      >
         {!catalogReady ? (
           <CustomerMenuCatalogSkeleton />
         ) : (
@@ -1075,7 +1072,7 @@ export function SushiMenuPage({
             )}
           </>
         )}
-      </div>
+      </CustomerMenuCategoryNav>
 
       <CustomerMenuFooter
         {...footer}

@@ -46,9 +46,9 @@
 
 | 区域 | 布局 |
 |------|------|
-| 顶栏 | 紧凑身份行：店名 + 唯一桌号 chip（`CustomerTableIdentityBadge`：单行旁置，`text-base`/`font-semibold`/`border-brand-ink/45`，点餐与结账同档）；语言+主题永远地球+月亮（`appearanceChromeButtonClass('icon')` ≥44）；上滑只钉分类条，身份行滚走；可选返回 |
-| 分类 | 唯一 `CustomerMenuCategoryStrip`：全部一级横滑 + 右侧钉死「更多」入口（sole：渐隐 + 四格图标圆钮；命中区 38×38 对齐一级胶囊盒模型 `py-1.5`+`categoryTop` 行高，idle 描边/底复用 `mesaSelectionChipShell`+`Strong(false)`，图标 16；`aria-label` 读 `categoryMore`；无可见「更多 ▾」文本、无实色硬切遮块）；分类名完整显示（横滑消化长度，不单颗 truncate）；选中金底字用 `text-brand-on-gold`；展开时同一份 `topCategories` 两列 overlay 从条顶盖住横滑和入口（不留空行）；格子内 pill 唯一约束 `overflow-hidden` + `[overflow-wrap:anywhere]`，长名在圆角内换行、不画出框；点分类后回到横滑并把选中 chip `scrollIntoView`。无虚拟「推荐」分类 |
-| 推荐 | 唯一 `CustomerRecommendedRail`：分类条下、菜品网格上；**独立浅金底 + 金色描边条**（勿复用 `MenuItemCard`）；横滑海报卡（锁死 4:3 图槽 + 两行菜名槽 + 价格齐底），点卡进详情（无角上 `+`）；金底上下同一 `py-*`；卡止于价格（无售罄占位行）；条不 `overflow-hidden` 裁切；不进 sticky header；空列表不渲染 |
+| 顶栏 | 紧凑身份行：店名 + 唯一桌号 chip（`CustomerTableIdentityBadge`：单行旁置，`text-base`/`font-semibold`/`border-brand-ink/45`，点餐与结账同档）；语言+主题永远地球+月亮（`appearanceChromeButtonClass('icon')` ≥44）；可选返回。类目不在顶栏 |
+| 分类 | 唯一 `CustomerMenuCategoryNav`：左侧竖向一级类目栏（sole 宽 `CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS` / `4.75rem`，page sticky + 竖滑，embedded 双滚动；选中左边金条 + 金色字，点类目过滤换列表、无滚动联动、无顶部横条、无「更多」浮层）；有二级时软 chip 仅在右列菜顶；推荐始终在右列顶（`CustomerRecommendedRail`，非虚拟类目）。顾客 / 员工协助 / 寿司共用 |
+| 推荐 | 唯一 `CustomerRecommendedRail`：右列分类区下、菜品网格上；**独立浅金底 + 金色描边条**（勿复用 `MenuItemCard`）；横滑海报卡（锁死 4:3 图槽 + 两行菜名槽 + 价格齐底），点卡进详情（无角上 `+`）；金底上下同一 `py-*`；卡止于价格（无售罄占位行）；条不 `overflow-hidden` 裁切；不进 sticky header；空列表不渲染 |
 | 菜品 | `MenuItemCard`；列表唯一 `CUSTOMER_MENU_ITEM_LIST_HOST_CLASS` + `CUSTOMER_MENU_ITEM_LIST_CLASS`（列数跟壳宽 container：1 → ≥40rem 2 → ≥62rem 3；员工「继续点餐」侧栏约 max-w-4xl 停在 2 列，避免卡过窄挤出 −/n/+）；点图/菜名打开唯一详情 `CustomerMenuItemDetailSheet`（手机全屏上滑，`lg+` 居中 Dialog；列表 `+` 仍快加） |
 | 购物车 | 底部贴底固定条 → **选菜态**打开 `CartDrawer`；总份数上升时唯一反馈为底栏角标/图标短 pop（`mesa-cart-badge-pop`，无飞入）；**已点态**显示已点份数 + 「查看已点」 |
 | 已点 | `OrderedDrawer`：已提交列表 + 「继续点菜」/「查看账单」（跳转现有 `BillPage`） |

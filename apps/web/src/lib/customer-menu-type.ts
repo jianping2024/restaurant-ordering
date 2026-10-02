@@ -1,8 +1,10 @@
 /** Typography tokens for the customer menu ordering surface (list, cart, footer, drawers). */
 export const CUSTOMER_MENU_TYPE = {
-  categoryTop: 'text-base',
-  categoryTopActive: 'font-medium',
+  /** Left rail primary category label (narrow column). */
+  categoryTop: 'text-xs leading-snug',
+  categoryTopActive: 'font-semibold',
   categorySub: 'text-sm',
+
   /** Recommended poster caption — two-line slot so prices share one baseline. */
   recommendedName: 'mt-1.5 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-tight text-brand-text',
   itemDesc: 'text-sm leading-relaxed',

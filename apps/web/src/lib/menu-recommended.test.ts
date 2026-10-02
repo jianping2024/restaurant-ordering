@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { MenuCategory, MenuItem } from '@/types';
 import {
-  customerMenuStripTopCategories,
+  customerMenuNavTopCategories,
   MENU_RECOMMENDED_ITEMS_MAX,
   parseRecommendedMenuItemIds,
   resolveCustomerMenuCatalogView,
@@ -109,7 +109,7 @@ describe('resolveCustomerMenuCatalogView', () => {
   });
 });
 
-describe('customerMenuStripTopCategories', () => {
+describe('customerMenuNavTopCategories', () => {
   it('lists only real top categories even when recommended dishes exist', () => {
     const withRec = resolveCustomerMenuCatalogView({
       menuCategories: [mains, drinks],
@@ -119,7 +119,7 @@ describe('customerMenuStripTopCategories', () => {
       activeSubpath: '',
     });
     assert.deepEqual(
-      customerMenuStripTopCategories(withRec, (c) => c.name_pt).map((c) => c.id),
+      customerMenuNavTopCategories(withRec, (c) => c.name_pt).map((c) => c.id),
       ['c-mains', 'c-drinks'],
     );
     assert.deepEqual(withRec.recommendedItems.map((row) => row.id), ['i-vinho']);
@@ -132,7 +132,7 @@ describe('customerMenuStripTopCategories', () => {
       activeSubpath: '',
     });
     assert.deepEqual(
-      customerMenuStripTopCategories(without, (c) => c.name_pt).map((c) => c.id),
+      customerMenuNavTopCategories(without, (c) => c.name_pt).map((c) => c.id),
       ['c-mains'],
     );
   });

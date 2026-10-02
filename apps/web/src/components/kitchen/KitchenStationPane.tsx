@@ -10,6 +10,7 @@ import {
 import 'react-swipeable-list/dist/styles.css';
 import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { showToast } from '@/components/ui/Toast';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import { KitchenMenuItemDetailModal } from '@/components/kitchen/KitchenMenuItemDetailModal';
@@ -173,6 +174,7 @@ function KitchenBoardLineRow({
   t,
   prepBusy,
   printBusy,
+  prepInFlight,
   thumbImageUrl,
   thumbEmoji,
   onOpenDetail,
@@ -186,6 +188,8 @@ function KitchenBoardLineRow({
   t: Labels;
   prepBusy: boolean;
   printBusy: boolean;
+  /** Sole row-level prep in-flight (swipe or footer multi-prep). */
+  prepInFlight: boolean;
   thumbImageUrl: string | null;
   thumbEmoji: string;
   onOpenDetail: () => void;
@@ -195,7 +199,8 @@ function KitchenBoardLineRow({
   const note = lineNoteKey(line.item);
   const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
   const rowInteractive = line.prepEligible || line.printEligible;
-  const canSwipePrep = line.prepEligible && !prepBusy && !printBusy;
+  const stationLocked = prepBusy || printBusy || prepInFlight;
+  const canSwipePrep = line.prepEligible && !stationLocked;
 
   const noteEl = note ? (
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
@@ -243,19 +248,21 @@ function KitchenBoardLineRow({
       maxSwipe={KITCHEN_SWIPE_MAX}
       swipeStartThreshold={KITCHEN_SWIPE_START_PX}
       scrollStartThreshold={KITCHEN_SCROLL_START_PX}
-      onClick={rowInteractive && !prepBusy && !printBusy ? onToggle : undefined}
+      onClick={rowInteractive && !stationLocked ? onToggle : undefined}
       className="border-b border-brand-border/50"
     >
       <div
         className={`flex min-w-0 w-full max-w-full items-center gap-3 px-2 py-2.5 ${kitchenRowSurfaceClass(
           { layout, checked, status: line.effectiveStatus },
         )} ${rowInteractive ? '' : 'opacity-55'}`}
+        data-kitchen-prep-in-flight={prepInFlight ? '' : undefined}
+        aria-busy={prepInFlight || undefined}
       >
         <input
           type="checkbox"
           className="h-6 w-6 shrink-0"
           checked={checked}
-          disabled={!rowInteractive || prepBusy || printBusy}
+          disabled={!rowInteractive || stationLocked}
           onChange={onToggle}
           onClick={(e) => e.stopPropagation()}
           aria-label={line.displayName}
@@ -282,11 +289,21 @@ function KitchenBoardLineRow({
         >
           {t.waitMinutes.replace('{n}', String(waitMin))}
         </span>
-        <span
-          className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
-        >
-          {statusLabel(line.effectiveStatus, t)}
-        </span>
+        {prepInFlight ? (
+          <span
+            className="inline-flex shrink-0 items-center gap-2 text-lg font-medium text-brand-gold"
+            aria-label={t.prepBusy}
+          >
+            <Spinner className="h-5 w-5" />
+            <span>{t.prepBusy}</span>
+          </span>
+        ) : (
+          <span
+            className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
+          >
+            {statusLabel(line.effectiveStatus, t)}
+          </span>
+        )}
       </div>
     </SwipeableListItem>
   );
@@ -315,6 +332,11 @@ export function KitchenStationPane({
   const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
   const [bottomRailOpen, setBottomRailOpen] = useState(false);
+  /**
+   * Sole prep in-flight line keys for this pane (swipe one key; footer multi-prep = selected prep keys).
+   * Non-empty ⇒ row spinner + block further prep/swipe; footer Button loading reads the same set.
+   */
+  const [prepInFlightKeys, setPrepInFlightKeys] = useState<Set<string>>(() => new Set());
   /** Frozen at open so Realtime board churn cannot empty the modal mid-view. */
   const [detailEntry, setDetailEntry] = useState<KitchenBoardMenuCatalogEntry | null>(null);
 
@@ -347,6 +369,9 @@ export function KitchenStationPane({
     () => allLines.filter((l) => selected.has(l.key) && l.printEligible).length,
     [allLines, selected],
   );
+  const prepInFlight = prepInFlightKeys.size > 0;
+  /** Station prep lock: parent board busy ∪ local in-flight keys (sole gate for prep UI). */
+  const prepLocked = prepBusy || prepInFlight;
 
   const toggleLine = (line: KitchenBoardLine) => {
     if (!line.prepEligible && !line.printEligible) return;
@@ -402,21 +427,25 @@ export function KitchenStationPane({
   };
 
   const handlePrep = async () => {
-    const selections = allLines
-      .filter((l) => selected.has(l.key) && l.prepEligible)
-      .map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
+    const prepLines = allLines.filter((l) => selected.has(l.key) && l.prepEligible);
+    const selections = prepLines.map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
     if (selections.length === 0) return;
-    const ok = await onPrep(selections);
-    if (ok) {
-      showToast(t.prepSuccess, 'success');
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const l of allLines) {
-          if (l.prepEligible && next.has(l.key)) next.delete(l.key);
-        }
-        return next;
-      });
-      setBottomRailOpen(true);
+    setPrepInFlightKeys(new Set(prepLines.map((l) => l.key)));
+    try {
+      const ok = await onPrep(selections);
+      if (ok) {
+        showToast(t.prepSuccess, 'success');
+        setSelected((prev) => {
+          const next = new Set(prev);
+          for (const l of allLines) {
+            if (l.prepEligible && next.has(l.key)) next.delete(l.key);
+          }
+          return next;
+        });
+        setBottomRailOpen(true);
+      }
+    } finally {
+      setPrepInFlightKeys(new Set());
     }
   };
 
@@ -439,16 +468,21 @@ export function KitchenStationPane({
   };
 
   const handleSwipePrep = async (line: KitchenBoardLine) => {
-    if (!line.prepEligible || prepBusy || printBusy) return;
-    const ok = await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
-    if (ok) {
-      showToast(t.prepSuccess, 'success');
-      setSelected((prev) => {
-        const next = new Set(prev);
-        next.delete(line.key);
-        return next;
-      });
-      setBottomRailOpen(true);
+    if (!line.prepEligible || prepLocked || printBusy) return;
+    setPrepInFlightKeys(new Set([line.key]));
+    try {
+      const ok = await onPrep([{ order_id: line.orderId, item_index: line.itemIndex }]);
+      if (ok) {
+        showToast(t.prepSuccess, 'success');
+        setSelected((prev) => {
+          const next = new Set(prev);
+          next.delete(line.key);
+          return next;
+        });
+        setBottomRailOpen(true);
+      }
+    } finally {
+      setPrepInFlightKeys(new Set());
     }
   };
 
@@ -487,8 +521,9 @@ export function KitchenStationPane({
         layout={layout}
         nowMs={nowMs}
         t={t}
-        prepBusy={prepBusy}
+        prepBusy={prepLocked}
         printBusy={printBusy}
+        prepInFlight={prepInFlightKeys.has(line.key)}
         thumbImageUrl={thumb.imageUrl}
         thumbEmoji={thumb.emoji}
         onOpenDetail={() => openDishDetail(line.menuItemId, line.item)}
@@ -683,7 +718,7 @@ export function KitchenStationPane({
                 variant="outline"
                 size="sm"
                 className={STATION_FOOTER_BTN}
-                disabled={selectedPrintCount === 0 || printBusy || prepBusy}
+                disabled={selectedPrintCount === 0 || printBusy || prepLocked}
                 loading={printBusy}
                 title={t.selectPrintLines}
                 onClick={() => void handlePrint()}
@@ -695,12 +730,12 @@ export function KitchenStationPane({
                 type="button"
                 size="sm"
                 className={STATION_FOOTER_BTN}
-                disabled={selectedPrepCount === 0 || prepBusy || printBusy}
-                loading={prepBusy}
+                disabled={selectedPrepCount === 0 || prepLocked || printBusy}
+                loading={prepLocked}
                 title={t.selectLines}
                 onClick={() => void handlePrep()}
               >
-                {prepBusy ? t.prepBusy : t.prep}
+                {prepLocked ? t.prepBusy : t.prep}
               </Button>
             )}
           </div>

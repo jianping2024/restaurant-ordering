@@ -22,7 +22,7 @@ If running in Cursor Cloud: leave changes on a feature branch and stop. Do **not
 
 - Local commits on a feature branch
 - Local `git merge` into local `main` when the user asked to land the change that way
-- Pushing `main` only when the user explicitly says push / `pnpm push` / ship
+- Pushing `main` only when the user explicitly says push / ship (`git push origin main`)
 
 ## After land on local `main` (mandatory last step — no extra ask)
 

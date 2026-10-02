@@ -1,22 +1,22 @@
 ---
 description: >-
-  Before pnpm push / ship / push to main: run lint → build → targeted tests in order.
-  Use when user asks to push, ship, pnpm push, or web changes are ready for main.
+  Before ship / push to main: run lint → build → targeted tests in order.
+  Use when user asks to push, ship, or web changes are ready for main.
 alwaysApply: false
 ---
 
-# Push verification (before `pnpm push`)
+# Push verification (before `git push origin main`)
 
-When the user asks to **push**, **ship**, **`pnpm push`**, or you finish web changes intended for `main`:
+When the user asks to **push**, **ship**, or you finish web changes intended for `main`:
 
-**`pnpm push` only commits and pushes** — it does **not** run lint or build. You must run checks first.
+Run checks first. Push with `git push origin main` (or the branch they named) — do **not** use a wrapper that auto-commits.
 
 ## Required order (do not skip or reorder)
 
 1. `npm run lint`
 2. `npm run build` when changes touch `apps/web/src/app/**`, `apps/web/src/lib/**`, or `apps/web/src/types/**`; `npm run build:ops` when changes touch `apps/ops/**` or `packages/shared/**`
 3. Targeted unit tests for touched logic, e.g. `node --import tsx --test apps/web/src/lib/<name>.test.ts`
-4. `pnpm push`
+4. `git push origin main` (after local commit / merge as the user asked)
 
 ## Prohibited
 

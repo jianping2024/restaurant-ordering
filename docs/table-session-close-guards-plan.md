@@ -348,7 +348,7 @@ Verify checkout, transfer/merge, and history views still behave; ship web fix pe
 **Ship checklist (web)**
 
 1. `npm run lint` (and `npm run build` if required by AGENTS.md).
-2. Commit; `pnpm push` / push to `main` when ready.
+2. Commit; `git push origin main` when ready.
 3. Confirm Vercel Production Ready before telling operators it is live.
 
 ---

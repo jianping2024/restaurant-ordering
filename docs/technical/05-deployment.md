@@ -43,7 +43,7 @@
 | 分支 | `main` → Production |
 | 构建 | `npm ci`（根）+ `npm run build` |
 | Preview | PR 门禁检查名 **`Vercel`** |
-| 推送 | `pnpm push` → 自动 commit + push `main` |
+| 推送 | `git push origin main` |
 
 ### 2.2 Ops（运营）
 
@@ -68,7 +68,7 @@
 | 产物 | `MesaPrintAgent-Setup-amd64.exe`（GitHub Release） |
 | 标签 | `print-agent-v{VERSION}`，`VERSION` = `apps/print-agent/VERSION` |
 | CI | `print-agent-ci.yml`（推 main）；`print-agent-release.yml`（推 tag） |
-| 发版前 | `./scripts/check-print-agent.sh` 或 bump VERSION + `pnpm push` 自动 tag |
+| 发版前 | `./scripts/check-print-agent.sh` 或 bump VERSION 后 `./scripts/tag-print-agent.sh` |
 
 **注意**：合并 `main` ≠ 可下载安装包；须 **Release 成功** 且含 exe。
 

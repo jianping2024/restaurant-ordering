@@ -1,5 +1,8 @@
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
-import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import {
+  CUSTOMER_MENU_ITEM_LIST_CLASS,
+  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
+} from '@/lib/menu-item-card-layout';
 
 export default function CustomerMenuLoading() {
   return (
@@ -13,7 +16,8 @@ export default function CustomerMenuLoading() {
           <div key={i} className="h-9 w-16 shrink-0 rounded-full bg-brand-border/40" />
         ))}
       </div>
-      <div className={`${CUSTOMER_MENU_ITEM_LIST_CLASS} px-4 py-2`}>
+      <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} px-4 py-2`}>
+        <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="space-y-2 rounded-xl border border-brand-border/40 p-4">
             <div className="h-5 w-3/5 rounded bg-brand-border/40" />
@@ -24,6 +28,7 @@ export default function CustomerMenuLoading() {
             </div>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );

@@ -16,7 +16,10 @@ import {
 } from '@/lib/i18n/sushi-round-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
-import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import {
+  CUSTOMER_MENU_ITEM_LIST_CLASS,
+  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
+} from '@/lib/menu-item-card-layout';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import { getMenuCategoryLabel } from '@/lib/menu-admin';
 import {
@@ -971,7 +974,7 @@ export function SushiMenuPage({
         />
       ) : null}
 
-      <div className="px-4 py-4">
+      <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} px-4 py-4`}>
         {!catalogReady ? (
           <CustomerMenuCatalogSkeleton />
         ) : (

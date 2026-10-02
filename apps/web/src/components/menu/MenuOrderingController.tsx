@@ -18,7 +18,10 @@ import {
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
 import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
-import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
+import {
+  CUSTOMER_MENU_ITEM_LIST_CLASS,
+  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
+} from '@/lib/menu-item-card-layout';
 import { isRestaurantFeatureEnabled } from '@/lib/restaurant-features';
 import {
   customerMenuStripTopCategories,
@@ -915,8 +918,8 @@ export function MenuOrderingController({
       <div
         className={
           isEmbedded
-            ? 'flex-1 overflow-y-auto px-4 py-4'
-            : 'px-4 py-4'
+            ? `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} flex-1 overflow-y-auto px-4 py-4`
+            : `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} px-4 py-4`
         }
       >
         {!catalogReady ? (

@@ -11,10 +11,18 @@
  * buttons do not paint past the card outline.
  */
 
-/** Catalog list: 1 col phone, 2 col lg, 3 col xl — sole list container class. */
-export const CUSTOMER_MENU_ITEM_LIST_CLASS =
-  'grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3';
+/**
+ * Catalog list host — sole container for column queries (not the viewport).
+ * Staff「继续点餐」overlay is ~max-w-4xl; viewport `xl:3` would make cards too
+ * narrow for price + compact −/n/+. Pair with CUSTOMER_MENU_ITEM_LIST_CLASS.
+ */
+export const CUSTOMER_MENU_ITEM_LIST_HOST_CLASS = 'mesa-menu-catalog-host';
 
+/**
+ * Catalog list grid — sole list class. Columns via @container on the host:
+ * 1 → ≥40rem 2 → ≥62rem 3 (see globals.css).
+ */
+export const CUSTOMER_MENU_ITEM_LIST_CLASS = 'mesa-menu-item-list';
 /** List thumb edge — sole square size (112px). */
 export const MENU_ITEM_CARD_THUMB_PX = 112;
 

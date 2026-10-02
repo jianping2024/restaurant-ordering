@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import { CART_QTY_STEPPER_GAP_CLASS } from './cart-qty-stepper-layout';
 import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
+  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_BODY_CLASS,
   MENU_ITEM_CARD_FLAVOR_SLOT_CLASS,
@@ -47,10 +48,9 @@ describe('menuItemCardLayout', () => {
     assert.match(MENU_ITEM_CARD_FLAVOR_SLOT_CLASS, /overflow-hidden/);
   });
 
-  it('sole catalog list is 1 / lg:2 / xl:3 columns', () => {
-    assert.equal(
-      CUSTOMER_MENU_ITEM_LIST_CLASS,
-      'grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3',
-    );
+  it('sole catalog list columns track host container width (not viewport xl)', () => {
+    assert.equal(CUSTOMER_MENU_ITEM_LIST_HOST_CLASS, 'mesa-menu-catalog-host');
+    assert.equal(CUSTOMER_MENU_ITEM_LIST_CLASS, 'mesa-menu-item-list');
+    assert.doesNotMatch(CUSTOMER_MENU_ITEM_LIST_CLASS, /lg:grid-cols|xl:grid-cols/);
   });
 });

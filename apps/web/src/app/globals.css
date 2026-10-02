@@ -104,6 +104,34 @@ body {
   line-height: 1.25;
 }
 
+/**
+ * Sole guest/staff catalog list columns — track host width (container), not viewport.
+ * Thresholds keep price + compact −/n/+ inside MenuItemCard (p-4 + 112 thumb).
+ * 40rem ≈ 2-col min; 62rem ≈ 3-col min (staff max-w-4xl overlay stays 2-col).
+ */
+.mesa-menu-catalog-host {
+  container-type: inline-size;
+  container-name: mesa-menu-catalog;
+}
+
+.mesa-menu-item-list {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@container mesa-menu-catalog (min-width: 40rem) {
+  .mesa-menu-item-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container mesa-menu-catalog (min-width: 62rem) {
+  .mesa-menu-item-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* 滚动条样式 — width=竖条，height=横条；缺 height 时 WebKit 横滑会变成粗杠 */
 ::-webkit-scrollbar {
   width: 4px;

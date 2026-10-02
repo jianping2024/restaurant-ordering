@@ -944,6 +944,12 @@ export function SushiMenuPage({
     setCartOpen(false);
     setOrderedOpen(false);
     setDetailMenuItemId(null);
+    // Drop local free drafts; next round counts only from a settled empty snapshot.
+    setCart((prev) => {
+      const next = prev.filter((c) => !isSushiRoundFreeMenuPrice(c.price));
+      cartRef.current = next;
+      return next;
+    });
   }, [setRoundPeerNotifyOpen]);
 
   const handleConfirmSendRound = async () => {

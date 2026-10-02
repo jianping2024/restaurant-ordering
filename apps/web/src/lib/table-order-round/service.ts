@@ -118,6 +118,22 @@ export async function loadActiveRound(
   return asRound(data);
 }
 
+/**
+ * Sole TS entry for expired-cooldown settle (SQL `settle_expired_table_order_round_cooldown`).
+ * Closes expired cooldown; does not mint collecting (empty active → empty snapshot).
+ */
+export async function settleExpiredTableOrderRoundCooldown(
+  admin: SupabaseClient,
+  sessionId: string,
+): Promise<'cooldown_active' | 'closed' | 'noop'> {
+  const { data, error } = await admin.rpc('settle_expired_table_order_round_cooldown', {
+    p_session_id: sessionId,
+  });
+  if (error) return 'noop';
+  if (data === 'cooldown_active' || data === 'closed' || data === 'noop') return data;
+  return 'noop';
+}
+
 async function loadRoundLines(
   admin: SupabaseClient,
   roundId: string,
@@ -144,6 +160,11 @@ export async function getRoundSnapshot(params: {
   const liveGuestCount = sessionGuestCountForLimits(
     params.sessionOrders as Parameters<typeof sessionGuestCountForLimits>[0],
   );
+
+  if (!params.skipExpirySettle) {
+    await settleExpiredTableOrderRoundCooldown(params.admin, params.sessionId);
+  }
+
   let round = await loadActiveRound(params.admin, params.sessionId);
 
   if (

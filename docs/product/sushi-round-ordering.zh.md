@@ -95,7 +95,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | — | 首条免费菜入 round | `collecting` |
 | `collecting` | `POST …/round/submit-request` | `pending_confirm` |
 | `pending_confirm` | 倒计时到点 finalize 成功 | `cooldown` |
-| `cooldown` | `now >= cooldown_until` | `idle`（可自动开新 collecting） |
+| `cooldown` | `now >= cooldown_until` → 唯一 `settle_expired_table_order_round_cooldown`（GET snapshot 与 upsert 都调）关成 `closed` | `idle`（无活跃 round；下次写才 mint collecting） |
 | 任意 | session `billing` / `closed` / 并桌来源 session | `closed` |
 | `collecting` | 行数清零且超时无活动（可选 housekeeping） | `idle` |
 

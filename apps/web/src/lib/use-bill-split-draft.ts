@@ -20,10 +20,12 @@ import {
   withDefaultByItemLineRows,
 } from '@/lib/bill-split-by-item';
 import {
+  billSplitDraftAuthorityKey,
   billSplitLocalDraftOwnerKey,
   clearBillSplitLocalDraft,
   loadBillSplitLocalDraft,
   mayPersistBillSplitLocalDraft,
+  resolveBillSplitDraftHydrateAction,
   saveBillSplitLocalDraft,
   shouldRestoreBillSplitLocalDraft,
   type BillSplitLocalDraft,
@@ -212,6 +214,8 @@ export function useBillSplitDraft(params: {
 
   /** Which session's local draft was applied into memory — sole gate for persist. */
   const hydratedOwnerKeyRef = useRef<string | null>(null);
+  /** Sole applied server-authority fingerprint — change forces reseed (resume continuation). */
+  const appliedAuthorityKeyRef = useRef<string | null>(null);
   const loadedLocalDraftRef = useRef<BillSplitLocalDraft | null | undefined>(undefined);
   const byItemLocalAppliedRef = useRef(false);
 
@@ -289,52 +293,71 @@ export function useBillSplitDraft(params: {
   );
 
   useLayoutEffect(() => {
-    if (!sessionId) {
+    const canRestore = shouldRestoreBillSplitLocalDraft({
+      existingSplit,
+      submitted,
+      collectedPaymentCount: collectedPayments.length,
+    });
+    const authorityKey = billSplitDraftAuthorityKey({
+      existingSplit,
+      submitted,
+      collectedPaymentCount: collectedPayments.length,
+    });
+
+    if (sessionId) {
+      const ownerKey = billSplitLocalDraftOwnerKey(restaurantId, sessionId);
+      if (hydratedOwnerKeyRef.current !== ownerKey) {
+        // New open-session: never keep the previous session's roster / authority.
+        hydratedOwnerKeyRef.current = ownerKey;
+        appliedAuthorityKeyRef.current = null;
+        loadedLocalDraftRef.current = undefined;
+        byItemLocalAppliedRef.current = false;
+      }
+    }
+
+    const action = resolveBillSplitDraftHydrateAction({
+      sessionId,
+      appliedAuthorityKey: appliedAuthorityKeyRef.current,
+      authorityKey,
+      canRestore,
+    });
+
+    if (action === 'reset_no_session') {
       hydratedOwnerKeyRef.current = null;
+      appliedAuthorityKeyRef.current = null;
       loadedLocalDraftRef.current = null;
       byItemLocalAppliedRef.current = false;
       setStorageReady(true);
       return;
     }
 
-    const ownerKey = billSplitLocalDraftOwnerKey(restaurantId, sessionId);
-    const alreadyHydratedThisSession =
-      hydratedOwnerKeyRef.current === ownerKey && loadedLocalDraftRef.current !== undefined;
-
-    const canRestore = shouldRestoreBillSplitLocalDraft({
-      existingSplit,
-      submitted,
-      collectedPaymentCount: collectedPayments.length,
-    });
-
-    if (alreadyHydratedThisSession) {
-      if (!canRestore) {
+    if (action === 'noop') {
+      if (!canRestore && sessionId) {
         clearBillSplitLocalDraft(restaurantId, sessionId);
       }
       setStorageReady(true);
       return;
     }
 
-    // New open-session (or first mount): never keep the previous session's roster in memory.
     setStorageReady(false);
     byItemLocalAppliedRef.current = false;
-    hydratedOwnerKeyRef.current = ownerKey;
 
-    if (!canRestore) {
-      clearBillSplitLocalDraft(restaurantId, sessionId);
+    if (action === 'apply_server') {
+      if (sessionId) clearBillSplitLocalDraft(restaurantId, sessionId);
       loadedLocalDraftRef.current = null;
       applyServerSeedToMemory();
-      setStorageReady(true);
-      return;
+    } else {
+      // apply_local_or_server
+      const draft = sessionId ? loadBillSplitLocalDraft(restaurantId, sessionId) : null;
+      loadedLocalDraftRef.current = draft;
+      if (draft) {
+        applyLocalDraftToMemory(draft);
+      } else {
+        applyServerSeedToMemory();
+      }
     }
 
-    const draft = loadBillSplitLocalDraft(restaurantId, sessionId);
-    loadedLocalDraftRef.current = draft;
-    if (draft) {
-      applyLocalDraftToMemory(draft);
-    } else {
-      applyServerSeedToMemory();
-    }
+    appliedAuthorityKeyRef.current = authorityKey;
     setStorageReady(true);
   }, [
     restaurantId,

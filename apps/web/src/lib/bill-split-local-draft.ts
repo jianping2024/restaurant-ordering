@@ -182,3 +182,72 @@ export function shouldRestoreBillSplitLocalDraft(params: {
   if (existingSplit.status === 'requested' || existingSplit.status === 'paid') return false;
   return true;
 }
+
+/**
+ * Sole fingerprint of server-owned bill-split truth that guest/staff draft memory
+ * must match. When this key changes, hydrate must re-seed (never keep a stale
+ * whole-table / null-mode draft over a continuation plan).
+ */
+export function billSplitDraftAuthorityKey(params: {
+  existingSplit: BillSplit | null;
+  submitted: boolean;
+  collectedPaymentCount: number;
+}): string {
+  const { existingSplit, submitted, collectedPaymentCount } = params;
+  if (!existingSplit) {
+    return `none|sub:${submitted ? 1 : 0}|pay:${collectedPaymentCount}`;
+  }
+  const resultSig = (existingSplit.result ?? [])
+    .map((row) =>
+      [
+        row.party_id ?? '',
+        row.name.trim().toLowerCase(),
+        Number(row.amount) || 0,
+        row.paid ? 1 : 0,
+      ].join(':'),
+    )
+    .join(',');
+  const personsSig = (existingSplit.persons ?? [])
+    .map((person) => {
+      const shares = (person.item_shares ?? [])
+        .map(
+          (share) =>
+            `${share.key}:${share.qty_num}/${share.qty_den}:${share.guest_type ?? ''}:${share.locked_amount ?? ''}`,
+        )
+        .join(';');
+      return `${person.party_id ?? ''}:${person.name.trim().toLowerCase()}:${shares}`;
+    })
+    .join(',');
+  return [
+    existingSplit.id,
+    existingSplit.status,
+    existingSplit.split_mode,
+    `sub:${submitted ? 1 : 0}`,
+    `pay:${collectedPaymentCount}`,
+    `r:${resultSig}`,
+    `p:${personsSig}`,
+  ].join('|');
+}
+
+export type BillSplitDraftHydrateAction =
+  | 'reset_no_session'
+  | 'noop'
+  | 'apply_server'
+  | 'apply_local_or_server';
+
+/**
+ * Sole hydrate decision for bill-split draft memory.
+ * `noop` = memory already aligned to this authority key (keep in-progress edits).
+ * Authority change → reseed from server (or local only while canRestore).
+ */
+export function resolveBillSplitDraftHydrateAction(params: {
+  sessionId: string | null;
+  appliedAuthorityKey: string | null;
+  authorityKey: string;
+  canRestore: boolean;
+}): BillSplitDraftHydrateAction {
+  if (!params.sessionId) return 'reset_no_session';
+  if (params.appliedAuthorityKey === params.authorityKey) return 'noop';
+  if (!params.canRestore) return 'apply_server';
+  return 'apply_local_or_server';
+}

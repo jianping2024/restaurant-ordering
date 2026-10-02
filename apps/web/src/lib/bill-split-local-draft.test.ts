@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  billSplitDraftAuthorityKey,
   billSplitLocalDraftOwnerKey,
   mayPersistBillSplitLocalDraft,
   parseBillSplitLocalDraft,
+  resolveBillSplitDraftHydrateAction,
   shouldRestoreBillSplitLocalDraft,
 } from './bill-split-local-draft';
 import type { BillSplit } from '../types';
@@ -149,6 +151,111 @@ describe('shouldRestoreBillSplitLocalDraft', () => {
         collectedPaymentCount: 0,
       }),
       true,
+    );
+  });
+});
+
+describe('billSplitDraftAuthorityKey', () => {
+  it('changes when whole_table requested becomes even confirmed with collections', () => {
+    const wholeRequested = {
+      id: 'bs1',
+      status: 'requested',
+      split_mode: 'whole_table',
+      result: [{ name: '__whole_table__', amount: 40 }],
+      persons: [{ name: '__whole_table__' }],
+    } as BillSplit;
+    const evenConfirmed = {
+      id: 'bs1',
+      status: 'confirmed',
+      split_mode: 'even',
+      result: [
+        { name: 'Alice', amount: 20, paid: true },
+        { name: 'Bob', amount: 20, paid: false },
+      ],
+      persons: [{ name: 'Alice' }, { name: 'Bob' }],
+    } as BillSplit;
+    const before = billSplitDraftAuthorityKey({
+      existingSplit: wholeRequested,
+      submitted: true,
+      collectedPaymentCount: 0,
+    });
+    const after = billSplitDraftAuthorityKey({
+      existingSplit: evenConfirmed,
+      submitted: false,
+      collectedPaymentCount: 1,
+    });
+    assert.notEqual(before, after);
+  });
+
+  it('is stable for identical server truth', () => {
+    const split = {
+      id: 'bs1',
+      status: 'confirmed',
+      split_mode: 'custom',
+      result: [{ name: 'A', amount: 10, paid: false }],
+      persons: [{ name: 'A' }],
+    } as BillSplit;
+    assert.equal(
+      billSplitDraftAuthorityKey({
+        existingSplit: split,
+        submitted: false,
+        collectedPaymentCount: 0,
+      }),
+      billSplitDraftAuthorityKey({
+        existingSplit: { ...split },
+        submitted: false,
+        collectedPaymentCount: 0,
+      }),
+    );
+  });
+});
+
+describe('resolveBillSplitDraftHydrateAction', () => {
+  it('reseeds from server when authority changes after submit (resume continuation)', () => {
+    assert.equal(
+      resolveBillSplitDraftHydrateAction({
+        sessionId: 's1',
+        appliedAuthorityKey: 'old-whole-table',
+        authorityKey: 'new-even-partial',
+        canRestore: false,
+      }),
+      'apply_server',
+    );
+  });
+
+  it('keeps memory when authority is unchanged', () => {
+    assert.equal(
+      resolveBillSplitDraftHydrateAction({
+        sessionId: 's1',
+        appliedAuthorityKey: 'same',
+        authorityKey: 'same',
+        canRestore: false,
+      }),
+      'noop',
+    );
+  });
+
+  it('allows local draft only while canRestore and authority is new', () => {
+    assert.equal(
+      resolveBillSplitDraftHydrateAction({
+        sessionId: 's1',
+        appliedAuthorityKey: null,
+        authorityKey: 'fresh',
+        canRestore: true,
+      }),
+      'apply_local_or_server',
+    );
+  });
+
+  it('resets when session is gone', () => {
+    assert.equal(
+      resolveBillSplitDraftHydrateAction({
+        sessionId: null,
+        appliedAuthorityKey: 'x',
+        authorityKey: 'y',
+        canRestore: true,
+      }),
+      'reset_no_session',
     );
   });
 });

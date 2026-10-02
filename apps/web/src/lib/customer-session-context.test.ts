@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Order } from '@/types';
 import {
+  adoptCustomerSessionParentSeed,
   applyCustomerSessionScopeMerge,
   parseCustomerBillScope,
   customerSessionContextFromWaiterDetail,
@@ -179,6 +180,82 @@ describe('customerSessionContextFromWaiterDetail', () => {
   });
 });
 
+describe('adoptCustomerSessionParentSeed', () => {
+  const openSession = {
+    id: 'session-1',
+    restaurant_id: restaurantId,
+    table_id: tableId,
+    status: 'open' as const,
+    opened_at: '2026-01-01T12:00:00.000Z',
+  };
+
+  const emptyStub: CustomerSessionContext = {
+    table_id: tableId,
+    display_name: '005',
+    active_session: openSession,
+    recent_orders: [],
+  };
+
+  const withBuffet: CustomerSessionContext = {
+    table_id: tableId,
+    display_name: '005',
+    active_session: openSession,
+    recent_orders: [buffetOrder('session-1')],
+  };
+
+  it('fills empty same-session current from parent orders', () => {
+    const next = adoptCustomerSessionParentSeed(emptyStub, withBuffet, tableId);
+    assert.equal(next?.recent_orders.length, 1);
+    assert.equal(next?.active_session?.id, 'session-1');
+  });
+
+  it('does not wipe non-empty current with empty parent stub', () => {
+    const next = adoptCustomerSessionParentSeed(withBuffet, emptyStub, tableId);
+    assert.equal(next?.recent_orders.length, 1);
+  });
+
+  it('takes parent whole when session id changes', () => {
+    const otherSession: CustomerSessionContext = {
+      table_id: tableId,
+      display_name: '005',
+      active_session: { ...openSession, id: 'session-2' },
+      recent_orders: [],
+    };
+    const next = adoptCustomerSessionParentSeed(withBuffet, otherSession, tableId);
+    assert.equal(next?.active_session?.id, 'session-2');
+    assert.equal(next?.recent_orders.length, 0);
+  });
+
+  it('does not demote occupied current when parent is idle (no session)', () => {
+    const idleParent: CustomerSessionContext = {
+      table_id: tableId,
+      display_name: '005',
+      active_session: null,
+      recent_orders: [],
+    };
+    const next = adoptCustomerSessionParentSeed(withBuffet, idleParent, tableId);
+    assert.equal(next?.active_session?.id, 'session-1');
+    assert.equal(next?.recent_orders.length, 1);
+  });
+
+  it('keeps current when same-session order identity is unchanged', () => {
+    const parentCopy: CustomerSessionContext = {
+      ...withBuffet,
+      recent_orders: [...withBuffet.recent_orders],
+    };
+    const next = adoptCustomerSessionParentSeed(withBuffet, parentCopy, tableId);
+    assert.equal(next, withBuffet);
+  });
+
+  it('returns parent when current is null', () => {
+    assert.equal(adoptCustomerSessionParentSeed(null, withBuffet, tableId), withBuffet);
+  });
+
+  it('ignores parent for a different table', () => {
+    assert.equal(adoptCustomerSessionParentSeed(withBuffet, withBuffet, 'other-table'), withBuffet);
+  });
+});
+
 describe('resolveCustomerSessionBootContext', () => {
   const ssrEmpty: CustomerSessionContext = {
     table_id: tableId,
@@ -213,6 +290,31 @@ describe('resolveCustomerSessionBootContext', () => {
       tableId,
       ssrContext: ssrEmpty,
       publishedModel,
+    });
+    assert.equal(boot?.active_session?.id, 'session-1');
+    assert.equal(boot?.recent_orders.length, 1);
+  });
+
+  it('fills empty published chrome stub from same-session parent orders', () => {
+    const parentWithOrders: CustomerSessionContext = {
+      table_id: tableId,
+      display_name: '005',
+      active_session: {
+        id: 'session-1',
+        restaurant_id: restaurantId,
+        table_id: tableId,
+        status: 'open',
+        opened_at: '2026-01-01T12:00:00.000Z',
+      },
+      recent_orders: [buffetOrder('session-1')],
+    };
+    const boot = resolveCustomerSessionBootContext({
+      tableId,
+      ssrContext: parentWithOrders,
+      publishedModel: {
+        ...publishedModel,
+        detail: { ...publishedModel.detail, orders: [] },
+      },
     });
     assert.equal(boot?.active_session?.id, 'session-1');
     assert.equal(boot?.recent_orders.length, 1);

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  adoptCustomerSessionParentSeed,
   applyCustomerSessionScopeMerge,
   resolveCustomerSessionBootContext,
   type CustomerSessionContext,
@@ -45,6 +46,21 @@ function scopeCovers(running: CustomerSessionScope, requested: CustomerSessionSc
   return running === 'full' || requested === 'gate';
 }
 
+function paintFromContext(
+  context: CustomerSessionContext | null,
+  setters: {
+    setActiveSession: (s: TableSession | null) => void;
+    setRecentOrders: (o: Order[]) => void;
+    setKitchenProgress: (k: CustomerSessionContext['kitchen_progress']) => void;
+  },
+) {
+  const next = stateFromContext(context);
+  setters.setActiveSession(next.activeSession);
+  setters.setRecentOrders(next.recentOrders);
+  setters.setKitchenProgress(next.kitchenProgress);
+  return next;
+}
+
 export function useCustomerSessionContext(
   initialContext: CustomerSessionContext | null,
   params: {
@@ -69,13 +85,28 @@ export function useCustomerSessionContext(
   /**
    * Full-scope orders list is authoritative (SSR menu seed is full, or a successful `full` fetch).
    * Gate-only `recent_orders: []` must not count as ready — peer-float paid catchup waits on this.
+   * Occupied chrome stub (session + empty orders) is also not ready until parent/full catch-up.
    */
-  const [ordersSnapshotReady, setOrdersSnapshotReady] = useState(hasAuthoritativeSeed);
+  const [ordersSnapshotReady, setOrdersSnapshotReady] = useState(
+    hasAuthoritativeSeed &&
+      (!bootContext?.active_session || bootContext.recent_orders.length > 0),
+  );
 
   const contextRef = useRef<CustomerSessionContext | null>(bootContext);
   const refreshInFlightRef = useRef<InFlightRefresh | null>(null);
-  const lastFreshAtRef = useRef(hasAuthoritativeSeed ? Date.now() : 0);
+  const lastFreshAtRef = useRef(
+    hasAuthoritativeSeed &&
+      (!bootContext?.active_session || bootContext.recent_orders.length > 0)
+      ? Date.now()
+      : 0,
+  );
   const prevTableIdRef = useRef(params.tableId);
+  const paintSetters = useRef({
+    setActiveSession,
+    setRecentOrders,
+    setKitchenProgress,
+  });
+  paintSetters.current = { setActiveSession, setRecentOrders, setKitchenProgress };
 
   const applyContext = useCallback(
     (data: CustomerSessionContext | null, scope: CustomerSessionScope) => {
@@ -87,10 +118,7 @@ export function useCustomerSessionContext(
       const merged = applyCustomerSessionScopeMerge(previous, data, scope);
       contextRef.current = merged;
       lastFreshAtRef.current = Date.now();
-      const next = stateFromContext(merged);
-      setActiveSession(next.activeSession);
-      setRecentOrders(next.recentOrders);
-      setKitchenProgress(next.kitchenProgress);
+      paintFromContext(merged, paintSetters.current);
       setSessionResolved(true);
       if (scope === 'full') {
         setOrdersSnapshotReady(true);
@@ -139,34 +167,48 @@ export function useCustomerSessionContext(
     [applyContext, params.slug, params.tableId],
   );
 
+  // Sole seed path: table change resets from boot; same-table parent seed catch-up
+  // adopts waiter-detail orders (empty chrome stub → Rodizio headcount) via
+  // adoptCustomerSessionParentSeed — one representation, no second headcount source.
   useEffect(() => {
-    if (prevTableIdRef.current === params.tableId) return;
-    prevTableIdRef.current = params.tableId;
-    refreshInFlightRef.current = null;
-    lastFreshAtRef.current = 0;
-    const nextBoot = resolveBootContext(params.tableId, initialContext);
-    contextRef.current = nextBoot;
-    const next = stateFromContext(nextBoot);
-    setActiveSession(next.activeSession);
-    setRecentOrders(next.recentOrders);
-    setKitchenProgress(next.kitchenProgress);
-    const seededForTable =
-      !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
-    setSessionResolved(isDemo || seededForTable);
-    setOrdersSnapshotReady(seededForTable);
-    if (seededForTable) lastFreshAtRef.current = Date.now();
-  }, [initialContext, isDemo, params.tableId]);
+    const tableChanged = prevTableIdRef.current !== params.tableId;
+    if (tableChanged) {
+      prevTableIdRef.current = params.tableId;
+      refreshInFlightRef.current = null;
+      lastFreshAtRef.current = 0;
+      const nextBoot = resolveBootContext(params.tableId, initialContext);
+      contextRef.current = nextBoot;
+      paintFromContext(nextBoot, paintSetters.current);
+      const seededForTable =
+        !isDemo && nextBoot != null && nextBoot.table_id === params.tableId;
+      const ordersReady =
+        seededForTable &&
+        (!nextBoot?.active_session || nextBoot.recent_orders.length > 0);
+      setSessionResolved(isDemo || seededForTable);
+      setOrdersSnapshotReady(ordersReady);
+      if (ordersReady) lastFreshAtRef.current = Date.now();
+      return;
+    }
 
-  // SSR / published-model boot per table entry — omit initialContext from reconcile deps.
-  useEffect(() => {
-    const nextBoot = resolveBootContext(params.tableId, initialContext);
-    contextRef.current = nextBoot;
-    const next = stateFromContext(nextBoot);
-    setActiveSession(next.activeSession);
-    setRecentOrders(next.recentOrders);
-    setKitchenProgress(next.kitchenProgress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on tableId/mount only
-  }, [params.tableId]);
+    const previous = contextRef.current;
+    const adopted = adoptCustomerSessionParentSeed(previous, initialContext, params.tableId);
+    if (!adopted) return;
+    if (
+      previous &&
+      adopted.active_session?.id === previous.active_session?.id &&
+      adopted.recent_orders === previous.recent_orders &&
+      adopted.display_name === previous.display_name
+    ) {
+      return;
+    }
+    contextRef.current = adopted;
+    paintFromContext(adopted, paintSetters.current);
+    setSessionResolved(true);
+    if (adopted.recent_orders.length > 0) {
+      setOrdersSnapshotReady(true);
+      lastFreshAtRef.current = Date.now();
+    }
+  }, [initialContext, isDemo, params.tableId]);
 
   const isSessionContextFresh = useCallback(() => {
     return (
@@ -183,11 +225,16 @@ export function useCustomerSessionContext(
     return refresh(resumeScope);
   }, [isSessionContextFresh, refresh, resumeScope]);
 
+  const needsOrdersPull =
+    hasAuthoritativeSeed &&
+    bootContext?.active_session != null &&
+    bootContext.recent_orders.length === 0;
+
   useRestaurantStaffEntryReconcile(
     !isDemo,
     resumeRefresh,
     params.tableId,
-    !hasAuthoritativeSeed,
+    !hasAuthoritativeSeed || needsOrdersPull,
   );
 
   // Hidden tabs miss Realtime doorbells; invalidate resume TTL so visibility reconcile pulls.

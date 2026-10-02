@@ -108,6 +108,43 @@ function rowLooksLikeBuffet(row: Record<string, unknown>): boolean {
   return typeof v === 'string' && v.trim().toLowerCase().startsWith('buffet:');
 }
 
+/** Keep PostgREST `.in('id', …)` query strings under gateway URI limits. */
+const MENU_ITEM_ID_QUERY_CHUNK = 100;
+
+function chunkIds(ids: string[], size: number): string[][] {
+  if (ids.length === 0) return [];
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+  return chunks;
+}
+
+async function loadMenuItemsByIds(
+  admin: SupabaseClient,
+  restaurantId: string,
+  ids: string[],
+): Promise<MenuItemRow[]> {
+  const uniqueIds = Array.from(new Set(ids));
+  const rows: MenuItemRow[] = [];
+  for (const chunk of chunkIds(uniqueIds, MENU_ITEM_ID_QUERY_CHUNK)) {
+    const { data, error } = await admin
+      .from('menu_items')
+      .select(
+        'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price',
+      )
+      .eq('restaurant_id', restaurantId)
+      .in('id', chunk);
+    if (error) {
+      throw new Error('menu_items_query_failed');
+    }
+    for (const row of data || []) {
+      rows.push(row as MenuItemRow);
+    }
+  }
+  return rows;
+}
+
 /** Validate raw append `items`; collapse only identical (menu_item_id, note). */
 export function parseAppendCartRawItems(
   raw: unknown,
@@ -249,24 +286,13 @@ export async function resolveAppendCartItems(params: {
 
   const { lines } = parsed;
   const ids = lines.map((l) => l.menuItemId);
+  const data = await loadMenuItemsByIds(params.admin, params.restaurantId, ids);
 
-  const { data, error } = await params.admin
-    .from('menu_items')
-    .select(
-      'id, category_id, name_pt, name_en, name_zh, price, emoji, available, item_code, per_person_qty_limit, over_limit_unit_price',
-    )
-    .eq('restaurant_id', params.restaurantId)
-    .in('id', ids);
-
-  if (error) {
-    throw new Error('menu_items_query_failed');
-  }
-
-  const leafIds = (data || []).map((row) => row.category_id as string | null);
+  const leafIds = data.map((row) => row.category_id);
   const categories = await loadCategoriesForLeafIds(params.admin, params.restaurantId, leafIds);
   const byId = new Map<string, MenuItemRow>();
-  for (const row of data || []) {
-    byId.set(row.id as string, row as MenuItemRow);
+  for (const row of data) {
+    byId.set(row.id, row);
   }
 
   const batchId = params.batchId ?? generateAppendBatchId();

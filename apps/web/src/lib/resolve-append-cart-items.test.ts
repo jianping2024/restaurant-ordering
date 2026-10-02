@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { APPEND_CART_NOTE_MAX_LEN } from '@/types';
+import { APPEND_CART_MAX_LINES, APPEND_CART_NOTE_MAX_LEN } from '@/types';
 import {
   generateAppendBatchId,
   parseAppendCartRawItems,
@@ -11,6 +11,11 @@ import {
 const RESTAURANT_ID = '11111111-1111-4111-8111-111111111111';
 
 const CAT_RE = 'bc6b075f-dd1f-4246-9bdf-314475f86024';
+
+function uuidAt(n: number): string {
+  const hex = n.toString(16).padStart(12, '0');
+  return `00000000-0000-4000-8000-${hex}`;
+}
 
 function mockAdminForAppend(
   menuRows: Array<Record<string, unknown>>,
@@ -24,7 +29,10 @@ function mockAdminForAppend(
         const chain = {
           select: () => chain,
           eq: () => chain,
-          in: async () => ({ data: menuRows, error: null }),
+          in: async (_col: string, ids: string[]) => ({
+            data: menuRows.filter((row) => ids.includes(String(row.id))),
+            error: null,
+          }),
         };
         return chain;
       }
@@ -32,7 +40,10 @@ function mockAdminForAppend(
         const chain = {
           select: () => chain,
           eq: () => chain,
-          in: async () => ({ data: categoryRows, error: null }),
+          in: async (_col: string, ids: string[]) => ({
+            data: categoryRows.filter((row) => ids.includes(String(row.id))),
+            error: null,
+          }),
         };
         return chain;
       }
@@ -106,6 +117,19 @@ describe('parseAppendCartRawItems', () => {
     );
     assert.equal(
       parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 1, kind: 'buffet_base' }]).ok,
+      false,
+    );
+  });
+
+  it('allows full-menu sized carts up to APPEND_CART_MAX_LINES', () => {
+    const lines = Array.from({ length: APPEND_CART_MAX_LINES }, (_, i) => ({
+      menu_item_id: uuidAt(i + 1),
+      qty: 1,
+    }));
+    assert.equal(parseAppendCartRawItems(lines).ok, true);
+    assert.equal(
+      parseAppendCartRawItems([...lines, { menu_item_id: uuidAt(APPEND_CART_MAX_LINES + 1), qty: 1 }])
+        .ok,
       false,
     );
   });
@@ -206,5 +230,33 @@ describe('resolveAppendCartItems', () => {
     assert.equal(r.ok, false);
     if (r.ok) return;
     assert.equal(r.error, 'menu_item_unavailable');
+  });
+
+  it('resolves carts larger than one menu_items .in chunk', async () => {
+    const count = 120;
+    const menuRows = Array.from({ length: count }, (_, i) => ({
+      id: uuidAt(i + 1),
+      category_id: CAT_RE,
+      name_pt: `Item ${i + 1}`,
+      name_en: null,
+      name_zh: null,
+      price: 1,
+      emoji: '🍽️',
+      available: true,
+      item_code: null,
+    }));
+    const rawItems = menuRows.map((row) => ({ menu_item_id: String(row.id), qty: 1 }));
+    const r = await resolveAppendCartItems({
+      admin: mockAdminForAppend(menuRows),
+      restaurantId: RESTAURANT_ID,
+      rawItems,
+      batchId: 'batch-chunk',
+      addedAt: '2026-10-02T12:00:00.000Z',
+    });
+    assert.equal(r.ok, true);
+    if (!r.ok) return;
+    assert.equal(r.items.length, count);
+    assert.equal(r.items[0].id, uuidAt(1));
+    assert.equal(r.items[count - 1].id, uuidAt(count));
   });
 });

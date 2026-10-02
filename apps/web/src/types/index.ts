@@ -250,8 +250,12 @@ export interface OrdersAppendRequestBody {
   waiter_flow?: boolean;
 }
 
-/** Append cart limits (shared with resolve-append-cart-items in phase 2). */
-export const APPEND_CART_MAX_LINES = 80;
+/**
+ * Append cart limits (shared with resolve-append-cart-items).
+ * Max lines is an abuse ceiling so one submit can cover a full restaurant menu
+ * (taste-everything), not a product “max dishes per table” rule.
+ */
+export const APPEND_CART_MAX_LINES = 1000;
 export const APPEND_CART_QTY_MIN = 1;
 export const APPEND_CART_QTY_MAX = 99;
 /** Single dish note max length (UI + API); ~3 station-slip wrap lines. */

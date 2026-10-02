@@ -543,7 +543,29 @@ export async function finalizeRound(params: {
       settings,
       skipExpirySettle: true,
     });
-    return { ok: true, data: { snapshot, idempotent_replay: true } };
+    const { data: idemRow } = await admin
+      .from('order_append_idempotency')
+      .select('order_id, batch_id, status')
+      .eq('session_id', sessionId)
+      .eq('client_request_id', round.append_client_request_id)
+      .maybeSingle();
+    const orderId =
+      idemRow?.status === 'completed' && typeof idemRow.order_id === 'string'
+        ? idemRow.order_id
+        : undefined;
+    const batchId =
+      idemRow?.status === 'completed' && typeof idemRow.batch_id === 'string'
+        ? idemRow.batch_id
+        : undefined;
+    return {
+      ok: true,
+      data: {
+        snapshot,
+        order_id: orderId,
+        batch_id: batchId,
+        idempotent_replay: true,
+      },
+    };
   }
 
   if (round.status !== 'pending_confirm' && round.status !== 'finalize_failed') {

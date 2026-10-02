@@ -43,7 +43,7 @@
 仅对 **`price = 0` 且配置了 `per_person_qty_limit` + `over_limit_unit_price`（成对）** 的菜品：
 
 - 免费额度 = `per_person_qty_limit ×` 开台人数（多套餐 `buffet_base` 成人+儿童求和）
-- 客人：**不可超过**免费额度（硬拦）——**进本轮篮即拦**（购物车下单累加、核单改数量、`POST …/lines`），与送厨 `orders/append` **同一规则** `checkSushiLimitForCartLine(staffAssisted: false)`
+- 客人：**不可超过**免费额度（硬拦）——**改草稿数量即拦**（菜卡/详情/购物车 `+`，唯一预检 `previewGuestRoundCartDraftQtyMealGate` → `previewGuestRoundCartMealGate`）以及**进本轮篮**（购物车下单累加、核单改数量、`POST …/lines`），与送厨 `orders/append` **同一规则** `checkSushiLimitForCartLine(staffAssisted: false)`；每一台手机共用整桌已占额度（已送厨 + 本轮篮全桌），不得只在某一台撞墙
 - 已占额度（写篮时）= **本餐已送厨该菜未作废份数** + **本轮篮内该菜全部行 qty**（全桌、含他人；写入时排除正被更新的那一行身份后再加 `nextQty`）
 - 多机并发：写篮在同一事务内对 `session_id` 做 `pg_advisory_xact_lock` 并 `FOR UPDATE` 当前活跃 round，串行读行→校验→写入；后到请求按最新合计拒绝（`per_person_limit_exceeded` / `round_cap_exceeded`）
 - 送厨 finalize → append **仍保留**同一限量检查（第二道闸；防与员工代点等交错）
@@ -244,7 +244,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | pending_confirm | 倒计时提示（sticky/核单顶）；同桌轻弹窗一次；不锁篮 |
 | 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
 | 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
-| 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才写入 round lines |
+| 免费菜 `+` | 仅写入本机购物车（可写备注）；加数量前按整桌剩余额度预检（与下单同一公式）；**下单**才写入 round lines |
 | 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
@@ -262,7 +262,7 @@ Classic **不得**出现轮次 UI 组件。
 | 下单 | 草稿累加进本轮后清空 |
 | 行身份 | `(round_id, menu_item_id, guest_client_id, note)` |
 | 轮次上限校验 | 排除「正被写入的那一行」（同菜+同人+同备注）后加总；**禁止**按「同菜+同人」整坨排除（否则分行后 cap 算少） |
-| 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；客户端免费下单可预检，不可替代服务端 |
+| 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；客户端唯一预检链：草稿 `previewGuestRoundCartDraftQtyMealGate` / 下单 `previewGuestRoundCartMealGate` / 核单 `previewGuestRoundLineMealGate`（均落到 `checkSushiLimitForCartLine`）；不可替代服务端 |
 | 删行串行 | `delete_table_order_round_line` 同一把 session advisory lock |
 
 ---

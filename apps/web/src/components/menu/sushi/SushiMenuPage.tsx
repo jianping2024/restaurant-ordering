@@ -80,11 +80,13 @@ import type { UILanguage } from '@/lib/i18n';
 import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
   guestCartHasLimitedSushiItems,
+  isLimitedSushiMenuItem,
   previewGuestCartSushiGate,
   sessionGuestCountForLimits,
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
 import {
+  previewGuestRoundCartDraftQtyMealGate,
   previewGuestRoundCartMealGate,
   previewGuestRoundLineMealGate,
 } from '@/lib/table-order-round/round-meal-limit';
@@ -288,6 +290,19 @@ export function SushiMenuPage({
   const [initiatorConfirmOpen, setInitiatorConfirmOpen] = useState(false);
   const countdownActive = round.snapshot.round?.status === 'pending_confirm';
 
+  const resolveLimitItem = useCallback(
+    (id: string) => {
+      const item = menuItems.find((m) => m.id === id);
+      if (!item) return null;
+      return {
+        per_person_qty_limit: item.per_person_qty_limit,
+        over_limit_unit_price: item.over_limit_unit_price,
+        price: item.price,
+      };
+    },
+    [menuItems],
+  );
+
   const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
     const prev = cartRef.current;
     const next = upsertCartItemQty(prev, item, nextQty);
@@ -323,17 +338,83 @@ export function SushiMenuPage({
       }
 
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
+
+      if (
+        nextQty > 0 &&
+        isSushiRoundFreeMenuPrice(item.price) &&
+        isLimitedSushiMenuItem(buffetServiceMode, item) &&
+        round.guestClientId
+      ) {
+        let sessionOrders = recentOrders;
+        if (!isSessionContextFresh()) {
+          const fresh = await refreshSessionContext('full');
+          sessionOrders = fresh?.recent_orders ?? recentOrders;
+        }
+        const noteContext = { catalog: notePresetCatalog, lang };
+        const freeCart = cartRef.current
+          .filter((c) => isSushiRoundFreeMenuPrice(c.price))
+          .map((c) => {
+            const limitItem = resolveLimitItem(c.menuItemId) ?? {
+              price: c.price,
+              per_person_qty_limit: null,
+              over_limit_unit_price: null,
+            };
+            return {
+              menuItemId: c.menuItemId,
+              qty: coerceCartQty(c.qty),
+              note: cartItemWireNote(c, noteContext),
+              item: limitItem,
+            };
+          });
+        const cartEntry = cartRef.current.find((c) => c.menuItemId === item.id);
+        const draftNote = cartEntry
+          ? cartItemWireNote(
+              { ...cartEntry, qty: nextQty },
+              noteContext,
+            )
+          : '';
+        const mealGate = previewGuestRoundCartDraftQtyMealGate({
+          serviceMode: buffetServiceMode,
+          guestCount: sessionGuestCountForLimits(sessionOrders),
+          sessionOrders,
+          roundLines: round.snapshot.lines,
+          guestClientId: round.guestClientId,
+          freeCart,
+          menuItemId: item.id,
+          nextQty,
+          note: draftNote,
+          item: {
+            per_person_qty_limit: item.per_person_qty_limit,
+            over_limit_unit_price: item.over_limit_unit_price,
+            price: item.price,
+          },
+        });
+        if (!mealGate.ok) {
+          showToast(messageForSushiLimitError(mealGate.error, t), 'info');
+          return;
+        }
+      }
+
       commitCartQty(item, nextQty);
     },
     [
+      buffetServiceMode,
       catalogReady,
       commitCartQty,
       ensureGuestCanPlaceOrder,
+      isSessionContextFresh,
       lang,
       menuItems,
+      notePresetCatalog,
+      recentOrders,
+      refreshSessionContext,
+      resolveLimitItem,
+      round.guestClientId,
+      round.snapshot.lines,
       round.snapshot.round?.cooldown_until,
       round.snapshot.round?.status,
       roundT,
+      t,
     ],
   );
 
@@ -364,32 +445,29 @@ export function SushiMenuPage({
   }, [detailMenuItemId, filteredMenuItems]);
 
   const ensureDetailCartLine = useCallback(
-    (item: MenuItem) => {
-      const prev = cartRef.current;
-      if (prev.some((c) => c.menuItemId === item.id)) return;
-      const next = upsertCartItemQty(prev, item, 1);
-      cartRef.current = next;
-      setCart(next);
-      bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
+    async (item: MenuItem): Promise<boolean> => {
+      if (cartRef.current.some((c) => c.menuItemId === item.id)) return true;
+      await requestQtyChange(item.id, 1);
+      return cartRef.current.some((c) => c.menuItemId === item.id);
     },
-    [],
+    [requestQtyChange],
   );
 
   const updateDetailNote = useCallback(
     (note: string) => {
       if (!detailItem) return;
-      ensureDetailCartLine(detailItem);
-      const id = detailItem.id;
-      setCart((prev) => {
-        const base = prev.some((c) => c.menuItemId === id)
-          ? prev
-          : upsertCartItemQty(prev, detailItem, 1);
-        const next = base.map((c) =>
-          c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
-        );
-        cartRef.current = next;
-        return next;
-      });
+      void (async () => {
+        const ok = await ensureDetailCartLine(detailItem);
+        if (!ok) return;
+        const id = detailItem.id;
+        setCart((prev) => {
+          const next = prev.map((c) =>
+            c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+          );
+          cartRef.current = next;
+          return next;
+        });
+      })();
     },
     [detailItem, ensureDetailCartLine],
   );
@@ -397,27 +475,27 @@ export function SushiMenuPage({
   const toggleDetailNotePreset = useCallback(
     (presetId: string) => {
       if (!detailItem) return;
-      ensureDetailCartLine(detailItem);
-      const id = detailItem.id;
-      setCart((prev) => {
-        const base = prev.some((c) => c.menuItemId === id)
-          ? prev
-          : upsertCartItemQty(prev, detailItem, 1);
-        const next = base.map((c) =>
-          c.menuItemId === id
-            ? {
-                ...c,
-                selectedNotePresetIds: toggleCartNotePresetSelection(
-                  c.selectedNotePresetIds || [],
-                  notePresetCatalog,
-                  presetId,
-                ),
-              }
-            : c,
-        );
-        cartRef.current = next;
-        return next;
-      });
+      void (async () => {
+        const ok = await ensureDetailCartLine(detailItem);
+        if (!ok) return;
+        const id = detailItem.id;
+        setCart((prev) => {
+          const next = prev.map((c) =>
+            c.menuItemId === id
+              ? {
+                  ...c,
+                  selectedNotePresetIds: toggleCartNotePresetSelection(
+                    c.selectedNotePresetIds || [],
+                    notePresetCatalog,
+                    presetId,
+                  ),
+                }
+              : c,
+          );
+          cartRef.current = next;
+          return next;
+        });
+      })();
     },
     [detailItem, ensureDetailCartLine, notePresetCatalog],
   );
@@ -525,19 +603,6 @@ export function SushiMenuPage({
       round.snapshot.lines,
       roundT.reviewOwnBlock,
     ],
-  );
-
-  const resolveLimitItem = useCallback(
-    (id: string) => {
-      const item = menuItems.find((m) => m.id === id);
-      if (!item) return null;
-      return {
-        per_person_qty_limit: item.per_person_qty_limit,
-        over_limit_unit_price: item.over_limit_unit_price,
-        price: item.price,
-      };
-    },
-    [menuItems],
   );
 
   const handleOwnRoundLineQtyChange = useCallback(

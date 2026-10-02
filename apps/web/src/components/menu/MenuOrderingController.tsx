@@ -81,6 +81,8 @@ import { menuItemCodeLookupFromRows } from '@/lib/menu-item-code';
 import {
   classifyStaffQtyIncrease,
   guestCartHasLimitedSushiItems,
+  isLimitedSushiMenuItem,
+  previewGuestCartDraftQtySushiGate,
   previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
@@ -329,10 +331,40 @@ export function MenuOrderingController({
       }
 
       if (!staffAssistedOrdering) {
-        // Guest sushi limits are submit gates (fresh session + server), not list disables.
         if (nextQty > APPEND_CART_QTY_MAX) {
           nextQty = APPEND_CART_QTY_MAX;
           if (nextQty <= current) return;
+        }
+        if (nextQty > current && isLimitedSushiMenuItem(buffetServiceMode, item)) {
+          let sessionOrders = recentOrders;
+          if (!isSessionContextFresh()) {
+            const fresh = await refreshSessionContext('full');
+            sessionOrders = fresh?.recent_orders ?? recentOrders;
+          }
+          const mealGate = previewGuestCartDraftQtySushiGate({
+            serviceMode: buffetServiceMode,
+            guestCount: sessionGuestCountForLimits(sessionOrders),
+            sessionOrders,
+            cart: cartRef.current.map((c) => ({
+              menuItemId: c.menuItemId,
+              qty: coerceCartQty(c.qty),
+            })),
+            menuItemId: item.id,
+            nextQty,
+            resolveItem: (id) => {
+              const m = menuItems.find((row) => row.id === id);
+              if (!m) return null;
+              return {
+                per_person_qty_limit: m.per_person_qty_limit,
+                over_limit_unit_price: m.over_limit_unit_price,
+                price: m.price,
+              };
+            },
+          });
+          if (!mealGate.ok) {
+            showToast(messageForSushiLimitError(mealGate.error, MENU_PAGE_MESSAGES[lang]), 'info');
+            return;
+          }
         }
         commitCartQty(item, nextQty);
         return;
@@ -386,10 +418,12 @@ export function MenuOrderingController({
       catalogReady,
       commitCartQty,
       ensureGuestCanPlaceOrder,
+      isSessionContextFresh,
       lang,
       limitGuestCount,
       menuItems,
       recentOrders,
+      refreshSessionContext,
       staffAssistedOrdering,
     ],
   );
@@ -419,14 +453,17 @@ export function MenuOrderingController({
   const updateDetailNote = (note: string) => {
     if (!detailItem) return;
     const id = detailItem.id;
-    setCartTracked((prev) => {
-      const base = prev.some((c) => c.menuItemId === id)
-        ? prev
-        : upsertCartItemQty(prev, detailItem, 1);
-      return base.map((c) =>
-        c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+    void (async () => {
+      if (!cartRef.current.some((c) => c.menuItemId === id)) {
+        await requestCartQtyChange(id, 1);
+        if (!cartRef.current.some((c) => c.menuItemId === id)) return;
+      }
+      setCartTracked((prev) =>
+        prev.map((c) =>
+          c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
+        ),
       );
-    });
+    })();
   };
 
   const toggleNotePreset = (menuItemId: string, presetId: string) => {
@@ -449,23 +486,26 @@ export function MenuOrderingController({
   const toggleDetailNotePreset = (presetId: string) => {
     if (!detailItem) return;
     const id = detailItem.id;
-    setCartTracked((prev) => {
-      const base = prev.some((c) => c.menuItemId === id)
-        ? prev
-        : upsertCartItemQty(prev, detailItem, 1);
-      return base.map((c) =>
-        c.menuItemId === id
-          ? {
-              ...c,
-              selectedNotePresetIds: toggleCartNotePresetSelection(
-                c.selectedNotePresetIds || [],
-                notePresetCatalog,
-                presetId,
-              ),
-            }
-          : c,
+    void (async () => {
+      if (!cartRef.current.some((c) => c.menuItemId === id)) {
+        await requestCartQtyChange(id, 1);
+        if (!cartRef.current.some((c) => c.menuItemId === id)) return;
+      }
+      setCartTracked((prev) =>
+        prev.map((c) =>
+          c.menuItemId === id
+            ? {
+                ...c,
+                selectedNotePresetIds: toggleCartNotePresetSelection(
+                  c.selectedNotePresetIds || [],
+                  notePresetCatalog,
+                  presetId,
+                ),
+              }
+            : c,
+        ),
       );
-    });
+    })();
   };
 
   const t = MENU_PAGE_MESSAGES[lang];

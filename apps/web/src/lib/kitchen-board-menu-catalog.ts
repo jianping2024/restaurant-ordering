@@ -24,12 +24,26 @@ export type KitchenBoardMenuCatalogEntry = {
 /** menu_item id → catalog entry for the active kitchen board. */
 export type KitchenBoardMenuCatalogById = Record<string, KitchenBoardMenuCatalogEntry>;
 
-const CATALOG_SELECT =
-  'id, image_url, emoji, name_pt, name_en, name_zh, description_pt, description_en, description_zh, item_code, allergen_codes, flavor_codes, is_vegetarian';
+/** Wire/DB row shape for kitchen board catalog select (nulls ok before normalize). */
+export type KitchenBoardMenuCatalogDbRow = {
+  id?: string | null;
+  image_url?: string | null;
+  emoji?: string | null;
+  name_pt?: string | null;
+  name_en?: string | null;
+  name_zh?: string | null;
+  description_pt?: string | null;
+  description_en?: string | null;
+  description_zh?: string | null;
+  item_code?: string | null;
+  allergen_codes?: string[] | null;
+  flavor_codes?: string[] | null;
+  is_vegetarian?: boolean | null;
+};
 
-export function kitchenBoardMenuCatalogSelect(): string {
-  return CATALOG_SELECT;
-}
+/** Sole select list for kitchen board catalog enrichment. */
+export const KITCHEN_BOARD_MENU_CATALOG_SELECT =
+  'id, image_url, emoji, name_pt, name_en, name_zh, description_pt, description_en, description_zh, item_code, allergen_codes, flavor_codes, is_vegetarian' as const;
 
 /** Distinct non-buffet menu item ids present on kitchen board orders. */
 export function collectKitchenBoardMenuItemIds(orders: Order[]): string[] {
@@ -46,15 +60,7 @@ export function collectKitchenBoardMenuItemIds(orders: Order[]): string[] {
 
 /** Sole mapper: menu_items rows → kitchen board catalog map. */
 export function kitchenBoardMenuCatalogFromRows(
-  rows: Array<
-    Partial<Omit<KitchenBoardMenuCatalogEntry, 'description_pt' | 'description_en' | 'description_zh'>> & {
-      id?: string | null;
-      /** DB / MenuItem may send null; stored entry uses undefined. */
-      description_pt?: string | null;
-      description_en?: string | null;
-      description_zh?: string | null;
-    }
-  >,
+  rows: readonly KitchenBoardMenuCatalogDbRow[],
 ): KitchenBoardMenuCatalogById {
   const map: KitchenBoardMenuCatalogById = {};
   for (const row of rows) {

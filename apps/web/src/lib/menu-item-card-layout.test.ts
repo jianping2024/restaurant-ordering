@@ -23,11 +23,14 @@ describe('menuItemCardLayout', () => {
     assert.equal(MENU_ITEM_CARD_ACTION_SLOT_CLASS, 'flex shrink-0 items-center justify-end');
   });
 
-  it('shell never clips the foot action with overflow-hidden', () => {
+  it('shell keeps foot actions inside rounded face without overflow-hidden', () => {
     assert.equal(
       MENU_ITEM_CARD_SHELL_CLASS,
-      'bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full',
+      'bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-3 h-full',
     );
+    assert.match(MENU_ITEM_CARD_SHELL_CLASS, /rounded-2xl/);
+    assert.match(MENU_ITEM_CARD_SHELL_CLASS, /\bp-4\b/);
+    assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /\bp-3\b/);
     assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /overflow-hidden/);
   });
 

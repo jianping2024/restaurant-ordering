@@ -6,7 +6,9 @@
  * → foot price + action. List never shows description (detail only).
  *
  * Shell never uses overflow-hidden: clip only on thumb / name / flavor. Foot action
- * (bare + or CartQtyStepper density=compact) must stay fully visible.
+ * (bare + or CartQtyStepper density=compact) must stay fully visible inside the
+ * rounded face — padding must be ≥ border-radius (p-4 with rounded-2xl) so corner
+ * buttons do not paint past the card outline.
  */
 
 /** Catalog list: 1 col phone, 2 col lg, 3 col xl — sole list container class. */
@@ -17,11 +19,12 @@ export const CUSTOMER_MENU_ITEM_LIST_CLASS =
 export const MENU_ITEM_CARD_THUMB_PX = 112;
 
 /**
- * Card chrome — no overflow-hidden (foot −/n/+ must not be clipped).
+ * Card chrome — sole list shell. No overflow-hidden (foot −/n/+ must not be clipped).
+ * Padding ≥ radius: p-4 with rounded-2xl keeps corner actions inside the face.
  * Available vs sold-out border/opacity stay at the call site.
  */
 export const MENU_ITEM_CARD_SHELL_CLASS =
-  'bg-brand-card border rounded-2xl p-3 flex min-w-0 gap-3 h-full';
+  'bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-3 h-full';
 
 /** List thumb: 112×112, top-aligned. */
 export const MENU_ITEM_CARD_THUMB_CLASS =

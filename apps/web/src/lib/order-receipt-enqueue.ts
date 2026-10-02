@@ -19,6 +19,7 @@ import { orderItemReceiptLineLabel } from '@/lib/menu-print-label';
 import { checkoutPayableAmount } from '@/lib/checkout-split-math';
 import { receiptPayerNameForPrint } from '@/lib/receipt-payer-label';
 import { hanBitmapFontPxFromConfig } from '@/lib/print-agent-config';
+import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 import {
   formatStationTicketOrderTime,
   guestCountFromTableOrders,
@@ -470,7 +471,17 @@ export async function enqueueReceiptPrint(
     return { ok: false, status: 404, code: 'no_billable_items' };
   }
 
-  const printerId = receiptPrinterId?.trim();
+  // Sole stamp path: explicit → Dashboard default → first mapped station.
+  const printerId = await resolveReceiptPrinterId(
+    admin,
+    restaurantId,
+    receiptPrinterId,
+    printLocale,
+  );
+  const explicitPrinter = receiptPrinterId?.trim();
+  if (explicitPrinter && !printerId) {
+    return { ok: false, status: 400, code: 'invalid_receipt_printer' };
+  }
 
   const guestCount = guestCountFromTableOrders(orderRows);
   const firstOrder = orderRows[0]!;

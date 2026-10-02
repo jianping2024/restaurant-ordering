@@ -85,9 +85,23 @@ describe('isPrintJobVisibleToDevice', () => {
     );
   });
 
-  it('shows fallback receipt to any configured device', () => {
+  it('hides untargeted receipt from mapped devices (no broadcast)', () => {
     assert.equal(
       isPrintJobVisibleToDevice({ type: 'order_receipt', payload: {} }, kitchenOnly),
+      false,
+    );
+    assert.equal(
+      isPrintJobVisibleToDevice({ type: 'pre_bill', payload: {} }, kitchenOnly),
+      false,
+    );
+  });
+
+  it('shows connection_test receipt to any configured device', () => {
+    assert.equal(
+      isPrintJobVisibleToDevice(
+        { type: 'order_receipt', payload: { connection_test: true } },
+        kitchenOnly,
+      ),
       true,
     );
   });

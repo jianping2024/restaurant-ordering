@@ -5,7 +5,6 @@ import { clampCheckoutDiscountRate } from '@/lib/checkout-split-math';
 import { parseBillSyncPaymentLines } from '@/lib/bill-sync-payload';
 import { enqueueReceiptPrint, type ReceiptVariant } from '@/lib/order-receipt-enqueue';
 import { resolveReceiptPrintSource } from '@/lib/receipt-print-source';
-import { resolveReceiptPrinterId } from '@/lib/restaurant-receipt-printers-server';
 import { parseTableIdParam } from '@/lib/restaurant-tables';
 
 export const runtime = 'nodejs';
@@ -189,20 +188,12 @@ export async function POST(
 
   const receiptPrinterIdRaw =
     typeof body.receipt_printer_id === 'string' ? body.receipt_printer_id.trim() : '';
-  const receiptPrinterId = await resolveReceiptPrinterId(
-    admin,
-    restaurantId,
-    receiptPrinterIdRaw || undefined,
-    printLocale,
-  );
-  if (receiptPrinterIdRaw && !receiptPrinterId) {
-    return NextResponse.json({ error: 'invalid_receipt_printer' }, { status: 400 });
-  }
 
   // Intent from auth, not variant: staff → staff_manual (incl. manual pre_bill);
   // guest pre_bill path stays automatic (gated by bill_receipt_print).
   const printSource = resolveReceiptPrintSource('admin' in checkoutAuth);
 
+  // Printer resolve is sole inside enqueueReceiptPrint (default + first mapped).
   const result = await enqueueReceiptPrint({
     admin,
     restaurantId,
@@ -218,7 +209,7 @@ export async function POST(
     amountPaid: amountPaid ?? personAmount,
     paymentMethod,
     paymentLines,
-    receiptPrinterId,
+    receiptPrinterId: receiptPrinterIdRaw || undefined,
     discountRate,
     collectedPaymentId,
     printSource,

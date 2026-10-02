@@ -78,7 +78,11 @@ function printLocaleToUi(locale: string | null | undefined): 'pt' | 'en' | 'zh' 
   return 'pt';
 }
 
-/** Explicit picker id, configured default, or first mapped station (print_stations.sort_order). */
+/**
+ * Sole receipt-printer resolver for bill/pre_bill/checkout jobs.
+ * Explicit id wins when mapped; invalid explicit fails closed (undefined, no silent default).
+ * Empty explicit → Dashboard default_receipt_station_id → first mapped by print_stations.sort_order.
+ */
 export async function resolveReceiptPrinterId(
   admin: SupabaseClient,
   restaurantId: string,
@@ -86,8 +90,10 @@ export async function resolveReceiptPrinterId(
   printLocale: string | null | undefined,
 ): Promise<string | undefined> {
   const snapshot = await loadRestaurantReceiptPrinterSnapshot(admin, restaurantId);
-  const allowed = assertReceiptPrinterIdAllowed(explicitId, snapshot);
-  if (allowed) return allowed;
+  const explicit = explicitId?.trim();
+  if (explicit) {
+    return assertReceiptPrinterIdAllowed(explicit, snapshot) ?? undefined;
+  }
   if (!snapshot?.receipt_printers.length) return undefined;
 
   const { data: restaurantRow } = await admin

@@ -66,9 +66,15 @@ export function printJobTargetStationId(job: Pick<PrintJobDeliveryRow, 'type' | 
   return null;
 }
 
+function isConnectionTestPayload(payload: unknown): boolean {
+  const p = payloadRecord(payload);
+  return p?.connection_test === true;
+}
+
 /**
  * Whether this device should receive the job in pending-jobs / claim paths.
  * Empty deviceStationIds → no jobs (device not configured for any station).
+ * Receipt/pre_bill without receipt_printer_id are not broadcast (except pairing connection_test).
  */
 export function isPrintJobVisibleToDevice(
   job: Pick<PrintJobDeliveryRow, 'type' | 'payload'>,
@@ -79,7 +85,11 @@ export function isPrintJobVisibleToDevice(
   const target = printJobTargetStationId(job);
   if (target) return deviceStationIds.has(target);
 
-  if (job.type === 'order_receipt' || job.type === 'pre_bill') {
+  // Pairing smoke only — claim inserts connection_test without a station target.
+  if (
+    (job.type === 'order_receipt' || job.type === 'pre_bill') &&
+    isConnectionTestPayload(job.payload)
+  ) {
     return true;
   }
 

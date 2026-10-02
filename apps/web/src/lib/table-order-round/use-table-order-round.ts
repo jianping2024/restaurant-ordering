@@ -18,7 +18,6 @@ import {
 } from '@/lib/table-order-round/client-api';
 import { canMutateRoundLines } from '@/lib/table-order-round/status';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
-import { mergeAppendCartNotes } from '@/types';
 
 const REALTIME_DEBOUNCE_MS = 2000;
 
@@ -65,11 +64,6 @@ export function useTableOrderRound(params: {
   const seenPeerSubmitIdsRef = useRef<Set<string>>(new Set());
   const selfStartedSubmitIdsRef = useRef<Set<string>>(new Set());
   const [peerNotifyOpen, setPeerNotifyOpen] = useState(false);
-  /** Toast/UI only — station tickets enqueue server-side in finalizeRound. */
-  const [lastKitchenSend, setLastKitchenSend] = useState<{
-    order_id: string;
-    batch_id?: string;
-  } | null>(null);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -116,12 +110,6 @@ export function useTableOrderRound(params: {
       }
     } else if (next.round?.status !== 'pending_confirm') {
       setPeerNotifyOpen(false);
-    }
-    if (next.order_id) {
-      setLastKitchenSend({
-        order_id: next.order_id,
-        batch_id: next.batch_id,
-      });
     }
     return next;
   }, []);
@@ -269,7 +257,6 @@ export function useTableOrderRound(params: {
     });
     if (!result.ok) return result;
     applySnapshot(result.snapshot);
-    setPeerNotifyOpen(false);
     return result;
   }, [applySnapshot, guestClientId, slug, tableId]);
 
@@ -318,7 +305,5 @@ export function useTableOrderRound(params: {
     refresh,
     peerNotifyOpen,
     setPeerNotifyOpen,
-    lastKitchenSend,
-    mergeAppendCartNotes,
   };
 }

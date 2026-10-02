@@ -96,6 +96,11 @@ import type { MenuOrderingRestaurant } from '@/components/menu/MenuOrderingContr
 import type { SushiRoundSettings } from '@/lib/table-order-round/settings';
 import { isSushiRoundFreeMenuPrice } from '@/lib/table-order-round/settings';
 import { isCooldownActive } from '@/lib/table-order-round/status';
+import {
+  isKitchenSendSuccessStatusTransition,
+  kitchenSendSuccessDedupeKey,
+} from '@/lib/table-order-round/kitchen-send-success-ui';
+import type { TableOrderRoundStatus } from '@/lib/table-order-round/types';
 import { SushiRoundStickyBar } from '@/components/menu/sushi/SushiRoundStickyBar';
 import { SushiRoundReviewDrawer } from '@/components/menu/sushi/SushiRoundReviewDrawer';
 import { SushiRoundPeerFloats } from '@/components/menu/sushi/SushiRoundPeerFloats';
@@ -204,6 +209,7 @@ export function SushiMenuPage({
     enabled: !isDemo && sessionResolved && !!activeSession,
     initialSettings: sushiRoundSettings,
   });
+  const setRoundPeerNotifyOpen = round.setPeerNotifyOpen;
 
   const orderingAudience = useMemo(() => customerOrderingAudience(null), []);
   const { visible: introVisible, dismiss: dismissIntro } = useCustomerOrderingIntro({
@@ -856,22 +862,20 @@ export function SushiMenuPage({
     }
   };
 
-  const handleFinalizeSuccess = useCallback(
-    (data: { order_id?: string; batch_id?: string }) => {
-      if (!data.order_id) return;
-      // Station tickets enqueue in finalizeRound (server). Client only toasts + refreshes.
-      if (activeSession?.id) {
-        void refreshSessionContext('full').catch(() => {});
-      }
-      showToast(roundT.sentToast, 'success');
-    },
-    [activeSession?.id, refreshSessionContext, roundT.sentToast],
-  );
-
   const handleSendRound = () => {
     if (roundBusy || !canSendRound) return;
     setInitiatorConfirmOpen(true);
   };
+
+  /** Sole kitchen-send success → back to menu (核单/确认/同桌提示/购物车/已点/详情). */
+  const dismissToMenuAfterKitchenSend = useCallback(() => {
+    setRoundReviewOpen(false);
+    setInitiatorConfirmOpen(false);
+    setRoundPeerNotifyOpen(false);
+    setCartOpen(false);
+    setOrderedOpen(false);
+    setDetailMenuItemId(null);
+  }, [setRoundPeerNotifyOpen]);
 
   const handleConfirmSendRound = async () => {
     if (roundBusy || !canSendRound) return;
@@ -897,6 +901,8 @@ export function SushiMenuPage({
         showToast(messageForSushiRoundError(result.error, roundT), 'info');
         return;
       }
+      // Initiate only: leave review so guest can keep browsing during countdown.
+      // Authoritative full dismiss is dismissToMenuAfterKitchenSend on cooldown edge.
       setInitiatorConfirmOpen(false);
       setRoundReviewOpen(false);
     } finally {
@@ -904,14 +910,50 @@ export function SushiMenuPage({
     }
   };
 
-  const seenKitchenSendRef = useRef<string | null>(null);
+  const kitchenSendDismissedRoundIdRef = useRef<string | null>(null);
+  const prevRoundStatusRef = useRef<TableOrderRoundStatus | null | undefined>(undefined);
+  const roundStatusBootstrappedRef = useRef(false);
+
   useEffect(() => {
-    const sent = round.lastKitchenSend;
-    if (!sent || seenKitchenSendRef.current === sent.order_id) return;
-    seenKitchenSendRef.current = sent.order_id;
-    handleFinalizeSuccess(sent);
-    setRoundReviewOpen(false);
-  }, [handleFinalizeSuccess, round.lastKitchenSend]);
+    kitchenSendDismissedRoundIdRef.current = null;
+    prevRoundStatusRef.current = undefined;
+    roundStatusBootstrappedRef.current = false;
+  }, [activeSession?.id, tableId]);
+
+  useEffect(() => {
+    if (!round.snapshotReady) return;
+    const status = round.snapshot.round?.status ?? null;
+    const roundId = round.snapshot.round?.id ?? null;
+
+    if (!roundStatusBootstrappedRef.current) {
+      roundStatusBootstrappedRef.current = true;
+      prevRoundStatusRef.current = status;
+      return;
+    }
+
+    const prev = prevRoundStatusRef.current;
+    prevRoundStatusRef.current = status;
+
+    if (!isKitchenSendSuccessStatusTransition(prev, status)) return;
+
+    const dedupeKey = kitchenSendSuccessDedupeKey(roundId);
+    if (!dedupeKey || kitchenSendDismissedRoundIdRef.current === dedupeKey) return;
+    kitchenSendDismissedRoundIdRef.current = dedupeKey;
+
+    dismissToMenuAfterKitchenSend();
+    showToast(roundT.sentToast, 'success');
+    if (activeSession?.id) {
+      void refreshSessionContext('full').catch(() => {});
+    }
+  }, [
+    activeSession?.id,
+    dismissToMenuAfterKitchenSend,
+    refreshSessionContext,
+    round.snapshot.round?.id,
+    round.snapshot.round?.status,
+    round.snapshotReady,
+    roundT.sentToast,
+  ]);
 
   const rootClassName = `min-h-screen bg-brand-bg relative ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
 
@@ -1162,12 +1204,12 @@ export function SushiMenuPage({
 
       <ConfirmModal
         open={round.peerNotifyOpen}
-        onClose={() => round.setPeerNotifyOpen(false)}
+        onClose={() => setRoundPeerNotifyOpen(false)}
         title={roundT.peerNotifyTitle}
         message={roundT.peerNotifyMessage.replace('{n}', String(countdownSeconds))}
         confirmLabel={roundT.peerNotifyAction}
         cancelLabel={undefined}
-        onConfirm={() => round.setPeerNotifyOpen(false)}
+        onConfirm={() => setRoundPeerNotifyOpen(false)}
         confirming={false}
       />
 

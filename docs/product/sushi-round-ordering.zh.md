@@ -247,6 +247,7 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才写入 round lines |
 | 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
+| 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/购物车/已点/详情 + toast「本轮已送厨」；判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
 | 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append |
 | Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |

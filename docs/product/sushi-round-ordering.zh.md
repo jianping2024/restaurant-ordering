@@ -244,11 +244,11 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 | pending_confirm | 倒计时提示（sticky/核单顶）；同桌轻弹窗一次；不锁篮 |
 | 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
 | 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
-| 免费菜 `+` | 仅写入本机购物车（可写备注）；**下单**才写入 round lines |
-| 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
+| 免费菜 `+` | 仅写入本机购物车（可写备注）；**加份前**本机预检桌上限 + 整餐单菜额度（sole `previewGuestRoundCartDraftGates`：已进篮 `lines_qty_total` + 本机草稿；看不见别机草稿）；**下单**才写入 round lines |
+| 购物车「下单」 | 将草稿 **累加**进本机本轮对应行（同菜+同备注累加；不同备注新行）；提交前同一 `previewGuestRoundCartDraftGates`；成功后清空购物车。购物车把某菜减到 0 **只清草稿**，不删本轮行 |
 | 本轮核单 | **整桌**未送厨免费菜（本机标「我」，他人虚线隔开）+ **送厨本轮**（唯一送厨入口） |
 | 送厨成功回到点餐 | 唯一：round status 进入 `cooldown`（非首屏已是 cooldown）→ `dismissToMenuAfterKitchenSend` 关核单/发起确认/同桌提示/购物车/已点/详情 + toast「本轮已送厨」；判定 sole `isKitchenSendSuccessStatusTransition`。`finalize_failed` 不关核单 |
-| 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
+| 核单本机数量 | 唯一控件 `CartQtyStepper`（左菜名/备注，右 `−` 数字 `+`；文案**不**再带 `×N`）。改的是该行**绝对数量**；改数量**保留备注**（不弹窗）。减到 0 → 删该行。仅本机可编；他人只读。加份前 sole `previewGuestRoundLineSetGates`（桌上限 + 整餐单菜）。`collecting`/`pending_confirm` 可编；`finalize_failed`/`cooldown` 不可编；单行请求中禁用步进 |
 | 收费菜 | 同一购物车 + 即时 append |
 | Intro | 一次；下单进核单 / 只看自己的 / 送厨确认 |
 
@@ -263,7 +263,7 @@ Classic **不得**出现轮次 UI 组件。
 | 下单 | 草稿累加进本轮后清空 |
 | 行身份 | `(round_id, menu_item_id, guest_client_id, note)` |
 | 轮次上限校验 | 排除「正被写入的那一行」（同菜+同人+同备注）后加总；**禁止**按「同菜+同人」整坨排除（否则分行后 cap 算少） |
-| 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；客户端免费下单可预检，不可替代服务端 |
+| 整餐限量（客人） | 写篮权威：`upsert_table_order_round_line` RPC（session advisory lock + round `FOR UPDATE` + 与 append 同一额度公式）；本机预检 sole `previewGuestRoundCartDraftGates` / `previewGuestRoundLineSetGates`（不可替代服务端） |
 | 删行串行 | `delete_table_order_round_line` 同一把 session advisory lock |
 
 ---

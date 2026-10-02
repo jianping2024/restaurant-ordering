@@ -3,6 +3,7 @@ import {
   isLimitedSushiMenuItem,
   sessionOrderedQtyForMenuItem,
   type SushiLimitCheckResult,
+  type SushiLimitError,
   type SushiLimitMenuFields,
 } from '@/lib/sushi-buffet-limits';
 import {
@@ -18,6 +19,17 @@ type RoundLineMealPreviewRow = {
   note?: string | null;
   qty: number;
 };
+
+/** Sole guest local preview outcome for free-cart draft / 核单 set (meal + round cap). */
+export type GuestRoundQtyPreviewResult =
+  | { ok: true }
+  | { ok: false; error: SushiLimitError }
+  | { ok: false; error: 'round_cap_exceeded'; used: number; cap: number };
+
+function nonNegInt(n: unknown): number {
+  const v = Math.floor(Number(n));
+  return Number.isFinite(v) && v > 0 ? v : 0;
+}
 
 /**
  * Sole server wire for upsert meal free-cap flags (round path is sushi-only).
@@ -152,4 +164,119 @@ export function previewGuestRoundCartMealGate(params: {
     }
   }
   return { ok: true };
+}
+
+/**
+ * Round-cap preview for free-cart draft (qtyMode add on 下单): basket used + Σ draft qtys.
+ * Does not see other phones' drafts — same as write path before commit.
+ */
+export function previewGuestRoundCartCapGate(params: {
+  linesQtyTotal: number;
+  roundCapTotal: number;
+  cartQtys: number[];
+}): GuestRoundQtyPreviewResult {
+  const cartSum = params.cartQtys.reduce((sum, q) => sum + nonNegInt(q), 0);
+  if (cartSum <= 0) return { ok: true };
+  const used = nonNegInt(params.linesQtyTotal) + cartSum;
+  const cap = nonNegInt(params.roundCapTotal);
+  if (used > cap) {
+    return { ok: false, error: 'round_cap_exceeded', used, cap };
+  }
+  return { ok: true };
+}
+
+/**
+ * Round-cap preview for 核单 absolute set on one line (exclude that line then add nextQty).
+ */
+export function previewGuestRoundLineCapGate(params: {
+  linesQtyTotal: number;
+  roundCapTotal: number;
+  currentLineQty: number;
+  nextQty: number;
+}): GuestRoundQtyPreviewResult {
+  const next = Math.floor(Number(params.nextQty));
+  if (!Number.isFinite(next) || next <= 0) return { ok: true };
+  const others = Math.max(0, nonNegInt(params.linesQtyTotal) - nonNegInt(params.currentLineQty));
+  const used = others + next;
+  const cap = nonNegInt(params.roundCapTotal);
+  if (used > cap) {
+    return { ok: false, error: 'round_cap_exceeded', used, cap };
+  }
+  return { ok: true };
+}
+
+type CartDraftGateRow = {
+  menuItemId: string;
+  qty: number;
+  note: unknown;
+  item: SushiLimitMenuFields;
+};
+
+/**
+ * Sole guest preview for free-cart draft writes (菜卡/详情/购物车加份 + 下单前).
+ * Cap then meal; UI must not call meal/cap helpers beside this for those paths.
+ */
+export function previewGuestRoundCartDraftGates(params: {
+  linesQtyTotal: number;
+  roundCapTotal: number;
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  roundLines: RoundLineMealPreviewRow[];
+  guestClientId: string;
+  cart: CartDraftGateRow[];
+}): GuestRoundQtyPreviewResult {
+  const capGate = previewGuestRoundCartCapGate({
+    linesQtyTotal: params.linesQtyTotal,
+    roundCapTotal: params.roundCapTotal,
+    cartQtys: params.cart.map((row) => row.qty),
+  });
+  if (!capGate.ok) return capGate;
+  return previewGuestRoundCartMealGate({
+    serviceMode: params.serviceMode,
+    guestCount: params.guestCount,
+    sessionOrders: params.sessionOrders,
+    roundLines: params.roundLines,
+    guestClientId: params.guestClientId,
+    cart: params.cart,
+  });
+}
+
+/**
+ * Sole guest preview for 核单本机行 set qty (cap + meal).
+ * UI must not call meal/cap helpers beside this for that path.
+ */
+export function previewGuestRoundLineSetGates(params: {
+  linesQtyTotal: number;
+  roundCapTotal: number;
+  currentLineQty: number;
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  roundLines: RoundLineMealPreviewRow[];
+  guestClientId: string;
+  menuItemId: string;
+  note: unknown;
+  qty: number;
+  item: SushiLimitMenuFields;
+}): GuestRoundQtyPreviewResult {
+  const capGate = previewGuestRoundLineCapGate({
+    linesQtyTotal: params.linesQtyTotal,
+    roundCapTotal: params.roundCapTotal,
+    currentLineQty: params.currentLineQty,
+    nextQty: params.qty,
+  });
+  if (!capGate.ok) return capGate;
+  return previewGuestRoundLineMealGate({
+    serviceMode: params.serviceMode,
+    guestCount: params.guestCount,
+    sessionOrders: params.sessionOrders,
+    roundLines: params.roundLines,
+    guestClientId: params.guestClientId,
+    menuItemId: params.menuItemId,
+    note: params.note,
+    qty: params.qty,
+    qtyMode: 'set',
+    item: params.item,
+  });
 }

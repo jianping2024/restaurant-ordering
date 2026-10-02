@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  previewGuestRoundCartCapGate,
+  previewGuestRoundCartDraftGates,
   previewGuestRoundCartMealGate,
+  previewGuestRoundLineCapGate,
   previewGuestRoundLineMealGate,
+  previewGuestRoundLineSetGates,
   resolveRoundLineMealLimitApply,
 } from './round-meal-limit';
 import type { Order } from '@/types';
@@ -131,5 +135,90 @@ describe('previewGuestRoundCartMealGate', () => {
       ],
     });
     assert.deepEqual(r, { ok: true });
+  });
+});
+
+describe('previewGuestRoundCartCapGate', () => {
+  it('blocks when basket + draft would exceed round cap', () => {
+    const r = previewGuestRoundCartCapGate({
+      linesQtyTotal: 14,
+      roundCapTotal: 16,
+      cartQtys: [3],
+    });
+    assert.deepEqual(r, { ok: false, error: 'round_cap_exceeded', used: 17, cap: 16 });
+  });
+
+  it('allows draft that lands exactly on cap', () => {
+    const r = previewGuestRoundCartCapGate({
+      linesQtyTotal: 14,
+      roundCapTotal: 16,
+      cartQtys: [2],
+    });
+    assert.deepEqual(r, { ok: true });
+  });
+});
+
+describe('previewGuestRoundLineCapGate', () => {
+  it('excludes current line qty before applying next set', () => {
+    const r = previewGuestRoundLineCapGate({
+      linesQtyTotal: 16,
+      roundCapTotal: 16,
+      currentLineQty: 2,
+      nextQty: 3,
+    });
+    // others 14 + 3 = 17
+    assert.deepEqual(r, { ok: false, error: 'round_cap_exceeded', used: 17, cap: 16 });
+  });
+});
+
+describe('previewGuestRoundCartDraftGates', () => {
+  it('returns round_cap before meal when both would fail', () => {
+    const r = previewGuestRoundCartDraftGates({
+      linesQtyTotal: 15,
+      roundCapTotal: 16,
+      serviceMode: 'sushi',
+      guestCount: 1,
+      sessionOrders: [],
+      roundLines: [],
+      guestClientId: 'g1',
+      cart: [{ menuItemId: 'm1', qty: 3, note: '', item: limited }],
+    });
+    assert.equal(r.ok, false);
+    if (!r.ok) assert.equal(r.error, 'round_cap_exceeded');
+  });
+
+  it('returns meal error when under round cap but over dish allowance', () => {
+    const r = previewGuestRoundCartDraftGates({
+      linesQtyTotal: 0,
+      roundCapTotal: 16,
+      serviceMode: 'sushi',
+      guestCount: 1,
+      sessionOrders: [],
+      roundLines: [],
+      guestClientId: 'g1',
+      cart: [{ menuItemId: 'm1', qty: 3, note: '', item: limited }],
+    });
+    assert.deepEqual(r, { ok: false, error: 'per_person_limit_exceeded' });
+  });
+});
+
+describe('previewGuestRoundLineSetGates', () => {
+  it('blocks set that exceeds round cap', () => {
+    const r = previewGuestRoundLineSetGates({
+      linesQtyTotal: 16,
+      roundCapTotal: 16,
+      currentLineQty: 1,
+      serviceMode: 'sushi',
+      guestCount: 2,
+      sessionOrders: [],
+      roundLines: [{ menu_item_id: 'm1', guest_client_id: 'g1', note: '', qty: 1 }],
+      guestClientId: 'g1',
+      menuItemId: 'm1',
+      note: '',
+      qty: 2,
+      item: limited,
+    });
+    assert.equal(r.ok, false);
+    if (!r.ok) assert.equal(r.error, 'round_cap_exceeded');
   });
 });

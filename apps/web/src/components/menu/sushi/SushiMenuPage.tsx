@@ -11,6 +11,7 @@ import {
   MENU_PAGE_MESSAGES,
 } from '@/lib/i18n/menu-page-messages';
 import {
+  messageForGuestRoundQtyPreview,
   messageForSushiRoundError,
   SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
@@ -84,8 +85,8 @@ import {
   sushiLimitHintParts,
 } from '@/lib/sushi-buffet-limits';
 import {
-  previewGuestRoundCartMealGate,
-  previewGuestRoundLineMealGate,
+  previewGuestRoundCartDraftGates,
+  previewGuestRoundLineSetGates,
 } from '@/lib/table-order-round/round-meal-limit';
 import { normalizeBuffetServiceMode } from '@mesa/shared';
 import {
@@ -293,6 +294,19 @@ export function SushiMenuPage({
   const [initiatorConfirmOpen, setInitiatorConfirmOpen] = useState(false);
   const countdownActive = round.snapshot.round?.status === 'pending_confirm';
 
+  const resolveLimitItem = useCallback(
+    (id: string) => {
+      const found = menuItems.find((m) => m.id === id);
+      if (!found) return null;
+      return {
+        per_person_qty_limit: found.per_person_qty_limit,
+        over_limit_unit_price: found.over_limit_unit_price,
+        price: found.price,
+      };
+    },
+    [menuItems],
+  );
+
   const commitCartQty = useCallback((item: MenuItem, nextQty: number) => {
     const prev = cartRef.current;
     const next = upsertCartItemQty(prev, item, nextQty);
@@ -300,6 +314,59 @@ export function SushiMenuPage({
     setCart(next);
     bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
   }, []);
+
+  /** Sole local free-draft gate (桌上限 + 整餐单菜). Returns false when blocked. */
+  const assertFreeCartDraftOk = useCallback(
+    (proposedCart: CartItem[]): boolean => {
+      if (!round.guestClientId) {
+        showToast(t.submitFailed, 'error');
+        return false;
+      }
+      const freeCart = proposedCart.filter((c) => isSushiRoundFreeMenuPrice(c.price));
+      if (freeCart.length === 0) return true;
+      const noteContext = { catalog: notePresetCatalog, lang };
+      const draftGate = previewGuestRoundCartDraftGates({
+        linesQtyTotal: round.snapshot.lines_qty_total,
+        roundCapTotal: round.snapshot.round_cap_total,
+        serviceMode: buffetServiceMode,
+        guestCount: sessionGuestCountForLimits(recentOrders),
+        sessionOrders: recentOrders,
+        roundLines: round.snapshot.lines,
+        guestClientId: round.guestClientId,
+        cart: freeCart.map((c) => {
+          const limitItem = resolveLimitItem(c.menuItemId) ?? {
+            price: c.price,
+            per_person_qty_limit: null,
+            over_limit_unit_price: null,
+          };
+          return {
+            menuItemId: c.menuItemId,
+            qty: coerceCartQty(c.qty),
+            note: cartItemWireNote(c, noteContext),
+            item: limitItem,
+          };
+        }),
+      });
+      if (!draftGate.ok) {
+        showToast(messageForGuestRoundQtyPreview(draftGate, roundT, t), 'info');
+        return false;
+      }
+      return true;
+    },
+    [
+      buffetServiceMode,
+      lang,
+      notePresetCatalog,
+      recentOrders,
+      resolveLimitItem,
+      round.guestClientId,
+      round.snapshot.lines,
+      round.snapshot.lines_qty_total,
+      round.snapshot.round_cap_total,
+      roundT,
+      t,
+    ],
+  );
 
   const requestQtyChange = useCallback(
     async (menuItemId: string, rawNextQty: number) => {
@@ -325,12 +392,17 @@ export function SushiMenuPage({
           showToast(roundT.cooldownActive, 'info');
           return;
         }
+        if (nextQty > 0) {
+          const proposed = upsertCartItemQty(cartRef.current, item, nextQty);
+          if (!assertFreeCartDraftOk(proposed)) return;
+        }
       }
 
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
       commitCartQty(item, nextQty);
     },
     [
+      assertFreeCartDraftOk,
       catalogReady,
       commitCartQty,
       ensureGuestCanPlaceOrder,
@@ -372,24 +444,29 @@ export function SushiMenuPage({
     (item: MenuItem) => {
       const prev = cartRef.current;
       if (prev.some((c) => c.menuItemId === item.id)) return;
+      if (isSushiRoundFreeMenuPrice(item.price)) {
+        const proposed = upsertCartItemQty(prev, item, 1);
+        if (!assertFreeCartDraftOk(proposed)) return;
+      }
       const next = upsertCartItemQty(prev, item, 1);
       cartRef.current = next;
       setCart(next);
       bumpCartAddFeedbackKeyIfIncreased(setCartAddFeedbackKey, prev, next);
     },
-    [],
+    [assertFreeCartDraftOk],
   );
 
   const updateDetailNote = useCallback(
     (note: string) => {
       if (!detailItem) return;
-      ensureDetailCartLine(detailItem);
+      if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) {
+        ensureDetailCartLine(detailItem);
+      }
+      if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) return;
       const id = detailItem.id;
       setCart((prev) => {
-        const base = prev.some((c) => c.menuItemId === id)
-          ? prev
-          : upsertCartItemQty(prev, detailItem, 1);
-        const next = base.map((c) =>
+        if (!prev.some((c) => c.menuItemId === id)) return prev;
+        const next = prev.map((c) =>
           c.menuItemId === id ? { ...c, note: clampAppendCartNote(note) } : c,
         );
         cartRef.current = next;
@@ -402,13 +479,14 @@ export function SushiMenuPage({
   const toggleDetailNotePreset = useCallback(
     (presetId: string) => {
       if (!detailItem) return;
-      ensureDetailCartLine(detailItem);
+      if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) {
+        ensureDetailCartLine(detailItem);
+      }
+      if (!cartRef.current.some((c) => c.menuItemId === detailItem.id)) return;
       const id = detailItem.id;
       setCart((prev) => {
-        const base = prev.some((c) => c.menuItemId === id)
-          ? prev
-          : upsertCartItemQty(prev, detailItem, 1);
-        const next = base.map((c) =>
+        if (!prev.some((c) => c.menuItemId === id)) return prev;
+        const next = prev.map((c) =>
           c.menuItemId === id
             ? {
                 ...c,
@@ -532,19 +610,6 @@ export function SushiMenuPage({
     ],
   );
 
-  const resolveLimitItem = useCallback(
-    (id: string) => {
-      const item = menuItems.find((m) => m.id === id);
-      if (!item) return null;
-      return {
-        per_person_qty_limit: item.per_person_qty_limit,
-        over_limit_unit_price: item.over_limit_unit_price,
-        price: item.price,
-      };
-    },
-    [menuItems],
-  );
-
   const handleOwnRoundLineQtyChange = useCallback(
     async (lineId: string, rawNextQty: number) => {
       if (reviewBusyLineId) return;
@@ -555,7 +620,10 @@ export function SushiMenuPage({
       if (line && nextQty > 0 && round.guestClientId) {
         const limitItem = resolveLimitItem(line.menu_item_id);
         if (limitItem) {
-          const mealGate = previewGuestRoundLineMealGate({
+          const setGate = previewGuestRoundLineSetGates({
+            linesQtyTotal: round.snapshot.lines_qty_total,
+            roundCapTotal: round.snapshot.round_cap_total,
+            currentLineQty: line.qty,
             serviceMode: buffetServiceMode,
             guestCount: sessionGuestCountForLimits(recentOrders),
             sessionOrders: recentOrders,
@@ -564,11 +632,10 @@ export function SushiMenuPage({
             menuItemId: line.menu_item_id,
             note: line.note ?? '',
             qty: nextQty,
-            qtyMode: 'set',
             item: limitItem,
           });
-          if (!mealGate.ok) {
-            showToast(messageForSushiLimitError(mealGate.error, t), 'info');
+          if (!setGate.ok) {
+            showToast(messageForGuestRoundQtyPreview(setGate, roundT, t), 'info');
             return;
           }
         }
@@ -711,7 +778,9 @@ export function SushiMenuPage({
           const fresh = await refreshSessionContext('full');
           freeSessionOrders = fresh?.recent_orders ?? recentOrders;
         }
-        const freeMealGate = previewGuestRoundCartMealGate({
+        const freeDraftGate = previewGuestRoundCartDraftGates({
+          linesQtyTotal: round.snapshot.lines_qty_total,
+          roundCapTotal: round.snapshot.round_cap_total,
           serviceMode: buffetServiceMode,
           guestCount: sessionGuestCountForLimits(freeSessionOrders),
           sessionOrders: freeSessionOrders,
@@ -731,8 +800,8 @@ export function SushiMenuPage({
             };
           }),
         });
-        if (!freeMealGate.ok) {
-          showToast(messageForSushiLimitError(freeMealGate.error, t), 'info');
+        if (!freeDraftGate.ok) {
+          showToast(messageForGuestRoundQtyPreview(freeDraftGate, roundT, t), 'info');
           return;
         }
         const result = await round.commitCartToRound(

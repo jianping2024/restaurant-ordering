@@ -1,4 +1,6 @@
 import type { Language } from '@/types';
+import type { GuestRoundQtyPreviewResult } from '@/lib/table-order-round/round-meal-limit';
+import { messageForSushiLimitError, MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 
 /** Customer sushi-round UI copy (zh / en / pt). Countdown send — no vote/defer. */
 export const SUSHI_ROUND_MESSAGES: Record<
@@ -294,4 +296,19 @@ export function messageForSushiRoundError(
     default:
       return t.submitFailed;
   }
+}
+
+/** Sole toast copy for guest local free-qty preview (card +/- / 下单 / 核单). */
+export function messageForGuestRoundQtyPreview(
+  gate: Extract<GuestRoundQtyPreviewResult, { ok: false }>,
+  roundT: (typeof SUSHI_ROUND_MESSAGES)[Language],
+  menuT: (typeof MENU_PAGE_MESSAGES)[Language],
+): string {
+  if (gate.error === 'round_cap_exceeded') {
+    return messageForSushiRoundError('round_cap_exceeded', roundT, {
+      used: gate.used,
+      cap: gate.cap,
+    });
+  }
+  return messageForSushiLimitError(gate.error, menuT);
 }

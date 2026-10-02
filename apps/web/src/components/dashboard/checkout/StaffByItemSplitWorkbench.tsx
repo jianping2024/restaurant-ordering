@@ -12,7 +12,7 @@ import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
 import type { UILanguage } from '@/lib/i18n';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
-import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
+import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 import type { QtyPartsLabels } from '@/lib/bill-split-by-item';
 import { Button } from '@/components/ui/Button';
@@ -861,7 +861,7 @@ export function StaffByItemSplitWorkbench({
                             </label>
                           </div>
                         )}
-                        <ByItemConsumerRowRemoveButton
+                        <RowRemoveIconButton
                           removable={!shareDisabled}
                           ariaLabel={labels.remove}
                           onRemove={() => {

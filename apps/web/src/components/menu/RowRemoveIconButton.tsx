@@ -1,10 +1,12 @@
 'use client';
 
 type Props = {
-  /** False when the dish line must keep at least one payer row. */
+  /** False when the row must stay (e.g. last by-item payer). */
   removable: boolean;
   ariaLabel: string;
   onRemove: () => void;
+  /** Extra lock (e.g. cart submit in flight). */
+  disabled?: boolean;
 };
 
 function TrashIcon({ className }: { className?: string }) {
@@ -24,10 +26,14 @@ function TrashIcon({ className }: { className?: string }) {
 const SLOT_CLASS =
   'w-8 h-8 shrink-0 rounded-lg flex items-center justify-center transition-colors';
 
-export function ByItemConsumerRowRemoveButton({ removable, ariaLabel, onRemove }: Props) {
-  if (!removable) {
+/** Sole trash icon remove control (cart lines, by-item / buffet consumer rows). */
+export function RowRemoveIconButton({ removable, ariaLabel, onRemove, disabled = false }: Props) {
+  if (!removable || disabled) {
     return (
-      <div aria-hidden className={`${SLOT_CLASS} text-brand-text-muted/30`}>
+      <div
+        aria-hidden
+        className={`${SLOT_CLASS} text-brand-text-muted/30 ${disabled ? 'opacity-40' : ''}`}
+      >
         <TrashIcon className="w-4 h-4" />
       </div>
     );

@@ -57,6 +57,14 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   cartTitle: string;
   /** Cart drawer total label (no currency). */
   cartTotalLabel: string;
+  /** Cart header: clear all lines. */
+  cartClear: string;
+  cartClearConfirmTitle: string;
+  cartClearConfirmMessage: string;
+  cartClearConfirm: string;
+  cartClearCancel: string;
+  /** Cart line trash aria-label. */
+  cartRemoveLineAria: string;
   cartNotePlaceholder: string;
   /** Menu card + button aria-label. */
   itemAdd: string;
@@ -142,6 +150,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: 'A carregar menu…',
     cartTitle: 'Carrinho',
     cartTotalLabel: 'Total',
+    cartClear: 'Limpar',
+    cartClearConfirmTitle: 'Limpar o carrinho?',
+    cartClearConfirmMessage: 'Todos os itens ainda nao enviados serao removidos. Esta acao nao pode ser desfeita.',
+    cartClearConfirm: 'Limpar',
+    cartClearCancel: 'Cancelar',
+    cartRemoveLineAria: 'Remover este item',
     cartNotePlaceholder: 'Nota (ex.: sem sal, sem cebola)',
     itemAdd: '+ Adicionar',
     itemSoldOut: 'Esgotado',
@@ -226,6 +240,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: 'Loading menu…',
     cartTitle: 'Cart',
     cartTotalLabel: 'Total',
+    cartClear: 'Clear',
+    cartClearConfirmTitle: 'Clear the cart?',
+    cartClearConfirmMessage: 'All items not yet ordered will be removed. This cannot be undone.',
+    cartClearConfirm: 'Clear',
+    cartClearCancel: 'Cancel',
+    cartRemoveLineAria: 'Remove this item',
     cartNotePlaceholder: 'Notes (e.g. less salt, no onion)',
     itemAdd: '+ Add',
     itemSoldOut: 'Sold out',
@@ -310,6 +330,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: '正在加载菜单…',
     cartTitle: '购物车',
     cartTotalLabel: '合计',
+    cartClear: '清空',
+    cartClearConfirmTitle: '清空购物车？',
+    cartClearConfirmMessage: '将移除当前全部未下单菜品，此操作不可撤销。',
+    cartClearConfirm: '清空',
+    cartClearCancel: '取消',
+    cartRemoveLineAria: '删除此菜',
     cartNotePlaceholder: '备注（如：少盐、不要洋葱）',
     itemAdd: '+ 加入',
     itemSoldOut: '已售完',
@@ -401,6 +427,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: 'Cargando la carta…',
     cartTitle: 'Carrito',
     cartTotalLabel: 'Total',
+    cartClear: 'Vaciar',
+    cartClearConfirmTitle: '¿Vaciar el carrito?',
+    cartClearConfirmMessage: 'Se eliminarán todos los platos aún no pedidos. Esta acción no se puede deshacer.',
+    cartClearConfirm: 'Vaciar',
+    cartClearCancel: 'Cancelar',
+    cartRemoveLineAria: 'Eliminar este plato',
     cartNotePlaceholder: 'Notas (p. ej. poca sal, sin cebolla)',
     itemAdd: '+ Añadir',
     itemSoldOut: 'Agotado',
@@ -496,6 +528,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: 'Chargement de la carte…',
     cartTitle: 'Panier',
     cartTotalLabel: 'Total',
+    cartClear: 'Vider',
+    cartClearConfirmTitle: 'Vider le panier ?',
+    cartClearConfirmMessage: 'Tous les plats non encore commandés seront retirés. Cette action est irréversible.',
+    cartClearConfirm: 'Vider',
+    cartClearCancel: 'Annuler',
+    cartRemoveLineAria: 'Retirer ce plat',
     cartNotePlaceholder: 'Notes (ex. : peu de sel, sans oignon)',
     itemAdd: '+ Ajouter',
     itemSoldOut: 'Épuisé',
@@ -590,6 +628,12 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     catalogLoading: 'Karte wird geladen…',
     cartTitle: 'Warenkorb',
     cartTotalLabel: 'Summe',
+    cartClear: 'Leeren',
+    cartClearConfirmTitle: 'Warenkorb leeren?',
+    cartClearConfirmMessage: 'Alle noch nicht bestellten Gerichte werden entfernt. Das kann nicht rückgängig gemacht werden.',
+    cartClearConfirm: 'Leeren',
+    cartClearCancel: 'Abbrechen',
+    cartRemoveLineAria: 'Dieses Gericht entfernen',
     cartNotePlaceholder: 'Notiz (z. B. wenig Salz, ohne Zwiebel)',
     itemAdd: '+ Hinzufügen',
     itemSoldOut: 'Ausverkauft',

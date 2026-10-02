@@ -400,6 +400,7 @@ export function SushiMenuPage({
 
       if (nextQty > APPEND_CART_QTY_MAX) nextQty = APPEND_CART_QTY_MAX;
       commitCartQty(item, nextQty);
+      if (nextQty <= 0 && cartRef.current.length === 0) setCartOpen(false);
     },
     [
       assertFreeCartDraftOk,
@@ -1206,6 +1207,7 @@ export function SushiMenuPage({
         onUpdateQty={(id, qty) => {
           void requestQtyChange(id, qty);
         }}
+        onClearCart={clearSubmitCart}
         onUpdateNote={updateNote}
         onToggleNotePreset={toggleNotePreset}
         onSubmit={submitCart}

@@ -20,7 +20,7 @@ import {
 import { availableConsumerNamesForRow } from '@/lib/consumer-name-roster';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { BuffetDishAllocator, type BuffetDishAllocatorLabels } from '@/components/menu/BuffetDishAllocator';
-import { ByItemConsumerRowRemoveButton } from '@/components/menu/ByItemConsumerRowRemoveButton';
+import { RowRemoveIconButton } from '@/components/menu/RowRemoveIconButton';
 import {
   ByItemDishAllocatorHeader,
   type ByItemDishAllocatorHeaderLabels,
@@ -209,7 +209,7 @@ function MenuByItemDishAllocator({
                 onChange={(patch) => updateRow(row.id, patch)}
                 onCommit={() => commitRow(row.id)}
               />
-              <ByItemConsumerRowRemoveButton
+              <RowRemoveIconButton
                 removable={rowLock.removable && rows.length > 1}
                 ariaLabel={labels.remove}
                 onRemove={() => removeRow(row.id)}

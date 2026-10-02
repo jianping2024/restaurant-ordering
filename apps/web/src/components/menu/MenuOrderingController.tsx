@@ -325,6 +325,7 @@ export function MenuOrderingController({
       let nextQty = Number(rawNextQty);
       if (!Number.isFinite(nextQty) || nextQty <= 0) {
         commitCartQty(item, 0);
+        if (cartRef.current.length === 0) setCartOpen(false);
         return;
       }
 
@@ -1018,6 +1019,7 @@ export function MenuOrderingController({
         onUpdateQty={(id, qty) => {
           void requestCartQtyChange(id, qty);
         }}
+        onClearCart={clearSubmitCart}
         onUpdateNote={updateNote}
         onToggleNotePreset={toggleNotePreset}
         onSubmit={submitOrder}

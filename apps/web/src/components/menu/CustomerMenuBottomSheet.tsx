@@ -11,12 +11,15 @@ export function CustomerMenuBottomSheet({
   open,
   onClose,
   title,
+  headerActions,
   children,
   footer,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Optional controls between title and close (e.g. cart clear). */
+  headerActions?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
 }) {
@@ -41,12 +44,13 @@ export function CustomerMenuBottomSheet({
           <div className="h-1 w-10 rounded-full bg-brand-border" />
         </div>
 
-        <div className="flex items-center justify-between border-b border-brand-border px-5 py-3">
-          <h2 className={CUSTOMER_MENU_TYPE.drawerTitle}>{title}</h2>
+        <div className="flex items-center gap-3 border-b border-brand-border px-5 py-3">
+          <h2 className={`min-w-0 flex-1 ${CUSTOMER_MENU_TYPE.drawerTitle}`}>{title}</h2>
+          {headerActions}
           <button
             type="button"
             onClick={onClose}
-            className="text-brand-text-muted hover:text-brand-text"
+            className="shrink-0 text-brand-text-muted hover:text-brand-text"
           >
             ✕
           </button>

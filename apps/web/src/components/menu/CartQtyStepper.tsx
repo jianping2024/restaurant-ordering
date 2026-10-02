@@ -19,8 +19,8 @@ type Props = {
   /** Freeze − / qty / + (session-write mutex). */
   disabled?: boolean;
   /**
-   * Horizontal density. List MenuItemCard uses `compact` (tighter gap, same 36px hit targets).
-   * Cart / detail / waiter / sushi review keep `default`.
+   * Horizontal density. List MenuItemCard + cart drawer use `compact`.
+   * Detail / waiter / sushi review keep `default`.
    */
   density?: CartQtyStepperDensity;
 };

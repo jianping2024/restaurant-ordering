@@ -1,6 +1,6 @@
 /**
  * Sole − / qty / + gap tokens for CartQtyStepper.
- * List MenuItemCard uses compact; cart / detail / waiter / sushi keep default.
+ * List MenuItemCard + cart drawer use compact; detail / waiter / sushi review keep default.
  */
 export const CART_QTY_STEPPER_GAP_CLASS = {
   default: 'gap-2',

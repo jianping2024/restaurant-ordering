@@ -112,7 +112,7 @@ Content-Type: application/json
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `table_id` | `string` (UUID) | 必填 |
-| `items` | `AppendCartLineInput[]` | 必填；1–`APPEND_CART_MAX_LINES`（80）行 |
+| `items` | `AppendCartLineInput[]` | 必填；1–`APPEND_CART_MAX_LINES`（1000）行（防打爆上限，须覆盖整菜单一次下单） |
 | `latitude` / `longitude` | `number?` | 店内地理围栏时必填（guest）；`waiter_flow` 服务员路径沿用现逻辑 |
 | `waiter_flow` | `boolean?` | 可选；`true` 时走服务员鉴权分支 |
 
@@ -162,7 +162,7 @@ Content-Type: application/json
 | 目的 | 可单测的「购物车行 → OrderItem[]」逻辑，供 append 与其它路由复用 |
 | 新建 | 例如 `src/lib/resolve-append-cart-items.ts` |
 | 输入 | `admin` client、`restaurantId`、`raw items[]` |
-| 步骤 | 1) 校验数组长度与 `qty`/`note`；2) 收集 UUID；3) 一次 `select` `menu_items` where `restaurant_id` + `id in (...)`；4) 逐行映射名称/emoji/price；5) 注入 `batch_id`、`added_at`、`item_status: 'pending'` |
+| 步骤 | 1) 校验数组长度与 `qty`/`note`；2) 收集 UUID；3) **分批** `select` `menu_items` where `restaurant_id` + `id in (...)`（每批 100，避免 URI 过长）；4) 逐行映射名称/emoji/price；5) 注入 `batch_id`、`added_at`、`item_status: 'pending'` |
 | 边界 | 重复 `menu_item_id` 合并或拒绝（产品二选一，建议**合并 qty** 与现购物车语义一致）；`qty` 上限与现 `parseItems` 一致（1–99） |
 | 自助餐 | 若 raw 含非 UUID / `buffet:` 前缀：guest 路径 **拒绝**；waiter_flow 若需保留特殊行，单独分支或禁止经 append 传 buffet |
 
@@ -281,3 +281,4 @@ Content-Type: application/json
 | 2026-05-29 | 阶段 4：`MenuPage` 仅提交 `menu_item_id` / `qty` / `note` |
 | 2026-05-29 | 阶段 5：lint/build/单测/手工回归（见「阶段 5 手工回归」） |
 | 2026-05-29 | 收紧：移除 `id` 别名与旧客户端字段容忍，禁止字段 → `invalid_items` |
+| 2026-10-02 | `APPEND_CART_MAX_LINES` 80→1000（整菜单一次下单）；`menu_items` id 查询按 100 分批 |

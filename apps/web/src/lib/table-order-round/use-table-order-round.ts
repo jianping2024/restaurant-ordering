@@ -16,7 +16,7 @@ import {
   type RoundApiSnapshot,
   upsertRoundLineClient,
 } from '@/lib/table-order-round/client-api';
-import { canMutateRoundLines } from '@/lib/table-order-round/status';
+import { canMutateRoundLines, isCooldownActive } from '@/lib/table-order-round/status';
 import { ensureGuestClientId } from '@/lib/table-order-round/guest-client';
 
 const REALTIME_DEBOUNCE_MS = 2000;
@@ -274,6 +274,29 @@ export function useTableOrderRound(params: {
     }, ms + 200);
     return () => clearTimeout(timer);
   }, [enabled, finalize, snapshot.round?.status, snapshot.round?.submit_deadline_at]);
+
+  /** When table cooldown ends (or snapshot still shows expired cooldown), refresh so GET settles → empty basket. */
+  const cooldownUntil = snapshot.round?.status === 'cooldown' ? snapshot.round.cooldown_until : null;
+  const cooldownRoundId = snapshot.round?.status === 'cooldown' ? snapshot.round.id : null;
+  const expiredCooldownSettledKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!enabled || !cooldownRoundId || !cooldownUntil) {
+      expiredCooldownSettledKeyRef.current = null;
+      return;
+    }
+    if (isCooldownActive('cooldown', cooldownUntil)) {
+      const untilMs = Date.parse(cooldownUntil);
+      const ms = Number.isFinite(untilMs) ? Math.max(0, untilMs - Date.now()) + 150 : 0;
+      const timer = setTimeout(() => {
+        void refresh();
+      }, ms);
+      return () => clearTimeout(timer);
+    }
+    const key = `${cooldownRoundId}:${cooldownUntil}`;
+    if (expiredCooldownSettledKeyRef.current === key) return;
+    expiredCooldownSettledKeyRef.current = key;
+    void refresh();
+  }, [cooldownRoundId, cooldownUntil, enabled, refresh]);
 
   const roundStatus = snapshot.round?.status;
   const roundReviewActive =

@@ -196,7 +196,8 @@ restaurants_public — security definer view; public menu/geo fields for custome
 | `auth_staff_restaurant_ids()` | — | SECURITY DEFINER helper for staff RLS |
 | `is_active_restaurant_staff(restaurant_id, roles?)` | — | Staff role-name check (default kitchen+waiter); not for configurable board Realtime |
 | `staff_has_restaurant_permission(restaurant_id, permissions[])` | — | Staff capability check via `restaurant_roles.permissions` (any match); excludes print_agent |
-| `upsert_table_order_round_line(...)` | service_role | Sole guest round-line upsert: `pg_advisory_xact_lock(session)` + active round `FOR UPDATE`; round-cap + optional meal free-cap (`checkSushiLimitForCartLine` formula); qty_mode set\|add; contract `sushi-round-ordering.zh.md` §2.3 |
+| `upsert_table_order_round_line(...)` | service_role | Sole guest round-line upsert: `settle_expired_table_order_round_cooldown` then `FOR UPDATE`; round-cap + optional meal free-cap (`checkSushiLimitForCartLine` formula); qty_mode set\|add; contract `sushi-round-ordering.zh.md` §2.3 |
+| `settle_expired_table_order_round_cooldown(session_id)` | service_role | Sole expired-cooldown settle: advisory lock + close when `cooldown_until <= now`; returns `cooldown_active`\|`closed`\|`noop` — GET snapshot + upsert both call this |
 | `delete_table_order_round_line(session_id, guest_client_id, line_id)` | service_role | Sole guest round-line delete under the same session advisory lock as upsert |
 
 Triggers / internal: `handle_updated_at`, `enforce_print_station_same_restaurant`, `seed_default_print_stations_for_restaurant`, `seed_default_restaurant_tables_for_restaurant`, `recalc_order_total_from_items`, `void_active_buffet_lines_in_items`, `void_all_line_items_for_forced_close`, `merge_split_result_paid`, `rls_auto_enable`.

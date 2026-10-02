@@ -123,6 +123,23 @@ export function partitionStationLines(lines: KitchenBoardLine[]): {
   return { workbench, bottomRail };
 }
 
+/**
+ * Sole bottom-rail status groups (display only; partition already put cooking+ready here).
+ * Cooking first, then ready — preserves relative order within each group.
+ */
+export function groupBottomRailByStatus(lines: KitchenBoardLine[]): {
+  cooking: KitchenBoardLine[];
+  ready: KitchenBoardLine[];
+} {
+  const cooking: KitchenBoardLine[] = [];
+  const ready: KitchenBoardLine[] = [];
+  for (const line of lines) {
+    if (line.effectiveStatus === 'ready') ready.push(line);
+    else if (line.effectiveStatus === 'cooking') cooking.push(line);
+  }
+  return { cooking, ready };
+}
+
 export function sumLineQty(lines: KitchenBoardLine[]): number {
   return lines.reduce((sum, l) => sum + (Number(l.item.qty) || 0), 0);
 }

@@ -38,6 +38,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: string;
     readyRailHide: string;
     readyRailEmpty: string;
+    /** Expanded bottom-rail zone title (duty label; not a second status vocabulary). */
+    readyRailZoneTitle: string;
     prepSuccess: string;
     prepFailed: string;
     printSuccess: string;
@@ -85,6 +87,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: '已备餐/已出餐 · {n}',
     readyRailHide: '收起',
     readyRailEmpty: '暂无已备餐或已出餐',
+    readyRailZoneTitle: '补打区 · 已备餐 / 已出餐',
     prepSuccess: '已备餐',
     prepFailed: '备餐失败，请重试',
     printSuccess: '已打印',
@@ -129,6 +132,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Prepped / ready · {n}',
     readyRailHide: 'Hide',
     readyRailEmpty: 'No prepped or ready dishes',
+    readyRailZoneTitle: 'Reprint · Prepped / Ready',
     prepSuccess: 'Prepped',
     prepFailed: 'Prep failed — try again',
     printSuccess: 'Printed',
@@ -173,6 +177,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Preparado / pronto · {n}',
     readyRailHide: 'Ocultar',
     readyRailEmpty: 'Sem pratos preparados ou prontos',
+    readyRailZoneTitle: 'Reimpressao · Preparado / Pronto',
     prepSuccess: 'Preparado',
     prepFailed: 'Falha ao preparar',
     printSuccess: 'Impresso',
@@ -217,6 +222,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Preparado / listo · {n}',
     readyRailHide: 'Ocultar',
     readyRailEmpty: 'Sin platos preparados o listos',
+    readyRailZoneTitle: 'Reimpresion · Preparado / Listo',
     prepSuccess: 'Preparado',
     prepFailed: 'Error al preparar',
     printSuccess: 'Impreso',
@@ -261,6 +267,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Prepare / pret · {n}',
     readyRailHide: 'Masquer',
     readyRailEmpty: 'Aucun plat prepare ou pret',
+    readyRailZoneTitle: 'Reimpression · Prepare / Pret',
     prepSuccess: 'Prepare',
     prepFailed: 'Echec preparation',
     printSuccess: 'Imprime',
@@ -305,6 +312,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     readyRailShow: 'Vorbereitet / fertig · {n}',
     readyRailHide: 'Ausblenden',
     readyRailEmpty: 'Keine vorbereiteten oder fertigen Gerichte',
+    readyRailZoneTitle: 'Nachdruck · Vorbereitet / Fertig',
     prepSuccess: 'Vorbereitet',
     prepFailed: 'Vorbereitung fehlgeschlagen',
     printSuccess: 'Gedruckt',

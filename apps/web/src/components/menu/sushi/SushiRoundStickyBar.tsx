@@ -11,6 +11,7 @@ import type { CustomerMenuDietaryFilterPrefs } from '@/lib/customer-menu-dietary
 import { mesaSelectionChipShellClass, mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { Button } from '@/components/ui/Button';
+import { CustomerMenuTableGuestsLabel } from '@/components/menu/CustomerMenuTableGuestsChrome';
 
 type Copy = (typeof SUSHI_ROUND_MESSAGES)[Language];
 
@@ -87,9 +88,7 @@ export function SushiRoundStickyBar({
     <div className="border-b border-brand-border bg-brand-card/95 px-4 py-2">
       <div className="flex min-h-8 items-center justify-between gap-2.5">
         <p className="min-w-0 flex-1 text-[13px] leading-snug text-brand-text">
-          <span className="whitespace-nowrap">
-            {labels.stickyGuestsCap.replace('{guests}', String(guests))}
-          </span>
+          <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
           {showProgress ? (
             <>
               <span aria-hidden className="mx-1.5 text-brand-text-muted">

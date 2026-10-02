@@ -36,6 +36,8 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   printEnqueueFailed: string;
   printEnqueueRateLimited: string;
   waitingForBuffet: string;
+  /** Sole on-screen table headcount line (guest sticky + staff continue-order). Use {guests}. */
+  tableGuestsCap: string;
   buffetRequired: string;
   sushiLimitHint: string;
   perPersonLimitReached: string;
@@ -120,6 +122,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueFailed: 'Pedido guardado, mas o envio para impressao falhou. Verifique o assistente de impressao.',
     printEnqueueRateLimited: 'Demasiados pedidos de impressao; tente novamente dentro de um minuto.',
     waitingForBuffet: 'Aguarde: o garcom deve registar o buffet desta mesa antes de pedir pratos.',
+    tableGuestsCap: '{guests} pessoas',
     buffetRequired: 'O garcom ainda nao activou esta mesa. Peça para registar o buffet primeiro.',
     sushiLimitHint: 'Inclui {perPerson}/pessoa; extra €{price}/un. Pecao staff para ultrapassar.',
     perPersonLimitReached: 'Atingiu o limite incluido. Peca ao staff para adicionar (preco extra).',
@@ -203,6 +206,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueFailed: 'Order saved, but sending to the print queue failed. Check Print assistant.',
     printEnqueueRateLimited: 'Too many print requests; please try again in a minute.',
     waitingForBuffet: 'Please wait: staff must post buffet for this table before you can order dishes.',
+    tableGuestsCap: '{guests} guests',
     buffetRequired: 'This table is not open for ordering yet. Ask staff to post buffet first.',
     sushiLimitHint: 'Includes {perPerson}/person; overage €{price} each. Ask staff to order more.',
     perPersonLimitReached: 'Included limit reached. Ask staff to add more (overage price).',
@@ -286,6 +290,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueFailed: '订单已保存，但送入打印队列失败，请检查打印助手与代理。',
     printEnqueueRateLimited: '打印请求过于频繁，请稍后再试。',
     waitingForBuffet: '请稍候：服务员需先为本桌登记自助餐后，方可点菜。',
+    tableGuestsCap: '本桌 {guests} 人',
     buffetRequired: '本桌尚未开台，请先请服务员登记自助餐。',
     sushiLimitHint: '含每人 {perPerson} 份；超出每份 €{price}。超额请找员工代点。',
     perPersonLimitReached: '已达免费额度。超额请找员工代点（按超额价）。',
@@ -372,6 +377,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Demasiadas solicitudes de impresión; inténtalo de nuevo en un minuto.',
     waitingForBuffet:
       'Espera un momento: el personal debe registrar el bufé de esta mesa antes de pedir platos.',
+    tableGuestsCap: '{guests} personas',
     buffetRequired:
       'Esta mesa aún no está abierta para pedidos. Pide al personal que registre el bufé.',
     sushiLimitHint:
@@ -466,6 +472,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Trop de demandes d’impression ; réessayez dans une minute.',
     waitingForBuffet:
       'Un instant : le personnel doit enregistrer le buffet de cette table avant toute commande.',
+    tableGuestsCap: '{guests} personnes',
     buffetRequired:
       'Cette table n’est pas encore ouverte. Demandez au personnel d’enregistrer le buffet.',
     sushiLimitHint:
@@ -559,6 +566,7 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     printEnqueueRateLimited: 'Zu viele Druckaufträge; bitte in einer Minute erneut versuchen.',
     waitingForBuffet:
       'Bitte warten: Das Personal muss zuerst das Buffet für diesen Tisch erfassen.',
+    tableGuestsCap: '{guests} Gäste',
     buffetRequired:
       'Dieser Tisch ist noch nicht geöffnet. Bitten Sie das Personal, das Buffet zu erfassen.',
     sushiLimitHint:

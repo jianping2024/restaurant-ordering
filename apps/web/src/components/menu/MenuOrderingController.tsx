@@ -64,6 +64,7 @@ import type { CustomerSessionContext } from '@/lib/customer-session-context';
 import { useCustomerSessionContext } from '@/lib/use-customer-session-context';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
+import { CustomerMenuTableGuestsChrome } from '@/components/menu/CustomerMenuTableGuestsChrome';
 import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
@@ -889,6 +890,10 @@ export function MenuOrderingController({
             : null
         }
       />
+
+      {!isDemo ? (
+        <CustomerMenuTableGuestsChrome guestCount={limitGuestCount} lang={lang} />
+      ) : null}
 
       {!isDemo && sessionResolved && !guestCanOrder ? (
         <CustomerMenuOrderGateBanner

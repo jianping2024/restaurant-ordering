@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { useBodyScrollLock } from '@/lib/use-body-scroll-lock';
+import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 
 type Props = {
   open: boolean;
@@ -54,7 +55,10 @@ export function StaffOrderingShell({
         `}
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-brand-border px-4 py-3">
-          <h2 id="staff-ordering-shell-title" className="font-heading text-xl text-brand-gold truncate">
+          <h2
+            id="staff-ordering-shell-title"
+            className={`${CUSTOMER_MENU_TYPE.drawerTitle} truncate`}
+          >
             {title}
           </h2>
           <button

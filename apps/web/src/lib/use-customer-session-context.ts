@@ -8,6 +8,7 @@ import {
   type CustomerSessionContext,
   type CustomerSessionScope,
 } from '@/lib/customer-session-context';
+import type { CustomerKitchenProgress } from '@/lib/kitchen-progress-display';
 import { requestCustomerSessionContext } from '@/lib/request-customer-context';
 import { useRestaurantStaffEntryReconcile } from '@/lib/use-restaurant-staff-entry-reconcile';
 import { peekPublishedWaiterTablePageModel } from '@/lib/waiter-staff-mutation-sync';
@@ -51,7 +52,8 @@ function paintFromContext(
   setters: {
     setActiveSession: (s: TableSession | null) => void;
     setRecentOrders: (o: Order[]) => void;
-    setKitchenProgress: (k: CustomerSessionContext['kitchen_progress']) => void;
+    /** Same as `stateFromContext` — always `null` when absent (never wire `undefined`). */
+    setKitchenProgress: (k: CustomerKitchenProgress | null) => void;
   },
 ) {
   const next = stateFromContext(context);
@@ -80,7 +82,9 @@ export function useCustomerSessionContext(
 
   const [activeSession, setActiveSession] = useState<TableSession | null>(seeded.activeSession);
   const [recentOrders, setRecentOrders] = useState<Order[]>(seeded.recentOrders);
-  const [kitchenProgress, setKitchenProgress] = useState(seeded.kitchenProgress);
+  const [kitchenProgress, setKitchenProgress] = useState<CustomerKitchenProgress | null>(
+    seeded.kitchenProgress,
+  );
   const [sessionResolved, setSessionResolved] = useState(isDemo || hasAuthoritativeSeed);
   /**
    * Full-scope orders list is authoritative (SSR menu seed is full, or a successful `full` fetch).

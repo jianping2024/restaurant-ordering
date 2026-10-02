@@ -222,8 +222,65 @@ export function customerSessionContextFromWaiterDetail(
 }
 
 /**
- * Menu entry boot: published staff mutation cache wins over SSR/Router cache when it
- * carries an active session (same contract as waiter table detail initialModel).
+ * Sole merge for parent/waiter seed vs current/published session context.
+ * Same table + same session: adopt parent `recent_orders` when parent has them;
+ * never wipe a non-empty current list with an empty parent (occupied chrome stub).
+ * Same-session identical order identity → keep `current` (stable ref; avoids overlay loops).
+ * Session change: take the parent whole. Headcount still sole via
+ * `sessionGuestCountForLimits(recent_orders)` — no parallel guest counter.
+ */
+export function sessionOrdersIdentity(
+  orders: Array<Pick<Order, 'id' | 'updated_at'>>,
+): string {
+  return orders.map((row) => `${row.id}:${row.updated_at ?? ''}`).join('|');
+}
+
+export function adoptCustomerSessionParentSeed(
+  current: CustomerSessionContext | null,
+  parent: CustomerSessionContext | null,
+  tableId: string,
+): CustomerSessionContext | null {
+  if (!parent || parent.table_id !== tableId) return current;
+  if (!current || current.table_id !== tableId) return parent;
+
+  const currentSessionId = current.active_session?.id ?? null;
+  const parentSessionId = parent.active_session?.id ?? null;
+  if (parentSessionId !== currentSessionId) {
+    // Idle/stale parent (no session) must not demote an occupied current/published seed.
+    if (parentSessionId == null) return current;
+    return parent;
+  }
+
+  if (parent.recent_orders.length === 0 && current.recent_orders.length > 0) {
+    return {
+      ...current,
+      active_session: parent.active_session ?? current.active_session,
+      display_name: parent.display_name || current.display_name,
+    };
+  }
+
+  if (
+    sessionOrdersIdentity(parent.recent_orders) ===
+      sessionOrdersIdentity(current.recent_orders) &&
+    (parent.display_name || current.display_name) === current.display_name &&
+    (parent.active_session?.id ?? null) === currentSessionId
+  ) {
+    return current;
+  }
+
+  return {
+    ...current,
+    active_session: parent.active_session ?? current.active_session,
+    display_name: parent.display_name || current.display_name,
+    recent_orders: parent.recent_orders,
+    kitchen_progress: parent.kitchen_progress ?? current.kitchen_progress,
+  };
+}
+
+/**
+ * Menu entry boot: published staff mutation cache wins session meta over SSR when
+ * it carries an active session; same-session parent/SSR orders fill an empty
+ * published chrome stub via {@link adoptCustomerSessionParentSeed}.
  */
 export function resolveCustomerSessionBootContext(params: {
   tableId: string;
@@ -233,7 +290,12 @@ export function resolveCustomerSessionBootContext(params: {
   const fromPublished = params.publishedModel
     ? customerSessionContextFromWaiterDetail(params.tableId, params.publishedModel.detail)
     : null;
-  if (fromPublished?.active_session) return fromPublished;
+  if (fromPublished?.active_session) {
+    return (
+      adoptCustomerSessionParentSeed(fromPublished, params.ssrContext, params.tableId) ??
+      fromPublished
+    );
+  }
   return params.ssrContext;
 }
 

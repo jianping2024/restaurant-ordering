@@ -220,7 +220,9 @@ export function MenuOrderingController({
     slug: restaurant.slug,
     tableId,
     isDemo,
-    resumeScope: orderedOpen ? 'full' : 'gate',
+    // Staff overlay: full orders (buffet headcount) — gate would leave chrome-stub empty.
+    // Guest: full while ordered drawer open; otherwise gate.
+    resumeScope: orderedOpen || !!staffAssisted ? 'full' : 'gate',
   });
 
   const refreshOrderedFromRealtime = useCallback(() => {

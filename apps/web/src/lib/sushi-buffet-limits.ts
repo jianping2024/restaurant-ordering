@@ -460,8 +460,8 @@ export function guestCartHasLimitedSushiItems(params: {
 }
 
 /**
- * Guest submit gate: same rule as append (`checkSushiLimitForCartLine`, not staff).
- * UI may keep limited dishes tappable; authority is submit (+ server).
+ * Sole guest meal-limit preview for immediate-append cart snapshots (submit + draft qty).
+ * Same rule as append (`checkSushiLimitForCartLine`, not staff). Server remains authoritative.
  */
 export function previewGuestCartSushiGate(params: {
   serviceMode: unknown;
@@ -484,6 +484,44 @@ export function previewGuestCartSushiGate(params: {
     if (!checked.ok) return checked;
   }
   return { ok: true };
+}
+
+/**
+ * Sole guest meal-limit preview when setting one immediate-append cart draft qty.
+ * Replaces that menuItemId row, then reuses {@link previewGuestCartSushiGate}.
+ */
+export function previewGuestCartDraftQtySushiGate(params: {
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  cart: Array<{ menuItemId: string; qty: number }>;
+  menuItemId: string;
+  nextQty: number;
+  resolveItem: (menuItemId: string) => SushiLimitMenuFields | null;
+}): SushiLimitCheckResult {
+  const nextQty = coercePositiveQty(params.nextQty);
+  if (nextQty <= 0) return { ok: true };
+
+  const nextCart: Array<{ menuItemId: string; qty: number }> = [];
+  let replaced = false;
+  for (const row of params.cart) {
+    if (row.menuItemId !== params.menuItemId) {
+      nextCart.push(row);
+      continue;
+    }
+    replaced = true;
+    nextCart.push({ menuItemId: row.menuItemId, qty: nextQty });
+  }
+  if (!replaced) {
+    nextCart.push({ menuItemId: params.menuItemId, qty: nextQty });
+  }
+  return previewGuestCartSushiGate({
+    serviceMode: params.serviceMode,
+    guestCount: params.guestCount,
+    sessionOrders: params.sessionOrders,
+    cart: nextCart,
+    resolveItem: params.resolveItem,
+  });
 }
 
 function coercePositiveQty(qty: number): number {

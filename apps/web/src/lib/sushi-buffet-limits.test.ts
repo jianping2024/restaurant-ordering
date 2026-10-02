@@ -9,6 +9,7 @@ import {
   isLimitedSushiMenuItem,
   normalizeMenuItemLimitFields,
   guestCartHasLimitedSushiItems,
+  previewGuestCartDraftQtySushiGate,
   previewGuestCartSushiGate,
   previewStaffCartOverage,
   sessionGuestCountForLimits,
@@ -235,6 +236,40 @@ describe('sushi buffet limits', () => {
         guestCount: 1,
         sessionOrders: emptyOrders,
         cart: [{ menuItemId: 'm1', qty: 2 }],
+        resolveItem: () => item,
+      }),
+      { ok: true },
+    );
+  });
+
+  it('previewGuestCartDraftQtySushiGate blocks draft + when session already at allowance', () => {
+    const item = { per_person_qty_limit: 2, over_limit_unit_price: 4.5, price: 0 };
+    const orders = [
+      {
+        status: 'cooking',
+        items: [{ id: 'm1', qty: 2, kind: 'menu', price: 0 }],
+      },
+    ] as unknown as Order[];
+    assert.deepEqual(
+      previewGuestCartDraftQtySushiGate({
+        serviceMode: 'sushi',
+        guestCount: 1,
+        sessionOrders: orders,
+        cart: [],
+        menuItemId: 'm1',
+        nextQty: 1,
+        resolveItem: () => item,
+      }),
+      { ok: false, error: 'per_person_limit_exceeded' },
+    );
+    assert.deepEqual(
+      previewGuestCartDraftQtySushiGate({
+        serviceMode: 'sushi',
+        guestCount: 1,
+        sessionOrders: orders,
+        cart: [{ menuItemId: 'm1', qty: 1 }],
+        menuItemId: 'm1',
+        nextQty: 0,
         resolveItem: () => item,
       }),
       { ok: true },

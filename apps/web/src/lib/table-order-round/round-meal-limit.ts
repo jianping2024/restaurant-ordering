@@ -90,6 +90,13 @@ export function previewGuestRoundLineMealGate(params: {
   });
 }
 
+type RoundFreeCartMealRow = {
+  menuItemId: string;
+  qty: number;
+  note: unknown;
+  item: SushiLimitMenuFields;
+};
+
 /**
  * Sole free-cart meal preview before commitCartToRound (qtyMode add, sequential).
  * Simulates prior cart rows into the working round so multi-line carts share one gate.
@@ -100,12 +107,7 @@ export function previewGuestRoundCartMealGate(params: {
   sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
   roundLines: RoundLineMealPreviewRow[];
   guestClientId: string;
-  cart: Array<{
-    menuItemId: string;
-    qty: number;
-    note: unknown;
-    item: SushiLimitMenuFields;
-  }>;
+  cart: RoundFreeCartMealRow[];
 }): SushiLimitCheckResult {
   let lines: RoundLineMealPreviewRow[] = params.roundLines.map((l) => ({ ...l }));
   for (const row of params.cart) {
@@ -152,4 +154,57 @@ export function previewGuestRoundCartMealGate(params: {
     }
   }
   return { ok: true };
+}
+
+/**
+ * Sole guest meal-limit preview when setting one free-cart draft qty (菜卡/详情/购物车).
+ * Replaces that menuItemId row in the free-cart snapshot, then reuses
+ * {@link previewGuestRoundCartMealGate} (same rule as 下单). Clear / non-positive → ok.
+ */
+export function previewGuestRoundCartDraftQtyMealGate(params: {
+  serviceMode: unknown;
+  guestCount: number;
+  sessionOrders: Array<Pick<Order, 'items' | 'status'>>;
+  roundLines: RoundLineMealPreviewRow[];
+  guestClientId: string;
+  freeCart: RoundFreeCartMealRow[];
+  menuItemId: string;
+  nextQty: number;
+  note: unknown;
+  item: SushiLimitMenuFields;
+}): SushiLimitCheckResult {
+  const nextQty = Math.floor(Number(params.nextQty));
+  if (!Number.isFinite(nextQty) || nextQty <= 0) return { ok: true };
+
+  const nextCart: RoundFreeCartMealRow[] = [];
+  let replaced = false;
+  for (const row of params.freeCart) {
+    if (row.menuItemId !== params.menuItemId) {
+      nextCart.push(row);
+      continue;
+    }
+    replaced = true;
+    nextCart.push({
+      menuItemId: row.menuItemId,
+      qty: nextQty,
+      note: params.note,
+      item: params.item,
+    });
+  }
+  if (!replaced) {
+    nextCart.push({
+      menuItemId: params.menuItemId,
+      qty: nextQty,
+      note: params.note,
+      item: params.item,
+    });
+  }
+  return previewGuestRoundCartMealGate({
+    serviceMode: params.serviceMode,
+    guestCount: params.guestCount,
+    sessionOrders: params.sessionOrders,
+    roundLines: params.roundLines,
+    guestClientId: params.guestClientId,
+    cart: nextCart,
+  });
 }

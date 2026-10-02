@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  previewGuestRoundCartDraftQtyMealGate,
   previewGuestRoundCartMealGate,
   previewGuestRoundLineMealGate,
   resolveRoundLineMealLimitApply,
@@ -129,6 +130,62 @@ describe('previewGuestRoundCartMealGate', () => {
         { menuItemId: 'm1', qty: 1, note: '', item: limited },
         { menuItemId: 'm1', qty: 1, note: 'wasabi', item: limited },
       ],
+    });
+    assert.deepEqual(r, { ok: true });
+  });
+});
+
+describe('previewGuestRoundCartDraftQtyMealGate', () => {
+  it('blocks draft + when peer round lines already fill meal allowance', () => {
+    const r = previewGuestRoundCartDraftQtyMealGate({
+      serviceMode: 'sushi',
+      guestCount: 1,
+      sessionOrders: [],
+      roundLines: [
+        { menu_item_id: 'm1', guest_client_id: 'peer', note: '', qty: 2 },
+      ],
+      guestClientId: 'g1',
+      freeCart: [],
+      menuItemId: 'm1',
+      nextQty: 1,
+      note: '',
+      item: limited,
+    });
+    assert.deepEqual(r, { ok: false, error: 'per_person_limit_exceeded' });
+  });
+
+  it('allows draft qty within remaining after peers', () => {
+    const r = previewGuestRoundCartDraftQtyMealGate({
+      serviceMode: 'sushi',
+      guestCount: 1,
+      sessionOrders: [],
+      roundLines: [
+        { menu_item_id: 'm1', guest_client_id: 'peer', note: '', qty: 1 },
+      ],
+      guestClientId: 'g1',
+      freeCart: [],
+      menuItemId: 'm1',
+      nextQty: 1,
+      note: '',
+      item: limited,
+    });
+    assert.deepEqual(r, { ok: true });
+  });
+
+  it('allows decreasing draft qty without meal check', () => {
+    const r = previewGuestRoundCartDraftQtyMealGate({
+      serviceMode: 'sushi',
+      guestCount: 1,
+      sessionOrders: [],
+      roundLines: [
+        { menu_item_id: 'm1', guest_client_id: 'peer', note: '', qty: 2 },
+      ],
+      guestClientId: 'g1',
+      freeCart: [{ menuItemId: 'm1', qty: 1, note: '', item: limited }],
+      menuItemId: 'm1',
+      nextQty: 0,
+      note: '',
+      item: limited,
     });
     assert.deepEqual(r, { ok: true });
   });

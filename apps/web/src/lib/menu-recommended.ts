@@ -135,7 +135,7 @@ export function resolveCustomerMenuCatalogView(params: {
   };
 }
 
-export function customerMenuStripTopCategories(
+export function customerMenuNavTopCategories(
   view: CustomerMenuCatalogView,
   labelForCategory: (category: MenuCategory) => string,
 ): { id: string; label: string }[] {

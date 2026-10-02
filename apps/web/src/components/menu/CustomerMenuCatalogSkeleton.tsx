@@ -2,18 +2,18 @@
 
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
-import {
-  CUSTOMER_MENU_ITEM_LIST_CLASS,
-  CUSTOMER_MENU_ITEM_LIST_HOST_CLASS,
-} from '@/lib/menu-item-card-layout';
+import { CUSTOMER_MENU_ITEM_LIST_CLASS } from '@/lib/menu-item-card-layout';
 
-/** Catalog loading placeholder — same grid as live `CUSTOMER_MENU_ITEM_LIST_CLASS`. */
+/**
+ * Catalog loading placeholder — same grid as live list.
+ * Rendered inside `CustomerMenuCategoryNav` catalog column (host + padding already applied).
+ */
 export function CustomerMenuCatalogSkeleton() {
   const { lang } = useLanguage();
   const label = MENU_PAGE_MESSAGES[lang].catalogLoading;
 
   return (
-    <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} px-4 pb-6`} aria-busy="true" aria-live="polite">
+    <div aria-busy="true" aria-live="polite">
       <p className="sr-only">{label}</p>
       <div className="mb-4 h-10 w-full animate-pulse rounded-xl bg-brand-border/40" />
       <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>

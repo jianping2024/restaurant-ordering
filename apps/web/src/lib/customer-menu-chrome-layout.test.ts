@@ -1,13 +1,17 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS,
+  CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
+  customerMenuCategoryRailStickyClass,
   customerMenuFixedShellDockClass,
   customerMenuHeaderTrailingSlotClass,
   customerMenuNoticeTabShellClass,
   customerMenuShellRootClass,
 } from './customer-menu-chrome-layout';
+
 
 describe('customerMenuChromeLayout', () => {
   it('uses sole shell width: phone max-w-mobile + lg widen', () => {
@@ -31,8 +35,14 @@ describe('customerMenuChromeLayout', () => {
     assert.equal(customerMenuHeaderTrailingSlotClass, 'shrink-0');
   });
 
-  it('keeps notice tab below sticky header height token', () => {
-    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /6\.5rem/);
-    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /8rem/);
+  it('keeps notice tab below identity header (no top category strip)', () => {
+    assert.match(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /3\.75rem/);
+    assert.doesNotMatch(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS, /6\.5rem/);
+  });
+
+  it('keeps sole left category rail width shared with peer-float dodge', () => {
+    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[4.75rem]');
+    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[4.75rem]');
+    assert.match(customerMenuCategoryRailStickyClass, /sticky/);
   });
 });

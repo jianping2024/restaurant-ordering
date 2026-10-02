@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
@@ -27,7 +26,6 @@ interface Props {
   sticky?: boolean;
   /** Bill page uses a larger restaurant title. */
   headingSize?: 'menu' | 'bill';
-  children?: ReactNode;
 }
 
 /** Sole table-identity chip for guest and staff-assisted customer chrome (menu + bill). */
@@ -54,7 +52,6 @@ export function CustomerOrderingHeader({
   backLink = null,
   sticky = false,
   headingSize = 'menu',
-  children,
 }: Props) {
   const isStaffAssisted = staffAssisted !== null;
 
@@ -67,56 +64,41 @@ export function CustomerOrderingHeader({
     <CustomerTableIdentityBadge tableLabel={tableLabel} displayName={displayName} />
   );
 
-  const identity = (
-    <div
-      className={
-        sticky
-          ? 'px-4 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top,0px))]'
-          : 'px-4 py-3'
-      }
-    >
-      {backLink ? (
-        <div className="mb-2">
-          <StaffAssistedBackLink href={backLink.href} label={backLink.label} />
-        </div>
-      ) : null}
-
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <h1 className={headingClass}>{restaurantName}</h1>
-            {!isStaffAssisted ? tableBadge : null}
-          </div>
-          {subtitle ? (
-            <p className="mt-1 text-sm text-brand-text-muted">{subtitle}</p>
-          ) : null}
-        </div>
-        {isStaffAssisted ? (
-          tableBadge
-        ) : (
-          <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-1.5`}>
-            <LanguageSwitcherIconChrome />
-            <ThemeToggle />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <>
-      <header className={sticky ? undefined : 'border-b border-brand-border'}>{identity}</header>
-      {children ? (
-        <div
-          className={
-            sticky
-              ? 'sticky top-[env(safe-area-inset-top,0px)] z-30 border-b border-brand-border bg-brand-bg'
-              : undefined
-          }
-        >
-          {children}
+    <header className={sticky ? undefined : 'border-b border-brand-border'}>
+      <div
+        className={
+          sticky
+            ? 'px-4 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top,0px))]'
+            : 'px-4 py-3'
+        }
+      >
+        {backLink ? (
+          <div className="mb-2">
+            <StaffAssistedBackLink href={backLink.href} label={backLink.label} />
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className={headingClass}>{restaurantName}</h1>
+              {!isStaffAssisted ? tableBadge : null}
+            </div>
+            {subtitle ? (
+              <p className="mt-1 text-sm text-brand-text-muted">{subtitle}</p>
+            ) : null}
+          </div>
+          {isStaffAssisted ? (
+            tableBadge
+          ) : (
+            <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-1.5`}>
+              <LanguageSwitcherIconChrome />
+              <ThemeToggle />
+            </div>
+          )}
         </div>
-      ) : null}
-    </>
+      </div>
+    </header>
   );
 }

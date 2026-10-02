@@ -5,6 +5,9 @@ import {
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
   customerMenuCategoryRailStickyClass,
   customerMenuFixedShellDockClass,
   customerMenuHeaderTrailingSlotClass,
@@ -44,5 +47,16 @@ describe('customerMenuChromeLayout', () => {
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[4.75rem]');
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[4.75rem]');
     assert.match(customerMenuCategoryRailStickyClass, /sticky/);
+  });
+
+  it('subcategory chips share one sticky shell; page top matches left rail safe-area', () => {
+    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /sticky/);
+    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /mesa-chip-scroll/);
+    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /bg-brand-bg/);
+    assert.equal(
+      CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
+      'top-[env(safe-area-inset-top,0px)]',
+    );
+    assert.equal(CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS, 'top-0');
   });
 });

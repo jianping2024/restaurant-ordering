@@ -44,11 +44,11 @@ export function CustomerRecommendedRail({
 
   return (
     <section
-      className="mb-5 rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2.5"
+      className="mb-5 min-w-0 overflow-hidden rounded-2xl border border-brand-gold/40 bg-brand-gold/15 px-3 py-2.5"
       aria-label={title}
     >
       <h2 className="px-0.5 text-sm font-semibold text-brand-gold">{title}</h2>
-      <div className="mesa-chip-scroll -mx-3 mt-2 flex items-start gap-2.5 px-3">
+      <div className="mesa-chip-scroll mt-2 flex min-w-0 items-start gap-2.5">
         {items.map((item) => {
           const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
           const label = formatMenuCatalogItemLabel(item, lang);

@@ -919,11 +919,8 @@ export function MenuOrderingController({
         activeSubpath={currentSubpath}
         onSelectSubpath={setActiveSubpath}
         subcategoryAllLabel={t.subcategoryAll}
-      >
-        {!catalogReady ? (
-          <CustomerMenuCatalogSkeleton />
-        ) : (
-          <>
+        catalogLeading={
+          catalogReady ? (
             <CustomerRecommendedRail
               items={catalogView.recommendedItems}
               lang={lang}
@@ -935,40 +932,43 @@ export function MenuOrderingController({
                 setDetailMenuItemId(menuItemId);
               }}
             />
-            {currentItems.length === 0 ? (
-              <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
-            ) : (
-              <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
-                {currentItems.map((item) => {
-                  const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
-                  const hintParts = sushiLimitHintParts(buffetServiceMode, item);
-                  const limitHint = hintParts
-                    ? t.sushiLimitHint
-                        .replace('{perPerson}', String(hintParts.perPerson))
-                        .replace('{price}', hintParts.overLimitPrice.toFixed(2))
-                    : null;
-                  return (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      lang={lang}
-                      cartQty={cartQty}
-                      limitHint={limitHint}
-                      treatZeroAsFree={treatZeroAsFree}
-                      flavorHintsEnabled={flavorHintsEnabled}
-                      onOpenDetail={() => {
-                        setCartOpen(false);
-                        setOrderedOpen(false);
-                        setDetailMenuItemId(item.id);
-                      }}
-                      onIncrement={() => bumpCartItem(item, 1)}
-                      onDecrement={() => bumpCartItem(item, -1)}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </>
+          ) : null
+        }
+      >
+        {!catalogReady ? (
+          <CustomerMenuCatalogSkeleton />
+        ) : currentItems.length === 0 ? (
+          <p className="text-center text-brand-text-muted py-12 text-sm">{t.noItems}</p>
+        ) : (
+          <div className={CUSTOMER_MENU_ITEM_LIST_CLASS}>
+            {currentItems.map((item) => {
+              const cartQty = coerceCartQty(cart.find((c) => c.menuItemId === item.id)?.qty);
+              const hintParts = sushiLimitHintParts(buffetServiceMode, item);
+              const limitHint = hintParts
+                ? t.sushiLimitHint
+                    .replace('{perPerson}', String(hintParts.perPerson))
+                    .replace('{price}', hintParts.overLimitPrice.toFixed(2))
+                : null;
+              return (
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  lang={lang}
+                  cartQty={cartQty}
+                  limitHint={limitHint}
+                  treatZeroAsFree={treatZeroAsFree}
+                  flavorHintsEnabled={flavorHintsEnabled}
+                  onOpenDetail={() => {
+                    setCartOpen(false);
+                    setOrderedOpen(false);
+                    setDetailMenuItemId(item.id);
+                  }}
+                  onIncrement={() => bumpCartItem(item, 1)}
+                  onDecrement={() => bumpCartItem(item, -1)}
+                />
+              );
+            })}
+          </div>
         )}
       </CustomerMenuCategoryNav>
 

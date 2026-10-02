@@ -62,7 +62,7 @@
 |---|---|
 | 菜名 | 最多 **2** 行，超出省略；字号 15px |
 | 风味带 | 开关**开**时始终占位（无码也留空高）；最多 **1** 行 chip，再多裁切 |
-| 底行 | 价左、动作右，高度 36px，贴右栏底（与图底齐）；动作槽随「+」/步进器内容变宽，**不**预留空步进器列；列表步进器唯一 `CartQtyStepper density="compact"`（收间距、钮径不变）；外壳唯一 `MENU_ITEM_CARD_SHELL_CLASS`（`rounded-2xl` + `p-4`，内边距≥圆角；**不** `overflow-hidden` 裁底行）；列表列数唯一跟壳宽 container（`CUSTOMER_MENU_ITEM_LIST_HOST_CLASS` + `CUSTOMER_MENU_ITEM_LIST_CLASS`），不跟视口 `xl` |
+| 底行 | 价左、动作右，高度 36px，贴右栏底（与图底齐）；动作槽随「+」/步进器内容变宽，**不**预留空步进器列；列表步进器唯一 `CartQtyStepper density="compact"`（收间距、钮径不变）；外壳唯一 `MENU_ITEM_CARD_SHELL_CLASS`（`mesa-menu-item-card`；窄列 88/`p-3`/`rounded-xl`，≥40rem 112/`p-4`/`rounded-2xl`；**不** `overflow-hidden` 裁底行）；列表列数唯一跟壳宽 container（`CUSTOMER_MENU_ITEM_LIST_HOST_CLASS` + `CUSTOMER_MENU_ITEM_LIST_CLASS`），不跟视口 `xl` |
 
 - **全部文字** chip（不用辣椒个数 emoji；不用分组色标）
 - 样式：品牌金软标（`brand-gold` 透底 + 轻描边），对齐现有 chip 质感  

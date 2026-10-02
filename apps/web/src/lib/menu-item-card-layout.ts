@@ -7,8 +7,9 @@
  *
  * Shell never uses overflow-hidden: clip only on thumb / name / flavor. Foot action
  * (bare + or CartQtyStepper density=compact) must stay fully visible inside the
- * rounded face — padding must be ≥ border-radius (p-4 with rounded-2xl) so corner
- * buttons do not paint past the card outline.
+ * rounded face — pad/radius scale with catalog container (see globals.css
+ * `.mesa-menu-item-card`): narrow 88px thumb + p-3/rounded-xl; ≥40rem host 112px
+ * + p-4/rounded-2xl.
  */
 
 /**
@@ -23,20 +24,28 @@ export const CUSTOMER_MENU_ITEM_LIST_HOST_CLASS = 'mesa-menu-catalog-host';
  * 1 → ≥40rem 2 → ≥62rem 3 (see globals.css).
  */
 export const CUSTOMER_MENU_ITEM_LIST_CLASS = 'mesa-menu-item-list';
-/** List thumb edge — sole square size (112px). */
-export const MENU_ITEM_CARD_THUMB_PX = 112;
+
+/** Narrow one-column catalog thumb (phone). */
+export const MENU_ITEM_CARD_THUMB_PX_NARROW = 88;
+/** Wide catalog thumb (≥40rem host / 2–3 cols). */
+export const MENU_ITEM_CARD_THUMB_PX_WIDE = 112;
+/**
+ * Image `sizes` upper bound — sole numeric export for next/image.
+ * Live edge length is CSS `--mesa-menu-card-thumb` (88 → 112 at 40rem).
+ */
+export const MENU_ITEM_CARD_THUMB_PX = MENU_ITEM_CARD_THUMB_PX_WIDE;
 
 /**
- * Card chrome — sole list shell. No overflow-hidden (foot −/n/+ must not be clipped).
- * Padding ≥ radius: p-4 with rounded-2xl keeps corner actions inside the face.
+ * Card chrome — sole list shell class. Pad/radius/gap/thumb size live in
+ * globals `.mesa-menu-item-card` (container-driven). No overflow-hidden.
  * Available vs sold-out border/opacity stay at the call site.
  */
 export const MENU_ITEM_CARD_SHELL_CLASS =
-  'bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-3 h-full';
+  'mesa-menu-item-card bg-brand-card border flex min-w-0 h-full';
 
-/** List thumb: 112×112, top-aligned. */
+/** List thumb: size via `--mesa-menu-card-thumb`, top-aligned. */
 export const MENU_ITEM_CARD_THUMB_CLASS =
-  'relative flex h-[7rem] w-[7rem] shrink-0 items-center justify-center overflow-hidden rounded-xl self-start';
+  'relative flex h-[var(--mesa-menu-card-thumb)] w-[var(--mesa-menu-card-thumb)] shrink-0 items-center justify-center overflow-hidden rounded-[var(--mesa-menu-card-thumb-radius)] self-start';
 
 /**
  * Name slot: 15px / 1.3 × 2 lines = 39px.
@@ -62,7 +71,7 @@ export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center just
  * Right column: exact thumb height so name/flavor sit top and price/action sit on the image baseline.
  */
 export const MENU_ITEM_CARD_BODY_CLASS =
-  'flex h-[7rem] min-h-[7rem] min-w-0 flex-1 flex-col';
+  'flex h-[var(--mesa-menu-card-thumb)] min-h-[var(--mesa-menu-card-thumb)] min-w-0 flex-1 flex-col';
 
 /** Optional sushi limit line between flavor and foot — never a description slot. */
 export const MENU_ITEM_CARD_LIMIT_HINT_CLASS =

@@ -3,6 +3,9 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import {
   CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS,
+  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
   customerMenuCategoryRailStickyClass,
 } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
@@ -27,6 +30,11 @@ type Props = {
   subcategoryAllLabel: string;
   /** page = document scroll + sticky rail; embedded = dual overflow panes. */
   variant: 'page' | 'embedded';
+  /**
+   * Right-column block above sub chips (sole slot for CustomerRecommendedRail).
+   * Catalog order is always: catalogLeading → sticky sub chips → children (dish list).
+   */
+  catalogLeading?: ReactNode;
   children: ReactNode;
 };
 
@@ -42,8 +50,9 @@ function railItemClass(active: boolean): string {
 
 /**
  * Sole customer/staff/sushi category chrome: left vertical top-category rail +
- * optional soft sub chips above the catalog column. Filter-on-select (no scroll-spy).
- * No top horizontal strip / no「更多」overlay.
+ * right column order catalogLeading (recommended) → sticky soft sub chips →
+ * children (dish list). Filter-on-select (no scroll-spy). No top horizontal
+ * strip / no「更多」overlay.
  */
 export function CustomerMenuCategoryNav({
   topCategories,
@@ -54,6 +63,7 @@ export function CustomerMenuCategoryNav({
   onSelectSubpath,
   subcategoryAllLabel,
   variant,
+  catalogLeading = null,
   children,
 }: Props) {
   const railRef = useRef<HTMLElement>(null);
@@ -79,6 +89,11 @@ export function CustomerMenuCategoryNav({
     variant === 'embedded'
       ? `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} min-w-0 flex-1 overflow-y-auto px-3 py-4`
       : `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} min-w-0 flex-1 px-3 py-4`;
+
+  const subStickyTopClass =
+    variant === 'embedded'
+      ? CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS
+      : CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS;
 
   return (
     <div className={shellClass}>
@@ -108,8 +123,13 @@ export function CustomerMenuCategoryNav({
       </nav>
 
       <div className={catalogClass}>
+        {catalogLeading}
         {subCategories.length > 0 ? (
-          <div className="mesa-chip-scroll mb-3 flex gap-2">
+          <div
+            className={`${CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS} ${subStickyTopClass}`}
+            role="toolbar"
+            aria-label="subcategories"
+          >
             <button
               type="button"
               onClick={() => onSelectSubpath('')}

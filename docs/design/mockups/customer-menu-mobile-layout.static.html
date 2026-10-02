@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>顾客点餐 · 手机排版定稿 — 静态稿</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --gold-light: 168 125 60;
+      --on-gold: 255 250 240;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --shadow: 0 12px 40px rgb(31 62 82 / 0.18);
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+      --rail: 4.75rem;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 72px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.65rem;
+      margin: 0 0 6px;
+    }
+    .lede {
+      margin: 0 0 18px;
+      color: rgb(var(--ink-muted));
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 46rem;
+    }
+    .rules {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 22px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      font-size: 0.875rem;
+      line-height: 1.45;
+      max-width: 46rem;
+    }
+    .rules strong { color: rgb(var(--gold)); font-weight: 600; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] {
+      background: rgb(var(--ink));
+      color: #f7f3ea;
+      border-color: rgb(var(--ink));
+    }
+    .stage {
+      display: none;
+      gap: 28px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .stage[data-active="true"] { display: flex; }
+    .frame-wrap { flex: 0 0 auto; }
+    .label {
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgb(var(--ink-muted));
+      margin-bottom: 10px;
+    }
+    .phone {
+      width: 360px;
+      height: 740px;
+      border-radius: 28px;
+      border: 10px solid #1c2430;
+      background: rgb(var(--bg));
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .status {
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgb(var(--text));
+    }
+    .guests {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgb(var(--border));
+      background: rgb(var(--card) / 0.95);
+      font-size: 13px;
+    }
+    .filter-pills { display: flex; gap: 6px; }
+    .pill {
+      border: 1px solid rgb(var(--border));
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: rgb(var(--ink-muted));
+      background: rgb(var(--card));
+    }
+    .body-row {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+    }
+    .rail {
+      width: var(--rail);
+      flex-shrink: 0;
+      border-right: 1px solid rgb(var(--border));
+      background: rgb(var(--card) / 0.4);
+      overflow-y: auto;
+    }
+    .rail button {
+      position: relative;
+      display: block;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 12px 6px;
+      font-size: 12px;
+      line-height: 1.25;
+      color: rgb(var(--ink-muted));
+      text-align: center;
+      cursor: default;
+    }
+    .rail button.active {
+      background: rgb(var(--bg));
+      color: rgb(var(--gold));
+      font-weight: 600;
+    }
+    .rail button.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      background: rgb(var(--gold));
+    }
+    .catalog {
+      flex: 1;
+      min-width: 0;
+      overflow-y: auto;
+      padding: 12px;
+      padding-bottom: 88px;
+    }
+
+    /* —— 现状：子类在上、大图、+ 溢出 —— */
+    .before .subs { display: flex; gap: 8px; overflow: hidden; margin-bottom: 12px; }
+    .before .chip {
+      flex-shrink: 0;
+      border: 1px solid rgb(var(--border));
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+    }
+    .before .chip.on {
+      border-color: rgb(var(--gold) / 0.55);
+      background: rgb(var(--gold) / 0.12);
+      color: rgb(var(--gold));
+      font-weight: 600;
+    }
+    .before .rec {
+      margin-bottom: 16px;
+      border-radius: 16px;
+      border: 1px solid rgb(var(--gold) / 0.4);
+      background: rgb(var(--gold) / 0.15);
+      padding: 10px 0 10px 12px;
+      overflow: hidden;
+    }
+    .before .rec h3 {
+      margin: 0 0 8px;
+      padding-right: 12px;
+      font-size: 13px;
+      color: rgb(var(--gold));
+    }
+    .before .rec-scroll {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+      margin-right: -12px;
+    }
+    .before .poster {
+      width: 136px;
+      flex-shrink: 0;
+    }
+    .before .poster-img {
+      width: 136px;
+      height: 102px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid rgb(var(--border) / 0.5);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+    }
+    .before .poster-name {
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .before .poster-price {
+      margin-top: 2px;
+      font-size: 13px;
+      color: rgb(var(--gold));
+      font-variant-numeric: tabular-nums;
+    }
+    .before .card {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      margin-bottom: 12px;
+      /* 故意让脚部溢出，模拟现状半圆 + */
+      overflow: visible;
+      position: relative;
+    }
+    .before .thumb {
+      width: 112px;
+      height: 112px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid rgb(var(--border) / 0.45);
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+    }
+    .before .card-body {
+      flex: 1;
+      min-width: 0;
+      height: 112px;
+      display: flex;
+      flex-direction: column;
+    }
+    .before .dish-name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+      height: 2.6em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .before .foot {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 36px;
+    }
+    .before .money {
+      color: rgb(var(--gold));
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .before .add {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 0;
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1;
+      box-shadow: 0 4px 10px rgb(139 101 48 / 0.28);
+      /* 挤出卡外 → 再被机框裁成半圆 */
+      position: relative;
+      right: -22px;
+      flex-shrink: 0;
+    }
+    .before .hint {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: rgb(var(--ink-muted));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* —— 定稿：推荐 → 子类 → 列表；缩图；+ 在卡内 —— */
+    .after .rec {
+      margin-bottom: 14px;
+      border-radius: 14px;
+      border: 1px solid rgb(var(--gold) / 0.4);
+      background: rgb(var(--gold) / 0.15);
+      padding: 10px 12px;
+    }
+    .after .rec h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: rgb(var(--gold));
+    }
+    .after .rec-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      margin: 0 -4px;
+      padding: 0 4px 2px;
+      scrollbar-width: none;
+    }
+    .after .rec-scroll::-webkit-scrollbar { display: none; }
+    .after .poster { width: 136px; flex-shrink: 0; }
+    .after .poster-img {
+      width: 136px;
+      height: 102px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid rgb(var(--border) / 0.5);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+    }
+    .after .poster-name {
+      margin-top: 6px;
+      min-height: 2.4em;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .after .poster-price {
+      margin-top: 2px;
+      font-size: 13px;
+      color: rgb(var(--gold));
+      font-variant-numeric: tabular-nums;
+    }
+    .after .subs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-bottom: 12px;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .after .subs::-webkit-scrollbar { display: none; }
+    .after .chip {
+      flex-shrink: 0;
+      border: 1px solid rgb(var(--border));
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: rgb(var(--card));
+      color: rgb(var(--text));
+    }
+    .after .chip.on {
+      border-color: rgb(var(--gold) / 0.55);
+      background: rgb(var(--gold) / 0.12);
+      color: rgb(var(--gold));
+      font-weight: 600;
+    }
+    .after .card {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      margin-bottom: 10px;
+      overflow: visible;
+    }
+    .after .thumb {
+      width: 88px;
+      height: 88px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid rgb(var(--border) / 0.45);
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      align-self: start;
+    }
+    .after .card-body {
+      flex: 1;
+      min-width: 0;
+      height: 88px;
+      display: flex;
+      flex-direction: column;
+    }
+    .after .dish-name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+      max-height: 2.6em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    .after .hint {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: rgb(var(--ink-muted));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .after .foot {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 36px;
+      min-width: 0;
+    }
+    .after .money {
+      color: rgb(var(--gold));
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .after .add {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 0;
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1;
+      box-shadow: 0 4px 10px rgb(139 101 48 / 0.28);
+      flex-shrink: 0;
+    }
+
+    .dock {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      border-top: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      padding: 0 16px calc(10px + env(safe-area-inset-bottom, 0px));
+      height: auto;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 -4px 24px rgb(0 0 0 / 0.08);
+    }
+    .dock-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+      font-size: 14px;
+      color: rgb(var(--ink-muted));
+    }
+    .dock-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgb(var(--ink) / 0.08);
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+    .dock-cta {
+      flex-shrink: 0;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 8px;
+      border: 0;
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .before .dock-cta {
+      /* 模拟右缘被裁 */
+      margin-right: -18px;
+      padding-right: 28px;
+    }
+
+    .notes {
+      flex: 1;
+      min-width: 260px;
+      max-width: 360px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      font-family: var(--serif);
+    }
+    .notes ol { margin: 0; padding-left: 1.2em; }
+    .notes li { margin-bottom: 8px; }
+    .notes code {
+      font-size: 0.8em;
+      background: rgb(var(--bg));
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .callout {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgb(var(--gold) / 0.1);
+      border: 1px solid rgb(var(--gold) / 0.35);
+      font-size: 0.8125rem;
+      color: rgb(var(--text));
+    }
+    .badge-bad {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgb(185 60 50 / 0.12);
+      color: rgb(160 45 40);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-ok {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgb(40 120 70 / 0.12);
+      color: rgb(30 100 55);
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>顾客点餐 · 手机排版定稿</h1>
+    <p class="lede">
+      静态对照稿（非产品代码）。定稿约定：① 右列顺序 <strong>推荐 → 二级 chip → 菜列表</strong>；
+      ② 手机一列 <strong>缩图优先</strong>（约 88px，左栏仍 4.75rem）；③ 金色 <code>+</code> 整圆落在卡内。
+    </p>
+    <div class="rules">
+      <div><strong>一起做：</strong>信息结构（子类下移）+ 窄列几何（缩图 / 收圆角内边距）。</div>
+      <div><strong>不做：</strong>顶部分类横条、加宽左栏抢列表宽、改推荐算法。</div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="对照">
+      <button type="button" class="tab" role="tab" aria-selected="true" data-stage="compare">并排对照</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-stage="after-only">只看定稿</button>
+      <button type="button" class="tab" role="tab" aria-selected="false" data-stage="before-only">只看现状问题</button>
+    </div>
+
+    <!-- 并排 -->
+    <div class="stage" data-stage="compare" data-active="true">
+      <div class="frame-wrap">
+        <div class="label">现状（问题示意）</div>
+        <div class="phone before" aria-label="现状手机稿">
+          <div class="status"><span>18:14</span><span>●●●</span></div>
+          <div class="guests">
+            <span>本桌 2 人</span>
+            <div class="filter-pills"><span class="pill">素食</span><span class="pill">过敏原</span></div>
+          </div>
+          <div class="body-row">
+            <nav class="rail" aria-label="一级类目">
+              <button type="button" class="active">前餐</button>
+              <button type="button">新品</button>
+              <button type="button">炸卷</button>
+              <button type="button">兰地和白酒</button>
+            </nav>
+            <div class="catalog">
+              <div class="subs" aria-label="二级在推荐上方 — 不合理">
+                <span class="chip on">全部</span>
+                <span class="chip">油炸</span>
+                <span class="chip">前菜</span>
+                <span class="chip">寿司</span>
+              </div>
+              <section class="rec" aria-label="推荐被挤在子类下">
+                <h3>推荐 <span class="badge-bad">在子类下</span></h3>
+                <div class="rec-scroll">
+                  <div class="poster">
+                    <div class="poster-img">🍱</div>
+                    <div class="poster-name">2201 套餐1</div>
+                    <div class="poster-price">免费</div>
+                  </div>
+                  <div class="poster">
+                    <div class="poster-img">🍣</div>
+                    <div class="poster-name">壁藏…</div>
+                    <div class="poster-price">€12.00</div>
+                  </div>
+                </div>
+              </section>
+              <article class="card">
+                <div class="thumb">🦞</div>
+                <div class="card-body">
+                  <div class="dish-name">1408 鳌虾</div>
+                  <p class="hint">含每人 2 份 · 超出另计</p>
+                  <div class="foot">
+                    <span class="money">€0.00</span>
+                    <button type="button" class="add" aria-label="加购（半圆示意）">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🥤</div>
+                <div class="card-body">
+                  <div class="dish-name">0108 Castel…</div>
+                  <div class="foot">
+                    <span class="money">€2.70</span>
+                    <button type="button" class="add" aria-label="加购">+</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-left"><span class="dock-ico">🛒</span><span>查看购物车</span></div>
+            <button type="button" class="dock-cta">查看账单</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="frame-wrap">
+        <div class="label">定稿（拟实现）</div>
+        <div class="phone after" aria-label="定稿手机稿">
+          <div class="status"><span>18:14</span><span>●●●</span></div>
+          <div class="guests">
+            <span>本桌 2 人</span>
+            <div class="filter-pills"><span class="pill">素食</span><span class="pill">过敏原</span></div>
+          </div>
+          <div class="body-row">
+            <nav class="rail" aria-label="一级类目">
+              <button type="button" class="active">前餐</button>
+              <button type="button">新品</button>
+              <button type="button">炸卷</button>
+              <button type="button">兰地和白酒</button>
+            </nav>
+            <div class="catalog">
+              <section class="rec" aria-label="推荐在顶">
+                <h3>推荐 <span class="badge-ok">全店 · 不受子类</span></h3>
+                <div class="rec-scroll">
+                  <div class="poster">
+                    <div class="poster-img">🍱</div>
+                    <div class="poster-name">2201 套餐1</div>
+                    <div class="poster-price">免费</div>
+                  </div>
+                  <div class="poster">
+                    <div class="poster-img">🍣</div>
+                    <div class="poster-name">壁藏三文鱼卷</div>
+                    <div class="poster-price">€12.00</div>
+                  </div>
+                </div>
+              </section>
+              <div class="subs" aria-label="二级紧贴列表">
+                <span class="chip on">全部</span>
+                <span class="chip">油炸</span>
+                <span class="chip">前菜</span>
+                <span class="chip">寿司</span>
+              </div>
+              <article class="card">
+                <div class="thumb">🦞</div>
+                <div class="card-body">
+                  <div class="dish-name">1408 鳌虾</div>
+                  <p class="hint">含每人 2 份 · 超出另计</p>
+                  <div class="foot">
+                    <span class="money">€0.00</span>
+                    <button type="button" class="add" aria-label="加购">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🥤</div>
+                <div class="card-body">
+                  <div class="dish-name">0108 Castello 柠檬汽水</div>
+                  <div class="foot">
+                    <span class="money">€2.70</span>
+                    <button type="button" class="add" aria-label="加购">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🍸</div>
+                <div class="card-body">
+                  <div class="dish-name">0101 可口可乐</div>
+                  <div class="foot">
+                    <span class="money">€2.90</span>
+                    <button type="button" class="add" aria-label="加购">+</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-left"><span class="dock-ico">🛒</span><span>查看购物车</span></div>
+            <button type="button" class="dock-cta">查看账单</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="notes">
+        <h2>对照要点</h2>
+        <ol>
+          <li><strong>顺序：</strong>左稿子类压在推荐上；右稿推荐 → 子类 → 列表。</li>
+          <li><strong>缩图：</strong>112 → 88，右栏加宽，菜名可两行，<code>+</code> 整圆在卡内。</li>
+          <li><strong>卡面：</strong>大圆角大内边距 → <code>rounded-xl</code> + <code>p-3</code> 量级。</li>
+          <li><strong>左栏：</strong>仍 4.75rem，不加宽抢列表。</li>
+          <li><strong>底栏：</strong>右稿「查看账单」完整落在壳内（现状裁切仅作问题示意）。</li>
+        </ol>
+        <div class="callout">
+          确认此静态稿后，再改产品代码：<code>CustomerMenuCategoryNav</code> 挂载顺序 +
+          <code>menu-item-card-layout</code> 窄列 token。
+        </div>
+      </aside>
+    </div>
+
+    <!-- 只看定稿 -->
+    <div class="stage" data-stage="after-only" data-active="false">
+      <div class="frame-wrap">
+        <div class="label">定稿放大</div>
+        <div class="phone after" style="width:390px;height:780px" aria-label="定稿放大">
+          <div class="status"><span>18:14</span><span>●●●</span></div>
+          <div class="guests">
+            <span>本桌 2 人</span>
+            <div class="filter-pills"><span class="pill">素食</span><span class="pill">过敏原</span></div>
+          </div>
+          <div class="body-row">
+            <nav class="rail" aria-label="一级类目">
+              <button type="button" class="active">前餐</button>
+              <button type="button">新品</button>
+              <button type="button">炸卷</button>
+              <button type="button">兰地和白酒</button>
+              <button type="button">日本饮品</button>
+            </nav>
+            <div class="catalog">
+              <section class="rec">
+                <h3>推荐</h3>
+                <div class="rec-scroll">
+                  <div class="poster">
+                    <div class="poster-img">🍱</div>
+                    <div class="poster-name">2201 套餐1</div>
+                    <div class="poster-price">免费</div>
+                  </div>
+                  <div class="poster">
+                    <div class="poster-img">🍣</div>
+                    <div class="poster-name">壁藏三文鱼卷</div>
+                    <div class="poster-price">€12.00</div>
+                  </div>
+                  <div class="poster">
+                    <div class="poster-img">🍤</div>
+                    <div class="poster-name">招牌炸虾</div>
+                    <div class="poster-price">€8.50</div>
+                  </div>
+                </div>
+              </section>
+              <div class="subs">
+                <span class="chip on">全部</span>
+                <span class="chip">油炸</span>
+                <span class="chip">前菜</span>
+                <span class="chip">寿司</span>
+              </div>
+              <article class="card">
+                <div class="thumb">🦞</div>
+                <div class="card-body">
+                  <div class="dish-name">1408 鳌虾</div>
+                  <p class="hint">含每人 2 份 · 超出另计</p>
+                  <div class="foot">
+                    <span class="money">€0.00</span>
+                    <button type="button" class="add">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🥤</div>
+                <div class="card-body">
+                  <div class="dish-name">0108 Castello 柠檬汽水</div>
+                  <div class="foot">
+                    <span class="money">€2.70</span>
+                    <button type="button" class="add">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🍸</div>
+                <div class="card-body">
+                  <div class="dish-name">0101 可口可乐</div>
+                  <div class="foot">
+                    <span class="money">€2.90</span>
+                    <button type="button" class="add">+</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-left"><span class="dock-ico">🛒</span><span>查看购物车</span></div>
+            <button type="button" class="dock-cta">查看账单</button>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        <h2>定稿几何（拟 token）</h2>
+        <ol>
+          <li>左栏 <code>4.75rem</code> 不变</li>
+          <li>窄列缩略图 <code>88×88</code>（宽列仍可回 112）</li>
+          <li>卡壳约 <code>p-3</code> + <code>rounded-xl</code></li>
+          <li>右栏高度跟 88 图锁齐；价 + <code>+</code> 贴底且不溢出</li>
+          <li>子类 soft chip 仅出现在推荐与列表之间</li>
+        </ol>
+      </aside>
+    </div>
+
+    <!-- 只看现状 -->
+    <div class="stage" data-stage="before-only" data-active="false">
+      <div class="frame-wrap">
+        <div class="label">现状问题强化（示意，非精确像素复刻）</div>
+        <div class="phone before" style="width:390px;height:780px">
+          <div class="status"><span>18:14</span><span>●●●</span></div>
+          <div class="guests">
+            <span>本桌 2 人</span>
+            <div class="filter-pills"><span class="pill">素食</span><span class="pill">过敏原</span></div>
+          </div>
+          <div class="body-row">
+            <nav class="rail">
+              <button type="button" class="active">前餐</button>
+              <button type="button">新品</button>
+              <button type="button">炸卷</button>
+            </nav>
+            <div class="catalog">
+              <div class="subs">
+                <span class="chip on">全部</span>
+                <span class="chip">油炸</span>
+                <span class="chip">前菜</span>
+                <span class="chip">寿司</span>
+              </div>
+              <section class="rec">
+                <h3>推荐</h3>
+                <div class="rec-scroll">
+                  <div class="poster">
+                    <div class="poster-img">🍱</div>
+                    <div class="poster-name">2201 套餐1</div>
+                    <div class="poster-price">免费</div>
+                  </div>
+                  <div class="poster">
+                    <div class="poster-img">🍣</div>
+                    <div class="poster-name">壁藏…</div>
+                    <div class="poster-price">€12.00</div>
+                  </div>
+                </div>
+              </section>
+              <article class="card">
+                <div class="thumb">🦞</div>
+                <div class="card-body">
+                  <div class="dish-name">1408 鳌虾</div>
+                  <p class="hint">含每人 2 份 · 超出另计</p>
+                  <div class="foot">
+                    <span class="money">€0.00</span>
+                    <button type="button" class="add">+</button>
+                  </div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="thumb">🥤</div>
+                <div class="card-body">
+                  <div class="dish-name">0108 Castel…</div>
+                  <div class="foot">
+                    <span class="money">€2.70</span>
+                    <button type="button" class="add">+</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-left"><span class="dock-ico">🛒</span><span>查看购物车</span></div>
+            <button type="button" class="dock-cta">查看账单</button>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        <h2>问题清单</h2>
+        <ol>
+          <li>子类在推荐上 → 像推荐也受子类过滤</li>
+          <li>112 图 + 大内边距 → <code>+</code> 被裁半圆</li>
+          <li>菜名过早 <code>…</code>，卡内中间空</li>
+          <li>底栏主按钮贴边/裁切（示意）</li>
+        </ol>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const stages = document.querySelectorAll('.stage');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-stage');
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        stages.forEach((s) => s.setAttribute('data-active', String(s.getAttribute('data-stage') === id)));
+      });
+    });
+  </script>
+</body>
+</html>

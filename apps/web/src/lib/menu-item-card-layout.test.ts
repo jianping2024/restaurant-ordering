@@ -12,26 +12,29 @@ import {
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
+  MENU_ITEM_CARD_THUMB_PX_NARROW,
+  MENU_ITEM_CARD_THUMB_PX_WIDE,
 } from './menu-item-card-layout';
 
 describe('menuItemCardLayout', () => {
-  it('locks body height to the square thumb and uses content-width foot', () => {
-    assert.equal(MENU_ITEM_CARD_THUMB_PX, 112);
-    assert.match(MENU_ITEM_CARD_THUMB_CLASS, /h-\[7rem\]/);
-    assert.match(MENU_ITEM_CARD_BODY_CLASS, /h-\[7rem\]/);
+  it('locks body height to CSS thumb var; wide sizes upper bound is 112', () => {
+    assert.equal(MENU_ITEM_CARD_THUMB_PX_NARROW, 88);
+    assert.equal(MENU_ITEM_CARD_THUMB_PX_WIDE, 112);
+    assert.equal(MENU_ITEM_CARD_THUMB_PX, MENU_ITEM_CARD_THUMB_PX_WIDE);
+    assert.match(MENU_ITEM_CARD_THUMB_CLASS, /h-\[var\(--mesa-menu-card-thumb\)\]/);
+    assert.match(MENU_ITEM_CARD_BODY_CLASS, /h-\[var\(--mesa-menu-card-thumb\)\]/);
     assert.match(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /justify-between/);
     assert.doesNotMatch(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /6\.75rem/);
     assert.equal(MENU_ITEM_CARD_ACTION_SLOT_CLASS, 'flex shrink-0 items-center justify-end');
   });
 
-  it('shell keeps foot actions inside rounded face without overflow-hidden', () => {
+  it('shell is mesa-menu-item-card only — pad/radius live in globals container rules', () => {
     assert.equal(
       MENU_ITEM_CARD_SHELL_CLASS,
-      'bg-brand-card border rounded-2xl p-4 flex min-w-0 gap-3 h-full',
+      'mesa-menu-item-card bg-brand-card border flex min-w-0 h-full',
     );
-    assert.match(MENU_ITEM_CARD_SHELL_CLASS, /rounded-2xl/);
-    assert.match(MENU_ITEM_CARD_SHELL_CLASS, /\bp-4\b/);
-    assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /\bp-3\b/);
+    assert.match(MENU_ITEM_CARD_SHELL_CLASS, /mesa-menu-item-card/);
+    assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /rounded-2xl|\bp-4\b|\bp-3\b/);
     assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /overflow-hidden/);
   });
 

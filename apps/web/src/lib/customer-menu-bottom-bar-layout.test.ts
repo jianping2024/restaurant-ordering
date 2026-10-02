@@ -67,21 +67,27 @@ describe('customerMenuPageBottomPaddingClass', () => {
 });
 
 describe('customerMenuBottomBar dock stick', () => {
-  it('sticks flush bottom-0 with opaque shell + safe-area pad', () => {
+  it('sticks flush bottom-0 with opaque shell + safe-area pad; no translate clip', () => {
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
     assert.ok(customerMenuBottomBarDockClass.includes('bottom-0'));
+    assert.ok(customerMenuBottomBarDockClass.includes('left-0'));
+    assert.ok(customerMenuBottomBarDockClass.includes('right-0'));
+    assert.ok(customerMenuBottomBarDockClass.includes('mx-auto'));
     assert.ok(customerMenuBottomBarDockClass.includes(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS));
     assert.ok(customerMenuBottomBarDockClass.includes('bg-brand-card'));
+    assert.ok(!customerMenuBottomBarDockClass.includes('-translate-x-1/2'));
   });
 
   it('centers the interactive row so CTA is optically mid-bar', () => {
     assert.match(customerMenuBottomBarRowClass, /items-center/);
     assert.match(customerMenuBottomBarRowClass, new RegExp(CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS));
+    assert.match(customerMenuBottomBarRowClass, /w-full/);
+    assert.match(customerMenuBottomBarRowClass, /min-w-0/);
   });
 
-  it('pins summary and action to opposite edges with symmetric horizontal padding', () => {
+  it('pins summary and action to opposite edges with horizontal padding in shell', () => {
     assert.match(customerMenuBottomBarRowClass, /justify-between/);
-    assert.match(customerMenuBottomBarRowClass, /px-4/);
+    assert.match(customerMenuBottomBarRowClass, /px-3/);
   });
 });
 

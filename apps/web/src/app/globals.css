@@ -106,8 +106,9 @@ body {
 
 /**
  * Sole guest/staff catalog list columns — track host width (container), not viewport.
- * Thresholds keep price + compact −/n/+ inside MenuItemCard (p-4 + 112 thumb).
- * 40rem ≈ 2-col min; 62rem ≈ 3-col min (staff max-w-4xl overlay stays 2-col).
+ * Narrow (1-col): 88px thumb + p-3/rounded-xl so price + compact −/n/+ stay in-card.
+ * ≥40rem: 112px thumb + p-4/rounded-2xl + 2 cols; ≥62rem: 3 cols
+ * (staff max-w-4xl overlay stays 2-col).
  */
 .mesa-menu-catalog-host {
   container-type: inline-size;
@@ -120,9 +121,29 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Sole MenuItemCard geometry tokens — driven by catalog host width only. */
+.mesa-menu-item-card {
+  --mesa-menu-card-thumb: 5.5rem; /* 88px */
+  --mesa-menu-card-pad: 0.75rem;
+  --mesa-menu-card-radius: 0.75rem;
+  --mesa-menu-card-gap: 0.625rem;
+  --mesa-menu-card-thumb-radius: 0.625rem;
+  padding: var(--mesa-menu-card-pad);
+  border-radius: var(--mesa-menu-card-radius);
+  gap: var(--mesa-menu-card-gap);
+}
+
 @container mesa-menu-catalog (min-width: 40rem) {
   .mesa-menu-item-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mesa-menu-item-card {
+    --mesa-menu-card-thumb: 7rem; /* 112px */
+    --mesa-menu-card-pad: 1rem;
+    --mesa-menu-card-radius: 1rem;
+    --mesa-menu-card-gap: 0.75rem;
+    --mesa-menu-card-thumb-radius: 0.75rem;
   }
 }
 

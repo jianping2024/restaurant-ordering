@@ -38,6 +38,21 @@ export const customerMenuCategoryRailStickyClass =
   'sticky top-[env(safe-area-inset-top,0px)] z-20 max-h-[calc(100dvh-env(safe-area-inset-top,0px))] self-start';
 
 /**
+ * Sole subcategory chip strip sticky chrome (right column only).
+ * Same top as the left rail (safe-area); opaque so list does not show through.
+ * `-mx-3 px-3` cancels catalog host pad so the sticky fill spans the column.
+ */
+export const CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS =
+  'mesa-chip-scroll sticky z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg/95 px-3 py-2 backdrop-blur-sm';
+
+/** Page scroll: stick under safe-area (aligned with left rail). */
+export const CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS =
+  'top-[env(safe-area-inset-top,0px)]';
+
+/** Embedded catalog pane: stick to that pane’s top. */
+export const CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS = 'top-0';
+
+/**
  * Guest notice tab vertical offset — below identity header + safe area.
  * Left category rail is beside the catalog (not a sticky top strip); calibrate to
  * compact identity row only. Static string for Tailwind JIT.

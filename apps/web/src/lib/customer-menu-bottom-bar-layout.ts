@@ -13,19 +13,23 @@ export const CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS =
 export const CUSTOMER_MENU_PAGE_BOTTOM_PADDING_WITH_FOOTER =
   'pb-[calc(3.5rem+var(--mesa-customer-menu-bottom-safe)+0.5rem)]';
 
-/** Flush dock: bottom-0 opaque shell; SAFE_AREA_PB pads the interactive row. */
+/** Flush dock: bottom-0 opaque shell; SAFE_AREA_PB pads the interactive row.
+ * `left-0 right-0 mx-auto` (not translate-x) so the bar never paints past the
+ * viewport edge on narrow phones — sole dock positioning for this footer.
+ */
 export const customerMenuBottomBarDockClass = [
-  'fixed bottom-0 left-1/2 z-30 -translate-x-1/2',
+  'fixed bottom-0 left-0 right-0 z-30 mx-auto box-border min-w-0',
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   'border-t border-brand-border bg-brand-card shadow-[0_-4px_24px_rgba(0,0,0,0.08)]',
   CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS,
 ].join(' ');
 
-export const customerMenuBottomBarRowClass = `flex ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-3 px-4`;
+export const customerMenuBottomBarRowClass = `flex w-full min-w-0 ${CUSTOMER_MENU_BOTTOM_BAR_HEIGHT_CLASS} items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4`;
 
-export const customerMenuBottomBarSummarySlotClass = 'flex min-w-0 flex-1 items-center';
+export const customerMenuBottomBarSummarySlotClass =
+  'flex min-w-0 flex-1 items-center overflow-hidden';
 
-export const customerMenuBottomBarActionSlotClass = 'shrink-0';
+export const customerMenuBottomBarActionSlotClass = 'min-w-0 shrink-0';
 
 /** Icon + text block spacing (draft cart / ordered bag). */
 export const customerMenuBottomBarIconGapClass = 'gap-4';
@@ -46,7 +50,7 @@ export function formatCustomerMenuFooterBadgeCount(count: number): string {
 }
 
 const customerMenuBottomBarPrimaryActionBaseClass =
-  `inline-flex h-10 shrink-0 items-center justify-center rounded-lg px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
+  `inline-flex h-10 max-w-full shrink-0 items-center justify-center rounded-lg px-3 sm:px-4 ${CUSTOMER_MENU_TYPE.footerPrimaryAction}`;
 
 export const customerMenuBottomBarPrimaryActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;

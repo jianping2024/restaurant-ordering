@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ButtonHTMLAttributes, ComponentProps, forwardRef } from 'react';
+import { Spinner } from '@/components/ui/Spinner';
 
 export type ButtonVariant = 'gold' | 'outline' | 'ghost' | 'danger' | 'soft' | 'close';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'action';
@@ -47,15 +48,6 @@ export function buttonClasses({
   className?: string;
 }): string {
   return [baseClass, variants[variant], sizes[size], className].filter(Boolean).join(' ');
-}
-
-function ButtonSpinner() {
-  return (
-    <svg className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  );
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -109,7 +101,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         </span>
         {loading ? (
           <span className="pointer-events-none absolute inset-0 inline-flex items-center justify-center">
-            <ButtonSpinner />
+            <Spinner />
           </span>
         ) : null}
       </button>

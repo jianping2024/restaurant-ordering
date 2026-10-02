@@ -35,12 +35,17 @@ import type { UILanguage } from '@/lib/i18n';
 /**
  * Sole kitchen workbench row swipe: `react-swipeable-list` Type.ANDROID.
  * Config lives only on `SwipeableListItem` (no DIY pointer machine; no parallel gesture helper).
- * Threshold is a fraction of row width — keep low for wide kitchen panes (~old 88px feel).
+ * Threshold / maxSwipe are fractions of row width — keep threshold low for wide panes;
+ * maxSwipe must still fit the sole「备餐」cue on a phone-wide row (~≥5.5rem reveal).
  */
 const KITCHEN_SWIPE_THRESHOLD = 0.12;
-const KITCHEN_SWIPE_MAX = 0.2;
+const KITCHEN_SWIPE_MAX = 0.28;
 const KITCHEN_SWIPE_START_PX = 12;
 const KITCHEN_SCROLL_START_PX = 12;
+
+/** Sole right-swipe prep cue chrome — fills the revealed strip; gold + on-gold (never brand-ink). */
+const KITCHEN_SWIPE_PREP_CUE_CLASS =
+  'flex h-full w-full items-center justify-center bg-brand-gold px-3 text-xl font-semibold text-brand-on-gold';
 
 type PaneView = 'table' | 'dish';
 
@@ -190,9 +195,7 @@ function KitchenBoardLineRow({
   const leadingActions = canSwipePrep ? (
     <LeadingActions>
       <SwipeAction destructive={false} onClick={onSwipePrep}>
-        <span className="flex h-full min-w-[5.5rem] items-center justify-center bg-brand-gold px-4 text-xl font-semibold text-brand-ink">
-          {t.prep}
-        </span>
+        <span className={KITCHEN_SWIPE_PREP_CUE_CLASS}>{t.prep}</span>
       </SwipeAction>
     </LeadingActions>
   ) : undefined;

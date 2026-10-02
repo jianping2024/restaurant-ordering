@@ -134,12 +134,6 @@ export function byItemSplitTargetQty(
   return Math.max(0, Number(row.item.qty) || 0);
 }
 
-/** Limited rows with nothing billable beyond the free allowance skip by-item split. */
-export function isByItemSplittableBillableRow(row: BillableSessionItem): boolean {
-  if (isBuffetBaseItem(row.item)) return true;
-  return byItemSplitTargetQty(row) > 0;
-}
-
 /** Optional chargeable fields for display rows derived from a billable catalog row. */
 export function chargeableFieldsFromBillableRow(
   row: Pick<BillableSessionItem, 'chargeableQty' | 'chargeableUnitPrice'>,
@@ -349,15 +343,16 @@ export function sumBillableNonBuffetTotal(orders: Order[]): number {
 }
 
 /**
- * Sole gate: row has money to collect (incl. sushi limited overage).
- * Used for waiter 收费/免费 banding and for guest/cashier paper lines.
+ * Sole money-line gate: row has money to collect (incl. sushi limited overage).
+ * Used for paper / checkout detail / by-item pool / waiter 收费·免费 banding.
+ * Kitchen tickets and floor「已点」stay on {@link buildBillableSessionItems}.
  */
 export function isBillableSessionRowOnPaper(row: BillableSessionItem): boolean {
   return billableLineAmount(row) > 0;
 }
 
 /**
- * Sole catalog for pre_bill / order_receipt / fiscal invoice lines.
+ * Sole catalog for pre_bill / order_receipt / fiscal / checkout screen lines.
  * Omits €0 rows (free allowance / price-0 with no overage); kitchen tickets stay on
  * {@link buildBillableSessionItems}.
  */

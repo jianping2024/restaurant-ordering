@@ -113,6 +113,58 @@ describe('buildBillSplitOrderLines', () => {
     assert.equal(splitTotal, sumBillableSessionTotal(orders));
   });
 
+  it('omits unlimited price-0 free dishes from by-item pool', () => {
+    const orders = [
+      {
+        id: 'o1',
+        status: 'pending',
+        items: [
+          {
+            id: 'buffet:b1',
+            kind: 'buffet_base',
+            buffet_id: 'b1',
+            adult_count: 1,
+            child_count: 0,
+            adult_unit_price: 17.95,
+            child_unit_price: 10,
+            name: 'Buffet',
+            name_pt: 'Buffet',
+            qty: 1,
+            price: 17.95,
+            emoji: '',
+            item_status: 'done',
+          },
+          {
+            id: 'free',
+            name: 'Free roll',
+            name_pt: 'Free roll',
+            qty: 5,
+            price: 0,
+            emoji: '🍣',
+            item_status: 'pending',
+          },
+          {
+            id: 'drink',
+            name: 'Cola',
+            name_pt: 'Cola',
+            qty: 1,
+            price: 2,
+            emoji: '🥤',
+            item_status: 'pending',
+          },
+        ],
+      },
+    ] as Order[];
+
+    assert.equal(buildBillSplitOrderLines(orders).length, 3);
+    const pool = buildByItemSplitOrderLines(orders);
+    assert.deepEqual(
+      pool.map((line) => line.id).sort(),
+      ['buffet:b1', 'drink'].sort(),
+    );
+    assert.ok(!pool.some((line) => line.id === 'free'));
+  });
+
   it('splits only chargeable qty for limited sushi (not physical qty)', () => {
     const orders = [
       {

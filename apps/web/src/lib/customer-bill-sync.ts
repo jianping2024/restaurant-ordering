@@ -28,8 +28,9 @@ export function isBillOrdersComplete(displayed: Order[], fresh: Order[]): boolea
 }
 
 /**
- * Bill-page read model: detail catalog (physical qty) vs by-item split (spec.lineQty authority).
- * Both derive from {@link buildBillableSessionItems} — no parallel qty rules.
+ * Bill-page read model: full catalog (`orderLines`, occupancy/feedback) vs by-item money pool
+ * (`splitOrderLines` / `lineSpecs` — paper gate). Screen bill details use
+ * `checkoutLinesFromOrders` (same paper gate). Totals via {@link sumBillableSessionTotal}.
  */
 export function deriveBillView(orders: Order[]) {
   const orderLines = buildBillSplitOrderLines(orders);

@@ -1,6 +1,6 @@
 import {
   billableLineAmount,
-  buildBillableSessionItems,
+  buildPaperBillableSessionItems,
   chargeableFieldsFromBillableRow,
 } from '@/lib/billable-session-lines';
 import { formatLocalizedMenuItemLabel, resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
@@ -21,13 +21,16 @@ export type CheckoutDisplayLine = {
   chargeableUnitPrice?: number;
 };
 
-/** Billable lines for checkout detail (matches receipt enqueue aggregation). */
+/**
+ * Sole checkout / bill / order-history money lines — same catalog as paper
+ * ({@link buildPaperBillableSessionItems}: omits €0 free rows).
+ */
 export function checkoutLinesFromOrders(
   orders: Order[],
   lang: UILanguage,
   itemCodeByMenuId: Record<string, string> = {},
 ): CheckoutDisplayLine[] {
-  return buildBillableSessionItems(orders).map((row) => {
+  return buildPaperBillableSessionItems(orders).map((row) => {
     const { key, item } = row;
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = isBuffetBaseItem(item)

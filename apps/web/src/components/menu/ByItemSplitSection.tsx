@@ -41,13 +41,22 @@ export function ByItemSplitSection({
   onRememberConsumerName,
   progress,
 }: Props) {
-  const { expandedKey, isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(
-    lineSpecs,
-    byItemAllocations,
-  );
+  const {
+    expandedKey,
+    holdWhileEditing,
+    isLineExpanded,
+    toggleLineExpanded,
+    onExpandedCardFocusIn,
+    onExpandedCardFocusOut,
+  } = useByItemLineExpansion(lineSpecs, byItemAllocations);
   const prevExpandedKeyRef = useRef<string | null | undefined>(undefined);
 
   useLayoutEffect(() => {
+    // Do not scroll while the open card is mid-edit — that fights the soft keyboard.
+    if (holdWhileEditing) {
+      prevExpandedKeyRef.current = expandedKey;
+      return;
+    }
     if (!expandedKey || expandedKey === prevExpandedKeyRef.current) {
       prevExpandedKeyRef.current = expandedKey;
       return;
@@ -57,7 +66,7 @@ export function ByItemSplitSection({
       `[data-by-item-line-key="${CSS.escape(expandedKey)}"]`,
     );
     card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [expandedKey]);
+  }, [expandedKey, holdWhileEditing]);
 
   const orderLineByKey = useMemo(
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),
@@ -65,7 +74,11 @@ export function ByItemSplitSection({
   );
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      onFocusCapture={onExpandedCardFocusIn}
+      onBlurCapture={onExpandedCardFocusOut}
+    >
       {progress.total > 0 ? (
         <div className="bg-brand-card border border-brand-border rounded-xl p-3.5">
           <div className="flex items-center justify-between mb-2">

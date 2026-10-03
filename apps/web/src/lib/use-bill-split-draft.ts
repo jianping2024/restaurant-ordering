@@ -21,11 +21,13 @@ import {
 } from '@/lib/bill-split-by-item';
 import {
   billSplitDraftAuthorityKey,
+  billSplitHasServerItemShares,
   billSplitLocalDraftOwnerKey,
   clearBillSplitLocalDraft,
   loadBillSplitLocalDraft,
   mayPersistBillSplitLocalDraft,
   resolveBillSplitDraftHydrateAction,
+  resolveByItemLocalDraftApplyAction,
   saveBillSplitLocalDraft,
   shouldRestoreBillSplitLocalDraft,
   type BillSplitLocalDraft,
@@ -410,26 +412,16 @@ export function useBillSplitDraft(params: {
       submitted,
       collectedPaymentCount: collectedPayments.length,
     });
+    const action = resolveByItemLocalDraftApplyAction({
+      canRestore,
+      hasServerItemShares: billSplitHasServerItemShares(existingSplit),
+      hasByItemLocalDraft: draft?.splitMode === 'by_item',
+    });
 
-    // Paid/continuation persons are authoritative — never let a stale local draft wipe them.
-    if (
-      !canRestore ||
-      existingSplit?.persons?.some((person) => (person.item_shares?.length ?? 0) > 0)
-    ) {
-      byItemLocalAppliedRef.current = true;
-      setByItemAllocations({});
-      return;
-    }
-
-    if (draft?.splitMode === 'by_item') {
-      byItemLocalAppliedRef.current = true;
-      setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
-      return;
-    }
-
-    // No by_item draft for this session — drop any leftover rows before persist can save them.
     byItemLocalAppliedRef.current = true;
-    setByItemAllocations({});
+    // leave_reconcile: guest|staff sole hydrate — never setByItemAllocations({}) here.
+    if (action !== 'apply_local' || !draft) return;
+    setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
   }, [
     sessionId,
     storageReady,

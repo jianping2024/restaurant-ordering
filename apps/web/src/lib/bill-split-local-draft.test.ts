@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   billSplitDraftAuthorityKey,
+  billSplitHasServerItemShares,
   billSplitLocalDraftOwnerKey,
   mayPersistBillSplitLocalDraft,
   parseBillSplitLocalDraft,
   resolveBillSplitDraftHydrateAction,
+  resolveByItemLocalDraftApplyAction,
   shouldRestoreBillSplitLocalDraft,
 } from './bill-split-local-draft';
 import type { BillSplit } from '../types';
@@ -256,6 +258,88 @@ describe('resolveBillSplitDraftHydrateAction', () => {
         canRestore: true,
       }),
       'reset_no_session',
+    );
+  });
+});
+
+describe('resolveByItemLocalDraftApplyAction', () => {
+  it('leaves reconcile when collected/partial resume cannot restore', () => {
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: false,
+        hasServerItemShares: true,
+        hasByItemLocalDraft: true,
+      }),
+      'leave_reconcile',
+    );
+  });
+
+  it('leaves reconcile when server persons already have item_shares', () => {
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: true,
+        hasServerItemShares: true,
+        hasByItemLocalDraft: true,
+      }),
+      'leave_reconcile',
+    );
+  });
+
+  it('applies local only when restorable and no server shares', () => {
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: true,
+        hasServerItemShares: false,
+        hasByItemLocalDraft: true,
+      }),
+      'apply_local',
+    );
+  });
+
+  it('leaves reconcile when restorable but no local by_item draft', () => {
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: true,
+        hasServerItemShares: false,
+        hasByItemLocalDraft: false,
+      }),
+      'leave_reconcile',
+    );
+  });
+});
+
+describe('billSplitHasServerItemShares', () => {
+  it('detects persons with item_shares', () => {
+    assert.equal(billSplitHasServerItemShares(null), false);
+    assert.equal(
+      billSplitHasServerItemShares({
+        id: 's',
+        restaurant_id: 'r',
+        session_id: 'sess',
+        table_id: 't',
+        status: 'confirmed',
+        split_mode: 'by_item',
+        persons: [{ name: 'A', item_shares: [{ key: 'l1', qty_num: 1, qty_den: 1 }] }],
+        result: [],
+        created_at: '',
+        updated_at: '',
+      } as BillSplit),
+      true,
+    );
+    assert.equal(
+      billSplitHasServerItemShares({
+        id: 's',
+        restaurant_id: 'r',
+        session_id: 'sess',
+        table_id: 't',
+        status: 'confirmed',
+        split_mode: 'by_item',
+        persons: [{ name: 'A', item_shares: [] }],
+        result: [],
+        created_at: '',
+        updated_at: '',
+      } as BillSplit),
+      false,
     );
   });
 });

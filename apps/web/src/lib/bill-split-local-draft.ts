@@ -251,3 +251,29 @@ export function resolveBillSplitDraftHydrateAction(params: {
   if (!params.canRestore) return 'apply_server';
   return 'apply_local_or_server';
 }
+
+/** True when server persons already carry by-item shares (continuation / paid floors). */
+export function billSplitHasServerItemShares(
+  existingSplit: BillSplit | null | undefined,
+): boolean {
+  return Boolean(
+    existingSplit?.persons?.some((person) => (person.item_shares?.length ?? 0) > 0),
+  );
+}
+
+/**
+ * Sole by-item working-map local-draft apply decision.
+ * Server shares / non-restorable → leave guest|staff reconcile alone (never clear).
+ * Restorable + local by_item draft → apply once; else leave reconcile alone.
+ */
+export type ByItemLocalDraftApplyAction = 'leave_reconcile' | 'apply_local';
+
+export function resolveByItemLocalDraftApplyAction(params: {
+  canRestore: boolean;
+  hasServerItemShares: boolean;
+  hasByItemLocalDraft: boolean;
+}): ByItemLocalDraftApplyAction {
+  if (!params.canRestore || params.hasServerItemShares) return 'leave_reconcile';
+  if (params.hasByItemLocalDraft) return 'apply_local';
+  return 'leave_reconcile';
+}

@@ -9,6 +9,7 @@ import {
   MENU_ITEM_CARD_FLAVOR_SLOT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
+  MENU_ITEM_CARD_PRICE_CLASS,
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
@@ -25,6 +26,7 @@ describe('menuItemCardLayout', () => {
     assert.match(MENU_ITEM_CARD_BODY_CLASS, /h-\[var\(--mesa-menu-card-thumb\)\]/);
     assert.match(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /justify-between/);
     assert.doesNotMatch(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /6\.75rem/);
+    assert.equal(MENU_ITEM_CARD_PRICE_CLASS, 'min-w-0 truncate');
     assert.equal(MENU_ITEM_CARD_ACTION_SLOT_CLASS, 'flex shrink-0 items-center justify-end');
   });
 

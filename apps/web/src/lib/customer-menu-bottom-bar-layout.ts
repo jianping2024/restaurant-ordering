@@ -36,9 +36,13 @@ export const customerMenuBottomBarIconGapClass = 'gap-4';
 
 export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-ink';
 
-/** Sole qty badge chip on footer icons (cart / ordered / round). */
+/**
+ * Sole qty badge chip on footer icons (cart / ordered / round).
+ * Sized for `customerMenuBottomBarIconClass` (h-8): h-5 / text-[11px] so
+ * single digits and `99+` read clearly against the outline icon.
+ */
 export const customerMenuBottomBarCountBadgeClass =
-  'absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold leading-none text-brand-on-gold';
+  'absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-gold px-1 text-[11px] font-bold leading-none text-brand-on-gold';
 
 /**
  * Sole footer badge count label — caps at 99+ so long counts never stretch the bar.

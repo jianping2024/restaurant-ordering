@@ -101,6 +101,10 @@ describe('customer menu bottom bar visual tokens', () => {
     assert.match(customerMenuBottomBarPrimaryActionClass, new RegExp(CUSTOMER_MENU_TYPE.footerPrimaryAction));
     assert.match(customerMenuBottomBarPrimaryActionClass, /text-base/);
     assert.match(customerMenuBottomBarCountBadgeClass, /rounded-full/);
+    assert.match(customerMenuBottomBarCountBadgeClass, /h-5/);
+    assert.match(customerMenuBottomBarCountBadgeClass, /min-w-5/);
+    assert.match(customerMenuBottomBarCountBadgeClass, /text-\[11px\]/);
+    assert.doesNotMatch(customerMenuBottomBarCountBadgeClass, /h-\[18px\]|text-\[10px\]/);
   });
 });
 

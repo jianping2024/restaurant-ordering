@@ -40,8 +40,11 @@ export const customerMenuDualPaneRootClass =
 /**
  * Sole category nav shell (guest page + staff embedded): fills remaining height;
  * left rail and right catalog each scroll independently (overscroll contained).
+ * `min-w-0 w-full overflow-hidden` keeps the row inside the shell width so the
+ * catalog host never measures past the viewport (false 2-col / clipped +).
  */
-export const customerMenuCategoryNavShellClass = 'flex min-h-0 flex-1';
+export const customerMenuCategoryNavShellClass =
+  'flex min-h-0 min-w-0 w-full flex-1 overflow-hidden';
 
 /** Sole left top-category rail scrollport. */
 export const customerMenuCategoryRailClass = [
@@ -52,9 +55,10 @@ export const customerMenuCategoryRailClass = [
 /**
  * Sole right catalog scrollport (pair with `CUSTOMER_MENU_ITEM_LIST_HOST_CLASS`
  * on the same element for container-query columns).
+ * Vertical scroll only — no horizontal bleed past the dual-pane shell.
  */
 export const customerMenuCatalogPaneClass =
-  'min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-4';
+  'min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 py-4';
 
 /**
  * Sole subcategory chip strip sticky chrome (right catalog pane only).

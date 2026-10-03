@@ -10,7 +10,6 @@ import {
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
   normalizeRational,
-  rationalGte,
   rationalsEqual,
   compareRationals,
   type Rational,
@@ -330,20 +329,37 @@ export function byItemRowEditLock(params: {
     };
   }
 
+  const mapKey = lockedPersonLineKey(lineKey, name, row.partyId);
+
   // Paid-frozen row: exact lock — no qty edit, no remove, no merge.
+  // Prefer server lock mins so a drifted draft cannot redefine the floor.
   if (row.paidLocked) {
+    if (spec.mode === 'buffet') {
+      const mins = locks.buffet.get(mapKey) ?? {
+        adults: parseBuffetHeadcountInput(row.adultQty),
+        children: parseBuffetHeadcountInput(row.childQty),
+      };
+      return {
+        nameReadOnly: true,
+        minMenuQty: null,
+        minBuffetAdults: mins.adults,
+        minBuffetChildren: mins.children,
+        removable: false,
+        qtyReadOnly: true,
+      };
+    }
+    const fromLocks = locks.menu.get(mapKey);
     const parsed = parseConsumerRowQty(row);
     return {
       nameReadOnly: true,
-      minMenuQty: spec.mode === 'menu' ? parsed : null,
-      minBuffetAdults: spec.mode === 'buffet' ? parseBuffetHeadcountInput(row.adultQty) : 0,
-      minBuffetChildren: spec.mode === 'buffet' ? parseBuffetHeadcountInput(row.childQty) : 0,
+      minMenuQty: fromLocks ?? parsed,
+      minBuffetAdults: 0,
+      minBuffetChildren: 0,
       removable: false,
       qtyReadOnly: true,
     };
   }
 
-  const mapKey = lockedPersonLineKey(lineKey, name, row.partyId);
   if (spec.mode === 'buffet') {
     const mins = locks.buffet.get(mapKey) ?? { adults: 0, children: 0 };
     const hasLock = mins.adults > 0 || mins.children > 0;
@@ -651,18 +667,7 @@ export function validateCheckoutContinuation(params: {
   return { ok: true };
 }
 
-/** Clamp menu row qty so it cannot drop below a locked floor (empty qty counts as 0). */
-export function clampMenuRowToMinQty(
-  row: ByItemConsumerRow,
-  minQty: Rational | null,
-): ByItemConsumerRow {
-  if (!minQty || minQty.num <= 0) return row;
-  const parsed = parseConsumerRowQty(row);
-  if (parsed && rationalGte(parsed, minQty)) return row;
-  return { ...row, ...rationalToRowQtyFields(minQty) };
-}
-
-/** Apply a draft patch while the guest is typing (no paid-qty floor yet). */
+/** Apply a draft patch while the guest is typing (qtyReadOnly rows reject qty patches). */
 export function applyByItemConsumerRowEdit(params: {
   row: ByItemConsumerRow;
   patch: Partial<ByItemConsumerRow>;
@@ -677,6 +682,16 @@ export function applyByItemConsumerRowEdit(params: {
   });
 
   let next: ByItemConsumerRow = { ...row, ...patch };
+  if (lockBefore.qtyReadOnly) {
+    next = {
+      ...next,
+      qtyWhole: row.qtyWhole,
+      qtyNum: row.qtyNum,
+      qtyDen: row.qtyDen,
+      adultQty: row.adultQty,
+      childQty: row.childQty,
+    };
+  }
   if (
     lockBefore.nameReadOnly
     && patch.name !== undefined
@@ -688,7 +703,7 @@ export function applyByItemConsumerRowEdit(params: {
   return next;
 }
 
-/** Commit one row after edit (blur/submit): enforce paid-allocation floors. */
+/** Commit one row after edit (blur/submit): exact restore when qtyReadOnly. */
 export function commitByItemConsumerRowEdit(params: {
   row: ByItemConsumerRow;
   ctx: ByItemLineEditContext;
@@ -700,10 +715,18 @@ export function commitByItemConsumerRowEdit(params: {
     locks: ctx.locks,
     spec: ctx.spec,
   });
+  if (!lock.qtyReadOnly) return row;
   if (ctx.spec.mode === 'buffet') {
-    return clampBuffetRowToMinCounts(row, lock.minBuffetAdults, lock.minBuffetChildren);
+    return {
+      ...row,
+      adultQty: lock.minBuffetAdults > 0 ? String(lock.minBuffetAdults) : '',
+      childQty: lock.minBuffetChildren > 0 ? String(lock.minBuffetChildren) : '',
+    };
   }
-  return clampMenuRowToMinQty(row, lock.minMenuQty);
+  if (lock.minMenuQty) {
+    return { ...row, ...rationalToRowQtyFields(lock.minMenuQty) };
+  }
+  return row;
 }
 
 /** Commit every payer row on one dish line (blur/submit). */
@@ -750,22 +773,4 @@ export function applyByItemConsumerRowRemove(params: {
   if (!lock.removable || rows.length <= 1) return rows;
 
   return removeByItemConsumerRow(rows, rowId, { buffet: ctx.spec.mode === 'buffet' });
-}
-
-/** Clamp buffet headcounts to locked floors. */
-export function clampBuffetRowToMinCounts(
-  row: ByItemConsumerRow,
-  minAdults: number,
-  minChildren: number,
-): ByItemConsumerRow {
-  const adultN = Number((row.adultQty ?? '').trim() || '0');
-  const childN = Number((row.childQty ?? '').trim() || '0');
-  const adults = Number.isFinite(adultN) ? Math.max(minAdults, adultN) : minAdults;
-  const children = Number.isFinite(childN) ? Math.max(minChildren, childN) : minChildren;
-  if (adults === adultN && children === childN) return row;
-  return {
-    ...row,
-    adultQty: adults > 0 ? String(adults) : '',
-    childQty: children > 0 ? String(children) : '',
-  };
 }

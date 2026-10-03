@@ -207,6 +207,7 @@ function MenuByItemDishAllocator({
                 row={row}
                 labels={labels}
                 overAllocated={qtyOver}
+                disabled={rowLock.qtyReadOnly}
                 onChange={(patch) => updateRow(row.id, patch)}
                 onCommit={() => commitRow(row.id)}
               />

@@ -214,3 +214,46 @@ export function groupLinesByTable(lines: KitchenBoardLine[]): Array<{
   }
   return Array.from(byTable.values());
 }
+
+/** Workbench group header badge + tri-state: order lines only (never qty / table count). */
+export type GroupSelectionFrac = {
+  selected: number;
+  total: number;
+  state: 'none' | 'partial' | 'all';
+};
+
+/**
+ * Sole workbench group selection tally for by-table / by-dish headers.
+ * `total` = prepEligible lines in the group; `selected` = those also in `selectedKeys`.
+ */
+export function groupSelectionFrac(
+  lines: readonly KitchenBoardLine[],
+  selectedKeys: ReadonlySet<string>,
+): GroupSelectionFrac {
+  let total = 0;
+  let selected = 0;
+  for (const line of lines) {
+    if (!line.prepEligible) continue;
+    total += 1;
+    if (selectedKeys.has(line.key)) selected += 1;
+  }
+  const state: GroupSelectionFrac['state'] =
+    total === 0 || selected === 0 ? 'none' : selected >= total ? 'all' : 'partial';
+  return { selected, total, state };
+}
+
+/** Sole workbench group select-all toggle (prepEligible lines only). */
+export function toggleGroupPrepSelection(
+  lines: readonly KitchenBoardLine[],
+  prev: ReadonlySet<string>,
+): Set<string> {
+  const next = new Set(prev);
+  const { state } = groupSelectionFrac(lines, prev);
+  const clear = state === 'all';
+  for (const line of lines) {
+    if (!line.prepEligible) continue;
+    if (clear) next.delete(line.key);
+    else next.add(line.key);
+  }
+  return next;
+}

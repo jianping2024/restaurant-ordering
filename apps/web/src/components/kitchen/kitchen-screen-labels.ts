@@ -22,6 +22,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: string;
     selectAll: string;
     deselectAll: string;
+    /** Aria for group header n/m (order-line counts only). */
+    groupSelectionAria: string;
     noLines: string;
     statusPending: string;
     statusCooking: string;
@@ -73,6 +75,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: '勾选后点击打印',
     selectAll: '全选',
     deselectAll: '取消全选',
+    groupSelectionAria: '已选 {n} / {m} 行',
     noLines: '暂无待备餐菜品',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.zh.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.zh.cooking,
@@ -118,6 +121,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Select lines, then print',
     selectAll: 'Select all',
     deselectAll: 'Deselect all',
+    groupSelectionAria: 'Selected {n} / {m} lines',
     noLines: 'No dishes waiting',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.en.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.en.cooking,
@@ -163,6 +167,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Selecione e imprima',
     selectAll: 'Selecionar tudo',
     deselectAll: 'Desmarcar',
+    groupSelectionAria: 'Selecionadas {n} / {m} linhas',
     noLines: 'Sem pratos a preparar',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.pt.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.pt.cooking,
@@ -208,6 +213,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Seleccione e imprima',
     selectAll: 'Seleccionar todo',
     deselectAll: 'Deseleccionar',
+    groupSelectionAria: 'Seleccionadas {n} / {m} lineas',
     noLines: 'Sin platos pendientes',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.es.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.es.cooking,
@@ -253,6 +259,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Selectionnez puis imprimez',
     selectAll: 'Tout select.',
     deselectAll: 'Tout deselect.',
+    groupSelectionAria: 'Selection {n} / {m} lignes',
     noLines: 'Aucun plat en attente',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.fr.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.fr.cooking,
@@ -298,6 +305,7 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Zeilen waehlen, dann drucken',
     selectAll: 'Alles',
     deselectAll: 'Nichts',
+    groupSelectionAria: 'Gewaehlt {n} / {m} Zeilen',
     noLines: 'Keine offenen Gerichte',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.de.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.de.cooking,

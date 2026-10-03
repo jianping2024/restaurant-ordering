@@ -4,8 +4,10 @@ import {
   aggregateLinesByDish,
   collectStationBoardLines,
   groupBottomRailByStatus,
+  groupSelectionFrac,
   lineWaitMinutes,
   partitionStationLines,
+  toggleGroupPrepSelection,
   type KitchenBoardLine,
 } from '@/components/kitchen/kitchen-board-lines';
 import type { Order, OrderItem } from '@/types';
@@ -47,6 +49,75 @@ function stubLine(partial: {
     orderedAtMs: Date.parse('2026-08-10T12:00:00.000Z'),
   };
 }
+
+describe('groupSelectionFrac', () => {
+  it('counts prepEligible order lines only (not qty)', () => {
+    const a = stubLine({
+      key: 'a',
+      tableId: 't1',
+      tableDisplay: '90',
+      menuItemId: 'm1',
+      qty: 9,
+    });
+    const b = stubLine({
+      key: 'b',
+      tableId: 't1',
+      tableDisplay: '90',
+      menuItemId: 'm1',
+      qty: 1,
+    });
+    const c = stubLine({
+      key: 'c',
+      tableId: 't2',
+      tableDisplay: '91',
+      menuItemId: 'm1',
+      qty: 2,
+    });
+    const cooking: KitchenBoardLine = {
+      ...c,
+      key: 'cook',
+      prepEligible: false,
+      printEligible: true,
+      effectiveStatus: 'cooking',
+    };
+    assert.deepEqual(groupSelectionFrac([a, b, c, cooking], new Set(['a'])), {
+      selected: 1,
+      total: 3,
+      state: 'partial',
+    });
+    assert.deepEqual(groupSelectionFrac([a, b, c], new Set()), {
+      selected: 0,
+      total: 3,
+      state: 'none',
+    });
+    assert.deepEqual(groupSelectionFrac([a, b, c], new Set(['a', 'b', 'c'])), {
+      selected: 3,
+      total: 3,
+      state: 'all',
+    });
+  });
+
+  it('toggleGroupPrepSelection selects then clears prep lines only', () => {
+    const a = stubLine({
+      key: 'a',
+      tableId: 't1',
+      tableDisplay: '90',
+      menuItemId: 'm1',
+      qty: 1,
+    });
+    const b = stubLine({
+      key: 'b',
+      tableId: 't1',
+      tableDisplay: '90',
+      menuItemId: 'm2',
+      qty: 1,
+    });
+    const on = toggleGroupPrepSelection([a, b], new Set());
+    assert.deepEqual([...on].sort(), ['a', 'b']);
+    const off = toggleGroupPrepSelection([a, b], on);
+    assert.equal(off.size, 0);
+  });
+});
 
 describe('aggregateLinesByDish', () => {
   it('counts unique tables, not repeated same-table lines', () => {

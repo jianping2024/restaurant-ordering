@@ -8,10 +8,10 @@ import {
 } from './bill-split-by-item';
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
 import {
-  defaultExpandedLineKey,
+  findFirstIncompleteLineKey,
   isByItemLineExpanded,
-  seedInitialLineExpansion,
-  toggleByItemLineExpansion,
+  reconcileByItemExpandedLineKey,
+  toggleByItemExpandedLineKey,
 } from './by-item-line-expansion';
 
 function row(
@@ -28,6 +28,23 @@ function row(
   };
 }
 
+function buffetRow(
+  id: string,
+  name: string,
+  adults: string,
+  children = '0',
+): ByItemConsumerRow {
+  return {
+    id,
+    name,
+    qtyWhole: '',
+    qtyNum: '',
+    qtyDen: '',
+    adultQty: adults,
+    childQty: children,
+  };
+}
+
 function menuSpec(key: string, lineQty: number): ByItemLineSpec {
   return {
     mode: 'menu',
@@ -38,55 +55,114 @@ function menuSpec(key: string, lineQty: number): ByItemLineSpec {
   };
 }
 
+function buffetSpec(key: string): ByItemLineSpec {
+  return {
+    mode: 'buffet',
+    key,
+    lineTotal: 30,
+    adults: 2,
+    children: 0,
+    adultUnitPrice: 15,
+    childUnitPrice: 0,
+  };
+}
+
 describe('by-item-line-expansion', () => {
+  const headcount = buffetSpec('buffet-headcount');
   const lineA = menuSpec('line-a', 4);
   const lineB = menuSpec('line-b', 2);
-  const lineSpecs = [lineA, lineB];
+  const lineSpecs = [headcount, lineA, lineB];
 
-  it('seeds the first incomplete line on initial render', () => {
+  it('seeds the first incomplete line (skips completed headcount)', () => {
     const allocations = {
+      'buffet-headcount': [buffetRow('h1', 'Jack', '2')],
       'line-a': [row('1', 'Jack', { whole: '2' }), row('2', 'Tom', { whole: '1' })],
       'line-b': [row('3', '', {})],
     };
-    const seeded = seedInitialLineExpansion(lineSpecs, allocations, {});
-    assert.equal(defaultExpandedLineKey(lineSpecs, allocations), 'line-a');
+    assert.equal(
+      isByItemLineComplete(
+        getByItemLineStatusFromRows(allocations['buffet-headcount'], headcount),
+      ),
+      true,
+    );
+    assert.equal(findFirstIncompleteLineKey(lineSpecs, allocations), 'line-a');
+    const seeded = reconcileByItemExpandedLineKey(lineSpecs, allocations, undefined);
+    assert.equal(seeded, 'line-a');
+    assert.equal(isByItemLineExpanded('buffet-headcount', seeded), false);
     assert.equal(isByItemLineExpanded('line-a', seeded), true);
-    assert.equal(isByItemLineExpanded('line-b', seeded), false);
   });
 
-  it('does not re-seed after the user toggles expansion', () => {
-    const allocations = {
+  it('advances off a completed line when allocations update', () => {
+    const incomplete = {
+      'buffet-headcount': [buffetRow('h1', 'Jack', '2')],
+      'line-a': [row('1', 'Jack', { whole: '2' }), row('2', 'Tom', { whole: '1' })],
+      'line-b': [row('3', '', {})],
+    };
+    const onA = reconcileByItemExpandedLineKey(lineSpecs, incomplete, undefined);
+    assert.equal(onA, 'line-a');
+
+    const completeA = {
+      ...incomplete,
       'line-a': [row('1', 'Jack', { whole: '4' })],
+    };
+    const advanced = reconcileByItemExpandedLineKey(lineSpecs, completeA, onA);
+    assert.equal(advanced, 'line-b');
+    assert.equal(isByItemLineExpanded('line-a', advanced), false);
+  });
+
+  it('keeps a manually opened incomplete line that is not first', () => {
+    const allocations = {
+      'buffet-headcount': [buffetRow('h1', '', '')],
+      'line-a': [row('1', '', {})],
       'line-b': [row('2', '', {})],
     };
-    const collapsed = toggleByItemLineExpansion('line-a', { 'line-a': true }, lineSpecs, allocations);
-    assert.equal(isByItemLineExpanded('line-a', collapsed), false);
-
-    const reseeded = seedInitialLineExpansion(lineSpecs, allocations, collapsed);
-    assert.deepEqual(reseeded, collapsed);
+    const openedB = toggleByItemExpandedLineKey('line-b', null, lineSpecs, allocations);
+    assert.equal(openedB, 'line-b');
+    const kept = reconcileByItemExpandedLineKey(lineSpecs, allocations, openedB);
+    assert.equal(kept, 'line-b');
   });
 
-  it('stays expanded when typing the final consumer name completes the line', () => {
+  it('keeps null after the user collapses an incomplete line', () => {
+    const allocations = {
+      'buffet-headcount': [buffetRow('h1', '', '')],
+      'line-a': [row('1', '', {})],
+      'line-b': [row('2', '', {})],
+    };
+    const collapsed = toggleByItemExpandedLineKey('line-a', 'line-a', lineSpecs, allocations);
+    assert.equal(collapsed, null);
+    assert.equal(reconcileByItemExpandedLineKey(lineSpecs, allocations, collapsed), null);
+  });
+
+  it('opens nothing when every line is complete', () => {
+    const allocations = {
+      'buffet-headcount': [buffetRow('h1', 'Jack', '2')],
+      'line-a': [row('1', 'Jack', { whole: '4' })],
+      'line-b': [row('2', 'Tom', { whole: '2' })],
+    };
+    assert.equal(reconcileByItemExpandedLineKey(lineSpecs, allocations, undefined), null);
+    assert.equal(reconcileByItemExpandedLineKey(lineSpecs, allocations, 'line-a'), null);
+  });
+
+  it('advances when collapsing a completed line', () => {
+    const allocations = {
+      'buffet-headcount': [buffetRow('h1', 'Jack', '2')],
+      'line-a': [row('1', 'Jack', { whole: '4' })],
+      'line-b': [row('2', '', { whole: '1' })],
+    };
+    const next = toggleByItemExpandedLineKey('line-a', 'line-a', lineSpecs, allocations);
+    assert.equal(next, 'line-b');
+  });
+
+  it('advances when the open incomplete line becomes complete via last consumer name', () => {
     const spec = menuSpec('wine', 4);
     const specs = [spec];
     const rows = [
       row('1', 'Jack', { whole: '2' }),
       row('2', 'Tom', { whole: '1' }),
     ];
-    const incomplete = { wine: rows };
-    assert.equal(
-      isByItemLineComplete(getByItemLineStatusFromRows(incomplete.wine, spec)),
-      false,
-    );
-
     const withNewConsumer = { wine: appendByItemConsumerRow(rows, spec) };
-    assert.equal(
-      isByItemLineComplete(getByItemLineStatusFromRows(withNewConsumer.wine, spec)),
-      false,
-    );
-
-    const expanded = seedInitialLineExpansion(specs, withNewConsumer, {});
-    assert.equal(isByItemLineExpanded('wine', expanded), true);
+    const open = reconcileByItemExpandedLineKey(specs, withNewConsumer, undefined);
+    assert.equal(open, 'wine');
 
     const completedRows = withNewConsumer.wine.map((candidate) => (
       candidate.id === withNewConsumer.wine[withNewConsumer.wine.length - 1].id
@@ -98,24 +174,6 @@ describe('by-item-line-expansion', () => {
       isByItemLineComplete(getByItemLineStatusFromRows(complete.wine, spec)),
       true,
     );
-
-    const afterComplete = seedInitialLineExpansion(specs, complete, expanded);
-    assert.deepEqual(afterComplete, expanded);
-    assert.equal(isByItemLineExpanded('wine', afterComplete), true);
-  });
-
-  it('opens the next incomplete line when collapsing a completed line', () => {
-    const allocations = {
-      'line-a': [row('1', 'Jack', { whole: '4' })],
-      'line-b': [row('2', '', { whole: '1' })],
-    };
-    const next = toggleByItemLineExpansion(
-      'line-a',
-      { 'line-a': true },
-      lineSpecs,
-      allocations,
-    );
-    assert.equal(isByItemLineExpanded('line-a', next), false);
-    assert.equal(isByItemLineExpanded('line-b', next), true);
+    assert.equal(reconcileByItemExpandedLineKey(specs, complete, open), null);
   });
 });

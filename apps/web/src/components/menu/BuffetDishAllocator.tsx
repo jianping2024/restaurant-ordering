@@ -145,6 +145,7 @@ export function BuffetDishAllocator({
 
   return (
     <ByItemDishAllocatorShell
+      lineKey={spec.key}
       statusTone={statusSummary.tone}
       expanded={expanded}
       header={(

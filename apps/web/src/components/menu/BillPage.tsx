@@ -32,7 +32,7 @@ import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
 import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
-import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
+import { BillCheckoutSubmittedScreen, type ReviewableItem } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
 import { GuestConsumerNameEditChromeProvider } from '@/components/menu/guest-consumer-name-edit-chrome';
 
@@ -69,6 +69,8 @@ interface Props {
   initialFeedbackSubmitted?: boolean;
   initialFeedbackSkipped?: boolean;
   itemCodeByMenuId?: Record<string, string>;
+  /** Catalog photo per menu item id — feedback card thumb (emoji fallback). */
+  imageUrlByMenuId?: Record<string, string>;
   initialPartyMemberCount?: number;
 }
 
@@ -85,6 +87,7 @@ export function BillPage({
   initialFeedbackSubmitted = false,
   initialFeedbackSkipped = false,
   itemCodeByMenuId = {},
+  imageUrlByMenuId = {},
   initialPartyMemberCount = 0,
 }: Props) {
   const router = useRouter();
@@ -310,7 +313,7 @@ export function BillPage({
 
   const reviewableItems = useMemo(() => {
     const fallbackOrderId = orders[0]?.id ?? '';
-    const dedup = new Map<string, { menu_item_id: string; order_id: string; name: string; emoji: string; qty: number }>();
+    const dedup = new Map<string, ReviewableItem>();
     orderLines
       .filter((item) => item.item_status !== 'voided' && item.kind !== 'buffet_base')
       .forEach((item) => {
@@ -324,11 +327,12 @@ export function BillPage({
           order_id: item.order_id ?? fallbackOrderId,
           name: resolveMenuItemLocalizedName(item, lang),
           emoji: item.emoji,
+          image_url: imageUrlByMenuId[item.id] ?? null,
           qty: item.qty,
         });
       });
     return Array.from(dedup.values());
-  }, [orderLines, orders, lang]);
+  }, [orderLines, orders, lang, imageUrlByMenuId]);
 
   const feedbackReasonLabels: Record<DishFeedbackReasonKey, string> = {
     taste: t.reasonTaste,

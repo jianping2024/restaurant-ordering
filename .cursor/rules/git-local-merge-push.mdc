@@ -34,6 +34,8 @@ When the user asked to merge/land this task’s feature branch (or the task’s 
 4. Primary checkout on **`main`**: if a helper worktree is holding `main`, `git worktree remove` it first, then shell `git checkout main` in the canonical repo. **Never** call `move_agent_to_root` / `move_agent_to_cloned_root` during land (or any Mesa branch/worktree switch) — even to “go back to main”; those MCP tools still `git fetch origin <prior-branch>` and blow up / leave the chat on a deleted tree. Stay on shell + absolute paths under the canonical repo. Done only when canonical `git branch --show-current` is `main` (not detached).
 5. **Done-gate (all must pass before the user-facing report):** `git worktree list` has no feature path; `test ! -e <feature-worktree-path>`; feature branch absent; canonical `git branch --show-current` is `main` (not detached). `git worktree list` alone is a **false pass** if the folder husk remains. Stash/AGENTS conflicts on main WIP must not interrupt this gate — finish delete/assert first, then resolve WIP.
 
-6. Report only after step 5: on `main` @ `<sha>`, feature branch/worktree gone.
+6. **Stop this thread’s listen ports** (web / ops / UAT Next started for the task) — see [`local-dev-services.mdc`](./local-dev-services.mdc) “After merge / land”. Do not leave feature-UAT servers up after land. Leave local Supabase up; never kill other sessions’ ports.
 
-Skip only if the user explicitly says keep the branch/worktree.
+7. Report only after steps 5–6: on `main` @ `<sha>`, feature branch/worktree gone, this-thread ports stopped (or none started).
+
+Skip branch/worktree delete only if the user explicitly says keep them. Skip port stop only if the user explicitly says keep the server.

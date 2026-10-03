@@ -30,7 +30,7 @@ Every `skip` **must** state the blocker in one line. Prefer a weaker but real as
 
 ## Port conflicts
 
-If `:3000` / `:3001` (or the intended listen port) is already taken: **do not kill** that process. Start or reuse a **free** port and point browser + `MESA_UAT_BASE` at it. Full rule: always-on `.cursor/rules/dev-port-isolation.mdc`.
+`:3000` is reserved for local **`main`** only — feature branch / worktree UAT must use `3002+` + `MESA_UAT_BASE` even when `:3000` is free. If the intended port is already taken: **do not kill** that process; pick another free port. Full rule: always-on `.cursor/rules/dev-port-isolation.mdc`.
 
 ## Local accounts
 

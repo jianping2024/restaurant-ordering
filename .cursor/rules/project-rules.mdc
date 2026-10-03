@@ -16,7 +16,7 @@ alwaysApply: true
 7. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
 8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
 9. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
-10. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
+10. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — `:3000` = local `main` only; feature/worktree UAT → `3002+` + `MESA_UAT_BASE`; never kill occupants
 11. [`local-dev-services.mdc`](./local-dev-services.mdc) — leave an already-up stack; never auto-restart after Will stops it / aborted-shell; only stop this-thread extras; never wipe local DB or kill other sessions’ agents
 12. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 

@@ -50,4 +50,4 @@ Web listen port **`3000` is reserved for the local `main` branch** (canonical ch
 - **Feature branch / worktree:** Web `3002+` + `MESA_UAT_BASE` (never `:3000`)
 - Env override: `MESA_UAT_BASE` / `MESA_UAT_OPS_BASE` (see `scripts/mesa-local-uat.mjs`)
 
-After the task finishes, **keep** a usable stack for retest — do not tear down the only healthy web or local Supabase “because UAT ended.” See [`local-dev-services.mdc`](./local-dev-services.mdc).
+During UAT, keep a usable stack for retest. **After merge/land**, stop this thread’s listen ports (not Supabase; not other sessions) — see [`local-dev-services.mdc`](./local-dev-services.mdc).

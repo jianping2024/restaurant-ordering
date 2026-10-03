@@ -1,24 +1,35 @@
 ---
 description: >-
-  After local work, do not tear down a still-needed stack; never restart a
-  web/dev the human stopped; only stop this thread’s redundant processes;
-  never wipe local DB or kill other sessions’ agents/servers.
+  During a task keep a usable stack for UAT; after merge/land stop this
+  thread’s listen ports; never restart a web the human stopped; never wipe
+  local DB or kill other sessions’ agents.
 alwaysApply: true
 ---
 
-# Local dev services (keep usable / session hygiene)
+# Local dev services (UAT keep / post-merge stop)
 
-**测完可复测第一 — 但人停了就别再起。** Delivery or land does **not** mean tear down a localhost stack the human still needs. It also does **not** mean resurrect anything the human (or an aborted-shell notification) just stopped.
+**测时期间可复测；合进 main 后停掉本线程端口。人停了就别再起。**
 
-## Keep available (required — only when still up)
+## During the task (before land)
 
-After implement / UAT / merge in this thread, **if a healthy product web for this checkout is already listening**:
+While implementing / UAT / before merge:
 
-1. Leave it up (`npm run dev` / the port used for UAT). Leave **local Supabase** running when this thread used `npm run dev` + supabase-local.
-2. Report the live base in the closing note (`http://localhost:<port>`, `MESA_UAT_BASE` if not `:3000`).
-3. Prefer **reuse** an already-healthy server that serves this checkout over starting a disposable second instance then killing everything.
+1. Prefer **reuse** an already-healthy web that serves **this** checkout + branch over starting extras.
+2. Leave **local Supabase** running when this thread used `npm run dev` + supabase-local.
+3. Report the live base when testing (`http://localhost:<port>`, `MESA_UAT_BASE` if not `:3000`).
+4. Do **not** start a new web solely because a checklist step finished and nothing is listening.
 
-Do **not** start a new web solely because UAT/land finished and nothing is listening.
+## After merge / land (hard — no extra ask)
+
+When the user asked to **merge / 合进 main / land** and the land done-gate in [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) has passed:
+
+1. **Stop listen ports this thread started** for the task — web (`next dev` / `npm run dev|cloud|stage`), ops (`npm run dev:ops`), and any extra UAT Next (`3002+` / `.next-uat` / etc.).
+2. Confirm PID/cwd/port belong to **this** conversation (terminal metadata / PID you spawned) before `kill`.
+3. Leave **local Supabase / Docker DB** up (do not `db reset` / `compose down -v` for cleanup).
+4. Do **not** kill ports / agents started by **other** sessions or by Will outside this thread.
+5. Closing note: which ports were stopped; do not leave feature-UAT Next running “方便复测” after land.
+
+Skip port stop only if Will explicitly says keep the server（例如「合完别停 web」）.
 
 ## Human stop / aborted shell (hard)
 
@@ -28,24 +39,21 @@ If Will stops a listen port, kills a terminal, or a system notification says a *
 2. Aborted-task “follow-up” does **not** authorize relaunching web/dev/ops/print-agent.
 3. Restart only when Will **explicitly** asks in-thread（例如「再起 web」「起 :3005」）.
 
-## Session hygiene (allowed)
+## Session hygiene (allowed anytime)
 
-To cut noise / CPU, you may stop processes that are **clearly started by this thread** and **not** needed for further testing of this checkout — e.g. a second Next on `:3002+` when a healthy primary for the same checkout remains, or a finished one-shot build/lint shell.
-
-Before stopping anything: confirm PID/cwd/port belong to **this** conversation’s commands (terminal metadata / the PID you spawned).
+Stop processes that are **clearly started by this thread** and no longer needed — e.g. a second Next after switching to another base, or a finished one-shot build/lint shell. Same PID/cwd ownership check.
 
 ## Forbidden
 
 - Killing or reclaiming a listen port / agent / `npm run dev|cloud|stage` / ops / print-agent you did **not** start in this thread (includes other Cursor chats and human terminals) — same spirit as [`dev-port-isolation.mdc`](./dev-port-isolation.mdc)
 - **Auto-restarting** a web/dev/ops process after Will stopped it or after an aborted-shell notification
 - `supabase db reset`, `docker compose down -v`, deleting local DB volumes, or any hard local DB wipe — unless the user explicitly asks in-thread
-- Stopping local Supabase / Docker DB “for cleanup” after UAT
-- Ending the **only** remaining healthy web for this checkout just because the task checklist is done — **unless Will already stopped it / asked to stop**
+- Stopping local Supabase / Docker DB “for cleanup” after UAT or merge
+- Leaving **this thread’s** feature/UAT web listening after a completed merge/land
 - Broad `pkill -f next` / `killall node` / port-wide kills that can hit other sessions
 
-## Order of operations (end of thread)
+## Order of operations
 
-1. If a usable web (+ local Supabase if used) is **still up**, leave it; report the base.
-2. Optionally stop **this-thread-only** redundant extras.
-3. Do **not** touch other sessions’ agents or the local database.
-4. Do **not** start a replacement web because ports are empty after a human stop.
+**End of implement/UAT (no merge yet):** keep this-thread usable web (+ Supabase if used); report base; optional stop of true extras only.
+
+**After merge/land done-gate:** stop this-thread web/ops listen ports → report stopped ports → do not touch other sessions or the DB → do not start a replacement web unless Will asks.

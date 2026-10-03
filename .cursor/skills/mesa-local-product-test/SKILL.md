@@ -11,6 +11,8 @@ description: >-
 
 **Delivery gate:** For functional product changes, this skill is mandatory before commit/merge/done — see `.cursor/rules/uat-before-delivery.mdc`. Do not deliver on lint/unit alone.
 
+**Precondition:** **清冗余** must already be done for this change set (`.cursor/rules/redundancy-cleanup-before-uat.mdc`). Do **not** start API/UI UAT until that scan+cleanup is reported.
+
 ## Environment
 
 - **Host (default):** `http://localhost:3000` — if busy, **do not kill** the occupant; start/use another free port and set `MESA_UAT_BASE` (see always-on `.cursor/rules/dev-port-isolation.mdc`)

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   buildByItemAllocationsFromRows,
   calcByItemSplitResults,
+  isRowQtyOverAllocated,
   locateByItemSplitResult,
   parseConsumerRowQty,
   type ByItemConsumerRow,
@@ -31,7 +32,6 @@ import {
   assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
   commitStaffMenuShareQtyEdit,
-  isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
   setPersonMenuShareQtyFields,
@@ -850,14 +850,15 @@ export function StaffByItemSplitWorkbench({
                   if (!row) return null;
                   const shareLocked = Boolean(row.paidLocked);
                   const shareDisabled = disabled || shareLocked;
+                  const menuSpec = lineSpecs.find((line) => line.key === share.lineKey);
                   const over =
-                    share.mode === 'menu' &&
-                    isStaffMenuShareOverAllocated({
-                      allocations: byItemAllocations,
-                      lineSpecs,
-                      lineKey: share.lineKey,
-                      rowId: share.rowId,
-                    });
+                    share.mode === 'menu'
+                    && menuSpec?.mode === 'menu'
+                    && isRowQtyOverAllocated(
+                      row,
+                      byItemAllocations[share.lineKey] ?? [],
+                      menuSpec.lineQty,
+                    );
                   return (
                     <div
                       key={`${share.lineKey}-${share.rowId}`}

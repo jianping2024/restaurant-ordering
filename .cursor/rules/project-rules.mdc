@@ -10,14 +10,15 @@ alwaysApply: true
 1. [`AGENTS.md`](../../AGENTS.md) — stack, commands, safety, tenant, DB, checks, token discipline
 2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
 3. [`best-practice-not-patches.mdc`](./best-practice-not-patches.mdc) — best-practice end-state only; never lead with补丁/workaround options
-4. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
-5. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — product code: scoped `npm run build`/`build:ops` must pass before any `git commit` (Next build already includes ESLint; no separate lint hard step)
-6. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
-7. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
-8. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
-9. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
-10. [`local-dev-services.mdc`](./local-dev-services.mdc) — leave an already-up stack; never auto-restart after Will stops it / aborted-shell; only stop this-thread extras; never wipe local DB or kill other sessions’ agents
-11. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
+4. [`redundancy-cleanup-before-uat.mdc`](./redundancy-cleanup-before-uat.mdc) — after implement, **before UAT**: clear confirmed redundancy on the task surface
+5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
+6. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — product code: scoped `npm run build`/`build:ops` must pass before any `git commit` (Next build already includes ESLint; no separate lint hard step)
+7. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
+8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
+9. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
+10. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
+11. [`local-dev-services.mdc`](./local-dev-services.mdc) — leave an already-up stack; never auto-restart after Will stops it / aborted-shell; only stop this-thread extras; never wipe local DB or kill other sessions’ agents
+12. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 
 **Skills (read when task matches `description`)**
 
@@ -57,7 +58,7 @@ Before non-trivial edits: read matching rows only — not a whole-repo scan. Pre
 2. **Plan** — non-trivial logic: follow analysis gates + `mesa-analyze-before-code` skill
 3. **Scope** — no out-of-scope features, unrelated files, silent rewrites, or temporary patches
 4. **Sync docs** — business rules → `docs/product/` or `docs/technical/`; major tech → `docs/decisions/`
-5. **Verify** — checks per `AGENTS.md`; **functional changes:** localhost product UAT must **pass** before delivery (`uat-before-delivery.mdc` + `mesa-local-product-test`) — not lint-only
+5. **Verify** — **清冗余** before UAT (`redundancy-cleanup-before-uat.mdc`); then checks per `AGENTS.md`; **functional changes:** localhost product UAT must **pass** before delivery (`uat-before-delivery.mdc` + `mesa-local-product-test`) — not lint-only
 
 ## High-risk (explicit user approval)
 

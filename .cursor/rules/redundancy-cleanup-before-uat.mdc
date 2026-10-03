@@ -1,0 +1,72 @@
+---
+description: >-
+  After implement, before localhost UAT (and before commit): scan the touched
+  surface and remove confirmed redundancy in the same change set.
+alwaysApply: true
+---
+
+# Redundancy cleanup before UAT (hard gate)
+
+**每一个需求：编码完成 → 清冗余 → 才允许开始测试（UAT）→ 再 build / commit / 合进 main。**  
+禁止「先测着，冗余以后再说」；也禁止「功能先合，清冗余另开分支」。
+
+## Order (product requirements)
+
+1. Implement  
+2. **This gate — 清冗余**（测试开始前）  
+3. Functional UAT when `uat-before-delivery.mdc` applies  
+4. Scoped production build (`lint-build-before-commit.mdc`)  
+5. `git commit` / merge when Will asks  
+
+If coding changes again after UAT (bugfix): **re-run this gate before re-testing**.
+
+## Applies when
+
+Agent is about to start localhost product UAT, or about to `git commit` / merge / land, after a **requirement** that edited any of:
+
+- `apps/web/**`
+- `apps/ops/**`
+- `packages/shared/**`
+- `apps/print-agent/**`
+
+Includes: feature work, behavior fixes, and “按方案改” lands.
+
+## Required scan (this task’s surface — not a whole-repo archaeology)
+
+Search **files in the diff** plus **same-feature-domain helpers** those files import/call (nearby lib / components for the same flow):
+
+1. **Dead exports / dead helpers** — defined but unused by product code (test-only callers do not keep a product export alive if nothing else uses it)  
+2. **Parallel live forms** — two active paths for the same step / label / mapping / formula (violates one-representation)  
+3. **Forward-only wrappers** — a public helper that only looks up args and calls a twin already used at other call sites for the same check  
+
+**Confirmed** finds (code path + “who calls / who does not”) → **delete or inline in this same change set** before UAT starts.
+
+## Forbidden
+
+- Starting UAT / claiming ready-to-test while confirmed redundancy remains  
+- Commit / merge the requirement while leaving confirmed redundancy for a “cleanup later” branch  
+- Marking a confirmed dead export or parallel form as 「小冗余不急」and testing/landing anyway  
+- Expanding into unrelated modules’ drive-by rewrites (scan stays on this task’s surface)
+
+## Does NOT apply
+
+- Docs-only / `.cursor/rules` / skills / `AGENTS.md` with **zero** product code under `apps/*` or `packages/*`  
+- Pure typo / one-line apply Will ordered with no new helpers  
+- The change set **is only** redundancy deletion Will already scoped  
+- Will explicitly waives in-thread（「先测，清冗余后补」/ `skip redundancy cleanup`）
+
+## Report (before UAT starts)
+
+Short evidence block, required:
+
+- **Scanned:** paths / symbols touched  
+- **Cleaned:** what was removed/inlined, **or**  
+- **None found:** one sentence with how checked (e.g. `rg` on new exports + same-domain helpers)
+
+No vague “看起来干净”.
+
+## Relation
+
+- Complements (does not replace) one-representation during implement (`analysis-before-code` / `mesa-analyze-before-code`).  
+- Runs **after** implement, **before** UAT; still must hold at commit time if more edits landed.  
+- Aligns with `best-practice-not-patches.mdc` (no copy-then-dedupe-later).

@@ -10,7 +10,6 @@ import {
   rationalFromInt,
   rationalFromNumber,
   type Rational,
-  rationalsEqual,
   sumRationals,
 } from '@/lib/rational-qty';
 import type { ByItemLineSpec, ByItemSplitLine } from '@/lib/bill-split-by-item-lines';
@@ -897,15 +896,6 @@ export function isRowQtyOverAllocated(
   return diff.num < 0;
 }
 
-export function lineAllocationComplete(
-  lineQty: number,
-  shares: Array<{ qty: Rational }>,
-): boolean {
-  if (shares.length === 0) return false;
-  const sum = sumRationals(shares.map((share) => share.qty));
-  return rationalsEqual(sum, lineQtyRational(lineQty));
-}
-
 export function byItemLinePriceShare(
   lineTotal: number,
   shares: ByItemConsumerShare[],
@@ -1106,17 +1096,6 @@ function allocateLineCentsWithFrozen(
     out[openIndexes[j]!] = allocated[j] ?? 0;
   }
   return out.map(centsToEuros);
-}
-
-export function buffetLineAllocationComplete(
-  line: Extract<ByItemSplitLine, { mode: 'buffet' }>,
-  shares: ByItemConsumerShare[],
-): boolean {
-  const status = getBuffetLineStatusFromShares(
-    { adults: line.adults, children: line.children },
-    shares,
-  );
-  return status.kind === 'complete';
 }
 
 export function buildByItemAllocationsFromRows(

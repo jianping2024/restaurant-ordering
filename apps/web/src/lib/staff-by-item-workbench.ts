@@ -56,14 +56,135 @@ function minRational(a: Rational, b: Rational): Rational {
   return compareRationals(a, b) <= 0 ? normalizeRational(a) : normalizeRational(b);
 }
 
+/** Last-committed menu qty fields while the row draft may be mid-edit / incomplete. */
+export type StaffMenuQtyHold = Pick<ByItemConsumerRow, 'qtyWhole' | 'qtyNum' | 'qtyDen'>;
+
 /**
- * Qty already taken from the staff pool — sole source is {@link parseConsumerRows}
- * (named shares only). Anonymous seed qtyWhole=1 must not occupy the pool.
+ * Sole qty for pool remaining + share meta: live parse when valid, else hold.
+ * Mid-edit empty/incomplete digits must not free the pool or paint `—` meta.
  */
-function allocatedMenuQty(rows: ByItemConsumerRow[]): Rational {
-  const shares = parseConsumerRows(rows);
-  if (shares.length === 0) return rationalFromInt(0);
-  return sumRationals(shares.map((share) => share.qty));
+export function resolveStaffMenuShareQtyForPool(
+  row: ByItemConsumerRow,
+  hold: StaffMenuQtyHold | undefined,
+): Rational | null {
+  const live = parseConsumerRowQty(row);
+  if (live) return live;
+  if (!hold) return null;
+  return parseConsumerRowQty({
+    ...row,
+    qtyWhole: hold.qtyWhole,
+    qtyNum: hold.qtyNum,
+    qtyDen: hold.qtyDen,
+  });
+}
+
+function staffMenuQtyHoldFields(row: ByItemConsumerRow): StaffMenuQtyHold {
+  return {
+    qtyWhole: row.qtyWhole,
+    qtyNum: row.qtyNum,
+    qtyDen: row.qtyDen,
+  };
+}
+
+/**
+ * Qty already taken from the staff pool — named shares only.
+ * Optional hold: incomplete draft rows still occupy their last-committed qty.
+ * Anonymous seed qtyWhole=1 must not occupy the pool (same as parseConsumerRows).
+ */
+function allocatedMenuQty(
+  rows: ByItemConsumerRow[],
+  holdByRowId?: ReadonlyMap<string, StaffMenuQtyHold>,
+): Rational {
+  if (!holdByRowId || holdByRowId.size === 0) {
+    const shares = parseConsumerRows(rows);
+    if (shares.length === 0) return rationalFromInt(0);
+    return sumRationals(shares.map((share) => share.qty));
+  }
+  const qtys: Rational[] = [];
+  for (const row of rows) {
+    if (!row.name.trim()) continue;
+    const qty = resolveStaffMenuShareQtyForPool(row, holdByRowId.get(row.id));
+    if (qty) qtys.push(qty);
+  }
+  if (qtys.length === 0) return rationalFromInt(0);
+  return sumRationals(qtys);
+}
+
+/**
+ * Derived allocations for pool / share meta / chip money while qty inputs bind draft.
+ * Incomplete named menu rows use hold fields; buffet / paid / valid live rows unchanged.
+ */
+export function applyStaffMenuQtyHoldToAllocations(
+  allocations: Record<string, ByItemConsumerRow[]>,
+  holdByRowId: ReadonlyMap<string, StaffMenuQtyHold>,
+): Record<string, ByItemConsumerRow[]> {
+  if (holdByRowId.size === 0) return allocations;
+  let changed = false;
+  const next: Record<string, ByItemConsumerRow[]> = {};
+  for (const [lineKey, rows] of Object.entries(allocations)) {
+    next[lineKey] = rows.map((row) => {
+      if (!row.name.trim() || row.paidLocked) return row;
+      if (parseConsumerRowQty(row)) return row;
+      const hold = holdByRowId.get(row.id);
+      if (!hold) return row;
+      if (
+        row.qtyWhole === hold.qtyWhole &&
+        row.qtyNum === hold.qtyNum &&
+        row.qtyDen === hold.qtyDen
+      ) {
+        return row;
+      }
+      changed = true;
+      return { ...row, ...hold };
+    });
+  }
+  return changed ? next : allocations;
+}
+
+/**
+ * Sole blur/commit for staff menu share qty:
+ * valid → keep row + return hold; invalid/empty → remove row (caller records omit).
+ */
+export function commitStaffMenuShareQtyEdit(params: {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  lineSpecs: ByItemLineSpec[];
+  lineKey: string;
+  rowId: string;
+}): {
+  allocations: Record<string, ByItemConsumerRow[]>;
+  removed: boolean;
+  hold: StaffMenuQtyHold | null;
+  ticketKey: string | null;
+} | null {
+  const { allocations, lineSpecs, lineKey, rowId } = params;
+  const spec = lineSpecs.find((line) => line.key === lineKey);
+  if (!spec || spec.mode !== 'menu') return null;
+  const rows = allocations[lineKey] ?? [];
+  const target = rows.find((row) => row.id === rowId);
+  if (!target || !target.name.trim() || target.paidLocked) return null;
+
+  const ticketKey = splitPartyKey(target.partyId, target.name);
+  const live = parseConsumerRowQty(target);
+  if (live) {
+    return {
+      allocations,
+      removed: false,
+      hold: staffMenuQtyHoldFields(target),
+      ticketKey,
+    };
+  }
+
+  return {
+    allocations: removePersonShareOnLine({
+      allocations,
+      lineKey,
+      rowId,
+      buffet: false,
+    }),
+    removed: true,
+    hold: null,
+    ticketKey,
+  };
 }
 
 function formatEuroAmount(n: number): string {
@@ -184,8 +305,17 @@ export function staffByItemPoolLines(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
   lang: UILanguage;
   itemCodeByMenuId?: Record<string, string>;
+  /** Mid-edit hold — incomplete draft qty still counts as taken until blur commit. */
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): StaffByItemPoolLine[] {
-  const { lineSpecs, orderLines, allocations, lang, itemCodeByMenuId = {} } = params;
+  const {
+    lineSpecs,
+    orderLines,
+    allocations,
+    lang,
+    itemCodeByMenuId = {},
+    menuQtyHoldByRowId,
+  } = params;
   const orderByKey = Object.fromEntries(orderLines.map((line) => [line.key, line]));
   const out: StaffByItemPoolLine[] = [];
 
@@ -225,7 +355,7 @@ export function staffByItemPoolLines(params: {
     }
 
     const target = rationalFromNumber(spec.lineQty);
-    const remaining = qtyDiff(target, allocatedMenuQty(rows));
+    const remaining = qtyDiff(target, allocatedMenuQty(rows, menuQtyHoldByRowId));
     const remainingPositive = remaining.num > 0;
     const fractionDenominator = menuFractionDenominatorFromRemaining(remaining);
     out.push({
@@ -340,6 +470,8 @@ export function staffByItemPersonShares(params: {
   allocations: Record<string, ByItemConsumerRow[]>;
   lang: UILanguage;
   itemCodeByMenuId?: Record<string, string>;
+  /** Mid-edit hold — meta shows last-committed qty while inputs bind draft. */
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): StaffByItemPersonShare[] {
   const {
     personName,
@@ -349,11 +481,15 @@ export function staffByItemPersonShares(params: {
     allocations,
     lang,
     itemCodeByMenuId = {},
+    menuQtyHoldByRowId,
   } = params;
   if (!personName.trim()) return [];
 
   const orderByKey = Object.fromEntries(orderLines.map((line) => [line.key, line]));
   const out: StaffByItemPersonShare[] = [];
+  const displayAllocations = menuQtyHoldByRowId
+    ? applyStaffMenuQtyHoldToAllocations(allocations, menuQtyHoldByRowId)
+    : allocations;
 
   for (const spec of lineSpecs) {
     const item = orderByKey[spec.key];
@@ -361,7 +497,8 @@ export function staffByItemPersonShares(params: {
     const itemCode = resolveMenuItemCode(item, itemCodeByMenuId);
     const label = formatLocalizedMenuItemLabel(item, lang, itemCode);
     const rows = allocations[spec.key] ?? [];
-    const amountsByRowId = shareAmountsByRowId(spec, rows);
+    const displayRows = displayAllocations[spec.key] ?? rows;
+    const amountsByRowId = shareAmountsByRowId(spec, displayRows);
 
     for (const row of rows) {
       if (!ticketMatches(row, personName, partyId)) continue;
@@ -386,9 +523,12 @@ export function staffByItemPersonShares(params: {
         continue;
       }
 
-      // Keep named rows while qty is incomplete/invalid so ByItemQtyInput stays mounted
-      // (parseConsumerRowQty is for amount only — never a visibility gate).
-      const qty = parseConsumerRowQty(row);
+      // Keep named rows while qty is incomplete/invalid so ByItemQtyInput stays mounted.
+      // Meta/amount use hold when draft parse fails (never paint empty `—` mid-edit).
+      const qty = resolveStaffMenuShareQtyForPool(
+        row,
+        menuQtyHoldByRowId?.get(row.id),
+      );
       out.push({
         lineKey: spec.key,
         rowId: row.id,
@@ -397,6 +537,7 @@ export function staffByItemPersonShares(params: {
         unitPriceLabel: formatEuroAmount(spec.unitPrice),
         amount: amountsByRowId.get(row.id) ?? 0,
         mode: 'menu',
+        // Inputs bind draft fields; meta uses qtyLabel from hold-aware qty.
         qtyWhole: row.qtyWhole,
         qtyNum: row.qtyNum,
         qtyDen: row.qtyDen,
@@ -465,15 +606,27 @@ function addMenuShareQtyToPerson(params: {
   personName: string;
   partyId?: string;
   take: Rational;
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, partyId, take } = params;
+  const {
+    allocations,
+    lineSpecs,
+    lineKey,
+    personName,
+    partyId,
+    take,
+    menuQtyHoldByRowId,
+  } = params;
   const name = personName.trim();
   if (!name || take.num <= 0) return null;
   const spec = lineSpecs.find((line) => line.key === lineKey);
   if (!spec || spec.mode !== 'menu') return null;
 
   const rows = allocations[lineKey] ?? [];
-  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  const remaining = qtyDiff(
+    rationalFromNumber(spec.lineQty),
+    allocatedMenuQty(rows, menuQtyHoldByRowId),
+  );
   if (remaining.num <= 0) return null;
 
   const clamped = minRational(remaining, take);
@@ -503,15 +656,20 @@ export function addWholeShareToPerson(params: {
   lineKey: string;
   personName: string;
   partyId?: string;
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, partyId } = params;
+  const { allocations, lineSpecs, lineKey, personName, partyId, menuQtyHoldByRowId } =
+    params;
   const name = personName.trim();
   if (!name) return null;
   const spec = lineSpecs.find((line) => line.key === lineKey);
   if (!spec || spec.mode !== 'menu') return null;
 
   const rows = allocations[lineKey] ?? [];
-  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  const remaining = qtyDiff(
+    rationalFromNumber(spec.lineQty),
+    allocatedMenuQty(rows, menuQtyHoldByRowId),
+  );
   if (remaining.num <= 0) return null;
 
   return addMenuShareQtyToPerson({
@@ -521,6 +679,7 @@ export function addWholeShareToPerson(params: {
     personName: name,
     partyId,
     take: minRational(remaining, rationalFromInt(1)),
+    menuQtyHoldByRowId,
   });
 }
 
@@ -542,12 +701,16 @@ export function canAddMenuFractionShare(params: {
   lineSpecs: ByItemLineSpec[];
   lineKey: string;
   denominator: number;
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): boolean {
-  const { allocations, lineSpecs, lineKey, denominator } = params;
+  const { allocations, lineSpecs, lineKey, denominator, menuQtyHoldByRowId } = params;
   const spec = lineSpecs.find((line) => line.key === lineKey);
   if (!spec || spec.mode !== 'menu') return false;
   const rows = allocations[lineKey] ?? [];
-  const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+  const remaining = qtyDiff(
+    rationalFromNumber(spec.lineQty),
+    allocatedMenuQty(rows, menuQtyHoldByRowId),
+  );
   return compareRationals(remaining, menuFractionTake(denominator)) >= 0;
 }
 
@@ -559,11 +722,30 @@ export function addMenuFractionShareToPerson(params: {
   personName: string;
   partyId?: string;
   denominator?: number;
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): Record<string, ByItemConsumerRow[]> | null {
-  const { allocations, lineSpecs, lineKey, personName, partyId, denominator = 2 } = params;
+  const {
+    allocations,
+    lineSpecs,
+    lineKey,
+    personName,
+    partyId,
+    denominator = 2,
+    menuQtyHoldByRowId,
+  } = params;
   const name = personName.trim();
   if (!name) return null;
-  if (!canAddMenuFractionShare({ allocations, lineSpecs, lineKey, denominator })) return null;
+  if (
+    !canAddMenuFractionShare({
+      allocations,
+      lineSpecs,
+      lineKey,
+      denominator,
+      menuQtyHoldByRowId,
+    })
+  ) {
+    return null;
+  }
 
   return addMenuShareQtyToPerson({
     allocations,
@@ -572,6 +754,7 @@ export function addMenuFractionShareToPerson(params: {
     personName: name,
     partyId,
     take: menuFractionTake(denominator),
+    menuQtyHoldByRowId,
   });
 }
 
@@ -661,6 +844,7 @@ export function assignAllRemainingPoolToPerson(params: {
   lineSpecs: ByItemLineSpec[];
   personName: string;
   partyId?: string;
+  menuQtyHoldByRowId?: ReadonlyMap<string, StaffMenuQtyHold>;
 }): Record<string, ByItemConsumerRow[]> | null {
   const name = params.personName.trim();
   if (!name) return null;
@@ -671,7 +855,10 @@ export function assignAllRemainingPoolToPerson(params: {
   for (const spec of params.lineSpecs) {
     if (spec.mode === 'menu') {
       const rows = next[spec.key] ?? [];
-      const remaining = qtyDiff(rationalFromNumber(spec.lineQty), allocatedMenuQty(rows));
+      const remaining = qtyDiff(
+        rationalFromNumber(spec.lineQty),
+        allocatedMenuQty(rows, params.menuQtyHoldByRowId),
+      );
       if (remaining.num <= 0) continue;
       const step = addMenuShareQtyToPerson({
         allocations: next,
@@ -680,6 +867,7 @@ export function assignAllRemainingPoolToPerson(params: {
         personName: name,
         partyId: params.partyId,
         take: remaining,
+        menuQtyHoldByRowId: params.menuQtyHoldByRowId,
       });
       if (step) {
         next = step;

@@ -124,13 +124,74 @@ export function pruneByItemDraftAgainstLocks(
 }
 
 /**
+ * Sole omit key for staff「删掉的某票×某菜」— lineKey may contain `::`, so use US.
+ * Guest reconcile never passes omit sets.
+ */
+export function byItemLineTicketOmitKey(lineKey: string, ticketKey: string): string {
+  return `${lineKey}\u001f${ticketKey}`;
+}
+
+export function parseByItemLineTicketOmitKey(
+  omitKey: string,
+): { lineKey: string; ticketKey: string } | null {
+  const i = omitKey.indexOf('\u001f');
+  if (i <= 0 || i >= omitKey.length - 1) return null;
+  return { lineKey: omitKey.slice(0, i), ticketKey: omitKey.slice(i + 1) };
+}
+
+/** Qty/headcount fingerprint of one unlocked seed share (for omit invalidation). */
+export function byItemPersonsSeedShareSig(
+  seed: ByItemAllocationRows,
+  lineKey: string,
+  ticketKey: string,
+): string | null {
+  for (const row of seed[lineKey] ?? []) {
+    if (rowTicketKey(row) !== ticketKey) continue;
+    return [
+      row.qtyWhole,
+      row.qtyNum,
+      row.qtyDen,
+      row.adultQty ?? '',
+      row.childQty ?? '',
+    ].join('/');
+  }
+  return null;
+}
+
+/**
+ * Drop omits when persons seed no longer matches the stamped fingerprint
+ * (guest re-submit changed/removed that share → allow merge again).
+ */
+export function reconcileByItemShareOmitKeys(params: {
+  omitSigByKey: ReadonlyMap<string, string>;
+  unlockedPersonsSeed: ByItemAllocationRows;
+}): Map<string, string> {
+  const next = new Map<string, string>();
+  for (const [omitKey, stamped] of params.omitSigByKey) {
+    const parsed = parseByItemLineTicketOmitKey(omitKey);
+    if (!parsed) continue;
+    const live = byItemPersonsSeedShareSig(
+      params.unlockedPersonsSeed,
+      parsed.lineKey,
+      parsed.ticketKey,
+    );
+    if (live == null) continue;
+    if (live !== stamped) continue;
+    next.set(omitKey, stamped);
+  }
+  return next;
+}
+
+/**
  * Sole hydrate merge: append unlocked persons rows that are missing on each line.
  * Does not overwrite tickets already present on that line (staff local edits win).
  * Same-split guest re-submit adds new unpaid tickets / new dish lines without wiping draft.
+ * `omitLineTicketKeys`: staff-deleted (line×ticket) must not resurrect from the same seed.
  */
 export function mergeMissingByItemDraftTickets(
   draft: ByItemAllocationRows,
   incomingUnlocked: ByItemAllocationRows,
+  omitLineTicketKeys: ReadonlySet<string> = new Set(),
 ): ByItemAllocationRows {
   let changed = false;
   const next: ByItemAllocationRows = { ...draft };
@@ -145,6 +206,7 @@ export function mergeMissingByItemDraftTickets(
       if (!isNamedRow(row) || row.paidLocked) continue;
       const key = rowTicketKey(row);
       if (!key || lineKeys.has(key)) continue;
+      if (omitLineTicketKeys.has(byItemLineTicketOmitKey(lineKey, key))) continue;
       lineKeys.add(key);
       next[lineKey] = [...(next[lineKey] ?? []), row];
       changed = true;

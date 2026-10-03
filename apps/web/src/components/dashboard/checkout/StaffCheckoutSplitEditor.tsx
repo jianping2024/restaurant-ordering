@@ -730,6 +730,8 @@ export function StaffCheckoutSplitEditor({
             labels={staffByItemLabels}
             disabled={submitting || detailLocked}
             onAllocationChange={(next) => splitDraft.setByItemAllocations(next)}
+            onRecordShareOmit={splitDraft.recordStaffByItemShareOmit}
+            onClearShareOmit={splitDraft.clearStaffByItemShareOmit}
             onRenamePerson={({ oldName, newName, partyId }) => {
               splitDraft.renameByItemConsumer(oldName, newName, partyId);
             }}

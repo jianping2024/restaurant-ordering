@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import {
   buildByItemAllocationsFromRows,
   calcByItemSplitResults,
   locateByItemSplitResult,
+  parseConsumerRowQty,
+  type ByItemConsumerRow,
 } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { byItemSplitLineFromOrderLine } from '@/lib/bill-split-by-item-lines';
@@ -21,13 +22,15 @@ import {
   allocateDiscountedSplitObligations,
   resolveCheckoutDiscountedShareDisplay,
 } from '@/lib/checkout-split-math';
-import { splitResultTicketKey } from '@/lib/split-party-id';
+import { splitPartyKey, splitResultTicketKey } from '@/lib/split-party-id';
 import {
   addBuffetSeatToPerson,
   addMenuFractionShareToPerson,
   addWholeShareToPerson,
+  applyStaffMenuQtyHoldToAllocations,
   assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
+  commitStaffMenuShareQtyEdit,
   isStaffMenuShareOverAllocated,
   removePersonShareOnLine,
   setPersonBuffetShareCounts,
@@ -37,6 +40,7 @@ import {
   staffByItemPersonShares,
   staffByItemPoolLines,
   staffByItemShareLineMetaParts,
+  type StaffMenuQtyHold,
 } from '@/lib/staff-by-item-workbench';
 import {
   mintStaffByItemRailPerson,
@@ -210,6 +214,10 @@ type Props = {
     partyId?: string;
   }) => void;
   onCollectCurrent?: (args: { personName: string; partyId?: string }) => void;
+  /** Sole staff delete memory — trash / empty-qty blur commit. */
+  onRecordShareOmit?: (lineKey: string, ticketKey: string) => void;
+  /** Clear omit when pool + / 1/N re-adds that ticket×line. */
+  onClearShareOmit?: (lineKey: string, ticketKey: string) => void;
 };
 
 /**
@@ -239,7 +247,53 @@ export function StaffByItemSplitWorkbench({
   onAllocationChange,
   onRenamePerson,
   onCollectCurrent,
+  onRecordShareOmit,
+  onClearShareOmit,
 }: Props) {
+  /** Last-committed menu qty per row — pool/meta hold while draft digits are mid-edit. */
+  const [menuQtyHoldByRowId, setMenuQtyHoldByRowId] = useState<
+    Map<string, StaffMenuQtyHold>
+  >(() => new Map());
+  const allocationsRef = useRef(byItemAllocations);
+  allocationsRef.current = byItemAllocations;
+
+  useEffect(() => {
+    setMenuQtyHoldByRowId((prev) => {
+      const liveIds = new Set<string>();
+      let changed = false;
+      const next = new Map(prev);
+      for (const rows of Object.values(byItemAllocations)) {
+        for (const row of rows) {
+          liveIds.add(row.id);
+          if (!row.name.trim() || row.paidLocked) continue;
+          if (!parseConsumerRowQty(row)) continue;
+          const hold: StaffMenuQtyHold = {
+            qtyWhole: row.qtyWhole,
+            qtyNum: row.qtyNum,
+            qtyDen: row.qtyDen,
+          };
+          const prior = next.get(row.id);
+          if (
+            prior &&
+            prior.qtyWhole === hold.qtyWhole &&
+            prior.qtyNum === hold.qtyNum &&
+            prior.qtyDen === hold.qtyDen
+          ) {
+            continue;
+          }
+          next.set(row.id, hold);
+          changed = true;
+        }
+      }
+      for (const id of next.keys()) {
+        if (liveIds.has(id)) continue;
+        next.delete(id);
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [byItemAllocations]);
+
   const peopleFromAlloc = useMemo(
     () => staffByItemPeopleFromAllocations(byItemAllocations),
     [byItemAllocations],
@@ -319,8 +373,16 @@ export function StaffByItemSplitWorkbench({
         allocations: byItemAllocations,
         lang,
         itemCodeByMenuId,
+        menuQtyHoldByRowId,
       }),
-    [byItemAllocations, itemCodeByMenuId, lang, lineSpecs, orderLines],
+    [
+      byItemAllocations,
+      itemCodeByMenuId,
+      lang,
+      lineSpecs,
+      menuQtyHoldByRowId,
+      orderLines,
+    ],
   );
 
   const orderLineByKey = useMemo(
@@ -330,9 +392,15 @@ export function StaffByItemSplitWorkbench({
 
   const visiblePool = poolLines.filter((line) => line.remainingPositive);
 
+  /** Hold-aware rows for chip/estimate money while inputs bind draft qty. */
+  const moneyAllocations = useMemo(
+    () => applyStaffMenuQtyHoldToAllocations(byItemAllocations, menuQtyHoldByRowId),
+    [byItemAllocations, menuQtyHoldByRowId],
+  );
+
   /** Sole obligation source for chip amounts + current estimate / collect. */
   const splitResults = useMemo(() => {
-    const allocations = buildByItemAllocationsFromRows(lineSpecs, byItemAllocations);
+    const allocations = buildByItemAllocationsFromRows(lineSpecs, moneyAllocations);
     const lines = orderLines.map((item) =>
       byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
     );
@@ -342,7 +410,7 @@ export function StaffByItemSplitWorkbench({
       personOrder: people.map((p) => p.name),
       personPartyIds: people.map((p) => p.partyId),
     });
-  }, [byItemAllocations, lang, lineSpecs, orderLines, people]);
+  }, [lang, lineSpecs, moneyAllocations, orderLines, people]);
 
   /**
    * Serial collect handoff only when cashier did not pick a chip to inspect.
@@ -393,6 +461,7 @@ export function StaffByItemSplitWorkbench({
         allocations: byItemAllocations,
         lang,
         itemCodeByMenuId,
+        menuQtyHoldByRowId,
       }),
     [
       byItemAllocations,
@@ -401,6 +470,7 @@ export function StaffByItemSplitWorkbench({
       itemCodeByMenuId,
       lang,
       lineSpecs,
+      menuQtyHoldByRowId,
       orderLines,
     ],
   );
@@ -494,6 +564,38 @@ export function StaffByItemSplitWorkbench({
     onAllocationChange(next);
   };
 
+  const clearOmitForPersonLine = (lineKey: string, person: StaffByItemRailPerson) => {
+    const ticketKey = staffByItemRailPersonKey(person);
+    if (!ticketKey || !onClearShareOmit) return;
+    onClearShareOmit(lineKey, ticketKey);
+  };
+
+  const removeShareWithOmit = (params: {
+    lineKey: string;
+    rowId: string;
+    buffet: boolean;
+    ticketKey: string | null;
+  }) => {
+    // Omit first — same tick must not let mergeMissing resurrect before tombstone lands.
+    if (params.ticketKey && onRecordShareOmit) {
+      onRecordShareOmit(params.lineKey, params.ticketKey);
+    }
+    applyAlloc(
+      removePersonShareOnLine({
+        allocations: byItemAllocations,
+        lineKey: params.lineKey,
+        rowId: params.rowId,
+        buffet: params.buffet,
+      }),
+    );
+    setMenuQtyHoldByRowId((prev) => {
+      if (!prev.has(params.rowId)) return prev;
+      const next = new Map(prev);
+      next.delete(params.rowId);
+      return next;
+    });
+  };
+
   const rowForShare = (share: (typeof shares)[number]): ByItemConsumerRow | null => {
     const rows = byItemAllocations[share.lineKey] ?? [];
     return rows.find((row) => row.id === share.rowId) ?? null;
@@ -564,12 +666,16 @@ export function StaffByItemSplitWorkbench({
                 onClick={() => {
                   const person = ensureNamed();
                   if (!person) return;
+                  for (const line of visiblePool) {
+                    clearOmitForPersonLine(line.key, person);
+                  }
                   applyAlloc(
                     assignAllRemainingPoolToPerson({
                       allocations: byItemAllocations,
                       lineSpecs,
                       personName: person.name,
                       partyId: person.partyId,
+                      menuQtyHoldByRowId,
                     }),
                   );
                 }}
@@ -613,6 +719,7 @@ export function StaffByItemSplitWorkbench({
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
+                            clearOmitForPersonLine(line.key, person);
                             applyAlloc(
                               addMenuFractionShareToPerson({
                                 allocations: byItemAllocations,
@@ -621,6 +728,7 @@ export function StaffByItemSplitWorkbench({
                                 personName: person.name,
                                 partyId: person.partyId,
                                 denominator: line.fractionDenominator,
+                                menuQtyHoldByRowId,
                               }),
                             );
                           }}
@@ -634,6 +742,7 @@ export function StaffByItemSplitWorkbench({
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
+                            clearOmitForPersonLine(line.key, person);
                             applyAlloc(
                               addWholeShareToPerson({
                                 allocations: byItemAllocations,
@@ -641,6 +750,7 @@ export function StaffByItemSplitWorkbench({
                                 lineKey: line.key,
                                 personName: person.name,
                                 partyId: person.partyId,
+                                menuQtyHoldByRowId,
                               }),
                             );
                           }}
@@ -657,6 +767,7 @@ export function StaffByItemSplitWorkbench({
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
+                            clearOmitForPersonLine(line.key, person);
                             applyAlloc(
                               addBuffetSeatToPerson({
                                 allocations: byItemAllocations,
@@ -678,6 +789,7 @@ export function StaffByItemSplitWorkbench({
                           onClick={() => {
                             const person = ensureNamed();
                             if (!person) return;
+                            clearOmitForPersonLine(line.key, person);
                             applyAlloc(
                               addBuffetSeatToPerson({
                                 allocations: byItemAllocations,
@@ -808,6 +920,44 @@ export function StaffByItemSplitWorkbench({
                                 }),
                               );
                             }}
+                            onCommit={() => {
+                              const committed = commitStaffMenuShareQtyEdit({
+                                allocations: allocationsRef.current,
+                                lineSpecs,
+                                lineKey: share.lineKey,
+                                rowId: share.rowId,
+                              });
+                              if (!committed) return;
+                              if (committed.removed) {
+                                if (committed.ticketKey && onRecordShareOmit) {
+                                  onRecordShareOmit(share.lineKey, committed.ticketKey);
+                                }
+                                applyAlloc(committed.allocations);
+                                setMenuQtyHoldByRowId((prev) => {
+                                  if (!prev.has(share.rowId)) return prev;
+                                  const next = new Map(prev);
+                                  next.delete(share.rowId);
+                                  return next;
+                                });
+                                return;
+                              }
+                              if (committed.hold) {
+                                setMenuQtyHoldByRowId((prev) => {
+                                  const prior = prev.get(share.rowId);
+                                  if (
+                                    prior &&
+                                    prior.qtyWhole === committed.hold!.qtyWhole &&
+                                    prior.qtyNum === committed.hold!.qtyNum &&
+                                    prior.qtyDen === committed.hold!.qtyDen
+                                  ) {
+                                    return prev;
+                                  }
+                                  const next = new Map(prev);
+                                  next.set(share.rowId, committed.hold!);
+                                  return next;
+                                });
+                              }
+                            }}
                           />
                         ) : (
                           <div className="flex flex-nowrap items-center gap-1 text-[12px]">
@@ -865,14 +1015,12 @@ export function StaffByItemSplitWorkbench({
                           removable={!shareDisabled}
                           ariaLabel={labels.remove}
                           onRemove={() => {
-                            applyAlloc(
-                              removePersonShareOnLine({
-                                allocations: byItemAllocations,
-                                lineKey: share.lineKey,
-                                rowId: share.rowId,
-                                buffet: share.mode === 'buffet',
-                              }),
-                            );
+                            removeShareWithOmit({
+                              lineKey: share.lineKey,
+                              rowId: share.rowId,
+                              buffet: share.mode === 'buffet',
+                              ticketKey: splitPartyKey(row.partyId, row.name),
+                            });
                           }}
                         />
                       </div>

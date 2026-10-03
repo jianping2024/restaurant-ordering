@@ -8,6 +8,7 @@ import {
   addWholeShareToPerson,
   assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
+  commitStaffMenuShareQtyEdit,
   isStaffMenuShareOverAllocated,
   menuFractionDenominatorFromRemaining,
   setPersonMenuShareQtyFields,
@@ -16,6 +17,7 @@ import {
   staffByItemPersonShares,
   staffByItemPoolLines,
   staffByItemShareLineMetaParts,
+  type StaffMenuQtyHold,
 } from './staff-by-item-workbench';
 import {
   buildByItemAllocationsFromRows,
@@ -854,6 +856,84 @@ describe('staffByItemPersonShares visibility', () => {
     assert.equal(shares[0]!.amount, 0);
     assert.equal(shares[0]!.qtyNum, '1');
     assert.equal(shares[0]!.qtyDen, '');
+  });
+
+  it('hold keeps pool + meta on last-committed qty while draft digits are cleared', () => {
+    const allocations: Record<string, ByItemConsumerRow[]> = {
+      'line-a': [{
+        id: 'row-ana',
+        name: 'Ana',
+        qtyWhole: '',
+        qtyNum: '',
+        qtyDen: '',
+      }],
+    };
+    const hold = new Map<string, StaffMenuQtyHold>([
+      ['row-ana', { qtyWhole: '1', qtyNum: '', qtyDen: '' }],
+    ]);
+    const pool = staffByItemPoolLines({
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations,
+      lang: 'zh',
+      menuQtyHoldByRowId: hold,
+    });
+    // lineQty=2, held 1 → remaining 1
+    assert.equal(pool[0]!.remainingLabel, '1');
+    assert.equal(pool[0]!.canAddWhole, true);
+    const shares = staffByItemPersonShares({
+      personName: 'Ana',
+      lineSpecs: [menuSpec],
+      orderLines: [orderLine],
+      allocations,
+      lang: 'zh',
+      menuQtyHoldByRowId: hold,
+    });
+    assert.equal(shares[0]!.qtyLabel, '1');
+    assert.equal(shares[0]!.qtyWhole, '');
+    assert.ok(shares[0]!.amount > 0);
+  });
+
+  it('blur commit removes empty qty; keeps valid qty hold', () => {
+    const empty = commitStaffMenuShareQtyEdit({
+      allocations: {
+        'line-a': [{
+          id: 'row-ana',
+          name: 'Ana',
+          qtyWhole: '',
+          qtyNum: '',
+          qtyDen: '',
+        }],
+      },
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-ana',
+    });
+    assert.ok(empty);
+    assert.equal(empty!.removed, true);
+    assert.equal(empty!.hold, null);
+    assert.ok(
+      !(empty!.allocations['line-a'] ?? []).some((row) => row.id === 'row-ana' && row.name.trim()),
+    );
+
+    const kept = commitStaffMenuShareQtyEdit({
+      allocations: {
+        'line-a': [{
+          id: 'row-ana',
+          name: 'Ana',
+          partyId: 'p-ana',
+          qtyWhole: '1',
+          qtyNum: '',
+          qtyDen: '',
+        }],
+      },
+      lineSpecs: [menuSpec],
+      lineKey: 'line-a',
+      rowId: 'row-ana',
+    });
+    assert.ok(kept);
+    assert.equal(kept!.removed, false);
+    assert.deepEqual(kept!.hold, { qtyWhole: '1', qtyNum: '', qtyDen: '' });
   });
 
   it('keeps named menu row for improper fraction while editing', () => {

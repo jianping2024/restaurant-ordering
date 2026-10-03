@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import {
   getQtyPartsRowHint,
   sanitizeQtyDigits,
@@ -26,6 +27,10 @@ interface Props {
    */
   denDisabled?: boolean;
   onChange: (patch: Pick<ByItemConsumerRow, QtyField>) => void;
+  /**
+   * Fires when focus leaves the whole qty control (not when tabbing whole→num→den).
+   * Staff blur-commit / empty-remove sole entry.
+   */
   onCommit?: () => void;
 }
 
@@ -53,6 +58,7 @@ export function ByItemQtyInput({
   onChange,
   onCommit,
 }: Props) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const hint = getQtyPartsRowHint(row, labels);
   const fieldClass = overAllocated || hint ? customerQtyInputAlertClass : customerQtyInputClass;
   const denLocked = disabled || denDisabled;
@@ -68,8 +74,19 @@ export function ByItemQtyInput({
     });
   };
 
+  /** Sole leave-control commit — ignore blur while focus stays inside whole/num/den. */
+  const commitIfLeftControl = () => {
+    if (!onCommit) return;
+    requestAnimationFrame(() => {
+      const root = rootRef.current;
+      if (!root) return;
+      if (root.contains(document.activeElement)) return;
+      onCommit();
+    });
+  };
+
   return (
-    <div className="shrink-0">
+    <div ref={rootRef} className="shrink-0">
       <div className="flex items-center gap-0.5">
         <input
           type="text"
@@ -78,7 +95,7 @@ export function ByItemQtyInput({
           value={row.qtyWhole}
           disabled={disabled}
           onChange={(e) => patchQty('qtyWhole', e.target.value)}
-          onBlur={() => onCommit?.()}
+          onBlur={commitIfLeftControl}
           aria-label={labels.wholeLabel}
           className={`w-9 px-1 ${fieldClass}`}
         />
@@ -90,7 +107,7 @@ export function ByItemQtyInput({
           value={row.qtyNum}
           disabled={disabled}
           onChange={(e) => patchQty('qtyNum', e.target.value)}
-          onBlur={() => onCommit?.()}
+          onBlur={commitIfLeftControl}
           aria-label={labels.numLabel}
           className={`w-7 px-0.5 ${fieldClass}`}
         />
@@ -102,7 +119,7 @@ export function ByItemQtyInput({
           value={row.qtyDen}
           disabled={denLocked}
           onChange={(e) => patchQty('qtyDen', e.target.value)}
-          onBlur={() => onCommit?.()}
+          onBlur={commitIfLeftControl}
           aria-label={labels.denLabel}
           className={`w-7 px-0.5 ${fieldClass}`}
         />

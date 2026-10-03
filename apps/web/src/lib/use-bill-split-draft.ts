@@ -402,6 +402,10 @@ export function useBillSplitDraft(params: {
     renameByItemConsumer,
     buildPersonsForSubmit,
   } = byItemEditor === 'guest' ? guestByItem : staffByItem;
+  const recordStaffByItemShareOmit =
+    byItemEditor === 'staff' ? staffByItem.recordStaffByItemShareOmit : undefined;
+  const clearStaffByItemShareOmit =
+    byItemEditor === 'staff' ? staffByItem.clearStaffByItemShareOmit : undefined;
 
   useLayoutEffect(() => {
     if (!sessionId || !storageReady || byItemLocalAppliedRef.current) return;
@@ -879,6 +883,8 @@ export function useBillSplitDraft(params: {
     rememberConsumerName,
     renameByItemConsumer,
     byItemProgress,
+    recordStaffByItemShareOmit,
+    clearStaffByItemShareOmit,
     buildPersonsForSubmit: buildPersonsForSubmitCommitted,
     resolveSplitDraftInputForSubmit,
     handleSplitModeClick,

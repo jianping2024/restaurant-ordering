@@ -19,11 +19,14 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  byItemLineTicketOmitKey,
+  byItemPersonsSeedShareSig,
   extractByItemDraftAllocations,
   extractByItemLockedAllocations,
   mergeByItemCommittedAndDraft,
   mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
+  reconcileByItemShareOmitKeys,
   type ByItemAllocationRows,
 } from '@/lib/by-item-committed-draft';
 import {
@@ -42,8 +45,7 @@ import type { BillSplit, SplitMode } from '@/types';
  * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on draft write / seed.
  *
  * Unpaid persons hydrate: sole path is {@link mergeMissingByItemDraftTickets} against
- * unlocked persons seed inside the derived working map (not a layout-effect setState) —
- * so Strict Mode / effect ordering cannot drop unpaid tickets while a locked chip is present.
+ * unlocked persons seed (with staff omit keys so trash / empty-qty commit stay gone).
  */
 export function useByItemSplitState(params: {
   splitMode: SplitMode | null;
@@ -68,9 +70,12 @@ export function useByItemSplitState(params: {
   } = params;
 
   const [draftAllocations, setDraftAllocations] = useState<ByItemAllocationRows>({});
+  /** omitKey → persons-seed share sig at omit time (sole staff delete memory). */
+  const [omitSigByKey, setOmitSigByKey] = useState<Map<string, string>>(() => new Map());
 
   useLayoutEffect(() => {
     setDraftAllocations({});
+    setOmitSigByKey(new Map());
   }, [draftOwnerKey]);
 
   const paidLocks = useMemo(
@@ -120,20 +125,51 @@ export function useByItemSplitState(params: {
     return extractByItemDraftAllocations(normalized, lockedTicketKeys);
   }, [personsHydrateRows, lockedTicketKeys]);
 
+  const reconciledOmitSigByKey = useMemo(
+    () =>
+      reconcileByItemShareOmitKeys({
+        omitSigByKey,
+        unlockedPersonsSeed,
+      }),
+    [omitSigByKey, unlockedPersonsSeed],
+  );
+
+  useLayoutEffect(() => {
+    if (reconciledOmitSigByKey.size === omitSigByKey.size) {
+      let same = true;
+      for (const [key, sig] of reconciledOmitSigByKey) {
+        if (omitSigByKey.get(key) !== sig) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return;
+    }
+    setOmitSigByKey(reconciledOmitSigByKey);
+  }, [reconciledOmitSigByKey, omitSigByKey]);
+
+  const omitLineTicketKeys = useMemo(
+    () => new Set(reconciledOmitSigByKey.keys()),
+    [reconciledOmitSigByKey],
+  );
+
   const committedRef = useRef(committedAllocations);
   committedRef.current = committedAllocations;
   const lockedKeysRef = useRef(lockedTicketKeys);
   lockedKeysRef.current = lockedTicketKeys;
   const personsSeedRef = useRef(unlockedPersonsSeed);
   personsSeedRef.current = unlockedPersonsSeed;
+  const omitKeysRef = useRef(omitLineTicketKeys);
+  omitKeysRef.current = omitLineTicketKeys;
 
   const draftWithPersons = useMemo(
     () =>
       mergeMissingByItemDraftTickets(
         pruneByItemDraftAgainstLocks(draftAllocations, lockedTicketKeys),
         unlockedPersonsSeed,
+        omitLineTicketKeys,
       ),
-    [draftAllocations, unlockedPersonsSeed, lockedTicketKeys],
+    [draftAllocations, unlockedPersonsSeed, lockedTicketKeys, omitLineTicketKeys],
   );
 
   const byItemAllocations = useMemo(() => {
@@ -165,7 +201,11 @@ export function useByItemSplitState(params: {
         const prevMerged = withDefaultByItemLineRows(
           mergeByItemCommittedAndDraft(
             committedRef.current,
-            mergeMissingByItemDraftTickets(prevDraft, personsSeedRef.current),
+            mergeMissingByItemDraftTickets(
+              prevDraft,
+              personsSeedRef.current,
+              omitKeysRef.current,
+            ),
             lockedKeysRef.current,
           ),
           lineSpecs,
@@ -181,6 +221,31 @@ export function useByItemSplitState(params: {
     },
     [enabled, lineSpecs],
   );
+
+  const recordStaffByItemShareOmit = useCallback(
+    (lineKey: string, ticketKey: string) => {
+      const omitKey = byItemLineTicketOmitKey(lineKey, ticketKey);
+      const sig =
+        byItemPersonsSeedShareSig(personsSeedRef.current, lineKey, ticketKey) ?? '';
+      setOmitSigByKey((prev) => {
+        if (prev.get(omitKey) === sig) return prev;
+        const next = new Map(prev);
+        next.set(omitKey, sig);
+        return next;
+      });
+    },
+    [],
+  );
+
+  const clearStaffByItemShareOmit = useCallback((lineKey: string, ticketKey: string) => {
+    const omitKey = byItemLineTicketOmitKey(lineKey, ticketKey);
+    setOmitSigByKey((prev) => {
+      if (!prev.has(omitKey)) return prev;
+      const next = new Map(prev);
+      next.delete(omitKey);
+      return next;
+    });
+  }, []);
 
   const consumerRoster = useMemo(
     () => collectActiveConsumerNames(byItemAllocations),
@@ -236,5 +301,7 @@ export function useByItemSplitState(params: {
     byItemProgress,
     renameByItemConsumer,
     buildPersonsForSubmit,
+    recordStaffByItemShareOmit,
+    clearStaffByItemShareOmit,
   };
 }

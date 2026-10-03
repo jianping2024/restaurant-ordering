@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   byItemDraftHasNamedRows,
+  byItemLineTicketOmitKey,
+  byItemPersonsSeedShareSig,
   extractByItemDraftAllocations,
   extractByItemLockedAllocations,
   mergeByItemCommittedAndDraft,
   mergeMissingByItemDraftTickets,
   pruneByItemDraftAgainstLocks,
+  reconcileByItemShareOmitKeys,
 } from './by-item-committed-draft';
 import type { ByItemConsumerRow } from './bill-split-by-item';
 import { createByItemConsumerRow } from './bill-split-by-item';
@@ -153,6 +156,40 @@ describe('by-item committed + draft layers (locked-only committed)', () => {
     assert.ok(merged['line-a']?.some((r) => r.partyId === 'p-jim'));
     assert.equal(merged['line-b']?.length, 1);
     assert.equal(merged['line-b']?.[0]?.partyId, 'p-jim');
+  });
+
+  it('mergeMissing skips omitted line×ticket until seed fingerprint changes', () => {
+    const seed = {
+      'line-a': [row('Jim', { partyId: 'p-jim', qty: '1' })],
+    };
+    const ticketKey = 'p:p-jim';
+    const omitKey = byItemLineTicketOmitKey('line-a', ticketKey);
+    const sig = byItemPersonsSeedShareSig(seed, 'line-a', ticketKey);
+    assert.ok(sig);
+    const omitted = mergeMissingByItemDraftTickets({}, seed, new Set([omitKey]));
+    assert.equal(omitted['line-a'], undefined);
+
+    const omitMap = new Map([[omitKey, sig!]]);
+    const kept = reconcileByItemShareOmitKeys({
+      omitSigByKey: omitMap,
+      unlockedPersonsSeed: seed,
+    });
+    assert.equal(kept.get(omitKey), sig);
+
+    const changedSeed = {
+      'line-a': [row('Jim', { partyId: 'p-jim', qty: '2' })],
+    };
+    const cleared = reconcileByItemShareOmitKeys({
+      omitSigByKey: omitMap,
+      unlockedPersonsSeed: changedSeed,
+    });
+    assert.equal(cleared.has(omitKey), false);
+    const revived = mergeMissingByItemDraftTickets(
+      {},
+      changedSeed,
+      new Set(cleared.keys()),
+    );
+    assert.equal(revived['line-a']?.[0]?.qtyWhole, '2');
   });
 
   it('byItemDraftHasNamedRows ignores seeds', () => {

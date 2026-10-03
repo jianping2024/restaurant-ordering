@@ -18,12 +18,13 @@ import {
 } from './menu-item-card-layout';
 
 describe('menuItemCardLayout', () => {
-  it('locks body height to CSS thumb var; wide sizes upper bound is 112', () => {
+  it('body min-height tracks CSS thumb var (may grow); wide sizes upper bound is 112', () => {
     assert.equal(MENU_ITEM_CARD_THUMB_PX_NARROW, 88);
     assert.equal(MENU_ITEM_CARD_THUMB_PX_WIDE, 112);
     assert.equal(MENU_ITEM_CARD_THUMB_PX, MENU_ITEM_CARD_THUMB_PX_WIDE);
     assert.match(MENU_ITEM_CARD_THUMB_CLASS, /h-\[var\(--mesa-menu-card-thumb\)\]/);
-    assert.match(MENU_ITEM_CARD_BODY_CLASS, /h-\[var\(--mesa-menu-card-thumb\)\]/);
+    assert.match(MENU_ITEM_CARD_BODY_CLASS, /min-h-\[var\(--mesa-menu-card-thumb\)\]/);
+    assert.doesNotMatch(MENU_ITEM_CARD_BODY_CLASS, /(?:^|\s)h-\[var\(--mesa-menu-card-thumb\)\]/);
     assert.match(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /justify-between/);
     assert.doesNotMatch(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /6\.75rem/);
     assert.equal(MENU_ITEM_CARD_PRICE_CLASS, 'min-w-0 truncate');

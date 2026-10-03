@@ -402,6 +402,7 @@ export function useBillSplitDraft(params: {
     renameByItemConsumer,
     buildPersonsForSubmit,
   } = byItemEditor === 'guest' ? guestByItem : staffByItem;
+  const guestRestoreLocalDraft = guestByItem.restoreLocalDraft;
   const recordStaffByItemShareOmit =
     byItemEditor === 'staff' ? staffByItem.recordStaffByItemShareOmit : undefined;
   const clearStaffByItemShareOmit =
@@ -417,6 +418,7 @@ export function useBillSplitDraft(params: {
       collectedPaymentCount: collectedPayments.length,
     });
     const action = resolveByItemLocalDraftApplyAction({
+      byItemEditor,
       canRestore,
       hasServerItemShares: billSplitHasServerItemShares(existingSplit),
       hasByItemLocalDraft: draft?.splitMode === 'by_item',
@@ -425,11 +427,17 @@ export function useBillSplitDraft(params: {
     byItemLocalAppliedRef.current = true;
     // leave_reconcile: guest|staff sole hydrate — never setByItemAllocations({}) here.
     if (action !== 'apply_local' || !draft) return;
+    if (byItemEditor === 'guest') {
+      guestRestoreLocalDraft(draft.byItemAllocations);
+      return;
+    }
     setByItemAllocations(withDefaultByItemLineRows(draft.byItemAllocations, lineSpecs));
   }, [
     sessionId,
     storageReady,
     lineSpecs,
+    byItemEditor,
+    guestRestoreLocalDraft,
     setByItemAllocations,
     existingSplit,
     submitted,

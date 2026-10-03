@@ -1,5 +1,6 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { splitDraftPersonCount } from '@/lib/checkout-split-continuation';
+import type { BillSplitByItemEditor } from '@/lib/use-bill-split-draft';
 import type { BillSplit, SplitMode } from '@/types';
 
 const KEY_PREFIX = 'mesa:bill-split-draft:';
@@ -263,17 +264,21 @@ export function billSplitHasServerItemShares(
 
 /**
  * Sole by-item working-map local-draft apply decision.
- * Server shares / non-restorable → leave guest|staff reconcile alone (never clear).
- * Restorable + local by_item draft → apply once; else leave reconcile alone.
+ * Non-restorable / no local by_item draft → leave guest|staff reconcile alone (never clear).
+ * Staff persists its unpaid plan to the server (`persistByItemUnpaidPlan`), so server
+ * shares are staff's newer truth → leave reconcile. Guest phone has no server copy of
+ * unpaid edits (e.g. after checkout → resume ordering) → apply local; the guest editor
+ * overlays server-locked rows on top.
  */
 export type ByItemLocalDraftApplyAction = 'leave_reconcile' | 'apply_local';
 
 export function resolveByItemLocalDraftApplyAction(params: {
+  byItemEditor: BillSplitByItemEditor;
   canRestore: boolean;
   hasServerItemShares: boolean;
   hasByItemLocalDraft: boolean;
 }): ByItemLocalDraftApplyAction {
-  if (!params.canRestore || params.hasServerItemShares) return 'leave_reconcile';
-  if (params.hasByItemLocalDraft) return 'apply_local';
-  return 'leave_reconcile';
+  if (!params.canRestore || !params.hasByItemLocalDraft) return 'leave_reconcile';
+  if (params.byItemEditor === 'staff' && params.hasServerItemShares) return 'leave_reconcile';
+  return 'apply_local';
 }

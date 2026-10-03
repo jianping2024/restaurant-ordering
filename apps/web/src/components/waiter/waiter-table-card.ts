@@ -40,6 +40,11 @@ export type WaiterOrderLine = {
   itemCode: string | null;
   /** Dish/buffet name (no item code — code is `itemCode`). */
   label: string;
+  /**
+   * Menu line unit price from order `item.price` (shown after name).
+   * Null for buffet base rows (adult/child rates are not a single unit).
+   */
+  unitPrice: number | null;
   /** Kitchen-enabled station progress (effective status); null for non-kitchen lines. */
   statusLabel: string | null;
   /** Menu lines: `× N` shown beside the decrement control. */
@@ -233,6 +238,7 @@ export function buildWaiterTableCard(
         itemIdx: -1,
         itemCode: null,
         label: formatStaffBuffetLineLabel(item, lang, { headcountStyle: 'receipt' }),
+        unitPrice: null,
         statusLabel: null,
         quantityLabel: null,
         canDecrement: false,
@@ -275,6 +281,7 @@ export function buildWaiterTableCard(
       ...action,
       itemCode: resolveMenuItemCode(item, itemCodeByMenuId),
       label: resolveMenuItemLocalizedName(item, lang),
+      unitPrice: Number.isFinite(Number(item.price)) ? Number(item.price) : null,
       statusLabel,
       quantityLabel: formatOrderItemQuantityLabel(item, { headcountStyle: 'receipt' }),
       chargeableQty: share.chargeableQty ?? null,

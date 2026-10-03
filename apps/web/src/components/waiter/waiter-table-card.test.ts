@@ -129,6 +129,7 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.itemCode, '001');
     assert.equal(card.orderLines[0]?.label, 'Água 500ml');
+    assert.equal(card.orderLines[0]?.unitPrice, 1.85);
     assert.equal(card.orderLines[0]?.quantityLabel, '× 1');
   });
 
@@ -161,6 +162,7 @@ describe('buildWaiterTableCard', () => {
     ], {}, capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.label, 'Buffet livre · A2-C1');
+    assert.equal(card.orderLines[0]?.unitPrice, null);
     assert.equal(card.sessionTotal, 55.9);
     assert.equal(card.mealsTotal, 0);
   });
@@ -212,6 +214,10 @@ describe('buildWaiterTableCard', () => {
     );
     assert.equal(card.sessionTotal, 595.35);
     assert.equal(card.mealsTotal, 300);
+    const buffetLine = card.orderLines.find((l) => l.label.startsWith('Buffet'));
+    const mealLine = card.orderLines.find((l) => l.label === 'Água');
+    assert.equal(buffetLine?.unitPrice, null);
+    assert.equal(mealLine?.unitPrice, 150);
   });
 
   it('merges identical menu lines with the billable catalog key (ignores notes)', () => {
@@ -280,6 +286,7 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines.length, 1);
     assert.equal(card.orderLines[0]?.itemCode, '001');
     assert.equal(card.orderLines[0]?.label, 'Água 500ml');
+    assert.equal(card.orderLines[0]?.unitPrice, 1.85);
     assert.equal(card.orderLines[0]?.quantityLabel, '× 3');
     assert.equal(card.orderLines[0]?.canDecrement, true);
     assert.equal(card.orderLines[0]?.orderId, 'o1');
@@ -323,6 +330,8 @@ describe('buildWaiterTableCard', () => {
     assert.equal(card.orderLines.length, 2);
     assert.equal(card.orderLines[0]?.quantityLabel, '× 1');
     assert.equal(card.orderLines[1]?.quantityLabel, '× 1');
+    const prices = card.orderLines.map((l) => l.unitPrice).sort((a, b) => (a ?? 0) - (b ?? 0));
+    assert.deepEqual(prices, [1.85, 2.0]);
   });
 
   it('prefers a decrementable qty>1 row as the action target on a merged group', () => {

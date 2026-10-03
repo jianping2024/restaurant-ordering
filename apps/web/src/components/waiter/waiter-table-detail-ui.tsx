@@ -87,9 +87,10 @@ export const waiterDetailLayout = {
   orderedItemsPreBillAction: 'shrink-0 whitespace-nowrap',
   /**
    * One dish = one horizontal left-cluster row (unique shape):
-   * [code · name · status] —gap-8— [qty · serve/minus].
+   * [code · name · unit € · status] —gap-8— [qty · serve/minus].
    * Name, code, and qty share `waiterFloorType.listBody` (text-lg); code keeps gold color.
-   * Status follows the dish name (not the far-right qty). Label is not flex-1 —
+   * Unit price is sole `orderedItemUnitPrice` from `WaiterOrderLine.unitPrice` (not in label).
+   * Status follows unit price (not the far-right qty). Label is not flex-1 —
    * restores original name↔qty breath; wide viewports may leave empty space on the right.
    * Chargeable hint is the only allowed secondary line (rare limited-dish note).
    */
@@ -97,6 +98,8 @@ export const waiterDetailLayout = {
   orderedItemIdentity: 'flex min-w-0 items-center gap-2.5',
   orderedItemCode: `shrink-0 min-w-[2rem] text-left ${waiterFloorType.listCode}`,
   orderedItemLabel: waiterFloorType.listBodyTruncate,
+  orderedItemUnitPrice:
+    'shrink-0 text-lg font-semibold tabular-nums text-brand-gold leading-snug',
   orderedItemStatus:
     'shrink-0 rounded-md bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-950',
   orderedItemChargeableHint: 'mt-0.5 text-sm text-brand-text-muted',

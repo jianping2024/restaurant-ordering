@@ -735,6 +735,11 @@ export function WaiterTableOrderedItemsPanel({
                     <span className={waiterDetailLayout.orderedItemCode}>{line.itemCode}</span>
                   ) : null}
                   <p className={waiterDetailLayout.orderedItemLabel}>{line.label}</p>
+                  {line.unitPrice != null && Number.isFinite(line.unitPrice) ? (
+                    <span className={waiterDetailLayout.orderedItemUnitPrice}>
+                      €{line.unitPrice.toFixed(2)}
+                    </span>
+                  ) : null}
                   {line.statusLabel ? (
                     <span className={waiterDetailLayout.orderedItemStatus}>{line.statusLabel}</span>
                   ) : null}

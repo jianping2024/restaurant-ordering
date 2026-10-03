@@ -104,6 +104,9 @@ test('ordered-item row is a left cluster (identity —gap-8— qty/actions; labe
   assert.match(waiterDetailLayout.orderedItemCode, /tabular-nums/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemLabel, /flex-1/);
   assert.match(waiterDetailLayout.orderedItemLabel, /truncate/);
+  assert.match(waiterDetailLayout.orderedItemUnitPrice, /shrink-0/);
+  assert.match(waiterDetailLayout.orderedItemUnitPrice, /text-brand-gold/);
+  assert.match(waiterDetailLayout.orderedItemUnitPrice, /tabular-nums/);
   assert.match(waiterDetailLayout.orderedItemStatus, /shrink-0/);
   assert.doesNotMatch(waiterDetailLayout.orderedItemStatus, /muted/);
   assert.match(waiterDetailLayout.orderedItemQty, /shrink-0/);
@@ -126,10 +129,14 @@ test('ordered-items panel: status in identity cluster; qty with actions (one lef
   assert.match(panel, /waiterDetailLayout\.orderedItemIdentity/);
   assert.match(panel, /waiterDetailLayout\.orderedItemCode/);
   assert.match(panel, /line\.itemCode/);
+  assert.match(panel, /waiterDetailLayout\.orderedItemUnitPrice/);
+  assert.match(panel, /line\.unitPrice/);
   assert.match(panel, /waiterDetailLayout\.orderedItemStatus/);
   assert.match(panel, /waiterDetailLayout\.orderedItemLabel/);
   assert.match(panel, /waiterDetailLayout\.orderedItemQty/);
   assert.doesNotMatch(panel, /orderedItemTextCol/);
+  // sole unit display: field + class — not baked into label
+  assert.doesNotMatch(panel, /label.*€|€.*label/);
   // status lives inside identity, not as a muted second line
   assert.doesNotMatch(
     panel,

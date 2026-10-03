@@ -9,6 +9,7 @@ import {
 import type { ByItemLineSpec } from './bill-split-by-item-lines';
 import {
   findFirstIncompleteLineKey,
+  isByItemExpansionHoldTarget,
   isByItemLineExpanded,
   reconcileByItemExpandedLineKey,
   toggleByItemExpandedLineKey,
@@ -175,5 +176,50 @@ describe('by-item-line-expansion', () => {
       true,
     );
     assert.equal(reconcileByItemExpandedLineKey(specs, complete, open), null);
+  });
+
+  it('holds the open completed line while editing; advances after hold clears', () => {
+    const buffet: ByItemLineSpec = {
+      mode: 'buffet',
+      key: 'buffet-headcount',
+      lineTotal: 15,
+      adults: 1,
+      children: 0,
+      adultUnitPrice: 15,
+      childUnitPrice: 0,
+    };
+    const wine = menuSpec('wine', 1);
+    const specs = [buffet, wine];
+    const incomplete = {
+      'buffet-headcount': [buffetRow('h1', '', '1')],
+      wine: [row('w1', '', { whole: '1' })],
+    };
+    const open = reconcileByItemExpandedLineKey(specs, incomplete, undefined);
+    assert.equal(open, 'buffet-headcount');
+
+    const named = {
+      ...incomplete,
+      'buffet-headcount': [buffetRow('h1', 'A', '1')],
+    };
+    assert.equal(
+      isByItemLineComplete(
+        getByItemLineStatusFromRows(named['buffet-headcount'], buffet),
+      ),
+      true,
+    );
+    assert.equal(
+      reconcileByItemExpandedLineKey(specs, named, open, { holdWhileEditing: true }),
+      'buffet-headcount',
+    );
+    assert.equal(
+      reconcileByItemExpandedLineKey(specs, named, open, { holdWhileEditing: false }),
+      'wine',
+    );
+  });
+
+  it('isByItemExpansionHoldTarget rejects null / missing expanded key', () => {
+    assert.equal(isByItemExpansionHoldTarget(null, 'buffet-headcount'), false);
+    assert.equal(isByItemExpansionHoldTarget(undefined, 'buffet-headcount'), false);
+    assert.equal(isByItemExpansionHoldTarget({} as EventTarget, null), false);
   });
 });

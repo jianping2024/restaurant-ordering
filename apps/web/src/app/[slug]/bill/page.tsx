@@ -77,13 +77,17 @@ export default async function BillRoute({ params, searchParams }: Props) {
 
   const menuItemIds = distinctMenuItemIdsFromOrders(bill.orders);
   let itemCodeByMenuId: Record<string, string> = {};
+  const imageUrlByMenuId: Record<string, string> = {};
   if (menuItemIds.length > 0) {
     const { data: menuRows } = await admin
       .from('menu_items')
-      .select('id, item_code')
+      .select('id, item_code, image_url')
       .eq('restaurant_id', restaurant.id)
       .in('id', menuItemIds);
     itemCodeByMenuId = menuItemCodeLookupFromRows(menuRows ?? []);
+    for (const row of menuRows ?? []) {
+      if (row.image_url) imageUrlByMenuId[row.id] = row.image_url;
+    }
   }
 
   let initialFeedbackSubmitted = false;
@@ -108,6 +112,7 @@ export default async function BillRoute({ params, searchParams }: Props) {
       initialFeedbackSubmitted={initialFeedbackSubmitted}
       initialFeedbackSkipped={initialFeedbackSkipped}
       itemCodeByMenuId={itemCodeByMenuId}
+      imageUrlByMenuId={imageUrlByMenuId}
       initialPartyMemberCount={bill.party_member_count}
     />
   );

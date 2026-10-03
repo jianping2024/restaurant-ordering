@@ -9,11 +9,14 @@ import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultLi
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 
-type ReviewableItem = {
+export type ReviewableItem = {
   menu_item_id: string;
+  order_id: string;
   name: string;
   emoji: string;
+  image_url: string | null;
   qty: number;
 };
 
@@ -123,7 +126,7 @@ export function BillCheckoutSubmittedScreen({
           }}
         />
 
-        <section className="grid grid-cols-2 gap-3 pt-1">
+        <section className="grid grid-cols-1 gap-3 pt-1 min-[400px]:grid-cols-2">
           <Button type="button" variant="gold" size="action" className="w-full" onClick={onRefreshPage}>
             {copy.refreshPage}
           </Button>
@@ -145,34 +148,36 @@ export function BillCheckoutSubmittedScreen({
                   const reasons = draft?.reasons ?? [];
                   return (
                     <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
-                      <div className="flex items-start gap-2">
-                        <p className="min-w-0 flex-1 text-sm text-brand-text break-words [overflow-wrap:anywhere]">
-                          {item.emoji} {item.name} × {item.qty}
+                      <div className="flex items-center gap-3">
+                        <MenuItemListThumb item={item} />
+                        <p className="min-w-0 flex-1 line-clamp-2 break-words text-sm text-brand-text">
+                          {item.name}
                         </p>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => onVote(item.menu_item_id, 'up')}
-                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                              draft?.vote === 'up'
-                                ? 'mesa-badge-success'
-                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                            }`}
-                          >
-                            👍 {copy.thumbsUp}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => onVote(item.menu_item_id, 'down')}
-                            className={`text-[13px] px-2.5 py-1 rounded-full border transition-colors ${
-                              draft?.vote === 'down'
-                                ? 'mesa-badge-danger'
-                                : 'border-brand-border text-brand-text-muted hover:text-brand-text'
-                            }`}
-                          >
-                            👎 {copy.thumbsDown}
-                          </button>
-                        </div>
+                        <span className="shrink-0 text-[13px] tabular-nums text-brand-text-muted">×{item.qty}</span>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onVote(item.menu_item_id, 'up')}
+                          className={`min-h-9 rounded-full border px-2 text-[13px] transition-colors ${
+                            draft?.vote === 'up'
+                              ? 'mesa-badge-success'
+                              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                          }`}
+                        >
+                          👍 {copy.thumbsUp}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onVote(item.menu_item_id, 'down')}
+                          className={`min-h-9 rounded-full border px-2 text-[13px] transition-colors ${
+                            draft?.vote === 'down'
+                              ? 'mesa-badge-danger'
+                              : 'border-brand-border text-brand-text-muted hover:text-brand-text'
+                          }`}
+                        >
+                          👎 {copy.thumbsDown}
+                        </button>
                       </div>
                       {draft?.vote === 'down' ? (
                         <div className="mt-2 flex flex-wrap gap-2">

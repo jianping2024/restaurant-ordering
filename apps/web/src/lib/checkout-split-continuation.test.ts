@@ -8,7 +8,6 @@ import {
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
   byItemRowEditLock,
-  clampMenuRowToMinQty,
   commitAllByItemAllocations,
   commitByItemConsumerRowEdit,
   ensureSplitPersonNames,
@@ -194,26 +193,8 @@ describe('byItemRowEditLock', () => {
   });
 });
 
-describe('clampMenuRowToMinQty', () => {
-  it('restores locked floor when qty is cleared', () => {
-    const row = clampMenuRowToMinQty(
-      { id: 'r1', name: 'Jack', qtyWhole: '', qtyNum: '', qtyDen: '' },
-      { num: 1, den: 1 },
-    );
-    assert.equal(row.qtyWhole, '1');
-  });
-
-  it('allows qty above the locked floor', () => {
-    const row = clampMenuRowToMinQty(
-      { id: 'r1', name: 'Jack', qtyWhole: '2', qtyNum: '', qtyDen: '' },
-      { num: 1, den: 1 },
-    );
-    assert.equal(row.qtyWhole, '2');
-  });
-});
-
 describe('applyByItemConsumerRowEdit', () => {
-  it('allows clearing qty while typing; commit restores paid floor', () => {
+  it('rejects qty clear when qtyReadOnly; commit keeps exact locked share', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Jack', amount: 2.2, paid: true }],
@@ -231,7 +212,7 @@ describe('applyByItemConsumerRowEdit', () => {
       patch: { qtyWhole: '', qtyNum: '', qtyDen: '' },
       ctx,
     });
-    assert.equal(typing.qtyWhole, '');
+    assert.equal(typing.qtyWhole, '1');
 
     const committed = commitByItemConsumerRowEdit({
       row: typing,
@@ -240,7 +221,7 @@ describe('applyByItemConsumerRowEdit', () => {
     assert.equal(committed.qtyWhole, '1');
   });
 
-  it('allows replacing qty digits while typing without append clamp', () => {
+  it('rejects qty bump when qtyReadOnly; commit restores exact locked share', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Jack', amount: 2.2, paid: true }],
@@ -258,10 +239,29 @@ describe('applyByItemConsumerRowEdit', () => {
       patch: { qtyWhole: '13', qtyNum: '', qtyDen: '' },
       ctx,
     });
-    assert.equal(typing.qtyWhole, '13');
+    assert.equal(typing.qtyWhole, '1');
 
-    const committed = commitByItemConsumerRowEdit({ row: typing, ctx });
-    assert.equal(committed.qtyWhole, '13');
+    const drifted = {
+      id: 'r1',
+      name: 'Jack',
+      qtyWhole: '13',
+      qtyNum: '',
+      qtyDen: '',
+      paidLocked: true as const,
+    };
+    const committed = commitByItemConsumerRowEdit({ row: drifted, ctx });
+    assert.equal(committed.qtyWhole, '1');
+  });
+
+  it('allows qty edit for unlocked unpaid guest', () => {
+    const locks = { menu: new Map(), buffet: new Map() };
+    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
+    const typing = applyByItemConsumerRowEdit({
+      row: { id: 'r1', name: 'Bob', qtyWhole: '1', qtyNum: '', qtyDen: '' },
+      patch: { qtyWhole: '2', qtyNum: '', qtyDen: '' },
+      ctx,
+    });
+    assert.equal(typing.qtyWhole, '2');
   });
 
   it('ignores rename for locked paid guest', () => {
@@ -287,7 +287,7 @@ describe('applyByItemConsumerRowEdit', () => {
 });
 
 describe('commitAllByItemAllocations', () => {
-  it('restores paid floors on every line before submit', () => {
+  it('restores exact locked shares on every line before submit', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Jack', amount: 2.2, paid: true }],

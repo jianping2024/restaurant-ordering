@@ -193,6 +193,7 @@ export function BuffetDishAllocator({
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={row.adultQty ?? ''}
+                    disabled={rowLock.qtyReadOnly}
                     onChange={(e) => updateRow(row.id, {
                       adultQty: sanitizeQtyDigits(e.target.value),
                     })}
@@ -208,6 +209,7 @@ export function BuffetDishAllocator({
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={row.childQty ?? ''}
+                    disabled={rowLock.qtyReadOnly}
                     onChange={(e) => updateRow(row.id, {
                       childQty: sanitizeQtyDigits(e.target.value),
                     })}

@@ -12,6 +12,7 @@ import {
   isByItemExpansionHoldTarget,
   isByItemLineExpanded,
   reconcileByItemExpandedLineKey,
+  shouldFocusFirstByItemConsumerNameOnExpand,
   toggleByItemExpandedLineKey,
 } from './by-item-line-expansion';
 
@@ -221,5 +222,22 @@ describe('by-item-line-expansion', () => {
     assert.equal(isByItemExpansionHoldTarget(null, 'buffet-headcount'), false);
     assert.equal(isByItemExpansionHoldTarget(undefined, 'buffet-headcount'), false);
     assert.equal(isByItemExpansionHoldTarget({} as EventTarget, null), false);
+  });
+
+  it('focuses next name only on string→string expand advance', () => {
+    assert.equal(
+      shouldFocusFirstByItemConsumerNameOnExpand(undefined, 'buffet-headcount'),
+      false,
+    );
+    assert.equal(shouldFocusFirstByItemConsumerNameOnExpand(null, 'wine'), false);
+    assert.equal(shouldFocusFirstByItemConsumerNameOnExpand('buffet-headcount', null), false);
+    assert.equal(
+      shouldFocusFirstByItemConsumerNameOnExpand('buffet-headcount', 'buffet-headcount'),
+      false,
+    );
+    assert.equal(
+      shouldFocusFirstByItemConsumerNameOnExpand('buffet-headcount', 'wine'),
+      true,
+    );
   });
 });

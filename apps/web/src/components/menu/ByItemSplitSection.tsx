@@ -2,6 +2,10 @@
 
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import {
+  focusFirstByItemConsumerNameInCard,
+  shouldFocusFirstByItemConsumerNameOnExpand,
+} from '@/lib/by-item-line-expansion';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
 import {
   formatByItemSplitQuantityLabel,
@@ -52,20 +56,25 @@ export function ByItemSplitSection({
   const prevExpandedKeyRef = useRef<string | null | undefined>(undefined);
 
   useLayoutEffect(() => {
-    // Do not scroll while the open card is mid-edit — that fights the soft keyboard.
+    // Do not scroll/focus while the open card is mid-edit — that fights the soft keyboard.
     if (holdWhileEditing) {
       prevExpandedKeyRef.current = expandedKey;
       return;
     }
-    if (!expandedKey || expandedKey === prevExpandedKeyRef.current) {
+    const previous = prevExpandedKeyRef.current;
+    if (!expandedKey || expandedKey === previous) {
       prevExpandedKeyRef.current = expandedKey;
       return;
     }
+    const focusName = shouldFocusFirstByItemConsumerNameOnExpand(previous, expandedKey);
     prevExpandedKeyRef.current = expandedKey;
     const card = document.querySelector<HTMLElement>(
       `[data-by-item-line-key="${CSS.escape(expandedKey)}"]`,
     );
     card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (focusName) {
+      focusFirstByItemConsumerNameInCard(expandedKey);
+    }
   }, [expandedKey, holdWhileEditing]);
 
   const orderLineByKey = useMemo(

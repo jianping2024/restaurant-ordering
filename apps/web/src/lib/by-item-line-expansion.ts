@@ -30,7 +30,7 @@ export function findFirstIncompleteLineKey(
   return match?.key ?? null;
 }
 
-function isLineComplete(
+export function isByItemExpandedLineComplete(
   key: string,
   lineSpecs: readonly ByItemLineSpec[],
   allocations: Record<string, ByItemConsumerRow[]>,
@@ -38,6 +38,30 @@ function isLineComplete(
   const spec = lineSpecs.find((candidate) => candidate.key === key);
   if (!spec) return true;
   return isByItemLineComplete(getByItemLineStatusFromRows(allocations[key] ?? [], spec));
+}
+
+/**
+ * Auto-advance string→string (finished dish A → open dish B): focus B's first name.
+ * Seed (`undefined`→key), manual open (`null`→key), and collapse (→`null`) do not focus.
+ */
+export function shouldFocusFirstByItemConsumerNameOnExpand(
+  previous: ByItemExpandedLineKey | undefined,
+  next: ByItemExpandedLineKey,
+): boolean {
+  return typeof previous === 'string' && typeof next === 'string' && previous !== next;
+}
+
+/** Sole focus path: first consumer-name combobox inside the open dish card. */
+export function focusFirstByItemConsumerNameInCard(lineKey: string): boolean {
+  if (typeof document === 'undefined' || !lineKey) return false;
+  const card = document.querySelector(
+    `[data-by-item-line-key="${CSS.escape(lineKey)}"]`,
+  );
+  if (!(card instanceof HTMLElement)) return false;
+  const input = card.querySelector<HTMLInputElement>('input[role="combobox"]');
+  if (!input || input.readOnly) return false;
+  input.focus();
+  return document.activeElement === input;
 }
 
 /**
@@ -74,7 +98,7 @@ export function reconcileByItemExpandedLineKey(
   if (current === undefined) return focus;
   if (current === null) return null;
   if (!lineSpecs.some((spec) => spec.key === current)) return focus;
-  if (isLineComplete(current, lineSpecs, allocations)) {
+  if (isByItemExpandedLineComplete(current, lineSpecs, allocations)) {
     if (opts?.holdWhileEditing) return current;
     return focus;
   }
@@ -98,7 +122,7 @@ export function toggleByItemExpandedLineKey(
   allocations: Record<string, ByItemConsumerRow[]>,
 ): ByItemExpandedLineKey {
   if (current === key) {
-    if (isLineComplete(key, lineSpecs, allocations)) {
+    if (isByItemExpandedLineComplete(key, lineSpecs, allocations)) {
       return findFirstIncompleteLineKey(lineSpecs, allocations, { exclude: key });
     }
     return null;

@@ -23,7 +23,7 @@ import {
   applyCollectedObligationFloors,
   byItemPoolFullyAllocated,
   collectModalAmountStillValid,
-  mergeCurrentByItemTicketForCollect,
+  mergeStaffByItemUnpaidDraftIntoLedger,
   resolveByItemCollectTarget,
   resolveStaffByItemEditRoster,
   settledByItemPersonKeys,
@@ -93,11 +93,12 @@ type Props = {
   ) => void;
   onSplitPersisted: (row: BillSplit) => void;
   /**
-   * Even/custom only: full split persist before collect.
-   * By-item must use {@link onRegisterCollectTicket} (never whole-table recalc).
+   * Even/custom: full split persist before collect.
+   * By-item: unpaid plan flush ({@link mergeStaffByItemUnpaidDraftIntoLedger}) —
+   * resume and Host pay-path both call this; collect stamps then same merge.
    */
   onRegisterPersist: (persist: (() => Promise<SplitResult[] | null>) | null) => void;
-  /** Sole by-item collect confirm: upsert current ticket only; modal amount stays authoritative. */
+  /** By-item collect confirm: stamp ticket then unpaid-plan merge; modal amount authoritative. */
   onRegisterCollectTicket: (
     persist: ((args: {
       personName: string;
@@ -438,9 +439,84 @@ export function StaffCheckoutSplitEditor({
     splitDraft,
   ]);
 
+  /** Sole by-item unpaid plan → ledger (resume flush + collect after stamp). */
+  const persistByItemUnpaidPlan = useCallback(
+    async (params: {
+      draftPersons: ReturnType<typeof buildSplitPersonsFromAllocations>;
+      draftResults: SplitResult[];
+    }): Promise<SplitResult[] | null> => {
+      const lockedTicketKeys = allocationLockedTicketKeys(request, collectedPayments);
+      const merged = mergeStaffByItemUnpaidDraftIntoLedger({
+        existingPersons: request.persons ?? [],
+        existingResult: (request.result ?? []) as SplitResult[],
+        draftPersons: params.draftPersons,
+        draftResults: params.draftResults,
+        lockedTicketKeys,
+      });
+      const outcome = await requestCheckoutRequest({
+        slug: restaurantSlug,
+        tableId: request.table_id,
+        splitMode: 'by_item',
+        persons: merged.persons,
+        result: merged.result,
+        allowPartialByItem: true,
+      });
+      if (!outcome.ok) {
+        showToast(
+          messageForCheckoutRequestError(outcome.error, {
+            guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
+            partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
+            emptySession: checkoutT.callCheckoutEmptySession,
+            noActiveSession: checkoutT.callCheckoutNoActiveSession,
+            tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
+            invalidNif: billT.nifInvalid,
+            splitPlanLocked: billT.splitPlanLocked,
+            fallback: checkoutT.callCheckoutFailed,
+          }),
+          'error',
+        );
+        return null;
+      }
+      onSplitPersisted({
+        ...request,
+        id: outcome.bill_split_id,
+        split_mode: 'by_item',
+        persons: merged.persons,
+        result: outcome.result,
+        status: 'requested',
+      });
+      return outcome.result;
+    },
+    [
+      billT.nifInvalid,
+      billT.splitPlanLocked,
+      checkoutT,
+      collectedPayments,
+      onSplitPersisted,
+      request,
+      restaurantSlug,
+    ],
+  );
+
   useEffect(() => {
     if (splitDraft.splitMode === 'by_item') {
-      onRegisterPersist(null);
+      onRegisterPersist(async () => {
+        setSubmitting(true);
+        try {
+          const rowAllocations = buildByItemAllocationsFromRows(
+            lineSpecs,
+            splitDraft.byItemAllocations,
+          );
+          const draftPersons = buildSplitPersonsFromAllocations(rowAllocations);
+          const draftResults = applyCollectedObligationFloors(
+            liveByItemResults,
+            collectedPayments,
+          );
+          return await persistByItemUnpaidPlan({ draftPersons, draftResults });
+        } finally {
+          setSubmitting(false);
+        }
+      });
       onRegisterCollectTicket(async ({ personName, partyId, modalAmount }) => {
         setSubmitting(true);
         try {
@@ -497,48 +573,20 @@ export function StaffCheckoutSplitEditor({
             return null;
           }
 
-          const merged = mergeCurrentByItemTicketForCollect({
-            existingPersons: request.persons ?? [],
-            existingResult: (request.result ?? []) as SplitResult[],
-            ticketPerson,
-            ticketAmount: obligation,
+          const draftResults = applyCollectedObligationFloors(
+            liveByItemResults.map((row) =>
+              splitResultTicketKey(row) === ticketKey
+                ? toWireSplitResult({ ...row, amount: obligation })
+                : toWireSplitResult(row),
+            ),
+            collectedPayments,
+          );
+          const persisted = await persistByItemUnpaidPlan({
+            draftPersons: allPersons,
+            draftResults,
           });
-
-          const outcome = await requestCheckoutRequest({
-            slug: restaurantSlug,
-            tableId: request.table_id,
-            splitMode: 'by_item',
-            persons: merged.persons,
-            result: merged.result,
-            // Collect upserts one ticket only — never require Σ(result)=bill here
-            // (paid freezes can leave a 1¢ gap until remaining tickets are collected).
-            allowPartialByItem: true,
-          });
-          if (!outcome.ok) {
-            showToast(
-              messageForCheckoutRequestError(outcome.error, {
-                guestCountRequired: checkoutT.callCheckoutGuestCountRequired,
-                partyMergeRequired: checkoutT.callCheckoutPartyMergeRequired,
-                emptySession: checkoutT.callCheckoutEmptySession,
-                noActiveSession: checkoutT.callCheckoutNoActiveSession,
-                tableNotAvailable: checkoutT.callCheckoutTableNotAvailable,
-                invalidNif: billT.nifInvalid,
-                splitPlanLocked: billT.splitPlanLocked,
-                fallback: checkoutT.callCheckoutFailed,
-              }),
-              'error',
-            );
-            return null;
-          }
-          onSplitPersisted({
-            ...request,
-            id: outcome.bill_split_id,
-            split_mode: 'by_item',
-            persons: merged.persons,
-            result: outcome.result,
-            status: 'requested',
-          });
-          const personIndex = outcome.result.findIndex(
+          if (!persisted) return null;
+          const personIndex = persisted.findIndex(
             (row) => splitResultTicketKey(row) === ticketKey,
           );
           if (personIndex < 0) {
@@ -551,6 +599,7 @@ export function StaffCheckoutSplitEditor({
         }
       });
       return () => {
+        onRegisterPersist(null);
         onRegisterCollectTicket(null);
       };
     }
@@ -575,10 +624,8 @@ export function StaffCheckoutSplitEditor({
     liveByItemResults,
     onRegisterCollectTicket,
     onRegisterPersist,
-    onSplitPersisted,
+    persistByItemUnpaidPlan,
     persistSplit,
-    request,
-    restaurantSlug,
     splitDraft.byItemAllocations,
     splitDraft.splitMode,
     total,

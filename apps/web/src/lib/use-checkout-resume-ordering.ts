@@ -22,6 +22,11 @@ type Params = {
   onMutated?: (tableId: string) => void;
   showToast: (message: string, kind: 'error' | 'success') => void;
   messages: Messages;
+  /**
+   * By-item unpaid plan flush before resume RPC.
+   * Return false to abort resume (toast already shown by flush).
+   */
+  beforeResume?: () => Promise<boolean>;
 };
 
 export function resolveCheckoutResumeExitHref(
@@ -46,6 +51,7 @@ export function useCheckoutResumeOrdering(params: Params) {
     onMutated,
     showToast,
     messages,
+    beforeResume,
   } = params;
 
   const router = useRouter();
@@ -74,6 +80,10 @@ export function useCheckoutResumeOrdering(params: Params) {
     let keepBusyAfterMutate = false;
 
     try {
+      if (beforeResume) {
+        const flushed = await beforeResume();
+        if (!flushed) return;
+      }
       const outcome = await requestCheckoutResumeOrdering({
         slug: restaurantSlug,
         tableId,
@@ -101,6 +111,7 @@ export function useCheckoutResumeOrdering(params: Params) {
       }
     }
   }, [
+    beforeResume,
     exitHref,
     messages.blockedWholeTable,
     messages.failed,

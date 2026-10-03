@@ -230,63 +230,61 @@ export function settledByItemPersonKeys(
 }
 
 /**
- * Sole by-item collect confirm merge: upsert **one** ticket into the ledger.
- * Other tickets keep existing amounts/shares — never whole-table recalculate.
- * Drops whole-table sentinel rows when the first real ticket is written.
+ * Sole unpaid by-item plan sync into the ledger:
+ * keep locked tickets from existing persons/result; replace all unlocked
+ * tickets from staff draft (empty unpaid tickets drop). Never rewrites paid.
+ * Resume flush and collect (after stamp) both call this — not a second merge.
  */
-export function mergeCurrentByItemTicketForCollect(params: {
+export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
   existingPersons: ReadonlyArray<SplitPerson>;
   existingResult: ReadonlyArray<SplitResult>;
-  ticketPerson: SplitPerson;
-  ticketAmount: number;
+  draftPersons: ReadonlyArray<SplitPerson>;
+  draftResults: ReadonlyArray<SplitResult>;
+  lockedTicketKeys: ReadonlySet<string>;
 }): { persons: SplitPerson[]; result: SplitResult[] } {
-  const ticketKey = splitPartyKey(params.ticketPerson.party_id, params.ticketPerson.name);
-  if (!ticketKey) {
+  const basePersons = params.existingPersons.filter(
+    (row) => !isWholeTablePayerName(row.name),
+  );
+  const baseResult = params.existingResult.filter(
+    (row) => !isWholeTablePayerName(row.name),
+  );
+
+  const lockedPersons = basePersons.filter((row) => {
+    const key = splitPartyKey(row.party_id, row.name);
+    return Boolean(key && params.lockedTicketKeys.has(key));
+  });
+  const lockedResult = baseResult.filter((row) => {
+    const key = splitResultTicketKey(row);
+    return Boolean(key && params.lockedTicketKeys.has(key));
+  });
+
+  const unpaidPersons = params.draftPersons.filter((row) => {
+    if (isWholeTablePayerName(row.name)) return false;
+    const key = splitPartyKey(row.party_id, row.name);
+    if (!key || params.lockedTicketKeys.has(key)) return false;
+    return (row.item_shares?.length ?? 0) > 0;
+  });
+  const unpaidKeys = new Set(
+    unpaidPersons
+      .map((row) => splitPartyKey(row.party_id, row.name))
+      .filter((key): key is string => Boolean(key)),
+  );
+  const unpaidResult = params.draftResults
+    .filter((row) => {
+      if (isWholeTablePayerName(row.name)) return false;
+      const key = splitResultTicketKey(row);
+      return Boolean(key && unpaidKeys.has(key));
+    })
+    .map((row) => toWireSplitResult(row));
+
+  const persons = [...lockedPersons, ...unpaidPersons];
+  const result = [...lockedResult, ...unpaidResult];
+  if (persons.length === 0) {
     return {
       persons: [...params.existingPersons],
       result: [...params.existingResult],
     };
   }
-
-  const ticketResult = toWireSplitResult({
-    name: params.ticketPerson.name,
-    amount: params.ticketAmount,
-    party_id: params.ticketPerson.party_id,
-    partyId: params.ticketPerson.party_id,
-  });
-
-  const basePersons = params.existingPersons.filter((row) => !isWholeTablePayerName(row.name));
-  const baseResult = params.existingResult.filter((row) => !isWholeTablePayerName(row.name));
-
-  let personHit = false;
-  const persons = basePersons.map((row) => {
-    if (splitPartyKey(row.party_id, row.name) !== ticketKey) return row;
-    personHit = true;
-    return {
-      ...params.ticketPerson,
-      // Keep prior amount on person row if present; result is authoritative.
-      amount: params.ticketAmount,
-    };
-  });
-  if (!personHit) {
-    persons.push({ ...params.ticketPerson, amount: params.ticketAmount });
-  }
-
-  let resultHit = false;
-  const result = baseResult.map((row) => {
-    if (splitResultTicketKey(row) !== ticketKey) return row;
-    resultHit = true;
-    // Never raise/rewrite an already-paid ticket via collect merge.
-    if (row.paid) return row;
-    return toWireSplitResult({
-      ...ticketResult,
-      paid: row.paid,
-    });
-  });
-  if (!resultHit) {
-    result.push(ticketResult);
-  }
-
   return { persons, result };
 }
 

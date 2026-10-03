@@ -146,6 +146,11 @@ export function CheckoutRequestDetailHost({
   const { lang } = useLanguage();
   const t = getMessages(lang).checkout;
   const billT = getMessages(lang).bill;
+  const beforeResume = useCallback(async () => {
+    if (!persistBeforePay.current) return true;
+    const persisted = await persistBeforePay.current();
+    return persisted != null;
+  }, []);
   const {
     isResumeBusy,
     isResumeMutating,
@@ -154,6 +159,7 @@ export function CheckoutRequestDetailHost({
     restaurantSlug,
     tableId: request.table_id,
     onMutated: onResumeMutated,
+    beforeResume,
     showToast,
     messages: {
       failed: t.resumeOrderingFailed,

@@ -4,7 +4,7 @@ import {
   applyCollectedObligationFloors,
   byItemPoolFullyAllocated,
   collectModalAmountStillValid,
-  mergeCurrentByItemTicketForCollect,
+  mergeStaffByItemUnpaidDraftIntoLedger,
   orderByItemResultsToRoster,
   resolveByItemCollectTarget,
   resolveStaffByItemEditRoster,
@@ -246,60 +246,133 @@ describe('settledByItemPersonKeys', () => {
   });
 });
 
-describe('mergeCurrentByItemTicketForCollect', () => {
-  it('upserts one ticket and leaves other amounts untouched', () => {
-    const a = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-    const b = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
-    const merged = mergeCurrentByItemTicketForCollect({
+describe('mergeStaffByItemUnpaidDraftIntoLedger', () => {
+  it('keeps paid tickets and replaces unpaid after Jim→Marry reassign', () => {
+    const paid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const jim = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const marry = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+    const locked = new Set([paid]);
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
       existingPersons: [
         {
-          name: '客人 3',
-          party_id: a,
-          item_shares: [{ key: 'sumol', qty_num: 1, qty_den: 3, locked_amount: 0.73 }],
-          amount: 0.73,
+          name: 'John',
+          party_id: paid,
+          item_shares: [{ key: 'vitalis', qty_num: 1, qty_den: 1, locked_amount: 2 }],
+          amount: 2,
         },
         {
-          name: '客人 4',
-          party_id: b,
-          item_shares: [{ key: 'sumol', qty_num: 1, qty_den: 3 }],
-          amount: 0.73,
+          name: 'Jim',
+          party_id: jim,
+          item_shares: [
+            { key: 'pina', qty_num: 1, qty_den: 1 },
+            { key: 'cola', qty_num: 1, qty_den: 1 },
+          ],
+          amount: 12,
+        },
+        {
+          name: 'Marry',
+          party_id: marry,
+          item_shares: [{ key: 'sangria', qty_num: 6, qty_den: 1 }],
+          amount: 60,
         },
       ],
       existingResult: [
-        { name: '客人 3', amount: 0.73, paid: true, party_id: a },
-        { name: '客人 4', amount: 0.73, party_id: b },
+        { name: 'John', amount: 2, paid: true, party_id: paid },
+        { name: 'Jim', amount: 12, party_id: jim },
+        { name: 'Marry', amount: 60, party_id: marry },
       ],
-      ticketPerson: {
-        name: '客人 4',
-        party_id: b,
-        item_shares: [
-          { key: 'sumol', qty_num: 1, qty_den: 3, locked_amount: 0.74 },
-        ],
-      },
-      ticketAmount: 0.74,
+      draftPersons: [
+        {
+          name: 'John',
+          party_id: paid,
+          item_shares: [{ key: 'vitalis', qty_num: 1, qty_den: 1, locked_amount: 2 }],
+          amount: 2,
+        },
+        {
+          name: 'Jim',
+          party_id: jim,
+          item_shares: [],
+          amount: 0,
+        },
+        {
+          name: 'Marry',
+          party_id: marry,
+          item_shares: [
+            { key: 'sangria', qty_num: 6, qty_den: 1 },
+            { key: 'pina', qty_num: 1, qty_den: 1 },
+          ],
+          amount: 69.35,
+        },
+      ],
+      draftResults: [
+        { name: 'John', amount: 2, paid: true, party_id: paid },
+        { name: 'Marry', amount: 69.35, party_id: marry },
+      ],
+      lockedTicketKeys: locked,
     });
-    assert.equal(merged.result[0]?.amount, 0.73);
+    assert.equal(merged.persons.length, 2);
+    assert.equal(merged.persons[0]?.name, 'John');
+    assert.equal(merged.persons[1]?.name, 'Marry');
+    assert.equal(
+      merged.persons[1]?.item_shares?.some((s) => s.key === 'pina'),
+      true,
+    );
+    assert.equal(
+      merged.persons.some((p) => p.name === 'Jim'),
+      false,
+    );
     assert.equal(merged.result[0]?.paid, true);
-    assert.equal(merged.result[1]?.amount, 0.74);
-    assert.equal(merged.persons[1]?.item_shares?.[0]?.locked_amount, 0.74);
+    assert.equal(merged.result[0]?.amount, 2);
+    assert.equal(merged.result[1]?.amount, 69.35);
   });
 
-  it('replaces whole-table sentinel when first real ticket is written', () => {
+  it('replaces whole-table sentinel when first unpaid draft ticket is written', () => {
     const id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-    const merged = mergeCurrentByItemTicketForCollect({
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
       existingPersons: [{ name: WHOLE_TABLE_PAYER_KEY }],
       existingResult: [{ name: WHOLE_TABLE_PAYER_KEY, amount: 10 }],
-      ticketPerson: {
-        name: 'Ana',
-        party_id: id,
-        item_shares: [{ key: 'cola', qty_num: 1, qty_den: 1, locked_amount: 2.2 }],
-      },
-      ticketAmount: 2.2,
+      draftPersons: [
+        {
+          name: 'Ana',
+          party_id: id,
+          item_shares: [{ key: 'cola', qty_num: 1, qty_den: 1, locked_amount: 2.2 }],
+          amount: 2.2,
+        },
+      ],
+      draftResults: [{ name: 'Ana', amount: 2.2, party_id: id }],
+      lockedTicketKeys: new Set(),
     });
     assert.equal(merged.result.length, 1);
     assert.equal(merged.result[0]?.name, 'Ana');
     assert.equal(merged.result[0]?.amount, 2.2);
     assert.equal(merged.persons.length, 1);
+  });
+
+  it('leaves ledger unchanged when unpaid draft has no shares', () => {
+    const paid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
+      existingPersons: [
+        {
+          name: 'John',
+          party_id: paid,
+          item_shares: [{ key: 'cola', qty_num: 1, qty_den: 1, locked_amount: 2 }],
+          amount: 2,
+        },
+      ],
+      existingResult: [{ name: 'John', amount: 2, paid: true, party_id: paid }],
+      draftPersons: [
+        {
+          name: 'Jim',
+          party_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+          item_shares: [],
+        },
+      ],
+      draftResults: [],
+      lockedTicketKeys: new Set([paid]),
+    });
+    assert.equal(merged.persons.length, 1);
+    assert.equal(merged.persons[0]?.name, 'John');
+    assert.equal(merged.result[0]?.paid, true);
   });
 });
 

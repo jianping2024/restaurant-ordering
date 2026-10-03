@@ -77,7 +77,7 @@
 |------|----------|
 | 打开弹窗 / 确认前校验本次应收 | `resolveByItemCollectTarget`（含 discountRate；弹窗与确认同调用） |
 | 确认前金额仍有效 | `collectModalAmountStillValid` |
-| 确认只合并当前票 | `mergeCurrentByItemTicketForCollect` + `onRegisterCollectTicket` |
+| 未付整案落库（恢复点单前 / 收款盖章后） | `mergeStaffByItemUnpaidDraftIntoLedger` + `persistByItemUnpaidPlan` / `onRegisterPersist` + `onRegisterCollectTicket` |
 | 份额盖章 | `stampCollectTicketFrozenAmounts` → `locked_amount` |
 | 已付结果金额不被 merge 改写 | `mergeByItemSplitResultWithLedger`（TS）+ SQL `merge_by_item_split_result_with_ledger` |
 | 确认写台账 | `confirm_bill_split_payment` / `requestCheckoutConfirmPayment`（金额 = 弹窗） |
@@ -87,4 +87,4 @@
 | 客人手机按菜进行中编辑 | `useGuestByItemSplitState`（`byItemEditor: 'guest'`；空名槽可写） |
 | 未付同名合票 | `coalesceUnpaidSameNamePartyIds`（guest + staff 编辑器 write/hydrate） |
 
-已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）。均摊/手填仍用 `persistBeforePay`。
+已删除：按菜确认路径上的整桌 `persistBeforePay`；`reconcileByItemResultsToBillTotal`（整桌拧合计）；单票 `mergeCurrentByItemTicketForCollect`（跨票挪菜后会留下旧未付份额）。均摊/手填仍用 `persistBeforePay`。按菜恢复点单前走同一未付整案落库。

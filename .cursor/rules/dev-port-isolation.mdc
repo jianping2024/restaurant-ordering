@@ -1,7 +1,7 @@
 ---
 description: >-
-  Never kill or hijack a busy localhost listen port. On conflict, start a new
-  free port and point UAT/browser at it (MESA_UAT_BASE).
+  :3000 is reserved for git main only. Never kill or hijack a busy listen port;
+  feature-branch / worktree UAT uses 3002+ + MESA_UAT_BASE (+ isolated distDir).
 alwaysApply: true
 ---
 
@@ -9,7 +9,23 @@ alwaysApply: true
 
 **省冲突第一。** Another process already listening on web `:3000` / ops `:3001` (or any target port) is **not** yours to reclaim.
 
-## Forbidden
+## `:3000` = `main` only (hard)
+
+Web listen port **`3000` is reserved for the local `main` branch** (canonical checkout with `git branch --show-current` = `main`).
+
+| Situation | Web port |
+|---|---|
+| On **`main`**, `:3000` free | May use `:3000` (default `.next` OK) |
+| On **`main`**, `:3000` busy | Leave occupant; use free `3002+` + isolated `MESA_NEXT_DIST_DIR` if a second web is required |
+| On a **feature branch** or **feature worktree** (any non-`main`) | **Never** bind `:3000` — even if free. Use `3002+` + `MESA_NEXT_DIST_DIR=.next-uat` (or another non-default dir) + `MESA_UAT_BASE` |
+
+### Forbidden on non-`main`
+
+- `next dev --port 3000` / `npm run dev` that ends up on `:3000`
+- “`:3000` 空着就先占” on a feature branch / worktree
+- Pointing feature-branch UAT at `http://localhost:3000` when that process is (or should be) the `main` stack
+
+## Forbidden (all branches)
 
 - `kill` / `kill -9` / `lsof -ti :PORT | xargs kill` on a listen port you did not start in **this** thread
 - Stopping unrelated Docker containers (e.g. `mesa-on-prem-web-1`) just to free `:3000`
@@ -17,20 +33,21 @@ alwaysApply: true
 - Assuming UAT must be `:3000` when the healthy stack is already elsewhere
 - Starting a **second** Next for the **same** `apps/web` checkout that still writes the default `apps/web/.next` (shared pack cache → chunk 404 → login后黑屏). Unrelated apps (ops, 开票, other repos) are not this rule — only same web tree.
 
-## Required when the default port is busy
+## Required when the default port is busy (or branch ≠ `main`)
 
 1. **Leave the occupant alone.**
-2. **Prefer the already-healthy** stack on that checkout for UAT — do not start a second web “just in case.”
+2. **Prefer the already-healthy** stack that serves **this** checkout + branch for UAT — do not start a second web “just in case.”
 3. If you **must** start another web for **this same checkout**: free port **and** `MESA_NEXT_DIST_DIR=.next-uat` (or another non-default dir via `apps/web/next.config.mjs`). Never a second `npm run dev` / `next dev` on the default `.next`.
 4. **Point all checks at that base:**
    - Browser / MCP → `http://localhost:<n>/…`
    - `MESA_UAT_BASE=http://localhost:<n>` for `mesa-local-uat` / print smoke
    - Report the chosen base in the UAT summary
-5. Port pick: web `3002+` if `3000` busy; ops `3011+` if `3001` busy — or any free high port. Prefer `MESA_NEXT_DIST_DIR=.next-uat npx next dev --hostname 0.0.0.0 --port <n>` from `apps/web` with env loaded; `scripts/dev-env.sh` picks a free port but does **not** set an isolated `distDir` — do not use it for a second concurrent web on the same checkout.
+5. Port pick: feature / second web → `3002+`; ops `3011+` if `3001` busy — or any free high port. Prefer `MESA_NEXT_DIST_DIR=.next-uat npx next dev --hostname 0.0.0.0 --port <n>` from `apps/web` with env loaded; `scripts/dev-env.sh` picks a free port but does **not** set an isolated `distDir` — do not use it for a second concurrent web on the same checkout, and do **not** let it land feature-branch UAT on `:3000`.
 
-## Defaults (when free)
+## Defaults
 
-- Web: `http://localhost:3000` · Ops: `http://localhost:3001`
+- **`main` only:** Web `http://localhost:3000` when free · Ops `http://localhost:3001`
+- **Feature branch / worktree:** Web `3002+` + `MESA_UAT_BASE` (never `:3000`)
 - Env override: `MESA_UAT_BASE` / `MESA_UAT_OPS_BASE` (see `scripts/mesa-local-uat.mjs`)
 
 After the task finishes, **keep** a usable stack for retest — do not tear down the only healthy web or local Supabase “because UAT ended.” See [`local-dev-services.mdc`](./local-dev-services.mdc).

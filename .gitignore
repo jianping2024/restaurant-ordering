@@ -13,10 +13,8 @@ node_modules/
 /.next/
 /out/
 apps/*/.next/
-# Isolated UAT / typecheck distDirs (MESA_NEXT_DIST_DIR=.next-uat-…)
-apps/*/.next-uat*/
-apps/*/.next-typecheck/
-apps/*/.next-bill-sync/
+# Isolated UAT / typecheck distDirs (MESA_NEXT_DIST_DIR=.next-uat / .next-wrapper-uat / …)
+apps/*/.next-*/
 apps/*/out/
 
 # production

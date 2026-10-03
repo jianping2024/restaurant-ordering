@@ -15,9 +15,10 @@ description: >-
 
 ## Environment
 
-- **Host (default):** `http://localhost:3000` — if busy, **do not kill** the occupant; start/use another free port and set `MESA_UAT_BASE` (see always-on `.cursor/rules/dev-port-isolation.mdc`)
-  - `npm run dev` → local Docker Supabase (Studio `:54323`, MCP `http://127.0.0.1:54321/mcp`); script picks a free web port when `:3000` is taken
-  - **Same checkout, second web:** must set `MESA_NEXT_DIST_DIR=.next-uat` (never a second process on default `apps/web/.next`)
+- **Host:** on **`main`**, default `http://localhost:3000` when free; on a **feature branch / worktree**, **never** `:3000` — use `3002+` + `MESA_UAT_BASE` (always-on `.cursor/rules/dev-port-isolation.mdc`)
+  - If the intended port is busy, **do not kill** the occupant; pick another free port and set `MESA_UAT_BASE`
+  - `npm run dev` → local Docker Supabase (Studio `:54323`, MCP `http://127.0.0.1:54321/mcp`); script may pick a free web port when `:3000` is taken — still forbid feature-branch landing on `:3000`
+  - **Same checkout, second web / any non-`main` web:** must set `MESA_NEXT_DIST_DIR=.next-uat` (never a second process on default `apps/web/.next`)
   - `npm run cloud` → cloud project (use existing `user-supabase` / cloud MCP, read-only)
 - **UI login (canonical — always use this for browser UAT):** `{MESA_UAT_BASE or http://localhost:3000}/auth/login`
   - One page for owner email **or** staff `login_name`; API `POST /api/auth/login` resolves kind and redirect

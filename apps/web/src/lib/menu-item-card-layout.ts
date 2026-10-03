@@ -1,7 +1,8 @@
 /**
  * Sole menu catalog card + list grid (MenuItemCard — guest and staff-assisted).
  *
- * JD-style list rhythm: square thumb is the height anchor; right column matches thumb height.
+ * JD-style list rhythm: square thumb is the height anchor; right column is at least
+ * thumb height and may grow when name + flavor + foot exceed it (narrow + flavor on).
  * Slots: name ≤2 lines → flavor ≤1 row (only when flavor hints enabled; empty still reserved)
  * → foot price + action. List never shows description (detail only).
  *
@@ -75,10 +76,11 @@ export const MENU_ITEM_CARD_PRICE_CLASS = 'min-w-0 truncate';
 export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center justify-end';
 
 /**
- * Right column: exact thumb height so name/flavor sit top and price/action sit on the image baseline.
+ * Right column: min thumb height so short cards stay image-baseline aligned; grows when
+ * reserved slots exceed thumb (keeps price/action inside card pad).
  */
 export const MENU_ITEM_CARD_BODY_CLASS =
-  'flex h-[var(--mesa-menu-card-thumb)] min-h-[var(--mesa-menu-card-thumb)] min-w-0 flex-1 flex-col';
+  'flex min-h-[var(--mesa-menu-card-thumb)] min-w-0 flex-1 flex-col';
 
 /** Optional sushi limit line between flavor and foot — never a description slot. */
 export const MENU_ITEM_CARD_LIMIT_HINT_CLASS =

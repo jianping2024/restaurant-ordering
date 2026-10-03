@@ -111,7 +111,7 @@ function MenuItemCardAction({
 }
 
 /**
- * Sole catalog card: thumb left; right column height-locked to thumb
+ * Sole catalog card: thumb left; right column min-height = thumb
  * (name → optional one-line flavor → price/action). List has no description.
  */
 export function MenuItemCard({

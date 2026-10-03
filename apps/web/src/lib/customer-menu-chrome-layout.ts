@@ -31,26 +31,38 @@ export const CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS = 'w-[4.75rem]';
 export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[4.75rem]';
 
 /**
- * Page-mode sticky left rail: under safe area, viewport-tall scroll pane.
- * Embedded mode uses overflow on the flex child instead (no sticky).
+ * Sole guest/staff menu body root: flex column, no document scroll inside.
+ * Guest page adds `h-dvh` + shell width; staff embedded adds `min-h-0 flex-1`.
+ * Header / sushi bar / gate stay shrink-0 above; category nav fills the rest.
  */
-export const customerMenuCategoryRailStickyClass =
-  'sticky top-[env(safe-area-inset-top,0px)] z-20 max-h-[calc(100dvh-env(safe-area-inset-top,0px))] self-start';
+export const customerMenuDualPaneRootClass =
+  'relative flex flex-col overflow-hidden bg-brand-bg';
+/**
+ * Sole category nav shell (guest page + staff embedded): fills remaining height;
+ * left rail and right catalog each scroll independently (overscroll contained).
+ */
+export const customerMenuCategoryNavShellClass = 'flex min-h-0 flex-1';
+
+/** Sole left top-category rail scrollport. */
+export const customerMenuCategoryRailClass = [
+  CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
+  'z-20 flex shrink-0 flex-col overflow-y-auto overscroll-y-contain border-r border-brand-border bg-brand-card/40',
+].join(' ');
 
 /**
- * Sole subcategory chip strip sticky chrome (right column only).
- * Same top as the left rail (safe-area); opaque so list does not show through.
+ * Sole right catalog scrollport (pair with `CUSTOMER_MENU_ITEM_LIST_HOST_CLASS`
+ * on the same element for container-query columns).
+ */
+export const customerMenuCatalogPaneClass =
+  'min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-4';
+
+/**
+ * Sole subcategory chip strip sticky chrome (right catalog pane only).
+ * Sticks to that pane’s top (`top-0`); opaque so list does not show through.
  * `-mx-3 px-3` cancels catalog host pad so the sticky fill spans the column.
  */
 export const CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS =
-  'mesa-chip-scroll sticky z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg/95 px-3 py-2 backdrop-blur-sm';
-
-/** Page scroll: stick under safe-area (aligned with left rail). */
-export const CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS =
-  'top-[env(safe-area-inset-top,0px)]';
-
-/** Embedded catalog pane: stick to that pane’s top. */
-export const CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS = 'top-0';
+  'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg/95 px-3 py-2 backdrop-blur-sm';
 
 /**
  * Guest notice tab vertical offset — below identity header + safe area.

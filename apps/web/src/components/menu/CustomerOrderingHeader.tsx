@@ -65,7 +65,11 @@ export function CustomerOrderingHeader({
   );
 
   return (
-    <header className={sticky ? undefined : 'border-b border-brand-border'}>
+    <header
+      className={
+        sticky ? 'shrink-0' : 'shrink-0 border-b border-brand-border'
+      }
+    >
       <div
         className={
           sticky

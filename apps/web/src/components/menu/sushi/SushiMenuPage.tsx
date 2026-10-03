@@ -16,7 +16,10 @@ import {
   SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
-import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
+import {
+  customerMenuDualPaneRootClass,
+  customerMenuShellRootClass,
+} from '@/lib/customer-menu-chrome-layout';
 import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
 } from '@/lib/menu-item-card-layout';
@@ -1030,7 +1033,7 @@ export function SushiMenuPage({
     roundT.sentToast,
   ]);
 
-  const rootClassName = `min-h-screen bg-brand-bg relative ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
+  const rootClassName = `${customerMenuDualPaneRootClass} h-dvh ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
 
   return (
     <div className={rootClassName}>
@@ -1073,7 +1076,6 @@ export function SushiMenuPage({
       ) : null}
 
       <CustomerMenuCategoryNav
-        variant="page"
         topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
           getMenuCategoryLabel(cat, lang),
         )}

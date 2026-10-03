@@ -17,7 +17,10 @@ import {
 } from '@/lib/i18n/menu-page-messages';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { customerMenuPageBottomPaddingClass } from '@/lib/customer-menu-bottom-bar-layout';
-import { customerMenuShellRootClass } from '@/lib/customer-menu-chrome-layout';
+import {
+  customerMenuDualPaneRootClass,
+  customerMenuShellRootClass,
+} from '@/lib/customer-menu-chrome-layout';
 import {
   CUSTOMER_MENU_ITEM_LIST_CLASS,
 } from '@/lib/menu-item-card-layout';
@@ -825,8 +828,8 @@ export function MenuOrderingController({
   };
 
   const rootClassName = isEmbedded
-    ? `flex min-h-0 flex-1 flex-col overflow-hidden bg-brand-bg relative ${pageBottomPaddingClass}`
-    : `min-h-screen bg-brand-bg relative ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
+    ? `${customerMenuDualPaneRootClass} min-h-0 flex-1 ${pageBottomPaddingClass}`
+    : `${customerMenuDualPaneRootClass} h-dvh ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
 
   return (
     <div className={rootClassName}>
@@ -903,7 +906,6 @@ export function MenuOrderingController({
       ) : null}
 
       <CustomerMenuCategoryNav
-        variant={isEmbedded ? 'embedded' : 'page'}
         topCategories={customerMenuNavTopCategories(catalogView, (cat) =>
           getMenuCategoryLabel(cat, lang),
         )}

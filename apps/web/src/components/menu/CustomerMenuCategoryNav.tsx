@@ -2,11 +2,10 @@
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import {
-  CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
-  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS,
-  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
-  customerMenuCategoryRailStickyClass,
+  customerMenuCatalogPaneClass,
+  customerMenuCategoryNavShellClass,
+  customerMenuCategoryRailClass,
 } from '@/lib/customer-menu-chrome-layout';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
@@ -28,8 +27,6 @@ type Props = {
   activeSubpath: string;
   onSelectSubpath: (id: string) => void;
   subcategoryAllLabel: string;
-  /** page = document scroll + sticky rail; embedded = dual overflow panes. */
-  variant: 'page' | 'embedded';
   /**
    * Right-column block above sub chips (sole slot for CustomerRecommendedRail).
    * Catalog order is always: catalogLeading → sticky sub chips → children (dish list).
@@ -51,7 +48,8 @@ function railItemClass(active: boolean): string {
 /**
  * Sole customer/staff/sushi category chrome: left vertical top-category rail +
  * right column order catalogLeading (recommended) → sticky soft sub chips →
- * children (dish list). Filter-on-select (no scroll-spy). No top horizontal
+ * children (dish list). Dual independent scrollports (left rail / right catalog);
+ * no document scroll chaining. Filter-on-select (no scroll-spy). No top horizontal
  * strip / no「更多」overlay.
  */
 export function CustomerMenuCategoryNav({
@@ -62,7 +60,6 @@ export function CustomerMenuCategoryNav({
   activeSubpath,
   onSelectSubpath,
   subcategoryAllLabel,
-  variant,
   catalogLeading = null,
   children,
 }: Props) {
@@ -75,29 +72,9 @@ export function CustomerMenuCategoryNav({
     selected?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [activeTopId]);
 
-  const shellClass =
-    variant === 'embedded'
-      ? 'flex min-h-0 flex-1'
-      : 'flex items-start';
-
-  const railClass =
-    variant === 'embedded'
-      ? `${CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS} flex shrink-0 flex-col overflow-y-auto border-r border-brand-border bg-brand-card/40`
-      : `${CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS} ${customerMenuCategoryRailStickyClass} flex shrink-0 flex-col overflow-y-auto border-r border-brand-border bg-brand-card/40`;
-
-  const catalogClass =
-    variant === 'embedded'
-      ? `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} min-w-0 flex-1 overflow-y-auto px-3 py-4`
-      : `${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} min-w-0 flex-1 px-3 py-4`;
-
-  const subStickyTopClass =
-    variant === 'embedded'
-      ? CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS
-      : CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS;
-
   return (
-    <div className={shellClass}>
-      <nav ref={railRef} className={railClass} aria-label="categories">
+    <div className={customerMenuCategoryNavShellClass}>
+      <nav ref={railRef} className={customerMenuCategoryRailClass} aria-label="categories">
         {topCategories.map((cat) => {
           const active = activeTopId === cat.id;
           return (
@@ -122,11 +99,11 @@ export function CustomerMenuCategoryNav({
         })}
       </nav>
 
-      <div className={catalogClass}>
+      <div className={`${CUSTOMER_MENU_ITEM_LIST_HOST_CLASS} ${customerMenuCatalogPaneClass}`}>
         {catalogLeading}
         {subCategories.length > 0 ? (
           <div
-            className={`${CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS} ${subStickyTopClass}`}
+            className={CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS}
             role="toolbar"
             aria-label="subcategories"
           >

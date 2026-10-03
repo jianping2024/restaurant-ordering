@@ -6,9 +6,10 @@ import {
   CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS,
   CUSTOMER_MENU_SHELL_WIDTH_CLASS,
   CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS,
-  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS,
-  CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
-  customerMenuCategoryRailStickyClass,
+  customerMenuCatalogPaneClass,
+  customerMenuCategoryNavShellClass,
+  customerMenuCategoryRailClass,
+  customerMenuDualPaneRootClass,
   customerMenuFixedShellDockClass,
   customerMenuHeaderTrailingSlotClass,
   customerMenuNoticeTabShellClass,
@@ -46,17 +47,20 @@ describe('customerMenuChromeLayout', () => {
   it('keeps sole left category rail width shared with peer-float dodge', () => {
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[4.75rem]');
     assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[4.75rem]');
-    assert.match(customerMenuCategoryRailStickyClass, /sticky/);
+    assert.ok(customerMenuCategoryRailClass.includes(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS));
+    assert.match(customerMenuCategoryRailClass, /overflow-y-auto/);
+    assert.match(customerMenuCategoryRailClass, /overscroll-y-contain/);
+    assert.doesNotMatch(customerMenuCategoryRailClass, /sticky/);
   });
 
-  it('subcategory chips share one sticky shell; page top matches left rail safe-area', () => {
+  it('uses one dual-pane scroll contract (nav shell + catalog overscroll)', () => {
+    assert.match(customerMenuDualPaneRootClass, /overflow-hidden/);
+    assert.match(customerMenuDualPaneRootClass, /flex-col/);
+    assert.equal(customerMenuCategoryNavShellClass, 'flex min-h-0 flex-1');
+    assert.match(customerMenuCatalogPaneClass, /overflow-y-auto/);
+    assert.match(customerMenuCatalogPaneClass, /overscroll-y-contain/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /sticky/);
+    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /top-0/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /mesa-chip-scroll/);
-    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /bg-brand-bg/);
-    assert.equal(
-      CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_PAGE_CLASS,
-      'top-[env(safe-area-inset-top,0px)]',
-    );
-    assert.equal(CUSTOMER_MENU_SUBCATEGORY_STICKY_TOP_EMBEDDED_CLASS, 'top-0');
   });
 });

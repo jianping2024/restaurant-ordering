@@ -85,7 +85,7 @@ export function SushiRoundStickyBar({
   };
 
   return (
-    <div className="border-b border-brand-border bg-brand-card/95 px-4 py-2">
+    <div className="shrink-0 border-b border-brand-border bg-brand-card/95 px-4 py-2">
       <div className="flex min-h-8 items-center justify-between gap-2.5">
         <p className="min-w-0 flex-1 text-[13px] leading-snug text-brand-text">
           <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />

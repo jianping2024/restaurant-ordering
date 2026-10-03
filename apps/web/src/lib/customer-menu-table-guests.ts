@@ -13,7 +13,7 @@ export const CUSTOMER_MENU_TABLE_GUESTS_LABEL_CLASS =
 
 /** Sole strip shell when headcount is not inside SushiRoundStickyBar. */
 export const CUSTOMER_MENU_TABLE_GUESTS_CHROME_CLASS =
-  'border-b border-brand-border bg-brand-card/95 px-4 py-2';
+  'shrink-0 border-b border-brand-border bg-brand-card/95 px-4 py-2';
 
 export function formatCustomerMenuTableGuestsLabel(
   guestCount: number,

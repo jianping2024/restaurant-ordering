@@ -10,6 +10,7 @@ import {
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  isByItemExpandedLineComplete,
   isByItemExpansionHoldTarget,
   isByItemLineExpanded,
   reconcileByItemExpandedLineKey,
@@ -26,7 +27,11 @@ export function useByItemLineExpansion(
   const [holdWhileEditing, setHoldWhileEditing] = useState(false);
   const holdClearTimerRef = useRef<number | null>(null);
   const expandedKeyRef = useRef<ByItemExpandedLineKey | undefined>(expandedKey);
+  const lineSpecsRef = useRef(lineSpecs);
+  const allocationsRef = useRef(byItemAllocations);
   expandedKeyRef.current = expandedKey;
+  lineSpecsRef.current = lineSpecs;
+  allocationsRef.current = byItemAllocations;
 
   const clearHoldClearTimer = useCallback(() => {
     if (holdClearTimerRef.current != null) {
@@ -80,6 +85,17 @@ export function useByItemLineExpansion(
       // Still moving within the open card or the portaled name rail → keep hold.
       if (isByItemExpansionHoldTarget(event.relatedTarget, key)) return;
       clearHoldClearTimer();
+
+      // Leaving a completed line with a known relatedTarget: clear hold now so
+      // advance + focus-next-name can run close to the blur (helps iOS keyboard).
+      if (
+        event.relatedTarget != null
+        && isByItemExpandedLineComplete(key, lineSpecsRef.current, allocationsRef.current)
+      ) {
+        setHoldWhileEditing(false);
+        return;
+      }
+
       // iOS often nulls relatedTarget; arm then re-check activeElement.
       holdClearTimerRef.current = window.setTimeout(() => {
         holdClearTimerRef.current = null;

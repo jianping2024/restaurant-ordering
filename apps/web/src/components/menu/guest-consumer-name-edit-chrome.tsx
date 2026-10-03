@@ -46,8 +46,10 @@ export function GuestConsumerNameEditChromeProvider({
   );
 }
 
+const noopReportActive: (active: boolean) => void = () => {};
+
 /** No-op outside the guest bill provider (staff surfaces do not mount the provider). */
 export function useReportGuestConsumerNameEditActive(): (active: boolean) => void {
   const ctx = useContext(GuestConsumerNameEditChromeContext);
-  return ctx?.reportActive ?? (() => {});
+  return ctx?.reportActive ?? noopReportActive;
 }

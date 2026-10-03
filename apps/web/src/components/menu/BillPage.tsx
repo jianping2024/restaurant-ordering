@@ -530,19 +530,20 @@ export function BillPage({
   const editingCustomAmount = splitDraft.editingCustomAmountIndex != null;
   /** Sole guest bill fixed-CTA yield: custom-amount edit or consumer-name focus. */
   const hideFixedCallCheckout = editingCustomAmount || editingConsumerName;
+  // Name edit keeps pb-24 (rail needs bottom air); only custom-amount tightens pad.
+  const pagePadClass =
+    checkoutGateMessage && !hideFixedCallCheckout
+      ? 'pb-40'
+      : editingCustomAmount
+        ? 'pb-6'
+        : 'pb-24';
 
   return (
     <GuestConsumerNameEditChromeProvider onActiveChange={setEditingConsumerName}>
     <div
       data-editing-custom-amount={editingCustomAmount ? '1' : '0'}
       data-editing-consumer-name={editingConsumerName ? '1' : '0'}
-      className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${
-        checkoutGateMessage && !hideFixedCallCheckout
-          ? 'pb-40'
-          : hideFixedCallCheckout
-            ? 'pb-6'
-            : 'pb-24'
-      }`}
+      className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
     >
       <CustomerOrderingHeader
         restaurantName={restaurant.name}
@@ -651,35 +652,39 @@ export function BillPage({
         </div>
       ) : null}
 
-      {/* Sole guest bill CTA chrome — yields while custom-amount or consumer-name
-          edit so the soft keyboard is not stacked under fixed call-checkout. */}
-      {!hideFixedCallCheckout ? (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
-          {checkoutGateMessage ? (
-            <BillCheckoutGateBanner
-              message={checkoutGateMessage}
-              className="shadow-md shadow-amber-900/15"
-            />
-          ) : null}
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleCallBill}
-            loading={isCallBillBusy}
-            disabled={
-              orderLines.length === 0
-              || !activeSessionId
-              || isCallBillBusy
-              || !guestCountConfirmed
-              || !partyCheckoutAllowed
-              || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
-              || customerNifInvalid
-            }
-          >
-            🔔 {t.callBill} — €{callBillAmount.toFixed(2)}
-          </Button>
-        </div>
-      ) : null}
+      {/* Sole guest bill CTA chrome — stay mounted; hide while custom-amount or
+          consumer-name edit so layout does not jump under the soft keyboard. */}
+      <div
+        className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${
+          hideFixedCallCheckout ? 'invisible pointer-events-none' : ''
+        }`}
+        aria-hidden={hideFixedCallCheckout || undefined}
+      >
+        {checkoutGateMessage ? (
+          <BillCheckoutGateBanner
+            message={checkoutGateMessage}
+            className="shadow-md shadow-amber-900/15"
+          />
+        ) : null}
+        <Button
+          className="w-full"
+          size="lg"
+          onClick={handleCallBill}
+          loading={isCallBillBusy}
+          disabled={
+            hideFixedCallCheckout
+            || orderLines.length === 0
+            || !activeSessionId
+            || isCallBillBusy
+            || !guestCountConfirmed
+            || !partyCheckoutAllowed
+            || (!!splitDraft.splitMode && !splitDraft.splitValidation.ok)
+            || customerNifInvalid
+          }
+        >
+          🔔 {t.callBill} — €{callBillAmount.toFixed(2)}
+        </Button>
+      </div>
     </div>
     </GuestConsumerNameEditChromeProvider>
   );

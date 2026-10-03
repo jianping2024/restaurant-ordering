@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { filterConsumerNameOptions } from '@/lib/consumer-name-roster';
 import {
+  SOFT_KEYBOARD_DISMISS_ARM_MS,
   fixedBarBottomAboveVisualViewport,
   scrollElementIntoVisualViewport,
 } from '@/lib/soft-keyboard-viewport';
@@ -75,10 +76,15 @@ export function ConsumerNameCombobox({
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(value);
+  const blurCommitTimerRef = useRef<number | null>(null);
   const reportNameEditActive = useReportGuestConsumerNameEditActive();
   const [inputFocused, setInputFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [mounted, setMounted] = useState(false);
+
+  valueRef.current = value;
 
   const matches = useMemo(
     () => filterConsumerNameOptions(options, value),
@@ -100,7 +106,15 @@ export function ConsumerNameCombobox({
     setActiveIndex((prev) => (prev >= 0 && prev < matches.length ? prev : 0));
   }, [showRail, matches.length]);
 
+  const clearBlurCommitTimer = () => {
+    if (blurCommitTimerRef.current != null) {
+      window.clearTimeout(blurCommitTimerRef.current);
+      blurCommitTimerRef.current = null;
+    }
+  };
+
   const finalize = (name: string, fromList: boolean) => {
+    clearBlurCommitTimer();
     const trimmed = name.trim();
     onChange(trimmed);
     onCommit?.(trimmed, fromList);
@@ -111,14 +125,30 @@ export function ConsumerNameCombobox({
   useEffect(() => {
     if (!inputFocused) return;
     reportNameEditActive(true);
-    const el = rootRef.current?.querySelector('input');
-    if (el instanceof HTMLElement) {
-      scrollElementIntoVisualViewport(el, { behavior: 'instant' });
-    }
     return () => {
       reportNameEditActive(false);
     };
   }, [inputFocused, reportNameEditActive]);
+
+  /**
+   * Sole scroll path for the name field: same as guest custom-amount —
+   * listen to visualViewport resize/scroll only. Never scroll on focus /
+   * during keyboard open animation (that dismisses iOS keyboard).
+   */
+  useEffect(() => {
+    if (!inputFocused) return;
+    const el = inputRef.current;
+    if (!el) return;
+    const run = () =>
+      scrollElementIntoVisualViewport(el, { behavior: 'instant' });
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', run);
+    vv?.addEventListener('scroll', run);
+    return () => {
+      vv?.removeEventListener('resize', run);
+      vv?.removeEventListener('scroll', run);
+    };
+  }, [inputFocused]);
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
@@ -133,6 +163,8 @@ export function ConsumerNameCombobox({
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [inputFocused]);
+
+  useEffect(() => () => clearBlurCommitTimer(), []);
 
   const rail =
     mounted && showRail
@@ -174,6 +206,7 @@ export function ConsumerNameCombobox({
   return (
     <div ref={rootRef} className={`relative flex-1 min-w-0 ${className}`}>
       <input
+        ref={inputRef}
         type="text"
         role="combobox"
         aria-expanded={showRail}
@@ -187,6 +220,7 @@ export function ConsumerNameCombobox({
         spellCheck={false}
         onFocus={() => {
           if (readOnly) return;
+          clearBlurCommitTimer();
           setInputFocused(true);
         }}
         onChange={(event) => {
@@ -229,14 +263,19 @@ export function ConsumerNameCombobox({
           }
         }}
         onBlur={() => {
-          window.setTimeout(() => {
+          // Ignore transient blur from rail mount / layout (same arm window as
+          // soft-keyboard dismiss). Real leave → finalize after the arm.
+          clearBlurCommitTimer();
+          blurCommitTimerRef.current = window.setTimeout(() => {
+            blurCommitTimerRef.current = null;
             if (
-              !rootRef.current?.contains(document.activeElement) &&
-              !railRef.current?.contains(document.activeElement)
+              rootRef.current?.contains(document.activeElement) ||
+              railRef.current?.contains(document.activeElement)
             ) {
-              finalize(value, false);
+              return;
             }
-          }, 0);
+            finalize(valueRef.current, false);
+          }, SOFT_KEYBOARD_DISMISS_ARM_MS);
         }}
         className={`${customerTextInputClass}${readOnly ? ' opacity-70 cursor-default' : ''}`}
       />

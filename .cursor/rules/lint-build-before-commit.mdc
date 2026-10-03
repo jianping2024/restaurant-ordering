@@ -51,5 +51,6 @@ Build command(s) + pass. No vague “checks OK”.
 ## Relation to other gates
 
 - **Functional UAT** (`uat-before-delivery.mdc`) is separate — build ≠ UAT; UAT ≠ build.
+- **清冗余** (`redundancy-cleanup-before-uat.mdc`) runs **before UAT** on product requirements (implement → 清冗余 → UAT → build → commit).
 - **Push** (`push-verification.mdc`): production build (and targeted tests) before `git push origin main`. Same tree + no edits since commit-gate build pass → do not re-lint separately; re-build only if the tree changed.
 - **On-prem pack** (`on-prem-pack.mdc`): pack still needs local web build on the packed commit.

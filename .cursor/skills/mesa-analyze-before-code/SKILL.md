@@ -57,9 +57,11 @@ Under **问题根因**: only state what evidence supports (code path, DB/API row
    - No parallel component/helper vs reuse verdict
    - New shared file only if it deleted duplicated call-site logic
    - **One representation:** for each end-state concept, not two live forms (e.g. flat `stepFooTitle` **and** `steps[]`; intro `previewGuest*` **and** `bill.guest`)
-4. Checks per `AGENTS.md`. Before any commit of product code: scoped production build must pass (`.cursor/rules/lint-build-before-commit.mdc`; no separate lint hard step). List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
-5. Commit only if user asks — and only after that build gate. `push` / `ship` → follow `.cursor/rules/push-verification.mdc` then `release-and-ci.mdc` (`git push origin main`).
-6. **Land cleanup (when user asked merge/合进 main):** remove this task’s feature worktree, delete the local feature branch, checkout + agent root on `main` — see `.cursor/rules/git-local-merge-push.mdc` “After land”. Do not leave the chat sitting on the feature branch.
+4. **清冗余 before UAT** (hard — `.cursor/rules/redundancy-cleanup-before-uat.mdc`): scan this task’s surface for dead exports, parallel live forms, forward-only wrappers; remove confirmed finds in **this** change set; report scanned/cleaned/none-found with evidence. Do **not** start product UAT until this passes.
+5. **UAT** when required (`uat-before-delivery.mdc` + `mesa-local-product-test`).
+6. Checks per `AGENTS.md`. Before any commit of product code: scoped production build must pass (`.cursor/rules/lint-build-before-commit.mdc`; no separate lint hard step). List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
+7. Commit only if user asks — and only after 清冗余 + UAT (when required) + build. `push` / `ship` → follow `.cursor/rules/push-verification.mdc` then `release-and-ci.mdc` (`git push origin main`).
+8. **Land cleanup (when user asked merge/合进 main):** remove this task’s feature worktree, delete the local feature branch, checkout + agent root on `main` — see `.cursor/rules/git-local-merge-push.mdc` “After land”. Do not leave the chat sitting on the feature branch.
 
 ### Principles
 
@@ -78,6 +80,7 @@ Before finishing an implementation turn:
 
 - [ ] Plan (or approved plan) had an **end-state shape** sentence for owned concepts
 - [ ] Diff has **one representation** per those concepts (no parallel flat+array / parallel labels)
+- [ ] **清冗余 before UAT** reported (scanned / cleaned / none-found) — no UAT started with confirmed redundancy left
 - [ ] Reuse search covered domain UI + `messages` labels when UI/copy changed
 - [ ] Branch/base isolation respected; unrelated WIP untouched
 - [ ] After user-asked merge to main: done-gate — `test ! -e` feature worktree path, branch deleted, canonical `main` (not `worktree list` alone)

@@ -9,7 +9,6 @@ import {
   assignAllRemainingPoolToPerson,
   byItemMenuQtyDenReadOnly,
   commitStaffMenuShareQtyEdit,
-  isStaffMenuShareOverAllocated,
   menuFractionDenominatorFromRemaining,
   setPersonMenuShareQtyFields,
   staffByItemBuffetShareLineMetaParts,
@@ -22,6 +21,7 @@ import {
 import {
   buildByItemAllocationsFromRows,
   calcByItemSplitResults,
+  isRowQtyOverAllocated,
   locateByItemSplitResult,
 } from './bill-split-by-item';
 import { byItemSplitLineFromOrderLine } from './bill-split-by-item-lines';
@@ -743,12 +743,12 @@ describe('setPersonMenuShareQtyFields', () => {
       lang: 'zh',
     });
     assert.equal(ana[0]!.qtyLabel, '1/2');
-    assert.equal(isStaffMenuShareOverAllocated({
-      allocations: half!,
-      lineSpecs: [menuSpec],
-      lineKey: 'line-a',
-      rowId: 'row-ana',
-    }), false);
+    const anaRow = half!['line-a']?.find((row) => row.id === 'row-ana');
+    assert.ok(anaRow);
+    assert.equal(
+      isRowQtyOverAllocated(anaRow, half!['line-a'] ?? [], menuSpec.lineQty),
+      false,
+    );
   });
 
   it('rejects qty edits on paidLocked rows', () => {

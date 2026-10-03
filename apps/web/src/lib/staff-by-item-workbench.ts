@@ -6,7 +6,6 @@ import {
   allocateByItemShareAmounts,
   byItemConsumerRowTicketLocked,
   createByItemConsumerRow,
-  isRowQtyOverAllocated,
   parseBuffetConsumerRows,
   parseBuffetHeadcountInput,
   parseConsumerRowQty,
@@ -938,21 +937,6 @@ export function setPersonMenuShareQtyFields(params: {
   };
   const patched = rows.map((row) => (row.id === rowId ? nextRow : row));
   return { ...allocations, [lineKey]: patched };
-}
-
-export function isStaffMenuShareOverAllocated(params: {
-  allocations: Record<string, ByItemConsumerRow[]>;
-  lineSpecs: ByItemLineSpec[];
-  lineKey: string;
-  rowId: string;
-}): boolean {
-  const { allocations, lineSpecs, lineKey, rowId } = params;
-  const spec = lineSpecs.find((line) => line.key === lineKey);
-  if (!spec || spec.mode !== 'menu') return false;
-  const rows = allocations[lineKey] ?? [];
-  const row = rows.find((candidate) => candidate.id === rowId);
-  if (!row) return false;
-  return isRowQtyOverAllocated(row, rows, spec.lineQty);
 }
 
 /** Patch buffet adult/child headcounts on one named share row. */

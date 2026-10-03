@@ -41,4 +41,4 @@ If UAT **fails**: fix or report fail — do not merge/deliver. If blocked: repor
 
 ## Order with analyze / implement
 
-Analyze → implement → **UAT pass** → then commit/merge when the user asked for land. User “按方案改 / go ahead” includes this UAT gate unless they waived it.
+Analyze → implement → **清冗余** (`.cursor/rules/redundancy-cleanup-before-uat.mdc`) → **UAT pass** → scoped build → then commit/merge when the user asked for land. User “按方案改 / go ahead” includes this UAT gate unless they waived it. Do **not** start UAT until 清冗余 is done.

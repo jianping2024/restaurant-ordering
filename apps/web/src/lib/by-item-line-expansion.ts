@@ -5,7 +5,8 @@ import {
 } from '@/lib/bill-split-by-item';
 import type { ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 
-export type ByItemLineExpansionState = Record<string, boolean>;
+/** Sole guest by-item dish-card expansion: one open key, or none. */
+export type ByItemExpandedLineKey = string | null;
 
 export function findFirstIncompleteLineKey(
   lineSpecs: readonly ByItemLineSpec[],
@@ -20,54 +21,57 @@ export function findFirstIncompleteLineKey(
   return match?.key ?? null;
 }
 
-export function defaultExpandedLineKey(
+function isLineComplete(
+  key: string,
   lineSpecs: readonly ByItemLineSpec[],
   allocations: Record<string, ByItemConsumerRow[]>,
-): string | null {
-  return findFirstIncompleteLineKey(lineSpecs, allocations) ?? lineSpecs[0]?.key ?? null;
+): boolean {
+  const spec = lineSpecs.find((candidate) => candidate.key === key);
+  if (!spec) return true;
+  return isByItemLineComplete(getByItemLineStatusFromRows(allocations[key] ?? [], spec));
 }
 
-/** Seed expansion only before any user toggle (empty expansion map). */
-export function seedInitialLineExpansion(
+/**
+ * Sole expansion reconcile for guest by-item cards.
+ * - Uninitialized (`undefined`) → first incomplete (or null when all complete).
+ * - `null` (user collapsed) → stay closed.
+ * - Current key still incomplete → keep (manual open of another incomplete OK).
+ * - Current key complete or gone → advance to first incomplete.
+ */
+export function reconcileByItemExpandedLineKey(
   lineSpecs: readonly ByItemLineSpec[],
   allocations: Record<string, ByItemConsumerRow[]>,
-  expanded: ByItemLineExpansionState,
-): ByItemLineExpansionState {
-  if (Object.keys(expanded).length > 0) return expanded;
-  const key = defaultExpandedLineKey(lineSpecs, allocations);
-  if (!key) return expanded;
-  return { [key]: true };
+  current: ByItemExpandedLineKey | undefined,
+): ByItemExpandedLineKey {
+  const focus = findFirstIncompleteLineKey(lineSpecs, allocations);
+  if (current === undefined) return focus;
+  if (current === null) return null;
+  if (!lineSpecs.some((spec) => spec.key === current)) return focus;
+  if (isLineComplete(current, lineSpecs, allocations)) return focus;
+  return current;
 }
 
 export function isByItemLineExpanded(
   key: string,
-  expanded: ByItemLineExpansionState,
+  expandedKey: ByItemExpandedLineKey | undefined,
 ): boolean {
-  return expanded[key] ?? false;
+  return expandedKey === key;
 }
 
 /**
- * Toggle one dish card. Collapsing a completed line auto-opens the next incomplete line.
+ * Toggle one dish card. Collapsing a completed line advances to the next incomplete.
  */
-export function toggleByItemLineExpansion(
+export function toggleByItemExpandedLineKey(
   key: string,
-  expanded: ByItemLineExpansionState,
+  current: ByItemExpandedLineKey | undefined,
   lineSpecs: readonly ByItemLineSpec[],
   allocations: Record<string, ByItemConsumerRow[]>,
-): ByItemLineExpansionState {
-  const currentlyExpanded = expanded[key] ?? false;
-  const next: ByItemLineExpansionState = { ...expanded, [key]: !currentlyExpanded };
-
-  if (!currentlyExpanded) return next;
-
-  const spec = lineSpecs.find((candidate) => candidate.key === key);
-  if (!spec) return next;
-
-  const status = getByItemLineStatusFromRows(allocations[key] ?? [], spec);
-  if (!isByItemLineComplete(status)) return next;
-
-  const nextIncomplete = findFirstIncompleteLineKey(lineSpecs, allocations, { exclude: key });
-  if (nextIncomplete) next[nextIncomplete] = true;
-
-  return next;
+): ByItemExpandedLineKey {
+  if (current === key) {
+    if (isLineComplete(key, lineSpecs, allocations)) {
+      return findFirstIncompleteLineKey(lineSpecs, allocations, { exclude: key });
+    }
+    return null;
+  }
+  return key;
 }

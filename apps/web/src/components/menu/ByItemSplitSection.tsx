@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
 import {
@@ -41,7 +41,23 @@ export function ByItemSplitSection({
   onRememberConsumerName,
   progress,
 }: Props) {
-  const { isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(lineSpecs, byItemAllocations);
+  const { expandedKey, isLineExpanded, toggleLineExpanded } = useByItemLineExpansion(
+    lineSpecs,
+    byItemAllocations,
+  );
+  const prevExpandedKeyRef = useRef<string | null | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    if (!expandedKey || expandedKey === prevExpandedKeyRef.current) {
+      prevExpandedKeyRef.current = expandedKey;
+      return;
+    }
+    prevExpandedKeyRef.current = expandedKey;
+    const card = document.querySelector<HTMLElement>(
+      `[data-by-item-line-key="${CSS.escape(expandedKey)}"]`,
+    );
+    card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [expandedKey]);
 
   const orderLineByKey = useMemo(
     () => Object.fromEntries(orderLines.map((line) => [line.key, line])),

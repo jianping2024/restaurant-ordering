@@ -14,6 +14,7 @@ import {
   kitchenReadyAfterMinutesFromConfig,
 } from '@/lib/print-agent-config';
 import { normalizePrintLocale, type PrintLocale } from '@/lib/i18n';
+import { clampOrderCooldownSeconds } from '@/lib/order-submit-cooldown-client';
 import { listHumanStaffAccountsForRestaurant } from '@/lib/staff-dashboard-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -148,7 +149,7 @@ export async function loadFeatureSettingsPageData(
     credentialTtlDays: resolvePrintAgentCredentialTtlDays(data?.print_agent_config),
     stationSlipShowCategoryGroup: isStationSlipShowCategoryGroupEnabled(data?.print_agent_config),
     hanBitmapFontPx: hanBitmapFontPxFromConfig(data?.print_agent_config),
-    orderCooldownSeconds: Math.max(5, Math.min(60, orderCooldownSeconds)),
+    orderCooldownSeconds: clampOrderCooldownSeconds(orderCooldownSeconds),
     operationLogRetentionDays,
     printLocale: normalizePrintLocale(printLocale),
     kitchenReadyAfterMinutes: kitchenReadyAfterMinutesFromConfig(data?.print_agent_config),

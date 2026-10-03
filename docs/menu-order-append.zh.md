@@ -18,7 +18,7 @@
 5. **地理围栏仅顾客流**：餐厅配置了 `geo_latitude/longitude` 时，**非** `waiter_flow` 须带合法 `latitude/longitude` 且在 `order_radius_meters` 内（本地 dev host 可 bypass）。
 6. **服务员代点须鉴权**：`waiter_flow: true` 时须通过 `verifyOpenTableStaffAuth`（owner / waiter / frontdesk）；否则 `unauthorized`（401）。
 7. **出品联自动入队**：append 成功后返回短期 `enqueue_token`；客户端再调 `station-tickets/auto` 按档口分组入队（无手动「打印」按钮）。
-8. **下单冷却（本机 UI）**：功能管理配置 `order_cooldown_seconds`（5–60）。菜单页每次 **提交成功** 后，**当前设备** 购物车提交按钮倒计时该秒数（灰、不可点）；同桌其他设备互不影响。服务端 append **不** 按桌 session 冷却；仅保留 IP 限流防滥用。
+8. **下单冷却（本机 UI）**：功能管理配置 `order_cooldown_seconds`（5–1800）。菜单页每次 **提交成功** 后，**当前设备** 购物车提交按钮倒计时该秒数（灰、不可点）；同桌其他设备互不影响。服务端 append **不** 按桌 session 冷却；仅保留 IP 限流防滥用。
 9. **寿司同桌轮次（`buffet_service_mode = sushi`）**：免费菜（`price=0`）须先经 `table_order_round_*` 合单与全员确认，再由 finalize **内部** 调用本 append 管道 **一次**；收费菜与 `waiter_flow` **不**经 round，直调 append。契约：[`sushi-round-ordering.zh.md`](sushi-round-ordering.zh.md)。**禁止**顾客路径绕过 round 直写免费菜 append。
 10. **提交幂等**：每次「确认下单」意图必须带 UUID `client_request_id`。服务端以 `(session_id, client_request_id)` 唯一；首次写单并落 `order_append_idempotency`（completed）；同键重放返回同一 `order_id`/`batch_id` 并重签 `enqueue_token`（`idempotent_replay: true`），**不再**追加 `items`。缺号/非法号 → `invalid_client_request_id`（400）。并发同号且仍 `pending` → `append_in_progress`（409）。客户端：同步提交锁防连点；网络失败且购物车未变时复用同一 `client_request_id`。Round finalize 使用固定 `append_client_request_id` 与 round 行绑定，防双送。
 

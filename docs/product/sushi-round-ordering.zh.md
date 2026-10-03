@@ -65,7 +65,7 @@
 | `sushi_round_cooldown_seconds` | `120` | 30–600 | 送厨成功后 **session 级**冷却 |
 | `sushi_round_rules_notice` | 空 | 多语 JSON 可选 | 顾客 intro / 顶栏「?」 |
 
-保留现有 `order_cooldown_seconds`（5–60）：**本机**提交按钮冷却，与桌级冷却职责不同。
+保留现有 `order_cooldown_seconds`（5–1800）：**本机**提交按钮冷却，与桌级冷却职责不同。
 
 ---
 

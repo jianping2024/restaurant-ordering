@@ -6,12 +6,14 @@ import {
 } from './order-submit-cooldown-client';
 
 describe('order-submit-cooldown-client', () => {
-  it('clampOrderCooldownSeconds enforces 5–60', () => {
+  it('clampOrderCooldownSeconds enforces 5–1800', () => {
     assert.equal(clampOrderCooldownSeconds(undefined), 5);
     assert.equal(clampOrderCooldownSeconds(3), 5);
     assert.equal(clampOrderCooldownSeconds(5), 5);
     assert.equal(clampOrderCooldownSeconds(30), 30);
-    assert.equal(clampOrderCooldownSeconds(100), 60);
+    assert.equal(clampOrderCooldownSeconds(100), 100);
+    assert.equal(clampOrderCooldownSeconds(1800), 1800);
+    assert.equal(clampOrderCooldownSeconds(1801), 1800);
   });
 
   it('formatSubmitCooldownWaitMessage substitutes seconds', () => {

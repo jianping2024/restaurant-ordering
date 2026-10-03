@@ -776,7 +776,7 @@ export const MESSAGES_ES = {
     "credentialTtlDaysInvalid": "Introduce un número entre 1 y 365",
     "moduleOrderCooldown": "Tiempo de espera entre pedidos",
     "orderCooldownSeconds": "Tiempo de espera entre pedidos",
-    "orderCooldownSecondsDesc": "Segundos de espera en este dispositivo tras cada envío correcto desde la carta (5-60). Solo afecta al botón de enviar de este móvil; el resto de comensales de la mesa no se ven afectados.",
+    "orderCooldownSecondsDesc": "Segundos de espera en este dispositivo tras cada envío correcto desde la carta (5-1800). Solo afecta al botón de enviar de este móvil; el resto de comensales de la mesa no se ven afectados.",
     "orderCooldownSecondsUnit": "segundos",
     "save": "Guardar ajustes",
     "saved": "Ajustes guardados",

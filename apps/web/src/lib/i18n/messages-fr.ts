@@ -780,7 +780,7 @@ export const MESSAGES_FR = {
     "credentialTtlDaysInvalid": "Saisissez un nombre entre 1 et 365",
     "moduleOrderCooldown": "Délai entre commandes",
     "orderCooldownSeconds": "Délai entre commandes",
-    "orderCooldownSecondsDesc": "Nombre de secondes d'attente sur cet appareil après chaque envoi de commande réussi (5-60). S'applique uniquement au bouton d'envoi sur ce téléphone ; les autres clients à la table ne sont pas concernés.",
+    "orderCooldownSecondsDesc": "Nombre de secondes d'attente sur cet appareil après chaque envoi de commande réussi (5-1800). S'applique uniquement au bouton d'envoi sur ce téléphone ; les autres clients à la table ne sont pas concernés.",
     "orderCooldownSecondsUnit": "secondes",
     "save": "Enregistrer les paramètres",
     "saved": "Paramètres enregistrés",

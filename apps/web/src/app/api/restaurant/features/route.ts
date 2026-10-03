@@ -33,11 +33,12 @@ import { isRestaurantSuspended } from '@mesa/shared';
 import { requirePermission } from '@/lib/permissions/require';
 import { isPrintLocale, normalizePrintLocale } from '@/lib/i18n';
 import type { PermissionKey } from '@/lib/permissions/registry';
+import {
+  ORDER_COOLDOWN_SECONDS_MAX,
+  ORDER_COOLDOWN_SECONDS_MIN,
+} from '@/lib/order-submit-cooldown-client';
 
 export const runtime = 'nodejs';
-
-const ORDER_COOLDOWN_SECONDS_MIN = 5;
-const ORDER_COOLDOWN_SECONDS_MAX = 60;
 
 const SUSHI_ROUND_SELECT =
   'sushi_round_ordering_enabled, sushi_per_person_per_round_cap, sushi_round_confirm_timeout_seconds, sushi_round_cooldown_seconds, sushi_menu_vegetarian_filter_enabled, sushi_menu_allergen_filter_enabled';

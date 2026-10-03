@@ -888,7 +888,7 @@ export const MESSAGES = {
       credentialTtlDaysInvalid: '请输入 1 至 365 之间的天数',
       moduleOrderCooldown: '下单冷却',
       orderCooldownSeconds: '下单冷却',
-      orderCooldownSecondsDesc: '本机菜单每次提交成功后的等待秒数（5-60 秒），仅影响当前设备的提交按钮，同桌其他设备互不影响。',
+      orderCooldownSecondsDesc: '本机菜单每次提交成功后的等待秒数（5-1800 秒），仅影响当前设备的提交按钮，同桌其他设备互不影响。',
       orderCooldownSecondsUnit: '秒',
       moduleSushiRound: '寿司同桌轮次',
       sushiRoundOrderingEnabled: '启用同桌轮次合单',
@@ -2389,7 +2389,7 @@ export const MESSAGES = {
       moduleOrderCooldown: 'Order cooldown',
       orderCooldownSeconds: 'Order cooldown',
       orderCooldownSecondsDesc:
-        'Seconds to wait on this device after each successful menu submit (5-60). Applies only to the submit button on this phone; other guests at the table are unaffected.',
+        'Seconds to wait on this device after each successful menu submit (5-1800). Applies only to the submit button on this phone; other guests at the table are unaffected.',
       orderCooldownSecondsUnit: 'seconds',
       moduleSushiRound: 'Sushi table rounds',
       sushiRoundOrderingEnabled: 'Enable table order rounds',
@@ -3653,7 +3653,7 @@ export const MESSAGES = {
       moduleOrderCooldown: 'Refracao de pedido',
       orderCooldownSeconds: 'Refracao de pedido',
       orderCooldownSecondsDesc:
-        'Segundos de espera neste dispositivo apos cada envio com sucesso (5-60). Afeta apenas o botao de envio neste telemovel; outros na mesa nao sao afetados.',
+        'Segundos de espera neste dispositivo apos cada envio com sucesso (5-1800). Afeta apenas o botao de envio neste telemovel; outros na mesa nao sao afetados.',
       orderCooldownSecondsUnit: 'segundos',
       moduleSushiRound: 'Rodadas sushi na mesa',
       sushiRoundOrderingEnabled: 'Ativar rodadas na mesa',

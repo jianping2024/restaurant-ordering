@@ -3964,7 +3964,7 @@ CREATE TABLE public.restaurants (
     CONSTRAINT restaurants_cloud_owner_required CHECK (((deployment_mode <> 'cloud'::text) OR (owner_id IS NOT NULL))),
     CONSTRAINT restaurants_country_code_check CHECK ((country_code ~ '^[A-Z]{2}$'::text)),
     CONSTRAINT restaurants_deployment_mode_check CHECK ((deployment_mode = ANY (ARRAY['cloud'::text, 'on_prem'::text]))),
-    CONSTRAINT restaurants_order_cooldown_seconds_check CHECK (((order_cooldown_seconds >= 5) AND (order_cooldown_seconds <= 60))),
+    CONSTRAINT restaurants_order_cooldown_seconds_check CHECK (((order_cooldown_seconds >= 5) AND (order_cooldown_seconds <= 1800))),
     CONSTRAINT restaurants_order_radius_meters_check CHECK (((order_radius_meters >= 10) AND (order_radius_meters <= 10000))),
     CONSTRAINT restaurants_plan_check CHECK ((plan = ANY (ARRAY['free'::text, 'pro'::text]))),
     CONSTRAINT restaurants_print_locale_check CHECK ((print_locale = ANY (ARRAY['zh'::text, 'en'::text, 'pt'::text])))

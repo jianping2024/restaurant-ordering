@@ -31,6 +31,10 @@ import {
   SUSHI_ROUND_COOLDOWN_SECONDS_MAX,
   SUSHI_ROUND_COOLDOWN_SECONDS_MIN,
 } from '@/lib/table-order-round/settings';
+import {
+  ORDER_COOLDOWN_SECONDS_MAX,
+  ORDER_COOLDOWN_SECONDS_MIN,
+} from '@/lib/order-submit-cooldown-client';
 
 /** Sole features-page control face — theme `brand-bg` (never hard-coded white). */
 const FEATURES_CONTROL_SURFACE =
@@ -382,8 +386,8 @@ export function FeatureFlagsManager({
               <div className="flex items-center gap-2">
                 <IntegerInput
                   value={orderCooldownSeconds}
-                  min={5}
-                  max={60}
+                  min={ORDER_COOLDOWN_SECONDS_MIN}
+                  max={ORDER_COOLDOWN_SECONDS_MAX}
                   onChange={setOrderCooldownSeconds}
                   className={FEATURES_INTEGER_INPUT}
                   aria-label={t.orderCooldownSeconds}

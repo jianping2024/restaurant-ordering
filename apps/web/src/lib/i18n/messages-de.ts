@@ -778,7 +778,7 @@ export const MESSAGES_DE = {
     "credentialTtlDaysInvalid": "Bitte eine Zahl zwischen 1 und 365 eingeben",
     "moduleOrderCooldown": "Wartezeit zwischen Bestellungen",
     "orderCooldownSeconds": "Wartezeit zwischen Bestellungen",
-    "orderCooldownSecondsDesc": "Sekunden, die auf diesem Gerät nach jeder erfolgreichen Bestellung von der Speisekarte gewartet wird (5–60). Gilt nur für die Absendetaste auf diesem Smartphone; andere Gäste am Tisch sind nicht betroffen.",
+    "orderCooldownSecondsDesc": "Sekunden, die auf diesem Gerät nach jeder erfolgreichen Bestellung von der Speisekarte gewartet wird (5–1800). Gilt nur für die Absendetaste auf diesem Smartphone; andere Gäste am Tisch sind nicht betroffen.",
     "orderCooldownSecondsUnit": "Sekunden",
     "save": "Einstellungen speichern",
     "saved": "Einstellungen gespeichert",

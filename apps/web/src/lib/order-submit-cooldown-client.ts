@@ -1,8 +1,8 @@
 export const ORDER_COOLDOWN_SECONDS_MIN = 5;
-export const ORDER_COOLDOWN_SECONDS_MAX = 60;
+export const ORDER_COOLDOWN_SECONDS_MAX = 1800;
 export const DEFAULT_ORDER_COOLDOWN_SECONDS = 5;
 
-/** Clamp owner-configured menu submit button wait (5–60 seconds). */
+/** Clamp owner-configured menu submit button wait (5–1800 seconds). */
 export function clampOrderCooldownSeconds(raw: unknown): number {
   const n = typeof raw === 'number' ? raw : Number(raw);
   if (!Number.isFinite(n)) return DEFAULT_ORDER_COOLDOWN_SECONDS;

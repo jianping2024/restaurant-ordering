@@ -107,6 +107,16 @@ interface Props {
   byItemContent?: ReactNode;
 }
 
+/**
+ * Inline rename opens focused with the name selected, so typing replaces it.
+ * Stable module ref → runs once on mount (sync in the add-person click for iOS keyboard).
+ */
+function focusAndSelectOnMount(input: HTMLInputElement | null) {
+  if (!input) return;
+  input.focus();
+  input.select();
+}
+
 export function BillSplitPanel({
   lang,
   copy,
@@ -310,7 +320,7 @@ export function BillSplitPanel({
                     editingSplitNameIndex === i ? (
                       <input
                         type="text"
-                        autoFocus
+                        ref={focusAndSelectOnMount}
                         value={editingSplitNameValue}
                         onChange={(e) => onEditingSplitNameValueChange(e.target.value)}
                         onBlur={() => onCommitInlineRename(i)}

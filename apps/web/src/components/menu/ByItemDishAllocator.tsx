@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useMemo, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
@@ -27,6 +28,7 @@ import {
 } from '@/components/menu/ByItemDishAllocatorHeader';
 import { ByItemDishAllocatorShell } from '@/components/menu/ByItemDishAllocatorShell';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
+import { focusByItemConsumerNameInCard } from '@/lib/by-item-line-expansion';
 import { ByItemQtyColumnHeader, ByItemQtyInput } from '@/components/menu/ByItemQtyInput';
 
 export type ByItemDishAllocatorLabels = ByItemLineStatusLabels &
@@ -159,7 +161,11 @@ function MenuByItemDishAllocator({
   };
 
   const addRow = () => {
-    onChange(appendByItemConsumerRow(rows, spec));
+    const next = appendByItemConsumerRow(rows, spec);
+    const newRowId = next[next.length - 1]?.id;
+    // Render the new row inside this click, then focus its name (iOS keyboard needs the gesture).
+    flushSync(() => onChange(next));
+    if (newRowId) focusByItemConsumerNameInCard(spec.key, newRowId);
   };
 
   const removeRow = (rowId: string) => {
@@ -190,7 +196,7 @@ function MenuByItemDishAllocator({
           const rowLock = byItemRowEditLock({ lineKey: spec.key, row, locks, spec });
           const qtyOver = isRowQtyOverAllocated(row, rows, lineQty);
           return (
-            <div key={row.id} className="contents">
+            <div key={row.id} className="contents" data-by-item-row-id={row.id}>
               <ConsumerNameCombobox
                 value={row.name}
                 options={availableConsumerNamesForRow({

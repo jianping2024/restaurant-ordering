@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useMemo, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import {
   appendByItemConsumerRow,
   byItemLineStatusSummary,
@@ -26,6 +27,7 @@ import {
 } from '@/components/menu/ByItemDishAllocatorHeader';
 import { ByItemDishAllocatorShell } from '@/components/menu/ByItemDishAllocatorShell';
 import { ConsumerNameCombobox } from '@/components/menu/ConsumerNameCombobox';
+import { focusByItemConsumerNameInCard } from '@/lib/by-item-line-expansion';
 import {
   customerQtyInputAlertClass,
   customerQtyInputClass,
@@ -136,7 +138,11 @@ export function BuffetDishAllocator({
   };
 
   const addRow = () => {
-    onChange(appendByItemConsumerRow(rows, spec));
+    const next = appendByItemConsumerRow(rows, spec);
+    const newRowId = next[next.length - 1]?.id;
+    // Render the new row inside this click, then focus its name (iOS keyboard needs the gesture).
+    flushSync(() => onChange(next));
+    if (newRowId) focusByItemConsumerNameInCard(spec.key, newRowId);
   };
 
   const removeRow = (rowId: string) => {
@@ -165,7 +171,7 @@ export function BuffetDishAllocator({
           const over = isRowBuffetOverAllocated(row, rows, spec);
           const fieldClass = over ? INPUT_ALERT : INPUT_OK;
           return (
-            <div key={row.id} className="space-y-2">
+            <div key={row.id} className="space-y-2" data-by-item-row-id={row.id}>
               <div className="flex items-start gap-2">
                 <ConsumerNameCombobox
                   value={row.name}

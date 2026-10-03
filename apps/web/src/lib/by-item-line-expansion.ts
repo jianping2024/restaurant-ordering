@@ -51,14 +51,25 @@ export function shouldFocusFirstByItemConsumerNameOnExpand(
   return typeof previous === 'string' && typeof next === 'string' && previous !== next;
 }
 
-/** Sole focus path: first consumer-name combobox inside the open dish card. */
-export function focusFirstByItemConsumerNameInCard(lineKey: string): boolean {
+/** Name combobox selector inside a dish card: row `data-by-item-row-id` when given, else the first row. */
+export function byItemConsumerNameInputSelector(rowId?: string): string {
+  const input = 'input[role="combobox"]';
+  if (!rowId) return input;
+  return `[data-by-item-row-id="${rowId.replace(/["\\]/g, '\\$&')}"] ${input}`;
+}
+
+/**
+ * Sole focus path for a consumer-name combobox inside a dish card.
+ * No `rowId` → first row (auto-advance); `rowId` → that row (just added via「添加消费人」).
+ * Call synchronously inside the click (after flushSync) so iOS raises the keyboard.
+ */
+export function focusByItemConsumerNameInCard(lineKey: string, rowId?: string): boolean {
   if (typeof document === 'undefined' || !lineKey) return false;
   const card = document.querySelector(
     `[data-by-item-line-key="${CSS.escape(lineKey)}"]`,
   );
   if (!(card instanceof HTMLElement)) return false;
-  const input = card.querySelector<HTMLInputElement>('input[role="combobox"]');
+  const input = card.querySelector<HTMLInputElement>(byItemConsumerNameInputSelector(rowId));
   if (!input || input.readOnly) return false;
   input.focus();
   return document.activeElement === input;

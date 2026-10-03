@@ -5,7 +5,7 @@ import {
   shouldShowConsumerNameMenu,
 } from '@/lib/consumer-name-roster';
 
-describe('ConsumerNameCombobox menu helpers', () => {
+describe('ConsumerNameCombobox suggestion helpers', () => {
   it('returns no options for empty query', () => {
     assert.deepEqual(filterConsumerNameOptions(['lucy', 'john'], ''), []);
   });

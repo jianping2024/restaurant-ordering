@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>顾客分单 · 姓名建议 — 键盘配件横条（静态稿）</title>
+  <style>
+    :root {
+      --bg: 237 234 226;
+      --card: 247 244 238;
+      --ink: 31 62 82;
+      --ink-muted: 138 131 119;
+      --gold: 139 101 48;
+      --on-gold: 255 250 240;
+      --border: 186 178 164;
+      --text: 26 22 18;
+      --kb-top: #d5d2cc;
+      --kb-mid: #c8c3ba;
+      --kb-acc: rgb(232 229 223 / 0.94);
+      --sans: ui-sans-serif, system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: rgb(var(--text));
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgb(var(--ink) / 0.08), transparent 55%),
+        radial-gradient(ellipse 60% 45% at 90% 100%, rgb(var(--gold) / 0.1), transparent 50%),
+        rgb(var(--bg));
+    }
+    .page { max-width: 1100px; margin: 0 auto; padding: 28px 20px 72px; }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 1.55rem;
+      margin: 0 0 6px;
+    }
+    .lede {
+      margin: 0 0 20px;
+      color: rgb(var(--ink-muted));
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 42rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+      align-items: start;
+    }
+    .panel {
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 650;
+    }
+    .panel .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .tag-bad { background: #fde8e8; color: #8b2e2e; }
+    .tag-good { background: #e8f5ee; color: #1f5c3a; }
+    .phone {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      border-radius: 28px;
+      border: 2px solid rgb(var(--ink) / 0.25);
+      background: rgb(var(--bg));
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgb(31 62 82 / 0.14);
+      aspect-ratio: 9 / 16;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .status {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: rgb(var(--ink));
+    }
+    .content {
+      flex: 1;
+      padding: 8px 12px 0;
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    .dish {
+      font-size: 0.82rem;
+      font-weight: 650;
+      margin-bottom: 8px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 36px 36px 36px 28px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .field {
+      border: 1px solid rgb(var(--border));
+      background: #fff;
+      border-radius: 8px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 0.85rem;
+    }
+    .field.active { border-color: rgb(var(--gold)); box-shadow: 0 0 0 2px rgb(var(--gold) / 0.2); }
+    .qty {
+      border: 1px solid rgb(var(--border));
+      background: #fff;
+      border-radius: 8px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+    .trash { text-align: center; color: rgb(var(--ink-muted)); font-size: 0.9rem; }
+    .dropdown {
+      position: absolute;
+      left: 12px;
+      width: 42%;
+      top: 92px;
+      background: #fff;
+      border: 1px solid rgb(var(--border));
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.12);
+      z-index: 2;
+      overflow: hidden;
+    }
+    .dropdown div {
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      border-bottom: 1px solid rgb(var(--border) / 0.5);
+    }
+    .dropdown div:last-child { border-bottom: 0; }
+    .cta {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 3;
+      background: rgb(var(--gold));
+      color: rgb(var(--on-gold));
+      border-radius: 12px;
+      padding: 12px 10px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.88rem;
+      box-shadow: 0 6px 16px rgb(139 101 48 / 0.35);
+    }
+
+    /* Keyboard chrome — name rail is the top slice of the same stack */
+    .kb-stack {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--kb-mid);
+    }
+    .name-rail {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 10px;
+      background: linear-gradient(180deg, #ddd9d2 0%, var(--kb-top) 100%);
+      border-top: 1px solid #b8b2a8;
+      /* no gap / no card radius — reads as keyboard chrome */
+    }
+    .name-rail-scroll {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      flex: 1;
+      min-width: 0;
+      padding: 4px 0;
+    }
+    .name-rail-scroll::-webkit-scrollbar { display: none; }
+    .name-chip {
+      flex: 0 0 auto;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1px solid #a9a297;
+      background: linear-gradient(180deg, #f4f1ea 0%, #e7e2d8 100%);
+      color: rgb(var(--text));
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 1px 0 rgb(255 255 255 / 0.55) inset;
+      white-space: nowrap;
+    }
+    .name-chip.active {
+      border-color: rgb(var(--gold));
+      background: linear-gradient(180deg, #f3e6d0 0%, #e4d0ad 100%);
+      color: rgb(var(--gold));
+      box-shadow: 0 0 0 1px rgb(var(--gold) / 0.25);
+    }
+    .name-rail-hint {
+      flex: 0 0 auto;
+      font-size: 0.65rem;
+      font-weight: 650;
+      color: rgb(var(--ink-muted));
+      letter-spacing: 0.02em;
+      writing-mode: horizontal-tb;
+      padding-right: 2px;
+      border-right: 1px solid #b8b2a8;
+      margin-right: 2px;
+      line-height: 1.1;
+      max-width: 2.6rem;
+      text-align: center;
+    }
+    .kb-acc {
+      height: 36px;
+      background: var(--kb-acc);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 0.75rem;
+      color: #2f6fed;
+      font-weight: 600;
+      border-top: 1px solid #c2bcb2;
+    }
+    .kb-acc .arrows { color: #8a8378; letter-spacing: 0.35em; }
+    .kb-keys {
+      height: 108px;
+      background: linear-gradient(180deg, var(--kb-top), var(--kb-mid));
+      display: grid;
+      place-items: center;
+      color: rgb(var(--ink-muted));
+      font-size: 0.75rem;
+      border-top: 1px solid #b8b2a8;
+    }
+    .kb-keys-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+      width: calc(100% - 16px);
+      padding: 0 8px;
+    }
+    .kb-key {
+      height: 28px;
+      border-radius: 5px;
+      background: #f7f4ee;
+      border: 1px solid #b0aaa0;
+      box-shadow: 0 1px 0 #9e978c;
+      font-size: 0.72rem;
+      display: grid;
+      place-items: center;
+      color: rgb(var(--text));
+      font-weight: 600;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: rgb(var(--ink-muted));
+      line-height: 1.45;
+    }
+    .rules {
+      margin-top: 22px;
+      border: 1px solid rgb(var(--border));
+      background: rgb(var(--card));
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 0.875rem;
+      line-height: 1.55;
+    }
+    .rules strong { color: rgb(var(--gold)); }
+    .rules p { margin: 0 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.84rem; }
+    th, td { text-align: left; padding: 8px 6px; border-top: 1px solid rgb(var(--border) / 0.7); vertical-align: top; }
+    th { color: rgb(var(--ink-muted)); font-weight: 600; border-top: 0; }
+
+    .fade-hint {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 28px;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgb(213 210 204 / 0.95));
+    }
+    .name-rail { position: relative; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>顾客分单 · 姓名建议交互（静态稿）</h1>
+    <p class="lede">
+      聚焦姓名时隐藏「呼叫结账」。匹配姓名出现在<strong>软键盘顶上一道通栏横条</strong>（与键盘同色、无缝衔接），芯片可左右滑点选——不是输入框下方的下拉，也不是悬浮白卡片。
+    </p>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>现状</h2>
+        <span class="tag tag-bad">被底栏 + 键盘挡住</span>
+        <div class="phone" aria-label="现状示意">
+          <div class="status"><span>21:06</span><span>5G</span></div>
+          <div class="content">
+            <div class="dish">按菜分单 · 某道菜</div>
+            <div class="row">
+              <div class="field">Harry</div>
+              <div class="qty">3</div><div class="qty">2</div><div class="qty">3</div>
+              <div class="trash">🗑</div>
+            </div>
+            <div class="row">
+              <div class="field active">j|</div>
+              <div class="qty">1</div><div class="qty"></div><div class="qty"></div>
+              <div class="trash">🗑</div>
+            </div>
+            <div class="dropdown">
+              <div>John</div>
+              <div>Jack</div>
+              <div>Jenny</div>
+            </div>
+            <div class="cta">🔔 呼叫结账 消费额 76.45</div>
+          </div>
+          <div class="kb-stack">
+            <div class="kb-acc"><span class="arrows">↑ ↓</span><span>完成</span></div>
+            <div class="kb-keys">软键盘区域</div>
+          </div>
+        </div>
+        <p class="note">输入框下拉与固定底栏同层；名单落在键盘与底栏夹缝里，几乎点不到。</p>
+      </section>
+
+      <section class="panel">
+        <h2>推荐终态</h2>
+        <span class="tag tag-good">键盘配件横条 · 可横滑</span>
+        <div class="phone" aria-label="推荐示意">
+          <div class="status"><span>21:06</span><span>5G</span></div>
+          <div class="content">
+            <div class="dish">按菜分单 · 某道菜</div>
+            <div class="row">
+              <div class="field">Harry</div>
+              <div class="qty">3</div><div class="qty">2</div><div class="qty">3</div>
+              <div class="trash">🗑</div>
+            </div>
+            <div class="row">
+              <div class="field active">j|</div>
+              <div class="qty">1</div><div class="qty"></div><div class="qty"></div>
+              <div class="trash">🗑</div>
+            </div>
+            <!-- 呼叫结账已隐藏：姓名编辑占用键盘时让位 -->
+          </div>
+          <div class="kb-stack">
+            <!-- 选名条 = 键盘栈最顶一层，通栏、同色、无圆角浮卡 -->
+            <div class="name-rail" aria-label="已有姓名，左右滑动选择">
+              <div class="name-rail-hint">已有<br>姓名</div>
+              <div class="name-rail-scroll">
+                <span class="name-chip active">John</span>
+                <span class="name-chip">Jack</span>
+                <span class="name-chip">Jenny</span>
+                <span class="name-chip">Jia</span>
+                <span class="name-chip">Jordan</span>
+              </div>
+              <div class="fade-hint" aria-hidden="true"></div>
+            </div>
+            <div class="kb-acc"><span class="arrows">↑ ↓</span><span>完成</span></div>
+            <div class="kb-keys">
+              <div class="kb-keys-grid" aria-hidden="true">
+                <span class="kb-key">Q</span><span class="kb-key">W</span><span class="kb-key">E</span><span class="kb-key">R</span><span class="kb-key">T</span>
+                <span class="kb-key">Y</span><span class="kb-key">U</span><span class="kb-key">I</span><span class="kb-key">O</span><span class="kb-key">P</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="note">
+          横条是键盘栈的顶层切片（同灰阶、顶细线、无阴影卡片）。右侧淡出提示还可继续滑。
+          网页无法画进系统键盘像素；观感上与键盘连成一块。
+        </p>
+      </section>
+    </div>
+
+    <div class="rules">
+      <p><strong>唯一交互面：</strong>姓名建议只走「键盘上方配件横条」；芯片横滑点选。不再用 input 下 absolute 下拉，也不用悬浮名单卡片。</p>
+      <p><strong>底栏规则：</strong>姓名框聚焦 → 隐藏呼叫结账；点选芯片 / Enter / 失焦提交 → 关横条并恢复底栏。</p>
+      <p><strong>视觉：</strong>通栏、矮（约 44px）、与键盘同色系、贴齐键盘顶边；有匹配才出现；无匹配不占位。</p>
+      <table>
+        <thead>
+          <tr><th>状态</th><th>底栏</th><th>建议 UI</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>空闲</td><td>显示呼叫结账</td><td>无横条</td></tr>
+          <tr><td>姓名聚焦 + 有匹配</td><td>隐藏</td><td>键盘顶横条，芯片可左右滑</td></tr>
+          <tr><td>姓名聚焦 + 无匹配</td><td>隐藏</td><td>无横条，可手打新名</td></tr>
+          <tr><td>点选芯片 / Enter / 失焦提交</td><td>恢复</td><td>关横条，写回姓名</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

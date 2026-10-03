@@ -7,6 +7,18 @@ export function softKeyboardOpen(
   return innerHeight - visualViewportHeight > thresholdPx;
 }
 
+/**
+ * CSS `bottom` for a `position:fixed` bar that sits on the visual-viewport
+ * bottom edge (flush above the soft keyboard when one is open).
+ */
+export function fixedBarBottomAboveVisualViewport(
+  innerHeight: number,
+  visualViewportOffsetTop: number,
+  visualViewportHeight: number,
+): number {
+  return Math.max(0, innerHeight - (visualViewportOffsetTop + visualViewportHeight));
+}
+
 /** Ignore open→closed jitter while the keyboard is still rising after focus. */
 export const SOFT_KEYBOARD_DISMISS_ARM_MS = 400;
 

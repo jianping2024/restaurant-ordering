@@ -1270,6 +1270,7 @@ export const MESSAGES_FR = {
     "resumeOrderingSuccess": "Commande reprise",
     "resumeOrderingFailed": "Impossible de reprendre la commande — veuillez réessayer",
     "resumeOrderingBlockedWholeTable": "Paiement de la table entière enregistré — reprise impossible",
+    "resumeOrderingNeedRealNames": "Renommez les noms par défaut avant de reprendre la commande",
     "resumeOrderingCancel": "Annuler",
     "discountReasons": {
       "customer_complaint": "Réclamation client",

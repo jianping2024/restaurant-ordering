@@ -6,8 +6,12 @@
 import { mintSplitPartyId, splitPartyKey } from '@/lib/split-party-id';
 import { isWholeTablePayerName } from '@/lib/split-person-label';
 
-/** Placeholder serial-mint labels (客人 N / Guest N / Pessoa N) — not guest-submitted names. */
-const DEFAULT_GUEST_RAIL_NAME_RE = /^(?:客人|Guest|Pessoa)\s*\d+$/i;
+/**
+ * Placeholder serial-mint labels from staff `bill.guest` + N
+ * (zh/en/pt/es/fr/de) — not guest-submitted names.
+ */
+const DEFAULT_GUEST_RAIL_NAME_RE =
+  /^(?:客人|Guest|Pessoa|Comensal|Convive|Gast)\s*\d+$/i;
 
 /** True when the chip is still a default serial-collect blank (not a real ticket name). */
 export function isDefaultGuestRailName(name: string): boolean {

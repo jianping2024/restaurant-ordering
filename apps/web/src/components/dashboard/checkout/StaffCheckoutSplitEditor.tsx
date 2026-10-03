@@ -56,7 +56,7 @@ import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-mes
 import type { CheckoutSettlementSummary } from '@/lib/checkout-settlement';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { useBillSplitDraft } from '@/lib/use-bill-split-draft';
-import type { BillSplit, Order, SplitResult } from '@/types';
+import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 
 type Props = {
   restaurantId: string;
@@ -97,8 +97,11 @@ type Props = {
    * Even/custom: full split persist before collect.
    * By-item: unpaid plan flush ({@link mergeStaffByItemUnpaidDraftIntoLedger}) —
    * resume and Host pay-path both call this; collect stamps then same merge.
+   * Returns persons+result so resume name gate sees the flushed roster.
    */
-  onRegisterPersist: (persist: (() => Promise<SplitResult[] | null>) | null) => void;
+  onRegisterPersist: (
+    persist: (() => Promise<{ persons: BillSplit['persons']; result: SplitResult[] } | null>) | null,
+  ) => void;
   /** By-item collect confirm: stamp ticket then unpaid-plan merge; modal amount authoritative. */
   onRegisterCollectTicket: (
     persist: ((args: {
@@ -375,7 +378,10 @@ export function StaffCheckoutSplitEditor({
     return billT.splitAmountMismatch;
   }, [billT, splitDraft.splitMode, splitDraft.splitValidation]);
 
-  const persistSplit = useCallback(async (): Promise<SplitResult[] | null> => {
+  const persistSplit = useCallback(async (): Promise<{
+    persons: BillSplit['persons'];
+    result: SplitResult[];
+  } | null> => {
     if (!splitDraft.splitMode) {
       showToast(billT.splitUnassignedItems, 'error');
       return null;
@@ -446,7 +452,7 @@ export function StaffCheckoutSplitEditor({
       result: outcome.result,
       status: 'requested',
     });
-    return outcome.result;
+    return { persons, result: outcome.result };
   }, [
     billT,
     checkoutT,
@@ -464,7 +470,7 @@ export function StaffCheckoutSplitEditor({
     async (params: {
       draftPersons: ReturnType<typeof buildSplitPersonsFromAllocations>;
       draftResults: SplitResult[];
-    }): Promise<SplitResult[] | null> => {
+    }): Promise<{ persons: SplitPerson[]; result: SplitResult[] } | null> => {
       const lockedTicketKeys = allocationLockedTicketKeys(request, collectedPayments);
       const merged = mergeStaffByItemUnpaidDraftIntoLedger({
         existingPersons: request.persons ?? [],
@@ -505,7 +511,7 @@ export function StaffCheckoutSplitEditor({
         result: outcome.result,
         status: 'requested',
       });
-      return outcome.result;
+      return { persons: merged.persons, result: outcome.result };
     },
     [
       billT.nifInvalid,
@@ -606,7 +612,7 @@ export function StaffCheckoutSplitEditor({
             draftResults,
           });
           if (!persisted) return null;
-          const personIndex = persisted.findIndex(
+          const personIndex = persisted.result.findIndex(
             (row) => splitResultTicketKey(row) === ticketKey,
           );
           if (personIndex < 0) {

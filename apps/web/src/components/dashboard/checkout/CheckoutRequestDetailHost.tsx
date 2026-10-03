@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { getMessages } from '@/lib/i18n/messages';
 import { checkoutSplitModeUiLabels } from '@/lib/i18n/guest-split-mode-messages';
-import type { BillSplit, Order, SplitResult } from '@/types';
+import type { BillSplit, Order, SplitPerson, SplitResult } from '@/types';
 import { showToast } from '@/components/ui/Toast';
 import { ReasonConfirmDialog } from '@/components/ui/ReasonConfirmDialog';
 import {
@@ -31,6 +31,9 @@ import {
   isSplitSettlementPending,
   pendingSplitSettlementRows,
 } from '@/lib/checkout-split-settlement';
+import { prepareStaffCheckoutResumeOrdering } from '@/lib/checkout-resume-ordering-gate';
+import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
+import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { useCheckoutResumeOrdering } from '@/lib/use-checkout-resume-ordering';
 import {
   staffSplitReceiptCooldownKey,
@@ -117,7 +120,9 @@ export function CheckoutRequestDetailHost({
     upsertRequestFromSubmit,
     setPrintAsk,
   } = useCheckoutRequests();
-  const persistBeforePay = useRef<(() => Promise<SplitResult[] | null>) | null>(null);
+  const persistBeforePay = useRef<
+    (() => Promise<{ persons: SplitPerson[]; result: SplitResult[] } | null>) | null
+  >(null);
   const persistCollectTicket = useRef<
     | ((args: {
         personName: string;
@@ -147,10 +152,64 @@ export function CheckoutRequestDetailHost({
   const t = getMessages(lang).checkout;
   const billT = getMessages(lang).bill;
   const beforeResume = useCallback(async () => {
-    if (!persistBeforePay.current) return true;
-    const persisted = await persistBeforePay.current();
-    return persisted != null;
-  }, []);
+    const prepared = await prepareStaffCheckoutResumeOrdering({
+      request,
+      collectedPayments: getCollectedForSession(request.session_id),
+      flushDraft: persistBeforePay.current,
+      persistPrunedByItem: async ({ persons, result }) => {
+        const outcome = await requestCheckoutRequest({
+          slug: restaurantSlug,
+          tableId: request.table_id,
+          splitMode: 'by_item',
+          persons,
+          result,
+          allowPartialByItem: true,
+        });
+        if (!outcome.ok) {
+          showToast(
+            messageForCheckoutRequestError(outcome.error, {
+              guestCountRequired: t.callCheckoutGuestCountRequired,
+              partyMergeRequired: t.callCheckoutPartyMergeRequired,
+              emptySession: t.callCheckoutEmptySession,
+              noActiveSession: t.callCheckoutNoActiveSession,
+              tableNotAvailable: t.callCheckoutTableNotAvailable,
+              invalidNif: billT.nifInvalid,
+              splitPlanLocked: billT.splitPlanLocked,
+              fallback: t.callCheckoutFailed,
+            }),
+            'error',
+          );
+          return null;
+        }
+        const next: BillSplit = {
+          ...request,
+          id: outcome.bill_split_id,
+          split_mode: 'by_item',
+          persons,
+          result: outcome.result,
+          status: 'requested',
+        };
+        persistedBillSplitId.current = next.id;
+        upsertRequestFromSubmit(next);
+        return { persons, result: outcome.result };
+      },
+    });
+    if (!prepared.ok) {
+      if (prepared.code === 'default_guest_names') {
+        showToast(t.resumeOrderingNeedRealNames, 'error');
+      }
+      return false;
+    }
+    return true;
+  }, [
+    billT.nifInvalid,
+    billT.splitPlanLocked,
+    getCollectedForSession,
+    request,
+    restaurantSlug,
+    t,
+    upsertRequestFromSubmit,
+  ]);
   const {
     isResumeBusy,
     isResumeMutating,
@@ -403,10 +462,10 @@ export function CheckoutRequestDetailHost({
         amount = pending.amount;
       } else if (persistBeforePay.current) {
         // Even/custom: persist full split plan before collect (unchanged).
-        const persistedResult = await persistBeforePay.current();
-        if (!persistedResult) return;
+        const persisted = await persistBeforePay.current();
+        if (!persisted) return;
         if (pending.personName) {
-          const idx = persistedResult.findIndex(
+          const idx = persisted.result.findIndex(
             (entry) =>
               splitPartyKey(entry.party_id, entry.name) ===
               splitPartyKey(pending.partyId, pending.personName ?? ''),

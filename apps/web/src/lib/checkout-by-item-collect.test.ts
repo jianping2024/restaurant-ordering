@@ -348,7 +348,7 @@ describe('mergeStaffByItemUnpaidDraftIntoLedger', () => {
     assert.equal(merged.persons.length, 1);
   });
 
-  it('leaves ledger unchanged when unpaid draft has no shares', () => {
+  it('keeps locked ledger when unpaid draft has no shares', () => {
     const paid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
     const merged = mergeStaffByItemUnpaidDraftIntoLedger({
       existingPersons: [
@@ -373,6 +373,50 @@ describe('mergeStaffByItemUnpaidDraftIntoLedger', () => {
     assert.equal(merged.persons.length, 1);
     assert.equal(merged.persons[0]?.name, 'John');
     assert.equal(merged.result[0]?.paid, true);
+  });
+
+  it('drops unpaid empty tickets when draft writes no shares', () => {
+    const empty = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
+      existingPersons: [{ name: '客人 1', party_id: empty, item_shares: [] }],
+      existingResult: [{ name: '客人 1', amount: 0, party_id: empty }],
+      draftPersons: [{ name: '客人 1', party_id: empty, item_shares: [] }],
+      draftResults: [],
+      lockedTicketKeys: new Set(),
+    });
+    assert.equal(merged.persons.length, 0);
+    assert.equal(merged.result.length, 0);
+  });
+
+  it('keeps existing unpaid-with-shares when draft omits that ticket', () => {
+    const keep = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const paid = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
+      existingPersons: [
+        {
+          name: '客人 1',
+          party_id: keep,
+          item_shares: [{ key: 'cola', qty_num: 1, qty_den: 1 }],
+        },
+        {
+          name: '客人 2',
+          party_id: paid,
+          item_shares: [],
+        },
+      ],
+      existingResult: [
+        { name: '客人 1', amount: 2.2, party_id: keep },
+        { name: '客人 2', amount: 0, paid: true, party_id: paid },
+      ],
+      draftPersons: [],
+      draftResults: [{ name: '客人 2', amount: 0, paid: true, party_id: paid }],
+      lockedTicketKeys: new Set([splitPartyKey(paid, '客人 2')]),
+    });
+    assert.equal(merged.persons.some((p) => p.name === '客人 1'), true);
+    assert.equal(
+      merged.persons.find((p) => p.name === '客人 1')?.item_shares?.length,
+      1,
+    );
   });
 
   it('keeps result person_index order and refreshes locked-unpaid amount from draft', () => {

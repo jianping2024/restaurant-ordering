@@ -35,6 +35,7 @@
 - **分单结果**：仅展示**尚未确认收款**的客人；已收款者不在此重复出现。
 - **恢复点单**后再次进入结账详情：已收款项与待收名单须与恢复前一致（仅因新加菜而增加待结金额或新增待分配行，见 §4）。
 - **确认弹窗**：文案须与 RPC 分支一致——按菜分单统一为「保留分单快照」；均摊 / 自定义无收款时为「撤销结账请求」；有部分收款时为「保留分单与已收款项」。
+- **恢复点单出门禁**（sole `prepareStaffCheckoutResumeOrdering`）：会把分单留给手机时，**先**丢掉按菜未付且名下无份额的人，**再**检查仍留下的未付票是否仍是默认串号名（客人/Guest/… N）；是则提示改名并中止。已付票默认名放行。均摊/自定义零收款（撤销分单）不做此门禁。
 
 ## 4. 按菜分单（`split_mode = by_item`）续结规则
 
@@ -129,6 +130,7 @@
 | 服务端续结校验 | 与 UI 一致 | `validateCheckoutContinuation` |
 | 楼面再次呼叫结账 | reopen 保留分单 / 无则 whole_table | `ensureStaffCheckoutEntryForTable` + `loadActiveBillSplitForSession` |
 | 恢复点单确认弹窗文案 | 与 RPC 分支一致 | `resumeOrderingConfirmVariant` + i18n |
+| 恢复前丢空票 + 默认名门禁 | 先 prune/flush 空未付，再拦未付默认名 | `prepareStaffCheckoutResumeOrdering` + `pruneUnpaidEmptyByItemTickets` |
 
 ## 9. 相关文件
 
@@ -143,4 +145,6 @@
 - `apps/web/src/lib/customer-bill-checkout-resume.ts` — 成功页刷新结果判定
 - `apps/web/src/lib/checkout-split-continuation.ts` — 锁定判定、`paidSplitPersonNames`、`lockedByItemLineKeys`
 - `apps/web/src/lib/checkout-session-payments.ts` — 已收台账、待收行过滤、恢复拦截、确认文案分支
+- `apps/web/src/lib/checkout-resume-ordering-gate.ts` — 恢复点单出门禁（空票丢弃 → 默认名）
+- `apps/web/src/lib/checkout-by-item-collect.ts` — `pruneUnpaidEmptyByItemTickets` + merge 空 draft 回落
 - `supabase/migrations/20260710120000_resume_ordering_preserve_by_item_split.sql` — 按菜分单恢复保留 RPC

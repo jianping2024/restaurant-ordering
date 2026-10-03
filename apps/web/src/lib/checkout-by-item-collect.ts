@@ -262,10 +262,16 @@ export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
   }
 
   const draftPersonByKey = new Map<string, SplitPerson>();
+  /** Explicit empty draft rows — drop these unpaid tickets; omit ≠ drop. */
+  const draftExplicitEmptyKeys = new Set<string>();
   for (const row of params.draftPersons) {
     if (isWholeTablePayerName(row.name)) continue;
     const key = splitPartyKey(row.party_id, row.name);
-    if (!key || (row.item_shares?.length ?? 0) === 0) continue;
+    if (!key) continue;
+    if ((row.item_shares?.length ?? 0) === 0) {
+      draftExplicitEmptyKeys.add(key);
+      continue;
+    }
     draftPersonByKey.set(key, row);
   }
 
@@ -280,6 +286,16 @@ export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
   const unpaidKeys = new Set<string>();
   for (const key of Array.from(draftPersonByKey.keys())) {
     if (!locked.has(key)) unpaidKeys.add(key);
+  }
+  // Keep ledger unpaid tickets that still have shares when the draft omitted them
+  // (incomplete UI hydrate). Explicit empty draft rows still drop (Jim→Marry).
+  for (const row of params.existingPersons) {
+    if (isWholeTablePayerName(row.name)) continue;
+    const key = splitPartyKey(row.party_id, row.name);
+    if (!key || locked.has(key) || draftExplicitEmptyKeys.has(key)) continue;
+    if ((row.item_shares?.length ?? 0) === 0) continue;
+    if (draftPersonByKey.has(key)) continue;
+    unpaidKeys.add(key);
   }
 
   const orderedKeys: string[] = [];
@@ -336,25 +352,116 @@ export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
       continue;
     }
 
-    if (!draftPerson || !draftResult) continue;
-    persons.push(draftPerson);
+    const person = draftPerson ?? existingPerson;
+    if (!person || (person.item_shares?.length ?? 0) === 0) continue;
+    const amount = Number(
+      draftResult?.amount ?? existingResultRow?.amount ?? person.amount ?? 0,
+    );
+    const partyId =
+      person.party_id?.trim() ||
+      draftResult?.party_id?.trim() ||
+      existingResultRow?.party_id?.trim();
+    persons.push(person);
     result.push(
       toWireSplitResult({
-        name: draftPerson.name,
-        amount: draftResult.amount,
+        name: person.name,
+        amount,
         paid: false,
-        partyId: draftPerson.party_id ?? draftResult.party_id,
+        partyId,
       }),
     );
   }
 
   if (persons.length === 0) {
-    return {
-      persons: [...params.existingPersons],
-      result: [...params.existingResult],
-    };
+    // No unpaid draft shares written: keep locked + unpaid-with-shares from existing;
+    // never re-inject unpaid empty tickets (resume must drop them).
+    return pruneUnpaidEmptyByItemTickets({
+      persons: params.existingPersons,
+      result: params.existingResult,
+      lockedTicketKeys: locked,
+    });
   }
   return { persons, result };
+}
+
+/**
+ * Sole by-item empty-ticket prune: drop unpaid tickets with no item_shares.
+ * Locked tickets stay even when shares are empty; paid flag follows existing result.
+ */
+export function pruneUnpaidEmptyByItemTickets(params: {
+  persons: readonly SplitPerson[];
+  result: readonly SplitResult[];
+  lockedTicketKeys: ReadonlySet<string>;
+}): { persons: SplitPerson[]; result: SplitResult[]; changed: boolean } {
+  const locked = params.lockedTicketKeys;
+  const personByKey = new Map<string, SplitPerson>();
+  for (const row of params.persons) {
+    if (isWholeTablePayerName(row.name)) continue;
+    const key = splitPartyKey(row.party_id, row.name);
+    if (!key || personByKey.has(key)) continue;
+    personByKey.set(key, row);
+  }
+
+  const keepKeys = new Set<string>();
+  for (const [key, person] of Array.from(personByKey.entries())) {
+    if (locked.has(key) || (person.item_shares?.length ?? 0) > 0) {
+      keepKeys.add(key);
+    }
+  }
+  for (const row of params.result) {
+    if (isWholeTablePayerName(row.name)) continue;
+    const key = splitResultTicketKey(row);
+    if (!key) continue;
+    if (locked.has(key) || row.paid) keepKeys.add(key);
+  }
+
+  const persons: SplitPerson[] = [];
+  const result: SplitResult[] = [];
+  const seen = new Set<string>();
+  const pushKey = (key: string | null | undefined) => {
+    if (!key || seen.has(key) || !keepKeys.has(key)) return;
+    seen.add(key);
+    const person = personByKey.get(key);
+    const existingResult = params.result.find(
+      (row) => splitResultTicketKey(row) === key,
+    );
+    if (!person && !existingResult) return;
+    const name = person?.name ?? existingResult?.name ?? '';
+    if (!name || isWholeTablePayerName(name)) return;
+    const partyId =
+      person?.party_id?.trim() || existingResult?.party_id?.trim() || undefined;
+    persons.push(
+      person ?? {
+        name,
+        item_shares: [],
+        ...(partyId ? { party_id: partyId } : {}),
+      },
+    );
+    result.push(
+      toWireSplitResult({
+        name,
+        amount: Number(existingResult?.amount ?? person?.amount ?? 0),
+        paid: Boolean(existingResult?.paid),
+        partyId,
+      }),
+    );
+  };
+
+  for (const row of params.result) {
+    if (isWholeTablePayerName(row.name)) continue;
+    pushKey(splitResultTicketKey(row));
+  }
+  for (const row of params.persons) {
+    if (isWholeTablePayerName(row.name)) continue;
+    pushKey(splitPartyKey(row.party_id, row.name));
+  }
+
+  const changed =
+    persons.length !== params.persons.filter((p) => !isWholeTablePayerName(p.name)).length ||
+    result.length !==
+      params.result.filter((r) => !isWholeTablePayerName(r.name)).length;
+
+  return { persons, result, changed };
 }
 
 /** True when live outstanding still matches the modal amount (cent-equal). */

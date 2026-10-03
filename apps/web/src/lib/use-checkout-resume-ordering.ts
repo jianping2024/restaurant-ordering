@@ -23,8 +23,9 @@ type Params = {
   showToast: (message: string, kind: 'error' | 'success') => void;
   messages: Messages;
   /**
-   * By-item unpaid plan flush before resume RPC.
-   * Return false to abort resume (toast already shown by flush).
+   * Sole resume prepare before RPC ({@link prepareStaffCheckoutResumeOrdering}):
+   * drop empty unpaid by-item tickets, then block unpaid default names.
+   * Return false to abort (toast already shown).
    */
   beforeResume?: () => Promise<boolean>;
 };

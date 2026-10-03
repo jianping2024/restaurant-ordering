@@ -1268,6 +1268,7 @@ export const MESSAGES_DE = {
     "resumeOrderingSuccess": "Bestellung fortgesetzt",
     "resumeOrderingFailed": "Fortsetzen fehlgeschlagen — erneut versuchen",
     "resumeOrderingBlockedWholeTable": "Zahlung für ganzen Tisch erfasst — Fortsetzen nicht möglich",
+    "resumeOrderingNeedRealNames": "Bitte Standardnamen vor dem Fortsetzen in echte Namen ändern",
     "resumeOrderingCancel": "Abbrechen",
     "discountReasons": {
       "customer_complaint": "Kundenbeschwerde",

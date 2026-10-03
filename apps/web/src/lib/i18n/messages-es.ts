@@ -1266,6 +1266,7 @@ export const MESSAGES_ES = {
     "resumeOrderingSuccess": "Pedidos reanudados",
     "resumeOrderingFailed": "No se han podido reanudar los pedidos: inténtalo de nuevo",
     "resumeOrderingBlockedWholeTable": "Hay un pago de mesa completa registrado: no se puede reanudar",
+    "resumeOrderingNeedRealNames": "Cambie los nombres predeterminados por nombres reales antes de reanudar",
     "resumeOrderingCancel": "Cancelar",
     "discountReasons": {
       "customer_complaint": "Reclamación del cliente",

@@ -1434,6 +1434,7 @@ export const MESSAGES = {
       resumeOrderingSuccess: '已恢复点单',
       resumeOrderingFailed: '恢复点单失败，请重试',
       resumeOrderingBlockedWholeTable: '整桌已收款，无法恢复点单',
+      resumeOrderingNeedRealNames: '请先把默认姓名改成真实姓名，再恢复点单',
       resumeOrderingCancel: '取消',
       discountReasons: {
         customer_complaint: '顾客投诉',
@@ -2781,6 +2782,7 @@ export const MESSAGES = {
       resumeOrderingSuccess: 'Ordering resumed',
       resumeOrderingFailed: 'Could not resume ordering — try again',
       resumeOrderingBlockedWholeTable: 'Whole-table payment recorded — cannot resume',
+      resumeOrderingNeedRealNames: 'Rename default guest labels to real names before resuming',
       resumeOrderingCancel: 'Cancel',
       discountReasons: {
         customer_complaint: 'Customer complaint',
@@ -4044,6 +4046,7 @@ export const MESSAGES = {
       resumeOrderingSuccess: 'Pedidos retomados',
       resumeOrderingFailed: 'Nao foi possivel retomar pedidos — tente novamente',
       resumeOrderingBlockedWholeTable: 'Mesa inteira ja paga — nao e possivel retomar',
+      resumeOrderingNeedRealNames: 'Altere os nomes predefinidos para nomes reais antes de retomar',
       resumeOrderingCancel: 'Cancelar',
       discountReasons: {
         customer_complaint: 'Reclamacao do cliente',

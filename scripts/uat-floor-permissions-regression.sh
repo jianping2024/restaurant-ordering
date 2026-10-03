@@ -83,7 +83,7 @@ WAIT_JAR=$(mktemp)
 KITCHEN_JAR=$(mktemp)
 ADMIN_JAR=$(mktemp)
 login "$STORE_JAR" "dianzhan" "123456"
-login "$FRONT_JAR" "qiantai1" "123456"
+login "$FRONT_JAR" "qiantai1" "MesaUat1"
 login "$CASH_JAR" "shouyinyuan1" "123456"
 login "$WAIT_JAR" "fuwuyuan1" "123456"
 login "$ADMIN_JAR" "baiyun@gmail.com" "123456"

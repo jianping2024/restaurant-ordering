@@ -53,11 +53,15 @@ describe('customerMenuChromeLayout', () => {
     assert.doesNotMatch(customerMenuCategoryRailClass, /sticky/);
   });
 
-  it('uses one dual-pane scroll contract (nav shell + catalog overscroll)', () => {
+  it('uses one dual-pane scroll contract (nav shell width + catalog overscroll)', () => {
     assert.match(customerMenuDualPaneRootClass, /overflow-hidden/);
     assert.match(customerMenuDualPaneRootClass, /flex-col/);
-    assert.equal(customerMenuCategoryNavShellClass, 'flex min-h-0 flex-1');
+    assert.equal(
+      customerMenuCategoryNavShellClass,
+      'flex min-h-0 min-w-0 w-full flex-1 overflow-hidden',
+    );
     assert.match(customerMenuCatalogPaneClass, /overflow-y-auto/);
+    assert.match(customerMenuCatalogPaneClass, /overflow-x-hidden/);
     assert.match(customerMenuCatalogPaneClass, /overscroll-y-contain/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /sticky/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /top-0/);

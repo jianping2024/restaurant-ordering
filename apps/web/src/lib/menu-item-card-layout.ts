@@ -65,6 +65,13 @@ export const MENU_ITEM_CARD_FLAVOR_SLOT_CLASS =
 export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =
   'mt-auto flex h-9 min-w-0 shrink-0 items-center justify-between gap-2';
 
+/**
+ * Sole list price slot — yields width to the add/stepper action (`truncate`).
+ * Pair with `CUSTOMER_MENU_TYPE.moneyAmount` at the call site.
+ */
+export const MENU_ITEM_CARD_PRICE_CLASS = 'min-w-0 truncate';
+
+/** Sole list action slot — never shrinks; + / compact −n+ stay fully visible. */
 export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center justify-end';
 
 /**

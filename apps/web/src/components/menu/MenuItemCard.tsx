@@ -18,6 +18,7 @@ import {
   MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
+  MENU_ITEM_CARD_PRICE_CLASS,
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
@@ -187,7 +188,9 @@ export function MenuItemCard({
         </button>
 
         <div className={MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS}>
-          <span className={`shrink-0 ${CUSTOMER_MENU_TYPE.moneyAmount}`}>{priceText}</span>
+          <span className={`${MENU_ITEM_CARD_PRICE_CLASS} ${CUSTOMER_MENU_TYPE.moneyAmount}`}>
+            {priceText}
+          </span>
           <div
             className={MENU_ITEM_CARD_ACTION_SLOT_CLASS}
             onClick={(e) => e.stopPropagation()}

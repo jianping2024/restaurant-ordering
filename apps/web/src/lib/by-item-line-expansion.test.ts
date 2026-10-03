@@ -12,6 +12,7 @@ import {
   isByItemExpansionHoldTarget,
   isByItemLineExpanded,
   reconcileByItemExpandedLineKey,
+  byItemConsumerNameInputSelector,
   shouldFocusFirstByItemConsumerNameOnExpand,
   toggleByItemExpandedLineKey,
 } from './by-item-line-expansion';
@@ -238,6 +239,26 @@ describe('by-item-line-expansion', () => {
     assert.equal(
       shouldFocusFirstByItemConsumerNameOnExpand('buffet-headcount', 'wine'),
       true,
+    );
+  });
+});
+
+describe('byItemConsumerNameInputSelector', () => {
+  it('targets the first name without a row id (auto-advance)', () => {
+    assert.equal(byItemConsumerNameInputSelector(), 'input[role="combobox"]');
+  });
+
+  it('targets the just-added row by id', () => {
+    assert.equal(
+      byItemConsumerNameInputSelector('row-abc123'),
+      '[data-by-item-row-id="row-abc123"] input[role="combobox"]',
+    );
+  });
+
+  it('escapes quotes in the row id', () => {
+    assert.equal(
+      byItemConsumerNameInputSelector('a"b'),
+      '[data-by-item-row-id="a\\"b"] input[role="combobox"]',
     );
   });
 });

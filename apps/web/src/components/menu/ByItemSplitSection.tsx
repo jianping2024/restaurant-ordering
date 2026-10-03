@@ -3,7 +3,7 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import {
-  focusFirstByItemConsumerNameInCard,
+  focusByItemConsumerNameInCard,
   shouldFocusFirstByItemConsumerNameOnExpand,
 } from '@/lib/by-item-line-expansion';
 import { useByItemLineExpansion } from '@/lib/use-by-item-line-expansion';
@@ -73,7 +73,7 @@ export function ByItemSplitSection({
     );
     card?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     if (focusName) {
-      focusFirstByItemConsumerNameInCard(expandedKey);
+      focusByItemConsumerNameInCard(expandedKey);
     }
   }, [expandedKey, holdWhileEditing]);
 

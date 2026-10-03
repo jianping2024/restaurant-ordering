@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import {
   afterRemoveCustomPerson,
   appendCustomPersonWithRemainder,
@@ -849,18 +850,21 @@ export function useBillSplitDraft(params: {
     });
   }, [total]);
 
+  /** Add one payer and open rename on them inside this click (iOS keyboard needs the gesture). */
   const addCustomPerson = useCallback(() => {
-    setCustomAmounts((prev) => {
-      const nextCount = splitDraftPersonCount('custom', prev.length + 1);
-      if (nextCount <= prev.length) return prev;
-      const nextName = mintNextCustomGuestName(prev, guestName);
-      const next = appendCustomPersonWithRemainder(prev, total, nextName);
-      const names = next.map((row) => row.name);
+    const nextCount = splitDraftPersonCount('custom', customAmounts.length + 1);
+    if (nextCount <= customAmounts.length) return;
+    const nextName = mintNextCustomGuestName(customAmounts, guestName);
+    const next = appendCustomPersonWithRemainder(customAmounts, total, nextName);
+    const names = next.map((row) => row.name);
+    flushSync(() => {
+      setCustomAmounts(next);
       setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
       setPersonCount(nextCount);
-      return next;
+      setEditingSplitNameIndex(next.length - 1);
+      setEditingSplitNameValue(nextName);
     });
-  }, [guestName, total]);
+  }, [customAmounts, guestName, total]);
 
   const commitByItemDraft = useCallback(() => {
     const committed = commitAllByItemAllocations({

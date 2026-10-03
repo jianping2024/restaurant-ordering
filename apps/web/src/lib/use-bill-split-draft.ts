@@ -543,12 +543,24 @@ export function useBillSplitDraft(params: {
     [lockAnchorSplit, collectedPayments],
   );
 
+  /** Sole by-item draft roster: ledger `result` order + party_id (same as collect person_index). */
+  const byItemLedgerRoster = useMemo(() => {
+    const rows = continuationSplit?.result ?? existingSplit?.result ?? [];
+    return rows
+      .filter((row) => !!row.name.trim())
+      .map((row) => ({
+        name: row.name,
+        partyId: row.party_id?.trim() || undefined,
+      }));
+  }, [continuationSplit?.result, existingSplit?.result]);
+
   const byItemPersonOrder = useMemo(
-    () =>
-      (continuationSplit?.result ?? existingSplit?.result ?? [])
-        .map((row) => row.name)
-        .filter((name) => !!name.trim()),
-    [continuationSplit?.result, existingSplit?.result],
+    () => byItemLedgerRoster.map((row) => row.name),
+    [byItemLedgerRoster],
+  );
+  const byItemPersonPartyIds = useMemo(
+    () => byItemLedgerRoster.map((row) => row.partyId),
+    [byItemLedgerRoster],
   );
 
   const splitDraftInput = useMemo<BillSplitDraftInput>(
@@ -564,6 +576,7 @@ export function useBillSplitDraft(params: {
       parsedByItemAllocations,
       lang,
       byItemPersonOrder,
+      byItemPersonPartyIds,
     }),
     [
       splitMode,
@@ -577,6 +590,7 @@ export function useBillSplitDraft(params: {
       parsedByItemAllocations,
       lang,
       byItemPersonOrder,
+      byItemPersonPartyIds,
     ],
   );
 

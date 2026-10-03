@@ -32,6 +32,7 @@ import {
   isSplitSettlementPending,
   splitSettlementCollectAmount,
 } from '@/lib/checkout-split-settlement';
+import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import {
   resolveStaffByItemRailPeople,
   staffByItemLedgerPeople,
@@ -329,6 +330,25 @@ export function StaffCheckoutSplitEditor({
     [liveByItemResults, request.result],
   );
 
+  /**
+   * Sole staff by-item「分单结果」+ persist roster: same order/amounts as collect
+   * (`editRoster`). Never zip allocation first-seen order with person_index payments.
+   */
+  const byItemDisplayResults = useMemo(
+    () => applyCollectedObligationFloors(editRoster, collectedPayments),
+    [collectedPayments, editRoster],
+  );
+  const byItemSplitDisplayRows = useMemo(
+    () =>
+      buildCustomerSplitDisplayRows(
+        byItemDisplayResults,
+        collectedPayments,
+        discountRate,
+        total,
+      ),
+    [byItemDisplayResults, collectedPayments, discountRate, total],
+  );
+
   const settledTicketKeys = useMemo(
     () =>
       settledByItemPersonKeys(editRoster, collectedPayments, discountRate, total),
@@ -509,7 +529,7 @@ export function StaffCheckoutSplitEditor({
           );
           const draftPersons = buildSplitPersonsFromAllocations(rowAllocations);
           const draftResults = applyCollectedObligationFloors(
-            liveByItemResults,
+            editRoster,
             collectedPayments,
           );
           return await persistByItemUnpaidPlan({ draftPersons, draftResults });
@@ -545,11 +565,11 @@ export function StaffCheckoutSplitEditor({
             return null;
           }
 
-          const liveRow = liveByItemResults.find(
+          const rosterRow = editRoster.find(
             (row) => splitResultTicketKey(row) === ticketKey,
           );
           // Stamp pre-discount obligation on result; modal/payment use discounted liveTarget.
-          const obligation = liveRow?.amount ?? 0;
+          const obligation = rosterRow?.amount ?? 0;
           if (!(obligation > 0)) {
             showToast(checkoutT.staffByItemNoCollectableShare, 'error');
             return null;
@@ -574,7 +594,7 @@ export function StaffCheckoutSplitEditor({
           }
 
           const draftResults = applyCollectedObligationFloors(
-            liveByItemResults.map((row) =>
+            editRoster.map((row) =>
               splitResultTicketKey(row) === ticketKey
                 ? toWireSplitResult({ ...row, amount: obligation })
                 : toWireSplitResult(row),
@@ -693,8 +713,14 @@ export function StaffCheckoutSplitEditor({
         personCount={splitDraft.personCount}
         splitPeople={splitDraft.splitPeople}
         customAmounts={splitDraft.customAmounts}
-        results={splitDraft.results}
-        splitDisplayRows={splitDraft.splitDisplayRows}
+        results={
+          splitDraft.splitMode === 'by_item' ? byItemDisplayResults : splitDraft.results
+        }
+        splitDisplayRows={
+          splitDraft.splitMode === 'by_item'
+            ? byItemSplitDisplayRows
+            : splitDraft.splitDisplayRows
+        }
         lockedPersonNames={splitDraft.lockedPersonNames}
         lockedPersonLineMins={splitDraft.lockedPersonLineMins}
         lineSpecs={lineSpecs}

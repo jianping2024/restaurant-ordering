@@ -230,9 +230,10 @@ export function settledByItemPersonKeys(
 }
 
 /**
- * Sole unpaid by-item plan sync into the ledger:
- * keep locked tickets from existing persons/result; replace all unlocked
- * tickets from staff draft (empty unpaid tickets drop). Never rewrites paid.
+ * Sole unpaid by-item plan sync into the ledger.
+ * One ticket roster: `persons[i]` and `result[i]` are always the same party key.
+ * Order prefers existing `result` (keeps person_index stable), then new draft tickets.
+ * Paid amounts stay frozen; unlocked / locked-but-unpaid amounts come from draftResults.
  * Resume flush and collect (after stamp) both call this — not a second merge.
  */
 export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
@@ -242,43 +243,111 @@ export function mergeStaffByItemUnpaidDraftIntoLedger(params: {
   draftResults: ReadonlyArray<SplitResult>;
   lockedTicketKeys: ReadonlySet<string>;
 }): { persons: SplitPerson[]; result: SplitResult[] } {
-  const basePersons = params.existingPersons.filter(
-    (row) => !isWholeTablePayerName(row.name),
-  );
-  const baseResult = params.existingResult.filter(
-    (row) => !isWholeTablePayerName(row.name),
-  );
+  const locked = params.lockedTicketKeys;
 
-  const lockedPersons = basePersons.filter((row) => {
+  const existingPersonByKey = new Map<string, SplitPerson>();
+  for (const row of params.existingPersons) {
+    if (isWholeTablePayerName(row.name)) continue;
     const key = splitPartyKey(row.party_id, row.name);
-    return Boolean(key && params.lockedTicketKeys.has(key));
-  });
-  const lockedResult = baseResult.filter((row) => {
+    if (!key || existingPersonByKey.has(key)) continue;
+    existingPersonByKey.set(key, row);
+  }
+
+  const existingResultByKey = new Map<string, SplitResult>();
+  for (const row of params.existingResult) {
+    if (isWholeTablePayerName(row.name)) continue;
     const key = splitResultTicketKey(row);
-    return Boolean(key && params.lockedTicketKeys.has(key));
-  });
+    if (!key || existingResultByKey.has(key)) continue;
+    existingResultByKey.set(key, row);
+  }
 
-  const unpaidPersons = params.draftPersons.filter((row) => {
-    if (isWholeTablePayerName(row.name)) return false;
+  const draftPersonByKey = new Map<string, SplitPerson>();
+  for (const row of params.draftPersons) {
+    if (isWholeTablePayerName(row.name)) continue;
     const key = splitPartyKey(row.party_id, row.name);
-    if (!key || params.lockedTicketKeys.has(key)) return false;
-    return (row.item_shares?.length ?? 0) > 0;
-  });
-  const unpaidKeys = new Set(
-    unpaidPersons
-      .map((row) => splitPartyKey(row.party_id, row.name))
-      .filter((key): key is string => Boolean(key)),
-  );
-  const unpaidResult = params.draftResults
-    .filter((row) => {
-      if (isWholeTablePayerName(row.name)) return false;
-      const key = splitResultTicketKey(row);
-      return Boolean(key && unpaidKeys.has(key));
-    })
-    .map((row) => toWireSplitResult(row));
+    if (!key || (row.item_shares?.length ?? 0) === 0) continue;
+    draftPersonByKey.set(key, row);
+  }
 
-  const persons = [...lockedPersons, ...unpaidPersons];
-  const result = [...lockedResult, ...unpaidResult];
+  const draftResultByKey = new Map<string, SplitResult>();
+  for (const row of params.draftResults) {
+    if (isWholeTablePayerName(row.name)) continue;
+    const key = splitResultTicketKey(row);
+    if (!key) continue;
+    draftResultByKey.set(key, toWireSplitResult(row));
+  }
+
+  const unpaidKeys = new Set<string>();
+  for (const key of Array.from(draftPersonByKey.keys())) {
+    if (!locked.has(key)) unpaidKeys.add(key);
+  }
+
+  const orderedKeys: string[] = [];
+  const seen = new Set<string>();
+  const pushKey = (key: string | null | undefined) => {
+    if (!key || seen.has(key)) return;
+    const keep = locked.has(key) || unpaidKeys.has(key);
+    if (!keep) return;
+    seen.add(key);
+    orderedKeys.push(key);
+  };
+
+  for (const row of params.existingResult) {
+    if (isWholeTablePayerName(row.name)) continue;
+    pushKey(splitResultTicketKey(row));
+  }
+  for (const row of params.draftResults) {
+    if (isWholeTablePayerName(row.name)) continue;
+    pushKey(splitResultTicketKey(row));
+  }
+  for (const row of params.existingPersons) {
+    if (isWholeTablePayerName(row.name)) continue;
+    pushKey(splitPartyKey(row.party_id, row.name));
+  }
+
+  const persons: SplitPerson[] = [];
+  const result: SplitResult[] = [];
+
+  for (const key of orderedKeys) {
+    const isLocked = locked.has(key);
+    const draftPerson = draftPersonByKey.get(key);
+    const existingPerson = existingPersonByKey.get(key);
+    const draftResult = draftResultByKey.get(key);
+    const existingResultRow = existingResultByKey.get(key);
+
+    if (isLocked) {
+      const person = draftPerson ?? existingPerson;
+      if (!person) continue;
+      const paid = Boolean(existingResultRow?.paid);
+      // Paid: freeze ledger amount. Locked-but-unpaid: refresh from draft (share truth).
+      const amount = paid
+        ? Number(existingResultRow?.amount ?? draftResult?.amount ?? 0)
+        : Number(draftResult?.amount ?? existingResultRow?.amount ?? 0);
+      const partyId = person.party_id?.trim() || existingResultRow?.party_id?.trim();
+      persons.push(person);
+      result.push(
+        toWireSplitResult({
+          name: person.name,
+          amount,
+          paid,
+          partyId,
+        }),
+      );
+      continue;
+    }
+
+    if (!draftPerson || !draftResult) continue;
+    persons.push(draftPerson);
+    result.push(
+      toWireSplitResult({
+        name: draftPerson.name,
+        amount: draftResult.amount,
+        paid: false,
+        partyId: draftPerson.party_id ?? draftResult.party_id,
+      }),
+    );
+  }
+
   if (persons.length === 0) {
     return {
       persons: [...params.existingPersons],

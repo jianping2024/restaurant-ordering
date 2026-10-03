@@ -27,8 +27,10 @@ export type BillSplitDraftInput = {
   byItemDraftRows: Record<string, ByItemConsumerRow[]>;
   parsedByItemAllocations: ByItemLineAllocation;
   lang: UILanguage;
-  /** Ledger roster order for by-item result rows / person_index. */
+  /** Ledger roster names for by-item result rows / person_index (aligned with party ids). */
   byItemPersonOrder?: readonly string[];
+  /** Parallel party ids for {@link byItemPersonOrder} — sole by-item ticket identity. */
+  byItemPersonPartyIds?: readonly (string | undefined)[];
 };
 
 export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
@@ -42,6 +44,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     parsedByItemAllocations,
     lang,
     byItemPersonOrder,
+    byItemPersonPartyIds,
   } = input;
 
   if (!splitMode) {
@@ -64,6 +67,7 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
       ),
       allocations: parsedByItemAllocations,
       personOrder: byItemPersonOrder,
+      personPartyIds: byItemPersonPartyIds,
     }).map((row) => toWireSplitResult(row));
   }
 

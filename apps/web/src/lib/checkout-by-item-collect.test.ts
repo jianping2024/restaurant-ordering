@@ -251,7 +251,7 @@ describe('mergeStaffByItemUnpaidDraftIntoLedger', () => {
     const paid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
     const jim = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
     const marry = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-    const locked = new Set([paid]);
+    const locked = new Set([splitPartyKey(paid, 'John')]);
     const merged = mergeStaffByItemUnpaidDraftIntoLedger({
       existingPersons: [
         {
@@ -368,11 +368,86 @@ describe('mergeStaffByItemUnpaidDraftIntoLedger', () => {
         },
       ],
       draftResults: [],
-      lockedTicketKeys: new Set([paid]),
+      lockedTicketKeys: new Set([splitPartyKey(paid, 'John')]),
     });
     assert.equal(merged.persons.length, 1);
     assert.equal(merged.persons[0]?.name, 'John');
     assert.equal(merged.result[0]?.paid, true);
+  });
+
+  it('keeps result person_index order and refreshes locked-unpaid amount from draft', () => {
+    const john = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    const jim = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+    const marry = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+    // Stale ledger: Jim carries Marry's obligation; persons order differs from result.
+    const merged = mergeStaffByItemUnpaidDraftIntoLedger({
+      existingPersons: [
+        {
+          name: 'John',
+          party_id: john,
+          item_shares: [{ key: 'a', qty_num: 1, qty_den: 1, locked_amount: 184 }],
+        },
+        {
+          name: 'Marry',
+          party_id: marry,
+          item_shares: [{ key: 'b', qty_num: 1, qty_den: 1, locked_amount: 79.35 }],
+        },
+        {
+          name: 'Jim',
+          party_id: jim,
+          item_shares: [{ key: 'c', qty_num: 1, qty_den: 1, locked_amount: 19.7 }],
+        },
+      ],
+      existingResult: [
+        { name: 'John', amount: 184, paid: true, party_id: john },
+        { name: 'Jim', amount: 79.35, paid: false, party_id: jim },
+        { name: 'Marry', amount: 79.35, paid: true, party_id: marry },
+      ],
+      draftPersons: [
+        {
+          name: 'John',
+          party_id: john,
+          item_shares: [{ key: 'a', qty_num: 1, qty_den: 1, locked_amount: 184 }],
+        },
+        {
+          name: 'Marry',
+          party_id: marry,
+          item_shares: [{ key: 'b', qty_num: 1, qty_den: 1, locked_amount: 79.35 }],
+        },
+        {
+          name: 'Jim',
+          party_id: jim,
+          item_shares: [{ key: 'c', qty_num: 1, qty_den: 1, locked_amount: 19.7 }],
+        },
+      ],
+      draftResults: [
+        { name: 'John', amount: 184, party_id: john },
+        { name: 'Jim', amount: 19.7, party_id: jim },
+        { name: 'Marry', amount: 79.35, party_id: marry },
+      ],
+      lockedTicketKeys: new Set([
+        splitPartyKey(john, 'John'),
+        splitPartyKey(jim, 'Jim'),
+        splitPartyKey(marry, 'Marry'),
+      ]),
+    });
+    assert.deepEqual(
+      merged.result.map((row) => ({
+        name: row.name,
+        amount: row.amount,
+        paid: !!row.paid,
+        party_id: row.party_id,
+      })),
+      [
+        { name: 'John', amount: 184, paid: true, party_id: john },
+        { name: 'Jim', amount: 19.7, paid: false, party_id: jim },
+        { name: 'Marry', amount: 79.35, paid: true, party_id: marry },
+      ],
+    );
+    assert.deepEqual(
+      merged.persons.map((row) => row.party_id),
+      merged.result.map((row) => row.party_id),
+    );
   });
 });
 

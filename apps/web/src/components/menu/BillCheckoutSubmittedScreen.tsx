@@ -145,8 +145,8 @@ export function BillCheckoutSubmittedScreen({
                   const reasons = draft?.reasons ?? [];
                   return (
                     <div key={item.menu_item_id} className="rounded-lg border border-brand-border p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm text-brand-text">
+                      <div className="flex items-start gap-2">
+                        <p className="min-w-0 flex-1 text-sm text-brand-text break-words [overflow-wrap:anywhere]">
                           {item.emoji} {item.name} × {item.qty}
                         </p>
                         <div className="flex items-center gap-2 shrink-0">

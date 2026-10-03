@@ -6,7 +6,6 @@ import { filterConsumerNameOptions } from '@/lib/consumer-name-roster';
 import {
   SOFT_KEYBOARD_DISMISS_ARM_MS,
   fixedBarBottomAboveVisualViewport,
-  scrollElementIntoVisualViewport,
 } from '@/lib/soft-keyboard-viewport';
 import { customerTextInputClass } from '@/components/menu/customer-form-input-styles';
 import { useReportGuestConsumerNameEditActive } from '@/components/menu/guest-consumer-name-edit-chrome';
@@ -130,25 +129,9 @@ export function ConsumerNameCombobox({
     };
   }, [inputFocused, reportNameEditActive]);
 
-  /**
-   * Sole scroll path for the name field: same as guest custom-amount —
-   * listen to visualViewport resize/scroll only. Never scroll on focus /
-   * during keyboard open animation (that dismisses iOS keyboard).
-   */
-  useEffect(() => {
-    if (!inputFocused) return;
-    const el = inputRef.current;
-    if (!el) return;
-    const run = () =>
-      scrollElementIntoVisualViewport(el, { behavior: 'instant' });
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', run);
-    vv?.addEventListener('scroll', run);
-    return () => {
-      vv?.removeEventListener('resize', run);
-      vv?.removeEventListener('scroll', run);
-    };
-  }, [inputFocused]);
+  // Name edit must not scroll the document. The suggestion rail is position:fixed
+  // above the soft keyboard; scrolling on visualViewport resize fights the
+  // keyboard (page shake + dismiss on iOS). Custom-amount keeps its own scroll.
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {

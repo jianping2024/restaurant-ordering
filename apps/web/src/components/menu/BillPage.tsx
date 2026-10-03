@@ -34,6 +34,7 @@ import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
 import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
 import { customerNifInputClass } from '@/components/menu/customer-form-input-styles';
+import { GuestConsumerNameEditChromeProvider } from '@/components/menu/guest-consumer-name-edit-chrome';
 
 function BillCheckoutGateBanner({
   message,
@@ -152,6 +153,7 @@ export function BillPage({
       !initialFeedbackSkipped,
   );
   const [customerNifInput, setCustomerNifInput] = useState('');
+  const [editingConsumerName, setEditingConsumerName] = useState(false);
   const [callBillBusy, setCallBillBusyState] = useState(false);
 
   useEffect(() => {
@@ -526,14 +528,18 @@ export function BillPage({
 
   // Index 0 is a valid row — never truthiness-check the index.
   const editingCustomAmount = splitDraft.editingCustomAmountIndex != null;
+  /** Sole guest bill fixed-CTA yield: custom-amount edit or consumer-name focus. */
+  const hideFixedCallCheckout = editingCustomAmount || editingConsumerName;
 
   return (
+    <GuestConsumerNameEditChromeProvider onActiveChange={setEditingConsumerName}>
     <div
       data-editing-custom-amount={editingCustomAmount ? '1' : '0'}
+      data-editing-consumer-name={editingConsumerName ? '1' : '0'}
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${
-        checkoutGateMessage && !editingCustomAmount
+        checkoutGateMessage && !hideFixedCallCheckout
           ? 'pb-40'
-          : editingCustomAmount
+          : hideFixedCallCheckout
             ? 'pb-6'
             : 'pb-24'
       }`}
@@ -645,9 +651,9 @@ export function BillPage({
         </div>
       ) : null}
 
-      {/* Sole guest bill CTA chrome — hidden while editing a custom amount so the
-          soft keyboard is not stacked under a fixed call-checkout bar. */}
-      {!editingCustomAmount ? (
+      {/* Sole guest bill CTA chrome — yields while custom-amount or consumer-name
+          edit so the soft keyboard is not stacked under fixed call-checkout. */}
+      {!hideFixedCallCheckout ? (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2">
           {checkoutGateMessage ? (
             <BillCheckoutGateBanner
@@ -675,5 +681,6 @@ export function BillPage({
         </div>
       ) : null}
     </div>
+    </GuestConsumerNameEditChromeProvider>
   );
 }

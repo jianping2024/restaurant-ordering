@@ -167,7 +167,7 @@ export function reconcileByItemShareOmitKeys(params: {
   unlockedPersonsSeed: ByItemAllocationRows;
 }): Map<string, string> {
   const next = new Map<string, string>();
-  for (const [omitKey, stamped] of params.omitSigByKey) {
+  for (const [omitKey, stamped] of Array.from(params.omitSigByKey)) {
     const parsed = parseByItemLineTicketOmitKey(omitKey);
     if (!parsed) continue;
     const live = byItemPersonsSeedShareSig(

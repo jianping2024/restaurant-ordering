@@ -285,7 +285,7 @@ export function StaffByItemSplitWorkbench({
           changed = true;
         }
       }
-      for (const id of next.keys()) {
+      for (const id of Array.from(next.keys())) {
         if (liveIds.has(id)) continue;
         next.delete(id);
         changed = true;

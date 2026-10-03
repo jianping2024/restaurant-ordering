@@ -1,7 +1,7 @@
 ---
 description: >-
-  Before ship / push to main: run lint → build → targeted tests in order.
-  Use when user asks to push, ship, or web changes are ready for main.
+  Before ship / push to main: run build → targeted tests in order
+  (Next build embeds ESLint). Use when user asks to push or ship.
 alwaysApply: false
 ---
 
@@ -11,22 +11,25 @@ When the user asks to **push**, **ship**, or you finish web changes intended for
 
 Run checks first. Push with `git push origin main` (or the branch they named) — do **not** use a wrapper that auto-commits.
 
+**Commit gate first:** product commits must already have passed scoped production build per always-on [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc). Do not invent a commit that skipped that gate. Next build already runs ESLint — do not add a separate `npm run lint` hard step for the same workspace.
+
 ## Required order (do not skip or reorder)
 
-1. `npm run lint`
-2. `npm run build` when changes touch `apps/web/src/app/**`, `apps/web/src/lib/**`, or `apps/web/src/types/**`; `npm run build:ops` when changes touch `apps/ops/**` or `packages/shared/**`
-3. Targeted unit tests for touched logic, e.g. `node --import tsx --test apps/web/src/lib/<name>.test.ts`
-4. `git push origin main` (after local commit / merge as the user asked)
+1. `npm run build` when changes touch `apps/web/**` product inputs (app/lib/types/components/env/build config); `npm run build:ops` when changes touch `apps/ops/**` or `packages/shared/**` (sequential if both)
+2. Targeted unit tests for touched logic, e.g. `node --import tsx --test apps/web/src/lib/<name>.test.ts`
+3. `git push origin main` (after local commit / merge as the user asked)
+
+If the tree is unchanged since a documented build pass from the commit gate, step 1 may be treated as already satisfied; any edit after that pass → re-run build.
 
 ## Prohibited
 
-- Push without `npm run build` when routes, server lib, or shared types changed
+- Push without `npm run build` when web product inputs changed (or without `build:ops` when ops/shared changed)
 - Use `npx tsx --test` (use `node --import tsx --test` instead)
-- Run lint/build/test **in parallel** with each other
-- Run an extra unrelated full-project lint **after** the push sequence already passed lint
+- Run build/test **in parallel** with each other
+- Require a separate full-project `npm run lint` when the scoped Next build already passed (build embeds ESLint)
 - Use Multitask / background subagents for small tasks (roughly ≤5 files, single feature)
 
 ## Efficiency
 
-- One linear pipeline: lint → build → test → push
+- One linear pipeline: build → test → push
 - Do not open Multitask for cleanup-only or push-only follow-ups unless the user explicitly requests it

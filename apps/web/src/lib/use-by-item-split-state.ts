@@ -137,7 +137,7 @@ export function useByItemSplitState(params: {
   useLayoutEffect(() => {
     if (reconciledOmitSigByKey.size === omitSigByKey.size) {
       let same = true;
-      for (const [key, sig] of reconciledOmitSigByKey) {
+      for (const [key, sig] of Array.from(reconciledOmitSigByKey)) {
         if (omitSigByKey.get(key) !== sig) {
           same = false;
           break;
@@ -149,7 +149,7 @@ export function useByItemSplitState(params: {
   }, [reconciledOmitSigByKey, omitSigByKey]);
 
   const omitLineTicketKeys = useMemo(
-    () => new Set(reconciledOmitSigByKey.keys()),
+    () => new Set(Array.from(reconciledOmitSigByKey.keys())),
     [reconciledOmitSigByKey],
   );
 

@@ -11,12 +11,13 @@ alwaysApply: true
 2. [`analysis-before-code.mdc`](./analysis-before-code.mdc) — hard gates; full flow in skill below
 3. [`best-practice-not-patches.mdc`](./best-practice-not-patches.mdc) — best-practice end-state only; never lead with补丁/workaround options
 4. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
-5. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
-6. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
-7. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
-8. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
-9. [`local-dev-services.mdc`](./local-dev-services.mdc) — after work keep a usable localhost stack; only stop this-thread extras; never wipe local DB or kill other sessions’ agents
-10. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
+5. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — product code: scoped `npm run build`/`build:ops` must pass before any `git commit` (Next build already includes ESLint; no separate lint hard step)
+6. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
+7. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
+8. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)
+9. [`dev-port-isolation.mdc`](./dev-port-isolation.mdc) — busy listen port → new free port + `MESA_UAT_BASE`; never kill occupants
+10. [`local-dev-services.mdc`](./local-dev-services.mdc) — after work keep a usable localhost stack; only stop this-thread extras; never wipe local DB or kill other sessions’ agents
+11. [`evidence-based-conclusions.mdc`](./evidence-based-conclusions.mdc) — no speculative root causes; conclusions need checkable evidence
 
 **Skills (read when task matches `description`)**
 

@@ -1,0 +1,55 @@
+---
+description: >-
+  After coding, before any git commit: scoped production build must pass.
+  Next build already runs ESLint + typecheck — do not require a separate lint.
+alwaysApply: true
+---
+
+# Build before commit (hard gate)
+
+**编码完成 → scoped production build pass → 才允许 `git commit`。**  
+`next build` / `next build` for ops 已包含 **ESLint + 类型检查** — **不要**再单独跑一遍 `npm run lint` 当硬门（重复且浪费）。  
+`next dev` / UAT **不能**代替 production build。Push 后才爆 typecheck = 违反本条。
+
+## Applies when
+
+Agent is about to `git commit` (or user asked commit / merge / land) after edits under any of:
+
+- `apps/web/**`
+- `apps/ops/**`
+- `packages/shared/**`
+- `apps/print-agent/**` (Go: Docker checks below)
+
+## Required (before the commit)
+
+1. Build for what the diff touches:
+   - Web product inputs (`apps/web` app/lib/types/components, env, `next.config`, etc.) → `npm run build` (or `npm run build -w @mesa/web`)
+   - Ops / shared → `npm run build:ops`
+   - Both surfaces → both builds, **sequential**
+2. Print-agent Go changes → Docker `go test` + `go vet` + Windows cross-build per `AGENTS.md`
+3. Only then `git commit`
+
+If build **fails** (lint warning treated as error, type error, compile error): fix → re-run the failed build → **do not commit** until pass. Pre-existing ESLint *warnings* that do not fail the build are OK if this diff did not add new failures.
+
+## Does NOT apply
+
+- Docs-only / `.cursor/rules` / skills / `AGENTS.md` prose with **zero** product code under `apps/*` or `packages/*`
+- User explicitly waives in-thread（「先 commit，build 后补」/ `skip build`）
+
+## Forbidden
+
+- Commit first, “push 时再 build / CI 会拦”
+- Treat standalone `npm run lint` as enough (skips production typecheck)
+- Treat localhost UAT or `next dev` compile as enough for `next build`
+- Skip web build because “只改了 UI / 组件”
+- Require `npm run lint` **and** `npm run build` for the same Next workspace as two hard steps — build already lints that workspace
+
+## Report (before commit)
+
+Build command(s) + pass. No vague “checks OK”.
+
+## Relation to other gates
+
+- **Functional UAT** (`uat-before-delivery.mdc`) is separate — build ≠ UAT; UAT ≠ build.
+- **Push** (`push-verification.mdc`): production build (and targeted tests) before `git push origin main`. Same tree + no edits since commit-gate build pass → do not re-lint separately; re-build only if the tree changed.
+- **On-prem pack** (`on-prem-pack.mdc`): pack still needs local web build on the packed commit.

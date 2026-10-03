@@ -112,3 +112,24 @@ export function reconcileGuestByItemAllocations(params: {
     lockedTicketKeys,
   );
 }
+
+/**
+ * Sole guest refresh restore of this phone's local by-item draft.
+ * Local unpaid rows win (newer than the server snapshot, e.g. edits after
+ * checkout → resume ordering); only server-locked rows overlay. Server unpaid
+ * tickets are not re-added, so shares the guest removed stay removed.
+ */
+export function restoreGuestByItemLocalDraft(params: {
+  localRows: ByItemAllocationRows;
+  serverRows: ByItemAllocationRows;
+  lineSpecs: ByItemLineSpec[];
+  lockedTicketKeys: ReadonlySet<string>;
+}): ByItemAllocationRows {
+  const { localRows, serverRows, lineSpecs, lockedTicketKeys } = params;
+  return reconcileGuestByItemAllocations({
+    prev: localRows,
+    serverRows: extractByItemLockedAllocations(serverRows, lockedTicketKeys),
+    lineSpecs,
+    lockedTicketKeys,
+  });
+}

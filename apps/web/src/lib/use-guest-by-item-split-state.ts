@@ -8,6 +8,7 @@
  * Party ids: sole normalize {@link normalizeByItemDraftPartyIds} on every write.
  * Sync: sole {@link reconcileGuestByItemAllocations} — locked from server, unpaid local kept,
  * new lines only append defaults (never wipe local edits when lineSpecs expand).
+ * Refresh: sole {@link restoreGuestByItemLocalDraft} via `restoreLocalDraft`.
  */
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type SetStateAction } from 'react';
 import {
@@ -27,7 +28,10 @@ import {
 } from '@/lib/checkout-split-continuation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { collectActiveConsumerNames } from '@/lib/consumer-name-roster';
-import { reconcileGuestByItemAllocations } from '@/lib/guest-by-item-reconcile';
+import {
+  reconcileGuestByItemAllocations,
+  restoreGuestByItemLocalDraft,
+} from '@/lib/guest-by-item-reconcile';
 import type { BillSplit, SplitMode } from '@/types';
 
 export function useGuestByItemSplitState(params: {
@@ -128,6 +132,21 @@ export function useGuestByItemSplitState(params: {
     );
   }, [enabled, splitMode, lineSpecs, existingSplit, paidLocks, lockedTicketKeys]);
 
+  /** Refresh restore of this phone's local draft — sole rule {@link restoreGuestByItemLocalDraft}. */
+  const restoreLocalDraft = useCallback(
+    (localRows: Record<string, ByItemConsumerRow[]>) => {
+      if (!enabled) return;
+      const persons = existingSplit?.persons ?? [];
+      const serverRows = persons.length
+        ? buildByItemConsumerRowsFromPersons(persons, lineSpecs, paidLocks)
+        : {};
+      setByItemAllocationsState(() =>
+        restoreGuestByItemLocalDraft({ localRows, serverRows, lineSpecs, lockedTicketKeys }),
+      );
+    },
+    [enabled, existingSplit, lineSpecs, paidLocks, lockedTicketKeys],
+  );
+
   const workingAllocations = useMemo(
     () => (enabled ? byItemAllocations : {}),
     [enabled, byItemAllocations],
@@ -183,6 +202,7 @@ export function useGuestByItemSplitState(params: {
   return {
     byItemAllocations: workingAllocations,
     setByItemAllocations,
+    restoreLocalDraft,
     consumerRoster,
     rememberConsumerName,
     parsedByItemAllocations,

@@ -264,47 +264,69 @@ describe('resolveBillSplitDraftHydrateAction', () => {
 
 describe('resolveByItemLocalDraftApplyAction', () => {
   it('leaves reconcile when collected/partial resume cannot restore', () => {
-    assert.equal(
-      resolveByItemLocalDraftApplyAction({
-        canRestore: false,
-        hasServerItemShares: true,
-        hasByItemLocalDraft: true,
-      }),
-      'leave_reconcile',
-    );
+    for (const byItemEditor of ['guest', 'staff'] as const) {
+      assert.equal(
+        resolveByItemLocalDraftApplyAction({
+          byItemEditor,
+          canRestore: false,
+          hasServerItemShares: true,
+          hasByItemLocalDraft: true,
+        }),
+        'leave_reconcile',
+      );
+    }
   });
 
-  it('leaves reconcile when server persons already have item_shares', () => {
+  it('guest applies local even when server persons already have item_shares (checkout → resume)', () => {
     assert.equal(
       resolveByItemLocalDraftApplyAction({
+        byItemEditor: 'guest',
         canRestore: true,
         hasServerItemShares: true,
-        hasByItemLocalDraft: true,
-      }),
-      'leave_reconcile',
-    );
-  });
-
-  it('applies local only when restorable and no server shares', () => {
-    assert.equal(
-      resolveByItemLocalDraftApplyAction({
-        canRestore: true,
-        hasServerItemShares: false,
         hasByItemLocalDraft: true,
       }),
       'apply_local',
     );
   });
 
-  it('leaves reconcile when restorable but no local by_item draft', () => {
+  it('staff leaves reconcile when server persons already have item_shares (server-persisted plan)', () => {
     assert.equal(
       resolveByItemLocalDraftApplyAction({
+        byItemEditor: 'staff',
         canRestore: true,
-        hasServerItemShares: false,
-        hasByItemLocalDraft: false,
+        hasServerItemShares: true,
+        hasByItemLocalDraft: true,
       }),
       'leave_reconcile',
     );
+  });
+
+  it('applies local when restorable and no server shares', () => {
+    for (const byItemEditor of ['guest', 'staff'] as const) {
+      assert.equal(
+        resolveByItemLocalDraftApplyAction({
+          byItemEditor,
+          canRestore: true,
+          hasServerItemShares: false,
+          hasByItemLocalDraft: true,
+        }),
+        'apply_local',
+      );
+    }
+  });
+
+  it('leaves reconcile when restorable but no local by_item draft', () => {
+    for (const byItemEditor of ['guest', 'staff'] as const) {
+      assert.equal(
+        resolveByItemLocalDraftApplyAction({
+          byItemEditor,
+          canRestore: true,
+          hasServerItemShares: true,
+          hasByItemLocalDraft: false,
+        }),
+        'leave_reconcile',
+      );
+    }
   });
 });
 

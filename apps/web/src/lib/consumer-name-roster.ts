@@ -1,9 +1,8 @@
-import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
+import {
+  byItemConsumerRowTicketLocked,
+  type ByItemConsumerRow,
+} from '@/lib/bill-split-by-item';
 import { splitPersonKey } from '@/lib/split-person-identity';
-import { splitPartyKey } from '@/lib/split-party-id';
-
-/** Names shorter than this are ignored for combobox suggestions. */
-export const MIN_ACTIVE_CONSUMER_NAME_LENGTH = 2;
 
 export function normalizeConsumerName(name: string): string {
   return name.trim();
@@ -26,7 +25,6 @@ export function collectActiveConsumerNames(
   for (const rows of Object.values(allocations)) {
     for (const row of rows) {
       const trimmed = normalizeConsumerName(row.name);
-      if (trimmed.length < MIN_ACTIVE_CONSUMER_NAME_LENGTH) continue;
       roster = addToConsumerRoster(roster, trimmed);
     }
   }
@@ -34,8 +32,10 @@ export function collectActiveConsumerNames(
 }
 
 /**
- * Ticket keys used on other rows of the same dish.
- * Same display name may repeat across party_id; same ticket cannot.
+ * Display-name keys already taken by another unpaid row on the same dish.
+ * The same unpaid name twice on one dish is the duplicate_names error, so it is
+ * not offered again. A paid/locked ticket does not block: the same name may start
+ * a new ticket (separate `party_id`).
  */
 export function namesUsedOnOtherDishRows(
   rows: ByItemConsumerRow[],
@@ -43,18 +43,17 @@ export function namesUsedOnOtherDishRows(
 ): Set<string> {
   const used = new Set<string>();
   for (const row of rows) {
-    if (row.id === rowId) continue;
-    const name = normalizeConsumerName(row.name);
-    if (!name) continue;
-    const key = splitPartyKey(row.partyId, name);
+    if (row.id === rowId || byItemConsumerRowTicketLocked(row)) continue;
+    const key = splitPersonKey(normalizeConsumerName(row.name));
     if (key) used.add(key);
   }
   return used;
 }
 
+/** Empty query lists every option (pick mode); otherwise partial matches only. */
 export function filterConsumerNameOptions(options: string[], query: string): string[] {
   const normalized = query.trim().toLowerCase();
-  if (!normalized) return [];
+  if (!normalized) return options;
   return options.filter((name) => {
     const lower = name.toLowerCase();
     return lower.includes(normalized) && lower !== normalized;
@@ -67,16 +66,7 @@ export function availableConsumerNamesForRow(params: {
   rowId: string;
 }): string[] {
   const blocked = namesUsedOnOtherDishRows(params.dishRows, params.rowId);
-  const self = params.dishRows.find((row) => row.id === params.rowId);
-  const selfKey = self ? splitPartyKey(self.partyId, self.name) : '';
-  return params.roster.filter((name) => {
-    const candidateKey = splitPartyKey(self?.partyId, name);
-    if (blocked.has(candidateKey) && candidateKey !== selfKey) return false;
-    // Legacy name-only collision on this dish
-    const legacyKey = splitPartyKey(undefined, name);
-    if (!self?.partyId && blocked.has(legacyKey) && legacyKey !== selfKey) return false;
-    return true;
-  });
+  return params.roster.filter((name) => !blocked.has(splitPersonKey(name)));
 }
 
 export function suggestConsumerNamesForRow(params: {
@@ -89,8 +79,4 @@ export function suggestConsumerNamesForRow(params: {
     availableConsumerNamesForRow(params),
     params.query,
   );
-}
-
-export function shouldShowConsumerNameMenu(options: string[], query: string): boolean {
-  return filterConsumerNameOptions(options, query).length > 0;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { filterConsumerNameOptions } from '@/lib/consumer-name-roster';
 import {
   SOFT_KEYBOARD_DISMISS_ARM_MS,
@@ -22,6 +22,8 @@ interface Props {
   value: string;
   options: string[];
   placeholder: string;
+  /** Pinned rail chip: leave pick mode and open the soft keyboard. */
+  typeNewLabel: string;
   readOnly?: boolean;
   onChange: (name: string) => void;
   onCommit?: (name: string, fromList: boolean) => void;
@@ -67,6 +69,7 @@ export function ConsumerNameCombobox({
   value,
   options,
   placeholder,
+  typeNewLabel,
   readOnly = false,
   onChange,
   onCommit,
@@ -81,6 +84,8 @@ export function ConsumerNameCombobox({
   const reportNameEditActive = useReportGuestConsumerNameEditActive();
   const [inputFocused, setInputFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  // Pick mode (default when names exist): rail lists the roster, no soft keyboard.
+  const [typing, setTyping] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   valueRef.current = value;
@@ -113,12 +118,21 @@ export function ConsumerNameCombobox({
   };
 
   const finalize = (name: string, fromList: boolean) => {
+    inputRef.current?.blur();
     clearBlurCommitTimer();
     const trimmed = name.trim();
     onChange(trimmed);
     onCommit?.(trimmed, fromList);
     setInputFocused(false);
     setActiveIndex(-1);
+    setTyping(false);
+  };
+
+  const startTyping = () => {
+    // iOS reads inputMode at focus time and only inside the tap gesture.
+    flushSync(() => setTyping(true));
+    inputRef.current?.blur();
+    inputRef.current?.focus();
   };
 
   useEffect(() => {
@@ -142,6 +156,7 @@ export function ConsumerNameCombobox({
       if (!inputFocused) return;
       setInputFocused(false);
       setActiveIndex(-1);
+      setTyping(false);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
@@ -158,28 +173,40 @@ export function ConsumerNameCombobox({
             className={CONSUMER_NAME_KEYBOARD_RAIL_CLASS}
             style={{ bottom: bottomInset }}
           >
-            <div
-              id={listboxId}
-              role="listbox"
-              aria-label={placeholder}
-              className="flex items-center gap-2 overflow-x-auto px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {matches.map((name, index) => {
-                const active = index === activeIndex;
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => finalize(name, true)}
-                    className={`${mesaSelectionChipShellClass} shrink-0 px-3.5 py-1.5 text-[14px] font-semibold ${mesaSelectionChipSoftClass(active)}`}
-                  >
-                    {name}
-                  </button>
-                );
-              })}
+            <div className="flex items-center gap-2 px-3 py-2">
+              {!typing ? (
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={startTyping}
+                  className={`${mesaSelectionChipShellClass} shrink-0 border-dashed px-3.5 py-1.5 text-[14px] font-semibold ${mesaSelectionChipSoftClass(false)}`}
+                >
+                  {typeNewLabel}
+                </button>
+              ) : null}
+              <div
+                id={listboxId}
+                role="listbox"
+                aria-label={placeholder}
+                className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {matches.map((name, index) => {
+                  const active = index === activeIndex;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => finalize(name, true)}
+                      className={`${mesaSelectionChipShellClass} shrink-0 px-3.5 py-1.5 text-[14px] font-semibold ${mesaSelectionChipSoftClass(active)}`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>,
           document.body,
@@ -201,9 +228,13 @@ export function ConsumerNameCombobox({
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
+        enterKeyHint="done"
+        inputMode={typing ? 'text' : 'none'}
         onFocus={() => {
           if (readOnly) return;
           clearBlurCommitTimer();
+          // Straight to typing when there is nothing to pick or an existing name is being edited.
+          if (!typing && (options.length === 0 || value.trim())) setTyping(true);
           setInputFocused(true);
         }}
         onChange={(event) => {

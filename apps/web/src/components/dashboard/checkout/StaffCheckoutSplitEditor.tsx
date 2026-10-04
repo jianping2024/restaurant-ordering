@@ -179,6 +179,7 @@ export function StaffCheckoutSplitEditor({
     () => ({
       addConsumer: billT.addConsumer,
       namePlaceholder: billT.consumerNamePlaceholder,
+      typeNewName: billT.consumerNameTypeNew,
       wholeLabel: billT.qtyWholePlaceholder,
       numLabel: billT.qtyNumPlaceholder,
       denLabel: billT.qtyDenPlaceholder,

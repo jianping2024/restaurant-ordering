@@ -205,6 +205,7 @@ function MenuByItemDishAllocator({
                   rowId: row.id,
                 })}
                 placeholder={labels.namePlaceholder}
+                typeNewLabel={labels.typeNewName}
                 readOnly={rowLock.nameReadOnly}
                 onChange={(name) => updateRow(row.id, { name })}
                 onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}

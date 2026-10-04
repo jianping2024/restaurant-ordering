@@ -227,6 +227,7 @@ export function BillPage({
     () => ({
       addConsumer: t.addConsumer,
       namePlaceholder: t.consumerNamePlaceholder,
+      typeNewName: t.consumerNameTypeNew,
       wholeLabel: t.qtyWholePlaceholder,
       numLabel: t.qtyNumPlaceholder,
       denLabel: t.qtyDenPlaceholder,
@@ -645,11 +646,12 @@ export function BillPage({
         </div>
       ) : null}
 
-      {/* Sole guest bill CTA chrome — stay mounted; hide while custom-amount or
-          consumer-name edit so layout does not jump under the soft keyboard. */}
+      {/* Sole guest bill CTA chrome — stay mounted; `hidden` (display:none) while
+          custom-amount or consumer-name edit. It is fixed, so flow layout does not
+          change, and iOS drops the layer (visibility:hidden left ghost copies). */}
       <div
         className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${
-          hideFixedCallCheckout ? 'invisible pointer-events-none' : ''
+          hideFixedCallCheckout ? 'hidden' : ''
         }`}
         aria-hidden={hideFixedCallCheckout || undefined}
       >

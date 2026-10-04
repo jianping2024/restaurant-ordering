@@ -242,7 +242,7 @@ function KitchenScreenBoardInner({
           void handleSignOut();
           return false;
         }
-        setError(t.prepFailed);
+        setError(res.status === 409 ? t.conflict : t.prepFailed);
         if (res.status === 409) await refreshKitchenBoard();
         return false;
       }

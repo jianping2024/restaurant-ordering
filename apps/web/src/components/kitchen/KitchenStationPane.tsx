@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   LeadingActions,
   SwipeAction,
@@ -12,10 +12,12 @@ import type { Order, OrderItemStatus } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { showToast } from '@/components/ui/Toast';
-import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
+import { KitchenDishThumbButton } from '@/components/kitchen/KitchenDishThumbButton';
 import { KitchenMenuItemDetailModal } from '@/components/kitchen/KitchenMenuItemDetailModal';
+import { KitchenPrepTray } from '@/components/kitchen/KitchenPrepTray';
 import {
   aggregateLinesByDish,
+  buildPrepTrayCards,
   collectStationBoardLines,
   groupBottomRailByStatus,
   groupLinesByTable,
@@ -24,10 +26,15 @@ import {
   lineSelectionKey,
   lineWaitMinutes,
   partitionStationLines,
+  removeTrayKeys,
+  setTrayKeysSelected,
   sumLineQty,
   toggleGroupPrepSelection,
+  toggleTrayChip,
   type GroupSelectionFrac,
   type KitchenBoardLine,
+  type PrepTrayCard,
+  type PrepTrayState,
 } from '@/components/kitchen/kitchen-board-lines';
 import { KITCHEN_SCREEN_TEXT } from '@/components/kitchen/kitchen-screen-labels';
 import {
@@ -35,6 +42,7 @@ import {
   type KitchenBoardMenuCatalogById,
   type KitchenBoardMenuCatalogEntry,
 } from '@/lib/kitchen-board-menu-catalog';
+import { loadPrepTrayStored, savePrepTrayStored } from '@/lib/kitchen-prep-tray-storage';
 import type { UILanguage } from '@/lib/i18n';
 
 /**
@@ -161,37 +169,6 @@ function groupHeaderShellClass(state: GroupSelectionFrac['state']): string {
     return 'border-l-4 border-l-brand-gold bg-brand-gold/10';
   }
   return 'bg-brand-bg/95';
-}
-
-/** Sole kitchen-board dish thumb control — opens read-only detail; never toggles row select. */
-function KitchenDishThumbButton({
-  imageUrl,
-  emoji,
-  ariaLabel,
-  onOpen,
-}: {
-  imageUrl: string | null;
-  emoji: string;
-  ariaLabel: string;
-  onOpen: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      data-kitchen-dish-thumb=""
-      className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-      aria-label={ariaLabel}
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpen();
-      }}
-      onPointerDown={(e) => e.stopPropagation()}
-      onPointerUp={(e) => e.stopPropagation()}
-      onPointerCancel={(e) => e.stopPropagation()}
-    >
-      <MenuItemListThumb item={{ image_url: imageUrl, emoji }} size={56} />
-    </button>
-  );
 }
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
@@ -418,6 +395,9 @@ export function KitchenStationPane({
   const t = KITCHEN_SCREEN_TEXT[lang];
   const [view, setView] = useState<PaneView>('table');
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  /** Prep tray rows tapped off inside the tray (dashed chip); `selected` wins if a key is in both. */
+  const [skipped, setSkipped] = useState<Set<string>>(() => new Set());
+  const [trayLoaded, setTrayLoaded] = useState(false);
   /** Sole by-dish L1 expand key (`menuItemId`); null = all dish groups collapsed. */
   const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
@@ -451,10 +431,6 @@ export function KitchenStationPane({
   const byDish = useMemo(() => aggregateLinesByDish(workbench), [workbench]);
   const bottomRailQty = useMemo(() => sumLineQty(bottomRail), [bottomRail]);
 
-  const selectedPrepCount = useMemo(
-    () => allLines.filter((l) => selected.has(l.key) && l.prepEligible).length,
-    [allLines, selected],
-  );
   const selectedPrintCount = useMemo(
     () => allLines.filter((l) => selected.has(l.key) && l.printEligible).length,
     [allLines, selected],
@@ -462,6 +438,16 @@ export function KitchenStationPane({
   const prepInFlight = prepInFlightKeys.size > 0;
   /** Station prep lock: parent board busy ∪ local in-flight keys (sole gate for prep UI). */
   const prepLocked = prepBusy || prepInFlight;
+
+  /** Left-list edits own the row outright: it is either selected or out of the tray (never skipped). */
+  const dropSkipped = (keys: readonly string[]) => {
+    setSkipped((prev) => {
+      if (!keys.some((k) => prev.has(k))) return prev;
+      const next = new Set(prev);
+      for (const k of keys) next.delete(k);
+      return next;
+    });
+  };
 
   const toggleLine = (line: KitchenBoardLine) => {
     if (!line.prepEligible && !line.printEligible) return;
@@ -471,11 +457,71 @@ export function KitchenStationPane({
       else next.add(line.key);
       return next;
     });
+    dropSkipped([line.key]);
   };
 
   const toggleGroupSelect = (lines: KitchenBoardLine[]) => {
     setSelected((prev) => toggleGroupPrepSelection(lines, prev));
+    dropSkipped(lines.map((l) => l.key));
   };
+
+  const applyTray = (fn: (prev: PrepTrayState) => PrepTrayState) => {
+    const next = fn({ selected, skipped });
+    setSelected(next.selected);
+    setSkipped(next.skipped);
+  };
+
+  const trayCards = useMemo(
+    () => buildPrepTrayCards(workbench, { selected, skipped }, nowMs),
+    [workbench, selected, skipped, nowMs],
+  );
+
+  useEffect(() => {
+    const stored = loadPrepTrayStored(stationId);
+    if (stored) {
+      setSelected(new Set(stored.selected));
+      setSkipped(new Set(stored.skipped));
+    }
+    setTrayLoaded(true);
+  }, [stationId]);
+
+  useEffect(() => {
+    if (!trayLoaded) return;
+    const printKeys = new Set(allLines.filter((l) => l.printEligible).map((l) => l.key));
+    savePrepTrayStored(stationId, {
+      selected: Array.from(selected).filter((k) => !printKeys.has(k)),
+      skipped: Array.from(skipped),
+    });
+  }, [trayLoaded, stationId, selected, skipped, allLines]);
+
+  /**
+   * Local selection hygiene: rows that vanished from the board drop out silently; tray rows that were
+   * pending a moment ago and are no longer (prepped / cancelled on another screen) drop out with one toast.
+   * Skipped while our own prep is in flight (its own refresh would look like "someone else").
+   */
+  const prevPrepKeysRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!trayLoaded) return;
+    const prepKeys = new Set(allLines.filter((l) => l.prepEligible).map((l) => l.key));
+    const prevPrepKeys = prevPrepKeysRef.current;
+    prevPrepKeysRef.current = prepKeys;
+    if (allLines.length === 0 || prepInFlight) return;
+    const live = new Set(allLines.map((l) => l.key));
+    const trayKeys = Array.from(selected).concat(Array.from(skipped));
+    const takenElsewhere = new Set(
+      trayKeys.filter((k) => prevPrepKeys.has(k) && !prepKeys.has(k)),
+    );
+    const drop = (k: string) => takenElsewhere.has(k) || !live.has(k);
+    const retain = (prev: Set<string>) => {
+      const kept = Array.from(prev).filter((k) => !drop(k));
+      return kept.length === prev.size ? prev : new Set(kept);
+    };
+    setSelected(retain);
+    setSkipped(retain);
+    if (takenElsewhere.size > 0) {
+      showToast(t.trayDroppedByOthers.replace('{n}', String(takenElsewhere.size)), 'info');
+    }
+  }, [trayLoaded, allLines, prepInFlight, selected, skipped, t]);
 
   const toggleTableCollapsed = (tableId: string) => {
     setCollapsedTables((prev) => {
@@ -505,7 +551,10 @@ export function KitchenStationPane({
   const handlePrep = async () => {
     const prepLines = allLines.filter((l) => selected.has(l.key) && l.prepEligible);
     const selections = prepLines.map((l) => ({ order_id: l.orderId, item_index: l.itemIndex }));
-    if (selections.length === 0) return;
+    if (selections.length === 0) {
+      showToast(t.selectLines, 'info');
+      return;
+    }
     setPrepInFlightKeys(new Set(prepLines.map((l) => l.key)));
     try {
       const ok = await onPrep(selections);
@@ -518,6 +567,7 @@ export function KitchenStationPane({
           }
           return next;
         });
+        setSkipped(new Set());
         setBottomRailOpen(true);
       }
     } finally {
@@ -555,6 +605,7 @@ export function KitchenStationPane({
           next.delete(line.key);
           return next;
         });
+        dropSkipped([line.key]);
         setBottomRailOpen(true);
       }
     } finally {
@@ -646,7 +697,9 @@ export function KitchenStationPane({
         ) : null}
       </header>
 
-      <div className={`flex-1 ${VERTICAL_ONLY_SCROLL}`}>
+      <div className="mesa-kitchen-pane-host">
+      <div className="mesa-kitchen-pane-split">
+      <div className={`mesa-kitchen-pane-list ${VERTICAL_ONLY_SCROLL}`}>
         {workbench.length === 0 ? (
           <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : view === 'table' ? (
@@ -762,6 +815,26 @@ export function KitchenStationPane({
           })
         )}
       </div>
+      <div
+        className="mesa-kitchen-pane-tray min-h-0 flex-col overflow-hidden border-brand-border"
+        data-empty={trayCards.length === 0 ? '' : undefined}
+      >
+        <KitchenPrepTray
+          cards={trayCards}
+          t={t}
+          prepLocked={prepLocked}
+          thumbFor={(card: PrepTrayCard) => thumbForLine(card.seedLine)}
+          onOpenDetail={(card: PrepTrayCard) =>
+            openDishDetail(card.menuItemId, card.seedLine.item)
+          }
+          onToggleChip={(key) => applyTray((prev) => toggleTrayChip(key, prev))}
+          onSetCard={(keys, on) => applyTray((prev) => setTrayKeysSelected(keys, on, prev))}
+          onRemoveKeys={(keys) => applyTray((prev) => removeTrayKeys(keys, prev))}
+          onPrep={() => void handlePrep()}
+        />
+      </div>
+      </div>
+      </div>
 
       <footer className="flex shrink-0 flex-col border-t border-brand-border/70">
         {bottomRailOpen ? (
@@ -809,35 +882,21 @@ export function KitchenStationPane({
               ? t.readyRailHide
               : t.readyRailShow.replace('{n}', String(bottomRailQty))}
           </Button>
-          {/* Unique footer action: rail open → print only; closed → prep only. No count badges. */}
-          <div className="flex flex-wrap items-center gap-2">
-            {bottomRailOpen ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={STATION_FOOTER_BTN}
-                disabled={selectedPrintCount === 0 || printBusy || prepLocked}
-                loading={printBusy}
-                title={t.selectPrintLines}
-                onClick={() => void handlePrint()}
-              >
-                {printBusy ? t.printBusy : t.print}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="sm"
-                className={STATION_FOOTER_BTN}
-                disabled={selectedPrepCount === 0 || prepLocked || printBusy}
-                loading={prepLocked}
-                title={t.selectLines}
-                onClick={() => void handlePrep()}
-              >
-                {prepLocked ? t.prepBusy : t.prep}
-              </Button>
-            )}
-          </div>
+          {/* Footer owns reprint only; the sole prep button lives in the prep tray. */}
+          {bottomRailOpen ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className={STATION_FOOTER_BTN}
+              disabled={selectedPrintCount === 0 || printBusy || prepLocked}
+              loading={printBusy}
+              title={t.selectPrintLines}
+              onClick={() => void handlePrint()}
+            >
+              {printBusy ? t.printBusy : t.print}
+            </Button>
+          ) : null}
         </div>
       </footer>
 

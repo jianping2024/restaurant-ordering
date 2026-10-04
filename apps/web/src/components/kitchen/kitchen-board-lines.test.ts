@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   aggregateLinesByDish,
+  buildPrepTrayCards,
+  removeTrayKeys,
+  setTrayKeysSelected,
+  summarizePrepTray,
+  toggleTrayChip,
   collectStationBoardLines,
   groupBottomRailByStatus,
   groupSelectionFrac,
@@ -272,5 +277,59 @@ describe('collectStationBoardLines', () => {
     });
     assert.equal(lines.length, 1);
     assert.equal(lines[0]?.displayName, '001 矿泉水');
+  });
+});
+
+describe('prep tray', () => {
+  const NOW = Date.parse('2026-08-10T12:30:00.000Z');
+  const a = stubLine({ key: 'a', tableId: 't1', tableDisplay: '90', menuItemId: 'm1', qty: 4 });
+  const b = stubLine({ key: 'b', tableId: 't2', tableDisplay: '91', menuItemId: 'm1', qty: 2 });
+  const c = stubLine({ key: 'c', tableId: 't2', tableDisplay: '91', menuItemId: 'm2', qty: 1 });
+  const lines = [a, b, c];
+  const state = (sel: string[], skip: string[] = []) => ({
+    selected: new Set(sel),
+    skipped: new Set(skip),
+  });
+
+  it('groups by dish, only tray rows, skipped chips stay but do not count', () => {
+    const cards = buildPrepTrayCards(lines, state(['a', 'c'], ['b']), NOW);
+    assert.equal(cards.length, 2);
+    const m1 = cards.find((x) => x.menuItemId === 'm1')!;
+    assert.equal(m1.chips.length, 2);
+    assert.equal(m1.selectedCount, 1);
+    assert.equal(m1.selectedQty, 4);
+    assert.deepEqual(summarizePrepTray(cards), { dishCount: 2, portions: 5, tableCount: 2 });
+    assert.equal(buildPrepTrayCards(lines, state([]), NOW).length, 0);
+  });
+
+  it('chip tap toggles selected <-> skipped; left re-check wins via selected', () => {
+    const t1 = toggleTrayChip('a', state(['a']));
+    assert.deepEqual([...t1.selected], []);
+    assert.deepEqual([...t1.skipped], ['a']);
+    const t2 = toggleTrayChip('a', t1);
+    assert.deepEqual([...t2.selected], ['a']);
+    assert.deepEqual([...t2.skipped], []);
+    const both = buildPrepTrayCards(lines, state(['a'], ['a']), NOW);
+    assert.equal(both[0].chips[0].selected, true);
+  });
+
+  it('card select-all / clear / remove', () => {
+    const cleared = setTrayKeysSelected(['a', 'b'], false, state(['a', 'b']));
+    assert.equal(cleared.selected.size, 0);
+    assert.equal(cleared.skipped.size, 2);
+    const all = setTrayKeysSelected(['a', 'b'], true, cleared);
+    assert.equal(all.selected.size, 2);
+    assert.equal(all.skipped.size, 0);
+    const removed = removeTrayKeys(['a'], state(['a'], ['b']));
+    assert.equal(removed.selected.size, 0);
+    assert.deepEqual([...removed.skipped], ['b']);
+  });
+
+  it('chips sort by wait desc', () => {
+    const old = { ...b, orderedAtMs: Date.parse('2026-08-10T12:00:00.000Z') };
+    const fresh = { ...a, orderedAtMs: Date.parse('2026-08-10T12:25:00.000Z') };
+    const [card] = buildPrepTrayCards([fresh, old], state(['a', 'b']), NOW);
+    assert.deepEqual(card.chips.map((x) => x.key), ['b', 'a']);
+    assert.equal(card.longestWaitMin, 30);
   });
 });

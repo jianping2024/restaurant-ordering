@@ -52,6 +52,22 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailVegetarianBadge: string;
     /** Aria for dish thumb that opens detail. */
     dishThumbOpenDetail: string;
+    trayTitle: string;
+    traySummary: string;
+    trayEmpty: string;
+    trayTableCount: string;
+    trayLongestWait: string;
+    traySelectedOf: string;
+    trayClear: string;
+    trayRemoveDish: string;
+    trayClearAll: string;
+    trayClearAllTitle: string;
+    trayClearAllMessage: string;
+    trayMoreTables: string;
+    trayLessTables: string;
+    trayCancel: string;
+    /** Toast: tray rows that left「pending」(prepped / cancelled on another screen). */
+    trayDroppedByOthers: string;
   }
 > = {
   zh: {
@@ -97,6 +113,21 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: '未标注',
     detailVegetarianBadge: '素食',
     dishThumbOpenDetail: '查看菜品详情',
+    trayTitle: '备餐区',
+    traySummary: '已选 {d} 道 · {p} 份 · {t} 桌',
+    trayEmpty: '从左侧勾选要备的菜',
+    trayTableCount: '{n} 桌',
+    trayLongestWait: '最久 {n} 分',
+    traySelectedOf: '已选 {n}/{m}',
+    trayClear: '清空',
+    trayRemoveDish: '移出',
+    trayClearAll: '清空全部',
+    trayClearAllTitle: '清空备餐区',
+    trayClearAllMessage: '所有勾选将取消，菜品仍留在列表中。',
+    trayMoreTables: '+{n} 桌 展开',
+    trayLessTables: '收起',
+    trayCancel: '取消',
+    trayDroppedByOthers: '{n} 行已被备餐或撤单，已从备餐区移除',
   },
   en: {
     screensTitle: 'Kitchen screens',
@@ -141,6 +172,21 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: 'Not marked',
     detailVegetarianBadge: 'Vegetarian',
     dishThumbOpenDetail: 'View dish details',
+    trayTitle: 'Prep tray',
+    traySummary: 'Dishes {d} · Pcs {p} · Tables {t}',
+    trayEmpty: 'Select dishes on the left to prep',
+    trayTableCount: 'Tables {n}',
+    trayLongestWait: 'Longest {n}m',
+    traySelectedOf: '{n}/{m} selected',
+    trayClear: 'Clear',
+    trayRemoveDish: 'Remove',
+    trayClearAll: 'Clear all',
+    trayClearAllTitle: 'Clear prep tray?',
+    trayClearAllMessage: 'All selections will be cleared; dishes stay in the list.',
+    trayMoreTables: '+{n} tables',
+    trayLessTables: 'Collapse',
+    trayCancel: 'Cancel',
+    trayDroppedByOthers: '{n} line(s) were prepped or cancelled elsewhere and left the tray',
   },
   pt: {
     screensTitle: 'Ecras de cozinha',
@@ -185,6 +231,21 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: 'Nao marcado',
     detailVegetarianBadge: 'Vegetariano',
     dishThumbOpenDetail: 'Ver detalhes do prato',
+    trayTitle: 'Área de preparo',
+    traySummary: 'Pratos {d} · Un. {p} · Mesas {t}',
+    trayEmpty: 'Selecione os pratos à esquerda',
+    trayTableCount: 'Mesas {n}',
+    trayLongestWait: 'Máx. {n} min',
+    traySelectedOf: '{n}/{m} selecionados',
+    trayClear: 'Limpar',
+    trayRemoveDish: 'Remover',
+    trayClearAll: 'Limpar tudo',
+    trayClearAllTitle: 'Limpar área de preparo?',
+    trayClearAllMessage: 'Todas as seleções serão limpas; os pratos continuam na lista.',
+    trayMoreTables: '+{n} mesas',
+    trayLessTables: 'Recolher',
+    trayCancel: 'Cancelar',
+    trayDroppedByOthers: '{n} linha(s) preparada(s) ou cancelada(s) noutro local; saíram da área',
   },
   es: {
     screensTitle: 'Pantallas de cocina',
@@ -229,6 +290,21 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: 'Sin marcar',
     detailVegetarianBadge: 'Vegetariano',
     dishThumbOpenDetail: 'Ver detalle del plato',
+    trayTitle: 'Zona de preparación',
+    traySummary: 'Platos {d} · Uds. {p} · Mesas {t}',
+    trayEmpty: 'Seleccione platos a la izquierda',
+    trayTableCount: 'Mesas {n}',
+    trayLongestWait: 'Máx. {n} min',
+    traySelectedOf: '{n}/{m} seleccionados',
+    trayClear: 'Limpiar',
+    trayRemoveDish: 'Quitar',
+    trayClearAll: 'Limpiar todo',
+    trayClearAllTitle: '¿Limpiar zona de preparación?',
+    trayClearAllMessage: 'Se quitarán todas las selecciones; los platos siguen en la lista.',
+    trayMoreTables: '+{n} mesas',
+    trayLessTables: 'Contraer',
+    trayCancel: 'Cancelar',
+    trayDroppedByOthers: '{n} línea(s) preparada(s) o cancelada(s) en otro lugar; salieron de la zona',
   },
   fr: {
     screensTitle: 'Ecrans cuisine',
@@ -273,6 +349,21 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: 'Non indique',
     detailVegetarianBadge: 'Vegetarien',
     dishThumbOpenDetail: 'Voir le detail du plat',
+    trayTitle: 'Zone de préparation',
+    traySummary: 'Plats {d} · Pcs {p} · Tables {t}',
+    trayEmpty: 'Sélectionnez les plats à gauche',
+    trayTableCount: 'Tables {n}',
+    trayLongestWait: 'Max {n} min',
+    traySelectedOf: '{n}/{m} sélectionnés',
+    trayClear: 'Vider',
+    trayRemoveDish: 'Retirer',
+    trayClearAll: 'Tout vider',
+    trayClearAllTitle: 'Vider la zone de préparation ?',
+    trayClearAllMessage: 'Toutes les sélections seront effacées ; les plats restent dans la liste.',
+    trayMoreTables: '+{n} tables',
+    trayLessTables: 'Réduire',
+    trayCancel: 'Annuler',
+    trayDroppedByOthers: '{n} ligne(s) préparée(s) ou annulée(s) ailleurs, retirée(s) de la zone',
   },
   de: {
     screensTitle: 'Kuchenschirme',
@@ -317,5 +408,20 @@ export const KITCHEN_SCREEN_TEXT: Record<
     detailAllergensUnmarked: 'Nicht markiert',
     detailVegetarianBadge: 'Vegetarisch',
     dishThumbOpenDetail: 'Gerichtdetails anzeigen',
+    trayTitle: 'Zubereitung',
+    traySummary: 'Gerichte {d} · Stk. {p} · Tische {t}',
+    trayEmpty: 'Gerichte links auswählen',
+    trayTableCount: 'Tische {n}',
+    trayLongestWait: 'Max. {n} Min.',
+    traySelectedOf: '{n}/{m} gewählt',
+    trayClear: 'Leeren',
+    trayRemoveDish: 'Entfernen',
+    trayClearAll: 'Alle leeren',
+    trayClearAllTitle: 'Zubereitung leeren?',
+    trayClearAllMessage: 'Alle Auswahlen werden gelöscht; die Gerichte bleiben in der Liste.',
+    trayMoreTables: '+{n} Tische',
+    trayLessTables: 'Einklappen',
+    trayCancel: 'Abbrechen',
+    trayDroppedByOthers: '{n} Zeile(n) anderswo zubereitet oder storniert und entfernt',
   },
 };

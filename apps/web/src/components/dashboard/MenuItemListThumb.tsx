@@ -11,8 +11,8 @@ import type { MenuItem } from '@/types';
 
 type CatalogThumbItem = Pick<MenuItem, 'image_url' | 'emoji'>;
 
-/** Sole staff/kitchen catalog thumb sizes (px). Default 40 = dashboard list. */
-export type MenuItemListThumbSize = 40 | 56;
+/** Sole staff/kitchen catalog thumb sizes (px). Default 40 = dashboard list; 56 = kitchen rows; 160 = kitchen prep tray hero. */
+export type MenuItemListThumbSize = 40 | 56 | 160;
 
 const THUMB_SIZE_CLASS: Record<
   MenuItemListThumbSize,
@@ -20,6 +20,7 @@ const THUMB_SIZE_CLASS: Record<
 > = {
   40: { well: 'w-10 h-10 text-xl', img: 'w-10 h-10', emoji: 'text-xl' },
   56: { well: 'w-14 h-14 text-2xl', img: 'w-14 h-14', emoji: 'text-2xl' },
+  160: { well: 'w-40 h-40 text-6xl', img: 'w-40 h-40', emoji: 'text-6xl' },
 };
 
 /** Sole catalog list thumb: photo, else emoji, else empty square. */

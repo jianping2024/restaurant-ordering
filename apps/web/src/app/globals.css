@@ -523,3 +523,56 @@ body {
     opacity: var(--auth-pattern-opacity);
   }
 }
+
+/**
+ * Sole kitchen station pane split — track pane width (container), not viewport.
+ * Narrow: list on top, prep tray below (max half height, hidden when empty).
+ * ≥56rem: list 45% | prep tray 55% side by side.
+ */
+.mesa-kitchen-pane-host {
+  container-type: inline-size;
+  container-name: mesa-kitchen-pane;
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+.mesa-kitchen-pane-split {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.mesa-kitchen-pane-list {
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+.mesa-kitchen-pane-tray {
+  display: flex;
+  flex: 0 1 auto;
+  max-height: 50%;
+  border-top-width: 3px;
+}
+
+.mesa-kitchen-pane-tray[data-empty] {
+  display: none;
+}
+
+@container mesa-kitchen-pane (min-width: 56rem) {
+  .mesa-kitchen-pane-split {
+    display: grid;
+    grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .mesa-kitchen-pane-tray {
+    max-height: none;
+    border-top-width: 0;
+    border-left-width: 1px;
+  }
+
+  .mesa-kitchen-pane-tray[data-empty] {
+    display: flex;
+  }
+}

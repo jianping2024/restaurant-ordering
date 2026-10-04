@@ -147,25 +147,15 @@ export function sumLineQty(lines: KitchenBoardLine[]): number {
 export type DishAggregate = {
   menuItemId: string;
   name: string;
-  /** Workbench portion total for this dish (not table count). */
+  /** Workbench portion total for this dish (qty sum; not order-line count). */
   totalQty: number;
-  /** Distinct tables with this dish on the workbench. */
-  tableCount: number;
-  tableDisplays: string[];
+  /** Underlying order lines for group select / prep — not shown as table UI in by-dish. */
   lines: KitchenBoardLine[];
 };
 
-/** Group workbench lines by dish; tableDisplays / tableCount are unique by tableId. */
+/** Group workbench lines by dish; expose portion total + lines only (no table summary). */
 export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[] {
-  type Acc = {
-    menuItemId: string;
-    name: string;
-    totalQty: number;
-    tableDisplays: string[];
-    lines: KitchenBoardLine[];
-    tableIds: Set<string>;
-  };
-  const byId = new Map<string, Acc>();
+  const byId = new Map<string, DishAggregate>();
   for (const line of lines) {
     let agg = byId.get(line.menuItemId);
     if (!agg) {
@@ -173,29 +163,14 @@ export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[]
         menuItemId: line.menuItemId,
         name: line.displayName,
         totalQty: 0,
-        tableDisplays: [],
         lines: [],
-        tableIds: new Set(),
       };
       byId.set(line.menuItemId, agg);
     }
     agg.totalQty += Number(line.item.qty) || 0;
     agg.lines.push(line);
-    if (!agg.tableIds.has(line.tableId)) {
-      agg.tableIds.add(line.tableId);
-      agg.tableDisplays.push(line.tableDisplay);
-    }
   }
-  return Array.from(byId.values())
-    .map((agg) => ({
-      menuItemId: agg.menuItemId,
-      name: agg.name,
-      totalQty: agg.totalQty,
-      tableCount: agg.tableDisplays.length,
-      tableDisplays: agg.tableDisplays,
-      lines: agg.lines,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function groupLinesByTable(lines: KitchenBoardLine[]): Array<{

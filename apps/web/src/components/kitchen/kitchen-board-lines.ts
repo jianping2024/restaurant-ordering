@@ -232,3 +232,148 @@ export function toggleGroupPrepSelection(
   }
   return next;
 }
+
+/**
+ * Prep tray row state (workbench prepEligible lines only):
+ * `selected` = in tray and will be prepped; `skipped` = in tray but tapped off (dashed chip);
+ * neither = not in tray. `selected` wins if a key is in both, so a left-list re-check lights the chip.
+ */
+export type PrepTrayState = {
+  selected: Set<string>;
+  skipped: Set<string>;
+};
+
+export type PrepTrayChip = {
+  key: string;
+  tableId: string;
+  tableDisplay: string;
+  qty: number;
+  waitMin: number;
+  selected: boolean;
+};
+
+export type PrepTrayCard = {
+  menuItemId: string;
+  name: string;
+  /** First line of the dish — thumb / detail source. */
+  seedLine: KitchenBoardLine;
+  /** Longest wait first. */
+  chips: PrepTrayChip[];
+  selectedCount: number;
+  selectedQty: number;
+  longestWaitMin: number;
+};
+
+/** Sole tray grouping: one card per dish, chips = tray lines sorted by wait desc. */
+export function buildPrepTrayCards(
+  lines: readonly KitchenBoardLine[],
+  state: { selected: ReadonlySet<string>; skipped: ReadonlySet<string> },
+  nowMs: number,
+): PrepTrayCard[] {
+  const byDish = new Map<string, PrepTrayCard>();
+  for (const line of lines) {
+    if (!line.prepEligible) continue;
+    const selected = state.selected.has(line.key);
+    if (!selected && !state.skipped.has(line.key)) continue;
+    let card = byDish.get(line.menuItemId);
+    if (!card) {
+      card = {
+        menuItemId: line.menuItemId,
+        name: line.displayName,
+        seedLine: line,
+        chips: [],
+        selectedCount: 0,
+        selectedQty: 0,
+        longestWaitMin: 0,
+      };
+      byDish.set(line.menuItemId, card);
+    }
+    const qty = Number(line.item.qty) || 0;
+    const waitMin = lineWaitMinutes(line.orderedAtMs, nowMs);
+    card.chips.push({
+      key: line.key,
+      tableId: line.tableId,
+      tableDisplay: line.tableDisplay,
+      qty,
+      waitMin,
+      selected,
+    });
+    if (selected) {
+      card.selectedCount += 1;
+      card.selectedQty += qty;
+    }
+    card.longestWaitMin = Math.max(card.longestWaitMin, waitMin);
+  }
+  const cards = Array.from(byDish.values());
+  for (const card of cards) {
+    card.chips.sort(
+      (a, b) => b.waitMin - a.waitMin || a.tableDisplay.localeCompare(b.tableDisplay),
+    );
+  }
+  return cards.sort(
+    (a, b) => b.longestWaitMin - a.longestWaitMin || a.name.localeCompare(b.name),
+  );
+}
+
+/** Header tally: selected rows only (skipped chips do not count). */
+export function summarizePrepTray(cards: readonly PrepTrayCard[]): {
+  dishCount: number;
+  portions: number;
+  tableCount: number;
+} {
+  const tables = new Set<string>();
+  let dishCount = 0;
+  let portions = 0;
+  for (const card of cards) {
+    if (card.selectedCount === 0) continue;
+    dishCount += 1;
+    portions += card.selectedQty;
+    for (const chip of card.chips) if (chip.selected) tables.add(chip.tableId);
+  }
+  return { dishCount, portions, tableCount: tables.size };
+}
+
+/** Tray chip tap: selected ⇄ skipped. Keys outside the tray are untouched. */
+export function toggleTrayChip(key: string, prev: PrepTrayState): PrepTrayState {
+  const selected = new Set(prev.selected);
+  const skipped = new Set(prev.skipped);
+  if (selected.has(key)) {
+    selected.delete(key);
+    skipped.add(key);
+  } else if (skipped.has(key)) {
+    skipped.delete(key);
+    selected.add(key);
+  }
+  return { selected, skipped };
+}
+
+/** Card「全选/清空」: on → all selected; off → all skipped (stay in tray). */
+export function setTrayKeysSelected(
+  keys: readonly string[],
+  on: boolean,
+  prev: PrepTrayState,
+): PrepTrayState {
+  const selected = new Set(prev.selected);
+  const skipped = new Set(prev.skipped);
+  for (const key of keys) {
+    if (on) {
+      skipped.delete(key);
+      selected.add(key);
+    } else {
+      selected.delete(key);
+      skipped.add(key);
+    }
+  }
+  return { selected, skipped };
+}
+
+/** Card ✕ / clear all: rows leave the tray entirely (back to「not in tray」). */
+export function removeTrayKeys(keys: readonly string[], prev: PrepTrayState): PrepTrayState {
+  const selected = new Set(prev.selected);
+  const skipped = new Set(prev.skipped);
+  for (const key of keys) {
+    selected.delete(key);
+    skipped.delete(key);
+  }
+  return { selected, skipped };
+}

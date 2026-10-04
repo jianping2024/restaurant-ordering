@@ -110,7 +110,7 @@
 - **新实体**：大屏配置（名、有序档口列表），存店内；电视收藏稳定 URL。
 - 仅可加入 **已开后厨** 的档口；最多 **4**；自动分格；单档口最大化/复原。
 - **最大化（唯一写法）**：单档口占满视口（`h-dvh` 作业面）；藏厨用顶条（返回/大屏名/账号）；格内扁平行列表。**不是**网格内拉高卡片或 `min-h` 伪满屏。复原后回到分格 + 薄顶条（无店员全量导航）。
-- **行呈现（唯一写法）**：工作台扁平行 = **一条订单行**（`order_id:item_index`，**禁止**同桌同菜合并）；勾选 · **菜品缩略图**（目录图否则 emoji；点开只读详情） · 编号+菜名[+备注截断] · ×本行份数 · 等待（自 `added_at`/下单） · 状态。**整行点按**切换勾选（缩略图与勾选框除外）；**右滑备餐（唯一手势层）**：`react-swipeable-list` `Type.ANDROID`（sole `SwipeableListItem` + `LeadingActions`/`SwipeAction`；**禁止**自研 Pointer/`dragX`/`finishRowGesture` 平行手势机）；过阈值松手后**立刻备餐并弹回**（行保留；`destructive={false}`）；跟手时可短暂露出金色「备餐」提示底（sole cue：铺满露出条、`bg-brand-gold` + `text-brand-on-gold`，最大露出须两字完整可见；禁止 `min-w` 大于露出宽、禁止金底配 `brand-ink`），松手收回（非常驻揭示条）；**备餐进行中（唯一写法）**：sole `prepInFlightKeys`（右滑 = 该行键；底栏多选 = 所选可备行键）→ 集合内行显示 sole `Spinner` +「备餐中…」（不乐观改状态）；集合非空锁再滑/再备；底栏「备餐」`loading` 读同一集合；请求结束清键；禁止只底栏转、当行无反馈。竖滚仍由工作台列表端口负责（库 `scrollStartThreshold` / `swipeStartThreshold` 仲裁轴）。底栏多选备餐仍保留。禁止桌卡套菜卡、禁止状态另起块级行。字号按厨用远距可读（约原后台表单 2×）。
+- **行呈现（唯一写法）**：工作台扁平行 = **一条订单行**（`order_id:item_index`，**禁止**同桌同菜合并）；勾选 · **菜品缩略图**（目录图否则 emoji；点开只读详情） · 编号+菜名[+备注截断] · ×本行份数 · 等待（自 `added_at`/下单） · 状态。**整行点按**切换勾选（缩略图与勾选框除外）；**右滑备餐（唯一手势层）**：`react-swipeable-list` `Type.ANDROID`（sole `SwipeableListItem` + `LeadingActions`/`SwipeAction`；**禁止**自研 Pointer/`dragX`/`finishRowGesture` 平行手势机）；过阈值松手后**立刻备餐并弹回**（行保留；`destructive={false}`）；跟手时可短暂露出金色「备餐」提示底（sole cue：铺满露出条、`bg-brand-gold` + `text-brand-on-gold`，最大露出须两字完整可见；禁止 `min-w` 大于露出宽、禁止金底配 `brand-ink`），松手收回（非常驻揭示条）；**备餐进行中（唯一写法）**：sole `prepInFlightKeys`（右滑 = 该行键；备餐区「备餐」= 所选可备行键）→ 集合内行显示 sole `Spinner` +「备餐中…」（不乐观改状态）；集合非空锁再滑/再备；备餐区「备餐」`loading` 读同一集合；请求结束清键；禁止只底栏转、当行无反馈。竖滚仍由工作台列表端口负责（库 `scrollStartThreshold` / `swipeStartThreshold` 仲裁轴）。备餐区多选备餐仍保留。禁止桌卡套菜卡、禁止状态另起块级行。字号按厨用远距可读（约原后台表单 2×）。
 - **菜品缩略图 / 详情（唯一写法）**：缩略图 sole `MenuItemListThumb`（厨用 56px）；图源 sole board 载荷 `menu_catalog_by_id`（`kitchen-board-menu-catalog`；缺目录则订单行 emoji+菜名 fallback）。点缩略图打开 sole `KitchenMenuItemDetailModal`（打开时冻结条目；确认关闭；非顾客加购 sheet）。按菜一级：缩略图与展开热区拆开，禁止嵌套 button。
 - **工作台 / 补打底栏（唯一分区）**：`effectiveItemStatus` 为 `pending` → **只**在工作台；为 `cooking`（已备餐）或展示态 `ready`（已出餐）→ **必须离开工作台**，**只**进底栏补打区。禁止主列表再挂已备餐/已出餐徽章同时又在底栏列一份。分区纯展示计算，不为进栏写库；底栏同样按订单行列出，不合并。
 - **底栏视觉（唯一写法）**：展开后 sole 冷灰次级面板（`KITCHEN_READY_RAIL_*`）+ 区标题 `readyRailZoneTitle` + 份数用同一 `portionBadge`；栏内 sole `groupBottomRailByStatus` 分组，组头复用 `statusCooking`/`statusReady`（禁止平行第二套状态文案）；行壳 sole `kitchenRowSurfaceClass`（slate + 左色条），**禁止**底栏行再套工作台 `bg-brand-card` 当未区分表面。
@@ -128,10 +128,10 @@
 
 - **行粒度（唯一写法）**：`order_id + item_index`；按桌、按菜二级、底栏共用；**无**累计键、**无** `accumulate*` / 同菜合并 helper。
 - 默认进哪个视图：首期默认 **按桌**；统计视图一键切换即可。
-- 备餐多选（唯一语义）：整行点选或勾选框 → 备所选行；**组全选**（按桌桌头 / 按菜一级左侧控件，唯一写法 `toggleGroupPrepSelection`）= 该组全部可备行；点桌号/菜名只展开收起；右滑过阈值 = 仅备该行（`react-swipeable-list` Android 型；立刻备餐 + 弹回保留）；底栏勾选=补打。禁止自研第二套滑动手势；禁止桌头再挂「全选」文字钮与左侧控件并行。
+- 备餐多选（唯一语义）：整行点选或勾选框 → 备所选行；**组全选**（按桌桌头 / 按菜一级左侧控件，唯一写法 `toggleGroupPrepSelection`）= 该组全部可备行；点桌号/菜名只展开收起；右滑过阈值 = 仅备该行（`react-swipeable-list` Android 型；立刻备餐 + 弹回保留）；底栏勾选=补打；勾选的行同时进入备餐区（见下）。禁止自研第二套滑动手势；禁止桌头再挂「全选」文字钮与左侧控件并行。
 - **组头 `n/m`（唯一写法）**：sole `groupSelectionFrac`；**只数订单行**（可备 `prepEligible`）；未选也显示 `0/m`；**禁止**用份数或桌数充当分子/分母。跨视图不变量：各按桌组头 n 之和 = 各按菜组头 n 之和 = 工作台已勾行数。
 - 「共 n 份」口径（唯一写法）：该档口格子内有效态为 `pending` 的同行菜 **qty 合计**；**不含**底栏；`voided` / `done` 不计。与组头 `n/m` 无关。按菜一级只暴露这份数，**不**在一级再挂桌数/桌号摘要；桌明细只在二级列表。
-- 底栏（唯一写法）：左「已备餐/已出餐 · n」（n=底栏份数；列表按订单行）。展开后区内标题「补打区 · 已备餐 / 已出餐」+ 分组列表。右主操作与栏开合互斥——**收起（工作台）只显示「备餐」**；**展开底栏只显示「打印」**（隐藏「备餐」）。两侧均**不**显示 `(n)` 角标。收起时清掉仅可打印行的勾选，避免脏打印选择。禁止收起/展开同时挂「备餐+打印」两钮。
+- 底栏（唯一写法）：左「已备餐/已出餐 · n」（n=底栏份数；列表按订单行）。展开后区内标题「补打区 · 已备餐 / 已出餐」+ 分组列表。右只在底栏展开时显示「打印」；**「备餐」按钮不在底栏**，唯一在备餐区底部。两侧均**不**显示 `(n)` 角标。收起时清掉仅可打印行的勾选，避免脏打印选择。
 
 权限（能力键实现时一次注册，默认模板如下）：
 
@@ -148,6 +148,16 @@
 店级 flag `kitchen_board` 已移除；后台顶栏厨房入口与 `/{slug}/kitchen` 页共用权限 `floor.kitchen_board.view`（合并写回时剥离退役键；旧 `dashboard.kitchen_shortcut.view` 已并入）。
 
 ---
+
+
+## 备餐区（大屏窗格内）
+
+- **唯一容器**：`KitchenPrepTray`（`KitchenStationPane` 内）。按桌 / 按菜两个视图共用同一份 `selected`（订单行键）；勾选的**可备行**（`pending`）按菜聚成卡片进入备餐区，与视图无关。
+- **三态（每行一个）**：未选（不在区内）· 已选（左侧亮、实心金芯片）· 已跳过（`skipped`：仅在备餐区点灭，虚线芯片留卡内，左侧不亮）。`selected` 与 `skipped` 同时含某键时以已选为准；左侧重新勾选 = 回已选；左侧取消勾选 = 直接移出（不是跳过）。纯函数：`buildPrepTrayCards` / `toggleTrayChip` / `setTrayKeysSelected` / `removeTrayKeys`（`kitchen-board-lines.ts`）。
+- **卡片**：菜大图（`MenuItemListThumb` size 160，**不随菜多缩小**；点开只读详情）· 菜名 · 已选份数 · 已选桌数 · 最久等待 · `已选 n/m` · 全选/清空（清空 = 全跳过）· 移出 ✕（整菜离区）。桌号芯片按等待降序；超过约 24 个折叠为「+N 桌」，可展开/收起；一桌 `×N` 整行备，**不**拆份。
+- **区头/区尾固定、卡片区独立滚动**；区头「清空全部」带确认。「备餐」唯一按钮在区尾：一次提交所有「已选」行；成功后已选行与跳过行一并离区。空选点备餐仅提示，不置灰。
+- **布局（唯一）**：窗格宽 ≥56rem（容器宽，非视口）左列表 45% | 右备餐区 55%；更窄时备餐区叠在列表下方（最高半屏，无行时隐藏）。
+- **本屏本机**：`selected`/`skipped` 存 `localStorage`（`mesa:kitchen-prep-tray:{stationId}`），刷新保留；**不跨屏同步**。行离开看板后自动从本地选择剔除；备餐区里的行被他屏备餐/撤单（不再是待备餐）时同样剔除并弹一次提示 `trayDroppedByOthers`，本屏自己提交触发的刷新不弹。**不重复备餐由服务端保证**：`applyKitchenPrep` 只收 `pending` 行（否则 409 `item_not_pending`）+ 写库按 `updated_at` 乐观锁（同瞬间多请求只有一个成功，其余 409 `conflict`）；本屏提交遇 409 提示「数据已更新，请重试」并刷新看板。
 
 ## 8. 多端进度
 
@@ -207,7 +217,7 @@
 
 ## 12. 首期不做
 
-- 一行拆数量备餐  
+- 一行拆数量备餐（备餐区按整行备，不拆份）  
 - 后厨开着仍下单自动打（屏纸双开）  
 - 大屏自由拖拽改格大小  
 - 顾客订单 Realtime  

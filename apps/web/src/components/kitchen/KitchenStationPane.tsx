@@ -670,22 +670,6 @@ export function KitchenStationPane({
         <h2 className="min-w-0 flex-1 truncate font-heading text-xl leading-tight text-brand-gold">
           {stationName}
         </h2>
-        <div className="flex overflow-hidden rounded-lg border border-brand-border text-lg">
-          <button
-            type="button"
-            className={`px-3 py-1.5 ${view === 'table' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
-            onClick={() => setView('table')}
-          >
-            {t.viewByTable}
-          </button>
-          <button
-            type="button"
-            className={`border-l border-brand-border px-3 py-1.5 ${view === 'dish' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
-            onClick={() => setView('dish')}
-          >
-            {t.viewByDish}
-          </button>
-        </div>
         {canMaximize ? (
           <button
             type="button"
@@ -699,7 +683,26 @@ export function KitchenStationPane({
 
       <div className="mesa-kitchen-pane-host">
       <div className="mesa-kitchen-pane-split">
-      <div className={`mesa-kitchen-pane-list ${VERTICAL_ONLY_SCROLL}`}>
+      <div className="mesa-kitchen-pane-list flex flex-col">
+        <div className="shrink-0 border-b border-brand-border/70 px-3 py-2">
+          <div className="flex w-fit overflow-hidden rounded-lg border border-brand-border text-lg">
+            <button
+              type="button"
+              className={`px-3 py-1.5 ${view === 'table' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
+              onClick={() => setView('table')}
+            >
+              {t.viewByTable}
+            </button>
+            <button
+              type="button"
+              className={`border-l border-brand-border px-3 py-1.5 ${view === 'dish' ? 'bg-brand-gold/20 font-medium text-brand-text' : 'text-brand-text-muted'}`}
+              onClick={() => setView('dish')}
+            >
+              {t.viewByDish}
+            </button>
+          </div>
+        </div>
+        <div className={`min-h-0 flex-1 ${VERTICAL_ONLY_SCROLL}`}>
         {workbench.length === 0 ? (
           <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : view === 'table' ? (
@@ -814,6 +817,7 @@ export function KitchenStationPane({
             );
           })
         )}
+        </div>
       </div>
       <div
         className="mesa-kitchen-pane-tray min-h-0 flex-col overflow-hidden border-brand-border"

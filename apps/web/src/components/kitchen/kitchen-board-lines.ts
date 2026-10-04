@@ -149,11 +149,11 @@ export type DishAggregate = {
   name: string;
   /** Workbench portion total for this dish (qty sum; not order-line count). */
   totalQty: number;
-  /** Underlying order lines for group select / prep — not shown as table UI in by-dish. */
+  /** Order lines for by-dish L2 list + group select / prep (no L1 table-summary fields). */
   lines: KitchenBoardLine[];
 };
 
-/** Group workbench lines by dish; expose portion total + lines only (no table summary). */
+/** Group workbench lines by dish; portion total for L1, lines for L2 (no L1 table summary). */
 export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[] {
   const byId = new Map<string, DishAggregate>();
   for (const line of lines) {

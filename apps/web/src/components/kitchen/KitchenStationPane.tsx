@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import {
   LeadingActions,
   SwipeAction,
@@ -54,8 +54,8 @@ const KITCHEN_SWIPE_PREP_CUE_CLASS =
 
 type PaneView = 'table' | 'dish';
 
-/** One UI shape for every selectable kitchen row (workbench table + ready rail). */
-type LineLayout = 'workbench-table' | 'ready';
+/** One UI shape for every selectable kitchen row (workbench + ready rail). */
+type LineLayout = 'workbench-table' | 'workbench-dish-l2' | 'ready';
 
 type Props = {
   stationId: string;
@@ -294,19 +294,31 @@ function KitchenBoardLineRow({
     <span className="ml-2 text-xl font-normal text-amber-800/90">· {note}</span>
   ) : null;
 
-  const title =
-    layout === 'ready' ? (
-      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
-        {line.displayName}
-        {noteEl}
-        <span className="ml-2 text-xl font-normal text-slate-500"> · {line.tableDisplay}</span>
-      </span>
-    ) : (
+  let title: ReactNode;
+  if (layout === 'workbench-table') {
+    title = (
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
         {line.displayName}
         {noteEl}
       </span>
     );
+  } else if (layout === 'ready') {
+    title = (
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
+        {line.displayName}
+        {noteEl}
+        <span className="ml-2 text-xl font-normal text-slate-500"> · {line.tableDisplay}</span>
+      </span>
+    );
+  } else {
+    // By-dish L2: table display is the row title (dish name already on L1).
+    title = (
+      <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
+        {line.tableDisplay}
+        {noteEl}
+      </span>
+    );
+  }
 
   const leadingActions = canSwipePrep ? (
     <LeadingActions>
@@ -406,6 +418,8 @@ export function KitchenStationPane({
   const t = KITCHEN_SCREEN_TEXT[lang];
   const [view, setView] = useState<PaneView>('table');
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  /** Sole by-dish L1 expand key (`menuItemId`); null = all dish groups collapsed. */
+  const [expandedDish, setExpandedDish] = useState<string | null>(null);
   const [collapsedTables, setCollapsedTables] = useState<Set<string>>(() => new Set());
   const [bottomRailOpen, setBottomRailOpen] = useState(false);
   /**
@@ -682,6 +696,7 @@ export function KitchenStationPane({
           })
         ) : (
           byDish.map((dish) => {
+            const open = expandedDish === dish.menuItemId;
             const seedLine = dish.lines[0];
             const frac = groupSelectionFrac(dish.lines, selected);
             const selectTitle = frac.state === 'all' ? t.deselectAll : t.selectAll;
@@ -695,36 +710,51 @@ export function KitchenStationPane({
                   orderItem: seedLine.item,
                 })
               : null;
+            const toggleExpand = () =>
+              setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId));
             return (
-              <div
-                key={dish.menuItemId}
-                className={`grid w-full grid-cols-[22px_56px_3.1rem_auto_minmax(0,1fr)] items-center gap-x-3 border-b border-brand-border/50 px-2 py-2.5 ${groupHeaderShellClass(frac.state)}`}
-              >
-                <KitchenGroupSelectControl
-                  state={frac.state}
-                  disabled={frac.total === 0 || prepLocked || printBusy}
-                  title={selectTitle}
-                  onToggle={() => toggleGroupSelect(dish.lines)}
-                />
-                {thumbEntry ? (
-                  <KitchenDishThumbButton
-                    imageUrl={thumbEntry.image_url}
-                    emoji={thumbEntry.emoji || seedLine?.item.emoji || ''}
-                    ariaLabel={t.dishThumbOpenDetail}
-                    onOpen={() => {
-                      if (seedLine) openDishDetail(dish.menuItemId, seedLine.item);
-                    }}
+              <div key={dish.menuItemId}>
+                <div
+                  className={`grid w-full grid-cols-[22px_56px_3.1rem_auto_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-brand-border/50 px-2 py-2.5 ${groupHeaderShellClass(frac.state)}`}
+                >
+                  <KitchenGroupSelectControl
+                    state={frac.state}
+                    disabled={frac.total === 0 || prepLocked || printBusy}
+                    title={selectTitle}
+                    onToggle={() => toggleGroupSelect(dish.lines)}
                   />
-                ) : (
-                  <div className="h-14 w-14 rounded-lg bg-brand-border/40" aria-hidden />
-                )}
-                <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
-                <span className="shrink-0 pl-0.5 text-xl font-semibold tabular-nums text-brand-gold">
-                  {t.portionBadge.replace('{n}', String(dish.totalQty))}
-                </span>
-                <span className="min-w-0 truncate pl-0.5 text-2xl font-medium leading-tight text-brand-text">
-                  {dish.name}
-                </span>
+                  {thumbEntry ? (
+                    <KitchenDishThumbButton
+                      imageUrl={thumbEntry.image_url}
+                      emoji={thumbEntry.emoji || seedLine?.item.emoji || ''}
+                      ariaLabel={t.dishThumbOpenDetail}
+                      onOpen={() => {
+                        if (seedLine) openDishDetail(dish.menuItemId, seedLine.item);
+                      }}
+                    />
+                  ) : (
+                    <div className="h-14 w-14 rounded-lg bg-brand-border/40" aria-hidden />
+                  )}
+                  <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
+                  <span className="shrink-0 pl-0.5 text-xl font-semibold tabular-nums text-brand-gold">
+                    {t.portionBadge.replace('{n}', String(dish.totalQty))}
+                  </span>
+                  <button
+                    type="button"
+                    className="min-w-0 truncate pl-0.5 text-left text-2xl font-medium leading-tight text-brand-text hover:bg-brand-bg/70"
+                    onClick={toggleExpand}
+                  >
+                    {dish.name}
+                  </button>
+                  <button
+                    type="button"
+                    className="shrink-0 text-base text-brand-text-muted"
+                    onClick={toggleExpand}
+                  >
+                    {open ? t.collapseGroup : t.expandGroup}
+                  </button>
+                </div>
+                {open ? dish.lines.map((line) => renderLine(line, 'workbench-dish-l2')) : null}
               </div>
             );
           })

@@ -1,8 +1,8 @@
 'use client';
 
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import type { MenuItem, Language } from '@/types';
-import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { APPEND_CART_QTY_MAX, type MenuItem, type Language } from '@/types';
 import {
   MENU_IMAGE_OBJECT_FIT_CLASS,
   MENU_IMAGE_UNOPTIMIZED,
@@ -13,15 +13,21 @@ import { formatMenuCatalogItemLabel } from '@/lib/menu-item-display';
 import { formatCustomerMenuItemPrice } from '@/lib/menu-item-price-display';
 import { CUSTOMER_MENU_TYPE } from '@/lib/customer-menu-type';
 import {
+  MENU_ITEM_CARD_ACTION_GLYPH_CLASS,
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_BODY_CLASS,
+  MENU_ITEM_CARD_GOLD_ACTION_CLASS,
   MENU_ITEM_CARD_LIMIT_HINT_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_CLASS,
+  MENU_ITEM_CARD_QTY_DECREMENT_CLASS,
+  MENU_ITEM_CARD_QTY_PILL_CLASS,
+  MENU_ITEM_CARD_QTY_PILL_COLLAPSE_MS,
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
+  menuItemCardQtyTextClass,
 } from '@/lib/menu-item-card-layout';
 import { MENU_PAGE_MESSAGES } from '@/lib/i18n/menu-page-messages';
 import { MenuItemFlavorChips } from '@/components/menu/MenuItemFlavorChips';
@@ -41,33 +47,43 @@ interface Props {
   onDecrement: () => void;
 }
 
-type ActionLabels = { add: string; soldOut: string };
+type ActionLabels = {
+  add: string;
+  soldOut: string;
+  qtyEdit: string;
+  decrease: string;
+  increase: string;
+};
 
-export function MenuItemAddButton({
+/** Sole list gold circle — `+` at qty 0, the collapsed qty number, and the pill `+`. */
+function MenuItemGoldActionButton({
   ariaLabel,
   disabled,
   onClick,
+  children,
 }: {
   ariaLabel: string;
   disabled?: boolean;
   onClick: () => void;
+  children: ReactNode;
 }) {
   return (
     <button
       type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
+      onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-xl font-medium leading-none text-brand-on-gold shadow-[0_4px_10px_rgb(139_101_48_/_0.28)] transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none ${CUSTOMER_MENU_TYPE.itemAction}`}
+      className={`${MENU_ITEM_CARD_GOLD_ACTION_CLASS} ${CUSTOMER_MENU_TYPE.itemAction}`}
     >
-      +
+      {children}
     </button>
   );
 }
 
+/**
+ * Rest: one gold circle (`+` or qty) so price stays visible. Tap → −/qty/+ pill over
+ * the price row; collapses after idle, outside tap, or qty back to 0.
+ */
 function MenuItemCardAction({
   available,
   cartQty,
@@ -83,30 +99,83 @@ function MenuItemCardAction({
   onIncrement: () => void;
   onDecrement: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const pillOpen = expanded && available && cartQty > 0;
+
+  // Idle collapse keyed on the flag (not pillOpen) so a blocked first add or qty→0 also
+  // clears it; qty in deps restarts the window on every −/+.
+  useEffect(() => {
+    if (!expanded) return;
+    const timer = window.setTimeout(() => setExpanded(false), MENU_ITEM_CARD_QTY_PILL_COLLAPSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [expanded, cartQty]);
+
+  useEffect(() => {
+    if (!pillOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!pillRef.current?.contains(e.target as Node)) setExpanded(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [pillOpen]);
+
   if (!available) {
     return (
       <span className={`block text-right ${CUSTOMER_MENU_TYPE.itemSoldOut}`}>{labels.soldOut}</span>
     );
   }
 
+  if (pillOpen) {
+    return (
+      <div ref={pillRef} className={MENU_ITEM_CARD_QTY_PILL_CLASS}>
+        <button
+          type="button"
+          onClick={onDecrement}
+          aria-label={labels.decrease}
+          className={`${MENU_ITEM_CARD_QTY_DECREMENT_CLASS} ${CUSTOMER_MENU_TYPE.itemAction}`}
+        >
+          <span className={MENU_ITEM_CARD_ACTION_GLYPH_CLASS}>−</span>
+        </button>
+        <span
+          aria-live="polite"
+          className={`min-w-0 flex-1 text-center text-brand-text ${menuItemCardQtyTextClass(cartQty)}`}
+        >
+          {cartQty}
+        </span>
+        <MenuItemGoldActionButton
+          ariaLabel={labels.increase}
+          disabled={incrementDisabled || cartQty >= APPEND_CART_QTY_MAX}
+          onClick={onIncrement}
+        >
+          <span className={MENU_ITEM_CARD_ACTION_GLYPH_CLASS}>+</span>
+        </MenuItemGoldActionButton>
+      </div>
+    );
+  }
+
   if (cartQty > 0) {
     return (
-      <CartQtyStepper
-        density="compact"
-        qty={cartQty}
-        onDecrement={() => {
-          onDecrement();
-        }}
-        onIncrement={() => {
-          onIncrement();
-        }}
-        incrementDisabled={incrementDisabled}
-      />
+      <MenuItemGoldActionButton
+        ariaLabel={labels.qtyEdit.replace('{qty}', String(cartQty))}
+        onClick={() => setExpanded(true)}
+      >
+        <span className={menuItemCardQtyTextClass(cartQty)}>{cartQty}</span>
+      </MenuItemGoldActionButton>
     );
   }
 
   return (
-    <MenuItemAddButton ariaLabel={labels.add} disabled={incrementDisabled} onClick={onIncrement} />
+    <MenuItemGoldActionButton
+      ariaLabel={labels.add}
+      disabled={incrementDisabled}
+      onClick={() => {
+        onIncrement();
+        setExpanded(true);
+      }}
+    >
+      <span className={MENU_ITEM_CARD_ACTION_GLYPH_CLASS}>+</span>
+    </MenuItemGoldActionButton>
   );
 }
 
@@ -129,7 +198,13 @@ export function MenuItemCard({
   const label = formatMenuCatalogItemLabel(item, lang);
   const imageSrc = resolveMenuImageDisplayUrl(item.image_url);
   const t = MENU_PAGE_MESSAGES[lang];
-  const actionLabels: ActionLabels = { add: t.itemAdd, soldOut: t.itemSoldOut };
+  const actionLabels: ActionLabels = {
+    add: t.itemAdd,
+    soldOut: t.itemSoldOut,
+    qtyEdit: t.itemQtyEditAria,
+    decrease: t.itemDecreaseAria,
+    increase: t.itemIncreaseAria,
+  };
   const priceText = formatCustomerMenuItemPrice(item.price, {
     freeLabel: t.itemFree,
     treatZeroAsFree,

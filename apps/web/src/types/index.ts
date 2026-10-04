@@ -257,7 +257,8 @@ export interface OrdersAppendRequestBody {
  */
 export const APPEND_CART_MAX_LINES = 1000;
 export const APPEND_CART_QTY_MIN = 1;
-export const APPEND_CART_QTY_MAX = 99;
+/** Per-dish qty cap (cart line + append API), product-set 999; dish steppers pass it as `max`. */
+export const APPEND_CART_QTY_MAX = 999;
 /** Single dish note max length (UI + API); ~3 station-slip wrap lines. */
 export const APPEND_CART_NOTE_MAX_LEN = 120;
 

@@ -12,20 +12,22 @@ type Props = {
   qty: number;
   onDecrement: () => void;
   onIncrement: () => void;
-  /** Editable qty field (cart drawer / waiter). Omit for read-only display (menu list). */
+  /** Editable qty field (cart drawer / waiter). Omit for read-only display (detail / sushi review). */
   onQtyChange?: (qty: number) => void;
   qtyInputAriaLabel?: string;
   incrementDisabled?: boolean;
+  /** Upper bound: `+` disables and typed qty clamps at it (dish lines pass APPEND_CART_QTY_MAX). */
+  max?: number;
   /** Freeze − / qty / + (session-write mutex). */
   disabled?: boolean;
   /**
-   * Horizontal density. List MenuItemCard + cart drawer use `compact`.
+   * Horizontal density. Cart drawer uses `compact`.
    * Detail / waiter / sushi review keep `default`.
    */
   density?: CartQtyStepperDensity;
 };
 
-/** Compact − qty + stepper (menu list, cart drawer, waiter). */
+/** Compact − qty + stepper (cart drawer, detail, waiter, sushi review). */
 export function CartQtyStepper({
   qty,
   onDecrement,
@@ -33,6 +35,7 @@ export function CartQtyStepper({
   onQtyChange,
   qtyInputAriaLabel,
   incrementDisabled,
+  max,
   disabled = false,
   density = 'default',
 }: Props) {
@@ -52,6 +55,7 @@ export function CartQtyStepper({
           value={qty}
           onChange={onQtyChange}
           min={0}
+          max={max}
           clearZeroOnFocus
           disabled={disabled}
           aria-label={qtyInputAriaLabel ?? 'Quantity'}
@@ -65,7 +69,7 @@ export function CartQtyStepper({
       <button
         type="button"
         onClick={onIncrement}
-        disabled={disabled || incrementDisabled}
+        disabled={disabled || incrementDisabled || (max != null && qty >= max)}
         aria-label="Increase quantity"
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-border text-brand-text hover:bg-brand-gold/20 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
       >

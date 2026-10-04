@@ -1,6 +1,6 @@
 'use client';
 
-import { type CartItem, type Language } from '@/types';
+import { APPEND_CART_QTY_MAX, type CartItem, type Language } from '@/types';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -112,6 +112,7 @@ export function CartDrawer({
                 <div className="flex shrink-0 items-center gap-1">
                   <CartQtyStepper
                     qty={item.qty}
+                    max={APPEND_CART_QTY_MAX}
                     density="compact"
                     disabled={cartLocked}
                     onDecrement={() => {

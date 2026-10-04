@@ -140,6 +140,26 @@ body {
   gap: var(--mesa-menu-card-gap);
 }
 
+/* MenuItemCard expanded qty pill: grows leftward out of the 36px gold circle. */
+.mesa-menu-qty-pill {
+  animation: mesa-menu-qty-pill-reveal 160ms ease-out;
+}
+
+@keyframes mesa-menu-qty-pill-reveal {
+  from {
+    clip-path: inset(0 0 0 calc(100% - 2.25rem) round 9999px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 9999px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mesa-menu-qty-pill {
+    animation: none;
+  }
+}
+
 @container mesa-menu-catalog (min-width: 40rem) {
   .mesa-menu-item-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));

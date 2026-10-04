@@ -49,8 +49,9 @@ supabase/.branches/
 # supabase cli local cache
 supabase/.temp/
 
-# local agent / IDE
-.claude/
+# local agent / IDE (shared hooks in .claude/settings.json are tracked)
+.claude/*
+!.claude/settings.json
 
 # Turborepo
 .turbo

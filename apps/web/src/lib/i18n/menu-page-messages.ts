@@ -69,6 +69,10 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
   /** Menu card + button aria-label. */
   itemAdd: string;
   itemSoldOut: string;
+  /** Collapsed list qty button (opens −/+); `{qty}` = cart portions. */
+  itemQtyEditAria: string;
+  itemDecreaseAria: string;
+  itemIncreaseAria: string;
   noQuickNotes: string;
   /** Item detail close (CustomerMenuItemDetailSheet — phone fullscreen / lg dialog). */
   itemDetailClose: string;
@@ -159,6 +163,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: 'Nota (ex.: sem sal, sem cebola)',
     itemAdd: '+ Adicionar',
     itemSoldOut: 'Esgotado',
+    itemQtyEditAria: '{qty} no carrinho, alterar quantidade',
+    itemDecreaseAria: 'Diminuir quantidade',
+    itemIncreaseAria: 'Aumentar quantidade',
     noQuickNotes: 'Sem observacoes rapidas configuradas para este prato.',
     itemDetailClose: 'Fechar',
     itemOpenDetailAria: 'Ver detalhes de {name}',
@@ -249,6 +256,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: 'Notes (e.g. less salt, no onion)',
     itemAdd: '+ Add',
     itemSoldOut: 'Sold out',
+    itemQtyEditAria: '{qty} in cart, change quantity',
+    itemDecreaseAria: 'Decrease quantity',
+    itemIncreaseAria: 'Increase quantity',
     noQuickNotes: 'No quick notes configured for this dish.',
     itemDetailClose: 'Close',
     itemOpenDetailAria: 'View details for {name}',
@@ -339,6 +349,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: '备注（如：少盐、不要洋葱）',
     itemAdd: '+ 加入',
     itemSoldOut: '已售完',
+    itemQtyEditAria: '已加 {qty} 份，修改数量',
+    itemDecreaseAria: '减少一份',
+    itemIncreaseAria: '增加一份',
     noQuickNotes: '该菜品暂无快捷备注，请直接输入。',
     itemDetailClose: '关闭',
     itemOpenDetailAria: '查看{name}详情',
@@ -436,6 +449,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: 'Notas (p. ej. poca sal, sin cebolla)',
     itemAdd: '+ Añadir',
     itemSoldOut: 'Agotado',
+    itemQtyEditAria: '{qty} en el carrito, cambiar cantidad',
+    itemDecreaseAria: 'Reducir cantidad',
+    itemIncreaseAria: 'Aumentar cantidad',
     noQuickNotes: 'Este plato no tiene notas rápidas; escríbelas aquí.',
     itemDetailClose: 'Cerrar',
     itemOpenDetailAria: 'Ver detalles de {name}',
@@ -537,6 +553,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: 'Notes (ex. : peu de sel, sans oignon)',
     itemAdd: '+ Ajouter',
     itemSoldOut: 'Épuisé',
+    itemQtyEditAria: '{qty} dans le panier, modifier la quantité',
+    itemDecreaseAria: 'Diminuer la quantité',
+    itemIncreaseAria: 'Augmenter la quantité',
     noQuickNotes: 'Pas de notes rapides pour ce plat ; saisissez-les ici.',
     itemDetailClose: 'Fermer',
     itemOpenDetailAria: 'Voir les détails de {name}',
@@ -637,6 +656,9 @@ export const MENU_PAGE_MESSAGES: Record<Language, {
     cartNotePlaceholder: 'Notiz (z. B. wenig Salz, ohne Zwiebel)',
     itemAdd: '+ Hinzufügen',
     itemSoldOut: 'Ausverkauft',
+    itemQtyEditAria: '{qty} im Warenkorb, Menge ändern',
+    itemDecreaseAria: 'Menge verringern',
+    itemIncreaseAria: 'Menge erhöhen',
     noQuickNotes: 'Keine Schnellnotizen für dieses Gericht; bitte direkt eingeben.',
     itemDetailClose: 'Schließen',
     itemOpenDetailAria: 'Details zu {name} anzeigen',

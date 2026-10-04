@@ -72,6 +72,7 @@ import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryN
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
+import { useCustomerMenuSubmitFeedback } from '@/lib/customer-menu-submit-feedback';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { CustomerGuestOrderingNotice } from '@/components/menu/CustomerGuestOrderingNotice';
@@ -184,6 +185,7 @@ export function MenuOrderingController({
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCartState] = useState<CartItem[]>(initialCart ?? []);
   const [cartAddFeedbackKey, setCartAddFeedbackKey] = useState(0);
+  const { submitFeedback, signalSubmitFeedback } = useCustomerMenuSubmitFeedback();
   const cartRef = useRef(cart);
   cartRef.current = cart;
   const setCartTracked = useCallback(
@@ -536,10 +538,10 @@ export function MenuOrderingController({
 
   const completeGuestSubmit = useCallback(() => {
     completeGuestOrderSubmit({
-      orderSuccessMessage: t.orderSuccess,
       clearCart: clearSubmitCart,
+      signalSubmitted: () => signalSubmitFeedback(t.orderSuccess),
     });
-  }, [clearSubmitCart, t.orderSuccess]);
+  }, [clearSubmitCart, signalSubmitFeedback, t.orderSuccess]);
 
   const completeStaffAssistedSubmit = useCallback(() => {
     if (!staffAssisted) return;
@@ -977,6 +979,7 @@ export function MenuOrderingController({
       <CustomerMenuFooter
         {...footer}
         cartAddFeedbackKey={cartAddFeedbackKey}
+        submitFeedback={submitFeedback}
         labels={{
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,

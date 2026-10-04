@@ -36,6 +36,13 @@
   --auth-pattern-opacity: 0.04;
   /* Sole customer-menu bottom inset (dock / sheet / detail / list). Needs viewportFit: cover. */
   --mesa-customer-menu-bottom-safe: env(safe-area-inset-bottom, 0px);
+  /* Sole toast stack bottom offset; lifted above any mounted bottom dock. */
+  --mesa-toast-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Customer menu footer dock (h-14 + inset) — toasts float above, never on the CTA. */
+:root:has([data-mesa-bottom-dock]) {
+  --mesa-toast-bottom: calc(3.5rem + var(--mesa-customer-menu-bottom-safe) + 0.75rem);
 }
 
 [data-theme='light'] {

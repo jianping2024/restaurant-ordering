@@ -6,6 +6,7 @@ import { describe, it } from 'node:test';
 import { CUSTOMER_MENU_TYPE } from './customer-menu-type';
 import {
   customerMenuBottomBarCountBadgeClass,
+  customerMenuBottomBarIconBoxClass,
   customerMenuBottomBarDockClass,
   customerMenuBottomBarIconClass,
   customerMenuBottomBarIconGapClass,
@@ -94,7 +95,7 @@ describe('customerMenuBottomBar dock stick', () => {
 describe('customer menu bottom bar visual tokens', () => {
   it('uses enlarged icons and consistent icon-to-text spacing', () => {
     assert.match(customerMenuBottomBarIconClass, /h-8 w-8/);
-    assert.equal(customerMenuBottomBarIconGapClass, 'gap-4');
+    assert.equal(customerMenuBottomBarIconGapClass, 'gap-2');
   });
 
   it('uses shared footer primary action typography and sole badge chip class', () => {
@@ -105,6 +106,13 @@ describe('customer menu bottom bar visual tokens', () => {
     assert.match(customerMenuBottomBarCountBadgeClass, /min-w-5/);
     assert.match(customerMenuBottomBarCountBadgeClass, /text-\[11px\]/);
     assert.doesNotMatch(customerMenuBottomBarCountBadgeClass, /h-\[18px\]|text-\[10px\]/);
+  });
+
+  it('keeps the badge inside a 44px icon box so overflow-hidden summary never clips it', () => {
+    assert.match(customerMenuBottomBarIconBoxClass, /\bh-11 w-11\b/);
+    assert.match(customerMenuBottomBarIconBoxClass, /\brelative\b/);
+    assert.match(customerMenuBottomBarCountBadgeClass, /\bright-0 top-0\b/);
+    assert.doesNotMatch(customerMenuBottomBarCountBadgeClass, /-right-|-top-/);
   });
 });
 
@@ -127,7 +135,7 @@ describe('one representation — customer menu bottom inset + badge', () => {
     assert.match(footer, /FooterIconCountBadge/);
     assert.match(
       footer,
-      /function OrderedSummary[\s\S]*?<FooterIconCountBadge count=\{submittedCount\} \/>[\s\S]*?<FooterAmount/,
+      /function OrderedSummary[\s\S]*?<FooterIconSlot[\s\S]*?count=\{submittedCount\}[\s\S]*?<FooterAmount/,
     );
 
     const sheet = readFileSync(join(webSrc, 'components/menu/CustomerMenuBottomSheet.tsx'), 'utf8');

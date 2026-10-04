@@ -11,7 +11,6 @@ import {
   customerMenuCategoryRailClass,
   customerMenuDualPaneRootClass,
   customerMenuFixedShellDockClass,
-  customerMenuHeaderTrailingSlotClass,
   customerMenuNoticeTabShellClass,
   customerMenuShellRootClass,
 } from './customer-menu-chrome-layout';
@@ -33,10 +32,6 @@ describe('customerMenuChromeLayout', () => {
     assert.match(customerMenuFixedShellDockClass, /-translate-x-1\/2/);
     assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_SHELL_WIDTH_CLASS));
     assert.ok(customerMenuNoticeTabShellClass.includes(CUSTOMER_MENU_NOTICE_TAB_TOP_CLASS));
-  });
-
-  it('keeps header trailing controls from shrinking', () => {
-    assert.equal(customerMenuHeaderTrailingSlotClass, 'shrink-0');
   });
 
   it('keeps notice tab below identity header (no top category strip)', () => {

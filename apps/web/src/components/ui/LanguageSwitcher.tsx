@@ -8,7 +8,8 @@ import {
   uiLanguageOption,
   type UILanguage,
 } from '@/lib/i18n';
-import { appearanceChromeButtonClass } from '@/lib/appearance-chrome';
+import { appearanceChromeButtonClass, appearanceChromeGlyphClass } from '@/lib/appearance-chrome';
+import { GlobeIcon } from '@/components/ui/appearance-icons';
 
 function OptionRows({
   lang,
@@ -60,9 +61,10 @@ type Props = {
   /** Personal settings row: show current language name beside the globe button. */
   showCurrentLanguage?: boolean;
   /**
-   * Default `icon` (globe) is the sole customer/landing/auth face.
+   * `icon`: standalone globe (landing, personal settings).
+   * `segment`: globe + short code inside AppearanceChromeGroup (customer header, auth).
    */
-  layout?: 'icon' | 'label';
+  layout?: 'icon' | 'segment';
 };
 
 /**
@@ -117,14 +119,8 @@ export function LanguageSwitcherIconChrome({
         aria-haspopup="listbox"
         aria-label={current.nativeName}
       >
-        {layout === 'label' ? (
-          <>
-            {current.shortLabel}
-            <span aria-hidden>▾</span>
-          </>
-        ) : (
-          '🌐'
-        )}
+        <GlobeIcon className={appearanceChromeGlyphClass(layout)} />
+        {layout === 'segment' ? <span aria-hidden>{current.shortLabel}</span> : null}
       </button>
       {open ? (
         <div

@@ -87,7 +87,7 @@ export function ToastContainer() {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed bottom-4 right-4 z-[2147483647] flex flex-col items-end gap-2 pointer-events-none">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[var(--mesa-toast-bottom)] z-[2147483647] flex flex-col items-center gap-2 px-4">
       {items.map(item => (
         <div key={item.id} className="pointer-events-auto">
           <Toast message={item.message} type={item.type} onClose={() => remove(item.id)} />

@@ -31,18 +31,29 @@ export const customerMenuBottomBarSummarySlotClass =
 
 export const customerMenuBottomBarActionSlotClass = 'min-w-0 shrink-0';
 
-/** Icon + text block spacing (draft cart / ordered bag). */
-export const customerMenuBottomBarIconGapClass = 'gap-4';
+/** Icon box + text spacing (draft cart / ordered bag); box already pads 12px right of the glyph. */
+export const customerMenuBottomBarIconGapClass = 'gap-2';
 
 export const customerMenuBottomBarIconClass = 'h-8 w-8 shrink-0 text-brand-ink';
 
 /**
+ * Sole 44×44 box around a footer icon (cart / ordered / round): icon sits
+ * bottom-left, badge top-right — the badge stays inside the box so the summary
+ * slot's `overflow-hidden` (amount truncate) never clips it.
+ */
+export const customerMenuBottomBarIconBoxClass =
+  'relative flex h-11 w-11 shrink-0 items-end justify-start';
+
+/** Sole footer icon pop (cart qty rise + submit success); keyframes in globals.css. */
+export const customerMenuBottomBarIconPopClass = 'mesa-cart-badge-pop';
+
+/**
  * Sole qty badge chip on footer icons (cart / ordered / round).
- * Sized for `customerMenuBottomBarIconClass` (h-8): h-5 / text-[11px] so
- * single digits and `99+` read clearly against the outline icon.
+ * Pinned to {@link customerMenuBottomBarIconBoxClass} top-right (no negative
+ * offset); card-colored ring separates it from the icon stroke.
  */
 export const customerMenuBottomBarCountBadgeClass =
-  'absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-gold px-1 text-[11px] font-bold leading-none text-brand-on-gold';
+  'absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-gold px-1 text-[11px] font-bold leading-none text-brand-on-gold ring-2 ring-brand-card';
 
 /**
  * Sole footer badge count label — caps at 99+ so long counts never stretch the bar.
@@ -58,6 +69,10 @@ const customerMenuBottomBarPrimaryActionBaseClass =
 
 export const customerMenuBottomBarPrimaryActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} transition-colors bg-brand-gold text-brand-on-gold hover:bg-brand-gold-light active:scale-[0.98]`;
+
+/** Sole submit success pill in the primary action slot (replaces the success toast). */
+export const customerMenuBottomBarSuccessActionClass =
+  `${customerMenuBottomBarPrimaryActionBaseClass} min-w-0 gap-1.5 mesa-alert-success`;
 
 export const customerMenuBottomBarDisabledActionClass =
   `${customerMenuBottomBarPrimaryActionBaseClass} pointer-events-none bg-brand-border/20 text-brand-text-muted`;

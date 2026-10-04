@@ -1,8 +1,7 @@
 'use client';
 
 import { ProductLogo } from '@/components/ui/ProductLogo';
-import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { AppearanceChromeGroup } from '@/components/ui/AppearanceChromeGroup';
 import { AuthIconTextRow } from '@/components/auth/AuthIconTextRow';
 import { AuthShieldIcon } from '@/components/auth/auth-icons';
 import {
@@ -55,9 +54,8 @@ function AuthBrandMark() {
 
 function AppearanceChrome({ className }: { className?: string }) {
   return (
-    <div className={className ?? 'mb-4 flex items-center justify-end gap-2'}>
-      <LanguageSwitcherIconChrome />
-      <ThemeToggle />
+    <div className={className ?? 'mb-4 flex items-center justify-end'}>
+      <AppearanceChromeGroup />
     </div>
   );
 }
@@ -150,7 +148,7 @@ function SplitLoginShell({
         }}
       >
         {showAppearanceChrome ? (
-          <AppearanceChrome className="absolute right-[18px] top-[18px] z-10 flex items-center gap-2 min-[821px]:right-6 min-[821px]:top-[18px]" />
+          <AppearanceChrome className="absolute right-[18px] top-[18px] z-10 flex items-center min-[821px]:right-6 min-[821px]:top-[18px]" />
         ) : null}
 
         <div className="mx-auto w-full max-w-md min-[821px]:mx-0 min-[821px]:max-w-none">

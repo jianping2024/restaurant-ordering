@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__Claude_Browser__.*|mcp__claude-in-chrome__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/agent-gates/gate.sh\" hook-browser",
+            "timeout": 30,
+            "statusMessage": "Checking redundancy-scan gate"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/agent-gates/gate.sh\" hook-commit",
+            "timeout": 30,
+            "statusMessage": "Checking commit gate"
+          }
+        ]
+      }
+    ]
+  }
+}

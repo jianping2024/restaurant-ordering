@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import {
   addToConsumerRoster,
+  availableConsumerNamesForRow,
   collectActiveConsumerNames,
   filterConsumerNameOptions,
   namesUsedOnOtherDishRows,
@@ -24,13 +25,13 @@ describe('addToConsumerRoster', () => {
 });
 
 describe('collectActiveConsumerNames', () => {
-  it('collects unique names from all dish rows with at least two characters', () => {
+  it('collects unique non-empty names from all dish rows, single characters included', () => {
     assert.deepEqual(
       collectActiveConsumerNames({
         buffet: [row('b1', 'John'), row('b2', 'Johney')],
         drink: [row('d1', 'J'), row('d2', '')],
       }),
-      ['John', 'Johney'],
+      ['J', 'John', 'Johney'],
     );
   });
 
@@ -106,6 +107,29 @@ describe('suggestConsumerNamesForRow', () => {
         query: 'J',
       }),
       ['John'],
+    );
+  });
+});
+
+describe('availableConsumerNamesForRow with ticket ids', () => {
+  it('still hides a name another unpaid row on the dish already uses, even with party ids', () => {
+    const a = { ...row('r1', 'J'), partyId: 'a0000000-0000-4000-8000-000000000001' };
+    const b = { ...row('r2', ''), partyId: 'a0000000-0000-4000-8000-000000000002' };
+    assert.deepEqual(
+      availableConsumerNamesForRow({ roster: ['J', 'W'], dishRows: [a, b], rowId: 'r2' }),
+      ['W'],
+    );
+  });
+
+  it('keeps offering a name whose other ticket on the dish is paid-locked', () => {
+    const paid = { ...row('r1', 'J'), partyId: 'a0000000-0000-4000-8000-000000000001', paidLocked: true };
+    assert.deepEqual(
+      availableConsumerNamesForRow({
+        roster: ['J', 'W'],
+        dishRows: [paid, row('r2', '')],
+        rowId: 'r2',
+      }),
+      ['J', 'W'],
     );
   });
 });

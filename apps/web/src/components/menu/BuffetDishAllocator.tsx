@@ -36,6 +36,7 @@ import {
 export type BuffetDishAllocatorLabels = ByItemLineStatusLabels & {
   addConsumer: string;
   namePlaceholder: string;
+  typeNewName: string;
   remove: string;
   buffetAdultQtyLabel: string;
   buffetChildQtyLabel: string;
@@ -181,6 +182,7 @@ export function BuffetDishAllocator({
                     rowId: row.id,
                   })}
                   placeholder={labels.namePlaceholder}
+                  typeNewLabel={labels.typeNewName}
                   readOnly={rowLock.nameReadOnly}
                   onChange={(name) => updateRow(row.id, { name })}
                   onCommit={(name, fromList) => onRememberConsumerName(name, fromList)}

@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import {
-  filterConsumerNameOptions,
-  shouldShowConsumerNameMenu,
-} from '@/lib/consumer-name-roster';
+import { filterConsumerNameOptions } from '@/lib/consumer-name-roster';
 
 describe('ConsumerNameCombobox suggestion helpers', () => {
-  it('returns no options for empty query', () => {
-    assert.deepEqual(filterConsumerNameOptions(['lucy', 'john'], ''), []);
+  it('lists every option for empty query', () => {
+    assert.deepEqual(filterConsumerNameOptions(['lucy', 'john'], ''), ['lucy', 'john']);
+    assert.deepEqual(filterConsumerNameOptions(['lucy'], '  '), ['lucy']);
   });
 
   it('returns only partial substring matches', () => {
@@ -21,14 +19,5 @@ describe('ConsumerNameCombobox suggestion helpers', () => {
 
   it('returns empty when nothing matches', () => {
     assert.deepEqual(filterConsumerNameOptions(['lucy', 'john'], 'zzz'), []);
-  });
-
-  it('is false without query or matches', () => {
-    assert.equal(shouldShowConsumerNameMenu(['lucy'], ''), false);
-    assert.equal(shouldShowConsumerNameMenu(['lucy'], 'zzz'), false);
-  });
-
-  it('is true only when matches exist', () => {
-    assert.equal(shouldShowConsumerNameMenu(['lucy', 'john'], 'lu'), true);
   });
 });

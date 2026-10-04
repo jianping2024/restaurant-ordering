@@ -7,7 +7,7 @@ alwaysApply: true
 
 # Redundancy cleanup before UAT (hard gate)
 
-**每一个需求：编码完成 → 清冗余 → 才允许开始测试（UAT）→ 再 build / commit / 合进 main。**  
+**每一个需求：编码完成 → 清冗余 → 才允许开始测试（UAT）→ 再 lint+typecheck / commit / 合进 main。**  
 禁止「先测着，冗余以后再说」；也禁止「功能先合，清冗余另开分支」。
 
 ## Order (product requirements)
@@ -15,8 +15,9 @@ alwaysApply: true
 1. Implement  
 2. **This gate — 清冗余**（测试开始前）  
 3. Functional UAT when `uat-before-delivery.mdc` applies  
-4. Scoped production build (`lint-build-before-commit.mdc`)  
+4. Scoped lint + typecheck (`gate.sh check` — `scripts/agent-gates/README.md`)  
 5. `git commit` / merge when Will asks  
+6. Production build + tests on **push** (`gate.sh build` + targeted tests)  
 
 If coding changes again after UAT (bugfix): **re-run this gate before re-testing**.
 

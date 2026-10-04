@@ -715,7 +715,7 @@ export function KitchenStationPane({
             return (
               <div key={dish.menuItemId}>
                 <div
-                  className={`grid w-full grid-cols-[22px_56px_3.1rem_auto_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-brand-border/50 px-2 py-2.5 ${groupHeaderShellClass(frac.state)}`}
+                  className={`grid w-full grid-cols-[22px_56px_4.5rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-brand-border/50 px-2 py-2.5 ${groupHeaderShellClass(frac.state)}`}
                 >
                   <KitchenGroupSelectControl
                     state={frac.state}
@@ -735,10 +735,12 @@ export function KitchenStationPane({
                   ) : (
                     <div className="h-14 w-14 rounded-lg bg-brand-border/40" aria-hidden />
                   )}
-                  <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
-                  <span className="shrink-0 pl-0.5 text-xl font-semibold tabular-nums text-brand-gold">
-                    {t.portionBadge.replace('{n}', String(dish.totalQty))}
-                  </span>
+                  <div className="flex w-[4.5rem] flex-col items-center gap-1">
+                    <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
+                    <span className="whitespace-nowrap text-base font-semibold leading-none tabular-nums text-brand-gold">
+                      {t.portionBadge.replace('{n}', String(dish.totalQty))}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     className="min-w-0 truncate pl-0.5 text-left text-2xl font-medium leading-tight text-brand-text hover:bg-brand-bg/70"

@@ -217,6 +217,7 @@ export async function POST(
   return NextResponse.json({
     ok: true,
     bill_split_id: submitResult.bill_split_id,
+    session_id: submitResult.session_id,
     result: submitResult.result,
     total_amount: submitResult.total_amount,
   });

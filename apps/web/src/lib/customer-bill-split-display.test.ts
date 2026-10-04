@@ -4,7 +4,7 @@ import {
   billSplitDisplayResults,
   buildCustomerSplitDisplayRows,
   customerBillCallAmount,
-  initialPersistedSplitResult,
+  submittedSplitResult,
 } from './customer-bill-split-display';
 
 describe('billSplitDisplayResults', () => {
@@ -51,10 +51,10 @@ describe('billSplitDisplayResults', () => {
   });
 });
 
-describe('initialPersistedSplitResult', () => {
+describe('submittedSplitResult', () => {
   it('returns null during continuation editing', () => {
     assert.equal(
-      initialPersistedSplitResult(
+      submittedSplitResult(
         [{ name: 'Ana', amount: 25.45, paid: true }],
         false,
       ),
@@ -64,7 +64,7 @@ describe('initialPersistedSplitResult', () => {
 
   it('hydrates snapshot for submitted success screen', () => {
     const rows = [{ name: 'Ana', amount: 25.45, paid: true }];
-    assert.deepEqual(initialPersistedSplitResult(rows, true), rows);
+    assert.deepEqual(submittedSplitResult(rows, true), rows);
   });
 });
 

@@ -9,7 +9,10 @@ export async function requestCheckoutRequest(params: {
   result: SplitResult[];
   customerNif?: string | null;
   allowPartialByItem?: boolean;
-}): Promise<{ ok: true; bill_split_id: string; result: SplitResult[] } | { ok: false; error: string }> {
+}): Promise<
+  | { ok: true; bill_split_id: string; session_id: string; result: SplitResult[] }
+  | { ok: false; error: string }
+> {
   const { slug, tableId, splitMode, persons, result, customerNif, allowPartialByItem } = params;
   try {
     const res = await fetch(
@@ -30,15 +33,17 @@ export async function requestCheckoutRequest(params: {
     );
     const data = (await res.json().catch(() => ({}))) as {
       bill_split_id?: string;
+      session_id?: string;
       error?: string;
       result?: SplitResult[];
     };
-    if (!res.ok || !data.bill_split_id) {
+    if (!res.ok || !data.bill_split_id || !data.session_id) {
       return { ok: false, error: data.error || 'checkout_request_failed' };
     }
     return {
       ok: true,
       bill_split_id: data.bill_split_id,
+      session_id: data.session_id,
       result: (data.result || result) as SplitResult[],
     };
   } catch {

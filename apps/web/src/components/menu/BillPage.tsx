@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import {
   customerBillCallAmount,
-  initialPersistedSplitResult,
+  submittedSplitResult,
 } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
@@ -117,7 +117,7 @@ export function BillPage({
     commitOrders,
     lastSyncedAt,
     setCallBillBusy,
-    markCheckoutSubmitted,
+    commitSubmittedCheckout,
   } = useCustomerBillReadModel(
     {
       orders: initialOrders,
@@ -137,11 +137,9 @@ export function BillPage({
   /** Live session from bill sync — never keep SSR session id after table reopen. */
   const activeSessionId = liveSessionId ?? sessionId;
 
-  const [persistedResult, setPersistedResult] = useState<SplitResult[] | null>(() =>
-    initialPersistedSplitResult(
-      existingSplit?.result as SplitResult[] | null,
-      submitted,
-    ),
+  const persistedResult = useMemo(
+    () => submittedSplitResult(liveSplit?.result as SplitResult[] | null, submitted),
+    [liveSplit?.result, submitted],
   );
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>>({});
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
@@ -162,13 +160,6 @@ export function BillPage({
   useEffect(() => {
     setCallBillBusy(callBillBusy);
   }, [callBillBusy, setCallBillBusy]);
-
-  useEffect(() => {
-    if (!submitted) return;
-    setPersistedResult(
-      initialPersistedSplitResult(liveSplit?.result as SplitResult[] | null, true),
-    );
-  }, [submitted, liveSplit?.result]);
 
   const detailLines = useMemo(
     () => checkoutLinesFromOrders(orders, lang, itemCodeByMenuId),
@@ -196,7 +187,6 @@ export function BillPage({
     restaurant,
     tableId,
     displayName,
-    sessionId: activeSessionId,
     orders,
     partyMemberCount,
     lastSyncedAt,
@@ -205,12 +195,7 @@ export function BillPage({
     splitDraft,
     customerNifInput,
     checkoutRedirectHref,
-    onSubmitSuccess: (result) => {
-      setPersistedResult(result);
-    },
-    onCustomerSubmitSuccess: () => {
-      markCheckoutSubmitted();
-    },
+    onCustomerSubmitSuccess: commitSubmittedCheckout,
     onBusyChange: setCallBillBusyState,
     showToast,
     messages: {

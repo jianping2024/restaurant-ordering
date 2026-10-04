@@ -22,8 +22,8 @@ export function billSplitDisplayResults(params: {
   return draftResults;
 }
 
-/** Hydrate persisted snapshot only for the post-submit success screen. */
-export function initialPersistedSplitResult(
+/** Post-submit success screen rows: read-model split result only while submitted. */
+export function submittedSplitResult(
   existingResult: SplitResult[] | null | undefined,
   checkoutSubmitted: boolean,
 ): SplitResult[] | null {

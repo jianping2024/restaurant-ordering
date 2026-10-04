@@ -22,7 +22,7 @@ import { normalizePortugueseNif } from '@/lib/pt-nif';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import type { BillOrdersRefresh } from '@/lib/use-customer-bill-read-model';
-import type { SplitMode, SplitPerson, SplitResult } from '@/types';
+import type { BillSplit, SplitMode, SplitPerson } from '@/types';
 import type { Order } from '@/types';
 
 export type CheckoutRequestSubmitPhase = 'idle' | 'submitting' | 'redirecting';
@@ -54,7 +54,6 @@ type Params = {
   restaurant: { id: string; slug: string };
   tableId: string;
   displayName: string;
-  sessionId: string | null;
   orders: Order[];
   partyMemberCount: number;
   lastSyncedAt: number | null;
@@ -63,8 +62,8 @@ type Params = {
   splitDraft: SplitDraftSlice;
   customerNifInput: string;
   checkoutRedirectHref: string | null;
-  onSubmitSuccess: (result: SplitResult[]) => void;
-  onCustomerSubmitSuccess: () => void;
+  /** Customer success: commit the server-accepted split as the read-model truth. */
+  onCustomerSubmitSuccess: (submittedSplit: BillSplit) => void;
   onBusyChange?: (busy: boolean) => void;
   showToast: (message: string, kind: 'error' | 'success') => void;
   messages: Messages;
@@ -84,7 +83,6 @@ export function useCheckoutRequestSubmit(params: Params) {
     restaurant,
     tableId,
     displayName,
-    sessionId,
     orders,
     partyMemberCount,
     lastSyncedAt,
@@ -93,7 +91,6 @@ export function useCheckoutRequestSubmit(params: Params) {
     splitDraft,
     customerNifInput,
     checkoutRedirectHref,
-    onSubmitSuccess,
     onCustomerSubmitSuccess,
     onBusyChange,
     showToast,
@@ -204,24 +201,20 @@ export function useCheckoutRequestSubmit(params: Params) {
         return;
       }
 
-      onSubmitSuccess(requestResult.result);
-
-      if (sessionId) {
-        const optimistic = buildOptimisticRequestedBillSplit({
-          restaurantId: restaurant.id,
-          sessionId,
-          tableId,
-          displayName,
-          billSplitId: requestResult.bill_split_id,
-          splitMode: checkoutIntentFromDraftSplitMode(splitDraft.splitMode),
-          persons,
-          result: requestResult.result,
-          totalAmount: deriveBillView(fresh.orders).total,
-          customerNif: normalizePortugueseNif(customerNifInput) || null,
-          orderIds: fresh.orders.map((order) => order.id),
-        });
-        stageCheckoutRequestForQueue(optimistic);
-      }
+      const submittedSplit = buildOptimisticRequestedBillSplit({
+        restaurantId: restaurant.id,
+        sessionId: requestResult.session_id,
+        tableId,
+        displayName,
+        billSplitId: requestResult.bill_split_id,
+        splitMode: checkoutIntentFromDraftSplitMode(splitDraft.splitMode),
+        persons,
+        result: requestResult.result,
+        totalAmount: deriveBillView(fresh.orders).total,
+        customerNif: normalizePortugueseNif(customerNifInput) || null,
+        orderIds: fresh.orders.map((order) => order.id),
+      });
+      stageCheckoutRequestForQueue(submittedSplit);
 
       if (checkoutRedirectHref) {
         redirectStartedAtRef.current = Date.now();
@@ -236,7 +229,7 @@ export function useCheckoutRequestSubmit(params: Params) {
         return;
       }
 
-      onCustomerSubmitSuccess();
+      onCustomerSubmitSuccess(submittedSplit);
     } catch {
       showToast(messages.actionFailed, 'error');
     } finally {
@@ -251,12 +244,10 @@ export function useCheckoutRequestSubmit(params: Params) {
     displayName,
     messages,
     onCustomerSubmitSuccess,
-    onSubmitSuccess,
     resolveFreshBill,
     restaurant.id,
     restaurant.slug,
     router,
-    sessionId,
     setPhaseSafe,
     showToast,
     splitDraft,

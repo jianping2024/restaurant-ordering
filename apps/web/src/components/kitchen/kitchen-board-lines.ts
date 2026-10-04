@@ -54,6 +54,13 @@ export function lineOrderedAtMs(order: Order, item: OrderItem): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
+/** Sole «urgent wait» threshold (minutes) for row + group-header wait tint. */
+export const KITCHEN_WAIT_HOT_MINUTES = 15;
+
+export function isKitchenWaitHot(waitMin: number): boolean {
+  return waitMin >= KITCHEN_WAIT_HOT_MINUTES;
+}
+
 /** Whole minutes waited since ordered-at (floor, min 0). */
 export function lineWaitMinutes(orderedAtMs: number, nowMs: number): number {
   if (!orderedAtMs) return 0;
@@ -140,20 +147,46 @@ export function groupBottomRailByStatus(lines: KitchenBoardLine[]): {
   return { cooking, ready };
 }
 
-export function sumLineQty(lines: KitchenBoardLine[]): number {
+export function sumLineQty(lines: readonly KitchenBoardLine[]): number {
   return lines.reduce((sum, l) => sum + (Number(l.item.qty) || 0), 0);
+}
+
+/** Sole group-header summary (by-table «N 道», by-dish «N 桌»; qty = portions, not line count). */
+export type KitchenGroupSummary = {
+  dishCount: number;
+  tableCount: number;
+  qty: number;
+  longestWaitMin: number;
+};
+
+export function summarizeKitchenGroup(
+  lines: readonly KitchenBoardLine[],
+  nowMs: number,
+): KitchenGroupSummary {
+  const dishes = new Set<string>();
+  const tables = new Set<string>();
+  let longestWaitMin = 0;
+  for (const line of lines) {
+    dishes.add(line.menuItemId);
+    tables.add(line.tableId);
+    longestWaitMin = Math.max(longestWaitMin, lineWaitMinutes(line.orderedAtMs, nowMs));
+  }
+  return {
+    dishCount: dishes.size,
+    tableCount: tables.size,
+    qty: sumLineQty([...lines]),
+    longestWaitMin,
+  };
 }
 
 export type DishAggregate = {
   menuItemId: string;
   name: string;
-  /** Workbench portion total for this dish (qty sum; not order-line count). */
-  totalQty: number;
   /** Order lines for by-dish L2 list + group select / prep (no L1 table-summary fields). */
   lines: KitchenBoardLine[];
 };
 
-/** Group workbench lines by dish; portion total for L1, lines for L2 (no L1 table summary). */
+/** Group workbench lines by dish; lines feed L2 + `summarizeKitchenGroup` for the L1 header. */
 export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[] {
   const byId = new Map<string, DishAggregate>();
   for (const line of lines) {
@@ -162,12 +195,10 @@ export function aggregateLinesByDish(lines: KitchenBoardLine[]): DishAggregate[]
       agg = {
         menuItemId: line.menuItemId,
         name: line.displayName,
-        totalQty: 0,
         lines: [],
       };
       byId.set(line.menuItemId, agg);
     }
-    agg.totalQty += Number(line.item.qty) || 0;
     agg.lines.push(line);
   }
   return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
@@ -260,6 +291,8 @@ export type PrepTrayCard = {
   /** Longest wait first. */
   chips: PrepTrayChip[];
   selectedCount: number;
+  /** Distinct tables among selected chips (never the chip count). */
+  selectedTableCount: number;
   selectedQty: number;
   longestWaitMin: number;
 };
@@ -283,6 +316,7 @@ export function buildPrepTrayCards(
         seedLine: line,
         chips: [],
         selectedCount: 0,
+        selectedTableCount: 0,
         selectedQty: 0,
         longestWaitMin: 0,
       };
@@ -306,6 +340,9 @@ export function buildPrepTrayCards(
   }
   const cards = Array.from(byDish.values());
   for (const card of cards) {
+    card.selectedTableCount = new Set(
+      card.chips.filter((chip) => chip.selected).map((chip) => chip.tableId),
+    ).size;
     card.chips.sort(
       (a, b) => b.waitMin - a.waitMin || a.tableDisplay.localeCompare(b.tableDisplay),
     );

@@ -121,15 +121,15 @@ export function KitchenPrepTray({
                         {t.portionBadge.replace('{n}', String(card.selectedQty))}
                       </span>
                       <span className="shrink-0 text-lg text-brand-text-muted">
-                        {t.trayTableCount.replace('{n}', String(card.selectedCount))}
+                        {t.tableCount.replace('{n}', String(card.selectedTableCount))}
                       </span>
                       <span className="shrink-0 text-lg tabular-nums text-brand-text-muted">
-                        {t.trayLongestWait.replace('{n}', String(card.longestWaitMin))}
+                        {t.longestWait.replace('{n}', String(card.longestWaitMin))}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-baseline gap-x-4 text-lg text-brand-text-muted">
                       <span className="tabular-nums">
-                        {t.traySelectedOf
+                        {t.selectedOf
                           .replace('{n}', String(card.selectedCount))
                           .replace('{m}', String(card.chips.length))}
                       </span>

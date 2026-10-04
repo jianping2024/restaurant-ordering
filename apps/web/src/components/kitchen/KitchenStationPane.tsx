@@ -22,6 +22,7 @@ import {
   groupBottomRailByStatus,
   groupLinesByTable,
   groupSelectionFrac,
+  isKitchenWaitHot,
   lineNoteKey,
   lineSelectionKey,
   lineWaitMinutes,
@@ -29,10 +30,12 @@ import {
   removeTrayKeys,
   setTrayKeysSelected,
   sumLineQty,
+  summarizeKitchenGroup,
   toggleGroupPrepSelection,
   toggleTrayChip,
   type GroupSelectionFrac,
   type KitchenBoardLine,
+  type KitchenGroupSummary,
   type PrepTrayCard,
   type PrepTrayState,
 } from '@/components/kitchen/kitchen-board-lines';
@@ -86,9 +89,6 @@ type Props = {
   printBusy: boolean;
 };
 
-const GROUP_FRAC_SLOT_CLASS =
-  'inline-flex w-[3.1rem] shrink-0 items-baseline justify-center rounded-full py-1 font-bold tabular-nums leading-none tracking-tight';
-
 /** Sole workbench group select-all control (tri-state). Name/expand stay separate. */
 function KitchenGroupSelectControl({
   state,
@@ -134,30 +134,99 @@ function KitchenGroupSelectControl({
   );
 }
 
-/** Sole workbench group n/m badge — order lines only; always mounted (0/m when empty). */
-function KitchenGroupFracBadge({
+/** Sole workbench row indent class — geometry lives in `globals.css` (container query). */
+const KITCHEN_GROUP_ROW_INDENT_CLASS = 'mesa-kitchen-group-row pr-2';
+
+/**
+ * Sole workbench group header (by-table + by-dish): chevron · select · optional dish thumb ·
+ * title + one-line summary (`N 道|桌 · 共 N 份 · 最久 N 分`) · right-hand «已选 n/m».
+ * The thumb belongs to the dish, so only the by-dish header mounts it; by-table rows carry theirs.
+ */
+function KitchenGroupHeader({
+  open,
   frac,
-  ariaLabel,
+  selectDisabled,
+  title,
+  countLabel,
+  summary,
+  thumb,
+  t,
+  onToggleOpen,
+  onToggleSelect,
 }: {
+  open: boolean;
   frac: GroupSelectionFrac;
-  ariaLabel: string;
+  selectDisabled: boolean;
+  title: string;
+  /** Distinct-count part of the summary (`dishCount` for tables, `tableCount` for dishes). */
+  countLabel: string;
+  summary: KitchenGroupSummary;
+  thumb?: ReactNode;
+  t: Labels;
+  onToggleOpen: () => void;
+  onToggleSelect: () => void;
 }) {
-  const tone =
-    frac.state === 'all'
-      ? 'bg-brand-gold text-brand-on-gold'
-      : frac.state === 'partial'
-        ? 'text-brand-gold ring-1 ring-inset ring-brand-gold'
-        : 'text-brand-text-muted ring-1 ring-inset ring-brand-border';
+  const hot = isKitchenWaitHot(summary.longestWaitMin);
   return (
-    <span
-      data-kitchen-group-frac=""
-      className={`${GROUP_FRAC_SLOT_CLASS} ${tone}`}
-      aria-label={ariaLabel}
+    <div
+      data-kitchen-group-header=""
+      className={`sticky top-0 z-[1] flex w-full items-center gap-2 border-b border-brand-border/60 px-2 py-2 backdrop-blur-sm ${groupHeaderShellClass(frac.state)}`}
     >
-      <span className="text-[1.05rem]">{frac.selected}</span>
-      <span className="mx-px text-[0.85rem] font-medium opacity-75">/</span>
-      <span className="text-[0.92rem] opacity-85">{frac.total}</span>
-    </span>
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-hidden
+        className="grid h-5 w-5 shrink-0 place-items-center text-brand-text-muted"
+        onClick={onToggleOpen}
+      >
+        <svg
+          viewBox="0 0 20 20"
+          className={`h-5 w-5 transition-transform ${open ? '' : '-rotate-90'}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M5 8l5 5 5-5" />
+        </svg>
+      </button>
+      <KitchenGroupSelectControl
+        state={frac.state}
+        disabled={selectDisabled}
+        title={frac.state === 'all' ? t.deselectAll : t.selectAll}
+        onToggle={onToggleSelect}
+      />
+      {thumb}
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 flex-col items-start text-left"
+        aria-expanded={open}
+        aria-label={`${title} · ${open ? t.collapseGroup : t.expandGroup}`}
+        onClick={onToggleOpen}
+      >
+        <span className="w-full truncate text-2xl font-medium leading-tight text-brand-text">
+          {title}
+        </span>
+        <span className="w-full text-base leading-tight text-brand-text-muted">
+          {countLabel} · {t.portionBadge.replace('{n}', String(summary.qty))} ·{' '}
+          <span
+            className={hot ? 'font-semibold text-red-700' : undefined}
+            suppressHydrationWarning
+          >
+            {t.longestWait.replace('{n}', String(summary.longestWaitMin))}
+          </span>
+        </span>
+      </button>
+      <span
+        data-kitchen-group-frac=""
+        className="shrink-0 text-base tabular-nums text-brand-text-muted"
+      >
+        {t.selectedOf
+          .replace('{n}', String(frac.selected))
+          .replace('{m}', String(frac.total))}
+      </span>
+    </div>
   );
 }
 
@@ -168,10 +237,15 @@ function groupHeaderShellClass(state: GroupSelectionFrac['state']): string {
   if (state === 'partial') {
     return 'border-l-4 border-l-brand-gold bg-brand-gold/10';
   }
-  return 'bg-brand-bg/95';
+  return 'border-l-4 border-l-transparent bg-brand-bg/95';
 }
 
 type Labels = (typeof KITCHEN_SCREEN_TEXT)[UILanguage];
+
+/** Sole table title («90 桌») for group headers, by-dish rows and the ready rail. */
+function formatKitchenTableTitle(t: Labels, tableDisplay: string): string {
+  return t.tableTitle.replace('{name}', tableDisplay);
+}
 
 /** Workbench / ready rails: sole vertical scroll ports (list owns Y; row swipe owns X via library). */
 const VERTICAL_ONLY_SCROLL =
@@ -284,14 +358,17 @@ function KitchenBoardLineRow({
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-slate-700">
         {line.displayName}
         {noteEl}
-        <span className="ml-2 text-xl font-normal text-slate-500"> · {line.tableDisplay}</span>
+        <span className="ml-2 text-xl font-normal text-slate-500">
+          {' '}
+          · {formatKitchenTableTitle(t, line.tableDisplay)}
+        </span>
       </span>
     );
   } else {
     // By-dish L2: table display is the row title (dish name already on L1).
     title = (
       <span className="min-w-0 flex-1 truncate text-2xl font-medium leading-tight text-brand-text">
-        {line.tableDisplay}
+        {formatKitchenTableTitle(t, line.tableDisplay)}
         {noteEl}
       </span>
     );
@@ -318,7 +395,9 @@ function KitchenBoardLineRow({
       className="border-b border-brand-border/50"
     >
       <div
-        className={`flex min-w-0 w-full max-w-full items-center gap-3 px-2 py-2.5 ${kitchenRowSurfaceClass(
+        className={`flex min-w-0 w-full max-w-full items-center gap-3 py-2.5 ${
+          layout === 'ready' ? 'px-2' : KITCHEN_GROUP_ROW_INDENT_CLASS
+        } ${kitchenRowSurfaceClass(
           { layout, checked, status: line.effectiveStatus },
         )} ${rowInteractive ? '' : 'opacity-55'}`}
         data-kitchen-prep-in-flight={prepInFlight ? '' : undefined}
@@ -333,12 +412,14 @@ function KitchenBoardLineRow({
           onClick={(e) => e.stopPropagation()}
           aria-label={line.displayName}
         />
-        <KitchenDishThumbButton
-          imageUrl={thumbImageUrl}
-          emoji={thumbEmoji}
-          ariaLabel={t.dishThumbOpenDetail}
-          onOpen={onOpenDetail}
-        />
+        {layout === 'workbench-dish-l2' ? null : (
+          <KitchenDishThumbButton
+            imageUrl={thumbImageUrl}
+            emoji={thumbEmoji}
+            ariaLabel={t.dishThumbOpenDetail}
+            onOpen={onOpenDetail}
+          />
+        )}
         {title}
         <span
           className={`shrink-0 text-xl font-semibold tabular-nums ${
@@ -349,7 +430,11 @@ function KitchenBoardLineRow({
         </span>
         <span
           className={`shrink-0 text-lg tabular-nums ${
-            layout === 'ready' ? 'text-slate-500' : 'text-brand-text-muted'
+            layout === 'ready'
+              ? 'text-slate-500'
+              : isKitchenWaitHot(waitMin)
+                ? 'font-semibold text-red-700'
+                : 'text-brand-text-muted'
           }`}
           suppressHydrationWarning
         >
@@ -363,13 +448,13 @@ function KitchenBoardLineRow({
             <Spinner className="h-5 w-5" />
             <span>{t.prepBusy}</span>
           </span>
-        ) : (
+        ) : layout === 'ready' ? (
           <span
             className={`shrink-0 rounded-md px-2 py-0.5 text-lg font-medium ${statusTone(line.effectiveStatus)}`}
           >
             {statusLabel(line.effectiveStatus, t)}
           </span>
-        )}
+        ) : null}
       </div>
     </SwipeableListItem>
   );
@@ -707,46 +792,23 @@ export function KitchenStationPane({
           <p className="py-16 text-center text-2xl text-brand-text-muted">{t.noLines}</p>
         ) : view === 'table' ? (
           byTable.map((group) => {
-            const collapsed = collapsedTables.has(group.tableId);
+            const open = !collapsedTables.has(group.tableId);
             const frac = groupSelectionFrac(group.lines, selected);
-            const selectTitle = frac.state === 'all' ? t.deselectAll : t.selectAll;
-            const fracAria = t.groupSelectionAria
-              .replace('{n}', String(frac.selected))
-              .replace('{m}', String(frac.total));
+            const summary = summarizeKitchenGroup(group.lines, nowMs);
             return (
               <div key={group.tableId}>
-                <div
-                  className={`sticky top-0 z-[1] grid w-full grid-cols-[22px_56px_3.1rem_minmax(0,1fr)_auto] items-center gap-x-2.5 border-b border-brand-border/60 px-3 py-2 backdrop-blur-sm ${groupHeaderShellClass(frac.state)}`}
-                >
-                  <KitchenGroupSelectControl
-                    state={frac.state}
-                    disabled={frac.total === 0 || prepLocked || printBusy}
-                    title={selectTitle}
-                    onToggle={() => toggleGroupSelect(group.lines)}
-                  />
-                  <div
-                    className="grid h-14 w-14 place-items-center rounded-lg bg-brand-border/40 text-sm font-bold text-brand-text-muted"
-                    aria-hidden
-                  >
-                    #
-                  </div>
-                  <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
-                  <button
-                    type="button"
-                    className="min-w-0 truncate text-left text-2xl font-medium text-brand-text"
-                    onClick={() => toggleTableCollapsed(group.tableId)}
-                  >
-                    {group.tableDisplay}
-                  </button>
-                  <button
-                    type="button"
-                    className="shrink-0 text-base text-brand-text-muted"
-                    onClick={() => toggleTableCollapsed(group.tableId)}
-                  >
-                    {collapsed ? t.expandGroup : t.collapseGroup}
-                  </button>
-                </div>
-                {collapsed ? null : group.lines.map((line) => renderLine(line, 'workbench-table'))}
+                <KitchenGroupHeader
+                  open={open}
+                  frac={frac}
+                  selectDisabled={frac.total === 0 || prepLocked || printBusy}
+                  title={formatKitchenTableTitle(t, group.tableDisplay)}
+                  countLabel={t.dishCount.replace('{n}', String(summary.dishCount))}
+                  summary={summary}
+                  t={t}
+                  onToggleOpen={() => toggleTableCollapsed(group.tableId)}
+                  onToggleSelect={() => toggleGroupSelect(group.lines)}
+                />
+                {open ? group.lines.map((line) => renderLine(line, 'workbench-table')) : null}
               </div>
             );
           })
@@ -755,63 +817,31 @@ export function KitchenStationPane({
             const open = expandedDish === dish.menuItemId;
             const seedLine = dish.lines[0];
             const frac = groupSelectionFrac(dish.lines, selected);
-            const selectTitle = frac.state === 'all' ? t.deselectAll : t.selectAll;
-            const fracAria = t.groupSelectionAria
-              .replace('{n}', String(frac.selected))
-              .replace('{m}', String(frac.total));
-            const thumbEntry = seedLine
-              ? resolveKitchenBoardDishCatalogEntry({
-                  menuItemId: dish.menuItemId,
-                  catalogById: menuCatalogById,
-                  orderItem: seedLine.item,
-                })
-              : null;
-            const toggleExpand = () =>
-              setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId));
+            const summary = summarizeKitchenGroup(dish.lines, nowMs);
+            const thumb = thumbForLine(seedLine);
             return (
               <div key={dish.menuItemId}>
-                <div
-                  className={`grid w-full grid-cols-[22px_56px_4.5rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-brand-border/50 px-2 py-2.5 ${groupHeaderShellClass(frac.state)}`}
-                >
-                  <KitchenGroupSelectControl
-                    state={frac.state}
-                    disabled={frac.total === 0 || prepLocked || printBusy}
-                    title={selectTitle}
-                    onToggle={() => toggleGroupSelect(dish.lines)}
-                  />
-                  {thumbEntry ? (
+                <KitchenGroupHeader
+                  open={open}
+                  frac={frac}
+                  selectDisabled={frac.total === 0 || prepLocked || printBusy}
+                  title={dish.name}
+                  countLabel={t.tableCount.replace('{n}', String(summary.tableCount))}
+                  summary={summary}
+                  thumb={
                     <KitchenDishThumbButton
-                      imageUrl={thumbEntry.image_url}
-                      emoji={thumbEntry.emoji || seedLine?.item.emoji || ''}
+                      imageUrl={thumb.imageUrl}
+                      emoji={thumb.emoji}
                       ariaLabel={t.dishThumbOpenDetail}
-                      onOpen={() => {
-                        if (seedLine) openDishDetail(dish.menuItemId, seedLine.item);
-                      }}
+                      onOpen={() => openDishDetail(dish.menuItemId, seedLine.item)}
                     />
-                  ) : (
-                    <div className="h-14 w-14 rounded-lg bg-brand-border/40" aria-hidden />
-                  )}
-                  <div className="flex w-[4.5rem] flex-col items-center gap-1">
-                    <KitchenGroupFracBadge frac={frac} ariaLabel={fracAria} />
-                    <span className="whitespace-nowrap text-base font-semibold leading-none tabular-nums text-brand-gold">
-                      {t.portionBadge.replace('{n}', String(dish.totalQty))}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="min-w-0 truncate pl-0.5 text-left text-2xl font-medium leading-tight text-brand-text hover:bg-brand-bg/70"
-                    onClick={toggleExpand}
-                  >
-                    {dish.name}
-                  </button>
-                  <button
-                    type="button"
-                    className="shrink-0 text-base text-brand-text-muted"
-                    onClick={toggleExpand}
-                  >
-                    {open ? t.collapseGroup : t.expandGroup}
-                  </button>
-                </div>
+                  }
+                  t={t}
+                  onToggleOpen={() =>
+                    setExpandedDish((prev) => (prev === dish.menuItemId ? null : dish.menuItemId))
+                  }
+                  onToggleSelect={() => toggleGroupSelect(dish.lines)}
+                />
                 {open ? dish.lines.map((line) => renderLine(line, 'workbench-dish-l2')) : null}
               </div>
             );

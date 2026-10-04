@@ -22,8 +22,10 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: string;
     selectAll: string;
     deselectAll: string;
-    /** Aria for group header n/m (order-line counts only). */
-    groupSelectionAria: string;
+    /** Sole table title on group headers, by-dish rows and the ready rail («90 桌»). */
+    tableTitle: string;
+    /** Group header summary part («N 道»; joined with « · » beside `portionBadge`). */
+    dishCount: string;
     noLines: string;
     statusPending: string;
     statusCooking: string;
@@ -55,9 +57,10 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: string;
     traySummary: string;
     trayEmpty: string;
-    trayTableCount: string;
-    trayLongestWait: string;
-    traySelectedOf: string;
+    /** Shared by group headers and the prep tray: distinct tables / longest wait / «已选 n/m» tally. */
+    tableCount: string;
+    longestWait: string;
+    selectedOf: string;
     trayClear: string;
     trayRemoveDish: string;
     trayClearAll: string;
@@ -88,7 +91,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: '勾选后点击打印',
     selectAll: '全选',
     deselectAll: '取消全选',
-    groupSelectionAria: '已选 {n} / {m} 行',
+    tableTitle: '{name} 桌',
+    dishCount: '{n} 道',
     noLines: '暂无待备餐菜品',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.zh.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.zh.cooking,
@@ -116,9 +120,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: '备餐区',
     traySummary: '已选 {d} 道 · {p} 份 · {t} 桌',
     trayEmpty: '从左侧勾选要备的菜',
-    trayTableCount: '{n} 桌',
-    trayLongestWait: '最久 {n} 分',
-    traySelectedOf: '已选 {n}/{m}',
+    tableCount: '{n} 桌',
+    longestWait: '最久 {n} 分',
+    selectedOf: '已选 {n}/{m}',
     trayClear: '清空',
     trayRemoveDish: '移出',
     trayClearAll: '清空全部',
@@ -147,7 +151,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Select lines, then print',
     selectAll: 'Select all',
     deselectAll: 'Deselect all',
-    groupSelectionAria: 'Selected {n} / {m} lines',
+    tableTitle: 'Table {name}',
+    dishCount: 'Dishes {n}',
     noLines: 'No dishes waiting',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.en.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.en.cooking,
@@ -175,9 +180,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: 'Prep tray',
     traySummary: 'Dishes {d} · Pcs {p} · Tables {t}',
     trayEmpty: 'Select dishes on the left to prep',
-    trayTableCount: 'Tables {n}',
-    trayLongestWait: 'Longest {n}m',
-    traySelectedOf: '{n}/{m} selected',
+    tableCount: 'Tables {n}',
+    longestWait: 'Longest {n}m',
+    selectedOf: '{n}/{m} selected',
     trayClear: 'Clear',
     trayRemoveDish: 'Remove',
     trayClearAll: 'Clear all',
@@ -206,7 +211,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Selecione e imprima',
     selectAll: 'Selecionar tudo',
     deselectAll: 'Desmarcar',
-    groupSelectionAria: 'Selecionadas {n} / {m} linhas',
+    tableTitle: 'Mesa {name}',
+    dishCount: 'Pratos {n}',
     noLines: 'Sem pratos a preparar',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.pt.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.pt.cooking,
@@ -234,9 +240,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: 'Área de preparo',
     traySummary: 'Pratos {d} · Un. {p} · Mesas {t}',
     trayEmpty: 'Selecione os pratos à esquerda',
-    trayTableCount: 'Mesas {n}',
-    trayLongestWait: 'Máx. {n} min',
-    traySelectedOf: '{n}/{m} selecionados',
+    tableCount: 'Mesas {n}',
+    longestWait: 'Máx. {n} min',
+    selectedOf: '{n}/{m} selecionados',
     trayClear: 'Limpar',
     trayRemoveDish: 'Remover',
     trayClearAll: 'Limpar tudo',
@@ -265,7 +271,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Seleccione e imprima',
     selectAll: 'Seleccionar todo',
     deselectAll: 'Deseleccionar',
-    groupSelectionAria: 'Seleccionadas {n} / {m} lineas',
+    tableTitle: 'Mesa {name}',
+    dishCount: 'Platos {n}',
     noLines: 'Sin platos pendientes',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.es.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.es.cooking,
@@ -293,9 +300,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: 'Zona de preparación',
     traySummary: 'Platos {d} · Uds. {p} · Mesas {t}',
     trayEmpty: 'Seleccione platos a la izquierda',
-    trayTableCount: 'Mesas {n}',
-    trayLongestWait: 'Máx. {n} min',
-    traySelectedOf: '{n}/{m} seleccionados',
+    tableCount: 'Mesas {n}',
+    longestWait: 'Máx. {n} min',
+    selectedOf: '{n}/{m} seleccionados',
     trayClear: 'Limpiar',
     trayRemoveDish: 'Quitar',
     trayClearAll: 'Limpiar todo',
@@ -324,7 +331,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Selectionnez puis imprimez',
     selectAll: 'Tout select.',
     deselectAll: 'Tout deselect.',
-    groupSelectionAria: 'Selection {n} / {m} lignes',
+    tableTitle: 'Table {name}',
+    dishCount: 'Plats {n}',
     noLines: 'Aucun plat en attente',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.fr.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.fr.cooking,
@@ -352,9 +360,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: 'Zone de préparation',
     traySummary: 'Plats {d} · Pcs {p} · Tables {t}',
     trayEmpty: 'Sélectionnez les plats à gauche',
-    trayTableCount: 'Tables {n}',
-    trayLongestWait: 'Max {n} min',
-    traySelectedOf: '{n}/{m} sélectionnés',
+    tableCount: 'Tables {n}',
+    longestWait: 'Max {n} min',
+    selectedOf: '{n}/{m} sélectionnés',
     trayClear: 'Vider',
     trayRemoveDish: 'Retirer',
     trayClearAll: 'Tout vider',
@@ -383,7 +391,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     selectPrintLines: 'Zeilen waehlen, dann drucken',
     selectAll: 'Alles',
     deselectAll: 'Nichts',
-    groupSelectionAria: 'Gewaehlt {n} / {m} Zeilen',
+    tableTitle: 'Tisch {name}',
+    dishCount: 'Gerichte {n}',
     noLines: 'Keine offenen Gerichte',
     statusPending: KITCHEN_ITEM_STATUS_LABEL.de.pending,
     statusCooking: KITCHEN_ITEM_STATUS_LABEL.de.cooking,
@@ -411,9 +420,9 @@ export const KITCHEN_SCREEN_TEXT: Record<
     trayTitle: 'Zubereitung',
     traySummary: 'Gerichte {d} · Stk. {p} · Tische {t}',
     trayEmpty: 'Gerichte links auswählen',
-    trayTableCount: 'Tische {n}',
-    trayLongestWait: 'Max. {n} Min.',
-    traySelectedOf: '{n}/{m} gewählt',
+    tableCount: 'Tische {n}',
+    longestWait: 'Max. {n} Min.',
+    selectedOf: '{n}/{m} gewählt',
     trayClear: 'Leeren',
     trayRemoveDish: 'Entfernen',
     trayClearAll: 'Alle leeren',

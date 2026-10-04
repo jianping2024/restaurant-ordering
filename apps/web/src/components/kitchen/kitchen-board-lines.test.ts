@@ -10,7 +10,9 @@ import {
   collectStationBoardLines,
   groupBottomRailByStatus,
   groupSelectionFrac,
+  isKitchenWaitHot,
   lineWaitMinutes,
+  summarizeKitchenGroup,
   partitionStationLines,
   toggleGroupPrepSelection,
   type KitchenBoardLine,
@@ -153,7 +155,7 @@ describe('aggregateLinesByDish', () => {
       }),
     ];
     const [agg] = aggregateLinesByDish(lines);
-    assert.equal(agg.totalQty, 5);
+    assert.equal(summarizeKitchenGroup(agg.lines, 0).qty, 5);
     assert.equal(agg.lines.length, 3);
     assert.equal(agg.name, 'Chá');
   });
@@ -164,6 +166,29 @@ describe('lineWaitMinutes', () => {
     const ordered = Date.parse('2026-08-10T12:00:00.000Z');
     assert.equal(lineWaitMinutes(ordered, ordered + 90_000), 1);
     assert.equal(lineWaitMinutes(ordered, ordered + 59_000), 0);
+  });
+});
+
+describe('summarizeKitchenGroup', () => {
+  it('counts distinct dishes/tables, sums portions, takes the longest wait', () => {
+    const now = Date.parse('2026-08-10T13:00:00.000Z');
+    const old = Date.parse('2026-08-10T12:00:00.000Z');
+    const fresh = Date.parse('2026-08-10T12:50:00.000Z');
+    const lines = [
+      { ...stubLine({ key: 'a', tableId: 't1', tableDisplay: '90', menuItemId: 'm1', qty: 4, name: 'X' }), orderedAtMs: old },
+      { ...stubLine({ key: 'b', tableId: 't1', tableDisplay: '90', menuItemId: 'm2', qty: 3, name: 'Y' }), orderedAtMs: fresh },
+      { ...stubLine({ key: 'c', tableId: 't2', tableDisplay: '91', menuItemId: 'm1', qty: 1, name: 'X' }), orderedAtMs: fresh },
+    ];
+    assert.deepEqual(summarizeKitchenGroup(lines, now), {
+      dishCount: 2,
+      tableCount: 2,
+      qty: 8,
+      longestWaitMin: 60,
+    });
+  });
+  it('flags waits at or above the hot threshold', () => {
+    assert.equal(isKitchenWaitHot(14), false);
+    assert.equal(isKitchenWaitHot(15), true);
   });
 });
 
@@ -300,6 +325,13 @@ describe('prep tray', () => {
     assert.equal(m1.selectedQty, 4);
     assert.deepEqual(summarizePrepTray(cards), { dishCount: 2, portions: 5, tableCount: 2 });
     assert.equal(buildPrepTrayCards(lines, state([]), NOW).length, 0);
+  });
+
+  it('card table count is distinct selected tables, not selected lines', () => {
+    const d = stubLine({ key: 'd', tableId: 't2', tableDisplay: '91', menuItemId: 'm1', qty: 1 });
+    const [m1] = buildPrepTrayCards([a, b, d], state(['a', 'b', 'd']), NOW);
+    assert.equal(m1!.selectedCount, 3);
+    assert.equal(m1!.selectedTableCount, 2);
   });
 
   it('chip tap toggles selected <-> skipped; left re-check wins via selected', () => {

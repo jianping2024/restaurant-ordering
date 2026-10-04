@@ -68,15 +68,3 @@ export function availableConsumerNamesForRow(params: {
   const blocked = namesUsedOnOtherDishRows(params.dishRows, params.rowId);
   return params.roster.filter((name) => !blocked.has(splitPersonKey(name)));
 }
-
-export function suggestConsumerNamesForRow(params: {
-  roster: string[];
-  dishRows: ByItemConsumerRow[];
-  rowId: string;
-  query: string;
-}): string[] {
-  return filterConsumerNameOptions(
-    availableConsumerNamesForRow(params),
-    params.query,
-  );
-}

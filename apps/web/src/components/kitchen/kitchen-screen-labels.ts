@@ -29,11 +29,8 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusCooking: string;
     statusReady: string;
     statusDone: string;
-    /** By-dish L1: workbench portion total for this dish. */
+    /** By-dish row: workbench portion total for this dish (between n/m and name). */
     portionBadge: string;
-    /** By-dish L1: distinct table count (never line/qty count). */
-    tablesCountBadge: string;
-    tablesLabel: string;
     waitMinutes: string;
     expandGroup: string;
     collapseGroup: string;
@@ -82,8 +79,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.zh.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.zh.done,
     portionBadge: '共 {n} 份',
-    tablesCountBadge: '共 {n} 桌',
-    tablesLabel: '桌：{tables}',
     waitMinutes: '等 {n} 分',
     expandGroup: '展开',
     collapseGroup: '收起',
@@ -128,8 +123,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.en.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.en.done,
     portionBadge: '{n} pcs',
-    tablesCountBadge: '{n} tables',
-    tablesLabel: 'Tables: {tables}',
     waitMinutes: '{n}m wait',
     expandGroup: 'Expand',
     collapseGroup: 'Collapse',
@@ -174,8 +167,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.pt.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.pt.done,
     portionBadge: '{n} un.',
-    tablesCountBadge: '{n} mesas',
-    tablesLabel: 'Mesas: {tables}',
     waitMinutes: '{n} min',
     expandGroup: 'Expandir',
     collapseGroup: 'Recolher',
@@ -220,8 +211,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.es.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.es.done,
     portionBadge: '{n} uds',
-    tablesCountBadge: '{n} mesas',
-    tablesLabel: 'Mesas: {tables}',
     waitMinutes: '{n} min',
     expandGroup: 'Expandir',
     collapseGroup: 'Cerrar',
@@ -266,8 +255,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.fr.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.fr.done,
     portionBadge: '{n} pcs',
-    tablesCountBadge: '{n} tables',
-    tablesLabel: 'Tables : {tables}',
     waitMinutes: '{n} min',
     expandGroup: 'Ouvrir',
     collapseGroup: 'Fermer',
@@ -312,8 +299,6 @@ export const KITCHEN_SCREEN_TEXT: Record<
     statusReady: KITCHEN_ITEM_STATUS_LABEL.de.ready,
     statusDone: KITCHEN_ITEM_STATUS_LABEL.de.done,
     portionBadge: '{n} Stk',
-    tablesCountBadge: '{n} Tische',
-    tablesLabel: 'Tische: {tables}',
     waitMinutes: '{n} Min',
     expandGroup: 'Aufklappen',
     collapseGroup: 'Zuklappen',

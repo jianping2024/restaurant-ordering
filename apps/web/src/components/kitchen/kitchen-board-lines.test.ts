@@ -120,7 +120,7 @@ describe('groupSelectionFrac', () => {
 });
 
 describe('aggregateLinesByDish', () => {
-  it('counts unique tables, not repeated same-table lines', () => {
+  it('sums portion qty across order lines for the same dish', () => {
     const lines = [
       stubLine({
         key: 'a',
@@ -138,12 +138,19 @@ describe('aggregateLinesByDish', () => {
         qty: 1,
         name: 'Chá',
       }),
+      stubLine({
+        key: 'c',
+        tableId: 't2',
+        tableDisplay: 'A-02',
+        menuItemId: 'm1',
+        qty: 3,
+        name: 'Chá',
+      }),
     ];
     const [agg] = aggregateLinesByDish(lines);
-    assert.equal(agg.tableCount, 1);
-    assert.equal(agg.totalQty, 2);
-    assert.deepEqual(agg.tableDisplays, ['A-01']);
-    assert.equal(agg.lines.length, 2);
+    assert.equal(agg.totalQty, 5);
+    assert.equal(agg.lines.length, 3);
+    assert.equal(agg.name, 'Chá');
   });
 });
 

@@ -1,8 +1,6 @@
 'use client';
 
-import { LanguageSwitcherIconChrome } from '@/components/ui/LanguageSwitcher';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { customerMenuHeaderTrailingSlotClass } from '@/lib/customer-menu-chrome-layout';
+import { AppearanceChromeGroup } from '@/components/ui/AppearanceChromeGroup';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { StaffAssistedBackLink } from '@/components/staff/StaffAssistedBackLink';
 
@@ -96,10 +94,7 @@ export function CustomerOrderingHeader({
           {isStaffAssisted ? (
             tableBadge
           ) : (
-            <div className={`${customerMenuHeaderTrailingSlotClass} flex items-center gap-1.5`}>
-              <LanguageSwitcherIconChrome />
-              <ThemeToggle />
-            </div>
+            <AppearanceChromeGroup />
           )}
         </div>
       </div>

@@ -159,7 +159,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 ③ 定位     餐厅有 geo → resolveCustomerGeoForOrder（warm / 粗定位；非 waiter_flow）
 ④ 请求     POST append { table_id, items, latitude?, longitude?, client_request_id }
 ⑤ 后置     scheduleMenuOrderPostSubmitEffects（入队 + session 刷新，不阻塞 UI）
-⑥ 反馈     completeGuestOrderSubmit（清车 + toast）
+⑥ 反馈     completeGuestOrderSubmit（清车 + 底栏 ✓ 提示，不弹 toast）
 ```
 
 **服务员代点**（`returnToWaiterHref` 有值）：
@@ -184,7 +184,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 | 反馈 | 行为 |
 |------|------|
-| 成功 Toast | **仅顾客流**：`showToast(t.orderSuccess, 'success')`；右下角，约 3s |
+| 成功反馈 | **仅顾客流**：`useCustomerMenuSubmitFeedback` → 底栏主按钮位变为「✓ `t.orderSuccess`」约 2s + 已点角标 pop；**不弹** success toast（toast 会盖住底栏按钮）。失败/提示类 toast 居中浮在底栏上方（`--mesa-toast-bottom`） |
 | 购物车 | 清空并关闭抽屉 |
 | 已下单列表 | **仅顾客流**：`refreshSessionContext` 后更新；`batch_id` 对应行 **NEW** 约 15s |
 | 服务员代点 | **无** success toast；跳回桌台后由桌台页完成 SSR+client 一次 reconcile（`?from=menu_submit`） |

@@ -68,6 +68,7 @@ import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader
 import { CustomerMenuCategoryNav } from '@/components/menu/CustomerMenuCategoryNav';
 import { CustomerMenuOrderGateBanner } from '@/components/menu/CustomerMenuOrderGateBanner';
 import { CustomerMenuFooter } from '@/components/menu/CustomerMenuFooter';
+import { useCustomerMenuSubmitFeedback } from '@/lib/customer-menu-submit-feedback';
 import { CustomerMenuCatalogSkeleton } from '@/components/menu/CustomerMenuCatalogSkeleton';
 import { CustomerOrderingIntroModal } from '@/components/menu/CustomerOrderingIntroModal';
 import { CustomerGuestOrderingNotice } from '@/components/menu/CustomerGuestOrderingNotice';
@@ -154,6 +155,7 @@ export function SushiMenuPage({
   const [activeSubpath, setActiveSubpath] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartAddFeedbackKey, setCartAddFeedbackKey] = useState(0);
+  const { submitFeedback, signalSubmitFeedback } = useCustomerMenuSubmitFeedback();
   const cartRef = useRef(cart);
   cartRef.current = cart;
   const [cartOpen, setCartOpen] = useState(false);
@@ -751,7 +753,7 @@ export function SushiMenuPage({
       restartSubmitCooldown();
       setCart([]);
       setCartOpen(false);
-      showToast(t.orderSuccess, 'success');
+      signalSubmitFeedback(t.orderSuccess);
       return;
     }
 
@@ -835,7 +837,7 @@ export function SushiMenuPage({
         }
         setCart(paidCart);
         if (paidCart.length > 0) {
-          showToast(roundT.placedInRound, 'success');
+          signalSubmitFeedback(roundT.placedInRound);
         }
       }
 
@@ -843,7 +845,7 @@ export function SushiMenuPage({
         restartSubmitCooldown();
         clearSubmitCart();
         setRoundReviewOpen(true);
-        showToast(roundT.placedInRound, 'success');
+        signalSubmitFeedback(roundT.placedInRound);
         return;
       }
 
@@ -923,8 +925,8 @@ export function SushiMenuPage({
       });
       restartSubmitCooldown();
       completeGuestOrderSubmit({
-        orderSuccessMessage: t.orderSuccess,
         clearCart: clearSubmitCart,
+        signalSubmitted: () => signalSubmitFeedback(t.orderSuccess),
       });
     } catch {
       showToast(t.submitFailed, 'error');
@@ -1019,7 +1021,7 @@ export function SushiMenuPage({
     kitchenSendDismissedRoundIdRef.current = dedupeKey;
 
     dismissToMenuAfterKitchenSend();
-    showToast(roundT.sentToast, 'success');
+    signalSubmitFeedback(roundT.sentToast);
     if (activeSession?.id) {
       void refreshSessionContext('full').catch(() => {});
     }
@@ -1031,6 +1033,7 @@ export function SushiMenuPage({
     round.snapshot.round?.status,
     round.snapshotReady,
     roundT.sentToast,
+    signalSubmitFeedback,
   ]);
 
   const rootClassName = `${customerMenuDualPaneRootClass} h-dvh ${customerMenuShellRootClass} ${pageBottomPaddingClass}`;
@@ -1155,6 +1158,7 @@ export function SushiMenuPage({
       <CustomerMenuFooter
         {...footer}
         cartAddFeedbackKey={cartAddFeedbackKey}
+        submitFeedback={submitFeedback}
         labels={{
           viewCart: t.viewCart,
           viewBill: t.viewBillLink,

@@ -1,5 +1,3 @@
-import { showToast } from '@/components/ui/Toast';
-
 /** Query flag: waiter table detail runs staff-assisted return reconcile on entry. */
 export const MENU_SUBMIT_RETURN_QUERY = 'menu_submit';
 
@@ -11,13 +9,13 @@ export function staffReturnHrefAfterMenuSubmit(returnHref: string): string {
   return qs ? `${path}?${qs}` : `${path}?from=${MENU_SUBMIT_RETURN_QUERY}`;
 }
 
-/** Guest menu: stay on page — toast; cart already cleared by caller path. */
+/** Guest menu: stay on page — clear cart, then footer submit feedback (no success toast). */
 export function completeGuestOrderSubmit(params: {
-  orderSuccessMessage: string;
   clearCart: () => void;
+  signalSubmitted: () => void;
 }): void {
   params.clearCart();
-  showToast(params.orderSuccessMessage, 'success');
+  params.signalSubmitted();
 }
 
 /** Staff-assisted menu: navigate back; table detail owns fresh reconcile on entry. */

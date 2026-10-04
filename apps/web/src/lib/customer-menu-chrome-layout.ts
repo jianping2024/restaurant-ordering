@@ -20,9 +20,6 @@ export const customerMenuShellRootClass = `${CUSTOMER_MENU_SHELL_WIDTH_CLASS} mx
 export const customerMenuFixedShellDockClass =
   'fixed left-1/2 z-20 -translate-x-1/2';
 
-/** Header trailing controls (theme, language, badges) — bounded, never steal title space. */
-export const customerMenuHeaderTrailingSlotClass = 'shrink-0';
-
 /**
  * Sole left category rail width (guest + staff-assisted + sushi).
  * Peer-float dodge padding must use the same token — never a parallel rem.

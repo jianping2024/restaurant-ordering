@@ -59,8 +59,8 @@ Under **问题根因**: only state what evidence supports (code path, DB/API row
    - **One representation:** for each end-state concept, not two live forms (e.g. flat `stepFooTitle` **and** `steps[]`; intro `previewGuest*` **and** `bill.guest`)
 4. **清冗余 before UAT** (hard — `.cursor/rules/redundancy-cleanup-before-uat.mdc`): scan this task’s surface for dead exports, parallel live forms, forward-only wrappers; remove confirmed finds in **this** change set; report scanned/cleaned/none-found with evidence. Do **not** start product UAT until this passes.
 5. **UAT** when required (`uat-before-delivery.mdc` + `mesa-local-product-test`).
-6. Checks per `AGENTS.md`. Before any commit of product code: scoped production build must pass (`.cursor/rules/lint-build-before-commit.mdc`; no separate lint hard step). List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
-7. Commit only if user asks — and only after 清冗余 + UAT (when required) + build. `push` / `ship` → follow `.cursor/rules/push-verification.mdc` then `release-and-ci.mdc` (`git push origin main`).
+6. Checks per `AGENTS.md` / `scripts/agent-gates/README.md`. Before any commit of product code: `gate.sh check` (lint+typecheck). List every manual test: `pass` / `fail`; `skip` only if truly blocked (see `local-product-testing.mdc`).
+7. Commit only if user asks — and only after 清冗余 + UAT (when required) + lint+typecheck. `push` / `ship` → `gate.sh build` + targeted tests (`AGENTS.md` Checks) then `release-and-ci.mdc`.
 8. **Land cleanup (when user asked merge/合进 main):** remove this task’s feature worktree, delete the local feature branch, checkout on `main`, **stop this thread’s web/ops UAT listen ports** — see `.cursor/rules/git-local-merge-push.mdc` “After land” + `.cursor/rules/local-dev-services.mdc`. Do not leave the chat sitting on the feature branch or leave feature-UAT Next running.
 
 ### Principles

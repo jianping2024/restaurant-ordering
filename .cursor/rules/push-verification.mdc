@@ -1,35 +1,20 @@
 ---
 description: >-
-  Before ship / push to main: run build → targeted tests in order
-  (Next build embeds ESLint). Use when user asks to push or ship.
+  Mirror of shared push gate: production build + targeted tests.
+  Canonical: scripts/agent-gates/README.md + AGENTS.md Checks.
 alwaysApply: false
 ---
 
-# Push verification (before `git push origin main`)
+# Push verification (before `git push`)
 
-When the user asks to **push**, **ship**, or you finish web changes intended for `main`:
+**Canonical (Claude · Codex · Cursor):** [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + root [`AGENTS.md`](../../AGENTS.md) Checks.  
+This file is a Cursor on-demand mirror — **do not invent a second policy here.**
 
-Run checks first. Push with `git push origin main` (or the branch they named) — do **not** use a wrapper that auto-commits.
+When Will asks to **push** / **ship**:
 
-**Commit gate first:** product commits must already have passed scoped production build per always-on [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc). Do not invent a commit that skipped that gate. Next build already runs ESLint — do not add a separate `npm run lint` hard step for the same workspace.
+1. `gate.sh build`（或 scoped `npm run build` / `build:ops`）— required; hooks block push without build marker
+2. Targeted tests for touched logic: `node --import tsx --test …`
+3. Print-agent: Docker `go test` + Windows cross-build
+4. Then `git push origin main`（或指定分支）
 
-## Required order (do not skip or reorder)
-
-1. `npm run build` when changes touch `apps/web/**` product inputs (app/lib/types/components/env/build config); `npm run build:ops` when changes touch `apps/ops/**` or `packages/shared/**` (sequential if both)
-2. Targeted unit tests for touched logic, e.g. `node --import tsx --test apps/web/src/lib/<name>.test.ts`
-3. `git push origin main` (after local commit / merge as the user asked)
-
-If the tree is unchanged since a documented build pass from the commit gate, step 1 may be treated as already satisfied; any edit after that pass → re-run build.
-
-## Prohibited
-
-- Push without `npm run build` when web product inputs changed (or without `build:ops` when ops/shared changed)
-- Use `npx tsx --test` (use `node --import tsx --test` instead)
-- Run build/test **in parallel** with each other
-- Require a separate full-project `npm run lint` when the scoped Next build already passed (build embeds ESLint)
-- Use Multitask / background subagents for small tasks (roughly ≤5 files, single feature)
-
-## Efficiency
-
-- One linear pipeline: build → test → push
-- Do not open Multitask for cleanup-only or push-only follow-ups unless the user explicitly requests it
+Commit must already have passed lint+typecheck (`gate.sh check`). Do not skip push build because typecheck already ran.

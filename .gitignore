@@ -49,9 +49,12 @@ supabase/.branches/
 # supabase cli local cache
 supabase/.temp/
 
-# local agent / IDE (shared hooks in .claude/settings.json are tracked)
+# local agent / IDE (shared hooks tracked; gate markers local-only)
 .claude/*
 !.claude/settings.json
+.codex/*
+!.codex/hooks.json
+.mesa-agent-gates/
 
 # Turborepo
 .turbo

@@ -1,24 +1,34 @@
 #!/usr/bin/env bash
-# Agent delivery gates (Claude Code PreToolUse hooks in .claude/settings.json).
+# Agent delivery gates — shared by Claude Code, Codex, and Cursor agents.
+# Policy: scripts/agent-gates/README.md + AGENTS.md Checks.
 #
 # Order enforced per code state (tree fingerprint):
-#   implement → 清冗余 (scan) → UAT (browser) → build → commit
+#   implement → 清冗余 (scan) → UAT → check (lint+typecheck) → commit
+#   push → build (+ targeted tests; agents run tests; hook enforces build marker)
 #
-# Markers live in .claude/gates/<branch>/ (gitignored) and store the tree fingerprint
-# they were recorded at. Any edit changes the fingerprint and invalidates every marker.
+# Markers live in .mesa-agent-gates/<branch>/ (gitignored). Any edit changes the
+# fingerprint and invalidates every marker.
 #
-#   gate.sh scan     validate .claude/gates/<branch>/scan.md, record scan marker
-#   gate.sh build    run scoped production build(s), record build marker on success
-#   gate.sh uat      validate .claude/gates/<branch>/uat.md, record UAT marker
-#   gate.sh status   show markers vs current fingerprint
-#   gate.sh hook-browser | hook-commit   (hook entry points; read hook JSON on stdin)
+#   gate.sh scan     validate scan.md, record scan marker
+#   gate.sh check    scoped lint + typecheck → commit gate
+#   gate.sh build    scoped production build → push/pack gate
+#   gate.sh uat      validate uat.md, record UAT marker
+#   gate.sh status
+#   gate.sh hook-browser | hook-commit | hook-push   (stdin: PreToolUse JSON)
+#
+# Block contract (Claude + Codex): exit 2 + reason on stderr.
 set -euo pipefail
 
 ROOT="$(git -C "${CLAUDE_PROJECT_DIR:-$PWD}" rev-parse --show-toplevel)"
 cd "$ROOT"
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-GATE_DIR="$ROOT/.claude/gates/${BRANCH//\//__}"
+# Prefer shared dir; fall back to legacy .claude/gates if it already has markers.
+GATE_DIR="$ROOT/.mesa-agent-gates/${BRANCH//\//__}"
+LEGACY_GATE_DIR="$ROOT/.claude/gates/${BRANCH//\//__}"
+if [[ ! -d "$GATE_DIR" && -d "$LEGACY_GATE_DIR" ]]; then
+  GATE_DIR="$LEGACY_GATE_DIR"
+fi
 PRODUCT_PATHS_RE='^(apps|packages|supabase)/'
 
 # Hash of the product working tree only (apps/packages/supabase, tracked + untracked,
@@ -88,10 +98,29 @@ cmd_scan() {
   echo "清冗余标记已记录（指纹 $(cat "$GATE_DIR/scan.sha" | cut -c1-12)）"
 }
 
+cmd_check() {
+  local files fp web=0 ops=0
+  fp="$(fingerprint)"
+  marker_ok scan "$fp" || die "当前代码还没通过清冗余（gate.sh scan），不能进入 lint/typecheck。"
+  files="$(changed_product_files)"
+  grep -qE '^(apps/web|packages)/' <<<"$files" && web=1
+  grep -qE '^(apps/ops|packages)/' <<<"$files" && ops=1
+  if ((web)); then
+    npm run lint -w @mesa/web
+    npm run typecheck -w @mesa/web
+  fi
+  if ((ops)); then
+    npm run lint -w @mesa/ops
+    npm run typecheck -w @mesa/ops
+  fi
+  [[ "$(fingerprint)" == "$fp" ]] || die "lint/typecheck 期间代码有变动，检查标记不记录。"
+  record check "$fp"
+  echo "检查标记已记录（lint+typecheck web=$web ops=$ops）"
+}
+
 cmd_build() {
   local files fp web=0 ops=0
   fp="$(fingerprint)"
-  marker_ok scan "$fp" || die "当前代码还没通过清冗余（gate.sh scan），不能进入构建。"
   files="$(changed_product_files)"
   grep -qE '^(apps/web|packages)/' <<<"$files" && web=1
   grep -qE '^(apps/ops|packages)/' <<<"$files" && ops=1
@@ -107,7 +136,7 @@ cmd_build() {
   fi
   [[ "$(fingerprint)" == "$fp" ]] || die "构建期间代码有变动，构建标记不记录。"
   record build "$fp"
-  echo "构建标记已记录（web=$web ops=$ops）"
+  echo "构建标记已记录（web=$web ops=$ops）— 供 push/pack；不是 commit 门禁"
 }
 
 cmd_uat() {
@@ -128,9 +157,10 @@ cmd_status() {
   local fp
   fp="$(fingerprint)"
   echo "branch=$BRANCH fingerprint=${fp:0:12}"
-  for m in scan uat build; do
+  for m in scan uat check; do
     if marker_ok "$m" "$fp"; then echo "  $m: ok"; else echo "  $m: missing/stale"; fi
   done
+  if marker_ok build "$fp"; then echo "  build: ok (push/pack helper)"; else echo "  build: missing/stale (ok for commit; required before push)"; fi
   echo "changed product files:"
   changed_product_files | sed 's/^/  /'
 }
@@ -145,7 +175,7 @@ cmd_hook_browser() {
   # Only uncommitted product WIP blocks browser. Committed-on-branch (clean tree) may retest.
   [[ -n "$(wip_product_files)" ]] || exit 0
   marker_ok scan "$(fingerprint)" && exit 0
-  block "【门禁】当前有未提交的产品改动，还没清冗余，禁止开始浏览器测试。先逐行看 diff、列出改动过的共用组件的全部调用方，写 $GATE_DIR/scan.md，再运行 bash scripts/agent-gates/gate.sh scan。改过代码后需要重新清冗余。工作区干净时可直接复测。"
+  block "【门禁】当前有未提交的产品改动，还没清冗余，禁止开始浏览器测试。先写 $GATE_DIR/scan.md（改动文件 / 共用组件调用方 / 发现与处理），再运行 bash scripts/agent-gates/gate.sh scan。见 scripts/agent-gates/README.md。工作区干净时可直接复测。"
 }
 
 cmd_hook_commit() {
@@ -160,18 +190,33 @@ cmd_hook_commit() {
   fp="$(fingerprint)"
   marker_ok scan "$fp" || missing+=("清冗余（gate.sh scan）")
   marker_ok uat "$fp" || missing+=("实测（gate.sh uat）")
-  marker_ok build "$fp" || missing+=("生产构建（gate.sh build）")
+  marker_ok check "$fp" || missing+=("lint+typecheck（gate.sh check）")
   ((${#missing[@]} == 0)) && exit 0
-  block "【门禁】提交被拦：当前代码缺少 ${missing[*]}。标记必须和当前代码指纹一致，改过代码要重新走一遍。"
+  block "【门禁】提交被拦：当前代码缺少 ${missing[*]}。标记必须和当前代码指纹一致，改过代码要重新走一遍。见 scripts/agent-gates/README.md"
+}
+
+cmd_hook_push() {
+  local input command fp
+  input="$(cat)"
+  command="$(jq -r '.tool_input.command // ""' <<<"$input")"
+  # Any `git … push` segment.
+  grep -qE '(^|[;&|[:space:]])git[[:space:]][^;&|]*\bpush([[:space:]]|$)' <<<"$command" || exit 0
+  [[ -n "$(changed_product_files)" ]] || exit 0
+  fp="$(fingerprint)"
+  # Push needs production build marker. Targeted unit tests stay agent policy (AGENTS.md).
+  marker_ok build "$fp" || block "【门禁】推送被拦：产品改动尚未通过生产构建（gate.sh build）。commit 用 lint+typecheck；push 才 build+test。见 scripts/agent-gates/README.md"
+  exit 0
 }
 
 case "${1:-}" in
   fingerprint) fingerprint ;;
   scan) cmd_scan ;;
+  check) cmd_check ;;
   build) cmd_build ;;
   uat) cmd_uat ;;
   status) cmd_status ;;
   hook-browser) cmd_hook_browser ;;
   hook-commit) cmd_hook_commit ;;
-  *) die "usage: gate.sh scan|build|uat|status|fingerprint|hook-browser|hook-commit" ;;
+  hook-push) cmd_hook_push ;;
+  *) die "usage: gate.sh scan|check|build|uat|status|fingerprint|hook-browser|hook-commit|hook-push" ;;
 esac

@@ -12,7 +12,7 @@ alwaysApply: true
 3. [`best-practice-not-patches.mdc`](./best-practice-not-patches.mdc) — best-practice end-state only; never lead with补丁/workaround options
 4. [`redundancy-cleanup-before-uat.mdc`](./redundancy-cleanup-before-uat.mdc) — after implement, **before UAT**: clear confirmed redundancy on the task surface
 5. [`uat-before-delivery.mdc`](./uat-before-delivery.mdc) — functional changes need localhost product UAT pass before commit/merge/done
-6. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — product code: scoped `npm run build`/`build:ops` must pass before any `git commit` (Next build already includes ESLint; no separate lint hard step)
+6. [`lint-build-before-commit.mdc`](./lint-build-before-commit.mdc) — Cursor mirror; **canonical** commit/push gates = [`scripts/agent-gates/README.md`](../../scripts/agent-gates/README.md) + `AGENTS.md` Checks（Claude/Codex 共用 `gate.sh`）
 7. [`no-polling-except-fallback.mdc`](./no-polling-except-fallback.mdc) — no API polling except realtime fallback
 8. [`git-local-merge-push.mdc`](./git-local-merge-push.mdc) — local branch → merge → push; no auto PR / agent merge-main
 9. [`on-prem-pack.mdc`](./on-prem-pack.mdc) — pack/upgrade: Realtime ensure + BuildKit npm cache in artifact; **local `npm run build -w @mesa/web` before pack** when web sources change (store builds the image; lint/UAT ≠ Docker typecheck)

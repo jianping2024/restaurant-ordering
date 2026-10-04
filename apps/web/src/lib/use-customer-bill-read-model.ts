@@ -148,7 +148,9 @@ export function useCustomerBillReadModel(
     callBillBusyRef.current = busy;
   }, []);
 
-  const markCheckoutSubmitted = useCallback(() => {
+  /** Call-bill success: split + submitted land together (never submitted over the pre-submit split). */
+  const commitSubmittedCheckout = useCallback((submittedSplit: BillSplit) => {
+    setExistingSplit(submittedSplit);
     setSubmitted(true);
   }, []);
 
@@ -174,7 +176,6 @@ export function useCustomerBillReadModel(
     commitOrders,
     syncOrders,
     setCallBillBusy,
-    markCheckoutSubmitted,
-    setSubmitted,
+    commitSubmittedCheckout,
   };
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import type { Language, MenuItem } from '@/types';
+import { APPEND_CART_QTY_MAX, type Language, type MenuItem } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CustomerCartItemNoteFields } from '@/components/menu/CustomerCartItemNoteFields';
@@ -262,6 +262,7 @@ export function CustomerMenuItemDetailSheet({
               {item.available ? (
                 <CartQtyStepper
                   qty={cartQty}
+                  max={APPEND_CART_QTY_MAX}
                   onDecrement={onDecrement}
                   onIncrement={onIncrement}
                   incrementDisabled={incrementDisabled}

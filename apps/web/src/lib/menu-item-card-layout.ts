@@ -62,18 +62,53 @@ export const MENU_ITEM_CARD_NAME_CLASS =
 export const MENU_ITEM_CARD_FLAVOR_SLOT_CLASS =
   'flex h-[1.375rem] min-h-[1.375rem] flex-nowrap items-center gap-1 overflow-hidden';
 
-/** Price + action: content-width action; pinned to bottom of thumb-matched body. */
+/**
+ * Price + action: content-width action; pinned to bottom of thumb-matched body.
+ * `relative` anchors the expanded qty pill, which overlays the whole row.
+ */
 export const MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS =
-  'mt-auto flex h-9 min-w-0 shrink-0 items-center justify-between gap-2';
+  'relative mt-auto flex h-9 min-w-0 shrink-0 items-center justify-between gap-2';
 
 /**
- * Sole list price slot — yields width to the add/stepper action (`truncate`).
- * Pair with `CUSTOMER_MENU_TYPE.moneyAmount` at the call site.
+ * Sole list price slot — at rest the action is one 36px gold circle (+ or qty),
+ * so price stays visible. Pair with `CUSTOMER_MENU_TYPE.moneyAmount` at the call site.
  */
 export const MENU_ITEM_CARD_PRICE_CLASS = 'min-w-0 truncate';
 
-/** Sole list action slot — never shrinks; + / compact −n+ stay fully visible. */
+/** Sole list action slot — never shrinks; the 36px gold circle stays fully visible. */
 export const MENU_ITEM_CARD_ACTION_SLOT_CLASS = 'flex shrink-0 items-center justify-end';
+
+/**
+ * Sole list gold circle — bare `+` (qty 0), collapsed qty number, and the pill's `+`
+ * share it so the action never moves or changes chrome between states.
+ */
+export const MENU_ITEM_CARD_GOLD_ACTION_CLASS =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-gold text-brand-on-gold shadow-[0_4px_10px_rgb(139_101_48_/_0.28)] transition-colors hover:bg-brand-gold-light active:scale-95 disabled:opacity-40 disabled:pointer-events-none';
+
+/**
+ * Expanded −/qty/+ pill — overlays the full price row (price hidden only while editing);
+ * `+` stays at the gold circle's spot. Reveal keyframe in globals `.mesa-menu-qty-pill`.
+ */
+export const MENU_ITEM_CARD_QTY_PILL_CLASS =
+  'mesa-menu-qty-pill absolute inset-0 z-10 flex items-center justify-between rounded-full border border-brand-gold/35 bg-brand-card';
+
+/** Pill `−`: gold ghost circle (same 36px hit target as the gold `+`). */
+export const MENU_ITEM_CARD_QTY_DECREMENT_CLASS =
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-brand-gold hover:bg-brand-gold/10 active:scale-95';
+
+/** `+` / `−` glyph face inside the 36px circles (pill and bare add share it). */
+export const MENU_ITEM_CARD_ACTION_GLYPH_CLASS = 'text-xl font-medium leading-none';
+
+/**
+ * Qty number face — collapsed gold circle and pill center. Three digits (≤ 999 cap)
+ * step down one size so the 36px circle keeps air.
+ */
+export function menuItemCardQtyTextClass(qty: number): string {
+  return `${qty >= 100 ? 'text-sm' : 'text-base'} font-semibold tabular-nums`;
+}
+
+/** Idle ms before the expanded pill collapses back to the gold qty circle. */
+export const MENU_ITEM_CARD_QTY_PILL_COLLAPSE_MS = 3000;
 
 /**
  * Right column: min thumb height so short cards stay image-baseline aligned; grows when

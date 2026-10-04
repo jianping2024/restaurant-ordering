@@ -136,11 +136,12 @@ describe('parseAppendCartRawItems', () => {
 
   it('rejects invalid qty and merged qty over max', () => {
     assert.equal(parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 0 }]).ok, false);
-    assert.equal(parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 100 }]).ok, false);
+    assert.equal(parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 999 }]).ok, true);
+    assert.equal(parseAppendCartRawItems([{ menu_item_id: MENU_A, qty: 1000 }]).ok, false);
     assert.equal(
       parseAppendCartRawItems([
-        { menu_item_id: MENU_A, qty: 50 },
-        { menu_item_id: MENU_A, qty: 50 },
+        { menu_item_id: MENU_A, qty: 500 },
+        { menu_item_id: MENU_A, qty: 500 },
       ]).ok,
       false,
     );

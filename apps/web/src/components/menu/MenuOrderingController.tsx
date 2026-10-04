@@ -332,12 +332,14 @@ export function MenuOrderingController({
         return;
       }
 
+      // One per-dish cap for guest and staff-assisted (append API rejects above it).
+      if (nextQty > APPEND_CART_QTY_MAX) {
+        nextQty = APPEND_CART_QTY_MAX;
+        if (nextQty <= current) return;
+      }
+
       if (!staffAssistedOrdering) {
         // Guest sushi limits are submit gates (fresh session + server), not list disables.
-        if (nextQty > APPEND_CART_QTY_MAX) {
-          nextQty = APPEND_CART_QTY_MAX;
-          if (nextQty <= current) return;
-        }
         commitCartQty(item, nextQty);
         return;
       }

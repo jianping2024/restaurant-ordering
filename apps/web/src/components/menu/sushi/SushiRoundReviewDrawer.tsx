@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
+import { APPEND_CART_QTY_MAX } from '@/types';
 import { CustomerMenuBottomSheet } from '@/components/menu/CustomerMenuBottomSheet';
 import type { RoundReviewGroup } from '@/lib/table-order-round/own-review-lines';
 
@@ -129,6 +130,7 @@ export function SushiRoundReviewDrawer({
                     {line.editable ? (
                       <CartQtyStepper
                         qty={line.qty}
+                        max={APPEND_CART_QTY_MAX}
                         disabled={busyLineId === line.lineId || sendBusy}
                         onDecrement={() => onOwnLineQtyChange(line.lineId, line.qty - 1)}
                         onIncrement={() => onOwnLineQtyChange(line.lineId, line.qty + 1)}

@@ -121,7 +121,7 @@ Content-Type: application/json
 | 字段 | 类型 | 约束 |
 |------|------|------|
 | `menu_item_id` | `string` (UUID) | 必填；对应 `menu_items.id` |
-| `qty` | `number` | 必填；整数 `APPEND_CART_QTY_MIN`–`APPEND_CART_QTY_MAX`（1–99） |
+| `qty` | `number` | 必填；整数 `APPEND_CART_QTY_MIN`–`APPEND_CART_QTY_MAX`（1–999，产品定） |
 | `note` | `string?` | 可选；最长 `APPEND_CART_NOTE_MAX_LEN`（120） |
 
 **客户端不得提交**（出现即 `400 invalid_items`）：`id`、`name` / `name_*`、`price`、`emoji`、`batch_id`、`added_at`、`item_status`、`kind` 及自助餐相关字段。
@@ -163,7 +163,7 @@ Content-Type: application/json
 | 新建 | 例如 `src/lib/resolve-append-cart-items.ts` |
 | 输入 | `admin` client、`restaurantId`、`raw items[]` |
 | 步骤 | 1) 校验数组长度与 `qty`/`note`；2) 收集 UUID；3) **分批** `select` `menu_items` where `restaurant_id` + `id in (...)`（每批 100，避免 URI 过长）；4) 逐行映射名称/emoji/price；5) 注入 `batch_id`、`added_at`、`item_status: 'pending'` |
-| 边界 | 重复 `menu_item_id` 合并或拒绝（产品二选一，建议**合并 qty** 与现购物车语义一致）；`qty` 上限与现 `parseItems` 一致（1–99） |
+| 边界 | 重复 `menu_item_id` 合并或拒绝（产品二选一，建议**合并 qty** 与现购物车语义一致）；`qty` 上限 `APPEND_CART_QTY_MAX`（999，产品定） |
 | 自助餐 | 若 raw 含非 UUID / `buffet:` 前缀：guest 路径 **拒绝**；waiter_flow 若需保留特殊行，单独分支或禁止经 append 传 buffet |
 
 **已落地**：`src/lib/resolve-append-cart-items.ts`、`src/lib/resolve-append-cart-items.test.ts`

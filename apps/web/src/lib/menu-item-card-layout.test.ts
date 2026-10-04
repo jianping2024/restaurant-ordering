@@ -7,14 +7,19 @@ import {
   MENU_ITEM_CARD_ACTION_SLOT_CLASS,
   MENU_ITEM_CARD_BODY_CLASS,
   MENU_ITEM_CARD_FLAVOR_SLOT_CLASS,
+  MENU_ITEM_CARD_GOLD_ACTION_CLASS,
   MENU_ITEM_CARD_NAME_CLASS,
   MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS,
   MENU_ITEM_CARD_PRICE_CLASS,
+  MENU_ITEM_CARD_QTY_DECREMENT_CLASS,
+  MENU_ITEM_CARD_QTY_PILL_CLASS,
+  MENU_ITEM_CARD_QTY_PILL_COLLAPSE_MS,
   MENU_ITEM_CARD_SHELL_CLASS,
   MENU_ITEM_CARD_THUMB_CLASS,
   MENU_ITEM_CARD_THUMB_PX,
   MENU_ITEM_CARD_THUMB_PX_NARROW,
   MENU_ITEM_CARD_THUMB_PX_WIDE,
+  menuItemCardQtyTextClass,
 } from './menu-item-card-layout';
 
 describe('menuItemCardLayout', () => {
@@ -41,9 +46,22 @@ describe('menuItemCardLayout', () => {
     assert.doesNotMatch(MENU_ITEM_CARD_SHELL_CLASS, /overflow-hidden/);
   });
 
-  it('list CartQtyStepper compact gap is tighter than default; one gap map', () => {
+  it('drawer CartQtyStepper compact gap is tighter than default; one gap map', () => {
     assert.equal(CART_QTY_STEPPER_GAP_CLASS.default, 'gap-2');
     assert.equal(CART_QTY_STEPPER_GAP_CLASS.compact, 'gap-1');
+  });
+
+  it('rest action is one 36px gold circle; expanded pill overlays the whole price row', () => {
+    assert.match(MENU_ITEM_CARD_GOLD_ACTION_CLASS, /\bh-9 w-9\b/);
+    assert.match(MENU_ITEM_CARD_GOLD_ACTION_CLASS, /bg-brand-gold/);
+    assert.match(MENU_ITEM_CARD_QTY_DECREMENT_CLASS, /\bh-9 w-9\b/);
+    assert.match(MENU_ITEM_CARD_PRICE_ACTION_ROW_CLASS, /(?:^|\s)relative(?:\s|$)/);
+    assert.match(MENU_ITEM_CARD_QTY_PILL_CLASS, /absolute inset-0/);
+    assert.match(MENU_ITEM_CARD_QTY_PILL_CLASS, /bg-brand-card/);
+    assert.equal(MENU_ITEM_CARD_QTY_PILL_COLLAPSE_MS, 3000);
+    assert.match(menuItemCardQtyTextClass(99), /\btext-base\b/);
+    assert.match(menuItemCardQtyTextClass(100), /\btext-sm\b/);
+    assert.match(menuItemCardQtyTextClass(999), /\btext-sm\b/);
   });
 
   it('reserves name ≤2 lines and flavor ≤1 row; no list description token', () => {

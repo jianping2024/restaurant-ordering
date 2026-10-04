@@ -148,7 +148,7 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 
 ### 提交流程（`submitOrder`）
 
-**列表步进器**：`MenuItemCard` 底行右侧为内容宽动作槽；按 `qty` 切换「+ 加入」/ `CartQtyStepper`（`density="compact"`，`− / n / +`）/「已售完」——不预留空步进器列。外壳唯一 `MENU_ITEM_CARD_SHELL_CLASS`（`rounded-2xl` + `p-4`，内边距≥圆角；不 `overflow-hidden`，裁切只在图/名/风味槽），底行钮完整落在卡内、不被切。数量仅改本地 `cart`。与 `CartDrawer` 共用同一 `CartQtyStepper`（抽屉等为 `default` 间距）。**已下单**区为服务端 `recent_orders`，不可在菜单页删减。
+**列表步进器**：`MenuItemCard` 底行右侧为内容宽动作槽；静止时为一个 36px 金色圆：`qty=0` 为「+」，`qty>0` 为份数（价格始终可见）；点「+」或份数展开 `− / n / +` 胶囊盖住整条底行（`MENU_ITEM_CARD_QTY_PILL_CLASS`，金色 + 在原位），约 3 秒无操作 / 点外部 / 减到 0 收回；售完显示「已售完」。外壳唯一 `MENU_ITEM_CARD_SHELL_CLASS`（`rounded-2xl` + `p-4`，内边距≥圆角；不 `overflow-hidden`，裁切只在图/名/风味槽），底行钮完整落在卡内、不被切。数量仅改本地 `cart`。列表不用 `CartQtyStepper`（抽屉 `compact`、详情等 `default`）。**已下单**区为服务端 `recent_orders`，不可在菜单页删减。
 
 **顾客流**（`!returnToWaiterHref`）：
 
@@ -226,7 +226,8 @@ append 与入队 **解耦**：入队凭 token，不重复走 staff 密码。
 |------|------|
 | 菜单 UI + 唯一 submit | `components/menu/MenuOrderingController.tsx` |
 | 提交按钮冷却倒计时 | `lib/use-submit-cooldown-remaining.ts`、`lib/order-submit-cooldown-client.ts` |
-| 列表 / 抽屉数量步进器 | `components/menu/CartQtyStepper.tsx` |
+| 列表金色圆 + 数量胶囊 | `components/menu/MenuItemCard.tsx` |
+| 抽屉 / 详情数量步进器 | `components/menu/CartQtyStepper.tsx` |
 | 顾客菜单路由 | `app/[slug]/menu/page.tsx` |
 | 加菜门禁（开台） | `lib/guest-table-ordering.ts` → `guestOrderingEnabled` |
 | 购物车解析 + 服务端定价 | `lib/resolve-append-cart-items.ts` |

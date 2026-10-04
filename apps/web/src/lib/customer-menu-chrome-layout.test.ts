@@ -61,5 +61,10 @@ describe('customerMenuChromeLayout', () => {
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /sticky/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /top-0/);
     assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /mesa-chip-scroll/);
+    // Flush sticky: no scrollport top padding, opaque chip bar.
+    assert.doesNotMatch(customerMenuCatalogPaneClass, /(^|\s)p[ty]-/);
+    assert.match(customerMenuCatalogPaneClass, /before:h-4/);
+    assert.match(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /(^|\s)bg-brand-bg(\s|$)/);
+    assert.doesNotMatch(CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS, /backdrop-blur|bg-brand-bg\//);
   });
 });

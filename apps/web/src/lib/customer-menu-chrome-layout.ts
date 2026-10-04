@@ -55,17 +55,19 @@ export const customerMenuCategoryRailClass = [
  * Sole right catalog scrollport (pair with `CUSTOMER_MENU_ITEM_LIST_HOST_CLASS`
  * on the same element for container-query columns).
  * Vertical scroll only — no horizontal bleed past the dual-pane shell.
+ * No top padding on the scrollport: `sticky top-0` would stop at the padding edge
+ * and leak content above the chips. Top air is a scrolling `before:` spacer instead.
  */
 export const customerMenuCatalogPaneClass =
-  'min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 py-4';
+  "min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 pb-4 before:block before:h-4 before:content-['']";
 
 /**
  * Sole subcategory chip strip sticky chrome (right catalog pane only).
- * Sticks to that pane’s top (`top-0`); opaque so list does not show through.
+ * Flush to that pane’s top edge (`top-0`, pane has no pt); opaque so the list never shows through.
  * `-mx-3 px-3` cancels catalog host pad so the sticky fill spans the column.
  */
 export const CUSTOMER_MENU_SUBCATEGORY_STICKY_SHELL_CLASS =
-  'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg/95 px-3 py-2 backdrop-blur-sm';
+  'mesa-chip-scroll sticky top-0 z-10 -mx-3 mb-3 flex gap-2 bg-brand-bg px-3 py-2';
 
 /**
  * Guest notice tab vertical offset — below identity header + safe area.

@@ -7,7 +7,6 @@ import {
   collectActiveConsumerNames,
   filterConsumerNameOptions,
   namesUsedOnOtherDishRows,
-  suggestConsumerNamesForRow,
 } from '@/lib/consumer-name-roster';
 
 const row = (id: string, name: string): ByItemConsumerRow => ({
@@ -54,59 +53,38 @@ describe('collectActiveConsumerNames', () => {
   });
 });
 
-describe('suggestConsumerNamesForRow', () => {
-  const dishRows = [row('r1', 'John'), row('r2', '')];
+describe('availableConsumerNamesForRow', () => {
+  const suggest = (params: Parameters<typeof availableConsumerNamesForRow>[0], query: string) =>
+    filterConsumerNameOptions(availableConsumerNamesForRow(params), query);
 
   it('excludes names already used on other rows of the same dish', () => {
     assert.deepEqual(
-      suggestConsumerNamesForRow({
-        roster: ['John', 'Jerry'],
-        dishRows,
-        rowId: 'r2',
-        query: 'J',
-      }),
+      suggest({ roster: ['John', 'Jerry'], dishRows: [row('r1', 'John'), row('r2', '')], rowId: 'r2' }, 'J'),
       ['Jerry'],
     );
   });
 
   it('still suggests a name on the same row while editing partial input', () => {
     assert.deepEqual(
-      suggestConsumerNamesForRow({
-        roster: ['John'],
-        dishRows: [row('r1', 'J')],
-        rowId: 'r1',
-        query: 'J',
-      }),
+      suggest({ roster: ['John'], dishRows: [row('r1', 'J')], rowId: 'r1' }, 'J'),
       ['John'],
     );
   });
 
   it('only suggests names present in the active session pool', () => {
     assert.deepEqual(
-      suggestConsumerNamesForRow({
-        roster: collectActiveConsumerNames({
-          buffet: [row('b1', 'John'), row('b2', 'Johney')],
-          drink: [row('d1', '')],
-        }),
-        dishRows: [row('d1', '')],
-        rowId: 'd1',
-        query: 'J',
-      }),
+      suggest(
+        {
+          roster: collectActiveConsumerNames({
+            buffet: [row('b1', 'John'), row('b2', 'Johney')],
+            drink: [row('d1', '')],
+          }),
+          dishRows: [row('d1', '')],
+          rowId: 'd1',
+        },
+        'J',
+      ),
       ['John', 'Johney'],
-    );
-  });
-
-  it('matches after deleting characters from a longer partial input', () => {
-    assert.deepEqual(filterConsumerNameOptions(['John'], 'Je'), []);
-    assert.deepEqual(filterConsumerNameOptions(['John'], 'J'), ['John']);
-    assert.deepEqual(
-      suggestConsumerNamesForRow({
-        roster: ['John'],
-        dishRows: [row('r1', 'J')],
-        rowId: 'r1',
-        query: 'J',
-      }),
-      ['John'],
     );
   });
 });

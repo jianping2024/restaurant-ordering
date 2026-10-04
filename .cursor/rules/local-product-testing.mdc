@@ -35,17 +35,18 @@ Every `skip` **must** state the blocker in one line. Prefer a weaker but real as
 ## Local accounts
 
 - **UI login:** always `{MESA_UAT_BASE or http://localhost:3000}/auth/login` (unified owner/staff; never `/login` or staff-only legacy paths for routine UAT)
-- Staff UAT: `qiantai1` / `123456` (白云 `restaurant-mohnrib5`)
+- **Default verification (Will):** `luckytea@gmail.com` / `123456` — owner of Washoku Sushi `lucky-tea-mulcs62n` (`MESA_UAT_SLUG=lucky-tea-mulcs62n`)
+- Staff UAT: `qiantai1` / `MesaUat1` (白云 `restaurant-mohnrib5`)
 - Owner setup: `baiyun@gmail.com` / `123456` (same restaurant)
 - Forbidden: `qiantai@mesa.in`
 
 ## Standing authorization (no per-step confirm)
 
-On localhost UAT for `restaurant-mohnrib5`, treat the user as having **already authorized** the full test loop. Do **not** ask chat confirmation for each login, password fill, open/close table, buffet seed, or UI click — including when the parent task is “implement then regression-test”.
+On localhost UAT for `lucky-tea-mulcs62n` / `restaurant-mohnrib5`, treat the user as having **already authorized** the full test loop. Do **not** ask chat confirmation for each login, password fill, open/close table, buffet seed, or UI click — including when the parent task is “implement then regression-test”.
 
 **Pre-authorized:**
 
-- Documented UAT credentials on localhost (`qiantai1`, `baiyun@gmail.com`)
+- Documented UAT credentials on localhost (`luckytea@gmail.com`, `qiantai1`, `baiyun@gmail.com`)
 - **`node scripts/mesa-local-uat.mjs`** / **`mesa-print-smoke.mjs`** against localhost
 - **`supabase-local`** MCP read-only asserts when using `npm run dev` (local Docker); cloud MCP read-only when using `npm run cloud`
 - **Chrome DevTools MCP (`user-chrome-devtools`)** on localhost: `navigate_page`, `new_page`, `select_page`, `take_snapshot`, `take_screenshot`, `click`, `fill`, `fill_form`, `type_text`, `press_key`, `hover`, `drag`, `handle_dialog`, `upload_file`, `evaluate_script`, network/console/wait helpers, dual-tab flows

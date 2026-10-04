@@ -12,6 +12,7 @@ import {
   buildSubmitPersons,
   CHECKOUT_REDIRECT_TIMEOUT_MS,
   DASHBOARD_CHECKOUT_PATH_PREFIX,
+  guestBillCollectsCustomerNif,
   shouldSkipPreSubmitOrderSync,
   validateSubmitSplitDraft,
 } from '@/lib/checkout-request-submit';
@@ -175,13 +176,17 @@ export function useCheckoutRequestSubmit(params: Params) {
         buildPersonsForSubmit: splitDraft.buildPersonsForSubmit,
       });
 
+      const customerNif = guestBillCollectsCustomerNif(splitDraft.splitMode)
+        ? normalizePortugueseNif(customerNifInput) || null
+        : null;
+
       const requestResult = await requestCheckoutRequest({
         slug: restaurant.slug,
         tableId,
         splitMode: splitDraft.splitMode,
         persons,
         result: validated.submitResults,
-        customerNif: normalizePortugueseNif(customerNifInput) || null,
+        customerNif,
       });
 
       if (!requestResult.ok) {
@@ -211,7 +216,7 @@ export function useCheckoutRequestSubmit(params: Params) {
         persons,
         result: requestResult.result,
         totalAmount: deriveBillView(fresh.orders).total,
-        customerNif: normalizePortugueseNif(customerNifInput) || null,
+        customerNif,
         orderIds: fresh.orders.map((order) => order.id),
       });
       stageCheckoutRequestForQueue(submittedSplit);

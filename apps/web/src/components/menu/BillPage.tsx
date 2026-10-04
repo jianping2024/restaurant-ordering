@@ -16,6 +16,7 @@ import { formatPortugueseNif, validatePortugueseNif } from '@/lib/pt-nif';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
+import { guestBillCollectsCustomerNif } from '@/lib/checkout-request-submit';
 import { useCheckoutRequestSubmit } from '@/lib/use-checkout-request-submit';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
 import { useCustomerBillReadModel } from '@/lib/use-customer-bill-read-model';
@@ -265,8 +266,11 @@ export function BillPage({
           ? t.splitIncompleteQty
           : t.splitAmountMismatch;
 
+  const collectsCustomerNif = guestBillCollectsCustomerNif(splitDraft.splitMode);
   const customerNifInvalid =
-    customerNifInput.trim().length > 0 && !validatePortugueseNif(customerNifInput);
+    collectsCustomerNif
+    && customerNifInput.trim().length > 0
+    && !validatePortugueseNif(customerNifInput);
 
   const guestCountConfirmed = isBillGuestCountConfirmed(orders);
   const partyCheckoutAllowed = isPartyMemberCountAllowedForCheckout(partyMemberCount);
@@ -616,7 +620,7 @@ export function BillPage({
         onRemoveCustomPerson={splitDraft.removeCustomPerson}
       />
 
-      {!submitted ? (
+      {!submitted && collectsCustomerNif ? (
         <div className="px-4 pb-3">
           <label htmlFor="customer-nif" className="text-brand-text font-medium text-sm block mb-1.5">
             {t.nifLabel}

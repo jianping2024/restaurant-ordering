@@ -10,6 +10,14 @@ import type { BillSplit, Order } from '@/types';
 /** Reuse a recent background bill sync instead of forcing another round-trip. */
 export const BILL_SYNC_FRESH_MS = 15_000;
 
+/**
+ * Guest bill optional NIF: even / custom / whole-table only.
+ * by_item pays per person at the counter — staff NIF on collect/invoice.
+ */
+export function guestBillCollectsCustomerNif(splitMode: SplitMode | null): boolean {
+  return splitMode !== 'by_item';
+}
+
 export function shouldSkipPreSubmitOrderSync(
   lastSyncedAt: number | null,
   now = Date.now(),

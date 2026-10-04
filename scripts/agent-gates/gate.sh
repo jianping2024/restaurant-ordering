@@ -44,6 +44,15 @@ changed_product_files() {
   } | grep -E "$PRODUCT_PATHS_RE" | sort -u || true
 }
 
+# Uncommitted product WIP only (tracked dirty + untracked). Clean trees may retest without scan.
+wip_product_files() {
+  {
+    git diff --name-only HEAD
+    git diff --name-only --cached
+    git ls-files --others --exclude-standard
+  } | grep -E "$PRODUCT_PATHS_RE" | sort -u || true
+}
+
 marker_ok() {
   local name="$1" fp="$2"
   [[ -f "$GATE_DIR/$name.sha" && "$(cat "$GATE_DIR/$name.sha")" == "$fp" ]]
@@ -133,9 +142,10 @@ block() {
 
 cmd_hook_browser() {
   cat >/dev/null
-  [[ -n "$(changed_product_files)" ]] || exit 0
+  # Only uncommitted product WIP blocks browser. Committed-on-branch (clean tree) may retest.
+  [[ -n "$(wip_product_files)" ]] || exit 0
   marker_ok scan "$(fingerprint)" && exit 0
-  block "【门禁】当前代码还没清冗余，禁止开始浏览器测试。先逐行看 diff、列出改动过的共用组件的全部调用方，写 $GATE_DIR/scan.md，再运行 bash scripts/agent-gates/gate.sh scan。改过代码后需要重新清冗余。"
+  block "【门禁】当前有未提交的产品改动，还没清冗余，禁止开始浏览器测试。先逐行看 diff、列出改动过的共用组件的全部调用方，写 $GATE_DIR/scan.md，再运行 bash scripts/agent-gates/gate.sh scan。改过代码后需要重新清冗余。工作区干净时可直接复测。"
 }
 
 cmd_hook_commit() {

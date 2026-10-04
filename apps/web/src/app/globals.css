@@ -122,6 +122,18 @@ body {
   container-name: mesa-menu-catalog;
 }
 
+.mesa-menu-shell {
+  container-type: inline-size;
+  container-name: mesa-menu-shell;
+  --mesa-menu-category-rail-w: 4.75rem; /* 76px */
+}
+
+@container mesa-menu-shell (min-width: 46rem) {
+  .mesa-menu-shell > * {
+    --mesa-menu-category-rail-w: 7rem; /* 112px */
+  }
+}
+
 .mesa-menu-item-list {
   display: grid;
   gap: 0.75rem;

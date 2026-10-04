@@ -40,8 +40,8 @@ describe('customerMenuChromeLayout', () => {
   });
 
   it('keeps sole left category rail width shared with peer-float dodge', () => {
-    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[4.75rem]');
-    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[4.75rem]');
+    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS, 'w-[var(--mesa-menu-category-rail-w,4.75rem)]');
+    assert.equal(CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS, 'pl-[var(--mesa-menu-category-rail-w,4.75rem)]');
     assert.ok(customerMenuCategoryRailClass.includes(CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS));
     assert.match(customerMenuCategoryRailClass, /overflow-y-auto/);
     assert.match(customerMenuCategoryRailClass, /overscroll-y-contain/);

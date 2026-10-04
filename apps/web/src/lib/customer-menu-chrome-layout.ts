@@ -23,9 +23,11 @@ export const customerMenuFixedShellDockClass =
 /**
  * Sole left category rail width (guest + staff-assisted + sushi).
  * Peer-float dodge padding must use the same token — never a parallel rem.
+ * Live width is CSS `--mesa-menu-category-rail-w` (76px → 112px when the dual-pane
+ * root is ≥46rem, see globals.css); the root is the `mesa-menu-shell` container.
  */
-export const CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS = 'w-[4.75rem]';
-export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[4.75rem]';
+export const CUSTOMER_MENU_CATEGORY_RAIL_WIDTH_CLASS = 'w-[var(--mesa-menu-category-rail-w,4.75rem)]';
+export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[var(--mesa-menu-category-rail-w,4.75rem)]';
 
 /**
  * Sole guest/staff menu body root: flex column, no document scroll inside.
@@ -33,7 +35,7 @@ export const CUSTOMER_MENU_CATEGORY_RAIL_DODGE_PL_CLASS = 'pl-[4.75rem]';
  * Header / sushi bar / gate stay shrink-0 above; category nav fills the rest.
  */
 export const customerMenuDualPaneRootClass =
-  'relative flex flex-col overflow-hidden bg-brand-bg';
+  'mesa-menu-shell relative flex flex-col overflow-hidden bg-brand-bg';
 /**
  * Sole category nav shell (guest page + staff embedded): fills remaining height;
  * left rail and right catalog each scroll independently (overscroll contained).

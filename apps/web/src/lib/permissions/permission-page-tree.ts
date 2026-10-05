@@ -143,7 +143,7 @@ export const ROLE_PERMISSION_PAGE_TREE: readonly PermissionTreeNode[] = [
     },
     {
       permission: 'tables.checkout_close',
-      label: { source: 'action', labelKey: 'tablesCheckoutClose' },
+      label: { source: 'action', labelKey: 'tablesCallCheckout' },
     },
     {
       permission: 'tables.force_close',

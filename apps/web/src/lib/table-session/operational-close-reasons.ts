@@ -30,7 +30,7 @@ export function isOperationalCloseReason(
   );
 }
 
-/** Staff-attested paid close (关台结账) — not force/nightly. */
+/** Legacy staff-attested paid close (历史关台结账记录；新数据不再写入) — not force/nightly. */
 export function isSettledCloseReason(
   reason: string | null | undefined,
 ): reason is SettledCloseActorReason {

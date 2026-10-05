@@ -8,7 +8,6 @@ import { useCallback, useRef, useState } from 'react';
  */
 export type WaiterDetailSessionBusyKind =
   | 'call_checkout'
-  | 'settled_close'
   | 'force_close'
   | 'transfer_merge'
   | 'order_line'

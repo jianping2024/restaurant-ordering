@@ -23,12 +23,11 @@
 ## 1. 总流程
 
 ```text
-结账页收款后点「打印发票」（开关已开 + mayFiscalBillQueue）；桌台详情在开关开时「呼叫结账」进结账页
+结账页收款后点「打印发票」（开关已开 + mayFiscalBillQueue）；桌台详情「呼叫结账」进结账页（不受开关控制）
   → 若无活跃 bill_split：ensure whole_table（不自动打 pre_bill）
   → 云端写入 bill_sync_jobs（pending）+ 操作记录
   → Agent：复用打印同款机制拉取 → ack
-  → 关台前再核 content_unchanged；不一致则重同步或中止
-  → succeeded 且指纹未变 → settled 关台结账（打印策略同「关台结账」）
+  → succeeded → 提示开票成功（不关台；关台由最后一笔收款触发）
 ```
 
 **鉴权：** 完全复用打印配对 claim 的 **`agentjwt`**（Agent → Farvoo）。不为同步再配对、不做浏览器→Agent 密钥、不依赖收银机知道 Agent 局域网地址。
@@ -41,8 +40,9 @@
 | --- | --- |
 | 键 | `bill_sync_to_fiscal`（见 [`restaurant-features.zh.md`](../restaurant-features.zh.md)） |
 | 默认 | **关闭** |
-| 开启后 | 结账页出现「打印发票」；桌台详情改为「呼叫结账」并隐藏关台结账 |
-| 关闭时 | 入口隐藏；入队 API **拒绝** |
+| 设置页名称 | 「打印发票」 |
+| 开启后 | 收款弹窗填写买家税号/名称；收款后自动或询问开发票；已收款记录与历史订单可打印/补打发票 |
+| 关闭时 | 上述入口隐藏；入队 API **拒绝**（桌台详情「呼叫结账」不受影响） |
 | 独立于 | `bill_receipt_print` |
 
 ---

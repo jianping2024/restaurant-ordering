@@ -1106,16 +1106,8 @@ function WaiterTableDetailInner({
                 onMerge={() => whenDetailActionsArmed(() => openAction('merge', selectedCard.tableId))}
                 showTransfer={detailActions.showTransfer}
                 showMerge={detailActions.showMerge}
-                showCheckoutClose={
-                  detailActions.showCheckoutClose &&
-                  !isRestaurantFeatureEnabled(restaurant.feature_flags, 'bill_sync_to_fiscal')
-                }
-                showCallCheckout={
-                  detailActions.showCheckoutClose &&
-                  isRestaurantFeatureEnabled(restaurant.feature_flags, 'bill_sync_to_fiscal')
-                }
+                showCallCheckout={detailActions.showCallCheckout}
                 showForceClose={detailActions.showForceClose}
-                floorCapabilities={floorCaps}
                 isDemo={isDemo}
                 sessionBusy={detailSessionBusy}
                 sessionBusyKind={detailSessionBusyKind}

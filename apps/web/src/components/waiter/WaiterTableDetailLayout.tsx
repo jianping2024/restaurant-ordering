@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import type { Buffet } from '@/types';
 import {
   WaiterBuffetPackagesEditor,
@@ -15,17 +14,12 @@ import {
 import type { UILanguage } from '@/lib/i18n';
 import { CartQtyStepper } from '@/components/menu/CartQtyStepper';
 import { CloseTableSessionAction } from '@/components/dashboard/CloseTableSessionAction';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
 import { showToast } from '@/components/ui/Toast';
 import { getMessages } from '@/lib/i18n/messages';
-import {
-  runWaiterTableCheckoutClose,
-} from '@/lib/waiter-table-checkout-close';
 import { requestEnsureStaffCheckoutEntry } from '@/lib/request-ensure-staff-checkout-entry';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
 import { useRouter } from 'next/navigation';
-import type { FloorBoardCapabilities } from '@/lib/floor-board-capabilities';
 import type { WaiterDetailSessionBusyKind } from '@/lib/use-waiter-detail-session-busy';
 import {
   WaiterBillIcon,
@@ -296,119 +290,7 @@ function ToolbarCloseTableControl({
   );
 }
 
-/** Floor settled-close chrome (when bill_sync_to_fiscal is OFF). */
-function WaiterTableSettledCloseControl({
-  lang,
-  t,
-  tableId,
-  sessionId,
-  label,
-  printBillOnClose,
-  checkoutLocked,
-  sessionBusy,
-  settledCloseBusy,
-  onCheckoutLocked,
-  onClosed,
-  tryBeginSessionBusy,
-  endSessionBusy,
-}: {
-  lang: UILanguage;
-  t: WaiterCopy;
-  tableId: string;
-  sessionId: string | null;
-  label: string;
-  printBillOnClose: boolean;
-  checkoutLocked: boolean;
-  sessionBusy: boolean;
-  settledCloseBusy: boolean;
-  onCheckoutLocked: () => void;
-  onClosed: () => void;
-  tryBeginSessionBusy: (kind: WaiterDetailSessionBusyKind) => boolean;
-  endSessionBusy: () => void;
-}) {
-  const messages = getMessages(lang);
-  const orderHistory = messages.orderHistory;
-  const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const icon = <WaiterBillIcon className={buttonIcon.sm} />;
-  const confirmTitle = printBillOnClose
-    ? t.checkoutCloseConfirmTitle
-    : t.checkoutCloseConfirmTitleCashier;
-
-  const handleClick = () => {
-    if (sessionBusy) return;
-    if (checkoutLocked) {
-      onCheckoutLocked();
-      return;
-    }
-    if (!sessionId) {
-      showToast(t.checkoutCloseNoSession, 'error');
-      return;
-    }
-    setConfirmOpen(true);
-  };
-
-  const handleConfirm = async () => {
-    if (!sessionId) return;
-    if (!tryBeginSessionBusy('settled_close')) return;
-    let keepBusy = false;
-    try {
-      const outcome = await runWaiterTableCheckoutClose({
-        tableId,
-        printBill: printBillOnClose,
-      });
-      if (!outcome.ok) {
-        if (outcome.code === 'no_session') {
-          showToast(t.checkoutCloseNoSession, 'error');
-          return;
-        }
-        showToast(t.checkoutCloseFailed, 'error');
-        return;
-      }
-      setConfirmOpen(false);
-      showToast(orderHistory.closeTableSuccess, 'success');
-      if (outcome.printFailed) {
-        showToast(t.checkoutClosePrintFailed, 'error');
-      }
-      keepBusy = true;
-      onClosed();
-    } catch {
-      showToast(t.checkoutCloseFailed, 'error');
-    } finally {
-      if (!keepBusy) endSessionBusy();
-    }
-  };
-
-  return (
-    <>
-      <WaiterTableSecondaryButton
-        type="button"
-        onClick={handleClick}
-        disabled={sessionBusy && !settledCloseBusy}
-        loading={settledCloseBusy}
-        aria-label={label}
-        icon={icon}
-      >
-        {label}
-      </WaiterTableSecondaryButton>
-      <ConfirmModal
-        open={confirmOpen}
-        onClose={() => {
-          if (settledCloseBusy) return;
-          setConfirmOpen(false);
-        }}
-        title={confirmTitle}
-        message=""
-        confirmLabel={orderHistory.closeTableConfirmButton}
-        cancelLabel={orderHistory.closeTableCancel}
-        confirming={settledCloseBusy}
-        onConfirm={handleConfirm}
-      />
-    </>
-  );
-}
-
-/** When bill_sync_to_fiscal ON: ensure checkout entry → dashboard checkout. */
+/** Floor「呼叫结账」: ensure checkout entry → dashboard checkout. */
 function WaiterTableCallCheckoutControl({
   lang,
   t,
@@ -445,7 +327,7 @@ function WaiterTableCallCheckoutControl({
       return;
     }
     if (!sessionId) {
-      showToast(t.checkoutCloseNoSession, 'error');
+      showToast(t.callCheckoutNoSession, 'error');
       return;
     }
     if (!tryBeginSessionBusy('call_checkout')) return;
@@ -511,11 +393,8 @@ type OccupiedToolbarProps = {
   onMerge: () => void;
   showTransfer: boolean;
   showMerge: boolean;
-  showCheckoutClose: boolean;
-  /** When bill_sync_to_fiscal ON — call checkout instead of settled close. */
   showCallCheckout: boolean;
   showForceClose: boolean;
-  floorCapabilities: FloorBoardCapabilities;
   isDemo: boolean;
   sessionBusy: boolean;
   sessionBusyKind: WaiterDetailSessionBusyKind | null;
@@ -539,10 +418,8 @@ export function WaiterTableOccupiedToolbar({
   onMerge,
   showTransfer,
   showMerge,
-  showCheckoutClose,
   showCallCheckout,
   showForceClose,
-  floorCapabilities,
   isDemo,
   sessionBusy,
   sessionBusyKind,
@@ -553,7 +430,6 @@ export function WaiterTableOccupiedToolbar({
 }: OccupiedToolbarProps) {
   const transferMergeDisabled = isCheckoutPending || inTableParty || sessionBusy;
   const callCheckoutBusy = sessionBusyKind === 'call_checkout';
-  const settledCloseBusy = sessionBusyKind === 'settled_close';
   const closeBusy =
     sessionBusyKind === 'force_close' || sessionBusyKind === 'demo_close';
   return (
@@ -598,23 +474,6 @@ export function WaiterTableOccupiedToolbar({
               sessionBusy={sessionBusy}
               callCheckoutBusy={callCheckoutBusy}
               onCheckoutLocked={onCheckoutLocked}
-              tryBeginSessionBusy={tryBeginSessionBusy}
-              endSessionBusy={endSessionBusy}
-            />
-          ) : null}
-          {showCheckoutClose ? (
-            <WaiterTableSettledCloseControl
-              lang={lang}
-              t={t}
-              tableId={tableId}
-              sessionId={sessionId}
-              label={t.goToBill}
-              printBillOnClose={floorCapabilities.canPrintOnCheckoutClose}
-              checkoutLocked={isCheckoutPending}
-              sessionBusy={sessionBusy}
-              settledCloseBusy={settledCloseBusy}
-              onCheckoutLocked={onCheckoutLocked}
-              onClosed={onTableClosed}
               tryBeginSessionBusy={tryBeginSessionBusy}
               endSessionBusy={endSessionBusy}
             />

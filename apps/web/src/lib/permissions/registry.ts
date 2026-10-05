@@ -103,7 +103,7 @@ export const PERMISSIONS = {
   'tables.manage': { group: 'tables', labelKey: 'tablesManage', dangerous: true },
   /** Sole gate for 开台 / 用餐人数 on table detail (POST …/waiter/buffet). */
   'tables.open_session': { group: 'tables', labelKey: 'tablesOpenSession' },
-  'tables.checkout_close': { group: 'tables', labelKey: 'tablesCheckoutClose', dangerous: true },
+  'tables.checkout_close': { group: 'tables', labelKey: 'tablesCallCheckout', dangerous: true },
   'tables.force_close': { group: 'tables', labelKey: 'tablesForceClose', dangerous: true },
   'tables.transfer': { group: 'tables', labelKey: 'tablesTransfer', dangerous: true },
   'tables.merge': { group: 'tables', labelKey: 'tablesMerge', dangerous: true },

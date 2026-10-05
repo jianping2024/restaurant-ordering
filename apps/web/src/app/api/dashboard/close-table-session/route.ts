@@ -7,10 +7,7 @@ import { closeTableSessionManual } from '@/lib/table-session/close-table-session
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-  const actorCtx = await loadCloseTableSessionActor({
-    requireWritable: true,
-    gate: 'manual',
-  });
+  const actorCtx = await loadCloseTableSessionActor({ requireWritable: true });
   if ('error' in actorCtx) {
     return NextResponse.json({ error: actorCtx.error }, { status: actorCtx.status });
   }

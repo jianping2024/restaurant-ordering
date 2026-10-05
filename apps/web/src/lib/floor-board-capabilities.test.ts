@@ -8,7 +8,7 @@ describe('floorBoardCapabilities', () => {
   it('derives desk powers from frontdesk/cashier templates', () => {
     const frontdesk = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.frontdesk]));
     assert.equal(frontdesk.canMenuDecrement, true);
-    assert.equal(frontdesk.canCheckoutClose, true);
+    assert.equal(frontdesk.canCallCheckout, true);
     assert.equal(frontdesk.canAssistBillCheckout, true);
     assert.equal(frontdesk.canOpenCheckoutPendingTables, true);
     assert.equal(frontdesk.canTransfer, true);
@@ -17,7 +17,7 @@ describe('floorBoardCapabilities', () => {
     assert.equal(frontdesk.canOpenTableSession, true);
 
     const cashier = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.cashier]));
-    assert.equal(cashier.canCheckoutClose, true);
+    assert.equal(cashier.canCallCheckout, true);
     assert.equal(cashier.canTransfer, true);
     assert.equal(cashier.canMerge, true);
     assert.equal(cashier.canForceClose, false);
@@ -55,7 +55,7 @@ describe('floorBoardCapabilities', () => {
   it('keeps waiter order-assist only', () => {
     const caps = floorBoardCapabilities(capabilitiesFromKeys([...ROLE_TEMPLATES.waiter]));
     assert.equal(caps.canMenuDecrement, false);
-    assert.equal(caps.canCheckoutClose, false);
+    assert.equal(caps.canCallCheckout, false);
     assert.equal(caps.canAssistBillCheckout, false);
     assert.equal(caps.canOpenCheckoutPendingTables, false);
     assert.equal(caps.canTransfer, true);

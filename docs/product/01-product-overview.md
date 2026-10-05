@@ -79,7 +79,7 @@
 | **店主 / Owner** | **统一登录** `/auth/login`（邮箱）→ `/dashboard` | 设置、菜单、桌位、经营分析、异常确认、员工管理 |
 | **前台 / Frontdesk** | **统一登录** `/auth/login`（登录名）→ Dashboard 子集 | 服务员看板嵌入、结账、订单、桌位、菜单查看 |
 | **收银员 / Cashier** | **统一登录** `/auth/login` → `/dashboard/waiter` + 结账台 | 看板 + 结账台 |
-| **服务员 / Waiter** | **统一登录** `/auth/login` → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 关台结账） |
+| **服务员 / Waiter** | **统一登录** `/auth/login` → `/dashboard/waiter` | 看板、开台、桌台详情、协助点餐、换桌并台（不可菜单减菜 / 呼叫结账） |
 | **后厨 / Kitchen** | **统一登录** `/auth/login` → `/{slug}/kitchen` | 订单出餐、退菜（void） |
 | **自定义角色** | **统一登录** `/auth/login`（按勾选能力落地） | 店主在「设置 → 角色权限」创建/复制/改名/停用/删除并勾选页面与按钮 |
 | **顾客 / Customer** | `/{slug}/menu`、`/{slug}/bill` | 扫码点餐、分单、呼叫结账（无账号） |

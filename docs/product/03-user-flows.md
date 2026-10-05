@@ -347,9 +347,7 @@
 全员付清 → RPC 关台：session closed；bill_splits.status = paid
 
 前台 / 收银员桌台详情（Dashboard 看板，会话 `open`、未呼叫结账；**服务员同路由但无关台按钮**）
-  → 「关台结账」：
-    - **前台**：确认后打印会话总账（`checkout_bill`，合并同类菜品行）→ `checkout-close-table-session` 正常收台（settled：保留订单金额、写结算，计入营业额）；**无订单（`no_orders`）时跳过打印直接收台**
-    - **收银员**：确认后**不打印**，直接 `checkout-close-table-session` 正常收台
+  → 「呼叫结账」（有 `tables.checkout_close` 即显示，不受「打印发票」开关控制）：`checkout/ensure-entry` 生成/沿用结账单 → 进结账页收款 → 最后一笔收款自动关台；总账单按「打印账单」开关自动打印。「关台结账」已移除
   → 「关台」（强制关台）：有 `tables.force_close` 即显示并可关（默认前台/店主；收银勾选后同样生效）；`closed_reason` 按角色记 `*_forced` 仅作审计
 ```
 
@@ -407,7 +405,7 @@
   呼叫结账 → pre_bill 自动入队（`checkout-request-server`，受 bill_receipt_print 开关）
   前台桌台详情「打印预结单」 → pre_bill 手动入队（`staff_manual`，不受开关限制；仅前台可见）
   确认某人收款 → split_payment 自动；全员付清 → final 自动（同上开关）
-  手动「打印账单」/ 前台「关台结账」 → checkout_bill（不受开关限制；收银员「关台结账」不打印）
+  手动「打印账单」/ 历史重打 → checkout_bill（不受开关限制）
   （业务三类 vs 四种 receipt_variant：见 docs/technical/04-printing.md §3.1）
 代理：
   配对 claim JWT → GET pending-jobs（服务端 claim→processing）→ 打印 → PATCH done/failed

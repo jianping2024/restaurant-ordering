@@ -26,7 +26,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(flags.showOccupiedToolbar, true);
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
-    assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showCallCheckout, true);
     assert.equal(flags.showForceClose, true);
   });
 
@@ -53,7 +53,7 @@ describe('resolveWaiterTableDetailActions', () => {
     );
   });
 
-  it('limits checkout-close to desk roles with an open session', () => {
+  it('limits call-checkout to desk roles with an open session', () => {
     const waiterFlags = resolveWaiterTableDetailActions({
       caps: waiter,
       isDemo: false,
@@ -64,7 +64,7 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(waiterFlags.showOccupiedToolbar, true);
     assert.equal(waiterFlags.showTransfer, true);
     assert.equal(waiterFlags.showMerge, true);
-    assert.equal(waiterFlags.showCheckoutClose, false);
+    assert.equal(waiterFlags.showCallCheckout, false);
     assert.equal(waiterFlags.showForceClose, false);
 
     const idle = resolveWaiterTableDetailActions({
@@ -77,11 +77,11 @@ describe('resolveWaiterTableDetailActions', () => {
     assert.equal(idle.showOccupiedToolbar, false);
     assert.equal(idle.showTransfer, false);
     assert.equal(idle.showMerge, false);
-    assert.equal(idle.showCheckoutClose, false);
+    assert.equal(idle.showCallCheckout, false);
     assert.equal(idle.showForceClose, false);
   });
 
-  it('allows cashier checkout-close when session is open', () => {
+  it('allows cashier call-checkout when session is open', () => {
     const flags = resolveWaiterTableDetailActions({
       caps: cashier,
       isDemo: false,
@@ -89,7 +89,7 @@ describe('resolveWaiterTableDetailActions', () => {
       hasOpenSession: true,
       hasActiveBuffets: false,
     });
-    assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showCallCheckout, true);
     assert.equal(flags.showForceClose, false);
     assert.equal(flags.showTransfer, true);
     assert.equal(flags.showMerge, true);
@@ -103,7 +103,7 @@ describe('resolveWaiterTableDetailActions', () => {
       hasOpenSession: true,
       hasActiveBuffets: false,
     });
-    assert.equal(flags.showCheckoutClose, false);
+    assert.equal(flags.showCallCheckout, false);
     assert.equal(flags.showForceClose, true);
   });
 
@@ -120,7 +120,7 @@ describe('resolveWaiterTableDetailActions', () => {
     });
     assert.equal(flags.showTransfer, false);
     assert.equal(flags.showMerge, false);
-    assert.equal(flags.showCheckoutClose, true);
+    assert.equal(flags.showCallCheckout, true);
     assert.equal(flags.showForceClose, false);
   });
 

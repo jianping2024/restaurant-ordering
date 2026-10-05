@@ -1,10 +1,8 @@
 import { isRestaurantSuspended } from '@mesa/shared';
 import type { DashboardAccessResult } from '@/lib/dashboard-access';
-import { can, type Capabilities } from '@/lib/permissions/can';
 import type { PrincipalWithCapabilities } from '@/lib/permissions/principal';
+import { mayForceCloseTable } from '@/lib/table-session/force-close-table-policy';
 import type { SettledCloseActorReason } from '@/lib/table-session/operational-close-reasons';
-
-export type CloseTableSessionActorGate = 'checkout_close' | 'manual';
 
 export type CloseTableSessionDeskActorDecision =
   | {
@@ -16,14 +14,6 @@ export type CloseTableSessionDeskActorDecision =
     }
   | { ok: false; error: string; status: number };
 
-function hasCloseTableCapability(
-  capabilities: Capabilities,
-  gate: CloseTableSessionActorGate,
-): boolean {
-  if (gate === 'checkout_close') return can(capabilities, 'tables.checkout_close');
-  return can(capabilities, 'tables.force_close');
-}
-
 export function settledCloseReasonForStaffPreset(
   presetKey: string | null | undefined,
 ): SettledCloseActorReason {
@@ -32,11 +22,10 @@ export function settledCloseReasonForStaffPreset(
   return 'frontdesk_closed';
 }
 
-/** Pure desk close actor gate: staff principal + close capability (no mode/role whitelist). */
+/** Pure desk close actor gate: staff principal + tables.force_close (no mode/role whitelist). */
 export function resolveCloseTableSessionDeskActor(
   access: DashboardAccessResult,
   loaded: PrincipalWithCapabilities | null,
-  gate: CloseTableSessionActorGate,
   options?: { requireWritable?: boolean },
 ): CloseTableSessionDeskActorDecision {
   if (access.mode === 'unauthenticated') {
@@ -48,7 +37,7 @@ export function resolveCloseTableSessionDeskActor(
   if (!loaded || loaded.principal.kind !== 'staff') {
     return { ok: false, error: 'forbidden', status: 403 };
   }
-  if (!hasCloseTableCapability(loaded.capabilities, gate)) {
+  if (!mayForceCloseTable(loaded.capabilities)) {
     return { ok: false, error: 'forbidden', status: 403 };
   }
   if (

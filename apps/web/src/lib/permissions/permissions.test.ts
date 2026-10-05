@@ -74,7 +74,7 @@ describe('can / resolve', () => {
       capabilitiesFromKeys(['dashboard.waiter_board.view']),
     );
     assert.equal(waiter.canMenuDecrement, false);
-    assert.equal(waiter.canCheckoutClose, false);
+    assert.equal(waiter.canCallCheckout, false);
     assert.equal(waiter.canTransfer, false);
     assert.equal(waiter.canMerge, false);
     assert.equal(waiter.canOpenTableSession, false);

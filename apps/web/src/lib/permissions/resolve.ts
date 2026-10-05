@@ -64,15 +64,14 @@ export function resolveCapabilitiesFromRolePermissions(
 /** Floor-board UI flags derived only from capabilities (no role switch). */
 export type FloorBoardCapabilities = {
   canMenuDecrement: boolean;
-  canCheckoutClose: boolean;
+  /** 呼叫结账 button on table detail — sole tables.checkout_close. */
+  canCallCheckout: boolean;
   canAssistBillCheckout: boolean;
   canOpenCheckoutPendingTables: boolean;
   canPrintSessionPreBill: boolean;
-  /** Print total bill when running 关台结账 (frontdesk default; cashier false). */
-  canPrintOnCheckoutClose: boolean;
   canTransfer: boolean;
   canMerge: boolean;
-  /** Unpaid / force close (关台); not settled 关台结账. */
+  /** Unpaid / force close (关台). */
   canForceClose: boolean;
   /** 开台 / 用餐人数 on table detail — sole tables.open_session. */
   canOpenTableSession: boolean;
@@ -85,11 +84,10 @@ export function mayForceCloseFromCaps(capabilities: Capabilities): boolean {
 export function floorBoardCapabilitiesFromCaps(capabilities: Capabilities): FloorBoardCapabilities {
   return {
     canMenuDecrement: can(capabilities, 'orders.menu_decrement'),
-    canCheckoutClose: can(capabilities, 'tables.checkout_close'),
+    canCallCheckout: can(capabilities, 'tables.checkout_close'),
     canAssistBillCheckout: can(capabilities, 'checkout.assist_bill'),
     canOpenCheckoutPendingTables: can(capabilities, 'checkout.open_pending_tables'),
     canPrintSessionPreBill: can(capabilities, 'checkout.print_pre_bill'),
-    canPrintOnCheckoutClose: can(capabilities, 'checkout.print_pre_bill'),
     canTransfer: can(capabilities, 'tables.transfer'),
     canMerge: can(capabilities, 'tables.merge'),
     canForceClose: mayForceCloseFromCaps(capabilities),

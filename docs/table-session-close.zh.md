@@ -11,10 +11,10 @@
 
 | 产品动作 | 含义 | 营业额 |
 |----------|------|--------|
-| **关台结账** | 前台 / 收银（及授权角色）确认客人已付清后收台：取消未付分账草稿、保留订单金额、关闭餐次 | **计入**（靠保留的订单金额） |
+| **呼叫结账 → 收款付清** | 前台 / 收银 / 店主点桌台详情「呼叫结账」进结账页收款，**最后一笔收款确认后自动关台**（`checkout-confirm-payment`）：保留订单金额、关闭餐次 | **计入** |
 | **强制关台** | 店主 / 服务员 / 夜间任务在**未走完正常结账**时清场：取消未付分账、保留订单金额、关闭餐次 | **不计**（按关台性质排除，**不**靠清零订单） |
 
-另有一条并行入口：**确认收款 / 分账付清**（`checkout-confirm-payment`）：把分账标为 `paid`，全员付清时关台。它与「关台结账」同属「已结算收台」，都保留订单并计入营业额；与「强制关台」不同。
+**确认收款 / 分账付清**（`checkout-confirm-payment`）把分账标为 `paid`，全员付清时关台，保留订单并计入营业额；与「强制关台」不同。原桌台详情「关台结账」入口已移除，结账只走呼叫结账。
 
 无论哪条路径，结束餐次都 **不是** 仅把 `table_sessions.status` 改为 `closed`。否则会出现：
 
@@ -24,9 +24,10 @@
 代码中只允许走下文两条 RPC（或确认收款付清关台），禁止业务层「只 `update table_sessions`」。  
 **void 仅用于真实退菜**，不用于任何关台路径。
 
-### 1.1 关台结账（settled）
+### 1.1 关台结账（settled）— 入口已移除
 
-**适用：** 桌台详情「关台结账」——客人已付款、前台收台（前台可顺带入队 `checkout_bill`，失败不挡关台；收银员不打印）。
+桌台详情「关台结账」、`POST /api/dashboard/checkout-close-table-session` 与 `closeTableSessionFrontdeskCheckout` 已删除；`close_table_session_settled` 迁移保留（历史迁移不改）但**不再有调用方**。以下仅描述历史数据语义：
+
 
 **RPC：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
 
@@ -62,7 +63,7 @@
 
 | 场景 | 入口 |
 |------|------|
-| 前台 / 收银员桌台详情「关台结账」 | `POST /api/dashboard/checkout-close-table-session`（可选 `print_bill`）→ `closeTableSessionFrontdeskCheckout` → billable 投影 → **`close_table_session_settled`** → 尽力入队打印 |
+| 前台 / 收银 / 店主桌台详情「呼叫结账」（`tables.checkout_close`） | `POST /api/restaurants/[slug]/checkout/ensure-entry` → 结账页收款 → 最后一笔 `confirm_bill_split_payment` 自动关台 |
 | 有 `tables.force_close` 的员工强制关台（含勾选后的收银） | `POST /api/dashboard/close-table-session` → `closeTableSessionManual`（映射为 `*_forced`）→ **`close_table_session_operational`** |
 | 服务员强制关台 | waiter sessions close → `waiter_closed` → **operational** |
 | 里斯本 05:00 夜间批量关台 | `auto_nightly` → **operational** |
@@ -71,7 +72,7 @@
 
 | 模式 | RPC | 订单 | 未付分账 | 营业额 |
 |------|-----|------|----------|--------|
-| **Settled**（关台结账） | `close_table_session_settled` | 保留 | cancel | **计入** |
+| **Settled**（历史关台结账，入口已移除） | `close_table_session_settled` | 保留 | cancel | **计入** |
 | **Operational**（强制 / 夜间 / 服务员） | `close_table_session_operational` | 保留 | cancel | **不计**（按 reason / 异常） |
 
 关台成功后会清除该桌的同行组成员关系；若该组已无成员则自动解散。

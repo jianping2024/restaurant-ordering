@@ -393,7 +393,6 @@ function GuestBillPage({
 
   const claimLabels = useMemo(
     () => ({
-      claimedByOthers: t.claimOthers,
       left: t.claimLeft,
       over: t.claimOver,
       buffetAdultQtyLabel: t.byItemGuestTypeAdult,
@@ -405,6 +404,7 @@ function GuestBillPage({
       nameTaken: t.individualNameTaken,
       intro: t.claimIntro,
       claimAll: t.claimAll,
+      othersSection: t.claimOthersSection,
       mineLabel: t.claimMineLabel,
       unitPickerLabel: t.claimUnitPicker,
       stackLabel: t.claimStack,
@@ -764,6 +764,7 @@ function GuestBillPage({
               lineSpecs={lineSpecs}
               orderLines={splitOrderLines}
               others={claim.others}
+              othersBlocks={claim.othersBlocks}
               overClaimedKeys={claim.overClaimedKeys}
               nameTaken={claim.nameTaken}
               disabled={isCallBillBusy}

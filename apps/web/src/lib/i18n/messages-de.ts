@@ -1463,7 +1463,7 @@ export const MESSAGES_DE = {
     "claimNamePlaceholder": "Name für Ihre Rechnung",
     "claimNameRequired": "Zuerst Ihren Namen eingeben, dann Ihre Gerichte wählen",
     "claimIntro": "Wählen Sie Ihre Gerichte und rufen Sie dann die Rechnung",
-    "claimOthers": "{qty} von anderen gewählt",
+    "claimOthersSection": "Von anderen gewählt",
     "claimLeft": "{qty} übrig",
     "claimOver": "Mehr als übrig – bitte anpassen",
     "claimAll": "Alles Übrige übernehmen",

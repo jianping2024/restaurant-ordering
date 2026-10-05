@@ -1465,7 +1465,7 @@ export const MESSAGES_FR = {
     "claimNamePlaceholder": "Nom pour votre addition",
     "claimNameRequired": "Saisissez d’abord votre nom, puis choisissez vos plats",
     "claimIntro": "Choisissez les plats que vous payez, puis demandez l’addition",
-    "claimOthers": "{qty} choisi(s) par d’autres",
+    "claimOthersSection": "Choisi par d’autres",
     "claimLeft": "Reste {qty}",
     "claimOver": "Plus que ce qui reste, ajustez",
     "claimAll": "Prendre tout ce qui reste",

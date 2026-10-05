@@ -14,11 +14,15 @@ import {
   lineAvailability,
   lineOverClaimed,
   othersAllocation,
+  guestOthersClaimBlocks,
+  guestClaimLineEditableVisible,
+  guestOthersClaimStyleSlot,
   parseGuestClaimDraft,
   pruneClaimRows,
   type GuestClaim,
 } from './guest-claim';
 import type { SplitPerson, SplitResult } from '../types';
+import { splitPartyKey } from './split-party-id';
 
 const ME = '11111111-1111-4111-8111-111111111111';
 const LI = '22222222-2222-4222-8222-222222222222';
@@ -104,6 +108,45 @@ describe('lineAvailability', () => {
     assert.equal(left.childrenRemaining, 1);
     assert.equal(guestBuffetSeatCeil(left, 'adultQty'), 1);
     assert.equal(guestBuffetSeatCeil(left, 'childQty'), 1);
+  });
+});
+
+describe('guestOthersClaimBlocks + editable visibility', () => {
+  it('groups other tickets by person and skips this phone', () => {
+    const wang: SplitPerson = {
+      name: 'Wang',
+      party_id: '33333333-3333-4333-8333-333333333333',
+      item_shares: [{ key: 'L2', qty_num: 1, qty_den: 1, party_id: '33333333-3333-4333-8333-333333333333' }],
+    };
+    const mine: SplitPerson = {
+      name: 'Me',
+      party_id: ME,
+      item_shares: [{ key: 'L1', qty_num: 1, qty_den: 1, party_id: ME }],
+    };
+    const blocks = guestOthersClaimBlocks(
+      [liPerson([['L1', 3]]), wang, mine],
+      claim('Me'),
+      specs,
+    );
+    assert.equal(blocks.length, 2);
+    assert.equal(blocks[0]!.name, 'Li');
+    assert.equal(blocks[0]!.lines[0]!.lineKey, 'L1');
+    assert.equal(blocks[1]!.name, 'Wang');
+    assert.equal(blocks[0]!.styleSlot, guestOthersClaimStyleSlot(blocks[0]!.ticketKey));
+  });
+
+  it('marks paid tickets and hides fully claimed lines from the editable list', () => {
+    const persons = [liPerson([['L2', 1]])];
+    const me = claim('Me');
+    const others = othersAllocation(persons, me, specs);
+    const ticketKey = splitPartyKey(persons[0]!.party_id, persons[0]!.name);
+    const blocks = guestOthersClaimBlocks(persons, me, specs, new Set([ticketKey]));
+    assert.equal(blocks.length, 1);
+    assert.equal(blocks[0]!.paidLocked, true);
+    // L2 fully taken, nothing mine → not editable
+    assert.equal(guestClaimLineEditableVisible(specs[1]!, me, others), false);
+    // L1 still open
+    assert.equal(guestClaimLineEditableVisible(specs[0]!, me, others), true);
   });
 });
 

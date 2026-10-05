@@ -19,6 +19,7 @@ import {
   clampGuestClaimBuffetRows,
   clearGuestClaimDraft,
   guestClaimIssue,
+  guestOthersClaimBlocks,
   lineOverClaimed,
   loadGuestClaimDraft,
   othersAllocation,
@@ -138,6 +139,11 @@ export function useGuestClaim(params: {
     [persons, claim, lineSpecs],
   );
 
+  const othersBlocks = useMemo(
+    () => guestOthersClaimBlocks(persons ?? [], claim, lineSpecs, paidKeys),
+    [persons, claim, lineSpecs, paidKeys],
+  );
+
   const myTicket = useMemo(
     () => buildMyTicket({ claim, lineSpecs, orderLines, others, lang }),
     [claim, lineSpecs, orderLines, others, lang],
@@ -191,6 +197,7 @@ export function useGuestClaim(params: {
     claim,
     ready: hydratedFor === sessionId && !!sessionId,
     others,
+    othersBlocks,
     myTicket,
     issue,
     nameTaken,

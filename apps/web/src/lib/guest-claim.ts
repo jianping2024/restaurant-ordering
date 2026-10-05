@@ -26,6 +26,7 @@ import {
 } from '@/lib/bill-split-by-item-lines';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
+import { rationalFromGuestClaimRow } from './guest-claim-qty-stack';
 import {
   normalizeRational,
   rationalFromNumber,
@@ -91,6 +92,120 @@ export function othersAllocation(
   const myKey = splitPartyKey(claim.partyId, claim.name);
   const others = persons.filter((person) => splitPartyKey(person.party_id, person.name) !== myKey);
   return buildByItemAllocationsFromPersons([...others], [...lineSpecs]);
+}
+
+/** Distinct left-rail accents for other guests' read-only claim blocks (stable by ticket key). */
+export const GUEST_OTHERS_CLAIM_STYLE_SLOT_COUNT = 5;
+
+export type GuestOthersClaimLine =
+  | { lineKey: string; mode: 'menu'; qty: Rational }
+  | { lineKey: string; mode: 'buffet'; adults: number; children: number };
+
+/** Sole guest UI shape for "others already claimed" — one block per other ticket. */
+export type GuestOthersClaimBlock = {
+  ticketKey: string;
+  name: string;
+  paidLocked: boolean;
+  styleSlot: number;
+  lines: GuestOthersClaimLine[];
+};
+
+/** Stable 0..N-1 slot from ticket key (party_id first via {@link splitPartyKey}). */
+export function guestOthersClaimStyleSlot(ticketKey: string): number {
+  let hash = 0;
+  for (let i = 0; i < ticketKey.length; i += 1) {
+    hash = (hash * 31 + ticketKey.charCodeAt(i)) >>> 0;
+  }
+  return hash % GUEST_OTHERS_CLAIM_STYLE_SLOT_COUNT;
+}
+
+/**
+ * Sole chrome for an others-claim person block.
+ * Paid tickets use emerald; unpaid use a fixed palette keyed by {@link guestOthersClaimStyleSlot}.
+ */
+export function guestOthersClaimBlockShellClass(styleSlot: number, paidLocked: boolean): string {
+  if (paidLocked) {
+    return 'border-emerald-600/35 bg-emerald-500/5 border-l-4 border-l-emerald-600';
+  }
+  const slots = [
+    'border-sky-600/30 bg-sky-500/5 border-l-4 border-l-sky-600',
+    'border-violet-600/30 bg-violet-500/5 border-l-4 border-l-violet-600',
+    'border-rose-600/30 bg-rose-500/5 border-l-4 border-l-rose-600',
+    'border-teal-600/30 bg-teal-500/5 border-l-4 border-l-teal-600',
+    'border-amber-700/30 bg-amber-500/5 border-l-4 border-l-amber-700',
+  ] as const;
+  return slots[styleSlot % slots.length] ?? slots[0];
+}
+
+/**
+ * Sole guest read-model for others' claims on the claim panel: persons minus this phone's
+ * ticket, grouped by ticket (not by dish). Empty tickets omitted. Pool math still uses
+ * {@link othersAllocation} / {@link lineAvailability}.
+ */
+export function guestOthersClaimBlocks(
+  persons: ReadonlyArray<SplitPerson>,
+  claim: Pick<GuestClaim, 'name' | 'partyId'>,
+  lineSpecs: ReadonlyArray<ByItemLineSpec>,
+  paidTicketKeys: ReadonlySet<string> = new Set(),
+): GuestOthersClaimBlock[] {
+  const myKey = splitPartyKey(claim.partyId, claim.name);
+  const blocks: GuestOthersClaimBlock[] = [];
+  for (const person of persons) {
+    const ticketKey = splitPartyKey(person.party_id, person.name);
+    if (!ticketKey || ticketKey === myKey) continue;
+    const alloc = buildByItemAllocationsFromPersons([person], [...lineSpecs]);
+    const lines: GuestOthersClaimLine[] = [];
+    for (const spec of lineSpecs) {
+      const shares = alloc[spec.key] ?? [];
+      if (shares.length === 0) continue;
+      if (spec.mode === 'buffet') {
+        const sumBy = (type: 'adult' | 'child') =>
+          shares
+            .filter((share) => share.guestType === type)
+            .reduce((total, share) => total + share.qty.num / share.qty.den, 0);
+        const adults = sumBy('adult');
+        const children = sumBy('child');
+        if (adults + children <= 0) continue;
+        lines.push({ lineKey: spec.key, mode: 'buffet', adults, children });
+      } else {
+        const qty = sumRationals(shares.map((share) => share.qty));
+        if (qty.num <= 0) continue;
+        lines.push({ lineKey: spec.key, mode: 'menu', qty });
+      }
+    }
+    if (lines.length === 0) continue;
+    blocks.push({
+      ticketKey,
+      name: person.name.trim() || '—',
+      paidLocked: paidTicketKeys.has(ticketKey),
+      styleSlot: guestOthersClaimStyleSlot(ticketKey),
+      lines,
+    });
+  }
+  return blocks;
+}
+
+/**
+ * Whether a dish still appears in this phone's editable list.
+ * Fully taken by others with nothing mine → false (shown only under others' person blocks).
+ */
+export function guestClaimLineEditableVisible(
+  spec: ByItemLineSpec,
+  claim: GuestClaim,
+  others: ByItemLineAllocation,
+): boolean {
+  const availability = lineAvailability(spec, others);
+  const row = claimRowFor(claim, spec);
+  const mineEmpty =
+    spec.mode === 'menu'
+      ? rationalFromGuestClaimRow(row).num <= 0
+      : !(Number.parseInt(row.adultQty || '0', 10) || 0) &&
+        !(Number.parseInt(row.childQty || '0', 10) || 0);
+  const noRemaining =
+    availability.mode === 'menu'
+      ? availability.remaining.num <= 0
+      : availability.adultsRemaining <= 0 && availability.childrenRemaining <= 0;
+  return !(noRemaining && mineEmpty);
 }
 
 function subRational(a: Rational, b: Rational): Rational {

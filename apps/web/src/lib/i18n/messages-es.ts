@@ -1461,7 +1461,7 @@ export const MESSAGES_ES = {
     "claimNamePlaceholder": "Nombre para tu cuenta",
     "claimNameRequired": "Escribe primero tu nombre y luego elige tus platos",
     "claimIntro": "Elige los platos que vas a pagar y pide la cuenta",
-    "claimOthers": "{qty} elegido(s) por otros",
+    "claimOthersSection": "Elegido por otros",
     "claimLeft": "Quedan {qty}",
     "claimOver": "Más de lo que queda, ajusta",
     "claimAll": "Elegir todo lo que queda",

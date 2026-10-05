@@ -12,11 +12,9 @@ import {
   stackGuestClaimUnit,
   unstackGuestClaimUnit,
 } from '@/lib/guest-claim-qty-stack';
-import { formatRational } from '@/lib/rational-qty';
 import { mesaSelectionChipSoftClass } from '@/lib/mesa-selection-chip';
 
 export type GuestClaimDishCardLabels = {
-  claimedByOthers: string;
   left: string;
   over: string;
   buffetAdultQtyLabel: string;
@@ -78,23 +76,9 @@ export function GuestClaimDishCard({
   const [expanded, setExpanded] = useState(false);
   const readOnly = disabled || lineLocked || paidLocked;
 
-  const othersText =
-    availability.mode === 'menu'
-      ? availability.claimedByOthers.num > 0
-        ? fill(labels.claimedByOthers, { qty: formatRational(availability.claimedByOthers) })
-        : null
-      : availability.adultsClaimedByOthers + availability.childrenClaimedByOthers > 0
-        ? fill(labels.claimedByOthers, {
-            qty: fill(labels.buffetGuestCounts, {
-              adults: availability.adultsClaimedByOthers,
-              children: availability.childrenClaimedByOthers,
-            }),
-          })
-        : null;
-
   const leftText =
     availability.mode === 'menu'
-      ? fill(labels.left, { qty: formatRational(availability.remaining) })
+      ? fill(labels.left, { qty: formatGuestClaimQtyLabel(availability.remaining) })
       : fill(labels.left, {
           qty: fill(labels.buffetGuestCounts, {
             adults: availability.adultsRemaining,
@@ -162,12 +146,9 @@ export function GuestClaimDishCard({
       ) : lineLocked ? (
         <span>{labels.othersLockedHint}</span>
       ) : (
-        <>
-          {othersText ? <span>{othersText} · </span> : null}
-          <span className={over ? 'text-red-500 font-medium' : undefined}>
-            {over ? labels.over : leftText}
-          </span>
-        </>
+        <span className={over ? 'text-red-500 font-medium' : undefined}>
+          {over ? labels.over : leftText}
+        </span>
       )}
     </p>
   );

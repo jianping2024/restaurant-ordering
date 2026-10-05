@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  buildIndividualCallSignalItemsByTicket,
   individualPhoneHoldsOrdering,
   mergeIndividualTickets,
   recomputeIndividualTicketAmounts,
@@ -174,6 +175,54 @@ describe('recomputeIndividualTicketAmounts', () => {
     });
     assert.equal(out[0]!.amount, 8);
     assert.equal(out[1]!.amount, 20);
+  });
+});
+
+describe('buildIndividualCallSignalItemsByTicket', () => {
+  it('stamps trilingual names, qty, and share amounts for each called ticket', () => {
+    const lines: BillSplitOrderLine[] = [
+      {
+        ...line('L1', 1, 20),
+        name_pt: 'Peixe',
+        name_en: 'Fish',
+        name_zh: '鱼',
+      },
+      {
+        ...line('L2', 2, 8),
+        name_pt: 'Arroz',
+        name_en: 'Rice',
+        name_zh: '饭',
+      },
+    ];
+    const specs = [spec('L1', 1, 20), spec('L2', 2, 8)];
+    const stamped = buildIndividualCallSignalItemsByTicket({
+      orderLines: lines,
+      lineSpecs: specs,
+      persons: [person('Wang', PA, [['L2', 1]]), person('Li', PB, [['L1', 1]])],
+      ticketKeys: [`p:${PA}`, `p:${PB}`],
+    });
+    assert.deepEqual(stamped[`p:${PB}`], [
+      {
+        key: 'L1',
+        qty_num: 1,
+        qty_den: 1,
+        amount: 20,
+        name_pt: 'Peixe',
+        name_en: 'Fish',
+        name_zh: '鱼',
+      },
+    ]);
+    assert.deepEqual(stamped[`p:${PA}`], [
+      {
+        key: 'L2',
+        qty_num: 1,
+        qty_den: 1,
+        amount: 8,
+        name_pt: 'Arroz',
+        name_en: 'Rice',
+        name_zh: '饭',
+      },
+    ]);
   });
 });
 

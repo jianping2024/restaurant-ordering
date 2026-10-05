@@ -13,6 +13,7 @@ import { loadIndividualTickets, loadTicketCallRows } from '@/lib/individual-chec
 import { deriveBillView } from '@/lib/customer-bill-sync';
 import { loadCustomerSessionOrders } from '@/lib/customer-session-context';
 import {
+  buildIndividualCallSignalItemsByTicket,
   individualPhoneHoldsOrdering,
   mergeIndividualTickets,
   recomputeIndividualTicketAmounts,
@@ -231,6 +232,12 @@ export async function submitIndividualCall(
       result: merged.result,
       myKeys: merged.myKeys,
     });
+    const ticketSignalItems = buildIndividualCallSignalItemsByTicket({
+      orderLines: view.splitOrderLines,
+      lineSpecs: view.lineSpecs,
+      persons: merged.persons,
+      ticketKeys: merged.myKeys,
+    });
 
     const { data, error } = await admin.rpc('individual_checkout_apply', {
       p_restaurant_id: restaurantId,
@@ -246,6 +253,7 @@ export async function submitIndividualCall(
       p_persons: merged.persons,
       p_result: result,
       p_total_amount: view.total,
+      p_ticket_signal_items: ticketSignalItems,
     });
     if (error) return applyFailure('individual_apply_failed', error.message);
 

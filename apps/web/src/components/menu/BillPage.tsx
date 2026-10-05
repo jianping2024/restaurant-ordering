@@ -325,13 +325,6 @@ function GuestBillPage({
     }
   };
 
-  const resolveLineName = useCallback(
-    (lineKey: string) => {
-      const line = splitOrderLines.find((row) => row.key === lineKey);
-      return line ? resolveMenuItemLocalizedName(line, lang) : null;
-    },
-    [lang, splitOrderLines],
-  );
   const individualNotice = (
     <IndividualCheckoutNotice
       sessionId={activeSessionId}
@@ -339,7 +332,6 @@ function GuestBillPage({
       suppressModal={submitted}
       onSignals={() => void refreshBill()}
       getIgnoreTicketKeys={getIgnoreTicketKeys}
-      resolveLineName={resolveLineName}
     />
   );
 

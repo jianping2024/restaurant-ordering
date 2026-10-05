@@ -127,7 +127,7 @@
 ### 3.7 关台
 
 - 关台函数 `compute_session_payment_gap`（`supabase/migrations/20260709120000_session_collected_payments_resume_ordering.sql`）：应收 = 本桌所有订单菜价之和；`has_unpaid_split` = 存在状态为 `pending|confirmed|requested` 的分单；`is_unpaid_close` = 有未结分单或差额大于 0。有未付时强制关台需二次确认并填原因（`lib/table-session/close-table-session.service.ts`）。
-- `close_table_session_settled`（已付清正常关台）要求会话 `open`，且无未结束分单（`checkout_in_progress`）、无收款记录（`partial_payment_ledger`）。**所以全部付清后 `bill_splits.status` 必须正确转成 `paid`，否则关台一直报错。**
+- 已付清正常关台由最后一笔 `confirm_bill_split_payment` 完成（`close_table_session_settled` 已由迁移 `20261005190000` 删除）。**所以全部付清后 `bill_splits.status` 必须正确转成 `paid`，否则不会自动关台。**
 - 夜间自动关台 `lib/auto-close-active-sessions.ts`：05:00（里斯本）强制关闭所有 `open` 和 `billing` 会话，含未付清，历史标 `auto_nightly`。**维持原样，不改。**
 - 订单历史里的 `'billing'`（`lib/order-history/close-kind.ts`）是「关台类型」标签，不是会话状态，不受影响。
 
@@ -257,7 +257,7 @@
 
 ### 已核对，不受影响
 
-订单历史关台类型与生命周期展示、夜间自动关台、`close_table_session_settled`（只要分单状态正确转为 `paid`）、菜品评价、打印路由、`staff-board`、`dashboard-tables`、菜品历史、桌台删除（它们只把 `open` 和 `billing` 一起当「进行中」）。
+订单历史关台类型与生命周期展示、夜间自动关台、收款付清自动关台（`confirm_bill_split_payment`，只要分单状态正确转为 `paid`）、菜品评价、打印路由、`staff-board`、`dashboard-tables`、菜品历史、桌台删除（它们只把 `open` 和 `billing` 一起当「进行中」）。
 
 ---
 
@@ -311,7 +311,7 @@
 - 按票合并：A、B 同时提交，互不覆盖。
 - 菜池超额认领、重名并发，只有先到者成功。
 - 冻结（分数份数的菜、**整单打折加部分分单**）：原计划的呼叫时冻结已改为只在收款确认，本项只验证现有收款冻结不受影响；整单打折加部分分单仍待专门验证。
-- `bill_splits.status` 流转：呼叫、恢复、部分收款、全部付清、关台（`close_table_session_settled`）。
+- `bill_splits.status` 流转：呼叫、恢复、部分收款、全部付清、关台（最后一笔 `confirm_bill_split_payment`）。
 - 减菜、改人数、后厨作废，低于已锁定认领时被拒绝。
 - 所有加菜入口对已呼叫手机的拦截；已付款后自动恢复。
 - 并桌、转台在有已呼叫票时被拦。

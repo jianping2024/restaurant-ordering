@@ -193,22 +193,6 @@ else
   fail "kitchen force-close blocked" "expected 401/403 got $KITCHEN_FORCE"
 fi
 
-echo "=== Checkout close regression ==="
-ensure_idle "$CLOSE_TABLE"; ensure_open "$CLOSE_TABLE"
-CLOSE_BODY=$(python3 -c "import json; print(json.dumps({'table_id':'$CLOSE_TABLE'}))")
-CLOSE_CODE=$(http_code "$STORE_JAR" POST "/api/dashboard/checkout-close-table-session" "$CLOSE_BODY")
-if [ "$CLOSE_CODE" = "200" ] || [ "$CLOSE_CODE" = "201" ]; then
-  pass "store_owner checkout-close"
-else
-  fail "store_owner checkout-close" "HTTP $CLOSE_CODE $(cat /tmp/uat-body.json | head -c 200)"
-fi
-KITCHEN_CLOSE=$(http_code "$KITCHEN_JAR" POST "/api/dashboard/checkout-close-table-session" "$CLOSE_BODY")
-if [ "$KITCHEN_CLOSE" = "401" ] || [ "$KITCHEN_CLOSE" = "403" ]; then
-  pass "kitchen checkout-close blocked"
-else
-  fail "kitchen checkout-close blocked" "expected 401/403 got $KITCHEN_CLOSE"
-fi
-
 echo "=== Settings API matrix ==="
 assert_code "backend_admin staff API" 200 "$(http_code "$ADMIN_JAR" GET /api/dashboard/staff)"
 assert_code "backend_admin features API" 200 "$(http_code "$ADMIN_JAR" GET /api/restaurant/features)"

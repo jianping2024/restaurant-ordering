@@ -172,7 +172,7 @@
 #### 计费与关台
 
 - **计费投影（读）**：从「订单原始行 + 行上限量快照 + 当前人数」派生免费/收费份；下单时快照写入订单行
-- **关台结账落账**：写入 `table_sessions.settled_payable_amount`；**不**改 `orders.items`
+- **历史关台结账落账（入口已移除，仅历史数据）**：写入 `table_sessions.settled_payable_amount`；**不**改 `orders.items`
 
 ### 相关代码
 
@@ -292,7 +292,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 |----------|-------------------|-----------|
 | 预结算 | `pre_bill` | **自动**（呼叫结账成功后入队）或 **前台手动**（桌台详情「打印预结单」；`staff_manual`，不受开关限制） |
 | 分单 | `split_payment` | **手动**（确认收款后询问；选「是」才打这一人。整桌最后一人也不另打全桌付清） |
-| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 前台关台结账顺带入队 / 历史重打；收银员关台结账不触发）。关台结账：**先关台再尽力入队**，入队失败不挡关台 |
+| 总账单（收款前） | `checkout_bill` | **手动**（打印账单 / 历史重打）；呼叫结账时按「打印账单」开关自动打 pre_bill |
 | 总账单（收讫后） | `final` | **手动**（仅整桌结账确认收款后，询问打印时打一张） |
 
 「总账单」在实现上拆成 `checkout_bill`（未付、无收款行）与 `final`（已付、含收款确认）。纸面细节与入队路径见 [`docs/technical/04-printing.md`](../technical/04-printing.md) §3.1。收款三选、税汇总、预结/账单免责句、人头费 IVA 见 [`collect-payment-receipt-iva.zh.md`](./collect-payment-receipt-iva.zh.md)。
@@ -407,13 +407,13 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 2. **已付清回退**：`paid` split 的 `total_amount`，应用平均折扣率
 3. **已关台（非强制）**：会话 `status='closed'` 且 `closed_reason` **不属于**强制集合（`waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly`），且**不在** `abnormal_operations.type='UNPAID_TABLE_CLOSED'` 中
    - 有 `paid` split：按分账收款合计（见上）
-   - 否则优先 `table_sessions.settled_payable_amount`（关台结账快照）；无快照的旧数据回退 `orders.total_amount` 合计
+   - 否则优先 `table_sessions.settled_payable_amount`（历史关台结账快照）；无快照的旧数据回退 `orders.total_amount` 合计
    - 有未 cancelled/paid 的 split：可应用其折扣到上述应付
 4. **未关台 / 强制关台**：不计入营业额统计
 5. 金额经 `auditMoney` 四舍五入
 
 **关台路径与统计：**
-- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（关台结账 settled）→ 计入营业额（`settled_payable_amount` / 账单投影）
+- ✅ `frontdesk_closed` / `cashier_closed` / `owner_closed`（历史关台结账 settled）→ 计入营业额（`settled_payable_amount` / 账单投影）
 - ✅ 正常收款 `confirm_bill_split_payment` → 计入营业额
 - ❌ `waiter_closed` / `owner_forced` / `frontdesk_forced` / `cashier_forced` / `auto_nightly` → **不计入**
 - ❌ `UNPAID_TABLE_CLOSED` 异常记录 → **不计入**

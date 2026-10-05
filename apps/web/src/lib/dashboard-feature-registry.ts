@@ -271,8 +271,7 @@ export const DASHBOARD_FEATURES: DashboardFeature[] = [
     path: '/dashboard/waiter',
     pageLoader: 'requireWaiterBoardDashboardAccess (resolveWaiterBoardDashboardAccess)',
     writePattern: 'read-only',
-    aliases: ['/api/dashboard/checkout-close-table-session'],
-    riskNote: 'Floor board via requireWaiterBoardDashboardAccess; close uses resolveCloseTableSessionDeskActor + tables.checkout_close / tables.force_close.',
+    riskNote: 'Floor board via requireWaiterBoardDashboardAccess; force close uses resolveCloseTableSessionDeskActor + tables.force_close; 呼叫结账 goes through checkout ensure-entry (tables.checkout_close gates the button).',
   },
 ];
 

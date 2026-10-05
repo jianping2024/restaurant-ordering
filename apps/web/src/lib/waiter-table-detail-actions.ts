@@ -10,8 +10,8 @@ export type WaiterTableDetailActionFlags = {
   showTransfer: boolean;
   /** Capability-gated merge button. */
   showMerge: boolean;
-  /** Desk roles may run 关台结账 (frontdesk prints; cashier skips print). */
-  showCheckoutClose: boolean;
+  /** Desk roles (tables.checkout_close) may 呼叫结账 → dashboard checkout. */
+  showCallCheckout: boolean;
   /** Unpaid / force 关台 (tables.force_close); stays available during checkout lock. */
   showForceClose: boolean;
 };
@@ -20,7 +20,7 @@ export type WaiterTableDetailActionFlags = {
 export function resolveWaiterTableDetailActions(input: {
   caps: Pick<
     FloorBoardCapabilities,
-    'canCheckoutClose' | 'canTransfer' | 'canMerge' | 'canForceClose' | 'canOpenTableSession'
+    'canCallCheckout' | 'canTransfer' | 'canMerge' | 'canForceClose' | 'canOpenTableSession'
   >;
   isDemo: boolean;
   isCheckoutPending: boolean;
@@ -36,7 +36,7 @@ export function resolveWaiterTableDetailActions(input: {
     showOccupiedToolbar: hasOpenSession,
     showTransfer: caps.canTransfer && openAndEditable,
     showMerge: caps.canMerge && openAndEditable,
-    showCheckoutClose: caps.canCheckoutClose && openAndEditable,
+    showCallCheckout: caps.canCallCheckout && openAndEditable,
     showForceClose: caps.canForceClose && hasOpenSession,
   };
 }

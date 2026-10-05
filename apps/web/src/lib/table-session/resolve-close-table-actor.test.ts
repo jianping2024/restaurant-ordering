@@ -18,26 +18,6 @@ const restaurant = {
   suspension_reason: null,
 };
 
-function staffPrincipal(presetKey: 'owner' | 'frontdesk' | 'cashier' | 'waiter'): PrincipalWithCapabilities {
-  return {
-    principal: {
-      kind: 'staff',
-      restaurantId: restaurant.id,
-      userId: 'user-1',
-      staffAccountId: 'staff-1',
-      roleId: 'role-1',
-      roleName: presetKey,
-      presetKey,
-      staffRoleLabel: presetKey,
-    },
-    capabilities: capabilitiesFromKeys([
-      'tables.checkout_close',
-      'tables.force_close',
-      'dashboard.waiter_board.view',
-    ]),
-  };
-}
-
 describe('settledCloseReasonForStaffPreset', () => {
   it('maps presets to settled closed reasons', () => {
     assert.equal(settledCloseReasonForStaffPreset('cashier'), 'cashier_closed');
@@ -47,50 +27,7 @@ describe('settledCloseReasonForStaffPreset', () => {
 });
 
 describe('resolveCloseTableSessionDeskActor', () => {
-  it('allows store_owner with tables.checkout_close', () => {
-    const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'staff', restaurant },
-      staffPrincipal('owner'),
-      'checkout_close',
-    );
-    assert.equal(decision.ok, true);
-    if (decision.ok) {
-      assert.equal(decision.closedReason, 'owner_closed');
-      assert.equal(decision.staffRole, 'owner');
-    }
-  });
-
-  it('allows frontdesk with tables.checkout_close', () => {
-    const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'frontdesk', restaurant },
-      staffPrincipal('frontdesk'),
-      'checkout_close',
-    );
-    assert.equal(decision.ok, true);
-  });
-
-  it('allows cashier with tables.checkout_close', () => {
-    const loaded = staffPrincipal('cashier');
-    const decision = resolveCloseTableSessionDeskActor(
-      {
-        mode: 'cashier',
-        restaurant: {
-          id: restaurant.id,
-          name: restaurant.name,
-          slug: restaurant.slug,
-          buffet_service_mode: 'classic',
-        },
-      },
-      loaded,
-      'checkout_close',
-    );
-    assert.equal(decision.ok, true);
-    if (decision.ok) {
-      assert.equal(decision.closedReason, 'cashier_closed');
-    }
-  });
-
-  it('rejects waiter without checkout_close capability', () => {
+  it('rejects waiter without force_close capability', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {
         kind: 'staff',
@@ -115,7 +52,6 @@ describe('resolveCloseTableSessionDeskActor', () => {
         },
       },
       loaded,
-      'checkout_close',
     );
     assert.equal(decision.ok, false);
     if (!decision.ok) {
@@ -123,7 +59,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
     }
   });
 
-  it('allows manual gate with tables.force_close only', () => {
+  it('allows owner with tables.force_close only', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {
         kind: 'staff',
@@ -140,7 +76,6 @@ describe('resolveCloseTableSessionDeskActor', () => {
     const decision = resolveCloseTableSessionDeskActor(
       { mode: 'staff', restaurant },
       loaded,
-      'manual',
     );
     assert.equal(decision.ok, true);
     if (decision.ok) {
@@ -148,7 +83,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
     }
   });
 
-  it('rejects manual gate with only tables.checkout_close', () => {
+  it('rejects cashier with only tables.checkout_close', () => {
     const loaded: PrincipalWithCapabilities = {
       principal: {
         kind: 'staff',
@@ -173,7 +108,6 @@ describe('resolveCloseTableSessionDeskActor', () => {
         },
       },
       loaded,
-      'manual',
     );
     assert.equal(decision.ok, false);
   });
@@ -203,7 +137,6 @@ describe('resolveCloseTableSessionDeskActor', () => {
         },
       },
       loaded,
-      'manual',
     );
     assert.equal(decision.ok, true);
     if (decision.ok) {
@@ -236,30 +169,7 @@ describe('resolveCloseTableSessionDeskActor', () => {
         },
       },
       loaded,
-      'manual',
     );
     assert.equal(decision.ok, true);
-  });
-
-  it('rejects checkout_close gate without tables.checkout_close', () => {
-    const loaded: PrincipalWithCapabilities = {
-      principal: {
-        kind: 'staff',
-        restaurantId: restaurant.id,
-        userId: 'user-o',
-        staffAccountId: 'staff-o',
-        roleId: 'role-o',
-        roleName: 'owner',
-        presetKey: 'owner',
-        staffRoleLabel: 'owner',
-      },
-      capabilities: capabilitiesFromKeys(['tables.force_close']),
-    };
-    const decision = resolveCloseTableSessionDeskActor(
-      { mode: 'staff', restaurant },
-      loaded,
-      'checkout_close',
-    );
-    assert.equal(decision.ok, false);
   });
 });

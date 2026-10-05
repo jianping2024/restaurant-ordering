@@ -1,19 +1,13 @@
 /**
- * Shared Restaurant load for bill-sync POST enqueue + GET content_unchanged.
+ * Shared Restaurant load for bill-sync POST enqueue.
  * Sole place that gathers split + session orders + catalog codes/VAT for a bill_split.
  */
-import {
-  buffetIdFromOrderItem,
-  buildBillSyncJobPayload,
-} from '@/lib/bill-sync-build-payload';
-import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
-import { parseSplitMode } from '@/lib/checkout-split-intent';
+import { buffetIdFromOrderItem } from '@/lib/bill-sync-build-payload';
 import { distinctMenuItemIdsFromOrders } from '@/lib/menu-item-code';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { loadTableOrdersForSession } from '@/lib/waiter-table-detail-load';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Order, SplitPerson } from '@/types';
-import { randomUUID } from 'crypto';
 
 export type BillSyncLiveContext = {
   billSplitId: string;
@@ -133,22 +127,4 @@ export async function loadBillSyncLiveContext(input: {
       vatRateByBuffetId,
     },
   };
-}
-
-/** Live content fingerprint for the current bill (same builder as enqueue). */
-export function liveBillSyncContentFingerprint(ctx: BillSyncLiveContext): string | null {
-  const splitMode = parseSplitMode(ctx.splitMode) ?? 'whole_table';
-  const built = buildBillSyncJobPayload({
-    requestId: randomUUID(),
-    billSplitId: ctx.billSplitId,
-    tableDisplayName: ctx.tableDisplayName,
-    splitMode,
-    persons: ctx.persons,
-    orders: ctx.orders,
-    itemCodeByMenuId: ctx.itemCodeByMenuId,
-    vatRateByMenuId: ctx.vatRateByMenuId,
-    vatRateByBuffetId: ctx.vatRateByBuffetId,
-  });
-  if (!built.ok) return null;
-  return billSyncContentFingerprint(built.payload);
 }

@@ -133,7 +133,7 @@ function reconcileHistorySettlementSummary(
   };
 }
 
-/** 关台结账：应付只认 settled_payable_amount（或同算法 billable 回算）；不虚构已收。 */
+/** 历史关台结账记录：应付只认 settled_payable_amount（或同算法 billable 回算）；不虚构已收。 */
 function buildSettledPayableSummary(
   orders: Order[],
   settledPayableAmount?: number | null,

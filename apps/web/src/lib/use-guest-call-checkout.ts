@@ -1,20 +1,21 @@
 'use client';
 
 /**
- * Sole guest-phone「呼叫结账」: refresh the bill, gate on guest count / party merge, then send this
- * phone's single ticket. The server merges it into the shared plan and locks it; the read model is
- * reloaded from the server afterwards (never commit a local split — the plan holds other tickets).
+ * Sole guest-phone「呼叫结账」for whole_table | even | by_item.
+ * by_item → one ticket (submitIndividualCall). whole/even → shared table plan.
  */
 import { useCallback, useRef, useState } from 'react';
+import { buildWholeTableCheckoutPayload } from '@/lib/checkout-split-intent';
 import { isBillOrdersComplete } from '@/lib/customer-bill-sync';
 import { shouldSkipPreSubmitOrderSync } from '@/lib/checkout-request-submit';
 import { messageForCheckoutRequestError } from '@/lib/checkout-request-error-message';
+import type { GuestBillSplitMode } from '@/lib/guest-bill-split-mode';
 import type { MyTicket } from '@/lib/guest-claim';
 import { requestCheckoutRequest } from '@/lib/request-checkout-request';
 import { isBillGuestCountConfirmed } from '@/lib/table-guest-count';
 import { isPartyMemberCountAllowedForCheckout } from '@/lib/table-party-groups';
 import type { BillOrdersRefresh } from '@/lib/use-customer-bill-read-model';
-import type { Order } from '@/types';
+import type { Order, SplitPerson, SplitResult } from '@/types';
 
 type Messages = {
   billSyncFailed: string;
@@ -26,6 +27,9 @@ type Messages = {
   individualNothingClaimed: string;
   individualClaimConflict: string;
   individualNameTaken: string;
+  splitUnassignedItems?: string;
+  splitIncompleteQty?: string;
+  splitAmountMismatch?: string;
 };
 
 type Params = {
@@ -37,10 +41,16 @@ type Params = {
   refreshOrders: () => Promise<BillOrdersRefresh | null>;
   commitOrders: (next: Order[]) => void;
   guestClientId: string | null;
-  /** Latest ticket of this phone; read at submit time. */
+  mode: GuestBillSplitMode;
+  /** Latest by-item ticket; read at submit time. */
   getTicket: () => MyTicket;
-  /** The server accepted the call. */
-  onCalled: () => Promise<void>;
+  /** Even roster payload; read at submit time. */
+  getEvenPayload: () => { persons: SplitPerson[]; result: SplitResult[] } | null;
+  total: number;
+  /** by_item ticket accepted. */
+  onByItemCalled: () => Promise<void>;
+  /** whole_table / even plan accepted. */
+  onTablePlanCalled: () => Promise<void>;
   onBusyChange?: (busy: boolean) => void;
   showToast: (message: string, kind: 'error' | 'success') => void;
   messages: Messages;
@@ -56,8 +66,12 @@ export function useGuestCallCheckout(params: Params) {
     refreshOrders,
     commitOrders,
     guestClientId,
+    mode,
     getTicket,
-    onCalled,
+    getEvenPayload,
+    total,
+    onByItemCalled,
+    onTablePlanCalled,
     onBusyChange,
     showToast,
     messages,
@@ -65,6 +79,8 @@ export function useGuestCallCheckout(params: Params) {
 
   const [busy, setBusy] = useState(false);
   const inFlightRef = useRef(false);
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
 
   const setBusySafe = useCallback(
     (next: boolean) => {
@@ -120,23 +136,91 @@ export function useGuestCallCheckout(params: Params) {
         showToast(messages.actionFailed, 'error');
         return;
       }
-      const ticket = getTicket();
-      if (!ticket.hasClaim) {
-        showToast(messages.individualNothingClaimed, 'error');
+
+      const activeMode = modeRef.current;
+
+      if (activeMode === 'by_item') {
+        const ticket = getTicket();
+        if (!ticket.hasClaim) {
+          showToast(messages.individualNothingClaimed, 'error');
+          return;
+        }
+        const outcome = await requestCheckoutRequest({
+          slug: restaurant.slug,
+          tableId,
+          splitMode: 'by_item',
+          persons: ticket.persons,
+          result: ticket.result,
+          guestClientId,
+        });
+        if (!outcome.ok) {
+          void refreshOrders();
+          showToast(
+            messageForCheckoutRequestError(outcome.error, {
+              guestCountRequired: messages.guestCountRequired,
+              partyMergeRequired: messages.partyMergeRequired,
+              emptySession: messages.actionFailed,
+              noActiveSession: messages.actionFailed,
+              tableNotAvailable: messages.actionFailed,
+              splitPlanLocked: messages.splitPlanLocked,
+              individualClaimConflict: messages.individualClaimConflict,
+              individualNameTaken: messages.individualNameTaken,
+              individualNothingClaimed: messages.individualNothingClaimed,
+              fallback: messages.actionFailed,
+            }),
+            'error',
+          );
+          return;
+        }
+        await onByItemCalled();
         return;
       }
 
+      if (activeMode === 'whole_table') {
+        const payload = buildWholeTableCheckoutPayload(total);
+        const outcome = await requestCheckoutRequest({
+          slug: restaurant.slug,
+          tableId,
+          splitMode: 'whole_table',
+          persons: payload.persons,
+          result: payload.result,
+          guestClientId,
+        });
+        if (!outcome.ok) {
+          void refreshOrders();
+          showToast(
+            messageForCheckoutRequestError(outcome.error, {
+              guestCountRequired: messages.guestCountRequired,
+              partyMergeRequired: messages.partyMergeRequired,
+              emptySession: messages.actionFailed,
+              noActiveSession: messages.actionFailed,
+              tableNotAvailable: messages.actionFailed,
+              splitPlanLocked: messages.splitPlanLocked,
+              fallback: messages.actionFailed,
+            }),
+            'error',
+          );
+          return;
+        }
+        await onTablePlanCalled();
+        return;
+      }
+
+      // even
+      const even = getEvenPayload();
+      if (!even || even.result.length < 2) {
+        showToast(messages.splitAmountMismatch ?? messages.actionFailed, 'error');
+        return;
+      }
       const outcome = await requestCheckoutRequest({
         slug: restaurant.slug,
         tableId,
-        splitMode: 'by_item',
-        persons: ticket.persons,
-        result: ticket.result,
+        splitMode: 'even',
+        persons: even.persons,
+        result: even.result,
         guestClientId,
       });
       if (!outcome.ok) {
-        // The plan moved under us (claim / name conflict, stale plan): reload the truth so the
-        // others' tickets and the over-claimed dishes show up.
         void refreshOrders();
         showToast(
           messageForCheckoutRequestError(outcome.error, {
@@ -146,16 +230,13 @@ export function useGuestCallCheckout(params: Params) {
             noActiveSession: messages.actionFailed,
             tableNotAvailable: messages.actionFailed,
             splitPlanLocked: messages.splitPlanLocked,
-            individualClaimConflict: messages.individualClaimConflict,
-            individualNameTaken: messages.individualNameTaken,
-            individualNothingClaimed: messages.individualNothingClaimed,
             fallback: messages.actionFailed,
           }),
           'error',
         );
         return;
       }
-      await onCalled();
+      await onTablePlanCalled();
     } catch {
       showToast(messages.actionFailed, 'error');
     } finally {
@@ -163,16 +244,19 @@ export function useGuestCallCheckout(params: Params) {
       inFlightRef.current = false;
     }
   }, [
+    getEvenPayload,
     getTicket,
     guestClientId,
     messages,
-    onCalled,
+    onByItemCalled,
+    onTablePlanCalled,
     refreshOrders,
     resolveFreshBill,
     restaurant.slug,
     setBusySafe,
     showToast,
     tableId,
+    total,
   ]);
 
   return { isCallBillBusy: busy, submitCall };

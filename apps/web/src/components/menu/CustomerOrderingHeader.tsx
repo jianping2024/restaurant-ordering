@@ -14,8 +14,6 @@ interface Props {
   displayName: string;
   tableLabel: string;
   staffAssisted?: StaffAssistedFlow | null;
-  /** Secondary line, e.g. bill settlement label — never a second table-number form. */
-  subtitle?: string | null;
   /**
    * Sole header back control (guest or page-mode staff-assisted).
    * Overlay Continuar pedido uses StaffOrderingShell ✕ — pass null there.
@@ -46,7 +44,6 @@ export function CustomerOrderingHeader({
   displayName,
   tableLabel,
   staffAssisted = null,
-  subtitle = null,
   backLink = null,
   sticky = false,
   headingSize = 'menu',
@@ -87,9 +84,6 @@ export function CustomerOrderingHeader({
               <h1 className={headingClass}>{restaurantName}</h1>
               {!isStaffAssisted ? tableBadge : null}
             </div>
-            {subtitle ? (
-              <p className="mt-1 text-sm text-brand-text-muted">{subtitle}</p>
-            ) : null}
           </div>
           {isStaffAssisted ? (
             tableBadge

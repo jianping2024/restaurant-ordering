@@ -240,8 +240,8 @@ closed        — session 结束 / 并桌作废 / 强制关台归档
 
 | 元素 | 行为 |
 |------|------|
-| 顶栏 | `本桌 N 人 · 每轮免费菜最多 M 份`；collecting 显示整桌 `本轮 x/M`（**无**送厨按钮） |
-| pending_confirm | 倒计时提示（sticky/核单顶）；同桌轻弹窗一次；不锁篮 |
+| 顶栏 | `本桌 N 人 ·` 后**唯一短句槽**（sole `resolveSushiStickyStatusFragment`；固定一行高度，不另起第二行）：pending → `{seconds}s 后送厨`；冷却中 → `冷却 {seconds}s`；否则空篮 `每轮最多 M` / 有份 `x/M`。英/葡等同槽短文案。**无**送厨按钮 |
+| pending_confirm | sticky 短倒计时（同上槽）+ 核单顶长提示（`reviewCountdownBanner`）；同桌轻弹窗一次；不锁篮 |
 | 底栏 | 与 classic 同一 `CustomerMenuFooter`：购物车 → **下单**；有本机未送厨免费菜 → **本轮核单**（可兼入口查看已点）；已送厨 → **查看已点** |
 | 免费菜菜卡/详情数量 | **只表示本机购物车草稿**（唯一：`sushiFreeItemDisplayQty` = 购物车 qty；无草稿则 0）。**禁止**用本轮 `ownRoundQty` 回填菜卡 |
 | 免费菜 `+` | 仅写入本机购物车（可写备注）；**加份前**本机预检桌上限 + 整餐单菜额度（sole `previewGuestRoundCartDraftGates`：已进篮 `lines_qty_total` + 本机草稿；看不见别机草稿）；**下单**才写入 round lines |

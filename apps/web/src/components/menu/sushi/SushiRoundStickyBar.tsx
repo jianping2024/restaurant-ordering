@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import type { RoundSnapshot } from '@/lib/table-order-round/types';
 import { isCooldownActive } from '@/lib/table-order-round/status';
 import {
-  formatSushiStickyRoundLimitLabel,
+  resolveSushiStickyStatusFragment,
   type SUSHI_ROUND_MESSAGES,
 } from '@/lib/i18n/sushi-round-messages';
 import type { Language } from '@/types';
@@ -17,11 +17,6 @@ import { Button } from '@/components/ui/Button';
 import { CustomerMenuTableGuestsLabel } from '@/components/menu/CustomerMenuTableGuestsChrome';
 
 type Copy = (typeof SUSHI_ROUND_MESSAGES)[Language];
-
-function secondsUntil(iso: string | null | undefined): number {
-  if (!iso) return 0;
-  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 1000));
-}
 
 type DietaryFilterProps = {
   vegetarianFilterEnabled: boolean;
@@ -57,24 +52,17 @@ export function SushiRoundStickyBar({
   }, [needsTick]);
 
   const guests = snapshot.live_guest_count;
-  const cap = snapshot.round_cap_total;
-  const qty = snapshot.lines_qty_total;
   const menuT = MENU_PAGE_MESSAGES[lang];
 
-  let statusLine: string | null = null;
-  if (round?.status === 'pending_confirm') {
-    statusLine = labels.stickyPending.replace(
-      '{seconds}',
-      String(secondsUntil(round.submit_deadline_at)),
-    );
-  } else if (round?.status === 'cooldown' && isCooldownActive(round.status, round.cooldown_until)) {
-    statusLine = labels.stickyCooldown.replace(
-      '{seconds}',
-      String(secondsUntil(round.cooldown_until)),
-    );
-  }
+  const statusFragment = resolveSushiStickyStatusFragment({
+    status: round?.status,
+    cooldownUntil: round?.cooldown_until,
+    submitDeadlineAt: round?.submit_deadline_at,
+    linesQtyTotal: snapshot.lines_qty_total,
+    roundCapTotal: snapshot.round_cap_total,
+    labels,
+  });
 
-  const roundLimitLabel = formatSushiStickyRoundLimitLabel(qty, cap, labels);
   const vegOn = Boolean(dietaryFilter?.vegetarianFilterEnabled);
   const allergenOn = Boolean(dietaryFilter?.allergenFilterEnabled);
   const showFilters = vegOn || allergenOn;
@@ -90,15 +78,21 @@ export function SushiRoundStickyBar({
   return (
     <div className="shrink-0 border-b border-brand-border bg-brand-card/95 px-4 py-2">
       <div className="flex min-h-8 items-center justify-between gap-2.5">
-        <p className="min-w-0 flex-1 text-[13px] leading-snug text-brand-text">
+        <p className="min-w-0 flex-1 truncate text-[13px] leading-snug text-brand-text">
           <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
-          {roundLimitLabel ? (
+          {statusFragment ? (
             <>
               <span aria-hidden className="mx-1.5 text-brand-text-muted">
                 ·
               </span>
-              <span className="whitespace-nowrap text-[12px] tabular-nums text-brand-text-muted">
-                {roundLimitLabel}
+              <span
+                className={`whitespace-nowrap text-[12px] tabular-nums ${
+                  statusFragment.kind === 'pending'
+                    ? 'font-semibold text-brand-gold'
+                    : 'text-brand-text-muted'
+                }`}
+              >
+                {statusFragment.text}
               </span>
             </>
           ) : null}
@@ -141,15 +135,6 @@ export function SushiRoundStickyBar({
           </div>
         ) : null}
       </div>
-      {statusLine ? (
-        <p
-          className={`mt-1 text-[12px] tabular-nums ${
-            round?.status === 'pending_confirm' ? 'font-semibold text-brand-gold' : 'text-brand-text-muted'
-          }`}
-        >
-          {statusLine}
-        </p>
-      ) : null}
 
       {allergenSheetOpen && dietaryFilter ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center" role="presentation">

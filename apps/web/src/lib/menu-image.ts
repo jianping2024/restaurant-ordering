@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import { toMenuImagePublicRef as formatMenuImagePublicRef } from '@mesa/shared';
+import {
+  isLocalHttpMenuImageOrigin,
+  toMenuImagePublicRef as formatMenuImagePublicRef,
+} from '@mesa/shared';
 import { getPublishedSupabaseUrl, isSupabaseBrowserSameOrigin } from '@/lib/supabase/url';
 
 /** 与 storage bucket file_size_limit 一致（1MB） */
@@ -171,11 +174,13 @@ async function letterboxMenuImageFileToAspect(file: File): Promise<File> {
 /**
  * Sole app writer for `menu_items.image_url` after a Storage upload.
  * Algorithm: `@mesa/shared` `toMenuImagePublicRef` — do not call `getPublicUrl` for persist.
+ * Mode B same-origin + local HTTP Storage → root-relative; cloud → https absolute.
  */
 export function toMenuImagePublicRef(objectPath: string): string {
+  const publishedOrigin = getPublishedSupabaseUrl();
   return formatMenuImagePublicRef(objectPath, {
-    sameOrigin: isSupabaseBrowserSameOrigin(),
-    publishedOrigin: getPublishedSupabaseUrl(),
+    sameOrigin: isSupabaseBrowserSameOrigin() || isLocalHttpMenuImageOrigin(publishedOrigin),
+    publishedOrigin,
   });
 }
 
@@ -229,18 +234,6 @@ export function pathFromMenuImagePublicUrl(url: string): string | null {
  */
 export const MENU_IMAGE_UNOPTIMIZED = true;
 
-const LOCAL_SUPABASE_STORAGE_ORIGINS = [
-  'http://127.0.0.1:54321',
-  'http://localhost:54321',
-] as const;
-
-export type ResolveMenuImageDisplayOptions = {
-  /** LAN CLI rewrite host (non same-origin `:54321` only). */
-  clientHostname?: string | null;
-  /** Request page origin for same-origin absolute→current-host rewrite (SSR/API). */
-  pageOrigin?: string | null;
-};
-
 /** Sole catalog image_url map for staff checkout pool thumbs (menu_items rows → id → url). */
 export function menuItemImageUrlLookupFromRows(
   rows: Array<{ id: string; image_url?: string | null }>,
@@ -255,15 +248,11 @@ export function menuItemImageUrlLookupFromRows(
 
 /**
  * Sole display resolver for menu Storage URLs.
- * - Root-relative `/storage/v1/...` → unchanged (browser uses page origin).
- * - Same-origin Mode B + absolute menu-images URL → `{pageOrigin|window.origin}/storage/...`.
- * - Local CLI `:54321` loopback → LAN host rewrite for phones.
- * - Cloud Supabase absolute URLs → unchanged.
+ * - Root-relative `/storage/v1/...` → unchanged (browser uses page origin + `/storage` proxy).
+ * - Local / on-prem absolute menu-images → root-relative (strip host; never bake LAN `:54321`).
+ * - Cloud `https://…` menu-images → unchanged.
  */
-export function resolveMenuImageDisplayUrl(
-  url: string | null | undefined,
-  options?: ResolveMenuImageDisplayOptions,
-): string | null {
+export function resolveMenuImageDisplayUrl(url: string | null | undefined): string | null {
   if (!url?.trim()) return null;
   const trimmed = url.trim();
 
@@ -272,76 +261,20 @@ export function resolveMenuImageDisplayUrl(
   }
 
   const storagePath = pathFromMenuImagePublicUrl(trimmed);
-  if (storagePath && isSupabaseBrowserSameOrigin()) {
-    const origin =
-      options?.pageOrigin?.replace(/\/$/, '') ||
-      (typeof window !== 'undefined' ? window.location.origin : null);
-    if (origin) {
-      return `${origin}/storage/v1/object/public/menu-images/${storagePath}`;
-    }
-  }
-
-  const hostname =
-    options?.clientHostname ??
-    (typeof window !== 'undefined' ? window.location.hostname : null);
-  if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
-    return trimmed;
-  }
-  for (const origin of LOCAL_SUPABASE_STORAGE_ORIGINS) {
-    if (trimmed.startsWith(`${origin}/`)) {
-      return trimmed.replace(origin, `http://${hostname}:54321`);
-    }
-  }
-  return trimmed;
+  if (!storagePath) return trimmed;
+  if (/^https:\/\//i.test(trimmed)) return trimmed;
+  return `/storage/v1/object/public/menu-images/${storagePath}`;
 }
 
-/** Hostname from Host header (no port). Sole header reader — Request/RSC wrappers use this. */
-export function clientHostnameFromHeaders(headerBag: Headers): string | null {
-  const fromHeader = headerBag.get('host')?.split(':')[0]?.trim();
-  return fromHeader || null;
-}
-
-export function clientHostnameFromRequest(req: Request): string {
-  return clientHostnameFromHeaders(req.headers) ?? new URL(req.url).hostname;
-}
-
-/**
- * Page origin from Host + X-Forwarded-Proto (Tunnel HTTPS / LAN HTTP).
- * Sole header reader — Request/RSC wrappers use this.
- */
-export function clientPageOriginFromHeaders(
-  headerBag: Headers,
-  fallbackProto = 'http',
-): string | null {
-  const host = headerBag.get('host')?.trim();
-  if (!host) return null;
-  const protoHeader = headerBag.get('x-forwarded-proto')?.split(',')[0]?.trim();
-  const proto = protoHeader || fallbackProto;
-  return `${proto}://${host}`;
-}
-
-/** Prefer forwarded proto + Host so Tunnel HTTPS and LAN HTTP both work. */
-export function clientPageOriginFromRequest(req: Request): string {
-  const urlProto = new URL(req.url).protocol.replace(/:$/, '') || 'http';
-  return clientPageOriginFromHeaders(req.headers, urlProto) ?? new URL(req.url).origin;
-}
-
-/** Rewrite menu item image URLs for the requesting client (LAN / same-origin). */
+/** Normalize catalog rows through {@link resolveMenuImageDisplayUrl} (sole display shape). */
 export function mapCustomerMenuCatalogImageUrls<
   T extends { menuItems: Array<{ image_url?: string | null }> },
->(
-  catalog: T,
-  clientHostnameOrOptions: string | ResolveMenuImageDisplayOptions,
-): T {
-  const options: ResolveMenuImageDisplayOptions =
-    typeof clientHostnameOrOptions === 'string'
-      ? { clientHostname: clientHostnameOrOptions }
-      : clientHostnameOrOptions;
+>(catalog: T): T {
   return {
     ...catalog,
     menuItems: catalog.menuItems.map((item) => ({
       ...item,
-      image_url: resolveMenuImageDisplayUrl(item.image_url, options),
+      image_url: resolveMenuImageDisplayUrl(item.image_url),
     })),
   };
 }

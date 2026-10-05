@@ -6,10 +6,6 @@ import {
 } from '@/lib/customer-menu-catalog';
 import { loadCustomerRestaurantForApi } from '@/lib/customer-restaurant-gate';
 import { CUSTOMER_READ_NO_STORE_HEADERS } from '@/lib/customer-read-http-headers';
-import {
-  clientHostnameFromRequest,
-  clientPageOriginFromRequest,
-} from '@/lib/menu-image';
 
 export const runtime = 'nodejs';
 
@@ -58,10 +54,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
     );
   }
 
-  const catalog = await loadCustomerMenuCatalogForDisplay(restaurantId, {
-    clientHostname: clientHostnameFromRequest(req),
-    pageOrigin: clientPageOriginFromRequest(req),
-  });
+  const catalog = await loadCustomerMenuCatalogForDisplay(restaurantId);
   return NextResponse.json(
     {
       version,

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  isLocalHttpMenuImageOrigin,
   menuImageSameOriginEnabled,
   toMenuImagePublicRef,
 } from './menu-image-public-ref';
@@ -30,6 +31,26 @@ describe('menuImageSameOriginEnabled', () => {
       if (prev === undefined) delete process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
       else process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = prev;
     }
+  });
+});
+
+describe('isLocalHttpMenuImageOrigin', () => {
+  it('accepts loopback and docker host http origins', () => {
+    assert.equal(isLocalHttpMenuImageOrigin('http://127.0.0.1:54321'), true);
+    assert.equal(isLocalHttpMenuImageOrigin('http://localhost:54321'), true);
+    assert.equal(isLocalHttpMenuImageOrigin('http://host.docker.internal:54321'), true);
+  });
+
+  it('accepts RFC1918 http origins', () => {
+    assert.equal(isLocalHttpMenuImageOrigin('http://172.20.10.2:54321'), true);
+    assert.equal(isLocalHttpMenuImageOrigin('http://192.168.1.5:54321'), true);
+    assert.equal(isLocalHttpMenuImageOrigin('http://10.0.0.2:8000'), true);
+  });
+
+  it('rejects cloud https and non-private hosts', () => {
+    assert.equal(isLocalHttpMenuImageOrigin('https://abc.supabase.co'), false);
+    assert.equal(isLocalHttpMenuImageOrigin('http://example.com'), false);
+    assert.equal(isLocalHttpMenuImageOrigin('not-a-url'), false);
   });
 });
 

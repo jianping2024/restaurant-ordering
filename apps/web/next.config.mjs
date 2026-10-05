@@ -46,6 +46,23 @@ const nextConfig = {
       },
     ];
   },
+  /**
+   * Local CLI / any build where the browser uses root-relative menu image URLs:
+   * proxy `/storage/*` to the Supabase gateway so phones never open `:54321`.
+   * Mode B edge usually terminates `/storage` before Next; rewrite is a no-op when unused.
+   */
+  async rewrites() {
+    const supabase =
+      process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim();
+    if (!supabase) return [];
+    const base = supabase.replace(/\/$/, '');
+    return [
+      {
+        source: '/storage/:path*',
+        destination: `${base}/storage/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
 import type { BillSplitOrderLine, ByItemLineSpec } from './bill-split-by-item-lines';
 import {
+  applyGuestClaimRowPatch,
   buildMyTicket,
   claimAllRemaining,
   claimFromServerTicket,
   claimNameTaken,
   claimRowFor,
+  clampGuestClaimBuffetRows,
+  guestBuffetSeatCeil,
   guestClaimIssue,
   lineAvailability,
   lineOverClaimed,
@@ -99,6 +102,35 @@ describe('lineAvailability', () => {
     if (left.mode !== 'buffet') return;
     assert.equal(left.adultsRemaining, 1);
     assert.equal(left.childrenRemaining, 1);
+    assert.equal(guestBuffetSeatCeil(left, 'adultQty'), 1);
+    assert.equal(guestBuffetSeatCeil(left, 'childQty'), 1);
+  });
+});
+
+describe('guest buffet seat ceil + clamp', () => {
+  const buffetLi: SplitPerson = {
+    name: 'Li',
+    party_id: LI,
+    item_shares: [{ key: 'BF', qty_num: 1, qty_den: 1, guest_type: 'adult', party_id: LI }],
+  };
+
+  it('plus patches cannot exceed remaining after others claimed', () => {
+    const others = othersAllocation([buffetLi], claim('Me'), specs);
+    let c = claim('Me');
+    c = applyGuestClaimRowPatch(c, buffetSpec, { adultQty: '1' }, others);
+    assert.equal(c.rows.BF!.adultQty, '1');
+    c = applyGuestClaimRowPatch(c, buffetSpec, { adultQty: '2' }, others);
+    assert.equal(c.rows.BF!.adultQty, '1');
+    c = applyGuestClaimRowPatch(c, buffetSpec, { adultQty: '5' }, others);
+    assert.equal(c.rows.BF!.adultQty, '1');
+  });
+
+  it('squashes a dirty over-claim draft down to remaining', () => {
+    const others = othersAllocation([buffetLi], claim('Me'), specs);
+    const dirty = withQty(claim('Me'), buffetSpec, { adultQty: '5', childQty: '9' });
+    const clamped = clampGuestClaimBuffetRows(dirty, specs, others);
+    assert.equal(clamped.rows.BF!.adultQty, '1');
+    assert.equal(clamped.rows.BF!.childQty, '1');
   });
 });
 

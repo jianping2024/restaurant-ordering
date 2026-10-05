@@ -13,6 +13,7 @@ import {
   calcByItemSplitResults,
   createByItemConsumerRow,
   getByItemLineStatusFromShares,
+  parseBuffetHeadcountInput,
   rationalToRowQtyFields,
   validateQtyParts,
   type ByItemConsumerRow,
@@ -136,6 +137,68 @@ export function lineAvailability(
   };
 }
 
+/**
+ * Sole guest buffet seat ceiling for this phone: table − others
+ * (`lineAvailability.adultsRemaining` / `childrenRemaining`). UI +/− and write clamp both use this.
+ */
+export function guestBuffetSeatCeil(
+  availability: Extract<LineAvailability, { mode: 'buffet' }>,
+  field: 'adultQty' | 'childQty',
+): number {
+  return field === 'adultQty' ? availability.adultsRemaining : availability.childrenRemaining;
+}
+
+function buffetHeadcountQtyField(n: number): string {
+  return n > 0 ? String(Math.floor(n)) : '';
+}
+
+/**
+ * Sole guest buffet write clamp: adult/child qty never exceed {@link guestBuffetSeatCeil}.
+ * Squashes over-claim drafts when others take seats; also used by row patches from +/−.
+ */
+export function clampGuestClaimBuffetRows(
+  claim: GuestClaim,
+  lineSpecs: ReadonlyArray<ByItemLineSpec>,
+  others: ByItemLineAllocation,
+): GuestClaim {
+  let changed = false;
+  const rows = { ...claim.rows };
+  for (const spec of lineSpecs) {
+    if (spec.mode !== 'buffet') continue;
+    const row = rows[spec.key];
+    if (!row) continue;
+    const left = lineAvailability(spec, others);
+    if (left.mode !== 'buffet') continue;
+    const adults = parseBuffetHeadcountInput(row.adultQty);
+    const children = parseBuffetHeadcountInput(row.childQty);
+    const nextAdult = Math.min(adults, guestBuffetSeatCeil(left, 'adultQty'));
+    const nextChild = Math.min(children, guestBuffetSeatCeil(left, 'childQty'));
+    if (nextAdult === adults && nextChild === children) continue;
+    changed = true;
+    rows[spec.key] = {
+      ...row,
+      adultQty: buffetHeadcountQtyField(nextAdult),
+      childQty: buffetHeadcountQtyField(nextChild),
+    };
+  }
+  return changed ? { ...claim, rows } : claim;
+}
+
+/** Apply a guest claim row patch; buffet adult/child fields are clamped to seat ceil. */
+export function applyGuestClaimRowPatch(
+  claim: GuestClaim,
+  spec: ByItemLineSpec,
+  patch: Partial<ByItemConsumerRow>,
+  others: ByItemLineAllocation,
+): GuestClaim {
+  const next: GuestClaim = {
+    ...claim,
+    rows: { ...claim.rows, [spec.key]: { ...claimRowFor(claim, spec), ...patch } },
+  };
+  if (spec.mode !== 'buffet') return next;
+  return clampGuestClaimBuffetRows(next, [spec], others);
+}
+
 function mySharesOf(
   claim: GuestClaim,
   lineSpecs: ReadonlyArray<ByItemLineSpec>,
@@ -247,8 +310,8 @@ export function claimAllRemaining(
     if (left.mode === 'buffet') {
       rows[spec.key] = {
         ...base,
-        adultQty: left.adultsRemaining > 0 ? String(left.adultsRemaining) : '',
-        childQty: left.childrenRemaining > 0 ? String(left.childrenRemaining) : '',
+        adultQty: buffetHeadcountQtyField(guestBuffetSeatCeil(left, 'adultQty')),
+        childQty: buffetHeadcountQtyField(guestBuffetSeatCeil(left, 'childQty')),
       };
       continue;
     }

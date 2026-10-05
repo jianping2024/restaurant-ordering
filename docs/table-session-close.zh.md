@@ -2,7 +2,7 @@
 
 > 与转台/并台设计文档：`table-transfer-merge-plan.zh.md`  
 > 实现入口：`src/lib/close-active-table-session-with-cleanup.ts`  
-> 相关 RPC：`close_table_session_settled` / `close_table_session_operational`  
+> 相关 RPC：`close_table_session_operational` / `confirm_bill_split_payment`（最后一笔收款关台）；`close_table_session_settled` 已由迁移 `20261005190000` 删除  
 > 强制 `closed_reason`：`apps/web/src/lib/table-session/operational-close-reasons.ts`
 
 ## 1. 产品语义（统一口径）
@@ -26,10 +26,10 @@
 
 ### 1.1 关台结账（settled）— 入口已移除
 
-桌台详情「关台结账」、`POST /api/dashboard/checkout-close-table-session` 与 `closeTableSessionFrontdeskCheckout` 已删除；`close_table_session_settled` 迁移保留（历史迁移不改）但**不再有调用方**。以下仅描述历史数据语义：
+桌台详情「关台结账」、`POST /api/dashboard/checkout-close-table-session` 与 `closeTableSessionFrontdeskCheckout` 已删除；`close_table_session_settled` 已由迁移 `20261005190000_drop_close_table_session_settled.sql` 删除（历史迁移文件不改）。以下仅描述历史数据语义：
 
 
-**RPC：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
+**RPC（已删除）：** `close_table_session_settled`（写入 `settled_payable_amount` = 与台面相同的 billable 投影）
 
 **效果（同一事务）：**
 
@@ -72,7 +72,7 @@
 
 | 模式 | RPC | 订单 | 未付分账 | 营业额 |
 |------|-----|------|----------|--------|
-| **Settled**（历史关台结账，入口已移除） | `close_table_session_settled` | 保留 | cancel | **计入** |
+| **Settled**（历史关台结账，入口与 RPC 均已移除） | `close_table_session_settled` | 保留 | cancel | **计入** |
 | **Operational**（强制 / 夜间 / 服务员） | `close_table_session_operational` | 保留 | cancel | **不计**（按 reason / 异常） |
 
 关台成功后会清除该桌的同行组成员关系；若该组已无成员则自动解散。
@@ -85,4 +85,4 @@
 
 ## 4. 部署注意
 
-目标库需执行上述 migration；缺少 `close_table_session_settled` / 旧版仍 void 的 operational 会导致行为与文档不一致。
+目标库需执行上述 migration（含删除 `close_table_session_settled` 的 `20261005190000`）；旧版仍 void 的 operational 会导致行为与文档不一致。

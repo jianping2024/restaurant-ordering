@@ -218,9 +218,9 @@
 | Fallback | 仅 Realtime 不可用时，在**原有** polling 回路中兼拉 `pending-bill-syncs` |
 | 表侧必做 | `bill_sync_jobs` **单独**加入 `supabase_realtime` publication + 本店可读 RLS（session 能订到行；与 `print_jobs` 配置同类、表不同） |
 | 同 `request_id` | 重放不双写 |
-| 同 `source_sale_id` 新单 | 新 `request_id`；内容指纹与最近 **succeeded** 相同 → 入队拒绝 `already_synced`；不同则新挂单；Agent 侧：已有 FT → `already_invoiced`，否则 `open` 覆盖 |
+| 同 `source_sale_id` 新单 | 新 `request_id` 新挂单；Agent 侧：已有 FT → `already_invoiced`，否则 `open` 覆盖 |
 | pending/processing | 同 `source_sale_id` 不插第二单，返回在途 job |
-| 文案 | ack 成功后结账页才示 **「同步完成」**（以云端 job=`succeeded` 为准，不以「仅入队」为准）；未变再点禁用 |
+| 文案 | ack 成功后结账页才示 **「同步完成」**（以云端 job=`succeeded` 为准，不以「仅入队」为准） |
 | 实现锁 | 改 `realtime.go` / Notifier 时注释+测试锁死「单连接多表」；禁止拆成第二套独立轮询 |
 | 禁止 | 主路径 interval；同步进 `print_jobs`；多 Agent |
 
@@ -228,7 +228,7 @@
 
 ## 8. UI
 
-**Restaurant：** 结账/历史详情同一「打印发票」按钮（功能开关 + `mayFiscalBillQueue`）；唯一编排 `requestPrintFiscalInvoice` → 已有云端 `document_id` 则 `runStaffReprintFiscalInvoice`，否则开 modal → `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 返回 `content_unchanged` + `issued`；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台、不另起重打 hang-queue。
+**Restaurant：** 结账/历史详情同一「打印发票」按钮（功能开关 + `mayFiscalBillQueue`）；唯一编排 `requestPrintFiscalInvoice` → 已有云端 `document_id` 则 `runStaffReprintFiscalInvoice`，否则开 modal → `runStaffPrintFiscalInvoice`（auto_issue，不关台）；`GET …/bill-syncs` 返回 `job` + `issued`；payload：by_item/even/custom 多人 → `scope_type=split`。不做打票工作台、不另起重打 hang-queue。
 
 **可选：** 打印助手只读投递历史（与小票分栏）。
 
@@ -256,7 +256,8 @@ POST /api/.../bill-syncs
 #          + payment_lines?（MIXED 必填）(+ optional NIF/name/scope)
 # 重打: reprint_document_id（同一表；Agent 调 ReprintDocument）
 GET  /api/.../bill-syncs?source_sale_id=…&issue_scope_id=…
-# → { job, content_unchanged, issued?: { document_id, invoice_no } }
+# → { job, issued?: { document_id, invoice_no } }
+# POST 既不带 auto_issue 也不带 reprint_document_id → 400 auto_issue_or_reprint_required（旧「只同步」入队已移除）
 ```
 
 **`document_type`（Mesa 显式传入）：** `CASH` 且折后含税应付 ≤ €100 → `FS`；现金 > €100 或 `MULTIBANCO` / `MIXED` → `FT`。Agent 保留「入队 FS 但总额 > 门槛则升 FT」闸。

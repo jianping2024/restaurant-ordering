@@ -23,8 +23,8 @@ export type EnqueueBillSyncInput = {
   vatRateByBuffetId: Record<string, number>;
   createdBy: string | null;
   requestId?: string;
-  /** When set, Agent auto-issues; skips content fingerprint already_synced short-circuit. */
-  autoIssue?: BillSyncAutoIssueFields | null;
+  /** Print-invoice fields; every enqueued job asks the Agent to issue (reprint uses its own enqueue). */
+  autoIssue: BillSyncAutoIssueFields;
 };
 
 export type BillSyncJobRef = {
@@ -82,14 +82,13 @@ export async function enqueueBillSyncJob(
     itemCodeByMenuId: input.itemCodeByMenuId,
     vatRateByMenuId: input.vatRateByMenuId,
     vatRateByBuffetId: input.vatRateByBuffetId,
-    autoIssue: input.autoIssue ?? null,
+    autoIssue: input.autoIssue,
   });
   if (!built.ok) {
     return { ok: false, error: built.error, status: 400 };
   }
   const payload = built.payload;
   const contentFp = billSyncContentFingerprint(payload);
-  const isAutoIssue = payload.auto_issue === true;
 
   const { data: existingByRequest } = await input.admin
     .from('bill_sync_jobs')
@@ -131,24 +130,6 @@ export async function enqueueBillSyncJob(
       reused: 'in_flight',
       job: jobRef(inFlight),
     };
-  }
-
-  const lastSucceeded = recent.find((row) => row.status === 'succeeded');
-  if (!isAutoIssue && lastSucceeded?.payload) {
-    const priorFp = billSyncContentFingerprint(lastSucceeded.payload);
-    if (priorFp === contentFp) {
-      return {
-        ok: false,
-        error: 'already_synced',
-        status: 409,
-        job: {
-          id: lastSucceeded.id,
-          status: lastSucceeded.status,
-          request_id: lastSucceeded.request_id,
-          content_fingerprint: priorFp,
-        },
-      };
-    }
   }
 
   const { data: inserted, error } = await input.admin

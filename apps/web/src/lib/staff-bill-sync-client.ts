@@ -18,7 +18,6 @@ export type StaffBillSyncIssued = {
 
 export type StaffBillSyncStatus = {
   job: StaffBillSyncJob | null;
-  content_unchanged: boolean;
   available: boolean;
   status: number;
   error?: string;
@@ -27,7 +26,7 @@ export type StaffBillSyncStatus = {
   issued?: StaffBillSyncIssued | null;
 };
 
-/** Sole GET for bill-sync latest job + content_unchanged + issued document. */
+/** Sole GET for bill-sync latest job + issued document. */
 export async function fetchStaffBillSyncStatus(input: {
   restaurantSlug: string;
   billSplitId: string;
@@ -42,13 +41,12 @@ export async function fetchStaffBillSyncStatus(input: {
     { credentials: 'include' },
   );
   if (res.status === 403) {
-    return { job: null, content_unchanged: false, available: false, status: 403, issued: null };
+    return { job: null, available: false, status: 403, issued: null };
   }
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as { error?: string; message?: string };
     return {
       job: null,
-      content_unchanged: false,
       available: true,
       status: res.status,
       error: data.error,
@@ -58,12 +56,10 @@ export async function fetchStaffBillSyncStatus(input: {
   }
   const data = (await res.json()) as {
     job?: StaffBillSyncJob | null;
-    content_unchanged?: boolean;
     issued?: StaffBillSyncIssued | null;
   };
   return {
     job: data.job ?? null,
-    content_unchanged: data.content_unchanged === true,
     available: true,
     status: res.status,
     issued: data.issued ?? null,
@@ -152,19 +148,6 @@ export async function enqueueStaffBillSync(input: {
       error: data.error ?? 'forbidden',
       message: data.message,
       available: false,
-    };
-  }
-  if (res.status === 409 && data.error === 'already_synced') {
-    return {
-      ok: true,
-      job: data.job ?? {
-        id: '',
-        status: 'succeeded',
-        request_id: requestId,
-      },
-      billSplitId: data.bill_split_id ?? input.billSplitId?.trim() ?? '',
-      tableId: data.table_id ?? input.tableId?.trim() ?? '',
-      reused: 'already_synced',
     };
   }
   if (!res.ok || !data.job) {

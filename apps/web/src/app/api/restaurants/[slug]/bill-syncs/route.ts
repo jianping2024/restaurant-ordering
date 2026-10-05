@@ -1,9 +1,5 @@
 import { billSyncContentFingerprint } from '@/lib/bill-sync-content-fingerprint';
-import { billSyncContentUnchanged } from '@/lib/bill-sync-content-unchanged';
-import {
-  liveBillSyncContentFingerprint,
-  loadBillSyncLiveContext,
-} from '@/lib/bill-sync-live-context';
+import { loadBillSyncLiveContext } from '@/lib/bill-sync-live-context';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import {
   parseBillSyncPaymentLines,
@@ -182,22 +178,25 @@ export async function POST(
     });
   }
 
+  // Every non-reprint request is a print-invoice issue; the old sync-only enqueue is gone.
+  if (!autoIssue) {
+    return NextResponse.json({ error: 'auto_issue_or_reprint_required' }, { status: 400 });
+  }
+
   // Print invoice requires at least one collection for this session (UI gate is not enough).
-  if (autoIssue) {
-    const { count, error: collectErr } = await auth.admin
-      .from('session_collected_payments')
-      .select('id', { count: 'exact', head: true })
-      .eq('restaurant_id', auth.restaurantId)
-      .eq('session_id', ctx.sessionId);
-    if (collectErr) {
-      return NextResponse.json(
-        { error: 'collection_lookup_failed', message: collectErr.message },
-        { status: 500 },
-      );
-    }
-    if (!count || count < 1) {
-      return NextResponse.json({ error: 'collection_required' }, { status: 409 });
-    }
+  const { count, error: collectErr } = await auth.admin
+    .from('session_collected_payments')
+    .select('id', { count: 'exact', head: true })
+    .eq('restaurant_id', auth.restaurantId)
+    .eq('session_id', ctx.sessionId);
+  if (collectErr) {
+    return NextResponse.json(
+      { error: 'collection_lookup_failed', message: collectErr.message },
+      { status: 500 },
+    );
+  }
+  if (!count || count < 1) {
+    return NextResponse.json({ error: 'collection_required' }, { status: 409 });
   }
 
   const result = await enqueueBillSyncJob({
@@ -240,7 +239,7 @@ export async function POST(
   });
 }
 
-/** Latest job + whether live bill still matches last succeeded sync. */
+/** Latest job + issued fiscal document for the sale. */
 export async function GET(
   req: Request,
   { params }: { params: { slug: string } },
@@ -290,7 +289,6 @@ export async function GET(
   if (!data) {
     return NextResponse.json({
       job: null,
-      content_unchanged: false,
       issued: issued
         ? { document_id: issued.documentId, invoice_no: issued.invoiceNo }
         : null,
@@ -300,23 +298,6 @@ export async function GET(
   const payload = data.payload as BillSyncPayload | null;
   const content_fingerprint =
     payload && typeof payload === 'object' ? billSyncContentFingerprint(payload) : null;
-
-  let content_unchanged = false;
-  if (data.status === 'succeeded') {
-    const loaded = await loadBillSyncLiveContext({
-      admin: auth.admin,
-      restaurantId: auth.restaurantId,
-      billSplitId: sourceSaleId,
-    });
-    if (loaded.ok) {
-      const liveFp = liveBillSyncContentFingerprint(loaded.ctx);
-      content_unchanged = billSyncContentUnchanged({
-        jobStatus: data.status,
-        jobPayload: payload,
-        liveFingerprint: liveFp,
-      });
-    }
-  }
 
   return NextResponse.json({
     job: {
@@ -331,7 +312,6 @@ export async function GET(
       updated_at: data.updated_at,
       content_fingerprint,
     },
-    content_unchanged,
     issued: issued
       ? { document_id: issued.documentId, invoice_no: issued.invoiceNo }
       : null,

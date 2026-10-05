@@ -78,17 +78,15 @@ export function SushiRoundStickyBar({
   return (
     <div className="shrink-0 border-b border-brand-border bg-brand-card/95 px-4 py-2">
       <div className="flex min-h-8 items-center justify-between gap-2.5">
-        <div className="flex min-w-0 flex-1 items-center overflow-hidden text-[13px] leading-snug text-brand-text">
-          <span className="min-w-0 truncate">
-            <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
-          </span>
+        <p className="shrink-0 whitespace-nowrap text-[13px] leading-snug text-brand-text">
+          <CustomerMenuTableGuestsLabel guestCount={guests} lang={lang} />
           {statusFragment ? (
             <>
-              <span aria-hidden className="mx-1.5 shrink-0 text-brand-text-muted">
+              <span aria-hidden className="mx-1.5 text-brand-text-muted">
                 ·
               </span>
               <span
-                className={`shrink-0 whitespace-nowrap text-[12px] tabular-nums ${
+                className={`text-[12px] tabular-nums ${
                   statusFragment.kind === 'pending'
                     ? 'font-semibold text-brand-gold'
                     : 'text-brand-text-muted'
@@ -98,7 +96,7 @@ export function SushiRoundStickyBar({
               </span>
             </>
           ) : null}
-        </div>
+        </p>
         {showFilters && dietaryFilter ? (
           <div className="flex shrink-0 flex-nowrap items-center gap-1.5">
             {vegOn ? (

@@ -3,16 +3,30 @@ import { describe, it } from 'node:test';
 import {
   guestClaimNameHidesCallCheckout,
   scrollDeltaIntoVisualViewport,
+  softKeyboardLayoutHeight,
   softKeyboardOpen,
 } from './soft-keyboard-viewport';
 
 describe('softKeyboardOpen', () => {
-  it('is true when the visual viewport is much shorter than the window', () => {
+  it('is true when the visual viewport is much shorter than the layout height', () => {
     assert.equal(softKeyboardOpen(800, 400), true);
   });
 
   it('is false when heights are close', () => {
     assert.equal(softKeyboardOpen(800, 780), false);
+  });
+});
+
+describe('softKeyboardLayoutHeight', () => {
+  it('picks the tallest of vv / inner / client so iOS innerHeight shrink does not erase the baseline', () => {
+    assert.equal(
+      softKeyboardLayoutHeight({
+        visualViewportHeight: 400,
+        innerHeight: 400,
+        clientHeight: 800,
+      }),
+      800,
+    );
   });
 });
 

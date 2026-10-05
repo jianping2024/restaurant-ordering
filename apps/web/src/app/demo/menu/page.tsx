@@ -23,7 +23,6 @@ export default async function DemoMenuPage({ searchParams }: Props) {
     from,
     returnPath,
     DEMO_RESTAURANT.slug,
-    table.id,
     { isDemo: true },
   );
 

@@ -7,7 +7,6 @@ import type { DishFeedbackVote } from '@/types';
 import { CheckoutSubmittedHeroIllustration } from '@/components/menu/CheckoutSubmittedHeroIllustration';
 import { CustomerSplitResultList } from '@/components/menu/CustomerSplitResultList';
 import { CustomerOrderingHeader } from '@/components/menu/CustomerOrderingHeader';
-import type { StaffAssistedFlow } from '@/lib/staff-routes';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { MenuItemListThumb } from '@/components/dashboard/MenuItemListThumb';
 
@@ -48,19 +47,18 @@ interface Props {
   splitRows: CustomerSplitRowDisplay[];
   backHref: string;
   backLabel: string;
-  staffAssisted?: StaffAssistedFlow | null;
   onRefreshPage: () => void;
   /**
-   * Individual checkout: this phone called its own ticket(s). Ordering is paused until the guest
-   * resumes (unlocks) them; staff can also unlock at the counter.
+   * This phone called its own ticket. Ordering is paused until the guest resumes (unlocks) it;
+   * staff can also unlock at the counter.
    */
-  individual?: {
+  called: {
     hint: string;
     resumeLabel: string;
     resumeBusyLabel: string;
     resumeBusy: boolean;
     onResume: () => void;
-  } | null;
+  };
   showFeedback: boolean;
   reviewableItems: ReviewableItem[];
   feedbackDraft: Record<string, { vote?: DishFeedbackVote; reasons: DishFeedbackReasonKey[] }>;
@@ -86,9 +84,8 @@ export function BillCheckoutSubmittedScreen({
   splitRows,
   backHref,
   backLabel,
-  staffAssisted = null,
   onRefreshPage,
-  individual = null,
+  called,
   showFeedback,
   reviewableItems,
   feedbackDraft,
@@ -109,7 +106,7 @@ export function BillCheckoutSubmittedScreen({
         restaurantName={restaurantName}
         displayName={displayName}
         tableLabel={tableLabel}
-        staffAssisted={staffAssisted}
+        staffAssisted={null}
         headingSize="bill"
         backLink={{ href: backHref, label: backLabel }}
       />
@@ -120,9 +117,7 @@ export function BillCheckoutSubmittedScreen({
             <CheckoutSubmittedHeroIllustration />
           </div>
           <p className="font-heading text-lg text-brand-gold leading-snug px-1">{copy.checkoutSubmittedHint}</p>
-          {individual ? (
-            <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{individual.hint}</p>
-          ) : null}
+          <p className="mt-2 text-[14px] text-brand-text-muted leading-snug px-1">{called.hint}</p>
         </section>
 
         <section className="bg-brand-card border border-brand-border rounded-xl px-4 py-5 text-center">
@@ -141,18 +136,16 @@ export function BillCheckoutSubmittedScreen({
           }}
         />
 
-        {individual ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="action"
-            className="w-full"
-            disabled={individual.resumeBusy}
-            onClick={individual.onResume}
-          >
-            {individual.resumeBusy ? individual.resumeBusyLabel : individual.resumeLabel}
-          </Button>
-        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="action"
+          className="w-full"
+          disabled={called.resumeBusy}
+          onClick={called.onResume}
+        >
+          {called.resumeBusy ? called.resumeBusyLabel : called.resumeLabel}
+        </Button>
 
         <section className="grid grid-cols-1 gap-3 pt-1 min-[400px]:grid-cols-2">
           <Button type="button" variant="gold" size="action" className="w-full" onClick={onRefreshPage}>

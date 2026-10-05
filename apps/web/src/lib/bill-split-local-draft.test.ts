@@ -84,28 +84,18 @@ describe('shouldRestoreBillSplitLocalDraft', () => {
     assert.equal(
       shouldRestoreBillSplitLocalDraft({
         existingSplit: null,
-        submitted: false,
         collectedPaymentCount: 0,
       }),
       true,
     );
   });
 
-  it('blocks restore after submit, request, pay, or collected rows', () => {
+  it('blocks restore after request, pay, or collected rows', () => {
     const requested = { status: 'requested' } as BillSplit;
     const paid = { status: 'paid' } as BillSplit;
     assert.equal(
       shouldRestoreBillSplitLocalDraft({
-        existingSplit: null,
-        submitted: true,
-        collectedPaymentCount: 0,
-      }),
-      false,
-    );
-    assert.equal(
-      shouldRestoreBillSplitLocalDraft({
         existingSplit: requested,
-        submitted: false,
         collectedPaymentCount: 0,
       }),
       false,
@@ -113,7 +103,6 @@ describe('shouldRestoreBillSplitLocalDraft', () => {
     assert.equal(
       shouldRestoreBillSplitLocalDraft({
         existingSplit: paid,
-        submitted: false,
         collectedPaymentCount: 0,
       }),
       false,
@@ -121,7 +110,6 @@ describe('shouldRestoreBillSplitLocalDraft', () => {
     assert.equal(
       shouldRestoreBillSplitLocalDraft({
         existingSplit: { status: 'confirmed' } as BillSplit,
-        submitted: false,
         collectedPaymentCount: 1,
       }),
       false,
@@ -132,7 +120,6 @@ describe('shouldRestoreBillSplitLocalDraft', () => {
     assert.equal(
       shouldRestoreBillSplitLocalDraft({
         existingSplit: { status: 'confirmed' } as BillSplit,
-        submitted: false,
         collectedPaymentCount: 0,
       }),
       true,
@@ -161,12 +148,10 @@ describe('billSplitDraftAuthorityKey', () => {
     } as BillSplit;
     const before = billSplitDraftAuthorityKey({
       existingSplit: wholeRequested,
-      submitted: true,
       collectedPaymentCount: 0,
     });
     const after = billSplitDraftAuthorityKey({
       existingSplit: evenConfirmed,
-      submitted: false,
       collectedPaymentCount: 1,
     });
     assert.notEqual(before, after);
@@ -183,12 +168,10 @@ describe('billSplitDraftAuthorityKey', () => {
     assert.equal(
       billSplitDraftAuthorityKey({
         existingSplit: split,
-        submitted: false,
         collectedPaymentCount: 0,
       }),
       billSplitDraftAuthorityKey({
         existingSplit: { ...split },
-        submitted: false,
         collectedPaymentCount: 0,
       }),
     );
@@ -247,35 +230,19 @@ describe('resolveBillSplitDraftHydrateAction', () => {
 
 describe('resolveByItemLocalDraftApplyAction', () => {
   it('leaves reconcile when collected/partial resume cannot restore', () => {
-    for (const byItemEditor of ['guest', 'staff'] as const) {
-      assert.equal(
-        resolveByItemLocalDraftApplyAction({
-          byItemEditor,
-          canRestore: false,
-          hasServerItemShares: true,
-          hasByItemLocalDraft: true,
-        }),
-        'leave_reconcile',
-      );
-    }
-  });
-
-  it('guest applies local even when server persons already have item_shares (checkout → resume)', () => {
     assert.equal(
       resolveByItemLocalDraftApplyAction({
-        byItemEditor: 'guest',
-        canRestore: true,
+        canRestore: false,
         hasServerItemShares: true,
         hasByItemLocalDraft: true,
       }),
-      'apply_local',
+      'leave_reconcile',
     );
   });
 
-  it('staff leaves reconcile when server persons already have item_shares (server-persisted plan)', () => {
+  it('leaves reconcile when server persons already have item_shares (server-persisted plan)', () => {
     assert.equal(
       resolveByItemLocalDraftApplyAction({
-        byItemEditor: 'staff',
         canRestore: true,
         hasServerItemShares: true,
         hasByItemLocalDraft: true,
@@ -285,31 +252,25 @@ describe('resolveByItemLocalDraftApplyAction', () => {
   });
 
   it('applies local when restorable and no server shares', () => {
-    for (const byItemEditor of ['guest', 'staff'] as const) {
-      assert.equal(
-        resolveByItemLocalDraftApplyAction({
-          byItemEditor,
-          canRestore: true,
-          hasServerItemShares: false,
-          hasByItemLocalDraft: true,
-        }),
-        'apply_local',
-      );
-    }
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: true,
+        hasServerItemShares: false,
+        hasByItemLocalDraft: true,
+      }),
+      'apply_local',
+    );
   });
 
   it('leaves reconcile when restorable but no local by_item draft', () => {
-    for (const byItemEditor of ['guest', 'staff'] as const) {
-      assert.equal(
-        resolveByItemLocalDraftApplyAction({
-          byItemEditor,
-          canRestore: true,
-          hasServerItemShares: true,
-          hasByItemLocalDraft: false,
-        }),
-        'leave_reconcile',
-      );
-    }
+    assert.equal(
+      resolveByItemLocalDraftApplyAction({
+        canRestore: true,
+        hasServerItemShares: true,
+        hasByItemLocalDraft: false,
+      }),
+      'leave_reconcile',
+    );
   });
 });
 

@@ -3,8 +3,7 @@ export type RestaurantFeatureKey =
   | 'bill_receipt_print'
   | 'bill_sync_to_fiscal'
   | 'kitchen_serve_to_table'
-  | 'menu_flavor_hints_enabled'
-  | 'guest_individual_checkout';
+  | 'menu_flavor_hints_enabled';
 
 /** UI grouping by product page / surface area — not stored in jsonb. */
 export type RestaurantFeatureModuleId = 'billing' | 'flavor' | 'kitchen';
@@ -27,14 +26,12 @@ export type RestaurantFeatureDefinition = {
     | 'billReceiptPrint'
     | 'billSyncToFiscal'
     | 'kitchenServeToTable'
-    | 'menuFlavorHints'
-    | 'guestIndividualCheckout';
+    | 'menuFlavorHints';
   descKey:
     | 'billReceiptPrintDesc'
     | 'billSyncToFiscalDesc'
     | 'kitchenServeToTableDesc'
-    | 'menuFlavorHintsDesc'
-    | 'guestIndividualCheckoutDesc';
+    | 'menuFlavorHintsDesc';
 };
 
 export type RestaurantFeatureModuleGroup = {
@@ -43,7 +40,7 @@ export type RestaurantFeatureModuleGroup = {
 };
 
 /** Retired store flags — stripped on merge so jsonb does not keep a second nav gate. */
-const RETIRED_FEATURE_KEYS = ['kitchen_board'] as const;
+const RETIRED_FEATURE_KEYS = ['kitchen_board', 'guest_individual_checkout'] as const;
 
 export const RESTAURANT_FEATURE_MODULES: readonly RestaurantFeatureModuleDefinition[] = [
   { id: 'kitchen', labelKey: 'moduleKitchen', sortOrder: 15 },
@@ -72,13 +69,6 @@ export const RESTAURANT_FEATURE_DEFINITIONS: readonly RestaurantFeatureDefinitio
     defaultEnabled: false,
     labelKey: 'billSyncToFiscal',
     descKey: 'billSyncToFiscalDesc',
-  },
-  {
-    key: 'guest_individual_checkout',
-    moduleId: 'billing',
-    defaultEnabled: false,
-    labelKey: 'guestIndividualCheckout',
-    descKey: 'guestIndividualCheckoutDesc',
   },
   {
     key: 'menu_flavor_hints_enabled',

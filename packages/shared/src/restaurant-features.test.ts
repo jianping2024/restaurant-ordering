@@ -46,13 +46,14 @@ describe('mergeRestaurantFeatureFlags', () => {
 });
 
 describe('mergeRestaurantFeatureFlagsJsonb', () => {
-  it('preserves flags managed outside the features registry and strips retired kitchen_board', () => {
+  it('preserves flags managed outside the features registry and strips retired kitchen_board / guest_individual_checkout', () => {
     const merged = mergeRestaurantFeatureFlagsJsonb(
-      { geo_order_restriction: false, kitchen_board: true },
+      { geo_order_restriction: false, kitchen_board: true, guest_individual_checkout: true },
       { bill_receipt_print: true },
     );
     assert.equal(merged.geo_order_restriction, false);
     assert.equal(merged.kitchen_board, undefined);
+    assert.equal(merged.guest_individual_checkout, undefined);
     assert.equal(merged.bill_receipt_print, true);
   });
 
@@ -66,7 +67,6 @@ describe('mergeRestaurantFeatureFlagsJsonb', () => {
     assert.equal(merged.bill_receipt_print, false);
     assert.equal(merged.bill_sync_to_fiscal, false);
     assert.equal(merged.menu_flavor_hints_enabled, false);
-    assert.equal(merged.guest_individual_checkout, false);
   });
 });
 
@@ -77,7 +77,6 @@ describe('normalizeRestaurantFeatureFlags', () => {
     assert.equal(flags.kitchen_serve_to_table, false);
     assert.equal(flags.bill_sync_to_fiscal, false);
     assert.equal(flags.menu_flavor_hints_enabled, false);
-    assert.equal(flags.guest_individual_checkout, false);
     assert.equal('kitchen_board' in flags, false);
   });
 });

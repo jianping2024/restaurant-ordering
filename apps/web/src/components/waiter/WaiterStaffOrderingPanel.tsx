@@ -121,8 +121,6 @@ export function WaiterStaffOrderingPanel({
     redirectAfterSubmit: false,
     showBillCta: false,
     skipGeoFence: true,
-    skipFeedback: true,
-    checkoutRedirectHref: null,
   }), [embeddedInDashboard, isDemo, restaurant.slug, tableId]);
 
   const initialSessionContext = useMemo((): CustomerSessionContext | null => {

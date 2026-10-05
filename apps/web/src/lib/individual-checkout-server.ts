@@ -64,7 +64,6 @@ const HTTP_STATUS_BY_CODE: Record<string, number> = {
   locked_ticket_changed: 409,
   stale_plan: 409,
   split_mode_locked: 409,
-  not_individual_session: 409,
 };
 
 function httpStatusForCode(code: string): number {
@@ -90,7 +89,7 @@ async function loadActiveIndividualSession(
 
   const { data: session, error } = await admin
     .from('table_sessions')
-    .select('id, status, individual_checkout')
+    .select('id, status')
     .eq('restaurant_id', restaurantId)
     .eq('table_id', tableId)
     .in('status', ['open', 'billing'])
@@ -99,9 +98,6 @@ async function loadActiveIndividualSession(
     .maybeSingle();
   if (error) return { ok: false, status: 500, error: 'session_lookup_failed' };
   if (!session?.id) return { ok: false, status: 404, error: 'no_active_session' };
-  if (!session.individual_checkout) {
-    return { ok: false, status: 409, error: 'not_individual_session' };
-  }
   return {
     ok: true,
     session: {
@@ -109,24 +105,6 @@ async function loadActiveIndividualSession(
       tableName: tableRow.display_name as string,
     },
   };
-}
-
-/** Whether the table's live session was stamped individual_checkout at open. */
-export async function loadTableIndividualCheckout(
-  admin: SupabaseClient,
-  restaurantId: string,
-  tableId: string,
-): Promise<boolean> {
-  const { data } = await admin
-    .from('table_sessions')
-    .select('individual_checkout')
-    .eq('restaurant_id', restaurantId)
-    .eq('table_id', tableId)
-    .in('status', ['open', 'billing'])
-    .order('opened_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data?.individual_checkout === true;
 }
 
 /**

@@ -8,15 +8,7 @@ import type { SplitMode, SplitPerson, SplitResult } from '@/types';
 import type { BillSplit, Order } from '@/types';
 
 /** Reuse a recent background bill sync instead of forcing another round-trip. */
-export const BILL_SYNC_FRESH_MS = 15_000;
-
-/**
- * Guest bill optional NIF: even / whole-table only.
- * by_item pays per person at the counter — staff NIF on collect/invoice.
- */
-export function guestBillCollectsCustomerNif(splitMode: SplitMode | null): boolean {
-  return splitMode !== 'by_item';
-}
+const BILL_SYNC_FRESH_MS = 15_000;
 
 export function shouldSkipPreSubmitOrderSync(
   lastSyncedAt: number | null,
@@ -42,7 +34,7 @@ export function buildSubmitPersons(params: {
 export function validateSubmitSplitDraft(
   splitDraftInput: BillSplitDraftInput,
   orders: Order[],
-  options?: { allowPartialByItem?: boolean; ignoreUnnamedRows?: boolean },
+  options?: { allowPartialByItem?: boolean },
 ): {
   ok: true;
   submitResults: SplitResult[];
@@ -60,7 +52,6 @@ export function validateSubmitSplitDraft(
     },
     {
       allowPartialByItem: options?.allowPartialByItem,
-      ignoreUnnamedRows: options?.ignoreUnnamedRows,
     },
   );
   if (!validation.ok) {
@@ -100,36 +91,6 @@ export function validateSubmittedCheckoutSplit(
   return { orderLines, lineSpecs, total, validation };
 }
 
-export function buildOptimisticRequestedBillSplit(input: {
-  restaurantId: string;
-  sessionId: string;
-  tableId: string;
-  displayName: string;
-  billSplitId: string;
-  splitMode: SplitMode;
-  persons: SplitPerson[];
-  result: SplitResult[];
-  totalAmount: number;
-  customerNif: string | null;
-  orderIds: string[];
-}): BillSplit {
-  return {
-    id: input.billSplitId,
-    restaurant_id: input.restaurantId,
-    session_id: input.sessionId,
-    table_id: input.tableId,
-    display_name: input.displayName,
-    order_ids: input.orderIds,
-    split_mode: input.splitMode,
-    persons: input.persons,
-    result: input.result,
-    total_amount: input.totalAmount,
-    status: 'requested',
-    created_at: new Date().toISOString(),
-    customer_nif: input.customerNif,
-  };
-}
-
 /** Insert or replace a queue row, keeping ascending created_at order. */
 export function upsertCheckoutRequestInQueue(
   prev: readonly BillSplit[],
@@ -140,5 +101,3 @@ export function upsertCheckoutRequestInQueue(
 }
 
 export const CHECKOUT_REDIRECT_TIMEOUT_MS = 8_000;
-
-export const DASHBOARD_CHECKOUT_PATH_PREFIX = '/dashboard/checkout';

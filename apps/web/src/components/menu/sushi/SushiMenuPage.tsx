@@ -246,7 +246,7 @@ export function SushiMenuPage({
     restaurantId: restaurant.id,
     tableId,
     sessionId: activeSession?.id,
-    enabled: !!activeSession?.individual_checkout && !isDemo,
+    enabled: !!activeSession && !isDemo,
   });
 
   const markIndividualHold = individualHold.markHold;
@@ -1100,7 +1100,7 @@ export function SushiMenuPage({
 
       <IndividualCheckoutNotice
         sessionId={activeSession?.id}
-        enabled={!!activeSession?.individual_checkout && !isDemo}
+        enabled={!!activeSession && !isDemo}
         suppressModal={individualHold.hold}
         onSignals={() => void individualHold.refresh()}
       />

@@ -2,10 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   individualPhoneHoldsOrdering,
-  individualReadOnlyTicketKeys,
   mergeIndividualTickets,
   recomputeIndividualTicketAmounts,
-  selectMyIndividualTickets,
   ticketKeysOfResult,
   validateIndividualCall,
   type IndividualTicketInfo,
@@ -109,6 +107,16 @@ describe('validateIndividualCall', () => {
     assert.deepEqual(issue, { ok: true });
   });
 
+  it('rejects a call that carries more than one ticket (one phone, one ticket)', () => {
+    const issue = validateIndividualCall({
+      lineSpecs: specs,
+      persons: [person('Wang', PA, [['L2', 1]]), person('Li', PB, [['L3', 1]])],
+      result: [row('Wang', PA, 8), row('Li', PB, 3)],
+      myKeys: [`p:${PA}`, `p:${PB}`],
+    });
+    assert.deepEqual(issue, { ok: false, code: 'invalid_ticket' });
+  });
+
   it('rejects claiming more than is left (first-come claim_conflict)', () => {
     const issue = validateIndividualCall({
       lineSpecs: specs,
@@ -188,44 +196,10 @@ describe('phone ordering hold', () => {
     );
   });
 
-  it('read-only keys cover every called ticket and others unlocked ones, not my unlocked one', () => {
-    const keys = individualReadOnlyTicketKeys([
-      ...tickets,
-      { ticket_key: 'p:other', name: 'Zhao', state: 'unlocked', mine: false },
-    ]);
-    assert.equal(keys.has(`p:${PA}`), true);
-    assert.equal(keys.has(`p:${PB}`), true);
-    assert.equal(keys.has(`p:${PC}`), false);
-    assert.equal(keys.has('p:other'), true);
-  });
-
   it('ticketKeysOfResult dedupes and skips blanks', () => {
     assert.deepEqual(
       ticketKeysOfResult([row('A', PA, 1), row('A', PA, 1), { name: '', amount: 0 }]),
       [`p:${PA}`],
     );
-  });
-});
-
-describe('selectMyIndividualTickets', () => {
-  it('drops read-only overlay tickets and reports whether anything is claimed', () => {
-    const mine = person('Wang', PA, [['L1', 1]]);
-    const overlay = person('Li', PB, [['L2', 1]]);
-    const picked = selectMyIndividualTickets({
-      persons: [overlay, mine],
-      results: [row('Li', PB, 8), row('Wang', PA, 20)],
-      readOnlyKeys: new Set([`p:${PB}`]),
-    });
-    assert.deepEqual(picked.persons.map((p) => p.name), ['Wang']);
-    assert.deepEqual(picked.results.map((r) => r.name), ['Wang']);
-    assert.equal(picked.hasClaim, true);
-
-    const empty = selectMyIndividualTickets({
-      persons: [overlay],
-      results: [row('Li', PB, 8)],
-      readOnlyKeys: new Set([`p:${PB}`]),
-    });
-    assert.equal(empty.hasClaim, false);
-    assert.equal(empty.persons.length, 0);
   });
 });

@@ -10,7 +10,6 @@ import {
   resolveStaffAssistedFlow,
   isWaiterTableDetailReturnPath,
   isDashboardWaiterReturnPath,
-  checkoutRedirectAfterBillRequest,
   normalizeWaiterReturnPath,
 } from './staff-routes';
 
@@ -70,21 +69,6 @@ describe('isDashboardWaiterReturnPath', () => {
     assert.equal(isDashboardWaiterReturnPath(slugWaiterTableHref('cafe-lisboa', tableId)), false);
     assert.equal(isDashboardWaiterReturnPath('/demo/waiter'), false);
     assert.equal(isDashboardWaiterReturnPath(null), false);
-  });
-});
-
-describe('checkoutRedirectAfterBillRequest', () => {
-  const tableId = '550e8400-e29b-41d4-a716-446655440001';
-
-  it('redirects when assist checkout is allowed', () => {
-    assert.equal(
-      checkoutRedirectAfterBillRequest(tableId, true),
-      `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`,
-    );
-  });
-
-  it('returns null when assist checkout is denied', () => {
-    assert.equal(checkoutRedirectAfterBillRequest(tableId, false), null);
   });
 });
 
@@ -154,32 +138,27 @@ describe('resolveStaffAssistedFlow', () => {
   const tableId = '550e8400-e29b-41d4-a716-446655440001';
 
   it('returns null for customer menu entry', () => {
-    assert.equal(resolveStaffAssistedFlow(undefined, undefined, 'cafe-lisboa', tableId), null);
+    assert.equal(resolveStaffAssistedFlow(undefined, undefined, 'cafe-lisboa'), null);
   });
 
   it('resolves waiter assist without bill checkout', () => {
     const returnPath = waiterTableHref('cafe-lisboa', tableId);
-    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', tableId, {
+    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', {
       canAssistBillCheckout: false,
     });
     assert.ok(flow);
     assert.equal(flow!.returnHref, returnPath);
     assert.equal(flow!.variant, 'staff');
     assert.equal(flow!.showBillCta, false);
-    assert.equal(flow!.checkoutRedirectHref, null);
   });
 
   it('resolves desk assist with bill checkout', () => {
     const returnPath = waiterTableHref('cafe-lisboa', tableId);
-    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', tableId, {
+    const flow = resolveStaffAssistedFlow('waiter', returnPath, 'cafe-lisboa', {
       canAssistBillCheckout: true,
     });
     assert.ok(flow);
     assert.equal(flow!.variant, 'staff');
     assert.equal(flow!.showBillCta, true);
-    assert.equal(
-      flow!.checkoutRedirectHref,
-      `/dashboard/checkout?table_id=${encodeURIComponent(tableId)}`,
-    );
   });
 });

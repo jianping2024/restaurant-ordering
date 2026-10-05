@@ -10,7 +10,6 @@ export function sessionMetaByTableIdFromSessions(
     opened_at?: string | null;
     status?: string | null;
     opened_by_name?: string | null;
-    individual_checkout?: boolean | null;
   }>,
 ): Record<string, WaiterTableSessionMeta> {
   const sessionMetaByTableId: Record<string, WaiterTableSessionMeta> = {};
@@ -31,7 +30,6 @@ export function sessionMetaByTableIdFromSessions(
         openedAt,
         status,
         ...(openedByName ? { openedByName } : {}),
-        ...(s.individual_checkout === true ? { individualCheckout: true } : {}),
       };
     }
   }

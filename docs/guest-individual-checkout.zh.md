@@ -2,7 +2,7 @@
 
 > 写给后续接手的 agent 或工程师：**不需要看过之前的对话**，读完这一篇就知道为什么做、做成什么样、哪些已经定了、哪些还没定、从哪里开始。
 >
-> 状态：**已实现**（分支 `feat/guest-individual-checkout`，一次完成、不分期合并）；餐厅级开关 `guest_individual_checkout` **默认关**。方案与实现的偏差见第 14 节。
+> 状态：**已实现，且已改版为「一机一人一票」并去掉开关**（见第 15 节，**以第 15 节为准**；下文 §4.2「一批票」、§5.3 多人编辑、`guest_individual_checkout` 开关、「会话开台时盖章」均已被取代）。餐厅级开关已删除，所有会话一律按票结账、永不进入 `billing`。方案与最初实现的偏差见第 14 节。
 > 文档中的结论分「已证实」（读过代码或迁移，附文件位置）和「未证实」（明确标出，开工前要核对）。**未证实的不要当结论用。**
 
 ---
@@ -414,3 +414,44 @@
 - 接口层场景（S0–S10，100+ 条断言）：旧会话不变；呼叫不锁桌；超额/重名/伪造/空票/非按菜；占用只拦本手机、服务员代点不受影响；解锁与状态；减菜守卫；转台并桌拦截；队列带票状态且不含手机编号；收款后状态与占用；全认领全付清后关台；开关中途切换；寿司轮次入口；员工 `ensure-entry`。
 - 浏览器：手机视口走完分单→呼叫→待结账页→菜单页占用提示与 toast→恢复点单→他人呼叫的弹框（被动页）→待结账手机不弹框→员工解锁→服务员详情不被踢走→功能开关页；旧会话回归。
 - **未能证明的一项：** 浏览器窗格被应用隐藏时（`visibilityState=hidden`）实时订阅不投递（设计如此，页面可见时才订阅），所以「员工收款后被动页面自动刷新」这条在隐藏窗格下只验证了「重新打开后状态正确」；呼叫弹框的实时投递是在窗格可见时验证过的。
+
+---
+
+## 15. 改版：一机一人一票、去掉开关（当前形态）
+
+需求方决定：分单只让**本机认领自己的菜**，不再支持同一台手机替多人分单；想替全桌付款的人自己认领全部菜即可（有「全部认领」按钮）。同时去掉开关，当作全新系统，不考虑存量会话。
+
+### 形态
+
+- 顾客账单页顶部**先填一次名字**（必填，呼叫后锁定；未呼叫时可改），再逐道菜填「我吃几份」，然后「呼叫结账」。
+- 份数保留分数份（整份 + 分子/分母，复用 `ByItemQtyInput`）；自助餐人头类改成「我是几个大人 / 小孩」两个数字框。
+- 别人的票（已呼叫 / 别的手机已占用 / 已付款）是菜池上的只读叠加：每道菜显示「他人已认领 X · 剩余 Y」；超出剩余份数标红并禁用呼叫。
+- 付清后再点的菜开**新票**：新 `party_id`、名字重新填。
+- 员工桌台详情里的「呼叫结账」不变（`ensure-entry`，整桌或已有分单原样提交）。员工点单页底部的「查看账单」（`from=waiter`）只读：只展示账单明细，不渲染编辑器，也不提供呼叫。
+- 换浏览器 / 清缓存认不出自己之前已解锁的票时，新票同名会报「名字已被本桌使用，请换一个名字，或请员工协助」。
+
+### 取代了什么
+
+| 旧 | 新 |
+|---|---|
+| 开关 `guest_individual_checkout`，开台时写 `table_sessions.individual_checkout` | 无开关；列与开台触发器已删除；`table_sessions_never_billing` 无条件把 `billing` 改回 `open`（`billing` 状态值本身保留，读取点未动） |
+| 一台手机多张票（一批一起锁 / 恢复） | 一台手机一张票：`validateIndividualCall` 要求恰好一张（`invalid_ticket`） |
+| 顾客端多人编辑（`ByItemDishAllocator` / `ConsumerNameCombobox` / 展开卡片 / `useGuestByItemSplitState` / `reconcileGuestByItemAllocations`） | `GuestClaimPanel` + `GuestClaimDishCard` + `useGuestClaim` + 纯逻辑 `lib/guest-claim.ts`（草稿本机存 `mesa:guest-claim:{餐厅}:{会话}`） |
+| `useCheckoutRequestSubmit`（含整桌 / 员工跳转 / 暂存） | `useGuestCallCheckout`（只发本机这一张票） |
+| 顾客页的整桌 / 平均分入口 | 顾客页只有按菜认领；整桌付款 = 认领全部菜 |
+
+### 代码地图（新增 / 改动）
+
+| 能力 | 位置 |
+|---|---|
+| 单人认领纯规则（菜池叠加、可认领量、超额、重名、我的票金额、全部认领、从服务端票还原） | `apps/web/src/lib/guest-claim.ts`（测试 `guest-claim.test.ts`） |
+| 认领状态（服务端已解锁票 → 本机草稿 → 新票；付清后换新票） | `apps/web/src/lib/use-guest-claim.ts` |
+| 呼叫 | `apps/web/src/lib/use-guest-call-checkout.ts` |
+| UI | `components/menu/GuestClaimPanel.tsx`、`GuestClaimDishCard.tsx`、`BillPage.tsx`（顾客页 + 员工只读页） |
+| 去开关迁移 | `supabase/migrations/20261005180000_guest_checkout_always_per_ticket.sql` |
+| 唯一的桌锁规则 | `lib/waiter-board-session.ts` 的 `isCheckoutPending`（只认 `billing`，呼叫结账不锁桌） |
+| 服务端校验 | `lib/individual-checkout.ts`（一张票、菜池、重名）、`individual-checkout-server.ts`、`checkout/request` 路由（顾客一律走按票呼叫） |
+
+### 验证
+
+见第 16 节（本地 UAT 记录）。

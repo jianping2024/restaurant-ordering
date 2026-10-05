@@ -27,20 +27,10 @@ export function validateByItemDraftRows(params: {
   lineSpecs: ByItemLineSpec[];
   rowsByKey: Record<string, ByItemConsumerRow[]>;
   allowPartialByItem?: boolean;
-  /**
-   * Individual checkout (guest phone): an unnamed row is simply not claimed — it is dropped from
-   * the submit payload, so it must not block the call. Locked (called / held) rows stay.
-   */
-  ignoreUnnamedRows?: boolean;
 }): BillSplitValidation {
   for (const spec of params.lineSpecs) {
     const rows = params.rowsByKey[spec.key] ?? [];
-    const status = getByItemLineStatusFromRows(
-      params.ignoreUnnamedRows
-        ? rows.filter((row) => row.name.trim() !== '' || row.paidLocked)
-        : rows,
-      spec,
-    );
+    const status = getByItemLineStatusFromRows(rows, spec);
     if (status.kind === 'complete') continue;
     if (params.allowPartialByItem && (
       status.kind === 'empty'

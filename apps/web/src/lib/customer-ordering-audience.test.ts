@@ -16,8 +16,6 @@ describe('customerOrderingAudience', () => {
         redirectAfterSubmit: true,
         showBillCta: false,
         skipGeoFence: true,
-        skipFeedback: true,
-        checkoutRedirectHref: null,
       }),
       'staff-assisted',
     );

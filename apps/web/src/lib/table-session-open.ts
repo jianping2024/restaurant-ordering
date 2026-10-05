@@ -8,8 +8,6 @@ export type TableSessionRef = {
   opened_at: string;
   /** Snapshot at insert; null when existing row predated the column. */
   opened_by_name?: string | null;
-  /** Stamped at open from feature `guest_individual_checkout` (sticky for the meal). */
-  individual_checkout?: boolean;
 };
 
 type OpenSessionParams = {
@@ -59,7 +57,7 @@ export async function findActiveTableSession(
 ): Promise<TableSessionRef | null> {
   const { data, error } = await admin
     .from('table_sessions')
-    .select('id, status, opened_at, opened_by_name, individual_checkout')
+    .select('id, status, opened_at, opened_by_name')
     .eq('restaurant_id', restaurantId)
     .eq('table_id', tableId)
     .in('status', ['open', 'billing'])

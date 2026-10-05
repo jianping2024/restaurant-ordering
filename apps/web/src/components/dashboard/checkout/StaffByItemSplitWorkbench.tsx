@@ -228,7 +228,7 @@ type Props = {
  * + remaining pool + current share. Bill totals live only on sticky SettlementBar.
  * People: draft rail owns unpaid rename; next unpaid minted only after current is settled.
  * Qty truth: pool remaining and share editors share {@link parseConsumerRows} / buffet parsers.
- * Guest phone keeps ByItemSplitSection; do not render dish cards here.
+ * The guest phone has its own single-ticket claim UI (GuestClaimPanel); do not render its dish cards here.
  */
 export function StaffByItemSplitWorkbench({
   lang,

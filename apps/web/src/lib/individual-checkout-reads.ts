@@ -25,19 +25,6 @@ export async function loadTicketCallRows(
   return (data ?? []) as TicketCallRow[];
 }
 
-/** Whether a session was stamped individual_checkout at open (sticky for the meal). */
-export async function loadSessionIndividualFlag(
-  admin: SupabaseClient,
-  sessionId: string,
-): Promise<boolean> {
-  const { data } = await admin
-    .from('table_sessions')
-    .select('individual_checkout')
-    .eq('id', sessionId)
-    .maybeSingle();
-  return data?.individual_checkout === true;
-}
-
 /** Ticket keys currently called (locked for guests and headcount floors). */
 export async function loadCalledTicketKeys(
   admin: SupabaseClient,

@@ -375,7 +375,7 @@ pending|confirmed|requested ──(强制关台)──→ cancelled
 
 - 单会话同时仅一条活跃 split：`pending|confirmed|requested`
 - `merge_split_result_paid` 保留已付 result 行
-- 顾客可选葡语 NIF（`customer_nif`），校验 `parsePortugueseNif`；**仅**均分 / 按金额 / 整桌（`guestBillCollectsCustomerNif`）；按菜（`by_item`）顾客页不收集，柜台收款 / 开票时由员工填
+- 顾客可选葡语 NIF（`customer_nif`），校验 `parsePortugueseNif`；顾客手机不收集（顾客页只有按菜认领）；柜台收款 / 开票时由员工填
 
 ### 相关代码
 

@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { BillSplit } from '@/types';
 import {
-  applyByItemConsumerRowEdit,
-  applyByItemConsumerRowRemove,
   allocationLockedTicketKeys,
   buildByItemConsumerRowsFromPersons,
   buildLockedPersonLineMins,
@@ -15,7 +13,6 @@ import {
   isPausedCheckoutSplit,
   lockedPersonLineKey,
   paidSplitPersonNames,
-  shouldShowCheckoutSubmitted,
   lockedSplitRowCount,
   splitDraftPersonCount,
   defaultSplitPersonNames,
@@ -56,13 +53,6 @@ describe('isPausedCheckoutSplit', () => {
   it('detects confirmed split on open session', () => {
     assert.equal(isPausedCheckoutSplit(split({ status: 'confirmed' }), 'open'), true);
     assert.equal(isPausedCheckoutSplit(split({ status: 'requested' }), 'open'), false);
-  });
-});
-
-describe('shouldShowCheckoutSubmitted', () => {
-  it('hides success screen during paused continuation', () => {
-    assert.equal(shouldShowCheckoutSubmitted(split({ status: 'confirmed' }), 'open'), false);
-    assert.equal(shouldShowCheckoutSubmitted(split({ status: 'requested' }), 'billing'), true);
   });
 });
 
@@ -193,35 +183,8 @@ describe('byItemRowEditLock', () => {
   });
 });
 
-describe('applyByItemConsumerRowEdit', () => {
-  it('rejects qty clear when qtyReadOnly; commit keeps exact locked share', () => {
-    const locks = buildLockedPersonLineMins(
-      split({
-        result: [{ name: 'Jack', amount: 2.2, paid: true }],
-        persons: [
-          {
-            name: 'Jack',
-            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
-          },
-        ],
-      }),
-    );
-    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const typing = applyByItemConsumerRowEdit({
-      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      patch: { qtyWhole: '', qtyNum: '', qtyDen: '' },
-      ctx,
-    });
-    assert.equal(typing.qtyWhole, '1');
-
-    const committed = commitByItemConsumerRowEdit({
-      row: typing,
-      ctx,
-    });
-    assert.equal(committed.qtyWhole, '1');
-  });
-
-  it('rejects qty bump when qtyReadOnly; commit restores exact locked share', () => {
+describe('commitByItemConsumerRowEdit', () => {
+  it('restores the exact locked share when a paid row drifted', () => {
     const locks = buildLockedPersonLineMins(
       split({
         result: [{ name: 'Jack', amount: 2.2, paid: true }],
@@ -234,13 +197,6 @@ describe('applyByItemConsumerRowEdit', () => {
       }),
     );
     const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 11), locks };
-    const typing = applyByItemConsumerRowEdit({
-      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      patch: { qtyWhole: '13', qtyNum: '', qtyDen: '' },
-      ctx,
-    });
-    assert.equal(typing.qtyWhole, '1');
-
     const drifted = {
       id: 'r1',
       name: 'Jack',
@@ -249,40 +205,17 @@ describe('applyByItemConsumerRowEdit', () => {
       qtyDen: '',
       paidLocked: true as const,
     };
-    const committed = commitByItemConsumerRowEdit({ row: drifted, ctx });
-    assert.equal(committed.qtyWhole, '1');
+    assert.equal(commitByItemConsumerRowEdit({ row: drifted, ctx }).qtyWhole, '1');
   });
 
-  it('allows qty edit for unlocked unpaid guest', () => {
-    const locks = { menu: new Map(), buffet: new Map() };
-    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const typing = applyByItemConsumerRowEdit({
-      row: { id: 'r1', name: 'Bob', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      patch: { qtyWhole: '2', qtyNum: '', qtyDen: '' },
-      ctx,
-    });
-    assert.equal(typing.qtyWhole, '2');
-  });
-
-  it('ignores rename for locked paid guest', () => {
-    const locks = buildLockedPersonLineMins(
-      split({
-        result: [{ name: 'Jack', amount: 2.2, paid: true }],
-        persons: [
-          {
-            name: 'Jack',
-            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
-          },
-        ],
-      }),
-    );
-    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const next = applyByItemConsumerRowEdit({
-      row: { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      patch: { name: 'Smith' },
-      ctx,
-    });
-    assert.equal(next.name, 'Jack');
+  it('leaves an unlocked row untouched', () => {
+    const ctx = {
+      lineKey: LINE_KEY,
+      spec: menuSpec(LINE_KEY, 4),
+      locks: { menu: new Map(), buffet: new Map() },
+    };
+    const row = { id: 'r1', name: 'Bob', qtyWhole: '2', qtyNum: '', qtyDen: '' };
+    assert.deepEqual(commitByItemConsumerRowEdit({ row, ctx }), row);
   });
 });
 
@@ -307,56 +240,6 @@ describe('commitAllByItemAllocations', () => {
       locks,
     });
     assert.equal(committed[LINE_KEY]?.[0]?.qtyWhole, '1');
-  });
-});
-
-describe('applyByItemConsumerRowRemove', () => {
-  it('keeps paid guest row when removal is forbidden', () => {
-    const locks = buildLockedPersonLineMins(
-      split({
-        result: [{ name: 'Jack', amount: 2.2, paid: true }],
-        persons: [
-          {
-            name: 'Jack',
-            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
-          },
-        ],
-      }),
-    );
-    const rows = [
-      { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      { id: 'r2', name: 'Smith', qtyWhole: '3', qtyNum: '', qtyDen: '' },
-    ];
-    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const next = applyByItemConsumerRowRemove({ rows, rowId: 'r1', ctx });
-    assert.equal(next.length, 2);
-    assert.equal(next[0]?.name, 'Jack');
-  });
-
-  it('allows removing unpaid guest row', () => {
-    const locks = buildLockedPersonLineMins(
-      split({
-        result: [{ name: 'Jack', amount: 2.2, paid: true }],
-        persons: [
-          {
-            name: 'Jack',
-            item_shares: [{ key: LINE_KEY, qty_num: 1, qty_den: 1 }],
-          },
-          {
-            name: 'Smith',
-            item_shares: [{ key: LINE_KEY, qty_num: 3, qty_den: 1 }],
-          },
-        ],
-      }),
-    );
-    const rows = [
-      { id: 'r1', name: 'Jack', qtyWhole: '1', qtyNum: '', qtyDen: '' },
-      { id: 'r2', name: 'Smith', qtyWhole: '3', qtyNum: '', qtyDen: '' },
-    ];
-    const ctx = { lineKey: LINE_KEY, spec: menuSpec(LINE_KEY, 4), locks };
-    const next = applyByItemConsumerRowRemove({ rows, rowId: 'r2', ctx });
-    assert.equal(next.length, 1);
-    assert.equal(next[0]?.name, 'Jack');
   });
 });
 

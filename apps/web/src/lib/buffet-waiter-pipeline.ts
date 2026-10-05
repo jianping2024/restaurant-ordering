@@ -28,10 +28,10 @@ import {
 } from '@/lib/checkout-session-payments';
 import { resolveBuffetPricesServer } from '@/lib/resolve-buffet-prices-server';
 import { openTableSessionIfAbsent } from '@/lib/table-session-open';
+import { isCheckoutPending } from '@/lib/waiter-board-session';
 import {
   buildActiveWaiterTablePageModel,
   fetchCheckoutRequestedForTable,
-  isCheckoutPending,
   loadActiveBuffets,
   loadTableAndSession,
   loadTableOrdersForSession,
@@ -317,7 +317,7 @@ export async function runBuffetWaiterOpenPipeline(
     });
   }
 
-  const checkoutPending = isCheckoutPending(sessionMeta, checkout.requested);
+  const checkoutPending = isCheckoutPending(sessionMeta);
   const buffetPricesByBuffetId = await resolveOpenTableBuffetPrices(
     admin,
     restaurantId,

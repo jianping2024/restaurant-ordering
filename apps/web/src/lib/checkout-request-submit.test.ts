@@ -10,10 +10,7 @@ import {
   buildByItemLineSpecs,
   byItemSplitLineFromOrderLine,
 } from '@/lib/bill-split-by-item-lines';
-import {
-  guestBillCollectsCustomerNif,
-  validateSubmittedCheckoutSplit,
-} from '@/lib/checkout-request-submit';
+import { validateSubmittedCheckoutSplit } from '@/lib/checkout-request-submit';
 import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import type { Order } from '@/types';
 
@@ -97,13 +94,5 @@ describe('validateSubmittedCheckoutSplit', () => {
     assert.equal(outcome.total, 14.95 + 4.5);
     assert.equal(outcome.validation.ok, true);
     assert.equal(result.reduce((sum, row) => sum + row.amount, 0), 19.45);
-  });
-});
-
-describe('guestBillCollectsCustomerNif', () => {
-  it('collects for even/whole-table and not by_item', () => {
-    assert.equal(guestBillCollectsCustomerNif(null), true);
-    assert.equal(guestBillCollectsCustomerNif('even'), true);
-    assert.equal(guestBillCollectsCustomerNif('by_item'), false);
   });
 });

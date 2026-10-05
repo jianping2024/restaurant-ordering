@@ -57,7 +57,6 @@ export default async function CustomerMenuPage({ params, searchParams }: Props) 
     from,
     returnPath,
     slug,
-    sessionContext.table_id,
     {
       canAssistBillCheckout:
         from === 'waiter'

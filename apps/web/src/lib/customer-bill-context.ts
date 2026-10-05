@@ -70,12 +70,10 @@ export async function loadCustomerBillContext(params: {
       .then(({ data }) => parseSessionCollectedPayments(data)),
   ]);
 
-  const individualTickets = tableContext.activeSession.individual_checkout
-    ? await loadIndividualTickets(params.admin, {
-        billSplitId: existingSplit?.id,
-        clientId: params.guestClientId,
-      })
-    : [];
+  const individualTickets = await loadIndividualTickets(params.admin, {
+    billSplitId: existingSplit?.id,
+    clientId: params.guestClientId,
+  });
 
   return {
     table_id: tableContext.tableId,

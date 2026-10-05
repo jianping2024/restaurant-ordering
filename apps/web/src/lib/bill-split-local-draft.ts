@@ -1,6 +1,5 @@
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import { splitDraftPersonCount } from '@/lib/checkout-split-continuation';
-import type { BillSplitByItemEditor } from '@/lib/use-bill-split-draft';
 import type { BillSplit, SplitMode } from '@/types';
 
 const KEY_PREFIX = 'mesa:bill-split-draft:';
@@ -150,15 +149,13 @@ export function clearBillSplitLocalDraft(restaurantId: string, sessionId: string
 
 /**
  * Local draft restores only when the page is still in an editable customer draft phase.
- * Requested / paid / submitted / partially collected splits stay server-owned.
+ * Requested / paid / partially collected splits stay server-owned.
  */
 export function shouldRestoreBillSplitLocalDraft(params: {
   existingSplit: BillSplit | null;
-  submitted: boolean;
   collectedPaymentCount: number;
 }): boolean {
-  const { existingSplit, submitted, collectedPaymentCount } = params;
-  if (submitted) return false;
+  const { existingSplit, collectedPaymentCount } = params;
   if (collectedPaymentCount > 0) return false;
   if (!existingSplit) return true;
   if (existingSplit.status === 'requested' || existingSplit.status === 'paid') return false;
@@ -172,12 +169,11 @@ export function shouldRestoreBillSplitLocalDraft(params: {
  */
 export function billSplitDraftAuthorityKey(params: {
   existingSplit: BillSplit | null;
-  submitted: boolean;
   collectedPaymentCount: number;
 }): string {
-  const { existingSplit, submitted, collectedPaymentCount } = params;
+  const { existingSplit, collectedPaymentCount } = params;
   if (!existingSplit) {
-    return `none|sub:${submitted ? 1 : 0}|pay:${collectedPaymentCount}`;
+    return `none|pay:${collectedPaymentCount}`;
   }
   const resultSig = (existingSplit.result ?? [])
     .map((row) =>
@@ -204,7 +200,6 @@ export function billSplitDraftAuthorityKey(params: {
     existingSplit.id,
     existingSplit.status,
     existingSplit.split_mode,
-    `sub:${submitted ? 1 : 0}`,
     `pay:${collectedPaymentCount}`,
     `r:${resultSig}`,
     `p:${personsSig}`,
@@ -245,21 +240,18 @@ export function billSplitHasServerItemShares(
 
 /**
  * Sole by-item working-map local-draft apply decision.
- * Non-restorable / no local by_item draft → leave guest|staff reconcile alone (never clear).
+ * Non-restorable / no local by_item draft → leave the staff reconcile alone (never clear).
  * Staff persists its unpaid plan to the server (`persistByItemUnpaidPlan`), so server
- * shares are staff's newer truth → leave reconcile. Guest phone has no server copy of
- * unpaid edits (e.g. after checkout → resume ordering) → apply local; the guest editor
- * overlays server-locked rows on top.
+ * shares are staff's newer truth → leave reconcile.
  */
 export type ByItemLocalDraftApplyAction = 'leave_reconcile' | 'apply_local';
 
 export function resolveByItemLocalDraftApplyAction(params: {
-  byItemEditor: BillSplitByItemEditor;
   canRestore: boolean;
   hasServerItemShares: boolean;
   hasByItemLocalDraft: boolean;
 }): ByItemLocalDraftApplyAction {
   if (!params.canRestore || !params.hasByItemLocalDraft) return 'leave_reconcile';
-  if (params.byItemEditor === 'staff' && params.hasServerItemShares) return 'leave_reconcile';
+  if (params.hasServerItemShares) return 'leave_reconcile';
   return 'apply_local';
 }

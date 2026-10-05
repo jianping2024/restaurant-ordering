@@ -1,6 +1,5 @@
 'use client';
 
-import { checkoutRequestLocksTable } from '@/lib/waiter-board-session';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -83,6 +82,7 @@ import {
   useStaffSessionPreBillPrint,
 } from '@/lib/use-staff-checkout-bill-print';
 import { resolveWaiterTableDetailActions } from '@/lib/waiter-table-detail-actions';
+import { isCheckoutPending as sessionIsCheckoutPending } from '@/lib/waiter-board-session';
 import {
   WaiterTableBackToBoardFooter,
   WaiterTableDetailContentSkeleton,
@@ -164,7 +164,6 @@ function WaiterTableDetailInner({
     detailLoaded,
     paintPhase,
     activeSessionByTableId,
-    checkoutRequested: checkoutRequestedRaw,
     demoTables,
   } = useWaiterTableDetail(
     restaurant,
@@ -177,7 +176,7 @@ function WaiterTableDetailInner({
     skipEntryReconcile,
     embeddedInDashboard ? waiterBoard?.openTableDefaults ?? null : null,
   );
-  const isCheckoutPending = checkoutRequestLocksTable(sessionMeta, checkoutRequestedRaw);
+  const isCheckoutPending = sessionIsCheckoutPending(sessionMeta);
 
   const [itemCodeByMenuId, setItemCodeByMenuId] = useState<Record<string, string>>({});
 
@@ -294,10 +293,10 @@ function WaiterTableDetailInner({
 
   useEffect(() => {
     if (!orderingOpen) return;
-    if (isCheckoutPending || sessionMeta?.status === 'billing') {
+    if (isCheckoutPending) {
       setOrderingOpen(false);
     }
-  }, [isCheckoutPending, orderingOpen, sessionMeta?.status]);
+  }, [isCheckoutPending, orderingOpen]);
 
   const applyDetail = useCallback(
     (detail: WaiterTableDetailData) => {
@@ -438,7 +437,7 @@ function WaiterTableDetailInner({
 
   useEffect(() => {
     if (isDemo || !detailLoaded) return;
-    if (!isCheckoutPending && sessionMeta?.status !== 'billing') return;
+    if (!isCheckoutPending) return;
     if (floorCaps.canAssistBillCheckout) {
       router.replace(dashboardCheckoutTableHref(tableId));
       return;

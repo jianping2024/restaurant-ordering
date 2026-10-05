@@ -112,7 +112,7 @@ function parseCollectionRecord(
 
 /**
  * Partial by-item pool must not close the table. Fail closed when the split
- * cannot be read. Even/custom and a complete by-item pool return false.
+ * cannot be read. Even and a complete by-item pool return false.
  */
 export async function shouldHoldCheckoutSessionOpen(params: {
   admin: SupabaseClient;

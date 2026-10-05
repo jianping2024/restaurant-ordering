@@ -494,7 +494,7 @@ export function CheckoutRequestDetailHost({
         rowIndex = ticket.personIndex;
         amount = pending.amount;
       } else if (persistBeforePay.current) {
-        // Even/custom: persist full split plan before collect (unchanged).
+        // Even: persist full split plan before collect (unchanged).
         const persisted = await persistBeforePay.current();
         if (!persisted) return;
         if (pending.personName) {

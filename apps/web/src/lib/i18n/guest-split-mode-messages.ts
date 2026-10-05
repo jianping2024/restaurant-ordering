@@ -1,7 +1,7 @@
 import type { UILanguage } from '@/lib/i18n';
 
 /** Guest-selectable split modes (excludes staff/persisted `whole_table`). */
-export const GUEST_SPLIT_MODE_ORDER = ['even', 'by_item', 'custom'] as const;
+export const GUEST_SPLIT_MODE_ORDER = ['even', 'by_item'] as const;
 export type GuestSplitModeId = (typeof GUEST_SPLIT_MODE_ORDER)[number];
 
 export type GuestSplitModeCopy = {
@@ -33,10 +33,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
     modes: {
       even: { label: '均摊', when: '几个人平分总金额。' },
       by_item: { label: '按菜', when: '' },
-      custom: {
-        label: '手填金额',
-        when: '先一人满额可改。要分给别人时点「添加人员」，新人自动填剩余；每人金额都可改，合计须等于账单。',
-      },
     },
     optionalHint: '想分单？选一种方式。整桌一起付也可以不选，直接呼叫结账。',
     introStep: {
@@ -56,10 +52,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
     modes: {
       even: { label: 'Even split', when: 'Split the total equally among N people.' },
       by_item: { label: 'By dish', when: '' },
-      custom: {
-        label: 'Enter amounts',
-        when: 'Start with one person at the full total. Tap Add person to split — the new person gets the remainder. Every amount is editable; the shares must add up to the bill.',
-      },
     },
     optionalHint:
       'Want to split? Pick a method above. Paying for the whole table? Call for the bill without choosing one.',
@@ -82,10 +74,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       by_item: {
         label: 'Por prato',
         when: '',
-      },
-      custom: {
-        label: 'Valores',
-        when: 'Começa com uma pessoa no total. Toque em Adicionar pessoa para dividir — a nova fica com o resto. Todos os valores são editáveis; a soma tem de igualar a conta.',
       },
     },
     optionalHint:
@@ -110,10 +98,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         label: 'Por plato',
         when: '',
       },
-      custom: {
-        label: 'Importes',
-        when: 'Empieza con una persona por el total. Pulsa Añadir persona para dividir: la nueva lleva el resto. Todos los importes se pueden editar; la suma debe igualar la cuenta.',
-      },
     },
     optionalHint:
       '¿Queréis dividir la cuenta? Elige una forma arriba. Si paga toda la mesa, pide la cuenta sin elegir ninguna.',
@@ -137,10 +121,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
         label: 'Par plat',
         when: '',
       },
-      custom: {
-        label: 'Montants',
-        when: 'Une personne commence au total. Ajoutez une personne pour partager — la nouvelle reçoit le reste. Chaque montant est modifiable ; la somme doit égaler l’addition.',
-      },
     },
     optionalHint:
       'Envie de partager ? Choisissez une méthode ci-dessus. Si vous réglez toute la table, demandez l’addition sans rien choisir.',
@@ -163,10 +143,6 @@ export const GUEST_SPLIT_GUIDANCE: Record<UILanguage, GuestSplitGuidanceCopy> = 
       by_item: {
         label: 'Nach Gericht',
         when: '',
-      },
-      custom: {
-        label: 'Beträge',
-        when: 'Eine Person startet mit dem Gesamtbetrag. Über Person hinzufügen teilen — die neue erhält den Rest. Jeder Betrag ist editierbar; die Summe muss der Rechnung entsprechen.',
       },
     },
     optionalHint:
@@ -194,13 +170,11 @@ export function getGuestSplitGuidance(lang: UILanguage): GuestSplitGuidanceCopy 
 export function guestSplitModeLabels(lang: UILanguage): {
   even: string;
   byItem: string;
-  custom: string;
 } {
   const { modes } = getGuestSplitGuidance(lang);
   return {
     even: modes.even.label,
     byItem: modes.by_item.label,
-    custom: modes.custom.label,
   };
 }
 
@@ -208,6 +182,6 @@ export function guestSplitModeLabels(lang: UILanguage): {
 export function checkoutSplitModeUiLabels(
   lang: UILanguage,
   wholeTable: string,
-): { even: string; byItem: string; custom: string; wholeTable: string } {
+): { even: string; byItem: string; wholeTable: string } {
   return { ...guestSplitModeLabels(lang), wholeTable };
 }

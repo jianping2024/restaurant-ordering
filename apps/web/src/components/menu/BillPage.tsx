@@ -680,23 +680,15 @@ export function BillPage({
     );
   }
 
-  // Index 0 is a valid row — never truthiness-check the index.
-  const editingCustomAmount = splitDraft.editingCustomAmountIndex != null;
-  /** Sole guest bill fixed-CTA yield: custom-amount edit or consumer-name focus. */
-  const hideFixedCallCheckout = editingCustomAmount || editingConsumerName;
-  // Name edit keeps pb-24 (rail needs bottom air); only custom-amount tightens pad.
-  const pagePadClass =
-    checkoutGateMessage && !hideFixedCallCheckout
-      ? 'pb-40'
-      : editingCustomAmount
-        ? 'pb-6'
-        : 'pb-24';
+  /** Sole guest bill fixed-CTA yield: consumer-name focus. */
+  const hideFixedCallCheckout = editingConsumerName;
+  // Name edit keeps pb-24 (rail needs bottom air).
+  const pagePadClass = checkoutGateMessage && !hideFixedCallCheckout ? 'pb-40' : 'pb-24';
 
   return (
     <GuestConsumerNameEditChromeProvider onActiveChange={setEditingConsumerName}>
     {individualNotice}
     <div
-      data-editing-custom-amount={editingCustomAmount ? '1' : '0'}
       data-editing-consumer-name={editingConsumerName ? '1' : '0'}
       className={`min-h-screen bg-brand-bg max-w-mobile mx-auto ${pagePadClass}`}
     >
@@ -727,8 +719,6 @@ export function BillPage({
           splitPlanLocked: t.splitPlanLocked,
           people: t.people,
           splitResult: t.splitResult,
-          addPerson: t.addPerson,
-          removePerson: t.removePerson,
           splitPaid: t.splitPaid,
           splitPartialPaid: t.splitPartialPaid,
           splitAmountBreakdown: t.splitAmountBreakdown,
@@ -740,7 +730,6 @@ export function BillPage({
         submitting={isCallBillBusy}
         personCount={splitDraft.personCount}
         splitPeople={splitDraft.splitPeople}
-        customAmounts={splitDraft.customAmounts}
         results={splitDraft.results}
         splitDisplayRows={splitDraft.splitDisplayRows}
         lockedPersonNames={splitDraft.lockedPersonNames}
@@ -756,8 +745,6 @@ export function BillPage({
         guestName={guestName}
         editingSplitNameIndex={splitDraft.editingSplitNameIndex}
         editingSplitNameValue={splitDraft.editingSplitNameValue}
-        editingCustomAmountIndex={splitDraft.editingCustomAmountIndex}
-        editingCustomAmountValue={splitDraft.editingCustomAmountValue}
         onSplitModeClick={splitDraft.handleSplitModeClick}
         onDecrementPersonCount={splitDraft.decrementPersonCount}
         onIncrementPersonCount={splitDraft.incrementPersonCount}
@@ -772,15 +759,6 @@ export function BillPage({
           splitDraft.setEditingSplitNameIndex(null);
           splitDraft.setEditingSplitNameValue('');
         }}
-        onStartInlineAmountEdit={splitDraft.startInlineAmountEdit}
-        onCommitInlineAmountEdit={splitDraft.commitInlineAmountEdit}
-        onEditingCustomAmountValueChange={splitDraft.editCustomAmountDraft}
-        onCancelInlineAmountEdit={() => {
-          splitDraft.setEditingCustomAmountIndex(null);
-          splitDraft.setEditingCustomAmountValue('');
-        }}
-        onAddCustomPerson={splitDraft.addCustomPerson}
-        onRemoveCustomPerson={splitDraft.removeCustomPerson}
       />
 
       {!submitted && collectsCustomerNif ? (
@@ -809,7 +787,7 @@ export function BillPage({
       ) : null}
 
       {/* Sole guest bill CTA chrome — stay mounted; `hidden` (display:none) while
-          custom-amount or consumer-name edit. It is fixed, so flow layout does not
+          consumer-name edit. It is fixed, so flow layout does not
           change, and iOS drops the layer (visibility:hidden left ghost copies). */}
       <div
         className={`fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-mobile px-4 z-20 space-y-2 ${

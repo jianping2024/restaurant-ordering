@@ -72,7 +72,6 @@ export function validateBillSplit(params: {
   itemLines?: Array<{ key: string; qty: number }>;
   lineSpecs?: ByItemLineSpec[];
   byItemAllocations?: ByItemLineAllocation;
-  customAmounts?: Array<{ amount: number }>;
   /** Staff per-person collect: allow an unfinished by-item pool. Guest stays strict. */
   allowPartialByItem?: boolean;
   /**
@@ -89,7 +88,6 @@ export function validateBillSplit(params: {
     itemLines,
     lineSpecs,
     byItemAllocations,
-    customAmounts,
     allowPartialByItem = false,
     staffReopenActivePlan = false,
   } = params;
@@ -97,10 +95,6 @@ export function validateBillSplit(params: {
   const relaxByItemPool = allowPartialByItem || staffReopenActivePlan;
 
   if (!splitMode || splitMode === 'whole_table') return { ok: true };
-
-  if (splitMode === 'custom' && results.length < 1) {
-    return { ok: false, issue: 'amount_mismatch' };
-  }
 
   const specs = lineSpecs ?? itemLines?.map((line) => ({
     mode: 'menu' as const,
@@ -125,12 +119,6 @@ export function validateBillSplit(params: {
           return { ok: false, issue: 'incomplete_qty' };
         }
       }
-    }
-  }
-
-  if (splitMode === 'custom' && customAmounts?.length) {
-    if (customAmounts.some((row) => eurosToCents(row.amount) < 0)) {
-      return { ok: false, issue: 'amount_mismatch' };
     }
   }
 

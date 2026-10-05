@@ -1441,7 +1441,6 @@ export const MESSAGES_FR = {
     "chargeableHint": "Au-delà de la formule : {qty} × {price} €",
     "splitMode": "Mode de partage",
     "people": "Convives",
-    "addPerson": "Ajouter un convive",
     "removePerson": "Retirer une personne",
     "splitResult": "Résultat du partage",
     "splitPaid": "Payé",

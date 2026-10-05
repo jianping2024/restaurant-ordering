@@ -33,7 +33,7 @@ describe('checkout-detail-phase', () => {
     );
   });
 
-  it('keeps even, by_item, and custom on split_edit and settles a paid whole table', () => {
+  it('keeps even and by_item on split_edit and settles a paid whole table', () => {
     assert.equal(
       resolveCheckoutDetailPhase({
         splitMode: 'whole_table',
@@ -54,14 +54,6 @@ describe('checkout-detail-phase', () => {
       resolveCheckoutDetailPhase({
         splitMode: 'by_item',
         collected: 4,
-        pathChoice: 'undecided',
-      }),
-      'split_edit',
-    );
-    assert.equal(
-      resolveCheckoutDetailPhase({
-        splitMode: 'custom',
-        collected: 0,
         pathChoice: 'undecided',
       }),
       'split_edit',

@@ -88,7 +88,7 @@ export function shouldShowPersonLedger(
   if (rows.length === 1 && isWholeTablePayerName(rows[0].name)) return false;
   if (rows.length > 1) return true;
   if (!split) return false;
-  return split.split_mode === 'by_item' || split.split_mode === 'custom';
+  return split.split_mode === 'by_item';
 }
 
 export function resolvePersonLedgerDisplayMode(

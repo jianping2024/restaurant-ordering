@@ -132,32 +132,6 @@ describe('buildBillSyncJobPayload', () => {
     );
   });
 
-  it('builds split for custom by result amounts', () => {
-    const built = buildBillSyncJobPayload({
-      requestId: '22222222-2222-4222-8222-222222222223',
-      billSplitId: BILL_SPLIT_ID,
-      tableDisplayName: 'A-02',
-      splitMode: 'custom',
-      persons: [{ name: 'Jacky' }, { name: 'Tom' }],
-      result: [
-        { name: 'Jacky', amount: 3 },
-        { name: 'Tom', amount: 1.5 },
-      ],
-      orders,
-      itemCodeByMenuId: { [MENU_ID]: '006' },
-      vatRateByMenuId: { [MENU_ID]: 23 },
-      vatRateByBuffetId: {},
-    });
-    assert.equal(built.ok, true);
-    if (!built.ok) return;
-    assert.equal(built.payload.scope_type, 'split');
-    assert.equal(built.payload.splits?.length, 2);
-    const jacky = built.payload.splits?.find((s) => s.name === 'Jacky');
-    const tom = built.payload.splits?.find((s) => s.name === 'Tom');
-    assert.equal(jacky?.gross_total, '3.00');
-    assert.equal(tom?.gross_total, '1.50');
-  });
-
   it('attaches auto_issue fields and CASH→FS document_type', () => {
     const built = buildBillSyncJobPayload({
       requestId: '22222222-2222-4222-8222-222222222224',

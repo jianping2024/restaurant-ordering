@@ -41,7 +41,7 @@ function splitLineQtyForLegacyLabel(
 }
 
 /**
- * Per-person dish shares for by_item splits. Empty for even/custom or missing person.
+ * Per-person dish shares for by_item splits. Empty for even or missing person.
  * Amounts use the same billable line totals as split draft / submit (pre-discount).
  */
 export function buildSplitPersonShareLines(

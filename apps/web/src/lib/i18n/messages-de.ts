@@ -1437,7 +1437,6 @@ export const MESSAGES_DE = {
     "chargeableHint": "Über dem Inklusivanteil: {qty} × €{price}",
     "splitMode": "Teilungsart",
     "people": "Personen",
-    "addPerson": "Person hinzufügen",
     "removePerson": "Person entfernen",
     "splitResult": "Teilungsergebnis",
     "splitPaid": "Bezahlt",

@@ -207,7 +207,6 @@ export async function POST(
     tableDisplayName: ctx.tableDisplayName,
     splitMode: ctx.splitMode,
     persons: ctx.persons,
-    result: ctx.result,
     orders: ctx.orders,
     itemCodeByMenuId: ctx.itemCodeByMenuId,
     vatRateByMenuId: ctx.vatRateByMenuId,

@@ -146,7 +146,7 @@ export type LandingPreviewCopy = {
     drinksTotal: string;
     grandTotal: string;
     splitModeTitle: string;
-    splitModes: [string, string, string];
+    splitModes: [string, string];
     /** Use `{guests}` and `{avg}`. */
     perGuestSummary: string;
     confirmPayment: string;

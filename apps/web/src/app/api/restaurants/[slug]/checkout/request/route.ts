@@ -153,7 +153,12 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_table_id' }, { status: 400 });
   }
 
-  const splitMode = parseSplitMode(body.split_mode) ?? 'whole_table';
+  // Absent → whole table; an unknown value (e.g. removed `custom`) is rejected, never coerced.
+  const splitMode =
+    body.split_mode == null ? 'whole_table' : parseSplitMode(body.split_mode);
+  if (!splitMode) {
+    return NextResponse.json({ error: 'invalid_split_mode' }, { status: 400 });
+  }
   const persons = parsePersons(body.persons);
   const result = parseResult(body.result);
   if (!persons || !result) {

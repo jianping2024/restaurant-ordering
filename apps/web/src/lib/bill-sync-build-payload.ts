@@ -1,6 +1,6 @@
 /**
  * Sole Farvoo bill-sync job payload builder (bill-sync-contract-v1.0 + auto_issue).
- * by_item | even | custom (2+ people) → split; whole_table or single person → whole_table.
+ * by_item | even (2+ people) → split; whole_table or single person → whole_table.
  */
 import {
   buffetShareUnitPrice,
@@ -39,7 +39,7 @@ import {
 } from '@/lib/money-allocation';
 import { isBuffetBaseItem } from '@/lib/order-items';
 import { splitPartyKey } from '@/lib/split-party-id';
-import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson, SplitResult } from '@/types';
+import type { BillSplit, Order, OrderItem, SplitMode, SplitPerson } from '@/types';
 
 /** Buffet uuid from a buffet_base order line (fail-closed when missing). */
 export function buffetIdFromOrderItem(item: OrderItem): string | null {
@@ -86,8 +86,6 @@ export type BuildBillSyncPayloadInput = {
   tableDisplayName: string;
   splitMode: SplitMode;
   persons: SplitPerson[];
-  /** Required for custom proportional splits (result[].amount). */
-  result?: SplitResult[];
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
@@ -320,8 +318,7 @@ function buildByItemSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | 
 type NamedWeight = { name: string; weight: number };
 
 /**
- * Even/custom → split: allocate each whole-table line across people by weight
- * (even = equal; custom = result amounts). Uses allocateProportionalCents.
+ * Even → split: allocate each whole-table line across people by equal weight. Uses allocateProportionalCents.
  */
 function buildAmountWeightedSplits(
   input: BuildBillSyncPayloadInput,
@@ -396,24 +393,6 @@ function buildEvenSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | { 
   );
 }
 
-function buildCustomSplits(input: BuildBillSyncPayloadInput): BillSyncSplit[] | { error: string } {
-  const fromResult = (input.result ?? [])
-    .map((r) => ({
-      name: r.name?.trim() ?? '',
-      weight: typeof r.amount === 'number' && Number.isFinite(r.amount) ? r.amount : 0,
-    }))
-    .filter((r) => r.name);
-  const fromPersons = (input.persons ?? [])
-    .map((p) => ({
-      name: p.name?.trim() ?? '',
-      weight: typeof p.amount === 'number' && Number.isFinite(p.amount) ? p.amount : 0,
-    }))
-    .filter((p) => p.name);
-  const named = fromResult.length >= 2 ? fromResult : fromPersons;
-  if (named.length < 2) return { error: 'missing_splits' };
-  return buildAmountWeightedSplits(input, named);
-}
-
 function applyAutoIssueFields(
   payload: BillSyncPayload,
   auto: BillSyncAutoIssueFields | null | undefined,
@@ -469,7 +448,7 @@ export function billSyncUsesSplitScope(
   personCount: number,
 ): boolean {
   if (personCount < 2) return false;
-  return splitMode === 'by_item' || splitMode === 'even' || splitMode === 'custom';
+  return splitMode === 'by_item' || splitMode === 'even';
 }
 
 /** Sole snapshot builder for bill_sync_jobs.payload. */
@@ -494,10 +473,6 @@ export function buildBillSyncJobPayload(
     payload = { ...base, scope_type: 'split', splits };
   } else if (useSplit && input.splitMode === 'even') {
     const splits = buildEvenSplits(input);
-    if ('error' in splits) return { ok: false, error: splits.error };
-    payload = { ...base, scope_type: 'split', splits };
-  } else if (useSplit && input.splitMode === 'custom') {
-    const splits = buildCustomSplits(input);
     if ('error' in splits) return { ok: false, error: splits.error };
     payload = { ...base, scope_type: 'split', splits };
   } else {

@@ -12,7 +12,7 @@ describe('getLandingPreviewCopy', () => {
       const copy = getLandingPreviewCopy(lang);
       assert.equal(typeof copy.chrome.banner, 'string');
       assert.equal(typeof copy.shared.restaurantName, 'string');
-      assert.equal(copy.bill.splitModes.length, 3);
+      assert.equal(copy.bill.splitModes.length, 2);
       assert.equal(typeof copy.menu.categories.drinks, 'string');
       assert.equal(typeof copy.bar.status.pending, 'string');
       assert.ok(copy.shared.tableLabel.includes('{name}'));

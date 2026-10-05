@@ -34,7 +34,6 @@ function billSplit(overrides: Partial<BillSplit> = {}): BillSplit {
 const modeLabels = {
   even: '均摊',
   byItem: '按菜',
-  custom: '自定义',
   wholeTable: '整桌',
 };
 

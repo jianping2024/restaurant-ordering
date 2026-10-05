@@ -32,13 +32,11 @@ describe('guest split mode guidance', () => {
     const modes = GUEST_SPLIT_GUIDANCE.pt.modes;
     assert.equal(labels.even, modes.even.label);
     assert.equal(labels.byItem, modes.by_item.label);
-    assert.equal(labels.custom, modes.custom.label);
   });
 
   it('pt recommends Por prato wording (not Por consumo / Manual)', () => {
     const { modes, optionalHint } = GUEST_SPLIT_GUIDANCE.pt;
     assert.equal(modes.by_item.label, 'Por prato');
-    assert.equal(modes.custom.label, 'Valores');
     assert.match(optionalHint, /Quer dividir/i);
     assert.doesNotMatch(optionalHint, /diretamente ou escolher/i);
   });

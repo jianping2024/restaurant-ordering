@@ -101,10 +101,9 @@ describe('validateSubmittedCheckoutSplit', () => {
 });
 
 describe('guestBillCollectsCustomerNif', () => {
-  it('collects for even/custom/whole-table and not by_item', () => {
+  it('collects for even/whole-table and not by_item', () => {
     assert.equal(guestBillCollectsCustomerNif(null), true);
     assert.equal(guestBillCollectsCustomerNif('even'), true);
-    assert.equal(guestBillCollectsCustomerNif('custom'), true);
     assert.equal(guestBillCollectsCustomerNif('by_item'), false);
   });
 });

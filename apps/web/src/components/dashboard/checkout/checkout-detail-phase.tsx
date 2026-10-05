@@ -14,7 +14,7 @@ export function resolveCheckoutDetailPhase(input: {
   pathChoice: StaffCheckoutPathChoice;
 }): CheckoutDetailPhase {
   const mode = input.splitMode;
-  if (mode === 'even' || mode === 'by_item' || mode === 'custom') return 'split_edit';
+  if (mode === 'even' || mode === 'by_item') return 'split_edit';
   if (mode === 'whole_table' && input.collected <= 0) {
     if (input.pathChoice === 'split') return 'split_edit';
     if (input.pathChoice === 'whole_table') return 'settle';

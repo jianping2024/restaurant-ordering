@@ -133,7 +133,7 @@ describe('buildSplitSettlementRows', () => {
     );
   });
 
-  it('does not treat zero-obligation unpaid custom row as settled or pending', () => {
+  it('does not treat zero-obligation unpaid row as settled or pending', () => {
     const rows = buildSplitSettlementRows(
       [
         { name: '客人 1', amount: 0 },

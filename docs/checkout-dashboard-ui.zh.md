@@ -38,7 +38,7 @@
 
 1. **结算摘要条** — 左侧：消费 · 应收 · 已收 · **待收**（待收高亮）；右侧：**折扣 % 输入**（默认 0，改值后应收/待收即时更新；有收款后禁用；失焦仍走原因弹窗）。sticky 底唯一 `brand-bg`（对齐米纸，金条圆角不外露 card 白边）；路径只差偏移：`/dashboard/checkout` 用 `checkoutSettlementBarStickyShellClass`（`belowStaffTopBar`），楼面 sheet 用 `checkoutSettlementBarSheetStickyShellClass`（`top-0`）。窄屏「返回列表」在条内。  
 2. **页头** — 桌号；**有顾客税号时紧随桌号强调展示**（标签清晰 + 数字 `text-lg font-semibold` + `font-mono tabular-nums` / `formatPortugueseNif`）；再是呼叫/meta、分单模式、状态。无税号不占位。  
-3. **路径 / 分单编辑** — 均摊、按菜、手填一直停在 `split_edit` 按人收款（无「确认分单」、无第二页「收款 €」）。按菜唯一壳 `StaffByItemSplitWorkbench`（池上 `1/N` 跟当前人分母，默认 1/2；行尾垃圾桶把该份额退回池）。均摊/手填在结果行末尾「收款」；手填另有垃圾桶。折扣条在首笔收款前可改   
+3. **路径 / 分单编辑** — 均摊、按菜一直停在 `split_edit` 按人收款（无「确认分单」、无第二页「收款 €」）。按菜唯一壳 `StaffByItemSplitWorkbench`（池上 `1/N` 跟当前人分母，默认 1/2；行尾垃圾桶把该份额退回池）。均摊在结果行末尾「收款」。折扣条在首笔收款前可改   
 4. **分单人条（settle）** — 多人分单时顶上 `CheckoutSettlePersonRail`：chip + **收款完成 ✓**（`settlementStatus === 'settled'`）；点 chip 定位待收款行；**不**表示开票  
 5. **待收款区（主操作）** — 强调边框；每人**本次应收**为大号数字；按钮文案 `收款 €{amount}`；有历史已收时副行显示应付总额与已收  
 6. **已收款项（台账）** — 弱化样式；单行 `姓名 · 时间 — 金额`；分单时每行旁「打印收据」+（财政开）「打印发票」  

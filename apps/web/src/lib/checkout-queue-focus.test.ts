@@ -19,7 +19,7 @@ function row(overrides: Partial<BillSplit> & Pick<BillSplit, 'id' | 'table_id'>)
     session_id: 's1',
     display_name: '004',
     status: 'requested',
-    split_mode: 'custom',
+    split_mode: 'even',
     persons: [],
     result: [],
     total_amount: 10,

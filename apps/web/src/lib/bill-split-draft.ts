@@ -23,7 +23,6 @@ export type BillSplitDraftInput = {
   lineSpecs: ByItemLineSpec[];
   personCount: number;
   splitPeople: Array<{ name: string }>;
-  customAmounts: Array<{ name: string; amount: number }>;
   byItemDraftRows: Record<string, ByItemConsumerRow[]>;
   parsedByItemAllocations: ByItemLineAllocation;
   lang: UILanguage;
@@ -40,7 +39,6 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     orderLines,
     personCount,
     splitPeople,
-    customAmounts,
     parsedByItemAllocations,
     lang,
     byItemPersonOrder,
@@ -60,23 +58,14 @@ export function computeSplitResults(input: BillSplitDraftInput): SplitResult[] {
     }));
   }
 
-  if (splitMode === 'by_item') {
-    return calcByItemSplitResults({
-      lines: orderLines.map((item) =>
-        byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
-      ),
-      allocations: parsedByItemAllocations,
-      personOrder: byItemPersonOrder,
-      personPartyIds: byItemPersonPartyIds,
-    }).map((row) => toWireSplitResult(row));
-  }
-
-  // Custom amounts are authoritative (applyCustomAmountEdit / append / afterRemove).
-  // Do not rewrite the last row here — that forced solo drafts back to full bill.
-  return customAmounts.map((row) => ({
-    name: row.name,
-    amount: row.amount,
-  }));
+  return calcByItemSplitResults({
+    lines: orderLines.map((item) =>
+      byItemSplitLineFromOrderLine(item, resolveMenuItemLocalizedName(item, lang)),
+    ),
+    allocations: parsedByItemAllocations,
+    personOrder: byItemPersonOrder,
+    personPartyIds: byItemPersonPartyIds,
+  }).map((row) => toWireSplitResult(row));
 }
 
 export function validateSplitDraft(
@@ -99,7 +88,6 @@ export function validateSplitDraft(
     results,
     lineSpecs: input.splitMode === 'by_item' ? input.lineSpecs : undefined,
     byItemAllocations: input.splitMode === 'by_item' ? input.parsedByItemAllocations : undefined,
-    customAmounts: input.customAmounts,
     allowPartialByItem: options?.allowPartialByItem,
   });
   return { results, validation };

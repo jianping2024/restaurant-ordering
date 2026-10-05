@@ -50,7 +50,7 @@ export function PreviewBillContent({ showLabel = true }: FrameOptions) {
         </div>
 
         <p className="mt-5 text-[13px] font-medium text-brand-text">{copy.bill.splitModeTitle}</p>
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2">
           {copy.bill.splitModes.map((mode, index) => (
             <span
               key={mode}

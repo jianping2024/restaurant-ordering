@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from './customer-menu-bottom-bar-layout';
 import {
+  CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS,
   CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS,
   customerMenuItemDetailBodyClass,
+  customerMenuItemDetailCloseButtonClass,
   customerMenuItemDetailContentClass,
   customerMenuItemDetailFooterClass,
   customerMenuItemDetailHostClass,
@@ -44,15 +45,30 @@ describe('customerMenuItemDetailLayout', () => {
     assert.match(customerMenuItemDetailBodyClass, /overflow-y-auto/);
     assert.match(customerMenuItemDetailBodyClass, /overscroll-contain/);
     assert.doesNotMatch(customerMenuItemDetailBodyClass, /px-5/);
-    assert.match(customerMenuItemDetailContentClass, /px-5/);
     assert.match(customerMenuItemDetailContentClass, /pt-5/);
   });
 
-  it('footer reuses sole customer menu bottom safe-area pad', () => {
+  it('sole gutter shared by copy, footer, and close end inset', () => {
+    assert.equal(CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS, 'px-5');
+    assert.match(
+      customerMenuItemDetailContentClass,
+      new RegExp(CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    );
     assert.match(
       customerMenuItemDetailFooterClass,
-      new RegExp(CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      new RegExp(CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    );
+    assert.doesNotMatch(customerMenuItemDetailFooterClass, /\bpx-4\b/);
+    assert.match(customerMenuItemDetailCloseButtonClass, /\bright-5\b/);
+    assert.doesNotMatch(customerMenuItemDetailCloseButtonClass, /\bright-3\b/);
+  });
+
+  it('footer bottom pad is 1rem plus sole menu bottom-safe var', () => {
+    assert.match(
+      customerMenuItemDetailFooterClass,
+      /pb-\[calc\(1rem\+var\(--mesa-customer-menu-bottom-safe\)\)\]/,
     );
     assert.doesNotMatch(customerMenuItemDetailFooterClass, /pb-\[max\(/);
+    assert.doesNotMatch(customerMenuItemDetailFooterClass, /env\(safe-area-inset-bottom/);
   });
 });

@@ -141,7 +141,9 @@ describe('one representation — customer menu bottom inset + badge', () => {
     const sheet = readFileSync(join(webSrc, 'components/menu/CustomerMenuBottomSheet.tsx'), 'utf8');
     assert.match(sheet, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
 
+    // Detail footer needs 1rem + safe (cannot stack two pb-*); still sole CSS var.
     const detail = readFileSync(join(webSrc, 'lib/customer-menu-item-detail-layout.ts'), 'utf8');
-    assert.match(detail, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
+    assert.match(detail, /--mesa-customer-menu-bottom-safe/);
+    assert.doesNotMatch(detail, /CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS/);
   });
 });

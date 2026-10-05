@@ -4,11 +4,16 @@
  * Scroll: one column (hero + copy); footer CTA stays pinned; host/body lock keeps menu behind still.
  */
 
-import { CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS } from '@/lib/customer-menu-bottom-bar-layout';
 import { MENU_IMAGE_ASPECT_CLASS, MENU_IMAGE_WELL_BG_CLASS } from '@/lib/menu-image';
 
 /** Above cart/round drawers (z-40) and footer dock (z-30). */
 export const CUSTOMER_MENU_ITEM_DETAIL_Z_CLASS = 'z-50';
+
+/**
+ * Sole horizontal gutter for detail copy + footer (same 20px as CustomerMenuBottomSheet).
+ * Close button end inset matches this gutter (`right-5`).
+ */
+export const CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS = 'px-5';
 
 /** Full-viewport host: stretch on phone, centered dialog on lg+. */
 export const customerMenuItemDetailHostClass = [
@@ -46,16 +51,21 @@ export const CUSTOMER_MENU_ITEM_DETAIL_HERO_CLASS =
   `relative w-full shrink-0 overflow-hidden ${MENU_IMAGE_ASPECT_CLASS} ${MENU_IMAGE_WELL_BG_CLASS} max-h-[min(33vh,14rem)]`;
 
 export const customerMenuItemDetailCloseButtonClass =
-  'absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-10 flex h-10 w-10 items-center justify-center rounded-full border border-brand-border bg-brand-card/90 text-brand-text shadow-sm backdrop-blur-sm';
+  'absolute right-5 top-[max(0.75rem,env(safe-area-inset-top))] z-10 flex h-10 w-10 items-center justify-center rounded-full border border-brand-border bg-brand-card/90 text-brand-text shadow-sm backdrop-blur-sm';
 
 /** Sole vertical scroller for hero + copy. */
 export const customerMenuItemDetailBodyClass =
   'modal-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain';
 
 /** Padded copy below the full-bleed hero inside the scroller. */
-export const customerMenuItemDetailContentClass = 'px-5 pb-4 pt-5';
+export const customerMenuItemDetailContentClass =
+  `${CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS} pb-4 pt-5`;
 
+/**
+ * Pinned CTA row — same gutter as copy; bottom = 1rem content pad + sole
+ * `--mesa-customer-menu-bottom-safe` (cannot stack two Tailwind `pb-*` utilities).
+ */
 export const customerMenuItemDetailFooterClass =
-  `shrink-0 border-t border-brand-border bg-brand-card px-4 ${CUSTOMER_MENU_BOTTOM_SAFE_AREA_PB_CLASS} pt-3`;
+  `shrink-0 border-t border-brand-border bg-brand-card ${CUSTOMER_MENU_ITEM_DETAIL_GUTTER_X_CLASS} pt-3 pb-[calc(1rem+var(--mesa-customer-menu-bottom-safe))]`;
 
 export const customerMenuItemDetailFooterRowClass = 'flex items-center gap-3';

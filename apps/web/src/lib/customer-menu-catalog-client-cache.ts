@@ -23,7 +23,8 @@ export type CustomerMenuCatalogUnchanged = {
 
 export type CustomerMenuCatalogApiBody = CustomerMenuCatalogPayload | CustomerMenuCatalogUnchanged;
 
-const CACHE_SCHEMA_VERSION = 4;
+/** v5: menu image display URLs are root-relative `/storage/...` (no LAN host sticky). */
+const CACHE_SCHEMA_VERSION = 5;
 const STORAGE_KEY_PREFIX = 'mesa:customer-menu-catalog';
 
 type CacheEntry = {

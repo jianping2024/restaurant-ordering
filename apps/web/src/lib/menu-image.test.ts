@@ -4,8 +4,6 @@ import {
   MENU_IMAGE_ASPECT_RATIO,
   MENU_IMAGE_OBJECT_FIT_CLASS,
   MENU_IMAGE_WELL_BG_CLASS,
-  clientHostnameFromRequest,
-  clientPageOriginFromRequest,
   mapCustomerMenuCatalogImageUrls,
   menuImageLetterboxLayout,
   menuImageObjectPath,
@@ -14,7 +12,10 @@ import {
   resolveMenuImageDisplayUrl,
   toMenuImagePublicRef,
 } from './menu-image';
-import { toMenuImagePublicRef as sharedToMenuImagePublicRef } from '@mesa/shared';
+import {
+  isLocalHttpMenuImageOrigin,
+  toMenuImagePublicRef as sharedToMenuImagePublicRef,
+} from '@mesa/shared';
 
 describe('menuImageObjectPath', () => {
   it('nests a unique object key under restaurant and item', () => {
@@ -96,11 +97,34 @@ describe('toMenuImagePublicRef (app binder)', () => {
       else process.env.NEXT_PUBLIC_SUPABASE_URL = prevNext;
     }
   });
+
+  it('writes root-relative for local HTTP published origin without same-origin flag', () => {
+    const prevSame = process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
+    const prevPub = process.env.SUPABASE_PUBLIC_URL;
+    const prevNext = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    try {
+      delete process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
+      delete process.env.SUPABASE_PUBLIC_URL;
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://127.0.0.1:54321';
+      assert.equal(isLocalHttpMenuImageOrigin('http://127.0.0.1:54321'), true);
+      assert.equal(toMenuImagePublicRef('r1/item.jpg'), '/storage/v1/object/public/menu-images/r1/item.jpg');
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://172.20.10.2:54321';
+      assert.equal(toMenuImagePublicRef('r1/item.jpg'), '/storage/v1/object/public/menu-images/r1/item.jpg');
+    } finally {
+      if (prevSame === undefined) delete process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
+      else process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = prevSame;
+      if (prevPub === undefined) delete process.env.SUPABASE_PUBLIC_URL;
+      else process.env.SUPABASE_PUBLIC_URL = prevPub;
+      if (prevNext === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = prevNext;
+    }
+  });
 });
 
 describe('resolveMenuImageDisplayUrl', () => {
   const sample =
     'http://127.0.0.1:54321/storage/v1/object/public/menu-images/r1/item.jpg';
+  const relative = '/storage/v1/object/public/menu-images/r1/item.jpg';
 
   it('returns null for empty url', () => {
     assert.equal(resolveMenuImageDisplayUrl(null), null);
@@ -108,53 +132,34 @@ describe('resolveMenuImageDisplayUrl', () => {
   });
 
   it('keeps root-relative storage paths', () => {
-    const rel = '/storage/v1/object/public/menu-images/r1/item.jpg';
-    assert.equal(resolveMenuImageDisplayUrl(rel, { clientHostname: 'pirata.farvoo.com' }), rel);
+    assert.equal(resolveMenuImageDisplayUrl(relative), relative);
   });
 
-  it('keeps localhost urls when client is on localhost', () => {
+  it('strips local absolute hosts to root-relative', () => {
+    assert.equal(resolveMenuImageDisplayUrl(sample), relative);
     assert.equal(
-      resolveMenuImageDisplayUrl(sample, { clientHostname: 'localhost' }),
-      sample,
+      resolveMenuImageDisplayUrl(
+        'http://172.20.10.4:54321/storage/v1/object/public/menu-images/r1/item.jpg',
+      ),
+      relative,
     );
-  });
-
-  it('rewrites local supabase origin to lan host for real devices', () => {
     assert.equal(
-      resolveMenuImageDisplayUrl(sample, { clientHostname: '172.20.10.4' }),
-      'http://172.20.10.4:54321/storage/v1/object/public/menu-images/r1/item.jpg',
+      resolveMenuImageDisplayUrl(
+        'http://localhost:54321/storage/v1/object/public/menu-images/r1/item.jpg',
+      ),
+      relative,
     );
   });
 
   it('leaves cloud supabase urls unchanged', () => {
     const cloud =
       'https://abc.supabase.co/storage/v1/object/public/menu-images/r1/item.jpg';
-    assert.equal(
-      resolveMenuImageDisplayUrl(cloud, { clientHostname: '172.20.10.4' }),
-      cloud,
-    );
-  });
-
-  it('rewrites absolute menu-images to pageOrigin when same-origin', () => {
-    const prev = process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
-    try {
-      process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = '1';
-      assert.equal(
-        resolveMenuImageDisplayUrl(
-          'http://127.0.0.1:8000/storage/v1/object/public/menu-images/r1/a.jpg',
-          { pageOrigin: 'https://pirata.farvoo.com' },
-        ),
-        'https://pirata.farvoo.com/storage/v1/object/public/menu-images/r1/a.jpg',
-      );
-    } finally {
-      if (prev === undefined) delete process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN;
-      else process.env.NEXT_PUBLIC_MESA_SUPABASE_SAME_ORIGIN = prev;
-    }
+    assert.equal(resolveMenuImageDisplayUrl(cloud), cloud);
   });
 });
 
 describe('mapCustomerMenuCatalogImageUrls', () => {
-  it('rewrites each menu item image_url for the client host', () => {
+  it('normalizes each menu item image_url to root-relative for local storage', () => {
     const catalog = {
       menuItems: [
         {
@@ -164,26 +169,11 @@ describe('mapCustomerMenuCatalogImageUrls', () => {
       ],
       menuCategories: [],
     };
-    const mapped = mapCustomerMenuCatalogImageUrls(catalog, '172.20.10.4');
-    assert.match(mapped.menuItems[0]?.image_url ?? '', /172\.20\.10\.4:54321/);
-  });
-});
-
-describe('clientHostnameFromRequest', () => {
-  it('prefers the Host header over the request URL hostname', () => {
-    const req = new Request('http://0.0.0.0:3000/api/test', {
-      headers: { host: '172.20.10.4:3000' },
-    });
-    assert.equal(clientHostnameFromRequest(req), '172.20.10.4');
-  });
-});
-
-describe('clientPageOriginFromRequest', () => {
-  it('uses x-forwarded-proto when present', () => {
-    const req = new Request('http://0.0.0.0:3000/api/test', {
-      headers: { host: 'pirata.farvoo.com', 'x-forwarded-proto': 'https' },
-    });
-    assert.equal(clientPageOriginFromRequest(req), 'https://pirata.farvoo.com');
+    const mapped = mapCustomerMenuCatalogImageUrls(catalog);
+    assert.equal(
+      mapped.menuItems[0]?.image_url,
+      '/storage/v1/object/public/menu-images/r1/a.jpg',
+    );
   });
 });
 

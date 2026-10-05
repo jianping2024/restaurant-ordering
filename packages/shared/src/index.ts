@@ -196,6 +196,7 @@ export {
   type GeoOrderRestrictionFields,
 } from './geo-order-restriction';
 export {
+  isLocalHttpMenuImageOrigin,
   menuImageSameOriginEnabled,
   toMenuImagePublicRef,
   type MenuImagePublicRefOptions,

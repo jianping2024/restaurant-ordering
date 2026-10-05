@@ -57,7 +57,7 @@ export function KitchenMenuItemDetailModal({
   const title = formatOnScreenMenuItemLabel(name, entry.item_code ?? null);
   const description = resolveMenuItemLocalizedDescription(entry, language)?.trim() || '';
   const allergens = resolveMenuItemAllergenPresentation(entry.allergen_codes, language);
-  const src = resolveMenuImageDisplayUrl(entry.image_url) || entry.image_url || null;
+  const src = resolveMenuImageDisplayUrl(entry.image_url);
 
   return (
     <Modal open={open} onClose={onClose} title={title} size="md">

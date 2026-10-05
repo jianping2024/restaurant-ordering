@@ -31,7 +31,7 @@ export function MenuItemListThumb({
   item: CatalogThumbItem;
   size?: MenuItemListThumbSize;
 }) {
-  const src = resolveMenuImageDisplayUrl(item.image_url) || item.image_url || null;
+  const src = resolveMenuImageDisplayUrl(item.image_url);
   const classes = THUMB_SIZE_CLASS[size];
 
   return (

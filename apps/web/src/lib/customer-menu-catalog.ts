@@ -1,9 +1,6 @@
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
-import {
-  mapCustomerMenuCatalogImageUrls,
-  type ResolveMenuImageDisplayOptions,
-} from '@/lib/menu-image';
+import { mapCustomerMenuCatalogImageUrls } from '@/lib/menu-image';
 import type { MenuCategory, MenuItem } from '@/types';
 import {
   buildMenuNotePresetCatalog,
@@ -119,8 +116,7 @@ export function loadCustomerMenuCatalog(restaurantId: string) {
  */
 export async function loadCustomerMenuCatalogForDisplay(
   restaurantId: string,
-  imageOpts: ResolveMenuImageDisplayOptions,
 ): Promise<CustomerMenuCatalogRows> {
   const catalog = await loadCustomerMenuCatalog(restaurantId);
-  return mapCustomerMenuCatalogImageUrls(catalog, imageOpts);
+  return mapCustomerMenuCatalogImageUrls(catalog);
 }

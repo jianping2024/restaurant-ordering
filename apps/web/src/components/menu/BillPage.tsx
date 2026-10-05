@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { SessionCollectedPayment } from '@/lib/checkout-session-payments';
 import { buildCustomerSplitDisplayRows } from '@/lib/customer-bill-split-display';
 import { checkoutLinesFromOrders } from '@/lib/checkout-session-lines';
-import { resolveMenuItemLocalizedName } from '@/lib/menu-item-display';
 import { formatChargeableShareHint } from '@/lib/format-chargeable-share-hint';
 import { getMessages } from '@/lib/i18n/messages';
 import type { StaffAssistedFlow } from '@/lib/staff-routes';
@@ -25,14 +24,22 @@ import {
   type DishFeedbackReasonKey,
 } from '@/lib/dish-feedback-reasons';
 import { Button } from '@/components/ui/Button';
-import type { BillSplit, DishFeedbackVote, Order, SessionStatus, SplitResult } from '@/types';
+import type {
+  BillSplit,
+  DishFeedbackVote,
+  Order,
+  SessionStatus,
+  SplitPerson,
+  SplitResult,
+} from '@/types';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { staffAssistedReturnLabel } from '@/lib/i18n/staff-assisted-messages';
 import { showToast } from '@/components/ui/Toast';
 import { BillDetailsSection } from '@/components/menu/BillDetailsSection';
 import { GuestClaimPanel } from '@/components/menu/GuestClaimPanel';
 import { BillSplitPanel } from '@/components/menu/BillSplitPanel';
-import { BillCheckoutSubmittedScreen, type ReviewableItem } from '@/components/menu/BillCheckoutSubmittedScreen';
+import { BillCheckoutSubmittedScreen } from '@/components/menu/BillCheckoutSubmittedScreen';
+import { buildGuestReviewableItems } from '@/lib/guest-reviewable-items';
 import { getGuestSplitGuidance } from '@/lib/i18n/guest-split-mode-messages';
 import {
   type GuestBillSplitMode,
@@ -458,27 +465,29 @@ function GuestBillPage({
   };
 
   const reviewableItems = useMemo(() => {
-    const fallbackOrderId = orders[0]?.id ?? '';
-    const dedup = new Map<string, ReviewableItem>();
-    orderLines
-      .filter((item) => item.item_status !== 'voided' && item.kind !== 'buffet_base')
-      .forEach((item) => {
-        const existing = dedup.get(item.id);
-        if (existing) {
-          existing.qty += item.qty;
-          return;
-        }
-        dedup.set(item.id, {
-          menu_item_id: item.id,
-          order_id: item.order_id ?? fallbackOrderId,
-          name: resolveMenuItemLocalizedName(item, lang),
-          emoji: item.emoji,
-          image_url: imageUrlByMenuId[item.id] ?? null,
-          qty: item.qty,
-        });
-      });
-    return Array.from(dedup.values());
-  }, [orderLines, orders, lang, imageUrlByMenuId]);
+    const mineTicketKeys = new Set(
+      individualTickets.filter((ticket) => ticket.mine).map((ticket) => ticket.ticket_key),
+    );
+    return buildGuestReviewableItems({
+      splitMode: guestMode,
+      orderLines,
+      splitOrderLines,
+      persons: (liveSplit?.persons ?? []) as SplitPerson[],
+      mineTicketKeys,
+      lang,
+      imageUrlByMenuId,
+      fallbackOrderId: orders[0]?.id ?? '',
+    });
+  }, [
+    guestMode,
+    orderLines,
+    splitOrderLines,
+    liveSplit?.persons,
+    individualTickets,
+    lang,
+    imageUrlByMenuId,
+    orders,
+  ]);
 
   const feedbackReasonLabels: Record<DishFeedbackReasonKey, string> = {
     taste: t.reasonTaste,
@@ -613,6 +622,7 @@ function GuestBillPage({
             table_id: tableId,
             action: 'submit',
             items: payload,
+            ...(guestClientId ? { guest_client_id: guestClientId } : {}),
           }),
         },
       );

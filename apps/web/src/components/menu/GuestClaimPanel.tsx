@@ -11,6 +11,7 @@ import type { UILanguage } from '@/lib/i18n';
 import {
   guestClaimNameHidesCallCheckout,
   scrollElementIntoVisualViewport,
+  softKeyboardLayoutHeight,
   softKeyboardOpen,
 } from '@/lib/soft-keyboard-viewport';
 import {
@@ -50,6 +51,15 @@ type Props = {
   onClaimAll: () => void;
 };
 
+function readLayoutHeight(): number {
+  const vv = window.visualViewport;
+  return softKeyboardLayoutHeight({
+    visualViewportHeight: vv?.height ?? 0,
+    innerHeight: window.innerHeight,
+    clientHeight: document.documentElement.clientHeight,
+  });
+}
+
 /** Sole guest by-item editor: this phone's name once, then its share of every dish. */
 export function GuestClaimPanel({
   lang,
@@ -73,7 +83,10 @@ export function GuestClaimPanel({
   );
   const nameMissing = claim.name.trim().length === 0;
   const nameInputRef = useRef<HTMLInputElement>(null);
+  /** Captured before/at focus — not live innerHeight (iOS shrinks that with the keyboard). */
+  const layoutHeightRef = useRef(0);
   const [nameFocused, setNameFocused] = useState(false);
+  /** Optimistic true on focus so the CTA yields before the keyboard finishes opening. */
   const [softKeyboardIsOpen, setSoftKeyboardIsOpen] = useState(false);
 
   const hideCallCheckout = guestClaimNameHidesCallCheckout(
@@ -89,25 +102,37 @@ export function GuestClaimPanel({
   }, [hideCallCheckout, onHideCallCheckoutChange]);
 
   /**
-   * Sole name-field visualViewport path while focused: sync soft-keyboard open
-   * (so call-checkout returns when the keyboard closes even without blur) and
-   * scroll the field into view. Never scroll on focus / during open animation.
+   * Sole name-field visualViewport path while focused: compare vv to the
+   * focus-time layout baseline (iOS-safe), and scroll into view. Never scroll
+   * on the focus event itself (that dismisses the iOS keyboard).
    */
   useEffect(() => {
     if (!nameFocused) {
       setSoftKeyboardIsOpen(false);
+      layoutHeightRef.current = 0;
       return;
     }
     const el = nameInputRef.current;
+    if (layoutHeightRef.current <= 0) {
+      layoutHeightRef.current = readLayoutHeight();
+    }
     const run = () => {
       const vv = window.visualViewport;
-      const open = vv
-        ? softKeyboardOpen(window.innerHeight, vv.height)
-        : false;
+      if (!vv) return;
+      // Grow baseline if Safari reports a taller layout mid-session.
+      layoutHeightRef.current = Math.max(layoutHeightRef.current, readLayoutHeight());
+      const open = softKeyboardOpen(layoutHeightRef.current, vv.height);
       setSoftKeyboardIsOpen(open);
-      if (el) scrollElementIntoVisualViewport(el, { behavior: 'instant' });
+      if (el) {
+        scrollElementIntoVisualViewport(el, {
+          behavior: 'instant',
+          layoutHeight: layoutHeightRef.current,
+        });
+      }
     };
-    run();
+    // Do not call run() synchronously on focus — wait for vv resize/scroll so
+    // we do not scroll during the open animation (iOS dismisses the keyboard).
+    // Optimistic softKeyboardIsOpen=true already hides the CTA.
     const vv = window.visualViewport;
     vv?.addEventListener('resize', run);
     vv?.addEventListener('scroll', run);
@@ -116,6 +141,13 @@ export function GuestClaimPanel({
       vv?.removeEventListener('scroll', run);
     };
   }, [nameFocused]);
+
+  const armNameFocus = () => {
+    // Pointer/touch arms the baseline before focus, while the viewport is still full.
+    if (layoutHeightRef.current <= 0) {
+      layoutHeightRef.current = readLayoutHeight();
+    }
+  };
 
   return (
     <div className="px-4 py-4 space-y-3">
@@ -131,8 +163,20 @@ export function GuestClaimPanel({
           maxLength={40}
           value={claim.name}
           disabled={disabled}
-          onFocus={() => setNameFocused(true)}
-          onBlur={() => setNameFocused(false)}
+          onPointerDown={armNameFocus}
+          onTouchStart={armNameFocus}
+          onFocus={() => {
+            if (layoutHeightRef.current <= 0) {
+              layoutHeightRef.current = readLayoutHeight();
+            }
+            setNameFocused(true);
+            // Hide CTA immediately — do not wait for vv resize (covers the open animation).
+            setSoftKeyboardIsOpen(true);
+          }}
+          onBlur={() => {
+            setNameFocused(false);
+            setSoftKeyboardIsOpen(false);
+          }}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder={labels.namePlaceholder}
           aria-invalid={nameTaken || undefined}

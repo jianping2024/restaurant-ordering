@@ -1,22 +1,38 @@
-/** Soft keyboard open when the visual viewport is clearly shorter than the layout viewport. */
+/** Soft keyboard open when the visual viewport is clearly shorter than a layout baseline. */
 export function softKeyboardOpen(
-  innerHeight: number,
+  layoutHeight: number,
   visualViewportHeight: number,
   thresholdPx = 120,
 ): boolean {
-  return innerHeight - visualViewportHeight > thresholdPx;
+  return layoutHeight - visualViewportHeight > thresholdPx;
 }
 
 /**
- * Sole guest-bill rule: hide the fixed call-checkout CTA only while the claim
- * name field is focused AND the soft keyboard is open. Keyboard closed (even
- * if iOS left the input focused) → show the CTA again.
+ * Sole guest-bill rule: hide the fixed call-checkout CTA while the claim name
+ * field is focused and the soft keyboard is (or is assumed) open. Keyboard
+ * closed → show CTA even if iOS left the input focused.
  */
 export function guestClaimNameHidesCallCheckout(
   nameFocused: boolean,
   softKeyboardIsOpen: boolean,
 ): boolean {
   return nameFocused && softKeyboardIsOpen;
+}
+
+/**
+ * Layout height to compare against visualViewport on iOS: `innerHeight` often
+ * shrinks with the keyboard, so prefer the taller of vv / inner / client.
+ */
+export function softKeyboardLayoutHeight(params: {
+  visualViewportHeight: number;
+  innerHeight: number;
+  clientHeight: number;
+}): number {
+  return Math.max(
+    params.visualViewportHeight,
+    params.innerHeight,
+    params.clientHeight,
+  );
 }
 
 /**
@@ -51,11 +67,18 @@ export function scrollDeltaIntoVisualViewport(params: {
  */
 export function scrollElementIntoVisualViewport(
   el: HTMLElement,
-  options?: { behavior?: ScrollBehavior },
+  options?: { behavior?: ScrollBehavior; layoutHeight?: number },
 ): void {
   const vv = window.visualViewport;
   if (!vv) return;
-  if (!softKeyboardOpen(window.innerHeight, vv.height)) return;
+  const layoutHeight =
+    options?.layoutHeight ??
+    softKeyboardLayoutHeight({
+      visualViewportHeight: vv.height,
+      innerHeight: window.innerHeight,
+      clientHeight: document.documentElement.clientHeight,
+    });
+  if (!softKeyboardOpen(layoutHeight, vv.height)) return;
 
   const behavior = options?.behavior ?? 'instant';
   const rect = el.getBoundingClientRect();

@@ -119,7 +119,6 @@ function StaffBillDetailsView({
         displayName={displayName}
         tableLabel={t.table}
         staffAssisted={staffAssisted}
-        subtitle={t.settlement}
         headingSize="bill"
         backLink={{
           href: staffAssisted.returnHref,
@@ -639,7 +638,6 @@ function GuestBillPage({
         displayName={displayName}
         tableLabel={t.table}
         staffAssisted={null}
-        subtitle={t.settlement}
         headingSize="bill"
         backLink={{ href: backHref, label: t.backToMenu }}
       />

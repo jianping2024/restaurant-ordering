@@ -236,7 +236,11 @@ export type LineAvailability =
       childrenRemaining: number;
     };
 
-/** What the others already hold on this dish and what is left for this phone. */
+/**
+ * Others' holds + this phone's absolute claim ceiling (table − others).
+ * Menu `remaining` / buffet `*Remaining` are the **cap** for + / claimAll / clamp —
+ * not the card「剩余」label (that is {@link guestClaimLeftToClaim}).
+ */
 export function lineAvailability(
   spec: ByItemLineSpec,
   others: ByItemLineAllocation,
@@ -263,6 +267,39 @@ export function lineAvailability(
     mode: 'menu',
     claimedByOthers: claimed,
     remaining: remaining.num > 0 ? remaining : { num: 0, den: 1 },
+  };
+}
+
+export type GuestClaimLeftToClaim =
+  | { mode: 'menu'; left: Rational }
+  | { mode: 'buffet'; adultsLeft: number; childrenLeft: number };
+
+/**
+ * Sole guest card「剩余」: phone claim cap − this phone's current draft (floor 0).
+ * Do not use for + / claimAll — those stay on {@link lineAvailability} / {@link guestBuffetSeatCeil}.
+ */
+export function guestClaimLeftToClaim(
+  availability: LineAvailability,
+  row: ByItemConsumerRow,
+): GuestClaimLeftToClaim {
+  if (availability.mode === 'menu') {
+    const mine = rationalFromGuestClaimRow(row);
+    const left = subRational(availability.remaining, mine);
+    return {
+      mode: 'menu',
+      left: left.num > 0 ? left : { num: 0, den: 1 },
+    };
+  }
+  return {
+    mode: 'buffet',
+    adultsLeft: Math.max(
+      0,
+      availability.adultsRemaining - parseBuffetHeadcountInput(row.adultQty),
+    ),
+    childrenLeft: Math.max(
+      0,
+      availability.childrenRemaining - parseBuffetHeadcountInput(row.childQty),
+    ),
   };
 }
 

@@ -11,6 +11,7 @@ import {
   clampGuestClaimBuffetRows,
   guestBuffetSeatCeil,
   guestClaimIssue,
+  guestClaimLeftToClaim,
   guestClaimPoolResults,
   lineAvailability,
   lineOverClaimed,
@@ -109,6 +110,76 @@ describe('lineAvailability', () => {
     assert.equal(left.childrenRemaining, 1);
     assert.equal(guestBuffetSeatCeil(left, 'adultQty'), 1);
     assert.equal(guestBuffetSeatCeil(left, 'childQty'), 1);
+  });
+});
+
+describe('guestClaimLeftToClaim', () => {
+  it('menu left drops as this phone stacks units', () => {
+    const others = othersAllocation([], claim('Me'), specs);
+    const avail = lineAvailability(specs[0]!, others);
+    assert.equal(avail.mode, 'menu');
+    if (avail.mode !== 'menu') return;
+
+    const empty = claimRowFor(claim('Me'), specs[0]!);
+    const zero = guestClaimLeftToClaim(avail, empty);
+    assert.equal(zero.mode, 'menu');
+    if (zero.mode !== 'menu') return;
+    assert.equal(zero.left.num, 4);
+    assert.equal(zero.left.den, 1);
+
+    const one = guestClaimLeftToClaim(
+      avail,
+      claimRowFor(withQty(claim('Me'), specs[0]!, { qtyWhole: '1' }), specs[0]!),
+    );
+    assert.equal(one.mode, 'menu');
+    if (one.mode !== 'menu') return;
+    assert.equal(one.left.num, 3);
+
+    const half = guestClaimLeftToClaim(
+      avail,
+      claimRowFor(
+        withQty(claim('Me'), specs[0]!, { qtyWhole: '', qtyNum: '1', qtyDen: '2' }),
+        specs[0]!,
+      ),
+    );
+    assert.equal(half.mode, 'menu');
+    if (half.mode !== 'menu') return;
+    assert.equal(half.left.num, 7);
+    assert.equal(half.left.den, 2);
+  });
+
+  it('menu left subtracts mine after others already took some', () => {
+    const others = othersAllocation([liPerson([['L1', 3]])], claim('Me'), specs);
+    const avail = lineAvailability(specs[0]!, others);
+    assert.equal(avail.mode, 'menu');
+    if (avail.mode !== 'menu') return;
+    assert.equal(avail.remaining.num, 1);
+
+    const left = guestClaimLeftToClaim(
+      avail,
+      claimRowFor(withQty(claim('Me'), specs[0]!, { qtyWhole: '1' }), specs[0]!),
+    );
+    assert.equal(left.mode, 'menu');
+    if (left.mode !== 'menu') return;
+    assert.equal(left.left.num, 0);
+  });
+
+  it('buffet left drops when this phone takes seats', () => {
+    const avail = lineAvailability(buffetSpec, othersAllocation([], claim('Me'), specs));
+    assert.equal(avail.mode, 'buffet');
+    if (avail.mode !== 'buffet') return;
+
+    const left = guestClaimLeftToClaim(
+      avail,
+      claimRowFor(
+        withQty(claim('Me'), buffetSpec, { adultQty: '1', childQty: '1' }),
+        buffetSpec,
+      ),
+    );
+    assert.equal(left.mode, 'buffet');
+    if (left.mode !== 'buffet') return;
+    assert.equal(left.adultsLeft, 1);
+    assert.equal(left.childrenLeft, 0);
   });
 });
 

@@ -2,7 +2,11 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
-import { guestBuffetSeatCeil, type LineAvailability } from '@/lib/guest-claim';
+import {
+  guestBuffetSeatCeil,
+  guestClaimLeftToClaim,
+  type LineAvailability,
+} from '@/lib/guest-claim';
 import {
   canStackGuestClaimUnit,
   canUnstackGuestClaimUnit,
@@ -76,13 +80,14 @@ export function GuestClaimDishCard({
   const [expanded, setExpanded] = useState(false);
   const readOnly = disabled || lineLocked || paidLocked;
 
+  const displayLeft = guestClaimLeftToClaim(availability, row);
   const leftText =
-    availability.mode === 'menu'
-      ? fill(labels.left, { qty: formatGuestClaimQtyLabel(availability.remaining) })
+    displayLeft.mode === 'menu'
+      ? fill(labels.left, { qty: formatGuestClaimQtyLabel(displayLeft.left) })
       : fill(labels.left, {
           qty: fill(labels.buffetGuestCounts, {
-            adults: availability.adultsRemaining,
-            children: availability.childrenRemaining,
+            adults: displayLeft.adultsLeft,
+            children: displayLeft.childrenLeft,
           }),
         });
 

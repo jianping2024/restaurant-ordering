@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
-import type { LineAvailability } from '@/lib/guest-claim';
+import { guestBuffetSeatCeil, type LineAvailability } from '@/lib/guest-claim';
 import {
   canStackGuestClaimUnit,
   canUnstackGuestClaimUnit,
@@ -282,13 +282,8 @@ export function GuestClaimDishCard({
                 ] as const
               ).map(([field, label]) => {
                 const value = Number.parseInt(String(row[field] || '0'), 10) || 0;
-                const poolLeft =
-                  availability.mode === 'buffet'
-                    ? field === 'adultQty'
-                      ? availability.adultsRemaining
-                      : availability.childrenRemaining
-                    : 0;
-                const ceil = poolLeft + value;
+                const ceil =
+                  availability.mode === 'buffet' ? guestBuffetSeatCeil(availability, field) : 0;
                 return (
                   <div key={field} className="flex flex-col gap-1">
                     <span className="text-[11px] text-brand-text-muted">{label}</span>

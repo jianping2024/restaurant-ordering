@@ -11,11 +11,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import {
+  applyGuestClaimRowPatch,
   buildMyTicket,
   claimAllRemaining,
   claimNameTaken,
   claimFromServerTicket,
-  claimRowFor,
+  clampGuestClaimBuffetRows,
   clearGuestClaimDraft,
   guestClaimIssue,
   lineOverClaimed,
@@ -89,12 +90,20 @@ export function useGuestClaim(params: {
       setClaim(claimFromServerTicket(serverTicket.person, lineSpecs));
     } else if (sessionChanged) {
       const local = loadGuestClaimDraft(restaurantId, sessionId);
-      setClaim(
-        local && !paidKeys.has(splitPartyKey(local.partyId, local.name)) ? local : freshClaim(),
-      );
+      if (local && !paidKeys.has(splitPartyKey(local.partyId, local.name))) {
+        setClaim(
+          clampGuestClaimBuffetRows(
+            local,
+            lineSpecs,
+            othersAllocation(persons ?? [], local, lineSpecs),
+          ),
+        );
+      } else {
+        setClaim(freshClaim());
+      }
     }
     setHydratedFor(sessionId);
-  }, [sessionId, serverKey, serverTicket, restaurantId, lineSpecs, paidKeys]);
+  }, [sessionId, serverKey, serverTicket, restaurantId, lineSpecs, paidKeys, persons]);
 
   // My previous ticket got paid: the next claim is a new ticket (new id, name asked again).
   useEffect(() => {
@@ -106,6 +115,13 @@ export function useGuestClaim(params: {
   useEffect(() => {
     setClaim((prev) => pruneClaimRows(prev, lineSpecs));
   }, [lineSpecs]);
+
+  // Others took buffet seats → squash any local over-claim drafts to the live ceil.
+  useEffect(() => {
+    setClaim((prev) =>
+      clampGuestClaimBuffetRows(prev, lineSpecs, othersAllocation(persons ?? [], prev, lineSpecs)),
+    );
+  }, [lineSpecs, persons]);
 
   useEffect(() => {
     if (!sessionId || hydratedFor !== sessionId) return;
@@ -153,12 +169,19 @@ export function useGuestClaim(params: {
     setClaim((prev) => ({ ...prev, name }));
   }, []);
 
-  const updateRow = useCallback((spec: ByItemLineSpec, patch: Partial<ByItemConsumerRow>) => {
-    setClaim((prev) => ({
-      ...prev,
-      rows: { ...prev.rows, [spec.key]: { ...claimRowFor(prev, spec), ...patch } },
-    }));
-  }, []);
+  const updateRow = useCallback(
+    (spec: ByItemLineSpec, patch: Partial<ByItemConsumerRow>) => {
+      setClaim((prev) =>
+        applyGuestClaimRowPatch(
+          prev,
+          spec,
+          patch,
+          othersAllocation(persons ?? [], prev, lineSpecs),
+        ),
+      );
+    },
+    [persons, lineSpecs],
+  );
 
   const claimRest = useCallback(() => {
     setClaim((prev) => claimAllRemaining(prev, lineSpecs, othersAllocation(persons ?? [], prev, lineSpecs)));

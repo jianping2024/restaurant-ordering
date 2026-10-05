@@ -19,6 +19,7 @@ import {
   clampGuestClaimBuffetRows,
   clearGuestClaimDraft,
   guestClaimIssue,
+  guestClaimPoolResults,
   guestOthersClaimBlocks,
   lineOverClaimed,
   loadGuestClaimDraft,
@@ -139,14 +140,20 @@ export function useGuestClaim(params: {
     [persons, claim, lineSpecs],
   );
 
+  /** One pool calc: call-CTA amount + others-card amounts. */
+  const poolResults = useMemo(
+    () => guestClaimPoolResults({ claim, lineSpecs, orderLines, others, lang }),
+    [claim, lineSpecs, orderLines, others, lang],
+  );
+
   const othersBlocks = useMemo(
-    () => guestOthersClaimBlocks(persons ?? [], claim, lineSpecs, paidKeys),
-    [persons, claim, lineSpecs, paidKeys],
+    () => guestOthersClaimBlocks(persons ?? [], claim, lineSpecs, paidKeys, poolResults),
+    [persons, claim, lineSpecs, paidKeys, poolResults],
   );
 
   const myTicket = useMemo(
-    () => buildMyTicket({ claim, lineSpecs, orderLines, others, lang }),
-    [claim, lineSpecs, orderLines, others, lang],
+    () => buildMyTicket({ claim, lineSpecs, orderLines, others, lang, poolResults }),
+    [claim, lineSpecs, orderLines, others, lang, poolResults],
   );
 
   const issue = useMemo(

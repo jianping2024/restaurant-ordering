@@ -288,11 +288,16 @@ export function GuestClaimPanel({
             >
               <div className="flex items-baseline justify-between gap-2 mb-2">
                 <h4 className="text-sm font-semibold text-brand-ink truncate">{block.name}</h4>
-                {block.paidLocked ? (
-                  <span className="shrink-0 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
-                    {labels.paidLockedHint}
+                <div className="shrink-0 flex items-baseline gap-2">
+                  <span className="mesa-money tabular-nums text-sm font-semibold text-brand-gold">
+                    €{block.amount.toFixed(2)}
                   </span>
-                ) : null}
+                  {block.paidLocked ? (
+                    <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                      {labels.paidLockedHint}
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <ul className="space-y-1.5">
                 {block.lines.map((line) => (

@@ -11,6 +11,7 @@ import {
   clampGuestClaimBuffetRows,
   guestBuffetSeatCeil,
   guestClaimIssue,
+  guestClaimPoolResults,
   lineAvailability,
   lineOverClaimed,
   othersAllocation,
@@ -133,6 +134,34 @@ describe('guestOthersClaimBlocks + editable visibility', () => {
     assert.equal(blocks[0]!.lines[0]!.lineKey, 'L1');
     assert.equal(blocks[1]!.name, 'Wang');
     assert.equal(blocks[0]!.styleSlot, guestOthersClaimStyleSlot(blocks[0]!.ticketKey));
+    assert.equal(blocks[0]!.amount, 0);
+  });
+
+  it('stamps pool amounts from guestClaimPoolResults (same rows as buildMyTicket)', () => {
+    const persons = [liPerson([['L1', 3]])];
+    const me = withQty(claim('Me'), specs[0]!, { qtyWhole: '1' });
+    const others = othersAllocation(persons, me, specs);
+    const pool = guestClaimPoolResults({
+      claim: me,
+      lineSpecs: specs,
+      orderLines,
+      others,
+      lang: 'pt',
+    });
+    const blocks = guestOthersClaimBlocks(persons, me, specs, new Set(), pool);
+    const myTicket = buildMyTicket({
+      claim: me,
+      lineSpecs: specs,
+      orderLines,
+      others,
+      lang: 'pt',
+      poolResults: pool,
+    });
+    assert.equal(blocks.length, 1);
+    // L1: 4 × €5 = €20 → Li 3 + Me 1 → €15 + €5
+    assert.equal(blocks[0]!.amount, 15);
+    assert.equal(myTicket.amount, 5);
+    assert.equal(blocks[0]!.amount + myTicket.amount, 20);
   });
 
   it('marks paid tickets and hides fully claimed lines from the editable list', () => {
@@ -140,9 +169,17 @@ describe('guestOthersClaimBlocks + editable visibility', () => {
     const me = claim('Me');
     const others = othersAllocation(persons, me, specs);
     const ticketKey = splitPartyKey(persons[0]!.party_id, persons[0]!.name);
-    const blocks = guestOthersClaimBlocks(persons, me, specs, new Set([ticketKey]));
+    const pool = guestClaimPoolResults({
+      claim: me,
+      lineSpecs: specs,
+      orderLines,
+      others,
+      lang: 'pt',
+    });
+    const blocks = guestOthersClaimBlocks(persons, me, specs, new Set([ticketKey]), pool);
     assert.equal(blocks.length, 1);
     assert.equal(blocks[0]!.paidLocked, true);
+    assert.equal(blocks[0]!.amount, 20);
     // L2 fully taken, nothing mine → not editable
     assert.equal(guestClaimLineEditableVisible(specs[1]!, me, others), false);
     // L1 still open

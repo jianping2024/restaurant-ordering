@@ -107,6 +107,11 @@ export type GuestOthersClaimBlock = {
   name: string;
   paidLocked: boolean;
   styleSlot: number;
+  /**
+   * Pool-aware euro for this ticket — sole amount field on the others card.
+   * Same {@link guestClaimPoolResults} rows as {@link buildMyTicket}.
+   */
+  amount: number;
   lines: GuestOthersClaimLine[];
 };
 
@@ -141,14 +146,22 @@ export function guestOthersClaimBlockShellClass(styleSlot: number, paidLocked: b
  * Sole guest read-model for others' claims on the claim panel: persons minus this phone's
  * ticket, grouped by ticket (not by dish). Empty tickets omitted. Pool math still uses
  * {@link othersAllocation} / {@link lineAvailability}.
+ * Amounts come only from {@link guestClaimPoolResults} (pass the same rows as the call CTA).
  */
 export function guestOthersClaimBlocks(
   persons: ReadonlyArray<SplitPerson>,
   claim: Pick<GuestClaim, 'name' | 'partyId'>,
   lineSpecs: ReadonlyArray<ByItemLineSpec>,
   paidTicketKeys: ReadonlySet<string> = new Set(),
+  poolResults: ReadonlyArray<SplitResult> = [],
 ): GuestOthersClaimBlock[] {
   const myKey = splitPartyKey(claim.partyId, claim.name);
+  const amountByTicketKey = new Map<string, number>();
+  for (const row of poolResults) {
+    const key = splitPartyKey(row.party_id, row.name);
+    if (!key) continue;
+    amountByTicketKey.set(key, row.amount);
+  }
   const blocks: GuestOthersClaimBlock[] = [];
   for (const person of persons) {
     const ticketKey = splitPartyKey(person.party_id, person.name);
@@ -179,6 +192,7 @@ export function guestOthersClaimBlocks(
       name: person.name.trim() || '—',
       paidLocked: paidTicketKeys.has(ticketKey),
       styleSlot: guestOthersClaimStyleSlot(ticketKey),
+      amount: amountByTicketKey.get(ticketKey) ?? 0,
       lines,
     });
   }
@@ -358,28 +372,46 @@ export type MyTicket = {
   hasClaim: boolean;
 };
 
-/** This phone's ticket as the call payload; amount is computed against the live pool. */
+/**
+ * Sole by-item pool obligation for this phone's draft + everyone else's tickets.
+ * One {@link calcByItemSplitResults} — call CTA and others-card amounts both read these rows.
+ */
+export function guestClaimPoolResults(params: {
+  claim: GuestClaim;
+  lineSpecs: ReadonlyArray<ByItemLineSpec>;
+  orderLines: ReadonlyArray<BillSplitOrderLine>;
+  others: ByItemLineAllocation;
+  lang: UILanguage;
+}): SplitResult[] {
+  const { claim, lineSpecs, orderLines, others, lang } = params;
+  const mine = mySharesOf(claim, lineSpecs);
+  return calcByItemSplitResults({
+    lines: orderLines.map((line) =>
+      byItemSplitLineFromOrderLine(line, resolveMenuItemLocalizedName(line, lang)),
+    ),
+    allocations: combine(others, mine),
+  }).map((row) => toWireSplitResult(row));
+}
+
+/** This phone's ticket as the call payload; amount is from {@link guestClaimPoolResults}. */
 export function buildMyTicket(params: {
   claim: GuestClaim;
   lineSpecs: ReadonlyArray<ByItemLineSpec>;
   orderLines: ReadonlyArray<BillSplitOrderLine>;
   others: ByItemLineAllocation;
   lang: UILanguage;
+  /** Reuse an already-computed {@link guestClaimPoolResults} list (hook: one calc for me + others). */
+  poolResults?: ReadonlyArray<SplitResult>;
 }): MyTicket {
-  const { claim, lineSpecs, orderLines, others, lang } = params;
+  const { claim, lineSpecs, poolResults } = params;
   const mine = mySharesOf(claim, lineSpecs);
   const persons = buildSplitPersonsFromAllocations(mine);
   if (persons.length === 0) return { persons: [], result: [], amount: 0, hasClaim: false };
 
   const myKey = splitPartyKey(claim.partyId, claim.name);
-  const rows = calcByItemSplitResults({
-    lines: orderLines.map((line) =>
-      byItemSplitLineFromOrderLine(line, resolveMenuItemLocalizedName(line, lang)),
-    ),
-    allocations: combine(others, mine),
-  })
-    .map((row) => toWireSplitResult(row))
-    .filter((row) => splitPartyKey(row.party_id, row.name) === myKey);
+  const rows = (poolResults ?? guestClaimPoolResults(params)).filter(
+    (row) => splitPartyKey(row.party_id, row.name) === myKey,
+  );
   const amount = rows[0]?.amount ?? 0;
   return { persons, result: rows, amount, hasClaim: amount > 0 };
 }

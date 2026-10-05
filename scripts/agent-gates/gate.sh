@@ -80,7 +80,7 @@ die() {
 
 cmd_scan() {
   local report="$GATE_DIR/scan.md" files missing=()
-  [[ -f "$report" ]] || die "缺少清冗余报告：$report（需含「## 改动文件」「## 共用组件调用方」「## 发现与处理」三节）"
+  [[ -f "$report" ]] || die "缺少清冗余报告：${report}（需含「## 改动文件」「## 共用组件调用方」「## 发现与处理」三节）"
   for h in '## 改动文件' '## 共用组件调用方' '## 发现与处理'; do
     grep -qF "$h" "$report" || die "清冗余报告缺少小节：$h"
   done
@@ -115,7 +115,8 @@ cmd_check() {
   fi
   [[ "$(fingerprint)" == "$fp" ]] || die "lint/typecheck 期间代码有变动，检查标记不记录。"
   record check "$fp"
-  echo "检查标记已记录（lint+typecheck web=$web ops=$ops）"
+  # Prefer ${web}/${ops}: bare $ops） is parsed as unset var "ops）" under set -u.
+  echo "检查标记已记录（lint+typecheck web=${web} ops=${ops}）"
 }
 
 cmd_build() {
@@ -136,14 +137,14 @@ cmd_build() {
   fi
   [[ "$(fingerprint)" == "$fp" ]] || die "构建期间代码有变动，构建标记不记录。"
   record build "$fp"
-  echo "构建标记已记录（web=$web ops=$ops）— 供 push/pack；不是 commit 门禁"
+  echo "构建标记已记录（web=${web} ops=${ops}）— 供 push/pack；不是 commit 门禁"
 }
 
 cmd_uat() {
   local report="$GATE_DIR/uat.md" fp
   fp="$(fingerprint)"
   marker_ok scan "$fp" || die "当前代码还没通过清冗余（gate.sh scan），实测结果不算数。"
-  [[ -f "$report" ]] || die "缺少实测报告：$report（需含「## 测试项」，逐项写 pass）"
+  [[ -f "$report" ]] || die "缺少实测报告：${report}（需含「## 测试项」，逐项写 pass）"
   grep -qF '## 测试项' "$report" || die "实测报告缺少「## 测试项」"
   grep -qiE '\bpass\b|通过' "$report" || die "实测报告没有任何通过项"
   if grep -qiE '\bfail\b|未通过' "$report"; then

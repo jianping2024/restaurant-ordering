@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import { formatByItemSplitQuantityLabel } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow, ByItemLineAllocation } from '@/lib/bill-split-by-item';
@@ -8,6 +8,11 @@ import { claimRowFor, lineAvailability, type GuestClaim } from '@/lib/guest-clai
 import { resolveMenuItemCode } from '@/lib/menu-item-code';
 import { formatLocalizedMenuItemLabel } from '@/lib/menu-item-display';
 import type { UILanguage } from '@/lib/i18n';
+import {
+  guestClaimNameHidesCallCheckout,
+  scrollElementIntoVisualViewport,
+  softKeyboardOpen,
+} from '@/lib/soft-keyboard-viewport';
 import {
   GuestClaimDishCard,
   type GuestClaimDishCardLabels,
@@ -36,6 +41,11 @@ type Props = {
   disabled: boolean;
   itemCodeByMenuId?: Record<string, string>;
   onNameChange: (name: string) => void;
+  /**
+   * Bill page yields the fixed call-checkout CTA when this is true.
+   * Sole signal: {@link guestClaimNameHidesCallCheckout} (name focused ∧ soft keyboard open).
+   */
+  onHideCallCheckoutChange?: (hide: boolean) => void;
   onRowChange: (spec: ByItemLineSpec, patch: Partial<ByItemConsumerRow>) => void;
   onClaimAll: () => void;
 };
@@ -53,6 +63,7 @@ export function GuestClaimPanel({
   disabled,
   itemCodeByMenuId = {},
   onNameChange,
+  onHideCallCheckoutChange,
   onRowChange,
   onClaimAll,
 }: Props) {
@@ -61,6 +72,50 @@ export function GuestClaimPanel({
     [orderLines],
   );
   const nameMissing = claim.name.trim().length === 0;
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const [nameFocused, setNameFocused] = useState(false);
+  const [softKeyboardIsOpen, setSoftKeyboardIsOpen] = useState(false);
+
+  const hideCallCheckout = guestClaimNameHidesCallCheckout(
+    nameFocused,
+    softKeyboardIsOpen,
+  );
+
+  useEffect(() => {
+    onHideCallCheckoutChange?.(hideCallCheckout);
+    return () => {
+      onHideCallCheckoutChange?.(false);
+    };
+  }, [hideCallCheckout, onHideCallCheckoutChange]);
+
+  /**
+   * Sole name-field visualViewport path while focused: sync soft-keyboard open
+   * (so call-checkout returns when the keyboard closes even without blur) and
+   * scroll the field into view. Never scroll on focus / during open animation.
+   */
+  useEffect(() => {
+    if (!nameFocused) {
+      setSoftKeyboardIsOpen(false);
+      return;
+    }
+    const el = nameInputRef.current;
+    const run = () => {
+      const vv = window.visualViewport;
+      const open = vv
+        ? softKeyboardOpen(window.innerHeight, vv.height)
+        : false;
+      setSoftKeyboardIsOpen(open);
+      if (el) scrollElementIntoVisualViewport(el, { behavior: 'instant' });
+    };
+    run();
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', run);
+    vv?.addEventListener('scroll', run);
+    return () => {
+      vv?.removeEventListener('resize', run);
+      vv?.removeEventListener('scroll', run);
+    };
+  }, [nameFocused]);
 
   return (
     <div className="px-4 py-4 space-y-3">
@@ -69,12 +124,15 @@ export function GuestClaimPanel({
           {labels.nameLabel}
         </label>
         <input
+          ref={nameInputRef}
           id="guest-claim-name"
           type="text"
           autoComplete="off"
           maxLength={40}
           value={claim.name}
           disabled={disabled}
+          onFocus={() => setNameFocused(true)}
+          onBlur={() => setNameFocused(false)}
           onChange={(e) => onNameChange(e.target.value)}
           placeholder={labels.namePlaceholder}
           aria-invalid={nameTaken || undefined}

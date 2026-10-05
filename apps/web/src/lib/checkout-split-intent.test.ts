@@ -26,16 +26,6 @@ describe('checkout-split-intent', () => {
     });
   });
 
-  it('normalizes legacy custom single Total row', () => {
-    const normalized = normalizeCheckoutRequestPayload({
-      splitMode: 'custom',
-      persons: [{ name: 'Total' }],
-      result: [{ name: 'Total', amount: 10 }],
-    });
-    assert.equal(normalized.splitMode, 'whole_table');
-    assert.equal(normalized.result[0]?.name, WHOLE_TABLE_PAYER_KEY);
-  });
-
   it('stamps whole_table amount from authoritative total, not client placeholder', () => {
     const stamped = normalizeCheckoutRequestPayload(
       {
@@ -73,7 +63,6 @@ describe('checkout-split-intent', () => {
   it('identifies shape-lock modes after partial collection', () => {
     assert.equal(isShapeLockSplitMode('whole_table'), true);
     assert.equal(isShapeLockSplitMode('even'), true);
-    assert.equal(isShapeLockSplitMode('custom'), true);
     assert.equal(isShapeLockSplitMode('by_item'), false);
   });
 
@@ -87,12 +76,12 @@ describe('checkout-split-intent', () => {
       true,
     );
     assert.equal(
-      isWholeTableSplit({ split_mode: 'custom', result: [{ name: 'Total', amount: 1 }] }),
+      isWholeTableSplit({ split_mode: 'even', result: [{ name: 'Total', amount: 1 }] }),
       true,
     );
     assert.equal(
       isWholeTableSplit({
-        split_mode: 'custom',
+        split_mode: 'even',
         result: [
           { name: 'A', amount: 5 },
           { name: 'B', amount: 5 },

@@ -97,7 +97,7 @@ type Props = {
   ) => void;
   onSplitPersisted: (row: BillSplit) => void;
   /**
-   * Even/custom: full split persist before collect.
+   * Even: full split persist before collect.
    * By-item: unpaid plan flush ({@link mergeStaffByItemUnpaidDraftIntoLedger}) —
    * resume and Host pay-path both call this; collect stamps then same merge.
    * Returns persons+result so resume name gate sees the flushed roster.
@@ -117,7 +117,7 @@ type Props = {
 
 /**
  * Sole staff checkout split editor.
- * Draft + even/custom chrome shared with guest BillSplitPanel;
+ * Draft + even chrome shared with guest BillSplitPanel;
  * by_item layout is sole StaffByItemSplitWorkbench (not guest dish cards).
  */
 export function StaffCheckoutSplitEditor({
@@ -711,8 +711,6 @@ export function StaffCheckoutSplitEditor({
           splitPlanLocked: billT.splitPlanLocked,
           people: billT.people,
           splitResult: billT.splitResult,
-          addPerson: billT.addPerson,
-          removePerson: billT.removePerson,
           splitPaid: billT.splitPaid,
           splitPartialPaid: billT.splitPartialPaid,
           splitAmountBreakdown: billT.splitAmountBreakdown,
@@ -723,7 +721,6 @@ export function StaffCheckoutSplitEditor({
         submitting={submitting}
         personCount={splitDraft.personCount}
         splitPeople={splitDraft.splitPeople}
-        customAmounts={splitDraft.customAmounts}
         results={
           splitDraft.splitMode === 'by_item' ? byItemDisplayResults : splitDraft.results
         }
@@ -745,8 +742,6 @@ export function StaffCheckoutSplitEditor({
         guestName={guestName}
         editingSplitNameIndex={splitDraft.editingSplitNameIndex}
         editingSplitNameValue={splitDraft.editingSplitNameValue}
-        editingCustomAmountIndex={splitDraft.editingCustomAmountIndex}
-        editingCustomAmountValue={splitDraft.editingCustomAmountValue}
         onSplitModeClick={splitDraft.handleSplitModeClick}
         onDecrementPersonCount={splitDraft.decrementPersonCount}
         onIncrementPersonCount={splitDraft.incrementPersonCount}
@@ -761,20 +756,10 @@ export function StaffCheckoutSplitEditor({
           splitDraft.setEditingSplitNameIndex(null);
           splitDraft.setEditingSplitNameValue('');
         }}
-        onStartInlineAmountEdit={splitDraft.startInlineAmountEdit}
-        onCommitInlineAmountEdit={splitDraft.commitInlineAmountEdit}
-        onEditingCustomAmountValueChange={splitDraft.editCustomAmountDraft}
-        onCancelInlineAmountEdit={() => {
-          splitDraft.setEditingCustomAmountIndex(null);
-          splitDraft.setEditingCustomAmountValue('');
-        }}
-        onAddCustomPerson={splitDraft.addCustomPerson}
-        onRemoveCustomPerson={splitDraft.removeCustomPerson}
         staffRowActions={
-          splitDraft.splitMode === 'even' || splitDraft.splitMode === 'custom'
+          splitDraft.splitMode === 'even'
             ? {
                 collectLabel: checkoutT.collectPerson,
-                removeLabel: checkoutT.returnShareToPool,
                 busy: submitting || detailLocked,
                 discountRate,
                 discountPreLabel: checkoutT.discountPreAmount,

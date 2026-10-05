@@ -420,18 +420,14 @@ describe('allocationLockedTicketKeys', () => {
 });
 
 describe('splitDraftPersonCount', () => {
-  it('defaults even to 2 and custom to 1', () => {
-    assert.equal(splitDraftPersonCount('even'), 2);
-    assert.equal(splitDraftPersonCount('custom'), 1);
+  it('defaults to 2', () => {
+    assert.equal(splitDraftPersonCount(), 2);
   });
 
-  it('clamps even ≥2 and custom ≥1 with cap 20', () => {
-    assert.equal(splitDraftPersonCount('even', 1), 2);
-    assert.equal(splitDraftPersonCount('custom', 0), 1);
-    assert.equal(splitDraftPersonCount('even', 3), 3);
-    assert.equal(splitDraftPersonCount('custom', 3), 3);
-    assert.equal(splitDraftPersonCount('even', 99), 20);
-    assert.equal(splitDraftPersonCount('custom', 99), 20);
+  it('clamps ≥2 with cap 20', () => {
+    assert.equal(splitDraftPersonCount(1), 2);
+    assert.equal(splitDraftPersonCount(3), 3);
+    assert.equal(splitDraftPersonCount(99), 20);
   });
 });
 
@@ -480,32 +476,16 @@ describe('resolveContinuationSplitShape', () => {
     assert.deepEqual(shape?.personNames, ['Ana', 'Guest 2']);
   });
 
-  it('keeps custom shape at one person without padding to 2', () => {
-    const shape = resolveContinuationSplitShape(
-      split({
-        split_mode: 'custom',
-        persons: [{ name: 'Ana' }],
-        result: [{ name: 'Ana', amount: 40 }],
-      }),
-      (n) => `Guest ${n}`,
-    );
-    assert.equal(shape?.personCount, 1);
-    assert.deepEqual(shape?.personNames, ['Ana']);
-  });
-
   it('returns null when split is missing', () => {
     assert.equal(resolveContinuationSplitShape(null, (n) => `Guest ${n}`), null);
   });
 });
 
 describe('defaultSplitPersonNames', () => {
-  it('seeds even with 2 guests and custom with 1', () => {
-    assert.deepEqual(defaultSplitPersonNames((n) => `Guest ${n}`, 'even'), [
+  it('seeds even with 2 guests', () => {
+    assert.deepEqual(defaultSplitPersonNames((n) => `Guest ${n}`), [
       'Guest 1',
       'Guest 2',
-    ]);
-    assert.deepEqual(defaultSplitPersonNames((n) => `Guest ${n}`, 'custom'), [
-      'Guest 1',
     ]);
   });
 });

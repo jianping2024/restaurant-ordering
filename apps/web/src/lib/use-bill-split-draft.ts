@@ -1,18 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
-import {
-  afterRemoveCustomPerson,
-  appendCustomPersonWithRemainder,
-  applyCustomAmountEdit,
-  mintNextCustomGuestName,
-  seedCustomSoloFullAmount,
-} from '@/lib/bill-split-custom-amounts';
-import {
-  shouldCommitOnSoftKeyboardDismiss,
-  softKeyboardOpen,
-} from '@/lib/soft-keyboard-viewport';
 import { validateSplitDraft } from '@/lib/bill-split-draft';
 import type { BillSplitDraftInput } from '@/lib/bill-split-draft';
 import {
@@ -62,11 +50,6 @@ export type SplitPersonSlot = {
   name: string;
 };
 
-export type PersonAmount = {
-  name: string;
-  amount: number;
-};
-
 /** Sole mapper: continuation/default names → draft person slots (stable ids). */
 function slotsFromNames(names: readonly string[], prev?: readonly SplitPersonSlot[]): SplitPersonSlot[] {
   return names.map((name, idx) => ({
@@ -75,31 +58,9 @@ function slotsFromNames(names: readonly string[], prev?: readonly SplitPersonSlo
   }));
 }
 
-/** Sole mapper: names → custom amount rows (keep prior amounts when name index matches). */
-function customAmountsFromNames(
-  names: readonly string[],
-  prev?: readonly PersonAmount[],
-): PersonAmount[] {
-  return names.map((name, idx) => ({
-    name,
-    amount: prev?.[idx]?.amount ?? 0,
-  }));
-}
-
 function initialEvenPersonCount(existingSplit: BillSplit | null, guestName: (n: number) => string): number {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  return splitDraftPersonCount('even', shape?.personCount);
-}
-
-function initialCustomPersonCount(
-  existingSplit: BillSplit | null,
-  guestName: (n: number) => string,
-): number {
-  if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
-    return splitDraftPersonCount('custom', existingSplit.result.length);
-  }
-  const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  return splitDraftPersonCount('custom', shape?.personCount);
+  return splitDraftPersonCount(shape?.personCount);
 }
 
 function initialSplitPeople(
@@ -107,35 +68,8 @@ function initialSplitPeople(
   guestName: (n: number) => string,
 ): SplitPersonSlot[] {
   const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  const names = shape?.personNames ?? defaultSplitPersonNames(guestName, 'even');
+  const names = shape?.personNames ?? defaultSplitPersonNames(guestName);
   return slotsFromNames(names);
-}
-
-function initialCustomAmounts(
-  existingSplit: BillSplit | null,
-  guestName: (n: number) => string,
-  total: number,
-): PersonAmount[] {
-  if (existingSplit?.split_mode === 'custom' && existingSplit.result?.length) {
-    const names = ensureSplitPersonNames(
-      existingSplit.result.map((row) => row.name),
-      splitDraftPersonCount('custom', existingSplit.result.length),
-      guestName,
-    );
-    return names.map((name, idx) => ({
-      name,
-      amount: existingSplit.result[idx]?.amount ?? 0,
-    }));
-  }
-  const shape = resolveContinuationSplitShape(existingSplit, guestName);
-  const names =
-    shape?.personNames ?? defaultSplitPersonNames(guestName, 'custom');
-  const rows = customAmountsFromNames(names);
-  // Fresh custom (no continuation roster): sole payer starts at full bill.
-  if (!shape && rows.length === 1) {
-    return seedCustomSoloFullAmount(rows, total);
-  }
-  return rows;
 }
 
 export function useBillSplitDraft(params: {
@@ -191,36 +125,18 @@ export function useBillSplitDraft(params: {
     resolvePersistedSplitModeForDraft(existingSplit),
   );
   const [personCount, setPersonCount] = useState(() => {
-    if (existingSplit?.split_mode === 'custom') {
-      return initialCustomPersonCount(splitSeed, guestName);
-    }
     if (existingSplit?.split_mode === 'even') {
       return initialEvenPersonCount(splitSeed, guestName);
     }
-    return splitDraftPersonCount('even');
+    return splitDraftPersonCount();
   });
   const [splitPeople, setSplitPeople] = useState<SplitPersonSlot[]>(() =>
     initialSplitPeople(splitSeed, guestName),
-  );
-  const [customAmounts, setCustomAmounts] = useState<PersonAmount[]>(() =>
-    initialCustomAmounts(splitSeed, guestName, total),
   );
   const [storageReady, setStorageReady] = useState(false);
 
   const [editingSplitNameIndex, setEditingSplitNameIndex] = useState<number | null>(null);
   const [editingSplitNameValue, setEditingSplitNameValue] = useState('');
-  const [editingCustomAmountIndex, setEditingCustomAmountIndex] = useState<number | null>(null);
-  const [editingCustomAmountValue, setEditingCustomAmountValue] = useState('');
-  /** Latest amount-edit draft for keyboard-dismiss commit (iOS often skips blur). */
-  const editingCustomAmountRef = useRef<{ index: number | null; value: string }>({
-    index: null,
-    value: '',
-  });
-  editingCustomAmountRef.current = {
-    index: editingCustomAmountIndex,
-    value: editingCustomAmountValue,
-  };
-
   /** Which session's local draft was applied into memory — sole gate for persist. */
   const hydratedOwnerKeyRef = useRef<string | null>(null);
   /** Sole applied server-authority fingerprint — change forces reseed (resume continuation). */
@@ -232,26 +148,21 @@ export function useBillSplitDraft(params: {
     const seed = continuationSplit ?? existingSplit;
     const mode = resolvePersistedSplitModeForDraft(existingSplit);
     setSplitMode(mode);
-    if (existingSplit?.split_mode === 'custom') {
-      setPersonCount(initialCustomPersonCount(seed, guestName));
-    } else if (existingSplit?.split_mode === 'even') {
+    if (existingSplit?.split_mode === 'even') {
       setPersonCount(initialEvenPersonCount(seed, guestName));
     } else {
-      setPersonCount(splitDraftPersonCount('even'));
+      setPersonCount(splitDraftPersonCount());
     }
     setSplitPeople(initialSplitPeople(seed, guestName));
-    setCustomAmounts(initialCustomAmounts(seed, guestName, total));
     setEditingSplitNameIndex(null);
     setEditingSplitNameValue('');
-    setEditingCustomAmountIndex(null);
-    setEditingCustomAmountValue('');
-  }, [continuationSplit, existingSplit, guestName, total]);
+  }, [continuationSplit, existingSplit, guestName]);
 
   const applyLocalDraftToMemory = useCallback(
     (draft: BillSplitLocalDraft) => {
       setSplitMode(draft.splitMode);
       if (draft.splitMode === 'even') {
-        const count = splitDraftPersonCount('even', draft.personCount);
+        const count = splitDraftPersonCount(draft.personCount);
         const names = ensureSplitPersonNames(
           draft.splitPeople.map((person) => person.name),
           count,
@@ -259,24 +170,8 @@ export function useBillSplitDraft(params: {
         );
         setPersonCount(count);
         setSplitPeople(slotsFromNames(names, draft.splitPeople));
-        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
-      } else if (draft.splitMode === 'custom') {
-        const source =
-          draft.customAmounts.length > 0 ? draft.customAmounts : draft.splitPeople;
-        const count = splitDraftPersonCount(
-          'custom',
-          source.length > 0 ? source.length : draft.personCount,
-        );
-        const names = ensureSplitPersonNames(
-          source.map((row) => row.name),
-          count,
-          guestName,
-        );
-        setPersonCount(count);
-        setSplitPeople(slotsFromNames(names, draft.splitPeople));
-        setCustomAmounts(customAmountsFromNames(names, draft.customAmounts));
       } else {
-        setPersonCount(splitDraftPersonCount('even', draft.personCount));
+        setPersonCount(splitDraftPersonCount(draft.personCount));
         if (draft.splitPeople.length > 0) {
           const names = ensureSplitPersonNames(
             draft.splitPeople.map((person) => person.name),
@@ -287,18 +182,11 @@ export function useBillSplitDraft(params: {
         } else {
           setSplitPeople(initialSplitPeople(null, guestName));
         }
-        if (draft.customAmounts.length > 0) {
-          setCustomAmounts(draft.customAmounts);
-        } else {
-          setCustomAmounts(initialCustomAmounts(null, guestName, total));
-        }
       }
       setEditingSplitNameIndex(null);
       setEditingSplitNameValue('');
-      setEditingCustomAmountIndex(null);
-      setEditingCustomAmountValue('');
     },
-    [guestName, total],
+    [guestName],
   );
 
   useLayoutEffect(() => {
@@ -466,17 +354,6 @@ export function useBillSplitDraft(params: {
     if (!sameNames) {
       setSplitPeople((prev) => slotsFromNames(names, prev));
     }
-    // Always align customAmounts to the even roster so mode switches do not shrink to the
-    // custom default seed (1) while even still shows N people.
-    setCustomAmounts((prev) => {
-      if (
-        prev.length === names.length &&
-        prev.every((row, idx) => row.name === names[idx])
-      ) {
-        return prev;
-      }
-      return customAmountsFromNames(names, prev);
-    });
   }, [splitMode, personCount, splitPeople, guestName]);
 
   useEffect(() => {
@@ -521,7 +398,6 @@ export function useBillSplitDraft(params: {
         splitMode,
         personCount,
         splitPeople,
-        customAmounts,
         byItemAllocations,
       });
     }, 200);
@@ -536,7 +412,6 @@ export function useBillSplitDraft(params: {
     splitMode,
     personCount,
     splitPeople,
-    customAmounts,
     byItemAllocations,
   ]);
 
@@ -595,7 +470,6 @@ export function useBillSplitDraft(params: {
       lineSpecs,
       personCount,
       splitPeople,
-      customAmounts,
       byItemDraftRows: byItemAllocations,
       parsedByItemAllocations,
       lang,
@@ -609,7 +483,6 @@ export function useBillSplitDraft(params: {
       lineSpecs,
       personCount,
       splitPeople,
-      customAmounts,
       byItemAllocations,
       parsedByItemAllocations,
       lang,
@@ -641,7 +514,6 @@ export function useBillSplitDraft(params: {
 
   const syncNameAcrossModes = useCallback((index: number, name: string) => {
     setSplitPeople((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
-    setCustomAmounts((prev) => prev.map((person, idx) => (idx === index ? { ...person, name } : person)));
   }, []);
 
   const handleSplitModeClick = useCallback(
@@ -655,36 +527,8 @@ export function useBillSplitDraft(params: {
       if (mode === 'even') {
         // personCount is the even size; layout effect then aligns roster via ensureSplitPersonNames.
         setPersonCount(
-          splitDraftPersonCount('even', Math.max(personCount, splitPeople.length)),
+          splitDraftPersonCount(Math.max(personCount, splitPeople.length)),
         );
-      } else if (mode === 'custom') {
-        // From even: keep the even roster. From null/other: prefer custom seed (default 1),
-        // do not inflate from the unused even default splitPeople (2).
-        const fromEven = splitMode === 'even';
-        const source = fromEven
-          ? splitPeople
-          : customAmounts.length > 0
-            ? customAmounts
-            : splitPeople;
-        const count = splitDraftPersonCount(
-          'custom',
-          fromEven ? Math.max(personCount, splitPeople.length) : source.length,
-        );
-        const names = ensureSplitPersonNames(
-          source.map((row) => row.name),
-          count,
-          guestName,
-        );
-        setPersonCount(count);
-        setSplitPeople((prev) => slotsFromNames(names, prev));
-        setCustomAmounts((prev) => {
-          const rows = customAmountsFromNames(names, prev);
-          // Fresh custom (not carrying an even roster): sole payer starts at full bill.
-          if (!fromEven && rows.length === 1) {
-            return seedCustomSoloFullAmount(rows, total);
-          }
-          return rows;
-        });
       }
     },
     [
@@ -693,9 +537,6 @@ export function useBillSplitDraft(params: {
       splitMode,
       personCount,
       splitPeople,
-      customAmounts,
-      guestName,
-      total,
     ],
   );
 
@@ -741,90 +582,8 @@ export function useBillSplitDraft(params: {
     ],
   );
 
-  const updateCustomAmount = useCallback(
-    (index: number, rawValue: string) => {
-      setCustomAmounts((prev) =>
-        applyCustomAmountEdit({
-          rows: prev,
-          index,
-          rawValue,
-          total,
-        }),
-      );
-    },
-    [total],
-  );
-
-  const startInlineAmountEdit = useCallback(
-    (index: number) => {
-      setEditingCustomAmountIndex(index);
-      setEditingCustomAmountValue(String(customAmounts[index]?.amount ?? 0));
-    },
-    [customAmounts],
-  );
-
-  /**
-   * Sole draft+commit while typing: update the input string, and when the value is a
-   * complete number write through to customAmounts (so iOS keyboard-dismiss without
-   * blur still leaves the bill balanced). Trailing "." / empty wait for blur.
-   */
-  const editCustomAmountDraft = useCallback(
-    (index: number, rawValue: string) => {
-      setEditingCustomAmountValue(rawValue);
-      if (rawValue === '' || rawValue === '.' || rawValue.endsWith('.')) return;
-      if (!Number.isFinite(Number(rawValue))) return;
-      updateCustomAmount(index, rawValue);
-    },
-    [updateCustomAmount],
-  );
-
-  const commitInlineAmountEdit = useCallback(
-    (index: number) => {
-      updateCustomAmount(index, editingCustomAmountValue || '0');
-      setEditingCustomAmountIndex(null);
-      setEditingCustomAmountValue('');
-    },
-    [updateCustomAmount, editingCustomAmountValue],
-  );
-
-  /**
-   * iOS “collapse keyboard” often leaves focus on the input (no blur).
-   * Close the editor after keyboard was stably open then closed (arm window
-   * skips open-animation jitter). Unmount clears focus — do not blur().
-   */
-  useEffect(() => {
-    if (editingCustomAmountIndex == null) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
-
-    const armedAtMs = Date.now();
-    let wasOpen = softKeyboardOpen(window.innerHeight, vv.height);
-
-    const onViewportResize = () => {
-      const open = softKeyboardOpen(window.innerHeight, vv.height);
-      if (
-        !shouldCommitOnSoftKeyboardDismiss(wasOpen, open, {
-          armedAtMs,
-          nowMs: Date.now(),
-        })
-      ) {
-        wasOpen = open;
-        return;
-      }
-      wasOpen = open;
-      const { index, value } = editingCustomAmountRef.current;
-      if (index == null) return;
-      updateCustomAmount(index, value || '0');
-      setEditingCustomAmountIndex(null);
-      setEditingCustomAmountValue('');
-    };
-
-    vv.addEventListener('resize', onViewportResize);
-    return () => vv.removeEventListener('resize', onViewportResize);
-  }, [editingCustomAmountIndex, updateCustomAmount]);
-
   const decrementPersonCount = useCallback(() => {
-    const n = splitDraftPersonCount('even', personCount - 1);
+    const n = splitDraftPersonCount(personCount - 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
       const names = ensureSplitPersonNames(
@@ -833,13 +592,12 @@ export function useBillSplitDraft(params: {
         guestName,
       );
       const next = slotsFromNames(names, prev);
-      setCustomAmounts((customPrev) => customAmountsFromNames(names, customPrev));
       return next;
     });
   }, [personCount, guestName]);
 
   const incrementPersonCount = useCallback(() => {
-    const n = splitDraftPersonCount('even', personCount + 1);
+    const n = splitDraftPersonCount(personCount + 1);
     setPersonCount(n);
     setSplitPeople((prev) => {
       const names = ensureSplitPersonNames(
@@ -848,43 +606,9 @@ export function useBillSplitDraft(params: {
         guestName,
       );
       const next = slotsFromNames(names, prev);
-      setCustomAmounts((customPrev) => customAmountsFromNames(names, customPrev));
       return next;
     });
   }, [personCount, guestName]);
-
-  const removeCustomPerson = useCallback((index: number) => {
-    setCustomAmounts((prev) => {
-      if (prev.length <= 1 || index < 0 || index >= prev.length) return prev;
-      const filtered = prev.filter((_, rowIndex) => rowIndex !== index);
-      const healed = afterRemoveCustomPerson(filtered, total);
-      const names = healed.map((row) => row.name);
-      setSplitPeople((peoplePrev) =>
-        slotsFromNames(
-          names,
-          peoplePrev.filter((_, rowIndex) => rowIndex !== index),
-        ),
-      );
-      setPersonCount(splitDraftPersonCount('custom', names.length));
-      return healed;
-    });
-  }, [total]);
-
-  /** Add one payer and open rename on them inside this click (iOS keyboard needs the gesture). */
-  const addCustomPerson = useCallback(() => {
-    const nextCount = splitDraftPersonCount('custom', customAmounts.length + 1);
-    if (nextCount <= customAmounts.length) return;
-    const nextName = mintNextCustomGuestName(customAmounts, guestName);
-    const next = appendCustomPersonWithRemainder(customAmounts, total, nextName);
-    const names = next.map((row) => row.name);
-    flushSync(() => {
-      setCustomAmounts(next);
-      setSplitPeople((peoplePrev) => slotsFromNames(names, peoplePrev));
-      setPersonCount(nextCount);
-      setEditingSplitNameIndex(next.length - 1);
-      setEditingSplitNameValue(nextName);
-    });
-  }, [customAmounts, guestName, total]);
 
   const commitByItemDraft = useCallback(() => {
     const committed = commitAllByItemAllocations({
@@ -915,7 +639,6 @@ export function useBillSplitDraft(params: {
     splitMode,
     personCount,
     splitPeople,
-    customAmounts,
     splitLocked,
     lockedPersonLineMins,
     lockedPersonNames,
@@ -937,19 +660,10 @@ export function useBillSplitDraft(params: {
     editingSplitNameIndex,
     editingSplitNameValue,
     setEditingSplitNameValue,
-    editingCustomAmountIndex,
-    editingCustomAmountValue,
-    setEditingCustomAmountValue,
-    editCustomAmountDraft,
     startInlineRename,
     commitInlineRename,
-    startInlineAmountEdit,
-    commitInlineAmountEdit,
     decrementPersonCount,
     incrementPersonCount,
-    addCustomPerson,
-    removeCustomPerson,
     setEditingSplitNameIndex,
-    setEditingCustomAmountIndex,
   };
 }

@@ -12,7 +12,7 @@ export type OrderStatus = 'pending' | 'cooking' | 'done';
 export type OrderItemStatus = 'pending' | 'cooking' | 'ready' | 'done' | 'voided';
 export type SessionStatus = 'open' | 'billing' | 'closed';
 export type Category = string;
-export type SplitMode = 'whole_table' | 'even' | 'by_item' | 'custom';
+export type SplitMode = 'whole_table' | 'even' | 'by_item';
 export type BillStatus = 'pending' | 'confirmed' | 'requested' | 'paid' | 'cancelled';
 /** Customer/menu UI language — same set as dashboard {@link UILanguage}. */
 export type Language = 'pt' | 'en' | 'zh' | 'es' | 'fr' | 'de';

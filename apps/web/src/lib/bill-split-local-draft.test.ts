@@ -13,13 +13,12 @@ import {
 import type { BillSplit } from '../types';
 
 describe('parseBillSplitLocalDraft', () => {
-  it('accepts a valid v1 draft', () => {
+  it('accepts a valid v2 draft', () => {
     const raw = JSON.stringify({
-      v: 1,
+      v: 2,
       splitMode: 'by_item',
       personCount: 3,
       splitPeople: [{ id: 'p1', name: 'A' }],
-      customAmounts: [{ name: 'A', amount: 4.5 }],
       byItemAllocations: {
         'o1-0': [{ id: 'r1', name: 'A', qtyWhole: '1', qtyNum: '', qtyDen: '' }],
       },
@@ -32,31 +31,15 @@ describe('parseBillSplitLocalDraft', () => {
     assert.equal(draft.byItemAllocations['o1-0']?.[0]?.name, 'A');
   });
 
-  it('clamps custom personCount to min 1 without forcing 2', () => {
-    const raw = JSON.stringify({
-      v: 1,
-      splitMode: 'custom',
-      personCount: 1,
-      splitPeople: [{ id: 'p1', name: 'A' }],
-      customAmounts: [{ name: 'A', amount: 0 }],
-      byItemAllocations: {},
-      updatedAt: 1,
-    });
-    const draft = parseBillSplitLocalDraft(raw);
-    assert.ok(draft);
-    assert.equal(draft.personCount, 1);
-  });
-
   it('rejects unknown version or bad rows', () => {
-    assert.equal(parseBillSplitLocalDraft(JSON.stringify({ v: 2, splitMode: null })), null);
+    assert.equal(parseBillSplitLocalDraft(JSON.stringify({ v: 1, splitMode: null })), null);
     assert.equal(
       parseBillSplitLocalDraft(
         JSON.stringify({
-          v: 1,
+          v: 2,
           splitMode: 'even',
           personCount: 2,
           splitPeople: [{ id: 'p1' }],
-          customAmounts: [],
           byItemAllocations: {},
           updatedAt: 1,
         }),
@@ -193,7 +176,7 @@ describe('billSplitDraftAuthorityKey', () => {
     const split = {
       id: 'bs1',
       status: 'confirmed',
-      split_mode: 'custom',
+      split_mode: 'even',
       result: [{ name: 'A', amount: 10, paid: false }],
       persons: [{ name: 'A' }],
     } as BillSplit;

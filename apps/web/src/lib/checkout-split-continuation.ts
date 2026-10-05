@@ -67,21 +67,18 @@ export type ContinuationSplitShape = {
 };
 
 /**
- * Sole even/custom roster size gate: even min/default 2; custom min/default 1; cap 20.
- * Pass `requested` to clamp an existing length; omit to get the mode default.
+ * Sole even roster size gate: min/default 2; cap 20.
+ * Pass `requested` to clamp an existing length; omit to get the default.
  */
-export function splitDraftPersonCount(
-  mode: 'even' | 'custom',
-  requested?: number,
-): number {
-  const min = mode === 'even' ? 2 : 1;
+export function splitDraftPersonCount(requested?: number): number {
+  const min = 2;
   const raw =
     requested == null || !Number.isFinite(requested) ? min : requested;
   return Math.min(20, Math.max(min, Math.round(raw)));
 }
 
 /**
- * Sole even/custom draft roster builder: pad/truncate to `count`, replace blank or
+ * Sole even draft roster builder: pad/truncate to `count`, replace blank or
  * whole-table sentinel names with `guestName(i+1)`.
  */
 export function ensureSplitPersonNames(
@@ -98,16 +95,13 @@ export function ensureSplitPersonNames(
   return next;
 }
 
-/** Default even/custom draft roster when there is no continuation shape. */
-export function defaultSplitPersonNames(
-  guestName: (n: number) => string,
-  mode: 'even' | 'custom',
-): string[] {
-  return ensureSplitPersonNames([], splitDraftPersonCount(mode), guestName);
+/** Default even draft roster when there is no continuation shape. */
+export function defaultSplitPersonNames(guestName: (n: number) => string): string[] {
+  return ensureSplitPersonNames([], splitDraftPersonCount(), guestName);
 }
 
 /**
- * Hydrate even/custom draft shape from a paused continuation split.
+ * Hydrate even draft shape from a paused continuation split.
  * Whole-table is not a multi-person draft — returns null so callers seed the default roster.
  */
 export function resolveContinuationSplitShape(
@@ -121,10 +115,8 @@ export function resolveContinuationSplitShape(
 
   const personCount =
     split.split_mode === 'even'
-      ? splitDraftPersonCount('even', locked)
-      : split.split_mode === 'custom'
-        ? splitDraftPersonCount('custom', locked)
-        : locked;
+      ? splitDraftPersonCount(locked)
+      : locked;
   const rawNames: string[] = [];
   for (let i = 0; i < locked; i += 1) {
     const fromResult = split.result?.[i]?.name?.trim();
@@ -216,7 +208,7 @@ export function allocationLockedTicketKeys(
 }
 
 /**
- * Even/custom name lock set (case-insensitive). By-item staff UI must use
+ * Even name lock set (case-insensitive). By-item staff UI must use
  * {@link allocationLockedTicketKeys} — do not use this to lock party tickets.
  */
 export function allocationLockedPersonNames(

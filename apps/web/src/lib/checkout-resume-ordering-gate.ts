@@ -73,7 +73,7 @@ type PersistPruned = (params: {
 export async function prepareStaffCheckoutResumeOrdering(params: {
   request: BillSplit;
   collectedPayments: readonly SessionCollectedPayment[];
-  /** Editor draft flush (by_item merge or even/custom persist). */
+  /** Editor draft flush (by_item merge or even persist). */
   flushDraft: FlushDraft | null;
   /** Persist pruned by-item ledger when no editor flush is registered. */
   persistPrunedByItem: PersistPruned | null;

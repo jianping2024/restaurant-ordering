@@ -191,7 +191,7 @@ export function buildReceiptLinesFromOrders(
   return lines;
 }
 
-/** Lines for one split row (by-item); empty for even/custom → amount-only slip. */
+/** Lines for one split row (by-item); empty for even → amount-only slip. */
 export function buildSplitPersonReceiptLines(
   split: BillSplit,
   personIndex: number,

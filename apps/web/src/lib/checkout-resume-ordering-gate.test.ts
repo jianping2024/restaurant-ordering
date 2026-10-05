@@ -107,7 +107,7 @@ describe('resolveCheckoutResumeOrderingNameGate', () => {
     assert.equal(gate.ok, true);
   });
 
-  it('blocks unpaid even/custom default names when preserving', () => {
+  it('blocks unpaid even default names when preserving', () => {
     const gate = resolveCheckoutResumeOrderingNameGate({
       willPreserveSplit: true,
       splitMode: 'even',

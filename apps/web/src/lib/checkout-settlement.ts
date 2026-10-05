@@ -90,11 +90,10 @@ export function hasCheckoutCollections(
 
 export function checkoutSplitModeLabel(
   splitMode: SplitMode | string | null | undefined,
-  labels: { even: string; byItem: string; custom: string; wholeTable: string },
+  labels: { even: string; byItem: string; wholeTable: string },
 ): string {
   if (splitMode === 'whole_table') return labels.wholeTable;
   if (splitMode === 'by_item') return labels.byItem;
-  if (splitMode === 'custom') return labels.custom;
   if (splitMode === 'even') return labels.even;
   return labels.wholeTable;
 }

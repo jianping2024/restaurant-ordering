@@ -7,7 +7,7 @@ import {
 } from '@/lib/bill-sync-build-payload';
 import type { BillSyncPayload } from '@/lib/bill-sync-payload';
 import { parseSplitMode } from '@/lib/checkout-split-intent';
-import type { Order, SplitPerson, SplitResult } from '@/types';
+import type { Order, SplitPerson } from '@/types';
 
 export type EnqueueBillSyncInput = {
   admin: SupabaseClient;
@@ -17,7 +17,6 @@ export type EnqueueBillSyncInput = {
   /** Persisted bill_splits.split_mode; drives whole_table vs split payload. */
   splitMode: string | null | undefined;
   persons: SplitPerson[] | null | undefined;
-  result?: SplitResult[] | null | undefined;
   orders: Order[];
   itemCodeByMenuId: Record<string, string>;
   vatRateByMenuId: Record<string, number>;
@@ -79,7 +78,6 @@ export async function enqueueBillSyncJob(
     tableDisplayName: input.tableDisplayName,
     splitMode,
     persons: Array.isArray(input.persons) ? input.persons : [],
-    result: Array.isArray(input.result) ? input.result : [],
     orders: input.orders,
     itemCodeByMenuId: input.itemCodeByMenuId,
     vatRateByMenuId: input.vatRateByMenuId,

@@ -92,7 +92,6 @@ describe('computeSplitResults', () => {
       lineSpecs: [menuSpec('o1-0', 1, 10)],
       personCount: 3,
       splitPeople: people,
-      customAmounts: [],
       byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
@@ -111,7 +110,6 @@ describe('computeSplitResults', () => {
       lineSpecs: [menuSpec('o1-0', 2, 10)],
       personCount: 2,
       splitPeople: people,
-      customAmounts: [],
       byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
@@ -123,7 +121,6 @@ describe('computeSplitResults', () => {
       lineSpecs: [menuSpec('o1-0', 3, 10)],
       personCount: 2,
       splitPeople: people,
-      customAmounts: [],
       byItemDraftRows: {},
       parsedByItemAllocations: {},
       lang: 'pt',
@@ -145,7 +142,6 @@ describe('validateSplitDraft', () => {
       lineSpecs: specs,
       personCount: 2,
       splitPeople: [{ name: 'Guest 1' }, { name: 'Guest 2' }],
-      customAmounts: [],
       byItemDraftRows: {},
       parsedByItemAllocations: {
         'o1-0': [{ name: 'Guest 1', qty: { num: 1, den: 1 } }],
@@ -158,44 +154,6 @@ describe('validateSplitDraft', () => {
     }
   });
 
-  it('keeps solo custom amount as stored (does not force full bill)', () => {
-    const rows = computeSplitResults({
-      splitMode: 'custom',
-      total: 19.95,
-      orderLines: [menuLine('o1-0', 1, 19.95)],
-      lineSpecs: [menuSpec('o1-0', 1, 19.95)],
-      personCount: 1,
-      splitPeople: [{ name: 'Guest 1' }],
-      customAmounts: [{ name: 'Guest 1', amount: 10 }],
-      byItemDraftRows: {},
-      parsedByItemAllocations: {},
-      lang: 'pt',
-    });
-    assert.deepEqual(rows, [{ name: 'Guest 1', amount: 10 }]);
-  });
-
-  it('flags custom amounts when manual share exceeds total', () => {
-    const outcome = validateSplitDraft({
-      splitMode: 'custom',
-      total: 30,
-      orderLines: [menuLine('o1-0', 3, 10)],
-      lineSpecs: [menuSpec('o1-0', 3, 10)],
-      personCount: 2,
-      splitPeople: [{ name: 'Guest 1' }, { name: 'Guest 2' }],
-      customAmounts: [
-        { name: 'Guest 1', amount: 35 },
-        { name: 'Guest 2', amount: 0 },
-      ],
-      byItemDraftRows: {},
-      parsedByItemAllocations: {},
-      lang: 'pt',
-    });
-    assert.equal(outcome.validation.ok, false);
-    if (!outcome.validation.ok) {
-      assert.equal(outcome.validation.issue, 'amount_mismatch');
-    }
-  });
-
   it('rejects a duplicate named draft row even when parsing drops its empty quantity', () => {
     const key = 'o1-0';
     const outcome = validateSplitDraft({
@@ -205,7 +163,6 @@ describe('validateSplitDraft', () => {
       lineSpecs: [menuSpec(key, 1, 10)],
       personCount: 1,
       splitPeople: [{ name: 'Guest 1' }],
-      customAmounts: [],
       byItemDraftRows: {
         [key]: [
           consumerRow('row-1', 'Guest 1', '1'),
@@ -232,7 +189,6 @@ describe('validateSplitDraft', () => {
       lineSpecs: [buffetSpec(key, 2, 0)],
       personCount: 1,
       splitPeople: [{ name: 'Guest 1' }],
-      customAmounts: [],
       byItemDraftRows: { [key]: [first, second] },
       parsedByItemAllocations: {
         [key]: [
@@ -255,7 +211,6 @@ describe('validateSplitDraft', () => {
       lineSpecs: [menuSpec(key, 2, 10)],
       personCount: 1,
       splitPeople: [{ name: 'Guest 1' }],
-      customAmounts: [],
       byItemDraftRows: { [key]: [consumerRow('row-1', 'Guest 1', '1')] },
       parsedByItemAllocations: {
         [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 1, den: 1 } }],
@@ -280,7 +235,6 @@ describe('validateSplitDraft', () => {
       lineSpecs: [menuSpec(key, 2, 10)],
       personCount: 1,
       splitPeople: [{ name: 'Guest 1' }],
-      customAmounts: [],
       byItemDraftRows: { [key]: duplicateRows },
       parsedByItemAllocations: {
         [key]: [{ name: 'Guest 1', partyId: 'party-a', qty: { num: 1, den: 1 } }],
@@ -301,7 +255,6 @@ describe('individual checkout: unnamed rows are unclaimed', () => {
     lineSpecs: [menuSpec(key, 2, 10)],
     personCount: 1,
     splitPeople: [{ name: 'Guest 1' }],
-    customAmounts: [],
     parsedByItemAllocations: { [key]: [] },
     lang: 'pt' as const,
   };
@@ -346,7 +299,6 @@ describe('resolvePersistedSplitModeForDraft', () => {
       lineSpecs: [menuSpec('o1-0', 1, 50)],
       personCount: 2,
       splitPeople: [],
-      customAmounts: [],
       parsedByItemAllocations: {},
       lang: 'pt',
     });
@@ -365,26 +317,26 @@ describe('resolvePersistedSplitModeForDraft', () => {
     );
   });
 
-  it('returns null for legacy whole-table custom single row', () => {
+  it('returns null for legacy whole-table single row', () => {
     assert.equal(
       resolvePersistedSplitModeForDraft({
-        split_mode: 'custom',
+        split_mode: 'even',
         result: [{ name: 'Total', amount: 50 }],
       } as never),
       null,
     );
   });
 
-  it('returns persisted mode for multi-person custom split', () => {
+  it('returns persisted mode for multi-person even split', () => {
     assert.equal(
       resolvePersistedSplitModeForDraft({
-        split_mode: 'custom',
+        split_mode: 'even',
         result: [
           { name: 'A', amount: 25 },
           { name: 'B', amount: 25 },
         ],
       } as never),
-      'custom',
+      'even',
     );
   });
 });

@@ -4,7 +4,7 @@ import {
 } from '@/lib/split-person-label';
 import type { BillSplit, SplitMode, SplitPerson, SplitResult } from '@/types';
 
-export const SPLIT_MODES = ['whole_table', 'even', 'by_item', 'custom'] as const satisfies readonly SplitMode[];
+export const SPLIT_MODES = ['whole_table', 'even', 'by_item'] as const satisfies readonly SplitMode[];
 
 export type CheckoutRequestPayload = {
   splitMode: SplitMode;
@@ -24,7 +24,7 @@ export function isWholeTableSplitMode(mode: SplitMode | string | null | undefine
 
 /** Split modes that lock payer row count after partial collection. */
 export function isShapeLockSplitMode(mode: SplitMode): boolean {
-  return mode === 'whole_table' || mode === 'even' || mode === 'custom';
+  return mode === 'whole_table' || mode === 'even';
 }
 
 export function wholeTableSplitResult(total: number): SplitResult[] {
@@ -72,16 +72,6 @@ export function normalizeCheckoutRequestPayload(
       ...buildWholeTableCheckoutPayload(amount),
       customerNif: payload.customerNif ?? null,
     };
-  }
-
-  if (payload.splitMode === 'custom' && payload.result.length === 1) {
-    const row = payload.result[0];
-    if (row && isWholeTablePayerName(row.name)) {
-      return {
-        ...buildWholeTableCheckoutPayload(row.amount),
-        customerNif: payload.customerNif ?? null,
-      };
-    }
   }
 
   return payload;

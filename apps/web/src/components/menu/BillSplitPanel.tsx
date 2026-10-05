@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { ByItemDishAllocatorLabels } from '@/components/menu/ByItemDishAllocator';
 import { ByItemSplitSection } from '@/components/menu/ByItemSplitSection';
-import type { PersonAmount, SplitPersonSlot } from '@/lib/use-bill-split-draft';
+import type { SplitPersonSlot } from '@/lib/use-bill-split-draft';
 import { localizeSplitPersonName } from '@/lib/split-person-label';
-import { normalizeDecimalInput as normalizeAmountInput } from '@/lib/number-input';
-import { scrollElementIntoVisualViewport } from '@/lib/soft-keyboard-viewport';
 import type { BillSplitOrderLine, ByItemLineSpec } from '@/lib/bill-split-by-item-lines';
 import type { ByItemConsumerRow } from '@/lib/bill-split-by-item';
 import type { LockedPersonLineMins } from '@/lib/checkout-split-continuation';
@@ -31,18 +29,13 @@ import {
   splitRowShowsSettlement,
   type SplitSettlementCopy,
 } from '@/components/menu/SplitSettlementStatusExtras';
-import {
-  customerInlineAmountInputClass,
-  customerInlineEditInputClass,
-} from '@/components/menu/customer-form-input-styles';
+import { customerInlineEditInputClass } from '@/components/menu/customer-form-input-styles';
 
 type SplitModeCopy = SplitSettlementCopy & {
   splitMode: string;
   splitPlanLocked: string;
   people: string;
   splitResult: string;
-  addPerson: string;
-  removePerson: string;
 };
 
 interface Props {
@@ -54,7 +47,6 @@ interface Props {
   submitting: boolean;
   personCount: number;
   splitPeople: SplitPersonSlot[];
-  customAmounts: PersonAmount[];
   results: SplitResult[];
   splitDisplayRows: CustomerSplitRowDisplay[];
   lockedPersonNames: ReadonlySet<string>;
@@ -70,8 +62,6 @@ interface Props {
   guestName: (n: number) => string;
   editingSplitNameIndex: number | null;
   editingSplitNameValue: string;
-  editingCustomAmountIndex: number | null;
-  editingCustomAmountValue: string;
   onSplitModeClick: (mode: SplitMode) => void;
   /**
    * Individual-checkout session: one shared plan, so only「按菜分单」is offered and the
@@ -86,18 +76,9 @@ interface Props {
   onCommitInlineRename: (index: number) => void;
   onEditingSplitNameValueChange: (value: string) => void;
   onCancelInlineRename: () => void;
-  onStartInlineAmountEdit: (index: number) => void;
-  onCommitInlineAmountEdit: (index: number) => void;
-  onEditingCustomAmountValueChange: (index: number, value: string) => void;
-  onCancelInlineAmountEdit: () => void;
-  onAddCustomPerson: () => void;
-  /** Sole custom-roster remove (guest + staff). */
-  onRemoveCustomPerson: (index: number) => void;
-  /** Staff even/custom row collect. Guest omits this. */
+  /** Staff even row collect. Guest omits this. */
   staffRowActions?: {
     collectLabel: string;
-    /** Optional aria override for custom trash (staff “return to pool”). */
-    removeLabel?: string;
     busy: boolean;
     onCollect: (index: number) => void;
     /** Bill-level % — row € shows 折后; optional 折前 line when > 0. */
@@ -114,7 +95,7 @@ interface Props {
 
 /**
  * Inline rename opens focused with the name selected, so typing replaces it.
- * Stable module ref → runs once on mount (sync in the add-person click for iOS keyboard).
+ * Stable module ref → runs once on mount.
  */
 function focusAndSelectOnMount(input: HTMLInputElement | null) {
   if (!input) return;
@@ -130,7 +111,6 @@ export function BillSplitPanel({
   splitLocked,
   submitting,
   personCount,
-  customAmounts,
   results,
   splitDisplayRows,
   lockedPersonNames,
@@ -146,8 +126,6 @@ export function BillSplitPanel({
   guestName,
   editingSplitNameIndex,
   editingSplitNameValue,
-  editingCustomAmountIndex,
-  editingCustomAmountValue,
   onSplitModeClick,
   individualMode = false,
   onDecrementPersonCount,
@@ -158,38 +136,11 @@ export function BillSplitPanel({
   onCommitInlineRename,
   onEditingSplitNameValueChange,
   onCancelInlineRename,
-  onStartInlineAmountEdit,
-  onCommitInlineAmountEdit,
-  onEditingCustomAmountValueChange,
-  onCancelInlineAmountEdit,
-  onAddCustomPerson,
-  onRemoveCustomPerson,
   staffRowActions,
   byItemContent,
 }: Props) {
-  const customAmountInputRef = useRef<HTMLInputElement>(null);
-
-  /**
-   * Sole scroll path: only after the soft keyboard is open (helper no-ops otherwise).
-   * Do not scroll on mount / during open animation — that dismisses the iOS keyboard.
-   */
-  useEffect(() => {
-    if (editingCustomAmountIndex == null) return;
-    const el = customAmountInputRef.current;
-    if (!el) return;
-    const run = () =>
-      scrollElementIntoVisualViewport(el, { behavior: 'instant' });
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', run);
-    vv?.addEventListener('scroll', run);
-    return () => {
-      vv?.removeEventListener('resize', run);
-      vv?.removeEventListener('scroll', run);
-    };
-  }, [editingCustomAmountIndex]);
-
   const selectedWhen =
-    splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom'
+    splitMode === 'even' || splitMode === 'by_item'
       ? splitGuidance.modes[splitMode].when
       : null;
 
@@ -197,7 +148,7 @@ export function BillSplitPanel({
     <>
       <div className="px-4 py-4">
         <h2 className="text-brand-text font-medium mb-3">{copy.splitMode}</h2>
-        <div className={`grid gap-2 mb-4 ${individualMode ? 'grid-cols-1' : 'grid-cols-3'}`}>
+        <div className={`grid gap-2 mb-4 ${individualMode ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {GUEST_SPLIT_MODE_ORDER.filter((mode) => !individualMode || mode === 'by_item').map((mode) => (
             <button
               key={mode}
@@ -273,24 +224,18 @@ export function BillSplitPanel({
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           {results.map((r, i) => {
             const settlementRow = splitDisplayRows[i];
-            /** Rename / custom amount / remove lock — collection history by name. Not collect gate. */
+            /** Rename lock — collection history by name. Not collect gate. */
             const nameLocked =
               splitLocked && lockedPersonNames.has(r.name.trim().toLowerCase());
-            /** Even/custom 收款: sole gate is per-index settlement outstanding (not name lock). */
+            /** Even 收款: sole gate is per-index settlement outstanding (not name lock). */
             const canCollectShare =
               settlementRow != null && isSplitSettlementPending(settlementRow);
-            const canRemoveCustom =
-              splitMode === 'custom'
-              && !splitLocked
-              && customAmounts.length > 1
-              && !nameLocked;
             const showStaffCollect = Boolean(staffRowActions && canCollectShare);
             const showSettlement = settlementRow != null && splitRowShowsSettlement(settlementRow);
             const settledAmount = showSettlement && settlementRow
               ? splitSettlementCollectAmount(settlementRow)
               : null;
-            const preAmount =
-              splitMode === 'custom' ? customAmounts[i]?.amount ?? r.amount : r.amount;
+            const preAmount = r.amount;
             const discountRate = staffRowActions?.discountRate ?? 0;
             const allocated =
               settledAmount != null
@@ -322,7 +267,7 @@ export function BillSplitPanel({
                 className="flex items-center justify-between px-4 py-3 border-b border-brand-border last:border-0 gap-3"
               >
                 <div className="min-w-0 flex-1">
-                  {splitMode && (splitMode === 'even' || splitMode === 'by_item' || splitMode === 'custom') ? (
+                  {splitMode && (splitMode === 'even' || splitMode === 'by_item') ? (
                     editingSplitNameIndex === i ? (
                       <input
                         type="text"
@@ -369,88 +314,21 @@ export function BillSplitPanel({
                     <span className="text-brand-text text-sm">{localizeSplitPersonName(r.name, lang)}</span>
                   )}
                 </div>
-                {splitMode === 'custom' ? (
-                  editingCustomAmountIndex === i ? (
-                    <div className="inline-flex items-baseline gap-0.5 text-brand-gold font-medium text-sm shrink-0">
-                      <span aria-hidden>€</span>
-                      <input
-                        ref={customAmountInputRef}
-                        type="text"
-                        inputMode="decimal"
-                        enterKeyHint="done"
-                        autoFocus
-                        value={editingCustomAmountValue}
-                        onChange={(e) =>
-                          onEditingCustomAmountValueChange(i, normalizeAmountInput(e.target.value))
-                        }
-                        onBlur={() => onCommitInlineAmountEdit(i)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            onCommitInlineAmountEdit(i);
-                          }
-                          if (e.key === 'Escape') {
-                            onCancelInlineAmountEdit();
-                          }
-                        }}
-                        className={customerInlineAmountInputClass}
-                        placeholder="0.00"
-                      />
-                    </div>
-                  ) : nameLocked || splitLocked ? (
-                    amountBlock
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onStartInlineAmountEdit(i)}
-                      className="text-brand-gold font-medium hover:text-brand-gold-light transition-colors shrink-0 text-right"
-                    >
-                      {amountBlock}
-                    </button>
-                  )
-                ) : (
-                  amountBlock
-                )}
-                {canRemoveCustom || showStaffCollect ? (
-                  <div className="flex shrink-0 items-center gap-1">
-                    {canRemoveCustom ? (
-                      <button
-                        type="button"
-                        aria-label={staffRowActions?.removeLabel ?? copy.removePerson}
-                        disabled={staffRowActions?.busy}
-                        onClick={() => onRemoveCustomPerson(i)}
-                        className="rounded p-1 text-brand-text-muted hover:text-red-600 disabled:opacity-40"
-                      >
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                          <path d="M4 7h16M9 7V5h6v2M8 7l1 13h6l1-13" />
-                        </svg>
-                      </button>
-                    ) : null}
-                    {showStaffCollect && staffRowActions ? (
-                      <button
-                        type="button"
-                        disabled={staffRowActions.busy}
-                        onClick={() => staffRowActions.onCollect(i)}
-                        className="text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
-                      >
-                        {staffRowActions.collectLabel}
-                      </button>
-                    ) : null}
-                  </div>
+                {amountBlock}
+                {showStaffCollect && staffRowActions ? (
+                  <button
+                    type="button"
+                    disabled={staffRowActions.busy}
+                    onClick={() => staffRowActions.onCollect(i)}
+                    className="shrink-0 text-sm font-semibold px-3 py-1.5 rounded-lg bg-brand-gold text-white disabled:opacity-50"
+                  >
+                    {staffRowActions.collectLabel}
+                  </button>
                 ) : null}
               </div>
             );
           })}
         </div>
-        {splitMode === 'custom' && !splitLocked ? (
-          <button
-            type="button"
-            onClick={onAddCustomPerson}
-            className="mt-3 w-full text-brand-text-muted text-sm py-2 border border-dashed border-brand-border rounded-xl hover:border-brand-gold/50 transition-colors"
-          >
-            + {copy.addPerson}
-          </button>
-        ) : null}
       </div>
 
       {splitValidationMessage ? (

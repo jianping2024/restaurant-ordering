@@ -264,7 +264,7 @@ export async function submitCheckoutRequestForTable(
 /**
  * Staff floor「呼叫结账」sole entry:
  * active preserved split → reopen same plan; none → mint whole_table.
- * Do not POST whole_table beside a live by_item/even/custom plan.
+ * Do not POST whole_table beside a live by_item/even plan.
  */
 export async function ensureStaffCheckoutEntryForTable(
   admin: SupabaseClient,

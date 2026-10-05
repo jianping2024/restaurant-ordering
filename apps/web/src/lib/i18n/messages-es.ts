@@ -1437,7 +1437,6 @@ export const MESSAGES_ES = {
     "chargeableHint": "Por encima de la cantidad incluida: {qty} × {price} €",
     "splitMode": "Modo de división",
     "people": "Personas",
-    "addPerson": "Añadir persona",
     "removePerson": "Eliminar persona",
     "splitResult": "Resultado de la división",
     "splitPaid": "Pagado",

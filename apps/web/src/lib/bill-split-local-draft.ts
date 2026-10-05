@@ -4,16 +4,11 @@ import type { BillSplitByItemEditor } from '@/lib/use-bill-split-draft';
 import type { BillSplit, SplitMode } from '@/types';
 
 const KEY_PREFIX = 'mesa:bill-split-draft:';
-const DRAFT_VERSION = 1 as const;
+const DRAFT_VERSION = 2 as const;
 
 export type BillSplitLocalDraftPerson = {
   id: string;
   name: string;
-};
-
-export type BillSplitLocalDraftAmount = {
-  name: string;
-  amount: number;
 };
 
 export type BillSplitLocalDraft = {
@@ -21,7 +16,6 @@ export type BillSplitLocalDraft = {
   splitMode: SplitMode | null;
   personCount: number;
   splitPeople: BillSplitLocalDraftPerson[];
-  customAmounts: BillSplitLocalDraftAmount[];
   byItemAllocations: Record<string, ByItemConsumerRow[]>;
   updatedAt: number;
 };
@@ -53,7 +47,7 @@ export function mayPersistBillSplitLocalDraft(params: {
 }
 
 function isSplitMode(value: unknown): value is SplitMode | null {
-  return value === null || value === 'even' || value === 'by_item' || value === 'custom';
+  return value === null || value === 'even' || value === 'by_item';
 }
 
 function isConsumerRow(value: unknown): value is ByItemConsumerRow {
@@ -78,7 +72,7 @@ export function parseBillSplitLocalDraft(raw: string): BillSplitLocalDraft | nul
     if (draft.v !== DRAFT_VERSION) return null;
     if (!isSplitMode(draft.splitMode)) return null;
     if (typeof draft.personCount !== 'number' || !Number.isFinite(draft.personCount)) return null;
-    if (!Array.isArray(draft.splitPeople) || !Array.isArray(draft.customAmounts)) return null;
+    if (!Array.isArray(draft.splitPeople)) return null;
     if (!draft.byItemAllocations || typeof draft.byItemAllocations !== 'object') return null;
     if (typeof draft.updatedAt !== 'number' || !Number.isFinite(draft.updatedAt)) return null;
 
@@ -90,16 +84,6 @@ export function parseBillSplitLocalDraft(raw: string): BillSplitLocalDraft | nul
       splitPeople.push({ id: row.id, name: row.name });
     }
 
-    const customAmounts: BillSplitLocalDraftAmount[] = [];
-    for (const person of draft.customAmounts) {
-      if (!person || typeof person !== 'object') return null;
-      const row = person as Record<string, unknown>;
-      if (typeof row.name !== 'string' || typeof row.amount !== 'number' || !Number.isFinite(row.amount)) {
-        return null;
-      }
-      customAmounts.push({ name: row.name, amount: row.amount });
-    }
-
     const byItemAllocations: Record<string, ByItemConsumerRow[]> = {};
     for (const [key, rows] of Object.entries(draft.byItemAllocations as Record<string, unknown>)) {
       if (!Array.isArray(rows) || !rows.every(isConsumerRow)) return null;
@@ -108,16 +92,13 @@ export function parseBillSplitLocalDraft(raw: string): BillSplitLocalDraft | nul
 
     const personCount =
       draft.splitMode === 'even'
-        ? splitDraftPersonCount('even', draft.personCount)
-        : draft.splitMode === 'custom'
-          ? splitDraftPersonCount('custom', draft.personCount)
-          : Math.min(20, Math.max(1, Math.round(draft.personCount)));
+        ? splitDraftPersonCount(draft.personCount)
+        : Math.min(20, Math.max(1, Math.round(draft.personCount)));
     return {
       v: DRAFT_VERSION,
       splitMode: draft.splitMode,
       personCount,
       splitPeople,
-      customAmounts,
       byItemAllocations,
       updatedAt: draft.updatedAt,
     };

@@ -105,7 +105,7 @@ describe('buildCustomerSplitDisplayRows', () => {
     assert.equal(rows[0]?.settlementStatus, 'settled');
   });
 
-  it('keeps zero-obligation custom row due when ledger is empty', () => {
+  it('keeps zero-obligation row due when ledger is empty', () => {
     const rows = buildCustomerSplitDisplayRows(
       [
         { name: '客人 1', amount: 0 },
